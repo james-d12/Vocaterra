@@ -498,7 +498,9 @@ public abstract partial class GuideSession : IDisposable
     /// The player starts talking to an NPC (S6). The NPC opens with a core host turn when its state has one (the shopkeeper's "¿Qué necesitas?",
     /// the villager's "Hola.", the guide's transfer offer), and with its prompt's text otherwise; the guide may instead open with her review
     /// question (<see cref="BeginTalk"/>, returned in <see cref="Review"/>). What the opening's host events mean in the world is applied here
-    /// (the shopkeeper's second visit hands over the bottle). Later typed and spoken lines go to this NPC until <see cref="EndTalk"/>.
+    /// (the shopkeeper's second visit hands over the bottle). When the player carries the goods of the NPC's order (VILLAGE_PLAN V03), the opening is its
+    /// thanks instead: the goods are taken, its reward given and <see cref="WorldEvents.OrderDelivered"/> logged. Later typed and spoken lines go to this NPC until
+    /// <see cref="EndTalk"/>.
     /// </summary>
     /// <param name="npc">The NPC's agent id.</param>
     /// <param name="teachKeyWords">
@@ -728,6 +730,7 @@ public abstract partial class GuideSession : IDisposable
     private NpcOpening OpenNow(string npc, bool logOpened)
     {
         NpcOpening opening;
+        string? order = null;
         if (PendingTurns > 0)
         {
             // A turn is still on the worker (the player closed the panel while it thought): the NPC's state is about to change, so no host turn now.
@@ -735,7 +738,8 @@ public abstract partial class GuideSession : IDisposable
         }
         else
         {
-            opening = _npcs.Open(npc, ObjectiveComplete, StoredTime, StateDigest());
+            order = OrderReadyAt(npc); // the player walked up with an order's goods (VILLAGE_PLAN V03): nothing is gated behind speech, the NPC thanks them at once
+            opening = _npcs.Open(npc, ObjectiveComplete, StoredTime, StateDigest(), order is null ? null : NpcHostEvents.Of(npc, NpcHostEvents.Delivered));
             if (string.Equals(npc, NpcService.GuideAgent, StringComparison.Ordinal) && !opening.HostTurn
                 && !string.Equals(_npcs.GuideState.StateId, "offering", StringComparison.Ordinal))
             {
@@ -748,11 +752,13 @@ public abstract partial class GuideSession : IDisposable
                     _ = BeginTalk();
                 }
             }
-            else if (!string.Equals(npc, NpcService.GuideAgent, StringComparison.Ordinal) && Lessons.OwnsConversation(npc))
+            else if (!string.Equals(npc, NpcService.GuideAgent, StringComparison.Ordinal) && Lessons.OwnsConversation(npc) && !opening.Delivered)
             {
                 opening = opening with { Lines = [] }; // the villager's or the shopkeeper's lesson speaks first (S26): the host turn's state change stays, its line is not said
             }
         }
+
+        var delivered = opening.Delivered ? order : null;
 
         if (opening.Lines.Count > 0)
         {
@@ -764,13 +770,23 @@ public abstract partial class GuideSession : IDisposable
             Log(new WorldEvent(Tick, StoredTime.UnixSeconds, WorldEvents.TalkOpened, npc, opening.HostTurn ? "host_turn" : null));
         }
 
+        if (delivered is not null)
+        {
+            TakeOrder(npc, delivered); // the goods go before the reward comes in
+        }
+
         if (opening.HostEvents.Count > 0)
         {
-            ApplyHostEvents(npc, opening.HostEvents, opening.FailForward ? "fail_forward" : "offer", SlotMap.Empty);
+            ApplyHostEvents(npc, opening.HostEvents, opening.FailForward ? "fail_forward" : delivered is not null ? "order" : "offer", SlotMap.Empty);
             if (opening.FailForward)
             {
                 Log(new PhraseUse(Tick, StoredTime.UnixSeconds, PhraseIds.RequestWater, PhraseUseKind.FailForward, npc, NpcService.StallNeedPrompt, string.Empty, "second visit"));
             }
+        }
+
+        if (delivered is not null)
+        {
+            Log(new WorldEvent(Tick, StoredTime.UnixSeconds, WorldEvents.OrderDelivered, npc, delivered)); // the order's one step waits for it
         }
 
         if (opening.HostTurn && opening.HostEvents.Contains(NpcHostEvents.GuideOffered, StringComparer.Ordinal))
@@ -1152,6 +1168,20 @@ public abstract partial class GuideSession : IDisposable
             Lessons.OnEvent(world); // a lesson's do step waits for a world event (S16)
             OnWorldEvent(world);
         }
+    }
+
+    /// <summary>
+    /// The order of an NPC whose goods the player carries now (VILLAGE_PLAN V03: an objective with <c>deliverTo</c> that is shown and not done), or
+    /// <see langword="null"/>. The talk then opens with the NPC's thanks (<c>&lt;npc&gt;.delivered</c>). The 3D scene has the objectives; the base game has none.
+    /// </summary>
+    /// <param name="npc">The NPC the panel opens on.</param>
+    protected virtual string? OrderReadyAt(string npc) => null;
+
+    /// <summary>The NPC thanked the player for an order (its opening was <c>&lt;npc&gt;.delivered</c>): the goods leave the inventory. The 3D scene does it.</summary>
+    /// <param name="npc">The NPC.</param>
+    /// <param name="order">The order's objective id (<see cref="OrderReadyAt"/>).</param>
+    protected virtual void TakeOrder(string npc, string order)
+    {
     }
 
     /// <summary>A world event was logged (after the tips and the lessons saw it): the 3D session counts it for its objectives (C07).</summary>

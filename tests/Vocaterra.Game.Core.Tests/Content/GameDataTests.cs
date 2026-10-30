@@ -16,7 +16,7 @@ public sealed class GameDataTests
         var data = GameData.Load(TestGame.Bundle, TestGame.Locale);
 
         Assert.Empty(GameDataValidator.Validate(data));
-        Assert.Equal(19, data.Nouns.Nouns.Count);
+        Assert.Equal(22, data.Nouns.Nouns.Count); // V03 added moneda, manzana and hacha
         Assert.Equal(46, data.Phrases.Rows.Count);
         Assert.Equal(31, data.Checks.Count);
         Assert.Equal(3, data.Lessons.Lessons.Count);

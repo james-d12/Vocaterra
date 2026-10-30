@@ -175,7 +175,7 @@ public sealed class NpcRosterTests
         Assert.Equal(ItemId.Bottle, HostEventTable.Parse(json).Of("shopkeeper", "stall.give_water").Item);
         Assert.Equal(NpcEffectKind.None, HostEventTable.Parse(json).Of("shopkeeper", "shopkeeper.ask").Kind);
 
-        Assert.Contains("is not one of give_item, point_at_noun, point_at_place, point_at_slot", Refused(HostEvents(events => Entry(events, "stall.give_water")["action"]!["kind"] = "dance")), StringComparison.Ordinal);
+        Assert.Contains("is not one of give_item, point_at_noun, point_at_place, point_at_slot, take_item, sell", Refused(HostEvents(events => Entry(events, "stall.give_water")["action"]!["kind"] = "dance")), StringComparison.Ordinal);
         Assert.Contains("unknown item 'botella'", Refused(HostEvents(events => Entry(events, "stall.give_water")["action"]!["item"] = "botella")), StringComparison.Ordinal);
         Assert.Contains("given twice", Refused(HostEvents(events => Entry(events, "stall.give_bread")["event"] = "stall.give_water")), StringComparison.Ordinal);
 

@@ -133,6 +133,23 @@ public sealed class HostActionTests
         Assert.Empty(WorldEventsOf(session, WorldEvents.ItemGiven)); // nothing is lost: the NPC keeps it
     }
 
+    [Fact]
+    public void TakeItemTakesThemAllOrNothing()
+    {
+        // VILLAGE_PLAN V03: an NPC takes items (here the villager's villager.give, mapped to take two wood); a player with fewer keeps what they have.
+        var session = AtVillager(WithVillagerGive(new JsonObject { ["kind"] = "take_item", ["item"] = "wood", ["count"] = 2 }));
+        _ = session.Simulation.GrantItems(ItemId.Wood, 3);
+
+        _ = session.Say("quiero pan, por favor");
+        Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Wood));
+        var taken = Assert.Single(WorldEventsOf(session, WorldEvents.ItemTaken));
+        Assert.Equal(("villager", "madera, request"), (taken.Npc, taken.Detail));
+
+        _ = session.Say("quiero pan, por favor"); // one left: nothing is taken
+        Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Wood));
+        Assert.Single(WorldEventsOf(session, WorldEvents.ItemTaken));
+    }
+
     // The bundle's content with the villager's villager.give mapped to another action.
     private static GameData WithVillagerGive(JsonObject action)
     {

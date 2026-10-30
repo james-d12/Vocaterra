@@ -45,6 +45,18 @@ public static class WorldEvents
     /// <summary>The detail of <see cref="PlaceAsked"/> when the place is not one of the scene's and not a catalogue noun of the world.</summary>
     public const string UnknownPlace = "unknown";
 
+    /// <summary>
+    /// An NPC took items from the inventory (VILLAGE_PLAN V03: <c>take_item</c>, the coins of a purchase, the goods of an order; the detail is the item's noun and how:
+    /// <c>moneda, request</c>, <c>madera, order</c>). An objective counting it counts every item taken.
+    /// </summary>
+    public const string ItemTaken = "item_taken";
+
+    /// <summary>
+    /// The player brought an NPC the goods of an order (VILLAGE_PLAN V03, an objective with <c>deliverTo</c>): the NPC took them and said its thanks. The NPC is the
+    /// one who ordered; the detail is the objective's id, whose one step waits for it.
+    /// </summary>
+    public const string OrderDelivered = "order_delivered";
+
     /// <summary>The player filled the bottle at the river.</summary>
     public const string BottleFilled = "bottle_filled";
 
@@ -128,6 +140,6 @@ public static class WorldEvents
         KeyWordsShown, PhraseReviewAsked, SupportCardShown, ItemPickedUp, TipShown, GuideMet, FireLit, SessionComplete, SpareTorch, SecondTryAsked, SecondTryAnswered,
         TorchAtRing,
         WarmupOffered, WarmupStarted, WarmupEnded, WarmupSkipped, ReviewSkipped, ReviewAnswered,
-        BeaconReached, PlaceAsked,
+        BeaconReached, PlaceAsked, ItemTaken, OrderDelivered,
     ];
 }

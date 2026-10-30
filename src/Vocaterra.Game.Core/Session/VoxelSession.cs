@@ -95,8 +95,11 @@ public sealed class VoxelSession : GuideSession
     /// <summary>The camp checklist: the session's first checklist objective (gathering, the torch at the fire ring, the water).</summary>
     public Objective Objective { get; }
 
-    /// <summary>The first objective in the HUD's order that is not done, or <see langword="null"/> when every one is (the session is complete). It gates nothing.</summary>
-    public Objective? CurrentObjective => Objectives.FirstOrDefault(static o => !o.Complete);
+    /// <summary>
+    /// The first objective in the HUD's order that is not done and is shown in this play session (an order of a later session is hidden, VILLAGE_PLAN V03), or
+    /// <see langword="null"/> when every one is done. It gates nothing.
+    /// </summary>
+    public Objective? CurrentObjective => Objectives.FirstOrDefault(o => !o.Complete && o.Spec.ShownIn(PlaySession));
 
     /// <summary>The step a save names (<c>camp.wood</c>), or <see langword="null"/> for a key the session's objectives do not have.</summary>
     /// <param name="key">The step's save key, <c>&lt;objective&gt;.&lt;step&gt;</c>.</param>
@@ -172,9 +175,9 @@ public sealed class VoxelSession : GuideSession
         }
 
         var current = CurrentObjective;
-        if ((current is null || current == Objectives[0]) && Lessons.NewLesson is { Objective: { } objective })
+        if ((current is null || current == Objectives[0] || current.Spec.IsOrder) && Lessons.NewLesson is { Objective: { } objective })
         {
-            return [new ObjectivePiece(objective, ObjectivePieceKind.Support)]; // a new session's lesson is unlocked and not begun (S26): before the first objective is done, or after the last
+            return [new ObjectivePiece(objective, ObjectivePieceKind.Support)]; // a new session's lesson is unlocked and not begun (S26): before the first objective is done, after the last, or over an order (V03)
         }
 
         return current switch
@@ -191,7 +194,10 @@ public sealed class VoxelSession : GuideSession
     /// <summary>Whether a torch stands on the rim of the fire ring at the player's own camp (<c>firering.player</c>): the fire is lit.</summary>
     public bool FireLit => _fireLit;
 
-    /// <summary>Whether the session is complete: the camp checklist is done and the player's own fire is lit. The front-end then shows the closing moment.</summary>
+    /// <summary>
+    /// Whether the session is complete: the camp checklist is done and the player's own fire is lit (every objective the ending waits for, <see cref="ObjectiveSpec.EndsSession"/>:
+    /// not the orders, VILLAGE_PLAN V03). The front-end then shows the closing moment.
+    /// </summary>
     public bool SessionComplete => _sessionComplete;
 
     /// <summary>The scene's name for the fire ring at the guide's camp, where the checklist's torch goes (S5).</summary>
@@ -474,7 +480,7 @@ public sealed class VoxelSession : GuideSession
             }
         }
 
-        _sessionComplete = Objectives.All(static o => o.Complete);
+        _sessionComplete = Objectives.Where(static o => o.Spec.EndsSession).All(static o => o.Complete);
     }
 
     // A restore hook: whether its step is done in the loaded world (ObjectiveBook.RestoreHooks).
@@ -577,7 +583,7 @@ public sealed class VoxelSession : GuideSession
 
     private void CheckSessionComplete()
     {
-        if (_sessionComplete || !Objectives.All(static o => o.Complete))
+        if (_sessionComplete || !Objectives.Where(static o => o.Spec.EndsSession).All(static o => o.Complete))
         {
             return;
         }
@@ -624,24 +630,44 @@ public sealed class VoxelSession : GuideSession
                 case NpcEffectKind.PointAtSlot:
                     PointAtSlot(npc, slots.TryGetValue(effect.Slot, out var word) ? word : null);
                     break;
+                case NpcEffectKind.TakeItem:
+                    Take(npc, effect.Item, effect.CountFor(slots), how);
+                    break;
+                case NpcEffectKind.Sell:
+                    Sell(npc, effect.Item, effect.CountFor(slots), effect.CostFor(slots), how);
+                    break;
                 default:
                     break;
             }
         }
     }
 
+    /// <inheritdoc />
+    protected override string? OrderReadyAt(string npc) =>
+        Objectives.FirstOrDefault(o => o.Spec.IsOrder && !o.Complete && o.Spec.ShownIn(PlaySession) && string.Equals(o.Spec.DeliverTo, npc, StringComparison.Ordinal)
+            && o.Spec.Goods.All(goods => Simulation.Inventory.Count(goods.Item) >= goods.Count))?.Id;
+
+    /// <inheritdoc />
+    protected override void TakeOrder(string npc, string order)
+    {
+        foreach (var goods in Objectives.First(o => string.Equals(o.Id, order, StringComparison.Ordinal)).Spec.Goods)
+        {
+            Take(npc, goods.Item, goods.Count, "order");
+        }
+    }
+
+    // Whether an NPC can put items in the inventory: all of them fit, and a bottle goes only to a player who holds none, empty or full (the stall's rule, S6).
+    private bool CanGive(ItemId item, int count) =>
+        !(item == ItemId.Bottle && Simulation.Inventory.Count(ItemId.Bottle) + Simulation.Inventory.Count(ItemId.WaterBottle) > 0)
+        && Simulation.Inventory.CanAdd(item, count);
+
     // An NPC puts items in the inventory, all of them or none (a pickup the player did not make: the word card shows the first time). The bottle is handed over
-    // once, whatever the count: a player who holds a bottle, empty or full, is not given a second one.
+    // once, whatever the count.
     private void Give(string npc, ItemId item, int count, string how)
     {
-        if (item == ItemId.Bottle && Simulation.Inventory.Count(ItemId.Bottle) + Simulation.Inventory.Count(ItemId.WaterBottle) > 0)
+        if (!CanGive(item, count))
         {
-            return;
-        }
-
-        if (!Simulation.Inventory.CanAdd(item, count))
-        {
-            return; // the inventory is full: nothing is lost, the NPC keeps them
+            return; // a bottle held already, or the inventory is full: nothing is lost, the NPC keeps them
         }
 
         _ = Simulation.GrantItems(item, count);
@@ -649,6 +675,32 @@ public sealed class VoxelSession : GuideSession
         _eventAmount = count; // an objective counting what was given counts every item, as a pickup's
         LogWorld(WorldEvents.ItemGiven, npc, $"{Nouns.ForItem(item)?.Lemma ?? ItemDefinition.Get(item).Name}, {how}");
         _eventAmount = 1;
+    }
+
+    // An NPC takes items (VILLAGE_PLAN V03: take_item, the goods of an order), all of them or none: a player who has fewer keeps what they have.
+    private void Take(string npc, ItemId item, int count, string how)
+    {
+        if (!Simulation.TakeItems(item, count))
+        {
+            return;
+        }
+
+        _eventAmount = count; // an objective counting what was taken counts every item
+        LogWorld(WorldEvents.ItemTaken, npc, $"{Nouns.ForItem(item)?.Lemma ?? ItemDefinition.Get(item).Name}, {how}");
+        _eventAmount = 1;
+    }
+
+    // A purchase (VILLAGE_PLAN V03, sell): the coins for the items asked for go and the items come, or nothing changes hands. Too few coins (the NPC answered
+    // cant_pay on the worker) or no room for the items keep the coins and the items where they were, as the stall's bottle rule keeps a second bottle.
+    private void Sell(string npc, ItemId item, int count, int cost, string how)
+    {
+        if (Simulation.Inventory.Count(ItemId.Coin) < cost || !CanGive(item, count))
+        {
+            return;
+        }
+
+        Take(npc, ItemId.Coin, cost, how);
+        Give(npc, item, count, how);
     }
 
     // The beacon goes to a named place of the scene (VILLAGE_PLAN V02): a host event's point_at_place, or a lesson's do step with a pointPlace. It shows the place's label.
@@ -714,11 +766,12 @@ public sealed class VoxelSession : GuideSession
         }
     }
 
-    // Counts a world event for every objective not yet done (C07). A checklist's completed steps wait for FlushObjectives, which logs them after the tick's events; an
-    // objective that is no checklist is completed at once (the fire is lit, the guide is met), so its effects follow its event in the log.
+    // Counts a world event for every objective not yet done that is shown in this play session (C07; an order of a later session counts nothing yet, V03). A
+    // checklist's completed steps wait for FlushObjectives, which logs them after the tick's events; an objective that is no checklist is completed at once (the fire
+    // is lit, the guide is met, an order is delivered), so its effects follow its event in the log.
     private void RecordObjectives(WorldEvent world)
     {
-        foreach (var objective in Objectives.Where(static o => !o.Complete))
+        foreach (var objective in Objectives.Where(o => !o.Complete && o.Spec.ShownIn(PlaySession)))
         {
             var done = objective.Record(world, _eventAmount);
             if (objective.IsChecklist)

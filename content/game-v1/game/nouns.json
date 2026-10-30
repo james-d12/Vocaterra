@@ -21,6 +21,9 @@
     { "lemma": "fruta", "items": ["berry"], "blocks": ["berry-bush"] },
     { "lemma": "botella", "items": ["bottle"], "blocks": [] },
     { "lemma": "pan", "items": ["bread"], "blocks": [] },
-    { "lemma": "libro", "items": ["book"], "blocks": [] }
+    { "lemma": "libro", "items": ["book"], "blocks": [] },
+    { "lemma": "moneda", "items": ["coin"], "blocks": [] },
+    { "lemma": "manzana", "items": ["apple"], "blocks": [] },
+    { "lemma": "hacha", "items": ["axe"], "blocks": [] }
   ]
 }

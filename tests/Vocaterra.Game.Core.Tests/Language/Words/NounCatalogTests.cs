@@ -32,6 +32,9 @@ public sealed class NounCatalogTests
     [InlineData("agua", "el", "un")]
     [InlineData("botella", "la", "una")]
     [InlineData("pan", "el", "un")]
+    [InlineData("moneda", "la", "una")] // V03
+    [InlineData("manzana", "la", "una")]
+    [InlineData("hacha", "el", "un")] // feminine, with a stressed a: el hacha, as el agua
     public void TheArticlesComeFromTheLexicon(string lemma, string definite, string indefinite)
     {
         var noun = TestGame.Nouns.ForLemma(lemma);
@@ -112,12 +115,12 @@ public sealed class NounCatalogTests
     [Fact]
     public void TheCatalogueHoldsOnlyTheNounsOfThe3DWorld()
     {
-        // The 2D nouns (the ores, the tools, the furniture and the flowers) are gone with the 2D slice (S4).
-        foreach (var lemma in new[] { "carbón", "hierro", "hacha", "silla", "horno", "flor", "seta" })
+        // The 2D nouns (the ores, the tools, the furniture and the flowers) are gone with the 2D slice (S4); the axe came back as the smith's (V03).
+        foreach (var lemma in new[] { "carbón", "hierro", "silla", "horno", "flor", "seta" })
         {
             Assert.Null(TestGame.Nouns.ForLemma(lemma));
         }
 
-        Assert.Equal(19, TestGame.Nouns.Nouns.Count); // the 16 of S4, since S6 botella and pan, and since S20 libro (the book item)
+        Assert.Equal(22, TestGame.Nouns.Nouns.Count); // the 16 of S4, since S6 botella and pan, since S20 libro (the book item), since V03 moneda, manzana and hacha
     }
 }

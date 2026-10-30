@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "game/host-events.json",
-  "description": "What each NPC host event does in the world (C08; schema 2 since VILLAGE_PLAN V02: a count on give_item, point_at_place and point_at_slot). Loaded by HostEventTable (Vocaterra.Game.Core).",
+  "description": "What each NPC host event does in the world (C08; schema 2 since VILLAGE_PLAN V02: a count on give_item, point_at_place and point_at_slot; V03: take_item and sell). Loaded by HostEventTable (Vocaterra.Game.Core).",
   "type": "object",
   "required": [
     "schemaVersion",
@@ -17,7 +17,10 @@
         "bottle",
         "water-bottle",
         "bread",
-        "book"
+        "book",
+        "coin",
+        "apple",
+        "axe"
       ],
       "description": "An item by the name the save gives it (ItemDefinition)."
     },
@@ -151,6 +154,53 @@
                   }
                 },
                 "description": "The beacon goes to the place the verdict's slot names (place): a label of the scene, else the nearest block of a catalogue noun; neither raises <npc>.unknown_place to the agent as a host turn."
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "item"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "take_item"
+                    ]
+                  },
+                  "item": {
+                    "$ref": "#/definitions/item"
+                  },
+                  "count": {
+                    "$ref": "#/definitions/count"
+                  }
+                },
+                "description": "The NPC takes items from the inventory, all of them or none (V03)."
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "item",
+                  "price"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "sell"
+                    ]
+                  },
+                  "item": {
+                    "$ref": "#/definitions/item"
+                  },
+                  "price": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Coins for one item."
+                  }
+                },
+                "description": "The NPC sells as many of the item as the learner asked for (the verdict's qty, 1 to 5) for that many times the price in coins; with too few coins nothing changes hands and <npc>.cant_pay is raised to the agent as a host turn (V03)."
               }
             ]
           }

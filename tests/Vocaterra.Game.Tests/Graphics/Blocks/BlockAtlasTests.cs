@@ -163,6 +163,10 @@ public sealed class BlockAtlasTests
         Assert.Equal(BlockCell.IconBottle, BlockAtlasLayout.IconFor(ItemId.Bottle));
         Assert.Equal(BlockCell.IconWaterBottle, BlockAtlasLayout.IconFor(ItemId.WaterBottle));
         Assert.Equal(BlockCell.IconBread, BlockAtlasLayout.IconFor(ItemId.Bread));
+        Assert.Equal(BlockCell.Lantern, BlockAtlasLayout.IconFor(ItemId.Coin)); // V03: placeholders from existing art until V05 draws the coin, the apple and the axe
+        Assert.Equal(BlockCell.Apples, BlockAtlasLayout.IconFor(ItemId.Apple));
+        Assert.Equal(BlockCell.TableSide, BlockAtlasLayout.IconFor(ItemId.Axe));
+        Assert.All(ItemDefinition.All, static d => Assert.NotNull(BlockAtlasLayout.IconFor(d.Id))); // every item draws something in the hotbar
         Assert.Null(BlockAtlasLayout.IconFor((ItemId)999));
     }
 

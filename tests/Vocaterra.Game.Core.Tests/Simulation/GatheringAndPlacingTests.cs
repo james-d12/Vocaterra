@@ -51,6 +51,44 @@ public sealed class GatheringAndPlacingTests
         Assert.Equal(sim.Tick, picked.Tick);
     }
 
+    [Theory]
+    [InlineData(BlockId.Trunk)]
+    [InlineData(BlockId.SpruceTrunk)]
+    [InlineData(BlockId.BirchTrunk)]
+    public void TheAxeHeldCutsATrunkInAQuarterOfTheTicks(BlockId trunk)
+    {
+        // VILLAGE_PLAN V03: the smith's axe, held (the selected hotbar slot), makes a trunk 15 ticks instead of 60; in the bag it does nothing.
+        var sim = WithBlock(trunk);
+        sim.Inventory.SetSlot(0, new ItemStack(ItemId.Axe, 1));
+        sim.Step([VoxelCommand.SelectSlot(0)]);
+        Assert.Equal(BlockDefinition.TrunkGatherTicks / VoxelSimulation.AxeSpeedUp, sim.GatherTicksOf(trunk));
+
+        Run(sim, 14, InteractAhead);
+        Assert.Equal(0, sim.Inventory.Count(ItemId.Wood));
+        Assert.Equal((14, 15), (sim.Events.Single().Detail, sim.Events.Single().Amount)); // the progress event carries the shorter total, for the bar
+        sim.Step([InteractAhead]);
+        Assert.Equal(1, sim.Inventory.Count(ItemId.Wood));
+        Assert.Equal(BlockId.Air, sim.Grid.GetBlock(Ahead.X, Ahead.Y, Ahead.Z));
+
+        var inTheBag = WithBlock(trunk);
+        inTheBag.Inventory.SetSlot(Inventory.HotbarSize, new ItemStack(ItemId.Axe, 1)); // carried, not held
+        Assert.Equal(BlockDefinition.TrunkGatherTicks, inTheBag.GatherTicksOf(trunk));
+        Run(inTheBag, 15, InteractAhead);
+        Assert.Equal(0, inTheBag.Inventory.Count(ItemId.Wood));
+    }
+
+    [Fact]
+    public void TheAxeDoesNotHurryWhatIsNoTrunk()
+    {
+        var sim = WithBlock(BlockId.BerryBush);
+        sim.Inventory.SetSlot(0, new ItemStack(ItemId.Axe, 1));
+        sim.Step([VoxelCommand.SelectSlot(0)]);
+
+        Assert.Equal(BlockDefinition.BerryBushGatherTicks, sim.GatherTicksOf(BlockId.BerryBush));
+        Run(sim, BlockDefinition.BerryBushGatherTicks - 1, InteractAhead);
+        Assert.Equal(0, sim.Inventory.Count(ItemId.Berry));
+    }
+
     [Fact]
     public void ReleasingOrSwitchingTargetsResetsTheProgress()
     {

@@ -28,7 +28,8 @@ namespace Vocaterra.Game.Core.Npc;
 /// <param name="HostTurn">Whether the lines came from a core host turn (otherwise they are the prompt's text).</param>
 /// <param name="HostEvents">The host events the host turn raised (<c>stall.give_water</c> for the fail-forward opening).</param>
 /// <param name="FailForward">Whether the opening handed over the bottle without a request (the shopkeeper's second visit).</param>
-public sealed record NpcOpening(string Npc, string Prompt, IReadOnlyList<string> Lines, bool HostTurn, IReadOnlyList<string> HostEvents, bool FailForward);
+/// <param name="Delivered">Whether the opening was the NPC's thanks for an order the player brought (VILLAGE_PLAN V03, <c>&lt;npc&gt;.delivered</c>).</param>
+public sealed record NpcOpening(string Npc, string Prompt, IReadOnlyList<string> Lines, bool HostTurn, IReadOnlyList<string> HostEvents, bool FailForward, bool Delivered = false);
 
 /// <summary>Where a line sent to an NPC came from, when it was not recognized from speech.</summary>
 public enum LineOrigin
@@ -105,8 +106,9 @@ public sealed class NpcCheckpoint
 /// behind language): when the stall's exchange ends without a request (the repair ladder gives up, the learner has asked for help and then fails
 /// again, or four lines in a row were no request) or the player walks away and comes back, the shopkeeper still hands over the bottle with the
 /// core's own line, as a host turn (<c>shopkeeper.give</c>) that is in the replay record. And when an event asks for what the world of the turn cannot do
-/// (VILLAGE_PLAN V02: directions to a place the scene does not have), the NPC does not say the line of that action and answers it with a host turn
-/// (<c>&lt;npc&gt;.unknown_place</c>); the session then does nothing in the world for it.
+/// (VILLAGE_PLAN V02: directions to a place the scene does not have; V03: a purchase the learner's coins do not cover), the NPC does not say the line of that
+/// action and answers it with a host turn (<c>&lt;npc&gt;.unknown_place</c>, <c>&lt;npc&gt;.cant_pay</c>); the session then does nothing in the world for it. The
+/// opening of a talk may also be the NPC's thanks for an order (<c>&lt;npc&gt;.delivered</c>, <see cref="Open"/>).
 /// </para>
 /// <para>
 /// <b>Threads.</b> The turn worker is the only thread that calls <see cref="Say(string, GuideScene, StoredTimestamp, string)"/> and the
@@ -375,11 +377,28 @@ public sealed partial class NpcService
     /// <param name="objectiveComplete">Whether the camp objective is complete (the guide then makes her transfer offer, once).</param>
     /// <param name="now">The stored time.</param>
     /// <param name="hostStateHash">The simulation's state digest.</param>
-    public NpcOpening Open(string npc, bool objectiveComplete, StoredTimestamp now, string hostStateHash)
+    /// <param name="delivered">
+    /// The host event of an order the player has brought the goods of (VILLAGE_PLAN V03, <c>&lt;npc&gt;.delivered</c>), or <see langword="null"/>: when the NPC's state
+    /// takes it, it is the opening instead of the NPC's own (<see cref="NpcOpening.Delivered"/>); when it does not, the talk opens as usual.
+    /// </param>
+    public NpcOpening Open(string npc, bool objectiveComplete, StoredTimestamp now, string hostStateHash, string? delivered = null)
     {
         ArgumentNullException.ThrowIfNull(hostStateHash);
         var agent = AgentOf(npc);
         agent.Visits++;
+        if (delivered is not null)
+        {
+            var before = agent.Context with { Now = now, HostStateHash = hostStateHash };
+            if (_typed.Advance(delivered, before) is { } thanks)
+            {
+                Record(new ReplayEntry(null, HostTurnEnvelope.From(thanks, before)));
+                agent.Context = before.Next(thanks, now) with { HostStateHash = hostStateHash };
+                var rewards = HostEventsOf(thanks.Agent.Actions);
+                Note(agent, delivered, rewards);
+                return new NpcOpening(npc, PromptFor(agent, false), thanks.Response.Lines.Select(static l => l.Text).ToList(), true, rewards, false, Delivered: true);
+            }
+        }
+
         var hostEvent = OpeningEvent(agent, objectiveComplete);
         if (hostEvent is not null)
         {
@@ -720,10 +739,10 @@ public sealed partial class NpcService
             origin == LineOrigin.Choice);
     }
 
-    // The host events of a turn that the world of the turn cannot carry out (VILLAGE_PLAN V02: directions to a place the scene does not have, judged on the turn's
-    // own copy of the world, as the guide's answers are). Each is answered by the NPC as a host turn, <npc>.unknown_place, whose lines follow the turn's and whose
-    // host events join it; the line of the action that raised the missed event is not said. Returns the pools of those unsaid lines. An agent with no transition
-    // for the answer says its line as before.
+    // The host events of a turn that the world of the turn cannot carry out, judged on the turn's own copy of the world, as the guide's answers are (VILLAGE_PLAN
+    // V02: directions to a place the scene does not have; V03: a purchase the coins the player carried do not cover). Each is answered by the NPC as a host turn,
+    // <npc>.unknown_place or <npc>.cant_pay, whose lines follow the turn's and whose host events join it; the line of the action that raised the missed event is
+    // not said. Returns the pools of those unsaid lines. An agent with no transition for the answer says its line as before.
     private List<string> AnswerMisses(
         Agent agent,
         PipelineResult result,
@@ -762,10 +781,12 @@ public sealed partial class NpcService
         return unsaid;
     }
 
-    // What the world of the turn cannot do of an action, as the host event its NPC answers (NpcHostEvents.UnknownPlace), or null when it can.
+    // What the world of the turn cannot do of an action, as the host event its NPC answers (NpcHostEvents.UnknownPlace, CantPay), or null when it can. The coins
+    // are the turn's copy of the inventory: a scene with none carries none.
     private string? Miss(NpcEffect effect, IReadOnlyDictionary<string, string> slots, GuideScene scene, IGuideFacts facts) => effect.Kind switch
     {
         NpcEffectKind.PointAtSlot when !slots.TryGetValue(effect.Slot, out var word) || _places.Resolve(word, scene.Player, facts) is null => NpcHostEvents.UnknownPlace,
+        NpcEffectKind.Sell when (scene.Inventory?.Count(ItemId.Coin) ?? 0) < effect.CostFor(slots) => NpcHostEvents.CantPay,
         _ => null,
     };
 

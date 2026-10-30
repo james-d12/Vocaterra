@@ -55,7 +55,25 @@ public sealed class HostEventTableTests
         Assert.Equal(NpcEffect.PointAt("río"), Read("""{ "kind": "point_at_noun", "noun": "río" }"""));
     }
 
+    [Fact]
+    public void TakeItemTakesACountAndSellChargesItsPriceForEachItemAsked()
+    {
+        Assert.Equal(NpcEffect.Take(ItemId.Wood, 2), Read("""{ "kind": "take_item", "item": "wood", "count": 2 }"""));
+        Assert.Equal(NpcEffect.Take(ItemId.Coin), Read("""{ "kind": "take_item", "item": "coin" }"""));
+        var sell = Read("""{ "kind": "sell", "item": "bread", "price": 2 }""");
+        Assert.Equal(NpcEffect.SellAt(ItemId.Bread, 2), sell);
+
+        Assert.Equal((1, 2), (sell.CountFor(Slots(("item", "pan"))), sell.CostFor(Slots(("item", "pan")))));
+        Assert.Equal((3, 6), (sell.CountFor(Slots(("qty", "3"))), sell.CostFor(Slots(("qty", "3")))));
+        Assert.Equal((5, 10), (sell.CountFor(Slots(("qty", "12"))), sell.CostFor(Slots(("qty", "12"))))); // capped at five
+        Assert.Equal(0, NpcEffect.Give(ItemId.Bread).CostFor(Slots(("qty", "3")))); // only a sale costs
+    }
+
     [Theory]
+    [InlineData("""{ "kind": "sell", "item": "bread" }""", "the price of villager's 'villager.do'")]
+    [InlineData("""{ "kind": "sell", "item": "bread", "price": 0 }""", "the price of villager's 'villager.do'")]
+    [InlineData("""{ "kind": "sell", "item": "queso", "price": 1 }""", "unknown item 'queso'")]
+    [InlineData("""{ "kind": "take_item", "item": "axe", "count": 2 }""", "the item's stack")] // the axe stacks one
     [InlineData("""{ "kind": "give_item", "item": "bread", "count": 0 }""", "the count of villager's 'villager.do'")]
     [InlineData("""{ "kind": "give_item", "item": "bread", "count": "two" }""", "the count of villager's 'villager.do'")]
     [InlineData("""{ "kind": "give_item", "item": "book", "count": 2 }""", "the item's stack")] // the book stacks one
@@ -68,13 +86,14 @@ public sealed class HostEventTableTests
     }
 
     [Fact]
-    public void APlaceTheSceneDoesNotHaveOrAnNpcThatCannotSayItDoesNotKnowOneIsAProblem()
+    public void APlaceTheSceneDoesNotHaveOrAnNpcThatCannotSayItDoesNotKnowOneOrCannotBePaidIsAProblem()
     {
         var root = JsonNode.Parse(System.IO.File.ReadAllText(Repo.Path("content", "game-v1", "game", "host-events.json")))!;
         var events = root["events"]!.AsArray();
         events.Add(Event("villager", "villager.go", new JsonObject { ["kind"] = "point_at_place", ["place"] = "bakery" }));
         events.Add(Event("villager", "villager.show", new JsonObject { ["kind"] = "point_at_place", ["place"] = "signpost" }));
         events.Add(Event("shopkeeper", "stall.point", new JsonObject { ["kind"] = "point_at_slot", ["slot"] = "place" }));
+        events.Add(Event("shopkeeper", "stall.sell", new JsonObject { ["kind"] = "sell", ["item"] = "bread", ["price"] = 2 }));
 
         var problems = GameDataValidator.Validate(TestGame.Data.WithHostEvents(HostEventTable.Parse(root.ToJsonString())));
 
@@ -82,6 +101,7 @@ public sealed class HostEventTableTests
         Assert.Contains(
             "game/host-events.json: shopkeeper's 'stall.point' points at the place the learner names, and no state of agents/shopkeeper.json takes 'shopkeeper.unknown_place' to say it does not know one.",
             problems);
+        Assert.Contains("game/host-events.json: shopkeeper's 'stall.sell' sells, and no state of agents/shopkeeper.json takes 'shopkeeper.cant_pay' to say the coins are too few.", problems);
         Assert.DoesNotContain(problems, static p => p.Contains("'villager.show'", StringComparison.Ordinal)); // a named prop is a point of the scene
         Assert.DoesNotContain(problems, static p => p.Contains("'villager.point'", StringComparison.Ordinal)); // the villager can say he does not know a place
 

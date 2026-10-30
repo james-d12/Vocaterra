@@ -9,7 +9,8 @@ namespace Vocaterra.Game.Core.Npc;
 /// What each NPC host event does in the world (CONTENT_PLAN 3.6, C08), read from <c>game/host-events.json</c>: the shopkeeper's <c>stall.give_water</c> gives the
 /// bottle, the villager's <c>villager.point</c> points the beacon at the place the learner asked for. The core's agents raise the host events; the game gives each
 /// one its action. An event the file does not map changes nothing. The field is <c>action</c>, because the core's <c>effects/effects.json</c> already says "effect"
-/// for another thing. Schema 2 (VILLAGE_PLAN V02) gave <c>give_item</c> a count and added the pointing at a place and at the place a slot names.
+/// for another thing. Schema 2 (VILLAGE_PLAN V02) gave <c>give_item</c> a count and added the pointing at a place and at the place a slot names; V03 added
+/// <c>take_item</c> and <c>sell</c>.
 /// </summary>
 public sealed class HostEventTable
 {
@@ -20,7 +21,7 @@ public sealed class HostEventTable
     public const int SchemaVersion = 2;
 
     /// <summary>The kinds of action the file may name.</summary>
-    public static IReadOnlyList<string> Kinds { get; } = ["give_item", "point_at_noun", "point_at_place", "point_at_slot"];
+    public static IReadOnlyList<string> Kinds { get; } = ["give_item", "point_at_noun", "point_at_place", "point_at_slot", "take_item", "sell"];
 
     private readonly Dictionary<(string Npc, string HostEvent), NpcEffect> _table;
 
@@ -33,8 +34,9 @@ public sealed class HostEventTable
 
     /// <summary>
     /// Builds the table from the file's text: <c>{ "schemaVersion": 2, "events": [ { "npc", "event", "action": { "kind": "give_item", "item", "count"? } | { "kind":
-    /// "point_at_noun", "noun" } | { "kind": "point_at_place", "place" } | { "kind": "point_at_slot", "slot" } } ] }</c>. An item is named as the save names it
-    /// (<c>water-bottle</c>); a count is a number from 1 or <c>"qty"</c>, the number the learner said (<see cref="NpcEffect.Quantity"/>), and one when it is left out.
+    /// "point_at_noun", "noun" } | { "kind": "point_at_place", "place" } | { "kind": "point_at_slot", "slot" } | { "kind": "take_item", "item", "count"? } | { "kind":
+    /// "sell", "item", "price" } } ] }</c>. An item is named as the save names it (<c>water-bottle</c>); a count is a number from 1 or <c>"qty"</c>, the number the
+    /// learner said (<see cref="NpcEffect.Quantity"/>), and one when it is left out; a price is a number of coins from 1.
     /// </summary>
     /// <param name="json">The contents of <c>game/host-events.json</c>.</param>
     /// <exception cref="InvalidDataException">The text is malformed, an action's kind, item or count is unknown, or one NPC's event is given twice.</exception>
@@ -62,6 +64,8 @@ public sealed class HostEventTable
                     "point_at_noun" => NpcEffect.PointAt(Text(action, "noun")),
                     "point_at_place" => NpcEffect.PointAtPlaceNamed(Text(action, "place")),
                     "point_at_slot" => NpcEffect.PointAtSlotNamed(Text(action, "slot")),
+                    "take_item" => Counted(NpcEffect.Take(ItemNamed(Text(action, "item"))), action, npc, name),
+                    "sell" => NpcEffect.SellAt(ItemNamed(Text(action, "item")), Price(action, npc, name)),
                     var kind => throw new InvalidDataException($"{RelativePath}: the action '{kind}' of {npc}'s '{name}' is not one of {string.Join(", ", Kinds)}."),
                 };
                 if (!table.TryAdd((npc, name), effect))
@@ -109,6 +113,12 @@ public sealed class HostEventTable
             ? effect with { Count = number }
             : throw new InvalidDataException($"{RelativePath}: the count of {npc}'s '{name}' must be \"{NpcEffect.QuantitySlot}\" or a number from 1 to the item's stack.");
     }
+
+    // The price of a sale: a number of coins from 1.
+    private static int Price(JsonElement action, string npc, string name) =>
+        action.TryGetProperty("price", out var price) && price.ValueKind == JsonValueKind.Number && price.TryGetInt32(out var coins) && coins >= 1
+            ? coins
+            : throw new InvalidDataException($"{RelativePath}: the price of {npc}'s '{name}' must be a number of coins from 1.");
 
     private static ItemId ItemNamed(string name) =>
         ItemDefinition.All.FirstOrDefault(d => string.Equals(d.Name, name, StringComparison.Ordinal))?.Id

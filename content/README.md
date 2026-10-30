@@ -35,7 +35,7 @@ Everything the game says, shows and builds its world from, outside the code. The
   | `game/controls.json` | `controls.schema.json` | `TipBook` |
   | `game/words.json` | `words.schema.json` | `GameWords` (the target-language words the game itself uses: the guide's directions, the buttons, the pronouns, the greeting...; the key words moved to the NPC files in schema 2) |
   | `game/session.json` | `session.schema.json` (the objectives in the HUD's order, the closing line's pool, the starting items, the beacon's start) | `ObjectiveBook` |
-  | `game/objectives/<id>.json` | `objective.schema.json` (one objective each, C07: its steps and their triggers, its hooks) | `ObjectiveBook` |
+  | `game/objectives/<id>.json` | `objective.schema.json` (one objective each, C07: its steps and their triggers, its hooks; V03: the play session it starts in, and the orders) | `ObjectiveBook` |
   | `game/npcs.json` | `npcs.schema.json` (the NPCs' ids, in order; the saves keep this order) | `NpcRoster` |
   | `game/npcs/<id>.json` | `npc.schema.json` (one NPC each, C08: its label, name, figure and the phrases its prompts practise; schema 2, V01: the prompt of each state, the opening, the voice, the key words, the pool prefix) | `NpcRoster` |
   | `game/host-events.json` | `host-events.schema.json` (what each NPC host event does: give items, point the beacon at a noun, a place or the place the learner names; schema 2, V02) | `HostEventTable` |
@@ -128,8 +128,8 @@ specified for later in `docs/game/CONTENT_PLAN.md` section 3.8 (C10); it is not 
   reading of it with a gender.
 - **A place the beacon names.** Give the site, the point or the named prop a `label` in `game/scene.json` (`"label": "río"`); a place with no label shows
   its own name. The label is also the word an NPC's directions answer to (below), so a place the learner may ask for needs one.
-- **What a host event does** (`game/host-events.json`, schema 2 since VILLAGE_PLAN V02). Each entry names the NPC, the host event its agent raises and an
-  `action`; an event the file does not map changes nothing:
+- **What a host event does** (`game/host-events.json`, schema 2 since VILLAGE_PLAN V02; `take_item` and `sell` since V03). Each entry names the NPC, the
+  host event its agent raises and an `action`; an event the file does not map changes nothing:
   - `give_item` (`item`, by the name the save gives it, and optionally `count`: a number, or `"qty"`, the number the learner said, `quiero dos panes`, from 1
     to 5, one when the line has none). The items go in all together or not at all (a full bag: the NPC keeps them); the bottle is handed over once.
   - `point_at_noun` (`noun`): the beacon goes to the nearest block of a catalogue noun.
@@ -141,14 +141,39 @@ specified for later in `docs/game/CONTENT_PLAN.md` section 3.8 (C10); it is not 
     that pointed (`Mira, está allí.`) and is raised `<npc>.unknown_place` as a host turn, so its agent needs that transition (`villager.unknown_place`:
     `No sé dónde está.`; the validator checks one state takes it). Every answer logs `place_asked` with the place found (`stall`, `river`, `árbol`) or
     `unknown`.
+  - `take_item` (`item`, and `count` as for `give_item`): the NPC takes the items, all of them or none; logged as `item_taken` (`madera, request`).
+  - `sell` (`item`, `price` in coins): a purchase. Map it to the host event of the action that answers `request_item` at the NPC's prompt; the learner's
+    number (`quiero dos panes`, the verdict's `qty`, 1 to 5, one when none) of the item for that many times the price. The coins go (`item_taken`) and the
+    items come (`item_given`), or nothing changes hands: with too few coins the NPC does not say that action's line (`Aquí tienes el pan.`) and is raised
+    `<npc>.cant_pay` as a host turn, which its agent answers (`Cuesta dos monedas. No tienes monedas.`); a bag with no room keeps the coins too. The
+    validator checks one state of the agent takes `<npc>.cant_pay`. For example:
+
+    ```json
+    { "npc": "baker", "event": "baker.sell_bread", "action": { "kind": "sell", "item": "bread", "price": 2 } }
+    ```
 - **An objective.** Add `game-v1/game/objectives/<id>.json` and its id to `game-v1/game/session.json` where the HUD should show it (the order gates
-  nothing: every objective counts from the start). A checklist has a `title` (target language) and steps that name a catalogue `noun`; its gloss is
+  nothing: every objective counts from the start, unless it names a `session`, V03: the play session it is shown and counted from; before it the HUD skips
+  it and its steps count nothing). A checklist has a `title` (target language) and steps that name a catalogue `noun`; its gloss is
   `objective.<id>.title` in `locale/en/ui.json`, and each step's label is the noun's lemma for a mass noun or a target of 1, otherwise its plural (a
   `label` overrides it). Another objective is shown by one line, `objective.<id>.hud`. Each step counts the world events its `trigger` matches, up to
   its `target`. What the data cannot say is a named hook the code implements: `onComplete` (`guide-met`, `spare-torch`, `point-own-camp`) and a step's
   `restore` (`lesson-begun`, `scan-fire-ring`), which works the step out again from a loaded world, so the save does not keep it. `alsoDoneBy` lists
   objectives whose progress completes this one. The validator refuses an unknown hook. A save keys a step `<objective>.<step>`, so renaming one
-  drops its count from older saves.
+  drops its count from older saves. The session's ending (S17's closing moment) waits for the objectives with no `session` that are not orders.
+- **An order** (VILLAGE_PLAN V03) is an objective that names the NPC the goods are brought to (`deliverTo`) and the goods (`deliver`: items by the name
+  the save gives them, each once, and a count), usually from a play `session`; it has no `title` and no `steps`, and its line is `objective.<id>.hud`:
+
+  ```json
+  { "$schema": "../../../schema/objective.schema.json", "schemaVersion": 1, "id": "oven-wood", "session": 5,
+    "deliverTo": "baker", "deliver": [ { "item": "wood", "count": 5 } ] }
+  ```
+
+  Its one step, `delivered` (saved as `oven-wood.delivered`), is made by the loader. When the panel opens on that NPC and the inventory holds the goods,
+  nothing more is asked of the learner (D-game-8, D-game-9): the goods are taken (`item_taken`, `madera, order`), the NPC's agent is raised
+  `<npc>.delivered` as the talk's opening (its thanks, in its own pool and voice), the host event of that line is the reward (a `give_item` in
+  `host-events.json`: `baker.pay`, four coins), `order_delivered` is logged (the NPC; the detail is the order's id) and the order is done. So the agent
+  needs `{ "onHostEvent": "baker.delivered", "to": ..., "actions": [{ "dialogueIntent": "baker_thanks", "hostEvent": "baker.pay", ... }] }` in **every**
+  state (the validator checks), and the line and its gloss as any NPC line. Without all the goods the talk opens as usual and nothing is taken.
 - **An NPC.** See "Adding an NPC" below: since schema 2 (V01) an NPC needs data only.
 - **An NPC line.** Add it to `game-v1/dialogue/dialogue.json` (the core's file) and its gloss to `locale/en/lines.json` (`line.<lineId>`). The line
   speaks with the voice of the NPC whose pool it is in (`<id>_*`, or `guide.lesson.<id>.*` for a lesson line; every other pool is the guide's).

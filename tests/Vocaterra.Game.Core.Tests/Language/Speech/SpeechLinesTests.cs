@@ -77,7 +77,8 @@ public sealed class SpeechLinesTests
         Assert.Equal(
             TestGame.Nouns.Nouns.Select(static n => SpeechFiles.CardId(n.Lemma)).Order(StringComparer.Ordinal),
             cards.Keys.Order(StringComparer.Ordinal));
-        Assert.Equal(19, cards.Count);
+        Assert.Equal(22, cards.Count); // V03 added moneda, manzana and hacha
+        Assert.Equal("el hacha", cards["card.hacha"]); // a feminine noun with a stressed a takes el
         Assert.Equal("el río", cards["card.rio"]);
         Assert.Equal("el árbol", cards["card.arbol"]);
         Assert.Equal("la madera", cards["card.madera"]);

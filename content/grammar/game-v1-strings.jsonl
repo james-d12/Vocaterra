@@ -1208,10 +1208,13 @@
 {"id":"speech:card.camino","text":"el camino","kind":"npc"}
 {"id":"speech:card.casa","text":"la casa","kind":"npc"}
 {"id":"speech:card.fruta","text":"la fruta","kind":"npc"}
+{"id":"speech:card.hacha","text":"el hacha","kind":"npc"}
 {"id":"speech:card.hierba","text":"la hierba","kind":"npc"}
 {"id":"speech:card.libro","text":"el libro","kind":"npc"}
 {"id":"speech:card.madera","text":"la madera","kind":"npc"}
+{"id":"speech:card.manzana","text":"la manzana","kind":"npc"}
 {"id":"speech:card.mesa","text":"la mesa","kind":"npc"}
+{"id":"speech:card.moneda","text":"la moneda","kind":"npc"}
 {"id":"speech:card.pan","text":"el pan","kind":"npc"}
 {"id":"speech:card.puente","text":"el puente","kind":"npc"}
 {"id":"speech:card.puerta","text":"la puerta","kind":"npc"}

@@ -24,18 +24,28 @@ public enum NpcEffectKind
     /// shows, or else a catalogue noun's nearest block (<see cref="Navigation.ScenePlaces"/>); a word that is neither is answered with <c>&lt;npc&gt;.unknown_place</c>.
     /// </summary>
     PointAtSlot,
+
+    /// <summary>The NPC takes items from the inventory (VILLAGE_PLAN V03), all of them or none.</summary>
+    TakeItem,
+
+    /// <summary>
+    /// The NPC sells an item at a price in coins (VILLAGE_PLAN V03): as many as the learner asked for (the verdict's <c>qty</c>, 1 to 5) for that many times the price;
+    /// with too few coins nothing changes hands and the NPC answers <c>&lt;npc&gt;.cant_pay</c>.
+    /// </summary>
+    Sell,
 }
 
 /// <summary>
 /// One entry of the host-event table: a world effect of a host event.
 /// </summary>
 /// <param name="Kind">What the effect does.</param>
-/// <param name="Item">For <see cref="NpcEffectKind.GiveItem"/>: the item.</param>
+/// <param name="Item">For <see cref="NpcEffectKind.GiveItem"/>, <see cref="NpcEffectKind.TakeItem"/> and <see cref="NpcEffectKind.Sell"/>: the item.</param>
 /// <param name="Noun">For <see cref="NpcEffectKind.PointAtNoun"/>: the catalogue noun the beacon goes to.</param>
-/// <param name="Count">For <see cref="NpcEffectKind.GiveItem"/>: how many, when <paramref name="CountSlot"/> does not say.</param>
-/// <param name="CountSlot">For <see cref="NpcEffectKind.GiveItem"/>: the slot of the verdict that says how many (<see cref="QuantitySlot"/>), or <see langword="null"/> for <paramref name="Count"/>.</param>
+/// <param name="Count">For <see cref="NpcEffectKind.GiveItem"/> and <see cref="NpcEffectKind.TakeItem"/>: how many, when <paramref name="CountSlot"/> does not say.</param>
+/// <param name="CountSlot">For <see cref="NpcEffectKind.GiveItem"/> and <see cref="NpcEffectKind.TakeItem"/>: the slot of the verdict that says how many (<see cref="QuantitySlot"/>), or <see langword="null"/> for <paramref name="Count"/>.</param>
 /// <param name="Place">For <see cref="NpcEffectKind.PointAtPlace"/>: the scene's name of the place (<c>stall</c>, <c>river</c>).</param>
 /// <param name="Slot">For <see cref="NpcEffectKind.PointAtSlot"/>: the slot of the verdict that names the place (<c>place</c>).</param>
+/// <param name="Price">For <see cref="NpcEffectKind.Sell"/>: the price of one item, in coins.</param>
 public sealed record NpcEffect(
     NpcEffectKind Kind,
     ItemId Item = ItemId.Wood,
@@ -43,7 +53,8 @@ public sealed record NpcEffect(
     int Count = 1,
     string? CountSlot = null,
     string Place = "",
-    string Slot = "")
+    string Slot = "",
+    int Price = 0)
 {
     /// <summary>The verdict's slot of a number the learner said (<c>quiero dos panes</c>: <c>2</c>), the core's <c>[NUM:qty]</c>.</summary>
     public const string QuantitySlot = "qty";
@@ -66,12 +77,23 @@ public sealed record NpcEffect(
     /// <summary>The effect that points at the place the verdict's slot <paramref name="slot"/> names.</summary>
     public static NpcEffect PointAtSlotNamed(string slot) => new(NpcEffectKind.PointAtSlot, Slot: slot);
 
+    /// <summary>The effect that takes <paramref name="count"/> of <paramref name="item"/> (one by default).</summary>
+    public static NpcEffect Take(ItemId item, int count = 1) => new(NpcEffectKind.TakeItem, item, Count: count);
+
+    /// <summary>The effect that sells <paramref name="item"/> at <paramref name="price"/> coins each.</summary>
+    public static NpcEffect SellAt(ItemId item, int price) => new(NpcEffectKind.Sell, item, Price: price);
+
     /// <summary>
-    /// How many items the effect moves for a verdict: the number the learner said for a count read from the slot (1 when the line had none, at most
+    /// How many items the effect moves for a verdict: the number the learner said for a sale or a count read from the slot (1 when the line had none, at most
     /// <see cref="MaxQuantity"/>), otherwise the fixed <see cref="Count"/>.
     /// </summary>
     /// <param name="slots">The verdict's slots.</param>
-    public int CountFor(IReadOnlyDictionary<string, string> slots) => CountSlot is { } slot ? Quantity(slots, slot) : Count;
+    public int CountFor(IReadOnlyDictionary<string, string> slots) =>
+        Kind == NpcEffectKind.Sell ? Quantity(slots) : CountSlot is { } slot ? Quantity(slots, slot) : Count;
+
+    /// <summary>What a sale costs for a verdict: the price times the number asked for (<see cref="CountFor"/>); zero for any other effect.</summary>
+    /// <param name="slots">The verdict's slots.</param>
+    public int CostFor(IReadOnlyDictionary<string, string> slots) => Kind == NpcEffectKind.Sell ? Price * CountFor(slots) : 0;
 
     /// <summary>
     /// The number a slot of the verdict holds (the core gives a number word as its digits, <c>dos</c> as <c>2</c>), from 1 to <see cref="MaxQuantity"/>: 1 when the
@@ -132,9 +154,18 @@ public static class NpcHostEvents
     /// </summary>
     public const string UnknownPlace = "unknown_place";
 
+    /// <summary>What an NPC is asked to answer when the learner's coins do not cover a purchase (VILLAGE_PLAN V03, <see cref="NpcEffectKind.Sell"/>): <c>&lt;npc&gt;.cant_pay</c>.</summary>
+    public const string CantPay = "cant_pay";
+
+    /// <summary>
+    /// What an NPC is asked to say when the learner brings the goods of its order (VILLAGE_PLAN V03, an objective with <c>deliverTo</c>): <c>&lt;npc&gt;.delivered</c>,
+    /// raised as the opening of the talk; its thanks are the NPC's own line and its reward is that line's host event (a <c>give_item</c>).
+    /// </summary>
+    public const string Delivered = "delivered";
+
     /// <summary>The host event <paramref name="what"/> of an NPC: <c>villager.unknown_place</c>.</summary>
     /// <param name="npc">The NPC's agent id.</param>
-    /// <param name="what">What it answers (<see cref="UnknownPlace"/>).</param>
+    /// <param name="what">What it answers: <see cref="UnknownPlace"/>, <see cref="CantPay"/> or <see cref="Delivered"/>.</param>
     public static string Of(string npc, string what) => npc + "." + what;
 }
 

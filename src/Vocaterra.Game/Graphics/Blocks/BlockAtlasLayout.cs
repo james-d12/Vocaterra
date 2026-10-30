@@ -355,7 +355,10 @@ public static class BlockAtlasLayout
     /// </summary>
     public static BlockCell Reads(BlockFace face, BlockCell word) => face is BlockFace.South or BlockFace.West ? word : BlockCell.SignBlank;
 
-    /// <summary>The cell that draws an item as an icon (the hotbar and the held item), or <see langword="null"/> when the item has no 3D picture.</summary>
+    /// <summary>
+    /// The cell that draws an item as an icon (the hotbar and the held item), or <see langword="null"/> when the item has no 3D picture. The coin, the apple and the
+    /// axe (VILLAGE_PLAN V03) borrow existing art until V05 draws their own: the lantern's golden glass, the pile of apples, the workbench's side with its tools.
+    /// </summary>
     public static BlockCell? IconFor(ItemId item) => item switch
     {
         ItemId.Wood => BlockCell.IconWood,
@@ -365,6 +368,9 @@ public static class BlockAtlasLayout
         ItemId.WaterBottle => BlockCell.IconWaterBottle,
         ItemId.Bread => BlockCell.IconBread,
         ItemId.Book => BlockCell.IconBook,
+        ItemId.Coin => BlockCell.Lantern,
+        ItemId.Apple => BlockCell.Apples,
+        ItemId.Axe => BlockCell.TableSide,
         _ => null,
     };
 

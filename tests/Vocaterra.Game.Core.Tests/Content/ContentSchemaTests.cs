@@ -120,6 +120,29 @@ public sealed class ContentSchemaTests
         Assert.NotEmpty(schema.Validate(File("""{ "kind": "give_item", "item": "bread", "count": "two" }""")));
         Assert.NotEmpty(schema.Validate(File("""{ "kind": "point_at_place", "noun": "río" }""")));
         Assert.NotEmpty(schema.Validate(File("""{ "kind": "point_at_slot" }""")));
+
+        // V03: take_item and sell.
+        Assert.Empty(schema.Validate(File("""{ "kind": "take_item", "item": "coin", "count": 3 }""")));
+        Assert.Empty(schema.Validate(File("""{ "kind": "sell", "item": "bread", "price": 2 }""")));
+        Assert.NotEmpty(schema.Validate(File("""{ "kind": "sell", "item": "bread" }""")));
+        Assert.NotEmpty(schema.Validate(File("""{ "kind": "sell", "item": "bread", "price": 0 }""")));
+        Assert.NotEmpty(schema.Validate(File("""{ "kind": "sell", "item": "bread", "price": 2, "count": 2 }""")));
+    }
+
+    [Fact]
+    public async Task AnOrderNamesItsNpcAndGoodsAndHasNoStepsOfItsOwn()
+    {
+        // V03: an objective with deliverTo and deliver (and optionally session) has no title and no steps; any other objective has steps and no goods.
+        var schema = await JsonSchema.FromFileAsync(Path.Combine(SchemaFolder, "objective.schema.json"));
+        const string Order = """{ "schemaVersion": 1, "id": "oven-wood", "session": 5, "deliverTo": "baker", "deliver": [ { "item": "wood", "count": 5 } ] }""";
+        Assert.Empty(schema.Validate(Order));
+        Assert.Empty(schema.Validate("""{ "schemaVersion": 1, "id": "a", "session": 2, "steps": [ { "id": "s", "target": 1, "trigger": { "event": "fire_lit" } } ] }"""));
+        Assert.NotEmpty(schema.Validate(Order.Replace("\"session\": 5", "\"session\": 0", StringComparison.Ordinal)));
+        Assert.NotEmpty(schema.Validate(Order.Replace(", \"deliver\": [ { \"item\": \"wood\", \"count\": 5 } ]", string.Empty, StringComparison.Ordinal)));
+        Assert.NotEmpty(schema.Validate(Order.Replace("\"wood\"", "\"madera\"", StringComparison.Ordinal)));
+        Assert.NotEmpty(schema.Validate(Order.Replace("\"session\": 5,", "\"title\": \"Horno\",", StringComparison.Ordinal)));
+        Assert.NotEmpty(schema.Validate(Order.Replace("\"session\": 5,", "\"steps\": [ { \"id\": \"s\", \"target\": 1, \"trigger\": { \"event\": \"fire_lit\" } } ],", StringComparison.Ordinal)));
+        Assert.NotEmpty(schema.Validate("""{ "schemaVersion": 1, "id": "a" }"""));
     }
 
     [Fact]
@@ -139,6 +162,8 @@ public sealed class ContentSchemaTests
         Assert.Equal(BlockDefinition.All.Select(static d => d.Name), Names(definitions["block"]!));
         var hostEvents = ReadJson(Path.Combine(SchemaFolder, "host-events.schema.json"))["definitions"]!;
         Assert.Equal(ItemDefinition.All.Select(static d => d.Name), Names(hostEvents["item"]!)); // C08: a host event gives an item by the same names
+        var objective = ReadJson(Path.Combine(SchemaFolder, "objective.schema.json"))["definitions"]!;
+        Assert.Equal(ItemDefinition.All.Select(static d => d.Name), Names(objective["item"]!)); // V03: and an order asks for them by the same names
     }
 
     // Schemas written before the files that use them (none at present).

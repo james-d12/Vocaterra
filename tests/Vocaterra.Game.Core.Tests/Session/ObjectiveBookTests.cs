@@ -95,6 +95,56 @@ public sealed class ObjectiveBookTests
     }
 
     [Fact]
+    public void AnOrderNamesItsNpcAndGoodsAndItsOneStepIsTheDelivery()
+    {
+        // VILLAGE_PLAN V03: an objective with deliverTo and deliver, from a play session; the loader makes its step, which order_delivered at that NPC completes.
+        var order = ObjectiveBook.Parse(
+            "game/objectives/axe-handle.json",
+            """{ "schemaVersion": 1, "id": "axe-handle", "session": 6, "deliverTo": "smith", "deliver": [ { "item": "wood", "count": 2 }, { "item": "coin", "count": 3 } ] }""",
+            "axe-handle",
+            TestGame.Nouns);
+
+        Assert.Equal((6, "smith", true, false, false), (order.Session, order.DeliverTo, order.IsOrder, order.IsChecklist, order.EndsSession));
+        Assert.Equal([new OrderGoods(ItemId.Wood, 2), new OrderGoods(ItemId.Coin, 3)], order.Goods);
+        var step = Assert.Single(order.Steps);
+        Assert.Equal(("delivered", 1, new Trigger(WorldEvents.OrderDelivered, "smith", "axe-handle"), (string?)null), (step.Id, step.Target, step.Trigger, step.Restore));
+        Assert.False(order.ShownIn(5));
+        Assert.True(order.ShownIn(6));
+        Assert.True(Book.Find("camp")!.ShownIn(1)); // no session: every session
+        Assert.True(Book.Find("camp")!.EndsSession);
+    }
+
+    [Theory]
+    [InlineData("""{ "schemaVersion": 1, "id": "o", "deliverTo": "smith" }""", "both or neither")]
+    [InlineData("""{ "schemaVersion": 1, "id": "o", "deliver": [ { "item": "wood", "count": 2 } ], "steps": [] }""", "both or neither")]
+    [InlineData("""{ "schemaVersion": 1, "id": "o", "deliverTo": "smith", "deliver": [ { "item": "wood", "count": 2 } ], "steps": [] }""", "no title and no steps")]
+    [InlineData("""{ "schemaVersion": 1, "id": "o", "title": "Hacha", "deliverTo": "smith", "deliver": [ { "item": "wood", "count": 2 } ] }""", "no title and no steps")]
+    [InlineData("""{ "schemaVersion": 1, "id": "o", "deliverTo": "smith", "deliver": [ { "item": "wood", "count": 2 }, { "item": "wood", "count": 1 } ] }""", "twice")]
+    [InlineData("""{ "schemaVersion": 1, "id": "o", "deliverTo": "smith", "deliver": [ { "item": "wood", "count": 0 } ] }""", "fewer than one")]
+    [InlineData("""{ "schemaVersion": 1, "id": "o", "deliverTo": "smith", "deliver": [ { "item": "hacha", "count": 1 } ] }""", "unknown item 'hacha'")]
+    [InlineData("""{ "schemaVersion": 1, "id": "o", "session": 0, "deliverTo": "smith", "deliver": [ { "item": "wood", "count": 1 } ] }""", "from 1")]
+    public void AnOrderThatDoesNotHoldTogetherIsRefused(string json, string problem)
+    {
+        var error = Assert.Throws<InvalidDataException>(() => ObjectiveBook.Parse("game/objectives/o.json", json, "o", TestGame.Nouns));
+        Assert.Contains(problem, error.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AnOrderToNoNpcOrToAnNpcThatCannotThankForItIsAProblem()
+    {
+        var toMiller = ObjectiveBook.Parse("o.json", """{ "schemaVersion": 1, "id": "flour", "deliverTo": "miller", "deliver": [ { "item": "wood", "count": 1 } ] }""", "flour", TestGame.Nouns);
+        var toVillager = ObjectiveBook.Parse("o.json", """{ "schemaVersion": 1, "id": "bread-run", "deliverTo": "villager", "deliver": [ { "item": "bread", "count": 1 } ] }""", "bread-run", TestGame.Nouns);
+        var data = TestGame.Data.WithObjectives(ObjectiveBook.Of([.. Book.Objectives, toMiller, toVillager], Book.ClosingPool, Book.Grants, Book.BeaconStart));
+
+        var problems = GameDataValidator.Validate(data);
+
+        Assert.Contains("game/objectives/flour.json: the order is brought to 'miller', which is not one of the NPCs.", problems);
+        Assert.Contains("game/objectives/bread-run.json: the order is brought to 'villager', and the state 'idle' of agents/villager.json does not take 'villager.delivered' to thank the player.", problems);
+        Assert.Contains("game/objectives/bread-run.json: the order is brought to 'villager', and the state 'pointing' of agents/villager.json does not take 'villager.delivered' to thank the player.", problems);
+        Assert.DoesNotContain(problems, static p => p.Contains("waits at the NPC 'miller'", StringComparison.Ordinal)); // the order's own step is not named twice
+    }
+
+    [Fact]
     public void TheShippedObjectivesHaveNoProblems() =>
         Assert.DoesNotContain(GameDataValidator.Validate(TestGame.Data), static p => p.StartsWith("game/objectives", StringComparison.Ordinal) || p.StartsWith("game/session", StringComparison.Ordinal));
 
