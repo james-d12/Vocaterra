@@ -1591,6 +1591,28 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     - The renderer never kept the owner's marks in the speech checklist (no row starts with `| speech/`); fixed.
     - The well's rim is two blocks high, so from eye height it reads as a stone cube and hides its water (the orchestrator's screenshot);
       V10 lowers it.
+- **V10: session 4 "El pueblo" (2026-10-30, Opus 5.5 xhigh; gated on `feature/village` at `3f1ce84`).**
+  - **Gate:** 5808 passed, 3 skipped, 0 failed, with the models; 0 warnings; format, content, grammar and both licence scans clean. Bundle
+    `e9fcbe59…`; the identity golden and the fuzz suite's two stream digests (`FuzzLanguageStreamTests`, generators unchanged) re-recorded.
+  - **Built.** The fisher Mar (`fisher-open`, `places-village`; `fisher.point` and `fisher.show` from the slot, `fisher.pay` 2 coins); the
+    lesson `el-pueblo` (24 steps, session 4, after `ayer-y-manana`: bridge, bakery, smithy, the signpost, back to the bridge; two reviews);
+    `ask_far` (no keyword rule and no subject-first grammar: the core's unrelated-sentence test would resolve "el cielo está muy lejos"),
+    `ask_availability`; `state_action` gains `comprar`, `buscar`, `luego`, `después`; the order `fruit-for-mar`; the X06 review steps in
+    `personas` and `ayer-y-manana`; 8 check items; the well's rim one block high, a bottle fills there. 16 world words in the marked block of
+    `a1.txt`. Every said row heard word for word by the spoken round trip. Estimated 7 to 8 minutes.
+  - **Rows.** Said: `donde-esta-la-panaderia`, `donde-esta-la-herreria`, `esta-lejos`, `hay-un-pozo`, `voy-a-la-panaderia`,
+    `voy-a-comprar-pan`, `fui-a-la-panaderia`; the close is a `gracias` review and a repeat of `adiós` (no lesson had taught it). Heard: the
+    plan's eight, with `hay-tres-casas` for `hay-dos-casas`. The Opus pass moved "a la izquierda de la torre" to "mira la torre. La panadería
+    está a la izquierda." (from the bridge the bakery stands in line before the tower) and the lake to the mountain for "lejos".
+  - **Found:**
+    - Core gaps, filed as core M56: `es lejos` and `¿dónde es la herrería?` give no `ser_estar`; `¿dónde están la herrería?` gives no
+      `conj.person`. The sheet's examples use `gender.agree` meanwhile.
+    - The fuzz generator knows only `mañana` as a future marker, and `pasado mañana` after a plural noun reads as an adjective: the later
+      markers stay out of `state_action` (core M57; phase B's V17 waits on it).
+    - `ayer voy a la panadería` is the core's `conj.tense` slip at a `pret` step (S27's design), not a Miss; the Miss with `tenseRetry` is a
+      tense the core cannot see (`voy a la panadería` at that step).
+    - `LessonDriver` could not answer review steps; fixed. The fisher's stand point carries the label `pescador`, so the walk back points
+      at him and the arrow clears on arrival.
 
 ## 6. Definition of done (every milestone)
 
