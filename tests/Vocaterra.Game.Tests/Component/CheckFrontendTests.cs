@@ -5,7 +5,6 @@ using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Startup;
 using Vocaterra.Game.UI.Checks;
-using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Pipeline;
 
 namespace Vocaterra.Game.Tests.Component;
@@ -13,9 +12,7 @@ namespace Vocaterra.Game.Tests.Component;
 /// <summary>The check battery's screen model and its scripted answers (S11), and the command-line options that start a battery.</summary>
 public sealed class CheckFrontendTests
 {
-    private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-
-    private static IReadOnlyList<CheckItem> Bank => RouteScene.DataOf(Bundle.Value).Checks;
+    private static IReadOnlyList<CheckItem> Bank => TestGame.Data.Checks;
 
     // The seeded plan of a kind (the order is the world seed's; the tests that need a particular first item use Ordered or ProductionFirst).
     private static IReadOnlyList<CheckPlanEntry> Plan(CheckKind kind = CheckKind.Pre) => CheckPlan.For(Bank, kind, 42);

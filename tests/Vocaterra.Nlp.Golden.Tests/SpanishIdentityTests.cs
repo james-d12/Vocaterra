@@ -30,6 +30,7 @@ namespace Vocaterra.Nlp.Golden.Tests;
 /// Phase A of the language-pack work (M32 to M35, M52, M53) must not re-record it. The bundle's content hash, which the verdicts stamp, is masked
 /// before hashing (M54), so an edit of <c>content/game-v1</c> that changes no Spanish behaviour moves no hash. See <c>tests/golden/README.md</c>.
 /// </summary>
+[Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public class SpanishIdentityTests
 {
     private const string RecordVariable = "VOCATERRA_RECORD_IDENTITY";
@@ -45,8 +46,6 @@ public class SpanishIdentityTests
 
     private static readonly string[] StageOrder = ["normalize", "analyze", "match", "grade", "pipeline", "recast", "g2p"];
 
-    private static readonly Lazy<ContentBundle> BundleLazy = new(() => SpanishContent.Load(GameBundleLocator.Directory));
-
     private static readonly Lazy<PcmClip> ClipLazy = new(static () =>
     {
         // A fixed one-second tone. The recognizer is scripted, so only the clip's presence matters.
@@ -59,7 +58,7 @@ public class SpanishIdentityTests
         return PcmClip.FromSamples(samples);
     });
 
-    private static ContentBundle Bundle => BundleLazy.Value;
+    private static ContentBundle Bundle => GameBundleLocator.Bundle;
 
     [Fact]
     public void TheHashesMatchTheFrozenBaseline()

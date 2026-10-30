@@ -42,6 +42,24 @@ public sealed class VoxelGrid
         }
     }
 
+    private VoxelGrid(VoxelGrid source)
+    {
+        SizeX = source.SizeX;
+        SizeY = source.SizeY;
+        SizeZ = source.SizeZ;
+        ChunksX = source.ChunksX;
+        ChunksY = source.ChunksY;
+        ChunksZ = source.ChunksZ;
+        EditCount = source.EditCount;
+        _digest = source._digest;
+        _digestEdits = source._digestEdits;
+        _chunks = new VoxelChunk[source._chunks.Length];
+        for (var i = 0; i < _chunks.Length; i++)
+        {
+            _chunks[i] = source._chunks[i].Clone();
+        }
+    }
+
     /// <summary>The width in blocks (east).</summary>
     public int SizeX { get; }
 
@@ -183,6 +201,12 @@ public sealed class VoxelGrid
 
         return found;
     }
+
+    /// <summary>
+    /// A copy that edits apart from this grid: every chunk copied (<see cref="VoxelChunk.Clone"/>), with the same edit count and the same cached
+    /// world digest, so the copy and the original are alike in everything a reader sees.
+    /// </summary>
+    internal VoxelGrid Clone() => new(this);
 
     /// <summary>Fills the column (<paramref name="x"/>, <paramref name="z"/>) from <paramref name="y0"/> to <paramref name="y1"/> inclusive (clipped to the grid) with a block, chunk by chunk.</summary>
     internal void FillColumn(int x, int z, int y0, int y1, BlockId block)

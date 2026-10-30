@@ -1,25 +1,20 @@
 using Vocaterra.Game.Core.Items.Crafting;
-using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.Tests.TestSupport;
-using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Core.Tests.Simulation;
 
 /// <summary>One tick of the world: the look first, then the session's step, then the observers in their order; and the crash hook of X05.</summary>
 public sealed class WorldStepperTests
 {
-    private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-    private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
-
     [Fact]
     public void TheLookGoesFirstAndTheObserversFollowTheStepInTheirOrder()
     {
-        var session = RouteScene.NewSession(Bundle.Value, Nouns.Value);
+        var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
         var seen = new List<string>();
         var stepper = Make(session, null, new DelegateTickObserver(c => seen.Add($"first {c[0].Kind} at {session.Simulation.Tick}")), new DelegateTickObserver(_ => seen.Add("second")));
         stepper.Step();
@@ -30,7 +25,7 @@ public sealed class WorldStepperTests
     [Fact]
     public void TheDebugCrashComesOutOfTheStepAtItsTick()
     {
-        var session = RouteScene.NewSession(Bundle.Value, Nouns.Value);
+        var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
         var stepper = Make(session, crashAfter: 2);
         stepper.Step();
         var error = Assert.Throws<InvalidOperationException>(stepper.Step);

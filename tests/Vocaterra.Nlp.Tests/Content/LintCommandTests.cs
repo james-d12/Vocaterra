@@ -4,6 +4,7 @@ using Vocaterra.Nlp.ContentBuilder;
 namespace Vocaterra.Nlp.Content.Tests;
 
 /// <summary>Tests of the <c>lint</c> command and of what <c>validate</c> prints from the lint, through <see cref="Program.Run(string[], TextWriter, TextWriter)"/>.</summary>
+[Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public class LintCommandTests
 {
     private static (int Code, string Output, string Error) Run(params string[] args)

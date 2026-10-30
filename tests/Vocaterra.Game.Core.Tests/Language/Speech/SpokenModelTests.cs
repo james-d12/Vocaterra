@@ -52,6 +52,7 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
     }
 
     [ModelFact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void TheRecognizerLoadsFromTheStoreAndDecodesSilence()
     {
         var store = SpeechEngine.FindModels(out var problem);
@@ -65,6 +66,7 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
     }
 
     [ModelFact(needsKokoro: true)]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void AKokoroLineIsRecognizedByVoskAndTheGuideAnswersItLikeTheTypedLine()
     {
         using var engine = SpeechEngine.TryCreate(out var problem)!;
@@ -93,6 +95,7 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
     }
 
     [ModelFact(needsKokoro: true)]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void TheSecondEvaluationSeesTheTranscriptAndConfidenceOfTheFirstWithoutDecodingAgain()
     {
         using var engine = SpeechEngine.TryCreate(out _)!;
@@ -126,6 +129,7 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
     }
 
     [ModelFact(needsKokoro: true)]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void ASpokenUseOfTheTreeEarnsFullCreditAndATypedUseHalfThroughTheWorker()
     {
         using var spoken = TestGame.NewSession(credit: CreditRules.Default);
@@ -152,6 +156,7 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
     }
 
     [ModelFact(needsKokoro: true)]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void AWavFileIsFedThroughTheWorkerAsSpokenInput()
     {
         using var engine = SpeechEngine.TryCreate(out _)!;
@@ -177,6 +182,7 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
     }
 
     [ModelFact(needsKokoro: true)]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void AMistakeInASpokenLineIsHeardAsSaidAndTheCoreCorrectsIt()
     {
         using var session = TestGame.NewSession();
@@ -202,6 +208,7 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
     }
 
     [ModelFact(needsKokoro: true)]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void TheWorkerReportsWhatLoadingCostAndWhatASpokenTurnCost()
     {
         using var session = TestGame.NewSession();
@@ -218,6 +225,7 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
     }
 
     [ModelFact(needsKokoro: true)]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void ASpokenRequestAtTheStallThroughTheWorkerHandsOverTheBottleLikeATypedOne()
     {
         using var session = TestGame.NewSession();

@@ -6,8 +6,6 @@ using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
-using Vocaterra.Game.Core.World.Generation;
-using Vocaterra.Game.Core.World.Layout;
 
 namespace Vocaterra.Game.Core.Tests.Sound;
 
@@ -255,7 +253,7 @@ public sealed class FootstepTests
     [Fact]
     public void AScriptedJumpInTheSimulationSoundsAJumpAndALanding()
     {
-        var scene = SceneBuilder.Build(SceneLayout.Load(Repo.Path("content", "game-v1", "game", "scene.json")), 42);
+        var scene = RouteScene.Build();
         var sim = VoxelSimulation.Create(scene);
         var footsteps = new Footsteps();
         var cues = new List<SoundCue>();

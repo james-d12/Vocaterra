@@ -1,6 +1,7 @@
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Simulation;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World.Layout;
 using Xunit.Abstractions;
@@ -12,6 +13,7 @@ namespace Vocaterra.Game.Core.Tests.World.Generation;
 /// The look's part of the world (S14): the undergrowth as blocks that nothing collides with and the block ray looks through, the three tree species,
 /// the meadows along the water, the sight cone that keeps the ledge's view open, and the tree and plant placement in the digests.
 /// </summary>
+[Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public sealed class UndergrowthTests(ITestOutputHelper output)
 {
     private const ulong Seed = 42;

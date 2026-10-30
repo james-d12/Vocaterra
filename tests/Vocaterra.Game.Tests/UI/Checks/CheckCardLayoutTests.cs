@@ -2,7 +2,6 @@ using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.UI.Checks;
-using Vocaterra.Nlp.Content;
 using Xunit.Abstractions;
 
 namespace Vocaterra.Game.Tests.UI.Checks;
@@ -15,8 +14,6 @@ namespace Vocaterra.Game.Tests.UI.Checks;
 /// </summary>
 public sealed class CheckCardLayoutTests(ITestOutputHelper output)
 {
-    private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-
     private static readonly (int Width, int Height)[] Sizes = [(1280, 720), (800, 600)];
 
     private static float Large(string text) => text.Length * 14f;
@@ -26,7 +23,7 @@ public sealed class CheckCardLayoutTests(ITestOutputHelper output)
     [Fact]
     public void EveryItemOfTheCheckBankFitsTheCardAtBothWindowSizes()
     {
-        var bank = RouteScene.DataOf(Bundle.Value).Checks;
+        var bank = TestGame.Data.Checks;
         Assert.True(bank.Count >= 20);
         var rowsSeen = 0;
         foreach (var (width, height) in Sizes)

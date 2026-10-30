@@ -7,7 +7,6 @@ using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Startup;
 using Vocaterra.Game.UI.Book;
-using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Es;
@@ -19,9 +18,6 @@ namespace Vocaterra.Game.Tests.UI.Book;
 public sealed class BookSpreadTests
 {
     private static readonly (int Width, int Height)[] Sizes = [(1280, 720), (800, 600)];
-
-    private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-    private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
 
     public static TheoryData<int, int> WindowSizes => new() { { 1280, 720 }, { 800, 600 } };
 
@@ -162,7 +158,7 @@ public sealed class BookSpreadTests
     public void TurningToAnotherPageStartsAPageTurnThatEndsAfterItsDurationOnTheFrameClock()
     {
         var book = new BookModel();
-        book.Open(new WordProgress(Nouns.Value));
+        book.Open(new WordProgress(TestGame.Nouns));
         Assert.False(book.IsTurning); // opening is not a turn
 
         book.Show(BookPage.Verbs);
@@ -184,7 +180,7 @@ public sealed class BookSpreadTests
     public void ThePageTurnGoesTheWayTheKeyOrTheRibbonSaysAndSomeChangesAreNotTurns()
     {
         var book = new BookModel();
-        book.Open(new WordProgress(Nouns.Value));
+        book.Open(new WordProgress(TestGame.Nouns));
 
         book.Show(BookPage.Nouns); // the page already on screen
         Assert.False(book.IsTurning);
@@ -219,7 +215,7 @@ public sealed class BookSpreadTests
     public void ANegativeFrameTimeNeverRunsThePageTurnBackwards()
     {
         var book = new BookModel();
-        book.Open(new WordProgress(Nouns.Value));
+        book.Open(new WordProgress(TestGame.Nouns));
         book.Show(BookPage.Verbs);
         book.Advance(0.1);
         var before = book.TurnProgress;
@@ -264,11 +260,11 @@ public sealed class BookSpreadTests
     [Fact]
     public void TheVerbsPageListsOneRowPerVerbAndTheSelectionMovesAmongThemWithoutAnyButton()
     {
-        var session = RouteScene.NewSession(Bundle.Value, Nouns.Value);
+        var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
         var recordings = BookRecordings.None;
         Assert.Empty(BookPages.ListFor(session, BookPage.Verbs, recordings)); // no verbs met yet: an empty list, and the layer says so
 
-        var full = BookPages.Verbs(RouteScene.Shipped.Locale, VerbsOfAFixedRecord(), RouteScene.DataOf(Bundle.Value).Glosses, RouteScene.DataOf(Bundle.Value).Phrases, Bundle.Value.SpanishMorphology());
+        var full = BookPages.Verbs(RouteScene.Shipped.Locale, VerbsOfAFixedRecord(), TestGame.Data.Glosses, TestGame.Data.Phrases, TestGame.Bundle.SpanishMorphology());
         var list = full.Where(static l => l.Verb is not null).ToList();
         Assert.Equal(["beber", "ir"], list.Select(static l => l.Verb));
         Assert.True(full.Count > list.Count, "the page's own lines (the forms and their last sentences) are still built, for the right page");
@@ -280,7 +276,7 @@ public sealed class BookSpreadTests
     [Fact]
     public void ABookWithNoVerbMetStillOpensItsVerbsPageAndTheOtherPagesKeepTheirOwnLists()
     {
-        var session = RouteScene.NewSession(Bundle.Value, Nouns.Value);
+        var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
         var recordings = BookRecordings.None;
 
         foreach (var page in new[] { BookPage.Nouns, BookPage.Phrases, BookPage.Lessons, BookPage.Said })

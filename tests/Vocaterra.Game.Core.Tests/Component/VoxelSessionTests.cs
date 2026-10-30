@@ -4,8 +4,6 @@ using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
-using Vocaterra.Game.Core.World.Generation;
-using Vocaterra.Game.Core.World.Layout;
 
 namespace Vocaterra.Game.Core.Tests.Component;
 
@@ -15,7 +13,7 @@ public sealed class VoxelSessionTests
     private const int Unit = VoxelPhysics.UnitsPerBlock;
 
     private static Scene RouteScene() =>
-        SceneBuilder.Build(SceneLayout.Load(Path.Combine(GameBundle.ResolveDirectory(), "game", "scene.json")), TestGame.Seed);
+        TestGame.Route();
 
     // The body at the spawn, as the simulation reports it: the middle of the feet block and the spawn's facing.
     private static GuideViewpoint AtSpawn(Scene scene) => new(

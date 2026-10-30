@@ -12,7 +12,6 @@ using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Startup;
 using Vocaterra.Game.UI.Dialogue;
-using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Tests.Component;
 
@@ -23,10 +22,7 @@ namespace Vocaterra.Game.Tests.Component;
 /// </summary>
 public sealed class OpeningFrontendTests
 {
-    private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-    private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
-
-    private static VoxelSession Session() => RouteScene.NewSessionWithShippedLessons(Bundle.Value, Nouns.Value, CreditRules.FullTyped);
+    private static VoxelSession Session() => RouteScene.NewSessionWithShippedLessons(TestGame.Bundle, TestGame.Nouns, CreditRules.FullTyped);
 
     private static float Measure(string text) => text.Length * 8f;
 
@@ -268,7 +264,7 @@ public sealed class OpeningFrontendTests
         Assert.NotEmpty(turn.Replies);
         Assert.Equal(before, dialogue.Lines.Count(static l => l.Speaker == DialogueSpeaker.Guide)); // her reply is not on the panel
 
-        var ordinary = RouteScene.NewSession(Bundle.Value, Nouns.Value, CreditRules.FullTyped); // no lesson: the same words get her reply
+        var ordinary = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns, CreditRules.FullTyped); // no lesson: the same words get her reply
         TeleportToNpc(ordinary, "guide");
         var panel = new DialogueModel(new InputFocus(), ordinary.OpeningLine, ordinary.Data, ordinary.Phrases, ordinary.Locale);
         panel.Open(ordinary.OpenTalk("guide"), "Guía");

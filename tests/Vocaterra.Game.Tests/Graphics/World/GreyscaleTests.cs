@@ -1,15 +1,11 @@
 using Vocaterra.Game.Core.Language.Words;
-using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Core.Voxel;
-using Vocaterra.Game.Core.World.Generation;
-using Vocaterra.Game.Core.World.Layout;
 using Vocaterra.Game.Graphics.Blocks;
 using Vocaterra.Game.Graphics.World;
 using Vocaterra.Game.Startup;
 using Vocaterra.Game.UI.Common;
-using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Tests.Graphics.World;
 
@@ -19,9 +15,6 @@ namespace Vocaterra.Game.Tests.Graphics.World;
 /// </summary>
 public sealed class GreyscaleTests
 {
-    private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-    private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
-
     // The grey copies sit in the rows below the colour cells: a vertex with a V at or above this is drawn grey.
     private const float GreyFrom = BlockAtlasLayout.ColourRows / (float)BlockAtlasLayout.Rows;
 
@@ -86,7 +79,7 @@ public sealed class GreyscaleTests
         // Every noun that has an item has an icon cell whose grey copy is a different picture from its colour cell (the berry, the torch, the bottle ...).
         var atlas = BlockArt.AtlasPixels();
         var coloured = 0;
-        foreach (var noun in Nouns.Value.Nouns.Where(static n => n.Items.Count > 0))
+        foreach (var noun in TestGame.Nouns.Nouns.Where(static n => n.Items.Count > 0))
         {
             var cell = BlockAtlasLayout.IconFor(noun.Items[0]);
             Assert.NotNull(cell);
@@ -168,6 +161,7 @@ public sealed class GreyscaleTests
     }
 
     [Fact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void DefaultModeNeverPicksAGreyCopy()
     {
         foreach (var definition in BlockDefinition.All.Where(static d => d.Id != BlockId.Air))
@@ -177,7 +171,7 @@ public sealed class GreyscaleTests
             Assert.True(AllVertices(meshes.Alpha, v => !IsGreyVertex(v)), $"{definition.Id} is grey by default");
         }
 
-        var scene = SceneBuilder.Build(SceneLayout.Load(Repo.Path("content", "game-v1", "game", "scene.json")), 42);
+        var scene = RouteScene.Build();
         var source = new GridBlockSource(scene.Grid);
         foreach (var chunk in scene.Grid.Chunks)
         {
@@ -196,9 +190,10 @@ public sealed class GreyscaleTests
     }
 
     [Fact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void ChangingTheGreySetMakesDueOnlyTheChunksThatHoldAChangedKind()
     {
-        var scene = SceneBuilder.Build(SceneLayout.Load(Repo.Path("content", "game-v1", "game", "scene.json")), 42);
+        var scene = RouteScene.Build();
         var source = new GridBlockSource(scene.Grid);
         var tracker = new ChunkVersionTracker(scene.Grid);
         var trunk = ChunkMesher.KindBit(BlockId.Trunk);
@@ -238,9 +233,9 @@ public sealed class GreyscaleTests
     [Fact]
     public void TheGreySetIsTheBlocksWhoseNounIsNotKnownAndBlocksNoNounNamesStayInColour()
     {
-        var words = new WordProgress(Nouns.Value);
+        var words = new WordProgress(TestGame.Nouns);
         var calls = new List<ulong>();
-        var world = new GreyscaleWorld(true, Nouns.Value, words, new ToastQueue(), calls.Add, RouteScene.Shipped.Locale);
+        var world = new GreyscaleWorld(true, TestGame.Nouns, words, new ToastQueue(), calls.Add, RouteScene.Shipped.Locale);
         world.Refresh();
 
         Assert.Single(calls);
@@ -256,10 +251,10 @@ public sealed class GreyscaleTests
     [Fact]
     public void WhenANounBecomesKnownItsBlocksRegainColourAndTheToastNamesIt()
     {
-        var words = new WordProgress(Nouns.Value);
+        var words = new WordProgress(TestGame.Nouns);
         var toasts = new ToastQueue();
         var calls = new List<ulong>();
-        var world = new GreyscaleWorld(true, Nouns.Value, words, toasts, calls.Add, RouteScene.Shipped.Locale);
+        var world = new GreyscaleWorld(true, TestGame.Nouns, words, toasts, calls.Add, RouteScene.Shipped.Locale);
         world.Refresh();
         Assert.Null(toasts.Current(0));
 
@@ -281,30 +276,30 @@ public sealed class GreyscaleTests
     public void AWaterBlockNamedByTwoNounsRegainsColourWhenEitherIsKnown()
     {
         // S12, the orchestrator's water rule: agua and río both name the water block; one known name colours it.
-        Assert.Equal(new[] { "agua", "río" }, Nouns.Value.NounsOfBlock(BlockId.Water).Select(static noun => noun.Lemma).Order(StringComparer.Ordinal).ToArray());
+        Assert.Equal(new[] { "agua", "río" }, TestGame.Nouns.NounsOfBlock(BlockId.Water).Select(static noun => noun.Lemma).Order(StringComparer.Ordinal).ToArray());
 
-        var none = WordColours.GreyKinds(Nouns.Value, new WordProgress(Nouns.Value));
+        var none = WordColours.GreyKinds(TestGame.Nouns, new WordProgress(TestGame.Nouns));
         Assert.True(ChunkMesher.IsGrey(BlockId.Water, none));
 
-        var riverKnown = new WordProgress(Nouns.Value);
+        var riverKnown = new WordProgress(TestGame.Nouns);
         riverKnown.Restore([new WordRecord("río", CreditUnits: WordProgress.UnitsToKnow, CorrectTurns: WordProgress.UsesToKnow)]);
-        Assert.False(ChunkMesher.IsGrey(BlockId.Water, WordColours.GreyKinds(Nouns.Value, riverKnown)));
+        Assert.False(ChunkMesher.IsGrey(BlockId.Water, WordColours.GreyKinds(TestGame.Nouns, riverKnown)));
 
-        var waterKnown = new WordProgress(Nouns.Value);
+        var waterKnown = new WordProgress(TestGame.Nouns);
         waterKnown.Restore([new WordRecord("agua", CreditUnits: WordProgress.UnitsToKnow, CorrectTurns: WordProgress.UsesToKnow)]);
-        Assert.False(ChunkMesher.IsGrey(BlockId.Water, WordColours.GreyKinds(Nouns.Value, waterKnown)));
+        Assert.False(ChunkMesher.IsGrey(BlockId.Water, WordColours.GreyKinds(TestGame.Nouns, waterKnown)));
 
         // A single-noun block is unchanged: the trunk is grey until árbol is known, whatever else is known.
-        Assert.True(ChunkMesher.IsGrey(BlockId.Trunk, WordColours.GreyKinds(Nouns.Value, riverKnown)));
+        Assert.True(ChunkMesher.IsGrey(BlockId.Trunk, WordColours.GreyKinds(TestGame.Nouns, riverKnown)));
     }
 
     [Fact]
     public void WithTheSwitchOffNothingIsGreyAndNothingIsToasted()
     {
-        var words = new WordProgress(Nouns.Value);
+        var words = new WordProgress(TestGame.Nouns);
         var toasts = new ToastQueue();
         var calls = new List<ulong>();
-        var world = new GreyscaleWorld(false, Nouns.Value, words, toasts, calls.Add, RouteScene.Shipped.Locale);
+        var world = new GreyscaleWorld(false, TestGame.Nouns, words, toasts, calls.Add, RouteScene.Shipped.Locale);
         world.Refresh();
         words.Restore([new WordRecord("agua", CreditUnits: WordProgress.UnitsToKnow)]);
         world.Refresh();
@@ -318,10 +313,10 @@ public sealed class GreyscaleTests
     [Fact]
     public void NounsAssumedKnownAtTheStartAreInColourAndRaiseNoToast()
     {
-        var words = new WordProgress(Nouns.Value);
+        var words = new WordProgress(TestGame.Nouns);
         var toasts = new ToastQueue();
         var calls = new List<ulong>();
-        var world = new GreyscaleWorld(true, Nouns.Value, words, toasts, calls.Add, RouteScene.Shipped.Locale, ["agua"]);
+        var world = new GreyscaleWorld(true, TestGame.Nouns, words, toasts, calls.Add, RouteScene.Shipped.Locale, ["agua"]);
         world.Refresh();
 
         Assert.True(words.RecordOf("agua").Known);
@@ -332,7 +327,7 @@ public sealed class GreyscaleTests
     [Fact]
     public void AssumeKnownKeepsOtherRecordsAndSkipsWhatIsNoNoun()
     {
-        var words = new WordProgress(Nouns.Value);
+        var words = new WordProgress(TestGame.Nouns);
         words.Restore([new WordRecord("madera", Heard: 2, CreditUnits: 6, CorrectTurns: 1)]);
 
         var skipped = WordColours.AssumeKnown(words, ["agua", "zzz"]);

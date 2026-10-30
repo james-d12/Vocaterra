@@ -211,6 +211,7 @@ public sealed class RouteRunTests(ITestOutputHelper output)
     }
 
     [Fact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void TwoRunsGiveTheSameEventsLogAndDigest()
     {
         var first = PlayRoute();

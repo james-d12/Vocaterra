@@ -1,11 +1,14 @@
 using Vocaterra.Nlp.Core.Configuration;
 
+// The whole suite is slow: scripts/test.sh fast leaves it out, and the gate, CI and scripts/test.sh full run it at its full depth.
+[assembly: AssemblyTrait(TestSpeed.Trait, TestSpeed.Slow)]
+
 namespace Vocaterra.Nlp.Fuzzing.Tests;
 
 /// <summary>
 /// Tunable knobs of the fuzz suite. Every <c>[Fact]</c> runs its full default depth on a plain <c>dotnet test</c>: the whole suite is in
-/// process against fakes (no model files), so there is no separate "fast" tier. The environment variables still exist to push a one-off
-/// soak further; see README.md.
+/// process against fakes (no model files), so there is no shallower tier of the suite itself; the fast tier of <c>scripts/test.sh</c> leaves the
+/// suite out instead (the assembly trait above). The environment variables still exist to push a one-off soak further; see README.md.
 /// </summary>
 public static class FuzzOptions
 {

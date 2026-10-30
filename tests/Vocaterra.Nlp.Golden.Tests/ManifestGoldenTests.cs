@@ -19,7 +19,7 @@ namespace Vocaterra.Nlp.Golden.Tests;
 public partial class ManifestGoldenTests
 {
     private static readonly string GoldenDir = Path.Combine(AppContext.BaseDirectory, "golden");
-    private static readonly ContentBundle Bundle = SpanishContent.Load(GameBundleLocator.Directory);
+    private static ContentBundle Bundle => GameBundleLocator.Bundle;
 
     [GeneratedRegex(@"^audio/[a-z0-9]+-[a-z0-9]+(-[a-z0-9]+)*-[1-9][0-9]*\.wav$")]
     private static partial Regex ClipName();

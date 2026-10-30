@@ -8,7 +8,8 @@ namespace Vocaterra.Game.Core.World;
 /// A built scene: the voxel grid, the player's spawn, the NPC placements and the named points (<c>camp</c>, <c>stall</c>, <c>river</c> ...).
 /// A named point is the block on top of the terrain at that column (the ground block, or the water surface block over a river), so its Y is
 /// one lower than the feet cell of someone standing there. <see cref="VoxelSimulation"/> edits the grid in place; build a new scene for a
-/// fresh run (it is cheap).
+/// fresh run, or <see cref="Clone"/> one that no run has touched (a build of the bundle's 384 x 128 x 384 route takes about 0.6 s, a clone
+/// copies its 38 MB of blocks).
 /// </summary>
 public sealed class Scene
 {
@@ -34,6 +35,20 @@ public sealed class Scene
         TreeCount = treeCount;
         WaterLevel = waterLevel;
         PlantCount = plantCount;
+    }
+
+    private Scene(Scene source, VoxelGrid grid)
+    {
+        Name = source.Name;
+        Seed = source.Seed;
+        Grid = grid;
+        Spawn = source.Spawn;
+        Npcs = source.Npcs;
+        Points = source.Points;
+        Labels = source.Labels;
+        TreeCount = source.TreeCount;
+        WaterLevel = source.WaterLevel;
+        PlantCount = source.PlantCount;
     }
 
     /// <summary>The layout's name.</summary>
@@ -69,6 +84,12 @@ public sealed class Scene
 
     /// <summary>The y of the water surface block.</summary>
     public int WaterLevel { get; }
+
+    /// <summary>
+    /// A copy with its own grid (<see cref="VoxelGrid.Clone"/>), so a run edits it apart from this scene. The spawn, the NPC placements, the
+    /// named points and their labels are read-only and shared.
+    /// </summary>
+    internal Scene Clone() => new(this, Grid.Clone());
 
     /// <summary>The named point <paramref name="name"/>.</summary>
     /// <exception cref="KeyNotFoundException">The scene has no such point.</exception>
