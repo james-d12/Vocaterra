@@ -45,7 +45,7 @@
 {"path":"game/host-events.json","sha256":"15f82845d84c0d4815368addb4c20e5d7bc673a92a190cba4a0276f91a711eb0","bytes":2005},
 {"path":"game/lessons.json","sha256":"43452f2ea5d7e8ff1d9206a0a71c21ecd72e3b23a630d42c1ed0724b092491c3","bytes":1579},
 {"path":"game/lessons/ayer-y-manana.json","sha256":"7e25675c250c91a825170a2d774ca5bc14836a6b9e96c117abf0d4156ca4fd5d","bytes":5261},
-{"path":"game/lessons/el-pueblo.json","sha256":"9ec02b53bfa9b1a15f4547dc6270b507a7137336d6a1bcf46e02baa75c1806bb","bytes":3922},
+{"path":"game/lessons/el-pueblo.json","sha256":"83752e81166719f80ad7707a44ed24d6fff2e5272ef8d84bd28432f93500e43a","bytes":3931},
 {"path":"game/lessons/first-words.json","sha256":"9c3c884e9e45b41fd57b56980a37b4f954180de9ce876904820faf636b04e461","bytes":4870},
 {"path":"game/lessons/personas.json","sha256":"99e5ee4e31f8e2f3e1240decebf7470de3cf91f3bdfb205d43235b0d777e93e5","bytes":4532},
 {"path":"game/nouns.json","sha256":"c2ae7e71db331c9c3da3a6df819f00d2e6e1c8b216aab6c44ce45770ab46d179","bytes":1750},
@@ -60,7 +60,7 @@
 {"path":"game/objectives/meet-guide.json","sha256":"9f719299b1906c04f69ff62d6d673a308229de6541aa14c744681c466224b445","bytes":521},
 {"path":"game/phrases.json","sha256":"63a76512da3e72b8e4e9adc8f317e5c089a239e7181d484ccf80910c58951872","bytes":14189},
 {"path":"game/recipes.json","sha256":"2e4d0ad97236189771e0adc4994dafa28be162ad3c5cefc9e1cd847263d708bb","bytes":240},
-{"path":"game/scene.json","sha256":"4211d52a9f64793e9295c68b732c515c840b5c596fa1d166f1d98267c416fd8a","bytes":17699},
+{"path":"game/scene.json","sha256":"304fc4d0ecb4ebba177be45a968d78c4cf64cff6ae45dde0f3bdca445cd1d35f","bytes":17897},
 {"path":"game/session.json","sha256":"50b7b5abd2d4a6f8124a2cc4ea1d02001896ff9e53c0d178f165bbfbc58de46d","bytes":603},
 {"path":"game/tips.json","sha256":"92a7b632ed478e066020adef1c993b33fbe9f65ba0584962a560809b98f55bb9","bytes":1222},
 {"path":"game/words.json","sha256":"fcdec20dd145e55fdfa0c5951d072a509a3a0f2fd33f3a1789055f8a6ad696c3","bytes":1854},
@@ -591,4 +591,4 @@
 {"path":"speech/villager_thank.2.wav","sha256":"0ee06d6e1412c4a8c3efc7d36a4179e6f2d52ce6dbb7b602ca17fad9a51247b3","bytes":54044},
 {"path":"speech/villager_unknown_place.1.slow.wav","sha256":"7e125d37b0a2bf3fac2c929cc2e2bd4a56639e9c515a39ad9ea809e1404fbe2e","bytes":83308},
 {"path":"speech/villager_unknown_place.1.wav","sha256":"926fc98c88187d508f8a0add2dc291af1e5bf62b5124ea47cf4277577b5e4215","bytes":76844}
-],"bundleHash":"4bb00c3409a4af77a1d95c59cec95486510507c144853cb54ebead0ff066237b"}
+],"bundleHash":"e9fcbe5925bfdcfa39bc9a896e71d3ca5628622eaac2fefaf24fc7b77f490e3e"}

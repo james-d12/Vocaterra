@@ -121,9 +121,8 @@ public sealed class VillageLessonTests(ITestOutputHelper output)
         // The walk: the bakery and the smithy by the beacon, the villager at the square, and back to the fisher at the bridge.
         var walks = lesson.Steps.Where(static s => s.Type == LessonStepType.Do).ToList();
         Assert.Equal(
-            [("bakery", WorldEvents.BeaconReached, null, "bakery"), ("smithy", WorldEvents.BeaconReached, null, "smithy"), (null, WorldEvents.TalkOpened, "villager", null), (null, WorldEvents.TalkOpened, "fisher", null)],
+            [("bakery", WorldEvents.BeaconReached, null, "bakery"), ("smithy", WorldEvents.BeaconReached, null, "smithy"), (null, WorldEvents.TalkOpened, "villager", null), ("npc.fisher", WorldEvents.TalkOpened, "fisher", null)],
             walks.Select(static s => (s.PointPlace, s.Event!, s.At, s.Detail)));
-        Assert.Equal("puente", walks[^1].Point); // back to the bridge: the nearest block of it is the east end, by the fisher, so the arrow is taken down when he is reached
         Assert.All(walks, static s => Assert.False(string.IsNullOrWhiteSpace(s.Hud), s.Id));
     }
 
@@ -191,6 +190,11 @@ public sealed class VillageLessonTests(ITestOutputHelper output)
                 done.Add(LessonDriver.DoStep(session));
                 Assert.Equal("well", session.Pointer!.Point); // ¿Hay un pozo?: he points at it too (fisher.show)
                 continue;
+            }
+
+            if (step.Id == "v6-back")
+            {
+                Assert.Equal(("npc.fisher", "pescador"), (session.Pointer!.Point, session.Pointer.Place)); // the walk back points at where he stands, by his word
             }
 
             if (step.Id == "v5-bakery")

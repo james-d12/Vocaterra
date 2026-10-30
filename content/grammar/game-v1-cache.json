@@ -1228,12 +1228,6 @@
       "matches": []
     },
     {
-      "key": "3b376b59f93a3b74a01048fb6f56a898cace225bf6fc70a5917901546bf6a3df",
-      "settings": "language=es;level=picky;motherTongue=en",
-      "text": "La semana que viene voy a comprar pan",
-      "matches": []
-    },
-    {
       "key": "3b73843592529711c431add7eed76032c41075b0c8fdb1e78a955b5c1a12a9fa",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo voy a la panadería",
@@ -2011,12 +2005,6 @@
       "key": "632af8bd01e6d512aa6279d6d99f1a6d7c2938ab5ac742e36468e674f773dcdf",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mañana fui al río",
-      "matches": []
-    },
-    {
-      "key": "6372535a0df6903f6fee6478c327c534e1d5f2dd5b5f86cd821ad7c0cc9a48a6",
-      "settings": "language=es;level=picky;motherTongue=en",
-      "text": "La próxima semana voy a comprar pan",
       "matches": []
     },
     {
