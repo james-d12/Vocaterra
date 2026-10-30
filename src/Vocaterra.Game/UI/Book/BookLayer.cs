@@ -287,11 +287,11 @@ public sealed class BookLayer : IFrameLayer
         }
         else if (line.Practise is not null)
         {
-            // The "Practise again" button of a completed lesson (S26), at the right edge of its heading.
+            // The "Practise again" button of a completed lesson (S26), or the Phrases page's "Review now" (X06), at the right edge of its line.
             var box = new Rectangle(right - BookPractise.ButtonWidth, top + 1, BookPractise.ButtonWidth, BookGeometry.LineHeight - 3);
             spriteBatch.Draw(pixel, box, new Color(246, 236, 210));
             DrawHelpers.Border(spriteBatch, pixel, box, 1, InkKnown);
-            var practise = BookPractise.Label(view.Session.Locale);
+            var practise = BookPractise.Label(view.Session.Locale, line.Practise);
             var labelWidth = (int)DrawHelpers.Width(font, practise);
             InkText(spriteBatch, font, practise, new Vector2(box.X + ((box.Width - labelWidth) / 2), top + 1), InkKnown);
             rightEdge = box.X - BookSpeakers.Gap;

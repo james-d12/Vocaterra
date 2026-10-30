@@ -43,7 +43,7 @@ public static class BookPages
         {
             BookPage.Nouns => Nouns(session.Locale, session.Words, session.Learner.Nouns, session.StoredTime.UnixSeconds, session.DefiniteArticle, session.Phrases, session.Data.Words.Unseen, recordings),
             BookPage.Verbs => Verbs(session.Locale, session.Learner.Verbs, session.Glosses, session.Phrases, session.Bundle.SpanishMorphology()),
-            BookPage.Phrases => Phrases(PhraseJournalRows.Build(session.PhraseProgress, session.StoredTime.UnixSeconds, session.Credit, session.Locale), recordings),
+            BookPage.Phrases => Phrases(PhraseJournalRows.Build(session.PhraseProgress, session.StoredTime.UnixSeconds, session.Credit, session.Locale), recordings, ReviewLine(session)),
             BookPage.Lessons => Lessons(session.Locale, session.Lessons.Record, session.Phrases, recordings),
             _ => Said(session.Learner.Recent(LearnerRecord.SavedEntries), session.Locale, session.Lessons.Record),
         };
@@ -209,10 +209,17 @@ public static class BookPages
     /// </summary>
     /// <param name="rows">The rows from <see cref="PhraseJournalRows.Build"/>.</param>
     /// <param name="recordings">The recordings (S20b): every phrase row gets a speaker button for its recording, when it has one.</param>
-    public static IReadOnlyList<BookLine> Phrases(IReadOnlyList<PhraseJournalRow> rows, BookRecordings? recordings = null)
+    /// <param name="review">The line above the rows that carries the "Review now" button (X06), or <see langword="null"/> when nothing the guide can ask is due.</param>
+    public static IReadOnlyList<BookLine> Phrases(IReadOnlyList<PhraseJournalRow> rows, BookRecordings? recordings = null, string? review = null)
     {
         ArgumentNullException.ThrowIfNull(rows);
         var lines = new List<BookLine>();
+        if (review is not null)
+        {
+            lines.Add(new BookLine(BookTone.Learning, review, Practise: BookPractise.ReviewNow));
+            lines.Add(BookLine.Gap);
+        }
+
         foreach (var row in rows)
         {
             var tone = row.HasScaffold && row.Level == SupportLevel.None && row.Record.CreditedUses > 0 ? BookTone.Known : row.Record.Seen ? BookTone.Learning : BookTone.Unseen;
@@ -223,6 +230,10 @@ public static class BookPages
 
         return lines;
     }
+
+    // The Phrases page's "Review now" line (X06): how many phrases the warm-up would ask, while some are due and no warm-up is under way.
+    private static string? ReviewLine(GuideSession session) =>
+        session.Deck.Ready is > 0 and var ready && session.Deck.Status != DeckStatus.Running ? session.Locale.Plural("ui.bookReviewDue", ready) : null;
 
     /// <summary>
     /// The lessons page: every lesson of the bundle in its order, with its state (completed in session n, in progress with the units done, not

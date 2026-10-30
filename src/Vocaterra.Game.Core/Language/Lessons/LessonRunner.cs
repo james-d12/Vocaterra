@@ -66,7 +66,8 @@ public sealed record LessonView(
 /// <param name="Title">The lesson's English title.</param>
 /// <param name="English">One line about it.</param>
 /// <param name="Resume">Whether the learner has begun it already.</param>
-public sealed record LessonOffer(string LessonId, string Title, string English, bool Resume);
+/// <param name="Warmup">Whether it is the review deck's warm-up (X06) and not a lesson: the strip then offers Start and Skip.</param>
+public sealed record LessonOffer(string LessonId, string Title, string English, bool Resume, bool Warmup = false);
 
 /// <summary>One step of a lesson as the record shows it: the step's id and how it ended.</summary>
 /// <param name="StepId">The step's id.</param>
@@ -154,6 +155,9 @@ public sealed class LessonRunner
 
         public string? Hint { get; set; }
 
+        // The review step in progress, resolved to the candidate it asks (X06): the step with that candidate's phrase, line, prompt and translation. Null for any other step.
+        public LessonStep? Asked { get; set; }
+
         // The record of the lesson (S19), over every run of it: the turns that reached its turn steps, the help uses, the "no sé" uses, the
         // repeats asked for, and the session it was last completed in.
         public int Turns { get; set; }
@@ -227,7 +231,7 @@ public sealed class LessonRunner
     public bool Engaged => _engaged && _activeId is not null;
 
     /// <summary>The step in progress of the active lesson, or <see langword="null"/>.</summary>
-    public LessonStep? Current => Active is { } lesson ? lesson.Steps[_states[lesson.Id].Step] : null;
+    public LessonStep? Current => Active is { } lesson ? StepOf(lesson, _states[lesson.Id]) : null;
 
     /// <summary>The number of the step in progress, from 1 (0 when no lesson is active).</summary>
     public int StepNumber => Active is { } lesson ? _states[lesson.Id].Step + 1 : 0;
@@ -408,7 +412,7 @@ public sealed class LessonRunner
             }
 
             var state = _states[lesson.Id];
-            var step = lesson.Steps[state.Step];
+            var step = StepOf(lesson, state);
             var spanish = step.Line?.Text ?? (step.Phrase is { } phrase ? _session.Phrases.Find(phrase)?.Spanish : null);
             var heading = _locale.Ui(step.Type switch
             {
@@ -418,6 +422,7 @@ public sealed class LessonRunner
                 LessonStepType.Repeat => "stepRepeat",
                 LessonStepType.Answer => "stepAnswer",
                 LessonStepType.Do => "stepDo",
+                LessonStepType.Review => "stepReview",
                 _ => "stepRecap",
             });
             return new LessonView(
@@ -452,8 +457,8 @@ public sealed class LessonRunner
     /// </summary>
     public string? ActivePrompt => TurnStep()?.Prompt;
 
-    /// <summary>The phrase the step in progress has in play, for the support state: the card is up for a <c>repeat</c> step and down for an <c>answer</c> step.</summary>
-    public LessonFocus? Focus => TurnStep() is { Phrase: { } phrase } step ? new LessonFocus(phrase, step.Type == LessonStepType.Repeat) : null;
+    /// <summary>The phrase the step in progress has in play, for the support state: the card is up for a <c>repeat</c> step and down for an <c>answer</c> step, and a <c>review</c> step follows the phrase's rung.</summary>
+    public LessonFocus? Focus => TurnStep() is { Phrase: { } phrase } step ? new LessonFocus(phrase, step.Type == LessonStepType.Repeat, step.Type == LessonStepType.Review) : null;
 
     /// <summary>Whether the help and "no sé" buttons belong to the lesson now (a lesson is engaged and the panel is open on its NPC).</summary>
     public bool HandlesHelp => Engaged && CurrentNpc is { } npc && _session.TalkOpenOn(npc);
@@ -518,7 +523,7 @@ public sealed class LessonRunner
         }
 
         var state = _states[lesson.Id];
-        var step = lesson.Steps[state.Step];
+        var step = StepOf(lesson, state);
         state.Helped = true;
         state.HelpUses++;
         state.Hint = step.Help ?? _locale.Ui("helpDefault");
@@ -548,7 +553,7 @@ public sealed class LessonRunner
             return false;
         }
 
-        var step = lesson.Steps[_states[lesson.Id].Step];
+        var step = StepOf(lesson, _states[lesson.Id]);
         _states[lesson.Id].DontKnowUses++;
         _session.LogVoice(VoiceEventKind.NoSe);
         if (step.WaitsOnTurn && step.Phrase is { } phrase)
@@ -682,7 +687,7 @@ public sealed class LessonRunner
         }
 
         var state = _states[lesson.Id];
-        var step = lesson.Steps[state.Step];
+        var step = StepOf(lesson, state);
         if (!step.WaitsOnTurn)
         {
             return false;
@@ -753,7 +758,7 @@ public sealed class LessonRunner
             return false;
         }
 
-        var step = lesson.Steps[_states[lesson.Id].Step];
+        var step = StepOf(lesson, _states[lesson.Id]);
         return step.WaitsOnTurn
             && turn.Communicated && !turn.Unsure && !turn.Uncertain && !turn.Choice
             && !IsServiceIntent(turn.Intent)
@@ -852,6 +857,7 @@ public sealed class LessonRunner
             state.Picked = -1;
             state.Pending = null;
             state.Hint = null;
+            state.Asked = null;
             state.Outcomes.Clear();
             state.Outcomes.AddRange(progress.Outcomes.Select(static o => (o.StepId, o.Outcome)));
             active += progress.Status == LessonStatus.InProgress ? 1 : 0;
@@ -879,6 +885,19 @@ public sealed class LessonRunner
     private void Enter(LessonDefinition lesson, State state)
     {
         var step = lesson.Steps[state.Step];
+        state.Asked = null;
+        if (step.Type == LessonStepType.Review)
+        {
+            // A review step asks the first of its candidates that is due (X06, R07), and is skipped when none is: nothing not yet met, and nothing still inside its spacing gap.
+            if (ChooseReview(step) is not { } chosen)
+            {
+                Finish(lesson, state, StepOutcome.Skipped, "nothing due");
+                return;
+            }
+
+            step = state.Asked = step with { Phrase = chosen.Phrase, Prompt = chosen.Prompt, Line = chosen.Line, Translation = chosen.Translation };
+        }
+
         state.Attempts = 0;
         state.Helped = false;
         state.Picked = -1;
@@ -900,11 +919,40 @@ public sealed class LessonRunner
         _session.RefreshLessonSupport();
     }
 
+    // The step in progress: for a review step, the step as resolved to the candidate asked (X06).
+    private static LessonStep StepOf(LessonDefinition lesson, State state) => state.Asked ?? lesson.Steps[state.Step];
+
+    // The candidate of a review step that is due now (the stored time, the spacing gaps of D-game-6): the most overdue of those due, the step's order of preference
+    // breaking a tie. Null when none is due: the phrase was never credited, its help is gone, or its gap has not passed.
+    private ReviewCandidate? ChooseReview(LessonStep step)
+    {
+        var due = _session.PhraseProgress.DuePhrases(_session.StoredTime.UnixSeconds, _session.Credit);
+        ReviewCandidate? best = null;
+        var bestOverdue = long.MinValue;
+        foreach (var candidate in step.Candidates ?? [])
+        {
+            var found = due.FirstOrDefault(d => string.Equals(d.PhraseId, candidate.Phrase, StringComparison.Ordinal));
+            if (found is not null && found.OverdueSeconds > bestOverdue)
+            {
+                best = candidate;
+                bestOverdue = found.OverdueSeconds;
+            }
+        }
+
+        return best;
+    }
+
     private void Finish(LessonDefinition lesson, State state, StepOutcome outcome, string? detail)
     {
-        var step = lesson.Steps[state.Step];
+        var step = StepOf(lesson, state);
         state.Outcomes.Add((step.Id, outcome));
         Emit(LessonEventKind.StepDone, lesson, state, step, outcome, detail);
+        if (step.Type == LessonStepType.Review && outcome == StepOutcome.Done)
+        {
+            _session.NoteReviewed(step.Phrase!, "lesson"); // the summary card counts the phrases reviewed (X06)
+        }
+
+        state.Asked = null;
         if (state.Step + 1 < lesson.Steps.Count)
         {
             state.Step++;

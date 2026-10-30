@@ -52,11 +52,14 @@ public sealed record SupportSnapshot(IReadOnlyList<string> InPlay, IReadOnlyList
 
 /// <summary>
 /// The phrase a lesson step has in play (S16): a <c>repeat</c> step keeps the phrase's card and audio up whatever the rung (<see cref="Card"/> true, a supported
-/// use), an <c>answer</c> step shows no card (the step is the test, like the guide's review; <see cref="Card"/> false). The help key reveals both.
+/// use), an <c>answer</c> step shows no card (the step is the test, like the guide's review; <see cref="Card"/> false). The help key reveals both. A <c>review</c> step
+/// (X06) follows the phrase's own rung (<see cref="ByRung"/>): the card at the two upper rungs, the audio alone at the third, nothing at the last, as when the phrase is
+/// asked in the world; the use is then supported or unaided as the rung says.
 /// </summary>
 /// <param name="PhraseId">The phrase sheet's id.</param>
 /// <param name="Card">Whether the card and the audio are up for the step.</param>
-public sealed record LessonFocus(string PhraseId, bool Card);
+/// <param name="ByRung">Whether the help follows the phrase's rung (a <c>review</c> step) instead of being fixed by <paramref name="Card"/>.</param>
+public sealed record LessonFocus(string PhraseId, bool Card, bool ByRung = false);
 
 /// <summary>What <see cref="PhraseSupport.Show"/> found new on the screen.</summary>
 /// <param name="NewCards">The phrases whose support card appeared (each counts as a card shown, once per appearance).</param>
@@ -97,6 +100,7 @@ public sealed class PhraseSupport
     private string? _prompt;
     private string? _reviewPhrase;
     private string? _forcedPhrase;
+    private string? _ratedPhrase;
     private bool _help;
 
     /// <summary>Creates the support state over the phrase sheet and the progress whose levels it follows.</summary>
@@ -139,7 +143,7 @@ public sealed class PhraseSupport
     /// <summary>The phrases in play on this prompt: the review's phrase during a review, otherwise the prompt's focus (its NPC's, <see cref="NpcRoster.FocusAt"/>).</summary>
     public IReadOnlyList<string> InPlay => _npc is null
         ? []
-        : _forcedPhrase is not null ? [_forcedPhrase] : _reviewPhrase is not null ? [_reviewPhrase] : _npcs.FocusAt(_prompt ?? string.Empty);
+        : _forcedPhrase is not null ? [_forcedPhrase] : _reviewPhrase is not null ? [_reviewPhrase] : _ratedPhrase is not null ? [_ratedPhrase] : _npcs.FocusAt(_prompt ?? string.Empty);
 
     /// <summary>The support cards to draw now, in the phrase sheet's order; each says whether its English is drawn (<see cref="SupportCard.EnglishShown"/>).</summary>
     public IReadOnlyList<SupportCard> Cards => _npc is null
@@ -233,10 +237,12 @@ public sealed class PhraseSupport
     {
         ArgumentNullException.ThrowIfNull(npc);
         ArgumentNullException.ThrowIfNull(prompt);
-        var review = reviewPhrase ?? (lesson is { Card: false } ? lesson.PhraseId : null);
-        var forced = lesson is { Card: true } ? lesson.PhraseId : null;
+        var review = reviewPhrase ?? (lesson is { Card: false, ByRung: false } ? lesson.PhraseId : null);
+        var forced = lesson is { Card: true, ByRung: false } ? lesson.PhraseId : null;
+        var rated = lesson is { ByRung: true } ? lesson.PhraseId : null;
         var fresh = !string.Equals(_npc, npc, StringComparison.Ordinal) || !string.Equals(_prompt, prompt, StringComparison.Ordinal)
-            || !string.Equals(_reviewPhrase, review, StringComparison.Ordinal) || !string.Equals(_forcedPhrase, forced, StringComparison.Ordinal);
+            || !string.Equals(_reviewPhrase, review, StringComparison.Ordinal) || !string.Equals(_forcedPhrase, forced, StringComparison.Ordinal)
+            || !string.Equals(_ratedPhrase, rated, StringComparison.Ordinal);
         if (fresh)
         {
             ResetPrompt();
@@ -246,6 +252,7 @@ public sealed class PhraseSupport
         _prompt = prompt;
         _reviewPhrase = review;
         _forcedPhrase = forced;
+        _ratedPhrase = rated;
         var newCards = new List<string>();
         foreach (var id in InPlay)
         {
@@ -321,6 +328,7 @@ public sealed class PhraseSupport
         _prompt = null;
         _reviewPhrase = null;
         _forcedPhrase = null;
+        _ratedPhrase = null;
     }
 
     /// <summary>Takes the sounds waiting to be played, oldest first, and clears them.</summary>

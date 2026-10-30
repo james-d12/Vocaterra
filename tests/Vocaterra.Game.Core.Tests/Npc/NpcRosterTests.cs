@@ -60,11 +60,12 @@ public sealed class NpcRosterTests
     {
         var rows = TestGame.Data.Phrases.Rows.Where(static r => r.ReviewLine is not null).ToDictionary(static r => r.Id, static r => r.ReviewLine);
 
-        Assert.Equal(7, rows.Count);
+        Assert.Equal(11, rows.Count);
         Assert.Equal("shop_need.1", rows["pedir-agua"]);
         Assert.Equal("guide_offer.1", rows["no-gracias"]);
         Assert.Equal("villager_greet.1", rows["donde-esta-el-rio"]);
         Assert.Equal("guide.lesson.hello.1", rows["hola"]);
+        Assert.Equal("guide.lesson.want.1", rows["quiero-madera"]); // X06: the warm-up asks the first lesson's phrases with the guide's own lines
     }
 
     [Theory]

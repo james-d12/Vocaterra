@@ -52,9 +52,9 @@ public sealed class LessonBookTests
             lesson.TaughtPhrases);
         Assert.Equal(lesson.TaughtPhrases.Concat(book.Find("personas")!.TaughtPhrases).Concat(book.Find("ayer-y-manana")!.TaughtPhrases).Distinct(), book.TaughtPhrases); // quiero-madera is asked again at the start of Personas
         Assert.All(lesson.TaughtPhrases, id => Assert.True(RouteScene.DataOf(TestGame.Bundle).Phrases.Find(id)!.IsLearnerPhrase, id));
-        foreach (var type in Enum.GetValues<LessonStepType>().Where(static t => t != LessonStepType.Recap))
+        foreach (var type in Enum.GetValues<LessonStepType>().Where(static t => t is not (LessonStepType.Recap or LessonStepType.Review)))
         {
-            Assert.Contains(lesson.Steps, s => s.Type == type); // built from the runner's step types: explain, model, listen, repeat, answer and do
+            Assert.Contains(lesson.Steps, s => s.Type == type); // built from the runner's step types: explain, model, listen, repeat, answer and do (a review needs an earlier lesson, X06)
         }
 
         var pick = Assert.Single(lesson.Steps, static s => s.Type == LessonStepType.Do);

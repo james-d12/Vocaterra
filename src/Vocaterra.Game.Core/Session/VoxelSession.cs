@@ -159,6 +159,11 @@ public sealed class VoxelSession : GuideSession
             return [new ObjectivePiece(replay, ObjectivePieceKind.Support)]; // the learner asked to practise a lesson again from the book (S26)
         }
 
+        if (Deck.PendingHud is { } review)
+        {
+            return [new ObjectivePiece(review, ObjectivePieceKind.Support)]; // the learner asked for a review from the book (X06)
+        }
+
         var current = CurrentObjective;
         if ((current is null || current == Objectives[0]) && Lessons.NewLesson is { Objective: { } objective })
         {
