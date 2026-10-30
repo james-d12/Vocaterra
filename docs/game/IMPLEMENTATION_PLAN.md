@@ -1553,6 +1553,23 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     - `PhraseSheet`'s guide-offer-as-stall-offer is now a rule: a prompt an NPC names that no row names takes the rows of the other NPC prompt
       with the same answer set and allowed intents (exactly `guide-offer` to `stall-offer` today).
     - The save keeps one `KeyWordsTaught` flag, so only the first NPC with key words shows the cards; a second needs a save field.
+- **V02 and V03: host actions, the beacon by place, items and orders (2026-10-30, Opus 5.5 xhigh; gated on `feature/village` at `d53b957`).**
+  - **Gate:** 5663 passed, 3 skipped, 0 failed, with the models; 0 warnings; format, content, grammar and both licence scans clean (72 new
+    tests). Bundle `5b4adae6…`; the identity golden gained the villager's new line.
+  - **V02.** `host-events.json` schema 2: `give_item` with `count` (a number or `"qty"`, 1 to 5), `point_at_place`, `point_at_slot`. A slot
+    resolves to a scene label first (the nearest point of that label; when the word is also the catalogue noun of the block there, the
+    nearest such block, so the river is pointed at exactly as before), then a catalogue noun, else `<npc>.unknown_place`. World events
+    `beacon_reached` and `place_asked`; a `do` step's `pointPlace`. The villager points from the slot; new line `villager_unknown_place.1`
+    "No sé dónde está." (provisional, em_santa).
+  - **V03.** `Coin = 30`, `Apple = 31`, `Axe = 32` (placeholder art until V05); the axe fells a trunk in 15 ticks, not 60. `take_item` and
+    `sell` (too few coins: nothing changes hands, `<npc>.cant_pay`). Objectives take `session` and `deliverTo` with `deliver` (one generated
+    step, `delivered`), delivered when the talk opens; orders never hold back the first session's ending. No save change.
+  - **Found:**
+    - The session takes its own arrow down before `BeaconDirector.ClearIfReached` sees it, so the session logs those arrivals and the
+      director its own beacons (the start, `--beacon`).
+    - Section 6's S3 demo line was out of date: the game at seed 42 says "El río está allí, adelante, a la izquierda, a cincuenta y cuatro
+      bloques." (a test now pins it; section 6 corrected).
+    - The scripted runs are not in `dotnet test` and have no committed baselines; they gain `beacon_reached` and `place_asked` lines (V09).
 
 ## 6. Definition of done (every milestone)
 
@@ -1565,7 +1582,7 @@ Facts that shape the plan. Each one names its source; the core's own findings st
    communicated, and `--transcript "quiero dos agua por favor" --prompt stall-need` prints `noun.number` (expected 'aguas'); the core demo
    (`docs/nlp/README.md`) still yields exactly `conj.person` and `noun.number`. The game (needs a display, `DISPLAY=:0`): `dotnet run --project
    src/Vocaterra.MonoGame -- --seed 42 --look 120,-5 --say "¿dónde está el río?" --screenshot <scratch>/s3.png --frames 300` prints
-   `ask_directions, entendido` and "El río está allí, a la izquierda, a sesenta bloques."; the PNG shows the dialogue panel and the beacon
+   `ask_directions, entendido` and "El río está allí, adelante, a la izquierda, a cincuenta y cuatro bloques." (V02); the PNG shows the dialogue panel and the beacon
    arrow. Each later milestone's demo is in `docs/game/SCENARIO_PLAN.md` section 4. Look at every PNG.
 5. No violation of section 3: no copied core source, no edit under `nlp/` in a game milestone, nothing under `.github/workflows/`, no
    engine code outside `src/Vocaterra.MonoGame`.
