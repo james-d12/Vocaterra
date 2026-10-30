@@ -27,6 +27,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-19 | Verbs in the lessons | decided (owner, 2026-10-22): verbs early but gradual, across sessions (yo/tú in session 1, the other persons in session 2, ir a + infinitive and a few past forms in session 3), lessons replayable from the book; conjugation tables in the book | nothing |
 | D-game-20 | One licence for the whole repository | decided (owner, 2026-10-23): Apache-2.0 for the game as well as the core; one `LICENSE` and `NOTICE` at the root (R01) | nothing |
 | D-game-21 | Content as data and the L1 locale layer (the C series, `docs/game/CONTENT_PLAN.md`) | decided (owner, 2026-10-27 to 2026-10-29): English moves into a locale bundle `content/locale/` outside game-v1's hash (`en` only); content stays JSON with JSON Schema; objectives, NPCs and target-language words become data; the series runs after R16 phase 2, on `feature/content` | nothing |
+| D-game-22 | The village and the lessons (the V series, `docs/game/VILLAGE_PLAN.md`) | proposed (2026-10-30), awaiting the owner's answers to the plan's section 6: phase A now or after the pilot; the A2 ceiling with a per-lesson A1 check; the NPC set, names and voices; the shopkeeper's pronoun; coins and orders or comprehension only; phase B; the speech folder's rate | the V series |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
@@ -252,6 +253,23 @@ ground for custom authoring tools. The answers, in `docs/game/CONTENT_PLAN.md`:
   R16 phase 2 landed there.
 - Close (2026-10-29: "work for content is done"): C01 to C08 are done (pull request #16). C09 is assessed and C10, the authoring CLI the
   request looked towards, is specified in `CONTENT_PLAN.md` section 3.8. Neither is built until the owner asks.
+
+## D-game-22: the village and the lessons (proposed)
+
+**Owner, 2026-10-30.** "Take the current map, make the village bigger with more NPCs (blacksmith, baker, etc.) and have more lessons. Avoid
+making the map larger unless an objective or lesson genuinely justifies it. Make the NPCs interlink, and use the map space intelligently.
+Lessons should be connected, and aim for A1 to A2 content." The plan is `docs/game/VILLAGE_PLAN.md` (the V series); its section 6 lists the
+eight answers it needs, none assumed:
+- (a) phase A (sessions 4 to 6, A1 complete) now, or after the first pilot, as the brief's decision gate would have it;
+- (b) the content gate: an A2 ceiling bundle-wide (`lint --strict --level a2 --fail-on-level`) with a per-lesson A1 check in the game's
+  validator, and world words in `cefr/a1.txt` under a marked block (the gate today demands A1 bundle-wide);
+- (c) the NPC set and their names (the fisher Mar, the baker Luz, the smith Domingo, a farmer or none; a name for the villager or none);
+- (d) the voices: the Kokoro model has three Spanish voices and all three are taken, so the candidates are the Italian `if_sara` and
+  `im_nicola` and speed variants of the Spanish three; the owner listens to a trial before any lesson is recorded (D-game-12 step 4);
+- (e) the shopkeeper's pronoun: the label and the voice are male, the locale and the sheet say "she";
+- (f) the economy (a coin, an apple, an axe; four orders; `sell`) as the price of giving numbers a use, or numbers as comprehension only;
+- (g) phase B (A2, sessions 7 to 9), designed in the plan, started only on the owner's word;
+- (h) the speech folder's sample rate once phase A adds about 160 files.
 
 ## Already decided
 
