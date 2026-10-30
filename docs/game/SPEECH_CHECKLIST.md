@@ -30,14 +30,20 @@ text changed is listed again without a mark. The files are Kokoro model output (
 | card.casa | speech/card.casa.wav | guide | 1.0 | la casa |  |
 | card.fruta | speech/card.fruta.slow.wav | guide | 0.8 | la fruta |  |
 | card.fruta | speech/card.fruta.wav | guide | 1.0 | la fruta |  |
+| card.hacha | speech/card.hacha.slow.wav | guide | 0.8 | el hacha |  |
+| card.hacha | speech/card.hacha.wav | guide | 1.0 | el hacha |  |
 | card.hierba | speech/card.hierba.slow.wav | guide | 0.8 | la hierba |  |
 | card.hierba | speech/card.hierba.wav | guide | 1.0 | la hierba |  |
 | card.libro | speech/card.libro.slow.wav | guide | 0.8 | el libro |  |
 | card.libro | speech/card.libro.wav | guide | 1.0 | el libro |  |
 | card.madera | speech/card.madera.slow.wav | guide | 0.8 | la madera |  |
 | card.madera | speech/card.madera.wav | guide | 1.0 | la madera |  |
+| card.manzana | speech/card.manzana.slow.wav | guide | 0.8 | la manzana |  |
+| card.manzana | speech/card.manzana.wav | guide | 1.0 | la manzana |  |
 | card.mesa | speech/card.mesa.slow.wav | guide | 0.8 | la mesa |  |
 | card.mesa | speech/card.mesa.wav | guide | 1.0 | la mesa |  |
+| card.moneda | speech/card.moneda.slow.wav | guide | 0.8 | la moneda |  |
+| card.moneda | speech/card.moneda.wav | guide | 1.0 | la moneda |  |
 | card.pan | speech/card.pan.slow.wav | guide | 0.8 | el pan |  |
 | card.pan | speech/card.pan.wav | guide | 1.0 | el pan |  |
 | card.piedra | speech/card.piedra.slow.wav | guide | 0.8 | la piedra |  |
@@ -438,3 +444,5 @@ text changed is listed again without a mark. The files are Kokoro model output (
 | villager_thank.1 | speech/villager_thank.1.wav | villager | 1.0 | De nada. |  |
 | villager_thank.2 | speech/villager_thank.2.slow.wav | villager | 0.8 | ¡Con gusto! |  |
 | villager_thank.2 | speech/villager_thank.2.wav | villager | 1.0 | ¡Con gusto! |  |
+| villager_unknown_place.1 | speech/villager_unknown_place.1.slow.wav | villager | 0.8 | No sé dónde está. |  |
+| villager_unknown_place.1 | speech/villager_unknown_place.1.wav | villager | 1.0 | No sé dónde está. |  |

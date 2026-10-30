@@ -105,14 +105,65 @@ public sealed class ContentSchemaTests
     }
 
     [Fact]
+    public async Task AHostEventsFileOfSchemaTwoGivesACountAndPointsAtPlaces()
+    {
+        // V02: give_item takes a count (a number, or qty: the number the learner said), and the beacon goes to a place of the scene or to the place a slot names.
+        var schema = await JsonSchema.FromFileAsync(Path.Combine(SchemaFolder, "host-events.schema.json"));
+        static string File(string action, string version = "2") =>
+            $$"""{ "schemaVersion": {{version}}, "events": [ { "npc": "villager", "event": "villager.do", "action": {{action}} } ] }""";
+        Assert.Empty(schema.Validate(File("""{ "kind": "give_item", "item": "bread", "count": 2 }""")));
+        Assert.Empty(schema.Validate(File("""{ "kind": "give_item", "item": "bread", "count": "qty" }""")));
+        Assert.Empty(schema.Validate(File("""{ "kind": "point_at_place", "place": "stall" }""")));
+        Assert.Empty(schema.Validate(File("""{ "kind": "point_at_slot", "slot": "place" }""")));
+        Assert.NotEmpty(schema.Validate(File("""{ "kind": "give_item", "item": "bread" }""", version: "1")));
+        Assert.NotEmpty(schema.Validate(File("""{ "kind": "give_item", "item": "bread", "count": 0 }""")));
+        Assert.NotEmpty(schema.Validate(File("""{ "kind": "give_item", "item": "bread", "count": "two" }""")));
+        Assert.NotEmpty(schema.Validate(File("""{ "kind": "point_at_place", "noun": "río" }""")));
+        Assert.NotEmpty(schema.Validate(File("""{ "kind": "point_at_slot" }""")));
+
+        // V03: take_item and sell.
+        Assert.Empty(schema.Validate(File("""{ "kind": "take_item", "item": "coin", "count": 3 }""")));
+        Assert.Empty(schema.Validate(File("""{ "kind": "sell", "item": "bread", "price": 2 }""")));
+        Assert.NotEmpty(schema.Validate(File("""{ "kind": "sell", "item": "bread" }""")));
+        Assert.NotEmpty(schema.Validate(File("""{ "kind": "sell", "item": "bread", "price": 0 }""")));
+        Assert.NotEmpty(schema.Validate(File("""{ "kind": "sell", "item": "bread", "price": 2, "count": 2 }""")));
+    }
+
+    [Fact]
+    public async Task AnOrderNamesItsNpcAndGoodsAndHasNoStepsOfItsOwn()
+    {
+        // V03: an objective with deliverTo and deliver (and optionally session) has no title and no steps; any other objective has steps and no goods.
+        var schema = await JsonSchema.FromFileAsync(Path.Combine(SchemaFolder, "objective.schema.json"));
+        const string Order = """{ "schemaVersion": 1, "id": "oven-wood", "session": 5, "deliverTo": "baker", "deliver": [ { "item": "wood", "count": 5 } ] }""";
+        Assert.Empty(schema.Validate(Order));
+        Assert.Empty(schema.Validate("""{ "schemaVersion": 1, "id": "a", "session": 2, "steps": [ { "id": "s", "target": 1, "trigger": { "event": "fire_lit" } } ] }"""));
+        Assert.NotEmpty(schema.Validate(Order.Replace("\"session\": 5", "\"session\": 0", StringComparison.Ordinal)));
+        Assert.NotEmpty(schema.Validate(Order.Replace(", \"deliver\": [ { \"item\": \"wood\", \"count\": 5 } ]", string.Empty, StringComparison.Ordinal)));
+        Assert.NotEmpty(schema.Validate(Order.Replace("\"wood\"", "\"madera\"", StringComparison.Ordinal)));
+        Assert.NotEmpty(schema.Validate(Order.Replace("\"session\": 5,", "\"title\": \"Horno\",", StringComparison.Ordinal)));
+        Assert.NotEmpty(schema.Validate(Order.Replace("\"session\": 5,", "\"steps\": [ { \"id\": \"s\", \"target\": 1, \"trigger\": { \"event\": \"fire_lit\" } } ],", StringComparison.Ordinal)));
+        Assert.NotEmpty(schema.Validate("""{ "schemaVersion": 1, "id": "a" }"""));
+    }
+
+    [Fact]
+    public async Task ADoStepMayPointAtAPlaceOfTheScene()
+    {
+        var schema = await JsonSchema.FromFileAsync(Path.Combine(SchemaFolder, "lesson.schema.json"));
+        Assert.Empty(schema.Validate("""{ "schemaVersion": 1, "id": "a", "npc": "villager", "steps": [{ "id": "s", "type": "do", "pointPlace": "stall", "trigger": { "event": "beacon_reached", "detail": "stall" } }] }"""));
+        Assert.NotEmpty(schema.Validate("""{ "schemaVersion": 1, "id": "a", "npc": "villager", "steps": [{ "id": "s", "type": "do", "pointPlace": "", "trigger": { "event": "beacon_reached" } }] }"""));
+    }
+
+    [Fact]
     public void TheItemAndBlockNamesOfTheNounSchemaAreTheGamesTables()
     {
         // The schema lists the stable names for the editors' completion; the code's tables are the authority.
         var definitions = ReadJson(Path.Combine(SchemaFolder, "nouns.schema.json"))["definitions"]!;
         Assert.Equal(ItemDefinition.All.Select(static d => d.Name), Names(definitions["item"]!));
         Assert.Equal(BlockDefinition.All.Select(static d => d.Name), Names(definitions["block"]!));
-        var give = ReadJson(Path.Combine(SchemaFolder, "host-events.schema.json"))["properties"]!["events"]!["items"]!["properties"]!["action"]!["oneOf"]![0]!;
-        Assert.Equal(ItemDefinition.All.Select(static d => d.Name), Names(give["properties"]!["item"]!)); // C08: a host event gives an item by the same names
+        var hostEvents = ReadJson(Path.Combine(SchemaFolder, "host-events.schema.json"))["definitions"]!;
+        Assert.Equal(ItemDefinition.All.Select(static d => d.Name), Names(hostEvents["item"]!)); // C08: a host event gives an item by the same names
+        var objective = ReadJson(Path.Combine(SchemaFolder, "objective.schema.json"))["definitions"]!;
+        Assert.Equal(ItemDefinition.All.Select(static d => d.Name), Names(objective["item"]!)); // V03: and an order asks for them by the same names
     }
 
     // Schemas written before the files that use them (none at present).

@@ -172,6 +172,11 @@
           "minLength": 1,
           "description": "do: a noun the beacon points at when the step begins (the step's HUD line is the locale's lesson.<id>.<step>.hud)."
         },
+        "pointPlace": {
+          "type": "string",
+          "minLength": 1,
+          "description": "do (VILLAGE_PLAN V02): a named place of the scene (a site, a point or a named prop: stall, river) the beacon points at when the step begins; a trigger { event: beacon_reached, detail: <the place> } ends the step on arrival. Not with point."
+        },
         "phrases": {
           "type": "array",
           "items": {

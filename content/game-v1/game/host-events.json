@@ -1,7 +1,7 @@
 {
   "$schema": "../../schema/host-events.schema.json",
-  "schemaVersion": 1,
-  "about": "What each NPC host event does in the world (S6; C08: it was a table in the code). The core's agents raise the events; an event not listed changes nothing. action is give_item (an item by its stable name) or point_at_noun (the beacon goes to the nearest block of a catalogue noun).",
+  "schemaVersion": 2,
+  "about": "What each NPC host event does in the world (S6; C08: it was a table in the code; schema 2, VILLAGE_PLAN V02). The core's agents raise the events; an event not listed changes nothing. action is give_item (an item by its stable name, and a count: a number, or qty for the number the learner said, capped at 5), point_at_noun (the beacon goes to the nearest block of a catalogue noun), point_at_place (to a named place of the scene) or point_at_slot (to the place a slot of the learner's line names, through the scene's labels: villager.point answers \"¿dónde está el río?\" and any other place; a place the scene does not have is answered by <npc>.unknown_place).",
   "events": [
     {
       "npc": "shopkeeper",
@@ -23,8 +23,8 @@
       "npc": "villager",
       "event": "villager.point",
       "action": {
-        "kind": "point_at_noun",
-        "noun": "río"
+        "kind": "point_at_slot",
+        "slot": "place"
       }
     },
     {

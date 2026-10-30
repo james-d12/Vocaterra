@@ -109,6 +109,10 @@ public sealed class SceneLayout
     /// </summary>
     public IReadOnlyDictionary<string, string> Labels { get; init; } = new Dictionary<string, string>(StringComparer.Ordinal);
 
+    /// <summary>The names of the points a scene built from the layout has (VILLAGE_PLAN V02: the places the data may send the beacon to): every site, every point and every named prop.</summary>
+    public IEnumerable<string> PointNames =>
+        Sites.Select(static site => site.Name).Concat(Points.Select(static point => point.Name)).Concat(Props.Select(static prop => prop.Name).OfType<string>());
+
     /// <summary>The site called <paramref name="name"/>, or <see langword="null"/>.</summary>
     public SiteSpec? Site(string name)
     {

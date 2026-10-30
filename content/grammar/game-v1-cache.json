@@ -732,6 +732,23 @@
       "matches": []
     },
     {
+      "key": "2e78f66567aa9955c5a836f709701cafd648a2b6010d6c7c912a327c87fcc5aa",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "el hacha",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "El"
+          ]
+        }
+      ]
+    },
+    {
       "key": "2f2069124ae9b6a2a01167824c5df112ff6cf4b19375cdd4f2329f2ee56e7045",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Es agua?",
@@ -3517,6 +3534,23 @@
       "matches": []
     },
     {
+      "key": "d3e72e7c0c40b4649390d741f7dc1c185a1f3ed131407426eaacb4f92acf7f4e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la manzana",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
+    },
+    {
       "key": "d4b0b767e5b84b68d6c431ba7f7f981fdd5febbdfae364fb7a366a7fa4571fe7",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Mira! La espada está aquí.",
@@ -3575,6 +3609,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No, muchas gracias",
       "matches": []
+    },
+    {
+      "key": "d909997c5c7a64b492be6add2231f90e489aa7acd3081509979a91cc0fa2c7aa",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la moneda",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
     },
     {
       "key": "d94f9c6ce78f0f450cfbd039b18eaad24aa93df8d047f40385f85ebfb88b70fb",
@@ -4136,6 +4187,12 @@
       "key": "fd8c0c8eb981af77bd8e30c4f0b910ea8393b346d6ae7104f8e506faadc6613f",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, ayer fui al río",
+      "matches": []
+    },
+    {
+      "key": "fddc9818c421a4a71a871c5a6ce25ccf43adcd5afb6aba86fab195e6f63db6d4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No sé dónde está.",
       "matches": []
     },
     {

@@ -419,6 +419,12 @@
         { "lineId": "villager_point.2", "text": "Está allí, mira." }
       ]
     },
+    "villager_unknown_place": {
+      "poolId": "villager_unknown_place",
+      "variants": [
+        { "lineId": "villager_unknown_place.1", "text": "No sé dónde está." }
+      ]
+    },
     "villager_give": {
       "poolId": "villager_give",
       "variants": [

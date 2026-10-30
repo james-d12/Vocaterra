@@ -381,7 +381,7 @@ public sealed class NpcServiceTests
         Assert.Equal(ItemId.Bottle, table.Of("shopkeeper", "stall.give_water").Item);
         Assert.Equal(ItemId.Bread, table.Of("shopkeeper", "stall.give_bread").Item);
         Assert.Equal(ItemId.Bread, table.Of("villager", "villager.give").Item);
-        Assert.Equal("río", table.Of("villager", "villager.point").Noun);
+        Assert.Equal(NpcEffect.PointAtSlotNamed("place"), table.Of("villager", "villager.point")); // V02: the place the learner names (it was point_at_noun río)
         Assert.Equal(ItemId.WaterBottle, table.Of("guide", "guide.give_water").Item);
     }
 

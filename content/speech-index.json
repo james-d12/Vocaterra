@@ -244,6 +244,28 @@
       "Sha256": "031775cd2405e445e3b18f64091134b52e5badbebac5a950a7eb049bcfefb755",
       "Bytes": 44444
     },
+    "speech/card.hacha.slow.wav": {
+      "Text": "el hacha",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "a1418605b6b40e3a47ba488dd858aa9197c81634846514b95da4308d416c06a7",
+      "Bytes": 51644
+    },
+    "speech/card.hacha.wav": {
+      "Text": "el hacha",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "dc0033ee9bbbc9d71afe55ddaa2a03d5b9b3fefd4f825c3fc1ee62088a7e08c8",
+      "Bytes": 43244
+    },
     "speech/card.hierba.slow.wav": {
       "Text": "la hierba",
       "Speaker": "guide",
@@ -310,6 +332,28 @@
       "Sha256": "6510d4de85fa3f8615d66c263db49008dbdef1596b7e47aaf6ca8897637f5558",
       "Bytes": 46844
     },
+    "speech/card.manzana.slow.wav": {
+      "Text": "la manzana",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "aa24e0060bc8c4787504177bcb575e316a89236c85f9097f7594a61d8aa4caf3",
+      "Bytes": 67244
+    },
+    "speech/card.manzana.wav": {
+      "Text": "la manzana",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "d00b1350b3fe43684c313c84ae0b70655df570e013befe8e51efe92bf641da1b",
+      "Bytes": 50444
+    },
     "speech/card.mesa.slow.wav": {
       "Text": "la mesa",
       "Speaker": "guide",
@@ -331,6 +375,28 @@
       "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
       "Sha256": "68d0793124ee91f063d023cc94aba8d02c79f800b234ea617baa052c20c8c37d",
       "Bytes": 40844
+    },
+    "speech/card.moneda.slow.wav": {
+      "Text": "la moneda",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "30e230f68425b3d5a78077a75d346f0b1807dcdac05b149eb9569d838a5f8a01",
+      "Bytes": 60044
+    },
+    "speech/card.moneda.wav": {
+      "Text": "la moneda",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "541edac4bc1cda0a21bba4130fc3efefd8ac95c9faad7a583a0b81798bd50bba",
+      "Bytes": 46844
     },
     "speech/card.pan.slow.wav": {
       "Text": "el pan",
@@ -4731,6 +4797,28 @@
       "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
       "Sha256": "0ee06d6e1412c4a8c3efc7d36a4179e6f2d52ce6dbb7b602ca17fad9a51247b3",
       "Bytes": 54044
+    },
+    "speech/villager_unknown_place.1.slow.wav": {
+      "Text": "No s\u00E9 d\u00F3nde est\u00E1.",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "582bff1facec664e0c88b222b72770a195e06c2d9ca39c8596ff5e65a9fc4a13",
+      "Sha256": "7e125d37b0a2bf3fac2c929cc2e2bd4a56639e9c515a39ad9ea809e1404fbe2e",
+      "Bytes": 83308
+    },
+    "speech/villager_unknown_place.1.wav": {
+      "Text": "No s\u00E9 d\u00F3nde est\u00E1.",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
+      "Sha256": "926fc98c88187d508f8a0add2dc291af1e5bf62b5124ea47cf4277577b5e4215",
+      "Bytes": 76844
     }
   }
 }

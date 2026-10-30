@@ -115,6 +115,7 @@ public static class LessonStepTypes
 /// <param name="TenseRetry">The English line shown when the answer's verb has another tense than <see cref="Tense"/> (it names the form), or <see langword="null"/> for the step's retry line.</param>
 /// <param name="PresentNote">For an <c>ir-a</c> step (S27): the English note shown after a plan said in the present (<c>mañana voy al río</c>), which is right Spanish and is credited; it names the form the lesson practises. <see langword="null"/> for the step with no note.</param>
 /// <param name="Candidates">For <c>review</c> (X06, R07): the phrases the step may ask; <see cref="Line"/>, <see cref="Translation"/>, <see cref="Phrase"/> and <see cref="Prompt"/> are those of the first. At run time the runner asks the most overdue of those that are due.</param>
+/// <param name="PointPlace">For <c>do</c> (VILLAGE_PLAN V02): a named place of the scene (<c>stall</c>) the beacon is pointed at when the step begins, or <see langword="null"/> for none; a step that waits for <c>beacon_reached</c> with that detail is done on arrival.</param>
 public sealed record LessonStep(
     string Id,
     LessonStepType Type,
@@ -138,7 +139,8 @@ public sealed record LessonStep(
     string? Tense = null,
     string? TenseRetry = null,
     string? PresentNote = null,
-    IReadOnlyList<ReviewCandidate>? Candidates = null)
+    IReadOnlyList<ReviewCandidate>? Candidates = null,
+    string? PointPlace = null)
 {
     /// <summary>The attempts a step allows when the file says nothing: one try and one retry, then the lesson moves on.</summary>
     public const int DefaultAttempts = 2;
@@ -249,7 +251,7 @@ public sealed record LessonDefinition(
 /// <item><c>listen</c>: <c>line</c> and <c>correct</c> (the index of the right one of the locale's two to four options).</item>
 /// <item><c>repeat</c>: <c>phrase</c> (a row the learner says) and optionally <c>prompt</c> (default: the row's).</item>
 /// <item><c>answer</c>: <c>phrase</c>, <c>line</c> and optionally <c>prompt</c>.</item>
-/// <item><c>do</c>: <c>trigger</c> (C06: <c>{ "event", "npc"?, "detail"? }</c>, a world event with the NPC and the exact detail it must have) and optionally <c>point</c> (a noun the beacon goes to when the step begins).</item>
+/// <item><c>do</c>: <c>trigger</c> (C06: <c>{ "event", "npc"?, "detail"? }</c>, a world event with the NPC and the exact detail it must have) and optionally <c>point</c> (a noun the beacon goes to when the step begins) or <c>pointPlace</c> (a named place of the scene, VILLAGE_PLAN V02; the validator checks it against the scene).</item>
 /// <item><c>recap</c>: optionally <c>phrases</c> (default: every phrase the lesson teaches).</item>
 /// <item><c>review</c> (X06, R07): <c>candidates</c>, a non-empty list of <c>{ phrase, line, prompt? }</c> naming phrases an earlier lesson of the file teaches and the existing line of the step's NPC that asks each (its meaning is the line's, <c>line.&lt;id&gt;</c> in the locale). At run time the most overdue candidate that is due is asked as an answer step (the help of the phrase's own rung); when none is due the step is skipped.</item>
 /// </list>
@@ -599,7 +601,14 @@ public sealed class LessonBook
             throw Bad(lesson, $"step '{id}' expects the tense '{tense}': \"tense\" is pres, pret or ir-a and goes with a repeat or answer step");
         }
 
-        return new LessonStep(id, type, Required(locale, lesson, StepId(lesson, id, "text")), Say("help"), Say("retry"), line, translation, phrase, prompt, options, correct, trigger, phrases, attempts, type == LessonStepType.Do ? Optional(element, "point") : null, type == LessonStepType.Do ? Say("hud") : null, stepNpc, person, person is null ? null : Say("personRetry"), tense, tense is null ? null : Say("tenseRetry"), tense == TaughtVerbForm.NearFuture ? Say("presentNote") : null, candidates);
+        var point = type == LessonStepType.Do ? Optional(element, "point") : null;
+        var pointPlace = type == LessonStepType.Do ? Optional(element, "pointPlace") : null;
+        if (point is not null && pointPlace is not null)
+        {
+            throw Bad(lesson, $"step '{id}' points the beacon at the noun '{point}' and at the place '{pointPlace}'; a do step points at one of them");
+        }
+
+        return new LessonStep(id, type, Required(locale, lesson, StepId(lesson, id, "text")), Say("help"), Say("retry"), line, translation, phrase, prompt, options, correct, trigger, phrases, attempts, point, type == LessonStepType.Do ? Say("hud") : null, stepNpc, person, person is null ? null : Say("personRetry"), tense, tense is null ? null : Say("tenseRetry"), tense == TaughtVerbForm.NearFuture ? Say("presentNote") : null, candidates, pointPlace);
     }
 
     // The candidates of a review step (X06, R07): each names a phrase, the NPC's line that asks it (its meaning is the line's own, line.<id> in the locale) and

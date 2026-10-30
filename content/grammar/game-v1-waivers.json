@@ -93,6 +93,21 @@
     },
     {
       "rule": "UPPERCASE_SENTENCE_START",
+      "id": "speech:card.moneda",
+      "reason": "A bare noun phrase spoken as a card label (SpeechLines.cs, SpeechKind.Word), not a sentence."
+    },
+    {
+      "rule": "UPPERCASE_SENTENCE_START",
+      "id": "speech:card.manzana",
+      "reason": "A bare noun phrase spoken as a card label (SpeechLines.cs, SpeechKind.Word), not a sentence."
+    },
+    {
+      "rule": "UPPERCASE_SENTENCE_START",
+      "id": "speech:card.hacha",
+      "reason": "A bare noun phrase spoken as a card label (SpeechLines.cs, SpeechKind.Word), not a sentence."
+    },
+    {
+      "rule": "UPPERCASE_SENTENCE_START",
       "id": "speech:card.puente",
       "reason": "A bare noun phrase spoken as a card label (SpeechLines.cs, SpeechKind.Word), not a sentence."
     },

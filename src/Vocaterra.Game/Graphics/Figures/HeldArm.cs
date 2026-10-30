@@ -52,6 +52,7 @@ public static class HeldItems
             ItemId.WaterBottle => new HeldChoice(HeldKind.Bottle, BlockCell.IconWaterBottle),
             ItemId.Berry => new HeldChoice(HeldKind.Sprite, BlockCell.IconBerry),
             ItemId.Bread => new HeldChoice(HeldKind.Sprite, BlockCell.IconBread),
+            ItemId.Coin or ItemId.Apple or ItemId.Axe => new HeldChoice(HeldKind.Sprite, BlockAtlasLayout.IconFor(item)!.Value), // V03: their placeholder icons until V05
             _ => HeldChoice.Nothing,
         };
     }
