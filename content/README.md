@@ -180,7 +180,8 @@ specified for later in `docs/game/CONTENT_PLAN.md` section 3.8 (C10); it is not 
 
 ## Adding an NPC
 
-An NPC is data alone since schema 2 of `game/npcs/<id>.json` (VILLAGE_PLAN V01): no code names it. A fisher, `fisher`, takes these files, in this order:
+An NPC is data alone since schema 2 of `game/npcs/<id>.json` (VILLAGE_PLAN V01): no code names it. A fisher, `fisher`, takes these files, in this order (the
+fisher Mar of the lesson `el-pueblo`, VILLAGE_PLAN V10, was added exactly so; his files are the worked example):
 
 1. **The core's agent and prompts** (`game-v1/agents/fisher.json`, `game-v1/prompts/prompts.json`): the agent's states and transitions, with an
    `onHostEvent` transition for the event it opens a talk with (`fisher.greet`) in each state that greets; one prompt per state it waits in

@@ -49,7 +49,7 @@ public sealed class VillageLessonTests(ITestOutputHelper output)
     }
 
     // The lesson as a learner who gets everything right does it, up to the step with this id: the walks are the arrivals the steps wait for, and the talks they open.
-    private static VoxelSession AtStep(string stepId)
+    internal static VoxelSession AtStep(string stepId)
     {
         var session = SessionFourAtFisher();
         while (session.Lessons.Current is { } step && step.Id != stepId)
@@ -121,8 +121,9 @@ public sealed class VillageLessonTests(ITestOutputHelper output)
         // The walk: the bakery and the smithy by the beacon, the villager at the square, and back to the fisher at the bridge.
         var walks = lesson.Steps.Where(static s => s.Type == LessonStepType.Do).ToList();
         Assert.Equal(
-            [("bakery", WorldEvents.BeaconReached, null, "bakery"), ("smithy", WorldEvents.BeaconReached, null, "smithy"), (null, WorldEvents.TalkOpened, "villager", null), ("bridge", WorldEvents.TalkOpened, "fisher", null)],
+            [("bakery", WorldEvents.BeaconReached, null, "bakery"), ("smithy", WorldEvents.BeaconReached, null, "smithy"), (null, WorldEvents.TalkOpened, "villager", null), (null, WorldEvents.TalkOpened, "fisher", null)],
             walks.Select(static s => (s.PointPlace, s.Event!, s.At, s.Detail)));
+        Assert.Equal("puente", walks[^1].Point); // back to the bridge: the nearest block of it is the east end, by the fisher, so the arrow is taken down when he is reached
         Assert.All(walks, static s => Assert.False(string.IsNullOrWhiteSpace(s.Hud), s.Id));
     }
 

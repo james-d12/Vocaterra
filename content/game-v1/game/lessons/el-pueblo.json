@@ -150,7 +150,7 @@
       "id": "v6-back",
       "type": "do",
       "npc": "villager",
-      "pointPlace": "bridge",
+      "point": "puente",
       "trigger": {
         "event": "talk_opened",
         "npc": "fisher"
