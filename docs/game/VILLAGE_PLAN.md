@@ -3,9 +3,11 @@
 A plan written on 2026-10-30 at the owner's request, from a read of the plans, the decisions, the content bundle, the locale, the
 game's code and the models on this machine (`main` at `10afbd6`, after X06 and the mobile report). Nothing was built or run; the
 one computation is the village's footprint, drawn from `game/scene.json` (section 2.2). Its goal: **more Spanish in the same world**: a
-bigger village with more people, each with a reason to be spoken to, and a connected run of lessons from the end of A1 into A2.
+bigger village with more people, each with a reason to be spoken to, and a connected run of lessons from the end of A1 into A2, in which
+every verb the player meets is used in the present, the past and the future (section 2.9 and the ladder in 3.5; added the same day on the
+owner's second line).
 
-**Status:** proposed; it awaits the owner's answers in section 6 (D-game-22). Its milestones are V01 to V15 (section 4), on the feature
+**Status:** proposed; it awaits the owner's answers in section 6 (D-game-22). Its milestones are V01 to V17 (section 4), on the feature
 branch `feature/village` (never `main`; the owner merges by pull request). Commit prefix `V<nn>:`.
 
 **The owner's brief (2026-10-30):** take the current map and make the village bigger, with more NPCs (a blacksmith, a baker, and so on) and
@@ -23,6 +25,10 @@ it, and the owner listens to every new recording (section 2.6 says why the liste
 > Take the current map, make the village bigger with more NPCs (blacksmith, baker, etc.) and have more lessons. Avoid making the map
 > larger unless an objective or lesson genuinely justifies it. Make the NPCs interlink, and use the map space intelligently. Lessons should
 > be connected, and aim for A1 to A2 content.
+
+And, the same day, after the first draft: "The lesson should also include past, present, and future use of verbs." So every lesson from
+session 4 on uses its verbs in the three times, around something the player has just done or is about to do (section 3.5, principle 7),
+and the series ends with the simple future at A2 (session 9). Section 2.9 says what the core, the runner and the book already do for tenses.
 
 Two earlier owner answers bear on it (`docs/game/research/2026-10-23-improvement-backlog.md`): R14 (numbers and prices, "yes") and R15
 (more NPCs with other voices, "yes for the voices and the unreviewed text"); R18 (an orders loop, "yes, better after the first pilot") is
@@ -45,7 +51,7 @@ therefore has a cut line after phase A (section 4): three lessons that finish A1
 | Nouns | 19 (`árbol` to `libro`); items: wood, torch, berry, bottle, water bottle, bread, book | `game/nouns.json`, `Items/ItemDefinition.cs` |
 | Objectives | 3: `meet-guide`, `camp` (wood 5, fruit 3, torch, water), `light-fire` | `game/objectives/` |
 | Checks | 31 items (16 heard, 15 said), about 7 minutes a battery | `game/checks.json` |
-| Verb forms taught | querer, tener, necesitar (all persons, present); ser, estar, ir; ir a + infinitive; comí, bebí, fui and the tú forms | the lessons' `verbs` |
+| Verb forms taught | querer, tener, necesitar (all persons, present); ser, estar, ir (present); ir a + infinitive (yo, nosotros); comí, bebí, fui and the tú forms (yo and tú only, no regular `-ar` preterite, no simple future) | the lessons' `verbs` |
 
 The four nouns `madera`, `fruta`, `agua` and `pan` carry every verb exercise (X00's "thin content" finding). No row uses a number, a price,
 a place other than the river, a person's job, an adjective or `gustar`. The lexicon has all of these (section 2.7).
@@ -184,9 +190,46 @@ only by the with-models round trip (`SpokenModelTests`, Kokoro to Vosk); each co
   `[NOUN:place]`. V02 fixes this by pointing from the slot.
 - **X06 left two things undone:** `review` steps in `personas` and `ayer-y-manana`, and the scripted runs of a warm-up
   (`IMPLEMENTATION_PLAN.md` section 4.5, X06). V10 adds the review steps to both while it re-baselines the runs.
-- **The speech folder is 33 MB** and the prerender script offers `--rate 16000` "when the folder is over 20 MB". Phase A adds about 80
-  lines (160 files); the owner may want the downsample then.
+- **The speech folder is 33 MB** and the prerender script offers `--rate 16000` "when the folder is over 20 MB". Phase A adds about 95
+  lines (190 files); the owner may want the downsample then.
 - Two stale comments still call the guide "Rosa" (`PhraseReview.cs:31`, `LessonRunner.cs:444`, noted at C08). No NPC here is named Rosa.
+
+### 2.9 Verbs in three times: what exists
+
+The owner's second line of the day ("past, present, and future use of verbs") was in the brief of S26 too (D-game-19, `SCENARIO_PLAN.md`,
+"S26": forms of the verb for we, I, you; "also past, present, future... introduce them early, but of course not overwhelm the user"). What
+the three sessions and the code give today, read from the lesson files, `LessonBook.cs`, `LessonRunner.cs`, `ConjugationTable.cs`,
+`MorphologyGenerator.cs`, the lexicon files and `docs/nlp/API.md`:
+
+- **Taught so far.** Sessions 1 and 2: the present of `querer`, `tener` and `necesitar` in every person, and of `ser`, `estar`, `ir`.
+  Session 3 (`ayer-y-manana`, S27): `ir` in the present (voy, vas, va, van), the near future `ir a` + infinitive (voy a comer, vamos a
+  comer, voy a ir) and three preterites in yo and tú (comí/comiste, bebí/bebiste, fui/fuiste), with `ayer`, `hoy`, `mañana`. So the past
+  has no third person and no nosotros, no regular `-ar` form (compré), and there is no simple future.
+- **The core grades a tense only next to a time marker** (`API.md` "Tense errors", M49, M51): `ayer` (and `anoche`, `anteayer`, a time
+  noun with `pasado`) with a present or a simple future expects the preterite; `mañana`, `pasado mañana`, `próximo/a` + a time noun or a
+  time noun + `que viene` with a preterite expects `ir a` + infinitive (or `voy` when the verb is `ir`); a conjugated verb after `ir a`
+  and `ir` with a bare infinitive are errors. The present and the simple future after a future marker are clean (`mañana como pan`,
+  `mañana compraré pan`); `hoy`, `luego` and `después` are not markers. Without a marker the core says nothing about tense: `compro pan`
+  for "I bought bread" is correct Spanish to it.
+- **The lesson judges the tense when the core cannot** (S27): a `repeat` or `answer` step declares `tense` (`pres`, `pret` or `ir-a`,
+  `LessonBook.cs:597`), the right phrase in another tense is a Miss with the step's `tenseRetry`, and at an `ir-a` step a plan said in the
+  present with a time word is credited with a `presentNote` ("correct Spanish is never a Miss", S27). The slot DSL has no tense constraint
+  (`[VERB:comer]` matches every form), so one `state_action` grammar serves the three times; its grammars today cover `comer`, `beber` and
+  `ir` only, with `(mañana|ayer|hoy)?` at either end, and `words.json` lists `mañana` as the only `nearFuture.timeWords` entry.
+- **The simple future is half-known.** A lesson's `verbs` may declare `fut` (`TaughtVerbForm`: "the simple future, A2, not taught yet") and
+  `TaughtVerbForm.Text` conjugates it, but a step cannot expect it (the schema and `LessonBook.cs:597` allow `pres`, `pret`, `ir-a`), and the
+  book's table has three columns (present, past, future (ir a): `ConjugationTable.AllColumns`, `ui.bookColumnNearFuture`). The lexicon has
+  every form: the Wiktionary import carries the future, the imperfect and the conditional of 4,080 verbs (`compraré`, `iré`, `hará`,
+  `tendré`, `fuimos`, `fueron`, `vendió`, `pescó`, `gustó` are all there), merged into one lexicon at load (`ContentLoader.cs:226`). The
+  hand-written seed has the present and the preterite of 31 verbs, and `MorphologyGenerator.ConjugateRegular` builds only those two
+  tenses, so a `fut` cell comes from a lexicon entry; a verb outside the import would have none, and none of this plan's verbs is outside it.
+- **The CEFR lists are lemma lists**, so a tense costs nothing at the gate: `compré` is `comprar`, A1. The level of a *tense* is the
+  lesson's business (section 3.9: no `fut` in an `a1` lesson).
+- **The words.** Every verb this plan uses is A1 (`comprar`, `vender`, `pagar`, `trabajar`, `vivir`, `buscar`, `hacer`, `cocinar`,
+  `poder`, `llegar`, `venir`, `dar`, `ver`, `llevar`, `ayudar`, `esperar`) except `volver` and `traer` (A2, not used) and `pescar` (in
+  neither list: the fisher's own verb, a world word like `madera`). The time words `ayer`, `hoy`, `mañana`, `luego`, `después`, `antes`,
+  `ahora`, `siempre`, `nunca`, `semana`, `día`, `año`, `tarde`, `noche` are A1; `pasado`, `próximo`, `pronto`, `temprano` are A2; `anoche`
+  is in neither and is not used. `campamento` (the player's camp) is A1.
 
 ## 3. The direction
 
@@ -197,13 +240,20 @@ only by the with-models round trip (`SpokenModelTests`, Kokoro to Vosk); each co
 2. **Every NPC needs something another NPC or place provides**, and the player is the one who speaks to move it (section 3.4). The
    shopkeeper and the villager join the web; the guide stays the reviewer (her review and the X06 deck ask every row that names a `reviewLine`).
 3. **Each lesson reuses the last one** (`after`, two `review` steps, the previous NPC naming the next), **adds one grammar point and one
-   word field**, and ends by naming where to go next (the objective line, `lesson.<id>.objective`).
-4. **A1 first, as data the gate can check** (section 3.9): sessions 4 to 6 finish A1 and are gated at A1; sessions 7 to 9 are A2 and are
+   word field, uses its verbs in the three times** (the present, the preterite and the future; the ladder in 3.5), and ends by naming
+   where to go next (the objective line, `lesson.<id>.objective`).
+4. **A1 first, as data the gate can check** (section 3.9): sessions 4 to 6 finish A1 and are gated at A1; sessions 7 to 10 are A2 and are
    gated at A2. Phase B starts only when the owner says so.
 5. **Words the player handles come from the world** (the catalogue, the scene's labels, the items), so the beacon, the book and the
    greyscale rule work on them unchanged.
 6. **Nothing is gated behind speech** (D-game-8, D-game-9): an order the learner cannot ask for in Spanish is still delivered by walking
    up with the goods (section 3.4), as the stall's bottle is.
+7. **Every order is a plan, a doing and a report.** Before the player goes, the NPC asks what they are going to do (the future, `ir a`:
+   "Voy a buscar madera"); the `do` step is the real walk, gather or purchase; back at the NPC the question is what they did (the preterite:
+   "Compré dos panes"), and the present is the exchange itself ("Tengo madera"). The same verb three times, around a thing the player
+   actually did: that is the "use" of a tense the owner asked for, and the order loop of 3.4 gives it without a new mechanic. At A2 the
+   same loop is told about other people (the third person: "Domingo va a hacer un hacha", "hizo un hacha") and then promised (the simple
+   future: "Mañana compraré pan").
 
 ### 3.2 The village plan
 
@@ -217,8 +267,8 @@ two to satisfy the builder's flat-ground check.
 | The bakery | `bakery`, `panadería` | house 6 x 5 at (-13, -16), door south | a timber house; an `oven` stamp (cobble, a torch for the fire, a chimney) against its east wall; a crate with `loaves` by the door; a lamp; a paved strip to the square | the north-west quarter is empty and next to the stall, whose bread she bakes |
 | The smithy | `smithy`, `herrería` | house 5 x 5 at (12, -16), door west | a `fire_ring` named `forge` outside the door (the hearth), a `stone` block (the anvil), crates, a lamp; a paved strip | the north-east quarter, with the tower between it and the bakery as the directions landmark ("al lado de la torre") |
 | The well | `well`, `pozo` | 3 x 3 stamp at (3, 10) | cobble ring, water in the middle, a fence roof | the empty south, behind the fences' gate; a place to name and point at |
-| The farmer's stand | (the field, `campo`) | the farmer at (8, 0) facing the wheat field; a crate with `apples` at (8, -3); three `tree` props at x 17 as an orchard | the field already exists between houses 1 and 2; the farmer gives it a voice | 
-| The fisher's bank | the NPC only | `bridge.east` (238, 205), dx 2, dz 3, facing the river; two crates and a lamp | the landing is on the road 15 s from the square; a new voice outside the village (R15) with no new site |
+| The farmer's stand | (the field, `campo`) | the farmer at (8, 0) facing the wheat field | a crate with `apples` at (8, -3); three `tree` props at x 17 as an orchard | the field already exists between houses 1 and 2; the farmer gives it a voice |
+| The fisher's bank | the NPC only | `bridge.east` (238, 205), dx 2, dz 3, facing the river | two crates and a lamp | the landing is on the road 15 s from the square; a new voice outside the village (R15) with no new site |
 | Houses 1 to 3 | unchanged | | in dialogue they become "la casa de Luz", "de Domingo", "del aldeano" | `casa` gains a meaning without a block |
 
 The footprint after (same key; `B` the baker, `D` the smith, `F` the farmer):
@@ -278,28 +328,47 @@ enough (principle 6). A purchase is the stall's exchange with a price: `request_
 `sell` takes `qty x price` coins and gives `qty` items; too few coins raise `<npc>.cant_pay`, a host turn the agent answers ("Cuesta cuatro
 monedas. No tienes monedas."). Nothing is lost on a miss: the shopkeeper's bottle rule (`VoxelSession.Give`) is the model.
 
-Phase B (session 9) adds the one repeatable source, `buy` (the NPC pays for what the player sells), and is the only place a new intent must
+Phase B (session 10) adds the one repeatable source, `buy` (the NPC pays for what the player sells), and is the only place a new intent must
 be checked against `state_want` for confusion (section 5).
 
 ### 3.5 The lesson arc
 
-Sessions 4 to 6 finish A1; 7 to 9 are A2. One lesson a session, as S26 set it (a lesson needs a load; two lessons may share a session later
-by `after` alone). Each is 5 to 10 minutes with two `review` steps, one `do` step at least, one order at most, and the next NPC named at
-the end. The phrase ids below are proposals; the content milestone writes the rows (the sheet's columns, D-game-10), the Opus pass reads
-them, and the owner listens.
+Sessions 4 to 6 finish A1; 7 to 10 are A2. One lesson a session, as S26 set it (a lesson needs a load; two lessons may share a session later
+by `after` alone). Each is 5 to 10 minutes with two `review` steps, one `do` step at least, one order at most, **its verbs in the three
+times** (the ladder below), and the next NPC named at the end. The phrase ids below are proposals; the content milestone writes the rows
+(the sheet's columns, D-game-10), the Opus pass reads them, and the owner listens.
 
-| Session | Lesson | NPCs | Grammar | Words | Mechanics it needs | Level |
-| --- | --- | --- | --- | --- | --- | --- |
-| 4 | `el-pueblo` "El pueblo" | the fisher, the villager | `¿Dónde está…?` for any place; `está cerca / lejos`; `a la izquierda / derecha`; `hay` | the places: tienda, panadería, herrería, pozo, torre, puente, río, campo, casa, plaza | the beacon from the `place` slot and by place; `beacon_reached` (V02) | A1 |
-| 5 | `numeros-y-pan` "Números y pan" | the baker, the shopkeeper | 1 to 10; plural nouns; `¿Cuántos…?`; `¿Cuánto cuesta?` | pan, moneda, madera, horno | `qty` gives N; coins; the oven order; `sell` (V03) | A1 |
-| 6 | `gente-del-pueblo` "Gente del pueblo" | the smith, the villager, the farmer | `¿Quién es?`, `es el / la …`; `¿Cómo te llamas?`; `¿Qué haces?`, `trabajo en …`, `vivo en …` | the jobs and the names; casa, herrería | the axe order (V03) | A1 |
-| 7 | `como-es` "¿Cómo es?" | the farmer, the shopkeeper | adjectives after the noun, agreement; `me gusta / gustan` | the colours, grande, pequeño, nuevo, viejo, caliente, frío; manzana | the water order; apples for sale; `[ADJ]` in `request_item` | A1 to A2 |
-| 8 | `ayer-en-el-pueblo` "Ayer en el pueblo" | the villager, the smith | the preterite in the third person (`hizo`, `fue`, `estuvo`, `comió`); `tener que` + infinitive | the week's story of the village | none | A2 |
-| 9 | `el-mercado` "El mercado" | the baker, the farmer, the shopkeeper | 11 to 20; `¿Cuánto es todo?`; `más … que`; `¿Puedo pagar con …?`; selling | barato, caro, todo, poder, vender | `buy` (V03b) | A2 |
+| Session | Lesson | NPCs | Grammar | The verbs in three times | Words | Mechanics it needs | Level |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 4 | `el-pueblo` "El pueblo" | the fisher, the villager | `¿Dónde está…?` for any place; `está cerca / lejos`; `a la izquierda / derecha`; `hay` | `voy a la panadería` (now, on the way), `voy a comprar pan` (the plan), `fui a la panadería` (the report, back at the bridge); `está`, `hay` | the places: tienda, panadería, herrería, pozo, torre, puente, río, campo, casa, plaza | the beacon from the `place` slot and by place; `beacon_reached` (V02) | A1 |
+| 5 | `numeros-y-pan` "Números y pan" | the baker, the shopkeeper | 1 to 10; plural nouns; `¿Cuántos…?`; `¿Cuánto cuesta?`; **the regular `-ar` preterite** (-é, -aste) | `voy a buscar madera` (the plan), `tengo madera` (now), `compré dos panes` (the report); `cuesta / cuestan` | pan, moneda, madera, horno | `qty` gives N; coins; the oven order; `sell` (V03) | A1 |
+| 6 | `gente-del-pueblo` "Gente del pueblo" | the smith, the villager, the farmer | `¿Quién es?`, `es el / la …`; `¿Cómo te llamas?`; `¿Qué haces?`, `trabajo en …`, `vivo en …`; **the third person in three times** | `Domingo trabaja en la herrería`, `vivo en el campamento` (now), `va a hacer un hacha` (before the order), `hizo un hacha` (after it) | the jobs and the names; casa, herrería, campamento | the axe order (V03) | A1 |
+| 7 | `como-es` "¿Cómo es?" | the farmer, the shopkeeper | adjectives after the noun, agreement; `me gusta / gustan`; **`gustar` in the past** | `me gusta el pan` (now), `me gustó el pan de Luz` (the report); `voy a buscar agua` then `fui al río` (the water order, reviewed) | the colours, grande, pequeño, nuevo, viejo, caliente, frío; manzana | the water order; apples for sale; `[ADJ]` in `request_item` | A1 to A2 |
+| 8 | `ayer-en-el-pueblo` "Ayer en el pueblo" | the villager, the smith, the fisher | **the preterite for every person**: él/ella (`fue`, `hizo`, `compró`, `vendió`, `pescó`), nosotros (`fuimos`, `compramos`), ellos (`fueron`, `comieron`); `tener que` + infinitive | the day of the village, told by the villager and retold by the learner; `tengo que ir` (now) | the week's story of the village | none | A2 |
+| 9 | `manana-en-el-pueblo` "Mañana en el pueblo" (new) | the baker, the smith, the fisher | **the simple future** (-é, -ás, -á, -emos, -án; `iré`; `hará`, `tendré` heard), against `ir a`; the later markers (`la semana que viene`, `el próximo día`) | `mañana compraré pan`, `iré al río`, `buscaré madera para Luz`; `Luz hará pan` (the day of tomorrow, the mirror of session 8) | semana, próximo, promesa (heard) | `tense: fut` on a step and the book's fourth column (V16) | A2 |
+| 10 | `el-mercado` "El mercado" | the baker, the farmer, the shopkeeper | 11 to 20; `¿Cuánto es todo?`; `más … que`; `¿Puedo pagar con …?`; selling; **the three times reviewed** | `compré tres manzanas` (past), `quiero vender madera` (now), `mañana venderé fruta` (future; `voy a vender` credited) | barato, caro, todo, poder, vender | `buy` (V03b) | A2 |
+
+**The ladder, form by form.** What each session adds (a form is taught once and reviewed after; the heard-only forms in brackets):
+
+| Session | The present | The preterite | The future |
+| --- | --- | --- | --- |
+| 1, 2 (built) | querer, tener, necesitar in every person; ser, estar, ir | | |
+| 3 (built) | voy, vas, va, van | comí, comiste; bebí, bebiste; fui, fuiste | voy a comer, vamos a comer, voy a ir |
+| 4 | está, hay; voy a + a place (movement, not a plan) | fui a + a new place (reviewed) | voy a comprar (`comprar` met as an infinitive) |
+| 5 | cuesta, cuestan; quiero dos panes; tengo | compré, compraste: the `-ar` pattern | voy a buscar |
+| 6 | trabajo, trabaja; vivo, vive; hace; es | hizo [trabajó] | va a hacer: the third person |
+| 7 | me gusta, me gustan; es + adjective | me gustó, me gustaron | voy a buscar agua (reviewed) |
+| 8 | tengo que + infinitive | fue, compró, vendió, pescó; fuimos, compramos; fueron, comieron | va a + infinitive (reviewed) |
+| 9 | (reviewed) | (reviewed, against the future) | compraré, comprarás, comprará; iré; buscaré; [hará, tendré, trabajará, pescará] |
+| 10 | vendo, puedo; cuesta | compré tres manzanas (the report of the market) | venderé; voy a vender |
+
+The imperfect (`comía`, `había`) and the perfect (`he comido`) are not in the series: one past is enough to A2 for a Latin American neutral
+learner, the core does not grade the preterite against the imperfect, and the brief says not to overwhelm (decision (i), section 6).
 
 **Session 4, "El pueblo" (V10).** The objective line sends the player down the road; the fisher is on the way, at the bridge. He greets
 (`hola`, a review step: the transfer of a known phrase to a new voice, R15), asks `¿Qué buscas?` (the villager's line, now his too) and
-answers any place with a point and a fixed line.
+answers any place with a point and a fixed line. The three times are the walk itself: before the player goes he asks where they are going
+and what they are going to do there; when the lesson brings them back to the bridge he asks whether they went.
 
 | Learner says | Spanish | Intent, prompt | Error example (codes) |
 | --- | --- | --- | --- |
@@ -307,6 +376,9 @@ answers any place with a point and a fixed line.
 | `donde-esta-la-herreria` | ¿Dónde está la herrería? | `ask_directions`, `fisher-open` | dónde están la herrería (conj.person) |
 | `esta-lejos` | ¿Está lejos? | `ask_far` (new), `lesson-far` | es lejos (ser_estar) |
 | `hay-un-pozo` | ¿Hay un pozo en el pueblo? | `ask_availability` (new), `lesson-hay` | hay una pozo (gender.agree) |
+| `voy-a-la-panaderia` | Voy a la panadería. | `state_action` (the grammar exists), `lesson-going`; the step expects `pres`, `1sg` | yo vas a la panadería (conj.person) |
+| `voy-a-comprar-pan` | Voy a comprar pan. | `state_action` (`comprar` joins it), `lesson-plan-there`; the step expects `ir-a` | voy a compro pan (conj.tense) |
+| `fui-a-la-panaderia` | Sí, fui a la panadería. | `state_action`, `lesson-went-there`, on the return; the step expects `pret` | ayer voy a la panadería (conj.tense) |
 | `gracias-adios` (review) | Gracias. Adiós. | `thank`, `farewell` | |
 
 | Learner hears | Spanish | Line |
@@ -315,23 +387,32 @@ answers any place with a point and a fixed line.
 | `esta-a-la-izquierda` | La panadería está a la izquierda de la torre. | `guide.lesson.fisher.left.1` (a `listen` step: left or right of the tower) |
 | `esta-cerca` | La tienda está cerca. El lago está lejos. | `guide.lesson.fisher.near.1` |
 | `hay-dos-casas` | En el pueblo hay una tienda, una panadería y tres casas. | `guide.lesson.fisher.hay.1` |
+| `adonde-vas` | ¿Adónde vas? | `guide.lesson.fisher.going.1` |
+| `que-vas-a-hacer-alli` | ¿Qué vas a hacer allí? | `guide.lesson.fisher.plan.1` |
 | `el-letrero` | El letrero dice: tienda, río, montaña. | `guide.lesson.villager.sign.1` (at the signpost) |
+| `fuiste-a-la-panaderia` | ¿Fuiste a la panadería? | `guide.lesson.fisher.went.1` (on the return) |
 
 `do` steps: walk to the bakery (`pointPlace: bakery`, waits for `beacon_reached bakery`), then to the smithy; the villager's step reads the
-signpost. The order `fruit-for-mar` is shown by the fisher's last line ("Tengo hambre. ¿Tienes fruta?") and completes whenever the player
-comes back with three. New in the bundle: the `fisher` agent and pools (`fisher_hello`, `fisher_greet`, `fisher_point`, `fisher_far`,
-`fisher_near`, `fisher_unknown_place`, `fisher_help`, `fisher_thank`, `fisher_bye`, `fisher_delivered`), the answer set `places-village`,
-the prompts `fisher-open` and `lesson-far`, `lesson-hay`, `lesson-place`, about 6 check items, the `review` steps X06 left for `personas` and
-`ayer-y-manana`.
+signpost; the last `do` step walks back to the bridge (`talk_opened fisher`, 15 s), where the preterite names the walk just made and the
+fisher's last line shows the order `fruit-for-mar` ("Tengo hambre. ¿Tienes fruta?"), which completes whenever the player comes back with
+three. New in the bundle: the `fisher` agent and pools (`fisher_hello`, `fisher_greet`, `fisher_point`, `fisher_far`, `fisher_near`,
+`fisher_unknown_place`, `fisher_help`, `fisher_thank`, `fisher_bye`, `fisher_delivered`), the answer set `places-village`, the prompts
+`fisher-open` and `lesson-far`, `lesson-hay`, `lesson-place`, `lesson-going`, `lesson-plan-there`, `lesson-went-there`, about 8 check items,
+the `review` steps X06 left for `personas` and `ayer-y-manana`. Eight rows the learner says is the ceiling of a lesson; the milestone
+measures and drops `donde-esta-la-herreria` first if it runs past ten minutes.
 
 **Session 5, "Números y pan" (V11).** At the bakery. Luz counts her loaves (a `listen` step with the numbers), asks how many the player
-wants, names the price, and has no wood for the oven.
+wants, names the price, and has no wood for the oven. The three times are the oven order (principle 7): `¿Qué vas a hacer?` before the
+wood (`voy a buscar madera`), `tengo madera` on the return, and after the purchase `¿Qué compraste?` (`compré dos panes`): the regular
+`-ar` preterite (-é, -aste), which session 3's `-er`/`-ir` forms did not give; Luz models it first ("Ayer compré fruta en la tienda.").
 
 | Learner says | Spanish | Intent, prompt | Error example |
 | --- | --- | --- | --- |
 | `quiero-dos-panes` | Quiero dos panes, por favor. | `request_item` (qty), `baker-open` | quiero dos pan (noun.number) |
 | `cuanto-cuesta` | ¿Cuánto cuesta? | `ask_price` (new), `baker-open` | cuánto costa (conj.irregular) |
+| `voy-a-buscar-madera` | Voy a buscar madera. | `state_action` (`buscar` joins it), `lesson-wood-plan`; the step expects `ir-a` | voy a busco madera (conj.tense) |
 | `tengo-madera` | Tengo madera. | `state_have`, `lesson-wood` | yo tiene madera (conj.person) |
+| `compre-dos-panes` | Compré dos panes. | `state_action` (`comprar`), `lesson-bought`, after the purchase; the step expects `pret`, `1sg` | ayer compro dos panes (conj.tense) |
 | `hay-pan` | ¿Hay pan? | `ask_availability`, `stall-need` (the stall too) | hay pans (vocab.unknown) |
 | `no` (review) | No. | `deny` | |
 
@@ -342,32 +423,60 @@ wants, names the price, and has no wood for the oven.
 | `cuantos-panes` | ¿Cuántos panes quieres? |
 | `tengo-diez-panes` | Tengo diez panes. |
 | `cuesta-dos-monedas` | El pan cuesta dos monedas. |
-| `necesito-madera-para-el-horno` | Necesito madera para el horno. Cinco bloques. |
+| `necesito-madera-para-el-horno` | Necesito madera para el horno. Cinco bloques. ¿Qué vas a hacer? |
 | `toma-cuatro-monedas` | ¡Gracias! Toma cuatro monedas. |
+| `ayer-compre-fruta` | Ayer compré fruta en la tienda. (the model of -é) |
+| `que-compraste` | ¿Qué compraste? |
+| `compraste-dos-panes` | Compraste dos panes. ¡Muy bien! (the tú form, a `listen` step) |
 
-The order `oven-wood` (5 wood, 4 coins) then the purchase (`quiero-dos-panes`, 4 coins, 2 loaves). The stall learns the price too
-(`stall.price` host event, "Cuesta dos monedas."). Grammar the core already grades: `quiero dos pan`, `cuánto costa`, `cuestan` for one loaf.
+The order `oven-wood` (5 wood, 4 coins) then the purchase (`quiero-dos-panes`, 4 coins, 2 loaves), then the report. The stall learns the
+price too (`stall.price` host event, "Cuesta dos monedas."). Grammar the core already grades: `quiero dos pan`, `cuánto costa`, `cuestan`
+for one loaf, `ayer compro` (expected `compré`), `voy a busco`.
 
 **Session 6, "Gente del pueblo" (V12).** The villager introduces the smith ("Él es Domingo. Es el herrero.", third person reviewed), the
-learner asks names and jobs, the smith makes the axe.
+learner asks names and jobs, the smith makes the axe. The three times are about someone else for the first time: `Domingo trabaja en la
+herrería` (now), `va a hacer un hacha` (before the order, to the villager's `¿Qué va a hacer Domingo?`), `hizo un hacha` (after it, `¿Qué
+hizo Domingo?`); the learner's own present is `vivo en el campamento`.
 
 | Learner says | Spanish | Intent, prompt | Error example |
 | --- | --- | --- | --- |
 | `como-te-llamas` | ¿Cómo te llamas? | `ask_name` (new) | cómo te llama (conj.person) |
 | `que-haces` | ¿Qué haces? | `ask_activity` (new) | qué hace (tú asked as usted: the lesson's person check, not a core error) |
 | `es-el-herrero` | Es el herrero. | `name_object` | es la herrero (gender.agree) |
-| `donde-vive` | ¿Dónde vive Luz? | `ask_directions` (place from a name: the house) or `ask_residence` (new) | dónde vivo Luz (conj.person) |
+| `trabaja-en-la-herreria` | Domingo trabaja en la herrería. | `state_action` (`trabajar en`, a `[WORD:name]?` subject), `lesson-works`; `pres`, `3sg` | Domingo trabajo en la herrería (conj.person) |
+| `vivo-en-el-campamento` | Vivo en el campamento. | `state_action` (`vivir en`), `lesson-lives`; `pres`, `1sg` | vivo en la campamento (gender.agree) |
+| `va-a-hacer-un-hacha` | Va a hacer un hacha. | `state_action` (`hacer`), `lesson-will-make`; the step expects `ir-a`, `3sg` | Domingo voy a hacer un hacha (conj.person) |
+| `hizo-un-hacha` | Domingo hizo un hacha. | `state_action`, `lesson-made`, after the order; the step expects `pret`, `3sg` | ayer Domingo hace un hacha (conj.tense) |
 | `necesito-pan` (review, at the baker) | Necesito pan. | `state_want` | |
 
-Heard: `me-llamo-domingo` "Me llamo Domingo.", `soy-el-herrero` "Soy el herrero. Trabajo con fuego y madera.", `vive-en-la-casa` "Luz vive en la
-casa al lado de la tienda.", `quieres-un-hacha` "¿Quieres un hacha? Necesito dos bloques de madera y tres monedas.", `toma-el-hacha` "Toma el
-hacha." The learner does not say their own name (M29d: a name is not in the recognizer's vocabulary; the villager's `me-llamo` row says so).
+Heard: `me-llamo-domingo` "Me llamo Domingo.", `soy-el-herrero` "Soy el herrero. Trabajo con fuego y madera.", `donde-vives` "¿Dónde vives?",
+`vive-en-la-casa` "Luz vive en la casa al lado de la tienda.", `que-va-a-hacer-domingo` "¿Qué va a hacer Domingo?", `quieres-un-hacha`
+"¿Quieres un hacha? Necesito dos bloques de madera y tres monedas.", `toma-el-hacha` "Toma el hacha.", `que-hizo-domingo` "¿Qué hizo Domingo?",
+`ayer-trabajo-mucho` "Ayer Domingo trabajó mucho." (the regular `-ó` heard, a `listen` step). The learner does not say their own name (M29d: a
+name is not in the recognizer's vocabulary; the villager's `me-llamo` row says so). `donde-vive` ("¿Dónde vive Luz?", `ask_residence`) is the
+row to add if the lesson has room, and `es-el-herrero` the first to drop if it has not.
 
-**Sessions 7 to 9 (phase B, V13 to V15)** are designed to the same shape and detailed in their briefs: session 7's rows are `la-manzana-es-roja`
-(`describe`, gender.agree), `quiero-tres-manzanas-rojas` (`request_item` with `[ADJ]`, word_order), `me-gusta-el-pan` and `me-gustan-las-manzanas`
-(`state_like`), `es-grande` / `es-pequeno`; session 8's `que-hizo-luz-ayer`, `hizo-pan`, `fue-al-rio`, `tengo-que-ir`, with a three-line story to
-listen to; session 9's `cuanto-es-todo`, `es-muy-caro`, `vendo-madera`, `puedo-pagar-con-fruta`, the numbers to twenty and `más barato que`.
-Each starts only after the owner has heard phase A.
+**Sessions 7 to 10 (phase B: V13, V14, V17, V15)** are designed to the same shape and detailed in their briefs; each starts only after the
+owner has heard phase A.
+
+- **Session 7, "¿Cómo es?" (V13):** `la-manzana-es-roja` (`describe`, gender.agree), `quiero-tres-manzanas-rojas` (`request_item` with
+  `[ADJ]`, word_order), `me-gusta-el-pan` and `me-gustan-las-manzanas` (`state_like`), `me-gusto-el-pan` "Me gustó el pan de Luz." (the past
+  of `gustar`, to the farmer's `¿Te gustó el pan?`; `ayer me gusta el pan` is `conj.tense`), `es-grande` / `es-pequeno`; the water order's
+  plan and report reuse `voy a buscar agua` and `fui al río`.
+- **Session 8, "Ayer en el pueblo" (V14):** the villager tells the day of the village in three lines to listen to ("Ayer Luz hizo pan.
+  Domingo trabajó en la herrería. Mar pescó en el río.") and the learner retells it: `luz-hizo-pan`, `mar-pesco-en-el-rio`,
+  `ellos-comieron-pan`; with the fisher, `fuimos-al-rio` "Fuimos al río." (nosotros, to `¿Adónde fueron?`); `tengo-que-ir`
+  (`state_obligation`, the present). The persons the preterite still lacked (él/ella, nosotros, ellos) in one lesson, on verbs met before.
+- **Session 9, "Mañana en el pueblo" (V17, after V16, new):** the simple future as the second way to say tomorrow, against `ir a`; an
+  `explain` step says when each is used (a plan made now: `voy a`; a promise or a prediction: `-é`). Heard: `que-haras-manana` "¿Qué harás
+  mañana?", the day of tomorrow ("Mañana Luz hará pan. Domingo trabajará. Mar pescará."), `tendre-pan` "Mañana tendré pan." Said:
+  `manana-comprare-pan` "Mañana compraré pan." (`state_action`; the step expects `fut`; `mañana voy a comprar pan` is credited with a note,
+  as the present is at an `ir-a` step), `ire-al-rio` "Iré al río.", `buscare-madera` "Buscaré madera para Luz.", `luz-hara-pan` "Luz hará
+  pan." (3sg, heard first). Error examples the core grades: `mañana compré pan` (conj.tense), `ayer compraré pan` (conj.tense, expected
+  `compré`), `yo comprarás pan` (conj.person).
+- **Session 10, "El mercado" (V15):** `cuanto-es-todo`, `es-muy-caro`, `vendo-madera`, `puedo-pagar-con-fruta`, the numbers to twenty and
+  `más barato que`; and the market told in three times as the review of the series: `compre-tres-manzanas` (past), `quiero-vender-madera`
+  (now), `manana-vendere-fruta` (future; `voy a vender` credited).
 
 ### 3.6 New intents, prompts and answer sets
 
@@ -386,8 +495,15 @@ All in the bundle (game-owned); the core's DSL has every token they use.
 | `state_obligation` (B) | `[VERB:tener] que [VERB:ir] a [ART] [NOUN:place]`, `[VERB:tener] que [VERB:comer] …` | `tener` + `que` | the villager | `state_have` (the keyword rule `tener` + item: `que` must win) |
 | `offer_item` (B) | `[VERB:vender] [NOUN:item]`, `[VERB:tener] [NOUN:item] para (ti\|usted)` | `vender` | the baker, the smith | `state_want` and `state_have`: the hardest one; design it last |
 
-Changes to existing intents: `request_item` gains `[ADJ]?` after the noun (phase B; R02 noted the gap), `state_action` gains `[VERB:hacer]`
-and a `[WORD:name]?` subject (phase B). Prompts: one open prompt per new NPC (`fisher-open`, `baker-open`, `smith-open`, `farmer-open`) in the
+Changes to existing intents. **`state_action` grows in phase A**: it is the statement in any tense that hands nothing over (S27), and the
+tense rows of 3.5 are all of it. It gains grammars for `comprar`, `buscar`, `hacer`, `vender`, `pagar` and `pescar` (`[VERB:x] [ART]? [NUM:qty]?
+[NOUN:item]`), for `trabajar` and `vivir` (`en [ART] [NOUN:place]`), each as a finite verb and after `[VERB:ir] a`; a `[WORD:name]?` or
+`[PRON]?` subject (`Domingo hizo un hacha`, `ella va a hacer pan`); and the time words at either end grow from `(mañana|ayer|hoy)?` to the
+markers the core knows (`luego`, `después`, `la semana que viene`, `el próximo …`), so that `mañana` is not the only cue. The DSL has no
+tense: `[VERB:comprar]` matches `compro`, `compré` and `compraré` alike, and the lesson step's `tense` is the judge (section 2.9). `ask_activity`
+(`qué [VERB:hacer]`) already covers the questions the lessons ask in three times (`¿Qué haces?`, `¿Qué hiciste?`, `¿Qué vas a hacer?`, `¿Qué
+harás?`). `state_like` (B) takes any tense of `gustar` (`me gustó`). `request_item` gains `[ADJ]?` after the noun (phase B; R02 noted the
+gap). Prompts: one open prompt per new NPC (`fisher-open`, `baker-open`, `smith-open`, `farmer-open`) in the
 stall's constrained style, plus about five `lesson-*` prompts a lesson with their `lesson-*` answer sets, as S26 did. Answer sets:
 `places-village`, `supplies-bakery`, and the lesson sets. Every `hears` line is a `guide.lesson.<npc>.*` pool (so the lint counts it as the
 game's, S26) with the NPC as its speaker (V01's rule).
@@ -399,11 +515,11 @@ game's, S26) with the NPC as its speaker (V01's rule).
 | `game/npcs/<id>.json` (schema v2) | `prompts` by state (`{"idle": "baker-open", "offering": "baker-offer"}`; the review prompt for the guide); `opening` (`{"event": "fisher.greet", "when": "always" \| "first" \| "never"}`); `voice` (`{"speaker": 29, "name": "em_alex", "speed": 1.0}`); `keyWords` (moved from `words.json`) | `NpcService`, `SpeechSpeakers`, the renderer, `GuideSession` |
 | `game/host-events.json` | `give_item` takes `count` (a number, or `"qty"` for the verdict's slot, capped at 5); new kinds `point_at_place` (a scene name), `point_at_slot` (`"slot": "place"`, resolved through the scene's labels; no match raises `<npc>.unknown_place`), `take_item` (`item`, `count`), `sell` (`item`, `price`), `buy` (B: `item`, `price`) | `HostEventTable`, `VoxelSession.ApplyHostEvents` |
 | `game/objectives/<id>.json` | `session` (shown and counting from that play session); `deliverTo` (an NPC) with `deliver` (items and counts); the completion raises `<npc>.delivered` and logs `order_delivered` | `ObjectiveBook`, `VoxelSession` |
-| `game/lessons/<id>.json` | `level` (`a1` \| `a2`); a `do` step's `pointPlace` (a scene name) beside `point` (a noun) | `LessonBook`, `LessonRunner`, the validator |
+| `game/lessons/<id>.json` | `level` (`a1` \| `a2`); a `do` step's `pointPlace` (a scene name) beside `point` (a noun); a step's `tense` may be `fut` (V16, phase B), with a `futureNote` beside `presentNote` for `ir a` said there | `LessonBook`, `LessonRunner`, the validator |
 | `game/checks.json` | `lesson` on every item (the lesson it belongs to) | `CheckBank`, `CheckBattery` |
 | `game/scene.json` | the village's radius; the props of 3.2; the NPC placements; the stamps `oven` and `well`; labels | the builder |
-| `game/words.json` | `keyWords` leaves for the NPC files; the direction words stay | `GameWords` |
-| `content/locale/en/*` | `npc.<id>.role` for four NPCs; the lessons' text; `objective.<id>.title` for the orders; `line.<id>` for every new line; the checks' options | `LocaleBundle` |
+| `game/words.json` | `keyWords` leaves for the NPC files; the direction words stay; `nearFuture.timeWords` gains the other future markers (`luego`, `después`, `pasado mañana`), so a plan said in the present with any of them is credited as `mañana` is | `GameWords`, `LessonRunner.PresentForPlan` |
+| `content/locale/en/*` | `npc.<id>.role` for four NPCs; the lessons' text (with `tenseRetry` and `presentNote` on every tense step, and `futureNote` at a `fut` step); `objective.<id>.title` for the orders; `line.<id>` for every new line; the checks' options; `ui.bookColumnFuture` (V16) | `LocaleBundle` |
 | World events | `beacon_reached` (detail: the point), `order_delivered` (npc, detail: the objective), `place_asked` (detail: the place or `unknown`) | the tips, the lessons, the objectives, the session log |
 
 Each new file keeps a provenance item; each schema change bumps `content/schema/*.schema.json` and the schema test.
@@ -419,10 +535,13 @@ Each new file keeps a provenance item; each schema change bumps `content/schema/
 | V05 | Game | four figures in `NpcFigures`, four face cells in `BlockAtlasLayout` and `BlockArtVillage`, icons and held sprites for the coin, the apple and the axe (`BlockCell.Icon*`, `HeldArm`) | S/M |
 | V06 | SpeechRender, docs | the voice trial (one line, every candidate, every speed), then the voice from the NPC file; `SPEECH_CHECKLIST.md` names the speakers | S |
 | V07 | Game.Core | `CheckBank` reads `lesson`; `CheckPlan.For` takes the items of the lessons unlocked by the session (`lesson.Session <= PlaySession`); the pilot's 31 unchanged | S |
-| V08 | Game.Core, scripts | the lesson's `level`; `GameDataValidator` checks the lemmas of each lesson's phrases, variants, lines and prompts against the bundle's cumulative level lists; the gate's lint moves to `--level a2 --fail-on-level` with `--level a1` as a report | S |
+| V08 | Game.Core, scripts | the lesson's `level`; `GameDataValidator` checks the lemmas of each lesson's phrases, variants, lines and prompts against the bundle's cumulative level lists, and its `verbs` against its level (no `fut` in an `a1` lesson); the gate's lint moves to `--level a2 --fail-on-level` with `--level a1` as a report | S |
+| V16 | Game.Core, Game | the simple future: `tense: fut` on a step (`LessonBook.cs:597`, `lesson.schema.json`); at a `fut` step the near future is credited with a `futureNote`, as the present is at an `ir-a` step (`LessonRunner.WrongTense`, `PresentForPlan`); the book's fourth column (`ConjugationTable.AllColumns`, `ui.bookColumnFuture`), shown once a lesson teaches a `fut` form, as the others are; a test that `TaughtVerbForm.Text` finds `compraré`, `iré` and `hará` in the bundle's lexicon (they come from the Wiktionary import, section 2.9) | S |
 
-No change to the core is expected. If `state_like`, `ask_price` with a plural subject or an adjective after `[NOUN:item]` grades wrongly
-(section 5), that is a core milestone (M56 and on), filed from the content milestone's report, never patched in the game.
+No change to the core is expected. If `state_like`, `ask_price` with a plural subject, an adjective after `[NOUN:item]` or one of the tense
+cases of section 5 grades wrongly, that is a core milestone (M56 and on), filed from the content milestone's report, never patched in the
+game. One possible core S is known in advance and not needed: `MorphologyGenerator.ConjugateRegular` builds no simple future, so a verb
+absent from the Wiktionary import would have no `fut` cell in the book; every verb of this plan is in the import.
 
 ### 3.9 The gate for A1 and A2 content
 
@@ -431,7 +550,9 @@ Today's gate demands A1 bundle-wide (section 2.5). The rule this plan proposes, 
 1. **The bundle's ceiling is A2:** `lint --strict --level a2 --fail-on-level --host-pools 'guide.*'`. A word above A2 anywhere fails.
 2. **A lesson's promise is per lesson:** every lesson declares `level`; the game's validator (`--validate-content`, in `content.sh refresh`
    and the gate) checks the Spanish of an `a1` lesson (its phrases and variants, the lines its steps name, its prompts' texts) against the
-   A1 list, and an `a2` lesson against A1 plus A2. Sessions 1 to 6 are `a1`.
+   A1 list, and an `a2` lesson against A1 plus A2. Sessions 1 to 6 are `a1`. The lists are lemma lists, so a form's tense is invisible to
+   the lint; the same validator checks a lesson's `verbs` against its level: an `a1` lesson may declare `pres`, `pret` and `ir-a` (as
+   session 3 does), an `a2` lesson `fut` as well.
 3. **World words** (nouns the player handles or the beacon names: `madera`, `antorcha`, `botella`, `panadería`, `herrería`, `pozo`, `horno`,
    `hacha`, `moneda`, `izquierda`, `derecha`, the labelled places) join `cefr/a1.txt` under a marked block with a one-line reason each, as
    S5 and S17 did; a name that is not a word is listed the same way. `cefr-check --level a1` keeps printing what is above A1 for the owner.
@@ -441,7 +562,7 @@ Today's gate demands A1 bundle-wide (section 2.5). The rule this plan proposes, 
 
 | ID | What | Depends on | Size | Model | Status |
 | --- | --- | --- | --- | --- | --- |
-| V00 | This plan; D-game-22 proposed; the row in `IMPLEMENTATION_PLAN.md` 4.8 | | | orchestrator | written 2026-10-30, awaiting the owner |
+| V00 | This plan; D-game-22 proposed; the row in `IMPLEMENTATION_PLAN.md` 4.8; revised the same day for the three times (section 2.9, the ladder in 3.5, V16, V17) | | | orchestrator | written 2026-10-30, awaiting the owner |
 | V01 | NPC behaviour from data: prompts by state, the opening event, the voice and the key words in `game/npcs/<id>.json`; the speaker of a pool by NPC id; `--talk` from the roster | | M | Sonnet 5.5 | planned |
 | V02 | Host actions and the beacon by place: `give_item` with a count, `point_at_place`, `point_at_slot`, `beacon_reached`, a `do` step's `pointPlace` | V01 | M | Sonnet 5.5 | planned |
 | V03 | Items and orders: the coin, the apple and the axe; `take_item` and `sell`; objectives with `session` and `deliverTo`; `order_delivered` | V02 | M | Sonnet 5.5 | planned |
@@ -451,17 +572,20 @@ Today's gate demands A1 bundle-wide (section 2.5). The rule this plan proposes, 
 | V07 | The check battery by lesson: `lesson` on the items; a battery takes the unlocked lessons' items | | S | Haiku 5.5 | planned |
 | V08 | The A1/A2 gate of 3.9: `level` on the lessons, the validator's check, the gate's lint at A2 | | S | Haiku 5.5 | planned (phase B) |
 | V09 | Documents and runs: the counts in `README.md` and `PLAYTEST.md`, `SCRIPTED_RUNS.md` with two new runs (the bakery purchase, asking the way), `SPEECH_CHECKLIST.md`; once per phase | the phase's lessons | S | Haiku 5.5 | planned |
-| V10 | Session 4 "El pueblo": the fisher; places and directions; `ask_far`, `ask_availability`; the order `fruit-for-mar`; the X06 review steps in `personas` and `ayer-y-manana` | V01, V02, V04, V05, V06, V07 | M | Sonnet 5.5 design and intents, Haiku 5.5 rows and WAVs | planned |
-| V11 | Session 5 "Números y pan": the baker; numbers, plurals, `ask_price`; the oven order; the purchase; the stall's price | V03, V10 | M | Sonnet 5.5 / Haiku 5.5 | planned |
-| V12 | Session 6 "Gente del pueblo": the smith and the farmer; `ask_name`, `ask_activity`, `ask_residence`; the axe order | V11 | M | Sonnet 5.5 / Haiku 5.5 | planned |
-| V13 | Session 7 "¿Cómo es?": adjectives and `gustar`; `describe`, `state_like`, `[ADJ]` in `request_item`; the water order; apples | V08, V12 | M | Sonnet 5.5 / Haiku 5.5 | planned (phase B) |
-| V14 | Session 8 "Ayer en el pueblo": the preterite in the third person, `tener que`; `state_obligation` | V13 | M | Sonnet 5.5 / Haiku 5.5 | planned (phase B) |
-| V15 | Session 9 "El mercado": 11 to 20, `¿Cuánto es todo?`, `más … que`, `poder`; `offer_item` and `buy` | V14 | M/L | Sonnet 5.5 / Haiku 5.5 | planned (phase B) |
+| V10 | Session 4 "El pueblo": the fisher; places and directions; `ask_far`, `ask_availability`; the three times around the walk (`voy a la panadería`, `voy a comprar pan`, `fui a la panadería`; `state_action` gains `comprar` and the later markers); the order `fruit-for-mar`; the X06 review steps in `personas` and `ayer-y-manana` | V01, V02, V04, V05, V06, V07 | M | Sonnet 5.5 design and intents, Haiku 5.5 rows and WAVs | planned |
+| V11 | Session 5 "Números y pan": the baker; numbers, plurals, `ask_price`; the plan and the report of the oven order (`voy a buscar madera`, `compré dos panes`: the regular `-ar` preterite); the oven order; the purchase; the stall's price | V03, V10 | M | Sonnet 5.5 / Haiku 5.5 | planned |
+| V12 | Session 6 "Gente del pueblo": the smith and the farmer; `ask_name`, `ask_activity`, (`ask_residence`); the third person in three times (`trabaja`, `va a hacer`, `hizo`; a name subject in `state_action`), `vivo en`; the axe order | V11 | M | Sonnet 5.5 / Haiku 5.5 | planned |
+| V13 | Session 7 "¿Cómo es?": adjectives and `gustar` in the present and the past; `describe`, `state_like`, `[ADJ]` in `request_item`; the water order (its plan and report reviewed); apples | V08, V12 | M | Sonnet 5.5 / Haiku 5.5 | planned (phase B) |
+| V14 | Session 8 "Ayer en el pueblo": the preterite for every person (él/ella, nosotros, ellos; the day of the village told and retold), `tener que`; `state_obligation` | V13 | M | Sonnet 5.5 / Haiku 5.5 | planned (phase B) |
+| V16 | The simple future in the runner and the book: `tense: fut` on a step, `ir a` credited there with a note, the fourth column, the schema (3.8) | V08 | S | Haiku 5.5 | planned (phase B) |
+| V17 | Session 9 "Mañana en el pueblo": the simple future (-é, -ás, -á, -emos, -án; `iré`; `hará`, `tendré` heard) against `ir a`; the later markers; the day of tomorrow | V14, V16 | M | Sonnet 5.5 / Haiku 5.5 | planned (phase B) |
+| V15 | Session 10 "El mercado": 11 to 20, `¿Cuánto es todo?`, `más … que`, `poder`; `offer_item` and `buy`; the market told in three times | V17 | M/L | Sonnet 5.5 / Haiku 5.5 | planned (phase B) |
 
 **Order.** V01, V02, then V04, V05 and V07 (independent, one agent at a time), V06 with the owner, V10; then V03, V11, V12 and V09. That is
-**phase A: sessions 4 to 6, A1 complete** (about 10 milestones; 3 Sonnet M, the rest Haiku S/M, plus three content M). The gate runs on
-`feature/village` after each. **Phase B** (V08, V13 to V15, V09 again) waits for the owner's word after listening to phase A, or for the
-pilot's data if the owner prefers the brief's order.
+**phase A: sessions 4 to 6, A1 complete, every verb in three times** (about 10 milestones; 3 Sonnet M, the rest Haiku S/M, plus three
+content M). The gate runs on `feature/village` after each. **Phase B** (V08, V13, V14, V16, V17, V15, V09 again: sessions 7 to 10, A2, the
+simple future last but one) waits for the owner's word after listening to phase A, or for the pilot's data if the owner prefers the brief's
+order.
 
 **Every content milestone (V10 to V15)**, besides the definition of done (`IMPLEMENTATION_PLAN.md` section 6) and the content loop
 (`content/README.md`, "The edit loop"): the sheet rows first (D-game-10), each with a graded error example; the intents' examples with
@@ -471,14 +595,24 @@ hash and the scripted runs re-baselined; the lesson timed in a scripted run (5 t
 
 ## 5. Risks and open points
 
-- **The owner's listening is the real cost.** Phase A adds about 80 lines (160 files, about 12 MB); phase B about as many again. R14 and
-  R15 said so. The prerender's `--rate 16000` halves the size when the owner wants it.
+- **The owner's listening is the real cost.** Phase A adds about 95 lines (190 files, about 14 MB; the tense rows are 5 or 6 lines a
+  lesson); phase B about 120 (four lessons now, not three). R14 and R15 said so. The prerender's `--rate 16000` halves the size when the
+  owner wants it.
 - **Voices.** If no Italian voice sounds right, the choice is speed variants of the three Spanish voices (the same timbre, a different pace)
   or three NPCs instead of four (drop the farmer; session 7 moves to the shopkeeper). The trial comes before any lesson (V06 before V10).
-- **Three places the core must be tried before a row relies on it** (the CLI, `eval --transcript … --prompt … --content content/game-v1`,
+- **Places the core must be tried before a row relies on it** (the CLI, `eval --transcript … --prompt … --content content/game-v1`,
   in the milestone's first hour): `me gustan las manzanas` (a postverbal plural subject: `conj.person` must stay silent); `¿cuánto cuestan los
   panes?` (the same); `quiero tres manzanas rojas` (an adjective after `[NOUN:item]`: `gender.agree` and `word_order` must fire on `rojas`
-  misplaced or `rojos`, not on the right form). A wrong grade is a core milestone (M56 and on) and the row waits.
+  misplaced or `rojos`, not on the right form). And the tenses: `ayer compré dos panes` and `fuimos al río` clean (`conj.irregular` silent
+  on `fuimos`); `ayer compro pan` gives `conj.tense` expected `compré`; `mañana compraré pan` clean and `mañana compré pan` an error;
+  `Domingo hizo un hacha`, `Luz hará pan` and `Mar pescó en el río` clean, the name read as a third-person subject (`domingo`, `luz` and
+  `mar` are nouns to the lexicon, all third person singular; a name the lexicon lacks binds no reading and `conj.person` has nothing to
+  say); `yo comprarás pan` gives `conj.person`; `compro pan` alone is clean (and is the lesson's Miss at a `pret` step, not the core's). A
+  wrong grade is a core milestone (M56 and on) and the row waits.
+- **A tense is graded only next to a marker.** So every row in the past or the future either carries a marker in its canonical text
+  (`ayer`, `mañana`) or sits at a step that declares `tense`, and its learner-error example carries a marker so that a core code exists
+  (the sheet test demands one). The owner's rule from S27 holds: correct Spanish is never a Miss, so a present with a future word at an
+  `ir-a` step, or `ir a` at a `fut` step, is credited with a note (V16).
 - **Names that are nouns** carry a gender: `Sol es alta` would be `gender.agree` for a female Sol (`sol` is masculine). Hence Luz (f), Mar,
   Domingo (m); a name absent from the lexicon is safe too (`[WORD]` binds no reading) but needs an `a1.txt` entry and a grammar waiver.
 - **Confusion between intents** (`ask_activity` against `ask_help`, `state_obligation` against `state_have`, `offer_item` against
@@ -488,8 +622,11 @@ hash and the scripted runs re-baselined; the lesson timed in a scripted run (5 t
   of the pilot is whatever is frozen on the day (`PLAYTEST.md` section 3).
 - **Scope against the brief.** The brief says to improve the loop before the world; the owner asked for the world. Phase A is the smallest
   world that gives numbers, places and people a use; phase B is held back by a decision.
-- **The session count.** Six more lessons mean six more loads; a tester who wants two lessons in one sitting cannot (S26's rule). An owner
-  decision could let a lesson unlock by `after` alone; the plan does not assume it.
+- **The session count.** Seven more lessons mean seven more loads; a tester who wants two lessons in one sitting cannot (S26's rule). An
+  owner decision could let a lesson unlock by `after` alone; the plan does not assume it.
+- **Not overwhelming.** Each lesson adds one tense form in one person at most (the ladder in 3.5) and reviews the rest; session 8 is the
+  exception (three new persons of a tense already known) and session 9 the only new tense. If a lesson's timing shows the tense rows push
+  it past ten minutes, the report rows (the preterite) stay and a directions or names row goes, since the owner asked for the tenses.
 - **Build time.** More props cost nothing measurable; the seed-42 budget test keeps watch.
 - **The recognizer.** Vosk has no word list to check; a new word the learner must say that the round-trip test cannot hear goes to the
   `hears` side or to a typed-only variant, reported in the milestone.
@@ -504,5 +641,8 @@ hash and the scripted runs re-baselined; the lesson timed in a scripted run (5 t
 - (e) **The shopkeeper**: "he" in the locale (the voice and the label are male), or a female voice from the trial.
 - (f) **The economy**: coins, apples and the axe (V03) as the price of giving numbers a use; or numbers as comprehension only, which drops
   V03 and the orders and keeps the plan to places, people and words.
-- (g) **Phase B** (A2, sessions 7 to 9): designed here, started only on the owner's word.
+- (g) **Phase B** (A2, sessions 7 to 10): designed here, started only on the owner's word.
 - (h) **The speech folder**: downsample to 16 kHz when phase A lands, or keep 24 kHz.
+- (i) **The tenses**: the preterite as the one past (yo and tú from session 3, the regular `-ar` pattern in session 5, every person in
+  session 8), two futures (`ir a` from session 3, used in every lesson; the simple future in session 9, at A2, with its own small code
+  milestone V16), and the imperfect and the perfect (`comía`, `he comido`) left to a later series. Seven lessons rather than six.

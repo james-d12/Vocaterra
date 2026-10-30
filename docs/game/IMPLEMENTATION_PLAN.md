@@ -401,11 +401,13 @@ instruction one session (Opus 5.5) does every milestone itself, with no subagent
 ### 4.8 The village and the lessons (the V series; proposed 2026-10-30, D-game-22)
 
 The owner's request (2026-10-30): a bigger village with more NPCs (a blacksmith, a baker) and more lessons, without a larger map,
-with the NPCs interlinked, the map's space used, the lessons connected, A1 to A2. The plan, the design and the milestones V01 to V15 are in
-`docs/game/VILLAGE_PLAN.md`: the village grows inside its own clearing (a bakery, a smithy, a well, the farmer at the field, a fisher on the
-bridge's east landing); four NPCs, three items (a coin, an apple, an axe) and four orders tie them together; six lessons, sessions 4 to 9,
-each reusing the last. Phase A (V01 to V07, V10 to V12: sessions 4 to 6, A1 complete) and phase B (V08, V13 to V15: A2) are separated by an
-owner decision. The series runs on `feature/village`, commit prefix `V<nn>:`, and is **proposed**: nothing starts before the owner answers
+with the NPCs interlinked, the map's space used, the lessons connected, A1 to A2; and, the same day, "past, present, and future use of
+verbs" in the lessons. The plan, the design and the milestones V01 to V17 are in `docs/game/VILLAGE_PLAN.md`: the village grows inside its
+own clearing (a bakery, a smithy, a well, the farmer at the field, a fisher on the bridge's east landing); four NPCs, three items (a coin,
+an apple, an axe) and four orders tie them together; seven lessons, sessions 4 to 10, each reusing the last and using its verbs in the
+present, the preterite and the future around the order it carries (the plan, the doing, the report), with the simple future at A2 in
+session 9. Phase A (V01 to V07, V10 to V12: sessions 4 to 6, A1 complete) and phase B (V08, V13 to V17: A2) are separated by an owner
+decision. The series runs on `feature/village`, commit prefix `V<nn>:`, and is **proposed**: nothing starts before the owner answers
 section 6 of the plan. The findings of each milestone go into section 5.
 
 ## 5. Findings log
