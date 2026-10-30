@@ -47,7 +47,7 @@
 {"path":"game/objectives/camp.json","sha256":"9d7c288525549385473a8e2781c6cd4936aad5a8501bec3eaf95b70cffb6b18a","bytes":873},
 {"path":"game/objectives/light-fire.json","sha256":"4527e79482a59f2c04a0b7a642b882ae03a4272278b7c2befd55a38c7f5d80bd","bytes":389},
 {"path":"game/objectives/meet-guide.json","sha256":"9f719299b1906c04f69ff62d6d673a308229de6541aa14c744681c466224b445","bytes":521},
-{"path":"game/phrases.json","sha256":"e93bf263bcf7468577a5a7a1661db066526748ae0e5c8bece08dfa5166bbc6e7","bytes":10607},
+{"path":"game/phrases.json","sha256":"eab44599f56a157ff7c3e4f573e427457e615045a91c3e4823ab084dda49811f","bytes":10761},
 {"path":"game/recipes.json","sha256":"2e4d0ad97236189771e0adc4994dafa28be162ad3c5cefc9e1cd847263d708bb","bytes":240},
 {"path":"game/scene.json","sha256":"a7eea30b789b8b711e20e0c82b7e779af25dec303f8938eab83cdeb488013e66","bytes":12170},
 {"path":"game/session.json","sha256":"e8f2c4ceb8554055e25860fe9543a028d06fa7994cf28ec36d640b8121178e39","bytes":586},
@@ -492,4 +492,4 @@
 {"path":"speech/villager_thank.1.wav","sha256":"264a8166023475d7d7842d08050d562924cb4212881ad755cc67afd728d5f7bb","bytes":45644},
 {"path":"speech/villager_thank.2.slow.wav","sha256":"791dd1d9ba9a64ba04d5b734f0e8c91b4ab25fa869ec85a6e2a6937a5b794ea0","bytes":70844},
 {"path":"speech/villager_thank.2.wav","sha256":"0ee06d6e1412c4a8c3efc7d36a4179e6f2d52ce6dbb7b602ca17fad9a51247b3","bytes":54044}
-],"bundleHash":"73fd43db9ee77d5f0b3772a994c8cee2cbb0b02540582a88ef05c4449eb298a4"}
+],"bundleHash":"dd4474149a580a92d4dd3767b6606d89c3b7eb15ea31b6685b85c5c110f592f0"}
