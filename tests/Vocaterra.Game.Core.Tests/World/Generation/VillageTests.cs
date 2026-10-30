@@ -18,7 +18,7 @@ public sealed class VillageTests(ITestOutputHelper output)
     private const ulong Seed = 42;
 
     // The digest of the built things in a box of the world, with the undergrowth, the stall's goods, the wheat and the trees counted as air (they are the seed's, S14 and S15).
-    private const string VillageStructureDigest = "1a6c04b2d1b53f34";
+    private const string VillageStructureDigest = "a03be5dc938ea1d6"; // V10: the well's rim one block high
     private const string CampsStructureDigest = "ed42e2a69d88beb7c801126a48c72c7a";
 
     // The village's levelled disc, whose structure the digest covers: 24 since VILLAGE_PLAN V04 (the bakery, the smithy, the well), 19 of the 20 before.

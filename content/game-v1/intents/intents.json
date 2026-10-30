@@ -360,15 +360,15 @@
       "intentId": "state_action",
       "requiredSlots": [],
       "slotGrammars": [
-        "(mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])? [VERB:ir] a [VERB:comer] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])?",
-        "(mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])? [VERB:comer] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])?",
-        "(sí)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])? [VERB:beber] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])?",
-        "(mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])? [VERB:ir] a [VERB:ir] a [ART]? [NOUN:place] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])?",
-        "(sí)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])? [VERB:ir] a [ART]? [NOUN:place] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])?",
-        "(mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])? [VERB:ir] a [VERB:comprar] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])?",
-        "(sí)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])? [VERB:comprar] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])?",
-        "(mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])? [VERB:ir] a [VERB:buscar] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])?",
-        "(sí)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])? [VERB:buscar] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])?"
+        "(mañana|ayer|hoy|luego|después)? [VERB:ir] a [VERB:comer] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?",
+        "(mañana|ayer|hoy|luego|después)? [VERB:comer] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?",
+        "(sí)? (mañana|ayer|hoy|luego|después)? [VERB:beber] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?",
+        "(mañana|ayer|hoy|luego|después)? [VERB:ir] a [VERB:ir] a [ART]? [NOUN:place] (mañana|ayer|hoy|luego|después)?",
+        "(sí)? (mañana|ayer|hoy|luego|después)? [VERB:ir] a [ART]? [NOUN:place] (mañana|ayer|hoy|luego|después)?",
+        "(mañana|ayer|hoy|luego|después)? [VERB:ir] a [VERB:comprar] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?",
+        "(sí)? (mañana|ayer|hoy|luego|después)? [VERB:comprar] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?",
+        "(mañana|ayer|hoy|luego|después)? [VERB:ir] a [VERB:buscar] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?",
+        "(sí)? (mañana|ayer|hoy|luego|después)? [VERB:buscar] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?"
       ],
       "keywordRules": [
         { "lemmas": ["ir"], "requiresSlots": [] },
@@ -448,8 +448,6 @@
         {"text": "mañana voy a comprar pan", "errors": [], "prompt": "lesson-plan-there"},
         {"text": "luego voy a comprar pan", "errors": [], "prompt": "lesson-plan-there"},
         {"text": "voy a comprar pan mañana", "errors": [], "prompt": "lesson-plan-there"},
-        {"text": "la semana que viene voy a comprar pan", "errors": [], "prompt": "lesson-plan-there"},
-        {"text": "la próxima semana voy a comprar pan", "errors": [], "prompt": "lesson-plan-there"},
         {"text": "luego compro pan", "errors": [], "prompt": "lesson-plan-there"},
         {"text": "después compro pan", "errors": [], "prompt": "lesson-plan-there"},
         {"text": "mañana compro pan", "errors": [], "prompt": "lesson-plan-there"},
