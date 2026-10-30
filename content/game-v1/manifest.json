@@ -14,7 +14,7 @@
 {"path":"answer-sets/lesson-hay.json","sha256":"ccc39a6d097536682340e4328121f368e50f924444fd59145d3722387a9e77bc","bytes":633},
 {"path":"answer-sets/lesson-need.json","sha256":"b210493aa53857f0d76979a96efe1a04dc36671493359a48ff7c636f79b266e6","bytes":1240},
 {"path":"answer-sets/lesson-place.json","sha256":"29213aae382c893a61d21afacd66c937e43291d975dfe1e364fccb9b86546c1e","bytes":928},
-{"path":"answer-sets/lesson-plan-there.json","sha256":"82711c4ea863c5b2e5e76c641abe18790ba0e96f2f853a930ec05401232ab6e7","bytes":868},
+{"path":"answer-sets/lesson-plan-there.json","sha256":"440e0b8143cb5eb48590055261422aca26241dbf80c6dcce70350ba037a30a29","bytes":921},
 {"path":"answer-sets/lesson-plan-we.json","sha256":"1d8fcd008076a7e9963947af60b4077010ddbd7b2740eb220f59d929557eb804","bytes":750},
 {"path":"answer-sets/lesson-plan.json","sha256":"2116e7d599500feaab41f4e4487007183228791d533e9948b7d56d4318f38e92","bytes":770},
 {"path":"answer-sets/lesson-she.json","sha256":"40adb29f56ff45ed22e9f2df99c65da053b842e771fffa327fae68fd4ac74ffa","bytes":728},
@@ -64,7 +64,7 @@
 {"path":"game/session.json","sha256":"50b7b5abd2d4a6f8124a2cc4ea1d02001896ff9e53c0d178f165bbfbc58de46d","bytes":603},
 {"path":"game/tips.json","sha256":"92a7b632ed478e066020adef1c993b33fbe9f65ba0584962a560809b98f55bb9","bytes":1222},
 {"path":"game/words.json","sha256":"fcdec20dd145e55fdfa0c5951d072a509a3a0f2fd33f3a1789055f8a6ad696c3","bytes":1854},
-{"path":"intents/intents.json","sha256":"d545f7380fbfa9087e89cfa19d454f7e59de4e22fbc3364e585a334e2ccc7894","bytes":30782},
+{"path":"intents/intents.json","sha256":"f6eeb8aa0a828929da92300907dbd3213ec83ab031ca2c4a09ceaa069a2ba58a","bytes":30868},
 {"path":"lexicon/game.json","sha256":"16c4dcbc4f190f6dc7ca68aa4b42a435f8517f71699668f439a37a7f17243eb7","bytes":5802},
 {"path":"lexicon/seed.json","sha256":"c6d3c0348339015ab9693cfcb9089935fddd997f5cf2d1d64237e4ae8ed11eb0","bytes":119541},
 {"path":"lexicon/supplement.json","sha256":"d0f3b4ad878990cb56d766430b6a088b4299e220ff0da9c72ba4787eaaf6bc38","bytes":697},
@@ -591,4 +591,4 @@
 {"path":"speech/villager_thank.2.wav","sha256":"0ee06d6e1412c4a8c3efc7d36a4179e6f2d52ce6dbb7b602ca17fad9a51247b3","bytes":54044},
 {"path":"speech/villager_unknown_place.1.slow.wav","sha256":"7e125d37b0a2bf3fac2c929cc2e2bd4a56639e9c515a39ad9ea809e1404fbe2e","bytes":83308},
 {"path":"speech/villager_unknown_place.1.wav","sha256":"926fc98c88187d508f8a0add2dc291af1e5bf62b5124ea47cf4277577b5e4215","bytes":76844}
-],"bundleHash":"971037d77d4304e1ed5035f2b5bbb26e4d397e914e6c8dd5dc7a438ed964a61d"}
+],"bundleHash":"14b558b10a80d929b214643dadd3acf889e082d1457ead3a50f98994b657fb4f"}

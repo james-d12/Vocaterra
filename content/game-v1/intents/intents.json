@@ -451,6 +451,7 @@
         {"text": "la semana que viene voy a comprar pan", "errors": [], "prompt": "lesson-plan-there"},
         {"text": "la próxima semana voy a comprar pan", "errors": [], "prompt": "lesson-plan-there"},
         {"text": "luego compro pan", "errors": [], "prompt": "lesson-plan-there"},
+        {"text": "después compro pan", "errors": [], "prompt": "lesson-plan-there"},
         {"text": "mañana compro pan", "errors": [], "prompt": "lesson-plan-there"},
         {"text": "voy a compro pan", "errors": ["conj.tense"], "prompt": "lesson-plan-there"},
         {"text": "mañana compré pan", "errors": ["conj.tense"], "prompt": "lesson-plan-there"},

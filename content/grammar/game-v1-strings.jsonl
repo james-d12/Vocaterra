@@ -463,8 +463,10 @@
 {"id":"answer-sets/lesson-plan-there:plan.alias6","text":"la semana que viene voy a comprar pan","kind":"learner"}
 {"id":"answer-sets/lesson-plan-there:plan.alias7","text":"la próxima semana voy a comprar pan","kind":"learner"}
 {"id":"answer-sets/lesson-plan-there:plan.alias8","text":"luego compro pan","kind":"learner"}
-{"id":"answer-sets/lesson-plan-there:plan.alias9","text":"mañana compro pan","kind":"learner"}
-{"id":"answer-sets/lesson-plan-there:plan.alias10","text":"voy a comprar dos panes","kind":"learner"}
+{"id":"answer-sets/lesson-plan-there:plan.alias9","text":"después voy a comprar pan","kind":"learner"}
+{"id":"answer-sets/lesson-plan-there:plan.alias10","text":"después compro pan","kind":"learner"}
+{"id":"answer-sets/lesson-plan-there:plan.alias11","text":"mañana compro pan","kind":"learner"}
+{"id":"answer-sets/lesson-plan-there:plan.alias12","text":"voy a comprar dos panes","kind":"learner"}
 {"id":"answer-sets/lesson-plan-there:help","text":"ayuda","kind":"learner"}
 {"id":"answer-sets/lesson-plan-there:help.alias1","text":"ayuda por favor","kind":"learner"}
 {"id":"answer-sets/lesson-plan-there:help.alias2","text":"necesito ayuda","kind":"learner"}
@@ -1157,18 +1159,19 @@
 {"id":"intents:state_action.ex71","text":"la semana que viene voy a comprar pan","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex72","text":"la próxima semana voy a comprar pan","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex73","text":"luego compro pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex74","text":"mañana compro pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex75","text":"voy a compro pan","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_action.ex76","text":"mañana compré pan","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_action.ex77","text":"sí, fui a la panadería","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex78","text":"fui a la panadería","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex79","text":"yo fui a la panadería","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex80","text":"hoy fui a la panadería","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex81","text":"ayer voy a la panadería","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_action.ex82","text":"yo fuiste a la panadería","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex83","text":"compré dos panes","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex84","text":"voy a buscar madera","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex85","text":"busqué madera","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex74","text":"después compro pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex75","text":"mañana compro pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex76","text":"voy a compro pan","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex77","text":"mañana compré pan","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex78","text":"sí, fui a la panadería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex79","text":"fui a la panadería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex80","text":"yo fui a la panadería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex81","text":"hoy fui a la panadería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex82","text":"ayer voy a la panadería","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex83","text":"yo fuiste a la panadería","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex84","text":"compré dos panes","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex85","text":"voy a buscar madera","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex86","text":"busqué madera","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex0","text":"tengo una fruta","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex1","text":"sí, tengo una fruta","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex2","text":"sí, yo tengo una fruta","kind":"learner","errors":[]}
