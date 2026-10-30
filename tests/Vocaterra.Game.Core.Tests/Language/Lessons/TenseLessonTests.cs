@@ -119,7 +119,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
             ["voy-a-ir-al-rio"] = ("1sg", "ir-a"),
         };
 
-        var turns = Book.Find(LessonId)!.Steps.Where(static s => s.WaitsOnTurn).ToList();
+        var turns = Book.Find(LessonId)!.Steps.Where(static s => s.Type is LessonStepType.Repeat or LessonStepType.Answer).ToList(); // a review step asks session 2 again, judging no form (X06)
 
         Assert.Equal(expected.Keys, turns.Select(static s => s.Phrase!));
         foreach (var step in turns)

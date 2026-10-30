@@ -95,7 +95,7 @@ public sealed class CheckPlanTests
         {
             var plan = CheckPlan.For(data.Checks, data.Lessons, playSession, kind, TestGame.Seed);
             Assert.Equal(31, plan.Count);
-            Assert.Equal(Describe(CheckPlan.For(Bank, kind, TestGame.Seed)), Describe(plan));
+            Assert.Equal(Describe(CheckPlan.For(Bank.Where(static i => PilotBattery.Contains(i.Id)).ToList(), kind, TestGame.Seed)), Describe(plan)); // the bank as it was before V10
         }
     }
 

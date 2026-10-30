@@ -1,0 +1,11 @@
+{
+  "$schema": "../../../schema/objective.schema.json",
+  "schemaVersion": 1,
+  "id": "fruit-for-mar",
+  "about": "The fisher's order (VILLAGE_PLAN 3.4, V10): from play session 4, three fruits brought to Mar at the bridge (the bushes at the guide's camp); he pays two coins (fisher.delivered, then fisher.pay in game/host-events.json). Asking in Spanish is the lesson's; walking up with the fruit is enough.",
+  "session": 4,
+  "deliverTo": "fisher",
+  "deliver": [
+    { "item": "berry", "count": 3 }
+  ]
+}

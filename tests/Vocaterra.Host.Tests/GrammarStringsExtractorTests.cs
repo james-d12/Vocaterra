@@ -49,6 +49,13 @@ public sealed class GrammarStringsExtractorTests
         ["ayer-fui-al-rio"] = ["conj.tense"],
         ["ayer-bebi-agua"] = ["conj.tense"],
         ["voy-a-ir-al-rio"] = ["conj.tense"],
+        ["donde-esta-la-panaderia"] = ["gender.agree"],
+        ["donde-esta-la-herreria"] = ["gender.agree"],
+        ["esta-lejos"] = ["gender.agree"],
+        ["hay-un-pozo"] = ["gender.agree"],
+        ["voy-a-la-panaderia"] = ["conj.person"],
+        ["voy-a-comprar-pan"] = ["conj.tense"],
+        ["fui-a-la-panaderia"] = ["conj.tense"],
     };
 
     [Fact]

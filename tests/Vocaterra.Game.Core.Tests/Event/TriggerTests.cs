@@ -65,13 +65,15 @@ public sealed class TriggerTests
     [Fact]
     public void TheShippedLessonsDetailFiltersAreWholeDetails()
     {
-        // Before C06 a do step's detail matched as a part of the event's, ignoring case. The shipped lessons' only detail filter is the whole detail (the
-        // noun the pickup names), so matching it exactly changes nothing.
+        // Before C06 a do step's detail matched as a part of the event's, ignoring case. The shipped lessons' detail filters are whole details: the noun the pickup
+        // names, and since VILLAGE_PLAN V10 the scene's names of the places El pueblo walks to (the arrival's detail is the place's name), so matching exactly changes nothing.
         var filters = TestGame.Data.Lessons.Lessons.SelectMany(static l => l.Steps).Where(static s => s.Type == LessonStepType.Do && s.Detail is not null).ToList();
 
-        var only = Assert.Single(filters);
-        Assert.Equal(new Trigger(WorldEvents.ItemPickedUp, Detail: "fruta"), only.Trigger);
-        Assert.NotNull(TestGame.Nouns.ForLemma(only.Detail!));
+        Assert.Equal(3, filters.Count);
+        Assert.Equal(new Trigger(WorldEvents.ItemPickedUp, Detail: "fruta"), filters[0].Trigger);
+        Assert.NotNull(TestGame.Nouns.ForLemma(filters[0].Detail!));
+        Assert.Equal([new Trigger(WorldEvents.BeaconReached, Detail: "bakery"), new Trigger(WorldEvents.BeaconReached, Detail: "smithy")], filters.Skip(1).Select(static s => s.Trigger));
+        Assert.All(filters.Skip(1), static s => Assert.Equal(s.Detail, s.PointPlace));
     }
 
     [Fact]

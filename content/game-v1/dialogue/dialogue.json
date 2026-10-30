@@ -725,6 +725,141 @@
       "variants": [
         { "lineId": "guide.lesson.shop.tomorrow.1", "text": "¿Qué vas a hacer mañana?" }
       ]
+    },
+    "fisher_hello": {
+      "poolId": "fisher_hello",
+      "variants": [
+        { "lineId": "fisher_hello.1", "text": "¡Hola!" }
+      ]
+    },
+    "fisher_greet": {
+      "poolId": "fisher_greet",
+      "variants": [
+        { "lineId": "fisher_greet.1", "text": "¿Qué buscas?" }
+      ]
+    },
+    "fisher_point": {
+      "poolId": "fisher_point",
+      "variants": [
+        { "lineId": "fisher_point.1", "text": "Mira, está allí." },
+        { "lineId": "fisher_point.2", "text": "Está por allí, mira." }
+      ]
+    },
+    "fisher_far": {
+      "poolId": "fisher_far",
+      "variants": [
+        { "lineId": "fisher_far.1", "text": "¿Lejos? ¿Qué buscas?" }
+      ]
+    },
+    "fisher_near": {
+      "poolId": "fisher_near",
+      "variants": [
+        { "lineId": "fisher_near.1", "text": "No, está cerca." }
+      ]
+    },
+    "fisher_unknown_place": {
+      "poolId": "fisher_unknown_place",
+      "variants": [
+        { "lineId": "fisher_unknown_place.1", "text": "No sé dónde está." }
+      ]
+    },
+    "fisher_help": {
+      "poolId": "fisher_help",
+      "variants": [
+        { "lineId": "fisher_help.1", "text": "Puedes preguntar: «¿Dónde está la panadería?»." }
+      ]
+    },
+    "fisher_thank": {
+      "poolId": "fisher_thank",
+      "variants": [
+        { "lineId": "fisher_thank.1", "text": "De nada." },
+        { "lineId": "fisher_thank.2", "text": "¡Con gusto!" }
+      ]
+    },
+    "fisher_bye": {
+      "poolId": "fisher_bye",
+      "variants": [
+        { "lineId": "fisher_bye.1", "text": "¡Adiós! Hasta luego." },
+        { "lineId": "fisher_bye.2", "text": "Hasta luego." }
+      ]
+    },
+    "fisher_delivered": {
+      "poolId": "fisher_delivered",
+      "variants": [
+        { "lineId": "fisher_delivered.1", "text": "¡Gracias! Toma dos monedas." }
+      ]
+    },
+    "guide.lesson.fisher.left": {
+      "poolId": "guide.lesson.fisher.left",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.left.1", "text": "En el pueblo, mira la torre. La panadería está a la izquierda." }
+      ]
+    },
+    "guide.lesson.fisher.more": {
+      "poolId": "guide.lesson.fisher.more",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.more.1", "text": "¿Algo más?" }
+      ]
+    },
+    "guide.lesson.fisher.right": {
+      "poolId": "guide.lesson.fisher.right",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.right.1", "text": "Y la herrería está a la derecha." }
+      ]
+    },
+    "guide.lesson.fisher.near": {
+      "poolId": "guide.lesson.fisher.near",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.near.1", "text": "No, está cerca. La montaña está lejos." }
+      ]
+    },
+    "guide.lesson.fisher.hay": {
+      "poolId": "guide.lesson.fisher.hay",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.hay.1", "text": "En el pueblo hay una tienda, una panadería y tres casas." }
+      ]
+    },
+    "guide.lesson.fisher.well": {
+      "poolId": "guide.lesson.fisher.well",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.well.1", "text": "Sí, hay un pozo." }
+      ]
+    },
+    "guide.lesson.fisher.going": {
+      "poolId": "guide.lesson.fisher.going",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.going.1", "text": "¿Adónde vas?" }
+      ]
+    },
+    "guide.lesson.fisher.plan": {
+      "poolId": "guide.lesson.fisher.plan",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.plan.1", "text": "¿Qué vas a hacer allí?" }
+      ]
+    },
+    "guide.lesson.fisher.went": {
+      "poolId": "guide.lesson.fisher.went",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.went.1", "text": "¿Fuiste a la panadería?" }
+      ]
+    },
+    "guide.lesson.fisher.hungry": {
+      "poolId": "guide.lesson.fisher.hungry",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.hungry.1", "text": "Tengo hambre. ¿Tienes fruta?" }
+      ]
+    },
+    "guide.lesson.fisher.end": {
+      "poolId": "guide.lesson.fisher.end",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.end.1", "text": "¡Muy bien! Ya conoces el pueblo." }
+      ]
+    },
+    "guide.lesson.villager.sign": {
+      "poolId": "guide.lesson.villager.sign",
+      "variants": [
+        { "lineId": "guide.lesson.villager.sign.1", "text": "El letrero dice: tienda, río, montaña." }
+      ]
     }
   }
 }

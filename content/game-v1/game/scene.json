@@ -133,13 +133,12 @@
       ]
     },
 
-    // The village well (V04): a cobble ring two blocks high round one block of water, so the water lies below the rim (no one on the ground can reach it:
-    // the river stays the place to fill the bottle), and a roof on four fence posts.
+    // The village well (V04): a cobble ring one block high round one block of water (V10: two high, it read as a stone cube from eye height and hid its
+    // water), so the water shows over the rim and a bottle can be filled there, and a roof on four fence posts.
     "well": {
       "legend": { "C": "cobble", "W": "water", "F": "fence", "R": "roof" },
       "layers": [
         ["CCC", "CWC", "CCC"],
-        ["CCC", "C C", "CCC"],
         ["F F", "   ", "F F"],
         ["F F", "   ", "F F"],
         ["RRR", "RRR", "RRR"],
@@ -239,7 +238,9 @@
   "npcs": [
     {"name": "guide", "site": "camp.guide", "dx": 3, "dz": 1, "facing": "west"},
     {"name": "shopkeeper", "site": "village", "dx": -5, "dz": -7, "facing": "west"},
-    {"name": "villager", "site": "village", "dx": 1, "dz": 3, "facing": "west"}
+    {"name": "villager", "site": "village", "dx": 1, "dz": 3, "facing": "west"},
+    // The fisher Mar (VILLAGE_PLAN V10) on the bank south of the bridge's east landing (the point npc.fisher), facing the river.
+    {"name": "fisher", "site": "bridge.east", "dx": 2, "dz": 3, "facing": "west"}
   ],
 
   // The player wakes alone on the ledge, facing south-east over the valley.
@@ -250,11 +251,12 @@
     "camp": { "x": 176, "z": 186, "label": "campamento" },
     // Where the village's new people will stand (VILLAGE_PLAN V04; the NPCs themselves come with their lessons, V10 to V12, as placements in "npcs"): the baker
     // in front of her crate of loaves, facing the square; the smith between his forge and the strip, facing south; the farmer at the field's west fence,
-    // facing the wheat (east); the fisher on the bank south of the bridge's east landing, facing the river (west).
+    // facing the wheat (east); the fisher on the bank south of the bridge's east landing, facing the river (west). The fisher's point is labelled (V10): El pueblo's walk
+    // back to him points at it and the arrow comes down when he is reached, and "¿Dónde está el pescador?" finds him.
     "npc.baker": { "x": 281, "z": 208 },
     "npc.smith": { "x": 302, "z": 206 },
     "npc.farmer": { "x": 300, "z": 218 },
-    "npc.fisher": { "x": 240, "z": 208 }
+    "npc.fisher": { "x": 240, "z": 208, "label": "pescador" }
   },
 
   // The forest: a tree tried in every 3 x 3 square, kept on the valley floor with this chance, thinner higher up and gone above the tree line.

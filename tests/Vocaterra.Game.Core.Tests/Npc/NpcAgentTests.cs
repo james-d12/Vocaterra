@@ -23,11 +23,12 @@ public sealed class NpcAgentTests
     private static readonly StoredTimestamp Start = new(GuideSession.DefaultStartedAt);
 
     [Fact]
-    public void TheBundleHoldsTheGuideTheShopkeeperAndTheVillagerOnly()
+    public void TheBundleHoldsTheGuideTheShopkeeperTheVillagerAndTheFisher()
     {
-        Assert.Equal(["guide", "shopkeeper", "villager"], TestGame.Bundle.Agents.Keys.Order(StringComparer.Ordinal));
+        // VILLAGE_PLAN V10 added the fisher, his prompt (fisher-open) and El pueblo's (lesson-far to lesson-went-there, and the villager's lesson-sign).
+        Assert.Equal(["fisher", "guide", "shopkeeper", "villager"], TestGame.Bundle.Agents.Keys.Order(StringComparer.Ordinal));
         Assert.Equal(
-            ["guide-offer", "guide-open", "guide-review", "lesson-ate", "lesson-bottle", "lesson-had", "lesson-have", "lesson-hello", "lesson-name", "lesson-need", "lesson-offer", "lesson-plan", "lesson-plan-we", "lesson-she", "lesson-task", "lesson-thanks", "lesson-tomorrow", "lesson-unstuck", "lesson-usted", "lesson-ustedes", "lesson-want", "lesson-we", "lesson-went", "lesson-what", "lesson-yesno", "stall-need", "stall-offer", "villager-open"],
+            ["fisher-open", "guide-offer", "guide-open", "guide-review", "lesson-ate", "lesson-bottle", "lesson-far", "lesson-going", "lesson-had", "lesson-have", "lesson-hay", "lesson-hello", "lesson-name", "lesson-need", "lesson-offer", "lesson-place", "lesson-plan", "lesson-plan-there", "lesson-plan-we", "lesson-she", "lesson-sign", "lesson-task", "lesson-thanks", "lesson-tomorrow", "lesson-unstuck", "lesson-usted", "lesson-ustedes", "lesson-want", "lesson-we", "lesson-went", "lesson-went-there", "lesson-what", "lesson-yesno", "stall-need", "stall-offer", "villager-open"],
             TestGame.Bundle.Prompts.Keys.Order(StringComparer.Ordinal));
     }
 

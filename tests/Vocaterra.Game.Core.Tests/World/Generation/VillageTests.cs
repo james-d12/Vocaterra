@@ -18,7 +18,7 @@ public sealed class VillageTests(ITestOutputHelper output)
     private const ulong Seed = 42;
 
     // The digest of the built things in a box of the world, with the undergrowth, the stall's goods, the wheat and the trees counted as air (they are the seed's, S14 and S15).
-    private const string VillageStructureDigest = "1a6c04b2d1b53f34";
+    private const string VillageStructureDigest = "a03be5dc938ea1d6"; // V10: the well's rim one block high
     private const string CampsStructureDigest = "ed42e2a69d88beb7c801126a48c72c7a";
 
     // The village's levelled disc, whose structure the digest covers: 24 since VILLAGE_PLAN V04 (the bakery, the smithy, the well), 19 of the 20 before.
@@ -352,8 +352,10 @@ public sealed class VillageTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void TheWellHoldsItsWaterInsideARimThatNoOneOnTheGroundCanReachOver()
+    public void TheWellShowsItsWaterOverARimOneBlockHighAndABottleIsFilledThere()
     {
+        // VILLAGE_PLAN V10: the rim was two blocks high (V04), so from eye height the well read as a stone cube and hid its water. One block high, the water lies
+        // level with the rim's top: an eye on the ground beside the well sees it, and a bottle is filled there as at the river.
         var scene = VoxelTestSupport.BuildRoute(Seed);
         var grid = scene.Grid;
         var well = scene.Point("well"); // the middle of the 3 x 3 well, on the ground under its water
@@ -363,51 +365,27 @@ public sealed class VillageTests(ITestOutputHelper output)
         foreach (var (dx, dz) in new[] { (1, 0), (-1, 0), (0, 1), (0, -1) })
         {
             Assert.Equal(BlockId.Cobble, grid.GetBlock(well.X + dx, y, well.Z + dz)); // contained on its four sides
-            Assert.Equal(BlockId.Cobble, grid.GetBlock(well.X + dx, y + 1, well.Z + dz)); // and a rim a block higher
+            Assert.False(grid.IsSolid(well.X + dx, y + 1, well.Z + dz), "the rim is one block high"); // and nothing above the rim's sides
         }
 
         Assert.Equal(BlockId.Air, grid.GetBlock(well.X, y + 1, well.Z));
         Assert.Equal(1, Count(grid, well.X - 2, well.X + 2, y - 1, y + 6, well.Z - 2, well.Z + 2, BlockId.Water)); // one block of water, no more
-        Assert.Equal(4 * 2, Count(grid, well.X - 1, well.X + 1, y + 2, y + 3, well.Z - 1, well.Z + 1, BlockId.Fence)); // four posts
-        Assert.Equal(9 + 1, Count(grid, well.X - 1, well.X + 1, y + 4, y + 5, well.Z - 1, well.Z + 1, BlockId.Roof)); // the roof and its cap
+        Assert.Equal(4 * 2, Count(grid, well.X - 1, well.X + 1, y + 1, y + 2, well.Z - 1, well.Z + 1, BlockId.Fence)); // four posts on the rim's corners
+        Assert.Equal(9 + 1, Count(grid, well.X - 1, well.X + 1, y + 3, y + 4, well.Z - 1, well.Z + 1, BlockId.Roof)); // the roof and its cap
 
-        // No ray from an eye on the ground round the well reaches its water, standing or at the top of a jump (the rim is two blocks high), so a bottle is
-        // filled at the river, where the villager sends the learner (S3), and never here.
+        // From an eye on the ground two blocks south of the well, looking at the middle of the water, the first block met is the water.
         const int U = VoxelPhysics.UnitsPerBlock;
-        var jumpApex = 0;
-        for (var v = VoxelPhysics.JumpVelocity - VoxelPhysics.Gravity; v > 0; v -= VoxelPhysics.Gravity)
-        {
-            jumpApex += v;
-        }
+        var eye = (X: (well.X * U) + (U / 2), Y: (y * U) + VoxelPhysics.EyeHeight, Z: ((well.Z + 3) * U) + (U / 2));
+        Assert.Equal(BlockId.Water, Cast(grid, eye, ((well.X + 0.5) * U, (y + 0.9) * U, (well.Z + 0.5) * U))?.Id);
 
-        var rays = 0;
-        for (var fz = well.Z - 5; fz <= well.Z + 5; fz++)
-        {
-            for (var fx = well.X - 5; fx <= well.X + 5; fx++)
-            {
-                if (Math.Abs(fx - well.X) <= 1 && Math.Abs(fz - well.Z) <= 1 || grid.IsSolid(fx, y, fz) || grid.IsSolid(fx, y + 1, fz) || !grid.IsSolid(fx, y - 1, fz))
-                {
-                    continue; // the well itself, or no place to stand
-                }
-
-                for (var lift = 0; lift <= jumpApex; lift += jumpApex / 4)
-                {
-                    foreach (var (ox, oz) in new[] { (U / 2, U / 2), ((U * 3) / 10, (U * 3) / 10), ((U * 7) / 10, (U * 7) / 10), ((U * 3) / 10, (U * 7) / 10), ((U * 7) / 10, (U * 3) / 10) })
-                    {
-                        var eye = (X: (fx * U) + ox, Y: (y * U) + VoxelPhysics.EyeHeight + lift, Z: (fz * U) + oz);
-                        foreach (var (tx, tz) in new[] { (0.1, 0.1), (0.5, 0.5), (0.9, 0.9), (0.1, 0.9), (0.9, 0.1), (0.5, 0.1), (0.5, 0.9), (0.1, 0.5), (0.9, 0.5) })
-                        {
-                            var hit = Cast(grid, eye, ((well.X + tx) * U, (y + 0.95) * U, (well.Z + tz) * U));
-                            rays++;
-                            Assert.False(hit?.Id == BlockId.Water, $"an eye at {eye} reaches the well's water");
-                        }
-                    }
-                }
-            }
-        }
-
-        output.WriteLine($"{rays} rays from the ground round the well, none reaches its water (a jump lifts the eye {jumpApex / (double)U:F2} blocks)");
-        Assert.True(rays > 1000);
+        // A bottle is filled at the well: walk up to it and hold the interact command on its water.
+        var session = TestGame.NewSession();
+        session.Simulation.GrantItems(Vocaterra.Game.Core.Items.ItemId.Bottle, 1);
+        Stage.TeleportToNpc(session, "villager");
+        var water = new BlockPos(well.X, y, well.Z);
+        Stage.WalkToWater(session, water);
+        Assert.True(Stage.Fill(session, water) > 0, "the bottle was not filled at the well");
+        Assert.Equal(1, session.Simulation.Inventory.Count(Vocaterra.Game.Core.Items.ItemId.WaterBottle));
     }
 
     [Fact]

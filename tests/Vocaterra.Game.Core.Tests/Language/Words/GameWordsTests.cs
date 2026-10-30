@@ -24,7 +24,7 @@ public sealed class GameWordsTests
         Assert.Equal(["yo", "tú", "él/ella/usted", "nosotros", "ustedes/ellos"], GameWords.PronounKeys.Select(key => Words.Pronoun(key[..1], key[1..])));
         Assert.Equal(("ayuda", "no sé", "hola"), (Words.HelpLine, Words.DontKnowLine, Words.Greeting));
         Assert.Equal(("ir", "a"), (Words.NearFuture.Verb, Words.NearFuture.Joiner));
-        Assert.Equal(["mañana"], Words.NearFuture.TimeWords);
+        Assert.Equal(["mañana", "luego", "después", "pasado mañana"], Words.NearFuture.TimeWords); // VILLAGE_PLAN V10: the later markers make a present a plan too
         Assert.Equal("río", Words.Noun("river"));
     }
 
@@ -34,7 +34,7 @@ public sealed class GameWordsTests
         var json = File.ReadAllText(Repo.Path("content", "game-v1", "game", "words.json"));
 
         Assert.Throws<InvalidDataException>(() => GameWords.Parse(json.Replace("\"blockUnit\": \"bloque\",", string.Empty, StringComparison.Ordinal)));
-        Assert.Throws<InvalidDataException>(() => GameWords.Parse(json.Replace("\"timeWords\": [\n      \"mañana\"\n    ]", "\"timeWords\": []", StringComparison.Ordinal)));
+        Assert.Throws<InvalidDataException>(() => GameWords.Parse(System.Text.RegularExpressions.Regex.Replace(json, "\"timeWords\": \\[[^\\]]*\\]", "\"timeWords\": []")));
         Assert.Throws<InvalidDataException>(() => GameWords.Parse(json.Replace("\"schemaVersion\": 2", "\"schemaVersion\": 1", StringComparison.Ordinal))); // schema 2: the key words left for the NPC files (V01)
         Assert.Equal(Words.Directions, GameWords.Parse(json).Directions);
     }
@@ -56,7 +56,8 @@ public sealed class GameWordsTests
         Assert.Equal("campamento", scene.Labels["camp"]);
         Assert.Equal("fuego", scene.Labels["firering.player"]);
         Assert.Equal("panadería", scene.Labels["bakery"]); // VILLAGE_PLAN V04: the bakery, the smithy, the well, the tower and the field
-        Assert.Equal(22, scene.Labels.Count);
+        Assert.Equal("pescador", scene.Labels["npc.fisher"]); // V10: where the fisher stands, which El pueblo's walk back points at
+        Assert.Equal(23, scene.Labels.Count);
     }
 
     [Fact]

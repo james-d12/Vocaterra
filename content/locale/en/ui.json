@@ -232,8 +232,10 @@
     "npc.guide.role": "The guide",
     "npc.shopkeeper.role": "The shopkeeper",
     "npc.villager.role": "The villager",
+    "npc.fisher.role": "The fisher",
     "objective.camp.title": "camp",
     "objective.meet-guide.hud": "Go down the trail and find the guide",
-    "objective.light-fire.hud": "Go back up the trail and light your own fire"
+    "objective.light-fire.hud": "Go back up the trail and light your own fire",
+    "objective.fruit-for-mar.hud": "Bring {npc:fisher} three fruits from the bushes at {npc:guide}'s camp"
   }
 }

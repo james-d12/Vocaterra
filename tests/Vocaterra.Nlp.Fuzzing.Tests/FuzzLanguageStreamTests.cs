@@ -18,9 +18,11 @@ public sealed class FuzzLanguageStreamTests
 {
     private const int Seeds = 400;
 
-    // Digests of the first case at each fixed seed, from the generator expressions the Spanish classes used before M35.
-    private const string OldTextDigest = "019F28C692D453581C03EB6D1446AF99DFCF4D2741F5413FCBA80FE1BFB18AA2";
-    private const string OldSentenceDigest = "5120B9DE4CAB42CDD4483B0F5E73FF1B54BEE615352DB3548CCCDB65AC1CF889";
+    // Digests of the first case at each fixed seed, from the generator expressions the Spanish classes used before M35. The generators draw their words and grammars
+    // from content/game-v1, so a content edit moves them like a golden: recorded again at the game's V10 (VILLAGE_PLAN), whose lexicon gained panadería, pescador and
+    // letrero and whose grammars gained ask_far, ask_availability and the comprar and buscar rows of state_action; the generators did not change.
+    private const string OldTextDigest = "60D70E0AE81AEA72BB24C3218A8D3B77BD3340FBCDF4D060172A772896AC73A1";
+    private const string OldSentenceDigest = "24324671E57E97C39E283FBBC936C0765F0B43258BE0641E63AA0A7F32F58C75";
 
     [Fact]
     public void TheSpanishRecordUsesTheSpanishPackAndTheWholeMutationSet()

@@ -17,6 +17,12 @@
     {"form":"lámpara","lemma":"lámpara","pos":"noun","features":{"number":"sg","gender":"f"}},
     {"form":"lámparas","lemma":"lámpara","pos":"noun","features":{"number":"pl","gender":"f"}},
     {"form":"rio","lemma":"río","pos":"noun","features":{"number":"sg","gender":"m"}},
-    {"form":"dilo","lemma":"decir","pos":"verb","features":{"person":"2","number":"sg","mood":"imp"}}
+    {"form":"dilo","lemma":"decir","pos":"verb","features":{"person":"2","number":"sg","mood":"imp"}},
+    {"form":"panadería","lemma":"panadería","pos":"noun","features":{"number":"sg","gender":"f"}},
+    {"form":"panaderías","lemma":"panadería","pos":"noun","features":{"number":"pl","gender":"f"}},
+    {"form":"pescador","lemma":"pescador","pos":"noun","features":{"number":"sg","gender":"m"}},
+    {"form":"pescadores","lemma":"pescador","pos":"noun","features":{"number":"pl","gender":"m"}},
+    {"form":"letrero","lemma":"letrero","pos":"noun","features":{"number":"sg","gender":"m"}},
+    {"form":"letreros","lemma":"letrero","pos":"noun","features":{"number":"pl","gender":"m"}}
   ]
 }

@@ -32,9 +32,21 @@
       ]
     },
     {
+      "key": "0141f22d4198c7e530ad6a9ba7a04c3cf8f6105c5f009053ebf75ad1f5716006",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hoy fui a la panadería",
+      "matches": []
+    },
+    {
       "key": "01a870737285f142fa7c47bd84811b89cf2f55d33127c7f0fb3cdb90a9693abb",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Nosotros queremos agua",
+      "matches": []
+    },
+    {
+      "key": "01daf50437f587134a8405350b42366b2740bfc67b198fe47af9820df895a710",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está mi campamento por favor",
       "matches": []
     },
     {
@@ -97,6 +109,24 @@
       ]
     },
     {
+      "key": "069152d4bce0cc894a81a376917c27d0314fa721599ed7be3fbf66ebf38be0fa",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Hay un pozo aquí?",
+      "matches": []
+    },
+    {
+      "key": "06fe2e1bedc86e299c39358360123d50490c99243cbdd74cfea240bbe07db7a2",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mañana compré pan",
+      "matches": []
+    },
+    {
+      "key": "079db4741b8085f96cb32bab84fd98b68ecadbe5b1b0d75c48f245e7e6ba33ae",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Busco el letrero",
+      "matches": []
+    },
+    {
       "key": "07d9adbc240133df8dc81e872ad2ac3f825f11f0c39e3b9b08df89b6572bf070",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Más despacio, por favor",
@@ -142,6 +172,18 @@
       "key": "0abc5248e9254a3912530a99585d7cc78b6c357738714e7bb0755d66188d528b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer fuiste al río.",
+      "matches": []
+    },
+    {
+      "key": "0c001c5adc998567dc4416a0028086f882c08f57f4f969ce3f55fad17026920f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a la tienda",
+      "matches": []
+    },
+    {
+      "key": "0c41f5582c6c6a5f21f4616ef35c95de467d26962137b49801750e9ff35f7693",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está la torre",
       "matches": []
     },
     {
@@ -288,9 +330,21 @@
       ]
     },
     {
+      "key": "159947e8aff6fd1379e5a04e940e4f98af6a3e4773237d789d26a70da6d29914",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "luego",
+      "matches": []
+    },
+    {
       "key": "15bfd46099c560c75af17656e6c1e00299be815a7d668107d320ebe0ca308185",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Nosotros vamos a comer fruta",
+      "matches": []
+    },
+    {
+      "key": "15c5aa405fe46600d41f5cc3ddae72c29f044cfa53e501c5a0088ddf3ce5c7f6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde queda el letrero",
       "matches": []
     },
     {
@@ -306,9 +360,21 @@
       "matches": []
     },
     {
+      "key": "16262f73c8006dd089874e39a6172c787000389d3d44206a3730bceb2d1f24f2",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está el lago por favor",
+      "matches": []
+    },
+    {
       "key": "1633b44e729bab45f2e2fb11cbe075ba64a5bd998a514ea60d915b491ad8e30f",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "nosotros",
+      "matches": []
+    },
+    {
+      "key": "16748fb08ef3a83d2657aebea79f6a6e02943811b4c5104a668089cd7456f1a5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Después compro pan",
       "matches": []
     },
     {
@@ -348,6 +414,12 @@
       "matches": []
     },
     {
+      "key": "17bccef377b562c8ae84318bc4a8ce144a79303bda7543acf2f77481ebdca807",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está la panadería, por favor",
+      "matches": []
+    },
+    {
       "key": "17d61886ed1186d72c9a195b953e63a5a8ec5311f25c86687ca05549f71c03fd",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Claro! Mira.",
@@ -375,6 +447,12 @@
           ]
         }
       ]
+    },
+    {
+      "key": "18f25ad174fe4a68aac010038dca50d2f14309aea0b37d49641cb03301b14b48",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está la torre por favor",
+      "matches": []
     },
     {
       "key": "19089c51ac90f10598cf486d3534a5565a343f0bb668dda11732a2043c6089cc",
@@ -465,9 +543,33 @@
       "matches": []
     },
     {
+      "key": "1ad7bce23a574e850fdc81266093625a9924f38349e65ca16d829ae4c0378444",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Busco mi campamento",
+      "matches": []
+    },
+    {
       "key": "1af9abc58b5249c80467c99ecdb5a723308b3e309c0bd989d1468f9949820d7f",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí: «Soy dos espadas». ¡Muy bien!",
+      "matches": []
+    },
+    {
+      "key": "1b5908c131720e3607e28846a0e7f6e5bd64338a1da79166da0757b38b9e8717",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está el letrero",
+      "matches": []
+    },
+    {
+      "key": "1b73c5554ff78209084542bb52dca585f2eb757b0bf49aaa4ac7322548fca34c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está el pueblo por favor",
+      "matches": []
+    },
+    {
+      "key": "1c4085df1094b704233946fc6452d4d054fff1a2984a99e69cf7cf9c8726e146",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde queda la herrería",
       "matches": []
     },
     {
@@ -492,6 +594,12 @@
       "key": "1d3dc32ea36fa992724771c46d1c0bb485f5926bb0c350a951f998c875d83393",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Necesito agua por favor",
+      "matches": []
+    },
+    {
+      "key": "1d57f2c3b5b11b30bd27d830e736b2efdb4f6dc31cbd48e4f0ce65f191c5ee14",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Busco el pozo",
       "matches": []
     },
     {
@@ -578,6 +686,12 @@
       "matches": []
     },
     {
+      "key": "23c23abacd373b5e76207716f09d333d1d014bd659bc12e944bbb7be954960a9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Busco la torre",
+      "matches": []
+    },
+    {
       "key": "241bbcec332f22e700d11394e80d7a948fd0483c515a9de7c81a695b21ef3faf",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí",
@@ -596,6 +710,12 @@
       "matches": []
     },
     {
+      "key": "24e8564b05e5229212fee92761d92c96fd22d02e96110e7b6b9a0b29066fab4e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a comprar pan",
+      "matches": []
+    },
+    {
       "key": "254233453a41bcc84270221539877541ed1f29d16d5f22b9ca7d2dc9d2a944b2",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer comí una fruta",
@@ -605,6 +725,12 @@
       "key": "25dc9949e7f2ed8c5437bb2b9460687ff118eb29b8afd3289d6757552032ad17",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí tengo",
+      "matches": []
+    },
+    {
+      "key": "2621cd5b535014eb76a97c0cf89570d9be4d9543944c9ac7ec31432e8b71fa24",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde queda el pueblo",
       "matches": []
     },
     {
@@ -623,6 +749,18 @@
       "key": "274ec7b4cf1b2923521b0e786dd4124b7e79b0fa791d4694542b94c1c823c588",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Muy bien!",
+      "matches": []
+    },
+    {
+      "key": "2775eed26198528effb6eecf45c08b0af4234e0ccb1d46789edf826e5cd34541",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está el campo por favor",
+      "matches": []
+    },
+    {
+      "key": "27d9b33890ad540d4447a230d01798cd4d19638e10e86cd1aaa96b14a69f2bec",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está el río por favor",
       "matches": []
     },
     {
@@ -685,6 +823,12 @@
       "matches": []
     },
     {
+      "key": "2a112af546bb41d89dec79ebc2d8e2f8aa2f67e23ec30917daee69d1459e783e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Fuiste a la panadería?",
+      "matches": []
+    },
+    {
       "key": "2a30ed1a8555bfec0bc566a418925c3f9a2f2f2edfb2f207954cc8ab67eb3451",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Muy bien! Tienes una fruta.",
@@ -706,6 +850,18 @@
           ]
         }
       ]
+    },
+    {
+      "key": "2ac47915765747f1d33528dbfaae20ec7071b9e5f071f88d751337d688e61d20",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está la herrería",
+      "matches": []
+    },
+    {
+      "key": "2b3f66fdba8da17f7912bb813831452918b07238f3cc46caf2ce09ad5fde63a0",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Está muy lejos",
+      "matches": []
     },
     {
       "key": "2c251fb64054b697c53506df9faca60ee96860f5c7513404018d10eb6108a042",
@@ -755,6 +911,12 @@
       "matches": []
     },
     {
+      "key": "2f2ae97416519fc34510c823a5aedbea4155425c6f0541a917ea5eaa3cd7e98c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, fui a la panadería.",
+      "matches": []
+    },
+    {
       "key": "2f54bdf1f67579589c4b08cf46c707be60a2e44faea684ef40ee42002dc5e2fe",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Voy a comer una fruta",
@@ -788,6 +950,12 @@
       "key": "30e4266b6d38ea99b812c7d86e0a03979c949d8ab3e503fe2cf83c7c4c4f99d5",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No muchas gracias",
+      "matches": []
+    },
+    {
+      "key": "30f47eb56f7107c29630a4be9dfb8225118c06a27fc20a028bcdbf637c480669",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Luego voy a comprar pan",
       "matches": []
     },
     {
@@ -854,6 +1022,23 @@
       ]
     },
     {
+      "key": "332aed4c4b1c5915a53f00c50583ba8893a1b9c3a53a7c94a1985a99a5053d31",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo fuiste a la panadería",
+      "matches": [
+        {
+          "rule": "AGREEMENT_PRONOUNSUBJECT_VERB",
+          "issueType": "inconsistency",
+          "message": "Posible falta de concordancia entre «Yo» y «fuiste».",
+          "offset": 3,
+          "length": 6,
+          "replacements": [
+            "fui"
+          ]
+        }
+      ]
+    },
+    {
       "key": "3354d6ac848434798722a4ed9adde549a64bde91fd1b3ac3f420128bb5dadd36",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Es madera?",
@@ -863,6 +1048,12 @@
       "key": "343f37a7d0ec787034dd2fb3b0be1cf04fd5529b0b61672d23dcd5aed169f634",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde está el río",
+      "matches": []
+    },
+    {
+      "key": "3459d607f8de841f7631da7929415137c9706fed535634bb57a95954227e748c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está la panadería",
       "matches": []
     },
     {
@@ -890,6 +1081,24 @@
       "matches": []
     },
     {
+      "key": "366fabf641742e07d001bc3aa792d7c645c54ee61f66a95d9655cd6cfa3e397c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está el panadería",
+      "matches": [
+        {
+          "rule": "AGREEMENT_DET_NOUN",
+          "issueType": "inconsistency",
+          "message": "Error de concordancia.",
+          "offset": 11,
+          "length": 12,
+          "replacements": [
+            "la panadería",
+            "las panaderías"
+          ]
+        }
+      ]
+    },
+    {
       "key": "36a97e83086fa9fcc772b3294f35031fb84e82628dd587696f2863a0ceb0794b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Con gusto, te ayudo.",
@@ -913,6 +1122,12 @@
       ]
     },
     {
+      "key": "3731fa2610ed97bec71c8622a526298768725082919d8e3beb24aa5e93308594",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Puedes preguntar: «¿Dónde está la panadería?».",
+      "matches": []
+    },
+    {
       "key": "3772738acab1ebdda2537209a39e84471cce20a1205369eed93dd333f139aa82",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo fuiste al río",
@@ -928,6 +1143,12 @@
           ]
         }
       ]
+    },
+    {
+      "key": "37a587750086b90e8d9a4b73b52eb5d6856880069de8384792106bad843f3ec9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Pescador",
+      "matches": []
     },
     {
       "key": "3815fabb30cec7fbb9f68cb1a189e556987c743dad1fa1322b5ea404585747fe",
@@ -1007,9 +1228,21 @@
       "matches": []
     },
     {
+      "key": "3b73843592529711c431add7eed76032c41075b0c8fdb1e78a955b5c1a12a9fa",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo voy a la panadería",
+      "matches": []
+    },
+    {
       "key": "3bb9726343344e53248c9462361d2612147e1aacba5ac9338bf524c4f445d241",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Te faltan libro.",
+      "matches": []
+    },
+    {
+      "key": "3c32bd70c59c5d160806598013ed19ea688db495ecda8ff1c3ec88b1d1d685e7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Está cerca",
       "matches": []
     },
     {
@@ -1036,6 +1269,12 @@
       ]
     },
     {
+      "key": "3e9895bf7baea06771bea6a3ee69dec8639dbf1c92bef6332e78aeb5c2c35fcb",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Queda lejos",
+      "matches": []
+    },
+    {
       "key": "3f1d0034bc921c32c2da88dff03d89f4744e4a6f0fbe11e85b74aaa764d938df",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Cómo se llama esto",
@@ -1057,6 +1296,18 @@
       "key": "3f9f5db7f9bd2d30917a00a7ac0a817b8fafeaab07b52fc14f00c98ac8831a28",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Adiós",
+      "matches": []
+    },
+    {
+      "key": "401557427b46b50fae8c4e68ba1a61171fa978ab685da092aa58536f32566a6b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde queda el lago",
+      "matches": []
+    },
+    {
+      "key": "40a567c38d6fb01271628227db1e57ad3fad424b8400c9b6a000049d2662b60f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está el campamento por favor",
       "matches": []
     },
     {
@@ -1218,6 +1469,12 @@
       ]
     },
     {
+      "key": "47f0ce873dc22b25628a447932de14a5db3b8def74958575882756f1c2748ee9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Está por allí, mira.",
+      "matches": []
+    },
+    {
       "key": "4808a713edd93f39ebbf165332136dc884c1cd0a005b47b66b0f755fc2062b91",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mañana comí pan",
@@ -1259,6 +1516,12 @@
       ]
     },
     {
+      "key": "49aca6fb26dae301d4b93d6462887c59abce8941057534a60308b99490a31822",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Busco el puente",
+      "matches": []
+    },
+    {
       "key": "4a3734d82d4274797d36f68faf4b24305c33cf43b97f214c081adfee17398be3",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Claro! Te lo digo más despacio.",
@@ -1280,6 +1543,12 @@
       "key": "4adbb6db895ff6444bbe0f9df47a9705ca62dd8f6f7c1602a06c76b20d28506e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, por favor",
+      "matches": []
+    },
+    {
+      "key": "4af96951cdc3be0b5a80792e012e8f3b6f4f74a64e566179ded9f308bc8faf72",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Busco el pueblo",
       "matches": []
     },
     {
@@ -1313,6 +1582,12 @@
       "matches": []
     },
     {
+      "key": "4c964d0e74bb7106ea7f4f8832b577da6b1390bddec73a20696ca86b4559bf0d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está la herrería por favor",
+      "matches": []
+    },
+    {
       "key": "4ca6008508f70c6787b2f056874e6522ba30add5018f4fb88ccd0756fe683985",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Puedes repetir",
@@ -1322,6 +1597,12 @@
       "key": "4d83b93ff7cd452cd87530a18aaa1a3b1daafe473c23244e6152f6498cdbc5d2",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mañana vamos a comer fruta",
+      "matches": []
+    },
+    {
+      "key": "4df2c72472e22ed1777ce53a7ed43ad161b47fcad63904451fd1051c793bca6b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a la panadería",
       "matches": []
     },
     {
@@ -1466,6 +1747,18 @@
       "matches": []
     },
     {
+      "key": "577cf48c664091ae66a69abb2805f008af5abe9202c6b132fe48ec8422befdd1",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Está lejos",
+      "matches": []
+    },
+    {
+      "key": "57aab544873f8ab0fb85288e3bb0d1a788cfc932ae5b7f3c6f217201be1fe8d3",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está el lago",
+      "matches": []
+    },
+    {
       "key": "57c49ef947be6f40e9a17be26d6e4784253b884dcc7592c3a5f3650c424aa7b7",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, yo tengo una botella",
@@ -1573,6 +1866,18 @@
       "matches": []
     },
     {
+      "key": "5e31a8b35d671a943d28e5a6ae879b72d876a9dd255260c07c3da2d0eb8a198d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tengo hambre. ¿Tienes fruta?",
+      "matches": []
+    },
+    {
+      "key": "5e54c6dfeca32f3c0c26ede493d024beb505e7b560a862f75cb8aa23fa1516ab",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a comprar pan.",
+      "matches": []
+    },
+    {
       "key": "5e9ab4c7812cc96b2900b0eaa03e03c80e1765cc5e2e9d2eea71c1dbebecf153",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí: «Tengo dos libros». ¡Muy bien!",
@@ -1582,6 +1887,12 @@
       "key": "5ea25f83b5bf6c5df1fc6bd4fce6157cde4cbbcee61a7a85487ea32e29a940fc",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Necesito pan por favor",
+      "matches": []
+    },
+    {
+      "key": "5ea6c530eb7d67a4834e5cfa284cef92dad5c2cf0e03c2e2c6e24cdf5b21295c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo fui a la panadería",
       "matches": []
     },
     {
@@ -1606,6 +1917,12 @@
       "key": "5f538224cc932e3be6b1a8d61611eadd0af0e9b1b55393d0e9fe8ccbd30ccc11",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Qué vas a hacer mañana?",
+      "matches": []
+    },
+    {
+      "key": "5f866fdfc1144647f0df78aa87b667cdde4139b45168fa65be574aef0391f8cc",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer voy a la panadería",
       "matches": []
     },
     {
@@ -1635,6 +1952,18 @@
       "key": "60397b7114d29ed2485d110bda448f05a0efdab5168cc45271f186bc82bd49c3",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Toma una fruta.",
+      "matches": []
+    },
+    {
+      "key": "61834aa789116f33783a26df19eb9825575e1a15d3619dfae9d29d2e520494c1",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Busco la panadería",
+      "matches": []
+    },
+    {
+      "key": "6196a0a7c04564df8bf11207b4301cde1de36e9bfc9e8dafc4bc2fcabad3620a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está la tienda",
       "matches": []
     },
     {
@@ -1676,6 +2005,12 @@
       "key": "632af8bd01e6d512aa6279d6d99f1a6d7c2938ab5ac742e36468e674f773dcdf",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mañana fui al río",
+      "matches": []
+    },
+    {
+      "key": "63a1f5f02bcfaa455012603f46a10030544337c0818a4ba9356bb76a5744ebdd",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está la casa por favor",
       "matches": []
     },
     {
@@ -1734,6 +2069,24 @@
       "matches": []
     },
     {
+      "key": "6623e81c35cf980c3137a7baa981869310acebf1a06ba555afe7974fc6aa4cd4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay una pozo en el pueblo",
+      "matches": [
+        {
+          "rule": "AGREEMENT_DET_NOUN",
+          "issueType": "inconsistency",
+          "message": "Error de concordancia.",
+          "offset": 4,
+          "length": 8,
+          "replacements": [
+            "un pozo",
+            "unos pozos"
+          ]
+        }
+      ]
+    },
+    {
       "key": "66425907b65c9ae3809bc08f81a484ad1dcd9a4e92ad80e9373e85250eeb4e34",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí yo tengo una fruta",
@@ -1761,6 +2114,12 @@
       "key": "66f344546c48bf6806050dab36eabf4bf733ea4ac6cfc2bc43353bce92517998",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde encuentro la arena",
+      "matches": []
+    },
+    {
+      "key": "678d32f7eae93dac0eddbc5f7047dc04b2b4a80b8fb983d0df89ec43fee96a65",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a comprar dos panes",
       "matches": []
     },
     {
@@ -1794,6 +2153,23 @@
       "matches": []
     },
     {
+      "key": "69500d58e2e83503cb336dc29954e8e38598d52687586193fdff9766759df03c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a compro pan",
+      "matches": [
+        {
+          "rule": "PREP_VERB",
+          "issueType": "grammar",
+          "message": "Construcción incorrecta.",
+          "offset": 4,
+          "length": 8,
+          "replacements": [
+            "a comprar"
+          ]
+        }
+      ]
+    },
+    {
       "key": "69ccba49c89470b446a276677fa46359cecd225da661b77812fe785e6853ac9b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "la tienda",
@@ -1817,15 +2193,44 @@
       "matches": []
     },
     {
+      "key": "6a52b10630fc4e3cb8870fd1a26075175a798a897f110c7bf319c492cf861125",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, fui a la panadería",
+      "matches": []
+    },
+    {
       "key": "6a69133fe7ba13c9ac4db0ef6d10d5718f5b7dd5508d0a2e6dfd8af945ad67ed",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Repite, por favor",
       "matches": []
     },
     {
+      "key": "6a7c5415814ae6a54cc5ee1e21bb740d837e8570fc20613333b3d5f9e2a0ab57",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "pasado mañana",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 6,
+          "replacements": [
+            "Pasado"
+          ]
+        }
+      ]
+    },
+    {
       "key": "6aaef55f5b3c72dd606d458268c388e9c24ec44aafe010dc529ade7ceedc150e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Esto es agua.",
+      "matches": []
+    },
+    {
+      "key": "6ac9d851eb6df6ee95268b85cde535e352ce020d17bf8b51d6d386f386b0674c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está el letrero por favor",
       "matches": []
     },
     {
@@ -1838,6 +2243,24 @@
       "key": "6b54e6cfc9144d697eab22eb030b5160110e8a38c93de632e833c8a6940898ed",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Nos vemos!",
+      "matches": []
+    },
+    {
+      "key": "6b7727ce7d65feb4703cb625728d983190f07fcd1047c47a16a2a7521c561598",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a comprar el pan",
+      "matches": []
+    },
+    {
+      "key": "6b7f8ebe8e6b68434ab9e87451709f6656a1d4bd927b557389c8a06ac63a549e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Está cerca el río",
+      "matches": []
+    },
+    {
+      "key": "6b80707caffdaa1685c34426c9f3cdcf986d2dace1b8792c0527a9fcc0f0a49d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Gracias! Toma dos monedas.",
       "matches": []
     },
     {
@@ -1923,6 +2346,12 @@
       "matches": []
     },
     {
+      "key": "717b69851bf04f83792cc20a5c06a9737aa5ed0e78a64091458ce737d47ebb39",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "después",
+      "matches": []
+    },
+    {
       "key": "7201198e421a60dc74f431e085df720810cd41ec5c82ae19f5f1c1ab65e6053e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Nosotros va a comer fruta",
@@ -1943,6 +2372,12 @@
       "key": "72d907cbe333b98c0f0d4b03fdfaeab466dd45b0c54e5d3d3a2101c2caf4c224",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Comí fruta",
+      "matches": []
+    },
+    {
+      "key": "731826ed6ebf306d295b27b4305f9130850061976b7437e38321a0c4fd854b5e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Qué vas a hacer allí?",
       "matches": []
     },
     {
@@ -1994,6 +2429,12 @@
       ]
     },
     {
+      "key": "75af87f2b40caa879a4077a8ea84a16032059945860995263edd590df879c5d8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay un pozo aquí",
+      "matches": []
+    },
+    {
       "key": "76273d53f462a12545d400c68aed3305bf1ede1641c69d25bf69a5b074424c13",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Despacio por favor",
@@ -2003,6 +2444,12 @@
       "key": "7631e58b7139d8f23b5a5e7363b563f29476df718e2cf46b4e935d0a9750bed6",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Mira, mira!",
+      "matches": []
+    },
+    {
+      "key": "76a6d2f225f69e521e6cc848f30acd276edf6eec6b38806afd8c24710a184fa1",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde queda el campamento",
       "matches": []
     },
     {
@@ -2099,6 +2546,12 @@
       "matches": []
     },
     {
+      "key": "7c99a22b980e812c81e232201f5006cb03fff27cafd2fd11e4dd72742d762598",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Está lejos?",
+      "matches": []
+    },
+    {
       "key": "7d6850130cab38155ae189dd7d09570ce369f3bcab5ae88233fb40f098c1414d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ella quiere fruta",
@@ -2114,6 +2567,12 @@
       "key": "7e1b2ee34c30f7287d6e45ad10ac73f63fe523f4873c3f9c041682424d7e9b28",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde hay arena",
+      "matches": []
+    },
+    {
+      "key": "7e3774ac47b55a30ce49155d889743f63ab6b73a8cfc58e6c233b8db2be261ba",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Fui a la herrería",
       "matches": []
     },
     {
@@ -2138,6 +2597,12 @@
       "key": "7fb4cc9af2c4d3d914938e43f2045cf5bf51adbc9636cfb8788b8d0cf8bd0b3a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Hasta luego!",
+      "matches": []
+    },
+    {
+      "key": "7fdaf6ac142306f542404f2355e80ee71f7f8c82f7677bbd035fcd21c746f32e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Muy bien! Ya conoces el pueblo.",
       "matches": []
     },
     {
@@ -2207,6 +2672,12 @@
       "matches": []
     },
     {
+      "key": "8430d0cc44ee911a0d47062b9940aae74e7051029461133e553d461942142904",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "El letrero dice: tienda, río, montaña.",
+      "matches": []
+    },
+    {
       "key": "844cc5c52ec614081da810279b46cd054f98f755005e503282880911a7eaa8e3",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, tengo una botella",
@@ -2225,6 +2696,12 @@
       "matches": []
     },
     {
+      "key": "85fa6e8d4cd825aacb5373d4d8c19ab0e27ff0c74fe1c872ee559731fb114f38",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mañana compro pan",
+      "matches": []
+    },
+    {
       "key": "873cdee57cade9c9257b21986c500977b6d22e9001b63289f109c925c12c0d08",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "El libro está libro, a un libro.",
@@ -2237,9 +2714,33 @@
       "matches": []
     },
     {
+      "key": "87c91de8f0d37f030f8cc805768f50dba0aab603a52f6c442e3c1a68c2bdda66",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está el herrería",
+      "matches": [
+        {
+          "rule": "AGREEMENT_DET_NOUN",
+          "issueType": "inconsistency",
+          "message": "Error de concordancia.",
+          "offset": 11,
+          "length": 11,
+          "replacements": [
+            "la herrería",
+            "las herrerías"
+          ]
+        }
+      ]
+    },
+    {
       "key": "885e4df4c1ee327120d42d218a8f0e16e49b9977f9247601319451c80b5a5fab",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Más lento",
+      "matches": []
+    },
+    {
+      "key": "886fb8ac7ba9556b8d225dcc0f5d7121efeb682655bfcacbdf30692cd52a030b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde queda el campo",
       "matches": []
     },
     {
@@ -2252,6 +2753,18 @@
       "key": "89846819aa7e36df34f783295c1fd682d262c10ba117720178bd490c4036051e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Busca una cosa y pregunta otra vez.",
+      "matches": []
+    },
+    {
+      "key": "89ac1eb0757bfc969cfb1574ba3ccd635456fb810d74bc587166eaa8a4360c60",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Busco la casa",
+      "matches": []
+    },
+    {
+      "key": "8a0c45ced20c883e207099bf4db57efe1284da390cadf778c46260788c884b77",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí fui a la panadería",
       "matches": []
     },
     {
@@ -2357,6 +2870,12 @@
       "matches": []
     },
     {
+      "key": "90138f07f623da0c2073013bb308ba24d35b2d61a7c44894b960991ffafd98d1",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No, está cerca. La montaña está lejos.",
+      "matches": []
+    },
+    {
       "key": "90af35973af7546495c37d40cc3be2483ea50d106928042c12502a6fc2031440",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Río",
@@ -2369,9 +2888,21 @@
       "matches": []
     },
     {
+      "key": "90dfe05659686cc94a39e65d8b5bf463e9498db180df651d38c54f5b6c2af4b6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Busco el campo",
+      "matches": []
+    },
+    {
       "key": "913db9aa4136ccc3b118aadc323e554bf3518ef167758b796a258ceda7c4be04",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Me ayudas?",
+      "matches": []
+    },
+    {
+      "key": "9150bfd72f63230dc0ee90d50ba6155427c4e03a0fa1be4b742f653d0257266c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay un pozo en el pueblo",
       "matches": []
     },
     {
@@ -2390,6 +2921,12 @@
       "key": "9178f6428fb673858e185f7ed38302584e55baa428656ae7982c97d74aeb3240",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "A ver, busco.",
+      "matches": []
+    },
+    {
+      "key": "91906e7287372a33e94febf2811f205e64bde2f8ddaa8acac61b5b7fbcf3d887",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a buscar madera",
       "matches": []
     },
     {
@@ -2417,6 +2954,12 @@
       "matches": []
     },
     {
+      "key": "92615e69ff6c7e30fa60be6400acd95b6fbcbec1847c272e006c44a1e26f348e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay una tienda en el pueblo",
+      "matches": []
+    },
+    {
       "key": "92efdf31b32f5ddf0269958b9446b3757a45262d60a98311d36c554ae63cdf43",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Me da fruta",
@@ -2441,9 +2984,21 @@
       "matches": []
     },
     {
+      "key": "937f438f78a2417d2d0ef3150a6c0818fbdd9999d56ec121ea3a263d2b8979fb",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está el puente",
+      "matches": []
+    },
+    {
       "key": "93ca5b41a4e29a114b7691b828f99859664c0521b927fe7cbe1e8f4b99e2e464",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "La espada está allí, espada, a un espada.",
+      "matches": []
+    },
+    {
+      "key": "93eda0acbfee03911ca37da4d15fccdd661f142e5f96a79ed75b9eb273076d17",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está el campo",
       "matches": []
     },
     {
@@ -2487,6 +3042,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Queremos pan",
       "matches": []
+    },
+    {
+      "key": "98d5ccf54ee264fd87e699524e32df6c48d053386e158be2e190b295119a3576",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo vas a la panadería",
+      "matches": [
+        {
+          "rule": "AGREEMENT_PRONOUNSUBJECT_VERB",
+          "issueType": "inconsistency",
+          "message": "Posible falta de concordancia entre «Yo» y «vas».",
+          "offset": 3,
+          "length": 3,
+          "replacements": [
+            "voy"
+          ]
+        }
+      ]
     },
     {
       "key": "99d5545dc0f470e1680c319a4946874c485de2e9cf0f4efc23cf94f523af7b16",
@@ -2555,6 +3127,12 @@
       "matches": []
     },
     {
+      "key": "9cbf6f4e1abe4259dfb006ff7bdf7890e7f49748d522c9368967c59f0bc9750d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo voy a comprar pan",
+      "matches": []
+    },
+    {
       "key": "9cc9a4c55096dced1c4bf1cbb0c6032ac596e405350bb10cded1ab7b1869372d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Qué comiste ayer?",
@@ -2585,6 +3163,12 @@
       "matches": []
     },
     {
+      "key": "9dd7d85fcdc90b93841800d5221f4a5b65c9dab8b3ba80342d9e3b3508921a22",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay pozo",
+      "matches": []
+    },
+    {
       "key": "9e06ef16db3c7b958e3fc398192fe36330e3413bd45e02f232282d2b03a7c5fa",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "a la izquierda",
@@ -2611,6 +3195,18 @@
       "key": "9e42337554bec578d3c2fbb77632262fd582f436adf05b1b5557dac4f3f1958d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Buenos días. ¿En qué te ayudo?",
+      "matches": []
+    },
+    {
+      "key": "9e709aadb302b94b02019ee2018585cc3c0b895ee26b002417473010db33c022",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Después voy a comprar pan",
+      "matches": []
+    },
+    {
+      "key": "9ec4ea233af188cc9a131cef7339f99b6ab330bc4eaeb9277d1b5a9a8f9a93c2",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está el puente por favor",
       "matches": []
     },
     {
@@ -2749,6 +3345,12 @@
       "matches": []
     },
     {
+      "key": "a42d93d29a9de3bc93017d61cdc77cf7269cf7756502eb972b6470eeae715907",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No, está cerca.",
+      "matches": []
+    },
+    {
       "key": "a431ac037e99a47d4a6055a4e4bded40240270c50fa5bad0b5e4ec666ea57237",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Muy bien! Ya tienes fuego.",
@@ -2778,6 +3380,12 @@
       ]
     },
     {
+      "key": "a6f9b398d542b88e2d92c1396f9e2146c9c69b2f9f6f086d805db4d22282d1f4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está la herrería, por favor",
+      "matches": []
+    },
+    {
       "key": "a724264b9a16b8a35262ed1dd0a58d4fc5950e37db9c9e0ac164ec7ca9b63f10",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Necesito pan, por favor",
@@ -2787,6 +3395,18 @@
       "key": "a724fe37f5d14de89cf7fbfb60faa868e2748e2b81c03a9f2e4439bd54300da5",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Un pan por favor",
+      "matches": []
+    },
+    {
+      "key": "a751317cba54dc528a5462995eb88b269dea6d4d77b32790d8ec192058088ac2",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay pan",
+      "matches": []
+    },
+    {
+      "key": "a758ea21fd16720e6893d7297bcf98aab5290e3c4c7543e33670fe8bbd43d6cb",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mar",
       "matches": []
     },
     {
@@ -2847,6 +3467,12 @@
       "key": "a9b93bd44d38abf3b89e135332ac7f566eedfacd8cb6365d7bb65cc72402175c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Esto es una fruta.",
+      "matches": []
+    },
+    {
+      "key": "a9bc453617b7a0c956fc9fc363dba3b741f2d729db3d08ec9300a9cd7da9a305",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está mi campamento",
       "matches": []
     },
     {
@@ -2927,6 +3553,12 @@
       "matches": []
     },
     {
+      "key": "ae1d331ab8c70684542a25b78bee106bee02fcaf7de106d6b8923bc8626ff036",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Busco la herrería",
+      "matches": []
+    },
+    {
       "key": "ae362f0bc061ad55777bba33d84d5cce1ae676ef7b9c3bb2188ad892fd27934a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Cómo se hace una antorcha",
@@ -2942,6 +3574,12 @@
       "key": "af51ff67a0f316b114009274c9756b1b3729584afa5f11cf65c5cab39c236a1d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Claro! Te lo digo otra vez.",
+      "matches": []
+    },
+    {
+      "key": "af8c18f97f05018fbb0a4d0c589a8c7f74a47bb24d143240ade17e2e76fe0ac9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está la panadería por favor",
       "matches": []
     },
     {
@@ -3015,15 +3653,51 @@
       ]
     },
     {
+      "key": "b163c1a27d4d6bba8f34ecd0d8c376e522e015ce035e236b065aa4fb35fc696a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, hay un pozo.",
+      "matches": []
+    },
+    {
       "key": "b17e6266628f0de9b8ac16d2942b39aa35e9801503affcc2b5727c83cbd99b04",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Claro, te ayudo!",
       "matches": []
     },
     {
+      "key": "b1a12c56b42d4213f7d4a74501acfae20a2f71e1644f07f0b6db64111672453c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Adónde vas?",
+      "matches": []
+    },
+    {
       "key": "b1d742e6d3ab935b8b38ac79c10c57c2df575cba854292874afe76b7f934520d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mira.",
+      "matches": []
+    },
+    {
+      "key": "b1e11ba21ce4cbfef250211409eca165a59e9c9b74bb3cfc61fa435e7cac3b87",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "En el pueblo hay una tienda, una panadería y tres casas.",
+      "matches": []
+    },
+    {
+      "key": "b1ed63263664750c79acbe062d74400be790b34550a8194f58548d555a01c94e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí yo fui a la panadería",
+      "matches": []
+    },
+    {
+      "key": "b20956be0381d775303a7b4dff7c40c0e46d291362d1784f88aaf956b893728f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Algo más?",
+      "matches": []
+    },
+    {
+      "key": "b241c461f2660664ee81b9e9f25ffda8027287223453a957bb781a4da4eb738c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está el campamento",
       "matches": []
     },
     {
@@ -3036,6 +3710,18 @@
       "key": "b31222584e8bf1b4632291a16131b3584b96b14ff685926bc91865a118abba52",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Aquí no hay un libro.",
+      "matches": []
+    },
+    {
+      "key": "b32f2ae61660c6414a44080a7ff4adb06c95e3c4b62e57b7435559bb5a3c672e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Dónde está la herrería?",
+      "matches": []
+    },
+    {
+      "key": "b5561653314a86df97082c7853d562cdd2127ac00e4d308dfaa321d131980839",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde queda la panadería",
       "matches": []
     },
     {
@@ -3054,6 +3740,12 @@
       "key": "b6e5604d04c711759caa0e2b5c6eb61025ac862e6ff757d56399fc154f887e78",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Voy a comer pan.",
+      "matches": []
+    },
+    {
+      "key": "b6ea988e29a8d40e9bb2dda5cfec40f3d23bfe87cff1339e5a26741e8446a2e0",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Fui a la panadería",
       "matches": []
     },
     {
@@ -3108,6 +3800,12 @@
       "key": "b985b265063bc06cced5806182904ffe58b7da8e3eee2e4de7150f6f4c6f56ce",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Quiero pan",
+      "matches": []
+    },
+    {
+      "key": "b9f18cd45c23107d90283eab26b25ec5ffabd433f77797c7749067277e13f0d1",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está la tienda por favor",
       "matches": []
     },
     {
@@ -3201,6 +3899,12 @@
       "matches": []
     },
     {
+      "key": "c06aa733f97832afe7f1d68489719bacecbd059e51af7c73e887f25a0bcb5a63",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a comprar pan mañana",
+      "matches": []
+    },
+    {
       "key": "c070306a134e1b87617bf3b63c73374d4afdb16d1f04ecb18e9e8203f2310ee1",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo quiero madera",
@@ -3225,6 +3929,12 @@
       "matches": []
     },
     {
+      "key": "c136da59e214d85255dd2b44b473a370e5ce8f39ee95c065e62ba3954a2dc0aa",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está el pozo por favor",
+      "matches": []
+    },
+    {
       "key": "c2411ec86a4bcb854bf8727d3c64e5042581879257c2d7dbf9b8310f83ca1c69",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Quiero fruta por favor",
@@ -3234,6 +3944,18 @@
       "key": "c27fe955cf0b2a8a6aa9b8202fa497036d95283afad3d8677032bf72ba95c0ac",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Esto es una piedra",
+      "matches": []
+    },
+    {
+      "key": "c30c605a7cb5cf4b3e1444a48955f09840ea55bf2fb64499945544b05d81c0b0",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Está lejos la herrería",
+      "matches": []
+    },
+    {
+      "key": "c33e27ea65ce99671d78ecc624c147df8b2478f11f78ee31161284feb3a58593",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy al pueblo",
       "matches": []
     },
     {
@@ -3252,6 +3974,18 @@
           ]
         }
       ]
+    },
+    {
+      "key": "c3c80a7bcd0e34ac6ba2b257131247f67b51eab324496ae0674bfdd8e1261c43",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde queda la torre",
+      "matches": []
+    },
+    {
+      "key": "c483179b5c3e1aa821311254e87846da264f2be454a8aeb3ff2e3a6a756bfe27",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Lejos? ¿Qué buscas?",
+      "matches": []
     },
     {
       "key": "c4dbefb425d5b72813240e5563f4c6daabc55d185e0209def6307e54b53ec06a",
@@ -3293,6 +4027,12 @@
       "key": "c6ff84f969169a64ade50734c46d1ce3e41549dd6d420ac20926098e740b29ae",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Gracias.",
+      "matches": []
+    },
+    {
+      "key": "c769067ab675843ab9b4a5dab8a6d0b7382b0d422705db04d3c9d3fb77ae096c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde queda mi campamento",
       "matches": []
     },
     {
@@ -3380,6 +4120,12 @@
       "matches": []
     },
     {
+      "key": "cb9029c2bbcc1a8ff7fa29e8d8e66475defffd7b1909f678de41a9195f2e9d86",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Compré dos panes",
+      "matches": []
+    },
+    {
       "key": "cbd663e6c8e124ad0c435c2236d0c84a8cb766a368317aeba5e75dc06d56d1b8",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿tiene? Piensa: ¿el o la?",
@@ -3397,6 +4143,18 @@
       ]
     },
     {
+      "key": "cbd7e6ad17344405224ddd78f06ad7307ee82a8c2a7514b6c1ef61f1867cb783",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Y la herrería está a la derecha.",
+      "matches": []
+    },
+    {
+      "key": "cbda4eba7ade131354bf05319bce540acdd582b40036338579731d5b3ba52d8e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay agua aquí",
+      "matches": []
+    },
+    {
       "key": "cc01da7dc63f000176ac63973b3547a342755be052d0adc6a5f8bb1f68a95d87",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Es un árbol",
@@ -3412,6 +4170,24 @@
       "key": "cc9b7a438685599c2db24dea23944363eea3be8d3de48d4d470bd345305ce3a4",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Y esto",
+      "matches": []
+    },
+    {
+      "key": "ccc15cefaf591e1238e1e2c5c97a8c44541036468cfd649711bd265319a17224",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Luego compro pan",
+      "matches": []
+    },
+    {
+      "key": "ccf269817c9a168c5ed3cff0930d5fccdf7e2fbc0562f5dc3c3b740d6c5000fe",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "En el pueblo, mira la torre. La panadería está a la izquierda.",
+      "matches": []
+    },
+    {
+      "key": "cd35744d6eceb1054b31a77ff1b17c2a379079ee8dcfdae12f32a16bfec2ddef",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde queda la tienda",
       "matches": []
     },
     {
@@ -3454,6 +4230,12 @@
       "key": "cfce433aec657559a7e1db2ec7c9c2357f411b17bfa3faa637ae7d2df0256d3f",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Quiero encontrar tierra",
+      "matches": []
+    },
+    {
+      "key": "cfe3e1b91c3a326391e67be9e7999c9e0177bde4099783abd37924fd63a25bb7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a la panadería hoy",
       "matches": []
     },
     {
@@ -3504,6 +4286,18 @@
       "matches": []
     },
     {
+      "key": "d173806f3173021f5ce946c94e57f5eb4e8b4739290d2b713fa89363d5737451",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Queda muy cerca",
+      "matches": []
+    },
+    {
+      "key": "d20d19362d0509a7028406450c695b0b4cd86378e50aef89650ab70add447b73",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Busco el campamento",
+      "matches": []
+    },
+    {
       "key": "d2b3a22085836ed83c65e8f31be930f9f7432ab6660570648fa573ed9c44b087",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Si por favor",
@@ -3519,6 +4313,12 @@
       "key": "d2f3eadd304b45b5c69ce67ab997f70ddd908a9cb2da331a574c4e393f4bc84c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Aquí hay un libro.",
+      "matches": []
+    },
+    {
+      "key": "d37332c45a47b7b5b4e9967380ebeecc5c53d4baad7c36b6659e0d41c9f37ff5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde queda la casa",
       "matches": []
     },
     {
@@ -3605,6 +4405,12 @@
       "matches": []
     },
     {
+      "key": "d8fa2ddf228029e0a9250390c0248164b966c363aa37c970cb7460848ab1ca09",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Hay un pozo en el pueblo?",
+      "matches": []
+    },
+    {
       "key": "d903b82e334ad05199676aa0dea235cc5b695057e7bdf4cf9498a7f798d2e644",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No, muchas gracias",
@@ -3626,6 +4432,24 @@
           ]
         }
       ]
+    },
+    {
+      "key": "d90ddfa67ee080ef8dba73353dc1c72b5f7850ec4925422fdede36904638a661",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde queda el pozo",
+      "matches": []
+    },
+    {
+      "key": "d9239149fbae66cdb9da5f3637e0063727313d7092b86308b163d86e6ec1352a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hoy voy a la panadería",
+      "matches": []
+    },
+    {
+      "key": "d932eae4ce92a06ebc494b4000cd01ef7ef1880780f27037460379201fa8b2e4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Dónde está la panadería?",
+      "matches": []
     },
     {
       "key": "d94f9c6ce78f0f450cfbd039b18eaad24aa93df8d047f40385f85ebfb88b70fb",
@@ -3688,6 +4512,12 @@
       "matches": []
     },
     {
+      "key": "ddb6008d37ac81c37b93e2b7c8fac4f976d72739929b066216c631ba3f9d9156",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está el pozo",
+      "matches": []
+    },
+    {
       "key": "ddf3379f5abf2801daffefcf6fcb0324be48dc8c5cfaef3a42fc2fc129ba224f",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, ayer bebí agua",
@@ -3697,6 +4527,12 @@
       "key": "de251829111b8c3e01d75f7d868d5c3ef9469725b157189f36eaf3e3e4da42ee",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Claro que sí",
+      "matches": []
+    },
+    {
+      "key": "de5bbd053297cdc419fabe6f4fd5719357a0f499810586c54a835916a9ace019",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está el pueblo",
       "matches": []
     },
     {
@@ -3771,6 +4607,18 @@
       "matches": []
     },
     {
+      "key": "e285e9d274ebb2ec60f22fa71d8de8c1aeb76038caad3a724f25a6c772c316d6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Busco el lago",
+      "matches": []
+    },
+    {
+      "key": "e31d91ca0b8c2f28db1e171432843ecfb1a8e2726b17fd5171f42a7dc38f5dce",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a la panadería.",
+      "matches": []
+    },
+    {
       "key": "e377ae09b7adeeb06e170ec42dff1dfa930065508df4f8ee45fffefa996fb405",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Está allí, mira.",
@@ -3792,6 +4640,12 @@
       "key": "e42a64d846201b02f7e8bfbce4b0543e32cce3fbaf95a850fc54ef56e4a518a3",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, bebí agua",
+      "matches": []
+    },
+    {
+      "key": "e42b3d6eb72c1a45e9e4655f5a2df2b1b2c570d09b43e26ccecb4c79fb95bb28",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Está lejos la panadería",
       "matches": []
     },
     {
@@ -3885,6 +4739,12 @@
       "matches": []
     },
     {
+      "key": "e960a72b5dc139e05967e78918743e8894157d49721a30e0be0e0de1e8be90f8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mañana voy a comprar pan",
+      "matches": []
+    },
+    {
       "key": "e9fdf87ac30f8a54f16ef10b7fbfbc4b582d3bea2ee2160a9fe275f8bc1cb0ba",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo voy a ir al río",
@@ -3918,6 +4778,12 @@
       "key": "eb617adfa0a5fbdb6c9e42a4b70c889edd8cf660281ac6584a5fdcba0be96545",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Me llamo Luna.",
+      "matches": []
+    },
+    {
+      "key": "eb6a91abd8941aa22b9f944abb5a3c9b2915d7b06bfefc524f11470ca4ef95c4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Busco la tienda",
       "matches": []
     },
     {
@@ -3972,6 +4838,12 @@
       "key": "edabcfebb29b4c0e62b18f6c822a2886deafd019ef4becff56ba9d36bf259399",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo bebí agua",
+      "matches": []
+    },
+    {
+      "key": "ee0d400576cf84016a0d8684666d9e558e9370071e9b7e0702ee02815a375546",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a la herrería",
       "matches": []
     },
     {
@@ -4094,6 +4966,12 @@
       "matches": []
     },
     {
+      "key": "f6cf1c0dc79b64dd0f4430a4b64825d558e2d8b74359a56aaebf0a5bab20604b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde queda el puente",
+      "matches": []
+    },
+    {
       "key": "f6ff36f4906e2057ea83bb2222330afc08abad6118807ea13dc00a026bf7860c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No necesitas nada más.",
@@ -4136,6 +5014,12 @@
       "matches": []
     },
     {
+      "key": "f979030b30fce858292406d38d49948ccf616d607739c69a1d1673703d31d63a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer fui a la panadería",
+      "matches": []
+    },
+    {
       "key": "f9852a485ed1615496312b73a0709fd915ef1db9c8be1f708b686b4649f10cb9",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No, es un madera",
@@ -4166,9 +5050,21 @@
       "matches": []
     },
     {
+      "key": "fa79e57fa673d11a79e4a6b6229ea6876c610367f1741018fdcac48c7f195804",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay un pozo",
+      "matches": []
+    },
+    {
       "key": "fbd566429329974c9c7ea7fcdac39145b055cafef5029104f04046da37abc11e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Claro! Busco.",
+      "matches": []
+    },
+    {
+      "key": "fc1ce32810a30984df0eb6b37708310979e70663d4522e8050c6d4ccf427f691",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está la casa",
       "matches": []
     },
     {
@@ -4208,6 +5104,12 @@
       "matches": []
     },
     {
+      "key": "fe7d0b1f2012d3ec0cd3990a5ecbafadfe7e40807641f451dff722830f806628",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Busqué madera",
+      "matches": []
+    },
+    {
       "key": "fe952210ecab0592dbf23f7e47fefbc2254003ec9ef104ac5ee34ebee3fd0a13",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mucho gracias",
@@ -4242,6 +5144,24 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Tengo",
       "matches": []
+    },
+    {
+      "key": "ff72a02edd32b7e1efd3194fd2d7f26510a8d9b3b264eafd0c4b096726dcccc5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Está lejos el herrería",
+      "matches": [
+        {
+          "rule": "AGREEMENT_DET_NOUN",
+          "issueType": "inconsistency",
+          "message": "Error de concordancia.",
+          "offset": 11,
+          "length": 11,
+          "replacements": [
+            "la herrería",
+            "las herrerías"
+          ]
+        }
+      ]
     },
     {
       "key": "fff93b815a79b9f339644c809be34d55a0e6c88141f83ac211a67c042fe07223",

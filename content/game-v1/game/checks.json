@@ -361,6 +361,94 @@
       "lesson": "ayer-y-manana",
       "prompt": "lesson-ate",
       "intent": "state_action"
+    },
+    {
+      "id": "hear.que-buscas",
+      "kind": "comprehension",
+      "phrase": "que-buscas",
+      "lesson": "el-pueblo",
+      "line": "fisher_greet.1",
+      "spanish": "¿Qué buscas?",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.esta-a-la-izquierda",
+      "kind": "comprehension",
+      "phrase": "esta-a-la-izquierda",
+      "lesson": "el-pueblo",
+      "line": "guide.lesson.fisher.left.1",
+      "spanish": "En el pueblo, mira la torre. La panadería está a la izquierda.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.hay-tres-casas",
+      "kind": "comprehension",
+      "phrase": "hay-tres-casas",
+      "lesson": "el-pueblo",
+      "line": "guide.lesson.fisher.hay.1",
+      "spanish": "En el pueblo hay una tienda, una panadería y tres casas.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.fuiste-a-la-panaderia",
+      "kind": "comprehension",
+      "phrase": "fuiste-a-la-panaderia",
+      "lesson": "el-pueblo",
+      "line": "guide.lesson.fisher.went.1",
+      "spanish": "¿Fuiste a la panadería?",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "say.donde-esta-la-panaderia",
+      "kind": "production",
+      "phrase": "donde-esta-la-panaderia",
+      "lesson": "el-pueblo",
+      "prompt": "fisher-open",
+      "intent": "ask_directions"
+    },
+    {
+      "id": "say.esta-lejos",
+      "kind": "production",
+      "phrase": "esta-lejos",
+      "lesson": "el-pueblo",
+      "prompt": "lesson-far",
+      "intent": "ask_far"
+    },
+    {
+      "id": "say.voy-a-comprar-pan",
+      "kind": "production",
+      "phrase": "voy-a-comprar-pan",
+      "lesson": "el-pueblo",
+      "prompt": "lesson-plan-there",
+      "intent": "state_action"
+    },
+    {
+      "id": "say.fui-a-la-panaderia",
+      "kind": "production",
+      "phrase": "fui-a-la-panaderia",
+      "lesson": "el-pueblo",
+      "prompt": "lesson-went-there",
+      "intent": "state_action"
     }
   ]
 }

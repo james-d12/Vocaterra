@@ -348,3 +348,36 @@ esto
 falta
 faltar
 nada
+# World words (VILLAGE_PLAN 3.9, D-game-22 (b), V10): words the game's world needs that the lists put above A1 or leave out; provisional, one reason each.
+# panadería: the bakery, a labelled place of the village (V04) the fisher's directions name.
+panadería
+# herrería: the smithy, a labelled place of the village (V04).
+herrería
+# pozo: the well, a labelled place of the village (V04).
+pozo
+# torre: the tower, a labelled place and the landmark of the village's directions (S15, V04).
+torre
+# izquierda: a la izquierda, left, in every A1 syllabus; the guide's directions have said it since S3.
+izquierda
+# derecha: a la derecha, right, the pair of izquierda.
+derecha
+# pueblo: the village, a labelled place (S13); A2 in the core's list.
+pueblo
+# puente: the bridge, a labelled place where the fisher stands (S13); A2 in the core's list.
+puente
+# campo: the wheat field, a labelled place of the village (S15); A2 in the core's list.
+campo
+# lago: the lake, a labelled place of the valley (S13); A2 in the core's list.
+lago
+# montaña: the mountains round the valley and the signpost's third arm (S15); A2 in the core's list.
+montaña
+# letrero: the signpost, a labelled prop of the village (S15).
+letrero
+# moneda: the coin, the item the orders pay in (V03); A2 in the core's list.
+moneda
+# pescador: the fisher's label over his head (V10).
+pescador
+# hambre: tener hambre, "I am hungry", in every A1 syllabus; the fisher's order line (V10); A2 in the core's list.
+hambre
+# adónde: "where to", the question word of ¿Adónde vas?, in every A1 syllabus (V10); in neither of the core's lists.
+adónde

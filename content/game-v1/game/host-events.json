@@ -36,6 +36,31 @@
       }
     },
     {
+      "npc": "fisher",
+      "event": "fisher.point",
+      "action": {
+        "kind": "point_at_slot",
+        "slot": "place"
+      }
+    },
+    {
+      "npc": "fisher",
+      "event": "fisher.show",
+      "action": {
+        "kind": "point_at_slot",
+        "slot": "item"
+      }
+    },
+    {
+      "npc": "fisher",
+      "event": "fisher.pay",
+      "action": {
+        "kind": "give_item",
+        "item": "coin",
+        "count": 2
+      }
+    },
+    {
       "npc": "guide",
       "event": "guide.give_water",
       "action": {

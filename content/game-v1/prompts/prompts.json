@@ -278,5 +278,85 @@
     "agentId": "shopkeeper",
     "slotGrammarIds": [],
     "text": "¿Qué vas a hacer mañana?"
+  },
+  {
+    "promptId": "fisher-open",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "places-village",
+    "allowedIntentIds": ["ask_directions", "ask_far", "ask_availability", "greet", "thank", "farewell", "ask_help", "dont_know"],
+    "agentId": "fisher",
+    "slotGrammarIds": [],
+    "text": "¿Qué buscas?"
+  },
+  {
+    "promptId": "lesson-place",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-place",
+    "allowedIntentIds": ["ask_directions", "ask_help", "dont_know"],
+    "agentId": "fisher",
+    "slotGrammarIds": [],
+    "text": "¿Algo más?"
+  },
+  {
+    "promptId": "lesson-far",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-far",
+    "allowedIntentIds": ["ask_far", "ask_help", "dont_know"],
+    "agentId": "fisher",
+    "slotGrammarIds": [],
+    "text": "Y la herrería está a la derecha."
+  },
+  {
+    "promptId": "lesson-hay",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-hay",
+    "allowedIntentIds": ["ask_availability", "ask_help", "dont_know"],
+    "agentId": "fisher",
+    "slotGrammarIds": [],
+    "text": "En el pueblo hay una tienda, una panadería y tres casas."
+  },
+  {
+    "promptId": "lesson-going",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-going",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "fisher",
+    "slotGrammarIds": [],
+    "text": "¿Adónde vas?"
+  },
+  {
+    "promptId": "lesson-plan-there",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-plan-there",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "fisher",
+    "slotGrammarIds": [],
+    "text": "¿Qué vas a hacer allí?"
+  },
+  {
+    "promptId": "lesson-went-there",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-went-there",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "fisher",
+    "slotGrammarIds": [],
+    "text": "¿Fuiste a la panadería?"
+  },
+  {
+    "promptId": "lesson-sign",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-unstuck",
+    "allowedIntentIds": ["dont_know", "ask_repeat", "ask_slower", "ask_help"],
+    "agentId": "villager",
+    "slotGrammarIds": [],
+    "text": "El letrero dice: tienda, río, montaña."
   }
 ]

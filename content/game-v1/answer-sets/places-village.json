@@ -1,0 +1,125 @@
+{
+  "answerSetId": "places-village",
+  "answers": [
+    {
+      "answerId": "bakery",
+      "canonical": "dónde está la panadería",
+      "aliases": ["dónde está la panadería por favor", "dónde queda la panadería", "busco la panadería"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "smithy",
+      "canonical": "dónde está la herrería",
+      "aliases": ["dónde está la herrería por favor", "dónde queda la herrería", "busco la herrería"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "well",
+      "canonical": "dónde está el pozo",
+      "aliases": ["dónde está el pozo por favor", "dónde queda el pozo", "busco el pozo", "hay un pozo", "hay un pozo en el pueblo", "hay un pozo aquí"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "shop",
+      "canonical": "dónde está la tienda",
+      "aliases": ["dónde está la tienda por favor", "dónde queda la tienda", "busco la tienda"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "tower",
+      "canonical": "dónde está la torre",
+      "aliases": ["dónde está la torre por favor", "dónde queda la torre", "busco la torre"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "river",
+      "canonical": "dónde está el río",
+      "aliases": ["dónde está el río por favor", "dónde queda el río", "busco el río"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "field",
+      "canonical": "dónde está el campo",
+      "aliases": ["dónde está el campo por favor", "dónde queda el campo", "busco el campo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "house",
+      "canonical": "dónde está la casa",
+      "aliases": ["dónde está la casa por favor", "dónde queda la casa", "busco la casa"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "village",
+      "canonical": "dónde está el pueblo",
+      "aliases": ["dónde está el pueblo por favor", "dónde queda el pueblo", "busco el pueblo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "lake",
+      "canonical": "dónde está el lago",
+      "aliases": ["dónde está el lago por favor", "dónde queda el lago", "busco el lago"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "bridge",
+      "canonical": "dónde está el puente",
+      "aliases": ["dónde está el puente por favor", "dónde queda el puente", "busco el puente"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "sign",
+      "canonical": "dónde está el letrero",
+      "aliases": ["dónde está el letrero por favor", "dónde queda el letrero", "busco el letrero"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "camp",
+      "canonical": "dónde está el campamento",
+      "aliases": ["dónde está el campamento por favor", "dónde queda el campamento", "busco el campamento"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "own-camp",
+      "canonical": "dónde está mi campamento",
+      "aliases": ["dónde está mi campamento por favor", "dónde queda mi campamento", "busco mi campamento"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "far",
+      "canonical": "está lejos",
+      "aliases": ["está muy lejos", "queda lejos", "está cerca", "está lejos la panadería", "está lejos la herrería"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "hello",
+      "canonical": "hola",
+      "aliases": ["buenos días", "buenas tardes", "buen día"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "thanks",
+      "canonical": "gracias",
+      "aliases": ["muchas gracias"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "bye",
+      "canonical": "adiós",
+      "aliases": ["hasta luego", "nos vemos", "hasta mañana"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": ["no lo sé", "yo no sé", "no entiendo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    }
+  ]
+}

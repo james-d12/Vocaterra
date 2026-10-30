@@ -18,7 +18,7 @@ public sealed class SceneTests(ITestOutputHelper output)
     private const ulong Seed = 42;
 
     /// <summary>The world digest of the bundle's route at seed 42 (its timing test is <see cref="SceneBuildTimeTests"/>).</summary>
-    internal const string GoldenDigest = "6420e2003fca9e39884821f27d896b5455a73f1934e2d309eb0cf38427465075"; // VILLAGE_PLAN V04: the village grows
+    internal const string GoldenDigest = "0f652f77d2c135a4db698edfc3aec5d5fff6b3980eeddc7d41200abc69536777"; // VILLAGE_PLAN V04: the village grows; V10: the well's rim one block high
 
     private const int Units = VoxelTestSupport.Units;
 
@@ -228,7 +228,8 @@ public sealed class SceneTests(ITestOutputHelper output)
         Assert.InRange(Distance(scene.Point("stall"), scene.Point("village")), 1, 20);
         Assert.Equal(BlockId.Canvas, grid.GetBlock(scene.Point("tent").X, scene.Point("tent").Y + 3, scene.Point("tent").Z));
 
-        Assert.Equal(["guide", "shopkeeper", "villager"], scene.Npcs.Select(n => n.Name));
+        Assert.Equal(["guide", "shopkeeper", "villager", "fisher"], scene.Npcs.Select(n => n.Name)); // V10: the fisher stands at npc.fisher, facing the river
+        Assert.Equal(scene.Point("npc.fisher"), scene.Npcs.Single(static n => n.Name == "fisher").Feet with { Y = scene.Point("npc.fisher").Y });
         Assert.InRange(Distance(scene.Npc("guide").Feet, scene.Point("camp.guide")), 0, 12);
         Assert.InRange(Distance(scene.Npc("shopkeeper").Feet, scene.Point("village")), 0, 20);
         Assert.InRange(Distance(scene.Npc("villager").Feet, scene.Point("village")), 0, 20);

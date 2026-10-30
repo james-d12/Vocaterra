@@ -63,13 +63,13 @@ public sealed class NpcFrontendTests
     public void ATalkStepMustNameAnNpcOfTheRosterOnceItHasLoaded()
     {
         // V01: the NPCs --talk accepts are game/npcs.json's, not a list in the code, so the parser takes any name and the game checks it after the load.
-        var options = Parse("--screenshot", "a.png", "--talk", "shopkeeper", "--leave", "--talk", "fisher");
+        var options = Parse("--screenshot", "a.png", "--talk", "shopkeeper", "--leave", "--talk", "miller");
         var shipped = RouteScene.Shipped.Npcs.Ids;
 
         Assert.False(options.CheckTalkTargets(shipped, out var error));
-        Assert.Equal("--talk needs an NPC (guide, shopkeeper, villager), got 'fisher'.", error);
+        Assert.Equal("--talk needs an NPC (guide, shopkeeper, villager, fisher), got 'miller'.", error);
 
-        Assert.True(options.CheckTalkTargets([.. shipped, "fisher"], out error)); // a fourth NPC in the roster can be talked to with no code change
+        Assert.True(options.CheckTalkTargets([.. shipped, "miller"], out error)); // another NPC in the roster can be talked to with no code change (the fisher came so, V10)
         Assert.Empty(error);
         Assert.True(Parse("--screenshot", "a.png").CheckTalkTargets(shipped, out _)); // no talk step, nothing to check
     }

@@ -152,6 +152,12 @@
       "third": "looks for",
       "past": "looked for"
     },
+    "verb.comprar": {
+      "gloss": "to buy",
+      "base": "buy",
+      "third": "buys",
+      "past": "bought"
+    },
     "verb.hablar": {
       "gloss": "to speak",
       "base": "speak",

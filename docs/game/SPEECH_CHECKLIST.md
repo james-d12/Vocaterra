@@ -12,6 +12,7 @@ text changed is listed again without a mark. The files are Kokoro model output (
 | guide (Luna) | `ef_dora` | 28 | 1.0 (0.8) | every pool no other NPC has, its prompts, the word cards and the model answers |
 | shopkeeper (Tendero) | `em_alex` | 29 | 1.0 (0.8) | the pools `shop_*` and `guide.lesson.shop.*`, and its prompts |
 | villager (Aldeano) | `em_santa` | 53 | 1.0 (0.8) | the pools `villager_*` and `guide.lesson.villager.*`, and its prompts |
+| fisher (Mar) | `em_santa` | 53 | 0.9 (0.72) | the pools `fisher_*` and `guide.lesson.fisher.*`, and its prompts |
 
 Provisional voices of the NPCs to come (VILLAGE_PLAN V06, D-game-22 (d)): their lines are recorded in these voices when their files come.
 The owner hears each in the voice trial, `docs/game/voice-trial/` (its README); a voice the owner rejects is changed in the NPC's file and its
@@ -22,7 +23,6 @@ lines are rendered again.
 | baker (Luz) | `if_sara` | 35 | 1.0 | `voice-trial/if_sara-1.0.wav` |
 | smith (Domingo) | `im_nicola` | 36 | 1.0 | `voice-trial/im_nicola-1.0.wav` |
 | farmer (León) | `pm_santa` | 44 | 1.0 | `voice-trial/pm_santa-1.0.wav` |
-| fisher (Mar) | `em_santa` | 53 | 0.9 | `voice-trial/em_santa-0.9.wav` |
 
 ## Lines
 
@@ -94,6 +94,32 @@ lines are rendered again.
 | feedback.slow_repeat.1 | speech/feedback.slow_repeat.1.wav | guide | 1.0 | Di «ayuda» y te ayudo. |  |
 | feedback.slow_repeat.2 | speech/feedback.slow_repeat.2.slow.wav | guide | 0.8 | Si necesitas ayuda, di «ayuda». |  |
 | feedback.slow_repeat.2 | speech/feedback.slow_repeat.2.wav | guide | 1.0 | Si necesitas ayuda, di «ayuda». |  |
+| fisher_bye.1 | speech/fisher_bye.1.slow.wav | fisher | 0.72 | ¡Adiós! Hasta luego. |  |
+| fisher_bye.1 | speech/fisher_bye.1.wav | fisher | 0.9 | ¡Adiós! Hasta luego. |  |
+| fisher_bye.2 | speech/fisher_bye.2.slow.wav | fisher | 0.72 | Hasta luego. |  |
+| fisher_bye.2 | speech/fisher_bye.2.wav | fisher | 0.9 | Hasta luego. |  |
+| fisher_delivered.1 | speech/fisher_delivered.1.slow.wav | fisher | 0.72 | ¡Gracias! Toma dos monedas. |  |
+| fisher_delivered.1 | speech/fisher_delivered.1.wav | fisher | 0.9 | ¡Gracias! Toma dos monedas. |  |
+| fisher_far.1 | speech/fisher_far.1.slow.wav | fisher | 0.72 | ¿Lejos? ¿Qué buscas? |  |
+| fisher_far.1 | speech/fisher_far.1.wav | fisher | 0.9 | ¿Lejos? ¿Qué buscas? |  |
+| fisher_greet.1 | speech/fisher_greet.1.slow.wav | fisher | 0.72 | ¿Qué buscas? |  |
+| fisher_greet.1 | speech/fisher_greet.1.wav | fisher | 0.9 | ¿Qué buscas? |  |
+| fisher_hello.1 | speech/fisher_hello.1.slow.wav | fisher | 0.72 | ¡Hola! |  |
+| fisher_hello.1 | speech/fisher_hello.1.wav | fisher | 0.9 | ¡Hola! |  |
+| fisher_help.1 | speech/fisher_help.1.slow.wav | fisher | 0.72 | Puedes preguntar: «¿Dónde está la panadería?». |  |
+| fisher_help.1 | speech/fisher_help.1.wav | fisher | 0.9 | Puedes preguntar: «¿Dónde está la panadería?». |  |
+| fisher_near.1 | speech/fisher_near.1.slow.wav | fisher | 0.72 | No, está cerca. |  |
+| fisher_near.1 | speech/fisher_near.1.wav | fisher | 0.9 | No, está cerca. |  |
+| fisher_point.1 | speech/fisher_point.1.slow.wav | fisher | 0.72 | Mira, está allí. |  |
+| fisher_point.1 | speech/fisher_point.1.wav | fisher | 0.9 | Mira, está allí. |  |
+| fisher_point.2 | speech/fisher_point.2.slow.wav | fisher | 0.72 | Está por allí, mira. |  |
+| fisher_point.2 | speech/fisher_point.2.wav | fisher | 0.9 | Está por allí, mira. |  |
+| fisher_thank.1 | speech/fisher_thank.1.slow.wav | fisher | 0.72 | De nada. |  |
+| fisher_thank.1 | speech/fisher_thank.1.wav | fisher | 0.9 | De nada. |  |
+| fisher_thank.2 | speech/fisher_thank.2.slow.wav | fisher | 0.72 | ¡Con gusto! |  |
+| fisher_thank.2 | speech/fisher_thank.2.wav | fisher | 0.9 | ¡Con gusto! |  |
+| fisher_unknown_place.1 | speech/fisher_unknown_place.1.slow.wav | fisher | 0.72 | No sé dónde está. |  |
+| fisher_unknown_place.1 | speech/fisher_unknown_place.1.wav | fisher | 0.9 | No sé dónde está. |  |
 | guide.craft.none.1 | speech/guide.craft.none.1.slow.wav | guide | 0.8 | Eso no se puede hacer. |  |
 | guide.craft.none.1 | speech/guide.craft.none.1.wav | guide | 1.0 | Eso no se puede hacer. |  |
 | guide.craft.ready.1 | speech/guide.craft.ready.1.slow.wav | guide | 0.8 | ¡Ya lo tienes todo! |  |
@@ -116,6 +142,28 @@ lines are rendered again.
 | guide.lesson.end.1 | speech/guide.lesson.end.1.wav | guide | 1.0 | ¡Muy bien! Ya tienes fuego. |  |
 | guide.lesson.fast.1 | speech/guide.lesson.fast.1.slow.wav | guide | 0.8 | Mira. La madera es para la antorcha. |  |
 | guide.lesson.fast.1 | speech/guide.lesson.fast.1.wav | guide | 1.0 | Mira. La madera es para la antorcha. |  |
+| guide.lesson.fisher.end.1 | speech/guide.lesson.fisher.end.1.slow.wav | fisher | 0.72 | ¡Muy bien! Ya conoces el pueblo. |  |
+| guide.lesson.fisher.end.1 | speech/guide.lesson.fisher.end.1.wav | fisher | 0.9 | ¡Muy bien! Ya conoces el pueblo. |  |
+| guide.lesson.fisher.going.1 | speech/guide.lesson.fisher.going.1.slow.wav | fisher | 0.72 | ¿Adónde vas? |  |
+| guide.lesson.fisher.going.1 | speech/guide.lesson.fisher.going.1.wav | fisher | 0.9 | ¿Adónde vas? |  |
+| guide.lesson.fisher.hay.1 | speech/guide.lesson.fisher.hay.1.slow.wav | fisher | 0.72 | En el pueblo hay una tienda, una panadería y tres casas. |  |
+| guide.lesson.fisher.hay.1 | speech/guide.lesson.fisher.hay.1.wav | fisher | 0.9 | En el pueblo hay una tienda, una panadería y tres casas. |  |
+| guide.lesson.fisher.hungry.1 | speech/guide.lesson.fisher.hungry.1.slow.wav | fisher | 0.72 | Tengo hambre. ¿Tienes fruta? |  |
+| guide.lesson.fisher.hungry.1 | speech/guide.lesson.fisher.hungry.1.wav | fisher | 0.9 | Tengo hambre. ¿Tienes fruta? |  |
+| guide.lesson.fisher.left.1 | speech/guide.lesson.fisher.left.1.slow.wav | fisher | 0.72 | En el pueblo, mira la torre. La panadería está a la izquierda. |  |
+| guide.lesson.fisher.left.1 | speech/guide.lesson.fisher.left.1.wav | fisher | 0.9 | En el pueblo, mira la torre. La panadería está a la izquierda. |  |
+| guide.lesson.fisher.more.1 | speech/guide.lesson.fisher.more.1.slow.wav | fisher | 0.72 | ¿Algo más? |  |
+| guide.lesson.fisher.more.1 | speech/guide.lesson.fisher.more.1.wav | fisher | 0.9 | ¿Algo más? |  |
+| guide.lesson.fisher.near.1 | speech/guide.lesson.fisher.near.1.slow.wav | fisher | 0.72 | No, está cerca. La montaña está lejos. |  |
+| guide.lesson.fisher.near.1 | speech/guide.lesson.fisher.near.1.wav | fisher | 0.9 | No, está cerca. La montaña está lejos. |  |
+| guide.lesson.fisher.plan.1 | speech/guide.lesson.fisher.plan.1.slow.wav | fisher | 0.72 | ¿Qué vas a hacer allí? |  |
+| guide.lesson.fisher.plan.1 | speech/guide.lesson.fisher.plan.1.wav | fisher | 0.9 | ¿Qué vas a hacer allí? |  |
+| guide.lesson.fisher.right.1 | speech/guide.lesson.fisher.right.1.slow.wav | fisher | 0.72 | Y la herrería está a la derecha. |  |
+| guide.lesson.fisher.right.1 | speech/guide.lesson.fisher.right.1.wav | fisher | 0.9 | Y la herrería está a la derecha. |  |
+| guide.lesson.fisher.well.1 | speech/guide.lesson.fisher.well.1.slow.wav | fisher | 0.72 | Sí, hay un pozo. |  |
+| guide.lesson.fisher.well.1 | speech/guide.lesson.fisher.well.1.wav | fisher | 0.9 | Sí, hay un pozo. |  |
+| guide.lesson.fisher.went.1 | speech/guide.lesson.fisher.went.1.slow.wav | fisher | 0.72 | ¿Fuiste a la panadería? |  |
+| guide.lesson.fisher.went.1 | speech/guide.lesson.fisher.went.1.wav | fisher | 0.9 | ¿Fuiste a la panadería? |  |
 | guide.lesson.have.1 | speech/guide.lesson.have.1.slow.wav | guide | 0.8 | ¡Muy bien! Tienes una fruta. |  |
 | guide.lesson.have.1 | speech/guide.lesson.have.1.wav | guide | 1.0 | ¡Muy bien! Tienes una fruta. |  |
 | guide.lesson.have_fruit.1 | speech/guide.lesson.have_fruit.1.slow.wav | guide | 0.8 | ¿Tienes una fruta? |  |
@@ -188,6 +236,8 @@ lines are rendered again.
 | guide.lesson.villager.plan_we.1 | speech/guide.lesson.villager.plan_we.1.wav | villager | 1.0 | ¿Qué vamos a comer? |  |
 | guide.lesson.villager.she.1 | speech/guide.lesson.villager.she.1.slow.wav | villager | 0.8 | Luna es la guía. Ella es mi amiga. |  |
 | guide.lesson.villager.she.1 | speech/guide.lesson.villager.she.1.wav | villager | 1.0 | Luna es la guía. Ella es mi amiga. |  |
+| guide.lesson.villager.sign.1 | speech/guide.lesson.villager.sign.1.slow.wav | villager | 0.8 | El letrero dice: tienda, río, montaña. |  |
+| guide.lesson.villager.sign.1 | speech/guide.lesson.villager.sign.1.wav | villager | 1.0 | El letrero dice: tienda, río, montaña. |  |
 | guide.lesson.villager.they.1 | speech/guide.lesson.villager.they.1.slow.wav | villager | 0.8 | Ellos tienen pan. |  |
 | guide.lesson.villager.they.1 | speech/guide.lesson.villager.they.1.wav | villager | 1.0 | Ellos tienen pan. |  |
 | guide.lesson.villager.want.1 | speech/guide.lesson.villager.want.1.slow.wav | villager | 0.8 | ¿Qué quieres? |  |
@@ -310,10 +360,20 @@ lines are rendered again.
 | phrase.ayuda | speech/phrase.ayuda.wav | guide | 1.0 | Ayuda. |  |
 | phrase.donde-esta-el-rio | speech/phrase.donde-esta-el-rio.slow.wav | guide | 0.8 | ¿Dónde está el río? |  |
 | phrase.donde-esta-el-rio | speech/phrase.donde-esta-el-rio.wav | guide | 1.0 | ¿Dónde está el río? |  |
+| phrase.donde-esta-la-herreria | speech/phrase.donde-esta-la-herreria.slow.wav | guide | 0.8 | ¿Dónde está la herrería? |  |
+| phrase.donde-esta-la-herreria | speech/phrase.donde-esta-la-herreria.wav | guide | 1.0 | ¿Dónde está la herrería? |  |
+| phrase.donde-esta-la-panaderia | speech/phrase.donde-esta-la-panaderia.slow.wav | guide | 0.8 | ¿Dónde está la panadería? |  |
+| phrase.donde-esta-la-panaderia | speech/phrase.donde-esta-la-panaderia.wav | guide | 1.0 | ¿Dónde está la panadería? |  |
 | phrase.ella-quiere-fruta | speech/phrase.ella-quiere-fruta.slow.wav | guide | 0.8 | Ella quiere fruta. |  |
 | phrase.ella-quiere-fruta | speech/phrase.ella-quiere-fruta.wav | guide | 1.0 | Ella quiere fruta. |  |
+| phrase.esta-lejos | speech/phrase.esta-lejos.slow.wav | guide | 0.8 | ¿Está lejos? |  |
+| phrase.esta-lejos | speech/phrase.esta-lejos.wav | guide | 1.0 | ¿Está lejos? |  |
+| phrase.fui-a-la-panaderia | speech/phrase.fui-a-la-panaderia.slow.wav | guide | 0.8 | Sí, fui a la panadería. |  |
+| phrase.fui-a-la-panaderia | speech/phrase.fui-a-la-panaderia.wav | guide | 1.0 | Sí, fui a la panadería. |  |
 | phrase.gracias | speech/phrase.gracias.slow.wav | guide | 0.8 | Gracias. |  |
 | phrase.gracias | speech/phrase.gracias.wav | guide | 1.0 | Gracias. |  |
+| phrase.hay-un-pozo | speech/phrase.hay-un-pozo.slow.wav | guide | 0.8 | ¿Hay un pozo en el pueblo? |  |
+| phrase.hay-un-pozo | speech/phrase.hay-un-pozo.wav | guide | 1.0 | ¿Hay un pozo en el pueblo? |  |
 | phrase.hola | speech/phrase.hola.slow.wav | guide | 0.8 | Hola. |  |
 | phrase.hola | speech/phrase.hola.wav | guide | 1.0 | Hola. |  |
 | phrase.mas-despacio | speech/phrase.mas-despacio.slow.wav | guide | 0.8 | Más despacio, por favor. |  |
@@ -352,8 +412,14 @@ lines are rendered again.
 | phrase.vamos-a-comer-fruta | speech/phrase.vamos-a-comer-fruta.wav | guide | 1.0 | Vamos a comer fruta. |  |
 | phrase.voy-a-comer-pan | speech/phrase.voy-a-comer-pan.slow.wav | guide | 0.8 | Voy a comer pan. |  |
 | phrase.voy-a-comer-pan | speech/phrase.voy-a-comer-pan.wav | guide | 1.0 | Voy a comer pan. |  |
+| phrase.voy-a-comprar-pan | speech/phrase.voy-a-comprar-pan.slow.wav | guide | 0.8 | Voy a comprar pan. |  |
+| phrase.voy-a-comprar-pan | speech/phrase.voy-a-comprar-pan.wav | guide | 1.0 | Voy a comprar pan. |  |
 | phrase.voy-a-ir-al-rio | speech/phrase.voy-a-ir-al-rio.slow.wav | guide | 0.8 | Mañana voy a ir al río. |  |
 | phrase.voy-a-ir-al-rio | speech/phrase.voy-a-ir-al-rio.wav | guide | 1.0 | Mañana voy a ir al río. |  |
+| phrase.voy-a-la-panaderia | speech/phrase.voy-a-la-panaderia.slow.wav | guide | 0.8 | Voy a la panadería. |  |
+| phrase.voy-a-la-panaderia | speech/phrase.voy-a-la-panaderia.wav | guide | 1.0 | Voy a la panadería. |  |
+| prompt.fisher-open | speech/prompt.fisher-open.slow.wav | fisher | 0.72 | ¿Qué buscas? |  |
+| prompt.fisher-open | speech/prompt.fisher-open.wav | fisher | 0.9 | ¿Qué buscas? |  |
 | prompt.guide-offer | speech/prompt.guide-offer.slow.wav | guide | 0.8 | ¿Quieres agua? |  |
 | prompt.guide-offer | speech/prompt.guide-offer.wav | guide | 1.0 | ¿Quieres agua? |  |
 | prompt.guide-open | speech/prompt.guide-open.slow.wav | guide | 0.8 | ¡Hola! Soy la guía. ¿En qué te ayudo? |  |
@@ -364,10 +430,16 @@ lines are rendered again.
 | prompt.lesson-ate | speech/prompt.lesson-ate.wav | shopkeeper | 1.0 | ¿Qué comiste ayer? |  |
 | prompt.lesson-bottle | speech/prompt.lesson-bottle.slow.wav | shopkeeper | 0.8 | ¿Tiene usted una botella? |  |
 | prompt.lesson-bottle | speech/prompt.lesson-bottle.wav | shopkeeper | 1.0 | ¿Tiene usted una botella? |  |
+| prompt.lesson-far | speech/prompt.lesson-far.slow.wav | fisher | 0.72 | Y la herrería está a la derecha. |  |
+| prompt.lesson-far | speech/prompt.lesson-far.wav | fisher | 0.9 | Y la herrería está a la derecha. |  |
+| prompt.lesson-going | speech/prompt.lesson-going.slow.wav | fisher | 0.72 | ¿Adónde vas? |  |
+| prompt.lesson-going | speech/prompt.lesson-going.wav | fisher | 0.9 | ¿Adónde vas? |  |
 | prompt.lesson-had | speech/prompt.lesson-had.slow.wav | shopkeeper | 0.8 | ¿Bebiste agua ayer? |  |
 | prompt.lesson-had | speech/prompt.lesson-had.wav | shopkeeper | 1.0 | ¿Bebiste agua ayer? |  |
 | prompt.lesson-have | speech/prompt.lesson-have.slow.wav | guide | 0.8 | ¿Tienes una fruta? |  |
 | prompt.lesson-have | speech/prompt.lesson-have.wav | guide | 1.0 | ¿Tienes una fruta? |  |
+| prompt.lesson-hay | speech/prompt.lesson-hay.slow.wav | fisher | 0.72 | En el pueblo hay una tienda, una panadería y tres casas. |  |
+| prompt.lesson-hay | speech/prompt.lesson-hay.wav | fisher | 0.9 | En el pueblo hay una tienda, una panadería y tres casas. |  |
 | prompt.lesson-hello | speech/prompt.lesson-hello.slow.wav | guide | 0.8 | ¡Hola! |  |
 | prompt.lesson-hello | speech/prompt.lesson-hello.wav | guide | 1.0 | ¡Hola! |  |
 | prompt.lesson-name | speech/prompt.lesson-name.slow.wav | guide | 0.8 | Me llamo Luna. |  |
@@ -376,12 +448,18 @@ lines are rendered again.
 | prompt.lesson-need | speech/prompt.lesson-need.wav | guide | 1.0 | ¿Qué necesitas? |  |
 | prompt.lesson-offer | speech/prompt.lesson-offer.slow.wav | guide | 0.8 | ¿Quieres fruta? |  |
 | prompt.lesson-offer | speech/prompt.lesson-offer.wav | guide | 1.0 | ¿Quieres fruta? |  |
+| prompt.lesson-place | speech/prompt.lesson-place.slow.wav | fisher | 0.72 | ¿Algo más? |  |
+| prompt.lesson-place | speech/prompt.lesson-place.wav | fisher | 0.9 | ¿Algo más? |  |
 | prompt.lesson-plan | speech/prompt.lesson-plan.slow.wav | villager | 0.8 | ¿Qué vas a comer mañana? |  |
 | prompt.lesson-plan | speech/prompt.lesson-plan.wav | villager | 1.0 | ¿Qué vas a comer mañana? |  |
+| prompt.lesson-plan-there | speech/prompt.lesson-plan-there.slow.wav | fisher | 0.72 | ¿Qué vas a hacer allí? |  |
+| prompt.lesson-plan-there | speech/prompt.lesson-plan-there.wav | fisher | 0.9 | ¿Qué vas a hacer allí? |  |
 | prompt.lesson-plan-we | speech/prompt.lesson-plan-we.slow.wav | villager | 0.8 | ¿Qué vamos a comer? |  |
 | prompt.lesson-plan-we | speech/prompt.lesson-plan-we.wav | villager | 1.0 | ¿Qué vamos a comer? |  |
 | prompt.lesson-she | speech/prompt.lesson-she.slow.wav | villager | 0.8 | ¿Qué quiere Luna? |  |
 | prompt.lesson-she | speech/prompt.lesson-she.wav | villager | 1.0 | ¿Qué quiere Luna? |  |
+| prompt.lesson-sign | speech/prompt.lesson-sign.slow.wav | villager | 0.8 | El letrero dice: tienda, río, montaña. |  |
+| prompt.lesson-sign | speech/prompt.lesson-sign.wav | villager | 1.0 | El letrero dice: tienda, río, montaña. |  |
 | prompt.lesson-task | speech/prompt.lesson-task.slow.wav | guide | 0.8 | Necesitas madera y frutas. |  |
 | prompt.lesson-task | speech/prompt.lesson-task.wav | guide | 1.0 | Necesitas madera y frutas. |  |
 | prompt.lesson-thanks | speech/prompt.lesson-thanks.slow.wav | guide | 0.8 | ¡Muy bien! Tienes una fruta. |  |
@@ -400,6 +478,8 @@ lines are rendered again.
 | prompt.lesson-we | speech/prompt.lesson-we.wav | villager | 1.0 | ¿Qué necesitamos? |  |
 | prompt.lesson-went | speech/prompt.lesson-went.slow.wav | shopkeeper | 0.8 | ¿Fuiste al río ayer? |  |
 | prompt.lesson-went | speech/prompt.lesson-went.wav | shopkeeper | 1.0 | ¿Fuiste al río ayer? |  |
+| prompt.lesson-went-there | speech/prompt.lesson-went-there.slow.wav | fisher | 0.72 | ¿Fuiste a la panadería? |  |
+| prompt.lesson-went-there | speech/prompt.lesson-went-there.wav | fisher | 0.9 | ¿Fuiste a la panadería? |  |
 | prompt.lesson-what | speech/prompt.lesson-what.slow.wav | guide | 0.8 | Mira. |  |
 | prompt.lesson-what | speech/prompt.lesson-what.wav | guide | 1.0 | Mira. |  |
 | prompt.lesson-yesno | speech/prompt.lesson-yesno.slow.wav | guide | 0.8 | ¿Es madera? |  |

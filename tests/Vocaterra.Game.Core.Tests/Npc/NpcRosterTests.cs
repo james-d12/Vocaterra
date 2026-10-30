@@ -33,10 +33,11 @@ public sealed class NpcRosterTests
     [Fact]
     public void TheShippedNpcsAreTheOnesTheCodeHeld()
     {
-        Assert.Equal(["guide", "shopkeeper", "villager"], Npcs.Ids);
-        Assert.Equal(["Guía", "Tendero", "Aldeano"], Npcs.All.Select(static n => n.Label));
-        Assert.Equal(["Luna", "Tendero", "Aldeano"], Npcs.All.Select(static n => n.Called));
-        Assert.Equal(["guide", "shopkeeper", "villager"], Npcs.All.Select(static n => n.Figure));
+        // The three the code held, and since VILLAGE_PLAN V10 the fisher Mar, at the end (the saves keep the NPCs in this order).
+        Assert.Equal(["guide", "shopkeeper", "villager", "fisher"], Npcs.Ids);
+        Assert.Equal(["Guía", "Tendero", "Aldeano", "Pescador"], Npcs.All.Select(static n => n.Label));
+        Assert.Equal(["Luna", "Tendero", "Aldeano", "Mar"], Npcs.All.Select(static n => n.Called));
+        Assert.Equal(["guide", "shopkeeper", "villager", "fisher"], Npcs.All.Select(static n => n.Figure));
         Assert.Equal("otro", Npcs.LabelOf("otro"));
     }
 
@@ -58,10 +59,15 @@ public sealed class NpcRosterTests
         Assert.Equal(new NpcOpeningRule("villager.greet", OpeningWhen.Always), villager.Opening);
 
         // The renderer's table (docs/nlp/API.md section 6), the key words that were words.json's, and the pools' names.
-        Assert.Equal([new NpcVoiceSpec(28, "ef_dora", 1.0f), new NpcVoiceSpec(29, "em_alex", 1.0f), new NpcVoiceSpec(53, "em_santa", 1.0f)], Npcs.All.Select(static n => n.Voice));
+        // V10: the fisher's provisional voice is the villager's at 0.9 (D-game-22), his pools his own.
+        Assert.Equal([new NpcVoiceSpec(28, "ef_dora", 1.0f), new NpcVoiceSpec(29, "em_alex", 1.0f), new NpcVoiceSpec(53, "em_santa", 1.0f), new NpcVoiceSpec(53, "em_santa", 0.9f)], Npcs.All.Select(static n => n.Voice));
         Assert.Equal(["agua", "pan"], shopkeeper.KeyWords);
         Assert.Empty(guide.KeyWords.Concat(villager.KeyWords));
-        Assert.Equal(["guide", "shop", "villager"], Npcs.All.Select(static n => n.PoolPrefix));
+        Assert.Equal(["guide", "shop", "villager", "fisher"], Npcs.All.Select(static n => n.PoolPrefix));
+        var fisher = Npcs.Find("fisher")!;
+        Assert.Equal(("fisher-open", "fisher-open"), (fisher.PromptIn("idle", "idle"), fisher.PromptIn("pointing", "idle")));
+        Assert.Equal(new NpcOpeningRule("fisher.greet", OpeningWhen.Always), fisher.Opening);
+        Assert.Empty(fisher.KeyWords);
     }
 
     [Fact]
