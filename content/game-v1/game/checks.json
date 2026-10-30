@@ -1,12 +1,14 @@
 {
   "$schema": "../../schema/checks.schema.json",
-  "schemaVersion": 1,
-  "about": "The check battery (S11, D-game-10): run with --check pre|post|recall, outside the world; it never changes the learner model, the phrase progress or the world. Production items are graded by the core at the row's prompt (communicated and the row's intent = correct; errors are recorded; no sé is allowed and recorded as dont_know). Comprehension items play the row's pre-rendered line (speech index id: the line id) and offer three options; the options are shown in an order drawn from the world seed and the check kind, so pre and post differ in order but not in content. The item's id is hear.<row> (comprehension) or say.<row> (production). The items' questions, options and situations are the locale's (content/locale/<code>/checks.json, check.<id>.*) since C03.",
+  "schemaVersion": 2,
+  "about": "The check battery (S11, D-game-10): run with --check pre|post|recall, outside the world; it never changes the learner model, the phrase progress or the world. Production items are graded by the core at the row's prompt (communicated and the row's intent = correct; errors are recorded; no sé is allowed and recorded as dont_know). Comprehension items play the row's pre-rendered line (speech index id: the line id) and offer three options; the options are shown in an order drawn from the world seed and the check kind, so pre and post differ in order but not in content. The item's id is hear.<row> (comprehension) or say.<row> (production). The items' questions, options and situations are the locale's (content/locale/<code>/checks.json, check.<id>.*) since C03. Since VILLAGE_PLAN V07 (schema 2) every item names the lesson it belongs to (lesson: the lesson's id, or null for an item of no lesson: the free run's phrases at the stall and the villager, which no lesson's step practises), and a battery asks the items of the lessons its play session has unlocked (a lesson's session at most the play session), and always those of no lesson and of the lessons of the first coreSessions sessions: the lessons of sessions 1 to 3 are the pilot's battery of 31 items (docs/game/PLAYTEST.md), asked whole in the pilot's first session and at its recall.",
+  "coreSessions": 3,
   "items": [
     {
       "id": "hear.que-necesitas",
       "kind": "comprehension",
       "phrase": "que-necesitas",
+      "lesson": null,
       "line": "prompt.stall-need",
       "spanish": "¿Qué necesitas?",
       "options": [
@@ -22,6 +24,7 @@
       "id": "hear.quieres-pan",
       "kind": "comprehension",
       "phrase": "quieres-pan",
+      "lesson": null,
       "line": "prompt.stall-offer",
       "spanish": "¿Quieres pan?",
       "options": [
@@ -37,6 +40,7 @@
       "id": "hear.pedir-agua",
       "kind": "comprehension",
       "phrase": "pedir-agua",
+      "lesson": null,
       "line": "phrase.pedir-agua",
       "spanish": "Quiero agua, por favor.",
       "options": [
@@ -54,6 +58,7 @@
       "id": "hear.si-por-favor",
       "kind": "comprehension",
       "phrase": "si-por-favor",
+      "lesson": "first-words",
       "line": "phrase.si-por-favor",
       "spanish": "Sí, por favor.",
       "options": [
@@ -67,6 +72,7 @@
       "id": "hear.no-gracias",
       "kind": "comprehension",
       "phrase": "no-gracias",
+      "lesson": null,
       "line": "phrase.no-gracias",
       "spanish": "No, gracias.",
       "options": [
@@ -82,6 +88,7 @@
       "id": "hear.donde-esta-el-rio",
       "kind": "comprehension",
       "phrase": "donde-esta-el-rio",
+      "lesson": null,
       "line": "phrase.donde-esta-el-rio",
       "spanish": "¿Dónde está el río?",
       "options": [
@@ -97,6 +104,7 @@
       "id": "hear.quieres-fruta",
       "kind": "comprehension",
       "phrase": "quieres-fruta",
+      "lesson": "first-words",
       "line": "guide.lesson.offer.1",
       "spanish": "¿Quieres fruta?",
       "options": [
@@ -110,6 +118,7 @@
       "id": "hear.necesitas-madera",
       "kind": "comprehension",
       "phrase": "necesitas-madera",
+      "lesson": "first-words",
       "line": "guide.lesson.task.1",
       "spanish": "Necesitas madera y frutas.",
       "options": [
@@ -125,6 +134,7 @@
       "id": "hear.me-llamo",
       "kind": "comprehension",
       "phrase": "me-llamo",
+      "lesson": "first-words",
       "line": "guide.lesson.name.1",
       "spanish": "Me llamo Luna.",
       "options": [
@@ -138,6 +148,7 @@
       "id": "hear.es-madera",
       "kind": "comprehension",
       "phrase": "es-madera",
+      "lesson": "first-words",
       "line": "guide.lesson.is_wood.1",
       "spanish": "¿Es madera?",
       "options": [
@@ -151,6 +162,7 @@
       "id": "hear.de-nada",
       "kind": "comprehension",
       "phrase": "de-nada",
+      "lesson": "first-words",
       "line": "guide.lesson.welcome.1",
       "spanish": "De nada.",
       "options": [
@@ -164,6 +176,7 @@
       "id": "hear.que-quieres",
       "kind": "comprehension",
       "phrase": "que-quieres",
+      "lesson": "first-words",
       "line": "guide.lesson.want.1",
       "spanish": "¿Qué quieres?",
       "options": [
@@ -177,6 +190,7 @@
       "id": "hear.tienes-fruta",
       "kind": "comprehension",
       "phrase": "tienes-fruta",
+      "lesson": "first-words",
       "line": "guide.lesson.have_fruit.1",
       "spanish": "¿Tienes una fruta?",
       "options": [
@@ -190,6 +204,7 @@
       "id": "hear.que-quieren-ustedes",
       "kind": "comprehension",
       "phrase": "que-quieren-ustedes",
+      "lesson": "personas",
       "line": "guide.lesson.shop.all.1",
       "spanish": "¿Qué quieren ustedes?",
       "options": [
@@ -203,6 +218,7 @@
       "id": "say.pedir-agua",
       "kind": "production",
       "phrase": "pedir-agua",
+      "lesson": null,
       "prompt": "stall-need",
       "intent": "request_item"
     },
@@ -210,6 +226,7 @@
       "id": "say.si-por-favor",
       "kind": "production",
       "phrase": "si-por-favor",
+      "lesson": "first-words",
       "prompt": "stall-offer",
       "intent": "confirm"
     },
@@ -217,6 +234,7 @@
       "id": "say.no-gracias",
       "kind": "production",
       "phrase": "no-gracias",
+      "lesson": null,
       "prompt": "stall-offer",
       "intent": "deny"
     },
@@ -224,6 +242,7 @@
       "id": "say.donde-esta-el-rio",
       "kind": "production",
       "phrase": "donde-esta-el-rio",
+      "lesson": null,
       "prompt": "villager-open",
       "intent": "ask_directions"
     },
@@ -231,6 +250,7 @@
       "id": "say.si",
       "kind": "production",
       "phrase": "si",
+      "lesson": "first-words",
       "prompt": "lesson-yesno",
       "intent": "confirm"
     },
@@ -238,6 +258,7 @@
       "id": "say.no",
       "kind": "production",
       "phrase": "no",
+      "lesson": "first-words",
       "prompt": "lesson-yesno",
       "intent": "deny"
     },
@@ -245,6 +266,7 @@
       "id": "say.que-es-esto",
       "kind": "production",
       "phrase": "que-es-esto",
+      "lesson": "first-words",
       "prompt": "lesson-what",
       "intent": "ask_what"
     },
@@ -252,6 +274,7 @@
       "id": "say.otra-vez",
       "kind": "production",
       "phrase": "otra-vez",
+      "lesson": "first-words",
       "prompt": "lesson-unstuck",
       "intent": "ask_repeat"
     },
@@ -259,6 +282,7 @@
       "id": "say.mas-despacio",
       "kind": "production",
       "phrase": "mas-despacio",
+      "lesson": "first-words",
       "prompt": "lesson-unstuck",
       "intent": "ask_slower"
     },
@@ -266,6 +290,7 @@
       "id": "say.quiero-madera",
       "kind": "production",
       "phrase": "quiero-madera",
+      "lesson": "first-words",
       "prompt": "lesson-want",
       "intent": "state_want"
     },
@@ -273,6 +298,7 @@
       "id": "say.tengo-fruta",
       "kind": "production",
       "phrase": "tengo-fruta",
+      "lesson": "first-words",
       "prompt": "lesson-have",
       "intent": "state_have"
     },
@@ -280,6 +306,7 @@
       "id": "say.ella-quiere-fruta",
       "kind": "production",
       "phrase": "ella-quiere-fruta",
+      "lesson": "personas",
       "prompt": "lesson-she",
       "intent": "state_want"
     },
@@ -287,6 +314,7 @@
       "id": "say.necesitamos-agua",
       "kind": "production",
       "phrase": "necesitamos-agua",
+      "lesson": "personas",
       "prompt": "lesson-we",
       "intent": "state_want"
     },
@@ -294,6 +322,7 @@
       "id": "hear.que-vas-a-comer",
       "kind": "comprehension",
       "phrase": "que-vas-a-comer",
+      "lesson": "ayer-y-manana",
       "line": "guide.lesson.villager.plan.1",
       "spanish": "¿Qué vas a comer mañana?",
       "options": [
@@ -307,6 +336,7 @@
       "id": "hear.que-comiste-ayer",
       "kind": "comprehension",
       "phrase": "que-comiste-ayer",
+      "lesson": "ayer-y-manana",
       "line": "guide.lesson.shop.ate.1",
       "spanish": "¿Qué comiste ayer?",
       "options": [
@@ -320,6 +350,7 @@
       "id": "say.voy-a-comer-pan",
       "kind": "production",
       "phrase": "voy-a-comer-pan",
+      "lesson": "ayer-y-manana",
       "prompt": "lesson-plan",
       "intent": "state_action"
     },
@@ -327,6 +358,7 @@
       "id": "say.ayer-comi-fruta",
       "kind": "production",
       "phrase": "ayer-comi-fruta",
+      "lesson": "ayer-y-manana",
       "prompt": "lesson-ate",
       "intent": "state_action"
     }

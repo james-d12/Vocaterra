@@ -6,7 +6,10 @@ using Vocaterra.Game.Core.Tests.TestSupport;
 
 namespace Vocaterra.Game.Core.Tests.Language.Checks;
 
-/// <summary>The check battery's items (<c>game/checks.json</c>, S11): what is in the bundle, and that a bad item is refused when it is read.</summary>
+/// <summary>
+/// The check battery's items (<c>game/checks.json</c>, S11): what is in the bundle, that a bad item is refused when it is read, and since VILLAGE_PLAN V07 the
+/// lesson each belongs to.
+/// </summary>
 public sealed class CheckBankTests
 {
     private static IReadOnlyList<CheckItem> Bank => RouteScene.DataOf(TestGame.Bundle).Checks;
@@ -15,12 +18,12 @@ public sealed class CheckBankTests
 
     // One comprehension item and one production item, valid on their own; the tests break one thing at a time.
     private const string Comprehension =
-        """{"id":"hear.x","kind":"comprehension","phrase":"pedir-agua","line":"phrase.pedir-agua","spanish":"Quiero agua, por favor.","question":"?","options":[{"label":"a"},{"label":"b"},{"label":"c"}],"correct":0}""";
+        """{"id":"hear.x","kind":"comprehension","phrase":"pedir-agua","lesson":null,"line":"phrase.pedir-agua","spanish":"Quiero agua, por favor.","question":"?","options":[{"label":"a"},{"label":"b"},{"label":"c"}],"correct":0}""";
 
     private const string Production =
-        """{"id":"say.x","kind":"production","phrase":"pedir-agua","situation":"You want water.","prompt":"stall-need","intent":"request_item"}""";
+        """{"id":"say.x","kind":"production","phrase":"pedir-agua","lesson":null,"situation":"You want water.","prompt":"stall-need","intent":"request_item"}""";
 
-    private static string Battery(params string[] items) => """{"schemaVersion":1,"items":[""" + string.Join(",", items) + "]}";
+    private static string Battery(params string[] items) => """{"schemaVersion":2,"items":[""" + string.Join(",", items) + "]}";
 
     [Fact]
     public void TheBundleHoldsSixteenComprehensionItemsAndFifteenProductionItems()
@@ -36,6 +39,41 @@ public sealed class CheckBankTests
         Assert.Equal(
             ["request_item", "confirm", "deny", "ask_directions", "confirm", "deny", "ask_what", "ask_repeat", "ask_slower", "state_want", "state_have", "state_want", "state_want", "state_action", "state_action"],
             bank.Where(static i => i.Kind == CheckItemKind.Production).Select(static i => i.Intent));
+    }
+
+    [Fact]
+    public void EveryItemBelongsToALessonOrIsOneOfTheFreeRunsEight()
+    {
+        // VILLAGE_PLAN V07: read from each item's phrase and the lessons' steps. Eight belong to no lesson: the stall's exchange and the villager's directions of the
+        // first session's free run (que-necesitas, quieres-pan, pedir-agua, no-gracias, donde-esta-el-rio), which no lesson's step practises.
+        var bank = RouteScene.DataOf(TestGame.Bundle).Checks;
+        Assert.Equal(3, bank.CoreSessions);
+        Assert.Equal(
+            ["hear.que-necesitas", "hear.quieres-pan", "hear.pedir-agua", "hear.no-gracias", "hear.donde-esta-el-rio", "say.pedir-agua", "say.no-gracias", "say.donde-esta-el-rio"],
+            bank.Where(static i => i.Lesson is null).Select(static i => i.Id));
+        Assert.Equal(16, bank.Count(static i => i.Lesson == "first-words"));
+        Assert.Equal(["hear.que-quieren-ustedes", "say.ella-quiere-fruta", "say.necesitamos-agua"], bank.Where(static i => i.Lesson == "personas").Select(static i => i.Id));
+        Assert.Equal(["hear.que-vas-a-comer", "hear.que-comiste-ayer", "say.voy-a-comer-pan", "say.ayer-comi-fruta"], bank.Where(static i => i.Lesson == "ayer-y-manana").Select(static i => i.Id));
+
+        // An item of a lesson checks a phrase or a line of that lesson's steps.
+        var lessons = RouteScene.DataOf(TestGame.Bundle).Lessons;
+        foreach (var item in bank.Where(static i => i.Lesson is not null))
+        {
+            var steps = lessons.Find(item.Lesson!)!.Steps;
+            Assert.True(steps.Any(s => s.Phrase == item.Phrase || (item.Line.Length > 0 && s.Line?.LineId == item.Line)), $"{item.Id} checks nothing of {item.Lesson}");
+        }
+    }
+
+    [Fact]
+    public void AnItemMustSayItsLessonAndTheLessonMustExist()
+    {
+        Assert.Throws<InvalidDataException>(() => Parse(Battery(Production.Replace("\"lesson\":null,", string.Empty, StringComparison.Ordinal))));
+        Assert.Equal("first-words", Parse(Battery(Production.Replace("\"lesson\":null", "\"lesson\":\"first-words\"", StringComparison.Ordinal)))[0].Lesson);
+        Assert.Empty(Problems(Battery(Production.Replace("\"lesson\":null", "\"lesson\":\"first-words\"", StringComparison.Ordinal))));
+
+        var problems = Problems(Battery(Production.Replace("\"lesson\":null", "\"lesson\":\"no-such-lesson\"", StringComparison.Ordinal)));
+
+        Assert.Contains("game/checks.json: item 'say.x' belongs to the lesson 'no-such-lesson', which is not a lesson (first-words, personas, ayer-y-manana).", problems);
     }
 
     [Fact]
@@ -132,7 +170,7 @@ public sealed class CheckBankTests
         GameDataValidator.Validate(TestGame.Data.WithChecks(Parse(json))).Where(static p => !p.EndsWith("(an orphan).", StringComparison.Ordinal)).ToList();
 
     // The fixtures keep their text inline; it is split into locale strings as the shipped battery's is (C03).
-    private static IReadOnlyList<CheckItem> Parse(string json)
+    private static CheckBank Parse(string json)
     {
         var (file, strings) = LocaleFixture.SplitChecks(json);
         return CheckBank.Parse(file, TestGame.Locale.With(strings));
@@ -149,8 +187,10 @@ public sealed class CheckBankTests
     [Fact]
     public void AnEmptyBatteryAndAnUnknownSchemaAreRefused()
     {
-        Assert.Throws<InvalidDataException>(() => Parse("""{"schemaVersion":1,"items":[]}"""));
         Assert.Throws<InvalidDataException>(() => Parse("""{"schemaVersion":2,"items":[]}"""));
+        Assert.Throws<InvalidDataException>(() => Parse(Battery(Production).Replace("\"schemaVersion\":2", "\"schemaVersion\":1", StringComparison.Ordinal))); // before V07's lessons
+        Assert.Throws<InvalidDataException>(() => Parse(Battery(Production).Replace("\"schemaVersion\":2", "\"schemaVersion\":3", StringComparison.Ordinal)));
+        Assert.Throws<InvalidDataException>(() => Parse(Battery(Production).Replace("\"schemaVersion\":2,", "\"schemaVersion\":2,\"coreSessions\":0,", StringComparison.Ordinal)));
         Assert.Throws<InvalidDataException>(() => CheckBank.Parse("not json", TestGame.Locale));
     }
 

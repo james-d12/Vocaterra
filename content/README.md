@@ -30,7 +30,7 @@ Everything the game says, shows and builds its world from, outside the code. The
   | `game/phrases.json` | `phrases.schema.json` | `PhraseSheet` |
   | `game/lessons.json` | `lessons.schema.json` (the lessons' ids, in order) | `LessonBook` |
   | `game/lessons/<id>.json` | `lesson.schema.json` (one lesson each, C06) | `LessonBook` |
-  | `game/checks.json` | `checks.schema.json` | `CheckBank` |
+  | `game/checks.json` | `checks.schema.json` (schema 2, VILLAGE_PLAN V07: each item's `lesson`, null for none; a battery asks the items of the lessons its play session has unlocked, and always those of the first `coreSessions`) | `CheckBank` |
   | `game/tips.json` | `tips.schema.json` | `TipBook` |
   | `game/controls.json` | `controls.schema.json` | `TipBook` |
   | `game/words.json` | `words.schema.json` | `GameWords` (the target-language words the game itself uses: the guide's directions, the buttons, the pronouns, the greeting...; the key words moved to the NPC files in schema 2) |
