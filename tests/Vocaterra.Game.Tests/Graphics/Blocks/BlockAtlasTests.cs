@@ -163,10 +163,13 @@ public sealed class BlockAtlasTests
         Assert.Equal(BlockCell.IconBottle, BlockAtlasLayout.IconFor(ItemId.Bottle));
         Assert.Equal(BlockCell.IconWaterBottle, BlockAtlasLayout.IconFor(ItemId.WaterBottle));
         Assert.Equal(BlockCell.IconBread, BlockAtlasLayout.IconFor(ItemId.Bread));
-        Assert.Equal(BlockCell.Lantern, BlockAtlasLayout.IconFor(ItemId.Coin)); // V03: placeholders from existing art until V05 draws the coin, the apple and the axe
-        Assert.Equal(BlockCell.Apples, BlockAtlasLayout.IconFor(ItemId.Apple));
-        Assert.Equal(BlockCell.TableSide, BlockAtlasLayout.IconFor(ItemId.Axe));
+        Assert.Equal(BlockCell.IconCoin, BlockAtlasLayout.IconFor(ItemId.Coin)); // VILLAGE_PLAN V05: drawn for them (V03 borrowed the lantern, the apples and the workbench)
+        Assert.Equal(BlockCell.IconApple, BlockAtlasLayout.IconFor(ItemId.Apple));
+        Assert.Equal(BlockCell.IconAxe, BlockAtlasLayout.IconFor(ItemId.Axe));
         Assert.All(ItemDefinition.All, static d => Assert.NotNull(BlockAtlasLayout.IconFor(d.Id))); // every item draws something in the hotbar
+        var icons = ItemDefinition.All.Select(static d => BlockAtlasLayout.IconFor(d.Id)!.Value).ToList();
+        Assert.Equal(icons.Count, icons.Distinct().Count()); // and a picture of its own
+        Assert.DoesNotContain(icons, static cell => Enum.GetValues<BlockId>().Any(b => Enum.GetValues<BlockFace>().Any(f => BlockAtlasLayout.CellFor(b, f) == cell))); // none borrows a block's face
         Assert.Null(BlockAtlasLayout.IconFor((ItemId)999));
     }
 
@@ -190,6 +193,11 @@ public sealed class BlockAtlasTests
 
             return (r / n, b / n);
         }
+
+        var coin = Mean(BlockCell.IconCoin);
+        var apple = Mean(BlockCell.IconApple);
+        Assert.True(coin.R > coin.B * 2.5, "the coin is gold");
+        Assert.True(apple.R > apple.B * 2.5, "the apple is red");
 
         var empty = Mean(BlockCell.IconBottle);
         var full = Mean(BlockCell.IconWaterBottle);

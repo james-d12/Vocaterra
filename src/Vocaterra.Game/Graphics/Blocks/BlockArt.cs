@@ -240,6 +240,12 @@ public static class BlockArt
                 return BreadIconPixel(x, y);
             case BlockCell.IconBook:
                 return BookIconPixel(x, y);
+            case BlockCell.IconCoin:
+                return CoinIconPixel(x, y);
+            case BlockCell.IconApple:
+                return AppleIconPixel(x, y);
+            case BlockCell.IconAxe:
+                return AxeIconPixel(x, y, speckle);
             default:
                 return Clear;
         }
@@ -342,6 +348,102 @@ public static class BlockArt
         }
 
         return x == 2 ? Shade(70, 40, 20, 0) : Shade(128, 74, 40, 0);
+    }
+
+    private static (byte R, byte G, byte B, byte A) CoinIconPixel(int x, int y)
+    {
+        // A gold piece seen face on (VILLAGE_PLAN V05): a raised rim, darker where it turns away from the light, a ring struck in the face and a gleam at the top left.
+        var dx = x - 7.5;
+        var dy = y - 7.5;
+        var r = Math.Sqrt((dx * dx) + (dy * dy));
+        if (r > 6.6)
+        {
+            return Clear;
+        }
+
+        if (r > 5.4)
+        {
+            return dx + dy > 2 ? Shade(150, 104, 22, 0) : Shade(196, 146, 34, 0); // the rim, in shadow at the bottom right
+        }
+
+        if (r is > 3.2 and <= 4.0)
+        {
+            return Shade(206, 156, 40, 0); // the struck ring
+        }
+
+        if (dx + dy < -4.5)
+        {
+            return Shade(255, 234, 150, 0); // the gleam
+        }
+
+        return r <= 1.6 ? Shade(226, 176, 48, 0) : Shade(242, 196, 62, 0);
+    }
+
+    private static (byte R, byte G, byte B, byte A) AppleIconPixel(int x, int y)
+    {
+        // A red apple: two round halves with a dip between them at the top, a brown stalk and a green leaf, a highlight on the upper left.
+        var stalk = (x == 8 && y is >= 2 and <= 5) || (x == 9 && y == 1);
+        if (stalk)
+        {
+            return Shade(108, 70, 34, 0);
+        }
+
+        var leaf = (y == 3 && x is >= 10 and <= 12) || (y == 2 && x is 11 or 12) || (y == 4 && x == 10);
+        if (leaf)
+        {
+            return Shade(72, 160, 56, 0);
+        }
+
+        static double Distance(double x, double y, double cx, double cy) => Math.Sqrt(((x - cx) * (x - cx)) + ((y - cy) * (y - cy)));
+        var d = Math.Min(Distance(x, y, 5.6, 9.4), Distance(x, y, 9.4, 9.4));
+        if (d > 4.7 || (y <= 5 && x is 7 or 8))
+        {
+            return Clear;
+        }
+
+        if (d > 3.8)
+        {
+            return Shade(150, 22, 30, 0); // the dark edge
+        }
+
+        if (x is 4 or 5 && y is 7 or 8)
+        {
+            return Shade(255, 150, 140, 0); // the highlight
+        }
+
+        return y >= 11 ? Shade(186, 30, 36, 0) : Shade(222, 44, 44, 0);
+    }
+
+    private static (byte R, byte G, byte B, byte A) AxeIconPixel(int x, int y, uint speckle)
+    {
+        // The axe: a wooden haft standing up the middle and a steel head across its top, the blade fanning out to the left with a bright edge and a short poll on the
+        // right. Each column of the head spans the rows between its top and bottom.
+        var (top, bottom) = x switch
+        {
+            2 => (0, 8),
+            3 => (1, 7),
+            4 => (1, 6),
+            5 or 6 or 7 or 8 => (2, 5),
+            9 => (2, 5),
+            10 => (3, 4),
+            _ => (-1, -2),
+        };
+        if (y >= top && y <= bottom)
+        {
+            if (x == 2)
+            {
+                return Shade(228, 232, 240, 0); // the cutting edge
+            }
+
+            return y >= bottom - 1 && x <= 6 ? Shade(124, 130, 146, 0) : Shade(166, 172, 186, 0);
+        }
+
+        if (x is 7 or 8 && y is >= 1 and <= 15)
+        {
+            return x == 7 ? Shade(166, 112, 58, speckle) : Shade(118, 76, 36, speckle); // the haft, lit on its left
+        }
+
+        return Clear;
     }
 
     private static (byte R, byte G, byte B, byte A) BreadIconPixel(int x, int y)

@@ -86,10 +86,13 @@ public sealed class VillageFrontendTests(ITestOutputHelper output)
 
     // ---- the figures ----
 
+    // The looks the game draws: the three NPCs of S15, the village's four of VILLAGE_PLAN V05 and the player.
+    private static readonly string[] Looks = ["guide", "shopkeeper", "villager", "fisher", "baker", "smith", "farmer", NpcFigures.PlayerName];
+
     [Fact]
     public void EveryFigureHasAFaceAHeadBodyArmsAndLegsAndTheirClothesDiffer()
     {
-        foreach (var name in new[] { "guide", "shopkeeper", "villager", NpcFigures.PlayerName })
+        foreach (var name in Looks)
         {
             var parts = NpcFigures.PartsOf(name);
             Assert.Contains(parts, static p => p.Special is not null && p.SpecialFace == BlockFace.North && p.Group == FigureGroup.Head);
@@ -99,14 +102,59 @@ public sealed class VillageFrontendTests(ITestOutputHelper output)
             }
         }
 
-        var faces = new[] { "guide", "shopkeeper", "villager", NpcFigures.PlayerName }.Select(static n => NpcFigures.PartsOf(n).First(static p => p.Special is not null && p.Group == FigureGroup.Head).Special).ToList();
-        Assert.Equal(4, faces.Distinct().Count()); // four faces
+        var faces = Looks.Select(static n => NpcFigures.PartsOf(n).First(static p => p.Special is not null && p.Group == FigureGroup.Head).Special).ToList();
+        Assert.Equal(Looks.Length, faces.Distinct().Count()); // a face each
         Assert.Contains(NpcFigures.PartsOf("shopkeeper"), static p => p.Colour == (112, 70, 42)); // the apron
         Assert.Contains(NpcFigures.PartsOf("shopkeeper"), static p => p.Box.Y1 > 37f); // the baker's hat above the head
         Assert.Contains(NpcFigures.PartsOf("villager"), static p => p.Box.X1 - p.Box.X0 > 15f); // the brim of the straw hat
         Assert.Contains(NpcFigures.PartsOf("guide"), static p => p.Special == BlockCell.Backpack); // the guide's pack
         Assert.Contains(NpcFigures.PartsOf(NpcFigures.PlayerName), static p => p.Special == BlockCell.Backpack); // the player's backpack, seen over the shoulder
         Assert.DoesNotContain(NpcFigures.PartsOf("villager"), static p => p.Special == BlockCell.Backpack);
+    }
+
+    [Fact]
+    public void TheVillagesFourFiguresAreDrawnByTheirOwnKeysAndNeverAsTheGreyStranger()
+    {
+        // VILLAGE_PLAN V05: the fisher, the baker, the smith and the farmer (the figure keys their NPC files will name), each with its own clothes and face; an unknown
+        // key is the plain grey figure, and none of the four is it.
+        static (byte R, byte G, byte B) Body(string look) => NpcFigures.PartsOf(look)[2].Colour; // the body is the third part
+        static BlockCell? Face(string look) => NpcFigures.PartsOf(look).First(static p => p.Special is not null && p.Group == FigureGroup.Head).Special;
+        var stranger = (Body: Body("nobody"), Face: Face("nobody"));
+        Assert.Equal(((byte)160, (byte)160, (byte)160), stranger.Body);
+        foreach (var (look, face) in new[] { ("fisher", BlockCell.FaceFisher), ("baker", BlockCell.FaceBaker), ("smith", BlockCell.FaceSmith), ("farmer", BlockCell.FaceFarmer) })
+        {
+            Assert.NotEqual(stranger.Body, Body(look));
+            Assert.Equal(face, Face(look));
+        }
+
+        // Every figure key the NPC files name is drawn by its own look.
+        foreach (var npc in TestGame.Data.Npcs.All)
+        {
+            var key = npc.Figure ?? npc.Id;
+            Assert.NotEqual(stranger.Body, Body(key)); // (the stranger borrows the villager's face, so the clothes tell them apart)
+        }
+
+        var fisher = NpcFigures.PartsOf("fisher");
+        Assert.True(Body("fisher").B > Body("fisher").R * 2, "the fisher's coat is blue");
+        Assert.Contains(fisher, static p => p.Group == FigureGroup.LegLeft && p.Box.Y0 == 0f && p.Box.Y1 >= 6.5f); // tall boots
+        Assert.Contains(fisher, static p => p.Group == FigureGroup.Head && p.Box.Y1 > 34f); // a cap on his head
+
+        var baker = NpcFigures.PartsOf("baker");
+        Assert.All(baker.Where(static p => p.Group is FigureGroup.ArmLeft or FigureGroup.ArmRight && p.Cell == BlockCell.Cloth), static p => Assert.True(p.Colour.R > 240 && p.Colour.B > 230, "flour-white sleeves"));
+        Assert.Contains(baker, static p => p.Group == FigureGroup.Body && p.Box.Z0 < -3.3f && p.Colour.R > 240); // a white apron over the front
+        Assert.Contains(baker, static p => p.Group == FigureGroup.Head && p.Colour.R > 245 && p.Box.Y1 > 33f); // a white cap
+
+        var smith = NpcFigures.PartsOf("smith");
+        Assert.Contains(smith, static p => p.Group == FigureGroup.ArmLeft && p.Cell == BlockCell.Skin && p.Box.Y1 >= 17f); // rolled sleeves, the forearms bare
+        Assert.Contains(smith, static p => p.Group == FigureGroup.Body && p.Box.Z0 < -3.3f && p.Colour.R < 70 && p.Box.Y0 < 5f); // a long dark apron
+        Assert.DoesNotContain(smith, static p => p.Box.Y1 > 32.5f); // no hat
+
+        var farmer = NpcFigures.PartsOf("farmer");
+        Assert.True(Body("farmer").G > Body("farmer").R && Body("farmer").G > Body("farmer").B, "the farmer's shirt is green");
+        var brim = Assert.Single(farmer, static p => p.Box.X1 - p.Box.X0 > 15f); // the villager's straw hat
+        var villagersBrim = Assert.Single(NpcFigures.PartsOf("villager"), static p => p.Box.X1 - p.Box.X0 > 15f);
+        Assert.Equal(villagersBrim.Box, brim.Box);
+        Assert.NotEqual(villagersBrim.Colour, brim.Colour); // in another colour
     }
 
     [Fact]
@@ -317,6 +365,9 @@ public sealed class VillageFrontendTests(ITestOutputHelper output)
         Assert.Equal(new HeldChoice(HeldKind.Bottle, BlockCell.IconWaterBottle), HeldItems.For(false, ItemId.WaterBottle));
         Assert.Equal(new HeldChoice(HeldKind.Sprite, BlockCell.IconBerry), HeldItems.For(false, ItemId.Berry));
         Assert.Equal(new HeldChoice(HeldKind.Sprite, BlockCell.IconBread), HeldItems.For(false, ItemId.Bread));
+        Assert.Equal(new HeldChoice(HeldKind.Sprite, BlockCell.IconCoin), HeldItems.For(false, ItemId.Coin)); // VILLAGE_PLAN V05: their own pictures
+        Assert.Equal(new HeldChoice(HeldKind.Sprite, BlockCell.IconApple), HeldItems.For(false, ItemId.Apple));
+        Assert.Equal(new HeldChoice(HeldKind.Sprite, BlockCell.IconAxe), HeldItems.For(false, ItemId.Axe));
         Assert.Equal(HeldKind.Torch, HeldItems.For(new ItemStack(ItemId.Torch, 1)).Kind);
     }
 

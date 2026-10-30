@@ -216,8 +216,9 @@ An NPC is data alone since schema 2 of `game/npcs/<id>.json` (VILLAGE_PLAN V01):
 3. **`game-v1/game/npcs.json`**: its id **at the end** (the saves keep the NPCs in this order).
 4. **The scene placement**: `game/scene.json` `npcs` (where it stands and faces).
 5. **The locale role**: `npc.fisher.role` in `locale/en/ui.json`, and each new line's gloss in `locale/en/lines.json`.
-6. **The figure**: the figure key is drawn by `Graphics/Figures/NpcFigures.cs` (its colours, geometry and face cell); a key the game does not draw
-   yet gets a plain grey figure until a milestone adds it.
+6. **The figure**: the figure key is drawn by `Graphics/Figures/NpcFigures.cs` (its colours, geometry and face cell); the keys drawn are `guide`,
+   `shopkeeper`, `villager` and, since VILLAGE_PLAN V05, `fisher`, `baker`, `smith` and `farmer`. A key the game does not draw yet gets a plain grey
+   figure until a milestone adds it.
 7. **What its host events do** in the world (`game/host-events.json`; an event not listed changes nothing), a provenance item for each new file,
    the recordings (`scripts/prerender-speech.sh`, which reads the voice from the NPC file), and the refresh.
 
