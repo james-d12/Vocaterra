@@ -6,10 +6,12 @@ using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
 
 /// <summary>
-/// M59 (a), found by the game's V12 and V13: <c>conj.person</c> looked only after a subject pronoun, so a name or a noun before its verb was not checked
-/// (<c>Domingo trabajo en la herrería</c>, <c>las manzanas es roja</c> gave nothing). A noun phrase that opens its clause is now the subject of the verb after it.
-/// Each mistake gave no error before M59; the clean neighbours are tests as well. Runs on the lexicon of the bundle, with the game's grammars where the bundle's
-/// prompts bind the verb (<c>trabajo</c> is also a noun, and without a grammar the charitable reading takes the noun).
+/// M59 (a), found by the game's V12 and V13: <c>conj.person</c> looked only after a subject pronoun, so a noun phrase before its verb was not checked
+/// (<c>las manzanas es roja</c>, <c>los niños come pan</c> gave nothing). A noun phrase that opens its clause is now the subject of a third-person verb after it. A lone
+/// name is never checked: a transcript has no comma, and <c>Luz quiero pan</c> is right Spanish with the name said to the listener (<c>Luz, quiero pan</c>); nor is a
+/// verb of the first or second person after any noun phrase. Each mistake gave no error before M59, and each lone name gave a false one at <c>a00b2d1</c>; the clean
+/// neighbours are tests as well. Runs on the lexicon of the bundle, with the game's grammars where the bundle's prompts bind the verb (<c>trabajo</c> and <c>son</c> are
+/// also nouns, and without a grammar the charitable reading takes the noun).
 /// </summary>
 public class PreverbalSubjectTests
 {
@@ -42,16 +44,10 @@ public class PreverbalSubjectTests
     // ---- The game's sentences (V12, V13) ------------------------------------------------------------------------------------------------------------------
 
     [Theory]
-    [InlineData("domingo trabajo en la herrería", Works, "conj.person|trabajo|trabaja")]
-    [InlineData("hoy domingo trabajo en la herrería", Works, "conj.person|trabajo|trabaja")]
-    [InlineData("sí domingo trabajo en la herrería", Works, "conj.person|trabajo|trabaja")]
-    [InlineData("domingo voy a hacer un hacha", WillMake, "conj.person|voy|va")]
-    [InlineData("mañana domingo vamos a hacer un hacha", WillMake, "conj.person|vamos|va")]
-    [InlineData("luz hice pan", Makes, "conj.person|hice|hizo")]
-    [InlineData("domingo hacen un hacha", Makes, "conj.person|hacen|hace")]
     [InlineData("las manzanas es roja", Describe, "conj.person|es|son")]
     [InlineData("la manzana son roja", Describe, "conj.person|son|es")]
-    public void TheGamesNameOrNounBeforeItsVerbIsChecked(string sentence, string grammar, string expected)
+    [InlineData("sí las manzanas es roja", Describe, "conj.person|es|son")]
+    public void TheGamesNounPhraseBeforeItsVerbIsChecked(string sentence, string grammar, string expected)
     {
         Assert.Equal(expected, Described(sentence, grammar));
     }
@@ -71,24 +67,68 @@ public class PreverbalSubjectTests
         Assert.Equal(string.Empty, Described(sentence, grammar));
     }
 
-    // ---- Every tense, every number, and a subject of two phrases ------------------------------------------------------------------------------------------
+    // ---- A lone name may be the listener --------------------------------------------------------------------------------------------------------------------
+
+    // One bare noun that nothing is joined to may be the person spoken to, in any person and number (Luz, ¿tienen pan? asks ustedes), so its verb is not checked; each of
+    // these gave conj.person at a00b2d1. The game's lesson steps judge a retelling with their own person check.
+    [Theory]
+    [InlineData("luz quiero pan")]
+    [InlineData("luz tienes pan")]
+    [InlineData("luz tienen pan")]
+    [InlineData("luz queremos pan")]
+    [InlineData("luz necesito pan")]
+    [InlineData("domingo tengo madera")]
+    [InlineData("domingo necesito un hacha")]
+    [InlineData("domingo tienes un hacha")]
+    [InlineData("león quiero tres manzanas")]
+    [InlineData("mar pescaste en el río")]
+    [InlineData("domingo no tengo pan")]
+    [InlineData("cuando domingo tengo pan")]
+    public void ALoneNameBeforeItsVerbIsNotChecked(string sentence)
+    {
+        Assert.DoesNotContain("conj.person", Described(sentence), StringComparison.Ordinal);
+    }
 
     [Theory]
-    [InlineData("mar pescaste en el río", "conj.person|pescaste|pescó")]
-    [InlineData("luz tengo pan", "conj.person|tengo|tiene")]
-    [InlineData("domingo no tengo pan", "conj.person|tengo|tiene")]
-    [InlineData("luz comía pan", "")]
+    [InlineData("domingo trabajo en la herrería", Works)]
+    [InlineData("hoy domingo trabajo en la herrería", Works)]
+    [InlineData("domingo voy a hacer un hacha", WillMake)]
+    [InlineData("mañana domingo vamos a hacer un hacha", WillMake)]
+    [InlineData("luz hice pan", Makes)]
+    [InlineData("domingo hacen un hacha", Makes)]
+    public void ALoneNameIsNotCheckedWithTheGamesGrammarsEither(string sentence, string grammar)
+    {
+        Assert.DoesNotContain("conj.person", Described(sentence, grammar), StringComparison.Ordinal);
+    }
+
+    // Before a verb of the first or second person, names joined by y may be the people spoken to (Luz y Domingo, queremos pan), and a phrase with a determiner the object
+    // put first (el pan quiero). The coordinations gave conj.person at a00b2d1.
+    [Theory]
+    [InlineData("luz y domingo queremos pan")]
+    [InlineData("luz y domingo tenéis pan")]
+    [InlineData("luz y domingo quiero pan")]
+    [InlineData("el pan quiero")]
+    [InlineData("el niño tengo")]
+    public void AVerbOfTheFirstOrSecondPersonAfterANounPhraseIsNotChecked(string sentence)
+    {
+        Assert.DoesNotContain("conj.person", Described(sentence), StringComparison.Ordinal);
+    }
+
+    // ---- A third-person verb after a phrase that is surely its subject ----------------------------------------------------------------------------------------
+
+    [Theory]
     [InlineData("los niños come pan", "conj.person|come|comen")]
     [InlineData("el niño comen pan", "conj.person|comen|come")]
+    [InlineData("los niños no come pan", "conj.person|come|comen")]
+    [InlineData("cuando los niños come pan", "conj.person|come|comen")]
+    [InlineData("el domingo los niños come pan", "conj.person|come|comen")]
     [InlineData("mis padres tiene una casa", "conj.person|tiene|tienen")]
     [InlineData("dos niños come pan", "conj.person|come|comen")]
     [InlineData("luz y domingo comió pan", "conj.person|comió|comieron")]
     [InlineData("el niño y la niña come pan", "conj.person|come|comen")]
     [InlineData("el pan y la leche está en la mesa", "conj.person|está|están")]
     [InlineData("las manzanas me gusta", "conj.person|gusta|gustan")]
-    [InlineData("cuando domingo tengo pan", "conj.person|tengo|tiene")]
-    [InlineData("el domingo luz tengo pan", "conj.person|tengo|tiene")]
-    public void ANounSubjectBeforeItsVerbAgreesWithIt(string sentence, string expected)
+    public void ANounSubjectBeforeAThirdPersonVerbAgreesWithIt(string sentence, string expected)
     {
         Assert.Equal(expected, Described(sentence));
     }
@@ -99,6 +139,7 @@ public class PreverbalSubjectTests
     [Theory]
     [InlineData("mar pescó en el río")]
     [InlineData("luz tiene pan")]
+    [InlineData("luz comía pan")]
     [InlineData("domingo no tiene pan")]
     [InlineData("los niños comen pan")]
     [InlineData("luz y domingo comieron pan")]
@@ -112,9 +153,8 @@ public class PreverbalSubjectTests
         Assert.Equal(string.Empty, Described(sentence));
     }
 
-    // A noun that is not the subject: an object put first (with a determiner and a verb of the first or second person, or with an object pronoun that stands for it),
-    // a phrase a preposition governs, a phrase of time, a phrase asked about, a person spoken to, a noun said as an interjection, and a coordination with o, a pronoun or
-    // a clause of its own.
+    // A noun that is not the subject: an object put first (with an object pronoun that stands for it), a phrase a preposition governs, a phrase of time, a phrase asked
+    // about, a person spoken to, and a coordination with o, a pronoun or a clause of its own.
     [Theory]
     [InlineData("el pan quiero")]
     [InlineData("el pan lo compré")]
@@ -130,10 +170,14 @@ public class PreverbalSubjectTests
     [InlineData("qué fruta come luz")]
     [InlineData("cuántas manzanas quieres")]
     [InlineData("cuántas manzanas compra luz")]
+    [InlineData("qué frutas come luz")]
+    [InlineData("el pan lo compran los niños")]
+    [InlineData("a los niños les gusta el pan")]
     [InlineData("domingo qué haces")]
     [InlineData("hola domingo tengo pan")]
     [InlineData("gracias quiero pan")]
     [InlineData("señor quiero pan")]
+    [InlineData("los niños o la niña come pan")]
     [InlineData("luz o domingo comió pan")]
     [InlineData("yo y luz comimos pan")]
     [InlineData("como pan y luz bebe agua")]

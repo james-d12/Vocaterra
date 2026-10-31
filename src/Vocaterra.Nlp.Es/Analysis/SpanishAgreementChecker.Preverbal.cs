@@ -8,17 +8,18 @@ using Vocaterra.Nlp.Language.Lexicon;
 internal sealed partial class SpanishAgreementChecker
 {
     // Rule M59 (a), "a noun subject before its verb agrees with it". A noun phrase that opens its clause and is followed by a finite verb (past at most two adverbs or
-    // object pronouns) is the verb's subject, of the third person: Domingo trabaja, los niños comen, las manzanas son rojas. Two noun phrases joined by y or e are one plural
-    // subject (Luz y Domingo comieron). The verb takes the number of the phrase:
-    //  - a third-person verb of the other number gives conj.person with the form of that number (los niños come -> comen, la manzana son roja -> es);
-    //  - a verb of the first or second person gives conj.person with the third person only after a bare noun, a name such as Domingo or Luz (Domingo trabajo -> trabaja,
-    //    Mar pescaste -> pescó); after a phrase with a determiner the phrase may be the object put first (el pan quiero), and it is left alone.
+    // object pronouns) is the verb's subject, of the third person: los niños comen, las manzanas son rojas. Two noun phrases joined by y or e are one plural subject (Luz y
+    // Domingo comieron). A third-person verb of the other number gives conj.person with the form of that number (los niños come -> comen, la manzana son roja -> es, Luz y
+    // Domingo comió -> comieron). Correct Spanish is never flagged, and two readings of the words before the verb are, so they are left alone:
+    //  - a lone name, one bare noun with no determiner or adjective that nothing is joined to, may be the person spoken to, and a transcript has no comma (Luz, quiero pan;
+    //    Luz, ¿tienes pan?; Luz, ¿tienen pan?: ustedes; Mar, ¿pescaste en el río?), so its verb is not checked in any person or number;
+    //  - before a verb of the first or second person, phrases joined by y may be the people spoken to (Luz y Domingo, queremos pan), and a phrase with a determiner the
+    //    object put first (el pan quiero), so no such verb is checked.
     // A phrase opens its clause when nothing stands before it but adverbs, sí or no, phrases of time (el lunes, esta mañana) and one of SubjectClauseOpeners (y, pero, cuando,
-    // dónde...). Left clean: a phrase that a preposition governs (en la herrería trabaja Domingo), a phrase of time (el domingo trabajo), a phrase asked about (¿qué fruta come
-    // Luz?, ¿cuántas manzanas quieres?), a noun after an interjection (hola Domingo, a person spoken to), a noun said as an interjection (gracias, quiero pan), a bare noun
-    // a speaker calls people by before a verb of the first or second person (señor, quiero pan), a phrase that an object pronoun between stands for (el pan lo compré, Luz
-    // le doy), phrases joined by o, u or ni, a coordination with a pronoun or a name the lexicon lacks, haber (hay), ser that agrees with a plural predicate (mi comida
-    // favorita son las manzanas), the subjunctive and the imperative. A name that a grammar binds or that the lexicon lacks has no reading, so nothing is said about it.
+    // dónde...). Also left clean: a phrase that a preposition governs (en la herrería trabaja Domingo), a phrase of time (el domingo los niños comen), a phrase asked about
+    // (¿qué frutas come Luz?, ¿cuántas manzanas compra Luz?), a noun after an interjection, a phrase that an object pronoun between stands for (las manzanas las compra Luz,
+    // a los niños les gusta), phrases joined by o, u or ni, a coordination with a pronoun or a name the lexicon lacks, haber (hay), ser that agrees with a plural predicate
+    // (mi comida favorita son las manzanas), the subjunctive and the imperative. A name that a grammar binds or that the lexicon lacks has no reading at all.
     private void CheckPreverbalSubject()
     {
         for (var v = 1; v < _tokens.Count; v++)
@@ -40,8 +41,10 @@ internal sealed partial class SpanishAgreementChecker
                 continue;
             }
 
+            // A lone name may be the person spoken to, and so may the people of a coordination before a verb of the first or second person; a phrase with a determiner may be
+            // that verb's object put first. Only a third-person verb after a phrase that is surely its subject is checked.
             var third = finite.Find(static r => r.Person == "3");
-            if (third is null && (!subject.Bare || subject.Vocative))
+            if (third is null || subject.Lone)
             {
                 continue;
             }
@@ -51,8 +54,7 @@ internal sealed partial class SpanishAgreementChecker
                 continue;
             }
 
-            var representative = third ?? finite[0];
-            var expected = _morphology.Conjugate(representative.Lemma, "3", subject.Number, representative.Tense!);
+            var expected = _morphology.Conjugate(third.Lemma, "3", subject.Number, third.Tense!);
             if (string.IsNullOrEmpty(expected) || string.Equals(expected, TextOf(v), StringComparison.Ordinal))
             {
                 continue;
@@ -119,9 +121,8 @@ internal sealed partial class SpanishAgreementChecker
         }
     }
 
-    // The subject of a preverbal check: its number, whether every phrase of it is bare (no determiner or adjective before the noun: a name such as Domingo), and whether
-    // a bare one is a noun a speaker calls people by.
-    private readonly record struct PreverbalSubject(string Number, bool Bare, bool Vocative);
+    // The subject of a preverbal check: its number, and whether it is a lone name (one bare noun that nothing is joined to), which may be the person spoken to.
+    private readonly record struct PreverbalSubject(string Number, bool Lone);
 
     private bool TryFindPreverbalSubject(int verb, out PreverbalSubject subject)
     {
@@ -194,26 +195,23 @@ internal sealed partial class SpanishAgreementChecker
             return false;
         }
 
-        var bare = phrases.TrueForAll(static p => p.Determiners.Count == 0 && p.Before.Count == 0);
-        var vocative = phrases.Exists(p => SpanishAnalysisTables.IsVocativeNoun(TextOf(p.Head)));
-        subject = new PreverbalSubject(number, bare, vocative);
+        var lone = !coordinated && last.Determiners.Count == 0 && last.Before.Count == 0 && last.After.Count == 0;
+        subject = new PreverbalSubject(number, lone);
         return true;
     }
 
-    // A noun phrase that can be the subject of a verb after it: not governed by a preposition, not a phrase of time, not one asked about (a question word among its
-    // determiners: cuántas manzanas) and not a bare noun said as an interjection (gracias).
+    // A noun phrase that can be the subject of a verb after it: not governed by a preposition, not a phrase of time and not one asked about (a question word among its
+    // determiners: cuántas manzanas).
     private bool IsSubjectCandidate(NounPhrase phrase)
     {
         var start = StartOf(phrase);
-        var bare = phrase.Determiners.Count == 0 && phrase.Before.Count == 0;
         return !(start > 0 && IsPreposition(start - 1))
             && !IsTimePhrase(phrase)
-            && !phrase.Determiners.Exists(d => SpanishAnalysisTables.IsClauseOpener(TextOf(d)))
-            && !(bare && SpanishAnalysisTables.IsInterjectionNoun(TextOf(phrase.Head)));
+            && !phrase.Determiners.Exists(d => SpanishAnalysisTables.IsClauseOpener(TextOf(d)));
     }
 
     // A phrase of time (el lunes, esta mañana, la semana pasada, todos los días, mañana): a noun of time with a determiner or an adjective, or one that is also an
-    // adverb. A bare noun of time with no other reading is read as a name (Domingo).
+    // adverb. A bare noun of time with no other reading is a lone name (Domingo), which is not checked either.
     private bool IsTimePhrase(NounPhrase phrase)
     {
         var head = _tokens[phrase.Head].Readings;

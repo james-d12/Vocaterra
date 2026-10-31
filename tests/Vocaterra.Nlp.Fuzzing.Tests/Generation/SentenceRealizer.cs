@@ -844,11 +844,12 @@ internal sealed class SentenceRealizer
                 person = reflexive.Person;
                 number = reflexive.Number ?? (_rng.NextDouble() < 0.6 ? LexiconSchema.Singular : LexiconSchema.Plural);
             }
-            else if (PreverbalPhrase(i, out var coordinated) is { } phrase)
+            else if (PreverbalPhrase(i, out var coordinated, out var lone) is { } phrase && !lone)
             {
-                // M59: the analyzer agrees a verb with a noun phrase that opens its clause before it (Domingo trabaja, los niños comen); the realiser agrees it with any
-                // phrase right before it (past at most two adverbs or object pronouns), which is never wrong. Two phrases joined by y are a plural subject only where the
-                // first opens its clause, which the realiser does not model: the draw is skipped.
+                // M59: the analyzer agrees a third-person verb with a noun phrase that opens its clause before it (los niños comen); the realiser agrees it with any phrase
+                // right before it (past at most two adverbs or object pronouns), which is never wrong. Two phrases joined by y are a plural subject only where the first
+                // opens its clause, which the realiser does not model: the draw is skipped. A lone name (one bare noun) may be the person spoken to, so the analyzer does not
+                // check its verb, and the realiser draws that verb's person and number like any other (domingo hago un hacha: Domingo, I make an axe).
                 if (coordinated)
                 {
                     skip = "coordinated-subject";
@@ -898,10 +899,11 @@ internal sealed class SentenceRealizer
 
     // M59: the last word of a noun phrase right before the verb at index, past at most two skippable words or object pronouns (mirror of
     // SpanishAgreementChecker.TryFindPreverbalSubject, which also asks the phrase to open its clause), or null; coordinated is true when y or e and another phrase
-    // stand before the phrase.
-    private Item? PreverbalPhrase(int index, out bool coordinated)
+    // stand before the phrase, and lone when the phrase is one noun with no determiner or adjective and nothing joined to it.
+    private Item? PreverbalPhrase(int index, out bool coordinated, out bool lone)
     {
         coordinated = false;
+        lone = false;
         var end = index - 1;
         for (var skipped = 0; end >= 0 && skipped < MaxSkippedBetween && (IsSkippable(_items[end]) || IsPreverbalPronounLiteral(_items[end])); skipped++)
         {
@@ -920,6 +922,7 @@ internal sealed class SentenceRealizer
         }
 
         coordinated = start > 1 && _items[start - 1].Norm is "y" or "e" && _items[start - 2].Head is not null;
+        lone = !coordinated && start == end && ReferenceEquals(head, _items[end]);
         return _items[end];
     }
 
@@ -1121,10 +1124,11 @@ internal sealed class SentenceRealizer
             }
 
             // M59: the analyzer agrees a verb with a noun phrase that opens its clause before it, and a literal form cannot be changed, so a literal verb form of another
-            // person or number right after a phrase is re-rolled.
+            // person or number right after a phrase that is not a lone name is re-rolled.
             if (item.Kind == Kind.Literal
                 && item.Readings.Any(IsFiniteVerbReading)
-                && PreverbalPhrase(i, out _) is { } phrase
+                && PreverbalPhrase(i, out _, out var lone) is { } phrase
+                && !lone
                 && !item.Readings.Any(r => IsFiniteVerbReading(r) && r.Person == "3" && r.Number == phrase.PhraseNumber))
             {
                 skip = "literal-verb-subject";

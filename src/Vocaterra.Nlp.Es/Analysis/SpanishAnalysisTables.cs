@@ -112,20 +112,6 @@ internal static class SpanishAnalysisTables
     // M59. The answers that may stand before a subject (sí, Domingo trabaja en la herrería); any other interjection before a noun makes it the person spoken to (hola Domingo).
     private static readonly FrozenSet<string> AnswerWords = new[] { "sí", "no" }.ToFrozenSet(StringComparer.Ordinal);
 
-    // M59. Nouns that are said as interjections (gracias, perdón, cuidado): a bare one before a verb is not its subject (gracias, quiero pan).
-    private static readonly FrozenSet<string> InterjectionNouns = new[]
-    {
-        "gracias", "perdón", "adiós", "cuidado", "vale", "claro", "hola", "salud", "socorro", "enhorabuena", "felicidades", "ojo", "venga", "bienvenido", "bienvenida",
-    }.ToFrozenSet(StringComparer.Ordinal);
-
-    // M59. Nouns a speaker calls people by: a bare one before a verb of the first or second person is the person spoken to, not the subject (señor, quiero pan). The
-    // normalized text keeps no comma, so a name said that way (Domingo, quiero un hacha) is read as the subject; see API.md.
-    private static readonly FrozenSet<string> VocativeNouns = new[]
-    {
-        "señor", "señora", "señorita", "amigo", "amiga", "chico", "chica", "niño", "niña", "mamá", "papá", "hijo", "hija", "hermano", "hermana", "abuelo", "abuela",
-        "tío", "tía", "doctor", "doctora", "profesor", "profesora", "hombre", "mujer", "jefe", "jefa", "compañero", "compañera", "vecino", "vecina", "maestro", "maestra",
-    }.ToFrozenSet(StringComparer.Ordinal);
-
     // M59. The verbs whose clitic after cómo is reflexive and so agrees with the verb: llamarse, the question of a name (¿cómo te llamas?, ¿cómo se llama?), and sentirse
     // (¿cómo te sientes?). ¿cómo te va? (ir, with a dative) is not one of them.
     private static readonly FrozenSet<string> ReflexiveQuestionVerbs = new[] { "llamar", "sentir" }.ToFrozenSet(StringComparer.Ordinal);
@@ -147,18 +133,6 @@ internal static class SpanishAnalysisTables
     public static bool IsAnswerWord(string word)
     {
         return AnswerWords.Contains(word);
-    }
-
-    /// <summary>True for a noun that is said as an interjection (<c>gracias</c>, <c>perdón</c>), which is no subject when it stands alone before a verb (M59).</summary>
-    public static bool IsInterjectionNoun(string word)
-    {
-        return InterjectionNouns.Contains(word);
-    }
-
-    /// <summary>True for a noun a speaker calls people by (<c>señor</c>, <c>amigo</c>), which alone before a verb of the first or second person is the person spoken to (M59).</summary>
-    public static bool IsVocativeNoun(string word)
-    {
-        return VocativeNouns.Contains(word);
     }
 
     /// <summary>True for the verbs whose clitic after <c>cómo</c> is reflexive (<c>llamar</c>, <c>sentir</c>: <c>¿cómo te llamas?</c>; M59).</summary>
