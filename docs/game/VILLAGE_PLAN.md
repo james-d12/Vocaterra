@@ -7,7 +7,7 @@ bigger village with more people, each with a reason to be spoken to, and a conne
 every verb the player meets is used in the present, the past and the future (section 2.9 and the ladder in 3.5; added the same day on the
 owner's second line).
 
-**Status:** phase A in progress (owner, 2026-10-30, D-game-22: phase A now, the proposals of section 6 accepted, the farmer León,
+**Status:** phase A done on 2026-10-31 (V01 to V07, V09, V10 to V12 and the follow-up V12b, all gated on `feature/village`); phase B waits for the owner, who listens to phase A's provisional voices first (owner, 2026-10-30, D-game-22: phase A now, the proposals of section 6 accepted, the farmer León,
 provisional voices recorded now and heard afterwards, phase B held; every milestone by Opus 5.5 at xhigh effort). Its milestones are V01
 to V17 (section 4), on the feature branch `feature/village` (never `main`; the owner merges by pull request). Commit prefix `V<nn>:`.
 
@@ -576,6 +576,7 @@ Today's gate demands A1 bundle-wide (section 2.5). The rule this plan proposes, 
 | V10 | Session 4 "El pueblo": the fisher; places and directions; `ask_far`, `ask_availability`; the three times around the walk (`voy a la panadería`, `voy a comprar pan`, `fui a la panadería`; `state_action` gains `comprar` and the later markers); the order `fruit-for-mar`; the X06 review steps in `personas` and `ayer-y-manana` | V01, V02, V04, V05, V06, V07 | M | Opus 5.5 xhigh | done 2026-10-30 (`3f1ce84`) |
 | V11 | Session 5 "Números y pan": the baker; numbers, plurals, `ask_price`; the plan and the report of the oven order (`voy a buscar madera`, `compré dos panes`: the regular `-ar` preterite); the oven order; the purchase; the stall's price | V03, V10 | M | Opus 5.5 xhigh | done 2026-10-31 (`6097249`) |
 | V12 | Session 6 "Gente del pueblo": the smith and the farmer; `ask_name`, `ask_activity`, (`ask_residence`); the third person in three times (`trabaja`, `va a hacer`, `hizo`; a name subject in `state_action`), `vivo en`; the axe order | V11 | M | Opus 5.5 xhigh | done 2026-10-31 (`c325b67`) |
+| V12b | Follow-up found by V09's runs: the four village NPCs' `focus` (their open prompts' rows), a turn credits its prompt's own row before the stall's fixed mapping (free talk with the baker had credited `pedir-agua`), and a validator rule that a prompt that is the home of practised rows names one in its NPC's focus | V09 | S | Opus 5.5 xhigh | done 2026-10-31 (`29188ce`) |
 | V13 | Session 7 "¿Cómo es?": adjectives and `gustar` in the present and the past; `describe`, `state_like`, `[ADJ]` in `request_item`; the water order (its plan and report reviewed); apples | V08, V12 | M | Sonnet 5.5 / Haiku 5.5 | planned (phase B) |
 | V14 | Session 8 "Ayer en el pueblo": the preterite for every person (él/ella, nosotros, ellos; the day of the village told and retold), `tener que`; `state_obligation` | V13 | M | Sonnet 5.5 / Haiku 5.5 | planned (phase B) |
 | V16 | The simple future in the runner and the book: `tense: fut` on a step, `ir a` credited there with a note, the fourth column, the schema (3.8) | V08 | S | Haiku 5.5 | planned (phase B) |

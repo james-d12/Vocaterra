@@ -398,7 +398,7 @@ instruction one session (Opus 5.5) does every milestone itself, with no subagent
 - C10, the authoring CLI (`new npc|objective|lesson`, `refs <id>`, `check`), is specified in `CONTENT_PLAN.md` section 3.8.
 - Neither C09 nor C10 is built; each becomes a milestone when the owner asks for it.
 
-### 4.8 The village and the lessons (the V series; phase A in progress since 2026-10-30, D-game-22)
+### 4.8 The village and the lessons (the V series; phase A done 2026-10-31, phase B held, D-game-22)
 
 The owner's request (2026-10-30): a bigger village with more NPCs (a blacksmith, a baker) and more lessons, without a larger map,
 with the NPCs interlinked, the map's space used, the lessons connected, A1 to A2; and, the same day, "past, present, and future use of
@@ -408,8 +408,9 @@ an apple, an axe) and four orders tie them together; seven lessons, sessions 4 t
 present, the preterite and the future around the order it carries (the plan, the doing, the report), with the simple future at A2 in
 session 9. Phase A (V01 to V07, V10 to V12: sessions 4 to 6, A1 complete) and phase B (V08, V13 to V17: A2) are separated by an owner
 decision. The series runs on `feature/village`, commit prefix `V<nn>:`. **Phase A started on 2026-10-30** (D-game-22: the plan's
-proposals, the farmer León, provisional voices heard afterwards, phase B held; every milestone by Opus 5.5 at xhigh effort); the
-milestones' statuses are in the plan's section 4. The findings of each milestone go into section 5.
+proposals, the farmer León, provisional voices heard afterwards, phase B held; every milestone by Opus 5.5 at xhigh effort); **phase A was done on
+2026-10-31** (V01 to V07, V09, V10 to V12 and the follow-up V12b; 6030 tests passing, bundle `7ba32270…`), and phase B waits for the
+owner. The milestones' statuses are in the plan's section 4. The findings of each milestone go into section 5.
 
 ## 5. Findings log
 
@@ -1695,6 +1696,21 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     - Name plates show through figures (the farmer's over the shopkeeper's face in r17): a design question for the owner, not a bug.
     - The three-NPC lists left in the `--talk` help, `NpcService`, `GuideSession`, `InputEntry`, `SaveDocument`, `VoxelGame` and both game
       projects' READMEs are brought up to seven; the two "Rosa" comments were already gone.
+- **V12b: the village NPCs' focus (2026-10-31, Opus 5.5 xhigh; gated on `feature/village` at `29188ce`; phase A ends here).**
+  - **Gate:** 6030 passed, 3 skipped, 0 failed, with the models; 0 warnings; format, content, grammar and both licence scans clean. Bundle
+    `7ba32270…`; no golden or digest moved.
+  - **Cause.** `GuideSession.AfterTurn` asked for the phrase in play (the NPC's focus through `NpcRoster.FocusAt`); the baker's file had
+    none, so the turn fell back to `PhraseIds.For`, whose fixed mapping makes every `request_item` the stall's `pedir-agua`;
+    `NpcService.PhraseSkillsOf` used the same mapping, so the core's learner model was told `phrase.pedir-agua` too.
+  - **Built.** A `focus` at each village NPC's open prompt (the fisher's two directions rows, the baker's `quiero-dos-panes`,
+    `cuanto-cuesta`, `hay-pan`, the smith's and the farmer's `como-te-llamas`, `que-haces`), so their rows get cards that fade like the
+    stall's; `PhraseSheet.PhraseFor` credits the phrase in play, else the row the prompt teaches for the intent, else the fixed mapping (kept:
+    a request at another NPC is still a transfer of `pedir-agua`); of two rows with one intent, the one naming the place asked; a phrase at
+    home with two NPCs is a transfer at neither (`NpcRoster.IsHomeOf`); a validator rule: a prompt that is the home of practised rows names one
+    of them in its NPC's focus (true of all seven). `VillageFocusTests` (8 cases, failing before the fix). One game run checked each NPC's
+    free talk: the cards, the credit and the reply.
+  - **Found:** at the villager, "¿dónde está la panadería?" still credits `donde-esta-el-rio` (from before V12b; the check that would fix it
+    changes lesson credit, so it is left for phase B).
 
 ## 6. Definition of done (every milestone)
 
