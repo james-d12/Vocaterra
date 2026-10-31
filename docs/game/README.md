@@ -33,6 +33,13 @@ guide's lesson (S17):
 These are the brief's five target phrases. Nothing in the scenario ends by a language mistake: no death, no timers, no language gate. The run
 lines for the 3D world are in "The 3D world" below; they grow as S5 onward land.
 
+**Later sessions.** A load is the next play session, and each later session unlocks one lesson: sessions 2 and 3 at the villager and the stall (S26,
+S27), and since phase A of [docs/game/VILLAGE_PLAN.md](VILLAGE_PLAN.md) (D-game-22) sessions 4 to 6 in a village grown inside its own clearing, with four
+more people: the fisher Mar on the bridge's east landing (session 4, "El pueblo": places and the way to them), the baker Luz at the bakery (session 5,
+"Números y pan": numbers, prices and bread for coins), the smith Domingo at the smithy and the farmer León at the wheat field (session 6, "Gente del
+pueblo": names, jobs and someone else in three times). Coins, apples and an axe are items, and three orders pay in them ("The village: sessions 4 to 6"
+below). The first session needs none of this: the four stand in the world and answer when talked to.
+
 ## Layout
 
 The game is one half of the repository: the projects below, `content/game-v1`, `assets/` and these documents. The shared solution, build settings, package versions and scripts are at the root
@@ -76,7 +83,8 @@ the merge gate and CI run it, and `scripts/test.sh project Vocaterra.Game.Core.T
 (`TestGame.Bundle`) and one build of the route per seed (`RouteScene.Build`, `TestGame.Route`: each test gets a clone it may edit); a test of
 the scene builder itself calls `SceneBuilder.Build`.
 
-The speech models are not in the repository. Without them fourteen model-gated tests are skipped, and the speech runs (the mic check, `--speak`,
+The speech models are not in the repository. Without them seventeen model-gated tests of the game are skipped (34 in the whole suite with the core's, against 3 of the core's with
+the models; V09), and the speech runs (the mic check, `--speak`,
 `--playtest`) cannot hear. Fetch the pinned Vosk model and the Kokoro model once into a folder outside the repository, then point
 `VOCATERRA_MODELS_DIR` at it for the tests and the runs:
 
@@ -116,7 +124,8 @@ The prototype's world is the first-person voxel scene: it loads the world from t
 parameters and named sites, not blocks, a 384 x 384 x 128 block valley with high snow-capped mountains along the north and the west, a waterfall off
 the northern cliffs, a river through a dense forest to a lake, the guide's camp in a clearing, the village on the meadow across the river with the stall,
 three timber-framed houses with stepped roofs and chimneys, a stone tower, a fenced crop field, lanterns on posts and the signpost with its three boards
-`Tienda`, `Río` and `Montaña` (S15), and the player's own camp on a cliff ledge at the top of a switchback trail) at `--seed` (default 42; the
+`Tienda`, `Río` and `Montaña` (S15); since VILLAGE_PLAN V04 also a bakery with its oven, a smithy with a lit forge and an anvil, a well, the farmer's
+apple crate and an orchard of three trees, and the fisher's crates and lamp on the bridge's east landing; and the player's own camp on a cliff ledge at the top of a switchback trail) at `--seed` (default 42; the
 seed changes the land between the sites and the forest, never a site), and shows it from the player's eyes. A new game starts at the player's camp
 (facing south-east, a canvas tent, a chest and a cold fire ring beside it) with the beacon on the guide's camp: the first thing to do is the walk down the trail.
 `--quality low|medium|high` sets how far the world is drawn and how much is drawn of the undergrowth, the occlusion and the clouds (see `src/Vocaterra.Game/README.md`); the default, high, is for a real graphics card, and
@@ -177,7 +186,7 @@ speech buttons (S7)**: `[R] Repetir`, `[S] Más despacio`, `[H] Ayuda`, `[N] No 
 `Escribir` (W or Tab) opens the text box, where Enter sends and Tab or Esc go back to the buttons; Esc cancels a turn that is "Thinking…", then closes the
 panel. After a spoken turn the line `Heard: «…» · Expected: «…»` stays under the conversation; when the NPC offers choices they are buttons too (keys 1 to 3).
 A mic check (`Say "hola"`, a level meter, what was heard) opens an interactive run (`--no-mic-check` skips it, `--mic-check` forces it). Her answers point the beacon at the named noun's nearest block (the arrow at the screen edge when it is off
-screen); "¿qué es esto?" names the block under the crosshair. **The shopkeeper and the villager are talked to the same way** (S6): aim at any figure, `E: talk`; the panel's title is the NPC's name.
+screen); "¿qué es esto?" names the block under the crosshair. **The shopkeeper and the villager are talked to the same way** (S6), and so are the fisher, the baker, the smith and the farmer (VILLAGE_PLAN V10 to V12): aim at any figure, `E: talk`; the panel's title is the NPC's name.
 
 **The camp objective (S4).** The checklist top right, `Campamento: madera 5/5 · frutas 3/3 · antorcha 1/1 · agua 0/1`, is completed by the
 game's events and the inventory, never by a language score: five trunks, three berries, the torch placed at the fire ring, and the water: the shopkeeper hands over an empty bottle (`la botella`), and holding the left button on the river with it in the
@@ -223,8 +232,8 @@ dotnet run --project src/Vocaterra.Host -- --transcript "quiero agua, por favor"
 ```
 
 The steps `--look yaw,pitch` (degrees, yaw 0 north and 90 east), `--walk-to x,z`, `--interact x,y,z`, `--place item@x,y,z`, `--select n` and
-`--craft item` run in the order given, and so do the talk steps (S6): `--talk <npc>` (`guide`, `shopkeeper`, `villager`: walk up to the figure, stop about
-two blocks away facing it, open the panel), `--say <line>` (type and send a line to the NPC the panel is open on and wait for the reply; with no
+`--craft item` run in the order given, and so do the talk steps (S6): `--talk <npc>` (an id of `game/npcs.json`: `guide`, `shopkeeper`, `villager`,
+`fisher`, `baker`, `smith` or `farmer`; walk up to the figure, stop about two blocks away facing it, open the panel), `--say <line>` (type and send a line to the NPC the panel is open on and wait for the reply; with no
 panel open it first talks to the guide, as in S3), `--leave` (close the panel; walking on or talking to someone else closes it too) and `--shot
 <png>` (save the screen at that point and go on); `--beacon <point>` stands the beacon column on a named point of the scene. Details are in `src/Vocaterra.Game/README.md`.
 Spoken input (push-to-talk) works in the interactive game. The scripted spoken path (S7): `--speak "<line>"` synthesizes the line with Kokoro and
@@ -266,7 +275,9 @@ Everything is placed by `SceneBuilder` from `scene.json` and the seed's `WorldRn
 a test pins the village's and the camps' structure.
 
 **The figures.** The guide Luna (green jacket, yellow scarf, long hair, a pack), the shopkeeper (a white shirt with rolled sleeves, a leather apron, a beard and a
-baker's hat), the villager (a blue tunic and a straw hat) and the player (a blue shirt and a backpack with a bedroll) are boxes of the atlas's cloth, skin and
+baker's hat), the villager (a blue tunic and a straw hat), since VILLAGE_PLAN V05 the fisher Mar (a blue coat, tall boots, a knitted cap and a grey beard), the
+baker Luz (a rose dress with flour-white sleeves, a white apron and cap), the smith Domingo (a rust shirt, a long dark apron, a moustache) and the farmer León (a
+green shirt and the villager's straw hat in tan), and the player (a blue shirt and a backpack with a bedroll) are boxes of the atlas's cloth, skin and
 hair pictures with a drawn face on the front of the head, shaded by the same sun table as the blocks. They idle (a breath, swaying arms, a head that looks about);
 **when you talk to one it turns to you** (`FigureFacing`: the shorter way round, at most 80 angle steps a tick) and nods and waves its right arm, and turns back to
 where the scene put it when the talk is over. **F5** shows you from behind your right shoulder (the camera stands three blocks back and never inside a wall), with
@@ -274,7 +285,7 @@ the figure walking when you walk; first person has the arm instead.
 
 **The arm.** The first-person arm is a blocky forearm in the player's blue sleeve with a hand in the player's skin, drawn in 3D with the figures' cloth and skin
 pictures, no outline, tinted by the light where you stand (dimmer under cover, warm near a lantern or with a torch in hand). It holds what the hotbar has selected:
-a log for wood, a torch with its flame for a torch, a bottle, or a flat berry or loaf; it sways when you walk, chops while you gather and dips once when you place.
+a log for wood, a torch with its flame for a torch, a bottle, or a flat berry or loaf, and since VILLAGE_PLAN V05 a coin, an apple or the axe; it sways when you walk, chops while you gather and dips once when you place.
 
 **The HUD.** The hotbar is a row of dark rounded slots with the item's pixel-art icon and the count; the selected one has a bright frame. At the workbench a panel at the
 right shows the recipe as icons: what it makes at the top and, under the arrow, each ingredient with `have/need` in green or red. The dialogue panel is a dark
@@ -308,9 +319,11 @@ dotnet run --project src/Vocaterra.Game -- --load /tmp/s10.save --seed 7
 ```
 
 **Checks, the session log and the report (S11).** `--check pre|post|recall` runs the check battery outside the world, on its own screen (the
-items are `content/game-v1/game/checks.json`): ten items, six that play a Spanish line and offer three meanings (keys **1**, **2**, **3**; **R**
-plays it again), and four that ask the learner to say a phrase in Spanish for an English situation (hold **V** to speak, **W** to type and
-**Enter** to send, **N** for "no sé"). The order and the options' order come from the world seed and the kind, so a pre-check and a post-check
+items are `content/game-v1/game/checks.json`): items that play a Spanish line and offer three meanings (keys **1**, **2**, **3**; **R**
+plays it again), and items that ask the learner to say a phrase in Spanish for an English situation (hold **V** to speak, **W** to type and
+**Enter** to send, **N** for "no sé"). S11 had ten; since VILLAGE_PLAN V07 a battery asks the items of the lessons its play session has unlocked and
+always those of the first three sessions (`coreSessions: 3`): 31 items up to session 3 (16 heard, 15 said; the pilot's battery), 39 in session 4, 47 in
+session 5 and all 55 of the bank from session 6. The order and the options' order come from the world seed and the kind, so a pre-check and a post-check
 hold the same items in other orders. **Esc** ends the battery (the rest is skipped). `pre` is followed by the world; `post` and `recall` end the
 run after the battery. A check never changes the learner model, the phrase progress, the conversations or the world. The answers go to the
 session log: **`--session-dir <dir>`** names the folder (default: a new folder named by the local date and time and the session number, under
@@ -353,7 +366,7 @@ dotnet run --project src/Vocaterra.Game -- --playtest --greyscale           # ar
 # the next-day recall of a playtest's save: the recall check, then the thank-you; nothing is saved
 dotnet run --project src/Vocaterra.Game -- --playtest --load ~/.local/share/vocaterra/sessions/<folder>/playtest.save
 # the same run, scripted (a screenshot needs a display; the pre-check's answers are --pick and --say; the post-check's answers come after the
-# transfer's --leave and the climb to the player's own fire, in the order the console prints as "check order:" (both lists below are for seed 42 and the 31 items of the bank; when the bank changes, run once and read both orders from the console);
+# transfer's --leave and the climb to the player's own fire, in the order the console prints as "check order:" (both lists below are for seed 42 and the 31 items of the first session's battery; when they change, run once and read both orders from the console);
 # see the S11 lines above for the shape of a check's answers)
 DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --playtest --seed 42 --session-dir /tmp/playtest1 \
   --pick 1 --say "¿Qué es esto?" --say "Sí." --pick 3 --say "No, gracias." --pick 2 --say "Necesitamos agua." --say "¿Dónde está el río?" --say "No." --say "Más despacio, por favor." --say "Otra vez, por favor." --say "Ella quiere fruta." --say "Tengo una fruta." --pick 2 --pick 3 --pick 3 --say "Ayer comí fruta." --pick 3 --pick 2 --pick 3 --pick 3 --pick 2 --pick 1 --say "Sí, por favor." --pick 3 --pick 3 --pick 2 --pick 2 --say "Voy a comer pan." --say "Quiero madera." --say "Quiero agua, por favor." \
@@ -369,7 +382,7 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --playtest --seed 42 --ses
 folder (a tester needs no .NET install), copies the bundle with its speech WAVs, the pinned Vosk model with its manifest (copied from
 `VOCATERRA_MODELS_DIR`, after its checksums are checked), the tester's README (`scripts/playtest/README-tester.md`) and the launcher
 (`scripts/playtest/playtest.sh`, which runs `--playtest` with the folder's own models). Then it checks the folder: no sherpa-onnx or ONNX Runtime native
-library, no espeak-ng, no sherpa model file, the Vosk model's checksums, 226 speech files; the build fails if one check does not pass. The
+library, no espeak-ng, no sherpa model file, the Vosk model's checksums, every speech file the bundle's manifest lists (680 since VILLAGE_PLAN V12); the build fails if one check does not pass. The
 sherpa-onnx native library is left out by the build property `VocaterraPlaytest=true` (in `src/Vocaterra.Game/Vocaterra.Game.csproj`:
 the native assets of the linux-x64 runtime pack are excluded, and the ONNX Runtime Windows DLLs that its props add are dropped from the publish).
 The managed `sherpa-onnx.dll` stays, because the core's assemblies reference it. The playtest loads Vosk only; the NPCs' voices are the
@@ -393,7 +406,10 @@ copied from it, reworded where they failed the game's A1 check, and stay credite
 added since is the game's own, hand-authored: the guide (agent `guide`, intents `ask_directions`, `ask_what` and `ask_help`, prompt
 `guide-open`, the reply pools and the host-line pools the game renders itself), `answer-sets/places-basic.json` and `lexicon/world.json`, and
 since S5 the prototype's stall and village: the agents `shopkeeper` and `villager`, the intents `request_item` and `dont_know`, the answer set
-`supplies`, the prompts `stall-need`, `stall-offer`, `villager-open` and `guide-offer`. The blacksmith and the spells left the bundle in S5 (they went with the core's former sample). **The phrase sheet [content/PHRASES.md](../../content/PHRASES.md) is the source of truth for the Spanish the learner is
+`supplies`, the prompts `stall-need`, `stall-offer`, `villager-open` and `guide-offer`; and since phase A of the village plan (V10 to V12) the
+agents `fisher`, `baker`, `smith` and `farmer`, the intents `ask_far`, `ask_availability`, `ask_price`, `ask_name` and `ask_activity`, the answer sets
+`places-village`, `supplies-bakery`, `people-smith` and `people-farmer`, and the prompts `fisher-open`, `baker-open`, `smith-open` and `farmer-open`
+(with each lesson's `lesson-*` prompts and answer sets). The blacksmith and the spells left the bundle in S5 (they went with the core's former sample). **The phrase sheet [content/PHRASES.md](../../content/PHRASES.md) is the source of truth for the Spanish the learner is
 taught** (decision D-game-10): every row is checked against the bundle by `tests/Vocaterra.Host.Tests/PhraseSheetTests.cs`. Since R02 this is the repository's only bundle: the
 core's tests, its fuzz suite and its demo CLI run on it, so an edit of the game's content re-runs the core suite, and a core test that fails is the signal that the
 edit broke something the core relies on (`docs/nlp/CONTRIBUTING.md`). The bundle has its own hash, which the loader
@@ -521,8 +537,10 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --lesson-
 - **Sessions.** A lesson has a `session` in `lessons.json` (default 1) and is offered only once the play session has reached it; the session is the save's number (a load is the next session).
   A lesson of a later session also has an English `objective` that names it: the objective area shows it (and the beacon points at the lesson's NPC) while the lesson is unlocked and not begun.
   `--session <n>` starts a run as play session n (`--session 2 --screenshot x.png --frames 120` shows session 2 opening at the camp: `Session 2: go to the village and talk to the villager to start
-  the lesson “Personas”`, with the beacon on the villager).
-- **Personas** (session 2, the villager then the shopkeeper, 20 steps, `autoStart`): él, ella, usted, nosotros, ustedes and ellos of `querer`, `tener`, `necesitar`, `ser`, `estar` and `ir`. The learner
+  the lesson “Personas”`, with the beacon on the villager). Since VILLAGE_PLAN V10 a lesson may also name the lesson it comes `after`, and is offered only once that one is done: sessions 4 to 6
+  (`--session 4`, `--session 5`, `--session 6`) unlock `el-pueblo` after `ayer-y-manana`, `numeros-y-pan` after `el-pueblo` and `gente-del-pueblo` after `numeros-y-pan` ("The village: sessions 4
+  to 6" below). `--lesson-run <id>` starts a lesson whatever came before.
+- **Personas** (session 2, the villager then the shopkeeper, 22 steps since VILLAGE_PLAN V10 added its two `review` steps, `autoStart`): él, ella, usted, nosotros, ustedes and ellos of `querer`, `tener`, `necesitar`, `ser`, `estar` and `ir`. The learner
   says what Luna wants, what we need and what we want and answers the shopkeeper's `usted` questions about themself; the other forms are heard (listen steps) and listed once. A step may name its NPC
   (`npc`), and a `do` step may wait for the panel to open on an NPC (`at`): the walk from the villager to the stall. While such a step waits the objective says `Walk to the stall and talk to the
   shopkeeper`. The villager's and the shopkeeper's lines are in pools named `guide.lesson.villager.*` and `guide.lesson.shop.*` (the voices follow the prefix; `--host-pools 'guide.*'` counts them).
@@ -541,7 +559,7 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --lesson-
 
 ## Yesterday and tomorrow, the tense check (S27, D-game-19)
 
-- **Ayer y mañana** (session 3, the villager then the shopkeeper, 20 steps, `autoStart`): the present of `ir` (voy, vas, va, vamos, van, listed once), the near future with `ir a` + an infinitive
+- **Ayer y mañana** (session 3, the villager then the shopkeeper, 21 steps with V10's two `review` steps, `autoStart`): the present of `ir` (voy, vas, va, vamos, van, listed once), the near future with `ir a` + an infinitive
   (`Voy a comer pan.`, `Vamos a comer fruta.`, `Mañana voy a ir al río.`; `Ellos van a comer pan.` is heard) and a few preterite forms, yo and tú (comí, bebí, fui; comiste, bebiste, fuiste), with the time words
   `hoy`, `ayer` and `mañana`. The villager covers today and tomorrow, a walk to the stall (the same short walk as Personas) leads to the shopkeeper, who asks about yesterday: `¿Qué comiste ayer?`,
   `¿Fuiste al río ayer?`, `¿Bebiste agua ayer?` and, last, `¿Qué vas a hacer mañana?`. The answers are statements about an action in any tense (the intent `state_action`), so nothing is handed over.
@@ -560,6 +578,46 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --lesson-
   number, `a`, then the lemma as the infinitive. The lemma of an `ir-a` form is the verb that follows the `a`. The book's table for a verb (S28) therefore has a column "future (ir a)" whose cells are built from the
   `ir` row of its present column and the verb's infinitive, never typed by hand; `TaughtVerbForm.Text(morphology)` gives the text of any declared form (`voy a comer`, `comí`, `fuiste`). The column and the preterite
   column stay hidden until a lesson declares a form of that tense.
+
+## The village: sessions 4 to 6 (VILLAGE_PLAN phase A, D-game-22)
+
+The plan is [docs/game/VILLAGE_PLAN.md](VILLAGE_PLAN.md) (V01 to V07, V10 to V12); each lesson uses its verbs in the present, the preterite and the near future
+around an order the learner carries out (the plan, the doing, the report).
+
+- **The people.** Seven NPCs, in the order of `game/npcs.json`: the guide Luna, the shopkeeper (`Tendero`), the villager (`Aldeano`), the fisher Mar (`Pescador`),
+  the baker Luz (`Panadera`), the smith Domingo (`Herrero`) and the farmer León (`Granjero`). An NPC is data alone (`game/npcs/<id>.json`, schema 2, V01: its
+  prompts by state, its opening, its voice, its key words; `content/README.md`, "Adding an NPC"). The four new voices are provisional (D-game-22 (d): the
+  fisher `em_santa` at 0.9, the baker `if_sara`, the smith `im_nicola`, the farmer `pm_santa`; `docs/game/SPEECH_CHECKLIST.md` and `docs/game/voice-trial/`).
+- **Directions** (V02). The fisher and the villager point the beacon at the place the learner names (`¿Dónde está la panadería?`: the scene's labels, then a
+  catalogue noun; any other word is "No sé dónde está."); every answer logs `place_asked` and the arrival at the arrow logs `beacon_reached`.
+- **Coins, apples and the axe** (V03, V05): `moneda`, `manzana` and `hacha` are items with their icons and held sprites; the axe fells a trunk in a quarter of
+  the time. An **order** is an objective shown and counted from its play session, delivered by walking up with the goods: the panel opens, the goods go, the
+  NPC thanks and pays, and `order_delivered` is logged. `fruit-for-mar` (session 4: three fruits for two coins), `oven-wood` (session 5: five wood for four
+  coins) and `axe-handle` (session 6: two wood and two coins for the axe). The baker sells bread at two coins a loaf (`Quiero dos panes, por favor.` buys
+  two; with too few coins nothing changes hands and she says `Necesitas más monedas.`), and the stall says its price.
+- **El pueblo** (session 4, after `ayer-y-manana`, the fisher at the bridge, 24 steps): `¿Dónde está…?`, `¿Está lejos?`, `¿Hay un pozo…?`, and the walk itself in
+  three times (`Voy a la panadería.`, `Voy a comprar pan.`, back at the bridge `Sí, fui a la panadería.`): the arrow to the bakery and the smithy, the
+  villager at the signpost, then back to the fisher, who asks for fruit (`fruit-for-mar`).
+- **Números y pan** (session 5, after `el-pueblo`, the baker then the stall, 23 steps): the numbers to ten, plurals, `¿Cuánto cuesta?`, `Quiero dos panes, por
+  favor.`, and the oven order in three times (`Voy a buscar madera.`, `Tengo cuatro monedas.`, `Compré dos panes.`: the regular `-ar` preterite).
+- **Gente del pueblo** (session 6, after `numeros-y-pan`, the villager, the smith and the farmer, 28 steps): `¿Cómo te llamas?`, `¿Qué haces?`, `Es el herrero.`,
+  `Vivo en el campamento.`, and the smith in the third person in three times (`Domingo trabaja en la herrería.`, `Va a hacer un hacha.`, `Domingo hizo un
+  hacha.`) around the axe order.
+- **Runs.** `--session 4 --lesson-run el-pueblo`, `--session 5 --lesson-run numeros-y-pan` and `--session 6 --lesson-run gente-del-pueblo` run them with typed
+  answers. The scripted runs r18 (the bakery purchase) and r19 (asking the way) cover the sale and the directions (`docs/game/SCRIPTED_RUNS.md`).
+
+```bash
+# session 5: five trunks from the orchard, the oven order delivered at the baker (four coins), two loaves bought (r18 of the scripted runs);
+# the inventory at the end holds the book and two loaves
+dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --session 5 --teleport 309,216 --interact 311,38,214 --interact 311,39,214 --interact 311,40,214 \
+  --interact 311,38,218 --interact 311,39,218 --talk baker --shot /tmp/v09-paid.png --say "quiero dos panes, por favor" --leave --inventory \
+  --screenshot /tmp/v09-bakery.png --frames 30
+# session 1: the fisher asked the way to the bakery, the arrow, the walk to its door (beacon_reached), the bakery and the baker (r19)
+dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --teleport 236,206 --talk fisher --say "¿dónde está la panadería?" --shot /tmp/v09-arrow.png \
+  --walk-to 282,206 --walk-to 282,212 --look 0,4 --screenshot /tmp/v09-bakery-door.png --frames 60
+# session 4: the fisher's lesson with typed answers, from the player's camp
+dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --session 4 --lesson-run el-pueblo --screenshot /tmp/v10-el-pueblo.png --frames 30
+```
 
 ## The book (S20, D-game-16)
 
