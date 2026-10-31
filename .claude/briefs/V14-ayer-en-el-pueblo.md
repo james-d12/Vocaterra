@@ -7,7 +7,7 @@ You are implementing milestone **V14, session 8 "Ayer en el pueblo"**, of the Vo
 Do the work yourself; do not spawn subagents.
 
 ## Where to work, and pushing
-Work only in the existing git worktree `/home/user/Dev/Vocaterra/.claude/worktrees/village`: cd there first, and never edit `/home/user/Dev/Vocaterra` itself or any other worktree. It is on branch `feature/village` (at the HEAD `git log -1` shows, `@@HEAD@@`).
+Work only in the existing git worktree `/home/user/Dev/Vocaterra/.claude/worktrees/village`: cd there first, and never edit `/home/user/Dev/Vocaterra` itself or any other worktree. It is on branch `feature/village` (at the HEAD `git log -1` shows, `12ea9d7`).
 - Create your branch with `git checkout -b V14-ayer-en-el-pueblo feature/village`.
 - **The owner wants work pushed often.** Commit after each coherent step that builds and passes `scripts/test.sh fast`, with the prefix `V14: `.
 - Push after every commit: `git push -u origin V14-ayer-en-el-pueblo` the first time, then `git push origin V14-ayer-en-el-pueblo`.
@@ -37,8 +37,8 @@ Work only in the existing git worktree `/home/user/Dev/Vocaterra/.claude/worktre
 - Keep `sed -n` ranges under about 150 lines; prefer `grep -n` to find the place first.
 - Wait for a long command by running it in the foreground through `scripts/limited.sh`, not by polling a log with repeated `tail`.
 - After the first edit of the bundle, run the grammar-sensitive fuzz classes at once (`scripts/test.sh project tests/Vocaterra.Nlp.Fuzzing.Tests`), not only the fast tier, so that a grammar fault shows before the full run.
-- **The core's M56 and M59 have just landed** (the owner moved them before V14 on 2026-10-31): @@M56M59@@
-- **Known core gaps you must not rely on** (`docs/nlp/IMPLEMENTATION_PLAN.md` §5; and any V13 filed): the fuzz generator knows only `mañana` as a future marker (M57, after V16); `cuánto costa` and `hay pans` (M58, before V15).
+- **The core's M56 and M59 have just landed** (the owner moved them before V14 on 2026-10-31): M56 at `d87e823`, M59 at `12ea9d7` (their entries in `docs/nlp/IMPLEMENTATION_PLAN.md` §5b). What the core now grades: `ser` where a place takes `estar` (`es lejos`, `¿dónde es la herrería?` → `ser_estar`; an event keeps `ser`); a subject after its verb (`¿dónde están la herrería?`, `¿cuánto cuestan el pan?`, `me gusta las manzanas` → `conj.person`); a determiner phrase or names joined by `y` before a third-person verb of the other number (`los niños come pan`, `las manzanas es roja`, `Luz y Domingo comió pan` → `conj.person`); the reflexive clitic (`cómo te llama` → `llamas`); `va a hace un hacha` (`conj.tense`); and `hace` read as the verb unless a time follows. **What it leaves to the lesson on purpose:** a lone name before a verb is never checked, in any person, because it may be the person spoken to (`Luz, quiero pan`; transcripts carry no commas). So `Luz hice pan` or `Mar pescaste en el río` at a retelling step is the lesson's own person miss (its `personRetry`), not a core error, and no first- or second-person verb is checked after any noun phrase. `Domingo trabajo en la herrería` and `Domingo voy a hacer un hacha` stay clean to the core.
+- **Known core gaps you must not rely on** (`docs/nlp/IMPLEMENTATION_PLAN.md` §5): the fuzz generator knows only `mañana` as a future marker (M57, after V16); `cuánto costa` and `hay pans` (M58, before V15); a predicate adjective across `ser` (`la manzana es rojo`) and a colour adjective before its noun (M62, before V15); an object put first with no clitic (`las manzanas vende Luz`) is read as a subject (M59's known limit).
 
 ## What to build
 1. **The lesson `ayer-en-el-pueblo`** (session 8, `after: como-es`, `level: a2` as the plan says unless the validator shows a reason; say which and why), its locale text and `lesson.ayer-en-el-pueblo.objective`. Base it on VILLAGE_PLAN 3.5's session-8 design. Write the final rows yourself (proposals, the sheet's columns, D-game-10).
@@ -59,17 +59,18 @@ Work only in the existing git worktree `/home/user/Dev/Vocaterra/.claude/worktre
    - `state_obligation`: `[VERB:tener] que [VERB:ir] a [ART] [NOUN:place]`, `[VERB:tener] que [VERB:comer] …` (or the verbs your rows need); its keyword rule (`tener` followed by `que`) must win over `state_have`'s `tener` + item. Run the lint's confusion check against `state_have`; the prompts' `allowedIntentIds` are the first lever.
    - `state_action` gains what the rows need: `pescar` (`en [ART] [NOUN:place]`), a plural pronoun subject (`ellos`, `nosotros`), and a subject of two names joined by `y` only if a row needs it. V12 found that an optional pronoun before the verb made the fuzz suite generate `qué tú hace`: keep subjects where they cannot do that.
    - **If the fuzz suite fails on a new grammar, change the grammar, never the oracle**, and report it.
-3. **Three open points from phase A at the NPCs of this lesson** (the findings log, V12 and V12b):
+3. **Four open points at the NPCs of this lesson** (the findings log, V12, V12b and M59):
    - **The open prompts and statements.** At the open prompts a correct sentence of another intent is forced into the prompt's intents: `Domingo hizo un hacha` at `smith-open` gives `ask_activity` with `vocab.wrong` expected `''`. A lesson that retells the village's day makes this likely in free talk. Let the open prompts of the NPCs this lesson visits (`smith-open`, `fisher-open`, the villager's) take `state_action`, with a short reply line, if the lint's confusion check stays clean and the fuzz suite passes; test that `Domingo hizo un hacha` at `smith-open` is `state_action` and error-free. If it does not fit, say why and leave it.
    - **The bakery order's timing.** V13 found that a learner who already carries an order's goods hands them over on the first talk, before saying the plan, and gave `water-for-plants` its lesson. `oven-wood` (session 5) has the same hazard if the learner carries 5 wood when first talking to Luz, before `voy a buscar madera`: check it (and `axe-handle`, which V12 ordered by starting at the villager), give the order its lesson if needed, test it, and explain the scripted-run differences (r18).
    - **The villager's credit.** At the villager, "¿dónde está la panadería?" credits `donde-esta-el-rio` (V12b left it: the check that would fix it changes lesson credit). Fix it with V12b's rule (of two rows with one intent, the one naming the place asked) or say why not, with a test either way.
-4. **The sheet's stand-in examples.** Phase A's rows use stand-in error examples where the core could not grade the real slip (`grep -n 'meanwhile\|M56\|M59' content/PHRASES.md`: `esta-lejos`, `donde-esta-la-herreria`, `trabaja-en-la-herreria`, `va-a-hacer-un-hacha`, `como-te-llamas`, and any others). Where M56 and M59 now grade the real slip, put it back as the example (tried on the CLI first) and drop the "meanwhile" note.
+   - **A learner who addresses the NPC by name** (found by the orchestrator at M59): at the open prompts a line that starts with the listener's name resolves no intent and gets `vocab.wrong` (`Luz quiero pan` at `baker-open` → `unknown`; `hola Luz quiero dos panes` → `greet` only; `Domingo necesito un hacha` at `smith-open` → `unknown`). Session 8 teaches the villagers' names, so learners will open with them. Find where it fails (the prompts' grammars, the answer sets, the host's reading of names), and make a leading or trailing vocative name (`Luz, quiero pan`, `quiero pan, Luz`) resolve as the line without it, at every open prompt and the lesson prompts, in the game's data or code; the core since M59 leaves a lone name before a verb unchecked (it may be the listener). Test it on the CLI and in free talk; if it needs the core, report it.
+4. **The sheet's stand-in examples.** Phase A's rows use stand-in error examples where the core could not grade the real slip (`grep -n 'meanwhile\|M56\|M59' content/PHRASES.md`). Where M56 and M59 now grade the real slip, put it back as the example (tried on the CLI first) and drop the "meanwhile" note. By their reports: `esta-lejos` (`es lejos`, `ser_estar`; its intent stays `unknown` unless `ask_far` also takes `ser`: decide), `donde-esta-la-herreria` (`¿dónde están la herrería?`), `me-gusta-el-pan` (`me gustan el pan`), `me-gustan-las-manzanas` (`me gusta las manzanas`), `cuanto-cuesta` (`¿cuánto cuestan el pan?`; `cuánto costa` waits for M58), `como-te-llamas` (`¿cómo te llama?`), and V13's `la manzana son roja` / `las manzanas es roja` at `lesson-apple`. Not restorable, by design: `trabaja-en-la-herreria` and `va-a-hacer-un-hacha` keep the pronoun (a lone name is never checked).
 5. **Checks:** about 8 items with `lesson: ayer-en-el-pueblo`.
 6. **Tests**, in the style of V10 to V13:
    - the lesson loads and validates at its level; every prompt and phrase resolves;
    - the tense and person steps credit and miss as designed (`ayer Luz hace pan` is the core's `conj.tense`; `Luz hace pan` at the `pret` step is the lesson's Miss with `tenseRetry`; a wrong person without a pronoun is the lesson's person Miss, not a core error);
    - `state_obligation` resolves at its prompt and `tengo dos panes` still resolves as `state_have`;
-   - the two open points of deliverable 3;
+   - the open points of deliverable 3;
    - `--skip-to-session 8` opens `ayer-en-el-pueblo`, with the objective and the beacon on its first NPC.
 
 ## The content loop (as V10 to V13 did it; D-game-10 and D-game-12)
@@ -111,7 +112,7 @@ Work only in the existing git worktree `/home/user/Dev/Vocaterra/.claude/worktre
 
 ## Gate (from the worktree root, each through scripts/limited.sh)
 - `dotnet build Vocaterra.sln -warnaserror -m:4`, with 0 warnings.
-- `dotnet test Vocaterra.sln -m:2` all passing. It was @@COUNT@@; report the new count.
+- `dotnet test Vocaterra.sln -m:2` all passing. It was 6431 passed and 3 skipped; report the new count.
 - `dotnet format Vocaterra.sln --verify-no-changes`.
 - `scripts/content.sh validate`.
 - The content gate in `scripts/merge-gate.sh`: the lint at A2 with fail-on-level and `--host-pools 'guide.*'`, and the cefr-checks.
@@ -138,7 +139,7 @@ Claude-Session: https://claude.ai/code/session_01F9jKDdyPc3eAsDgGyBVKv6
 - The final said and heard rows (id and Spanish), and any dropped or added; how "Fuimos al río" and "Tengo que ir" are true.
 - The Opus pass's changes.
 - The core tries and their results. A wrong grade is a core gap: give the exact sentence and what it gave.
-- The three open points of deliverable 3: done or not, and why.
+- The four open points of deliverable 3: done or not, and why.
 - Recognizer results.
 - The lesson's estimated minutes.
 - The test count before and after.
