@@ -55,8 +55,9 @@ is a change to the boundary and updates that record.
   - the core's M56 (`d87e823`): `ser` where a place takes `estar`, and a subject after its verb;
   - the core's M59 (`12ea9d7`): the person checks; a lone name is never checked (it may be the listener);
   - V14: session 8 "Ayer en el pueblo" (`78a37fa`); the listener's name as a vocative is stripped by the game;
+  - V16: the simple future at a step, the other futures credited with a note, the book's fourth column (`71573ba`);
   - `main` merged in at `0cf674b`. It brought the CI workflow with its grammar jobs, and the QA agent.
-- **Next, in order** (owner, 2026-10-31, D-game-22): V16 (the simple future in the runner and the book), the core's M57 (before V17), V17 (session 9
+- **Next, in order** (owner, 2026-10-31, D-game-22): the core's M57 (before V17), V17 (session 9
   "Mañana en el pueblo"), the core's M58 and M62 (before V15), V15 (session 10 "El mercado"), then V09 again (the documents and the scripted runs).
   Every one by Opus 5.5 at xhigh, one at a time. The core's M62 (V13's adjective gaps) runs before V15 (owner, 2026-10-31).
   - The design is VILLAGE_PLAN sections 3.5 to 3.9, 4 and 5. The findings of every V milestone so far are in
@@ -106,12 +107,12 @@ is a change to the boundary and updates that record.
 - **From V08:**
   - phrase variants are held to the A2 ceiling, not the lesson's level (accepted);
   - five old world words sit in the body of `a1.txt`, not its marked block;
-  - the `fut` check at a step is tested from V16.
 - **From V14:**
   - `hola Luz quiero dos panes` (and `hola quiero dos panes`) resolves only the greeting, so nothing is bought: one intent per line. A
     market lesson (V15) makes it likelier; its brief should say what happens;
   - `quiero el pan de Luz` at `baker-open` resolves no intent;
-  - the scene-build test takes 0.75 s of a 3 s budget here: at CI's four times slower it is at the edge;
+  - three older timed tests sit within four times of their budgets here (the bundle load 1676 of 3000 ms, the scene build and digest
+    1275 of 3000 ms, the world snapshot 0.49 of 1.5 s): with CI's runner about four times slower, the likely CI failures if any appear;
   - the NPCs' "¡Muy bien!" plays in Luna's voice; `tener que` has no book entry.
 - **Core gaps filed, not started:** M57, M58 and M62 (all in the queue).
 

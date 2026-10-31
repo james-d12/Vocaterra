@@ -537,7 +537,7 @@ Each new file keeps a provenance item; each schema change bumps `content/schema/
 | V06 | SpeechRender, docs | the voice trial (one line, every candidate, every speed), then the voice from the NPC file; `SPEECH_CHECKLIST.md` names the speakers | S |
 | V07 | Game.Core | `CheckBank` reads `lesson`; `CheckPlan.For` takes the items of the lessons unlocked by the session (`lesson.Session <= PlaySession`); the pilot's 31 unchanged | S |
 | V08 | Game.Core, scripts | the lesson's `level`; `GameDataValidator` checks the lemmas of each lesson's phrases, variants, lines and prompts against the bundle's cumulative level lists, and its `verbs` against its level (no `fut` in an `a1` lesson); the gate's lint moves to `--level a2 --fail-on-level` with `--level a1` as a report | S |
-| V16 | Game.Core, Game | the simple future: `tense: fut` on a step (`LessonBook.cs:597`, `lesson.schema.json`); at a `fut` step the near future is credited with a `futureNote`, as the present is at an `ir-a` step (`LessonRunner.WrongTense`, `PresentForPlan`); the book's fourth column (`ConjugationTable.AllColumns`, `ui.bookColumnFuture`), shown once a lesson teaches a `fut` form, as the others are; a test that `TaughtVerbForm.Text` finds `compraré`, `iré` and `hará` in the bundle's lexicon (they come from the Wiktionary import, section 2.9) | S |
+| V16 | Game.Core, Game | the simple future: `tense: fut` on a step (`LessonBook.cs:597`, `lesson.schema.json`); at a `fut` step the near future is credited with a `futureNote`, as the present is at an `ir-a` step (`LessonRunner.WrongTense`, `PresentForPlan`); the book's fourth column (`ConjugationTable.AllColumns`, `ui.bookColumnFuture`), shown once a lesson teaches a `fut` form, as the others are; a test that `TaughtVerbForm.Text` finds `compraré`, `iré` and `hará` in the bundle's lexicon (they come from the Wiktionary import, section 2.9) | done 2026-10-31 (`71573ba`) |
 
 No change to the core is expected. If `state_like`, `ask_price` with a plural subject, an adjective after `[NOUN:item]` or one of the tense
 cases of section 5 grades wrongly, that is a core milestone (M56 and on), filed from the content milestone's report, never patched in the
@@ -595,7 +595,7 @@ order.
 
 **Phase B's order** (owner, 2026-10-31, after the study of the project's bottlenecks, `docs/DEVELOPMENT_BOTTLENECKS.md`): V08, V13,
 V18 (the content loop in one command) and the core's M56 and M59 (agreement with a subject after its verb; the person checks, a lone name
-never checked) and V14 done, then V16, the core's M57 (before V17, as planned), V17, the core's M58 and M62
+never checked) V14 and V16 done, then the core's M57 (before V17, as planned), V17, the core's M58 and M62
 (before V15; M62 by the owner's word after V13), V15 and V09. One agent at a time, every milestone by Opus 5.5 at xhigh.
 
 **Every content milestone (V10 to V15)**, besides the definition of done (`IMPLEMENTATION_PLAN.md` section 6) and the content loop

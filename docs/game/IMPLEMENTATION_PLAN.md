@@ -1861,6 +1861,33 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     `ask_directions`. Two older gaps seen on the way, open: `hola Luz quiero dos panes` (and `hola quiero dos panes`) resolves only the
     greeting, so the purchase does not happen (one intent per line); `quiero el pan de Luz` at `baker-open` resolves no intent.
 
+- **V16: the simple future in the lesson runner and the book (2026-10-31, Opus 5.5 xhigh; gated on `feature/village` at `71573ba`).**
+  - `tense: fut` at a repeat or answer step (`TaughtVerbForm.SimpleFuture`, the schema's enum; no schema version bump, as V10 added
+    `review`); the validator refuses a `fut` step in an `a1` lesson.
+  - The runner (`OtherFuture`, each case with its own log detail): at a `fut` step the near future (`voy a comprar pan`) and the present
+    with a time word (`mañana compro pan`) are credited with the step's `futureNote` (one note for both: it names the form the step
+    practises); at an `ir-a` step the simple future (`compraré pan`) is credited with the step's `presentNote` (every shipped one already
+    reads "That is right too. Here we practise …"). `compré pan` and `compro pan` at a `fut` step are a miss with the `tenseRetry`;
+    `mañana compré pan` stays the core's `conj.tense`.
+  - The book's fourth column, `ui.bookColumnFuture` "future": present, past, future (ir a), future, time left to right and the futures in
+    the order taught; the counts from the word record. 1280x720 fits four columns; 800x600 at 150 % stacks them (the future reached by
+    scrolling). The orchestrator looked at the 1280x720 screenshot: the four columns, `compraré` highlighted.
+  - The core reads a simple-future form as `fut`, `ind` (a test): compraré, comprarás, comprará, iré, buscaré, hará, tendré, trabajará,
+    pescará all found. No core gap.
+  - Time words as phrases (`NearFutureWords.Mark`): `semana que viene`, `próxima semana`, `próximo día`, `mes que viene`, `próximo mes`,
+    `año que viene`, `próximo año` (`luego`, `después`, `pasado mañana` were there since V10); `el día que viene` left out (it can be a
+    relative clause). The bundle's grammars are untouched: they take the later markers in V17, after the core's M57.
+  - Bugs found and fixed: `iba a comprar` was credited as the near future (now a tense miss); the `viene` of `la semana que viene` counted
+    as the answer's verb in the person check.
+  - Tests: 6602 passed and 3 skipped before; 6642 passed and 3 skipped after, with models (6607 and 38 skipped without). Bundle
+    `20976ec4…` (`words.json`), in both save fixtures; goldens and stream digests unmoved; 7 new grammar strings, 0 findings.
+  - Timing: three older tests are within four times of their budgets here (the bundle load, median 1676 ms of 3000 ms; the scene build
+    and digest, 1275 ms of 3000 ms; the world snapshot, 0.49 s of 1.5 s). None changed in V16; with CI's runner about four times slower
+    they are the likely CI failures if any appear (open point).
+  - Seen by the orchestrator, not a V16 bug: the book counts a use "correct" only when the line was communicated at its prompt, so a
+    correct sentence said where its intent is not accepted shows "0 correct".
+  - The orchestrator's spot-check: CI's grammar check holds (the cache rebuilt from nothing equal, 7 new strings, 0 findings).
+
 ## 6. Definition of done (every milestone)
 
 1. `dotnet build Vocaterra.sln -warnaserror` with 0 warnings and `dotnet test Vocaterra.sln` green, with the test count in the report.
