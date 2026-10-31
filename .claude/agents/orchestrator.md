@@ -52,8 +52,9 @@ is a change to the boundary and updates that record.
   - V13: session 7 "¿Cómo es?" (`f5933c8`), the first `a2` lesson; an order may name its lesson;
   - the bottlenecks study, `docs/DEVELOPMENT_BOTTLENECKS.md` (read its sections 1 and 3 before writing a brief);
   - V18: `scripts/content-loop.sh` (`d986adf`), the content loop in one command;
+  - the core's M56 (`d87e823`): `ser` where a place takes `estar`, and a subject after its verb;
   - `main` merged in at `0cf674b`. It brought the CI workflow with its grammar jobs, and the QA agent.
-- **Next, in order** (owner, 2026-10-31, D-game-22): the core's M56 then M59 (before V14), V14
+- **Next, in order** (owner, 2026-10-31, D-game-22): the core's M59 (before V14), V14
   (session 8 "Ayer en el pueblo"), V16 (the simple future in the runner and the book), the core's M57 (before V17), V17 (session 9
   "Mañana en el pueblo"), the core's M58 and M62 (before V15), V15 (session 10 "El mercado"), then V09 again (the documents and the scripted runs).
   Every one by Opus 5.5 at xhigh, one at a time. The core's M62 (V13's adjective gaps) runs before V15 (owner, 2026-10-31).

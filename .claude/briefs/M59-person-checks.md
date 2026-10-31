@@ -1,9 +1,9 @@
-You are implementing the core milestone **M59, the person and tense checks the third person needs**, of the Vocaterra repository (C#, .NET 10). The language core is the `Vocaterra.Nlp` engine (`src/Vocaterra.Nlp`), the Spanish pack `src/Vocaterra.Nlp.Es` and the `Vocaterra.Nlp.*` test and tool projects; the game is `Vocaterra.{Game.Core,Game,Host,SpeechRender}`. **This milestone's work is in the core.** The owner asked on 2026-10-31 for M56 and M59 to land before the game's V14 (session 8, the preterite for every person, with named villagers as subjects) and M58 before V15 (session 10, the market). M56 (agreement with a postverbal subject, `ser` with places) has just landed: build on it.
+You are implementing the core milestone **M59, the person and tense checks the third person needs**, of the Vocaterra repository (C#, .NET 10). The language core is the `Vocaterra.Nlp` engine (`src/Vocaterra.Nlp`), the Spanish pack `src/Vocaterra.Nlp.Es` and the `Vocaterra.Nlp.*` test and tool projects; the game is `Vocaterra.{Game.Core,Game,Host,SpeechRender}`. **This milestone's work is in the core.** The owner asked on 2026-10-31 for M56 and M59 to land before the game's V14 (session 8, the preterite for every person, with named villagers as subjects) and M58 before V15 (session 10, the market). M56 (agreement with a subject after its verb, `ser` where a place takes `estar`) has just landed at `d87e823`: build on it (its rules are in `src/Vocaterra.Nlp.Es/Analysis/SpanishAgreementChecker.Postverbal.cs`, its tests in `PostverbalSubjectTests`, its entry in `docs/nlp/IMPLEMENTATION_PLAN.md` §5b).
 
 Do the work yourself; do not spawn subagents.
 
 ## Where to work, and pushing
-Work only in the existing git worktree `/home/user/Dev/Vocaterra/.claude/worktrees/village`: cd there first, and never edit `/home/user/Dev/Vocaterra` itself or any other worktree. It is on branch `feature/village` (at the HEAD `git log -1` shows, `@@HEAD@@`).
+Work only in the existing git worktree `/home/user/Dev/Vocaterra/.claude/worktrees/village`: cd there first, and never edit `/home/user/Dev/Vocaterra` itself or any other worktree. It is on branch `feature/village` (at the HEAD `git log -1` shows, `d87e823`).
 - Create your branch with `git checkout -b M59-person-checks feature/village`.
 - **The owner wants work pushed often.** Commit after each coherent step that builds and passes `scripts/test.sh fast`, with the prefix `M59: `. Push after every commit: `git push -u origin M59-person-checks` the first time, then `git push origin M59-person-checks`.
 - Never push `main` or `feature/village`, and do not merge.
@@ -19,18 +19,18 @@ Found by the game's V12 (2026-10-31), each tried on the CLI at a prompt of the g
 
 ## Read first (the sections named, not whole files)
 - `CLAUDE.md`.
-- `docs/nlp/IMPLEMENTATION_PLAN.md` §3, §4, §6, the M56 to M61 rows of §5 and the M60 and M61 entries of §5b (models of a core milestone found by the game; `grep -n` for them).
+- `docs/nlp/IMPLEMENTATION_PLAN.md` §3, §4, §6, the M56 to M62 rows of §5 and the M56, M60 and M61 entries of §5b (models of a core milestone found by the game; `grep -n` for them).
 - `docs/nlp/CONTRIBUTING.md`, `docs/nlp/API.md` (the error tags `conj.person`, `conj.tense`; "Tense errors" for the style), `docs/nlp/FUZZING_PLAN.md` (the oracles), `tests/Vocaterra.Nlp.Fuzzing.Tests/README.md` (bugs found, known limits, narrowed oracles).
 - `docs/nlp/adr/0009-core-and-game-boundary.md` and ADR 0012 (the engine and the Spanish pack; `LayeringTests`).
 - The code: `src/Vocaterra.Nlp.Es/Analysis/SpanishAgreementChecker.cs`, `SpanishAnalysisTables.cs` and whatever else reports `conj.person` and `conj.tense`; `src/Vocaterra.Nlp` where a slot grammar's literal word binds its reading (`Language/SlotGrammar` and the reading resolver); their tests.
 - The game's notes on these slips, so you know the sentences the content wants graded: `grep -n 'M59\|meanwhile\|pronoun' content/PHRASES.md` (do not read it whole; do not edit it).
 
 ## Rules
-- A core milestone edits only the `Vocaterra.Nlp` and `Vocaterra.Nlp.*` projects, their tests, `tests/golden` and `docs/nlp/`. It does not edit the game's projects, `content/game-v1`, `content/locale`, `content/PHRASES.md` or `docs/game/`. If a core test on `content/game-v1` breaks because the content relied on the old grade, stop and report it.
+- A core milestone edits only the `Vocaterra.Nlp` and `Vocaterra.Nlp.*` projects, their tests, `tests/golden` and `docs/nlp/`. It does not edit the game's projects, `content/game-v1`, `content/locale`, `content/PHRASES.md` or `docs/game/`. If a core test on `content/game-v1` breaks because the content relied on the old grade, stop and report it. **One exception, by the orchestrator's leave:** a game test that pins the old gap (its comment names M59 or "a core gap"; M56 had one, `FarmLessonTests`, fixed in `323890f`) may be updated to the core's new grade, that test file only, in a commit of its own, in the file's own style (the "core's slip" pattern, keeping a lesson-miss case where a sentence still reaches the lesson's own check). If the game then behaves in any other way (double feedback, a step neither credited nor retried), change nothing in the game's `src/` and report what the turn and its events show.
 - Fix bugs at the source, with a regression test in the owning module. **Never weaken or narrow a fuzz oracle**; widen it or leave it. If the fuzz suite finds a new real bug, fix it or report it, and add it to the fuzz README's list.
 - Determinism: no `System.Random`, no clock.
 - Do not edit either `IMPLEMENTATION_PLAN.md` or either `DECISIONS.md`. Never create or edit anything under `.github/workflows/`.
-- The end-to-end goldens may move because the core now grades a learner line differently: re-record them (`VOCATERRA_RECORD_GOLDEN=1`, `tests/Vocaterra.Nlp.Golden.Tests`) in their own commit, and list in the report every entry that moved and why it is now right.
+- The end-to-end goldens may move because the core now grades a learner line differently: re-record them in their own commit (`VOCATERRA_RECORD_GOLDEN=1` for the end-to-end goldens and `VOCATERRA_RECORD_IDENTITY=1` for the Spanish identity baseline, `tests/Vocaterra.Nlp.Golden.Tests/Data/identity/baseline.jsonl`; M56 moved 15 of its entries), and list in the report every entry that moved and why it is now right. If the fuzz generator changes, `FuzzLanguageStreamTests`' digests move: set them in the same commit as the generator change and say so.
 
 ## Output and context (the cost of a milestone is its turns times its context)
 - Read the sections named, not whole files; prefer `grep -n` to find a place, and keep `sed -n` ranges under about 150 lines.
@@ -50,7 +50,7 @@ Found by the game's V12 (2026-10-31), each tried on the CLI at a prompt of the g
 
 ## Gate (from the worktree root, each through scripts/limited.sh)
 - `dotnet build Vocaterra.sln -warnaserror -m:4`, with 0 warnings.
-- `dotnet test Vocaterra.sln -m:2` all passing (it was @@COUNT@@); report the new count.
+- `dotnet test Vocaterra.sln -m:2` all passing (it was 6276 passed and 3 skipped); report the new count.
 - `dotnet format Vocaterra.sln --verify-no-changes`.
 - `bash scripts/license-scan.sh --offline` PASSED.
 - The core demo: `dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo quiere dos espada" --prompt villager-open --content content/game-v1` still yields exactly `conj.person` and `noun.number` (through the wrapper).
