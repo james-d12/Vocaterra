@@ -465,21 +465,21 @@ The checks work on the whole utterance, not on clauses, and on the verb forms th
 
 - **A subject pronoun before its verb:** the verb after a subject pronoun, past at most two adverbs or clitics, agrees with it (`yo quiere` gives
   `quiero`; a bare infinitive, `yo comprar`, gives `compro`). A pronoun after a preposition is no subject (M56: `a ella le gustan las manzanas` is clean).
-- **A noun or a name before its verb (M59):** a noun phrase that opens its clause, followed by a finite verb in the indicative (past at most two adverbs or object
-  pronouns), is its subject, of the third person; two phrases joined by `y` or `e` are a plural subject. In every tense: `los niños come pan` gives `comen`, `la manzana son
-  roja` gives `es`, `las manzanas es roja` gives `son`, `Luz y Domingo comió pan` gives `comieron`. A verb of the first or second person is checked only after a bare noun,
-  which is how a name is said (`Domingo trabajo en la herrería` gives `trabaja`, `Domingo voy a hacer un hacha` gives `va`, `Luz hice pan` gives `hizo`, `Mar pescaste en el
-  río` gives `pescó`); after a phrase with a determiner the phrase may be the object put first, and it is left alone (`el pan quiero`). A phrase opens its clause when
-  only adverbs, `sí` or `no` and phrases of time stand before it, after the start or one of `y`, `pero`, `porque`, `si`, `cuando`, `aunque`, `mientras`, `como`, `donde` and
-  `dónde`, `cuándo`, `cómo`. Clean: `Domingo trabaja en la herrería`; a phrase that a preposition governs (`en la herrería trabaja Domingo`, `a Luz le gusta el pan`); a
-  phrase that an object pronoun between stands for (`el pan lo compré`, `las manzanas las compro`); a phrase of time (`el domingo tengo pan`, `esta mañana compré pan`); a
-  phrase asked about (`¿qué fruta come Luz?`, `¿cuántas manzanas quieres?`); a noun after an interjection, the person spoken to (`hola Domingo`), and a vocative before a
-  question word (`Domingo, ¿qué haces?`); a bare noun said as an interjection (`gracias, quiero pan`) or one a speaker calls people by before a verb of the first or second
-  person (`señor, quiero pan`); phrases joined by `o`, `u` or `ni`, and a coordination with a pronoun (`yo y Luz`); `haber` (`hay dos panes`); `ser` with a plural
-  predicate (`mi comida favorita son las manzanas`); the subjunctive and the imperative. A name that the lexicon lacks, or that a grammar binds as `[WORD]`, has no reading,
-  so nothing is said about its verb. The normalized text keeps no comma, so a name said to the listener right before a verb of the first or second person is read as the
-  subject (`Domingo, tengo madera` gives `tiene`). A verb form that is also a noun (`trabajo`, `cuesta`) is checked where a slot grammar binds it as the verb, as the game's
-  prompts do; with nothing to bind it the charitable reading takes the noun.
+- **A noun phrase before its verb (M59):** a noun phrase that opens its clause, followed by a finite verb in the indicative (past at most two adverbs or object
+  pronouns), is its subject, of the third person; two phrases joined by `y` or `e` are a plural subject. A third-person verb of the other number is reported, in every
+  tense: `los niños come pan` gives `comen`, `la manzana son roja` gives `es`, `las manzanas es roja` gives `son`, `Luz y Domingo comió pan` gives `comieron`. Correct Spanish
+  is never flagged, so two readings are left alone. **A lone name is never checked:** one bare noun with no determiner or adjective that nothing is joined to may be the
+  person spoken to, and a transcript has no comma, so `Luz quiero pan` (`Luz, quiero pan`), `Luz tienes pan`, `Luz tienen pan` (`ustedes`), `Domingo tengo madera`,
+  `Mar pescaste en el río` and `Domingo trabajo en la herrería` give no `conj.person`; a host that knows the name is the subject (a lesson that asks about Domingo)
+  checks the person itself. **A verb of the first or second person after a noun phrase is not checked:** names joined by `y` may be the people spoken to (`Luz y Domingo,
+  queremos pan`), and a phrase with a determiner the object put first (`el pan quiero`). A phrase opens its clause when only adverbs, `sí` or `no` and phrases of time stand
+  before it, after the start or one of `y`, `pero`, `porque`, `si`, `cuando`, `aunque`, `mientras`, `como`, `donde` and `dónde`, `cuándo`, `cómo`. Also clean: a phrase that
+  a preposition governs (`en la herrería trabaja Domingo`, `a los niños les gusta el pan`); a phrase that an object pronoun between stands for (`el pan lo compran los
+  niños`); a phrase of time (`el domingo los niños comen pan`); a phrase asked about (`¿qué frutas come Luz?`, `¿cuántas manzanas compra Luz?`); a noun after an
+  interjection (`hola Domingo`); phrases joined by `o`, `u` or `ni`, and a coordination with a pronoun (`yo y Luz`); `haber` (`hay dos panes`); `ser` with a plural predicate
+  (`mi comida favorita son las manzanas`); the subjunctive and the imperative. A name that the lexicon lacks, or that a grammar binds as `[WORD]`, has no reading at all. A
+  verb form that is also a noun (`son`, `cuesta`) is checked where a slot grammar binds it as the verb, as the game's prompts do; with nothing to bind it the charitable
+  reading takes the noun.
 - **A reflexive clitic after `cómo` (M59):** in the question `cómo` (or `como`) + `me`, `te`, `se`, `nos` or `os` + `llamar` or `sentir`, the clitic is reflexive and the
   verb takes its person (`se` the third person of either number): `cómo te llama` gives `llamas`, `cómo se llamas` gives `llama`, `cómo se llamamos` gives `llaman`,
   `cómo te siente` gives `sientes`. Clean: `cómo te llamas`, `cómo se llama usted`, `cómo os llamáis`; a clitic that is the object of a verb of another person (`te veo`,

@@ -101,13 +101,12 @@ code comments and here, with the reason:
     time or quantity and has no `y`, `e`, `o`, `u` or `ni` after it; and the new form is that verb and nothing else. The verbs of price behind `cuánto` are checked by the
     analyzer but not mutated. A pronoun right behind a word that can be a preposition is no subject of the person check any more (`a ella le gusta`), so the mutation
     behind a subject pronoun is not made on one.
-  - *O4 and O5, `conj.person` after a noun subject (M59, a widening).* The person mutation also changes a third-person verb right after a noun phrase that opens the
-    sentence (`domingo hace un hacha` becomes `domingo hago un hacha`, expected `hace`; `los niños comen pan` becomes `los niños come pan`, expected `comen`). It is made
-    only where the analyzer's reading is certain: the phrase is the first word of the sentence, a bare noun (a literal name such as `domingo` or a generated noun), or the
-    first two, an article or numeral and its noun; every reading of the noun is a noun of one number, and a noun with an article is no noun of time or quantity; the
-    verb follows the noun directly; a bare noun that is no interjection (`gracias`) or word for calling people (`señor`) takes any other person and number, a noun with
-    an article only the other number of the third person; and the new form has no reading but that verb in that tense. In a probe of 3 000 person mutations, 128 were of
-    this kind.
+  - *O4 and O5, `conj.person` after a noun subject (M59, a widening).* The person mutation also changes the number of a third-person verb right after a noun phrase
+    with an article or numeral that opens the sentence (`los niños comen pan` becomes `los niños come pan`, expected `comen`). It is made only where the analyzer's reading
+    is certain: the first two words of the sentence are an article or numeral and its noun; every reading of the noun is a noun of one number, no noun of time or
+    quantity; the verb follows the noun directly; and the new form has no reading but that verb in that tense. It never mutates the verb after a lone name (`domingo hace
+    un hacha`), which the analyzer leaves unchecked because the name may be the person spoken to, and it never makes a verb of the first or second person, which the
+    analyzer does not check after a noun phrase. The oracles as they stood before M59 are unchanged.
 - **O8.** The dialect sites are `θ s z h ʎ ʝ ʃ ʒ` (the plan lists `θ s ʎ ʝ h`; the shipped dialects also produce the voiced `z` and the rioplatense `ʃ ʒ`).
   `Tokenize(ToIpaString())` is exact except for the pair `t` + `ʃ`, whose concatenation is the affricate token `tʃ` (the inventory documents that
   sequences are lists for this reason); a result with that pair skips the split.
@@ -261,11 +260,13 @@ before them (`costar` and `gustar` always took the third person, as before); agr
 correct sentences), and draws no noun that is also a verb form right behind `dónde`, `donde` or `cómo`, where the reading resolver takes the verb (another word there
 that can be a finite verb is re-rolled as `verb-form-homograph`). The sentence stream digest of `FuzzLanguageStreamTests` was recorded again for these changes.
 
-M59 made the analyzer agree a verb with a noun phrase that opens its clause before it (`Domingo trabaja`, `los niños comen`) and a reflexive clitic after `cómo` with
+M59 made the analyzer agree a third-person verb with a noun phrase that opens its clause before it (`los niños comen`) and a reflexive clitic after `cómo` with
 `llamar` or `sentir` (`¿cómo te llamas?`), so the realiser models both. It gives a verb right after a noun phrase (past at most two skippable words or object
 pronouns) the third person and the phrase's number, whatever stands before the phrase; agreeing where the analyzer would not check (a phrase of time, one a preposition
-governs, an object put first) is never wrong. It skips a subject of two phrases joined by `y` or `e` (`skip:coordinated-subject`: the analyzer makes it plural only where the
-first phrase opens its clause, which the realiser does not model) and a literal verb form that disagrees with the phrase before it (`skip:literal-verb-subject`). It gives
+governs, an object put first) is never wrong. After a lone name (one bare noun, `domingo`), which the analyzer never checks because it may be the person spoken to, the
+realiser draws the verb's person and number like any other, so O3 also holds `domingo hago un hacha` correct. It skips a subject of two phrases joined by `y` or `e`
+(`skip:coordinated-subject`: the analyzer makes it plural only where the first phrase opens its clause, which the realiser does not model) and a literal verb form that
+disagrees with a phrase before it that is no lone name (`skip:literal-verb-subject`). It gives
 `llamar` and `sentir` right after `cómo` and a reflexive clitic the clitic's person (`se`: the third, either number). The sentence stream digest of
 `FuzzLanguageStreamTests` was recorded again for these changes.
 
