@@ -135,10 +135,10 @@
       "past": "arrived"
     },
     "verb.gustar": {
-      "gloss": "to like",
-      "base": "like",
-      "third": "likes",
-      "past": "liked"
+      "gloss": "to please (me gusta: I like it)",
+      "base": "please",
+      "third": "pleases",
+      "past": "pleased"
     },
     "verb.ayudar": {
       "gloss": "to help",

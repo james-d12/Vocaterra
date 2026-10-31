@@ -184,6 +184,12 @@ specified for later in `docs/game/CONTENT_PLAN.md` section 3.8 (C10); it is not 
 
   An order may ask for several items: the smith's `axe-handle` (V12) takes two wood and two coins, and is delivered only when the inventory holds both.
 
+  An order may name the lesson that tells it (`"lesson": "como-es"`, VILLAGE_PLAN V13): while that lesson is under way before its `do` step that waits for the
+  delivery (`order_delivered` at the order's NPC with the order's id), or is about to start at the talk (an `autoStart` lesson available at that NPC), walking up
+  with the goods does not deliver them, so the plan comes first even for a learner who carries the goods already (the farmer's `water-for-plants`: the bottle
+  filled at the river in session 1 is still full). Once the lesson reaches that step, ends, or does not start there, walking up is enough again; every step can be
+  skipped, so the order never waits behind speech. The validator checks that the lesson has the step.
+
   Its one step, `delivered` (saved as `oven-wood.delivered`), is made by the loader. When the panel opens on that NPC and the inventory holds the goods,
   nothing more is asked of the learner (D-game-8, D-game-9): the goods are taken (`item_taken`, `madera, order`), the NPC's agent is raised
   `<npc>.delivered` as the talk's opening (its thanks, in its own pool and voice), the host event of that line is the reward (a `give_item` in

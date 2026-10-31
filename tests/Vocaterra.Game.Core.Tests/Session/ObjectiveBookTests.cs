@@ -25,7 +25,7 @@ public sealed class ObjectiveBookTests
     {
         // The three the code held, and since VILLAGE_PLAN V10 the fisher's order of session 4: three fruits brought to him at the bridge; since V11 the baker's of
         // session 5: five wood for her oven; since V12 the smith's of session 6: two wood and two coins for the axe.
-        Assert.Equal(["meet-guide", "camp", "light-fire", "fruit-for-mar", "oven-wood", "axe-handle"], Book.Objectives.Select(static o => o.Id));
+        Assert.Equal(["meet-guide", "camp", "light-fire", "fruit-for-mar", "oven-wood", "axe-handle", "water-for-plants"], Book.Objectives.Select(static o => o.Id));
         var order = Book.Find("fruit-for-mar")!;
         Assert.Equal(("fisher", (int?)4), (order.DeliverTo, order.Session));
         Assert.Equal((ItemId.Berry, 3), (Assert.Single(order.Goods).Item, Assert.Single(order.Goods).Count));
@@ -176,7 +176,7 @@ public sealed class ObjectiveBookTests
         var document = SaveGame.Parse(SaveGame.Save(session, TestGame.Route()));
 
         Assert.Equal(5, document.Version);
-        Assert.Equal(["camp.wood", "camp.berry", "camp.torch", "camp.water", "fruit-for-mar.delivered", "oven-wood.delivered", "axe-handle.delivered"], document.Objective.Select(static o => o.Key)); // and the orders' one step each (V10 to V12)
+        Assert.Equal(["camp.wood", "camp.berry", "camp.torch", "camp.water", "fruit-for-mar.delivered", "oven-wood.delivered", "axe-handle.delivered", "water-for-plants.delivered"], document.Objective.Select(static o => o.Key)); // and the orders' one step each (V10 to V13)
         Assert.Equal(2, document.Objective[0].Count);
     }
 
@@ -208,7 +208,7 @@ public sealed class ObjectiveBookTests
         Assert.DoesNotContain(loaded.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.SpareTorch); // the fire is lit already
         var resaved = SaveGame.Parse(SaveGame.Save(loaded, TestGame.Route()));
         Assert.Equal(5, resaved.Version);
-        Assert.Equal(["camp.wood", "camp.berry", "camp.torch", "camp.water", "fruit-for-mar.delivered", "oven-wood.delivered", "axe-handle.delivered"], resaved.Objective.Select(static o => o.Key));
+        Assert.Equal(["camp.wood", "camp.berry", "camp.torch", "camp.water", "fruit-for-mar.delivered", "oven-wood.delivered", "axe-handle.delivered", "water-for-plants.delivered"], resaved.Objective.Select(static o => o.Key));
     }
 
     [Fact]

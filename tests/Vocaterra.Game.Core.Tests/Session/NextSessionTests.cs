@@ -138,14 +138,14 @@ public sealed class NextSessionTests
     public void WhenNoLaterSessionHasALessonTheObjectiveSaysEveryLessonIsDoneAndTheFireStillSleeps()
     {
         var session = TestGame.NewSessionWithShippedLessons();
-        SessionSkip.Apply(session, 6);
-        session.Lessons.CountAsCompleted("gente-del-pueblo", 6);
+        SessionSkip.Apply(session, 7);
+        session.Lessons.CountAsCompleted("como-es", 7);
         TeleportToFire(session);
         session.Step([]);
-        Assert.Equal("axe-handle", session.CurrentObjective?.Id);
-        Assert.Equal(session.Locale.ObjectiveHudLine("axe-handle"), Hud(session)); // an open order keeps its own line: there is still something to do
+        Assert.Equal("water-for-plants", session.CurrentObjective?.Id);
+        Assert.Equal(session.Locale.ObjectiveHudLine("water-for-plants"), Hud(session)); // an open order keeps its own line: there is still something to do
 
-        session.SkipDeliver(session.Objectives.Single(static o => o.Id == "axe-handle"));
+        session.SkipDeliver(session.Objectives.Single(static o => o.Id == "water-for-plants"));
         session.Step([]);
 
         Assert.Null(session.CurrentObjective);
@@ -157,7 +157,7 @@ public sealed class NextSessionTests
         Assert.True(SleepOffer.AtFire(session, free: true));
 
         Sleep(session);
-        Assert.Equal(7, session.PlaySession);
+        Assert.Equal(8, session.PlaySession);
         Assert.StartsWith("Every lesson so far is done", Hud(session), StringComparison.Ordinal);
     }
 

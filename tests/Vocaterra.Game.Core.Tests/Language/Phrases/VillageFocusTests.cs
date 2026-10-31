@@ -66,7 +66,7 @@ public sealed class VillageFocusTests
     public void FreeTalkAtTheSmithAndTheFarmerCreditsTheirQuestionsAtHomeWithEither(string npc)
     {
         var session = At(npc);
-        Assert.Equal(["como-te-llamas", "que-haces"], session.Support.Cards.Select(static c => c.PhraseId));
+        Assert.Equal(npc == "farmer" ? ["como-te-llamas", "que-haces", "quiero-tres-manzanas-rojas"] : ["como-te-llamas", "que-haces"], session.Support.Cards.Select(static c => c.PhraseId)); // his apples since V13
         session.Objective.Finish(); // after the camp a phrase said away from its home is a transfer: both of them are home to these two
 
         var name = Credit(session, "¿cómo te llamas?");

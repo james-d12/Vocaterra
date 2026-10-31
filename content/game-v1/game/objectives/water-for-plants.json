@@ -1,0 +1,12 @@
+{
+  "$schema": "../../../schema/objective.schema.json",
+  "schemaVersion": 1,
+  "id": "water-for-plants",
+  "about": "The farmer's order (VILLAGE_PLAN 3.4, V13): from play session 7, a bottle of water brought to León at the field (the river, the bottle the shopkeeper gave in session 1); he gives three apples (farmer.delivered, then farmer.give_apples in game/host-events.json). His apples cost one coin each (farmer.sell_apples), and a learner who followed sessions 4 to 6 has none, so the order is how the lesson's apples come. Told by the lesson como-es in the three times (voy a buscar agua, then the walk to the river, then fui al río): a learner who carries the water already is thanked only once the lesson reaches its step that waits for the delivery (lesson). Asking in Spanish is the lesson's; walking up with the water is enough.",
+  "session": 7,
+  "deliverTo": "farmer",
+  "deliver": [
+    { "item": "water-bottle", "count": 1 }
+  ],
+  "lesson": "como-es"
+}

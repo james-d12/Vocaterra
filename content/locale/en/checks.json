@@ -140,6 +140,26 @@
     "check.say.como-te-llamas.situation": "You meet a smith you do not know. Ask him his name.",
     "check.say.que-haces.situation": "You meet a man at a smithy. Ask him what he does.",
     "check.say.va-a-hacer-un-hacha.situation": "A villager asks what Domingo is going to make. Domingo is going to make an axe. Say so.",
-    "check.say.hizo-un-hacha.situation": "A villager asks what Domingo made. Domingo made an axe. Say so."
+    "check.say.hizo-un-hacha.situation": "A villager asks what Domingo made. Domingo made an axe. Say so.",
+    "check.hear.mis-manzanas-son-rojas.question": "A farmer shows you his apples. What are they like?",
+    "check.hear.mis-manzanas-son-rojas.option.1": "Red and big.",
+    "check.hear.mis-manzanas-son-rojas.option.2": "Green and small.",
+    "check.hear.mis-manzanas-son-rojas.option.3": "Red and small.",
+    "check.hear.te-gusta-el-pan.question": "A farmer asks you this. What does he want to know?",
+    "check.hear.te-gusta-el-pan.option.1": "Whether you like bread.",
+    "check.hear.te-gusta-el-pan.option.2": "Whether you want bread.",
+    "check.hear.te-gusta-el-pan.option.3": "Whether you have bread.",
+    "check.hear.mis-plantas-necesitan-agua.question": "A farmer says this to you. What does he ask for?",
+    "check.hear.mis-plantas-necesitan-agua.option.1": "Water from the river for his plants, for three apples.",
+    "check.hear.mis-plantas-necesitan-agua.option.2": "Three coins for his apples.",
+    "check.hear.mis-plantas-necesitan-agua.option.3": "Wood from the forest for his field.",
+    "check.hear.el-pan-es-de-luz.question": "A shopkeeper says this about his bread. What does he say?",
+    "check.hear.el-pan-es-de-luz.option.1": "Luz made it, at the bakery.",
+    "check.hear.el-pan-es-de-luz.option.2": "He made it himself.",
+    "check.hear.el-pan-es-de-luz.option.3": "It costs two coins.",
+    "check.say.la-manzana-es-roja.situation": "A farmer asks what his apple is like. It is red. Say so.",
+    "check.say.me-gustan-las-manzanas.situation": "A farmer asks if you like apples. You do. Say so.",
+    "check.say.quiero-tres-manzanas-rojas.situation": "A farmer sells red apples. Ask for three red apples.",
+    "check.say.me-gusto-el-pan.situation": "A farmer asks if you liked Luz's bread. You did. Say so."
   }
 }

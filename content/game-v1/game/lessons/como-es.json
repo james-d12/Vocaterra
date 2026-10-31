@@ -1,0 +1,198 @@
+{
+  "$schema": "../../../schema/lesson.schema.json",
+  "schemaVersion": 2,
+  "id": "como-es",
+  "npc": "farmer",
+  "level": "a2",
+  "autoStart": true,
+  "after": "gente-del-pueblo",
+  "session": 7,
+  "verbs": [
+    {
+      "lemma": "ser",
+      "person": "3",
+      "number": "pl",
+      "tense": "pres"
+    },
+    {
+      "lemma": "gustar",
+      "person": "3",
+      "number": "sg",
+      "tense": "pres"
+    },
+    {
+      "lemma": "gustar",
+      "person": "3",
+      "number": "pl",
+      "tense": "pres"
+    },
+    {
+      "lemma": "gustar",
+      "person": "3",
+      "number": "sg",
+      "tense": "pret"
+    }
+  ],
+  "steps": [
+    {
+      "id": "c0-review",
+      "type": "review",
+      "candidates": [
+        {
+          "phrase": "compre-dos-panes",
+          "line": "guide.lesson.farmer.bought.1"
+        },
+        {
+          "phrase": "hola",
+          "line": "farmer_hello.1"
+        }
+      ]
+    },
+    {
+      "id": "c0-intro",
+      "type": "explain"
+    },
+    {
+      "id": "c1-apples",
+      "type": "listen",
+      "line": "guide.lesson.farmer.apples.1",
+      "correct": 0
+    },
+    {
+      "id": "c1-how",
+      "type": "answer",
+      "phrase": "la-manzana-es-roja",
+      "prompt": "lesson-apple",
+      "line": "guide.lesson.farmer.apple.1",
+      "person": "3sg"
+    },
+    {
+      "id": "c2-bread",
+      "type": "answer",
+      "phrase": "me-gusta-el-pan",
+      "prompt": "lesson-like-bread",
+      "line": "guide.lesson.farmer.like.1",
+      "person": "3sg",
+      "tense": "pres"
+    },
+    {
+      "id": "c2-apples",
+      "type": "answer",
+      "phrase": "me-gustan-las-manzanas",
+      "prompt": "lesson-like-apples",
+      "line": "guide.lesson.farmer.like_apples.1",
+      "person": "3pl",
+      "tense": "pres"
+    },
+    {
+      "id": "c3-want",
+      "type": "answer",
+      "phrase": "quiero-tres-manzanas-rojas",
+      "prompt": "farmer-open",
+      "line": "guide.lesson.farmer.how_many.1"
+    },
+    {
+      "id": "c3-plan",
+      "type": "answer",
+      "phrase": "voy-a-buscar-agua",
+      "prompt": "lesson-water-plan",
+      "line": "guide.lesson.farmer.water.1",
+      "person": "1sg",
+      "tense": "ir-a"
+    },
+    {
+      "id": "c4-walk",
+      "type": "do",
+      "pointPlace": "stall",
+      "trigger": {
+        "event": "talk_opened",
+        "npc": "shopkeeper"
+      }
+    },
+    {
+      "id": "c4-big",
+      "type": "answer",
+      "npc": "shopkeeper",
+      "phrase": "es-grande",
+      "prompt": "lesson-big",
+      "line": "guide.lesson.shop.big.1",
+      "person": "3sg"
+    },
+    {
+      "id": "c4-luz",
+      "type": "model",
+      "npc": "shopkeeper",
+      "line": "guide.lesson.shop.luz.1"
+    },
+    {
+      "id": "c5-river",
+      "type": "do",
+      "npc": "shopkeeper",
+      "pointPlace": "npc.fisher",
+      "trigger": {
+        "event": "beacon_reached",
+        "detail": "npc.fisher"
+      }
+    },
+    {
+      "id": "c5-back",
+      "type": "do",
+      "npc": "farmer",
+      "trigger": {
+        "event": "order_delivered",
+        "npc": "farmer",
+        "detail": "water-for-plants"
+      }
+    },
+    {
+      "id": "c5-thanks",
+      "type": "model",
+      "line": "farmer_delivered.1"
+    },
+    {
+      "id": "c5-went",
+      "type": "answer",
+      "phrase": "fui-al-rio",
+      "prompt": "lesson-water-went",
+      "line": "guide.lesson.farmer.went.1",
+      "person": "1sg",
+      "tense": "pret"
+    },
+    {
+      "id": "c6-model",
+      "type": "model",
+      "line": "guide.lesson.farmer.ate.1"
+    },
+    {
+      "id": "c6-liked",
+      "type": "answer",
+      "phrase": "me-gusto-el-pan",
+      "prompt": "lesson-liked",
+      "line": "guide.lesson.farmer.liked.1",
+      "person": "3sg",
+      "tense": "pret"
+    },
+    {
+      "id": "c7-review",
+      "type": "review",
+      "candidates": [
+        {
+          "phrase": "gracias",
+          "line": "guide.lesson.farmer.end.1"
+        },
+        {
+          "phrase": "adios",
+          "line": "farmer_bye.1"
+        }
+      ]
+    },
+    {
+      "id": "c7-table",
+      "type": "explain"
+    },
+    {
+      "id": "c7-recap",
+      "type": "recap"
+    }
+  ]
+}

@@ -47,10 +47,12 @@ public sealed class LessonLevelTests
     }
 
     [Fact]
-    public void TheShippedLessonsAreA1AndKeepToIt()
+    public void TheShippedLessonsKeepToTheirLevelsAndPhaseBsFirstIsA2()
     {
-        // Sessions 1 to 6 (phase A included) are A1; GameDataTests holds the whole content to no problem, this names the level's.
-        Assert.All(TestGame.Data.Lessons.Lessons, static lesson => Assert.Equal(LessonLevels.A1, lesson.Level));
+        // Sessions 1 to 6 (phase A included) are A1, and session 7's ¿Cómo es? (V13) is A2, the first of phase B; GameDataTests holds the whole content to no problem, this
+        // names the level's.
+        Assert.All(TestGame.Data.Lessons.Lessons.Where(static l => l.Session <= 6), static lesson => Assert.Equal(LessonLevels.A1, lesson.Level));
+        Assert.Equal(LessonLevels.A2, TestGame.Data.Lessons.Find("como-es")!.Level);
         Assert.DoesNotContain(GameDataValidator.Validate(TestGame.Data), static p => p.StartsWith(LessonBook.Folder, StringComparison.Ordinal));
     }
 

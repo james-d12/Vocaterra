@@ -414,7 +414,7 @@
     "mode": "Constrained",
     "difficulty": "Beginner",
     "answerSetId": "people-farmer",
-    "allowedIntentIds": ["ask_name", "ask_activity", "greet", "thank", "farewell", "ask_help", "dont_know"],
+    "allowedIntentIds": ["ask_name", "ask_activity", "request_item", "ask_price", "describe", "state_like", "greet", "thank", "farewell", "ask_help", "dont_know"],
     "agentId": "farmer",
     "slotGrammarIds": [],
     "text": "¡Hola! Este es mi campo."
@@ -468,5 +468,75 @@
     "agentId": "villager",
     "slotGrammarIds": [],
     "text": "¿Qué hizo Domingo?"
+  },
+  {
+    "promptId": "lesson-apple",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-apple",
+    "allowedIntentIds": ["describe", "ask_help", "dont_know"],
+    "agentId": "farmer",
+    "slotGrammarIds": [],
+    "text": "¿Cómo es la manzana?"
+  },
+  {
+    "promptId": "lesson-like-bread",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-like-bread",
+    "allowedIntentIds": ["state_like", "ask_help", "dont_know"],
+    "agentId": "farmer",
+    "slotGrammarIds": [],
+    "text": "¿Te gusta el pan?"
+  },
+  {
+    "promptId": "lesson-like-apples",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-like-apples",
+    "allowedIntentIds": ["state_like", "ask_help", "dont_know"],
+    "agentId": "farmer",
+    "slotGrammarIds": [],
+    "text": "¿Y te gustan las manzanas?"
+  },
+  {
+    "promptId": "lesson-water-plan",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-water-plan",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "farmer",
+    "slotGrammarIds": [],
+    "text": "Mis plantas necesitan agua. Si me traes agua del río, te doy tres manzanas. ¿Qué vas a hacer?"
+  },
+  {
+    "promptId": "lesson-big",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-big",
+    "allowedIntentIds": ["describe", "ask_help", "dont_know"],
+    "agentId": "shopkeeper",
+    "slotGrammarIds": [],
+    "text": "Mira este pan. ¿Cómo es?"
+  },
+  {
+    "promptId": "lesson-water-went",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-water-went",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "farmer",
+    "slotGrammarIds": [],
+    "text": "¿Fuiste al río?"
+  },
+  {
+    "promptId": "lesson-liked",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-liked",
+    "allowedIntentIds": ["state_like", "ask_help", "dont_know"],
+    "agentId": "farmer",
+    "slotGrammarIds": [],
+    "text": "¿Te gustó el pan de Luz?"
   }
 ]

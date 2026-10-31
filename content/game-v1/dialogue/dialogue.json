@@ -1167,6 +1167,109 @@
       "variants": [
         { "lineId": "guide.lesson.smith.lives.1", "text": "¿Dónde vives?" }
       ]
+    },
+    "farmer_sell": {
+      "poolId": "farmer_sell",
+      "variants": [
+        { "lineId": "farmer_sell.1", "text": "Aquí tienes. ¡Gracias!" },
+        { "lineId": "farmer_sell.2", "text": "Toma. ¡Gracias!" }
+      ]
+    },
+    "farmer_cant_pay": {
+      "poolId": "farmer_cant_pay",
+      "variants": [
+        { "lineId": "farmer_cant_pay.1", "text": "Necesitas más monedas. Una manzana cuesta una moneda." }
+      ]
+    },
+    "farmer_price": {
+      "poolId": "farmer_price",
+      "variants": [
+        { "lineId": "farmer_price.1", "text": "Una manzana cuesta una moneda." }
+      ]
+    },
+    "farmer_delivered": {
+      "poolId": "farmer_delivered",
+      "variants": [
+        { "lineId": "farmer_delivered.1", "text": "¡Gracias! Toma tres manzanas." }
+      ]
+    },
+    "guide.lesson.farmer.bought": {
+      "poolId": "guide.lesson.farmer.bought",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.bought.1", "text": "¡Hola! ¿Qué compraste en la panadería?" }
+      ]
+    },
+    "guide.lesson.farmer.apples": {
+      "poolId": "guide.lesson.farmer.apples",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.apples.1", "text": "Mira mis manzanas. Son rojas y grandes." }
+      ]
+    },
+    "guide.lesson.farmer.apple": {
+      "poolId": "guide.lesson.farmer.apple",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.apple.1", "text": "¿Cómo es la manzana?" }
+      ]
+    },
+    "guide.lesson.farmer.like": {
+      "poolId": "guide.lesson.farmer.like",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.like.1", "text": "¿Te gusta el pan?" }
+      ]
+    },
+    "guide.lesson.farmer.like_apples": {
+      "poolId": "guide.lesson.farmer.like_apples",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.like_apples.1", "text": "¿Y te gustan las manzanas?" }
+      ]
+    },
+    "guide.lesson.farmer.how_many": {
+      "poolId": "guide.lesson.farmer.how_many",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.how_many.1", "text": "¿Cuántas manzanas quieres?" }
+      ]
+    },
+    "guide.lesson.farmer.water": {
+      "poolId": "guide.lesson.farmer.water",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.water.1", "text": "Mis plantas necesitan agua. Si me traes agua del río, te doy tres manzanas. ¿Qué vas a hacer?" }
+      ]
+    },
+    "guide.lesson.farmer.went": {
+      "poolId": "guide.lesson.farmer.went",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.went.1", "text": "¿Fuiste al río?" }
+      ]
+    },
+    "guide.lesson.farmer.ate": {
+      "poolId": "guide.lesson.farmer.ate",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.ate.1", "text": "Ayer comí pan de Luz. ¡Me gustó mucho!" }
+      ]
+    },
+    "guide.lesson.farmer.liked": {
+      "poolId": "guide.lesson.farmer.liked",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.liked.1", "text": "¿Te gustó el pan de Luz?" }
+      ]
+    },
+    "guide.lesson.farmer.end": {
+      "poolId": "guide.lesson.farmer.end",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.end.1", "text": "¡Hablas muy bien español!" }
+      ]
+    },
+    "guide.lesson.shop.big": {
+      "poolId": "guide.lesson.shop.big",
+      "variants": [
+        { "lineId": "guide.lesson.shop.big.1", "text": "Mira este pan. ¿Cómo es?" }
+      ]
+    },
+    "guide.lesson.shop.luz": {
+      "poolId": "guide.lesson.shop.luz",
+      "variants": [
+        { "lineId": "guide.lesson.shop.luz.1", "text": "El pan es de Luz, de la panadería." }
+      ]
     }
   }
 }

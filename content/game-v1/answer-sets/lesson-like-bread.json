@@ -1,0 +1,23 @@
+{
+  "answerSetId": "lesson-like-bread",
+  "answers": [
+    {
+      "answerId": "like",
+      "canonical": "sí me gusta el pan",
+      "aliases": ["me gusta el pan", "sí me gusta", "me gusta mucho el pan", "sí me gusta mucho"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": ["no lo sé", "yo no sé", "no entiendo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    }
+  ]
+}

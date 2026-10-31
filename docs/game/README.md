@@ -620,9 +620,15 @@ around an order the learner carries out (the plan, the doing, the report).
 - **Gente del pueblo** (session 6, after `numeros-y-pan`, the villager, the smith and the farmer, 28 steps): `¿Cómo te llamas?`, `¿Qué haces?`, `Es el herrero.`,
   `Vivo en el campamento.`, and the smith in the third person in three times (`Domingo trabaja en la herrería.`, `Va a hacer un hacha.`, `Domingo hizo un
   hacha.`) around the axe order.
+- **¿Cómo es?** (session 7, after `gente-del-pueblo`, the farmer then the stall on the way to the river and back, 20 steps; the first `a2` lesson, phase B):
+  `La manzana es roja.`, `Es grande.` (an adjective after its noun, agreeing with it), `Sí, me gusta el pan.`, `Sí, me gustan las manzanas.`, `Quiero tres
+  manzanas rojas.` (one coin an apple: with no coins the farmer says `Necesitas más monedas.`), and the water order in three times (`Voy a buscar agua.`, the walk
+  to the river, `Sí, fui al río.`) with `gustar` in the past (`Sí, me gustó el pan de Luz.`). The order gives three apples for a bottle of water; it names its
+  lesson, so a learner who carries the bottle filled in session 1 says the plan and goes to the river before the farmer takes it.
 - **Runs.** `--session 4 --lesson-run el-pueblo`, `--session 5 --lesson-run numeros-y-pan` and `--session 6 --lesson-run gente-del-pueblo` run them with typed
-  answers. The scripted runs r18 (the bakery purchase) and r19 (asking the way) cover the sale and the directions (`docs/game/SCRIPTED_RUNS.md`). To play a
-  village lesson by hand, `--skip-to-session 4` (or 5, 6) starts at it with the sessions before counted as done ("The next session: sleep at the fire" below; r21).
+  answers, and `--skip-to-session 7 --lesson-run como-es` the farmer's. The scripted runs r18 (the bakery purchase) and r19 (asking the way) cover the sale and the
+  directions (`docs/game/SCRIPTED_RUNS.md`). To play a village lesson by hand, `--skip-to-session 4` (or 5, 6, 7) starts at it with the sessions before counted as
+  done ("The next session: sleep at the fire" below; r21).
 
 ```bash
 # session 5: five trunks from the orchard, the oven order delivered at the baker (four coins), two loaves bought (r18 of the scripted runs);
@@ -663,7 +669,7 @@ in the same run.
   `sleep: ...: session 1 ends at the fire, session 2 begins (tick, stored time, world digest)` and a toast says `Good morning: session 2 begins`.
 - **What the objective says next.** Once the session's work is done (session 1: its ending; from session 2: no lesson under way and every unlocked lesson done), the
   line says `Session complete: sleep at your fire to start session 2`, and when the work ends away from the fire (a lesson completed in the village) the beacon
-  goes to the fire. When no later session has a lesson (after session 6 today) it says `Every lesson so far is done: practise any of them again in the book (J), or
+  goes to the fire. When no later session has a lesson (after session 7 today) it says `Every lesson so far is done: practise any of them again in the book (J), or
   talk to the people of the village`; the fire still lets the player sleep, which lifts the spacing gaps. From session 2, while a lesson is under way or left, it
   says `Next: talk to the villager for the lesson “Personas”`. These lines come after a lesson's own line, a replay, a review and a new lesson, and over an order,
   as the new lesson's line does, except that an open order keeps its own line rather than `Every lesson so far is done`.
@@ -672,13 +678,15 @@ in the same run.
   (the camp, the shopkeeper's bottle on a second visit, the river and the fire by `--teleport`), shows the card, sleeps, and shows session 2's objective, the beacon
   on the villager (no fire prompt: Personas is left) and the book's Lessons page.
 
-**`--skip-to-session <n>`** (a test aid, `SessionSkip`): a new game starts as play session n (from 2 to the last session that has a lesson, 6 today) where a learner
+**`--skip-to-session <n>`** (a test aid, `SessionSkip`): a new game starts as play session n (from 2 to the last session that has a lesson, 7 today) where a learner
 who played sessions 1 to n-1 and did everything would stand, built from the data alone (the lessons' `session` and `after`, the objectives, the orders and the NPCs'
 host events), so a later session needs no code. Every lesson of an earlier session is completed in its own session (its steps recorded as skipped: the learner
-took none); session 1's ending is reached (the camp's steps counted, a torch on the rim of the player's fire ring); each earlier order is delivered by the NPC's own
-`<npc>.delivered` thanks (its goods brought and taken, its reward paid); and each earlier lesson's purchases are made (a `do` step waiting for an NPC that sells,
-as many as the lesson's request names: the two loaves of `numeros-y-pan`). So the coins and the items follow VILLAGE_PLAN 3.4: none at session 4, two coins at 5,
-two coins and two loaves at 6 (the axe order's two coins). What the world gives (wood, fruit, water) is not carried over: the next lesson and order point at it. No
+took none); session 1's ending is reached (the camp's steps counted, a torch on the rim of the player's fire ring, and the camp's bottle of water in the bag: the
+shopkeeper gave it, the river filled it, and nothing in the game empties it, V13); each earlier order is delivered by the NPC's own `<npc>.delivered` thanks (what
+the bag lacks of its goods brought, the coins it asks for paid from the bag, since only an NPC gives coins, its reward paid); and each earlier lesson's purchases are
+made (a `do` step waiting for an NPC that sells, as many as the lesson's request names: the two loaves of `numeros-y-pan`). So the coins and the items follow
+VILLAGE_PLAN 3.4: none at session 4, two coins at 5, two coins and two loaves at 6 (the axe order's two coins), no coins, two loaves and the axe at 7 (the farmer's
+apples are the water order's). What the world gives (wood, fruit) is not carried over: the next lesson and order point at it. No
 practice is faked: no turn is taken and the word and phrase records stay a new game's. The objective and the beacon then name session n's lesson and its NPC, as
 after a load. The console says `session: skipped to play session 4 (sessions 1 to 3 counted as done; test aid)`, the session log has the same line (the world event
 `session_skipped`) and `skipped_to` on its `session_start`, and the save carries `skippedTo` (left out of every other save), so no log or save made with it passes

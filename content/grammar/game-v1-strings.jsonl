@@ -19,11 +19,16 @@
 {"id":"dialogue:farewell_reply.3","text":"¡Nos vemos, amigo!","kind":"npc"}
 {"id":"dialogue:farmer_bye.1","text":"¡Adiós! Hasta luego.","kind":"npc"}
 {"id":"dialogue:farmer_bye.2","text":"Hasta luego.","kind":"npc"}
+{"id":"dialogue:farmer_cant_pay.1","text":"Necesitas más monedas. Una manzana cuesta una moneda.","kind":"npc"}
+{"id":"dialogue:farmer_delivered.1","text":"¡Gracias! Toma tres manzanas.","kind":"npc"}
 {"id":"dialogue:farmer_greet.1","text":"¡Hola! Este es mi campo.","kind":"npc"}
 {"id":"dialogue:farmer_hello.1","text":"¡Hola!","kind":"npc"}
 {"id":"dialogue:farmer_help.1","text":"Puedes preguntar: «¿Qué haces?».","kind":"npc"}
 {"id":"dialogue:farmer_job.1","text":"Soy el granjero. Trabajo en el campo.","kind":"npc"}
 {"id":"dialogue:farmer_name.1","text":"Me llamo León.","kind":"npc"}
+{"id":"dialogue:farmer_price.1","text":"Una manzana cuesta una moneda.","kind":"npc"}
+{"id":"dialogue:farmer_sell.1","text":"Aquí tienes. ¡Gracias!","kind":"npc"}
+{"id":"dialogue:farmer_sell.2","text":"Toma. ¡Gracias!","kind":"npc"}
 {"id":"dialogue:farmer_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:farmer_thank.2","text":"¡Con gusto!","kind":"npc"}
 {"id":"dialogue:feedback.explicit_correction.1","text":"Se dice «{expected}», no «{actual}».","kind":"template"}
@@ -87,6 +92,17 @@
 {"id":"dialogue:guide.lesson.baker.ten.1","text":"Seis, siete, ocho, nueve, diez.","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.you.1","text":"Compraste dos panes. ¡Muy bien!","kind":"npc"}
 {"id":"dialogue:guide.lesson.end.1","text":"¡Muy bien! Ya tienes fuego.","kind":"npc"}
+{"id":"dialogue:guide.lesson.farmer.apple.1","text":"¿Cómo es la manzana?","kind":"npc"}
+{"id":"dialogue:guide.lesson.farmer.apples.1","text":"Mira mis manzanas. Son rojas y grandes.","kind":"npc"}
+{"id":"dialogue:guide.lesson.farmer.ate.1","text":"Ayer comí pan de Luz. ¡Me gustó mucho!","kind":"npc"}
+{"id":"dialogue:guide.lesson.farmer.bought.1","text":"¡Hola! ¿Qué compraste en la panadería?","kind":"npc"}
+{"id":"dialogue:guide.lesson.farmer.end.1","text":"¡Hablas muy bien español!","kind":"npc"}
+{"id":"dialogue:guide.lesson.farmer.how_many.1","text":"¿Cuántas manzanas quieres?","kind":"npc"}
+{"id":"dialogue:guide.lesson.farmer.like.1","text":"¿Te gusta el pan?","kind":"npc"}
+{"id":"dialogue:guide.lesson.farmer.like_apples.1","text":"¿Y te gustan las manzanas?","kind":"npc"}
+{"id":"dialogue:guide.lesson.farmer.liked.1","text":"¿Te gustó el pan de Luz?","kind":"npc"}
+{"id":"dialogue:guide.lesson.farmer.water.1","text":"Mis plantas necesitan agua. Si me traes agua del río, te doy tres manzanas. ¿Qué vas a hacer?","kind":"npc"}
+{"id":"dialogue:guide.lesson.farmer.went.1","text":"¿Fuiste al río?","kind":"npc"}
 {"id":"dialogue:guide.lesson.fast.1","text":"Mira. La madera es para la antorcha.","kind":"npc"}
 {"id":"dialogue:guide.lesson.fisher.end.1","text":"¡Muy bien! Ya conoces el pueblo.","kind":"npc"}
 {"id":"dialogue:guide.lesson.fisher.going.1","text":"¿Adónde vas?","kind":"npc"}
@@ -118,9 +134,11 @@
 {"id":"dialogue:guide.lesson.shop.all.1","text":"¿Qué quieren ustedes?","kind":"npc"}
 {"id":"dialogue:guide.lesson.shop.ate.1","text":"¿Qué comiste ayer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.shop.ayer.1","text":"Ayer comí pan.","kind":"npc"}
+{"id":"dialogue:guide.lesson.shop.big.1","text":"Mira este pan. ¿Cómo es?","kind":"npc"}
 {"id":"dialogue:guide.lesson.shop.bottle.1","text":"¿Tiene usted una botella?","kind":"npc"}
 {"id":"dialogue:guide.lesson.shop.bread.1","text":"Sí, hay pan. Es pan de Luz.","kind":"npc"}
 {"id":"dialogue:guide.lesson.shop.had.1","text":"¿Bebiste agua ayer?","kind":"npc"}
+{"id":"dialogue:guide.lesson.shop.luz.1","text":"El pan es de Luz, de la panadería.","kind":"npc"}
 {"id":"dialogue:guide.lesson.shop.need.1","text":"¿Qué necesita usted?","kind":"npc"}
 {"id":"dialogue:guide.lesson.shop.they.1","text":"Ellos quieren agua.","kind":"npc"}
 {"id":"dialogue:guide.lesson.shop.tomorrow.1","text":"¿Qué vas a hacer mañana?","kind":"npc"}
@@ -262,7 +280,9 @@
 {"id":"prompts:guide-offer","text":"¿Quieres agua?","kind":"npc"}
 {"id":"prompts:guide-open","text":"¡Hola! Soy la guía. ¿En qué te ayudo?","kind":"npc"}
 {"id":"prompts:guide-review","text":"¿Qué es esto?","kind":"npc"}
+{"id":"prompts:lesson-apple","text":"¿Cómo es la manzana?","kind":"npc"}
 {"id":"prompts:lesson-ate","text":"¿Qué comiste ayer?","kind":"npc"}
+{"id":"prompts:lesson-big","text":"Mira este pan. ¿Cómo es?","kind":"npc"}
 {"id":"prompts:lesson-bottle","text":"¿Tiene usted una botella?","kind":"npc"}
 {"id":"prompts:lesson-bought","text":"¿Qué compraste?","kind":"npc"}
 {"id":"prompts:lesson-coins","text":"¿Cuántas monedas tienes?","kind":"npc"}
@@ -272,6 +292,9 @@
 {"id":"prompts:lesson-have","text":"¿Tienes una fruta?","kind":"npc"}
 {"id":"prompts:lesson-hay","text":"En el pueblo hay una tienda, una panadería y tres casas.","kind":"npc"}
 {"id":"prompts:lesson-hello","text":"¡Hola!","kind":"npc"}
+{"id":"prompts:lesson-like-apples","text":"¿Y te gustan las manzanas?","kind":"npc"}
+{"id":"prompts:lesson-like-bread","text":"¿Te gusta el pan?","kind":"npc"}
+{"id":"prompts:lesson-liked","text":"¿Te gustó el pan de Luz?","kind":"npc"}
 {"id":"prompts:lesson-lives","text":"¿Dónde vives?","kind":"npc"}
 {"id":"prompts:lesson-made","text":"¿Qué hizo Domingo?","kind":"npc"}
 {"id":"prompts:lesson-name","text":"Me llamo Luna.","kind":"npc"}
@@ -290,6 +313,8 @@
 {"id":"prompts:lesson-usted","text":"¿Qué necesita usted?","kind":"npc"}
 {"id":"prompts:lesson-ustedes","text":"¿Qué quieren ustedes?","kind":"npc"}
 {"id":"prompts:lesson-want","text":"¿Qué quieres?","kind":"npc"}
+{"id":"prompts:lesson-water-plan","text":"Mis plantas necesitan agua. Si me traes agua del río, te doy tres manzanas. ¿Qué vas a hacer?","kind":"npc"}
+{"id":"prompts:lesson-water-went","text":"¿Fuiste al río?","kind":"npc"}
 {"id":"prompts:lesson-we","text":"¿Qué necesitamos?","kind":"npc"}
 {"id":"prompts:lesson-went","text":"¿Fuiste al río ayer?","kind":"npc"}
 {"id":"prompts:lesson-went-there","text":"¿Fuiste a la panadería?","kind":"npc"}
@@ -303,6 +328,20 @@
 {"id":"prompts:stall-need","text":"¿Qué necesitas?","kind":"npc"}
 {"id":"prompts:stall-offer","text":"¿Quieres pan?","kind":"npc"}
 {"id":"prompts:villager-open","text":"Hola.","kind":"npc"}
+{"id":"answer-sets/lesson-apple:apple","text":"la manzana es roja","kind":"learner"}
+{"id":"answer-sets/lesson-apple:apple.alias1","text":"es roja","kind":"learner"}
+{"id":"answer-sets/lesson-apple:apple.alias2","text":"sí es roja","kind":"learner"}
+{"id":"answer-sets/lesson-apple:apple.alias3","text":"la manzana es roja y grande","kind":"learner"}
+{"id":"answer-sets/lesson-apple:apple.alias4","text":"la manzana es muy roja","kind":"learner"}
+{"id":"answer-sets/lesson-apple:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-apple:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-apple:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-apple:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-apple:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-apple:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-apple:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-apple:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-apple:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-ate:ate","text":"ayer comí fruta","kind":"learner"}
 {"id":"answer-sets/lesson-ate:ate.alias1","text":"comí fruta","kind":"learner"}
 {"id":"answer-sets/lesson-ate:ate.alias2","text":"yo comí fruta","kind":"learner"}
@@ -321,6 +360,19 @@
 {"id":"answer-sets/lesson-ate:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/lesson-ate:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/lesson-ate:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-big:big","text":"es grande","kind":"learner"}
+{"id":"answer-sets/lesson-big:big.alias1","text":"el pan es grande","kind":"learner"}
+{"id":"answer-sets/lesson-big:big.alias2","text":"sí es grande","kind":"learner"}
+{"id":"answer-sets/lesson-big:big.alias3","text":"es muy grande","kind":"learner"}
+{"id":"answer-sets/lesson-big:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-big:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-big:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-big:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-big:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-big:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-big:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-big:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-big:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-bottle:have","text":"tengo una botella","kind":"learner"}
 {"id":"answer-sets/lesson-bottle:have.alias1","text":"sí tengo una botella","kind":"learner"}
 {"id":"answer-sets/lesson-bottle:have.alias2","text":"sí yo tengo una botella","kind":"learner"}
@@ -487,6 +539,48 @@
 {"id":"answer-sets/lesson-hay:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/lesson-hay:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/lesson-hay:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-like-apples:like","text":"sí me gustan las manzanas","kind":"learner"}
+{"id":"answer-sets/lesson-like-apples:like.alias1","text":"me gustan las manzanas","kind":"learner"}
+{"id":"answer-sets/lesson-like-apples:like.alias2","text":"sí me gustan","kind":"learner"}
+{"id":"answer-sets/lesson-like-apples:like.alias3","text":"me gustan mucho las manzanas","kind":"learner"}
+{"id":"answer-sets/lesson-like-apples:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-like-apples:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-like-apples:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-like-apples:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-like-apples:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-like-apples:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-like-apples:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-like-apples:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-like-apples:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-like-bread:like","text":"sí me gusta el pan","kind":"learner"}
+{"id":"answer-sets/lesson-like-bread:like.alias1","text":"me gusta el pan","kind":"learner"}
+{"id":"answer-sets/lesson-like-bread:like.alias2","text":"sí me gusta","kind":"learner"}
+{"id":"answer-sets/lesson-like-bread:like.alias3","text":"me gusta mucho el pan","kind":"learner"}
+{"id":"answer-sets/lesson-like-bread:like.alias4","text":"sí me gusta mucho","kind":"learner"}
+{"id":"answer-sets/lesson-like-bread:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-like-bread:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-like-bread:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-like-bread:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-like-bread:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-like-bread:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-like-bread:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-like-bread:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-like-bread:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-liked:liked","text":"me gustó el pan de luz","kind":"learner"}
+{"id":"answer-sets/lesson-liked:liked.alias1","text":"sí me gustó el pan de luz","kind":"learner"}
+{"id":"answer-sets/lesson-liked:liked.alias2","text":"me gustó el pan","kind":"learner"}
+{"id":"answer-sets/lesson-liked:liked.alias3","text":"sí me gustó","kind":"learner"}
+{"id":"answer-sets/lesson-liked:liked.alias4","text":"me gustó mucho el pan","kind":"learner"}
+{"id":"answer-sets/lesson-liked:liked.alias5","text":"ayer me gustó el pan","kind":"learner"}
+{"id":"answer-sets/lesson-liked:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-liked:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-liked:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-liked:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-liked:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-liked:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-liked:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-liked:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-liked:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-lives:camp","text":"vivo en el campamento","kind":"learner"}
 {"id":"answer-sets/lesson-lives:camp.alias1","text":"yo vivo en el campamento","kind":"learner"}
 {"id":"answer-sets/lesson-lives:camp.alias2","text":"vivo en la casa","kind":"learner"}
@@ -754,6 +848,36 @@
 {"id":"answer-sets/lesson-want:slower.alias5","text":"despacio","kind":"learner"}
 {"id":"answer-sets/lesson-want:slower.alias6","text":"más lento","kind":"learner"}
 {"id":"answer-sets/lesson-want:slower.alias7","text":"más lento por favor","kind":"learner"}
+{"id":"answer-sets/lesson-water-plan:plan","text":"voy a buscar agua","kind":"learner"}
+{"id":"answer-sets/lesson-water-plan:plan.alias1","text":"yo voy a buscar agua","kind":"learner"}
+{"id":"answer-sets/lesson-water-plan:plan.alias2","text":"voy a buscar el agua","kind":"learner"}
+{"id":"answer-sets/lesson-water-plan:plan.alias3","text":"luego voy a buscar agua","kind":"learner"}
+{"id":"answer-sets/lesson-water-plan:plan.alias4","text":"voy a buscar agua luego","kind":"learner"}
+{"id":"answer-sets/lesson-water-plan:plan.alias5","text":"luego busco agua","kind":"learner"}
+{"id":"answer-sets/lesson-water-plan:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-water-plan:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-water-plan:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-water-plan:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-water-plan:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-water-plan:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-water-plan:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-water-plan:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-water-plan:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-water-went:went","text":"sí fui al río","kind":"learner"}
+{"id":"answer-sets/lesson-water-went:went.alias1","text":"fui al río","kind":"learner"}
+{"id":"answer-sets/lesson-water-went:went.alias2","text":"yo fui al río","kind":"learner"}
+{"id":"answer-sets/lesson-water-went:went.alias3","text":"sí yo fui al río","kind":"learner"}
+{"id":"answer-sets/lesson-water-went:went.alias4","text":"hoy fui al río","kind":"learner"}
+{"id":"answer-sets/lesson-water-went:went.alias5","text":"ayer fui al río","kind":"learner"}
+{"id":"answer-sets/lesson-water-went:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-water-went:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-water-went:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-water-went:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-water-went:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-water-went:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-water-went:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-water-went:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-water-went:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-we:we","text":"necesitamos agua","kind":"learner"}
 {"id":"answer-sets/lesson-we:we.alias1","text":"nosotros necesitamos agua","kind":"learner"}
 {"id":"answer-sets/lesson-we:we.alias2","text":"queremos agua","kind":"learner"}
@@ -981,6 +1105,28 @@
 {"id":"answer-sets/people-farmer:job.alias3","text":"qué tú haces","kind":"learner"}
 {"id":"answer-sets/people-farmer:job.alias4","text":"en qué trabajas","kind":"learner"}
 {"id":"answer-sets/people-farmer:job.alias5","text":"dónde trabajas","kind":"learner"}
+{"id":"answer-sets/people-farmer:apples","text":"quiero tres manzanas rojas","kind":"learner"}
+{"id":"answer-sets/people-farmer:apples.alias1","text":"quiero tres manzanas","kind":"learner"}
+{"id":"answer-sets/people-farmer:apples.alias2","text":"quiero tres manzanas rojas por favor","kind":"learner"}
+{"id":"answer-sets/people-farmer:apples.alias3","text":"tres manzanas rojas por favor","kind":"learner"}
+{"id":"answer-sets/people-farmer:apples.alias4","text":"quiero una manzana roja","kind":"learner"}
+{"id":"answer-sets/people-farmer:apples.alias5","text":"quiero una manzana","kind":"learner"}
+{"id":"answer-sets/people-farmer:apples.alias6","text":"quiero manzanas","kind":"learner"}
+{"id":"answer-sets/people-farmer:apples.alias7","text":"me da tres manzanas","kind":"learner"}
+{"id":"answer-sets/people-farmer:price","text":"cuánto cuesta","kind":"learner"}
+{"id":"answer-sets/people-farmer:price.alias1","text":"cuánto cuesta una manzana","kind":"learner"}
+{"id":"answer-sets/people-farmer:price.alias2","text":"cuánto cuestan las manzanas","kind":"learner"}
+{"id":"answer-sets/people-farmer:price.alias3","text":"cuánto es","kind":"learner"}
+{"id":"answer-sets/people-farmer:like","text":"me gustan las manzanas","kind":"learner"}
+{"id":"answer-sets/people-farmer:like.alias1","text":"me gusta el pan","kind":"learner"}
+{"id":"answer-sets/people-farmer:like.alias2","text":"sí me gustan","kind":"learner"}
+{"id":"answer-sets/people-farmer:like.alias3","text":"me gustan mucho las manzanas","kind":"learner"}
+{"id":"answer-sets/people-farmer:like.alias4","text":"me gusta","kind":"learner"}
+{"id":"answer-sets/people-farmer:describe","text":"la manzana es roja","kind":"learner"}
+{"id":"answer-sets/people-farmer:describe.alias1","text":"las manzanas son rojas","kind":"learner"}
+{"id":"answer-sets/people-farmer:describe.alias2","text":"es roja","kind":"learner"}
+{"id":"answer-sets/people-farmer:describe.alias3","text":"es grande","kind":"learner"}
+{"id":"answer-sets/people-farmer:describe.alias4","text":"el campo es grande","kind":"learner"}
 {"id":"answer-sets/people-farmer:hello","text":"hola","kind":"learner"}
 {"id":"answer-sets/people-farmer:hello.alias1","text":"buenos días","kind":"learner"}
 {"id":"answer-sets/people-farmer:hello.alias2","text":"buenas tardes","kind":"learner"}
@@ -1371,6 +1517,20 @@
 {"id":"intents:deny.ex7","text":"no, es un madera","kind":"learner","errors":["gender.agree"]}
 {"id":"intents:deny.ex8","text":"ahora no","kind":"learner","errors":[]}
 {"id":"intents:deny.ex9","text":"no quiero","kind":"learner","errors":[]}
+{"id":"intents:describe.ex0","text":"la manzana es roja","kind":"learner","errors":[]}
+{"id":"intents:describe.ex1","text":"es roja","kind":"learner","errors":[]}
+{"id":"intents:describe.ex2","text":"sí, es roja","kind":"learner","errors":[]}
+{"id":"intents:describe.ex3","text":"la manzana es roja y grande","kind":"learner","errors":[]}
+{"id":"intents:describe.ex4","text":"la manzana es muy roja","kind":"learner","errors":[]}
+{"id":"intents:describe.ex5","text":"el manzana es roja","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:describe.ex6","text":"es grande","kind":"learner","errors":[]}
+{"id":"intents:describe.ex7","text":"el pan es grande","kind":"learner","errors":[]}
+{"id":"intents:describe.ex8","text":"sí, es grande","kind":"learner","errors":[]}
+{"id":"intents:describe.ex9","text":"es muy grande","kind":"learner","errors":[]}
+{"id":"intents:describe.ex10","text":"la pan es grande","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:describe.ex11","text":"esto es grande","kind":"learner","errors":[]}
+{"id":"intents:describe.ex12","text":"el campo es grande","kind":"learner","errors":[]}
+{"id":"intents:describe.ex13","text":"el pozo es pequeño","kind":"learner","errors":[]}
 {"id":"intents:dont_know.ex0","text":"no sé","kind":"learner","errors":[]}
 {"id":"intents:dont_know.ex1","text":"no lo sé","kind":"learner","errors":[]}
 {"id":"intents:dont_know.ex2","text":"yo no sé","kind":"learner","errors":[]}
@@ -1428,6 +1588,13 @@
 {"id":"intents:request_item.ex25","text":"quiero tres panes","kind":"learner","errors":[]}
 {"id":"intents:request_item.ex26","text":"quiero dos pan","kind":"learner","errors":["noun.number"]}
 {"id":"intents:request_item.ex27","text":"yo quieres dos panes","kind":"learner","errors":["conj.person"]}
+{"id":"intents:request_item.ex28","text":"quiero tres manzanas rojas","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex29","text":"quiero tres manzanas","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex30","text":"quiero tres manzanas rojas, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex31","text":"tres manzanas rojas, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex32","text":"quiero una manzana roja","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex33","text":"quiero tres manzanas rojos","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:request_item.ex34","text":"quiero tres manzana rojas","kind":"learner","errors":["noun.number"]}
 {"id":"intents:state_action.ex0","text":"voy a comer pan","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex1","text":"mañana voy a comer pan","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex2","text":"yo voy a comer pan","kind":"learner","errors":[]}
@@ -1554,10 +1721,19 @@
 {"id":"intents:state_action.ex123","text":"domingo hizo el hacha","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex124","text":"ayer domingo hace un hacha","kind":"learner","errors":["conj.tense"]}
 {"id":"intents:state_action.ex125","text":"él hice un hacha","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex126","text":"busqué madera","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex127","text":"león trabaja en el campo","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex128","text":"luz vive en la panadería","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex129","text":"mar va a trabajar en el río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex126","text":"voy a buscar agua","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex127","text":"yo voy a buscar agua","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex128","text":"voy a buscar el agua","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex129","text":"luego voy a buscar agua","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex130","text":"voy a buscar agua luego","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex131","text":"luego busco agua","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex132","text":"voy a busco agua","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex133","text":"yo vas a buscar agua","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex134","text":"hoy fui al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex135","text":"busqué madera","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex136","text":"león trabaja en el campo","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex137","text":"luz vive en la panadería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex138","text":"mar va a trabajar en el río","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex0","text":"tengo una fruta","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex1","text":"sí, tengo una fruta","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex2","text":"sí, yo tengo una fruta","kind":"learner","errors":[]}
@@ -1582,6 +1758,26 @@
 {"id":"intents:state_have.ex21","text":"ella tiene madera","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex22","text":"nosotros tenemos agua","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex23","text":"ellos tienen pan","kind":"learner","errors":[]}
+{"id":"intents:state_like.ex0","text":"sí, me gusta el pan","kind":"learner","errors":[]}
+{"id":"intents:state_like.ex1","text":"me gusta el pan","kind":"learner","errors":[]}
+{"id":"intents:state_like.ex2","text":"sí, me gusta","kind":"learner","errors":[]}
+{"id":"intents:state_like.ex3","text":"me gusta mucho el pan","kind":"learner","errors":[]}
+{"id":"intents:state_like.ex4","text":"sí, me gusta mucho","kind":"learner","errors":[]}
+{"id":"intents:state_like.ex5","text":"me gusta la pan","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:state_like.ex6","text":"sí, me gustan las manzanas","kind":"learner","errors":[]}
+{"id":"intents:state_like.ex7","text":"me gustan las manzanas","kind":"learner","errors":[]}
+{"id":"intents:state_like.ex8","text":"sí, me gustan","kind":"learner","errors":[]}
+{"id":"intents:state_like.ex9","text":"me gustan mucho las manzanas","kind":"learner","errors":[]}
+{"id":"intents:state_like.ex10","text":"me gustan los manzanas","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:state_like.ex11","text":"me gustó el pan de luz","kind":"learner","errors":[]}
+{"id":"intents:state_like.ex12","text":"sí, me gustó el pan de luz","kind":"learner","errors":[]}
+{"id":"intents:state_like.ex13","text":"me gustó el pan","kind":"learner","errors":[]}
+{"id":"intents:state_like.ex14","text":"sí, me gustó","kind":"learner","errors":[]}
+{"id":"intents:state_like.ex15","text":"me gustó mucho el pan","kind":"learner","errors":[]}
+{"id":"intents:state_like.ex16","text":"ayer me gustó el pan","kind":"learner","errors":[]}
+{"id":"intents:state_like.ex17","text":"ayer me gusta el pan","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_like.ex18","text":"no me gusta el pan","kind":"learner","errors":[]}
+{"id":"intents:state_like.ex19","text":"me gustan las frutas","kind":"learner","errors":[]}
 {"id":"intents:state_want.ex0","text":"ella quiere fruta","kind":"learner","errors":[]}
 {"id":"intents:state_want.ex1","text":"luna quiere fruta","kind":"learner","errors":[]}
 {"id":"intents:state_want.ex2","text":"ella quiere frutas","kind":"learner","errors":[]}
@@ -1937,6 +2133,61 @@
 {"id":"PHRASES.md:hizo-un-hacha.variant3","text":"domingo hizo el hacha","kind":"learner"}
 {"id":"PHRASES.md:hizo-un-hacha.error","text":"ayer domingo hace un hacha","kind":"learner","errors":["conj.tense"]}
 {"id":"PHRASES.md:ayer-trabajo-mucho.text","text":"Ayer Domingo trabajó mucho.","kind":"npc"}
+{"id":"PHRASES.md:mis-manzanas-son-rojas.text","text":"Mira mis manzanas. Son rojas y grandes.","kind":"npc"}
+{"id":"PHRASES.md:como-es-la-manzana.text","text":"¿Cómo es la manzana?","kind":"npc"}
+{"id":"PHRASES.md:la-manzana-es-roja.text","text":"La manzana es roja.","kind":"learner"}
+{"id":"PHRASES.md:la-manzana-es-roja.variant1","text":"es roja","kind":"learner"}
+{"id":"PHRASES.md:la-manzana-es-roja.variant2","text":"sí, es roja","kind":"learner"}
+{"id":"PHRASES.md:la-manzana-es-roja.variant3","text":"la manzana es roja y grande","kind":"learner"}
+{"id":"PHRASES.md:la-manzana-es-roja.variant4","text":"la manzana es muy roja","kind":"learner"}
+{"id":"PHRASES.md:la-manzana-es-roja.error","text":"el manzana es roja","kind":"learner","errors":["gender.agree"]}
+{"id":"PHRASES.md:te-gusta-el-pan.text","text":"¿Te gusta el pan?","kind":"npc"}
+{"id":"PHRASES.md:me-gusta-el-pan.text","text":"Sí, me gusta el pan.","kind":"learner"}
+{"id":"PHRASES.md:me-gusta-el-pan.variant1","text":"me gusta el pan","kind":"learner"}
+{"id":"PHRASES.md:me-gusta-el-pan.variant2","text":"sí, me gusta","kind":"learner"}
+{"id":"PHRASES.md:me-gusta-el-pan.variant3","text":"me gusta mucho el pan","kind":"learner"}
+{"id":"PHRASES.md:me-gusta-el-pan.variant4","text":"sí, me gusta mucho","kind":"learner"}
+{"id":"PHRASES.md:me-gusta-el-pan.error","text":"me gusta la pan","kind":"learner","errors":["gender.agree"]}
+{"id":"PHRASES.md:me-gustan-las-manzanas.text","text":"Sí, me gustan las manzanas.","kind":"learner"}
+{"id":"PHRASES.md:me-gustan-las-manzanas.variant1","text":"me gustan las manzanas","kind":"learner"}
+{"id":"PHRASES.md:me-gustan-las-manzanas.variant2","text":"sí, me gustan","kind":"learner"}
+{"id":"PHRASES.md:me-gustan-las-manzanas.variant3","text":"me gustan mucho las manzanas","kind":"learner"}
+{"id":"PHRASES.md:me-gustan-las-manzanas.error","text":"me gustan los manzanas","kind":"learner","errors":["gender.agree"]}
+{"id":"PHRASES.md:quiero-tres-manzanas-rojas.text","text":"Quiero tres manzanas rojas.","kind":"learner"}
+{"id":"PHRASES.md:quiero-tres-manzanas-rojas.variant1","text":"quiero tres manzanas","kind":"learner"}
+{"id":"PHRASES.md:quiero-tres-manzanas-rojas.variant2","text":"quiero tres manzanas rojas, por favor","kind":"learner"}
+{"id":"PHRASES.md:quiero-tres-manzanas-rojas.variant3","text":"tres manzanas rojas, por favor","kind":"learner"}
+{"id":"PHRASES.md:quiero-tres-manzanas-rojas.variant4","text":"quiero una manzana roja","kind":"learner"}
+{"id":"PHRASES.md:quiero-tres-manzanas-rojas.error","text":"quiero tres manzanas rojos","kind":"learner","errors":["gender.agree"]}
+{"id":"PHRASES.md:mis-plantas-necesitan-agua.text","text":"Mis plantas necesitan agua. Si me traes agua del río, te doy tres manzanas. ¿Qué vas a hacer?","kind":"npc"}
+{"id":"PHRASES.md:voy-a-buscar-agua.text","text":"Voy a buscar agua.","kind":"learner"}
+{"id":"PHRASES.md:voy-a-buscar-agua.variant1","text":"yo voy a buscar agua","kind":"learner"}
+{"id":"PHRASES.md:voy-a-buscar-agua.variant2","text":"voy a buscar el agua","kind":"learner"}
+{"id":"PHRASES.md:voy-a-buscar-agua.variant3","text":"luego voy a buscar agua","kind":"learner"}
+{"id":"PHRASES.md:voy-a-buscar-agua.variant4","text":"voy a buscar agua luego","kind":"learner"}
+{"id":"PHRASES.md:voy-a-buscar-agua.variant5","text":"luego busco agua","kind":"learner"}
+{"id":"PHRASES.md:voy-a-buscar-agua.error","text":"voy a busco agua","kind":"learner","errors":["conj.tense"]}
+{"id":"PHRASES.md:es-grande.text","text":"Es grande.","kind":"learner"}
+{"id":"PHRASES.md:es-grande.variant1","text":"el pan es grande","kind":"learner"}
+{"id":"PHRASES.md:es-grande.variant2","text":"sí, es grande","kind":"learner"}
+{"id":"PHRASES.md:es-grande.variant3","text":"es muy grande","kind":"learner"}
+{"id":"PHRASES.md:es-grande.error","text":"la pan es grande","kind":"learner","errors":["gender.agree"]}
+{"id":"PHRASES.md:el-pan-es-de-luz.text","text":"El pan es de Luz, de la panadería.","kind":"npc"}
+{"id":"PHRASES.md:toma-tres-manzanas.text","text":"¡Gracias! Toma tres manzanas.","kind":"npc"}
+{"id":"PHRASES.md:fui-al-rio.text","text":"Sí, fui al río.","kind":"learner"}
+{"id":"PHRASES.md:fui-al-rio.variant1","text":"fui al río","kind":"learner"}
+{"id":"PHRASES.md:fui-al-rio.variant2","text":"yo fui al río","kind":"learner"}
+{"id":"PHRASES.md:fui-al-rio.variant3","text":"hoy fui al río","kind":"learner"}
+{"id":"PHRASES.md:fui-al-rio.error","text":"ayer voy al río","kind":"learner","errors":["conj.tense"]}
+{"id":"PHRASES.md:ayer-me-gusto.text","text":"Ayer comí pan de Luz. ¡Me gustó mucho!","kind":"npc"}
+{"id":"PHRASES.md:te-gusto-el-pan.text","text":"¿Te gustó el pan de Luz?","kind":"npc"}
+{"id":"PHRASES.md:me-gusto-el-pan.text","text":"Sí, me gustó el pan de Luz.","kind":"learner"}
+{"id":"PHRASES.md:me-gusto-el-pan.variant1","text":"me gustó el pan de Luz","kind":"learner"}
+{"id":"PHRASES.md:me-gusto-el-pan.variant2","text":"me gustó el pan","kind":"learner"}
+{"id":"PHRASES.md:me-gusto-el-pan.variant3","text":"sí, me gustó","kind":"learner"}
+{"id":"PHRASES.md:me-gusto-el-pan.variant4","text":"me gustó mucho el pan","kind":"learner"}
+{"id":"PHRASES.md:me-gusto-el-pan.variant5","text":"ayer me gustó el pan","kind":"learner"}
+{"id":"PHRASES.md:me-gusto-el-pan.error","text":"ayer me gusta el pan","kind":"learner","errors":["conj.tense"]}
 {"id":"checks.json:hear.que-necesitas","text":"¿Qué necesitas?","kind":"npc"}
 {"id":"checks.json:hear.quieres-pan","text":"¿Quieres pan?","kind":"npc"}
 {"id":"checks.json:hear.pedir-agua","text":"Quiero agua, por favor.","kind":"npc"}
@@ -1965,6 +2216,10 @@
 {"id":"checks.json:hear.quieres-un-hacha","text":"¿Quieres un hacha? Necesito dos bloques de madera y dos monedas.","kind":"npc"}
 {"id":"checks.json:hear.que-va-a-hacer-domingo","text":"¿Qué va a hacer Domingo?","kind":"npc"}
 {"id":"checks.json:hear.ayer-trabajo-mucho","text":"Ayer Domingo trabajó mucho.","kind":"npc"}
+{"id":"checks.json:hear.mis-manzanas-son-rojas","text":"Mira mis manzanas. Son rojas y grandes.","kind":"npc"}
+{"id":"checks.json:hear.te-gusta-el-pan","text":"¿Te gusta el pan?","kind":"npc"}
+{"id":"checks.json:hear.mis-plantas-necesitan-agua","text":"Mis plantas necesitan agua. Si me traes agua del río, te doy tres manzanas. ¿Qué vas a hacer?","kind":"npc"}
+{"id":"checks.json:hear.el-pan-es-de-luz","text":"El pan es de Luz, de la panadería.","kind":"npc"}
 {"id":"words.json:directions.ahead","text":"adelante","kind":"npc"}
 {"id":"words.json:directions.behind","text":"detrás","kind":"npc"}
 {"id":"words.json:directions.left","text":"a la izquierda","kind":"npc"}

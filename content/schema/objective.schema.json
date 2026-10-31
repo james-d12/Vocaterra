@@ -167,6 +167,11 @@
         }
       },
       "description": "An order's goods: each item (by the name the save gives it) once, and how many."
+    },
+    "lesson": {
+      "type": "string",
+      "minLength": 1,
+      "description": "An order (V13): the lesson that tells it in the three times, with a do step that waits for its delivery. While that lesson is under way before the step, or is about to start at the order's NPC, walking up with the goods does not deliver them, so the plan comes first even for a learner who carries them already."
     }
   },
   "anyOf": [
@@ -184,6 +189,11 @@
           {
             "required": [
               "deliver"
+            ]
+          },
+          {
+            "required": [
+              "lesson"
             ]
           }
         ]

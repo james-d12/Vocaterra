@@ -87,6 +87,24 @@
       }
     },
     {
+      "npc": "farmer",
+      "event": "farmer.sell_apples",
+      "action": {
+        "kind": "sell",
+        "item": "apple",
+        "price": 1
+      }
+    },
+    {
+      "npc": "farmer",
+      "event": "farmer.give_apples",
+      "action": {
+        "kind": "give_item",
+        "item": "apple",
+        "count": 3
+      }
+    },
+    {
       "npc": "guide",
       "event": "guide.give_water",
       "action": {

@@ -1,0 +1,23 @@
+{
+  "answerSetId": "lesson-liked",
+  "answers": [
+    {
+      "answerId": "liked",
+      "canonical": "me gustó el pan de luz",
+      "aliases": ["sí me gustó el pan de luz", "me gustó el pan", "sí me gustó", "me gustó mucho el pan", "ayer me gustó el pan"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": ["no lo sé", "yo no sé", "no entiendo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    }
+  ]
+}

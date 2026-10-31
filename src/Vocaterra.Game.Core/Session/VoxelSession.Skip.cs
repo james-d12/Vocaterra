@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Voxel;
 
@@ -10,9 +11,11 @@ public sealed partial class VoxelSession
     /// Session 1's ending as the objectives describe it (V12c, <see cref="SessionSkip"/>): every step of the objectives the ending waits for that a save counts is counted to
     /// its target, a torch stands on the rim of the player's own fire ring (the world edit that lights it, as the spare torch placed there), and the stage follows from the
     /// world and the lessons as a load works it out (<see cref="RestoreStage"/>): the guide met, the fire lit, the session complete, and the completion hooks put back without
-    /// acting (no spare torch, no arrow). The lessons of session 1 are counted first, so the guide counts as met.
+    /// acting (no spare torch, no arrow). The lessons of session 1 are counted first, so the guide counts as met. A step that counts a bottle filled (the camp's water) leaves
+    /// that many bottles of water in the bag (V13): the shopkeeper gave the bottle and the river filled it, and nothing in the game empties a bottle, so a learner who played
+    /// the session carries it (the farmer's order of session 7 takes it).
     /// </summary>
-    /// <exception cref="InvalidOperationException">The scene has no free cell on the rim of the player's fire ring.</exception>
+    /// <exception cref="InvalidOperationException">The scene has no free cell on the rim of the player's fire ring, or the bag cannot hold the bottles.</exception>
     internal void SkipToEnding()
     {
         foreach (var objective in Objectives.Where(static o => o.Spec.EndsSession))
@@ -20,6 +23,10 @@ public sealed partial class VoxelSession
             foreach (var step in objective.Spec.Steps.Where(static s => s.Restore is null))
             {
                 objective.Set(step.Id, step.Target);
+                if (string.Equals(step.Trigger.Event, WorldEvents.BottleFilled, StringComparison.Ordinal) && Simulation.GrantItems(ItemId.WaterBottle, step.Target) > 0)
+                {
+                    throw new InvalidOperationException("The bag cannot hold the bottle of water the camp's step filled.");
+                }
             }
         }
 
@@ -34,16 +41,29 @@ public sealed partial class VoxelSession
     }
 
     /// <summary>
-    /// Delivers an order as a learner who gathered its goods would (V12c, <see cref="SessionSkip"/>): the goods come into the bag, and the NPC takes them and pays as when
-    /// the player walks up with them (<see cref="GuideSession.DeliverWithoutTalk"/>).
+    /// Delivers an order as a learner who gathered its goods would (V12c, <see cref="SessionSkip"/>): what the bag lacks of the goods comes in, as the play gathered it (the
+    /// wood, the fruit), and the NPC takes them and pays as when the player walks up with them (<see cref="GuideSession.DeliverWithoutTalk"/>). Coins are never gathered: only
+    /// an NPC gives them, so the coins an order asks for are those the earlier sessions left in the bag (V13: the axe's two, which leave none for session 7), and goods the bag
+    /// holds already are the ones taken (the camp's bottle of water, for the farmer).
     /// </summary>
     /// <param name="order">The order (an objective with <c>deliverTo</c>).</param>
-    /// <exception cref="InvalidOperationException">The bag cannot hold the goods, or the NPC does not take the delivery.</exception>
+    /// <exception cref="InvalidOperationException">The bag cannot hold the goods, the earlier sessions leave too few coins for them, or the NPC does not take the delivery.</exception>
     internal void SkipDeliver(Objective order)
     {
         foreach (var goods in order.Spec.Goods)
         {
-            if (Simulation.GrantItems(goods.Item, goods.Count) > 0)
+            var missing = goods.Count - Simulation.Inventory.Count(goods.Item);
+            if (missing <= 0)
+            {
+                continue;
+            }
+
+            if (goods.Item == ItemId.Coin)
+            {
+                throw new InvalidOperationException($"The sessions before leave {Simulation.Inventory.Count(ItemId.Coin)} coins, and the order '{order.Id}' asks for {goods.Count}.");
+            }
+
+            if (Simulation.GrantItems(goods.Item, missing) > 0)
             {
                 throw new InvalidOperationException($"The bag cannot hold the goods of the order '{order.Id}'.");
             }

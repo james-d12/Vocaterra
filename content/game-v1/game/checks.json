@@ -625,6 +625,94 @@
       "lesson": "gente-del-pueblo",
       "prompt": "lesson-made",
       "intent": "state_action"
+    },
+    {
+      "id": "hear.mis-manzanas-son-rojas",
+      "kind": "comprehension",
+      "phrase": "mis-manzanas-son-rojas",
+      "lesson": "como-es",
+      "line": "guide.lesson.farmer.apples.1",
+      "spanish": "Mira mis manzanas. Son rojas y grandes.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.te-gusta-el-pan",
+      "kind": "comprehension",
+      "phrase": "te-gusta-el-pan",
+      "lesson": "como-es",
+      "line": "guide.lesson.farmer.like.1",
+      "spanish": "¿Te gusta el pan?",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.mis-plantas-necesitan-agua",
+      "kind": "comprehension",
+      "phrase": "mis-plantas-necesitan-agua",
+      "lesson": "como-es",
+      "line": "guide.lesson.farmer.water.1",
+      "spanish": "Mis plantas necesitan agua. Si me traes agua del río, te doy tres manzanas. ¿Qué vas a hacer?",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.el-pan-es-de-luz",
+      "kind": "comprehension",
+      "phrase": "el-pan-es-de-luz",
+      "lesson": "como-es",
+      "line": "guide.lesson.shop.luz.1",
+      "spanish": "El pan es de Luz, de la panadería.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "say.la-manzana-es-roja",
+      "kind": "production",
+      "phrase": "la-manzana-es-roja",
+      "lesson": "como-es",
+      "prompt": "lesson-apple",
+      "intent": "describe"
+    },
+    {
+      "id": "say.me-gustan-las-manzanas",
+      "kind": "production",
+      "phrase": "me-gustan-las-manzanas",
+      "lesson": "como-es",
+      "prompt": "lesson-like-apples",
+      "intent": "state_like"
+    },
+    {
+      "id": "say.quiero-tres-manzanas-rojas",
+      "kind": "production",
+      "phrase": "quiero-tres-manzanas-rojas",
+      "lesson": "como-es",
+      "prompt": "farmer-open",
+      "intent": "request_item"
+    },
+    {
+      "id": "say.me-gusto-el-pan",
+      "kind": "production",
+      "phrase": "me-gusto-el-pan",
+      "lesson": "como-es",
+      "prompt": "lesson-liked",
+      "intent": "state_like"
     }
   ]
 }

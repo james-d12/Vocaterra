@@ -30,6 +30,7 @@ public sealed class SessionSkipTests
         { 4, "el-pueblo", "fisher" },
         { 5, "numeros-y-pan", "baker" },
         { 6, "gente-del-pueblo", "villager" },
+        { 7, "como-es", "farmer" },
     };
 
     [Theory]
@@ -69,7 +70,8 @@ public sealed class SessionSkipTests
     }
 
     // The coins and the items in hand at the start of the session, on the plan's path (VILLAGE_PLAN 3.4; the axe order's file says it: two coins from fruit-for-mar, four from
-    // oven-wood, four spent on two loaves): what the scripted play of the sessions before reaches in what only an NPC gives. The gathered goods were used in the play.
+    // oven-wood, four spent on two loaves, and V13: two on the axe, so none at session 7): what the scripted play of the sessions before reaches in what only an NPC gives.
+    // The gathered goods were used in the play; the bottle the shopkeeper gave in session 1 stays full of the river's water (nothing empties a bottle).
     public static TheoryData<int, int, int, int> Economy => new()
     {
         { 2, 0, 0, 0 },
@@ -77,6 +79,7 @@ public sealed class SessionSkipTests
         { 4, 0, 0, 0 },
         { 5, 2, 0, 0 },
         { 6, 2, 2, 0 },
+        { 7, 0, 2, 1 },
     };
 
     [Theory]
@@ -90,14 +93,15 @@ public sealed class SessionSkipTests
         Assert.Equal(bread, bag.Count(ItemId.Bread));
         Assert.Equal(axes, bag.Count(ItemId.Axe));
         Assert.Equal(1, bag.Count(ItemId.Book));
-        Assert.Equal(0, bag.Count(ItemId.Wood) + bag.Count(ItemId.Berry) + bag.Count(ItemId.Torch) + bag.Count(ItemId.WaterBottle));
+        Assert.Equal(0, bag.Count(ItemId.Wood) + bag.Count(ItemId.Berry) + bag.Count(ItemId.Torch) + bag.Count(ItemId.Bottle));
+        Assert.Equal(1, bag.Count(ItemId.WaterBottle)); // session 1's camp filled the shopkeeper's bottle at the river (V13: the farmer's order takes it)
 
-        // What the session's order needs that only an NPC gives (coins) is in hand; what the world gives (wood, fruit) the lesson points at.
+        // What the session's order needs that only an NPC gives (coins, and the bottle of water) is in hand; what the world gives (wood, fruit) the lesson points at.
         foreach (var order in session.Objectives.Where(o => o.Spec.IsOrder && o.Spec.Session == target))
         {
-            foreach (var goods in order.Spec.Goods.Where(static g => g.Item == ItemId.Coin))
+            foreach (var goods in order.Spec.Goods.Where(static g => g.Item is ItemId.Coin or ItemId.WaterBottle))
             {
-                Assert.True(bag.Count(ItemId.Coin) >= goods.Count, $"the order {order.Id} needs {goods.Count} coins");
+                Assert.True(bag.Count(goods.Item) >= goods.Count, $"the order {order.Id} needs {goods.Count} of {goods.Item}");
             }
         }
     }
@@ -118,6 +122,26 @@ public sealed class SessionSkipTests
         var (lesson, purchase) = Assert.Single(purchases); // the two loaves of Números y pan, from its do step and its request "Quiero dos panes, por favor."
         Assert.Equal("numeros-y-pan", lesson);
         Assert.Equal(new SessionSkip.Purchase("baker", ItemId.Bread, 2, 2), purchase);
+    }
+
+    [Fact]
+    public void AnOrdersCoinsArePaidFromTheBagAndAPathThatLeavesTooFewIsAnError()
+    {
+        // V13: coins are never gathered, only given by an NPC, so the skip pays an order's coins from what the earlier sessions left: the axe takes the two left after
+        // session 5, and session 7 starts with none (granting them with the wood had left two). The water of the farmer's order is the camp's bottle, not a second one.
+        var seven = SkippedTo(7);
+        Assert.Contains(seven.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.ItemTaken && e.Npc == "smith" && e.Detail == "moneda, order");
+        Assert.Equal(0, seven.Simulation.Inventory.Count(ItemId.Coin));
+
+        var six = SkippedTo(6);
+        Assert.Equal(2, six.Simulation.Inventory.Count(ItemId.Coin));
+        var dearer = new Objective(TestGame.Data.Objectives.Find("axe-handle")! with { Deliver = [new OrderGoods(ItemId.Wood, 2), new OrderGoods(ItemId.Coin, 3)] });
+        var error = Assert.Throws<InvalidOperationException>(() => six.SkipDeliver(dearer)); // the plan's first axe order: three coins, one more than the path leaves
+        Assert.Equal("The sessions before leave 2 coins, and the order 'axe-handle' asks for 3.", error.Message);
+        Assert.Equal((2, 0), (six.Simulation.Inventory.Count(ItemId.Coin), six.Simulation.Inventory.Count(ItemId.Axe))); // nothing changed hands
+
+        six.SkipDeliver(six.Objectives.Single(static o => o.Id == "water-for-plants")); // the bag's bottle is the one taken: none is added
+        Assert.Equal((0, 3), (six.Simulation.Inventory.Count(ItemId.WaterBottle), six.Simulation.Inventory.Count(ItemId.Apple)));
     }
 
     [Fact]
@@ -151,9 +175,9 @@ public sealed class SessionSkipTests
     [Fact]
     public void OnlyANewGameIsSkippedAndOnlyToASessionThatHasALesson()
     {
-        Assert.Equal(6, SessionSkip.LastSession(TestGame.Data.Lessons));
+        Assert.Equal(7, SessionSkip.LastSession(TestGame.Data.Lessons));
         Assert.Throws<ArgumentOutOfRangeException>(() => SkippedTo(1));
-        Assert.Throws<ArgumentOutOfRangeException>(() => SkippedTo(7));
+        Assert.Throws<ArgumentOutOfRangeException>(() => SkippedTo(8));
 
         var played = TestGame.NewSessionWithShippedLessons();
         played.Step([]);

@@ -1,4 +1,5 @@
 using System.Globalization;
+using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Lessons;
@@ -37,7 +38,7 @@ namespace Vocaterra.Game.Core.Content;
 /// to is a point of the scene; an NPC whose directions name the place of the learner's line (<c>point_at_slot</c>) has an agent that can say it does not know one
 /// (<c>&lt;npc&gt;.unknown_place</c>), and an NPC that sells has one that can say the coins are too few (<c>&lt;npc&gt;.cant_pay</c>);</item>
 /// <item>the orders (V03): the NPC an order is brought to is one of the NPCs, and every state of its agent takes its thanks (<c>&lt;npc&gt;.delivered</c>), so the
-/// goods are never brought in vain;</item>
+/// goods are never brought in vain; the lesson an order names as the one that tells it (V13) is a lesson with a <c>do</c> step that waits for that delivery;</item>
 /// <item>the lessons' levels (VILLAGE_PLAN 3.9, V08, D-game-22 (b)): the Spanish a lesson teaches and says (its phrases, the lines its steps name, the text of
 /// the prompts its turns are evaluated at) has no lemma above its level, <c>a1</c> or <c>a2</c>, in the bundle's cumulative CEFR lists (<c>cefr/a1.txt</c>,
 /// <c>cefr/a2.txt</c>), and its phrases' variants none above the bundle's ceiling (<see cref="LessonLevels.Ceiling"/>), lemmatized by the core's
@@ -480,6 +481,20 @@ public static class GameDataValidator
         foreach (var state in machine.Definition.States.Where(state => !state.Transitions.Any(t => string.Equals(t.OnHostEvent, delivered, StringComparison.Ordinal))))
         {
             problems.Add($"{file}: the order is brought to '{npc}', and the state '{state.Id}' of agents/{npc}.json does not take '{delivered}' to thank the player.");
+        }
+
+        // V13: the lesson an order names as the one that tells it keeps the order back until its step that waits for the delivery, so it must have that step.
+        if (objective.Lesson is { } lesson)
+        {
+            if (data.Lessons.Find(lesson) is not { } told)
+            {
+                problems.Add($"{file}: the order names the lesson '{lesson}', which is not one of the lessons.");
+            }
+            else if (!told.Steps.Any(step => step is { Type: LessonStepType.Do, Trigger: { Event: WorldEvents.OrderDelivered } trigger }
+                && string.Equals(trigger.Npc, npc, StringComparison.Ordinal) && string.Equals(trigger.Detail, objective.Id, StringComparison.Ordinal)))
+            {
+                problems.Add($"{file}: the order names the lesson '{lesson}', which has no do step that waits for its delivery (order_delivered at '{npc}' with the detail '{objective.Id}').");
+            }
         }
     }
 

@@ -661,6 +661,45 @@ public sealed class LessonRunner
         return Available(npc) is { } next && (next.AutoStart || string.Equals(_replayId, next.Id, StringComparison.Ordinal));
     }
 
+    /// <summary>
+    /// Whether a lesson keeps an order back (VILLAGE_PLAN V13): an order that names the lesson that tells it (<see cref="ObjectiveSpec.Lesson"/>) is not delivered on walking up
+    /// while that lesson is under way before its step that waits for the delivery, or is about to start at this talk (an <c>autoStart</c> lesson available at the order's NPC,
+    /// or one asked to be practised again). So the plan comes first even for a learner who carries the goods already (the water filled at the river in session 1, at the
+    /// farmer in session 7). Once the lesson reaches that step, ends, or does not start at that NPC, walking up with the goods is enough again (D-game-8, D-game-9); every
+    /// step can be skipped, so the order never waits behind speech.
+    /// </summary>
+    /// <param name="order">The order.</param>
+    internal bool HoldsOrder(ObjectiveSpec order)
+    {
+        ArgumentNullException.ThrowIfNull(order);
+        if (order is not { Lesson: { } id, DeliverTo: { } npc } || _book.Find(id) is not { } lesson || DeliveryStep(lesson, order.Id) is not (>= 0 and var at))
+        {
+            return false;
+        }
+
+        if (string.Equals(_activeId, lesson.Id, StringComparison.Ordinal))
+        {
+            return _states[lesson.Id].Step < at;
+        }
+
+        return _activeId is null && Available(npc) is { } next && string.Equals(next.Id, lesson.Id, StringComparison.Ordinal)
+            && (next.AutoStart || string.Equals(_replayId, next.Id, StringComparison.Ordinal));
+    }
+
+    // The index of the lesson's do step that waits for the order's delivery (order_delivered with the order's id), or -1.
+    private static int DeliveryStep(LessonDefinition lesson, string order)
+    {
+        for (var i = 0; i < lesson.Steps.Count; i++)
+        {
+            if (lesson.Steps[i] is { Type: LessonStepType.Do, Trigger: { Event: WorldEvents.OrderDelivered, Detail: { } detail } } && string.Equals(detail, order, StringComparison.Ordinal))
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
     // ---- What the session tells the runner.
 
     // The lesson unit ("lesson/step") a line said to this NPC now lands on: the engaged lesson's step that waits on a turn, at that NPC; otherwise null.

@@ -12,14 +12,16 @@ namespace Vocaterra.Game.Core.Session;
 /// The test aid <c>--skip-to-session &lt;n&gt;</c> (V12c): a new game is put where a learner who played sessions 1 to n-1 and did everything would stand, so a playtester can
 /// try a later session's lesson at once (<c>--session n</c> only raises the session number, and a lesson that comes <c>after</c> another waits for it). Built from the data alone,
 /// session by session, so a later session needs no code: the lessons of each earlier session are counted as completed in their own session; session 1's ending is reached
-/// (the camp done and the player's own fire lit); each earlier session's order is delivered, its goods brought and its reward paid by the NPC's own thanks; and each lesson's
-/// purchases are made (the two loaves of <c>numeros-y-pan</c>), so the coins and the items in hand follow the plan's path. No practice is faked: no turn is taken, and the
-/// word and phrase records stay as a new game's. The session then begins as play session n (<see cref="VoxelSession.BeginPlaySession"/>), and the session and its saves
-/// are marked (<see cref="VoxelSession.SkippedTo"/>, the world event <see cref="WorldEvents.SessionSkipped"/>).
+/// (the camp done and the player's own fire lit); each earlier session's order is delivered, its goods brought (the coins it asks for paid from the bag, V13) and its
+/// reward paid by the NPC's own thanks; and each lesson's purchases are made (the two loaves of <c>numeros-y-pan</c>), so the coins and the items in hand follow the
+/// plan's path. No practice is faked: no turn is taken, and the word and phrase records stay as a new game's. The session then begins as play session n
+/// (<see cref="VoxelSession.BeginPlaySession"/>), and the session and its saves are marked (<see cref="VoxelSession.SkippedTo"/>, the world event
+/// <see cref="WorldEvents.SessionSkipped"/>).
 /// </summary>
 /// <remarks>
-/// Gathered things are not carried over: the camp's wood and fruit and the river's water were used in the play, and the next session's lesson and order point at the trees
-/// and the bushes for what they need. What only an NPC gives (the coins, the bread bought, the axe) is in the bag.
+/// Gathered things are not carried over: the camp's wood and fruit were used in the play, and the next session's lesson and order point at the trees and the bushes for
+/// what they need. What only an NPC gives (the coins, the bread bought, the axe) is in the bag, and so is the shopkeeper's bottle of session 1, full of the river's water the
+/// camp's checklist counted (V13: nothing in the game empties a bottle, and the farmer's order of session 7 takes it).
 /// </remarks>
 public static class SessionSkip
 {
