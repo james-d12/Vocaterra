@@ -27,7 +27,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-19 | Verbs in the lessons | decided (owner, 2026-10-22): verbs early but gradual, across sessions (yo/tú in session 1, the other persons in session 2, ir a + infinitive and a few past forms in session 3), lessons replayable from the book; conjugation tables in the book | nothing |
 | D-game-20 | One licence for the whole repository | decided (owner, 2026-10-23): Apache-2.0 for the game as well as the core; one `LICENSE` and `NOTICE` at the root (R01) | nothing |
 | D-game-21 | Content as data and the L1 locale layer (the C series, `docs/game/CONTENT_PLAN.md`) | decided (owner, 2026-10-27 to 2026-10-29): English moves into a locale bundle `content/locale/` outside game-v1's hash (`en` only); content stays JSON with JSON Schema; objectives, NPCs and target-language words become data; the series runs after R16 phase 2, on `feature/content` | nothing |
-| D-game-22 | The village and the lessons (the V series, `docs/game/VILLAGE_PLAN.md`) | decided for phase A (owner, 2026-10-30): phase A now (sessions 4 to 6), phase B held (started 2026-10-31 on the owner's word); the plan's proposals for (b), (c), (e), (f), (h) and (i); the farmer is León; voices provisional (the plan's first candidates) and recorded, the owner listens afterwards; all work by Opus 5.5 at xhigh effort | the V series |
+| D-game-22 | The village and the lessons (the V series, `docs/game/VILLAGE_PLAN.md`) | decided for phase A (owner, 2026-10-30): phase A now (sessions 4 to 6), phase B held (started 2026-10-31 on the owner's word); the plan's proposals for (b), (c), (e), (f), (h) and (i); the farmer is León; voices provisional (the plan's first candidates) and recorded, the owner listens afterwards; all work by Opus 5.5 at xhigh effort; 2026-10-31: V18 and the core's M56, M59 (before V14) and M58 (before V15) join phase B | the V series |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
@@ -289,6 +289,18 @@ use of verbs." The plan is `docs/game/VILLAGE_PLAN.md` (the V series); its secti
 - (i) **The tenses as proposed**: one past (the preterite), two futures (`ir a`, and the simple future in session 9 at A2).
 - **Models:** every V milestone is implemented by Opus 5.5 at xhigh effort (the owner's instruction for this series; it replaces the plan's
   Haiku and Sonnet column), with cheaper agents only where necessary.
+
+**Owner's answers, 2026-10-31 (during phase B, on the study of the project's bottlenecks, `docs/DEVELOPMENT_BOTTLENECKS.md`).** The owner
+asked for the study ("figure out during development what has caused the biggest bottlenecks and issues, and come up with a plan"), by Opus,
+and answered its first three proposals "yes to 1, 2 and 3":
+1. **The core's M59 before V14** (the person and tense checks the third person needs: session 8 retells the village's day with named
+   subjects). M59 depends on M56, so **M56 runs first**, which also meets the next answer.
+2. **V18, the content loop in one command,** between V13 and V14.
+3. **The core's M58 and M56 before V15** (the market's price slips).
+
+Not answered, so the rules stand: two agents at once (the heavy commands behind the one lock); effort below xhigh or a Haiku helper for the
+mechanical steps; a content milestone split across two agents; CI (the token's read access to checks, CI on feature branches, the content
+gate in CI); a speech sample before V15. Phase B's order is in `VILLAGE_PLAN.md` section 4.
 
 ## Already decided
 

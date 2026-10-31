@@ -319,7 +319,7 @@ code (C09): three enum values after `Book = 29`, three icons, three held sprites
 | `fruit-for-mar` | the fisher | 3 `fruta` (the bushes at the guide's camp) | 2 `monedas` | session 4 | the camp's fruit skill, paid in the new currency |
 | `oven-wood` | the baker | 5 `madera` (the forest's edge) | 4 `monedas` | session 5 | the camp's wood skill; the coins buy her bread (2 each) |
 | `axe-handle` | the smith | 2 `madera` and 2 `monedas` (3 until V12: a learner who followed sessions 4 and 5 has 2 left) | the `hacha` | session 6 | wood is faster afterwards: the loop pays back |
-| `water-for-plants` | the farmer | 1 `agua` (the river, the bottle) | 3 `manzanas` | session 7 | the river skill of session 1 |
+| `water-for-plants` | the farmer | 1 `agua` (the river, the bottle; V13: the order names its lesson, so the bottle the learner has carried since session 1 is taken only at the lesson's delivery step, after the plan) | 3 `manzanas` | session 7 | the river skill of session 1 |
 
 Prices: bread 2 at the baker and the stall, an apple 1 at the farmer. An order is an objective with `session` (shown and counting from
 that play session) and `deliverTo` (section 3.7): when the panel opens on that NPC and the inventory holds the goods, the host takes them,
@@ -578,11 +578,12 @@ Today's gate demands A1 bundle-wide (section 2.5). The rule this plan proposes, 
 | V12 | Session 6 "Gente del pueblo": the smith and the farmer; `ask_name`, `ask_activity`, (`ask_residence`); the third person in three times (`trabaja`, `va a hacer`, `hizo`; a name subject in `state_action`), `vivo en`; the axe order | V11 | M | Opus 5.5 xhigh | done 2026-10-31 (`c325b67`) |
 | V12b | Follow-up found by V09's runs: the four village NPCs' `focus` (their open prompts' rows), a turn credits its prompt's own row before the stall's fixed mapping (free talk with the baker had credited `pedir-agua`), and a validator rule that a prompt that is the home of practised rows names one in its NPC's focus | V09 | S | Opus 5.5 xhigh | done 2026-10-31 (`29188ce`) |
 | V12c | Follow-up found by the owner's playtest (2026-10-31: after the fire, "I don't know where to start"): the next session in the game, by sleeping at the player's own fire (the closing card's Enter, or E at the fire once the session's work is done), a sleep being exactly a load (`SaveGame.Sleep`, proved save for save); the objective's next step; the book's Lessons page says when and where each lesson opens; `--skip-to-session n`, a test aid that starts at session n with the earlier sessions counted as done; runs `r20-sleep` and `r21-skip` | V12b | M | Opus 5.5 xhigh | done 2026-10-31 (`4b88599`) |
-| V13 | Session 7 "¿Cómo es?": adjectives and `gustar` in the present and the past; `describe`, `state_like`, `[ADJ]` in `request_item`; the water order (its plan and report reviewed); apples | V08, V12 | M | Opus 5.5 xhigh | planned (phase B) |
+| V13 | Session 7 "¿Cómo es?": adjectives and `gustar` in the present and the past; `describe`, `state_like`, `[ADJ]` in `request_item`; the water order (its plan and report reviewed); apples | V08, V12 | M | Opus 5.5 xhigh | done 2026-10-31 (`f5933c8`) |
 | V14 | Session 8 "Ayer en el pueblo": the preterite for every person (él/ella, nosotros, ellos; the day of the village told and retold), `tener que`; `state_obligation` | V13 | M | Opus 5.5 xhigh | planned (phase B) |
 | V16 | The simple future in the runner and the book: `tense: fut` on a step, `ir a` credited there with a note, the fourth column, the schema (3.8) | V08 | S | Opus 5.5 xhigh | planned (phase B) |
 | V17 | Session 9 "Mañana en el pueblo": the simple future (-é, -ás, -á, -emos, -án; `iré`; `hará`, `tendré` heard) against `ir a`; the later markers; the day of tomorrow | V14, V16 | M | Opus 5.5 xhigh | planned (phase B) |
 | V15 | Session 10 "El mercado": 11 to 20, `¿Cuánto es todo?`, `más … que`, `poder`; `offer_item` and `buy`; the market told in three times | V17 | M/L | Opus 5.5 xhigh | planned (phase B) |
+| V18 | The content loop in one command (owner, 2026-10-31, from `docs/DEVELOPMENT_BOTTLENECKS.md` P2): after an edit of the bundle, the refresh, the LanguageTool cache and its rebuilt-from-nothing check, the prerender, the save fixtures' hash, the goldens on request, the fast tier and the grammar-sensitive fuzz classes, one summary | V13 | S/M | Opus 5.5 xhigh | planned (phase B, next) |
 
 **Order** (revised 2026-10-30 when phase A started: V03 moves before V10, because the fisher's order pays in coins and every order needs
 `deliverTo`; and every milestone is Opus 5.5 at xhigh, D-game-22). V01, V02, V03, then V04, V05 and V07 (independent, one agent at a
@@ -591,6 +592,11 @@ time), V06 (the trial rendered, the owner listens afterwards), V10, V11, V12 and
 content M). The gate runs on `feature/village` after each. **Phase B** (V08, V13, V14, V16, V17, V15, V09 again: sessions 7 to 10, A2, the
 simple future last but one) waits for the owner's word after listening to phase A, or for the pilot's data if the owner prefers the brief's
 order.
+
+**Phase B's order** (owner, 2026-10-31, after the study of the project's bottlenecks, `docs/DEVELOPMENT_BOTTLENECKS.md`): V08 and V13
+(done), then V18 (the content loop in one command), the core's M56 and M59 (the agreement and person checks session 8 needs: it retells the
+village's day with named subjects; M59 depends on M56), V14, V16, the core's M57 (before V17, as planned), V17, the core's M58 (before
+V15), V15 and V09. One agent at a time, every milestone by Opus 5.5 at xhigh.
 
 **Every content milestone (V10 to V15)**, besides the definition of done (`IMPLEMENTATION_PLAN.md` section 6) and the content loop
 (`content/README.md`, "The edit loop"): the sheet rows first (D-game-10), each with a graded error example; the intents' examples with

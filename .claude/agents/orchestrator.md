@@ -49,12 +49,17 @@ is a change to the boundary and updates that record.
   - V12c: the next session by sleeping at the player's fire, and `--skip-to-session n`;
   - the core's M60 (the lint's speed, for CI) and M61 (the core's lint tests follow the A2 ceiling);
   - V08: the A1/A2 gate, the first milestone of phase B;
+  - V13: session 7 "¿Cómo es?" (`f5933c8`), the first `a2` lesson; an order may name its lesson;
+  - the bottlenecks study, `docs/DEVELOPMENT_BOTTLENECKS.md` (read its sections 1 and 3 before writing a brief);
   - `main` merged in at `0cf674b`. It brought the CI workflow with its grammar jobs, and the QA agent.
-- **Next, in order:** V13 (session 7 "¿Cómo es?"), V14 (session 8 "Ayer en el pueblo"), V16 (the simple future in the runner and the
-  book), V17 (session 9 "Mañana en el pueblo"), V15 (session 10 "El mercado"), then V09 again (the documents and the scripted runs).
+- **Next, in order** (owner, 2026-10-31, D-game-22): V18 (the content loop in one command), the core's M56 then M59 (before V14), V14
+  (session 8 "Ayer en el pueblo"), V16 (the simple future in the runner and the book), the core's M57 (before V17), V17 (session 9
+  "Mañana en el pueblo"), the core's M58 (before V15), V15 (session 10 "El mercado"), then V09 again (the documents and the scripted runs).
+  Every one by Opus 5.5 at xhigh, one at a time. The core's M62 (V13's adjective gaps) is filed and waits for the owner's word.
   - The design is VILLAGE_PLAN sections 3.5 to 3.9, 4 and 5. The findings of every V milestone so far are in
     `docs/game/IMPLEMENTATION_PLAN.md` section 5 (the V entries at its end).
-  - **V13's brief is drafted** in `.claude/briefs/V13-como-es.md`. Read it against the plan, then launch it.
+  - **Drafted briefs** are in `.claude/briefs/` (V18, M56, M59, V14, V16, M57); fill their `@@…@@` placeholders (the HEAD, the test
+    count, the earlier milestone's findings) from the last reports before launching.
 
 **The owner's instructions for this series** (they override "Model policy", "Per-milestone loop" step 2 and the template's branch line below)
 - **Every V milestone is built by Opus 5.5 at xhigh effort:** the Agent call takes `model: opus` and `effort: xhigh` (D-game-22). Use cheaper
@@ -79,6 +84,13 @@ is a change to the boundary and updates that record.
 - The scripted runs captured before and after.
 - `--skip-to-session n` for the lesson's timing run.
 - The grammar cache check below.
+- **Lean context** (the study's P1: a milestone's cost is its turns times its context): name the sections to read, never "all of it";
+  never `SPEECH_CHECKLIST.md`, `manifest.json` or the whole of `PHRASES.md` (grep the rows); heavy output to log files, at most 30 lines
+  printed; `sed -n` ranges under about 150 lines; a one-page report.
+- **The learner's route** (P4): sleep into the session, the Lessons page's `next:`, the objective and the beacon, the lesson, then free talk
+  once with each NPC of the lesson.
+- **CI's case** (P5): the full suite once without models (`VOCATERRA_MODELS_DIR` an empty folder), and any wall-clock test within 4 times of
+  its budget reported.
 
 **Open points to carry**
 - **The coin path:** a learner reaches session 7 with 0 coins (+2, +4, −4 for bread, −2 for the axe). V13's brief asks the agent to

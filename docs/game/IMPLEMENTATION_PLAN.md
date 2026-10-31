@@ -412,7 +412,7 @@ decision. The series runs on `feature/village`, commit prefix `V<nn>:`. **Phase 
 proposals, the farmer León, provisional voices heard afterwards, phase B held; every milestone by Opus 5.5 at xhigh effort); **phase A was done on
 2026-10-31** (V01 to V07, V09, V10 to V12 and the follow-up V12b; 6030 tests passing, bundle `7ba32270…`). The owner's playtest the same
 day added V12c (the next session in the game), and the CI run on PR #20 the core's M60 (the lint's speed). **Phase B started on 2026-10-31**
-on the owner's word: all of it on `feature/village`, reviewed by the owner at the end. The milestones' statuses are in the plan's section 4. The findings of each milestone go into section 5.
+on the owner's word: all of it on `feature/village`, reviewed by the owner at the end. V13 (session 7) was done on 2026-10-31; after the bottlenecks study the owner added V18 and moved the core's M56, M59 (before V14) and M58 (before V15) into the series. The milestones' statuses are in the plan's section 4. The findings of each milestone go into section 5.
 
 ## 5. Findings log
 
@@ -1753,6 +1753,48 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     cefr-check A2 and A1 clean; `--validate-content` clean.
   - **Left:** `madera`, `antorcha`, `botella`, `fuego` and `despacio` sit in the body of `a1.txt` rather than the marked block (their
     reasons are in `PHRASES.md`); the `fut`-at-a-step check is tested from V16.
+- **V13: session 7 "¿Cómo es?" (2026-10-31, Opus 5.5 xhigh; gated on `feature/village` at `f5933c8`; phase B's first lesson).**
+  - **Gate:** 6194 passed, 3 skipped, 0 failed, with the models (6087 before); 0 warnings; format, the content gate at A2, `--validate-content`,
+    grammar and both licence scans clean. Bundle `8f4281c8…`; the identity baseline (18 new lines, 36 `request_item` entries moved) and the
+    fuzz suite's sentence digest (`FuzzLanguageStreamTests`, generators unchanged) re-recorded; the end-to-end goldens unmoved; the grammar
+    cache rebuilt from nothing equals the committed one.
+  - **Built.** The lesson `como-es` (20 steps, session 7, after `gente-del-pueblo`, `a2`: the order's line uses `plantas` and `traes`): León at
+    the field, the stall on the way to the river, the river bank, back to the field. `describe` and `state_like` (no confusion with
+    `name_object` or `state_want` in the lint); `request_item` takes `[ADJ]?` after the noun. The farmer sells apples at 1 coin
+    (`farmer.cant_pay` "Necesitas más monedas. Una manzana cuesta una moneda."); the order `water-for-plants` (1 bottle of water, 3 apples, the
+    plan's terms; León keeps the bottle, the stall gives another). The F1 help's sleep line (left by V12c); 8 check items; `FarmLessonTests`,
+    `FarmSpokenTests`; the skip tests for session 7. Every said row heard word for word (0.99 to 1.00). Estimated 7 to 9 minutes.
+  - **Rows.** Said: `la-manzana-es-roja`, `me-gusta-el-pan` "Sí, me gusta el pan.", `me-gustan-las-manzanas`, `quiero-tres-manzanas-rojas`,
+    `voy-a-buscar-agua`, `es-grande` (the shopkeeper's loaf), `fui-al-rio` "Sí, fui al río.", `me-gusto-el-pan` "Sí, me gustó el pan de Luz.".
+    Heard: `mis-manzanas-son-rojas`, `como-es-la-manzana`, `te-gusta-el-pan`, `mis-plantas-necesitan-agua`, `el-pan-es-de-luz` "El pan es de
+    Luz, de la panadería." (`panadera` is in neither list), `toma-tres-manzanas`, `ayer-me-gusto`, `te-gusto-el-pan`. Dropped: `es-pequeno`.
+    The Opus pass added the "Sí," of the yes/no answers, the river in the order's line, a `cant_pay` true of any shortfall and "¡Hablas muy
+    bien español!" before the thanks review.
+  - **Deviations (accepted):**
+    - **An order may name its lesson** (`"lesson": "como-es"`, checked by the validator): while that lesson has not reached its delivery step,
+      walking up with the goods delivers nothing. Session 1's bottle is never emptied, so nearly every learner would have handed the water over
+      on the first talk, before saying the plan. `oven-wood` and `axe-handle` are unchanged (their runs would move); V14 looks at `oven-wood`.
+    - `--skip-to-session 7` paid the axe order's 2 coins out again (2 coins at session 7, not 0): an order's coins are now paid from the bag;
+      the skip also carries session 1's bottle of water.
+    - The book's `verbs` list only the new forms (`son`, `gusta`, `gustan`, `gustó`): a test requires each form to be declared once, and `es`,
+      `voy a buscar` and `fui` belong to earlier lessons.
+    - The walk to the river ends at the fisher's bank (`npc.fisher`): the river's point is mid-stream, and the scripted run swam to it and stuck.
+  - **The coin path:** 0 coins at session 7 (the data and the skip agree). The apple request comes before the order and gets `cant_pay`; the
+    apples come from the order, and a learner with coins can still buy.
+  - **Found (core gaps, filed as core M62 and added to M56 and M59):** `la manzana es rojo` and `el pan es grandes` give no error (a predicate
+    adjective is not agreed across `ser`); `las manzanas es roja` and `la manzana son roja` give none (the noun subject of `ser`, M59 (a));
+    `quiero tres rojas manzanas` is not understood, and with a grammar that matches it gives no `word_order`; `me gusta las manzanas` and `me
+    gustan el pan` give no error (the postverbal subject of `gustar`, M56 (b); the lesson's person check catches the first as a Miss). The
+    rows use the slips the core grades: `quiero tres manzanas rojos` (`gender.agree`), `ayer me gusta el pan` (`conj.tense` expected `gustó`).
+  - **Scripted runs:** all 20 keep their ticks and world digests except r21 (the skip now carries the bottle, which moves its state digest);
+    every summary lists a seventh lesson; 373 lines and 746 speech files; the Lessons page of r20 and r21 has 141 lines. `SCRIPTED_RUNS.md`
+    is left for V09.
+- **The bottlenecks study (2026-10-31, Opus 5.5, read-only; `docs/DEVELOPMENT_BOTTLENECKS.md`).** Asked for by the owner during phase B. The
+  cost of a milestone is its turns times its context (phase A's 11 agents: 954M tokens, 97 % cache reads), not the gate (175 s, every phase A
+  gate passed first time); follow-ups found late (V12b, V12c, M60) took 22 % of phase A's agent time; each content edit moves seven artefacts
+  by hand. The briefs from V14 on read named sections only, send output to logs, test the learner's route and run the suite once without
+  models (CI's case). The owner's answers (D-game-22): V18 (the content loop in one command) next, the core's M56 and M59 before V14, M58
+  before V15; the questions on two agents at once, effort, split milestones, CI and listening are left as they are.
 
 ## 6. Definition of done (every milestone)
 
