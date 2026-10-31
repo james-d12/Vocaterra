@@ -583,7 +583,7 @@ Today's gate demands A1 bundle-wide (section 2.5). The rule this plan proposes, 
 | V16 | The simple future in the runner and the book: `tense: fut` on a step, `ir a` credited there with a note, the fourth column, the schema (3.8) | V08 | S | Opus 5.5 xhigh | planned (phase B) |
 | V17 | Session 9 "Mañana en el pueblo": the simple future (-é, -ás, -á, -emos, -án; `iré`; `hará`, `tendré` heard) against `ir a`; the later markers; the day of tomorrow | V14, V16 | M | Opus 5.5 xhigh | planned (phase B) |
 | V15 | Session 10 "El mercado": 11 to 20, `¿Cuánto es todo?`, `más … que`, `poder`; `offer_item` and `buy`; the market told in three times | V17 | M/L | Opus 5.5 xhigh | planned (phase B) |
-| V18 | The content loop in one command (owner, 2026-10-31, from `docs/DEVELOPMENT_BOTTLENECKS.md` P2): after an edit of the bundle, the refresh, the LanguageTool cache and its rebuilt-from-nothing check, the prerender, the save fixtures' hash, the goldens on request, the fast tier and the grammar-sensitive fuzz classes, one summary | V13 | S/M | Opus 5.5 xhigh | planned (phase B, next) |
+| V18 | The content loop in one command (owner, 2026-10-31, from `docs/DEVELOPMENT_BOTTLENECKS.md` P2): after an edit of the bundle, the refresh, the LanguageTool cache and its rebuilt-from-nothing check, the prerender, the save fixtures' hash, the goldens on request, the fast tier and the grammar-sensitive fuzz classes, one summary | V13 | S/M | Opus 5.5 xhigh | done 2026-10-31 (`d986adf`): `scripts/content-loop.sh --grammar --speech` |
 
 **Order** (revised 2026-10-30 when phase A started: V03 moves before V10, because the fisher's order pays in coins and every order needs
 `deliverTo`; and every milestone is Opus 5.5 at xhigh, D-game-22). V01, V02, V03, then V04, V05 and V07 (independent, one agent at a
@@ -593,8 +593,8 @@ content M). The gate runs on `feature/village` after each. **Phase B** (V08, V13
 simple future last but one) waits for the owner's word after listening to phase A, or for the pilot's data if the owner prefers the brief's
 order.
 
-**Phase B's order** (owner, 2026-10-31, after the study of the project's bottlenecks, `docs/DEVELOPMENT_BOTTLENECKS.md`): V08 and V13
-(done), then V18 (the content loop in one command), the core's M56 and M59 (the agreement and person checks session 8 needs: it retells the
+**Phase B's order** (owner, 2026-10-31, after the study of the project's bottlenecks, `docs/DEVELOPMENT_BOTTLENECKS.md`): V08, V13
+and V18 (the content loop in one command) done, then the core's M56 and M59 (the agreement and person checks session 8 needs: it retells the
 village's day with named subjects; M59 depends on M56), V14, V16, the core's M57 (before V17, as planned), V17, the core's M58 (before
 V15), V15 and V09. One agent at a time, every milestone by Opus 5.5 at xhigh.
 

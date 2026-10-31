@@ -51,14 +51,15 @@ is a change to the boundary and updates that record.
   - V08: the A1/A2 gate, the first milestone of phase B;
   - V13: session 7 "¿Cómo es?" (`f5933c8`), the first `a2` lesson; an order may name its lesson;
   - the bottlenecks study, `docs/DEVELOPMENT_BOTTLENECKS.md` (read its sections 1 and 3 before writing a brief);
+  - V18: `scripts/content-loop.sh` (`d986adf`), the content loop in one command;
   - `main` merged in at `0cf674b`. It brought the CI workflow with its grammar jobs, and the QA agent.
-- **Next, in order** (owner, 2026-10-31, D-game-22): V18 (the content loop in one command), the core's M56 then M59 (before V14), V14
+- **Next, in order** (owner, 2026-10-31, D-game-22): the core's M56 then M59 (before V14), V14
   (session 8 "Ayer en el pueblo"), V16 (the simple future in the runner and the book), the core's M57 (before V17), V17 (session 9
   "Mañana en el pueblo"), the core's M58 (before V15), V15 (session 10 "El mercado"), then V09 again (the documents and the scripted runs).
   Every one by Opus 5.5 at xhigh, one at a time. The core's M62 (V13's adjective gaps) is filed and waits for the owner's word.
   - The design is VILLAGE_PLAN sections 3.5 to 3.9, 4 and 5. The findings of every V milestone so far are in
     `docs/game/IMPLEMENTATION_PLAN.md` section 5 (the V entries at its end).
-  - **Drafted briefs** are in `.claude/briefs/` (V18, M56, M59, V14, V16, M57); fill their `@@…@@` placeholders (the HEAD, the test
+  - **Drafted briefs** are in `.claude/briefs/` (M56, M59, V14, V16, M57); fill their `@@…@@` placeholders (the HEAD, the test
     count, the earlier milestone's findings) from the last reports before launching.
 
 **The owner's instructions for this series** (they override "Model policy", "Per-milestone loop" step 2 and the template's branch line below)
@@ -83,7 +84,9 @@ is a change to the boundary and updates that record.
 - The coin path.
 - The scripted runs captured before and after.
 - `--skip-to-session n` for the lesson's timing run.
-- The grammar cache check below.
+- **The content loop in one line** (V18): `scripts/content-loop.sh --grammar --speech` after every content edit (never under
+  `limited.sh`), `--record` when the goldens move, and `--tier full` once before the report. It replaces the hand steps (refresh, the
+  LanguageTool cache and its rebuild check, the prerender, the fixtures' hash); the stream digests stay hand-set until M57 (c).
 - **Lean context** (the study's P1: a milestone's cost is its turns times its context): name the sections to read, never "all of it";
   never `SPEECH_CHECKLIST.md`, `manifest.json` or the whole of `PHRASES.md` (grep the rows); heavy output to log files, at most 30 lines
   printed; `sed -n` ranges under about 150 lines; a one-page report.
@@ -116,8 +119,8 @@ is a change to the boundary and updates that record.
   3. `scripts/content.sh grammar content/game-v1 --strings content/grammar/game-v1-strings.jsonl --strings-only --strict`;
   4. `git diff --exit-code content/grammar/`;
   5. stop the server.
-- **The content loop.** `scripts/content.sh refresh` (through `limited.sh`) is the whole loop. Any command line with the word `eval` or
-  `hash` needs a wrapper script under `/tmp/claude-1000/`.
+- **The content loop.** `scripts/content-loop.sh --grammar --speech` (V18) is the whole loop, run directly, never under `limited.sh` (it
+  refuses, exit 3). `scripts/content.sh refresh` is its first step. A CLI `eval` run still needs a wrapper script under `/tmp/claude-1000/`.
 - **Test the learner's route.** Spot-check the route a learner takes from a new world, not only `--lesson-run`: phase A's lessons were
   unreachable in practice until V12c.
 

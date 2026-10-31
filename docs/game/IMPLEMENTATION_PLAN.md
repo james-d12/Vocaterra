@@ -1796,6 +1796,33 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   models (CI's case). The owner's answers (D-game-22): V18 (the content loop in one command) next, the core's M56 and M59 before V14, M58
   before V15; the questions on two agents at once, effort, split milestones, CI and listening are left as they are.
 
+- **V18: the content loop in one command (2026-10-31, Opus 5.5 xhigh; gated on `feature/village` at `d986adf`; tooling, from
+  `docs/DEVELOPMENT_BOTTLENECKS.md` P2).** `scripts/content-loop.sh`, a new script rather than a mode of `content.sh`, runs the eight steps
+  after a content edit, in order: refresh, grammar, speech, fixtures, build, goldens, digests, tests. It stops at the first failure, names
+  the next thing to do and prints a summary of at most 30 lines; each step's log goes to `.claude/content-loop/<stamp>/` (ignored).
+  - Options: `--grammar` (LanguageTool start, `--prune`, the rebuilt-from-nothing check, the new findings, the server stopped by a trap),
+    `--speech` (the `--check` summary, the render, refresh again), `--record` (off by default: the goldens and the identity baseline, which
+    needs `VOCATERRA_RECORD_IDENTITY=1` besides `VOCATERRA_RECORD_GOLDEN=1`; it prints the stream digests to set and edits no C#) and
+    `--tier fast|full|none`. The fast tier adds the grammar-sensitive fuzz classes at full depth. **A content brief now carries one line:
+    `scripts/content-loop.sh --grammar --speech`, with `--tier full` before the report.**
+  - The lock: the script calls `limited.sh` per heavy step and `test.sh` directly. It refuses to start (exit 3) under `limited.sh`, which now
+    exports `VOCATERRA_LIMITED=1`, or when it inherits the lock's descriptor. Both cases were tested.
+  - The save fixtures are found by the old `bundleHash` (the one at HEAD, the one before step 1, or one an earlier run in the worktree saw,
+    kept in `.claude/content-loop/bundle-values`), never by a typed list.
+  - Proof 1, a real edit on a throwaway branch (`farmer_thank.3` and a `si-por-favor` variant), every option, `--tier full`: passed in 4 min
+    52 s. One new cache entry, the rebuild from nothing equal, 2 of 748 WAVs rendered, both fixtures moved, one new identity entry, the
+    end-to-end goldens unmoved, 6194 passed. Its earlier attempts stopped at refresh in 10 to 27 s with the problem on screen.
+  - Proof 2, V12's grammar fault (`cómo (tú)? te [VERB:llamar] (tú)?`): failed at the fuzz step after 2 min 51 s (64 s of it `--grammar`),
+    with O3 on `cómo tú te llamo tú` and the moved `OldSentenceDigest` printed. The fast tier alone was green, so the fuzz classes in the
+    loop's fast tier are what catch it. Before V18 this fault showed only at the full run.
+  - Two runs with every option on the unedited branch left `git status` clean. `bash -n` clean; shellcheck is not installed.
+  - `content.sh refresh` is unchanged apart from its header and cache-miss message, which name the loop. Docs: `content/README.md` ("The
+    edit loop"), `docs/game/README.md` ("Refreshing the cache"), `scripts/README.md`.
+  - Tests: 6194 passed and 3 skipped, unchanged (no tests added: it is a script).
+  - Proposed, not done: a staleness step in the gate (`scripts/content-loop.sh --tier none` then `git diff --exit-code`, about 30 s; it
+    would fail a branch that forgot a step of the loop). It needs the gate script changed, which is mine: deferred until a content milestone
+    shows the need. CI: no change. The stream digests stay hand-set until the core's M57 (c).
+
 ## 6. Definition of done (every milestone)
 
 1. `dotnet build Vocaterra.sln -warnaserror` with 0 warnings and `dotnet test Vocaterra.sln` green, with the test count in the report.
