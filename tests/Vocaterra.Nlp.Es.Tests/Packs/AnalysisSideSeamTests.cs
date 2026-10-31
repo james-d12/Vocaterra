@@ -106,6 +106,10 @@ public class AnalysisSideSeamTests
 
         public bool IsCopulaOrAuxiliary(string lemma) => inner.IsCopulaOrAuxiliary(lemma);
 
+        public bool IsElapsedTimePreposition(string lemma) => inner.IsElapsedTimePreposition(lemma);
+
+        public bool IsElapsedTimeNoun(string lemma) => inner.IsElapsedTimeNoun(lemma);
+
         public IAgreementChecker CreateAgreementChecker(IReadOnlyList<AnalyzedToken> resolved, List<ErrorTag> errors) => inner.CreateAgreementChecker(resolved, errors);
     }
 
@@ -443,6 +447,10 @@ public class AnalysisSideSeamTests
 
         public bool IsCopulaOrAuxiliary(string lemma) => inner.IsCopulaOrAuxiliary(lemma);
 
+        public bool IsElapsedTimePreposition(string lemma) => inner.IsElapsedTimePreposition(lemma);
+
+        public bool IsElapsedTimeNoun(string lemma) => inner.IsElapsedTimeNoun(lemma);
+
         public IAgreementChecker CreateAgreementChecker(IReadOnlyList<AnalyzedToken> resolved, List<ErrorTag> errors) => new Nothing();
     }
 
@@ -460,6 +468,9 @@ public class AnalysisSideSeamTests
         Assert.True(rules.IsNounModifyingAdverb("solo"));
         Assert.True(rules.IsInterrogativeQuantifier("cuánto"));
         Assert.True(rules.IsInterjectionFirst("gracias"));
+        Assert.True(rules.IsElapsedTimePreposition("hace"));
+        Assert.True(rules.IsElapsedTimeNoun("día"));
+        Assert.False(rules.IsElapsedTimeNoun("domingo"));
         Assert.True(rules.IsNearFutureAuxiliary("ir"));
         Assert.True(rules.IsNearFutureLinker("a"));
         Assert.True(rules.IsCopula("estar"));

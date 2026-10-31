@@ -82,6 +82,23 @@ public sealed class LexiconCatalog
     /// </summary>
     public static readonly IReadOnlyList<string> PostverbalSubjectVerbs = ["estar", "costar", "valer", .. ExperiencerVerbs];
 
+    /// <summary>The pronouns that stand before a verb, which the analyzer skips between a noun subject and its verb (mirror of <c>SpanishAnalysisTables.PreverbalPronouns</c>, M59).</summary>
+    public static readonly IReadOnlyList<string> PreverbalPronounLemmas = ["me", "te", "se", "lo", "la", "los", "las", "le", "les", "nos", "os"];
+
+    /// <summary>Nouns said as interjections, which are no subject alone before a verb (mirror of <c>SpanishAnalysisTables.InterjectionNouns</c>, M59).</summary>
+    public static readonly IReadOnlyList<string> InterjectionNouns =
+        ["gracias", "perdón", "adiós", "cuidado", "vale", "claro", "hola", "salud", "socorro", "enhorabuena", "felicidades", "ojo", "venga", "bienvenido", "bienvenida"];
+
+    /// <summary>Nouns a speaker calls people by, the person spoken to alone before a verb of the first or second person (mirror of <c>SpanishAnalysisTables.VocativeNouns</c>, M59).</summary>
+    public static readonly IReadOnlyList<string> VocativeNouns =
+    [
+        "señor", "señora", "señorita", "amigo", "amiga", "chico", "chica", "niño", "niña", "mamá", "papá", "hijo", "hija", "hermano", "hermana", "abuelo", "abuela",
+        "tío", "tía", "doctor", "doctora", "profesor", "profesora", "hombre", "mujer", "jefe", "jefa", "compañero", "compañera", "vecino", "vecina", "maestro", "maestra",
+    ];
+
+    /// <summary>The verbs whose clitic after <c>cómo</c> is reflexive and agrees with them (mirror of <c>SpanishAnalysisTables.ReflexiveQuestionVerbs</c>, M59: ¿cómo te llamas?).</summary>
+    public static readonly IReadOnlyList<string> ReflexiveQuestionVerbs = ["llamar", "sentir"];
+
     /// <summary>The dative pronouns before an experiencer verb (mirror of <c>SpanishAnalysisTables.DativePronouns</c>, M56).</summary>
     public static readonly IReadOnlyList<string> DativePronouns = ["me", "te", "le", "nos", "os", "les"];
 

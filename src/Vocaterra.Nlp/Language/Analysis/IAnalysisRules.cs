@@ -55,6 +55,17 @@ public interface IAnalysisRules
     /// <param name="word">The word as typed.</param>
     bool IsNearFutureLinker(string word);
 
+    /// <summary>
+    /// True for a preposition of elapsed time that is also a finite verb form, and that the reading resolver reads as the preposition only before a phrase of
+    /// time (Spanish: <c>hace</c>, the preposition of <c>hace dos días</c> and a form of <c>hacer</c>; M59).
+    /// </summary>
+    /// <param name="lemma">The preposition lemma.</param>
+    bool IsElapsedTimePreposition(string lemma);
+
+    /// <summary>True for a noun of a stretch of time that a preposition of elapsed time takes (Spanish: <c>día</c>, <c>semana</c>, <c>año</c>, <c>rato</c>; M59).</summary>
+    /// <param name="lemma">The noun lemma.</param>
+    bool IsElapsedTimeNoun(string lemma);
+
     /// <summary>True for a copula whose complement is not a finite verb (Spanish: <c>ser</c>, <c>estar</c>).</summary>
     /// <param name="lemma">The verb lemma.</param>
     bool IsCopula(string lemma);

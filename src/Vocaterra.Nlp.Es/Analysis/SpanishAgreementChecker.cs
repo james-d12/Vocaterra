@@ -8,7 +8,10 @@ using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Morphology;
 
 /// <summary>Runs the Spanish grammar checks (subject-verb, tense, ser/estar, noun phrase agreement, word order) over analyzed tokens; part of the Spanish pack since M34.</summary>
-/// <remarks>The rules of M56 (a subject after its verb, <c>ser</c> where a place takes <c>estar</c>) are in <c>SpanishAgreementChecker.Postverbal.cs</c>.</remarks>
+/// <remarks>
+/// The rules of M56 (a subject after its verb, <c>ser</c> where a place takes <c>estar</c>) are in <c>SpanishAgreementChecker.Postverbal.cs</c>, and those of M59 (a noun
+/// subject before its verb, a reflexive clitic after <c>cómo</c>) in <c>SpanishAgreementChecker.Preverbal.cs</c>.
+/// </remarks>
 internal sealed partial class SpanishAgreementChecker : IAgreementChecker
 {
     private readonly IReadOnlyList<AnalyzedToken> _tokens;
@@ -27,6 +30,8 @@ internal sealed partial class SpanishAgreementChecker : IAgreementChecker
     public void Run()
     {
         CheckSubjectVerb();
+        CheckPreverbalSubject();
+        CheckReflexiveClitic();
         CheckPostverbalSubject();
         CheckTense();
         CheckNearFuture();
@@ -238,7 +243,8 @@ internal sealed partial class SpanishAgreementChecker : IAgreementChecker
     //     present ("voy"). The present stays correct ("mañana como pan") and so does the future. A sentence that also has a past marker is left to CheckTense.
     //     luego and más tarde are not markers: "luego comí" is ordinary narration.
     //  2. A finite verb right after "ir a" ("voy a como", "vamos a tenemos"): the expected form is the infinitive. A noun phrase after a ("voy a la casa") or a
-    //     word that can be a noun is left alone.
+    //     word that can be a noun is left alone. M59: a form that is also a preposition counts as the verb ("va a hace un hacha" -> "hacer"), since no preposition
+    //     follows the a of "ir a".
     private void CheckNearFuture()
     {
         var afterIrA = FormsAfterIrA();
@@ -310,7 +316,8 @@ internal sealed partial class SpanishAgreementChecker : IAgreementChecker
 
             var next = i + 2;
             var readings = _tokens[next].Readings;
-            if (readings.Count == 0 || readings.Any(r => !IsDeclarativeFiniteVerb(r) && r.Pos != LexiconSchema.Adverb && r.Pos != LexiconSchema.Conjunction))
+            if (readings.Count == 0
+                || readings.Any(r => !IsDeclarativeFiniteVerb(r) && r.Pos is not (LexiconSchema.Adverb or LexiconSchema.Conjunction or LexiconSchema.Preposition)))
             {
                 continue;
             }

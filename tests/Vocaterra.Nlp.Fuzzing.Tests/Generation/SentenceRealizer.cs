@@ -838,6 +838,27 @@ internal sealed class SentenceRealizer
                 person = subject.Person!;
                 number = subject.Number!;
             }
+            else if (ReflexiveQuestionPerson(i) is { } reflexive)
+            {
+                // M59: in cómo + me, te, se, nos or os + llamar (¿cómo te llamas?) the clitic is reflexive and the analyzer agrees the verb with it; se is the third person.
+                person = reflexive.Person;
+                number = reflexive.Number ?? (_rng.NextDouble() < 0.6 ? LexiconSchema.Singular : LexiconSchema.Plural);
+            }
+            else if (PreverbalPhrase(i, out var coordinated) is { } phrase)
+            {
+                // M59: the analyzer agrees a verb with a noun phrase that opens its clause before it (Domingo trabaja, los niños comen); the realiser agrees it with any
+                // phrase right before it (past at most two adverbs or object pronouns), which is never wrong. Two phrases joined by y are a plural subject only where the
+                // first opens its clause, which the realiser does not model: the draw is skipped.
+                if (coordinated)
+                {
+                    skip = "coordinated-subject";
+                    _detail = phrase.Surface ?? string.Empty;
+                    return false;
+                }
+
+                person = "3";
+                number = phrase.PhraseNumber!;
+            }
             else if (ThirdPersonVerbs.Contains(item.Lemma!) || (LexiconCatalog.PostverbalSubjectVerbs.Contains(item.Lemma!) && FollowingPhrase(i) is not null))
             {
                 // M56: the analyzer agrees estar, an experiencer verb after its dative pronoun and a verb of price after cuánto with the noun phrase after them
@@ -873,6 +894,60 @@ internal sealed class SentenceRealizer
         }
 
         return true;
+    }
+
+    // M59: the last word of a noun phrase right before the verb at index, past at most two skippable words or object pronouns (mirror of
+    // SpanishAgreementChecker.TryFindPreverbalSubject, which also asks the phrase to open its clause), or null; coordinated is true when y or e and another phrase
+    // stand before the phrase.
+    private Item? PreverbalPhrase(int index, out bool coordinated)
+    {
+        coordinated = false;
+        var end = index - 1;
+        for (var skipped = 0; end >= 0 && skipped < MaxSkippedBetween && (IsSkippable(_items[end]) || IsPreverbalPronounLiteral(_items[end])); skipped++)
+        {
+            end--;
+        }
+
+        if (end < 0 || _items[end].Head is not { } head || _items[end].PhraseNumber is null)
+        {
+            return null;
+        }
+
+        var start = end;
+        while (start > 0 && ReferenceEquals(_items[start - 1].Head, head))
+        {
+            start--;
+        }
+
+        coordinated = start > 1 && _items[start - 1].Norm is "y" or "e" && _items[start - 2].Head is not null;
+        return _items[end];
+    }
+
+    private static bool IsPreverbalPronounLiteral(Item item)
+    {
+        return item.Kind == Kind.Literal
+            && item.Readings.Count > 0
+            && item.Readings.All(static r => r.Pos == LexiconSchema.Pronoun && LexiconCatalog.PreverbalPronounLemmas.Contains(r.Lemma));
+    }
+
+    // M59: the person and number a reflexive clitic right before the verb at index gives it, when cómo (or como) stands before the clitic and the verb is one of
+    // LexiconCatalog.ReflexiveQuestionVerbs (mirror of SpanishAgreementChecker.CheckReflexiveClitic); se gives the third person and no number.
+    private (string Person, string? Number)? ReflexiveQuestionPerson(int index)
+    {
+        if (index < 2 || !LexiconCatalog.ReflexiveQuestionVerbs.Contains(_items[index].Lemma!) || _items[index - 2].Norm?.ToLowerInvariant() is not ("cómo" or "como"))
+        {
+            return null;
+        }
+
+        return _items[index - 1].Norm?.ToLowerInvariant() switch
+        {
+            "me" => ("1", LexiconSchema.Singular),
+            "te" => ("2", LexiconSchema.Singular),
+            "nos" => ("1", LexiconSchema.Plural),
+            "os" => ("2", LexiconSchema.Plural),
+            "se" => ("3", null),
+            _ => null,
+        };
     }
 
     // The first word after index that belongs to a noun phrase, or null.
@@ -1041,6 +1116,18 @@ internal sealed class SentenceRealizer
             if (i > 0 && item.Kind is not (Kind.Verb or Kind.Literal) && IsVerbSeekingQuestionLiteral(_items[i - 1]) && item.Readings.Any(IsFiniteVerbReading))
             {
                 skip = "verb-form-homograph";
+                _detail = item.Surface!;
+                return false;
+            }
+
+            // M59: the analyzer agrees a verb with a noun phrase that opens its clause before it, and a literal form cannot be changed, so a literal verb form of another
+            // person or number right after a phrase is re-rolled.
+            if (item.Kind == Kind.Literal
+                && item.Readings.Any(IsFiniteVerbReading)
+                && PreverbalPhrase(i, out _) is { } phrase
+                && !item.Readings.Any(r => IsFiniteVerbReading(r) && r.Person == "3" && r.Number == phrase.PhraseNumber))
+            {
+                skip = "literal-verb-subject";
                 _detail = item.Surface!;
                 return false;
             }

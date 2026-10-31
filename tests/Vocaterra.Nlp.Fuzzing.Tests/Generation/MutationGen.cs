@@ -232,6 +232,11 @@ public static class MutationGen
                         return postverbal;
                     }
 
+                    if (PreverbalSubject(i) is { } preverbal)
+                    {
+                        return preverbal;
+                    }
+
                     continue;
                 }
 
@@ -337,6 +342,68 @@ public static class MutationGen
 
             var mutated = Replace(i, verb with { Written = form, Norm = form, Number = number });
             return Result(MutationKind.ConjPerson, mutated, [Error(mutated, ErrorTags.ConjPerson, i, i, verb.Norm, form)], sentence.NormalizedText, keepsGrammar: true);
+        }
+
+        // M59: a third-person verb right after a noun phrase that opens the sentence is agreed with it (domingo hace un hacha, los niños comen pan), so another person or
+        // number gives conj.person with the original form. The mutation is made only where the analyzer's reading is certain: the phrase is the first word of the sentence,
+        // a bare noun (a literal name such as domingo, or a generated noun), or the first two, an article or numeral and its noun; every reading of the noun is a noun of
+        // one number, and a noun with an article is no noun of time or quantity; the verb follows it directly; a bare noun that is no interjection or word for calling
+        // people takes any other person and number, a noun with an article only the other number of the third person; and the new form is that verb in that tense and
+        // nothing else.
+        private MutatedSentence? PreverbalSubject(int i)
+        {
+            var verb = _tokens[i];
+            if (verb is not { Person: "3", Number: not null, Tense: not null, Lemma: not null } || i is not (1 or 2))
+            {
+                return null;
+            }
+
+            var head = i - 1;
+            var bare = i == 1;
+            var noun = _tokens[head];
+            if (noun.Role is not (TokenRole.Noun or TokenRole.Literal) || noun.Head != head || (!bare && _tokens[0] is not { Role: TokenRole.Article or TokenRole.Numeral, Head: 1 }))
+            {
+                return null;
+            }
+
+            var nouns = _words.Lexicon.Lookup(noun.Norm);
+            if (nouns.Count == 0
+                || nouns.Any(static r => r.Pos != LexiconSchema.Noun)
+                || nouns.Select(static r => r.Number).Distinct().Count() != 1
+                || nouns[0].Number != verb.Number
+                || (!bare && nouns.Any(static r => LexiconCatalog.PostverbalNonSubjectNouns.Contains(r.Lemma)))
+                || (bare && (LexiconCatalog.InterjectionNouns.Contains(noun.Norm) || LexiconCatalog.VocativeNouns.Contains(noun.Norm))))
+            {
+                return null;
+            }
+
+            var number = verb.Number;
+            var other = number == LexiconSchema.Singular ? LexiconSchema.Plural : LexiconSchema.Singular;
+            List<(string Person, string Number)> cells = bare
+                ? [.. Persons.SelectMany(static p => Numbers.Select(n => (Person: p, Number: n))).Where(c => c.Person != "3" || c.Number != number)]
+                : [("3", other)];
+            rng.Shuffle(cells);
+            foreach (var (person, cellNumber) in cells)
+            {
+                var form = _words.Morphology.Conjugate(verb.Lemma, person, cellNumber, verb.Tense);
+                if (form is null || form == verb.Norm)
+                {
+                    continue;
+                }
+
+                var readings = _words.Lexicon.Lookup(form);
+                if (readings.Count == 0
+                    || readings.Any(r => r.Pos != LexiconSchema.Verb || r.Person is null || r.Lemma != verb.Lemma || r.Tense != verb.Tense)
+                    || readings.Any(r => r.Person == "3" && r.Number == number))
+                {
+                    continue;
+                }
+
+                var mutated = Replace(i, verb with { Written = form, Norm = form, Person = person, Number = cellNumber });
+                return Result(MutationKind.ConjPerson, mutated, [Error(mutated, ErrorTags.ConjPerson, i, i, verb.Norm, form)], sentence.NormalizedText, keepsGrammar: true);
+            }
+
+            return null;
         }
 
         public MutatedSentence? NounNumber()
