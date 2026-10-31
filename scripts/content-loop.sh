@@ -31,7 +31,8 @@
 #               cefr-checks, the host's --validate-content, the grammar strings and the grammar check offline from the committed cache
 #   2 grammar   with --grammar, the LanguageTool steps of docs/game/README.md ("Refreshing the cache"), then CI's rebuilt-from-nothing check
 #   3 speech    scripts/prerender-speech.sh --check (and the stale WAVs a render would delete); with --speech the render and a second refresh
-#   4 fixtures  every file under tests/ that holds the bundle's old bundleHash (the save fixtures) gets the new one
+#   4 fixtures  every file under tests/ that holds the bundle's old bundleHash (the save fixtures) gets the new one: the old value is the one at
+#               HEAD, the one before step 1, or one an earlier run in this worktree saw (.claude/content-loop/bundle-values)
 #   5 build     dotnet build Vocaterra.sln -warnaserror -m:4 (once; the tests run with --no-build)
 #   6 goldens   tests/Vocaterra.Nlp.Golden.Tests, checked, or recorded with --record (VOCATERRA_RECORD_GOLDEN and VOCATERRA_RECORD_IDENTITY)
 #   7 digests   FuzzLanguageStreamTests: its digests move with the content's grammars and words (until the core's M57 pins them to a fixture)

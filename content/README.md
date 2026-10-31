@@ -89,7 +89,29 @@ Everything the game says, shows and builds its world from, outside the code. The
 1. Edit the files (the schema checks them in the editor).
 2. A new file in `game-v1/` needs a provenance item in `game-v1/provenance.json` (`generatedBy`, `approvedBy`, `approvedOn`). The locale bundle
    has no provenance file.
-3. Run `scripts/limited.sh scripts/content.sh refresh`. In order, it:
+3. Run `scripts/content-loop.sh --grammar --speech` (V18). Run it directly, never under `scripts/limited.sh`: it calls `limited.sh` itself for
+   each heavy step, and refuses to start under it. In order, it:
+   1. runs `scripts/content.sh refresh` (below);
+   2. with `--grammar`, starts the local LanguageTool server, checks the strings the cache lacks and prunes the entries no string uses, checks
+      that a cache rebuilt from nothing equals it (CI's `languagetool` job), prints every new finding, and stops the server, even on a failure
+      (`docs/game/README.md`, "Refreshing the cache"). Read each finding it prints: fix the content, or add a waiver with its reason to
+      `grammar/game-v1-waivers.json`. Without `--grammar`, new Spanish stops the loop at step 1;
+   3. asks the renderer which speech files are new or changed (`scripts/prerender-speech.sh --check`) and, with `--speech`, renders them and
+      refreshes again (the manifest after the new WAVs, provenance, the strings);
+   4. writes the bundle's new `bundleHash` into every file under `tests/` that holds the old one (the save fixtures `save-v1.json` and
+      `save-v4.json`); an edit of `locale/` alone moves none;
+   5. builds the solution, then checks the end-to-end goldens and the identity baseline (`tests/Vocaterra.Nlp.Golden.Tests`) and the fuzz suite's
+      stream digests (`FuzzLanguageStreamTests`). When the edit means to move them, run it again with `--record`: it records the goldens and
+      prints what moved (commit them in a commit of their own), and prints the digests to set in `FuzzLanguageStreamTests.cs` (it edits no C#);
+   6. runs the fast tier (`scripts/test.sh fast`), then the fuzz suite's grammar-sensitive classes at their full depth, so a grammar that
+      generates a wrong sentence fails in minutes; `--tier full` runs the whole suite instead, as the gate does.
+
+   It stops at the first failure with the next thing to do, and ends with a summary of at most 30 lines (each step, what it changed, its log);
+   each step's whole output is in `.claude/content-loop/<stamp>/`. The options and the steps are in the script's header and `scripts/README.md`.
+   A content milestone's brief needs only that one line.
+
+   Its first step also runs alone, `scripts/limited.sh scripts/content.sh refresh` (the content checks without the build and the tests). In
+   order, it:
    - rewrites `game-v1/manifest.json` and `locale/manifest.json`;
    - lists any file with no provenance item;
    - validates;
@@ -98,15 +120,12 @@ Everything the game says, shows and builds its world from, outside the code. The
      at A1, a report of what is above A1 that never fails (VILLAGE_PLAN 3.9, D-game-22 (b));
    - runs the game's own checks between its files (`dotnet run --project src/Vocaterra.Host -- --validate-content`): a phrase, line, prompt,
      noun or NPC that one file names and another lacks, and a lesson above its own level (below), every problem at once (`GameDataValidator`);
-   - writes the grammar strings again and runs the grammar check offline from the committed cache.
-
-   New Spanish text misses the cache. The message then names the LanguageTool steps (`docs/game/README.md`, "Refreshing the cache").
-4. Run the whole test suite. The core's tests run on `game-v1` too (R02), so a failing core test is the signal that the edit broke
-   something the core relies on.
-5. If the end-to-end goldens moved, record them again (`VOCATERRA_RECORD_GOLDEN=1 dotnet test tests/Vocaterra.Nlp.Golden.Tests`).
-   When `game-v1` changed, put its new bundle hash into `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v1.json` and `save-v4.json`; an edit of
-   `locale/` alone needs neither.
-6. Commit the edit with the manifest, the grammar strings and the cache.
+   - writes the grammar strings again and runs the grammar check offline from the committed cache. New Spanish text misses the cache, and the
+     message names the LanguageTool steps.
+4. Commit the edit with what the loop changed (the manifests, the grammar strings and the cache, the speech files, `speech-index.json` and the
+   listening checklist, the save fixtures), and the re-recorded goldens in a commit of their own. Run the whole suite (`scripts/test.sh full`,
+   or the loop with `--tier full`) before the milestone ends. The core's tests run on `game-v1` too (R02), so a failing core test is the signal
+   that the edit broke something the core relies on.
 
 ## Adding things
 
