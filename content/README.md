@@ -200,7 +200,7 @@ her purchase and her order, is the second; the smith Domingo and the farmer Leó
      "label": "Pescador",
      "name": "Mar",
      "figure": "fisher",
-     "focus": { "fisher-open": [ "donde-esta-la-panaderia" ] },
+     "focus": { "fisher-open": [ "donde-esta-la-panaderia", "donde-esta-la-herreria" ] },
      "prompts": { "idle": "fisher-open", "pointing": "fisher-more" },
      "opening": { "event": "fisher.greet", "when": "always" },
      "voice": { "speaker": 53, "name": "em_santa", "speed": 0.9 }
@@ -222,7 +222,13 @@ her purchase and her order, is the second; the smith Domingo and the farmer Leó
    - `keyWords` (optional): catalogue nouns whose cards the NPC shows alone before its first question (the shopkeeper's `agua` and `pan`). The save
      keeps one flag, so the key words are taught once a game, at the first NPC that has them.
    - `poolPrefix` (optional): the name its pools carry when it is not the id (the shopkeeper's pools are `shop_*` and `guide.lesson.shop.*`).
-   - `focus` (optional): the learner phrases each of its prompts practises (their home, with a scaffold to fade).
+   - `focus` (needed where a prompt it waits on is the home of rows): the learner phrases each such prompt practises (their home, with a scaffold to
+     fade), from the rows of `game/phrases.json` whose `prompt` it is (`fisher-open`: his two directions; the baker's `baker-open`: `quiero-dos-panes`,
+     `cuanto-cuesta`, `hay-pan`). Outside a lesson the panel shows their cards, and a turn of one of their intents is credited to that phrase; of two with
+     one intent (the fisher's), the one that names the place asked. A prompt that is the home of no row may practise another NPC's (the farmer's
+     `farmer-open` takes the smith's `como-te-llamas` and `que-haces`; a phrase at home with two NPCs is no transfer at either). Its lesson prompts need
+     none: each step names its own phrase. Without a focus a turn is still credited to the prompt's own row (VILLAGE_PLAN V12b; before it the baker's
+     `quiero dos panes` was the stall's `pedir-agua`), but no card shows; the validator refuses that (below).
 3. **`game-v1/game/npcs.json`**: its id **at the end** (the saves keep the NPCs in this order).
 4. **The scene placement**: `game/scene.json` `npcs` (where it stands and faces).
 5. **The locale role**: `npc.fisher.role` in `locale/en/ui.json`, and each new line's gloss in `locale/en/lines.json`.
@@ -234,6 +240,7 @@ her purchase and her order, is the second; the smith Domingo and the farmer Leó
 
 `--validate-content` (and so the refresh and the tests) refuses an NPC with no agent or no prompts, a prompt the bundle lacks or that is another
 agent's, a state its agent lacks, no prompt for the initial state, an opening event no state of its agent takes, no voice or a voice with no name, a
-key word that is no catalogue noun, and a pool prefix another NPC has. `--talk fisher` then walks up to it in a scripted run. Behaviour the data
+key word that is no catalogue noun, a pool prefix another NPC has, and a prompt it waits on that is the home of rows the learner practises with a
+focus there that names none of them (V12b). `--talk fisher` then walks up to it in a scripted run. Behaviour the data
 cannot say stays code, by id: the shopkeeper's fail-forward (the bottle after four misses, and on a later visit) and the guide's review, transfer
 offer and world lines (`docs/game/CONTENT_PLAN.md` section 3.6).

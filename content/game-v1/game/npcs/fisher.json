@@ -5,6 +5,12 @@
   "label": "Pescador",
   "name": "Mar",
   "figure": "fisher",
+  "focus": {
+    "fisher-open": [
+      "donde-esta-la-panaderia",
+      "donde-esta-la-herreria"
+    ]
+  },
   "prompts": {
     "idle": "fisher-open"
   },

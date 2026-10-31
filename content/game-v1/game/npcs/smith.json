@@ -5,6 +5,12 @@
   "label": "Herrero",
   "name": "Domingo",
   "figure": "smith",
+  "focus": {
+    "smith-open": [
+      "como-te-llamas",
+      "que-haces"
+    ]
+  },
   "prompts": {
     "idle": "smith-open"
   },

@@ -5,6 +5,13 @@
   "label": "Panadera",
   "name": "Luz",
   "figure": "baker",
+  "focus": {
+    "baker-open": [
+      "quiero-dos-panes",
+      "cuanto-cuesta",
+      "hay-pan"
+    ]
+  },
   "prompts": {
     "idle": "baker-open"
   },

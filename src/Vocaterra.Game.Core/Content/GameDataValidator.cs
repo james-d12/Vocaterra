@@ -263,6 +263,17 @@ public static class GameDataValidator
                 }
             }
 
+            // V12b: a prompt the NPC waits on that is the home of phrases the learner practises (their row's prompt) names one of them in the focus there, or free talk
+            // there shows no card and gives none of them a scaffold (the four village NPCs shipped so, and the baker's request was credited as the stall's).
+            foreach (var prompt in npc.Prompts.Values.Distinct(StringComparer.Ordinal))
+            {
+                var homes = data.Phrases.Rows.Where(row => string.Equals(row.Prompt, prompt, StringComparison.Ordinal) && data.Phrases.IsPractisable(row.Id)).Select(static row => row.Id).ToList();
+                if (homes.Count > 0 && !(npc.Focus.TryGetValue(prompt, out var focus) && focus.Any(homes.Contains)))
+                {
+                    problems.Add($"{file}: the prompt '{prompt}' is the home of {string.Join(", ", homes)} ({PhraseSheet.RelativePath}), and the focus names none of them there.");
+                }
+            }
+
             CheckNpcBehaviour(data, npc, file, problems);
         }
 

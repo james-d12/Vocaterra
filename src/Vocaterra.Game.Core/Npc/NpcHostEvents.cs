@@ -171,7 +171,8 @@ public static class NpcHostEvents
 
 /// <summary>
 /// The phrase sheet's ids (<c>content/PHRASES.md</c>) as the game resolves them: a phrase is found from the intent the core resolved, the prompt
-/// it was said at and the slots (<see cref="For"/>). A test reads the sheet and checks that every id here is a row of it.
+/// it was said at and the slots. The phrases in play and the row the prompt teaches come first (<c>PhraseSheet.PhraseFor</c>, VILLAGE_PLAN V12b); this is the
+/// fixed mapping after them (<see cref="For"/>). A test reads the sheet and checks that every id here is a row of it.
 /// </summary>
 public static class PhraseIds
 {

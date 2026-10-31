@@ -5,6 +5,12 @@
   "label": "Granjero",
   "name": "León",
   "figure": "farmer",
+  "focus": {
+    "farmer-open": [
+      "como-te-llamas",
+      "que-haces"
+    ]
+  },
   "prompts": {
     "idle": "farmer-open"
   },
