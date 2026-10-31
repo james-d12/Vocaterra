@@ -412,15 +412,23 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void OneThingWhereTheApplesAreMeantIsAMissWithAPersonRetry()
+    public void OneAppleWhereTheApplesAreMeantIsAMissWithAPersonRetryAndMeGustaLasManzanasIsTheCoresSlip()
     {
-        // "Me gusta las manzanas": the core reads no person for a subject after the verb (a core gap, M56), so the lesson's step, which expects gustan (3pl), makes it a miss.
-        var session = AtStep("c2-apples");
+        // "Me gusta la manzana" is right Spanish for one apple, so the core says nothing of the person: the lesson's step, which expects gustan (3pl) for the apples, makes it
+        // a miss whose retry names "me gustan". "Me gusta las manzanas" the core flags itself since M56, which agrees the verb with a subject after it (conj.person, expected
+        // gustan): a slip, and the step goes on.
+        var miss = AtStep("c2-apples");
+        AssertMiss(miss, "me gusta la manzana", "c2-apples", "wrong person: said 3sg, expected 3pl", "“me gustan”");
+        _ = miss.Say("Sí, me gustan las manzanas");
+        Assert.Equal("c3-want", miss.Lessons.Current!.Id);
 
-        AssertMiss(session, "me gusta las manzanas", "c2-apples", "wrong person: said 3sg, expected 3pl", "“me gustan”");
-        _ = session.Say("Sí, me gustan las manzanas");
-
-        Assert.Equal("c3-want", session.Lessons.Current!.Id);
+        var slip = AtStep("c2-apples");
+        var turn = slip.Say("me gusta las manzanas");
+        Assert.True(turn.Communicated);
+        Assert.Equal("state_like", turn.Intent);
+        Assert.Equal("gustan", Assert.Single(turn.Errors, static e => e.Tag == "conj.person").Expected);
+        Assert.Equal("c3-want", slip.Lessons.Current!.Id);
+        Assert.Contains(slip.Events.OfType<LessonEvent>(), static e => e.Kind == LessonEventKind.StepDone && e.StepId == "c2-apples" && e.Detail == "with a slip");
     }
 
     [Fact]
