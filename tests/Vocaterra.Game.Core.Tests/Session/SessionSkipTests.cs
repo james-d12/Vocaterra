@@ -31,6 +31,7 @@ public sealed class SessionSkipTests
         { 5, "numeros-y-pan", "baker" },
         { 6, "gente-del-pueblo", "villager" },
         { 7, "como-es", "farmer" },
+        { 8, "ayer-en-el-pueblo", "villager" },
     };
 
     [Theory]
@@ -80,6 +81,7 @@ public sealed class SessionSkipTests
         { 5, 2, 0, 0 },
         { 6, 2, 2, 0 },
         { 7, 0, 2, 1 },
+        { 8, 0, 2, 1 },
     };
 
     [Theory]
@@ -94,7 +96,8 @@ public sealed class SessionSkipTests
         Assert.Equal(axes, bag.Count(ItemId.Axe));
         Assert.Equal(1, bag.Count(ItemId.Book));
         Assert.Equal(0, bag.Count(ItemId.Wood) + bag.Count(ItemId.Berry) + bag.Count(ItemId.Torch) + bag.Count(ItemId.Bottle));
-        Assert.Equal(1, bag.Count(ItemId.WaterBottle)); // session 1's camp filled the shopkeeper's bottle at the river (V13: the farmer's order takes it)
+        Assert.Equal(target <= 7 ? 1 : 0, bag.Count(ItemId.WaterBottle)); // session 1's camp filled the shopkeeper's bottle at the river; the farmer's order of session 7 takes it (V13)
+        Assert.Equal(target <= 7 ? 0 : 3, bag.Count(ItemId.Apple)); // and gives three apples (V14: what a learner holds at session 8)
 
         // What the session's order needs that only an NPC gives (coins, and the bottle of water) is in hand; what the world gives (wood, fruit) the lesson points at.
         foreach (var order in session.Objectives.Where(o => o.Spec.IsOrder && o.Spec.Session == target))
@@ -175,9 +178,9 @@ public sealed class SessionSkipTests
     [Fact]
     public void OnlyANewGameIsSkippedAndOnlyToASessionThatHasALesson()
     {
-        Assert.Equal(7, SessionSkip.LastSession(TestGame.Data.Lessons));
+        Assert.Equal(8, SessionSkip.LastSession(TestGame.Data.Lessons));
         Assert.Throws<ArgumentOutOfRangeException>(() => SkippedTo(1));
-        Assert.Throws<ArgumentOutOfRangeException>(() => SkippedTo(8));
+        Assert.Throws<ArgumentOutOfRangeException>(() => SkippedTo(9));
 
         var played = TestGame.NewSessionWithShippedLessons();
         played.Step([]);

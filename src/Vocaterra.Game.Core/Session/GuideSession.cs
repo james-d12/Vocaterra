@@ -1318,10 +1318,20 @@ public abstract partial class GuideSession : IDisposable
 
     // The phrase a communicated turn used: the phrase in play on the prompt whose row has the turn's intent (the NPC's focus there, a lesson step's phrase, S16, or the
     // review's), else the row the prompt teaches for the intent, else the fixed mapping (PhraseSheet.PhraseFor). Of several in play with the intent (the fisher's two
-    // directions), the one that names the place asked about (PhraseSheet.OfIntent).
-    private string? PhraseOf(GuideTurn turn, SupportSnapshot support) =>
-        PhraseSheet.OfIntent(support.InPlay.Select(Phrases.Find).OfType<PhraseRow>(), turn.Intent, turn.Slots)
-        ?? Phrases.PhraseFor(turn.Prompt, turn.Intent, turn.Slots, Data.Words.Noun("river"));
+    // directions), the one that names the place asked about (PhraseSheet.OfIntent); in free talk, where the NPC's focus is in play, one row of the intent that names
+    // another place gives way to the row practised elsewhere that names it (V14: the villager's river for the fisher's bakery, PhraseSheet.ByPlace).
+    private string? PhraseOf(GuideTurn turn, SupportSnapshot support)
+    {
+        var inPlay = support.InPlay.Select(Phrases.Find).OfType<PhraseRow>().ToList();
+        var freeTalk = support.InPlay.SequenceEqual(Data.Npcs.FocusAt(turn.Prompt), StringComparer.Ordinal);
+        if (freeTalk && Phrases.ByPlace(inPlay, turn.Intent, turn.Slots, Data.Npcs.Homes.Keys, out var placed))
+        {
+            return placed;
+        }
+
+        return PhraseSheet.OfIntent(inPlay, turn.Intent, turn.Slots)
+            ?? Phrases.PhraseFor(turn.Prompt, turn.Intent, turn.Slots, Data.Words.Noun("river"), freeTalk ? Data.Npcs.Homes.Keys : null);
+    }
 
     private static bool IsHelpRequest(GuideTurn turn) =>
         string.Equals(turn.Intent, "dont_know", StringComparison.Ordinal) || string.Equals(turn.Intent, "ask_help", StringComparison.Ordinal);

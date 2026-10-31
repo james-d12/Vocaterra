@@ -24,6 +24,7 @@
         { "on": {"intent": "ask_name", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_name", "variantPoolId": "smith_name" }] },
         { "on": {"intent": "ask_activity", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_job", "variantPoolId": "smith_job" }] },
         { "on": {"intent": "state_have", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_offer", "variantPoolId": "smith_offer" }] },
+        { "on": {"intent": "state_want", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_offer", "variantPoolId": "smith_offer" }] },
         { "on": {"intent": "state_action", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
         { "on": {"intent": "ask_help", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_help", "variantPoolId": "smith_help" }] },
         { "on": {"intent": "dont_know", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_help", "variantPoolId": "smith_help" }] },

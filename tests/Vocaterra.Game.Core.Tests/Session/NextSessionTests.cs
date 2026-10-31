@@ -140,6 +140,7 @@ public sealed class NextSessionTests
         var session = TestGame.NewSessionWithShippedLessons();
         SessionSkip.Apply(session, 7);
         session.Lessons.CountAsCompleted("como-es", 7);
+        session.Lessons.CountAsCompleted("ayer-en-el-pueblo", 7); // the last lesson (V14) done too, so no later session has one
         TeleportToFire(session);
         session.Step([]);
         Assert.Equal("water-for-plants", session.CurrentObjective?.Id);

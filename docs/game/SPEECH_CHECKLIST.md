@@ -247,6 +247,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | guide.lesson.farmer.went.1 | speech/guide.lesson.farmer.went.1.wav | farmer | 1.0 | ¿Fuiste al río? |  |
 | guide.lesson.fast.1 | speech/guide.lesson.fast.1.slow.wav | guide | 0.8 | Mira. La madera es para la antorcha. |  |
 | guide.lesson.fast.1 | speech/guide.lesson.fast.1.wav | guide | 1.0 | Mira. La madera es para la antorcha. |  |
+| guide.lesson.fisher.bought.1 | speech/guide.lesson.fisher.bought.1.slow.wav | fisher | 0.72 | ¿Qué compró Luz ayer? |  |
+| guide.lesson.fisher.bought.1 | speech/guide.lesson.fisher.bought.1.wav | fisher | 0.9 | ¿Qué compró Luz ayer? |  |
 | guide.lesson.fisher.end.1 | speech/guide.lesson.fisher.end.1.slow.wav | fisher | 0.72 | ¡Muy bien! Ya conoces el pueblo. |  |
 | guide.lesson.fisher.end.1 | speech/guide.lesson.fisher.end.1.wav | fisher | 0.9 | ¡Muy bien! Ya conoces el pueblo. |  |
 | guide.lesson.fisher.going.1 | speech/guide.lesson.fisher.going.1.slow.wav | fisher | 0.72 | ¿Adónde vas? |  |
@@ -265,6 +267,10 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | guide.lesson.fisher.plan.1 | speech/guide.lesson.fisher.plan.1.wav | fisher | 0.9 | ¿Qué vas a hacer allí? |  |
 | guide.lesson.fisher.right.1 | speech/guide.lesson.fisher.right.1.slow.wav | fisher | 0.72 | Y la herrería está a la derecha. |  |
 | guide.lesson.fisher.right.1 | speech/guide.lesson.fisher.right.1.wav | fisher | 0.9 | Y la herrería está a la derecha. |  |
+| guide.lesson.fisher.sold.1 | speech/guide.lesson.fisher.sold.1.slow.wav | fisher | 0.72 | ¡Hola! Ayer le vendí pescado a Luz. Mañana va a comprar más. |  |
+| guide.lesson.fisher.sold.1 | speech/guide.lesson.fisher.sold.1.wav | fisher | 0.9 | ¡Hola! Ayer le vendí pescado a Luz. Mañana va a comprar más. |  |
+| guide.lesson.fisher.tomorrow.1 | speech/guide.lesson.fisher.tomorrow.1.slow.wav | fisher | 0.72 | ¿Y tú? ¿Qué vas a hacer mañana? |  |
+| guide.lesson.fisher.tomorrow.1 | speech/guide.lesson.fisher.tomorrow.1.wav | fisher | 0.9 | ¿Y tú? ¿Qué vas a hacer mañana? |  |
 | guide.lesson.fisher.well.1 | speech/guide.lesson.fisher.well.1.slow.wav | fisher | 0.72 | Sí, hay un pozo. |  |
 | guide.lesson.fisher.well.1 | speech/guide.lesson.fisher.well.1.wav | fisher | 0.9 | Sí, hay un pozo. |  |
 | guide.lesson.fisher.went.1 | speech/guide.lesson.fisher.went.1.slow.wav | fisher | 0.72 | ¿Fuiste a la panadería? |  |
@@ -327,16 +333,24 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | guide.lesson.shop.went.1 | speech/guide.lesson.shop.went.1.wav | shopkeeper | 1.0 | ¿Fuiste al río ayer? |  |
 | guide.lesson.shop.you.1 | speech/guide.lesson.shop.you.1.slow.wav | shopkeeper | 0.8 | Ayer fuiste al río. |  |
 | guide.lesson.shop.you.1 | speech/guide.lesson.shop.you.1.wav | shopkeeper | 1.0 | Ayer fuiste al río. |  |
+| guide.lesson.smith.ate.1 | speech/guide.lesson.smith.ate.1.slow.wav | smith | 0.8 | ¡Hola! Ayer trabajé todo el día. ¿Qué comieron Luz y Mar? |  |
+| guide.lesson.smith.ate.1 | speech/guide.lesson.smith.ate.1.wav | smith | 1.0 | ¡Hola! Ayer trabajé todo el día. ¿Qué comieron Luz y Mar? |  |
 | guide.lesson.smith.lives.1 | speech/guide.lesson.smith.lives.1.slow.wav | smith | 0.8 | ¿Dónde vives? |  |
 | guide.lesson.smith.lives.1 | speech/guide.lesson.smith.lives.1.wav | smith | 1.0 | ¿Dónde vives? |  |
+| guide.lesson.smith.must.1 | speech/guide.lesson.smith.must.1.slow.wav | smith | 0.8 | Mar fue al río y te busca. ¿Adónde tienes que ir? |  |
+| guide.lesson.smith.must.1 | speech/guide.lesson.smith.must.1.wav | smith | 1.0 | Mar fue al río y te busca. ¿Adónde tienes que ir? |  |
 | guide.lesson.take.1 | speech/guide.lesson.take.1.slow.wav | guide | 0.8 | Toma una fruta. |  |
 | guide.lesson.take.1 | speech/guide.lesson.take.1.wav | guide | 1.0 | Toma una fruta. |  |
 | guide.lesson.task.1 | speech/guide.lesson.task.1.slow.wav | guide | 0.8 | Necesitas madera y frutas. |  |
 | guide.lesson.task.1 | speech/guide.lesson.task.1.wav | guide | 1.0 | Necesitas madera y frutas. |  |
+| guide.lesson.villager.ate.1 | speech/guide.lesson.villager.ate.1.slow.wav | villager | 0.8 | Por la tarde, Luz y Mar comieron pan en la plaza. |  |
+| guide.lesson.villager.ate.1 | speech/guide.lesson.villager.ate.1.wav | villager | 1.0 | Por la tarde, Luz y Mar comieron pan en la plaza. |  |
 | guide.lesson.villager.axe.1 | speech/guide.lesson.villager.axe.1.slow.wav | villager | 0.8 | Domingo te quiere hacer un hacha. |  |
 | guide.lesson.villager.axe.1 | speech/guide.lesson.villager.axe.1.wav | villager | 1.0 | Domingo te quiere hacer un hacha. |  |
 | guide.lesson.villager.be.1 | speech/guide.lesson.villager.be.1.slow.wav | villager | 0.8 | Tú y yo somos amigos. |  |
 | guide.lesson.villager.be.1 | speech/guide.lesson.villager.be.1.wav | villager | 1.0 | Tú y yo somos amigos. |  |
+| guide.lesson.villager.day.1 | speech/guide.lesson.villager.day.1.slow.wav | villager | 0.8 | Ayer Luz hizo pan. Domingo trabajó en la herrería. Mar pescó en el río. |  |
+| guide.lesson.villager.day.1 | speech/guide.lesson.villager.day.1.wav | villager | 1.0 | Ayer Luz hizo pan. Domingo trabajó en la herrería. Mar pescó en el río. |  |
 | guide.lesson.villager.eat.1 | speech/guide.lesson.villager.eat.1.slow.wav | villager | 0.8 | Ellos van a comer pan. |  |
 | guide.lesson.villager.eat.1 | speech/guide.lesson.villager.eat.1.wav | villager | 1.0 | Ellos van a comer pan. |  |
 | guide.lesson.villager.go.1 | speech/guide.lesson.villager.go.1.slow.wav | villager | 0.8 | Vamos a la tienda. |  |
@@ -347,8 +361,14 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | guide.lesson.villager.house.1 | speech/guide.lesson.villager.house.1.wav | villager | 1.0 | Domingo vive en una casa cerca de la herrería. |  |
 | guide.lesson.villager.luna.1 | speech/guide.lesson.villager.luna.1.slow.wav | villager | 0.8 | ¿Qué quiere Luna? |  |
 | guide.lesson.villager.luna.1 | speech/guide.lesson.villager.luna.1.wav | villager | 1.0 | ¿Qué quiere Luna? |  |
+| guide.lesson.villager.luz.1 | speech/guide.lesson.villager.luz.1.slow.wav | villager | 0.8 | ¿Qué hizo Luz ayer? |  |
+| guide.lesson.villager.luz.1 | speech/guide.lesson.villager.luz.1.wav | villager | 1.0 | ¿Qué hizo Luz ayer? |  |
 | guide.lesson.villager.made.1 | speech/guide.lesson.villager.made.1.slow.wav | villager | 0.8 | ¿Qué hizo Domingo? |  |
 | guide.lesson.villager.made.1 | speech/guide.lesson.villager.made.1.wav | villager | 1.0 | ¿Qué hizo Domingo? |  |
+| guide.lesson.villager.mar.1 | speech/guide.lesson.villager.mar.1.slow.wav | villager | 0.8 | ¿Y qué hizo Mar? |  |
+| guide.lesson.villager.mar.1 | speech/guide.lesson.villager.mar.1.wav | villager | 1.0 | ¿Y qué hizo Mar? |  |
+| guide.lesson.villager.morning.1 | speech/guide.lesson.villager.morning.1.slow.wav | villager | 0.8 | Por la mañana, Luz y yo fuimos a la tienda. |  |
+| guide.lesson.villager.morning.1 | speech/guide.lesson.villager.morning.1.wav | villager | 1.0 | Por la mañana, Luz y yo fuimos a la tienda. |  |
 | guide.lesson.villager.much.1 | speech/guide.lesson.villager.much.1.slow.wav | villager | 0.8 | Ayer Domingo trabajó mucho. |  |
 | guide.lesson.villager.much.1 | speech/guide.lesson.villager.much.1.wav | villager | 1.0 | Ayer Domingo trabajó mucho. |  |
 | guide.lesson.villager.need.1 | speech/guide.lesson.villager.need.1.slow.wav | villager | 0.8 | ¿Qué necesitas ahora? |  |
@@ -357,12 +377,16 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | guide.lesson.villager.plan.1 | speech/guide.lesson.villager.plan.1.wav | villager | 1.0 | ¿Qué vas a comer mañana? |  |
 | guide.lesson.villager.plan_we.1 | speech/guide.lesson.villager.plan_we.1.slow.wav | villager | 0.8 | ¿Qué vamos a comer? |  |
 | guide.lesson.villager.plan_we.1 | speech/guide.lesson.villager.plan_we.1.wav | villager | 1.0 | ¿Qué vamos a comer? |  |
+| guide.lesson.villager.river.1 | speech/guide.lesson.villager.river.1.slow.wav | villager | 0.8 | ¡Hola! ¿Fuiste al río ayer? |  |
+| guide.lesson.villager.river.1 | speech/guide.lesson.villager.river.1.wav | villager | 1.0 | ¡Hola! ¿Fuiste al río ayer? |  |
 | guide.lesson.villager.she.1 | speech/guide.lesson.villager.she.1.slow.wav | villager | 0.8 | Luna es la guía. Ella es mi amiga. |  |
 | guide.lesson.villager.she.1 | speech/guide.lesson.villager.she.1.wav | villager | 1.0 | Luna es la guía. Ella es mi amiga. |  |
 | guide.lesson.villager.sign.1 | speech/guide.lesson.villager.sign.1.slow.wav | villager | 0.8 | El letrero dice: tienda, río, montaña. |  |
 | guide.lesson.villager.sign.1 | speech/guide.lesson.villager.sign.1.wav | villager | 1.0 | El letrero dice: tienda, río, montaña. |  |
 | guide.lesson.villager.smith.1 | speech/guide.lesson.villager.smith.1.slow.wav | villager | 0.8 | Mira, allí está Domingo. Es el herrero. |  |
 | guide.lesson.villager.smith.1 | speech/guide.lesson.villager.smith.1.wav | villager | 1.0 | Mira, allí está Domingo. Es el herrero. |  |
+| guide.lesson.villager.smith_waits.1 | speech/guide.lesson.villager.smith_waits.1.slow.wav | villager | 0.8 | Domingo te busca. Está en la herrería. |  |
+| guide.lesson.villager.smith_waits.1 | speech/guide.lesson.villager.smith_waits.1.wav | villager | 1.0 | Domingo te busca. Está en la herrería. |  |
 | guide.lesson.villager.they.1 | speech/guide.lesson.villager.they.1.slow.wav | villager | 0.8 | Ellos tienen pan. |  |
 | guide.lesson.villager.they.1 | speech/guide.lesson.villager.they.1.wav | villager | 1.0 | Ellos tienen pan. |  |
 | guide.lesson.villager.want.1 | speech/guide.lesson.villager.want.1.slow.wav | villager | 0.8 | ¿Qué quieres? |  |
@@ -373,6 +397,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | guide.lesson.villager.went_bakery.1 | speech/guide.lesson.villager.went_bakery.1.wav | villager | 1.0 | ¡Hola! ¿Fuiste a la panadería? |  |
 | guide.lesson.villager.where.1 | speech/guide.lesson.villager.where.1.slow.wav | villager | 0.8 | Ella está en el campamento. |  |
 | guide.lesson.villager.where.1 | speech/guide.lesson.villager.where.1.wav | villager | 1.0 | Ella está en el campamento. |  |
+| guide.lesson.villager.where_went.1 | speech/guide.lesson.villager.where_went.1.slow.wav | villager | 0.8 | ¿Y Mar y tú? ¿Adónde fueron ayer? |  |
+| guide.lesson.villager.where_went.1 | speech/guide.lesson.villager.where_went.1.wav | villager | 1.0 | ¿Y Mar y tú? ¿Adónde fueron ayer? |  |
 | guide.lesson.villager.who.1 | speech/guide.lesson.villager.who.1.slow.wav | villager | 0.8 | ¿Quién es Domingo? |  |
 | guide.lesson.villager.who.1 | speech/guide.lesson.villager.who.1.wav | villager | 1.0 | ¿Quién es Domingo? |  |
 | guide.lesson.villager.will_make.1 | speech/guide.lesson.villager.will_make.1.slow.wav | villager | 0.8 | ¿Qué va a hacer Domingo? |  |
@@ -505,6 +531,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | phrase.donde-esta-la-panaderia | speech/phrase.donde-esta-la-panaderia.wav | guide | 1.0 | ¿Dónde está la panadería? |  |
 | phrase.ella-quiere-fruta | speech/phrase.ella-quiere-fruta.slow.wav | guide | 0.8 | Ella quiere fruta. |  |
 | phrase.ella-quiere-fruta | speech/phrase.ella-quiere-fruta.wav | guide | 1.0 | Ella quiere fruta. |  |
+| phrase.ellos-comieron-pan | speech/phrase.ellos-comieron-pan.slow.wav | guide | 0.8 | Ellos comieron pan. |  |
+| phrase.ellos-comieron-pan | speech/phrase.ellos-comieron-pan.wav | guide | 1.0 | Ellos comieron pan. |  |
 | phrase.es-el-herrero | speech/phrase.es-el-herrero.slow.wav | guide | 0.8 | Es el herrero. |  |
 | phrase.es-el-herrero | speech/phrase.es-el-herrero.wav | guide | 1.0 | Es el herrero. |  |
 | phrase.es-grande | speech/phrase.es-grande.slow.wav | guide | 0.8 | Es grande. |  |
@@ -515,6 +543,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | phrase.fui-a-la-panaderia | speech/phrase.fui-a-la-panaderia.wav | guide | 1.0 | Sí, fui a la panadería. |  |
 | phrase.fui-al-rio | speech/phrase.fui-al-rio.slow.wav | guide | 0.8 | Sí, fui al río. |  |
 | phrase.fui-al-rio | speech/phrase.fui-al-rio.wav | guide | 1.0 | Sí, fui al río. |  |
+| phrase.fuimos-al-rio | speech/phrase.fuimos-al-rio.slow.wav | guide | 0.8 | Fuimos al río. |  |
+| phrase.fuimos-al-rio | speech/phrase.fuimos-al-rio.wav | guide | 1.0 | Fuimos al río. |  |
 | phrase.gracias | speech/phrase.gracias.slow.wav | guide | 0.8 | Gracias. |  |
 | phrase.gracias | speech/phrase.gracias.wav | guide | 1.0 | Gracias. |  |
 | phrase.hay-pan | speech/phrase.hay-pan.slow.wav | guide | 0.8 | ¿Hay pan? |  |
@@ -527,6 +557,12 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | phrase.hola | speech/phrase.hola.wav | guide | 1.0 | Hola. |  |
 | phrase.la-manzana-es-roja | speech/phrase.la-manzana-es-roja.slow.wav | guide | 0.8 | La manzana es roja. |  |
 | phrase.la-manzana-es-roja | speech/phrase.la-manzana-es-roja.wav | guide | 1.0 | La manzana es roja. |  |
+| phrase.luz-compro-pescado | speech/phrase.luz-compro-pescado.slow.wav | guide | 0.8 | Luz compró pescado. |  |
+| phrase.luz-compro-pescado | speech/phrase.luz-compro-pescado.wav | guide | 1.0 | Luz compró pescado. |  |
+| phrase.luz-hizo-pan | speech/phrase.luz-hizo-pan.slow.wav | guide | 0.8 | Luz hizo pan. |  |
+| phrase.luz-hizo-pan | speech/phrase.luz-hizo-pan.wav | guide | 1.0 | Luz hizo pan. |  |
+| phrase.mar-pesco-en-el-rio | speech/phrase.mar-pesco-en-el-rio.slow.wav | guide | 0.8 | Mar pescó en el río. |  |
+| phrase.mar-pesco-en-el-rio | speech/phrase.mar-pesco-en-el-rio.wav | guide | 1.0 | Mar pescó en el río. |  |
 | phrase.mas-despacio | speech/phrase.mas-despacio.slow.wav | guide | 0.8 | Más despacio, por favor. |  |
 | phrase.mas-despacio | speech/phrase.mas-despacio.wav | guide | 1.0 | Más despacio, por favor. |  |
 | phrase.me-gusta-el-pan | speech/phrase.me-gusta-el-pan.slow.wav | guide | 0.8 | Sí, me gusta el pan. |  |
@@ -573,6 +609,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | phrase.tengo-cuatro-monedas | speech/phrase.tengo-cuatro-monedas.wav | guide | 1.0 | Tengo cuatro monedas. |  |
 | phrase.tengo-fruta | speech/phrase.tengo-fruta.slow.wav | guide | 0.8 | Tengo una fruta. |  |
 | phrase.tengo-fruta | speech/phrase.tengo-fruta.wav | guide | 1.0 | Tengo una fruta. |  |
+| phrase.tengo-que-ir | speech/phrase.tengo-que-ir.slow.wav | guide | 0.8 | Tengo que ir al río. |  |
+| phrase.tengo-que-ir | speech/phrase.tengo-que-ir.wav | guide | 1.0 | Tengo que ir al río. |  |
 | phrase.trabaja-en-la-herreria | speech/phrase.trabaja-en-la-herreria.slow.wav | guide | 0.8 | Domingo trabaja en la herrería. |  |
 | phrase.trabaja-en-la-herreria | speech/phrase.trabaja-en-la-herreria.wav | guide | 1.0 | Domingo trabaja en la herrería. |  |
 | phrase.va-a-hacer-un-hacha | speech/phrase.va-a-hacer-un-hacha.slow.wav | guide | 0.8 | Va a hacer un hacha. |  |
@@ -637,8 +675,16 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | prompt.lesson-liked | speech/prompt.lesson-liked.wav | farmer | 1.0 | ¿Te gustó el pan de Luz? |  |
 | prompt.lesson-lives | speech/prompt.lesson-lives.slow.wav | smith | 0.8 | ¿Dónde vives? |  |
 | prompt.lesson-lives | speech/prompt.lesson-lives.wav | smith | 1.0 | ¿Dónde vives? |  |
+| prompt.lesson-luz-bought | speech/prompt.lesson-luz-bought.slow.wav | fisher | 0.72 | ¿Qué compró Luz ayer? |  |
+| prompt.lesson-luz-bought | speech/prompt.lesson-luz-bought.wav | fisher | 0.9 | ¿Qué compró Luz ayer? |  |
+| prompt.lesson-luz-made | speech/prompt.lesson-luz-made.slow.wav | villager | 0.8 | ¿Qué hizo Luz ayer? |  |
+| prompt.lesson-luz-made | speech/prompt.lesson-luz-made.wav | villager | 1.0 | ¿Qué hizo Luz ayer? |  |
 | prompt.lesson-made | speech/prompt.lesson-made.slow.wav | villager | 0.8 | ¿Qué hizo Domingo? |  |
 | prompt.lesson-made | speech/prompt.lesson-made.wav | villager | 1.0 | ¿Qué hizo Domingo? |  |
+| prompt.lesson-mar-fished | speech/prompt.lesson-mar-fished.slow.wav | villager | 0.8 | ¿Y qué hizo Mar? |  |
+| prompt.lesson-mar-fished | speech/prompt.lesson-mar-fished.wav | villager | 1.0 | ¿Y qué hizo Mar? |  |
+| prompt.lesson-must-go | speech/prompt.lesson-must-go.slow.wav | smith | 0.8 | Mar fue al río y te busca. ¿Adónde tienes que ir? |  |
+| prompt.lesson-must-go | speech/prompt.lesson-must-go.wav | smith | 1.0 | Mar fue al río y te busca. ¿Adónde tienes que ir? |  |
 | prompt.lesson-name | speech/prompt.lesson-name.slow.wav | guide | 0.8 | Me llamo Luna. |  |
 | prompt.lesson-name | speech/prompt.lesson-name.wav | guide | 1.0 | Me llamo Luna. |  |
 | prompt.lesson-need | speech/prompt.lesson-need.slow.wav | guide | 0.8 | ¿Qué necesitas? |  |
@@ -661,6 +707,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | prompt.lesson-task | speech/prompt.lesson-task.wav | guide | 1.0 | Necesitas madera y frutas. |  |
 | prompt.lesson-thanks | speech/prompt.lesson-thanks.slow.wav | guide | 0.8 | ¡Muy bien! Tienes una fruta. |  |
 | prompt.lesson-thanks | speech/prompt.lesson-thanks.wav | guide | 1.0 | ¡Muy bien! Tienes una fruta. |  |
+| prompt.lesson-they-ate | speech/prompt.lesson-they-ate.slow.wav | smith | 0.8 | ¡Hola! Ayer trabajé todo el día. ¿Qué comieron Luz y Mar? |  |
+| prompt.lesson-they-ate | speech/prompt.lesson-they-ate.wav | smith | 1.0 | ¡Hola! Ayer trabajé todo el día. ¿Qué comieron Luz y Mar? |  |
 | prompt.lesson-tomorrow | speech/prompt.lesson-tomorrow.slow.wav | shopkeeper | 0.8 | ¿Qué vas a hacer mañana? |  |
 | prompt.lesson-tomorrow | speech/prompt.lesson-tomorrow.wav | shopkeeper | 1.0 | ¿Qué vas a hacer mañana? |  |
 | prompt.lesson-unstuck | speech/prompt.lesson-unstuck.slow.wav | guide | 0.8 | Mira. ¿Qué es esto? |  |
@@ -677,6 +725,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | prompt.lesson-water-went | speech/prompt.lesson-water-went.wav | farmer | 1.0 | ¿Fuiste al río? |  |
 | prompt.lesson-we | speech/prompt.lesson-we.slow.wav | villager | 0.8 | ¿Qué necesitamos? |  |
 | prompt.lesson-we | speech/prompt.lesson-we.wav | villager | 1.0 | ¿Qué necesitamos? |  |
+| prompt.lesson-we-went | speech/prompt.lesson-we-went.slow.wav | villager | 0.8 | ¿Y Mar y tú? ¿Adónde fueron ayer? |  |
+| prompt.lesson-we-went | speech/prompt.lesson-we-went.wav | villager | 1.0 | ¿Y Mar y tú? ¿Adónde fueron ayer? |  |
 | prompt.lesson-went | speech/prompt.lesson-went.slow.wav | shopkeeper | 0.8 | ¿Fuiste al río ayer? |  |
 | prompt.lesson-went | speech/prompt.lesson-went.wav | shopkeeper | 1.0 | ¿Fuiste al río ayer? |  |
 | prompt.lesson-went-there | speech/prompt.lesson-went-there.slow.wav | fisher | 0.72 | ¿Fuiste a la panadería? |  |

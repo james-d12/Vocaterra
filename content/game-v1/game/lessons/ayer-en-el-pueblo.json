@@ -1,0 +1,199 @@
+{
+  "$schema": "../../../schema/lesson.schema.json",
+  "schemaVersion": 2,
+  "id": "ayer-en-el-pueblo",
+  "npc": "villager",
+  "level": "a2",
+  "autoStart": true,
+  "after": "como-es",
+  "session": 8,
+  "verbs": [
+    {
+      "lemma": "pescar",
+      "person": "3",
+      "number": "sg",
+      "tense": "pret"
+    },
+    {
+      "lemma": "comprar",
+      "person": "3",
+      "number": "sg",
+      "tense": "pret"
+    },
+    {
+      "lemma": "ir",
+      "person": "3",
+      "number": "sg",
+      "tense": "pret"
+    },
+    {
+      "lemma": "ir",
+      "person": "1",
+      "number": "pl",
+      "tense": "pret"
+    },
+    {
+      "lemma": "ir",
+      "person": "3",
+      "number": "pl",
+      "tense": "pret"
+    },
+    {
+      "lemma": "comer",
+      "person": "3",
+      "number": "pl",
+      "tense": "pret"
+    },
+    {
+      "lemma": "vender",
+      "person": "1",
+      "number": "sg",
+      "tense": "pret"
+    }
+  ],
+  "steps": [
+    {
+      "id": "a0-review",
+      "type": "review",
+      "candidates": [
+        {
+          "phrase": "fui-al-rio",
+          "line": "guide.lesson.villager.river.1"
+        },
+        {
+          "phrase": "hola",
+          "line": "villager_hello.1"
+        }
+      ]
+    },
+    {
+      "id": "a0-intro",
+      "type": "explain"
+    },
+    {
+      "id": "a1-day",
+      "type": "listen",
+      "line": "guide.lesson.villager.day.1",
+      "correct": 0
+    },
+    {
+      "id": "a1-luz",
+      "type": "answer",
+      "phrase": "luz-hizo-pan",
+      "prompt": "lesson-luz-made",
+      "line": "guide.lesson.villager.luz.1",
+      "person": "3sg",
+      "tense": "pret"
+    },
+    {
+      "id": "a1-mar",
+      "type": "answer",
+      "phrase": "mar-pesco-en-el-rio",
+      "prompt": "lesson-mar-fished",
+      "line": "guide.lesson.villager.mar.1",
+      "person": "3sg",
+      "tense": "pret"
+    },
+    {
+      "id": "a2-ate",
+      "type": "model",
+      "line": "guide.lesson.villager.ate.1"
+    },
+    {
+      "id": "a2-we",
+      "type": "model",
+      "line": "guide.lesson.villager.morning.1"
+    },
+    {
+      "id": "a2-went",
+      "type": "answer",
+      "phrase": "fuimos-al-rio",
+      "prompt": "lesson-we-went",
+      "line": "guide.lesson.villager.where_went.1",
+      "person": "1pl",
+      "tense": "pret"
+    },
+    {
+      "id": "a2-smith",
+      "type": "model",
+      "line": "guide.lesson.villager.smith_waits.1"
+    },
+    {
+      "id": "a3-walk",
+      "type": "do",
+      "pointPlace": "npc.smith",
+      "trigger": {
+        "event": "talk_opened",
+        "npc": "smith"
+      }
+    },
+    {
+      "id": "a3-ate",
+      "type": "answer",
+      "npc": "smith",
+      "phrase": "ellos-comieron-pan",
+      "prompt": "lesson-they-ate",
+      "line": "guide.lesson.smith.ate.1",
+      "person": "3pl",
+      "tense": "pret"
+    },
+    {
+      "id": "a3-must",
+      "type": "answer",
+      "npc": "smith",
+      "phrase": "tengo-que-ir",
+      "prompt": "lesson-must-go",
+      "line": "guide.lesson.smith.must.1",
+      "person": "1sg",
+      "tense": "pres"
+    },
+    {
+      "id": "a4-walk",
+      "type": "do",
+      "npc": "smith",
+      "pointPlace": "npc.fisher",
+      "trigger": {
+        "event": "talk_opened",
+        "npc": "fisher"
+      }
+    },
+    {
+      "id": "a4-sold",
+      "type": "listen",
+      "npc": "fisher",
+      "line": "guide.lesson.fisher.sold.1",
+      "correct": 0
+    },
+    {
+      "id": "a4-bought",
+      "type": "answer",
+      "npc": "fisher",
+      "phrase": "luz-compro-pescado",
+      "prompt": "lesson-luz-bought",
+      "line": "guide.lesson.fisher.bought.1",
+      "person": "3sg",
+      "tense": "pret"
+    },
+    {
+      "id": "a5-review",
+      "type": "review",
+      "npc": "fisher",
+      "candidates": [
+        {
+          "phrase": "voy-a-comprar-pan",
+          "line": "guide.lesson.fisher.tomorrow.1"
+        }
+      ]
+    },
+    {
+      "id": "a5-table",
+      "type": "explain",
+      "npc": "fisher"
+    },
+    {
+      "id": "a5-recap",
+      "type": "recap",
+      "npc": "fisher"
+    }
+  ]
+}

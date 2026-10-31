@@ -160,6 +160,26 @@
     "check.say.la-manzana-es-roja.situation": "A farmer asks what his apple is like. It is red. Say so.",
     "check.say.me-gustan-las-manzanas.situation": "A farmer asks if you like apples. You do. Say so.",
     "check.say.quiero-tres-manzanas-rojas.situation": "A farmer sells red apples. Ask for three red apples.",
-    "check.say.me-gusto-el-pan.situation": "A farmer asks if you liked Luz's bread. You did. Say so."
+    "check.say.me-gusto-el-pan.situation": "A farmer asks if you liked Luz's bread. You did. Say so.",
+    "check.hear.el-dia-de-ayer.question": "A villager tells you about yesterday. What did everyone do?",
+    "check.hear.el-dia-de-ayer.option.1": "Luz made bread, Mar fished.",
+    "check.hear.el-dia-de-ayer.option.2": "Luz bought bread, Mar fished.",
+    "check.hear.el-dia-de-ayer.option.3": "Luz makes bread, Mar fishes.",
+    "check.hear.comieron-en-la-plaza.question": "A villager tells you about Luz and Mar. What did they do?",
+    "check.hear.comieron-en-la-plaza.option.1": "They ate bread in the square in the afternoon.",
+    "check.hear.comieron-en-la-plaza.option.2": "They bought bread in the square in the morning.",
+    "check.hear.comieron-en-la-plaza.option.3": "They are going to eat bread in the square.",
+    "check.hear.adonde-fueron.question": "A villager asks you something about you and Mar. What does he ask?",
+    "check.hear.adonde-fueron.option.1": "Where did you two go yesterday?",
+    "check.hear.adonde-fueron.option.2": "Where are you two going tomorrow?",
+    "check.hear.adonde-fueron.option.3": "What did you two eat yesterday?",
+    "check.hear.le-vendi-pescado.question": "A fisher tells you about Luz. What does he say?",
+    "check.hear.le-vendi-pescado.option.1": "He sold her fish; she will buy more.",
+    "check.hear.le-vendi-pescado.option.2": "He bought fish from her.",
+    "check.hear.le-vendi-pescado.option.3": "He will sell her fish tomorrow.",
+    "check.say.luz-hizo-pan.situation": "A villager asks what Luz did yesterday. She made bread. Say so.",
+    "check.say.fuimos-al-rio.situation": "A villager asks where you and a friend went yesterday. You both went to the river. Say so.",
+    "check.say.ellos-comieron-pan.situation": "A smith asks what Luz and Mar ate. They ate bread. Say so, with ellos.",
+    "check.say.tengo-que-ir.situation": "Someone is waiting for you at the river. Say that you have to go to the river."
   }
 }

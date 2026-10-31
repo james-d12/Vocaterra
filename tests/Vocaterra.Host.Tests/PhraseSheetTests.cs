@@ -29,6 +29,8 @@ public sealed class PhraseSheetTests
         "vivo-en-el-campamento", "quieres-un-hacha", "toma-el-hacha", "trabaja-en-la-herreria", "vive-en-la-casa", "que-hizo-domingo", "hizo-un-hacha", "ayer-trabajo-mucho",
         "mis-manzanas-son-rojas", "como-es-la-manzana", "la-manzana-es-roja", "te-gusta-el-pan", "me-gusta-el-pan", "me-gustan-las-manzanas", "quiero-tres-manzanas-rojas", "mis-plantas-necesitan-agua",
         "voy-a-buscar-agua", "es-grande", "el-pan-es-de-luz", "toma-tres-manzanas", "fui-al-rio", "ayer-me-gusto", "te-gusto-el-pan", "me-gusto-el-pan",
+        "el-dia-de-ayer", "que-hizo-luz", "luz-hizo-pan", "que-hizo-mar", "mar-pesco-en-el-rio", "comieron-en-la-plaza", "fuimos-a-la-tienda", "adonde-fueron",
+        "fuimos-al-rio", "que-comieron", "ellos-comieron-pan", "adonde-tienes-que-ir", "tengo-que-ir", "le-vendi-pescado", "que-compro-luz", "luz-compro-pescado",
     ];
 
     private static readonly Lazy<IReadOnlyList<PhraseRow>> LoadedRows = new(ReadRows);
@@ -40,7 +42,7 @@ public sealed class PhraseSheetTests
     private static IEnumerable<PhraseRow> HeardRows => Rows.Where(static r => r.Says is "hears" or "both");
 
     [Fact]
-    public void TheSheetHoldsExactlyTheHundredAndNinePhrasesInOrder()
+    public void TheSheetHoldsExactlyTheHundredAndTwentyFivePhrasesInOrder()
     {
         Assert.Equal(ExpectedIds, Rows.Select(static r => r.Id));
         foreach (var row in Rows)

@@ -404,7 +404,7 @@
     "mode": "Constrained",
     "difficulty": "Beginner",
     "answerSetId": "people-smith",
-    "allowedIntentIds": ["ask_name", "ask_activity", "state_have", "greet", "thank", "farewell", "ask_help", "dont_know"],
+    "allowedIntentIds": ["ask_name", "ask_activity", "state_have", "state_want", "state_action", "greet", "thank", "farewell", "ask_help", "dont_know"],
     "agentId": "smith",
     "slotGrammarIds": [],
     "text": "¡Hola! Esta es mi herrería."
@@ -538,5 +538,65 @@
     "agentId": "farmer",
     "slotGrammarIds": [],
     "text": "¿Te gustó el pan de Luz?"
+  },
+  {
+    "promptId": "lesson-luz-made",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-luz-made",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "villager",
+    "slotGrammarIds": [],
+    "text": "¿Qué hizo Luz ayer?"
+  },
+  {
+    "promptId": "lesson-mar-fished",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-mar-fished",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "villager",
+    "slotGrammarIds": [],
+    "text": "¿Y qué hizo Mar?"
+  },
+  {
+    "promptId": "lesson-we-went",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-we-went",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "villager",
+    "slotGrammarIds": [],
+    "text": "¿Y Mar y tú? ¿Adónde fueron ayer?"
+  },
+  {
+    "promptId": "lesson-they-ate",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-they-ate",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "smith",
+    "slotGrammarIds": [],
+    "text": "¡Hola! Ayer trabajé todo el día. ¿Qué comieron Luz y Mar?"
+  },
+  {
+    "promptId": "lesson-must-go",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-must-go",
+    "allowedIntentIds": ["state_obligation", "ask_help", "dont_know"],
+    "agentId": "smith",
+    "slotGrammarIds": [],
+    "text": "Mar fue al río y te busca. ¿Adónde tienes que ir?"
+  },
+  {
+    "promptId": "lesson-luz-bought",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-luz-bought",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "fisher",
+    "slotGrammarIds": [],
+    "text": "¿Qué compró Luz ayer?"
   }
 ]

@@ -202,7 +202,7 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
         // The order's line says plantas and traes (planta and traer are A2 in the bundle's lists): the lesson is held to A2, and no lesson word is above it. The earlier
         // six stay a1.
         Assert.Empty(GameDataValidator.Validate(TestGame.Data));
-        Assert.Equal([LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A2], Book.Lessons.Select(static l => l.Level));
+        Assert.Equal([LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A2], Book.Lessons.Take(7).Select(static l => l.Level));
         Assert.True(TestGame.Bundle.Cefr["a2"].Contains("traer") && !TestGame.Bundle.Cefr["a1"].Contains("traer"));
         Assert.True(TestGame.Bundle.Cefr["a2"].Contains("planta") && !TestGame.Bundle.Cefr["a1"].Contains("planta"));
         Assert.Contains(Book.Find(LessonId)!.Steps, static s => s.Line is { } line && line.Text.Contains("traes", StringComparison.Ordinal));

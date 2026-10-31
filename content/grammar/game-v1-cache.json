@@ -44,6 +44,12 @@
       "matches": []
     },
     {
+      "key": "0158af74bb86abe80c156bbf7c53af6d03815c366f80aae8f738cb39129aa389",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hoy tengo que ir al río",
+      "matches": []
+    },
+    {
       "key": "01617cbca99e0123c2b2bd4e3c2044a6bbedcb43f78fa0d11e46d3927ab8a772",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Me gustó el pan de luz",
@@ -71,6 +77,12 @@
       "key": "0240069b7e0cb5a541904e7dadb4f903fd307c12396235a0f9828839ef307bfe",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Me da agua, por favor",
+      "matches": []
+    },
+    {
+      "key": "0338d669ba9b41a9577119f7c79dd464577f7c62f9f478ad7ebcc3fda99bce21",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí tengo que ir al río",
       "matches": []
     },
     {
@@ -113,6 +125,12 @@
       "key": "060d88a760784ceb4f1c460b2dbda2ed0847286ae9d965db9625528cfd6faad4",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "pan",
+      "matches": []
+    },
+    {
+      "key": "0656f235b170b8565cb96f30ed479783946e2bcf5e1575b575fd5a2b6a02903e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer Mar pescó en el río",
       "matches": []
     },
     {
@@ -270,6 +288,18 @@
       "matches": []
     },
     {
+      "key": "0c5ca84335293a88191772cbb08ae712b33678d4368da0507466c3d8c304d5d9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Luz compró pescado ayer",
+      "matches": []
+    },
+    {
+      "key": "0c5fa0f26cba2c48a0e4bf16eac715d7dd20eec66bd7fb4862654e92f442ff37",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Luz hizo pan ayer",
+      "matches": []
+    },
+    {
       "key": "0cec631344478d4df4dce3be2e4f3bc7bc468b04b9a6321323c702868f603ed3",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Gracias no",
@@ -321,6 +351,12 @@
           ]
         }
       ]
+    },
+    {
+      "key": "0f2396e36d3098717d087e18d483f931db5ceabe1f2323269052d052d2e21b73",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ellos comieron pan",
+      "matches": []
     },
     {
       "key": "0f2a896c89976ed4242acd7a41d75cb31bf56232e1ea3ba3f2df118985f6ce92",
@@ -556,6 +592,12 @@
       "matches": []
     },
     {
+      "key": "16f93ed72f43275e46f1b11c27d9a72b834116b65c689e41736956a46d3dd299",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer luz hace pan",
+      "matches": []
+    },
+    {
       "key": "1705c99c0612961031a4d35d43067b6aeecefafc03efa6b034564e5bc4514e2b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Aquí tienes el pan.",
@@ -589,6 +631,12 @@
       "key": "17d61886ed1186d72c9a195b953e63a5a8ec5311f25c86687ca05549f71c03fd",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Claro! Mira.",
+      "matches": []
+    },
+    {
+      "key": "17ee16c4e583e0f288ae7cb950c7add965f7bb94455557ee658bf69d49e476e8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mar pescó en el río.",
       "matches": []
     },
     {
@@ -715,9 +763,21 @@
       ]
     },
     {
+      "key": "1a72d13d20631d28aad2d114c7d46ba1f867abf184627e22a534b0d3fd9a6f55",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Fuimos al río.",
+      "matches": []
+    },
+    {
       "key": "1a7f042903b181dd9ec7d55b4a82186a2870a912d34581e08fcdc4cb72578089",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde está el río, por favor",
+      "matches": []
+    },
+    {
+      "key": "1a8e35c71a11b2178bb8ca3cd77564285070b73b44728ac9b78954e089b3c9bd",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Qué hizo Luz ayer?",
       "matches": []
     },
     {
@@ -742,6 +802,12 @@
       "key": "1ad7bce23a574e850fdc81266093625a9924f38349e65ca16d829ae4c0378444",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Busco mi campamento",
+      "matches": []
+    },
+    {
+      "key": "1ae5b2854d008fe4c55d1d5f3a4072f87b72af698e0b40c734b452fa3e20d152",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mar pescó en el río",
       "matches": []
     },
     {
@@ -856,6 +922,12 @@
       "key": "217569ad3ee11ba87030f16ecf3d04dfdcde1e7af1abfb4353e081f48c2d4521",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Bien!",
+      "matches": []
+    },
+    {
+      "key": "22b55626196ee5a63feeff84b77fa33f238d0299c54ac657518a15e215916ffd",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ella compró pescado",
       "matches": []
     },
     {
@@ -1026,6 +1098,23 @@
       "matches": []
     },
     {
+      "key": "286d3e802d37d45d22176e33419f7d6f664fd6b5abf770219923adbb91b2d110",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ella compré pescado",
+      "matches": [
+        {
+          "rule": "AGREEMENT_PRONOUNSUBJECT_VERB",
+          "issueType": "inconsistency",
+          "message": "Posible falta de concordancia entre «Ella» y «compré».",
+          "offset": 5,
+          "length": 6,
+          "replacements": [
+            "compró"
+          ]
+        }
+      ]
+    },
+    {
       "key": "287b77536c4278deffaa28c2142dec68bfcf6a2291dba11aa91a0596c3542a10",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo va a comer pan",
@@ -1089,6 +1178,29 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Puedes repetir por favor",
       "matches": []
+    },
+    {
+      "key": "2999b85162b15def97cd6e59c56dff4dd0240d0780d8ecc29fcb0ddb66b290bc",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer Luz compra pescado",
+      "matches": []
+    },
+    {
+      "key": "29e218baf82f98ef4f493710fdcdba5a0ef3faad9d0af72ff9fa864731d9b017",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me gustan el pan",
+      "matches": [
+        {
+          "rule": "AGREEMENT_GUSTAR",
+          "issueType": "inconsistency",
+          "message": "Posible error de concordancia.",
+          "offset": 3,
+          "length": 6,
+          "replacements": [
+            "gusta"
+          ]
+        }
+      ]
     },
     {
       "key": "2a04a7af7d295ab87a3ce883ef6e15da6a959f933bb5cb0942374f9edeaaac96",
@@ -1275,6 +1387,12 @@
       "matches": []
     },
     {
+      "key": "307386d572b6485f0960dcd125734ad11ecbf0a1c4bf8b9b02b0b3587ee59a72",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer vamos al río",
+      "matches": []
+    },
+    {
       "key": "30e4266b6d38ea99b812c7d86e0a03979c949d8ab3e503fe2cf83c7c4c4f99d5",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No muchas gracias",
@@ -1327,6 +1445,12 @@
       ]
     },
     {
+      "key": "324b01bd45ed12799d16289ce4ca302dc132dde3df560cbe5606cd0e96c633f9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Hola! ¿Fuiste al río ayer?",
+      "matches": []
+    },
+    {
       "key": "328bcf5495b96dcb58dca3c3f08b6338b8d94284501612242a6c9ff5d4e1ecbf",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Se dice así: «tengo».",
@@ -1376,6 +1500,12 @@
       "key": "3354d6ac848434798722a4ed9adde549a64bde91fd1b3ac3f420128bb5dadd36",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Es madera?",
+      "matches": []
+    },
+    {
+      "key": "33aea77db6821aa18fda24e860fd4ea7350a2ba189417cefe08cea226c94c1a6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ella hizo pan",
       "matches": []
     },
     {
@@ -1513,6 +1643,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Me puedes ayudar?",
       "matches": []
+    },
+    {
+      "key": "3893be73cfe915a6f369286819c085e7f42043200d4d59c836053ff45475242c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo tienes que ir al río",
+      "matches": [
+        {
+          "rule": "AGREEMENT_PRONOUNSUBJECT_VERB",
+          "issueType": "inconsistency",
+          "message": "Posible falta de concordancia entre «Yo» y «tienes».",
+          "offset": 3,
+          "length": 6,
+          "replacements": [
+            "tengo"
+          ]
+        }
+      ]
     },
     {
       "key": "389b5b80c9dc73b9d43884f5dfc6eb2d05479ab7986371c2c46653a53ba6f1e4",
@@ -1676,6 +1823,12 @@
       "matches": []
     },
     {
+      "key": "3d6020965b57dd58cd6ccb151e6a8b612d8999932607b0090e70b38481e8f50e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer mar pescó en el río",
+      "matches": []
+    },
+    {
       "key": "3d8077aeb0d50d2c8ff518062addf0f67fc7c83202490aaba6ea6341775c4a98",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "dos espadas",
@@ -1693,9 +1846,21 @@
       ]
     },
     {
+      "key": "3e07a5d020024e21d5cd988a70c93274872b0bcb118d61537aa8b2a87375bda5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tengo que ir al río hoy",
+      "matches": []
+    },
+    {
       "key": "3e9895bf7baea06771bea6a3ee69dec8639dbf1c92bef6332e78aeb5c2c35fcb",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Queda lejos",
+      "matches": []
+    },
+    {
+      "key": "3f12063cd7af3ecdb1b473850f8a296b0e7c0b45310ef1a2ae3659b340f14600",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Nosotros fuimos al río",
       "matches": []
     },
     {
@@ -1917,6 +2082,23 @@
       "matches": []
     },
     {
+      "key": "462b25d68189b0aa2d8aa1e394741200de6e0d7d12bda989d14b369bbad46cae",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "La manzana son roja",
+      "matches": [
+        {
+          "rule": "AGREEMENT_SUBJECT_VERB_SG_PL",
+          "issueType": "inconsistency",
+          "message": "Posible error de concordancia.",
+          "offset": 11,
+          "length": 3,
+          "replacements": [
+            "es"
+          ]
+        }
+      ]
+    },
+    {
       "key": "4637107eb60ce6f3ff3f47ba011e64a8459b0c619cf91cd003488733eb1a8901",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Aquí no hay una espada.",
@@ -1956,6 +2138,12 @@
           ]
         }
       ]
+    },
+    {
+      "key": "4795e51ec0e5820e029e336ad8f6047b7bd29b5815681570181893f94869dbd8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Luz y Mar comieron pan",
+      "matches": []
     },
     {
       "key": "47f0ce873dc22b25628a447932de14a5db3b8def74958575882756f1c2748ee9",
@@ -2023,6 +2211,12 @@
       "matches": []
     },
     {
+      "key": "4a337c696c9bcc02c88a9118d21990cbcefdef6e11ec0b635cf9a99f3d63f228",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer Luz hace pan",
+      "matches": []
+    },
+    {
       "key": "4a3734d82d4274797d36f68faf4b24305c33cf43b97f214c081adfee17398be3",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Claro! Te lo digo más despacio.",
@@ -2053,6 +2247,12 @@
       "matches": []
     },
     {
+      "key": "4afcbe561c387061e2ec2ab5c4c01de997f12bdcbec63b4989db015be6d8e7ac",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, fuimos al río",
+      "matches": []
+    },
+    {
       "key": "4affedbb263d358df93f30c499f3b00a0799a67391174026cb3a7f83987de77a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Qué necesitas ahora?",
@@ -2080,6 +2280,12 @@
       "key": "4b7bd4551f4dcac75ddfd4d98138b2c547898ade71c759d27870b881a71ad24d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Quiero pan por favor",
+      "matches": []
+    },
+    {
+      "key": "4b9bf7e71ebe290bb5cc9520cf77832e6ac3eab0a22d97f0c1c184f9063ec32d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tengo que buscar madera",
       "matches": []
     },
     {
@@ -2134,6 +2340,12 @@
       "key": "4df2c72472e22ed1777ce53a7ed43ad161b47fcad63904451fd1051c793bca6b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Voy a la panadería",
+      "matches": []
+    },
+    {
+      "key": "4e315b89713495c709f152b2f41ceb81ecc53836e9ebc5b05703334c6359f237",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, tengo que ir al río",
       "matches": []
     },
     {
@@ -2349,9 +2561,21 @@
       "matches": []
     },
     {
+      "key": "53c5436e94bee4993d519b420f73992141a346ad97db679189fa769577821f4b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Necesito un hacha por favor",
+      "matches": []
+    },
+    {
       "key": "54b4dbdccb7d86ac155f51728cd93b6f824e3025e6648ab0d19ae08fa71d652e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayuda, por favor",
+      "matches": []
+    },
+    {
+      "key": "554bd13bd897ddb48e11a770e942ff8d0623b596e3c69c1c3c722e0f11022a9a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tengo que comprar pan",
       "matches": []
     },
     {
@@ -2370,6 +2594,12 @@
       "key": "5589b37a9e891c4894697eda8c9efd86919a9f1a03ebcd8befc46467c9c22698",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Pan por favor",
+      "matches": []
+    },
+    {
+      "key": "55b8daff5505ca735839900b4c1a0afd984d4e5c2fe575d369f4b83319bce40c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer fuimos al río",
       "matches": []
     },
     {
@@ -2432,6 +2662,12 @@
       "matches": []
     },
     {
+      "key": "58c8670bacfa23ac9b1053017e27b2f4572182e69e4d9a895390fc3b06eeb02c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer Mar pesca en el río",
+      "matches": []
+    },
+    {
       "key": "58c935787fff6357ba9608945adfd0e3a84e895475c7d31aeb85e5f2110da60c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Cuánto es?",
@@ -2447,6 +2683,12 @@
       "key": "591de4420035678300bbe746adc9f2922b4be968af1928f8dceeaf4738a3bfa3",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Quiero madera por favor",
+      "matches": []
+    },
+    {
+      "key": "591f12861fcebebff0f7a4c7c898387f733169951f7e1b9002bac599a93a6bd6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tengo que ir a la panadería",
       "matches": []
     },
     {
@@ -2485,6 +2727,12 @@
       "matches": []
     },
     {
+      "key": "5a2c38e1ca3c782576bd944d07c3d5a6dd3a7e143dee4b51a7ad7edd451ffe03",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Luz y mar comieron pan",
+      "matches": []
+    },
+    {
       "key": "5a4a9c2739fc5146f4981bc24b73095945c4cbd1902b9b1cddb02e8379095d81",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Queremos agua",
@@ -2500,6 +2748,12 @@
       "key": "5ad5b83874c21eaa7313f075750a6fc161a05415cf05ef0047aebeb6c78cc77a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Te faltan espada.",
+      "matches": []
+    },
+    {
+      "key": "5bb07aea142717c86d3e4654dada034d02f51ce3819ac0179c6f8f7cca423a17",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer luz hizo pan",
       "matches": []
     },
     {
@@ -2717,6 +2971,12 @@
       "matches": []
     },
     {
+      "key": "61f3f722604266b73735d1b3484db3d01e1a23f89bf576891e281877fdfeb4fa",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Domingo te busca. Está en la herrería.",
+      "matches": []
+    },
+    {
       "key": "621968e86258a8a2f26d24c9af5185e89e9c08025193951ecaca2c9f797a2ff5",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Otra vez, por favor.",
@@ -2785,6 +3045,18 @@
       "key": "632af8bd01e6d512aa6279d6d99f1a6d7c2938ab5ac742e36468e674f773dcdf",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mañana fui al río",
+      "matches": []
+    },
+    {
+      "key": "634c93a96932488c0c8024937bc826fbe5e7fe009e291d81c68cb5b9eb19aca5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Luz hizo pan",
+      "matches": []
+    },
+    {
+      "key": "63712398bdf6507174b4de79ee00b70b50d652dc391d30030b3d9f74f4d9990c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer Luz hizo pan. Domingo trabajó en la herrería. Mar pescó en el río.",
       "matches": []
     },
     {
@@ -2955,6 +3227,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Es un libro.",
       "matches": []
+    },
+    {
+      "key": "688701e7eefdeecb8f67435585da35ae9cf4f60879095562fcd475ed4cc3c366",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Nosotros fue al río",
+      "matches": [
+        {
+          "rule": "AGREEMENT_PRONOUNSUBJECT_VERB",
+          "issueType": "inconsistency",
+          "message": "Posible falta de concordancia entre «Nosotros» y «fue».",
+          "offset": 9,
+          "length": 3,
+          "replacements": [
+            "fuimos"
+          ]
+        }
+      ]
     },
     {
       "key": "68cd710d73f6bb889ea2b04df6c20fac4b807324bbb9d29ae2eed410842ccfa0",
@@ -3300,9 +3589,21 @@
       "matches": []
     },
     {
+      "key": "73223f33b3d1cfb7bc2d197357d1d63089683e81e090bb795f65b26d0575a391",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Pescó en el río",
+      "matches": []
+    },
+    {
       "key": "736042f0d059de5b9e139c258673209621028cf7aa871401e3fa08b844d5fbe5",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Necesito agua.",
+      "matches": []
+    },
+    {
+      "key": "739291749d63bb0c18cff991c19990a2fa8f1c6742c6ade8a13020f37561b774",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero un hacha",
       "matches": []
     },
     {
@@ -3471,6 +3772,23 @@
       "matches": []
     },
     {
+      "key": "781ad493d7bf2ab48d3b90275a50625c74161449aa5d54d0adb5abbd38c96793",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me gusta las manzanas",
+      "matches": [
+        {
+          "rule": "AGREEMENT_GUSTAR",
+          "issueType": "inconsistency",
+          "message": "Posible error de concordancia.",
+          "offset": 3,
+          "length": 5,
+          "replacements": [
+            "gustan"
+          ]
+        }
+      ]
+    },
+    {
       "key": "7836f5a30eaf5a06eca8ccab9e824ec6f17882e71a0c72e656ee7dfff3e72bc8",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Tengo diez panes.",
@@ -3515,6 +3833,12 @@
       "key": "79de63342c83b7c9b6b9be31322956e35d309cbdfa70f876fb8c919ac22106e3",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo vivo en el campamento",
+      "matches": []
+    },
+    {
+      "key": "7a08b0d56f30fc7add7d7d0d4701679cc5c86a5f24d63d9a385a61adceef896d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo tengo que ir al río",
       "matches": []
     },
     {
@@ -3627,6 +3951,12 @@
       "key": "7e3774ac47b55a30ce49155d889743f63ab6b73a8cfc58e6c233b8db2be261ba",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Fui a la herrería",
+      "matches": []
+    },
+    {
+      "key": "7e4e884ce16248229b36a26f8659ab9540445a3bbbdc017b67512f4fe3ea0d6c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Fuimos al río",
       "matches": []
     },
     {
@@ -3772,6 +4102,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Bebí agua",
       "matches": []
+    },
+    {
+      "key": "83ebea45557cfc4d770d9c2ceaa5b06ec5ec239fb450ea54c6442f03960027a4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ella hice pan",
+      "matches": [
+        {
+          "rule": "AGREEMENT_PRONOUNSUBJECT_VERB",
+          "issueType": "inconsistency",
+          "message": "Posible falta de concordancia entre «Ella» y «hice».",
+          "offset": 5,
+          "length": 4,
+          "replacements": [
+            "hizo"
+          ]
+        }
+      ]
     },
     {
       "key": "8430c19cd0b9d61fa4ebce58a179f31b437bfd3883f9bdf7989c15b856543c51",
@@ -3938,6 +4285,12 @@
       "key": "8bb9b375b6b0b5df8d7937a3e9557b8afa0e75e29be916d52a936f35fbb42c0c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Voy a comer el pan",
+      "matches": []
+    },
+    {
+      "key": "8befececba331a367fa4fe281aa38ec65da756c79621996225a3a48c058c250c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cuánto cuestan el pan",
       "matches": []
     },
     {
@@ -4211,6 +4564,12 @@
       "matches": []
     },
     {
+      "key": "946d9af7c2987d95f0edf63bd021e1984f3c538d15355480bb52ce34113ff59c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mañana tengo que ir a la herrería",
+      "matches": []
+    },
+    {
       "key": "94cb005ca097afac0a31a19954dac42b438079fdccfe62736bfd6ec19789c6b0",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Quiero agua, por favor.",
@@ -4221,6 +4580,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Pan, por favor",
       "matches": []
+    },
+    {
+      "key": "95fd7e64859bdcce53c74f89b2d49285b9838d96272bda7904576f735acefc9a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ellos comió pan",
+      "matches": [
+        {
+          "rule": "AGREEMENT_PRONOUNSUBJECT_VERB",
+          "issueType": "inconsistency",
+          "message": "Posible falta de concordancia entre «Ellos» y «comió».",
+          "offset": 6,
+          "length": 5,
+          "replacements": [
+            "comieron"
+          ]
+        }
+      ]
     },
     {
       "key": "964fa12e360d88bb1af8e33c9fab575b20efa49afb0d3931be765f681139a5ee",
@@ -4257,6 +4633,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Voy a buscar el agua",
       "matches": []
+    },
+    {
+      "key": "97c4d185e02907dbf8ed4acfe33db7ae221c7b25ac4cd4520aea1f417ef800ba",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Él pesqué en el río",
+      "matches": [
+        {
+          "rule": "AGREEMENT_PRONOUNSUBJECT_VERB",
+          "issueType": "inconsistency",
+          "message": "Posible falta de concordancia entre «Él» y «pesqué».",
+          "offset": 3,
+          "length": 6,
+          "replacements": [
+            "pescó"
+          ]
+        }
+      ]
     },
     {
       "key": "97e42c4f7dcf8e42b4e2b15afb7d853a34924bd31ff87b0eaed8c92fc161aaeb",
@@ -4378,6 +4771,12 @@
       "matches": []
     },
     {
+      "key": "9c46d558731eefb402871c5de67e2befb77e9e63277d11c26b2853b2ea7c84e6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Por la mañana, Luz y yo fuimos a la tienda.",
+      "matches": []
+    },
+    {
       "key": "9c4b07d0c4965455f03c7f471adbdfd673b903a84570626b230f5e6b38316534",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Queremos pan, por favor",
@@ -4456,6 +4855,12 @@
       "matches": []
     },
     {
+      "key": "9ddc8a3d0df91ce998775459cd89c51c7c3505ea71b5b2d9d563ed4e11da4e4e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ellos comieron pan ayer",
+      "matches": []
+    },
+    {
       "key": "9e06ef16db3c7b958e3fc398192fe36330e3413bd45e02f232282d2b03a7c5fa",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "a la izquierda",
@@ -4505,6 +4910,18 @@
       "key": "9e709aadb302b94b02019ee2018585cc3c0b895ee26b002417473010db33c022",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Después voy a comprar pan",
+      "matches": []
+    },
+    {
+      "key": "9e8d66b68c56752415b1597941bb46600d549a6c19f69817ee30416b6bc05cce",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Qué compró Luz ayer?",
+      "matches": []
+    },
+    {
+      "key": "9e9379252fef3cddb0b666a592aa0857d5a5d0ad37453cb5a0c9b9f9f667c9ba",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Es muy lejos",
       "matches": []
     },
     {
@@ -4572,6 +4989,12 @@
       "matches": []
     },
     {
+      "key": "a0bd71227ec46441caf5381b27cad6f7280364918248c805f2b9aea34ab5f1fa",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer mar pesca en el río",
+      "matches": []
+    },
+    {
       "key": "a12a48302de1bda3afa5ae5b7deecd4bada585e40e1c818157a427645f1e53a8",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "el puente",
@@ -4610,6 +5033,12 @@
           ]
         }
       ]
+    },
+    {
+      "key": "a1e87d77b026e7b682c3fd18a99e3264678dd66fd89cdc08d95bbd79ee915547",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tengo que ir al río.",
+      "matches": []
     },
     {
       "key": "a24d72e18b42fed0f3ad3926d87691687d723e9c018c2fa41612839cbabcbd9f",
@@ -4673,6 +5102,12 @@
       "matches": []
     },
     {
+      "key": "a3c933c13031a0ec4ca8b34a8185c39f588d64a3aab60b5ab3db2e3edaaf88c9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mar pescó en el río ayer",
+      "matches": []
+    },
+    {
       "key": "a42d93d29a9de3bc93017d61cdc77cf7269cf7756502eb972b6470eeae715907",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No, está cerca.",
@@ -4685,10 +5120,33 @@
       "matches": []
     },
     {
+      "key": "a434a1b341ff6a1824755b19995749a8461502ab8913e520e71885437a51b52a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Luz y mar comió pan",
+      "matches": []
+    },
+    {
       "key": "a50452cef8660a6ababd2b21fe0b8495c6ed117780712df1d18dbb60dcbc6d2d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hasta luego",
       "matches": []
+    },
+    {
+      "key": "a58fca91ade36d9822b885572fb4d2d4d1801c917a43c5a3cb81a5b471e05d90",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo tiene que ir al río",
+      "matches": [
+        {
+          "rule": "AGREEMENT_PRONOUNSUBJECT_VERB",
+          "issueType": "inconsistency",
+          "message": "Posible falta de concordancia entre «Yo» y «tiene».",
+          "offset": 3,
+          "length": 5,
+          "replacements": [
+            "tengo"
+          ]
+        }
+      ]
     },
     {
       "key": "a5fb4fd4fd245bd9d448686f68f595c6130d420795744b062f989d2dc92ed835",
@@ -4708,15 +5166,33 @@
       ]
     },
     {
+      "key": "a63b48b5805138ffd3f461429e4c41fbce32bfe944e1996f39795860cabc9979",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Hola! Ayer trabajé todo el día. ¿Qué comieron Luz y Mar?",
+      "matches": []
+    },
+    {
       "key": "a649968f9765e3ccd6171b660c916433dbbd359b565900b0d7a4cea77d6697f8",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "El pozo es pequeño",
       "matches": []
     },
     {
+      "key": "a681d1fe4eb7481da0c0a0daf3c4d8ba16935467afc8d9b93863e7678a1484d2",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Es lejos",
+      "matches": []
+    },
+    {
       "key": "a6bd30320aef2822a7aa8d049d0a314b06c86cffb007c4e26134998e5a3945d4",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Quiero un pan, por favor",
+      "matches": []
+    },
+    {
+      "key": "a6d210dc16aa8a8efb91b358c8dc1765111c306bd5dc4b0d9b2034fb80faf2da",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Fuimos al río ayer",
       "matches": []
     },
     {
@@ -4935,6 +5411,12 @@
       "matches": []
     },
     {
+      "key": "ae0e70ad54c0f37c1816048085bcaae94b7243f7a67931aa9aefb3f0112a08ca",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cómo te llama",
+      "matches": []
+    },
+    {
       "key": "ae1d331ab8c70684542a25b78bee106bee02fcaf7de106d6b8923bc8626ff036",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Busco la herrería",
@@ -4992,6 +5474,12 @@
       "key": "b0a4abfc4311b62c7a44896dc236d73b7180db66587b235deaa36fa84367d18a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Cómo te llamas tú?",
+      "matches": []
+    },
+    {
+      "key": "b0a9490d88b5e8be51e94c1d8dc4429771a8aaf26cb5f2a88cbb72907e2a3519",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tienes que ir al río",
       "matches": []
     },
     {
@@ -5411,6 +5899,12 @@
       "matches": []
     },
     {
+      "key": "bfc9ee0d77310d67b3d436fb7eda57b9b5e10aaafe9e59259ef7b9b096525ad8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Necesito un hacha",
+      "matches": []
+    },
+    {
       "key": "bfdb780bfff021f32c549623497eef43d79b7ed7cacf452ba2f334a05f0c4e97",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Cómo se llama usted",
@@ -5477,6 +5971,12 @@
       "matches": []
     },
     {
+      "key": "c2af59d18ae4f72f4f262340ec2af20452b20bf93ab1dc1777453099991f2e7d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hizo pan",
+      "matches": []
+    },
+    {
       "key": "c30c605a7cb5cf4b3e1444a48955f09840ea55bf2fb64499945544b05d81c0b0",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Está lejos la herrería",
@@ -5530,6 +6030,12 @@
       "matches": []
     },
     {
+      "key": "c4e5486c3b3dda9e3cb721497f2de2f6d7cce583d9f730d9e59025954d11b184",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Y Mar y tú? ¿Adónde fueron ayer?",
+      "matches": []
+    },
+    {
       "key": "c5027ebe12372fb651f74a26f918595a641a6ec240a7ed121654a83fca4ddbec",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "y",
@@ -5545,6 +6051,12 @@
       "key": "c603b493d4e9c02b19d70f4d36045532c56d868f0045775626c2080cdb56d9ae",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Tienes dos libros de libro.",
+      "matches": []
+    },
+    {
+      "key": "c62031e693879c3abf699615deb883fb329df27b836968a2fb54559931767881",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Compró pescado",
       "matches": []
     },
     {
@@ -5619,9 +6131,21 @@
       "matches": []
     },
     {
+      "key": "c8a58fd62f66a18a553d95c8b3cc10a36ff548b233931f050a2793c5ec2e9610",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Hola! Ayer le vendí pescado a Luz. Mañana va a comprar más.",
+      "matches": []
+    },
+    {
       "key": "c8ada3afcc958c8b48eadb7da4c412b240e7dcb534db8e01c2e4b34448618647",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ellos van a comer pan.",
+      "matches": []
+    },
+    {
+      "key": "c8dc1b0a7bb874a71920aee8f38b9f6f260a0f4e10fe8565bd6b6291fc6e12e5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Comieron pan",
       "matches": []
     },
     {
@@ -5893,6 +6417,12 @@
       "matches": []
     },
     {
+      "key": "d248a32f4534d32c7b9b95d877759a4eabc5c541acc30cfe3827727a6371de8e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde están la herrería",
+      "matches": []
+    },
+    {
       "key": "d26597dddc0b5e633c9a797838ab9c6d1047e0c2193ccd5f995505845b37f42e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Tengo cuatro moneda",
@@ -5937,6 +6467,12 @@
       "key": "d2f3eadd304b45b5c69ce67ab997f70ddd908a9cb2da331a574c4e393f4bc84c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Aquí hay un libro.",
+      "matches": []
+    },
+    {
+      "key": "d36992ad4ef75373277290114922c6f968b417aeefa80596aa956cb07d5ee896",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer Luz compró pescado",
       "matches": []
     },
     {
@@ -6031,6 +6567,18 @@
       "key": "d628309a2a88fc8d327c88768bae190487d8bbdadb178858a980b48291dab845",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ve hasta la flecha.",
+      "matches": []
+    },
+    {
+      "key": "d660251747d04f43c0f397f353dd892ccacddbce1fe1924a9aceeafd1e25e0bb",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Por la tarde, Luz y Mar comieron pan en la plaza.",
+      "matches": []
+    },
+    {
+      "key": "d6d5e1de43b93b2d6b126893741d0508dda618df68d69dae538808fd59a90c35",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ellos comieron pan.",
       "matches": []
     },
     {
@@ -6290,9 +6838,21 @@
       "matches": []
     },
     {
+      "key": "df1c7ee942c23532bb28268a92b99054345d233176797f1bb4bd73fccca95e2a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Él pescó en el río",
+      "matches": []
+    },
+    {
       "key": "df3caaa77b0ba66aa44ecab4a3fb72621a3538f5912ed020c083cd49c622aa9b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Buenos días",
+      "matches": []
+    },
+    {
+      "key": "dff8734c73d3c2f1af220624b24f9e3cdc98f3954dafd78a09facd4989cf04f4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer luz compra pescado",
       "matches": []
     },
     {
@@ -6347,6 +6907,18 @@
       "key": "e29346081c090c1f1659b29f8094b851735b4374d8ec57cae0671fc64eef1202",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, me gusta mucho",
+      "matches": []
+    },
+    {
+      "key": "e2a1b83007e5e7ffd1c3605051d884ddb40fd1f72ac7d57f798e1ef6fb5be92c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mar fue al río y te busca. ¿Adónde tienes que ir?",
+      "matches": []
+    },
+    {
+      "key": "e2c35590de423c28184b59b791f431daf3522adbd35fc4bcc76c44bf566d56e5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí fuimos al río",
       "matches": []
     },
     {
@@ -6565,6 +7137,12 @@
       "matches": []
     },
     {
+      "key": "ea0b756e1259b0dbfa48b4ac50ca3e8ab204aff0cf37a5916fb95572d8caab55",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer luz compró pescado",
+      "matches": []
+    },
+    {
       "key": "ea5fa881b9be6124fc496fde0150ea57c7dbe393317a71e2171dfeddc7c0ec98",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Con gusto, amigo!",
@@ -6726,6 +7304,12 @@
       "matches": []
     },
     {
+      "key": "ef97d3362abba1fea5df7e30f37436722f7f0f0328788a2cb197a19d4b69ff73",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Luz compró pescado",
+      "matches": []
+    },
+    {
       "key": "efc85d8073b29025f4fc97721b8897cedcafbe40397b140ff4f0e5ed7e190051",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Quiero tres manzana rojas",
@@ -6751,6 +7335,12 @@
           ]
         }
       ]
+    },
+    {
+      "key": "efe6c3e01a6a1384af1f3fb864deb8f1434996e59103b41b8ae76431e2763bc0",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer Luz hizo pan",
+      "matches": []
     },
     {
       "key": "f003a5be5850de52809d8f8349b5d384d07c61f94fdeb49a2a6d47c4d87f1dda",
@@ -6819,6 +7409,18 @@
       "matches": []
     },
     {
+      "key": "f1fc4470f785dd1f034fa2187b80d7952544e0c7c5fd39cbdca7f998f59887fc",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer comieron pan",
+      "matches": []
+    },
+    {
+      "key": "f21de8d879d044a847813442947bcfc091459e86f99162cad17e31c2652bc699",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Luz hizo pan.",
+      "matches": []
+    },
+    {
       "key": "f22f015b6b5a28c12337e7e534e2471bf22b855e52be9886782ea799d2f5a81b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Domingo trabaja en la herrería",
@@ -6852,6 +7454,12 @@
       "key": "f385d8e86224fcfaf07b25d67fe4e202605ee374d748dcc1cfa98900d96d1262",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, por favor.",
+      "matches": []
+    },
+    {
+      "key": "f3afda98640914015a8f07f9cfc9c5b4c9e67fff67bfcf701aa4842f7ffff342",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tengo que ir al río",
       "matches": []
     },
     {
@@ -6961,6 +7569,12 @@
       "matches": []
     },
     {
+      "key": "f7fb2cf5011e3b72dfa010e59ada75285ba5563a2ce3fafa129532513741f553",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Luz compró pescado.",
+      "matches": []
+    },
+    {
       "key": "f85571d8e061709c9ab74816ee8cc582d54ebce171d7ac47115d559f0db626d7",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Gracias",
@@ -6970,6 +7584,12 @@
       "key": "f8ba80f9477df99aaf45f1c35201d22ca6181d8d70ad1ca082bac4f1d211ebab",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí me gustó",
+      "matches": []
+    },
+    {
+      "key": "f90cf63f403268ef2ad098d727016314ce690a4c8fcda0dcef1f48b3f3a6f1f3",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Y qué hizo Mar?",
       "matches": []
     },
     {
@@ -7175,6 +7795,12 @@
           ]
         }
       ]
+    },
+    {
+      "key": "ff8ceb8b5913a6471022db74a4f69cb56d93f22f01eaea90f9f0db14616ebb38",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Y tú? ¿Qué vas a hacer mañana?",
+      "matches": []
     },
     {
       "key": "ff91ce531464974388e064c601996363bf91b81b14c0e5df44b9542a5ec1cfc2",

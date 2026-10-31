@@ -393,3 +393,5 @@ granjero
 hacha
 # león: León, the farmer's name (V12, D-game-22), the noun el león (masculine, as he is); in neither of the core's lists.
 león
+# pescar: to fish, the fisher Mar's own verb (pescó in the day of the village, V14); in neither of the core's lists.
+pescar

@@ -26,26 +26,27 @@ public sealed class CheckBankTests
     private static string Battery(params string[] items) => """{"schemaVersion":2,"items":[""" + string.Join(",", items) + "]}";
 
     [Fact]
-    public void TheBundleHoldsThirtyTwoComprehensionItemsAndThirtyOneProductionItems()
+    public void TheBundleHoldsThirtySixComprehensionItemsAndThirtyFiveProductionItems()
     {
         // The pilot's 31 (sixteen heard, fifteen said) and, since VILLAGE_PLAN V10, El pueblo's eight (four of each), since V11 Números y pan's eight, since V12 Gente
-        // del pueblo's eight and since V13 ¿Cómo es?'s eight (four of each).
+        // del pueblo's eight, since V13 ¿Cómo es?'s eight and since V14 Ayer en el pueblo's eight (four of each).
         var bank = Bank;
 
-        Assert.Equal(63, bank.Count);
-        Assert.Equal(32, bank.Count(static i => i.Kind == CheckItemKind.Comprehension));
+        Assert.Equal(71, bank.Count);
+        Assert.Equal(36, bank.Count(static i => i.Kind == CheckItemKind.Comprehension));
         Assert.Equal(
             ["say.pedir-agua", "say.si-por-favor", "say.no-gracias", "say.donde-esta-el-rio", "say.si", "say.no", "say.que-es-esto", "say.otra-vez", "say.mas-despacio",
                 "say.quiero-madera", "say.tengo-fruta", "say.ella-quiere-fruta", "say.necesitamos-agua", "say.voy-a-comer-pan", "say.ayer-comi-fruta",
                 "say.donde-esta-la-panaderia", "say.esta-lejos", "say.voy-a-comprar-pan", "say.fui-a-la-panaderia",
                 "say.quiero-dos-panes", "say.cuanto-cuesta", "say.voy-a-buscar-madera", "say.compre-dos-panes",
                 "say.como-te-llamas", "say.que-haces", "say.va-a-hacer-un-hacha", "say.hizo-un-hacha",
-                "say.la-manzana-es-roja", "say.me-gustan-las-manzanas", "say.quiero-tres-manzanas-rojas", "say.me-gusto-el-pan"],
+                "say.la-manzana-es-roja", "say.me-gustan-las-manzanas", "say.quiero-tres-manzanas-rojas", "say.me-gusto-el-pan",
+                "say.luz-hizo-pan", "say.fuimos-al-rio", "say.ellos-comieron-pan", "say.tengo-que-ir"],
             bank.Where(static i => i.Kind == CheckItemKind.Production).Select(static i => i.Id));
         Assert.Equal(
             ["request_item", "confirm", "deny", "ask_directions", "confirm", "deny", "ask_what", "ask_repeat", "ask_slower", "state_want", "state_have", "state_want", "state_want", "state_action", "state_action",
                 "ask_directions", "ask_far", "state_action", "state_action", "request_item", "ask_price", "state_action", "state_action", "ask_name", "ask_activity", "state_action", "state_action",
-                "describe", "state_like", "request_item", "state_like"],
+                "describe", "state_like", "request_item", "state_like", "state_action", "state_action", "state_action", "state_obligation"],
             bank.Where(static i => i.Kind == CheckItemKind.Production).Select(static i => i.Intent));
     }
 
@@ -74,6 +75,9 @@ public sealed class CheckBankTests
         Assert.Equal(
             ["hear.mis-manzanas-son-rojas", "hear.te-gusta-el-pan", "hear.mis-plantas-necesitan-agua", "hear.el-pan-es-de-luz", "say.la-manzana-es-roja", "say.me-gustan-las-manzanas", "say.quiero-tres-manzanas-rojas", "say.me-gusto-el-pan"],
             bank.Where(static i => i.Lesson == "como-es").Select(static i => i.Id));
+        Assert.Equal(
+            ["hear.el-dia-de-ayer", "hear.comieron-en-la-plaza", "hear.adonde-fueron", "hear.le-vendi-pescado", "say.luz-hizo-pan", "say.fuimos-al-rio", "say.ellos-comieron-pan", "say.tengo-que-ir"],
+            bank.Where(static i => i.Lesson == "ayer-en-el-pueblo").Select(static i => i.Id));
 
         // An item of a lesson checks a phrase or a line of that lesson's steps.
         var lessons = RouteScene.DataOf(TestGame.Bundle).Lessons;
@@ -93,7 +97,7 @@ public sealed class CheckBankTests
 
         var problems = Problems(Battery(Production.Replace("\"lesson\":null", "\"lesson\":\"no-such-lesson\"", StringComparison.Ordinal)));
 
-        Assert.Contains("game/checks.json: item 'say.x' belongs to the lesson 'no-such-lesson', which is not a lesson (first-words, personas, ayer-y-manana, el-pueblo, numeros-y-pan, gente-del-pueblo, como-es).", problems);
+        Assert.Contains("game/checks.json: item 'say.x' belongs to the lesson 'no-such-lesson', which is not a lesson (first-words, personas, ayer-y-manana, el-pueblo, numeros-y-pan, gente-del-pueblo, como-es, ayer-en-el-pueblo).", problems);
     }
 
     [Fact]

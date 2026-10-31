@@ -38,6 +38,18 @@
       "dialects": ["es-MX", "es-CO", "es-AR"]
     },
     {
+      "answerId": "need",
+      "canonical": "necesito un hacha",
+      "aliases": ["quiero un hacha", "necesito un hacha por favor"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "day",
+      "canonical": "domingo hizo un hacha",
+      "aliases": ["hizo un hacha", "domingo trabaja en la herrería", "trabaja en la herrería", "luz hizo pan", "mar pescó en el río", "fuimos al río", "ellos comieron pan"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
       "answerId": "help",
       "canonical": "ayuda",
       "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar", "qué hago"],

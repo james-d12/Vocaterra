@@ -245,6 +245,20 @@ public sealed class BookPagesTests
     }
 
     [Fact]
+    public void InSessionEightTheBookNamesAyerEnElPuebloAsNextAtTheVillager()
+    {
+        // The learner's route into session 8 (V14), as --skip-to-session 8 builds it: ¿Cómo es? completed in session 7, and Ayer en el pueblo the one the objective names.
+        var session = TestGame.NewSessionWithShippedLessons();
+        SessionSkip.Apply(session, 8);
+
+        var (title, why) = LessonLines(session, "ayer-en-el-pueblo");
+        Assert.Equal("next: talk to Aldeano", why.Text);
+        Assert.Equal(BookTone.Gold, title.Tone);
+        Assert.Equal("completed in session 7", LessonLines(session, "como-es").Title.Aside);
+        Assert.Single(BookPages.Lessons(session.Locale, session.Lessons.Record, session.Phrases, null, BookPages.Waits(session.Lessons)), static l => l.Text.StartsWith("next:", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void CompletedAndBegunLessonsKeepTheirLinesAndSayNoWait()
     {
         var session = TestGame.NewSessionWithShippedLessons();

@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using Vocaterra.Game.Core.Content;
+using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.World.Layout;
 using Vocaterra.Host;
@@ -97,7 +98,9 @@ if (options.ValidateContent || options.GrammarStringsOut is not null)
     return ExitOk;
 }
 
-var session = new ConversationSession(bundle);
+// The NPCs' names, so that a line naming its listener (Luz, quiero pan) is read as the game reads it (V14).
+var names = NpcRoster.Load(bundle).All.Where(static npc => npc.Name is not null).ToDictionary(static npc => npc.Id, static npc => npc.Name!, StringComparer.Ordinal);
+var session = new ConversationSession(bundle, listenerNames: names);
 if (options.Transcript is { } transcript && options.PromptId is { } oneShotPrompt)
 {
     if (!session.HasPrompt(oneShotPrompt))

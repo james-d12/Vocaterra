@@ -181,6 +181,7 @@ public sealed partial class NpcService
     private readonly NounCatalog _nouns;
     private readonly RecipeBook _recipes;
     private readonly PhraseSheet _phrases;
+    private readonly IReadOnlyList<string> _practised;
     private readonly GameWords _words;
     private readonly HostEventTable _hostEvents;
     private readonly ScenePlaces _places;
@@ -243,6 +244,7 @@ public sealed partial class NpcService
         _recipes = data.Recipes;
         _typed = new TypedUtteranceEvaluator(bundle);
         _phrases = data.Phrases;
+        _practised = [.. data.Npcs.Homes.Keys];
         _words = data.Words;
         _hostEvents = data.HostEvents;
         _places = places ?? ScenePlaces.None;
@@ -583,19 +585,27 @@ public sealed partial class NpcService
             _facts = scene.Facts ?? _worldFacts; // the world as it was when the player spoke, not as it is when the worker gets to the turn
         }
 
-        // Phase 1: the line is read once. A spoken line is decoded here and nowhere else.
+        // Phase 1: the line is read once. A spoken line is decoded here and nowhere else. The listener's name said as a vocative (Luz, quiero pan) is no part of
+        // the sentence, so the core reads the line without it (V14); the turn keeps the line as it was said.
         UtteranceAnalysis analysis;
+        string said;
         if (clip is null)
         {
-            analysis = _typed.Analyze(typed!, prompt);
+            said = typed!;
+            analysis = _typed.Analyze(Vocative.Without(typed!, agent.Npc.Name), prompt);
         }
         else
         {
             var spoken = _spoken ?? throw new InvalidOperationException("No speech is attached to the NPCs.");
             analysis = spoken.Analyze(clip, prompt);
+            said = analysis.Asr.Transcript;
+            if (Vocative.Without(analysis.Asr, agent.Npc.Name) is { } bare)
+            {
+                analysis = spoken.AnalyzeRecognized(bare, clip, prompt); // the recognizer is not called again
+            }
         }
 
-        var line = CleanTranscript(analysis.Asr.Transcript);
+        var line = CleanTranscript(said);
         var verdict = analysis.Verdict;
         double? confidence = clip is null ? null : UncertaintyRule.MeanWordConfidence(analysis.Asr);
         if (confidence is { } sure && UncertaintyRule.IsTooUnsure(verdict.Communicated, sure))
@@ -648,7 +658,7 @@ public sealed partial class NpcService
         // Phase 2: the decision, the response and the replay record, with the host's facts and the word skills in the context. The learner is
         // updated once, here. The digest covers the slots and skills (HostDigest, the core's contract); without them the context keeps the bare
         // digest, as the core does when no slots are given.
-        var skills = verdict.Communicated ? WordSkillsOf(GuideWord.From(analysis.Words), PhraseSkillsOf(verdict, promptId, origin)) : [];
+        var skills = verdict.Communicated ? WordSkillsOf(GuideWord.From(analysis.Words), PhraseSkillsOf(verdict, promptId, origin, scene.PromptOverride is null)) : [];
         var created = ConversationContext.Create(
             utterance.WorldSeed,
             utterance.AgentId,
@@ -939,8 +949,9 @@ public sealed partial class NpcService
 
     // The learner skills of the phrases in play in a turn (S8): the learner phrase the line used and the phrase of the prompt the NPC asked, both only
     // when the line was understood and had no mistake; a choice picked from the offered buttons is a recognition signal and exercises no skill; the
-    // service words (help, "no sé") exercise none either.
-    private List<string> PhraseSkillsOf(Verdict verdict, string promptId, LineOrigin origin)
+    // service words (help, "no sé") exercise none either. In free talk (the NPC's own prompt, no lesson step or review) a place the prompt's one row of the
+    // intent does not name is the row practised elsewhere that names it (V14, PhraseSheet.ByPlace).
+    private List<string> PhraseSkillsOf(Verdict verdict, string promptId, LineOrigin origin, bool freeTalk)
     {
         var skills = new List<string>();
         if (!verdict.Communicated || verdict.Errors.Count > 0 || origin == LineOrigin.Choice
@@ -949,7 +960,7 @@ public sealed partial class NpcService
             return skills;
         }
 
-        if (_phrases.PhraseFor(promptId, verdict.Intent.Value, verdict.Slots, _words.Noun("river")) is { } used) // the prompt's own row first (V12b)
+        if (_phrases.PhraseFor(promptId, verdict.Intent.Value, verdict.Slots, _words.Noun("river"), freeTalk ? _practised : null) is { } used) // the prompt's own row first (V12b)
         {
             skills.Add(PhraseSkillPrefix + used);
         }

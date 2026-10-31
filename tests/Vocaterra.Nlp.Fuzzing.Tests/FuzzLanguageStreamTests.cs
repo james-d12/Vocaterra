@@ -30,9 +30,11 @@ public sealed class FuzzLanguageStreamTests
     // sentence digest again at M59, whose analyzer agrees a verb with a noun subject before it and a reflexive clitic after cómo with its verb: the realiser gives a
     // verb right after a noun phrase the third person and the phrase's number, gives llamar and sentir after cómo and a reflexive clitic that clitic's person, and
     // skips a subject of two phrases joined by y and a literal verb form that disagrees with the phrase before it; the content did not change. Again later in M59, whose
-    // analyzer leaves a lone name before a verb unchecked (it may be the person spoken to): the realiser draws such a verb's person and number freely.
+    // analyzer leaves a lone name before a verb unchecked (it may be the person spoken to): the realiser draws such a verb's person and number freely. The sentence
+    // digest again at V14, whose grammars gained state_obligation (tener que and an infinitive), the pescar row of state_action and a village name before comprar; the
+    // word stream did not move, nor did the generators.
     private const string OldTextDigest = "E303DC63C18560EC9E0F08C7FB21B8EBB2742D4F28F71C36C112D65E4E97D073";
-    private const string OldSentenceDigest = "7E6982EC2ADD15438B258CB10C47C88FF8738988C480484CC134B3F7A3938017";
+    private const string OldSentenceDigest = "2DA44B90765989460AEDE0319C6F5E35E7972C5A5DB2D9244E1037BD4FE0C2AD";
 
     [Fact]
     public void TheSpanishRecordUsesTheSpanishPackAndTheWholeMutationSet()
