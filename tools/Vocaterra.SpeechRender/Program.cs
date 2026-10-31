@@ -17,19 +17,22 @@ namespace Vocaterra.SpeechRender;
 /// <summary>
 /// Renders the bundle's speakable lines with Kokoro (S9): <c>&lt;lineId&gt;.wav</c> at the speaker's speed (1.0) and <c>&lt;lineId&gt;.slow.wav</c> at 0.8 of it,
 /// in the bundle's <c>speech/</c> folder, as 16-bit mono PCM. A speaker is an NPC, and its Kokoro speaker id, voice name and speed are its NPC file's
-/// <c>voice</c> (VILLAGE_PLAN V01; they were fixed here): the guide 28 <c>ef_dora</c>, the shopkeeper 29 <c>em_alex</c>, the villager 53 <c>em_santa</c>, the ids of
-/// the core's Kokoro voice table (docs/nlp/API.md, section 6). A speaker with no NPC file or no voice stops the run before anything is rendered.
+/// <c>voice</c> (VILLAGE_PLAN V01; they were fixed here): the guide 28 <c>ef_dora</c>, the shopkeeper 29 <c>em_alex</c>, the villager 53 <c>em_santa</c>, and the
+/// village's fisher, baker, smith and farmer in the provisional voices of the trial (D-game-22 (d)), with a <c>gain</c> for a voice the model renders louder
+/// (VILLAGE_PLAN V11). A speaker with no NPC file or no voice stops the run before anything is rendered.
 /// </summary>
 /// <remarks>
 /// <b>Re-runs.</b> <c>content/speech-index.json</c> (outside the bundle, so it is not hashed) records for each file its text, speaker, speed,
 /// rate, the voice's gain when it is not 1 (VILLAGE_PLAN V11), the adapter's model hash and the file's SHA-256. A file whose inputs and bytes match is skipped;
 /// a line whose text or voice changed is rendered again; a file of a line that no longer exists is deleted. <c>docs/game/SPEECH_CHECKLIST.md</c> is rewritten from the bundle, and the owner's
-/// marks in its last column are kept for every row whose text did not change. The bundle's <c>manifest.json</c> and <c>provenance.json</c> are
+/// marks in its last column are kept for every row whose text and recording did not change (a file rendered again with other bytes, a new voice for one, loses
+/// its mark: VILLAGE_PLAN V09). The bundle's <c>manifest.json</c> and <c>provenance.json</c> are
 /// then updated by the caller (the content tool's <c>hash</c> step, run by <c>scripts/prerender-speech.sh</c>).
 /// <para>
 /// <b>The voice trial</b> (VILLAGE_PLAN V06). <c>--trial &lt;folder&gt;</c> renders the folder's <c>trial.json</c> instead of the bundle: one line for every candidate
-/// voice and speed, as <c>&lt;folder&gt;/&lt;file&gt;</c> at Kokoro's own rate (24 kHz mono), for the owner to hear before an NPC's lines are recorded with it. It
-/// writes nothing else. The checklist names the trial's provisional voices, those of the NPCs the bundle does not have yet.
+/// voice and speed, as <c>&lt;folder&gt;/&lt;file&gt;</c> at Kokoro's own rate (24 kHz mono), for the owner to hear. It writes nothing else. The checklist lists the
+/// trial's provisional voices, every one the trial names an NPC for (D-game-22 (d): the voices were recorded before the owner heard them), until the owner's
+/// decision takes the NPC out of the trial's entry.
 /// </para>
 /// </remarks>
 internal static class Program
@@ -122,6 +125,7 @@ internal static class Program
         var rendered = 0;
         var skipped = 0;
         var checklist = new List<(string LineId, string File, string Speaker, string Speed, string Text)>();
+        var newRecordings = new HashSet<string>(StringComparer.Ordinal); // files whose bytes changed: the owner hears them again (VILLAGE_PLAN V09)
         try
         {
             foreach (var line in lines)
@@ -156,7 +160,13 @@ internal static class Program
                     var samples = Scaled(rate == audio.SampleRate ? audio.Samples : AudioClips.Resample(audio.Samples, audio.SampleRate, rate), spec.Gain);
                     var bytes = WavBytes(samples, rate);
                     WriteAtomically(target, bytes);
-                    kept[relative] = wanted with { Sha256 = Sha256(bytes), Bytes = bytes.Length };
+                    var sha = Sha256(bytes);
+                    if (!index.Files.TryGetValue(relative, out var before) || before.Sha256 != sha)
+                    {
+                        newRecordings.Add(relative);
+                    }
+
+                    kept[relative] = wanted with { Sha256 = sha, Bytes = bytes.Length };
                     rendered++;
                     Console.WriteLine($"rendered: {relative} ({spec.Name}, speed {variant.Item2.ToString("0.0#", CultureInfo.InvariantCulture)}) {line.Text}");
                 }
@@ -180,7 +190,7 @@ internal static class Program
         Console.WriteLine($"renderer: {lines.Count} lines, {expected.Count} files; rendered {rendered}, unchanged {skipped}, deleted {deleted}");
 
         WriteIndex(indexPath, new IndexFile(1, SpeechEngine.KokoroModelId, kept));
-        WriteChecklist(checklistPath, checklist, data.Npcs, LoadTrial(Path.GetFullPath(Option(args, "--trial-folder") ?? DefaultTrial)));
+        WriteChecklist(checklistPath, checklist, newRecordings, data.Npcs, LoadTrial(Path.GetFullPath(Option(args, "--trial-folder") ?? DefaultTrial)));
         WriteProvenance(Path.Combine(bundleDir, "provenance.json"), kept);
         Console.WriteLine($"speech folder: {speechDir} ({ReadableSize(FolderBytes(speechDir))})");
         return 0;
@@ -401,25 +411,28 @@ internal static class Program
     }
 
     /// <summary>
-    /// Writes the listening table. The owner's marks in the last column are kept for every row whose file and Spanish text are unchanged, so a
-    /// re-render does not erase them. The speakers come first: each NPC's voice, then the trial's provisional voices of the NPCs the bundle does not have yet.
+    /// Writes the listening table. The owner's marks in the last column are kept for every row whose Spanish text and recording are unchanged, so a
+    /// re-render does not erase them; a row whose file was rendered again with other bytes (<paramref name="newRecordings"/>: a new voice, gain or speed)
+    /// loses its mark, since what the owner heard is gone (VILLAGE_PLAN V09). The speakers come first: each NPC's voice, then the trial's provisional voices.
     /// </summary>
-    private static void WriteChecklist(string path, List<(string LineId, string File, string Speaker, string Speed, string Text)> rows, NpcRoster npcs, Trial? trial)
+    private static void WriteChecklist(
+        string path, List<(string LineId, string File, string Speaker, string Speed, string Text)> rows, IReadOnlySet<string> newRecordings, NpcRoster npcs, Trial? trial)
     {
         var marks = ReadMarks(path);
         var builder = new StringBuilder();
         builder.Append("# Speech checklist (S9, D-game-12 step 4)\n\n");
         builder.Append("The owner listens to every file for cut-offs and for text and audio that do not match (the interim content-trust check of\n");
         builder.Append("D-game-12). Mark each row `ok`, `cut-off` or `mismatch` in the last column, with a note after it if needed. The table is written by\n");
-        builder.Append("`scripts/prerender-speech.sh` from the bundle: the marks of a row are kept while its file and its text are unchanged, and a row whose\n");
-        builder.Append("text changed is listed again without a mark. The files are Kokoro model output (kokoro-multi-lang-v1_0), in the voices below.\n\n");
+        builder.Append("`scripts/prerender-speech.sh` from the bundle: the marks of a row are kept while its text and its recording are unchanged, and a row\n");
+        builder.Append("whose text changed or whose file was recorded again differently is listed again without a mark. The files are Kokoro model output\n");
+        builder.Append("(kokoro-multi-lang-v1_0), in the voices below.\n\n");
         AppendSpeakers(builder, npcs, trial);
         builder.Append("## Lines\n\n");
         builder.Append($"| Line id | File | Speaker | Speed | Spanish | {ChecklistMarksHeader} |\n");
         builder.Append("| --- | --- | --- | --- | --- | --- |\n");
         foreach (var row in rows.OrderBy(static r => r.LineId, StringComparer.Ordinal).ThenBy(static r => r.Speed, StringComparer.Ordinal))
         {
-            var mark = marks.TryGetValue(row.File, out var kept) && kept.Text == row.Text ? kept.Mark : string.Empty;
+            var mark = !newRecordings.Contains(row.File) && marks.TryGetValue(row.File, out var kept) && kept.Text == row.Text ? kept.Mark : string.Empty;
             builder.Append($"| {row.LineId} | {row.File} | {row.Speaker} | {row.Speed} | {row.Text} | {mark} |\n");
         }
 
@@ -427,8 +440,9 @@ internal static class Program
         File.WriteAllText(path, builder.ToString(), new UTF8Encoding(false));
     }
 
-    // The speakers: each NPC of the roster with its file's voice and what it says, then the voice trial's provisional
-    // choices for the NPCs the roster does not have yet (VILLAGE_PLAN V06), and the trial folder the owner hears them in.
+    // The speakers: each NPC of the roster with its file's voice and what it says, then the voice trial's provisional choices (VILLAGE_PLAN V06,
+    // D-game-22 (d)): every voice the trial names an NPC for, recorded or not yet, with the trial folder the owner hears them in and what to do
+    // with a voice the owner rejects. A voice leaves the list when the owner's decision takes its NPC out of the trial's entry.
     private static void AppendSpeakers(StringBuilder builder, NpcRoster npcs, Trial? trial)
     {
         builder.Append("## Speakers\n\n");
@@ -445,20 +459,25 @@ internal static class Program
         }
 
         builder.Append('\n');
-        var provisional = trial?.Voices.Where(voice => voice.Npc is { } id && npcs.Find(id) is null).ToList() ?? [];
+        var provisional = trial?.Voices.Where(static voice => voice.Npc is not null).ToList() ?? [];
         if (provisional.Count == 0)
         {
             return;
         }
 
-        builder.Append("Provisional voices of the NPCs to come (VILLAGE_PLAN V06, D-game-22 (d)): their lines are recorded in these voices when their files come.\n");
-        builder.Append($"The owner hears each in the voice trial, `{DefaultTrial}/` (its README); a voice the owner rejects is changed in the NPC's file and its\n");
-        builder.Append("lines are rendered again.\n\n");
+        builder.Append("**Provisional voices** (VILLAGE_PLAN V06, D-game-22 (d)). The voices below were chosen from the voice trial and their NPCs' lines recorded\n");
+        builder.Append($"in them before the owner heard them: hear each in the trial, `{DefaultTrial}/` (its README; the trial is at the model's own level,\n");
+        builder.Append("the recordings carry the gain of the table above), then the NPC's rows. A voice the owner rejects is changed in the NPC's file,\n");
+        builder.Append("`content/game-v1/game/npcs/<id>.json` (`voice`: `speaker`, `name`, `speed`, and `gain` for a voice louder or quieter than the Spanish\n");
+        builder.Append("three), and `scripts/limited.sh scripts/prerender-speech.sh` renders that NPC's lines again: the speech index records each file's voice, so\n");
+        builder.Append("only its files are rendered (`--force` renders every file and is not needed), and their rows lose their marks. The bundle's hash moves, so\n");
+        builder.Append("the content loop follows (`content/README.md`, \"The edit loop\"). A voice is listed here while the trial's `trial.json` names its NPC.\n\n");
         builder.Append("| NPC | Voice | Kokoro speaker | Speed | Trial file |\n");
         builder.Append("| --- | --- | --- | --- | --- |\n");
         foreach (var voice in provisional)
         {
-            builder.Append(CultureInfo.InvariantCulture, $"| {voice.Npc} ({voice.Name}) | `{voice.Voice}` | {voice.Speaker} | {Speed(voice.Speed)} | `voice-trial/{voice.File}` |\n");
+            var recorded = npcs.Find(voice.Npc!) is null ? ", no NPC file yet" : string.Empty;
+            builder.Append(CultureInfo.InvariantCulture, $"| {voice.Npc} ({voice.Name}){recorded} | `{voice.Voice}` | {voice.Speaker} | {Speed(voice.Speed)} | `voice-trial/{voice.File}` |\n");
         }
 
         builder.Append('\n');

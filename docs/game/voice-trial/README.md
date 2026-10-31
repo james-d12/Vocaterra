@@ -25,10 +25,18 @@ The files are 16-bit mono WAV at 24 kHz, Kokoro's own rate (12 files, about 2.5 
 the trial has none. Measured when rendered: `if_sara` is about three times as loud as the Spanish voices (RMS 6 400 against about 2 000, peaks near full
 scale), and `ff_siwis` and `im_nicola` about 1.7 times; the others are level with the Spanish three.
 
-**Changing a voice.** A voice the owner rejects is changed in the NPC's file, `content/game-v1/game/npcs/<id>.json`, `voice` (`speaker`, `name`, `speed`),
-and its lines are rendered again with `scripts/prerender-speech.sh`, which records every line of the NPC with its file's voice and skips the rest. Until the
-NPC's file exists, its provisional voice is the row above (and the `npc` of its entry in `trial.json`); `docs/game/SPEECH_CHECKLIST.md` lists the
-provisional voices with the speakers.
+**The voices are provisional.** The four NPCs' files came with their lessons (V10 to V12) and their lines are recorded in the provisional voices of the
+table: the fisher in `em_santa` at 0.9, the baker in `if_sara` with a gain of 0.32 (V11), the smith in `im_nicola` with a gain of 0.6 (V12), the farmer in
+`pm_santa`. The gain (`voice.gain` in the NPC's file) scales the samples so that the voice is as loud as the Spanish three. `docs/game/SPEECH_CHECKLIST.md`
+lists these voices as provisional while `trial.json` names their NPC (`npc`, `name`), so the owner hears this trial before the NPCs' rows.
+
+**Changing a voice.** A voice the owner rejects is changed in the NPC's file, `content/game-v1/game/npcs/<id>.json`, `voice` (`speaker`, `name`, `speed`, and
+`gain` when the new voice is louder or quieter than the Spanish ones), and its lines are rendered again with `scripts/limited.sh scripts/prerender-speech.sh`.
+The speech index (`content/speech-index.json`) records each file's voice, speed and gain, so the script renders every line of that NPC in the new voice and
+skips the other files; `--force` would render all of them again and is not needed. The script re-hashes and validates the bundle; then the content loop
+follows as for any edit of `game-v1` (`content/README.md`, "The edit loop": the whole suite, the save fixture's bundle hash, the scripted runs' baselines).
+The NPC's rows of the checklist lose their marks (V09: a row whose file was recorded again differently is listed without one) and are heard again. Once the
+owner has decided on a voice, kept or replaced, its entry here loses its `npc` and `name`, and the checklist stops listing it as provisional.
 
 **Rendering the trial again.** `trial.json` holds the two lines and the twelve recordings (a file, a voice, its speaker index, a speed, the line, and for a
 provisional choice the NPC and its name). Edit it and run, from the repository root:

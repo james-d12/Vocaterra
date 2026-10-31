@@ -2,8 +2,9 @@
 
 The owner listens to every file for cut-offs and for text and audio that do not match (the interim content-trust check of
 D-game-12). Mark each row `ok`, `cut-off` or `mismatch` in the last column, with a note after it if needed. The table is written by
-`scripts/prerender-speech.sh` from the bundle: the marks of a row are kept while its file and its text are unchanged, and a row whose
-text changed is listed again without a mark. The files are Kokoro model output (kokoro-multi-lang-v1_0), in the voices below.
+`scripts/prerender-speech.sh` from the bundle: the marks of a row are kept while its text and its recording are unchanged, and a row
+whose text changed or whose file was recorded again differently is listed again without a mark. The files are Kokoro model output
+(kokoro-multi-lang-v1_0), in the voices below.
 
 ## Speakers
 
@@ -16,6 +17,21 @@ text changed is listed again without a mark. The files are Kokoro model output (
 | baker (Luz) | `if_sara`, gain 0.32 | 35 | 1.0 (0.8) | the pools `baker_*` and `guide.lesson.baker.*`, and its prompts |
 | smith (Domingo) | `im_nicola`, gain 0.6 | 36 | 1.0 (0.8) | the pools `smith_*` and `guide.lesson.smith.*`, and its prompts |
 | farmer (León) | `pm_santa` | 44 | 1.0 (0.8) | the pools `farmer_*` and `guide.lesson.farmer.*`, and its prompts |
+
+**Provisional voices** (VILLAGE_PLAN V06, D-game-22 (d)). The voices below were chosen from the voice trial and their NPCs' lines recorded
+in them before the owner heard them: hear each in the trial, `docs/game/voice-trial/` (its README; the trial is at the model's own level,
+the recordings carry the gain of the table above), then the NPC's rows. A voice the owner rejects is changed in the NPC's file,
+`content/game-v1/game/npcs/<id>.json` (`voice`: `speaker`, `name`, `speed`, and `gain` for a voice louder or quieter than the Spanish
+three), and `scripts/limited.sh scripts/prerender-speech.sh` renders that NPC's lines again: the speech index records each file's voice, so
+only its files are rendered (`--force` renders every file and is not needed), and their rows lose their marks. The bundle's hash moves, so
+the content loop follows (`content/README.md`, "The edit loop"). A voice is listed here while the trial's `trial.json` names its NPC.
+
+| NPC | Voice | Kokoro speaker | Speed | Trial file |
+| --- | --- | --- | --- | --- |
+| baker (Luz) | `if_sara` | 35 | 1.0 | `voice-trial/if_sara-1.0.wav` |
+| smith (Domingo) | `im_nicola` | 36 | 1.0 | `voice-trial/im_nicola-1.0.wav` |
+| farmer (León) | `pm_santa` | 44 | 1.0 | `voice-trial/pm_santa-1.0.wav` |
+| fisher (Mar) | `em_santa` | 53 | 0.9 | `voice-trial/em_santa-0.9.wav` |
 
 ## Lines
 
