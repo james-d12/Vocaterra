@@ -181,8 +181,10 @@ public class LintTests
     [Fact]
     public void TheBundleLintTakesUnderFiveSeconds()
     {
+        // Read before the clock starts: loading the bundle has its own test and budget, and only the type initializer's timing kept it out of this one.
+        var bundle = TestSupport.Bundle;
         var started = System.Diagnostics.Stopwatch.StartNew();
-        ContentLinter.Lint(TestSupport.Bundle, new LintOptions { Level = "a2" });
+        ContentLinter.Lint(bundle, new LintOptions { Level = "a2" });
 
         Assert.True(started.Elapsed < TimeSpan.FromSeconds(5), $"the lint took {started.Elapsed}");
     }
