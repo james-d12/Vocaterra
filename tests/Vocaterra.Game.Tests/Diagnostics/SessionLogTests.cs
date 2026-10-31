@@ -6,7 +6,6 @@ using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Graphics.World;
-using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Tests.Diagnostics;
 
@@ -18,11 +17,7 @@ public sealed class SessionLogTests
 {
     private static readonly DateTimeOffset Stamp = DateTimeOffset.Parse("2026-10-22T09:30:00+01:00", System.Globalization.CultureInfo.InvariantCulture);
 
-    private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-
-    private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
-
-    private static VoxelSession NewSession() => RouteScene.NewSession(Bundle.Value, Nouns.Value, CreditRules.Default);
+    private static VoxelSession NewSession() => RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns, CreditRules.Default);
 
     private static SessionProfile Profile(string? check = null) => new(MicCheck: false, Muted: true, NoSpeech: true, Greyscale: false, TypedCredit: "half", Check: check, Scripted: true);
 
@@ -101,8 +96,8 @@ public sealed class SessionLogTests
     public void ACheckResultLineHasTheAnswerAndTheCheckKind()
     {
         var (log, session, _) = Memory();
-        var grade = new CheckGrader(Bundle.Value, 42).GradeTyped(
-            CheckBank.Load(Bundle.Value).Single(static i => i.Id == "say.pedir-agua"),
+        var grade = new CheckGrader(TestGame.Bundle, 42).GradeTyped(
+            TestGame.Data.Checks.Single(static i => i.Id == "say.pedir-agua"),
             "Quiero agua, por favor.",
             InputKind.Typed,
             new Vocaterra.Nlp.Core.Determinism.StoredTimestamp(GuideSession.DefaultStartedAt),

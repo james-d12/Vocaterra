@@ -219,7 +219,7 @@ public static class SaveMigration
         var words = Filter("words", document.Words, static w => w.Lemma, session.Nouns.ForLemma, report);
         var carded = Filter("carded nouns", document.Carded, static l => l, session.Nouns.ForLemma, report);
         var phrases = Filter("phrases", document.Phrases, static p => p.Id, session.Phrases.Find, report);
-        var objective = Filter("objective steps", document.Objective, static o => o.Key, session.Objective.Step, report);
+        var objective = Filter("objective steps", document.Objective, static o => o.Key, session.ObjectiveStep, report);
         var npcs = AdaptNpcs(document.Npcs, session, report);
         var deferred = document.DeferredSkills.Where(s => KnownSkill(s.Skill, session)).ToArray();
         ReportCount("deferred skills", document.DeferredSkills.Count, deferred.Length, document.DeferredSkills.Where(s => !KnownSkill(s.Skill, session)).Select(static s => s.Skill), report);
@@ -308,7 +308,7 @@ public static class SaveMigration
         var keptSkills = 0;
         foreach (var npc in npcs)
         {
-            if (!NpcService.AgentIds.Contains(npc.Agent, StringComparer.Ordinal) || !seen.Add(npc.Agent))
+            if (!session.Data.Npcs.Ids.Contains(npc.Agent, StringComparer.Ordinal) || !seen.Add(npc.Agent))
             {
                 droppedNpcs.Add(npc.Agent);
                 continue;

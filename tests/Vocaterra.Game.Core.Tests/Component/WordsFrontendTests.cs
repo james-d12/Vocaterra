@@ -2,17 +2,13 @@ using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tip;
-using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Core.Tests.Component;
 
 /// <summary>The P4 front-end pieces that need no GPU: the greyscale copy, the journal's rows and model, the toasts, the scripted cursor and the launch options.</summary>
 public sealed class WordsFrontendTests
 {
-    private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-    private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
-
-    private static VoxelSession NewSession() => RouteScene.NewSession(Bundle.Value, Nouns.Value, CreditRules.FullTyped);
+    private static VoxelSession NewSession() => RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns, CreditRules.FullTyped);
 
     [Fact]
     public void ToastsShowInOrderForFourSecondsEach()

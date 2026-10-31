@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Learner;
 using Vocaterra.Game.Core.Language.Phrases;
@@ -19,12 +20,12 @@ public sealed class BookDataTests
     [Fact]
     public void TheVerbGlossesGiveTheInfinitiveEnglishAndTheIrregularForms()
     {
-        var glosses = VerbGlosses.Load(TestGame.Bundle);
+        var glosses = RouteScene.DataOf(TestGame.Bundle).Glosses;
 
         Assert.Equal("to want", glosses.ForLemma("querer")!.English);
         Assert.Equal("has", glosses.ForLemma("tener")!.Third);
         Assert.Equal("had", glosses.ForLemma("tener")!.Past);
-        Assert.Null(glosses.ForLemma("querer")!.Third); // the regular rule gives it
+        Assert.Equal(("want", "wants", "wanted"), (glosses.ForLemma("querer")!.Base, glosses.ForLemma("querer")!.Third, glosses.ForLemma("querer")!.Past)); // listed, not built (C03)
         Assert.Null(glosses.ForLemma("hablar_no_existe"));
         Assert.True(glosses.All.Count >= 30);
     }
@@ -32,18 +33,19 @@ public sealed class BookDataTests
     [Fact]
     public void SerAndEstarAreGlossedApartByWhatTheyAreAndWhereOrHow()
     {
-        var glosses = VerbGlosses.Load(TestGame.Bundle);
+        var glosses = RouteScene.DataOf(TestGame.Bundle).Glosses;
 
         Assert.Equal("to be: what", glosses.ForLemma("ser")!.English);
         Assert.Equal("to be: where or how", glosses.ForLemma("estar")!.English);
     }
 
     [Fact]
-    public void AGlossMustStartWithTo()
+    public void AVerbWithoutEveryFormIsRefusedAndTheGlossesComeFromTheLocale()
     {
-        Assert.Throws<InvalidDataException>(() => VerbGlosses.Parse("""{ "schemaVersion": 1, "verbs": [ { "lemma": "querer", "english": "want" } ] }"""));
-        Assert.Throws<InvalidDataException>(() => VerbGlosses.Parse("""{ "schemaVersion": 2, "verbs": [] }"""));
-        Assert.Throws<InvalidDataException>(() => VerbGlosses.Parse("""{ "schemaVersion": 1, "verbs": [ { "lemma": "querer" } ] }"""));
+        // The locale lists a verb's gloss, base, third person and past (C03); one without all four is refused, so no form is left to a rule.
+        Assert.Throws<InvalidDataException>(() => LocaleText.Parse("xx", "h", [("verbs.json", """{ "strings": { "verb.querer": { "gloss": "to want", "base": "want" } } }""")]));
+        var glosses = VerbGlosses.From(LocaleText.Parse("xx", "h", [("verbs.json", """{ "strings": { "verb.querer": { "gloss": "to want", "base": "want", "third": "wants", "past": "wanted" } } }""")]));
+        Assert.Equal(new VerbGloss("querer", "to want", "want", "wants", "wanted"), Assert.Single(glosses.All));
     }
 
     [Fact]
@@ -60,9 +62,10 @@ public sealed class BookDataTests
     [Fact]
     public void TheEnglishTextNoLongerCarriesTheUnusedHoldKey()
     {
-        Assert.DoesNotContain("btnHold", EnglishText.UiKeys);
-        var english = EnglishText.Load(TestGame.Bundle, PhraseSheet.Load(TestGame.Bundle));
-        Assert.Throws<KeyNotFoundException>(() => english.Ui("btnHold"));
+        Assert.DoesNotContain("btnHold", LocaleText.UiKeys);
+        var english = RouteScene.DataOf(TestGame.Bundle).Locale;
+        Assert.Null(english.Find("ui.btnHold"));
+        Assert.Equal("\u27e6ui.btnHold\u27e7", english.Ui("btnHold")); // a missing string shows its marker, never an empty one
     }
 
     [Fact]

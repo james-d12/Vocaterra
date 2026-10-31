@@ -1,0 +1,126 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/objectives/<id>.json",
+  "description": "One objective of the session (CONTENT_PLAN 3.5, C07). Loaded by ObjectiveBook (Vocaterra.Game.Core). A checklist has a title and its steps name nouns; another objective is shown by its objective.<id>.hud line.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "id",
+    "steps"
+  ],
+  "additionalProperties": false,
+  "definitions": {
+    "trigger": {
+      "type": "object",
+      "required": [
+        "event"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "event": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The event waited for: a world event (WorldEvents), or for a tip start or aimed_npc."
+        },
+        "npc": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The NPC the event must be about (an agent id)."
+        },
+        "detail": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The detail the event must have, exactly (item_picked_up: the noun; torch_at_ring: the ring's name)."
+        }
+      },
+      "description": "What the step or tip waits for (CONTENT_PLAN C06)."
+    }
+  },
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "enum": [
+        1
+      ]
+    },
+    "about": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The objective's id, the file's name."
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The target-language title of a checklist (Campamento)."
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "target",
+          "trigger"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[^.]+$",
+            "description": "The step's id; the save keys it <objective>.<step>."
+          },
+          "noun": {
+            "type": "string",
+            "minLength": 1,
+            "description": "For a checklist step: the catalogue noun it is about."
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The word the checklist shows, when the noun's lemma or plural is not it."
+          },
+          "target": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "trigger": {
+            "$ref": "#/definitions/trigger"
+          },
+          "restore": {
+            "enum": [
+              "lesson-begun",
+              "scan-fire-ring"
+            ],
+            "description": "The code hook that works the step out again from a loaded world; the save does not keep the step."
+          }
+        }
+      }
+    },
+    "alsoDoneBy": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "The objectives whose progress also completes this one."
+    },
+    "onComplete": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "guide-met",
+          "spare-torch",
+          "point-own-camp"
+        ]
+      },
+      "description": "The code hooks run when the objective is completed."
+    }
+  }
+}

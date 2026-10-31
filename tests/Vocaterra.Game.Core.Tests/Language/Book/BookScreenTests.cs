@@ -1,23 +1,17 @@
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Speech;
-using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Save;
-using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tip;
-using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Core.Tests.Language.Book;
 
 /// <summary>The book's behaviour: it takes the keyboard while open, J and Esc close it, and the recap's phrases page waits for a live run.</summary>
 public sealed class BookScreenTests
 {
-    private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-    private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
-
     [Theory]
     [InlineData(GameKey.J)]
     [InlineData(GameKey.Escape)]
@@ -50,7 +44,7 @@ public sealed class BookScreenTests
 
     private static (BookScreen Screen, BookModel Book, InputFocus Focus, Counter Closed) Make(bool scripted)
     {
-        var session = RouteScene.NewSession(Bundle.Value, Nouns.Value);
+        var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
         var book = new BookModel();
         var focus = new InputFocus();
         var mixer = new SoundMixer(new NullSoundOutput(), new SoundVolumes(), new PresentationRng(1));

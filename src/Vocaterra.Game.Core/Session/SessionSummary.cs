@@ -1,4 +1,5 @@
 using System.Globalization;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Language.Learner;
 using Vocaterra.Game.Core.Language.Lessons;
@@ -50,10 +51,10 @@ public static class SessionSummary
     /// <summary>How many items the practise line names.</summary>
     public const int PractiseLimit = 2;
 
-    /// <summary>The summary's lines, in the card's order: lessons, new words, said without help, verb forms, practise next time, and the replay line.</summary>
+    /// <summary>The summary's lines, in the card's order: lessons, new words, said without help, reviewed, verb forms, practise next time, and the replay line.</summary>
     /// <param name="facts">What the summary is built from.</param>
     /// <param name="english">The game's English text.</param>
-    public static IReadOnlyList<string> Lines(SummaryFacts facts, EnglishText english)
+    public static IReadOnlyList<string> Lines(SummaryFacts facts, LocaleText english)
     {
         ArgumentNullException.ThrowIfNull(facts);
         ArgumentNullException.ThrowIfNull(english);
@@ -62,6 +63,7 @@ public static class SessionSummary
             LessonsLine(facts, english),
             WordsLine(facts, english),
             UnaidedLine(facts, english),
+            ReviewedLine(facts, english),
             FormsLine(facts, english),
             PractiseLine(facts, english),
             english.Ui("summaryReplay"),
@@ -69,7 +71,7 @@ public static class SessionSummary
     }
 
     // The lessons of the record that this run completed or moved on in, in the bundle's order.
-    private static string LessonsLine(SummaryFacts facts, EnglishText english)
+    private static string LessonsLine(SummaryFacts facts, LocaleText english)
     {
         var lessonEvents = facts.Events.OfType<LessonEvent>().ToList();
         var items = new List<string>();
@@ -92,7 +94,7 @@ public static class SessionSummary
     }
 
     // The words this session's lines used that no earlier session's line used (the learner's own lines: the word record counts only them).
-    private static string WordsLine(SummaryFacts facts, EnglishText english)
+    private static string WordsLine(SummaryFacts facts, LocaleText english)
     {
         var before = facts.History.Where(e => e.Session < facts.Session).SelectMany(static e => e.Words)
             .Where(static w => w.Role == WordRole.Word && w.Lemma is not null).Select(static w => w.Lemma!).ToHashSet(StringComparer.Ordinal);
@@ -103,7 +105,7 @@ public static class SessionSummary
     }
 
     // The phrases said without help this session, correct ones only, in the order they were first said.
-    private static string UnaidedLine(SummaryFacts facts, EnglishText english)
+    private static string UnaidedLine(SummaryFacts facts, LocaleText english)
     {
         var said = facts.Events.OfType<PhraseUse>()
             .Where(static u => u.Correct && u.Kind is PhraseUseKind.Unaided or PhraseUseKind.Transfer)
@@ -111,8 +113,19 @@ public static class SessionSummary
         return english.Ui("summaryUnaided", ("items", ListOrNone(said, english, ListLimit)));
     }
 
+    // The phrases of earlier sessions the learner answered again this session (X06): in the warm-up and in the review steps of the lessons, in the order they were first reviewed.
+    private static string ReviewedLine(SummaryFacts facts, LocaleText english)
+    {
+        var reviewed = facts.Events.OfType<WorldEvent>()
+            .Where(static e => string.Equals(e.Name, WorldEvents.ReviewAnswered, StringComparison.Ordinal) && e.Detail is not null)
+            .Select(static e => e.Detail!.Split(',')[0])
+            .Select(id => SpanishOf(facts, id))
+            .Distinct(StringComparer.Ordinal).ToList();
+        return english.Ui("summaryReviewed", ("items", ListOrNone(reviewed, english, ListLimit)));
+    }
+
     // The verb forms this session's lines used, with their tense and person (quiero (present, 1st singular)).
-    private static string FormsLine(SummaryFacts facts, EnglishText english)
+    private static string FormsLine(SummaryFacts facts, LocaleText english)
     {
         var forms = facts.History.Where(e => e.Session == facts.Session).SelectMany(static e => e.Words)
             .Where(static w => w.Role == WordRole.Word && string.Equals(w.Pos, "verb", StringComparison.Ordinal) && (w.Person is not null || w.Tense is not null))
@@ -121,7 +134,7 @@ public static class SessionSummary
     }
 
     // Up to two phrases to practise next time: first the ones the learner said "no sé" to, then the ones said wrongly, then the ones used this session whose help is still on.
-    private static string PractiseLine(SummaryFacts facts, EnglishText english)
+    private static string PractiseLine(SummaryFacts facts, LocaleText english)
     {
         var uses = facts.Events.OfType<PhraseUse>().ToList();
         var items = new List<string>();
@@ -157,7 +170,7 @@ public static class SessionSummary
     private static string SpanishOf(SummaryFacts facts, string id) => facts.Phrases.Find(id)?.Spanish.TrimEnd('.') ?? id;
 
     // "quiero (present, 1st singular)": the text and the reading's tense and person (the number when it is read).
-    private static string FormOf(GuideWord word, EnglishText english)
+    private static string FormOf(GuideWord word, LocaleText english)
     {
         var features = new List<string>();
         if (word.Tense is { } tense)
@@ -189,7 +202,7 @@ public static class SessionSummary
     }
 
     // The items joined with the separator (commas, or semicolons when an item has commas), the first ListLimit of them, then "and N more"; or "none this session".
-    private static string ListOrNone(IReadOnlyList<string> items, EnglishText english, int limit, string separator = ", ")
+    private static string ListOrNone(IReadOnlyList<string> items, LocaleText english, int limit, string separator = ", ")
     {
         if (items.Count == 0)
         {

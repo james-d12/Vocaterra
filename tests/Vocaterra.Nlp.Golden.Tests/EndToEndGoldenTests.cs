@@ -36,7 +36,7 @@ public class EndToEndGoldenTests
     private const string Transcript = "yo quiere dos espada";
     private const string ConfirmTranscript = "sí, por favor";
 
-    private static ContentBundle Bundle { get; } = SpanishContent.Load(GameBundleLocator.Directory);
+    private static ContentBundle Bundle => GameBundleLocator.Bundle;
 
     private static PcmClip Clip()
     {

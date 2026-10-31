@@ -1,0 +1,198 @@
+{
+  "$schema": "../../schema/locale.schema.json",
+  "about": "The verbs' support-language forms (verb.<lemma>): the gloss of the infinitive, the base, the third person singular and the past. Every form is listed; the code builds none.",
+  "strings": {
+    "verb.querer": {
+      "gloss": "to want",
+      "base": "want",
+      "third": "wants",
+      "past": "wanted"
+    },
+    "verb.ser": {
+      "gloss": "to be: what",
+      "base": "be",
+      "third": "is",
+      "past": "was"
+    },
+    "verb.estar": {
+      "gloss": "to be: where or how",
+      "base": "be",
+      "third": "is",
+      "past": "was"
+    },
+    "verb.tener": {
+      "gloss": "to have",
+      "base": "have",
+      "third": "has",
+      "past": "had"
+    },
+    "verb.necesitar": {
+      "gloss": "to need",
+      "base": "need",
+      "third": "needs",
+      "past": "needed"
+    },
+    "verb.poder": {
+      "gloss": "to be able to",
+      "base": "be able to",
+      "third": "is able to",
+      "past": "was able to"
+    },
+    "verb.ir": {
+      "gloss": "to go",
+      "base": "go",
+      "third": "goes",
+      "past": "went"
+    },
+    "verb.hacer": {
+      "gloss": "to make",
+      "base": "make",
+      "third": "makes",
+      "past": "made"
+    },
+    "verb.decir": {
+      "gloss": "to say",
+      "base": "say",
+      "third": "says",
+      "past": "said"
+    },
+    "verb.ver": {
+      "gloss": "to see",
+      "base": "see",
+      "third": "sees",
+      "past": "saw"
+    },
+    "verb.dar": {
+      "gloss": "to give",
+      "base": "give",
+      "third": "gives",
+      "past": "gave"
+    },
+    "verb.saber": {
+      "gloss": "to know",
+      "base": "know",
+      "third": "knows",
+      "past": "knew"
+    },
+    "verb.venir": {
+      "gloss": "to come",
+      "base": "come",
+      "third": "comes",
+      "past": "came"
+    },
+    "verb.comer": {
+      "gloss": "to eat",
+      "base": "eat",
+      "third": "eats",
+      "past": "ate"
+    },
+    "verb.beber": {
+      "gloss": "to drink",
+      "base": "drink",
+      "third": "drinks",
+      "past": "drank"
+    },
+    "verb.tomar": {
+      "gloss": "to take",
+      "base": "take",
+      "third": "takes",
+      "past": "took"
+    },
+    "verb.llevar": {
+      "gloss": "to carry",
+      "base": "carry",
+      "third": "carries",
+      "past": "carried"
+    },
+    "verb.pedir": {
+      "gloss": "to ask for",
+      "base": "ask for",
+      "third": "asks for",
+      "past": "asked for"
+    },
+    "verb.encontrar": {
+      "gloss": "to find",
+      "base": "find",
+      "third": "finds",
+      "past": "found"
+    },
+    "verb.entender": {
+      "gloss": "to understand",
+      "base": "understand",
+      "third": "understands",
+      "past": "understood"
+    },
+    "verb.seguir": {
+      "gloss": "to follow",
+      "base": "follow",
+      "third": "follows",
+      "past": "followed"
+    },
+    "verb.llegar": {
+      "gloss": "to arrive",
+      "base": "arrive",
+      "third": "arrives",
+      "past": "arrived"
+    },
+    "verb.gustar": {
+      "gloss": "to like",
+      "base": "like",
+      "third": "likes",
+      "past": "liked"
+    },
+    "verb.ayudar": {
+      "gloss": "to help",
+      "base": "help",
+      "third": "helps",
+      "past": "helped"
+    },
+    "verb.buscar": {
+      "gloss": "to look for",
+      "base": "look for",
+      "third": "looks for",
+      "past": "looked for"
+    },
+    "verb.hablar": {
+      "gloss": "to speak",
+      "base": "speak",
+      "third": "speaks",
+      "past": "speaked"
+    },
+    "verb.llamar": {
+      "gloss": "to call",
+      "base": "call",
+      "third": "calls",
+      "past": "called"
+    },
+    "verb.repetir": {
+      "gloss": "to repeat",
+      "base": "repeat",
+      "third": "repeats",
+      "past": "repeated"
+    },
+    "verb.usar": {
+      "gloss": "to use",
+      "base": "use",
+      "third": "uses",
+      "past": "used"
+    },
+    "verb.quedar": {
+      "gloss": "to stay",
+      "base": "stay",
+      "third": "stays",
+      "past": "stayed"
+    },
+    "verb.quitar": {
+      "gloss": "to take away",
+      "base": "take away",
+      "third": "takes away",
+      "past": "took away"
+    },
+    "verb.tardar": {
+      "gloss": "to take (time)",
+      "base": "take (time)",
+      "third": "takes (time)",
+      "past": "took"
+    }
+  }
+}

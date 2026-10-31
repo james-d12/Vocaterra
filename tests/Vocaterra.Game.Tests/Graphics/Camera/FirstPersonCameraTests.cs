@@ -3,8 +3,6 @@ using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
-using Vocaterra.Game.Core.World.Generation;
-using Vocaterra.Game.Core.World.Layout;
 using Vocaterra.Game.Graphics.Camera;
 
 namespace Vocaterra.Game.Tests.Graphics.Camera;
@@ -143,7 +141,7 @@ public sealed class FirstPersonCameraTests
     [Fact]
     public void ThePlayersEyeIsWhereTheSimulationPutsIt()
     {
-        var scene = SceneBuilder.Build(SceneLayout.Load(Repo.Path("content", "game-v1", "game", "scene.json")), 42);
+        var scene = RouteScene.Build();
         var sim = VoxelSimulation.Create(scene);
         sim.Step([VoxelCommand.Look(Angles.FromDegrees(90), (int)Math.Round(LookControl.DegreesToSteps(-30)))]);
         var body = sim.Player;

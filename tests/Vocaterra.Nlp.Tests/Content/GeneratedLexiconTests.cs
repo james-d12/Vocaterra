@@ -165,6 +165,7 @@ public class GeneratedLexiconTests(ITestOutputHelper output)
     }
 
     [Fact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void LoadingTheBundleIsFastEnough()
     {
         var timings = new List<long>();

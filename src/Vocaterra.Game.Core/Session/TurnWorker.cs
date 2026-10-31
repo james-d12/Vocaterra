@@ -437,7 +437,7 @@ public sealed class TurnWorker : IDisposable
 
             if (request.Source is TurnSource.Hear or TurnSource.HearSpeak)
             {
-                var heard = MicCheck.Run(engine.Recognizer, clip);
+                var heard = MicCheck.Run(engine.Recognizer, clip, _guide.Words.Greeting);
                 return new TurnOutcome(request, null, null, new TurnTimings(synthMs, engine.LastRecognizeMilliseconds, Now() - begin, cached), MicCheck: heard);
             }
 

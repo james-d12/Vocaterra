@@ -13,7 +13,7 @@ namespace Vocaterra.Game.Core.Tests.Language.Speech;
 public sealed class SpeechLinesTests
 {
     private static readonly Lazy<IReadOnlyList<SpeechLine>> LoadedLines = new(() =>
-        SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, PhraseSheet.Load(TestGame.Bundle)));
+        SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, RouteScene.DataOf(TestGame.Bundle).Phrases));
 
     private static IReadOnlyList<SpeechLine> Lines => LoadedLines.Value;
 
@@ -75,7 +75,7 @@ public sealed class SpeechLinesTests
     [Fact]
     public void TheModelAnswersAreTheLearnerPhrasesAndNoHearsRow()
     {
-        var sheet = PhraseSheet.Load(TestGame.Bundle);
+        var sheet = RouteScene.DataOf(TestGame.Bundle).Phrases;
         var learner = sheet.Rows.Where(static r => r.IsLearnerPhrase).ToList();
         var phrases = Lines.Where(static l => l.Kind == SpeechKind.Phrase).ToList();
         Assert.Equal(learner.Count, phrases.Count);

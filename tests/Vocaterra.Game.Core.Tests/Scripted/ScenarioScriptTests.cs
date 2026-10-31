@@ -9,7 +9,6 @@ using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Tests.TestSupport;
-using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Core.Tests.Scripted;
 
@@ -20,9 +19,6 @@ namespace Vocaterra.Game.Core.Tests.Scripted;
 /// </summary>
 public sealed class ScenarioScriptTests
 {
-    private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-    private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
-
     /// <summary>The game's frame loop without the engine: the script's commands, the simulation, the turn pump, the panel and the hooks.</summary>
     private sealed class Harness : IDisposable
     {
@@ -31,11 +27,11 @@ public sealed class ScenarioScriptTests
 
         public Harness(IReadOnlyList<ScriptStep> steps)
         {
-            Session = RouteScene.NewSession(Bundle.Value, Nouns.Value, CreditRules.FullTyped);
+            Session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns, CreditRules.FullTyped);
             Session.StartWorker(loadSpeech: false).WaitUntilReady(30000);
             Look = new LookControl();
             Look.Set(Session.Scene.Spawn.Yaw, 0);
-            Dialogue = new DialogueModel(new InputFocus(), Session.OpeningLine);
+            Dialogue = new DialogueModel(new InputFocus(), Session.OpeningLine, Session.Data);
             _pump = new TurnPump(Session, Dialogue, () => Session.AimedCell);
             var hooks = new ScenarioHooks(OpenTalk, CloseTalk, path => Shots.Add($"{path}@{Session.Simulation.Tick}"), () => false);
             Script = new ScenarioScript(Session, Look, Dialogue, steps, name => name == "antorcha" ? ItemId.Torch : name == "madera" ? ItemId.Wood : null, hooks, Log.Add);
@@ -85,7 +81,7 @@ public sealed class ScenarioScriptTests
         {
             var opening = Session.OpenTalk(npc);
             Openings.Add(opening);
-            Dialogue.Open(opening, NpcNames.LabelOf(npc), Session.Review?.Question);
+            Dialogue.Open(opening, Session.Data.Npcs.LabelOf(npc), Session.Review?.Question);
         }
 
         private void CloseTalk()
@@ -155,6 +151,7 @@ public sealed class ScenarioScriptTests
     }
 
     [Fact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void WalkingOnClosesThePanelAndTheNextNpcStartsACleanPage()
     {
         var steps = new[]

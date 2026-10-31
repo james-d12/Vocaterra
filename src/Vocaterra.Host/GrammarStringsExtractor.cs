@@ -1,11 +1,13 @@
 // The strings of the game's Spanish, as the grammar check reads them (docs/nlp/API.md, "Grammar check the strings"). The host owns this list
 // because the game owns its files: the bundle's dialogue, prompts, answer sets and intents (read through the core's loader), the phrase sheet
-// (content/PHRASES.md, with the learner-error examples), the Spanish sides of english.json and checks.json, and the speech index. The output is
+// (content/PHRASES.md, with the learner-error examples), the Spanish side of checks.json, and the speech index. The output is
 // one JSON object per line: id, text, kind (npc, learner or template) and, for an intent example or a learner-error example, errors.
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Vocaterra.Game.Core.Content;
+using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Host;
@@ -40,13 +42,16 @@ public static class GrammarStringsExtractor
 
     /// <summary>
     /// Every Spanish string of the bundle in <paramref name="bundleDirectory"/> and of its game files (the phrase sheet and the speech index sit beside
-    /// the bundle, in <c>content/</c>). The order is fixed: dialogue, prompts, answer sets, intents, phrases, english.json, checks.json, speech.
+    /// the bundle, in <c>content/</c>). The order is fixed: dialogue, prompts, answer sets, intents, phrases, checks.json, words.json, speech. The support language is
+    /// not checked (the owner's decision), so the locale bundle is not read; before C03 the Spanish keys of english.json's glosses were listed too, and they
+    /// repeated the dialogue's and the prompts' texts.
     /// A duplicate id is an error (the file would be refused by the core).
     /// </summary>
-    public static IReadOnlyList<GrammarStringLine> Extract(ContentBundle bundle, string bundleDirectory)
+    public static IReadOnlyList<GrammarStringLine> Extract(GameData data, string bundleDirectory)
     {
-        ArgumentNullException.ThrowIfNull(bundle);
+        ArgumentNullException.ThrowIfNull(data);
         ArgumentException.ThrowIfNullOrEmpty(bundleDirectory);
+        var bundle = data.Bundle;
         var contentDirectory = Directory.GetParent(Path.GetFullPath(bundleDirectory))?.FullName
             ?? throw new InvalidOperationException($"{bundleDirectory} has no parent folder for the content sheets.");
 
@@ -56,8 +61,9 @@ public static class GrammarStringsExtractor
         AddAnswerSets(lines, bundle);
         AddIntents(lines, bundle);
         AddPhraseSheet(lines, Path.Combine(contentDirectory, "PHRASES.md"));
-        AddEnglishLines(lines, Path.Combine(bundleDirectory, "game", "english.json"));
-        AddChecks(lines, Path.Combine(bundleDirectory, "game", "checks.json"));
+        AddChecks(lines, data);
+        AddWords(lines, data);
+        AddNpcs(lines, data);
         AddSpeechIndex(lines, Path.Combine(contentDirectory, "speech-index.json"));
 
         var seen = new HashSet<string>(StringComparer.Ordinal);
@@ -87,9 +93,9 @@ public static class GrammarStringsExtractor
     }
 
     /// <summary>Extracts the strings and writes them to <paramref name="outputPath"/> (UTF-8, no byte order mark). Returns the lines written.</summary>
-    public static IReadOnlyList<GrammarStringLine> Write(ContentBundle bundle, string bundleDirectory, string outputPath)
+    public static IReadOnlyList<GrammarStringLine> Write(GameData data, string bundleDirectory, string outputPath)
     {
-        var lines = Extract(bundle, bundleDirectory);
+        var lines = Extract(data, bundleDirectory);
         var directory = Path.GetDirectoryName(Path.GetFullPath(outputPath));
         if (!string.IsNullOrEmpty(directory))
         {
@@ -178,30 +184,35 @@ public static class GrammarStringsExtractor
         }
     }
 
-    private static void AddEnglishLines(List<GrammarStringLine> lines, string englishPath)
+    private static void AddChecks(List<GrammarStringLine> lines, GameData data)
     {
-        // Only the Spanish side of each line: the English side and the English text that quotes Spanish are the owner's English support text, not checked.
-        var document = ReadJson(englishPath);
-        var index = 0;
-        foreach (var line in document.RootElement.GetProperty("lines").EnumerateArray())
+        // Only a comprehension item carries Spanish (the line the NPC says); a production item's Spanish is its phrase's, which the sheet holds.
+        foreach (var item in data.Checks.Where(static item => item.Kind == CheckItemKind.Comprehension))
         {
-            lines.Add(Line("english.json:lines[" + index + "]", line.GetProperty("spanish").GetString()!, Npc));
-            index++;
+            lines.Add(Line("checks.json:" + item.Id, item.Spanish, Npc));
         }
     }
 
-    private static void AddChecks(List<GrammarStringLine> lines, string checksPath)
+    // The target-language words the game itself uses (game/words.json, CONTENT_PLAN C05): the guide's directions, the buttons, the headings, the pronouns
+    // and the rest, which were constants in the code and so went unchecked. The letters of the typing help are not words, so they are left out.
+    private static void AddWords(List<GrammarStringLine> lines, GameData data)
     {
-        var document = ReadJson(checksPath);
-        foreach (var item in document.RootElement.GetProperty("items").EnumerateArray())
+        foreach (var (path, text) in data.Words.All())
         {
-            // Only a comprehension item carries Spanish (the line the NPC says); a production item's Spanish is its phrase's, which the sheet holds.
-            if (!item.TryGetProperty("spanish", out var spanish))
-            {
-                continue;
-            }
+            lines.Add(Line("words.json:" + path, text, Npc));
+        }
+    }
 
-            lines.Add(Line("checks.json:" + item.GetProperty("id").GetString()!, spanish.GetString()!, Npc));
+    // The NPCs' labels and names (game/npcs/<id>.json, C08), which were constants in the code.
+    private static void AddNpcs(List<GrammarStringLine> lines, GameData data)
+    {
+        foreach (var npc in data.Npcs.All)
+        {
+            lines.Add(Line("npcs/" + npc.Id + ".json:label", npc.Label, Npc));
+            if (npc.Name is { } name)
+            {
+                lines.Add(Line("npcs/" + npc.Id + ".json:name", name, Npc));
+            }
         }
     }
 

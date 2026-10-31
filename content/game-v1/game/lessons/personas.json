@@ -1,0 +1,210 @@
+{
+  "$schema": "../../../schema/lesson.schema.json",
+  "schemaVersion": 1,
+  "id": "personas",
+  "npc": "villager",
+  "autoStart": true,
+  "session": 2,
+  "verbs": [
+    {
+      "lemma": "querer",
+      "person": "3",
+      "number": "sg",
+      "tense": "pres"
+    },
+    {
+      "lemma": "querer",
+      "person": "1",
+      "number": "pl",
+      "tense": "pres"
+    },
+    {
+      "lemma": "querer",
+      "person": "3",
+      "number": "pl",
+      "tense": "pres"
+    },
+    {
+      "lemma": "tener",
+      "person": "3",
+      "number": "sg",
+      "tense": "pres"
+    },
+    {
+      "lemma": "tener",
+      "person": "1",
+      "number": "pl",
+      "tense": "pres"
+    },
+    {
+      "lemma": "tener",
+      "person": "3",
+      "number": "pl",
+      "tense": "pres"
+    },
+    {
+      "lemma": "necesitar",
+      "person": "3",
+      "number": "sg",
+      "tense": "pres"
+    },
+    {
+      "lemma": "necesitar",
+      "person": "1",
+      "number": "pl",
+      "tense": "pres"
+    },
+    {
+      "lemma": "ser",
+      "person": "3",
+      "number": "sg",
+      "tense": "pres"
+    },
+    {
+      "lemma": "ser",
+      "person": "1",
+      "number": "pl",
+      "tense": "pres"
+    },
+    {
+      "lemma": "estar",
+      "person": "3",
+      "number": "sg",
+      "tense": "pres"
+    },
+    {
+      "lemma": "ir",
+      "person": "1",
+      "number": "pl",
+      "tense": "pres"
+    }
+  ],
+  "steps": [
+    {
+      "id": "p1-intro",
+      "type": "explain"
+    },
+    {
+      "id": "p1-recall",
+      "type": "answer",
+      "phrase": "quiero-madera",
+      "prompt": "lesson-want",
+      "line": "guide.lesson.villager.want.1",
+      "person": "1sg"
+    },
+    {
+      "id": "p1-she-is",
+      "type": "model",
+      "line": "guide.lesson.villager.she.1"
+    },
+    {
+      "id": "p1-ask-luna",
+      "type": "model",
+      "line": "guide.lesson.villager.luna.1"
+    },
+    {
+      "id": "p1-say-she",
+      "type": "repeat",
+      "phrase": "ella-quiere-fruta",
+      "prompt": "lesson-she",
+      "person": "3sg"
+    },
+    {
+      "id": "p2-intro",
+      "type": "explain"
+    },
+    {
+      "id": "p2-go",
+      "type": "model",
+      "line": "guide.lesson.villager.go.1"
+    },
+    {
+      "id": "p2-ask-we",
+      "type": "answer",
+      "phrase": "necesitamos-agua",
+      "prompt": "lesson-we",
+      "line": "guide.lesson.villager.we.1",
+      "person": "1pl"
+    },
+    {
+      "id": "p2-they",
+      "type": "listen",
+      "line": "guide.lesson.villager.they.1",
+      "correct": 0
+    },
+    {
+      "id": "p2-be",
+      "type": "model",
+      "line": "guide.lesson.villager.be.1"
+    },
+    {
+      "id": "p2-where",
+      "type": "listen",
+      "line": "guide.lesson.villager.where.1",
+      "correct": 0
+    },
+    {
+      "id": "p2-walk",
+      "type": "do",
+      "trigger": {
+        "event": "talk_opened",
+        "npc": "shopkeeper"
+      },
+      "point": "tienda"
+    },
+    {
+      "id": "p3-intro",
+      "type": "explain",
+      "npc": "shopkeeper"
+    },
+    {
+      "id": "p3-need",
+      "type": "answer",
+      "npc": "shopkeeper",
+      "phrase": "necesito-pan",
+      "prompt": "lesson-usted",
+      "line": "guide.lesson.shop.need.1",
+      "person": "1sg"
+    },
+    {
+      "id": "p3-bottle",
+      "type": "answer",
+      "npc": "shopkeeper",
+      "phrase": "tengo-botella",
+      "prompt": "lesson-bottle",
+      "line": "guide.lesson.shop.bottle.1",
+      "person": "1sg"
+    },
+    {
+      "id": "p4-all",
+      "type": "model",
+      "npc": "shopkeeper",
+      "line": "guide.lesson.shop.all.1"
+    },
+    {
+      "id": "p4-say-we",
+      "type": "repeat",
+      "npc": "shopkeeper",
+      "phrase": "queremos-pan",
+      "prompt": "lesson-ustedes",
+      "person": "1pl"
+    },
+    {
+      "id": "p4-they",
+      "type": "listen",
+      "npc": "shopkeeper",
+      "line": "guide.lesson.shop.they.1",
+      "correct": 0
+    },
+    {
+      "id": "p4-table",
+      "type": "explain",
+      "npc": "shopkeeper"
+    },
+    {
+      "id": "p4-recap",
+      "type": "recap",
+      "npc": "shopkeeper"
+    }
+  ]
+}

@@ -1,6 +1,8 @@
+using System.Globalization;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Words;
@@ -71,7 +73,7 @@ public sealed class BookLayer : IFrameLayer
         // The headings: the title on the left page, the summary on the right, a rule under each.
         var left = geometry.ContentLeft;
         var right = geometry.ContentRight;
-        InkText(spriteBatch, font, $"{BookTabs.Title}  -  {BookTabs.LabelOf(page)}", new Vector2(left, geometry.TitleTop), InkKnown);
+        InkText(spriteBatch, font, $"{BookTabs.Title(view.Session.Locale)}  -  {BookTabs.LabelOf(view.Session.Locale, page)}", new Vector2(left, geometry.TitleTop), InkKnown);
         var summary = Fit(font, SummaryOf(view, page), geometry.DetailRight - geometry.DetailLeft);
         InkText(spriteBatch, font, summary, new Vector2(geometry.DetailRight - DrawHelpers.Width(font, summary), geometry.TitleTop), InkHint);
         spriteBatch.Draw(pixel, new Rectangle(left, geometry.RuleTop, right - left, 1), PageEdgeLine);
@@ -87,7 +89,7 @@ public sealed class BookLayer : IFrameLayer
         var y = geometry.ContentTop;
         if (lines.Count == 0)
         {
-            InkText(spriteBatch, font, EmptyText(page), new Vector2(left, y), InkHint);
+            InkText(spriteBatch, font, EmptyText(view.Session.Locale, page), new Vector2(left, y), InkHint);
         }
 
         for (var i = offset; i < lines.Count && i < offset + visible; i++)
@@ -98,7 +100,7 @@ public sealed class BookLayer : IFrameLayer
 
         if (lines.Count > visible)
         {
-            var position = $"lines {offset + 1} to {Math.Min(lines.Count, offset + visible)} of {lines.Count}   wheel, Page Up, Page Down";
+            var position = view.Session.Locale.Ui("bookLines", ("from", (offset + 1).ToString(CultureInfo.InvariantCulture)), ("to", Math.Min(lines.Count, offset + visible).ToString(CultureInfo.InvariantCulture)), ("count", lines.Count.ToString(CultureInfo.InvariantCulture)));
             position = Fit(font, position, right - left);
             InkText(spriteBatch, font, position, new Vector2(left, geometry.Paper.Bottom - 22), InkHint);
         }
@@ -118,10 +120,10 @@ public sealed class BookLayer : IFrameLayer
             DrawLeaf(spriteBatch, pixel, geometry, view.Book.TurnProgress, view.Book.TurnForward);
         }
 
-        DrawRibbons(spriteBatch, pixel, font, geometry, page); // over the leaf: the ribbons hang from the top edge whatever page is turning
+        DrawRibbons(spriteBatch, pixel, font, geometry, page, view.Session.Locale); // over the leaf: the ribbons hang from the top edge whatever page is turning
 
         var hintRoom = geometry.Panel.Width - 56;
-        var hints = Fit(font, DrawHelpers.Width(font, BookTabs.KeyHints) <= hintRoom ? BookTabs.KeyHints : BookTabs.KeyHintsShort, hintRoom);
+        var hints = Fit(font, DrawHelpers.Width(font, BookTabs.KeyHints(view.Session.Locale)) <= hintRoom ? BookTabs.KeyHints(view.Session.Locale) : BookTabs.KeyHintsShort(view.Session.Locale), hintRoom);
         DrawHelpers.Text(spriteBatch, font, hints, new Vector2(geometry.Panel.X + 28, geometry.Panel.Bottom - 24), Cream);
     }
 
@@ -174,7 +176,7 @@ public sealed class BookLayer : IFrameLayer
     }
 
     // The ribbons hang from above the top edge of the paper over the cover, a swallow-tail at the end; the ribbon of the page on screen is lit and hangs lower.
-    private static void DrawRibbons(SpriteBatch spriteBatch, Texture2D pixel, SpriteFontBase font, BookGeometry geometry, BookPage page)
+    private static void DrawRibbons(SpriteBatch spriteBatch, Texture2D pixel, SpriteFontBase font, BookGeometry geometry, BookPage page, LocaleText ui)
     {
         foreach (var tab in Enum.GetValues<BookPage>())
         {
@@ -196,7 +198,7 @@ public sealed class BookLayer : IFrameLayer
                 spriteBatch.Draw(pixel, new Rectangle(middle - half, body.Bottom - 1 - r, half * 2, 1), Paper);
             }
 
-            var label = BookTabs.LabelOf(tab);
+            var label = BookTabs.LabelOf(ui, tab);
             var x = rect.X + ((rect.Width - (int)DrawHelpers.Width(font, label)) / 2);
             DrawHelpers.Text(spriteBatch, font, label, new Vector2(x, geometry.TabsTop), UiPalette.RibbonLabel.ToColor()); // white on every ribbon, lit or not (X08: the cream label was 3.1 to 1 on the last)
         }
@@ -228,22 +230,22 @@ public sealed class BookLayer : IFrameLayer
         var session = view.Session;
         return page switch
         {
-            BookPage.Nouns => $"Known: {session.Words.Catalogue.Nouns.Count(noun => session.Words.RecordOf(noun.Lemma).Known)} of {session.Words.Catalogue.Nouns.Count}   ·   Session {session.PlaySession}",
-            BookPage.Phrases => $"Without help: {PhraseWithoutHelp(view)}   ·   Session {session.PlaySession}",
-            _ => $"Session {session.PlaySession}",
+            BookPage.Nouns => session.Locale.Ui("bookKnownNouns", ("known", session.Words.Catalogue.Nouns.Count(noun => session.Words.RecordOf(noun.Lemma).Known).ToString(CultureInfo.InvariantCulture)), ("count", session.Words.Catalogue.Nouns.Count.ToString(CultureInfo.InvariantCulture)), ("session", session.PlaySession.ToString(CultureInfo.InvariantCulture))),
+            BookPage.Phrases => session.Locale.Ui("bookWithoutHelp", ("count", PhraseWithoutHelp(view).ToString(CultureInfo.InvariantCulture)), ("session", session.PlaySession.ToString(CultureInfo.InvariantCulture))),
+            _ => session.Locale.Ui("bookSession", ("session", session.PlaySession.ToString(CultureInfo.InvariantCulture))),
         };
     }
 
-    private static string EmptyText(BookPage page) => page switch
+    private static string EmptyText(LocaleText ui, BookPage page) => page switch
     {
-        BookPage.Verbs => "No verbs yet. Use a verb in a sentence and it comes here.",
-        BookPage.Said => "Nothing said yet.",
-        _ => "Nothing here yet.",
+        BookPage.Verbs => ui.Ui("bookNoVerbs"),
+        BookPage.Said => ui.Ui("bookNothingSaid"),
+        _ => ui.Ui("bookNothing"),
     };
 
     private static int PhraseWithoutHelp(FrameView view)
     {
-        var rows = PhraseJournalRows.Build(view.Session.PhraseProgress, view.Session.StoredTime.UnixSeconds, view.Session.Credit);
+        var rows = PhraseJournalRows.Build(view.Session.PhraseProgress, view.Session.StoredTime.UnixSeconds, view.Session.Credit, view.Session.Locale);
         return rows.Count(static r => r is { HasScaffold: true, Level: SupportLevel.None });
     }
 
@@ -285,12 +287,13 @@ public sealed class BookLayer : IFrameLayer
         }
         else if (line.Practise is not null)
         {
-            // The "Practise again" button of a completed lesson (S26), at the right edge of its heading.
+            // The "Practise again" button of a completed lesson (S26), or the Phrases page's "Review now" (X06), at the right edge of its line.
             var box = new Rectangle(right - BookPractise.ButtonWidth, top + 1, BookPractise.ButtonWidth, BookGeometry.LineHeight - 3);
             spriteBatch.Draw(pixel, box, new Color(246, 236, 210));
             DrawHelpers.Border(spriteBatch, pixel, box, 1, InkKnown);
-            var labelWidth = (int)DrawHelpers.Width(font, BookPractise.Label);
-            InkText(spriteBatch, font, BookPractise.Label, new Vector2(box.X + ((box.Width - labelWidth) / 2), top + 1), InkKnown);
+            var practise = BookPractise.Label(view.Session.Locale, line.Practise);
+            var labelWidth = (int)DrawHelpers.Width(font, practise);
+            InkText(spriteBatch, font, practise, new Vector2(box.X + ((box.Width - labelWidth) / 2), top + 1), InkKnown);
             rightEdge = box.X - BookSpeakers.Gap;
         }
 
@@ -439,7 +442,7 @@ public sealed class BookLayer : IFrameLayer
         var sheet = new DetailSheet(spriteBatch);
         if (selected < 0 || lines[selected].Verb is not { } lemma || BookPages.VerbTable(view.Session, lemma) is not { } table)
         {
-            sheet.Add(BookGeometry.LineHeight, y => InkText(spriteBatch, font, "Choose a verb on the left page.", new Vector2(left, y), InkHint));
+            sheet.Add(BookGeometry.LineHeight, y => InkText(spriteBatch, font, view.Session.Locale.Ui("bookChooseVerb"), new Vector2(left, y), InkHint));
             PaintDetail(spriteBatch, view, geometry, font, sheet, selected);
             return;
         }
@@ -453,17 +456,17 @@ public sealed class BookLayer : IFrameLayer
                 InkText(spriteBatch, font, table.Gloss, new Vector2(left, y), InkSeen);
             }
         });
-        AddTable(sheet, view.Pixel, font, table, left, width);
+        AddTable(sheet, view.Pixel, font, table, left, width, view.Session.Locale);
         sheet.Add(6, static _ => { });
-        AddWrapped(sheet, font, "Highlighted: said (x = times). Plain: taught. Dash: not yet.", left, width, InkHint);
+        AddWrapped(sheet, font, view.Session.Locale.Ui("bookVerbKey"), left, width, InkHint);
 
         // What the learner said, as the verbs page listed it (S20): each form with its English, its count and the last sentence it was said in.
         var row = view.Session.Learner.Verbs.First(r => string.Equals(r.Lemma, lemma, StringComparison.Ordinal));
-        var said = BookPages.Verbs([row], view.Session.Glosses, view.Session.Phrases, view.Session.Bundle.SpanishMorphology()).Skip(1).Where(static l => l.Text.Length > 0).ToList();
+        var said = BookPages.Verbs(view.Session.Locale, [row], view.Session.Glosses, view.Session.Phrases, view.Session.Bundle.SpanishMorphology()).Skip(1).Where(static l => l.Text.Length > 0).ToList();
         sheet.Add(8, static _ => { });
         if (said.Count > 0)
         {
-            sheet.Add(BookGeometry.LineHeight, y => InkText(spriteBatch, font, "What you said", new Vector2(left, y), InkKnown));
+            sheet.Add(BookGeometry.LineHeight, y => InkText(spriteBatch, font, view.Session.Locale.Ui("bookWhatYouSaid"), new Vector2(left, y), InkKnown));
         }
 
         foreach (var form in said)
@@ -487,7 +490,7 @@ public sealed class BookLayer : IFrameLayer
     }
 
     // The table as rows of the scrolling page: a header row of tenses (row -1), then the five persons. Each row is drawn at its own top.
-    private static void AddTable(DetailSheet sheet, Texture2D pixel, SpriteFontBase font, ConjugationTable table, int left, int width)
+    private static void AddTable(DetailSheet sheet, Texture2D pixel, SpriteFontBase font, ConjugationTable table, int left, int width, LocaleText ui)
     {
         var perBlock = ConjugationLayout.ColumnsPerBlock(width, table.Columns.Count);
         for (var start = 0; start < table.Columns.Count; start += perBlock)
@@ -504,20 +507,20 @@ public sealed class BookLayer : IFrameLayer
                 var row = r;
 
                 // The table's top is the row's top less the rows above it (the header is above the first person's row).
-                sheet.Add(ConjugationLayout.RowHeight, y => DrawTableRow(sheet.Batch, pixel, font, table, left, y - ((row + 1) * ConjugationLayout.RowHeight), width, row, first, count));
+                sheet.Add(ConjugationLayout.RowHeight, y => DrawTableRow(sheet.Batch, pixel, font, table, left, y - ((row + 1) * ConjugationLayout.RowHeight), width, row, first, count, ui));
             }
         }
     }
 
     // One row of a table: -1 is the header of tenses and the rule under it; a person's row draws its label and its cells. A used form is highlighted with its count;
     // a taught one is plain; a form not taught is a dash.
-    private static void DrawTableRow(SpriteBatch spriteBatch, Texture2D pixel, SpriteFontBase font, ConjugationTable table, int left, int top, int width, int r, int firstColumn, int columns)
+    private static void DrawTableRow(SpriteBatch spriteBatch, Texture2D pixel, SpriteFontBase font, ConjugationTable table, int left, int top, int width, int r, int firstColumn, int columns, LocaleText ui)
     {
         if (r < 0)
         {
             for (var c = 0; c < columns; c++)
             {
-                DrawCentred(spriteBatch, font, table.Columns[firstColumn + c].Title, ToRectangle(ConjugationLayout.Header(left, top, width, columns, c)), InkKnown);
+                DrawCentred(spriteBatch, font, ui.Ui(table.Columns[firstColumn + c].TitleId), ToRectangle(ConjugationLayout.Header(left, top, width, columns, c)), InkKnown);
             }
 
             spriteBatch.Draw(pixel, new Rectangle(left, top + ConjugationLayout.RowHeight - 2, width, 1), PageEdgeLine);
@@ -605,7 +608,7 @@ public sealed class BookLayer : IFrameLayer
         sheet.PaintFrom(geometry.ContentTop, geometry.ContentBottom, book.DetailOffset);
         if (DetailScroll.MoreBelow(book.DetailOffset, sheet.Height, height))
         {
-            const string marker = "more below";
+            var marker = view.Session.Locale.Ui("bookMoreBelow");
             var width = (int)DrawHelpers.Width(font, marker);
             InkText(spriteBatch, font, marker, new Vector2(geometry.DetailRight - width, geometry.Paper.Bottom - 22), InkHint);
         }

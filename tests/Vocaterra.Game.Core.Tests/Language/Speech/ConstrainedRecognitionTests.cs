@@ -29,6 +29,7 @@ public sealed class ConstrainedRecognitionTests(ITestOutputHelper output)
     }
 
     [ModelFact(needsKokoro: true)]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void TheDemoLinesInBothModes()
     {
         using var engine = SpeechEngine.TryCreate(out _)!;
@@ -63,6 +64,7 @@ public sealed class ConstrainedRecognitionTests(ITestOutputHelper output)
     }
 
     [ModelFact(needsKokoro: true)]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void ConstrainedRecognitionOfTheStallsAnswersGivesTheIntentsAndSureWords()
     {
         using var engine = SpeechEngine.TryCreate(out _)!;
@@ -86,6 +88,7 @@ public sealed class ConstrainedRecognitionTests(ITestOutputHelper output)
     }
 
     [ModelFact(needsKokoro: true)]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void AGarbledSpokenLineAtTheStallIsAnUncertainRecognitionNeverALanguageFailureAndThreeOfThemOfferChoices()
     {
         using var session = TestGame.NewSession();

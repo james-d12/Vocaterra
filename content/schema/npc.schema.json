@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/npcs/<id>.json",
+  "description": "One NPC (CONTENT_PLAN C08): only what no other file holds. Loaded by NpcRoster (Vocaterra.Game.Core).",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "id",
+    "label",
+    "figure"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "enum": [
+        1
+      ]
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The agent id, the file's name: agents/<id>.json has the same id, the scene places it, the saves name it."
+    },
+    "label": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The target-language label over the head and on the dialogue panel (Guía)."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The NPC's own name (Luna); the beacon shows it, or the label when there is none."
+    },
+    "figure": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The key of the NPC's figure: its colours, geometry and face are drawn by the game."
+    },
+    "focus": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "description": "By prompt of this NPC: the learner phrases it practises (they are at home with this NPC and have a scaffold to fade)."
+    }
+  }
+}

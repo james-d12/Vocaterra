@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Graphics.World;
 using Vocaterra.Game.UI.Common;
@@ -18,8 +19,10 @@ public readonly record struct MicCheckLayout
     /// <param name="viewportHeight">The window's height.</param>
     /// <param name="buttons">The buttons to lay out.</param>
     /// <param name="measure">The width of a text in pixels.</param>
-    public MicCheckLayout(int viewportWidth, int viewportHeight, IReadOnlyList<MicCheckButton> buttons, Func<string, float> measure)
+    /// <param name="ui">The support language (the buttons' labels).</param>
+    public MicCheckLayout(int viewportWidth, int viewportHeight, IReadOnlyList<MicCheckButton> buttons, Func<string, float> measure, LocaleText ui)
     {
+        ArgumentNullException.ThrowIfNull(ui);
         ArgumentNullException.ThrowIfNull(buttons);
         ArgumentNullException.ThrowIfNull(measure);
         var width = Math.Min(Width, Math.Max(viewportWidth - 32, 200));
@@ -30,7 +33,7 @@ public readonly record struct MicCheckLayout
         var y = Panel.Bottom - 54;
         foreach (var button in buttons)
         {
-            var w = (int)Math.Ceiling(measure(MicCheckModel.LabelOf(button))) + 28;
+            var w = (int)Math.Ceiling(measure(MicCheckModel.LabelOf(ui, button))) + 28;
             placed.Add((button, new PixelBox(x, y, w, 32)));
             x += w + 12;
         }

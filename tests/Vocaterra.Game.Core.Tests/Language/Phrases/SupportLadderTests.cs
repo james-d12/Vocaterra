@@ -18,7 +18,7 @@ public sealed class SupportLadderTests
 
     private static readonly CreditRules Rules = CreditRules.Default;
 
-    private static PhraseSheet Sheet => PhraseSheet.Load(TestGame.Bundle);
+    private static PhraseSheet Sheet => RouteScene.DataOf(TestGame.Bundle).Phrases;
 
     private static PhraseUse Use(PhraseUseKind kind, long time, InputKind input = InputKind.Spoken, string phrase = "pedir-agua") =>
         new(time * 60, time, phrase, kind, "shopkeeper", "stall-need", "line", null, input, true, SupportLevel.None, null);
@@ -27,7 +27,7 @@ public sealed class SupportLadderTests
     private static (PhraseProgress Progress, PhraseSupport Support) At(SupportLevel rung)
     {
         var sheet = Sheet;
-        var progress = new PhraseProgress(sheet);
+        var progress = new PhraseProgress(sheet, 1, TestGame.Data.Npcs.ScaffoldPhrases);
         var times = new[] { T0, T0 + (11 * Minute), T0 + (72 * Minute) };
         for (var i = 0; i < (int)rung; i++)
         {
@@ -35,7 +35,7 @@ public sealed class SupportLadderTests
         }
 
         Assert.Equal(rung, progress.LevelOf("pedir-agua"));
-        var support = new PhraseSupport(sheet, progress, TestGame.Bundle, EnglishText.Load(TestGame.Bundle, sheet));
+        var support = new PhraseSupport(sheet, progress, TestGame.Bundle, TestGame.Data.Npcs, RouteScene.DataOf(TestGame.Bundle).Locale);
         _ = support.Show("shopkeeper", "stall-need");
         return (progress, support);
     }
@@ -133,7 +133,7 @@ public sealed class SupportLadderTests
     [Fact]
     public void ARungStepsDownOnACorrectUseAndTheEnglishRungNeedsNoGapWhileTheOthersDo()
     {
-        var progress = new PhraseProgress(Sheet);
+        var progress = new PhraseProgress(Sheet, 1, TestGame.Data.Npcs.ScaffoldPhrases);
 
         var one = progress.Apply(Use(PhraseUseKind.Supported, T0), Rules).Single();
         var early = progress.Apply(Use(PhraseUseKind.Supported, T0 + 30), Rules).Single();
@@ -151,7 +151,7 @@ public sealed class SupportLadderTests
     [Fact]
     public void ANewSessionLiftsTheGapOfTheCardRungButTheEnglishRungNeverHadOne()
     {
-        var progress = new PhraseProgress(Sheet);
+        var progress = new PhraseProgress(Sheet, 1, TestGame.Data.Npcs.ScaffoldPhrases);
         _ = progress.Apply(Use(PhraseUseKind.Supported, T0), Rules); // card rung, credited at T0
         progress.Session = 2;
 
@@ -165,7 +165,7 @@ public sealed class SupportLadderTests
     {
         foreach (var kind in new[] { PhraseUseKind.DontKnow, PhraseUseKind.Choice, PhraseUseKind.FailForward })
         {
-            var progress = new PhraseProgress(Sheet);
+            var progress = new PhraseProgress(Sheet, 1, TestGame.Data.Npcs.ScaffoldPhrases);
             _ = progress.Apply(Use(PhraseUseKind.Supported, T0), Rules);
             _ = progress.Apply(Use(PhraseUseKind.Supported, T0 + (11 * Minute)), Rules);
             _ = progress.Apply(Use(PhraseUseKind.Supported, T0 + (72 * Minute)), Rules);
@@ -188,7 +188,7 @@ public sealed class SupportLadderTests
     [Fact]
     public void AHalfCreditTypedUseNeedsTwoToStepAndAnEarlyCorrectUseIsLoggedAndDoesNotStep()
     {
-        var progress = new PhraseProgress(Sheet);
+        var progress = new PhraseProgress(Sheet, 1, TestGame.Data.Npcs.ScaffoldPhrases);
         _ = progress.Apply(Use(PhraseUseKind.Supported, T0), Rules); // card rung
 
         var first = progress.Apply(Use(PhraseUseKind.Supported, T0 + (11 * Minute), InputKind.Typed), Rules).Single();
@@ -203,8 +203,8 @@ public sealed class SupportLadderTests
     public void ThePhrasesALessonTeachesJoinTheLadderAndTheOthersStayOffIt()
     {
         var sheet = Sheet;
-        var plain = new PhraseProgress(sheet);
-        var taught = new PhraseProgress(sheet, 1, ["hola", "gracias"]);
+        var plain = new PhraseProgress(sheet, 1, TestGame.Data.Npcs.ScaffoldPhrases);
+        var taught = new PhraseProgress(sheet, 1, [.. TestGame.Data.Npcs.ScaffoldPhrases, "hola", "gracias"]);
 
         Assert.Equal(SupportLevel.None, plain.LevelOf("hola"));
         Assert.Equal(SupportLevel.EnglishAndCard, taught.LevelOf("hola"));

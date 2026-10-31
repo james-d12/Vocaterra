@@ -1,6 +1,8 @@
+using System.Globalization;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Checks;
@@ -24,24 +26,35 @@ public sealed class CheckLayer : IFrameLayer
     private static readonly Color Good = new(120, 220, 130);
     private static readonly Color Warn = new(255, 150, 120);
 
-    /// <summary>The title of a battery: what it is for.</summary>
+    /// <summary>The title of a battery: what it is for (<c>Check: before the game</c>; <c>ui.checkTitle</c>, C04).</summary>
+    /// <param name="ui">The support language.</param>
     /// <param name="kind">The check kind.</param>
-    public static string TitleOf(CheckKind kind) => kind switch
+    public static string TitleOf(LocaleText ui, CheckKind kind) => Ui(ui).Ui("checkTitle", ("what", ShortTitleOf(ui, kind)));
+
+    /// <summary>The title without its <c>Check:</c> (a narrow card, so the title and the count do not meet).</summary>
+    /// <param name="ui">The support language.</param>
+    /// <param name="kind">The check kind.</param>
+    public static string ShortTitleOf(LocaleText ui, CheckKind kind) => Ui(ui).Ui(kind switch
     {
-        CheckKind.Pre => "Check: before the game",
-        CheckKind.Post => "Check: after the game",
-        CheckKind.Recall => "Check: recall",
+        CheckKind.Pre => "checkPre",
+        CheckKind.Post => "checkPost",
+        CheckKind.Recall => "checkRecall",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown check kind."),
-    };
+    });
 
     /// <summary>The line under the question of a comprehension item.</summary>
-    public const string ComprehensionHint = "The line plays once (R hears it again). Press 1, 2 or 3 for the meaning.";
+    /// <param name="ui">The support language.</param>
+    public static string ComprehensionHint(LocaleText ui) => Ui(ui).Ui("checkComprehensionHint");
 
     /// <summary>The line before the situation of a production item.</summary>
-    public const string ProductionPreface = "Say it in Spanish, the way you would to the person in this situation.";
+    /// <param name="ui">The support language.</param>
+    public static string ProductionPreface(LocaleText ui) => Ui(ui).Ui("checkProductionPreface");
 
     /// <summary>The line under the situation of a production item.</summary>
-    public const string ProductionHint = "Hold V and speak, or W to type. N: I don't know (no sé). Enter sends what you typed.";
+    /// <param name="ui">The support language.</param>
+    public static string ProductionHint(LocaleText ui) => Ui(ui).Ui("checkProductionHint");
+
+    private static LocaleText Ui(LocaleText ui) => ui ?? throw new ArgumentNullException(nameof(ui));
 
     /// <summary>The panel's rectangle in a window of this size (centred; <see cref="CheckCardLayout.PanelFor"/>).</summary>
     /// <param name="viewportWidth">The window's width.</param>
@@ -71,12 +84,13 @@ public sealed class CheckLayer : IFrameLayer
         var box = new PixelBox(panel.X, panel.Y, panel.Width, panel.Height);
         var side = CheckCardLayout.SideFor(box);
         var compact = CheckCardLayout.IsCompact(box);
-        var progress = check.IsDone ? "Done" : $"Item {check.Index + 1} of {check.Plan.Count}";
+        var ui = view.Session.Locale;
+        var progress = check.IsDone ? ui.Ui("checkDone") : ui.Ui("checkItem", ("index", (check.Index + 1).ToString(CultureInfo.InvariantCulture)), ("count", check.Plan.Count.ToString(CultureInfo.InvariantCulture)));
         var progressWidth = DrawHelpers.Width(small, progress);
-        var titleText = TitleOf(check.Kind);
+        var titleText = TitleOf(ui, check.Kind);
         if (side + DrawHelpers.Width(title, titleText) + 12 + progressWidth + side > panel.Width)
         {
-            titleText = titleText.Replace("Check: ", string.Empty, StringComparison.Ordinal); // a narrow card drops "Check: " so the title and the count do not meet
+            titleText = ShortTitleOf(ui, check.Kind); // a narrow card drops "Check: " so the title and the count do not meet
         }
 
         DrawHelpers.Text(spriteBatch, title, titleText, new Vector2(panel.Left + side, panel.Top + (compact ? 12 : 18)), Gold);
@@ -90,7 +104,7 @@ public sealed class CheckLayer : IFrameLayer
             }
             else
             {
-                DrawProduction(spriteBatch, pixel, check, entry, panel, title, small);
+                DrawProduction(spriteBatch, pixel, check, entry, panel, title, small, ui);
             }
         }
         else
@@ -98,8 +112,8 @@ public sealed class CheckLayer : IFrameLayer
             var answered = check.Results.Count(static r => r.Input != CheckInput.Skipped);
             var skipped = check.Results.Count(static r => r.Input == CheckInput.Skipped);
             var doneTop = compact ? 90 : 150;
-            DrawHelpers.Text(spriteBatch, title, "Thank you.", new Vector2(panel.Left + side, panel.Top + doneTop), Good);
-            DrawHelpers.Text(spriteBatch, small, $"{answered} answered, {skipped} skipped.", new Vector2(panel.Left + side, panel.Top + doneTop + 50), Dim);
+            DrawHelpers.Text(spriteBatch, title, ui.Ui("checkThanks"), new Vector2(panel.Left + side, panel.Top + doneTop), Good);
+            DrawHelpers.Text(spriteBatch, small, ui.Ui("checkCounts", ("answered", answered.ToString(CultureInfo.InvariantCulture)), ("skipped", skipped.ToString(CultureInfo.InvariantCulture))), new Vector2(panel.Left + side, panel.Top + doneTop + 50), Dim);
             if (check.Closing is { } closing)
             {
                 // The playtest's closing note (S12): one line per row of the text.
@@ -118,7 +132,7 @@ public sealed class CheckLayer : IFrameLayer
         }
 
         var thinking = check.Phase == CheckPhase.Thinking;
-        var footer = thinking ? "Thinking..." : check.IsDone ? (check.Closing is null ? "The answers are in the session log." : "Esc: close the game") : "Esc: end the check (the rest is skipped)";
+        var footer = ui.Ui(thinking ? "checkThinking" : check.IsDone ? (check.Closing is null ? "checkInLog" : "checkCloseGame") : "checkEnd");
         DrawHelpers.Text(spriteBatch, small, DrawHelpers.Fit(small, footer, panel.Width - (2 * side)), new Vector2(panel.Left + side, CheckCardLayout.FooterY(box)), thinking ? Gold : Dim);
     }
 
@@ -136,7 +150,7 @@ public sealed class CheckLayer : IFrameLayer
         var layout = CheckCardLayout.ForComprehension(
             new PixelBox(panel.X, panel.Y, panel.Width, panel.Height),
             entry.Item.Question,
-            ComprehensionHint,
+            ComprehensionHint(view.Session.Locale),
             shown.Select(static o => (o.Label, o.Icon is not null)).ToList(),
             t => DrawHelpers.Width(title, t),
             t => DrawHelpers.Width(small, t));
@@ -168,13 +182,13 @@ public sealed class CheckLayer : IFrameLayer
         }
     }
 
-    private static void DrawProduction(SpriteBatch spriteBatch, Texture2D pixel, CheckScreen check, CheckPlanEntry entry, Rectangle panel, SpriteFontBase title, SpriteFontBase small)
+    private static void DrawProduction(SpriteBatch spriteBatch, Texture2D pixel, CheckScreen check, CheckPlanEntry entry, Rectangle panel, SpriteFontBase title, SpriteFontBase small, LocaleText ui)
     {
         var layout = CheckCardLayout.ForProduction(
             new PixelBox(panel.X, panel.Y, panel.Width, panel.Height),
-            ProductionPreface,
+            ProductionPreface(ui),
             entry.Item.Situation,
-            ProductionHint,
+            ProductionHint(ui),
             t => DrawHelpers.Width(title, t),
             t => DrawHelpers.Width(small, t));
         var card = new PixelBox(panel.X, panel.Y, panel.Width, panel.Height);
@@ -194,7 +208,7 @@ public sealed class CheckLayer : IFrameLayer
         }
         else
         {
-            DrawHelpers.Text(spriteBatch, small, check.Listening ? "Listening..." : "Your answer appears here.", new Vector2(box.Left + 12, box.Top + ((box.Height - 16) / 2)), Dim);
+            DrawHelpers.Text(spriteBatch, small, ui.Ui(check.Listening ? "checkListening" : "checkAnswerHere"), new Vector2(box.Left + 12, box.Top + ((box.Height - 16) / 2)), Dim);
         }
     }
 }

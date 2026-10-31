@@ -4,7 +4,6 @@ using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Mathematics;
-using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Graphics.Blocks;
@@ -13,7 +12,6 @@ using Vocaterra.Game.Graphics.Figures;
 using Vocaterra.Game.Graphics.World;
 using Vocaterra.Game.Startup;
 using Vocaterra.Game.UI.Dialogue;
-using Vocaterra.Nlp.Content;
 using Xunit.Abstractions;
 
 namespace Vocaterra.Game.Tests.Component;
@@ -21,9 +19,6 @@ namespace Vocaterra.Game.Tests.Component;
 /// <summary>The front-end pieces of S15 that need no graphics card: the figures and their poses, the facing rule, the F5 view, the arm's held item and light, the recipe panel and the speaker's bubble.</summary>
 public sealed class VillageFrontendTests(ITestOutputHelper output)
 {
-    private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-    private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
-
     // ---- the facing rule ----
 
     [Theory]
@@ -400,7 +395,7 @@ public sealed class VillageFrontendTests(ITestOutputHelper output)
     [Fact]
     public void TheRecipePanelShowsTheOutputAndEachIngredientWithHaveAndNeed()
     {
-        var session = RouteScene.NewSession(Bundle.Value, Nouns.Value, CreditRules.FullTyped);
+        var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns, CreditRules.FullTyped);
         var book = session.Recipes;
         session.Simulation.GrantItems(ItemId.Wood, 1);
         var rows = CraftingScreen.Rows(session.Simulation, book);
@@ -424,7 +419,7 @@ public sealed class VillageFrontendTests(ITestOutputHelper output)
     [Fact]
     public void TheRecipePanelIsOnlyShownWhereTheStationIsInReach()
     {
-        var session = RouteScene.NewSession(Bundle.Value, Nouns.Value, CreditRules.FullTyped);
+        var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns, CreditRules.FullTyped);
         session.Simulation.GrantItems(ItemId.Wood, 2);
         var rows = CraftingScreen.Rows(session.Simulation, session.Recipes);
         Assert.Empty(RecipePanelModel.AtStation(rows, static _ => false));
@@ -461,7 +456,7 @@ public sealed class VillageFrontendTests(ITestOutputHelper output)
     [Fact]
     public void TheBubbleShowsTheSpeakersNewestLineCutToThreeRows()
     {
-        var dialogue = new DialogueModel(new InputFocus(), "¡Hola! Soy la guía.");
+        var dialogue = new DialogueModel(new InputFocus(), "¡Hola! Soy la guía.", RouteScene.Shipped);
         Assert.Null(DialogueBubble.LineOf(dialogue)); // nothing said yet
         dialogue.Open();
         Assert.Equal("¡Hola! Soy la guía.", DialogueBubble.LineOf(dialogue));

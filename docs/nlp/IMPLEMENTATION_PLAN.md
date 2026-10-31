@@ -236,6 +236,8 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M51 | Game finding (S27): `ir` + a bare infinitive with no `a` (`voy comer pan`) passes clean (state_action, no error). Flag it, expected `ir a` + infinitive (`voy a comer`), under `conj.tense` or a better-fitting tag; regression tests; no fuzz oracle weakened (check the generator does not produce `ir` + infinitive as a correct sentence) | M49 | S | done (merged to `feature/experiment` 2026-10-23, `e70441c`; experiment X02) |
 | M52 | Merge the 11 core libraries into one language-neutral `src/Vocaterra.Nlp` (owner, 2026-10-26; D14 amendment). Each old project becomes a folder and the namespaces do not change. The 11 unit test projects become `tests/Vocaterra.Nlp.Tests`; Fuzzing and Golden stay separate. `LayeringTests` (NetArchTest.Rules) enforces today's project graph; `VocaterraCore` in `Directory.Build.props` matches the new name; `Vocaterra.Nlp.slnf` is recreated (missing today, so the licence scan is broken); ADR 0012. No behaviour change: the identity guard is green, the `content/game-v1` hash and the goldens are unchanged. Spec: `docs/nlp/research/2026-10-26-engine-and-language-packs.md` §5.1 | M31 | H | done (merged to `feature/language-packs` `1976508`) |
 | M53 | Extract the Spanish pack into `src/Vocaterra.Nlp.Es` (+ `tests/Vocaterra.Nlp.Es.Tests`), namespace `Vocaterra.Nlp.Es.*`. Hosts register packs through `ContentLoadOptions.LanguagePacks` (the engine cannot reference a pack); `LayeringTests` adds the rule that the engine does not depend on Es; the toy pack runs against the engine alone. The identity guard stays byte-identical. Spec: same document, §5.2 | M35 | S | done (merged to `feature/language-packs` `65de544`, 2026-10-27) |
+| M54 | Game finding (the C series, `docs/game/CONTENT_PLAN.md` C01): the Spanish identity guard pinned the bytes of `content/game-v1`. The verdicts stamp the bundle's content hash, which the `grade` and `pipeline` stages hashed, so any edit of the bundle, even one that changes no Spanish behaviour (a game file's `$schema`), failed it, against the rule that no core test pins the hash. The guard masks the hash before hashing, and the baseline is recorded again once | M31 | S | done (on `feature/content`, 2026-10-29) |
+| M55 | Game finding (the C series, C03): four manifest tests used `content/game-v1`'s manifest as the example of one without language fields. game-v1 now names its support language (`supportLanguage: en`, the default locale of the game's locale bundle), so the tests strip that optional field from the example themselves, and one asserts that the support language stays out of the hash | M32 | S | done (on `feature/content`, 2026-10-29) |
 
 ### Delegation waves
 
@@ -1192,6 +1194,39 @@ merge into a feature branch that is pushed, and the owner merges it into `main` 
   - **Gate.** 5,445 passed (Nlp 2,452, Es 1,129, Fuzzing 76, Golden 17, Game.Core 863, Game 872, Host 36; 7 new, none lost), 3 skipped,
     0 failed; licence scan passed (30 packages); fuzz at 10,000 grammar iterations green; `identity-check.sh f4694ff` passed (the G2P golden
     and `exceptions.json` are pure renames); the CLI demo and the host demo are unchanged.
+- **Test performance, the core's half (2026-10-29, Opus 5.5, `feature/test-performance`; plan `docs/TEST_PERFORMANCE_PLAN.md`, T2, T3, T4).**
+  - **One bundle load per test process.** `GameBundleLocator.Bundle` (tests/Shared) loads `content/game-v1` once with every hash verified;
+    Nlp.Tests' two loads and Golden.Tests' three use it. The CLI tests still load through `--content` (the CLI takes no `LexiconCache`).
+  - **The model gate verifies each model once.** `ModelGate.IsAvailable` keeps its verdict per id; the pipeline tests' copy of the gate is
+    gone. Measured: the gates hash Vosk (58 MB) and Parakeet (641 MB) at about 1 GB/s, so the saving is seconds.
+  - **The serial collection.** Its 33 plain facts were not moved out: they take 0.2 s in all. Its cost is the model tests themselves (23.7 s with
+    models, at the end of Nlp.Tests), which is why Nlp.Tests takes 59 s with models and 36 s without. T3b (owner, 2026-10-29) lets the
+    collection run beside the assembly's other tests (its own tests still one at a time): Nlp.Tests alone with models went from 53.5 s
+    to 34.4 s in three green runs. It reverses M52's choice that these tests never run beside another test.
+  - **Fast tier:** `scripts/test.sh fast` leaves out the fuzz suite (an assembly trait), the 17 model-gated facts, `CliTests`, `ProgramTests`,
+    `LintTests`, `LintCommandTests`, `SpanishIdentityTests` and three long single tests; Nlp.Tests runs 2,313 of 2,455 tests in 11 s. The
+    gate, CI and `scripts/test.sh full` run the whole suite at its full depth; no oracle changed.
+  - **O15 is the fuzz suite's longest test** (52 to 55 s of 63 s). It already shares the lexicon and hard-links the speech; a cheaper
+    equivalent with the same oracle needs `ContentLoader` to read an in-memory file source, a core API change (T6). The owner declined a shallower local
+    fuzz pass (T5): the suite runs at its one full depth.
+
+- **M54, the identity guard masks the bundle hash (2026-10-29, Opus 5.5; on `feature/content`, for the game's C series).**
+  - **Found:** C01 added a `$schema` line to each of the game's files in `content/game-v1/game/`. The identity guard then failed on 12,698 of
+    44,618 stage checks, every `grade` and every `pipeline`. Their verdicts carry the bundle's content hash in their version stamp, and
+    `content/game-v1` had not changed since the guard was recorded at M31, so the coupling had never shown.
+  - **Proof that no behaviour changed:** with the new hash replaced by the old one in each stage's JSON before hashing, the unchanged baseline
+    passed (2 of 2 tests). The guard now masks `Bundle.ContentHash` (`<bundle-hash>`), and the baseline was recorded again in its own commit.
+    The masked JSON of the old and the new bundle is the same text, so the masked baseline holds for both.
+  - **The rule after M54:** an edit of `content/game-v1` that changes no Spanish behaviour moves no identity hash. A hash that moves is a real
+    change, and the old Phase A rule stands (re-record only for a deliberate Spanish change, in its own commit). `scripts/identity-check.sh` still
+    checks that the bundle hash is unchanged, which only Phase A asked for; it is not part of the gate.
+
+- **M55, the manifest tests stop assuming game-v1 has no support language (2026-10-29, Opus 5.5; on `feature/content`, for the game's C03).**
+  - `ManifestLanguageTests` (three tests) and `ManifestTests.TheManifestSerializesOneFilePerLineAndRoundTrips` read `TestSupport.Bundle.Manifest`
+    as a manifest without `language` and `supportLanguage`. The game's C03 records `supportLanguage: en` in it (the core's M32 field, recorded
+    and never read by the core).
+  - The tests now take the example `with { SupportLanguage = null }`, and `WithoutALanguageTheHashIsExactlyTheOldCombineOfPathsAndHashes` checks
+    that the hash is still the plain combination of paths and hashes with the support language present. No behaviour of the core changed.
 
 ## 6. Definition of done (every milestone)
 

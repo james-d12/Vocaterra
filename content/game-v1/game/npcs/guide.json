@@ -1,0 +1,9 @@
+{
+  "$schema": "../../../schema/npc.schema.json",
+  "schemaVersion": 1,
+  "id": "guide",
+  "label": "Guía",
+  "name": "Luna",
+  "figure": "guide",
+  "focus": {}
+}

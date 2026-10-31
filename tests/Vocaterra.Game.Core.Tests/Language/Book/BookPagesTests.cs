@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Learner;
@@ -6,8 +7,8 @@ using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tip;
-using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Es;
@@ -17,11 +18,9 @@ namespace Vocaterra.Game.Core.Tests.Language.Book;
 // What each page of the book lists for a fixed record (S20): built from history entries folded by the learner's record, and from fixed lesson rows.
 public sealed class BookPagesTests
 {
-    private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-    private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
-    private static readonly Lazy<PhraseSheet> Sheet = new(() => PhraseSheet.Load(Bundle.Value));
-    private static readonly Lazy<EnglishText> English = new(() => EnglishText.Load(Bundle.Value, Sheet.Value));
-    private static readonly Lazy<VerbGlosses> Glosses = new(() => VerbGlosses.Load(Bundle.Value));
+    private static readonly Lazy<PhraseSheet> Sheet = new(() => TestGame.Data.Phrases);
+    private static readonly Lazy<LocaleText> English = new(() => TestGame.Data.Locale);
+    private static readonly Lazy<VerbGlosses> Glosses = new(() => TestGame.Data.Glosses);
 
     private static InputEntry Entry(long id, string text, IReadOnlyList<GuideWord> words, InputSource source = InputSource.Voice, string? npc = "guide",
         InputPlace place = InputPlace.Dialogue, string? unit = null, bool communicated = true, IReadOnlyList<GuideError>? errors = null, string intent = "ask_directions") =>
@@ -58,7 +57,7 @@ public sealed class BookPagesTests
 
     private static WordProgress Words()
     {
-        var words = new WordProgress(Nouns.Value);
+        var words = new WordProgress(TestGame.Nouns);
         words.MarkHeard("agua");
         return words;
     }
@@ -69,7 +68,7 @@ public sealed class BookPagesTests
     public void TheNounsPageListsTheCatalogueWordsAndThenTheOtherNounsWithTheirArticlesAndUses()
     {
         var record = FixedRecord();
-        var lines = BookPages.Nouns(Words(), record.Nouns, 0, Article, Sheet.Value);
+        var lines = BookPages.Nouns(TestGame.Data.Locale, Words(), record.Nouns, 0, Article, Sheet.Value, "¿?");
         var texts = lines.Select(static l => l.Text).ToList();
 
         Assert.Contains("el agua", texts); // a catalogue noun, seen: its article from the catalogue
@@ -87,7 +86,7 @@ public sealed class BookPagesTests
     [Fact]
     public void TheNounsPageNeverListsAFixedExpressionOrAnInterjection()
     {
-        var lines = BookPages.Nouns(Words(), FixedRecord().Nouns, 0, Article, Sheet.Value);
+        var lines = BookPages.Nouns(TestGame.Data.Locale, Words(), FixedRecord().Nouns, 0, Article, Sheet.Value, "¿?");
         // No heading is the expression, and no form of it is listed; a last sentence may quote it, as any sentence does.
         Assert.DoesNotContain(lines, static l => l.Text.StartsWith("por favor", StringComparison.Ordinal) || l.Text.StartsWith("gracias", StringComparison.Ordinal));
         Assert.DoesNotContain(lines, static l => l.Text.StartsWith("forms: ", StringComparison.Ordinal) && (l.Text.Contains("favor", StringComparison.Ordinal) || l.Text.Contains("gracias", StringComparison.Ordinal)));
@@ -96,7 +95,7 @@ public sealed class BookPagesTests
     [Fact]
     public void TheVersesPageGivesEachInfinitiveWithItsEnglishAndEachFormWithItsLabel()
     {
-        var lines = BookPages.Verbs(FixedRecord().Verbs, Glosses.Value, Sheet.Value, Bundle.Value.SpanishMorphology());
+        var lines = BookPages.Verbs(TestGame.Data.Locale, FixedRecord().Verbs, Glosses.Value, Sheet.Value, TestGame.Bundle.SpanishMorphology());
         var texts = lines.Select(static l => l.Text).ToList();
 
         Assert.Equal("querer — to want", texts[0]);
@@ -123,7 +122,7 @@ public sealed class BookPagesTests
         record.Append(Entry(3, "Está aquí.", [
             Word("está", "estar", "verb", 0, "2", "sg", null, "imp"),
         ]));
-        var texts = BookPages.Verbs(record.Verbs, Glosses.Value, Sheet.Value, Bundle.Value.SpanishMorphology()).Select(static l => l.Text).ToList();
+        var texts = BookPages.Verbs(TestGame.Data.Locale, record.Verbs, Glosses.Value, Sheet.Value, TestGame.Bundle.SpanishMorphology()).Select(static l => l.Text).ToList();
 
         Assert.Contains("vamos — we go", texts);
         Assert.Contains("está — he/she/it is", texts); // an imperative reading that is the present of estar
@@ -137,7 +136,7 @@ public sealed class BookPagesTests
     [Fact]
     public void TheVersesPageNeverListsAFixedExpressionOrAnInterjection()
     {
-        var lines = BookPages.Verbs(FixedRecord().Verbs, Glosses.Value, Sheet.Value, Bundle.Value.SpanishMorphology());
+        var lines = BookPages.Verbs(TestGame.Data.Locale, FixedRecord().Verbs, Glosses.Value, Sheet.Value, TestGame.Bundle.SpanishMorphology());
         Assert.DoesNotContain(lines, static l => l.Text.StartsWith("por favor", StringComparison.Ordinal) || l.Text.StartsWith("gracias", StringComparison.Ordinal));
         Assert.DoesNotContain(lines, static l => l.Text.Contains(" — ", StringComparison.Ordinal) && (l.Text.StartsWith("por", StringComparison.Ordinal) || l.Text.StartsWith("gracias", StringComparison.Ordinal)));
     }
@@ -148,15 +147,15 @@ public sealed class BookPagesTests
         var sheetRow = Sheet.Value.Find("pedir-agua")!;
         var record = new LearnerRecord();
         record.Append(Entry(1, sheetRow.Spanish, [Word("quiero", "querer", "verb", 0, "1", "sg", "pres", "ind")]));
-        var verbs = BookPages.Verbs(record.Verbs, Glosses.Value, Sheet.Value, Bundle.Value.SpanishMorphology());
+        var verbs = BookPages.Verbs(TestGame.Data.Locale, record.Verbs, Glosses.Value, Sheet.Value, TestGame.Bundle.SpanishMorphology());
         Assert.Contains(verbs, line => line.Text == $"last: \"{sheetRow.Spanish}\" = {sheetRow.English}");
     }
 
     [Fact]
     public void ThePhrasesPageListsEveryPhraseWithItsEnglishAndItsHelp()
     {
-        var progress = new PhraseProgress(Sheet.Value);
-        var rows = PhraseJournalRows.Build(progress, 0, CreditRules.Default);
+        var progress = new PhraseProgress(Sheet.Value, 1, TestGame.Data.Npcs.ScaffoldPhrases);
+        var rows = PhraseJournalRows.Build(progress, 0, CreditRules.Default, TestGame.Data.Locale);
         var lines = BookPages.Phrases(rows);
         var first = rows[0];
         Assert.Equal(first.Spanish, lines[0].Text);
@@ -176,7 +175,7 @@ public sealed class BookPagesTests
         var partial = new LessonRecordRow(
             "second", "Second", "english", LessonStatus.InProgress, 3,
             [new LessonUnitRow("u1-a", StepOutcome.Done)], null, 0, 0, 0, 0, [], null, ["u1-a", "u2-a"]);
-        var lines = BookPages.Lessons([done, partial], Sheet.Value);
+        var lines = BookPages.Lessons(TestGame.Data.Locale, [done, partial], Sheet.Value);
         var texts = lines.Select(static l => l.Text).ToList();
 
         Assert.Equal("First words with Luna", texts[0]);
@@ -200,7 +199,7 @@ public sealed class BookPagesTests
     public void ALessonNotStartedSaysSo()
     {
         var notStarted = new LessonRecordRow("third", "Third", "english", LessonStatus.NotStarted, 4, [], null, 0, 0, 0, 0, [], null, ["u1-a"]);
-        var lines = BookPages.Lessons([notStarted], Sheet.Value);
+        var lines = BookPages.Lessons(TestGame.Data.Locale, [notStarted], Sheet.Value);
         Assert.Equal("not started", lines[0].Aside);
         Assert.DoesNotContain(lines, static l => l.Tone == BookTone.Gold);
     }

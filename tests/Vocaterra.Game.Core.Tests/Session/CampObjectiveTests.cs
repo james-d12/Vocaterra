@@ -1,10 +1,9 @@
+using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
-using Vocaterra.Game.Core.World.Generation;
-using Vocaterra.Game.Core.World.Layout;
 
 namespace Vocaterra.Game.Core.Tests.Session;
 
@@ -19,8 +18,8 @@ public sealed class CampObjectiveTests
     /// <summary>Plays the camp run once and returns the session and what it did.</summary>
     internal static (VoxelSession Session, List<WordCard> Cards, string Digest) PlayCamp(ulong seed = TestGame.Seed)
     {
-        var scene = SceneBuilder.Build(SceneLayout.Load(Path.Combine(GameBundle.ResolveDirectory(), "game", "scene.json")), seed);
-        var session = new VoxelSession(TestGame.Bundle, seed, GuideSession.DefaultStartedAt, TestGame.Nouns, scene, CreditRules.FullTyped);
+        var scene = TestGame.Route(seed);
+        var session = new VoxelSession(TestGame.Data, seed, GuideSession.DefaultStartedAt, scene, CreditRules.FullTyped);
         var cards = new List<WordCard>();
         var grid = scene.Grid;
 
@@ -74,6 +73,18 @@ public sealed class CampObjectiveTests
     }
 
     [Fact]
+    public void TheTorchAtTheCampsRingRaisesTorchAtRingWithTheRingsName()
+    {
+        // C06: the camp step's trigger is { "event": "torch_at_ring", "detail": "firering" }; the session raises the event, so every trigger can be seen in the log.
+        var (session, _, _) = PlayCamp();
+
+        var rings = session.Events.OfType<WorldEvent>().Where(static e => e.Name == WorldEvents.TorchAtRing).ToList();
+
+        Assert.Equal(["firering"], rings.Select(static e => e.Detail));
+        Assert.True(rings[0].Tick <= session.Events.OfType<WorldEvent>().First(static e => e.Name == WorldEvents.ObjectiveStep && e.Detail!.StartsWith("antorcha", StringComparison.Ordinal)).Tick);
+    }
+
+    [Fact]
     public void FromSpawnGatheringAndCraftingReadThreeOfFourSteps()
     {
         var (session, _, _) = PlayCamp();
@@ -90,7 +101,7 @@ public sealed class CampObjectiveTests
     {
         var (session, _, _) = PlayCamp();
 
-        var completed = session.HostEvent(Objective.WaterEvent);
+        var completed = session.HostEvent(WorldEvents.BottleFilled);
 
         Assert.Single(completed);
         Assert.Equal("agua", completed[0].Label);

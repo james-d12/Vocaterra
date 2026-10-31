@@ -1,6 +1,5 @@
 using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Words;
-using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Startup;
 using Vocaterra.Game.Tests.TestSupport;
@@ -13,7 +12,7 @@ public sealed class BookModelTests
     [Fact]
     public void TheTabsAreInTheOrderNounsVersesPhrasesLessonsAndWhatISaid()
     {
-        Assert.Equal(["Nouns", "Verbs", "Phrases", "Lessons", "What I said"], BookTabs.Labels);
+        Assert.Equal(["Nouns", "Verbs", "Phrases", "Lessons", "What I said"], BookTabs.Labels(RouteScene.Shipped.Locale));
         Assert.Equal(BookPage.Verbs, BookTabs.Turn(BookPage.Nouns, forward: true));
         Assert.Equal(BookPage.Phrases, BookTabs.Turn(BookPage.Verbs, forward: true));
         Assert.Equal(BookPage.Lessons, BookTabs.Turn(BookPage.Phrases, forward: true));
@@ -184,7 +183,7 @@ public sealed class BookModelTests
         var cmap = TrueTypeCmap.Load(Repo.Path("assets", "fonts", "pixel-operator", "PixelOperator.ttf"));
         var strings = new List<string>
         {
-            BookTabs.Title, BookTabs.KeyHints, "lines 1 to 29 of 80   wheel, Page Up, Page Down", "Known: 3 of 18   ·   Session 1", "Without help: 0   ·   Session 1",
+            BookTabs.Title(RouteScene.Shipped.Locale), BookTabs.KeyHints(RouteScene.Shipped.Locale), "lines 1 to 29 of 80   wheel, Page Up, Page Down", "Known: 3 of 18   ·   Session 1", "Without help: 0   ·   Session 1",
             BookVerbLabels.Separator, "¿quieres? — do you want?", "¿estás? — are you?", "he/she/it wants", "you all want! (you all)", "let's want", "that I want",
             "completed in session 2", "in progress: 1 of 2 units done", "not started", "help used: 0   I don't know: 0   repeats asked: 0   turns: 0",
             "unit 1", "2 of 2 steps", "lesson First words with Luna, u1", "said, talk to The guide", "typed", "button", "used 1   correct 1", "forms: agua 1",
@@ -194,11 +193,11 @@ public sealed class BookModelTests
             "Your book  -  Verbs", "Highlighted: said (x = times). Plain: taught. Dash: not yet.", "What you said", "Choose a verb on the left page.",
             "No verbs yet. Use a verb in a sentence and it comes here.", "Nothing said yet.", "Nothing here yet.", "x12", "-", "more below",
         };
-        strings.AddRange(ConjugationTable.AllColumns.Select(static c => c.Title));
-        strings.AddRange(ConjugationTable.Persons.Select(static p => p.Label));
-        strings.AddRange(Enum.GetValues<BookPage>().Select(static page => $"{BookTabs.Title}  -  {BookTabs.LabelOf(page)}"));
-        strings.AddRange(BookTabs.Labels);
-        strings.AddRange(Enum.GetValues<BookPage>().Select(static page => BookTabs.LabelOf(page)));
+        strings.AddRange(ConjugationTable.AllColumns.Select(static c => RouteScene.Shipped.Locale.Ui(c.TitleId)));
+        strings.AddRange(ConjugationTable.Persons.Select(static p => RouteScene.Shipped.Words.Pronoun(p.Person, p.Number)!));
+        strings.AddRange(Enum.GetValues<BookPage>().Select(static page => $"{BookTabs.Title(RouteScene.Shipped.Locale)}  -  {BookTabs.LabelOf(RouteScene.Shipped.Locale, page)}"));
+        strings.AddRange(BookTabs.Labels(RouteScene.Shipped.Locale));
+        strings.AddRange(Enum.GetValues<BookPage>().Select(static page => BookTabs.LabelOf(RouteScene.Shipped.Locale, page)));
         var missing = strings.SelectMany(static s => s).Where(c => !cmap.Covers(c)).Distinct().Select(static c => $"U+{(int)c:X4} {c}").ToList();
         Assert.True(missing.Count == 0, "The font has no glyph for: " + string.Join(", ", missing));
     }
@@ -251,7 +250,7 @@ public sealed class BookModelTests
 
     private static BookModel OpenBook()
     {
-        var words = new WordProgress(NounCatalog.Load(GameBundle.Load()));
+        var words = new WordProgress(TestGame.Nouns);
         var model = new BookModel();
         model.Open(words);
         return model;

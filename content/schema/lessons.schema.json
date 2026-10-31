@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/lessons.json",
+  "description": "The index of the lessons (C06): their ids in order; each lesson is its own file, game/lessons/<id>.json (lesson.schema.json). Loaded by LessonBook (Vocaterra.Game.Core).",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "lessons"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "enum": [
+        2
+      ]
+    },
+    "about": {
+      "type": "string"
+    },
+    "lessons": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+      }
+    }
+  }
+}

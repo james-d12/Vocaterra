@@ -13,7 +13,7 @@ public sealed class CheckGraderTests
 
     private static CheckGrader Grader => new(TestGame.Bundle, TestGame.Seed);
 
-    private static CheckItem Item(string id) => CheckBank.Load(TestGame.Bundle).Single(i => i.Id == id);
+    private static CheckItem Item(string id) => RouteScene.DataOf(TestGame.Bundle).Checks.Single(i => i.Id == id);
 
     [Fact]
     public void ACorrectTypedAnswerIsCorrectAtTheRowsPrompt()

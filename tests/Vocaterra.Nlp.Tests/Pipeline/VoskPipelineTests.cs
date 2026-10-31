@@ -1,54 +1,10 @@
 using Vocaterra.Nlp.Asr;
-using Vocaterra.Nlp.Asr.Models;
+using Vocaterra.Nlp.Asr.Tests;
 using Vocaterra.Nlp.Core.Audio;
 
 namespace Vocaterra.Nlp.Pipeline.Tests;
 
-/// <summary>Locates the model files and the committed manifest for the real-model tests.</summary>
-internal static class ModelGate
-{
-    public const string VoskId = "vosk-model-small-es-0.42";
-
-    private static readonly Lazy<ModelStore?> StoreValue = new(CreateStore);
-
-    /// <summary>The store over <c>VOCATERRA_MODELS_DIR</c> and the committed manifest, or null when either is unavailable.</summary>
-    public static ModelStore? Store => StoreValue.Value;
-
-    public static bool IsAvailable(string id)
-    {
-        return Store is { } store && store.Verify(id).Status is ModelStatus.Ok or ModelStatus.Unpinned;
-    }
-
-    public static string SkipReason(string id)
-    {
-        return string.IsNullOrWhiteSpace(ModelStore.RootFromEnvironment())
-            ? $"{ModelStore.EnvironmentVariable} is not set; run scripts/fetch-models.sh {id} and set it to the models directory."
-            : $"{id} is missing or does not match models/manifest.json under {ModelStore.RootFromEnvironment()}.";
-    }
-
-    private static ModelStore? CreateStore()
-    {
-        var root = ModelStore.RootFromEnvironment();
-        return string.IsNullOrWhiteSpace(root) || !File.Exists(TestSupport.ModelManifest)
-            ? null
-            : new ModelStore(root, ModelManifest.Load(TestSupport.ModelManifest));
-    }
-}
-
-/// <summary>A fact that is skipped unless the Vosk small Spanish model is present and verifies against the manifest.</summary>
-public sealed class VoskModelFactAttribute : FactAttribute
-{
-    /// <summary>Skips the test when the model is unavailable.</summary>
-    public VoskModelFactAttribute()
-    {
-        if (!ModelGate.IsAvailable(ModelGate.VoskId))
-        {
-            Skip = ModelGate.SkipReason(ModelGate.VoskId);
-        }
-    }
-}
-
-/// <summary>The pipeline on the real Vosk model; skipped unless <c>VOCATERRA_MODELS_DIR</c> holds the model.</summary>
+/// <summary>The pipeline on the real Vosk model; skipped unless <c>VOCATERRA_MODELS_DIR</c> holds the model (the ASR tests' model gate).</summary>
 [Collection(NativeRuntimeCollection.Name)]
 public class VoskPipelineTests
 {
@@ -73,6 +29,7 @@ public class VoskPipelineTests
     }
 
     [VoskModelFact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void ConstrainedPromptsRunOnTheRealModelDeterministically()
     {
         var store = ModelGate.Store!;
@@ -92,6 +49,7 @@ public class VoskPipelineTests
     }
 
     [VoskModelFact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void ARealRecognitionReplaysWithoutTheModel()
     {
         var store = ModelGate.Store!;

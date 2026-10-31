@@ -76,8 +76,8 @@ internal static class TestSupport
     /// <summary>The model manifest, copied next to the test assembly by the project file.</summary>
     public static string ModelManifest { get; } = Path.Combine(AppContext.BaseDirectory, "models", "manifest.json");
 
-    /// <summary>The bundle, loaded once with hash verification.</summary>
-    public static ContentBundle Bundle { get; } = SpanishContent.Load(BundleDir);
+    /// <summary>The bundle, loaded once per test process with hash verification (<see cref="GameBundleLocator.Bundle"/>).</summary>
+    public static ContentBundle Bundle => GameBundleLocator.Bundle;
 
     /// <summary>A one-second 440 Hz tone; the scripted recognizers ignore its content, only its hash matters.</summary>
     public static PcmClip Clip(double frequency = 440.0)

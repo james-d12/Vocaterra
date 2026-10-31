@@ -12,7 +12,7 @@ using Vocaterra.Nlp.Core.Verdicts;
 namespace Vocaterra.Game.Core.Tests.Session;
 
 /// <summary>
-/// The session summary card (X04, R01): a fixed record gives a fixed text (the lines are checked as written), the card has the same six lines whatever the session
+/// The session summary card (X04, R01): a fixed record gives a fixed text (the lines are checked as written), the card has the same seven lines whatever the session
 /// did, and it names things done, never failures, scores or levels (D-game-10).
 /// </summary>
 public sealed class SessionSummaryTests
@@ -48,6 +48,7 @@ public sealed class SessionSummaryTests
             LessonStep("personas", LessonEventKind.StepDone),
             new PhraseUse(20, 1, "pedir-agua", PhraseUseKind.Unaided, "shopkeeper", "stall-need", "Quiero agua, por favor.", null, InputKind.Typed, true, SupportLevel.CardAndAudio),
             new PhraseUse(21, 1, PhraseIds.DontKnow, PhraseUseKind.DontKnow, "villager", "villager-open", "no sé", null, InputKind.Button, true, SupportLevel.CardAndAudio, ["donde-esta-el-rio"]),
+            new WorldEvent(23, 1, WorldEvents.ReviewAnswered, "guide", "pedir-agua, warm-up"), // X06: a phrase of an earlier session reviewed
             new PhraseUse(22, 1, "si-por-favor", PhraseUseKind.Supported, "guide", "guide-offer", "Sí, por favor.", null, InputKind.Typed, false, SupportLevel.CardAndAudio),
         };
         var levels = new List<PhraseRecord>
@@ -64,33 +65,35 @@ public sealed class SessionSummaryTests
     {
         var session = TestGame.NewSession();
 
-        var lines = SessionSummary.Lines(FixedFacts(session.Phrases), session.English);
+        var lines = SessionSummary.Lines(FixedFacts(session.Phrases), session.Locale);
 
         Assert.Equal(
         [
             "Lessons: First words with Luna done; Personas: he, she, we, they begun (1 steps done)",
             "New words: pan",
             "Said without help: Quiero agua, por favor",
+            "Reviewed: Quiero agua, por favor",
             "Verb forms used: quieres (present, 2nd singular), quiero (present, 1st singular)",
             "Next time, practise: ¿Dónde está el río? (you said I don't know); Sí, por favor (a slip to fix)",
             "Replay a lesson: press J for the book, choose a finished lesson, press Practise again, then talk to its guide.",
         ], lines);
-        Assert.Equal(lines, SessionSummary.Lines(FixedFacts(session.Phrases), session.English)); // the same record, the same text
+        Assert.Equal(lines, SessionSummary.Lines(FixedFacts(session.Phrases), session.Locale)); // the same record, the same text
     }
 
     [Fact]
-    public void AnEmptySessionStillHasTheSameSixLinesAndNamesNoFailure()
+    public void AnEmptySessionStillHasTheSameSevenLinesAndNamesNoFailure()
     {
         var session = TestGame.NewSession();
         var facts = new SummaryFacts(1, [], [], [Lesson("first-words", "First words with Luna")], session.Phrases, []);
 
-        var lines = SessionSummary.Lines(facts, session.English);
+        var lines = SessionSummary.Lines(facts, session.Locale);
 
         Assert.Equal(
         [
             "Lessons: none this session",
             "New words: none this session",
             "Said without help: none this session",
+            "Reviewed: none this session",
             "Verb forms used: none this session",
             "Next time, practise: nothing is flagged from this session",
             "Replay a lesson: press J for the book, choose a finished lesson, press Practise again, then talk to its guide.",
@@ -109,7 +112,7 @@ public sealed class SessionSummaryTests
             session.Phrases,
             []);
 
-        var practise = SessionSummary.Lines(facts, session.English).Single(static l => l.StartsWith("Next time, practise:", StringComparison.Ordinal));
+        var practise = SessionSummary.Lines(facts, session.Locale).Single(static l => l.StartsWith("Next time, practise:", StringComparison.Ordinal));
 
         Assert.Equal("Next time, practise: nothing is flagged from this session", practise);
     }
@@ -119,7 +122,7 @@ public sealed class SessionSummaryTests
     {
         var session = TestGame.NewSession();
 
-        var text = string.Join("\n", SessionSummary.Lines(FixedFacts(session.Phrases), session.English));
+        var text = string.Join("\n", SessionSummary.Lines(FixedFacts(session.Phrases), session.Locale));
 
         foreach (var banned in new[] { "dont_know", "help uses", "score", "CEFR", "A1", "%", "wrong", "failed", "mistake" })
         {
@@ -131,7 +134,7 @@ public sealed class SessionSummaryTests
     public void ThePractiseLineNamesAtMostTwoPhrasesAndNoSeComesFirst()
     {
         var session = TestGame.NewSession();
-        var lines = SessionSummary.Lines(FixedFacts(session.Phrases), session.English);
+        var lines = SessionSummary.Lines(FixedFacts(session.Phrases), session.Locale);
         var practise = lines.Single(static l => l.StartsWith("Next time, practise:", StringComparison.Ordinal));
 
         Assert.Equal(2, practise.Split("; ").Length);

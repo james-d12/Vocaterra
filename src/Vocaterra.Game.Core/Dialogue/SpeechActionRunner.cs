@@ -46,7 +46,7 @@ public sealed class SpeechActionRunner(GuideSession session, DialogueModel dialo
                 }
 
                 _ = session.SubmitHelp(cursor());
-                dialogue.BeginLine(SpeechButtons.HelpLabel);
+                dialogue.BeginLine(session.Data.Words.Buttons.Help);
                 return true;
             case SpeechAction.DontKnow:
                 if (session.Lessons.HandlesHelp)
@@ -55,7 +55,7 @@ public sealed class SpeechActionRunner(GuideSession session, DialogueModel dialo
                 }
 
                 _ = session.SubmitDontKnow(cursor());
-                dialogue.BeginLine(SpeechButtons.DontKnowLabel);
+                dialogue.BeginLine(session.Data.Words.Buttons.DontKnow);
                 return true;
             case SpeechAction.Type:
                 // The player chose to type: a turn still thinking is dropped (they will say it another way), then the text box opens.

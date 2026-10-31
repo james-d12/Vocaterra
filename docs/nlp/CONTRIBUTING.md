@@ -41,6 +41,15 @@ happens to one utterance, [docs/nlp/adr/](adr/) for why the rules exist, and [IM
    `dotnet test tests/Vocaterra.Nlp.Tests` runs the engine's unit tests and `dotnet test tests/Vocaterra.Nlp.Es.Tests` the Spanish pack's (M53); add `--filter "FullyQualifiedName~LinguisticAnalyzer"` for one class.
    `dotnet format` (without `--verify-no-changes`) fixes formatting.
 
+   The suite has two tiers ([scripts/README.md](../../scripts/README.md), `test.sh`). `scripts/test.sh fast` builds and runs every test that is
+   not marked slow, in under a minute: run it after every step. It leaves out the tests marked `[Trait(TestSpeed.Trait, TestSpeed.Slow)]`:
+   the fuzz suite (an assembly trait), the model-gated tests, the content tool's full-bundle classes (`CliTests`, `ProgramTests`, `LintTests`,
+   `LintCommandTests`), `SpanishIdentityTests` and a few long single tests. `scripts/test.sh full` runs the whole suite, as the merge gate and
+   CI do: run it before you report a milestone, and `scripts/test.sh project Vocaterra.Nlp.Tests` when you change an area whose tests are
+   marked slow. Both go through `scripts/limited.sh`. A new test that takes more than a few seconds on its own, needs a model or starts a
+   process is marked slow (the constant is in `tests/Shared/TestSpeed.cs`); a test that only reads the bundle uses
+   `GameBundleLocator.Bundle`, the one load of the test process, instead of loading its own.
+
 3. Models are optional. Without them the real-model tests are skipped, not failed. To run them:
 
    ```bash

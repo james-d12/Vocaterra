@@ -12,7 +12,6 @@ using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Startup;
 using Vocaterra.Game.UI.Dialogue;
-using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Tests.Component;
 
@@ -23,10 +22,7 @@ namespace Vocaterra.Game.Tests.Component;
 /// </summary>
 public sealed class OpeningFrontendTests
 {
-    private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-    private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
-
-    private static VoxelSession Session() => RouteScene.NewSessionWithShippedLessons(Bundle.Value, Nouns.Value, CreditRules.FullTyped);
+    private static VoxelSession Session() => RouteScene.NewSessionWithShippedLessons(TestGame.Bundle, TestGame.Nouns, CreditRules.FullTyped);
 
     private static float Measure(string text) => text.Length * 8f;
 
@@ -42,10 +38,10 @@ public sealed class OpeningFrontendTests
 
     private static void CompleteTheChecklist(VoxelSession session)
     {
-        _ = session.Objective.RecordPickup(ItemId.Wood, 5);
-        _ = session.Objective.RecordPickup(ItemId.Berry, 3);
-        _ = session.Objective.RecordTorchPlaced(atFireRing: true);
-        _ = session.HostEvent(Objective.WaterEvent);
+        _ = session.Objective.Record(WorldEvents.ItemPickedUp, "madera", 5);
+        _ = session.Objective.Record(WorldEvents.ItemPickedUp, "fruta", 3);
+        _ = session.Objective.Record(WorldEvents.TorchAtRing, "firering");
+        _ = session.HostEvent(WorldEvents.BottleFilled);
     }
 
     private static void LightThePlayersFire(VoxelSession session)
@@ -178,8 +174,8 @@ public sealed class OpeningFrontendTests
 
         Assert.Equal(
             ["[R] Repetir (repeat)", "[S] Más despacio (slower)", "[H] Ayuda (help)", "[N] No sé (I don't know)", "[W] Escribir (type)"],
-            SpeechButtons.All.Select(button => SpeechButtons.TextFor(button, session)));
-        Assert.Equal(["[R] Repetir", "[S] Más despacio", "[H] Ayuda", "[N] No sé", "[W] Escribir"], SpeechButtons.All.Select(button => SpeechButtons.TextFor(button, null))); // no game: Spanish alone
+            SpeechButtons.For(RouteScene.Shipped.Words.Buttons).Select(button => SpeechButtons.TextFor(button, session)));
+        Assert.Equal(["[R] Repetir", "[S] Más despacio", "[H] Ayuda", "[N] No sé", "[W] Escribir"], SpeechButtons.For(RouteScene.Shipped.Words.Buttons).Select(button => SpeechButtons.TextFor(button, null))); // no game: Spanish alone
     }
 
     [Fact]
@@ -191,11 +187,11 @@ public sealed class OpeningFrontendTests
 
         session.LogVoice(VoiceEventKind.Replay);
         session.LogVoice(VoiceEventKind.Replay);
-        Assert.Equal("[R] Repetir (repeat)", SpeechButtons.TextFor(SpeechButtons.All[0], session));
+        Assert.Equal("[R] Repetir (repeat)", SpeechButtons.TextFor(SpeechButtons.For(RouteScene.Shipped.Words.Buttons)[0], session));
         session.LogVoice(VoiceEventKind.Replay);
 
-        Assert.Equal("[R] Repetir", SpeechButtons.TextFor(SpeechButtons.All[0], session));
-        Assert.Equal("[S] Más despacio (slower)", SpeechButtons.TextFor(SpeechButtons.All[1], session));
+        Assert.Equal("[R] Repetir", SpeechButtons.TextFor(SpeechButtons.For(RouteScene.Shipped.Words.Buttons)[0], session));
+        Assert.Equal("[S] Más despacio (slower)", SpeechButtons.TextFor(SpeechButtons.For(RouteScene.Shipped.Words.Buttons)[1], session));
         Assert.True(session.ButtonEnglishUp(SpeechButtonKeys.Hold));
     }
 
@@ -225,8 +221,8 @@ public sealed class OpeningFrontendTests
         var session = Session();
         foreach (var width in new[] { 1280, 800 })
         {
-            var withEnglish = new DialogueLayout(width, 720, Measure, [], typing: false, button => SpeechButtons.TextFor(button, session));
-            var without = new DialogueLayout(width, 720, Measure, [], typing: false);
+            var withEnglish = new DialogueLayout(width, 720, Measure, [], SpeechButtons.For(RouteScene.Shipped.Words.Buttons), typing: false, button => SpeechButtons.TextFor(button, session));
+            var without = new DialogueLayout(width, 720, Measure, [], SpeechButtons.For(RouteScene.Shipped.Words.Buttons), typing: false);
 
             Assert.Equal(without.Buttons.Select(static b => b.Action), withEnglish.Buttons.Select(static b => b.Action)); // the same five actions
             Assert.All(withEnglish.Buttons, b =>
@@ -240,7 +236,7 @@ public sealed class OpeningFrontendTests
     [Fact]
     public void ARowOfButtonsTooWideForThePanelWrapsToASecondRowAboveInsteadOfRunningOffIt()
     {
-        var wide = new DialogueLayout(800, 720, static t => t.Length * 14f, [], typing: false, static b => b.Text + " (a long English gloss)");
+        var wide = new DialogueLayout(800, 720, static t => t.Length * 14f, [], SpeechButtons.For(RouteScene.Shipped.Words.Buttons), typing: false, static b => b.Text + " (a long English gloss)");
 
         Assert.True(wide.Buttons.Select(static b => b.Box.Y).Distinct().Count() >= 2);
         Assert.All(wide.Buttons, b => Assert.True(b.Box.Right <= wide.Panel.Right));
@@ -254,7 +250,7 @@ public sealed class OpeningFrontendTests
     {
         var session = Session();
         TeleportToNpc(session, "guide");
-        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Phrases, session.English);
+        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data, session.Phrases, session.Locale);
         dialogue.Open(session.OpenTalk("guide"), "Guía");
         _ = session.Lessons.Continue();
         _ = session.Lessons.Continue();
@@ -268,9 +264,9 @@ public sealed class OpeningFrontendTests
         Assert.NotEmpty(turn.Replies);
         Assert.Equal(before, dialogue.Lines.Count(static l => l.Speaker == DialogueSpeaker.Guide)); // her reply is not on the panel
 
-        var ordinary = RouteScene.NewSession(Bundle.Value, Nouns.Value, CreditRules.FullTyped); // no lesson: the same words get her reply
+        var ordinary = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns, CreditRules.FullTyped); // no lesson: the same words get her reply
         TeleportToNpc(ordinary, "guide");
-        var panel = new DialogueModel(new InputFocus(), ordinary.OpeningLine, ordinary.Phrases, ordinary.English);
+        var panel = new DialogueModel(new InputFocus(), ordinary.OpeningLine, ordinary.Data, ordinary.Phrases, ordinary.Locale);
         panel.Open(ordinary.OpenTalk("guide"), "Guía");
         var ordinaryBefore = panel.Lines.Count(static l => l.Speaker == DialogueSpeaker.Guide);
         _ = panel.Entry.Insert("hola");
@@ -299,7 +295,7 @@ public sealed class OpeningFrontendTests
     {
         var session = Session();
         TeleportToNpc(session, "guide");
-        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Phrases, session.English);
+        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data, session.Phrases, session.Locale);
         dialogue.Open(session.OpenTalk("guide"), "Guía");
         var opened = 0;
         var lesson = new LessonFrontend(session, dialogue, static _ => { }) { OnRecapDone = () => opened++ };

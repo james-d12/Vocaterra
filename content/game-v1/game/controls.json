@@ -1,0 +1,67 @@
+{
+  "$schema": "../../schema/controls.schema.json",
+  "schemaVersion": 1,
+  "about": "The controls help (S16), in the order it lists them. The keys and the text are the locale's (content/locale/<code>/controls.json, control.<id>.keys and .text).",
+  "controls": [
+    {
+      "id": "look"
+    },
+    {
+      "id": "walk"
+    },
+    {
+      "id": "jump"
+    },
+    {
+      "id": "gather"
+    },
+    {
+      "id": "place"
+    },
+    {
+      "id": "hotbar"
+    },
+    {
+      "id": "talk"
+    },
+    {
+      "id": "inventory"
+    },
+    {
+      "id": "craft"
+    },
+    {
+      "id": "journal"
+    },
+    {
+      "id": "speak"
+    },
+    {
+      "id": "typeline"
+    },
+    {
+      "id": "help"
+    },
+    {
+      "id": "noidea"
+    },
+    {
+      "id": "replay"
+    },
+    {
+      "id": "lessonKeys"
+    },
+    {
+      "id": "view"
+    },
+    {
+      "id": "save"
+    },
+    {
+      "id": "report"
+    },
+    {
+      "id": "escape"
+    }
+  ]
+}

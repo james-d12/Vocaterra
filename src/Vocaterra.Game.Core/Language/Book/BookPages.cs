@@ -1,3 +1,5 @@
+using System.Globalization;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Language.Learner;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Phrases;
@@ -16,7 +18,7 @@ namespace Vocaterra.Game.Core.Language.Book;
 public static class BookPages
 {
     /// <summary>The tag of a known noun or verb.</summary>
-    public const string KnownTag = "known";
+    public const string KnownTagId = "bookKnown";
 
     /// <summary>The sentence's English when the sentence is a row of the phrase sheet (either side), or <see langword="null"/>.</summary>
     /// <param name="sheet">The phrase sheet.</param>
@@ -39,11 +41,11 @@ public static class BookPages
         ArgumentNullException.ThrowIfNull(recordings);
         return page switch
         {
-            BookPage.Nouns => Nouns(session.Words, session.Learner.Nouns, session.StoredTime.UnixSeconds, session.DefiniteArticle, session.Phrases, recordings),
-            BookPage.Verbs => Verbs(session.Learner.Verbs, session.Glosses, session.Phrases, session.Bundle.SpanishMorphology()),
-            BookPage.Phrases => Phrases(PhraseJournalRows.Build(session.PhraseProgress, session.StoredTime.UnixSeconds, session.Credit), recordings),
-            BookPage.Lessons => Lessons(session.Lessons.Record, session.Phrases, recordings),
-            _ => Said(session.Learner.Recent(LearnerRecord.SavedEntries), session.English, session.Lessons.Record),
+            BookPage.Nouns => Nouns(session.Locale, session.Words, session.Learner.Nouns, session.StoredTime.UnixSeconds, session.DefiniteArticle, session.Phrases, session.Data.Words.Unseen, recordings),
+            BookPage.Verbs => Verbs(session.Locale, session.Learner.Verbs, session.Glosses, session.Phrases, session.Bundle.SpanishMorphology()),
+            BookPage.Phrases => Phrases(PhraseJournalRows.Build(session.PhraseProgress, session.StoredTime.UnixSeconds, session.Credit, session.Locale), recordings, ReviewLine(session)),
+            BookPage.Lessons => Lessons(session.Locale, session.Lessons.Record, session.Phrases, recordings),
+            _ => Said(session.Learner.Recent(LearnerRecord.SavedEntries), session.Locale, session.Lessons.Record),
         };
     }
 
@@ -79,7 +81,7 @@ public static class BookPages
         ArgumentNullException.ThrowIfNull(session);
         ArgumentNullException.ThrowIfNull(lemma);
         var row = session.Learner.Verbs.FirstOrDefault(r => string.Equals(r.Lemma, lemma, StringComparison.Ordinal));
-        return row is null ? null : ConjugationTable.Build(row, session.Learner.History, TaughtForms(session), session.Bundle.SpanishMorphology(), session.Glosses.ForLemma(lemma));
+        return row is null ? null : ConjugationTable.Build(row, session.Learner.History, TaughtForms(session), session.Bundle.SpanishMorphology(), session.Glosses.ForLemma(lemma), session.Data.Words);
     }
 
     /// <summary>
@@ -116,14 +118,17 @@ public static class BookPages
     /// every other noun the learner used (a lemma with no space: a fixed expression such as <c>por favor</c> is not a noun), each with its article, its
     /// forms, its counts and its last sentence.
     /// </summary>
+    /// <param name="ui">The support language (the page's words, C04).</param>
     /// <param name="words">The word progress (the catalogue's counts).</param>
     /// <param name="learnerNouns">The noun rows of the learner's record (<c>session.Learner.Nouns</c>).</param>
     /// <param name="now">The stored time in Unix seconds (the due text).</param>
     /// <param name="definite">The definite article of a noun from its gender and lemma (<c>el</c> for <c>agua</c>).</param>
     /// <param name="sheet">The phrase sheet (for the English of a sentence that is a phrase).</param>
+    /// <param name="unseen">The label of a noun not met yet (<c>¿?</c>, <c>game/words.json</c>).</param>
     /// <param name="recordings">The recordings (S20b): a seen catalogue noun gets a speaker button for its word card. An unmet noun (<c>¿?</c>) and a noun outside the catalogue get none.</param>
-    public static IReadOnlyList<BookLine> Nouns(WordProgress words, IReadOnlyList<WordRow> learnerNouns, long now, Func<string, string, string> definite, PhraseSheet sheet, BookRecordings? recordings = null)
+    public static IReadOnlyList<BookLine> Nouns(LocaleText ui, WordProgress words, IReadOnlyList<WordRow> learnerNouns, long now, Func<string, string, string> definite, PhraseSheet sheet, string unseen, BookRecordings? recordings = null)
     {
+        ArgumentNullException.ThrowIfNull(ui);
         ArgumentNullException.ThrowIfNull(words);
         ArgumentNullException.ThrowIfNull(learnerNouns);
         ArgumentNullException.ThrowIfNull(definite);
@@ -131,17 +136,17 @@ public static class BookPages
         var lines = new List<BookLine>();
         var learner = learnerNouns.Where(static row => !row.Lemma.Contains(' ', StringComparison.Ordinal)).ToDictionary(static row => row.Lemma, StringComparer.Ordinal);
         var catalogue = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var row in JournalRows.Build(words, now))
+        foreach (var row in JournalRows.Build(words, now, unseen, ui))
         {
             catalogue.Add(row.Lemma);
             var tone = row.Known ? BookTone.Known : row.Record.CreditUnits > 0 ? BookTone.Learning : row.Seen ? BookTone.Seen : BookTone.Unseen;
             var speak = row.Seen ? recordings?.ForNoun(row.Lemma) : null;
-            lines.Add(new BookLine(tone, row.Label, Lemma: row.Lemma, Pips: row.Pips, Right: row.Known ? KnownTag : null, Speak: speak));
-            var counts = $"heard {row.Record.Heard}   read {row.Record.Read}   said {row.Record.Spoken}   correct {row.Record.SpokenCorrect}";
+            lines.Add(new BookLine(tone, row.Label, Lemma: row.Lemma, Pips: row.Pips, Right: row.Known ? ui.Ui(KnownTagId) : null, Speak: speak));
+            var counts = ui.Ui("bookNounCounts", ("heard", N(row.Record.Heard)), ("read", N(row.Record.Read)), ("said", N(row.Record.Spoken)), ("correct", N(row.Record.SpokenCorrect)));
             lines.Add(new BookLine(BookTone.Hint, counts, Right: row.DueText, Indent: true));
             if (learner.TryGetValue(row.Lemma, out var used))
             {
-                AddUse(lines, used, sheet);
+                AddUse(ui, lines, used, sheet);
             }
 
             lines.Add(BookLine.Gap);
@@ -151,8 +156,8 @@ public static class BookPages
         {
             var label = row.Gender is null ? row.Lemma : $"{definite(row.Gender, row.Lemma)} {row.Lemma}";
             lines.Add(new BookLine(BookTone.Seen, label, Lemma: row.Lemma));
-            lines.Add(new BookLine(BookTone.Hint, $"used {row.Times}   correct {row.TimesCorrect}", Indent: true));
-            AddUse(lines, row, sheet);
+            lines.Add(new BookLine(BookTone.Hint, ui.Ui("bookUsed", ("times", N(row.Times)), ("correct", N(row.TimesCorrect))), Indent: true));
+            AddUse(ui, lines, row, sheet);
             lines.Add(BookLine.Gap);
         }
 
@@ -163,12 +168,14 @@ public static class BookPages
     /// The verbs page: every verb the learner used (a lemma with no space), its infinitive with its English (<c>querer — to want</c>) and each form with its
     /// label (<see cref="BookVerbLabels"/>), its counts and its last sentence.
     /// </summary>
+    /// <param name="ui">The support language (the page's words, C04).</param>
     /// <param name="learnerVerbs">The verb rows of the learner's record (<c>session.Learner.Verbs</c>).</param>
     /// <param name="glosses">The verbs' English.</param>
     /// <param name="sheet">The phrase sheet (for the English of a sentence that is a phrase).</param>
     /// <param name="morphology">The bundle's morphology: an imperative reading that is an indicative present is labelled as that present (<see cref="VerbReading"/>).</param>
-    public static IReadOnlyList<BookLine> Verbs(IReadOnlyList<WordRow> learnerVerbs, VerbGlosses glosses, PhraseSheet sheet, MorphologyGenerator morphology)
+    public static IReadOnlyList<BookLine> Verbs(LocaleText ui, IReadOnlyList<WordRow> learnerVerbs, VerbGlosses glosses, PhraseSheet sheet, MorphologyGenerator morphology)
     {
+        ArgumentNullException.ThrowIfNull(ui);
         ArgumentNullException.ThrowIfNull(learnerVerbs);
         ArgumentNullException.ThrowIfNull(glosses);
         ArgumentNullException.ThrowIfNull(sheet);
@@ -178,15 +185,15 @@ public static class BookPages
         {
             var gloss = glosses.ForLemma(row.Lemma);
             var heading = gloss is null ? row.Lemma : row.Lemma + BookVerbLabels.Separator + gloss.English;
-            lines.Add(new BookLine(BookTone.Known, heading, Right: $"used {row.Times}   correct {row.TimesCorrect}", Verb: row.Lemma));
+            lines.Add(new BookLine(BookTone.Known, heading, Right: ui.Ui("bookUsed", ("times", N(row.Times)), ("correct", N(row.TimesCorrect))), Verb: row.Lemma));
             foreach (var form in row.Forms)
             {
                 var (person, number, tense, mood) = VerbReading.Normalize(row.Lemma, form.Form, form.Person, form.Number, form.Tense, form.Mood, morphology);
                 var label = BookVerbLabels.Label(form.Form, row.Lemma, gloss, person, number, tense, mood, form.Question);
-                lines.Add(new BookLine(BookTone.Seen, label, Right: $"{Uses(form.Times)}   {form.TimesCorrect} correct", Indent: true));
+                lines.Add(new BookLine(BookTone.Seen, label, Right: ui.Ui("bookFormCounts", ("uses", ui.Plural("ui.bookUses", form.Times)), ("correct", N(form.TimesCorrect))), Indent: true));
                 if (form.Last is { } last)
                 {
-                    lines.Add(new BookLine(BookTone.Hint, $"last: \"{last.Sentence}\"{EnglishSuffix(sheet, last.Sentence)}", Indent: true));
+                    lines.Add(new BookLine(BookTone.Hint, Last(ui, sheet, last.Sentence), Indent: true));
                 }
             }
 
@@ -202,10 +209,17 @@ public static class BookPages
     /// </summary>
     /// <param name="rows">The rows from <see cref="PhraseJournalRows.Build"/>.</param>
     /// <param name="recordings">The recordings (S20b): every phrase row gets a speaker button for its recording, when it has one.</param>
-    public static IReadOnlyList<BookLine> Phrases(IReadOnlyList<PhraseJournalRow> rows, BookRecordings? recordings = null)
+    /// <param name="review">The line above the rows that carries the "Review now" button (X06), or <see langword="null"/> when nothing the guide can ask is due.</param>
+    public static IReadOnlyList<BookLine> Phrases(IReadOnlyList<PhraseJournalRow> rows, BookRecordings? recordings = null, string? review = null)
     {
         ArgumentNullException.ThrowIfNull(rows);
         var lines = new List<BookLine>();
+        if (review is not null)
+        {
+            lines.Add(new BookLine(BookTone.Learning, review, Practise: BookPractise.ReviewNow));
+            lines.Add(BookLine.Gap);
+        }
+
         foreach (var row in rows)
         {
             var tone = row.HasScaffold && row.Level == SupportLevel.None && row.Record.CreditedUses > 0 ? BookTone.Known : row.Record.Seen ? BookTone.Learning : BookTone.Unseen;
@@ -217,15 +231,21 @@ public static class BookPages
         return lines;
     }
 
+    // The Phrases page's "Review now" line (X06): how many phrases the warm-up would ask, while some are due and no warm-up is under way.
+    private static string? ReviewLine(GuideSession session) =>
+        session.Deck.Ready is > 0 and var ready && session.Deck.Status != DeckStatus.Running ? session.Locale.Plural("ui.bookReviewDue", ready) : null;
+
     /// <summary>
     /// The lessons page: every lesson of the bundle in its order, with its state (completed in session n, in progress with the units done, not
     /// started), its units with a tick each, the phrases it taught (S17's recap), the help used and, once completed, its English summary.
     /// </summary>
+    /// <param name="ui">The support language (the page's words, C04).</param>
     /// <param name="lessons">The lesson record (<c>session.Lessons.Record</c>).</param>
     /// <param name="sheet">The phrase sheet (the English and the Spanish of the phrases).</param>
     /// <param name="recordings">The recordings (S20b): each phrase a lesson taught gets a speaker button for its recording.</param>
-    public static IReadOnlyList<BookLine> Lessons(IReadOnlyList<LessonRecordRow> lessons, PhraseSheet sheet, BookRecordings? recordings = null)
+    public static IReadOnlyList<BookLine> Lessons(LocaleText ui, IReadOnlyList<LessonRecordRow> lessons, PhraseSheet sheet, BookRecordings? recordings = null)
     {
+        ArgumentNullException.ThrowIfNull(ui);
         ArgumentNullException.ThrowIfNull(lessons);
         ArgumentNullException.ThrowIfNull(sheet);
         var lines = new List<BookLine>();
@@ -235,9 +255,9 @@ public static class BookPages
             var doneUnits = units.Count(static unit => unit.Ticked);
             var (tone, state) = lesson.Status switch
             {
-                LessonStatus.Completed => (BookTone.Known, lesson.CompletedSession is { } session ? $"completed in session {session}" : "completed"),
-                LessonStatus.InProgress => (BookTone.Learning, $"in progress: {doneUnits} of {units.Count} units done"),
-                _ => (BookTone.Unseen, "not started"),
+                LessonStatus.Completed => (BookTone.Known, lesson.CompletedSession is { } session ? ui.Ui("bookLessonCompletedIn", ("session", N(session))) : ui.Ui("bookLessonCompleted")),
+                LessonStatus.InProgress => (BookTone.Learning, ui.Ui("bookLessonInProgress", ("done", N(doneUnits)), ("units", N(units.Count)))),
+                _ => (BookTone.Unseen, ui.Ui("bookLessonNotStarted")),
             };
             lines.Add(new BookLine(tone, lesson.Title, Aside: state, Practise: lesson.Status == LessonStatus.Completed ? lesson.LessonId : null));
             if (lesson.Status == LessonStatus.Completed && lesson.Summary is { } summary)
@@ -247,7 +267,7 @@ public static class BookPages
 
             foreach (var unit in units)
             {
-                lines.Add(new BookLine(unit.Ticked ? BookTone.Seen : BookTone.Unseen, $"unit {unit.Number}", Right: $"{unit.Finished} of {unit.Steps} steps", Tick: unit.Ticked, Indent: true));
+                lines.Add(new BookLine(unit.Ticked ? BookTone.Seen : BookTone.Unseen, ui.Ui("bookUnit", ("number", N(unit.Number))), Right: ui.Ui("bookUnitSteps", ("finished", N(unit.Finished)), ("steps", N(unit.Steps))), Tick: unit.Ticked, Indent: true));
             }
 
             foreach (var phrase in lesson.Phrases)
@@ -258,7 +278,7 @@ public static class BookPages
 
             lines.Add(new BookLine(
                 BookTone.Hint,
-                $"help used: {lesson.HelpUses}   I don't know: {lesson.DontKnowUses}   repeats asked: {lesson.RepeatUses}   turns: {lesson.Turns}",
+                ui.Ui("bookLessonCounts", ("help", N(lesson.HelpUses)), ("dontKnow", N(lesson.DontKnowUses)), ("repeats", N(lesson.RepeatUses)), ("turns", N(lesson.Turns))),
                 Indent: true));
             lines.Add(BookLine.Gap);
         }
@@ -273,7 +293,7 @@ public static class BookPages
     /// <param name="recent">The entries, newest first.</param>
     /// <param name="english">The English text (the feedback and the NPCs' names).</param>
     /// <param name="lessons">The lesson record, for a lesson line's title.</param>
-    public static IReadOnlyList<BookLine> Said(IReadOnlyList<InputEntry> recent, EnglishText english, IReadOnlyList<LessonRecordRow> lessons)
+    public static IReadOnlyList<BookLine> Said(IReadOnlyList<InputEntry> recent, LocaleText english, IReadOnlyList<LessonRecordRow> lessons)
     {
         ArgumentNullException.ThrowIfNull(recent);
         ArgumentNullException.ThrowIfNull(english);
@@ -282,7 +302,7 @@ public static class BookPages
         foreach (var entry in recent)
         {
             var tone = entry.Communicated && !entry.Held ? BookTone.Known : BookTone.Hint;
-            lines.Add(new BookLine(tone, $"\"{entry.Text}\"", Aside: $"session {entry.Session}", Right: $"{SourceText(entry.Source)}, {PlaceText(entry, english, lessons)}"));
+            lines.Add(new BookLine(tone, $"\"{entry.Text}\"", Aside: english.Ui("bookSaidSession", ("session", N(entry.Session))), Right: english.Ui("bookSaidWhere", ("source", SourceText(english, entry.Source)), ("place", PlaceText(entry, english, lessons)))));
             foreach (var feedback in english.FeedbackFor(entry))
             {
                 lines.Add(new BookLine(BookTone.Hint, feedback, Indent: true));
@@ -318,32 +338,31 @@ public static class BookPages
         return units;
     }
 
-    private static void AddUse(List<BookLine> lines, WordRow row, PhraseSheet sheet)
+    private static void AddUse(LocaleText ui, List<BookLine> lines, WordRow row, PhraseSheet sheet)
     {
-        var forms = string.Join("   ", row.Forms.Select(static form => $"{form.Form} {form.Times}"));
+        var forms = string.Join("   ", row.Forms.Select(static form => $"{form.Form} {form.Times.ToString(CultureInfo.InvariantCulture)}"));
         if (forms.Length > 0)
         {
-            lines.Add(new BookLine(BookTone.Hint, $"forms: {forms}", Indent: true));
+            lines.Add(new BookLine(BookTone.Hint, ui.Ui("bookForms", ("forms", forms)), Indent: true));
         }
 
-        var last = row.Last;
-        lines.Add(new BookLine(BookTone.Hint, $"last: \"{last.Sentence}\"{EnglishSuffix(sheet, last.Sentence)}", Indent: true));
+        lines.Add(new BookLine(BookTone.Hint, Last(ui, sheet, row.Last.Sentence), Indent: true));
     }
 
-    // "1 time", "3 times": the count of uses in words.
-    private static string Uses(int times) => times == 1 ? "1 time" : $"{times} times";
+    // last: "quiero agua" = I want water: the last sentence, with the sheet's English when it is a phrase.
+    private static string Last(LocaleText ui, PhraseSheet sheet, string sentence) =>
+        ui.Ui("bookLast", ("sentence", sentence), ("meaning", SheetEnglish(sheet, sentence) is { } english ? ui.Ui("bookMeaning", ("english", english)) : string.Empty));
 
-    private static string EnglishSuffix(PhraseSheet sheet, string sentence) =>
-        SheetEnglish(sheet, sentence) is { } english ? " = " + english : string.Empty;
+    private static string N(int value) => value.ToString(CultureInfo.InvariantCulture);
 
-    private static string SourceText(InputSource source) => source switch
+    private static string SourceText(LocaleText ui, InputSource source) => ui.Ui(source switch
     {
-        InputSource.Voice => "said",
-        InputSource.Typed => "typed",
-        _ => "button",
-    };
+        InputSource.Voice => "bookSaidVoice",
+        InputSource.Typed => "bookSaidTyped",
+        _ => "bookSaidButton",
+    });
 
-    private static string PlaceText(InputEntry entry, EnglishText english, IReadOnlyList<LessonRecordRow> lessons)
+    private static string PlaceText(InputEntry entry, LocaleText english, IReadOnlyList<LessonRecordRow> lessons)
     {
         switch (entry.Place)
         {
@@ -351,11 +370,11 @@ public static class BookPages
                 var lessonId = entry.Unit is { } unit ? unit.Split('/')[0] : string.Empty;
                 var title = lessons.FirstOrDefault(row => string.Equals(row.LessonId, lessonId, StringComparison.Ordinal))?.Title ?? lessonId;
                 var step = entry.Unit is { } full && full.Contains('/', StringComparison.Ordinal) ? UnitOf(full[(full.IndexOf('/', StringComparison.Ordinal) + 1)..]) : string.Empty;
-                return step.Length > 0 ? $"lesson {title}, {step}" : $"lesson {title}";
+                return step.Length > 0 ? english.Ui("bookSaidLessonStep", ("title", title), ("step", step)) : english.Ui("bookSaidLesson", ("title", title));
             case InputPlace.Check:
-                return "a check";
+                return english.Ui("bookSaidCheck");
             default:
-                return entry.Npc is null ? "talk" : "talk to " + english.NpcName(entry.Npc);
+                return entry.Npc is null ? english.Ui("bookSaidTalk") : english.Ui("bookSaidTalkTo", ("npc", english.NpcName(entry.Npc)));
         }
     }
 

@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -192,7 +193,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         // The book's speaker buttons (S20b): a row plays the recording the speech folder has for it (the files are read once, here).
         _recordings = new BookRecordings(SpeechLines.Enumerate(session.Bundle, session.Nouns, session.Phrases).Select(static l => l.LineId).Where(voice.HasRecording), session.Phrases);
         _bookControls = new BookSpeechControls(_book, new BookSpeaker(voice, _sound.Mixer), session, _recordings);
-        _dialogue = new DialogueModel(_focus, session.OpeningLine, session.Phrases, session.English, showVerdictNotes: !options.Playtest);
+        _dialogue = new DialogueModel(_focus, session.OpeningLine, session.Data, session.Phrases, session.Locale, showVerdictNotes: !options.Playtest);
         _soundFrame = new SoundFrame(_sound, voice, session, () => new PanelState(_inventory.IsOpen, _crafting.IsOpen, _book.IsOpen, (int)_book.Page, _dialogue.IsOpen));
         var microphone = options.UsesMicrophone ? MicrophoneCapture.TryOpen() : null;
         _listen = new ListenSession(new PushToTalkSpeechCapture(microphone) { Sounds = _sound.Mixer });
@@ -202,14 +203,15 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _support = new SupportFrontend(session, _dialogue, _actions, Console.WriteLine);
         _events = new EventPrinter(session.Events, _support.LinesFor, Console.WriteLine);
         _beacon = new BeaconDirector(session, Console.WriteLine, Console.Error.WriteLine);
-        _lesson = new LessonFrontend(session, _dialogue, Console.WriteLine);
+        _lesson = new LessonFrontend(session, _dialogue, Console.WriteLine) { OnNote = _toasts.Show };
+        session.Deck.Enabled = !options.IsScreenshotRun && options.Script.Count == 0; // the guide offers the warm-up in play and the playtest; the scripted runs stay as recorded (X06)
         _ending.MarkSeen(session); // a game loaded after its ending does not play it again
-        _micCheck = options.ShowsMicCheck ? new MicCheckModel(session.LogMicCheck) : null;
+        _micCheck = options.ShowsMicCheck ? new MicCheckModel(session.LogMicCheck, session.Locale, session.Data.Words.Greeting) : null;
         _playtest = options.Playtest;
         _debug.Visible = !_playtest; // the playtest has no debug overlay (F3 is off there too)
         _look.Set(scene.Spawn.Yaw, scene.Spawn.Pitch);
         _camera = new PlayerCamera(_sim, _look, _viewMode, _isSolid);
-        _figures = new FigureDirector(scene, _sim, _look, _dialogue);
+        _figures = new FigureDirector(scene, _sim, _look, _dialogue, session.Data.Npcs);
         _arm = new ArmPresenter(_sim, _isSolid, options.Dusk);
         _drawer = new SceneDrawer(options, session, _toasts, _figures.Figures, Console.WriteLine);
         _reportScreen = new ReportScreen(
@@ -342,7 +344,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             options.Playtest,
             new CheckBatteryHooks(_shots.Request, () => _shots.Pending, () => _micCheck is { IsActive: true }, index => _scenario?.SkipTo(index), Exit, EndPlaytest),
             Console.WriteLine);
-        _micScreen = new MicCheckScreen(_micCheck, session, _listen, _sound, (check, x, y) => MicCheckLayer.LayoutFor(check, _canvas.Width, _canvas.Height, _drawer.View.Fonts.Get(FontProvider.NativeSize)).ButtonAt(x, y), options.IsScreenshotRun, () => _scenario is { IsDone: false } || _checks.Screen is { IsDone: false }, Console.WriteLine);
+        _micScreen = new MicCheckScreen(_micCheck, session, _listen, _sound, (check, x, y) => MicCheckLayer.LayoutFor(check, _canvas.Width, _canvas.Height, _drawer.View.Fonts.Get(FontProvider.NativeSize), session.Locale).ButtonAt(x, y), options.IsScreenshotRun, () => _scenario is { IsDone: false } || _checks.Screen is { IsDone: false }, Console.WriteLine);
         _playtestFlow = new PlaytestFlow(
             options.Playtest,
             options.IsPlaytestRecall,
@@ -593,7 +595,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         view.ControlsOpen = _controls.IsOpen;
         view.ControlsScroll = _controls.Scroll;
         view.Report = _report;
-        view.Loading = _session.Worker!.IsReady ? null : LoadingLayer.Text;
+        view.Loading = _session.Worker!.IsReady ? null : LoadingLayer.Text(_session.Locale);
         _dialogue.SpeechUnavailable = _session.Worker.IsReady && !_session.Worker.CanHear;
         view.LoadingFrame = _loadingFrames++;
         var mouse = Mouse.GetState();
@@ -837,11 +839,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         var path = PlaytestEnd.ManualSavePath(_options.SavePath, _playtestFlow.ManualSaveFile, DefaultSavePath);
         if (_saves.Write(path, "on F6"))
         {
-            _toasts.Show($"Game saved (session {_session.PlaySession})");
+            _toasts.Show(_session.Locale.Ui("gameSaved", ("session", _session.PlaySession.ToString(CultureInfo.InvariantCulture))));
         }
         else
         {
-            _toasts.Show("Wait a moment, then press F6 again.");
+            _toasts.Show(_session.Locale.Ui("saveLater"));
         }
     }
 

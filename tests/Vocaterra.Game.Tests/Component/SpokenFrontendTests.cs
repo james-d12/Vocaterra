@@ -1,11 +1,9 @@
 using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Language.Speech;
-using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Startup;
-using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Tests.Component;
 
@@ -16,9 +14,6 @@ namespace Vocaterra.Game.Tests.Component;
 [Collection("speech models")]
 public sealed class SpokenFrontendTests
 {
-    private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-    private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
-
     private sealed class FakeCapture(int sampleRate, params short[][] chunks) : ISpeechCapture
     {
         private int _next;
@@ -158,10 +153,10 @@ public sealed class SpokenFrontendTests
     [Fact]
     public void ThePanelShowsThinkingWhileATurnIsOutAndItsLinesArriveInOrderWhenTheyComeBack()
     {
-        var session = RouteScene.NewSession(Bundle.Value, Nouns.Value);
+        var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
         session.StartWorker(loadSpeech: false).WaitUntilReady(30000);
         var focus = new InputFocus();
-        var dialogue = new DialogueModel(focus, session.OpeningLine);
+        var dialogue = new DialogueModel(focus, session.OpeningLine, session.Data);
         var pump = new TurnPump(session, dialogue, () => null);
         dialogue.Open();
 
@@ -192,9 +187,9 @@ public sealed class SpokenFrontendTests
     [Fact]
     public void AFailedSpokenRequestShowsItsProblemAsAHintAndClearsThePendingState()
     {
-        var session = RouteScene.NewSession(Bundle.Value, Nouns.Value);
+        var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
         session.StartWorker(loadSpeech: false).WaitUntilReady(30000);
-        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine);
+        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data);
         var pump = new TurnPump(session, dialogue, () => null);
         dialogue.Open();
 
@@ -218,7 +213,7 @@ public sealed class SpokenFrontendTests
     [Fact]
     public void ClosingThePanelDropsTheListeningStateAndAScriptedSpeechRequest()
     {
-        var dialogue = new DialogueModel(new InputFocus(), "hola");
+        var dialogue = new DialogueModel(new InputFocus(), "hola", RouteScene.Shipped);
         dialogue.Open();
         dialogue.Listening = true;
         dialogue.RequestSpeech(TurnSource.Speak, "hola");

@@ -13,7 +13,7 @@ namespace Vocaterra.Game.Core.Reporting;
 public sealed class ReportPanel
 {
     /// <summary>The line a save with no text says (the panel stays open).</summary>
-    public const string BlankNotice = "Write what you saw or wanted first, then save.";
+    public const string BlankNotice = "reportBlank";
 
     /// <summary>The kind a report starts with.</summary>
     public const ReportKind DefaultKind = ReportKind.Bug;

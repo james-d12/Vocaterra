@@ -1,9 +1,11 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
+using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Prompts;
@@ -33,12 +35,29 @@ public enum LessonStepType
 
     /// <summary><c>recap</c>: English text and the phrases practised so far; the learner continues.</summary>
     Recap,
+
+    /// <summary>
+    /// <c>review</c> (X06, R07): an earlier lesson's phrase comes back. The step lists candidates (a phrase and the NPC's line that asks it); at run time the runner asks
+    /// the most overdue of those that are due (<see cref="PhraseProgress.DuePhrases"/>) as an answer step, with the help of the phrase's own rung, and skips the step
+    /// when none is due. It is never judged for a person or a tense.
+    /// </summary>
+    Review,
 }
+
+/// <summary>
+/// One phrase a <c>review</c> step may ask (X06, R07): the phrase of an earlier lesson, the line its NPC says to ask it (an existing speech line of the step's NPC), what the
+/// line means (the line's own text in the locale, <c>line.&lt;id&gt;</c>) and the prompt the answer is evaluated at. No new Spanish: the line and the phrase are ones the game already has.
+/// </summary>
+/// <param name="Phrase">The phrase sheet's id of the phrase the learner says.</param>
+/// <param name="Prompt">The bundle prompt the turn is evaluated at.</param>
+/// <param name="Line">The pre-rendered line the NPC says.</param>
+/// <param name="Translation">What the line means, in English.</param>
+public sealed record ReviewCandidate(string Phrase, string Prompt, SpeechLine Line, string Translation);
 
 /// <summary>The wire names of the lesson step types, as <c>game/lessons.json</c> and the session log spell them.</summary>
 public static class LessonStepTypes
 {
-    /// <summary>The wire name of a step type: <c>explain</c>, <c>model</c>, <c>listen</c>, <c>repeat</c>, <c>answer</c>, <c>do</c> or <c>recap</c>.</summary>
+    /// <summary>The wire name of a step type: <c>explain</c>, <c>model</c>, <c>listen</c>, <c>repeat</c>, <c>answer</c>, <c>do</c>, <c>recap</c> or <c>review</c>.</summary>
     /// <param name="type">The type.</param>
     public static string Of(LessonStepType type) => type switch
     {
@@ -49,6 +68,7 @@ public static class LessonStepTypes
         LessonStepType.Answer => "answer",
         LessonStepType.Do => "do",
         LessonStepType.Recap => "recap",
+        LessonStepType.Review => "review",
         _ => throw new ArgumentOutOfRangeException(nameof(type), type, "Unknown lesson step type."),
     };
 
@@ -63,6 +83,7 @@ public static class LessonStepTypes
         "answer" => LessonStepType.Answer,
         "do" => LessonStepType.Do,
         "recap" => LessonStepType.Recap,
+        "review" => LessonStepType.Review,
         _ => null,
     };
 }
@@ -82,8 +103,7 @@ public static class LessonStepTypes
 /// <param name="Prompt">For <c>repeat</c> and <c>answer</c>: the bundle prompt the turn is evaluated at.</param>
 /// <param name="Options">For <c>listen</c>: the English options, in the order shown.</param>
 /// <param name="Correct">For <c>listen</c>: the index of the right option.</param>
-/// <param name="Event">For <c>do</c>: the world event the step waits for (<see cref="WorldEvents"/>).</param>
-/// <param name="Detail">For <c>do</c>: a text the event's detail must contain (ignoring case), or <see langword="null"/> for any.</param>
+/// <param name="Trigger">For <c>do</c> (C06): the world event the step waits for (<see cref="WorldEvents"/>), with the NPC and the exact detail it must have when it names them.</param>
 /// <param name="Phrases">For <c>recap</c>: the phrases it lists; empty means every phrase the lesson's <c>repeat</c> and <c>answer</c> steps teach.</param>
 /// <param name="Attempts">For <c>listen</c>, <c>repeat</c> and <c>answer</c>: how many tries the step allows before it moves on (fail-forward, D-game-9).</param>
 /// <param name="Point">For <c>do</c> (S17): a catalogue noun the beacon is pointed at when the step begins (the nearest block of it), or <see langword="null"/> for none.</param>
@@ -94,7 +114,7 @@ public static class LessonStepTypes
 /// <param name="Tense">For <c>repeat</c> and <c>answer</c> (S27): the tense the answer's verb must have (<c>pres</c>, <c>pret</c> or <c>ir-a</c>, the near future: a form of <c>ir</c>, <c>a</c> and an infinitive), or <see langword="null"/> to judge nothing of it.</param>
 /// <param name="TenseRetry">The English line shown when the answer's verb has another tense than <see cref="Tense"/> (it names the form), or <see langword="null"/> for the step's retry line.</param>
 /// <param name="PresentNote">For an <c>ir-a</c> step (S27): the English note shown after a plan said in the present (<c>mañana voy al río</c>), which is right Spanish and is credited; it names the form the lesson practises. <see langword="null"/> for the step with no note.</param>
-/// <param name="At">For <c>do</c> with the <c>talk_opened</c> event (S26): the NPC the learner is to walk up to and talk to; the step ends when the panel opens on that NPC.</param>
+/// <param name="Candidates">For <c>review</c> (X06, R07): the phrases the step may ask; <see cref="Line"/>, <see cref="Translation"/>, <see cref="Phrase"/> and <see cref="Prompt"/> are those of the first. At run time the runner asks the most overdue of those that are due.</param>
 public sealed record LessonStep(
     string Id,
     LessonStepType Type,
@@ -107,25 +127,33 @@ public sealed record LessonStep(
     string? Prompt,
     IReadOnlyList<string> Options,
     int Correct,
-    string? Event,
-    string? Detail,
+    Trigger? Trigger,
     IReadOnlyList<string> Phrases,
     int Attempts,
     string? Point = null,
     string? Hud = null,
     string? Npc = null,
-    string? At = null,
     string? Person = null,
     string? PersonRetry = null,
     string? Tense = null,
     string? TenseRetry = null,
-    string? PresentNote = null)
+    string? PresentNote = null,
+    IReadOnlyList<ReviewCandidate>? Candidates = null)
 {
     /// <summary>The attempts a step allows when the file says nothing: one try and one retry, then the lesson moves on.</summary>
     public const int DefaultAttempts = 2;
 
     /// <summary>Whether the step waits for the learner to say something (a real turn through the core).</summary>
-    public bool WaitsOnTurn => Type is LessonStepType.Repeat or LessonStepType.Answer;
+    public bool WaitsOnTurn => Type is LessonStepType.Repeat or LessonStepType.Answer or LessonStepType.Review;
+
+    /// <summary>For <c>do</c>: the world event's name the step waits for (<see cref="Trigger"/>).</summary>
+    public string? Event => Trigger?.Event;
+
+    /// <summary>For <c>do</c>: the detail the event must have, exactly, or <see langword="null"/> for any.</summary>
+    public string? Detail => Trigger?.Detail;
+
+    /// <summary>For <c>do</c> with an NPC in its trigger (S26): the NPC the learner is to walk up to; the step ends when the event happens at that NPC.</summary>
+    public string? At => Trigger?.Npc;
 }
 
 /// <summary>
@@ -148,16 +176,18 @@ public sealed record TaughtVerbForm(string Lemma, string Person, string Number, 
     /// of <c>comer</c> has a column "future (ir a)" whose cells are built from <c>ir</c>'s present column and the infinitive, never typed by hand.
     /// </summary>
     /// <param name="morphology">The bundle's morphology.</param>
+    /// <param name="nearFuture">The near future's verb and joiner (<c>ir</c>, <c>a</c>; <c>game/words.json</c>, C05).</param>
     /// <returns>The form's text, or <see langword="null"/> when the core cannot generate it.</returns>
-    public string? Text(Vocaterra.Nlp.Es.Morphology.MorphologyGenerator morphology)
+    public string? Text(Vocaterra.Nlp.Es.Morphology.MorphologyGenerator morphology, NearFutureWords nearFuture)
     {
         ArgumentNullException.ThrowIfNull(morphology);
+        ArgumentNullException.ThrowIfNull(nearFuture);
         if (!string.Equals(Tense, NearFuture, StringComparison.Ordinal))
         {
             return morphology.Conjugate(Lemma, Person, Number, Tense);
         }
 
-        return morphology.Conjugate("ir", Person, Number, "pres") is { } ir ? $"{ir} a {Lemma}" : null;
+        return morphology.Conjugate(nearFuture.Verb, Person, Number, "pres") is { } ir ? $"{ir} {nearFuture.Joiner} {Lemma}" : null;
     }
 }
 
@@ -197,31 +227,35 @@ public sealed record LessonDefinition(
         return step.Npc ?? Npc;
     }
 
-    /// <summary>The phrases the lesson teaches: those of its <c>repeat</c> and <c>answer</c> steps, in order, each once.</summary>
+    /// <summary>The phrases the lesson teaches: those of its <c>repeat</c> and <c>answer</c> steps, in order, each once (a <c>review</c> step teaches nothing: it asks what an earlier lesson taught).</summary>
     public IReadOnlyList<string> TaughtPhrases =>
-        Steps.Where(static s => s.WaitsOnTurn).Select(static s => s.Phrase!).Distinct(StringComparer.Ordinal).ToList();
+        Steps.Where(static s => s.Type is LessonStepType.Repeat or LessonStepType.Answer).Select(static s => s.Phrase!).Distinct(StringComparer.Ordinal).ToList();
 }
 
 /// <summary>
 /// The lessons of the game (S16), read from the bundle's host file <c>game/lessons.json</c> (hashed, listed in <c>provenance.json</c>). A lesson is data: a
-/// list of steps of the seven types, so a new lesson needs no code. The file is checked at load against the phrase sheet, the bundle's prompts and
+/// list of steps of the eight types, so a new lesson needs no code. The file is checked at load against the phrase sheet, the bundle's prompts and
 /// speech lines and the world-event names, so a bad lesson is a load error, not a surprise in a playtest.
 /// </summary>
 /// <remarks>
-/// <para>The file is <c>{ "schemaVersion": 1, "lessons": [ { "id", "npc", "title", "english", "autoStart"?, "after"?, "steps": [ ... ] } ] }</c>. A step has an <c>id</c>, a
-/// <c>type</c> and <c>english</c> always, and optionally <c>help</c> (the hint of the help path), <c>retry</c>, <c>attempts</c> (1 to 5, default 2) and <c>npc</c> (S26: the NPC the step is said at, when the lesson moves from one NPC to another), plus:</para>
+/// <para>The file is <c>{ "schemaVersion": 1, "lessons": [ { "id", "npc", "autoStart"?, "after"?, "steps": [ ... ] } ] }</c>. It carries ids only: every word the
+/// learner reads is the support language's, in the locale (CONTENT_PLAN C03): the lesson's <c>lesson.&lt;id&gt;.title</c> and <c>.text</c> (and <c>.summary</c>, <c>.objective</c>),
+/// and each step's <c>lesson.&lt;id&gt;.&lt;step&gt;.text</c> (and <c>.help</c>, <c>.retry</c>, <c>.translation</c>, <c>.option.&lt;n&gt;</c>, <c>.hud</c>, <c>.personRetry</c>,
+/// <c>.tenseRetry</c>, <c>.presentNote</c>). A step has an <c>id</c> and a <c>type</c> always, and optionally <c>attempts</c> (1 to 5, default 2) and <c>npc</c> (S26: the
+/// NPC the step is said at, when the lesson moves from one NPC to another), plus:</para>
 /// <list type="bullet">
 /// <item><c>explain</c>: nothing more.</item>
-/// <item><c>model</c>: <c>line</c> (a speech id such as <c>phrase.hola</c> or <c>guide_greet.1</c>) and <c>translation</c>.</item>
-/// <item><c>listen</c>: <c>line</c>, <c>translation</c>, <c>options</c> (two to four English strings) and <c>correct</c> (the index).</item>
+/// <item><c>model</c>: <c>line</c> (a speech id such as <c>phrase.hola</c> or <c>guide_greet.1</c>); its translation is the locale's.</item>
+/// <item><c>listen</c>: <c>line</c> and <c>correct</c> (the index of the right one of the locale's two to four options).</item>
 /// <item><c>repeat</c>: <c>phrase</c> (a row the learner says) and optionally <c>prompt</c> (default: the row's).</item>
-/// <item><c>answer</c>: <c>phrase</c>, <c>line</c>, <c>translation</c> and optionally <c>prompt</c>.</item>
-/// <item><c>do</c>: <c>event</c> (a world event name) and optionally <c>detail</c>, <c>point</c> (a noun the beacon goes to when the step begins), <c>hud</c> (the short line the objective area shows while the step waits) and, with the event <c>talk_opened</c>, <c>at</c> (the NPC to walk up to; S26).</item>
+/// <item><c>answer</c>: <c>phrase</c>, <c>line</c> and optionally <c>prompt</c>.</item>
+/// <item><c>do</c>: <c>trigger</c> (C06: <c>{ "event", "npc"?, "detail"? }</c>, a world event with the NPC and the exact detail it must have) and optionally <c>point</c> (a noun the beacon goes to when the step begins).</item>
 /// <item><c>recap</c>: optionally <c>phrases</c> (default: every phrase the lesson teaches).</item>
+/// <item><c>review</c> (X06, R07): <c>candidates</c>, a non-empty list of <c>{ phrase, line, prompt? }</c> naming phrases an earlier lesson of the file teaches and the existing line of the step's NPC that asks each (its meaning is the line's, <c>line.&lt;id&gt;</c> in the locale). At run time the most overdue candidate that is due is asked as an answer step (the help of the phrase's own rung); when none is due the step is skipped.</item>
 /// </list>
-/// <para>A lesson may also carry <c>session</c> (the play session it unlocks in, default 1), <c>objective</c> (the English line that names it while it is unlocked and not begun; needed when <c>session</c> is above 1)
+/// <para>A lesson may also carry <c>session</c> (the play session it unlocks in, default 1; above 1 the locale needs its objective line)
 /// and <c>verbs</c> (the verb forms it teaches: <c>lemma</c>, <c>person</c> 1 to 3, <c>number</c> sg or pl, <c>tense</c> pres, pret, ir-a or fut; S26, S27). A repeat or answer step may declare the <c>person</c>
-/// of the verb it expects (<c>1sg</c>...) with a <c>personRetry</c>, and its <c>tense</c> (<c>pres</c>, <c>pret</c>, <c>ir-a</c>) with a <c>tenseRetry</c> (S27).</para>
+/// of the verb it expects (<c>1sg</c>...) and its <c>tense</c> (<c>pres</c>, <c>pret</c>, <c>ir-a</c>), with their retry lines in the locale (S27).</para>
 /// <para>The row's intent must be one the prompt allows, so the core can recognise the answer. Plain values, no clock, no random numbers.</para>
 /// </remarks>
 public sealed class LessonBook
@@ -243,34 +277,79 @@ public sealed class LessonBook
     /// <param name="id">The lesson's id.</param>
     public LessonDefinition? Find(string id) => _lessons.FirstOrDefault(l => string.Equals(l.Id, id, StringComparison.Ordinal));
 
-    /// <summary>Reads the lessons from the bundle's verified host file and checks them against the bundle.</summary>
+    /// <summary>The folder of the lesson files inside the bundle folder: one file per lesson, <c>game/lessons/&lt;id&gt;.json</c> (C06).</summary>
+    public const string Folder = "game/lessons/";
+
+    /// <summary>
+    /// Reads the lessons from the bundle's verified host files and checks them against the bundle (C06): <c>game/lessons.json</c> lists the lessons' ids in
+    /// their order (<c>{ "schemaVersion": 2, "lessons": [ "first-words", ... ] }</c>), and each lesson is its own file, <c>game/lessons/&lt;id&gt;.json</c>.
+    /// </summary>
     /// <param name="bundle">The bundle, loaded with hash verification.</param>
     /// <param name="sheet">The phrase sheet.</param>
     /// <param name="speech">The bundle's speakable lines (<see cref="SpeechLines.Enumerate"/>).</param>
-    /// <exception cref="InvalidDataException">The bundle has no such host file, or a lesson is malformed or does not fit the bundle.</exception>
-    public static LessonBook Load(ContentBundle bundle, PhraseSheet sheet, IReadOnlyList<SpeechLine> speech)
+    /// <param name="locale">The support language, which holds the lessons' text (<c>lesson.&lt;id&gt;.*</c>).</param>
+    /// <param name="npcs">The NPCs' ids (<c>game/npcs.json</c>): a lesson, a step and a trigger may name only these.</param>
+    /// <exception cref="InvalidDataException">The bundle has no such host file, a lesson file is missing, not listed or names another id, or a lesson is malformed or does not fit the bundle.</exception>
+    public static LessonBook Load(ContentBundle bundle, PhraseSheet sheet, IReadOnlyList<SpeechLine> speech, LocaleText locale, IReadOnlyList<string> npcs)
     {
         ArgumentNullException.ThrowIfNull(bundle);
-        if (!bundle.TryReadHostFile(RelativePath, out var bytes))
+        var ids = new List<string>();
+        try
         {
-            throw new InvalidDataException($"The bundle has no host file {RelativePath}: it is missing from the manifest, or the bundle was loaded without hash verification.");
+            using var index = JsonDocument.Parse(GameData.HostText(bundle, RelativePath));
+            if (index.RootElement.GetProperty("schemaVersion").GetInt32() != 2)
+            {
+                throw new InvalidDataException($"{RelativePath} must have schemaVersion 2 (the index of the lesson files).");
+            }
+
+            ids.AddRange(index.RootElement.GetProperty("lessons").EnumerateArray().Select(static e => e.GetString() ?? string.Empty));
+        }
+        catch (Exception ex) when (ex is JsonException or KeyNotFoundException or InvalidOperationException)
+        {
+            throw new InvalidDataException($"{RelativePath} is malformed: {ex.Message}", ex);
         }
 
-        return Parse(Encoding.UTF8.GetString(bytes.Span), sheet, speech, bundle.Prompts);
+        var files = new List<string>();
+        foreach (var id in ids)
+        {
+            var path = Folder + id + ".json";
+            var text = GameData.HostText(bundle, path);
+            using (var lesson = JsonDocument.Parse(text))
+            {
+                if (!lesson.RootElement.TryGetProperty("id", out var fileId) || !string.Equals(fileId.GetString(), id, StringComparison.Ordinal))
+                {
+                    throw new InvalidDataException($"{path}: the lesson's id must be its file's name, '{id}'.");
+                }
+            }
+
+            files.Add(text);
+        }
+
+        var unlisted = bundle.HostFilePaths.Where(path => path.StartsWith(Folder, StringComparison.Ordinal) && !ids.Contains(path[Folder.Length..^".json".Length], StringComparer.Ordinal)).ToList();
+        if (unlisted.Count > 0)
+        {
+            throw new InvalidDataException($"{RelativePath} does not list the lesson file {string.Join(", ", unlisted)}.");
+        }
+
+        return Parse("{ \"schemaVersion\": 1, \"lessons\": [" + string.Join(",", files) + "] }", sheet, speech, bundle.Prompts, locale, npcs);
     }
 
-    /// <summary>Builds the lessons from the file's text, checking that each one holds together.</summary>
-    /// <param name="json">The contents of <c>game/lessons.json</c>.</param>
+    /// <summary>Builds the lessons from a book's text, checking that each one holds together: <c>{ "schemaVersion": 1, "lessons": [ { lesson }, ... ] }</c>, the lessons in order (the shipped lessons are one file each, which <see cref="Load"/> puts together).</summary>
+    /// <param name="json">The book.</param>
     /// <param name="sheet">The phrase sheet.</param>
     /// <param name="speech">The bundle's speakable lines.</param>
     /// <param name="prompts">The bundle's prompts.</param>
+    /// <param name="locale">The support language, which holds the lessons' text (<c>lesson.&lt;id&gt;.*</c>).</param>
+    /// <param name="npcs">The NPCs' ids (<c>game/npcs.json</c>): a lesson, a step and a trigger may name only these.</param>
     /// <exception cref="InvalidDataException">The text is malformed or a lesson does not hold together.</exception>
-    public static LessonBook Parse(string json, PhraseSheet sheet, IReadOnlyList<SpeechLine> speech, IReadOnlyDictionary<string, PromptSpec> prompts)
+    public static LessonBook Parse(string json, PhraseSheet sheet, IReadOnlyList<SpeechLine> speech, IReadOnlyDictionary<string, PromptSpec> prompts, LocaleText locale, IReadOnlyList<string> npcs)
     {
+        ArgumentNullException.ThrowIfNull(npcs);
         ArgumentNullException.ThrowIfNull(json);
         ArgumentNullException.ThrowIfNull(sheet);
         ArgumentNullException.ThrowIfNull(speech);
         ArgumentNullException.ThrowIfNull(prompts);
+        ArgumentNullException.ThrowIfNull(locale);
         try
         {
             using var document = JsonDocument.Parse(json);
@@ -282,15 +361,17 @@ public sealed class LessonBook
 
             var lessons = new List<LessonDefinition>();
             var ids = new HashSet<string>(StringComparer.Ordinal);
+            var taughtBefore = new HashSet<string>(StringComparer.Ordinal);
             foreach (var element in root.GetProperty("lessons").EnumerateArray())
             {
-                var lesson = ParseLesson(element, sheet, speech, prompts, ids);
+                var lesson = ParseLesson(element, sheet, speech, prompts, locale, npcs, ids, taughtBefore);
                 if (!ids.Add(lesson.Id))
                 {
                     throw new InvalidDataException($"{RelativePath}: the lesson id '{lesson.Id}' is used twice.");
                 }
 
                 lessons.Add(lesson);
+                taughtBefore.UnionWith(lesson.TaughtPhrases);
             }
 
             return new LessonBook(lessons);
@@ -301,13 +382,13 @@ public sealed class LessonBook
         }
     }
 
-    private static LessonDefinition ParseLesson(JsonElement element, PhraseSheet sheet, IReadOnlyList<SpeechLine> speech, IReadOnlyDictionary<string, PromptSpec> prompts, ISet<string> earlier)
+    private static LessonDefinition ParseLesson(JsonElement element, PhraseSheet sheet, IReadOnlyList<SpeechLine> speech, IReadOnlyDictionary<string, PromptSpec> prompts, LocaleText locale, IReadOnlyList<string> npcs, ISet<string> earlier, ISet<string> taughtBefore)
     {
         var id = Text(element, "id");
         var npc = Text(element, "npc");
-        if (!NpcService.AgentIds.Contains(npc, StringComparer.Ordinal))
+        if (!npcs.Contains(npc, StringComparer.Ordinal))
         {
-            throw Bad(id, $"is attached to '{npc}', which is not one of the NPCs ({string.Join(", ", NpcService.AgentIds)})");
+            throw Bad(id, $"is attached to '{npc}', which is not one of the NPCs ({string.Join(", ", npcs)})");
         }
 
         var after = Optional(element, "after");
@@ -320,7 +401,7 @@ public sealed class LessonBook
         var stepIds = new HashSet<string>(StringComparer.Ordinal);
         foreach (var stepElement in element.GetProperty("steps").EnumerateArray())
         {
-            var step = ParseStep(id, stepElement, sheet, speech, prompts);
+            var step = ParseStep(id, stepElement, sheet, speech, prompts, locale, npcs);
             if (!stepIds.Add(step.Id))
             {
                 throw Bad(id, $"has the step id '{step.Id}' twice");
@@ -337,9 +418,20 @@ public sealed class LessonBook
         foreach (var step in steps)
         {
             var stepNpc = step.Npc ?? npc;
-            if (step.Line is { Kind: SpeechKind.Dialogue or SpeechKind.Prompt } spoken && !string.Equals(spoken.Speaker, stepNpc, StringComparison.Ordinal))
+            foreach (var line in step.Candidates is { } asked ? asked.Select(static c => (SpeechLine?)c.Line) : [step.Line])
             {
-                throw Bad(id, $"step '{step.Id}' is said at {stepNpc}, but its line '{spoken.LineId}' is spoken by {spoken.Speaker}");
+                if (line is { Kind: SpeechKind.Dialogue or SpeechKind.Prompt } spoken && !string.Equals(spoken.Speaker, stepNpc, StringComparison.Ordinal))
+                {
+                    throw Bad(id, $"step '{step.Id}' is said at {stepNpc}, but its line '{spoken.LineId}' is spoken by {spoken.Speaker}");
+                }
+            }
+
+            foreach (var candidate in step.Candidates ?? [])
+            {
+                if (!taughtBefore.Contains(candidate.Phrase))
+                {
+                    throw Bad(id, $"step '{step.Id}' reviews the phrase '{candidate.Phrase}', which no earlier lesson of the file teaches");
+                }
             }
         }
 
@@ -350,13 +442,13 @@ public sealed class LessonBook
             throw Bad(id, $"unlocks in session {session.ToString(CultureInfo.InvariantCulture)}; sessions start at 1");
         }
 
-        var objective = Optional(element, "objective");
+        var objective = locale.Find(LessonId(id, "objective"));
         if (session > 1 && objective is null)
         {
-            throw Bad(id, "unlocks in a later session and needs an English \"objective\" line that names it");
+            throw Bad(id, $"unlocks in a later session and needs an objective line that names it ({LessonId(id, "objective")} in the locale)");
         }
 
-        var lesson = new LessonDefinition(id, npc, Text(element, "title"), Text(element, "english"), autoStart, after, steps, Optional(element, "summary"), session, objective, ParseVerbs(id, element));
+        var lesson = new LessonDefinition(id, npc, Required(locale, id, LessonId(id, "title")), Required(locale, id, LessonId(id, "text")), autoStart, after, steps, locale.Find(LessonId(id, "summary")), session, objective, ParseVerbs(id, element));
         foreach (var recap in steps.Where(static s => s.Type == LessonStepType.Recap))
         {
             foreach (var phrase in recap.Phrases)
@@ -399,11 +491,12 @@ public sealed class LessonBook
         return forms;
     }
 
-    private static LessonStep ParseStep(string lesson, JsonElement element, PhraseSheet sheet, IReadOnlyList<SpeechLine> speech, IReadOnlyDictionary<string, PromptSpec> prompts)
+    private static LessonStep ParseStep(string lesson, JsonElement element, PhraseSheet sheet, IReadOnlyList<SpeechLine> speech, IReadOnlyDictionary<string, PromptSpec> prompts, LocaleText locale, IReadOnlyList<string> npcs)
     {
         var id = Text(element, "id");
+        string? Say(string field) => locale.Find(StepId(lesson, id, field));
         var typeName = Text(element, "type");
-        var type = LessonStepTypes.Parse(typeName) ?? throw Bad(lesson, $"step '{id}' has the type '{typeName}', which is not one of explain, model, listen, repeat, answer, do, recap");
+        var type = LessonStepTypes.Parse(typeName) ?? throw Bad(lesson, $"step '{id}' has the type '{typeName}', which is not one of explain, model, listen, repeat, answer, do, recap, review");
         var attempts = element.TryGetProperty("attempts", out var count) ? count.GetInt32() : LessonStep.DefaultAttempts;
         if (attempts is < 1 or > 5)
         {
@@ -416,16 +509,16 @@ public sealed class LessonBook
         string? prompt = null;
         var options = new List<string>();
         var correct = -1;
-        string? worldEvent = null;
-        string? detail = null;
+        Trigger? trigger = null;
         var phrases = new List<string>();
+        IReadOnlyList<ReviewCandidate>? candidates = null;
         switch (type)
         {
             case LessonStepType.Model:
             case LessonStepType.Listen:
             case LessonStepType.Answer:
                 line = LineOf(lesson, id, Text(element, "line"), speech);
-                translation = Text(element, "translation");
+                translation = Required(locale, lesson, StepId(lesson, id, "translation"));
                 break;
             default:
                 break;
@@ -434,11 +527,11 @@ public sealed class LessonBook
         switch (type)
         {
             case LessonStepType.Listen:
-                options = element.GetProperty("options").EnumerateArray().Select(static o => o.GetString() ?? string.Empty).ToList();
+                options = Options(locale, lesson, id);
                 correct = element.GetProperty("correct").GetInt32();
-                if (options.Count is < 2 or > 4 || options.Any(static o => o.Length == 0))
+                if (options.Count is < 2 or > MaxOptions)
                 {
-                    throw Bad(lesson, $"step '{id}' needs two to four non-empty options");
+                    throw Bad(lesson, $"step '{id}' needs two to four options ({StepId(lesson, id, "option.<n>")} in the locale)");
                 }
 
                 if (correct < 0 || correct >= options.Count)
@@ -451,14 +544,22 @@ public sealed class LessonBook
             case LessonStepType.Answer:
                 (phrase, prompt) = PhraseAndPrompt(lesson, id, element, sheet, prompts);
                 break;
+            case LessonStepType.Review:
+                candidates = ParseCandidates(lesson, id, element, sheet, speech, prompts, locale);
+                (phrase, prompt, line, translation) = (candidates[0].Phrase, candidates[0].Prompt, candidates[0].Line, candidates[0].Translation);
+                break;
             case LessonStepType.Do:
-                worldEvent = Text(element, "event");
-                if (!WorldEvents.All.Contains(worldEvent, StringComparer.Ordinal))
+                if (!element.TryGetProperty("trigger", out var triggerElement))
                 {
-                    throw Bad(lesson, $"step '{id}' waits for '{worldEvent}', which is not a world event the game raises ({string.Join(", ", WorldEvents.All)})");
+                    throw Bad(lesson, $"step '{id}' is a do step with no trigger (the world event it waits for)");
                 }
 
-                detail = Optional(element, "detail");
+                trigger = Trigger.Parse(triggerElement, WorldEvents.All, $"{RelativePath}: the lesson '{lesson}', step '{id}'");
+                if (trigger.Npc is { } waitedAt && !npcs.Contains(waitedAt, StringComparer.Ordinal))
+                {
+                    throw Bad(lesson, $"step '{id}' waits at '{waitedAt}', which is not one of the NPCs ({string.Join(", ", npcs)})");
+                }
+
                 break;
             case LessonStepType.Recap:
                 if (element.TryGetProperty("phrases", out var listed))
@@ -481,15 +582,9 @@ public sealed class LessonBook
         }
 
         var stepNpc = Optional(element, "npc");
-        if (stepNpc is not null && !NpcService.AgentIds.Contains(stepNpc, StringComparer.Ordinal))
+        if (stepNpc is not null && !npcs.Contains(stepNpc, StringComparer.Ordinal))
         {
-            throw Bad(lesson, $"step '{id}' is said at '{stepNpc}', which is not one of the NPCs ({string.Join(", ", NpcService.AgentIds)})");
-        }
-
-        var at = type == LessonStepType.Do ? Optional(element, "at") : null;
-        if (at is not null && (!NpcService.AgentIds.Contains(at, StringComparer.Ordinal) || !string.Equals(worldEvent, WorldEvents.TalkOpened, StringComparison.Ordinal)))
-        {
-            throw Bad(lesson, $"step '{id}' waits at '{at}': \"at\" names an NPC ({string.Join(", ", NpcService.AgentIds)}) and goes with the event {WorldEvents.TalkOpened}");
+            throw Bad(lesson, $"step '{id}' is said at '{stepNpc}', which is not one of the NPCs ({string.Join(", ", npcs)})");
         }
 
         var person = Optional(element, "person");
@@ -504,7 +599,32 @@ public sealed class LessonBook
             throw Bad(lesson, $"step '{id}' expects the tense '{tense}': \"tense\" is pres, pret or ir-a and goes with a repeat or answer step");
         }
 
-        return new LessonStep(id, type, Text(element, "english"), Optional(element, "help"), Optional(element, "retry"), line, translation, phrase, prompt, options, correct, worldEvent, detail, phrases, attempts, type == LessonStepType.Do ? Optional(element, "point") : null, type == LessonStepType.Do ? Optional(element, "hud") : null, stepNpc, at, person, person is null ? null : Optional(element, "personRetry"), tense, tense is null ? null : Optional(element, "tenseRetry"), tense == TaughtVerbForm.NearFuture ? Optional(element, "presentNote") : null);
+        return new LessonStep(id, type, Required(locale, lesson, StepId(lesson, id, "text")), Say("help"), Say("retry"), line, translation, phrase, prompt, options, correct, trigger, phrases, attempts, type == LessonStepType.Do ? Optional(element, "point") : null, type == LessonStepType.Do ? Say("hud") : null, stepNpc, person, person is null ? null : Say("personRetry"), tense, tense is null ? null : Say("tenseRetry"), tense == TaughtVerbForm.NearFuture ? Say("presentNote") : null, candidates);
+    }
+
+    // The candidates of a review step (X06, R07): each names a phrase, the NPC's line that asks it (its meaning is the line's own, line.<id> in the locale) and
+    // optionally the prompt (default: the row's).
+    private static List<ReviewCandidate> ParseCandidates(string lesson, string step, JsonElement element, PhraseSheet sheet, IReadOnlyList<SpeechLine> speech, IReadOnlyDictionary<string, PromptSpec> prompts, LocaleText locale)
+    {
+        if (!element.TryGetProperty("candidates", out var listed) || listed.ValueKind != JsonValueKind.Array || listed.GetArrayLength() == 0)
+        {
+            throw Bad(lesson, $"step '{step}' is a review and needs a non-empty \"candidates\" list");
+        }
+
+        var candidates = new List<ReviewCandidate>();
+        foreach (var item in listed.EnumerateArray())
+        {
+            var (phrase, prompt) = PhraseAndPrompt(lesson, step, item, sheet, prompts);
+            if (candidates.Any(c => string.Equals(c.Phrase, phrase, StringComparison.Ordinal)))
+            {
+                throw Bad(lesson, $"step '{step}' lists the phrase '{phrase}' twice");
+            }
+
+            var line = LineOf(lesson, step, Text(item, "line"), speech);
+            candidates.Add(new ReviewCandidate(phrase, prompt, line, Required(locale, lesson, "line." + line.LineId)));
+        }
+
+        return candidates;
     }
 
     private static (string Phrase, string Prompt) PhraseAndPrompt(string lesson, string step, JsonElement element, PhraseSheet sheet, IReadOnlyDictionary<string, PromptSpec> prompts)
@@ -535,6 +655,35 @@ public sealed class LessonBook
         ?? throw Bad(lesson, $"step '{step}' plays the line '{lineId}', which has no pre-rendered speech line in the bundle");
 
     private static InvalidDataException Bad(string lesson, string problem) => new($"{RelativePath}: the lesson '{lesson}' {problem}.");
+
+    /// <summary>The locale id of a lesson's own text: <c>lesson.&lt;id&gt;.&lt;field&gt;</c> (title, text, summary, objective).</summary>
+    /// <param name="lesson">The lesson's id.</param>
+    /// <param name="field">The field.</param>
+    public static string LessonId(string lesson, string field) => "lesson." + lesson + "." + field;
+
+    /// <summary>The locale id of a step's text: <c>lesson.&lt;id&gt;.&lt;step&gt;.&lt;field&gt;</c> (text, translation, help, retry, personRetry, tenseRetry, presentNote, hud, option.&lt;n&gt;).</summary>
+    /// <param name="lesson">The lesson's id.</param>
+    /// <param name="step">The step's id.</param>
+    /// <param name="field">The field.</param>
+    public static string StepId(string lesson, string step, string field) => "lesson." + lesson + "." + step + "." + field;
+
+    /// <summary>The most options a listen step offers (<c>option.1</c> to <c>option.4</c>).</summary>
+    public const int MaxOptions = 4;
+
+    private static string Required(LocaleText locale, string lesson, string id) =>
+        locale.Find(id) ?? throw Bad(lesson, $"has no text '{id}' in the locale {locale.Code}");
+
+    // A listen step's options: option.1, option.2, ... in the locale, as many as follow one another.
+    private static List<string> Options(LocaleText locale, string lesson, string step)
+    {
+        var options = new List<string>();
+        while (options.Count < MaxOptions + 1 && locale.Find(StepId(lesson, step, "option." + (options.Count + 1).ToString(CultureInfo.InvariantCulture))) is { } option)
+        {
+            options.Add(option);
+        }
+
+        return options;
+    }
 
     private static string Text(JsonElement element, string name)
     {

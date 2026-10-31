@@ -81,10 +81,37 @@ public static class WorldEvents
     /// <summary>The camp's checklist was complete and the player was given a spare torch for their own fire (S17; the detail says how, or that the bag was full).</summary>
     public const string SpareTorch = "spare_torch";
 
-    /// <summary>Every world event name, in the order above (the English text and the lessons check the names they use against it).</summary>
+    /// <summary>
+    /// A torch was placed at a fire ring (CONTENT_PLAN C06): in the three-by-three square around a ring stone, on its layer or on top of a stone. The detail is
+    /// the ring's prop name (<c>firering</c> at the guide's camp, <c>firering.player</c> at the player's own); in a scene that names no camp ring, every ring
+    /// that is not the player's counts as <c>firering</c>. The camp's checklist step waits for it.
+    /// </summary>
+    public const string TorchAtRing = "torch_at_ring";
+
+    /// <summary>The guide offered the review deck's warm-up at the first talk of a session (X06, R06; the detail lists the phrase ids).</summary>
+    public const string WarmupOffered = "warmup_offered";
+
+    /// <summary>The warm-up began: the learner accepted the offer, or asked for it from the book (X06; the detail lists the phrase ids).</summary>
+    public const string WarmupStarted = "warmup_started";
+
+    /// <summary>The warm-up ended (X06; the detail says how many of its items were answered).</summary>
+    public const string WarmupEnded = "warmup_ended";
+
+    /// <summary>The learner skipped the warm-up offer (X06).</summary>
+    public const string WarmupSkipped = "warmup_skipped";
+
+    /// <summary>The learner skipped one item of the warm-up (X06; the detail is the phrase id).</summary>
+    public const string ReviewSkipped = "review_skipped";
+
+    /// <summary>A phrase of an earlier session was reviewed and answered, in the warm-up or in a lesson's review step (X06; the detail is the phrase id and <c>warm-up</c> or <c>lesson</c>).</summary>
+    public const string ReviewAnswered = "review_answered";
+
+    /// <summary>Every world event name, in the order above (the tips, the lessons and the objectives check the names they use against it).</summary>
     public static IReadOnlyList<string> All { get; } =
     [
         TalkOpened, TalkClosed, ItemGiven, BeaconSet, BottleFilled, WaterWithoutBottle, FoundWithoutSpanish, ObjectiveStep, ObjectiveComplete, TransferOffered,
         KeyWordsShown, PhraseReviewAsked, SupportCardShown, ItemPickedUp, TipShown, GuideMet, FireLit, SessionComplete, SpareTorch, SecondTryAsked, SecondTryAnswered,
+        TorchAtRing,
+        WarmupOffered, WarmupStarted, WarmupEnded, WarmupSkipped, ReviewSkipped, ReviewAnswered,
     ];
 }

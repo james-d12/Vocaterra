@@ -4,7 +4,9 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Session;
+using Vocaterra.Game.Core.World.Layout;
 using Vocaterra.Host;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Determinism;
@@ -57,13 +59,41 @@ catch (Exception ex) when (ex is ContentValidationException or IOException or Un
     return ExitInvalidContent;
 }
 
-if (options.GrammarStringsOut is { } stringsOut)
+if (options.ValidateContent || options.GrammarStringsOut is not null)
 {
-    // The grammar check's strings (scripts/content.sh grammar): written from the bundle and the game's sheets, then the host exits.
-    var written = GrammarStringsExtractor.Write(bundle, contentDirectory, stringsOut);
+    // The game's content (CONTENT_PLAN C02): every game file read once from the verified bundle and checked against the others. The ContentBuilder
+    // cannot run this check (it references only the core), so the host does.
+    GameData data;
+    LocaleBundle locales;
+    try
+    {
+        // The support language comes from the locale bundle beside the game's (CONTENT_PLAN C03); every shipped locale is checked, the default one loaded.
+        locales = LocaleBundle.Load(LocaleBundle.DirectoryBeside(contentDirectory));
+        data = GameData.Load(bundle, locales.Text(LocaleBundle.ChooseCode(null, bundle)));
+        foreach (var other in locales.Locales.Where(locale => !string.Equals(locale.Code, data.Locale.Code, StringComparison.Ordinal)))
+        {
+            GameData.Load(bundle, locales.Text(other.Code));
+        }
+    }
+    catch (Exception ex) when (ex is InvalidDataException or SceneLayoutException or JsonException or DirectoryNotFoundException or ArgumentException)
+    {
+        Console.Error.WriteLine(ex.Message);
+        return ExitInvalidContent;
+    }
+
+    if (options.GrammarStringsOut is { } stringsOut)
+    {
+        // The grammar check's strings (scripts/content.sh grammar): written from the bundle and the game's files, then the host exits.
+        var written = GrammarStringsExtractor.Write(data, contentDirectory, stringsOut);
+        Console.WriteLine(string.Create(
+            CultureInfo.InvariantCulture,
+            $"grammar strings: {written.Count} written to {stringsOut} ({string.Join(", ", written.GroupBy(static line => line.Kind).OrderBy(static group => group.Key, StringComparer.Ordinal).Select(static group => group.Key + " " + group.Count()))})"));
+        return ExitOk;
+    }
+
     Console.WriteLine(string.Create(
         CultureInfo.InvariantCulture,
-        $"grammar strings: {written.Count} written to {stringsOut} ({string.Join(", ", written.GroupBy(static line => line.Kind).OrderBy(static group => group.Key, StringComparer.Ordinal).Select(static group => group.Key + " " + group.Count()))})"));
+        $"content: {bundle.Manifest.BundleId} {bundle.ContentHash[..12]} and locale {locales.BundleHash[..12]} ({string.Join(", ", locales.Locales.Select(static l => l.Code))}): the game files hold together ({data.Nouns.Nouns.Count} nouns, {data.Phrases.Rows.Count} phrases, {data.Lessons.Lessons.Count} lessons, {data.Checks.Count} check items, {data.Speech.Count} speech lines, {data.Locale.Ids.Count} strings)"));
     return ExitOk;
 }
 

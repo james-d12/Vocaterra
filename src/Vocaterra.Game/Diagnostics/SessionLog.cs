@@ -117,7 +117,9 @@ public sealed class SessionLog : IDisposable, ICheckLog
     /// <param name="bundleHash">The bundle's content hash.</param>
     /// <param name="storedTime">The stored time at the start (Unix seconds).</param>
     /// <param name="profile">The profile flags.</param>
-    public void SessionStart(int session, ulong seed, string bundleHash, long storedTime, SessionProfile profile)
+    /// <param name="locale">The support-language locale (<c>en</c>; CONTENT_PLAN C03), or <see langword="null"/> to leave it out.</param>
+    /// <param name="localeBundle">The locale bundle's hash, so a playtest can be reproduced (the locale is outside the game bundle's hash).</param>
+    public void SessionStart(int session, ulong seed, string bundleHash, long storedTime, SessionProfile profile, string? locale = null, string? localeBundle = null)
     {
         ArgumentNullException.ThrowIfNull(profile);
         WriteLine(Json("session_start", w =>
@@ -125,6 +127,16 @@ public sealed class SessionLog : IDisposable, ICheckLog
             w.WriteNumber("session", session);
             w.WriteNumber("seed", seed);
             w.WriteString("bundle", bundleHash);
+            if (locale is not null)
+            {
+                w.WriteString("locale", locale);
+            }
+
+            if (localeBundle is not null)
+            {
+                w.WriteString("locale_bundle", localeBundle);
+            }
+
             w.WriteNumber("stored_time", storedTime);
             w.WriteStartObject("profile");
             w.WriteBoolean("mic_check", profile.MicCheck);

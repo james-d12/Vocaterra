@@ -275,7 +275,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         Assert.Equal("personas", session.Lessons.NewLesson!.Id);
         var piece = Assert.Single(session.ObjectiveHud());
         Assert.Equal("Session 2: go to the village and talk to the villager to start the lesson “Personas”", piece.Text);
-        Assert.Equal(ObjectivePieceKind.English, piece.Kind);
+        Assert.Equal(ObjectivePieceKind.Support, piece.Kind);
     }
 
     [Fact]
@@ -309,7 +309,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
 
         var text = SaveGame.Save(session, TestGame.Route());
         var document = SaveGame.Parse(text);
-        var loaded = SaveGame.Load(text, TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.FullTyped);
+        var loaded = SaveGame.Load(text, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped);
 
         Assert.Equal(SaveGame.CurrentVersion, document.Version);
         Assert.Equal(1, document.Session);
@@ -400,7 +400,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         Assert.True(session.Lessons.RequestReplay("first-words"));
         var asked = SaveGame.Save(session, TestGame.Route());
 
-        var restored = SaveGame.Load(asked, TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.FullTyped, bumpSession: false);
+        var restored = SaveGame.Load(asked, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: false);
 
         Assert.Equal("first-words", restored.Lessons.ReplayPending);
         Assert.True(restored.Lessons.IsDone("first-words"));
@@ -416,7 +416,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
 
         restored.EndTalk();
         var half = SaveGame.Save(restored, TestGame.Route());
-        var again = SaveGame.Load(half, TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.FullTyped, bumpSession: false);
+        var again = SaveGame.Load(half, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: false);
 
         Assert.Equal(LessonStatus.InProgress, again.Lessons.StatusOf("first-words"));
         Assert.True(again.Lessons.IsDone("first-words"));
@@ -442,7 +442,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
             },
         };
 
-        var loaded = SaveGame.Load(SaveGame.Serialize(old), TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.FullTyped, bumpSession: false);
+        var loaded = SaveGame.Load(SaveGame.Serialize(old), TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: false);
 
         Assert.True(loaded.Lessons.IsDone("first-words"));
         Assert.False(loaded.Lessons.IsDone("personas"));
@@ -482,7 +482,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
             var text = Plain(LessonText(lesson));
             foreach (var form in lesson.TaughtVerbs)
             {
-                var word = form.Text(TestGame.Bundle.SpanishMorphology()); // voy a comer for the near future (ir-a): ir's present, a and the infinitive
+                var word = form.Text(TestGame.Bundle.SpanishMorphology(), TestGame.Data.Words.NearFuture); // voy a comer for the near future (ir-a): ir's present, a and the infinitive
                 Assert.True(word is not null, $"{lesson.Id}: the core has no form for {Show(form)}.");
                 Assert.True(text.Contains(Plain(word), StringComparison.Ordinal), $"{lesson.Id} declares {Show(form)} ({word}) but never shows it.");
             }
@@ -512,7 +512,8 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
             "\"verbs\": [ { \"lemma\": \"ir\", \"person\": \"1\", \"number\": \"sg\", \"tense\": \"pres\" }, { \"lemma\": \"ir\", \"person\": \"1\", \"number\": \"sg\", \"tense\": \"pres\" } ],"))).Message, StringComparison.Ordinal);
         Assert.Contains("NPC", Assert.Throws<InvalidDataException>(() => TestGame.Lessons(Lesson("", "{ \"id\": \"a\", \"type\": \"explain\", \"english\": \"E\", \"npc\": \"baker\" }"))).Message, StringComparison.Ordinal);
         Assert.Contains("spoken by", Assert.Throws<InvalidDataException>(() => TestGame.Lessons(Lesson("", "{ \"id\": \"a\", \"type\": \"model\", \"line\": \"shop_need.1\", \"translation\": \"T\", \"english\": \"E\" }"))).Message, StringComparison.Ordinal);
-        Assert.Contains("talk_opened", Assert.Throws<InvalidDataException>(() => TestGame.Lessons(Lesson("", "{ \"id\": \"a\", \"type\": \"do\", \"event\": \"item_picked_up\", \"at\": \"shopkeeper\", \"english\": \"E\" }"))).Message, StringComparison.Ordinal);
+        // C06: a do step's NPC is its trigger's npc; the old field "at" is refused, so a lesson cannot wait at an NPC by a name the matcher does not read.
+        Assert.Contains("'at'", Assert.Throws<InvalidDataException>(() => TestGame.Lessons(Lesson("", "{ \"id\": \"a\", \"type\": \"do\", \"trigger\": { \"event\": \"talk_opened\", \"at\": \"shopkeeper\" }, \"english\": \"E\" }"))).Message, StringComparison.Ordinal);
     }
 
     // ---- The person of the answer's verb (S26 part 2)
@@ -648,7 +649,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
     [Fact]
     public void TheNewRowsAreMarkedPendingAndTheNewLinesAreInTheSpeechList()
     {
-        var sheet = PhraseSheet.Load(TestGame.Bundle);
+        var sheet = RouteScene.DataOf(TestGame.Bundle).Phrases;
         var added = new[]
         {
             "que-quieres", "quiero-madera", "tienes-fruta", "tengo-fruta", "necesito-agua",
@@ -685,7 +686,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
     // Everything a lesson shows or says: the Spanish of its lines and phrases, and its English (which quotes the forms), one string of words between spaces.
     private static string LessonText(LessonDefinition lesson)
     {
-        var sheet = PhraseSheet.Load(TestGame.Bundle);
+        var sheet = RouteScene.DataOf(TestGame.Bundle).Phrases;
         var text = new StringBuilder(" ");
         foreach (var step in lesson.Steps)
         {

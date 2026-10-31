@@ -1,8 +1,8 @@
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Simulation;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
-using Vocaterra.Game.Core.World.Generation;
 using Vocaterra.Game.Core.World.Layout;
 
 namespace Vocaterra.Game.Core.Tests.Voxel;
@@ -15,13 +15,11 @@ internal static class VoxelTestSupport
     /// <summary>The y of the top ground block of <see cref="FlatScene"/>; feet stand at <c>GroundTop + 1</c> blocks.</summary>
     public const int GroundTop = 9;
 
-    private static readonly Lazy<SceneLayout> Draft = new(() => SceneLayout.Load(RouteDraftPath()));
-
     /// <summary>The layout of <c>content/game-v1/game/scene.json</c>.</summary>
-    public static SceneLayout RouteDraft => Draft.Value;
+    public static SceneLayout RouteDraft => RouteScene.Layout;
 
-    /// <summary>Builds the draft route for a seed.</summary>
-    public static Scene BuildRoute(ulong seed) => SceneBuilder.Build(RouteDraft, seed);
+    /// <summary>The draft route for a seed: a copy of the one built in this test process (<see cref="RouteScene.Build"/>), for the test to edit.</summary>
+    public static Scene BuildRoute(ulong seed) => RouteScene.Build(seed);
 
     /// <summary>The path of the draft route, found by walking up from the test output to the game's folder (the one that holds <c>content/game-v1</c>).</summary>
     public static string RouteDraftPath()

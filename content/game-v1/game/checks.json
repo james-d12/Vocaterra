@@ -1,6 +1,7 @@
 {
+  "$schema": "../../schema/checks.schema.json",
   "schemaVersion": 1,
-  "about": "The check battery (S11, D-game-10): run with --check pre|post|recall, outside the world; it never changes the learner model, the phrase progress or the world. Production items are graded by the core at the row's prompt (communicated and the row's intent = correct; errors are recorded; no sé is allowed and recorded as dont_know). Comprehension items play the row's pre-rendered line (speech index id: the line id) and offer three options; the options are shown in an order drawn from the world seed and the check kind, so pre and post differ in order but not in content. The item's id is hear.<row> (comprehension) or say.<row> (production).",
+  "about": "The check battery (S11, D-game-10): run with --check pre|post|recall, outside the world; it never changes the learner model, the phrase progress or the world. Production items are graded by the core at the row's prompt (communicated and the row's intent = correct; errors are recorded; no sé is allowed and recorded as dont_know). Comprehension items play the row's pre-rendered line (speech index id: the line id) and offer three options; the options are shown in an order drawn from the world seed and the check kind, so pre and post differ in order but not in content. The item's id is hear.<row> (comprehension) or say.<row> (production). The items' questions, options and situations are the locale's (content/locale/<code>/checks.json, check.<id>.*) since C03.",
   "items": [
     {
       "id": "hear.que-necesitas",
@@ -8,18 +9,12 @@
       "phrase": "que-necesitas",
       "line": "prompt.stall-need",
       "spanish": "¿Qué necesitas?",
-      "question": "You hear this at the stall. What does it mean?",
       "options": [
+        {},
         {
-          "label": "The shopkeeper asks what you need."
-        },
-        {
-          "label": "The shopkeeper offers you bread.",
           "icon": "Bread"
         },
-        {
-          "label": "The shopkeeper says goodbye."
-        }
+        {}
       ],
       "correct": 0
     },
@@ -29,16 +24,10 @@
       "phrase": "quieres-pan",
       "line": "prompt.stall-offer",
       "spanish": "¿Quieres pan?",
-      "question": "You hear this at the stall. What does it mean?",
       "options": [
+        {},
+        {},
         {
-          "label": "The shopkeeper asks what you need."
-        },
-        {
-          "label": "The shopkeeper says the river is over there."
-        },
-        {
-          "label": "The shopkeeper offers you bread.",
           "icon": "Bread"
         }
       ],
@@ -50,19 +39,14 @@
       "phrase": "pedir-agua",
       "line": "phrase.pedir-agua",
       "spanish": "Quiero agua, por favor.",
-      "question": "You hear this from a customer. What does it mean?",
       "options": [
         {
-          "label": "Asking for water, please.",
           "icon": "WaterBottle"
         },
         {
-          "label": "Asking for bread, please.",
           "icon": "Bread"
         },
-        {
-          "label": "Asking where the river is."
-        }
+        {}
       ],
       "correct": 0
     },
@@ -72,17 +56,10 @@
       "phrase": "si-por-favor",
       "line": "phrase.si-por-favor",
       "spanish": "Sí, por favor.",
-      "question": "You hear this. What does it mean?",
       "options": [
-        {
-          "label": "Saying no, thank you."
-        },
-        {
-          "label": "Saying yes, please."
-        },
-        {
-          "label": "Saying goodbye."
-        }
+        {},
+        {},
+        {}
       ],
       "correct": 1
     },
@@ -92,18 +69,12 @@
       "phrase": "no-gracias",
       "line": "phrase.no-gracias",
       "spanish": "No, gracias.",
-      "question": "You hear this. What does it mean?",
       "options": [
+        {},
         {
-          "label": "Saying yes, please."
-        },
-        {
-          "label": "Asking for water.",
           "icon": "WaterBottle"
         },
-        {
-          "label": "Saying no, thank you."
-        }
+        {}
       ],
       "correct": 2
     },
@@ -113,18 +84,12 @@
       "phrase": "donde-esta-el-rio",
       "line": "phrase.donde-esta-el-rio",
       "spanish": "¿Dónde está el río?",
-      "question": "You hear this from a traveler. What does it mean?",
       "options": [
+        {},
         {
-          "label": "Saying thank you."
-        },
-        {
-          "label": "Asking for water.",
           "icon": "WaterBottle"
         },
-        {
-          "label": "Asking where the river is."
-        }
+        {}
       ],
       "correct": 2
     },
@@ -134,17 +99,10 @@
       "phrase": "quieres-fruta",
       "line": "guide.lesson.offer.1",
       "spanish": "¿Quieres fruta?",
-      "question": "A guide says this to you. What does it mean?",
       "options": [
-        {
-          "label": "She asks where the river is."
-        },
-        {
-          "label": "She offers you some fruit."
-        },
-        {
-          "label": "She says thank you."
-        }
+        {},
+        {},
+        {}
       ],
       "correct": 1
     },
@@ -154,18 +112,12 @@
       "phrase": "necesitas-madera",
       "line": "guide.lesson.task.1",
       "spanish": "Necesitas madera y frutas.",
-      "question": "A guide says this to you at her camp. What does it mean?",
       "options": [
         {
-          "label": "You need water and bread.",
           "icon": "WaterBottle"
         },
-        {
-          "label": "You need a torch and a bottle."
-        },
-        {
-          "label": "You need wood and fruit."
-        }
+        {},
+        {}
       ],
       "correct": 2
     },
@@ -175,17 +127,10 @@
       "phrase": "me-llamo",
       "line": "guide.lesson.name.1",
       "spanish": "Me llamo Luna.",
-      "question": "A guide says this when you meet. What does it mean?",
       "options": [
-        {
-          "label": "She says goodbye."
-        },
-        {
-          "label": "She tells you her name."
-        },
-        {
-          "label": "She asks your name."
-        }
+        {},
+        {},
+        {}
       ],
       "correct": 1
     },
@@ -195,17 +140,10 @@
       "phrase": "es-madera",
       "line": "guide.lesson.is_wood.1",
       "spanish": "¿Es madera?",
-      "question": "A guide holds up a log and says this. What does it mean?",
       "options": [
-        {
-          "label": "She asks if it is wood."
-        },
-        {
-          "label": "She asks if you want some wood."
-        },
-        {
-          "label": "She says it is a table."
-        }
+        {},
+        {},
+        {}
       ],
       "correct": 0
     },
@@ -215,17 +153,10 @@
       "phrase": "de-nada",
       "line": "guide.lesson.welcome.1",
       "spanish": "De nada.",
-      "question": "You say “gracias” and a guide answers like this. What does it mean?",
       "options": [
-        {
-          "label": "Goodbye."
-        },
-        {
-          "label": "You are welcome."
-        },
-        {
-          "label": "I do not know."
-        }
+        {},
+        {},
+        {}
       ],
       "correct": 1
     },
@@ -235,17 +166,10 @@
       "phrase": "que-quieres",
       "line": "guide.lesson.want.1",
       "spanish": "¿Qué quieres?",
-      "question": "A guide says this to you. What does it mean?",
       "options": [
-        {
-          "label": "The guide asks what you want."
-        },
-        {
-          "label": "The guide asks where the river is."
-        },
-        {
-          "label": "The guide says goodbye."
-        }
+        {},
+        {},
+        {}
       ],
       "correct": 0
     },
@@ -255,17 +179,10 @@
       "phrase": "tienes-fruta",
       "line": "guide.lesson.have_fruit.1",
       "spanish": "¿Tienes una fruta?",
-      "question": "A guide says this to you. What does it mean?",
       "options": [
-        {
-          "label": "The guide asks if you have a fruit."
-        },
-        {
-          "label": "The guide says the wood is for the torch."
-        },
-        {
-          "label": "The guide offers you some fruit."
-        }
+        {},
+        {},
+        {}
       ],
       "correct": 0
     },
@@ -275,17 +192,10 @@
       "phrase": "que-quieren-ustedes",
       "line": "guide.lesson.shop.all.1",
       "spanish": "¿Qué quieren ustedes?",
-      "question": "A shopkeeper says this to you and a friend. What does it mean?",
       "options": [
-        {
-          "label": "She asks what you both want."
-        },
-        {
-          "label": "She says she has bread."
-        },
-        {
-          "label": "She says goodbye to you both."
-        }
+        {},
+        {},
+        {}
       ],
       "correct": 0
     },
@@ -293,7 +203,6 @@
       "id": "say.pedir-agua",
       "kind": "production",
       "phrase": "pedir-agua",
-      "situation": "You are at a market stall. You want water. Ask for it politely.",
       "prompt": "stall-need",
       "intent": "request_item"
     },
@@ -301,7 +210,6 @@
       "id": "say.si-por-favor",
       "kind": "production",
       "phrase": "si-por-favor",
-      "situation": "The shopkeeper offers you bread. You want it.",
       "prompt": "stall-offer",
       "intent": "confirm"
     },
@@ -309,7 +217,6 @@
       "id": "say.no-gracias",
       "kind": "production",
       "phrase": "no-gracias",
-      "situation": "The shopkeeper offers you bread. You don't want it. Say no politely.",
       "prompt": "stall-offer",
       "intent": "deny"
     },
@@ -317,7 +224,6 @@
       "id": "say.donde-esta-el-rio",
       "kind": "production",
       "phrase": "donde-esta-el-rio",
-      "situation": "You are in a village and need to find the river. Ask a villager.",
       "prompt": "villager-open",
       "intent": "ask_directions"
     },
@@ -325,7 +231,6 @@
       "id": "say.si",
       "kind": "production",
       "phrase": "si",
-      "situation": "A guide holds up a log and asks if it is wood. Answer yes.",
       "prompt": "lesson-yesno",
       "intent": "confirm"
     },
@@ -333,7 +238,6 @@
       "id": "say.no",
       "kind": "production",
       "phrase": "no",
-      "situation": "A guide holds up a log and asks if it is water. Answer no.",
       "prompt": "lesson-yesno",
       "intent": "deny"
     },
@@ -341,7 +245,6 @@
       "id": "say.que-es-esto",
       "kind": "production",
       "phrase": "que-es-esto",
-      "situation": "A guide points at a plant you do not know. Ask her what it is.",
       "prompt": "lesson-what",
       "intent": "ask_what"
     },
@@ -349,7 +252,6 @@
       "id": "say.otra-vez",
       "kind": "production",
       "phrase": "otra-vez",
-      "situation": "A guide spoke too fast and you did not catch it. Ask her to say it again.",
       "prompt": "lesson-unstuck",
       "intent": "ask_repeat"
     },
@@ -357,7 +259,6 @@
       "id": "say.mas-despacio",
       "kind": "production",
       "phrase": "mas-despacio",
-      "situation": "A guide spoke too fast. Ask her to say it again more slowly.",
       "prompt": "lesson-unstuck",
       "intent": "ask_slower"
     },
@@ -365,7 +266,6 @@
       "id": "say.quiero-madera",
       "kind": "production",
       "phrase": "quiero-madera",
-      "situation": "A guide asks what you want. You want wood. Say so.",
       "prompt": "lesson-want",
       "intent": "state_want"
     },
@@ -373,7 +273,6 @@
       "id": "say.tengo-fruta",
       "kind": "production",
       "phrase": "tengo-fruta",
-      "situation": "A guide asks if you have a fruit. You do. Say yes and say that you have one.",
       "prompt": "lesson-have",
       "intent": "state_have"
     },
@@ -381,7 +280,6 @@
       "id": "say.ella-quiere-fruta",
       "kind": "production",
       "phrase": "ella-quiere-fruta",
-      "situation": "A friend asks what Luna wants. She wants fruit. Say what she wants.",
       "prompt": "lesson-she",
       "intent": "state_want"
     },
@@ -389,7 +287,6 @@
       "id": "say.necesitamos-agua",
       "kind": "production",
       "phrase": "necesitamos-agua",
-      "situation": "A friend asks what you both need. You need water. Say it for the two of you.",
       "prompt": "lesson-we",
       "intent": "state_want"
     },
@@ -399,17 +296,10 @@
       "phrase": "que-vas-a-comer",
       "line": "guide.lesson.villager.plan.1",
       "spanish": "¿Qué vas a comer mañana?",
-      "question": "A villager says this to you. What does it mean?",
       "options": [
-        {
-          "label": "He asks what you are going to eat tomorrow."
-        },
-        {
-          "label": "He asks what you ate yesterday."
-        },
-        {
-          "label": "He says there is bread at the stall."
-        }
+        {},
+        {},
+        {}
       ],
       "correct": 0
     },
@@ -419,17 +309,10 @@
       "phrase": "que-comiste-ayer",
       "line": "guide.lesson.shop.ate.1",
       "spanish": "¿Qué comiste ayer?",
-      "question": "A shopkeeper says this to you. What does it mean?",
       "options": [
-        {
-          "label": "She asks what you ate yesterday."
-        },
-        {
-          "label": "She asks what you are going to eat tomorrow."
-        },
-        {
-          "label": "She says the bread is ready."
-        }
+        {},
+        {},
+        {}
       ],
       "correct": 0
     },
@@ -437,7 +320,6 @@
       "id": "say.voy-a-comer-pan",
       "kind": "production",
       "phrase": "voy-a-comer-pan",
-      "situation": "A villager asks what you are going to eat tomorrow. You will eat bread. Say so.",
       "prompt": "lesson-plan",
       "intent": "state_action"
     },
@@ -445,7 +327,6 @@
       "id": "say.ayer-comi-fruta",
       "kind": "production",
       "phrase": "ayer-comi-fruta",
-      "situation": "A shopkeeper asks what you ate yesterday. You ate fruit. Say so.",
       "prompt": "lesson-ate",
       "intent": "state_action"
     }

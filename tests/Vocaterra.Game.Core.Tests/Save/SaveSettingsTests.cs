@@ -35,7 +35,7 @@ public sealed class SaveSettingsTests
 
         Assert.Null(document.Settings);
         Assert.Equal(SoundVolumes.Default, document.Settings?.Sound ?? SoundVolumes.Default);
-        var loaded = SaveGame.Load(old, TestGame.Bundle, static seed => TestGame.Route(seed), TestGame.Nouns, credit: CreditRules.FullTyped);
+        var loaded = SaveGame.Load(old, TestGame.Data, static seed => TestGame.Route(seed), credit: CreditRules.FullTyped);
         Assert.Equal(session.Simulation.ComputeStateDigest(), loaded.Simulation.ComputeStateDigest());
     }
 

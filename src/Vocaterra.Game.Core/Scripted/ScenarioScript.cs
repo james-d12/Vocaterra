@@ -382,6 +382,7 @@ public sealed class ScenarioScript
                 break;
             case LessonStepType.Repeat:
             case LessonStepType.Answer:
+            case LessonStepType.Review:
                 _line = _session.Phrases.Find(step.Phrase!)!.Spanish.TrimEnd('.');
                 _ = _dialogue.Entry.Insert(_line);
                 _dialogue.RequestSubmit();

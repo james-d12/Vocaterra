@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Words;
@@ -38,8 +39,14 @@ public static class SaveGame
     /// <summary>The format name every save carries.</summary>
     public const string FormatName = "vocaterra-save";
 
-    /// <summary>The format version this code writes (version 2 adds the learner's record, S19; version 3 keeps the check answers out of its word rows, S19b).</summary>
-    public const int CurrentVersion = 4;
+    /// <summary>
+    /// The format version this code writes (version 2 adds the learner's record, S19; version 3 keeps the check answers out of its word rows, S19b; version 5 keys
+    /// the objective's steps <c>&lt;objective&gt;.&lt;step&gt;</c>, C07).
+    /// </summary>
+    public const int CurrentVersion = 5;
+
+    /// <summary>The objective the steps of a save before version 5 belong to: those saves held the camp checklist alone, keyed by the step (<c>wood</c>).</summary>
+    public const string UnqualifiedObjective = "camp";
 
     /// <summary>The oldest format version this code still reads (version 1, before S19: no learner's record, so an empty history).</summary>
     public const int OldestReadableVersion = 1;
@@ -148,7 +155,7 @@ public static class SaveGame
             state.NoBottleHint,
             state.Player,
             state.Slots.Select(static slot => new SlotSave(slot.Item, slot.Count)).ToArray(),
-            session.Objective.Steps.Select(static step => new ObjectiveSave(step.Key, step.Count)).ToArray(),
+            session.ObjectiveCounts().Select(static step => new ObjectiveSave(step.Key, step.Count)).ToArray(),
             session.Words.Records.Values.OrderBy(static record => record.Lemma, StringComparer.Ordinal).Select(WordSaveOf).ToArray(),
             session.PhraseProgress.Records.Select(PhraseSaveOf).ToArray(),
             session.CardedLemmas(),
@@ -158,7 +165,7 @@ public static class SaveGame
             session.DeferredSkills.Select(static step => new DeferredSkillSave(step.Npc, step.Skill)).ToArray(),
             session.LastRepairs().Select(static step => new LastRepairSave(step.Npc, step.Repair)).ToArray(),
             session.NextTurnId,
-            NpcService.AgentIds.Select(session.Conversation.CaptureAgent).ToArray(),
+            session.Data.Npcs.Ids.Select(session.Conversation.CaptureAgent).ToArray(),
             VoxelGridDiff.Capture(session.Scene.Grid, pristine.Grid),
             session.Lessons.Capture(),
             session.Tips.Capture(),
@@ -179,9 +186,8 @@ public static class SaveGame
     /// the session (see <see cref="Restore"/>).
     /// </summary>
     /// <param name="json">The save's text.</param>
-    /// <param name="bundle">The content bundle of this run.</param>
+    /// <param name="data">The game's content of this run (its bundle is checked against the save).</param>
     /// <param name="buildPristine">Builds the scene of a seed from the layout (a new scene each call).</param>
-    /// <param name="nouns">The noun catalogue of the bundle.</param>
     /// <param name="requestedSeed">The seed the run asked for, or <see langword="null"/> to take the save's.</param>
     /// <param name="credit">The credit rules of the run (the default when <see langword="null"/>).</param>
     /// <param name="bumpSession">Whether the run is the next play session (true for a real load; the tests also restore without it).</param>
@@ -189,18 +195,18 @@ public static class SaveGame
     /// <exception cref="SaveException">The save cannot be loaded.</exception>
     public static VoxelSession Load(
         string json,
-        ContentBundle bundle,
+        GameData data,
         Func<ulong, Scene> buildPristine,
-        NounCatalog nouns,
         ulong? requestedSeed = null,
         CreditRules? credit = null,
         bool bumpSession = true,
         bool migrate = false)
     {
+        ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(buildPristine);
         var document = Parse(json);
-        Check(document, bundle, requestedSeed, migrate);
-        return Restore(document, bundle, buildPristine(document.WorldSeed), nouns, credit, bumpSession, migrate);
+        Check(document, data.Bundle, requestedSeed, migrate);
+        return Restore(document, data, buildPristine(document.WorldSeed), credit, bumpSession, migrate);
     }
 
     /// <summary>
@@ -209,9 +215,8 @@ public static class SaveGame
     /// save is refused. The play session is the save's plus one when <paramref name="bumpSession"/> (a load), the save's own when not.
     /// </summary>
     /// <param name="document">The save.</param>
-    /// <param name="bundle">The content bundle of this run (checked against the save).</param>
+    /// <param name="data">The game's content of this run (its bundle is checked against the save).</param>
     /// <param name="scene">A freshly built scene of the save's seed and layout; it is changed by the diff and then becomes the session's scene.</param>
-    /// <param name="nouns">The noun catalogue of the bundle.</param>
     /// <param name="credit">The credit rules of the run; the default when <see langword="null"/>.</param>
     /// <param name="bumpSession">Whether to start the next play session.</param>
     /// <param name="migrate">Whether a save of another bundle is migrated (X01): the parts that name content are kept where their ids exist, the world edits are applied by position, and
@@ -219,18 +224,27 @@ public static class SaveGame
     /// <exception cref="SaveException">The save does not fit the scene, the bundle or itself, or the restored world differs from its digest.</exception>
     public static VoxelSession Restore(
         SaveDocument document,
-        ContentBundle bundle,
+        GameData data,
         Scene scene,
-        NounCatalog nouns,
         CreditRules? credit = null,
         bool bumpSession = true,
         bool migrate = false)
     {
         ArgumentNullException.ThrowIfNull(document);
-        ArgumentNullException.ThrowIfNull(bundle);
+        ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(scene);
-        ArgumentNullException.ThrowIfNull(nouns);
+        var bundle = data.Bundle;
         Check(document, bundle, null, migrate);
+        if (document.Version < 5)
+        {
+            // Before version 5 the save held the camp checklist alone, keyed by the step; the keys are the objective's now (C07). Mapped here, before the migration,
+            // which would drop a key it does not know. An old key has no dot, so a key that has one is left as it is.
+            document = document with
+            {
+                Objective = document.Objective.Select(static step => step.Key.Contains('.', StringComparison.Ordinal) ? step : step with { Key = UnqualifiedObjective + "." + step.Key }).ToArray(),
+            };
+        }
+
         var migrating = migrate && !string.Equals(document.BundleHash, bundle.ContentHash, StringComparison.Ordinal);
         var collector = migrating ? new SaveMigration.Collector() : null;
         if (document.Session < 1)
@@ -255,7 +269,7 @@ public static class SaveGame
                 SaveMigration.ApplyWorld(scene.Grid, document.Chunks, document.World, collector);
             }
 
-            session = new VoxelSession(bundle, document.WorldSeed, document.StartedAt, nouns, scene, credit);
+            session = new VoxelSession(data, document.WorldSeed, document.StartedAt, scene, credit);
             var spawn = session.Simulation.CaptureState();
             if (collector is not null)
             {
@@ -327,7 +341,7 @@ public static class SaveGame
         session.RestoreSkippedSeconds(document.SkippedSeconds);
         session.Words.Restore(document.Words.Select(RecordOf));
         RestorePhrases(session, document.Phrases, migrating);
-        session.Objective.Restore(document.Objective.Select(static step => (step.Key, step.Count)));
+        session.RestoreObjectiveCounts(document.Objective.Select(static step => (step.Key, step.Count)));
         session.RestoreCarded(document.Carded);
         session.KeyWordsTaught = document.KeyWordsTaught;
         session.RiverPointedState = document.RiverPointed;
@@ -406,13 +420,13 @@ public static class SaveGame
         var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var npc in npcs)
         {
-            if (!NpcService.AgentIds.Contains(npc.Agent, StringComparer.Ordinal) || !seen.Add(npc.Agent))
+            if (!session.Data.Npcs.Ids.Contains(npc.Agent, StringComparer.Ordinal) || !seen.Add(npc.Agent))
             {
                 throw new ArgumentException($"The NPC '{npc.Agent}' is not one of the game's, or is given twice.", nameof(npcs));
             }
         }
 
-        if (!migrating && seen.Count != NpcService.AgentIds.Count)
+        if (!migrating && seen.Count != session.Data.Npcs.Ids.Count)
         {
             throw new ArgumentException("The save does not hold every NPC.", nameof(npcs));
         }

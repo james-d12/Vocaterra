@@ -1,0 +1,10 @@
+{
+  "$schema": "../../schema/npcs.schema.json",
+  "schemaVersion": 1,
+  "about": "The NPCs (CONTENT_PLAN C08), in order: the saves keep the NPCs in this order. Each is its own file, game/npcs/<id>.json, with only what no other file holds: its label over the head and on the panel, its own name, the key of its figure, and the phrases its prompts practise (their home). Its conversation is the core's agents/<id>.json and prompts, its place the scene's, its role in the support language the locale's.",
+  "npcs": [
+    "guide",
+    "shopkeeper",
+    "villager"
+  ]
+}

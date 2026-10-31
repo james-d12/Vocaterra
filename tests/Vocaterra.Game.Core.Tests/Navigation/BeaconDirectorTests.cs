@@ -1,28 +1,22 @@
-using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Navigation;
 using Vocaterra.Game.Core.Physics;
-using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
-using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Core.Tests.Navigation;
 
 /// <summary>Where the beacon stands: the guide's camp for a new game, a requested point or none, and nothing once the player is there.</summary>
 public sealed class BeaconDirectorTests
 {
-    private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-    private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
-
     [Fact]
     public void ANewGameStartsWithTheBeaconOnTheGuidesCampAndALoadedOneWithout()
     {
-        var session = RouteScene.NewSession(Bundle.Value, Nouns.Value);
+        var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
         var lines = new List<string>();
         var fresh = new BeaconDirector(session, lines.Add, lines.Add);
         fresh.PlaceAtStart(session.Scene, requested: null, loaded: false);
-        Assert.Equal(session.Scene.Point(BeaconDirector.StartPoint), fresh.Beacon.Target);
-        Assert.StartsWith($"beacon: {BeaconDirector.StartPoint} at ", Assert.Single(lines));
+        Assert.Equal(session.Scene.Point(fresh.StartPoint), fresh.Beacon.Target);
+        Assert.StartsWith($"beacon: {fresh.StartPoint} at ", Assert.Single(lines));
 
         var loaded = new BeaconDirector(session, lines.Add, lines.Add);
         loaded.PlaceAtStart(session.Scene, requested: null, loaded: true);
@@ -32,7 +26,7 @@ public sealed class BeaconDirectorTests
     [Fact]
     public void ARequestedPointIsUsedNoneMeansNoBeaconAndAnUnknownPointIsReported()
     {
-        var session = RouteScene.NewSession(Bundle.Value, Nouns.Value);
+        var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
         var lines = new List<string>();
         var errors = new List<string>();
         var river = new BeaconDirector(session, lines.Add, errors.Add);
@@ -52,7 +46,7 @@ public sealed class BeaconDirectorTests
     [Fact]
     public void TheBeaconComesDownWhenThePlayerStandsNearIt()
     {
-        var session = RouteScene.NewSession(Bundle.Value, Nouns.Value);
+        var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
         var lines = new List<string>();
         var director = new BeaconDirector(session, lines.Add, lines.Add);
         var body = session.Simulation.Player;

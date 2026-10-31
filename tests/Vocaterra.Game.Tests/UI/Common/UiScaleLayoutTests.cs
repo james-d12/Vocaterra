@@ -1,13 +1,12 @@
 using System.Text.Json;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Lessons;
-using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Save;
-using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Graphics.World;
@@ -41,11 +40,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
 
     private static float Large(string text) => text.Length * 14f;
 
-    private static readonly Lazy<EnglishText> English = new(() =>
-    {
-        var bundle = GameBundle.Load();
-        return EnglishText.Load(bundle, PhraseSheet.Load(bundle));
-    });
+    private static readonly Lazy<LocaleText> English = new(() => TestGame.Data.Locale);
 
     /// <summary>Every window size and scale: the case's canvas is the window divided by the scale.</summary>
     public static TheoryData<int, int, int> Cases
@@ -137,9 +132,9 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
         {
             foreach (var choices in new[] { Array.Empty<string>(), ["agua por favor", "ayuda", "ayuda por favor"] })
             {
-                foreach (var hints in new[] { DialoguePanel.KeyHints, DialoguePanel.SpeechOffKeyHints, DialoguePanel.ButtonHints, DialoguePanel.SpeechOffButtonHints })
+                foreach (var hints in new[] { DialoguePanel.KeyHints(RouteScene.Shipped.Locale), DialoguePanel.SpeechOffKeyHints(RouteScene.Shipped.Locale), DialoguePanel.ButtonHints(RouteScene.Shipped.Locale), DialoguePanel.SpeechOffButtonHints(RouteScene.Shipped.Locale) })
                 {
-                    var layout = new DialogueLayout(canvas.Width, canvas.Height, Small, choices, typing, static b => $"{b.Text} ({English.Value.ButtonEnglish(SpeechButtons.KeyOf(b.Action)!)})", hints);
+                    var layout = new DialogueLayout(canvas.Width, canvas.Height, Small, choices, SpeechButtons.For(RouteScene.Shipped.Words.Buttons), typing, static b => $"{b.Text} ({English.Value.ButtonSupport(SpeechButtons.KeyOf(b.Action)!)})", hints);
                     var where = $"{windowWidth}x{windowHeight} at {scale}%, typing {typing}, {choices.Length} choices";
                     Assert.True(Inside(layout.Panel, window), $"{where}: the panel is outside the canvas");
 
@@ -191,7 +186,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
     public void ThePlainPanelKeepsRoomForAtLeastOneLineOfConversationAtEveryScale(int windowWidth, int windowHeight, int scale)
     {
         var canvas = Canvas(windowWidth, windowHeight, scale);
-        var layout = new DialogueLayout(canvas.Width, canvas.Height, Small, [], typing: false, static b => $"{b.Text} ({English.Value.ButtonEnglish(SpeechButtons.KeyOf(b.Action)!)})", DialoguePanel.ButtonHints);
+        var layout = new DialogueLayout(canvas.Width, canvas.Height, Small, [], SpeechButtons.For(RouteScene.Shipped.Words.Buttons), typing: false, static b => $"{b.Text} ({English.Value.ButtonSupport(SpeechButtons.KeyOf(b.Action)!)})", DialoguePanel.ButtonHints(RouteScene.Shipped.Locale));
 
         Assert.True(layout.LinesBottom - layout.LinesTop >= DialogueLayout.LineHeight, $"{canvas.Width}x{canvas.Height}: {layout.LinesBottom - layout.LinesTop} px for the conversation");
     }
@@ -203,16 +198,15 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
 
     private static IReadOnlyList<LessonView> StripCases()
     {
-        var path = Repo.Path("content", "game-v1", "game", "lessons.json");
-        using var document = JsonDocument.Parse(File.ReadAllText(path));
+        // Every step of the shipped lessons, with its text from the locale (C03).
         var views = new List<LessonView>();
-        foreach (var lesson in document.RootElement.GetProperty("lessons").EnumerateArray())
+        foreach (var lesson in TestGame.Data.Lessons.Lessons)
         {
-            foreach (var step in lesson.GetProperty("steps").EnumerateArray())
+            foreach (var step in lesson.Steps)
             {
-                var english = step.GetProperty("english").GetString()!;
-                var type = step.GetProperty("type").GetString() == "listen" ? LessonStepType.Listen : LessonStepType.Explain;
-                IReadOnlyList<string> options = type == LessonStepType.Listen && step.TryGetProperty("options", out var o) ? o.EnumerateArray().Select(static x => x.GetString()!).ToList() : [];
+                var english = step.English;
+                var type = step.Type == LessonStepType.Listen ? LessonStepType.Listen : LessonStepType.Explain;
+                IReadOnlyList<string> options = type == LessonStepType.Listen ? step.Options : [];
                 views.Add(Step(type, english, "¿Dónde está el río, por favor?", "Listen again, then say it slowly. The phrase is on the card.", type != LessonStepType.Listen, options));
                 views.Add(Step(LessonStepType.Explain, english, null));
             }
@@ -276,7 +270,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
             Assert.True(textBottom <= buttons.Min(static b => b.Box.Y), $"{where}: the text reaches {textBottom}, into the buttons at {buttons.Min(static b => b.Box.Y)}");
 
             // No English is left out: the pages together are the whole text.
-            var wrapped = TextWrap.Wrap(DialoguePanel.EnglishPrefix + view.English, inner, Small);
+            var wrapped = TextWrap.Wrap(DialoguePanel.SupportPrefix(RouteScene.Shipped.Locale) + view.English, inner, Small);
             var all = new List<string>();
             for (var page = 0; page < layout.EnglishPages; page++)
             {
@@ -330,7 +324,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
 
     [Theory]
     [MemberData(nameof(Cases))]
-    public void TheConversationScreenKeepsTheStripTheBubbleTheCardsTheBeaconLabelAndThePanelApartAtEveryScale(int windowWidth, int windowHeight, int scale)
+    public void TheConversationScreenKeepsTheStripTheBubbleTheCardsTheCalledAndThePanelApartAtEveryScale(int windowWidth, int windowHeight, int scale)
     {
         var canvas = Canvas(windowWidth, windowHeight, scale);
         var window = Whole(canvas);
@@ -366,7 +360,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
                         hard.Add(st);
                     }
 
-                    var label = BeaconLabel.TryPlace(canvas.Width, canvas.Height, canvas.Width - 56, canvas.Height * 0.45, Small("campamento  111 blocks"), hard, [ConversationLayout.Union(head, bubbleBox)]);
+                    var label = Called.TryPlace(canvas.Width, canvas.Height, canvas.Width - 56, canvas.Height * 0.45, Small("campamento  111 blocks"), hard, [ConversationLayout.Union(head, bubbleBox)]);
                     var extra = new List<PixelBox>();
                     if (label is { } placedLabel)
                     {
@@ -450,7 +444,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
     {
         var canvas = Canvas(windowWidth, windowHeight, scale);
         var window = Whole(canvas);
-        var bank = CheckBank.Load(GameBundle.Load());
+        var bank = TestGame.Data.Checks;
         var panel = CheckCardLayout.PanelFor(canvas.Width, canvas.Height);
         Assert.True(Inside(panel, window));
         var side = CheckCardLayout.SideFor(panel);
@@ -459,8 +453,8 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
         foreach (var item in bank)
         {
             var layout = item.Kind == CheckItemKind.Comprehension
-                ? CheckCardLayout.ForComprehension(panel, item.Question, CheckLayer.ComprehensionHint, item.Options.Select(static o => (o.Label, o.Icon is not null)).ToList(), Large, Small)
-                : CheckCardLayout.ForProduction(panel, CheckLayer.ProductionPreface, item.Situation, CheckLayer.ProductionHint, Large, Small);
+                ? CheckCardLayout.ForComprehension(panel, item.Question, CheckLayer.ComprehensionHint(RouteScene.Shipped.Locale), item.Options.Select(static o => (o.Label, o.Icon is not null)).ToList(), Large, Small)
+                : CheckCardLayout.ForProduction(panel, CheckLayer.ProductionPreface(RouteScene.Shipped.Locale), item.Situation, CheckLayer.ProductionHint(RouteScene.Shipped.Locale), Large, Small);
             var where = $"{canvas.Width}x{canvas.Height} {item.Id}";
             Assert.All(layout.Preface, row => Assert.True(Small(row) <= inner, $"{where}: preface row '{row}' is wider than the card"));
             Assert.All(layout.Heading, row => Assert.True((layout.HeadingLarge ? Large(row) : Small(row)) <= inner, $"{where}: heading row '{row}' is wider than the card"));
@@ -532,7 +526,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
             }
         }
 
-        var longest = BookTabs.Labels.Max(static l => l.Length);
+        var longest = BookTabs.Labels(RouteScene.Shipped.Locale).Max(static l => l.Length);
         Assert.True((longest * 7) + 8 <= g.TabPixels, $"a label of {longest} characters in a ribbon of {g.TabPixels} px");
 
         // The list and the detail are written inside their pages, and at least a few lines are visible.
@@ -572,7 +566,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
     {
         var canvas = Canvas(windowWidth, windowHeight, scale);
         var window = Whole(canvas);
-        var layout = new ReportLayout(canvas.Width, canvas.Height, Small, ReportLayer.HintsFirst, ReportLayer.HintsSecond);
+        var layout = new ReportLayout(canvas.Width, canvas.Height, Small, ReportLayer.HintsFirst(RouteScene.Shipped.Locale), ReportLayer.HintsSecond(RouteScene.Shipped.Locale));
         Assert.True(Inside(layout.Panel, window), $"the panel {layout.Panel} is outside the canvas {canvas}");
         var pieces = new List<(string Name, PixelBox Box)>
         {
@@ -605,7 +599,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
     {
         var canvas = Canvas(windowWidth, windowHeight, scale);
         var window = Whole(canvas);
-        var layout = new MicCheckLayout(canvas.Width, canvas.Height, [MicCheckButton.Continue, MicCheckButton.Retry, MicCheckButton.Skip], Small);
+        var layout = new MicCheckLayout(canvas.Width, canvas.Height, [MicCheckButton.Continue, MicCheckButton.Retry, MicCheckButton.Skip], Small, RouteScene.Shipped.Locale);
 
         Assert.True(Inside(layout.Panel, window));
         Assert.True(Inside(layout.Meter, layout.Panel));
@@ -772,7 +766,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
 
     [Theory]
     [MemberData(nameof(Cases))]
-    public void ABeaconLabelAndAnNpcLabelStayInsideTheCanvasAtEveryScale(int windowWidth, int windowHeight, int scale)
+    public void ACalledAndAnNpcLabelStayInsideTheCanvasAtEveryScale(int windowWidth, int windowHeight, int scale)
     {
         var canvas = Canvas(windowWidth, windowHeight, scale);
         var window = Whole(canvas);
@@ -780,11 +774,11 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
         var text = Small("campamento  111 blocks");
         foreach (var (ax, ay) in new[] { (0.0, 0.0), (canvas.Width * 1.0, canvas.Height * 1.0), (canvas.Width * 0.5, 4.0), (4.0, canvas.Height * 0.5), (canvas.Width - 4.0, canvas.Height * 0.9) })
         {
-            var label = BeaconLabel.Place(canvas.Width, canvas.Height, ax, ay, text, [panel]);
+            var label = Called.Place(canvas.Width, canvas.Height, ax, ay, text, [panel]);
             Assert.True(Inside(label, window), $"the label {label} for an arrow at {ax},{ay} is outside the canvas");
             Assert.True(Apart(label, panel), "the label overlaps the panel");
 
-            var onScreen = BeaconLabel.Clamp(new PixelBox((int)ax - 90, (int)ay - 11, (int)text + 12, 22), canvas.Width, canvas.Height);
+            var onScreen = Called.Clamp(new PixelBox((int)ax - 90, (int)ay - 11, (int)text + 12, 22), canvas.Width, canvas.Height);
             Assert.True(Inside(onScreen, window), $"the on-screen label {onScreen} is outside the canvas");
         }
     }
@@ -826,7 +820,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
             Assert.True(UiPalette.RibbonLabel.ContrastWith(ribbon.Lighten(UiPalette.ActiveRibbonLighten)) >= 4.5, $"lit ribbon {page} {UiPalette.RibbonLabel.ContrastWith(ribbon.Lighten(UiPalette.ActiveRibbonLighten)):0.00}");
         }
 
-        Assert.Equal(BookTabs.Labels.Count, UiPalette.Ribbons.Count);
+        Assert.Equal(BookTabs.Labels(RouteScene.Shipped.Locale).Count, UiPalette.Ribbons.Count);
     }
 
     [Fact]

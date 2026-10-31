@@ -33,7 +33,7 @@ namespace Vocaterra.Game.Core.Save;
 /// <param name="NoBottleHint">The water cell the "no bottle" event was last raised for.</param>
 /// <param name="Player">The body (fixed-point position, velocity, on-ground, yaw and pitch).</param>
 /// <param name="Inventory">The slots, in order.</param>
-/// <param name="Objective">The count of each step of the camp objective, in checklist order.</param>
+/// <param name="Objective">The count of each step the save keeps, keyed <c>&lt;objective&gt;.&lt;step&gt;</c> (<c>camp.wood</c>, version 5; before it the camp checklist's step alone), in the session's order.</param>
 /// <param name="Words">The word records of every noun the learner has met, in ordinal lemma order.</param>
 /// <param name="Phrases">The phrase records, one per sheet row, in the sheet's order.</param>
 /// <param name="Carded">The nouns whose word card was shown, in ordinal order.</param>
@@ -191,7 +191,7 @@ public sealed record GatherSave(BlockPos? Target, BlockId Block, int Progress);
 /// <param name="Count">The count.</param>
 public sealed record SlotSave(ItemId Item, int Count);
 
-/// <summary>The count of one step of the camp objective.</summary>
+/// <summary>The count of one step of an objective (its key is <c>&lt;objective&gt;.&lt;step&gt;</c> since version 5).</summary>
 /// <param name="Key">The step's key (<c>wood</c>, <c>berry</c>, <c>torch</c>, <c>water</c>).</param>
 /// <param name="Count">The count so far.</param>
 public sealed record ObjectiveSave(string Key, int Count);

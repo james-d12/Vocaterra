@@ -346,7 +346,8 @@ public sealed class NpcServiceTests
     public void TheHostEventTableCoversTheEventsTheAgentsRaiseThatChangeTheWorld()
     {
         var raised = new HashSet<(string Npc, string HostEvent)>();
-        foreach (var npc in NpcService.AgentIds)
+        var table = TestGame.Data.HostEvents;
+        foreach (var npc in TestGame.Data.Npcs.Ids)
         {
             foreach (var state in TestGame.Bundle.Agents[npc].Definition.States)
             {
@@ -363,23 +364,25 @@ public sealed class NpcServiceTests
             }
         }
 
-        foreach (var (npc, hostEvent) in NpcHostEvents.Mapped())
+        foreach (var (npc, hostEvent) in table.Mapped())
         {
             Assert.Contains((npc, hostEvent), raised);
         }
 
         // The ones the table does not map are notes: the guide's own world lines, greetings, the offer being made.
-        foreach (var (npc, hostEvent) in raised.Where(r => !NpcHostEvents.Mapped().Contains(r)))
+        foreach (var (npc, hostEvent) in raised.Where(r => !table.Mapped().Contains(r)))
         {
-            Assert.Equal(NpcEffectKind.None, NpcHostEvents.Of(npc, hostEvent).Kind);
+            Assert.Equal(NpcEffectKind.None, table.Of(npc, hostEvent).Kind);
         }
 
-        Assert.Equal(NpcEffectKind.GiveItem, NpcHostEvents.Of("shopkeeper", "stall.give_water").Kind);
-        Assert.Equal(ItemId.Bottle, NpcHostEvents.Of("shopkeeper", "stall.give_water").Item);
-        Assert.Equal(ItemId.Bread, NpcHostEvents.Of("shopkeeper", "stall.give_bread").Item);
-        Assert.Equal(ItemId.Bread, NpcHostEvents.Of("villager", "villager.give").Item);
-        Assert.Equal("río", NpcHostEvents.Of("villager", "villager.point").Noun);
-        Assert.Equal(ItemId.WaterBottle, NpcHostEvents.Of("guide", "guide.give_water").Item);
+        // C08: game/host-events.json gives the five actions the code's table gave.
+        Assert.Equal(5, table.Mapped().Count);
+        Assert.Equal(NpcEffectKind.GiveItem, table.Of("shopkeeper", "stall.give_water").Kind);
+        Assert.Equal(ItemId.Bottle, table.Of("shopkeeper", "stall.give_water").Item);
+        Assert.Equal(ItemId.Bread, table.Of("shopkeeper", "stall.give_bread").Item);
+        Assert.Equal(ItemId.Bread, table.Of("villager", "villager.give").Item);
+        Assert.Equal("río", table.Of("villager", "villager.point").Noun);
+        Assert.Equal(ItemId.WaterBottle, table.Of("guide", "guide.give_water").Item);
     }
 
     [Fact]
@@ -391,12 +394,12 @@ public sealed class NpcServiceTests
             Assert.Contains($"| {id} |", sheet, StringComparison.Ordinal);
         }
 
-        Assert.Equal(PhraseIds.RequestWater, PhraseIds.For("request_item", SlotMap("item", "pan")));
-        Assert.Equal(PhraseIds.WhereIsTheRiver, PhraseIds.For("ask_directions", SlotMap("place", "río")));
-        Assert.Null(PhraseIds.For("ask_directions", SlotMap("place", "árbol")));
-        Assert.Null(PhraseIds.For("ask_craft", SlotMap("item", "antorcha")));
-        Assert.Equal("shopkeeper", PhraseIds.HomeOf(PhraseIds.YesPlease));
-        Assert.Null(PhraseIds.HomeOf(PhraseIds.Hello));
+        Assert.Equal(PhraseIds.RequestWater, PhraseIds.For("request_item", SlotMap("item", "pan"), "río"));
+        Assert.Equal(PhraseIds.WhereIsTheRiver, PhraseIds.For("ask_directions", SlotMap("place", "río"), "río"));
+        Assert.Null(PhraseIds.For("ask_directions", SlotMap("place", "árbol"), "río"));
+        Assert.Null(PhraseIds.For("ask_craft", SlotMap("item", "antorcha"), "río"));
+        Assert.Equal("shopkeeper", TestGame.Data.Npcs.HomeOf(PhraseIds.YesPlease));
+        Assert.Null(TestGame.Data.Npcs.HomeOf(PhraseIds.Hello));
     }
 
     private static Vocaterra.Nlp.Core.Verdicts.SlotMap SlotMap(string key, string value) => Vocaterra.Nlp.Core.Verdicts.SlotMap.Empty.With(key, value);

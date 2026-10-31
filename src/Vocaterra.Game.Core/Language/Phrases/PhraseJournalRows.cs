@@ -1,4 +1,5 @@
 using System.Globalization;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Language.Words;
 
 namespace Vocaterra.Game.Core.Language.Phrases;
@@ -9,39 +10,27 @@ namespace Vocaterra.Game.Core.Language.Phrases;
 /// </summary>
 public static class PhraseJournalRows
 {
-    /// <summary>The text of a phrase an NPC says in place of a support level.</summary>
-    public const string HearsText = "heard";
-
-    /// <summary>The label of <see cref="SupportLevel.EnglishAndCard"/> (S16; English in S17b).</summary>
-    public const string EnglishAndCardText = "help: English, card and audio";
-
-    /// <summary>The label of <see cref="SupportLevel.CardAndAudio"/>.</summary>
-    public const string CardAndAudioText = "help: card and audio";
-
-    /// <summary>The label of <see cref="SupportLevel.AudioOnly"/>.</summary>
-    public const string AudioOnlyText = "help: audio only";
-
-    /// <summary>The label of <see cref="SupportLevel.None"/>.</summary>
-    public const string NoneText = "help: none";
-
-    /// <summary>The words for a support level.</summary>
+    /// <summary>The words for a support level (<c>ui.phraseHelp*</c>, C04; the label of a phrase an NPC says is <c>ui.phraseHeard</c>).</summary>
+    /// <param name="ui">The support language.</param>
     /// <param name="level">The level.</param>
-    public static string LevelLabel(SupportLevel level) => level switch
+    public static string LevelLabel(LocaleText ui, SupportLevel level) => (ui ?? throw new ArgumentNullException(nameof(ui))).Ui(level switch
     {
-        SupportLevel.EnglishAndCard => EnglishAndCardText,
-        SupportLevel.CardAndAudio => CardAndAudioText,
-        SupportLevel.AudioOnly => AudioOnlyText,
-        _ => NoneText,
-    };
+        SupportLevel.EnglishAndCard => "phraseHelpEnglishAndCard",
+        SupportLevel.CardAndAudio => "phraseHelpCardAndAudio",
+        SupportLevel.AudioOnly => "phraseHelpAudioOnly",
+        _ => "phraseHelpNone",
+    });
 
     /// <summary>Builds the rows.</summary>
     /// <param name="progress">The phrase progress.</param>
     /// <param name="now">The stored time in Unix seconds.</param>
     /// <param name="rules">The credit rules (the gaps).</param>
-    public static IReadOnlyList<PhraseJournalRow> Build(PhraseProgress progress, long now, CreditRules rules)
+    /// <param name="ui">The support language (the rows' words).</param>
+    public static IReadOnlyList<PhraseJournalRow> Build(PhraseProgress progress, long now, CreditRules rules, LocaleText ui)
     {
         ArgumentNullException.ThrowIfNull(progress);
         ArgumentNullException.ThrowIfNull(rules);
+        ArgumentNullException.ThrowIfNull(ui);
         var rows = new List<PhraseJournalRow>();
         foreach (var sheetRow in progress.Sheet.Rows)
         {
@@ -57,9 +46,9 @@ public static class PhraseJournalRows
                 record.Level,
                 scaffold,
                 record,
-                hears ? HearsText : LevelLabel(record.Level),
-                CountsOf(record, hears),
-                wait is { } seconds ? JournalRows.DueText(seconds) : null,
+                hears ? ui.Ui("phraseHeard") : LevelLabel(ui, record.Level),
+                CountsOf(ui, record, hears),
+                wait is { } seconds ? JournalRows.DueText(ui, seconds) : null,
                 wait == 0));
         }
 
@@ -69,15 +58,22 @@ public static class PhraseJournalRows
     }
 
     /// <summary>The counts of a phrase in words: <c>con ayuda</c> (supported), <c>sin ayuda</c> (unaided), <c>opciones</c> (choice-only), <c>no sé</c> and <c>otra situación</c> (transfer); for a phrase an NPC says <c>oída</c> and <c>respondida</c>.</summary>
+    /// <param name="ui">The support language.</param>
     /// <param name="record">The phrase's counts.</param>
     /// <param name="hears">Whether it is a phrase an NPC says.</param>
-    public static string CountsOf(PhraseRecord record, bool hears)
+    public static string CountsOf(LocaleText ui, PhraseRecord record, bool hears)
     {
+        ArgumentNullException.ThrowIfNull(ui);
         ArgumentNullException.ThrowIfNull(record);
+        static string N(int value) => value.ToString(CultureInfo.InvariantCulture);
         return hears
-            ? string.Create(CultureInfo.InvariantCulture, $"heard {record.Heard}   answered {record.Answered}")
-            : string.Create(
-                CultureInfo.InvariantCulture,
-                $"with help {PhraseProgress.Uses(record.Supported)}   without help {PhraseProgress.Uses(record.Unaided)}   choices {record.ChoiceOnly}   don't know {record.DontKnow}   other situation {PhraseProgress.Uses(record.Transfer)}");
+            ? ui.Ui("phraseHeardCounts", ("heard", N(record.Heard)), ("answered", N(record.Answered)))
+            : ui.Ui(
+                "phraseCounts",
+                ("supported", PhraseProgress.Uses(record.Supported)),
+                ("unaided", PhraseProgress.Uses(record.Unaided)),
+                ("choices", N(record.ChoiceOnly)),
+                ("dontKnow", N(record.DontKnow)),
+                ("transfer", PhraseProgress.Uses(record.Transfer)));
     }
 }

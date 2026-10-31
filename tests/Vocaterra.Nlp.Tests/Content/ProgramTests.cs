@@ -5,6 +5,7 @@ using NlpLexicon = Vocaterra.Nlp.Language.Lexicon.Lexicon;
 namespace Vocaterra.Nlp.Content.Tests;
 
 /// <summary>Tests for the ContentBuilder command line through <see cref="Program.Run(string[], TextWriter, TextWriter)"/>.</summary>
+[Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public class ProgramTests
 {
     private static (int Code, string Output, string Error) Run(params string[] args)

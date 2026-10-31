@@ -84,6 +84,7 @@ public class OnnxEmbeddingModelTests
     }
 
     [E5ModelFact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void E5ModelProducesDeterministicUnitVectorsThatRankParaphrasesFirst()
     {
         using var model = new OnnxEmbeddingModel(E5ModelFactAttribute.ModelDirectory!);

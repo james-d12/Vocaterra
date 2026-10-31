@@ -1,21 +1,15 @@
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Language.Speech;
-using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Save;
-using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.Tests.TestSupport;
-using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Core.Tests.Language.Speech;
 
 /// <summary>The mic check's screen: Esc skips it, F8 during a recording counts as nothing heard, and the meter falls back while nothing is recorded.</summary>
 public sealed class MicCheckScreenTests
 {
-    private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-    private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
-
     [Fact]
     public void EscSkipsTheCheck()
     {
@@ -50,7 +44,7 @@ public sealed class MicCheckScreenTests
     [Fact]
     public void ARunWithoutTheCheckHasNoScreen()
     {
-        var screen = new MicCheckScreen(null, RouteScene.NewSession(Bundle.Value, Nouns.Value), new ListenSession(new PushToTalkSpeechCapture(null)), Sound(), static (_, _, _) => throw new InvalidOperationException("no font in this test"), false, static () => false, _ => { });
+        var screen = new MicCheckScreen(null, RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns), new ListenSession(new PushToTalkSpeechCapture(null)), Sound(), static (_, _, _) => throw new InvalidOperationException("no font in this test"), false, static () => false, _ => { });
         Assert.False(screen.Active);
         screen.FeedWhileIdle(0.1);
         screen.InterruptForReport();
@@ -59,8 +53,8 @@ public sealed class MicCheckScreenTests
 
     private static MicCheckScreen Make()
     {
-        var session = RouteScene.NewSession(Bundle.Value, Nouns.Value);
-        var model = new MicCheckModel(session.LogMicCheck);
+        var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
+        var model = new MicCheckModel(session.LogMicCheck, session.Locale, session.Data.Words.Greeting);
         return new MicCheckScreen(model, session, new ListenSession(new PushToTalkSpeechCapture(null)), Sound(), static (_, _, _) => throw new InvalidOperationException("no font in this test"), false, static () => false, _ => { });
     }
 

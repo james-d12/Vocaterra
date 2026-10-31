@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Vocaterra.Nlp.Asr.Models;
 using Vocaterra.Nlp.Audio;
 using Vocaterra.Nlp.Core.Audio;
@@ -72,13 +73,16 @@ internal static class TestData
     }
 }
 
-/// <summary>Locates the model files and the committed manifest for the real-model tests.</summary>
+/// <summary>Locates the model files and the committed manifest for the real-model tests (of the ASR and the pipeline).</summary>
 internal static class ModelGate
 {
     public const string VoskId = "vosk-model-small-es-0.42";
     public const string ParakeetId = "sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8";
 
     private static readonly Lazy<ModelStore?> StoreValue = new(CreateStore);
+
+    // The verdict per model id. xUnit builds every model fact's attribute while it discovers the tests, so without it each attribute hashed its model again.
+    private static readonly ConcurrentDictionary<string, Lazy<bool>> Verified = new(StringComparer.Ordinal);
 
     /// <summary>The store over <c>VOCATERRA_MODELS_DIR</c> and the committed manifest, or null when either is unavailable.</summary>
     public static ModelStore? Store => StoreValue.Value;
@@ -96,9 +100,10 @@ internal static class ModelGate
             : $"{id} is missing or does not match models/manifest.json under {root}.";
     }
 
+    /// <summary>Whether the model is present and every pinned file verifies; each model is hashed once per test process.</summary>
     public static bool IsAvailable(string id)
     {
-        return Store is { } store && store.Verify(id).Status is ModelStatus.Ok or ModelStatus.Unpinned;
+        return Verified.GetOrAdd(id, static key => new Lazy<bool>(() => Store is { } store && store.Verify(key).Status is ModelStatus.Ok or ModelStatus.Unpinned)).Value;
     }
 
     public static string? FindManifest()

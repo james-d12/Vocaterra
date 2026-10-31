@@ -32,9 +32,9 @@ public sealed class ShippedLessonTests(ITestOutputHelper output)
         Assert.False(session.Lessons.Engaged);
         Assert.Null(session.PhraseReview);
         Assert.Null(session.Review);
-        Assert.Equal(SessionStage.FindGuide, session.Stage);
+        Assert.Equal("meet-guide", session.CurrentObjective?.Id);
         Assert.Empty(session.Events.OfType<PhraseUse>());
-        Assert.Equal("start", session.English.Tips[0].When); // the opening is the English tips (the first is "look")
+        Assert.Equal("start", session.Data.Tips[0].When); // the opening is the support-language tips (the first is "look")
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public sealed class ShippedLessonTests(ITestOutputHelper output)
         Assert.True(session.Lessons.Engaged);
         Assert.Equal("u1-welcome", session.Lessons.Current!.Id);
         Assert.True(session.GuideMet);
-        Assert.Equal(SessionStage.Camp, session.Stage);
+        Assert.Equal("camp", session.CurrentObjective?.Id);
         Assert.Contains(session.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.GuideMet);
         Assert.Contains("Luna", session.Lessons.View!.English, StringComparison.Ordinal);
     }
@@ -294,7 +294,7 @@ public sealed class ShippedLessonTests(ITestOutputHelper output)
     public void TheGuideNeverAsksTheLearnerForTheirName()
     {
         var lesson = TestGame.NewSessionWithShippedLessons().Lessons.Book.Find("first-words")!;
-        var sheet = PhraseSheet.Load(TestGame.Bundle);
+        var sheet = RouteScene.DataOf(TestGame.Bundle).Phrases;
 
         // "Me llamo Luna." is heard, not said (core finding M29d): no step has the learner say a name.
         Assert.Contains(lesson.Steps, static s => s.Line?.Text == "Me llamo Luna.");

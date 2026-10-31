@@ -109,6 +109,10 @@ with about 16 MSBuild nodes, the Roslyn compiler server and parallel test hosts,
   and 10 of 16 cores, at nice 10, with MSBuild node reuse, the MSBuild server and the shared compiler server off (nothing lingers). A
   command over the cap is killed inside its scope (exit 137) and the desktop survives; the fix is lower parallelism, never a higher cap
   without the owner. Builds use `-m:4`, tests `-m:2`. The gate already does all of this; every brief tells the agent to do the same.
+- **Test tiers** (docs/TEST_PERFORMANCE_PLAN.md): `scripts/test.sh fast` for every step (it leaves out the tests marked `Speed=Slow`: the
+  fuzz suite, the model-gated tests, the world-generation, CLI, lint and process tests, and a few long single tests), `scripts/test.sh full`
+  at a milestone and in the gate (the gate and CI always run the full suite). A new test that takes more than a few seconds alone, needs a
+  model or starts a process is marked `[Trait(TestSpeed.Trait, TestSpeed.Slow)]`.
 - **Check before every launch and every gate**: `free -h` (at least 4 GB available, swap under half used), `uptime` (1-minute load
   under 16), `df -h /home` (at least 10 GB free), `pgrep -fc 'MSBuild.dll|VBCSCompiler|testhost'` (0 when nothing is running). Orphaned
   build servers are stopped with `dotnet build-server shutdown`. If the machine is not clear, wait or tell the owner; do not launch.
@@ -145,8 +149,9 @@ Vocaterra.{Simulation,Game,MonoGame,Host,SpeechRender}; this milestone's work is
 origin/<feature branch>` (the worktree may start elsewhere); commit there, do not push.
 Resources (the machine has crashed from overload): run every dotnet restore, build, test, format and run, every scripts/content.sh call,
 speech prerender and screenshot run through scripts/limited.sh (for example `scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4`;
-tests with `-m:2`). Never start two heavy commands at once (no `&`, no background builds, no parallel test runs); prefer building or testing
-the one project you changed while iterating and run the whole solution once before reporting. Exit 137 means the 6 GB cap killed it:
+tests with `-m:2`). Never start two heavy commands at once (no `&`, no background builds, no parallel test runs). While iterating run
+`scripts/test.sh fast` (every test not marked Speed=Slow, through limited.sh) or `scripts/test.sh project <test project>` for the project
+you changed; run `scripts/test.sh full` (the whole suite, as the gate) once before reporting. Exit 137 means the 6 GB cap killed it:
 lower the parallelism, do not work around the cap.
 Environment: prefix every command inline with PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" DOTNET_NOLOGO=1 (the sandbox may
 reject a bare `export`, and it refuses a command line containing the shell builtin words `eval` or `hash`: for `scripts/content.sh hash`

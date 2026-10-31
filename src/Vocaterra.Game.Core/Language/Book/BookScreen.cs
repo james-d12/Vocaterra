@@ -257,11 +257,12 @@ public sealed class BookScreen : IScreen
         _console(_controls.PlayTarget(target, slow));
     }
 
-    // "Practise again" (S26): the lesson starts when the learner talks to its NPC. The book closes, the objective area says where to go and the beacon points there.
+    // "Practise again" (S26) or "Review now" (X06): the lesson or the warm-up starts when the learner talks to its NPC. The book closes, the objective area says
+    // where to go and the beacon points there.
     private void PractiseAgain(string lessonId)
     {
         Close();
-        var line = _session.Lessons.ReplayHud ?? lessonId;
+        var line = (string.Equals(lessonId, BookPractise.ReviewNow, StringComparison.Ordinal) ? _session.Deck.PendingHud : _session.Lessons.ReplayHud) ?? lessonId;
         _toasts.Show(line);
         _console($"book: practise again {lessonId}; {line}");
     }

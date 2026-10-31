@@ -112,7 +112,7 @@ public sealed class DialogueScreen : IScreen
     public void Open(string npc, char? openedBy)
     {
         var opening = _session.OpenTalk(npc, teachKeyWords: true);
-        _dialogue.Open(opening, NpcNames.LabelOf(npc), _session.ReviewLine, _session.RetryNote);
+        _dialogue.Open(opening, _session.Data.Npcs.LabelOf(npc), _session.ReviewLine, _session.RetryNote);
         _voice.Say(npc, opening.Lines);
         if (openedBy == 't')
         {
@@ -212,9 +212,9 @@ public sealed class DialogueScreen : IScreen
             }
         }
 
-        if (input.Pressed(GameKey.V) || input.Pressed(GameKey.Space))
+        if (input.Pressed(InputKeys.Of("listen")) || input.Pressed(InputKeys.Of("listenAlt")))
         {
-            BeginListening(input.Pressed(GameKey.V) ? GameKey.V : GameKey.Space);
+            BeginListening(input.Pressed(InputKeys.Of("listen")) ? InputKeys.Of("listen") : InputKeys.Of("listenAlt"));
             return;
         }
 
@@ -285,7 +285,7 @@ public sealed class DialogueScreen : IScreen
 
         if (!worker.CanHear)
         {
-            _dialogue.SpeechNotice = worker.Load?.Problem ?? "Speech is not available: type your answer.";
+            _dialogue.SpeechNotice = worker.Load?.Problem ?? _session.Locale.Ui("speechUnavailable");
             return;
         }
 

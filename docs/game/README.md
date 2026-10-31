@@ -68,7 +68,15 @@ dotnet test Vocaterra.sln
 The .NET SDK is pinned in `global.json` (10.0.402, `latestPatch`). A user-local install is enough. The core's projects are built from the
 same commit; there is no pack step and no local feed.
 
-The speech models are not in the repository. Without them five model-gated tests are skipped, and the speech runs (the mic check, `--speak`,
+On the development machine the tests run through `scripts/test.sh` ([scripts/README.md](../../scripts/README.md)), which keeps them inside
+`scripts/limited.sh`'s caps. `scripts/test.sh fast` (under a minute) is the check after every step: it leaves out the tests marked
+`[Trait(TestSpeed.Trait, TestSpeed.Slow)]` (the world-generation classes, the model-gated tests, the playtest report's process tests, the
+whole-route meshing and a few other long single tests, and the core's fuzz suite and CLI tests). `scripts/test.sh full` is the whole suite, as
+the merge gate and CI run it, and `scripts/test.sh project Vocaterra.Game.Core.Tests` one project. The tests share one bundle load
+(`TestGame.Bundle`) and one build of the route per seed (`RouteScene.Build`, `TestGame.Route`: each test gets a clone it may edit); a test of
+the scene builder itself calls `SceneBuilder.Build`.
+
+The speech models are not in the repository. Without them fourteen model-gated tests are skipped, and the speech runs (the mic check, `--speak`,
 `--playtest`) cannot hear. Fetch the pinned Vosk model and the Kokoro model once into a folder outside the repository, then point
 `VOCATERRA_MODELS_DIR` at it for the tests and the runs:
 
@@ -402,7 +410,7 @@ scripts/content.sh grammar content/game-v1 --strings content/grammar/game-v1-str
 **The grammar check (S23, core M30, D10).** The review chain is lint, `cefr-check`, grammar, then the Opus pass (D-game-12). The grammar step
 sends every Spanish string the player hears or says to a LanguageTool server on this machine (never the public API) and reads the answers back
 through a committed cache. It covers the bundle's dialogue, prompts, answer sets and intents, the phrase sheet (the phrases, the accepted variants
-and the learner-error examples, with their tags), the Spanish sides of `game/english.json` and `game/checks.json`, and the speech index. The
+and the learner-error examples, with their tags), the Spanish side of `game/checks.json`, and the speech index (the support language, in `content/locale` since C03, is not checked). The
 strings are written by the host from those sources, so the list is always the game's own:
 
 ```bash
@@ -486,7 +494,7 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --talk gu
 
 ## The opening, the guide's lesson and the ending (S17)
 
-- **The opening.** No quiz at the spawn. The first tips come one at a time, each at its delay (`delay` seconds in `english.json`): look at 0 s, walk at 9 s, jump at 18 s,
+- **The opening.** No quiz at the spawn. The first tips come one at a time, each at its delay (`delay` seconds in `game/tips.json`; their text is the locale's since C03): look at 0 s, walk at 9 s, jump at 18 s,
   the note pinned to the tent at 28 s (English, with the one Spanish word `camino`, saying the guide's camp is down the trail), collecting at 50 s; the first
   pickup then teaches the inventory. The objective area says `Go down the trail and find the guide` until the guide is met (the panel opened on her, or the first
   step of the checklist). The beacon points at her camp from the start.
@@ -535,7 +543,7 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --lesson-
   The runner reads the finite verb's person and number from the turn's word readings; a mismatch the core did not flag (no subject pronoun, so no `conj.person`: `quieres madera` at `¿Qué quieres?`,
   `quiero fruta` at `¿Qué quiere Luna?`) is a miss, not a success: the step stays, the retry names the ending, and after the step's attempts it moves on (fail-forward). The log's retry line says
   `wrong person: said 2sg, expected 1sg`. A wrong person next to a pronoun (`yo quieres`) stays a slip the core grades. Every verb step of both lessons declares its person.
-- **The save** is version 4 (1 to 3 still load): each lesson keeps whether it was ever completed (`everCompleted`; a completed lesson of an older save counts) and the save keeps a replay that was asked for.
+- **The save** is version 4 (1 to 3 still load): each lesson keeps whether it was ever completed (`everCompleted`; a completed lesson of an older save counts) and the save keeps a replay that was asked for. Since C07 it is version 5 (1 to 4 still load): the objective's steps are keyed `<objective>.<step>` (`camp.wood`), and an older save's keys are mapped on load.
 
 ## Yesterday and tomorrow, the tense check (S27, D-game-19)
 

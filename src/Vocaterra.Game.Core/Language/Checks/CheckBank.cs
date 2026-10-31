@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
-using Vocaterra.Game.Core.Language.Phrases;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Core.Language.Checks;
@@ -29,7 +29,7 @@ public static class CheckNames
 }
 
 /// <summary>One option of a comprehension item: its English label and, when it names an item, the item's icon (an <c>ItemId</c> name such as <c>Bread</c>).</summary>
-/// <param name="Label">The English label the learner reads (<c>The shopkeeper offers you bread.</c>).</param>
+/// <param name="Label">The support-language label the learner reads (<c>The shopkeeper offers you bread.</c>; <c>check.&lt;id&gt;.option.&lt;n&gt;</c> in the locale).</param>
 /// <param name="Icon">The name of the <c>ItemId</c> drawn beside the label, or <see langword="null"/>.</param>
 public sealed record CheckOption(string Label, string? Icon = null);
 
@@ -42,12 +42,12 @@ public sealed record CheckOption(string Label, string? Icon = null);
 /// <param name="Id">The item's id (<c>hear.pedir-agua</c> or <c>say.pedir-agua</c>).</param>
 /// <param name="Kind">Comprehension or production.</param>
 /// <param name="Phrase">The phrase sheet row the item is about (<c>pedir-agua</c>).</param>
-/// <param name="Question">The English question of a comprehension item (<c>You hear this. What does it mean?</c>); empty for production.</param>
+/// <param name="Question">The support-language question of a comprehension item (<c>You hear this. What does it mean?</c>); empty for production.</param>
 /// <param name="Line">The speech index id of the line the learner hears (<c>phrase.pedir-agua</c>, <c>prompt.stall-need</c>); empty for production.</param>
 /// <param name="Spanish">The Spanish text of that line, for the panel; empty for production.</param>
 /// <param name="Options">The three options of a comprehension item, in the bundle's order; empty for production.</param>
 /// <param name="Correct">The index in <see cref="Options"/> that is right (bundle order).</param>
-/// <param name="Situation">The English situation of a production item; empty for comprehension.</param>
+/// <param name="Situation">The support-language situation of a production item; empty for comprehension.</param>
 /// <param name="Prompt">The prompt a production item is graded at (<c>stall-need</c>); empty for comprehension.</param>
 /// <param name="Intent">The intent a production item must resolve to (<c>request_item</c>); empty for comprehension.</param>
 public sealed record CheckItem(
@@ -64,8 +64,9 @@ public sealed record CheckItem(
     string Intent);
 
 /// <summary>
-/// The check battery's items, read from the bundle's host file <c>game/checks.json</c> (hashed, listed in <c>provenance.json</c>). Every item is
-/// checked against the phrase sheet and the bundle's prompts when it is read, so a bad item is a load error, not a surprise in a playtest.
+/// The check battery's items, read from the bundle's host file <c>game/checks.json</c> (hashed, listed in <c>provenance.json</c>). Every item's shape is
+/// checked when it is read; its phrase, line and prompt are checked against the other files by <see cref="Content.GameDataValidator"/>, so a bad item is a
+/// load error, not a surprise in a playtest.
 /// </summary>
 public static class CheckBank
 {
@@ -74,8 +75,9 @@ public static class CheckBank
 
     /// <summary>Reads the battery from the bundle's verified host file.</summary>
     /// <param name="bundle">The bundle, loaded with hash verification.</param>
-    /// <exception cref="InvalidDataException">The bundle has no such host file, or an item is malformed or refers to a missing phrase or prompt.</exception>
-    public static IReadOnlyList<CheckItem> Load(ContentBundle bundle)
+    /// <param name="locale">The support language, which holds the items' questions, options and situations (<c>check.&lt;id&gt;.*</c>).</param>
+    /// <exception cref="InvalidDataException">The bundle has no such host file, or an item is malformed or lacks its text in the locale.</exception>
+    public static IReadOnlyList<CheckItem> Load(ContentBundle bundle, LocaleText locale)
     {
         ArgumentNullException.ThrowIfNull(bundle);
         if (!bundle.TryReadHostFile(RelativePath, out var bytes))
@@ -83,19 +85,22 @@ public static class CheckBank
             throw new InvalidDataException($"The bundle has no host file {RelativePath}: it is missing from the manifest, or the bundle was loaded without hash verification.");
         }
 
-        return Parse(Encoding.UTF8.GetString(bytes.Span), PhraseSheet.Load(bundle), bundle.Prompts.Keys.ToHashSet(StringComparer.Ordinal));
+        return Parse(Encoding.UTF8.GetString(bytes.Span), locale);
     }
 
-    /// <summary>Builds the battery from the file's text.</summary>
+    /// <summary>The locale id of an item's support-language text: <c>check.&lt;id&gt;.&lt;field&gt;</c> (question, option.&lt;n&gt;, situation).</summary>
+    /// <param name="id">The item's id.</param>
+    /// <param name="field">The field.</param>
+    public static string LocaleId(string id, string field) => "check." + id + "." + field;
+
+    /// <summary>Builds the battery from the file's text and the support language.</summary>
     /// <param name="json">The contents of <c>game/checks.json</c>.</param>
-    /// <param name="sheet">The phrase sheet the items refer to.</param>
-    /// <param name="prompts">The bundle's prompt ids.</param>
+    /// <param name="locale">The support language, which holds the items' questions, options and situations.</param>
     /// <exception cref="InvalidDataException">The text is malformed or an item does not hold together.</exception>
-    public static IReadOnlyList<CheckItem> Parse(string json, PhraseSheet sheet, IReadOnlySet<string> prompts)
+    public static IReadOnlyList<CheckItem> Parse(string json, LocaleText locale)
     {
         ArgumentNullException.ThrowIfNull(json);
-        ArgumentNullException.ThrowIfNull(sheet);
-        ArgumentNullException.ThrowIfNull(prompts);
+        ArgumentNullException.ThrowIfNull(locale);
         try
         {
             using var document = JsonDocument.Parse(json);
@@ -109,7 +114,7 @@ public static class CheckBank
             var ids = new HashSet<string>(StringComparer.Ordinal);
             foreach (var element in root.GetProperty("items").EnumerateArray())
             {
-                var item = ParseItem(element, sheet, prompts);
+                var item = ParseItem(element, locale);
                 if (!ids.Add(item.Id))
                 {
                     throw new InvalidDataException($"checks.json: the item id '{item.Id}' is used twice.");
@@ -131,23 +136,30 @@ public static class CheckBank
         }
     }
 
-    private static CheckItem ParseItem(JsonElement element, PhraseSheet sheet, IReadOnlySet<string> prompts)
+    private static CheckItem ParseItem(JsonElement element, LocaleText locale)
     {
         var id = element.GetProperty("id").GetString() ?? string.Empty;
         var phrase = element.GetProperty("phrase").GetString() ?? string.Empty;
-        var row = sheet.Find(phrase) ?? throw new InvalidDataException($"checks.json: item '{id}' names the phrase '{phrase}', which is not in the phrase sheet.");
+        if (string.IsNullOrWhiteSpace(phrase))
+        {
+            throw new InvalidDataException($"checks.json: item '{id}' names no phrase.");
+        }
+
         var kind = element.GetProperty("kind").GetString();
         switch (kind)
         {
             case "comprehension":
                 var line = element.GetProperty("line").GetString() ?? string.Empty;
+                // The options' labels are the locale's (check.<id>.option.<n>); the file keeps the icons, one entry per option.
                 var options = element.GetProperty("options").EnumerateArray()
-                    .Select(static o => new CheckOption(o.GetProperty("label").GetString() ?? string.Empty, o.TryGetProperty("icon", out var icon) ? icon.GetString() : null))
+                    .Select((o, i) => new CheckOption(
+                        locale.Find(LocaleId(id, "option." + (i + 1).ToString(CultureInfo.InvariantCulture))) ?? string.Empty,
+                        o.TryGetProperty("icon", out var icon) ? icon.GetString() : null))
                     .ToList();
                 var correct = element.GetProperty("correct").GetInt32();
                 if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(line) || options.Count != 3 || options.Any(static o => o.Label.Length == 0))
                 {
-                    throw new InvalidDataException($"checks.json: comprehension item '{id}' needs an id, a line, and three labelled options.");
+                    throw new InvalidDataException($"checks.json: comprehension item '{id}' needs an id, a line, and three options labelled in the locale ({LocaleId(id, "option.<n>")}).");
                 }
 
                 if (correct < 0 || correct >= options.Count)
@@ -158,8 +170,8 @@ public static class CheckBank
                 return new CheckItem(
                     id,
                     CheckItemKind.Comprehension,
-                    row.Id,
-                    element.GetProperty("question").GetString() ?? string.Empty,
+                    phrase,
+                    locale.Find(LocaleId(id, "question")) ?? throw new InvalidDataException($"checks.json: comprehension item '{id}' has no question in the locale {locale.Code} ({LocaleId(id, "question")})."),
                     line,
                     element.GetProperty("spanish").GetString() ?? string.Empty,
                     options,
@@ -170,23 +182,18 @@ public static class CheckBank
             case "production":
                 var prompt = element.GetProperty("prompt").GetString() ?? string.Empty;
                 var intent = element.GetProperty("intent").GetString() ?? string.Empty;
-                var situation = element.GetProperty("situation").GetString() ?? string.Empty;
+                var situation = locale.Find(LocaleId(id, "situation")) ?? string.Empty;
                 if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(situation) || string.IsNullOrWhiteSpace(intent))
                 {
-                    throw new InvalidDataException($"checks.json: production item '{id}' needs an id, a situation and an intent.");
+                    throw new InvalidDataException($"checks.json: production item '{id}' needs an id, an intent and a situation in the locale ({LocaleId(id, "situation")}).");
                 }
 
-                if (!prompts.Contains(prompt))
+                if (string.IsNullOrWhiteSpace(prompt))
                 {
-                    throw new InvalidDataException($"checks.json: production item '{id}' is graded at the prompt '{prompt}', which the bundle does not have.");
+                    throw new InvalidDataException($"checks.json: production item '{id}' names no prompt.");
                 }
 
-                if (!row.IsLearnerPhrase)
-                {
-                    throw new InvalidDataException($"checks.json: production item '{id}' names '{phrase}', a phrase the learner does not say.");
-                }
-
-                return new CheckItem(id, CheckItemKind.Production, row.Id, string.Empty, string.Empty, string.Empty, [], -1, situation, prompt, intent);
+                return new CheckItem(id, CheckItemKind.Production, phrase, string.Empty, string.Empty, string.Empty, [], -1, situation, prompt, intent);
             default:
                 throw new InvalidDataException(string.Create(CultureInfo.InvariantCulture, $"checks.json: item '{id}' has the kind '{kind}', which is neither comprehension nor production."));
         }

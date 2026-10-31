@@ -51,7 +51,7 @@ public sealed class CheckProgressTests
         var worker = session.StartWorker(loadSpeech: false);
         Assert.True(worker.WaitUntilReady(30000), "The worker did not load.");
         var before = Snapshot(session);
-        var item = CheckBank.Load(TestGame.Bundle).Single(static i => i.Id == "say.pedir-agua");
+        var item = RouteScene.DataOf(TestGame.Bundle).Checks.Single(static i => i.Id == "say.pedir-agua");
 
         _ = session.SubmitCheck(item, TurnSource.Typed, "Quiero agua, por favor.", null, null);
         var applied = Drain(session, 1).Single();
@@ -70,10 +70,10 @@ public sealed class CheckProgressTests
         var session = TestGame.NewSession(credit: CreditRules.Default);
         var worker = session.StartWorker(loadSpeech: false);
         Assert.True(worker.WaitUntilReady(30000), "The worker did not load.");
-        var item = CheckBank.Load(TestGame.Bundle).Single(static i => i.Id == "say.donde-esta-el-rio");
+        var item = RouteScene.DataOf(TestGame.Bundle).Checks.Single(static i => i.Id == "say.donde-esta-el-rio");
         var records = session.Conversation.Records.Count;
 
-        _ = session.SubmitCheck(item, TurnSource.Button, GuideSession.DontKnowLine, null, null);
+        _ = session.SubmitCheck(item, TurnSource.Button, TestGame.Data.Words.DontKnowLine, null, null);
         var applied = Drain(session, 1).Single();
 
         Assert.True(applied.Outcome.Grade!.DontKnow);
@@ -88,7 +88,7 @@ public sealed class CheckProgressTests
         var session = TestGame.NewSession(credit: CreditRules.Default);
         var worker = session.StartWorker(loadSpeech: false);
         Assert.True(worker.WaitUntilReady(30000), "The worker did not load.");
-        var item = CheckBank.Load(TestGame.Bundle).Single(static i => i.Id == "say.pedir-agua");
+        var item = RouteScene.DataOf(TestGame.Bundle).Checks.Single(static i => i.Id == "say.pedir-agua");
 
         _ = session.SubmitCheck(item, TurnSource.Clip, null, PcmClipForTest(), null);
         var applied = Drain(session, 1).Single();
@@ -102,10 +102,10 @@ public sealed class CheckProgressTests
     public void ASubmitForAComprehensionTypeIsRefusedEvenBeforeTheWorkerRuns()
     {
         var session = TestGame.NewSession(credit: CreditRules.Default);
-        var item = CheckBank.Load(TestGame.Bundle).Single(static i => i.Id == "hear.pedir-agua");
+        var item = RouteScene.DataOf(TestGame.Bundle).Checks.Single(static i => i.Id == "hear.pedir-agua");
 
         _ = Assert.Throws<ArgumentException>(() => session.SubmitCheck(item, TurnSource.Typed, "Quiero agua, por favor.", null, null));
-        var production = CheckBank.Load(TestGame.Bundle).Single(static i => i.Id == "say.pedir-agua");
+        var production = RouteScene.DataOf(TestGame.Bundle).Checks.Single(static i => i.Id == "say.pedir-agua");
         _ = Assert.Throws<ArgumentOutOfRangeException>(() => session.SubmitCheck(production, TurnSource.Choice, null, null, null));
     }
 

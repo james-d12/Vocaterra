@@ -4,8 +4,6 @@ using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
-using Vocaterra.Game.Core.World.Generation;
-using Vocaterra.Game.Core.World.Layout;
 
 namespace Vocaterra.Game.Core.Tests.Component;
 
@@ -15,7 +13,7 @@ public sealed class VoxelSessionTests
     private const int Unit = VoxelPhysics.UnitsPerBlock;
 
     private static Scene RouteScene() =>
-        SceneBuilder.Build(SceneLayout.Load(Path.Combine(GameBundle.ResolveDirectory(), "game", "scene.json")), TestGame.Seed);
+        TestGame.Route();
 
     // The body at the spawn, as the simulation reports it: the middle of the feet block and the spawn's facing.
     private static GuideViewpoint AtSpawn(Scene scene) => new(
@@ -28,7 +26,7 @@ public sealed class VoxelSessionTests
     public void TheGuidePointsAtTheNearestRiverBlockFromWhereThePlayerFaces()
     {
         var scene = RouteScene();
-        var session = new VoxelSession(TestGame.Bundle, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Nouns, scene);
+        var session = new VoxelSession(TestGame.Data, TestGame.Seed, GuideSession.DefaultStartedAt, scene);
         var turn = session.Say("¿dónde está el río?");
 
         Assert.True(turn.Communicated);
@@ -38,7 +36,7 @@ public sealed class VoxelSessionTests
         Assert.Equal(BlockId.Water, scene.Grid.GetBlock(turn.Pointer.Target.X, turn.Pointer.Target.Y, turn.Pointer.Target.Z));
 
         // The same answer as the facts give from the spawn: the nearest water block, its distance and its direction.
-        var expected = WorldFacts.Live(scene.Grid, TestGame.Nouns).NearestOfNoun(AtSpawn(scene), "río");
+        var expected = WorldFacts.Live(scene.Grid, TestGame.Nouns, TestGame.Data.Words.Directions).NearestOfNoun(AtSpawn(scene), "río");
         Assert.NotNull(expected);
         Assert.Equal(expected.Cell, turn.Pointer.Target);
         Assert.Equal(expected.Blocks, turn.Pointer.Blocks);
@@ -54,7 +52,7 @@ public sealed class VoxelSessionTests
     public void ThePlayerWhoAsksWhatTheCursorIsOnIsToldTheNounOfTheBlock()
     {
         var scene = RouteScene();
-        var session = new VoxelSession(TestGame.Bundle, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Nouns, scene);
+        var session = new VoxelSession(TestGame.Data, TestGame.Seed, GuideSession.DefaultStartedAt, scene);
         var water = scene.Point("river");
         var turn = session.Say("¿qué es esto?", water);
 
@@ -66,7 +64,7 @@ public sealed class VoxelSessionTests
     public void ANamedRiverBlockIsAguaAndRioAndANameOfEitherIsRight()
     {
         var scene = RouteScene();
-        var session = new VoxelSession(TestGame.Bundle, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Nouns, scene);
+        var session = new VoxelSession(TestGame.Data, TestGame.Seed, GuideSession.DefaultStartedAt, scene);
         var water = scene.Point("river");
         Assert.Equal(BlockId.Water, scene.Grid.GetBlock(water.X, water.Y, water.Z));
 

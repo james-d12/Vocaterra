@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/session.json",
+  "description": "The session (C07): the objectives in the HUD's order, the closing line's pool, the starting items and the beacon's start. Loaded by ObjectiveBook (Vocaterra.Game.Core).",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "objectives",
+    "closingPool",
+    "beaconStart"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "enum": [
+        1
+      ]
+    },
+    "about": {
+      "type": "string"
+    },
+    "objectives": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "closingPool": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The dialogue pool whose first line the guide says when every objective is done."
+    },
+    "grants": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "wood",
+          "torch",
+          "berry",
+          "bottle",
+          "water-bottle",
+          "bread",
+          "book"
+        ]
+      },
+      "description": "The items the learner starts with, one of each."
+    },
+    "beaconStart": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The scene site or point the beacon stands on at the start of a new game."
+    }
+  }
+}
