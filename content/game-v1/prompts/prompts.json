@@ -364,7 +364,7 @@
     "mode": "Constrained",
     "difficulty": "Beginner",
     "answerSetId": "supplies-bakery",
-    "allowedIntentIds": ["request_item", "ask_price", "ask_availability", "greet", "thank", "farewell", "ask_help", "dont_know"],
+    "allowedIntentIds": ["request_item", "ask_price", "ask_availability", "state_action", "greet", "thank", "farewell", "ask_help", "dont_know"],
     "agentId": "baker",
     "slotGrammarIds": [],
     "text": "¿Qué quieres?"
@@ -598,5 +598,45 @@
     "agentId": "fisher",
     "slotGrammarIds": [],
     "text": "¿Qué compró Luz ayer?"
+  },
+  {
+    "promptId": "lesson-will-buy",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-will-buy",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "baker",
+    "slotGrammarIds": [],
+    "text": "¿Qué harás mañana?"
+  },
+  {
+    "promptId": "lesson-will-fetch",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-will-fetch",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "smith",
+    "slotGrammarIds": [],
+    "text": "¡Hola! Luz necesita madera para el horno. ¿Qué harás?"
+  },
+  {
+    "promptId": "lesson-will-go",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-will-go",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "smith",
+    "slotGrammarIds": [],
+    "text": "¡Muy bien! Mar pescará en el río toda la tarde. ¿Adónde irás ahora?"
+  },
+  {
+    "promptId": "lesson-luz-will",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-luz-will",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "fisher",
+    "slotGrammarIds": [],
+    "text": "¿Qué hará Luz mañana?"
   }
 ]

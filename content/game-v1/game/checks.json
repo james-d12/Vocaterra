@@ -801,6 +801,94 @@
       "lesson": "ayer-en-el-pueblo",
       "prompt": "lesson-must-go",
       "intent": "state_obligation"
+    },
+    {
+      "id": "hear.que-haras-manana",
+      "kind": "comprehension",
+      "phrase": "que-haras-manana",
+      "lesson": "manana-en-el-pueblo",
+      "line": "guide.lesson.baker.tomorrow.1",
+      "spanish": "¿Qué harás mañana?",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.tendre-pan",
+      "kind": "comprehension",
+      "phrase": "tendre-pan",
+      "lesson": "manana-en-el-pueblo",
+      "line": "guide.lesson.baker.fresh.1",
+      "spanish": "¡Qué bien! Mañana tendré pan fresco.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.mar-pescara",
+      "kind": "comprehension",
+      "phrase": "mar-pescara",
+      "lesson": "manana-en-el-pueblo",
+      "line": "guide.lesson.smith.go.1",
+      "spanish": "¡Muy bien! Mar pescará en el río toda la tarde. ¿Adónde irás ahora?",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.el-dia-de-manana",
+      "kind": "comprehension",
+      "phrase": "el-dia-de-manana",
+      "lesson": "manana-en-el-pueblo",
+      "line": "guide.lesson.fisher.day.1",
+      "spanish": "¡Hola! Mañana Luz hará pan. Domingo trabajará en la herrería. Y yo pescaré en el río.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "say.manana-comprare-pan",
+      "kind": "production",
+      "phrase": "manana-comprare-pan",
+      "lesson": "manana-en-el-pueblo",
+      "prompt": "lesson-will-buy",
+      "intent": "state_action"
+    },
+    {
+      "id": "say.buscare-madera",
+      "kind": "production",
+      "phrase": "buscare-madera",
+      "lesson": "manana-en-el-pueblo",
+      "prompt": "lesson-will-fetch",
+      "intent": "state_action"
+    },
+    {
+      "id": "say.ire-al-rio",
+      "kind": "production",
+      "phrase": "ire-al-rio",
+      "lesson": "manana-en-el-pueblo",
+      "prompt": "lesson-will-go",
+      "intent": "state_action"
+    },
+    {
+      "id": "say.luz-hara-pan",
+      "kind": "production",
+      "phrase": "luz-hara-pan",
+      "lesson": "manana-en-el-pueblo",
+      "prompt": "lesson-luz-will",
+      "intent": "state_action"
     }
   ]
 }

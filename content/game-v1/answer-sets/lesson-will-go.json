@@ -1,0 +1,23 @@
+{
+  "answerSetId": "lesson-will-go",
+  "answers": [
+    {
+      "answerId": "river",
+      "canonical": "iré al río",
+      "aliases": ["yo iré al río", "sí, iré al río", "mañana iré al río", "iré al río mañana", "la semana que viene iré al río", "pasado mañana iré al río", "el próximo día iré al río", "voy a ir al río"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": ["no lo sé", "yo no sé", "no entiendo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    }
+  ]
+}

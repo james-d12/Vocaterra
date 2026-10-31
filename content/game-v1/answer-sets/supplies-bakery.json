@@ -20,6 +20,12 @@
       "dialects": ["es-MX", "es-CO", "es-AR"]
     },
     {
+      "answerId": "plan",
+      "canonical": "mañana voy a comprar pan",
+      "aliases": ["mañana compraré pan", "voy a comprar pan", "compraré pan", "la semana que viene compraré pan", "pasado mañana compraré pan", "mañana voy a comprar dos panes", "luego voy a comprar pan"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
       "answerId": "hello",
       "canonical": "hola",
       "aliases": ["buenos días", "buenas tardes", "buen día"],

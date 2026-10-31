@@ -134,7 +134,8 @@ Every content edit moves seven things:
 1. the manifest and provenance;
 2. the grammar strings and the cache (a live LanguageTool server, then the cache-from-nothing check);
 3. the identity baseline;
-4. the two `FuzzLanguageStreamTests` digests (re-recorded at V10, V11 and V12 with the generators unchanged);
+4. the two `FuzzLanguageStreamTests` digests (re-recorded at V10, V11 and V12 with the generators unchanged; since the core's M57 they run on
+   frozen inputs, so a content edit no longer moves them, and the content loop's step 7 checks that they did not move);
 5. `save-v1.json` and `save-v4.json`;
 6. the WAVs at two speeds;
 7. the scripted runs, captured before and after.

@@ -12,7 +12,8 @@ namespace Vocaterra.Host.Tests;
 
 /// <summary>
 /// The village's talk on the host's path (<c>--transcript … --prompt …</c>, VILLAGE_PLAN V14): a statement at the smith's open prompt, <c>tener que</c> against
-/// <c>tener</c> with a noun, and the listener's name said as a vocative, which the host reads as the game does (<see cref="Vocative"/>).
+/// <c>tener</c> with a noun, and the listener's name said as a vocative, which the host reads as the game does (<see cref="Vocative"/>); and since V17 a plan at the
+/// baker's open prompt, and the simple future with the later markers at the steps of Mañana en el pueblo.
 /// </summary>
 public sealed class VillageTalkTests
 {
@@ -38,6 +39,46 @@ public sealed class VillageTalkTests
 
         Assert.Equal(("state_action", true), (verdict.Intent.Value, verdict.Communicated));
         Assert.Empty(verdict.Errors);
+    }
+
+    [Theory]
+    [InlineData("baker-open", "mañana voy a comprar pan")] // the orchestrator's case at M57: unknown and vocab.wrong before V17 (the prompt took no state_action)
+    [InlineData("baker-open", "mañana compraré pan")]
+    [InlineData("baker-open", "la semana que viene compraré pan")]
+    public void APlanAtTheBakersOpenPromptIsAStatementAndErrorFree(string prompt, string line)
+    {
+        // V17: the baker's open prompt takes state_action (her agent answered it already), and her answer set holds the plans, so the core finds no wrong word. The
+        // fisher's does not: his ask_directions takes buscar with any noun (busco la panadería), so buscaré madera would be his directions (the lint's confusion check).
+        var verdict = Evaluate(line, prompt).Verdict;
+
+        Assert.Equal(("state_action", true), (verdict.Intent.Value, verdict.Communicated));
+        Assert.Empty(verdict.Errors);
+    }
+
+    [Theory]
+    [InlineData("mañana compraré pan", "lesson-will-buy", "pan")] // the gate's demos
+    [InlineData("la semana que viene iré al río", "lesson-will-go", "río")] // a later marker, one phrase of the grammar since V17: before it, semana was the item
+    [InlineData("pasado mañana iré al río", "lesson-will-go", "río")]
+    [InlineData("la semana que viene compraré pan", "lesson-will-buy", "pan")]
+    public void TheSimpleFutureWithAMarkerIsAStatementAndErrorFree(string line, string prompt, string slot)
+    {
+        var verdict = Evaluate(line, prompt).Verdict;
+
+        Assert.Equal(("state_action", true), (verdict.Intent.Value, verdict.Communicated));
+        Assert.Empty(verdict.Errors);
+        Assert.Contains(slot, verdict.Slots.Values);
+    }
+
+    [Theory]
+    [InlineData("la semana que viene compré pan", "voy a comprar")]
+    [InlineData("mañana compré pan", "voy a comprar")]
+    [InlineData("ayer compraré pan", "compré")]
+    public void APastWithAFutureMarkerOrAFutureWithAPastOneIsTheCoresTenseError(string line, string expected)
+    {
+        var verdict = Evaluate(line, "lesson-will-buy").Verdict;
+
+        Assert.Equal(("state_action", true, "pan"), (verdict.Intent.Value, verdict.Communicated, verdict.Slots["item"]));
+        Assert.Equal(expected, Assert.Single(verdict.Errors, static e => e.Tag == "conj.tense").Expected);
     }
 
     [Theory]
@@ -82,6 +123,9 @@ public sealed class VillageTalkTests
     [InlineData("farmer-open", "León, quiero tres manzanas rojas", "request_item", "manzana")]
     [InlineData("lesson-they-ate", "Domingo, ellos comieron pan", "state_action", "pan")]
     [InlineData("lesson-luz-bought", "Mar, Luz compró pescado", "state_action", "pescado")]
+    [InlineData("baker-open", "Luz, mañana compraré pan", "state_action", "pan")] // V17: a plan at the baker's open prompt, the gate's demo
+    [InlineData("lesson-will-fetch", "Domingo, buscaré madera para Luz", "state_action", "madera")] // the smith's name goes, Luz's stays: para joins it to the line
+    [InlineData("lesson-luz-will", "Mar, Luz hará pan", "state_action", "pan")]
     public void TheListenersNameSaidAsAVocativeIsReadAsTheLineWithoutIt(string prompt, string line, string intent, string? slot)
     {
         var verdict = Evaluate(line, prompt).Verdict;

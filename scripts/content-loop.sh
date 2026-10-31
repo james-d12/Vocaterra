@@ -18,10 +18,11 @@
 #              Needs scripts/fetch-tools.sh once, and 4 GB of free memory.
 #   --speech   prerender the lines the renderer's --check names (its summary first), then refresh again (the manifest after the new WAVs, the
 #              provenance, the strings). Without it, lines to render stop the loop at step 3.
-#   --record   off by default: re-record the end-to-end goldens and the identity baseline, print what moved (the git diff --stat and the changed
-#              entries per file; they go in a commit of their own), and print the stream digests the fuzz suite computed with the constants of
-#              FuzzLanguageStreamTests.cs to set (the script edits no C#; the later tests leave that class out until they are set). Without it
-#              the goldens and the digests are checked, and a move stops the loop.
+#   --record   off by default: re-record the end-to-end goldens and the identity baseline, and print what moved (the git diff --stat and the
+#              changed entries per file; they go in a commit of their own). Without it the goldens are checked, and a move stops the loop. The
+#              stream digests are checked either way: since the core's M57 they run on frozen inputs, so content never moves them; if one moves,
+#              the loop prints the digest the fuzz suite computed with the constant of FuzzLanguageStreamTests.cs it differs from (the script
+#              edits no C#; with --record the later tests leave that class out), and the cause is a change outside the content (a generator).
 #   --tier     the tests of step 8. fast (the default): scripts/test.sh fast, then the fuzz suite's grammar-sensitive classes at their full depth
 #              (CorrectSentenceFuzzTests, MutationTagFuzzTests, RecastLoopFuzzTests; FuzzLanguageStreamTests is step 7). full: the whole suite,
 #              as the gate runs it. none: no test, and no build, goldens or digests unless --record.
@@ -35,7 +36,8 @@
 #               HEAD, the one before step 1, or one an earlier run in this worktree saw (.claude/content-loop/bundle-values)
 #   5 build     dotnet build Vocaterra.sln -warnaserror -m:4 (once; the tests run with --no-build)
 #   6 goldens   tests/Vocaterra.Nlp.Golden.Tests, checked, or recorded with --record (VOCATERRA_RECORD_GOLDEN and VOCATERRA_RECORD_IDENTITY)
-#   7 digests   FuzzLanguageStreamTests: its digests move with the content's grammars and words (until the core's M57 pins them to a fixture)
+#   7 digests   FuzzLanguageStreamTests: since the core's M57 its digests run on frozen inputs (a fixture of the bundle's grammars and words), so a
+#               content edit leaves them; the step checks they did not move, and a move means something other than the content changed
 #   8 tests     the tier
 # It runs the gate's content checks unchanged and skips none of them. Neither the line that starts it nor any command it prints for the user
 # contains the words the sandbox refuses (the scripts it calls run those themselves), so an agent runs it as it is. Re-running it on an
@@ -562,8 +564,9 @@ step_digests() {
     names="$(failures "$LOGDIR/$log")"
     fail "FuzzLanguageStreamTests failed, not on a digest: ${names:-see the log}" "fix what $LOGDIR/$log reports, then run the loop again" $log
   fi
-  block "digests: the fuzz suite's stream digests moved with the content. Set them in $STREAM_TEST (this script edits no C#),"
-  block "  and say in the comment above them which edit moved them:"
+  block "digests: the fuzz suite's stream digests moved. They run on frozen inputs (the core's M57), so the content did not move them:"
+  block "  a generator or the fixture changed. If that change means to move them, set them in $STREAM_TEST (this script edits no C#)"
+  block "  and say in the comment above them which change moved them:"
   while read -r _ _ _ _ actual _ _ _ recorded; do
     name="$(grep -oE "const string [A-Za-z]+ = \"$recorded\"" "$STREAM_TEST" | awk '{ print $3 }')"
     block "  private const string ${name:-<the constant that holds $recorded>} = \"$actual\";   (was ${recorded:0:12}…)"
@@ -574,8 +577,8 @@ step_digests() {
     end_step "to do" "moved: $names (printed above); the tests below leave FuzzLanguageStreamTests out until they are set" $log
     return
   fi
-  fail "moved: $names (printed above)" \
-    "if the edit means to move them, set them in FuzzLanguageStreamTests.cs (or run it again with --record to go on to the tests first)" $log
+  fail "moved: $names (printed above); a content edit does not move them since M57" \
+    "find the change outside the content that moved them (a generator, the fixture); if it means to, set them in FuzzLanguageStreamTests.cs" $log
 }
 
 # ---- 8. tests

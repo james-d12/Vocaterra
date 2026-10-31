@@ -84,12 +84,14 @@
 {"id":"dialogue:guide.lesson.baker.bought.1","text":"¿Qué compraste?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.coins.1","text":"¿Cuántas monedas tienes?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.five.1","text":"Uno, dos, tres, cuatro, cinco.","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.fresh.1","text":"¡Qué bien! Mañana tendré pan fresco.","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.how_many.1","text":"¿Cuántos panes quieres?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.loaves.1","text":"Tengo diez panes.","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.model.1","text":"Ayer compré fruta en la tienda.","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.oven.1","text":"Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.plan.1","text":"¡Hola! ¿Qué vas a hacer hoy?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.ten.1","text":"Seis, siete, ocho, nueve, diez.","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.tomorrow.1","text":"¿Qué harás mañana?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.you.1","text":"Compraste dos panes. ¡Muy bien!","kind":"npc"}
 {"id":"dialogue:guide.lesson.end.1","text":"¡Muy bien! Ya tienes fuego.","kind":"npc"}
 {"id":"dialogue:guide.lesson.farmer.apple.1","text":"¿Cómo es la manzana?","kind":"npc"}
@@ -105,11 +107,13 @@
 {"id":"dialogue:guide.lesson.farmer.went.1","text":"¿Fuiste al río?","kind":"npc"}
 {"id":"dialogue:guide.lesson.fast.1","text":"Mira. La madera es para la antorcha.","kind":"npc"}
 {"id":"dialogue:guide.lesson.fisher.bought.1","text":"¿Qué compró Luz ayer?","kind":"npc"}
+{"id":"dialogue:guide.lesson.fisher.day.1","text":"¡Hola! Mañana Luz hará pan. Domingo trabajará en la herrería. Y yo pescaré en el río.","kind":"npc"}
 {"id":"dialogue:guide.lesson.fisher.end.1","text":"¡Muy bien! Ya conoces el pueblo.","kind":"npc"}
 {"id":"dialogue:guide.lesson.fisher.going.1","text":"¿Adónde vas?","kind":"npc"}
 {"id":"dialogue:guide.lesson.fisher.hay.1","text":"En el pueblo hay una tienda, una panadería y tres casas.","kind":"npc"}
 {"id":"dialogue:guide.lesson.fisher.hungry.1","text":"Tengo hambre. ¿Tienes fruta?","kind":"npc"}
 {"id":"dialogue:guide.lesson.fisher.left.1","text":"En el pueblo, mira la torre. La panadería está a la izquierda.","kind":"npc"}
+{"id":"dialogue:guide.lesson.fisher.luz_will.1","text":"¿Qué hará Luz mañana?","kind":"npc"}
 {"id":"dialogue:guide.lesson.fisher.more.1","text":"¿Algo más?","kind":"npc"}
 {"id":"dialogue:guide.lesson.fisher.near.1","text":"No, está cerca. La montaña está lejos.","kind":"npc"}
 {"id":"dialogue:guide.lesson.fisher.plan.1","text":"¿Qué vas a hacer allí?","kind":"npc"}
@@ -148,8 +152,10 @@
 {"id":"dialogue:guide.lesson.shop.went.1","text":"¿Fuiste al río ayer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.shop.you.1","text":"Ayer fuiste al río.","kind":"npc"}
 {"id":"dialogue:guide.lesson.smith.ate.1","text":"¡Hola! Ayer trabajé todo el día. ¿Qué comieron Luz y Mar?","kind":"npc"}
+{"id":"dialogue:guide.lesson.smith.go.1","text":"¡Muy bien! Mar pescará en el río toda la tarde. ¿Adónde irás ahora?","kind":"npc"}
 {"id":"dialogue:guide.lesson.smith.lives.1","text":"¿Dónde vives?","kind":"npc"}
 {"id":"dialogue:guide.lesson.smith.must.1","text":"Mar fue al río y te busca. ¿Adónde tienes que ir?","kind":"npc"}
+{"id":"dialogue:guide.lesson.smith.wood.1","text":"¡Hola! Luz necesita madera para el horno. ¿Qué harás?","kind":"npc"}
 {"id":"dialogue:guide.lesson.take.1","text":"Toma una fruta.","kind":"npc"}
 {"id":"dialogue:guide.lesson.task.1","text":"Necesitas madera y frutas.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.ate.1","text":"Por la tarde, Luz y Mar comieron pan en la plaza.","kind":"npc"}
@@ -311,6 +317,7 @@
 {"id":"prompts:lesson-lives","text":"¿Dónde vives?","kind":"npc"}
 {"id":"prompts:lesson-luz-bought","text":"¿Qué compró Luz ayer?","kind":"npc"}
 {"id":"prompts:lesson-luz-made","text":"¿Qué hizo Luz ayer?","kind":"npc"}
+{"id":"prompts:lesson-luz-will","text":"¿Qué hará Luz mañana?","kind":"npc"}
 {"id":"prompts:lesson-made","text":"¿Qué hizo Domingo?","kind":"npc"}
 {"id":"prompts:lesson-mar-fished","text":"¿Y qué hizo Mar?","kind":"npc"}
 {"id":"prompts:lesson-must-go","text":"Mar fue al río y te busca. ¿Adónde tienes que ir?","kind":"npc"}
@@ -339,6 +346,9 @@
 {"id":"prompts:lesson-went-there","text":"¿Fuiste a la panadería?","kind":"npc"}
 {"id":"prompts:lesson-what","text":"Mira.","kind":"npc"}
 {"id":"prompts:lesson-who","text":"¿Quién es Domingo?","kind":"npc"}
+{"id":"prompts:lesson-will-buy","text":"¿Qué harás mañana?","kind":"npc"}
+{"id":"prompts:lesson-will-fetch","text":"¡Hola! Luz necesita madera para el horno. ¿Qué harás?","kind":"npc"}
+{"id":"prompts:lesson-will-go","text":"¡Muy bien! Mar pescará en el río toda la tarde. ¿Adónde irás ahora?","kind":"npc"}
 {"id":"prompts:lesson-will-make","text":"¿Qué va a hacer Domingo?","kind":"npc"}
 {"id":"prompts:lesson-wood-plan","text":"Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer?","kind":"npc"}
 {"id":"prompts:lesson-works","text":"¿Dónde trabaja Domingo?","kind":"npc"}
@@ -640,6 +650,21 @@
 {"id":"answer-sets/lesson-luz-made:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/lesson-luz-made:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/lesson-luz-made:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-luz-will:bread","text":"luz hará pan","kind":"learner"}
+{"id":"answer-sets/lesson-luz-will:bread.alias1","text":"mañana luz hará pan","kind":"learner"}
+{"id":"answer-sets/lesson-luz-will:bread.alias2","text":"hará pan","kind":"learner"}
+{"id":"answer-sets/lesson-luz-will:bread.alias3","text":"ella hará pan","kind":"learner"}
+{"id":"answer-sets/lesson-luz-will:bread.alias4","text":"luz hará pan mañana","kind":"learner"}
+{"id":"answer-sets/lesson-luz-will:bread.alias5","text":"luz va a hacer pan","kind":"learner"}
+{"id":"answer-sets/lesson-luz-will:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-luz-will:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-luz-will:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-luz-will:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-luz-will:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-luz-will:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-luz-will:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-luz-will:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-luz-will:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-made:axe","text":"domingo hizo un hacha","kind":"learner"}
 {"id":"answer-sets/lesson-made:axe.alias1","text":"hizo un hacha","kind":"learner"}
 {"id":"answer-sets/lesson-made:axe.alias2","text":"él hizo un hacha","kind":"learner"}
@@ -1071,6 +1096,60 @@
 {"id":"answer-sets/lesson-who:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/lesson-who:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/lesson-who:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-will-buy:bread","text":"mañana compraré pan","kind":"learner"}
+{"id":"answer-sets/lesson-will-buy:bread.alias1","text":"compraré pan","kind":"learner"}
+{"id":"answer-sets/lesson-will-buy:bread.alias2","text":"yo compraré pan","kind":"learner"}
+{"id":"answer-sets/lesson-will-buy:bread.alias3","text":"compraré pan mañana","kind":"learner"}
+{"id":"answer-sets/lesson-will-buy:bread.alias4","text":"mañana compraré dos panes","kind":"learner"}
+{"id":"answer-sets/lesson-will-buy:bread.alias5","text":"la semana que viene compraré pan","kind":"learner"}
+{"id":"answer-sets/lesson-will-buy:bread.alias6","text":"compraré pan la semana que viene","kind":"learner"}
+{"id":"answer-sets/lesson-will-buy:bread.alias7","text":"pasado mañana compraré pan","kind":"learner"}
+{"id":"answer-sets/lesson-will-buy:bread.alias8","text":"mañana voy a comprar pan","kind":"learner"}
+{"id":"answer-sets/lesson-will-buy:bread.alias9","text":"voy a comprar pan","kind":"learner"}
+{"id":"answer-sets/lesson-will-buy:bread.alias10","text":"mañana compro pan","kind":"learner"}
+{"id":"answer-sets/lesson-will-buy:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-will-buy:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-will-buy:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-will-buy:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-will-buy:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-will-buy:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-will-buy:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-will-buy:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-will-buy:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-will-fetch:wood","text":"buscaré madera para luz","kind":"learner"}
+{"id":"answer-sets/lesson-will-fetch:wood.alias1","text":"buscaré madera","kind":"learner"}
+{"id":"answer-sets/lesson-will-fetch:wood.alias2","text":"yo buscaré madera para luz","kind":"learner"}
+{"id":"answer-sets/lesson-will-fetch:wood.alias3","text":"mañana buscaré madera para luz","kind":"learner"}
+{"id":"answer-sets/lesson-will-fetch:wood.alias4","text":"buscaré madera para luz mañana","kind":"learner"}
+{"id":"answer-sets/lesson-will-fetch:wood.alias5","text":"voy a buscar madera para luz","kind":"learner"}
+{"id":"answer-sets/lesson-will-fetch:wood.alias6","text":"voy a buscar madera","kind":"learner"}
+{"id":"answer-sets/lesson-will-fetch:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-will-fetch:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-will-fetch:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-will-fetch:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-will-fetch:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-will-fetch:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-will-fetch:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-will-fetch:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-will-fetch:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-will-go:river","text":"iré al río","kind":"learner"}
+{"id":"answer-sets/lesson-will-go:river.alias1","text":"yo iré al río","kind":"learner"}
+{"id":"answer-sets/lesson-will-go:river.alias2","text":"sí, iré al río","kind":"learner"}
+{"id":"answer-sets/lesson-will-go:river.alias3","text":"mañana iré al río","kind":"learner"}
+{"id":"answer-sets/lesson-will-go:river.alias4","text":"iré al río mañana","kind":"learner"}
+{"id":"answer-sets/lesson-will-go:river.alias5","text":"la semana que viene iré al río","kind":"learner"}
+{"id":"answer-sets/lesson-will-go:river.alias6","text":"pasado mañana iré al río","kind":"learner"}
+{"id":"answer-sets/lesson-will-go:river.alias7","text":"el próximo día iré al río","kind":"learner"}
+{"id":"answer-sets/lesson-will-go:river.alias8","text":"voy a ir al río","kind":"learner"}
+{"id":"answer-sets/lesson-will-go:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-will-go:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-will-go:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-will-go:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-will-go:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-will-go:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-will-go:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-will-go:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-will-go:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-will-make:axe","text":"va a hacer un hacha","kind":"learner"}
 {"id":"answer-sets/lesson-will-make:axe.alias1","text":"domingo va a hacer un hacha","kind":"learner"}
 {"id":"answer-sets/lesson-will-make:axe.alias2","text":"él va a hacer un hacha","kind":"learner"}
@@ -1468,6 +1547,14 @@
 {"id":"answer-sets/supplies-bakery:bread-here.alias2","text":"hay panes","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:bread-here.alias3","text":"hay dos panes","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:bread-here.alias4","text":"hay un pan","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:plan","text":"mañana voy a comprar pan","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:plan.alias1","text":"mañana compraré pan","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:plan.alias2","text":"voy a comprar pan","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:plan.alias3","text":"compraré pan","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:plan.alias4","text":"la semana que viene compraré pan","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:plan.alias5","text":"pasado mañana compraré pan","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:plan.alias6","text":"mañana voy a comprar dos panes","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:plan.alias7","text":"luego voy a comprar pan","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:hello","text":"hola","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:hello.alias1","text":"buenos días","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:hello.alias2","text":"buenas tardes","kind":"learner"}
@@ -1885,10 +1972,42 @@
 {"id":"intents:state_action.ex167","text":"luz compró pescado ayer","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex168","text":"ayer luz compra pescado","kind":"learner","errors":["conj.tense"]}
 {"id":"intents:state_action.ex169","text":"ella compré pescado","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex170","text":"busqué madera","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex171","text":"león trabaja en el campo","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex172","text":"luz vive en la panadería","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex173","text":"mar va a trabajar en el río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex170","text":"mañana compraré pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex171","text":"compraré pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex172","text":"yo compraré pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex173","text":"compraré pan mañana","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex174","text":"mañana compraré dos panes","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex175","text":"la semana que viene compraré pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex176","text":"pasado mañana compraré pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex177","text":"la semana que viene compré pan","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex178","text":"ayer compraré pan","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex179","text":"yo comprarás pan","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex180","text":"buscaré madera para luz","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex181","text":"buscaré madera","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex182","text":"yo buscaré madera para luz","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex183","text":"mañana buscaré madera para luz","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex184","text":"buscaré madera para luz mañana","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex185","text":"voy a buscar madera para luz","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex186","text":"yo buscará madera para luz","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex187","text":"iré al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex188","text":"yo iré al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex189","text":"sí, iré al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex190","text":"mañana iré al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex191","text":"la semana que viene iré al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex192","text":"pasado mañana iré al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex193","text":"yo irá al río","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex194","text":"luz hará pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex195","text":"mañana luz hará pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex196","text":"hará pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex197","text":"ella hará pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex198","text":"luz hará pan mañana","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex199","text":"luz va a hacer pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex200","text":"mañana luz hizo pan","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex201","text":"ella harás pan","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex202","text":"busqué madera","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex203","text":"león trabaja en el campo","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex204","text":"luz vive en la panadería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex205","text":"mar va a trabajar en el río","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex0","text":"tengo una fruta","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex1","text":"sí, tengo una fruta","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex2","text":"sí, yo tengo una fruta","kind":"learner","errors":[]}
@@ -2403,6 +2522,39 @@
 {"id":"PHRASES.md:luz-compro-pescado.variant3","text":"ayer Luz compró pescado","kind":"learner"}
 {"id":"PHRASES.md:luz-compro-pescado.variant4","text":"Luz compró pescado ayer","kind":"learner"}
 {"id":"PHRASES.md:luz-compro-pescado.error","text":"ayer Luz compra pescado","kind":"learner","errors":["conj.tense"]}
+{"id":"PHRASES.md:que-haras-manana.text","text":"¿Qué harás mañana?","kind":"npc"}
+{"id":"PHRASES.md:manana-comprare-pan.text","text":"Mañana compraré pan.","kind":"learner"}
+{"id":"PHRASES.md:manana-comprare-pan.variant1","text":"compraré pan","kind":"learner"}
+{"id":"PHRASES.md:manana-comprare-pan.variant2","text":"yo compraré pan","kind":"learner"}
+{"id":"PHRASES.md:manana-comprare-pan.variant3","text":"compraré pan mañana","kind":"learner"}
+{"id":"PHRASES.md:manana-comprare-pan.variant4","text":"mañana compraré dos panes","kind":"learner"}
+{"id":"PHRASES.md:manana-comprare-pan.variant5","text":"la semana que viene compraré pan","kind":"learner"}
+{"id":"PHRASES.md:manana-comprare-pan.variant6","text":"pasado mañana compraré pan","kind":"learner"}
+{"id":"PHRASES.md:manana-comprare-pan.error","text":"mañana compré pan","kind":"learner","errors":["conj.tense"]}
+{"id":"PHRASES.md:tendre-pan.text","text":"¡Qué bien! Mañana tendré pan fresco.","kind":"npc"}
+{"id":"PHRASES.md:luz-necesita-madera.text","text":"¡Hola! Luz necesita madera para el horno. ¿Qué harás?","kind":"npc"}
+{"id":"PHRASES.md:buscare-madera.text","text":"Buscaré madera para Luz.","kind":"learner"}
+{"id":"PHRASES.md:buscare-madera.variant1","text":"buscaré madera","kind":"learner"}
+{"id":"PHRASES.md:buscare-madera.variant2","text":"yo buscaré madera para Luz","kind":"learner"}
+{"id":"PHRASES.md:buscare-madera.variant3","text":"mañana buscaré madera para Luz","kind":"learner"}
+{"id":"PHRASES.md:buscare-madera.variant4","text":"buscaré madera para Luz mañana","kind":"learner"}
+{"id":"PHRASES.md:buscare-madera.error","text":"yo buscará madera para Luz","kind":"learner","errors":["conj.person"]}
+{"id":"PHRASES.md:mar-pescara.text","text":"¡Muy bien! Mar pescará en el río toda la tarde. ¿Adónde irás ahora?","kind":"npc"}
+{"id":"PHRASES.md:ire-al-rio.text","text":"Iré al río.","kind":"learner"}
+{"id":"PHRASES.md:ire-al-rio.variant1","text":"yo iré al río","kind":"learner"}
+{"id":"PHRASES.md:ire-al-rio.variant2","text":"sí, iré al río","kind":"learner"}
+{"id":"PHRASES.md:ire-al-rio.variant3","text":"mañana iré al río","kind":"learner"}
+{"id":"PHRASES.md:ire-al-rio.variant4","text":"la semana que viene iré al río","kind":"learner"}
+{"id":"PHRASES.md:ire-al-rio.variant5","text":"pasado mañana iré al río","kind":"learner"}
+{"id":"PHRASES.md:ire-al-rio.error","text":"yo irá al río","kind":"learner","errors":["conj.person"]}
+{"id":"PHRASES.md:el-dia-de-manana.text","text":"¡Hola! Mañana Luz hará pan. Domingo trabajará en la herrería. Y yo pescaré en el río.","kind":"npc"}
+{"id":"PHRASES.md:que-hara-luz.text","text":"¿Qué hará Luz mañana?","kind":"npc"}
+{"id":"PHRASES.md:luz-hara-pan.text","text":"Luz hará pan.","kind":"learner"}
+{"id":"PHRASES.md:luz-hara-pan.variant1","text":"mañana Luz hará pan","kind":"learner"}
+{"id":"PHRASES.md:luz-hara-pan.variant2","text":"hará pan","kind":"learner"}
+{"id":"PHRASES.md:luz-hara-pan.variant3","text":"ella hará pan","kind":"learner"}
+{"id":"PHRASES.md:luz-hara-pan.variant4","text":"Luz hará pan mañana","kind":"learner"}
+{"id":"PHRASES.md:luz-hara-pan.error","text":"mañana Luz hizo pan","kind":"learner","errors":["conj.tense"]}
 {"id":"checks.json:hear.que-necesitas","text":"¿Qué necesitas?","kind":"npc"}
 {"id":"checks.json:hear.quieres-pan","text":"¿Quieres pan?","kind":"npc"}
 {"id":"checks.json:hear.pedir-agua","text":"Quiero agua, por favor.","kind":"npc"}
@@ -2439,6 +2591,10 @@
 {"id":"checks.json:hear.comieron-en-la-plaza","text":"Por la tarde, Luz y Mar comieron pan en la plaza.","kind":"npc"}
 {"id":"checks.json:hear.adonde-fueron","text":"¿Y Mar y tú? ¿Adónde fueron ayer?","kind":"npc"}
 {"id":"checks.json:hear.le-vendi-pescado","text":"¡Hola! Ayer le vendí pescado a Luz. Mañana va a comprar más.","kind":"npc"}
+{"id":"checks.json:hear.que-haras-manana","text":"¿Qué harás mañana?","kind":"npc"}
+{"id":"checks.json:hear.tendre-pan","text":"¡Qué bien! Mañana tendré pan fresco.","kind":"npc"}
+{"id":"checks.json:hear.mar-pescara","text":"¡Muy bien! Mar pescará en el río toda la tarde. ¿Adónde irás ahora?","kind":"npc"}
+{"id":"checks.json:hear.el-dia-de-manana","text":"¡Hola! Mañana Luz hará pan. Domingo trabajará en la herrería. Y yo pescaré en el río.","kind":"npc"}
 {"id":"words.json:directions.ahead","text":"adelante","kind":"npc"}
 {"id":"words.json:directions.behind","text":"detrás","kind":"npc"}
 {"id":"words.json:directions.left","text":"a la izquierda","kind":"npc"}
