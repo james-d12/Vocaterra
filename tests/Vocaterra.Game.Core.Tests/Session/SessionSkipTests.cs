@@ -125,6 +125,26 @@ public sealed class SessionSkipTests
     }
 
     [Fact]
+    public void AnOrdersCoinsArePaidFromTheBagAndAPathThatLeavesTooFewIsAnError()
+    {
+        // V13: coins are never gathered, only given by an NPC, so the skip pays an order's coins from what the earlier sessions left: the axe takes the two left after
+        // session 5, and session 7 starts with none (granting them with the wood had left two). The water of the farmer's order is the camp's bottle, not a second one.
+        var seven = SkippedTo(7);
+        Assert.Contains(seven.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.ItemTaken && e.Npc == "smith" && e.Detail == "moneda, order");
+        Assert.Equal(0, seven.Simulation.Inventory.Count(ItemId.Coin));
+
+        var six = SkippedTo(6);
+        Assert.Equal(2, six.Simulation.Inventory.Count(ItemId.Coin));
+        var dearer = new Objective(TestGame.Data.Objectives.Find("axe-handle")! with { Deliver = [new OrderGoods(ItemId.Wood, 2), new OrderGoods(ItemId.Coin, 3)] });
+        var error = Assert.Throws<InvalidOperationException>(() => six.SkipDeliver(dearer)); // the plan's first axe order: three coins, one more than the path leaves
+        Assert.Equal("The sessions before leave 2 coins, and the order 'axe-handle' asks for 3.", error.Message);
+        Assert.Equal((2, 0), (six.Simulation.Inventory.Count(ItemId.Coin), six.Simulation.Inventory.Count(ItemId.Axe))); // nothing changed hands
+
+        six.SkipDeliver(six.Objectives.Single(static o => o.Id == "water-for-plants")); // the bag's bottle is the one taken: none is added
+        Assert.Equal((0, 3), (six.Simulation.Inventory.Count(ItemId.WaterBottle), six.Simulation.Inventory.Count(ItemId.Apple)));
+    }
+
+    [Fact]
     public void NoPracticeIsFakedTheWordAndPhraseRecordsStayANewGames()
     {
         var fresh = TestGame.NewSessionWithShippedLessons();
