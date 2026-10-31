@@ -72,6 +72,35 @@ public sealed class LexiconCatalog
     /// <summary>Object pronouns that may sit between a subject pronoun and its verb (mirror of <c>WordClasses.Clitics</c>).</summary>
     public static readonly IReadOnlyList<string> CliticLemmas = ["me", "te", "lo", "le", "nos", "les"];
 
+    /// <summary>Verbs whose subject follows them after a dative pronoun (mirror of <c>SpanishAnalysisTables.ExperiencerVerbs</c>, M56: me gustan las manzanas).</summary>
+    public static readonly IReadOnlyList<string> ExperiencerVerbs =
+        ["gustar", "encantar", "interesar", "importar", "doler", "faltar", "quedar", "sobrar", "molestar", "apetecer", "fascinar", "agradar", "disgustar", "preocupar"];
+
+    /// <summary>
+    /// The verbs whose noun phrase after them the analyzer may check as their subject (M56): estar, the experiencer verbs and the verbs of price (mirror of
+    /// <c>SpanishAgreementChecker.TakesPostverbalSubject</c>, which also asks for a dative pronoun, dónde or cuánto before some of them; the realiser agrees them always).
+    /// </summary>
+    public static readonly IReadOnlyList<string> PostverbalSubjectVerbs = ["estar", "costar", "valer", .. ExperiencerVerbs];
+
+    /// <summary>The dative pronouns before an experiencer verb (mirror of <c>SpanishAnalysisTables.DativePronouns</c>, M56).</summary>
+    public static readonly IReadOnlyList<string> DativePronouns = ["me", "te", "le", "nos", "os", "les"];
+
+    /// <summary>
+    /// The nouns whose phrase after a verb the analyzer may not take for its subject (M56): the nouns of time and duration (mirror of
+    /// <c>SpanishAnalysisTables.IsDurationNoun</c>) and of part or quantity (mirror of <c>SpanishAnalysisTables.QuantityNouns</c>).
+    /// </summary>
+    public static readonly IReadOnlyList<string> PostverbalNonSubjectNouns =
+    [
+        .. UpcomingTimeNouns, "tarde", "mañana", "rato", "momento", "mediodía", "medianoche", "minuto", "segundo", "tiempo", "temporada", "época",
+        "mayoría", "minoría", "mitad", "resto", "parte", "grupo", "cantidad", "montón", "número", "totalidad", "serie", "conjunto", "docena", "par", "tercio",
+    ];
+
+    /// <summary>Adverbs of place that take <c>estar</c>, so <c>ser</c> before one is a mistake (mirror of <c>SpanishAnalysisTables.LocationAdverbs</c>, M56).</summary>
+    public static readonly IReadOnlyList<string> LocationAdverbs = ["lejos", "cerca"];
+
+    /// <summary>The question words after which the analyzer reads a word that can be a finite verb as the verb (mirror of <c>SpanishAnalysisTables.VerbSeekingQuestionWords</c>, M56).</summary>
+    public static readonly IReadOnlyList<string> VerbSeekingQuestionWords = ["dónde", "donde", "cómo"];
+
     private static readonly string[] Genders = [LexiconSchema.Masculine, LexiconSchema.Feminine];
     private static readonly string[] Numbers = [LexiconSchema.Singular, LexiconSchema.Plural];
 

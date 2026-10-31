@@ -224,9 +224,14 @@ public static class MutationGen
 
             foreach (var i in Shuffled(Indexes(static t => t is { Role: TokenRole.Verb, Generated: true, Infinitive: false, Tense: not null })))
             {
-                var subject = SubjectOf(i);
+                var subject = PersonSubjectOf(i);
                 if (subject < 0)
                 {
+                    if (PostverbalSubject(i) is { } postverbal)
+                    {
+                        return postverbal;
+                    }
+
                     continue;
                 }
 
@@ -263,6 +268,75 @@ public static class MutationGen
             }
 
             return null;
+        }
+
+        // M56: a third-person verb whose subject follows it (¿dónde están las casas?, me gustan las manzanas) takes the other number; the analyzer reports conj.person
+        // with the original form. The mutation is made only where the analyzer's reading of the sentence is certain: the verb is estar, or an experiencer verb right
+        // behind a dative pronoun; no word before the verb can be a noun, a subject pronoun or a name, or is unknown; an article or numeral right after the verb opens
+        // the phrase of a noun of one number that cannot be a verb, is no noun of time or quantity and has no y, e, o, u or ni anywhere after it; and the new form is
+        // that verb and nothing else.
+        private MutatedSentence? PostverbalSubject(int i)
+        {
+            var verb = _tokens[i];
+            if (verb is not { Person: "3", Number: not null, Tense: not null, Lemma: not null })
+            {
+                return null;
+            }
+
+            var experiencer = LexiconCatalog.ExperiencerVerbs.Contains(verb.Lemma)
+                && i > 0
+                && LexiconCatalog.DativePronouns.Contains(_tokens[i - 1].Norm)
+                && _words.Lexicon.Lookup(_tokens[i - 1].Norm).Any(static r => r.Pos == LexiconSchema.Pronoun);
+            if (verb.Lemma != "estar" && !experiencer)
+            {
+                return null;
+            }
+
+            for (var j = 0; j < i; j++)
+            {
+                var readings = _words.Lexicon.Lookup(_tokens[j].Norm);
+                if (_tokens[j].Role == TokenRole.Name
+                    || readings.Count == 0
+                    || readings.Any(static r => r.Pos == LexiconSchema.Noun || (r.Pos == LexiconSchema.Pronoun && LexiconCatalog.SubjectPronounLemmas.Contains(r.Lemma))))
+                {
+                    return null;
+                }
+            }
+
+            if (i + 1 >= _tokens.Count || _tokens[i + 1] is not { Role: TokenRole.Article or TokenRole.Numeral, Head: > 0 } opener)
+            {
+                return null;
+            }
+
+            var head = _tokens[opener.Head];
+            var nouns = _words.Lexicon.Lookup(head.Norm).Where(static r => r.Pos == LexiconSchema.Noun).ToList();
+            if (head.Role != TokenRole.Noun
+                || nouns.Count == 0
+                || nouns.Select(static r => r.Number).Distinct().Count() != 1
+                || nouns.Any(static r => LexiconCatalog.PostverbalNonSubjectNouns.Contains(r.Lemma))
+                || _words.Lexicon.Lookup(head.Norm).Any(static r => r.Pos == LexiconSchema.Verb)
+                || _tokens.Skip(opener.Head + 1).Any(static t => t.Norm is "y" or "e" or "o" or "u" or "ni"))
+            {
+                return null;
+            }
+
+            var number = verb.Number == LexiconSchema.Singular ? LexiconSchema.Plural : LexiconSchema.Singular;
+            var form = _words.Morphology.Conjugate(verb.Lemma, "3", number, verb.Tense);
+            if (form is null || form == verb.Norm)
+            {
+                return null;
+            }
+
+            var readingsOfForm = _words.Lexicon.Lookup(form);
+            if (readingsOfForm.Count == 0
+                || readingsOfForm.Any(r => r.Pos != LexiconSchema.Verb || r.Person is null || r.Lemma != verb.Lemma)
+                || readingsOfForm.Any(r => r.Person == "3" && r.Number == verb.Number && r.Tense == verb.Tense))
+            {
+                return null;
+            }
+
+            var mutated = Replace(i, verb with { Written = form, Norm = form, Number = number });
+            return Result(MutationKind.ConjPerson, mutated, [Error(mutated, ErrorTags.ConjPerson, i, i, verb.Norm, form)], sentence.NormalizedText, keepsGrammar: true);
         }
 
         public MutatedSentence? NounNumber()
@@ -711,6 +785,14 @@ public static class MutationGen
             }
 
             return -1;
+        }
+
+        // The subject pronoun the person check agrees a verb with: SubjectOf, unless the pronoun is right behind a word that can be a preposition (a ella le gusta), which
+        // M56 made no subject of the check; the reading resolver still takes the word after it for the verb, so SubjectOf stays as it was for the other mutations.
+        private int PersonSubjectOf(int verb)
+        {
+            var p = SubjectOf(verb);
+            return p > 0 && _words.Lexicon.Lookup(_tokens[p - 1].Norm).Any(static r => r.Pos == LexiconSchema.Preposition) ? -1 : p;
         }
 
         private GeneratedSentence Replace(int index, SentenceToken token)

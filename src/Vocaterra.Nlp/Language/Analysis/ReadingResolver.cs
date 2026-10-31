@@ -22,7 +22,8 @@ using Vocaterra.Nlp.Language.SlotGrammar;
 /// come further determiners and adjectives and then the head of the phrase, which is a noun when the word can be one (<c>una buena lanza</c>); an adjective that does not
 /// follow a noun is prenominal, so the word after it is a noun (<c>correcto paseo</c>); a quantifier that is also an adverb (<c>mucho</c>) before a noun is the
 /// determiner, and so is the adjective-and-adverb or adjective-and-pronoun word before a noun that cannot be a verb (<c>temprano pasillo</c>), unless it is an adverb
-/// that goes before nouns (<c>solo agua</c>); the word after a subject pronoun or a clitic, skipping adverbs and clitics, is a verb; the word after a preposition
+/// that goes before nouns (<c>solo agua</c>); the word after a subject pronoun or a clitic, skipping adverbs and clitics, is a verb, and so is the word after
+/// <c>dónde</c> or <c>cómo</c> when it can be one (<c>¿dónde son las casas?</c>, M56); the word after a preposition
 /// and the complement of a copula are not finite verbs; an interjection reading is the last resort; and a determiner adjective beats an adjective of its own
 /// spelling (<c>sus</c> beside <c>su</c>). These rules are what keeps the third step from hiding a real mistake: <c>un lanza</c> and <c>dos libro</c> are mistakes
 /// because the word after the determiner can only be the noun, and <c>yo lanza</c> is a person mistake because the word after the pronoun can only be the verb.
@@ -294,6 +295,13 @@ internal static class ReadingResolver
                 {
                     changed |= Narrow(verb, r => r.Pos == LexiconSchema.Verb);
                 }
+            }
+
+            // M56: a question word that takes a verb (dónde, cómo) is followed by the verb when the next word can be one: ¿dónde son las casas? is ser, not the noun son,
+            // so that the ser/estar check sees it.
+            if (next < Count && _rules.IsVerbSeekingQuestionWord(_tokens[i].Token.Text) && HasReading(next, ReadingClasses.IsFiniteVerb))
+            {
+                changed |= Narrow(next, ReadingClasses.IsFiniteVerb);
             }
 
             // A preposition does not govern a finite verb (a casa, de lanza).

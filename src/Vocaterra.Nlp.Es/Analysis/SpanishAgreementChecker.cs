@@ -8,7 +8,8 @@ using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Morphology;
 
 /// <summary>Runs the Spanish grammar checks (subject-verb, tense, ser/estar, noun phrase agreement, word order) over analyzed tokens; part of the Spanish pack since M34.</summary>
-internal sealed class SpanishAgreementChecker : IAgreementChecker
+/// <remarks>The rules of M56 (a subject after its verb, <c>ser</c> where a place takes <c>estar</c>) are in <c>SpanishAgreementChecker.Postverbal.cs</c>.</remarks>
+internal sealed partial class SpanishAgreementChecker : IAgreementChecker
 {
     private readonly IReadOnlyList<AnalyzedToken> _tokens;
     private readonly IMorphology _morphology;
@@ -26,10 +27,12 @@ internal sealed class SpanishAgreementChecker : IAgreementChecker
     public void Run()
     {
         CheckSubjectVerb();
+        CheckPostverbalSubject();
         CheckTense();
         CheckNearFuture();
         CheckIrWithoutA();
         CheckSerEstar();
+        CheckSerOfPlace();
         CheckNounPhrases();
     }
 
@@ -152,7 +155,8 @@ internal sealed class SpanishAgreementChecker : IAgreementChecker
         for (var i = 0; i < _tokens.Count; i++)
         {
             var pronoun = FirstReading(i, static r => r.Pos == LexiconSchema.Pronoun && r.Person is not null && WordClasses.IsSubjectPronoun(r.Lemma));
-            if (pronoun is null)
+            // M56: a pronoun that a preposition governs is no subject (a ella le gustan las manzanas: ella is the one who likes, the apples are the subject).
+            if (pronoun is null || (i > 0 && IsPreposition(i - 1)))
             {
                 continue;
             }

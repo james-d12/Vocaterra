@@ -53,6 +53,54 @@ internal static class SpanishAnalysisTables
         "me", "te", "se", "lo", "la", "los", "las", "le", "les", "nos", "os",
     }.ToFrozenSet(StringComparer.Ordinal);
 
+    // M56. Adverbs of place that say where something is, which takes estar (está lejos, está cerca); ser with one is a mistake for a place (es lejos). aquí, allí and
+    // ahí are left out on purpose: es aquí identifies a place or an event (¿es aquí la fiesta?, es aquí donde vivo) and is correct.
+    private static readonly FrozenSet<string> LocationAdverbs = new[] { "lejos", "cerca" }.ToFrozenSet(StringComparer.Ordinal);
+
+    // M56. Nouns of events, whose place takes ser (la fiesta es en la plaza, ¿dónde es la fiesta?: where it takes place), unlike things and places, which take estar.
+    // A noun that names an event and a thing (comida, the food and the meal; salida, the exit and the departure) is listed, so that it is read the way that is correct.
+    private static readonly FrozenSet<string> EventNouns = new[]
+    {
+        "fiesta", "reunión", "boda", "concierto", "clase", "lección", "curso", "examen", "partido", "partida", "juego", "carrera", "competición", "concurso",
+        "torneo", "cena", "comida", "almuerzo", "desayuno", "merienda", "banquete", "cumpleaños", "festival", "feria", "mercadillo", "misa", "funeral",
+        "entierro", "ceremonia", "celebración", "espectáculo", "función", "obra", "película", "exposición", "conferencia", "congreso", "cita", "encuentro",
+        "evento", "acto", "entrevista", "baile", "desfile", "procesión", "carnaval", "salida", "llegada",
+    }.ToFrozenSet(StringComparer.Ordinal);
+
+    // M56. Verbs whose subject follows them after a dative pronoun, and which take no direct object there: me gusta el pan, me gustan las manzanas, me duele la cabeza,
+    // me faltan dos monedas. parecer (me parece una buena idea: a predicate) and verbs that also take an object (me dan el pan) are not among them.
+    private static readonly FrozenSet<string> ExperiencerVerbs = new[]
+    {
+        "gustar", "encantar", "interesar", "importar", "doler", "faltar", "quedar", "sobrar", "molestar", "apetecer", "fascinar", "agradar", "disgustar", "preocupar",
+    }.ToFrozenSet(StringComparer.Ordinal);
+
+    // M56. The dative pronouns before an experiencer verb (me gusta, les gustan); lo, la, los and las are accusative and se is left out.
+    private static readonly FrozenSet<string> DativePronouns = new[] { "me", "te", "le", "nos", "os", "les" }.ToFrozenSet(StringComparer.Ordinal);
+
+    // M56. Verbs of price, whose subject follows them in the price question (¿cuánto cuesta el pan?, ¿cuánto valen los panes?); elsewhere the noun phrase after them is
+    // the price (cuestan dos monedas).
+    private static readonly FrozenSet<string> PriceVerbs = new[] { "costar", "valer" }.ToFrozenSet(StringComparer.Ordinal);
+
+    // M56. Nouns that measure a stretch of time, beside the time nouns: a noun phrase of one of them after a verb is how long or when (están la tarde en casa), not its subject.
+    private static readonly FrozenSet<string> DurationNouns = new[]
+    {
+        "tarde", "mañana", "rato", "momento", "mediodía", "medianoche", "minuto", "segundo", "tiempo", "temporada", "época",
+    }.ToFrozenSet(StringComparer.Ordinal);
+
+    // M56. Words that open a clause of their own (the question words and relatives, que, si, porque), spelled with and without the accent: a word before one is not in
+    // the clause of the verb after it.
+    private static readonly FrozenSet<string> ClauseOpeners = new[]
+    {
+        "que", "qué", "dónde", "donde", "adónde", "adonde", "cuándo", "cuando", "cómo", "cuánto", "cuanto", "cuánta", "cuanta", "cuántos", "cuantos", "cuántas",
+        "cuantas", "quién", "quien", "quiénes", "quienes", "cuál", "cual", "cuáles", "cuales", "porque", "si",
+    }.ToFrozenSet(StringComparer.Ordinal);
+
+    // M56. Nouns of a part or a quantity, which agree with the noun of their de phrase as well as with themselves (la mayoría de los panes cuestan, or cuesta).
+    private static readonly FrozenSet<string> QuantityNouns = new[]
+    {
+        "mayoría", "minoría", "mitad", "resto", "parte", "grupo", "cantidad", "montón", "número", "totalidad", "serie", "conjunto", "docena", "par", "tercio",
+    }.ToFrozenSet(StringComparer.Ordinal);
+
     /// <summary>True for the question words that are followed by a verb (<c>dónde</c>, <c>donde</c>, <c>cómo</c>), so a word that is a determiner or a verb form after one is the verb.</summary>
     public static bool IsVerbSeekingQuestionWord(string word)
     {
@@ -123,5 +171,59 @@ internal static class SpanishAnalysisTables
     public static bool IsTimeNoun(string lemma)
     {
         return TimeNouns.Contains(lemma);
+    }
+
+    /// <summary>True for the adverbs of place that take <c>estar</c> (<c>lejos</c>, <c>cerca</c>): <c>es lejos</c> is a mistake for <c>está lejos</c> (M56).</summary>
+    public static bool IsLocationAdverb(string lemma)
+    {
+        return LocationAdverbs.Contains(lemma);
+    }
+
+    /// <summary>True for the question word of place (<c>dónde</c>, and <c>donde</c> typed without its accent).</summary>
+    public static bool IsLocationQuestionWord(string word)
+    {
+        return word is "dónde" or "donde";
+    }
+
+    /// <summary>True for nouns of events (<c>fiesta</c>, <c>reunión</c>, <c>clase</c>...), whose place takes <c>ser</c>: <c>¿dónde es la fiesta?</c> is correct (M56).</summary>
+    public static bool IsEventNoun(string lemma)
+    {
+        return EventNouns.Contains(lemma);
+    }
+
+    /// <summary>True for verbs whose subject follows them after a dative pronoun (<c>me gusta el pan</c>, <c>me duelen los pies</c>; M56).</summary>
+    public static bool IsExperiencerVerb(string lemma)
+    {
+        return ExperiencerVerbs.Contains(lemma);
+    }
+
+    /// <summary>True for the dative pronouns that stand before an experiencer verb (<c>me</c>, <c>te</c>, <c>le</c>, <c>nos</c>, <c>os</c>, <c>les</c>).</summary>
+    public static bool IsDativePronoun(string word)
+    {
+        return DativePronouns.Contains(word);
+    }
+
+    /// <summary>True for the verbs of price (<c>costar</c>, <c>valer</c>), whose subject follows them after <c>cuánto</c> (M56).</summary>
+    public static bool IsPriceVerb(string lemma)
+    {
+        return PriceVerbs.Contains(lemma);
+    }
+
+    /// <summary>True for a noun that says when or for how long (the time nouns, the seasons, <c>tarde</c>, <c>rato</c>...): a noun phrase of one after a verb is no subject.</summary>
+    public static bool IsDurationNoun(string lemma)
+    {
+        return TimeNouns.Contains(lemma) || UpcomingExtraTimeNouns.Contains(lemma) || DurationNouns.Contains(lemma);
+    }
+
+    /// <summary>True for a word that opens a clause of its own: a question word or relative (<c>dónde</c>, <c>cuánto</c>, <c>que</c>...), <c>si</c> or <c>porque</c>.</summary>
+    public static bool IsClauseOpener(string word)
+    {
+        return ClauseOpeners.Contains(word);
+    }
+
+    /// <summary>True for nouns of a part or a quantity (<c>mayoría</c>, <c>mitad</c>, <c>resto</c>...), which may agree with the noun of the <c>de</c> phrase after them.</summary>
+    public static bool IsQuantityNoun(string lemma)
+    {
+        return QuantityNouns.Contains(lemma);
     }
 }
