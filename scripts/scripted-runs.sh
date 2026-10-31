@@ -48,3 +48,5 @@ run r14-third --seed 42 --mute --third-person --look 120,-5 --screenshot "$W/sho
 run r15-grey-dusk --seed 42 --mute --greyscale --dusk --teleport 222,222 --look 80,-16 --screenshot "$W/shot.png" --frames 60
 run r16-text-scale --seed 42 --mute --size 800x600 --text-scale 150 --lesson-run first-words --book-page lessons --screenshot "$W/shot.png" --frames 30
 run r17-speak --seed 42 --talk shopkeeper --speak "quiero agua" --screenshot "$W/shot.png"
+run r18-bakery --seed 42 --mute --session 5 --teleport 309,216 --interact 311,38,214 --interact 311,39,214 --interact 311,40,214 --interact 311,38,218 --interact 311,39,218 --talk baker --shot "$W/paid.png" --say "quiero dos panes, por favor" --shot "$W/sale.png" --leave --inventory --screenshot "$W/shot.png" --frames 30 --save "$W/game.save"
+run r19-directions --seed 42 --mute --teleport 236,206 --talk fisher --say "¿dónde está la panadería?" --shot "$W/arrow.png" --walk-to 282,206 --walk-to 282,212 --look 0,4 --screenshot "$W/shot.png" --frames 60
