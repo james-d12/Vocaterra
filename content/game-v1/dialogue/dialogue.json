@@ -1348,6 +1348,42 @@
       "variants": [
         { "lineId": "guide.lesson.fisher.tomorrow.1", "text": "¿Y tú? ¿Qué vas a hacer mañana?" }
       ]
+    },
+    "guide.lesson.baker.tomorrow": {
+      "poolId": "guide.lesson.baker.tomorrow",
+      "variants": [
+        { "lineId": "guide.lesson.baker.tomorrow.1", "text": "¿Qué harás mañana?" }
+      ]
+    },
+    "guide.lesson.baker.fresh": {
+      "poolId": "guide.lesson.baker.fresh",
+      "variants": [
+        { "lineId": "guide.lesson.baker.fresh.1", "text": "¡Qué bien! Mañana tendré pan fresco." }
+      ]
+    },
+    "guide.lesson.smith.wood": {
+      "poolId": "guide.lesson.smith.wood",
+      "variants": [
+        { "lineId": "guide.lesson.smith.wood.1", "text": "¡Hola! Luz necesita madera para el horno. ¿Qué harás?" }
+      ]
+    },
+    "guide.lesson.smith.go": {
+      "poolId": "guide.lesson.smith.go",
+      "variants": [
+        { "lineId": "guide.lesson.smith.go.1", "text": "¡Muy bien! Mar pescará en el río toda la tarde. ¿Adónde irás ahora?" }
+      ]
+    },
+    "guide.lesson.fisher.day": {
+      "poolId": "guide.lesson.fisher.day",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.day.1", "text": "¡Hola! Mañana Luz hará pan. Domingo trabajará en la herrería. Y yo pescaré en el río." }
+      ]
+    },
+    "guide.lesson.fisher.luz_will": {
+      "poolId": "guide.lesson.fisher.luz_will",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.luz_will.1", "text": "¿Qué hará Luz mañana?" }
+      ]
     }
   }
 }

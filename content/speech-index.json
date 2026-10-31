@@ -1904,6 +1904,30 @@
       "Bytes": 94308,
       "Gain": 0.32
     },
+    "speech/guide.lesson.baker.fresh.1.slow.wav": {
+      "Text": "\u00A1Qu\u00E9 bien! Ma\u00F1ana tendr\u00E9 pan fresco.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "500d477e3bd53584bbe99da3b1a240c2b8244c7970c438a4983f5ec15949da49",
+      "Bytes": 175618,
+      "Gain": 0.32
+    },
+    "speech/guide.lesson.baker.fresh.1.wav": {
+      "Text": "\u00A1Qu\u00E9 bien! Ma\u00F1ana tendr\u00E9 pan fresco.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "183e1045bb28cd34182a1d514bf72d99bc1dba483cd60d2a2d4a96559f606c18",
+      "Bytes": 130890,
+      "Gain": 0.32
+    },
     "speech/guide.lesson.baker.how_many.1.slow.wav": {
       "Text": "\u00BFCu\u00E1ntos panes quieres?",
       "Speaker": "baker",
@@ -2046,6 +2070,30 @@
       "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
       "Sha256": "76239f8af4a583e81988ff8d4a990fbbe452a1cb2cdba631f58f141b873c5a91",
       "Bytes": 96870,
+      "Gain": 0.32
+    },
+    "speech/guide.lesson.baker.tomorrow.1.slow.wav": {
+      "Text": "\u00BFQu\u00E9 har\u00E1s ma\u00F1ana?",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "06b77069e7da56430d36e0c2d4d30175ff44afc20806236f5ac0a79915d6cc9e",
+      "Bytes": 86272,
+      "Gain": 0.32
+    },
+    "speech/guide.lesson.baker.tomorrow.1.wav": {
+      "Text": "\u00BFQu\u00E9 har\u00E1s ma\u00F1ana?",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "5ceffae8e14b7eead50ca3c5e003536c611fcfa45499ec64def3a371bfbce5fd",
+      "Bytes": 65270,
       "Gain": 0.32
     },
     "speech/guide.lesson.baker.you.1.slow.wav": {
@@ -2380,6 +2428,28 @@
       "Sha256": "bdccaabf8b9be4c34e8bd52b120adc1eedb422a466075ae9ebe8fb685989a0ec",
       "Bytes": 80740
     },
+    "speech/guide.lesson.fisher.day.1.slow.wav": {
+      "Text": "\u00A1Hola! Ma\u00F1ana Luz har\u00E1 pan. Domingo trabajar\u00E1 en la herrer\u00EDa. Y yo pescar\u00E9 en el r\u00EDo.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "b4fdebedfe216410e03a07f52dd7313ba79fcf39851ea486ac7ddc702e87bf66",
+      "Bytes": 403584
+    },
+    "speech/guide.lesson.fisher.day.1.wav": {
+      "Text": "\u00A1Hola! Ma\u00F1ana Luz har\u00E1 pan. Domingo trabajar\u00E1 en la herrer\u00EDa. Y yo pescar\u00E9 en el r\u00EDo.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "2b8098626de2e9e9f99cb6694a4bf92d6e658e8ef9cce0fb5c1b23502db536dd",
+      "Bytes": 317554
+    },
     "speech/guide.lesson.fisher.end.1.slow.wav": {
       "Text": "\u00A1Muy bien! Ya conoces el pueblo.",
       "Speaker": "fisher",
@@ -2489,6 +2559,28 @@
       "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
       "Sha256": "82eab9c9e90383236d795e4575e4bdd6e426a78955f68381c448b273a5915e52",
       "Bytes": 192764
+    },
+    "speech/guide.lesson.fisher.luz_will.1.slow.wav": {
+      "Text": "\u00BFQu\u00E9 har\u00E1 Luz ma\u00F1ana?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "002bd07422d19717f7759cc5c95196c722648e1a4bdc00bbf42040138cb87ccd",
+      "Bytes": 92376
+    },
+    "speech/guide.lesson.fisher.luz_will.1.wav": {
+      "Text": "\u00BFQu\u00E9 har\u00E1 Luz ma\u00F1ana?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "8fa72707b7a84b03c4dffe0625dc2e6a3e25ec6d9400cb168ca69e6e63920814",
+      "Bytes": 72448
     },
     "speech/guide.lesson.fisher.more.1.slow.wav": {
       "Text": "\u00BFAlgo m\u00E1s?",
@@ -3328,6 +3420,30 @@
       "Bytes": 200408,
       "Gain": 0.6
     },
+    "speech/guide.lesson.smith.go.1.slow.wav": {
+      "Text": "\u00A1Muy bien! Mar pescar\u00E1 en el r\u00EDo toda la tarde. \u00BFAd\u00F3nde ir\u00E1s ahora?",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "74ccefe450428c0d43b4a93003662c032b03f1b394c0c577da5163eb3bee5afe",
+      "Sha256": "fefd12252f474dc7dafbc1ff49621c2877fdab088a5aada0116a80201e84b559",
+      "Bytes": 301308,
+      "Gain": 0.6
+    },
+    "speech/guide.lesson.smith.go.1.wav": {
+      "Text": "\u00A1Muy bien! Mar pescar\u00E1 en el r\u00EDo toda la tarde. \u00BFAd\u00F3nde ir\u00E1s ahora?",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
+      "Sha256": "4407b1966eb42e0f46d3b99f8b605bc84c9ef4f5bce4d1f03c5f62b0a005102c",
+      "Bytes": 238326,
+      "Gain": 0.6
+    },
     "speech/guide.lesson.smith.lives.1.slow.wav": {
       "Text": "\u00BFD\u00F3nde vives?",
       "Speaker": "smith",
@@ -3374,6 +3490,30 @@
       "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
       "Sha256": "9506e45da0b21312bb6479a6abfe483a6688e16ba1cb2354d4b022a3f85d3f70",
       "Bytes": 170144,
+      "Gain": 0.6
+    },
+    "speech/guide.lesson.smith.wood.1.slow.wav": {
+      "Text": "\u00A1Hola! Luz necesita madera para el horno. \u00BFQu\u00E9 har\u00E1s?",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "74ccefe450428c0d43b4a93003662c032b03f1b394c0c577da5163eb3bee5afe",
+      "Sha256": "32229e182f3e701991aa29c6c8fc5fa00023054def0aaa223bb4f1e20a9b0825",
+      "Bytes": 226226,
+      "Gain": 0.6
+    },
+    "speech/guide.lesson.smith.wood.1.wav": {
+      "Text": "\u00A1Hola! Luz necesita madera para el horno. \u00BFQu\u00E9 har\u00E1s?",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
+      "Sha256": "1f2b80d643af45b0db7a8e7eb288b2705c32e47b4b949dc16672e6444e760800",
+      "Bytes": 180962,
       "Gain": 0.6
     },
     "speech/guide.lesson.take.1.slow.wav": {
@@ -5334,6 +5474,28 @@
       "Sha256": "9e9d1db09d69671a16e145984bcf4724b40c5d4eca6a2831539b81df97f8c2c3",
       "Bytes": 42044
     },
+    "speech/phrase.buscare-madera.slow.wav": {
+      "Text": "Buscar\u00E9 madera para Luz.",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "d42b20b5c12cc81e0e39b4c6fad64e022765f832edc8f74e9b3b56ad868638b2",
+      "Bytes": 108444
+    },
+    "speech/phrase.buscare-madera.wav": {
+      "Text": "Buscar\u00E9 madera para Luz.",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "1530bda229f97155716d2f205a4be61a48e1b2e5efae6521577c63275fdd7420",
+      "Bytes": 88844
+    },
     "speech/phrase.como-te-llamas.slow.wav": {
       "Text": "\u00BFC\u00F3mo te llamas?",
       "Speaker": "guide",
@@ -5752,6 +5914,28 @@
       "Sha256": "38e0c5b91176f7bd064e5247729a0318e877201c724370bb8ed725027a8f6d23",
       "Bytes": 34844
     },
+    "speech/phrase.ire-al-rio.slow.wav": {
+      "Text": "Ir\u00E9 al r\u00EDo.",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "014097958fca2256870ef56ee20166d872c6a4becc25795864ae09c8b99cfe18",
+      "Bytes": 61796
+    },
+    "speech/phrase.ire-al-rio.wav": {
+      "Text": "Ir\u00E9 al r\u00EDo.",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "e461847422f10cf2b31937c68a04996b895146f65f776b99b7df6e15400f3310",
+      "Bytes": 55244
+    },
     "speech/phrase.la-manzana-es-roja.slow.wav": {
       "Text": "La manzana es roja.",
       "Speaker": "guide",
@@ -5796,6 +5980,28 @@
       "Sha256": "a39cc791849e1aad57dbb3a79d2dee0716abf45d0e86c55331fbfdbc2d136578",
       "Bytes": 76844
     },
+    "speech/phrase.luz-hara-pan.slow.wav": {
+      "Text": "Luz har\u00E1 pan.",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "aba7029a54ccfa5fb4cd586296266a6457d01f7a6bfd05ac392f6682ada5e17d",
+      "Bytes": 75644
+    },
+    "speech/phrase.luz-hara-pan.wav": {
+      "Text": "Luz har\u00E1 pan.",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "cf62699f7bbc3c8dc2061f4420a1dccf2074f152ec6511158b2eb641904a6968",
+      "Bytes": 58844
+    },
     "speech/phrase.luz-hizo-pan.slow.wav": {
       "Text": "Luz hizo pan.",
       "Speaker": "guide",
@@ -5817,6 +6023,28 @@
       "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
       "Sha256": "57c5e3f35b7d22723fd2b9b2a0f681d72ca701097b9882e94a86652139ad270c",
       "Bytes": 62444
+    },
+    "speech/phrase.manana-comprare-pan.slow.wav": {
+      "Text": "Ma\u00F1ana comprar\u00E9 pan.",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "97c35741023ce9a700f1f6677b29acbc1ad1c3bd83c62372efce262cc0c8b2e1",
+      "Bytes": 95252
+    },
+    "speech/phrase.manana-comprare-pan.wav": {
+      "Text": "Ma\u00F1ana comprar\u00E9 pan.",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "9fb212e411edef766c3f1670337804547dc6cb4987324bd4140b0de3c5b3e7c1",
+      "Bytes": 79244
     },
     "speech/phrase.mar-pesco-en-el-rio.slow.wav": {
       "Text": "Mar pesc\u00F3 en el r\u00EDo.",
@@ -7124,6 +7352,28 @@
       "Sha256": "5874a948c23c7a5caa52b5f904edd345224e94e424da094ec3c06fa2c1dbafd2",
       "Bytes": 70140
     },
+    "speech/prompt.lesson-luz-will.slow.wav": {
+      "Text": "\u00BFQu\u00E9 har\u00E1 Luz ma\u00F1ana?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "002bd07422d19717f7759cc5c95196c722648e1a4bdc00bbf42040138cb87ccd",
+      "Bytes": 92376
+    },
+    "speech/prompt.lesson-luz-will.wav": {
+      "Text": "\u00BFQu\u00E9 har\u00E1 Luz ma\u00F1ana?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "8fa72707b7a84b03c4dffe0625dc2e6a3e25ec6d9400cb168ca69e6e63920814",
+      "Bytes": 72448
+    },
     "speech/prompt.lesson-made.slow.wav": {
       "Text": "\u00BFQu\u00E9 hizo Domingo?",
       "Speaker": "villager",
@@ -7743,6 +7993,78 @@
       "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
       "Sha256": "6719e46e8228ce350cd4ef6b5d144f255cc3912e39d269a97335375ca9f2c893",
       "Bytes": 68444
+    },
+    "speech/prompt.lesson-will-buy.slow.wav": {
+      "Text": "\u00BFQu\u00E9 har\u00E1s ma\u00F1ana?",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "06b77069e7da56430d36e0c2d4d30175ff44afc20806236f5ac0a79915d6cc9e",
+      "Bytes": 86272,
+      "Gain": 0.32
+    },
+    "speech/prompt.lesson-will-buy.wav": {
+      "Text": "\u00BFQu\u00E9 har\u00E1s ma\u00F1ana?",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "5ceffae8e14b7eead50ca3c5e003536c611fcfa45499ec64def3a371bfbce5fd",
+      "Bytes": 65270,
+      "Gain": 0.32
+    },
+    "speech/prompt.lesson-will-fetch.slow.wav": {
+      "Text": "\u00A1Hola! Luz necesita madera para el horno. \u00BFQu\u00E9 har\u00E1s?",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "74ccefe450428c0d43b4a93003662c032b03f1b394c0c577da5163eb3bee5afe",
+      "Sha256": "32229e182f3e701991aa29c6c8fc5fa00023054def0aaa223bb4f1e20a9b0825",
+      "Bytes": 226226,
+      "Gain": 0.6
+    },
+    "speech/prompt.lesson-will-fetch.wav": {
+      "Text": "\u00A1Hola! Luz necesita madera para el horno. \u00BFQu\u00E9 har\u00E1s?",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
+      "Sha256": "1f2b80d643af45b0db7a8e7eb288b2705c32e47b4b949dc16672e6444e760800",
+      "Bytes": 180962,
+      "Gain": 0.6
+    },
+    "speech/prompt.lesson-will-go.slow.wav": {
+      "Text": "\u00A1Muy bien! Mar pescar\u00E1 en el r\u00EDo toda la tarde. \u00BFAd\u00F3nde ir\u00E1s ahora?",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "74ccefe450428c0d43b4a93003662c032b03f1b394c0c577da5163eb3bee5afe",
+      "Sha256": "fefd12252f474dc7dafbc1ff49621c2877fdab088a5aada0116a80201e84b559",
+      "Bytes": 301308,
+      "Gain": 0.6
+    },
+    "speech/prompt.lesson-will-go.wav": {
+      "Text": "\u00A1Muy bien! Mar pescar\u00E1 en el r\u00EDo toda la tarde. \u00BFAd\u00F3nde ir\u00E1s ahora?",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
+      "Sha256": "4407b1966eb42e0f46d3b99f8b605bc84c9ef4f5bce4d1f03c5f62b0a005102c",
+      "Bytes": 238326,
+      "Gain": 0.6
     },
     "speech/prompt.lesson-will-make.slow.wav": {
       "Text": "\u00BFQu\u00E9 va a hacer Domingo?",

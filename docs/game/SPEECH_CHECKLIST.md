@@ -207,6 +207,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | guide.lesson.baker.coins.1 | speech/guide.lesson.baker.coins.1.wav | baker | 1.0 | ¿Cuántas monedas tienes? |  |
 | guide.lesson.baker.five.1 | speech/guide.lesson.baker.five.1.slow.wav | baker | 0.8 | Uno, dos, tres, cuatro, cinco. |  |
 | guide.lesson.baker.five.1 | speech/guide.lesson.baker.five.1.wav | baker | 1.0 | Uno, dos, tres, cuatro, cinco. |  |
+| guide.lesson.baker.fresh.1 | speech/guide.lesson.baker.fresh.1.slow.wav | baker | 0.8 | ¡Qué bien! Mañana tendré pan fresco. |  |
+| guide.lesson.baker.fresh.1 | speech/guide.lesson.baker.fresh.1.wav | baker | 1.0 | ¡Qué bien! Mañana tendré pan fresco. |  |
 | guide.lesson.baker.how_many.1 | speech/guide.lesson.baker.how_many.1.slow.wav | baker | 0.8 | ¿Cuántos panes quieres? |  |
 | guide.lesson.baker.how_many.1 | speech/guide.lesson.baker.how_many.1.wav | baker | 1.0 | ¿Cuántos panes quieres? |  |
 | guide.lesson.baker.loaves.1 | speech/guide.lesson.baker.loaves.1.slow.wav | baker | 0.8 | Tengo diez panes. |  |
@@ -219,6 +221,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | guide.lesson.baker.plan.1 | speech/guide.lesson.baker.plan.1.wav | baker | 1.0 | ¡Hola! ¿Qué vas a hacer hoy? |  |
 | guide.lesson.baker.ten.1 | speech/guide.lesson.baker.ten.1.slow.wav | baker | 0.8 | Seis, siete, ocho, nueve, diez. |  |
 | guide.lesson.baker.ten.1 | speech/guide.lesson.baker.ten.1.wav | baker | 1.0 | Seis, siete, ocho, nueve, diez. |  |
+| guide.lesson.baker.tomorrow.1 | speech/guide.lesson.baker.tomorrow.1.slow.wav | baker | 0.8 | ¿Qué harás mañana? |  |
+| guide.lesson.baker.tomorrow.1 | speech/guide.lesson.baker.tomorrow.1.wav | baker | 1.0 | ¿Qué harás mañana? |  |
 | guide.lesson.baker.you.1 | speech/guide.lesson.baker.you.1.slow.wav | baker | 0.8 | Compraste dos panes. ¡Muy bien! |  |
 | guide.lesson.baker.you.1 | speech/guide.lesson.baker.you.1.wav | baker | 1.0 | Compraste dos panes. ¡Muy bien! |  |
 | guide.lesson.end.1 | speech/guide.lesson.end.1.slow.wav | guide | 0.8 | ¡Muy bien! Ya tienes fuego. |  |
@@ -249,6 +253,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | guide.lesson.fast.1 | speech/guide.lesson.fast.1.wav | guide | 1.0 | Mira. La madera es para la antorcha. |  |
 | guide.lesson.fisher.bought.1 | speech/guide.lesson.fisher.bought.1.slow.wav | fisher | 0.72 | ¿Qué compró Luz ayer? |  |
 | guide.lesson.fisher.bought.1 | speech/guide.lesson.fisher.bought.1.wav | fisher | 0.9 | ¿Qué compró Luz ayer? |  |
+| guide.lesson.fisher.day.1 | speech/guide.lesson.fisher.day.1.slow.wav | fisher | 0.72 | ¡Hola! Mañana Luz hará pan. Domingo trabajará en la herrería. Y yo pescaré en el río. |  |
+| guide.lesson.fisher.day.1 | speech/guide.lesson.fisher.day.1.wav | fisher | 0.9 | ¡Hola! Mañana Luz hará pan. Domingo trabajará en la herrería. Y yo pescaré en el río. |  |
 | guide.lesson.fisher.end.1 | speech/guide.lesson.fisher.end.1.slow.wav | fisher | 0.72 | ¡Muy bien! Ya conoces el pueblo. |  |
 | guide.lesson.fisher.end.1 | speech/guide.lesson.fisher.end.1.wav | fisher | 0.9 | ¡Muy bien! Ya conoces el pueblo. |  |
 | guide.lesson.fisher.going.1 | speech/guide.lesson.fisher.going.1.slow.wav | fisher | 0.72 | ¿Adónde vas? |  |
@@ -259,6 +265,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | guide.lesson.fisher.hungry.1 | speech/guide.lesson.fisher.hungry.1.wav | fisher | 0.9 | Tengo hambre. ¿Tienes fruta? |  |
 | guide.lesson.fisher.left.1 | speech/guide.lesson.fisher.left.1.slow.wav | fisher | 0.72 | En el pueblo, mira la torre. La panadería está a la izquierda. |  |
 | guide.lesson.fisher.left.1 | speech/guide.lesson.fisher.left.1.wav | fisher | 0.9 | En el pueblo, mira la torre. La panadería está a la izquierda. |  |
+| guide.lesson.fisher.luz_will.1 | speech/guide.lesson.fisher.luz_will.1.slow.wav | fisher | 0.72 | ¿Qué hará Luz mañana? |  |
+| guide.lesson.fisher.luz_will.1 | speech/guide.lesson.fisher.luz_will.1.wav | fisher | 0.9 | ¿Qué hará Luz mañana? |  |
 | guide.lesson.fisher.more.1 | speech/guide.lesson.fisher.more.1.slow.wav | fisher | 0.72 | ¿Algo más? |  |
 | guide.lesson.fisher.more.1 | speech/guide.lesson.fisher.more.1.wav | fisher | 0.9 | ¿Algo más? |  |
 | guide.lesson.fisher.near.1 | speech/guide.lesson.fisher.near.1.slow.wav | fisher | 0.72 | No, está cerca. La montaña está lejos. |  |
@@ -335,10 +343,14 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | guide.lesson.shop.you.1 | speech/guide.lesson.shop.you.1.wav | shopkeeper | 1.0 | Ayer fuiste al río. |  |
 | guide.lesson.smith.ate.1 | speech/guide.lesson.smith.ate.1.slow.wav | smith | 0.8 | ¡Hola! Ayer trabajé todo el día. ¿Qué comieron Luz y Mar? |  |
 | guide.lesson.smith.ate.1 | speech/guide.lesson.smith.ate.1.wav | smith | 1.0 | ¡Hola! Ayer trabajé todo el día. ¿Qué comieron Luz y Mar? |  |
+| guide.lesson.smith.go.1 | speech/guide.lesson.smith.go.1.slow.wav | smith | 0.8 | ¡Muy bien! Mar pescará en el río toda la tarde. ¿Adónde irás ahora? |  |
+| guide.lesson.smith.go.1 | speech/guide.lesson.smith.go.1.wav | smith | 1.0 | ¡Muy bien! Mar pescará en el río toda la tarde. ¿Adónde irás ahora? |  |
 | guide.lesson.smith.lives.1 | speech/guide.lesson.smith.lives.1.slow.wav | smith | 0.8 | ¿Dónde vives? |  |
 | guide.lesson.smith.lives.1 | speech/guide.lesson.smith.lives.1.wav | smith | 1.0 | ¿Dónde vives? |  |
 | guide.lesson.smith.must.1 | speech/guide.lesson.smith.must.1.slow.wav | smith | 0.8 | Mar fue al río y te busca. ¿Adónde tienes que ir? |  |
 | guide.lesson.smith.must.1 | speech/guide.lesson.smith.must.1.wav | smith | 1.0 | Mar fue al río y te busca. ¿Adónde tienes que ir? |  |
+| guide.lesson.smith.wood.1 | speech/guide.lesson.smith.wood.1.slow.wav | smith | 0.8 | ¡Hola! Luz necesita madera para el horno. ¿Qué harás? |  |
+| guide.lesson.smith.wood.1 | speech/guide.lesson.smith.wood.1.wav | smith | 1.0 | ¡Hola! Luz necesita madera para el horno. ¿Qué harás? |  |
 | guide.lesson.take.1 | speech/guide.lesson.take.1.slow.wav | guide | 0.8 | Toma una fruta. |  |
 | guide.lesson.take.1 | speech/guide.lesson.take.1.wav | guide | 1.0 | Toma una fruta. |  |
 | guide.lesson.task.1 | speech/guide.lesson.task.1.slow.wav | guide | 0.8 | Necesitas madera y frutas. |  |
@@ -517,6 +529,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | phrase.ayer-fui-al-rio | speech/phrase.ayer-fui-al-rio.wav | guide | 1.0 | Ayer fui al río. |  |
 | phrase.ayuda | speech/phrase.ayuda.slow.wav | guide | 0.8 | Ayuda. |  |
 | phrase.ayuda | speech/phrase.ayuda.wav | guide | 1.0 | Ayuda. |  |
+| phrase.buscare-madera | speech/phrase.buscare-madera.slow.wav | guide | 0.8 | Buscaré madera para Luz. |  |
+| phrase.buscare-madera | speech/phrase.buscare-madera.wav | guide | 1.0 | Buscaré madera para Luz. |  |
 | phrase.como-te-llamas | speech/phrase.como-te-llamas.slow.wav | guide | 0.8 | ¿Cómo te llamas? |  |
 | phrase.como-te-llamas | speech/phrase.como-te-llamas.wav | guide | 1.0 | ¿Cómo te llamas? |  |
 | phrase.compre-dos-panes | speech/phrase.compre-dos-panes.slow.wav | guide | 0.8 | Compré dos panes. |  |
@@ -555,12 +569,18 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | phrase.hizo-un-hacha | speech/phrase.hizo-un-hacha.wav | guide | 1.0 | Domingo hizo un hacha. |  |
 | phrase.hola | speech/phrase.hola.slow.wav | guide | 0.8 | Hola. |  |
 | phrase.hola | speech/phrase.hola.wav | guide | 1.0 | Hola. |  |
+| phrase.ire-al-rio | speech/phrase.ire-al-rio.slow.wav | guide | 0.8 | Iré al río. |  |
+| phrase.ire-al-rio | speech/phrase.ire-al-rio.wav | guide | 1.0 | Iré al río. |  |
 | phrase.la-manzana-es-roja | speech/phrase.la-manzana-es-roja.slow.wav | guide | 0.8 | La manzana es roja. |  |
 | phrase.la-manzana-es-roja | speech/phrase.la-manzana-es-roja.wav | guide | 1.0 | La manzana es roja. |  |
 | phrase.luz-compro-pescado | speech/phrase.luz-compro-pescado.slow.wav | guide | 0.8 | Luz compró pescado. |  |
 | phrase.luz-compro-pescado | speech/phrase.luz-compro-pescado.wav | guide | 1.0 | Luz compró pescado. |  |
+| phrase.luz-hara-pan | speech/phrase.luz-hara-pan.slow.wav | guide | 0.8 | Luz hará pan. |  |
+| phrase.luz-hara-pan | speech/phrase.luz-hara-pan.wav | guide | 1.0 | Luz hará pan. |  |
 | phrase.luz-hizo-pan | speech/phrase.luz-hizo-pan.slow.wav | guide | 0.8 | Luz hizo pan. |  |
 | phrase.luz-hizo-pan | speech/phrase.luz-hizo-pan.wav | guide | 1.0 | Luz hizo pan. |  |
+| phrase.manana-comprare-pan | speech/phrase.manana-comprare-pan.slow.wav | guide | 0.8 | Mañana compraré pan. |  |
+| phrase.manana-comprare-pan | speech/phrase.manana-comprare-pan.wav | guide | 1.0 | Mañana compraré pan. |  |
 | phrase.mar-pesco-en-el-rio | speech/phrase.mar-pesco-en-el-rio.slow.wav | guide | 0.8 | Mar pescó en el río. |  |
 | phrase.mar-pesco-en-el-rio | speech/phrase.mar-pesco-en-el-rio.wav | guide | 1.0 | Mar pescó en el río. |  |
 | phrase.mas-despacio | speech/phrase.mas-despacio.slow.wav | guide | 0.8 | Más despacio, por favor. |  |
@@ -679,6 +699,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | prompt.lesson-luz-bought | speech/prompt.lesson-luz-bought.wav | fisher | 0.9 | ¿Qué compró Luz ayer? |  |
 | prompt.lesson-luz-made | speech/prompt.lesson-luz-made.slow.wav | villager | 0.8 | ¿Qué hizo Luz ayer? |  |
 | prompt.lesson-luz-made | speech/prompt.lesson-luz-made.wav | villager | 1.0 | ¿Qué hizo Luz ayer? |  |
+| prompt.lesson-luz-will | speech/prompt.lesson-luz-will.slow.wav | fisher | 0.72 | ¿Qué hará Luz mañana? |  |
+| prompt.lesson-luz-will | speech/prompt.lesson-luz-will.wav | fisher | 0.9 | ¿Qué hará Luz mañana? |  |
 | prompt.lesson-made | speech/prompt.lesson-made.slow.wav | villager | 0.8 | ¿Qué hizo Domingo? |  |
 | prompt.lesson-made | speech/prompt.lesson-made.wav | villager | 1.0 | ¿Qué hizo Domingo? |  |
 | prompt.lesson-mar-fished | speech/prompt.lesson-mar-fished.slow.wav | villager | 0.8 | ¿Y qué hizo Mar? |  |
@@ -735,6 +757,12 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | prompt.lesson-what | speech/prompt.lesson-what.wav | guide | 1.0 | Mira. |  |
 | prompt.lesson-who | speech/prompt.lesson-who.slow.wav | villager | 0.8 | ¿Quién es Domingo? |  |
 | prompt.lesson-who | speech/prompt.lesson-who.wav | villager | 1.0 | ¿Quién es Domingo? |  |
+| prompt.lesson-will-buy | speech/prompt.lesson-will-buy.slow.wav | baker | 0.8 | ¿Qué harás mañana? |  |
+| prompt.lesson-will-buy | speech/prompt.lesson-will-buy.wav | baker | 1.0 | ¿Qué harás mañana? |  |
+| prompt.lesson-will-fetch | speech/prompt.lesson-will-fetch.slow.wav | smith | 0.8 | ¡Hola! Luz necesita madera para el horno. ¿Qué harás? |  |
+| prompt.lesson-will-fetch | speech/prompt.lesson-will-fetch.wav | smith | 1.0 | ¡Hola! Luz necesita madera para el horno. ¿Qué harás? |  |
+| prompt.lesson-will-go | speech/prompt.lesson-will-go.slow.wav | smith | 0.8 | ¡Muy bien! Mar pescará en el río toda la tarde. ¿Adónde irás ahora? |  |
+| prompt.lesson-will-go | speech/prompt.lesson-will-go.wav | smith | 1.0 | ¡Muy bien! Mar pescará en el río toda la tarde. ¿Adónde irás ahora? |  |
 | prompt.lesson-will-make | speech/prompt.lesson-will-make.slow.wav | villager | 0.8 | ¿Qué va a hacer Domingo? |  |
 | prompt.lesson-will-make | speech/prompt.lesson-will-make.wav | villager | 1.0 | ¿Qué va a hacer Domingo? |  |
 | prompt.lesson-wood-plan | speech/prompt.lesson-wood-plan.slow.wav | baker | 0.8 | Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer? |  |

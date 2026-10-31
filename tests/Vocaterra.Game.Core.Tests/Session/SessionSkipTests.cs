@@ -32,6 +32,7 @@ public sealed class SessionSkipTests
         { 6, "gente-del-pueblo", "villager" },
         { 7, "como-es", "farmer" },
         { 8, "ayer-en-el-pueblo", "villager" },
+        { 9, "manana-en-el-pueblo", "baker" },
     };
 
     [Theory]
@@ -82,6 +83,7 @@ public sealed class SessionSkipTests
         { 6, 2, 2, 0 },
         { 7, 0, 2, 1 },
         { 8, 0, 2, 1 },
+        { 9, 0, 2, 1 }, // V17: session 8 has no order and no sale, so a learner arrives at session 9 as at session 8
     };
 
     [Theory]
@@ -178,9 +180,9 @@ public sealed class SessionSkipTests
     [Fact]
     public void OnlyANewGameIsSkippedAndOnlyToASessionThatHasALesson()
     {
-        Assert.Equal(8, SessionSkip.LastSession(TestGame.Data.Lessons));
+        Assert.Equal(9, SessionSkip.LastSession(TestGame.Data.Lessons));
         Assert.Throws<ArgumentOutOfRangeException>(() => SkippedTo(1));
-        Assert.Throws<ArgumentOutOfRangeException>(() => SkippedTo(9));
+        Assert.Throws<ArgumentOutOfRangeException>(() => SkippedTo(10));
 
         var played = TestGame.NewSessionWithShippedLessons();
         played.Step([]);

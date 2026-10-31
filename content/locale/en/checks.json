@@ -180,6 +180,26 @@
     "check.say.luz-hizo-pan.situation": "A villager asks what Luz did yesterday. She made bread. Say so.",
     "check.say.fuimos-al-rio.situation": "A villager asks where you and a friend went yesterday. You both went to the river. Say so.",
     "check.say.ellos-comieron-pan.situation": "A smith asks what Luz and Mar ate. They ate bread. Say so, with ellos.",
-    "check.say.tengo-que-ir.situation": "Someone is waiting for you at the river. Say that you have to go to the river."
+    "check.say.tengo-que-ir.situation": "Someone is waiting for you at the river. Say that you have to go to the river.",
+    "check.hear.que-haras-manana.question": "A baker asks you something. What does she ask?",
+    "check.hear.que-haras-manana.option.1": "What will you do tomorrow?",
+    "check.hear.que-haras-manana.option.2": "What did you do yesterday?",
+    "check.hear.que-haras-manana.option.3": "What are you doing today?",
+    "check.hear.tendre-pan.question": "A baker talks about tomorrow. What does she say?",
+    "check.hear.tendre-pan.option.1": "She will have fresh bread tomorrow.",
+    "check.hear.tendre-pan.option.2": "She had fresh bread yesterday.",
+    "check.hear.tendre-pan.option.3": "She will buy bread tomorrow.",
+    "check.hear.mar-pescara.question": "A smith tells you about Mar. What will Mar do?",
+    "check.hear.mar-pescara.option.1": "He will fish in the river all afternoon.",
+    "check.hear.mar-pescara.option.2": "He fished in the river all afternoon.",
+    "check.hear.mar-pescara.option.3": "He will work at the smithy all afternoon.",
+    "check.hear.el-dia-de-manana.question": "A fisher tells you about tomorrow. What will everyone do?",
+    "check.hear.el-dia-de-manana.option.1": "Luz will make bread, Mar will fish.",
+    "check.hear.el-dia-de-manana.option.2": "Luz made bread, Mar fished.",
+    "check.hear.el-dia-de-manana.option.3": "Luz will buy bread, Mar will sell fish.",
+    "check.say.manana-comprare-pan.situation": "A baker asks what you will do tomorrow. You will buy bread. Say so, with the future in one word.",
+    "check.say.buscare-madera.situation": "A baker needs wood for her oven. Promise a smith that you will look for wood for Luz.",
+    "check.say.ire-al-rio.situation": "A smith asks where you will go. Say that you will go to the river.",
+    "check.say.luz-hara-pan.situation": "A fisher asks what Luz will do tomorrow. She will make bread. Say so."
   }
 }

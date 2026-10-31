@@ -1,0 +1,185 @@
+{
+  "$schema": "../../../schema/lesson.schema.json",
+  "schemaVersion": 2,
+  "id": "manana-en-el-pueblo",
+  "npc": "baker",
+  "level": "a2",
+  "autoStart": true,
+  "after": "ayer-en-el-pueblo",
+  "session": 9,
+  "verbs": [
+    {
+      "lemma": "comprar",
+      "person": "1",
+      "number": "sg",
+      "tense": "fut"
+    },
+    {
+      "lemma": "comprar",
+      "person": "2",
+      "number": "sg",
+      "tense": "fut"
+    },
+    {
+      "lemma": "comprar",
+      "person": "3",
+      "number": "sg",
+      "tense": "fut"
+    },
+    {
+      "lemma": "ir",
+      "person": "1",
+      "number": "sg",
+      "tense": "fut"
+    },
+    {
+      "lemma": "buscar",
+      "person": "1",
+      "number": "sg",
+      "tense": "fut"
+    },
+    {
+      "lemma": "hacer",
+      "person": "3",
+      "number": "sg",
+      "tense": "fut"
+    },
+    {
+      "lemma": "tener",
+      "person": "1",
+      "number": "sg",
+      "tense": "fut"
+    },
+    {
+      "lemma": "trabajar",
+      "person": "3",
+      "number": "sg",
+      "tense": "fut"
+    },
+    {
+      "lemma": "pescar",
+      "person": "3",
+      "number": "sg",
+      "tense": "fut"
+    }
+  ],
+  "steps": [
+    {
+      "id": "m0-review",
+      "type": "review",
+      "candidates": [
+        {
+          "phrase": "compre-dos-panes",
+          "line": "guide.lesson.baker.bought.1"
+        },
+        {
+          "phrase": "hola",
+          "line": "baker_hello.1"
+        }
+      ]
+    },
+    {
+      "id": "m0-intro",
+      "type": "explain"
+    },
+    {
+      "id": "m1-buy",
+      "type": "answer",
+      "phrase": "manana-comprare-pan",
+      "prompt": "lesson-will-buy",
+      "line": "guide.lesson.baker.tomorrow.1",
+      "person": "1sg",
+      "tense": "fut"
+    },
+    {
+      "id": "m1-bread",
+      "type": "model",
+      "line": "guide.lesson.baker.fresh.1"
+    },
+    {
+      "id": "m1-two",
+      "type": "explain"
+    },
+    {
+      "id": "m2-walk",
+      "type": "do",
+      "pointPlace": "npc.smith",
+      "trigger": {
+        "event": "talk_opened",
+        "npc": "smith"
+      }
+    },
+    {
+      "id": "m2-wood",
+      "type": "answer",
+      "npc": "smith",
+      "phrase": "buscare-madera",
+      "prompt": "lesson-will-fetch",
+      "line": "guide.lesson.smith.wood.1",
+      "person": "1sg",
+      "tense": "fut"
+    },
+    {
+      "id": "m2-go",
+      "type": "answer",
+      "npc": "smith",
+      "phrase": "ire-al-rio",
+      "prompt": "lesson-will-go",
+      "line": "guide.lesson.smith.go.1",
+      "person": "1sg",
+      "tense": "fut"
+    },
+    {
+      "id": "m3-walk",
+      "type": "do",
+      "npc": "smith",
+      "pointPlace": "npc.fisher",
+      "trigger": {
+        "event": "talk_opened",
+        "npc": "fisher"
+      }
+    },
+    {
+      "id": "m3-day",
+      "type": "listen",
+      "npc": "fisher",
+      "line": "guide.lesson.fisher.day.1",
+      "correct": 0
+    },
+    {
+      "id": "m3-luz",
+      "type": "answer",
+      "npc": "fisher",
+      "phrase": "luz-hara-pan",
+      "prompt": "lesson-luz-will",
+      "line": "guide.lesson.fisher.luz_will.1",
+      "person": "3sg",
+      "tense": "fut"
+    },
+    {
+      "id": "m4-review",
+      "type": "review",
+      "npc": "fisher",
+      "candidates": [
+        {
+          "phrase": "luz-compro-pescado",
+          "line": "guide.lesson.fisher.bought.1"
+        },
+        {
+          "phrase": "voy-a-comprar-pan",
+          "line": "guide.lesson.fisher.tomorrow.1"
+        }
+      ]
+    },
+    {
+      "id": "m4-table",
+      "type": "explain",
+      "npc": "fisher"
+    },
+    {
+      "id": "m4-recap",
+      "type": "recap",
+      "npc": "fisher"
+    }
+  ]
+}

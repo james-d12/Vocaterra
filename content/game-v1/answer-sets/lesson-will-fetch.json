@@ -1,0 +1,23 @@
+{
+  "answerSetId": "lesson-will-fetch",
+  "answers": [
+    {
+      "answerId": "wood",
+      "canonical": "buscaré madera para luz",
+      "aliases": ["buscaré madera", "yo buscaré madera para luz", "mañana buscaré madera para luz", "buscaré madera para luz mañana", "voy a buscar madera para luz", "voy a buscar madera"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": ["no lo sé", "yo no sé", "no entiendo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    }
+  ]
+}

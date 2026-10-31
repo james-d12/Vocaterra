@@ -83,6 +83,10 @@ public sealed class GrammarStringsExtractorTests
         ["ellos-comieron-pan"] = ["conj.person"],
         ["tengo-que-ir"] = ["conj.person"],
         ["luz-compro-pescado"] = ["conj.tense"],
+        ["manana-comprare-pan"] = ["conj.tense"],
+        ["buscare-madera"] = ["conj.person"],
+        ["ire-al-rio"] = ["conj.person"],
+        ["luz-hara-pan"] = ["conj.tense"],
     };
 
     [Fact]

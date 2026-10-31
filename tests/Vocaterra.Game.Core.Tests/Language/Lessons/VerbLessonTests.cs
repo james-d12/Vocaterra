@@ -496,7 +496,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
 
         Assert.All(book.Lessons, static l => Assert.Equal(l.TaughtVerbs.Count, l.TaughtVerbs.Distinct().Count()));
         Assert.Equal(book.Lessons.Sum(static l => l.TaughtVerbs.Count), book.Lessons.SelectMany(static l => l.TaughtVerbs).Distinct().Count()); // each form belongs to one lesson
-        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8], book.Lessons.Select(static l => l.Session));
+        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8, 9], book.Lessons.Select(static l => l.Session));
     }
 
     [Fact]

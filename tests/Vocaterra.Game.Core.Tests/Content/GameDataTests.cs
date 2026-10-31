@@ -17,9 +17,9 @@ public sealed class GameDataTests
 
         Assert.Empty(GameDataValidator.Validate(data));
         Assert.Equal(22, data.Nouns.Nouns.Count); // V03 added moneda, manzana and hacha
-        Assert.Equal(125, data.Phrases.Rows.Count); // V10 added El pueblo's fifteen, V11 Números y pan's sixteen, V12 Gente del pueblo's sixteen, V13 ¿Cómo es?'s sixteen, V14 Ayer en el pueblo's sixteen
-        Assert.Equal(71, data.Checks.Count);
-        Assert.Equal(8, data.Lessons.Lessons.Count);
+        Assert.Equal(135, data.Phrases.Rows.Count); // V10 added El pueblo's fifteen, V11 Números y pan's sixteen, V12 Gente del pueblo's sixteen, V13 ¿Cómo es?'s sixteen, V14 Ayer en el pueblo's sixteen, V17 Mañana en el pueblo's ten
+        Assert.Equal(79, data.Checks.Count);
+        Assert.Equal(9, data.Lessons.Lessons.Count);
         Assert.Equal("prototype-valley", data.Scene.Name);
     }
 

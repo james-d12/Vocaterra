@@ -1,0 +1,23 @@
+{
+  "answerSetId": "lesson-will-buy",
+  "answers": [
+    {
+      "answerId": "bread",
+      "canonical": "mañana compraré pan",
+      "aliases": ["compraré pan", "yo compraré pan", "compraré pan mañana", "mañana compraré dos panes", "la semana que viene compraré pan", "compraré pan la semana que viene", "pasado mañana compraré pan", "mañana voy a comprar pan", "voy a comprar pan", "mañana compro pan"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": ["no lo sé", "yo no sé", "no entiendo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    }
+  ]
+}
