@@ -1639,6 +1639,23 @@
       "matches": []
     },
     {
+      "key": "384b27e4e1de5a70a33b29c39f8aab4a84dc4cf7d3f69f677ad8237b0f7c2d55",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "próxima semana",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 7,
+          "replacements": [
+            "Próxima"
+          ]
+        }
+      ]
+    },
+    {
       "key": "3871497cfdae00026652c5b3a8cedeea2732044a656f0a5eb271034f12df0514",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Me puedes ayudar?",
@@ -1700,6 +1717,23 @@
             "cuestan",
             "Costan",
             "costa"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "394bdf6114da6a1d9e096a2947769fc4a6c5c575e5196ea4b24450b3758f4feb",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "próximo año",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 7,
+          "replacements": [
+            "Próximo"
           ]
         }
       ]
@@ -2654,6 +2688,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, yo tengo una botella",
       "matches": []
+    },
+    {
+      "key": "58028e07a27785f48ec2a8b6f741a4516b5e6026cf4c8312792eed49ab5bbcaf",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "mes que viene",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 3,
+          "replacements": [
+            "Mes"
+          ]
+        }
+      ]
     },
     {
       "key": "588b3fd87ce5950b6e8cc5ced6c2aa81ad902f894ba4c0c4e205e62dbf4a9a06",
@@ -5090,6 +5141,23 @@
       "matches": []
     },
     {
+      "key": "a37c34b50a25788abbd0d7b6545f5c274dd4768e83e74d9051fe907e2b96b311",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "próximo día",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 7,
+          "replacements": [
+            "Próximo"
+          ]
+        }
+      ]
+    },
+    {
       "key": "a39af45f719206a05e0029737a8a6fd9cc02c278b0139f6de036c599bc3d3eb7",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hoy vas a la tienda.",
@@ -6523,6 +6591,23 @@
       "matches": []
     },
     {
+      "key": "d4d50f65fbd33fa3a08c3849825a297f0cfdddcdd9a06b77aec0e3b702fff044",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "año que viene",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 3,
+          "replacements": [
+            "Año"
+          ]
+        }
+      ]
+    },
+    {
       "key": "d4ef91444750c53e428c84c08cf8edddcb9d8449916ee5b606a867164a090e67",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mira, allí está Domingo. Es el herrero.",
@@ -6687,6 +6772,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Domingo hizo un hacha.",
       "matches": []
+    },
+    {
+      "key": "da9ba05bb98be0ca6e6de492297a2133ed5dedb80faee829e85de05687f97c71",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "semana que viene",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 6,
+          "replacements": [
+            "Semana"
+          ]
+        }
+      ]
     },
     {
       "key": "dac4a5e987c215c7de718b93d3bd70ef4518a1a3c77d238e7fa320e6ab90ab37",
@@ -6866,6 +6968,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Voy a ir al río mañana",
       "matches": []
+    },
+    {
+      "key": "e12113f47f1de6ab88cfea3dc5cac63e109c44047628827cfe204f2dff3162a6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "próximo mes",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 7,
+          "replacements": [
+            "Próximo"
+          ]
+        }
+      ]
     },
     {
       "key": "e147ef3af5d09aa1ece94c7787d17246138dfb008b8330b30864c95b5dd00483",

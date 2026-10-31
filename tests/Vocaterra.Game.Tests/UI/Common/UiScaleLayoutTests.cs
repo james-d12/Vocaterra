@@ -536,7 +536,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
         Assert.True(g.LinesVisible >= 8, $"{g.LinesVisible} lines visible");
 
         // A conjugation table: tense columns stand side by side while each keeps its width, and stack in blocks when the page is too narrow; the cells are inside the detail area.
-        for (var columns = 1; columns <= 3; columns++)
+        for (var columns = 1; columns <= ConjugationTable.AllColumns.Count; columns++)
         {
             var width = g.DetailRight - g.DetailLeft;
             var perBlock = ConjugationLayout.ColumnsPerBlock(width, columns);

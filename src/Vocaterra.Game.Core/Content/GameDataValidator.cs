@@ -98,7 +98,7 @@ public static class GameDataValidator
             allowed.UnionWith(new[] { "title", "text", "summary", "objective" }.Select(field => LessonBook.LessonId(lesson.Id, field)));
             foreach (var step in lesson.Steps)
             {
-                allowed.UnionWith(new[] { "text", "translation", "help", "retry", "personRetry", "tenseRetry", "presentNote", "hud" }.Select(field => LessonBook.StepId(lesson.Id, step.Id, field)));
+                allowed.UnionWith(new[] { "text", "translation", "help", "retry", "personRetry", "tenseRetry", "presentNote", "futureNote", "hud" }.Select(field => LessonBook.StepId(lesson.Id, step.Id, field)));
                 allowed.UnionWith(Enumerable.Range(1, LessonBook.MaxOptions).Select(n => LessonBook.StepId(lesson.Id, step.Id, "option." + n.ToString(CultureInfo.InvariantCulture))));
             }
         }
