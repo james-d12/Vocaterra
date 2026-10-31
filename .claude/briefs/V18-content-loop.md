@@ -3,7 +3,7 @@ You are implementing milestone **V18, the content loop in one command**, of the 
 Do the work yourself; do not spawn subagents.
 
 ## Where to work, and pushing
-Work only in the existing git worktree `/home/user/Dev/Vocaterra/.claude/worktrees/village`: cd there first, and never edit `/home/user/Dev/Vocaterra` itself or any other worktree. It is on branch `feature/village` (at the HEAD `git log -1` shows, `@@HEAD@@`).
+Work only in the existing git worktree `/home/user/Dev/Vocaterra/.claude/worktrees/village`: cd there first, and never edit `/home/user/Dev/Vocaterra` itself or any other worktree. It is on branch `feature/village` (at the HEAD `git log -1` shows, `d4e6816`).
 - Create your branch with `git checkout -b V18-content-loop feature/village`.
 - **The owner wants work pushed often.** Commit after each coherent step, with the prefix `V18: `. Push after every commit: `git push -u origin V18-content-loop` the first time, then `git push origin V18-content-loop`.
 - Never push `main` or `feature/village`, and do not merge.
@@ -59,7 +59,7 @@ Work only in the existing git worktree `/home/user/Dev/Vocaterra/.claude/worktre
 - Write shell that reads like the surrounding scripts (`set -uo pipefail`, the header comment style, `step` lines).
 
 ## Gate (from the worktree root)
-- `scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4`, with 0 warnings; `scripts/test.sh full` all passing (it was @@COUNT@@); `scripts/limited.sh dotnet format Vocaterra.sln --verify-no-changes`.
+- `scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4`, with 0 warnings; `scripts/test.sh full` all passing (it was 6194 passed and 3 skipped); `scripts/limited.sh dotnet format Vocaterra.sln --verify-no-changes`.
 - `scripts/limited.sh scripts/content.sh refresh` still passes on the branch.
 - The new command, run twice with no edit, leaves `git status` clean; `bash -n` and `shellcheck` (if installed) on it are clean.
 - Do not commit `bin/`, `obj/`, `artifacts/` or the loop's logs.
