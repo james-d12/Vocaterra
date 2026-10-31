@@ -56,13 +56,14 @@ is a change to the boundary and updates that record.
   - the core's M59 (`12ea9d7`): the person checks; a lone name is never checked (it may be the listener);
   - V14: session 8 "Ayer en el pueblo" (`78a37fa`); the listener's name as a vocative is stripped by the game;
   - V16: the simple future at a step, the other futures credited with a note, the book's fourth column (`71573ba`);
+  - the core's M57 (`888f914`): the later time markers in one table (`SpanishTimeMarkers`); the stream digests on frozen inputs;
   - `main` merged in at `0cf674b`. It brought the CI workflow with its grammar jobs, and the QA agent.
-- **Next, in order** (owner, 2026-10-31, D-game-22): the core's M57 (before V17), V17 (session 9
+- **Next, in order** (owner, 2026-10-31, D-game-22): V17 (session 9
   "Mañana en el pueblo"), the core's M58 and M62 (before V15), V15 (session 10 "El mercado"), then V09 again (the documents and the scripted runs).
   Every one by Opus 5.5 at xhigh, one at a time. The core's M62 (V13's adjective gaps) runs before V15 (owner, 2026-10-31).
   - The design is VILLAGE_PLAN sections 3.5 to 3.9, 4 and 5. The findings of every V milestone so far are in
     `docs/game/IMPLEMENTATION_PLAN.md` section 5 (the V entries at its end).
-  - **Drafted briefs** are in `.claude/briefs/` (M59, V14, V16, M57, M58, M62; V17, V15 and V09 are still to write); fill their `@@…@@` placeholders (the HEAD, the test
+  - **Drafted briefs** are in `.claude/briefs/` (M58, M62, V17; V15 and V09 are still to write); fill their `@@…@@` placeholders (the HEAD, the test
     count, the earlier milestone's findings) from the last reports before launching.
 
 **The owner's instructions for this series** (they override "Model policy", "Per-milestone loop" step 2 and the template's branch line below)
@@ -114,7 +115,9 @@ is a change to the boundary and updates that record.
   - three older timed tests sit within four times of their budgets here (the bundle load 1676 of 3000 ms, the scene build and digest
     1275 of 3000 ms, the world snapshot 0.49 of 1.5 s): with CI's runner about four times slower, the likely CI failures if any appear;
   - the NPCs' "¡Muy bien!" plays in Luna's voice; `tener que` has no book entry.
-- **Core gaps filed, not started:** M57, M58 and M62 (all in the queue).
+- **Owner question from M57:** the fuzz suite's rare O5 failure (seed `ff2aNwHuJBk8`, about one full run in eight): fixing the
+  `word_order` mutation's guard narrows O4 and O5. Until answered, a gate failing there is rerun once after checking the seed.
+- **Core gaps filed, not started:** M58 and M62 (both in the queue).
 
 **Gotchas learnt this series**
 - **CI.** This token cannot read CI results (`gh pr checks` and `gh run list` give 403), so the owner reports CI failures. The GitHub
