@@ -168,6 +168,8 @@ specified for later in `docs/game/CONTENT_PLAN.md` section 3.8 (C10); it is not 
     "deliverTo": "baker", "deliver": [ { "item": "wood", "count": 5 } ] }
   ```
 
+  An order may ask for several items: the smith's `axe-handle` (V12) takes two wood and two coins, and is delivered only when the inventory holds both.
+
   Its one step, `delivered` (saved as `oven-wood.delivered`), is made by the loader. When the panel opens on that NPC and the inventory holds the goods,
   nothing more is asked of the learner (D-game-8, D-game-9): the goods are taken (`item_taken`, `madera, order`), the NPC's agent is raised
   `<npc>.delivered` as the talk's opening (its thanks, in its own pool and voice), the host event of that line is the reward (a `give_item` in
@@ -182,7 +184,7 @@ specified for later in `docs/game/CONTENT_PLAN.md` section 3.8 (C10); it is not 
 
 An NPC is data alone since schema 2 of `game/npcs/<id>.json` (VILLAGE_PLAN V01): no code names it. A fisher, `fisher`, takes these files, in this order (the
 fisher Mar of the lesson `el-pueblo`, VILLAGE_PLAN V10, was added exactly so; his files are the worked example, and the baker Luz of `numeros-y-pan`, V11, with
-her purchase and her order, is the second):
+her purchase and her order, is the second; the smith Domingo and the farmer León of `gente-del-pueblo`, V12, are two more, met in the villager's lesson):
 
 1. **The core's agent and prompts** (`game-v1/agents/fisher.json`, `game-v1/prompts/prompts.json`): the agent's states and transitions, with an
    `onHostEvent` transition for the event it opens a talk with (`fisher.greet`) in each state that greets; one prompt per state it waits in

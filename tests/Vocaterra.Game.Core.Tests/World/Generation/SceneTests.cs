@@ -228,9 +228,11 @@ public sealed class SceneTests(ITestOutputHelper output)
         Assert.InRange(Distance(scene.Point("stall"), scene.Point("village")), 1, 20);
         Assert.Equal(BlockId.Canvas, grid.GetBlock(scene.Point("tent").X, scene.Point("tent").Y + 3, scene.Point("tent").Z));
 
-        Assert.Equal(["guide", "shopkeeper", "villager", "fisher", "baker"], scene.Npcs.Select(n => n.Name)); // V10: the fisher stands at npc.fisher, facing the river
+        Assert.Equal(["guide", "shopkeeper", "villager", "fisher", "baker", "smith", "farmer"], scene.Npcs.Select(n => n.Name)); // V10: the fisher stands at npc.fisher, facing the river
         Assert.Equal(scene.Point("npc.fisher"), scene.Npcs.Single(static n => n.Name == "fisher").Feet with { Y = scene.Point("npc.fisher").Y });
         Assert.Equal(scene.Point("npc.baker"), scene.Npcs.Single(static n => n.Name == "baker").Feet with { Y = scene.Point("npc.baker").Y }); // V11: the baker at npc.baker
+        Assert.Equal(scene.Point("npc.smith"), scene.Npcs.Single(static n => n.Name == "smith").Feet with { Y = scene.Point("npc.smith").Y }); // V12: the smith at npc.smith
+        Assert.Equal(scene.Point("npc.farmer"), scene.Npcs.Single(static n => n.Name == "farmer").Feet with { Y = scene.Point("npc.farmer").Y }); // and the farmer at npc.farmer
         Assert.InRange(Distance(scene.Npc("guide").Feet, scene.Point("camp.guide")), 0, 12);
         Assert.InRange(Distance(scene.Npc("shopkeeper").Feet, scene.Point("village")), 0, 20);
         Assert.InRange(Distance(scene.Npc("villager").Feet, scene.Point("village")), 0, 20);
