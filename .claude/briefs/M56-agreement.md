@@ -3,7 +3,7 @@ You are implementing the core milestone **M56, three agreement checks that are s
 Do the work yourself; do not spawn subagents.
 
 ## Where to work, and pushing
-Work only in the existing git worktree `/home/user/Dev/Vocaterra/.claude/worktrees/village`: cd there first, and never edit `/home/user/Dev/Vocaterra` itself or any other worktree. It is on branch `feature/village` (at the HEAD `git log -1` shows, `@@HEAD@@`).
+Work only in the existing git worktree `/home/user/Dev/Vocaterra/.claude/worktrees/village`: cd there first, and never edit `/home/user/Dev/Vocaterra` itself or any other worktree. It is on branch `feature/village` (at the HEAD `git log -1` shows, `c6b03ec`).
 - Create your branch with `git checkout -b M56-agreement feature/village`.
 - **The owner wants work pushed often.** Commit after each coherent step that builds and passes `scripts/test.sh fast`, with the prefix `M56: `. Push after every commit: `git push -u origin M56-agreement` the first time, then `git push origin M56-agreement`.
 - Never push `main` or `feature/village`, and do not merge.
@@ -48,7 +48,7 @@ Found by the game's V10 and V11 (2026-10-30 and 31), each tried on the CLI at a 
 
 ## Gate (from the worktree root, each through scripts/limited.sh)
 - `dotnet build Vocaterra.sln -warnaserror -m:4`, with 0 warnings.
-- `dotnet test Vocaterra.sln -m:2` all passing (it was @@COUNT@@); report the new count.
+- `dotnet test Vocaterra.sln -m:2` all passing (it was 6194 passed and 3 skipped); report the new count.
 - `dotnet format Vocaterra.sln --verify-no-changes`.
 - `bash scripts/license-scan.sh --offline` PASSED.
 - The core demo: `dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo quiere dos espada" --prompt villager-open --content content/game-v1` still yields exactly `conj.person` and `noun.number` (through the wrapper).
