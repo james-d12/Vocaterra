@@ -321,23 +321,16 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
         Assert.Contains(session.Events.OfType<LessonEvent>(), e => e.Kind == LessonEventKind.Retry && e.StepId == stepId && e.Detail!.StartsWith(reasonStart, StringComparison.Ordinal));
     }
 
-    [Fact]
-    public void ThePlanInTheFirstPersonIsAMissWithAPersonRetryAndDomingoVoyIsTheCoresSlip()
+    [Theory]
+    [InlineData("voy a hacer un hacha")] // the near future of the learner, not Domingo's
+    [InlineData("Domingo voy a hacer un hacha")] // a lone name before the verb may be the listener (Domingo, voy a...), so the core says nothing: the lesson's step does
+    public void ThePlanInTheFirstPersonIsAMissWithAPersonRetry(string said)
     {
-        // "Voy a hacer un hacha" is right Spanish for the learner's own plan, so the core says nothing of the person: the lesson's step, which expects Domingo's (3sg),
-        // makes it a miss whose retry names "va a hacer". "Domingo voy a hacer un hacha" the core flags itself since M59, which agrees a verb with a name before it
-        // (conj.person, expected va): a slip, and the step goes on.
-        var miss = AtStep("g1-plan");
-        AssertMiss(miss, "voy a hacer un hacha", "g1-plan", "wrong person: said 1sg, expected 3sg", "“va a hacer”");
-        _ = miss.Say("Va a hacer un hacha");
-        Assert.Equal("g2-walk", miss.Lessons.Current!.Id);
+        var session = AtStep("g1-plan");
 
-        var slip = AtStep("g1-plan");
-        var turn = slip.Say("Domingo voy a hacer un hacha");
-        Assert.True(turn.Communicated);
-        Assert.Equal("va", Assert.Single(turn.Errors, static e => e.Tag == "conj.person").Expected);
-        Assert.Equal("g2-walk", slip.Lessons.Current!.Id);
-        Assert.Contains(slip.Events.OfType<LessonEvent>(), static e => e.Kind == LessonEventKind.StepDone && e.StepId == "g1-plan" && e.Detail == "with a slip");
+        AssertMiss(session, said, "g1-plan", "wrong person: said 1sg, expected 3sg", "“va a hacer”");
+        _ = session.Say("Va a hacer un hacha");
+        Assert.Equal("g2-walk", session.Lessons.Current!.Id);
     }
 
     [Fact]
@@ -360,20 +353,18 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
         Assert.Equal("g2-walk", slip.Lessons.Current!.Id);
     }
 
-    [Theory]
-    [InlineData("Domingo trabajo en la herrería")] // after a name, since M59
-    [InlineData("él trabajo en la herrería")] // after a subject pronoun
-    public void TheFirstPersonWhereDomingoWorksIsAMissWithAPersonRetryAndAfterASubjectItIsTheCoresSlip(string slipSaid)
+    [Fact]
+    public void TheFirstPersonWhereDomingoWorksIsAMissWithAPersonRetryAndElTrabajoIsTheCoresSlip()
     {
-        // "Trabajo en la herrería" is right Spanish for the learner's own work, so the core says nothing of the person: the lesson's person check makes it a miss. After
-        // a subject, a name (M59) or "él", the core flags the person itself (conj.person, expected trabaja): a slip, and the step goes on.
+        // "Domingo trabajo en la herrería": a lone name before the verb may be the listener (Domingo, trabajo en la herrería), so the core says nothing of the person
+        // (M59) and the lesson's person check makes it a miss; after "él" the core flags it itself (conj.person, expected trabaja): a slip, and the step goes on.
         var miss = AtStep("g6-works");
-        AssertMiss(miss, "trabajo en la herrería", "g6-works", "wrong person: said 1sg, expected 3sg", "“trabaja”");
+        AssertMiss(miss, "Domingo trabajo en la herrería", "g6-works", "wrong person: said 1sg, expected 3sg", "“trabaja”");
         _ = miss.Say("Domingo trabaja en la herrería");
         Assert.Equal("g6-house", miss.Lessons.Current!.Id);
 
         var slip = AtStep("g6-works");
-        var turn = slip.Say(slipSaid);
+        var turn = slip.Say("él trabajo en la herrería");
         Assert.True(turn.Communicated);
         Assert.Equal("trabaja", Assert.Single(turn.Errors, static e => e.Tag == "conj.person").Expected);
         Assert.Equal("g6-house", slip.Lessons.Current!.Id);
