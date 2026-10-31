@@ -149,7 +149,7 @@ Work only in the existing git worktree `/home/user/Dev/Vocaterra/.claude/worktre
 Each message ends with:
 ```
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
-Claude-Session: https://claude.ai/code/session_01F9jKDeR3htNRFCtjYM6mbq
+Claude-Session: https://claude.ai/code/session_01F9jKDdyPc3eAsDgGyBVKv6
 ```
 
 ## Report (under 500 words)
