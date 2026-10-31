@@ -42,8 +42,13 @@ Runs the language core's content tool on a game content bundle (default `content
 - `validate` checks every file's hash and the cross-references, and prints the bundle hash.
 - `hash` rewrites `manifest.json` from the files on disk, the step after any edit. Options after the bundle directory are passed on, so a
   new bundle id is set with `hash content/game-v1 --bundle-id game-v1`; without the option the manifest keeps its id.
-- `cefr-check` lists dialogue-template and prompt-text lemmas missing from a CEFR list (`cefr-check content/game-v1 --level a1`).
+- `cefr-check` lists dialogue-template and prompt-text lemmas missing from a CEFR list (`cefr-check content/game-v1 --level a2`). It only
+  prints (it exits 0 whatever it lists); `refresh` and the merge gate fail on a lemma it lists at A2.
 - `lint`, `grammar`, `pack` and `verify-pack` are passed through as [docs/nlp/TOOLS.md](../docs/nlp/TOOLS.md) describes.
+- `refresh` is the whole loop after an edit of the game's content ([content/README.md](../content/README.md), "The edit loop"). Its lint
+  and CEFR checks are the gate's: the bundle's ceiling is A2 (VILLAGE_PLAN 3.9, D-game-22 (b), V08), so the lint runs with
+  `--strict --level a2 --fail-on-level --host-pools 'guide.*'` and `cefr-check --level a2` fails on any lemma it lists, while
+  `cefr-check --level a1` is a report of what is above A1 and never fails. Each lesson's own level is the host's `--validate-content`.
 
 The tool is the `Vocaterra.Nlp.ContentBuilder` project under `tools/`, run from source with `dotnet run`, so it is always the core at the
 current commit. Needs bash and the .NET SDK (`~/.dotnet` is used when present).
@@ -54,7 +59,10 @@ The orchestrator's gate, run from a feature branch's checkout (never `main`, whi
 `GATE_TARGET=<feature branch> scripts/merge-gate.sh "<label>:<branch>" ...` merges each branch into it with `--no-ff` (aborting that
 merge on a conflict), then runs on `Vocaterra.sln` the build with warnings as errors, the whole test suite (core and game; model-backed
 tests when `VOCATERRA_MODELS_DIR` is set or the shared models folder exists), the format check, `content.sh validate`, the game bundle's
-lint and CEFR checks and grammar check, and the core's `license-scan.sh --offline`. Each check's log is kept under `.claude/gate-logs/`.
+content gate, its grammar check, and the core's `license-scan.sh --offline`. The content gate (since V08) is the lint at A2, the bundle's
+ceiling, with `--fail-on-level`, then `cefr-check --level a2`, which fails the gate on any lemma it lists, then `cefr-check --level a1` as a
+report that never fails, then the host's `--validate-content`, which holds each lesson to its own level; its log line says which is which.
+Each check's log is kept under `.claude/gate-logs/`.
 It prints the counts and `result: PASS` or `result: FAIL`, and exits non-zero on a failure.
 
 ## fetch-models.sh
