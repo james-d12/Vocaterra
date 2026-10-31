@@ -207,7 +207,9 @@ specified for later in `docs/game/CONTENT_PLAN.md` section 3.8 (C10); it is not 
   delivery (`order_delivered` at the order's NPC with the order's id), or is about to start at the talk (an `autoStart` lesson available at that NPC), walking up
   with the goods does not deliver them, so the plan comes first even for a learner who carries the goods already (the farmer's `water-for-plants`: the bottle
   filled at the river in session 1 is still full). Once the lesson reaches that step, ends, or does not start there, walking up is enough again; every step can be
-  skipped, so the order never waits behind speech. The validator checks that the lesson has the step.
+  skipped, so the order never waits behind speech. The validator checks that the lesson has the step. Since V14 the baker's `oven-wood` and the smith's `axe-handle`
+  name theirs too (`numeros-y-pan`, `gente-del-pueblo`): a learner with five wood heard Luz's thanks before saying `Voy a buscar madera`, and one with the axe's goods was
+  given the axe before Domingo offered it.
 
   Its one step, `delivered` (saved as `oven-wood.delivered`), is made by the loader. When the panel opens on that NPC and the inventory holds the goods,
   nothing more is asked of the learner (D-game-8, D-game-9): the goods are taken (`item_taken`, `madera, order`), the NPC's agent is raised
@@ -246,6 +248,9 @@ her purchase and her order, is the second; the smith Domingo and the farmer Leó
    }
    ```
 
+   - `name` (optional): what the NPC is called (`{npc:<id>}` in the support language). A learner's line that names the NPC it is said to, at its start or its
+     end (`Mar, ¿dónde está la panadería?`, `quiero pan, Luz`), is read without the name, typed or spoken, at every prompt (V14, `Vocative`): the name is no part
+     of the sentence, and no grammar has room for it. A name a preposition or an article binds (`el pan de Luz`) or another joins (`Luz y Mar comieron pan`) stays.
    - `prompts`: by state of the agent, the prompt the NPC waits on there; a state not listed waits on the initial state's, which must be listed.
      The key `review` is no state: it names the prompt of the guide's review question (only the guide has one).
    - `opening`: `always` raises the event at every talk (the villager's "Hola."), `first` at the first talk only, while the agent is in its
@@ -264,7 +269,8 @@ her purchase and her order, is the second; the smith Domingo and the farmer Leó
    - `focus` (needed where a prompt it waits on is the home of rows): the learner phrases each such prompt practises (their home, with a scaffold to
      fade), from the rows of `game/phrases.json` whose `prompt` it is (`fisher-open`: his two directions; the baker's `baker-open`: `quiero-dos-panes`,
      `cuanto-cuesta`, `hay-pan`). Outside a lesson the panel shows their cards, and a turn of one of their intents is credited to that phrase; of two with
-     one intent (the fisher's), the one that names the place asked. A prompt that is the home of no row may practise another NPC's (the farmer's
+     one intent (the fisher's), the one that names the place asked; and of one that names another place than the turn asks about (the villager's `¿Dónde está el
+     río?` for `¿dónde está la panadería?`, V14), the row another NPC practises that names it (a transfer), else none. A prompt that is the home of no row may practise another NPC's (the farmer's
      `farmer-open` takes the smith's `como-te-llamas` and `que-haces`; a phrase at home with two NPCs is no transfer at either). Its lesson prompts need
      none: each step names its own phrase. Without a focus a turn is still credited to the prompt's own row (VILLAGE_PLAN V12b; before it the baker's
      `quiero dos panes` was the stall's `pedir-agua`), but no card shows; the validator refuses that (below).
