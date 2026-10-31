@@ -33,7 +33,8 @@ guide's lesson (S17):
 These are the brief's five target phrases. Nothing in the scenario ends by a language mistake: no death, no timers, no language gate. The run
 lines for the 3D world are in "The 3D world" below; they grow as S5 onward land.
 
-**Later sessions.** A load is the next play session, and each later session unlocks one lesson: sessions 2 and 3 at the villager and the stall (S26,
+**Later sessions.** A load is the next play session, and so is a sleep at the player's own fire (V12c: "The next session: sleep at the fire" below), and each later
+session unlocks one lesson: sessions 2 and 3 at the villager and the stall (S26,
 S27), and since phase A of [docs/game/VILLAGE_PLAN.md](VILLAGE_PLAN.md) (D-game-22) sessions 4 to 6 in a village grown inside its own clearing, with four
 more people: the fisher Mar on the bridge's east landing (session 4, "El pueblo": places and the way to them), the baker Luz at the bakery (session 5,
 "Números y pan": numbers, prices and bread for coins), the smith Domingo at the smithy and the farmer León at the wheat field (session 6, "Gente del
@@ -301,7 +302,8 @@ continues from the save: start, plus the ticks, plus the skipped seconds); the n
 load when a scenario needs a day to pass. A load is refused, with the reason, when `--seed` names another world; a save whose restored world does not match its digest is refused too. A save made
 from **another content bundle** is carried into this one (X01, below), unless the run is strict (`--strict-save`, or any `--playtest`), which refuses it. The file is canonical JSON (sorted keys, no whitespace):
 the same state gives the same bytes, and a load followed by a save gives the same file except for the session number. Not saved: the open dialogue,
-the review question, the word cards not yet shown, the replay records of the conversations (the session log is S11's).
+the review question, the word cards not yet shown, the replay records of the conversations (the session log is S11's). A sleep at the player's own fire is a
+load in the same run (V12c, below): the save it gives is the save of a save and a load.
 
 ```bash
 # S6's whole route, then the game saved at its end: the console prints the file, the session, the tick, the stored time and the world digest
@@ -524,7 +526,9 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --talk gu
 - **The ending.** The complete checklist gives a spare torch, sets the beacon on the player's own camp and changes the objective line to `Go back up the trail and
   light your own fire`. A torch placed on the rim of the fire ring at `firering.player` lights it: the guide's closing line (`¡Muy bien! Ya tienes fuego.`) is
   said and shown with its English on a `Session complete` card, and in a playtest the post-check follows (the transfer offer first: she greets the player with
-  it when they pass through her camp on the way back). The fire ring at the guide's camp keeps its role: the checklist's torch step.
+  it when they pass through her camp on the way back). The fire ring at the guide's camp keeps its role: the checklist's torch step. Outside a playtest the card
+  offers the next session (`Enter: sleep until morning and start session 2`) and the objective line says `Session complete: sleep at your fire to start session 2`
+  (V12c, "The next session: sleep at the fire" below); a playtest keeps `Session complete: your fire is lit`.
 - **English on the buttons.** `[R] Repetir (repeat)`, `[S] Más despacio (slower)`, `[H] Ayuda (help)`, `[N] No sé (I don't know)`, `[W] Escribir (type)` and the hold-to-talk
   hint carry their English until the button (or its phrase) has been used three times; the keys and buttons work the same without it.
 
@@ -543,7 +547,8 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --lesson-
 - **Sessions.** A lesson has a `session` in `lessons.json` (default 1) and is offered only once the play session has reached it; the session is the save's number (a load is the next session).
   A lesson of a later session also has an English `objective` that names it: the objective area shows it (and the beacon points at the lesson's NPC) while the lesson is unlocked and not begun.
   `--session <n>` starts a run as play session n (`--session 2 --screenshot x.png --frames 120` shows session 2 opening at the camp: `Session 2: go to the village and talk to the villager to start
-  the lesson “Personas”`, with the beacon on the villager). Since VILLAGE_PLAN V10 a lesson may also name the lesson it comes `after`, and is offered only once that one is done: sessions 4 to 6
+  the lesson “Personas”`, with the beacon on the villager). It only names the session: a lesson that comes `after` another still waits for it, so `--session 4` points at session 3's lesson.
+  `--skip-to-session <n>` (V12c, a test aid) starts a new game where a learner who did sessions 1 to n-1 would stand, so session n's own lesson is open ("The next session" below). Since VILLAGE_PLAN V10 a lesson may also name the lesson it comes `after`, and is offered only once that one is done: sessions 4 to 6
   (`--session 4`, `--session 5`, `--session 6`) unlock `el-pueblo` after `ayer-y-manana`, `numeros-y-pan` after `el-pueblo` and `gente-del-pueblo` after `numeros-y-pan` ("The village: sessions 4
   to 6" below). `--lesson-run <id>` starts a lesson whatever came before.
 - **Personas** (session 2, the villager then the shopkeeper, 22 steps since VILLAGE_PLAN V10 added its two `review` steps, `autoStart`): él, ella, usted, nosotros, ustedes and ellos of `querer`, `tener`, `necesitar`, `ser`, `estar` and `ir`. The learner
@@ -610,7 +615,8 @@ around an order the learner carries out (the plan, the doing, the report).
   `Vivo en el campamento.`, and the smith in the third person in three times (`Domingo trabaja en la herrería.`, `Va a hacer un hacha.`, `Domingo hizo un
   hacha.`) around the axe order.
 - **Runs.** `--session 4 --lesson-run el-pueblo`, `--session 5 --lesson-run numeros-y-pan` and `--session 6 --lesson-run gente-del-pueblo` run them with typed
-  answers. The scripted runs r18 (the bakery purchase) and r19 (asking the way) cover the sale and the directions (`docs/game/SCRIPTED_RUNS.md`).
+  answers. The scripted runs r18 (the bakery purchase) and r19 (asking the way) cover the sale and the directions (`docs/game/SCRIPTED_RUNS.md`). To play a
+  village lesson by hand, `--skip-to-session 4` (or 5, 6) starts at it with the sessions before counted as done ("The next session: sleep at the fire" below; r21).
 
 ```bash
 # session 5: five trunks from the orchard, the oven order delivered at the baker (four coins), two loaves bought (r18 of the scripted runs);
@@ -623,6 +629,63 @@ dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --teleport 236,206 -
   --walk-to 282,206 --walk-to 282,212 --look 0,4 --screenshot /tmp/v09-bakery-door.png --frames 60
 # session 4: the fisher's lesson with typed answers, from the player's camp
 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --session 4 --lesson-run el-pueblo --screenshot /tmp/v10-el-pueblo.png --frames 30
+```
+
+## The next session: sleep at the fire (V12c)
+
+A play session used to advance only on a quit and a `--load`, which nothing in the game said. Now the player sleeps at their own fire, and the next session begins
+in the same run.
+
+- **Where.** The closing card of session 1 (the ending, S17) offers it: `Enter: sleep until morning and start session 2`, over its `Esc: keep looking around`. And
+  the lit fire at the player's camp (`firering.player`) offers it at any later time: standing within five blocks of it, the HUD's hint under the crosshair says
+  `E: sleep until morning (session 3)` and **E** sleeps (E keeps talking to an NPC under the crosshair and opening the workbench first). An open panel, a screen,
+  a check, a recording or a lesson step that waits comes first: no prompt then. Every lesson starts by itself, so a lesson begun in the run stays engaged when its
+  panel closes and holds the sleep back until it is done. A playtest plays one session per run (its post-check follows the ending) and offers no sleep.
+- **A sleep is exactly a load** (`SaveGame.Sleep`). The game captures its own save and restores it into the running session as the next play session: what a save
+  does not keep is cleared first (the review question, the second tries, the warm-up, which the new session offers again, the panel's support, the buttons' English
+  counts, the word cards not yet shown), every part of the save is put back as a load puts it back, the session number goes up by one (which lifts the spacing gaps of
+  D-game-6), and `BeginPlaySession` names the new session's lesson and points the beacon at its NPC. The stored time does not move, as a load adds none ("Time
+  rule" above). A lesson under way stays at its step, not engaged, and takes up again when the learner talks to its NPC, as after a load. `SleepTests` holds the
+  invariant: the save written after a sleep equals the save written after a save and a load of the same state (no field differs), and so does what the player
+  meets next (the objective, the beacon, the lesson, the warm-up). Since V12c the guide's greeting on the way back reads her saved offer flag, so after a load or a
+  sleep she does not greet the player again for an offer made.
+- **The session log and the autosave do what a quit and a load into the same folder do.** The log writes the old session's `session_end` and the new session's
+  `session_start` (no mic check, no check battery; a `slept` world event is the new session's first, `session 1 to 2`), and the `session_end` counts only its own
+  session's events. The autosave writes the session as it ends (`autosave: ... written at sleep`, with no toast), so a load of the autosave starts the session the
+  sleep starts; then its policy starts again from the sleep's tick, as a load's run starts it. The folder and the files stay the run's. The console says
+  `sleep: ...: session 1 ends at the fire, session 2 begins (tick, stored time, world digest)` and a toast says `Good morning: session 2 begins`.
+- **What the objective says next.** Once the session's work is done (session 1: its ending; from session 2: no lesson under way and every unlocked lesson done), the
+  line says `Session complete: sleep at your fire to start session 2`, and when the work ends away from the fire (a lesson completed in the village) the beacon
+  goes to the fire. When no later session has a lesson (after session 6 today) it says `Every lesson so far is done: practise any of them again in the book (J), or
+  talk to the people of the village`; the fire still lets the player sleep, which lifts the spacing gaps. From session 2, while a lesson is under way or left, it
+  says `Next: talk to the villager for the lesson “Personas”`. These lines come after a lesson's own line, a replay, a review and a new lesson, and over an order,
+  as the new lesson's line does.
+- **`--sleep`** is a script step: it closes the panels and sleeps as the player's E at the fire would, wherever the player stands (a script needs no walk); refused
+  with a console line when the fire is not lit, a lesson step waits or the run is a playtest. The scripted run r20-sleep reaches session 1's ending the short way
+  (the camp, the shopkeeper's bottle on a second visit, the river and the fire by `--teleport`), shows the card, sleeps, and shows session 2's objective, the beacon
+  on the villager and the book's Lessons page.
+
+**`--skip-to-session <n>`** (a test aid, `SessionSkip`): a new game starts as play session n (from 2 to the last session that has a lesson, 6 today) where a learner
+who played sessions 1 to n-1 and did everything would stand, built from the data alone (the lessons' `session` and `after`, the objectives, the orders and the NPCs'
+host events), so a later session needs no code. Every lesson of an earlier session is completed in its own session (its steps recorded as skipped: the learner
+took none); session 1's ending is reached (the camp's steps counted, a torch on the rim of the player's fire ring); each earlier order is delivered by the NPC's own
+`<npc>.delivered` thanks (its goods brought and taken, its reward paid); and each earlier lesson's purchases are made (a `do` step waiting for an NPC that sells,
+as many as the lesson's request names: the two loaves of `numeros-y-pan`). So the coins and the items follow VILLAGE_PLAN 3.4: none at session 4, two coins at 5,
+two coins and two loaves at 6 (the axe order's two coins). What the world gives (wood, fruit, water) is not carried over: the next lesson and order point at it. No
+practice is faked: no turn is taken and the word and phrase records stay a new game's. The objective and the beacon then name session n's lesson and its NPC, as
+after a load. The console says `session: skipped to play session 4 (sessions 1 to 3 counted as done; test aid)`, the session log has the same line (the world event
+`session_skipped`) and `skipped_to` on its `session_start`, and the save carries `skippedTo` (left out of every other save), so no log or save made with it passes
+for a learner's. It refuses `--load`, `--session` and `--playtest`.
+
+```bash
+# the short way to session 1's ending, the card's sleep, session 2's objective and beacon, the Lessons page (r20-sleep)
+dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --walk-to 172,187 --interact 170,43,189 --interact 169,43,185 --walk-to 173,183 --interact 171,43,181 \
+  --walk-to 155,187 --interact 153,42,186 --interact 153,43,186 --interact 153,44,186 --interact 153,45,186 --interact 153,41,189 --walk-to 177,185 --craft antorcha \
+  --walk-to 174,185 --place antorcha@175,44,187 --teleport 283,211 --talk shopkeeper --wait 3 --leave --talk shopkeeper --leave --teleport 234,222 --interact 233,34,222 \
+  --teleport 153,109 --look 330,-12 --place antorcha@153,74,105 --wait 1 --shot /tmp/v12c-ending.png --sleep --look 129,-20 --wait 2 --shot /tmp/v12c-session2.png \
+  --book-page lessons --screenshot /tmp/v12c-lessons.png --frames 30
+# session 4 at once: the fisher's lesson named and pointed at, the earlier sessions counted as done (r21-skip)
+dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --skip-to-session 4 --wait 1 --shot /tmp/v12c-skip.png --book-page lessons --screenshot /tmp/v12c-skip-book.png --frames 30
 ```
 
 ## The book (S20, D-game-16)
@@ -647,7 +710,10 @@ screen and takes the keyboard while it is open. Every title, tab, label and key 
   (the card and audio lamps) and its counts.
 - **Lessons.** Every lesson of the bundle in its order: its state (completed in session n, in progress with the units done, not started), its units with a
   tick each, the phrases it taught (S17's recap), the help used and, once completed, its English summary, stored in `game/lessons.json` beside the lesson
-  (`summary`).
+  (`summary`). Since V12c a lesson not begun says why on its own line under its title: `next: talk to Luna` when it is unlocked (title and line in gold, so the
+  eye finds it first), `opens in session 4, Mar` when its session has not come (said first when it also waits for a lesson), `after “Ayer y mañana”` when the
+  lesson before it is not done. The NPC is named as `game/npcs/<id>.json` calls it (its name, else its label), the earlier lesson by its short title. The lines
+  are whole on the left page at every text size (at 150 % in an 800 x 600 window the longest, `opens in session 2, Aldeano`, is 169 of 174 px; `UiScaleLayoutTests`).
 - **What I said.** `Learner.Recent(500)`, newest first: the line, said or typed, where it was said (the NPC's English name, the lesson and its unit, or a
   check), and the core's feedback in English (`EnglishText.FeedbackFor(InputEntry)`, the same lines as S16's).
 - **Speaker buttons (S20b).** A row with a recording has a small speaker at its right edge: every seen catalogue noun on the Nouns page (its word card,
@@ -880,7 +946,8 @@ The game saves itself at its safe points, and a crash leaves a report instead of
 
 **Autosave.** `AutosavePolicy` (`src/Vocaterra.Game/Autosave.cs`, engine-free) decides the frames; the game writes them in `VoxelGame.AutosaveDue`.
 
-- **When.** A lesson step ends (done, skipped or moved on), a lesson completes, a camp objective step is done, the session completes, a dialogue closes, and
+- **When.** A lesson step ends (done, skipped or moved on), a lesson completes, a camp objective step is done, the session completes, a dialogue closes, the
+  player sleeps at their fire (V12c: the session as it ends, with no toast; the policy then starts again as a load's does), and
   every **five minutes of play** (18000 simulation ticks at 60 a second; the wall clock is not read). Five minutes: a crash loses at most that much of play, and a save is
   a few tens of kilobytes, so writing one every five minutes costs nothing a tester notices. An event that falls inside an open dialogue waits for the
   dialogue to close (a lesson runs inside its guide's panel, so its saves come when the panel shuts).

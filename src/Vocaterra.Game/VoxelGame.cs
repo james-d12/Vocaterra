@@ -872,7 +872,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // The sleep at the player's own fire (V12c), from E there, Enter on the closing card or the script's --sleep: the session's own save is restored into it as the next
     // play session (SaveGame.Sleep: the state a load of that save gives), so the session log ends the old session and starts the next as a quit and a load into the same
     // folder write them, the autosave writes the ending session (a load of it starts the session the sleep starts) and starts again as a load starts it, and the
-    // front-end's own state goes back to a new run's: the closing card, the word cards not yet shown, the beacon of the start.
+    // front-end's own state goes back to a new run's: the closing card, the word cards not yet shown, the toasts waiting, the beacon of the start.
     private void SleepNow(string how)
     {
         if (!_session.CanSleep || _dialogue.IsOpen)
@@ -891,6 +891,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _ending.Dismiss();
         _cards.Clear();
         _beacon.Restart();
+        _toasts.Clear(); // the old session's toasts are not the new one's: it opens with the morning
         _toasts.Show(SleepOffer.MorningText(_session));
         Console.WriteLine($"sleep: {how}: session {before} ends at the fire, session {_session.PlaySession} begins (tick {_sim.Tick}, stored time {_session.StoredTime.UnixSeconds}, world digest {document.StateDigest[..16]})");
     }

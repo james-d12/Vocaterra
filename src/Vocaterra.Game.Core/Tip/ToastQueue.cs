@@ -41,4 +41,11 @@ public sealed class ToastQueue
 
     /// <summary>How many lines are still waiting behind the one on screen.</summary>
     public int Waiting => _waiting.Count;
+
+    /// <summary>Takes the toast on screen down and drops the waiting ones (V12c: a sleep at the fire begins the next session as a new run would, with none).</summary>
+    public void Clear()
+    {
+        _waiting.Clear();
+        _current = null;
+    }
 }

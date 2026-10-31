@@ -1,9 +1,9 @@
 # Scripted runs: the front-end's regression set
 
-Eighteen scripted runs of the game that between them pass through every flow `VoxelGame` drives: the walk and the camp, talking and typing,
+Twenty scripted runs of the game that between them pass through every flow `VoxelGame` drives: the walk and the camp, talking and typing,
 the first session's three NPCs and two of the village's (the baker's sale and the fisher's directions, VILLAGE_PLAN V09), the lessons, the book,
 the inventory and crafting panels, the check battery, a whole playtest, the mic check, a saved report, the view over the shoulder, greyscale and
-dusk, the interface text size and a spoken line. Run them before a change to the front-end and
+dusk, the interface text size, a spoken line, the sleep at the fire into the next session and a game skipped to a later session (V12c). Run them before a change to the front-end and
 after it, and compare what each one wrote (stdout, screenshots, saves, sound logs, the session log). They are the check the tests cannot
 give for rendering and input (R16).
 
@@ -50,6 +50,8 @@ in the output.
 | r17-speak | A spoken line (synthesized, then heard by the recognizer) at the stall | `--seed 42 --talk shopkeeper --speak "quiero agua" --screenshot "$W/shot.png"` |
 | r18-bakery | The bakery purchase in session 5 (VILLAGE_PLAN V03, V11): five trunks cut from the farmer's orchard, the order `oven-wood` delivered as the panel opens on the baker (five wood out, four coins in, `order_delivered`; `paid.png`), then `quiero dos panes, por favor` at her open prompt (`baker.sell_bread`: four coins out, two loaves in; `sale.png`); the screenshot is the inventory with the book and two loaves, no coin and no wood, and the save holds them | `--seed 42 --mute --session 5 --teleport 309,216 --interact 311,38,214 --interact 311,39,214 --interact 311,40,214 --interact 311,38,218 --interact 311,39,218 --talk baker --shot "$W/paid.png" --say "quiero dos panes, por favor" --shot "$W/sale.png" --leave --inventory --screenshot "$W/shot.png" --frames 30 --save "$W/game.save"` |
 | r19-directions | Asking the way (VILLAGE_PLAN V02, V10): the fisher on the bridge's east landing asked `¿dónde está la panadería?` (`place_asked` bakery, the beacon on the bakery: `arrow.png` shows his answer and the column with `panadería 44 blocks`), the walk up the road to the bakery's door, the arrival (`beacon_reached` bakery, the arrow gone); the screenshot is the bakery from its path, with the baker and her name | `--seed 42 --mute --teleport 236,206 --talk fisher --say "¿dónde está la panadería?" --shot "$W/arrow.png" --walk-to 282,206 --walk-to 282,212 --look 0,4 --screenshot "$W/shot.png" --frames 60` |
+| r20-sleep | The next session by a sleep at the fire (V12c): session 1's ending the short way (the camp, the shopkeeper's bottle on his fail-forward second visit, no typed turn, the river and the player's camp by `--teleport`), the closing card with `Enter: sleep until morning and start session 2` (`ending.png`), `--sleep` (the autosave `written at sleep`, the log's `session_end` and second `session_start`, the `slept` event), session 2's objective naming Personas with the beacon on the villager, the fire's prompt `E: sleep until morning (session 3)` and the morning toast (`session2.png`); the screenshot is the book's Lessons page with `next: talk to Luna` and `next: talk to Aldeano` in gold; the save is session 2's | `--seed 42 --mute` then the camp steps of r01 (from `--walk-to 172,187` to the `--place`), `--teleport 283,211 --talk shopkeeper --wait 3 --leave --talk shopkeeper --leave --teleport 234,222 --interact 233,34,222 --teleport 153,109 --look 330,-12 --place antorcha@153,74,105 --wait 1 --shot "$W/ending.png" --sleep --look 129,-20 --wait 2 --shot "$W/session2.png" --book-page lessons --screenshot "$W/shot.png" --frames 30 --save "$W/game.save"` |
+| r21-skip | `--skip-to-session 4` (V12c, a test aid): the console's and the log's `skipped to play session 4 (sessions 1 to 3 counted as done; test aid)`, El pueblo's objective with the beacon on Mar from the player's camp (`beacon.png`), the book's Lessons page with the three earlier lessons completed in sessions 1, 2 and 3; the save carries `skippedTo` | `--seed 42 --mute --skip-to-session 4 --wait 1 --shot "$W/beacon.png" --book-page lessons --screenshot "$W/shot.png" --frames 30 --save "$W/game.save"` |
 
 The pre-check answers (r09 and r10; the battery's order for seed 42):
 
@@ -71,8 +73,9 @@ There is no r13: `--report-open` leaves the report panel open, and a paused worl
 Mask before comparing: every number followed by `ms` (the draw and frame timings, the turns' latency), the wall-clock times and dates, and
 the session log's `wall_seconds`, `*_ms` and latency fields. Measured on 2026-10-26 by capturing the unchanged code twice:
 
-- **Exact (byte for byte after the masks, screenshots and saves included):** r01, r07, r08, r09, r12, r14, r15. r09 writes a save, so it
-  also checks that a save comes out the same.
+- **Exact (byte for byte after the masks, screenshots and saves included):** r01, r07, r08, r09, r12, r14, r15, r20, r21. r09, r20 and r21 write
+  a save, so they also check that a save comes out the same. r20 and r21 (V12c) take no turn on the worker (r20 gets the bottle from the shopkeeper's
+  fail-forward host turn, which runs on the game's thread); captured twice on 2026-10-31 they matched byte for byte.
 - **Order only:** r02, r03, r04, r05, r06, r10, r11, r16, r17, r18, r19, every run with a turn for the worker (r11's is the mic check's "hola": the
   same binary heard it at tick 1, 6 and 1 in three runs). When a turn is applied depends on how fast the
   worker thread evaluates it (a busy machine, the models in the disk cache), so these runs land their turns a few ticks apart from one capture
@@ -95,7 +98,8 @@ asked the same 31 check items before and after.
 
 ## By hand (a live run)
 
-What no script reaches: walk and look with the mouse, **E**, **T** and **V** on each NPC (hold V to talk), the panel's buttons with keys and
+What no script reaches: walk and look with the mouse, **E**, **T** and **V** on each NPC (hold V to talk), **Enter** on the closing card and **E** at the lit
+fire (sleep, V12c; not while a lesson step waits), the panel's buttons with keys and
 the mouse, **Esc** at each level (a recording, a turn thinking, the text box, the panel), **F8** then type then **Esc** (nothing kept) and
 **F8** then **Ctrl+Enter** (saved), **F6**, **J** (Tab, the arrows, the wheel, a click on a tab, Enter and Shift+Enter on a row, P), **I**, **C**
 (a click on a row), **E** at the workbench, **F1** (scroll it at 150 %), **F5**, **F9**, **F3**, a right click with the book selected, the

@@ -55,7 +55,8 @@ switch for it, so `MouseLook` calls `SDL_SetRelativeMouseMode` and `SDL_GetRelat
 pointer to the middle of the window if that library cannot be reached); **Esc** frees the mouse and a click takes it back. Hold the **left
 button** on a gatherable block (a trunk, a berry bush) to gather it, the **right button** places the selected item in the cell in front of the
 face the crosshair is on, `1`..`0` and the wheel pick the hotbar slot, **I** or **E** the inventory, **C** (or **E** with the crosshair on the
-workbench) the crafting panel, **J** the book (S20; the selected book item, used with the right button, opens the same book), **F3** the debug overlay. The camera eases over a step-up (`CameraEase`: the eye lifts a block in
+workbench) the crafting panel, **E** at the player's own lit fire (or **Enter** on the closing card) a sleep until the next play session (V12c: `SleepOffer`,
+`SaveGame.Sleep`; `docs/game/README.md`, "The next session: sleep at the fire"), **J** the book (S20; the selected book item, used with the right button, opens the same book), **F3** the debug overlay. The camera eases over a step-up (`CameraEase`: the eye lifts a block in
 one tick; the camera holds the old height and lets it go over 8 ticks).
 
 ## What is drawn
