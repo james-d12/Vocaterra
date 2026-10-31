@@ -30,6 +30,11 @@ public sealed record OrderGoods(ItemId Item, int Count);
 /// <param name="Session">The play session the objective is shown and counted from (VILLAGE_PLAN V03), or <see langword="null"/> for every session.</param>
 /// <param name="DeliverTo">For an order (VILLAGE_PLAN V03): the NPC the goods are brought to; its one step is the delivery (<see cref="ObjectiveBook.DeliveredStep"/>).</param>
 /// <param name="Deliver">For an order: the goods, each item once.</param>
+/// <param name="Lesson">
+/// For an order (VILLAGE_PLAN V13): the lesson that tells it in the three times, whose <c>do</c> step waits for the delivery, or <see langword="null"/>. While that lesson is
+/// under way before the step, or is about to start at the talk, walking up with the goods does not deliver them (<see cref="Language.Lessons.LessonRunner"/>), so the plan
+/// is said first even by a learner who carries them already.
+/// </param>
 public sealed record ObjectiveSpec(
     string Id,
     string? Title,
@@ -38,7 +43,8 @@ public sealed record ObjectiveSpec(
     IReadOnlyList<string> OnComplete,
     int? Session = null,
     string? DeliverTo = null,
-    IReadOnlyList<OrderGoods>? Deliver = null)
+    IReadOnlyList<OrderGoods>? Deliver = null,
+    string? Lesson = null)
 {
     /// <summary>Whether the HUD shows the objective as a checklist of its steps (it has a title).</summary>
     public bool IsChecklist => Title is not null;
@@ -152,15 +158,15 @@ public sealed class ObjectiveBook
 
     /// <summary>
     /// Builds one objective from its file's text: <c>{ "schemaVersion": 1, "id", "title"?, "steps": [ { "id", "noun"?, "label"?, "target", "trigger", "restore"? } ],
-    /// "alsoDoneBy"?, "onComplete"?, "session"? }</c>, or an order: <c>{ "schemaVersion": 1, "id", "session"?, "deliverTo", "deliver": [ { "item", "count" } ], "onComplete"? }</c>
-    /// (no title, no steps: its one step is the delivery).
+    /// "alsoDoneBy"?, "onComplete"?, "session"? }</c>, or an order: <c>{ "schemaVersion": 1, "id", "session"?, "deliverTo", "deliver": [ { "item", "count" } ], "lesson"?,
+    /// "onComplete"? }</c> (no title, no steps: its one step is the delivery; <c>lesson</c>, V13, the lesson that tells it).
     /// </summary>
     /// <param name="path">The file's path, for the messages.</param>
     /// <param name="json">The file's text.</param>
     /// <param name="id">The id the file must have (its name).</param>
     /// <param name="nouns">The noun catalogue.</param>
     /// <exception cref="InvalidDataException">The text is malformed, the id is not the file's name, a checklist step names no catalogue noun, a step id or target is
-    /// wrong, the session is below 1, or an order lacks its NPC or its goods, names an item twice or has a title or steps of its own.</exception>
+    /// wrong, the session is below 1, an order lacks its NPC or its goods, names an item twice or has a title or steps of its own, or another objective names a lesson.</exception>
     public static ObjectiveSpec Parse(string path, string json, string id, NounCatalog nouns)
     {
         ArgumentNullException.ThrowIfNull(json);
@@ -193,6 +199,7 @@ public sealed class ObjectiveBook
                 throw new InvalidDataException($"{path}: an order names the NPC it is brought to (deliverTo) and its goods (deliver), both or neither.");
             }
 
+            var lesson = root.TryGetProperty("lesson", out _) ? Text(root, "lesson", path) : null;
             if (deliverTo is not null)
             {
                 if (title is not null || root.TryGetProperty("steps", out _))
@@ -201,7 +208,12 @@ public sealed class ObjectiveBook
                 }
 
                 var delivery = new ObjectiveStepSpec(DeliveredStep, string.Empty, DeliveredStep, 1, new Trigger(WorldEvents.OrderDelivered, deliverTo, id), null);
-                return new ObjectiveSpec(id, null, [delivery], Strings(root, "alsoDoneBy"), Strings(root, "onComplete"), session, deliverTo, goods);
+                return new ObjectiveSpec(id, null, [delivery], Strings(root, "alsoDoneBy"), Strings(root, "onComplete"), session, deliverTo, goods, lesson);
+            }
+
+            if (lesson is not null)
+            {
+                throw new InvalidDataException($"{path}: only an order names the lesson that tells it (lesson).");
             }
 
             var steps = new List<ObjectiveStepSpec>();

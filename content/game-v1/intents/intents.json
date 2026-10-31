@@ -117,10 +117,10 @@
       "intentId": "request_item",
       "requiredSlots": ["item"],
       "slotGrammars": [
-        "[VERB:querer] [ART]? [NUM:qty]? [NOUN:item] (por favor)?",
-        "[VERB:necesitar] [ART]? [NUM:qty]? [NOUN:item] (por favor)?",
-        "me [VERB:dar] [ART]? [NUM:qty]? [NOUN:item] (por favor)?",
-        "[ART]? [NUM:qty]? [NOUN:item] por favor"
+        "[VERB:querer] [ART]? [NUM:qty]? [NOUN:item] [ADJ]? (por favor)?",
+        "[VERB:necesitar] [ART]? [NUM:qty]? [NOUN:item] [ADJ]? (por favor)?",
+        "me [VERB:dar] [ART]? [NUM:qty]? [NOUN:item] [ADJ]? (por favor)?",
+        "[ART]? [NUM:qty]? [NOUN:item] [ADJ]? por favor"
       ],
       "lint": {"allowOverlap": ["ask_help"]},
       "examples": [
@@ -151,7 +151,14 @@
         {"text": "quiero pan", "errors": [], "prompt": "baker-open"},
         {"text": "quiero tres panes", "errors": [], "prompt": "baker-open"},
         {"text": "quiero dos pan", "errors": ["noun.number"], "prompt": "baker-open"},
-        {"text": "yo quieres dos panes", "errors": ["conj.person"], "prompt": "baker-open"}
+        {"text": "yo quieres dos panes", "errors": ["conj.person"], "prompt": "baker-open"},
+        {"text": "quiero tres manzanas rojas", "errors": [], "prompt": "farmer-open"},
+        {"text": "quiero tres manzanas", "errors": [], "prompt": "farmer-open"},
+        {"text": "quiero tres manzanas rojas, por favor", "errors": [], "prompt": "farmer-open"},
+        {"text": "tres manzanas rojas, por favor", "errors": [], "prompt": "farmer-open"},
+        {"text": "quiero una manzana roja", "errors": [], "prompt": "farmer-open"},
+        {"text": "quiero tres manzanas rojos", "errors": ["gender.agree"], "prompt": "farmer-open"},
+        {"text": "quiero tres manzana rojas", "errors": ["noun.number"], "prompt": "farmer-open"}
       ]
     },
     {
@@ -533,6 +540,20 @@
         {"text": "domingo hizo el hacha", "errors": [], "prompt": "lesson-made"},
         {"text": "ayer domingo hace un hacha", "errors": ["conj.tense"], "prompt": "lesson-made"},
         {"text": "él hice un hacha", "errors": ["conj.person"], "prompt": "lesson-made"},
+        {"text": "voy a buscar agua", "errors": [], "prompt": "lesson-water-plan"},
+        {"text": "yo voy a buscar agua", "errors": [], "prompt": "lesson-water-plan"},
+        {"text": "voy a buscar el agua", "errors": [], "prompt": "lesson-water-plan"},
+        {"text": "luego voy a buscar agua", "errors": [], "prompt": "lesson-water-plan"},
+        {"text": "voy a buscar agua luego", "errors": [], "prompt": "lesson-water-plan"},
+        {"text": "luego busco agua", "errors": [], "prompt": "lesson-water-plan"},
+        {"text": "voy a busco agua", "errors": ["conj.tense"], "prompt": "lesson-water-plan"},
+        {"text": "yo vas a buscar agua", "errors": ["conj.person"], "prompt": "lesson-water-plan"},
+        {"text": "sí, fui al río", "errors": [], "prompt": "lesson-water-went"},
+        {"text": "fui al río", "errors": [], "prompt": "lesson-water-went"},
+        {"text": "yo fui al río", "errors": [], "prompt": "lesson-water-went"},
+        {"text": "hoy fui al río", "errors": [], "prompt": "lesson-water-went"},
+        {"text": "ayer voy al río", "errors": ["conj.tense"], "prompt": "lesson-water-went"},
+        {"text": "yo fue al río", "errors": ["conj.person"], "prompt": "lesson-water-went"},
         "busqué madera",
         "león trabaja en el campo",
         "luz vive en la panadería",
@@ -727,6 +748,64 @@
         {"text": "qué tú hace", "errors": ["conj.person"], "prompt": "smith-open"},
         "en qué trabaja usted",
         "dónde trabaja usted"
+      ]
+    },
+    {
+      "intentId": "describe",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "(sí)? [ART]? [NOUN:object]? [VERB:ser] (muy)? [ADJ]",
+        "(sí)? [ART]? [NOUN:object]? [VERB:ser] [ADJ] y [ADJ]",
+        "(esto|eso) [VERB:ser] (muy)? [ADJ]"
+      ],
+      "examples": [
+        {"text": "la manzana es roja", "errors": [], "prompt": "lesson-apple"},
+        {"text": "es roja", "errors": [], "prompt": "lesson-apple"},
+        {"text": "sí, es roja", "errors": [], "prompt": "lesson-apple"},
+        {"text": "la manzana es roja y grande", "errors": [], "prompt": "lesson-apple"},
+        {"text": "la manzana es muy roja", "errors": [], "prompt": "lesson-apple"},
+        {"text": "el manzana es roja", "errors": ["gender.agree"], "prompt": "lesson-apple"},
+        {"text": "es grande", "errors": [], "prompt": "lesson-big"},
+        {"text": "el pan es grande", "errors": [], "prompt": "lesson-big"},
+        {"text": "sí, es grande", "errors": [], "prompt": "lesson-big"},
+        {"text": "es muy grande", "errors": [], "prompt": "lesson-big"},
+        {"text": "la pan es grande", "errors": ["gender.agree"], "prompt": "lesson-big"},
+        "esto es grande",
+        "el campo es grande",
+        "el pozo es pequeño"
+      ]
+    },
+    {
+      "intentId": "state_like",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "(ayer|hoy)? (sí|no)? me [VERB:gustar] (mucho)? [ART] [NOUN:item] (de (luz|domingo|mar|león))? (ayer|hoy)?",
+        "(ayer|hoy)? (sí|no)? me [VERB:gustar] (mucho)? (ayer|hoy)?"
+      ],
+      "keywordRules": [
+        { "lemmas": ["gustar"], "requiresSlots": [] }
+      ],
+      "examples": [
+        {"text": "sí, me gusta el pan", "errors": [], "prompt": "lesson-like-bread"},
+        {"text": "me gusta el pan", "errors": [], "prompt": "lesson-like-bread"},
+        {"text": "sí, me gusta", "errors": [], "prompt": "lesson-like-bread"},
+        {"text": "me gusta mucho el pan", "errors": [], "prompt": "lesson-like-bread"},
+        {"text": "sí, me gusta mucho", "errors": [], "prompt": "lesson-like-bread"},
+        {"text": "me gusta la pan", "errors": ["gender.agree"], "prompt": "lesson-like-bread"},
+        {"text": "sí, me gustan las manzanas", "errors": [], "prompt": "lesson-like-apples"},
+        {"text": "me gustan las manzanas", "errors": [], "prompt": "lesson-like-apples"},
+        {"text": "sí, me gustan", "errors": [], "prompt": "lesson-like-apples"},
+        {"text": "me gustan mucho las manzanas", "errors": [], "prompt": "lesson-like-apples"},
+        {"text": "me gustan los manzanas", "errors": ["gender.agree"], "prompt": "lesson-like-apples"},
+        {"text": "me gustó el pan de luz", "errors": [], "prompt": "lesson-liked"},
+        {"text": "sí, me gustó el pan de luz", "errors": [], "prompt": "lesson-liked"},
+        {"text": "me gustó el pan", "errors": [], "prompt": "lesson-liked"},
+        {"text": "sí, me gustó", "errors": [], "prompt": "lesson-liked"},
+        {"text": "me gustó mucho el pan", "errors": [], "prompt": "lesson-liked"},
+        {"text": "ayer me gustó el pan", "errors": [], "prompt": "lesson-liked"},
+        {"text": "ayer me gusta el pan", "errors": ["conj.tense"], "prompt": "lesson-liked"},
+        "no me gusta el pan",
+        "me gustan las frutas"
       ]
     }
   ]

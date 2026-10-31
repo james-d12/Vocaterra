@@ -663,7 +663,8 @@ public sealed partial class VoxelSession : GuideSession
     /// <inheritdoc />
     protected override string? OrderReadyAt(string npc) =>
         Objectives.FirstOrDefault(o => o.Spec.IsOrder && !o.Complete && o.Spec.ShownIn(PlaySession) && string.Equals(o.Spec.DeliverTo, npc, StringComparison.Ordinal)
-            && o.Spec.Goods.All(goods => Simulation.Inventory.Count(goods.Item) >= goods.Count))?.Id;
+            && o.Spec.Goods.All(goods => Simulation.Inventory.Count(goods.Item) >= goods.Count)
+            && !Lessons.HoldsOrder(o.Spec))?.Id; // the lesson that tells the order may keep it back until its plan is said (VILLAGE_PLAN V13)
 
     /// <inheritdoc />
     protected override void TakeOrder(string npc, string order)

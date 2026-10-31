@@ -69,6 +69,14 @@ public sealed class GrammarStringsExtractorTests
         ["vivo-en-el-campamento"] = ["gender.agree"],
         ["trabaja-en-la-herreria"] = ["conj.person"],
         ["hizo-un-hacha"] = ["conj.tense"],
+        ["la-manzana-es-roja"] = ["gender.agree"],
+        ["me-gusta-el-pan"] = ["gender.agree"],
+        ["me-gustan-las-manzanas"] = ["gender.agree"],
+        ["quiero-tres-manzanas-rojas"] = ["gender.agree"],
+        ["voy-a-buscar-agua"] = ["conj.tense"],
+        ["es-grande"] = ["gender.agree"],
+        ["fui-al-rio"] = ["conj.tense"],
+        ["me-gusto-el-pan"] = ["conj.tense"],
     };
 
     [Fact]

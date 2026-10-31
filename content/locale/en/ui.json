@@ -251,6 +251,7 @@
     "objective.light-fire.hud": "Go back up the trail and light your own fire",
     "objective.fruit-for-mar.hud": "Bring {npc:fisher} three fruits from the bushes at {npc:guide}'s camp",
     "objective.oven-wood.hud": "Bring {npc:baker} five wood (madera) for her oven at the bakery",
-    "objective.axe-handle.hud": "Bring {npc:smith} two wood (madera) and two coins for an axe at the smithy"
+    "objective.axe-handle.hud": "Bring {npc:smith} two wood (madera) and two coins for an axe at the smithy",
+    "objective.water-for-plants.hud": "Bring {npc:farmer} a bottle of water (agua) for his plants at the field"
   }
 }

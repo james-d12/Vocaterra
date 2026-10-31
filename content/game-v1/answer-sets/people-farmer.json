@@ -14,6 +14,30 @@
       "dialects": ["es-MX", "es-CO", "es-AR"]
     },
     {
+      "answerId": "apples",
+      "canonical": "quiero tres manzanas rojas",
+      "aliases": ["quiero tres manzanas", "quiero tres manzanas rojas por favor", "tres manzanas rojas por favor", "quiero una manzana roja", "quiero una manzana", "quiero manzanas", "me da tres manzanas"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "price",
+      "canonical": "cuánto cuesta",
+      "aliases": ["cuánto cuesta una manzana", "cuánto cuestan las manzanas", "cuánto es"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "like",
+      "canonical": "me gustan las manzanas",
+      "aliases": ["me gusta el pan", "sí me gustan", "me gustan mucho las manzanas", "me gusta"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "describe",
+      "canonical": "la manzana es roja",
+      "aliases": ["las manzanas son rojas", "es roja", "es grande", "el campo es grande"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
       "answerId": "hello",
       "canonical": "hola",
       "aliases": ["buenos días", "buenas tardes", "buen día"],

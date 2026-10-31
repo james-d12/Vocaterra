@@ -32,6 +32,8 @@
         { "on": {"intent": "state_have", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
         { "on": {"intent": "state_want", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
         { "on": {"intent": "state_action", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
+        { "on": {"intent": "describe", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
+        { "on": {"intent": "state_like", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
         { "on": {"intent": "farewell", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "shop_bye", "variantPoolId": "shop_bye" }] },
         { "on": {"communicated": false}, "to": "idle", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
       ],
@@ -52,6 +54,8 @@
         { "on": {"intent": "state_have", "communicated": true}, "to": "asking", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
         { "on": {"intent": "state_want", "communicated": true}, "to": "asking", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
         { "on": {"intent": "state_action", "communicated": true}, "to": "asking", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
+        { "on": {"intent": "describe", "communicated": true}, "to": "asking", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
+        { "on": {"intent": "state_like", "communicated": true}, "to": "asking", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
         { "on": {"intent": "farewell", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "shop_bye", "variantPoolId": "shop_bye" }] },
         { "on": {"communicated": false}, "to": "asking", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
       ],
@@ -71,6 +75,8 @@
         { "on": {"intent": "state_have", "communicated": true}, "to": "offering", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
         { "on": {"intent": "state_want", "communicated": true}, "to": "offering", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
         { "on": {"intent": "state_action", "communicated": true}, "to": "offering", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
+        { "on": {"intent": "describe", "communicated": true}, "to": "offering", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
+        { "on": {"intent": "state_like", "communicated": true}, "to": "offering", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
         { "on": {"intent": "farewell", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "shop_bye", "variantPoolId": "shop_bye" }] },
         { "on": {"communicated": false}, "to": "offering", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
       ],
@@ -89,6 +95,8 @@
         { "on": {"intent": "state_have", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
         { "on": {"intent": "state_want", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
         { "on": {"intent": "state_action", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
+        { "on": {"intent": "describe", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
+        { "on": {"intent": "state_like", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
         { "on": {"intent": "farewell", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "shop_bye", "variantPoolId": "shop_bye" }] }
       ],
       "fallback": {
