@@ -26,9 +26,13 @@ public sealed class FuzzLanguageStreamTests
     // did not change. The sentence digest again at V13, whose grammars gained describe and state_like and an adjective after the noun in request_item; the word
     // stream did not move, nor did the generators. The sentence digest again at M56, whose analyzer agrees a verb with a subject after it: the realiser (the old
     // expression and the Spanish record alike) now gives estar, the experiencer verbs and the verbs of price the third person and the number of a noun phrase after
-    // them, leaves out ser before lejos or cerca and between dónde and a noun phrase, and draws no verb form right behind dónde; the content did not change.
+    // them, leaves out ser before lejos or cerca and between dónde and a noun phrase, and draws no verb form right behind dónde; the content did not change. The
+    // sentence digest again at M59, whose analyzer agrees a verb with a noun subject before it and a reflexive clitic after cómo with its verb: the realiser gives a
+    // verb right after a noun phrase the third person and the phrase's number, gives llamar and sentir after cómo and a reflexive clitic that clitic's person, and
+    // skips a subject of two phrases joined by y and a literal verb form that disagrees with the phrase before it; the content did not change. Again later in M59, whose
+    // analyzer leaves a lone name before a verb unchecked (it may be the person spoken to): the realiser draws such a verb's person and number freely.
     private const string OldTextDigest = "E303DC63C18560EC9E0F08C7FB21B8EBB2742D4F28F71C36C112D65E4E97D073";
-    private const string OldSentenceDigest = "BFE8D761A4518567FC558A40631B889109C399A2E8E462B2291E663A334C92BE";
+    private const string OldSentenceDigest = "7E6982EC2ADD15438B258CB10C47C88FF8738988C480484CC134B3F7A3938017";
 
     [Fact]
     public void TheSpanishRecordUsesTheSpanishPackAndTheWholeMutationSet()

@@ -232,6 +232,11 @@ public static class MutationGen
                         return postverbal;
                     }
 
+                    if (PreverbalSubject(i) is { } preverbal)
+                    {
+                        return preverbal;
+                    }
+
                     continue;
                 }
 
@@ -331,6 +336,54 @@ public static class MutationGen
             if (readingsOfForm.Count == 0
                 || readingsOfForm.Any(r => r.Pos != LexiconSchema.Verb || r.Person is null || r.Lemma != verb.Lemma)
                 || readingsOfForm.Any(r => r.Person == "3" && r.Number == verb.Number && r.Tense == verb.Tense))
+            {
+                return null;
+            }
+
+            var mutated = Replace(i, verb with { Written = form, Norm = form, Number = number });
+            return Result(MutationKind.ConjPerson, mutated, [Error(mutated, ErrorTags.ConjPerson, i, i, verb.Norm, form)], sentence.NormalizedText, keepsGrammar: true);
+        }
+
+        // M59: a third-person verb right after a noun phrase with an article or numeral that opens the sentence is agreed with it (los niños comen pan, el pan está
+        // aquí), so the other number gives conj.person with the original form. The mutation is made only where the analyzer's reading is certain: the phrase is the first
+        // two words of the sentence, an article or numeral and its noun; every reading of the noun is a noun of one number, no noun of time or quantity; the verb follows
+        // the noun directly; and the new form has no reading but that verb in that tense. A lone name (domingo hace un hacha) is never mutated: it may be the person spoken
+        // to, so the analyzer does not check its verb; nor is a verb of the first or second person made, which the analyzer does not check after a noun phrase.
+        private MutatedSentence? PreverbalSubject(int i)
+        {
+            var verb = _tokens[i];
+            if (verb is not { Person: "3", Number: not null, Tense: not null, Lemma: not null } || i != 2)
+            {
+                return null;
+            }
+
+            var noun = _tokens[1];
+            if (noun.Role is not (TokenRole.Noun or TokenRole.Literal) || noun.Head != 1 || _tokens[0] is not { Role: TokenRole.Article or TokenRole.Numeral, Head: 1 })
+            {
+                return null;
+            }
+
+            var nouns = _words.Lexicon.Lookup(noun.Norm);
+            if (nouns.Count == 0
+                || nouns.Any(static r => r.Pos != LexiconSchema.Noun)
+                || nouns.Select(static r => r.Number).Distinct().Count() != 1
+                || nouns[0].Number != verb.Number
+                || nouns.Any(static r => LexiconCatalog.PostverbalNonSubjectNouns.Contains(r.Lemma)))
+            {
+                return null;
+            }
+
+            var number = verb.Number == LexiconSchema.Singular ? LexiconSchema.Plural : LexiconSchema.Singular;
+            var form = _words.Morphology.Conjugate(verb.Lemma, "3", number, verb.Tense);
+            if (form is null || form == verb.Norm)
+            {
+                return null;
+            }
+
+            var readings = _words.Lexicon.Lookup(form);
+            if (readings.Count == 0
+                || readings.Any(r => r.Pos != LexiconSchema.Verb || r.Person is null || r.Lemma != verb.Lemma || r.Tense != verb.Tense)
+                || readings.Any(r => r.Person == "3" && r.Number == verb.Number))
             {
                 return null;
             }

@@ -23,8 +23,11 @@ using Vocaterra.Nlp.Language.SlotGrammar;
 /// follow a noun is prenominal, so the word after it is a noun (<c>correcto paseo</c>); a quantifier that is also an adverb (<c>mucho</c>) before a noun is the
 /// determiner, and so is the adjective-and-adverb or adjective-and-pronoun word before a noun that cannot be a verb (<c>temprano pasillo</c>), unless it is an adverb
 /// that goes before nouns (<c>solo agua</c>); the word after a subject pronoun or a clitic, skipping adverbs and clitics, is a verb, and so is the word after
-/// <c>dónde</c> or <c>cómo</c> when it can be one (<c>¿dónde son las casas?</c>, M56); the word after a preposition
-/// and the complement of a copula are not finite verbs; an interjection reading is the last resort; and a determiner adjective beats an adjective of its own
+/// <c>dónde</c> or <c>cómo</c> when it can be one (<c>¿dónde son las casas?</c>, M56), past the pronouns that stand before a verb (<c>¿cómo se llamas?</c>, M59); a
+/// preposition of elapsed time that is also a verb (<c>hace</c>) is the preposition only before a phrase of time (<c>hace dos días</c>) and the verb elsewhere
+/// (<c>¿qué hace?</c>, M59); the word after a preposition
+/// and the complement of a copula are not finite verbs, except a verb after <c>ir a</c> (<c>voy a como</c>, M49) that is nothing else but an adverb, a conjunction or a
+/// preposition (<c>va a hace</c>, M59); an interjection reading is the last resort; and a determiner adjective beats an adjective of its own
 /// spelling (<c>sus</c> beside <c>su</c>). These rules are what keeps the third step from hiding a real mistake: <c>un lanza</c> and <c>dos libro</c> are mistakes
 /// because the word after the determiner can only be the noun, and <c>yo lanza</c> is a person mistake because the word after the pronoun can only be the verb.
 /// </description></item>
@@ -298,20 +301,39 @@ internal static class ReadingResolver
             }
 
             // M56: a question word that takes a verb (dónde, cómo) is followed by the verb when the next word can be one: ¿dónde son las casas? is ser, not the noun son,
-            // so that the ser/estar check sees it.
-            if (next < Count && _rules.IsVerbSeekingQuestionWord(_tokens[i].Token.Text) && HasReading(next, ReadingClasses.IsFiniteVerb))
+            // so that the ser/estar check sees it. M59: past the pronouns that stand before a verb (¿cómo se llamas?: the verb, not the noun llamas).
+            if (next < Count && _rules.IsVerbSeekingQuestionWord(_tokens[i].Token.Text))
             {
-                changed |= Narrow(next, ReadingClasses.IsFiniteVerb);
+                var verb = next;
+                while (verb < Count - 1 && verb - next < ReadingClasses.MaxSkippedBetween && All(verb, r => r.Pos == LexiconSchema.Pronoun && _rules.IsPreverbalPronoun(r.Lemma)))
+                {
+                    verb++;
+                }
+
+                if (HasReading(verb, ReadingClasses.IsFiniteVerb))
+                {
+                    changed |= Narrow(verb, ReadingClasses.IsFiniteVerb);
+                }
+            }
+
+            // M59: a preposition of elapsed time that is also a finite verb (hace) is the preposition only before a phrase of time (hace dos días, hace un rato, hace mucho
+            // tiempo, hace mucho); elsewhere it is the verb (¿qué hace?, hace pan, hace frío), so that the checks see it and the host reads the verb.
+            if (HasReading(i, r => r.Pos == LexiconSchema.Preposition && _rules.IsElapsedTimePreposition(r.Lemma)) && HasReading(i, ReadingClasses.IsFiniteVerb))
+            {
+                changed |= ElapsedTimePhraseFollows(i)
+                    ? Narrow(i, r => r.Pos == LexiconSchema.Preposition)
+                    : Narrow(i, ReadingClasses.IsFiniteVerb);
             }
 
             // A preposition does not govern a finite verb (a casa, de lanza).
             if (next < Count && IsCertainPreposition(i))
             {
                 // M49: after "ir a" a word that is a finite verb and nothing but a conjunction or adverb besides (voy a como) keeps the verb, so that the near-future check
-                // sees it; a word that can also be a noun, adjective or pronoun is still the noun phrase (voy a casa).
+                // sees it; a word that can also be a noun, adjective or pronoun is still the noun phrase (voy a casa). M59: a preposition besides counts as nothing
+                // either, since none follows the a of "ir a" (va a hace un hacha: the verb).
                 if (IsIrA(i)
                     && HasReading(next, ReadingClasses.IsFiniteVerb)
-                    && All(next, r => ReadingClasses.IsFiniteVerb(r) || r.Pos is LexiconSchema.Conjunction or LexiconSchema.Adverb))
+                    && All(next, r => ReadingClasses.IsFiniteVerb(r) || r.Pos is LexiconSchema.Conjunction or LexiconSchema.Adverb or LexiconSchema.Preposition))
                 {
                     changed |= Narrow(next, ReadingClasses.IsFiniteVerb);
                 }
@@ -372,6 +394,24 @@ internal static class ReadingResolver
             }
 
             return changed;
+        }
+
+        // M59: the words after a preposition of elapsed time are a phrase of time: determiners (dos, un, unos, mucho, poco) and then a noun of a stretch of time (hace dos
+        // días, hace un rato, hace mucho tiempo), or determiners alone that no noun follows (hace mucho, hace poco). An adjective is no part of it (hace buen tiempo: the verb).
+        private bool ElapsedTimePhraseFollows(int preposition)
+        {
+            var k = preposition + 1;
+            while (k < Count && HasReading(k, IsDeterminer) && !HasReading(k, r => r.Pos == LexiconSchema.Noun))
+            {
+                k++;
+            }
+
+            if (k < Count && HasReading(k, r => r.Pos == LexiconSchema.Noun && _rules.IsElapsedTimeNoun(r.Lemma)))
+            {
+                return true;
+            }
+
+            return k > preposition + 1 && (k == Count || !HasReading(k, r => r.Pos == LexiconSchema.Noun));
         }
 
         // True when the word before the adjectives that end at index, or before the one at index, can be a noun.

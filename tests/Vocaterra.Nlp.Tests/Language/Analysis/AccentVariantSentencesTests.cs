@@ -327,6 +327,21 @@ public class AccentVariantSentencesTests
         Assert.Equal("[ART]", result.MatchedGrammarId);
     }
 
+    // M59, found by the fuzz suite once a noun before a verb became its subject (O3, "te estas relacionado"): te and estas were decided in the same pass, te against
+    // the demonstrative estas (no verb after it, so the noun té) and estas against its neighbours (no noun after it, so the verb estás), which made "té estás", a noun
+    // subject and a verb of the second person. A pronoun before a verb now keeps its reading when the next word is a verb once accented.
+    [Theory]
+    [InlineData("te estas relacionado")]
+    [InlineData("te estas quieto")]
+    [InlineData("se esta bien")]
+    public void APronounBeforeAWordThatIsAVerbOnceAccentedStaysThePronoun(string sentence)
+    {
+        AssertNoErrors(sentence);
+        var resolved = Resolve(sentence);
+        Assert.All(resolved[0].Readings, static r => Assert.Equal(LexiconSchema.Pronoun, r.Pos));
+        Assert.Contains(resolved[1].Readings, static r => r.Pos == LexiconSchema.Verb && r.Lemma == "estar");
+    }
+
     [Fact]
     public void TheAnalysisIsTheSameOnAFreshAnalyzer()
     {

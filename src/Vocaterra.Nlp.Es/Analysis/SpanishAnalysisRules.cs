@@ -41,6 +41,10 @@ internal sealed class SpanishAnalysisRules : IAnalysisRules
 
     public bool IsNearFutureLinker(string word) => string.Equals(word, "a", StringComparison.Ordinal);
 
+    public bool IsElapsedTimePreposition(string lemma) => SpanishAnalysisTables.IsElapsedTimePreposition(lemma);
+
+    public bool IsElapsedTimeNoun(string lemma) => SpanishAnalysisTables.IsElapsedTimeNoun(lemma);
+
     public bool IsCopula(string lemma) => lemma is "ser" or "estar";
 
     public bool IsCopulaOrAuxiliary(string lemma) => lemma is "ser" or "estar" or "haber";

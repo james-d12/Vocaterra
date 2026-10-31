@@ -3,6 +3,7 @@ namespace Vocaterra.Nlp.Es.Tests.Analysis;
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Packs;
+using Vocaterra.Nlp.Language.SlotGrammar;
 
 /// <summary>
 /// M49: tense checks for the near future (conj.tense). A future-time marker with a preterite or imperfect form expects the ir a + infinitive form; a conjugated
@@ -55,6 +56,31 @@ public class NearFutureTenseTests
     public void AConjugatedVerbAfterIrAExpectsTheInfinitive(string sentence, string expected)
     {
         Assert.Equal([expected], Described(sentence));
+    }
+
+    // M59 (c), found by the game's V12: hace is also the preposition of "hace dos días", and after "ir a" a word with a reading that is not a verb, an adverb or a
+    // conjunction was left to the noun phrase, so "va a hace un hacha" gave nothing where "va a hizo" gave conj.tense. No preposition follows the a of "ir a", so the
+    // verb is read and checked. The game's grammar binds hacer as it does at the lesson's prompt; the analysis without a grammar is the same.
+    [Theory]
+    [InlineData("va a hace un hacha", "conj.tense|hace|hacer")]
+    [InlineData("voy a hace pan", "conj.tense|hace|hacer")]
+    [InlineData("vamos a hace pan mañana", "conj.tense|hace|hacer")]
+    [InlineData("va a hizo un hacha", "conj.tense|hizo|hacer")]
+    public void AFiniteVerbThatIsAlsoAPrepositionAfterIrAExpectsTheInfinitive(string sentence, string expected)
+    {
+        Assert.Equal([expected], Described(sentence));
+        var grammar = SlotGrammar.Parse("(mañana|ayer|hoy|luego|después)? (domingo|luz|mar|león)? [VERB:ir] a [VERB:hacer] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?");
+        Assert.Equal([expected], Analyzer.Value.Analyze(TestTokens.From(sentence), [grammar]).Errors.Select(static e => $"{e.Tag}|{e.Actual}|{e.Expected}").ToArray());
+    }
+
+    [Theory]
+    [InlineData("va a hacer un hacha")]
+    [InlineData("domingo va a hacer un hacha")]
+    [InlineData("va a la herrería")]
+    [InlineData("hace dos días fui a la tienda")]
+    public void TheInfinitiveAndANounPhraseAfterIrAAreClean(string sentence)
+    {
+        Assert.Empty(Described(sentence));
     }
 
     // R02, found by the fuzz suite on the game's bundle ("va a vais a culpa ayer por favor"): a past-time marker and a finite verb after "ir a" were both

@@ -323,7 +323,7 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
 
     [Theory]
     [InlineData("voy a hacer un hacha")] // the near future of the learner, not Domingo's
-    [InlineData("Domingo voy a hacer un hacha")] // a name before the verb: the core checks a person only after a subject pronoun (a core gap), the lesson's step does
+    [InlineData("Domingo voy a hacer un hacha")] // a lone name before the verb may be the listener (Domingo, voy a...), so the core says nothing: the lesson's step does
     public void ThePlanInTheFirstPersonIsAMissWithAPersonRetry(string said)
     {
         var session = AtStep("g1-plan");
@@ -356,8 +356,8 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
     [Fact]
     public void TheFirstPersonWhereDomingoWorksIsAMissWithAPersonRetryAndElTrabajoIsTheCoresSlip()
     {
-        // "Domingo trabajo en la herrería": the core gives no conj.person after a name (it checks a person only after a subject pronoun), so the lesson's person check
-        // makes it a miss; after "él" the core flags it itself (conj.person, expected trabaja): a slip, and the step goes on.
+        // "Domingo trabajo en la herrería": a lone name before the verb may be the listener (Domingo, trabajo en la herrería), so the core says nothing of the person
+        // (M59) and the lesson's person check makes it a miss; after "él" the core flags it itself (conj.person, expected trabaja): a slip, and the step goes on.
         var miss = AtStep("g6-works");
         AssertMiss(miss, "Domingo trabajo en la herrería", "g6-works", "wrong person: said 1sg, expected 3sg", "“trabaja”");
         _ = miss.Say("Domingo trabaja en la herrería");
@@ -368,6 +368,7 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
         Assert.True(turn.Communicated);
         Assert.Equal("trabaja", Assert.Single(turn.Errors, static e => e.Tag == "conj.person").Expected);
         Assert.Equal("g6-house", slip.Lessons.Current!.Id);
+        Assert.Contains(slip.Events.OfType<LessonEvent>(), static e => e.Kind == LessonEventKind.StepDone && e.StepId == "g6-works" && e.Detail == "with a slip");
     }
 
     [Fact]
@@ -388,16 +389,23 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
         Assert.Equal(StepOutcome.Done, slip.Lessons.OutcomesOf(LessonId)[^1].Outcome);
     }
 
-    [Theory]
-    [InlineData("¿Cómo se llama usted?", "wrong person: said 3sg, expected 2sg")] // right Spanish, but the NPCs say tú
-    [InlineData("¿Cómo te llama?", "wrong person: said 3sg, expected 2sg")] // te llama is right Spanish to the core (he calls you): the lesson's check
-    public void TheNameAskedAsUstedOrInTheThirdPersonIsAMissWithAPersonRetry(string said, string reason)
+    [Fact]
+    public void TheNameAskedAsUstedIsAMissWithAPersonRetryAndComoTeLlamaIsTheCoresSlip()
     {
-        var session = AtStep("g3-name");
+        // "¿Cómo se llama usted?" is right Spanish, but the NPCs say tú: the lesson's person check makes it a miss. "¿Cómo te llama?" the core flags itself since M59,
+        // which agrees a reflexive clitic after cómo with its verb (conj.person, expected llamas): a slip, and the step goes on.
+        var miss = AtStep("g3-name");
+        AssertMiss(miss, "¿Cómo se llama usted?", "g3-name", "wrong person: said 3sg, expected 2sg", "“¿Cómo te llamas?”");
+        _ = miss.Say("¿Cómo te llamas?");
+        Assert.Equal("g3-llamo", miss.Lessons.Current!.Id); // and he says his name
 
-        AssertMiss(session, said, "g3-name", reason, "“¿Cómo te llamas?”");
-        _ = session.Say("¿Cómo te llamas?");
-        Assert.Equal("g3-llamo", session.Lessons.Current!.Id); // and he says his name
+        var slip = AtStep("g3-name");
+        var turn = slip.Say("¿Cómo te llama?");
+        Assert.True(turn.Communicated);
+        Assert.Equal("ask_name", turn.Intent);
+        Assert.Equal("llamas", Assert.Single(turn.Errors, static e => e.Tag == "conj.person").Expected);
+        Assert.Equal("g3-llamo", slip.Lessons.Current!.Id);
+        Assert.Contains(slip.Events.OfType<LessonEvent>(), static e => e.Kind == LessonEventKind.StepDone && e.StepId == "g3-name" && e.Detail == "with a slip");
     }
 
     [Fact]
