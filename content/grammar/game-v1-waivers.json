@@ -125,6 +125,36 @@
       "rule": "UPPERCASE_SENTENCE_START",
       "id": "speech:card.tierra",
       "reason": "A bare noun phrase spoken as a card label (SpeechLines.cs, SpeechKind.Word), not a sentence."
+    },
+    {
+      "rule": "MIN_DIAS_SEMANA",
+      "text": "Me llamo Domingo.",
+      "reason": "Domingo is the smith's name (VILLAGE_PLAN V12, D-game-22), a proper name, so it takes a capital as the rule itself allows (\"excepto si forman parte de un nombre propio\"); the rule reads the word as the day of the week."
+    },
+    {
+      "rule": "MIN_DIAS_SEMANA",
+      "text": "¿Qué hizo Domingo?",
+      "reason": "Domingo is the smith's name (VILLAGE_PLAN V12, D-game-22), a proper name, so it takes a capital as the rule itself allows (\"excepto si forman parte de un nombre propio\"); the rule reads the word as the day of the week."
+    },
+    {
+      "rule": "MIN_DIAS_SEMANA",
+      "text": "¿Qué va a hacer Domingo?",
+      "reason": "Domingo is the smith's name (VILLAGE_PLAN V12, D-game-22), a proper name, so it takes a capital as the rule itself allows (\"excepto si forman parte de un nombre propio\"); the rule reads the word as the day of the week."
+    },
+    {
+      "rule": "MIN_DIAS_SEMANA",
+      "text": "Mira, allí está Domingo. Es el herrero.",
+      "reason": "Domingo is the smith's name (VILLAGE_PLAN V12, D-game-22), a proper name, so it takes a capital as the rule itself allows (\"excepto si forman parte de un nombre propio\"); the rule reads the word as the day of the week."
+    },
+    {
+      "rule": "MIN_DIAS_SEMANA",
+      "text": "¿Quién es Domingo?",
+      "reason": "Domingo is the smith's name (VILLAGE_PLAN V12, D-game-22), a proper name, so it takes a capital as the rule itself allows (\"excepto si forman parte de un nombre propio\"); the rule reads the word as the day of the week."
+    },
+    {
+      "rule": "MIN_DIAS_SEMANA",
+      "text": "¿Dónde trabaja Domingo?",
+      "reason": "Domingo is the smith's name (VILLAGE_PLAN V12, D-game-22), a proper name, so it takes a capital as the rule itself allows (\"excepto si forman parte de un nombre propio\"); the rule reads the word as the day of the week."
     }
   ]
 }

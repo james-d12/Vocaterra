@@ -23,6 +23,8 @@
     {"form":"pescador","lemma":"pescador","pos":"noun","features":{"number":"sg","gender":"m"}},
     {"form":"pescadores","lemma":"pescador","pos":"noun","features":{"number":"pl","gender":"m"}},
     {"form":"letrero","lemma":"letrero","pos":"noun","features":{"number":"sg","gender":"m"}},
-    {"form":"letreros","lemma":"letrero","pos":"noun","features":{"number":"pl","gender":"m"}}
+    {"form":"letreros","lemma":"letrero","pos":"noun","features":{"number":"pl","gender":"m"}},
+    {"form":"granjero","lemma":"granjero","pos":"noun","features":{"number":"sg","gender":"m"}},
+    {"form":"granjeros","lemma":"granjero","pos":"noun","features":{"number":"pl","gender":"m"}}
   ]
 }

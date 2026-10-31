@@ -275,7 +275,8 @@
       "requiredSlots": ["object"],
       "slotGrammars": [
         "[VERB:ser] [ART] [NOUN:object]",
-        "(eso|esto) [VERB:ser] [ART] [NOUN:object]"
+        "(eso|esto) [VERB:ser] [ART] [NOUN:object]",
+        "(domingo|luz|mar|león) [VERB:ser] [ART] [NOUN:object]"
       ],
       "examples": [
         "es un árbol",
@@ -283,7 +284,12 @@
         "eso es un árbol",
         "esto es una piedra",
         "es una hierba",
-        "es la tierra"
+        "es la tierra",
+        {"text": "es el herrero", "errors": [], "prompt": "lesson-who"},
+        {"text": "domingo es el herrero", "errors": [], "prompt": "lesson-who"},
+        {"text": "él es el herrero", "errors": [], "prompt": "lesson-who"},
+        {"text": "es un herrero", "errors": [], "prompt": "lesson-who"},
+        {"text": "es la herrero", "errors": ["gender.agree"], "prompt": "lesson-who"}
       ]
     },
     {
@@ -386,7 +392,13 @@
         "(mañana|ayer|hoy|luego|después)? [VERB:ir] a [VERB:comprar] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?",
         "(sí)? (mañana|ayer|hoy|luego|después)? [VERB:comprar] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?",
         "(mañana|ayer|hoy|luego|después)? [VERB:ir] a [VERB:buscar] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?",
-        "(sí)? (mañana|ayer|hoy|luego|después)? [VERB:buscar] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?"
+        "(sí)? (mañana|ayer|hoy|luego|después)? [VERB:buscar] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?",
+        "(mañana|ayer|hoy|luego|después)? (domingo|luz|mar|león)? [VERB:ir] a [VERB:hacer] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?",
+        "(sí)? (mañana|ayer|hoy|luego|después)? (domingo|luz|mar|león)? [VERB:hacer] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?",
+        "(mañana|ayer|hoy|luego|después)? (domingo|luz|mar|león)? [VERB:ir] a [VERB:trabajar] en [ART] [NOUN:place] (mañana|ayer|hoy|luego|después)?",
+        "(sí)? (mañana|ayer|hoy|luego|después)? (domingo|luz|mar|león)? [VERB:trabajar] en [ART] [NOUN:place] (mañana|ayer|hoy|luego|después)?",
+        "(mañana|ayer|hoy|luego|después)? (domingo|luz|mar|león)? [VERB:ir] a [VERB:vivir] en [ART] [NOUN:place] (mañana|ayer|hoy|luego|después)?",
+        "(sí)? (mañana|ayer|hoy|luego|después)? (domingo|luz|mar|león)? [VERB:vivir] en [ART] [NOUN:place] (mañana|ayer|hoy|luego|después)?"
       ],
       "keywordRules": [
         { "lemmas": ["ir"], "requiresSlots": [] },
@@ -495,7 +507,36 @@
         {"text": "compré un pan", "errors": [], "prompt": "lesson-bought"},
         {"text": "ayer compro dos panes", "errors": ["conj.tense"], "prompt": "lesson-bought"},
         {"text": "yo compraste dos panes", "errors": ["conj.person"], "prompt": "lesson-bought"},
-        "busqué madera"
+        {"text": "va a hacer un hacha", "errors": [], "prompt": "lesson-will-make"},
+        {"text": "domingo va a hacer un hacha", "errors": [], "prompt": "lesson-will-make"},
+        {"text": "él va a hacer un hacha", "errors": [], "prompt": "lesson-will-make"},
+        {"text": "va a hacer un hacha hoy", "errors": [], "prompt": "lesson-will-make"},
+        {"text": "mañana va a hacer un hacha", "errors": [], "prompt": "lesson-will-make"},
+        {"text": "luego domingo hace un hacha", "errors": [], "prompt": "lesson-will-make"},
+        {"text": "domingo va a hizo un hacha", "errors": ["conj.tense"], "prompt": "lesson-will-make"},
+        {"text": "él voy a hacer un hacha", "errors": ["conj.person"], "prompt": "lesson-will-make"},
+        {"text": "domingo trabaja en la herrería", "errors": [], "prompt": "lesson-works"},
+        {"text": "trabaja en la herrería", "errors": [], "prompt": "lesson-works"},
+        {"text": "él trabaja en la herrería", "errors": [], "prompt": "lesson-works"},
+        {"text": "hoy domingo trabaja en la herrería", "errors": [], "prompt": "lesson-works"},
+        {"text": "él trabajo en la herrería", "errors": ["conj.person"], "prompt": "lesson-works"},
+        {"text": "domingo trabaja en el herrería", "errors": ["gender.agree"], "prompt": "lesson-works"},
+        {"text": "vivo en el campamento", "errors": [], "prompt": "lesson-lives"},
+        {"text": "yo vivo en el campamento", "errors": [], "prompt": "lesson-lives"},
+        {"text": "vivo en la casa", "errors": [], "prompt": "lesson-lives"},
+        {"text": "vivo en la campamento", "errors": ["gender.agree"], "prompt": "lesson-lives"},
+        {"text": "yo vives en el campamento", "errors": ["conj.person"], "prompt": "lesson-lives"},
+        {"text": "domingo hizo un hacha", "errors": [], "prompt": "lesson-made"},
+        {"text": "hizo un hacha", "errors": [], "prompt": "lesson-made"},
+        {"text": "él hizo un hacha", "errors": [], "prompt": "lesson-made"},
+        {"text": "hoy domingo hizo un hacha", "errors": [], "prompt": "lesson-made"},
+        {"text": "domingo hizo el hacha", "errors": [], "prompt": "lesson-made"},
+        {"text": "ayer domingo hace un hacha", "errors": ["conj.tense"], "prompt": "lesson-made"},
+        {"text": "él hice un hacha", "errors": ["conj.person"], "prompt": "lesson-made"},
+        "busqué madera",
+        "león trabaja en el campo",
+        "luz vive en la panadería",
+        "mar va a trabajar en el río"
       ]
     },
     {
@@ -506,7 +547,7 @@
         "me [VERB:ayudar]",
         "me [VERB:poder] [VERB:ayudar]",
         "[VERB:necesitar] ayuda",
-        "qué [VERB:hacer]"
+        "qué (hago|hacemos)"
       ],
       "keywordRules": [
         { "lemmas": ["ayudar"], "requiresSlots": [] }
@@ -638,6 +679,54 @@
         {"text": "cuánto es", "errors": [], "prompt": "stall-need"},
         "cuánto cuesta el agua",
         "cuánto cuesta una manzana"
+      ]
+    },
+    {
+      "intentId": "ask_name",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "cómo te [VERB:llamar] (tú)?",
+        "cómo se [VERB:llamar] (usted|él|ella)"
+      ],
+      "keywordRules": [
+        { "lemmas": ["llamar"], "requiresSlots": [] }
+      ],
+      "lint": {"allowRuleOnly": ["cómo tú te llama"]},
+      "examples": [
+        {"text": "cómo te llamas", "errors": [], "prompt": "smith-open"},
+        {"text": "cómo te llamas tú", "errors": [], "prompt": "smith-open"},
+        {"text": "cómo se llama usted", "errors": [], "prompt": "smith-open"},
+        {"text": "cómo te llamas", "errors": [], "prompt": "farmer-open"},
+        {"text": "cómo se llama usted", "errors": [], "prompt": "farmer-open"},
+        {"text": "cómo tú te llama", "errors": ["conj.person"], "prompt": "smith-open"},
+        "cómo se llama él",
+        "cómo se llama ella"
+      ]
+    },
+    {
+      "intentId": "ask_activity",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "qué [VERB:hacer] (tú|usted)?",
+        "en qué [VERB:trabajar] (tú|usted)?",
+        "dónde [VERB:trabajar] (tú|usted)?"
+      ],
+      "keywordRules": [
+        { "lemmas": ["trabajar"], "requiresSlots": [] },
+        { "lemmas": ["hacer"], "requiresSlots": [] }
+      ],
+      "lint": {"allowOverlap": ["ask_help"], "allowRuleOnly": ["qué tú hace"]},
+      "examples": [
+        {"text": "qué haces", "errors": [], "prompt": "smith-open"},
+        {"text": "qué haces tú", "errors": [], "prompt": "smith-open"},
+        {"text": "qué hace usted", "errors": [], "prompt": "smith-open"},
+        {"text": "en qué trabajas", "errors": [], "prompt": "smith-open"},
+        {"text": "dónde trabajas", "errors": [], "prompt": "smith-open"},
+        {"text": "qué haces", "errors": [], "prompt": "farmer-open"},
+        {"text": "en qué trabajas", "errors": [], "prompt": "farmer-open"},
+        {"text": "qué tú hace", "errors": ["conj.person"], "prompt": "smith-open"},
+        "en qué trabaja usted",
+        "dónde trabaja usted"
       ]
     }
   ]

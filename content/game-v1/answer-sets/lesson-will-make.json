@@ -1,0 +1,23 @@
+{
+  "answerSetId": "lesson-will-make",
+  "answers": [
+    {
+      "answerId": "axe",
+      "canonical": "va a hacer un hacha",
+      "aliases": ["domingo va a hacer un hacha", "él va a hacer un hacha", "va a hacer un hacha hoy", "mañana va a hacer un hacha", "luego domingo hace un hacha"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": ["no lo sé", "yo no sé", "no entiendo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    }
+  ]
+}

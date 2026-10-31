@@ -17,9 +17,9 @@ public sealed class GameDataTests
 
         Assert.Empty(GameDataValidator.Validate(data));
         Assert.Equal(22, data.Nouns.Nouns.Count); // V03 added moneda, manzana and hacha
-        Assert.Equal(77, data.Phrases.Rows.Count); // V10 added El pueblo's fifteen, V11 Números y pan's sixteen
-        Assert.Equal(47, data.Checks.Count);
-        Assert.Equal(5, data.Lessons.Lessons.Count);
+        Assert.Equal(93, data.Phrases.Rows.Count); // V10 added El pueblo's fifteen, V11 Números y pan's sixteen, V12 Gente del pueblo's sixteen
+        Assert.Equal(55, data.Checks.Count);
+        Assert.Equal(6, data.Lessons.Lessons.Count);
         Assert.Equal("prototype-valley", data.Scene.Name);
     }
 
@@ -63,9 +63,10 @@ public sealed class GameDataTests
             static p => Assert.Equal("game/scene.json: the scene does not place the NPC 'villager'.", p),
             static p => Assert.Equal("game/lessons.json: the lesson 'personas' is said at 'villager', whom the scene does not place.", p),
             static p => Assert.Equal("game/lessons.json: the lesson 'ayer-y-manana' is said at 'villager', whom the scene does not place.", p),
-            static p => Assert.Equal("game/lessons.json: the lesson 'el-pueblo' is said at 'villager', whom the scene does not place.", p)); // the signpost step (V10)
+            static p => Assert.Equal("game/lessons.json: the lesson 'el-pueblo' is said at 'villager', whom the scene does not place.", p), // the signpost step (V10)
+            static p => Assert.Equal("game/lessons.json: the lesson 'gente-del-pueblo' is said at 'villager', whom the scene does not place.", p)); // its first and last parts (V12)
         var error = Assert.Throws<InvalidDataException>(() => GameData.Checked(data));
-        Assert.Contains("(7 problems)", error.Message, StringComparison.Ordinal);
+        Assert.Contains("(8 problems)", error.Message, StringComparison.Ordinal);
         Assert.Contains("hola-x", error.Message, StringComparison.Ordinal);
     }
 }

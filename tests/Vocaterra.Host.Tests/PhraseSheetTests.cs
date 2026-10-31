@@ -25,6 +25,8 @@ public sealed class PhraseSheetTests
         "que-vas-a-hacer-alli", "voy-a-comprar-pan", "el-letrero", "fuiste-a-la-panaderia", "fui-a-la-panaderia",
         "uno-a-cinco", "seis-a-diez", "tengo-diez-panes", "cuantos-panes", "quiero-dos-panes", "cuanto-cuesta", "cuesta-dos-monedas", "necesito-madera-para-el-horno", "voy-a-buscar-madera",
         "toma-cuatro-monedas", "tengo-cuatro-monedas", "ayer-compre-fruta", "que-compraste", "compre-dos-panes", "compraste-dos-panes", "hay-pan",
+        "como-te-llamas", "me-llamo-domingo", "que-haces", "soy-el-herrero", "es-el-herrero", "que-va-a-hacer-domingo", "va-a-hacer-un-hacha", "donde-vives",
+        "vivo-en-el-campamento", "quieres-un-hacha", "toma-el-hacha", "trabaja-en-la-herreria", "vive-en-la-casa", "que-hizo-domingo", "hizo-un-hacha", "ayer-trabajo-mucho",
     ];
 
     private static readonly Lazy<IReadOnlyList<PhraseRow>> LoadedRows = new(ReadRows);
@@ -36,7 +38,7 @@ public sealed class PhraseSheetTests
     private static IEnumerable<PhraseRow> HeardRows => Rows.Where(static r => r.Says is "hears" or "both");
 
     [Fact]
-    public void TheSheetHoldsExactlyTheSeventySevenPhrasesInOrder()
+    public void TheSheetHoldsExactlyTheNinetyThreePhrasesInOrder()
     {
         Assert.Equal(ExpectedIds, Rows.Select(static r => r.Id));
         foreach (var row in Rows)

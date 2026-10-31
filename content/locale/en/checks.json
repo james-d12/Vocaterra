@@ -120,6 +120,26 @@
     "check.say.quiero-dos-panes.situation": "A baker asks how many loaves you want. You want two. Ask for them.",
     "check.say.cuanto-cuesta.situation": "You are at a bakery and want to know the price of the bread. Ask how much it is.",
     "check.say.voy-a-buscar-madera.situation": "A baker asks what you are going to do. You are going to look for wood. Say so.",
-    "check.say.compre-dos-panes.situation": "A baker asks what you bought. You bought two loaves. Say so."
+    "check.say.compre-dos-panes.situation": "A baker asks what you bought. You bought two loaves. Say so.",
+    "check.hear.soy-el-herrero.question": "A man at a smithy says this to you. What does it mean?",
+    "check.hear.soy-el-herrero.option.1": "He is the smith: fire and wood.",
+    "check.hear.soy-el-herrero.option.2": "He is the farmer: the field.",
+    "check.hear.soy-el-herrero.option.3": "He wants fire and wood.",
+    "check.hear.quieres-un-hacha.question": "A smith says this to you. What does he need?",
+    "check.hear.quieres-un-hacha.option.1": "Two wood and two coins, for an axe.",
+    "check.hear.quieres-un-hacha.option.2": "Two axes and two coins.",
+    "check.hear.quieres-un-hacha.option.3": "Five wood, for an oven.",
+    "check.hear.que-va-a-hacer-domingo.question": "A villager asks you this. What does he want to know?",
+    "check.hear.que-va-a-hacer-domingo.option.1": "What Domingo is going to make.",
+    "check.hear.que-va-a-hacer-domingo.option.2": "What Domingo made.",
+    "check.hear.que-va-a-hacer-domingo.option.3": "Where Domingo is going.",
+    "check.hear.ayer-trabajo-mucho.question": "A villager says this about the smith. What does it mean?",
+    "check.hear.ayer-trabajo-mucho.option.1": "Yesterday Domingo worked a lot.",
+    "check.hear.ayer-trabajo-mucho.option.2": "Domingo works a lot.",
+    "check.hear.ayer-trabajo-mucho.option.3": "Tomorrow Domingo will work a lot.",
+    "check.say.como-te-llamas.situation": "You meet a smith you do not know. Ask him his name.",
+    "check.say.que-haces.situation": "You meet a man at a smithy. Ask him what he does.",
+    "check.say.va-a-hacer-un-hacha.situation": "A villager asks what Domingo is going to make. Domingo is going to make an axe. Say so.",
+    "check.say.hizo-un-hacha.situation": "A villager asks what Domingo made. Domingo made an axe. Say so."
   }
 }

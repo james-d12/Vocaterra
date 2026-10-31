@@ -1,0 +1,20 @@
+{
+  "$schema": "../../../schema/npc.schema.json",
+  "schemaVersion": 2,
+  "id": "farmer",
+  "label": "Granjero",
+  "name": "León",
+  "figure": "farmer",
+  "prompts": {
+    "idle": "farmer-open"
+  },
+  "opening": {
+    "event": "farmer.greet",
+    "when": "always"
+  },
+  "voice": {
+    "speaker": 44,
+    "name": "pm_santa",
+    "speed": 1.0
+  }
+}

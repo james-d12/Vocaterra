@@ -1,0 +1,23 @@
+{
+  "answerSetId": "lesson-lives",
+  "answers": [
+    {
+      "answerId": "camp",
+      "canonical": "vivo en el campamento",
+      "aliases": ["yo vivo en el campamento", "vivo en la casa"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": ["no lo sé", "yo no sé", "no entiendo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    }
+  ]
+}

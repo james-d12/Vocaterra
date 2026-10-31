@@ -33,11 +33,12 @@ public sealed class NpcRosterTests
     [Fact]
     public void TheShippedNpcsAreTheOnesTheCodeHeld()
     {
-        // The three the code held, and since VILLAGE_PLAN V10 the fisher Mar and V11 the baker Luz, at the end (the saves keep the NPCs in this order).
-        Assert.Equal(["guide", "shopkeeper", "villager", "fisher", "baker"], Npcs.Ids);
-        Assert.Equal(["Guía", "Tendero", "Aldeano", "Pescador", "Panadera"], Npcs.All.Select(static n => n.Label));
-        Assert.Equal(["Luna", "Tendero", "Aldeano", "Mar", "Luz"], Npcs.All.Select(static n => n.Called));
-        Assert.Equal(["guide", "shopkeeper", "villager", "fisher", "baker"], Npcs.All.Select(static n => n.Figure));
+        // The three the code held, and since VILLAGE_PLAN V10 the fisher Mar, V11 the baker Luz and V12 the smith Domingo and the farmer León, at the end (the saves
+        // keep the NPCs in this order).
+        Assert.Equal(["guide", "shopkeeper", "villager", "fisher", "baker", "smith", "farmer"], Npcs.Ids);
+        Assert.Equal(["Guía", "Tendero", "Aldeano", "Pescador", "Panadera", "Herrero", "Granjero"], Npcs.All.Select(static n => n.Label));
+        Assert.Equal(["Luna", "Tendero", "Aldeano", "Mar", "Luz", "Domingo", "León"], Npcs.All.Select(static n => n.Called));
+        Assert.Equal(["guide", "shopkeeper", "villager", "fisher", "baker", "smith", "farmer"], Npcs.All.Select(static n => n.Figure));
         Assert.Equal("otro", Npcs.LabelOf("otro"));
     }
 
@@ -60,13 +61,15 @@ public sealed class NpcRosterTests
 
         // The renderer's table (docs/nlp/API.md section 6), the key words that were words.json's, and the pools' names.
         // V10: the fisher's provisional voice is the villager's at 0.9 (D-game-22), his pools his own. V11: the baker's is the Italian if_sara (V06's trial), brought
-        // down to the Spanish voices' level (gain 0.32: Kokoro renders it about 10 dB louder).
+        // down to the Spanish voices' level (gain 0.32: Kokoro renders it about 10 dB louder). V12: the smith's is the Italian im_nicola (gain 0.6: about 4 dB
+        // louder in the trial), the farmer's the Portuguese pm_santa (as loud as the Spanish voices).
         Assert.Equal(
-            [new NpcVoiceSpec(28, "ef_dora", 1.0f), new NpcVoiceSpec(29, "em_alex", 1.0f), new NpcVoiceSpec(53, "em_santa", 1.0f), new NpcVoiceSpec(53, "em_santa", 0.9f), new NpcVoiceSpec(35, "if_sara", 1.0f, 0.32f)],
+            [new NpcVoiceSpec(28, "ef_dora", 1.0f), new NpcVoiceSpec(29, "em_alex", 1.0f), new NpcVoiceSpec(53, "em_santa", 1.0f), new NpcVoiceSpec(53, "em_santa", 0.9f), new NpcVoiceSpec(35, "if_sara", 1.0f, 0.32f),
+                new NpcVoiceSpec(36, "im_nicola", 1.0f, 0.6f), new NpcVoiceSpec(44, "pm_santa", 1.0f)],
             Npcs.All.Select(static n => n.Voice));
         Assert.Equal(["agua", "pan"], shopkeeper.KeyWords);
         Assert.Empty(guide.KeyWords.Concat(villager.KeyWords));
-        Assert.Equal(["guide", "shop", "villager", "fisher", "baker"], Npcs.All.Select(static n => n.PoolPrefix));
+        Assert.Equal(["guide", "shop", "villager", "fisher", "baker", "smith", "farmer"], Npcs.All.Select(static n => n.PoolPrefix));
         var fisher = Npcs.Find("fisher")!;
         Assert.Equal(("fisher-open", "fisher-open"), (fisher.PromptIn("idle", "idle"), fisher.PromptIn("pointing", "idle")));
         Assert.Equal(new NpcOpeningRule("fisher.greet", OpeningWhen.Always), fisher.Opening);
@@ -74,6 +77,11 @@ public sealed class NpcRosterTests
         var baker = Npcs.Find("baker")!;
         Assert.Equal("baker-open", baker.PromptIn("idle", "idle"));
         Assert.Equal(new NpcOpeningRule("baker.greet", OpeningWhen.Always), baker.Opening);
+        var smith = Npcs.Find("smith")!;
+        var farmer = Npcs.Find("farmer")!;
+        Assert.Equal(("smith-open", "farmer-open"), (smith.PromptIn("idle", "idle"), farmer.PromptIn("idle", "idle")));
+        Assert.Equal((new NpcOpeningRule("smith.greet", OpeningWhen.Always), new NpcOpeningRule("farmer.greet", OpeningWhen.Always)), (smith.Opening, farmer.Opening));
+        Assert.Empty(smith.KeyWords.Concat(farmer.KeyWords));
     }
 
     [Fact]

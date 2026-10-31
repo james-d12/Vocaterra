@@ -1001,6 +1001,172 @@
       "variants": [
         { "lineId": "guide.lesson.shop.bread.1", "text": "Sí, hay pan. Es pan de Luz." }
       ]
+    },
+    "smith_hello": {
+      "poolId": "smith_hello",
+      "variants": [
+        { "lineId": "smith_hello.1", "text": "¡Hola!" }
+      ]
+    },
+    "smith_greet": {
+      "poolId": "smith_greet",
+      "variants": [
+        { "lineId": "smith_greet.1", "text": "¡Hola! Esta es mi herrería." }
+      ]
+    },
+    "smith_name": {
+      "poolId": "smith_name",
+      "variants": [
+        { "lineId": "smith_name.1", "text": "Me llamo Domingo." }
+      ]
+    },
+    "smith_job": {
+      "poolId": "smith_job",
+      "variants": [
+        { "lineId": "smith_job.1", "text": "Soy el herrero. Trabajo con fuego y madera." }
+      ]
+    },
+    "smith_offer": {
+      "poolId": "smith_offer",
+      "variants": [
+        { "lineId": "smith_offer.1", "text": "¿Quieres un hacha? Necesito dos bloques de madera y dos monedas." }
+      ]
+    },
+    "smith_help": {
+      "poolId": "smith_help",
+      "variants": [
+        { "lineId": "smith_help.1", "text": "Puedes preguntar: «¿Cómo te llamas?»." }
+      ]
+    },
+    "smith_thank": {
+      "poolId": "smith_thank",
+      "variants": [
+        { "lineId": "smith_thank.1", "text": "De nada." },
+        { "lineId": "smith_thank.2", "text": "¡Con gusto!" }
+      ]
+    },
+    "smith_bye": {
+      "poolId": "smith_bye",
+      "variants": [
+        { "lineId": "smith_bye.1", "text": "¡Adiós! Hasta luego." },
+        { "lineId": "smith_bye.2", "text": "Hasta luego." }
+      ]
+    },
+    "smith_delivered": {
+      "poolId": "smith_delivered",
+      "variants": [
+        { "lineId": "smith_delivered.1", "text": "¡Gracias! Toma el hacha." }
+      ]
+    },
+    "farmer_hello": {
+      "poolId": "farmer_hello",
+      "variants": [
+        { "lineId": "farmer_hello.1", "text": "¡Hola!" }
+      ]
+    },
+    "farmer_greet": {
+      "poolId": "farmer_greet",
+      "variants": [
+        { "lineId": "farmer_greet.1", "text": "¡Hola! Este es mi campo." }
+      ]
+    },
+    "farmer_name": {
+      "poolId": "farmer_name",
+      "variants": [
+        { "lineId": "farmer_name.1", "text": "Me llamo León." }
+      ]
+    },
+    "farmer_job": {
+      "poolId": "farmer_job",
+      "variants": [
+        { "lineId": "farmer_job.1", "text": "Soy el granjero. Trabajo en el campo." }
+      ]
+    },
+    "farmer_help": {
+      "poolId": "farmer_help",
+      "variants": [
+        { "lineId": "farmer_help.1", "text": "Puedes preguntar: «¿Qué haces?»." }
+      ]
+    },
+    "farmer_thank": {
+      "poolId": "farmer_thank",
+      "variants": [
+        { "lineId": "farmer_thank.1", "text": "De nada." },
+        { "lineId": "farmer_thank.2", "text": "¡Con gusto!" }
+      ]
+    },
+    "farmer_bye": {
+      "poolId": "farmer_bye",
+      "variants": [
+        { "lineId": "farmer_bye.1", "text": "¡Adiós! Hasta luego." },
+        { "lineId": "farmer_bye.2", "text": "Hasta luego." }
+      ]
+    },
+    "guide.lesson.villager.went_bakery": {
+      "poolId": "guide.lesson.villager.went_bakery",
+      "variants": [
+        { "lineId": "guide.lesson.villager.went_bakery.1", "text": "¡Hola! ¿Fuiste a la panadería?" }
+      ]
+    },
+    "guide.lesson.villager.smith": {
+      "poolId": "guide.lesson.villager.smith",
+      "variants": [
+        { "lineId": "guide.lesson.villager.smith.1", "text": "Mira, allí está Domingo. Es el herrero." }
+      ]
+    },
+    "guide.lesson.villager.who": {
+      "poolId": "guide.lesson.villager.who",
+      "variants": [
+        { "lineId": "guide.lesson.villager.who.1", "text": "¿Quién es Domingo?" }
+      ]
+    },
+    "guide.lesson.villager.axe": {
+      "poolId": "guide.lesson.villager.axe",
+      "variants": [
+        { "lineId": "guide.lesson.villager.axe.1", "text": "Domingo te quiere hacer un hacha." }
+      ]
+    },
+    "guide.lesson.villager.will_make": {
+      "poolId": "guide.lesson.villager.will_make",
+      "variants": [
+        { "lineId": "guide.lesson.villager.will_make.1", "text": "¿Qué va a hacer Domingo?" }
+      ]
+    },
+    "guide.lesson.villager.works": {
+      "poolId": "guide.lesson.villager.works",
+      "variants": [
+        { "lineId": "guide.lesson.villager.works.1", "text": "¿Dónde trabaja Domingo?" }
+      ]
+    },
+    "guide.lesson.villager.house": {
+      "poolId": "guide.lesson.villager.house",
+      "variants": [
+        { "lineId": "guide.lesson.villager.house.1", "text": "Domingo vive en una casa cerca de la herrería." }
+      ]
+    },
+    "guide.lesson.villager.made": {
+      "poolId": "guide.lesson.villager.made",
+      "variants": [
+        { "lineId": "guide.lesson.villager.made.1", "text": "¿Qué hizo Domingo?" }
+      ]
+    },
+    "guide.lesson.villager.much": {
+      "poolId": "guide.lesson.villager.much",
+      "variants": [
+        { "lineId": "guide.lesson.villager.much.1", "text": "Ayer Domingo trabajó mucho." }
+      ]
+    },
+    "guide.lesson.villager.need": {
+      "poolId": "guide.lesson.villager.need",
+      "variants": [
+        { "lineId": "guide.lesson.villager.need.1", "text": "¿Qué necesitas ahora?" }
+      ]
+    },
+    "guide.lesson.smith.lives": {
+      "poolId": "guide.lesson.smith.lives",
+      "variants": [
+        { "lineId": "guide.lesson.smith.lives.1", "text": "¿Dónde vives?" }
+      ]
     }
   }
 }

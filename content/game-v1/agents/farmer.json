@@ -1,0 +1,35 @@
+{
+  "agentId": "farmer",
+  "initialState": "idle",
+  "variantPools": [
+    { "id": "answer_accepted", "count": 3 },
+    { "id": "not_understood", "count": 2 },
+    { "id": "farmer_bye", "count": 2 },
+    { "id": "farmer_greet", "count": 1 },
+    { "id": "farmer_hello", "count": 1 },
+    { "id": "farmer_help", "count": 1 },
+    { "id": "farmer_job", "count": 1 },
+    { "id": "farmer_name", "count": 1 },
+    { "id": "farmer_thank", "count": 2 }
+  ],
+  "states": [
+    {
+      "id": "idle",
+      "transitions": [
+        { "onHostEvent": "farmer.greet", "to": "idle", "actions": [{ "dialogueIntent": "farmer_hello", "variantPoolId": "farmer_hello" }] },
+        { "on": {"intent": "greet", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_greet", "variantPoolId": "farmer_greet" }] },
+        { "on": {"intent": "ask_name", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_name", "variantPoolId": "farmer_name" }] },
+        { "on": {"intent": "ask_activity", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_job", "variantPoolId": "farmer_job" }] },
+        { "on": {"intent": "state_action", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
+        { "on": {"intent": "ask_help", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_help", "variantPoolId": "farmer_help" }] },
+        { "on": {"intent": "dont_know", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_help", "variantPoolId": "farmer_help" }] },
+        { "on": {"intent": "thank", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_thank", "variantPoolId": "farmer_thank" }] },
+        { "on": {"intent": "farewell", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_bye", "variantPoolId": "farmer_bye" }] },
+        { "on": {"communicated": false}, "to": "idle", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
+      ],
+      "fallback": {
+        "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }]
+      }
+    }
+  ]
+}
