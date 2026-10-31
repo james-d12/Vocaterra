@@ -100,6 +100,26 @@
     "check.say.donde-esta-la-panaderia.situation": "A fisher asks what you are looking for. You are looking for the bakery. Ask him where it is.",
     "check.say.esta-lejos.situation": "Someone has told you where the smithy is. Ask if it is far.",
     "check.say.voy-a-comprar-pan.situation": "A fisher asks what you are going to do at the bakery. You are going to buy bread. Say so.",
-    "check.say.fui-a-la-panaderia.situation": "A fisher asks if you went to the bakery. You did. Say so."
+    "check.say.fui-a-la-panaderia.situation": "A fisher asks if you went to the bakery. You did. Say so.",
+    "check.hear.tengo-diez-panes.question": "A baker says this to you. What does it mean?",
+    "check.hear.tengo-diez-panes.option.1": "She has ten loaves.",
+    "check.hear.tengo-diez-panes.option.2": "She has two loaves.",
+    "check.hear.tengo-diez-panes.option.3": "She wants ten loaves.",
+    "check.hear.cuantos-panes.question": "A baker says this to you. What does it mean?",
+    "check.hear.cuantos-panes.option.1": "She asks how many loaves you want.",
+    "check.hear.cuantos-panes.option.2": "She asks how much the bread costs.",
+    "check.hear.cuantos-panes.option.3": "She asks if you have bread.",
+    "check.hear.cuesta-dos-monedas.question": "A baker says this to you. What does it mean?",
+    "check.hear.cuesta-dos-monedas.option.1": "A loaf costs two coins.",
+    "check.hear.cuesta-dos-monedas.option.2": "A loaf costs ten coins.",
+    "check.hear.cuesta-dos-monedas.option.3": "Two loaves cost one coin.",
+    "check.hear.que-compraste.question": "A baker says this to you. What does it mean?",
+    "check.hear.que-compraste.option.1": "She asks what you bought.",
+    "check.hear.que-compraste.option.2": "She asks what you are going to buy.",
+    "check.hear.que-compraste.option.3": "She asks what you want.",
+    "check.say.quiero-dos-panes.situation": "A baker asks how many loaves you want. You want two. Ask for them.",
+    "check.say.cuanto-cuesta.situation": "You are at a bakery and want to know the price of the bread. Ask how much it is.",
+    "check.say.voy-a-buscar-madera.situation": "A baker asks what you are going to do. You are going to look for wood. Say so.",
+    "check.say.compre-dos-panes.situation": "A baker asks what you bought. You bought two loaves. Say so."
   }
 }

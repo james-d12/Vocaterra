@@ -376,8 +376,10 @@ public sealed class NpcServiceTests
         }
 
         // C08: game/host-events.json gives the five actions the code's table gave; V10 adds the fisher's three (he points at a place or a thing asked for, and pays for
-        // the fruit).
-        Assert.Equal(8, table.Mapped().Count);
+        // the fruit); V11 the baker's two (she sells bread, and pays for the wood).
+        Assert.Equal(10, table.Mapped().Count);
+        Assert.Equal(NpcEffect.SellAt(ItemId.Bread, 2), table.Of("baker", "baker.sell_bread"));
+        Assert.Equal(NpcEffect.Give(ItemId.Coin, 4), table.Of("baker", "baker.pay"));
         Assert.Equal(NpcEffectKind.GiveItem, table.Of("shopkeeper", "stall.give_water").Kind);
         Assert.Equal(ItemId.Bottle, table.Of("shopkeeper", "stall.give_water").Item);
         Assert.Equal(ItemId.Bread, table.Of("shopkeeper", "stall.give_bread").Item);

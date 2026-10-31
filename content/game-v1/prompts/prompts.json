@@ -34,7 +34,7 @@
     "mode": "Constrained",
     "difficulty": "Beginner",
     "answerSetId": "supplies",
-    "allowedIntentIds": ["request_item", "ask_help", "dont_know"],
+    "allowedIntentIds": ["request_item", "ask_price", "ask_availability", "ask_help", "dont_know"],
     "agentId": "shopkeeper",
     "slotGrammarIds": [],
     "text": "¿Qué necesitas?"
@@ -358,5 +358,45 @@
     "agentId": "villager",
     "slotGrammarIds": [],
     "text": "El letrero dice: tienda, río, montaña."
+  },
+  {
+    "promptId": "baker-open",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "supplies-bakery",
+    "allowedIntentIds": ["request_item", "ask_price", "ask_availability", "greet", "thank", "farewell", "ask_help", "dont_know"],
+    "agentId": "baker",
+    "slotGrammarIds": [],
+    "text": "¿Qué quieres?"
+  },
+  {
+    "promptId": "lesson-wood-plan",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-wood-plan",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "baker",
+    "slotGrammarIds": [],
+    "text": "Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer?"
+  },
+  {
+    "promptId": "lesson-coins",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-coins",
+    "allowedIntentIds": ["state_have", "ask_help", "dont_know"],
+    "agentId": "baker",
+    "slotGrammarIds": [],
+    "text": "¿Cuántas monedas tienes?"
+  },
+  {
+    "promptId": "lesson-bought",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-bought",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "baker",
+    "slotGrammarIds": [],
+    "text": "¿Qué compraste?"
   }
 ]

@@ -381,3 +381,7 @@ pescador
 hambre
 # adónde: "where to", the question word of ¿Adónde vas?, in every A1 syllabus (V10); in neither of the core's lists.
 adónde
+# horno: the bakery's oven, a prop of the village (V04) and the reason of the baker's order (V11); in neither of the core's lists.
+horno
+# luz: Luz, the baker's name (V11), the noun la luz (feminine, as she is); A2 in the core's list.
+luz

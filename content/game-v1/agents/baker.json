@@ -1,0 +1,42 @@
+{
+  "agentId": "baker",
+  "initialState": "idle",
+  "variantPools": [
+    { "id": "answer_accepted", "count": 3 },
+    { "id": "not_understood", "count": 2 },
+    { "id": "baker_bye", "count": 2 },
+    { "id": "baker_cant_pay", "count": 1 },
+    { "id": "baker_delivered", "count": 1 },
+    { "id": "baker_greet", "count": 1 },
+    { "id": "baker_hay", "count": 1 },
+    { "id": "baker_hello", "count": 1 },
+    { "id": "baker_help", "count": 1 },
+    { "id": "baker_price", "count": 1 },
+    { "id": "baker_sell", "count": 2 },
+    { "id": "baker_thank", "count": 2 }
+  ],
+  "states": [
+    {
+      "id": "idle",
+      "transitions": [
+        { "onHostEvent": "baker.greet", "to": "idle", "actions": [{ "dialogueIntent": "baker_hello", "variantPoolId": "baker_hello" }] },
+        { "onHostEvent": "baker.delivered", "to": "idle", "actions": [{ "dialogueIntent": "baker_delivered", "hostEvent": "baker.pay", "variantPoolId": "baker_delivered" }] },
+        { "onHostEvent": "baker.cant_pay", "to": "idle", "actions": [{ "dialogueIntent": "baker_cant_pay", "variantPoolId": "baker_cant_pay" }] },
+        { "on": {"intent": "greet", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_greet", "variantPoolId": "baker_greet" }] },
+        { "on": {"intent": "request_item", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_sell", "hostEvent": "baker.sell_bread", "variantPoolId": "baker_sell" }] },
+        { "on": {"intent": "ask_price", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_price", "variantPoolId": "baker_price" }] },
+        { "on": {"intent": "ask_availability", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_hay", "variantPoolId": "baker_hay" }] },
+        { "on": {"intent": "ask_help", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_help", "variantPoolId": "baker_help" }] },
+        { "on": {"intent": "dont_know", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_help", "variantPoolId": "baker_help" }] },
+        { "on": {"intent": "state_have", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
+        { "on": {"intent": "state_action", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
+        { "on": {"intent": "thank", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_thank", "variantPoolId": "baker_thank" }] },
+        { "on": {"intent": "farewell", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_bye", "variantPoolId": "baker_bye" }] },
+        { "on": {"communicated": false}, "to": "idle", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
+      ],
+      "fallback": {
+        "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }]
+      }
+    }
+  ]
+}

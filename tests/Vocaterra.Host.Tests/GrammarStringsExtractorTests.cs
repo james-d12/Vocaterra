@@ -56,6 +56,12 @@ public sealed class GrammarStringsExtractorTests
         ["voy-a-la-panaderia"] = ["conj.person"],
         ["voy-a-comprar-pan"] = ["conj.tense"],
         ["fui-a-la-panaderia"] = ["conj.tense"],
+        ["quiero-dos-panes"] = ["noun.number"],
+        ["cuanto-cuesta"] = ["conj.irregular"],
+        ["voy-a-buscar-madera"] = ["conj.tense"],
+        ["tengo-cuatro-monedas"] = ["conj.person"],
+        ["compre-dos-panes"] = ["conj.tense"],
+        ["hay-pan"] = ["noun.number"],
     };
 
     [Fact]

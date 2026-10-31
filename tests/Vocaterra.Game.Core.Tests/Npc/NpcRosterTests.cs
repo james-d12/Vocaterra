@@ -33,11 +33,11 @@ public sealed class NpcRosterTests
     [Fact]
     public void TheShippedNpcsAreTheOnesTheCodeHeld()
     {
-        // The three the code held, and since VILLAGE_PLAN V10 the fisher Mar, at the end (the saves keep the NPCs in this order).
-        Assert.Equal(["guide", "shopkeeper", "villager", "fisher"], Npcs.Ids);
-        Assert.Equal(["Guía", "Tendero", "Aldeano", "Pescador"], Npcs.All.Select(static n => n.Label));
-        Assert.Equal(["Luna", "Tendero", "Aldeano", "Mar"], Npcs.All.Select(static n => n.Called));
-        Assert.Equal(["guide", "shopkeeper", "villager", "fisher"], Npcs.All.Select(static n => n.Figure));
+        // The three the code held, and since VILLAGE_PLAN V10 the fisher Mar and V11 the baker Luz, at the end (the saves keep the NPCs in this order).
+        Assert.Equal(["guide", "shopkeeper", "villager", "fisher", "baker"], Npcs.Ids);
+        Assert.Equal(["Guía", "Tendero", "Aldeano", "Pescador", "Panadera"], Npcs.All.Select(static n => n.Label));
+        Assert.Equal(["Luna", "Tendero", "Aldeano", "Mar", "Luz"], Npcs.All.Select(static n => n.Called));
+        Assert.Equal(["guide", "shopkeeper", "villager", "fisher", "baker"], Npcs.All.Select(static n => n.Figure));
         Assert.Equal("otro", Npcs.LabelOf("otro"));
     }
 
@@ -59,15 +59,21 @@ public sealed class NpcRosterTests
         Assert.Equal(new NpcOpeningRule("villager.greet", OpeningWhen.Always), villager.Opening);
 
         // The renderer's table (docs/nlp/API.md section 6), the key words that were words.json's, and the pools' names.
-        // V10: the fisher's provisional voice is the villager's at 0.9 (D-game-22), his pools his own.
-        Assert.Equal([new NpcVoiceSpec(28, "ef_dora", 1.0f), new NpcVoiceSpec(29, "em_alex", 1.0f), new NpcVoiceSpec(53, "em_santa", 1.0f), new NpcVoiceSpec(53, "em_santa", 0.9f)], Npcs.All.Select(static n => n.Voice));
+        // V10: the fisher's provisional voice is the villager's at 0.9 (D-game-22), his pools his own. V11: the baker's is the Italian if_sara (V06's trial), brought
+        // down to the Spanish voices' level (gain 0.32: Kokoro renders it about 10 dB louder).
+        Assert.Equal(
+            [new NpcVoiceSpec(28, "ef_dora", 1.0f), new NpcVoiceSpec(29, "em_alex", 1.0f), new NpcVoiceSpec(53, "em_santa", 1.0f), new NpcVoiceSpec(53, "em_santa", 0.9f), new NpcVoiceSpec(35, "if_sara", 1.0f, 0.32f)],
+            Npcs.All.Select(static n => n.Voice));
         Assert.Equal(["agua", "pan"], shopkeeper.KeyWords);
         Assert.Empty(guide.KeyWords.Concat(villager.KeyWords));
-        Assert.Equal(["guide", "shop", "villager", "fisher"], Npcs.All.Select(static n => n.PoolPrefix));
+        Assert.Equal(["guide", "shop", "villager", "fisher", "baker"], Npcs.All.Select(static n => n.PoolPrefix));
         var fisher = Npcs.Find("fisher")!;
         Assert.Equal(("fisher-open", "fisher-open"), (fisher.PromptIn("idle", "idle"), fisher.PromptIn("pointing", "idle")));
         Assert.Equal(new NpcOpeningRule("fisher.greet", OpeningWhen.Always), fisher.Opening);
         Assert.Empty(fisher.KeyWords);
+        var baker = Npcs.Find("baker")!;
+        Assert.Equal("baker-open", baker.PromptIn("idle", "idle"));
+        Assert.Equal(new NpcOpeningRule("baker.greet", OpeningWhen.Always), baker.Opening);
     }
 
     [Fact]

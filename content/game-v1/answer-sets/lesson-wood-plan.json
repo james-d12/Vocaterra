@@ -1,0 +1,23 @@
+{
+  "answerSetId": "lesson-wood-plan",
+  "answers": [
+    {
+      "answerId": "plan",
+      "canonical": "voy a buscar madera",
+      "aliases": ["yo voy a buscar madera", "voy a buscar la madera", "luego voy a buscar madera", "voy a buscar madera luego", "después voy a buscar madera", "luego busco madera", "después busco madera"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": ["no lo sé", "yo no sé", "no entiendo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    }
+  ]
+}

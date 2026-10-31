@@ -632,6 +632,13 @@ public abstract partial class GuideSession : IDisposable
     }
 
     /// <summary>
+    /// Whether an order (an objective with <c>deliverTo</c>, VILLAGE_PLAN V03) has been delivered: a lesson's <c>do</c> step that waits for it ends at once, since the
+    /// goods may be brought before the lesson asks for them (V11: walking up is enough). The 3D scene keeps the objectives.
+    /// </summary>
+    /// <param name="order">The order's objective id.</param>
+    internal virtual bool OrderDelivered(string order) => false;
+
+    /// <summary>
     /// The player reached a beacon the front-end placed itself (the start, <c>--beacon</c>; <see cref="BeaconDirector"/>): logged as
     /// <see cref="WorldEvents.BeaconReached"/> with the point's name (VILLAGE_PLAN V02). The session logs the arrival at its own arrow itself.
     /// </summary>

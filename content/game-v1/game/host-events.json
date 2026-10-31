@@ -61,6 +61,24 @@
       }
     },
     {
+      "npc": "baker",
+      "event": "baker.sell_bread",
+      "action": {
+        "kind": "sell",
+        "item": "bread",
+        "price": 2
+      }
+    },
+    {
+      "npc": "baker",
+      "event": "baker.pay",
+      "action": {
+        "kind": "give_item",
+        "item": "coin",
+        "count": 4
+      }
+    },
+    {
       "npc": "guide",
       "event": "guide.give_water",
       "action": {

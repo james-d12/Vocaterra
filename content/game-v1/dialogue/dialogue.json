@@ -860,6 +860,147 @@
       "variants": [
         { "lineId": "guide.lesson.villager.sign.1", "text": "El letrero dice: tienda, río, montaña." }
       ]
+    },
+    "baker_hello": {
+      "poolId": "baker_hello",
+      "variants": [
+        { "lineId": "baker_hello.1", "text": "¡Hola!" }
+      ]
+    },
+    "baker_greet": {
+      "poolId": "baker_greet",
+      "variants": [
+        { "lineId": "baker_greet.1", "text": "¿Qué quieres?" }
+      ]
+    },
+    "baker_price": {
+      "poolId": "baker_price",
+      "variants": [
+        { "lineId": "baker_price.1", "text": "El pan cuesta dos monedas." }
+      ]
+    },
+    "baker_hay": {
+      "poolId": "baker_hay",
+      "variants": [
+        { "lineId": "baker_hay.1", "text": "Aquí hay pan. ¿Cuántos panes quieres?" }
+      ]
+    },
+    "baker_sell": {
+      "poolId": "baker_sell",
+      "variants": [
+        { "lineId": "baker_sell.1", "text": "Aquí tienes el pan. ¡Gracias!" },
+        { "lineId": "baker_sell.2", "text": "Toma tu pan. ¡Gracias!" }
+      ]
+    },
+    "baker_cant_pay": {
+      "poolId": "baker_cant_pay",
+      "variants": [
+        { "lineId": "baker_cant_pay.1", "text": "Necesitas más monedas." }
+      ]
+    },
+    "baker_help": {
+      "poolId": "baker_help",
+      "variants": [
+        { "lineId": "baker_help.1", "text": "Puedes decir: «Quiero dos panes, por favor»." }
+      ]
+    },
+    "baker_thank": {
+      "poolId": "baker_thank",
+      "variants": [
+        { "lineId": "baker_thank.1", "text": "De nada." },
+        { "lineId": "baker_thank.2", "text": "¡Con gusto!" }
+      ]
+    },
+    "baker_bye": {
+      "poolId": "baker_bye",
+      "variants": [
+        { "lineId": "baker_bye.1", "text": "¡Adiós! Hasta luego." },
+        { "lineId": "baker_bye.2", "text": "Hasta luego." }
+      ]
+    },
+    "baker_delivered": {
+      "poolId": "baker_delivered",
+      "variants": [
+        { "lineId": "baker_delivered.1", "text": "¡Gracias! Toma cuatro monedas." }
+      ]
+    },
+    "guide.lesson.baker.plan": {
+      "poolId": "guide.lesson.baker.plan",
+      "variants": [
+        { "lineId": "guide.lesson.baker.plan.1", "text": "¡Hola! ¿Qué vas a hacer hoy?" }
+      ]
+    },
+    "guide.lesson.baker.five": {
+      "poolId": "guide.lesson.baker.five",
+      "variants": [
+        { "lineId": "guide.lesson.baker.five.1", "text": "Uno, dos, tres, cuatro, cinco." }
+      ]
+    },
+    "guide.lesson.baker.ten": {
+      "poolId": "guide.lesson.baker.ten",
+      "variants": [
+        { "lineId": "guide.lesson.baker.ten.1", "text": "Seis, siete, ocho, nueve, diez." }
+      ]
+    },
+    "guide.lesson.baker.loaves": {
+      "poolId": "guide.lesson.baker.loaves",
+      "variants": [
+        { "lineId": "guide.lesson.baker.loaves.1", "text": "Tengo diez panes." }
+      ]
+    },
+    "guide.lesson.baker.how_many": {
+      "poolId": "guide.lesson.baker.how_many",
+      "variants": [
+        { "lineId": "guide.lesson.baker.how_many.1", "text": "¿Cuántos panes quieres?" }
+      ]
+    },
+    "guide.lesson.baker.oven": {
+      "poolId": "guide.lesson.baker.oven",
+      "variants": [
+        { "lineId": "guide.lesson.baker.oven.1", "text": "Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer?" }
+      ]
+    },
+    "guide.lesson.baker.coins": {
+      "poolId": "guide.lesson.baker.coins",
+      "variants": [
+        { "lineId": "guide.lesson.baker.coins.1", "text": "¿Cuántas monedas tienes?" }
+      ]
+    },
+    "guide.lesson.baker.model": {
+      "poolId": "guide.lesson.baker.model",
+      "variants": [
+        { "lineId": "guide.lesson.baker.model.1", "text": "Ayer compré fruta en la tienda." }
+      ]
+    },
+    "guide.lesson.baker.bought": {
+      "poolId": "guide.lesson.baker.bought",
+      "variants": [
+        { "lineId": "guide.lesson.baker.bought.1", "text": "¿Qué compraste?" }
+      ]
+    },
+    "guide.lesson.baker.you": {
+      "poolId": "guide.lesson.baker.you",
+      "variants": [
+        { "lineId": "guide.lesson.baker.you.1", "text": "Compraste dos panes. ¡Muy bien!" }
+      ]
+    },
+    "shop_price": {
+      "poolId": "shop_price",
+      "variants": [
+        { "lineId": "shop_price.1", "text": "El pan cuesta dos monedas." }
+      ]
+    },
+    "shop_hay": {
+      "poolId": "shop_hay",
+      "variants": [
+        { "lineId": "shop_hay.1", "text": "Hay agua y pan." }
+      ]
+    },
+    "guide.lesson.shop.bread": {
+      "poolId": "guide.lesson.shop.bread",
+      "variants": [
+        { "lineId": "guide.lesson.shop.bread.1", "text": "Sí, hay pan. Es pan de Luz." }
+      ]
     }
   }
 }

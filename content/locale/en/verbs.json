@@ -199,6 +199,12 @@
       "base": "take (time)",
       "third": "takes (time)",
       "past": "took"
+    },
+    "verb.costar": {
+      "gloss": "to cost",
+      "base": "cost",
+      "third": "costs",
+      "past": "cost"
     }
   }
 }

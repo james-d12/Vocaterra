@@ -643,6 +643,10 @@ public sealed class VoxelSession : GuideSession
     }
 
     /// <inheritdoc />
+    internal override bool OrderDelivered(string order) =>
+        Objectives.Any(o => o.Spec.IsOrder && o.Complete && string.Equals(o.Id, order, StringComparison.Ordinal));
+
+    /// <inheritdoc />
     protected override string? OrderReadyAt(string npc) =>
         Objectives.FirstOrDefault(o => o.Spec.IsOrder && !o.Complete && o.Spec.ShownIn(PlaySession) && string.Equals(o.Spec.DeliverTo, npc, StringComparison.Ordinal)
             && o.Spec.Goods.All(goods => Simulation.Inventory.Count(goods.Item) >= goods.Count))?.Id;

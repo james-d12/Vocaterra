@@ -172,7 +172,7 @@ specified for later in `docs/game/CONTENT_PLAN.md` section 3.8 (C10); it is not 
   nothing more is asked of the learner (D-game-8, D-game-9): the goods are taken (`item_taken`, `madera, order`), the NPC's agent is raised
   `<npc>.delivered` as the talk's opening (its thanks, in its own pool and voice), the host event of that line is the reward (a `give_item` in
   `host-events.json`: `baker.pay`, four coins), `order_delivered` is logged (the NPC; the detail is the order's id) and the order is done. So the agent
-  needs `{ "onHostEvent": "baker.delivered", "to": ..., "actions": [{ "dialogueIntent": "baker_thanks", "hostEvent": "baker.pay", ... }] }` in **every**
+  needs `{ "onHostEvent": "baker.delivered", "to": ..., "actions": [{ "dialogueIntent": "baker_delivered", "hostEvent": "baker.pay", ... }] }` in **every**
   state (the validator checks), and the line and its gloss as any NPC line. Without all the goods the talk opens as usual and nothing is taken.
 - **An NPC.** See "Adding an NPC" below: since schema 2 (V01) an NPC needs data only.
 - **An NPC line.** Add it to `game-v1/dialogue/dialogue.json` (the core's file) and its gloss to `locale/en/lines.json` (`line.<lineId>`). The line
@@ -181,7 +181,8 @@ specified for later in `docs/game/CONTENT_PLAN.md` section 3.8 (C10); it is not 
 ## Adding an NPC
 
 An NPC is data alone since schema 2 of `game/npcs/<id>.json` (VILLAGE_PLAN V01): no code names it. A fisher, `fisher`, takes these files, in this order (the
-fisher Mar of the lesson `el-pueblo`, VILLAGE_PLAN V10, was added exactly so; his files are the worked example):
+fisher Mar of the lesson `el-pueblo`, VILLAGE_PLAN V10, was added exactly so; his files are the worked example, and the baker Luz of `numeros-y-pan`, V11, with
+her purchase and her order, is the second):
 
 1. **The core's agent and prompts** (`game-v1/agents/fisher.json`, `game-v1/prompts/prompts.json`): the agent's states and transitions, with an
    `onHostEvent` transition for the event it opens a talk with (`fisher.greet`) in each state that greets; one prompt per state it waits in
@@ -210,7 +211,9 @@ fisher Mar of the lesson `el-pueblo`, VILLAGE_PLAN V10, was added exactly so; hi
      initial state (the shopkeeper's "¿Qué necesitas?"), `never` opens with the prompt's text (the guide; no `event`).
    - `voice`: the Kokoro speaker id and the voice's name (`docs/nlp/API.md` section 6: 28 `ef_dora`, 29 `em_alex`, 53 `em_santa`), and the speed of
      the normal recordings (the slow ones are 0.8 of it). The renderer records every line of the NPC with it. The other voices of the model that read
-     Spanish, and the village's provisional choices, are in the voice trial, `docs/game/voice-trial/` (VILLAGE_PLAN V06), with their speaker ids.
+     Spanish, and the village's provisional choices, are in the voice trial, `docs/game/voice-trial/` (VILLAGE_PLAN V06), with their speaker ids. An optional
+     `gain` (default 1, at most 4; V11) scales the voice's samples, for a voice the model renders louder or quieter than the Spanish ones: the baker's
+     `if_sara` is about 10 dB louder, so it takes 0.32. The speech index records a gain that is not 1, and changing it renders that NPC's lines again.
    - `keyWords` (optional): catalogue nouns whose cards the NPC shows alone before its first question (the shopkeeper's `agua` and `pan`). The save
      keeps one flag, so the key words are taught once a game, at the first NPC that has them.
    - `poolPrefix` (optional): the name its pools carry when it is not the id (the shopkeeper's pools are `shop_*` and `guide.lesson.shop.*`).

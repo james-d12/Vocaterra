@@ -240,7 +240,9 @@
     {"name": "shopkeeper", "site": "village", "dx": -5, "dz": -7, "facing": "west"},
     {"name": "villager", "site": "village", "dx": 1, "dz": 3, "facing": "west"},
     // The fisher Mar (VILLAGE_PLAN V10) on the bank south of the bridge's east landing (the point npc.fisher), facing the river.
-    {"name": "fisher", "site": "bridge.east", "dx": 2, "dz": 3, "facing": "west"}
+    {"name": "fisher", "site": "bridge.east", "dx": 2, "dz": 3, "facing": "west"},
+    // The baker Luz (VILLAGE_PLAN V11) at the bakery's door, in front of her crate of loaves (the point npc.baker), facing the square.
+    {"name": "baker", "site": "village", "dx": -11, "dz": -10, "facing": "south"}
   ],
 
   // The player wakes alone on the ledge, facing south-east over the valley.

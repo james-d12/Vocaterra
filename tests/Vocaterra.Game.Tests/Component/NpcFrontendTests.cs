@@ -67,7 +67,7 @@ public sealed class NpcFrontendTests
         var shipped = RouteScene.Shipped.Npcs.Ids;
 
         Assert.False(options.CheckTalkTargets(shipped, out var error));
-        Assert.Equal("--talk needs an NPC (guide, shopkeeper, villager, fisher), got 'miller'.", error);
+        Assert.Equal("--talk needs an NPC (guide, shopkeeper, villager, fisher, baker), got 'miller'.", error);
 
         Assert.True(options.CheckTalkTargets([.. shipped, "miller"], out error)); // another NPC in the roster can be talked to with no code change (the fisher came so, V10)
         Assert.Empty(error);

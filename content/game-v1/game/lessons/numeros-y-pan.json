@@ -1,0 +1,212 @@
+{
+  "$schema": "../../../schema/lesson.schema.json",
+  "schemaVersion": 1,
+  "id": "numeros-y-pan",
+  "npc": "baker",
+  "autoStart": true,
+  "after": "el-pueblo",
+  "session": 5,
+  "verbs": [
+    {
+      "lemma": "costar",
+      "person": "3",
+      "number": "sg",
+      "tense": "pres"
+    },
+    {
+      "lemma": "costar",
+      "person": "3",
+      "number": "pl",
+      "tense": "pres"
+    },
+    {
+      "lemma": "buscar",
+      "person": "1",
+      "number": "sg",
+      "tense": "ir-a"
+    },
+    {
+      "lemma": "comprar",
+      "person": "1",
+      "number": "sg",
+      "tense": "pret"
+    },
+    {
+      "lemma": "comprar",
+      "person": "2",
+      "number": "sg",
+      "tense": "pret"
+    }
+  ],
+  "steps": [
+    {
+      "id": "n0-review",
+      "type": "review",
+      "candidates": [
+        {
+          "phrase": "voy-a-comprar-pan",
+          "line": "guide.lesson.baker.plan.1"
+        },
+        {
+          "phrase": "hola",
+          "line": "baker_hello.1"
+        }
+      ]
+    },
+    {
+      "id": "n0-intro",
+      "type": "explain"
+    },
+    {
+      "id": "n1-five",
+      "type": "listen",
+      "line": "guide.lesson.baker.five.1",
+      "correct": 0
+    },
+    {
+      "id": "n1-ten",
+      "type": "listen",
+      "line": "guide.lesson.baker.ten.1",
+      "correct": 0
+    },
+    {
+      "id": "n1-loaves",
+      "type": "model",
+      "line": "guide.lesson.baker.loaves.1"
+    },
+    {
+      "id": "n2-want",
+      "type": "answer",
+      "phrase": "quiero-dos-panes",
+      "prompt": "baker-open",
+      "line": "guide.lesson.baker.how_many.1"
+    },
+    {
+      "id": "n2-price",
+      "type": "repeat",
+      "phrase": "cuanto-cuesta",
+      "prompt": "baker-open"
+    },
+    {
+      "id": "n2-two",
+      "type": "listen",
+      "line": "baker_price.1",
+      "correct": 0
+    },
+    {
+      "id": "n3-oven",
+      "type": "answer",
+      "phrase": "voy-a-buscar-madera",
+      "prompt": "lesson-wood-plan",
+      "line": "guide.lesson.baker.oven.1",
+      "person": "1sg",
+      "tense": "ir-a"
+    },
+    {
+      "id": "n4-wood",
+      "type": "do",
+      "point": "árbol",
+      "trigger": {
+        "event": "item_picked_up",
+        "detail": "madera"
+      }
+    },
+    {
+      "id": "n4-back",
+      "type": "do",
+      "trigger": {
+        "event": "order_delivered",
+        "npc": "baker",
+        "detail": "oven-wood"
+      }
+    },
+    {
+      "id": "n5-coins",
+      "type": "listen",
+      "line": "baker_delivered.1",
+      "correct": 0
+    },
+    {
+      "id": "n5-have",
+      "type": "answer",
+      "phrase": "tengo-cuatro-monedas",
+      "prompt": "lesson-coins",
+      "line": "guide.lesson.baker.coins.1",
+      "person": "1sg",
+      "tense": "pres"
+    },
+    {
+      "id": "n6-buy",
+      "type": "do",
+      "trigger": {
+        "event": "item_given",
+        "npc": "baker",
+        "detail": "pan, request"
+      }
+    },
+    {
+      "id": "n7-model",
+      "type": "model",
+      "line": "guide.lesson.baker.model.1"
+    },
+    {
+      "id": "n7-bought",
+      "type": "answer",
+      "phrase": "compre-dos-panes",
+      "prompt": "lesson-bought",
+      "line": "guide.lesson.baker.bought.1",
+      "person": "1sg",
+      "tense": "pret"
+    },
+    {
+      "id": "n7-you",
+      "type": "listen",
+      "line": "guide.lesson.baker.you.1",
+      "correct": 0
+    },
+    {
+      "id": "n8-walk",
+      "type": "do",
+      "pointPlace": "stall",
+      "trigger": {
+        "event": "talk_opened",
+        "npc": "shopkeeper"
+      }
+    },
+    {
+      "id": "n8-hay",
+      "type": "answer",
+      "npc": "shopkeeper",
+      "phrase": "hay-pan",
+      "prompt": "stall-need",
+      "line": "shop_need.1"
+    },
+    {
+      "id": "n8-luz",
+      "type": "model",
+      "npc": "shopkeeper",
+      "line": "guide.lesson.shop.bread.1"
+    },
+    {
+      "id": "n8-no",
+      "type": "review",
+      "npc": "shopkeeper",
+      "candidates": [
+        {
+          "phrase": "no",
+          "line": "shop_offer.1"
+        }
+      ]
+    },
+    {
+      "id": "n9-table",
+      "type": "explain",
+      "npc": "shopkeeper"
+    },
+    {
+      "id": "n9-recap",
+      "type": "recap",
+      "npc": "shopkeeper"
+    }
+  ]
+}
