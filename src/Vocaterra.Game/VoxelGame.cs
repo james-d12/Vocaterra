@@ -62,7 +62,7 @@ namespace Vocaterra.Game;
 /// <b>What works in 3D.</b> Walking (WASD or the arrows, Space to jump), mouse look in relative mode (Esc lets the mouse go, a click takes it
 /// again), gathering by holding the left button on a trunk or a berry bush, placing with the right button, the hotbar, the inventory (I, or E
 /// when the crosshair is not on an NPC), the journal (J), the debug overlay (F3), toasts, the NPC figures with their names, the beacon column
-/// and its edge arrow, and the NPCs: aim the crosshair at the guide, the shopkeeper or the villager and press E (or T to type, V to talk) to open
+/// and its edge arrow, and the NPCs: aim the crosshair at the guide, the shopkeeper, the villager or one of the village's four and press E (or T to type, V to talk) to open
 /// the panel, which shows the NPC's name. The guide's answers point the beacon at the named noun's nearest block; "¿qué es esto?" names the block
 /// under the crosshair; the shopkeeper hands over a bottle that the left button fills at the river; the villager points the beacon at the river.
 /// The panel takes the keyboard and frees the mouse while it is open. The sign reads <c>Tienda / Río</c>.

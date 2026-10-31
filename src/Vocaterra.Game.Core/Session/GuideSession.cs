@@ -64,7 +64,7 @@ public sealed record AppliedTurn(TurnOutcome Outcome, WordTurnResult? Words)
 /// <see cref="Credit"/> rules for the kind of input of the turn and the stored time of the turn (spaced uses, D-game-6 as amended).
 /// </para>
 /// <para>
-/// <b>Talking to an NPC (S6).</b> <see cref="OpenTalk"/> starts a talk with the guide, the shopkeeper or the villager: the NPC's opening is a core
+/// <b>Talking to an NPC (S6).</b> <see cref="OpenTalk"/> starts a talk with any NPC of <c>game/npcs.json</c>: the NPC's opening is a core
 /// host turn when its state has one, and what the NPC's host events mean in the world (an item, the arrow) is applied by the derived class
 /// (<see cref="ApplyHostEvents"/>), in the order the turns were submitted. Every phrase of the phrase sheet a turn uses, every world event and every
 /// voice event is appended to <see cref="Events"/> for the phrase progress (S8) and the session log (S11).

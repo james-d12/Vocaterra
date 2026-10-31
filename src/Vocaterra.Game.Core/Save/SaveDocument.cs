@@ -43,7 +43,7 @@ namespace Vocaterra.Game.Core.Save;
 /// <param name="DeferredSkills">Learner-model steps of shown cards that were waiting for the next collect.</param>
 /// <param name="LastRepairs">The repair each NPC's last answered turn ended with.</param>
 /// <param name="NextTurnId">The id the next submitted turn gets.</param>
-/// <param name="Npcs">Each NPC's conversation state, in agent order (guide, shopkeeper, villager).</param>
+/// <param name="Npcs">Each NPC's conversation state, in the order of <c>game/npcs.json</c> (guide, shopkeeper, villager, fisher, baker, smith, farmer).</param>
 /// <param name="Chunks">The scene diff: the chunks that differ from the fresh scene, in chunk order.</param>
 /// <param name="Lessons">The progress of the lessons (S16): where each one stands and which is active. A save from before S16 has none.</param>
 /// <param name="Tips">The first-time tips (S16): which were shown, which wait and which is on screen. A save from before S16 has none.</param>

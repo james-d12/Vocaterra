@@ -86,7 +86,8 @@ public sealed class NpcCheckpoint
 }
 
 /// <summary>
-/// The conversations with the NPCs of the route, one agent each (the NPCs of <c>game/npcs.json</c>: the guide, the shopkeeper and the villager): a
+/// The conversations with the NPCs, one agent each (the NPCs of <c>game/npcs.json</c>: the guide, the shopkeeper, the villager and the village's fisher, baker,
+/// smith and farmer, VILLAGE_PLAN V10 to V12): a
 /// <see cref="ConversationContext"/> per agent, the opening line through <c>pipeline.Advance</c> (CR-015), and the turn in two phases
 /// (<c>Analyze</c> once, then <c>Complete</c> with the host's facts, CR-017). It generalises the guide's conversation of S3: her world lines
 /// are in <c>NpcService.Guide.cs</c> and behave as they did. Which prompt an NPC waits on in each state and how it opens a talk are its NPC file's
