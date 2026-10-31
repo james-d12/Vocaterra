@@ -228,6 +228,25 @@ public sealed class LessonFrontendTests
     }
 
     [Fact]
+    public void ALessonRunStepSkipsADoStepItHasNothingToWalkToAndGoesOn()
+    {
+        // VILLAGE_PLAN V11: Números y pan waits for an order and a purchase the run does not make. The run skips each such step with the panel still open; a skip after
+        // closing it did nothing, and the run walked back to the baker and asked again for ever.
+        var shipped = TestGame.Data.Lessons;
+        using var run = new Harness([new(ScriptStepKind.LessonRun, Value: "numeros-y-pan")], shipped);
+        run.Session.PlaySession = 5;
+
+        run.Go(120000);
+
+        Assert.Equal(LessonStatus.Completed, run.Session.Lessons.StatusOf("numeros-y-pan"));
+        Assert.Single(run.Log, static l => l == "lesson-run: the step 'n4-back' has nothing to walk to; it is skipped");
+        Assert.Single(run.Log, static l => l == "lesson-run: the step 'n6-buy' has nothing to walk to; it is skipped");
+        Assert.Contains("  event: lesson numeros-y-pan step 11 do (n4-back) skipped", run.Log);
+        var opened = run.Session.Events.OfType<WorldEvent>().Where(static e => e.Name == WorldEvents.TalkOpened).Select(static e => e.Npc).Distinct();
+        Assert.Equal(["baker", "shopkeeper"], opened); // from the bakery to the stall
+    }
+
+    [Fact]
     [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void APractiseAgainStepStartsACompletedLessonAtItsNpcAndTheRunRunsItAgain()
     {

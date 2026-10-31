@@ -389,15 +389,16 @@ public sealed class ScenarioScript
                 _phase = Phase.Waiting;
                 return true;
             case LessonStepType.Do:
-                CloseIfOpen();
                 if (string.Equals(step.Event, WorldEvents.TalkOpened, StringComparison.Ordinal))
                 {
+                    CloseIfOpen();
                     _phase = Phase.Idle; // the step waits for the panel to open on another NPC (S26): the run walks up to that NPC next (LessonRun), not to the beacon
                     return true;
                 }
 
                 if (_session.Pointer is { } target)
                 {
+                    CloseIfOpen();
                     _walk = new VoxelScript(
                         _session.Simulation,
                         _look,
@@ -408,6 +409,8 @@ public sealed class ScenarioScript
                 }
                 else
                 {
+                    // Skipped with the panel still open: the strip's skip works only there (V11: a skip after closing it did nothing, and the run walked back and
+                    // asked again for ever, at a do step that waits for an order or a purchase).
                     _log($"lesson-run: the step '{step.Id}' has nothing to walk to; it is skipped");
                     _hooks.Lesson?.Invoke(ScriptStepKind.LessonSkip, string.Empty);
                 }

@@ -2,7 +2,7 @@
   "$schema": "../../schema/session.schema.json",
   "schemaVersion": 1,
   "about": "The session (CONTENT_PLAN C07): the objectives in the order the HUD shows them (the order gates nothing: every objective counts from the start), the dialogue pool of the closing line said when every objective is done, the items the learner starts with, and the scene point the beacon starts on. Each objective is its own file, game/objectives/<id>.json.",
-  "objectives": ["meet-guide", "camp", "light-fire", "fruit-for-mar"],
+  "objectives": ["meet-guide", "camp", "light-fire", "fruit-for-mar", "oven-wood"],
   "closingPool": "guide.lesson.end",
   "grants": ["book"],
   "beaconStart": "camp.guide"

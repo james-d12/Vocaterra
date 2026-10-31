@@ -13,6 +13,7 @@ text changed is listed again without a mark. The files are Kokoro model output (
 | shopkeeper (Tendero) | `em_alex` | 29 | 1.0 (0.8) | the pools `shop_*` and `guide.lesson.shop.*`, and its prompts |
 | villager (Aldeano) | `em_santa` | 53 | 1.0 (0.8) | the pools `villager_*` and `guide.lesson.villager.*`, and its prompts |
 | fisher (Mar) | `em_santa` | 53 | 0.9 (0.72) | the pools `fisher_*` and `guide.lesson.fisher.*`, and its prompts |
+| baker (Luz) | `if_sara`, gain 0.32 | 35 | 1.0 (0.8) | the pools `baker_*` and `guide.lesson.baker.*`, and its prompts |
 
 Provisional voices of the NPCs to come (VILLAGE_PLAN V06, D-game-22 (d)): their lines are recorded in these voices when their files come.
 The owner hears each in the voice trial, `docs/game/voice-trial/` (its README); a voice the owner rejects is changed in the NPC's file and its
@@ -20,7 +21,6 @@ lines are rendered again.
 
 | NPC | Voice | Kokoro speaker | Speed | Trial file |
 | --- | --- | --- | --- | --- |
-| baker (Luz) | `if_sara` | 35 | 1.0 | `voice-trial/if_sara-1.0.wav` |
 | smith (Domingo) | `im_nicola` | 36 | 1.0 | `voice-trial/im_nicola-1.0.wav` |
 | farmer (León) | `pm_santa` | 44 | 1.0 | `voice-trial/pm_santa-1.0.wav` |
 
@@ -34,6 +34,32 @@ lines are rendered again.
 | answer_accepted.2 | speech/answer_accepted.2.wav | guide | 1.0 | ¡Bien! |  |
 | answer_accepted.3 | speech/answer_accepted.3.slow.wav | guide | 0.8 | ¡Eso es! |  |
 | answer_accepted.3 | speech/answer_accepted.3.wav | guide | 1.0 | ¡Eso es! |  |
+| baker_bye.1 | speech/baker_bye.1.slow.wav | baker | 0.8 | ¡Adiós! Hasta luego. |  |
+| baker_bye.1 | speech/baker_bye.1.wav | baker | 1.0 | ¡Adiós! Hasta luego. |  |
+| baker_bye.2 | speech/baker_bye.2.slow.wav | baker | 0.8 | Hasta luego. |  |
+| baker_bye.2 | speech/baker_bye.2.wav | baker | 1.0 | Hasta luego. |  |
+| baker_cant_pay.1 | speech/baker_cant_pay.1.slow.wav | baker | 0.8 | Necesitas más monedas. |  |
+| baker_cant_pay.1 | speech/baker_cant_pay.1.wav | baker | 1.0 | Necesitas más monedas. |  |
+| baker_delivered.1 | speech/baker_delivered.1.slow.wav | baker | 0.8 | ¡Gracias! Toma cuatro monedas. |  |
+| baker_delivered.1 | speech/baker_delivered.1.wav | baker | 1.0 | ¡Gracias! Toma cuatro monedas. |  |
+| baker_greet.1 | speech/baker_greet.1.slow.wav | baker | 0.8 | ¿Qué quieres? |  |
+| baker_greet.1 | speech/baker_greet.1.wav | baker | 1.0 | ¿Qué quieres? |  |
+| baker_hay.1 | speech/baker_hay.1.slow.wav | baker | 0.8 | Aquí hay pan. ¿Cuántos panes quieres? |  |
+| baker_hay.1 | speech/baker_hay.1.wav | baker | 1.0 | Aquí hay pan. ¿Cuántos panes quieres? |  |
+| baker_hello.1 | speech/baker_hello.1.slow.wav | baker | 0.8 | ¡Hola! |  |
+| baker_hello.1 | speech/baker_hello.1.wav | baker | 1.0 | ¡Hola! |  |
+| baker_help.1 | speech/baker_help.1.slow.wav | baker | 0.8 | Puedes decir: «Quiero dos panes, por favor». |  |
+| baker_help.1 | speech/baker_help.1.wav | baker | 1.0 | Puedes decir: «Quiero dos panes, por favor». |  |
+| baker_price.1 | speech/baker_price.1.slow.wav | baker | 0.8 | El pan cuesta dos monedas. |  |
+| baker_price.1 | speech/baker_price.1.wav | baker | 1.0 | El pan cuesta dos monedas. |  |
+| baker_sell.1 | speech/baker_sell.1.slow.wav | baker | 0.8 | Aquí tienes el pan. ¡Gracias! |  |
+| baker_sell.1 | speech/baker_sell.1.wav | baker | 1.0 | Aquí tienes el pan. ¡Gracias! |  |
+| baker_sell.2 | speech/baker_sell.2.slow.wav | baker | 0.8 | Toma tu pan. ¡Gracias! |  |
+| baker_sell.2 | speech/baker_sell.2.wav | baker | 1.0 | Toma tu pan. ¡Gracias! |  |
+| baker_thank.1 | speech/baker_thank.1.slow.wav | baker | 0.8 | De nada. |  |
+| baker_thank.1 | speech/baker_thank.1.wav | baker | 1.0 | De nada. |  |
+| baker_thank.2 | speech/baker_thank.2.slow.wav | baker | 0.8 | ¡Con gusto! |  |
+| baker_thank.2 | speech/baker_thank.2.wav | baker | 1.0 | ¡Con gusto! |  |
 | card.agua | speech/card.agua.slow.wav | guide | 0.8 | el agua |  |
 | card.agua | speech/card.agua.wav | guide | 1.0 | el agua |  |
 | card.antorcha | speech/card.antorcha.slow.wav | guide | 0.8 | la antorcha |  |
@@ -138,6 +164,26 @@ lines are rendered again.
 | guide.identify.none.1 | speech/guide.identify.none.1.wav | guide | 1.0 | No sé qué es. |  |
 | guide.identify.none.2 | speech/guide.identify.none.2.slow.wav | guide | 0.8 | Busca una cosa y pregunta otra vez. |  |
 | guide.identify.none.2 | speech/guide.identify.none.2.wav | guide | 1.0 | Busca una cosa y pregunta otra vez. |  |
+| guide.lesson.baker.bought.1 | speech/guide.lesson.baker.bought.1.slow.wav | baker | 0.8 | ¿Qué compraste? |  |
+| guide.lesson.baker.bought.1 | speech/guide.lesson.baker.bought.1.wav | baker | 1.0 | ¿Qué compraste? |  |
+| guide.lesson.baker.coins.1 | speech/guide.lesson.baker.coins.1.slow.wav | baker | 0.8 | ¿Cuántas monedas tienes? |  |
+| guide.lesson.baker.coins.1 | speech/guide.lesson.baker.coins.1.wav | baker | 1.0 | ¿Cuántas monedas tienes? |  |
+| guide.lesson.baker.five.1 | speech/guide.lesson.baker.five.1.slow.wav | baker | 0.8 | Uno, dos, tres, cuatro, cinco. |  |
+| guide.lesson.baker.five.1 | speech/guide.lesson.baker.five.1.wav | baker | 1.0 | Uno, dos, tres, cuatro, cinco. |  |
+| guide.lesson.baker.how_many.1 | speech/guide.lesson.baker.how_many.1.slow.wav | baker | 0.8 | ¿Cuántos panes quieres? |  |
+| guide.lesson.baker.how_many.1 | speech/guide.lesson.baker.how_many.1.wav | baker | 1.0 | ¿Cuántos panes quieres? |  |
+| guide.lesson.baker.loaves.1 | speech/guide.lesson.baker.loaves.1.slow.wav | baker | 0.8 | Tengo diez panes. |  |
+| guide.lesson.baker.loaves.1 | speech/guide.lesson.baker.loaves.1.wav | baker | 1.0 | Tengo diez panes. |  |
+| guide.lesson.baker.model.1 | speech/guide.lesson.baker.model.1.slow.wav | baker | 0.8 | Ayer compré fruta en la tienda. |  |
+| guide.lesson.baker.model.1 | speech/guide.lesson.baker.model.1.wav | baker | 1.0 | Ayer compré fruta en la tienda. |  |
+| guide.lesson.baker.oven.1 | speech/guide.lesson.baker.oven.1.slow.wav | baker | 0.8 | Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer? |  |
+| guide.lesson.baker.oven.1 | speech/guide.lesson.baker.oven.1.wav | baker | 1.0 | Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer? |  |
+| guide.lesson.baker.plan.1 | speech/guide.lesson.baker.plan.1.slow.wav | baker | 0.8 | ¡Hola! ¿Qué vas a hacer hoy? |  |
+| guide.lesson.baker.plan.1 | speech/guide.lesson.baker.plan.1.wav | baker | 1.0 | ¡Hola! ¿Qué vas a hacer hoy? |  |
+| guide.lesson.baker.ten.1 | speech/guide.lesson.baker.ten.1.slow.wav | baker | 0.8 | Seis, siete, ocho, nueve, diez. |  |
+| guide.lesson.baker.ten.1 | speech/guide.lesson.baker.ten.1.wav | baker | 1.0 | Seis, siete, ocho, nueve, diez. |  |
+| guide.lesson.baker.you.1 | speech/guide.lesson.baker.you.1.slow.wav | baker | 0.8 | Compraste dos panes. ¡Muy bien! |  |
+| guide.lesson.baker.you.1 | speech/guide.lesson.baker.you.1.wav | baker | 1.0 | Compraste dos panes. ¡Muy bien! |  |
 | guide.lesson.end.1 | speech/guide.lesson.end.1.slow.wav | guide | 0.8 | ¡Muy bien! Ya tienes fuego. |  |
 | guide.lesson.end.1 | speech/guide.lesson.end.1.wav | guide | 1.0 | ¡Muy bien! Ya tienes fuego. |  |
 | guide.lesson.fast.1 | speech/guide.lesson.fast.1.slow.wav | guide | 0.8 | Mira. La madera es para la antorcha. |  |
@@ -204,6 +250,8 @@ lines are rendered again.
 | guide.lesson.shop.ayer.1 | speech/guide.lesson.shop.ayer.1.wav | shopkeeper | 1.0 | Ayer comí pan. |  |
 | guide.lesson.shop.bottle.1 | speech/guide.lesson.shop.bottle.1.slow.wav | shopkeeper | 0.8 | ¿Tiene usted una botella? |  |
 | guide.lesson.shop.bottle.1 | speech/guide.lesson.shop.bottle.1.wav | shopkeeper | 1.0 | ¿Tiene usted una botella? |  |
+| guide.lesson.shop.bread.1 | speech/guide.lesson.shop.bread.1.slow.wav | shopkeeper | 0.8 | Sí, hay pan. Es pan de Luz. |  |
+| guide.lesson.shop.bread.1 | speech/guide.lesson.shop.bread.1.wav | shopkeeper | 1.0 | Sí, hay pan. Es pan de Luz. |  |
 | guide.lesson.shop.had.1 | speech/guide.lesson.shop.had.1.slow.wav | shopkeeper | 0.8 | ¿Bebiste agua ayer? |  |
 | guide.lesson.shop.had.1 | speech/guide.lesson.shop.had.1.wav | shopkeeper | 1.0 | ¿Bebiste agua ayer? |  |
 | guide.lesson.shop.need.1 | speech/guide.lesson.shop.need.1.slow.wav | shopkeeper | 0.8 | ¿Qué necesita usted? |  |
@@ -358,6 +406,10 @@ lines are rendered again.
 | phrase.ayer-fui-al-rio | speech/phrase.ayer-fui-al-rio.wav | guide | 1.0 | Ayer fui al río. |  |
 | phrase.ayuda | speech/phrase.ayuda.slow.wav | guide | 0.8 | Ayuda. |  |
 | phrase.ayuda | speech/phrase.ayuda.wav | guide | 1.0 | Ayuda. |  |
+| phrase.compre-dos-panes | speech/phrase.compre-dos-panes.slow.wav | guide | 0.8 | Compré dos panes. |  |
+| phrase.compre-dos-panes | speech/phrase.compre-dos-panes.wav | guide | 1.0 | Compré dos panes. |  |
+| phrase.cuanto-cuesta | speech/phrase.cuanto-cuesta.slow.wav | guide | 0.8 | ¿Cuánto cuesta? |  |
+| phrase.cuanto-cuesta | speech/phrase.cuanto-cuesta.wav | guide | 1.0 | ¿Cuánto cuesta? |  |
 | phrase.donde-esta-el-rio | speech/phrase.donde-esta-el-rio.slow.wav | guide | 0.8 | ¿Dónde está el río? |  |
 | phrase.donde-esta-el-rio | speech/phrase.donde-esta-el-rio.wav | guide | 1.0 | ¿Dónde está el río? |  |
 | phrase.donde-esta-la-herreria | speech/phrase.donde-esta-la-herreria.slow.wav | guide | 0.8 | ¿Dónde está la herrería? |  |
@@ -372,6 +424,8 @@ lines are rendered again.
 | phrase.fui-a-la-panaderia | speech/phrase.fui-a-la-panaderia.wav | guide | 1.0 | Sí, fui a la panadería. |  |
 | phrase.gracias | speech/phrase.gracias.slow.wav | guide | 0.8 | Gracias. |  |
 | phrase.gracias | speech/phrase.gracias.wav | guide | 1.0 | Gracias. |  |
+| phrase.hay-pan | speech/phrase.hay-pan.slow.wav | guide | 0.8 | ¿Hay pan? |  |
+| phrase.hay-pan | speech/phrase.hay-pan.wav | guide | 1.0 | ¿Hay pan? |  |
 | phrase.hay-un-pozo | speech/phrase.hay-un-pozo.slow.wav | guide | 0.8 | ¿Hay un pozo en el pueblo? |  |
 | phrase.hay-un-pozo | speech/phrase.hay-un-pozo.wav | guide | 1.0 | ¿Hay un pozo en el pueblo? |  |
 | phrase.hola | speech/phrase.hola.slow.wav | guide | 0.8 | Hola. |  |
@@ -398,6 +452,8 @@ lines are rendered again.
 | phrase.que-es-esto | speech/phrase.que-es-esto.wav | guide | 1.0 | ¿Qué es esto? |  |
 | phrase.queremos-pan | speech/phrase.queremos-pan.slow.wav | guide | 0.8 | Queremos pan. |  |
 | phrase.queremos-pan | speech/phrase.queremos-pan.wav | guide | 1.0 | Queremos pan. |  |
+| phrase.quiero-dos-panes | speech/phrase.quiero-dos-panes.slow.wav | guide | 0.8 | Quiero dos panes, por favor. |  |
+| phrase.quiero-dos-panes | speech/phrase.quiero-dos-panes.wav | guide | 1.0 | Quiero dos panes, por favor. |  |
 | phrase.quiero-madera | speech/phrase.quiero-madera.slow.wav | guide | 0.8 | Quiero madera. |  |
 | phrase.quiero-madera | speech/phrase.quiero-madera.wav | guide | 1.0 | Quiero madera. |  |
 | phrase.si | speech/phrase.si.slow.wav | guide | 0.8 | Sí. |  |
@@ -406,10 +462,14 @@ lines are rendered again.
 | phrase.si-por-favor | speech/phrase.si-por-favor.wav | guide | 1.0 | Sí, por favor. |  |
 | phrase.tengo-botella | speech/phrase.tengo-botella.slow.wav | guide | 0.8 | Tengo una botella. |  |
 | phrase.tengo-botella | speech/phrase.tengo-botella.wav | guide | 1.0 | Tengo una botella. |  |
+| phrase.tengo-cuatro-monedas | speech/phrase.tengo-cuatro-monedas.slow.wav | guide | 0.8 | Tengo cuatro monedas. |  |
+| phrase.tengo-cuatro-monedas | speech/phrase.tengo-cuatro-monedas.wav | guide | 1.0 | Tengo cuatro monedas. |  |
 | phrase.tengo-fruta | speech/phrase.tengo-fruta.slow.wav | guide | 0.8 | Tengo una fruta. |  |
 | phrase.tengo-fruta | speech/phrase.tengo-fruta.wav | guide | 1.0 | Tengo una fruta. |  |
 | phrase.vamos-a-comer-fruta | speech/phrase.vamos-a-comer-fruta.slow.wav | guide | 0.8 | Vamos a comer fruta. |  |
 | phrase.vamos-a-comer-fruta | speech/phrase.vamos-a-comer-fruta.wav | guide | 1.0 | Vamos a comer fruta. |  |
+| phrase.voy-a-buscar-madera | speech/phrase.voy-a-buscar-madera.slow.wav | guide | 0.8 | Voy a buscar madera. |  |
+| phrase.voy-a-buscar-madera | speech/phrase.voy-a-buscar-madera.wav | guide | 1.0 | Voy a buscar madera. |  |
 | phrase.voy-a-comer-pan | speech/phrase.voy-a-comer-pan.slow.wav | guide | 0.8 | Voy a comer pan. |  |
 | phrase.voy-a-comer-pan | speech/phrase.voy-a-comer-pan.wav | guide | 1.0 | Voy a comer pan. |  |
 | phrase.voy-a-comprar-pan | speech/phrase.voy-a-comprar-pan.slow.wav | guide | 0.8 | Voy a comprar pan. |  |
@@ -418,6 +478,8 @@ lines are rendered again.
 | phrase.voy-a-ir-al-rio | speech/phrase.voy-a-ir-al-rio.wav | guide | 1.0 | Mañana voy a ir al río. |  |
 | phrase.voy-a-la-panaderia | speech/phrase.voy-a-la-panaderia.slow.wav | guide | 0.8 | Voy a la panadería. |  |
 | phrase.voy-a-la-panaderia | speech/phrase.voy-a-la-panaderia.wav | guide | 1.0 | Voy a la panadería. |  |
+| prompt.baker-open | speech/prompt.baker-open.slow.wav | baker | 0.8 | ¿Qué quieres? |  |
+| prompt.baker-open | speech/prompt.baker-open.wav | baker | 1.0 | ¿Qué quieres? |  |
 | prompt.fisher-open | speech/prompt.fisher-open.slow.wav | fisher | 0.72 | ¿Qué buscas? |  |
 | prompt.fisher-open | speech/prompt.fisher-open.wav | fisher | 0.9 | ¿Qué buscas? |  |
 | prompt.guide-offer | speech/prompt.guide-offer.slow.wav | guide | 0.8 | ¿Quieres agua? |  |
@@ -430,6 +492,10 @@ lines are rendered again.
 | prompt.lesson-ate | speech/prompt.lesson-ate.wav | shopkeeper | 1.0 | ¿Qué comiste ayer? |  |
 | prompt.lesson-bottle | speech/prompt.lesson-bottle.slow.wav | shopkeeper | 0.8 | ¿Tiene usted una botella? |  |
 | prompt.lesson-bottle | speech/prompt.lesson-bottle.wav | shopkeeper | 1.0 | ¿Tiene usted una botella? |  |
+| prompt.lesson-bought | speech/prompt.lesson-bought.slow.wav | baker | 0.8 | ¿Qué compraste? |  |
+| prompt.lesson-bought | speech/prompt.lesson-bought.wav | baker | 1.0 | ¿Qué compraste? |  |
+| prompt.lesson-coins | speech/prompt.lesson-coins.slow.wav | baker | 0.8 | ¿Cuántas monedas tienes? |  |
+| prompt.lesson-coins | speech/prompt.lesson-coins.wav | baker | 1.0 | ¿Cuántas monedas tienes? |  |
 | prompt.lesson-far | speech/prompt.lesson-far.slow.wav | fisher | 0.72 | Y la herrería está a la derecha. |  |
 | prompt.lesson-far | speech/prompt.lesson-far.wav | fisher | 0.9 | Y la herrería está a la derecha. |  |
 | prompt.lesson-going | speech/prompt.lesson-going.slow.wav | fisher | 0.72 | ¿Adónde vas? |  |
@@ -482,6 +548,8 @@ lines are rendered again.
 | prompt.lesson-went-there | speech/prompt.lesson-went-there.wav | fisher | 0.9 | ¿Fuiste a la panadería? |  |
 | prompt.lesson-what | speech/prompt.lesson-what.slow.wav | guide | 0.8 | Mira. |  |
 | prompt.lesson-what | speech/prompt.lesson-what.wav | guide | 1.0 | Mira. |  |
+| prompt.lesson-wood-plan | speech/prompt.lesson-wood-plan.slow.wav | baker | 0.8 | Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer? |  |
+| prompt.lesson-wood-plan | speech/prompt.lesson-wood-plan.wav | baker | 1.0 | Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer? |  |
 | prompt.lesson-yesno | speech/prompt.lesson-yesno.slow.wav | guide | 0.8 | ¿Es madera? |  |
 | prompt.lesson-yesno | speech/prompt.lesson-yesno.wav | guide | 1.0 | ¿Es madera? |  |
 | prompt.stall-need | speech/prompt.stall-need.slow.wav | shopkeeper | 0.8 | ¿Qué necesitas? |  |
@@ -510,6 +578,8 @@ lines are rendered again.
 | shop_give_bread.1 | speech/shop_give_bread.1.wav | shopkeeper | 1.0 | Aquí tienes el pan. |  |
 | shop_give_bread.2 | speech/shop_give_bread.2.slow.wav | shopkeeper | 0.8 | Toma el pan. |  |
 | shop_give_bread.2 | speech/shop_give_bread.2.wav | shopkeeper | 1.0 | Toma el pan. |  |
+| shop_hay.1 | speech/shop_hay.1.slow.wav | shopkeeper | 0.8 | Hay agua y pan. |  |
+| shop_hay.1 | speech/shop_hay.1.wav | shopkeeper | 1.0 | Hay agua y pan. |  |
 | shop_help_ask.1 | speech/shop_help_ask.1.slow.wav | shopkeeper | 0.8 | Puedes decir: «Quiero agua, por favor». |  |
 | shop_help_ask.1 | speech/shop_help_ask.1.wav | shopkeeper | 1.0 | Puedes decir: «Quiero agua, por favor». |  |
 | shop_help_offer.1 | speech/shop_help_offer.1.slow.wav | shopkeeper | 0.8 | Puedes decir: «Sí, por favor» o «No, gracias». |  |
@@ -518,6 +588,8 @@ lines are rendered again.
 | shop_need.1 | speech/shop_need.1.wav | shopkeeper | 1.0 | ¿Qué necesitas? |  |
 | shop_offer.1 | speech/shop_offer.1.slow.wav | shopkeeper | 0.8 | ¿Quieres pan? |  |
 | shop_offer.1 | speech/shop_offer.1.wav | shopkeeper | 1.0 | ¿Quieres pan? |  |
+| shop_price.1 | speech/shop_price.1.slow.wav | shopkeeper | 0.8 | El pan cuesta dos monedas. |  |
+| shop_price.1 | speech/shop_price.1.wav | shopkeeper | 1.0 | El pan cuesta dos monedas. |  |
 | shop_thank.1 | speech/shop_thank.1.slow.wav | shopkeeper | 0.8 | De nada. |  |
 | shop_thank.1 | speech/shop_thank.1.wav | shopkeeper | 1.0 | De nada. |  |
 | shop_thank.2 | speech/shop_thank.2.slow.wav | shopkeeper | 0.8 | ¡Con gusto! |  |

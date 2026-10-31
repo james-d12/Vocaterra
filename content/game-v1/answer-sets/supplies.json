@@ -30,6 +30,18 @@
       "canonical": "no sé",
       "aliases": ["no lo sé", "yo no sé", "no entiendo"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "price",
+      "canonical": "cuánto cuesta",
+      "aliases": ["cuánto cuesta el pan", "cuánto es", "qué precio tiene el pan"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "bread-here",
+      "canonical": "hay pan",
+      "aliases": ["hay pan aquí", "hay panes", "hay agua", "hay dos panes", "hay un pan"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
     }
   ]
 }

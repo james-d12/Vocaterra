@@ -98,6 +98,9 @@ public sealed class NpcRoster
     /// <summary>The pool-id prefix of the NPCs' lesson lines (S26): <c>guide.lesson.&lt;poolPrefix&gt;.*</c> is the NPC's, named so the content lint counts it as the game's own pool.</summary>
     public const string LessonPoolPrefix = "guide.lesson.";
 
+    /// <summary>The largest gain a voice may take (<see cref="NpcVoiceSpec.Gain"/>, VILLAGE_PLAN V11): a voice is brought down or up to the others' level, not made to clip.</summary>
+    public const float MaxGain = 4.0f;
+
     private readonly Dictionary<string, NpcEntry> _byId;
 
     private NpcRoster(IReadOnlyList<NpcEntry> npcs)
@@ -300,18 +303,20 @@ public sealed class NpcRoster
         return new NpcOpeningRule(Text(opening, "event", path), when);
     }
 
-    // { "speaker": <Kokoro id>, "name": "<voice>", "speed"?: 1.0 }: the name may be missing here (the validator says so); the speaker and the speed are numbers.
+    // { "speaker": <Kokoro id>, "name": "<voice>", "speed"?: 1.0, "gain"?: 1.0 }: the name may be missing here (the validator says so); the speaker, the speed
+    // and the gain (V11) are numbers.
     private static NpcVoiceSpec VoiceOf(JsonElement voice, string path)
     {
         var speaker = voice.GetProperty("speaker").GetInt32();
         var speed = voice.TryGetProperty("speed", out var speedElement) ? speedElement.GetSingle() : 1.0f;
-        if (speaker < 0 || !(speed > 0))
+        var gain = voice.TryGetProperty("gain", out var gainElement) ? gainElement.GetSingle() : 1.0f;
+        if (speaker < 0 || !(speed > 0) || !(gain > 0) || gain > MaxGain)
         {
-            throw new InvalidDataException(string.Create(CultureInfo.InvariantCulture, $"{path}: the voice's speaker ({speaker}) must be 0 or more and its speed ({speed}) more than 0."));
+            throw new InvalidDataException(string.Create(CultureInfo.InvariantCulture, $"{path}: the voice's speaker ({speaker}) must be 0 or more, its speed ({speed}) more than 0 and its gain ({gain}) more than 0 and at most {MaxGain}."));
         }
 
         var name = voice.TryGetProperty("name", out var nameElement) && nameElement.ValueKind == JsonValueKind.String ? nameElement.GetString()!.Trim() : string.Empty;
-        return new NpcVoiceSpec(speaker, name, speed);
+        return new NpcVoiceSpec(speaker, name, speed, gain);
     }
 
     private static string Text(JsonElement element, string name, string path) =>

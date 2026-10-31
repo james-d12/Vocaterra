@@ -898,6 +898,13 @@ public sealed class LessonRunner
             step = state.Asked = step with { Phrase = chosen.Phrase, Prompt = chosen.Prompt, Line = chosen.Line, Translation = chosen.Translation };
         }
 
+        if (step is { Type: LessonStepType.Do, Trigger: { Event: WorldEvents.OrderDelivered, Detail: { } order } } && _session.OrderDelivered(order))
+        {
+            // The goods of an order were brought before the step asked for them (V11): walking up with them is enough (D-game-8), so the step has nothing to wait for.
+            Finish(lesson, state, StepOutcome.Done, "delivered before");
+            return;
+        }
+
         state.Attempts = 0;
         state.Helped = false;
         state.Picked = -1;

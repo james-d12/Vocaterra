@@ -139,6 +139,12 @@
       "matches": []
     },
     {
+      "key": "082eafebd33be8ed4669e2bab03e4c72a90af98e9a507345eed9b4b2df6e3870",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me das dos panes por favor",
+      "matches": []
+    },
+    {
       "key": "08778059012e91fe75443425c97ef6becdddea8996b7a8adef30391a11fd751a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Me da pan por favor",
@@ -172,6 +178,18 @@
       "key": "0abc5248e9254a3912530a99585d7cc78b6c357738714e7bb0755d66188d528b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer fuiste al río.",
+      "matches": []
+    },
+    {
+      "key": "0aea5cb1df49d10c213448b5e7f1878350862ae506e7d15c2342be6bea237d4e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero dos panes por favor",
+      "matches": []
+    },
+    {
+      "key": "0be6757736adde6b8833055653c7bbd60cc35fdfcf6e97f940b971b4974de509",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Cuánto cuesta el pan?",
       "matches": []
     },
     {
@@ -258,6 +276,12 @@
       ]
     },
     {
+      "key": "0fb5958b8e5e6b26c16f6ade6245d6acc9d9b336d9c2020150fa280f0bcf7552",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero dos panes, por favor.",
+      "matches": []
+    },
+    {
       "key": "104e803f1a1f0ac93214177ebb1a89a508252fd59f787d18c2419c4538dca661",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Habla más despacio por favor",
@@ -273,6 +297,12 @@
       "key": "110ad414e7042ab18952a02c33f263ab1e6d0cc4d8712685bd4881175b1056ce",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Fui al río",
+      "matches": []
+    },
+    {
+      "key": "1128b776d8003ad90fc7e4cffe36d29e4c26a97a7f5db0204af93f846f6d5ae5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Necesitas más monedas.",
       "matches": []
     },
     {
@@ -308,6 +338,12 @@
       "key": "14b6510ec943e52a9a665b6bf0942ed0a59d6f5a426dc422c5238500d42af707",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Usa el libro.",
+      "matches": []
+    },
+    {
+      "key": "14be60a1a38d3e47d4c5a1980c7e65b7ab728d5cc30cfdbeb33c6dd022d0661e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Cuántas monedas tienes?",
       "matches": []
     },
     {
@@ -429,6 +465,12 @@
       "key": "18600258ad0438d857719fc3174cbb6ae6e12aff457269c301e42724e5693f5a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Eso es un árbol",
+      "matches": []
+    },
+    {
+      "key": "18655180d4fc8fd416bf4f1fa9f06731319b1562d2c1c6e1a9484e1cfb1e69ed",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Hola! ¿Qué vas a hacer hoy?",
       "matches": []
     },
     {
@@ -633,6 +675,12 @@
       "matches": []
     },
     {
+      "key": "20970f0d49c776dd5346774136bfd799691e9b61c9da5877839a486436f2d08d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Compré un pan",
+      "matches": []
+    },
+    {
       "key": "20cc85935073f71583b0083f3b51bbaef45ea0a29c17592db2f51e2a75e3efad",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mañana comimos fruta",
@@ -648,6 +696,12 @@
       "key": "217569ad3ee11ba87030f16ecf3d04dfdcde1e7af1abfb4353e081f48c2d4521",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Bien!",
+      "matches": []
+    },
+    {
+      "key": "22ef6970b34dec5377e84f737cdad43f2f95f99ddf218665dd9421a593516b3a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tengo cuatro monedas",
       "matches": []
     },
     {
@@ -701,6 +755,12 @@
       "key": "24a2da1831ccea5dc14fc8f5f6e542b43b3bfbf493df76d765ae4c2e8b5b605f",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Más despacio, por favor.",
+      "matches": []
+    },
+    {
+      "key": "24a92154e784a46995222c2546ca3fbe645c85ef90ac45a43d5cfe29b5e00663",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay agua y pan.",
       "matches": []
     },
     {
@@ -799,6 +859,12 @@
       "matches": []
     },
     {
+      "key": "2958577636bd76876f0df62d38e9fa71c5d4377fe89848f4146361b753e4506f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tengo monedas",
+      "matches": []
+    },
+    {
       "key": "296c11d17ccc7fbb8c5bca6fafcc71ce2c4507e1cf814dfdcde0002a8fd59005",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Me das agua por favor",
@@ -861,6 +927,18 @@
       "key": "2b3f66fdba8da17f7912bb813831452918b07238f3cc46caf2ce09ad5fde63a0",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Está muy lejos",
+      "matches": []
+    },
+    {
+      "key": "2b5b5e242ab2d3fb9773c765da5b7feb20f30e4b952843c76eebe2931b8d2c72",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero un pan por favor",
+      "matches": []
+    },
+    {
+      "key": "2bea1dde51edf6799dce720f43e6065c11fa527e5349245419514a88d49f0502",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Uno, dos, tres, cuatro, cinco.",
       "matches": []
     },
     {
@@ -1039,6 +1117,12 @@
       ]
     },
     {
+      "key": "33390e4e99226474364ec30138d050f0fab0733344fe644c213259a837b2340d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cuánto cuesta el agua",
+      "matches": []
+    },
+    {
       "key": "3354d6ac848434798722a4ed9adde549a64bde91fd1b3ac3f420128bb5dadd36",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Es madera?",
@@ -1105,6 +1189,12 @@
       "matches": []
     },
     {
+      "key": "36f689fb58de7c62c699d396bf3abc4edf7f7ea51b34b58a62a73f28915a8817",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo quiero dos panes",
+      "matches": []
+    },
+    {
       "key": "370e7fab1b75a79ef9bae64f2c38960dfa04c850b1fc0ec78aac95a8fac566ea",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "dos espadas de espada",
@@ -1151,6 +1241,12 @@
       "matches": []
     },
     {
+      "key": "37f7ecb55269b3c0e718289e607fb97997b3a5470238712abd9d37d3e9cb4554",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo compré dos panes",
+      "matches": []
+    },
+    {
       "key": "3815fabb30cec7fbb9f68cb1a189e556987c743dad1fa1322b5ea404585747fe",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Claro",
@@ -1179,6 +1275,25 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Quiero pan, por favor",
       "matches": []
+    },
+    {
+      "key": "3919a50283170a39e76161c592b040bde7ce8aa4d5cac4513b88e70bb4cf2c77",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cuánto costan los panes",
+      "matches": [
+        {
+          "rule": "MORFOLOGIK_RULE_ES",
+          "issueType": "misspelling",
+          "message": "Se ha encontrado un posible error ortográfico.",
+          "offset": 7,
+          "length": 6,
+          "replacements": [
+            "cuestan",
+            "Costan",
+            "costa"
+          ]
+        }
+      ]
     },
     {
       "key": "395055ab45426ff7e8d2c22a8765101b087bc142f5a2d5b04336206e285702ca",
@@ -1228,6 +1343,23 @@
       "matches": []
     },
     {
+      "key": "3b40697683969c54d8bc0a840e05fbd3f3cda8c308adb5295f65c92ee0d0cc02",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo vas a buscar madera",
+      "matches": [
+        {
+          "rule": "AGREEMENT_PRONOUNSUBJECT_VERB",
+          "issueType": "inconsistency",
+          "message": "Posible falta de concordancia entre «Yo» y «vas».",
+          "offset": 3,
+          "length": 3,
+          "replacements": [
+            "voy"
+          ]
+        }
+      ]
+    },
+    {
       "key": "3b73843592529711c431add7eed76032c41075b0c8fdb1e78a955b5c1a12a9fa",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo voy a la panadería",
@@ -1243,6 +1375,12 @@
       "key": "3c32bd70c59c5d160806598013ed19ea688db495ecda8ff1c3ec88b1d1d685e7",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Está cerca",
+      "matches": []
+    },
+    {
+      "key": "3c710568f6d02747000e7d79a5f0b8fcbdf28cf7ac7f69ec4a443b9b2e4d2c74",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí hay pan. ¿Cuántos panes quieres?",
       "matches": []
     },
     {
@@ -1278,6 +1416,12 @@
       "key": "3f1d0034bc921c32c2da88dff03d89f4744e4a6f0fbe11e85b74aaa764d938df",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Cómo se llama esto",
+      "matches": []
+    },
+    {
+      "key": "3f3c62e07eebc80fbb50318681506da40b5d3c17f36e95f6685b8269b736a98b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Toma tu pan. ¡Gracias!",
       "matches": []
     },
     {
@@ -1323,9 +1467,21 @@
       "matches": []
     },
     {
+      "key": "413d2642f0cfbd32dfe8e70e1074ba263e31b31c83a0aad72c4b9e5fe204cf20",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a buscar madera.",
+      "matches": []
+    },
+    {
       "key": "41539dedf94cac3657e63df85c2d4838bfb28cb6b69ccf7a599be4b11f72a29a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Me das pan",
+      "matches": []
+    },
+    {
+      "key": "4156514cfbe9f3c503086876b2ed257d04ed42c83e9c0bfd896e16ccd0c9bc06",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo voy a buscar madera",
       "matches": []
     },
     {
@@ -1350,6 +1506,12 @@
           ]
         }
       ]
+    },
+    {
+      "key": "41d333883b2291fdb6d3479ae71f27204ca710eeded0eb1d2e6950d36b8d5508",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me da dos panes",
+      "matches": []
     },
     {
       "key": "42caea4336cf5a8eac951f7cabc5873a8e24a383e0af17e878dd4eba71a6d9ea",
@@ -1522,6 +1684,18 @@
       "matches": []
     },
     {
+      "key": "49c679239c8d2c43a5136b9169b4cd581764d1799c0bbfedb368c87ce96f858b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cuánto cuesta",
+      "matches": []
+    },
+    {
+      "key": "4a280b68bf486d000c7d5d3e84c90024d18067ae943302572ec48cd7bee80e6e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay pan aquí",
+      "matches": []
+    },
+    {
       "key": "4a3734d82d4274797d36f68faf4b24305c33cf43b97f214c081adfee17398be3",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Claro! Te lo digo más despacio.",
@@ -1576,6 +1750,12 @@
       "matches": []
     },
     {
+      "key": "4ba99fafb9e93f8b5a02ecad82953d58e8f9bab80aaaccf60ef0109bdec3f24c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay un pan",
+      "matches": []
+    },
+    {
       "key": "4c6c0cd87d4c1179643d511afaf20767ededc52ea5744daa9559231107c18e0f",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Qué necesito para una antorcha",
@@ -1603,6 +1783,12 @@
       "key": "4df2c72472e22ed1777ce53a7ed43ad161b47fcad63904451fd1051c793bca6b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Voy a la panadería",
+      "matches": []
+    },
+    {
+      "key": "4e5554a231b32a30d7379c58156a4f473a4a3ca26c3964b87b84bfc2947a9afc",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Luz",
       "matches": []
     },
     {
@@ -1705,6 +1891,24 @@
       "matches": []
     },
     {
+      "key": "5230bb0ecc2dc59b79ad0b6d10b073f7562aca77e33e639958a0b1eee96b5337",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cuánto cuesta la pan",
+      "matches": [
+        {
+          "rule": "AGREEMENT_DET_NOUN",
+          "issueType": "inconsistency",
+          "message": "Error de concordancia.",
+          "offset": 14,
+          "length": 6,
+          "replacements": [
+            "el pan",
+            "los panes"
+          ]
+        }
+      ]
+    },
+    {
       "key": "531a8f6f7fb3b3e0e23bcff70dbfbb81b7ccbe0fc0e362ca10b959bc7a862ca4",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Qué necesitas?",
@@ -1720,6 +1924,12 @@
       "key": "54b4dbdccb7d86ac155f51728cd93b6f824e3025e6648ab0d19ae08fa71d652e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayuda, por favor",
+      "matches": []
+    },
+    {
+      "key": "5554dc8b72da83989b45a4af33b329fff6ab3a48d3c2846c726eea5fd4c8f24e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Luego busco madera",
       "matches": []
     },
     {
@@ -1771,10 +1981,39 @@
       "matches": []
     },
     {
+      "key": "58c935787fff6357ba9608945adfd0e3a84e895475c7d31aeb85e5f2110da60c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Cuánto es?",
+      "matches": []
+    },
+    {
+      "key": "58fb599f69b00b617770bf14f1f876b73c2cd74bf6efbac1d532d2fb26946686",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cuánto cuestan dos panes",
+      "matches": []
+    },
+    {
       "key": "591de4420035678300bbe746adc9f2922b4be968af1928f8dceeaf4738a3bfa3",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Quiero madera por favor",
       "matches": []
+    },
+    {
+      "key": "5992d25985b820abc8e311b0e44444e3153da6bf39767897639964497fbd0506",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo tiene cuatro monedas",
+      "matches": [
+        {
+          "rule": "AGREEMENT_PRONOUNSUBJECT_VERB",
+          "issueType": "inconsistency",
+          "message": "Posible falta de concordancia entre «Yo» y «tiene».",
+          "offset": 3,
+          "length": 5,
+          "replacements": [
+            "tengo"
+          ]
+        }
+      ]
     },
     {
       "key": "5a24c651a340520ed61e7dfca0a869aefb1d57c9466fd1ccecba68fcebcbeeaf",
@@ -1920,6 +2159,12 @@
       "matches": []
     },
     {
+      "key": "5f74fb241489cf0d772698dc9b21ec28fe69f498b0e9d53fa073f43b444adbd9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me da dos panes, por favor",
+      "matches": []
+    },
+    {
       "key": "5f866fdfc1144647f0df78aa87b667cdde4139b45168fa65be574aef0391f8cc",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer voy a la panadería",
@@ -1979,6 +2224,12 @@
       "matches": []
     },
     {
+      "key": "62973bcee9f8651aa00fbd13c7837d5791631b1e15f807ee167ab37ab486b65e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero dos panes, por favor",
+      "matches": []
+    },
+    {
       "key": "62cb412c665966dd568d8975e2d522db74e91e2bf292b83a00a4f0d5d6fda074",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "no sé",
@@ -2005,6 +2256,12 @@
       "key": "632af8bd01e6d512aa6279d6d99f1a6d7c2938ab5ac742e36468e674f773dcdf",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mañana fui al río",
+      "matches": []
+    },
+    {
+      "key": "639870b930001d3f73da622521e4a16e2e76a6001a9bee0747a91a6362f21244",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tengo cuatro monedas.",
       "matches": []
     },
     {
@@ -2035,6 +2292,12 @@
       "key": "651cdfc58fd9e60190a4e33bc2686b0492202f6bf4cec5a3a263c841b9e2d338",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Toma.",
+      "matches": []
+    },
+    {
+      "key": "65543e4b20415093013f09e8930828c6479b6f10d90131ebc8fedb8166db7a58",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me das dos panes, por favor",
       "matches": []
     },
     {
@@ -2346,6 +2609,12 @@
       "matches": []
     },
     {
+      "key": "7112ed7e91762c286360c54d655b8a3b8530501ac816456aebc5e5bf2abf1782",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Cuánto cuesta?",
+      "matches": []
+    },
+    {
       "key": "717b69851bf04f83792cc20a5c06a9737aa5ed0e78a64091458ce737d47ebb39",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "después",
@@ -2372,6 +2641,12 @@
       "key": "72d907cbe333b98c0f0d4b03fdfaeab466dd45b0c54e5d3d3a2101c2caf4c224",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Comí fruta",
+      "matches": []
+    },
+    {
+      "key": "7314f638fe053bb854786e94f6a65a601ac99ab3ae44b03b802147cc90ab0a91",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Panadera",
       "matches": []
     },
     {
@@ -2447,6 +2722,12 @@
       "matches": []
     },
     {
+      "key": "7634531e1a681c894b343a1e28eb13a06f10320c178b75ecddb7fc449d50153a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Qué precio tiene el pan",
+      "matches": []
+    },
+    {
       "key": "76a6d2f225f69e521e6cc848f30acd276edf6eec6b38806afd8c24710a184fa1",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde queda el campamento",
@@ -2505,6 +2786,12 @@
       "matches": []
     },
     {
+      "key": "7836f5a30eaf5a06eca8ccab9e824ec6f17882e71a0c72e656ee7dfff3e72bc8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tengo diez panes.",
+      "matches": []
+    },
+    {
       "key": "7836f896ede67d9215dae04cea2c15338fd3fdb73b126cd813e497ad6ebbb48f",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "De dónde sale la madera",
@@ -2528,9 +2815,49 @@
       ]
     },
     {
+      "key": "7a6131ae822392e5eed4ad06ab6d852bb8ae3f6fb1c8eadd3cf56e32090e1233",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo compraste dos panes",
+      "matches": [
+        {
+          "rule": "AGREEMENT_PRONOUNSUBJECT_VERB",
+          "issueType": "inconsistency",
+          "message": "Posible falta de concordancia entre «Yo» y «compraste».",
+          "offset": 3,
+          "length": 9,
+          "replacements": [
+            "compré"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "7a8c60429054f6b7aa8e9bf1263b749d141418e9b9be1ee7741d5592735e69e8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay dos pan",
+      "matches": [
+        {
+          "rule": "AGREEMENT_NUMERAL_PLURAL",
+          "issueType": "inconsistency",
+          "message": "Posible error de concordancia. Revise la puntuación.",
+          "offset": 8,
+          "length": 3,
+          "replacements": [
+            "panes"
+          ]
+        }
+      ]
+    },
+    {
       "key": "7af60f03d2aa6f7a7177eef3f6d38fc5dd1a2e5e48292bf0e07abe76da1e2505",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Gracias, amigo",
+      "matches": []
+    },
+    {
+      "key": "7af770c5deb6cb9e4ec7994b53e10269fd9b3e1d7b7afeeedef2200253740d01",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, hay pan. Es pan de Luz.",
       "matches": []
     },
     {
@@ -2642,6 +2969,12 @@
       "matches": []
     },
     {
+      "key": "828fa864b7cbc7e64d442ca0a4b0f0040ee41e33c85fbd059ca1fcb7e1cc9e2d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Después busco madera",
+      "matches": []
+    },
+    {
       "key": "82b1e4197a276a8e0ee3ff44580f1917403c561d6f2bc0043d82f59f48ee34b2",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hasta mañana",
@@ -2684,6 +3017,12 @@
       "matches": []
     },
     {
+      "key": "84a14d2a1eea3ff47a6230ca203440fa764fcb6f6523fe06cd88839635238fd6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Después voy a buscar madera",
+      "matches": []
+    },
+    {
       "key": "8531181fccc84883f643e8f368cb1ee28a13b711dc6583f7f9dcb451313b147e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No es agua",
@@ -2696,9 +3035,21 @@
       "matches": []
     },
     {
+      "key": "8595859c4fa7947aae83fc28689ab426b9d95f4c92c2d8850e20fc874a4318e2",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, tengo cuatro monedas",
+      "matches": []
+    },
+    {
       "key": "85fa6e8d4cd825aacb5373d4d8c19ab0e27ff0c74fe1c872ee559731fb114f38",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mañana compro pan",
+      "matches": []
+    },
+    {
+      "key": "866d3de21c7e3fbdcc388bef9832892f3fce39a4bc8dfdb09b6d269fa5c0f7db",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Compré pan",
       "matches": []
     },
     {
@@ -2765,6 +3116,12 @@
       "key": "8a0c45ced20c883e207099bf4db57efe1284da390cadf778c46260788c884b77",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí fui a la panadería",
+      "matches": []
+    },
+    {
+      "key": "8ad02a29b9c30b6b1d37489c1398ae2d33b0dd4a5214879a6d74a94a1c124abe",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay panes",
       "matches": []
     },
     {
@@ -2867,6 +3224,12 @@
       "key": "8fb2471b4ccd992ee0adc4eb8ca0c453d8a3d710034150b7bc8db2854ecb3525",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No.",
+      "matches": []
+    },
+    {
+      "key": "8fb81447a88c3c0449bf874fe29b68f740801f7a4bb01c6c3a868b61c05a70f2",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer?",
       "matches": []
     },
     {
@@ -3044,6 +3407,18 @@
       "matches": []
     },
     {
+      "key": "97ffe37b1c7e513385ea94e7111078f769a55702ca842e350b4aef132a314d08",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer compré fruta en la tienda.",
+      "matches": []
+    },
+    {
+      "key": "9855ede0015e172b4ca2581ce4089723030e548a7f3ca06e92e7f69df154c6ac",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí tengo cuatro monedas",
+      "matches": []
+    },
+    {
       "key": "98d5ccf54ee264fd87e699524e32df6c48d053386e158be2e190b295119a3576",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo vas a la panadería",
@@ -3097,9 +3472,21 @@
       "matches": []
     },
     {
+      "key": "9bb6838ede5bd8666ace5b5713b7e7763cfc1e5547c77efc0224294127112406",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Cuánto cuestan los panes?",
+      "matches": []
+    },
+    {
       "key": "9befce8029dff4774e5b4ed0e5dd1a80a25f46ae484887ebabad8f4d5d78d91c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "El libro está libro, a dos libros.",
+      "matches": []
+    },
+    {
+      "key": "9c24a483b2098458eb81c3ecab5959a42bc33b79493c7be191ee7021ce16ebcf",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Luego voy a buscar madera",
       "matches": []
     },
     {
@@ -3154,6 +3541,12 @@
       "key": "9d62187cd045b0eb6664f8257ebd909c68b1695db87f5ab3cb7d808d40c228a3",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo necesito agua",
+      "matches": []
+    },
+    {
+      "key": "9d68d9a441750abff8af6a1ae72deb86b8ec3c6d92bd06e15156bd17d7f3ad3b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Compré dos panes hoy",
       "matches": []
     },
     {
@@ -3230,6 +3623,12 @@
       "key": "9f37ecfe1373cf8ce07dac33bb4899ceff1618f8550fe545a1a201921da3d2f8",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Tengo una botella",
+      "matches": []
+    },
+    {
+      "key": "9feb798de7420c6e4c95a713a8f7112586e89a595fb640f2975cce87cc2cfb21",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Hay panes?",
       "matches": []
     },
     {
@@ -3327,6 +3726,18 @@
       "matches": []
     },
     {
+      "key": "a33344c0bd5fb9980c6153885badb7de52daceb9b8c06d6d261972e6d43ab584",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cuánto cuesta una manzana",
+      "matches": []
+    },
+    {
+      "key": "a34fd7bb0cc24742b0253779d18c431e2bfdb7de52143c239968ff90f25d92a8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Hay pan aquí?",
+      "matches": []
+    },
+    {
       "key": "a3591601d252b675abafe873f4a4827c35d15c800a60423302e582062ab626db",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, te ayudo.",
@@ -3378,6 +3789,12 @@
           ]
         }
       ]
+    },
+    {
+      "key": "a6bd30320aef2822a7aa8d049d0a314b06c86cffb007c4e26134998e5a3945d4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero un pan, por favor",
+      "matches": []
     },
     {
       "key": "a6f9b398d542b88e2d92c1396f9e2146c9c69b2f9f6f086d805db4d22282d1f4",
@@ -3494,6 +3911,12 @@
       "matches": []
     },
     {
+      "key": "ab4e70851c95f3944bbc4aff7a6eb64db70c444ea719a04a738d185aab230ee5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Cuántos panes quieres?",
+      "matches": []
+    },
+    {
       "key": "ab5a3198726fbe9bccfa99376d5701a5c98a70389c30c454a8592ea7eaf5a2bc",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer voy al río",
@@ -3509,6 +3932,12 @@
       "key": "aca6a438d6bc866b4ee54eb1d2426b2e4af5dda2011c74064e8b983d2ae124fb",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Más despacio",
+      "matches": []
+    },
+    {
+      "key": "acb12e22bb38b2533f383120dcc6c87a69eb63ec9bcbf996e9190b71289a9c3e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí tienes el pan. ¡Gracias!",
       "matches": []
     },
     {
@@ -3785,6 +4214,12 @@
       "matches": []
     },
     {
+      "key": "b8ffc92ba0bf60fd152c0be1128e0d48265cd2842670e2dc525028dec2147baa",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Puedes decir: «Quiero dos panes, por favor».",
+      "matches": []
+    },
+    {
       "key": "b9135d1e850f57602cd50dd9073d3da08c374ca028c63f8d13ab7f9786e8d70a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ellos quieren agua.",
@@ -3803,6 +4238,12 @@
       "matches": []
     },
     {
+      "key": "b9d76ab554f5cbab04eb584017d7d76a8523e16c00a96370554101f36c629968",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Hay pan?",
+      "matches": []
+    },
+    {
       "key": "b9f18cd45c23107d90283eab26b25ec5ffabd433f77797c7749067277e13f0d1",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde está la tienda por favor",
@@ -3815,6 +4256,12 @@
       "matches": []
     },
     {
+      "key": "ba426d4430c379ed2770a8ef8084cade331cffc7e2e02a412deae2a09b65ebd8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hoy compré dos panes",
+      "matches": []
+    },
+    {
       "key": "bae6b3dad6fbe2eb73589d46bafe312ad18b52bd8776babe024436b949fcd213",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "río",
@@ -3824,6 +4271,12 @@
       "key": "bc054d5fff4732690b7695373cf3afe558057c5184907b6438d3d2090de826b4",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí: «Tengo un libro». ¡Muy bien!",
+      "matches": []
+    },
+    {
+      "key": "bc3b9867a731f3a458c4aa4632543aefba84ceaeac3977aa2a06dac4d045b476",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me da dos panes por favor",
       "matches": []
     },
     {
@@ -3917,6 +4370,12 @@
       "matches": []
     },
     {
+      "key": "c0d9e4b0c02c3ca8e0316897f863e82af99365516c438c22a24bc9faae6c68c8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "El pan cuesta dos monedas.",
+      "matches": []
+    },
+    {
       "key": "c10eed6c41e3bb71343d082677fee372234f1e691b430592bf061614bd28c7e3",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "La espada está aquí.",
@@ -3982,6 +4441,12 @@
       "matches": []
     },
     {
+      "key": "c47006be508d1224b053ba317992d440c24a1dd10221087dd1932a6fb50933e2",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Gracias! Toma cuatro monedas.",
+      "matches": []
+    },
+    {
       "key": "c483179b5c3e1aa821311254e87846da264f2be454a8aeb3ff2e3a6a756bfe27",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Lejos? ¿Qué buscas?",
@@ -4040,6 +4505,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Hola, amigo! ¿Qué buscas?",
       "matches": []
+    },
+    {
+      "key": "c77f00aec8617fc3a01f77a6d2b9f4d2b84e25f778727b6ebdda8566804a7cb7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo quieres dos panes",
+      "matches": [
+        {
+          "rule": "AGREEMENT_PRONOUNSUBJECT_VERB",
+          "issueType": "inconsistency",
+          "message": "Posible falta de concordancia entre «Yo» y «quieres».",
+          "offset": 3,
+          "length": 7,
+          "replacements": [
+            "quiero"
+          ]
+        }
+      ]
     },
     {
       "key": "c7e2c72f303989ffebe33443797f30a8014c7b23c10dcad593caf973ee64e1c6",
@@ -4298,6 +4780,29 @@
       "matches": []
     },
     {
+      "key": "d2339044b403e3544ba80914694194e849ee20d07540e4f4c00a0c3e1a754b0d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dos panes, por favor",
+      "matches": []
+    },
+    {
+      "key": "d26597dddc0b5e633c9a797838ab9c6d1047e0c2193ccd5f995505845b37f42e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tengo cuatro moneda",
+      "matches": [
+        {
+          "rule": "AGREEMENT_NUMERAL_PLURAL",
+          "issueType": "inconsistency",
+          "message": "Posible error de concordancia. Revise la puntuación.",
+          "offset": 13,
+          "length": 6,
+          "replacements": [
+            "monedas"
+          ]
+        }
+      ]
+    },
+    {
       "key": "d2b3a22085836ed83c65e8f31be930f9f7432ab6660570648fa573ed9c44b087",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Si por favor",
@@ -4387,6 +4892,12 @@
       "matches": []
     },
     {
+      "key": "d780e9ccf412547de8b93a36decfc13ae4d8275578779110df851358cca4003d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero dos panes",
+      "matches": []
+    },
+    {
       "key": "d8259d70622cfa71e1a5ff815a2f140bbec4391b3d3a27c563893fe5c6722f77",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Repite",
@@ -4458,9 +4969,27 @@
       "matches": []
     },
     {
+      "key": "d97750d8d057702b3ab6005d80bb640011566fce50605fe9862348b90d60c5cf",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dos panes por favor",
+      "matches": []
+    },
+    {
+      "key": "d9e5ebefa3bd637a3caee782e200a4fe31a1ef752fad0e4bdf46ad66309709d3",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo tengo cuatro monedas",
+      "matches": []
+    },
+    {
       "key": "da008cbcb4b2b7f17e05317de845c422c1e64eb25187cc4083a3c96b2d03d405",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí tengo una fruta",
+      "matches": []
+    },
+    {
+      "key": "dac4a5e987c215c7de718b93d3bd70ef4518a1a3c77d238e7fa320e6ab90ab37",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay dos panes",
       "matches": []
     },
     {
@@ -4500,6 +5029,12 @@
       "matches": []
     },
     {
+      "key": "dd18f6f91cc1b9264d35055a2c398f4f2447d6448fddeb149f555502c9922a33",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cuánto es",
+      "matches": []
+    },
+    {
       "key": "dd4b044f5eb271cec817030522a18fda3c503d022e8e01ba6680f641271d14d6",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Miro bien.",
@@ -4512,9 +5047,21 @@
       "matches": []
     },
     {
+      "key": "dd9460485127f20d21f4115c0780b2277b24645ff1769d21f595bd78091d0a9e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me das dos panes",
+      "matches": []
+    },
+    {
       "key": "ddb6008d37ac81c37b93e2b7c8fac4f976d72739929b066216c631ba3f9d9156",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde está el pozo",
+      "matches": []
+    },
+    {
+      "key": "dddba892353bb814532737224cfa0c8d10fbee9975c2043d012276b0f0f0221a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Qué compraste?",
       "matches": []
     },
     {
@@ -4571,6 +5118,12 @@
       "matches": []
     },
     {
+      "key": "df083618dc44fccad201a75a524b34b5b1e66186fffbf34019525c9beb65d93d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Compré dos panes.",
+      "matches": []
+    },
+    {
       "key": "df3caaa77b0ba66aa44ecab4a3fb72621a3538f5912ed020c083cd49c622aa9b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Buenos días",
@@ -4586,6 +5139,12 @@
       "key": "e10bd79f1142830a17d142aa8519ca662a5c9e6fdcde17bac35086ec617b11f6",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Voy a ir al río mañana",
+      "matches": []
+    },
+    {
+      "key": "e147ef3af5d09aa1ece94c7787d17246138dfb008b8330b30864c95b5dd00483",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Seis, siete, ocho, nueve, diez.",
       "matches": []
     },
     {
@@ -4607,9 +5166,21 @@
       "matches": []
     },
     {
+      "key": "e22237eddf8cb778dbe4c07ae4423d29b81492c50666432290b92d4130b1d8b7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cuánto cuesta el pan",
+      "matches": []
+    },
+    {
       "key": "e285e9d274ebb2ec60f22fa71d8de8c1aeb76038caad3a724f25a6c772c316d6",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Busco el lago",
+      "matches": []
+    },
+    {
+      "key": "e2d21fe473f7a990c1da71694be7b94664f7668faca098c4e2c702dffb0a9b61",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Compraste dos panes. ¡Muy bien!",
       "matches": []
     },
     {
@@ -4655,6 +5226,12 @@
       "matches": []
     },
     {
+      "key": "e50d1c1a0e0c817d5778a6bc63ff3355e64a3c756b9446177a6416c7453917c7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a buscar la madera",
+      "matches": []
+    },
+    {
       "key": "e542b4ee0cff791ea97f25fec550528b2b0c5a545974b447e6ed49539239f594",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡De nada!",
@@ -4677,6 +5254,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "adelante",
       "matches": []
+    },
+    {
+      "key": "e5cdc1083a6c4b7b0570a67b603e34950a1e7bef70cb75867e111258936cb09e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero dos pan",
+      "matches": [
+        {
+          "rule": "AGREEMENT_NUMERAL_PLURAL",
+          "issueType": "inconsistency",
+          "message": "Posible error de concordancia. Revise la puntuación.",
+          "offset": 11,
+          "length": 3,
+          "replacements": [
+            "panes"
+          ]
+        }
+      ]
     },
     {
       "key": "e5ef8240ed00807b78c88df1c09b77f12c6381c50604791c928039c2ce95a7f0",
@@ -4742,6 +5336,12 @@
       "key": "e960a72b5dc139e05967e78918743e8894157d49721a30e0be0e0de1e8be90f8",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mañana voy a comprar pan",
+      "matches": []
+    },
+    {
+      "key": "e9b66e950fc805c3421ab366f683b86a11ceb08162c31610d2916da131d55caf",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer compro dos panes",
       "matches": []
     },
     {
@@ -4859,6 +5459,12 @@
       "matches": []
     },
     {
+      "key": "ee9f2e775d2f11e5dfdbc9b4994a98484dd26feec1755ca15b23e411856f553e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a busco madera",
+      "matches": []
+    },
+    {
       "key": "ef1839b715e4ef3f6848644614818ef02ba62d83a2f7500ae43aa0322d37d29d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Seguro? Dilo otra vez.",
@@ -4928,6 +5534,12 @@
       "key": "f26a5624ee4cec020b6988e25c23ae525f9d7bc810ad76d1844babcf2e85d5c4",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Tienes un libro.",
+      "matches": []
+    },
+    {
+      "key": "f34f3b47f738889f4bf069999f2a47a59b386523d69912823475bee557bb39f8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tengo seis monedas",
       "matches": []
     },
     {
@@ -5056,6 +5668,12 @@
       "matches": []
     },
     {
+      "key": "fb2fc29a23f61c9df56fb1b02a21ce4106591c1761b6d3911a1d4e8a1a26f06c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a buscar madera luego",
+      "matches": []
+    },
+    {
       "key": "fbd566429329974c9c7ea7fcdac39145b055cafef5029104f04046da37abc11e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Claro! Busco.",
@@ -5092,15 +5710,33 @@
       "matches": []
     },
     {
+      "key": "fdf0b9d12df3487ace9ece002c0002cf9df90a476b546dca78c25812ccc2f65c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Qué precio tiene el pan?",
+      "matches": []
+    },
+    {
       "key": "fe016ceafb924b331d93e5147c4f99a653d5fdd511fe4e5aa80bc4576319502a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer como fruta",
       "matches": []
     },
     {
+      "key": "fe1ede4670680a01feb89223f66a92e6ae0af29a0646c0c092e90b51e821bdba",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero tres panes",
+      "matches": []
+    },
+    {
       "key": "fe587bb2505fe3e574af90f6631aa82c1ef33308b774a055f6677ae4f80d5190",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡De nada, amigo!",
+      "matches": []
+    },
+    {
+      "key": "fe6cf2daa60aa8f512d90dd885bc1d84353947cb2095be7d13010143d07e4a9d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cuánto cuestan los panes",
       "matches": []
     },
     {
@@ -5134,6 +5770,12 @@
       "matches": []
     },
     {
+      "key": "fed2bf9bf470b25c31c65250e7744bf0bd08a4813a28f77dac3dbe580f02ba14",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí tengo monedas",
+      "matches": []
+    },
+    {
       "key": "fedd95bbec6abb2557dd7648cb69093f4cc82a850322d169ded4209cc14bba09",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer bebí agua",
@@ -5162,6 +5804,12 @@
           ]
         }
       ]
+    },
+    {
+      "key": "ffaf172dab3150e5ad04aa9354b08171b2b55f1f50f9d3cc7d4ad991f57cec34",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay agua",
+      "matches": []
     },
     {
       "key": "fff93b815a79b9f339644c809be34d55a0e6c88141f83ac211a67c042fe07223",

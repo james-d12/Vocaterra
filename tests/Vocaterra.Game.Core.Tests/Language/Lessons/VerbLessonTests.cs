@@ -496,7 +496,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
 
         Assert.All(book.Lessons, static l => Assert.Equal(l.TaughtVerbs.Count, l.TaughtVerbs.Distinct().Count()));
         Assert.Equal(book.Lessons.Sum(static l => l.TaughtVerbs.Count), book.Lessons.SelectMany(static l => l.TaughtVerbs).Distinct().Count()); // each form belongs to one lesson
-        Assert.Equal([1, 2, 3, 4], book.Lessons.Select(static l => l.Session));
+        Assert.Equal([1, 2, 3, 4, 5], book.Lessons.Select(static l => l.Session));
     }
 
     [Fact]
@@ -510,7 +510,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         Assert.Contains("person", Assert.Throws<InvalidDataException>(() => TestGame.Lessons(Lesson("\"verbs\": [ { \"lemma\": \"ir\", \"person\": \"4\", \"number\": \"sg\", \"tense\": \"pres\" } ],"))).Message, StringComparison.Ordinal);
         Assert.Contains("twice", Assert.Throws<InvalidDataException>(() => TestGame.Lessons(Lesson(
             "\"verbs\": [ { \"lemma\": \"ir\", \"person\": \"1\", \"number\": \"sg\", \"tense\": \"pres\" }, { \"lemma\": \"ir\", \"person\": \"1\", \"number\": \"sg\", \"tense\": \"pres\" } ],"))).Message, StringComparison.Ordinal);
-        Assert.Contains("NPC", Assert.Throws<InvalidDataException>(() => TestGame.Lessons(Lesson("", "{ \"id\": \"a\", \"type\": \"explain\", \"english\": \"E\", \"npc\": \"baker\" }"))).Message, StringComparison.Ordinal);
+        Assert.Contains("NPC", Assert.Throws<InvalidDataException>(() => TestGame.Lessons(Lesson("", "{ \"id\": \"a\", \"type\": \"explain\", \"english\": \"E\", \"npc\": \"miller\" }"))).Message, StringComparison.Ordinal);
         Assert.Contains("spoken by", Assert.Throws<InvalidDataException>(() => TestGame.Lessons(Lesson("", "{ \"id\": \"a\", \"type\": \"model\", \"line\": \"shop_need.1\", \"translation\": \"T\", \"english\": \"E\" }"))).Message, StringComparison.Ordinal);
         // C06: a do step's NPC is its trigger's npc; the old field "at" is refused, so a lesson cannot wait at an NPC by a name the matcher does not read.
         Assert.Contains("'at'", Assert.Throws<InvalidDataException>(() => TestGame.Lessons(Lesson("", "{ \"id\": \"a\", \"type\": \"do\", \"trigger\": { \"event\": \"talk_opened\", \"at\": \"shopkeeper\" }, \"english\": \"E\" }"))).Message, StringComparison.Ordinal);

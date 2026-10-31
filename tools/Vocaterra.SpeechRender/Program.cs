@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Npc;
@@ -21,8 +22,8 @@ namespace Vocaterra.SpeechRender;
 /// </summary>
 /// <remarks>
 /// <b>Re-runs.</b> <c>content/speech-index.json</c> (outside the bundle, so it is not hashed) records for each file its text, speaker, speed,
-/// rate, the adapter's model hash and the file's SHA-256. A file whose inputs and bytes match is skipped; a line whose text changed is rendered
-/// again; a file of a line that no longer exists is deleted. <c>docs/game/SPEECH_CHECKLIST.md</c> is rewritten from the bundle, and the owner's
+/// rate, the voice's gain when it is not 1 (VILLAGE_PLAN V11), the adapter's model hash and the file's SHA-256. A file whose inputs and bytes match is skipped;
+/// a line whose text or voice changed is rendered again; a file of a line that no longer exists is deleted. <c>docs/game/SPEECH_CHECKLIST.md</c> is rewritten from the bundle, and the owner's
 /// marks in its last column are kept for every row whose text did not change. The bundle's <c>manifest.json</c> and <c>provenance.json</c> are
 /// then updated by the caller (the content tool's <c>hash</c> step, run by <c>scripts/prerender-speech.sh</c>).
 /// <para>
@@ -51,8 +52,21 @@ internal static class Program
     private static readonly JsonSerializerOptions IndexJson = new() { WriteIndented = true };
     private static readonly JsonSerializerOptions TrialJson = new(JsonSerializerDefaults.Web);
 
-    /// <summary>One rendered file as recorded in the index.</summary>
-    private sealed record IndexEntry(string Text, string Speaker, int SpeakerId, string Voice, float Speed, int Rate, string ModelHash, string Sha256, int Bytes);
+    /// <summary>
+    /// One rendered file as recorded in the index. <paramref name="Gain"/> is the voice's gain (VILLAGE_PLAN V11), written only when it is not 1, so the entries of
+    /// the voices at the model's own level read as they did before it.
+    /// </summary>
+    private sealed record IndexEntry(
+        string Text,
+        string Speaker,
+        int SpeakerId,
+        string Voice,
+        float Speed,
+        int Rate,
+        string ModelHash,
+        string Sha256,
+        int Bytes,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] float? Gain = null);
 
     /// <summary>The index file: the model id and every file of the speech folder, keyed by its bundle-relative path.</summary>
     private sealed record IndexFile(int SchemaVersion, string Model, SortedDictionary<string, IndexEntry> Files);
@@ -119,7 +133,7 @@ internal static class Program
                     var relative = SpeechLines.FolderName + "/" + fileName;
                     var target = Path.Combine(speechDir, fileName);
                     var synth = Synthesizer(store, spec.Speaker, variant.Item2, synthesizers);
-                    var wanted = new IndexEntry(line.Text, line.Speaker, spec.Speaker, spec.Name, variant.Item2, rate, synth.ModelHash, string.Empty, 0);
+                    var wanted = new IndexEntry(line.Text, line.Speaker, spec.Speaker, spec.Name, variant.Item2, rate, synth.ModelHash, string.Empty, 0, GainOf(spec));
                     expected.Add(fileName);
                     checklist.Add((line.LineId, relative, line.Speaker, variant.Item2.ToString("0.0#", CultureInfo.InvariantCulture), line.Text));
 
@@ -139,7 +153,7 @@ internal static class Program
                     }
 
                     var audio = synth.Synthesize(new SynthesisRequest(line.Text, spec.Name, null));
-                    var samples = rate == audio.SampleRate ? audio.Samples : AudioClips.Resample(audio.Samples, audio.SampleRate, rate);
+                    var samples = Scaled(rate == audio.SampleRate ? audio.Samples : AudioClips.Resample(audio.Samples, audio.SampleRate, rate), spec.Gain);
                     var bytes = WavBytes(samples, rate);
                     WriteAtomically(target, bytes);
                     kept[relative] = wanted with { Sha256 = Sha256(bytes), Bytes = bytes.Length };
@@ -247,7 +261,31 @@ internal static class Program
 
     private static bool SameInputs(IndexEntry previous, IndexEntry wanted) =>
         previous.Text == wanted.Text && previous.Speaker == wanted.Speaker && previous.SpeakerId == wanted.SpeakerId
-        && previous.Voice == wanted.Voice && previous.Speed == wanted.Speed && previous.Rate == wanted.Rate && previous.ModelHash == wanted.ModelHash;
+        && previous.Voice == wanted.Voice && previous.Speed == wanted.Speed && previous.Rate == wanted.Rate && previous.ModelHash == wanted.ModelHash
+        && (previous.Gain ?? 1.0f) == (wanted.Gain ?? 1.0f);
+
+    /// <summary>The gain the index records for a voice: <see langword="null"/> for 1, the model's own level (VILLAGE_PLAN V11).</summary>
+    private static float? GainOf(NpcVoiceSpec spec) => spec.Gain == 1.0f ? null : spec.Gain;
+
+    /// <summary>
+    /// The samples scaled by a voice's gain (VILLAGE_PLAN V11), rounded and held inside 16 bits; the same array for a gain of 1. Kokoro renders the Italian
+    /// <c>if_sara</c> about 10 dB louder than the Spanish voices, with peaks near full scale, so the baker's lines are brought down to their level.
+    /// </summary>
+    private static short[] Scaled(short[] samples, float gain)
+    {
+        if (gain == 1.0f)
+        {
+            return samples;
+        }
+
+        var scaled = new short[samples.Length];
+        for (var i = 0; i < samples.Length; i++)
+        {
+            scaled[i] = (short)Math.Clamp(Math.Round(samples[i] * (double)gain, MidpointRounding.AwayFromZero), short.MinValue, short.MaxValue);
+        }
+
+        return scaled;
+    }
 
     /// <summary>Little-endian 16-bit mono PCM in a canonical 44-byte RIFF header (what the core's <c>StaticLineStore</c> reads).</summary>
     private static byte[] WavBytes(short[] samples, int rate)
@@ -402,7 +440,8 @@ internal static class Program
             var says = npc.Id == SpeechSpeakers.Guide
                 ? "every pool no other NPC has, its prompts, the word cards and the model answers"
                 : $"the pools `{npc.PoolPrefix}_*` and `guide.lesson.{npc.PoolPrefix}.*`, and its prompts";
-            builder.Append(CultureInfo.InvariantCulture, $"| {npc.Id} ({npc.Called}) | `{voice.Name}` | {voice.Speaker} | {Speed(voice.Speed)} ({Speed(voice.Speed * SlowFactor)}) | {says} |\n");
+            var gain = voice.Gain == 1.0f ? string.Empty : $", gain {Speed(voice.Gain)}";
+            builder.Append(CultureInfo.InvariantCulture, $"| {npc.Id} ({npc.Called}) | `{voice.Name}`{gain} | {voice.Speaker} | {Speed(voice.Speed)} ({Speed(voice.Speed * SlowFactor)}) | {says} |\n");
         }
 
         builder.Append('\n');

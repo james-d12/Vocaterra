@@ -449,6 +449,94 @@
       "lesson": "el-pueblo",
       "prompt": "lesson-went-there",
       "intent": "state_action"
+    },
+    {
+      "id": "hear.tengo-diez-panes",
+      "kind": "comprehension",
+      "phrase": "tengo-diez-panes",
+      "lesson": "numeros-y-pan",
+      "line": "guide.lesson.baker.loaves.1",
+      "spanish": "Tengo diez panes.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.cuantos-panes",
+      "kind": "comprehension",
+      "phrase": "cuantos-panes",
+      "lesson": "numeros-y-pan",
+      "line": "guide.lesson.baker.how_many.1",
+      "spanish": "¿Cuántos panes quieres?",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.cuesta-dos-monedas",
+      "kind": "comprehension",
+      "phrase": "cuesta-dos-monedas",
+      "lesson": "numeros-y-pan",
+      "line": "baker_price.1",
+      "spanish": "El pan cuesta dos monedas.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.que-compraste",
+      "kind": "comprehension",
+      "phrase": "que-compraste",
+      "lesson": "numeros-y-pan",
+      "line": "guide.lesson.baker.bought.1",
+      "spanish": "¿Qué compraste?",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "say.quiero-dos-panes",
+      "kind": "production",
+      "phrase": "quiero-dos-panes",
+      "lesson": "numeros-y-pan",
+      "prompt": "baker-open",
+      "intent": "request_item"
+    },
+    {
+      "id": "say.cuanto-cuesta",
+      "kind": "production",
+      "phrase": "cuanto-cuesta",
+      "lesson": "numeros-y-pan",
+      "prompt": "baker-open",
+      "intent": "ask_price"
+    },
+    {
+      "id": "say.voy-a-buscar-madera",
+      "kind": "production",
+      "phrase": "voy-a-buscar-madera",
+      "lesson": "numeros-y-pan",
+      "prompt": "lesson-wood-plan",
+      "intent": "state_action"
+    },
+    {
+      "id": "say.compre-dos-panes",
+      "kind": "production",
+      "phrase": "compre-dos-panes",
+      "lesson": "numeros-y-pan",
+      "prompt": "lesson-bought",
+      "intent": "state_action"
     }
   ]
 }

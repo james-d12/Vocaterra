@@ -140,7 +140,18 @@
         {"text": "pan, por favor", "errors": [], "prompt": "stall-need"},
         {"text": "necesito pan", "errors": [], "prompt": "stall-need"},
         {"text": "me da pan", "errors": [], "prompt": "stall-need"},
-        {"text": "me das pan", "errors": [], "prompt": "stall-need"}
+        {"text": "me das pan", "errors": [], "prompt": "stall-need"},
+        {"text": "quiero dos panes, por favor", "errors": [], "prompt": "baker-open"},
+        {"text": "quiero dos panes", "errors": [], "prompt": "baker-open"},
+        {"text": "dos panes, por favor", "errors": [], "prompt": "baker-open"},
+        {"text": "me da dos panes", "errors": [], "prompt": "baker-open"},
+        {"text": "me da dos panes, por favor", "errors": [], "prompt": "baker-open"},
+        {"text": "me das dos panes, por favor", "errors": [], "prompt": "baker-open"},
+        {"text": "quiero un pan, por favor", "errors": [], "prompt": "baker-open"},
+        {"text": "quiero pan", "errors": [], "prompt": "baker-open"},
+        {"text": "quiero tres panes", "errors": [], "prompt": "baker-open"},
+        {"text": "quiero dos pan", "errors": ["noun.number"], "prompt": "baker-open"},
+        {"text": "yo quieres dos panes", "errors": ["conj.person"], "prompt": "baker-open"}
       ]
     },
     {
@@ -299,6 +310,13 @@
         {"text": "sí, yo tienes una fruta", "errors": ["conj.person"], "prompt": "lesson-have"},
         {"text": "yo teno una fruta", "errors": ["conj.irregular"], "prompt": "lesson-have"},
         {"text": "sí, yo tiene una botella", "errors": ["conj.person"], "prompt": "lesson-bottle"},
+        {"text": "tengo cuatro monedas", "errors": [], "prompt": "lesson-coins"},
+        {"text": "sí, tengo cuatro monedas", "errors": [], "prompt": "lesson-coins"},
+        {"text": "yo tengo cuatro monedas", "errors": [], "prompt": "lesson-coins"},
+        {"text": "tengo monedas", "errors": [], "prompt": "lesson-coins"},
+        {"text": "tengo seis monedas", "errors": [], "prompt": "lesson-coins"},
+        {"text": "yo tiene cuatro monedas", "errors": ["conj.person"], "prompt": "lesson-coins"},
+        {"text": "tengo cuatro moneda", "errors": ["noun.number"], "prompt": "lesson-coins"},
         "ella tiene madera",
         "nosotros tenemos agua",
         "ellos tienen pan"
@@ -459,8 +477,24 @@
         {"text": "hoy fui a la panadería", "errors": [], "prompt": "lesson-went-there"},
         {"text": "ayer voy a la panadería", "errors": ["conj.tense"], "prompt": "lesson-went-there"},
         {"text": "yo fuiste a la panadería", "errors": ["conj.person"], "prompt": "lesson-went-there"},
-        "compré dos panes",
-        "voy a buscar madera",
+        {"text": "voy a buscar madera", "errors": [], "prompt": "lesson-wood-plan"},
+        {"text": "yo voy a buscar madera", "errors": [], "prompt": "lesson-wood-plan"},
+        {"text": "voy a buscar la madera", "errors": [], "prompt": "lesson-wood-plan"},
+        {"text": "luego voy a buscar madera", "errors": [], "prompt": "lesson-wood-plan"},
+        {"text": "voy a buscar madera luego", "errors": [], "prompt": "lesson-wood-plan"},
+        {"text": "después voy a buscar madera", "errors": [], "prompt": "lesson-wood-plan"},
+        {"text": "luego busco madera", "errors": [], "prompt": "lesson-wood-plan"},
+        {"text": "después busco madera", "errors": [], "prompt": "lesson-wood-plan"},
+        {"text": "voy a busco madera", "errors": ["conj.tense"], "prompt": "lesson-wood-plan"},
+        {"text": "yo vas a buscar madera", "errors": ["conj.person"], "prompt": "lesson-wood-plan"},
+        {"text": "compré dos panes", "errors": [], "prompt": "lesson-bought"},
+        {"text": "yo compré dos panes", "errors": [], "prompt": "lesson-bought"},
+        {"text": "hoy compré dos panes", "errors": [], "prompt": "lesson-bought"},
+        {"text": "compré dos panes hoy", "errors": [], "prompt": "lesson-bought"},
+        {"text": "compré pan", "errors": [], "prompt": "lesson-bought"},
+        {"text": "compré un pan", "errors": [], "prompt": "lesson-bought"},
+        {"text": "ayer compro dos panes", "errors": ["conj.tense"], "prompt": "lesson-bought"},
+        {"text": "yo compraste dos panes", "errors": ["conj.person"], "prompt": "lesson-bought"},
         "busqué madera"
       ]
     },
@@ -566,9 +600,44 @@
         {"text": "hay un pozo aquí", "errors": [], "prompt": "lesson-hay"},
         {"text": "hay una pozo en el pueblo", "errors": ["gender.agree"], "prompt": "lesson-hay"},
         {"text": "hay un pozo", "errors": [], "prompt": "fisher-open"},
-        "hay pan",
+        {"text": "hay pan", "errors": [], "prompt": "stall-need"},
+        {"text": "hay pan aquí", "errors": [], "prompt": "stall-need"},
+        {"text": "hay panes", "errors": [], "prompt": "stall-need"},
+        {"text": "hay agua", "errors": [], "prompt": "stall-need"},
+        {"text": "hay dos pan", "errors": ["noun.number"], "prompt": "stall-need"},
+        {"text": "hay pan", "errors": [], "prompt": "baker-open"},
+        {"text": "hay panes", "errors": [], "prompt": "baker-open"},
+        {"text": "hay pan aquí", "errors": [], "prompt": "baker-open"},
+        {"text": "hay dos pan", "errors": ["noun.number"], "prompt": "baker-open"},
         "hay agua aquí",
         "hay una tienda en el pueblo"
+      ]
+    },
+    {
+      "intentId": "ask_price",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "cuánto [VERB:costar] [ART]? [NUM:qty]? [NOUN:item]?",
+        "cuánto [VERB:ser] [ART]? [NUM:qty]? [NOUN:item]?",
+        "qué precio [VERB:tener] [ART]? [NOUN:item]"
+      ],
+      "keywordRules": [
+        { "lemmas": ["costar"], "requiresSlots": [] }
+      ],
+      "examples": [
+        {"text": "cuánto cuesta", "errors": [], "prompt": "baker-open"},
+        {"text": "cuánto cuesta el pan", "errors": [], "prompt": "baker-open"},
+        {"text": "cuánto es", "errors": [], "prompt": "baker-open"},
+        {"text": "qué precio tiene el pan", "errors": [], "prompt": "baker-open"},
+        {"text": "cuánto cuestan los panes", "errors": [], "prompt": "baker-open"},
+        {"text": "cuánto cuestan dos panes", "errors": [], "prompt": "baker-open"},
+        {"text": "cuánto costan los panes", "errors": ["conj.irregular"], "prompt": "baker-open"},
+        {"text": "cuánto cuesta la pan", "errors": ["gender.agree"], "prompt": "baker-open"},
+        {"text": "cuánto cuesta", "errors": [], "prompt": "stall-need"},
+        {"text": "cuánto cuesta el pan", "errors": [], "prompt": "stall-need"},
+        {"text": "cuánto es", "errors": [], "prompt": "stall-need"},
+        "cuánto cuesta el agua",
+        "cuánto cuesta una manzana"
       ]
     }
   ]

@@ -23,11 +23,15 @@ public sealed class ObjectiveBookTests
     [Fact]
     public void TheShippedSessionIsTheOneTheCodeHeld()
     {
-        // The three the code held, and since VILLAGE_PLAN V10 the fisher's order of session 4: three fruits brought to him at the bridge.
-        Assert.Equal(["meet-guide", "camp", "light-fire", "fruit-for-mar"], Book.Objectives.Select(static o => o.Id));
+        // The three the code held, and since VILLAGE_PLAN V10 the fisher's order of session 4: three fruits brought to him at the bridge; since V11 the baker's of
+        // session 5: five wood for her oven.
+        Assert.Equal(["meet-guide", "camp", "light-fire", "fruit-for-mar", "oven-wood"], Book.Objectives.Select(static o => o.Id));
         var order = Book.Find("fruit-for-mar")!;
         Assert.Equal(("fisher", (int?)4), (order.DeliverTo, order.Session));
         Assert.Equal((ItemId.Berry, 3), (Assert.Single(order.Goods).Item, Assert.Single(order.Goods).Count));
+        var oven = Book.Find("oven-wood")!;
+        Assert.Equal(("baker", (int?)5), (oven.DeliverTo, oven.Session));
+        Assert.Equal((ItemId.Wood, 5), (Assert.Single(oven.Goods).Item, Assert.Single(oven.Goods).Count));
         Assert.Equal(("guide.lesson.end", "camp.guide"), (Book.ClosingPool, Book.BeaconStart));
         Assert.Equal([ItemId.Book], Book.Grants);
 
@@ -169,7 +173,7 @@ public sealed class ObjectiveBookTests
         var document = SaveGame.Parse(SaveGame.Save(session, TestGame.Route()));
 
         Assert.Equal(5, document.Version);
-        Assert.Equal(["camp.wood", "camp.berry", "camp.torch", "camp.water", "fruit-for-mar.delivered"], document.Objective.Select(static o => o.Key)); // and the order's one step (V10)
+        Assert.Equal(["camp.wood", "camp.berry", "camp.torch", "camp.water", "fruit-for-mar.delivered", "oven-wood.delivered"], document.Objective.Select(static o => o.Key)); // and the orders' one step each (V10, V11)
         Assert.Equal(2, document.Objective[0].Count);
     }
 
@@ -201,7 +205,7 @@ public sealed class ObjectiveBookTests
         Assert.DoesNotContain(loaded.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.SpareTorch); // the fire is lit already
         var resaved = SaveGame.Parse(SaveGame.Save(loaded, TestGame.Route()));
         Assert.Equal(5, resaved.Version);
-        Assert.Equal(["camp.wood", "camp.berry", "camp.torch", "camp.water", "fruit-for-mar.delivered"], resaved.Objective.Select(static o => o.Key));
+        Assert.Equal(["camp.wood", "camp.berry", "camp.torch", "camp.water", "fruit-for-mar.delivered", "oven-wood.delivered"], resaved.Objective.Select(static o => o.Key));
     }
 
     [Fact]

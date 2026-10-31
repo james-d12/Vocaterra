@@ -63,6 +63,22 @@
     {"id": "voy-a-comprar-pan", "says": "says", "spanish": "Voy a comprar pan.", "intent": "state_action", "prompt": "lesson-plan-there", "variants": ["yo voy a comprar pan", "voy a comprar el pan", "mañana voy a comprar pan", "luego voy a comprar pan", "voy a comprar pan mañana"], "audioLineIds": []},
     {"id": "el-letrero", "says": "hears", "spanish": "El letrero dice: tienda, río, montaña.", "intent": null, "prompt": "lesson-sign", "variants": [], "audioLineIds": ["guide.lesson.villager.sign.1"]},
     {"id": "fuiste-a-la-panaderia", "says": "hears", "spanish": "¿Fuiste a la panadería?", "intent": null, "prompt": "lesson-went-there", "variants": [], "audioLineIds": ["guide.lesson.fisher.went.1"]},
-    {"id": "fui-a-la-panaderia", "says": "says", "spanish": "Sí, fui a la panadería.", "intent": "state_action", "prompt": "lesson-went-there", "variants": ["fui a la panadería", "yo fui a la panadería", "hoy fui a la panadería"], "audioLineIds": []}
+    {"id": "fui-a-la-panaderia", "says": "says", "spanish": "Sí, fui a la panadería.", "intent": "state_action", "prompt": "lesson-went-there", "variants": ["fui a la panadería", "yo fui a la panadería", "hoy fui a la panadería"], "audioLineIds": []},
+    {"id": "uno-a-cinco", "says": "hears", "spanish": "Uno, dos, tres, cuatro, cinco.", "intent": null, "prompt": "baker-open", "variants": [], "audioLineIds": ["guide.lesson.baker.five.1"]},
+    {"id": "seis-a-diez", "says": "hears", "spanish": "Seis, siete, ocho, nueve, diez.", "intent": null, "prompt": "baker-open", "variants": [], "audioLineIds": ["guide.lesson.baker.ten.1"]},
+    {"id": "tengo-diez-panes", "says": "hears", "spanish": "Tengo diez panes.", "intent": null, "prompt": "baker-open", "variants": [], "audioLineIds": ["guide.lesson.baker.loaves.1"]},
+    {"id": "cuantos-panes", "says": "hears", "spanish": "¿Cuántos panes quieres?", "intent": null, "prompt": "baker-open", "variants": [], "audioLineIds": ["guide.lesson.baker.how_many.1", "baker_hay.1"]},
+    {"id": "quiero-dos-panes", "says": "says", "spanish": "Quiero dos panes, por favor.", "intent": "request_item", "prompt": "baker-open", "variants": ["quiero dos panes", "dos panes, por favor", "me da dos panes, por favor", "quiero un pan, por favor"], "audioLineIds": ["baker_help.1"]},
+    {"id": "cuanto-cuesta", "says": "says", "spanish": "¿Cuánto cuesta?", "intent": "ask_price", "prompt": "baker-open", "variants": ["¿cuánto cuesta el pan?", "¿cuánto es?", "¿qué precio tiene el pan?", "¿cuánto cuestan los panes?"], "audioLineIds": []},
+    {"id": "cuesta-dos-monedas", "says": "hears", "spanish": "El pan cuesta dos monedas.", "intent": null, "prompt": "baker-open", "variants": [], "audioLineIds": ["baker_price.1", "shop_price.1"]},
+    {"id": "necesito-madera-para-el-horno", "says": "hears", "spanish": "Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer?", "intent": null, "prompt": "lesson-wood-plan", "variants": [], "audioLineIds": ["guide.lesson.baker.oven.1"]},
+    {"id": "voy-a-buscar-madera", "says": "says", "spanish": "Voy a buscar madera.", "intent": "state_action", "prompt": "lesson-wood-plan", "variants": ["yo voy a buscar madera", "voy a buscar la madera", "luego voy a buscar madera"], "audioLineIds": []},
+    {"id": "toma-cuatro-monedas", "says": "hears", "spanish": "¡Gracias! Toma cuatro monedas.", "intent": null, "prompt": "lesson-coins", "variants": [], "audioLineIds": ["baker_delivered.1"]},
+    {"id": "tengo-cuatro-monedas", "says": "says", "spanish": "Tengo cuatro monedas.", "intent": "state_have", "prompt": "lesson-coins", "variants": ["sí, tengo cuatro monedas", "yo tengo cuatro monedas", "tengo monedas"], "audioLineIds": []},
+    {"id": "ayer-compre-fruta", "says": "hears", "spanish": "Ayer compré fruta en la tienda.", "intent": null, "prompt": "lesson-bought", "variants": [], "audioLineIds": ["guide.lesson.baker.model.1"]},
+    {"id": "que-compraste", "says": "hears", "spanish": "¿Qué compraste?", "intent": null, "prompt": "lesson-bought", "variants": [], "audioLineIds": ["guide.lesson.baker.bought.1"]},
+    {"id": "compre-dos-panes", "says": "says", "spanish": "Compré dos panes.", "intent": "state_action", "prompt": "lesson-bought", "variants": ["yo compré dos panes", "hoy compré dos panes", "compré pan"], "audioLineIds": []},
+    {"id": "compraste-dos-panes", "says": "hears", "spanish": "Compraste dos panes. ¡Muy bien!", "intent": null, "prompt": "lesson-bought", "variants": [], "audioLineIds": ["guide.lesson.baker.you.1"]},
+    {"id": "hay-pan", "says": "says", "spanish": "¿Hay pan?", "intent": "ask_availability", "prompt": "baker-open", "variants": ["¿hay pan aquí?", "¿hay panes?"], "audioLineIds": []}
   ]
 }

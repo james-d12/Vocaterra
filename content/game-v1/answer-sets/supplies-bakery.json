@@ -1,0 +1,53 @@
+{
+  "answerSetId": "supplies-bakery",
+  "answers": [
+    {
+      "answerId": "bread",
+      "canonical": "quiero dos panes por favor",
+      "aliases": ["quiero dos panes", "dos panes por favor", "me da dos panes", "me da dos panes por favor", "me das dos panes", "me das dos panes por favor", "quiero un pan", "quiero un pan por favor", "un pan por favor", "quiero pan", "quiero pan por favor", "pan por favor", "quiero tres panes", "yo quiero dos panes"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "price",
+      "canonical": "cuánto cuesta",
+      "aliases": ["cuánto cuesta el pan", "cuánto es", "qué precio tiene el pan", "cuánto cuestan los panes", "cuánto cuestan dos panes"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "bread-here",
+      "canonical": "hay pan",
+      "aliases": ["hay pan aquí", "hay panes", "hay dos panes", "hay un pan"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "hello",
+      "canonical": "hola",
+      "aliases": ["buenos días", "buenas tardes", "buen día"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "thanks",
+      "canonical": "gracias",
+      "aliases": ["muchas gracias"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "bye",
+      "canonical": "adiós",
+      "aliases": ["hasta luego", "nos vemos", "hasta mañana"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": ["no lo sé", "yo no sé", "no entiendo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    }
+  ]
+}

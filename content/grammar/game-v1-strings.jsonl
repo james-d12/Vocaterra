@@ -1,6 +1,19 @@
 {"id":"dialogue:answer_accepted.1","text":"¡Muy bien!","kind":"npc"}
 {"id":"dialogue:answer_accepted.2","text":"¡Bien!","kind":"npc"}
 {"id":"dialogue:answer_accepted.3","text":"¡Eso es!","kind":"npc"}
+{"id":"dialogue:baker_bye.1","text":"¡Adiós! Hasta luego.","kind":"npc"}
+{"id":"dialogue:baker_bye.2","text":"Hasta luego.","kind":"npc"}
+{"id":"dialogue:baker_cant_pay.1","text":"Necesitas más monedas.","kind":"npc"}
+{"id":"dialogue:baker_delivered.1","text":"¡Gracias! Toma cuatro monedas.","kind":"npc"}
+{"id":"dialogue:baker_greet.1","text":"¿Qué quieres?","kind":"npc"}
+{"id":"dialogue:baker_hay.1","text":"Aquí hay pan. ¿Cuántos panes quieres?","kind":"npc"}
+{"id":"dialogue:baker_hello.1","text":"¡Hola!","kind":"npc"}
+{"id":"dialogue:baker_help.1","text":"Puedes decir: «Quiero dos panes, por favor».","kind":"npc"}
+{"id":"dialogue:baker_price.1","text":"El pan cuesta dos monedas.","kind":"npc"}
+{"id":"dialogue:baker_sell.1","text":"Aquí tienes el pan. ¡Gracias!","kind":"npc"}
+{"id":"dialogue:baker_sell.2","text":"Toma tu pan. ¡Gracias!","kind":"npc"}
+{"id":"dialogue:baker_thank.1","text":"De nada.","kind":"npc"}
+{"id":"dialogue:baker_thank.2","text":"¡Con gusto!","kind":"npc"}
 {"id":"dialogue:farewell_reply.1","text":"¡Adiós, amigo! Hasta luego.","kind":"npc"}
 {"id":"dialogue:farewell_reply.2","text":"Hasta luego. ¡Buen día!","kind":"npc"}
 {"id":"dialogue:farewell_reply.3","text":"¡Nos vemos, amigo!","kind":"npc"}
@@ -54,6 +67,16 @@
 {"id":"dialogue:guide.identify.found.3","text":"Aquí hay {target:article(indef)}.","kind":"template"}
 {"id":"dialogue:guide.identify.none.1","text":"No sé qué es.","kind":"npc"}
 {"id":"dialogue:guide.identify.none.2","text":"Busca una cosa y pregunta otra vez.","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.bought.1","text":"¿Qué compraste?","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.coins.1","text":"¿Cuántas monedas tienes?","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.five.1","text":"Uno, dos, tres, cuatro, cinco.","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.how_many.1","text":"¿Cuántos panes quieres?","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.loaves.1","text":"Tengo diez panes.","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.model.1","text":"Ayer compré fruta en la tienda.","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.oven.1","text":"Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer?","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.plan.1","text":"¡Hola! ¿Qué vas a hacer hoy?","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.ten.1","text":"Seis, siete, ocho, nueve, diez.","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.you.1","text":"Compraste dos panes. ¡Muy bien!","kind":"npc"}
 {"id":"dialogue:guide.lesson.end.1","text":"¡Muy bien! Ya tienes fuego.","kind":"npc"}
 {"id":"dialogue:guide.lesson.fast.1","text":"Mira. La madera es para la antorcha.","kind":"npc"}
 {"id":"dialogue:guide.lesson.fisher.end.1","text":"¡Muy bien! Ya conoces el pueblo.","kind":"npc"}
@@ -87,6 +110,7 @@
 {"id":"dialogue:guide.lesson.shop.ate.1","text":"¿Qué comiste ayer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.shop.ayer.1","text":"Ayer comí pan.","kind":"npc"}
 {"id":"dialogue:guide.lesson.shop.bottle.1","text":"¿Tiene usted una botella?","kind":"npc"}
+{"id":"dialogue:guide.lesson.shop.bread.1","text":"Sí, hay pan. Es pan de Luz.","kind":"npc"}
 {"id":"dialogue:guide.lesson.shop.had.1","text":"¿Bebiste agua ayer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.shop.need.1","text":"¿Qué necesita usted?","kind":"npc"}
 {"id":"dialogue:guide.lesson.shop.they.1","text":"Ellos quieren agua.","kind":"npc"}
@@ -181,10 +205,12 @@
 {"id":"dialogue:shop_give.2","text":"Aquí tienes la botella. El agua está en el río.","kind":"npc"}
 {"id":"dialogue:shop_give_bread.1","text":"Aquí tienes el pan.","kind":"npc"}
 {"id":"dialogue:shop_give_bread.2","text":"Toma el pan.","kind":"npc"}
+{"id":"dialogue:shop_hay.1","text":"Hay agua y pan.","kind":"npc"}
 {"id":"dialogue:shop_help_ask.1","text":"Puedes decir: «Quiero agua, por favor».","kind":"npc"}
 {"id":"dialogue:shop_help_offer.1","text":"Puedes decir: «Sí, por favor» o «No, gracias».","kind":"npc"}
 {"id":"dialogue:shop_need.1","text":"¿Qué necesitas?","kind":"npc"}
 {"id":"dialogue:shop_offer.1","text":"¿Quieres pan?","kind":"npc"}
+{"id":"dialogue:shop_price.1","text":"El pan cuesta dos monedas.","kind":"npc"}
 {"id":"dialogue:shop_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:shop_thank.2","text":"¡Con gusto!","kind":"npc"}
 {"id":"dialogue:villager_bye.1","text":"¡Adiós! Hasta luego.","kind":"npc"}
@@ -199,12 +225,15 @@
 {"id":"dialogue:villager_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:villager_thank.2","text":"¡Con gusto!","kind":"npc"}
 {"id":"dialogue:villager_unknown_place.1","text":"No sé dónde está.","kind":"npc"}
+{"id":"prompts:baker-open","text":"¿Qué quieres?","kind":"npc"}
 {"id":"prompts:fisher-open","text":"¿Qué buscas?","kind":"npc"}
 {"id":"prompts:guide-offer","text":"¿Quieres agua?","kind":"npc"}
 {"id":"prompts:guide-open","text":"¡Hola! Soy la guía. ¿En qué te ayudo?","kind":"npc"}
 {"id":"prompts:guide-review","text":"¿Qué es esto?","kind":"npc"}
 {"id":"prompts:lesson-ate","text":"¿Qué comiste ayer?","kind":"npc"}
 {"id":"prompts:lesson-bottle","text":"¿Tiene usted una botella?","kind":"npc"}
+{"id":"prompts:lesson-bought","text":"¿Qué compraste?","kind":"npc"}
+{"id":"prompts:lesson-coins","text":"¿Cuántas monedas tienes?","kind":"npc"}
 {"id":"prompts:lesson-far","text":"Y la herrería está a la derecha.","kind":"npc"}
 {"id":"prompts:lesson-going","text":"¿Adónde vas?","kind":"npc"}
 {"id":"prompts:lesson-had","text":"¿Bebiste agua ayer?","kind":"npc"}
@@ -231,6 +260,7 @@
 {"id":"prompts:lesson-went","text":"¿Fuiste al río ayer?","kind":"npc"}
 {"id":"prompts:lesson-went-there","text":"¿Fuiste a la panadería?","kind":"npc"}
 {"id":"prompts:lesson-what","text":"Mira.","kind":"npc"}
+{"id":"prompts:lesson-wood-plan","text":"Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer?","kind":"npc"}
 {"id":"prompts:lesson-yesno","text":"¿Es madera?","kind":"npc"}
 {"id":"prompts:stall-need","text":"¿Qué necesitas?","kind":"npc"}
 {"id":"prompts:stall-offer","text":"¿Quieres pan?","kind":"npc"}
@@ -269,6 +299,36 @@
 {"id":"answer-sets/lesson-bottle:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/lesson-bottle:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/lesson-bottle:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-bought:bought","text":"compré dos panes","kind":"learner"}
+{"id":"answer-sets/lesson-bought:bought.alias1","text":"yo compré dos panes","kind":"learner"}
+{"id":"answer-sets/lesson-bought:bought.alias2","text":"hoy compré dos panes","kind":"learner"}
+{"id":"answer-sets/lesson-bought:bought.alias3","text":"compré pan","kind":"learner"}
+{"id":"answer-sets/lesson-bought:bought.alias4","text":"compré un pan","kind":"learner"}
+{"id":"answer-sets/lesson-bought:bought.alias5","text":"compré dos panes hoy","kind":"learner"}
+{"id":"answer-sets/lesson-bought:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-bought:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-bought:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-bought:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-bought:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-bought:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-bought:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-bought:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-bought:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-coins:coins","text":"tengo cuatro monedas","kind":"learner"}
+{"id":"answer-sets/lesson-coins:coins.alias1","text":"sí tengo cuatro monedas","kind":"learner"}
+{"id":"answer-sets/lesson-coins:coins.alias2","text":"yo tengo cuatro monedas","kind":"learner"}
+{"id":"answer-sets/lesson-coins:coins.alias3","text":"tengo monedas","kind":"learner"}
+{"id":"answer-sets/lesson-coins:coins.alias4","text":"sí tengo monedas","kind":"learner"}
+{"id":"answer-sets/lesson-coins:coins.alias5","text":"tengo seis monedas","kind":"learner"}
+{"id":"answer-sets/lesson-coins:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-coins:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-coins:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-coins:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-coins:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-coins:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-coins:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-coins:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-coins:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-far:far","text":"está lejos","kind":"learner"}
 {"id":"answer-sets/lesson-far:far.alias1","text":"está muy lejos","kind":"learner"}
 {"id":"answer-sets/lesson-far:far.alias2","text":"queda lejos","kind":"learner"}
@@ -707,6 +767,23 @@
 {"id":"answer-sets/lesson-what:slower.alias5","text":"despacio","kind":"learner"}
 {"id":"answer-sets/lesson-what:slower.alias6","text":"más lento","kind":"learner"}
 {"id":"answer-sets/lesson-what:slower.alias7","text":"más lento por favor","kind":"learner"}
+{"id":"answer-sets/lesson-wood-plan:plan","text":"voy a buscar madera","kind":"learner"}
+{"id":"answer-sets/lesson-wood-plan:plan.alias1","text":"yo voy a buscar madera","kind":"learner"}
+{"id":"answer-sets/lesson-wood-plan:plan.alias2","text":"voy a buscar la madera","kind":"learner"}
+{"id":"answer-sets/lesson-wood-plan:plan.alias3","text":"luego voy a buscar madera","kind":"learner"}
+{"id":"answer-sets/lesson-wood-plan:plan.alias4","text":"voy a buscar madera luego","kind":"learner"}
+{"id":"answer-sets/lesson-wood-plan:plan.alias5","text":"después voy a buscar madera","kind":"learner"}
+{"id":"answer-sets/lesson-wood-plan:plan.alias6","text":"luego busco madera","kind":"learner"}
+{"id":"answer-sets/lesson-wood-plan:plan.alias7","text":"después busco madera","kind":"learner"}
+{"id":"answer-sets/lesson-wood-plan:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-wood-plan:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-wood-plan:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-wood-plan:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-wood-plan:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-wood-plan:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-wood-plan:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-wood-plan:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-wood-plan:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-yes-no:yes","text":"sí","kind":"learner"}
 {"id":"answer-sets/lesson-yes-no:yes.alias1","text":"si","kind":"learner"}
 {"id":"answer-sets/lesson-yes-no:yes.alias2","text":"sí por favor","kind":"learner"}
@@ -926,6 +1003,61 @@
 {"id":"answer-sets/supplies:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/supplies:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/supplies:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/supplies:price","text":"cuánto cuesta","kind":"learner"}
+{"id":"answer-sets/supplies:price.alias1","text":"cuánto cuesta el pan","kind":"learner"}
+{"id":"answer-sets/supplies:price.alias2","text":"cuánto es","kind":"learner"}
+{"id":"answer-sets/supplies:price.alias3","text":"qué precio tiene el pan","kind":"learner"}
+{"id":"answer-sets/supplies:bread-here","text":"hay pan","kind":"learner"}
+{"id":"answer-sets/supplies:bread-here.alias1","text":"hay pan aquí","kind":"learner"}
+{"id":"answer-sets/supplies:bread-here.alias2","text":"hay panes","kind":"learner"}
+{"id":"answer-sets/supplies:bread-here.alias3","text":"hay agua","kind":"learner"}
+{"id":"answer-sets/supplies:bread-here.alias4","text":"hay dos panes","kind":"learner"}
+{"id":"answer-sets/supplies:bread-here.alias5","text":"hay un pan","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:bread","text":"quiero dos panes por favor","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:bread.alias1","text":"quiero dos panes","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:bread.alias2","text":"dos panes por favor","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:bread.alias3","text":"me da dos panes","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:bread.alias4","text":"me da dos panes por favor","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:bread.alias5","text":"me das dos panes","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:bread.alias6","text":"me das dos panes por favor","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:bread.alias7","text":"quiero un pan","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:bread.alias8","text":"quiero un pan por favor","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:bread.alias9","text":"un pan por favor","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:bread.alias10","text":"quiero pan","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:bread.alias11","text":"quiero pan por favor","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:bread.alias12","text":"pan por favor","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:bread.alias13","text":"quiero tres panes","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:bread.alias14","text":"yo quiero dos panes","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:price","text":"cuánto cuesta","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:price.alias1","text":"cuánto cuesta el pan","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:price.alias2","text":"cuánto es","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:price.alias3","text":"qué precio tiene el pan","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:price.alias4","text":"cuánto cuestan los panes","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:price.alias5","text":"cuánto cuestan dos panes","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:bread-here","text":"hay pan","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:bread-here.alias1","text":"hay pan aquí","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:bread-here.alias2","text":"hay panes","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:bread-here.alias3","text":"hay dos panes","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:bread-here.alias4","text":"hay un pan","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:hello","text":"hola","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:hello.alias1","text":"buenos días","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:hello.alias2","text":"buenas tardes","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:hello.alias3","text":"buen día","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:thanks","text":"gracias","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:thanks.alias1","text":"muchas gracias","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:bye","text":"adiós","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:bye.alias1","text":"hasta luego","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:bye.alias2","text":"nos vemos","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:bye.alias3","text":"hasta mañana","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/yes-no:yes","text":"sí por favor","kind":"learner"}
 {"id":"answer-sets/yes-no:yes.alias1","text":"sí","kind":"learner"}
 {"id":"answer-sets/yes-no:yes.alias2","text":"si","kind":"learner"}
@@ -955,8 +1087,12 @@
 {"id":"intents:ask_availability.ex2","text":"hay un pozo aquí","kind":"learner","errors":[]}
 {"id":"intents:ask_availability.ex3","text":"hay una pozo en el pueblo","kind":"learner","errors":["gender.agree"]}
 {"id":"intents:ask_availability.ex4","text":"hay pan","kind":"learner","errors":[]}
-{"id":"intents:ask_availability.ex5","text":"hay agua aquí","kind":"learner","errors":[]}
-{"id":"intents:ask_availability.ex6","text":"hay una tienda en el pueblo","kind":"learner","errors":[]}
+{"id":"intents:ask_availability.ex5","text":"hay pan aquí","kind":"learner","errors":[]}
+{"id":"intents:ask_availability.ex6","text":"hay panes","kind":"learner","errors":[]}
+{"id":"intents:ask_availability.ex7","text":"hay agua","kind":"learner","errors":[]}
+{"id":"intents:ask_availability.ex8","text":"hay dos pan","kind":"learner","errors":["noun.number"]}
+{"id":"intents:ask_availability.ex9","text":"hay agua aquí","kind":"learner","errors":[]}
+{"id":"intents:ask_availability.ex10","text":"hay una tienda en el pueblo","kind":"learner","errors":[]}
 {"id":"intents:ask_craft.ex0","text":"cómo hago una antorcha","kind":"learner","errors":[]}
 {"id":"intents:ask_craft.ex1","text":"qué necesito para una antorcha","kind":"learner","errors":[]}
 {"id":"intents:ask_craft.ex2","text":"cómo se hace una antorcha","kind":"learner","errors":[]}
@@ -1003,6 +1139,16 @@
 {"id":"intents:ask_help.ex4","text":"me puedes ayudar","kind":"learner","errors":[]}
 {"id":"intents:ask_help.ex5","text":"yo necesitas ayuda","kind":"learner","errors":["conj.person"]}
 {"id":"intents:ask_help.ex6","text":"qué hago","kind":"learner","errors":[]}
+{"id":"intents:ask_price.ex0","text":"cuánto cuesta","kind":"learner","errors":[]}
+{"id":"intents:ask_price.ex1","text":"cuánto cuesta el pan","kind":"learner","errors":[]}
+{"id":"intents:ask_price.ex2","text":"cuánto es","kind":"learner","errors":[]}
+{"id":"intents:ask_price.ex3","text":"qué precio tiene el pan","kind":"learner","errors":[]}
+{"id":"intents:ask_price.ex4","text":"cuánto cuestan los panes","kind":"learner","errors":[]}
+{"id":"intents:ask_price.ex5","text":"cuánto cuestan dos panes","kind":"learner","errors":[]}
+{"id":"intents:ask_price.ex6","text":"cuánto costan los panes","kind":"learner","errors":["conj.irregular"]}
+{"id":"intents:ask_price.ex7","text":"cuánto cuesta la pan","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:ask_price.ex8","text":"cuánto cuesta el agua","kind":"learner","errors":[]}
+{"id":"intents:ask_price.ex9","text":"cuánto cuesta una manzana","kind":"learner","errors":[]}
 {"id":"intents:ask_repeat.ex0","text":"otra vez, por favor","kind":"learner","errors":[]}
 {"id":"intents:ask_repeat.ex1","text":"otra vez","kind":"learner","errors":[]}
 {"id":"intents:ask_repeat.ex2","text":"repite, por favor","kind":"learner","errors":[]}
@@ -1083,6 +1229,17 @@
 {"id":"intents:request_item.ex14","text":"necesito pan","kind":"learner","errors":[]}
 {"id":"intents:request_item.ex15","text":"me da pan","kind":"learner","errors":[]}
 {"id":"intents:request_item.ex16","text":"me das pan","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex17","text":"quiero dos panes, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex18","text":"quiero dos panes","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex19","text":"dos panes, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex20","text":"me da dos panes","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex21","text":"me da dos panes, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex22","text":"me das dos panes, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex23","text":"quiero un pan, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex24","text":"quiero pan","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex25","text":"quiero tres panes","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex26","text":"quiero dos pan","kind":"learner","errors":["noun.number"]}
+{"id":"intents:request_item.ex27","text":"yo quieres dos panes","kind":"learner","errors":["conj.person"]}
 {"id":"intents:state_action.ex0","text":"voy a comer pan","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex1","text":"mañana voy a comer pan","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex2","text":"yo voy a comer pan","kind":"learner","errors":[]}
@@ -1165,9 +1322,25 @@
 {"id":"intents:state_action.ex79","text":"hoy fui a la panadería","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex80","text":"ayer voy a la panadería","kind":"learner","errors":["conj.tense"]}
 {"id":"intents:state_action.ex81","text":"yo fuiste a la panadería","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex82","text":"compré dos panes","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex83","text":"voy a buscar madera","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex84","text":"busqué madera","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex82","text":"voy a buscar madera","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex83","text":"yo voy a buscar madera","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex84","text":"voy a buscar la madera","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex85","text":"luego voy a buscar madera","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex86","text":"voy a buscar madera luego","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex87","text":"después voy a buscar madera","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex88","text":"luego busco madera","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex89","text":"después busco madera","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex90","text":"voy a busco madera","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex91","text":"yo vas a buscar madera","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex92","text":"compré dos panes","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex93","text":"yo compré dos panes","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex94","text":"hoy compré dos panes","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex95","text":"compré dos panes hoy","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex96","text":"compré pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex97","text":"compré un pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex98","text":"ayer compro dos panes","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex99","text":"yo compraste dos panes","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex100","text":"busqué madera","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex0","text":"tengo una fruta","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex1","text":"sí, tengo una fruta","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex2","text":"sí, yo tengo una fruta","kind":"learner","errors":[]}
@@ -1182,9 +1355,16 @@
 {"id":"intents:state_have.ex11","text":"sí, yo tienes una fruta","kind":"learner","errors":["conj.person"]}
 {"id":"intents:state_have.ex12","text":"yo teno una fruta","kind":"learner","errors":["conj.irregular"]}
 {"id":"intents:state_have.ex13","text":"sí, yo tiene una botella","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_have.ex14","text":"ella tiene madera","kind":"learner","errors":[]}
-{"id":"intents:state_have.ex15","text":"nosotros tenemos agua","kind":"learner","errors":[]}
-{"id":"intents:state_have.ex16","text":"ellos tienen pan","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex14","text":"tengo cuatro monedas","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex15","text":"sí, tengo cuatro monedas","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex16","text":"yo tengo cuatro monedas","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex17","text":"tengo monedas","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex18","text":"tengo seis monedas","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex19","text":"yo tiene cuatro monedas","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_have.ex20","text":"tengo cuatro moneda","kind":"learner","errors":["noun.number"]}
+{"id":"intents:state_have.ex21","text":"ella tiene madera","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex22","text":"nosotros tenemos agua","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex23","text":"ellos tienen pan","kind":"learner","errors":[]}
 {"id":"intents:state_want.ex0","text":"ella quiere fruta","kind":"learner","errors":[]}
 {"id":"intents:state_want.ex1","text":"luna quiere fruta","kind":"learner","errors":[]}
 {"id":"intents:state_want.ex2","text":"ella quiere frutas","kind":"learner","errors":[]}
@@ -1462,6 +1642,47 @@
 {"id":"PHRASES.md:fui-a-la-panaderia.variant2","text":"yo fui a la panadería","kind":"learner"}
 {"id":"PHRASES.md:fui-a-la-panaderia.variant3","text":"hoy fui a la panadería","kind":"learner"}
 {"id":"PHRASES.md:fui-a-la-panaderia.error","text":"ayer voy a la panadería","kind":"learner","errors":["conj.tense"]}
+{"id":"PHRASES.md:uno-a-cinco.text","text":"Uno, dos, tres, cuatro, cinco.","kind":"npc"}
+{"id":"PHRASES.md:seis-a-diez.text","text":"Seis, siete, ocho, nueve, diez.","kind":"npc"}
+{"id":"PHRASES.md:tengo-diez-panes.text","text":"Tengo diez panes.","kind":"npc"}
+{"id":"PHRASES.md:cuantos-panes.text","text":"¿Cuántos panes quieres?","kind":"npc"}
+{"id":"PHRASES.md:quiero-dos-panes.text","text":"Quiero dos panes, por favor.","kind":"learner"}
+{"id":"PHRASES.md:quiero-dos-panes.variant1","text":"quiero dos panes","kind":"learner"}
+{"id":"PHRASES.md:quiero-dos-panes.variant2","text":"dos panes, por favor","kind":"learner"}
+{"id":"PHRASES.md:quiero-dos-panes.variant3","text":"me da dos panes, por favor","kind":"learner"}
+{"id":"PHRASES.md:quiero-dos-panes.variant4","text":"quiero un pan, por favor","kind":"learner"}
+{"id":"PHRASES.md:quiero-dos-panes.error","text":"quiero dos pan","kind":"learner","errors":["noun.number"]}
+{"id":"PHRASES.md:cuanto-cuesta.text","text":"¿Cuánto cuesta?","kind":"learner"}
+{"id":"PHRASES.md:cuanto-cuesta.variant1","text":"¿cuánto cuesta el pan?","kind":"learner"}
+{"id":"PHRASES.md:cuanto-cuesta.variant2","text":"¿cuánto es?","kind":"learner"}
+{"id":"PHRASES.md:cuanto-cuesta.variant3","text":"¿qué precio tiene el pan?","kind":"learner"}
+{"id":"PHRASES.md:cuanto-cuesta.variant4","text":"¿cuánto cuestan los panes?","kind":"learner"}
+{"id":"PHRASES.md:cuanto-cuesta.error","text":"cuánto costan los panes","kind":"learner","errors":["conj.irregular"]}
+{"id":"PHRASES.md:cuesta-dos-monedas.text","text":"El pan cuesta dos monedas.","kind":"npc"}
+{"id":"PHRASES.md:necesito-madera-para-el-horno.text","text":"Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer?","kind":"npc"}
+{"id":"PHRASES.md:voy-a-buscar-madera.text","text":"Voy a buscar madera.","kind":"learner"}
+{"id":"PHRASES.md:voy-a-buscar-madera.variant1","text":"yo voy a buscar madera","kind":"learner"}
+{"id":"PHRASES.md:voy-a-buscar-madera.variant2","text":"voy a buscar la madera","kind":"learner"}
+{"id":"PHRASES.md:voy-a-buscar-madera.variant3","text":"luego voy a buscar madera","kind":"learner"}
+{"id":"PHRASES.md:voy-a-buscar-madera.error","text":"voy a busco madera","kind":"learner","errors":["conj.tense"]}
+{"id":"PHRASES.md:toma-cuatro-monedas.text","text":"¡Gracias! Toma cuatro monedas.","kind":"npc"}
+{"id":"PHRASES.md:tengo-cuatro-monedas.text","text":"Tengo cuatro monedas.","kind":"learner"}
+{"id":"PHRASES.md:tengo-cuatro-monedas.variant1","text":"sí, tengo cuatro monedas","kind":"learner"}
+{"id":"PHRASES.md:tengo-cuatro-monedas.variant2","text":"yo tengo cuatro monedas","kind":"learner"}
+{"id":"PHRASES.md:tengo-cuatro-monedas.variant3","text":"tengo monedas","kind":"learner"}
+{"id":"PHRASES.md:tengo-cuatro-monedas.error","text":"yo tiene cuatro monedas","kind":"learner","errors":["conj.person"]}
+{"id":"PHRASES.md:ayer-compre-fruta.text","text":"Ayer compré fruta en la tienda.","kind":"npc"}
+{"id":"PHRASES.md:que-compraste.text","text":"¿Qué compraste?","kind":"npc"}
+{"id":"PHRASES.md:compre-dos-panes.text","text":"Compré dos panes.","kind":"learner"}
+{"id":"PHRASES.md:compre-dos-panes.variant1","text":"yo compré dos panes","kind":"learner"}
+{"id":"PHRASES.md:compre-dos-panes.variant2","text":"hoy compré dos panes","kind":"learner"}
+{"id":"PHRASES.md:compre-dos-panes.variant3","text":"compré pan","kind":"learner"}
+{"id":"PHRASES.md:compre-dos-panes.error","text":"ayer compro dos panes","kind":"learner","errors":["conj.tense"]}
+{"id":"PHRASES.md:compraste-dos-panes.text","text":"Compraste dos panes. ¡Muy bien!","kind":"npc"}
+{"id":"PHRASES.md:hay-pan.text","text":"¿Hay pan?","kind":"learner"}
+{"id":"PHRASES.md:hay-pan.variant1","text":"¿hay pan aquí?","kind":"learner"}
+{"id":"PHRASES.md:hay-pan.variant2","text":"¿hay panes?","kind":"learner"}
+{"id":"PHRASES.md:hay-pan.error","text":"hay dos pan","kind":"learner","errors":["noun.number"]}
 {"id":"checks.json:hear.que-necesitas","text":"¿Qué necesitas?","kind":"npc"}
 {"id":"checks.json:hear.quieres-pan","text":"¿Quieres pan?","kind":"npc"}
 {"id":"checks.json:hear.pedir-agua","text":"Quiero agua, por favor.","kind":"npc"}
@@ -1482,6 +1703,10 @@
 {"id":"checks.json:hear.esta-a-la-izquierda","text":"En el pueblo, mira la torre. La panadería está a la izquierda.","kind":"npc"}
 {"id":"checks.json:hear.hay-tres-casas","text":"En el pueblo hay una tienda, una panadería y tres casas.","kind":"npc"}
 {"id":"checks.json:hear.fuiste-a-la-panaderia","text":"¿Fuiste a la panadería?","kind":"npc"}
+{"id":"checks.json:hear.tengo-diez-panes","text":"Tengo diez panes.","kind":"npc"}
+{"id":"checks.json:hear.cuantos-panes","text":"¿Cuántos panes quieres?","kind":"npc"}
+{"id":"checks.json:hear.cuesta-dos-monedas","text":"El pan cuesta dos monedas.","kind":"npc"}
+{"id":"checks.json:hear.que-compraste","text":"¿Qué compraste?","kind":"npc"}
 {"id":"words.json:directions.ahead","text":"adelante","kind":"npc"}
 {"id":"words.json:directions.behind","text":"detrás","kind":"npc"}
 {"id":"words.json:directions.left","text":"a la izquierda","kind":"npc"}
@@ -1520,6 +1745,8 @@
 {"id":"npcs/villager.json:label","text":"Aldeano","kind":"npc"}
 {"id":"npcs/fisher.json:label","text":"Pescador","kind":"npc"}
 {"id":"npcs/fisher.json:name","text":"Mar","kind":"npc"}
+{"id":"npcs/baker.json:label","text":"Panadera","kind":"npc"}
+{"id":"npcs/baker.json:name","text":"Luz","kind":"npc"}
 {"id":"speech:card.agua","text":"el agua","kind":"npc"}
 {"id":"speech:card.antorcha","text":"la antorcha","kind":"npc"}
 {"id":"speech:card.arena","text":"la arena","kind":"npc"}

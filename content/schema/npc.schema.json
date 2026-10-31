@@ -108,6 +108,12 @@
           "type": "number",
           "exclusiveMinimum": 0,
           "description": "The speed of the normal recordings (default 1.0); the slow ones are 0.8 of it."
+        },
+        "gain": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 4,
+          "description": "The factor the renderer scales the voice's samples by (default 1.0; VILLAGE_PLAN V11): a voice the model renders louder or quieter than the Spanish ones is brought to their level (the baker's if_sara, about three times louder, takes 0.32)."
         }
       },
       "description": "The voice the speech renderer records the NPC's lines with (tools/Vocaterra.SpeechRender)."
