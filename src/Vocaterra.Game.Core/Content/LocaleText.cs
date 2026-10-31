@@ -75,6 +75,7 @@ public sealed class LocaleText
         "micFailed", "micContinue", "micRetry", "micSkip", "micEscSkip", "lessonMore", "replayHud", "craftMake", "craftNeeds", "craftNeedsStation", "craftFull",
         "craftMissing", "needBottle", "playtestThanks", "playtestRecallThanks", "playtestSaved", "speechUnavailable", "turnNotChecked",
         "autosaved", "greyNewWord",
+        "sleepHud", "allLessonsDoneHud", "lessonNextHud", "sleepCard", "sleepPrompt", "sleptToast", "bookLessonNext", "bookLessonOpen", "bookLessonOpensIn", "bookLessonAfter",
     ];
 
     /// <summary>The most error lines one turn's feedback carries.</summary>
@@ -309,6 +310,13 @@ public sealed class LocaleText
     /// <summary>The role of an NPC for the feedback (<c>npc.&lt;id&gt;.role</c>: <c>The guide</c>); the agent's id when no locale has it.</summary>
     /// <param name="npc">The agent id.</param>
     public string NpcName(string npc) => Find("npc." + npc + ".role") ?? npc;
+
+    /// <summary>
+    /// What an NPC is called, as <c>{npc:&lt;id&gt;}</c> spells it (<c>Luna</c>, <c>Aldeano</c>: the name in <c>game/npcs/&lt;id&gt;.json</c>, else its label; V12c, the book's
+    /// lessons page); the agent's id when the locale was given no names (<see cref="WithNames"/>).
+    /// </summary>
+    /// <param name="npc">The agent id.</param>
+    public string Called(string npc) => _npcs.TryGetValue(npc ?? throw new ArgumentNullException(nameof(npc)), out var name) ? name : npc;
 
     // ---- The objective line.
 

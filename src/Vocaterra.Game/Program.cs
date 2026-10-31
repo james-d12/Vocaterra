@@ -110,6 +110,21 @@ try
         session = new VoxelSession(data, options.Seed, GuideSession.DefaultStartedAt, scene, options.Credit);
     }
 
+    if (options.SkipToSession is { } skipTo)
+    {
+        // A test aid (V12c): the new game stands where a learner who did sessions 1 to n-1 would, built from the data; the console, the log and the saves say so.
+        var last = SessionSkip.LastSession(session.Lessons.Book);
+        if (skipTo > last)
+        {
+            Console.Error.WriteLine($"--skip-to-session needs a play session from 2 to {last}, the last session that has a lesson; got {skipTo}.");
+            Console.Error.Write(LaunchOptions.Usage);
+            return 2;
+        }
+
+        SessionSkip.Apply(session, skipTo);
+        Console.WriteLine($"session: {SessionSkip.Line(skipTo)}");
+    }
+
     if (options.Session is { } playSession)
     {
         // A run started at a given session (S26, --session): the lessons of that session are unlocked, and the objective names the new one.

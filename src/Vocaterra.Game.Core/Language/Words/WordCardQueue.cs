@@ -28,6 +28,13 @@ public sealed class WordCardQueue
         _waiting.Enqueue(card);
     }
 
+    /// <summary>Takes the card on screen down and drops the waiting ones (V12c: a sleep at the fire begins the next play session, and the cards not yet shown are not saved, so a load shows none).</summary>
+    public void Clear()
+    {
+        _waiting.Clear();
+        _current = null;
+    }
+
     /// <summary>The card on screen at <paramref name="tick"/>, or <see langword="null"/>; the next waiting card goes up when the last one is down.</summary>
     public ShownCard? Current(long tick)
     {

@@ -26,6 +26,7 @@ public static class LayerStack
             new NpcLabelLayer(),
             new BeaconArrowLayer(),
             new TalkHintLayer(),
+            new SleepPromptLayer(),
             debug,
             new HotbarLayer(),
             new RecipePanelLayer(),

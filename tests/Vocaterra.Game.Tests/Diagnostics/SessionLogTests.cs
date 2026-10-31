@@ -2,6 +2,7 @@ using System.Text.Json;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Words;
+using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Diagnostics;
@@ -90,6 +91,47 @@ public sealed class SessionLogTests
         Assert.True(profile.GetProperty("muted").GetBoolean());
         Assert.Equal("pre", profile.GetProperty("check").GetString());
         Assert.Equal("half", profile.GetProperty("typed_credit").GetString());
+    }
+
+    [Fact]
+    public void ASkippedRunSaysSoAtItsStartAndAnOrdinaryOneDoesNot()
+    {
+        var (log, session, _) = Memory();
+        log.SessionStart(4, 42, "abcdef123456", 1_760_000_000, Profile(), skippedTo: 4);
+        log.SessionStart(5, 42, "abcdef123456", 1_760_000_000, Profile());
+
+        var starts = Lines(session);
+
+        Assert.Equal(4, starts[0].GetProperty("skipped_to").GetInt32()); // --skip-to-session (V12c): no learner's session
+        Assert.False(starts[1].TryGetProperty("skipped_to", out _));
+    }
+
+    [Fact]
+    public void TheEndOfASessionBegunByASleepCountsOnlyItsOwnEvents()
+    {
+        var game = RouteScene.NewSessionWithShippedLessons(TestGame.Bundle, TestGame.Nouns, CreditRules.Default);
+        foreach (var (name, detail, times) in new[] { (WorldEvents.ItemPickedUp, "madera", 5), (WorldEvents.ItemPickedUp, "fruta", 3), (WorldEvents.TorchAtRing, "firering", 1), (WorldEvents.BottleFilled, (string?)null, 1) })
+        {
+            for (var i = 0; i < times; i++)
+            {
+                _ = game.HostEvent(name, detail);
+            }
+        }
+
+        game.Lessons.CountAsCompleted("first-words", 1);
+        game.SkipToEnding(); // the player's own fire (V12c's skip): session 1 is complete
+        var (before, beforeLines, _) = Memory();
+        before.End(game, game.Simulation.Tick);
+        Assert.Equal(JsonValueKind.Number, Lines(beforeLines).Single(static l => l.GetProperty("type").GetString() == "session_end").GetProperty("objective_complete_tick").ValueKind);
+
+        SaveGame.Sleep(game, SaveGame.Capture(game, RouteScene.Build()));
+        var (log, session, _) = Memory();
+        log.End(game, game.Simulation.Tick);
+
+        var end = Lines(session).Single(static l => l.GetProperty("type").GetString() == "session_end");
+        Assert.Equal(2, end.GetProperty("session").GetInt32());
+        Assert.True(end.GetProperty("objective_complete").GetBoolean());
+        Assert.Equal(JsonValueKind.Null, end.GetProperty("objective_complete_tick").ValueKind); // the camp was completed in session 1: a load's end line says the same
     }
 
     [Fact]

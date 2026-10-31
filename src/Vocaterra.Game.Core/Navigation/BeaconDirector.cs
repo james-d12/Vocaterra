@@ -63,6 +63,16 @@ public sealed class BeaconDirector
     }
 
     /// <summary>
+    /// A new play session began in the run (V12c, a sleep at the fire): the beacon is as a load starts it, with no start point of its own; the next <see cref="Sync"/> stands
+    /// it on the session's arrow, if there is one.
+    /// </summary>
+    public void Restart()
+    {
+        Beacon.Clear();
+        _shownPointer = null;
+    }
+
+    /// <summary>
     /// Once a frame: the arrow of the session is the beacon. A new arrow stands the column on its block (a review question shows no name), and
     /// when the beacon's own reach takes it down, the arrow goes too.
     /// </summary>

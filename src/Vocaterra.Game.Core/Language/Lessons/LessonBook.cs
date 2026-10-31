@@ -221,6 +221,21 @@ public sealed record LessonDefinition(
     /// <summary>The verb forms the lesson teaches, as the file declares them (empty when it declares none).</summary>
     public IReadOnlyList<TaughtVerbForm> TaughtVerbs => Verbs ?? [];
 
+    /// <summary>The lesson's title as the objective lines name it (<c>Personas</c>, V12c): see <see cref="ShortOf"/>.</summary>
+    public string ShortTitle => ShortOf(Title);
+
+    /// <summary>
+    /// A lesson's title as the objective lines name it (<c>Ayer y mañana</c> for <c>Ayer y mañana: yesterday and tomorrow</c>, V12c): the part before the first colon, or the whole
+    /// title when it has none. The lessons page and the objective line name another lesson so, which keeps the line short on a narrow page.
+    /// </summary>
+    /// <param name="title">A lesson's title.</param>
+    public static string ShortOf(string title)
+    {
+        ArgumentNullException.ThrowIfNull(title);
+        var colon = title.IndexOf(':', StringComparison.Ordinal);
+        return colon > 0 ? title[..colon] : title;
+    }
+
     /// <summary>The NPC a step is said at: its own, or the lesson's.</summary>
     /// <param name="step">The step.</param>
     public string NpcOf(LessonStep step)

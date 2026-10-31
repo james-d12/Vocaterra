@@ -71,6 +71,13 @@ public sealed class RetryQueue
         _ = _asked.Add(item.PhraseId);
         return item;
     }
+
+    /// <summary>Forgets every phrase waiting and asked: a new play session begins in the same run (a sleep at the fire, V12c), as a load starts with an empty queue.</summary>
+    internal void Clear()
+    {
+        _pending.Clear();
+        _asked.Clear();
+    }
 }
 
 /// <summary>A phrase waiting for its second try.</summary>

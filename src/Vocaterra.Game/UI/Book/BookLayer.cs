@@ -22,11 +22,13 @@ namespace Vocaterra.Game.UI.Book;
 public sealed class BookLayer : IFrameLayer
 {
     private const int IconSize = 16;
-    private const int IndentWidth = 24;
+    /// <summary>How far a row under its heading is indented on a page, in canvas pixels.</summary>
+    public const int IndentWidth = 24;
     private const int Pip = 10;
     private const int WordPips = WordProgress.UsesToKnow;
     private const int PipGap = 6;
-    private const int Gutter = 10;
+    /// <summary>The gap between a row's parts, and at its right end, in canvas pixels.</summary>
+    public const int Gutter = 10;
     private const int NotchDepth = 9;
 
     // The narrowest a row's right-hand note may be and still be read (X03); narrower, the note is left off.

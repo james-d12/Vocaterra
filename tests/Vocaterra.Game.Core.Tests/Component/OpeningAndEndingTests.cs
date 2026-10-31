@@ -28,7 +28,7 @@ public sealed class OpeningAndEndingTests
         return new BlockPos(stone.X, stone.Y + 1, stone.Z);
     }
 
-    private static void PlaceTorchOnPlayersRing(VoxelSession session)
+    internal static void PlaceTorchOnPlayersRing(VoxelSession session)
     {
         var rim = PlayerRingRim(session);
         Assert.True(VoxelWalker.WalkTo(session, cell => Math.Abs(cell.X - rim.X) + Math.Abs(cell.Z - rim.Z) <= 3 && Math.Abs(cell.Y - rim.Y) <= 2), "no way up to the player's camp");
@@ -134,8 +134,11 @@ public sealed class OpeningAndEndingTests
         Assert.True(session.FireLit);
         Assert.True(session.SessionComplete);
         Assert.Null(session.CurrentObjective);
+        Assert.Equal("Session complete: sleep at your fire to start session 2", Hud(session)); // V12c: the next session is a sleep at this fire
+        Assert.Null(session.Pointer); // the player stands at the fire: no arrow to it
+        session.SleepOffered = false; // a playtest offers no sleep: the line of S17
         Assert.Equal("Session complete: your fire is lit", Hud(session));
-        Assert.Null(session.Pointer);
+        session.SleepOffered = true;
         var names = session.Events.OfType<WorldEvent>().Select(static e => e.Name).ToList();
         Assert.Equal(1, names.Count(static n => n == WorldEvents.FireLit));
         Assert.Equal(1, names.Count(static n => n == WorldEvents.SessionComplete));

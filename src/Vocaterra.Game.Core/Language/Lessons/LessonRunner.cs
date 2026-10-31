@@ -252,6 +252,40 @@ public sealed class LessonRunner
         return _session.PlaySession >= lesson.Session && (lesson.After is null || IsDone(lesson.After));
     }
 
+    /// <summary>
+    /// Why a lesson that is not begun waits (V12c, the book's Lessons page): it is the unlocked lesson the objective sends the learner to (<see cref="LessonWaitKind.Next"/>: the
+    /// new session's, or with no lesson under way the one to go on with), another unlocked one, its play session has not come, or the lesson it comes after is not done (its
+    /// session is said first when both hold, since it is the later of the two). <see langword="null"/> for a lesson begun or done, or an unknown one.
+    /// </summary>
+    /// <param name="lessonId">The lesson's id.</param>
+    public LessonWait? WaitOf(string lessonId)
+    {
+        ArgumentNullException.ThrowIfNull(lessonId);
+        if (_book.Find(lessonId) is not { } lesson || StatusOf(lesson.Id) != LessonStatus.NotStarted || IsDone(lesson.Id))
+        {
+            return null;
+        }
+
+        if (_session.PlaySession < lesson.Session)
+        {
+            return new LessonWait(LessonWaitKind.Session, lesson.Session, lesson.Npc);
+        }
+
+        if (lesson.After is { } after && !IsDone(after))
+        {
+            return new LessonWait(LessonWaitKind.After, lesson.Session, lesson.Npc, after);
+        }
+
+        var next = NewLesson ?? (_activeId is null ? NextUp : null);
+        return new LessonWait(string.Equals(next?.Id, lesson.Id, StringComparison.Ordinal) ? LessonWaitKind.Next : LessonWaitKind.Open, lesson.Session, lesson.Npc);
+    }
+
+    /// <summary>
+    /// The lesson the learner goes on with or starts next (V12c, the objective line when nothing else is asked): the active lesson, else the unlocked lesson that is not
+    /// done, the newest session first (as an NPC offers them); <see langword="null"/> when every unlocked lesson is done.
+    /// </summary>
+    public LessonDefinition? NextUp => Active ?? _book.Lessons.Where(l => !IsDone(l.Id) && IsUnlocked(l)).OrderByDescending(static l => l.Session).FirstOrDefault();
+
     /// <summary>The id of the lesson the learner asked to practise again from the book, which starts when they talk to its NPC; <see langword="null"/> when none.</summary>
     public string? ReplayPending => _replayId;
 
@@ -804,6 +838,37 @@ public sealed class LessonRunner
         }
 
         Finish(lesson, state, StepOutcome.Done, world.Detail);
+    }
+
+    // Counts a lesson as completed in a play session it was not played in (V12c, --skip-to-session, a test aid): its state is a completed lesson's, every step recorded
+    // as skipped (the learner took none of them), done, completed in that session. Nothing else moves: no turn, no phrase use, no lesson event (a lesson's completion
+    // changes no phrase record by itself; its turns do).
+    internal void CountAsCompleted(string lessonId, int session)
+    {
+        if (_book.Find(lessonId) is not { } lesson)
+        {
+            throw new ArgumentException($"There is no lesson '{lessonId}'.", nameof(lessonId));
+        }
+
+        if (string.Equals(_activeId, lesson.Id, StringComparison.Ordinal) || string.Equals(_replayId, lesson.Id, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException($"The lesson '{lesson.Id}' is under way or asked for again; it cannot be counted as completed.");
+        }
+
+        var state = _states[lesson.Id];
+        state.Status = LessonStatus.Completed;
+        state.Done = true;
+        state.CompletedSession = session;
+        state.Step = lesson.Steps.Count - 1; // where a completed lesson stands
+        state.Outcomes.Clear();
+        state.Outcomes.AddRange(lesson.Steps.Select(static step => (step.Id, StepOutcome.Skipped)));
+        state.Attempts = 0;
+        state.Helped = false;
+        state.Picked = -1;
+        state.Pending = null;
+        state.Hint = null;
+        state.Asked = null;
+        _version++;
     }
 
     // ---- The save (S10).

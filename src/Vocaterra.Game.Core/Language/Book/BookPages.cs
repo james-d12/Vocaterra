@@ -44,7 +44,7 @@ public static class BookPages
             BookPage.Nouns => Nouns(session.Locale, session.Words, session.Learner.Nouns, session.StoredTime.UnixSeconds, session.DefiniteArticle, session.Phrases, session.Data.Words.Unseen, recordings),
             BookPage.Verbs => Verbs(session.Locale, session.Learner.Verbs, session.Glosses, session.Phrases, session.Bundle.SpanishMorphology()),
             BookPage.Phrases => Phrases(PhraseJournalRows.Build(session.PhraseProgress, session.StoredTime.UnixSeconds, session.Credit, session.Locale), recordings, ReviewLine(session)),
-            BookPage.Lessons => Lessons(session.Locale, session.Lessons.Record, session.Phrases, recordings),
+            BookPage.Lessons => Lessons(session.Locale, session.Lessons.Record, session.Phrases, recordings, Waits(session.Lessons)),
             _ => Said(session.Learner.Recent(LearnerRecord.SavedEntries), session.Locale, session.Lessons.Record),
         };
     }
@@ -237,13 +237,17 @@ public static class BookPages
 
     /// <summary>
     /// The lessons page: every lesson of the bundle in its order, with its state (completed in session n, in progress with the units done, not
-    /// started), its units with a tick each, the phrases it taught (S17's recap), the help used and, once completed, its English summary.
+    /// started), its units with a tick each, the phrases it taught (S17's recap), the help used and, once completed, its English summary. A lesson not begun
+    /// says on its own line, under its title, why it waits and where it starts (V12c): <c>next: talk to Luna</c> for the one the objective sends the learner to (in gold,
+    /// title and line, so the eye finds it first), <c>open: talk to Luna</c> for another unlocked one, <c>opens in session 4, Mar</c> for one whose session has not come,
+    /// <c>after “El pueblo”</c> for one whose earlier lesson is not done. Its own line, not the title's note: at 150 % text the left page is narrow, and a note after a title is cut first.
     /// </summary>
     /// <param name="ui">The support language (the page's words, C04).</param>
     /// <param name="lessons">The lesson record (<c>session.Lessons.Record</c>).</param>
     /// <param name="sheet">The phrase sheet (the English and the Spanish of the phrases).</param>
     /// <param name="recordings">The recordings (S20b): each phrase a lesson taught gets a speaker button for its recording.</param>
-    public static IReadOnlyList<BookLine> Lessons(LocaleText ui, IReadOnlyList<LessonRecordRow> lessons, PhraseSheet sheet, BookRecordings? recordings = null)
+    /// <param name="waits">Why each lesson not begun waits, by lesson id (<see cref="LessonRunner.WaitOf"/>); a lesson not listed says only that it is not started.</param>
+    public static IReadOnlyList<BookLine> Lessons(LocaleText ui, IReadOnlyList<LessonRecordRow> lessons, PhraseSheet sheet, BookRecordings? recordings = null, IReadOnlyDictionary<string, LessonWait>? waits = null)
     {
         ArgumentNullException.ThrowIfNull(ui);
         ArgumentNullException.ThrowIfNull(lessons);
@@ -253,13 +257,19 @@ public static class BookPages
         {
             var units = UnitsOf(lesson);
             var doneUnits = units.Count(static unit => unit.Ticked);
+            var wait = lesson.Status == LessonStatus.NotStarted && waits is not null && waits.TryGetValue(lesson.LessonId, out var found) ? found : null;
             var (tone, state) = lesson.Status switch
             {
                 LessonStatus.Completed => (BookTone.Known, lesson.CompletedSession is { } session ? ui.Ui("bookLessonCompletedIn", ("session", N(session))) : ui.Ui("bookLessonCompleted")),
                 LessonStatus.InProgress => (BookTone.Learning, ui.Ui("bookLessonInProgress", ("done", N(doneUnits)), ("units", N(units.Count)))),
-                _ => (BookTone.Unseen, ui.Ui("bookLessonNotStarted")),
+                _ => (wait is { Kind: LessonWaitKind.Next } ? BookTone.Gold : BookTone.Unseen, wait is null ? ui.Ui("bookLessonNotStarted") : null),
             };
             lines.Add(new BookLine(tone, lesson.Title, Aside: state, Practise: lesson.Status == LessonStatus.Completed ? lesson.LessonId : null));
+            if (wait is not null)
+            {
+                lines.Add(new BookLine(wait.Kind switch { LessonWaitKind.Next => BookTone.Gold, LessonWaitKind.Open => BookTone.Seen, _ => BookTone.Hint }, WaitText(ui, wait, lessons), Indent: true));
+            }
+
             if (lesson.Status == LessonStatus.Completed && lesson.Summary is { } summary)
             {
                 lines.Add(new BookLine(BookTone.Gold, summary, Indent: true));
@@ -285,6 +295,32 @@ public static class BookPages
 
         return lines;
     }
+
+    /// <summary>Why each lesson that is not begun waits (V12c), by lesson id: the lessons page's lines under their titles.</summary>
+    /// <param name="runner">The lessons.</param>
+    public static IReadOnlyDictionary<string, LessonWait> Waits(LessonRunner runner)
+    {
+        ArgumentNullException.ThrowIfNull(runner);
+        var waits = new Dictionary<string, LessonWait>(StringComparer.Ordinal);
+        foreach (var lesson in runner.Book.Lessons)
+        {
+            if (runner.WaitOf(lesson.Id) is { } wait)
+            {
+                waits[lesson.Id] = wait;
+            }
+        }
+
+        return waits;
+    }
+
+    // The line under a lesson not begun (V12c): the NPC by what it is called (game/npcs/<id>.json, through the locale), the earlier lesson by its short title.
+    private static string WaitText(LocaleText ui, LessonWait wait, IReadOnlyList<LessonRecordRow> lessons) => wait.Kind switch
+    {
+        LessonWaitKind.Next => ui.Ui("bookLessonNext", ("npc", ui.Called(wait.Npc))),
+        LessonWaitKind.Open => ui.Ui("bookLessonOpen", ("npc", ui.Called(wait.Npc))),
+        LessonWaitKind.Session => ui.Ui("bookLessonOpensIn", ("session", N(wait.Session)), ("npc", ui.Called(wait.Npc))),
+        _ => ui.Ui("bookLessonAfter", ("title", LessonDefinition.ShortOf(lessons.FirstOrDefault(l => string.Equals(l.LessonId, wait.After, StringComparison.Ordinal))?.Title ?? wait.After ?? string.Empty))),
+    };
 
     /// <summary>
     /// The "What I said" page: the newest lines the learner gave (<c>session.Learner.Recent(n)</c>, newest first): the line, how it came (said or

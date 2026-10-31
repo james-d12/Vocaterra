@@ -35,16 +35,7 @@ public static class SessionStart
     {
         var directory = options.SessionDir ?? SessionLog.DefaultDirectory(WallClock.LocalNow, session.PlaySession);
         var log = SessionLog.Open(directory, static () => WallClock.Now);
-        var profile = new SessionProfile(
-            MicCheck: micCheck,
-            Muted: options.Muted,
-            NoSpeech: options.NoSpeech,
-            Greyscale: options.Greyscale,
-            TypedCredit: options.Credit.TypedUnits < WordProgress.UnitsPerUse ? "half" : "full",
-            Check: options.Check is { } kind ? CheckKinds.Of(kind) : null,
-            Scripted: options.IsScreenshotRun,
-            Playtest: options.Playtest);
-        log.SessionStart(session.PlaySession, session.WorldSeed, session.Bundle.ContentHash, session.StoredTime.UnixSeconds, profile, session.Locale.Code, session.Locale.BundleHash);
+        Begin(log, options, session, micCheck);
         console($"session log: {directory} ({SessionLog.SessionFileName}, {SessionLog.ReplayFileName})");
         if (session.Migration is { } migration)
         {
@@ -68,5 +59,31 @@ public static class SessionStart
         }
 
         return new SessionStarted(directory, log, autosave);
+    }
+
+    /// <summary>
+    /// The start line of a play session (S11): the session, the seed, the bundles, the stored time and the run's profile. A run writes one at its start, and one more each
+    /// time the player sleeps at their fire (V12c), after the old session's end line, as a quit and a load into the same folder would write them.
+    /// </summary>
+    /// <param name="log">The session log.</param>
+    /// <param name="options">The launch options.</param>
+    /// <param name="session">The session, in the play session that begins.</param>
+    /// <param name="micCheck">Whether the session begins with a mic check (a run's first session may; a session begun by a sleep has none).</param>
+    /// <param name="check">Whether the session begins with the run's check battery (<c>--check</c>; a session begun by a sleep has none).</param>
+    public static void Begin(SessionLog log, LaunchOptions options, VoxelSession session, bool micCheck, bool check = true)
+    {
+        ArgumentNullException.ThrowIfNull(log);
+        ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(session);
+        var profile = new SessionProfile(
+            MicCheck: micCheck,
+            Muted: options.Muted,
+            NoSpeech: options.NoSpeech,
+            Greyscale: options.Greyscale,
+            TypedCredit: options.Credit.TypedUnits < WordProgress.UnitsPerUse ? "half" : "full",
+            Check: check && options.Check is { } kind ? CheckKinds.Of(kind) : null,
+            Scripted: options.IsScreenshotRun,
+            Playtest: options.Playtest);
+        log.SessionStart(session.PlaySession, session.WorldSeed, session.Bundle.ContentHash, session.StoredTime.UnixSeconds, profile, session.Locale.Code, session.Locale.BundleHash, session.SkippedTo);
     }
 }

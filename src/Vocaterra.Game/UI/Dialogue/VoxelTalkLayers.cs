@@ -26,14 +26,40 @@ public sealed class TalkHintLayer : IFrameLayer
             return;
         }
 
+        DrawHint(spriteBatch, view, Text(view.Session.Locale));
+    }
+
+    /// <summary>Draws a hint under the crosshair in the HUD's hint style (a dark box with a gold rim): the talk hint, and the fire's sleep prompt (V12c).</summary>
+    /// <param name="spriteBatch">The batch.</param>
+    /// <param name="view">The frame.</param>
+    /// <param name="text">The hint.</param>
+    internal static void DrawHint(SpriteBatch spriteBatch, FrameView view, string text)
+    {
         var font = view.Fonts.Get(FontProvider.NativeSize);
-        var text = Text(view.Session.Locale);
         var width = DrawHelpers.Width(font, text);
         var screen = view.ViewportWidth / 2;
         var box = new Rectangle((int)(screen - (width / 2)) - 8, (view.ViewportHeight / 2) + 26, (int)width + 16, 24);
         spriteBatch.Draw(view.Pixel, box, new Color(0, 0, 0, 175));
         DrawHelpers.Border(spriteBatch, view.Pixel, box, 1, new Color(255, 214, 64));
         DrawHelpers.Text(spriteBatch, font, text, new Vector2(box.X + 8, box.Y + 3), Color.White);
+    }
+}
+
+/// <summary>
+/// The prompt of the player's own lit fire (V12c): standing at it, <c>E: sleep until morning (session 3)</c> under the crosshair, in the talk hint's style. The game decides when
+/// it shows (<c>SleepOffer.AtFire</c>: the fire lit, the session at rest, no lesson step waiting, no panel open, no NPC or workbench under the crosshair, no playtest).
+/// </summary>
+public sealed class SleepPromptLayer : IFrameLayer
+{
+    /// <inheritdoc />
+    public void Draw(SpriteBatch spriteBatch, FrameView view)
+    {
+        if (view.SleepPrompt is not { } prompt || view.Aimed is not null || view.Dialogue.IsOpen)
+        {
+            return;
+        }
+
+        TalkHintLayer.DrawHint(spriteBatch, view, prompt);
     }
 }
 

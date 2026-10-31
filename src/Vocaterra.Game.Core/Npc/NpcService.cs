@@ -318,6 +318,9 @@ public sealed partial class NpcService
     /// <summary>The guide's current state in her state machine.</summary>
     public AgentState GuideState => _agents[GuideAgent].Context.AgentState;
 
+    /// <summary>Whether the guide has made her transfer offer (<c>¿Quieres agua?</c>, once the camp is done): the host decision a save keeps.</summary>
+    public bool GuideOffered => _agents[GuideAgent].Offered;
+
     /// <summary>The context the next turn with an NPC starts from.</summary>
     /// <param name="npc">The NPC's agent id.</param>
     public ConversationContext ContextOf(string npc) => AgentOf(npc).Context;

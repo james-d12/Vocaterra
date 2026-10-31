@@ -124,6 +124,12 @@ public sealed class FrameView
     /// <summary>The frames drawn so far while loading (animates the bar of the loading screen).</summary>
     public int LoadingFrame { get; set; }
 
+    /// <summary>The prompt of the player's own lit fire for this frame (V12c: <c>E: sleep until morning (session 3)</c>), or <see langword="null"/> when it does not offer the sleep.</summary>
+    public string? SleepPrompt { get; set; }
+
+    /// <summary>The closing card's line offering the sleep for this frame (V12c: <c>Enter: sleep until morning and start session 2</c>), or <see langword="null"/>.</summary>
+    public string? EndingSleep { get; set; }
+
     /// <summary>The mouse pointer in window pixels, or <see langword="null"/> when it is outside the window.</summary>
     public Point? Mouse { get; set; }
 

@@ -204,6 +204,63 @@ public sealed class BookPagesTests
         Assert.DoesNotContain(lines, static l => l.Tone == BookTone.Gold);
     }
 
+    // The line under a lesson's title on the shipped lessons page, and the title's line.
+    private static (BookLine Title, BookLine Why) LessonLines(VoxelSession session, string lessonId)
+    {
+        var lines = BookPages.Lessons(session.Locale, session.Lessons.Record, session.Phrases, null, BookPages.Waits(session.Lessons));
+        var title = session.Lessons.Book.Find(lessonId)!.Title;
+        var at = lines.ToList().FindIndex(l => l.Text == title && !l.Indent);
+        return (lines[at], lines[at + 1]);
+    }
+
+    [Fact]
+    public void ALessonNotBegunSaysWhyItWaitsAndWhereItStartsAndOnlyTheOneTheObjectiveNamesIsNextInGold()
+    {
+        var session = TestGame.NewSessionWithShippedLessons();
+
+        var (title, why) = LessonLines(session, "first-words");
+        Assert.Equal("next: talk to Luna", why.Text); // unlocked: the NPC by what it is called (game/npcs/guide.json)
+        Assert.True(why.Indent);
+        Assert.Equal(BookTone.Gold, why.Tone);
+        Assert.Equal(BookTone.Gold, title.Tone); // the eye finds it first
+        Assert.Null(title.Aside);
+
+        (title, why) = LessonLines(session, "personas");
+        Assert.Equal("opens in session 2, Aldeano", why.Text); // the villager has no name: his label
+        Assert.Equal(BookTone.Hint, why.Tone);
+        Assert.Equal(BookTone.Unseen, title.Tone);
+        Assert.Equal("opens in session 4, Mar", LessonLines(session, "el-pueblo").Why.Text); // its session is said first: it is the later of its two locks
+        Assert.Equal("opens in session 5, Luz", LessonLines(session, "numeros-y-pan").Why.Text);
+
+        session.PlaySession = 4; // the session has come, the lesson before it has not been done
+        Assert.Equal("after “Ayer y mañana”", LessonLines(session, "el-pueblo").Why.Text);
+        Assert.Equal("next: talk to Aldeano", LessonLines(session, "ayer-y-manana").Why.Text); // the new lesson the objective names (the newest session's)
+        Assert.Equal("opens in session 5, Luz", LessonLines(session, "numeros-y-pan").Why.Text);
+        (title, why) = LessonLines(session, "first-words"); // unlocked as well, but not the one the objective names
+        Assert.Equal("open: talk to Luna", why.Text);
+        Assert.Equal(BookTone.Seen, why.Tone);
+        Assert.Equal(BookTone.Unseen, title.Tone);
+        Assert.Equal("open: talk to Aldeano", LessonLines(session, "personas").Why.Text);
+        Assert.Single(BookPages.Lessons(session.Locale, session.Lessons.Record, session.Phrases, null, BookPages.Waits(session.Lessons)), static l => l.Text.StartsWith("next:", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void CompletedAndBegunLessonsKeepTheirLinesAndSayNoWait()
+    {
+        var session = TestGame.NewSessionWithShippedLessons();
+        session.Lessons.CountAsCompleted("first-words", 1);
+        session.PlaySession = 2;
+        Assert.True(session.Lessons.Start("personas"));
+
+        Assert.Null(session.Lessons.WaitOf("first-words"));
+        Assert.Null(session.Lessons.WaitOf("personas"));
+        Assert.Equal("completed in session 1", LessonLines(session, "first-words").Title.Aside);
+        var (title, next) = LessonLines(session, "personas");
+        Assert.StartsWith("in progress: ", title.Aside, StringComparison.Ordinal);
+        Assert.Equal("unit 1", next.Text); // its units follow at once: no wait line
+        Assert.Equal(new LessonWait(LessonWaitKind.Session, 3, "villager"), session.Lessons.WaitOf("ayer-y-manana"));
+    }
+
     [Fact]
     public void WhatISaidListsTheNewestLinesFirstWithTheCoreFeedbackInEnglish()
     {

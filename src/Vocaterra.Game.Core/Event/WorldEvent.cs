@@ -133,6 +133,12 @@ public static class WorldEvents
     /// <summary>A phrase of an earlier session was reviewed and answered, in the warm-up or in a lesson's review step (X06; the detail is the phrase id and <c>warm-up</c> or <c>lesson</c>).</summary>
     public const string ReviewAnswered = "review_answered";
 
+    /// <summary>The player slept at their own fire (V12c): the play session ends and the next one begins in the same run, as a load would begin it (the detail: <c>session 1 to 2</c>).</summary>
+    public const string Slept = "slept";
+
+    /// <summary>A test run was skipped to a later play session (V12c, <c>--skip-to-session</c>): the sessions before it were counted as done (the detail says so).</summary>
+    public const string SessionSkipped = "session_skipped";
+
     /// <summary>Every world event name, in the order above (the tips, the lessons and the objectives check the names they use against it).</summary>
     public static IReadOnlyList<string> All { get; } =
     [
@@ -141,5 +147,6 @@ public static class WorldEvents
         TorchAtRing,
         WarmupOffered, WarmupStarted, WarmupEnded, WarmupSkipped, ReviewSkipped, ReviewAnswered,
         BeaconReached, PlaceAsked, ItemTaken, OrderDelivered,
+        Slept, SessionSkipped,
     ];
 }

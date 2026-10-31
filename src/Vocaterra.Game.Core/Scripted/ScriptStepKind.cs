@@ -71,4 +71,10 @@ public enum ScriptStepKind
     /// and its outcome is printed by the game's event lines.
     /// </summary>
     LessonRun,
+
+    /// <summary>
+    /// Sleep at the player's own fire as if the player had chosen to (V12c), wherever they stand (a script needs no walk): the panels close first, and the next play session
+    /// begins as a load of the save would begin it. Refused, with a line, when the player may not sleep (the fire not lit, a lesson step waiting, a playtest).
+    /// </summary>
+    Sleep,
 }

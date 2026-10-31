@@ -15,6 +15,7 @@ namespace Vocaterra.Game.Core.Input;
 /// <param name="OpenCrafting">C, or E at the workbench: the crafting panel.</param>
 /// <param name="OpenInventory">I, or E: the inventory.</param>
 /// <param name="ReleaseMouse">Esc in the world: the mouse is let go, and the closing card goes (S17).</param>
+/// <param name="Sleep">Enter on the closing card, or E at the player's own lit fire: sleep until the next play session (V12c), or <see langword="null"/> for none.</param>
 public sealed record GameCommands(
     IGameCommand ToggleView,
     IGameCommand Save,
@@ -29,4 +30,5 @@ public sealed record GameCommands(
     IGameCommand OpenBook,
     IGameCommand OpenCrafting,
     IGameCommand OpenInventory,
-    IGameCommand ReleaseMouse);
+    IGameCommand ReleaseMouse,
+    IGameCommand? Sleep = null);

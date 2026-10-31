@@ -11,7 +11,8 @@ namespace Vocaterra.Game.UI.Overlays;
 /// <summary>
 /// The closing card of the session (S17, D-game-15): <c>Session complete</c>, the guide's closing line in Spanish (large) and in English (its own colour), for a few
 /// seconds after the player's own fire is lit with the camp done. The English is drawn, the Spanish is spoken. The card is up for <see cref="SessionEnding.ShowTicks"/>
-/// or until a key is pressed; the objective area keeps saying that the session is complete.
+/// or until a key is pressed; the objective area keeps saying that the session is complete. Since V12c the card offers the next session over its keys line
+/// (<c>Enter: sleep until morning and start session 2</c>), except in a playtest.
 /// </summary>
 public sealed class EndingLayer : IFrameLayer
 {
@@ -36,7 +37,8 @@ public sealed class EndingLayer : IFrameLayer
         var spanish = TextWrap.Wrap(ending.Spanish, width - 40, t => DrawHelpers.Width(large, t));
         var english = TextWrap.Wrap(DialoguePanel.SupportPrefix(ui) + ending.English, width - 40, t => DrawHelpers.Width(small, t));
         var summary = ending.Summary.SelectMany(line => TextWrap.Wrap(line, width - 40, t => DrawHelpers.Width(small, t))).ToList();
-        var layout = new EndingLayout(view.ViewportWidth, view.ViewportHeight, spanish.Count, english.Count, summary.Count);
+        IReadOnlyList<string> sleep = view.EndingSleep is { } offer ? TextWrap.Wrap(offer, width - 40, t => DrawHelpers.Width(small, t)) : [];
+        var layout = new EndingLayout(view.ViewportWidth, view.ViewportHeight, spanish.Count, english.Count, summary.Count, sleep.Count);
         var box = new Rectangle(layout.Box.X, layout.Box.Y, layout.Box.Width, layout.Box.Height);
         spriteBatch.Draw(view.Pixel, box, Back);
         DrawHelpers.Border(spriteBatch, view.Pixel, box, 3, Gold);
@@ -68,6 +70,12 @@ public sealed class EndingLayer : IFrameLayer
                 DrawHelpers.Text(spriteBatch, small, row, new Vector2(box.X + 20, y), Ink);
                 y += 20;
             }
+        }
+
+        for (var i = 0; i < sleep.Count; i++)
+        {
+            // The next session (V12c): Enter sleeps until morning, over the keys line, in the title's gold.
+            DrawHelpers.Text(spriteBatch, small, sleep[i], new Vector2(box.X + 20, box.Bottom - 26 - ((sleep.Count - i) * 22)), Gold);
         }
 
         DrawHelpers.Text(spriteBatch, small, ui.Ui("sessionCompleteKeys"), new Vector2(box.X + 20, box.Bottom - 26), Dim);
