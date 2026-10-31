@@ -54,9 +54,9 @@ is a change to the boundary and updates that record.
   - V18: `scripts/content-loop.sh` (`d986adf`), the content loop in one command;
   - the core's M56 (`d87e823`): `ser` where a place takes `estar`, and a subject after its verb;
   - the core's M59 (`12ea9d7`): the person checks; a lone name is never checked (it may be the listener);
+  - V14: session 8 "Ayer en el pueblo" (`78a37fa`); the listener's name as a vocative is stripped by the game;
   - `main` merged in at `0cf674b`. It brought the CI workflow with its grammar jobs, and the QA agent.
-- **Next, in order** (owner, 2026-10-31, D-game-22): V14
-  (session 8 "Ayer en el pueblo"), V16 (the simple future in the runner and the book), the core's M57 (before V17), V17 (session 9
+- **Next, in order** (owner, 2026-10-31, D-game-22): V16 (the simple future in the runner and the book), the core's M57 (before V17), V17 (session 9
   "Mañana en el pueblo"), the core's M58 and M62 (before V15), V15 (session 10 "El mercado"), then V09 again (the documents and the scripted runs).
   Every one by Opus 5.5 at xhigh, one at a time. The core's M62 (V13's adjective gaps) runs before V15 (owner, 2026-10-31).
   - The design is VILLAGE_PLAN sections 3.5 to 3.9, 4 and 5. The findings of every V milestone so far are in
@@ -98,18 +98,22 @@ is a change to the boundary and updates that record.
   its budget reported.
 
 **Open points to carry**
-- **The coin path:** a learner reaches session 7 with 0 coins (+2, +4, −4 for bread, −2 for the axe). V13's brief asks the agent to
-  design around it.
+- **The coin path:** a learner reaches session 7 with 0 coins (+2, +4, −4 for bread, −2 for the axe) and leaves session 8 with 0 coins, 3
+  apples, 2 loaves and the axe (V13, V14 designed around it). V15's `buy` is the first repeatable source.
 - **From phase A:**
   - name plates show through figures;
-  - `Domingo hizo un hacha` at `smith-open` gives `ask_activity` with `vocab.wrong`;
-  - the villager credits "¿dónde está la panadería?" as `donde-esta-el-rio`;
   - `KeyWordsTaught` is one save flag.
 - **From V08:**
   - phrase variants are held to the A2 ceiling, not the lesson's level (accepted);
   - five old world words sit in the body of `a1.txt`, not its marked block;
   - the `fut` check at a step is tested from V16.
-- **Core gaps filed, not started:** M56 to M59.
+- **From V14:**
+  - `hola Luz quiero dos panes` (and `hola quiero dos panes`) resolves only the greeting, so nothing is bought: one intent per line. A
+    market lesson (V15) makes it likelier; its brief should say what happens;
+  - `quiero el pan de Luz` at `baker-open` resolves no intent;
+  - the scene-build test takes 0.75 s of a 3 s budget here: at CI's four times slower it is at the edge;
+  - the NPCs' "¡Muy bien!" plays in Luna's voice; `tener que` has no book entry.
+- **Core gaps filed, not started:** M57, M58 and M62 (all in the queue).
 
 **Gotchas learnt this series**
 - **CI.** This token cannot read CI results (`gh pr checks` and `gh run list` give 403), so the owner reports CI failures. The GitHub

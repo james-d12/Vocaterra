@@ -1823,6 +1823,44 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     would fail a branch that forgot a step of the loop). It needs the gate script changed, which is mine: deferred until a content milestone
     shows the need. CI: no change. The stream digests stay hand-set until the core's M57 (c).
 
+- **V14: session 8 "Ayer en el pueblo" (2026-10-31, Opus 5.5 xhigh; gated on `feature/village` at `78a37fa`).** The villager's lesson
+  of session 8, level `a2`: the preterite in every person (`hizo`, `pescó`, `fuimos`, `comieron`, `compró`) and `tener que` (the new
+  intent `state_obligation`), 18 steps, 8 check items, 50 WAVs; about 7 to 9 minutes. No order and no sale: a learner arrives with 0 coins,
+  3 apples, 2 loaves and the axe, and leaves with the same.
+  - Rows: said `luz-hizo-pan`, `mar-pesco-en-el-rio`, `fuimos-al-rio`, `ellos-comieron-pan`, `tengo-que-ir` and the optional
+    `luz-compro-pescado`, with the reviews `fui-al-rio` and `voy-a-comprar-pan`; ten heard rows, the day told in three lines among them.
+    What the learner says is true in the world: "Fuimos al río" (session 7's walk ended on Mar's bank) and "Tengo que ir al río" (the next
+    step walks there). `state_action` gains `pescar en` + a place and a village name before `comprar`.
+  - The Opus pass: "le vendí pescado a Luz"; the plural is "Luz y Mar"; "Mar fue al río y te busca" brings in `fue`; "Por la mañana" keeps
+    the `fuimos` model apart from the afternoon. The orchestrator read every new line: natural, neutral (`¿Y Mar y tú? ¿Adónde fueron?`).
+  - The level is `a2` by the grammar (the past in every person, `tener que`); every word is A1 with `pescar` added to the world words.
+  - The stand-in examples are restored (M56, M59): `es lejos` (with `ask_far` given a keyword rule for `ser` + `lejos`/`cerca`, not a
+    grammar: a grammar would make the fuzz suite generate it as correct), `¿dónde están la herrería?`, `me gustan el pan`, `me gusta las
+    manzanas`, `¿cuánto cuestan el pan?`, `¿cómo te llama?`, and V13's `la manzana son roja` / `las manzanas es roja`.
+  - The four open points: (1) `smith-open` takes `state_action` and `state_want` (`Domingo hizo un hacha` error-free there); the fisher's
+    and the villager's prompts do not (the lint gave `busqué madera` to `ask_directions` there). (2) `oven-wood` and `axe-handle` name their
+    lessons, as `water-for-plants` did in V13 (Luz thanked the learner before the plan; the axe came before Domingo's offer). (3) At the
+    villager, "¿dónde está la panadería?" in free talk credits the fisher's row as a transfer; lesson credit is unchanged. (4) **The
+    listener's name as a vocative** (`Vocative.cs`): the NPC's own name, as the first word (or after `hola`) or the last, is taken out
+    before the core reads the line, typed, spoken and on the host CLI, unless a word joins it to the sentence (`Luz y Domingo comieron pan`,
+    `el pan de Luz`). The core leaves a lone name unchecked since M59; the game, which knows the listener, strips it. `Luz hizo pan` said to
+    Luz herself becomes `hizo pan` (harmless for the intent).
+  - The recognizer heard all six said rows word for word; `fueron` is only in the open vocabulary and is heard as `fuimos` at the step.
+  - Bugs found on the learner's route and fixed: the fisher's answer set accepted statements his prompt rejects; the listen step's options
+    overflowed at 150 % text scale.
+  - Tests: 6431 passed and 3 skipped before; 6602 passed and 3 skipped after, with models (without models, CI's case: 6567 passed and 38
+    skipped). One timed test is at the CI margin: the scene build takes 0.75 s of its 3 s budget here, so CI's runner (about four times slower)
+    would reach the budget (the scene is unchanged by V14; a CI failure there is that margin, not V14).
+  - Bundle `19635716…`; the identity baseline gained 13 entries, none moved; `OldSentenceDigest` set with the generators unchanged; the
+    end-to-end goldens did not move. Scripted runs: ticks and world digests unchanged; the differences are the new lesson's (the eighth
+    lesson line, speech files 746 → 796, saves +4.7 KB, the Lessons-page screenshots of r20 and r21).
+  - Left: `tener que` has no book entry (`tengo` belongs to the first lesson); the NPCs' "¡Muy bien!" still plays in Luna's voice (older);
+    the closing review is skipped when nothing is due.
+  - The orchestrator's spot-checks: CI's grammar check holds (the cache rebuilt from nothing equal, by `scripts/content-loop.sh --grammar`);
+    on the host, `Luz, quiero pan` buys the bread, `Domingo necesito un hacha` is `state_want`, `¿dónde está la panadería, Mar?` is
+    `ask_directions`. Two older gaps seen on the way, open: `hola Luz quiero dos panes` (and `hola quiero dos panes`) resolves only the
+    greeting, so the purchase does not happen (one intent per line); `quiero el pan de Luz` at `baker-open` resolves no intent.
+
 ## 6. Definition of done (every milestone)
 
 1. `dotnet build Vocaterra.sln -warnaserror` with 0 warnings and `dotnet test Vocaterra.sln` green, with the test count in the report.

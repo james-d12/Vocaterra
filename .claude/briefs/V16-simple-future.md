@@ -3,7 +3,7 @@ You are implementing milestone **V16, the simple future in the lesson runner and
 Do the work yourself; do not spawn subagents.
 
 ## Where to work, and pushing
-Work only in the existing git worktree `/home/user/Dev/Vocaterra/.claude/worktrees/village`: cd there first, and never edit `/home/user/Dev/Vocaterra` itself or any other worktree. It is on branch `feature/village` (at the HEAD `git log -1` shows, `@@HEAD@@`).
+Work only in the existing git worktree `/home/user/Dev/Vocaterra/.claude/worktrees/village`: cd there first, and never edit `/home/user/Dev/Vocaterra` itself or any other worktree. It is on branch `feature/village` (at the HEAD `git log -1` shows, `78a37fa`).
 - Create your branch with `git checkout -b V16-simple-future feature/village`.
 - **The owner wants work pushed often.** Commit after each coherent step that builds and passes `scripts/test.sh fast`, with the prefix `V16: `.
 - Push after every commit: `git push -u origin V16-simple-future` the first time, then `git push origin V16-simple-future`.
@@ -13,7 +13,7 @@ Work only in the existing git worktree `/home/user/Dev/Vocaterra/.claude/worktre
 - **S27** gave a lesson step a `tense` (`pres`, `pret`, `ir-a`) and the runner its tense check (`LessonRunner.FormMiss`, `WrongTense`): a wrong tense the core cannot see (no time word) is the lesson's Miss with the step's `tenseRetry`; a wrong tense next to a time word is the core's `conj.tense`, a slip that ends the step. The owner's rule (S27): **correct Spanish is never a Miss.** So a plan said in the present with a future time word at an `ir-a` step (`mañana como pan`) is credited, and the next step opens with the step's `presentNote` (`LessonRunner.PresentForPlan`, the time words in `game/words.json`'s `nearFuture.timeWords`).
 - **S28** gave the book its conjugation tables (`Language/Book/ConjugationTable.cs`): the columns present, past and future (ir a), each shown once a cell of it is unlocked; `TaughtVerbForm.Text` builds a form from the core's `MorphologyGenerator` (the near future from `ir`'s present, `a` and the infinitive).
 - **V08** gave every lesson a `level`; `LessonLevels.TensesAt` already allows `fut` at A2 only, and the validator checks a lesson's `verbs` tenses against its level. But `LessonBook` still refuses `fut` at a step (`"tense" is pres, pret or ir-a`), and V08's findings say "the `fut` check at a step is tested from V16".
-- Read the V01 to V13 entries (and V14's if it is there) at the end of `docs/game/IMPLEMENTATION_PLAN.md` section 5 for the series so far.
+- Read the V01 to V14 entries at the end of `docs/game/IMPLEMENTATION_PLAN.md` section 5 for the series so far.
 
 ## Read first
 - `CLAUDE.md`.
@@ -66,7 +66,7 @@ Work only in the existing git worktree `/home/user/Dev/Vocaterra/.claude/worktre
 
 ## Gate (from the worktree root, each through scripts/limited.sh)
 - `dotnet build Vocaterra.sln -warnaserror -m:4`, with 0 warnings.
-- `dotnet test Vocaterra.sln -m:2` all passing. It was @@COUNT@@; report the new count.
+- `dotnet test Vocaterra.sln -m:2` all passing. It was 6602 passed and 3 skipped; report the new count.
 - `dotnet format Vocaterra.sln --verify-no-changes`.
 - `scripts/content.sh validate`, the host's `--validate-content`, and the content gate in `scripts/merge-gate.sh` (the lint at A2 with fail-on-level, the cefr-checks).
 - The host demo `dotnet run --project src/Vocaterra.Host -- --transcript "quiero agua, por favor" --prompt stall-need` still prints `request_item`, communicated.

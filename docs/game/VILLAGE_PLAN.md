@@ -579,7 +579,7 @@ Today's gate demands A1 bundle-wide (section 2.5). The rule this plan proposes, 
 | V12b | Follow-up found by V09's runs: the four village NPCs' `focus` (their open prompts' rows), a turn credits its prompt's own row before the stall's fixed mapping (free talk with the baker had credited `pedir-agua`), and a validator rule that a prompt that is the home of practised rows names one in its NPC's focus | V09 | S | Opus 5.5 xhigh | done 2026-10-31 (`29188ce`) |
 | V12c | Follow-up found by the owner's playtest (2026-10-31: after the fire, "I don't know where to start"): the next session in the game, by sleeping at the player's own fire (the closing card's Enter, or E at the fire once the session's work is done), a sleep being exactly a load (`SaveGame.Sleep`, proved save for save); the objective's next step; the book's Lessons page says when and where each lesson opens; `--skip-to-session n`, a test aid that starts at session n with the earlier sessions counted as done; runs `r20-sleep` and `r21-skip` | V12b | M | Opus 5.5 xhigh | done 2026-10-31 (`4b88599`) |
 | V13 | Session 7 "¿Cómo es?": adjectives and `gustar` in the present and the past; `describe`, `state_like`, `[ADJ]` in `request_item`; the water order (its plan and report reviewed); apples | V08, V12 | M | Opus 5.5 xhigh | done 2026-10-31 (`f5933c8`) |
-| V14 | Session 8 "Ayer en el pueblo": the preterite for every person (él/ella, nosotros, ellos; the day of the village told and retold), `tener que`; `state_obligation` | V13 | M | Opus 5.5 xhigh | planned (phase B) |
+| V14 | Session 8 "Ayer en el pueblo": the preterite for every person (él/ella, nosotros, ellos; the day of the village told and retold), `tener que`; `state_obligation` | V13 | M | Opus 5.5 xhigh | done 2026-10-31 (`78a37fa`) |
 | V16 | The simple future in the runner and the book: `tense: fut` on a step, `ir a` credited there with a note, the fourth column, the schema (3.8) | V08 | S | Opus 5.5 xhigh | planned (phase B) |
 | V17 | Session 9 "Mañana en el pueblo": the simple future (-é, -ás, -á, -emos, -án; `iré`; `hará`, `tendré` heard) against `ir a`; the later markers; the day of tomorrow | V14, V16 | M | Opus 5.5 xhigh | planned (phase B) |
 | V15 | Session 10 "El mercado": 11 to 20, `¿Cuánto es todo?`, `más … que`, `poder`; `offer_item` and `buy`; the market told in three times | V17 | M/L | Opus 5.5 xhigh | planned (phase B) |
@@ -595,7 +595,7 @@ order.
 
 **Phase B's order** (owner, 2026-10-31, after the study of the project's bottlenecks, `docs/DEVELOPMENT_BOTTLENECKS.md`): V08, V13,
 V18 (the content loop in one command) and the core's M56 and M59 (agreement with a subject after its verb; the person checks, a lone name
-never checked) done, then V14, V16, the core's M57 (before V17, as planned), V17, the core's M58 and M62
+never checked) and V14 done, then V16, the core's M57 (before V17, as planned), V17, the core's M58 and M62
 (before V15; M62 by the owner's word after V13), V15 and V09. One agent at a time, every milestone by Opus 5.5 at xhigh.
 
 **Every content milestone (V10 to V15)**, besides the definition of done (`IMPLEMENTATION_PLAN.md` section 6) and the content loop
