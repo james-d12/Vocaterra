@@ -232,8 +232,10 @@ on the resolved readings only. The returned tokens still list all readings, beca
    determiner, and so is an adjective-and-adverb word before a noun that cannot be a verb (`temprano pasillo`; `solo agua` is the
    exception, `solo` is an adverb that goes before nouns); the word after a subject pronoun or a clitic (skipping adverbs and
    clitics) is a verb (`yo lanza`, `tú ayudas`), and so is the word after `dónde` or `cómo` when it can be one (`¿dónde son las casas?`,
-   M56); the word after a preposition, and the complement of `ser`/`estar`, is not a finite
-   verb (`a casa`, `la casa es grande`); an interjection reading is the last resort (the lexicon lists `sus` and `sé` as
+   M56), past the pronouns before a verb (`¿cómo se llamas?`, M59); a preposition of elapsed time that is also a verb (`hace`) is the
+   preposition only before a phrase of time (`hace dos días`) and the verb elsewhere (`¿qué hace?`, M59); the word after a preposition,
+   and the complement of `ser`/`estar`, is not a finite verb (`a casa`, `la casa es grande`), except a verb after `ir a` that is nothing
+   else but an adverb, a conjunction or a preposition (`voy a como`, `va a hace`, M49 and M59); an interjection reading is the last resort (the lexicon lists `sus` and `sé` as
    interjections too). A rule fires on a word only when every reading it has is of the kind that triggers it (an article, not
    the clitic `la`), and only when a reading of its neighbour fits. `ayer`, `anoche` and `anteayer` change nothing here: a word
    after an article is a noun with or without them (`ayer compré un libro`).

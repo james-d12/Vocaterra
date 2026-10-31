@@ -172,7 +172,7 @@ signatures marked breaking in `API.md`; the game compiles and passes unchanged.
 **What moved behind each.**
 - *`IAnalysisRules`*: the closed word classes and lists that the shared code consults (`IsDeterminerAdjective`, `IsSubjectPronoun`, `IsClitic`, `IsPreverbalPronoun`,
   `IsVerbSeekingQuestionWord`, `IsNounModifyingAdverb`, `IsInterrogativeQuantifier`, `IsInterjectionFirst`, `IsNearFutureAuxiliary`, `IsNearFutureLinker`, `IsCopula`,
-  `IsCopulaOrAuxiliary`) and `CreateAgreementChecker(resolved, errors)`, which returns an `IAgreementChecker` (`Run`, `HasPastTimeMarker`). The Spanish tables
+  `IsCopulaOrAuxiliary`, and since M59 `IsElapsedTimePreposition` and `IsElapsedTimeNoun`) and `CreateAgreementChecker(resolved, errors)`, which returns an `IAgreementChecker` (`Run`, `HasPastTimeMarker`). The Spanish tables
   (`SpanishAnalysisTables`, from `AnalysisTables`) and the Spanish checks (`SpanishAgreementChecker`, from `AgreementChecker`) moved into `Language/Packs` with
   `SpanishAnalysisRules`. `ReadingResolver`, `AccentVariantChoice`, `ReportedReadings`, `AccentRestoration`, `ReadingClasses`, the typed matching of the slot grammar and
   `LinguisticAnalyzer` stay shared and take the rules (and the pack's folding) instead of calling the statics. `ReadingClasses` and `WordClass` are public, so a pack in

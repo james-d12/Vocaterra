@@ -101,6 +101,13 @@ code comments and here, with the reason:
     time or quantity and has no `y`, `e`, `o`, `u` or `ni` after it; and the new form is that verb and nothing else. The verbs of price behind `cuánto` are checked by the
     analyzer but not mutated. A pronoun right behind a word that can be a preposition is no subject of the person check any more (`a ella le gusta`), so the mutation
     behind a subject pronoun is not made on one.
+  - *O4 and O5, `conj.person` after a noun subject (M59, a widening).* The person mutation also changes a third-person verb right after a noun phrase that opens the
+    sentence (`domingo hace un hacha` becomes `domingo hago un hacha`, expected `hace`; `los niños comen pan` becomes `los niños come pan`, expected `comen`). It is made
+    only where the analyzer's reading is certain: the phrase is the first word of the sentence, a bare noun (a literal name such as `domingo` or a generated noun), or the
+    first two, an article or numeral and its noun; every reading of the noun is a noun of one number, and a noun with an article is no noun of time or quantity; the
+    verb follows the noun directly; a bare noun that is no interjection (`gracias`) or word for calling people (`señor`) takes any other person and number, a noun with
+    an article only the other number of the third person; and the new form has no reading but that verb in that tense. In a probe of 3 000 person mutations, 128 were of
+    this kind.
 - **O8.** The dialect sites are `θ s z h ʎ ʝ ʃ ʒ` (the plan lists `θ s ʎ ʝ h`; the shipped dialects also produce the voiced `z` and the rioplatense `ʃ ʒ`).
   `Tokenize(ToIpaString())` is exact except for the pair `t` + `ʃ`, whose concatenation is the affricate token `tʃ` (the inventory documents that
   sequences are lists for this reason); a result with that pair skips the split.
@@ -253,6 +260,14 @@ before them (`costar` and `gustar` always took the third person, as before); agr
 `lejos` or `cerca` and `ser` between `dónde` and a noun phrase (`skip:ser-of-place`; the analyzer's exceptions for events are not modelled, which only leaves out
 correct sentences), and draws no noun that is also a verb form right behind `dónde`, `donde` or `cómo`, where the reading resolver takes the verb (another word there
 that can be a finite verb is re-rolled as `verb-form-homograph`). The sentence stream digest of `FuzzLanguageStreamTests` was recorded again for these changes.
+
+M59 made the analyzer agree a verb with a noun phrase that opens its clause before it (`Domingo trabaja`, `los niños comen`) and a reflexive clitic after `cómo` with
+`llamar` or `sentir` (`¿cómo te llamas?`), so the realiser models both. It gives a verb right after a noun phrase (past at most two skippable words or object
+pronouns) the third person and the phrase's number, whatever stands before the phrase; agreeing where the analyzer would not check (a phrase of time, one a preposition
+governs, an object put first) is never wrong. It skips a subject of two phrases joined by `y` or `e` (`skip:coordinated-subject`: the analyzer makes it plural only where the
+first phrase opens its clause, which the realiser does not model) and a literal verb form that disagrees with the phrase before it (`skip:literal-verb-subject`). It gives
+`llamar` and `sentir` right after `cómo` and a reflexive clitic the clitic's person (`se`: the third, either number). The sentence stream digest of
+`FuzzLanguageStreamTests` was recorded again for these changes.
 
 A name (M17b) has no reading the checks use: the realiser treats it like an unknown word, so it breaks every phrase and every subject-verb link around it, and
 the analyzer does the same (a bound name keeps no reading at all). `CorrectSentenceFuzzTests` and `SerializationRoundTripFuzzTests` (`NameSentences_SurviveCanonicalJson`)
@@ -458,6 +473,15 @@ synthetic), and O3 now realises the `ask_price` grammar (about 30 sentences per 
   `unknown` and was not communicated. Measured before: 66 of 85 aimed cases unknown, 7 of 300 cases with effects, `region:effects` 0, 1, 2 and 6 in
   four runs (main the same). The fixture bundles are now built from the full copy; the oracle and the minimum are unchanged. After: every aimed case
   communicated, 81 of 300 cases with effects, `region:effects` 42.
+
+Found and fixed in M59:
+
+- **The accent-variant choice made `te estas` the noun `té` and the verb `estás`** (`Vocaterra.Nlp`, `AccentVariantChoice`; found by O3's accent-dropping fact, CsCheck seed
+  `e8VfxkxpBVH8`, skeleton `[PRON] [ADV]? [VERB:estar] [ADJ]`, `te estas relacionado`, once M59 checked a noun before its verb). The choice decides every word of a pass at
+  once: `te` against the demonstrative `estas` (no verb after it, so the noun `té`) and `estas` against its neighbours (no noun after it, so the verb `estás`). Before M59 the
+  misreading said nothing; with M59 `té` became a bare noun subject before a verb of the second person, and the sentence without its accent gave a `conj.person` that the
+  accented one did not. A pronoun before a verb now keeps its reading when the next word is a verb once accented. Regression:
+  `AccentVariantSentencesTests.APronounBeforeAWordThatIsAVerbOnceAccentedStaysThePronoun` in `tests/Vocaterra.Nlp.Tests/Language/Analysis`.
 
 ## Known, deliberately not fixed
 

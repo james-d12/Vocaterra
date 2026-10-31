@@ -103,7 +103,8 @@ All of this is additive unless it says breaking. The game compiles and passes un
   `MorphologyGenerator`) was removed in M53 together with the generator's move; a host of a Spanish bundle calls the extension `bundle.SpanishMorphology()` (project `Vocaterra.Nlp.Es`,
   `using Vocaterra.Nlp.Es;`), which throws `NotSupportedException` for a pack that creates another implementation.
 - **`IAnalysisRules`** and **`IAgreementChecker`** (`Vocaterra.Nlp.Language.Analysis`), `AnalysisRules.For(pack)` (the pack's rules over an empty lexicon, for callers
-  without a lexicon), and public `ReadingClasses` and `WordClass`. Breaking signatures: `ReadingClasses.IsDeterminerReading`, `IsClosedClassReading` and `IsSkippable`
+  without a lexicon), and public `ReadingClasses` and `WordClass`. Members added since, each breaking for a host that implements `IAnalysisRules`: `IsVerbSeekingQuestionWord`
+  (M56), `IsElapsedTimePreposition` and `IsElapsedTimeNoun` (M59, the preposition of `hace dos días` and the nouns of time it takes). Breaking signatures: `ReadingClasses.IsDeterminerReading`, `IsClosedClassReading` and `IsSkippable`
   take the rules (they were internal in effect: only the analysis used them); `AccentRestoration.SpellingsFor(lexicon, analysis, rules)`;
   `SlotGrammarMatcher.Match(tokens, grammar, language[, rules])` (the 3-argument form still works and uses `AnalysisRules.For`).
 - **Constructors that take the interface** (source compatible, `MorphologyGenerator` is an `IMorphology`): `LinguisticAnalyzer(lexicon, IMorphology, language[, rules])`,
@@ -434,7 +435,7 @@ if (result.Answer is { AnswerId: not null } answer)
 The pipeline always sets both members; they are nullable only so that a result built by hand (in a test) needs no analysis. Both are part of
 the result's `CanonicalJson`, but not of the replay record (see [REPLAY.md](REPLAY.md)).
 
-### Tense errors, `conj.tense` (M49, M51)
+### Tense errors, `conj.tense` (M49, M51, M59)
 
 `conj.tense` is reported by the analysis for the cases below, each with `expected` and `actual` on the verb token (the last one on the verb and the infinitive together):
 
@@ -448,7 +449,8 @@ the result's `CanonicalJson`, but not of the replay record (see [REPLAY.md](REPL
   well is left to the first rule, and a verb before a `que` that precedes the marker (`dijo que mañana venía`) is not checked. An imperfect after such
   a `que` is not checked either.
 - **A conjugated verb after `ir a`:** `voy a como` and `vamos a tenemos` expect the infinitive (`comer`, `tener`; the lemma). A noun phrase after `a`
-  (`voy a la casa`, `vamos a la tienda`) and a word that can also be a noun are not checked.
+  (`voy a la casa`, `vamos a la tienda`) and a word that can also be a noun are not checked. A form that is also a preposition is the verb there (M59: `va a hace un
+  hacha` gives `hacer`; `hace` is also the preposition of `hace dos días`), since no preposition follows the `a` of `ir a`.
 - **`ir` followed by a bare infinitive (M51):** `voy comer pan` gives expected `voy a comer`, actual `voy comer`, with the span on both words (the
   error is the gap, so the span covers the pair and `expected` is the whole corrected phrase). `vamos comer fruta` gives `vamos a comer`, `van tener`
   gives `van a tener`. Present and imperfect forms of `ir` are checked. Clean: `voy a comer`, `quiero comer`, `vamos a la tienda`, `voy al río`, `ir a comer`
@@ -457,12 +459,32 @@ the result's `CanonicalJson`, but not of the replay record (see [REPLAY.md](REPL
 
 The checks work on the whole utterance, not on clauses, and on the verb forms the lexicon lists.
 
-### Person and copula errors, `conj.person` and `ser_estar` (M56)
+### Person and copula errors, `conj.person` and `ser_estar` (M56, M59)
 
 `conj.person` is reported on the verb token, with `expected` the form of the verb for the person and number of its subject and `actual` the form said:
 
 - **A subject pronoun before its verb:** the verb after a subject pronoun, past at most two adverbs or clitics, agrees with it (`yo quiere` gives
   `quiero`; a bare infinitive, `yo comprar`, gives `compro`). A pronoun after a preposition is no subject (M56: `a ella le gustan las manzanas` is clean).
+- **A noun or a name before its verb (M59):** a noun phrase that opens its clause, followed by a finite verb in the indicative (past at most two adverbs or object
+  pronouns), is its subject, of the third person; two phrases joined by `y` or `e` are a plural subject. In every tense: `los niños come pan` gives `comen`, `la manzana son
+  roja` gives `es`, `las manzanas es roja` gives `son`, `Luz y Domingo comió pan` gives `comieron`. A verb of the first or second person is checked only after a bare noun,
+  which is how a name is said (`Domingo trabajo en la herrería` gives `trabaja`, `Domingo voy a hacer un hacha` gives `va`, `Luz hice pan` gives `hizo`, `Mar pescaste en el
+  río` gives `pescó`); after a phrase with a determiner the phrase may be the object put first, and it is left alone (`el pan quiero`). A phrase opens its clause when
+  only adverbs, `sí` or `no` and phrases of time stand before it, after the start or one of `y`, `pero`, `porque`, `si`, `cuando`, `aunque`, `mientras`, `como`, `donde` and
+  `dónde`, `cuándo`, `cómo`. Clean: `Domingo trabaja en la herrería`; a phrase that a preposition governs (`en la herrería trabaja Domingo`, `a Luz le gusta el pan`); a
+  phrase that an object pronoun between stands for (`el pan lo compré`, `las manzanas las compro`); a phrase of time (`el domingo tengo pan`, `esta mañana compré pan`); a
+  phrase asked about (`¿qué fruta come Luz?`, `¿cuántas manzanas quieres?`); a noun after an interjection, the person spoken to (`hola Domingo`), and a vocative before a
+  question word (`Domingo, ¿qué haces?`); a bare noun said as an interjection (`gracias, quiero pan`) or one a speaker calls people by before a verb of the first or second
+  person (`señor, quiero pan`); phrases joined by `o`, `u` or `ni`, and a coordination with a pronoun (`yo y Luz`); `haber` (`hay dos panes`); `ser` with a plural
+  predicate (`mi comida favorita son las manzanas`); the subjunctive and the imperative. A name that the lexicon lacks, or that a grammar binds as `[WORD]`, has no reading,
+  so nothing is said about its verb. The normalized text keeps no comma, so a name said to the listener right before a verb of the first or second person is read as the
+  subject (`Domingo, tengo madera` gives `tiene`). A verb form that is also a noun (`trabajo`, `cuesta`) is checked where a slot grammar binds it as the verb, as the game's
+  prompts do; with nothing to bind it the charitable reading takes the noun.
+- **A reflexive clitic after `cómo` (M59):** in the question `cómo` (or `como`) + `me`, `te`, `se`, `nos` or `os` + `llamar` or `sentir`, the clitic is reflexive and the
+  verb takes its person (`se` the third person of either number): `cómo te llama` gives `llamas`, `cómo se llamas` gives `llama`, `cómo se llamamos` gives `llaman`,
+  `cómo te siente` gives `sientes`. Clean: `cómo te llamas`, `cómo se llama usted`, `cómo os llamáis`; a clitic that is the object of a verb of another person (`te veo`,
+  `me ves`, `te llamo mañana`), `me` or `te` before another first or second person (`¿cómo te llamo?`) or before a third person with a subject after it (`¿cómo te llama tu
+  madre?`), and any other verb (`¿cómo te va?`).
 - **A subject after its verb (M56):** a third-person verb agrees in number with the noun phrase after it (past at most two adverbs) in three places.
   After `estar`: `¿dónde están la herrería?` gives `está`, `aquí está los panes` gives `están`. After an experiencer verb right behind its dative pronoun
   (`me`, `te`, `le`, `nos`, `os`, `les` with `gustar`, `encantar`, `interesar`, `importar`, `doler`, `faltar`, `quedar`, `sobrar`, `molestar`, `apetecer`,
@@ -487,8 +509,11 @@ The checks work on the whole utterance, not on clauses, and on the verb forms th
   `¿dónde es profesor?`); `cerca de` with an hour or a number (`son cerca de las 3`); a preposition between (`es de lejos`); a form that is also `ir`
   (`fue lejos`); and `es lejano` (an adjective of neither class). `ser` with `en` and a place (`la herrería es en la plaza`) is not checked.
 
-The word after `dónde` or `cómo` is read as the verb when it can be one, so `¿dónde son las casas?` is `ser` and gives `están`. Elsewhere `son`, which is also a
-noun, is the copula only where its neighbours make it one: `ellos son cerca` gives `están`, and `son cerca` alone is read as the noun.
+The word after `dónde` or `cómo` is read as the verb when it can be one, so `¿dónde son las casas?` is `ser` and gives `están`; past the pronouns before a verb too (M59:
+`¿cómo se llamas?` is `llamar`, not the noun `llamas`). Elsewhere `son`, which is also a noun, is the copula only where its neighbours make it one: `ellos son cerca`
+gives `están`, and `son cerca` alone is read as the noun. `hace` is the preposition of elapsed time only before a phrase of time (`hace dos días`, `hace un rato`, `hace
+mucho`) and the verb `hacer` elsewhere (M59: `¿qué hace?`, `¿qué hace Domingo?`, `hace frío`), also where a grammar's literal `hace` binds it, so `result.Words` reports the
+verb for a host's own person check.
 
 ### Carry the context to the next utterance
 
