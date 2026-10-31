@@ -188,8 +188,8 @@ lowered an oracle's depth or changed a golden.
 - **The game's largest classes** bound Game.Core.Tests (see the end of "What made the suite slow"). Splitting `VillageTests`, `SceneTests`,
   `SaveMigrationTests` or `GuideTurnTests` into classes by topic would let them run in parallel; it is a readability call for the game.
 - **The `Thread.Sleep` polling** in the turn-worker tests: not among the slow tests; leave unless a later measurement says otherwise.
-- **CI:** a fast job beside the full one, or the test projects as a matrix. Both write under `.github/workflows/`, which needs the
-  owner's word (CLAUDE.md).
+- **CI:** a fast job beside the full one, or the test projects as a matrix. Both are edits of `.github/workflows/ci.yml`; the token has
+  the workflow scope (2026-10-31).
 - **xUnit v3 / Microsoft.Testing.Platform:** test-host start-up is about a second per assembly here, so a move is not justified by speed.
 
 ## Files touched

@@ -449,6 +449,12 @@ errors (a string with no cached result). The English support text is not checked
 5. Stop the server (`scripts/languagetool.sh stop`), run the offline command above (it must exit 0), and commit the strings, the cache and the
    waivers with the content change. The gate runs the offline command only and never needs the server.
 
+CI runs the check twice, as two parallel jobs of `ci.yml` on every push to `main` and every pull request. The `build-and-test` job runs the
+offline command. The `languagetool` job starts the pinned LanguageTool on the runner, writes the strings again, checks every string with an
+empty cache, and fails when the result differs from the committed `content/grammar/` files or has an unwaived warning. On a failure, its
+`grammar-refresh` artifact holds the refreshed strings and cache; review the diff and commit them, which stands in for steps 1 to 3 when no
+local server is at hand.
+
 Since S4 the catalogue holds only the nouns of the 3D world (the ores, tools and furniture of the 2D slice are gone), and the recipes are the
 workbench's torch alone.
 

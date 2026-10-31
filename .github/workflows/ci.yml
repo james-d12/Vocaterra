@@ -25,12 +25,10 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      # The SDK version comes from global.json.
       - uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
 
-      # No packages.lock.json files, so key the NuGet cache on the central package versions and the project files.
       - uses: actions/cache@v4
         with:
           path: ~/.nuget/packages
@@ -43,11 +41,16 @@ jobs:
       - name: Build
         run: dotnet build Vocaterra.sln -warnaserror --no-restore
 
-      # VOCATERRA_MODELS_DIR is unset, so the model-gated tests skip; the unit, golden and fuzz suites run in full.
+      # VOCATERRA_MODELS_DIR is unset, so the model-gated tests skip.
       - name: Test
         run: >
           dotnet test Vocaterra.sln --no-build
           --logger trx --results-directory TestResults
+
+      - name: Grammar check (cached LanguageTool results)
+        run: >
+          scripts/content.sh grammar content/game-v1
+          --strings content/grammar/game-v1-strings.jsonl --strings-only --offline --strict
 
       - name: Upload test results
         if: failure()
@@ -55,4 +58,76 @@ jobs:
         with:
           name: test-results
           path: TestResults/
+          retention-days: 7
+
+  # Rebuilds content/grammar/ against a live LanguageTool server (docs/game/README.md, "The grammar check"). On a failure, commit the
+  # files from the grammar-refresh artifact, fix the content, or add a waiver.
+  languagetool:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Explicit bash runs with pipefail, so tee does not hide a failing check.
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', 'Directory.Build.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.local/share/vocaterra/tools/dl
+          key: languagetool-${{ runner.os }}-${{ hashFiles('tools/manifest.json') }}
+
+      - name: Install LanguageTool and the Java runtime
+        run: scripts/fetch-tools.sh
+
+      - name: Start the LanguageTool server
+        run: scripts/languagetool.sh start
+
+      - name: Write the strings
+        run: >
+          dotnet run --project src/Vocaterra.Host --
+          --content content/game-v1 --grammar-strings content/grammar/game-v1-strings.jsonl
+
+      # Deleting the cache sends every string to the server, so the committed results are rechecked too.
+      - name: Check with LanguageTool
+        run: |
+          rm content/grammar/game-v1-cache.json
+          scripts/content.sh grammar content/game-v1 \
+            --strings content/grammar/game-v1-strings.jsonl --strings-only --strict | tee "$RUNNER_TEMP/grammar.log"
+
+      - name: Summarise the findings
+        if: success() || failure()
+        run: |
+          {
+            echo '### Grammar (LanguageTool)'
+            echo '```'
+            grep -E '^(error|warning|grammar:) ' "$RUNNER_TEMP/grammar.log" || echo 'no findings log (an earlier step failed)'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Compare with the committed strings and cache
+        if: success() || failure()
+        run: |
+          if ! git diff --exit-code --stat -- content/grammar/; then
+            git diff -- content/grammar/ | head -n 400
+            echo "::error::content/grammar/ is out of date; review the grammar-refresh artifact and commit its files"
+            exit 1
+          fi
+
+      - name: Upload the refreshed grammar files
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: grammar-refresh
+          path: content/grammar/
           retention-days: 7

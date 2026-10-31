@@ -34,7 +34,7 @@ models/                    the pinned speech-model manifest (the model files are
 docs/nlp/, docs/game/      each half's plan, decisions, README and documents
 scripts/                   merge-gate.sh, content.sh, limited.sh, fetch-models.sh, license-scan.sh, check-links.sh, playtest and speech scripts
 .claude/agents/            the orchestrator's role file (the entry point for a Claude Code session; see CLAUDE.md)
-.github/workflows-pending/ the parked CI workflow (deferred)
+.github/workflows/         ci.yml (build, test and the grammar checks)
 ```
 
 ## Build

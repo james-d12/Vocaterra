@@ -19,7 +19,8 @@ never plans game content, scenes or engines; the game plan never plans core inte
 
 The repository is developed by one **orchestrator** session that plans and delegates all implementation to subagents and only plans,
 gates, merges and pushes. To continue, act as the orchestrator defined in `.claude/agents/orchestrator.md` (or start with
-`claude --agent orchestrator`). The owner prefers Haiku 5.5 for delegated work; Sonnet only for design-heavy milestones; Opus only on request.
+`claude --agent orchestrator`). A QA agent, `.claude/agents/qa.md`, tests one area of the game (ui, language, speech, world,
+progression, save, content) and reports bugs to `docs/qa-reports/` without fixing them; the orchestrator turns its reports into milestones. The owner prefers Haiku 5.5 for delegated work; Sonnet only for design-heavy milestones; Opus only on request.
 
 Facts every session needs:
 - **.NET SDK is user-local:** prefix commands with `PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" DOTNET_NOLOGO=1`.
@@ -45,8 +46,9 @@ Facts every session needs:
 - **Merge gate:** `GATE_TARGET=<feature branch> scripts/merge-gate.sh "<label>:<branch>"`, run from that feature branch's checkout (it
   refuses `main`); logs land in `.claude/gate-logs/`. The fuzz suite is a
   gate; never weaken an oracle to make it pass.
-- **Never write under `.github/workflows/`** until the owner says the token has the workflow scope. CI was reopened on 2026-10-23
-  (core D1, game D-game-3) and is planned (see the orchestrator's handover); the old `.github/workflows-pending/ci.yml` is out of date.
+- **CI is `.github/workflows/ci.yml`:** jobs `build-and-test` (build, test, offline grammar replay) and `languagetool` (live grammar check),
+  run in parallel on pushes to `main`, pull requests and manual runs. The token has the workflow scope (2026-10-31), so workflow edits land
+  on a feature branch like any other change.
 - **Engine (D-game-1):** MonoGame for the prototype; engine code lives only in `src/Vocaterra.Game`, never in `Vocaterra.Host` or
   `Vocaterra.Game.Core` (which references no package; its `ArchitectureRulesTests` gate it). Core holds the game's logic, Game the drawing,
   the devices, the layers and the host (`docs/code_guidelines.md`, `docs/game/ARCHITECTURE.md`). Assets are CC0 only (D-game-5).
