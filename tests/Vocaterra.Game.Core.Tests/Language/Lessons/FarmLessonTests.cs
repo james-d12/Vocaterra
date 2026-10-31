@@ -137,12 +137,13 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
             Assert.Contains(lesson.Steps, s => s.Line is { } line && row.AudioLineIds.Contains(line.LineId, StringComparer.Ordinal));
         }
 
-        // The do steps: the walk to the stall on the way, the walk to the river, and the order delivered back at the field.
+        // The do steps: the walk to the stall on the way, the walk to the river where the fisher stands on its bank (the scene's river point is mid-stream, out of
+        // reach of the arrow's three blocks from the bank), and the order delivered back at the field.
         var walks = lesson.Steps.Where(static s => s.Type == LessonStepType.Do).ToList();
         Assert.Equal(
             [
                 ("stall", WorldEvents.TalkOpened, "shopkeeper", null),
-                ("river", WorldEvents.BeaconReached, null, "river"),
+                ("npc.fisher", WorldEvents.BeaconReached, null, "npc.fisher"),
                 (null, WorldEvents.OrderDelivered, "farmer", "water-for-plants"),
             ],
             walks.Select(static s => (s.PointPlace, s.Event!, s.At, s.Detail)));
@@ -241,8 +242,8 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
 
             if (step.Id == "c5-river")
             {
-                Assert.Equal(("river", "río"), (session.Pointer!.Point, session.Pointer.Place)); // and the river
-                Assert.Equal("Go to the river (río) and fill your bottle with water (agua)", session.Lessons.HudLine);
+                Assert.Equal(("npc.fisher", "pescador"), (session.Pointer!.Point, session.Pointer.Place)); // and the river's bank, where the fisher stands
+                Assert.Equal("Go to the river (río) by the bridge and fill your bottle with water (agua)", session.Lessons.HudLine);
             }
 
             if (Walk(session, step) is { } d)

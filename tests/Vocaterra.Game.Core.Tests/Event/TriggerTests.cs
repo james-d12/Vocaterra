@@ -68,7 +68,7 @@ public sealed class TriggerTests
         // Before C06 a do step's detail matched as a part of the event's, ignoring case. The shipped lessons' detail filters are whole details: the noun the pickup
         // names, and since VILLAGE_PLAN V10 the scene's names of the places El pueblo walks to (the arrival's detail is the place's name), so matching exactly changes nothing.
         // V11: Números y pan's wood (a pickup's noun), its order (the delivery's detail is the order's id) and its purchase (a gift's detail is the noun and how it came).
-        // V12: Gente del pueblo's wood and its order, the same two kinds. V13: ¿Cómo es?'s walk to the river (an arrival) and its order.
+        // V12: Gente del pueblo's wood and its order, the same two kinds. V13: ¿Cómo es?'s walk to the river by the fisher (an arrival at his point) and its order.
         var filters = TestGame.Data.Lessons.Lessons.SelectMany(static l => l.Steps).Where(static s => s.Type == LessonStepType.Do && s.Detail is not null).ToList();
 
         Assert.Equal(10, filters.Count);
@@ -80,8 +80,8 @@ public sealed class TriggerTests
             [new Trigger(WorldEvents.ItemPickedUp, Detail: "madera"), new Trigger(WorldEvents.OrderDelivered, "baker", "oven-wood"), new Trigger(WorldEvents.ItemGiven, "baker", "pan, request")],
             filters.Skip(3).Take(3).Select(static s => s.Trigger));
         Assert.Equal([new Trigger(WorldEvents.ItemPickedUp, Detail: "madera"), new Trigger(WorldEvents.OrderDelivered, "smith", "axe-handle")], filters.Skip(6).Take(2).Select(static s => s.Trigger));
-        Assert.Equal([new Trigger(WorldEvents.BeaconReached, Detail: "river"), new Trigger(WorldEvents.OrderDelivered, "farmer", "water-for-plants")], filters.Skip(8).Select(static s => s.Trigger));
-        Assert.Equal("river", filters[8].PointPlace);
+        Assert.Equal([new Trigger(WorldEvents.BeaconReached, Detail: "npc.fisher"), new Trigger(WorldEvents.OrderDelivered, "farmer", "water-for-plants")], filters.Skip(8).Select(static s => s.Trigger));
+        Assert.Equal("npc.fisher", filters[8].PointPlace);
         Assert.NotNull(TestGame.Nouns.ForLemma(filters[3].Detail!));
     }
 

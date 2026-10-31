@@ -128,10 +128,10 @@
       "id": "c5-river",
       "type": "do",
       "npc": "shopkeeper",
-      "pointPlace": "river",
+      "pointPlace": "npc.fisher",
       "trigger": {
         "event": "beacon_reached",
-        "detail": "river"
+        "detail": "npc.fisher"
       }
     },
     {

@@ -66,7 +66,7 @@
 {"path":"game/host-events.json","sha256":"5a22f9757de332ab6bf286c0610d9b30c08c05d896bac02d5fe30c57925ee82d","bytes":2814},
 {"path":"game/lessons.json","sha256":"ba3089469da43a9a636fbc366b6bdf48e171f577fc994fae04dfbddaa769b4e7","bytes":1639},
 {"path":"game/lessons/ayer-y-manana.json","sha256":"3a2f1cbc391a40238cc0422691971270a6b090f466bf662c1561e44e4da7726d","bytes":5278},
-{"path":"game/lessons/como-es.json","sha256":"d8b2d88f0eb6ec896acc2c25a9bd8e6232834dba0825df31847ff35eba649bef","bytes":4113},
+{"path":"game/lessons/como-es.json","sha256":"a56504af1a16b2c52f4e6e6e6bd1419941db6a942dd0d467d1a5dd2a19fb3982","bytes":4123},
 {"path":"game/lessons/el-pueblo.json","sha256":"8f5df223b11a4f4c52208d06a97278b57ab662d15dcfc8b5687dbaa44b39f089","bytes":3948},
 {"path":"game/lessons/first-words.json","sha256":"b0552186600fd8fa4b0fd81557165623463379cb3a42cb531af18ea30467c4a1","bytes":4887},
 {"path":"game/lessons/gente-del-pueblo.json","sha256":"feb058acb40985489e73430dbce6262eb4dd6dc5553646d3ceca6af4c95283ba","bytes":5808},
@@ -849,4 +849,4 @@
 {"path":"speech/villager_thank.2.wav","sha256":"0ee06d6e1412c4a8c3efc7d36a4179e6f2d52ce6dbb7b602ca17fad9a51247b3","bytes":54044},
 {"path":"speech/villager_unknown_place.1.slow.wav","sha256":"7e125d37b0a2bf3fac2c929cc2e2bd4a56639e9c515a39ad9ea809e1404fbe2e","bytes":83308},
 {"path":"speech/villager_unknown_place.1.wav","sha256":"926fc98c88187d508f8a0add2dc291af1e5bf62b5124ea47cf4277577b5e4215","bytes":76844}
-],"bundleHash":"597d1e7089efe8d2166ce70d39c05fd287576d6e5e52c64e971b847868d9422d"}
+],"bundleHash":"8f4281c8926b2dc4115dacd017c25915ea74509a40dd0e8898ffb9691d3a7ee8"}
