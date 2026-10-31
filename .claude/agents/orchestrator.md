@@ -55,11 +55,11 @@ is a change to the boundary and updates that record.
   - `main` merged in at `0cf674b`. It brought the CI workflow with its grammar jobs, and the QA agent.
 - **Next, in order** (owner, 2026-10-31, D-game-22): the core's M56 then M59 (before V14), V14
   (session 8 "Ayer en el pueblo"), V16 (the simple future in the runner and the book), the core's M57 (before V17), V17 (session 9
-  "Mañana en el pueblo"), the core's M58 (before V15), V15 (session 10 "El mercado"), then V09 again (the documents and the scripted runs).
-  Every one by Opus 5.5 at xhigh, one at a time. The core's M62 (V13's adjective gaps) is filed and waits for the owner's word.
+  "Mañana en el pueblo"), the core's M58 and M62 (before V15), V15 (session 10 "El mercado"), then V09 again (the documents and the scripted runs).
+  Every one by Opus 5.5 at xhigh, one at a time. The core's M62 (V13's adjective gaps) runs before V15 (owner, 2026-10-31).
   - The design is VILLAGE_PLAN sections 3.5 to 3.9, 4 and 5. The findings of every V milestone so far are in
     `docs/game/IMPLEMENTATION_PLAN.md` section 5 (the V entries at its end).
-  - **Drafted briefs** are in `.claude/briefs/` (M56, M59, V14, V16, M57); fill their `@@…@@` placeholders (the HEAD, the test
+  - **Drafted briefs** are in `.claude/briefs/` (M59, V14, V16, M57, M58, M62; V17, V15 and V09 are still to write); fill their `@@…@@` placeholders (the HEAD, the test
     count, the earlier milestone's findings) from the last reports before launching.
 
 **The owner's instructions for this series** (they override "Model policy", "Per-milestone loop" step 2 and the template's branch line below)

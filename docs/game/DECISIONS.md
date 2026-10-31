@@ -27,7 +27,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-19 | Verbs in the lessons | decided (owner, 2026-10-22): verbs early but gradual, across sessions (yo/tú in session 1, the other persons in session 2, ir a + infinitive and a few past forms in session 3), lessons replayable from the book; conjugation tables in the book | nothing |
 | D-game-20 | One licence for the whole repository | decided (owner, 2026-10-23): Apache-2.0 for the game as well as the core; one `LICENSE` and `NOTICE` at the root (R01) | nothing |
 | D-game-21 | Content as data and the L1 locale layer (the C series, `docs/game/CONTENT_PLAN.md`) | decided (owner, 2026-10-27 to 2026-10-29): English moves into a locale bundle `content/locale/` outside game-v1's hash (`en` only); content stays JSON with JSON Schema; objectives, NPCs and target-language words become data; the series runs after R16 phase 2, on `feature/content` | nothing |
-| D-game-22 | The village and the lessons (the V series, `docs/game/VILLAGE_PLAN.md`) | decided for phase A (owner, 2026-10-30): phase A now (sessions 4 to 6), phase B held (started 2026-10-31 on the owner's word); the plan's proposals for (b), (c), (e), (f), (h) and (i); the farmer is León; voices provisional (the plan's first candidates) and recorded, the owner listens afterwards; all work by Opus 5.5 at xhigh effort; 2026-10-31: V18 and the core's M56, M59 (before V14) and M58 (before V15) join phase B | the V series |
+| D-game-22 | The village and the lessons (the V series, `docs/game/VILLAGE_PLAN.md`) | decided for phase A (owner, 2026-10-30): phase A now (sessions 4 to 6), phase B held (started 2026-10-31 on the owner's word); the plan's proposals for (b), (c), (e), (f), (h) and (i); the farmer is León; voices provisional (the plan's first candidates) and recorded, the owner listens afterwards; all work by Opus 5.5 at xhigh effort; 2026-10-31: V18 and the core's M56, M59 (before V14), M58 and M62 (before V15) join phase B | the V series |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
@@ -301,6 +301,10 @@ and answered its first three proposals "yes to 1, 2 and 3":
 Not answered, so the rules stand: two agents at once (the heavy commands behind the one lock); effort below xhigh or a Haiku helper for the
 mechanical steps; a content milestone split across two agents; CI (the token's read access to checks, CI on feature branches, the content
 gate in CI); a speech sample before V15. Phase B's order is in `VILLAGE_PLAN.md` section 4.
+
+**Owner's answer, 2026-10-31 (after V13):** "Run m62 before v15". **The core's M62** (V13's adjective gaps: a predicate adjective agreed
+across `ser` and `estar`, and a colour adjective before its noun) runs after M58 and before V15, whose `es muy caro` and `más barato que`
+are predicate adjectives a learner will get wrong.
 
 ## Already decided
 

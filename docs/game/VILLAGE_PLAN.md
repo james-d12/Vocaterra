@@ -595,8 +595,8 @@ order.
 
 **Phase B's order** (owner, 2026-10-31, after the study of the project's bottlenecks, `docs/DEVELOPMENT_BOTTLENECKS.md`): V08, V13
 and V18 (the content loop in one command) done, then the core's M56 and M59 (the agreement and person checks session 8 needs: it retells the
-village's day with named subjects; M59 depends on M56), V14, V16, the core's M57 (before V17, as planned), V17, the core's M58 (before
-V15), V15 and V09. One agent at a time, every milestone by Opus 5.5 at xhigh.
+village's day with named subjects; M59 depends on M56), V14, V16, the core's M57 (before V17, as planned), V17, the core's M58 and M62
+(before V15; M62 by the owner's word after V13), V15 and V09. One agent at a time, every milestone by Opus 5.5 at xhigh.
 
 **Every content milestone (V10 to V15)**, besides the definition of done (`IMPLEMENTATION_PLAN.md` section 6) and the content loop
 (`content/README.md`, "The edit loop"): the sheet rows first (D-game-10), each with a graded error example; the intents' examples with
