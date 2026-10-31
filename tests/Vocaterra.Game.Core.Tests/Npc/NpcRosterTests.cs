@@ -153,11 +153,43 @@ public sealed class NpcRosterTests
         Assert.Empty(Npcs.FocusAt("guide-offer"));
         Assert.Empty(Npcs.FocusAt("nowhere"));
 
-        Assert.Equal(["donde-esta-el-rio", "no-gracias", "pedir-agua", "si-por-favor"], Npcs.ScaffoldPhrases.Order(StringComparer.Ordinal));
+        // V12b: the village's NPCs, each at its open prompt, from the rows whose home it is; the farmer's prompt is no row's home, and he practises the smith's two.
+        Assert.Equal(["donde-esta-la-panaderia", "donde-esta-la-herreria"], Npcs.FocusAt("fisher-open"));
+        Assert.Equal(["quiero-dos-panes", "cuanto-cuesta", "hay-pan"], Npcs.FocusAt("baker-open"));
+        Assert.Equal(["como-te-llamas", "que-haces"], Npcs.FocusAt("smith-open"));
+        Assert.Equal(["como-te-llamas", "que-haces"], Npcs.FocusAt("farmer-open"));
+
+        Assert.Equal(
+            ["como-te-llamas", "cuanto-cuesta", "donde-esta-el-rio", "donde-esta-la-herreria", "donde-esta-la-panaderia", "hay-pan", "no-gracias", "pedir-agua", "que-haces", "quiero-dos-panes", "si-por-favor"],
+            Npcs.ScaffoldPhrases.Order(StringComparer.Ordinal));
         Assert.Equal("shopkeeper", Npcs.HomeOf("pedir-agua"));
         Assert.Equal("villager", Npcs.HomeOf("donde-esta-el-rio"));
+        Assert.Equal("smith", Npcs.HomeOf("como-te-llamas")); // the first of its two homes
+        Assert.True(Npcs.IsHomeOf("farmer", "como-te-llamas") && Npcs.IsHomeOf("smith", "como-te-llamas"));
+        Assert.False(Npcs.IsHomeOf("guide", "como-te-llamas") || Npcs.IsHomeOf("baker", "pedir-agua") || Npcs.IsHomeOf("nobody", "pedir-agua"));
         Assert.Null(Npcs.HomeOf("hola"));
         Assert.False(Npcs.HasScaffold("gracias"));
+    }
+
+    [Fact]
+    public void APromptThatIsTheHomeOfPhrasesNeedsAFocusNamingOneOfThem()
+    {
+        // V12b: the four village NPCs shipped with no focus, so free talk at their prompts showed no card and the baker's request was credited as the stall's.
+        var noFocus = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);
+        var baker = Npcs.Find("baker")! with { Focus = noFocus };
+        var smith = Npcs.Find("smith")! with { Focus = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal) { ["smith-open"] = ["donde-esta-el-rio"] } };
+        var farmer = Npcs.Find("farmer")! with { Focus = noFocus }; // his prompt is no row's home: nothing is asked of him
+        var npcs = Npcs.All.Select(npc => npc.Id switch { "baker" => baker, "smith" => smith, "farmer" => farmer, _ => npc }).ToList();
+
+        var problems = GameDataValidator.Validate(TestGame.Data.WithNpcs(NpcRoster.Of(npcs)));
+
+        Assert.Equal(
+            [
+                "game/npcs/baker.json: the prompt 'baker-open' is the home of quiero-dos-panes, cuanto-cuesta, hay-pan (game/phrases.json), and the focus names none of them there.",
+                "game/npcs/smith.json: the prompt 'smith-open' is the home of como-te-llamas, que-haces (game/phrases.json), and the focus names none of them there.",
+            ],
+            problems);
+        Assert.Empty(GameDataValidator.Validate(TestGame.Data)); // the shipped seven: the guide's prompts are no row's home, the villager names the river question only
     }
 
     [Fact]

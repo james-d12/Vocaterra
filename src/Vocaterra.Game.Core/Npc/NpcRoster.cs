@@ -169,6 +169,15 @@ public sealed class NpcRoster
     /// <param name="phraseId">The phrase sheet's id.</param>
     public string? HomeOf(string phraseId) => Homes.TryGetValue(phraseId, out var home) ? home : null;
 
+    /// <summary>
+    /// Whether a phrase is at home with an NPC: one of its prompts practises it. A phrase can be at home with two NPCs (the smith's and the farmer's
+    /// <c>como-te-llamas</c>, VILLAGE_PLAN V12b); <see cref="HomeOf"/> names the first of them in the index's order.
+    /// </summary>
+    /// <param name="npc">The agent id.</param>
+    /// <param name="phraseId">The phrase sheet's id.</param>
+    public bool IsHomeOf(string npc, string phraseId) =>
+        Find(npc) is { } entry && entry.Focus.Values.Any(phrases => phrases.Contains(phraseId, StringComparer.Ordinal));
+
     /// <summary>Whether a phrase has a scaffold to fade (an NPC's prompt practises it).</summary>
     /// <param name="phraseId">The phrase sheet's id.</param>
     public bool HasScaffold(string phraseId) => Homes.ContainsKey(phraseId);

@@ -1084,7 +1084,7 @@ public sealed class LessonRunner
     }
 
     // Whether the core understood the line as the step's phrase: the intent of its row. Phrases that share an intent (Sí and Sí, por favor) are one answer to
-    // the core, and the step's own phrase is the one the tracking credits (GuideSession.PhraseInPlayFor).
+    // the core, and the step's own phrase is the one the tracking credits (GuideSession.PhraseOf).
     private bool MatchesPhrase(GuideTurn turn, string phraseId) =>
         _session.Phrases.Find(phraseId) is { Intent: { } intent } && string.Equals(intent, turn.Intent, StringComparison.Ordinal);
 

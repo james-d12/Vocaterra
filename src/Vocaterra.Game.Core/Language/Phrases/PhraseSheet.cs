@@ -175,6 +175,59 @@ public sealed class PhraseSheet
     }
 
     /// <summary>
+    /// The sheet's id of the phrase a communicated turn at a prompt used, by the sheet alone: the row the prompt teaches for the turn's intent (<see cref="PhrasesAt"/>,
+    /// the rows whose home it is; <see cref="OfIntent"/> picks among several), else the fixed mapping of <see cref="PhraseIds.For"/>, which credits the stall's and the
+    /// river's phrases wherever they are said (a request is <c>pedir-agua</c> whatever the item: at the villager it is a transfer). A prompt's own row comes first
+    /// (VILLAGE_PLAN V12b): the baker's "quiero dos panes, por favor" was the stall's <c>pedir-agua</c> while her file named no focus, though her prompt teaches
+    /// <c>quiero-dos-panes</c>. <see langword="null"/> for a turn that is none of the sheet's phrases (a question about a tree).
+    /// </summary>
+    /// <param name="prompt">The prompt the turn answered.</param>
+    /// <param name="intent">The intent the core resolved.</param>
+    /// <param name="slots">The slots the core filled.</param>
+    /// <param name="river">The river's noun (<c>río</c>, <c>game/words.json</c>).</param>
+    public string? PhraseFor(string prompt, string intent, IReadOnlyDictionary<string, string> slots, string river)
+    {
+        ArgumentNullException.ThrowIfNull(prompt);
+        return OfIntent(PhrasesAt(prompt), intent, slots) ?? PhraseIds.For(intent, slots, river);
+    }
+
+    /// <summary>
+    /// The id of the row of an intent among these rows (the phrases in play on a prompt, or the rows it teaches): the only one, or, when several share the intent (the
+    /// fisher's <c>¿Dónde está la panadería?</c> and <c>¿Dónde está la herrería?</c>), the one whose phrase or a variant names the place or the item the turn asked
+    /// about. <see langword="null"/> when no row has the intent, or several have it and none names the turn's place or item: crediting one of them would be a guess.
+    /// </summary>
+    /// <param name="rows">The rows.</param>
+    /// <param name="intent">The intent the core resolved.</param>
+    /// <param name="slots">The slots the core filled.</param>
+    public static string? OfIntent(IEnumerable<PhraseRow> rows, string intent, IReadOnlyDictionary<string, string> slots)
+    {
+        ArgumentNullException.ThrowIfNull(rows);
+        ArgumentNullException.ThrowIfNull(intent);
+        ArgumentNullException.ThrowIfNull(slots);
+        var ofIntent = rows.Where(row => string.Equals(row.Intent, intent, StringComparison.Ordinal)).ToList();
+        if (ofIntent.Count <= 1)
+        {
+            return ofIntent.FirstOrDefault()?.Id;
+        }
+
+        if (DetailOf(slots) is not { } detail)
+        {
+            return null;
+        }
+
+        var named = " " + Plain(detail) + " ";
+        return ofIntent.FirstOrDefault(row => row.Texts.Any(text => (" " + Plain(text) + " ").Contains(named, StringComparison.Ordinal)))?.Id;
+    }
+
+    /// <summary>The slot of a turn that matters to its phrase: the item asked for, else the place asked about, else <see langword="null"/>.</summary>
+    /// <param name="slots">The slots the core filled.</param>
+    public static string? DetailOf(IReadOnlyDictionary<string, string> slots)
+    {
+        ArgumentNullException.ThrowIfNull(slots);
+        return slots.TryGetValue("item", out var item) ? item : slots.TryGetValue("place", out var place) ? place : null;
+    }
+
+    /// <summary>
     /// The phrase the panel shows as <c>Esperaba</c> after a spoken turn: for a turn the core understood, the row of the intent that matched (at this
     /// prompt's rows first, then anywhere in the sheet); otherwise (or when the intent was help or "no sé", or the sheet has no such row) the row of
     /// this prompt that is closest to what was heard, the first one when nothing is close. <see langword="null"/> when the prompt has no row and no

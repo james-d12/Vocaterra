@@ -1219,10 +1219,10 @@ public abstract partial class GuideSession : IDisposable
         var formMiss = Lessons.IsFormMiss(turn);
         var retryAnswer = phraseReview is not null && ReferenceEquals(phraseReview, _retry) && turn.Communicated && !IsHelpRequest(turn);
         var recovered = false;
-        if (turn.Communicated && !formMiss && (PhraseInPlayFor(turn, support) ?? PhraseIds.For(turn.Intent, turn.Slots, Data.Words.Noun("river"))) is { } phrase)
+        if (turn.Communicated && !formMiss && PhraseOf(turn, support) is { } phrase)
         {
             var kind = Classify(turn, phrase, previousRepair, phraseReview, support);
-            var detail = turn.Slots.TryGetValue("item", out var item) ? item : turn.Slots.TryGetValue("place", out var place) ? place : null;
+            var detail = PhraseSheet.DetailOf(turn.Slots);
             var correct = turn.Errors.Count == 0;
             IReadOnlyList<string>? inPlay = kind == PhraseUseKind.DontKnow ? (phraseReview is not null ? [phraseReview.PhraseId] : support.InPlay) : null;
             Log(new PhraseUse(tick, time, phrase, kind, npc, turn.Prompt, turn.Line, detail, turn.Input, correct, PhraseProgress.LevelOf(phrase), inPlay));
@@ -1316,9 +1316,12 @@ public abstract partial class GuideSession : IDisposable
         return shown;
     }
 
-    // A phrase the sheet teaches for an intent the game has no fixed mapping for (a lesson's phrase, S16): the phrase in play on the prompt whose row has this intent.
-    private string? PhraseInPlayFor(GuideTurn turn, SupportSnapshot support) =>
-        support.InPlay.FirstOrDefault(id => Phrases.Find(id) is { Intent: { } intent } && string.Equals(intent, turn.Intent, StringComparison.Ordinal));
+    // The phrase a communicated turn used: the phrase in play on the prompt whose row has the turn's intent (the NPC's focus there, a lesson step's phrase, S16, or the
+    // review's), else the row the prompt teaches for the intent, else the fixed mapping (PhraseSheet.PhraseFor). Of several in play with the intent (the fisher's two
+    // directions), the one that names the place asked about (PhraseSheet.OfIntent).
+    private string? PhraseOf(GuideTurn turn, SupportSnapshot support) =>
+        PhraseSheet.OfIntent(support.InPlay.Select(Phrases.Find).OfType<PhraseRow>(), turn.Intent, turn.Slots)
+        ?? Phrases.PhraseFor(turn.Prompt, turn.Intent, turn.Slots, Data.Words.Noun("river"));
 
     private static bool IsHelpRequest(GuideTurn turn) =>
         string.Equals(turn.Intent, "dont_know", StringComparison.Ordinal) || string.Equals(turn.Intent, "ask_help", StringComparison.Ordinal);
@@ -1408,8 +1411,9 @@ public abstract partial class GuideSession : IDisposable
             return support.Scaffolded.Count > 0 ? PhraseUseKind.Supported : PhraseUseKind.Unaided;
         }
 
-        if (ObjectiveComplete && Data.Npcs.HomeOf(phrase) is { } home && !string.Equals(home, turn.Npc, StringComparison.Ordinal))
+        if (ObjectiveComplete && Data.Npcs.HomeOf(phrase) is not null && !Data.Npcs.IsHomeOf(turn.Npc, phrase))
         {
+            // Said away from every NPC whose prompt practises it (the smith's and the farmer's "¿Cómo te llamas?" is at home with both, V12b).
             return PhraseUseKind.Transfer;
         }
 

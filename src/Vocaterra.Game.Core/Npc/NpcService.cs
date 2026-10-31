@@ -946,7 +946,7 @@ public sealed partial class NpcService
             return skills;
         }
 
-        if (PhraseIds.For(verdict.Intent.Value, verdict.Slots, _words.Noun("river")) is { } used)
+        if (_phrases.PhraseFor(promptId, verdict.Intent.Value, verdict.Slots, _words.Noun("river")) is { } used) // the prompt's own row first (V12b)
         {
             skills.Add(PhraseSkillPrefix + used);
         }

@@ -66,12 +66,12 @@
 {"path":"game/lessons/personas.json","sha256":"99e5ee4e31f8e2f3e1240decebf7470de3cf91f3bdfb205d43235b0d777e93e5","bytes":4532},
 {"path":"game/nouns.json","sha256":"c2ae7e71db331c9c3da3a6df819f00d2e6e1c8b216aab6c44ce45770ab46d179","bytes":1750},
 {"path":"game/npcs.json","sha256":"e56af3363f38ce851776eb0274037ef0573113fda995423f4b2849864fb28760","bytes":620},
-{"path":"game/npcs/baker.json","sha256":"f4f8552b60db33995246e44e6397808d2596bf4a873a33cf15ae361a8e10c1cf","bytes":360},
-{"path":"game/npcs/farmer.json","sha256":"b1a44d372848fac4a1b0932d2407f1f1daa717b08911a605980597b69d36f1be","bytes":349},
-{"path":"game/npcs/fisher.json","sha256":"1f48790cfc2ec9e57c28f13eb737fb5695a3c68dadd544e720e0d016f443331a","bytes":347},
+{"path":"game/npcs/baker.json","sha256":"d77e2298f28006cd2499a220b09aeb77cace2874a19ef2fff2c786025c791cf1","bytes":469},
+{"path":"game/npcs/farmer.json","sha256":"0f57a282e5e02c28ab9173442def641c069e1bc07a7033e15f55182706484324","bytes":436},
+{"path":"game/npcs/fisher.json","sha256":"2613e3cba4556a4470f467bdf11fc45e74da4db2c4da2c88eab4066548afed89","bytes":456},
 {"path":"game/npcs/guide.json","sha256":"be944178152684f85271a59f460bf9ce63ae8ed9abee26642ed3914bbb93c260","bytes":387},
 {"path":"game/npcs/shopkeeper.json","sha256":"4fc6b80f3694d5438effbc8a620dcccce894036889c0f44b653b9302d3f5f494","bytes":566},
-{"path":"game/npcs/smith.json","sha256":"c215ea5610e3f83cad86d72b3c94090ff103f72a7cbe475fe27a0faa7277ceae","bytes":364},
+{"path":"game/npcs/smith.json","sha256":"ecb85bb605b3fe18cdca7261dc365c1af5d8b2c1f16b41249284350795b08751","bytes":450},
 {"path":"game/npcs/villager.json","sha256":"2bdb23f1b8cb29c061d32f7a6f5608f0149022227abb766872d116c2241ba9d3","bytes":410},
 {"path":"game/objectives/axe-handle.json","sha256":"eb21888496e04876a5d4522f27af032ca6f03db82c0c42731868c71c99ce0c3e","bytes":745},
 {"path":"game/objectives/camp.json","sha256":"9d7c288525549385473a8e2781c6cd4936aad5a8501bec3eaf95b70cffb6b18a","bytes":873},
@@ -774,4 +774,4 @@
 {"path":"speech/villager_thank.2.wav","sha256":"0ee06d6e1412c4a8c3efc7d36a4179e6f2d52ce6dbb7b602ca17fad9a51247b3","bytes":54044},
 {"path":"speech/villager_unknown_place.1.slow.wav","sha256":"7e125d37b0a2bf3fac2c929cc2e2bd4a56639e9c515a39ad9ea809e1404fbe2e","bytes":83308},
 {"path":"speech/villager_unknown_place.1.wav","sha256":"926fc98c88187d508f8a0add2dc291af1e5bf62b5124ea47cf4277577b5e4215","bytes":76844}
-],"bundleHash":"f606e71e2b791f4000ed1298870ce7baff8165284adc5888f6bac52eaf86d48b"}
+],"bundleHash":"7ba32270c34dde9b0d64787e62f55ed04ea41935684d5eeee3c82e102971f91b"}

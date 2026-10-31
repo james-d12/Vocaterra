@@ -39,8 +39,8 @@ public sealed class PhraseProgressTests
         Assert.Equal(93, progress.Records.Count);
         Assert.Equal(progress.Sheet.Rows.Select(static r => r.Id), progress.Records.Select(static r => r.Id));
         Assert.Equal(
-            ["donde-esta-el-rio", "no-gracias", "pedir-agua", "si-por-favor"],
-            progress.Records.Where(static r => r.Level == SupportLevel.EnglishAndCard).Select(static r => r.Id).Order(StringComparer.Ordinal));
+            ["como-te-llamas", "cuanto-cuesta", "donde-esta-el-rio", "donde-esta-la-herreria", "donde-esta-la-panaderia", "hay-pan", "no-gracias", "pedir-agua", "que-haces", "quiero-dos-panes", "si-por-favor"],
+            progress.Records.Where(static r => r.Level == SupportLevel.EnglishAndCard).Select(static r => r.Id).Order(StringComparer.Ordinal)); // the NPCs' focus: the stall's, the river's and, since V12b, the village's
         Assert.All(progress.Records.Where(r => !progress.HasScaffold(r.Id)), static r => Assert.Equal(SupportLevel.None, r.Level));
     }
 
