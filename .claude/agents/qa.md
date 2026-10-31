@@ -24,7 +24,7 @@ current checkout). No area means `all`: a light pass over each area below.
 | `world` | `--walk-to`, `--teleport`, `--interact`, `--place`, `--craft`, other `--seed` values | a stuck player, placement inside walls, items lost or duplicated |
 | `progression` | `--lesson-run`, `--lesson-skip`, `--check pre\|post`, `--playtest` | a step that never completes, a beacon pointing the wrong way, a wrong recap or check score |
 | `save` | `--save`, `--load`, `--strict-save`, the autosave | state lost or changed across a save and load |
-| `content` | `scripts/content.sh validate`, `lint content/game-v1 --strict --level a1`, `cefr-check content/game-v1 --level a1` | any reported failure, an unreachable or untranslatable line |
+| `content` | `scripts/content.sh validate`, `lint content/game-v1 --strict --level a2 --fail-on-level --host-pools 'guide.*'`, `cefr-check content/game-v1 --level a2`, the host's `--validate-content` | any reported failure, an unreachable or untranslatable line |
 
 ## Machine rules (CLAUDE.md, "Machine resources")
 - Prefix .NET commands with `PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" DOTNET_NOLOGO=1`.

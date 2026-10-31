@@ -65,8 +65,9 @@ lines, S9), `docs/game/PROTOTYPE_BRIEF.md` and `docs/game/SCENARIO_PLAN.md` (the
    `scripts/content.sh hash content/game-v1 --bundle-id game-v1` (rewrites `manifest.json`), then `scripts/content.sh validate` and the tests.
    Files that come from the Wiktionary import keep `generatedBy: wiktionary-import` in `provenance.json` and their CC BY-SA notice in
    `ATTRIBUTION.md`. New hand-authored files are listed in `provenance.json` with `generatedBy: hand-authored`.
-   A content milestone also runs `scripts/content.sh cefr-check content/game-v1 --level a1` and `--level a2`; the tool checks dialogue
-   templates only (core finding), so prompt text is checked by hand.
+   A content milestone also runs `scripts/content.sh cefr-check content/game-v1 --level a2` (the bundle's ceiling since V08; `--level a1`
+   is a report) and the host's `--validate-content` (each lesson's Spanish within its own `level`); the tool checks dialogue templates only
+   (core finding), so prompt text is checked by hand.
 5. **Scenes are design, not code.** A scene is intents, slot grammars, prompts, dialogue pools, agent state machines and effects, all in the
    bundle. The host maps the core's host events and effect kinds to game state; the core does not learn game words.
 6. **Build hygiene.** `dotnet build Vocaterra.sln -warnaserror` and `dotnet format Vocaterra.sln --verify-no-changes` (from the root) stay
@@ -1734,13 +1735,31 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   - **Gate:** 6079 passed, 3 skipped; the 18 earlier runs unchanged but for r16's line count (116 to 121). Bundle unchanged.
   - **Review:** the first version offered the sleep at the fire on waking, against the new objective; it is offered once the work is done.
   - **Left:** the F1 controls help does not mention sleeping (its lines are in `content/game-v1`; the next content milestone adds it).
+- **V08: the A1/A2 gate (2026-10-31, Opus 5.5 xhigh; gated on `feature/village` at `808e0f0`; phase B's first milestone).**
+  - **Built.** `lesson.schema.json` 2: `level` (`a1` | `a2`) required; `LessonBook` refuses another schema or level; `LessonLevels` holds the
+    levels, the ceiling (A2) and each level's tenses (`fut` from A2). The six lessons are `a1`. The validator (the host's
+    `--validate-content`) checks each lesson's phrases, the lines its steps name (review candidates included) and its prompts' text against the
+    lists up to its level, with the core's public `CefrChecker` for the lemmas, and its tenses against its level; a finding names the file,
+    the text, its source and the word. `LessonLevelTests` (7 cases).
+  - **The gate** (`scripts/merge-gate.sh`, `scripts/content.sh refresh`): lint `--strict --level a2 --fail-on-level --host-pools 'guide.*'`
+    fails it; `cefr-check --level a2` fails it on any lemma it lists (the tool only prints, so the scripts read its counts); `cefr-check
+    --level a1` is a report; the merge gate also runs `--validate-content`. CI runs neither the lint nor the cefr check (only the tests),
+    so `ci.yml` is unchanged. The core's tests that pinned the game's bundle to a clean A1 follow the ceiling (the core's M61).
+  - **Deviation, accepted:** a phrase's *variants* are held to the A2 ceiling, not the lesson's level. Held to the level, seven variants of
+    `a1` lessons fail (`repetir` in four of `otra-vez`, `quedar` in three); the lint never sees variants, and the core treats answer-set
+    aliases the same way. Variants are wordings the game accepts, not wordings it teaches.
+  - **Gate:** 6087 passed, 3 skipped (6079 before). Bundle `5826d6de…`; no golden or digest moved; `content/grammar/` unchanged. The new
+    content gate was run on `feature/village` after the merge (the merge gate itself ran the old script): lint at A2 0 errors, 0 warnings;
+    cefr-check A2 and A1 clean; `--validate-content` clean.
+  - **Left:** `madera`, `antorcha`, `botella`, `fuego` and `despacio` sit in the body of `a1.txt` rather than the marked block (their
+    reasons are in `PHRASES.md`); the `fut`-at-a-step check is tested from V16.
 
 ## 6. Definition of done (every milestone)
 
 1. `dotnet build Vocaterra.sln -warnaserror` with 0 warnings and `dotnet test Vocaterra.sln` green, with the test count in the report.
 2. `dotnet format Vocaterra.sln --verify-no-changes` clean.
-3. `scripts/content.sh validate` passes; after a content edit the bundle is hashed and its manifest committed; `cefr-check` is clean at A1 and A2
-   for any content that adds templates.
+3. `scripts/content.sh validate` passes; after a content edit the bundle is hashed and its manifest committed; `cefr-check` is clean at A2 (the
+   bundle's ceiling since V08) and the host's `--validate-content` holds each lesson to its level, for any content that adds templates or lessons.
 4. The demos run (since S4 the 3D voxel world is the only world; the 2D demos retired with the slice, tag `2d-slice-p7`):
    the host `dotnet run --project src/Vocaterra.Host -- --transcript "quiero agua, por favor" --prompt stall-need` prints `request_item`,
    communicated, and `--transcript "quiero dos agua por favor" --prompt stall-need` prints `noun.number` (expected 'aguas'); the core demo

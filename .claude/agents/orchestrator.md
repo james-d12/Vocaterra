@@ -40,6 +40,75 @@ is a change to the boundary and updates that record.
     resource rules and gate.
   - Bring owner decisions (licences, scope, anything that changes D-numbers) to the owner rather than deciding them.
 
+## Handover (2026-10-31): the village, phase B (read this first)
+**Where things stand**
+- The work is the village series, `docs/game/VILLAGE_PLAN.md` (D-game-22). It lives on `feature/village`, checked out in the worktree
+  `.claude/worktrees/village`; start every session there. PR #20 (`feature/village` into `main`) is open, and the owner merges it.
+- **Done and pushed:**
+  - phase A: V01 to V07, V09, V10 to V12 and V12b (sessions 4 to 6, all `a1`);
+  - V12c: the next session by sleeping at the player's fire, and `--skip-to-session n`;
+  - the core's M60 (the lint's speed, for CI) and M61 (the core's lint tests follow the A2 ceiling);
+  - V08: the A1/A2 gate, the first milestone of phase B;
+  - `main` merged in at `0cf674b`. It brought the CI workflow with its grammar jobs, and the QA agent.
+- **Next, in order:** V13 (session 7 "¿Cómo es?"), V14 (session 8 "Ayer en el pueblo"), V16 (the simple future in the runner and the
+  book), V17 (session 9 "Mañana en el pueblo"), V15 (session 10 "El mercado"), then V09 again (the documents and the scripted runs).
+  - The design is VILLAGE_PLAN sections 3.5 to 3.9, 4 and 5. The findings of every V milestone so far are in
+    `docs/game/IMPLEMENTATION_PLAN.md` section 5 (the V entries at its end).
+  - **V13's brief is drafted** in `.claude/briefs/V13-como-es.md`. Read it against the plan, then launch it.
+
+**The owner's instructions for this series** (they override "Model policy", "Per-milestone loop" step 2 and the template's branch line below)
+- **Every V milestone is built by Opus 5.5 at xhigh effort:** the Agent call takes `model: opus` and `effort: xhigh` (D-game-22). Use cheaper
+  agents only where necessary.
+- **Phase B runs to its end without stopping between milestones.** The owner reviews it all at the end (2026-10-31: "continue to phase B,
+  I want all the work on the feature/village branch, I'm happy to review all at the end"). Report briefly after each milestone, and stop only
+  for a real owner decision.
+- **Commit and push often** (owner, 2026-10-30; the memory `commit-and-push-often`).
+  - Each agent works in the shared worktree, without `isolation: worktree` (disk), on a milestone branch: `git checkout -b V<nn>-<name>
+    feature/village`. It pushes that branch after every commit.
+  - Gate from the worktree on `feature/village` with `GATE_TARGET=feature/village scripts/merge-gate.sh "V<nn>:V<nn>-<name>"`, run in the
+    background. Then record the status and findings, commit, `git push origin feature/village`, and delete the milestone branch, locally
+    and on the remote.
+- **The voices are provisional, and the owner has not heard them yet** (`docs/game/voice-trial/`, `docs/game/SPEECH_CHECKLIST.md`).
+  Phase B's lines use the same voices; a voice the owner rejects later re-renders that NPC's lines only.
+
+**What every content brief carries** (the V12 and V13 briefs are the models)
+- The earlier lessons to follow.
+- The core tried first, through a CLI wrapper script. A wrong grade is a core gap (M56 and on), never patched in the game.
+- An Opus pass over the new Spanish before the WAVs. You also read the new Spanish lines in the diff before merging.
+- The coin path.
+- The scripted runs captured before and after.
+- `--skip-to-session n` for the lesson's timing run.
+- The grammar cache check below.
+
+**Open points to carry**
+- **The coin path:** a learner reaches session 7 with 0 coins (+2, +4, −4 for bread, −2 for the axe). V13's brief asks the agent to
+  design around it.
+- **From phase A:**
+  - name plates show through figures;
+  - `Domingo hizo un hacha` at `smith-open` gives `ask_activity` with `vocab.wrong`;
+  - the villager credits "¿dónde está la panadería?" as `donde-esta-el-rio`;
+  - `KeyWordsTaught` is one save flag.
+- **From V08:**
+  - phrase variants are held to the A2 ceiling, not the lesson's level (accepted);
+  - five old world words sit in the body of `a1.txt`, not its marked block;
+  - the `fut` check at a step is tested from V16.
+- **Core gaps filed, not started:** M56 to M59.
+
+**Gotchas learnt this series**
+- **CI.** This token cannot read CI results (`gh pr checks` and `gh run list` give 403), so the owner reports CI failures. The GitHub
+  runner is about four times slower than this machine; a timing test needs a wide margin (M60).
+- **The live grammar job.** CI's `languagetool` job deletes `content/grammar/game-v1-cache.json`, rebuilds it and fails on any difference.
+  After a grammar refresh, check that a cache rebuilt from nothing equals the committed one:
+  1. `scripts/languagetool.sh start`;
+  2. `rm` the cache;
+  3. `scripts/content.sh grammar content/game-v1 --strings content/grammar/game-v1-strings.jsonl --strings-only --strict`;
+  4. `git diff --exit-code content/grammar/`;
+  5. stop the server.
+- **The content loop.** `scripts/content.sh refresh` (through `limited.sh`) is the whole loop. Any command line with the word `eval` or
+  `hash` needs a wrapper script under `/tmp/claude-1000/`.
+- **Test the learner's route.** Spot-check the route a learner takes from a new world, not only `--lesson-run`: phase A's lessons were
+  unreachable in practice until V12c.
+
 ## Handover (2026-10-26): the neutral engine and language packs
 D14 Phase A on `feature/language-packs` is complete (2026-10-27): M31, M52, G8, M32 to M35 and M53 are gated and pushed, awaiting the
 owner's pull request into `main`. Proposed next, not started (owner to choose the order): R16 phase 2 (`docs/game/GAME_PROJECTS_LAYOUT.md`) and
