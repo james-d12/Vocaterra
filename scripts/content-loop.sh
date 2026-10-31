@@ -291,8 +291,10 @@ step_refresh() {
     fail "the offline grammar check: $verdict" \
       "read the warnings above: fix the content or add a waiver with its reason to $WAIVERS, then run the loop again" $log
   fi
+  # The sub-step's findings when it prints lint-style lines (error, warning), else its first lines.
   block "refresh: the first problems of '$sub' (the whole output is in $LOGDIR/$log):"
-  section "$LOGDIR/$log" "== refresh: $sub" | grep -iE '^(error|warning) |error|fail|not |no provenance|lists a lemma' | head -n 12 | sed 's/^/  /' >>"$BLOCKS"
+  section "$LOGDIR/$log" "== refresh: $sub" | grep -v '^ *$' >"$LOGDIR/refresh-problems.txt"
+  { grep -E '^(error|warning) ' "$LOGDIR/refresh-problems.txt" || cat "$LOGDIR/refresh-problems.txt"; } | head -n 12 | sed 's/^/  /' >>"$BLOCKS"
   fail "failed at '$sub'" "fix what the log reports under '== refresh: $sub' (the first lines are above), then run the loop again" $log
 }
 
