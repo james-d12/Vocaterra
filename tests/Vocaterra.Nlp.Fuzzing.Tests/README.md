@@ -562,6 +562,13 @@ them explicitly (each is a skip or a restriction in the generator, counted in th
   a row recast as `un una`. These are properties of the language, so the sentence generator does not produce them (`skip:numeral-next-to-article`,
   `skip:adjacent-numerals`).
 - `AgentDefinition` is a plain record over lists, so it has no value equality; O16 compares its JSON only.
+- **Found at M57 and left for a decision: the `word_order` mutation's guard reads the pattern's roles, not the words' readings** (O5, CsCheck seed `ff2aNwHuJBk8`,
+  `MutationCase { Kind = WordOrder, Seed = 64247025744 }`; it fails the same way on the analyzer of `0041eff`, before M57). The random pattern
+  `[NOUN:item] ([NOUN:qty]|[VERB:soltar:spell]|[ART])? [VERB:plantar]? [NOUN:thing] [ADJ]` gives `estacionamientos suelta plantar felicitación satisfecha`, and the
+  mutation moves `satisfecha` before `felicitación`. The guard (no move when the word before the adjective, or before the adjectives before it, can be a noun) sees
+  `plantar` as the pattern's verb; the analyzer sees that `plantar` can be an adjective and `suelta` before it a noun, reads `suelta plantar satisfecha` as one phrase,
+  and reports no `word_order`, as documented. O4 can fail on the same case. Rare: once in the eight runs of the project made for M57. Making the guard read the readings would
+  narrow O4 and O5, which a milestone may not do on its own; it waits for the orchestrator.
 
 ## Adding to the suite
 
