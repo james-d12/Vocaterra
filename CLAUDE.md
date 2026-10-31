@@ -19,7 +19,8 @@ never plans game content, scenes or engines; the game plan never plans core inte
 
 The repository is developed by one **orchestrator** session that plans and delegates all implementation to subagents and only plans,
 gates, merges and pushes. To continue, act as the orchestrator defined in `.claude/agents/orchestrator.md` (or start with
-`claude --agent orchestrator`). The owner prefers Haiku 5.5 for delegated work; Sonnet only for design-heavy milestones; Opus only on request.
+`claude --agent orchestrator`). A QA agent, `.claude/agents/qa.md`, tests one area of the game (ui, language, speech, world,
+progression, save, content) and reports bugs to `docs/qa-reports/` without fixing them; the orchestrator turns its reports into milestones. The owner prefers Haiku 5.5 for delegated work; Sonnet only for design-heavy milestones; Opus only on request.
 
 Facts every session needs:
 - **.NET SDK is user-local:** prefix commands with `PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" DOTNET_NOLOGO=1`.

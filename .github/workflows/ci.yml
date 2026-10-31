@@ -49,6 +49,13 @@ jobs:
           dotnet test Vocaterra.sln --no-build
           --logger trx --results-directory TestResults
 
+      # The grammar check replayed from the committed LanguageTool cache (docs/game/README.md), as the merge gate runs it: no server, and it fails
+      # on an unwaived warning or a string with no cached result. grammar.yml checks the cache itself against a live LanguageTool server.
+      - name: Grammar check (cached LanguageTool results)
+        run: >
+          scripts/content.sh grammar content/game-v1
+          --strings content/grammar/game-v1-strings.jsonl --strings-only --offline --strict
+
       - name: Upload test results
         if: failure()
         uses: actions/upload-artifact@v4

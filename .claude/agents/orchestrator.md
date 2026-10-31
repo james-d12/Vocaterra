@@ -138,6 +138,9 @@ with about 16 MSBuild nodes, the Roslyn compiler server and parallel test hosts,
 6. **Plan update:** the milestone's status and findings line, decisions; commit with the attribution trailers and `git push origin <feature branch>` (never `main`).
 7. **Clean up:** `git worktree remove --force` and `git branch -D`.
 8. **Report to the owner:** outcome first, bugs found, numbers that change a decision, open decisions.
+9. **QA (optional):** after a front-end, content or language milestone, launch `subagent_type: qa` on the feature branch's checkout
+   with one area in the prompt (`.claude/agents/qa.md`). It builds and runs the game, so it counts as the one agent at a time. Read its
+   report in `docs/qa-reports/`, log the confirmed bugs in the findings log and plan the fixes as milestones.
 
 ## Brief template
 ```

@@ -1,0 +1,124 @@
+name: Grammar
+
+# Checks the game's Spanish against a live LanguageTool server (core M30, D10; docs/game/README.md, "The grammar check"). ci.yml replays the
+# committed cache offline; this workflow rebuilds the strings file and the cache from scratch with the pinned server and fails when either differs
+# from what is committed, or when LanguageTool reports an unwaived warning. On a failure the refreshed content/grammar/ files are uploaded as the
+# `grammar-refresh` artifact: review the diff, then commit them (or fix the content, or add a waiver with a reason).
+#
+# LanguageTool and its Java runtime run as a separate local process on the runner (D10): nothing is linked, and no text goes to the public API.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - content/**
+      - src/Vocaterra.Nlp/**
+      - src/Vocaterra.Nlp.Es/**
+      - src/Vocaterra.Game.Core/**
+      - src/Vocaterra.Host/**
+      - tools/Vocaterra.Nlp.ContentBuilder/**
+      - tools/manifest.json
+      - scripts/content.sh
+      - scripts/fetch-tools.sh
+      - scripts/languagetool.sh
+      - .github/workflows/grammar.yml
+  pull_request:
+    paths:
+      - content/**
+      - src/Vocaterra.Nlp/**
+      - src/Vocaterra.Nlp.Es/**
+      - src/Vocaterra.Game.Core/**
+      - src/Vocaterra.Host/**
+      - tools/Vocaterra.Nlp.ContentBuilder/**
+      - tools/manifest.json
+      - scripts/content.sh
+      - scripts/fetch-tools.sh
+      - scripts/languagetool.sh
+      - .github/workflows/grammar.yml
+  workflow_dispatch:
+
+concurrency:
+  group: grammar-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: 1
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+
+# An explicit bash runs with pipefail, so a failing check is not hidden by tee.
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  languagetool:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', 'Directory.Build.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      # The downloaded archives (about 300 MB), keyed by the pinned URLs and hashes; fetch-tools.sh checks the hashes again before extracting.
+      - uses: actions/cache@v4
+        with:
+          path: ~/.local/share/vocaterra/tools/dl
+          key: languagetool-${{ runner.os }}-${{ hashFiles('tools/manifest.json') }}
+
+      - name: Install LanguageTool and the Java runtime
+        run: scripts/fetch-tools.sh
+
+      - name: Start the LanguageTool server
+        run: scripts/languagetool.sh start
+
+      # The host writes the strings from the game's sources; a difference from the committed file shows up in the comparison below.
+      - name: Write the strings
+        run: >
+          dotnet run --project src/Vocaterra.Host --
+          --content content/game-v1 --grammar-strings content/grammar/game-v1-strings.jsonl
+
+      # Without the committed cache every string goes to the server, so the committed results are checked as well as the new ones.
+      - name: Check with LanguageTool
+        run: |
+          rm content/grammar/game-v1-cache.json
+          scripts/content.sh grammar content/game-v1 \
+            --strings content/grammar/game-v1-strings.jsonl --strings-only --strict | tee "$RUNNER_TEMP/grammar.log"
+
+      - name: Summarise the findings
+        if: success() || failure()
+        run: |
+          {
+            echo '### Grammar (LanguageTool)'
+            echo '```'
+            grep -E '^(error|warning|grammar:) ' "$RUNNER_TEMP/grammar.log" || echo 'no findings log (an earlier step failed)'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Compare with the committed strings and cache
+        if: success() || failure()
+        run: |
+          if ! git diff --exit-code --stat -- content/grammar/; then
+            git diff -- content/grammar/ | head -n 400
+            echo "::error::content/grammar/ is out of date; review the grammar-refresh artifact and commit its files"
+            exit 1
+          fi
+
+      - name: Upload the refreshed grammar files
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: grammar-refresh
+          path: content/grammar/
+          retention-days: 7
