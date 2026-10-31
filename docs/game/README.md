@@ -420,8 +420,8 @@ checks against `manifest.json`. After any edit, rewrite the manifest:
 ```bash
 scripts/content.sh validate                                  # every file's hash and the cross-references
 scripts/content.sh hash content/game-v1 --bundle-id game-v1  # rewrite manifest.json (keep the bundle id once it is set)
-scripts/content.sh cefr-check content/game-v1 --level a1     # and --level a2: the lemmas the templates use that the level list lacks
-scripts/content.sh lint content/game-v1 --strict --level a1 --host-pools 'guide.*'   # 0 errors, 0 warnings (the guide's host-voiced pools are named)
+scripts/content.sh cefr-check content/game-v1 --level a2     # the bundle's ceiling: nothing listed (--level a1 is a report of what is above A1)
+scripts/content.sh lint content/game-v1 --strict --level a2 --fail-on-level --host-pools 'guide.*'   # 0 errors, 0 warnings (the guide's host-voiced pools are named)
 scripts/content.sh grammar content/game-v1 --strings content/grammar/game-v1-strings.jsonl --strings-only --offline   # the grammar check from the committed cache, no server
 ```
 
@@ -460,9 +460,12 @@ local server is at hand.
 Since S4 the catalogue holds only the nouns of the 3D world (the ores, tools and furniture of the 2D slice are gone), and the recipes are the
 workbench's torch alone.
 
-The content gate from S5 on: `lint --strict` at A1 clean (an example expectation for every phrase the learner says, in `intents/intents.json`),
-`cefr-check` clean at A1 and A2, and the phrase-sheet test green. `--host-pools 'guide.*'` tells the lint that the game voices the guide's
-templated world lines itself (they have no agent action); without it those pools are reported as unreachable.
+The content gate from S5 on: `lint --strict` clean (an example expectation for every phrase the learner says, in `intents/intents.json`), and
+the phrase-sheet test green. Since V08 (VILLAGE_PLAN 3.9, D-game-22 (b)) the bundle's ceiling is A2: the lint runs at A2 with `--fail-on-level`,
+`cefr-check` at A2 fails the gate on any lemma it lists, and `cefr-check` at A1 is a report for the owner that never fails; each lesson declares
+its own `level` (`a1` or `a2`), and the host's `--validate-content` holds its Spanish and its tenses to it (`content/README.md`, "A lesson's
+level"). `--host-pools 'guide.*'` tells the lint that the game voices the guide's templated world lines itself (they have no agent action);
+without it those pools are reported as unreachable.
 
 The script runs the core's content tool (`tools/Vocaterra.Nlp.ContentBuilder`, from source; see
 [scripts/README.md](../../scripts/README.md)). `ATTRIBUTION.md` and `provenance.json` describe this bundle; the Wiktionary lexicon in it is CC BY-SA
@@ -559,6 +562,9 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --lesson-
 - **The forms a lesson teaches.** `lessons.json` declares them (`verbs`: lemma, person 1 to 3, number sg or pl, tense): the yo and tú of the three verbs (`first-words`) and the third person singular, the
   first and the third person plural of the verbs it uses (`personas`, 12 forms: only those heard, said or named; the conjugation of `ir` waits for session 3). A test checks each is a word the learner meets in the lesson and that the core's morphology knows it; the book's conjugation
   tables (S28) read them.
+- **The level a lesson keeps to.** Every lesson declares `level`, `a1` or `a2` (VILLAGE_PLAN V08; the six lessons of sessions 1 to 6 are `a1`). The host's `--validate-content` holds the Spanish it
+  teaches and says to the bundle's CEFR lists up to that level, its phrases' variants to A2 (the bundle's ceiling), and its tenses to the level's (`fut` only at `a2`); `content/README.md`, "A
+  lesson's level", has the rule.
 - **Practise again.** A completed lesson's heading on the book's Lessons page has a `Practise again` button (a click, or P with the page open). It closes the book, sets the objective line (`Practise
   again: talk to the guide to start “First words with Luna”`) and the beacon, and the lesson starts from its first step when the learner talks to its NPC. It stays done while it runs again.
   `--book-practise <id>` presses the button in a scripted run (`--lesson-run first-words --book-practise first-words --lesson-run first-words`).

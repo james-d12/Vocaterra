@@ -29,7 +29,7 @@ Everything the game says, shows and builds its world from, outside the code. The
   | `game/recipes.json` | `recipes.schema.json` | `RecipeBook` |
   | `game/phrases.json` | `phrases.schema.json` | `PhraseSheet` |
   | `game/lessons.json` | `lessons.schema.json` (the lessons' ids, in order) | `LessonBook` |
-  | `game/lessons/<id>.json` | `lesson.schema.json` (one lesson each, C06) | `LessonBook` |
+  | `game/lessons/<id>.json` | `lesson.schema.json` (one lesson each, C06; schema 2, VILLAGE_PLAN V08: the lesson's `level`, `a1` or `a2`) | `LessonBook` |
   | `game/checks.json` | `checks.schema.json` (schema 2, VILLAGE_PLAN V07: each item's `lesson`, null for none; a battery asks the items of the lessons its play session has unlocked, and always those of the first `coreSessions`) | `CheckBank` |
   | `game/tips.json` | `tips.schema.json` | `TipBook` |
   | `game/controls.json` | `controls.schema.json` | `TipBook` |
@@ -93,17 +93,19 @@ Everything the game says, shows and builds its world from, outside the code. The
    - rewrites `game-v1/manifest.json` and `locale/manifest.json`;
    - lists any file with no provenance item;
    - validates;
-   - runs the gate's lint (`--strict --level a1 --host-pools 'guide.*'`) and the CEFR check at A1 and A2;
+   - runs the gate's lint at the bundle's ceiling, A2 (`--strict --level a2 --fail-on-level --host-pools 'guide.*'`: a lemma above A2 in a
+     dialogue line, a prompt's text or an answer set's canonical answer fails), then `cefr-check` at A2, which fails on any lemma it lists, and
+     at A1, a report of what is above A1 that never fails (VILLAGE_PLAN 3.9, D-game-22 (b));
    - runs the game's own checks between its files (`dotnet run --project src/Vocaterra.Host -- --validate-content`): a phrase, line, prompt,
-     noun or NPC that one file names and another lacks, every problem at once (`GameDataValidator`);
+     noun or NPC that one file names and another lacks, and a lesson above its own level (below), every problem at once (`GameDataValidator`);
    - writes the grammar strings again and runs the grammar check offline from the committed cache.
 
    New Spanish text misses the cache. The message then names the LanguageTool steps (`docs/game/README.md`, "Refreshing the cache").
 4. Run the whole test suite. The core's tests run on `game-v1` too (R02), so a failing core test is the signal that the edit broke
    something the core relies on.
 5. If the end-to-end goldens moved, record them again (`VOCATERRA_RECORD_GOLDEN=1 dotnet test tests/Vocaterra.Nlp.Golden.Tests`).
-   When `game-v1` changed, put its new bundle hash into `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v1.json`; an edit of `locale/` alone
-   needs neither.
+   When `game-v1` changed, put its new bundle hash into `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v1.json` and `save-v4.json`; an edit of
+   `locale/` alone needs neither.
 6. Commit the edit with the manifest, the grammar strings and the cache.
 
 ## Adding things
@@ -121,6 +123,18 @@ specified for later in `docs/game/CONTENT_PLAN.md` section 3.8 (C10); it is not 
   `game/phrases.json`, its lines recorded speech lines, and its `do` events world events (`WorldEvents`). A `do` step may point the beacon when it begins, at
   a catalogue noun's nearest block (`point`) or at a named place of the scene (`pointPlace`, V02; one of the two); a walk to a place waits for its arrival:
   `{ "type": "do", "pointPlace": "stall", "trigger": { "event": "beacon_reached", "detail": "stall" } }`.
+- **A lesson's level.** Every lesson declares the level it keeps to, `"level": "a1"` or `"a2"` (schema 2, VILLAGE_PLAN 3.9 and V08; sessions 1
+  to 6 are `a1`). The bundle's ceiling is A2 (the gate's lint), and the game's validator (`--validate-content`, in `refresh` and the gate)
+  holds each lesson to its own level:
+  - the Spanish it teaches and says, which is its phrases, the lines its steps name (a review step's candidates too) and the text of the prompts its
+    turns are evaluated at, has no lemma above its level in `game-v1/cefr/a1.txt` (and, at `a2`, `a2.txt`; the lists are cumulative). The words are
+    lemmatized by the core's `CefrChecker`, as the lint does;
+  - a phrase's variants, which the learner may say instead and no lesson teaches, are held to the ceiling, A2, whatever the lesson's level;
+  - the lists hold lemmas, so a form's tense is invisible to them: the tenses its `verbs` and its steps name are the level's, `pres`, `pret`
+    and `ir-a` at `a1`, and `fut` (the simple future, V16) as well at `a2`.
+
+  A finding names the lesson's file, the text, what says it and the word above the level. A word the world needs that the lists put above A1 (a
+  noun the player handles, a place the beacon names) joins the marked block at the end of `cefr/a1.txt` with a one-line reason.
 - **A phrase.** Add the row to `PHRASES.md` first (D-game-10), then to `game-v1/game/phrases.json`, and its meaning, card and explanation to
   `locale/en/phrases.json`. Render its recordings (`scripts/prerender-speech.sh`). A phrase the guide reviews may name a `reviewLine`, the dialogue
   line she asks it with while the bundle has no review pool for it (`guide.review.phrase.<id>`).

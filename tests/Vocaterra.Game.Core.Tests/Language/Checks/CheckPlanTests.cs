@@ -105,9 +105,9 @@ public sealed class CheckPlanTests
         // Three lessons opening in sessions 1, 4 and 6, an item of each, one of no lesson and one of a lesson the bundle does not have.
         var lessons = TestGame.Lessons("""
             { "schemaVersion": 1, "lessons": [
-              { "id": "a", "npc": "villager", "title": "A", "english": "A.", "steps": [ { "id": "s", "type": "explain", "english": "A." } ] },
-              { "id": "b", "npc": "villager", "title": "B", "english": "B.", "objective": "Talk to the villager.", "session": 4, "steps": [ { "id": "s", "type": "explain", "english": "B." } ] },
-              { "id": "c", "npc": "villager", "title": "C", "english": "C.", "objective": "Talk to the villager.", "session": 6, "steps": [ { "id": "s", "type": "explain", "english": "C." } ] } ] }
+              { "id": "a", "npc": "villager", "level": "a1", "title": "A", "english": "A.", "steps": [ { "id": "s", "type": "explain", "english": "A." } ] },
+              { "id": "b", "npc": "villager", "level": "a1", "title": "B", "english": "B.", "objective": "Talk to the villager.", "session": 4, "steps": [ { "id": "s", "type": "explain", "english": "B." } ] },
+              { "id": "c", "npc": "villager", "level": "a1", "title": "C", "english": "C.", "objective": "Talk to the villager.", "session": 6, "steps": [ { "id": "s", "type": "explain", "english": "C." } ] } ] }
             """);
         static string Item(string id, string lesson) =>
             $$"""{"id":"{{id}}","kind":"production","phrase":"pedir-agua","lesson":{{lesson}},"situation":"You want water.","prompt":"stall-need","intent":"request_item"}""";

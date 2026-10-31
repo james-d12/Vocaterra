@@ -89,6 +89,45 @@ public static class LessonStepTypes
 }
 
 /// <summary>
+/// The levels a lesson declares (VILLAGE_PLAN 3.9, V08, D-game-22 (b)): the bundle's ceiling is A2, and each lesson promises its own level, <c>a1</c> or <c>a2</c>.
+/// The game's validator (<see cref="Content.GameDataValidator"/>) holds a lesson's Spanish to the bundle's CEFR lists up to its level and its tenses to
+/// <see cref="TensesAt"/>, because the lists hold lemmas and a form's tense is invisible to them.
+/// </summary>
+public static class LessonLevels
+{
+    /// <summary>A lesson of the first level: its Spanish is in the A1 list (<c>cefr/a1.txt</c>).</summary>
+    public const string A1 = "a1";
+
+    /// <summary>A lesson of the second level: its Spanish is in the A1 or the A2 list (<c>cefr/a1.txt</c>, <c>cefr/a2.txt</c>; the lists are cumulative).</summary>
+    public const string A2 = "a2";
+
+    private static readonly string[] A1Tenses = ["pres", "pret", TaughtVerbForm.NearFuture];
+    private static readonly string[] A2Tenses = ["pres", "pret", TaughtVerbForm.NearFuture, "fut"];
+
+    /// <summary>
+    /// The bundle's ceiling (D-game-22 (b)): no Spanish of the bundle is above it (the gate's lint, <c>--level a2 --fail-on-level</c>), and a phrase's variants, which
+    /// the learner may say but no lesson teaches, are held to it whatever the lesson's level.
+    /// </summary>
+    public const string Ceiling = A2;
+
+    /// <summary>The levels, lowest first, as the lesson files and the bundle's lists spell them.</summary>
+    public static IReadOnlyList<string> All { get; } = [A1, A2];
+
+    /// <summary>
+    /// The tenses a lesson of the level may teach, in its <c>verbs</c> and at its steps: the present, the preterite and the near future (<c>pres</c>, <c>pret</c>,
+    /// <c>ir-a</c>) at A1, and the simple future (<c>fut</c>, VILLAGE_PLAN V16) as well at A2.
+    /// </summary>
+    /// <param name="level">The lesson's level (<see cref="All"/>).</param>
+    /// <exception cref="ArgumentException">The level is not one of <see cref="All"/>.</exception>
+    public static IReadOnlyList<string> TensesAt(string level) => level switch
+    {
+        A1 => A1Tenses,
+        A2 => A2Tenses,
+        _ => throw new ArgumentException($"'{level}' is not a lesson level ({string.Join(", ", All)}).", nameof(level)),
+    };
+}
+
+/// <summary>
 /// One step of a lesson, as <c>game/lessons.json</c> gives it. Which fields a step uses depends on its type (<see cref="LessonBook"/> lists them); the others
 /// are empty. Every step has a skip and a help path whatever its type: <see cref="Help"/> is its English hint (a default is used when there is none).
 /// </summary>
@@ -205,6 +244,7 @@ public sealed record TaughtVerbForm(string Lemma, string Person, string Number, 
 /// <param name="Session">The play session the lesson unlocks in (S26): 1 is open from the first session, 2 from the second, and so on.</param>
 /// <param name="Objective">For a lesson of a later session: the English line the objective area shows once the lesson is unlocked and not begun (it names the lesson), or <see langword="null"/>.</param>
 /// <param name="Verbs">The verb forms the lesson teaches (S26; the book's conjugation tables, S28, show what has been taught).</param>
+/// <param name="Level">The level the lesson keeps to (VILLAGE_PLAN V08): <see cref="LessonLevels.A1"/> or <see cref="LessonLevels.A2"/>; the file declares it.</param>
 public sealed record LessonDefinition(
     string Id,
     string Npc,
@@ -216,7 +256,8 @@ public sealed record LessonDefinition(
     string? Summary = null,
     int Session = 1,
     string? Objective = null,
-    IReadOnlyList<TaughtVerbForm>? Verbs = null)
+    IReadOnlyList<TaughtVerbForm>? Verbs = null,
+    string Level = LessonLevels.A1)
 {
     /// <summary>The verb forms the lesson teaches, as the file declares them (empty when it declares none).</summary>
     public IReadOnlyList<TaughtVerbForm> TaughtVerbs => Verbs ?? [];
@@ -255,7 +296,7 @@ public sealed record LessonDefinition(
 /// speech lines and the world-event names, so a bad lesson is a load error, not a surprise in a playtest.
 /// </summary>
 /// <remarks>
-/// <para>The file is <c>{ "schemaVersion": 1, "lessons": [ { "id", "npc", "autoStart"?, "after"?, "steps": [ ... ] } ] }</c>. It carries ids only: every word the
+/// <para>The file is <c>{ "schemaVersion": 1, "lessons": [ { "id", "npc", "level", "autoStart"?, "after"?, "steps": [ ... ] } ] }</c>. It carries ids only: every word the
 /// learner reads is the support language's, in the locale (CONTENT_PLAN C03): the lesson's <c>lesson.&lt;id&gt;.title</c> and <c>.text</c> (and <c>.summary</c>, <c>.objective</c>),
 /// and each step's <c>lesson.&lt;id&gt;.&lt;step&gt;.text</c> (and <c>.help</c>, <c>.retry</c>, <c>.translation</c>, <c>.option.&lt;n&gt;</c>, <c>.hud</c>, <c>.personRetry</c>,
 /// <c>.tenseRetry</c>, <c>.presentNote</c>). A step has an <c>id</c> and a <c>type</c> always, and optionally <c>attempts</c> (1 to 5, default 2) and <c>npc</c> (S26: the
@@ -270,6 +311,8 @@ public sealed record LessonDefinition(
 /// <item><c>recap</c>: optionally <c>phrases</c> (default: every phrase the lesson teaches).</item>
 /// <item><c>review</c> (X06, R07): <c>candidates</c>, a non-empty list of <c>{ phrase, line, prompt? }</c> naming phrases an earlier lesson of the file teaches and the existing line of the step's NPC that asks each (its meaning is the line's, <c>line.&lt;id&gt;</c> in the locale). At run time the most overdue candidate that is due is asked as an answer step (the help of the phrase's own rung); when none is due the step is skipped.</item>
 /// </list>
+/// <para>Every lesson declares its <c>level</c>, <c>a1</c> or <c>a2</c> (VILLAGE_PLAN V08, <see cref="LessonLevels"/>): the Spanish it says and asks keeps to the bundle's
+/// CEFR lists up to that level, and its tenses to the level's (<see cref="Content.GameDataValidator"/> checks both).</para>
 /// <para>A lesson may also carry <c>session</c> (the play session it unlocks in, default 1; above 1 the locale needs its objective line)
 /// and <c>verbs</c> (the verb forms it teaches: <c>lemma</c>, <c>person</c> 1 to 3, <c>number</c> sg or pl, <c>tense</c> pres, pret, ir-a or fut; S26, S27). A repeat or answer step may declare the <c>person</c>
 /// of the verb it expects (<c>1sg</c>...) and its <c>tense</c> (<c>pres</c>, <c>pret</c>, <c>ir-a</c>), with their retry lines in the locale (S27).</para>
@@ -297,9 +340,13 @@ public sealed class LessonBook
     /// <summary>The folder of the lesson files inside the bundle folder: one file per lesson, <c>game/lessons/&lt;id&gt;.json</c> (C06).</summary>
     public const string Folder = "game/lessons/";
 
+    /// <summary>A lesson file's schema version: 2 since VILLAGE_PLAN V08 (the lesson's <c>level</c>).</summary>
+    public const int SchemaVersion = 2;
+
     /// <summary>
     /// Reads the lessons from the bundle's verified host files and checks them against the bundle (C06): <c>game/lessons.json</c> lists the lessons' ids in
-    /// their order (<c>{ "schemaVersion": 2, "lessons": [ "first-words", ... ] }</c>), and each lesson is its own file, <c>game/lessons/&lt;id&gt;.json</c>.
+    /// their order (<c>{ "schemaVersion": 2, "lessons": [ "first-words", ... ] }</c>), and each lesson is its own file, <c>game/lessons/&lt;id&gt;.json</c>,
+    /// of schema <see cref="SchemaVersion"/>.
     /// </summary>
     /// <param name="bundle">The bundle, loaded with hash verification.</param>
     /// <param name="sheet">The phrase sheet.</param>
@@ -336,6 +383,11 @@ public sealed class LessonBook
                 if (!lesson.RootElement.TryGetProperty("id", out var fileId) || !string.Equals(fileId.GetString(), id, StringComparison.Ordinal))
                 {
                     throw new InvalidDataException($"{path}: the lesson's id must be its file's name, '{id}'.");
+                }
+
+                if (!lesson.RootElement.TryGetProperty("schemaVersion", out var version) || version.ValueKind != JsonValueKind.Number || !version.TryGetInt32(out var number) || number != SchemaVersion)
+                {
+                    throw new InvalidDataException(string.Create(CultureInfo.InvariantCulture, $"{path} must have schemaVersion {SchemaVersion} (the lesson's level, VILLAGE_PLAN V08)."));
                 }
             }
 
@@ -414,6 +466,12 @@ public sealed class LessonBook
             throw Bad(id, $"comes after the lesson '{after}', which is not an earlier lesson of the file");
         }
 
+        var level = Optional(element, "level") ?? throw Bad(id, $"declares no level (\"level\": {string.Join(" or ", LessonLevels.All.Select(static l => $"\"{l}\""))}, VILLAGE_PLAN V08)");
+        if (!LessonLevels.All.Contains(level, StringComparer.Ordinal))
+        {
+            throw Bad(id, $"declares the level '{level}', which is not one of {string.Join(", ", LessonLevels.All)}");
+        }
+
         var steps = new List<LessonStep>();
         var stepIds = new HashSet<string>(StringComparer.Ordinal);
         foreach (var stepElement in element.GetProperty("steps").EnumerateArray())
@@ -465,7 +523,7 @@ public sealed class LessonBook
             throw Bad(id, $"unlocks in a later session and needs an objective line that names it ({LessonId(id, "objective")} in the locale)");
         }
 
-        var lesson = new LessonDefinition(id, npc, Required(locale, id, LessonId(id, "title")), Required(locale, id, LessonId(id, "text")), autoStart, after, steps, locale.Find(LessonId(id, "summary")), session, objective, ParseVerbs(id, element));
+        var lesson = new LessonDefinition(id, npc, Required(locale, id, LessonId(id, "title")), Required(locale, id, LessonId(id, "text")), autoStart, after, steps, locale.Find(LessonId(id, "summary")), session, objective, ParseVerbs(id, element), level);
         foreach (var recap in steps.Where(static s => s.Type == LessonStepType.Recap))
         {
             foreach (var phrase in recap.Phrases)

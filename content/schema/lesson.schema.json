@@ -1,11 +1,13 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "game/lessons/<id>.json",
-  "description": "One lesson (C06: one file each; game/lessons.json lists them in order): a list of steps of eight types, so a new lesson needs no code. Loaded by LessonBook (Vocaterra.Game.Core), which also checks the phrases, prompts, speech lines, NPCs and world events named here. The text is the locale's (lesson.<id>.*).",
+  "description": "One lesson (C06: one file each; game/lessons.json lists them in order): a list of steps of eight types, so a new lesson needs no code. Loaded by LessonBook (Vocaterra.Game.Core), which also checks the phrases, prompts, speech lines, NPCs and world events named here. The text is the locale's (lesson.<id>.*). Schema 2 (VILLAGE_PLAN V08): every lesson declares its level, and the game's validator holds its Spanish and its tenses to it.",
   "type": "object",
   "required": [
+    "schemaVersion",
     "id",
     "npc",
+    "level",
     "steps"
   ],
   "additionalProperties": false,
@@ -15,7 +17,7 @@
     },
     "schemaVersion": {
       "enum": [
-        1
+        2
       ]
     },
     "id": {
@@ -26,6 +28,13 @@
     "npc": {
       "$ref": "#/definitions/npc",
       "description": "The NPC the lesson starts at."
+    },
+    "level": {
+      "enum": [
+        "a1",
+        "a2"
+      ],
+      "description": "The level the lesson keeps to (VILLAGE_PLAN 3.9, V08): the game's validator checks the lemmas of the Spanish it teaches and says (its phrases, the lines its steps name, its prompts' text) against the bundle's lists up to that level (cefr/a1.txt; at a2 also cefr/a2.txt), and its tenses: pres, pret and ir-a at a1, fut as well at a2. The bundle's ceiling is a2 (the gate's lint); its phrases' variants, which the learner may say instead, are held to the ceiling."
     },
     "autoStart": {
       "type": "boolean",
@@ -95,7 +104,8 @@
             "pret",
             "fut",
             "ir-a"
-          ]
+          ],
+          "description": "pres, pret and ir-a (the near future) at any level; fut (the simple future) only in an a2 lesson (the validator checks it)."
         }
       }
     },

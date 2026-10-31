@@ -1,8 +1,9 @@
 {
   "$schema": "../../../schema/lesson.schema.json",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "first-words",
   "npc": "guide",
+  "level": "a1",
   "autoStart": true,
   "verbs": [
     {

@@ -5,7 +5,8 @@
 # to main; the owner merges feature branches by pull request), with --no-ff (aborting that merge on conflict), then runs the gate on
 # Vocaterra.sln: build with warnings as
 # errors, the whole test suite (the core's unit, golden and fuzz suites and the game's; model-backed tests run when VOCATERRA_MODELS_DIR is
-# set), the format check, the game bundle validation and the core's offline licence scan. Every check's log is kept under .claude/gate-logs/
+# set), the format check, the game bundle validation with the content gate (the lint at A2, the bundle's ceiling, since V08) and the core's
+# offline licence scan. Every check's log is kept under .claude/gate-logs/
 # so that an intermittent failure can be identified afterwards. Exit status is 0 only when every merge succeeded and every check passed.
 #
 # The licence scan (scripts/license-scan.sh) covers Vocaterra.Nlp.slnf (the core projects) and everything they pull in, and the content schema
@@ -74,13 +75,37 @@ CONTENTLOG=".claude/gate-logs/content-$STAMP.log"
 "$L" bash scripts/content.sh validate > "$CONTENTLOG" 2>&1
 content_rc=$?
 tail -1 "$CONTENTLOG"
-# The prototype's content gate (S5, D-game-10 and D-game-12): strict lint at A1 (the guide's host-voiced pools are rendered by the game) and
-# the CEFR check at A1 and A2.
+# The prototype's content gate (S5, D-game-10 and D-game-12), since V08 with the A1/A2 rule of VILLAGE_PLAN 3.9 (D-game-22 (b)). The bundle's
+# ceiling is A2: the strict lint at A2 with --fail-on-level fails on a lemma above A2 in a dialogue template, a prompt's text or an answer set's
+# canonical answer (the guide's host-voiced pools are rendered by the game), and cefr-check at A2 fails on any lemma it lists (the tool itself
+# only prints, so its counts are read here). cefr-check at A1 is a report for the owner, what is above A1, and never fails the gate. A lesson's
+# own level (a1 or a2) is the game's validator's: the host's --validate-content holds each lesson's Spanish and tenses to it.
 if [ -f content/PHRASES.md ]; then
-  { "$L" bash scripts/content.sh lint content/game-v1 --strict --level a1 --host-pools 'guide.*' &&
-    "$L" bash scripts/content.sh cefr-check content/game-v1 --level a1 &&
-    "$L" bash scripts/content.sh cefr-check content/game-v1 --level a2; } >> "$CONTENTLOG" 2>&1 || { content_rc=1; echo "content gate: FAIL (lint --strict or cefr-check)"; }
-  [ "$content_rc" -eq 0 ] && echo "content gate: lint --strict a1 and cefr-check a1/a2 clean"
+  echo "== lint --strict --level a2 --fail-on-level (the bundle's ceiling; fails the gate)" >> "$CONTENTLOG"
+  if "$L" bash scripts/content.sh lint content/game-v1 --strict --level a2 --fail-on-level --host-pools 'guide.*' >> "$CONTENTLOG" 2>&1; then
+    echo "content gate: lint --strict --level a2 --fail-on-level clean (the ceiling, fails the gate)"
+  else
+    content_rc=1; echo "content gate: FAIL (lint --strict --level a2 --fail-on-level: a lemma above A2, or another lint error or warning)"
+  fi
+  echo "== cefr-check a2 (the ceiling; a lemma it lists fails the gate)" >> "$CONTENTLOG"
+  CEFR_A2="$("$L" bash scripts/content.sh cefr-check content/game-v1 --level a2 2>&1)"
+  cefr_a2_rc=$?
+  printf '%s\n' "$CEFR_A2" >> "$CONTENTLOG"
+  if [ "$cefr_a2_rc" -eq 0 ] && ! grep -Eq ', [1-9][0-9]* not in the list$' <<<"$CEFR_A2"; then
+    echo "content gate: cefr-check a2 clean (the ceiling, fails the gate)"
+  else
+    content_rc=1; echo "content gate: FAIL (cefr-check a2 lists a lemma above A2, or did not run)"
+  fi
+  echo "== cefr-check a1 (a report for the owner: the lemmas above A1; never fails the gate)" >> "$CONTENTLOG"
+  CEFR_A1="$("$L" bash scripts/content.sh cefr-check content/game-v1 --level a1 2>&1)"
+  printf '%s\n' "$CEFR_A1" >> "$CONTENTLOG"
+  echo "content gate: cefr-check a1 report, does not fail: $(sed -nE 's/^cefr a1: [0-9]+ lemmas in (.+), [0-9]+ covered, ([0-9]+) not in the list$/\2 above A1 in \1/p' <<<"$CEFR_A1" | paste -sd ';' - | sed 's/;/; /g')"
+  echo "== the game's validator (the host's --validate-content: the game's files, and each lesson's Spanish and tenses within its level)" >> "$CONTENTLOG"
+  if "$L" dotnet run --project src/Vocaterra.Host --no-build -- --content content/game-v1 --validate-content >> "$CONTENTLOG" 2>&1; then
+    echo "content gate: --validate-content clean (each lesson within its level, fails the gate)"
+  else
+    content_rc=1; echo "content gate: FAIL (--validate-content; see $CONTENTLOG)"
+  fi
 fi
 
 # The LanguageTool grammar check (core M30, D10's dev-time half), on the repository's one bundle (R02: content/v1 and its advisory step are gone).

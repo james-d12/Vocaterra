@@ -1,8 +1,9 @@
 {
   "$schema": "../../../schema/lesson.schema.json",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "gente-del-pueblo",
   "npc": "villager",
+  "level": "a1",
   "autoStart": true,
   "after": "numeros-y-pan",
   "session": 6,

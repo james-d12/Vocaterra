@@ -92,7 +92,7 @@ public sealed class ContentSchemaTests
         // and so is a do step without its event. A step's text belongs to the locale since C03, so a step that carries "english" is refused too.
         var schema = await JsonSchema.FromFileAsync(Path.Combine(SchemaFolder, "lesson.schema.json"));
         static string Lesson(string step) =>
-            $$"""{ "schemaVersion": 1, "id": "a", "npc": "guide", "steps": [{{step}}] }""";
+            $$"""{ "schemaVersion": 2, "id": "a", "npc": "guide", "level": "a1", "steps": [{{step}}] }""";
         Assert.Empty(schema.Validate(Lesson("""{ "id": "s", "type": "listen", "line": "phrase.hola", "correct": 0 }""")));
         Assert.Empty(schema.Validate(Lesson("""{ "id": "s", "type": "do", "trigger": { "event": "item_picked_up", "detail": "fruta" } }""")));
         Assert.NotEmpty(schema.Validate(Lesson("""{ "id": "s", "type": "listen", "line": "phrase.hola" }""")));
@@ -164,8 +164,23 @@ public sealed class ContentSchemaTests
     public async Task ADoStepMayPointAtAPlaceOfTheScene()
     {
         var schema = await JsonSchema.FromFileAsync(Path.Combine(SchemaFolder, "lesson.schema.json"));
-        Assert.Empty(schema.Validate("""{ "schemaVersion": 1, "id": "a", "npc": "villager", "steps": [{ "id": "s", "type": "do", "pointPlace": "stall", "trigger": { "event": "beacon_reached", "detail": "stall" } }] }"""));
-        Assert.NotEmpty(schema.Validate("""{ "schemaVersion": 1, "id": "a", "npc": "villager", "steps": [{ "id": "s", "type": "do", "pointPlace": "", "trigger": { "event": "beacon_reached" } }] }"""));
+        Assert.Empty(schema.Validate("""{ "schemaVersion": 2, "id": "a", "npc": "villager", "level": "a1", "steps": [{ "id": "s", "type": "do", "pointPlace": "stall", "trigger": { "event": "beacon_reached", "detail": "stall" } }] }"""));
+        Assert.NotEmpty(schema.Validate("""{ "schemaVersion": 2, "id": "a", "npc": "villager", "level": "a1", "steps": [{ "id": "s", "type": "do", "pointPlace": "", "trigger": { "event": "beacon_reached" } }] }"""));
+    }
+
+    [Fact]
+    public async Task ALessonOfSchemaTwoDeclaresItsLevel()
+    {
+        // V08: every lesson declares the level it keeps to, a1 or a2 (the validator holds its Spanish and its tenses to it); a file of schema 1 has none.
+        var schema = await JsonSchema.FromFileAsync(Path.Combine(SchemaFolder, "lesson.schema.json"));
+        static string Lesson(string level, string version = "2") =>
+            $$"""{ "schemaVersion": {{version}}, "id": "a", "npc": "guide", {{level}} "steps": [{ "id": "s", "type": "explain" }] }""";
+        Assert.Empty(schema.Validate(Lesson("\"level\": \"a1\",")));
+        Assert.Empty(schema.Validate(Lesson("\"level\": \"a2\",")));
+        Assert.NotEmpty(schema.Validate(Lesson(string.Empty))); // no level
+        Assert.NotEmpty(schema.Validate(Lesson("\"level\": \"b1\",")));
+        Assert.NotEmpty(schema.Validate(Lesson("\"level\": \"A1\",")));
+        Assert.NotEmpty(schema.Validate(Lesson("\"level\": \"a1\",", version: "1"))); // the schema before V08
     }
 
     [Fact]

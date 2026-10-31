@@ -8,7 +8,10 @@ using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tip;
+using Vocaterra.Nlp.Content;
+using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Taxonomy;
+using Vocaterra.Nlp.Response.Templates;
 
 namespace Vocaterra.Game.Core.Content;
 
@@ -34,7 +37,12 @@ namespace Vocaterra.Game.Core.Content;
 /// to is a point of the scene; an NPC whose directions name the place of the learner's line (<c>point_at_slot</c>) has an agent that can say it does not know one
 /// (<c>&lt;npc&gt;.unknown_place</c>), and an NPC that sells has one that can say the coins are too few (<c>&lt;npc&gt;.cant_pay</c>);</item>
 /// <item>the orders (V03): the NPC an order is brought to is one of the NPCs, and every state of its agent takes its thanks (<c>&lt;npc&gt;.delivered</c>), so the
-/// goods are never brought in vain.</item>
+/// goods are never brought in vain;</item>
+/// <item>the lessons' levels (VILLAGE_PLAN 3.9, V08, D-game-22 (b)): the Spanish a lesson teaches and says (its phrases, the lines its steps name, the text of
+/// the prompts its turns are evaluated at) has no lemma above its level, <c>a1</c> or <c>a2</c>, in the bundle's cumulative CEFR lists (<c>cefr/a1.txt</c>,
+/// <c>cefr/a2.txt</c>), and its phrases' variants none above the bundle's ceiling (<see cref="LessonLevels.Ceiling"/>), lemmatized by the core's
+/// <see cref="CefrChecker"/> as the content lint does; and the tenses its verbs and steps name are its level's (<see cref="LessonLevels.TensesAt"/>: no
+/// <c>fut</c> in an <c>a1</c> lesson).</item>
 /// </list>
 /// <para>Plain values, ordinal comparisons; the order of the problems is the order of the files above.</para>
 /// </remarks>
@@ -54,6 +62,7 @@ public static class GameDataValidator
         CheckNpcs(data, problems);
         CheckHostActions(data, problems);
         CheckObjectives(data, problems);
+        CheckLessonLevels(data, problems);
         return problems;
     }
 
@@ -335,6 +344,121 @@ public static class GameDataValidator
                 problems.Add($"{LessonBook.Folder}{lesson.Id}.json: the step '{step.Id}' points at the place '{step.PointPlace}', which is not a point of the scene.");
             }
         }
+    }
+
+    // VILLAGE_PLAN 3.9, V08 (D-game-22 (b)): the bundle's ceiling is A2 (the gate's lint), and each lesson promises its own level. The lists hold lemmas, so a
+    // form's tense is invisible to them: the tenses the lesson's verbs and steps name are checked against the level too.
+    private static void CheckLessonLevels(GameData data, List<string> problems)
+    {
+        foreach (var lesson in data.Lessons.Lessons)
+        {
+            var file = LessonBook.Folder + lesson.Id + ".json";
+            var tenses = LessonLevels.TensesAt(lesson.Level);
+            var allowed = string.Join(", ", tenses);
+            foreach (var form in lesson.TaughtVerbs.Where(form => !tenses.Contains(form.Tense, StringComparer.Ordinal)))
+            {
+                problems.Add($"{file}: the {lesson.Level} lesson declares the verb form {form.Lemma} {form.Person} {form.Number} {form.Tense}; an {lesson.Level} lesson teaches {allowed}.");
+            }
+
+            foreach (var step in lesson.Steps.Where(step => step.Tense is { } tense && !tenses.Contains(tense, StringComparer.Ordinal)))
+            {
+                problems.Add($"{file}: the {lesson.Level} lesson's step '{step.Id}' expects the tense {step.Tense}; an {lesson.Level} lesson teaches {allowed}.");
+            }
+
+            if (!data.Bundle.Cefr.ContainsKey(lesson.Level))
+            {
+                problems.Add($"{file}: the lesson is {lesson.Level}, and the bundle has no list of that level (cefr/{lesson.Level}.txt).");
+                continue;
+            }
+
+            problems.AddRange(WordsAboveLevel(data, lesson, file));
+        }
+    }
+
+    // The lemmas of a lesson's Spanish above the level each text is held to, one problem for each text and lemma, in the order of the steps (the prompts last).
+    // The phrases, the lines and the prompts' text are what the lesson teaches and says, held to its level; a phrase's variants are what the learner may say
+    // instead, which the lesson does not teach, so they are held to the bundle's ceiling, as the core's lint holds an answer set's aliases to none. The texts are
+    // lemmatized by the core's CefrChecker exactly as the lint lemmatizes the dialogue and the prompts' text: the phrases, the variants and the lines as the
+    // lines of a pool of plain text, the prompts as prompts.
+    private static List<string> WordsAboveLevel(GameData data, LessonDefinition lesson, string file)
+    {
+        var bundle = data.Bundle;
+        var texts = new List<(string What, string Text, string Level)>();
+        var prompts = new SortedDictionary<string, PromptSpec>(StringComparer.Ordinal);
+        void Add(string what, string text, string level)
+        {
+            var known = texts.FindIndex(known => string.Equals(known.Text, text, StringComparison.Ordinal));
+            if (known < 0)
+            {
+                texts.Add((what, text, level));
+            }
+            else if (string.CompareOrdinal(level, texts[known].Level) < 0)
+            {
+                texts[known] = (what, text, level); // the same words said by the lesson and allowed as a variant: the stricter level
+            }
+        }
+
+        foreach (var step in lesson.Steps)
+        {
+            var asked = step.Candidates is { } candidates
+                ? candidates.Select(static c => (Phrase: (string?)c.Phrase, Line: (SpeechLine?)c.Line, Prompt: (string?)c.Prompt))
+                : [(step.Phrase, step.Line, step.Prompt)];
+            foreach (var (phrase, line, prompt) in asked)
+            {
+                if (phrase is not null && data.Phrases.Find(phrase) is { } row)
+                {
+                    Add($"the phrase '{row.Id}'", row.Spanish, lesson.Level);
+                    foreach (var variant in row.Variants)
+                    {
+                        Add($"a variant of the phrase '{row.Id}'", variant, LessonLevels.Ceiling);
+                    }
+                }
+
+                if (line is not null)
+                {
+                    Add($"the line '{line.LineId}'", line.Text, lesson.Level);
+                }
+
+                if (prompt is not null && bundle.Prompts.TryGetValue(prompt, out var spec) && !string.IsNullOrWhiteSpace(spec.Text))
+                {
+                    prompts.TryAdd(prompt, spec);
+                }
+            }
+        }
+
+        var found = new List<(int Order, string Problem)>();
+        foreach (var level in texts.Select(static t => t.Level).Append(lesson.Level).Distinct(StringComparer.Ordinal).Where(bundle.Cefr.ContainsKey))
+        {
+            var held = texts.Select(static (text, index) => (text.Text, text.Level, Index: index)).Where(t => string.Equals(t.Level, level, StringComparison.Ordinal)).ToList();
+            var catalog = held.Count == 0
+                ? DialogueCatalog.Empty
+                : new DialogueCatalog([new(lesson.Id, new VariantPool(lesson.Id, held.Select(static t => new DialogueTemplate(t.Index.ToString(CultureInfo.InvariantCulture), t.Text)).ToList()))]);
+            var atLessonLevel = string.Equals(level, lesson.Level, StringComparison.Ordinal);
+            var report = CefrChecker.Check(catalog, bundle.Lexicon, bundle.Language, CefrChecker.AllowedLemmas(bundle.Cefr, level), level, atLessonLevel ? prompts : null);
+            var lists = bundle.Cefr.Keys.Where(key => string.CompareOrdinal(key, level) <= 0).Order(StringComparer.Ordinal).Select(static key => $"cefr/{key}.txt").ToList();
+            var notListed = lists.Count == 1 ? $"not in {lists[0]}" : $"in none of {string.Join(", ", lists)}";
+            string Says(string text, string what, CefrMissingLemma missing) =>
+                $"{file}: the {lesson.Level} lesson says “{text}” ({what}), and '{missing.Lemma}'{(missing.InLexicon ? string.Empty : " (not in the lexicon)")} is above {level.ToUpperInvariant()} ({notListed}).";
+
+            foreach (var missing in report.Missing)
+            {
+                foreach (var index in missing.LineIds.Select(static id => int.Parse(id, CultureInfo.InvariantCulture)))
+                {
+                    found.Add((index, Says(texts[index].Text, texts[index].What, missing)));
+                }
+            }
+
+            var promptOrder = prompts.Keys.ToList();
+            foreach (var missing in report.Prompts?.Missing ?? [])
+            {
+                foreach (var prompt in missing.LineIds)
+                {
+                    found.Add((texts.Count + promptOrder.IndexOf(prompt), Says(prompts[prompt].Text!, $"the prompt '{prompt}'", missing)));
+                }
+            }
+        }
+
+        return found.OrderBy(static f => f.Order).ThenBy(static f => f.Problem, StringComparer.Ordinal).Select(static f => f.Problem).ToList();
     }
 
     // V03: an order is brought to one of the NPCs, and every state of its agent thanks the player for it (the opening is <npc>.delivered whatever the state; a state
