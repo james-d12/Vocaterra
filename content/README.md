@@ -216,6 +216,9 @@ her purchase and her order, is the second; the smith Domingo and the farmer Leó
      Spanish, and the village's provisional choices, are in the voice trial, `docs/game/voice-trial/` (VILLAGE_PLAN V06), with their speaker ids. An optional
      `gain` (default 1, at most 4; V11) scales the voice's samples, for a voice the model renders louder or quieter than the Spanish ones: the baker's
      `if_sara` is about 10 dB louder, so it takes 0.32. The speech index records a gain that is not 1, and changing it renders that NPC's lines again.
+     So does any change of the voice: `scripts/limited.sh scripts/prerender-speech.sh` renders only that NPC's files (no `--force`), and their rows
+     of `docs/game/SPEECH_CHECKLIST.md` lose the owner's marks. The fisher's, the baker's, the smith's and the farmer's voices are provisional until
+     the owner has heard them (D-game-22 (d); the checklist's preface lists them).
    - `keyWords` (optional): catalogue nouns whose cards the NPC shows alone before its first question (the shopkeeper's `agua` and `pan`). The save
      keeps one flag, so the key words are taught once a game, at the first NPC that has them.
    - `poolPrefix` (optional): the name its pools carry when it is not the id (the shopkeeper's pools are `shop_*` and `guide.lesson.shop.*`).
