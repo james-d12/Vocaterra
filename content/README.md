@@ -100,9 +100,10 @@ Everything the game says, shows and builds its world from, outside the code. The
       refreshes again (the manifest after the new WAVs, provenance, the strings);
    4. writes the bundle's new `bundleHash` into every file under `tests/` that holds the old one (the save fixtures `save-v1.json` and
       `save-v4.json`); an edit of `locale/` alone moves none;
-   5. builds the solution, then checks the end-to-end goldens and the identity baseline (`tests/Vocaterra.Nlp.Golden.Tests`) and the fuzz suite's
-      stream digests (`FuzzLanguageStreamTests`). When the edit means to move them, run it again with `--record`: it records the goldens and
-      prints what moved (commit them in a commit of their own), and prints the digests to set in `FuzzLanguageStreamTests.cs` (it edits no C#);
+   5. builds the solution, then checks the end-to-end goldens and the identity baseline (`tests/Vocaterra.Nlp.Golden.Tests`). When the edit means
+      to move them, run it again with `--record`: it records them and prints what moved (commit them in a commit of their own). It then checks
+      that the fuzz suite's stream digests (`FuzzLanguageStreamTests`) did not move: since the core's M57 they run on frozen inputs, a copy of
+      the bundle's grammars and words in the fuzz suite's fixtures, so a content edit never moves them, and a move means a generator changed;
    6. runs the fast tier (`scripts/test.sh fast`), then the fuzz suite's grammar-sensitive classes at their full depth, so a grammar that
       generates a wrong sentence fails in minutes; `--tier full` runs the whole suite instead, as the gate does.
 

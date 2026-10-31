@@ -69,8 +69,9 @@ failure); 3 the renderer's `--check` and, with `--speech`, the render of the new
 file under `tests/` that holds the old `bundleHash` (the one at HEAD, before the run, or one an earlier run in this worktree saw) gets the
 new one; 5 the build with `-warnaserror -m:4`; 6 the end-to-end goldens and the
 identity baseline, checked, or with `--record` (off by default) recorded, with the `git diff --stat` and the changed entries per file printed;
-7 the fuzz suite's `FuzzLanguageStreamTests`, whose digests move with the content (a move prints the new digests and the constants to set; the
-script edits no C#); 8 the tier: `fast` (the default) is `test.sh fast`, then the fuzz suite's grammar-sensitive classes at their full depth
+7 the fuzz suite's `FuzzLanguageStreamTests`, whose digests run on frozen inputs since the core's M57, so a content edit does not move them: the
+step checks that they did not move (a move means a generator or the fixture changed; it prints the new digests and the constants they differ
+from, and the script edits no C#); 8 the tier: `fast` (the default) is `test.sh fast`, then the fuzz suite's grammar-sensitive classes at their full depth
 (`CorrectSentenceFuzzTests`, `MutationTagFuzzTests`, `RecastLoopFuzzTests`); `full` is the whole suite, as the gate; `none` runs no test.
 
 It stops at the first failure with the next thing to do and ends with one summary of at most 30 lines: each step, passed, failed, skipped or not
