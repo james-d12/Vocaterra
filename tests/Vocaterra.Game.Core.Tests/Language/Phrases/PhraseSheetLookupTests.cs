@@ -14,7 +14,7 @@ public sealed class PhraseSheetLookupTests
     private static PhraseSheet Sheet => RouteScene.DataOf(TestGame.Bundle).Phrases;
 
     [Fact]
-    public void TheBundleHoldsTheHundredAndNinePhrasesOfTheSheetInOrder()
+    public void TheBundleHoldsTheHundredAndTwentyFivePhrasesOfTheSheetInOrder()
     {
         var sheet = Sheet;
 
@@ -31,7 +31,9 @@ public sealed class PhraseSheetLookupTests
                 "como-te-llamas", "me-llamo-domingo", "que-haces", "soy-el-herrero", "es-el-herrero", "que-va-a-hacer-domingo", "va-a-hacer-un-hacha", "donde-vives",
                 "vivo-en-el-campamento", "quieres-un-hacha", "toma-el-hacha", "trabaja-en-la-herreria", "vive-en-la-casa", "que-hizo-domingo", "hizo-un-hacha", "ayer-trabajo-mucho",
                 "mis-manzanas-son-rojas", "como-es-la-manzana", "la-manzana-es-roja", "te-gusta-el-pan", "me-gusta-el-pan", "me-gustan-las-manzanas", "quiero-tres-manzanas-rojas", "mis-plantas-necesitan-agua",
-                "voy-a-buscar-agua", "es-grande", "el-pan-es-de-luz", "toma-tres-manzanas", "fui-al-rio", "ayer-me-gusto", "te-gusto-el-pan", "me-gusto-el-pan"],
+                "voy-a-buscar-agua", "es-grande", "el-pan-es-de-luz", "toma-tres-manzanas", "fui-al-rio", "ayer-me-gusto", "te-gusto-el-pan", "me-gusto-el-pan",
+                "el-dia-de-ayer", "que-hizo-luz", "luz-hizo-pan", "que-hizo-mar", "mar-pesco-en-el-rio", "comieron-en-la-plaza", "fuimos-a-la-tienda", "adonde-fueron",
+                "fuimos-al-rio", "que-comieron", "ellos-comieron-pan", "adonde-tienes-que-ir", "tengo-que-ir", "le-vendi-pescado", "que-compro-luz", "luz-compro-pescado"],
             sheet.Rows.Select(static r => r.Id));
         Assert.Equal("Quiero agua, por favor.", sheet.Find("pedir-agua")!.CardPhrase);
         Assert.Equal("¿Dónde está el río?", sheet.Find("donde-esta-el-rio")!.CardPhrase);

@@ -1,3 +1,4 @@
+using Vocaterra.Nlp.Asr;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Prompts;
@@ -29,6 +30,9 @@ public sealed class SpokenUtteranceEvaluator
     /// </summary>
     public const int SingleBest = 1;
 
+    private static readonly PipelineOptions Options = new() { RunRecognizersConcurrently = false, MaxAlternatives = SingleBest };
+
+    private readonly ContentBundle _bundle;
     private readonly UtterancePipeline _pipeline;
 
     /// <summary>Creates an evaluator over a loaded bundle and a word recognizer.</summary>
@@ -38,8 +42,9 @@ public sealed class SpokenUtteranceEvaluator
     {
         ArgumentNullException.ThrowIfNull(bundle);
         ArgumentNullException.ThrowIfNull(recognizer);
+        _bundle = bundle;
         var services = new PipelineServices(recognizer, null, new FakeEmbeddingModel(), new SilentSynthesizer(), bundle);
-        _pipeline = new UtterancePipeline(services, new PipelineOptions { RunRecognizersConcurrently = false, MaxAlternatives = SingleBest });
+        _pipeline = new UtterancePipeline(services, Options);
     }
 
     /// <summary>
@@ -65,7 +70,24 @@ public sealed class SpokenUtteranceEvaluator
         return _pipeline.Analyze(clip, prompt);
     }
 
-    /// <summary>Phase 2 for an analysis made by <see cref="Analyze"/>, in the context. Pure.</summary>
+    /// <summary>
+    /// Phase 1 over a recognition already made from <paramref name="clip"/>, changed by the host (the listener's name said as a vocative taken out, V14): the
+    /// recognizer is the core's scripted one over <paramref name="recognition"/>, whose model hash is the real recognizer's, so the analysis completes with
+    /// <see cref="CompleteTrace"/> like any other and its replay record names the clip it came from.
+    /// </summary>
+    /// <param name="recognition">The recognition to read.</param>
+    /// <param name="clip">The clip it was made from.</param>
+    /// <param name="prompt">The prompt.</param>
+    public UtteranceAnalysis AnalyzeRecognized(AsrResult recognition, PcmClip clip, PromptSpec prompt)
+    {
+        ArgumentNullException.ThrowIfNull(recognition);
+        ArgumentNullException.ThrowIfNull(clip);
+        ArgumentNullException.ThrowIfNull(prompt);
+        var services = new PipelineServices(new ScriptedWordRecognizer(recognition), null, new FakeEmbeddingModel(), new SilentSynthesizer(), _bundle);
+        return new UtterancePipeline(services, Options).Analyze(clip, prompt);
+    }
+
+    /// <summary>Phase 2 for an analysis made by <see cref="Analyze"/> or <see cref="AnalyzeRecognized"/>, in the context. Pure.</summary>
     public PipelineTrace CompleteTrace(UtteranceAnalysis analysis, ConversationContext context)
     {
         ArgumentNullException.ThrowIfNull(analysis);

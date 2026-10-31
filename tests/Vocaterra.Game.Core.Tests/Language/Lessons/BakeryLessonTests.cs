@@ -393,22 +393,27 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void AnOrderBroughtBeforeTheLessonAsksForItEndsTheStepThatWaitsForItAtOnce()
+    public void ALearnerWhoArrivesWithTheWoodSaysThePlanBeforeLuzTakesIt()
     {
-        // The objective line shows the order from the session's start, so the wood may come first: the talk that starts the lesson takes it (walking up is enough), and
-        // the step that waits for the delivery has nothing left to wait for.
+        // The objective line shows the order from the session's start, so the wood may come first. The order names its lesson (V14, as V13's water-for-plants does):
+        // walking up to Luz with five wood delivers nothing while the lesson has not reached its step that waits for the delivery, so "Voy a buscar madera" comes before
+        // her thanks. Before V14 the talk that started the lesson took the wood, and the plan was said of wood already delivered.
         var session = SessionFiveAtBaker(wood: 5);
-        Assert.True(session.Objectives.Single(static o => o.Id == "oven-wood").Complete);
+        Assert.False(session.Objectives.Single(static o => o.Id == "oven-wood").Complete);
         Assert.Equal(LessonId, session.Lessons.Active!.Id);
-        while (session.Lessons.Current is { Id: not "n4-wood" } step)
+        Assert.Equal(LessonId, TestGame.Data.Objectives.Find("oven-wood")!.Lesson);
+        while (session.Lessons.Current is { Id: not "n5-coins" } step)
         {
             Walk(session, step);
         }
 
-        session.LogEvent(new WorldEvent(session.CurrentTick, session.StoredTime.UnixSeconds, WorldEvents.ItemPickedUp, null, "madera")); // a piece of wood picked up
-
-        Assert.Equal("n5-coins", session.Lessons.Current!.Id);
-        Assert.Contains(session.Events.OfType<LessonEvent>(), static e => e.Kind == LessonEventKind.StepDone && e.StepId == "n4-back" && e.Detail == "delivered before");
+        var events = session.Events.ToList();
+        var plan = events.FindIndex(static e => e is LessonEvent { Kind: LessonEventKind.StepDone, StepId: "n3-oven" });
+        var delivered = events.FindIndex(static e => e is WorldEvent { Name: WorldEvents.OrderDelivered, Detail: "oven-wood" });
+        Assert.InRange(plan, 0, delivered - 1); // the plan, then the wood
+        Assert.True(session.Objectives.Single(static o => o.Id == "oven-wood").Complete);
+        Assert.Equal(4, session.Simulation.Inventory.Count(ItemId.Coin));
+        Assert.DoesNotContain(session.Events.OfType<LessonEvent>(), static e => e.StepId == "n4-back" && e.Detail == "delivered before");
     }
 
     [Fact]

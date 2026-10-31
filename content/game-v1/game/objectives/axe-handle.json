@@ -2,11 +2,12 @@
   "$schema": "../../../schema/objective.schema.json",
   "schemaVersion": 1,
   "id": "axe-handle",
-  "about": "The smith's order (VILLAGE_PLAN 3.4, V12): from play session 6, two wood and two coins brought to Domingo at the smithy; he makes the axe and hands it over (smith.delivered, then smith.give_axe in game/host-events.json), and the axe fells a trunk in a quarter of the time. Two coins, not the plan's three: a learner who followed sessions 4 and 5 has two (two from fruit-for-mar, four from oven-wood, four spent on two loaves). Asking in Spanish is the lesson's; walking up with the goods is enough.",
+  "about": "The smith's order (VILLAGE_PLAN 3.4, V12): from play session 6, two wood and two coins brought to Domingo at the smithy; he makes the axe and hands it over (smith.delivered, then smith.give_axe in game/host-events.json), and the axe fells a trunk in a quarter of the time. Two coins, not the plan's three: a learner who followed sessions 4 and 5 has two (two from fruit-for-mar, four from oven-wood, four spent on two loaves). Told by the lesson gente-del-pueblo (va a hacer un hacha at the villager, then the smith's offer, then the delivery): a learner who carries the goods already is given the axe only once the lesson reaches its step that waits for the delivery (lesson, V14). Asking in Spanish is the lesson's; walking up with the goods is enough.",
   "session": 6,
   "deliverTo": "smith",
   "deliver": [
     { "item": "wood", "count": 2 },
     { "item": "coin", "count": 2 }
-  ]
+  ],
+  "lesson": "gente-del-pueblo"
 }

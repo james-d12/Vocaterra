@@ -5,6 +5,7 @@ using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
+using Vocaterra.Game.Core.Tests.Language.Lessons;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Nlp.Pipeline;
 
@@ -86,6 +87,46 @@ public sealed class VillageFocusTests
         Assert.Equal(["donde-esta-la-panaderia", "donde-esta-la-herreria"], session.Support.Cards.Select(static c => c.PhraseId));
 
         Assert.Equal(phrase, Credit(session, line).PhraseId);
+    }
+
+    [Theory]
+    [InlineData("¿dónde está el río?", "donde-esta-el-rio")] // his own
+    [InlineData("¿dónde está la panadería?", "donde-esta-la-panaderia")] // the fisher's, a transfer: V12b credited the villager's river
+    [InlineData("¿dónde está la herrería?", "donde-esta-la-herreria")]
+    public void AtTheVillagerTheDirectionsAreCreditedByThePlaceAsked(string line, string phrase)
+    {
+        // V12b's rule for one row (V14): the villager practises ¿Dónde está el río?, and a question about another place is the row practised elsewhere that names it.
+        var session = At("villager");
+        Assert.Equal(["donde-esta-el-rio"], session.Support.Cards.Select(static c => c.PhraseId));
+        session.Objective.Finish();
+
+        var use = Credit(session, line);
+
+        Assert.Equal((phrase, phrase == "donde-esta-el-rio" ? PhraseUseKind.Supported : PhraseUseKind.Transfer), (use.PhraseId, use.Kind));
+        var skills = session.Conversation.Records.Select(static r => r.Utterance).OfType<ReplayEnvelope>().Last().Context.ExtraSkills ?? [];
+        Assert.Contains("phrase." + phrase, skills); // the core's learner model is told the same phrase (NpcService)
+    }
+
+    [Fact]
+    public void AtTheVillagerAPlaceNoPractisedRowNamesCreditsNone()
+    {
+        // As at the fisher, whose two rows name neither: crediting the river's row for the shop would be a guess.
+        var session = At("villager");
+        var before = session.Events.OfType<PhraseUse>().Count();
+
+        var turn = session.Say("¿dónde está la tienda?");
+
+        Assert.Equal(("ask_directions", "tienda"), (turn.Intent, turn.Slots["place"]));
+        Assert.Equal(before, session.Events.OfType<PhraseUse>().Count());
+    }
+
+    [Fact]
+    public void InALessonsStepThePlaceRuleDoesNotTakeTheStepsPhrase()
+    {
+        // The lesson's step credits its own phrase, whatever the place (the rule is free talk's): El pueblo's "¿Dónde está la herrería?" step at the fisher's "¿Algo más?".
+        var session = VillageLessonTests.AtStep("v1-smithy");
+        var use = Credit(session, "¿dónde está el pozo?");
+        Assert.Equal("donde-esta-la-herreria", use.PhraseId);
     }
 
     [Fact]

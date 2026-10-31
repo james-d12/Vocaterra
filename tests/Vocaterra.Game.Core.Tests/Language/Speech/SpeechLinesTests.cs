@@ -69,9 +69,9 @@ public sealed class SpeechLinesTests
 
         var pools = TestGame.Bundle.Dialogue.Pools.Keys.Order(StringComparer.Ordinal).ToList();
 
-        Assert.Equal(199, pools.Count); // V02 added villager_unknown_place; V10 the fisher's 21 and the villager's signpost line; V11 the baker's 20 and the stall's 3; V12 the smith's 10, the farmer's 7 and the villager's 10; V13 the farmer's 15 and the stall's 2
+        Assert.Equal(212, pools.Count); // V02 added villager_unknown_place; V10 the fisher's 21 and the villager's signpost line; V11 the baker's 20 and the stall's 3; V12 the smith's 10, the farmer's 7 and the villager's 10; V13 the farmer's 15 and the stall's 2; V14 the villager's 8, the smith's 2 and the fisher's 3
         Assert.All(pools, pool => Assert.Equal((pool, Before(pool)), (pool, SpeechSpeakers.OfPool(pool, TestGame.Data.Npcs))));
-        Assert.Equal([("baker", 20), ("farmer", 22), ("fisher", 21), ("guide", 70), ("shopkeeper", 25), ("smith", 10), ("villager", 31)], pools.GroupBy(pool => SpeechSpeakers.OfPool(pool, TestGame.Data.Npcs)).Select(static g => (g.Key, g.Count())).OrderBy(static g => g.Key, StringComparer.Ordinal));
+        Assert.Equal([("baker", 20), ("farmer", 22), ("fisher", 24), ("guide", 70), ("shopkeeper", 25), ("smith", 12), ("villager", 39)], pools.GroupBy(pool => SpeechSpeakers.OfPool(pool, TestGame.Data.Npcs)).Select(static g => (g.Key, g.Count())).OrderBy(static g => g.Key, StringComparer.Ordinal));
     }
 
     [Fact]

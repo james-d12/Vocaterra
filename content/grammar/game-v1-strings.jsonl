@@ -104,6 +104,7 @@
 {"id":"dialogue:guide.lesson.farmer.water.1","text":"Mis plantas necesitan agua. Si me traes agua del río, te doy tres manzanas. ¿Qué vas a hacer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.farmer.went.1","text":"¿Fuiste al río?","kind":"npc"}
 {"id":"dialogue:guide.lesson.fast.1","text":"Mira. La madera es para la antorcha.","kind":"npc"}
+{"id":"dialogue:guide.lesson.fisher.bought.1","text":"¿Qué compró Luz ayer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.fisher.end.1","text":"¡Muy bien! Ya conoces el pueblo.","kind":"npc"}
 {"id":"dialogue:guide.lesson.fisher.going.1","text":"¿Adónde vas?","kind":"npc"}
 {"id":"dialogue:guide.lesson.fisher.hay.1","text":"En el pueblo hay una tienda, una panadería y tres casas.","kind":"npc"}
@@ -113,6 +114,8 @@
 {"id":"dialogue:guide.lesson.fisher.near.1","text":"No, está cerca. La montaña está lejos.","kind":"npc"}
 {"id":"dialogue:guide.lesson.fisher.plan.1","text":"¿Qué vas a hacer allí?","kind":"npc"}
 {"id":"dialogue:guide.lesson.fisher.right.1","text":"Y la herrería está a la derecha.","kind":"npc"}
+{"id":"dialogue:guide.lesson.fisher.sold.1","text":"¡Hola! Ayer le vendí pescado a Luz. Mañana va a comprar más.","kind":"npc"}
+{"id":"dialogue:guide.lesson.fisher.tomorrow.1","text":"¿Y tú? ¿Qué vas a hacer mañana?","kind":"npc"}
 {"id":"dialogue:guide.lesson.fisher.well.1","text":"Sí, hay un pozo.","kind":"npc"}
 {"id":"dialogue:guide.lesson.fisher.went.1","text":"¿Fuiste a la panadería?","kind":"npc"}
 {"id":"dialogue:guide.lesson.have.1","text":"¡Muy bien! Tienes una fruta.","kind":"npc"}
@@ -144,29 +147,39 @@
 {"id":"dialogue:guide.lesson.shop.tomorrow.1","text":"¿Qué vas a hacer mañana?","kind":"npc"}
 {"id":"dialogue:guide.lesson.shop.went.1","text":"¿Fuiste al río ayer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.shop.you.1","text":"Ayer fuiste al río.","kind":"npc"}
+{"id":"dialogue:guide.lesson.smith.ate.1","text":"¡Hola! Ayer trabajé todo el día. ¿Qué comieron Luz y Mar?","kind":"npc"}
 {"id":"dialogue:guide.lesson.smith.lives.1","text":"¿Dónde vives?","kind":"npc"}
+{"id":"dialogue:guide.lesson.smith.must.1","text":"Mar fue al río y te busca. ¿Adónde tienes que ir?","kind":"npc"}
 {"id":"dialogue:guide.lesson.take.1","text":"Toma una fruta.","kind":"npc"}
 {"id":"dialogue:guide.lesson.task.1","text":"Necesitas madera y frutas.","kind":"npc"}
+{"id":"dialogue:guide.lesson.villager.ate.1","text":"Por la tarde, Luz y Mar comieron pan en la plaza.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.axe.1","text":"Domingo te quiere hacer un hacha.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.be.1","text":"Tú y yo somos amigos.","kind":"npc"}
+{"id":"dialogue:guide.lesson.villager.day.1","text":"Ayer Luz hizo pan. Domingo trabajó en la herrería. Mar pescó en el río.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.eat.1","text":"Ellos van a comer pan.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.go.1","text":"Vamos a la tienda.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.goes.1","text":"Hoy vas a la tienda.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.house.1","text":"Domingo vive en una casa cerca de la herrería.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.luna.1","text":"¿Qué quiere Luna?","kind":"npc"}
+{"id":"dialogue:guide.lesson.villager.luz.1","text":"¿Qué hizo Luz ayer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.made.1","text":"¿Qué hizo Domingo?","kind":"npc"}
+{"id":"dialogue:guide.lesson.villager.mar.1","text":"¿Y qué hizo Mar?","kind":"npc"}
+{"id":"dialogue:guide.lesson.villager.morning.1","text":"Por la mañana, Luz y yo fuimos a la tienda.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.much.1","text":"Ayer Domingo trabajó mucho.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.need.1","text":"¿Qué necesitas ahora?","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.plan.1","text":"¿Qué vas a comer mañana?","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.plan_we.1","text":"¿Qué vamos a comer?","kind":"npc"}
+{"id":"dialogue:guide.lesson.villager.river.1","text":"¡Hola! ¿Fuiste al río ayer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.she.1","text":"Luna es la guía. Ella es mi amiga.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.sign.1","text":"El letrero dice: tienda, río, montaña.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.smith.1","text":"Mira, allí está Domingo. Es el herrero.","kind":"npc"}
+{"id":"dialogue:guide.lesson.villager.smith_waits.1","text":"Domingo te busca. Está en la herrería.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.they.1","text":"Ellos tienen pan.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.want.1","text":"¿Qué quieres?","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.we.1","text":"¿Qué necesitamos?","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.went_bakery.1","text":"¡Hola! ¿Fuiste a la panadería?","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.where.1","text":"Ella está en el campamento.","kind":"npc"}
+{"id":"dialogue:guide.lesson.villager.where_went.1","text":"¿Y Mar y tú? ¿Adónde fueron ayer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.who.1","text":"¿Quién es Domingo?","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.will_make.1","text":"¿Qué va a hacer Domingo?","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.works.1","text":"¿Dónde trabaja Domingo?","kind":"npc"}
@@ -296,7 +309,11 @@
 {"id":"prompts:lesson-like-bread","text":"¿Te gusta el pan?","kind":"npc"}
 {"id":"prompts:lesson-liked","text":"¿Te gustó el pan de Luz?","kind":"npc"}
 {"id":"prompts:lesson-lives","text":"¿Dónde vives?","kind":"npc"}
+{"id":"prompts:lesson-luz-bought","text":"¿Qué compró Luz ayer?","kind":"npc"}
+{"id":"prompts:lesson-luz-made","text":"¿Qué hizo Luz ayer?","kind":"npc"}
 {"id":"prompts:lesson-made","text":"¿Qué hizo Domingo?","kind":"npc"}
+{"id":"prompts:lesson-mar-fished","text":"¿Y qué hizo Mar?","kind":"npc"}
+{"id":"prompts:lesson-must-go","text":"Mar fue al río y te busca. ¿Adónde tienes que ir?","kind":"npc"}
 {"id":"prompts:lesson-name","text":"Me llamo Luna.","kind":"npc"}
 {"id":"prompts:lesson-need","text":"¿Qué necesitas?","kind":"npc"}
 {"id":"prompts:lesson-offer","text":"¿Quieres fruta?","kind":"npc"}
@@ -308,6 +325,7 @@
 {"id":"prompts:lesson-sign","text":"El letrero dice: tienda, río, montaña.","kind":"npc"}
 {"id":"prompts:lesson-task","text":"Necesitas madera y frutas.","kind":"npc"}
 {"id":"prompts:lesson-thanks","text":"¡Muy bien! Tienes una fruta.","kind":"npc"}
+{"id":"prompts:lesson-they-ate","text":"¡Hola! Ayer trabajé todo el día. ¿Qué comieron Luz y Mar?","kind":"npc"}
 {"id":"prompts:lesson-tomorrow","text":"¿Qué vas a hacer mañana?","kind":"npc"}
 {"id":"prompts:lesson-unstuck","text":"Mira. ¿Qué es esto?","kind":"npc"}
 {"id":"prompts:lesson-usted","text":"¿Qué necesita usted?","kind":"npc"}
@@ -316,6 +334,7 @@
 {"id":"prompts:lesson-water-plan","text":"Mis plantas necesitan agua. Si me traes agua del río, te doy tres manzanas. ¿Qué vas a hacer?","kind":"npc"}
 {"id":"prompts:lesson-water-went","text":"¿Fuiste al río?","kind":"npc"}
 {"id":"prompts:lesson-we","text":"¿Qué necesitamos?","kind":"npc"}
+{"id":"prompts:lesson-we-went","text":"¿Y Mar y tú? ¿Adónde fueron ayer?","kind":"npc"}
 {"id":"prompts:lesson-went","text":"¿Fuiste al río ayer?","kind":"npc"}
 {"id":"prompts:lesson-went-there","text":"¿Fuiste a la panadería?","kind":"npc"}
 {"id":"prompts:lesson-what","text":"Mira.","kind":"npc"}
@@ -593,6 +612,34 @@
 {"id":"answer-sets/lesson-lives:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/lesson-lives:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/lesson-lives:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-luz-bought:fish","text":"luz compró pescado","kind":"learner"}
+{"id":"answer-sets/lesson-luz-bought:fish.alias1","text":"compró pescado","kind":"learner"}
+{"id":"answer-sets/lesson-luz-bought:fish.alias2","text":"ella compró pescado","kind":"learner"}
+{"id":"answer-sets/lesson-luz-bought:fish.alias3","text":"ayer luz compró pescado","kind":"learner"}
+{"id":"answer-sets/lesson-luz-bought:fish.alias4","text":"luz compró pescado ayer","kind":"learner"}
+{"id":"answer-sets/lesson-luz-bought:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-luz-bought:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-luz-bought:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-luz-bought:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-luz-bought:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-luz-bought:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-luz-bought:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-luz-bought:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-luz-bought:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-luz-made:bread","text":"luz hizo pan","kind":"learner"}
+{"id":"answer-sets/lesson-luz-made:bread.alias1","text":"ayer luz hizo pan","kind":"learner"}
+{"id":"answer-sets/lesson-luz-made:bread.alias2","text":"hizo pan","kind":"learner"}
+{"id":"answer-sets/lesson-luz-made:bread.alias3","text":"ella hizo pan","kind":"learner"}
+{"id":"answer-sets/lesson-luz-made:bread.alias4","text":"luz hizo pan ayer","kind":"learner"}
+{"id":"answer-sets/lesson-luz-made:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-luz-made:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-luz-made:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-luz-made:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-luz-made:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-luz-made:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-luz-made:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-luz-made:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-luz-made:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-made:axe","text":"domingo hizo un hacha","kind":"learner"}
 {"id":"answer-sets/lesson-made:axe.alias1","text":"hizo un hacha","kind":"learner"}
 {"id":"answer-sets/lesson-made:axe.alias2","text":"él hizo un hacha","kind":"learner"}
@@ -607,6 +654,34 @@
 {"id":"answer-sets/lesson-made:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/lesson-made:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/lesson-made:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-mar-fished:river","text":"mar pescó en el río","kind":"learner"}
+{"id":"answer-sets/lesson-mar-fished:river.alias1","text":"pescó en el río","kind":"learner"}
+{"id":"answer-sets/lesson-mar-fished:river.alias2","text":"él pescó en el río","kind":"learner"}
+{"id":"answer-sets/lesson-mar-fished:river.alias3","text":"ayer mar pescó en el río","kind":"learner"}
+{"id":"answer-sets/lesson-mar-fished:river.alias4","text":"mar pescó en el río ayer","kind":"learner"}
+{"id":"answer-sets/lesson-mar-fished:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-mar-fished:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-mar-fished:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-mar-fished:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-mar-fished:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-mar-fished:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-mar-fished:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-mar-fished:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-mar-fished:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-must-go:river","text":"tengo que ir al río","kind":"learner"}
+{"id":"answer-sets/lesson-must-go:river.alias1","text":"yo tengo que ir al río","kind":"learner"}
+{"id":"answer-sets/lesson-must-go:river.alias2","text":"sí tengo que ir al río","kind":"learner"}
+{"id":"answer-sets/lesson-must-go:river.alias3","text":"hoy tengo que ir al río","kind":"learner"}
+{"id":"answer-sets/lesson-must-go:river.alias4","text":"tengo que ir al río hoy","kind":"learner"}
+{"id":"answer-sets/lesson-must-go:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-must-go:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-must-go:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-must-go:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-must-go:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-must-go:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-must-go:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-must-go:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-must-go:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-need:need","text":"necesito agua","kind":"learner"}
 {"id":"answer-sets/lesson-need:need.alias1","text":"necesito agua por favor","kind":"learner"}
 {"id":"answer-sets/lesson-need:need.alias2","text":"yo necesito agua","kind":"learner"}
@@ -750,6 +825,20 @@
 {"id":"answer-sets/lesson-thanks:slower.alias5","text":"despacio","kind":"learner"}
 {"id":"answer-sets/lesson-thanks:slower.alias6","text":"más lento","kind":"learner"}
 {"id":"answer-sets/lesson-thanks:slower.alias7","text":"más lento por favor","kind":"learner"}
+{"id":"answer-sets/lesson-they-ate:bread","text":"ellos comieron pan","kind":"learner"}
+{"id":"answer-sets/lesson-they-ate:bread.alias1","text":"comieron pan","kind":"learner"}
+{"id":"answer-sets/lesson-they-ate:bread.alias2","text":"luz y mar comieron pan","kind":"learner"}
+{"id":"answer-sets/lesson-they-ate:bread.alias3","text":"ayer comieron pan","kind":"learner"}
+{"id":"answer-sets/lesson-they-ate:bread.alias4","text":"ellos comieron pan ayer","kind":"learner"}
+{"id":"answer-sets/lesson-they-ate:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-they-ate:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-they-ate:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-they-ate:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-they-ate:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-they-ate:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-they-ate:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-they-ate:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-they-ate:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-tomorrow:plan","text":"mañana voy a ir al río","kind":"learner"}
 {"id":"answer-sets/lesson-tomorrow:plan.alias1","text":"voy a ir al río","kind":"learner"}
 {"id":"answer-sets/lesson-tomorrow:plan.alias2","text":"yo voy a ir al río","kind":"learner"}
@@ -893,6 +982,20 @@
 {"id":"answer-sets/lesson-we:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/lesson-we:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/lesson-we:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-we-went:river","text":"fuimos al río","kind":"learner"}
+{"id":"answer-sets/lesson-we-went:river.alias1","text":"nosotros fuimos al río","kind":"learner"}
+{"id":"answer-sets/lesson-we-went:river.alias2","text":"ayer fuimos al río","kind":"learner"}
+{"id":"answer-sets/lesson-we-went:river.alias3","text":"fuimos al río ayer","kind":"learner"}
+{"id":"answer-sets/lesson-we-went:river.alias4","text":"sí fuimos al río","kind":"learner"}
+{"id":"answer-sets/lesson-we-went:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-we-went:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-we-went:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-we-went:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-we-went:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-we-went:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-we-went:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-we-went:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-we-went:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-went:went","text":"ayer fui al río","kind":"learner"}
 {"id":"answer-sets/lesson-went:went.alias1","text":"fui al río","kind":"learner"}
 {"id":"answer-sets/lesson-went:went.alias2","text":"sí, fui al río","kind":"learner"}
@@ -1171,6 +1274,17 @@
 {"id":"answer-sets/people-smith:bye.alias1","text":"hasta luego","kind":"learner"}
 {"id":"answer-sets/people-smith:bye.alias2","text":"nos vemos","kind":"learner"}
 {"id":"answer-sets/people-smith:bye.alias3","text":"hasta mañana","kind":"learner"}
+{"id":"answer-sets/people-smith:need","text":"necesito un hacha","kind":"learner"}
+{"id":"answer-sets/people-smith:need.alias1","text":"quiero un hacha","kind":"learner"}
+{"id":"answer-sets/people-smith:need.alias2","text":"necesito un hacha por favor","kind":"learner"}
+{"id":"answer-sets/people-smith:day","text":"domingo hizo un hacha","kind":"learner"}
+{"id":"answer-sets/people-smith:day.alias1","text":"hizo un hacha","kind":"learner"}
+{"id":"answer-sets/people-smith:day.alias2","text":"domingo trabaja en la herrería","kind":"learner"}
+{"id":"answer-sets/people-smith:day.alias3","text":"trabaja en la herrería","kind":"learner"}
+{"id":"answer-sets/people-smith:day.alias4","text":"luz hizo pan","kind":"learner"}
+{"id":"answer-sets/people-smith:day.alias5","text":"mar pescó en el río","kind":"learner"}
+{"id":"answer-sets/people-smith:day.alias6","text":"fuimos al río","kind":"learner"}
+{"id":"answer-sets/people-smith:day.alias7","text":"ellos comieron pan","kind":"learner"}
 {"id":"answer-sets/people-smith:help","text":"ayuda","kind":"learner"}
 {"id":"answer-sets/people-smith:help.alias1","text":"ayuda por favor","kind":"learner"}
 {"id":"answer-sets/people-smith:help.alias2","text":"necesito ayuda","kind":"learner"}
@@ -1267,6 +1381,12 @@
 {"id":"answer-sets/places-village:bye.alias1","text":"hasta luego","kind":"learner"}
 {"id":"answer-sets/places-village:bye.alias2","text":"nos vemos","kind":"learner"}
 {"id":"answer-sets/places-village:bye.alias3","text":"hasta mañana","kind":"learner"}
+{"id":"answer-sets/places-village:day","text":"mar pescó en el río","kind":"learner"}
+{"id":"answer-sets/places-village:day.alias1","text":"pescó en el río","kind":"learner"}
+{"id":"answer-sets/places-village:day.alias2","text":"luz compró pescado","kind":"learner"}
+{"id":"answer-sets/places-village:day.alias3","text":"luz hizo pan","kind":"learner"}
+{"id":"answer-sets/places-village:day.alias4","text":"fuimos al río","kind":"learner"}
+{"id":"answer-sets/places-village:day.alias5","text":"domingo hizo un hacha","kind":"learner"}
 {"id":"answer-sets/places-village:help","text":"ayuda","kind":"learner"}
 {"id":"answer-sets/places-village:help.alias1","text":"ayuda por favor","kind":"learner"}
 {"id":"answer-sets/places-village:help.alias2","text":"necesito ayuda","kind":"learner"}
@@ -1436,19 +1556,22 @@
 {"id":"intents:ask_directions.ex12","text":"dónde queda la herrería","kind":"learner","errors":[]}
 {"id":"intents:ask_directions.ex13","text":"busco la herrería","kind":"learner","errors":[]}
 {"id":"intents:ask_directions.ex14","text":"dónde está el herrería","kind":"learner","errors":["gender.agree"]}
-{"id":"intents:ask_directions.ex15","text":"dónde está el árbol","kind":"learner","errors":[]}
-{"id":"intents:ask_directions.ex16","text":"dónde está la piedra","kind":"learner","errors":[]}
-{"id":"intents:ask_directions.ex17","text":"busco la hierba","kind":"learner","errors":[]}
-{"id":"intents:ask_directions.ex18","text":"quiero encontrar tierra","kind":"learner","errors":[]}
-{"id":"intents:ask_far.ex0","text":"está lejos","kind":"learner","errors":[]}
-{"id":"intents:ask_far.ex1","text":"está muy lejos","kind":"learner","errors":[]}
-{"id":"intents:ask_far.ex2","text":"queda lejos","kind":"learner","errors":[]}
-{"id":"intents:ask_far.ex3","text":"está cerca","kind":"learner","errors":[]}
-{"id":"intents:ask_far.ex4","text":"está lejos la herrería","kind":"learner","errors":[]}
-{"id":"intents:ask_far.ex5","text":"está lejos el herrería","kind":"learner","errors":["gender.agree"]}
-{"id":"intents:ask_far.ex6","text":"está lejos la panadería","kind":"learner","errors":[]}
-{"id":"intents:ask_far.ex7","text":"está cerca el río","kind":"learner","errors":[]}
-{"id":"intents:ask_far.ex8","text":"queda muy cerca","kind":"learner","errors":[]}
+{"id":"intents:ask_directions.ex15","text":"dónde están la herrería","kind":"learner","errors":["conj.person"]}
+{"id":"intents:ask_directions.ex16","text":"dónde está el árbol","kind":"learner","errors":[]}
+{"id":"intents:ask_directions.ex17","text":"dónde está la piedra","kind":"learner","errors":[]}
+{"id":"intents:ask_directions.ex18","text":"busco la hierba","kind":"learner","errors":[]}
+{"id":"intents:ask_directions.ex19","text":"quiero encontrar tierra","kind":"learner","errors":[]}
+{"id":"intents:ask_far.ex0","text":"es lejos","kind":"learner","errors":["ser_estar"]}
+{"id":"intents:ask_far.ex1","text":"es muy lejos","kind":"learner","errors":["ser_estar"]}
+{"id":"intents:ask_far.ex2","text":"está lejos","kind":"learner","errors":[]}
+{"id":"intents:ask_far.ex3","text":"está muy lejos","kind":"learner","errors":[]}
+{"id":"intents:ask_far.ex4","text":"queda lejos","kind":"learner","errors":[]}
+{"id":"intents:ask_far.ex5","text":"está cerca","kind":"learner","errors":[]}
+{"id":"intents:ask_far.ex6","text":"está lejos la herrería","kind":"learner","errors":[]}
+{"id":"intents:ask_far.ex7","text":"está lejos el herrería","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:ask_far.ex8","text":"está lejos la panadería","kind":"learner","errors":[]}
+{"id":"intents:ask_far.ex9","text":"está cerca el río","kind":"learner","errors":[]}
+{"id":"intents:ask_far.ex10","text":"queda muy cerca","kind":"learner","errors":[]}
 {"id":"intents:ask_find.ex0","text":"dónde hay arena","kind":"learner","errors":[]}
 {"id":"intents:ask_find.ex1","text":"dónde encuentro madera","kind":"learner","errors":[]}
 {"id":"intents:ask_find.ex2","text":"de dónde sale la madera","kind":"learner","errors":[]}
@@ -1466,8 +1589,9 @@
 {"id":"intents:ask_name.ex1","text":"cómo te llamas tú","kind":"learner","errors":[]}
 {"id":"intents:ask_name.ex2","text":"cómo se llama usted","kind":"learner","errors":[]}
 {"id":"intents:ask_name.ex3","text":"cómo tú te llama","kind":"learner","errors":["conj.person"]}
-{"id":"intents:ask_name.ex4","text":"cómo se llama él","kind":"learner","errors":[]}
-{"id":"intents:ask_name.ex5","text":"cómo se llama ella","kind":"learner","errors":[]}
+{"id":"intents:ask_name.ex4","text":"cómo te llama","kind":"learner","errors":["conj.person"]}
+{"id":"intents:ask_name.ex5","text":"cómo se llama él","kind":"learner","errors":[]}
+{"id":"intents:ask_name.ex6","text":"cómo se llama ella","kind":"learner","errors":[]}
 {"id":"intents:ask_price.ex0","text":"cuánto cuesta","kind":"learner","errors":[]}
 {"id":"intents:ask_price.ex1","text":"cuánto cuesta el pan","kind":"learner","errors":[]}
 {"id":"intents:ask_price.ex2","text":"cuánto es","kind":"learner","errors":[]}
@@ -1475,9 +1599,10 @@
 {"id":"intents:ask_price.ex4","text":"cuánto cuestan los panes","kind":"learner","errors":[]}
 {"id":"intents:ask_price.ex5","text":"cuánto cuestan dos panes","kind":"learner","errors":[]}
 {"id":"intents:ask_price.ex6","text":"cuánto costan los panes","kind":"learner","errors":["conj.irregular"]}
-{"id":"intents:ask_price.ex7","text":"cuánto cuesta la pan","kind":"learner","errors":["gender.agree"]}
-{"id":"intents:ask_price.ex8","text":"cuánto cuesta el agua","kind":"learner","errors":[]}
-{"id":"intents:ask_price.ex9","text":"cuánto cuesta una manzana","kind":"learner","errors":[]}
+{"id":"intents:ask_price.ex7","text":"cuánto cuestan el pan","kind":"learner","errors":["conj.person"]}
+{"id":"intents:ask_price.ex8","text":"cuánto cuesta la pan","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:ask_price.ex9","text":"cuánto cuesta el agua","kind":"learner","errors":[]}
+{"id":"intents:ask_price.ex10","text":"cuánto cuesta una manzana","kind":"learner","errors":[]}
 {"id":"intents:ask_repeat.ex0","text":"otra vez, por favor","kind":"learner","errors":[]}
 {"id":"intents:ask_repeat.ex1","text":"otra vez","kind":"learner","errors":[]}
 {"id":"intents:ask_repeat.ex2","text":"repite, por favor","kind":"learner","errors":[]}
@@ -1523,14 +1648,15 @@
 {"id":"intents:describe.ex3","text":"la manzana es roja y grande","kind":"learner","errors":[]}
 {"id":"intents:describe.ex4","text":"la manzana es muy roja","kind":"learner","errors":[]}
 {"id":"intents:describe.ex5","text":"el manzana es roja","kind":"learner","errors":["gender.agree"]}
-{"id":"intents:describe.ex6","text":"es grande","kind":"learner","errors":[]}
-{"id":"intents:describe.ex7","text":"el pan es grande","kind":"learner","errors":[]}
-{"id":"intents:describe.ex8","text":"sí, es grande","kind":"learner","errors":[]}
-{"id":"intents:describe.ex9","text":"es muy grande","kind":"learner","errors":[]}
-{"id":"intents:describe.ex10","text":"la pan es grande","kind":"learner","errors":["gender.agree"]}
-{"id":"intents:describe.ex11","text":"esto es grande","kind":"learner","errors":[]}
-{"id":"intents:describe.ex12","text":"el campo es grande","kind":"learner","errors":[]}
-{"id":"intents:describe.ex13","text":"el pozo es pequeño","kind":"learner","errors":[]}
+{"id":"intents:describe.ex6","text":"la manzana son roja","kind":"learner","errors":["conj.person"]}
+{"id":"intents:describe.ex7","text":"es grande","kind":"learner","errors":[]}
+{"id":"intents:describe.ex8","text":"el pan es grande","kind":"learner","errors":[]}
+{"id":"intents:describe.ex9","text":"sí, es grande","kind":"learner","errors":[]}
+{"id":"intents:describe.ex10","text":"es muy grande","kind":"learner","errors":[]}
+{"id":"intents:describe.ex11","text":"la pan es grande","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:describe.ex12","text":"esto es grande","kind":"learner","errors":[]}
+{"id":"intents:describe.ex13","text":"el campo es grande","kind":"learner","errors":[]}
+{"id":"intents:describe.ex14","text":"el pozo es pequeño","kind":"learner","errors":[]}
 {"id":"intents:dont_know.ex0","text":"no sé","kind":"learner","errors":[]}
 {"id":"intents:dont_know.ex1","text":"no lo sé","kind":"learner","errors":[]}
 {"id":"intents:dont_know.ex2","text":"yo no sé","kind":"learner","errors":[]}
@@ -1730,10 +1856,45 @@
 {"id":"intents:state_action.ex132","text":"voy a busco agua","kind":"learner","errors":["conj.tense"]}
 {"id":"intents:state_action.ex133","text":"yo vas a buscar agua","kind":"learner","errors":["conj.person"]}
 {"id":"intents:state_action.ex134","text":"hoy fui al río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex135","text":"busqué madera","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex136","text":"león trabaja en el campo","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex137","text":"luz vive en la panadería","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex138","text":"mar va a trabajar en el río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex135","text":"luz hizo pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex136","text":"ayer luz hizo pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex137","text":"hizo pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex138","text":"ella hizo pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex139","text":"luz hizo pan ayer","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex140","text":"ayer luz hace pan","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex141","text":"ella hice pan","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex142","text":"mar pescó en el río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex143","text":"pescó en el río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex144","text":"él pescó en el río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex145","text":"ayer mar pescó en el río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex146","text":"mar pescó en el río ayer","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex147","text":"ayer mar pesca en el río","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex148","text":"él pesqué en el río","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex149","text":"fuimos al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex150","text":"nosotros fuimos al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex151","text":"ayer fuimos al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex152","text":"fuimos al río ayer","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex153","text":"sí, fuimos al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex154","text":"nosotros fue al río","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex155","text":"ayer vamos al río","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex156","text":"ellos comieron pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex157","text":"comieron pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex158","text":"luz y mar comieron pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex159","text":"ayer comieron pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex160","text":"ellos comieron pan ayer","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex161","text":"ellos comió pan","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex162","text":"luz y mar comió pan","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex163","text":"luz compró pescado","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex164","text":"compró pescado","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex165","text":"ella compró pescado","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex166","text":"ayer luz compró pescado","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex167","text":"luz compró pescado ayer","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex168","text":"ayer luz compra pescado","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex169","text":"ella compré pescado","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex170","text":"busqué madera","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex171","text":"león trabaja en el campo","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex172","text":"luz vive en la panadería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex173","text":"mar va a trabajar en el río","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex0","text":"tengo una fruta","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex1","text":"sí, tengo una fruta","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex2","text":"sí, yo tengo una fruta","kind":"learner","errors":[]}
@@ -1764,20 +1925,34 @@
 {"id":"intents:state_like.ex3","text":"me gusta mucho el pan","kind":"learner","errors":[]}
 {"id":"intents:state_like.ex4","text":"sí, me gusta mucho","kind":"learner","errors":[]}
 {"id":"intents:state_like.ex5","text":"me gusta la pan","kind":"learner","errors":["gender.agree"]}
-{"id":"intents:state_like.ex6","text":"sí, me gustan las manzanas","kind":"learner","errors":[]}
-{"id":"intents:state_like.ex7","text":"me gustan las manzanas","kind":"learner","errors":[]}
-{"id":"intents:state_like.ex8","text":"sí, me gustan","kind":"learner","errors":[]}
-{"id":"intents:state_like.ex9","text":"me gustan mucho las manzanas","kind":"learner","errors":[]}
-{"id":"intents:state_like.ex10","text":"me gustan los manzanas","kind":"learner","errors":["gender.agree"]}
-{"id":"intents:state_like.ex11","text":"me gustó el pan de luz","kind":"learner","errors":[]}
-{"id":"intents:state_like.ex12","text":"sí, me gustó el pan de luz","kind":"learner","errors":[]}
-{"id":"intents:state_like.ex13","text":"me gustó el pan","kind":"learner","errors":[]}
-{"id":"intents:state_like.ex14","text":"sí, me gustó","kind":"learner","errors":[]}
-{"id":"intents:state_like.ex15","text":"me gustó mucho el pan","kind":"learner","errors":[]}
-{"id":"intents:state_like.ex16","text":"ayer me gustó el pan","kind":"learner","errors":[]}
-{"id":"intents:state_like.ex17","text":"ayer me gusta el pan","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_like.ex18","text":"no me gusta el pan","kind":"learner","errors":[]}
-{"id":"intents:state_like.ex19","text":"me gustan las frutas","kind":"learner","errors":[]}
+{"id":"intents:state_like.ex6","text":"me gustan el pan","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_like.ex7","text":"sí, me gustan las manzanas","kind":"learner","errors":[]}
+{"id":"intents:state_like.ex8","text":"me gustan las manzanas","kind":"learner","errors":[]}
+{"id":"intents:state_like.ex9","text":"sí, me gustan","kind":"learner","errors":[]}
+{"id":"intents:state_like.ex10","text":"me gustan mucho las manzanas","kind":"learner","errors":[]}
+{"id":"intents:state_like.ex11","text":"me gustan los manzanas","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:state_like.ex12","text":"me gusta las manzanas","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_like.ex13","text":"me gustó el pan de luz","kind":"learner","errors":[]}
+{"id":"intents:state_like.ex14","text":"sí, me gustó el pan de luz","kind":"learner","errors":[]}
+{"id":"intents:state_like.ex15","text":"me gustó el pan","kind":"learner","errors":[]}
+{"id":"intents:state_like.ex16","text":"sí, me gustó","kind":"learner","errors":[]}
+{"id":"intents:state_like.ex17","text":"me gustó mucho el pan","kind":"learner","errors":[]}
+{"id":"intents:state_like.ex18","text":"ayer me gustó el pan","kind":"learner","errors":[]}
+{"id":"intents:state_like.ex19","text":"ayer me gusta el pan","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_like.ex20","text":"no me gusta el pan","kind":"learner","errors":[]}
+{"id":"intents:state_like.ex21","text":"me gustan las frutas","kind":"learner","errors":[]}
+{"id":"intents:state_obligation.ex0","text":"tengo que ir al río","kind":"learner","errors":[]}
+{"id":"intents:state_obligation.ex1","text":"yo tengo que ir al río","kind":"learner","errors":[]}
+{"id":"intents:state_obligation.ex2","text":"sí, tengo que ir al río","kind":"learner","errors":[]}
+{"id":"intents:state_obligation.ex3","text":"hoy tengo que ir al río","kind":"learner","errors":[]}
+{"id":"intents:state_obligation.ex4","text":"tengo que ir al río hoy","kind":"learner","errors":[]}
+{"id":"intents:state_obligation.ex5","text":"yo tiene que ir al río","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_obligation.ex6","text":"yo tienes que ir al río","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_obligation.ex7","text":"tengo que ir a la panadería","kind":"learner","errors":[]}
+{"id":"intents:state_obligation.ex8","text":"mañana tengo que ir a la herrería","kind":"learner","errors":[]}
+{"id":"intents:state_obligation.ex9","text":"tengo que comprar pan","kind":"learner","errors":[]}
+{"id":"intents:state_obligation.ex10","text":"tengo que buscar madera","kind":"learner","errors":[]}
+{"id":"intents:state_obligation.ex11","text":"tienes que ir al río","kind":"learner","errors":[]}
 {"id":"intents:state_want.ex0","text":"ella quiere fruta","kind":"learner","errors":[]}
 {"id":"intents:state_want.ex1","text":"luna quiere fruta","kind":"learner","errors":[]}
 {"id":"intents:state_want.ex2","text":"ella quiere frutas","kind":"learner","errors":[]}
@@ -2022,12 +2197,12 @@
 {"id":"PHRASES.md:donde-esta-la-herreria.variant1","text":"dónde está la herrería, por favor","kind":"learner"}
 {"id":"PHRASES.md:donde-esta-la-herreria.variant2","text":"dónde queda la herrería","kind":"learner"}
 {"id":"PHRASES.md:donde-esta-la-herreria.variant3","text":"busco la herrería","kind":"learner"}
-{"id":"PHRASES.md:donde-esta-la-herreria.error","text":"dónde está el herrería","kind":"learner","errors":["gender.agree"]}
+{"id":"PHRASES.md:donde-esta-la-herreria.error","text":"dónde están la herrería","kind":"learner","errors":["conj.person"]}
 {"id":"PHRASES.md:esta-lejos.text","text":"¿Está lejos?","kind":"learner"}
 {"id":"PHRASES.md:esta-lejos.variant1","text":"está muy lejos","kind":"learner"}
 {"id":"PHRASES.md:esta-lejos.variant2","text":"queda lejos","kind":"learner"}
 {"id":"PHRASES.md:esta-lejos.variant3","text":"está lejos la herrería","kind":"learner"}
-{"id":"PHRASES.md:esta-lejos.error","text":"está lejos el herrería","kind":"learner","errors":["gender.agree"]}
+{"id":"PHRASES.md:esta-lejos.error","text":"es lejos","kind":"learner","errors":["ser_estar"]}
 {"id":"PHRASES.md:esta-cerca.text","text":"No, está cerca. La montaña está lejos.","kind":"npc"}
 {"id":"PHRASES.md:hay-tres-casas.text","text":"En el pueblo hay una tienda, una panadería y tres casas.","kind":"npc"}
 {"id":"PHRASES.md:hay-un-pozo.text","text":"¿Hay un pozo en el pueblo?","kind":"learner"}
@@ -2070,7 +2245,7 @@
 {"id":"PHRASES.md:cuanto-cuesta.variant2","text":"¿cuánto es?","kind":"learner"}
 {"id":"PHRASES.md:cuanto-cuesta.variant3","text":"¿qué precio tiene el pan?","kind":"learner"}
 {"id":"PHRASES.md:cuanto-cuesta.variant4","text":"¿cuánto cuestan los panes?","kind":"learner"}
-{"id":"PHRASES.md:cuanto-cuesta.error","text":"cuánto costan los panes","kind":"learner","errors":["conj.irregular"]}
+{"id":"PHRASES.md:cuanto-cuesta.error","text":"cuánto cuestan el pan","kind":"learner","errors":["conj.person"]}
 {"id":"PHRASES.md:cuesta-dos-monedas.text","text":"El pan cuesta dos monedas.","kind":"npc"}
 {"id":"PHRASES.md:necesito-madera-para-el-horno.text","text":"Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer?","kind":"npc"}
 {"id":"PHRASES.md:voy-a-buscar-madera.text","text":"Voy a buscar madera.","kind":"learner"}
@@ -2098,7 +2273,7 @@
 {"id":"PHRASES.md:hay-pan.error","text":"hay dos pan","kind":"learner","errors":["noun.number"]}
 {"id":"PHRASES.md:como-te-llamas.text","text":"¿Cómo te llamas?","kind":"learner"}
 {"id":"PHRASES.md:como-te-llamas.variant1","text":"¿cómo te llamas tú?","kind":"learner"}
-{"id":"PHRASES.md:como-te-llamas.error","text":"cómo tú te llama","kind":"learner","errors":["conj.person"]}
+{"id":"PHRASES.md:como-te-llamas.error","text":"cómo te llama","kind":"learner","errors":["conj.person"]}
 {"id":"PHRASES.md:me-llamo-domingo.text","text":"Me llamo Domingo.","kind":"npc"}
 {"id":"PHRASES.md:que-haces.text","text":"¿Qué haces?","kind":"learner"}
 {"id":"PHRASES.md:que-haces.variant1","text":"¿qué haces tú?","kind":"learner"}
@@ -2140,19 +2315,19 @@
 {"id":"PHRASES.md:la-manzana-es-roja.variant2","text":"sí, es roja","kind":"learner"}
 {"id":"PHRASES.md:la-manzana-es-roja.variant3","text":"la manzana es roja y grande","kind":"learner"}
 {"id":"PHRASES.md:la-manzana-es-roja.variant4","text":"la manzana es muy roja","kind":"learner"}
-{"id":"PHRASES.md:la-manzana-es-roja.error","text":"el manzana es roja","kind":"learner","errors":["gender.agree"]}
+{"id":"PHRASES.md:la-manzana-es-roja.error","text":"la manzana son roja","kind":"learner","errors":["conj.person"]}
 {"id":"PHRASES.md:te-gusta-el-pan.text","text":"¿Te gusta el pan?","kind":"npc"}
 {"id":"PHRASES.md:me-gusta-el-pan.text","text":"Sí, me gusta el pan.","kind":"learner"}
 {"id":"PHRASES.md:me-gusta-el-pan.variant1","text":"me gusta el pan","kind":"learner"}
 {"id":"PHRASES.md:me-gusta-el-pan.variant2","text":"sí, me gusta","kind":"learner"}
 {"id":"PHRASES.md:me-gusta-el-pan.variant3","text":"me gusta mucho el pan","kind":"learner"}
 {"id":"PHRASES.md:me-gusta-el-pan.variant4","text":"sí, me gusta mucho","kind":"learner"}
-{"id":"PHRASES.md:me-gusta-el-pan.error","text":"me gusta la pan","kind":"learner","errors":["gender.agree"]}
+{"id":"PHRASES.md:me-gusta-el-pan.error","text":"me gustan el pan","kind":"learner","errors":["conj.person"]}
 {"id":"PHRASES.md:me-gustan-las-manzanas.text","text":"Sí, me gustan las manzanas.","kind":"learner"}
 {"id":"PHRASES.md:me-gustan-las-manzanas.variant1","text":"me gustan las manzanas","kind":"learner"}
 {"id":"PHRASES.md:me-gustan-las-manzanas.variant2","text":"sí, me gustan","kind":"learner"}
 {"id":"PHRASES.md:me-gustan-las-manzanas.variant3","text":"me gustan mucho las manzanas","kind":"learner"}
-{"id":"PHRASES.md:me-gustan-las-manzanas.error","text":"me gustan los manzanas","kind":"learner","errors":["gender.agree"]}
+{"id":"PHRASES.md:me-gustan-las-manzanas.error","text":"me gusta las manzanas","kind":"learner","errors":["conj.person"]}
 {"id":"PHRASES.md:quiero-tres-manzanas-rojas.text","text":"Quiero tres manzanas rojas.","kind":"learner"}
 {"id":"PHRASES.md:quiero-tres-manzanas-rojas.variant1","text":"quiero tres manzanas","kind":"learner"}
 {"id":"PHRASES.md:quiero-tres-manzanas-rojas.variant2","text":"quiero tres manzanas rojas, por favor","kind":"learner"}
@@ -2188,6 +2363,52 @@
 {"id":"PHRASES.md:me-gusto-el-pan.variant4","text":"me gustó mucho el pan","kind":"learner"}
 {"id":"PHRASES.md:me-gusto-el-pan.variant5","text":"ayer me gustó el pan","kind":"learner"}
 {"id":"PHRASES.md:me-gusto-el-pan.error","text":"ayer me gusta el pan","kind":"learner","errors":["conj.tense"]}
+{"id":"PHRASES.md:el-dia-de-ayer.text","text":"Ayer Luz hizo pan. Domingo trabajó en la herrería. Mar pescó en el río.","kind":"npc"}
+{"id":"PHRASES.md:que-hizo-luz.text","text":"¿Qué hizo Luz ayer?","kind":"npc"}
+{"id":"PHRASES.md:luz-hizo-pan.text","text":"Luz hizo pan.","kind":"learner"}
+{"id":"PHRASES.md:luz-hizo-pan.variant1","text":"ayer Luz hizo pan","kind":"learner"}
+{"id":"PHRASES.md:luz-hizo-pan.variant2","text":"hizo pan","kind":"learner"}
+{"id":"PHRASES.md:luz-hizo-pan.variant3","text":"ella hizo pan","kind":"learner"}
+{"id":"PHRASES.md:luz-hizo-pan.variant4","text":"Luz hizo pan ayer","kind":"learner"}
+{"id":"PHRASES.md:luz-hizo-pan.error","text":"ayer Luz hace pan","kind":"learner","errors":["conj.tense"]}
+{"id":"PHRASES.md:que-hizo-mar.text","text":"¿Y qué hizo Mar?","kind":"npc"}
+{"id":"PHRASES.md:mar-pesco-en-el-rio.text","text":"Mar pescó en el río.","kind":"learner"}
+{"id":"PHRASES.md:mar-pesco-en-el-rio.variant1","text":"pescó en el río","kind":"learner"}
+{"id":"PHRASES.md:mar-pesco-en-el-rio.variant2","text":"él pescó en el río","kind":"learner"}
+{"id":"PHRASES.md:mar-pesco-en-el-rio.variant3","text":"ayer Mar pescó en el río","kind":"learner"}
+{"id":"PHRASES.md:mar-pesco-en-el-rio.variant4","text":"Mar pescó en el río ayer","kind":"learner"}
+{"id":"PHRASES.md:mar-pesco-en-el-rio.error","text":"ayer Mar pesca en el río","kind":"learner","errors":["conj.tense"]}
+{"id":"PHRASES.md:comieron-en-la-plaza.text","text":"Por la tarde, Luz y Mar comieron pan en la plaza.","kind":"npc"}
+{"id":"PHRASES.md:fuimos-a-la-tienda.text","text":"Por la mañana, Luz y yo fuimos a la tienda.","kind":"npc"}
+{"id":"PHRASES.md:adonde-fueron.text","text":"¿Y Mar y tú? ¿Adónde fueron ayer?","kind":"npc"}
+{"id":"PHRASES.md:fuimos-al-rio.text","text":"Fuimos al río.","kind":"learner"}
+{"id":"PHRASES.md:fuimos-al-rio.variant1","text":"nosotros fuimos al río","kind":"learner"}
+{"id":"PHRASES.md:fuimos-al-rio.variant2","text":"ayer fuimos al río","kind":"learner"}
+{"id":"PHRASES.md:fuimos-al-rio.variant3","text":"fuimos al río ayer","kind":"learner"}
+{"id":"PHRASES.md:fuimos-al-rio.variant4","text":"sí, fuimos al río","kind":"learner"}
+{"id":"PHRASES.md:fuimos-al-rio.error","text":"nosotros fue al río","kind":"learner","errors":["conj.person"]}
+{"id":"PHRASES.md:que-comieron.text","text":"¡Hola! Ayer trabajé todo el día. ¿Qué comieron Luz y Mar?","kind":"npc"}
+{"id":"PHRASES.md:ellos-comieron-pan.text","text":"Ellos comieron pan.","kind":"learner"}
+{"id":"PHRASES.md:ellos-comieron-pan.variant1","text":"comieron pan","kind":"learner"}
+{"id":"PHRASES.md:ellos-comieron-pan.variant2","text":"Luz y Mar comieron pan","kind":"learner"}
+{"id":"PHRASES.md:ellos-comieron-pan.variant3","text":"ayer comieron pan","kind":"learner"}
+{"id":"PHRASES.md:ellos-comieron-pan.variant4","text":"ellos comieron pan ayer","kind":"learner"}
+{"id":"PHRASES.md:ellos-comieron-pan.error","text":"ellos comió pan","kind":"learner","errors":["conj.person"]}
+{"id":"PHRASES.md:adonde-tienes-que-ir.text","text":"Mar fue al río y te busca. ¿Adónde tienes que ir?","kind":"npc"}
+{"id":"PHRASES.md:tengo-que-ir.text","text":"Tengo que ir al río.","kind":"learner"}
+{"id":"PHRASES.md:tengo-que-ir.variant1","text":"yo tengo que ir al río","kind":"learner"}
+{"id":"PHRASES.md:tengo-que-ir.variant2","text":"sí, tengo que ir al río","kind":"learner"}
+{"id":"PHRASES.md:tengo-que-ir.variant3","text":"hoy tengo que ir al río","kind":"learner"}
+{"id":"PHRASES.md:tengo-que-ir.variant4","text":"tengo que ir al río hoy","kind":"learner"}
+{"id":"PHRASES.md:tengo-que-ir.error","text":"yo tiene que ir al río","kind":"learner","errors":["conj.person"]}
+{"id":"PHRASES.md:le-vendi-pescado.text","text":"¡Hola! Ayer le vendí pescado a Luz. Mañana va a comprar más.","kind":"npc"}
+{"id":"PHRASES.md:que-compro-luz.text","text":"¿Qué compró Luz ayer?","kind":"npc"}
+{"id":"PHRASES.md:luz-compro-pescado.text","text":"Luz compró pescado.","kind":"learner"}
+{"id":"PHRASES.md:luz-compro-pescado.variant1","text":"compró pescado","kind":"learner"}
+{"id":"PHRASES.md:luz-compro-pescado.variant2","text":"ella compró pescado","kind":"learner"}
+{"id":"PHRASES.md:luz-compro-pescado.variant3","text":"ayer Luz compró pescado","kind":"learner"}
+{"id":"PHRASES.md:luz-compro-pescado.variant4","text":"Luz compró pescado ayer","kind":"learner"}
+{"id":"PHRASES.md:luz-compro-pescado.error","text":"ayer Luz compra pescado","kind":"learner","errors":["conj.tense"]}
 {"id":"checks.json:hear.que-necesitas","text":"¿Qué necesitas?","kind":"npc"}
 {"id":"checks.json:hear.quieres-pan","text":"¿Quieres pan?","kind":"npc"}
 {"id":"checks.json:hear.pedir-agua","text":"Quiero agua, por favor.","kind":"npc"}
@@ -2220,6 +2441,10 @@
 {"id":"checks.json:hear.te-gusta-el-pan","text":"¿Te gusta el pan?","kind":"npc"}
 {"id":"checks.json:hear.mis-plantas-necesitan-agua","text":"Mis plantas necesitan agua. Si me traes agua del río, te doy tres manzanas. ¿Qué vas a hacer?","kind":"npc"}
 {"id":"checks.json:hear.el-pan-es-de-luz","text":"El pan es de Luz, de la panadería.","kind":"npc"}
+{"id":"checks.json:hear.el-dia-de-ayer","text":"Ayer Luz hizo pan. Domingo trabajó en la herrería. Mar pescó en el río.","kind":"npc"}
+{"id":"checks.json:hear.comieron-en-la-plaza","text":"Por la tarde, Luz y Mar comieron pan en la plaza.","kind":"npc"}
+{"id":"checks.json:hear.adonde-fueron","text":"¿Y Mar y tú? ¿Adónde fueron ayer?","kind":"npc"}
+{"id":"checks.json:hear.le-vendi-pescado","text":"¡Hola! Ayer le vendí pescado a Luz. Mañana va a comprar más.","kind":"npc"}
 {"id":"words.json:directions.ahead","text":"adelante","kind":"npc"}
 {"id":"words.json:directions.behind","text":"detrás","kind":"npc"}
 {"id":"words.json:directions.left","text":"a la izquierda","kind":"npc"}

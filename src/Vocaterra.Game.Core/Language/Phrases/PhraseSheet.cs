@@ -185,10 +185,47 @@ public sealed class PhraseSheet
     /// <param name="intent">The intent the core resolved.</param>
     /// <param name="slots">The slots the core filled.</param>
     /// <param name="river">The river's noun (<c>río</c>, <c>game/words.json</c>).</param>
-    public string? PhraseFor(string prompt, string intent, IReadOnlyDictionary<string, string> slots, string river)
+    /// <param name="practised">In free talk, the phrases the NPCs' open prompts practise (<see cref="NpcRoster.Homes"/>), for <see cref="ByPlace"/>; <see langword="null"/> in a lesson's
+    /// step or a review, whose phrase is the step's.</param>
+    public string? PhraseFor(string prompt, string intent, IReadOnlyDictionary<string, string> slots, string river, IEnumerable<string>? practised = null)
     {
         ArgumentNullException.ThrowIfNull(prompt);
-        return OfIntent(PhrasesAt(prompt), intent, slots) ?? PhraseIds.For(intent, slots, river);
+        var here = PhrasesAt(prompt);
+        if (practised is not null && ByPlace(here, intent, slots, practised, out var placed))
+        {
+            return placed;
+        }
+
+        return OfIntent(here, intent, slots) ?? PhraseIds.For(intent, slots, river);
+    }
+
+    /// <summary>
+    /// V12b's rule for one row (VILLAGE_PLAN V14): in free talk, when the only row of the turn's intent among these (an NPC's focus, or the rows its prompt teaches) names
+    /// another place than the one the turn asks about, the phrase is the row practised elsewhere that names it, else none. The villager practises <c>¿Dónde está el
+    /// río?</c>, and <c>¿dónde está la panadería?</c> said to him is the fisher's <c>donde-esta-la-panaderia</c> (a transfer), not the river's; <c>¿dónde está la tienda?</c>,
+    /// which no practised row names, is none of them, as at the fisher, whose two rows name neither. Returns whether the rule applies, with the phrase it gives.
+    /// </summary>
+    /// <param name="rows">The rows in play.</param>
+    /// <param name="intent">The intent the core resolved.</param>
+    /// <param name="slots">The slots the core filled: the rule needs a <c>place</c> and no <c>item</c>.</param>
+    /// <param name="practised">The phrases the NPCs' open prompts practise.</param>
+    /// <param name="phrase">The practised row of the intent that names the place, in the sheet's order, or <see langword="null"/>.</param>
+    public bool ByPlace(IEnumerable<PhraseRow> rows, string intent, IReadOnlyDictionary<string, string> slots, IEnumerable<string> practised, out string? phrase)
+    {
+        ArgumentNullException.ThrowIfNull(rows);
+        ArgumentNullException.ThrowIfNull(intent);
+        ArgumentNullException.ThrowIfNull(slots);
+        ArgumentNullException.ThrowIfNull(practised);
+        phrase = null;
+        var ofIntent = rows.Where(row => string.Equals(row.Intent, intent, StringComparison.Ordinal)).ToList();
+        if (ofIntent.Count != 1 || slots.ContainsKey("item") || !slots.TryGetValue("place", out var place) || Names(ofIntent[0], place))
+        {
+            return false;
+        }
+
+        var homes = practised.ToHashSet(StringComparer.Ordinal);
+        phrase = _rows.FirstOrDefault(row => row.IsLearnerPhrase && homes.Contains(row.Id) && string.Equals(row.Intent, intent, StringComparison.Ordinal) && Names(row, place))?.Id;
+        return true;
     }
 
     /// <summary>
@@ -215,8 +252,14 @@ public sealed class PhraseSheet
             return null;
         }
 
-        var named = " " + Plain(detail) + " ";
-        return ofIntent.FirstOrDefault(row => row.Texts.Any(text => (" " + Plain(text) + " ").Contains(named, StringComparison.Ordinal)))?.Id;
+        return ofIntent.FirstOrDefault(row => Names(row, detail))?.Id;
+    }
+
+    // Whether the row's phrase or one of its variants names the word (a place or an item), as a whole word.
+    private static bool Names(PhraseRow row, string word)
+    {
+        var named = " " + Plain(word) + " ";
+        return row.Texts.Any(text => (" " + Plain(text) + " ").Contains(named, StringComparison.Ordinal));
     }
 
     /// <summary>The slot of a turn that matters to its phrase: the item asked for, else the place asked about, else <see langword="null"/>.</summary>

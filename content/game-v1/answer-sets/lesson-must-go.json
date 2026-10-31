@@ -1,0 +1,23 @@
+{
+  "answerSetId": "lesson-must-go",
+  "answers": [
+    {
+      "answerId": "river",
+      "canonical": "tengo que ir al río",
+      "aliases": ["yo tengo que ir al río", "sí tengo que ir al río", "hoy tengo que ir al río", "tengo que ir al río hoy"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": ["no lo sé", "yo no sé", "no entiendo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    }
+  ]
+}

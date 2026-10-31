@@ -713,6 +713,94 @@
       "lesson": "como-es",
       "prompt": "lesson-liked",
       "intent": "state_like"
+    },
+    {
+      "id": "hear.el-dia-de-ayer",
+      "kind": "comprehension",
+      "phrase": "el-dia-de-ayer",
+      "lesson": "ayer-en-el-pueblo",
+      "line": "guide.lesson.villager.day.1",
+      "spanish": "Ayer Luz hizo pan. Domingo trabajó en la herrería. Mar pescó en el río.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.comieron-en-la-plaza",
+      "kind": "comprehension",
+      "phrase": "comieron-en-la-plaza",
+      "lesson": "ayer-en-el-pueblo",
+      "line": "guide.lesson.villager.ate.1",
+      "spanish": "Por la tarde, Luz y Mar comieron pan en la plaza.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.adonde-fueron",
+      "kind": "comprehension",
+      "phrase": "adonde-fueron",
+      "lesson": "ayer-en-el-pueblo",
+      "line": "guide.lesson.villager.where_went.1",
+      "spanish": "¿Y Mar y tú? ¿Adónde fueron ayer?",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.le-vendi-pescado",
+      "kind": "comprehension",
+      "phrase": "le-vendi-pescado",
+      "lesson": "ayer-en-el-pueblo",
+      "line": "guide.lesson.fisher.sold.1",
+      "spanish": "¡Hola! Ayer le vendí pescado a Luz. Mañana va a comprar más.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "say.luz-hizo-pan",
+      "kind": "production",
+      "phrase": "luz-hizo-pan",
+      "lesson": "ayer-en-el-pueblo",
+      "prompt": "lesson-luz-made",
+      "intent": "state_action"
+    },
+    {
+      "id": "say.fuimos-al-rio",
+      "kind": "production",
+      "phrase": "fuimos-al-rio",
+      "lesson": "ayer-en-el-pueblo",
+      "prompt": "lesson-we-went",
+      "intent": "state_action"
+    },
+    {
+      "id": "say.ellos-comieron-pan",
+      "kind": "production",
+      "phrase": "ellos-comieron-pan",
+      "lesson": "ayer-en-el-pueblo",
+      "prompt": "lesson-they-ate",
+      "intent": "state_action"
+    },
+    {
+      "id": "say.tengo-que-ir",
+      "kind": "production",
+      "phrase": "tengo-que-ir",
+      "lesson": "ayer-en-el-pueblo",
+      "prompt": "lesson-must-go",
+      "intent": "state_obligation"
     }
   ]
 }

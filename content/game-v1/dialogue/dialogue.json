@@ -1270,6 +1270,84 @@
       "variants": [
         { "lineId": "guide.lesson.shop.luz.1", "text": "El pan es de Luz, de la panadería." }
       ]
+    },
+    "guide.lesson.villager.river": {
+      "poolId": "guide.lesson.villager.river",
+      "variants": [
+        { "lineId": "guide.lesson.villager.river.1", "text": "¡Hola! ¿Fuiste al río ayer?" }
+      ]
+    },
+    "guide.lesson.villager.day": {
+      "poolId": "guide.lesson.villager.day",
+      "variants": [
+        { "lineId": "guide.lesson.villager.day.1", "text": "Ayer Luz hizo pan. Domingo trabajó en la herrería. Mar pescó en el río." }
+      ]
+    },
+    "guide.lesson.villager.luz": {
+      "poolId": "guide.lesson.villager.luz",
+      "variants": [
+        { "lineId": "guide.lesson.villager.luz.1", "text": "¿Qué hizo Luz ayer?" }
+      ]
+    },
+    "guide.lesson.villager.mar": {
+      "poolId": "guide.lesson.villager.mar",
+      "variants": [
+        { "lineId": "guide.lesson.villager.mar.1", "text": "¿Y qué hizo Mar?" }
+      ]
+    },
+    "guide.lesson.villager.ate": {
+      "poolId": "guide.lesson.villager.ate",
+      "variants": [
+        { "lineId": "guide.lesson.villager.ate.1", "text": "Por la tarde, Luz y Mar comieron pan en la plaza." }
+      ]
+    },
+    "guide.lesson.villager.morning": {
+      "poolId": "guide.lesson.villager.morning",
+      "variants": [
+        { "lineId": "guide.lesson.villager.morning.1", "text": "Por la mañana, Luz y yo fuimos a la tienda." }
+      ]
+    },
+    "guide.lesson.villager.where_went": {
+      "poolId": "guide.lesson.villager.where_went",
+      "variants": [
+        { "lineId": "guide.lesson.villager.where_went.1", "text": "¿Y Mar y tú? ¿Adónde fueron ayer?" }
+      ]
+    },
+    "guide.lesson.villager.smith_waits": {
+      "poolId": "guide.lesson.villager.smith_waits",
+      "variants": [
+        { "lineId": "guide.lesson.villager.smith_waits.1", "text": "Domingo te busca. Está en la herrería." }
+      ]
+    },
+    "guide.lesson.smith.ate": {
+      "poolId": "guide.lesson.smith.ate",
+      "variants": [
+        { "lineId": "guide.lesson.smith.ate.1", "text": "¡Hola! Ayer trabajé todo el día. ¿Qué comieron Luz y Mar?" }
+      ]
+    },
+    "guide.lesson.smith.must": {
+      "poolId": "guide.lesson.smith.must",
+      "variants": [
+        { "lineId": "guide.lesson.smith.must.1", "text": "Mar fue al río y te busca. ¿Adónde tienes que ir?" }
+      ]
+    },
+    "guide.lesson.fisher.sold": {
+      "poolId": "guide.lesson.fisher.sold",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.sold.1", "text": "¡Hola! Ayer le vendí pescado a Luz. Mañana va a comprar más." }
+      ]
+    },
+    "guide.lesson.fisher.bought": {
+      "poolId": "guide.lesson.fisher.bought",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.bought.1", "text": "¿Qué compró Luz ayer?" }
+      ]
+    },
+    "guide.lesson.fisher.tomorrow": {
+      "poolId": "guide.lesson.fisher.tomorrow",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.tomorrow.1", "text": "¿Y tú? ¿Qué vas a hacer mañana?" }
+      ]
     }
   }
 }

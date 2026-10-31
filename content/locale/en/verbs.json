@@ -217,6 +217,18 @@
       "base": "live",
       "third": "lives",
       "past": "lived"
+    },
+    "verb.pescar": {
+      "gloss": "to fish",
+      "base": "fish",
+      "third": "fishes",
+      "past": "fished"
+    },
+    "verb.vender": {
+      "gloss": "to sell",
+      "base": "sell",
+      "third": "sells",
+      "past": "sold"
     }
   }
 }

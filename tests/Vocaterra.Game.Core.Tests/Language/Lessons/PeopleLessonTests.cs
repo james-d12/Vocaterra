@@ -283,26 +283,35 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void ALearnerWhoArrivesWithTheWoodAndTheCoinsSaysThePlanBeforeTheAxeIsMade()
+    public void ALearnerWhoArrivesWithTheWoodAndTheCoinsSaysThePlanAndHearsTheOfferBeforeTheAxeIsMade()
     {
         // The objective line shows the order from the session's start, so the goods may come first. The lesson starts at the villager, who asks the plan before the
-        // learner meets the smith: the order is delivered at the first talk with Domingo, after "Va a hacer un hacha", and the step that waits for it ends at once.
+        // learner meets the smith, and the order names its lesson (V14): the first talk with Domingo delivers nothing, so his offer ("¿Quieres un hacha? Necesito dos
+        // bloques de madera y dos monedas.") comes before his thanks, and the axe is made at the step that waits for it. Before V14 the first talk took the goods, and
+        // the offer followed the axe it offered.
         var session = SessionSixAtVillager(coins: 2, wood: 2);
+        Assert.Equal(LessonId, TestGame.Data.Objectives.Find("axe-handle")!.Lesson);
         Assert.False(session.Objectives.Single(static o => o.Id == "axe-handle").Complete); // talking to the villager delivers nothing
         while (session.Lessons.Current is { Id: not "g4-wood" } step)
         {
             Walk(session, step);
         }
 
+        Assert.False(session.Objectives.Single(static o => o.Id == "axe-handle").Complete); // nor the first talk with Domingo
+        Assert.Equal(0, session.Simulation.Inventory.Count(ItemId.Axe));
+        while (session.Lessons.Current is { Id: not "g4-axe" } step)
+        {
+            Walk(session, step);
+        }
+
         var events = session.Events.ToList();
         var plan = events.FindIndex(static e => e is LessonEvent { Kind: LessonEventKind.StepDone, StepId: "g1-plan" });
+        var offer = events.FindIndex(static e => e is LessonEvent { Kind: LessonEventKind.StepDone, StepId: "g4-offer" });
         var delivered = events.FindIndex(static e => e is WorldEvent { Name: WorldEvents.OrderDelivered, Detail: "axe-handle" });
-        Assert.InRange(plan, 0, delivered - 1); // the plan, then the axe
+        Assert.InRange(plan, 0, offer - 1); // the plan, the offer, then the axe
+        Assert.InRange(offer, 0, delivered - 1);
         Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Axe));
-
-        session.LogEvent(new WorldEvent(session.CurrentTick, session.StoredTime.UnixSeconds, WorldEvents.ItemPickedUp, null, "madera")); // a piece of wood picked up
-        Assert.Equal("g4-axe", session.Lessons.Current!.Id);
-        Assert.Contains(session.Events.OfType<LessonEvent>(), static e => e.Kind == LessonEventKind.StepDone && e.StepId == "g4-back" && e.Detail == "delivered before");
+        Assert.DoesNotContain(session.Events.OfType<LessonEvent>(), static e => e.StepId == "g4-back" && e.Detail == "delivered before");
     }
 
     // ---- The tense and person checks

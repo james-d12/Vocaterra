@@ -208,6 +208,7 @@
         {"text": "dónde queda la herrería", "errors": [], "prompt": "fisher-open"},
         {"text": "busco la herrería", "errors": [], "prompt": "fisher-open"},
         {"text": "dónde está el herrería", "errors": ["gender.agree"], "prompt": "fisher-open"},
+        {"text": "dónde están la herrería", "errors": ["conj.person"], "prompt": "fisher-open"},
         {"text": "dónde está la herrería", "errors": [], "prompt": "lesson-place"},
         "dónde está el árbol",
         "dónde está la piedra",
@@ -397,7 +398,7 @@
         "(mañana|ayer|hoy|luego|después)? [VERB:ir] a [VERB:ir] a [ART]? [NOUN:place] (mañana|ayer|hoy|luego|después)?",
         "(sí)? (mañana|ayer|hoy|luego|después)? [VERB:ir] a [ART]? [NOUN:place] (mañana|ayer|hoy|luego|después)?",
         "(mañana|ayer|hoy|luego|después)? [VERB:ir] a [VERB:comprar] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?",
-        "(sí)? (mañana|ayer|hoy|luego|después)? [VERB:comprar] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?",
+        "(sí)? (mañana|ayer|hoy|luego|después)? (domingo|luz|mar|león)? [VERB:comprar] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?",
         "(mañana|ayer|hoy|luego|después)? [VERB:ir] a [VERB:buscar] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?",
         "(sí)? (mañana|ayer|hoy|luego|después)? [VERB:buscar] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?",
         "(mañana|ayer|hoy|luego|después)? (domingo|luz|mar|león)? [VERB:ir] a [VERB:hacer] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?",
@@ -405,7 +406,8 @@
         "(mañana|ayer|hoy|luego|después)? (domingo|luz|mar|león)? [VERB:ir] a [VERB:trabajar] en [ART] [NOUN:place] (mañana|ayer|hoy|luego|después)?",
         "(sí)? (mañana|ayer|hoy|luego|después)? (domingo|luz|mar|león)? [VERB:trabajar] en [ART] [NOUN:place] (mañana|ayer|hoy|luego|después)?",
         "(mañana|ayer|hoy|luego|después)? (domingo|luz|mar|león)? [VERB:ir] a [VERB:vivir] en [ART] [NOUN:place] (mañana|ayer|hoy|luego|después)?",
-        "(sí)? (mañana|ayer|hoy|luego|después)? (domingo|luz|mar|león)? [VERB:vivir] en [ART] [NOUN:place] (mañana|ayer|hoy|luego|después)?"
+        "(sí)? (mañana|ayer|hoy|luego|después)? (domingo|luz|mar|león)? [VERB:vivir] en [ART] [NOUN:place] (mañana|ayer|hoy|luego|después)?",
+        "(sí)? (mañana|ayer|hoy|luego|después)? (domingo|luz|mar|león)? [VERB:pescar] en [ART] [NOUN:place] (mañana|ayer|hoy|luego|después)?"
       ],
       "keywordRules": [
         { "lemmas": ["ir"], "requiresSlots": [] },
@@ -413,6 +415,7 @@
         { "lemmas": ["beber"], "requiresSlots": ["item"], "slotFromNoun": "item" },
         { "lemmas": ["comprar"], "requiresSlots": ["item"], "slotFromNoun": "item" }
       ],
+      "lint": {"allowRuleOnly": ["luz y mar comieron pan", "luz y mar comió pan"]},
       "examples": [
         {"text": "voy a comer pan", "errors": [], "prompt": "lesson-plan"},
         {"text": "mañana voy a comer pan", "errors": [], "prompt": "lesson-plan"},
@@ -554,6 +557,41 @@
         {"text": "hoy fui al río", "errors": [], "prompt": "lesson-water-went"},
         {"text": "ayer voy al río", "errors": ["conj.tense"], "prompt": "lesson-water-went"},
         {"text": "yo fue al río", "errors": ["conj.person"], "prompt": "lesson-water-went"},
+        {"text": "luz hizo pan", "errors": [], "prompt": "lesson-luz-made"},
+        {"text": "ayer luz hizo pan", "errors": [], "prompt": "lesson-luz-made"},
+        {"text": "hizo pan", "errors": [], "prompt": "lesson-luz-made"},
+        {"text": "ella hizo pan", "errors": [], "prompt": "lesson-luz-made"},
+        {"text": "luz hizo pan ayer", "errors": [], "prompt": "lesson-luz-made"},
+        {"text": "ayer luz hace pan", "errors": ["conj.tense"], "prompt": "lesson-luz-made"},
+        {"text": "ella hice pan", "errors": ["conj.person"], "prompt": "lesson-luz-made"},
+        {"text": "mar pescó en el río", "errors": [], "prompt": "lesson-mar-fished"},
+        {"text": "pescó en el río", "errors": [], "prompt": "lesson-mar-fished"},
+        {"text": "él pescó en el río", "errors": [], "prompt": "lesson-mar-fished"},
+        {"text": "ayer mar pescó en el río", "errors": [], "prompt": "lesson-mar-fished"},
+        {"text": "mar pescó en el río ayer", "errors": [], "prompt": "lesson-mar-fished"},
+        {"text": "ayer mar pesca en el río", "errors": ["conj.tense"], "prompt": "lesson-mar-fished"},
+        {"text": "él pesqué en el río", "errors": ["conj.person"], "prompt": "lesson-mar-fished"},
+        {"text": "fuimos al río", "errors": [], "prompt": "lesson-we-went"},
+        {"text": "nosotros fuimos al río", "errors": [], "prompt": "lesson-we-went"},
+        {"text": "ayer fuimos al río", "errors": [], "prompt": "lesson-we-went"},
+        {"text": "fuimos al río ayer", "errors": [], "prompt": "lesson-we-went"},
+        {"text": "sí, fuimos al río", "errors": [], "prompt": "lesson-we-went"},
+        {"text": "nosotros fue al río", "errors": ["conj.person"], "prompt": "lesson-we-went"},
+        {"text": "ayer vamos al río", "errors": ["conj.tense"], "prompt": "lesson-we-went"},
+        {"text": "ellos comieron pan", "errors": [], "prompt": "lesson-they-ate"},
+        {"text": "comieron pan", "errors": [], "prompt": "lesson-they-ate"},
+        {"text": "luz y mar comieron pan", "errors": [], "prompt": "lesson-they-ate"},
+        {"text": "ayer comieron pan", "errors": [], "prompt": "lesson-they-ate"},
+        {"text": "ellos comieron pan ayer", "errors": [], "prompt": "lesson-they-ate"},
+        {"text": "ellos comió pan", "errors": ["conj.person"], "prompt": "lesson-they-ate"},
+        {"text": "luz y mar comió pan", "errors": ["conj.person"], "prompt": "lesson-they-ate"},
+        {"text": "luz compró pescado", "errors": [], "prompt": "lesson-luz-bought"},
+        {"text": "compró pescado", "errors": [], "prompt": "lesson-luz-bought"},
+        {"text": "ella compró pescado", "errors": [], "prompt": "lesson-luz-bought"},
+        {"text": "ayer luz compró pescado", "errors": [], "prompt": "lesson-luz-bought"},
+        {"text": "luz compró pescado ayer", "errors": [], "prompt": "lesson-luz-bought"},
+        {"text": "ayer luz compra pescado", "errors": ["conj.tense"], "prompt": "lesson-luz-bought"},
+        {"text": "ella compré pescado", "errors": ["conj.person"], "prompt": "lesson-luz-bought"},
         "busqué madera",
         "león trabaja en el campo",
         "luz vive en la panadería",
@@ -634,8 +672,14 @@
         "[VERB:quedar] muy? (lejos|cerca)",
         "[VERB:estar] muy? (lejos|cerca) [ART] [NOUN:place]"
       ],
-      "keywordRules": [],
+      "keywordRules": [
+        { "lemmas": ["ser", "lejos"], "requiresSlots": [] },
+        { "lemmas": ["ser", "cerca"], "requiresSlots": [] }
+      ],
+      "lint": {"allowRuleOnly": ["es lejos", "es muy lejos"]},
       "examples": [
+        {"text": "es lejos", "errors": ["ser_estar"], "prompt": "lesson-far"},
+        {"text": "es muy lejos", "errors": ["ser_estar"], "prompt": "lesson-far"},
         {"text": "está lejos", "errors": [], "prompt": "lesson-far"},
         {"text": "está muy lejos", "errors": [], "prompt": "lesson-far"},
         {"text": "queda lejos", "errors": [], "prompt": "lesson-far"},
@@ -694,6 +738,7 @@
         {"text": "cuánto cuestan los panes", "errors": [], "prompt": "baker-open"},
         {"text": "cuánto cuestan dos panes", "errors": [], "prompt": "baker-open"},
         {"text": "cuánto costan los panes", "errors": ["conj.irregular"], "prompt": "baker-open"},
+        {"text": "cuánto cuestan el pan", "errors": ["conj.person"], "prompt": "baker-open"},
         {"text": "cuánto cuesta la pan", "errors": ["gender.agree"], "prompt": "baker-open"},
         {"text": "cuánto cuesta", "errors": [], "prompt": "stall-need"},
         {"text": "cuánto cuesta el pan", "errors": [], "prompt": "stall-need"},
@@ -720,6 +765,7 @@
         {"text": "cómo te llamas", "errors": [], "prompt": "farmer-open"},
         {"text": "cómo se llama usted", "errors": [], "prompt": "farmer-open"},
         {"text": "cómo tú te llama", "errors": ["conj.person"], "prompt": "smith-open"},
+        {"text": "cómo te llama", "errors": ["conj.person"], "prompt": "smith-open"},
         "cómo se llama él",
         "cómo se llama ella"
       ]
@@ -765,6 +811,7 @@
         {"text": "la manzana es roja y grande", "errors": [], "prompt": "lesson-apple"},
         {"text": "la manzana es muy roja", "errors": [], "prompt": "lesson-apple"},
         {"text": "el manzana es roja", "errors": ["gender.agree"], "prompt": "lesson-apple"},
+        {"text": "la manzana son roja", "errors": ["conj.person"], "prompt": "lesson-apple"},
         {"text": "es grande", "errors": [], "prompt": "lesson-big"},
         {"text": "el pan es grande", "errors": [], "prompt": "lesson-big"},
         {"text": "sí, es grande", "errors": [], "prompt": "lesson-big"},
@@ -792,11 +839,13 @@
         {"text": "me gusta mucho el pan", "errors": [], "prompt": "lesson-like-bread"},
         {"text": "sí, me gusta mucho", "errors": [], "prompt": "lesson-like-bread"},
         {"text": "me gusta la pan", "errors": ["gender.agree"], "prompt": "lesson-like-bread"},
+        {"text": "me gustan el pan", "errors": ["conj.person"], "prompt": "lesson-like-bread"},
         {"text": "sí, me gustan las manzanas", "errors": [], "prompt": "lesson-like-apples"},
         {"text": "me gustan las manzanas", "errors": [], "prompt": "lesson-like-apples"},
         {"text": "sí, me gustan", "errors": [], "prompt": "lesson-like-apples"},
         {"text": "me gustan mucho las manzanas", "errors": [], "prompt": "lesson-like-apples"},
         {"text": "me gustan los manzanas", "errors": ["gender.agree"], "prompt": "lesson-like-apples"},
+        {"text": "me gusta las manzanas", "errors": ["conj.person"], "prompt": "lesson-like-apples"},
         {"text": "me gustó el pan de luz", "errors": [], "prompt": "lesson-liked"},
         {"text": "sí, me gustó el pan de luz", "errors": [], "prompt": "lesson-liked"},
         {"text": "me gustó el pan", "errors": [], "prompt": "lesson-liked"},
@@ -806,6 +855,32 @@
         {"text": "ayer me gusta el pan", "errors": ["conj.tense"], "prompt": "lesson-liked"},
         "no me gusta el pan",
         "me gustan las frutas"
+      ]
+    },
+    {
+      "intentId": "state_obligation",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "(sí)? (hoy|mañana)? [VERB:tener] que [VERB:ir] a [ART]? [NOUN:place] (hoy|mañana)?",
+        "(sí)? (hoy|mañana)? [VERB:tener] que [VERB:comprar] [ART]? [NUM:qty]? [NOUN:item] (hoy|mañana)?",
+        "(sí)? (hoy|mañana)? [VERB:tener] que [VERB:buscar] [ART]? [NUM:qty]? [NOUN:item] (hoy|mañana)?"
+      ],
+      "keywordRules": [
+        { "lemmas": ["tener", "que"], "requiresSlots": [] }
+      ],
+      "examples": [
+        {"text": "tengo que ir al río", "errors": [], "prompt": "lesson-must-go"},
+        {"text": "yo tengo que ir al río", "errors": [], "prompt": "lesson-must-go"},
+        {"text": "sí, tengo que ir al río", "errors": [], "prompt": "lesson-must-go"},
+        {"text": "hoy tengo que ir al río", "errors": [], "prompt": "lesson-must-go"},
+        {"text": "tengo que ir al río hoy", "errors": [], "prompt": "lesson-must-go"},
+        {"text": "yo tiene que ir al río", "errors": ["conj.person"], "prompt": "lesson-must-go"},
+        {"text": "yo tienes que ir al río", "errors": ["conj.person"], "prompt": "lesson-must-go"},
+        "tengo que ir a la panadería",
+        "mañana tengo que ir a la herrería",
+        "tengo que comprar pan",
+        "tengo que buscar madera",
+        "tienes que ir al río"
       ]
     }
   ]
