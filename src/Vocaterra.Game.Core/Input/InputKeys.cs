@@ -16,6 +16,7 @@ public static class InputKeys
         ["talk"] = GameKey.E,
         ["controls"] = GameKey.F1,
         ["nextTip"] = GameKey.Enter,
+        ["sleep"] = GameKey.Enter, // while the session's closing card is up: sleep until the next session (V12c)
         ["book"] = GameKey.J,
         ["crafting"] = GameKey.C,
         ["inventory"] = GameKey.I,

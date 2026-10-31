@@ -134,8 +134,11 @@ public sealed class OpeningAndEndingTests
         Assert.True(session.FireLit);
         Assert.True(session.SessionComplete);
         Assert.Null(session.CurrentObjective);
+        Assert.Equal("Session complete: sleep at your fire to start session 2", Hud(session)); // V12c: the next session is a sleep at this fire
+        Assert.Null(session.Pointer); // the player stands at the fire: no arrow to it
+        session.SleepOffered = false; // a playtest offers no sleep: the line of S17
         Assert.Equal("Session complete: your fire is lit", Hud(session));
-        Assert.Null(session.Pointer);
+        session.SleepOffered = true;
         var names = session.Events.OfType<WorldEvent>().Select(static e => e.Name).ToList();
         Assert.Equal(1, names.Count(static n => n == WorldEvents.FireLit));
         Assert.Equal(1, names.Count(static n => n == WorldEvents.SessionComplete));

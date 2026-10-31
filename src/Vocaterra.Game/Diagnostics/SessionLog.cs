@@ -50,7 +50,7 @@ public sealed class SessionLog : IDisposable, ICheckLog
     private readonly TextWriter _replayWriter;
     private readonly ReplayLog _replay;
     private readonly Func<DateTimeOffset> _clock;
-    private readonly DateTimeOffset _started;
+    private DateTimeOffset _started;
     private readonly Dictionary<int, int> _recordLines = [];
     private int _replayLines;
     private int _recordsWritten;
@@ -119,12 +119,20 @@ public sealed class SessionLog : IDisposable, ICheckLog
     /// <param name="profile">The profile flags.</param>
     /// <param name="locale">The support-language locale (<c>en</c>; CONTENT_PLAN C03), or <see langword="null"/> to leave it out.</param>
     /// <param name="localeBundle">The locale bundle's hash, so a playtest can be reproduced (the locale is outside the game bundle's hash).</param>
-    public void SessionStart(int session, ulong seed, string bundleHash, long storedTime, SessionProfile profile, string? locale = null, string? localeBundle = null)
+    /// <param name="skippedTo">The play session a test run was skipped to (<c>--skip-to-session</c>, V12c), written as <c>skipped_to</c>; <see langword="null"/>, and left out, for a learner's own game.</param>
+    /// <remarks>A run that sleeps at the player's fire writes a second start for the next play session (V12c); its <c>session_end</c> counts the wall time from its own start.</remarks>
+    public void SessionStart(int session, ulong seed, string bundleHash, long storedTime, SessionProfile profile, string? locale = null, string? localeBundle = null, int? skippedTo = null)
     {
         ArgumentNullException.ThrowIfNull(profile);
+        _started = _clock();
         WriteLine(Json("session_start", w =>
         {
             w.WriteNumber("session", session);
+            if (skippedTo is { } skipped)
+            {
+                w.WriteNumber("skipped_to", skipped);
+            }
+
             w.WriteNumber("seed", seed);
             w.WriteString("bundle", bundleHash);
             if (locale is not null)
@@ -392,7 +400,7 @@ public sealed class SessionLog : IDisposable, ICheckLog
         ArgumentNullException.ThrowIfNull(session);
         Pump(session);
         var now = _clock();
-        var completedAt = session.Events.OfType<WorldEvent>().FirstOrDefault(e => e.Name == WorldEvents.ObjectiveComplete)?.Tick;
+        var completedAt = session.SessionEvents.OfType<WorldEvent>().FirstOrDefault(e => e.Name == WorldEvents.ObjectiveComplete)?.Tick; // this play session's (a sleep begins another in the run, V12c)
         WriteLine(Json("session_end", w =>
         {
             w.WriteNumber("tick", tick);

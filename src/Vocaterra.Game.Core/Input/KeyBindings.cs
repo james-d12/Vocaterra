@@ -2,7 +2,8 @@ namespace Vocaterra.Game.Core.Input;
 
 /// <summary>
 /// The game's keys as commands (the command pattern): the global keys, each one on its own, and the world's keys, of which the first that
-/// applies runs (a key can mean two things: E talks to the NPC under the crosshair, else opens the workbench's panel there, else the inventory).
+/// applies runs (a key can mean several things: E talks to the NPC under the crosshair, else opens the workbench's panel there, else sleeps at the player's own lit fire,
+/// else opens the inventory).
 /// </summary>
 public sealed class KeyBindings
 {
@@ -29,20 +30,43 @@ public sealed class KeyBindings
     /// <param name="aimedAtNpc">Whether the crosshair is on an NPC.</param>
     /// <param name="tipShown">Whether a tip is on screen.</param>
     /// <param name="atWorkbench">Whether the crosshair is on the workbench.</param>
-    public static KeyBindings World(GameCommands commands, Func<bool> aimedAtNpc, Func<bool> tipShown, Func<bool> atWorkbench) => new(
-    [
-        new(InputKeys.Of("listen"), commands.Listen, aimedAtNpc),
-        new(InputKeys.Of("type"), commands.TypeTo, aimedAtNpc),
-        new(InputKeys.Of("talk"), commands.TalkTo, aimedAtNpc),
-        new(InputKeys.Of("controls"), commands.OpenControls),
-        new(InputKeys.Of("nextTip"), commands.NextTip, tipShown),
-        new(InputKeys.Of("book"), commands.OpenBook),
-        new(InputKeys.Of("crafting"), commands.OpenCrafting),
-        new(InputKeys.Of("talk"), commands.OpenCrafting, atWorkbench), // the same key as talking: at the workbench it opens the recipes
-        new(InputKeys.Of("inventory"), commands.OpenInventory),
-        new(InputKeys.Of("talk"), commands.OpenInventory), // and anywhere else the inventory
-        new(InputKeys.Of("releaseMouse"), commands.ReleaseMouse),
-    ]);
+    /// <param name="cardOffersSleep">Whether the session's closing card offers the sleep (V12c): Enter sleeps, before it shows the next tip; none when <see langword="null"/>.</param>
+    /// <param name="fireOffersSleep">Whether the player's own lit fire offers the sleep (V12c): E sleeps, after an NPC and the workbench; none when <see langword="null"/>.</param>
+    public static KeyBindings World(GameCommands commands, Func<bool> aimedAtNpc, Func<bool> tipShown, Func<bool> atWorkbench, Func<bool>? cardOffersSleep = null, Func<bool>? fireOffersSleep = null)
+    {
+        ArgumentNullException.ThrowIfNull(commands);
+        var bindings = new List<KeyBinding>
+        {
+            new(InputKeys.Of("listen"), commands.Listen, aimedAtNpc),
+            new(InputKeys.Of("type"), commands.TypeTo, aimedAtNpc),
+            new(InputKeys.Of("talk"), commands.TalkTo, aimedAtNpc),
+        };
+        if (commands.Sleep is { } sleep && cardOffersSleep is not null)
+        {
+            bindings.Add(new(InputKeys.Of("sleep"), sleep, cardOffersSleep)); // Enter on the closing card: the next session
+        }
+
+        bindings.AddRange(
+        [
+            new(InputKeys.Of("controls"), commands.OpenControls),
+            new(InputKeys.Of("nextTip"), commands.NextTip, tipShown),
+            new(InputKeys.Of("book"), commands.OpenBook),
+            new(InputKeys.Of("crafting"), commands.OpenCrafting),
+            new(InputKeys.Of("talk"), commands.OpenCrafting, atWorkbench), // the same key as talking: at the workbench it opens the recipes
+        ]);
+        if (commands.Sleep is { } sleepAtFire && fireOffersSleep is not null)
+        {
+            bindings.Add(new(InputKeys.Of("talk"), sleepAtFire, fireOffersSleep)); // at the player's own lit fire it sleeps (V12c)
+        }
+
+        bindings.AddRange(
+        [
+            new(InputKeys.Of("inventory"), commands.OpenInventory),
+            new(InputKeys.Of("talk"), commands.OpenInventory), // and anywhere else the inventory
+            new(InputKeys.Of("releaseMouse"), commands.ReleaseMouse),
+        ]);
+        return new KeyBindings(bindings);
+    }
 
     /// <summary>Runs every binding whose key went down this frame and whose condition holds, in order.</summary>
     public void RunEvery(IInputFrame input)

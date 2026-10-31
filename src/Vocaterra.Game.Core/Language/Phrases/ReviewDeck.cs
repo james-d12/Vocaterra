@@ -312,6 +312,23 @@ public sealed class ReviewDeck
         Advance();
     }
 
+    // A new play session begins in the same run (a sleep at the fire, V12c): the deck is as a load makes it, nothing offered, asked for or under way, so the new session
+    // offers its warm-up again. Whether the guide offers it at all (Enabled) is the front-end's and stays.
+    internal void Reset()
+    {
+        _items.Clear();
+        _lines.Clear();
+        _notes.Clear();
+        _npc = null;
+        _first = null;
+        _offered = false;
+        _claim = false;
+        _index = 0;
+        _reviewed = 0;
+        Status = DeckStatus.Idle;
+        _version++;
+    }
+
     // ---- The deck's own steps.
 
     private bool Askable(string phraseId) => PhraseReviews.Create(phraseId, _session.Phrases, _session.Bundle) is not null;

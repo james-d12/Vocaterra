@@ -65,6 +65,11 @@ public sealed record LaunchOptions
         + "                          `--session 4` the fisher's lesson `el-pueblo` once `ayer-y-manana` is done (`--lesson-run el-pueblo` runs it whatever came before),\n"
         + "                          `--session 5` the baker's lesson `numeros-y-pan` once `el-pueblo` is done, `--session 6` the villager's lesson `gente-del-pueblo` once\n"
         + "                          `numeros-y-pan` is done\n"
+        + "  --skip-to-session <n>   a test aid: start a new game as play session n (2 up to the last session that has a lesson) as a learner who did everything before it:\n"
+        + "                          the earlier sessions' lessons completed, session 1's camp done and its fire lit, the earlier orders delivered and paid, no practice counted;\n"
+        + "                          the console, the session log and the saves say so. Not with --load, --session or --playtest (V12c)\n"
+        + "  --sleep                 sleep at the player's own fire now, as E there does, wherever the player stands: the next play session begins as a load of the save would\n"
+        + "                          begin it (the fire must be lit, no lesson step waiting; not in a playtest); a step (V12c)\n"
         + "  --tips                  draw the first-time tips in a scripted run too (an interactive run always does; S16)\n"
         + "  --third-person          start in the behind-the-shoulder view (S15; F5 switches between it and first person)\n"
         + "  --dusk                  a lower, dimmer sun and lanterns that glow at full strength (S15)\n"
@@ -220,6 +225,12 @@ public sealed record LaunchOptions
     /// <summary>The play session the run starts as (<c>--session</c>, S26), or <see langword="null"/> for the game's own (1 for a new game, the save's plus one for a load).</summary>
     public int? Session { get; init; }
 
+    /// <summary>
+    /// The play session a new game is skipped to (<c>--skip-to-session</c>, V12c, a test aid: the earlier sessions counted as done, <c>SessionSkip</c>), or <see langword="null"/>.
+    /// The bundle's last session that has a lesson is checked once the content has loaded.
+    /// </summary>
+    public int? SkipToSession { get; init; }
+
     /// <summary>The page the book opens on in a scripted run (<c>--book-page</c>, or the phrases page for <c>--journal-phrases</c>); <see langword="null"/> for the nouns page (S20).</summary>
     public BookPage? BookStart { get; init; }
 
@@ -358,12 +369,15 @@ public sealed record LaunchOptions
             }
 
             if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--no-speech" or "--mute" or "--no-sounds" or "--voxel" or "--greyscale" or "--strict-save" or "--leave" or "--mic-check" or "--no-mic-check"
-                    or "--playtest" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help")
+                    or "--playtest" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep")
             {
                 switch (arg)
                 {
                     case "--leave":
                         script.Add(new ScriptStep(ScriptStepKind.Leave));
+                        break;
+                    case "--sleep":
+                        script.Add(new ScriptStep(ScriptStepKind.Sleep));
                         break;
                     case "--tips":
                         result = result with { Tips = true };
@@ -433,7 +447,7 @@ public sealed record LaunchOptions
 
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--locale" or "--scene" or "--look" or "--walk-to" or "--interact"
                 or "--place" or "--select" or "--craft" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
-                or "--check" or "--pick" or "--session-dir" or "--session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale"
+                or "--check" or "--pick" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--sound-log"
                 or "--book-play" or "--book-play-slow" or "--debug-crash-after"))
             {
@@ -467,6 +481,15 @@ public sealed record LaunchOptions
                     }
 
                     result = result with { Session = playSession };
+                    break;
+                case "--skip-to-session":
+                    if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var skipTo) || skipTo is < 2 or > 99)
+                    {
+                        error = $"--skip-to-session needs a play session from 2 (up to the last session that has a lesson), got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { SkipToSession = skipTo };
                     break;
                 case "--book-practise":
                     if (string.IsNullOrWhiteSpace(value))
@@ -905,7 +928,14 @@ public sealed record LaunchOptions
 
         if (screenshot is null && (framesGiven || script.Count > 0 || beacon is not null || journal || inventory || crafting))
         {
-            error = "--frames, --look, --walk-to, --teleport, --interact, --place, --select, --craft, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --book-practise, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
+            error = "--frames, --look, --walk-to, --teleport, --interact, --place, --select, --craft, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --book-practise, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --sleep, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
+            return false;
+        }
+
+        if (result.SkipToSession is not null && (result.LoadPath is not null || result.Session is not null || playtest))
+        {
+            // The skip builds a new game's earlier sessions (V12c): a save has its own, --session only renames the session, and a playtest is one real session.
+            error = "--skip-to-session starts a new game as a later play session: it cannot be combined with --load (a save has its own sessions), --session (choose one of the two) or --playtest (a playtest is a learner's own session).";
             return false;
         }
 

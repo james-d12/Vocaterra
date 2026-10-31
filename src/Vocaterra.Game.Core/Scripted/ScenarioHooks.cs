@@ -15,6 +15,7 @@ namespace Vocaterra.Game.Core.Scripted;
 /// <param name="ReportBusy">Whether the report panel is up or on its way (S21): a saved report closes it, and the script waits for that.</param>
 /// <param name="BookPlay">Opens the book on the target's page and plays its recording, normal or slow (S20b, <c>--book-play</c>).</param>
 /// <param name="BookPractise">Opens the book on its Lessons page and presses "Practise again" on the lesson (S26, <c>--book-practise</c>).</param>
+/// <param name="Sleep">Closes the panels and sleeps at the player's own fire, as the player's E there does (V12c, <c>--sleep</c>).</param>
 public sealed record ScenarioHooks(
     Action<string> OpenTalk,
     Action CloseTalk,
@@ -24,4 +25,5 @@ public sealed record ScenarioHooks(
     Action<string, bool>? Report = null,
     Func<bool>? ReportBusy = null,
     Action<string, bool>? BookPlay = null,
-    Action<string>? BookPractise = null);
+    Action<string>? BookPractise = null,
+    Action? Sleep = null);

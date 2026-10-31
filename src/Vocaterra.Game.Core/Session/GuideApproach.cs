@@ -48,13 +48,14 @@ public static class GuideApproach
 
     /// <summary>
     /// Whether the camp is done and the guide has not made her transfer offer yet (<c>¿Quieres agua?</c>, S11): the way back up the trail to the player's own camp
-    /// passes through hers, and she greets the player there with it, so the transfer moment happens on the way and no one has to remember to look for her.
+    /// passes through hers, and she greets the player there with it, so the transfer moment happens on the way and no one has to remember to look for her. The offer
+    /// is the guide's saved flag (V12c; before, this run's events), so after a load or a sleep at the fire she does not greet the player again for an offer made.
     /// </summary>
     /// <param name="session">The 3D game.</param>
     public static bool TransferWaiting(VoxelSession session)
     {
         ArgumentNullException.ThrowIfNull(session);
-        return session.Objective.Complete && !PlaytestEnd.TransferOffered(session.Events);
+        return session.Objective.Complete && !session.Conversation.GuideOffered;
     }
 
     /// <summary>Whether the guide has a lesson that starts by itself and is not completed (not begun, or begun and left).</summary>

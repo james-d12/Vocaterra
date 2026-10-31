@@ -28,7 +28,7 @@ namespace Vocaterra.Game.Core.Session;
 /// The front-end owns the clock and the input: it calls <see cref="Step"/> once per tick with the body's commands, and it reads the simulation,
 /// the arrow, the objective and the words. Nothing here reads the clock or draws a random number of its own.
 /// </remarks>
-public sealed class VoxelSession : GuideSession
+public sealed partial class VoxelSession : GuideSession
 {
     /// <summary>The arrow is taken down when the player comes within this many blocks of its target (the beacon's own reach).</summary>
     public const int ReachBlocks = 3;
@@ -155,7 +155,8 @@ public sealed class VoxelSession : GuideSession
     /// What the objective area (top right) says now, as coloured pieces (S17): a lesson's short line while its <c>do</c> step waits ("Pick a fruit from a berry bush, then go
     /// back to Luna"); before the guide is met "Go down the trail and find the guide"; the camp checklist while it is the objective (<c>Campamento (camp): madera (wood)
     /// 0/5 ...</c>, the English going as the nouns become known, D-game-13); once it is complete "Go back up the trail and light your own fire"; and, with the fire lit,
-    /// "Session complete". Every line but the checklist is English only.
+    /// "Session complete". Since V12c, once the play session's work is done, "Session complete: sleep at your fire to start session 2" (or, when no later session has a lesson,
+    /// that every lesson so far is done), and from session 2 on, while a lesson is left, the lesson to go on with. Every line but the checklist is English only.
     /// </summary>
     public IReadOnlyList<ObjectivePiece> ObjectiveHud()
     {
@@ -178,6 +179,11 @@ public sealed class VoxelSession : GuideSession
         if ((current is null || current == Objectives[0] || current.Spec.IsOrder) && Lessons.NewLesson is { Objective: { } objective })
         {
             return [new ObjectivePiece(objective, ObjectivePieceKind.Support)]; // a new session's lesson is unlocked and not begun (S26): before the first objective is done, after the last, or over an order (V03)
+        }
+
+        if ((current is null || current.Spec.IsOrder) && RestLine() is { } rest)
+        {
+            return [rest]; // the session's work is done: sleep at the fire for the next session, or every lesson is done; or the lesson to go on with (V12c)
         }
 
         return current switch
@@ -254,8 +260,9 @@ public sealed class VoxelSession : GuideSession
     public SaveMigrationReport? Migration { get; internal set; }
 
     /// <summary>
-    /// A new play session begins (S26): a save was loaded into it, or a run was started at a given session. When the session has a lesson that is unlocked and not begun, the beacon
-    /// points at its NPC, and the objective line names the lesson (<see cref="ObjectiveHud"/>).
+    /// A new play session begins (S26): a save was loaded into it, the player slept at their fire (V12c), or a run was started at a given session. When the session has a lesson
+    /// that is unlocked and not begun, the beacon points at its NPC, and the objective line names the lesson (<see cref="ObjectiveHud"/>); when its work is already done and a
+    /// later session has a lesson, the beacon points at the player's fire (unless they stand there).
     /// </summary>
     public void BeginPlaySession()
     {
@@ -263,6 +270,12 @@ public sealed class VoxelSession : GuideSession
         {
             PointAtNpc(lesson.Npc);
         }
+        else if (RestDue && !AtOwnFire)
+        {
+            PointAtFire();
+        }
+
+        SettleRest();
     }
 
     // The beacon goes to an NPC, where a lesson starts (S26). The label is the NPC's name (Luna) or label (Tendero, Aldeano); before C08 it was the raw id for any but the guide.
@@ -395,6 +408,7 @@ public sealed class VoxelSession : GuideSession
         }
 
         _completed = FlushObjectives();
+        NoteRestDue(); // the session's work is done: the arrow goes back to the fire (V12c)
     }
 
     /// <summary>
