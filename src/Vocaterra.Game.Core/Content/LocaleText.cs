@@ -67,7 +67,7 @@ public sealed class LocaleText
         "bookNounCounts", "bookUsed", "bookUses.one", "bookUses.other", "bookFormCounts", "bookLast", "bookMeaning", "bookForms", "bookLessonCompletedIn",
         "bookLessonCompleted", "bookLessonInProgress", "bookLessonNotStarted", "bookUnit", "bookUnitSteps", "bookLessonCounts", "bookSaidSession", "bookSaidWhere",
         "bookSaidVoice", "bookSaidTyped", "bookSaidButton", "bookSaidLessonStep", "bookSaidLesson", "bookSaidCheck", "bookSaidTalk", "bookSaidTalkTo",
-        "bookPractise", "bookReviewNow", "bookReviewDue.one", "bookReviewDue.other", "bookColumnPresent", "bookColumnPast", "bookColumnNearFuture",
+        "bookPractise", "bookReviewNow", "bookReviewDue.one", "bookReviewDue.other", "bookColumnPresent", "bookColumnPast", "bookColumnNearFuture", "bookColumnFuture",
         "reportTitle", "reportHintsFirst", "reportHintsSecond", "reportPlaceholder", "reportCancel", "reportSave", "reportBug", "reportFeature", "reportBlank",
         "reportSaved", "reportNotSaved", "checkTitle", "checkPre", "checkPost", "checkRecall", "checkComprehensionHint", "checkProductionPreface", "checkProductionHint",
         "checkDone", "checkItem", "checkThanks", "checkCounts", "checkThinking", "checkInLog", "checkCloseGame", "checkEnd", "checkListening", "checkAnswerHere",

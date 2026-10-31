@@ -2468,6 +2468,13 @@
 {"id":"words.json:nearFuture.timeWords[1]","text":"luego","kind":"npc"}
 {"id":"words.json:nearFuture.timeWords[2]","text":"después","kind":"npc"}
 {"id":"words.json:nearFuture.timeWords[3]","text":"pasado mañana","kind":"npc"}
+{"id":"words.json:nearFuture.timeWords[4]","text":"semana que viene","kind":"npc"}
+{"id":"words.json:nearFuture.timeWords[5]","text":"próxima semana","kind":"npc"}
+{"id":"words.json:nearFuture.timeWords[6]","text":"próximo día","kind":"npc"}
+{"id":"words.json:nearFuture.timeWords[7]","text":"mes que viene","kind":"npc"}
+{"id":"words.json:nearFuture.timeWords[8]","text":"próximo mes","kind":"npc"}
+{"id":"words.json:nearFuture.timeWords[9]","text":"año que viene","kind":"npc"}
+{"id":"words.json:nearFuture.timeWords[10]","text":"próximo año","kind":"npc"}
 {"id":"words.json:nouns.river","text":"río","kind":"npc"}
 {"id":"npcs/guide.json:label","text":"Guía","kind":"npc"}
 {"id":"npcs/guide.json:name","text":"Luna","kind":"npc"}

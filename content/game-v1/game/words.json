@@ -40,7 +40,14 @@
       "mañana",
       "luego",
       "después",
-      "pasado mañana"
+      "pasado mañana",
+      "semana que viene",
+      "próxima semana",
+      "próximo día",
+      "mes que viene",
+      "próximo mes",
+      "año que viene",
+      "próximo año"
     ]
   },
   "greeting": "hola",

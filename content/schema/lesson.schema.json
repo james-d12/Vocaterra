@@ -174,9 +174,10 @@
           "enum": [
             "pres",
             "pret",
-            "ir-a"
+            "ir-a",
+            "fut"
           ],
-          "description": "repeat, answer: the tense the step expects (its retry line is the locale's lesson.<id>.<step>.tenseRetry)."
+          "description": "repeat, answer: the tense the step expects (its retry line is the locale's lesson.<id>.<step>.tenseRetry). At an ir-a step a plan said in the present with a time word or in the simple future is credited with the locale's lesson.<id>.<step>.presentNote; at a fut step (the simple future, V16; an a2 lesson only, the validator checks it) the near future or the present with a time word is credited with lesson.<id>.<step>.futureNote."
         },
         "point": {
           "type": "string",

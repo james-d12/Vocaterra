@@ -12,7 +12,7 @@ using Vocaterra.Nlp.Es;
 namespace Vocaterra.Game.Core.Tests.Language.Book;
 
 // The book's conjugation tables (S28, D-game-19) for a fixed record: which cells are highlighted (used, with a count), which are plain (taught, not used), which are
-// empty (not taught) and which columns are hidden; the future (ir a) built from ir; and the game's reading of "vamos".
+// empty (not taught) and which columns are hidden; the future (ir a) built from ir; the simple future, the fourth column (V16); and the game's reading of "vamos".
 public sealed class ConjugationTableTests
 {
     private static readonly Lazy<VerbGlosses> Glosses = new(() => TestGame.Data.Glosses);
@@ -139,6 +139,45 @@ public sealed class ConjugationTableTests
         Assert.Equal(new ConjugationCell("van a comer", CellState.Taught, 0), At(table, "3", "pl", "ir-a"));
         Assert.Equal(new ConjugationCell("comí", CellState.Taught, 0), At(table, "1", "sg", "pret"));
         Assert.Equal(new ConjugationCell("comiste", CellState.Taught, 0), At(table, "2", "sg", "pret"));
+    }
+
+    [Fact]
+    public void TheSimpleFutureIsTheFourthColumnShownOnceALessonTeachesOneOfItsForms()
+    {
+        // V16: the column after the future (ir a), hidden like the others until a lesson that is completed or under way teaches a form of it (session 9 is the first).
+        var comprar = Verb("comprar", Form("compro", "1", "sg", "pres", "ind", 1));
+        var before = new[] { Taught("comprar", "1", "sg", "pres"), Taught("comprar", "1", "sg", "pret"), Taught("comprar", "1", "sg", "ir-a") };
+
+        var early = ConjugationTable.Build(comprar, [], before, TestGame.Bundle.SpanishMorphology(), null, TestGame.Data.Words);
+        Assert.Equal(["pres", "pret", "ir-a"], early.Columns.Select(static c => c.Tense));
+
+        var later = ConjugationTable.Build(comprar, [], [.. before, Taught("comprar", "1", "sg", "fut"), Taught("comprar", "3", "sg", "fut")], TestGame.Bundle.SpanishMorphology(), null, TestGame.Data.Words);
+        Assert.Equal(["pres", "pret", "ir-a", "fut"], later.Columns.Select(static c => c.Tense));
+        Assert.Equal(["present", "past", "future (ir a)", "future"], later.Columns.Select(static c => TestGame.Data.Locale.Ui(c.TitleId)));
+        Assert.Equal(new ConjugationCell("compraré", CellState.Taught, 0), At(later, "1", "sg", "fut"));
+        Assert.Equal(new ConjugationCell("comprará", CellState.Taught, 0), At(later, "3", "sg", "fut"));
+        Assert.Equal(new ConjugationCell(null, CellState.Locked, 0), At(later, "2", "sg", "fut"));
+        Assert.Equal(ConjugationTable.AllColumns, later.Columns);
+    }
+
+    [Fact]
+    public void ASimpleFutureTheLearnerSaidIsCountedFromTheWordRecordAndShowsItsColumn()
+    {
+        // As the present and the past: the word record's forms, by the core's reading (compraré: comprar, 1 sg, fut), whether or not a lesson taught them yet.
+        var comprar = Verb("comprar", Form("compraré", "1", "sg", "fut", "ind", 2), Form("comprarás", "2", "sg", "fut", "ind", 1, question: true), Form("compré", "1", "sg", "pret", "ind", 1));
+        var table = ConjugationTable.Build(comprar, [], [Taught("comprar", "3", "sg", "fut")], TestGame.Bundle.SpanishMorphology(), null, TestGame.Data.Words);
+
+        Assert.Equal(["pret", "fut"], table.Columns.Select(static c => c.Tense));
+        Assert.Equal(new ConjugationCell("compraré", CellState.Used, 2), At(table, "1", "sg", "fut"));
+        Assert.Equal(new ConjugationCell("comprarás", CellState.Used, 1), At(table, "2", "sg", "fut"));
+        Assert.Equal(new ConjugationCell("comprará", CellState.Taught, 0), At(table, "3", "sg", "fut"));
+        Assert.Equal(new ConjugationCell("compré", CellState.Used, 1), At(table, "1", "sg", "pret"));
+        Assert.Equal(new ConjugationCell(null, CellState.Locked, 0), At(table, "1", "pl", "fut"));
+
+        // ir's future is its own word (iré), never the future (ir a) of ir.
+        var ir = ConjugationTable.Build(Verb("ir", Form("iré", "1", "sg", "fut", "ind", 1)), [], [], TestGame.Bundle.SpanishMorphology(), null, TestGame.Data.Words);
+        Assert.Equal(["fut"], ir.Columns.Select(static c => c.Tense));
+        Assert.Equal(new ConjugationCell("iré", CellState.Used, 1), At(ir, "1", "sg", "fut"));
     }
 
     [Fact]

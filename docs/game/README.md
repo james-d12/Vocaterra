@@ -585,19 +585,57 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --lesson-
   `¿Fuiste al río ayer?`, `¿Bebiste agua ayer?` and, last, `¿Qué vas a hacer mañana?`. The answers are statements about an action in any tense (the intent `state_action`), so nothing is handed over.
   The lesson of the newest session comes first at an NPC (a learner who reaches session 3 without session 2's `personas` is offered `ayer-y-manana`, and `personas` after it).
   `--session 3 --lesson-run ayer-y-manana` runs it with typed answers, walking from the player's camp to the villager and then the stall.
-- **The tense of the answer's verb.** A step may declare `tense` (`pres`, `pret` or `ir-a`) with a `tenseRetry` line, next to S26's `person`. The runner reads the answer's finite verbs from the turn's word readings:
-  for `pret` and `pres` one finite verb with that tense is enough; for `ir-a` it looks for a finite form of `ir`, then `a`, then an infinitive (`voy a comer`; `vamos` is read as an imperative or a present, both count).
+- **The tense of the answer's verb.** A step may declare `tense` (`pres`, `pret`, `ir-a` or, since V16, `fut`; below) with a `tenseRetry` line, next to S26's `person`. The runner reads the answer's finite verbs from the turn's word readings:
+  for `pret` and `pres` one finite verb with that tense is enough; for `ir-a` it looks for a form of `ir` in the present, then `a`, then an infinitive (`voy a comer`; `vamos` is read as an imperative or a present, both count;
+  `iba a comer` is a past, V16).
   A mismatch the core did not flag (a bare `como pan` or `comí pan` at `¿Qué vas a comer mañana?`, `voy a comer fruta` at `¿Qué comiste ayer?`) is a miss like a wrong person: the step stays, the retry names the form,
-  the log says `wrong tense: said pres, expected ir-a`, and after the attempts the step moves on. Person is judged first. **Correct Spanish is never a miss:** a plan said in the present with `mañana` (`mañana voy al río`, `mañana como pan`) is credited (the step ends Done, the log says `present for a plan, credited`)
+  the log says `wrong tense: said pres, expected ir-a`, and after the attempts the step moves on. Person is judged first. **Correct Spanish is never a miss:** a plan said in the present with a future-time word (`mañana voy al río`, `mañana como pan`; the words are `game/words.json`'s `nearFuture.timeWords`) is credited (the step ends Done, the log says `present for a plan, credited`)
   and the next step opens with a gentle English note naming the form the step practises (`That is right too. Here we practise “voy a ir”: Mañana voy a ir al río.`; the step's `presentNote`). A tense next to a time word is the core's `conj.tense` (M49: `mañana comí pan`,
   `ayer como fruta`, `voy a como pan`): a slip, the step ends. A miss shows none of the core's correction line (its recast would praise the learner's own wrong words).
 - **A miss is not a use.** A turn the lesson counts as a miss for the person or the tense is no use of the phrase: it adds no phrase use (so no credit, no support step, no word of the phrase's progress); the
   right answer after it is the phrase's one use.
-- **The near future in the conjugation tables.** `lessons.json` declares a taught form as `lemma`, `person`, `number`, `tense`; the tenses are `pres`, `pret`, `ir-a` (the near future) and `fut` (the simple future, A2, not
-  taught yet). `ir-a` is a periphrastic form: it has no word of its own, so a form `{ "lemma": "comer", "person": "1", "number": "sg", "tense": "ir-a" }` is `voy a comer`: `ir` in the present for that person and
+- **The near future in the conjugation tables.** `lessons.json` declares a taught form as `lemma`, `person`, `number`, `tense`; the tenses are `pres`, `pret`, `ir-a` (the near future) and `fut` (the simple future, A2; a step may
+  expect it since V16, below). `ir-a` is a periphrastic form: it has no word of its own, so a form `{ "lemma": "comer", "person": "1", "number": "sg", "tense": "ir-a" }` is `voy a comer`: `ir` in the present for that person and
   number, `a`, then the lemma as the infinitive. The lemma of an `ir-a` form is the verb that follows the `a`. The book's table for a verb (S28) therefore has a column "future (ir a)" whose cells are built from the
   `ir` row of its present column and the verb's infinitive, never typed by hand; `TaughtVerbForm.Text(morphology)` gives the text of any declared form (`voy a comer`, `comí`, `fuiste`). The column and the preterite
   column stay hidden until a lesson declares a form of that tense.
+
+## The simple future at a step (VILLAGE_PLAN V16, phase B)
+
+Session 9 ("Mañana en el pueblo", V17) teaches the simple future (`compraré`, `iré`, `hará`) against `ir a`; V16 made the runner and the book ready for it. No lesson of the
+bundle has a `fut` step yet; the tests use fixture lessons (`SimpleFutureStepTests`).
+
+- **A `fut` step.** A repeat or answer step may declare `"tense": "fut"`, in an `a2` lesson only (the validator; V08 held a lesson's `verbs` to the same rule). Its answer is a finite
+  verb the core reads in the future: the core's tense label is the lexicon's feature `fut`, mood `ind` (`compraré`, `iré`, `hará`), and the runner compares that as it is.
+- **Correct Spanish for the future is never a miss.** At a `fut` step the near future (`voy a comprar pan`, `mañana voy a comprar pan`) and a plan in the present with a time word
+  (`mañana compro pan`, `la semana que viene compro pan`) are credited: the step ends Done, and the next step opens with the step's `futureNote` (`That is right too. Here we
+  practise “compraré”: …`). One note serves both, since it names the form the step practises whichever other form was said; a `fut` step has no `presentNote`. At an `ir-a` step
+  the simple future (`mañana compraré pan`, `compraré pan`) is credited with the step's `presentNote`, which names the step's form in the same way, so a learner who has met the
+  future in session 9 is not told off at a later `ir a` step. The log says `near future for a plan, credited`, `present for a plan, credited` or `simple future for a plan, credited`.
+- **A wrong tense.** A preterite or a present without a time word at a `fut` step (`compré pan`, `compro pan`, `iba a comprar pan`) is the lesson's miss with the step's
+  `tenseRetry`, as at the other tense steps. A wrong tense next to a time word is the core's `conj.tense` (`mañana compré pan` expects `voy a comprar`; `ayer compraré pan`
+  expects `compré`): a slip, and the step ends.
+- **The time words** (`game/words.json`, `nearFuture.timeWords`): `mañana`, `luego`, `después`, `pasado mañana` (V10) and the core's markers of a time noun with `próximo` or
+  `que viene` for `semana`, `día`, `mes` and `año` (`próxima semana`, `semana que viene`, ...). A time word of several words is matched as a whole, its words in order, never one
+  of them alone (`NearFutureWords.Mark`), and a verb inside one (the `viene` of `la semana que viene`) is not the answer's verb. `luego` and `después` are no markers to the core
+  (`después compré pan` is narration, so the lesson judges it); `el día que viene` is left out, since it may be a relative clause (`el día que viene Luz`). The bundle's grammars
+  take the later markers in V17, after the core's M57.
+- **The book.** The conjugation tables gain a fourth column, the simple future (`ui.bookColumnFuture`, "future"), after the future (ir a): time runs left to right and the two
+  futures stand in the order the lessons teach them. It shows once a lesson teaches a `fut` form of the verb or the learner says one, as the others do, and its counts come from
+  the word record like the present's and the past's. Its forms come from the lexicon (the Wiktionary import: `compraré`, `comprarás`, `comprará`, `iré`, `buscaré`, `hará`,
+  `tendré`, `trabajará`, `pescará`); the core's regular paradigm builds no simple future, so a verb the import lacks has no `fut` cell. A page too narrow for four columns stacks
+  them in blocks (X08).
+
+Until session 9 ships, the fourth column shows for a form the learner says (what the learner says is never hidden):
+
+```bash
+# the table of comprar with its four columns: session 8's lessons done, two lines said to the guide, the book open on the verb
+DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --no-autosave --skip-to-session 8 --say "mañana compraré pan" --say "compro pan" --leave \
+  --book-verb comprar --screenshot /tmp/v16-book.png --frames 30
+# the smallest window at the largest text: one column a block, the future the fourth block (--book-detail scrolls the right page to it)
+DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --no-autosave --size 800x600 --text-scale 150 --skip-to-session 8 --say "mañana compraré pan" \
+  --say "compro pan" --leave --book-verb comprar --book-detail 30 --screenshot /tmp/v16-book-small.png --frames 30
+```
 
 ## The village: sessions 4 to 6 (VILLAGE_PLAN phase A, D-game-22)
 
@@ -861,8 +899,8 @@ dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --session-dir /tmp/x
 - **The right page.** Verbs: the verb, its English and its conjugation table, then what you said (each form with its count and its last sentence, as the S20 page listed them).
   Up and Down or a click on a verb choose it. Every other page: the selected item's own lines (a noun's counts and last sentence, a phrase, a lesson with its units and phrases,
   a line you said), written out in full on the page, wrapped instead of cut short. The selected item is the selected row (the rows with a button) or, with none, the first on screen.
-- **The table** (`ConjugationTable`, `Frontend/ConjugationTable.cs`). Rows: yo, tú, él/ella/usted, nosotros, ustedes/ellos (no vosotros row). Columns: present, past (preterite)
-  and future (ir a). A cell is **highlighted** with its count when you have said the form (the learner's record), **plain** when a lesson that is completed or under way has taught it
+- **The table** (`ConjugationTable`, `Frontend/ConjugationTable.cs`). Rows: yo, tú, él/ella/usted, nosotros, ustedes/ellos (no vosotros row). Columns: present, past (preterite),
+  future (ir a) and, since V16, the simple future ("future"). A cell is **highlighted** with its count when you have said the form (the learner's record), **plain** when a lesson that is completed or under way has taught it
   (`lessons.json` `verbs`) and you have not said it yet, and a dash when it is neither. A tense column shows once a lesson has taught a form of that tense for the verb or you have
   said one (what you said is never hidden); a verb with neither gets the present alone. Every form is the core's (`ContentBundle.Morphology`, `TaughtVerbForm.Text`); the future (ir a)
   of `comer` is `ir`'s present, `a` and the infinitive (`voy a comer`), counted from the history's words in order (`ir` form, `a`, the verb), over the lines the word record counts.

@@ -24,7 +24,10 @@ public sealed class GameWordsTests
         Assert.Equal(["yo", "tú", "él/ella/usted", "nosotros", "ustedes/ellos"], GameWords.PronounKeys.Select(key => Words.Pronoun(key[..1], key[1..])));
         Assert.Equal(("ayuda", "no sé", "hola"), (Words.HelpLine, Words.DontKnowLine, Words.Greeting));
         Assert.Equal(("ir", "a"), (Words.NearFuture.Verb, Words.NearFuture.Joiner));
-        Assert.Equal(["mañana", "luego", "después", "pasado mañana"], Words.NearFuture.TimeWords); // VILLAGE_PLAN V10: the later markers make a present a plan too
+        // VILLAGE_PLAN V10: the later markers make a present a plan too; V16: the core's markers of a time noun (semana, día, mes, año) with próximo or que viene, matched as phrases.
+        Assert.Equal(
+            ["mañana", "luego", "después", "pasado mañana", "semana que viene", "próxima semana", "próximo día", "mes que viene", "próximo mes", "año que viene", "próximo año"],
+            Words.NearFuture.TimeWords);
         Assert.Equal("río", Words.Noun("river"));
     }
 

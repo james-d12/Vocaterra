@@ -154,6 +154,15 @@ specified for later in `docs/game/CONTENT_PLAN.md` section 3.8 (C10); it is not 
 
   A finding names the lesson's file, the text, what says it and the word above the level. A word the world needs that the lists put above A1 (a
   noun the player handles, a place the beacon names) joins the marked block at the end of `cefr/a1.txt` with a one-line reason.
+- **A step's person and tense.** A `repeat` or `answer` step may declare the `person` of the verb its answer must have (`1sg`, `2sg`, `3sg`, `1pl`,
+  `2pl`, `3pl`) and its `tense`: `pres`, `pret`, `ir-a` (the near future, `voy a comprar`) or `fut` (the simple future, `compraré`; an `a2` lesson
+  only, V16). Their lines are the locale's: `lesson.<id>.<step>.personRetry` and `.tenseRetry` (shown when the right phrase comes with another
+  person or tense and the core flags nothing). Correct Spanish is never a miss: an `ir-a` step credits a plan said in the present with a time word
+  or in the simple future and shows its `.presentNote`; a `fut` step credits the near future or a present with a time word and shows its
+  `.futureNote`. Each note names the form the step practises (`That is right too. Here we practise “compraré”: Mañana compraré pan.`).
+- **A time word.** The words that make a present a plan are `game/words.json`'s `nearFuture.timeWords`. An entry of several words (`semana que
+  viene`, `próxima semana`) is matched as a whole, in order. Keep them to the core's future markers (`docs/nlp/API.md`, "Tense errors") and to the
+  adverbs that say later (`luego`, `después`), which the core does not grade: a verb inside an entry (`viene`) is no longer the answer's verb.
 - **A phrase.** Add the row to `PHRASES.md` first (D-game-10), then to `game-v1/game/phrases.json`, and its meaning, card and explanation to
   `locale/en/phrases.json`. Render its recordings (`scripts/prerender-speech.sh`). A phrase the guide reviews may name a `reviewLine`, the dialogue
   line she asks it with while the bundle has no review pool for it (`guide.review.phrase.<id>`).

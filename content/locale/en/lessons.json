@@ -1,6 +1,6 @@
 {
   "$schema": "../../schema/locale.schema.json",
-  "about": "The lessons' support-language text: lesson.<id>.title, .text, .summary, .objective; each step's lesson.<id>.<step>.text, .translation, .help, .retry, .personRetry, .tenseRetry, .presentNote, .hud and .option.<n>.",
+  "about": "The lessons' support-language text: lesson.<id>.title, .text, .summary, .objective; each step's lesson.<id>.<step>.text, .translation, .help, .retry, .personRetry, .tenseRetry, .presentNote, .futureNote, .hud and .option.<n>.",
   "strings": {
     "lesson.first-words.title": "First words with {npc:guide}",
     "lesson.first-words.text": "Seven short units: hello, yes and no, what is this, please and thank you, I and you with three verbs, getting unstuck, and what the camp needs.",

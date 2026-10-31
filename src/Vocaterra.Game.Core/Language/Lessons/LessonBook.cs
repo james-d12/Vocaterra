@@ -102,7 +102,7 @@ public static class LessonLevels
     public const string A2 = "a2";
 
     private static readonly string[] A1Tenses = ["pres", "pret", TaughtVerbForm.NearFuture];
-    private static readonly string[] A2Tenses = ["pres", "pret", TaughtVerbForm.NearFuture, "fut"];
+    private static readonly string[] A2Tenses = ["pres", "pret", TaughtVerbForm.NearFuture, TaughtVerbForm.SimpleFuture];
 
     /// <summary>
     /// The bundle's ceiling (D-game-22 (b)): no Spanish of the bundle is above it (the gate's lint, <c>--level a2 --fail-on-level</c>), and a phrase's variants, which
@@ -150,11 +150,12 @@ public static class LessonLevels
 /// <param name="Npc">The NPC the step is said at (S26: a lesson may move from one NPC to another), or <see langword="null"/> for the lesson's own NPC.</param>
 /// <param name="Person">For <c>repeat</c> and <c>answer</c> (S26): the person and number of the finite verb the answer must have (<c>1sg</c>, <c>2sg</c>, <c>3sg</c>, <c>1pl</c>, <c>2pl</c> or <c>3pl</c>), or <see langword="null"/> to judge nothing of it.</param>
 /// <param name="PersonRetry">The English line shown when the answer's verb has another person than <see cref="Person"/> (it names the ending), or <see langword="null"/> for the step's retry line.</param>
-/// <param name="Tense">For <c>repeat</c> and <c>answer</c> (S27): the tense the answer's verb must have (<c>pres</c>, <c>pret</c> or <c>ir-a</c>, the near future: a form of <c>ir</c>, <c>a</c> and an infinitive), or <see langword="null"/> to judge nothing of it.</param>
+/// <param name="Tense">For <c>repeat</c> and <c>answer</c> (S27): the tense the answer's verb must have (<c>pres</c>, <c>pret</c>, <c>ir-a</c>, the near future: a form of <c>ir</c>, <c>a</c> and an infinitive, or <c>fut</c>, the simple future, V16), or <see langword="null"/> to judge nothing of it.</param>
 /// <param name="TenseRetry">The English line shown when the answer's verb has another tense than <see cref="Tense"/> (it names the form), or <see langword="null"/> for the step's retry line.</param>
-/// <param name="PresentNote">For an <c>ir-a</c> step (S27): the English note shown after a plan said in the present (<c>mañana voy al río</c>), which is right Spanish and is credited; it names the form the lesson practises. <see langword="null"/> for the step with no note.</param>
+/// <param name="PresentNote">For an <c>ir-a</c> step (S27): the English note shown after a plan said in the present (<c>mañana voy al río</c>) or in the simple future (<c>compraré pan</c>, V16), which is right Spanish and is credited; it names the form the lesson practises. <see langword="null"/> for the step with no note.</param>
 /// <param name="Candidates">For <c>review</c> (X06, R07): the phrases the step may ask; <see cref="Line"/>, <see cref="Translation"/>, <see cref="Phrase"/> and <see cref="Prompt"/> are those of the first. At run time the runner asks the most overdue of those that are due.</param>
 /// <param name="PointPlace">For <c>do</c> (VILLAGE_PLAN V02): a named place of the scene (<c>stall</c>) the beacon is pointed at when the step begins, or <see langword="null"/> for none; a step that waits for <c>beacon_reached</c> with that detail is done on arrival.</param>
+/// <param name="FutureNote">For a <c>fut</c> step (V16): the English note shown after a plan said with <c>ir a</c> (<c>voy a comprar pan</c>) or in the present with a future-time word (<c>mañana compro pan</c>), which is right Spanish and is credited; it names the form the lesson practises. <see langword="null"/> for the step with no note.</param>
 public sealed record LessonStep(
     string Id,
     LessonStepType Type,
@@ -179,7 +180,8 @@ public sealed record LessonStep(
     string? TenseRetry = null,
     string? PresentNote = null,
     IReadOnlyList<ReviewCandidate>? Candidates = null,
-    string? PointPlace = null)
+    string? PointPlace = null,
+    string? FutureNote = null)
 {
     /// <summary>The attempts a step allows when the file says nothing: one try and one retry, then the lesson moves on.</summary>
     public const int DefaultAttempts = 2;
@@ -204,11 +206,17 @@ public sealed record LessonStep(
 /// <param name="Lemma">The verb's infinitive.</param>
 /// <param name="Person">The person: <c>1</c>, <c>2</c> or <c>3</c>.</param>
 /// <param name="Number">The number: <c>sg</c> or <c>pl</c>.</param>
-/// <param name="Tense">The tense: <c>pres</c> (present), <c>pret</c> (preterite, S27), <c>ir-a</c> (the near future, S27) or <c>fut</c> (the simple future, A2, not taught yet).</param>
+/// <param name="Tense">The tense: <c>pres</c> (present), <c>pret</c> (preterite, S27), <c>ir-a</c> (the near future, S27) or <c>fut</c> (the simple future, A2, V16).</param>
 public sealed record TaughtVerbForm(string Lemma, string Person, string Number, string Tense)
 {
     /// <summary>The tense of the near future, <c>ir a</c> + infinitive (S27).</summary>
     public const string NearFuture = "ir-a";
+
+    /// <summary>
+    /// The tense of the simple future (<c>compraré</c>, <c>iré</c>, <c>hará</c>; V16), as the core's lexicon features spell it and its readings give it. Its forms come from the
+    /// lexicon (the Wiktionary import); the core's regular paradigm builds none, so a verb the import lacks has no form in it.
+    /// </summary>
+    public const string SimpleFuture = "fut";
 
     /// <summary>
     /// The form as the learner meets it. For the tenses the core's morphology generates (<c>pres</c>, <c>pret</c>, <c>fut</c>) it is the conjugated word (<c>comí</c>). The near future is a
@@ -299,7 +307,7 @@ public sealed record LessonDefinition(
 /// <para>The file is <c>{ "schemaVersion": 1, "lessons": [ { "id", "npc", "level", "autoStart"?, "after"?, "steps": [ ... ] } ] }</c>. It carries ids only: every word the
 /// learner reads is the support language's, in the locale (CONTENT_PLAN C03): the lesson's <c>lesson.&lt;id&gt;.title</c> and <c>.text</c> (and <c>.summary</c>, <c>.objective</c>),
 /// and each step's <c>lesson.&lt;id&gt;.&lt;step&gt;.text</c> (and <c>.help</c>, <c>.retry</c>, <c>.translation</c>, <c>.option.&lt;n&gt;</c>, <c>.hud</c>, <c>.personRetry</c>,
-/// <c>.tenseRetry</c>, <c>.presentNote</c>). A step has an <c>id</c> and a <c>type</c> always, and optionally <c>attempts</c> (1 to 5, default 2) and <c>npc</c> (S26: the
+/// <c>.tenseRetry</c>, <c>.presentNote</c>, <c>.futureNote</c>). A step has an <c>id</c> and a <c>type</c> always, and optionally <c>attempts</c> (1 to 5, default 2) and <c>npc</c> (S26: the
 /// NPC the step is said at, when the lesson moves from one NPC to another), plus:</para>
 /// <list type="bullet">
 /// <item><c>explain</c>: nothing more.</item>
@@ -315,7 +323,8 @@ public sealed record LessonDefinition(
 /// CEFR lists up to that level, and its tenses to the level's (<see cref="Content.GameDataValidator"/> checks both).</para>
 /// <para>A lesson may also carry <c>session</c> (the play session it unlocks in, default 1; above 1 the locale needs its objective line)
 /// and <c>verbs</c> (the verb forms it teaches: <c>lemma</c>, <c>person</c> 1 to 3, <c>number</c> sg or pl, <c>tense</c> pres, pret, ir-a or fut; S26, S27). A repeat or answer step may declare the <c>person</c>
-/// of the verb it expects (<c>1sg</c>...) and its <c>tense</c> (<c>pres</c>, <c>pret</c>, <c>ir-a</c>), with their retry lines in the locale (S27).</para>
+/// of the verb it expects (<c>1sg</c>...) and its <c>tense</c> (<c>pres</c>, <c>pret</c>, <c>ir-a</c>, <c>fut</c>), with their retry lines in the locale (S27), and the note an
+/// <c>ir-a</c> step (<c>presentNote</c>) or a <c>fut</c> step (<c>futureNote</c>, V16) shows after another right way of saying the future.</para>
 /// <para>The row's intent must be one the prompt allows, so the core can recognise the answer. Plain values, no clock, no random numbers.</para>
 /// </remarks>
 public sealed class LessonBook
@@ -550,7 +559,7 @@ public sealed class LessonBook
         foreach (var item in listed.EnumerateArray())
         {
             var form = new TaughtVerbForm(Text(item, "lemma"), Text(item, "person"), Text(item, "number"), Text(item, "tense"));
-            if (form.Person is not ("1" or "2" or "3") || form.Number is not ("sg" or "pl") || form.Tense is not ("pres" or "pret" or "fut" or TaughtVerbForm.NearFuture))
+            if (form.Person is not ("1" or "2" or "3") || form.Number is not ("sg" or "pl") || form.Tense is not ("pres" or "pret" or TaughtVerbForm.SimpleFuture or TaughtVerbForm.NearFuture))
             {
                 throw Bad(lesson, $"declares the verb form {form.Lemma} {form.Person} {form.Number} {form.Tense}, which is not a person 1 to 3, a number sg or pl and a tense pres, pret, fut or ir-a");
             }
@@ -669,9 +678,9 @@ public sealed class LessonBook
         }
 
         var tense = Optional(element, "tense");
-        if (tense is not null && (type is not (LessonStepType.Repeat or LessonStepType.Answer) || tense is not ("pres" or "pret" or TaughtVerbForm.NearFuture)))
+        if (tense is not null && (type is not (LessonStepType.Repeat or LessonStepType.Answer) || tense is not ("pres" or "pret" or TaughtVerbForm.NearFuture or TaughtVerbForm.SimpleFuture)))
         {
-            throw Bad(lesson, $"step '{id}' expects the tense '{tense}': \"tense\" is pres, pret or ir-a and goes with a repeat or answer step");
+            throw Bad(lesson, $"step '{id}' expects the tense '{tense}': \"tense\" is pres, pret, ir-a or fut and goes with a repeat or answer step");
         }
 
         var point = type == LessonStepType.Do ? Optional(element, "point") : null;
@@ -681,7 +690,7 @@ public sealed class LessonBook
             throw Bad(lesson, $"step '{id}' points the beacon at the noun '{point}' and at the place '{pointPlace}'; a do step points at one of them");
         }
 
-        return new LessonStep(id, type, Required(locale, lesson, StepId(lesson, id, "text")), Say("help"), Say("retry"), line, translation, phrase, prompt, options, correct, trigger, phrases, attempts, point, type == LessonStepType.Do ? Say("hud") : null, stepNpc, person, person is null ? null : Say("personRetry"), tense, tense is null ? null : Say("tenseRetry"), tense == TaughtVerbForm.NearFuture ? Say("presentNote") : null, candidates, pointPlace);
+        return new LessonStep(id, type, Required(locale, lesson, StepId(lesson, id, "text")), Say("help"), Say("retry"), line, translation, phrase, prompt, options, correct, trigger, phrases, attempts, point, type == LessonStepType.Do ? Say("hud") : null, stepNpc, person, person is null ? null : Say("personRetry"), tense, tense is null ? null : Say("tenseRetry"), tense == TaughtVerbForm.NearFuture ? Say("presentNote") : null, candidates, pointPlace, tense == TaughtVerbForm.SimpleFuture ? Say("futureNote") : null);
     }
 
     // The candidates of a review step (X06, R07): each names a phrase, the NPC's line that asks it (its meaning is the line's own, line.<id> in the locale) and
@@ -743,7 +752,7 @@ public sealed class LessonBook
     /// <param name="field">The field.</param>
     public static string LessonId(string lesson, string field) => "lesson." + lesson + "." + field;
 
-    /// <summary>The locale id of a step's text: <c>lesson.&lt;id&gt;.&lt;step&gt;.&lt;field&gt;</c> (text, translation, help, retry, personRetry, tenseRetry, presentNote, hud, option.&lt;n&gt;).</summary>
+    /// <summary>The locale id of a step's text: <c>lesson.&lt;id&gt;.&lt;step&gt;.&lt;field&gt;</c> (text, translation, help, retry, personRetry, tenseRetry, presentNote, futureNote, hud, option.&lt;n&gt;).</summary>
     /// <param name="lesson">The lesson's id.</param>
     /// <param name="step">The step's id.</param>
     /// <param name="field">The field.</param>

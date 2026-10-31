@@ -17,7 +17,7 @@ internal static class LocaleFixture
     private static readonly (string Field, string Key)[] StepFields =
     [
         ("english", "text"), ("translation", "translation"), ("help", "help"), ("retry", "retry"), ("personRetry", "personRetry"), ("tenseRetry", "tenseRetry"),
-        ("presentNote", "presentNote"), ("hud", "hud"),
+        ("presentNote", "presentNote"), ("futureNote", "futureNote"), ("hud", "hud"),
     ];
 
     /// <summary>A lessons file with its text inline, split into the file the loader reads and the locale strings of its text.</summary>

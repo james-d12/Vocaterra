@@ -184,7 +184,7 @@
           }
         }
       },
-      "description": "ir a + infinitive: the verb, its joiner, and the time words that make a present a plan."
+      "description": "ir a + infinitive: the verb, its joiner, and the time words that make a present a plan (at an ir-a or a fut step of a lesson). A time word of several words (semana que viene) is matched as a whole, its words in order (V16)."
     },
     "greeting": {
       "$ref": "#/definitions/word",

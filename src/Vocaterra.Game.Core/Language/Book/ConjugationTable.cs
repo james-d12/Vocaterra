@@ -27,16 +27,20 @@ public sealed record ConjugationTable(string Lemma, string? Gloss, IReadOnlyList
         ("3", "pl"),
     ];
 
-    /// <summary>The columns a table can have, in order: present, past, future (ir a).</summary>
+    /// <summary>
+    /// The columns a table can have, in order: present, past, future (ir a) and the simple future (V16). Time runs left to right, and the two futures stand in the order
+    /// the lessons teach them (<c>ir a</c> in session 3, the simple future in session 9), so the column a learner meets later is added at the right.
+    /// </summary>
     public static IReadOnlyList<ConjugationColumn> AllColumns { get; } =
     [
         new("pres", "bookColumnPresent"),
         new("pret", "bookColumnPast"),
         new(TaughtVerbForm.NearFuture, "bookColumnNearFuture"),
+        new(TaughtVerbForm.SimpleFuture, "bookColumnFuture"),
     ];
 
     /// <summary>
-    /// Builds the table of a verb. The counts come from the learner's word record (<paramref name="verb"/>, the forms it holds) for the present and the past, and
+    /// Builds the table of a verb. The counts come from the learner's word record (<paramref name="verb"/>, the forms it holds) for the present, the past and the future, and
     /// from the history for the future (ir a), which is a phrase and not a word: <c>ir</c> in the present, <c>a</c>, then the infinitive. Two readings of the core
     /// are handled here, in the game: an imperative reading whose text is the indicative present of its verb is that present (<see cref="VerbReading"/>, the
     /// rule the labels use too). So <c>vamos</c> (the word record shows <c>vamos (1 pl imp)</c>) counts in <c>ir</c>'s present, 1 pl, and <c>está</c> in

@@ -28,8 +28,35 @@ public sealed record SupportWords(string CardTag, string ListenChip, string KeyW
 /// <summary>The near future, <c>ir a</c> + infinitive (S27): the verb, its joiner, and the time words that make a present a plan.</summary>
 /// <param name="Verb">The verb in the present (<c>ir</c>).</param>
 /// <param name="Joiner">The word between it and the infinitive (<c>a</c>).</param>
-/// <param name="TimeWords">The future-time words (<c>mañana</c>) that make a present tense a plan, which is no miss.</param>
-public sealed record NearFutureWords(string Verb, string Joiner, IReadOnlyList<string> TimeWords);
+/// <param name="TimeWords">The future-time words (<c>mañana</c>, <c>luego</c>; V16: a time word of several words, <c>semana que viene</c>) that make a present tense a plan, which is no miss.</param>
+public sealed record NearFutureWords(string Verb, string Joiner, IReadOnlyList<string> TimeWords)
+{
+    /// <summary>
+    /// Which words of a line belong to one of the <see cref="TimeWords"/> (V16). A time word of one word is that word; one of several (<c>semana que viene</c>,
+    /// <c>próxima semana</c>) is those words in that order, never one of them alone, so <c>viene</c> is part of a time word in <c>la semana que viene</c> and in
+    /// no other line. The words are compared as the core normalized them (lower case, the accents kept).
+    /// </summary>
+    /// <param name="words">The line's normalized words, in order.</param>
+    /// <returns>One flag for each word: whether it is part of a time word.</returns>
+    public bool[] Mark(IReadOnlyList<string> words)
+    {
+        ArgumentNullException.ThrowIfNull(words);
+        var marked = new bool[words.Count];
+        foreach (var time in TimeWords)
+        {
+            var parts = time.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            for (var start = 0; parts.Length > 0 && start + parts.Length <= words.Count; start++)
+            {
+                if (Enumerable.Range(0, parts.Length).All(k => string.Equals(parts[k], words[start + k], StringComparison.Ordinal)))
+                {
+                    Array.Fill(marked, true, start, parts.Length);
+                }
+            }
+        }
+
+        return marked;
+    }
+}
 
 /// <summary>
 /// The target-language words the game itself uses (CONTENT_PLAN 3.3, C05), read from <c>game/words.json</c>: the guide's directions, the block unit and the

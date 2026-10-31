@@ -110,7 +110,20 @@ public sealed class LessonLevelTests
             Problems(Lesson("a1", Explain, Verbs)));
         Assert.Empty(Problems(Lesson("a2", Explain, Verbs)));
         Assert.Equal(["pres", "pret", TaughtVerbForm.NearFuture], LessonLevels.TensesAt(LessonLevels.A1));
-        Assert.Equal(["pres", "pret", TaughtVerbForm.NearFuture, "fut"], LessonLevels.TensesAt(LessonLevels.A2));
+        Assert.Equal(["pres", "pret", TaughtVerbForm.NearFuture, TaughtVerbForm.SimpleFuture], LessonLevels.TensesAt(LessonLevels.A2));
+    }
+
+    [Fact]
+    public void AStepThatExpectsTheSimpleFutureNeedsAnA2Lesson()
+    {
+        // V08 held a lesson's verbs to its level; since V16 a step may expect fut, and the same rule holds there.
+        const string Future = """{ "id": "say", "type": "repeat", "phrase": "voy-a-comprar-pan", "prompt": "lesson-plan-there", "tense": "fut", "english": "Say it.", "tenseRetry": "Say “compraré”.", "futureNote": "Right too." }""";
+
+        Assert.Equal(
+            ["game/lessons/t.json: the a1 lesson's step 'say' expects the tense fut; an a1 lesson teaches pres, pret, ir-a."],
+            Problems(Lesson("a1", Future)));
+        Assert.Empty(Problems(Lesson("a2", Future)));
+        Assert.Equal(TaughtVerbForm.SimpleFuture, TestGame.Lessons(Lesson("a2", Future)).Find("t")!.Steps[0].Tense);
     }
 
     // The shipped sheet with one more variant on a row.

@@ -169,6 +169,22 @@ public sealed class ContentSchemaTests
     }
 
     [Fact]
+    public async Task ARepeatOrAnswerStepMayExpectTheSimpleFuture()
+    {
+        // V16: a step's tense may be fut (the validator holds it to an a2 lesson); the enum is wider, so a file of schema 2 stays valid and the version is unchanged.
+        var schema = await JsonSchema.FromFileAsync(Path.Combine(SchemaFolder, "lesson.schema.json"));
+        static string Lesson(string tense) =>
+            $$"""{ "schemaVersion": 2, "id": "a", "npc": "fisher", "level": "a2", "steps": [{ "id": "s", "type": "repeat", "phrase": "voy-a-comprar-pan", "tense": "{{tense}}" }] }""";
+        foreach (var tense in new[] { "pres", "pret", "ir-a", "fut" })
+        {
+            Assert.Empty(schema.Validate(Lesson(tense)));
+        }
+
+        Assert.NotEmpty(schema.Validate(Lesson("future")));
+        Assert.NotEmpty(schema.Validate(Lesson("cond")));
+    }
+
+    [Fact]
     public async Task ALessonOfSchemaTwoDeclaresItsLevel()
     {
         // V08: every lesson declares the level it keeps to, a1 or a2 (the validator holds its Spanish and its tenses to it); a file of schema 1 has none.
