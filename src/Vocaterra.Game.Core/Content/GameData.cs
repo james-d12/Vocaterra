@@ -221,6 +221,10 @@ public sealed class GameData
         return new GameData(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives);
     }
 
+    /// <summary>The same parts with another phrase sheet (the validator's tests).</summary>
+    /// <param name="phrases">The sheet.</param>
+    internal GameData WithPhrases(PhraseSheet phrases) => new(Bundle, Locale, Nouns, Recipes, phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives);
+
     /// <summary>The same parts with another check battery (the validator's tests).</summary>
     /// <param name="checks">The items.</param>
     internal GameData WithChecks(CheckBank checks) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, checks, Scene, Words, Npcs, HostEvents, Objectives);

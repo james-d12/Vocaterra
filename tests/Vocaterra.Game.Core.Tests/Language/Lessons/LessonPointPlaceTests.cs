@@ -13,7 +13,7 @@ namespace Vocaterra.Game.Core.Tests.Language.Lessons;
 public sealed class LessonPointPlaceTests
 {
     private const string Walk = """
-        { "schemaVersion": 1, "lessons": [ { "id": "walk", "npc": "villager", "title": "A walk", "english": "Walk to the shop.", "autoStart": true, "steps": [
+        { "schemaVersion": 1, "lessons": [ { "id": "walk", "npc": "villager", "level": "a1", "title": "A walk", "english": "Walk to the shop.", "autoStart": true, "steps": [
           { "id": "go", "type": "do", "pointPlace": "stall", "trigger": { "event": "beacon_reached", "detail": "stall" }, "english": "Walk to the shop.", "hud": "Walk to the shop" },
           { "id": "end", "type": "explain", "english": "You are there." } ] } ] }
         """;

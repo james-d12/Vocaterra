@@ -317,7 +317,7 @@ public sealed class LessonFrontendTests
     }
 
     private const string LessonBookTestsRich = """
-        { "schemaVersion": 1, "lessons": [ { "id": "rich", "npc": "guide", "title": "Rich", "english": "Every step type.", "steps": [
+        { "schemaVersion": 1, "lessons": [ { "id": "rich", "npc": "guide", "level": "a1", "title": "Rich", "english": "Every step type.", "steps": [
           { "id": "read", "type": "explain", "english": "Read this." },
           { "id": "hear", "type": "model", "line": "phrase.hola", "translation": "Hello.", "english": "Listen." },
           { "id": "pick", "type": "listen", "line": "phrase.hola", "translation": "Hello.", "english": "What does she say?", "options": ["Goodbye", "Hello", "Thank you"], "correct": 1 },

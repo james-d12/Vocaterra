@@ -355,7 +355,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
     public void AStepWithNoDeclaredTenseJudgesNothingOfIt()
     {
         const string Plain = """
-            { "schemaVersion": 1, "lessons": [ { "id": "t", "npc": "guide", "title": "T", "english": "E", "steps": [
+            { "schemaVersion": 1, "lessons": [ { "id": "t", "npc": "guide", "level": "a1", "title": "T", "english": "E", "steps": [
               { "id": "say", "type": "repeat", "phrase": "voy-a-comer-pan", "prompt": "lesson-plan", "english": "Say it." },
               { "id": "end", "type": "explain", "english": "Done." } ] } ] }
             """;
@@ -517,7 +517,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
     public void TheTenseOfAStepAndOfAFormMustBeOneTheGameKnows()
     {
         string Lesson(string extra, string step) =>
-            "{ \"schemaVersion\": 1, \"lessons\": [ { \"id\": \"t\", \"npc\": \"guide\", \"title\": \"T\", \"english\": \"E\", " + extra + " \"steps\": [ " + step + " ] } ] }";
+            "{ \"schemaVersion\": 1, \"lessons\": [ { \"id\": \"t\", \"npc\": \"guide\", \"level\": \"a1\", \"title\": \"T\", \"english\": \"E\", " + extra + " \"steps\": [ " + step + " ] } ] }";
         const string Say = "{ \"id\": \"a\", \"type\": \"repeat\", \"phrase\": \"voy-a-comer-pan\", \"prompt\": \"lesson-plan\", \"english\": \"E\", ";
 
         Assert.Equal("ir-a", Assert.Single(TestGame.Lessons(Lesson("", Say + "\"tense\": \"ir-a\" }")).Lessons).Steps[0].Tense);

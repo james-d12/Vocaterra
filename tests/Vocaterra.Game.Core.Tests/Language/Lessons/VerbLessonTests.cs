@@ -503,7 +503,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
     public void ALessonFileMustNameItsObjectiveWhenItUnlocksLaterAndKeepItsFormsWellFormed()
     {
         string Lesson(string extra, string step = "{ \"id\": \"a\", \"type\": \"explain\", \"english\": \"E\" }") =>
-            "{ \"schemaVersion\": 1, \"lessons\": [ { \"id\": \"t\", \"npc\": \"guide\", \"title\": \"T\", \"english\": \"E\", " + extra + " \"steps\": [ " + step + " ] } ] }";
+            "{ \"schemaVersion\": 1, \"lessons\": [ { \"id\": \"t\", \"npc\": \"guide\", \"level\": \"a1\", \"title\": \"T\", \"english\": \"E\", " + extra + " \"steps\": [ " + step + " ] } ] }";
 
         Assert.Contains("objective", Assert.Throws<InvalidDataException>(() => TestGame.Lessons(Lesson("\"session\": 2,"))).Message, StringComparison.Ordinal);
         Assert.Equal(2, Assert.Single(TestGame.Lessons(Lesson("\"session\": 2, \"objective\": \"Go.\",")).Lessons).Session);
@@ -603,7 +603,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         Assert.Equal(StepOutcome.MovedOn, session.Lessons.OutcomesOf("first-words")[^1].Outcome);
 
         const string Plain = """
-            { "schemaVersion": 1, "lessons": [ { "id": "t", "npc": "guide", "title": "T", "english": "E", "steps": [
+            { "schemaVersion": 1, "lessons": [ { "id": "t", "npc": "guide", "level": "a1", "title": "T", "english": "E", "steps": [
               { "id": "say", "type": "repeat", "phrase": "quiero-madera", "prompt": "lesson-want", "english": "Say it." },
               { "id": "end", "type": "explain", "english": "Done." } ] } ] }
             """;
@@ -641,7 +641,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
 
         Assert.All(Book.Lessons.SelectMany(static l => l.Steps).Where(s => s.Type is LessonStepType.Repeat or LessonStepType.Answer && expected.ContainsKey(s.Phrase!)), s => Assert.NotNull(s.Person));
         Assert.Contains("person", Assert.Throws<InvalidDataException>(() => TestGame.Lessons(
-            "{ \"schemaVersion\": 1, \"lessons\": [ { \"id\": \"t\", \"npc\": \"guide\", \"title\": \"T\", \"english\": \"E\", \"steps\": [ { \"id\": \"a\", \"type\": \"explain\", \"english\": \"E\", \"person\": \"1sg\" } ] } ] }")).Message, StringComparison.Ordinal);
+            "{ \"schemaVersion\": 1, \"lessons\": [ { \"id\": \"t\", \"npc\": \"guide\", \"level\": \"a1\", \"title\": \"T\", \"english\": \"E\", \"steps\": [ { \"id\": \"a\", \"type\": \"explain\", \"english\": \"E\", \"person\": \"1sg\" } ] } ] }")).Message, StringComparison.Ordinal);
     }
 
     // ---- The new content

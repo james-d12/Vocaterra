@@ -48,7 +48,7 @@ public sealed class LessonRunnerTests
         Events(session).Select(static e => (e.StepId, LessonEventNames.Of(e.Kind), e.Outcome));
 
     private static string LessonWith(string steps, string extra = "\"autoStart\": false") =>
-        "{ \"schemaVersion\": 1, \"lessons\": [ { \"id\": \"t\", \"npc\": \"guide\", \"title\": \"T\", \"english\": \"E\", " + extra + ", \"steps\": [ " + steps + " ] } ] }";
+        "{ \"schemaVersion\": 1, \"lessons\": [ { \"id\": \"t\", \"npc\": \"guide\", \"level\": \"a1\", \"title\": \"T\", \"english\": \"E\", " + extra + ", \"steps\": [ " + steps + " ] } ] }";
 
     private const string Repeat = "{ \"id\": \"say\", \"type\": \"repeat\", \"phrase\": \"hola\", \"prompt\": \"guide-open\", \"english\": \"Say hello.\", \"help\": \"Say: Hola.\" }";
     private const string Answer = "{ \"id\": \"reply\", \"type\": \"answer\", \"phrase\": \"gracias\", \"prompt\": \"guide-open\", \"line\": \"guide_offer_yes.1\", \"translation\": \"Of course! Here you are.\", \"english\": \"Thank her.\" }";
@@ -558,8 +558,8 @@ public sealed class LessonRunnerTests
     public void ALessonAfterAnotherIsOfferedOnlyOnceTheFirstIsCompleted()
     {
         var json = "{ \"schemaVersion\": 1, \"lessons\": ["
-            + "{ \"id\": \"one\", \"npc\": \"guide\", \"title\": \"One\", \"english\": \"E\", \"steps\": [ " + Explain + " ] },"
-            + "{ \"id\": \"two\", \"npc\": \"guide\", \"title\": \"Two\", \"english\": \"E\", \"after\": \"one\", \"steps\": [ " + Explain + " ] } ] }";
+            + "{ \"id\": \"one\", \"npc\": \"guide\", \"level\": \"a1\", \"title\": \"One\", \"english\": \"E\", \"steps\": [ " + Explain + " ] },"
+            + "{ \"id\": \"two\", \"npc\": \"guide\", \"level\": \"a1\", \"title\": \"Two\", \"english\": \"E\", \"after\": \"one\", \"steps\": [ " + Explain + " ] } ] }";
         var session = AtGuide(json);
 
         Assert.Equal("one", session.Lessons.OfferFor("guide")!.LessonId);

@@ -19,7 +19,7 @@ public sealed class SecondTryTests
     private const string Answer = "{ \"id\": \"reply\", \"type\": \"answer\", \"phrase\": \"gracias\", \"prompt\": \"guide-open\", \"line\": \"guide_offer_yes.1\", \"translation\": \"Of course! Here you are.\", \"english\": \"Thank her.\" }";
 
     private static string LessonWith(string steps) =>
-        "{ \"schemaVersion\": 1, \"lessons\": [ { \"id\": \"t\", \"npc\": \"guide\", \"title\": \"T\", \"english\": \"E\", \"autoStart\": false, \"steps\": [ " + steps + " ] } ] }";
+        "{ \"schemaVersion\": 1, \"lessons\": [ { \"id\": \"t\", \"npc\": \"guide\", \"level\": \"a1\", \"title\": \"T\", \"english\": \"E\", \"autoStart\": false, \"steps\": [ " + steps + " ] } ] }";
 
     private static List<AppliedTurn> Drain(VoxelSession session, int count)
     {

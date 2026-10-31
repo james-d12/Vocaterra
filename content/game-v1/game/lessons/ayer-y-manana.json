@@ -1,8 +1,9 @@
 {
   "$schema": "../../../schema/lesson.schema.json",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "ayer-y-manana",
   "npc": "villager",
+  "level": "a1",
   "autoStart": true,
   "session": 3,
   "verbs": [
