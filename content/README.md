@@ -164,6 +164,9 @@ specified for later in `docs/game/CONTENT_PLAN.md` section 3.8 (C10); it is not 
 - **A time word.** The words that make a present a plan are `game/words.json`'s `nearFuture.timeWords`. An entry of several words (`semana que
   viene`, `próxima semana`) is matched as a whole, in order. Keep them to the core's future markers (`docs/nlp/API.md`, "Tense errors") and to the
   adverbs that say later (`luego`, `después`), which the core does not grade: a verb inside an entry (`viene`) is no longer the answer's verb.
+  The intents that take a time word list the same markers as phrases of their grammars: `state_action`'s take `pasado mañana`, `la semana que viene`,
+  `la próxima semana`, `el próximo día` (and `mes`, `año`), `la semana pasada` and `el año pasado` at either end since V17, so the item of `la semana
+  que viene compro pan` is `pan`, not `semana` (a grammar that lacks a marker binds its noun as a slot).
 - **A phrase.** Add the row to `PHRASES.md` first (D-game-10), then to `game-v1/game/phrases.json`, and its meaning, card and explanation to
   `locale/en/phrases.json`. Render its recordings (`scripts/prerender-speech.sh`). A phrase the guide reviews may name a `reviewLine`, the dialogue
   line she asks it with while the bundle has no review pool for it (`guide.review.phrase.<id>`).

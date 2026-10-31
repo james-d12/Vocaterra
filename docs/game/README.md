@@ -602,8 +602,8 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --lesson-
 
 ## The simple future at a step (VILLAGE_PLAN V16, phase B)
 
-Session 9 ("Mañana en el pueblo", V17) teaches the simple future (`compraré`, `iré`, `hará`) against `ir a`; V16 made the runner and the book ready for it. No lesson of the
-bundle has a `fut` step yet; the tests use fixture lessons (`SimpleFutureStepTests`).
+Session 9 ("Mañana en el pueblo", V17) teaches the simple future (`compraré`, `iré`, `hará`) against `ir a`; V16 made the runner and the book ready for it. Its four
+answer steps are the bundle's `fut` steps (`TomorrowLessonTests`); `SimpleFutureStepTests` keeps V16's fixture lessons.
 
 - **A `fut` step.** A repeat or answer step may declare `"tense": "fut"`, in an `a2` lesson only (the validator; V08 held a lesson's `verbs` to the same rule). Its answer is a finite
   verb the core reads in the future: the core's tense label is the lexicon's feature `fut`, mood `ind` (`compraré`, `iré`, `hará`), and the runner compares that as it is.
@@ -618,15 +618,17 @@ bundle has a `fut` step yet; the tests use fixture lessons (`SimpleFutureStepTes
 - **The time words** (`game/words.json`, `nearFuture.timeWords`): `mañana`, `luego`, `después`, `pasado mañana` (V10) and the core's markers of a time noun with `próximo` or
   `que viene` for `semana`, `día`, `mes` and `año` (`próxima semana`, `semana que viene`, ...). A time word of several words is matched as a whole, its words in order, never one
   of them alone (`NearFutureWords.Mark`), and a verb inside one (the `viene` of `la semana que viene`) is not the answer's verb. `luego` and `después` are no markers to the core
-  (`después compré pan` is narration, so the lesson judges it); `el día que viene` is left out, since it may be a relative clause (`el día que viene Luz`). The bundle's grammars
-  take the later markers in V17, after the core's M57.
+  (`después compré pan` is narration, so the lesson judges it); `el día que viene` is left out, since it may be a relative clause (`el día que viene Luz`). Since V17 (after the
+  core's M57) `state_action` takes the later markers at either end as phrases of its grammars (`pasado mañana`, `la semana que viene`, `el mes que viene`, `el año que viene`,
+  `la próxima semana`, `el próximo día`, `el próximo mes`, `el próximo año`, and the past `la semana pasada` and `el año pasado`), so `la semana que viene compro pan` binds
+  `pan`, not `semana`, and `la semana que viene compré pan` is the core's `conj.tense`.
 - **The book.** The conjugation tables gain a fourth column, the simple future (`ui.bookColumnFuture`, "future"), after the future (ir a): time runs left to right and the two
   futures stand in the order the lessons teach them. It shows once a lesson teaches a `fut` form of the verb or the learner says one, as the others do, and its counts come from
   the word record like the present's and the past's. Its forms come from the lexicon (the Wiktionary import: `compraré`, `comprarás`, `comprará`, `iré`, `buscaré`, `hará`,
   `tendré`, `trabajará`, `pescará`); the core's regular paradigm builds no simple future, so a verb the import lacks has no `fut` cell. A page too narrow for four columns stacks
   them in blocks (X08).
 
-Until session 9 ships, the fourth column shows for a form the learner says (what the learner says is never hidden):
+Before session 9, the fourth column shows for a form the learner says (what the learner says is never hidden):
 
 ```bash
 # the table of comprar with its four columns: session 8's lessons done, two lines said to the guide, the book open on the verb
@@ -666,8 +668,14 @@ around an order the learner carries out (the plan, the doing, the report).
   manzanas rojas.` (one coin an apple: with no coins the farmer says `Necesitas más monedas.`), and the water order in three times (`Voy a buscar agua.`, the walk
   to the river, `Sí, fui al río.`) with `gustar` in the past (`Sí, me gustó el pan de Luz.`). The order gives three apples for a bottle of water; it names its
   lesson, so a learner who carries the bottle filled in session 1 says the plan and goes to the river before the farmer takes it.
+- **Mañana en el pueblo** (session 9, after `ayer-en-el-pueblo`, the baker, the smith and the fisher, 14 steps, `a2`; V17): the simple future, the second way to say
+  tomorrow after `voy a`, with an explain step on when each is used (a plan the learner already has, `Voy a comprar pan.`; a promise or a prediction, `Mañana compraré
+  pan.`): `Mañana compraré pan.` to Luz (her `Mañana tendré pan fresco.`), `Buscaré madera para Luz.` and `Iré al río.` to Domingo (who says Mar `pescará`), then the
+  walk to the river, where Mar tells the day of tomorrow (`Mañana Luz hará pan. Domingo trabajará en la herrería. Y yo pescaré en el río.`) and the learner retells
+  `Luz hará pan.`. No order and no sale. Every answer step is `tense: fut`, so `mañana voy a comprar pan` is credited with the step's note. The baker's open
+  prompt takes a plan since V17 (`mañana voy a comprar pan`, answered `¡Muy bien!`); the fisher's does not, since his directions take `busco` with any noun.
 - **Runs.** `--session 4 --lesson-run el-pueblo`, `--session 5 --lesson-run numeros-y-pan` and `--session 6 --lesson-run gente-del-pueblo` run them with typed
-  answers, and `--skip-to-session 7 --lesson-run como-es` the farmer's. The scripted runs r18 (the bakery purchase) and r19 (asking the way) cover the sale and the
+  answers, `--skip-to-session 7 --lesson-run como-es` the farmer's and `--skip-to-session 9 --lesson-run manana-en-el-pueblo` the baker's. The scripted runs r18 (the bakery purchase) and r19 (asking the way) cover the sale and the
   directions (`docs/game/SCRIPTED_RUNS.md`). To play a village lesson by hand, `--skip-to-session 4` (or 5, 6, 7) starts at it with the sessions before counted as
   done ("The next session: sleep at the fire" below; r21).
 
