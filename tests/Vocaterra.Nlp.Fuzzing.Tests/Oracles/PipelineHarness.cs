@@ -45,7 +45,8 @@ public sealed class PipelineHarness : IGeneratorInputs
 
     /// <summary>
     /// Grammar patterns the game's bundle does not contain, kept as in-memory fixtures so the oracles that need them keep running: names bound by <c>[WORD]</c>
-    /// (the bundle binds no free name), an adjective after a noun, and a verb whose lemma is bound to a slot.
+    /// (the bundle binds no free name), an adjective after a noun, a verb whose lemma is bound to a slot, and (M57) the time markers of more than one word, past
+    /// and future, around a verb and its object, in the shape of the game's <c>state_action</c> rows (one of them mixes past and future markers as those rows do).
     /// </summary>
     public static IReadOnlyList<string> FixtureGrammars { get; } =
     [
@@ -54,6 +55,8 @@ public sealed class PipelineHarness : IGeneratorInputs
         "[VERB:ser] [WORD:name]",
         "[VERB:querer]? [ART]? [NOUN:thing] [ADJ]?",
         "[PRON]? [VERB:tener:verb] [NUM:qty] [NOUN:item]",
+        "(ayer|mañana|pasado mañana|la semana pasada|la semana que viene|el próximo día)? [VERB:comprar] [ART]? [NUM:qty]? [NOUN:item] (ayer|mañana|pasado mañana|la semana pasada|la semana que viene|el próximo día)?",
+        "[PRON]? [VERB] [ART]? [NUM:qty]? [NOUN:item] (pasado mañana|el mes que viene|la próxima semana|el año pasado|anoche|anteayer)",
     ];
 
     /// <summary>The shared harness, built once on first use.</summary>

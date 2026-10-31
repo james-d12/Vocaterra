@@ -22,6 +22,8 @@ internal sealed class SentenceRealizer
     // before M56; the other verbs of LexiconCatalog.PostverbalSubjectVerbs do so only when a noun phrase follows them.
     private static readonly string[] ThirdPersonVerbs = ["costar", "gustar"];
 
+    private static readonly IReadOnlyList<LexicalFeatures> NoReadings = [];
+
     private readonly LexiconCatalog _words;
     private readonly SeededRng _rng;
     private readonly SentenceOptions _options;
@@ -106,23 +108,24 @@ internal sealed class SentenceRealizer
             }
         }
 
-        // A time adverb written into the pattern (the game's grammars have (mañana|ayer|hoy) around a verb) fixes the tense of every verb of the sentence: a past marker
+        // A time marker written into the pattern (the game's grammars have (mañana|ayer|hoy) around a verb) fixes the tense of every verb of the sentence: a past marker
         // wants the preterite, a future marker the present (near future: "mañana voy a comer"), and a past and a future marker in one sentence contradict each other.
         // This is the realiser keeping its promise (a sentence correct by construction); without it "ayer vas a la casa" came out of the pattern as a correct sentence.
-        var literalWords = _items.Where(static i => i.Kind == Kind.Literal).Select(static i => i.Surface!.ToLowerInvariant()).ToArray();
-        _pastMarker = literalWords.Any(word => LexiconCatalog.PastTimeAdverbs.Contains(word));
-        var futureMarker = literalWords.Any(word => LexiconCatalog.FutureTimeAdverbs.Contains(word));
-        if (_pastMarker && futureMarker)
+        // M57: a marker is a phrase of the literal words (la semana que viene, el próximo día, pasado mañana, el año pasado), found by the model of the checker's rule
+        // over the words of SpanishTimeMarkers; the words still to be chosen break a phrase across them.
+        var markers = TimeMarkerModel.Find([.. _items.Select(static i => i.Kind == Kind.Literal ? (i.Surface!.ToLowerInvariant(), i.Readings) : ((string?)null, NoReadings))]);
+        _pastMarker = markers.Past;
+        if (markers is { Past: true, Future: true })
         {
             skip = "conflicting-time-markers";
             return null;
         }
 
-        if (_pastMarker)
+        if (markers.Past)
         {
             _tense = LexiconSchema.Preterite;
         }
-        else if (futureMarker)
+        else if (markers.Future)
         {
             _tense = LexiconSchema.Present;
         }
@@ -135,9 +138,30 @@ internal sealed class SentenceRealizer
             return null;
         }
 
+        // M57: the chosen words must not make or unmake a marker with the literal words around them (a noun of time drawn before a literal que viene, an article drawn
+        // before a literal mañana, which makes it the noun): the tense was fixed by the markers of the literals alone, so such a sentence is drawn again.
+        if (TimeMarkerModel.Find([.. _items.Select(TimeMarkerWord)]) != markers)
+        {
+            skip = "time-marker-of-generated-words";
+            return null;
+        }
+
         var sentence = Build(pattern, source);
         skip = "none";
         return sentence;
+    }
+
+    // A realised word as the time-marker model reads it: its text, and its lexicon readings (none for a name, which the analyzer reads as a name only).
+    private (string? Text, IReadOnlyList<LexicalFeatures> Readings) TimeMarkerWord(Item item)
+    {
+        var text = item.Norm!.ToLowerInvariant();
+        IReadOnlyList<LexicalFeatures> readings = item.Kind switch
+        {
+            Kind.Literal => item.Readings,
+            Kind.Word => NoReadings,
+            _ => _words.Lexicon.Lookup(text),
+        };
+        return (text, readings);
     }
 
     // ---- Expansion ------------------------------------------------------------------------------------------------------------------

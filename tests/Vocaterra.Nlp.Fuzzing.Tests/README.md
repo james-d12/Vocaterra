@@ -229,6 +229,7 @@ surrogate; the content validator filled templates with Spanish sample words; the
   - `GeneratorInputs` - what the pattern and sentence generators read (`IGeneratorInputs`: the lexicon catalog and the grammars): the bundle's through `PipelineHarness`,
     or the frozen copy of `Fixtures/StreamDigest` that the stream digests are recorded on (`FrozenGeneratorInputs`, M57).
   - `GrammarPattern`, `PatternGen` - slot grammar patterns as a tree: every catalog grammar, structural skeletons, and random DSL strings built from the token kinds, including the name token `[WORD:slot]` (M17b).
+  - `TimeMarkerModel` - the time markers of the tense checks as phrases of a sentence's words (M57), over the words of the pack's `SpanishTimeMarkers`.
   - `SentenceGen`, `SentenceRealizer`, `SentenceModel` - correct sentences from a pattern, agreement right by construction (see below). A name (`[WORD]`) is two or three invented syllables drawn from the seeded generator, written with a capital and normalized in lower case (`TokenRole.Name`).
   - `UnboundNames` (in `Oracles/`) - the `vocab.unknown` errors that the names of a sentence must get when its grammar does not bind them (see below).
   - `MutationGen` - exactly one mutation of a correct sentence, with the errors the analyzer must report and the sentence the recast must restore.
@@ -252,8 +253,8 @@ pattern that cannot be realised correctly is **skipped and counted**, never sile
 diagnostics and asserts a minimum of realised sentences, and `MutationTagFuzzTests` and `RecastLoopFuzzTests` assert that every mutation
 kind stays reachable. `CorrectSentenceFuzzTests` also asserts that every grammar of the catalog is realised at least once and that no literal
 word of any grammar is missing from the lexicon (the old `cuál` gap would fail it). If a mirrored table in `LexiconCatalog` (the ser/estar
-adjective lists, the prenominal adjectives, the past-time adverbs, ...) drifts from `AnalysisTables` in `Vocaterra.Nlp.Language`, the mutation oracles fail and
-name the kind.
+adjective lists, the prenominal adjectives, ...) drifts from `SpanishAnalysisTables` in the Spanish pack, the mutation oracles fail and
+name the kind. The time markers are not mirrored (M57): the words come from the pack's public table `SpanishTimeMarkers`, which the checker reads too.
 
 Homographs are generated, not avoided (M18): `SentenceGen` counts the sentences that hold a noun that is also a verb form, a verb form that is also a noun and a noun of both genders
 (`homograph:sentence-with-...`), and O3 asserts that each is at least one sentence in fifty (about 17 %, 6 % and 6 % of the sentences in a default run), so a generator that quietly went back to the
@@ -277,6 +278,18 @@ realiser draws the verb's person and number like any other, so O3 also holds `do
 disagrees with a phrase before it that is no lone name (`skip:literal-verb-subject`). It gives
 `llamar` and `sentir` right after `cómo` and a reflexive clitic the clitic's person (`se`: the third, either number). The sentence stream digest of
 `FuzzLanguageStreamTests` was recorded again for these changes.
+
+M57 taught the realiser the time markers of more than one word. A marker is a phrase of the pattern's literal words, found by `TimeMarkerModel` with the
+checker's rules over the words of `SpanishTimeMarkers` (the pack's public table, which the checker reads): `ayer`, `anoche`, `anteayer` or a time noun followed by a form of
+`pasado` (`el año pasado`, `la semana pasada`) put every verb in the preterite; `mañana` (not after `la`, `esta`, `de` ...), `pasado mañana`, `próximo/a` before a time noun
+(`el próximo día`, `la próxima semana`) or a time noun followed by `que viene` (`la semana que viene`) put it in the present; both in one sentence is
+`skip:conflicting-time-markers`, as before. Before M57 it knew only the single words `mañana`, `ayer`, `anoche` and `anteayer`, so a grammar with `la semana que viene` or
+`el año pasado` gave it sentences it counted as correct that the checker rightly flags `conj.tense` (the game's V10 found it; with the fixture grammars below, O3, O4 and O5
+fail on the old realiser with `ustedes secuestran un acabo el año pasado`). The words still to be chosen break a phrase across them, and once they are chosen the sentence is
+read again: a sentence whose generated words make or unmake a marker with the literals (a time noun drawn before a literal `que viene`, an article before a literal `mañana`)
+is drawn again (`skip:time-marker-of-generated-words`; none in a run of 20 000). `PipelineHarness.FixtureGrammars` gained two patterns that carry these markers around a verb
+and its object, in the shape of the game's `state_action` rows (one mixes past and future markers as those rows do), so the oracles cover them before the bundle has them;
+O3 on them also finds the `pasado mañana` bug below. The sentence stream digest of `FuzzLanguageStreamTests` was recorded again for these changes.
 
 A name (M17b) has no reading the checks use: the realiser treats it like an unknown word, so it breaks every phrase and every subject-verb link around it, and
 the analyzer does the same (a bound name keeps no reading at all). `CorrectSentenceFuzzTests` and `SerializationRoundTripFuzzTests` (`NameSentences_SurviveCanonicalJson`)
@@ -491,6 +504,12 @@ Found and fixed in M59:
   misreading said nothing; with M59 `té` became a bare noun subject before a verb of the second person, and the sentence without its accent gave a `conj.person` that the
   accented one did not. A pronoun before a verb now keeps its reading when the next word is a verb once accented. Regression:
   `AccentVariantSentencesTests.APronounBeforeAWordThatIsAVerbOnceAccentedStaysThePronoun` in `tests/Vocaterra.Nlp.Tests/Language/Analysis`.
+- **`pasado mañana` after a plural noun was read as an adjective of the noun** (`Vocaterra.Nlp.Es`, `SpanishAgreementChecker`; found by the game's V10, and by O3 on
+  the M57 fixture grammars, CsCheck seed `22513329`, `nosotras producimos diecisiete empieces pasado mañana`, `noun.number` expected `pasados`). After a time noun the same
+  `pasado` was a past marker (`voy a ir el domingo pasado mañana` gave `conj.tense` on `voy`). The `pasado` of `pasado mañana` is neither now. Found beside it, by the
+  regression tests: on the bundle's lexicon `la semana pasada` was no past marker (`compro pan la semana pasada` gave nothing), because `pasada` is also a noun and the
+  resolver's charitable fallback chose that reading to hide the slip; a form of `pasado` after a time noun is matched as written now. Regression:
+  `NearFutureTenseTests.PasadoManana...` in `tests/Vocaterra.Nlp.Es.Tests/Analysis`.
 
 ## Known, deliberately not fixed
 

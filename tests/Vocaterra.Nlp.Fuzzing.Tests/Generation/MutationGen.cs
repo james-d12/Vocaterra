@@ -2,6 +2,7 @@ using CsCheck;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Core.Verdicts;
+using Vocaterra.Nlp.Es.Analysis;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Morphology;
@@ -571,7 +572,7 @@ public static class MutationGen
                 }
 
                 // M49: próximo/a in front of a time noun is correct ("los treinta próximos domingos"), so moving it there makes no mistake; the mutation looks for another sentence.
-                if (string.Equals(adjective.Lemma, "próximo", StringComparison.Ordinal) && LexiconCatalog.UpcomingTimeNouns.Contains(_tokens[h].Lemma!))
+                if (string.Equals(adjective.Lemma, SpanishTimeMarkers.UpcomingAdjective, StringComparison.Ordinal) && LexiconCatalog.UpcomingTimeNouns.Contains(_tokens[h].Lemma!))
                 {
                     continue;
                 }
