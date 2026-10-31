@@ -318,7 +318,7 @@ code (C09): three enum values after `Book = 29`, three icons, three held sprites
 | --- | --- | --- | --- | --- | --- |
 | `fruit-for-mar` | the fisher | 3 `fruta` (the bushes at the guide's camp) | 2 `monedas` | session 4 | the camp's fruit skill, paid in the new currency |
 | `oven-wood` | the baker | 5 `madera` (the forest's edge) | 4 `monedas` | session 5 | the camp's wood skill; the coins buy her bread (2 each) |
-| `axe-handle` | the smith | 2 `madera` and 3 `monedas` | the `hacha` | session 6 | wood is faster afterwards: the loop pays back |
+| `axe-handle` | the smith | 2 `madera` and 2 `monedas` (3 until V12: a learner who followed sessions 4 and 5 has 2 left) | the `hacha` | session 6 | wood is faster afterwards: the loop pays back |
 | `water-for-plants` | the farmer | 1 `agua` (the river, the bottle) | 3 `manzanas` | session 7 | the river skill of session 1 |
 
 Prices: bread 2 at the baker and the stall, an apple 1 at the farmer. An order is an objective with `session` (shown and counting from
@@ -572,10 +572,10 @@ Today's gate demands A1 bundle-wide (section 2.5). The rule this plan proposes, 
 | V06 | The voice trial (the owner listens) and the voice from the NPC file | V01 | S | Opus 5.5 xhigh | done 2026-10-30 (`600b8d7`) |
 | V07 | The check battery by lesson: `lesson` on the items; a battery takes the unlocked lessons' items | | S | Opus 5.5 xhigh | done 2026-10-30 (`600b8d7`) |
 | V08 | The A1/A2 gate of 3.9: `level` on the lessons, the validator's check, the gate's lint at A2 | | S | Haiku 5.5 | planned (phase B) |
-| V09 | Documents and runs: the counts in `README.md` and `PLAYTEST.md`, `SCRIPTED_RUNS.md` with two new runs (the bakery purchase, asking the way), `SPEECH_CHECKLIST.md`; once per phase | the phase's lessons | S | Haiku 5.5 | planned |
+| V09 | Documents and runs: the counts in `README.md` and `PLAYTEST.md`, `SCRIPTED_RUNS.md` with two new runs (the bakery purchase, asking the way), `SPEECH_CHECKLIST.md`; once per phase | the phase's lessons | S | Opus 5.5 xhigh | phase A in progress |
 | V10 | Session 4 "El pueblo": the fisher; places and directions; `ask_far`, `ask_availability`; the three times around the walk (`voy a la panadería`, `voy a comprar pan`, `fui a la panadería`; `state_action` gains `comprar` and the later markers); the order `fruit-for-mar`; the X06 review steps in `personas` and `ayer-y-manana` | V01, V02, V04, V05, V06, V07 | M | Opus 5.5 xhigh | done 2026-10-30 (`3f1ce84`) |
 | V11 | Session 5 "Números y pan": the baker; numbers, plurals, `ask_price`; the plan and the report of the oven order (`voy a buscar madera`, `compré dos panes`: the regular `-ar` preterite); the oven order; the purchase; the stall's price | V03, V10 | M | Opus 5.5 xhigh | done 2026-10-31 (`6097249`) |
-| V12 | Session 6 "Gente del pueblo": the smith and the farmer; `ask_name`, `ask_activity`, (`ask_residence`); the third person in three times (`trabaja`, `va a hacer`, `hizo`; a name subject in `state_action`), `vivo en`; the axe order | V11 | M | Opus 5.5 xhigh | in progress |
+| V12 | Session 6 "Gente del pueblo": the smith and the farmer; `ask_name`, `ask_activity`, (`ask_residence`); the third person in three times (`trabaja`, `va a hacer`, `hizo`; a name subject in `state_action`), `vivo en`; the axe order | V11 | M | Opus 5.5 xhigh | done 2026-10-31 (`c325b67`) |
 | V13 | Session 7 "¿Cómo es?": adjectives and `gustar` in the present and the past; `describe`, `state_like`, `[ADJ]` in `request_item`; the water order (its plan and report reviewed); apples | V08, V12 | M | Sonnet 5.5 / Haiku 5.5 | planned (phase B) |
 | V14 | Session 8 "Ayer en el pueblo": the preterite for every person (él/ella, nosotros, ellos; the day of the village told and retold), `tener que`; `state_obligation` | V13 | M | Sonnet 5.5 / Haiku 5.5 | planned (phase B) |
 | V16 | The simple future in the runner and the book: `tense: fut` on a step, `ir a` credited there with a note, the fourth column, the schema (3.8) | V08 | S | Haiku 5.5 | planned (phase B) |

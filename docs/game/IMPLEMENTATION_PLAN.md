@@ -1641,6 +1641,35 @@ Facts that shape the plan. Each one names its source; the core's own findings st
       order (3 coins) could not be finished: V12 makes it 2 wood and 2 coins. A learner with 4 coins before the oven order buys at the first
       ask and never hears "Necesitas más monedas."; the arrow on `árbol` can point at a canopy the scripted run cannot gather (a learner aims
       at the trunk). No `level` field until V08.
+- **V12: session 6 "Gente del pueblo" (2026-10-31, Opus 5.5 xhigh; gated on `feature/village` at `c325b67`).**
+  - **Gate:** 6012 passed, 3 skipped, 0 failed, with the models; 0 warnings; format, content, grammar and both licence scans clean. Bundle
+    `f606e71e…`; the identity golden and the fuzz suite's two stream digests (`FuzzLanguageStreamTests`, generators unchanged) re-recorded.
+  - **Built.** The smith Domingo (`smith-open`, `im_nicola` with gain 0.6: voiced RMS −19.1 dBFS in the trial, −23.0 rendered) and the
+    farmer León (`farmer-open`, `pm_santa` at −23.3, no gain; no sale and no order until session 7), their stand points labelled so the walks
+    end on arrival; `ask_name`, `ask_activity` (`ask_help`'s `¿qué hago?` is now literal, so `¿qué haces?` reaches `ask_activity`);
+    `state_action` gains `hacer`, `trabajar en`, `vivir en` and a closed list of names before the verb (`domingo|luz|mar|león`); the lesson
+    `gente-del-pueblo` (28 steps, session 6, after `numeros-y-pan`), which starts at the villager so that `va a hacer un hacha` comes before
+    the first talk with the smith (tested for a learner who arrives with the goods); the order `axe-handle` (2 wood and 2 coins, the axe;
+    with 1 coin nothing is delivered); 8 check items; 90 WAVs; `herrero`, `granjero`, `hacha`, `león` in `a1.txt`. Every said row heard;
+    "Va a hacer un hacha." once heard as "va va a hacer un hacha", still `state_action`, error-free. Estimated 8 to 9.5 minutes.
+  - **Rows.** Said: `como-te-llamas`, `que-haces`, `es-el-herrero`, `va-a-hacer-un-hacha`, `vivo-en-el-campamento`,
+    `trabaja-en-la-herreria`, `hizo-un-hacha`; the review `necesito-pan` asked by the villager (the bakery is off the route and the axe takes
+    the coins). Heard: the plan's nine. Not added: `donde-vive` and `ask_residence` (no room). The Opus pass made the introduction "Mira,
+    allí está Domingo. Es el herrero." (he stands across the square), added "Domingo te quiere hacer un hacha.", made Luz's house "Domingo
+    vive en una casa cerca de la herrería." (no house stands by the stall; `lado` is A2) and the offer "dos monedas".
+  - **Found:**
+    - The coin path left 2 coins after session 5, so the axe order is 2 wood and 2 coins, not the plan's 3 coins (VILLAGE_PLAN 3.4 updated).
+    - Core gaps, filed as core M59: `conj.person` only after a subject pronoun (`Domingo trabajo en la herrería` gives nothing); a reflexive
+      clitic not matched to the verb (`cómo te llama`); `va a hace` not flagged (`va a hizo` is); a literal grammar word binds its first
+      reading (`hace` as in `hace dos días`). The sheet's examples put a pronoun before the verb; the lesson's person check catches the rest.
+    - The fuzz suite's correct-sentence oracle caught `qué tú hace`, generated from an optional pronoun before the verb: the grammars dropped
+      it, no oracle changed.
+    - At the open prompts a correct sentence of another intent is forced into the prompt's intents: `Domingo hizo un hacha` at `smith-open`
+      gives `ask_activity` with `vocab.wrong` expected `''` (the orchestrator's spot check). The lesson asks it at `lesson-made`, where it
+      is clean; phase B may let the open prompts take `state_action`.
+    - `--lesson-run` looped for ever when the panel was open on another NPC than the step's; fixed with a regression test. A question the
+      lesson takes gets no reply from the NPC, so the smith and the farmer say their names in steps of their own. `verb.hablar`'s past
+      read "speaked"; fixed. LanguageTool reads `Domingo` as the day: text waivers, and the waiver test accepts a text as well as an id.
 
 ## 6. Definition of done (every milestone)
 
