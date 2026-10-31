@@ -16,6 +16,7 @@
 #   holds each lesson to its own level, a1 or a2; the ContentBuilder references only the core and cannot), writes the grammar strings again (the
 #   host's --grammar-strings) and runs the grammar check offline from the committed cache. A cache miss means new Spanish: the message names the
 #   LanguageTool steps. Run it through scripts/limited.sh (it runs several tools one after the other; it never calls limited.sh itself).
+#   It is the first step of scripts/content-loop.sh, the whole edit loop in one command (V18).
 #
 # Usage: scripts/content.sh validate|hash|cefr-check|lint|pack|verify-pack|grammar [bundleDir] [tool options]
 #        scripts/content.sh refresh
@@ -108,7 +109,8 @@ if ! tool grammar "$GAME" --strings "$STRINGS" --strings-only --offline --strict
 refresh: the grammar check failed. A cache miss means new Spanish text: start the local server (scripts/languagetool.sh start), run
   scripts/content.sh grammar content/game-v1 --strings content/grammar/game-v1-strings.jsonl --strings-only --prune
 read every finding (fix the content or add a waiver with its reason to content/grammar/game-v1-waivers.json), stop the server
-(scripts/languagetool.sh stop) and run the refresh again (docs/game/README.md, "Refreshing the cache").
+(scripts/languagetool.sh stop) and run the refresh again (docs/game/README.md, "Refreshing the cache"). scripts/content-loop.sh --grammar does
+all of this in one command (content/README.md, "The edit loop").
 EOF
   exit 1
 fi

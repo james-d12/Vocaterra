@@ -440,7 +440,10 @@ LanguageTool version, the settings and the text) and `game-v1-waivers.json` (eac
 waiver with no reason is refused). Findings are warnings (agreement, spelling, grammar), info (style, and the learner-error oracle's facts) or
 errors (a string with no cached result). The English support text is not checked (the owner's decision).
 
-**Refreshing the cache after a content change.** Run these from the repository root:
+**Refreshing the cache after a content change.** `scripts/content-loop.sh --grammar` (V18) runs steps 1 to 5 and the check CI's `languagetool`
+job makes (below) in one command, prints every new finding and stops the server even on a failure; it is the edit loop of
+[content/README.md](../../content/README.md) ("The edit loop"), and the way to refresh the cache. Step 4 is still yours: read each finding it
+prints. By hand, from the repository root:
 
 1. Write the strings again (the command above). The strings file is checked by a test, so a stale file fails `dotnet test`.
 2. Start the server: `scripts/languagetool.sh start` (it refuses below 4 GB free; `scripts/languagetool.sh status` shows it).

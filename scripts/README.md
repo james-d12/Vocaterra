@@ -9,7 +9,8 @@ serialises them machine-wide and caps their memory and CPU; see its header.
 
 `scripts/limited.sh <command> [args...]` runs one heavy command at a time on the machine (a lock shared by every worktree), waits while
 memory is short, and runs it in a systemd user scope with a 6 GB memory cap, no swap and 10 of 16 cores. Exit status 137 means the cap
-killed the command. Use `-m:4` for builds and `-m:2` for tests.
+killed the command. Use `-m:4` for builds and `-m:2` for tests. It sets `VOCATERRA_LIMITED=1` for its command, so a script that calls
+`limited.sh` itself (`content-loop.sh`) can refuse to run under it instead of waiting for ever on the lock.
 
 ## test.sh
 
@@ -49,9 +50,33 @@ Runs the language core's content tool on a game content bundle (default `content
   and CEFR checks are the gate's: the bundle's ceiling is A2 (VILLAGE_PLAN 3.9, D-game-22 (b), V08), so the lint runs with
   `--strict --level a2 --fail-on-level --host-pools 'guide.*'` and `cefr-check --level a2` fails on any lemma it lists, while
   `cefr-check --level a1` is a report of what is above A1 and never fails. Each lesson's own level is the host's `--validate-content`.
+  `content-loop.sh` (below) runs it as its first step.
 
 The tool is the `Vocaterra.Nlp.ContentBuilder` project under `tools/`, run from source with `dotnet run`, so it is always the core at the
 current commit. Needs bash and the .NET SDK (`~/.dotnet` is used when present).
+
+## content-loop.sh
+
+`scripts/content-loop.sh [--grammar] [--speech] [--record] [--tier fast|full|none]` is the whole loop after an edit of the game's content in one
+command (V18): a content milestone's brief says "run `scripts/content-loop.sh --grammar --speech`" after each edit. **Run it directly, never
+under `limited.sh`**: it calls `limited.sh` itself for each heavy step (each `dotnet`, `content.sh` and prerender call) and `test.sh` directly,
+and the one lock `limited.sh` holds would make the loop wait for ever on its own first step. It refuses to start under `limited.sh` (exit 3):
+`limited.sh` sets `VOCATERRA_LIMITED=1` for its command, and the loop also sees the lock inherited as an open file.
+
+In order, it runs: 1 `content.sh refresh`; 2 with `--grammar`, the LanguageTool steps (start the server, check the strings the cache lacks with
+`--prune`, check that a cache rebuilt from nothing equals it as CI's `languagetool` job does, print every new finding, stop the server, even on a
+failure); 3 the renderer's `--check` and, with `--speech`, the render of the new or changed lines and a second refresh; 4 the save fixtures: every
+file under `tests/` that holds the old `bundleHash` (the one at HEAD, before the run, or one an earlier run in this worktree saw) gets the
+new one; 5 the build with `-warnaserror -m:4`; 6 the end-to-end goldens and the
+identity baseline, checked, or with `--record` (off by default) recorded, with the `git diff --stat` and the changed entries per file printed;
+7 the fuzz suite's `FuzzLanguageStreamTests`, whose digests move with the content (a move prints the new digests and the constants to set; the
+script edits no C#); 8 the tier: `fast` (the default) is `test.sh fast`, then the fuzz suite's grammar-sensitive classes at their full depth
+(`CorrectSentenceFuzzTests`, `MutationTagFuzzTests`, `RecastLoopFuzzTests`); `full` is the whole suite, as the gate; `none` runs no test.
+
+It stops at the first failure with the next thing to do and ends with one summary of at most 30 lines: each step, passed, failed, skipped or not
+run, its time, what it changed and its log. Each step's whole output is in `.claude/content-loop/<stamp>/` (git-ignored; the ten newest runs are
+kept), never on the terminal. Exit 0 when every step passed, 1 when one failed or the stream digests are left to set, 2 on a usage error. It runs
+the gate's content checks unchanged, and on an unedited tree it changes no file. The header lists the options and the steps.
 
 ## merge-gate.sh
 
