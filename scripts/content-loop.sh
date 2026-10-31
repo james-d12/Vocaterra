@@ -288,11 +288,11 @@ step_refresh() {
   if [ "$sub" = "grammar check" ]; then
     MISSES="$(grep -c '^error grammar.cache-miss ' "$LOGDIR/$log")"
     if [ "$MISSES" -gt 0 ] && [ "$grammar" -eq 1 ]; then
-      end_step passed "every check clean but the offline grammar check: $MISSES strings miss the cache (new Spanish, step 2 checks them)" $log
+      end_step passed "every check clean but the offline grammar check: the cache lacks $MISSES of the strings (new Spanish, step 2 checks them)" $log
       return
     fi
     if [ "$MISSES" -gt 0 ]; then
-      fail "$MISSES strings miss the grammar cache (new Spanish)" \
+      fail "$MISSES strings missing from the grammar cache (new Spanish)" \
         "run it again with --grammar (it starts LanguageTool, checks the new strings, prints the findings and stops the server)" $log
     fi
     block "refresh: the unwaived grammar warnings (the whole list is in $LOGDIR/$log):"
