@@ -10,15 +10,16 @@ namespace Vocaterra.Game.Core.Session;
 public static class SleepOffer
 {
     /// <summary>
-    /// Whether the fire's prompt shows, and E sleeps: the player may sleep (<see cref="VoxelSession.CanSleep"/>: a lit fire, the session at rest, no lesson step waiting), stands at
-    /// their own fire, and nothing else has their attention (<paramref name="free"/>).
+    /// Whether the fire's prompt shows, and E sleeps: the play session's work is done (<see cref="VoxelSession.SessionWorkDone"/>: the objective says to sleep, or that every
+    /// lesson is done; a session whose lesson is left offers no sleep that would skip it), the player may sleep (<see cref="VoxelSession.CanSleep"/>: a lit fire, the session
+    /// at rest, no lesson step waiting), stands at their own fire, and nothing else has their attention (<paramref name="free"/>).
     /// </summary>
     /// <param name="session">The 3D game.</param>
     /// <param name="free">Whether the player is free: no panel, screen, check or report is open, no voice is recorded, and the crosshair is on no NPC and no workbench (their keys come first).</param>
     public static bool AtFire(VoxelSession session, bool free)
     {
         ArgumentNullException.ThrowIfNull(session);
-        return free && session.CanSleep && session.AtOwnFire;
+        return free && session.SessionWorkDone && session.CanSleep && session.AtOwnFire;
     }
 
     /// <summary>Whether the session's closing card offers the sleep, and Enter sleeps: the card is up, the player is free and may sleep.</summary>

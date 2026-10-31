@@ -253,8 +253,9 @@ public sealed class LessonRunner
     }
 
     /// <summary>
-    /// Why a lesson that is not begun waits (V12c, the book's Lessons page): it is unlocked and starts at its NPC, its play session has not come, or the lesson it comes after
-    /// is not done (its session is said first when both hold, since it is the later of the two). <see langword="null"/> for a lesson begun or done, or an unknown one.
+    /// Why a lesson that is not begun waits (V12c, the book's Lessons page): it is the unlocked lesson the objective sends the learner to (<see cref="LessonWaitKind.Next"/>: the
+    /// new session's, or with no lesson under way the one to go on with), another unlocked one, its play session has not come, or the lesson it comes after is not done (its
+    /// session is said first when both hold, since it is the later of the two). <see langword="null"/> for a lesson begun or done, or an unknown one.
     /// </summary>
     /// <param name="lessonId">The lesson's id.</param>
     public LessonWait? WaitOf(string lessonId)
@@ -270,9 +271,13 @@ public sealed class LessonRunner
             return new LessonWait(LessonWaitKind.Session, lesson.Session, lesson.Npc);
         }
 
-        return lesson.After is { } after && !IsDone(after)
-            ? new LessonWait(LessonWaitKind.After, lesson.Session, lesson.Npc, after)
-            : new LessonWait(LessonWaitKind.Next, lesson.Session, lesson.Npc);
+        if (lesson.After is { } after && !IsDone(after))
+        {
+            return new LessonWait(LessonWaitKind.After, lesson.Session, lesson.Npc, after);
+        }
+
+        var next = NewLesson ?? (_activeId is null ? NextUp : null);
+        return new LessonWait(string.Equals(next?.Id, lesson.Id, StringComparison.Ordinal) ? LessonWaitKind.Next : LessonWaitKind.Open, lesson.Session, lesson.Npc);
     }
 
     /// <summary>

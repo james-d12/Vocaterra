@@ -79,6 +79,26 @@ public sealed class NextSessionTests
     }
 
     [Fact]
+    public void OnWakingTheFireOffersNoSleepWhileTheNewSessionsLessonIsLeftAndOffersItOnceTheLessonIsDone()
+    {
+        var session = SleepTests.EndedFirstSession();
+        TeleportToFire(session);
+        Sleep(session); // session 2 begins at the fire
+
+        Assert.True(session.AtOwnFire);
+        Assert.True(session.CanSleep); // --sleep would still sleep (a script's step)
+        Assert.False(session.SessionWorkDone); // Personas is left: the objective names it
+        Assert.False(SleepOffer.AtFire(session, free: true)); // no prompt that would skip it
+
+        session.Lessons.CountAsCompleted("personas", 2);
+        session.Step([]);
+
+        Assert.True(session.SessionWorkDone);
+        Assert.Equal("Session complete: sleep at your fire to start session 3", Hud(session));
+        Assert.True(SleepOffer.AtFire(session, free: true));
+    }
+
+    [Fact]
     public void WhenTheSessionsLessonIsDoneTheObjectiveSendsThePlayerBackToSleepAndTheArrowGoesToTheFire()
     {
         var session = SleepTests.EndedFirstSession();
@@ -134,6 +154,7 @@ public sealed class NextSessionTests
         Assert.False(session.RestDue); // nothing to sleep for: no arrow to the fire
         Assert.Equal("Every lesson so far is done: practise any of them again in the book (J), or talk to the people of the village", Hud(session));
         Assert.True(session.CanSleep); // a sleep still lifts the spacing gaps
+        Assert.True(SleepOffer.AtFire(session, free: true));
 
         Sleep(session);
         Assert.Equal(7, session.PlaySession);

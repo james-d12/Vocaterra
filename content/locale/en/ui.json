@@ -236,6 +236,7 @@
     "ui.sleepPrompt": "{key:talk}: sleep until morning (session {session})",
     "ui.sleptToast": "Good morning: session {session} begins",
     "ui.bookLessonNext": "next: talk to {npc}",
+    "ui.bookLessonOpen": "open: talk to {npc}",
     "ui.bookLessonOpensIn": "opens in session {session}, {npc}",
     "ui.bookLessonAfter": "after “{title}”",
     "npc.guide.role": "The guide",

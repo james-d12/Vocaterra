@@ -214,7 +214,7 @@ public sealed class BookPagesTests
     }
 
     [Fact]
-    public void ALessonNotBegunSaysWhyItWaitsAndWhereItStartsAndTheNextOneIsInGold()
+    public void ALessonNotBegunSaysWhyItWaitsAndWhereItStartsAndOnlyTheOneTheObjectiveNamesIsNextInGold()
     {
         var session = TestGame.NewSessionWithShippedLessons();
 
@@ -234,8 +234,14 @@ public sealed class BookPagesTests
 
         session.PlaySession = 4; // the session has come, the lesson before it has not been done
         Assert.Equal("after “Ayer y mañana”", LessonLines(session, "el-pueblo").Why.Text);
-        Assert.Equal("next: talk to Aldeano", LessonLines(session, "ayer-y-manana").Why.Text);
+        Assert.Equal("next: talk to Aldeano", LessonLines(session, "ayer-y-manana").Why.Text); // the new lesson the objective names (the newest session's)
         Assert.Equal("opens in session 5, Luz", LessonLines(session, "numeros-y-pan").Why.Text);
+        (title, why) = LessonLines(session, "first-words"); // unlocked as well, but not the one the objective names
+        Assert.Equal("open: talk to Luna", why.Text);
+        Assert.Equal(BookTone.Seen, why.Tone);
+        Assert.Equal(BookTone.Unseen, title.Tone);
+        Assert.Equal("open: talk to Aldeano", LessonLines(session, "personas").Why.Text);
+        Assert.Single(BookPages.Lessons(session.Locale, session.Lessons.Record, session.Phrases, null, BookPages.Waits(session.Lessons)), static l => l.Text.StartsWith("next:", StringComparison.Ordinal));
     }
 
     [Fact]

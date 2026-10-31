@@ -238,9 +238,9 @@ public static class BookPages
     /// <summary>
     /// The lessons page: every lesson of the bundle in its order, with its state (completed in session n, in progress with the units done, not
     /// started), its units with a tick each, the phrases it taught (S17's recap), the help used and, once completed, its English summary. A lesson not begun
-    /// says on its own line, under its title, why it waits and where it starts (V12c): <c>next: talk to Luna</c> for one that is unlocked (in gold, title and line,
-    /// so the eye finds it first), <c>opens in session 4, Mar</c> for one whose session has not come, <c>after “El pueblo”</c> for one whose earlier lesson is not
-    /// done. Its own line, not the title's note: at 150 % text the left page is narrow, and a note after a title is cut first.
+    /// says on its own line, under its title, why it waits and where it starts (V12c): <c>next: talk to Luna</c> for the one the objective sends the learner to (in gold,
+    /// title and line, so the eye finds it first), <c>open: talk to Luna</c> for another unlocked one, <c>opens in session 4, Mar</c> for one whose session has not come,
+    /// <c>after “El pueblo”</c> for one whose earlier lesson is not done. Its own line, not the title's note: at 150 % text the left page is narrow, and a note after a title is cut first.
     /// </summary>
     /// <param name="ui">The support language (the page's words, C04).</param>
     /// <param name="lessons">The lesson record (<c>session.Lessons.Record</c>).</param>
@@ -267,7 +267,7 @@ public static class BookPages
             lines.Add(new BookLine(tone, lesson.Title, Aside: state, Practise: lesson.Status == LessonStatus.Completed ? lesson.LessonId : null));
             if (wait is not null)
             {
-                lines.Add(new BookLine(wait.Kind == LessonWaitKind.Next ? BookTone.Gold : BookTone.Hint, WaitText(ui, wait, lessons), Indent: true));
+                lines.Add(new BookLine(wait.Kind switch { LessonWaitKind.Next => BookTone.Gold, LessonWaitKind.Open => BookTone.Seen, _ => BookTone.Hint }, WaitText(ui, wait, lessons), Indent: true));
             }
 
             if (lesson.Status == LessonStatus.Completed && lesson.Summary is { } summary)
@@ -317,6 +317,7 @@ public static class BookPages
     private static string WaitText(LocaleText ui, LessonWait wait, IReadOnlyList<LessonRecordRow> lessons) => wait.Kind switch
     {
         LessonWaitKind.Next => ui.Ui("bookLessonNext", ("npc", ui.Called(wait.Npc))),
+        LessonWaitKind.Open => ui.Ui("bookLessonOpen", ("npc", ui.Called(wait.Npc))),
         LessonWaitKind.Session => ui.Ui("bookLessonOpensIn", ("session", N(wait.Session)), ("npc", ui.Called(wait.Npc))),
         _ => ui.Ui("bookLessonAfter", ("title", LessonDefinition.ShortOf(lessons.FirstOrDefault(l => string.Equals(l.LessonId, wait.After, StringComparison.Ordinal))?.Title ?? wait.After ?? string.Empty))),
     };

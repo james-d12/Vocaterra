@@ -637,8 +637,9 @@ A play session used to advance only on a quit and a `--load`, which nothing in t
 in the same run.
 
 - **Where.** The closing card of session 1 (the ending, S17) offers it: `Enter: sleep until morning and start session 2`, over its `Esc: keep looking around`. And
-  the lit fire at the player's camp (`firering.player`) offers it at any later time: standing within five blocks of it, the HUD's hint under the crosshair says
-  `E: sleep until morning (session 3)` and **E** sleeps (E keeps talking to an NPC under the crosshair and opening the workbench first). An open panel, a screen,
+  the lit fire at the player's camp (`firering.player`) offers it whenever the session's work is done, the same moment the objective says to sleep (or that every
+  lesson is done): standing within five blocks of it, the HUD's hint under the crosshair says `E: sleep until morning (session 3)` and **E** sleeps (E keeps
+  talking to an NPC under the crosshair and opening the workbench first). On waking in a session whose lesson is left the fire offers nothing, so no sleep skips it. An open panel, a screen,
   a check, a recording or a lesson step that waits comes first: no prompt then. Every lesson starts by itself, so a lesson begun in the run stays engaged when its
   panel closes and holds the sleep back until it is done. A playtest plays one session per run (its post-check follows the ending) and offers no sleep.
 - **A sleep is exactly a load** (`SaveGame.Sleep`). The game captures its own save and restores it into the running session as the next play session: what a save
@@ -663,7 +664,7 @@ in the same run.
 - **`--sleep`** is a script step: it closes the panels and sleeps as the player's E at the fire would, wherever the player stands (a script needs no walk); refused
   with a console line when the fire is not lit, a lesson step waits or the run is a playtest. The scripted run r20-sleep reaches session 1's ending the short way
   (the camp, the shopkeeper's bottle on a second visit, the river and the fire by `--teleport`), shows the card, sleeps, and shows session 2's objective, the beacon
-  on the villager and the book's Lessons page.
+  on the villager (no fire prompt: Personas is left) and the book's Lessons page.
 
 **`--skip-to-session <n>`** (a test aid, `SessionSkip`): a new game starts as play session n (from 2 to the last session that has a lesson, 6 today) where a learner
 who played sessions 1 to n-1 and did everything would stand, built from the data alone (the lessons' `session` and `after`, the objectives, the orders and the NPCs'
@@ -710,8 +711,9 @@ screen and takes the keyboard while it is open. Every title, tab, label and key 
   (the card and audio lamps) and its counts.
 - **Lessons.** Every lesson of the bundle in its order: its state (completed in session n, in progress with the units done, not started), its units with a
   tick each, the phrases it taught (S17's recap), the help used and, once completed, its English summary, stored in `game/lessons.json` beside the lesson
-  (`summary`). Since V12c a lesson not begun says why on its own line under its title: `next: talk to Luna` when it is unlocked (title and line in gold, so the
-  eye finds it first), `opens in session 4, Mar` when its session has not come (said first when it also waits for a lesson), `after “Ayer y mañana”` when the
+  (`summary`). Since V12c a lesson not begun says why on its own line under its title: `next: talk to Luna` for the one the objective sends the learner to (the new
+  session's, or with none under way the one to go on with; title and line in gold, so the eye finds it first), `open: talk to Luna` for another that is unlocked,
+  `opens in session 4, Mar` when its session has not come (said first when it also waits for a lesson), `after “Ayer y mañana”` when the
   lesson before it is not done. The NPC is named as `game/npcs/<id>.json` calls it (its name, else its label), the earlier lesson by its short title. The lines
   are whole on the left page at every text size (at 150 % in an 800 x 600 window the longest, `opens in session 2, Aldeano`, is 169 of 174 px; `UiScaleLayoutTests`).
 - **What I said.** `Learner.Recent(500)`, newest first: the line, said or typed, where it was said (the NPC's English name, the lesson and its unit, or a

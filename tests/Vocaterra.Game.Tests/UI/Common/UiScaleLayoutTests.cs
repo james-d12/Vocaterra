@@ -820,7 +820,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
     public void TheLessonsPagesLinesOfWhenAndWhereFitTheNarrowLeftPage(int windowWidth, int windowHeight, int scale)
     {
         // V12c: the line under a lesson not begun is its own indented row, whole on the left page at every scale (r16-text-scale: 800 x 600 at 150 %), for every lesson
-        // in each of its three waits: unlocked, its session to come, the lesson before it not done. A row of the list is cut with "...", never wrapped, so it is measured
+        // in each of its four waits: the next, another unlocked, its session to come, the lesson before it not done. A row of the list is cut with "...", never wrapped, so it is measured
         // with the book's own font (PixelOperator at its native size; the stand-in of the other checks is wider than it) against the row's room: the page less the
         // indent and the gutter.
         var font = new FontProvider(Repo.Path("assets", "fonts", "pixel-operator", "PixelOperator.ttf")).Get(FontProvider.NativeSize);
@@ -832,7 +832,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
         var widest = (Text: string.Empty, Width: 0f);
         foreach (var lesson in session.Lessons.Book.Lessons)
         {
-            var waits = new List<LessonWait> { new(LessonWaitKind.Next, lesson.Session, lesson.Npc), new(LessonWaitKind.Session, lesson.Session, lesson.Npc) };
+            var waits = new List<LessonWait> { new(LessonWaitKind.Next, lesson.Session, lesson.Npc), new(LessonWaitKind.Open, lesson.Session, lesson.Npc), new(LessonWaitKind.Session, lesson.Session, lesson.Npc) };
             if (lesson.After is { } after)
             {
                 waits.Add(new LessonWait(LessonWaitKind.After, lesson.Session, lesson.Npc, after));
