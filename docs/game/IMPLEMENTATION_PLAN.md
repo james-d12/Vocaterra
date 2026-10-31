@@ -1670,6 +1670,31 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     - `--lesson-run` looped for ever when the panel was open on another NPC than the step's; fixed with a regression test. A question the
       lesson takes gets no reply from the NPC, so the smith and the farmer say their names in steps of their own. `verb.hablar`'s past
       read "speaked"; fixed. LanguageTool reads `Domingo` as the day: text waivers, and the waiver test accepts a text as well as an id.
+- **V09: documents and runs, phase A (2026-10-31, Opus 5.5 xhigh; gated on `feature/village` at `9ec051d`).**
+  - **Gate:** 6021 passed, 3 skipped, 0 failed, with the models; 0 warnings; format, content, grammar and both licence scans clean. The bundle
+    is unchanged (`f606e71e…`).
+  - **The scripted runs against `main` before phase A** (`f3a242f`, all sixteen, captured in the one worktree): every run differs, and every
+    difference traces to phase A: six lessons in the closing summary and the review steps V10 added; speech 215/430 → 340/680 files; 1967 →
+    1958 trees and a new scene digest (the village's radius 24 widens the flattened ground to 56 blocks, so the hillside behind moves in every
+    far view); seven figures (372 → 882 quads); `beacon_reached` and `place_asked` in the session logs; the bakery, smithy, well, orchard and
+    the four NPCs in the screenshots; the book's counts (46 → 93 phrases, 19 → 22 nouns, 3 → 6 lessons); the "E to talk" tip now fires on the
+    road at the fisher. The playtest run (r10) has the same ticks, the same 31 items and a pixel-identical thank-you screen.
+  - **Built.** Two new runs, both deterministic across two captures: `r18-bakery` (session 5, the oven wood, the delivery, "quiero dos
+    panes, por favor": two loaves in, four coins out) and `r19-directions` (the fisher asked "¿dónde está la panadería?", the arrow, the walk,
+    `beacon_reached`); `SCRIPTED_RUNS.md` at eighteen runs. `README.md` (a short section on the village, every NPC list, `--talk` with the
+    seven ids, `--session 4` to `6`, the battery by session 31/39/47/55, 680 speech files, 17 model-gated tests skipped without models),
+    `PLAYTEST.md` (the pilot stays at 31 items, the 24 village items outside it), the speech checklist's preface (written by the renderer:
+    the four provisional voices and how to replace one), the prerender script's header and `content/README.md`.
+  - **Found:**
+    - r03 showed the farmer's name plate pinned to the window's left edge while he stood out of the picture (the X08 clamp): a plate wholly
+      outside the window is now left out (`NpcLabelLayer.Place`, with tests from r03's camera).
+    - The renderer kept the owner's mark on a row re-recorded in a new voice: a re-recorded row now loses its mark. Changing an NPC's voice
+      re-renders only that NPC's files (checked on a copy: 20 rendered, 660 unchanged); `--force` is not needed.
+    - Free talk with the baker credited "quiero dos panes" as a use of `pedir-agua`: none of the four new NPC files has a `focus`. Fixed by
+      the follow-up V12b.
+    - Name plates show through figures (the farmer's over the shopkeeper's face in r17): a design question for the owner, not a bug.
+    - The three-NPC lists left in the `--talk` help, `NpcService`, `GuideSession`, `InputEntry`, `SaveDocument`, `VoxelGame` and both game
+      projects' READMEs are brought up to seven; the two "Rosa" comments were already gone.
 
 ## 6. Definition of done (every milestone)
 
