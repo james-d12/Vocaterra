@@ -224,7 +224,7 @@ public static class MutationGen
 
             foreach (var i in Shuffled(Indexes(static t => t is { Role: TokenRole.Verb, Generated: true, Infinitive: false, Tense: not null })))
             {
-                var subject = SubjectOf(i);
+                var subject = PersonSubjectOf(i);
                 if (subject < 0)
                 {
                     continue;
@@ -711,6 +711,14 @@ public static class MutationGen
             }
 
             return -1;
+        }
+
+        // The subject pronoun the person check agrees a verb with: SubjectOf, unless the pronoun is right behind a word that can be a preposition (a ella le gusta), which
+        // M56 made no subject of the check; the reading resolver still takes the word after it for the verb, so SubjectOf stays as it was for the other mutations.
+        private int PersonSubjectOf(int verb)
+        {
+            var p = SubjectOf(verb);
+            return p > 0 && _words.Lexicon.Lookup(_tokens[p - 1].Norm).Any(static r => r.Pos == LexiconSchema.Preposition) ? -1 : p;
         }
 
         private GeneratedSentence Replace(int index, SentenceToken token)

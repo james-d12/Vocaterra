@@ -24,9 +24,11 @@ public sealed class FuzzLanguageStreamTests
     // again at V11, whose grammars gained ask_price (cuánto with costar or ser, qué precio tiene); the word stream did not move, nor did the generators. Both again
     // at V12, whose lexicon gained granjero and whose grammars gained ask_name, ask_activity and the hacer, trabajar and vivir rows of state_action; the generators
     // did not change. The sentence digest again at V13, whose grammars gained describe and state_like and an adjective after the noun in request_item; the word
-    // stream did not move, nor did the generators.
+    // stream did not move, nor did the generators. The sentence digest again at M56, whose analyzer agrees a verb with a subject after it: the realiser (the old
+    // expression and the Spanish record alike) now gives estar, the experiencer verbs and the verbs of price the third person and the number of a noun phrase after
+    // them, leaves out ser before lejos or cerca and between dónde and a noun phrase, and draws no verb form right behind dónde; the content did not change.
     private const string OldTextDigest = "E303DC63C18560EC9E0F08C7FB21B8EBB2742D4F28F71C36C112D65E4E97D073";
-    private const string OldSentenceDigest = "B659E166B46862469F65686D7B6329D22B23A5B49F60B26C0EE70B869D6CF74E";
+    private const string OldSentenceDigest = "BFE8D761A4518567FC558A40631B889109C399A2E8E462B2291E663A334C92BE";
 
     [Fact]
     public void TheSpanishRecordUsesTheSpanishPackAndTheWholeMutationSet()

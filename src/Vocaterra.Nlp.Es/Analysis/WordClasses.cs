@@ -10,6 +10,12 @@ internal static class WordClasses
         "mucho", "poco", "otro", "varios", "todo", "cuánto", "mi", "tu", "su", "nuestro", "vuestro", "este", "ese", "aquel",
     }.ToFrozenSet(StringComparer.Ordinal);
 
+    // The determiner adjectives that make a noun phrase definite: the possessives and the demonstratives (M56).
+    private static readonly FrozenSet<string> DefiniteDeterminerAdjectives = new[]
+    {
+        "mi", "tu", "su", "nuestro", "vuestro", "este", "ese", "aquel",
+    }.ToFrozenSet(StringComparer.Ordinal);
+
     private static readonly string[] SubjectPronounList =
     [
         "yo", "tú", "él", "ella", "usted", "nosotros", "nosotras", "vosotros", "vosotras", "ellos", "ellas", "ustedes",
@@ -28,6 +34,12 @@ internal static class WordClasses
     public static bool IsDeterminerAdjective(string lemma)
     {
         return DeterminerAdjectives.Contains(lemma);
+    }
+
+    /// <summary>True for the determiner adjectives that make a noun phrase definite: possessives and demonstratives (<c>mi casa</c>, <c>esta casa</c>).</summary>
+    public static bool IsDefiniteDeterminerAdjective(string lemma)
+    {
+        return DefiniteDeterminerAdjectives.Contains(lemma);
     }
 
     /// <summary>The personal pronouns that can be the explicit subject of a verb, in listing order.</summary>

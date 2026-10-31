@@ -18,7 +18,9 @@ internal sealed class SentenceRealizer
     private const int MaxAttempts = 8;
     private const int MaxSkippedBetween = 2;
 
-    private static readonly string[] PostverbalSubjectVerbs = ["costar", "gustar"];
+    // The verbs that always take the third person and the number of the next noun phrase (or the singular when none follows), as the realiser has made them since
+    // before M56; the other verbs of LexiconCatalog.PostverbalSubjectVerbs do so only when a noun phrase follows them.
+    private static readonly string[] ThirdPersonVerbs = ["costar", "gustar"];
 
     private readonly LexiconCatalog _words;
     private readonly SeededRng _rng;
@@ -539,6 +541,12 @@ internal sealed class SentenceRealizer
 
             // Every noun may be drawn, whether or not it is also a verb form or a noun of the other gender: the analyzer resolves the part of speech of each word
             // (M18). The one place a verb form is not wanted is right behind a subject pronoun, where a noun is not what a reader (or the analyzer) expects.
+            // M56: so is the place right behind dónde, donde or cómo, where the analyzer reads a word that can be a finite verb as the verb (¿dónde son las casas?).
+            if (i > 0 && IsVerbSeekingQuestionLiteral(_items[i - 1]))
+            {
+                item.ForbidHomograph = true;
+            }
+
             item.Noun = _rng.Pick(item.ForbidHomograph ? _words.PlainNouns : _words.Nouns);
         }
 
@@ -830,10 +838,12 @@ internal sealed class SentenceRealizer
                 person = subject.Person!;
                 number = subject.Number!;
             }
-            else if (PostverbalSubjectVerbs.Contains(item.Lemma!))
+            else if (ThirdPersonVerbs.Contains(item.Lemma!) || (LexiconCatalog.PostverbalSubjectVerbs.Contains(item.Lemma!) && FollowingPhrase(i) is not null))
             {
+                // M56: the analyzer agrees estar, an experiencer verb after its dative pronoun and a verb of price after cuánto with the noun phrase after them
+                // (¿dónde está la herrería?, me gustan las manzanas); the realiser agrees them with it wherever one follows, which is never wrong.
                 person = "3";
-                number = _items.Skip(i + 1).FirstOrDefault(static x => x.Head is not null)?.PhraseNumber ?? LexiconSchema.Singular;
+                number = FollowingPhrase(i)?.PhraseNumber ?? LexiconSchema.Singular;
             }
             else
             {
@@ -863,6 +873,12 @@ internal sealed class SentenceRealizer
         }
 
         return true;
+    }
+
+    // The first word after index that belongs to a noun phrase, or null.
+    private Item? FollowingPhrase(int index)
+    {
+        return _items.Skip(index + 1).FirstOrDefault(static x => x.Head is not null);
     }
 
     private bool FinishStandaloneItems(out string skip)
@@ -1020,9 +1036,28 @@ internal sealed class SentenceRealizer
                 return false;
             }
 
+            // M56: a word right behind dónde, donde or cómo that can be a finite verb is read as the verb (the reading resolver's rule), so a noun or an adjective there
+            // that is also a verb form names a sentence the analyzer reads another way, and is re-rolled.
+            if (i > 0 && item.Kind is not (Kind.Verb or Kind.Literal) && IsVerbSeekingQuestionLiteral(_items[i - 1]) && item.Readings.Any(IsFiniteVerbReading))
+            {
+                skip = "verb-form-homograph";
+                _detail = item.Surface!;
+                return false;
+            }
+
             if (item.Kind != Kind.Verb)
             {
                 continue;
+            }
+
+            // M56: ser where a place takes estar is a mistake (es lejos, ¿dónde es la herrería?), so ser before lejos or cerca (past at most two adverbs) and ser between
+            // dónde and a noun phrase are not correct sentences; the pattern names the lemma, so the draw is skipped. The analyzer's exceptions (an event, a time after
+            // cerca de) are not modelled: leaving out a correct sentence is never wrong.
+            if (item.Lemma == "ser" && !item.Infinitive && IsSerOfPlace(i))
+            {
+                skip = "ser-of-place";
+                _detail = item.Surface!;
+                return false;
             }
 
             // A verb form that is also a copula (fue, fueron: ir and ser) followed by an adjective is a copula by every reading the analyzer can choose among, since
@@ -1052,6 +1087,31 @@ internal sealed class SentenceRealizer
         }
 
         return true;
+    }
+
+    // ser followed by lejos or cerca past at most two skippable words, or right behind dónde with a noun phrase after it (mirror of SpanishAgreementChecker.CheckSerOfPlace).
+    private bool IsSerOfPlace(int index)
+    {
+        for (var j = index + 1; j < _items.Count && j - index <= MaxSkippedBetween + 1; j++)
+        {
+            if (LexiconCatalog.LocationAdverbs.Contains(_items[j].Norm ?? string.Empty))
+            {
+                return true;
+            }
+
+            if (!IsSkippable(_items[j]))
+            {
+                break;
+            }
+        }
+
+        return index > 0 && IsVerbSeekingQuestionLiteral(_items[index - 1]) && FollowingPhrase(index) is not null;
+    }
+
+    // A literal dónde, donde or cómo: the analyzer reads the next word as a verb when it can be one (M56).
+    private static bool IsVerbSeekingQuestionLiteral(Item item)
+    {
+        return item.Kind == Kind.Literal && LexiconCatalog.VerbSeekingQuestionWords.Contains(item.Norm?.ToLowerInvariant() ?? string.Empty);
     }
 
     private bool NounPhraseFollows(int index, bool strict)
