@@ -60,22 +60,18 @@ state, the gate's one known failure and the rules learnt so far are in
   - queued after X06: X09 (playtest evidence), then X07 (`--mic-lab` and `--bench-route` for the owner to run).
 - `feature/prototype` is retired.
 
-**CI (owner, 2026-10-23: planned, NOT started; the owner said to wait)**
-- The owner reopened CI (core D1, game D-game-3) and will widen the token to the `workflow` scope, then say so. Until then, still never
-  write under `.github/workflows/`.
-- The owner's answers:
-  - the full test suite;
-  - **LanguageTool required** in CI, offline from the committed cache: every shipped Spanish string checked and none unwaived. On a cache
-    miss CI starts LanguageTool itself and prints what it flags. The owner is learning Spanish and has no native checker, so this matters
-    most;
+**CI (`.github/workflows/ci.yml`, since 2026-10-31; the token has the `workflow` scope)**
+- Two parallel jobs on pushes to `main`, pull requests and manual runs: `build-and-test` (restore, build `-warnaserror`, the full test
+  suite, the offline grammar replay from the committed cache) and `languagetool` (the live LanguageTool check, which rebuilds
+  `content/grammar/` and uploads a `grammar-refresh` artifact on a failure).
+- Still open from the owner's 2026-10-23 answers:
   - **SonarCloud** as in `james-d12/CodeGuard` `.github/workflows/ci.yml` (`dotnet-sonarscanner` begin/end around build and test,
     Cobertura coverage), with organisation `personal-james`, project key `personal-james_vocaterra`, name `Vocaterra`, and a `SONAR_TOKEN`
     secret the owner creates;
   - speech models downloaded and cached in CI, so the model-gated tests run;
-  - CI runs on pushes and PRs to `main` and `feature/experiment`; the workflow lands on `main` and is merged into `feature/experiment`.
+  - CI on pushes to `feature/experiment` too;
+  - ideally the checks shared with `scripts/merge-gate.sh` (one checks script).
 - Not chosen: a "no pending rows" gate and a Claude review in CI.
-- The old `.github/workflows-pending/ci.yml` (core era, with an OS matrix and pack.sh) is out of date: plan a fresh workflow, ideally
-  with the checks shared with `scripts/merge-gate.sh` (one checks script).
 
 **Open owner questions**
 - Listening to the new WAVs and sounds (S17, S20b, S24, S25, S26, S27).
@@ -126,7 +122,7 @@ with about 16 MSBuild nodes, the Roslyn compiler server and parallel test hosts,
    commit message prefix (`M<nn>:` for the core, `G<nn>:`, `P<nn>:` or `S<nn>:` for the game).
 2. **Launch** with `subagent_type: general-purpose`, `isolation: worktree`, the chosen model.
 3. **Verify the report cheaply** before merging: the branch exists and is clean, `git diff --stat <merge-base>..<branch>` matches the
-   report, no unexplained deletions, no files under `.github/workflows/`, no edits to either plan or decisions file, nothing under
+   report, no unexplained deletions, no files under `.github/workflows/` (unless its brief names them), no edits to either plan or decisions file, nothing under
    `bin/`, `obj/` or `artifacts/` staged, and a game milestone has not edited the core (the `Vocaterra.Nlp` or a `Vocaterra.Nlp.*` project, `tests/golden`, `docs/nlp/`) nor a core milestone the game (unless its brief said so). `content/game-v1` is the one shared file set (R02): the core's tests run on it, so a milestone that edits it ran the whole suite.
 4. **Gate:** `GATE_TARGET=<feature branch> scripts/merge-gate.sh "<label>:<branch>"` from that feature branch's checkout, for every
    series (S, M, G, P, X, R). Then `git push origin <feature branch>`; never `main` (the gate refuses it). It merges `--no-ff`, builds `Vocaterra.sln` with warnings
@@ -160,7 +156,7 @@ Read first: CLAUDE.md; <the plan: docs/game/IMPLEMENTATION_PLAN.md sections 1, 3
 Rules: a game milestone edits only the game projects, their tests, content/game-v1, assets/ and docs/game/ and takes the core as it is (a missing core call stops
 that part: report it, do not copy core source or edit the Vocaterra.Nlp or a Vocaterra.Nlp.* project or docs/nlp/); a core milestone edits only the Vocaterra.Nlp and Vocaterra.Nlp.* projects,
 their tests, tests/golden and docs/nlp/ (and content/game-v1 only where the core's tests need it, never the game's lessons), fixes bugs at the source with a regression test in the owning module and never
-weakens a fuzz oracle; never create or edit anything under .github/workflows/; do not edit either IMPLEMENTATION_PLAN.md or
+weakens a fuzz oracle; never create or edit anything under .github/workflows/ unless this brief names the file; do not edit either IMPLEMENTATION_PLAN.md or
 either DECISIONS.md (the orchestrator does); engine code only in src/Vocaterra.MonoGame (D-game-1); assets CC0 only (D-game-5);
 no System.Random and no clock in the evaluation path.
 Content edits (game): scripts/content.sh validate, then scripts/content.sh hash content/game-v1 --bundle-id game-v1 (through the
@@ -188,7 +184,7 @@ anything left undone and why.
 - The host (`src/Vocaterra.Host`) is a console program: `--transcript "<line>" --prompt <id>` evaluates once; no argument runs the text loop.
 - The one content bundle `content/game-v1`, hashed through `scripts/content.sh` (the core's ContentBuilder run from source); the core's tests, fuzz suite
   and demo CLI run on it (R02: the core's sample `content/v1` is deleted). Lexicon regeneration in `docs/nlp/LEXICON.md`.
-- The GitHub token lacks the `workflow` scope; CI is parked in `.github/workflows-pending/` and deferred (core D1, game D-game-3); do not raise it.
+- CI is `.github/workflows/ci.yml` (see "CI" above); workflow edits land on a feature branch like any other change.
 - Determinism tiers (core plan §3): no `System.Random`, no wall clock, ordinal comparisons, `CanonicalJson`, seeded RNG, margins for model
   thresholds; model adapters gated on `VOCATERRA_MODELS_DIR`.
 - The fuzz suite (`tests/Vocaterra.Nlp.Fuzzing.Tests`, design in `docs/nlp/FUZZING_PLAN.md`) is a merge gate and has found every real
@@ -215,7 +211,7 @@ D-game-4 the game bundle diverged from the sample (R02: the sample is deleted), 
 - Write code under `src/`, `tests/` or `tools/` yourself; the plans, decisions, briefs, gate script,
   CLAUDE.md and this file are the only files you edit directly.
 - Let a game milestone edit the core (the `Vocaterra.Nlp` and `Vocaterra.Nlp.*` projects, `docs/nlp/`) or copy core source, or a core milestone plan game content; a core need is a core milestone.
-- Write under `.github/workflows/`.
+- Let a milestone agent write under `.github/workflows/` unless its brief names the workflow file.
 - Merge on an agent's word alone; the gate and a behaviour spot-check come first.
 - Launch a milestone the owner has not asked for or that is not the planned next step; propose it.
 - Leave a worktree behind or let disk fall under about 10 GB free.

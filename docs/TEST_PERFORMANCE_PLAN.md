@@ -126,7 +126,7 @@ No phase removes an assertion, lowers an oracle's depth in the gate, or changes 
 - **Possible CI changes:**
   - Split CI into a fast job and a full job.
   - Run the test projects as a matrix.
-  - Both need the workflow-scope token (CLAUDE.md), so nothing under `.github/workflows/` is written until the owner says so.
+  - Both are edits of `.github/workflows/ci.yml`; the token has the workflow scope (2026-10-31).
 - **Possibly move to xUnit v3 / Microsoft.Testing.Platform** for faster startup and better parallelism. This is a large change, so only if T0 shows test-host startup is significant.
 
 ## Files touched (all phases)

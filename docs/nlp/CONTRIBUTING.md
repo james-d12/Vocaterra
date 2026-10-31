@@ -364,7 +364,7 @@ hash and gated in tests ([ADR 0004](adr/0004-model-pinning-and-gating.md)).
    gives identical output; the result equals the recorded expectation for a small committed clip or a synthetic signal; a record
    made with the real model replays without the model (`ReplayEnvelope`; see [docs/nlp/REPLAY.md](REPLAY.md)); thresholds that use
    the model's scores have a `Margin`. Once real learner audio exists, add the model to the benchmark runs.
-8. **CI.** Extend the `models` job in `../.github/workflows-pending/ci.yml` so that it fetches the model (it runs only when the
+8. **CI.** Add a `models` job to `../../.github/workflows/ci.yml` that fetches the model and runs the model-gated tests (only when the
    repository variable `VOCATERRA_RUN_MODEL_TESTS` is `true`).
 
 ## Gotchas
