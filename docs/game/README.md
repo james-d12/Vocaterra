@@ -626,6 +626,17 @@ bundle has a `fut` step yet; the tests use fixture lessons (`SimpleFutureStepTes
   `tendré`, `trabajará`, `pescará`); the core's regular paradigm builds no simple future, so a verb the import lacks has no `fut` cell. A page too narrow for four columns stacks
   them in blocks (X08).
 
+Until session 9 ships, the fourth column shows for a form the learner says (what the learner says is never hidden):
+
+```bash
+# the table of comprar with its four columns: session 8's lessons done, two lines said to the guide, the book open on the verb
+DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --no-autosave --skip-to-session 8 --say "mañana compraré pan" --say "compro pan" --leave \
+  --book-verb comprar --screenshot /tmp/v16-book.png --frames 30
+# the smallest window at the largest text: one column a block, the future the fourth block (--book-detail scrolls the right page to it)
+DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --no-autosave --size 800x600 --text-scale 150 --skip-to-session 8 --say "mañana compraré pan" \
+  --say "compro pan" --leave --book-verb comprar --book-detail 30 --screenshot /tmp/v16-book-small.png --frames 30
+```
+
 ## The village: sessions 4 to 6 (VILLAGE_PLAN phase A, D-game-22)
 
 The plan is [docs/game/VILLAGE_PLAN.md](VILLAGE_PLAN.md) (V01 to V07, V10 to V12); each lesson uses its verbs in the present, the preterite and the near future
