@@ -1,4 +1,5 @@
 using Vocaterra.Nlp.Core.Stages;
+using Vocaterra.Nlp.Es.Analysis;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Matching;
@@ -48,18 +49,20 @@ public sealed class LexiconCatalog
     public static readonly IReadOnlyList<string> NounModifyingAdverbs =
         ["solo", "sólo", "también", "tampoco", "incluso", "casi", "apenas", "aun", "aún", "más", "menos", "hasta", "ni"];
 
-    /// <summary>Adverbs that put a sentence in the past (mirror of <c>AnalysisTables.PastTimeAdverbs</c>).</summary>
-    public static readonly IReadOnlyList<string> PastTimeAdverbs = ["ayer", "anoche", "anteayer"];
+    // The time markers are not mirrored: since M57 they come from the pack's public table SpanishTimeMarkers, which the checker reads too, and the realiser finds
+    // their phrases with TimeMarkerModel.
 
-    /// <summary>Adverbs that put a sentence in the future (mirror of the marker in <c>AgreementChecker.CheckNearFuture</c>, M49): a preterite beside one is a tense mistake.</summary>
-    public static readonly IReadOnlyList<string> FutureTimeAdverbs = ["mañana"];
+    /// <summary>Adverbs that put a sentence in the past (<c>SpanishTimeMarkers.PastAdverbs</c>, the checker's own list).</summary>
+    public static readonly IReadOnlyList<string> PastTimeAdverbs = SpanishTimeMarkers.PastAdverbs;
 
-    /// <summary>Nouns that combine with <c>pasado</c> to mark past time (mirror of <c>AnalysisTables.TimeNouns</c>).</summary>
-    public static readonly IReadOnlyList<string> TimeNouns =
-        ["semana", "mes", "año", "día", "noche", "vez", "hora", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
+    /// <summary>The adverb that puts a sentence in the future (<c>SpanishTimeMarkers.FutureAdverb</c>); the generated adverbs leave it out, as they leave out the past ones.</summary>
+    public static readonly IReadOnlyList<string> FutureTimeAdverbs = [SpanishTimeMarkers.FutureAdverb];
 
-    /// <summary>Nouns after which <c>próximo/a</c> may come first (mirror of <c>AnalysisTables.IsUpcomingTimeNoun</c>, M49): "los próximos domingos" is correct Spanish, so it is no word-order mistake.</summary>
-    public static readonly IReadOnlyList<string> UpcomingTimeNouns = [.. TimeNouns, "siglo", "verano", "invierno", "otoño", "primavera", "fin", "finde", "sábado"];
+    /// <summary>Nouns that combine with <c>pasado</c> to mark past time and with <c>que viene</c> to mark the future (<c>SpanishTimeMarkers.TimeNouns</c>).</summary>
+    public static readonly IReadOnlyList<string> TimeNouns = SpanishTimeMarkers.TimeNouns;
+
+    /// <summary>Nouns after which <c>próximo/a</c> may come first (<c>SpanishTimeMarkers.UpcomingTimeNouns</c>, M49): "los próximos domingos" is correct Spanish, so it is no word-order mistake.</summary>
+    public static readonly IReadOnlyList<string> UpcomingTimeNouns = SpanishTimeMarkers.UpcomingTimeNouns;
 
     /// <summary>Feminine nouns that take <c>el</c> and <c>un</c> (mirror of <c>WordClasses.FeminineNounsTakingEl</c>).</summary>
     public static readonly IReadOnlyList<string> FeminineNounsTakingEl =

@@ -24,14 +24,16 @@ internal static class SpanishAnalysisTables
         "solo", "sólo", "también", "tampoco", "incluso", "casi", "apenas", "aun", "aún", "más", "menos", "hasta", "ni",
     }.ToFrozenSet(StringComparer.Ordinal);
 
-    private static readonly FrozenSet<string> PastTimeAdverbs = new[] { "ayer", "anoche", "anteayer" }.ToFrozenSet(StringComparer.Ordinal);
+    // The time markers live in SpanishTimeMarkers (M57), which the fuzz suite's sentence generator reads too.
+    private static readonly FrozenSet<string> PastTimeAdverbs = SpanishTimeMarkers.PastAdverbs.ToFrozenSet(StringComparer.Ordinal);
 
-    private static readonly FrozenSet<string> UpcomingExtraTimeNouns = new[] { "siglo", "verano", "invierno", "otoño", "primavera", "fin", "finde", "sábado" }.ToFrozenSet(StringComparer.Ordinal);
+    private static readonly FrozenSet<string> PastTimeAdjectiveForms = SpanishTimeMarkers.PastAdjectiveForms.ToFrozenSet(StringComparer.Ordinal);
 
-    private static readonly FrozenSet<string> TimeNouns = new[]
-    {
-        "semana", "mes", "año", "día", "noche", "vez", "hora", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo",
-    }.ToFrozenSet(StringComparer.Ordinal);
+    private static readonly FrozenSet<string> WordsBeforeTheNounMañana = SpanishTimeMarkers.WordsBeforeTheNounMañana.ToFrozenSet(StringComparer.Ordinal);
+
+    private static readonly FrozenSet<string> UpcomingTimeNouns = SpanishTimeMarkers.UpcomingTimeNouns.ToFrozenSet(StringComparer.Ordinal);
+
+    private static readonly FrozenSet<string> TimeNouns = SpanishTimeMarkers.TimeNouns.ToFrozenSet(StringComparer.Ordinal);
 
     // Fixed expressions that are plural as a whole (buenos días, buenas tardes, buenas noches, muchas gracias): modifier lemma, then the noun lemmas it forms one with.
     // "mucha gracia" (singular) is ordinary Spanish, so the table applies only once a plural shows up on either side (see SpanishAgreementChecker, rule M29c).
@@ -215,6 +217,18 @@ internal static class SpanishAnalysisTables
         return PastTimeAdverbs.Contains(lemma);
     }
 
+    /// <summary>True for a written form of <c>pasado</c>, which after a time noun puts it in the past (la semana pasada; M57: matched as written).</summary>
+    public static bool IsPastTimeAdjectiveForm(string word)
+    {
+        return PastTimeAdjectiveForms.Contains(word);
+    }
+
+    /// <summary>True for a word after which <c>mañana</c> is the noun, the morning, and no future marker (esta mañana, por la mañana).</summary>
+    public static bool IsWordBeforeTheNounMañana(string word)
+    {
+        return WordsBeforeTheNounMañana.Contains(word);
+    }
+
     /// <summary>True for a word that is reported as an interjection unless an article or a numeral precedes it (<c>gracias</c>, but <c>las gracias</c>); see <c>ReportedReadings</c>.</summary>
     public static bool IsInterjectionFirst(string word)
     {
@@ -230,7 +244,7 @@ internal static class SpanishAnalysisTables
     /// <summary>True for a noun that <c>próximo</c> precedes as a time word (la próxima semana, el próximo verano): the time nouns and the seasons, centuries and weekend.</summary>
     public static bool IsUpcomingTimeNoun(string lemma)
     {
-        return TimeNouns.Contains(lemma) || UpcomingExtraTimeNouns.Contains(lemma);
+        return UpcomingTimeNouns.Contains(lemma);
     }
 
     /// <summary>True for nouns that combine with <c>pasado</c> to mark past time (la semana pasada).</summary>
@@ -278,7 +292,7 @@ internal static class SpanishAnalysisTables
     /// <summary>True for a noun that says when or for how long (the time nouns, the seasons, <c>tarde</c>, <c>rato</c>...): a noun phrase of one after a verb is no subject.</summary>
     public static bool IsDurationNoun(string lemma)
     {
-        return TimeNouns.Contains(lemma) || UpcomingExtraTimeNouns.Contains(lemma) || DurationNouns.Contains(lemma);
+        return UpcomingTimeNouns.Contains(lemma) || DurationNouns.Contains(lemma);
     }
 
     /// <summary>True for a word that opens a clause of its own: a question word or relative (<c>dónde</c>, <c>cuánto</c>, <c>que</c>...), <c>si</c> or <c>porque</c>.</summary>

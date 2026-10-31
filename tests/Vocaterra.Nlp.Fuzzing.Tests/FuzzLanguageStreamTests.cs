@@ -8,33 +8,29 @@ using Vocaterra.Nlp.Language.Packs;
 namespace Vocaterra.Nlp.Fuzzing.Tests;
 
 /// <summary>
-/// Proof that the Spanish suite generates the cases it generated before the per-language harness (M35). CsCheck seeds only its first iteration (the
-/// later ones draw from its own state), so a stream is compared one case per seed: for each of <see cref="Seeds"/> fixed seeds, the first case of the
-/// old generator expression and the first case of <see cref="FuzzLanguage.Spanish"/> must be the same, and both must hash to the digest recorded
-/// from the unchanged generators (<c>SpanishTextGen.Text</c>, <c>SentenceGen.Recipe</c> with <c>Realize</c>). A changed generator, a changed draw order
-/// or a changed realisation fails here, not as a silent change of what the oracles test.
+/// Proof that the Spanish generators do not change unnoticed, and that the Spanish record generates the cases the suite generated before the per-language harness (M35).
+/// CsCheck seeds only its first iteration (the later ones draw from its own state), so a stream is compared one case per seed: the first case at each of
+/// <see cref="Seeds"/> fixed seeds, one line each, hashed. Two claims:
+/// <list type="number">
+/// <item>On the frozen inputs (<see cref="FrozenGeneratorInputs"/>: a copy of the bundle's lexicon and grammars that is never edited, M57), the old generator expressions
+/// (<c>SpanishTextGen.Text</c>, <c>SentenceGen.Recipe</c> with <c>Realize</c>) and the record's generators hash to the recorded digests. A changed generator, a changed draw
+/// order or a changed realisation fails here, not as a silent change of what the oracles test. A content edit of <c>content/game-v1</c> cannot: the inputs are frozen.</item>
+/// <item>On the bundle (<see cref="PipelineHarness.Shared"/>), <see cref="FuzzLanguage.Spanish"/>, the record the oracles run on, gives the same streams as the old
+/// expressions. The two are compared with each other, not with a recorded digest, so a content edit moves both alike and needs no new record.</item>
+/// </list>
 /// </summary>
 public sealed class FuzzLanguageStreamTests
 {
     private const int Seeds = 400;
 
-    // Digests of the first case at each fixed seed, from the generator expressions the Spanish classes used before M35. The generators draw their words and grammars
-    // from content/game-v1, so a content edit moves them like a golden: recorded again at the game's V10 (VILLAGE_PLAN), whose lexicon gained panadería, pescador and
-    // letrero and whose grammars gained ask_far, ask_availability and the comprar and buscar rows of state_action; the generators did not change. The sentence digest
-    // again at V11, whose grammars gained ask_price (cuánto with costar or ser, qué precio tiene); the word stream did not move, nor did the generators. Both again
-    // at V12, whose lexicon gained granjero and whose grammars gained ask_name, ask_activity and the hacer, trabajar and vivir rows of state_action; the generators
-    // did not change. The sentence digest again at V13, whose grammars gained describe and state_like and an adjective after the noun in request_item; the word
-    // stream did not move, nor did the generators. The sentence digest again at M56, whose analyzer agrees a verb with a subject after it: the realiser (the old
-    // expression and the Spanish record alike) now gives estar, the experiencer verbs and the verbs of price the third person and the number of a noun phrase after
-    // them, leaves out ser before lejos or cerca and between dónde and a noun phrase, and draws no verb form right behind dónde; the content did not change. The
-    // sentence digest again at M59, whose analyzer agrees a verb with a noun subject before it and a reflexive clitic after cómo with its verb: the realiser gives a
-    // verb right after a noun phrase the third person and the phrase's number, gives llamar and sentir after cómo and a reflexive clitic that clitic's person, and
-    // skips a subject of two phrases joined by y and a literal verb form that disagrees with the phrase before it; the content did not change. Again later in M59, whose
-    // analyzer leaves a lone name before a verb unchecked (it may be the person spoken to): the realiser draws such a verb's person and number freely. The sentence
-    // digest again at V14, whose grammars gained state_obligation (tener que and an infinitive), the pescar row of state_action and a village name before comprar; the
-    // word stream did not move, nor did the generators.
-    private const string OldTextDigest = "E303DC63C18560EC9E0F08C7FB21B8EBB2742D4F28F71C36C112D65E4E97D073";
-    private const string OldSentenceDigest = "2DA44B90765989460AEDE0319C6F5E35E7972C5A5DB2D9244E1037BD4FE0C2AD";
+    // Digests of the first case at each fixed seed on the frozen inputs. Re-record them only when the generators change (a generator, its draw order, the realiser, a
+    // mirrored table of LexiconCatalog or PipelineHarness.FixtureGrammars), in the commit that changes them, and say there what changed. Never re-record them for a content
+    // edit: none can move them. History: from M35 to M59 they were recorded on content/game-v1 itself, and every content milestone that added a word or a grammar
+    // (V10 to V16) re-recorded them with the generators unchanged; M57 (c) moved them to the frozen inputs (copied at 0041eff), the generators unchanged. The sentence
+    // digest again at M57 (a), whose realiser finds the time markers of more than one word (TimeMarkerModel) and whose fixture grammars gained two patterns with them;
+    // the text digest did not move.
+    private const string TextDigest = "24826CDAB4703637C13D991FE7D2FF0010F467C05BCD9D5C6C2F1AF9065D8D25";
+    private const string SentenceDigest = "2915B6C25E9A378059C23B9ECD7D001A42130850817872973FCD5395DD0EABE3";
 
     [Fact]
     public void TheSpanishRecordUsesTheSpanishPackAndTheWholeMutationSet()
@@ -44,20 +40,52 @@ public sealed class FuzzLanguageStreamTests
     }
 
     [Fact]
-    public void TheTextStreamOfTheSpanishRecordIsTheOldOne()
+    public void TheTextStreamOnTheFrozenInputsIsTheRecordedOne()
     {
-        var words = PipelineHarness.Shared.Words;
-        Pinned(OldTextDigest, FirstCases(SpanishTextGen.Text(words), static text => text, "text"));
-        Pinned(OldTextDigest, FirstCases(FuzzLanguage.Spanish.FreeText, static text => text, "text"));
+        var frozen = FrozenGeneratorInputs.Instance;
+        Pinned(TextDigest, FirstCases(SpanishTextGen.Text(frozen.Words), static text => text, "text"));
+        Pinned(TextDigest, FirstCases(FuzzLanguage.SpanishFreeText(frozen), static text => text, "text"));
     }
 
     [Fact]
-    public void TheSentenceStreamOfTheSpanishRecordIsTheOldOne()
+    public void TheSentenceStreamOnTheFrozenInputsIsTheRecordedOne()
+    {
+        var frozen = FrozenGeneratorInputs.Instance;
+        var old = SentenceGen.Recipe(frozen).Select(recipe => SentenceGen.Realize(frozen, recipe));
+        Pinned(SentenceDigest, FirstCases(old, static s => Render(s?.Text, s?.PatternSource, s?.PatternText), "sentence"));
+        Pinned(SentenceDigest, FirstCases(FuzzLanguage.SpanishSentences(frozen), static s => Render(s?.Text, s?.PatternSource, s?.PatternText), "sentence"));
+    }
+
+    [Fact]
+    public void TheSpanishRecordGivesTheOldStreamsOnTheBundle()
     {
         var harness = PipelineHarness.Shared;
+        Assert.Equal(
+            FirstCases(SpanishTextGen.Text(harness.Words), static text => text, "text"),
+            FirstCases(FuzzLanguage.Spanish.FreeText, static text => text, "text"));
         var old = SentenceGen.Recipe(harness).Select(recipe => SentenceGen.Realize(harness, recipe));
-        Pinned(OldSentenceDigest, FirstCases(old, static s => Render(s?.Text, s?.PatternSource, s?.PatternText), "sentence"));
-        Pinned(OldSentenceDigest, FirstCases(FuzzLanguage.Spanish.Sentences, static s => Render(s?.Text, s?.PatternSource, s?.PatternText), "sentence"));
+        Assert.Equal(
+            FirstCases(old, static s => Render(s?.Text, s?.PatternSource, s?.PatternText), "sentence"),
+            FirstCases(FuzzLanguage.Spanish.Sentences, static s => Render(s?.Text, s?.PatternSource, s?.PatternText), "sentence"));
+    }
+
+    [Fact]
+    public void TheFrozenInputsAreACopyThatTheDigestsExercise()
+    {
+        // The fixture is what its files say (the bundle's hand-authored lexicon files and its 92 grammars at 0041eff), it is not the bundle, and most first cases
+        // are realised sentences: a digest of 400 skipped recipes would guard nothing.
+        var frozen = FrozenGeneratorInputs.Instance;
+        Assert.Equal(1299, frozen.Lexicon.Entries.Count);
+        Assert.Equal(92, frozen.GrammarCount);
+        Assert.NotSame(PipelineHarness.Shared.Lexicon, frozen.Lexicon);
+        Assert.DoesNotContain(Path.Combine("content", "game-v1"), frozen.Directory, StringComparison.Ordinal);
+        var realised = 0;
+        for (var i = 0; i < Seeds; i++)
+        {
+            FuzzLanguage.SpanishSentences(frozen).Sample(sentence => realised += sentence is null ? 0 : 1, iter: 1, threads: 1, seed: Seed("sentence", i));
+        }
+
+        Assert.True(realised * 2 >= Seeds, $"Only {realised} of the {Seeds} first cases on the frozen inputs are realised sentences.");
     }
 
     private static string Render(string? text, string? source, string? pattern) => text is null ? "<null>" : text + "|" + source + "|" + pattern;
@@ -77,10 +105,15 @@ public sealed class FuzzLanguageStreamTests
         var builder = new StringBuilder();
         for (var i = 0; i < Seeds; i++)
         {
-            var seed = "M35" + stream[..1].ToUpperInvariant() + i.ToString("D8", System.Globalization.CultureInfo.InvariantCulture);
-            gen.Sample(value => builder.Append(render(value)).Append('\n'), iter: 1, threads: 1, seed: seed);
+            gen.Sample(value => builder.Append(render(value)).Append('\n'), iter: 1, threads: 1, seed: Seed(stream, i));
         }
 
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(builder.ToString())));
+    }
+
+    // The fixed seed of the i-th first case of a stream (the seeds of M35).
+    private static string Seed(string stream, int i)
+    {
+        return "M35" + stream[..1].ToUpperInvariant() + i.ToString("D8", System.Globalization.CultureInfo.InvariantCulture);
     }
 }

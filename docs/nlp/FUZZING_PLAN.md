@@ -60,7 +60,7 @@ tests/Vocaterra.Nlp.Fuzzing.Tests/
     FuzzLanguage.cs                 (M35) the per-language record: pack, bundle, free-text generator, sentence realiser, mutation kinds; `Spanish`
     LanguageOracles.cs              (M35) the per-language bodies of O1, O2, O7 and a neutral O14, run on any FuzzLanguage
   Languages/Xx/                     (M35) the toy language xx: its pack, its three-word bundle (written to a temp folder, language "xx"), its record and its oracle tests
-  FuzzLanguageStreamTests.cs        (M35) the Spanish generator streams at 400 fixed seeds equal the digests recorded before the per-language harness
+  FuzzLanguageStreamTests.cs        (M35) the Spanish generator streams at 400 fixed seeds equal the recorded digests; since M57 on frozen inputs (Fixtures/StreamDigest), so only a generator change moves them
   *FuzzTests.cs                     one per oracle below
 ```
 

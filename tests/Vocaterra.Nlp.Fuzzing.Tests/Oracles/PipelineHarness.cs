@@ -29,7 +29,7 @@ namespace Vocaterra.Nlp.Fuzzing.Tests.Oracles;
 /// (scripted recognizers, trigram embedder, silent synthesizer) so no model file is needed. Stage 2 oracles build on the same members:
 /// <see cref="Bundle"/>, <see cref="NewServices"/>, <see cref="NewPipeline"/>, <see cref="NewContext"/> and <see cref="Prompt"/>.
 /// </summary>
-public sealed class PipelineHarness
+public sealed class PipelineHarness : IGeneratorInputs
 {
     /// <summary>The fixed instant every generated conversation context uses; nothing in the suite reads a clock.</summary>
     public const long FixedNow = 1_700_000_000;
@@ -45,7 +45,8 @@ public sealed class PipelineHarness
 
     /// <summary>
     /// Grammar patterns the game's bundle does not contain, kept as in-memory fixtures so the oracles that need them keep running: names bound by <c>[WORD]</c>
-    /// (the bundle binds no free name), an adjective after a noun, and a verb whose lemma is bound to a slot.
+    /// (the bundle binds no free name), an adjective after a noun, a verb whose lemma is bound to a slot, and (M57) the time markers of more than one word, past
+    /// and future, around a verb and its object, in the shape of the game's <c>state_action</c> rows (one of them mixes past and future markers as those rows do).
     /// </summary>
     public static IReadOnlyList<string> FixtureGrammars { get; } =
     [
@@ -54,6 +55,8 @@ public sealed class PipelineHarness
         "[VERB:ser] [WORD:name]",
         "[VERB:querer]? [ART]? [NOUN:thing] [ADJ]?",
         "[PRON]? [VERB:tener:verb] [NUM:qty] [NOUN:item]",
+        "(ayer|mañana|pasado mañana|la semana pasada|la semana que viene|el próximo día)? [VERB:comprar] [ART]? [NUM:qty]? [NOUN:item] (ayer|mañana|pasado mañana|la semana pasada|la semana que viene|el próximo día)?",
+        "[PRON]? [VERB] [ART]? [NUM:qty]? [NOUN:item] (pasado mañana|el mes que viene|la próxima semana|el año pasado|anoche|anteayer)",
     ];
 
     /// <summary>The shared harness, built once on first use.</summary>
@@ -80,13 +83,13 @@ public sealed class PipelineHarness
     /// </summary>
     public MorphologyGenerator RegularParadigm { get; } = new(SpanishLexicon.Empty);
 
-    /// <summary>The lexicon seen through the generators' eyes.</summary>
+    /// <inheritdoc />
     public LexiconCatalog Words { get; }
 
     /// <summary>A shared analyzer over the bundle lexicon; stateless apart from a lazily built, thread-safe index.</summary>
     public LinguisticAnalyzer Analyzer { get; }
 
-    /// <summary>Every slot grammar of the intent catalog as a parseable pattern plus its compiled <see cref="SlotGrammar"/>.</summary>
+    /// <summary>Every slot grammar of the intent catalog as a parseable pattern plus its compiled <see cref="SlotGrammar"/>, then the <see cref="FixtureGrammars"/>.</summary>
     public PatternCatalog Grammars { get; }
 
     /// <summary>Normalizes text exactly as the pipeline does.</summary>

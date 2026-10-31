@@ -140,6 +140,39 @@ public class NearFutureTenseTests
         Assert.Empty(Described(sentence));
     }
 
+    // M57 (b), found by the game's V10: "pasado mañana" is one time phrase, the day after tomorrow, wherever it stands. Its pasado was read as an adjective of the
+    // noun before it ("compro panes pasado mañana" gave noun.number, expected pasados) and, after a time noun, as a past marker ("voy a ir el domingo pasado
+    // mañana" gave conj.tense on voy, expected fui). Speech transcripts carry no commas, so the phrase cannot be told from its neighbours by punctuation.
+    // Found on the way: on the bundle's lexicon "la semana pasada" was no past marker at all ("compro panes la semana pasada" and "la semana pasada compro pan"
+    // gave nothing): pasada is also a noun (una pasada), and the resolver's charitable fallback took it whenever the adjective showed the slip. The form of pasado
+    // after a time noun is the marker now, whatever its reading (LinguisticAnalyzerTests' "la semana pasada vendo" runs on a lexicon without that noun).
+    [Theory]
+    [InlineData("compro panes pasado mañana")]
+    [InlineData("pasado mañana compro panes")]
+    [InlineData("compro dos panes pasado mañana")]
+    [InlineData("voy a comprar panes pasado mañana")]
+    [InlineData("voy a ir el domingo pasado mañana")]
+    [InlineData("compré panes la semana pasada")]
+    [InlineData("compré pan el año pasado")]
+    [InlineData("el pan pasado")]
+    public void PasadoMananaIsTheTimePhraseAndTheOtherPasadosKeepTheirReading(string sentence)
+    {
+        Assert.Empty(Described(sentence));
+    }
+
+    [Theory]
+    [InlineData("pasado mañana compré panes", "conj.tense|compré|voy a comprar")]
+    [InlineData("compré panes pasado mañana", "conj.tense|compré|voy a comprar")]
+    [InlineData("compré pan el domingo pasado mañana", "conj.tense|compré|voy a comprar")]
+    [InlineData("compro panes la semana pasada", "conj.tense|compro|compré")]
+    [InlineData("la semana pasada compro pan", "conj.tense|compro|compré")]
+    [InlineData("compro pan el año pasado", "conj.tense|compro|compré")]
+    [InlineData("los panes pasado", "noun.number|pasado|pasados")]
+    public void PasadoMananaKeepsItsFutureAndThePastMarkerAndTheAdjectiveKeepTheirs(string sentence, string expected)
+    {
+        Assert.Equal([expected], Described(sentence));
+    }
+
     [Fact]
     public void ProximoBeforeATimeNounIsNotAWordOrderMistake()
     {

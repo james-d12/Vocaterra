@@ -342,6 +342,9 @@ public sealed class PatternCatalog
     /// <summary>The intent id that the fixture grammars of <see cref="FromBundle"/> are listed under; no bundle has an intent of this name.</summary>
     public const string FixtureIntent = "fixture";
 
+    /// <summary>The intent id that the patterns of <see cref="FromPatterns"/> are listed under; no bundle has an intent of this name.</summary>
+    public const string FrozenIntent = "frozen";
+
     /// <summary>
     /// Builds the catalog from the grammars of an intent catalog and appends the fixture grammars: grammar shapes that the game's bundle does not use
     /// (a name, <c>[WORD]</c>; an adjective, <c>[ADJ]</c>; a verb bound to a slot, <c>[VERB:lemma:slot]</c>) and that the sentence generators, the analyzer and the
@@ -368,17 +371,38 @@ public sealed class PatternCatalog
         var grammars = catalog.Grammars
             .Select(grammar => new CatalogGrammar(grammar.Id, GrammarPattern.Parse(grammar.Pattern), grammar, owners[grammar.Id]))
             .ToList();
+        return WithFixtures(grammars, fixtures);
+    }
+
+    /// <summary>
+    /// Builds the catalog from pattern texts listed in catalog order (a frozen copy of a bundle's grammars, <c>FrozenGeneratorInputs</c>) and appends the fixture
+    /// grammars as <see cref="FromBundle"/> does. The patterns are owned by no intent; they are listed under <see cref="FrozenIntent"/>.
+    /// </summary>
+    public static PatternCatalog FromPatterns(IEnumerable<string> patterns, IEnumerable<string>? fixtures = null)
+    {
+        ArgumentNullException.ThrowIfNull(patterns);
+        return WithFixtures(Distinct(patterns, FrozenIntent, []), fixtures);
+    }
+
+    private static PatternCatalog WithFixtures(List<CatalogGrammar> grammars, IEnumerable<string>? fixtures)
+    {
+        return new PatternCatalog(Distinct(fixtures ?? [], FixtureIntent, grammars));
+    }
+
+    // Appends each pattern that is not yet in the list (by the id of its compiled grammar), owned by the one intent given.
+    private static List<CatalogGrammar> Distinct(IEnumerable<string> patterns, string intent, List<CatalogGrammar> grammars)
+    {
         var known = grammars.Select(static grammar => grammar.Id).ToHashSet(StringComparer.Ordinal);
-        foreach (var text in fixtures ?? [])
+        foreach (var text in patterns)
         {
             var parsed = GrammarPattern.Parse(text);
             var compiled = SlotGrammarType.Parse(parsed.Render());
             if (known.Add(compiled.Id))
             {
-                grammars.Add(new CatalogGrammar(compiled.Id, parsed, compiled, [FixtureIntent]));
+                grammars.Add(new CatalogGrammar(compiled.Id, parsed, compiled, [intent]));
             }
         }
 
-        return new PatternCatalog(grammars);
+        return grammars;
     }
 }

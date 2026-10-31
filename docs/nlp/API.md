@@ -146,6 +146,9 @@ Lexicon seed = SpanishLexicon.Seed;                                             
   the given options), `SpanishMorphology(this ContentBundle)` and `CreateTemplateEngine()` (the former `TemplateEngine.CreateDefault()`).
 - **`SpanishLexicon`** (`Vocaterra.Nlp.Es`): `Seed`, `LoadSeed()`, `ReadSeedJson()`, `SeedResourceName`, `Empty`, `Folding`, `Load(json)` and `FromEntries(entries)`. The seed
   lexicon (`content/game-v1/lexicon/seed.json`) is embedded in the Es assembly under the same logical name as before.
+- **`SpanishTimeMarkers`** (`Vocaterra.Nlp.Es.Analysis`, M57): the words of the time markers of the tense checks (see "Tense errors" below): `PastAdverbs`,
+  `PastAdjectiveForms`, `FutureAdverb`, `WordsBeforeTheNounMañana`, `DayAfterTomorrow`, `UpcomingAdjective`, `UpcomingClause`, `TimeNouns` and `UpcomingTimeNouns`. The
+  checks read it and the fuzz suite's sentence generator models it, so the two share one list; a host that marks time words of its own can compare its list with it.
 - **Removed from the engine** (breaking, 0.x): `Lexicon.Seed`, `LoadSeed`, `ReadSeedJson`, `SeedResourceName`, `Lexicon.Load(json)` and `Lexicon.FromEntries(entries)` without a folding
   (use `SpanishLexicon` or the overloads that take `folding, profile`; `Lexicon.Empty` stays and has the neutral `InvariantLexiconFolding`); `TextNormalizer` and `Accents` (now
   `SpanishTextNormalizer` and `Accents` in `Vocaterra.Nlp.Es.Normalization`); the `RepairStrategy.AskAgainLine`, `SlowRepeatLine` and `GiveUpLine` constants and the
@@ -435,17 +438,21 @@ if (result.Answer is { AnswerId: not null } answer)
 The pipeline always sets both members; they are nullable only so that a result built by hand (in a test) needs no analysis. Both are part of
 the result's `CanonicalJson`, but not of the replay record (see [REPLAY.md](REPLAY.md)).
 
-### Tense errors, `conj.tense` (M49, M51, M59)
+### Tense errors, `conj.tense` (M49, M51, M57, M59)
 
-`conj.tense` is reported by the analysis for the cases below, each with `expected` and `actual` on the verb token (the last one on the verb and the infinitive together):
+`conj.tense` is reported by the analysis for the cases below, each with `expected` and `actual` on the verb token (the last one on the verb and the infinitive together).
+The time markers are phrases, listed in one public table of the Spanish pack, `SpanishTimeMarkers` (`Vocaterra.Nlp.Es.Analysis`, M57), which the checks read and the fuzz
+suite's sentence generator models:
 
 - **Past marker with a non-past verb** (`ayer`, `anoche`, `anteayer`, a time noun with `pasado`): a present or simple future form expects the preterite
-  (`ayer canto` gives expected `canté`, actual `canto`; `ayer comeré` gives `comí`).
-- **Future marker with a past verb:** `mañana`, `pasado mañana`, `próximo/a` before a time noun (`la próxima semana`, `el próximo año`) or a time noun
-  followed by `que viene` (`la semana que viene`), with a preterite or imperfect form, expects the `ir a` + infinitive form for that person
+  (`ayer canto` gives expected `canté`, actual `canto`; `ayer comeré` gives `comí`). The time nouns are `semana`, `mes`, `año`, `día`, `noche`, `vez`, `hora` and the days
+  of the week; the form of `pasado` after one is matched as written (M57: `compro pan la semana pasada` gives `compré`; `pasada` is also a noun, which had hidden it).
+- **Future marker with a past verb:** `mañana`, `pasado mañana`, `próximo/a` before a time noun (`la próxima semana`, `el próximo año`, `el próximo día`; also before
+  `siglo`, the seasons, `fin` and `finde`) or a time noun followed by `que viene` (`la semana que viene`, `el mes que viene`), with a preterite or imperfect form, expects the `ir a` + infinitive form for that person
   (`mañana comí` gives expected `voy a comer`, actual `comí`). When the verb is `ir` itself followed by `a`, the expected form is the present
   (`mañana fui a la tienda` gives `voy`). The present stays correct (`mañana como pan`), so does the future (`mañana comeré`), and `esta mañana` and
-  `por la mañana` are not markers. `luego` and `más tarde` are not markers either (`luego comí` is ordinary narration). A sentence with a past marker as
+  `por la mañana` are not markers. `luego`, `después` and `más tarde` are not markers either (`luego comí` is ordinary narration). `pasado mañana` is the future marker
+  wherever it stands (M57): `compro panes pasado mañana` is clean (its `pasado` is no adjective of `panes`), and `voy a ir el domingo pasado mañana` is clean (it is no past marker). A sentence with a past marker as
   well is left to the first rule, and a verb before a `que` that precedes the marker (`dijo que mañana venía`) is not checked. An imperfect after such
   a `que` is not checked either.
 - **A conjugated verb after `ir a`:** `voy a como` and `vamos a tenemos` expect the infinitive (`comer`, `tener`; the lemma). A noun phrase after `a`

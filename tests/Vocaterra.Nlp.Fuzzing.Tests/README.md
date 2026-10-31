@@ -190,9 +190,15 @@ text and the grammar it was built from) and its mutation kinds. `FuzzLanguage.Sp
   `AnalyzerFuzzTests`, `IntentResolverFuzzTests`) call the same bodies with their own coverage facts, and `NormalizerFuzzTests` also calls the Spanish static
   entry points (`Accents.Strip`, `SpanishPhoneticKey`). The Spanish O14 (`PipelineFuzzTests`) stays as it was: it also covers phonemes, two-phase runs,
   host turns and the envelope mutations, which need Spanish inputs.
-- The same seed gives the same Spanish cases. CsCheck seeds only the first iteration of a sample, so `FuzzLanguageStreamTests` compares the first case of
-  400 fixed seeds, for the text stream and the sentence stream, with a digest recorded from the unchanged generator expressions. A changed generator or a
-  changed realisation fails that test.
+- The same seed gives the same Spanish cases. CsCheck seeds only the first iteration of a sample, so `FuzzLanguageStreamTests` hashes the first case of
+  400 fixed seeds, for the text stream and the sentence stream. **What the two digests guard: the generators** (a generator, its draw order, the realiser, a
+  mirrored table of `LexiconCatalog`, `PipelineHarness.FixtureGrammars`). A changed generator or a changed realisation fails that test, and the commit that changes
+  them records them again and says why. They are computed on **frozen inputs** (M57, `Generation/GeneratorInputs.cs`, `FrozenGeneratorInputs`): the files of
+  `Fixtures/StreamDigest`, a copy of `content/game-v1`'s hand-authored lexicon files (`seed`, `game`, `world`, `supplement`; 1 299 entries; the imported Wiktionary
+  lexicon is left out) and of its 92 slot grammars as they were at `0041eff`, never edited, with the suite's fixture grammars appended. So no content edit moves
+  them: from M35 to M59 they were recorded on the bundle itself, and the content milestones V10 to V16 each re-recorded them with the generators unchanged. A
+  second fact checks that `FuzzLanguage.Spanish`, the record the oracles run on, gives the old expressions' streams on the bundle (compared with each other, not
+  with a recorded digest, so a content edit moves both alike), and a third that most first cases on the frozen inputs are realised sentences.
 - `Languages/Xx/` is the toy language (M35): `XxLanguagePack` implements every `ILanguagePack` member with trivial, non-Spanish behaviour (no accent, no
   inverted mark, no subject pronoun, numbers 0 to 3 as invented words, no G2P, its own three error tags); `XxBundle` writes a three-word bundle
   (`ka`, `mo`, `ti`; two intents; two prompts, one of them constrained; an agent; a dialogue; an effect table) with `"language": "xx"` into a temporary
@@ -220,7 +226,10 @@ surrogate; the content validator filled templates with Spanish sample words; the
     gender (they are drawn like any other; the flags say which mistakes cannot be built on them), indexes the lexicon for the generators, and prints the counts as
     `nouns:`, `verbs:`, `adjectives:` ... diagnostics of O3.
   - `SpanishTextGen` / `TextNoise` - lexicon-driven phrases (word salad and loosely structured phrases) with casing, accent, NFD, `¿¡?!,.`, spacing, number-word and adversarial-token noise. The adversarial token goes in last and verbatim, so a lone surrogate reaches the stage under test unrepaired.
+  - `GeneratorInputs` - what the pattern and sentence generators read (`IGeneratorInputs`: the lexicon catalog and the grammars): the bundle's through `PipelineHarness`,
+    or the frozen copy of `Fixtures/StreamDigest` that the stream digests are recorded on (`FrozenGeneratorInputs`, M57).
   - `GrammarPattern`, `PatternGen` - slot grammar patterns as a tree: every catalog grammar, structural skeletons, and random DSL strings built from the token kinds, including the name token `[WORD:slot]` (M17b).
+  - `TimeMarkerModel` - the time markers of the tense checks as phrases of a sentence's words (M57), over the words of the pack's `SpanishTimeMarkers`.
   - `SentenceGen`, `SentenceRealizer`, `SentenceModel` - correct sentences from a pattern, agreement right by construction (see below). A name (`[WORD]`) is two or three invented syllables drawn from the seeded generator, written with a capital and normalized in lower case (`TokenRole.Name`).
   - `UnboundNames` (in `Oracles/`) - the `vocab.unknown` errors that the names of a sentence must get when its grammar does not bind them (see below).
   - `MutationGen` - exactly one mutation of a correct sentence, with the errors the analyzer must report and the sentence the recast must restore.
@@ -244,8 +253,8 @@ pattern that cannot be realised correctly is **skipped and counted**, never sile
 diagnostics and asserts a minimum of realised sentences, and `MutationTagFuzzTests` and `RecastLoopFuzzTests` assert that every mutation
 kind stays reachable. `CorrectSentenceFuzzTests` also asserts that every grammar of the catalog is realised at least once and that no literal
 word of any grammar is missing from the lexicon (the old `cuál` gap would fail it). If a mirrored table in `LexiconCatalog` (the ser/estar
-adjective lists, the prenominal adjectives, the past-time adverbs, ...) drifts from `AnalysisTables` in `Vocaterra.Nlp.Language`, the mutation oracles fail and
-name the kind.
+adjective lists, the prenominal adjectives, ...) drifts from `SpanishAnalysisTables` in the Spanish pack, the mutation oracles fail and
+name the kind. The time markers are not mirrored (M57): the words come from the pack's public table `SpanishTimeMarkers`, which the checker reads too.
 
 Homographs are generated, not avoided (M18): `SentenceGen` counts the sentences that hold a noun that is also a verb form, a verb form that is also a noun and a noun of both genders
 (`homograph:sentence-with-...`), and O3 asserts that each is at least one sentence in fifty (about 17 %, 6 % and 6 % of the sentences in a default run), so a generator that quietly went back to the
@@ -269,6 +278,18 @@ realiser draws the verb's person and number like any other, so O3 also holds `do
 disagrees with a phrase before it that is no lone name (`skip:literal-verb-subject`). It gives
 `llamar` and `sentir` right after `cómo` and a reflexive clitic the clitic's person (`se`: the third, either number). The sentence stream digest of
 `FuzzLanguageStreamTests` was recorded again for these changes.
+
+M57 taught the realiser the time markers of more than one word. A marker is a phrase of the pattern's literal words, found by `TimeMarkerModel` with the
+checker's rules over the words of `SpanishTimeMarkers` (the pack's public table, which the checker reads): `ayer`, `anoche`, `anteayer` or a time noun followed by a form of
+`pasado` (`el año pasado`, `la semana pasada`) put every verb in the preterite; `mañana` (not after `la`, `esta`, `de` ...), `pasado mañana`, `próximo/a` before a time noun
+(`el próximo día`, `la próxima semana`) or a time noun followed by `que viene` (`la semana que viene`) put it in the present; both in one sentence is
+`skip:conflicting-time-markers`, as before. Before M57 it knew only the single words `mañana`, `ayer`, `anoche` and `anteayer`, so a grammar with `la semana que viene` or
+`el año pasado` gave it sentences it counted as correct that the checker rightly flags `conj.tense` (the game's V10 found it; with the fixture grammars below, O3, O4 and O5
+fail on the old realiser with `ustedes secuestran un acabo el año pasado`). The words still to be chosen break a phrase across them, and once they are chosen the sentence is
+read again: a sentence whose generated words make or unmake a marker with the literals (a time noun drawn before a literal `que viene`, an article before a literal `mañana`)
+is drawn again (`skip:time-marker-of-generated-words`; none in a run of 20 000). `PipelineHarness.FixtureGrammars` gained two patterns that carry these markers around a verb
+and its object, in the shape of the game's `state_action` rows (one mixes past and future markers as those rows do), so the oracles cover them before the bundle has them;
+O3 on them also finds the `pasado mañana` bug below. The sentence stream digest of `FuzzLanguageStreamTests` was recorded again for these changes.
 
 A name (M17b) has no reading the checks use: the realiser treats it like an unknown word, so it breaks every phrase and every subject-verb link around it, and
 the analyzer does the same (a bound name keeps no reading at all). `CorrectSentenceFuzzTests` and `SerializationRoundTripFuzzTests` (`NameSentences_SurviveCanonicalJson`)
@@ -483,6 +504,12 @@ Found and fixed in M59:
   misreading said nothing; with M59 `té` became a bare noun subject before a verb of the second person, and the sentence without its accent gave a `conj.person` that the
   accented one did not. A pronoun before a verb now keeps its reading when the next word is a verb once accented. Regression:
   `AccentVariantSentencesTests.APronounBeforeAWordThatIsAVerbOnceAccentedStaysThePronoun` in `tests/Vocaterra.Nlp.Tests/Language/Analysis`.
+- **`pasado mañana` after a plural noun was read as an adjective of the noun** (`Vocaterra.Nlp.Es`, `SpanishAgreementChecker`; found by the game's V10, and by O3 on
+  the M57 fixture grammars, CsCheck seed `22513329`, `nosotras producimos diecisiete empieces pasado mañana`, `noun.number` expected `pasados`). After a time noun the same
+  `pasado` was a past marker (`voy a ir el domingo pasado mañana` gave `conj.tense` on `voy`). The `pasado` of `pasado mañana` is neither now. Found beside it, by the
+  regression tests: on the bundle's lexicon `la semana pasada` was no past marker (`compro pan la semana pasada` gave nothing), because `pasada` is also a noun and the
+  resolver's charitable fallback chose that reading to hide the slip; a form of `pasado` after a time noun is matched as written now. Regression:
+  `NearFutureTenseTests.PasadoManana...` in `tests/Vocaterra.Nlp.Es.Tests/Analysis`.
 
 ## Known, deliberately not fixed
 
@@ -535,6 +562,13 @@ them explicitly (each is a skip or a restriction in the generator, counted in th
   a row recast as `un una`. These are properties of the language, so the sentence generator does not produce them (`skip:numeral-next-to-article`,
   `skip:adjacent-numerals`).
 - `AgentDefinition` is a plain record over lists, so it has no value equality; O16 compares its JSON only.
+- **Found at M57 and left for a decision: the `word_order` mutation's guard reads the pattern's roles, not the words' readings** (O5, CsCheck seed `ff2aNwHuJBk8`,
+  `MutationCase { Kind = WordOrder, Seed = 64247025744 }`; it fails the same way on the analyzer of `0041eff`, before M57). The random pattern
+  `[NOUN:item] ([NOUN:qty]|[VERB:soltar:spell]|[ART])? [VERB:plantar]? [NOUN:thing] [ADJ]` gives `estacionamientos suelta plantar felicitación satisfecha`, and the
+  mutation moves `satisfecha` before `felicitación`. The guard (no move when the word before the adjective, or before the adjectives before it, can be a noun) sees
+  `plantar` as the pattern's verb; the analyzer sees that `plantar` can be an adjective and `suelta` before it a noun, reads `suelta plantar satisfecha` as one phrase,
+  and reports no `word_order`, as documented. O4 can fail on the same case. Rare: once in the eight runs of the project made for M57. Making the guard read the readings would
+  narrow O4 and O5, which a milestone may not do on its own; it waits for the orchestrator.
 
 ## Adding to the suite
 
