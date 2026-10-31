@@ -37,8 +37,9 @@
 #   6 goldens   tests/Vocaterra.Nlp.Golden.Tests, checked, or recorded with --record (VOCATERRA_RECORD_GOLDEN and VOCATERRA_RECORD_IDENTITY)
 #   7 digests   FuzzLanguageStreamTests: its digests move with the content's grammars and words (until the core's M57 pins them to a fixture)
 #   8 tests     the tier
-# It runs the gate's content checks unchanged and skips none of them. No command line it runs or prints for the user contains the words the
-# sandbox refuses, so an agent runs it as it is. Re-running it on an unedited tree changes no file.
+# It runs the gate's content checks unchanged and skips none of them. Neither the line that starts it nor any command it prints for the user
+# contains the words the sandbox refuses (the scripts it calls run those themselves), so an agent runs it as it is. Re-running it on an
+# unedited tree changes no file.
 #
 # Exit status: 0 every step passed; 1 a step failed, or the stream digests are left to set; 2 usage; 3 refused (run under limited.sh).
 set -uo pipefail
