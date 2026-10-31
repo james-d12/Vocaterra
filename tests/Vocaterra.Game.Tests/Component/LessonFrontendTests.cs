@@ -248,6 +248,25 @@ public sealed class LessonFrontendTests
 
     [Fact]
     [Trait(TestSpeed.Trait, TestSpeed.Slow)]
+    public void ALessonRunAfterOneThatEndedAtAnotherNpcWalksToItsOwnNpc()
+    {
+        // VILLAGE_PLAN V12: Números y pan ends at the stall with the panel open, and Gente del pueblo starts at the villager. The run closes the panel and walks to him;
+        // it typed "Es el herrero" at the shopkeeper for ever, where the line is not the lesson's.
+        var shipped = TestGame.Data.Lessons;
+        using var run = new Harness([new(ScriptStepKind.LessonRun, Value: "numeros-y-pan"), new(ScriptStepKind.LessonRun, Value: "gente-del-pueblo")], shipped);
+        run.Session.PlaySession = 6;
+
+        run.Go(240000);
+
+        Assert.Equal(LessonStatus.Completed, run.Session.Lessons.StatusOf("numeros-y-pan"));
+        Assert.Equal(LessonStatus.Completed, run.Session.Lessons.StatusOf("gente-del-pueblo"));
+        Assert.DoesNotContain(run.Log, static l => l.Contains("(shopkeeper,", StringComparison.Ordinal) && l.Contains("\"Es el herrero\"", StringComparison.Ordinal));
+        var opened = run.Session.Events.OfType<WorldEvent>().Where(static e => e.Name == WorldEvents.TalkOpened).Select(static e => e.Npc).Distinct();
+        Assert.Equal(["baker", "shopkeeper", "villager", "smith", "farmer"], opened); // the stall, then the square, the smithy and the field
+    }
+
+    [Fact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void APractiseAgainStepStartsACompletedLessonAtItsNpcAndTheRunRunsItAgain()
     {
         var shipped = TestGame.Data.Lessons;

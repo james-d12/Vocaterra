@@ -369,6 +369,15 @@ public sealed class ScenarioScript
             return false;
         }
 
+        if (step.Type != LessonStepType.Do && runner.CurrentNpc is { } at && !string.Equals(_dialogue.Npc, at, StringComparison.Ordinal))
+        {
+            // The panel is open on another NPC than the step's (V12: a lesson run after one that ended at the stall, and the next lesson starts at the villager): close it,
+            // and the run walks to the step's NPC. Typed at the wrong NPC, the line is not the lesson's, and the run would say it for ever.
+            CloseIfOpen();
+            _phase = Phase.Idle;
+            return false;
+        }
+
         if (_session.PendingTurns > 0 || _dialogue.SubmitRequested || _dialogue.PendingSpeech is not null)
         {
             return true;
