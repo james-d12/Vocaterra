@@ -48,6 +48,28 @@ public sealed class AutosaveControllerTests : IDisposable
         Assert.Empty(toasts);
     }
 
+    [Fact]
+    public void ASleepWritesTheEndingSessionWithoutAToastAndStartsThePolicyAgainAsALoadDoes()
+    {
+        var (autosave, lines, toasts) = Make(Path.Combine(_folder, "autosave.save"));
+        IReadOnlyList<GameEvent> due = [new WorldEvent(5, 0, WorldEvents.TalkClosed, "guide", null)];
+
+        autosave.WriteNow(20, eventsSeen: 1, "sleep"); // V12c: the session as it ends at the fire
+        Assert.True(File.Exists(autosave.Path));
+        Assert.StartsWith($"autosave: {autosave.Path} written at sleep (session 1, tick 0, ", Assert.Single(lines));
+        Assert.Empty(toasts); // the morning's own toast says it
+        Assert.Equal(20, autosave.LastSavedTick);
+
+        autosave.Run(21, due, atRest: true); // the event was seen: nothing is due
+        Assert.Single(lines);
+
+        autosave.Restart(30, eventsSeen: 0); // the next session begins as a load begins it: from this tick, these events counted as new
+        Assert.Equal(30, autosave.LastSavedTick);
+        autosave.Run(31, due, atRest: true);
+        Assert.Equal(2, lines.Count);
+        Assert.Contains("written at dialogue closed", lines[1], StringComparison.Ordinal);
+    }
+
     private (AutosaveController Autosave, List<string> Lines, List<string> Toasts) Make(string path)
     {
         Directory.CreateDirectory(_folder);

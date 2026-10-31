@@ -96,6 +96,34 @@ public sealed class VoxelLaunchOptionsTests
     }
 
     [Fact]
+    public void TheSkipToSessionFlag_V12c_IsANewGamesAndRefusesALoadASessionAndAPlaytest()
+    {
+        Assert.Null(Parse("--screenshot", "a.png").SkipToSession);
+        Assert.Equal(4, Parse("--skip-to-session", "4").SkipToSession);
+        Assert.Equal(6, Parse("--skip-to-session", "6", "--screenshot", "a.png", "--lesson-run", "gente-del-pueblo").SkipToSession);
+        Assert.Contains("--skip-to-session needs", Refuse("--skip-to-session", "1"), StringComparison.Ordinal);
+        Assert.Contains("--skip-to-session needs", Refuse("--skip-to-session", "four"), StringComparison.Ordinal);
+        foreach (var other in new[] { new[] { "--load", "a.save" }, ["--session", "4"], ["--playtest"] })
+        {
+            var error = Refuse(["--skip-to-session", "4", .. other]);
+            Assert.Contains("--skip-to-session starts a new game", error, StringComparison.Ordinal);
+            Assert.Contains(other[0], error, StringComparison.Ordinal);
+        }
+
+        Assert.Contains("--skip-to-session", LaunchOptions.Usage, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TheSleepStep_V12c_IsAStepOfTheScript()
+    {
+        var options = Parse("--screenshot", "a.png", "--place", "antorcha@153,74,105", "--sleep", "--shot", "b.png");
+
+        Assert.Equal([ScriptStepKind.Move, ScriptStepKind.Sleep, ScriptStepKind.Shot], options.Script.Select(static step => step.Kind).ToArray());
+        Assert.Contains("--screenshot", Refuse("--sleep"), StringComparison.Ordinal);
+        Assert.Contains("--sleep", LaunchOptions.Usage, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void TheBookPractiseStep_S26_KeepsItsLessonAndNeedsTheScriptScreenshot()
     {
         var options = Parse("--screenshot", "a.png", "--lesson-run", "first-words", "--book-practise", "first-words", "--lesson-run", "first-words");

@@ -28,7 +28,7 @@ public sealed class OpeningAndEndingTests
         return new BlockPos(stone.X, stone.Y + 1, stone.Z);
     }
 
-    private static void PlaceTorchOnPlayersRing(VoxelSession session)
+    internal static void PlaceTorchOnPlayersRing(VoxelSession session)
     {
         var rim = PlayerRingRim(session);
         Assert.True(VoxelWalker.WalkTo(session, cell => Math.Abs(cell.X - rim.X) + Math.Abs(cell.Z - rim.Z) <= 3 && Math.Abs(cell.Y - rim.Y) <= 2), "no way up to the player's camp");
