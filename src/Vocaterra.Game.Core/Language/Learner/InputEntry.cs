@@ -18,7 +18,7 @@ public enum InputSource
 /// <summary>Where a line was said (S19).</summary>
 public enum InputPlace
 {
-    /// <summary>In a conversation with an NPC (the guide, the shopkeeper, the villager), outside a lesson's step.</summary>
+    /// <summary>In a conversation with an NPC (any of <c>game/npcs.json</c>), outside a lesson's step.</summary>
     Dialogue,
 
     /// <summary>At a repeat or answer step of a lesson (<see cref="InputEntry.Unit"/> is <c>lesson/step</c>).</summary>

@@ -1,8 +1,9 @@
 # Scripted runs: the front-end's regression set
 
-Sixteen scripted runs of the game that between them pass through every flow `VoxelGame` drives: the walk and the camp, talking and typing,
-the three NPCs, the lessons, the book, the inventory and crafting panels, the check battery, a whole playtest, the mic check, a saved report,
-the view over the shoulder, greyscale and dusk, the interface text size and a spoken line. Run them before a change to the front-end and
+Eighteen scripted runs of the game that between them pass through every flow `VoxelGame` drives: the walk and the camp, talking and typing,
+the first session's three NPCs and two of the village's (the baker's sale and the fisher's directions, VILLAGE_PLAN V09), the lessons, the book,
+the inventory and crafting panels, the check battery, a whole playtest, the mic check, a saved report, the view over the shoulder, greyscale and
+dusk, the interface text size and a spoken line. Run them before a change to the front-end and
 after it, and compare what each one wrote (stdout, screenshots, saves, sound logs, the session log). They are the check the tests cannot
 give for rendering and input (R16).
 
@@ -40,13 +41,15 @@ in the output.
 | r07-inventory | The inventory panel open at the end | `--seed 42 --mute --inventory --screenshot "$W/shot.png" --frames 30` |
 | r08-crafting | The crafting panel open at the end | `--seed 42 --mute --crafting --screenshot "$W/shot.png" --frames 30` |
 | r09-check-pre | The pre-check battery: comprehension picks and production answers, its `--shot`, the hand-over to the world, the save | `--seed 42 --check pre --wait 2 --shot "$W/check.png"` then the pre-check answers (below) then `--screenshot "$W/shot.png" --frames 60 --save "$W/game.save"` |
-| r10-playtest | A whole playtest: the mic check, the pre-check, the lesson, the camp, the three NPCs, the transfer, the fire at the player's camp, the post-check that starts by itself, the playtest save and the thank-you screen | `--playtest --seed 42` then the pre-check answers, `--lesson-run first-words`, the camp steps of r01 (from `--walk-to 172,187` to the `--place`), `--talk shopkeeper --say "quiero agua, por favor" --say "sí, por favor" --talk villager --say "¿dónde está el río?" --walk-to 234,222 --interact 233,34,222 --look 180,-14 --talk guide --say "sí, por favor" --leave --walk-to 153,109 --look 330,-12 --place antorcha@153,74,105 --wait 1`, the post-check answers (below), `--screenshot "$W/shot.png" --frames 60` |
+| r10-playtest | A whole playtest: the mic check, the pre-check, the lesson, the camp, the first session's three NPCs, the transfer, the fire at the player's camp, the post-check that starts by itself, the playtest save and the thank-you screen | `--playtest --seed 42` then the pre-check answers, `--lesson-run first-words`, the camp steps of r01 (from `--walk-to 172,187` to the `--place`), `--talk shopkeeper --say "quiero agua, por favor" --say "sí, por favor" --talk villager --say "¿dónde está el río?" --walk-to 234,222 --interact 233,34,222 --look 180,-14 --talk guide --say "sí, por favor" --leave --walk-to 153,109 --look 330,-12 --place antorcha@153,74,105 --wait 1`, the post-check answers (below), `--screenshot "$W/shot.png" --frames 60` |
 | r11-mic | The mic check alone: the worker hears a synthesized "hola" | `--seed 42 --mic-check --screenshot "$W/shot.png"` |
 | r12-report | A scripted report saved at once: the picture, the Markdown, the toast | `--seed 42 --mute --report "the bridge has a gap" --screenshot "$W/shot.png" --frames 30` |
 | r14-third | The view over the shoulder: the player's figure, the camera kept in front of walls | `--seed 42 --mute --third-person --look 120,-5 --screenshot "$W/shot.png" --frames 60` |
 | r15-grey-dusk | Greyscale (blocks whose noun is not known are grey) and dusk (the lamps, the light on the arm) | `--seed 42 --mute --greyscale --dusk --teleport 222,222 --look 80,-16 --screenshot "$W/shot.png" --frames 60` |
 | r16-text-scale | A small window at 150 % text: the canvas, the book's lessons page laid out on it | `--seed 42 --mute --size 800x600 --text-scale 150 --lesson-run first-words --book-page lessons --screenshot "$W/shot.png" --frames 30` |
 | r17-speak | A spoken line (synthesized, then heard by the recognizer) at the stall | `--seed 42 --talk shopkeeper --speak "quiero agua" --screenshot "$W/shot.png"` |
+| r18-bakery | The bakery purchase in session 5 (VILLAGE_PLAN V03, V11): five trunks cut from the farmer's orchard, the order `oven-wood` delivered as the panel opens on the baker (five wood out, four coins in, `order_delivered`; `paid.png`), then `quiero dos panes, por favor` at her open prompt (`baker.sell_bread`: four coins out, two loaves in; `sale.png`); the screenshot is the inventory with the book and two loaves, no coin and no wood, and the save holds them | `--seed 42 --mute --session 5 --teleport 309,216 --interact 311,38,214 --interact 311,39,214 --interact 311,40,214 --interact 311,38,218 --interact 311,39,218 --talk baker --shot "$W/paid.png" --say "quiero dos panes, por favor" --shot "$W/sale.png" --leave --inventory --screenshot "$W/shot.png" --frames 30 --save "$W/game.save"` |
+| r19-directions | Asking the way (VILLAGE_PLAN V02, V10): the fisher on the bridge's east landing asked `¿dónde está la panadería?` (`place_asked` bakery, the beacon on the bakery: `arrow.png` shows his answer and the column with `panadería 44 blocks`), the walk up the road to the bakery's door, the arrival (`beacon_reached` bakery, the arrow gone); the screenshot is the bakery from its path, with the baker and her name | `--seed 42 --mute --teleport 236,206 --talk fisher --say "¿dónde está la panadería?" --shot "$W/arrow.png" --walk-to 282,206 --walk-to 282,212 --look 0,4 --screenshot "$W/shot.png" --frames 60` |
 
 The pre-check answers (r09 and r10; the battery's order for seed 42):
 
@@ -70,13 +73,25 @@ the session log's `wall_seconds`, `*_ms` and latency fields. Measured on 2026-10
 
 - **Exact (byte for byte after the masks, screenshots and saves included):** r01, r07, r08, r09, r12, r14, r15. r09 writes a save, so it
   also checks that a save comes out the same.
-- **Order only:** r02, r03, r04, r05, r06, r10, r11, r16, r17, every run with a turn for the worker (r11's is the mic check's "hola": the
+- **Order only:** r02, r03, r04, r05, r06, r10, r11, r16, r17, r18, r19, every run with a turn for the worker (r11's is the mic check's "hola": the
   same binary heard it at tick 1, 6 and 1 in three runs). When a turn is applied depends on how fast the
   worker thread evaluates it (a busy machine, the models in the disk cache), so these runs land their turns a few ticks apart from one capture
   to the next, and every tick count, stored time, state digest, save and picture after that moves with them. r03 and r04 matched in two
   captures on a busy machine and moved by a tick on an idle one. Compare only `stdout.txt` and `session.jsonl`, with every number and digest
   masked, and the session log's lines as a set (a turn's line can land before or after an event line of the same frame). That they move at all
-  is a finding: a scripted run does not freeze the world exactly while a turn is out.
+  is a finding: a scripted run does not freeze the world exactly while a turn is out. r18 and r19 (VILLAGE_PLAN V09) have a turn each, so they
+  are order only too; captured twice on 2026-10-31 they matched byte for byte but for the turn's latency, which r19's `arrow.png` draws in the
+  panel (`18.4 ms`, `18.9 ms`).
+
+**Across a content change** every run differs, and each difference must trace to the change. Phase A of the village plan (`f3a242f` against
+`feature/village` at `1f201e4`, V09; the captures of r01 to r17) moved: in every run the closing summary's lessons (six; `personas` 22 steps and
+`ayer-y-manana` 21 with their review steps); in the exact runs the speech count (`340 lines, 680 files`), the scene line (`1958 trees`, another
+digest: the village's radius 24 also widens the calm ground around it, so the hillside behind it is drawn anew), the mesh and figure counts (seven
+figures), the world digests and the saves' sizes; in the session logs `beacon_reached` and `place_asked`; on the pictures the bakery, the smithy,
+the well and the orchard at the village and in its far view, the fisher with his lamp on the bridge's east landing (r15) and the farmer's name
+behind the stall (r17); the book's line counts (93 phrases, 22 nouns, six lessons); and in r03 and r17 the `npc` tip, which now shows on the road as the
+crosshair passes the fisher, so the `speak` tip shows when the stall's panel opens. The first session's route (r10) took the same ticks and
+asked the same 31 check items before and after.
 
 ## By hand (a live run)
 

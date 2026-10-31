@@ -63,6 +63,24 @@ public sealed class NpcLabelLayer : IFrameLayer
     /// <summary>The further distance over which the label fades out.</summary>
     public const double FadeDistance = 12.0;
 
+    /// <summary>
+    /// Where a name's plate stands for the point above the head projected at <paramref name="x"/>, <paramref name="y"/> on the canvas, or <see langword="null"/>
+    /// when the plate would lie wholly outside the canvas. A plate partly over an edge is moved inside it (X08); one whose figure is out of the picture, beside
+    /// the player but in front of the camera, is left out (VILLAGE_PLAN V09: the farmer's name stood at the window's left edge while the player talked to the
+    /// villager beside him, the plate of a figure nobody could see).
+    /// </summary>
+    /// <param name="x">The projected x of the point above the head.</param>
+    /// <param name="y">The projected y.</param>
+    /// <param name="textWidth">The width of the name's text.</param>
+    /// <param name="viewportWidth">The canvas's width.</param>
+    /// <param name="viewportHeight">The canvas's height.</param>
+    public static PixelBox? Place(double x, double y, double textWidth, int viewportWidth, int viewportHeight)
+    {
+        var plate = new PixelBox((int)(x - (textWidth / 2)) - 7, (int)y - 12, (int)textWidth + 14, 24);
+        var outside = plate.X + plate.Width <= 0 || plate.X >= viewportWidth || plate.Y + plate.Height <= 0 || plate.Y >= viewportHeight;
+        return outside ? null : Called.Clamp(plate, viewportWidth, viewportHeight);
+    }
+
     /// <inheritdoc />
     public void Draw(SpriteBatch spriteBatch, FrameView view)
     {
@@ -90,7 +108,11 @@ public sealed class NpcLabelLayer : IFrameLayer
 
             var alpha = (float)Math.Clamp((FullDistance + FadeDistance - distance) / FadeDistance, 0.0, 1.0);
             var width = DrawHelpers.Width(font, figure.Label);
-            var placed = Called.Clamp(new PixelBox((int)(point.X - (width / 2)) - 7, (int)point.Y - 12, (int)width + 14, 24), view.ViewportWidth, view.ViewportHeight);
+            if (Place(point.X, point.Y, width, view.ViewportWidth, view.ViewportHeight) is not { } placed)
+            {
+                continue;
+            }
+
             var box = new Rectangle(placed.X, placed.Y, placed.Width, placed.Height);
             spriteBatch.Draw(view.Pixel, box, new Color(0, 0, 0, 175) * alpha);
             DrawHelpers.Border(spriteBatch, view.Pixel, box, 1, new Color(255, 214, 64) * alpha);

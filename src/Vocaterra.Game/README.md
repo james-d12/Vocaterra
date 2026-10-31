@@ -31,7 +31,7 @@ PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" dotnet run --project src/
 | `--place <item>@<x>,<y>,<z>` | a step: place one item (`madera`, `antorcha`, or the item key `wood`, `torch`) in that empty cell next to a block, within reach |
 | `--select <n>` | a step: hotbar slot 1 to 10 |
 | `--craft <item>` | a step: craft the recipe that makes the item (`antorcha`), with the workbench in reach; prints `craft: antorcha made (antorcha 0 -> 1)` or why it was refused |
-| `--talk <npc>` | a step (S6): walk to the guide, shopkeeper or villager, stop at the stand-off (`NpcStandOff`, about two blocks, a clear line to its chest) facing it, open the dialogue panel on it; the NPC's opening is printed (`talk: shopkeeper (host turn, stall-need): ¿Qué necesitas?`) |
+| `--talk <npc>` | a step (S6): walk to the NPC (an id of `game/npcs.json`: `guide`, `shopkeeper`, `villager`, `fisher`, `baker`, `smith`, `farmer`), stop at the stand-off (`NpcStandOff`, about two blocks, a clear line to its chest) facing it, open the dialogue panel on it; the NPC's opening is printed (`talk: shopkeeper (host turn, stall-need): ¿Qué necesitas?`) |
 | `--say "<line>"` | repeatable, a step: type the line into the panel and send it to the NPC it is open on, and wait for the reply; with no panel open it first talks to the guide (as in S3); each turn is printed (`turn 1 (guide, guide-open): ... -> ask_directions, entendido`, the NPC's lines, the arrow, then the game events it caused) |
 | `--leave` | a step: close the dialogue (a `--walk-to` or another `--talk` closes it as well) |
 | `--shot <png>` | a step: save the screen at this point of the script and go on (the final `--screenshot` is saved when the script is done) |

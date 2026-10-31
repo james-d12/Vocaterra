@@ -46,7 +46,7 @@ public sealed record LaunchOptions
         + "  --place <item>@<x,y,z>  place one item (madera, antorcha, wood, torch...) in this empty cell, within reach; a step\n"
         + "  --select <n>            select a hotbar slot, 1 to 10; a step\n"
         + "  --craft <item>          craft the recipe that makes the item (antorcha) with the mesa in reach; a step\n"
-        + "  --talk <npc>            walk up to the NPC (an id of game/npcs.json: guide, shopkeeper, villager, fisher, baker), stop about two blocks away facing it and open the dialogue; a step\n"
+        + "  --talk <npc>            walk up to the NPC (an id of game/npcs.json: guide, shopkeeper, villager, fisher, baker, smith, farmer), stop about two blocks away facing it and open the dialogue; a step\n"
         + "  --say <line>            type and send the line to the NPC the dialogue is open on (the guide when none is: walk to her and open it) and wait for the reply; a step\n"
         + "  --speak <line>          synthesize the line with Kokoro and say it to the NPC the dialogue is open on as if spoken (Vosk hears it); a step\n"
         + "  --wav <file>            say a recorded WAV file to the NPC the dialogue is open on (16-bit PCM, any rate); a step\n"
