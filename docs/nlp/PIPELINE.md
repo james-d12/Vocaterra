@@ -231,7 +231,8 @@ on the resolved readings only. The returned tokens still list all readings, beca
    is prenominal, so a noun follows it (`correcto paseo`); a quantifier that is also an adverb (`mucho`) before a noun is the
    determiner, and so is an adjective-and-adverb word before a noun that cannot be a verb (`temprano pasillo`; `solo agua` is the
    exception, `solo` is an adverb that goes before nouns); the word after a subject pronoun or a clitic (skipping adverbs and
-   clitics) is a verb (`yo lanza`, `tú ayudas`); the word after a preposition, and the complement of `ser`/`estar`, is not a finite
+   clitics) is a verb (`yo lanza`, `tú ayudas`), and so is the word after `dónde` or `cómo` when it can be one (`¿dónde son las casas?`,
+   M56); the word after a preposition, and the complement of `ser`/`estar`, is not a finite
    verb (`a casa`, `la casa es grande`); an interjection reading is the last resort (the lexicon lists `sus` and `sé` as
    interjections too). A rule fires on a word only when every reading it has is of the kind that triggers it (an article, not
    the clitic `la`), and only when a reading of its neighbour fits. `ayer`, `anoche` and `anteayer` change nothing here: a word

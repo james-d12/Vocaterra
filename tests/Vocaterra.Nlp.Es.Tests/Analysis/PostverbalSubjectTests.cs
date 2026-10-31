@@ -42,6 +42,7 @@ public class PostverbalSubjectTests
     [InlineData("es lejos", "ser_estar|es|está")]
     [InlineData("es cerca", "ser_estar|es|está")]
     [InlineData("es muy lejos", "ser_estar|es|está")]
+    [InlineData("es muy cerca", "ser_estar|es|está")]
     [InlineData("ellos son cerca", "ser_estar|son|están")]
     [InlineData("eran lejos", "ser_estar|eran|estaban")]
     [InlineData("la herrería no es lejos", "ser_estar|es|está")]
@@ -84,6 +85,8 @@ public class PostverbalSubjectTests
     [InlineData("son cerca de las 3")]
     [InlineData("fue lejos")]
     [InlineData("es de lejos")]
+    [InlineData("dónde es profesor")]
+    [InlineData("la herrería es en la plaza")]
     [InlineData("dónde está la herrería")]
     [InlineData("cómo son las casas")]
     public void SerOfAnEventAndEstarOfAPlaceStayClean(string sentence)
@@ -97,6 +100,7 @@ public class PostverbalSubjectTests
     [InlineData("dónde están la herrería", "conj.person|están|está")]
     [InlineData("dónde está las casas", "conj.person|está|están")]
     [InlineData("aquí están el pan", "conj.person|están|está")]
+    [InlineData("aquí está los panes", "conj.person|está|están")]
     [InlineData("dónde quedan la herrería", "conj.person|quedan|queda")]
     [InlineData("me gusta las manzanas", "conj.person|gusta|gustan")]
     [InlineData("me gustan el pan", "conj.person|gustan|gusta")]
@@ -110,6 +114,14 @@ public class PostverbalSubjectTests
     public void AVerbBeforeItsSubjectAgreesWithIt(string sentence, string expected)
     {
         Assert.Equal(expected, Described(sentence));
+    }
+
+    // A phrase that disagrees with itself is the noun phrase check's (noun.number), and the verb is not checked against it.
+    [Fact]
+    public void APhraseThatDisagreesWithItselfIsLeftToTheNounPhraseCheck()
+    {
+        Assert.Equal("noun.number|manzana|manzanas", Described("me gustan las manzana"));
+        Assert.Equal("noun.number|manzana|manzanas", Described("me gusta las manzana"));
     }
 
     [Theory]

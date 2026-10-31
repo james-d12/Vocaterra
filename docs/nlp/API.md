@@ -457,6 +457,39 @@ the result's `CanonicalJson`, but not of the replay record (see [REPLAY.md](REPL
 
 The checks work on the whole utterance, not on clauses, and on the verb forms the lexicon lists.
 
+### Person and copula errors, `conj.person` and `ser_estar` (M56)
+
+`conj.person` is reported on the verb token, with `expected` the form of the verb for the person and number of its subject and `actual` the form said:
+
+- **A subject pronoun before its verb:** the verb after a subject pronoun, past at most two adverbs or clitics, agrees with it (`yo quiere` gives
+  `quiero`; a bare infinitive, `yo comprar`, gives `compro`). A pronoun after a preposition is no subject (M56: `a ella le gustan las manzanas` is clean).
+- **A subject after its verb (M56):** a third-person verb agrees in number with the noun phrase after it (past at most two adverbs) in three places.
+  After `estar`: `¿dónde están la herrería?` gives `está`, `aquí está los panes` gives `están`. After an experiencer verb right behind its dative pronoun
+  (`me`, `te`, `le`, `nos`, `os`, `les` with `gustar`, `encantar`, `interesar`, `importar`, `doler`, `faltar`, `quedar`, `sobrar`, `molestar`, `apetecer`,
+  `fascinar`, `agradar`, `disgustar` or `preocupar`), and `quedar` after `dónde`: `me gusta las manzanas` gives `gustan`, `me gustan el pan` gives `gusta`,
+  `¿dónde quedan la herrería?` gives `queda`. After `costar` or `valer` in the price question, behind `cuánto`: `¿cuánto cuestan el pan?` gives `cuesta`,
+  `cuánto cuesta los panes` gives `cuestan`. Clean: `me gustan las manzanas`, `me gusta el pan`, `¿dónde están las casas?`; a clause with its subject before
+  the verb (a subject pronoun, a noun or a name that no preposition governs: `el pan me gusta`); a phrase coordinated with `y`, `o` or `ni` (`me gusta el pan
+  y la fruta` may agree with the first); a phrase that disagrees with itself (`me gustan las manzana` is `noun.number`'s); a noun of part or quantity before
+  `de` (`me gustan la mayoría de las frutas`); a noun of time after `estar` or a verb of price (`están el lunes en casa`); a verb of price outside the question
+  (`cuestan dos monedas`: the phrase is the price); `haber` (`hay dos panes`); a verb of the first or second person; the subjunctive.
+
+`ser_estar` is reported on the copula, with `expected` the form of the other copula and `actual` the form said:
+
+- **A copula with an adjective of the other class:** `estoy alto` gives `soy`, `soy ocupado` gives `estoy`. The classes are two short lists of the Spanish
+  pack (`alto`, `bajo`, `inteligente`, `amable`... take `ser`; `cansado`, `enfermo`, `contento`, `lleno`... take `estar`); an adjective in neither is not checked.
+- **`ser` where a place takes `estar` (M56):** `ser` with `lejos` or `cerca`, past at most two adverbs (`es lejos` gives `está`, `es muy cerca` gives `está`,
+  `eran lejos` gives `estaban`), and `dónde` (or `donde`) with a third-person `ser` and a noun phrase with a definite article, a possessive or a demonstrative
+  (`¿dónde es la herrería?` gives `está`, `¿dónde son la casa?` gives `está`: the form agrees with the phrase). An event's place takes `ser`, and the core tells
+  an event by its noun, from a closed list of the Spanish pack (`fiesta`, `reunión`, `boda`, `concierto`, `clase`, `examen`, `partido`, `cena`, `comida`,
+  `cumpleaños`...): `la fiesta es en la plaza`, `la fiesta es cerca` and `¿dónde es la fiesta?` are clean. Also clean: `¿dónde es?` alone, whose subject may be
+  an event; `de dónde` (origin: `¿de dónde es tu padre?`); a bare or indefinite noun phrase, or one with an adjective before its noun (a predicate:
+  `¿dónde es profesor?`); `cerca de` with an hour or a number (`son cerca de las 3`); a preposition between (`es de lejos`); a form that is also `ir`
+  (`fue lejos`); and `es lejano` (an adjective of neither class). `ser` with `en` and a place (`la herrería es en la plaza`) is not checked.
+
+The word after `dónde` or `cómo` is read as the verb when it can be one, so `¿dónde son las casas?` is `ser` and gives `están`. Elsewhere `son`, which is also a
+noun, is the copula only where its neighbours make it one: `ellos son cerca` gives `están`, and `son cerca` alone is read as the noun.
+
 ### Carry the context to the next utterance
 
 The host passes the repeat counts it carried from the previous `Next`; the first utterance of a conversation starts with none (`Create` with

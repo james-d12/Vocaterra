@@ -94,6 +94,13 @@ code comments and here, with the reason:
   - *O4 and O5, tied parses.* When the analyzer's answer differs from the mutation's and the grammar itself reads a word of the sentence in two ways (`duchas complicados`: `[VERB]` or
     `[NOUN:item]`, and the word keeps both readings), the case is excused and counted (`KnownTolerances.IsTiedParse`, `excused:tied-parse:<kind>`); the oracles assert that the
     excused cases stay under one in a hundred. In the runs made it did not occur at default depth.
+  - *O4 and O5, `conj.person` after the verb (M56, a widening).* Besides a verb behind its subject pronoun, the person mutation now also changes the number of a
+    third-person verb whose subject follows it (`dónde están los libros` becomes `dónde está los libros`, expected `están`). It is made only where the analyzer's
+    reading is certain: the verb is `estar`, or an experiencer verb right behind a dative pronoun (`me gustan las manzanas`); no word before the verb can be a noun, a
+    subject pronoun or a name, or is unknown; an article or numeral right after the verb opens the phrase of a noun of one number that cannot be a verb, is no noun of
+    time or quantity and has no `y`, `e`, `o`, `u` or `ni` after it; and the new form is that verb and nothing else. The verbs of price behind `cuánto` are checked by the
+    analyzer but not mutated. A pronoun right behind a word that can be a preposition is no subject of the person check any more (`a ella le gusta`), so the mutation
+    behind a subject pronoun is not made on one.
 - **O8.** The dialect sites are `θ s z h ʎ ʝ ʃ ʒ` (the plan lists `θ s ʎ ʝ h`; the shipped dialects also produce the voiced `z` and the rioplatense `ʃ ʒ`).
   `Tokenize(ToIpaString())` is exact except for the pair `t` + `ʃ`, whose concatenation is the affricate token `tʃ` (the inventory documents that
   sequences are lists for this reason); a result with that pair skips the split.
@@ -239,6 +246,13 @@ Homographs are generated, not avoided (M18): `SentenceGen` counts the sentences 
 plain words would fail. The few placements the analyzer reads differently on purpose are re-rolled (see the list above); a recipe that fails every retry is counted as
 `skip:verb-form-homograph` or `skip:function-word-homograph`, and O3, O4 and O5 assert that these are at most one recipe in two hundred (a default run has 0 to 1, against 1, 6
 and 3 before M18).
+
+M56 made the analyzer agree a verb with a subject after it and flag `ser` where a place takes `estar`, so the realiser models both. It gives `estar`, the
+experiencer verbs (`LexiconCatalog.ExperiencerVerbs`) and the verbs of price the third person and the number of a noun phrase that follows them, whatever stands
+before them (`costar` and `gustar` always took the third person, as before); agreeing where the analyzer would not check is never wrong. It leaves out `ser` before
+`lejos` or `cerca` and `ser` between `dónde` and a noun phrase (`skip:ser-of-place`; the analyzer's exceptions for events are not modelled, which only leaves out
+correct sentences), and draws no noun that is also a verb form right behind `dónde`, `donde` or `cómo`, where the reading resolver takes the verb (another word there
+that can be a finite verb is re-rolled as `verb-form-homograph`). The sentence stream digest of `FuzzLanguageStreamTests` was recorded again for these changes.
 
 A name (M17b) has no reading the checks use: the realiser treats it like an unknown word, so it breaks every phrase and every subject-verb link around it, and
 the analyzer does the same (a bound name keeps no reading at all). `CorrectSentenceFuzzTests` and `SerializationRoundTripFuzzTests` (`NameSentences_SurviveCanonicalJson`)
