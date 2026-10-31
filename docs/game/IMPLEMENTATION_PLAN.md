@@ -1613,6 +1613,34 @@ Facts that shape the plan. Each one names its source; the core's own findings st
       tense the core cannot see (`voy a la panadería` at that step).
     - `LessonDriver` could not answer review steps; fixed. The fisher's stand point carries the label `pescador`, so the walk back points
       at him and the arrow clears on arrival.
+- **V11: session 5 "Números y pan" (2026-10-31, Opus 5.5 xhigh; gated on `feature/village` at `6097249`).**
+  - **Gate:** 5900 passed, 3 skipped, 0 failed, with the models; 0 warnings; format, content, grammar and both licence scans clean. Bundle
+    `c0a9377f…`; the identity golden (26 new lines; 153 entries at `stall-need` moved, its prompt now wider) and the fuzz suite's sentence
+    digest (`FuzzLanguageStreamTests`, generators unchanged, the word digest unmoved) re-recorded.
+  - **Built.** The baker Luz (`baker-open` and three lesson prompts; `baker.sell_bread` sells bread at 2 coins, `baker.cant_pay` "Necesitas
+    más monedas."); `ask_price`; the stall answers `ask_price` ("El pan cuesta dos monedas.") and "¿Hay pan?", its session-1 exchange still
+    free (tested); the lesson `numeros-y-pan` (23 steps, session 5, after `el-pueblo`: two reviews, four `do` steps for the wood, the
+    delivery, the purchase and the walk to the stall); the order `oven-wood` (5 wood, 4 coins); an optional voice `gain` in the NPC file,
+    applied by the renderer (the baker 0.32: voiced RMS −13.7 dBFS and peaks −0.6 in the trial, −23.9 and −9.9 after, against −23.8 for
+    `ef_dora` and −23.2 for `em_alex`; no existing WAV re-rendered); 8 check items; `horno`, `luz` in `a1.txt`. Every said row heard word
+    for word, `dos` and `cuatro` too. Estimated 6 to 9 minutes.
+  - **Rows.** Said: `quiero-dos-panes`, `cuanto-cuesta`, `voy-a-buscar-madera`, `tengo-cuatro-monedas` (for the plan's `tengo-madera`: an
+    order is delivered the moment the talk opens, so "Tengo madera" would be false wherever Luz can ask), `compre-dos-panes`, `hay-pan`
+    (its home prompt `baker-open`, its step at `stall-need`). Heard: the plan's ten. The Opus pass made the oven line "Necesito cinco
+    bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer?", `cant_pay` "Necesitas más monedas." (the plan's line was
+    true only of two loaves and no coins), and added "¡Hola! ¿Qué vas a hacer hoy?" (a review of session 4's "Voy a comprar pan") and the
+    stall's "Sí, hay pan. Es pan de Luz."
+  - **Found:**
+    - Core gaps: `cuánto costa` is read as the noun `costa` (`gender.agree`, no intent) and `hay pans` gives `vocab.unknown` and no intent
+      (filed as core M58); `¿cuánto cuestan el pan?` and `cuánto cuesta los panes` give no `conj.person` (added to core M56). The sheet uses
+      `cuánto costan los panes` (`conj.irregular`) and `hay dos pan` (`noun.number`) meanwhile.
+    - `--lesson-run` looped forever on a `do` step with no arrow (it closed the panel, then tried to skip, which needs it open); fixed with a
+      regression test. A delivery step waited forever if the goods came before the lesson asked: the runner now ends it at once
+      (`OrderDelivered`).
+    - The coin path leaves 2 coins after session 5 (2 from `fruit-for-mar`, 4 from `oven-wood`, 4 spent on two loaves), so the plan's axe
+      order (3 coins) could not be finished: V12 makes it 2 wood and 2 coins. A learner with 4 coins before the oven order buys at the first
+      ask and never hears "Necesitas más monedas."; the arrow on `árbol` can point at a canopy the scripted run cannot gather (a learner aims
+      at the trunk). No `level` field until V08.
 
 ## 6. Definition of done (every milestone)
 
