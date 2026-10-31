@@ -79,6 +79,14 @@
       }
     },
     {
+      "npc": "smith",
+      "event": "smith.give_axe",
+      "action": {
+        "kind": "give_item",
+        "item": "axe"
+      }
+    },
+    {
       "npc": "guide",
       "event": "guide.give_water",
       "action": {

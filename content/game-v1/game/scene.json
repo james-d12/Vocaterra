@@ -242,7 +242,11 @@
     // The fisher Mar (VILLAGE_PLAN V10) on the bank south of the bridge's east landing (the point npc.fisher), facing the river.
     {"name": "fisher", "site": "bridge.east", "dx": 2, "dz": 3, "facing": "west"},
     // The baker Luz (VILLAGE_PLAN V11) at the bakery's door, in front of her crate of loaves (the point npc.baker), facing the square.
-    {"name": "baker", "site": "village", "dx": -11, "dz": -10, "facing": "south"}
+    {"name": "baker", "site": "village", "dx": -11, "dz": -10, "facing": "south"},
+    // The smith Domingo (VILLAGE_PLAN V12) between his forge and the paved strip by the smithy's door (the point npc.smith), facing south over the square.
+    {"name": "smith", "site": "village", "dx": 10, "dz": -12, "facing": "south"},
+    // The farmer León (VILLAGE_PLAN V12) at the wheat field's west fence (the point npc.farmer), facing the wheat.
+    {"name": "farmer", "site": "village", "dx": 8, "dz": 0, "facing": "east"}
   ],
 
   // The player wakes alone on the ledge, facing south-east over the valley.
@@ -254,10 +258,11 @@
     // Where the village's new people will stand (VILLAGE_PLAN V04; the NPCs themselves come with their lessons, V10 to V12, as placements in "npcs"): the baker
     // in front of her crate of loaves, facing the square; the smith between his forge and the strip, facing south; the farmer at the field's west fence,
     // facing the wheat (east); the fisher on the bank south of the bridge's east landing, facing the river (west). The fisher's point is labelled (V10): El pueblo's walk
-    // back to him points at it and the arrow comes down when he is reached, and "¿Dónde está el pescador?" finds him.
+    // back to him points at it and the arrow comes down when he is reached, and "¿Dónde está el pescador?" finds him. The smith's and the farmer's points are
+    // labelled the same way (V12): Gente del pueblo's walks to them end when they are reached.
     "npc.baker": { "x": 281, "z": 208 },
-    "npc.smith": { "x": 302, "z": 206 },
-    "npc.farmer": { "x": 300, "z": 218 },
+    "npc.smith": { "x": 302, "z": 206, "label": "herrero" },
+    "npc.farmer": { "x": 300, "z": 218, "label": "granjero" },
     "npc.fisher": { "x": 240, "z": 208, "label": "pescador" }
   },
 

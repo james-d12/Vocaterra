@@ -385,3 +385,11 @@ adónde
 horno
 # luz: Luz, the baker's name (V11), the noun la luz (feminine, as she is); A2 in the core's list.
 luz
+# herrero: the smith's label over his head and the job he says (V12); in neither of the core's lists.
+herrero
+# granjero: the farmer's label over his head and the job he says (V12); in neither of the core's lists.
+granjero
+# hacha: the axe, the item the smith's order gives (V03, V12); in neither of the core's lists.
+hacha
+# león: León, the farmer's name (V12, D-game-22), the noun el león (masculine, as he is); in neither of the core's lists.
+león

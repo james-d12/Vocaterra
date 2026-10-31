@@ -57,19 +57,21 @@ public sealed class SpeechLinesTests
     {
         // The rule V01 replaced, as it was in SpeechSpeakers.OfPool: the speaker of a pool now comes from the NPC files (<id>_* and guide.lesson.<id>.*, the
         // shopkeeper's pools by his poolPrefix "shop"), and no pool of the shipped bundle may change voice: the recordings stay as they are.
-        // The fisher's pools (VILLAGE_PLAN V10) and the baker's (V11) are new: theirs by the same rule.
+        // The fisher's pools (VILLAGE_PLAN V10), the baker's (V11), the smith's and the farmer's (V12) are new: theirs by the same rule.
         static string Before(string pool) =>
             pool.StartsWith("guide.lesson.villager.", StringComparison.Ordinal) || pool.StartsWith("villager_", StringComparison.Ordinal) ? "villager"
             : pool.StartsWith("guide.lesson.shop.", StringComparison.Ordinal) || pool.StartsWith("shop_", StringComparison.Ordinal) ? "shopkeeper"
             : pool.StartsWith("guide.lesson.fisher.", StringComparison.Ordinal) || pool.StartsWith("fisher_", StringComparison.Ordinal) ? "fisher"
             : pool.StartsWith("guide.lesson.baker.", StringComparison.Ordinal) || pool.StartsWith("baker_", StringComparison.Ordinal) ? "baker"
+            : pool.StartsWith("guide.lesson.smith.", StringComparison.Ordinal) || pool.StartsWith("smith_", StringComparison.Ordinal) ? "smith"
+            : pool.StartsWith("farmer_", StringComparison.Ordinal) ? "farmer"
             : "guide";
 
         var pools = TestGame.Bundle.Dialogue.Pools.Keys.Order(StringComparer.Ordinal).ToList();
 
-        Assert.Equal(155, pools.Count); // V02 added villager_unknown_place; V10 the fisher's 21 and the villager's signpost line; V11 the baker's 20 and the stall's 3
+        Assert.Equal(182, pools.Count); // V02 added villager_unknown_place; V10 the fisher's 21 and the villager's signpost line; V11 the baker's 20 and the stall's 3; V12 the smith's 10, the farmer's 7 and the villager's 10
         Assert.All(pools, pool => Assert.Equal((pool, Before(pool)), (pool, SpeechSpeakers.OfPool(pool, TestGame.Data.Npcs))));
-        Assert.Equal([("baker", 20), ("fisher", 21), ("guide", 70), ("shopkeeper", 23), ("villager", 21)], pools.GroupBy(pool => SpeechSpeakers.OfPool(pool, TestGame.Data.Npcs)).Select(static g => (g.Key, g.Count())).OrderBy(static g => g.Key, StringComparer.Ordinal));
+        Assert.Equal([("baker", 20), ("farmer", 7), ("fisher", 21), ("guide", 70), ("shopkeeper", 23), ("smith", 10), ("villager", 31)], pools.GroupBy(pool => SpeechSpeakers.OfPool(pool, TestGame.Data.Npcs)).Select(static g => (g.Key, g.Count())).OrderBy(static g => g.Key, StringComparer.Ordinal));
     }
 
     [Fact]

@@ -7,6 +7,8 @@
     "shopkeeper",
     "villager",
     "fisher",
-    "baker"
+    "baker",
+    "smith",
+    "farmer"
   ]
 }

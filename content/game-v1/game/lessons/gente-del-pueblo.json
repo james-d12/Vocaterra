@@ -1,0 +1,294 @@
+{
+  "$schema": "../../../schema/lesson.schema.json",
+  "schemaVersion": 1,
+  "id": "gente-del-pueblo",
+  "npc": "villager",
+  "autoStart": true,
+  "after": "numeros-y-pan",
+  "session": 6,
+  "verbs": [
+    {
+      "lemma": "llamar",
+      "person": "1",
+      "number": "sg",
+      "tense": "pres"
+    },
+    {
+      "lemma": "llamar",
+      "person": "2",
+      "number": "sg",
+      "tense": "pres"
+    },
+    {
+      "lemma": "hacer",
+      "person": "2",
+      "number": "sg",
+      "tense": "pres"
+    },
+    {
+      "lemma": "hacer",
+      "person": "3",
+      "number": "sg",
+      "tense": "pres"
+    },
+    {
+      "lemma": "hacer",
+      "person": "3",
+      "number": "sg",
+      "tense": "ir-a"
+    },
+    {
+      "lemma": "hacer",
+      "person": "3",
+      "number": "sg",
+      "tense": "pret"
+    },
+    {
+      "lemma": "trabajar",
+      "person": "1",
+      "number": "sg",
+      "tense": "pres"
+    },
+    {
+      "lemma": "trabajar",
+      "person": "3",
+      "number": "sg",
+      "tense": "pres"
+    },
+    {
+      "lemma": "trabajar",
+      "person": "3",
+      "number": "sg",
+      "tense": "pret"
+    },
+    {
+      "lemma": "vivir",
+      "person": "1",
+      "number": "sg",
+      "tense": "pres"
+    },
+    {
+      "lemma": "vivir",
+      "person": "3",
+      "number": "sg",
+      "tense": "pres"
+    }
+  ],
+  "steps": [
+    {
+      "id": "g0-review",
+      "type": "review",
+      "candidates": [
+        {
+          "phrase": "fui-a-la-panaderia",
+          "line": "guide.lesson.villager.went_bakery.1"
+        },
+        {
+          "phrase": "hola",
+          "line": "villager_hello.1"
+        }
+      ]
+    },
+    {
+      "id": "g0-intro",
+      "type": "explain"
+    },
+    {
+      "id": "g1-smith",
+      "type": "model",
+      "line": "guide.lesson.villager.smith.1"
+    },
+    {
+      "id": "g1-who",
+      "type": "answer",
+      "phrase": "es-el-herrero",
+      "prompt": "lesson-who",
+      "line": "guide.lesson.villager.who.1",
+      "person": "3sg"
+    },
+    {
+      "id": "g1-axe",
+      "type": "model",
+      "line": "guide.lesson.villager.axe.1"
+    },
+    {
+      "id": "g1-plan",
+      "type": "answer",
+      "phrase": "va-a-hacer-un-hacha",
+      "prompt": "lesson-will-make",
+      "line": "guide.lesson.villager.will_make.1",
+      "person": "3sg",
+      "tense": "ir-a"
+    },
+    {
+      "id": "g2-walk",
+      "type": "do",
+      "pointPlace": "npc.smith",
+      "trigger": {
+        "event": "talk_opened",
+        "npc": "smith"
+      }
+    },
+    {
+      "id": "g3-name",
+      "type": "answer",
+      "npc": "smith",
+      "phrase": "como-te-llamas",
+      "prompt": "smith-open",
+      "line": "smith_greet.1",
+      "person": "2sg"
+    },
+    {
+      "id": "g3-llamo",
+      "type": "model",
+      "npc": "smith",
+      "line": "smith_name.1"
+    },
+    {
+      "id": "g3-job",
+      "type": "repeat",
+      "npc": "smith",
+      "phrase": "que-haces",
+      "prompt": "smith-open",
+      "person": "2sg"
+    },
+    {
+      "id": "g3-smith",
+      "type": "listen",
+      "npc": "smith",
+      "line": "smith_job.1",
+      "correct": 0
+    },
+    {
+      "id": "g3-lives",
+      "type": "answer",
+      "npc": "smith",
+      "phrase": "vivo-en-el-campamento",
+      "prompt": "lesson-lives",
+      "line": "guide.lesson.smith.lives.1",
+      "person": "1sg",
+      "tense": "pres"
+    },
+    {
+      "id": "g4-offer",
+      "type": "listen",
+      "npc": "smith",
+      "line": "smith_offer.1",
+      "correct": 0
+    },
+    {
+      "id": "g4-wood",
+      "type": "do",
+      "npc": "smith",
+      "point": "árbol",
+      "trigger": {
+        "event": "item_picked_up",
+        "detail": "madera"
+      }
+    },
+    {
+      "id": "g4-back",
+      "type": "do",
+      "npc": "smith",
+      "trigger": {
+        "event": "order_delivered",
+        "npc": "smith",
+        "detail": "axe-handle"
+      }
+    },
+    {
+      "id": "g4-axe",
+      "type": "model",
+      "npc": "smith",
+      "line": "smith_delivered.1"
+    },
+    {
+      "id": "g5-walk",
+      "type": "do",
+      "npc": "smith",
+      "pointPlace": "npc.farmer",
+      "trigger": {
+        "event": "talk_opened",
+        "npc": "farmer"
+      }
+    },
+    {
+      "id": "g5-name",
+      "type": "answer",
+      "npc": "farmer",
+      "phrase": "como-te-llamas",
+      "prompt": "farmer-open",
+      "line": "farmer_greet.1",
+      "person": "2sg"
+    },
+    {
+      "id": "g5-llamo",
+      "type": "model",
+      "npc": "farmer",
+      "line": "farmer_name.1"
+    },
+    {
+      "id": "g5-job",
+      "type": "model",
+      "npc": "farmer",
+      "line": "farmer_job.1"
+    },
+    {
+      "id": "g6-walk",
+      "type": "do",
+      "npc": "farmer",
+      "trigger": {
+        "event": "talk_opened",
+        "npc": "villager"
+      }
+    },
+    {
+      "id": "g6-works",
+      "type": "answer",
+      "phrase": "trabaja-en-la-herreria",
+      "prompt": "lesson-works",
+      "line": "guide.lesson.villager.works.1",
+      "person": "3sg",
+      "tense": "pres"
+    },
+    {
+      "id": "g6-house",
+      "type": "listen",
+      "line": "guide.lesson.villager.house.1",
+      "correct": 0
+    },
+    {
+      "id": "g6-made",
+      "type": "answer",
+      "phrase": "hizo-un-hacha",
+      "prompt": "lesson-made",
+      "line": "guide.lesson.villager.made.1",
+      "person": "3sg",
+      "tense": "pret"
+    },
+    {
+      "id": "g6-much",
+      "type": "listen",
+      "line": "guide.lesson.villager.much.1",
+      "correct": 0
+    },
+    {
+      "id": "g7-review",
+      "type": "review",
+      "candidates": [
+        {
+          "phrase": "necesito-pan",
+          "line": "guide.lesson.villager.need.1"
+        }
+      ]
+    },
+    {
+      "id": "g7-table",
+      "type": "explain"
+    },
+    {
+      "id": "g7-recap",
+      "type": "recap"
+    }
+  ]
+}

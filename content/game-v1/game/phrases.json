@@ -79,6 +79,22 @@
     {"id": "que-compraste", "says": "hears", "spanish": "¿Qué compraste?", "intent": null, "prompt": "lesson-bought", "variants": [], "audioLineIds": ["guide.lesson.baker.bought.1"]},
     {"id": "compre-dos-panes", "says": "says", "spanish": "Compré dos panes.", "intent": "state_action", "prompt": "lesson-bought", "variants": ["yo compré dos panes", "hoy compré dos panes", "compré pan"], "audioLineIds": []},
     {"id": "compraste-dos-panes", "says": "hears", "spanish": "Compraste dos panes. ¡Muy bien!", "intent": null, "prompt": "lesson-bought", "variants": [], "audioLineIds": ["guide.lesson.baker.you.1"]},
-    {"id": "hay-pan", "says": "says", "spanish": "¿Hay pan?", "intent": "ask_availability", "prompt": "baker-open", "variants": ["¿hay pan aquí?", "¿hay panes?"], "audioLineIds": []}
+    {"id": "hay-pan", "says": "says", "spanish": "¿Hay pan?", "intent": "ask_availability", "prompt": "baker-open", "variants": ["¿hay pan aquí?", "¿hay panes?"], "audioLineIds": []},
+    {"id": "como-te-llamas", "says": "says", "spanish": "¿Cómo te llamas?", "intent": "ask_name", "prompt": "smith-open", "variants": ["¿cómo te llamas tú?"], "audioLineIds": ["smith_help.1"]},
+    {"id": "me-llamo-domingo", "says": "hears", "spanish": "Me llamo Domingo.", "intent": null, "prompt": "smith-open", "variants": [], "audioLineIds": ["smith_name.1"]},
+    {"id": "que-haces", "says": "says", "spanish": "¿Qué haces?", "intent": "ask_activity", "prompt": "smith-open", "variants": ["¿qué haces tú?", "¿en qué trabajas?", "¿dónde trabajas?"], "audioLineIds": ["farmer_help.1"]},
+    {"id": "soy-el-herrero", "says": "hears", "spanish": "Soy el herrero. Trabajo con fuego y madera.", "intent": null, "prompt": "smith-open", "variants": [], "audioLineIds": ["smith_job.1"]},
+    {"id": "es-el-herrero", "says": "says", "spanish": "Es el herrero.", "intent": "name_object", "prompt": "lesson-who", "variants": ["domingo es el herrero", "él es el herrero"], "audioLineIds": ["guide.lesson.villager.smith.1"]},
+    {"id": "que-va-a-hacer-domingo", "says": "hears", "spanish": "¿Qué va a hacer Domingo?", "intent": null, "prompt": "lesson-will-make", "variants": [], "audioLineIds": ["guide.lesson.villager.will_make.1"]},
+    {"id": "va-a-hacer-un-hacha", "says": "says", "spanish": "Va a hacer un hacha.", "intent": "state_action", "prompt": "lesson-will-make", "variants": ["domingo va a hacer un hacha", "él va a hacer un hacha"], "audioLineIds": []},
+    {"id": "donde-vives", "says": "hears", "spanish": "¿Dónde vives?", "intent": null, "prompt": "lesson-lives", "variants": [], "audioLineIds": ["guide.lesson.smith.lives.1"]},
+    {"id": "vivo-en-el-campamento", "says": "says", "spanish": "Vivo en el campamento.", "intent": "state_action", "prompt": "lesson-lives", "variants": ["yo vivo en el campamento"], "audioLineIds": []},
+    {"id": "quieres-un-hacha", "says": "hears", "spanish": "¿Quieres un hacha? Necesito dos bloques de madera y dos monedas.", "intent": null, "prompt": "smith-open", "variants": [], "audioLineIds": ["smith_offer.1"]},
+    {"id": "toma-el-hacha", "says": "hears", "spanish": "¡Gracias! Toma el hacha.", "intent": null, "prompt": "smith-open", "variants": [], "audioLineIds": ["smith_delivered.1"]},
+    {"id": "trabaja-en-la-herreria", "says": "says", "spanish": "Domingo trabaja en la herrería.", "intent": "state_action", "prompt": "lesson-works", "variants": ["trabaja en la herrería", "él trabaja en la herrería"], "audioLineIds": []},
+    {"id": "vive-en-la-casa", "says": "hears", "spanish": "Domingo vive en una casa cerca de la herrería.", "intent": null, "prompt": "lesson-works", "variants": [], "audioLineIds": ["guide.lesson.villager.house.1"]},
+    {"id": "que-hizo-domingo", "says": "hears", "spanish": "¿Qué hizo Domingo?", "intent": null, "prompt": "lesson-made", "variants": [], "audioLineIds": ["guide.lesson.villager.made.1"]},
+    {"id": "hizo-un-hacha", "says": "says", "spanish": "Domingo hizo un hacha.", "intent": "state_action", "prompt": "lesson-made", "variants": ["hizo un hacha", "él hizo un hacha", "domingo hizo el hacha"], "audioLineIds": []},
+    {"id": "ayer-trabajo-mucho", "says": "hears", "spanish": "Ayer Domingo trabajó mucho.", "intent": null, "prompt": "lesson-made", "variants": [], "audioLineIds": ["guide.lesson.villager.much.1"]}
   ]
 }

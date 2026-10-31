@@ -537,6 +537,94 @@
       "lesson": "numeros-y-pan",
       "prompt": "lesson-bought",
       "intent": "state_action"
+    },
+    {
+      "id": "hear.soy-el-herrero",
+      "kind": "comprehension",
+      "phrase": "soy-el-herrero",
+      "lesson": "gente-del-pueblo",
+      "line": "smith_job.1",
+      "spanish": "Soy el herrero. Trabajo con fuego y madera.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.quieres-un-hacha",
+      "kind": "comprehension",
+      "phrase": "quieres-un-hacha",
+      "lesson": "gente-del-pueblo",
+      "line": "smith_offer.1",
+      "spanish": "¿Quieres un hacha? Necesito dos bloques de madera y dos monedas.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.que-va-a-hacer-domingo",
+      "kind": "comprehension",
+      "phrase": "que-va-a-hacer-domingo",
+      "lesson": "gente-del-pueblo",
+      "line": "guide.lesson.villager.will_make.1",
+      "spanish": "¿Qué va a hacer Domingo?",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.ayer-trabajo-mucho",
+      "kind": "comprehension",
+      "phrase": "ayer-trabajo-mucho",
+      "lesson": "gente-del-pueblo",
+      "line": "guide.lesson.villager.much.1",
+      "spanish": "Ayer Domingo trabajó mucho.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "say.como-te-llamas",
+      "kind": "production",
+      "phrase": "como-te-llamas",
+      "lesson": "gente-del-pueblo",
+      "prompt": "smith-open",
+      "intent": "ask_name"
+    },
+    {
+      "id": "say.que-haces",
+      "kind": "production",
+      "phrase": "que-haces",
+      "lesson": "gente-del-pueblo",
+      "prompt": "smith-open",
+      "intent": "ask_activity"
+    },
+    {
+      "id": "say.va-a-hacer-un-hacha",
+      "kind": "production",
+      "phrase": "va-a-hacer-un-hacha",
+      "lesson": "gente-del-pueblo",
+      "prompt": "lesson-will-make",
+      "intent": "state_action"
+    },
+    {
+      "id": "say.hizo-un-hacha",
+      "kind": "production",
+      "phrase": "hizo-un-hacha",
+      "lesson": "gente-del-pueblo",
+      "prompt": "lesson-made",
+      "intent": "state_action"
     }
   ]
 }

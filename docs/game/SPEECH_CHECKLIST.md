@@ -14,15 +14,8 @@ text changed is listed again without a mark. The files are Kokoro model output (
 | villager (Aldeano) | `em_santa` | 53 | 1.0 (0.8) | the pools `villager_*` and `guide.lesson.villager.*`, and its prompts |
 | fisher (Mar) | `em_santa` | 53 | 0.9 (0.72) | the pools `fisher_*` and `guide.lesson.fisher.*`, and its prompts |
 | baker (Luz) | `if_sara`, gain 0.32 | 35 | 1.0 (0.8) | the pools `baker_*` and `guide.lesson.baker.*`, and its prompts |
-
-Provisional voices of the NPCs to come (VILLAGE_PLAN V06, D-game-22 (d)): their lines are recorded in these voices when their files come.
-The owner hears each in the voice trial, `docs/game/voice-trial/` (its README); a voice the owner rejects is changed in the NPC's file and its
-lines are rendered again.
-
-| NPC | Voice | Kokoro speaker | Speed | Trial file |
-| --- | --- | --- | --- | --- |
-| smith (Domingo) | `im_nicola` | 36 | 1.0 | `voice-trial/im_nicola-1.0.wav` |
-| farmer (León) | `pm_santa` | 44 | 1.0 | `voice-trial/pm_santa-1.0.wav` |
+| smith (Domingo) | `im_nicola`, gain 0.6 | 36 | 1.0 (0.8) | the pools `smith_*` and `guide.lesson.smith.*`, and its prompts |
+| farmer (León) | `pm_santa` | 44 | 1.0 (0.8) | the pools `farmer_*` and `guide.lesson.farmer.*`, and its prompts |
 
 ## Lines
 
@@ -110,6 +103,24 @@ lines are rendered again.
 | farewell_reply.2 | speech/farewell_reply.2.wav | guide | 1.0 | Hasta luego. ¡Buen día! |  |
 | farewell_reply.3 | speech/farewell_reply.3.slow.wav | guide | 0.8 | ¡Nos vemos, amigo! |  |
 | farewell_reply.3 | speech/farewell_reply.3.wav | guide | 1.0 | ¡Nos vemos, amigo! |  |
+| farmer_bye.1 | speech/farmer_bye.1.slow.wav | farmer | 0.8 | ¡Adiós! Hasta luego. |  |
+| farmer_bye.1 | speech/farmer_bye.1.wav | farmer | 1.0 | ¡Adiós! Hasta luego. |  |
+| farmer_bye.2 | speech/farmer_bye.2.slow.wav | farmer | 0.8 | Hasta luego. |  |
+| farmer_bye.2 | speech/farmer_bye.2.wav | farmer | 1.0 | Hasta luego. |  |
+| farmer_greet.1 | speech/farmer_greet.1.slow.wav | farmer | 0.8 | ¡Hola! Este es mi campo. |  |
+| farmer_greet.1 | speech/farmer_greet.1.wav | farmer | 1.0 | ¡Hola! Este es mi campo. |  |
+| farmer_hello.1 | speech/farmer_hello.1.slow.wav | farmer | 0.8 | ¡Hola! |  |
+| farmer_hello.1 | speech/farmer_hello.1.wav | farmer | 1.0 | ¡Hola! |  |
+| farmer_help.1 | speech/farmer_help.1.slow.wav | farmer | 0.8 | Puedes preguntar: «¿Qué haces?». |  |
+| farmer_help.1 | speech/farmer_help.1.wav | farmer | 1.0 | Puedes preguntar: «¿Qué haces?». |  |
+| farmer_job.1 | speech/farmer_job.1.slow.wav | farmer | 0.8 | Soy el granjero. Trabajo en el campo. |  |
+| farmer_job.1 | speech/farmer_job.1.wav | farmer | 1.0 | Soy el granjero. Trabajo en el campo. |  |
+| farmer_name.1 | speech/farmer_name.1.slow.wav | farmer | 0.8 | Me llamo León. |  |
+| farmer_name.1 | speech/farmer_name.1.wav | farmer | 1.0 | Me llamo León. |  |
+| farmer_thank.1 | speech/farmer_thank.1.slow.wav | farmer | 0.8 | De nada. |  |
+| farmer_thank.1 | speech/farmer_thank.1.wav | farmer | 1.0 | De nada. |  |
+| farmer_thank.2 | speech/farmer_thank.2.slow.wav | farmer | 0.8 | ¡Con gusto! |  |
+| farmer_thank.2 | speech/farmer_thank.2.wav | farmer | 1.0 | ¡Con gusto! |  |
 | feedback.hint.1 | speech/feedback.hint.1.slow.wav | guide | 0.8 | Casi. Piensa otra vez. |  |
 | feedback.hint.1 | speech/feedback.hint.1.wav | guide | 1.0 | Casi. Piensa otra vez. |  |
 | feedback.hint.2 | speech/feedback.hint.2.slow.wav | guide | 0.8 | ¿Seguro? Dilo otra vez. |  |
@@ -264,10 +275,14 @@ lines are rendered again.
 | guide.lesson.shop.went.1 | speech/guide.lesson.shop.went.1.wav | shopkeeper | 1.0 | ¿Fuiste al río ayer? |  |
 | guide.lesson.shop.you.1 | speech/guide.lesson.shop.you.1.slow.wav | shopkeeper | 0.8 | Ayer fuiste al río. |  |
 | guide.lesson.shop.you.1 | speech/guide.lesson.shop.you.1.wav | shopkeeper | 1.0 | Ayer fuiste al río. |  |
+| guide.lesson.smith.lives.1 | speech/guide.lesson.smith.lives.1.slow.wav | smith | 0.8 | ¿Dónde vives? |  |
+| guide.lesson.smith.lives.1 | speech/guide.lesson.smith.lives.1.wav | smith | 1.0 | ¿Dónde vives? |  |
 | guide.lesson.take.1 | speech/guide.lesson.take.1.slow.wav | guide | 0.8 | Toma una fruta. |  |
 | guide.lesson.take.1 | speech/guide.lesson.take.1.wav | guide | 1.0 | Toma una fruta. |  |
 | guide.lesson.task.1 | speech/guide.lesson.task.1.slow.wav | guide | 0.8 | Necesitas madera y frutas. |  |
 | guide.lesson.task.1 | speech/guide.lesson.task.1.wav | guide | 1.0 | Necesitas madera y frutas. |  |
+| guide.lesson.villager.axe.1 | speech/guide.lesson.villager.axe.1.slow.wav | villager | 0.8 | Domingo te quiere hacer un hacha. |  |
+| guide.lesson.villager.axe.1 | speech/guide.lesson.villager.axe.1.wav | villager | 1.0 | Domingo te quiere hacer un hacha. |  |
 | guide.lesson.villager.be.1 | speech/guide.lesson.villager.be.1.slow.wav | villager | 0.8 | Tú y yo somos amigos. |  |
 | guide.lesson.villager.be.1 | speech/guide.lesson.villager.be.1.wav | villager | 1.0 | Tú y yo somos amigos. |  |
 | guide.lesson.villager.eat.1 | speech/guide.lesson.villager.eat.1.slow.wav | villager | 0.8 | Ellos van a comer pan. |  |
@@ -276,8 +291,16 @@ lines are rendered again.
 | guide.lesson.villager.go.1 | speech/guide.lesson.villager.go.1.wav | villager | 1.0 | Vamos a la tienda. |  |
 | guide.lesson.villager.goes.1 | speech/guide.lesson.villager.goes.1.slow.wav | villager | 0.8 | Hoy vas a la tienda. |  |
 | guide.lesson.villager.goes.1 | speech/guide.lesson.villager.goes.1.wav | villager | 1.0 | Hoy vas a la tienda. |  |
+| guide.lesson.villager.house.1 | speech/guide.lesson.villager.house.1.slow.wav | villager | 0.8 | Domingo vive en una casa cerca de la herrería. |  |
+| guide.lesson.villager.house.1 | speech/guide.lesson.villager.house.1.wav | villager | 1.0 | Domingo vive en una casa cerca de la herrería. |  |
 | guide.lesson.villager.luna.1 | speech/guide.lesson.villager.luna.1.slow.wav | villager | 0.8 | ¿Qué quiere Luna? |  |
 | guide.lesson.villager.luna.1 | speech/guide.lesson.villager.luna.1.wav | villager | 1.0 | ¿Qué quiere Luna? |  |
+| guide.lesson.villager.made.1 | speech/guide.lesson.villager.made.1.slow.wav | villager | 0.8 | ¿Qué hizo Domingo? |  |
+| guide.lesson.villager.made.1 | speech/guide.lesson.villager.made.1.wav | villager | 1.0 | ¿Qué hizo Domingo? |  |
+| guide.lesson.villager.much.1 | speech/guide.lesson.villager.much.1.slow.wav | villager | 0.8 | Ayer Domingo trabajó mucho. |  |
+| guide.lesson.villager.much.1 | speech/guide.lesson.villager.much.1.wav | villager | 1.0 | Ayer Domingo trabajó mucho. |  |
+| guide.lesson.villager.need.1 | speech/guide.lesson.villager.need.1.slow.wav | villager | 0.8 | ¿Qué necesitas ahora? |  |
+| guide.lesson.villager.need.1 | speech/guide.lesson.villager.need.1.wav | villager | 1.0 | ¿Qué necesitas ahora? |  |
 | guide.lesson.villager.plan.1 | speech/guide.lesson.villager.plan.1.slow.wav | villager | 0.8 | ¿Qué vas a comer mañana? |  |
 | guide.lesson.villager.plan.1 | speech/guide.lesson.villager.plan.1.wav | villager | 1.0 | ¿Qué vas a comer mañana? |  |
 | guide.lesson.villager.plan_we.1 | speech/guide.lesson.villager.plan_we.1.slow.wav | villager | 0.8 | ¿Qué vamos a comer? |  |
@@ -286,14 +309,24 @@ lines are rendered again.
 | guide.lesson.villager.she.1 | speech/guide.lesson.villager.she.1.wav | villager | 1.0 | Luna es la guía. Ella es mi amiga. |  |
 | guide.lesson.villager.sign.1 | speech/guide.lesson.villager.sign.1.slow.wav | villager | 0.8 | El letrero dice: tienda, río, montaña. |  |
 | guide.lesson.villager.sign.1 | speech/guide.lesson.villager.sign.1.wav | villager | 1.0 | El letrero dice: tienda, río, montaña. |  |
+| guide.lesson.villager.smith.1 | speech/guide.lesson.villager.smith.1.slow.wav | villager | 0.8 | Mira, allí está Domingo. Es el herrero. |  |
+| guide.lesson.villager.smith.1 | speech/guide.lesson.villager.smith.1.wav | villager | 1.0 | Mira, allí está Domingo. Es el herrero. |  |
 | guide.lesson.villager.they.1 | speech/guide.lesson.villager.they.1.slow.wav | villager | 0.8 | Ellos tienen pan. |  |
 | guide.lesson.villager.they.1 | speech/guide.lesson.villager.they.1.wav | villager | 1.0 | Ellos tienen pan. |  |
 | guide.lesson.villager.want.1 | speech/guide.lesson.villager.want.1.slow.wav | villager | 0.8 | ¿Qué quieres? |  |
 | guide.lesson.villager.want.1 | speech/guide.lesson.villager.want.1.wav | villager | 1.0 | ¿Qué quieres? |  |
 | guide.lesson.villager.we.1 | speech/guide.lesson.villager.we.1.slow.wav | villager | 0.8 | ¿Qué necesitamos? |  |
 | guide.lesson.villager.we.1 | speech/guide.lesson.villager.we.1.wav | villager | 1.0 | ¿Qué necesitamos? |  |
+| guide.lesson.villager.went_bakery.1 | speech/guide.lesson.villager.went_bakery.1.slow.wav | villager | 0.8 | ¡Hola! ¿Fuiste a la panadería? |  |
+| guide.lesson.villager.went_bakery.1 | speech/guide.lesson.villager.went_bakery.1.wav | villager | 1.0 | ¡Hola! ¿Fuiste a la panadería? |  |
 | guide.lesson.villager.where.1 | speech/guide.lesson.villager.where.1.slow.wav | villager | 0.8 | Ella está en el campamento. |  |
 | guide.lesson.villager.where.1 | speech/guide.lesson.villager.where.1.wav | villager | 1.0 | Ella está en el campamento. |  |
+| guide.lesson.villager.who.1 | speech/guide.lesson.villager.who.1.slow.wav | villager | 0.8 | ¿Quién es Domingo? |  |
+| guide.lesson.villager.who.1 | speech/guide.lesson.villager.who.1.wav | villager | 1.0 | ¿Quién es Domingo? |  |
+| guide.lesson.villager.will_make.1 | speech/guide.lesson.villager.will_make.1.slow.wav | villager | 0.8 | ¿Qué va a hacer Domingo? |  |
+| guide.lesson.villager.will_make.1 | speech/guide.lesson.villager.will_make.1.wav | villager | 1.0 | ¿Qué va a hacer Domingo? |  |
+| guide.lesson.villager.works.1 | speech/guide.lesson.villager.works.1.slow.wav | villager | 0.8 | ¿Dónde trabaja Domingo? |  |
+| guide.lesson.villager.works.1 | speech/guide.lesson.villager.works.1.wav | villager | 1.0 | ¿Dónde trabaja Domingo? |  |
 | guide.lesson.want.1 | speech/guide.lesson.want.1.slow.wav | guide | 0.8 | ¿Qué quieres? |  |
 | guide.lesson.want.1 | speech/guide.lesson.want.1.wav | guide | 1.0 | ¿Qué quieres? |  |
 | guide.lesson.welcome.1 | speech/guide.lesson.welcome.1.slow.wav | guide | 0.8 | De nada. |  |
@@ -406,6 +439,8 @@ lines are rendered again.
 | phrase.ayer-fui-al-rio | speech/phrase.ayer-fui-al-rio.wav | guide | 1.0 | Ayer fui al río. |  |
 | phrase.ayuda | speech/phrase.ayuda.slow.wav | guide | 0.8 | Ayuda. |  |
 | phrase.ayuda | speech/phrase.ayuda.wav | guide | 1.0 | Ayuda. |  |
+| phrase.como-te-llamas | speech/phrase.como-te-llamas.slow.wav | guide | 0.8 | ¿Cómo te llamas? |  |
+| phrase.como-te-llamas | speech/phrase.como-te-llamas.wav | guide | 1.0 | ¿Cómo te llamas? |  |
 | phrase.compre-dos-panes | speech/phrase.compre-dos-panes.slow.wav | guide | 0.8 | Compré dos panes. |  |
 | phrase.compre-dos-panes | speech/phrase.compre-dos-panes.wav | guide | 1.0 | Compré dos panes. |  |
 | phrase.cuanto-cuesta | speech/phrase.cuanto-cuesta.slow.wav | guide | 0.8 | ¿Cuánto cuesta? |  |
@@ -418,6 +453,8 @@ lines are rendered again.
 | phrase.donde-esta-la-panaderia | speech/phrase.donde-esta-la-panaderia.wav | guide | 1.0 | ¿Dónde está la panadería? |  |
 | phrase.ella-quiere-fruta | speech/phrase.ella-quiere-fruta.slow.wav | guide | 0.8 | Ella quiere fruta. |  |
 | phrase.ella-quiere-fruta | speech/phrase.ella-quiere-fruta.wav | guide | 1.0 | Ella quiere fruta. |  |
+| phrase.es-el-herrero | speech/phrase.es-el-herrero.slow.wav | guide | 0.8 | Es el herrero. |  |
+| phrase.es-el-herrero | speech/phrase.es-el-herrero.wav | guide | 1.0 | Es el herrero. |  |
 | phrase.esta-lejos | speech/phrase.esta-lejos.slow.wav | guide | 0.8 | ¿Está lejos? |  |
 | phrase.esta-lejos | speech/phrase.esta-lejos.wav | guide | 1.0 | ¿Está lejos? |  |
 | phrase.fui-a-la-panaderia | speech/phrase.fui-a-la-panaderia.slow.wav | guide | 0.8 | Sí, fui a la panadería. |  |
@@ -428,6 +465,8 @@ lines are rendered again.
 | phrase.hay-pan | speech/phrase.hay-pan.wav | guide | 1.0 | ¿Hay pan? |  |
 | phrase.hay-un-pozo | speech/phrase.hay-un-pozo.slow.wav | guide | 0.8 | ¿Hay un pozo en el pueblo? |  |
 | phrase.hay-un-pozo | speech/phrase.hay-un-pozo.wav | guide | 1.0 | ¿Hay un pozo en el pueblo? |  |
+| phrase.hizo-un-hacha | speech/phrase.hizo-un-hacha.slow.wav | guide | 0.8 | Domingo hizo un hacha. |  |
+| phrase.hizo-un-hacha | speech/phrase.hizo-un-hacha.wav | guide | 1.0 | Domingo hizo un hacha. |  |
 | phrase.hola | speech/phrase.hola.slow.wav | guide | 0.8 | Hola. |  |
 | phrase.hola | speech/phrase.hola.wav | guide | 1.0 | Hola. |  |
 | phrase.mas-despacio | speech/phrase.mas-despacio.slow.wav | guide | 0.8 | Más despacio, por favor. |  |
@@ -450,6 +489,8 @@ lines are rendered again.
 | phrase.pedir-agua | speech/phrase.pedir-agua.wav | guide | 1.0 | Quiero agua, por favor. |  |
 | phrase.que-es-esto | speech/phrase.que-es-esto.slow.wav | guide | 0.8 | ¿Qué es esto? |  |
 | phrase.que-es-esto | speech/phrase.que-es-esto.wav | guide | 1.0 | ¿Qué es esto? |  |
+| phrase.que-haces | speech/phrase.que-haces.slow.wav | guide | 0.8 | ¿Qué haces? |  |
+| phrase.que-haces | speech/phrase.que-haces.wav | guide | 1.0 | ¿Qué haces? |  |
 | phrase.queremos-pan | speech/phrase.queremos-pan.slow.wav | guide | 0.8 | Queremos pan. |  |
 | phrase.queremos-pan | speech/phrase.queremos-pan.wav | guide | 1.0 | Queremos pan. |  |
 | phrase.quiero-dos-panes | speech/phrase.quiero-dos-panes.slow.wav | guide | 0.8 | Quiero dos panes, por favor. |  |
@@ -466,8 +507,14 @@ lines are rendered again.
 | phrase.tengo-cuatro-monedas | speech/phrase.tengo-cuatro-monedas.wav | guide | 1.0 | Tengo cuatro monedas. |  |
 | phrase.tengo-fruta | speech/phrase.tengo-fruta.slow.wav | guide | 0.8 | Tengo una fruta. |  |
 | phrase.tengo-fruta | speech/phrase.tengo-fruta.wav | guide | 1.0 | Tengo una fruta. |  |
+| phrase.trabaja-en-la-herreria | speech/phrase.trabaja-en-la-herreria.slow.wav | guide | 0.8 | Domingo trabaja en la herrería. |  |
+| phrase.trabaja-en-la-herreria | speech/phrase.trabaja-en-la-herreria.wav | guide | 1.0 | Domingo trabaja en la herrería. |  |
+| phrase.va-a-hacer-un-hacha | speech/phrase.va-a-hacer-un-hacha.slow.wav | guide | 0.8 | Va a hacer un hacha. |  |
+| phrase.va-a-hacer-un-hacha | speech/phrase.va-a-hacer-un-hacha.wav | guide | 1.0 | Va a hacer un hacha. |  |
 | phrase.vamos-a-comer-fruta | speech/phrase.vamos-a-comer-fruta.slow.wav | guide | 0.8 | Vamos a comer fruta. |  |
 | phrase.vamos-a-comer-fruta | speech/phrase.vamos-a-comer-fruta.wav | guide | 1.0 | Vamos a comer fruta. |  |
+| phrase.vivo-en-el-campamento | speech/phrase.vivo-en-el-campamento.slow.wav | guide | 0.8 | Vivo en el campamento. |  |
+| phrase.vivo-en-el-campamento | speech/phrase.vivo-en-el-campamento.wav | guide | 1.0 | Vivo en el campamento. |  |
 | phrase.voy-a-buscar-madera | speech/phrase.voy-a-buscar-madera.slow.wav | guide | 0.8 | Voy a buscar madera. |  |
 | phrase.voy-a-buscar-madera | speech/phrase.voy-a-buscar-madera.wav | guide | 1.0 | Voy a buscar madera. |  |
 | phrase.voy-a-comer-pan | speech/phrase.voy-a-comer-pan.slow.wav | guide | 0.8 | Voy a comer pan. |  |
@@ -480,6 +527,8 @@ lines are rendered again.
 | phrase.voy-a-la-panaderia | speech/phrase.voy-a-la-panaderia.wav | guide | 1.0 | Voy a la panadería. |  |
 | prompt.baker-open | speech/prompt.baker-open.slow.wav | baker | 0.8 | ¿Qué quieres? |  |
 | prompt.baker-open | speech/prompt.baker-open.wav | baker | 1.0 | ¿Qué quieres? |  |
+| prompt.farmer-open | speech/prompt.farmer-open.slow.wav | farmer | 0.8 | ¡Hola! Este es mi campo. |  |
+| prompt.farmer-open | speech/prompt.farmer-open.wav | farmer | 1.0 | ¡Hola! Este es mi campo. |  |
 | prompt.fisher-open | speech/prompt.fisher-open.slow.wav | fisher | 0.72 | ¿Qué buscas? |  |
 | prompt.fisher-open | speech/prompt.fisher-open.wav | fisher | 0.9 | ¿Qué buscas? |  |
 | prompt.guide-offer | speech/prompt.guide-offer.slow.wav | guide | 0.8 | ¿Quieres agua? |  |
@@ -508,6 +557,10 @@ lines are rendered again.
 | prompt.lesson-hay | speech/prompt.lesson-hay.wav | fisher | 0.9 | En el pueblo hay una tienda, una panadería y tres casas. |  |
 | prompt.lesson-hello | speech/prompt.lesson-hello.slow.wav | guide | 0.8 | ¡Hola! |  |
 | prompt.lesson-hello | speech/prompt.lesson-hello.wav | guide | 1.0 | ¡Hola! |  |
+| prompt.lesson-lives | speech/prompt.lesson-lives.slow.wav | smith | 0.8 | ¿Dónde vives? |  |
+| prompt.lesson-lives | speech/prompt.lesson-lives.wav | smith | 1.0 | ¿Dónde vives? |  |
+| prompt.lesson-made | speech/prompt.lesson-made.slow.wav | villager | 0.8 | ¿Qué hizo Domingo? |  |
+| prompt.lesson-made | speech/prompt.lesson-made.wav | villager | 1.0 | ¿Qué hizo Domingo? |  |
 | prompt.lesson-name | speech/prompt.lesson-name.slow.wav | guide | 0.8 | Me llamo Luna. |  |
 | prompt.lesson-name | speech/prompt.lesson-name.wav | guide | 1.0 | Me llamo Luna. |  |
 | prompt.lesson-need | speech/prompt.lesson-need.slow.wav | guide | 0.8 | ¿Qué necesitas? |  |
@@ -548,10 +601,18 @@ lines are rendered again.
 | prompt.lesson-went-there | speech/prompt.lesson-went-there.wav | fisher | 0.9 | ¿Fuiste a la panadería? |  |
 | prompt.lesson-what | speech/prompt.lesson-what.slow.wav | guide | 0.8 | Mira. |  |
 | prompt.lesson-what | speech/prompt.lesson-what.wav | guide | 1.0 | Mira. |  |
+| prompt.lesson-who | speech/prompt.lesson-who.slow.wav | villager | 0.8 | ¿Quién es Domingo? |  |
+| prompt.lesson-who | speech/prompt.lesson-who.wav | villager | 1.0 | ¿Quién es Domingo? |  |
+| prompt.lesson-will-make | speech/prompt.lesson-will-make.slow.wav | villager | 0.8 | ¿Qué va a hacer Domingo? |  |
+| prompt.lesson-will-make | speech/prompt.lesson-will-make.wav | villager | 1.0 | ¿Qué va a hacer Domingo? |  |
 | prompt.lesson-wood-plan | speech/prompt.lesson-wood-plan.slow.wav | baker | 0.8 | Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer? |  |
 | prompt.lesson-wood-plan | speech/prompt.lesson-wood-plan.wav | baker | 1.0 | Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer? |  |
+| prompt.lesson-works | speech/prompt.lesson-works.slow.wav | villager | 0.8 | ¿Dónde trabaja Domingo? |  |
+| prompt.lesson-works | speech/prompt.lesson-works.wav | villager | 1.0 | ¿Dónde trabaja Domingo? |  |
 | prompt.lesson-yesno | speech/prompt.lesson-yesno.slow.wav | guide | 0.8 | ¿Es madera? |  |
 | prompt.lesson-yesno | speech/prompt.lesson-yesno.wav | guide | 1.0 | ¿Es madera? |  |
+| prompt.smith-open | speech/prompt.smith-open.slow.wav | smith | 0.8 | ¡Hola! Esta es mi herrería. |  |
+| prompt.smith-open | speech/prompt.smith-open.wav | smith | 1.0 | ¡Hola! Esta es mi herrería. |  |
 | prompt.stall-need | speech/prompt.stall-need.slow.wav | shopkeeper | 0.8 | ¿Qué necesitas? |  |
 | prompt.stall-need | speech/prompt.stall-need.wav | shopkeeper | 1.0 | ¿Qué necesitas? |  |
 | prompt.stall-offer | speech/prompt.stall-offer.slow.wav | shopkeeper | 0.8 | ¿Quieres pan? |  |
@@ -594,6 +655,28 @@ lines are rendered again.
 | shop_thank.1 | speech/shop_thank.1.wav | shopkeeper | 1.0 | De nada. |  |
 | shop_thank.2 | speech/shop_thank.2.slow.wav | shopkeeper | 0.8 | ¡Con gusto! |  |
 | shop_thank.2 | speech/shop_thank.2.wav | shopkeeper | 1.0 | ¡Con gusto! |  |
+| smith_bye.1 | speech/smith_bye.1.slow.wav | smith | 0.8 | ¡Adiós! Hasta luego. |  |
+| smith_bye.1 | speech/smith_bye.1.wav | smith | 1.0 | ¡Adiós! Hasta luego. |  |
+| smith_bye.2 | speech/smith_bye.2.slow.wav | smith | 0.8 | Hasta luego. |  |
+| smith_bye.2 | speech/smith_bye.2.wav | smith | 1.0 | Hasta luego. |  |
+| smith_delivered.1 | speech/smith_delivered.1.slow.wav | smith | 0.8 | ¡Gracias! Toma el hacha. |  |
+| smith_delivered.1 | speech/smith_delivered.1.wav | smith | 1.0 | ¡Gracias! Toma el hacha. |  |
+| smith_greet.1 | speech/smith_greet.1.slow.wav | smith | 0.8 | ¡Hola! Esta es mi herrería. |  |
+| smith_greet.1 | speech/smith_greet.1.wav | smith | 1.0 | ¡Hola! Esta es mi herrería. |  |
+| smith_hello.1 | speech/smith_hello.1.slow.wav | smith | 0.8 | ¡Hola! |  |
+| smith_hello.1 | speech/smith_hello.1.wav | smith | 1.0 | ¡Hola! |  |
+| smith_help.1 | speech/smith_help.1.slow.wav | smith | 0.8 | Puedes preguntar: «¿Cómo te llamas?». |  |
+| smith_help.1 | speech/smith_help.1.wav | smith | 1.0 | Puedes preguntar: «¿Cómo te llamas?». |  |
+| smith_job.1 | speech/smith_job.1.slow.wav | smith | 0.8 | Soy el herrero. Trabajo con fuego y madera. |  |
+| smith_job.1 | speech/smith_job.1.wav | smith | 1.0 | Soy el herrero. Trabajo con fuego y madera. |  |
+| smith_name.1 | speech/smith_name.1.slow.wav | smith | 0.8 | Me llamo Domingo. |  |
+| smith_name.1 | speech/smith_name.1.wav | smith | 1.0 | Me llamo Domingo. |  |
+| smith_offer.1 | speech/smith_offer.1.slow.wav | smith | 0.8 | ¿Quieres un hacha? Necesito dos bloques de madera y dos monedas. |  |
+| smith_offer.1 | speech/smith_offer.1.wav | smith | 1.0 | ¿Quieres un hacha? Necesito dos bloques de madera y dos monedas. |  |
+| smith_thank.1 | speech/smith_thank.1.slow.wav | smith | 0.8 | De nada. |  |
+| smith_thank.1 | speech/smith_thank.1.wav | smith | 1.0 | De nada. |  |
+| smith_thank.2 | speech/smith_thank.2.slow.wav | smith | 0.8 | ¡Con gusto! |  |
+| smith_thank.2 | speech/smith_thank.2.wav | smith | 1.0 | ¡Con gusto! |  |
 | villager_bye.1 | speech/villager_bye.1.slow.wav | villager | 0.8 | ¡Adiós! Hasta luego. |  |
 | villager_bye.1 | speech/villager_bye.1.wav | villager | 1.0 | ¡Adiós! Hasta luego. |  |
 | villager_bye.2 | speech/villager_bye.2.slow.wav | villager | 0.8 | Hasta luego. |  |

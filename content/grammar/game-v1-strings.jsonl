@@ -17,6 +17,15 @@
 {"id":"dialogue:farewell_reply.1","text":"¡Adiós, amigo! Hasta luego.","kind":"npc"}
 {"id":"dialogue:farewell_reply.2","text":"Hasta luego. ¡Buen día!","kind":"npc"}
 {"id":"dialogue:farewell_reply.3","text":"¡Nos vemos, amigo!","kind":"npc"}
+{"id":"dialogue:farmer_bye.1","text":"¡Adiós! Hasta luego.","kind":"npc"}
+{"id":"dialogue:farmer_bye.2","text":"Hasta luego.","kind":"npc"}
+{"id":"dialogue:farmer_greet.1","text":"¡Hola! Este es mi campo.","kind":"npc"}
+{"id":"dialogue:farmer_hello.1","text":"¡Hola!","kind":"npc"}
+{"id":"dialogue:farmer_help.1","text":"Puedes preguntar: «¿Qué haces?».","kind":"npc"}
+{"id":"dialogue:farmer_job.1","text":"Soy el granjero. Trabajo en el campo.","kind":"npc"}
+{"id":"dialogue:farmer_name.1","text":"Me llamo León.","kind":"npc"}
+{"id":"dialogue:farmer_thank.1","text":"De nada.","kind":"npc"}
+{"id":"dialogue:farmer_thank.2","text":"¡Con gusto!","kind":"npc"}
 {"id":"dialogue:feedback.explicit_correction.1","text":"Se dice «{expected}», no «{actual}».","kind":"template"}
 {"id":"dialogue:feedback.explicit_correction.2","text":"Se dice así: «{expected}».","kind":"template"}
 {"id":"dialogue:feedback.hint.1","text":"Casi. Piensa otra vez.","kind":"npc"}
@@ -117,21 +126,32 @@
 {"id":"dialogue:guide.lesson.shop.tomorrow.1","text":"¿Qué vas a hacer mañana?","kind":"npc"}
 {"id":"dialogue:guide.lesson.shop.went.1","text":"¿Fuiste al río ayer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.shop.you.1","text":"Ayer fuiste al río.","kind":"npc"}
+{"id":"dialogue:guide.lesson.smith.lives.1","text":"¿Dónde vives?","kind":"npc"}
 {"id":"dialogue:guide.lesson.take.1","text":"Toma una fruta.","kind":"npc"}
 {"id":"dialogue:guide.lesson.task.1","text":"Necesitas madera y frutas.","kind":"npc"}
+{"id":"dialogue:guide.lesson.villager.axe.1","text":"Domingo te quiere hacer un hacha.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.be.1","text":"Tú y yo somos amigos.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.eat.1","text":"Ellos van a comer pan.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.go.1","text":"Vamos a la tienda.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.goes.1","text":"Hoy vas a la tienda.","kind":"npc"}
+{"id":"dialogue:guide.lesson.villager.house.1","text":"Domingo vive en una casa cerca de la herrería.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.luna.1","text":"¿Qué quiere Luna?","kind":"npc"}
+{"id":"dialogue:guide.lesson.villager.made.1","text":"¿Qué hizo Domingo?","kind":"npc"}
+{"id":"dialogue:guide.lesson.villager.much.1","text":"Ayer Domingo trabajó mucho.","kind":"npc"}
+{"id":"dialogue:guide.lesson.villager.need.1","text":"¿Qué necesitas ahora?","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.plan.1","text":"¿Qué vas a comer mañana?","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.plan_we.1","text":"¿Qué vamos a comer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.she.1","text":"Luna es la guía. Ella es mi amiga.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.sign.1","text":"El letrero dice: tienda, río, montaña.","kind":"npc"}
+{"id":"dialogue:guide.lesson.villager.smith.1","text":"Mira, allí está Domingo. Es el herrero.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.they.1","text":"Ellos tienen pan.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.want.1","text":"¿Qué quieres?","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.we.1","text":"¿Qué necesitamos?","kind":"npc"}
+{"id":"dialogue:guide.lesson.villager.went_bakery.1","text":"¡Hola! ¿Fuiste a la panadería?","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.where.1","text":"Ella está en el campamento.","kind":"npc"}
+{"id":"dialogue:guide.lesson.villager.who.1","text":"¿Quién es Domingo?","kind":"npc"}
+{"id":"dialogue:guide.lesson.villager.will_make.1","text":"¿Qué va a hacer Domingo?","kind":"npc"}
+{"id":"dialogue:guide.lesson.villager.works.1","text":"¿Dónde trabaja Domingo?","kind":"npc"}
 {"id":"dialogue:guide.lesson.want.1","text":"¿Qué quieres?","kind":"npc"}
 {"id":"dialogue:guide.lesson.welcome.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:guide.name.correct.1","text":"¡Eso es! Es {target:article(indef)}.","kind":"template"}
@@ -213,6 +233,17 @@
 {"id":"dialogue:shop_price.1","text":"El pan cuesta dos monedas.","kind":"npc"}
 {"id":"dialogue:shop_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:shop_thank.2","text":"¡Con gusto!","kind":"npc"}
+{"id":"dialogue:smith_bye.1","text":"¡Adiós! Hasta luego.","kind":"npc"}
+{"id":"dialogue:smith_bye.2","text":"Hasta luego.","kind":"npc"}
+{"id":"dialogue:smith_delivered.1","text":"¡Gracias! Toma el hacha.","kind":"npc"}
+{"id":"dialogue:smith_greet.1","text":"¡Hola! Esta es mi herrería.","kind":"npc"}
+{"id":"dialogue:smith_hello.1","text":"¡Hola!","kind":"npc"}
+{"id":"dialogue:smith_help.1","text":"Puedes preguntar: «¿Cómo te llamas?».","kind":"npc"}
+{"id":"dialogue:smith_job.1","text":"Soy el herrero. Trabajo con fuego y madera.","kind":"npc"}
+{"id":"dialogue:smith_name.1","text":"Me llamo Domingo.","kind":"npc"}
+{"id":"dialogue:smith_offer.1","text":"¿Quieres un hacha? Necesito dos bloques de madera y dos monedas.","kind":"npc"}
+{"id":"dialogue:smith_thank.1","text":"De nada.","kind":"npc"}
+{"id":"dialogue:smith_thank.2","text":"¡Con gusto!","kind":"npc"}
 {"id":"dialogue:villager_bye.1","text":"¡Adiós! Hasta luego.","kind":"npc"}
 {"id":"dialogue:villager_bye.2","text":"Hasta luego.","kind":"npc"}
 {"id":"dialogue:villager_give.1","text":"Aquí tienes.","kind":"npc"}
@@ -226,6 +257,7 @@
 {"id":"dialogue:villager_thank.2","text":"¡Con gusto!","kind":"npc"}
 {"id":"dialogue:villager_unknown_place.1","text":"No sé dónde está.","kind":"npc"}
 {"id":"prompts:baker-open","text":"¿Qué quieres?","kind":"npc"}
+{"id":"prompts:farmer-open","text":"¡Hola! Este es mi campo.","kind":"npc"}
 {"id":"prompts:fisher-open","text":"¿Qué buscas?","kind":"npc"}
 {"id":"prompts:guide-offer","text":"¿Quieres agua?","kind":"npc"}
 {"id":"prompts:guide-open","text":"¡Hola! Soy la guía. ¿En qué te ayudo?","kind":"npc"}
@@ -240,6 +272,8 @@
 {"id":"prompts:lesson-have","text":"¿Tienes una fruta?","kind":"npc"}
 {"id":"prompts:lesson-hay","text":"En el pueblo hay una tienda, una panadería y tres casas.","kind":"npc"}
 {"id":"prompts:lesson-hello","text":"¡Hola!","kind":"npc"}
+{"id":"prompts:lesson-lives","text":"¿Dónde vives?","kind":"npc"}
+{"id":"prompts:lesson-made","text":"¿Qué hizo Domingo?","kind":"npc"}
 {"id":"prompts:lesson-name","text":"Me llamo Luna.","kind":"npc"}
 {"id":"prompts:lesson-need","text":"¿Qué necesitas?","kind":"npc"}
 {"id":"prompts:lesson-offer","text":"¿Quieres fruta?","kind":"npc"}
@@ -260,8 +294,12 @@
 {"id":"prompts:lesson-went","text":"¿Fuiste al río ayer?","kind":"npc"}
 {"id":"prompts:lesson-went-there","text":"¿Fuiste a la panadería?","kind":"npc"}
 {"id":"prompts:lesson-what","text":"Mira.","kind":"npc"}
+{"id":"prompts:lesson-who","text":"¿Quién es Domingo?","kind":"npc"}
+{"id":"prompts:lesson-will-make","text":"¿Qué va a hacer Domingo?","kind":"npc"}
 {"id":"prompts:lesson-wood-plan","text":"Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer?","kind":"npc"}
+{"id":"prompts:lesson-works","text":"¿Dónde trabaja Domingo?","kind":"npc"}
 {"id":"prompts:lesson-yesno","text":"¿Es madera?","kind":"npc"}
+{"id":"prompts:smith-open","text":"¡Hola! Esta es mi herrería.","kind":"npc"}
 {"id":"prompts:stall-need","text":"¿Qué necesitas?","kind":"npc"}
 {"id":"prompts:stall-offer","text":"¿Quieres pan?","kind":"npc"}
 {"id":"prompts:villager-open","text":"Hola.","kind":"npc"}
@@ -449,6 +487,32 @@
 {"id":"answer-sets/lesson-hay:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/lesson-hay:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/lesson-hay:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-lives:camp","text":"vivo en el campamento","kind":"learner"}
+{"id":"answer-sets/lesson-lives:camp.alias1","text":"yo vivo en el campamento","kind":"learner"}
+{"id":"answer-sets/lesson-lives:camp.alias2","text":"vivo en la casa","kind":"learner"}
+{"id":"answer-sets/lesson-lives:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-lives:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-lives:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-lives:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-lives:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-lives:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-lives:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-lives:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-lives:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-made:axe","text":"domingo hizo un hacha","kind":"learner"}
+{"id":"answer-sets/lesson-made:axe.alias1","text":"hizo un hacha","kind":"learner"}
+{"id":"answer-sets/lesson-made:axe.alias2","text":"él hizo un hacha","kind":"learner"}
+{"id":"answer-sets/lesson-made:axe.alias3","text":"hoy domingo hizo un hacha","kind":"learner"}
+{"id":"answer-sets/lesson-made:axe.alias4","text":"domingo hizo el hacha","kind":"learner"}
+{"id":"answer-sets/lesson-made:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-made:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-made:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-made:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-made:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-made:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-made:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-made:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-made:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-need:need","text":"necesito agua","kind":"learner"}
 {"id":"answer-sets/lesson-need:need.alias1","text":"necesito agua por favor","kind":"learner"}
 {"id":"answer-sets/lesson-need:need.alias2","text":"yo necesito agua","kind":"learner"}
@@ -767,6 +831,34 @@
 {"id":"answer-sets/lesson-what:slower.alias5","text":"despacio","kind":"learner"}
 {"id":"answer-sets/lesson-what:slower.alias6","text":"más lento","kind":"learner"}
 {"id":"answer-sets/lesson-what:slower.alias7","text":"más lento por favor","kind":"learner"}
+{"id":"answer-sets/lesson-who:smith","text":"es el herrero","kind":"learner"}
+{"id":"answer-sets/lesson-who:smith.alias1","text":"domingo es el herrero","kind":"learner"}
+{"id":"answer-sets/lesson-who:smith.alias2","text":"él es el herrero","kind":"learner"}
+{"id":"answer-sets/lesson-who:smith.alias3","text":"es un herrero","kind":"learner"}
+{"id":"answer-sets/lesson-who:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-who:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-who:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-who:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-who:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-who:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-who:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-who:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-who:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-will-make:axe","text":"va a hacer un hacha","kind":"learner"}
+{"id":"answer-sets/lesson-will-make:axe.alias1","text":"domingo va a hacer un hacha","kind":"learner"}
+{"id":"answer-sets/lesson-will-make:axe.alias2","text":"él va a hacer un hacha","kind":"learner"}
+{"id":"answer-sets/lesson-will-make:axe.alias3","text":"va a hacer un hacha hoy","kind":"learner"}
+{"id":"answer-sets/lesson-will-make:axe.alias4","text":"mañana va a hacer un hacha","kind":"learner"}
+{"id":"answer-sets/lesson-will-make:axe.alias5","text":"luego domingo hace un hacha","kind":"learner"}
+{"id":"answer-sets/lesson-will-make:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-will-make:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-will-make:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-will-make:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-will-make:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-will-make:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-will-make:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-will-make:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-will-make:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-wood-plan:plan","text":"voy a buscar madera","kind":"learner"}
 {"id":"answer-sets/lesson-wood-plan:plan.alias1","text":"yo voy a buscar madera","kind":"learner"}
 {"id":"answer-sets/lesson-wood-plan:plan.alias2","text":"voy a buscar la madera","kind":"learner"}
@@ -784,6 +876,19 @@
 {"id":"answer-sets/lesson-wood-plan:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/lesson-wood-plan:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/lesson-wood-plan:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-works:smithy","text":"domingo trabaja en la herrería","kind":"learner"}
+{"id":"answer-sets/lesson-works:smithy.alias1","text":"trabaja en la herrería","kind":"learner"}
+{"id":"answer-sets/lesson-works:smithy.alias2","text":"él trabaja en la herrería","kind":"learner"}
+{"id":"answer-sets/lesson-works:smithy.alias3","text":"hoy domingo trabaja en la herrería","kind":"learner"}
+{"id":"answer-sets/lesson-works:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-works:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-works:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-works:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-works:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-works:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-works:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-works:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-works:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-yes-no:yes","text":"sí","kind":"learner"}
 {"id":"answer-sets/lesson-yes-no:yes.alias1","text":"si","kind":"learner"}
 {"id":"answer-sets/lesson-yes-no:yes.alias2","text":"sí por favor","kind":"learner"}
@@ -866,6 +971,70 @@
 {"id":"answer-sets/lesson-yesno-plain:slower.alias5","text":"despacio","kind":"learner"}
 {"id":"answer-sets/lesson-yesno-plain:slower.alias6","text":"más lento","kind":"learner"}
 {"id":"answer-sets/lesson-yesno-plain:slower.alias7","text":"más lento por favor","kind":"learner"}
+{"id":"answer-sets/people-farmer:name","text":"cómo te llamas","kind":"learner"}
+{"id":"answer-sets/people-farmer:name.alias1","text":"cómo te llamas tú","kind":"learner"}
+{"id":"answer-sets/people-farmer:name.alias2","text":"cómo se llama usted","kind":"learner"}
+{"id":"answer-sets/people-farmer:name.alias3","text":"cómo tú te llamas","kind":"learner"}
+{"id":"answer-sets/people-farmer:job","text":"qué haces","kind":"learner"}
+{"id":"answer-sets/people-farmer:job.alias1","text":"qué haces tú","kind":"learner"}
+{"id":"answer-sets/people-farmer:job.alias2","text":"qué hace usted","kind":"learner"}
+{"id":"answer-sets/people-farmer:job.alias3","text":"qué tú haces","kind":"learner"}
+{"id":"answer-sets/people-farmer:job.alias4","text":"en qué trabajas","kind":"learner"}
+{"id":"answer-sets/people-farmer:job.alias5","text":"dónde trabajas","kind":"learner"}
+{"id":"answer-sets/people-farmer:hello","text":"hola","kind":"learner"}
+{"id":"answer-sets/people-farmer:hello.alias1","text":"buenos días","kind":"learner"}
+{"id":"answer-sets/people-farmer:hello.alias2","text":"buenas tardes","kind":"learner"}
+{"id":"answer-sets/people-farmer:hello.alias3","text":"buen día","kind":"learner"}
+{"id":"answer-sets/people-farmer:thanks","text":"gracias","kind":"learner"}
+{"id":"answer-sets/people-farmer:thanks.alias1","text":"muchas gracias","kind":"learner"}
+{"id":"answer-sets/people-farmer:bye","text":"adiós","kind":"learner"}
+{"id":"answer-sets/people-farmer:bye.alias1","text":"hasta luego","kind":"learner"}
+{"id":"answer-sets/people-farmer:bye.alias2","text":"nos vemos","kind":"learner"}
+{"id":"answer-sets/people-farmer:bye.alias3","text":"hasta mañana","kind":"learner"}
+{"id":"answer-sets/people-farmer:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/people-farmer:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/people-farmer:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/people-farmer:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/people-farmer:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/people-farmer:help.alias5","text":"qué hago","kind":"learner"}
+{"id":"answer-sets/people-farmer:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/people-farmer:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/people-farmer:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/people-farmer:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/people-smith:name","text":"cómo te llamas","kind":"learner"}
+{"id":"answer-sets/people-smith:name.alias1","text":"cómo te llamas tú","kind":"learner"}
+{"id":"answer-sets/people-smith:name.alias2","text":"cómo se llama usted","kind":"learner"}
+{"id":"answer-sets/people-smith:name.alias3","text":"cómo tú te llamas","kind":"learner"}
+{"id":"answer-sets/people-smith:job","text":"qué haces","kind":"learner"}
+{"id":"answer-sets/people-smith:job.alias1","text":"qué haces tú","kind":"learner"}
+{"id":"answer-sets/people-smith:job.alias2","text":"qué hace usted","kind":"learner"}
+{"id":"answer-sets/people-smith:job.alias3","text":"qué tú haces","kind":"learner"}
+{"id":"answer-sets/people-smith:job.alias4","text":"en qué trabajas","kind":"learner"}
+{"id":"answer-sets/people-smith:job.alias5","text":"dónde trabajas","kind":"learner"}
+{"id":"answer-sets/people-smith:wood","text":"tengo madera","kind":"learner"}
+{"id":"answer-sets/people-smith:wood.alias1","text":"tengo dos monedas","kind":"learner"}
+{"id":"answer-sets/people-smith:wood.alias2","text":"tengo dos bloques de madera","kind":"learner"}
+{"id":"answer-sets/people-smith:wood.alias3","text":"sí, tengo madera","kind":"learner"}
+{"id":"answer-sets/people-smith:hello","text":"hola","kind":"learner"}
+{"id":"answer-sets/people-smith:hello.alias1","text":"buenos días","kind":"learner"}
+{"id":"answer-sets/people-smith:hello.alias2","text":"buenas tardes","kind":"learner"}
+{"id":"answer-sets/people-smith:hello.alias3","text":"buen día","kind":"learner"}
+{"id":"answer-sets/people-smith:thanks","text":"gracias","kind":"learner"}
+{"id":"answer-sets/people-smith:thanks.alias1","text":"muchas gracias","kind":"learner"}
+{"id":"answer-sets/people-smith:bye","text":"adiós","kind":"learner"}
+{"id":"answer-sets/people-smith:bye.alias1","text":"hasta luego","kind":"learner"}
+{"id":"answer-sets/people-smith:bye.alias2","text":"nos vemos","kind":"learner"}
+{"id":"answer-sets/people-smith:bye.alias3","text":"hasta mañana","kind":"learner"}
+{"id":"answer-sets/people-smith:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/people-smith:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/people-smith:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/people-smith:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/people-smith:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/people-smith:help.alias5","text":"qué hago","kind":"learner"}
+{"id":"answer-sets/people-smith:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/people-smith:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/people-smith:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/people-smith:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/places-basic:tree","text":"árbol","kind":"learner"}
 {"id":"answer-sets/places-basic:tree.alias1","text":"el árbol","kind":"learner"}
 {"id":"answer-sets/places-basic:tree.alias2","text":"un árbol","kind":"learner"}
@@ -1082,6 +1251,14 @@
 {"id":"answer-sets/yes-no:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/yes-no:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/yes-no:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"intents:ask_activity.ex0","text":"qué haces","kind":"learner","errors":[]}
+{"id":"intents:ask_activity.ex1","text":"qué haces tú","kind":"learner","errors":[]}
+{"id":"intents:ask_activity.ex2","text":"qué hace usted","kind":"learner","errors":[]}
+{"id":"intents:ask_activity.ex3","text":"en qué trabajas","kind":"learner","errors":[]}
+{"id":"intents:ask_activity.ex4","text":"dónde trabajas","kind":"learner","errors":[]}
+{"id":"intents:ask_activity.ex5","text":"qué tú hace","kind":"learner","errors":["conj.person"]}
+{"id":"intents:ask_activity.ex6","text":"en qué trabaja usted","kind":"learner","errors":[]}
+{"id":"intents:ask_activity.ex7","text":"dónde trabaja usted","kind":"learner","errors":[]}
 {"id":"intents:ask_availability.ex0","text":"hay un pozo en el pueblo","kind":"learner","errors":[]}
 {"id":"intents:ask_availability.ex1","text":"hay un pozo","kind":"learner","errors":[]}
 {"id":"intents:ask_availability.ex2","text":"hay un pozo aquí","kind":"learner","errors":[]}
@@ -1139,6 +1316,12 @@
 {"id":"intents:ask_help.ex4","text":"me puedes ayudar","kind":"learner","errors":[]}
 {"id":"intents:ask_help.ex5","text":"yo necesitas ayuda","kind":"learner","errors":["conj.person"]}
 {"id":"intents:ask_help.ex6","text":"qué hago","kind":"learner","errors":[]}
+{"id":"intents:ask_name.ex0","text":"cómo te llamas","kind":"learner","errors":[]}
+{"id":"intents:ask_name.ex1","text":"cómo te llamas tú","kind":"learner","errors":[]}
+{"id":"intents:ask_name.ex2","text":"cómo se llama usted","kind":"learner","errors":[]}
+{"id":"intents:ask_name.ex3","text":"cómo tú te llama","kind":"learner","errors":["conj.person"]}
+{"id":"intents:ask_name.ex4","text":"cómo se llama él","kind":"learner","errors":[]}
+{"id":"intents:ask_name.ex5","text":"cómo se llama ella","kind":"learner","errors":[]}
 {"id":"intents:ask_price.ex0","text":"cuánto cuesta","kind":"learner","errors":[]}
 {"id":"intents:ask_price.ex1","text":"cuánto cuesta el pan","kind":"learner","errors":[]}
 {"id":"intents:ask_price.ex2","text":"cuánto es","kind":"learner","errors":[]}
@@ -1212,6 +1395,11 @@
 {"id":"intents:name_object.ex3","text":"esto es una piedra","kind":"learner","errors":[]}
 {"id":"intents:name_object.ex4","text":"es una hierba","kind":"learner","errors":[]}
 {"id":"intents:name_object.ex5","text":"es la tierra","kind":"learner","errors":[]}
+{"id":"intents:name_object.ex6","text":"es el herrero","kind":"learner","errors":[]}
+{"id":"intents:name_object.ex7","text":"domingo es el herrero","kind":"learner","errors":[]}
+{"id":"intents:name_object.ex8","text":"él es el herrero","kind":"learner","errors":[]}
+{"id":"intents:name_object.ex9","text":"es un herrero","kind":"learner","errors":[]}
+{"id":"intents:name_object.ex10","text":"es la herrero","kind":"learner","errors":["gender.agree"]}
 {"id":"intents:request_item.ex0","text":"quiero agua, por favor","kind":"learner","errors":[]}
 {"id":"intents:request_item.ex1","text":"agua, por favor","kind":"learner","errors":[]}
 {"id":"intents:request_item.ex2","text":"quiero agua","kind":"learner","errors":[]}
@@ -1340,7 +1528,36 @@
 {"id":"intents:state_action.ex97","text":"compré un pan","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex98","text":"ayer compro dos panes","kind":"learner","errors":["conj.tense"]}
 {"id":"intents:state_action.ex99","text":"yo compraste dos panes","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex100","text":"busqué madera","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex100","text":"va a hacer un hacha","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex101","text":"domingo va a hacer un hacha","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex102","text":"él va a hacer un hacha","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex103","text":"va a hacer un hacha hoy","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex104","text":"mañana va a hacer un hacha","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex105","text":"luego domingo hace un hacha","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex106","text":"domingo va a hizo un hacha","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex107","text":"él voy a hacer un hacha","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex108","text":"domingo trabaja en la herrería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex109","text":"trabaja en la herrería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex110","text":"él trabaja en la herrería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex111","text":"hoy domingo trabaja en la herrería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex112","text":"él trabajo en la herrería","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex113","text":"domingo trabaja en el herrería","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:state_action.ex114","text":"vivo en el campamento","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex115","text":"yo vivo en el campamento","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex116","text":"vivo en la casa","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex117","text":"vivo en la campamento","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:state_action.ex118","text":"yo vives en el campamento","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex119","text":"domingo hizo un hacha","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex120","text":"hizo un hacha","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex121","text":"él hizo un hacha","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex122","text":"hoy domingo hizo un hacha","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex123","text":"domingo hizo el hacha","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex124","text":"ayer domingo hace un hacha","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex125","text":"él hice un hacha","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex126","text":"busqué madera","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex127","text":"león trabaja en el campo","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex128","text":"luz vive en la panadería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex129","text":"mar va a trabajar en el río","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex0","text":"tengo una fruta","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex1","text":"sí, tengo una fruta","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex2","text":"sí, yo tengo una fruta","kind":"learner","errors":[]}
@@ -1683,6 +1900,43 @@
 {"id":"PHRASES.md:hay-pan.variant1","text":"¿hay pan aquí?","kind":"learner"}
 {"id":"PHRASES.md:hay-pan.variant2","text":"¿hay panes?","kind":"learner"}
 {"id":"PHRASES.md:hay-pan.error","text":"hay dos pan","kind":"learner","errors":["noun.number"]}
+{"id":"PHRASES.md:como-te-llamas.text","text":"¿Cómo te llamas?","kind":"learner"}
+{"id":"PHRASES.md:como-te-llamas.variant1","text":"¿cómo te llamas tú?","kind":"learner"}
+{"id":"PHRASES.md:como-te-llamas.error","text":"cómo tú te llama","kind":"learner","errors":["conj.person"]}
+{"id":"PHRASES.md:me-llamo-domingo.text","text":"Me llamo Domingo.","kind":"npc"}
+{"id":"PHRASES.md:que-haces.text","text":"¿Qué haces?","kind":"learner"}
+{"id":"PHRASES.md:que-haces.variant1","text":"¿qué haces tú?","kind":"learner"}
+{"id":"PHRASES.md:que-haces.variant2","text":"¿en qué trabajas?","kind":"learner"}
+{"id":"PHRASES.md:que-haces.variant3","text":"¿dónde trabajas?","kind":"learner"}
+{"id":"PHRASES.md:que-haces.error","text":"qué tú hace","kind":"learner","errors":["conj.person"]}
+{"id":"PHRASES.md:soy-el-herrero.text","text":"Soy el herrero. Trabajo con fuego y madera.","kind":"npc"}
+{"id":"PHRASES.md:es-el-herrero.text","text":"Es el herrero.","kind":"learner"}
+{"id":"PHRASES.md:es-el-herrero.variant1","text":"domingo es el herrero","kind":"learner"}
+{"id":"PHRASES.md:es-el-herrero.variant2","text":"él es el herrero","kind":"learner"}
+{"id":"PHRASES.md:es-el-herrero.error","text":"es la herrero","kind":"learner","errors":["gender.agree"]}
+{"id":"PHRASES.md:que-va-a-hacer-domingo.text","text":"¿Qué va a hacer Domingo?","kind":"npc"}
+{"id":"PHRASES.md:va-a-hacer-un-hacha.text","text":"Va a hacer un hacha.","kind":"learner"}
+{"id":"PHRASES.md:va-a-hacer-un-hacha.variant1","text":"domingo va a hacer un hacha","kind":"learner"}
+{"id":"PHRASES.md:va-a-hacer-un-hacha.variant2","text":"él va a hacer un hacha","kind":"learner"}
+{"id":"PHRASES.md:va-a-hacer-un-hacha.error","text":"él voy a hacer un hacha","kind":"learner","errors":["conj.person"]}
+{"id":"PHRASES.md:donde-vives.text","text":"¿Dónde vives?","kind":"npc"}
+{"id":"PHRASES.md:vivo-en-el-campamento.text","text":"Vivo en el campamento.","kind":"learner"}
+{"id":"PHRASES.md:vivo-en-el-campamento.variant1","text":"yo vivo en el campamento","kind":"learner"}
+{"id":"PHRASES.md:vivo-en-el-campamento.error","text":"vivo en la campamento","kind":"learner","errors":["gender.agree"]}
+{"id":"PHRASES.md:quieres-un-hacha.text","text":"¿Quieres un hacha? Necesito dos bloques de madera y dos monedas.","kind":"npc"}
+{"id":"PHRASES.md:toma-el-hacha.text","text":"¡Gracias! Toma el hacha.","kind":"npc"}
+{"id":"PHRASES.md:trabaja-en-la-herreria.text","text":"Domingo trabaja en la herrería.","kind":"learner"}
+{"id":"PHRASES.md:trabaja-en-la-herreria.variant1","text":"trabaja en la herrería","kind":"learner"}
+{"id":"PHRASES.md:trabaja-en-la-herreria.variant2","text":"él trabaja en la herrería","kind":"learner"}
+{"id":"PHRASES.md:trabaja-en-la-herreria.error","text":"él trabajo en la herrería","kind":"learner","errors":["conj.person"]}
+{"id":"PHRASES.md:vive-en-la-casa.text","text":"Domingo vive en una casa cerca de la herrería.","kind":"npc"}
+{"id":"PHRASES.md:que-hizo-domingo.text","text":"¿Qué hizo Domingo?","kind":"npc"}
+{"id":"PHRASES.md:hizo-un-hacha.text","text":"Domingo hizo un hacha.","kind":"learner"}
+{"id":"PHRASES.md:hizo-un-hacha.variant1","text":"hizo un hacha","kind":"learner"}
+{"id":"PHRASES.md:hizo-un-hacha.variant2","text":"él hizo un hacha","kind":"learner"}
+{"id":"PHRASES.md:hizo-un-hacha.variant3","text":"domingo hizo el hacha","kind":"learner"}
+{"id":"PHRASES.md:hizo-un-hacha.error","text":"ayer domingo hace un hacha","kind":"learner","errors":["conj.tense"]}
+{"id":"PHRASES.md:ayer-trabajo-mucho.text","text":"Ayer Domingo trabajó mucho.","kind":"npc"}
 {"id":"checks.json:hear.que-necesitas","text":"¿Qué necesitas?","kind":"npc"}
 {"id":"checks.json:hear.quieres-pan","text":"¿Quieres pan?","kind":"npc"}
 {"id":"checks.json:hear.pedir-agua","text":"Quiero agua, por favor.","kind":"npc"}
@@ -1707,6 +1961,10 @@
 {"id":"checks.json:hear.cuantos-panes","text":"¿Cuántos panes quieres?","kind":"npc"}
 {"id":"checks.json:hear.cuesta-dos-monedas","text":"El pan cuesta dos monedas.","kind":"npc"}
 {"id":"checks.json:hear.que-compraste","text":"¿Qué compraste?","kind":"npc"}
+{"id":"checks.json:hear.soy-el-herrero","text":"Soy el herrero. Trabajo con fuego y madera.","kind":"npc"}
+{"id":"checks.json:hear.quieres-un-hacha","text":"¿Quieres un hacha? Necesito dos bloques de madera y dos monedas.","kind":"npc"}
+{"id":"checks.json:hear.que-va-a-hacer-domingo","text":"¿Qué va a hacer Domingo?","kind":"npc"}
+{"id":"checks.json:hear.ayer-trabajo-mucho","text":"Ayer Domingo trabajó mucho.","kind":"npc"}
 {"id":"words.json:directions.ahead","text":"adelante","kind":"npc"}
 {"id":"words.json:directions.behind","text":"detrás","kind":"npc"}
 {"id":"words.json:directions.left","text":"a la izquierda","kind":"npc"}
@@ -1747,6 +2005,10 @@
 {"id":"npcs/fisher.json:name","text":"Mar","kind":"npc"}
 {"id":"npcs/baker.json:label","text":"Panadera","kind":"npc"}
 {"id":"npcs/baker.json:name","text":"Luz","kind":"npc"}
+{"id":"npcs/smith.json:label","text":"Herrero","kind":"npc"}
+{"id":"npcs/smith.json:name","text":"Domingo","kind":"npc"}
+{"id":"npcs/farmer.json:label","text":"Granjero","kind":"npc"}
+{"id":"npcs/farmer.json:name","text":"León","kind":"npc"}
 {"id":"speech:card.agua","text":"el agua","kind":"npc"}
 {"id":"speech:card.antorcha","text":"la antorcha","kind":"npc"}
 {"id":"speech:card.arena","text":"la arena","kind":"npc"}

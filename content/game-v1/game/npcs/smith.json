@@ -1,0 +1,21 @@
+{
+  "$schema": "../../../schema/npc.schema.json",
+  "schemaVersion": 2,
+  "id": "smith",
+  "label": "Herrero",
+  "name": "Domingo",
+  "figure": "smith",
+  "prompts": {
+    "idle": "smith-open"
+  },
+  "opening": {
+    "event": "smith.greet",
+    "when": "always"
+  },
+  "voice": {
+    "speaker": 36,
+    "name": "im_nicola",
+    "speed": 1.0,
+    "gain": 0.6
+  }
+}

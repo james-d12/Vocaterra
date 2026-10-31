@@ -62,6 +62,13 @@ public sealed class GrammarStringsExtractorTests
         ["tengo-cuatro-monedas"] = ["conj.person"],
         ["compre-dos-panes"] = ["conj.tense"],
         ["hay-pan"] = ["noun.number"],
+        ["como-te-llamas"] = ["conj.person"],
+        ["que-haces"] = ["conj.person"],
+        ["es-el-herrero"] = ["gender.agree"],
+        ["va-a-hacer-un-hacha"] = ["conj.person"],
+        ["vivo-en-el-campamento"] = ["gender.agree"],
+        ["trabaja-en-la-herreria"] = ["conj.person"],
+        ["hizo-un-hacha"] = ["conj.tense"],
     };
 
     [Fact]
@@ -238,12 +245,23 @@ public sealed class GrammarStringsExtractorTests
     [Fact]
     public void TheWaiverFileOnlyNamesStringsThatExist()
     {
-        // A waiver for an id the strings file no longer has would be reported unused by the core; this keeps the file honest in the test run too.
+        // A waiver for an id the strings file no longer has would be reported unused by the core; this keeps the file honest in the test run too. A waiver may name
+        // a text instead of an id (the core's grammar waivers take either): every string with that text, which must be one of them (V12: the smith's name, Domingo,
+        // in six lines).
         var ids = All.Select(static line => line.Id).ToHashSet(StringComparer.Ordinal);
+        var texts = All.Select(static line => line.Text).ToHashSet(StringComparer.Ordinal);
         using var waivers = JsonDocument.Parse(File.ReadAllText(Path.Combine(ContentDirectory, "grammar", "game-v1-waivers.json"), Encoding.UTF8));
         foreach (var waiver in waivers.RootElement.GetProperty("waivers").EnumerateArray())
         {
-            Assert.Contains(waiver.GetProperty("id").GetString()!, ids);
+            if (waiver.TryGetProperty("id", out var id))
+            {
+                Assert.Contains(id.GetString()!, ids);
+            }
+            else
+            {
+                Assert.Contains(waiver.GetProperty("text").GetString()!, texts);
+            }
+
             Assert.False(string.IsNullOrWhiteSpace(waiver.GetProperty("reason").GetString()));
         }
     }

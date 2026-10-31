@@ -14,7 +14,7 @@ public sealed class PhraseSheetLookupTests
     private static PhraseSheet Sheet => RouteScene.DataOf(TestGame.Bundle).Phrases;
 
     [Fact]
-    public void TheBundleHoldsTheSeventySevenPhrasesOfTheSheetInOrder()
+    public void TheBundleHoldsTheNinetyThreePhrasesOfTheSheetInOrder()
     {
         var sheet = Sheet;
 
@@ -27,7 +27,9 @@ public sealed class PhraseSheetLookupTests
                 "que-buscas", "donde-esta-la-panaderia", "esta-a-la-izquierda", "donde-esta-la-herreria", "esta-lejos", "esta-cerca", "hay-tres-casas", "hay-un-pozo", "adonde-vas", "voy-a-la-panaderia",
                 "que-vas-a-hacer-alli", "voy-a-comprar-pan", "el-letrero", "fuiste-a-la-panaderia", "fui-a-la-panaderia",
                 "uno-a-cinco", "seis-a-diez", "tengo-diez-panes", "cuantos-panes", "quiero-dos-panes", "cuanto-cuesta", "cuesta-dos-monedas", "necesito-madera-para-el-horno", "voy-a-buscar-madera",
-                "toma-cuatro-monedas", "tengo-cuatro-monedas", "ayer-compre-fruta", "que-compraste", "compre-dos-panes", "compraste-dos-panes", "hay-pan"],
+                "toma-cuatro-monedas", "tengo-cuatro-monedas", "ayer-compre-fruta", "que-compraste", "compre-dos-panes", "compraste-dos-panes", "hay-pan",
+                "como-te-llamas", "me-llamo-domingo", "que-haces", "soy-el-herrero", "es-el-herrero", "que-va-a-hacer-domingo", "va-a-hacer-un-hacha", "donde-vives",
+                "vivo-en-el-campamento", "quieres-un-hacha", "toma-el-hacha", "trabaja-en-la-herreria", "vive-en-la-casa", "que-hizo-domingo", "hizo-un-hacha", "ayer-trabajo-mucho"],
             sheet.Rows.Select(static r => r.Id));
         Assert.Equal("Quiero agua, por favor.", sheet.Find("pedir-agua")!.CardPhrase);
         Assert.Equal("¿Dónde está el río?", sheet.Find("donde-esta-el-rio")!.CardPhrase);

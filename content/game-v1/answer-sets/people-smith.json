@@ -1,0 +1,53 @@
+{
+  "answerSetId": "people-smith",
+  "answers": [
+    {
+      "answerId": "name",
+      "canonical": "cómo te llamas",
+      "aliases": ["cómo te llamas tú", "cómo se llama usted", "cómo tú te llamas"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "job",
+      "canonical": "qué haces",
+      "aliases": ["qué haces tú", "qué hace usted", "qué tú haces", "en qué trabajas", "dónde trabajas"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "wood",
+      "canonical": "tengo madera",
+      "aliases": ["tengo dos monedas", "tengo dos bloques de madera", "sí, tengo madera"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "hello",
+      "canonical": "hola",
+      "aliases": ["buenos días", "buenas tardes", "buen día"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "thanks",
+      "canonical": "gracias",
+      "aliases": ["muchas gracias"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "bye",
+      "canonical": "adiós",
+      "aliases": ["hasta luego", "nos vemos", "hasta mañana"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar", "qué hago"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": ["no lo sé", "yo no sé", "no entiendo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    }
+  ]
+}

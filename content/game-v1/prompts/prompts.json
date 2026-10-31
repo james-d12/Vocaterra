@@ -398,5 +398,75 @@
     "agentId": "baker",
     "slotGrammarIds": [],
     "text": "¿Qué compraste?"
+  },
+  {
+    "promptId": "smith-open",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "people-smith",
+    "allowedIntentIds": ["ask_name", "ask_activity", "state_have", "greet", "thank", "farewell", "ask_help", "dont_know"],
+    "agentId": "smith",
+    "slotGrammarIds": [],
+    "text": "¡Hola! Esta es mi herrería."
+  },
+  {
+    "promptId": "farmer-open",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "people-farmer",
+    "allowedIntentIds": ["ask_name", "ask_activity", "greet", "thank", "farewell", "ask_help", "dont_know"],
+    "agentId": "farmer",
+    "slotGrammarIds": [],
+    "text": "¡Hola! Este es mi campo."
+  },
+  {
+    "promptId": "lesson-who",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-who",
+    "allowedIntentIds": ["name_object", "ask_help", "dont_know"],
+    "agentId": "villager",
+    "slotGrammarIds": [],
+    "text": "¿Quién es Domingo?"
+  },
+  {
+    "promptId": "lesson-will-make",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-will-make",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "villager",
+    "slotGrammarIds": [],
+    "text": "¿Qué va a hacer Domingo?"
+  },
+  {
+    "promptId": "lesson-lives",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-lives",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "smith",
+    "slotGrammarIds": [],
+    "text": "¿Dónde vives?"
+  },
+  {
+    "promptId": "lesson-works",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-works",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "villager",
+    "slotGrammarIds": [],
+    "text": "¿Dónde trabaja Domingo?"
+  },
+  {
+    "promptId": "lesson-made",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-made",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "villager",
+    "slotGrammarIds": [],
+    "text": "¿Qué hizo Domingo?"
   }
 ]
