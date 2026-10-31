@@ -406,15 +406,16 @@ step_speech() {
 step_fixtures() {
   begin fixtures
   # The old value is the one at HEAD and the one before step 1 (a manifest rewritten by hand before the loop); the same, unless it was.
-  local new old f changed=0 was=""
+  local new old f changed=0 before was=""
   new="$(bundle_value <"$GAME/manifest.json")"
   for old in $(printf '%s\n' "$OLD_HEAD" "$OLD_START" | sort -u); do
     [ "$old" = "$new" ] && continue
+    before=$changed
     while IFS= read -r f; do
       sed -i "s/$old/$new/g" "$f"
       changed=$((changed + 1))
     done < <(grep -rlF --exclude-dir=bin --exclude-dir=obj "$old" tests/)
-    was="${was:+$was or }${old:0:8}…"
+    [ "$changed" -gt "$before" ] && was="${was:+$was and }${old:0:8}…"
   done
   if [ "$changed" -gt 0 ]; then
     end_step passed "bundle $was -> ${new:0:8}…"
