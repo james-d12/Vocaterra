@@ -26,16 +26,31 @@ public sealed class TextGrader
     private static readonly NormalizationOptions Normalization = new(ConvertIndefiniteArticles: false);
 
     private readonly ContentBundle _bundle;
-    private readonly LinguisticAnalyzer _analyzer;
+    private readonly Func<NormalizedText, PromptSpec, AnalysisResult> _analyze;
     private readonly IntentResolver _resolver;
     private readonly VersionStamp _versions;
 
     /// <summary>Creates a grader over a bundle's lexicon, morphology, intents, answer sets and evaluation configuration.</summary>
     public TextGrader(ContentBundle bundle)
+        : this(bundle, null)
+    {
+    }
+
+    /// <summary>
+    /// Creates a grader whose linguistic analysis is <paramref name="analyze"/>, which must give what the bundle's analyzer gives for the text with the prompt's grammars
+    /// (<see cref="PromptGrammars"/>); the content lint passes the analyses it has made already. Null analyzes each text afresh.
+    /// </summary>
+    internal TextGrader(ContentBundle bundle, Func<NormalizedText, PromptSpec, AnalysisResult>? analyze)
     {
         ArgumentNullException.ThrowIfNull(bundle);
         _bundle = bundle;
-        _analyzer = new LinguisticAnalyzer(bundle.Lexicon, bundle.LanguageMorphology, bundle.Language, bundle.AnalysisRules);
+        if (analyze is null)
+        {
+            var analyzer = new LinguisticAnalyzer(bundle.Lexicon, bundle.LanguageMorphology, bundle.Language, bundle.AnalysisRules);
+            analyze = (normalized, prompt) => analyzer.Analyze(normalized, PromptGrammars.For(bundle.Intents, prompt));
+        }
+
+        _analyze = analyze;
         _resolver = new IntentResolver(bundle.Intents, bundle.Language, null, null, bundle.AnalysisRules);
         _versions = new VersionStamp(bundle.ContentHash, ImmutableSortedDictionary<string, string>.Empty);
     }
@@ -56,7 +71,7 @@ public sealed class TextGrader
         var normalized = language.Normalizer.Normalize(CleanTranscript(asr.Transcript), Normalization);
         var match = AnswerMatcher.Match(normalized, answerSet, prompt.Difficulty, language, Normalization);
         var analysis = AnswerCorrections.WithCanonicalWords(
-            _analyzer.Analyze(normalized, PromptGrammars.For(_bundle.Intents, prompt)),
+            _analyze(normalized, prompt),
             normalized,
             match,
             answerSet,

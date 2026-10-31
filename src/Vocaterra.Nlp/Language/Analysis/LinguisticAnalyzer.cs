@@ -72,23 +72,80 @@ public sealed class LinguisticAnalyzer
     /// part in no agreement check (see <see cref="ReadingResolver"/>).
     /// The grammar is matched first, on every reading of every word, because the words it binds tell the resolver which part of speech each ambiguous word is.
     /// The checks then run on the resolved readings only; the returned tokens still list every reading of the lexicon, which the intent stage matches lemmas on.
+    /// The analysis is exactly <see cref="Read"/>, <see cref="BestMatch(TextReadings, IReadOnlyList{SlotGrammar})"/> and <see cref="Complete"/>.
     /// </remarks>
     public AnalysisResult Analyze(NormalizedText text, IReadOnlyList<SlotGrammar> grammars)
     {
         ArgumentNullException.ThrowIfNull(text);
         ArgumentNullException.ThrowIfNull(grammars);
-        var errors = new List<ErrorTag>();
-        var analyzed = new List<AnalyzedToken>(text.Tokens.Count);
+        var readings = Read(text);
+        return Complete(readings, BestMatch(readings, grammars));
+    }
+
+    /// <summary>The first half of an analysis: every lexicon reading of every token, which depends on the text alone.</summary>
+    internal TextReadings Read(NormalizedText text)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        var analyzed = new AnalyzedToken[text.Tokens.Count];
         var irregular = new ErrorTag?[text.Tokens.Count];
         var variants = new IReadOnlyList<LexicalFeatures>[text.Tokens.Count];
         for (var i = 0; i < text.Tokens.Count; i++)
         {
-            analyzed.Add(new AnalyzedToken(text.Tokens[i], ReadingsFor(text.Tokens[i], out irregular[i], out variants[i])));
+            analyzed[i] = new AnalyzedToken(text.Tokens[i], ReadingsFor(text.Tokens[i], out irregular[i], out variants[i]));
         }
+
+        return new TextReadings(text, analyzed, irregular, variants);
+    }
+
+    /// <summary>The match an analysis completes with: the best of the grammars over every reading of every word, or null when none matches. Only this step reads the grammars.</summary>
+    internal SlotGrammarMatch? BestMatch(TextReadings readings, IReadOnlyList<SlotGrammar> grammars)
+    {
+        ArgumentNullException.ThrowIfNull(readings);
+        return BestMatch(grammars, grammar => Match(readings, grammar));
+    }
+
+    /// <summary>The match of one grammar over every reading of every word, or null; a function of the readings and the grammar alone.</summary>
+    internal SlotGrammarMatch? Match(TextReadings readings, SlotGrammar grammar)
+    {
+        ArgumentNullException.ThrowIfNull(readings);
+        return SlotGrammarMatcher.Match(readings.Tokens, grammar, _language, _rules);
+    }
+
+    /// <summary>
+    /// The best of the grammars' matches, each given by <paramref name="match"/>: in list order, a match replaces the best so far only when it beats it, so the earlier
+    /// grammar wins a tie. A caller that has matched a grammar over the same readings before can pass that match in (the content lint does).
+    /// </summary>
+    internal static SlotGrammarMatch? BestMatch(IReadOnlyList<SlotGrammar> grammars, Func<SlotGrammar, SlotGrammarMatch?> match)
+    {
+        ArgumentNullException.ThrowIfNull(grammars);
+        ArgumentNullException.ThrowIfNull(match);
+        SlotGrammarMatch? best = null;
+        foreach (var grammar in grammars)
+        {
+            var found = match(grammar);
+            if (found is not null && (best is null || SlotGrammarMatch.Beats(found, best)))
+            {
+                best = found;
+            }
+        }
+
+        return best;
+    }
+
+    /// <summary>
+    /// The second half of an analysis: names, errors, the resolved readings, the checks and the resolved words, given the readings and the grammar match over them. It is a
+    /// function of the two alone, and since a match is a function of the readings and its grammar, a caller that analyzes one text against many lists of grammars can
+    /// complete it once per winning grammar (the content lint does). The readings are not changed: each result gets its own list of tokens.
+    /// </summary>
+    internal AnalysisResult Complete(TextReadings readings, SlotGrammarMatch? match)
+    {
+        ArgumentNullException.ThrowIfNull(readings);
+        var text = readings.Text;
+        var errors = new List<ErrorTag>();
+        var analyzed = new List<AnalyzedToken>(readings.Tokens);
 
         // The grammar decides first which words are names ([WORD] elements). A name is not an unknown word, and it is no irregular verb form either, even when
         // its spelling is one. It carries no reading at all, so no rule, check or recast treats it as a word (a lexicon verb form would be conjugated by a recast).
-        var match = BestMatch(analyzed, grammars);
         var names = match?.WordTokens ?? new HashSet<int>();
         var allKnown = true;
         for (var i = 0; i < analyzed.Count; i++)
@@ -99,7 +156,7 @@ public sealed class LinguisticAnalyzer
                 continue;
             }
 
-            if (irregular[i] is { } error)
+            if (readings.Irregular[i] is { } error)
             {
                 errors.Add(error);
             }
@@ -111,7 +168,7 @@ public sealed class LinguisticAnalyzer
             }
         }
 
-        var resolved = ReadingResolver.Resolve(analyzed, variants, match, Cost, _rules, _language.Folding);
+        var resolved = ReadingResolver.Resolve(analyzed, readings.AccentVariants, match, Cost, _rules, _language.Folding);
         _rules.CreateAgreementChecker(resolved, errors).Run();
         return new AnalysisResult(
             analyzed,
@@ -156,21 +213,6 @@ public sealed class LinguisticAnalyzer
         checker.Run();
         var cost = found.Distinct().Count();
         return cost + (checker.HasPastTimeMarker() && !resolved.Any(static t => t.Readings.Any(ReadingClasses.IsFiniteVerb)) ? PastMarkerWithoutVerbCost : 0);
-    }
-
-    private SlotGrammarMatch? BestMatch(IReadOnlyList<AnalyzedToken> tokens, IReadOnlyList<SlotGrammar> grammars)
-    {
-        SlotGrammarMatch? best = null;
-        foreach (var grammar in grammars)
-        {
-            var match = SlotGrammarMatcher.Match(tokens, grammar, _language, _rules);
-            if (match is not null && (best is null || SlotGrammarMatch.Beats(match, best)))
-            {
-                best = match;
-            }
-        }
-
-        return best;
     }
 
     private List<ErrorTag> OrderErrors(List<ErrorTag> errors)
