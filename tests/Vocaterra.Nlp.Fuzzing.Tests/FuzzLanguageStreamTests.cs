@@ -26,9 +26,11 @@ public sealed class FuzzLanguageStreamTests
     // Digests of the first case at each fixed seed on the frozen inputs. Re-record them only when the generators change (a generator, its draw order, the realiser, a
     // mirrored table of LexiconCatalog or PipelineHarness.FixtureGrammars), in the commit that changes them, and say there what changed. Never re-record them for a content
     // edit: none can move them. History: from M35 to M59 they were recorded on content/game-v1 itself, and every content milestone that added a word or a grammar
-    // (V10 to V16) re-recorded them with the generators unchanged; M57 (c) moved them to the frozen inputs (copied at 0041eff), the generators unchanged.
+    // (V10 to V16) re-recorded them with the generators unchanged; M57 (c) moved them to the frozen inputs (copied at 0041eff), the generators unchanged. The sentence
+    // digest again at M57 (a), whose realiser finds the time markers of more than one word (TimeMarkerModel) and whose fixture grammars gained two patterns with them;
+    // the text digest did not move.
     private const string TextDigest = "24826CDAB4703637C13D991FE7D2FF0010F467C05BCD9D5C6C2F1AF9065D8D25";
-    private const string SentenceDigest = "CADD47DED38DAB253952B7F0392F5801C17F5441BDE0CDADEAF68F38527A3C3C";
+    private const string SentenceDigest = "2915B6C25E9A378059C23B9ECD7D001A42130850817872973FCD5395DD0EABE3";
 
     [Fact]
     public void TheSpanishRecordUsesTheSpanishPackAndTheWholeMutationSet()
