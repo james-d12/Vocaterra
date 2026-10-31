@@ -190,9 +190,15 @@ text and the grammar it was built from) and its mutation kinds. `FuzzLanguage.Sp
   `AnalyzerFuzzTests`, `IntentResolverFuzzTests`) call the same bodies with their own coverage facts, and `NormalizerFuzzTests` also calls the Spanish static
   entry points (`Accents.Strip`, `SpanishPhoneticKey`). The Spanish O14 (`PipelineFuzzTests`) stays as it was: it also covers phonemes, two-phase runs,
   host turns and the envelope mutations, which need Spanish inputs.
-- The same seed gives the same Spanish cases. CsCheck seeds only the first iteration of a sample, so `FuzzLanguageStreamTests` compares the first case of
-  400 fixed seeds, for the text stream and the sentence stream, with a digest recorded from the unchanged generator expressions. A changed generator or a
-  changed realisation fails that test.
+- The same seed gives the same Spanish cases. CsCheck seeds only the first iteration of a sample, so `FuzzLanguageStreamTests` hashes the first case of
+  400 fixed seeds, for the text stream and the sentence stream. **What the two digests guard: the generators** (a generator, its draw order, the realiser, a
+  mirrored table of `LexiconCatalog`, `PipelineHarness.FixtureGrammars`). A changed generator or a changed realisation fails that test, and the commit that changes
+  them records them again and says why. They are computed on **frozen inputs** (M57, `Generation/GeneratorInputs.cs`, `FrozenGeneratorInputs`): the files of
+  `Fixtures/StreamDigest`, a copy of `content/game-v1`'s hand-authored lexicon files (`seed`, `game`, `world`, `supplement`; 1 299 entries; the imported Wiktionary
+  lexicon is left out) and of its 92 slot grammars as they were at `0041eff`, never edited, with the suite's fixture grammars appended. So no content edit moves
+  them: from M35 to M59 they were recorded on the bundle itself, and the content milestones V10 to V16 each re-recorded them with the generators unchanged. A
+  second fact checks that `FuzzLanguage.Spanish`, the record the oracles run on, gives the old expressions' streams on the bundle (compared with each other, not
+  with a recorded digest, so a content edit moves both alike), and a third that most first cases on the frozen inputs are realised sentences.
 - `Languages/Xx/` is the toy language (M35): `XxLanguagePack` implements every `ILanguagePack` member with trivial, non-Spanish behaviour (no accent, no
   inverted mark, no subject pronoun, numbers 0 to 3 as invented words, no G2P, its own three error tags); `XxBundle` writes a three-word bundle
   (`ka`, `mo`, `ti`; two intents; two prompts, one of them constrained; an agent; a dialogue; an effect table) with `"language": "xx"` into a temporary
@@ -220,6 +226,8 @@ surrogate; the content validator filled templates with Spanish sample words; the
     gender (they are drawn like any other; the flags say which mistakes cannot be built on them), indexes the lexicon for the generators, and prints the counts as
     `nouns:`, `verbs:`, `adjectives:` ... diagnostics of O3.
   - `SpanishTextGen` / `TextNoise` - lexicon-driven phrases (word salad and loosely structured phrases) with casing, accent, NFD, `¿¡?!,.`, spacing, number-word and adversarial-token noise. The adversarial token goes in last and verbatim, so a lone surrogate reaches the stage under test unrepaired.
+  - `GeneratorInputs` - what the pattern and sentence generators read (`IGeneratorInputs`: the lexicon catalog and the grammars): the bundle's through `PipelineHarness`,
+    or the frozen copy of `Fixtures/StreamDigest` that the stream digests are recorded on (`FrozenGeneratorInputs`, M57).
   - `GrammarPattern`, `PatternGen` - slot grammar patterns as a tree: every catalog grammar, structural skeletons, and random DSL strings built from the token kinds, including the name token `[WORD:slot]` (M17b).
   - `SentenceGen`, `SentenceRealizer`, `SentenceModel` - correct sentences from a pattern, agreement right by construction (see below). A name (`[WORD]`) is two or three invented syllables drawn from the seeded generator, written with a capital and normalized in lower case (`TokenRole.Name`).
   - `UnboundNames` (in `Oracles/`) - the `vocab.unknown` errors that the names of a sentence must get when its grammar does not bind them (see below).

@@ -35,9 +35,21 @@ public sealed record FuzzLanguage(
     public static FuzzLanguage Spanish { get; } = new(
         SpanishLanguagePack.Instance,
         PipelineHarness.Shared.Bundle,
-        SpanishTextGen.Text(PipelineHarness.Shared.Words),
-        SentenceGen.Recipe(PipelineHarness.Shared).Select(static recipe => FromRealised(SentenceGen.Realize(PipelineHarness.Shared, recipe))),
+        SpanishFreeText(PipelineHarness.Shared),
+        SpanishSentences(PipelineHarness.Shared),
         Enum.GetValues<MutationKind>());
+
+    /// <summary>The Spanish text generator of <see cref="Spanish"/> over the given inputs (the stream digests run it on a frozen copy, M57).</summary>
+    public static Gen<string> SpanishFreeText(IGeneratorInputs inputs)
+    {
+        return SpanishTextGen.Text(inputs.Words);
+    }
+
+    /// <summary>The Spanish sentence realiser of <see cref="Spanish"/> over the given inputs (the stream digests run it on a frozen copy, M57).</summary>
+    public static Gen<FuzzSentence?> SpanishSentences(IGeneratorInputs inputs)
+    {
+        return SentenceGen.Recipe(inputs).Select(recipe => FromRealised(SentenceGen.Realize(inputs, recipe)));
+    }
 
     /// <summary>The realised Spanish sentence as a <see cref="FuzzSentence"/>, or null when the realiser gave none.</summary>
     public static FuzzSentence? FromRealised(GeneratedSentence? sentence)

@@ -29,7 +29,7 @@ namespace Vocaterra.Nlp.Fuzzing.Tests.Oracles;
 /// (scripted recognizers, trigram embedder, silent synthesizer) so no model file is needed. Stage 2 oracles build on the same members:
 /// <see cref="Bundle"/>, <see cref="NewServices"/>, <see cref="NewPipeline"/>, <see cref="NewContext"/> and <see cref="Prompt"/>.
 /// </summary>
-public sealed class PipelineHarness
+public sealed class PipelineHarness : IGeneratorInputs
 {
     /// <summary>The fixed instant every generated conversation context uses; nothing in the suite reads a clock.</summary>
     public const long FixedNow = 1_700_000_000;
@@ -80,13 +80,13 @@ public sealed class PipelineHarness
     /// </summary>
     public MorphologyGenerator RegularParadigm { get; } = new(SpanishLexicon.Empty);
 
-    /// <summary>The lexicon seen through the generators' eyes.</summary>
+    /// <inheritdoc />
     public LexiconCatalog Words { get; }
 
     /// <summary>A shared analyzer over the bundle lexicon; stateless apart from a lazily built, thread-safe index.</summary>
     public LinguisticAnalyzer Analyzer { get; }
 
-    /// <summary>Every slot grammar of the intent catalog as a parseable pattern plus its compiled <see cref="SlotGrammar"/>.</summary>
+    /// <summary>Every slot grammar of the intent catalog as a parseable pattern plus its compiled <see cref="SlotGrammar"/>, then the <see cref="FixtureGrammars"/>.</summary>
     public PatternCatalog Grammars { get; }
 
     /// <summary>Normalizes text exactly as the pipeline does.</summary>

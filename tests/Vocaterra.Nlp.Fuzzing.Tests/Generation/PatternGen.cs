@@ -1,6 +1,5 @@
 using CsCheck;
 using Vocaterra.Nlp.Core.Determinism;
-using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests.Generation;
 
@@ -41,7 +40,7 @@ public static class PatternGen
     private static readonly string[] SlotNames = ["item", "qty", "spell", "thing", "who", "what", "extra", "more", "other"];
 
     /// <summary>Draws a pattern: catalog grammars 40%, skeletons 25%, random strings 35%.</summary>
-    public static Gen<SourcedPattern> Any(PipelineHarness harness)
+    public static Gen<SourcedPattern> Any(IGeneratorInputs harness)
     {
         return Gen.Frequency(
             (40, (IGen<SourcedPattern>)Catalog(harness)),
@@ -50,7 +49,7 @@ public static class PatternGen
     }
 
     /// <summary>Draws one grammar of the bundle's intent catalog.</summary>
-    public static Gen<SourcedPattern> Catalog(PipelineHarness harness)
+    public static Gen<SourcedPattern> Catalog(IGeneratorInputs harness)
     {
         return Gen.OneOfConst([.. harness.Grammars.Grammars.Select(static g => new SourcedPattern("catalog", g.Pattern))]);
     }
@@ -62,7 +61,7 @@ public static class PatternGen
     }
 
     /// <summary>Draws a random DSL pattern; the seed fully determines it.</summary>
-    public static Gen<SourcedPattern> Random(PipelineHarness harness)
+    public static Gen<SourcedPattern> Random(IGeneratorInputs harness)
     {
         return Gen.ULong.Select(seed => new SourcedPattern("random", Build(harness.Words, new SeededRng(seed))));
     }
