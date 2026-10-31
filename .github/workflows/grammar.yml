@@ -22,19 +22,6 @@ on:
       - scripts/fetch-tools.sh
       - scripts/languagetool.sh
       - .github/workflows/grammar.yml
-  pull_request:
-    paths:
-      - content/**
-      - src/Vocaterra.Nlp/**
-      - src/Vocaterra.Nlp.Es/**
-      - src/Vocaterra.Game.Core/**
-      - src/Vocaterra.Host/**
-      - tools/Vocaterra.Nlp.ContentBuilder/**
-      - tools/manifest.json
-      - scripts/content.sh
-      - scripts/fetch-tools.sh
-      - scripts/languagetool.sh
-      - .github/workflows/grammar.yml
   workflow_dispatch:
 
 concurrency:
