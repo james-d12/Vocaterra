@@ -1,4 +1,4 @@
-You are implementing the core milestone **M58, two learner slips the core misreads**, of the Vocaterra repository (C#, .NET 10). The language core is the `Vocaterra.Nlp` engine (`src/Vocaterra.Nlp`), the Spanish pack `src/Vocaterra.Nlp.Es` and the `Vocaterra.Nlp.*` test and tool projects; the game is `Vocaterra.{Game.Core,Game,Host,SpeechRender}`. **This milestone's work is in the core.** The owner asked on 2026-10-31 for M58 to land before the game's V15 (session 10, "El mercado"), whose prices and quantities a learner will ask with exactly these slips.
+You are implementing the core milestone **M58, two learner slips the core misreads, and the `word_order` mutation's guard**, of the Vocaterra repository (C#, .NET 10). The language core is the `Vocaterra.Nlp` engine (`src/Vocaterra.Nlp`), the Spanish pack `src/Vocaterra.Nlp.Es` and the `Vocaterra.Nlp.*` test and tool projects; the game is `Vocaterra.{Game.Core,Game,Host,SpeechRender}`. **This milestone's work is in the core.** The owner asked on 2026-10-31 for M58 to land before the game's V15 (session 10, "El mercado"), whose prices and quantities a learner will ask with exactly these slips.
 
 Do the work yourself; do not spawn subagents.
 
@@ -12,6 +12,7 @@ Work only in the existing git worktree `/home/user/Dev/Vocaterra/.claude/worktre
 Found by the game's V11 (2026-10-31), each tried on the CLI at a prompt of the game bundle:
 - **(a) `cuánto costa`** (the stem change missed) is read as the noun `costa`: it gives `gender.agree` (expected `cuánta`) and no intent, where `conj.irregular` expected `cuesta` is the slip (`cuánto costan los panes` is graded `conj.irregular` correctly). Read `costa` after `cuánto` (and wherever a verb is expected: `el pan costa dos monedas`) as the missed stem change of `costar`, so the intent resolves with `conj.irregular`. Keep the noun where it is one (`la costa`, `en la costa`, if the lexicon has it). Look for the same misreading in the other stem-changing verbs the bundle uses (`podo`/`pode`, `quero`, `tenes`, `dormo`, `jugo`…): fix those the same way if they collide with a word, or list them in the report.
 - **(b) `hay pans`** gives `vocab.unknown` and no intent, where `noun.number` expected `panes` would let the intent resolve. A plural made with `-s` on a noun that takes `-es` (`pans`, `flors`, `relojs`) is a number slip of a known noun, not an unknown word; the intent resolves. Keep `vocab.unknown` for a real unknown word.
+- **(c) The `word_order` mutation's guard, by the owner's decision (2026-10-31, "go with option 1"; the only narrowing this brief allows).** M57 found an older O5 failure (CsCheck seed `ff2aNwHuJBk8`, `MutationCase { Kind = WordOrder, Seed = 64247025744 }`, about one full fuzz run in eight; the fuzz README's "Found at M57 and left for a decision" entry). The guard reads the pattern's roles, not the words' readings, so it moves an adjective after a word that can itself be an adjective (`suelta plantar satisfecha`: `plantar` is a real adjective) and expects a `word_order` the core rightly does not give. Make the guard read the words' readings (no move when a word before the adjective can be a noun or an adjective by its readings, as the analyzer sees it), so the mutation never builds a sentence the core may read as correct. This narrows O4 and O5 for exactly that case and no other: say so in the README's list of narrowed oracles, with the owner's decision and date, and move the M57 entry there. Add a regression case on that seed (the mutation is now skipped or still flagged correctly), and run the fuzz project at five times its usual depth once to show nothing else changed.
 - Regression tests in the owning module (the Spanish pack's analysis, `src/Vocaterra.Nlp.Es/Analysis/`, or the morphology/lexicon stage that owns the reading), each failing before the fix, with the clean neighbours (`cuánto cuesta el pan`, `cuánto cuestan los panes`, `hay panes`, `hay dos panes`, `hay un pan`) as tests too. The fuzz oracles unchanged or widened, never narrowed.
 - `docs/nlp/API.md` stays true: where it lists what `conj.irregular`, `noun.number` and `vocab.unknown` report, add the new cases.
 
@@ -25,7 +26,7 @@ Found by the game's V11 (2026-10-31), each tried on the CLI at a prompt of the g
 
 ## Rules
 - A core milestone edits only the `Vocaterra.Nlp` and `Vocaterra.Nlp.*` projects, their tests, `tests/golden` and `docs/nlp/`. It does not edit the game's projects, `content/game-v1`, `content/locale`, `content/PHRASES.md` or `docs/game/`. If a core test on `content/game-v1` breaks because the content relied on the old grade, stop and report it.
-- Fix bugs at the source, with a regression test in the owning module. **Never weaken or narrow a fuzz oracle**; widen it or leave it. If the fuzz suite finds a new real bug, fix it or report it, and add it to the fuzz README's list.
+- Fix bugs at the source, with a regression test in the owning module. **Never weaken or narrow a fuzz oracle**; widen it or leave it. The one exception is part (c), by the owner's decision, and only for the case it names. If the fuzz suite finds a new real bug, fix it or report it, and add it to the fuzz README's list.
 - Determinism: no `System.Random`, no clock.
 - Do not edit either `IMPLEMENTATION_PLAN.md` or either `DECISIONS.md`. Never create or edit anything under `.github/workflows/`.
 - The end-to-end goldens may move because the core now grades a learner line differently: re-record them (`VOCATERRA_RECORD_GOLDEN=1`, `tests/Vocaterra.Nlp.Golden.Tests`) in their own commit, and list in the report every entry that moved and why it is now right.
@@ -68,7 +69,8 @@ Claude-Session: https://claude.ai/code/session_01F9jKDdyPc3eAsDgGyBVKv6
 - What was built for (a) and (b), and the other stem-change collisions found.
 - The regression tests and what each gave before the fix.
 - The CLI results of the gate's lines.
-- Fuzz findings, if any; oracles changed (only widened) or not.
+- Fuzz findings, if any; oracles changed (only widened, apart from (c)) or not.
+- For (c): the guard's new rule, the regression case on seed `ff2aNwHuJBk8`, the README's narrowed-oracle entry, and the five-times-depth fuzz run's result.
 - The test count before and after; goldens re-recorded and why each entry moved.
 - Which of the game's "meanwhile" examples in `content/PHRASES.md` the core now grades, so the game can restore them.
 - Anything left undone, and why.

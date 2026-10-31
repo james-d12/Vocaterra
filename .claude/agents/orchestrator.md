@@ -40,7 +40,42 @@ is a change to the boundary and updates that record.
     resource rules and gate.
   - Bring owner decisions (licences, scope, anything that changes D-numbers) to the owner rather than deciding them.
 
-## Handover (2026-10-31): the village, phase B (read this first)
+## Handover (2026-10-31, late): the village, phase B (read this first)
+**Start here (a fresh orchestrator session; the last one ended with nothing running)**
+1. **Check the session.**
+   - Run the start checks in "Start of a session" below.
+   - The worktree `.claude/worktrees/village` should be on `feature/village` and clean, at the handover commit or later.
+   - The branch `V17-manana-en-el-pueblo` (`7176734`) is pushed and not gated.
+   - No agent or build is running.
+2. **Gate V17 first.** Its report is in `.claude/briefs/V17-report.md` (scope already checked).
+   - **Read** its new Spanish in the diff (`git diff feature/village..V17-manana-en-el-pueblo -- content/game-v1`, the lesson and pool
+     files, not the manifest).
+   - **Gate** in the background: `GATE_TARGET=feature/village scripts/merge-gate.sh "V17:V17-manana-en-el-pueblo"`.
+   - **Spot-check:**
+     - `scripts/content-loop.sh --grammar --tier none`: CI's grammar cache rebuilt from nothing, equal;
+     - the host at `baker-open`: `mañana compraré pan`, `Luz, mañana compraré pan`, `voy a comprar pan`;
+     - the lesson by `--skip-to-session 9`.
+   - The agent was stopped before its last checks. Do them yourself, cheaply, or carry them into V15's brief:
+     - the scripted runs after the change;
+     - the learner's route from session 8;
+     - the timed `--lesson-run`;
+     - CI's case without models.
+   - **Record** V17:
+     - its VILLAGE_PLAN section 4 row (only the milestone table's row; a regex on `| V17 |` also hits the 3.8 code-changes table);
+     - an entry in `docs/game/IMPLEMENTATION_PLAN.md` section 5, modelled on V16's;
+     - its open points under "Open points to carry".
+   - **Then:** commit, push `feature/village`, delete the branch locally and on the remote, and delete `.claude/briefs/V17-report.md`.
+3. **Then, in order, without stopping:** M58, M62, V15, V09. Each by an Opus 5.5 agent at xhigh, one at a time, in the shared worktree.
+   - **M58:** `.claude/briefs/M58-misreadings.md` is ready. Fill `@@HEAD@@` and `@@COUNT@@`. Its part (c) is the owner's "option 1",
+     the `word_order` guard.
+   - **M62:** `.claude/briefs/M62-adjectives.md`. Fill the same placeholders.
+   - **V15:** `.claude/briefs/V15-el-mercado.md` is a draft of its "What to build" only. Its header comment says what to add, with V17's
+     brief as the model.
+   - **V09:** no brief yet. It is the documents and the scripted runs again, for phase B: VILLAGE_PLAN's V09 row (section 4) and
+     section 5, and what phase A's V09 did (its entry in the game plan's section 5, `grep -n '^- \*\*V09'`).
+   - After V09: report phase B as finished to the owner, with what is left open. A QA agent pass on the village (`subagent_type: qa`) is
+     optional and is the owner's call.
+
 **Where things stand**
 - The work is the village series, `docs/game/VILLAGE_PLAN.md` (D-game-22). It lives on `feature/village`, checked out in the worktree
   `.claude/worktrees/village`; start every session there. PR #20 (`feature/village` into `main`) is open, and the owner merges it.
@@ -58,13 +93,16 @@ is a change to the boundary and updates that record.
   - V16: the simple future at a step, the other futures credited with a note, the book's fourth column (`71573ba`);
   - the core's M57 (`888f914`): the later time markers in one table (`SpanishTimeMarkers`); the stream digests on frozen inputs;
   - `main` merged in at `0cf674b`. It brought the CI workflow with its grammar jobs, and the QA agent.
-- **Next, in order** (owner, 2026-10-31, D-game-22): V17 (session 9
-  "Mañana en el pueblo"), the core's M58 and M62 (before V15), V15 (session 10 "El mercado"), then V09 again (the documents and the scripted runs).
-  Every one by Opus 5.5 at xhigh, one at a time. The core's M62 (V13's adjective gaps) runs before V15 (owner, 2026-10-31).
+- **Built, not gated:** V17, session 9 "Mañana en el pueblo" (`7176734`; see "Start here").
+- **Next, in order** (owner, 2026-10-31, D-game-22): V17's gate, the core's M58 and M62 (both before V15; M62 by the owner's word after
+  V13), V15 (session 10 "El mercado"), then V09 again (the documents and the scripted runs).
+  - Every one by Opus 5.5 at xhigh, one at a time. The owner asked whether milestones could run in parallel, heard the reasons (the
+    chain V17 → V15 → V09, the one machine-wide build lock, disk) and said "for now just continue with the development".
   - The design is VILLAGE_PLAN sections 3.5 to 3.9, 4 and 5. The findings of every V milestone so far are in
     `docs/game/IMPLEMENTATION_PLAN.md` section 5 (the V entries at its end).
-  - **Drafted briefs** are in `.claude/briefs/` (M58, M62, V17; V15 and V09 are still to write); fill their `@@…@@` placeholders (the HEAD, the test
-    count, the earlier milestone's findings) from the last reports before launching.
+  - **Briefs** are in `.claude/briefs/`. M58 and M62 are ready, V15 is a draft and V09 is not written. Fill their `@@…@@` placeholders
+    (the HEAD, the test count, the earlier milestone's findings) from the last reports before launching. The used briefs (V13, V14, V16,
+    V17, V18, M56, M57, M59) are the models.
 
 **The owner's instructions for this series** (they override "Model policy", "Per-milestone loop" step 2 and the template's branch line below)
 - **Every V milestone is built by Opus 5.5 at xhigh effort:** the Agent call takes `model: opus` and `effort: xhigh` (D-game-22). Use cheaper
@@ -90,7 +128,7 @@ is a change to the boundary and updates that record.
 - `--skip-to-session n` for the lesson's timing run.
 - **The content loop in one line** (V18): `scripts/content-loop.sh --grammar --speech` after every content edit (never under
   `limited.sh`), `--record` when the goldens move, and `--tier full` once before the report. It replaces the hand steps (refresh, the
-  LanguageTool cache and its rebuild check, the prerender, the fixtures' hash); the stream digests stay hand-set until M57 (c).
+  LanguageTool cache and its rebuild check, the prerender, the fixtures' hash); since M57 the stream digests run on frozen inputs and do not move with content.
 - **Lean context** (the study's P1: a milestone's cost is its turns times its context): name the sections to read, never "all of it";
   never `SPEECH_CHECKLIST.md`, `manifest.json` or the whole of `PHRASES.md` (grep the rows); heavy output to log files, at most 30 lines
   printed; `sed -n` ranges under about 150 lines; a one-page report.
@@ -115,8 +153,12 @@ is a change to the boundary and updates that record.
   - three older timed tests sit within four times of their budgets here (the bundle load 1676 of 3000 ms, the scene build and digest
     1275 of 3000 ms, the world snapshot 0.49 of 1.5 s): with CI's runner about four times slower, the likely CI failures if any appear;
   - the NPCs' "¡Muy bien!" plays in Luna's voice; `tener que` has no book entry.
-- **Owner question from M57:** the fuzz suite's rare O5 failure (seed `ff2aNwHuJBk8`, about one full run in eight): fixing the
-  `word_order` mutation's guard narrows O4 and O5. Until answered, a gate failing there is rerun once after checking the seed.
+- **Answered by the owner (M57's question):** the fuzz suite's rare O5 failure (seed `ff2aNwHuJBk8`, about one full run in eight) is
+  fixed by "option 1", the `word_order` mutation's guard reading the words' readings, in M58 (c), narrowing O4 and O5 for that case only.
+  Until M58 lands, a gate failing there is rerun once after checking the seed.
+- **From V17** (the agent's report): a word outside a constrained prompt's answer set gets `vocab.wrong` (`usted comprará pan` at a
+  lesson step; older); `fisher-open` takes no plans (the lint's confusion check gives `buscaré madera` to `ask_directions` there); the
+  coin path is unchanged by session 9 (no order: a fifth order to Luz would pay her 4 coins again).
 - **Core gaps filed, not started:** M58 and M62 (both in the queue).
 
 **Gotchas learnt this series**
@@ -133,6 +175,10 @@ is a change to the boundary and updates that record.
   refuses, exit 3). `scripts/content.sh refresh` is its first step. A CLI `eval` run still needs a wrapper script under `/tmp/claude-1000/`.
 - **Test the learner's route.** Spot-check the route a learner takes from a new world, not only `--lesson-run`: phase A's lessons were
   unreachable in practice until V12c.
+- **Never end a session with an agent running.** A subagent's report reaches only the session that launched it. Ask it to wrap up
+  (SendMessage), wait for its report, put the report in `.claude/briefs/`, then `TaskStop` it before changing the worktree's branch.
+  V17's agent left two wait loops (`until ! pgrep -f 'content-loop.sh …'`) that matched their own command lines and never ended; kill
+  such loops after an agent finishes (`pgrep -fa content-loop`).
 - **Try a core change on correct learner lines, not only the brief's.** M59's first build flagged `Luz quiero pan` (a name said to the
   listener; transcripts carry no commas) because the brief asked for `Mar pescaste en el río` to be flagged. Before gating a core
   milestone, run the CLI on a few natural, correct lines at the NPCs' prompts (names, greetings, `usted`/`ustedes`).
