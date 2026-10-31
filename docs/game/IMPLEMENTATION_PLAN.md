@@ -398,7 +398,7 @@ instruction one session (Opus 5.5) does every milestone itself, with no subagent
 - C10, the authoring CLI (`new npc|objective|lesson`, `refs <id>`, `check`), is specified in `CONTENT_PLAN.md` section 3.8.
 - Neither C09 nor C10 is built; each becomes a milestone when the owner asks for it.
 
-### 4.8 The village and the lessons (the V series; phase A done 2026-10-31, phase B held, D-game-22)
+### 4.8 The village and the lessons (the V series; phase A done 2026-10-31, phase B started 2026-10-31, D-game-22)
 
 The owner's request (2026-10-30): a bigger village with more NPCs (a blacksmith, a baker) and more lessons, without a larger map,
 with the NPCs interlinked, the map's space used, the lessons connected, A1 to A2; and, the same day, "past, present, and future use of
@@ -409,8 +409,9 @@ present, the preterite and the future around the order it carries (the plan, the
 session 9. Phase A (V01 to V07, V10 to V12: sessions 4 to 6, A1 complete) and phase B (V08, V13 to V17: A2) are separated by an owner
 decision. The series runs on `feature/village`, commit prefix `V<nn>:`. **Phase A started on 2026-10-30** (D-game-22: the plan's
 proposals, the farmer León, provisional voices heard afterwards, phase B held; every milestone by Opus 5.5 at xhigh effort); **phase A was done on
-2026-10-31** (V01 to V07, V09, V10 to V12 and the follow-up V12b; 6030 tests passing, bundle `7ba32270…`), and phase B waits for the
-owner. The milestones' statuses are in the plan's section 4. The findings of each milestone go into section 5.
+2026-10-31** (V01 to V07, V09, V10 to V12 and the follow-up V12b; 6030 tests passing, bundle `7ba32270…`). The owner's playtest the same
+day added V12c (the next session in the game), and the CI run on PR #20 the core's M60 (the lint's speed). **Phase B started on 2026-10-31**
+on the owner's word: all of it on `feature/village`, reviewed by the owner at the end. The milestones' statuses are in the plan's section 4. The findings of each milestone go into section 5.
 
 ## 5. Findings log
 
@@ -1711,6 +1712,28 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     free talk: the cards, the credit and the reply.
   - **Found:** at the villager, "¿dónde está la panadería?" still credits `donde-esta-el-rio` (from before V12b; the check that would fix it
     changes lesson credit, so it is left for phase B).
+- **CI on PR #20 (2026-10-31): the core's M60.** The GitHub runner failed `LintTests.TheBundleLintTakesUnderFiveSeconds` (about 6 s):
+  phase A's 47 prompts and 385 examples made the lint's confusion check analyse each example about 33 times. The core's M60
+  (`docs/nlp/IMPLEMENTATION_PLAN.md`) analyses each once per winning grammar: 1610 to 398 ms, the output byte-identical. `main` (the CI
+  workflow with its grammar jobs) was merged into `feature/village`; the offline and the live grammar checks were replayed locally and pass.
+- **V12c: the next session in the game (2026-10-31, Opus 5.5 xhigh; gated on `feature/village` at `4b88599`).**
+  - **Why.** The owner played `--seed 42`, lit the fire and asked where to go: a session advanced only on a quit and a `--load`, the
+    objective said `Session complete: your fire is lit`, and the book listed six lessons `not started`. The phase A lessons were unreachable
+    in practice: `--session 4` raises the session but `el-pueblo` waits for `ayer-y-manana` (`after`), and only `--lesson-run` (an automated
+    run) reached them. The scripted runs had never tried the route a learner takes from a new world.
+  - **Built.** The closing card's `Enter: sleep until morning and start session 2`, and at the lit fire `E: sleep until morning (session n)`
+    once the session's work is done (the objective then says `Session complete: sleep at your fire to start session n`, the beacon on the
+    fire; after session 6 `Every lesson so far is done: …`); a `Good morning: session n begins` toast; no sleep in a playtest. The sleep runs
+    in place through the save path (`SaveGame.Sleep`: the session's own save restored into it with a load's code, the session plus one,
+    `BeginPlaySession`); `SleepTests` proves the save after a sleep equals the save after a save and a load in five states, with no field
+    differing. The session log writes `session_end` and `session_start`, and the autosave the ending session. The book's Lessons page:
+    `next: talk to <NPC>` (gold) for the lesson the objective names, `open: talk to <NPC>` for another unlocked one, `opens in session n,
+    <NPC>`, `after “<title>”`. `--skip-to-session n` (a test aid, from the data): the earlier lessons completed in their sessions, session 1's
+    ending, the earlier orders delivered and purchases made (0 coins at 4, 2 at 5, 2 coins and 2 loaves at 6), no word or phrase use
+    counted, `skippedTo` in the save; it refuses `--load`, `--session` and `--playtest`. Runs `r20-sleep` and `r21-skip`, deterministic.
+  - **Gate:** 6079 passed, 3 skipped; the 18 earlier runs unchanged but for r16's line count (116 to 121). Bundle unchanged.
+  - **Review:** the first version offered the sleep at the fire on waking, against the new objective; it is offered once the work is done.
+  - **Left:** the F1 controls help does not mention sleeping (its lines are in `content/game-v1`; the next content milestone adds it).
 
 ## 6. Definition of done (every milestone)
 

@@ -7,8 +7,8 @@ bigger village with more people, each with a reason to be spoken to, and a conne
 every verb the player meets is used in the present, the past and the future (section 2.9 and the ladder in 3.5; added the same day on the
 owner's second line).
 
-**Status:** phase A done on 2026-10-31 (V01 to V07, V09, V10 to V12 and the follow-up V12b, all gated on `feature/village`); phase B waits for the owner, who listens to phase A's provisional voices first (owner, 2026-10-30, D-game-22: phase A now, the proposals of section 6 accepted, the farmer León,
-provisional voices recorded now and heard afterwards, phase B held; every milestone by Opus 5.5 at xhigh effort). Its milestones are V01
+**Status:** phase A done on 2026-10-31 (V01 to V07, V09, V10 to V12 and the follow-ups V12b and V12c, all gated on `feature/village`); **phase B started on 2026-10-31** on the owner's word after a playtest (D-game-22 (g): all of it on `feature/village`, reviewed by the owner at the end; the provisional voices are still to be heard) (owner, 2026-10-30, D-game-22: phase A now, the proposals of section 6 accepted, the farmer León,
+provisional voices recorded now and heard afterwards; every milestone by Opus 5.5 at xhigh effort). Its milestones are V01
 to V17 (section 4), on the feature branch `feature/village` (never `main`; the owner merges by pull request). Commit prefix `V<nn>:`.
 
 **The owner's brief (2026-10-30):** take the current map and make the village bigger, with more NPCs (a blacksmith, a baker, and so on) and
@@ -571,17 +571,18 @@ Today's gate demands A1 bundle-wide (section 2.5). The rule this plan proposes, 
 | V05 | Four figures and faces; the coin, apple and axe icons and held sprites | | S/M | Opus 5.5 xhigh | done 2026-10-30 (`600b8d7`) |
 | V06 | The voice trial (the owner listens) and the voice from the NPC file | V01 | S | Opus 5.5 xhigh | done 2026-10-30 (`600b8d7`) |
 | V07 | The check battery by lesson: `lesson` on the items; a battery takes the unlocked lessons' items | | S | Opus 5.5 xhigh | done 2026-10-30 (`600b8d7`) |
-| V08 | The A1/A2 gate of 3.9: `level` on the lessons, the validator's check, the gate's lint at A2 | | S | Haiku 5.5 | planned (phase B) |
+| V08 | The A1/A2 gate of 3.9: `level` on the lessons, the validator's check, the gate's lint at A2 | | S | Opus 5.5 xhigh | planned (phase B) |
 | V09 | Documents and runs: the counts in `README.md` and `PLAYTEST.md`, `SCRIPTED_RUNS.md` with two new runs (the bakery purchase, asking the way), `SPEECH_CHECKLIST.md`; once per phase | the phase's lessons | S | Opus 5.5 xhigh | phase A done 2026-10-31 (`9ec051d`); again after phase B |
 | V10 | Session 4 "El pueblo": the fisher; places and directions; `ask_far`, `ask_availability`; the three times around the walk (`voy a la panadería`, `voy a comprar pan`, `fui a la panadería`; `state_action` gains `comprar` and the later markers); the order `fruit-for-mar`; the X06 review steps in `personas` and `ayer-y-manana` | V01, V02, V04, V05, V06, V07 | M | Opus 5.5 xhigh | done 2026-10-30 (`3f1ce84`) |
 | V11 | Session 5 "Números y pan": the baker; numbers, plurals, `ask_price`; the plan and the report of the oven order (`voy a buscar madera`, `compré dos panes`: the regular `-ar` preterite); the oven order; the purchase; the stall's price | V03, V10 | M | Opus 5.5 xhigh | done 2026-10-31 (`6097249`) |
 | V12 | Session 6 "Gente del pueblo": the smith and the farmer; `ask_name`, `ask_activity`, (`ask_residence`); the third person in three times (`trabaja`, `va a hacer`, `hizo`; a name subject in `state_action`), `vivo en`; the axe order | V11 | M | Opus 5.5 xhigh | done 2026-10-31 (`c325b67`) |
 | V12b | Follow-up found by V09's runs: the four village NPCs' `focus` (their open prompts' rows), a turn credits its prompt's own row before the stall's fixed mapping (free talk with the baker had credited `pedir-agua`), and a validator rule that a prompt that is the home of practised rows names one in its NPC's focus | V09 | S | Opus 5.5 xhigh | done 2026-10-31 (`29188ce`) |
-| V13 | Session 7 "¿Cómo es?": adjectives and `gustar` in the present and the past; `describe`, `state_like`, `[ADJ]` in `request_item`; the water order (its plan and report reviewed); apples | V08, V12 | M | Sonnet 5.5 / Haiku 5.5 | planned (phase B) |
-| V14 | Session 8 "Ayer en el pueblo": the preterite for every person (él/ella, nosotros, ellos; the day of the village told and retold), `tener que`; `state_obligation` | V13 | M | Sonnet 5.5 / Haiku 5.5 | planned (phase B) |
-| V16 | The simple future in the runner and the book: `tense: fut` on a step, `ir a` credited there with a note, the fourth column, the schema (3.8) | V08 | S | Haiku 5.5 | planned (phase B) |
-| V17 | Session 9 "Mañana en el pueblo": the simple future (-é, -ás, -á, -emos, -án; `iré`; `hará`, `tendré` heard) against `ir a`; the later markers; the day of tomorrow | V14, V16 | M | Sonnet 5.5 / Haiku 5.5 | planned (phase B) |
-| V15 | Session 10 "El mercado": 11 to 20, `¿Cuánto es todo?`, `más … que`, `poder`; `offer_item` and `buy`; the market told in three times | V17 | M/L | Sonnet 5.5 / Haiku 5.5 | planned (phase B) |
+| V12c | Follow-up found by the owner's playtest (2026-10-31: after the fire, "I don't know where to start"): the next session in the game, by sleeping at the player's own fire (the closing card's Enter, or E at the fire once the session's work is done), a sleep being exactly a load (`SaveGame.Sleep`, proved save for save); the objective's next step; the book's Lessons page says when and where each lesson opens; `--skip-to-session n`, a test aid that starts at session n with the earlier sessions counted as done; runs `r20-sleep` and `r21-skip` | V12b | M | Opus 5.5 xhigh | done 2026-10-31 (`4b88599`) |
+| V13 | Session 7 "¿Cómo es?": adjectives and `gustar` in the present and the past; `describe`, `state_like`, `[ADJ]` in `request_item`; the water order (its plan and report reviewed); apples | V08, V12 | M | Opus 5.5 xhigh | planned (phase B) |
+| V14 | Session 8 "Ayer en el pueblo": the preterite for every person (él/ella, nosotros, ellos; the day of the village told and retold), `tener que`; `state_obligation` | V13 | M | Opus 5.5 xhigh | planned (phase B) |
+| V16 | The simple future in the runner and the book: `tense: fut` on a step, `ir a` credited there with a note, the fourth column, the schema (3.8) | V08 | S | Opus 5.5 xhigh | planned (phase B) |
+| V17 | Session 9 "Mañana en el pueblo": the simple future (-é, -ás, -á, -emos, -án; `iré`; `hará`, `tendré` heard) against `ir a`; the later markers; the day of tomorrow | V14, V16 | M | Opus 5.5 xhigh | planned (phase B) |
+| V15 | Session 10 "El mercado": 11 to 20, `¿Cuánto es todo?`, `más … que`, `poder`; `offer_item` and `buy`; the market told in three times | V17 | M/L | Opus 5.5 xhigh | planned (phase B) |
 
 **Order** (revised 2026-10-30 when phase A started: V03 moves before V10, because the fisher's order pays in coins and every order needs
 `deliverTo`; and every milestone is Opus 5.5 at xhigh, D-game-22). V01, V02, V03, then V04, V05 and V07 (independent, one agent at a
@@ -626,7 +627,8 @@ hash and the scripted runs re-baselined; the lesson timed in a scripted run (5 t
   of the pilot is whatever is frozen on the day (`PLAYTEST.md` section 3).
 - **Scope against the brief.** The brief says to improve the loop before the world; the owner asked for the world. Phase A is the smallest
   world that gives numbers, places and people a use; phase B is held back by a decision.
-- **The session count.** Seven more lessons mean seven more loads; a tester who wants two lessons in one sitting cannot (S26's rule). An
+- **The session count.** Seven more lessons mean seven more loads; a tester who wants two lessons in one sitting cannot (S26's rule). V12c
+  answers it: a sleep at the player's fire is the next session, so one sitting plays them in order, and `--skip-to-session n` starts a test at n. An
   owner decision could let a lesson unlock by `after` alone; the plan does not assume it.
 - **Not overwhelming.** Each lesson adds one tense form in one person at most (the ladder in 3.5) and reviews the rest; session 8 is the
   exception (three new persons of a tense already known) and session 9 the only new tense. If a lesson's timing shows the tense rows push
