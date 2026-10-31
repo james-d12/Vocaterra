@@ -122,7 +122,13 @@ public sealed class NextSessionTests
         session.Lessons.CountAsCompleted("gente-del-pueblo", 6);
         TeleportToFire(session);
         session.Step([]);
+        Assert.Equal("axe-handle", session.CurrentObjective?.Id);
+        Assert.Equal(session.Locale.ObjectiveHudLine("axe-handle"), Hud(session)); // an open order keeps its own line: there is still something to do
 
+        session.SkipDeliver(session.Objectives.Single(static o => o.Id == "axe-handle"));
+        session.Step([]);
+
+        Assert.Null(session.CurrentObjective);
         Assert.Null(session.NextLessonSession);
         Assert.True(session.SessionWorkDone);
         Assert.False(session.RestDue); // nothing to sleep for: no arrow to the fire

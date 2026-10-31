@@ -67,14 +67,15 @@ public sealed partial class VoxelSession
     public bool CanSleep => SleepOffered && FireLit && CanSave && !Lessons.Engaged;
 
     // What the objective says once the play session's work is done (V12c): sleep to start the next session, or (no later session has a lesson) every lesson is done;
-    // from session 2 on, while it is not done, the lesson to go on with. Null when none of these applies.
-    private ObjectivePiece? RestLine()
+    // from session 2 on, while it is not done, the lesson to go on with. Null when none of these applies. Over an open order (overOrder) the order's own line stays
+    // when there is nothing else to do: "every lesson is done" is the line of a session with nothing left.
+    private ObjectivePiece? RestLine(bool overOrder)
     {
         if (SessionWorkDone)
         {
             if (NextLessonSession is null)
             {
-                return new ObjectivePiece(Locale.Ui("allLessonsDoneHud"), ObjectivePieceKind.Support, Done: true);
+                return overOrder || Lessons.Book.Lessons.Count == 0 ? null : new ObjectivePiece(Locale.Ui("allLessonsDoneHud"), ObjectivePieceKind.Support, Done: true);
             }
 
             return SleepOffered && FireLit

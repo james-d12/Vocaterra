@@ -659,7 +659,7 @@ in the same run.
   goes to the fire. When no later session has a lesson (after session 6 today) it says `Every lesson so far is done: practise any of them again in the book (J), or
   talk to the people of the village`; the fire still lets the player sleep, which lifts the spacing gaps. From session 2, while a lesson is under way or left, it
   says `Next: talk to the villager for the lesson “Personas”`. These lines come after a lesson's own line, a replay, a review and a new lesson, and over an order,
-  as the new lesson's line does.
+  as the new lesson's line does, except that an open order keeps its own line rather than `Every lesson so far is done`.
 - **`--sleep`** is a script step: it closes the panels and sleeps as the player's E at the fire would, wherever the player stands (a script needs no walk); refused
   with a console line when the fire is not lit, a lesson step waits or the run is a playtest. The scripted run r20-sleep reaches session 1's ending the short way
   (the camp, the shopkeeper's bottle on a second visit, the river and the fire by `--teleport`), shows the card, sleeps, and shows session 2's objective, the beacon

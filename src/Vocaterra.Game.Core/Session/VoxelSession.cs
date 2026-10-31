@@ -181,7 +181,7 @@ public sealed partial class VoxelSession : GuideSession
             return [new ObjectivePiece(objective, ObjectivePieceKind.Support)]; // a new session's lesson is unlocked and not begun (S26): before the first objective is done, after the last, or over an order (V03)
         }
 
-        if ((current is null || current.Spec.IsOrder) && RestLine() is { } rest)
+        if ((current is null || current.Spec.IsOrder) && RestLine(overOrder: current is not null) is { } rest)
         {
             return [rest]; // the session's work is done: sleep at the fire for the next session, or every lesson is done; or the lesson to go on with (V12c)
         }
