@@ -1381,12 +1381,6 @@
 {"id":"answer-sets/places-village:bye.alias1","text":"hasta luego","kind":"learner"}
 {"id":"answer-sets/places-village:bye.alias2","text":"nos vemos","kind":"learner"}
 {"id":"answer-sets/places-village:bye.alias3","text":"hasta mañana","kind":"learner"}
-{"id":"answer-sets/places-village:day","text":"mar pescó en el río","kind":"learner"}
-{"id":"answer-sets/places-village:day.alias1","text":"pescó en el río","kind":"learner"}
-{"id":"answer-sets/places-village:day.alias2","text":"luz compró pescado","kind":"learner"}
-{"id":"answer-sets/places-village:day.alias3","text":"luz hizo pan","kind":"learner"}
-{"id":"answer-sets/places-village:day.alias4","text":"fuimos al río","kind":"learner"}
-{"id":"answer-sets/places-village:day.alias5","text":"domingo hizo un hacha","kind":"learner"}
 {"id":"answer-sets/places-village:help","text":"ayuda","kind":"learner"}
 {"id":"answer-sets/places-village:help.alias1","text":"ayuda por favor","kind":"learner"}
 {"id":"answer-sets/places-village:help.alias2","text":"necesito ayuda","kind":"learner"}

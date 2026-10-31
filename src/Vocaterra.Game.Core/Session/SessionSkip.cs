@@ -32,7 +32,7 @@ public static class SessionSkip
     /// <param name="Price">The price of one, in coins.</param>
     public sealed record Purchase(string Npc, ItemId Item, int Count, int Price);
 
-    /// <summary>The last play session that has a lesson: the highest session the skip goes to (6 today).</summary>
+    /// <summary>The last play session that has a lesson: the highest session the skip goes to (8 today).</summary>
     /// <param name="lessons">The game's lessons.</param>
     public static int LastSession(LessonBook lessons)
     {
