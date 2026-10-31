@@ -294,7 +294,7 @@ step_refresh() {
       return
     fi
     if [ "$MISSES" -gt 0 ]; then
-      fail "$MISSES strings missing from the grammar cache (new Spanish)" \
+      fail "the grammar cache lacks $MISSES of the strings (new Spanish)" \
         "run it again with --grammar (it starts LanguageTool, checks the new strings, prints the findings and stops the server)" $log
     fi
     block "refresh: the unwaived grammar warnings (the whole list is in $LOGDIR/$log):"
