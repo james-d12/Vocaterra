@@ -77,6 +77,18 @@ code comments and here, with the reason:
   - *O4 and O5, `word_order`.* An adjective is not moved in front of a noun when the word before it, or before the adjectives before it, can be a noun (`estrella grande violenta
     pieza`: the adjectives belong to `estrella`); when its spelling is an adverb that goes before nouns (`incluso resultado`); or when it is also a pronoun or adverb and the
     noun can be a verb (`suyo peso`).
+  - *O4 and O5, `word_order`, past a word that can be an adjective (M58 (c), narrowed by the owner's decision of 2026-10-31, "go with option 1").* The guard reads the
+    words' readings, not the pattern's roles: walking back from the adjective's new place, it passes over a word that can be a descriptive adjective and cannot be a noun,
+    an article, a numeral or a determiner, as it passes over the adjectives, and makes no move when a word that can be a noun stands behind (`MutationGen.WordOrder`,
+    `CanOnlyExtendAPhrase`). Found at M57 (O5, CsCheck seed `ff2aNwHuJBk8`, `MutationCase { Kind = WordOrder, Seed = 64247025744 }`; it failed the same way on the analyzer
+    of `0041eff`, before M57, about one full fuzz run in eight): the random pattern `[NOUN:item] ([NOUN:qty]|[VERB:soltar:spell]|[ART])? [VERB:plantar]? [NOUN:thing]
+    [ADJ]` gave `estacionamientos suelta plantar felicitación satisfecha` (`circos suelta plantar columna satisfecha` on the bundle of M58), and the mutation moved the
+    adjective before the noun. The old guard (no move when the word before the adjective, or before the adjectives before it, can be a noun) saw `plantar` as the pattern's
+    verb; the analyzer sees that `plantar` can be an adjective and `suelta` before it a noun, reads `suelta plantar satisfecha` as one phrase, and rightly reports no
+    `word_order`. This narrows O4 and O5 for exactly that case and no other: every move the old guard skipped is still skipped, and the moves it skips besides have a word
+    that can be a descriptive adjective (and nothing that opens a phrase) between the moved adjective and a word that can be a noun. `WordOrderGuardTests` replays the case
+    (it now skips that sentence and mutates `las treinta blancas tristes`, which the analyzer flags as named, O4's comparison) and checks that the analyzer finds no
+    `word_order` in either sentence it built; a run of the project at five times its depth found nothing else (M58).
   - *O4 and O5, `vocab.unknown` (M26b).* The mutation is not made on a sentence whose grammar has a name (`[WORD]`): the name binds any word of letters, so the non-word becomes the name, the
     grammar still matches and nothing is unknown (seed `2to272FZCXD3`, `religioso nosotros focatudil` against `[ADJ:item] [PRON] [NOUN:qty]? [WORD:spell]?`; it failed on main before M26b).
   - *The realiser and the accent variants (M26b).* A word that is another word once its accent is written (`el`/`él`, `tu`/`tú`, `esta`/`está`, `te`/`té`, `se`/`sé`) is read as the
@@ -567,13 +579,6 @@ them explicitly (each is a skip or a restriction in the generator, counted in th
   a row recast as `un una`. These are properties of the language, so the sentence generator does not produce them (`skip:numeral-next-to-article`,
   `skip:adjacent-numerals`).
 - `AgentDefinition` is a plain record over lists, so it has no value equality; O16 compares its JSON only.
-- **Found at M57 and left for a decision: the `word_order` mutation's guard reads the pattern's roles, not the words' readings** (O5, CsCheck seed `ff2aNwHuJBk8`,
-  `MutationCase { Kind = WordOrder, Seed = 64247025744 }`; it fails the same way on the analyzer of `0041eff`, before M57). The random pattern
-  `[NOUN:item] ([NOUN:qty]|[VERB:soltar:spell]|[ART])? [VERB:plantar]? [NOUN:thing] [ADJ]` gives `estacionamientos suelta plantar felicitación satisfecha`, and the
-  mutation moves `satisfecha` before `felicitación`. The guard (no move when the word before the adjective, or before the adjectives before it, can be a noun) sees
-  `plantar` as the pattern's verb; the analyzer sees that `plantar` can be an adjective and `suelta` before it a noun, reads `suelta plantar satisfecha` as one phrase,
-  and reports no `word_order`, as documented. O4 can fail on the same case. Rare: once in the eight runs of the project made for M57. Making the guard read the readings would
-  narrow O4 and O5, which a milestone may not do on its own; it waits for the orchestrator.
 
 ## Adding to the suite
 
