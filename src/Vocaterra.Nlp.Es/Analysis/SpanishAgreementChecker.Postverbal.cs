@@ -302,17 +302,19 @@ internal sealed partial class SpanishAgreementChecker
         return FirstReading(index, static r => r.Pos == LexiconSchema.Noun && SpanishAnalysisTables.IsEventNoun(r.Lemma)) is not null && !IsInPrepositionalPhrase(index);
     }
 
-    // cerca de with an hour, a number or a time of day says about when or how many (son cerca de las tres, cerca de cien), which ser takes.
+    // cerca de with an hour, a number or a time of day says about when or how many (son cerca de las tres, cerca de cien), which ser takes. M64 (the review of
+    // feature/village, R6): del, the contraction with the article in it, is de as well (es cerca del mediodía), and a place after it is still a place (la tienda es cerca
+    // del río -> está).
     private bool IsApproximateTime(int adverbIndex)
     {
         var de = adverbIndex + 1;
-        if (de >= _tokens.Count || !string.Equals(TextOf(de), "de", StringComparison.Ordinal))
+        if (de >= _tokens.Count || TextOf(de) is not ("de" or "del"))
         {
             return false;
         }
 
         var next = de + 1;
-        if (next < _tokens.Count && FirstReading(next, static r => r.Pos == LexiconSchema.Article) is not null)
+        if (TextOf(de) == "de" && next < _tokens.Count && FirstReading(next, static r => r.Pos == LexiconSchema.Article) is not null)
         {
             next++;
         }

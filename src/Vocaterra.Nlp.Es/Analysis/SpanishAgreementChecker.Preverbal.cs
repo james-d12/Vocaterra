@@ -19,7 +19,9 @@ internal sealed partial class SpanishAgreementChecker
     // dónde...). Also left clean: a phrase that a preposition governs (en la herrería trabaja Domingo), a phrase of time (el domingo los niños comen), a phrase asked about
     // (¿qué frutas come Luz?, ¿cuántas manzanas compra Luz?), a noun after an interjection, a phrase that an object pronoun between stands for (las manzanas las compra Luz,
     // a los niños les gusta), phrases joined by o, u or ni, a coordination with a pronoun or a name the lexicon lacks, haber (hay), ser that agrees with a plural predicate
-    // (mi comida favorita son las manzanas), the subjunctive and the imperative. A name that a grammar binds or that the lexicon lacks has no reading at all.
+    // (mi comida favorita son las manzanas), an amount before a singular ser with a singular predicate (M64: dos panes es suficiente), the subjunctive and the imperative.
+    // A name that a grammar binds or that the lexicon lacks has no reading at all. A coordination that ends in a subject pronoun (Luz y yo fuimos) is CheckSubjectVerb's
+    // (M64).
     private void CheckPreverbalSubject()
     {
         for (var v = 1; v < _tokens.Count; v++)
@@ -50,6 +52,12 @@ internal sealed partial class SpanishAgreementChecker
             }
 
             if (third is { Lemma: "ser", Number: LexiconSchema.Plural } && PluralPredicateFollows(v))
+            {
+                continue;
+            }
+
+            // M64 (b): an amount before a singular ser may be one sum (diez monedas es mucho dinero, dos panes es suficiente), so es is as right as son.
+            if (IsAmountReadAsUnit(v, third, subject))
             {
                 continue;
             }

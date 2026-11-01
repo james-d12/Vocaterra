@@ -11,7 +11,8 @@ using Vocaterra.Nlp.Language.Morphology;
 /// <remarks>
 /// The rules of M56 (a subject after its verb, <c>ser</c> where a place takes <c>estar</c>) are in <c>SpanishAgreementChecker.Postverbal.cs</c>, and those of M59 (a noun
 /// subject before its verb, a reflexive clitic after <c>cómo</c>) in <c>SpanishAgreementChecker.Preverbal.cs</c>, and that of M62 (an adjective after <c>ser</c> or
-/// <c>estar</c> agrees with the copula's subject) in <c>SpanishAgreementChecker.Predicate.cs</c>.
+/// <c>estar</c> agrees with the copula's subject) in <c>SpanishAgreementChecker.Predicate.cs</c>, and those of M64 (a subject pronoun joined by <c>y</c> ends a plural
+/// subject, an amount before a singular <c>ser</c> is one sum) in <c>SpanishAgreementChecker.Coordination.cs</c>.
 /// </remarks>
 internal sealed partial class SpanishAgreementChecker : IAgreementChecker
 {
@@ -174,6 +175,13 @@ internal sealed partial class SpanishAgreementChecker : IAgreementChecker
                 continue;
             }
 
+            // M64: a pronoun joined by y to the members before it ends a plural subject (Luz y yo fuimos), whose cells the verb agrees with; a coordination that cannot
+            // be told is not checked (SpanishAgreementChecker.Coordination.cs).
+            if (SubjectCells(i, pronoun) is not { } cells)
+            {
+                continue;
+            }
+
             var finite = Readings(verbIndex, IsDeclarativeFiniteVerb);
             if (finite.Count == 0)
             {
@@ -181,25 +189,25 @@ internal sealed partial class SpanishAgreementChecker : IAgreementChecker
                 var infinitive = FirstReading(verbIndex, static r => r.Pos == LexiconSchema.Verb && r.Person is null && r.Tense is null && r.Mood is null);
                 if (infinitive is not null)
                 {
-                    AddPersonError(verbIndex, infinitive.Lemma, pronoun, LexiconSchema.Present);
+                    AddPersonError(verbIndex, infinitive.Lemma, cells[0], LexiconSchema.Present);
                 }
 
                 continue;
             }
 
-            if (finite.Any(r => r.Person == pronoun.Person && r.Number == pronoun.Number))
+            if (finite.Exists(r => cells.Any(c => c.Person == r.Person && c.Number == r.Number)))
             {
                 continue;
             }
 
             var representative = finite.FirstOrDefault(static r => r.Mood == LexiconSchema.Indicative) ?? finite[0];
-            AddPersonError(verbIndex, representative.Lemma, pronoun, representative.Tense ?? LexiconSchema.Present);
+            AddPersonError(verbIndex, representative.Lemma, cells[0], representative.Tense ?? LexiconSchema.Present);
         }
     }
 
-    private void AddPersonError(int verbIndex, string lemma, LexicalFeatures pronoun, string tense)
+    private void AddPersonError(int verbIndex, string lemma, (string Person, string Number) cell, string tense)
     {
-        var expected = _morphology.Conjugate(lemma, pronoun.Person!, pronoun.Number!, tense) ?? string.Empty;
+        var expected = _morphology.Conjugate(lemma, cell.Person, cell.Number, tense) ?? string.Empty;
         Add(ErrorTags.ConjPerson, verbIndex, verbIndex, expected, TextOf(verbIndex));
     }
 

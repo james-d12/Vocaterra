@@ -198,6 +198,37 @@ public class PreverbalSubjectTests
         Assert.Equal(string.Empty, Described(sentence));
     }
 
+    // M64 (b), the review of feature/village (R5): an amount before a singular ser is read as one sum, and both es and son are right. Before M64 the first four gave
+    // conj.person "son" (dos panes es suficiente also noun.number "suficientes"), and so did the next three.
+    [Theory]
+    [InlineData("diez monedas es mucho dinero")]
+    [InlineData("dos panes es suficiente")]
+    [InlineData("dos panes es poco")]
+    [InlineData("quince monedas es mucho")]
+    [InlineData("dos panes no es nada")]
+    [InlineData("diez monedas es muy caro")]
+    [InlineData("veinte monedas es un buen precio")]
+    [InlineData("dos panes son suficientes")]
+    [InlineData("diez monedas son mucho dinero")]
+    public void AnAmountBeforeASingularSerIsOneSum(string sentence)
+    {
+        Assert.Equal(string.Empty, Described(sentence, Describe));
+    }
+
+    // Still flagged: a phrase with no number, another verb than ser, a predicate of the plural and one that says no amount.
+    [Theory]
+    [InlineData("las manzanas es roja", Describe, "conj.person|es|son;noun.number|roja|rojas")]
+    [InlineData("los niños come pan", Makes, "conj.person|come|comen")]
+    [InlineData("dos niños come pan", Makes, "conj.person|come|comen")]
+    [InlineData("dos panes es suficientes", Describe, "conj.person|es|son")]
+    [InlineData("dos panes es caros", Describe, "conj.person|es|son")]
+    [InlineData("dos manzanas es roja", Describe, "conj.person|es|son")]
+    [InlineData("las diez monedas es mucho dinero", Describe, "conj.person|es|son")]
+    public void AnAmountBeforeAnotherVerbOrPredicateIsStillChecked(string sentence, string grammar, string expected)
+    {
+        Assert.Equal(expected, Described(sentence, grammar));
+    }
+
     // A name the lexicon lacks (vocab.unknown, nothing else) or that a grammar binds has no reading, so nothing is said about its verb.
     [Fact]
     public void ANameWithoutAReadingHasNothingToAgree()
