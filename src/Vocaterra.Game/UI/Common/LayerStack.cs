@@ -11,7 +11,7 @@ using Vocaterra.Game.UI.Report;
 
 namespace Vocaterra.Game.UI.Common;
 
-/// <summary>The 2D layers over the voxel world, bottom to top: the crosshair and labels, the HUD, the panels, the checks, the report panel at the top (S21), and the loading screen over everything.</summary>
+/// <summary>The 2D layers over the voxel world, bottom to top: the crosshair and the beacon's arrow, the HUD, the panels, the checks, the report panel at the top (S21), and the loading screen over everything.</summary>
 public static class LayerStack
 {
     /// <summary>The layers of a run.</summary>
@@ -23,7 +23,6 @@ public static class LayerStack
         var layers = new List<IFrameLayer>
         {
             new CrosshairLayer(),
-            new NpcLabelLayer(),
             new BeaconArrowLayer(),
             new TalkHintLayer(),
             new SleepPromptLayer(),

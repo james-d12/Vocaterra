@@ -770,7 +770,7 @@ Luz); the route tried 15 of them, each as the prompts predict. One bug was found
 
 - The voices: none of the 902 speech files is marked in `docs/game/SPEECH_CHECKLIST.md`; phase B added 222 (111 lines: the farmer 70, the guide 54, the baker
   30, the smith and the villager 22 each, the fisher 14, the shopkeeper 10), in the four provisional voices of V06 for the village (D-game-22 (d)).
-- Name plates show through figures (phase A's V09, r17; again at session 8's morning, Luz's plate over the shopkeeper's face): a design question.
+- Name plates show through figures (phase A's V09, r17; again at session 8's morning, Luz's plate over the shopkeeper's face): fixed by V22 (only the faced NPC's and the beacon's NPC's plates, depth-tested against the scene and the figures).
 - The fuzz findings left for a decision (core M58 and M62): seeds `egVgLELrxyL4` and `2ldq2rIKLrG2` (O4, the `conj.tense` mutation without M26b's guard) and
   `b3HSKSLCsL_1` (O5, `conj.person` after a noun subject and `haber`); a guard narrows O4 and O5.
 - The timed tests on CI's runner ("Continuous integration" below).
