@@ -556,6 +556,16 @@ Found and fixed in M62:
   `AWordThatCanBeTheVerbStaysTheVerbUnderItsGrammar`. Before that, the project's first runs failed only where the realiser had not yet learned the new rules (O3's
   digest, and O5 on seed `f8C3x9UYGMz6`).
 
+Found and fixed in M62b (by the gate of the game's V15):
+
+- **The realiser took a drawn name that is also a lexicon noun for a name where the grammar ties `[WORD]` with `[NOUN]`** (the realiser; O3, CsCheck seed
+  `aeG5w1c3Hvh2`: the random pattern `[ART]? [ADJ:item] ([WORD:qty]|[NOUN]|[ADJ] [VERB])?` gave `un japón Dejo`, and the analyzer reported `word_order` on `japón
+  dejo`). Older than M62 and no part of its colour rule (`japón` is no colour): the analyzer of `76f52f8` reads the sentence the same way. A tied parse keeps every
+  reading (`ReadingResolver`, "Grammar bindings"), so the analyzer reads `dejo` as the noun, and after an adjective that goes after its noun the reading resolver makes
+  it the head; only a grammar that binds the word as a name alone (`[ART]? [ADJ:item] [WORD:qty]`) leaves it a name. The analyzer is right; the realiser now re-rolls a
+  drawn name that is a lexicon noun right after a determiner or an adjective that belongs to no noun (`skip:name-read-as-noun`). Regression:
+  `NameReadAsNounTests` (the recipe of the seed now realises a sentence the analyzer finds correct; it built `un japón Dejo` before). No digest moved.
+
 ## Known, deliberately not fixed
 
 Findings that are content gaps or design limits rather than defects of one stage. None changes behaviour here; the generators step around

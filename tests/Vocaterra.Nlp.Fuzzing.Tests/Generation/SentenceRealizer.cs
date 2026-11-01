@@ -1338,6 +1338,23 @@ internal sealed class SentenceRealizer
                 return false;
             }
 
+            // M62b: a name ([WORD]) has no reading to the realiser, and to the analyzer only where the grammar binds it as a name alone. Where an alternative ties [WORD]
+            // with another element (([WORD:qty]|[NOUN])), a tied parse keeps every reading, so a drawn name that is also a lexicon noun is that noun to the analyzer, and
+            // right after a determiner or an adjective that belongs to no noun the reading resolver makes it the head of their noun phrase (seed aeG5w1c3Hvh2: un japón
+            // Dejo gave word_order on japón dejo, older than M62). The tie is not modelled, so such a name in such a place is re-rolled wherever it stands.
+            if (item.Kind == Kind.Word
+                && _words.Lexicon.Lookup(item.Norm!).Any(static r => r.Pos == LexiconSchema.Noun)
+                && PreviousContent(i) is { } beforeName
+                && (beforeName is { Kind: Kind.Article or Kind.Determiner or Kind.Numeral } or { Kind: Kind.Adjective, Head: null }
+                    || (beforeName.Kind == Kind.Literal
+                        && beforeName.Readings.Count > 0
+                        && beforeName.Readings.All(static r => r.Pos is LexiconSchema.Article or LexiconSchema.Numeral or LexiconSchema.Adjective))))
+            {
+                skip = "name-read-as-noun";
+                _detail = item.Surface!;
+                return false;
+            }
+
             // M62: the word after an adverb of degree (muy, tan) is no noun to the analyzer (the reading resolver's rule: es muy cara), so a noun there that is also
             // something else names a sentence the analyzer reads another way, and is re-rolled.
             if (i > 0
