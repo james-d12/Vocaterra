@@ -14,7 +14,17 @@
 #      the command.
 #   5. Marks its command: VOCATERRA_LIMITED=1 is set for it, so a script that calls limited.sh itself (scripts/content-loop.sh) refuses to run
 #      under it instead of waiting for ever on the lock it already holds.
+#   6. Re-entrant (M67): called with VOCATERRA_LIMITED=1 already set (scripts/limited.sh scripts/test.sh ..., where test.sh calls limited.sh
+#      for each of its steps), it runs the command directly: it is already inside the scope and holds the lock. Before, the inner call
+#      waited for ever on the lock the outer one held (2026-11-01, 21 minutes). scripts/content-loop.sh still refuses to run under it.
 set -uo pipefail
+
+[ "$#" -gt 0 ] || { echo "usage: scripts/limited.sh <command> [args...]" >&2; exit 2; }
+
+if [ "${VOCATERRA_LIMITED:-}" = 1 ]; then
+  echo "limited.sh: already inside limited.sh (VOCATERRA_LIMITED=1); running the command directly, under the outer lock and caps" >&2
+  exec "$@"
+fi
 
 MEM_MAX="${VOCATERRA_MEM_MAX:-6G}"
 CPU_QUOTA="${VOCATERRA_CPU_QUOTA:-1000%}"
@@ -27,8 +37,6 @@ export UseSharedCompilation=false
 export DOTNET_NOLOGO=1
 export PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet"
 export VOCATERRA_LIMITED=1
-
-[ "$#" -gt 0 ] || { echo "usage: scripts/limited.sh <command> [args...]" >&2; exit 2; }
 
 exec 9>"$LOCK"
 if ! flock -n 9; then

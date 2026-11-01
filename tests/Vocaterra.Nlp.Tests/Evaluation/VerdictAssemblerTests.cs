@@ -481,6 +481,92 @@ public class VerdictAssemblerTests
         Assert.Empty(VerdictAssembler.Assemble(VocabInputs([Fixtures.Token("el", 0, "art")])).Errors);
     }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(2)]
+    [InlineData(9)]
+    public void VocabWrongIsNeverDerivedOnALineASlotGrammarUnderstood(int distance)
+    {
+        // M67: the derived tag explains a miss, and a line a slot grammar understood has none, however near an answer it is (buscaré madera para luz
+        // at the smith's open prompt and usted comprará pan at a lesson step were scored 0.4 with vocab.wrong on their first content word).
+        var inputs = VocabInputs([Fixtures.Token("perro", 0, "noun")]) with
+        {
+            Intent = Fixtures.Intent("answer", IntentRung.Grammar),
+            Match = new MatchResult(null, MatchType.None, distance, false, 0.0),
+        };
+
+        var verdict = VerdictAssembler.Assemble(inputs);
+
+        Assert.Empty(verdict.Errors);
+        Assert.Equal(1.0, verdict.Correctness);
+    }
+
+    [Theory]
+    [InlineData(IntentRung.Rules)]
+    [InlineData(IntentRung.Embedding)]
+    public void VocabWrongIsNotDerivedOnALineARuleUnderstoodFarFromEveryAnswer(IntentRung rung)
+    {
+        // hola luz quiero dos panes at the baker's open prompt (greet, by the keyword hola): 23 characters, a budget of 5 at Beginner, so a near miss is
+        // 5 edits at most; the nearest answer phrase (quiero dos panes) is 9 away, and 6 is already too far.
+        var inputs = VocabInputs([Fixtures.Token("hola", 0, "interj"), Fixtures.Token("luz", 5, "noun"), Fixtures.Token("quiero", 9, "verb"), Fixtures.Token("2", 16, "num"), Fixtures.Token("panes", 18, "noun")]) with
+        {
+            Intent = Fixtures.Intent("greet", rung),
+            Match = new MatchResult(null, MatchType.None, 6, false, 0.0),
+            KnownLexiconWords = ["hola", "luz", "quiero", "panes"],
+        };
+
+        Assert.Empty(VerdictAssembler.Assemble(inputs).Errors);
+    }
+
+    [Theory]
+    [InlineData(3, true)]
+    [InlineData(4, false)]
+    public void VocabWrongIsDerivedOnALineARuleUnderstoodThatIsANearMissOfAnAnswer(int distance, bool derived)
+    {
+        // cuál es esto for qué es esto (ask_what, by the keyword esto): 12 characters, a budget of 3 at Beginner, so a near miss is 3 edits at most (it
+        // is 3; the matcher took the budget for qué es esto, 11 characters, 2). me llamo at the smith's (ask_name, by llamar) is 3 from qué hago, with
+        // a budget of 2 for its 8 characters: no near miss.
+        var inputs = VocabInputs([Fixtures.Token("cuál", 0, "adj"), Fixtures.Token("es", 5, "verb"), Fixtures.Token("esto", 8, "pron")]) with
+        {
+            Intent = Fixtures.Intent("ask_what", IntentRung.Rules),
+            Match = new MatchResult(null, MatchType.None, distance, false, 0.0),
+            KnownLexiconWords = ["cuál", "es", "esto"],
+        };
+
+        ErrorTag[] expected = derived ? [new ErrorTag(ErrorTags.VocabWrong, new TextSpan(0, 4), string.Empty, "cuál")] : [];
+
+        Assert.Equal(expected, VerdictAssembler.Assemble(inputs).Errors);
+    }
+
+    [Fact]
+    public void TheNearMissBudgetFollowsTheDifficulty()
+    {
+        // The same 12 characters allow 2 edits at Intermediate and at Advanced (floor(12 / 5) = floor(12 / 6) = 2), against 3 at Beginner.
+        var inputs = VocabInputs([Fixtures.Token("cuál", 0, "adj"), Fixtures.Token("es", 5, "verb"), Fixtures.Token("esto", 8, "pron")]) with
+        {
+            Intent = Fixtures.Intent("ask_what", IntentRung.Rules),
+            Match = new MatchResult(null, MatchType.None, 3, false, 0.0),
+            KnownLexiconWords = ["cuál", "es", "esto"],
+        };
+
+        Assert.Single(VerdictAssembler.Assemble(inputs).Errors);
+        Assert.Empty(VerdictAssembler.Assemble(inputs with { Prompt = inputs.Prompt with { Difficulty = Difficulty.Intermediate } }).Errors);
+        Assert.Empty(VerdictAssembler.Assemble(inputs with { Prompt = inputs.Prompt with { Difficulty = Difficulty.Advanced } }).Errors);
+    }
+
+    [Fact]
+    public void VocabWrongIsStillDerivedOnALineThatResolvedNoIntentHoweverFarItIs()
+    {
+        // The clean neighbour of the cases above: a line with no intent was not understood, and the derived tag explains the miss.
+        var inputs = VocabInputs([Fixtures.Token("perro", 0, "noun")]) with
+        {
+            Intent = Fixtures.UnknownIntent(),
+            Match = new MatchResult(null, MatchType.None, 40, false, 0.0),
+        };
+
+        Assert.Equal(ErrorTags.VocabWrong, Assert.Single(VerdictAssembler.Assemble(inputs).Errors).Tag);
+    }
+
     [Fact]
     public void ADerivedVocabWrongNeverReplacesAStageReportedOneAtTheSameSpan()
     {
@@ -558,7 +644,7 @@ public class VerdictAssemblerTests
             Fixtures.Asr(mode: RecognitionMode.Constrained),
             Fixtures.NoMatch(),
             Fixtures.Analysis(tokens),
-            Fixtures.Intent("answer", IntentRung.Rules),
+            Fixtures.UnknownIntent(),
             null,
             [],
             ["gato", "perro", "el"],

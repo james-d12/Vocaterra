@@ -2213,7 +2213,7 @@
 {"id":"intents:state_action.ex28","text":"vamos a comer frutas","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex29","text":"vamos a comer fruta mañana","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex30","text":"vamos a comer una fruta","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex31","text":"mañana comimos fruta","kind":"learner","errors":["conj.tense","vocab.wrong"]}
+{"id":"intents:state_action.ex31","text":"mañana comimos fruta","kind":"learner","errors":["conj.tense"]}
 {"id":"intents:state_action.ex32","text":"vamos a comemos fruta","kind":"learner","errors":["conj.tense"]}
 {"id":"intents:state_action.ex33","text":"nosotros va a comer fruta","kind":"learner","errors":["conj.person"]}
 {"id":"intents:state_action.ex34","text":"ayer comí fruta","kind":"learner","errors":[]}
@@ -2227,7 +2227,7 @@
 {"id":"intents:state_action.ex42","text":"ayer como fruta","kind":"learner","errors":["conj.tense"]}
 {"id":"intents:state_action.ex43","text":"yo comiste fruta","kind":"learner","errors":["conj.person"]}
 {"id":"intents:state_action.ex44","text":"yo comió fruta","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex45","text":"ayer voy a comer fruta","kind":"learner","errors":["conj.tense","vocab.wrong"]}
+{"id":"intents:state_action.ex45","text":"ayer voy a comer fruta","kind":"learner","errors":["conj.tense"]}
 {"id":"intents:state_action.ex46","text":"ayer fui al río","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex47","text":"fui al río","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex48","text":"sí, fui al río","kind":"learner","errors":[]}

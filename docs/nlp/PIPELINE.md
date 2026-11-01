@@ -350,7 +350,10 @@ evaluation configuration and the version stamp:
 - **errors**: analysis errors, pronunciation errors and the derived `vocab.wrong`, de-duplicated by (tag, span) and sorted by
   span start, then tag order in the taxonomy, then expected text. The derived `vocab.wrong` (a word the lexicon knows but the answer
   set does not contain) has as `expected` the answer set's canonical answer when the set has exactly one answer, and an empty
-  `expected` otherwise; its `actual` is the word. A `vocab.unknown` of a fuzzy answer match already carries the canonical word.
+  `expected` otherwise; its `actual` is the word. It explains a miss, so since M67 it is derived only when the line resolved no intent,
+  or resolved one by a keyword rule (not a slot grammar) and is a near miss of an answer (within the fuzzy budget taken for the line's own
+  length: `cuál es esto` for `qué es esto`); a line a slot grammar understood never gets it. A `vocab.unknown` of a fuzzy answer match
+  already carries the canonical word.
 - **correctness**: 1 minus the sum of the error weights for the prompt's difficulty (`content/game-v1/evaluation/evaluation-config.json`),
   clamped to [0, 1], rounded to 9 decimals. For the beginner difficulty `conj.person` costs 0.25 and `noun.number` 0.15, so
   1 - 0.25 - 0.15 = 0.6.
@@ -495,14 +498,14 @@ Each of these is a real run of the CLI on `content/game-v1` (verdict line shorte
 | `--transcript "quiero agua por favor" --prompt stall-need` | intent `request_item`, slot `item=agua`, communicated, correctness 1, `resolvedBy: Exact` | `agent: Toma la botella. El agua está en el río.`, `agent: ¿Quieres pan?` and `decision: rating Easy, learner skills 1, feedback items 0` |
 | `--transcript "hola" --prompt lesson-hello` | intent `greet`, communicated, correctness 1, `resolvedBy: Exact` | `agent: ¡Hola! Soy la guía.` and `decision: rating Easy, learner skills 1, feedback items 0` |
 | `--transcript "quiero aguas por favor" --prompt stall-need` | intent `request_item`, `item=agua`, communicated, correctness 1, no errors, `resolvedBy: Fuzzy`, confidence 0.952 (a near miss, an inflected form of the answer; see [Near misses](#near-misses)) | the same two agent lines and `decision: rating Easy, learner skills 1, feedback items 0` |
-| `--transcript "ayer tengo dos frutas" --prompt lesson-have` | intent `state_have`, `item=fruta`, communicated, correctness 0.15, `vocab.wrong` (`ayer`, not an answer of the constrained prompt) and `conj.tense` (`tengo` to `tuve`), `resolvedBy: Rules`, confidence 0.9 | `agent: ¡Eso es! «Ayer tuve dos frutas».`, `agent: ¡Muy bien!` and `decision: rating Hard, learner skills 3, feedback items 2` |
+| `--transcript "ayer tengo dos frutas" --prompt lesson-have` | intent `state_have`, `item=fruta`, communicated, correctness 0.75, `conj.tense` (`tengo` to `tuve`), `resolvedBy: Rules`, confidence 0.9 | `agent: ¡Eso es! «Ayer tuve dos frutas».`, `agent: ¡Muy bien!` and `decision: rating Good, learner skills 2, feedback items 1` |
 | `--transcript "bla bla" --prompt villager-open` | intent `unknown`, not communicated, correctness 0.2, two `vocab.unknown` errors, `resolvedBy: Unresolved`, confidence 0 | `agent: No te entendí. ¿Me lo dices otra vez?`, `repair: AskAgain ¿Cómo?`, `decision: rating Again, learner skills 1, feedback items 1` |
 | the same with `--repeat not_communicated=1` (the second failure) | as above | `repair: SlowRepeat Perdón, te lo repito más despacio.` |
 | the same with `--repeat not_communicated=2` (the third failure) | as above | `repair: OfferChoices ¿Quieres decir «árbol», «piedra» o «río»?` |
 
 The first rows show a constrained prompt: the answer set matched, and the intent grammar reads the same words. The fourth shows what the same prompt makes of a
-sentence that is not one of its phrases: the intent is found by the keyword rule, the words outside the answer set are `vocab.wrong`, and the tense is still
-checked.
+sentence that is not one of its phrases: the intent is found by the keyword rule, and the tense is still checked. Before M67 the first word outside the answer
+set was also `vocab.wrong` (`ayer`, correctness 0.15); the sentence was understood and is far from every phrase, so it has no miss for the tag to explain.
 
 ## Guarantees
 
