@@ -115,6 +115,9 @@ captured in the one worktree; `main`'s merge `0cf674b` is older than `ccf8187`, 
   back: five wood out, four coins in, two loaves bought, as before.
 - **r10:** the same 31 items and answers; the villager's turn landed a tick earlier, so the rest of the session log is a tick early (the order-only rule) and
   187 pixels of the dimmed world behind the thank-you panel differ. The panel is the same.
+- **V09's own fix** (the skip counts session 1's bottle as the shopkeeper's gift and his key words as taught; `docs/game/README.md`, "The learner's route
+  through phase B"): r21's save holds `"keyWordsTaught":true` and the shopkeeper's given bottle (2 bytes fewer), its world digest unchanged; r20, r22 and r23
+  captured again are the same.
 
 ## By hand (a live run)
 

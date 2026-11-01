@@ -13,7 +13,7 @@ public sealed partial class VoxelSession
     /// world and the lessons as a load works it out (<see cref="RestoreStage"/>): the guide met, the fire lit, the session complete, and the completion hooks put back without
     /// acting (no spare torch, no arrow). The lessons of session 1 are counted first, so the guide counts as met. A step that counts a bottle filled (the camp's water) leaves
     /// that many bottles of water in the bag (V13): the shopkeeper gave the bottle and the river filled it, and nothing in the game empties a bottle, so a learner who played
-    /// the session carries it (the farmer's order of session 7 takes it).
+    /// the session carries it (the farmer's order of session 7 takes it). The shopkeeper counts it as given and his key words as taught (V09).
     /// </summary>
     /// <exception cref="InvalidOperationException">The scene has no free cell on the rim of the player's fire ring, or the bag cannot hold the bottles.</exception>
     internal void SkipToEnding()
@@ -23,9 +23,17 @@ public sealed partial class VoxelSession
             foreach (var step in objective.Spec.Steps.Where(static s => s.Restore is null))
             {
                 objective.Set(step.Id, step.Target);
-                if (string.Equals(step.Trigger.Event, WorldEvents.BottleFilled, StringComparison.Ordinal) && Simulation.GrantItems(ItemId.WaterBottle, step.Target) > 0)
+                if (string.Equals(step.Trigger.Event, WorldEvents.BottleFilled, StringComparison.Ordinal))
                 {
-                    throw new InvalidOperationException("The bag cannot hold the bottle of water the camp's step filled.");
+                    if (Simulation.GrantItems(ItemId.WaterBottle, step.Target) > 0)
+                    {
+                        throw new InvalidOperationException("The bag cannot hold the bottle of water the camp's step filled.");
+                    }
+
+                    // The shopkeeper gave that bottle, at a first visit that taught his key words (V09): without his part a later visit failed forward with a
+                    // second bottle and a use of his phrase the learner never made, and his key words stood alone again.
+                    KeyWordsTaught = true;
+                    Conversation.SkipShopkeeperBottle();
                 }
             }
         }
