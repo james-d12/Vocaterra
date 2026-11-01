@@ -2753,6 +2753,12 @@
       "matches": []
     },
     {
+      "key": "4c8d42173215a1f2e6e7ac6e2674eb9694036b8173d5b2828c076e617b8d80ef",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Vendo dos frutas",
+      "matches": []
+    },
+    {
       "key": "4c964d0e74bb7106ea7f4f8832b577da6b1390bddec73a20696ca86b4559bf0d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde está la herrería por favor",
@@ -6088,6 +6094,12 @@
       "matches": []
     },
     {
+      "key": "a6dbb5a75d5cd8bff317414d41b046a556aea9b4d12fc81d10c212b5ad333e32",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero vender dos frutas",
+      "matches": []
+    },
+    {
       "key": "a6f9b398d542b88e2d92c1396f9e2146c9c69b2f9f6f086d805db4d22282d1f4",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde está la herrería, por favor",
@@ -7816,6 +7828,12 @@
       ]
     },
     {
+      "key": "dab969d2c20f32da41211b57df718696be435390ff0031e5c30c2f64a9e1823c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Vendo una fruta",
+      "matches": []
+    },
+    {
       "key": "dac4a5e987c215c7de718b93d3bd70ef4518a1a3c77d238e7fa320e6ab90ab37",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hay dos panes",
@@ -8703,6 +8721,12 @@
       "key": "f2fea2edca29e32266e3f3a536084e4ade38f6b40a90356539fe7e1b2a4945e5",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Me gustan las manzanas",
+      "matches": []
+    },
+    {
+      "key": "f333f65e187cafddbca357c9b009c8fb2d70ef222b65b5e5bf8302adf27a8936",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te vendo dos frutas",
       "matches": []
     },
     {

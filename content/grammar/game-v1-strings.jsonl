@@ -1447,6 +1447,10 @@
 {"id":"answer-sets/people-farmer:sell.alias1","text":"yo vendo fruta","kind":"learner"}
 {"id":"answer-sets/people-farmer:sell.alias2","text":"te vendo fruta","kind":"learner"}
 {"id":"answer-sets/people-farmer:sell.alias3","text":"quiero vender fruta","kind":"learner"}
+{"id":"answer-sets/people-farmer:sell.alias4","text":"vendo dos frutas","kind":"learner"}
+{"id":"answer-sets/people-farmer:sell.alias5","text":"te vendo dos frutas","kind":"learner"}
+{"id":"answer-sets/people-farmer:sell.alias6","text":"vendo una fruta","kind":"learner"}
+{"id":"answer-sets/people-farmer:sell.alias7","text":"quiero vender dos frutas","kind":"learner"}
 {"id":"answer-sets/people-farmer:plan","text":"mañana venderé fruta","kind":"learner"}
 {"id":"answer-sets/people-farmer:plan.alias1","text":"venderé fruta","kind":"learner"}
 {"id":"answer-sets/people-farmer:plan.alias2","text":"mañana voy a vender fruta","kind":"learner"}

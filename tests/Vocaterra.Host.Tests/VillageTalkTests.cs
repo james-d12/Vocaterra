@@ -173,6 +173,12 @@ public sealed class VillageTalkTests
     [InlineData("baker-open", "quiero vender tres bloques de madera", "offer_item", "¡Gracias! Aquí tienes tus monedas.")]
     [InlineData("lesson-sell", "quiero vender tres bloques de madera", "offer_item", "¡Gracias! Aquí tienes tus monedas.")]
     [InlineData("smith-open", "vendo dos bloques de madera", "offer_item", "¡Gracias! Aquí tienes tus monedas.")]
+    [InlineData("farmer-open", "vendo dos frutas", "offer_item", "¡Gracias! Aquí tienes tus monedas.")] // V19: the answer to León's «¿Cuántas frutas me vendes?» (vocab.wrong on vendo before)
+    [InlineData("farmer-open", "te vendo tres frutas", "offer_item", "¡Gracias! Aquí tienes tus monedas.")]
+    [InlineData("farmer-open", "vendo una fruta", "offer_item", "¡Gracias! Aquí tienes tus monedas.")]
+    [InlineData("baker-open", "te vendo cuatro bloques de madera", "offer_item", "¡Gracias! Aquí tienes tus monedas.")] // the answer to «¿Cuántos bloques de madera me vendes?»
+    [InlineData("farmer-open", "quiero quince manzanas", "request_item", "Aquí tienes. ¡Gracias!")] // V19: no cap (the host has no bag; the game decides)
+    [InlineData("baker-open", "quiero cero panes", "request_item", "Aquí tienes el pan. ¡Gracias!")] // the host has no bag: the game answers none_asked
     public void TheMarketsLinesAreTheirIntentsCommunicatedAndErrorFree(string prompt, string line, string intent, string reply)
     {
         var result = Evaluate(line, prompt);

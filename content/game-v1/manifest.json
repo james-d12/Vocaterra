@@ -64,7 +64,7 @@
 {"path":"answer-sets/lesson-works.json","sha256":"b98ec6a476abd65a754d283d7f8bc75459cdcd1157fe35d8acbde912467a1fb8","bytes":693},
 {"path":"answer-sets/lesson-yes-no.json","sha256":"817a12d2f2baef0a486de35ce9fc465a817b461b797edd88737978e5cc3997ae","bytes":1483},
 {"path":"answer-sets/lesson-yesno-plain.json","sha256":"2ca9f05b28ddb38836f54e443c985d7eea11c905b39720851284f6dc6d266572","bytes":1436},
-{"path":"answer-sets/people-farmer.json","sha256":"9df7c88bf1e6f8f89cf2e966e3b1b71134f02e650a635351ddfac47516f7bb7f","bytes":3251},
+{"path":"answer-sets/people-farmer.json","sha256":"e3e220617a5f67b011f459420ad9ca845cf6269a0b16b59f3ee6f776c94fd79c","bytes":3341},
 {"path":"answer-sets/people-smith.json","sha256":"5a96607b95ddcfc3807b7152bccb6ad947b857ffbca15581d8e5c9c4e4621953","bytes":2550},
 {"path":"answer-sets/places-basic.json","sha256":"03606bc09cd5ca4266d7233eb32f69bc29689aecfe5efb579286e849ec019330","bytes":548},
 {"path":"answer-sets/places-village.json","sha256":"0dcf0f713914ddf61cc01645597b7f39916b88e1e6c8663800a2035c0d53d0d0","bytes":4515},
@@ -1036,4 +1036,4 @@
 {"path":"speech/villager_thank.2.wav","sha256":"0ee06d6e1412c4a8c3efc7d36a4179e6f2d52ce6dbb7b602ca17fad9a51247b3","bytes":54044},
 {"path":"speech/villager_unknown_place.1.slow.wav","sha256":"7e125d37b0a2bf3fac2c929cc2e2bd4a56639e9c515a39ad9ea809e1404fbe2e","bytes":83308},
 {"path":"speech/villager_unknown_place.1.wav","sha256":"926fc98c88187d508f8a0add2dc291af1e5bf62b5124ea47cf4277577b5e4215","bytes":76844}
-],"bundleHash":"53c8194feb0d8e3e4173d458bcdfcc2d8f278443f72bee5b49fc45aa61cb7889"}
+],"bundleHash":"0f8faea06d516edc45850efe91827dd67ad7e85c08e02c4f10467ac419bf53fa"}
