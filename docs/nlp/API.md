@@ -522,6 +522,39 @@ gives `están`, and `son cerca` alone is read as the noun. `hace` is the preposi
 mucho`) and the verb `hacer` elsewhere (M59: `¿qué hace?`, `¿qué hace Domingo?`, `hace frío`), also where a grammar's literal `hace` binds it, so `result.Words` reports the
 verb for a host's own person check.
 
+### Irregular forms, plurals and unknown words, `conj.irregular`, `noun.number` and `vocab.unknown` (M58)
+
+`conj.irregular` is reported on a verb form that is the regular cell of an irregular verb (the stem change missed, or a regular ending on an irregular stem), with
+`expected` the lexicon's form of that cell and `actual` the form said. Whether the form is the verb depends on what else it is:
+
+- **A form the lexicon lacks** is the verb wherever it stands: `sabo` gives `sé`, `tení` gives `tuve`, `quero` gives `quiero`, `tenes` gives `tienes`, `dormo` gives
+  `duermo`, and `cuánto costan los panes` gives `cuestan`, with the price intent.
+- **A form that is also a lexicon noun (M58)** is the verb where the sentence calls for a verb, and the noun elsewhere. The bundle's lexicon has six: `costa` and `costas`
+  (`costar`: `cuesta`, `cuestas`), `jugo` (`juego`), `mente` and `mentes` (`miente`, `mientes`) and `cabo` (`quepo`). A verb is called for after a subject pronoun or
+  a clitic (`yo jugo en el pueblo` gives `juego`, `tú mentes` gives `mientes`, `el pan me costa dos monedas` gives `cuesta`); after `cuánto` when the noun would not
+  agree with it (`¿cuánto costa el pan?` gives `cuesta`, with the price intent, and `cuánto costa los panes` gives `cuesta` and `conj.person` `cuestan`; `cuánta costa`
+  is the noun); after the noun of a phrase that opens the utterance, when the verb is of the third person and of that noun's number (`el pan costa dos monedas`, `la
+  manzana costa una moneda`); and where a slot grammar binds the word as that verb (`cuánto [VERB:costar] ...`). The noun stays after a determiner or a preposition
+  (`la costa`, `en la costa`, `al cabo de un rato`), alone (`costa`), and wherever reading it as the noun finds no other mistake: the verb reading counts as half a
+  mistake when the resolver weighs the readings. A grammar that takes the word as written wins over one that needs the verb. `result.Words` reports the reading the
+  analysis used (`costar` in `¿cuánto costa?`), and `result.Tokens` lists the verb after the noun's readings only when the analysis read the word as the verb.
+- **A form that is also a word of another class** stays that word: an adjective or adverb (`solo`, `sola`: `yo solo quiero pan`), a pronoun (`esto`, which is not taken
+  for `estoy`) and a form of another verb (`podo`, `pode`, `podes`, forms of `podar`: `yo podo el árbol`). Only a slot grammar that matches nothing without it and names
+  the verb reads it as the slip: `me [VERB:poder] [VERB:ayudar]` over `me pode ayudar` gives `puede`.
+- A form that differs from the expected one only in its accents is not reported (`esta`, `estas` for `está`, `estás`): it is read as the accented word, without an error.
+
+`noun.number` is reported on a noun that disagrees in number with its determiner (`dos espada` gives `espadas`) or an adjective with its noun, and, since M58, on **a
+plural made with the wrong ending**: a word the lexicon lacks that is a lexicon noun ending in `l`, `r`, `n`, `d`, `z` or `j` with `-s` added (or a noun in `-z` with
+`-es` added and the `z` kept) is that noun in the plural, with `expected` its plural and `actual` the form said. `hay pans` gives `panes`, with the availability intent
+and the slot `item` `pan`; `hay dos pans` gives `panes`; `flors` gives `flores`, `relojs` `relojes`, `doctors` `doctores`, `luzs` and `luzes` `luces`, and `cancions`
+(the accent left out as well) `canciones`. A determiner of the other number names its own correction instead, once (`hay un pans` gives `pan`). Nouns that end in
+another consonant are mostly loans that take `-s` (`robots`, `clubs`) and are not considered, and a plural the lexicon knows is never reported (`hay panes`, `hay dos
+panes`, `el mes`, `el país`, `los lunes`).
+
+`vocab.unknown` is reported, with an empty `expected`, on a word the lexicon lacks that is none of these slips and that no grammar binds as a name (`hay glurps`,
+`quiero un blorf`); after a fuzzy answer match the pipeline fills `expected` with the answer's nearest word (`AnswerCorrections`). A word a grammar binds as a name
+(`[WORD]`) is neither an unknown word nor a slip, whatever its spelling (`me llamo Pans`).
+
 ### Carry the context to the next utterance
 
 The host passes the repeat counts it carried from the previous `Next`; the first utterance of a conversation starts with none (`Create` with

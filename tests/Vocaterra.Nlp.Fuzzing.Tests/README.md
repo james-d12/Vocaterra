@@ -521,7 +521,12 @@ them explicitly (each is a skip or a restriction in the generator, counted in th
   words or the grammar to prefer either, is read the charitable way (`ayer ... intenciones parte`, where `parte` is a noun or a verb).
   The closed classes of the generators (adverbs, prepositions, conjunctions, interjections) still leave out words that are also a verb form or a noun (`como`, `para`); the resolver reads
   `nosotros como` as the verb and `nosotros comemos como siempre` as the conjunction, and both are covered by `HomographSentencesTests`, not by the generators. Nouns whose form two noun
-  lemmas share (`ratos`: `rato`, `rata`) stay out of the pools (94 lemmas), because the correction the analyzer names depends on which lemma it takes.
+  lemmas share (`ratos`: `rato`, `rata`) stay out of the pools (94 lemmas), because the correction the analyzer names depends on which lemma it takes. So do, since M58, the nouns a
+  form of which is also the regular cell of an irregular verb (`costa` for `cuesta`, the stem change missed; `cabo`, `costa`, `jugo` and `mente`, four lemmas,
+  `nouns:excluded-also-a-learners-slip-of-a-verb`): the analyzer reads such a word as that verb, with `conj.irregular`, where a verb is expected (after a subject pronoun or a
+  clitic, after `cuánto`, after the noun of a phrase that opens the sentence) and as the noun elsewhere, and the generators place a noun by the pattern, not by those rules.
+  `LearnerSlipTests` in the Spanish pack's tests covers them. The plural slips of M58 (`pans` for `panes`) are words the lexicon lacks, which no generator writes: the
+  non-word of the `vocab.unknown` mutation is at least three edits from every form, and an invented name ends in a vowel.
 - **`CanonicalJson` writes a lone surrogate as an escaped U+FFFD**, and a real U+FFFD as the character itself, so a transcript with a lone
   surrogate does not survive serialize, deserialize, serialize byte for byte, and a replay envelope for it does not round-trip. Recognizers return
   well-formed text. O16 and O14 make transcripts well-formed before the JSON round trip (O14 still runs the pipeline and replays the in-memory

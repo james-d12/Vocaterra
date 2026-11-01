@@ -17,6 +17,12 @@ public sealed record SlotGrammarMatch(SlotGrammar Grammar, IReadOnlyList<SlotVal
     internal IReadOnlyList<TokenBinding> Bindings { get; init; } = [];
 
     /// <summary>
+    /// True when the grammar matched only over the readings of a learner's slip besides the lexicon's (M58: <c>costa</c> as <c>costar</c>), because it matched nothing
+    /// without them. The analyzer prefers a match without them (see <see cref="LinguisticAnalyzer"/>).
+    /// </summary>
+    internal bool ReadsSlips { get; init; }
+
+    /// <summary>
     /// The positions of the tokens that the best parses read in different ways, because two elements of the grammar compete for the word (<c>[NOUN:item]?</c> beside
     /// <c>[VERB]?</c> over a word that is both). Empty for a grammar that reads every word one way. The slots are those of the first of the tied parses.
     /// </summary>
