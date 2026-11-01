@@ -46,9 +46,10 @@ public static class VerdictAssembler
     /// <see cref="RecognitionMode.Constrained"/>, the line is a miss and the first content token (the first token that is not purely an article,
     /// pronoun, preposition or conjunction; unknown words count as content) is in <see cref="VerdictInputs.KnownLexiconWords"/>. The tag explains a
     /// miss (M67): the line resolved no intent (<see cref="IntentId.IsUnknown"/>), or an intent that no slot grammar gave (a keyword rule or the
-    /// embedding rung) and the line is a near miss of an answer: <see cref="MatchResult.Distance"/>, the distance to the nearest answer phrase, is at
-    /// most one edit past the answer matcher's fuzzy budget for the line's length (its words joined by single spaces), <c>floor(length / 4)</c> at
-    /// Beginner, 5 at Intermediate and 6 at Advanced (<c>cuál es esto</c> for <c>qué es esto</c>). A line a slot grammar understood never gets it, nor
+    /// embedding rung) and the line is a near miss of an answer: <see cref="MatchResult.Distance"/>, the distance to the nearest answer phrase, is
+    /// within the answer matcher's fuzzy budget taken for the line's own length (its words joined by single spaces), <c>floor(length / 4)</c> at
+    /// Beginner, 5 at Intermediate and 6 at Advanced, although the matcher, which measures the budget by the phrase's length, rejected it
+    /// (<c>cuál es esto</c> for <c>qué es esto</c>: 3 edits, a budget of 3 for its 12 characters and 2 for the phrase's 11). A line a slot grammar understood never gets it, nor
     /// does a line a keyword rule understood far from every answer: <c>buscaré madera para luz</c> or <c>hola luz quiero dos panes</c> at a prompt whose
     /// answer set does not hold the line were scored as a small mistake before M67.
     /// <c>Expected</c> is the answer set's canonical answer when the set has exactly one answer (a prompt that asks for one word), and empty
@@ -241,9 +242,8 @@ public static class VerdictAssembler
         return new ErrorTag(ErrorTags.VocabWrong, token.Span, expected, token.Text);
     }
 
-    // A near miss: the nearest answer phrase is at most one edit past the fuzzy budget of the answer matcher (floor(length / 4, 5 or 6) for Beginner,
-    // Intermediate and Advanced), taken for the line's own length, the words joined by single spaces. One edit past the budget is the first distance
-    // the matcher's margin rejects.
+    // A near miss: the nearest answer phrase is within the answer matcher's fuzzy budget (floor(length / 4, 5 or 6) for Beginner, Intermediate and
+    // Advanced) taken for the line's own length, the words joined by single spaces; the matcher takes it for the phrase's length.
     private static bool IsNearMiss(VerdictInputs inputs)
     {
         var tokens = inputs.Analysis.Tokens;
@@ -259,7 +259,7 @@ public static class VerdictAssembler
             Difficulty.Advanced => 6,
             _ => 4,
         };
-        return length > 0 && inputs.Match.Distance <= (length / divisor) + 1;
+        return length > 0 && inputs.Match.Distance <= length / divisor;
     }
 
     private static Token? FirstContentToken(IReadOnlyList<AnalyzedToken> tokens)

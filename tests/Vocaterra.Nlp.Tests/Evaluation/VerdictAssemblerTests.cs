@@ -507,11 +507,11 @@ public class VerdictAssemblerTests
     public void VocabWrongIsNotDerivedOnALineARuleUnderstoodFarFromEveryAnswer(IntentRung rung)
     {
         // hola luz quiero dos panes at the baker's open prompt (greet, by the keyword hola): 23 characters, a budget of 5 at Beginner, so a near miss is
-        // 6 edits at most; the nearest answer phrase (quiero dos panes) is 9 away, and 7 is already too far.
+        // 5 edits at most; the nearest answer phrase (quiero dos panes) is 9 away, and 6 is already too far.
         var inputs = VocabInputs([Fixtures.Token("hola", 0, "interj"), Fixtures.Token("luz", 5, "noun"), Fixtures.Token("quiero", 9, "verb"), Fixtures.Token("2", 16, "num"), Fixtures.Token("panes", 18, "noun")]) with
         {
             Intent = Fixtures.Intent("greet", rung),
-            Match = new MatchResult(null, MatchType.None, 7, false, 0.0),
+            Match = new MatchResult(null, MatchType.None, 6, false, 0.0),
             KnownLexiconWords = ["hola", "luz", "quiero", "panes"],
         };
 
@@ -519,11 +519,13 @@ public class VerdictAssemblerTests
     }
 
     [Theory]
-    [InlineData(4, true)]
-    [InlineData(5, false)]
+    [InlineData(3, true)]
+    [InlineData(4, false)]
     public void VocabWrongIsDerivedOnALineARuleUnderstoodThatIsANearMissOfAnAnswer(int distance, bool derived)
     {
-        // cuál es esto for qué es esto (ask_what, by the keyword esto): 12 characters, a budget of 3 at Beginner, so a near miss is 4 edits at most.
+        // cuál es esto for qué es esto (ask_what, by the keyword esto): 12 characters, a budget of 3 at Beginner, so a near miss is 3 edits at most (it
+        // is 3; the matcher took the budget for qué es esto, 11 characters, 2). me llamo at the smith's (ask_name, by llamar) is 3 from qué hago, with
+        // a budget of 2 for its 8 characters: no near miss.
         var inputs = VocabInputs([Fixtures.Token("cuál", 0, "adj"), Fixtures.Token("es", 5, "verb"), Fixtures.Token("esto", 8, "pron")]) with
         {
             Intent = Fixtures.Intent("ask_what", IntentRung.Rules),
@@ -539,11 +541,11 @@ public class VerdictAssemblerTests
     [Fact]
     public void TheNearMissBudgetFollowsTheDifficulty()
     {
-        // The same 12 characters allow 2 + 1 edits at Intermediate and 2 + 1 at Advanced (floor(12 / 5) = floor(12 / 6) = 2), against 3 + 1 at Beginner.
+        // The same 12 characters allow 2 edits at Intermediate and at Advanced (floor(12 / 5) = floor(12 / 6) = 2), against 3 at Beginner.
         var inputs = VocabInputs([Fixtures.Token("cuál", 0, "adj"), Fixtures.Token("es", 5, "verb"), Fixtures.Token("esto", 8, "pron")]) with
         {
             Intent = Fixtures.Intent("ask_what", IntentRung.Rules),
-            Match = new MatchResult(null, MatchType.None, 4, false, 0.0),
+            Match = new MatchResult(null, MatchType.None, 3, false, 0.0),
             KnownLexiconWords = ["cuál", "es", "esto"],
         };
 

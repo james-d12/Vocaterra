@@ -351,7 +351,7 @@ evaluation configuration and the version stamp:
   span start, then tag order in the taxonomy, then expected text. The derived `vocab.wrong` (a word the lexicon knows but the answer
   set does not contain) has as `expected` the answer set's canonical answer when the set has exactly one answer, and an empty
   `expected` otherwise; its `actual` is the word. It explains a miss, so since M67 it is derived only when the line resolved no intent,
-  or resolved one by a keyword rule (not a slot grammar) and is a near miss of an answer (at most one edit past the fuzzy budget for its
+  or resolved one by a keyword rule (not a slot grammar) and is a near miss of an answer (within the fuzzy budget taken for the line's own
   length: `cuál es esto` for `qué es esto`); a line a slot grammar understood never gets it. A `vocab.unknown` of a fuzzy answer match
   already carries the canonical word.
 - **correctness**: 1 minus the sum of the error weights for the prompt's difficulty (`content/game-v1/evaluation/evaluation-config.json`),
@@ -498,7 +498,7 @@ Each of these is a real run of the CLI on `content/game-v1` (verdict line shorte
 | `--transcript "quiero agua por favor" --prompt stall-need` | intent `request_item`, slot `item=agua`, communicated, correctness 1, `resolvedBy: Exact` | `agent: Toma la botella. El agua está en el río.`, `agent: ¿Quieres pan?` and `decision: rating Easy, learner skills 1, feedback items 0` |
 | `--transcript "hola" --prompt lesson-hello` | intent `greet`, communicated, correctness 1, `resolvedBy: Exact` | `agent: ¡Hola! Soy la guía.` and `decision: rating Easy, learner skills 1, feedback items 0` |
 | `--transcript "quiero aguas por favor" --prompt stall-need` | intent `request_item`, `item=agua`, communicated, correctness 1, no errors, `resolvedBy: Fuzzy`, confidence 0.952 (a near miss, an inflected form of the answer; see [Near misses](#near-misses)) | the same two agent lines and `decision: rating Easy, learner skills 1, feedback items 0` |
-| `--transcript "ayer tengo dos frutas" --prompt lesson-have` | intent `state_have`, `item=fruta`, communicated, correctness 0.75, `conj.tense` (`tengo` to `tuve`), `resolvedBy: Rules`, confidence 0.9 | `agent: ¡Eso es! «Ayer tuve dos frutas».`, `agent: ¡Muy bien!` and a `decision` line |
+| `--transcript "ayer tengo dos frutas" --prompt lesson-have` | intent `state_have`, `item=fruta`, communicated, correctness 0.75, `conj.tense` (`tengo` to `tuve`), `resolvedBy: Rules`, confidence 0.9 | `agent: ¡Eso es! «Ayer tuve dos frutas».`, `agent: ¡Muy bien!` and `decision: rating Good, learner skills 2, feedback items 1` |
 | `--transcript "bla bla" --prompt villager-open` | intent `unknown`, not communicated, correctness 0.2, two `vocab.unknown` errors, `resolvedBy: Unresolved`, confidence 0 | `agent: No te entendí. ¿Me lo dices otra vez?`, `repair: AskAgain ¿Cómo?`, `decision: rating Again, learner skills 1, feedback items 1` |
 | the same with `--repeat not_communicated=1` (the second failure) | as above | `repair: SlowRepeat Perdón, te lo repito más despacio.` |
 | the same with `--repeat not_communicated=2` (the third failure) | as above | `repair: OfferChoices ¿Quieres decir «árbol», «piedra» o «río»?` |
