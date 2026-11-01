@@ -1,7 +1,9 @@
+using System.Collections;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using Vocaterra.Game.Core.Content;
+using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Core.Language.Checks;
@@ -50,6 +52,7 @@ public sealed record CheckOption(string Label, string? Icon = null);
 /// <param name="Situation">The support-language situation of a production item; empty for comprehension.</param>
 /// <param name="Prompt">The prompt a production item is graded at (<c>stall-need</c>); empty for comprehension.</param>
 /// <param name="Intent">The intent a production item must resolve to (<c>request_item</c>); empty for comprehension.</param>
+/// <param name="Lesson">The lesson the item belongs to (VILLAGE_PLAN V07), or <see langword="null"/> for an item of no lesson (the free run's stall and villager).</param>
 public sealed record CheckItem(
     string Id,
     CheckItemKind Kind,
@@ -61,23 +64,74 @@ public sealed record CheckItem(
     int Correct,
     string Situation,
     string Prompt,
-    string Intent);
+    string Intent,
+    string? Lesson = null);
 
 /// <summary>
-/// The check battery's items, read from the bundle's host file <c>game/checks.json</c> (hashed, listed in <c>provenance.json</c>). Every item's shape is
-/// checked when it is read; its phrase, line and prompt are checked against the other files by <see cref="Content.GameDataValidator"/>, so a bad item is a
-/// load error, not a surprise in a playtest.
+/// The check battery's items, read from the bundle's host file <c>game/checks.json</c> (hashed, listed in <c>provenance.json</c>), in the file's order. Every
+/// item's shape is checked when it is read; its phrase, line, prompt and lesson are checked against the other files by <see cref="Content.GameDataValidator"/>,
+/// so a bad item is a load error, not a surprise in a playtest.
 /// </summary>
-public static class CheckBank
+/// <remarks>
+/// <b>By lesson</b> (VILLAGE_PLAN V07, schema 2). Each item names the lesson it belongs to, and a battery asks the items of the lessons the play session has
+/// unlocked (<see cref="AskedIn"/>), so a new lesson's items join the battery from the session it opens in and the battery does not grow with the bundle. The
+/// file's <see cref="CoreSessions"/> are asked in every battery from the first session on: the lessons of sessions 1 to 3 are the pilot's battery of 31 items
+/// (<c>docs/game/PLAYTEST.md</c>), which the pilot asks whole in its first session and at the recall in its second.
+/// </remarks>
+public sealed class CheckBank : IReadOnlyList<CheckItem>
 {
     /// <summary>The file's path inside the bundle folder.</summary>
     public const string RelativePath = "game/checks.json";
+
+    /// <summary>The file's schema version: 2 since VILLAGE_PLAN V07 (an item's <c>lesson</c>, the battery's <c>coreSessions</c>).</summary>
+    public const int SchemaVersion = 2;
+
+    private readonly IReadOnlyList<CheckItem> _items;
+
+    /// <summary>A battery of these items.</summary>
+    /// <param name="items">The items, in the file's order.</param>
+    /// <param name="coreSessions">The play sessions whose lessons' items every battery asks (1: only the first session's).</param>
+    public CheckBank(IReadOnlyList<CheckItem> items, int coreSessions = 1)
+    {
+        ArgumentNullException.ThrowIfNull(items);
+        ArgumentOutOfRangeException.ThrowIfLessThan(coreSessions, 1);
+        _items = items;
+        CoreSessions = coreSessions;
+    }
+
+    /// <summary>The play sessions, from the first, whose lessons' items every battery asks: the file's <c>coreSessions</c> (3, the pilot's battery).</summary>
+    public int CoreSessions { get; }
+
+    /// <inheritdoc />
+    public int Count => _items.Count;
+
+    /// <inheritdoc />
+    public CheckItem this[int index] => _items[index];
+
+    /// <inheritdoc />
+    public IEnumerator<CheckItem> GetEnumerator() => _items.GetEnumerator();
+
+    /// <inheritdoc />
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    /// <summary>
+    /// The items a battery asks in a play session, in the file's order: those of no lesson, and those of a lesson that opens in a core session or in the play
+    /// session or before it (<c>lesson.Session &lt;= max(playSession, CoreSessions)</c>). An item whose lesson the bundle lacks is asked (the validator names it).
+    /// </summary>
+    /// <param name="playSession">The play session the battery runs in (the pre- and post-check's own, the recall's after the load).</param>
+    /// <param name="lessons">The lessons, for the session each opens in.</param>
+    public IReadOnlyList<CheckItem> AskedIn(int playSession, LessonBook lessons)
+    {
+        ArgumentNullException.ThrowIfNull(lessons);
+        var unlockedUpTo = Math.Max(playSession, CoreSessions);
+        return _items.Where(item => item.Lesson is not { } id || lessons.Find(id) is not { } lesson || lesson.Session <= unlockedUpTo).ToList();
+    }
 
     /// <summary>Reads the battery from the bundle's verified host file.</summary>
     /// <param name="bundle">The bundle, loaded with hash verification.</param>
     /// <param name="locale">The support language, which holds the items' questions, options and situations (<c>check.&lt;id&gt;.*</c>).</param>
     /// <exception cref="InvalidDataException">The bundle has no such host file, or an item is malformed or lacks its text in the locale.</exception>
-    public static IReadOnlyList<CheckItem> Load(ContentBundle bundle, LocaleText locale)
+    public static CheckBank Load(ContentBundle bundle, LocaleText locale)
     {
         ArgumentNullException.ThrowIfNull(bundle);
         if (!bundle.TryReadHostFile(RelativePath, out var bytes))
@@ -97,7 +151,7 @@ public static class CheckBank
     /// <param name="json">The contents of <c>game/checks.json</c>.</param>
     /// <param name="locale">The support language, which holds the items' questions, options and situations.</param>
     /// <exception cref="InvalidDataException">The text is malformed or an item does not hold together.</exception>
-    public static IReadOnlyList<CheckItem> Parse(string json, LocaleText locale)
+    public static CheckBank Parse(string json, LocaleText locale)
     {
         ArgumentNullException.ThrowIfNull(json);
         ArgumentNullException.ThrowIfNull(locale);
@@ -105,9 +159,15 @@ public static class CheckBank
         {
             using var document = JsonDocument.Parse(json);
             var root = document.RootElement;
-            if (root.GetProperty("schemaVersion").GetInt32() != 1)
+            if (root.GetProperty("schemaVersion").GetInt32() != SchemaVersion)
             {
-                throw new InvalidDataException("checks.json: schemaVersion must be 1.");
+                throw new InvalidDataException(string.Create(CultureInfo.InvariantCulture, $"checks.json: schemaVersion must be {SchemaVersion}."));
+            }
+
+            var coreSessions = root.TryGetProperty("coreSessions", out var core) ? core.GetInt32() : 1;
+            if (coreSessions < 1)
+            {
+                throw new InvalidDataException(string.Create(CultureInfo.InvariantCulture, $"checks.json: coreSessions is {coreSessions}; sessions start at 1."));
             }
 
             var items = new List<CheckItem>();
@@ -128,7 +188,7 @@ public static class CheckBank
                 throw new InvalidDataException("checks.json: the battery has no items.");
             }
 
-            return items;
+            return new CheckBank(items, coreSessions);
         }
         catch (Exception ex) when (ex is JsonException or KeyNotFoundException or InvalidOperationException or FormatException)
         {
@@ -145,6 +205,13 @@ public static class CheckBank
             throw new InvalidDataException($"checks.json: item '{id}' names no phrase.");
         }
 
+        // Every item says which lesson it belongs to, null for none (VILLAGE_PLAN V07): an item that leaves it out was not looked at.
+        if (!element.TryGetProperty("lesson", out var lessonElement) || lessonElement.ValueKind is not (JsonValueKind.String or JsonValueKind.Null))
+        {
+            throw new InvalidDataException($"checks.json: item '{id}' names no lesson (\"lesson\": a lesson's id, or null for an item of no lesson).");
+        }
+
+        var lesson = lessonElement.ValueKind == JsonValueKind.String ? lessonElement.GetString() : null;
         var kind = element.GetProperty("kind").GetString();
         switch (kind)
         {
@@ -178,7 +245,8 @@ public static class CheckBank
                     correct,
                     string.Empty,
                     string.Empty,
-                    string.Empty);
+                    string.Empty,
+                    lesson);
             case "production":
                 var prompt = element.GetProperty("prompt").GetString() ?? string.Empty;
                 var intent = element.GetProperty("intent").GetString() ?? string.Empty;
@@ -193,7 +261,7 @@ public static class CheckBank
                     throw new InvalidDataException($"checks.json: production item '{id}' names no prompt.");
                 }
 
-                return new CheckItem(id, CheckItemKind.Production, phrase, string.Empty, string.Empty, string.Empty, [], -1, situation, prompt, intent);
+                return new CheckItem(id, CheckItemKind.Production, phrase, string.Empty, string.Empty, string.Empty, [], -1, situation, prompt, intent, lesson);
             default:
                 throw new InvalidDataException(string.Create(CultureInfo.InvariantCulture, $"checks.json: item '{id}' has the kind '{kind}', which is neither comprehension nor production."));
         }

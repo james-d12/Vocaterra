@@ -61,6 +61,16 @@ public interface IGuideFacts
     /// <param name="lemma">The catalogue noun (<c>árbol</c>).</param>
     GuideNearest? NearestOfNoun(GuideViewpoint from, string lemma);
 
+    /// <summary>
+    /// The nearest place of a catalogue noun from a viewpoint among the blocks joined to <paramref name="body"/> through blocks of the noun (face to face): one
+    /// body of it, as the river is the water its point lies in and not the water of a well (VILLAGE_PLAN V04). The nearest is chosen as in
+    /// <see cref="NearestOfNoun"/>; <see langword="null"/> when the block at <paramref name="body"/> is not the noun.
+    /// </summary>
+    /// <param name="from">Where the player is.</param>
+    /// <param name="lemma">The catalogue noun (<c>río</c>).</param>
+    /// <param name="body">A block of the body (the river's point).</param>
+    GuideNearest? NearestOfNounJoinedTo(GuideViewpoint from, string lemma, GuideCell body);
+
     /// <summary>The catalogue nouns that name the thing at a cell (the water names <c>agua</c> and <c>río</c>), in lemma order; empty for air.</summary>
     /// <param name="cell">The tile or block.</param>
     IReadOnlyList<string> NounsAt(GuideCell cell);

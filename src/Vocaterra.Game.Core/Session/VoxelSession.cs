@@ -4,6 +4,7 @@ using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Words;
+using Vocaterra.Game.Core.Navigation;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Save;
@@ -20,13 +21,14 @@ namespace Vocaterra.Game.Core.Session;
 /// the shopkeeper and the villager), the word counts, the arrow, the camp objective, the word cards and the turn worker around it (the shared part
 /// is <see cref="GuideSession"/>). The guide's facts are the blocks of the scene: the nearest block of a noun and its direction from where the
 /// player faces (<see cref="WorldFacts"/>). Since S6 the NPCs' host events act on this world (<see cref="NpcHostEvents"/>): the shopkeeper hands
-/// over the bottle, which the player fills at the river (the objective's water step), the villager points the beacon at the river.
+/// over the bottle, which the player fills at the river (the objective's water step), the villager points the beacon at the place the learner asked
+/// for (since VILLAGE_PLAN V02 through the scene's labels, <see cref="ScenePlaces"/>).
 /// </summary>
 /// <remarks>
 /// The front-end owns the clock and the input: it calls <see cref="Step"/> once per tick with the body's commands, and it reads the simulation,
 /// the arrow, the objective and the words. Nothing here reads the clock or draws a random number of its own.
 /// </remarks>
-public sealed class VoxelSession : GuideSession
+public sealed partial class VoxelSession : GuideSession
 {
     /// <summary>The arrow is taken down when the player comes within this many blocks of its target (the beacon's own reach).</summary>
     public const int ReachBlocks = 3;
@@ -60,9 +62,11 @@ public sealed class VoxelSession : GuideSession
             WorldFacts.Live(scene?.Grid ?? throw new ArgumentNullException(nameof(scene)), (data ?? throw new ArgumentNullException(nameof(data))).Nouns, data.Words.Directions),
             playSession: 1,
             credit,
-            lessons)
+            lessons,
+            ScenePlaces.Of(scene))
     {
         Scene = scene;
+        Places = ScenePlaces.Of(scene);
         Simulation = VoxelSimulation.Create(scene);
         foreach (var item in data.Objectives.Grants)
         {
@@ -79,6 +83,9 @@ public sealed class VoxelSession : GuideSession
     /// <summary>The built scene (the world the facts read).</summary>
     public Scene Scene { get; }
 
+    /// <summary>The places of the scene the NPCs' directions and the lessons name (VILLAGE_PLAN V02).</summary>
+    public ScenePlaces Places { get; }
+
     /// <summary>The 3D simulation: the body, the inventory, the tick counter and the events.</summary>
     public VoxelSimulation Simulation { get; }
 
@@ -88,8 +95,11 @@ public sealed class VoxelSession : GuideSession
     /// <summary>The camp checklist: the session's first checklist objective (gathering, the torch at the fire ring, the water).</summary>
     public Objective Objective { get; }
 
-    /// <summary>The first objective in the HUD's order that is not done, or <see langword="null"/> when every one is (the session is complete). It gates nothing.</summary>
-    public Objective? CurrentObjective => Objectives.FirstOrDefault(static o => !o.Complete);
+    /// <summary>
+    /// The first objective in the HUD's order that is not done and is shown in this play session (an order of a later session is hidden, VILLAGE_PLAN V03), or
+    /// <see langword="null"/> when every one is done. It gates nothing.
+    /// </summary>
+    public Objective? CurrentObjective => Objectives.FirstOrDefault(o => !o.Complete && o.Spec.ShownIn(PlaySession));
 
     /// <summary>The step a save names (<c>camp.wood</c>), or <see langword="null"/> for a key the session's objectives do not have.</summary>
     /// <param name="key">The step's save key, <c>&lt;objective&gt;.&lt;step&gt;</c>.</param>
@@ -145,7 +155,8 @@ public sealed class VoxelSession : GuideSession
     /// What the objective area (top right) says now, as coloured pieces (S17): a lesson's short line while its <c>do</c> step waits ("Pick a fruit from a berry bush, then go
     /// back to Luna"); before the guide is met "Go down the trail and find the guide"; the camp checklist while it is the objective (<c>Campamento (camp): madera (wood)
     /// 0/5 ...</c>, the English going as the nouns become known, D-game-13); once it is complete "Go back up the trail and light your own fire"; and, with the fire lit,
-    /// "Session complete". Every line but the checklist is English only.
+    /// "Session complete". Since V12c, once the play session's work is done, "Session complete: sleep at your fire to start session 2" (or, when no later session has a lesson,
+    /// that every lesson so far is done), and from session 2 on, while a lesson is left, the lesson to go on with. Every line but the checklist is English only.
     /// </summary>
     public IReadOnlyList<ObjectivePiece> ObjectiveHud()
     {
@@ -165,9 +176,14 @@ public sealed class VoxelSession : GuideSession
         }
 
         var current = CurrentObjective;
-        if ((current is null || current == Objectives[0]) && Lessons.NewLesson is { Objective: { } objective })
+        if ((current is null || current == Objectives[0] || current.Spec.IsOrder) && Lessons.NewLesson is { Objective: { } objective })
         {
-            return [new ObjectivePiece(objective, ObjectivePieceKind.Support)]; // a new session's lesson is unlocked and not begun (S26): before the first objective is done, or after the last
+            return [new ObjectivePiece(objective, ObjectivePieceKind.Support)]; // a new session's lesson is unlocked and not begun (S26): before the first objective is done, after the last, or over an order (V03)
+        }
+
+        if ((current is null || current.Spec.IsOrder) && RestLine(overOrder: current is not null) is { } rest)
+        {
+            return [rest]; // the session's work is done: sleep at the fire for the next session, or every lesson is done; or the lesson to go on with (V12c)
         }
 
         return current switch
@@ -184,7 +200,10 @@ public sealed class VoxelSession : GuideSession
     /// <summary>Whether a torch stands on the rim of the fire ring at the player's own camp (<c>firering.player</c>): the fire is lit.</summary>
     public bool FireLit => _fireLit;
 
-    /// <summary>Whether the session is complete: the camp checklist is done and the player's own fire is lit. The front-end then shows the closing moment.</summary>
+    /// <summary>
+    /// Whether the session is complete: the camp checklist is done and the player's own fire is lit (every objective the ending waits for, <see cref="ObjectiveSpec.EndsSession"/>:
+    /// not the orders, VILLAGE_PLAN V03). The front-end then shows the closing moment.
+    /// </summary>
     public bool SessionComplete => _sessionComplete;
 
     /// <summary>The scene's name for the fire ring at the guide's camp, where the checklist's torch goes (S5).</summary>
@@ -223,14 +242,27 @@ public sealed class VoxelSession : GuideSession
     internal override void LessonPointAt(string npc, string noun) => PointAt(npc, noun);
 
     /// <inheritdoc />
+    internal override void LessonPointAtPlace(string npc, string place) => PointAtPlace(npc, place);
+
+    /// <summary>
+    /// The scene's name of the place an arrow a save kept points at (the save keeps its word and its block, VILLAGE_PLAN V02): a named place with that label on that
+    /// block, or an NPC standing there; <see langword="null"/> for an arrow on a noun's block.
+    /// </summary>
+    /// <param name="target">The arrow's block.</param>
+    /// <param name="label">The word it shows.</param>
+    internal string? PointNameAt(GuideCell target, string label) =>
+        Places.NameAt(target, label) ?? Scene.Npcs.FirstOrDefault(npc => npc.Feet == target.ToBlock() && string.Equals(Data.Npcs.Find(npc.Name)?.Called ?? npc.Name, label, StringComparison.Ordinal))?.Name;
+
+    /// <inheritdoc />
     internal override void LessonReplayAsked(string npc) => PointAtNpc(npc);
 
     /// <summary>What the load of a save made from another content bundle did (X01): what was kept and what was dropped. <see langword="null"/> for a new game and for a save of this very bundle.</summary>
     public SaveMigrationReport? Migration { get; internal set; }
 
     /// <summary>
-    /// A new play session begins (S26): a save was loaded into it, or a run was started at a given session. When the session has a lesson that is unlocked and not begun, the beacon
-    /// points at its NPC, and the objective line names the lesson (<see cref="ObjectiveHud"/>).
+    /// A new play session begins (S26): a save was loaded into it, the player slept at their fire (V12c), or a run was started at a given session. When the session has a lesson
+    /// that is unlocked and not begun, the beacon points at its NPC, and the objective line names the lesson (<see cref="ObjectiveHud"/>); when its work is already done and a
+    /// later session has a lesson, the beacon points at the player's fire (unless they stand there).
     /// </summary>
     public void BeginPlaySession()
     {
@@ -238,6 +270,12 @@ public sealed class VoxelSession : GuideSession
         {
             PointAtNpc(lesson.Npc);
         }
+        else if (RestDue && !AtOwnFire)
+        {
+            PointAtFire();
+        }
+
+        SettleRest();
     }
 
     // The beacon goes to an NPC, where a lesson starts (S26). The label is the NPC's name (Luna) or label (Tendero, Aldeano); before C08 it was the raw id for any but the guide.
@@ -250,7 +288,7 @@ public sealed class VoxelSession : GuideSession
 
         var feet = Scene.Npc(npc).Feet;
         var label = Data.Npcs.Find(npc)?.Called ?? npc; // C08: the NPC's name (Luna) or label (Tendero), from game/npcs/<id>.json
-        Pointer = new PointerMarker(label, new GuideCell(feet.X, feet.Y, feet.Z));
+        Pointer = new PointerMarker(label, new GuideCell(feet.X, feet.Y, feet.Z), Point: npc);
         LogWorld(WorldEvents.BeaconSet, npc, $"{label} at {feet.X},{feet.Y},{feet.Z}");
     }
 
@@ -290,8 +328,8 @@ public sealed class VoxelSession : GuideSession
 
     /// <summary>
     /// Advances the simulation one tick with the body's commands, then feeds the objective and the word cards from the tick's events, and takes
-    /// the arrow down when the player is within <see cref="ReachBlocks"/> of its target. The conversation does not run here (see
-    /// <see cref="GuideSession.Say"/>).
+    /// the arrow down when the player is within <see cref="ReachBlocks"/> of its target, which logs <see cref="WorldEvents.BeaconReached"/> with the
+    /// place's name (VILLAGE_PLAN V02; not for the guide's review question). The conversation does not run here (see <see cref="GuideSession.Say"/>).
     /// </summary>
     public void Step(IReadOnlyList<VoxelCommand> commands)
     {
@@ -354,8 +392,6 @@ public sealed class VoxelSession : GuideSession
             }
         }
 
-        _completed = FlushObjectives();
-
         if (Pointer is { } pointer)
         {
             const long Unit = VoxelPhysics.UnitsPerBlock;
@@ -364,8 +400,15 @@ public sealed class VoxelSession : GuideSession
             if (dx <= ReachBlocks * Unit && dz <= ReachBlocks * Unit)
             {
                 Pointer = null;
+                if (!pointer.Quiz)
+                {
+                    LogWorld(WorldEvents.BeaconReached, null, pointer.Point ?? pointer.Place); // before the objectives' flush, so a step waiting for it is done this tick
+                }
             }
         }
+
+        _completed = FlushObjectives();
+        NoteRestDue(); // the session's work is done: the arrow goes back to the fire (V12c)
     }
 
     /// <summary>
@@ -451,7 +494,7 @@ public sealed class VoxelSession : GuideSession
             }
         }
 
-        _sessionComplete = Objectives.All(static o => o.Complete);
+        _sessionComplete = Objectives.Where(static o => o.Spec.EndsSession).All(static o => o.Complete);
     }
 
     // A restore hook: whether its step is done in the loaded world (ObjectiveBook.RestoreHooks).
@@ -548,13 +591,13 @@ public sealed class VoxelSession : GuideSession
         }
 
         var label = Scene.LabelOf(PlayerFireRing);
-        Pointer = new PointerMarker(label, new GuideCell(ring.X, ring.Y, ring.Z));
+        Pointer = new PointerMarker(label, new GuideCell(ring.X, ring.Y, ring.Z), Point: PlayerFireRing);
         LogWorld(WorldEvents.BeaconSet, null, $"{label} at {ring.X},{ring.Y},{ring.Z}");
     }
 
     private void CheckSessionComplete()
     {
-        if (_sessionComplete || !Objectives.All(static o => o.Complete))
+        if (_sessionComplete || !Objectives.Where(static o => o.Spec.EndsSession).All(static o => o.Complete))
         {
             return;
         }
@@ -582,7 +625,7 @@ public sealed class VoxelSession : GuideSession
     }
 
     /// <inheritdoc />
-    protected override void ApplyHostEvents(string npc, IReadOnlyList<string> hostEvents, string how)
+    protected override void ApplyHostEvents(string npc, IReadOnlyList<string> hostEvents, string how, IReadOnlyDictionary<string, string> slots)
     {
         foreach (var hostEvent in hostEvents)
         {
@@ -590,10 +633,25 @@ public sealed class VoxelSession : GuideSession
             switch (effect.Kind)
             {
                 case NpcEffectKind.GiveItem:
-                    Give(npc, effect.Item, how);
+                    Give(npc, effect.Item, effect.CountFor(slots), how);
                     break;
                 case NpcEffectKind.PointAtNoun:
                     PointAt(npc, effect.Noun);
+                    break;
+                case NpcEffectKind.PointAtPlace:
+                    PointAtPlace(npc, effect.Place);
+                    break;
+                case NpcEffectKind.PointAtSlot:
+                    PointAtSlot(npc, slots.TryGetValue(effect.Slot, out var word) ? word : null);
+                    break;
+                case NpcEffectKind.TakeItem:
+                    Take(npc, effect.Item, effect.CountFor(slots), how);
+                    break;
+                case NpcEffectKind.Sell when effect.ExchangeMiss(slots, Simulation.Inventory, Nouns) is null: // a miss was answered on the worker (wont_sell, cant_pay, …)
+                    _ = Sell(npc, effect.Item, effect.CountFor(slots), effect.CostFor(slots), how);
+                    break;
+                case NpcEffectKind.Buy when effect.ExchangeMiss(slots, Simulation.Inventory, Nouns) is null: // a miss: wont_buy, cant_sell, none_offered, no_room
+                    Buy(npc, effect, effect.SaleCountFor(slots, Simulation.Inventory.Count(effect.Item)), how);
                     break;
                 default:
                     break;
@@ -601,25 +659,124 @@ public sealed class VoxelSession : GuideSession
         }
     }
 
-    // An NPC puts one item in the inventory (a pickup the player did not make: the word card shows the first time). The bottle is handed over once:
-    // a player who holds a bottle, empty or full, is not given a second one.
-    private void Give(string npc, ItemId item, string how)
+    /// <inheritdoc />
+    internal override bool OrderDelivered(string order) =>
+        Objectives.Any(o => o.Spec.IsOrder && o.Complete && string.Equals(o.Id, order, StringComparison.Ordinal));
+
+    /// <inheritdoc />
+    protected override string? OrderReadyAt(string npc) =>
+        Objectives.FirstOrDefault(o => o.Spec.IsOrder && !o.Complete && o.Spec.ShownIn(PlaySession) && string.Equals(o.Spec.DeliverTo, npc, StringComparison.Ordinal)
+            && o.Spec.Goods.All(goods => Simulation.Inventory.Count(goods.Item) >= goods.Count)
+            && !Lessons.HoldsOrder(o.Spec))?.Id; // the lesson that tells the order may keep it back until its plan is said (VILLAGE_PLAN V13)
+
+    /// <inheritdoc />
+    protected override void TakeOrder(string npc, string order)
     {
-        if (item == ItemId.Bottle && Simulation.Inventory.Count(ItemId.Bottle) + Simulation.Inventory.Count(ItemId.WaterBottle) > 0)
+        foreach (var goods in Objectives.First(o => string.Equals(o.Id, order, StringComparison.Ordinal)).Spec.Goods)
+        {
+            Take(npc, goods.Item, goods.Count, "order");
+        }
+    }
+
+    // Whether an NPC can put items in the inventory: all of them fit, and a bottle goes only to a player who holds none (SecondBottle).
+    private bool CanGive(ItemId item, int count) => !SecondBottle(item) && Simulation.Inventory.CanAdd(item, count);
+
+    // Whether the item is a bottle and the player holds one, empty or full: the stall's rule (S6) gives none then.
+    private bool SecondBottle(ItemId item) =>
+        item == ItemId.Bottle && Simulation.Inventory.Count(ItemId.Bottle) + Simulation.Inventory.Count(ItemId.WaterBottle) > 0;
+
+    // An NPC puts items in the inventory, all of them or none (a pickup the player did not make: the word card shows the first time). The bottle is handed over
+    // once, whatever the count. None (a gift by the number said, cero) gives nothing.
+    private void Give(string npc, ItemId item, int count, string how)
+    {
+        if (count <= 0 || !CanGive(item, count))
+        {
+            return; // a bottle held already, or the inventory is full: nothing is lost, the NPC keeps them
+        }
+
+        _ = Simulation.GrantItems(item, count);
+        LearnItem(item);
+        _eventAmount = count; // an objective counting what was given counts every item, as a pickup's
+        LogWorld(WorldEvents.ItemGiven, npc, $"{Nouns.ForItem(item)?.Lemma ?? ItemDefinition.Get(item).Name}, {how}");
+        _eventAmount = 1;
+    }
+
+    // An NPC takes items (VILLAGE_PLAN V03: take_item, the goods of an order), all of them or none: a player who has fewer keeps what they have. None takes nothing.
+    private void Take(string npc, ItemId item, int count, string how)
+    {
+        if (count <= 0 || !Simulation.TakeItems(item, count))
         {
             return;
         }
 
-        if (Simulation.GrantItems(item, 1) > 0)
-        {
-            return; // the inventory is full: nothing is lost, the NPC keeps it
-        }
-
-        LearnItem(item);
-        LogWorld(WorldEvents.ItemGiven, npc, $"{Nouns.ForItem(item)?.Lemma ?? ItemDefinition.Get(item).Name}, {how}");
+        _eventAmount = count; // an objective counting what was taken counts every item
+        LogWorld(WorldEvents.ItemTaken, npc, $"{Nouns.ForItem(item)?.Lemma ?? ItemDefinition.Get(item).Name}, {how}");
+        _eventAmount = 1;
     }
 
-    // The beacon goes to the nearest block of a noun: the villager's answer to "¿dónde está el río?".
+    // A purchase (VILLAGE_PLAN V03, sell): the coins for the items asked for go and the items come, or nothing changes hands (false). None asked for, too few coins
+    // or no room for the items once the coins are paid (the NPC answered none_asked, cant_pay or no_room on the worker, NpcEffect.ExchangeMiss) keep the coins and the
+    // items where they were, as the stall's bottle rule keeps a second bottle.
+    private bool Sell(string npc, ItemId item, int count, int cost, string how)
+    {
+        if (count <= 0 || SecondBottle(item) || !Simulation.Inventory.CanExchange(ItemId.Coin, cost, item, count))
+        {
+            return false;
+        }
+
+        Take(npc, ItemId.Coin, cost, how);
+        Give(npc, item, count, how);
+        return true;
+    }
+
+    // A sale (VILLAGE_PLAN V15, buy): the NPC takes the items the learner offers and pays the price for each, or nothing changes hands. No items to sell, none
+    // offered or no room for the coins once the items are taken (cant_sell, none_offered, no_room) keep the items and the coins where they were, as a purchase does.
+    private void Buy(string npc, NpcEffect sale, int count, string how)
+    {
+        if (count <= 0 || !Simulation.Inventory.CanExchange(sale.Item, count, ItemId.Coin, sale.PriceOf(count)))
+        {
+            return;
+        }
+
+        Take(npc, sale.Item, count, how);
+        Give(npc, ItemId.Coin, sale.PriceOf(count), how);
+    }
+
+    // The beacon goes to a named place of the scene (VILLAGE_PLAN V02): a host event's point_at_place, or a lesson's do step with a pointPlace. It shows the place's label.
+    private void PointAtPlace(string npc, string place)
+    {
+        if (Places.Point(place) is not { } point)
+        {
+            return; // the validator checks the places the data names against the scene
+        }
+
+        var label = Places.LabelOf(place);
+        Pointer = new PointerMarker(label, point, Point: place);
+        LogWorld(WorldEvents.BeaconSet, npc, $"{label} at {point.X},{point.Y},{point.Z}");
+    }
+
+    // The beacon goes to the place the learner asked for (VILLAGE_PLAN V02, point_at_slot): a label of the scene, else a catalogue noun's nearest block
+    // (ScenePlaces.Resolve). The answer is logged as place_asked; a place the NPC does not know points nowhere, and the NPC said so on the worker (unknown_place).
+    private void PointAtSlot(string npc, string? word)
+    {
+        var found = word is null ? null : Places.Resolve(word, Viewpoint, LiveFacts);
+        LogWorld(WorldEvents.PlaceAsked, npc, found?.Name ?? WorldEvents.UnknownPlace);
+        if (found is null)
+        {
+            return;
+        }
+
+        // The arrival names the place when the arrow stands on its point; the nearest block of the river or of a noun is named by the word, as a save would name it.
+        Pointer = new PointerMarker(found.Label, found.Cell, Point: Places.Point(found.Name) == found.Cell.ToBlock() ? found.Name : null);
+        if (string.Equals(found.Label, Data.Words.Noun("river"), StringComparison.Ordinal))
+        {
+            _riverPointed = true;
+        }
+
+        LogWorld(WorldEvents.BeaconSet, npc, $"{found.Label} at {found.Cell.X},{found.Cell.Y},{found.Cell.Z}");
+    }
+
+    // The beacon goes to the nearest block of a noun: the answer to "¿dónde está el río?" before V02, and a lesson's do step with a point.
     private void PointAt(string npc, string noun)
     {
         var found = LiveFacts.NearestOfNoun(Viewpoint, noun);
@@ -648,11 +805,12 @@ public sealed class VoxelSession : GuideSession
         }
     }
 
-    // Counts a world event for every objective not yet done (C07). A checklist's completed steps wait for FlushObjectives, which logs them after the tick's events; an
-    // objective that is no checklist is completed at once (the fire is lit, the guide is met), so its effects follow its event in the log.
+    // Counts a world event for every objective not yet done that is shown in this play session (C07; an order of a later session counts nothing yet, V03). A
+    // checklist's completed steps wait for FlushObjectives, which logs them after the tick's events; an objective that is no checklist is completed at once (the fire
+    // is lit, the guide is met, an order is delivered), so its effects follow its event in the log.
     private void RecordObjectives(WorldEvent world)
     {
-        foreach (var objective in Objectives.Where(static o => !o.Complete))
+        foreach (var objective in Objectives.Where(o => !o.Complete && o.Spec.ShownIn(PlaySession)))
         {
             var done = objective.Record(world, _eventAmount);
             if (objective.IsChecklist)

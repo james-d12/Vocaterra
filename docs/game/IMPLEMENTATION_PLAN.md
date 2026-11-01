@@ -65,8 +65,9 @@ lines, S9), `docs/game/PROTOTYPE_BRIEF.md` and `docs/game/SCENARIO_PLAN.md` (the
    `scripts/content.sh hash content/game-v1 --bundle-id game-v1` (rewrites `manifest.json`), then `scripts/content.sh validate` and the tests.
    Files that come from the Wiktionary import keep `generatedBy: wiktionary-import` in `provenance.json` and their CC BY-SA notice in
    `ATTRIBUTION.md`. New hand-authored files are listed in `provenance.json` with `generatedBy: hand-authored`.
-   A content milestone also runs `scripts/content.sh cefr-check content/game-v1 --level a1` and `--level a2`; the tool checks dialogue
-   templates only (core finding), so prompt text is checked by hand.
+   A content milestone also runs `scripts/content.sh cefr-check content/game-v1 --level a2` (the bundle's ceiling since V08; `--level a1`
+   is a report) and the host's `--validate-content` (each lesson's Spanish within its own `level`); the tool checks dialogue templates only
+   (core finding), so prompt text is checked by hand.
 5. **Scenes are design, not code.** A scene is intents, slot grammars, prompts, dialogue pools, agent state machines and effects, all in the
    bundle. The host maps the core's host events and effect kinds to game state; the core does not learn game words.
 6. **Build hygiene.** `dotnet build Vocaterra.sln -warnaserror` and `dotnet format Vocaterra.sln --verify-no-changes` (from the root) stay
@@ -398,7 +399,7 @@ instruction one session (Opus 5.5) does every milestone itself, with no subagent
 - C10, the authoring CLI (`new npc|objective|lesson`, `refs <id>`, `check`), is specified in `CONTENT_PLAN.md` section 3.8.
 - Neither C09 nor C10 is built; each becomes a milestone when the owner asks for it.
 
-### 4.8 The village and the lessons (the V series; proposed 2026-10-30, D-game-22)
+### 4.8 The village and the lessons (the V series; phase A done 2026-10-31, phase B done 2026-11-01, D-game-22)
 
 The owner's request (2026-10-30): a bigger village with more NPCs (a blacksmith, a baker) and more lessons, without a larger map,
 with the NPCs interlinked, the map's space used, the lessons connected, A1 to A2; and, the same day, "past, present, and future use of
@@ -407,8 +408,11 @@ own clearing (a bakery, a smithy, a well, the farmer at the field, a fisher on t
 an apple, an axe) and four orders tie them together; seven lessons, sessions 4 to 10, each reusing the last and using its verbs in the
 present, the preterite and the future around the order it carries (the plan, the doing, the report), with the simple future at A2 in
 session 9. Phase A (V01 to V07, V10 to V12: sessions 4 to 6, A1 complete) and phase B (V08, V13 to V17: A2) are separated by an owner
-decision. The series runs on `feature/village`, commit prefix `V<nn>:`, and is **proposed**: nothing starts before the owner answers
-section 6 of the plan. The findings of each milestone go into section 5.
+decision. The series runs on `feature/village`, commit prefix `V<nn>:`. **Phase A started on 2026-10-30** (D-game-22: the plan's
+proposals, the farmer León, provisional voices heard afterwards, phase B held; every milestone by Opus 5.5 at xhigh effort); **phase A was done on
+2026-10-31** (V01 to V07, V09, V10 to V12 and the follow-up V12b; 6030 tests passing, bundle `7ba32270…`). The owner's playtest the same
+day added V12c (the next session in the game), and the CI run on PR #20 the core's M60 (the lint's speed). **Phase B started on 2026-10-31**
+on the owner's word: all of it on `feature/village`, reviewed by the owner at the end. V13 (session 7) was done on 2026-10-31; after the bottlenecks study the owner added V18 and moved the core's M56, M59 (before V14) and M58 (before V15) into the series. **Phase B was done on 2026-11-01** (V08, V13 to V18, V15b and V09 again, with the core's M56 to M62 and M62b; sessions 7 to 10 at A2, ten lessons; 7259 tests passing, bundle `36b2b8ad…`); the owner reviews the branch and PR #20. **The review** (2026-11-01, `docs/qa-reports/2026-11-review-feature-village.md`) found ten points; on the owner's word all were fixed before the merge: the core's as M64, the game's as V19 (7420 tests passing, bundle `0f8faea0…`). The milestones' statuses are in the plan's section 4. The findings of each milestone go into section 5.
 
 ## 5. Findings log
 
@@ -1539,19 +1543,527 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     - The beacon now says "1 block", not "1 blocks".
     - The scripted runs caught a console line that interpolated a property turned method (`{heard.Text}` printed `System.Func…`); it compiled
       because a method group has a natural type. Fixed with `DialogueModel.HeardText`; the runs are then all the same as after C07.
+- **V01: NPC behaviour from data (2026-10-30, Opus 5.5 xhigh; gated on `feature/village` at `0ad929d`).**
+  - **Gate:** 5591 passed, 3 skipped, 0 failed, with the models; 0 warnings; format, content, grammar and both licence scans clean (16 new
+    tests). Bundle `4b183de5…`; the goldens did not move; `prerender --check` renders nothing (430 files unchanged).
+  - **Built.** `game/npcs/<id>.json` schema 2: `prompts` by state, `opening` (`event`, `when`), `voice` (`speaker`, `name`, `speed`), `keyWords`
+    (out of `words.json`) and `poolPrefix` (default the id; the shopkeeper's pools are `shop_*`). `NpcService` takes prompts, the opening and
+    the warm-up from the roster; the shopkeeper's fail-forward and the guide's review and transfer offer stay by id. `SpeechSpeakers` and the
+    renderer's voices come from the NPC files; `--talk` is checked against the roster. The shopkeeper is "he" in the locale and the sheet.
+  - **Found:**
+    - The opening events are raised by the game into the agent and are not in `host-events.json`, so the validator checks them against the
+      agent's `onHostEvent` transitions instead.
+    - `PhraseSheet`'s guide-offer-as-stall-offer is now a rule: a prompt an NPC names that no row names takes the rows of the other NPC prompt
+      with the same answer set and allowed intents (exactly `guide-offer` to `stall-offer` today).
+    - The save keeps one `KeyWordsTaught` flag, so only the first NPC with key words shows the cards; a second needs a save field.
+- **V02 and V03: host actions, the beacon by place, items and orders (2026-10-30, Opus 5.5 xhigh; gated on `feature/village` at `d53b957`).**
+  - **Gate:** 5663 passed, 3 skipped, 0 failed, with the models; 0 warnings; format, content, grammar and both licence scans clean (72 new
+    tests). Bundle `5b4adae6…`; the identity golden gained the villager's new line.
+  - **V02.** `host-events.json` schema 2: `give_item` with `count` (a number or `"qty"`, 1 to 5), `point_at_place`, `point_at_slot`. A slot
+    resolves to a scene label first (the nearest point of that label; when the word is also the catalogue noun of the block there, the
+    nearest such block, so the river is pointed at exactly as before), then a catalogue noun, else `<npc>.unknown_place`. World events
+    `beacon_reached` and `place_asked`; a `do` step's `pointPlace`. The villager points from the slot; new line `villager_unknown_place.1`
+    "No sé dónde está." (provisional, em_santa).
+  - **V03.** `Coin = 30`, `Apple = 31`, `Axe = 32` (placeholder art until V05); the axe fells a trunk in 15 ticks, not 60. `take_item` and
+    `sell` (too few coins: nothing changes hands, `<npc>.cant_pay`). Objectives take `session` and `deliverTo` with `deliver` (one generated
+    step, `delivered`), delivered when the talk opens; orders never hold back the first session's ending. No save change.
+  - **Found:**
+    - The session takes its own arrow down before `BeaconDirector.ClearIfReached` sees it, so the session logs those arrivals and the
+      director its own beacons (the start, `--beacon`).
+    - Section 6's S3 demo line was out of date: the game at seed 42 says "El río está allí, adelante, a la izquierda, a cincuenta y cuatro
+      bloques." (a test now pins it; section 6 corrected).
+    - The scripted runs are not in `dotnet test` and have no committed baselines; they gain `beacon_reached` and `place_asked` lines (V09).
+- **V04 to V07: the village, the figures, the voice trial and the battery by lesson (2026-10-30, Opus 5.5 xhigh; gated on `feature/village`
+  at `600b8d7`).**
+  - **Gate:** 5687 passed, 3 skipped, 0 failed, with the models; 0 warnings; format, content, grammar and both licence scans clean. Bundle
+    `f32a0284…`; world digest `6420e200…`, village digest `1a6c04b2…` (radius 24); seed-42 build about 0.6 s.
+  - **V04.** Radius 24; the bakery with its oven, the smithy with a lit forge, anvil and crates, the well, the farmer's apple crate, the
+    orchard (at x 19, not 17: a crown at 17 hung over the field's fence and failed the route test), the fisher's crates and lamp, paved
+    strips; labels `panadería`, `herrería`, `pozo`, `torre`, `campo`; stand points `npc.baker`, `npc.smith`, `npc.farmer`, `npc.fisher` (no
+    placements: the validator refuses an NPC that is not in the roster).
+  - **V05.** Four figures and faces (the baker a woman); the coin, apple and axe icons and held sprites.
+  - **V06.** `--trial <folder>` in the renderer; `docs/game/voice-trial/` (12 WAVs, 2.5 MB, `trial.json`, README); speaker indices ef_dora 28,
+    em_alex 29, ff_siwis 30, if_sara 35, im_nicola 36, pf_dora 42, pm_alex 43, pm_santa 44, em_santa 53. **`if_sara` is about three times
+    louder than the Spanish voices, with peaks near clipping** (for the owner's listening).
+  - **V07.** `lesson` on every check item; the battery asks the lessons with `Session <= max(PlaySession, coreSessions)`, `coreSessions: 3` in
+    `checks.json`, because the plain rule would have cut the pilot's pre- and post-check to 24 items and the recall to 27; a test pins the
+    31. Eight items belong to no lesson (the session-1 free run at the stall and the villager).
+  - **Found:**
+    - The well's water became the nearest water to the villager, so "¿Dónde está el río?" would have pointed at the well: a labelled place
+      made of its word's blocks now resolves only to blocks joined to its point (`NearestOfNounJoinedTo`).
+    - The renderer never kept the owner's marks in the speech checklist (no row starts with `| speech/`); fixed.
+    - The well's rim is two blocks high, so from eye height it reads as a stone cube and hides its water (the orchestrator's screenshot);
+      V10 lowers it.
+- **V10: session 4 "El pueblo" (2026-10-30, Opus 5.5 xhigh; gated on `feature/village` at `3f1ce84`).**
+  - **Gate:** 5808 passed, 3 skipped, 0 failed, with the models; 0 warnings; format, content, grammar and both licence scans clean. Bundle
+    `e9fcbe59…`; the identity golden and the fuzz suite's two stream digests (`FuzzLanguageStreamTests`, generators unchanged) re-recorded.
+  - **Built.** The fisher Mar (`fisher-open`, `places-village`; `fisher.point` and `fisher.show` from the slot, `fisher.pay` 2 coins); the
+    lesson `el-pueblo` (24 steps, session 4, after `ayer-y-manana`: bridge, bakery, smithy, the signpost, back to the bridge; two reviews);
+    `ask_far` (no keyword rule and no subject-first grammar: the core's unrelated-sentence test would resolve "el cielo está muy lejos"),
+    `ask_availability`; `state_action` gains `comprar`, `buscar`, `luego`, `después`; the order `fruit-for-mar`; the X06 review steps in
+    `personas` and `ayer-y-manana`; 8 check items; the well's rim one block high, a bottle fills there. 16 world words in the marked block of
+    `a1.txt`. Every said row heard word for word by the spoken round trip. Estimated 7 to 8 minutes.
+  - **Rows.** Said: `donde-esta-la-panaderia`, `donde-esta-la-herreria`, `esta-lejos`, `hay-un-pozo`, `voy-a-la-panaderia`,
+    `voy-a-comprar-pan`, `fui-a-la-panaderia`; the close is a `gracias` review and a repeat of `adiós` (no lesson had taught it). Heard: the
+    plan's eight, with `hay-tres-casas` for `hay-dos-casas`. The Opus pass moved "a la izquierda de la torre" to "mira la torre. La panadería
+    está a la izquierda." (from the bridge the bakery stands in line before the tower) and the lake to the mountain for "lejos".
+  - **Found:**
+    - Core gaps, filed as core M56: `es lejos` and `¿dónde es la herrería?` give no `ser_estar`; `¿dónde están la herrería?` gives no
+      `conj.person`. The sheet's examples use `gender.agree` meanwhile.
+    - The fuzz generator knows only `mañana` as a future marker, and `pasado mañana` after a plural noun reads as an adjective: the later
+      markers stay out of `state_action` (core M57; phase B's V17 waits on it).
+    - `ayer voy a la panadería` is the core's `conj.tense` slip at a `pret` step (S27's design), not a Miss; the Miss with `tenseRetry` is a
+      tense the core cannot see (`voy a la panadería` at that step).
+    - `LessonDriver` could not answer review steps; fixed. The fisher's stand point carries the label `pescador`, so the walk back points
+      at him and the arrow clears on arrival.
+- **V11: session 5 "Números y pan" (2026-10-31, Opus 5.5 xhigh; gated on `feature/village` at `6097249`).**
+  - **Gate:** 5900 passed, 3 skipped, 0 failed, with the models; 0 warnings; format, content, grammar and both licence scans clean. Bundle
+    `c0a9377f…`; the identity golden (26 new lines; 153 entries at `stall-need` moved, its prompt now wider) and the fuzz suite's sentence
+    digest (`FuzzLanguageStreamTests`, generators unchanged, the word digest unmoved) re-recorded.
+  - **Built.** The baker Luz (`baker-open` and three lesson prompts; `baker.sell_bread` sells bread at 2 coins, `baker.cant_pay` "Necesitas
+    más monedas."); `ask_price`; the stall answers `ask_price` ("El pan cuesta dos monedas.") and "¿Hay pan?", its session-1 exchange still
+    free (tested); the lesson `numeros-y-pan` (23 steps, session 5, after `el-pueblo`: two reviews, four `do` steps for the wood, the
+    delivery, the purchase and the walk to the stall); the order `oven-wood` (5 wood, 4 coins); an optional voice `gain` in the NPC file,
+    applied by the renderer (the baker 0.32: voiced RMS −13.7 dBFS and peaks −0.6 in the trial, −23.9 and −9.9 after, against −23.8 for
+    `ef_dora` and −23.2 for `em_alex`; no existing WAV re-rendered); 8 check items; `horno`, `luz` in `a1.txt`. Every said row heard word
+    for word, `dos` and `cuatro` too. Estimated 6 to 9 minutes.
+  - **Rows.** Said: `quiero-dos-panes`, `cuanto-cuesta`, `voy-a-buscar-madera`, `tengo-cuatro-monedas` (for the plan's `tengo-madera`: an
+    order is delivered the moment the talk opens, so "Tengo madera" would be false wherever Luz can ask), `compre-dos-panes`, `hay-pan`
+    (its home prompt `baker-open`, its step at `stall-need`). Heard: the plan's ten. The Opus pass made the oven line "Necesito cinco
+    bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer?", `cant_pay` "Necesitas más monedas." (the plan's line was
+    true only of two loaves and no coins), and added "¡Hola! ¿Qué vas a hacer hoy?" (a review of session 4's "Voy a comprar pan") and the
+    stall's "Sí, hay pan. Es pan de Luz."
+  - **Found:**
+    - Core gaps: `cuánto costa` is read as the noun `costa` (`gender.agree`, no intent) and `hay pans` gives `vocab.unknown` and no intent
+      (filed as core M58); `¿cuánto cuestan el pan?` and `cuánto cuesta los panes` give no `conj.person` (added to core M56). The sheet uses
+      `cuánto costan los panes` (`conj.irregular`) and `hay dos pan` (`noun.number`) meanwhile.
+    - `--lesson-run` looped forever on a `do` step with no arrow (it closed the panel, then tried to skip, which needs it open); fixed with a
+      regression test. A delivery step waited forever if the goods came before the lesson asked: the runner now ends it at once
+      (`OrderDelivered`).
+    - The coin path leaves 2 coins after session 5 (2 from `fruit-for-mar`, 4 from `oven-wood`, 4 spent on two loaves), so the plan's axe
+      order (3 coins) could not be finished: V12 makes it 2 wood and 2 coins. A learner with 4 coins before the oven order buys at the first
+      ask and never hears "Necesitas más monedas."; the arrow on `árbol` can point at a canopy the scripted run cannot gather (a learner aims
+      at the trunk). No `level` field until V08.
+- **V12: session 6 "Gente del pueblo" (2026-10-31, Opus 5.5 xhigh; gated on `feature/village` at `c325b67`).**
+  - **Gate:** 6012 passed, 3 skipped, 0 failed, with the models; 0 warnings; format, content, grammar and both licence scans clean. Bundle
+    `f606e71e…`; the identity golden and the fuzz suite's two stream digests (`FuzzLanguageStreamTests`, generators unchanged) re-recorded.
+  - **Built.** The smith Domingo (`smith-open`, `im_nicola` with gain 0.6: voiced RMS −19.1 dBFS in the trial, −23.0 rendered) and the
+    farmer León (`farmer-open`, `pm_santa` at −23.3, no gain; no sale and no order until session 7), their stand points labelled so the walks
+    end on arrival; `ask_name`, `ask_activity` (`ask_help`'s `¿qué hago?` is now literal, so `¿qué haces?` reaches `ask_activity`);
+    `state_action` gains `hacer`, `trabajar en`, `vivir en` and a closed list of names before the verb (`domingo|luz|mar|león`); the lesson
+    `gente-del-pueblo` (28 steps, session 6, after `numeros-y-pan`), which starts at the villager so that `va a hacer un hacha` comes before
+    the first talk with the smith (tested for a learner who arrives with the goods); the order `axe-handle` (2 wood and 2 coins, the axe;
+    with 1 coin nothing is delivered); 8 check items; 90 WAVs; `herrero`, `granjero`, `hacha`, `león` in `a1.txt`. Every said row heard;
+    "Va a hacer un hacha." once heard as "va va a hacer un hacha", still `state_action`, error-free. Estimated 8 to 9.5 minutes.
+  - **Rows.** Said: `como-te-llamas`, `que-haces`, `es-el-herrero`, `va-a-hacer-un-hacha`, `vivo-en-el-campamento`,
+    `trabaja-en-la-herreria`, `hizo-un-hacha`; the review `necesito-pan` asked by the villager (the bakery is off the route and the axe takes
+    the coins). Heard: the plan's nine. Not added: `donde-vive` and `ask_residence` (no room). The Opus pass made the introduction "Mira,
+    allí está Domingo. Es el herrero." (he stands across the square), added "Domingo te quiere hacer un hacha.", made Luz's house "Domingo
+    vive en una casa cerca de la herrería." (no house stands by the stall; `lado` is A2) and the offer "dos monedas".
+  - **Found:**
+    - The coin path left 2 coins after session 5, so the axe order is 2 wood and 2 coins, not the plan's 3 coins (VILLAGE_PLAN 3.4 updated).
+    - Core gaps, filed as core M59: `conj.person` only after a subject pronoun (`Domingo trabajo en la herrería` gives nothing); a reflexive
+      clitic not matched to the verb (`cómo te llama`); `va a hace` not flagged (`va a hizo` is); a literal grammar word binds its first
+      reading (`hace` as in `hace dos días`). The sheet's examples put a pronoun before the verb; the lesson's person check catches the rest.
+    - The fuzz suite's correct-sentence oracle caught `qué tú hace`, generated from an optional pronoun before the verb: the grammars dropped
+      it, no oracle changed.
+    - At the open prompts a correct sentence of another intent is forced into the prompt's intents: `Domingo hizo un hacha` at `smith-open`
+      gives `ask_activity` with `vocab.wrong` expected `''` (the orchestrator's spot check). The lesson asks it at `lesson-made`, where it
+      is clean; phase B may let the open prompts take `state_action`.
+    - `--lesson-run` looped for ever when the panel was open on another NPC than the step's; fixed with a regression test. A question the
+      lesson takes gets no reply from the NPC, so the smith and the farmer say their names in steps of their own. `verb.hablar`'s past
+      read "speaked"; fixed. LanguageTool reads `Domingo` as the day: text waivers, and the waiver test accepts a text as well as an id.
+- **V09: documents and runs, phase A (2026-10-31, Opus 5.5 xhigh; gated on `feature/village` at `9ec051d`).**
+  - **Gate:** 6021 passed, 3 skipped, 0 failed, with the models; 0 warnings; format, content, grammar and both licence scans clean. The bundle
+    is unchanged (`f606e71e…`).
+  - **The scripted runs against `main` before phase A** (`f3a242f`, all sixteen, captured in the one worktree): every run differs, and every
+    difference traces to phase A: six lessons in the closing summary and the review steps V10 added; speech 215/430 → 340/680 files; 1967 →
+    1958 trees and a new scene digest (the village's radius 24 widens the flattened ground to 56 blocks, so the hillside behind moves in every
+    far view); seven figures (372 → 882 quads); `beacon_reached` and `place_asked` in the session logs; the bakery, smithy, well, orchard and
+    the four NPCs in the screenshots; the book's counts (46 → 93 phrases, 19 → 22 nouns, 3 → 6 lessons); the "E to talk" tip now fires on the
+    road at the fisher. The playtest run (r10) has the same ticks, the same 31 items and a pixel-identical thank-you screen.
+  - **Built.** Two new runs, both deterministic across two captures: `r18-bakery` (session 5, the oven wood, the delivery, "quiero dos
+    panes, por favor": two loaves in, four coins out) and `r19-directions` (the fisher asked "¿dónde está la panadería?", the arrow, the walk,
+    `beacon_reached`); `SCRIPTED_RUNS.md` at eighteen runs. `README.md` (a short section on the village, every NPC list, `--talk` with the
+    seven ids, `--session 4` to `6`, the battery by session 31/39/47/55, 680 speech files, 17 model-gated tests skipped without models),
+    `PLAYTEST.md` (the pilot stays at 31 items, the 24 village items outside it), the speech checklist's preface (written by the renderer:
+    the four provisional voices and how to replace one), the prerender script's header and `content/README.md`.
+  - **Found:**
+    - r03 showed the farmer's name plate pinned to the window's left edge while he stood out of the picture (the X08 clamp): a plate wholly
+      outside the window is now left out (`NpcLabelLayer.Place`, with tests from r03's camera).
+    - The renderer kept the owner's mark on a row re-recorded in a new voice: a re-recorded row now loses its mark. Changing an NPC's voice
+      re-renders only that NPC's files (checked on a copy: 20 rendered, 660 unchanged); `--force` is not needed.
+    - Free talk with the baker credited "quiero dos panes" as a use of `pedir-agua`: none of the four new NPC files has a `focus`. Fixed by
+      the follow-up V12b.
+    - Name plates show through figures (the farmer's over the shopkeeper's face in r17): a design question for the owner, not a bug.
+    - The three-NPC lists left in the `--talk` help, `NpcService`, `GuideSession`, `InputEntry`, `SaveDocument`, `VoxelGame` and both game
+      projects' READMEs are brought up to seven; the two "Rosa" comments were already gone.
+- **V12b: the village NPCs' focus (2026-10-31, Opus 5.5 xhigh; gated on `feature/village` at `29188ce`; phase A ends here).**
+  - **Gate:** 6030 passed, 3 skipped, 0 failed, with the models; 0 warnings; format, content, grammar and both licence scans clean. Bundle
+    `7ba32270…`; no golden or digest moved.
+  - **Cause.** `GuideSession.AfterTurn` asked for the phrase in play (the NPC's focus through `NpcRoster.FocusAt`); the baker's file had
+    none, so the turn fell back to `PhraseIds.For`, whose fixed mapping makes every `request_item` the stall's `pedir-agua`;
+    `NpcService.PhraseSkillsOf` used the same mapping, so the core's learner model was told `phrase.pedir-agua` too.
+  - **Built.** A `focus` at each village NPC's open prompt (the fisher's two directions rows, the baker's `quiero-dos-panes`,
+    `cuanto-cuesta`, `hay-pan`, the smith's and the farmer's `como-te-llamas`, `que-haces`), so their rows get cards that fade like the
+    stall's; `PhraseSheet.PhraseFor` credits the phrase in play, else the row the prompt teaches for the intent, else the fixed mapping (kept:
+    a request at another NPC is still a transfer of `pedir-agua`); of two rows with one intent, the one naming the place asked; a phrase at
+    home with two NPCs is a transfer at neither (`NpcRoster.IsHomeOf`); a validator rule: a prompt that is the home of practised rows names one
+    of them in its NPC's focus (true of all seven). `VillageFocusTests` (8 cases, failing before the fix). One game run checked each NPC's
+    free talk: the cards, the credit and the reply.
+  - **Found:** at the villager, "¿dónde está la panadería?" still credits `donde-esta-el-rio` (from before V12b; the check that would fix it
+    changes lesson credit, so it is left for phase B).
+- **CI on PR #20 (2026-10-31): the core's M60.** The GitHub runner failed `LintTests.TheBundleLintTakesUnderFiveSeconds` (about 6 s):
+  phase A's 47 prompts and 385 examples made the lint's confusion check analyse each example about 33 times. The core's M60
+  (`docs/nlp/IMPLEMENTATION_PLAN.md`) analyses each once per winning grammar: 1610 to 398 ms, the output byte-identical. `main` (the CI
+  workflow with its grammar jobs) was merged into `feature/village`; the offline and the live grammar checks were replayed locally and pass.
+- **V12c: the next session in the game (2026-10-31, Opus 5.5 xhigh; gated on `feature/village` at `4b88599`).**
+  - **Why.** The owner played `--seed 42`, lit the fire and asked where to go: a session advanced only on a quit and a `--load`, the
+    objective said `Session complete: your fire is lit`, and the book listed six lessons `not started`. The phase A lessons were unreachable
+    in practice: `--session 4` raises the session but `el-pueblo` waits for `ayer-y-manana` (`after`), and only `--lesson-run` (an automated
+    run) reached them. The scripted runs had never tried the route a learner takes from a new world.
+  - **Built.** The closing card's `Enter: sleep until morning and start session 2`, and at the lit fire `E: sleep until morning (session n)`
+    once the session's work is done (the objective then says `Session complete: sleep at your fire to start session n`, the beacon on the
+    fire; after session 6 `Every lesson so far is done: …`); a `Good morning: session n begins` toast; no sleep in a playtest. The sleep runs
+    in place through the save path (`SaveGame.Sleep`: the session's own save restored into it with a load's code, the session plus one,
+    `BeginPlaySession`); `SleepTests` proves the save after a sleep equals the save after a save and a load in five states, with no field
+    differing. The session log writes `session_end` and `session_start`, and the autosave the ending session. The book's Lessons page:
+    `next: talk to <NPC>` (gold) for the lesson the objective names, `open: talk to <NPC>` for another unlocked one, `opens in session n,
+    <NPC>`, `after “<title>”`. `--skip-to-session n` (a test aid, from the data): the earlier lessons completed in their sessions, session 1's
+    ending, the earlier orders delivered and purchases made (0 coins at 4, 2 at 5, 2 coins and 2 loaves at 6), no word or phrase use
+    counted, `skippedTo` in the save; it refuses `--load`, `--session` and `--playtest`. Runs `r20-sleep` and `r21-skip`, deterministic.
+  - **Gate:** 6079 passed, 3 skipped; the 18 earlier runs unchanged but for r16's line count (116 to 121). Bundle unchanged.
+  - **Review:** the first version offered the sleep at the fire on waking, against the new objective; it is offered once the work is done.
+  - **Left:** the F1 controls help does not mention sleeping (its lines are in `content/game-v1`; the next content milestone adds it).
+- **V08: the A1/A2 gate (2026-10-31, Opus 5.5 xhigh; gated on `feature/village` at `808e0f0`; phase B's first milestone).**
+  - **Built.** `lesson.schema.json` 2: `level` (`a1` | `a2`) required; `LessonBook` refuses another schema or level; `LessonLevels` holds the
+    levels, the ceiling (A2) and each level's tenses (`fut` from A2). The six lessons are `a1`. The validator (the host's
+    `--validate-content`) checks each lesson's phrases, the lines its steps name (review candidates included) and its prompts' text against the
+    lists up to its level, with the core's public `CefrChecker` for the lemmas, and its tenses against its level; a finding names the file,
+    the text, its source and the word. `LessonLevelTests` (7 cases).
+  - **The gate** (`scripts/merge-gate.sh`, `scripts/content.sh refresh`): lint `--strict --level a2 --fail-on-level --host-pools 'guide.*'`
+    fails it; `cefr-check --level a2` fails it on any lemma it lists (the tool only prints, so the scripts read its counts); `cefr-check
+    --level a1` is a report; the merge gate also runs `--validate-content`. CI runs neither the lint nor the cefr check (only the tests),
+    so `ci.yml` is unchanged. The core's tests that pinned the game's bundle to a clean A1 follow the ceiling (the core's M61).
+  - **Deviation, accepted:** a phrase's *variants* are held to the A2 ceiling, not the lesson's level. Held to the level, seven variants of
+    `a1` lessons fail (`repetir` in four of `otra-vez`, `quedar` in three); the lint never sees variants, and the core treats answer-set
+    aliases the same way. Variants are wordings the game accepts, not wordings it teaches.
+  - **Gate:** 6087 passed, 3 skipped (6079 before). Bundle `5826d6de…`; no golden or digest moved; `content/grammar/` unchanged. The new
+    content gate was run on `feature/village` after the merge (the merge gate itself ran the old script): lint at A2 0 errors, 0 warnings;
+    cefr-check A2 and A1 clean; `--validate-content` clean.
+  - **Left:** `madera`, `antorcha`, `botella`, `fuego` and `despacio` sit in the body of `a1.txt` rather than the marked block (their
+    reasons are in `PHRASES.md`); the `fut`-at-a-step check is tested from V16.
+- **V13: session 7 "¿Cómo es?" (2026-10-31, Opus 5.5 xhigh; gated on `feature/village` at `f5933c8`; phase B's first lesson).**
+  - **Gate:** 6194 passed, 3 skipped, 0 failed, with the models (6087 before); 0 warnings; format, the content gate at A2, `--validate-content`,
+    grammar and both licence scans clean. Bundle `8f4281c8…`; the identity baseline (18 new lines, 36 `request_item` entries moved) and the
+    fuzz suite's sentence digest (`FuzzLanguageStreamTests`, generators unchanged) re-recorded; the end-to-end goldens unmoved; the grammar
+    cache rebuilt from nothing equals the committed one.
+  - **Built.** The lesson `como-es` (20 steps, session 7, after `gente-del-pueblo`, `a2`: the order's line uses `plantas` and `traes`): León at
+    the field, the stall on the way to the river, the river bank, back to the field. `describe` and `state_like` (no confusion with
+    `name_object` or `state_want` in the lint); `request_item` takes `[ADJ]?` after the noun. The farmer sells apples at 1 coin
+    (`farmer.cant_pay` "Necesitas más monedas. Una manzana cuesta una moneda."); the order `water-for-plants` (1 bottle of water, 3 apples, the
+    plan's terms; León keeps the bottle, the stall gives another). The F1 help's sleep line (left by V12c); 8 check items; `FarmLessonTests`,
+    `FarmSpokenTests`; the skip tests for session 7. Every said row heard word for word (0.99 to 1.00). Estimated 7 to 9 minutes.
+  - **Rows.** Said: `la-manzana-es-roja`, `me-gusta-el-pan` "Sí, me gusta el pan.", `me-gustan-las-manzanas`, `quiero-tres-manzanas-rojas`,
+    `voy-a-buscar-agua`, `es-grande` (the shopkeeper's loaf), `fui-al-rio` "Sí, fui al río.", `me-gusto-el-pan` "Sí, me gustó el pan de Luz.".
+    Heard: `mis-manzanas-son-rojas`, `como-es-la-manzana`, `te-gusta-el-pan`, `mis-plantas-necesitan-agua`, `el-pan-es-de-luz` "El pan es de
+    Luz, de la panadería." (`panadera` is in neither list), `toma-tres-manzanas`, `ayer-me-gusto`, `te-gusto-el-pan`. Dropped: `es-pequeno`.
+    The Opus pass added the "Sí," of the yes/no answers, the river in the order's line, a `cant_pay` true of any shortfall and "¡Hablas muy
+    bien español!" before the thanks review.
+  - **Deviations (accepted):**
+    - **An order may name its lesson** (`"lesson": "como-es"`, checked by the validator): while that lesson has not reached its delivery step,
+      walking up with the goods delivers nothing. Session 1's bottle is never emptied, so nearly every learner would have handed the water over
+      on the first talk, before saying the plan. `oven-wood` and `axe-handle` are unchanged (their runs would move); V14 looks at `oven-wood`.
+    - `--skip-to-session 7` paid the axe order's 2 coins out again (2 coins at session 7, not 0): an order's coins are now paid from the bag;
+      the skip also carries session 1's bottle of water.
+    - The book's `verbs` list only the new forms (`son`, `gusta`, `gustan`, `gustó`): a test requires each form to be declared once, and `es`,
+      `voy a buscar` and `fui` belong to earlier lessons.
+    - The walk to the river ends at the fisher's bank (`npc.fisher`): the river's point is mid-stream, and the scripted run swam to it and stuck.
+  - **The coin path:** 0 coins at session 7 (the data and the skip agree). The apple request comes before the order and gets `cant_pay`; the
+    apples come from the order, and a learner with coins can still buy.
+  - **Found (core gaps, filed as core M62 and added to M56 and M59):** `la manzana es rojo` and `el pan es grandes` give no error (a predicate
+    adjective is not agreed across `ser`); `las manzanas es roja` and `la manzana son roja` give none (the noun subject of `ser`, M59 (a));
+    `quiero tres rojas manzanas` is not understood, and with a grammar that matches it gives no `word_order`; `me gusta las manzanas` and `me
+    gustan el pan` give no error (the postverbal subject of `gustar`, M56 (b); the lesson's person check catches the first as a Miss). The
+    rows use the slips the core grades: `quiero tres manzanas rojos` (`gender.agree`), `ayer me gusta el pan` (`conj.tense` expected `gustó`).
+  - **Scripted runs:** all 20 keep their ticks and world digests except r21 (the skip now carries the bottle, which moves its state digest);
+    every summary lists a seventh lesson; 373 lines and 746 speech files; the Lessons page of r20 and r21 has 141 lines. `SCRIPTED_RUNS.md`
+    is left for V09.
+- **The bottlenecks study (2026-10-31, Opus 5.5, read-only; `docs/DEVELOPMENT_BOTTLENECKS.md`).** Asked for by the owner during phase B. The
+  cost of a milestone is its turns times its context (phase A's 11 agents: 954M tokens, 97 % cache reads), not the gate (175 s, every phase A
+  gate passed first time); follow-ups found late (V12b, V12c, M60) took 22 % of phase A's agent time; each content edit moves seven artefacts
+  by hand. The briefs from V14 on read named sections only, send output to logs, test the learner's route and run the suite once without
+  models (CI's case). The owner's answers (D-game-22): V18 (the content loop in one command) next, the core's M56 and M59 before V14, M58
+  before V15; the questions on two agents at once, effort, split milestones, CI and listening are left as they are.
+
+- **V18: the content loop in one command (2026-10-31, Opus 5.5 xhigh; gated on `feature/village` at `d986adf`; tooling, from
+  `docs/DEVELOPMENT_BOTTLENECKS.md` P2).** `scripts/content-loop.sh`, a new script rather than a mode of `content.sh`, runs the eight steps
+  after a content edit, in order: refresh, grammar, speech, fixtures, build, goldens, digests, tests. It stops at the first failure, names
+  the next thing to do and prints a summary of at most 30 lines; each step's log goes to `.claude/content-loop/<stamp>/` (ignored).
+  - Options: `--grammar` (LanguageTool start, `--prune`, the rebuilt-from-nothing check, the new findings, the server stopped by a trap),
+    `--speech` (the `--check` summary, the render, refresh again), `--record` (off by default: the goldens and the identity baseline, which
+    needs `VOCATERRA_RECORD_IDENTITY=1` besides `VOCATERRA_RECORD_GOLDEN=1`; it prints the stream digests to set and edits no C#) and
+    `--tier fast|full|none`. The fast tier adds the grammar-sensitive fuzz classes at full depth. **A content brief now carries one line:
+    `scripts/content-loop.sh --grammar --speech`, with `--tier full` before the report.**
+  - The lock: the script calls `limited.sh` per heavy step and `test.sh` directly. It refuses to start (exit 3) under `limited.sh`, which now
+    exports `VOCATERRA_LIMITED=1`, or when it inherits the lock's descriptor. Both cases were tested.
+  - The save fixtures are found by the old `bundleHash` (the one at HEAD, the one before step 1, or one an earlier run in the worktree saw,
+    kept in `.claude/content-loop/bundle-values`), never by a typed list.
+  - Proof 1, a real edit on a throwaway branch (`farmer_thank.3` and a `si-por-favor` variant), every option, `--tier full`: passed in 4 min
+    52 s. One new cache entry, the rebuild from nothing equal, 2 of 748 WAVs rendered, both fixtures moved, one new identity entry, the
+    end-to-end goldens unmoved, 6194 passed. Its earlier attempts stopped at refresh in 10 to 27 s with the problem on screen.
+  - Proof 2, V12's grammar fault (`cómo (tú)? te [VERB:llamar] (tú)?`): failed at the fuzz step after 2 min 51 s (64 s of it `--grammar`),
+    with O3 on `cómo tú te llamo tú` and the moved `OldSentenceDigest` printed. The fast tier alone was green, so the fuzz classes in the
+    loop's fast tier are what catch it. Before V18 this fault showed only at the full run.
+  - Two runs with every option on the unedited branch left `git status` clean. `bash -n` clean; shellcheck is not installed.
+  - `content.sh refresh` is unchanged apart from its header and cache-miss message, which name the loop. Docs: `content/README.md` ("The
+    edit loop"), `docs/game/README.md` ("Refreshing the cache"), `scripts/README.md`.
+  - Tests: 6194 passed and 3 skipped, unchanged (no tests added: it is a script).
+  - Proposed, not done: a staleness step in the gate (`scripts/content-loop.sh --tier none` then `git diff --exit-code`, about 30 s; it
+    would fail a branch that forgot a step of the loop). It needs the gate script changed, which is mine: deferred until a content milestone
+    shows the need. CI: no change. The stream digests stay hand-set until the core's M57 (c).
+
+- **V14: session 8 "Ayer en el pueblo" (2026-10-31, Opus 5.5 xhigh; gated on `feature/village` at `78a37fa`).** The villager's lesson
+  of session 8, level `a2`: the preterite in every person (`hizo`, `pescó`, `fuimos`, `comieron`, `compró`) and `tener que` (the new
+  intent `state_obligation`), 18 steps, 8 check items, 50 WAVs; about 7 to 9 minutes. No order and no sale: a learner arrives with 0 coins,
+  3 apples, 2 loaves and the axe, and leaves with the same.
+  - Rows: said `luz-hizo-pan`, `mar-pesco-en-el-rio`, `fuimos-al-rio`, `ellos-comieron-pan`, `tengo-que-ir` and the optional
+    `luz-compro-pescado`, with the reviews `fui-al-rio` and `voy-a-comprar-pan`; ten heard rows, the day told in three lines among them.
+    What the learner says is true in the world: "Fuimos al río" (session 7's walk ended on Mar's bank) and "Tengo que ir al río" (the next
+    step walks there). `state_action` gains `pescar en` + a place and a village name before `comprar`.
+  - The Opus pass: "le vendí pescado a Luz"; the plural is "Luz y Mar"; "Mar fue al río y te busca" brings in `fue`; "Por la mañana" keeps
+    the `fuimos` model apart from the afternoon. The orchestrator read every new line: natural, neutral (`¿Y Mar y tú? ¿Adónde fueron?`).
+  - The level is `a2` by the grammar (the past in every person, `tener que`); every word is A1 with `pescar` added to the world words.
+  - The stand-in examples are restored (M56, M59): `es lejos` (with `ask_far` given a keyword rule for `ser` + `lejos`/`cerca`, not a
+    grammar: a grammar would make the fuzz suite generate it as correct), `¿dónde están la herrería?`, `me gustan el pan`, `me gusta las
+    manzanas`, `¿cuánto cuestan el pan?`, `¿cómo te llama?`, and V13's `la manzana son roja` / `las manzanas es roja`.
+  - The four open points: (1) `smith-open` takes `state_action` and `state_want` (`Domingo hizo un hacha` error-free there); the fisher's
+    and the villager's prompts do not (the lint gave `busqué madera` to `ask_directions` there). (2) `oven-wood` and `axe-handle` name their
+    lessons, as `water-for-plants` did in V13 (Luz thanked the learner before the plan; the axe came before Domingo's offer). (3) At the
+    villager, "¿dónde está la panadería?" in free talk credits the fisher's row as a transfer; lesson credit is unchanged. (4) **The
+    listener's name as a vocative** (`Vocative.cs`): the NPC's own name, as the first word (or after `hola`) or the last, is taken out
+    before the core reads the line, typed, spoken and on the host CLI, unless a word joins it to the sentence (`Luz y Domingo comieron pan`,
+    `el pan de Luz`). The core leaves a lone name unchecked since M59; the game, which knows the listener, strips it. `Luz hizo pan` said to
+    Luz herself becomes `hizo pan` (harmless for the intent).
+  - The recognizer heard all six said rows word for word; `fueron` is only in the open vocabulary and is heard as `fuimos` at the step.
+  - Bugs found on the learner's route and fixed: the fisher's answer set accepted statements his prompt rejects; the listen step's options
+    overflowed at 150 % text scale.
+  - Tests: 6431 passed and 3 skipped before; 6602 passed and 3 skipped after, with models (without models, CI's case: 6567 passed and 38
+    skipped). One timed test is at the CI margin: the scene build takes 0.75 s of its 3 s budget here, so CI's runner (about four times slower)
+    would reach the budget (the scene is unchanged by V14; a CI failure there is that margin, not V14).
+  - Bundle `19635716…`; the identity baseline gained 13 entries, none moved; `OldSentenceDigest` set with the generators unchanged; the
+    end-to-end goldens did not move. Scripted runs: ticks and world digests unchanged; the differences are the new lesson's (the eighth
+    lesson line, speech files 746 → 796, saves +4.7 KB, the Lessons-page screenshots of r20 and r21).
+  - Left: `tener que` has no book entry (`tengo` belongs to the first lesson); the NPCs' "¡Muy bien!" still plays in Luna's voice (older);
+    the closing review is skipped when nothing is due.
+  - The orchestrator's spot-checks: CI's grammar check holds (the cache rebuilt from nothing equal, by `scripts/content-loop.sh --grammar`);
+    on the host, `Luz, quiero pan` buys the bread, `Domingo necesito un hacha` is `state_want`, `¿dónde está la panadería, Mar?` is
+    `ask_directions`. Two older gaps seen on the way, open: `hola Luz quiero dos panes` (and `hola quiero dos panes`) resolves only the
+    greeting, so the purchase does not happen (one intent per line); `quiero el pan de Luz` at `baker-open` resolves no intent.
+
+- **V16: the simple future in the lesson runner and the book (2026-10-31, Opus 5.5 xhigh; gated on `feature/village` at `71573ba`).**
+  - `tense: fut` at a repeat or answer step (`TaughtVerbForm.SimpleFuture`, the schema's enum; no schema version bump, as V10 added
+    `review`); the validator refuses a `fut` step in an `a1` lesson.
+  - The runner (`OtherFuture`, each case with its own log detail): at a `fut` step the near future (`voy a comprar pan`) and the present
+    with a time word (`mañana compro pan`) are credited with the step's `futureNote` (one note for both: it names the form the step
+    practises); at an `ir-a` step the simple future (`compraré pan`) is credited with the step's `presentNote` (every shipped one already
+    reads "That is right too. Here we practise …"). `compré pan` and `compro pan` at a `fut` step are a miss with the `tenseRetry`;
+    `mañana compré pan` stays the core's `conj.tense`.
+  - The book's fourth column, `ui.bookColumnFuture` "future": present, past, future (ir a), future, time left to right and the futures in
+    the order taught; the counts from the word record. 1280x720 fits four columns; 800x600 at 150 % stacks them (the future reached by
+    scrolling). The orchestrator looked at the 1280x720 screenshot: the four columns, `compraré` highlighted.
+  - The core reads a simple-future form as `fut`, `ind` (a test): compraré, comprarás, comprará, iré, buscaré, hará, tendré, trabajará,
+    pescará all found. No core gap.
+  - Time words as phrases (`NearFutureWords.Mark`): `semana que viene`, `próxima semana`, `próximo día`, `mes que viene`, `próximo mes`,
+    `año que viene`, `próximo año` (`luego`, `después`, `pasado mañana` were there since V10); `el día que viene` left out (it can be a
+    relative clause). The bundle's grammars are untouched: they take the later markers in V17, after the core's M57.
+  - Bugs found and fixed: `iba a comprar` was credited as the near future (now a tense miss); the `viene` of `la semana que viene` counted
+    as the answer's verb in the person check.
+  - Tests: 6602 passed and 3 skipped before; 6642 passed and 3 skipped after, with models (6607 and 38 skipped without). Bundle
+    `20976ec4…` (`words.json`), in both save fixtures; goldens and stream digests unmoved; 7 new grammar strings, 0 findings.
+  - Timing: three older tests are within four times of their budgets here (the bundle load, median 1676 ms of 3000 ms; the scene build
+    and digest, 1275 ms of 3000 ms; the world snapshot, 0.49 s of 1.5 s). None changed in V16; with CI's runner about four times slower
+    they are the likely CI failures if any appear (open point).
+  - Seen by the orchestrator, not a V16 bug: the book counts a use "correct" only when the line was communicated at its prompt, so a
+    correct sentence said where its intent is not accepted shows "0 correct".
+  - The orchestrator's spot-check: CI's grammar check holds (the cache rebuilt from nothing equal, 7 new strings, 0 findings).
+
+- **V17: session 9 "Mañana en el pueblo" (2026-10-31, Opus 5.5 xhigh; gated on `feature/village` at `cc155d4`).** The baker's lesson
+  of session 9, level `a2`, 14 steps, 8 check items: the simple future as the second way to say tomorrow, against `ir a` (an explain step:
+  a plan already made, `voy a comprar pan`; a promise or a prediction, `mañana compraré pan`). Luz at the bakery, Domingo at the smithy, Mar
+  at the river. The first lesson with `fut` steps: V16's machinery lacked nothing.
+  - Rows: said `manana-comprare-pan`, `buscare-madera`, `ire-al-rio`, `luz-hara-pan` (all `tense: fut`); heard `que-haras-manana`,
+    `tendre-pan`, `luz-necesita-madera`, `mar-pescara`, `el-dia-de-manana`, `que-hara-luz`; reviews `compre-dos-panes`, then
+    `luz-compro-pescado` or `voy-a-comprar-pan`. **Mar tells the day of tomorrow**, of himself in the first person (`Y yo pescaré`), which
+    keeps Luz's `hará` and Domingo's `trabajará` in the third person the learner retells; `pescará` is heard from Domingo.
+  - The Opus pass: Luz's "¡Qué bien!" and "fresco", Mar's "Y yo pescaré", Domingo's "toda la tarde"; no row dropped. The orchestrator read
+    every new line and its English: natural and neutral.
+  - M57's later markers are in every `state_action` grammar, at both ends; `buscar`'s item takes `para` + a village name. `baker-open`
+    takes plans (`state_action`); `fisher-open` does not (the lint's confusion check gives `buscaré madera` and `busqué madera` to
+    `ask_directions` there).
+  - The book's future column: `compraré`, `comprarás`, `comprará`, `iré`, `buscaré` taught; `hará`, `tendré`, `trabajará`, `pescará` heard.
+  - **No order in session 9:** the plan's four orders are done, and a fifth order to Luz would replay her one thanks-and-reward line and pay
+    her 4 coins again. The coin path is unchanged: a learner arrives with 0 coins, 3 apples, 2 loaves and the axe, and leaves with the same.
+  - Core tries: every grade right, no new core gap. An older limit seen again: a word outside a constrained prompt's answer set gets
+    `vocab.wrong` (`usted comprará pan` at a lesson step). The recognizer heard all four said rows word for word, at 1.00.
+  - Tests: 6659 passed and 3 skipped before; 6771 passed and 3 skipped after, with models. Bundle `8f27dffd…`; the identity baseline
+    gained 6 entries and 66 moved (the analyze stage only, all `state_action` sentences, from the grammars' markers), in a commit of their
+    own (`f59e49e`, whose message wrongly says "and the ones after it"); no end-to-end golden and no stream digest moved. M57's loose ends
+    are done: the content loop's step 7 and its documents say the stream digests run on frozen inputs.
+  - The agent was stopped early for a session handover. Carried into V15's brief: the scripted runs after the change, the learner's route
+    from session 8, the timed lesson run and its minutes, and CI's case without models.
+  - The orchestrator's spot-checks: on the host at `baker-open`, `mañana compraré pan`, `Luz, mañana compraré pan` and `voy a comprar pan`
+    are `state_action`, communicated, error-free; CI's grammar check holds (`scripts/content-loop.sh --grammar --tier none`: the cache
+    rebuilt from nothing equal, 0 new findings); `--skip-to-session 9` shows session 9's objective and the beacon on Luz, with 3 apples, the
+    axe and 2 loaves in the hotbar, and `--skip-to-session 9 --lesson-run manana-en-el-pueblo` completes 14 of 14 units (both reviews
+    skipped: a skipped start has nothing due).
+
+- **V15: session 10 "El mercado" (2026-11-01, Opus 5.5 xhigh; gated on `feature/village` at `d082f05`, V15b at `557db47`).** The last
+  lesson of phase B and of the series, level `a2`, 22 steps, 8 check items: the numbers 11 to 20, the total of a table, comparing
+  prices, `poder`, selling, and the market told in the three times. Luz counts to twenty and buys the learner's wood; León's table leads to
+  the total, the comparison, paying with fruit and the future; three apples are bought with the wood's coins; the stall hears the report.
+  - Rows: said `tienes-veinte-panes`, `quiero-vender-madera`, `vendo-madera`, `cuanto-es-todo`, `es-muy-caro`, `mas-barato-que`,
+    `puedo-pagar-con-fruta`, `manana-vendere-fruta` (`tense: fut`), `compre-tres-manzanas`; 11 heard rows; reviews of sessions 9 and 8 at
+    the start, 5 and 7 at the end. Four stand-in error examples restored (M58: `cuanto-cuesta`, `hay-pan`; M62: `la-manzana-es-roja`,
+    `es-grande`). The prenominal `[ADJ]?` in `request_item` was tried and left out: it moved 43 identity entries and the core's documented
+    `quiero una azul espada`.
+  - The Opus pass: "Solo compro" (was "Yo compro"), León's total "Quince manzanas, quince monedas." (so "todo" is his table), his answer on
+    paying also fits a question about coins, `para ti` dropped. The orchestrator read every new line and its English: natural and neutral,
+    apart from Luz's `Te pago una moneda por cada madera` (a mass noun counted), now `… por cada bloque de madera`, as the bundle counts
+    wood elsewhere (`9f7a78d`).
+  - **`offer_item` and `buy`:** the grammar takes the literal `vendo` and `quiero vender` (only the present sells; `vendí` and `venderé`
+    stay `state_action`). Luz and Domingo buy wood, León fruit, one coin each, the number said or else all in the bag; with none, "No
+    tienes madera."; another item, "No, gracias. Solo compro madera." No cap: the goods are the cap, and nothing sold can be bought back.
+    The lint's confusion check: no overlap with `state_want` or `state_have`, one waived with `state_action`. Bug found and fixed: any
+    request at the bakery sold bread (`quiero madera` took coins for bread); Luz now answers "Solo vendo pan.", León "Solo vendo
+    manzanas." The host's `--transcript` mode has no bag, so it prints the success line whatever the item; the game decides (`SellingTests`).
+  - **The coin path:** 0 coins in; three blocks of wood sold for 3 coins; three apples bought; 0 coins out. A learner with 0 coins finishes from `--skip-to-session 10` (tested). **No order:** the sale and the purchase are the session's
+    exchange. `¿Puedo pagar con fruta?`: no barter, but León buys fruit, so fruit pays in two steps. `¿Cuánto es todo?` sums León's table.
+  - **One intent per line** (V14's finding): `Greeting.cs` answers a line that opens with a greeting by its rest when the whole line is a
+    greeting or not understood and the rest is another intent the prompt takes (the greeting credits nothing); the recognizer's leading
+    `[unk]` is passed over, which had also hidden the vocative. `hola, quiero dos panes`, `hola Luz quiero dos panes` and `quiero el pan
+    de Luz` (`request_item` takes `de` + a village name) buy bread, typed, spoken and on the host.
+    V15b widened it: the rest also answers when the whole line is the rest's own intent with the same errors plus some on the greeting's
+    words, so a greeting's words are never flagged and an error after it stays (`buenas tardes, ¿cuánto cuesta el pan?` clean; `buenos
+    días, ¿cuánto cuestan el pan?` only `conj.person`).
+  - The Lessons page says the series is done once all ten lessons are: "Every lesson of the village is done, all 10: the series ends here."
+  - Core tries (not patched; core gaps for the owner's list): `¿puede usted vender manzanas?` gives a wrong `conj.person` (expects
+    `vende`); `puedo pago con fruta` and `quiero vendo madera` give no error; `¿cuánto cuestan todo?` gives no `conj.person`; `ti` is not in
+    the lexicon (`vocab.unknown`); `¿cuánto son todo?` is communicated with intent `unknown`.
+  - Recognizer: every said row heard word for word at 0.91 to 1.00, with `venderé`, `puedo`, `barata` and 11 to 20 (`dieciséis` written
+    without its accent). Timing: session 9 about 6 to 7 minutes, session 10 about 9 to 10 (the top of the target).
+  - Tests: 7031 passed and 3 skipped before (7034 after M62b); 7218 passed and 3 skipped after, with models; without models (CI's case)
+    7175 passed and 43 skipped. Timed tests alone: the scene build 0.65 of 3 s, the bundle load 0.49 of 3 s; V16 measured about 1.3 and
+    1.7 s under the full suite's load, within four times of the budget. Bundle `e39e1a42…`; no end-to-end golden moved; the identity
+    baseline gained 24 entries and 18 moved (the analyze stage, `de` + a village name in `request_item`), in commits of their own.
+  - Scripted runs: ticks and world digests unchanged; the tenth lesson, speech files 824 to 902, saves 5.9 KB larger, the Lessons-page
+    shots and Luz's `vendo-madera` card. Nothing wrong in V17's "before". The learner's route: session 9 played, slept into session 10,
+    the objective and beacon on Luz, the lesson done, free talk answered right (a scripted run cannot chop a tree, so that step was skipped).
+  - Left: the session skip buys one apple, not three, for the market (no step of it is a request); no session follows 10, so it is never
+    used.
+  - The gate: the first run failed on an O3 fuzz case older than V15 (seed `aeG5w1c3Hvh2`, fixed in the core as M62b) and on the import
+    order of `MarketSpokenTests.cs` (`e269e7b`; format had been run before the last edit). Only three commits on the branch at the first
+    report, against "commit often".
+  - The orchestrator's spot-checks: on the host, the brief's demos as stated (`hola, quiero dos panes` and `hola Luz quiero dos panes`
+    buy bread; `vendo madera` and `quiero vender madera` are `offer_item`; `¿cuánto costa el pan?` `ask_price` with `conj.irregular`;
+    `¿cuánto es todo?` and `¿puedo pagar con fruta?` León's answers; `mañana compraré pan` clean; `quiero agua, por favor` at `stall-need`
+    `request_item`); `--skip-to-session 10 --lesson-run el-mercado` completes (18 done, 4 skipped: two reviews with nothing due, two walks);
+    the Lessons page says the series is done. Two gaps went to V15b (`55f3630`, gated at `557db47`, 7258 passed and 3
+    skipped; bundle `36b2b8ad…`; no golden or identity entry moved): a two-word greeting before a question was flagged (`buenas tardes,
+    ¿cuánto cuesta el pan?` gave `vocab.wrong` on `buenas`), and wood counted in blocks did not sell (`vendo tres bloques de madera`,
+    `quiero vender tres bloques de madera` not understood, though Luz says `por cada bloque de madera`): `offer_item` takes `bloque(s) de`
+    and `buy` reads the number (`un` is one). After V15b the host gives each line as above; CI's grammar check holds (`scripts/content-loop.sh --grammar --tier none`: the cache rebuilt from nothing equal, 0 new findings).
+- **V09 again: documents and runs, phase B (2026-11-01, Opus 5.5 xhigh; gated on `feature/village` at `da8dba6`; phase B ends here).**
+  - **Gate:** 7259 passed, 3 skipped, 0 failed, with the models (7258 before); 0 warnings; format, the content gate at A2, `--validate-content`, grammar and the licence scan clean. The bundle is unchanged (`36b2b8ad…`).
+  - **The scripted runs against the end of phase A** (`ccf8187`, phase A with V12b and V12c, against `fa22116`, after V15b; all twenty runs, captured in
+    the one worktree; `main`'s merge `0cf674b` is older than `ccf8187`, so none of it is in the difference): every difference traces to phase B. Every
+    run's closing summary lists ten lessons; speech 340/680 → 451/902 files; every save 18.4 KB larger (155 phrase records, not 93, ten lessons, the
+    order `water-for-plants`); the Lessons pages of r20 and r21 at 192 lines (121); r21 carries session 1's bottle of water (V13), which moves its state
+    digest; r18 shows Luz's fourth card, `Vendo madera.` (V15). r10 asks the same 31 items; one turn landed a tick earlier (the order-only rule). Ticks,
+    world digests, the scene and every other picture are unchanged. No unexplained difference.
+  - **Built.** Two new runs: `r22-market` (`--skip-to-session 10`, four trunks cut, `vendo madera` to Domingo: four wood out, four coins in; two loaves
+    bought from Luz; `¿cuánto es todo?` to León) and `r23-future` (session 9's lesson, then `mañana compraré pan` to Luz in free talk, then the book's
+    Verbs page on `comprar`). Both are order-only runs (they take turns), added to `compare-runs.py`'s list; captured twice, r22 matched byte for byte
+    and r23 but for the turn's latency drawn in `reply.png`. `SCRIPTED_RUNS.md` at 22 runs. `README.md`: the village section for sessions 4 to 10 (a
+    line a lesson, the futures, the market), the counts measured (10 lessons, 229 steps, 155 phrase rows, 22 nouns, 20 verbs, 29 intents, 70 prompts,
+    451 lines in 902 speech files, 87 check items; the battery 31/31/31/39/47/55/63/71/79/87), the learner's route, the open points and CI's case.
+    `PLAYTEST.md`: the pilot's battery stays at 31 items; a new section on what a playtest of sessions 7 to 10 needs. The speech checklist's preface,
+    written by the renderer, now counts what is left to hear (902 files unmarked; phase B added 222). `ARCHITECTURE.md`'s CI line, the `--session` help.
+  - **The learner's route through phase B** (from `--skip-to-session 7`, each lesson, free talk with its NPCs, a sleep at the fire): every session
+    opens on its lesson (the objective names it and its NPC, the beacon, the morning toast); the four lessons ran to their ends; after session 10 the
+    objective and the Lessons page say the series is done.
+  - **Found and fixed:** a skipped game left the shopkeeper as if never met: in session 7 his key words stood alone again and his next visit handed
+    over a second bottle as a fail-forward, logging a use of `pedir-agua` the learner never made. The skip now counts his bottle as given and his key
+    words as taught (`SessionSkip`, `NpcService.SkipShopkeeperBottle`; `SessionSkipTests`, failing before the fix).
+  - **Found, not fixed (for the owner's review; the whole list is in `docs/game/README.md`, "Open points after phase B"):**
+    - In free talk, 9 of phase B's 27 said lines get "No te entendí" from the NPC who taught them: the open prompts of the villager, the fisher and
+      the stall take no statements, and Domingo's no `tener que` (`Es grande.`, `Compré tres manzanas.`, `Tengo que ir al río.`, `Luz hará pan.`, …).
+    - Free talk credits only an NPC's `focus` rows, so a phase-B line said again in free talk counts no phrase use (r23).
+    - An NPC shows its focus cards from the first talk, before their lesson: Luz's `Vendo madera.` in session 5 (r18), León's A2 lines from his first
+      talk.
+    - A lesson's line at an open prompt whose answer set lacks it is a slip (`buscaré madera para Luz` to Domingo: a small mistake, and the recast
+      writes `luz` lower case).
+    - The stall answers any request with the bottle (older, S6). The Lessons page opens at its top, far from `next:` (192 lines).
+  - **CI's case** (`VOCATERRA_MODELS_DIR` an empty folder): 7218 passed, 44 skipped. Timed tests under the full suite's load against their budgets:
+    the bundle load 1438 of 3000 ms and the world snapshot 0.50 of 1.5 s (over at four times: the likely CI failures), the scene build and digest 708
+    of 3000 ms (at the edge), the lint 0.78 of 5 s, the chunk digest and a turn well under.
+  - **The orchestrator's checks:** r22 and r23 run again after the gate as described (r22's bag after: the book, three apples, the axe, four loaves, no coin, no wood; `smith.buy_wood`, `baker.sell_bread`, León's total; r23's Verbs page on `comprar` with `compraré` said twice, both correct); the diff in scope (`scripts/compare-runs.py` is outside the brief's list: the two runs' names only).
+- **V19: the game findings of the review of `feature/village` (2026-11-01, Opus 5.5 xhigh; gated on `feature/village` at `716d469`).** The
+  owner asked on 2026-11-01 for every finding of the review (`docs/qa-reports/2026-11-review-feature-village.md`) to be fixed before PR #20's
+  merge: the core's as M64 (`23af5cd`), the game's here.
+  - **R4, the listener's name after any greeting.** `Vocative` reads the name after any of `Greeting`'s openings (`Greeting.OpeningLength`;
+    its own list of `hola` alone is gone). A new `LineReading` holds the sequence: the name out, the line read, a greeting's rest answered.
+    `NpcService`'s typed and spoken paths and the host's `ConversationSession` all call it, so the three copies cannot drift again.
+    - Through the host, `buenos días luz quiero pan` was "No te entendí", `buenos días domingo vendo madera` a statement about Sunday with
+      no sale, and `buen día león quiero tres manzanas` had `vocab.wrong`. Each is now its intent at correctness 1.
+    - `buenos días luz` still greets.
+  - **R7 to R10, the market's misses.** `NpcEffect.ExchangeMiss` is the one rule for a purchase or a sale. The NPC's worker checks it on its
+    copy of the bag, and the session checks it again on the bag itself.
+    - R7: a catalogue noun with no item is another thing (`quiero casa` at the bakery, `vendo piedra` to Domingo: `wont_sell` or
+      `wont_buy`).
+    - R8: the new miss `no_room`. `Inventory.CanExchange` counts the slot the payment frees. The NPC says «Tu bolsa está llena.»
+    - R9: no cap on a purchase or a sale. The number said, bounded by the coins, the goods held and the room, as the V15 entry said.
+      `MaxQuantity` stays only for a `give_item` or `take_item` counted from `qty` (no NPC has one). Twelve digits overflow nothing.
+    - R10: zero moves nothing, with `none_asked` (the baker's `baker_hay`, León's `how_many`) or `none_offered` (new: «¿Cuántos bloques de
+      madera me vendes?», «¿Cuántas frutas me vendes?»).
+    - `ExchangeMissTests`, 13 tests.
+    - In the game, from session-10 saves: 9 wood and `vendo ocho bloques de madera` sell 8; 15 coins and `quiero quince manzanas` buy 15
+      apples; with a full bag nothing changes and the NPC says why.
+  - **R1's game side.** Nine aliases in `lesson-we-went` (`mar`, `tú` or `luz y yo fuimos al río`, with `ayer` before or after). With M64
+    they score 1, where they gave `vocab.wrong` at 0.4. The other `1pl` steps' questions invite no subject.
+  - **Found and fixed:** `vendo dos frutas` at `farmer-open` got `vocab.wrong` (0.4). León's set takes counted fruit now.
+  - **The review's risks.** `SessionSkip`'s purchase throws `InvalidOperationException`, naming the session and the item, where it would
+    have left a later order short. `docs/game/README.md`, `content/README.md`, the host-events schema and `host-events.json` describe
+    selling and buying as they now work.
+  - **Content:** six new lines (`no_room` for the baker, the farmer and the smith; `none_offered` for the three buyers), with an Opus
+    pass (`me` added to the questions) and the orchestrator's read. 12 WAVs in the NPCs' provisional voices. Speech is now 457 lines in
+    914 files. Grammar: 0 new findings, and the cache rebuilt from nothing is equal. Bundle `0f8faea0…`; the identity baseline took
+    the six lines.
+  - **Scripted runs:** the only difference is the speech count. Ticks, digests, pictures, `r18-bakery` and `r22-market` are unchanged.
+  - **Tests:** 7364 passed and 3 skipped before; 7420 and 3 after, with models. Without models (CI's case), 7378 passed and 45 skipped.
+    The bundle load was 1248 of 3000 ms and the scene build 739 of 3000 ms, both within four times of their budgets. The gate passed at
+    the first run.
+  - **The orchestrator's checks:**
+    - the four greetings with names through the host;
+    - `lesson-we-went`'s subject answers at correctness 1;
+    - `vendo dos frutas`;
+    - the host demos (`quiero agua, por favor` at `stall-need`, `mañana compraré pan`);
+    - the six new lines read.
+  - **Left:** a zero request (`quiero cero panes`) still credits the phrase `quiero-dos-panes` as said, though nothing changes hands.
+
 
 ## 6. Definition of done (every milestone)
 
 1. `dotnet build Vocaterra.sln -warnaserror` with 0 warnings and `dotnet test Vocaterra.sln` green, with the test count in the report.
 2. `dotnet format Vocaterra.sln --verify-no-changes` clean.
-3. `scripts/content.sh validate` passes; after a content edit the bundle is hashed and its manifest committed; `cefr-check` is clean at A1 and A2
-   for any content that adds templates.
+3. `scripts/content.sh validate` passes; after a content edit the bundle is hashed and its manifest committed; `cefr-check` is clean at A2 (the
+   bundle's ceiling since V08) and the host's `--validate-content` holds each lesson to its level, for any content that adds templates or lessons.
 4. The demos run (since S4 the 3D voxel world is the only world; the 2D demos retired with the slice, tag `2d-slice-p7`):
    the host `dotnet run --project src/Vocaterra.Host -- --transcript "quiero agua, por favor" --prompt stall-need` prints `request_item`,
    communicated, and `--transcript "quiero dos agua por favor" --prompt stall-need` prints `noun.number` (expected 'aguas'); the core demo
    (`docs/nlp/README.md`) still yields exactly `conj.person` and `noun.number`. The game (needs a display, `DISPLAY=:0`): `dotnet run --project
    src/Vocaterra.MonoGame -- --seed 42 --look 120,-5 --say "¿dónde está el río?" --screenshot <scratch>/s3.png --frames 300` prints
-   `ask_directions, entendido` and "El río está allí, a la izquierda, a sesenta bloques."; the PNG shows the dialogue panel and the beacon
+   `ask_directions, entendido` and "El río está allí, adelante, a la izquierda, a cincuenta y cuatro bloques." (V02); the PNG shows the dialogue panel and the beacon
    arrow. Each later milestone's demo is in `docs/game/SCENARIO_PLAN.md` section 4. Look at every PNG.
 5. No violation of section 3: no copied core source, no edit under `nlp/` in a game milestone, nothing under `.github/workflows/`, no
    engine code outside `src/Vocaterra.MonoGame`.

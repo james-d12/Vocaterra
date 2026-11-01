@@ -53,6 +53,33 @@ public sealed class KeyBindingsTests
         Assert.Empty(ran);
     }
 
+    [Theory]
+    [InlineData(true, false, false, "TalkTo")]
+    [InlineData(false, true, false, "OpenCrafting")]
+    [InlineData(false, false, true, "Sleep")]
+    [InlineData(false, false, false, "OpenInventory")]
+    public void EAtThePlayersLitFireSleepsAfterAnNpcAndTheWorkbenchAndBeforeTheInventory(bool aimed, bool atWorkbench, bool atFire, string expected)
+    {
+        var (commands, ran) = Commands();
+        Assert.True(KeyBindings.World(commands, () => aimed, static () => false, () => atWorkbench, static () => false, () => atFire).RunFirst(Pressed(GameKey.E)));
+        Assert.Equal([expected], ran);
+    }
+
+    [Fact]
+    public void EnterOnTheClosingCardSleepsBeforeItShowsTheNextTipAndNothingSleepsWithoutTheOffer()
+    {
+        var (commands, ran) = Commands();
+        Assert.True(KeyBindings.World(commands, static () => false, static () => true, static () => false, static () => true, static () => false).RunFirst(Pressed(GameKey.Enter)));
+        Assert.Equal(["Sleep"], ran);
+
+        ran.Clear();
+        Assert.True(KeyBindings.World(commands, static () => false, static () => true, static () => false, static () => false, static () => false).RunFirst(Pressed(GameKey.Enter)));
+        Assert.Equal(["NextTip"], ran); // the card is down: Enter is the tip's again
+        ran.Clear();
+        Assert.True(KeyBindings.World(commands, static () => false, static () => false, static () => false).RunFirst(Pressed(GameKey.E)));
+        Assert.Equal(["OpenInventory"], ran); // a game that offers no sleep (the old bindings)
+    }
+
     [Fact]
     public void TheGlobalKeysEachRunAndF3IsOffInAPlaytest()
     {
@@ -71,7 +98,7 @@ public sealed class KeyBindingsTests
         IGameCommand Named(string name) => new DelegateCommand(() => ran.Add(name));
         return (new GameCommands(
             Named("ToggleView"), Named("Save"), Named("CycleTextSize"), Named("EndPlaytest"), Named("ToggleDebug"), Named("Listen"), Named("TypeTo"), Named("TalkTo"),
-            Named("OpenControls"), Named("NextTip"), Named("OpenBook"), Named("OpenCrafting"), Named("OpenInventory"), Named("ReleaseMouse")), ran);
+            Named("OpenControls"), Named("NextTip"), Named("OpenBook"), Named("OpenCrafting"), Named("OpenInventory"), Named("ReleaseMouse"), Named("Sleep")), ran);
     }
 
     private static TestInputFrame Pressed(params GameKey[] keys) => TestInputFrame.Pressing(keys);

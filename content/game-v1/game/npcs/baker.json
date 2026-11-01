@@ -1,0 +1,29 @@
+{
+  "$schema": "../../../schema/npc.schema.json",
+  "schemaVersion": 2,
+  "id": "baker",
+  "label": "Panadera",
+  "name": "Luz",
+  "figure": "baker",
+  "focus": {
+    "baker-open": [
+      "quiero-dos-panes",
+      "cuanto-cuesta",
+      "hay-pan",
+      "vendo-madera"
+    ]
+  },
+  "prompts": {
+    "idle": "baker-open"
+  },
+  "opening": {
+    "event": "baker.greet",
+    "when": "always"
+  },
+  "voice": {
+    "speaker": 35,
+    "name": "if_sara",
+    "speed": 1.0,
+    "gain": 0.32
+  }
+}

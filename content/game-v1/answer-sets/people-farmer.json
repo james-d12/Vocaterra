@@ -1,0 +1,95 @@
+{
+  "answerSetId": "people-farmer",
+  "answers": [
+    {
+      "answerId": "name",
+      "canonical": "cómo te llamas",
+      "aliases": ["cómo te llamas tú", "cómo se llama usted", "cómo tú te llamas"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "job",
+      "canonical": "qué haces",
+      "aliases": ["qué haces tú", "qué hace usted", "qué tú haces", "en qué trabajas", "dónde trabajas"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "apples",
+      "canonical": "quiero tres manzanas rojas",
+      "aliases": ["quiero tres manzanas", "quiero tres manzanas rojas por favor", "tres manzanas rojas por favor", "quiero una manzana roja", "quiero una manzana", "quiero manzanas", "me da tres manzanas"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "price",
+      "canonical": "cuánto cuesta",
+      "aliases": ["cuánto cuesta una manzana", "cuánto cuestan las manzanas", "cuánto es"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "total",
+      "canonical": "cuánto es todo",
+      "aliases": ["cuánto cuesta todo", "cuánto es todo esto"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "pay",
+      "canonical": "puedo pagar con fruta",
+      "aliases": ["yo puedo pagar con fruta", "se puede pagar con fruta", "puedo pagar con monedas"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "sell",
+      "canonical": "vendo fruta",
+      "aliases": ["yo vendo fruta", "te vendo fruta", "quiero vender fruta", "vendo dos frutas", "te vendo dos frutas", "vendo una fruta", "quiero vender dos frutas"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "plan",
+      "canonical": "mañana venderé fruta",
+      "aliases": ["venderé fruta", "mañana voy a vender fruta", "compré tres manzanas"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "like",
+      "canonical": "me gustan las manzanas",
+      "aliases": ["me gusta el pan", "sí me gustan", "me gustan mucho las manzanas", "me gusta"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "describe",
+      "canonical": "la manzana es roja",
+      "aliases": ["las manzanas son rojas", "es roja", "es grande", "el campo es grande"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "hello",
+      "canonical": "hola",
+      "aliases": ["buenos días", "buenas tardes", "buen día"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "thanks",
+      "canonical": "gracias",
+      "aliases": ["muchas gracias"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "bye",
+      "canonical": "adiós",
+      "aliases": ["hasta luego", "nos vemos", "hasta mañana"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar", "qué hago"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": ["no lo sé", "yo no sé", "no entiendo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    }
+  ]
+}

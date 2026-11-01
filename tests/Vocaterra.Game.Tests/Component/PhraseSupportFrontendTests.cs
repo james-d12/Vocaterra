@@ -54,7 +54,7 @@ public sealed class PhraseSupportFrontendTests
 
         var rows = PhraseJournalRows.Build(progress, 1000 + 1200, CreditRules.Default, RouteScene.Shipped.Locale);
 
-        Assert.Equal(46, rows.Count);
+        Assert.Equal(155, rows.Count);
         Assert.Equal(progress.Sheet.Rows.Select(static r => r.Id).Order(StringComparer.Ordinal), rows.Select(static r => r.Id).Order(StringComparer.Ordinal));
         Assert.Equal(["que-necesitas", "pedir-agua", "donde-esta-el-rio", "hola"], rows.Take(4).Select(static r => r.Id)); // the phrases met come first, each group in the sheet's order (S17)
         var water = rows.Single(static r => r.Id == "pedir-agua");
@@ -213,7 +213,7 @@ public sealed class PhraseSupportFrontendTests
     public void TheKeyWordAndSupportCardCuesPlayThePreRenderedFilesOfS9()
     {
         var bundle = TestGame.Bundle;
-        var lines = SpeechLines.Enumerate(bundle, TestGame.Nouns, RouteScene.DataOf(bundle).Phrases);
+        var lines = SpeechLines.Enumerate(bundle, TestGame.Nouns, RouteScene.DataOf(bundle).Phrases, RouteScene.DataOf(bundle).Npcs);
         var logs = new List<string>();
         var output = new FakeOutput();
         using var voice = new NpcVoice(Path.Combine(GameBundle.ResolveDirectory(), SpeechLines.FolderName), new SpeechIndex(lines), output, muted: false, logs.Add);

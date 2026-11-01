@@ -21,6 +21,19 @@ public sealed class PhraseSheetTests
         "que-quieres", "quiero-madera", "tienes-fruta", "tengo-fruta", "necesito-agua",
         "que-quiere-luna", "ella-quiere-fruta", "necesitamos-agua", "que-necesita-usted", "necesito-pan", "tengo-botella", "que-quieren-ustedes", "queremos-pan",
         "que-vas-a-comer", "voy-a-comer-pan", "que-vamos-a-comer", "vamos-a-comer-fruta", "que-comiste-ayer", "ayer-comi-fruta", "fuiste-al-rio-ayer", "ayer-fui-al-rio", "bebiste-agua-ayer", "ayer-bebi-agua", "que-vas-a-hacer", "voy-a-ir-al-rio",
+        "que-buscas", "donde-esta-la-panaderia", "esta-a-la-izquierda", "donde-esta-la-herreria", "esta-lejos", "esta-cerca", "hay-tres-casas", "hay-un-pozo", "adonde-vas", "voy-a-la-panaderia",
+        "que-vas-a-hacer-alli", "voy-a-comprar-pan", "el-letrero", "fuiste-a-la-panaderia", "fui-a-la-panaderia",
+        "uno-a-cinco", "seis-a-diez", "tengo-diez-panes", "cuantos-panes", "quiero-dos-panes", "cuanto-cuesta", "cuesta-dos-monedas", "necesito-madera-para-el-horno", "voy-a-buscar-madera",
+        "toma-cuatro-monedas", "tengo-cuatro-monedas", "ayer-compre-fruta", "que-compraste", "compre-dos-panes", "compraste-dos-panes", "hay-pan",
+        "como-te-llamas", "me-llamo-domingo", "que-haces", "soy-el-herrero", "es-el-herrero", "que-va-a-hacer-domingo", "va-a-hacer-un-hacha", "donde-vives",
+        "vivo-en-el-campamento", "quieres-un-hacha", "toma-el-hacha", "trabaja-en-la-herreria", "vive-en-la-casa", "que-hizo-domingo", "hizo-un-hacha", "ayer-trabajo-mucho",
+        "mis-manzanas-son-rojas", "como-es-la-manzana", "la-manzana-es-roja", "te-gusta-el-pan", "me-gusta-el-pan", "me-gustan-las-manzanas", "quiero-tres-manzanas-rojas", "mis-plantas-necesitan-agua",
+        "voy-a-buscar-agua", "es-grande", "el-pan-es-de-luz", "toma-tres-manzanas", "fui-al-rio", "ayer-me-gusto", "te-gusto-el-pan", "me-gusto-el-pan",
+        "el-dia-de-ayer", "que-hizo-luz", "luz-hizo-pan", "que-hizo-mar", "mar-pesco-en-el-rio", "comieron-en-la-plaza", "fuimos-a-la-tienda", "adonde-fueron",
+        "fuimos-al-rio", "que-comieron", "ellos-comieron-pan", "adonde-tienes-que-ir", "tengo-que-ir", "le-vendi-pescado", "que-compro-luz", "luz-compro-pescado",
+        "que-haras-manana", "manana-comprare-pan", "tendre-pan", "luz-necesita-madera", "buscare-madera", "mar-pescara", "ire-al-rio", "el-dia-de-manana", "que-hara-luz", "luz-hara-pan",
+        "tienes-veinte-panes", "quiero-vender-madera", "vendo-madera", "cuanto-es-todo", "es-muy-caro", "mas-barato-que", "puedo-pagar-con-fruta", "manana-vendere-fruta", "compre-tres-manzanas",
+        "once-a-quince", "dieciseis-a-veinte", "cuantos-panes-tengo", "te-pago-una-moneda", "tengo-quince-manzanas", "quince-monedas", "es-caro-o-barato", "que-es-mas-barato", "te-compro-fruta", "que-venderas-manana", "que-compraste-en-el-mercado",
     ];
 
     private static readonly Lazy<IReadOnlyList<PhraseRow>> LoadedRows = new(ReadRows);
@@ -32,7 +45,7 @@ public sealed class PhraseSheetTests
     private static IEnumerable<PhraseRow> HeardRows => Rows.Where(static r => r.Says is "hears" or "both");
 
     [Fact]
-    public void TheSheetHoldsExactlyTheFortySixPhrasesInOrder()
+    public void TheSheetHoldsExactlyTheHundredAndFiftyFivePhrasesInOrder()
     {
         Assert.Equal(ExpectedIds, Rows.Select(static r => r.Id));
         foreach (var row in Rows)

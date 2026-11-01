@@ -1,6 +1,6 @@
 {
   "$schema": "../../../schema/npc.schema.json",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "villager",
   "label": "Aldeano",
   "figure": "villager",
@@ -8,5 +8,17 @@
     "villager-open": [
       "donde-esta-el-rio"
     ]
+  },
+  "prompts": {
+    "idle": "villager-open"
+  },
+  "opening": {
+    "event": "villager.greet",
+    "when": "always"
+  },
+  "voice": {
+    "speaker": 53,
+    "name": "em_santa",
+    "speed": 1.0
   }
 }

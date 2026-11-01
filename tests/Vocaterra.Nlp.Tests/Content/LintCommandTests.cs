@@ -83,7 +83,7 @@ public class LintCommandTests
     [Fact]
     public void LevelAddsCefrFindingsAndFailOnLevelMakesThemFail()
     {
-        // The bundle is clean at A1 (the gate), so the lists of a copy are cut down to show the findings.
+        // The bundle is clean at its ceiling, A2 (the gate), so the lists of a copy are cut down to show the findings.
         using var fixture = new LintFixture().Write("cefr/a1.txt", "hola\n");
         fixture.Load();
 
@@ -94,7 +94,7 @@ public class LintCommandTests
         Assert.Contains("warning cefr.dialogue dialogue/dialogue.json ", warn.Output, StringComparison.Ordinal);
         Assert.Equal(Program.ExitInvalid, fail.Code);
         Assert.Contains("error cefr.prompt prompts/prompts.json ", fail.Output, StringComparison.Ordinal);
-        Assert.Equal(Program.ExitOk, Run("lint", TestSupport.BundleDir, "--level", "A1", "--fail-on-level", "--host-pools", "guide.*").Code);
+        Assert.Equal(Program.ExitOk, Run("lint", TestSupport.BundleDir, "--level", "A2", "--fail-on-level", "--host-pools", "guide.*").Code);
     }
 
     [Fact]

@@ -4,6 +4,7 @@ using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
+using Vocaterra.Game.Core.Navigation;
 using Vocaterra.Nlp.Asr;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Audio;
@@ -27,7 +28,8 @@ namespace Vocaterra.Game.Core.Npc;
 /// <param name="HostTurn">Whether the lines came from a core host turn (otherwise they are the prompt's text).</param>
 /// <param name="HostEvents">The host events the host turn raised (<c>stall.give_water</c> for the fail-forward opening).</param>
 /// <param name="FailForward">Whether the opening handed over the bottle without a request (the shopkeeper's second visit).</param>
-public sealed record NpcOpening(string Npc, string Prompt, IReadOnlyList<string> Lines, bool HostTurn, IReadOnlyList<string> HostEvents, bool FailForward);
+/// <param name="Delivered">Whether the opening was the NPC's thanks for an order the player brought (VILLAGE_PLAN V03, <c>&lt;npc&gt;.delivered</c>).</param>
+public sealed record NpcOpening(string Npc, string Prompt, IReadOnlyList<string> Lines, bool HostTurn, IReadOnlyList<string> HostEvents, bool FailForward, bool Delivered = false);
 
 /// <summary>Where a line sent to an NPC came from, when it was not recognized from speech.</summary>
 public enum LineOrigin
@@ -84,10 +86,12 @@ public sealed class NpcCheckpoint
 }
 
 /// <summary>
-/// The conversations with the NPCs of the route, one agent each (the guide, the shopkeeper and the villager): a
+/// The conversations with the NPCs, one agent each (the NPCs of <c>game/npcs.json</c>: the guide, the shopkeeper, the villager and the village's fisher, baker,
+/// smith and farmer, VILLAGE_PLAN V10 to V12): a
 /// <see cref="ConversationContext"/> per agent, the opening line through <c>pipeline.Advance</c> (CR-015), and the turn in two phases
 /// (<c>Analyze</c> once, then <c>Complete</c> with the host's facts, CR-017). It generalises the guide's conversation of S3: her world lines
-/// are in <c>NpcService.Guide.cs</c> and behave as they did.
+/// are in <c>NpcService.Guide.cs</c> and behave as they did. Which prompt an NPC waits on in each state and how it opens a talk are its NPC file's
+/// (<see cref="NpcEntry.Prompts"/>, <see cref="NpcEntry.Opening"/>; VILLAGE_PLAN V01), so a new NPC needs no code here.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -102,7 +106,10 @@ public sealed class NpcCheckpoint
 /// and the session applies them on the game's thread. What this class does decide is the shopkeeper's fail-forward (rule 8, nothing is gated
 /// behind language): when the stall's exchange ends without a request (the repair ladder gives up, the learner has asked for help and then fails
 /// again, or four lines in a row were no request) or the player walks away and comes back, the shopkeeper still hands over the bottle with the
-/// core's own line, as a host turn (<c>shopkeeper.give</c>) that is in the replay record.
+/// core's own line, as a host turn (<c>shopkeeper.give</c>) that is in the replay record. And when an event asks for what the world of the turn cannot do
+/// (VILLAGE_PLAN V02: directions to a place the scene does not have; V03: a purchase the learner's coins do not cover), the NPC does not say the line of that
+/// action and answers it with a host turn (<c>&lt;npc&gt;.unknown_place</c>, <c>&lt;npc&gt;.cant_pay</c>); the session then does nothing in the world for it. The
+/// opening of a talk may also be the NPC's thanks for an order (<c>&lt;npc&gt;.delivered</c>, <see cref="Open"/>).
 /// </para>
 /// <para>
 /// <b>Threads.</b> The turn worker is the only thread that calls <see cref="Say(string, GuideScene, StoredTimestamp, string)"/> and the
@@ -122,6 +129,9 @@ public sealed partial class NpcService
 
     /// <summary>The villager's agent id.</summary>
     public const string VillagerAgent = "villager";
+
+    // The bundle's prompts the code itself names: the guide's (her opening line, the warm-up, the transfer offer's log) and the stall's question (the
+    // fail-forward counts misses at it). Which prompt an NPC waits on in a state is its NPC file's (NpcEntry.Prompts); the tests name the others.
 
     /// <summary>The bundle's prompt for talking to the guide.</summary>
     public const string GuidePrompt = "guide-open";
@@ -171,18 +181,27 @@ public sealed partial class NpcService
     private readonly NounCatalog _nouns;
     private readonly RecipeBook _recipes;
     private readonly PhraseSheet _phrases;
+    private readonly IReadOnlyList<string> _practised;
     private readonly GameWords _words;
+    private readonly HostEventTable _hostEvents;
+    private readonly ScenePlaces _places;
     private readonly Dictionary<string, Agent> _agents = new(StringComparer.Ordinal);
     private readonly List<ReplayEntry> _records = [];
     private volatile SpokenUtteranceEvaluator? _spoken;
     private IGuideFacts _facts;
 
     /// <summary>One NPC's conversation state: its context between turns and the small facts the host decisions use.</summary>
-    private sealed class Agent(string id, ConversationContext context)
+    private sealed class Agent(string id, ConversationContext context, NpcEntry npc, string initialState)
     {
         private volatile ConversationContext _context = context;
 
         public string Id { get; } = id;
+
+        /// <summary>The NPC's data: the prompts it waits on and how it opens a talk.</summary>
+        public NpcEntry Npc { get; } = npc;
+
+        /// <summary>The agent's initial state: a state with no prompt of its own waits on this one's, and an opening "first" is raised only from it.</summary>
+        public string InitialState { get; } = initialState;
 
         public ConversationContext Context
         {
@@ -206,25 +225,18 @@ public sealed partial class NpcService
     }
 
     /// <summary>Starts the conversations: each NPC in its initial state, a learner model with no evidence and no repeat counts.</summary>
-    /// <param name="data">The game's content; its bundle must hold the three agents and their prompts. The nouns a turn exercises get their learner
-    /// skills, and the recipes give the crafting answers.</param>
+    /// <param name="data">The game's content; its bundle must hold the agent of every NPC of the roster and the prompts the NPC files name. The nouns a
+    /// turn exercises get their learner skills, and the recipes give the crafting answers.</param>
     /// <param name="facts">The world the guide speaks of.</param>
     /// <param name="worldSeed">The world seed, which seeds every random draw with the agent id and the interaction counter.</param>
     /// <param name="start">The stored time before the first turn.</param>
-    /// <exception cref="ArgumentException">The bundle lacks an agent or a prompt of the route.</exception>
-    public NpcService(GameData data, IGuideFacts facts, ulong worldSeed, StoredTimestamp start)
+    /// <param name="places">The places of the scene an NPC's directions can name (VILLAGE_PLAN V02), or <see langword="null"/> for none (a catalogue noun's block is still found).</param>
+    /// <exception cref="ArgumentException">The bundle lacks an NPC's agent or a prompt its file names, or an NPC has no prompt for its agent's initial state.</exception>
+    public NpcService(GameData data, IGuideFacts facts, ulong worldSeed, StoredTimestamp start, ScenePlaces? places = null)
     {
         ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(facts);
         var bundle = data.Bundle;
-        foreach (var prompt in new[] { GuidePrompt, GuideReviewPrompt, GuideOfferPrompt, StallNeedPrompt, StallOfferPrompt, VillagerPrompt })
-        {
-            if (!bundle.Prompts.ContainsKey(prompt))
-            {
-                throw new ArgumentException($"The bundle has no prompt '{prompt}'.", nameof(bundle));
-            }
-        }
-
         _bundle = bundle;
         _worldFacts = facts;
         _facts = facts;
@@ -232,17 +244,32 @@ public sealed partial class NpcService
         _recipes = data.Recipes;
         _typed = new TypedUtteranceEvaluator(bundle);
         _phrases = data.Phrases;
+        _practised = [.. data.Npcs.Homes.Keys];
         _words = data.Words;
+        _hostEvents = data.HostEvents;
+        _places = places ?? ScenePlaces.None;
         AgentIds = data.Npcs.Ids;
-        foreach (var id in AgentIds)
+        foreach (var npc in data.Npcs.All)
         {
-            if (!bundle.Agents.TryGetValue(id, out var machine))
+            if (!bundle.Agents.TryGetValue(npc.Id, out var machine))
             {
-                throw new ArgumentException($"The bundle has no agent '{id}'.", nameof(bundle));
+                throw new ArgumentException($"The bundle has no agent '{npc.Id}'.", nameof(data));
             }
 
-            var context = ConversationContext.Create(worldSeed, id, machine.InitialState(), start, LearnerModel.New(), new Dictionary<string, int>(StringComparer.Ordinal), SlotMap.Empty, []);
-            _agents.Add(id, new Agent(id, context));
+            // The prompts an NPC waits on are its file's (VILLAGE_PLAN V01; a fixed list of six before): each is the bundle's, and the initial state has one.
+            var initial = machine.InitialState();
+            if (npc.Prompts.Values.Append(npc.ReviewPrompt).OfType<string>().FirstOrDefault(prompt => !bundle.Prompts.ContainsKey(prompt)) is { } missing)
+            {
+                throw new ArgumentException($"The bundle has no prompt '{missing}' ({NpcRoster.Folder}{npc.Id}.json).", nameof(data));
+            }
+
+            if (npc.PromptIn(initial.StateId, initial.StateId) is null)
+            {
+                throw new ArgumentException($"The NPC '{npc.Id}' has no prompt for its initial state '{initial.StateId}' ({NpcRoster.Folder}{npc.Id}.json).", nameof(data));
+            }
+
+            var context = ConversationContext.Create(worldSeed, npc.Id, initial, start, LearnerModel.New(), new Dictionary<string, int>(StringComparer.Ordinal), SlotMap.Empty, []);
+            _agents.Add(npc.Id, new Agent(npc.Id, context, npc, initial.StateId));
         }
     }
 
@@ -293,6 +320,9 @@ public sealed partial class NpcService
     /// <summary>The guide's current state in her state machine.</summary>
     public AgentState GuideState => _agents[GuideAgent].Context.AgentState;
 
+    /// <summary>Whether the guide has made her transfer offer (<c>¿Quieres agua?</c>, once the camp is done): the host decision a save keeps.</summary>
+    public bool GuideOffered => _agents[GuideAgent].Offered;
+
     /// <summary>The context the next turn with an NPC starts from.</summary>
     /// <param name="npc">The NPC's agent id.</param>
     public ConversationContext ContextOf(string npc) => AgentOf(npc).Context;
@@ -315,6 +345,7 @@ public sealed partial class NpcService
     /// </summary>
     public string ReviewQuestion()
     {
+        // The guide's review stays code, by id (CONTENT_PLAN 3.6): what is due comes from the learner's progress, not a file; only its prompt is data (prompts.review).
         var context = _agents[GuideAgent].Context;
         var rng = SeededRng.ForInteraction(context.WorldSeed, ReviewStream, context.AgentState.InteractionCounter);
         return Render(ReviewAsk, SlotMap.Empty, rng);
@@ -352,11 +383,28 @@ public sealed partial class NpcService
     /// <param name="objectiveComplete">Whether the camp objective is complete (the guide then makes her transfer offer, once).</param>
     /// <param name="now">The stored time.</param>
     /// <param name="hostStateHash">The simulation's state digest.</param>
-    public NpcOpening Open(string npc, bool objectiveComplete, StoredTimestamp now, string hostStateHash)
+    /// <param name="delivered">
+    /// The host event of an order the player has brought the goods of (VILLAGE_PLAN V03, <c>&lt;npc&gt;.delivered</c>), or <see langword="null"/>: when the NPC's state
+    /// takes it, it is the opening instead of the NPC's own (<see cref="NpcOpening.Delivered"/>); when it does not, the talk opens as usual.
+    /// </param>
+    public NpcOpening Open(string npc, bool objectiveComplete, StoredTimestamp now, string hostStateHash, string? delivered = null)
     {
         ArgumentNullException.ThrowIfNull(hostStateHash);
         var agent = AgentOf(npc);
         agent.Visits++;
+        if (delivered is not null)
+        {
+            var before = agent.Context with { Now = now, HostStateHash = hostStateHash };
+            if (_typed.Advance(delivered, before) is { } thanks)
+            {
+                Record(new ReplayEntry(null, HostTurnEnvelope.From(thanks, before)));
+                agent.Context = before.Next(thanks, now) with { HostStateHash = hostStateHash };
+                var rewards = HostEventsOf(thanks.Agent.Actions);
+                Note(agent, delivered, rewards);
+                return new NpcOpening(npc, PromptFor(agent, false), thanks.Response.Lines.Select(static l => l.Text).ToList(), true, rewards, false, Delivered: true);
+            }
+        }
+
         var hostEvent = OpeningEvent(agent, objectiveComplete);
         if (hostEvent is not null)
         {
@@ -435,25 +483,24 @@ public sealed partial class NpcService
         return _agents.TryGetValue(npc, out var agent) ? agent : throw new ArgumentException($"There is no NPC '{npc}'.", nameof(npc));
     }
 
-    private string PromptFor(Agent agent, bool review) => PromptAfter(agent.Id, agent.Context.AgentState.StateId, review);
+    private string PromptFor(Agent agent, bool review) => PromptIn(agent, agent.Context.AgentState.StateId, review);
+
+    // The NPC file's prompt for the state (the constructor checked that the initial state has one, so a state with none of its own falls back to it).
+    private static string PromptIn(Agent agent, string stateId, bool review) => agent.Npc.PromptIn(stateId, agent.InitialState, review)!;
 
     /// <summary>
-    /// The prompt an NPC waits on when it is in a given state: the shopkeeper's bread offer and the guide's transfer offer in <c>offering</c>, the
-    /// stall's question otherwise. The session uses it to know the prompt after an applied turn (the turn carries the state it left the NPC in).
+    /// The prompt an NPC waits on when it is in a given state, from its NPC file (<see cref="NpcEntry.PromptIn"/>: the shopkeeper's bread offer and the
+    /// guide's transfer offer in <c>offering</c>, the initial state's prompt in a state the file does not list). The session uses it to know the prompt after
+    /// an applied turn (the turn carries the state it left the NPC in).
     /// </summary>
     /// <param name="npc">The NPC's agent id.</param>
     /// <param name="stateId">The NPC's state id (<see cref="GuideTurn.AgentState"/>).</param>
     /// <param name="review">Whether the guide's review question is open (her review prompt).</param>
-    public static string PromptAfter(string npc, string stateId, bool review = false)
+    /// <exception cref="ArgumentException">There is no such NPC.</exception>
+    public string PromptAfter(string npc, string stateId, bool review = false)
     {
-        ArgumentNullException.ThrowIfNull(npc);
         ArgumentNullException.ThrowIfNull(stateId);
-        return npc switch
-        {
-            GuideAgent => review ? GuideReviewPrompt : string.Equals(stateId, "offering", StringComparison.Ordinal) ? GuideOfferPrompt : GuidePrompt,
-            ShopkeeperAgent => string.Equals(stateId, "offering", StringComparison.Ordinal) ? StallOfferPrompt : StallNeedPrompt,
-            _ => VillagerPrompt,
-        };
+        return PromptIn(AgentOf(npc), stateId, review);
     }
 
     /// <summary>
@@ -470,36 +517,42 @@ public sealed partial class NpcService
         agent.Context = agent.Context with { Learner = agent.Context.Learner.StepSkills(skills, correct) };
     }
 
-    // The host event the NPC opens the talk with, or null when the prompt's text is the opening.
-    private string? OpeningEvent(Agent agent, bool objectiveComplete)
+    // The host event the NPC opens the talk with, or null when the prompt's text is the opening. The NPC file's rule decides (VILLAGE_PLAN V01): the villager's
+    // "Hola." always, the shopkeeper's question at the first talk, the guide never.
+    private static string? OpeningEvent(Agent agent, bool objectiveComplete)
     {
         var state = agent.Context.AgentState.StateId;
-        switch (agent.Id)
+
+        // The guide's transfer offer stays code (CONTENT_PLAN 3.6): it waits on the camp objective and is made once, which the opening rule cannot say.
+        if (string.Equals(agent.Id, GuideAgent, StringComparison.Ordinal) && objectiveComplete && !agent.Offered)
         {
-            case GuideAgent:
-                return objectiveComplete && !agent.Offered ? NpcHostEvents.GuideOffer : null;
-            case ShopkeeperAgent:
-                if (agent.Visits <= 1)
-                {
-                    return string.Equals(state, "idle", StringComparison.Ordinal) ? NpcHostEvents.ShopkeeperAsk : null;
-                }
-
-                // Walking away and coming back: the bottle is never withheld. The shopkeeper hands it over as a core turn; once it has been
-                // given, the talk picks up where the exchange was (the question again, or the pending bread offer).
-                if (!agent.BottleGiven)
-                {
-                    return NpcHostEvents.ShopkeeperGive;
-                }
-
-                return state switch
-                {
-                    "done" => NpcHostEvents.ShopkeeperAsk,
-                    "offering" => NpcHostEvents.ShopkeeperOffer,
-                    _ => null,
-                };
-            default:
-                return NpcHostEvents.VillagerGreet; // the villager says "Hola." on every visit, from either of his states
+            return NpcHostEvents.GuideOffer;
         }
+
+        // The shopkeeper's later visits stay code with his fail-forward (CONTENT_PLAN 3.6, rule 8): walking away and coming back, the bottle is never withheld.
+        // He hands it over as a core turn; once it has been given, the talk picks up where the exchange was (the question again, or the pending bread offer).
+        if (string.Equals(agent.Id, ShopkeeperAgent, StringComparison.Ordinal) && agent.Visits > 1)
+        {
+            if (!agent.BottleGiven)
+            {
+                return NpcHostEvents.ShopkeeperGive;
+            }
+
+            return state switch
+            {
+                "done" => NpcHostEvents.ShopkeeperAsk,
+                "offering" => NpcHostEvents.ShopkeeperOffer,
+                _ => null,
+            };
+        }
+
+        var opening = agent.Npc.Opening;
+        return opening.When switch
+        {
+            OpeningWhen.Always => opening.Event,
+            OpeningWhen.First => agent.Visits <= 1 && string.Equals(state, agent.InitialState, StringComparison.Ordinal) ? opening.Event : null,
+            _ => null,
+        };
     }
 
     // What the host remembers about the events a host turn or a turn raised.
@@ -532,19 +585,25 @@ public sealed partial class NpcService
             _facts = scene.Facts ?? _worldFacts; // the world as it was when the player spoke, not as it is when the worker gets to the turn
         }
 
-        // Phase 1: the line is read once. A spoken line is decoded here and nowhere else.
+        // Phase 1: the line is read once. A spoken line is decoded here and nowhere else. The listener's name said as a vocative (Luz, quiero pan) is no part of
+        // the sentence, so the core reads the line without it (V14); the turn keeps the line as it was said. A greeting that opens a line with something else to say
+        // (hola, quiero dos panes) is answered by the rest, which the core reads as a line of its own (V15, Greeting). Both are LineReading's, as on the host (V19).
         UtteranceAnalysis analysis;
+        string said;
         if (clip is null)
         {
-            analysis = _typed.Analyze(typed!, prompt);
+            said = typed!;
+            analysis = LineReading.Read(typed!, agent.Npc.Name, prompt, line => _typed.Analyze(line, prompt), static a => a.Verdict);
         }
         else
         {
             var spoken = _spoken ?? throw new InvalidOperationException("No speech is attached to the NPCs.");
-            analysis = spoken.Analyze(clip, prompt);
+            var heard = spoken.Analyze(clip, prompt);
+            said = heard.Asr.Transcript;
+            analysis = LineReading.Read(heard, static a => a.Asr, agent.Npc.Name, prompt, recognition => spoken.AnalyzeRecognized(recognition, clip, prompt), static a => a.Verdict);
         }
 
-        var line = CleanTranscript(analysis.Asr.Transcript);
+        var line = CleanTranscript(said);
         var verdict = analysis.Verdict;
         double? confidence = clip is null ? null : UncertaintyRule.MeanWordConfidence(analysis.Asr);
         if (confidence is { } sure && UncertaintyRule.IsTooUnsure(verdict.Communicated, sure))
@@ -597,7 +656,7 @@ public sealed partial class NpcService
         // Phase 2: the decision, the response and the replay record, with the host's facts and the word skills in the context. The learner is
         // updated once, here. The digest covers the slots and skills (HostDigest, the core's contract); without them the context keeps the bare
         // digest, as the core does when no slots are given.
-        var skills = verdict.Communicated ? WordSkillsOf(GuideWord.From(analysis.Words), PhraseSkillsOf(verdict, promptId, origin)) : [];
+        var skills = verdict.Communicated ? WordSkillsOf(GuideWord.From(analysis.Words), PhraseSkillsOf(verdict, promptId, origin, scene.PromptOverride is null)) : [];
         var created = ConversationContext.Create(
             utterance.WorldSeed,
             utterance.AgentId,
@@ -626,6 +685,8 @@ public sealed partial class NpcService
         Note(agent, string.Empty, hostEvents);
         var holdsBottle = scene.Inventory is { } inventory
             && (inventory.Count(ItemId.Bottle) + inventory.Count(ItemId.WaterBottle)) > 0;
+        var followUp = new List<string>();
+        var unsaid = AnswerMisses(agent, result, NpcEffect.CountedSlots(verdict.Slots, line), scene, scene.Facts ?? _worldFacts, now, hostStateHash, hostEvents, followUp);
         string? feedback = null;
         var replies = new List<string>();
         foreach (var responseLine in result.Response.Lines)
@@ -639,14 +700,19 @@ public sealed partial class NpcService
             {
                 // The shopkeeper's line gives the bottle; the player has it already, so nothing is given and the line is not said.
             }
+            else if (unsaid.Any(pool => responseLine.LineId.StartsWith(pool + ".", StringComparison.Ordinal)))
+            {
+                // The line of an action the world cannot do (VILLAGE_PLAN V02: "Mira, está allí." for a place there is not); the NPC's answer to the miss follows.
+            }
             else
             {
                 replies.Add(responseLine.Text);
             }
         }
 
-        var followUp = new List<string>();
         var failForward = false;
+
+        // The stall's fail-forward stays code, by id (CONTENT_PLAN 3.6): the bottle after four misses is a rule about this exchange, not data.
         if (string.Equals(npc, ShopkeeperAgent, StringComparison.Ordinal) && string.Equals(promptId, StallNeedPrompt, StringComparison.Ordinal))
         {
             failForward = ShopkeeperPatience(agent, verdict, result, now, hostStateHash, hostEvents, followUp);
@@ -684,6 +750,58 @@ public sealed partial class NpcService
             uncertain,
             origin == LineOrigin.Choice);
     }
+
+    // The host events of a turn that the world of the turn cannot carry out, judged on the turn's own copy of the world, as the guide's answers are (VILLAGE_PLAN
+    // V02: directions to a place the scene does not have; V03: a purchase the coins the player carried do not cover; V15, V19: another item, none, no room). Each is
+    // answered by the NPC as a host turn, <npc>.unknown_place, <npc>.cant_pay and the rest (Miss), whose lines follow the turn's and whose host events join it; the line
+    // of the action that raised the missed event is not said. Returns the pools of those unsaid lines. An agent with no transition for the answer says its line as before.
+    private List<string> AnswerMisses(
+        Agent agent,
+        PipelineResult result,
+        IReadOnlyDictionary<string, string> slots,
+        GuideScene scene,
+        IGuideFacts facts,
+        StoredTimestamp now,
+        string hostStateHash,
+        List<string> hostEvents,
+        List<string> followUp)
+    {
+        var unsaid = new List<string>();
+        foreach (var action in result.Decision.Agent?.Actions ?? [])
+        {
+            if (action.HostEvent is not { } hostEvent || Miss(_hostEvents.Of(agent.Id, hostEvent), slots, scene, facts) is not { } miss)
+            {
+                continue;
+            }
+
+            var before = agent.Context;
+            var turn = _typed.Advance(NpcHostEvents.Of(agent.Id, miss), before);
+            if (turn is null)
+            {
+                continue;
+            }
+
+            Record(new ReplayEntry(null, HostTurnEnvelope.From(turn, before)));
+            agent.Context = before.Next(turn, now) with { HostStateHash = hostStateHash };
+            var events = HostEventsOf(turn.Agent.Actions);
+            Note(agent, NpcHostEvents.Of(agent.Id, miss), events);
+            followUp.AddRange(turn.Response.Lines.Select(static l => l.Text));
+            hostEvents.AddRange(events);
+            unsaid.Add(action.DialogueIntent); // a pool is its dialogue intent's (every agent of the bundle names them alike)
+        }
+
+        return unsaid;
+    }
+
+    // What the world of the turn cannot do of an action, as the host event its NPC answers (NpcHostEvents.UnknownPlace; a purchase's or a sale's miss, NpcEffect.ExchangeMiss:
+    // WontSell, NoneAsked, CantPay, WontBuy, CantSell, NoneOffered, NoRoom), or null when it can. The coins, the goods and the room are the turn's copy of the
+    // inventory: a scene with none carries none. The session asks the same of the bag itself before anything changes hands (VoxelSession.ApplyHostEvents).
+    private string? Miss(NpcEffect effect, IReadOnlyDictionary<string, string> slots, GuideScene scene, IGuideFacts facts) => effect.Kind switch
+    {
+        NpcEffectKind.PointAtSlot when !slots.TryGetValue(effect.Slot, out var word) || _places.Resolve(word, scene.Player, facts) is null => NpcHostEvents.UnknownPlace,
+        NpcEffectKind.Sell or NpcEffectKind.Buy => effect.ExchangeMiss(slots, scene.Inventory, _nouns),
+        _ => null,
+    };
 
     // The stall's fail-forward (rule 8). After a line at the stall that did not ask for anything (the repair ladder's next step, a help request, a
     // thanks), count it; when the exchange has run out of road the shopkeeper hands the bottle over with the core's own line, as a host turn.
@@ -830,8 +948,9 @@ public sealed partial class NpcService
 
     // The learner skills of the phrases in play in a turn (S8): the learner phrase the line used and the phrase of the prompt the NPC asked, both only
     // when the line was understood and had no mistake; a choice picked from the offered buttons is a recognition signal and exercises no skill; the
-    // service words (help, "no sé") exercise none either.
-    private List<string> PhraseSkillsOf(Verdict verdict, string promptId, LineOrigin origin)
+    // service words (help, "no sé") exercise none either. In free talk (the NPC's own prompt, no lesson step or review) a place the prompt's one row of the
+    // intent does not name is the row practised elsewhere that names it (V14, PhraseSheet.ByPlace).
+    private List<string> PhraseSkillsOf(Verdict verdict, string promptId, LineOrigin origin, bool freeTalk)
     {
         var skills = new List<string>();
         if (!verdict.Communicated || verdict.Errors.Count > 0 || origin == LineOrigin.Choice
@@ -840,7 +959,7 @@ public sealed partial class NpcService
             return skills;
         }
 
-        if (PhraseIds.For(verdict.Intent.Value, verdict.Slots, _words.Noun("river")) is { } used)
+        if (_phrases.PhraseFor(promptId, verdict.Intent.Value, verdict.Slots, _words.Noun("river"), freeTalk ? _practised : null) is { } used) // the prompt's own row first (V12b)
         {
             skills.Add(PhraseSkillPrefix + used);
         }

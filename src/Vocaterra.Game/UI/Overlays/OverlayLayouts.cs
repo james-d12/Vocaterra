@@ -103,10 +103,11 @@ public readonly record struct EndingLayout
     /// <param name="spanishRows">The number of rows of the Spanish line in the large font (40 px each).</param>
     /// <param name="englishRows">The number of rows of the English line (22 px each).</param>
     /// <param name="summaryRows">The number of rows of the summary (20 px each, with a 36 px heading).</param>
-    public EndingLayout(int viewportWidth, int viewportHeight, int spanishRows, int englishRows, int summaryRows)
+    /// <param name="sleepRows">The number of rows of the line offering the sleep (V12c; 22 px each, over the keys line), or 0 when the card does not offer it.</param>
+    public EndingLayout(int viewportWidth, int viewportHeight, int spanishRows, int englishRows, int summaryRows, int sleepRows = 0)
     {
         var width = Math.Min(760, viewportWidth - 48);
-        int HeightFor(int summary) => Top + (spanishRows * 40) + 8 + (englishRows * 22) + (summary == 0 ? 0 : 14 + 22 + (summary * 20)) + 30;
+        int HeightFor(int summary) => Top + (spanishRows * 40) + 8 + (englishRows * 22) + (summary == 0 ? 0 : 14 + 22 + (summary * 20)) + (sleepRows == 0 ? 0 : 8 + (sleepRows * 22)) + 30;
         var shown = summaryRows;
         while (shown > 0 && HeightFor(shown) > viewportHeight - (2 * Margin))
         {

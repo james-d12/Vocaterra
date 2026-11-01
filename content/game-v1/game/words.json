@@ -1,7 +1,7 @@
 {
   "$schema": "../../schema/words.schema.json",
-  "schemaVersion": 1,
-  "about": "The target-language words the game itself uses (CONTENT_PLAN C05): they were constants in the code. The guide's direction phrases, the unit and the list joiner of her answers, the speech buttons' labels, the panel's offer to type, the support cards' headings, the label of a thing not seen yet, the pronouns of the book's conjugation tables, the shopkeeper's key words, the help and no-sé lines, the near future (ir a + infinitive, and the time words that make a present a plan), the greeting (also the hello phrase's id), the letters the typing help lists and the nouns the world's logic is about. The grammar check reads them (the letters and the unseen label are not words). The place words of the beacon are the scene's labels (game/scene.json).",
+  "schemaVersion": 2,
+  "about": "The target-language words the game itself uses (CONTENT_PLAN C05): they were constants in the code. The guide's direction phrases, the unit and the list joiner of her answers, the speech buttons' labels, the panel's offer to type, the support cards' headings, the label of a thing not seen yet, the pronouns of the book's conjugation tables, the help and no-sé lines, the near future (ir a + infinitive, and the time words that make a present a plan), the greeting (also the hello phrase's id), the letters the typing help lists and the nouns the world's logic is about. The grammar check reads them (the letters and the unseen label are not words). The place words of the beacon are the scene's labels (game/scene.json); the key words an NPC shows before its first question are its own (game/npcs/<id>.json, schema 2).",
   "directions": {
     "ahead": "adelante",
     "behind": "detrás",
@@ -31,17 +31,23 @@
     "1pl": "nosotros",
     "3pl": "ustedes/ellos"
   },
-  "keyWords": [
-    "agua",
-    "pan"
-  ],
   "helpLine": "ayuda",
   "dontKnowLine": "no sé",
   "nearFuture": {
     "verb": "ir",
     "joiner": "a",
     "timeWords": [
-      "mañana"
+      "mañana",
+      "luego",
+      "después",
+      "pasado mañana",
+      "semana que viene",
+      "próxima semana",
+      "próximo día",
+      "mes que viene",
+      "próximo mes",
+      "año que viene",
+      "próximo año"
     ]
   },
   "greeting": "hola",

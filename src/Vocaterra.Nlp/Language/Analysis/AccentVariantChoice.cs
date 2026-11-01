@@ -14,7 +14,8 @@ using Vocaterra.Nlp.Language.Lexicon;
 /// <c>dónde</c>, <c>donde</c> or <c>cómo</c> and has a present-indicative verb reading (<c>dónde esta el árbol</c>), or (b) no reading of the word as typed fits the words around it.
 /// Which readings fit depends on the class: an article needs a word that can go on a noun phrase after it (a noun, an adjective, a determiner, a name or an unknown word);
 /// a demonstrative or possessive needs, after its further adjectives and determiners, a noun, and never an article right after it; a conjunction or preposition needs a word
-/// after it; a pronoun that stands before a verb (<c>te</c>, <c>se</c>) needs a verb after it, skipping other such pronouns. Every other class (nouns, verbs, adjectives,
+/// after it; a pronoun that stands before a verb (<c>te</c>, <c>se</c>) needs a verb after it, skipping other such pronouns, or a word that is a verb once accented
+/// (<c>te estas</c>: <c>estás</c>, M59). Every other class (nouns, verbs, adjectives,
 /// adverbs, other pronouns) always fits.
 /// </para>
 /// <para>
@@ -70,7 +71,7 @@ internal sealed class AccentVariantChoice
                     continue;
                 }
 
-                decisions[i] = ChosenFor(tokens, current, variants[i], i);
+                decisions[i] = ChosenFor(tokens, current, variants, i);
             }
 
             for (var i = 0; i < tokens.Count; i++)
@@ -96,9 +97,10 @@ internal sealed class AccentVariantChoice
     private IReadOnlyList<LexicalFeatures>? ChosenFor(
         IReadOnlyList<AnalyzedToken> tokens,
         IReadOnlyList<LexicalFeatures>[] current,
-        IReadOnlyList<LexicalFeatures> variants,
+        IReadOnlyList<IReadOnlyList<LexicalFeatures>> allVariants,
         int index)
     {
+        var variants = allVariants[index];
         var typed = tokens[index].Readings;
         if (typed.All(r => ReadingClasses.IsDeterminerReading(r, _rules)) && index > 0 && _rules.IsVerbSeekingQuestionWord(tokens[index - 1].Token.Text))
         {
@@ -114,7 +116,7 @@ internal sealed class AccentVariantChoice
             return variants;
         }
 
-        return typed.Any(r => FitsContext(current, index, r)) ? null : variants;
+        return typed.Any(r => FitsContext(current, allVariants, index, r)) ? null : variants;
     }
 
     // A word that is a finite verb form as typed and has an interrogative sibling (como, cómo) is the question word when the next word starts a clause of its own and nothing
@@ -143,7 +145,7 @@ internal sealed class AccentVariantChoice
     }
 
     // Whether a reading of the word as typed fits the words around it. Open classes always do; the closed classes below need a neighbour.
-    private bool FitsContext(IReadOnlyList<LexicalFeatures>[] current, int index, LexicalFeatures reading)
+    private bool FitsContext(IReadOnlyList<LexicalFeatures>[] current, IReadOnlyList<IReadOnlyList<LexicalFeatures>> variants, int index, LexicalFeatures reading)
     {
         var next = index + 1;
         if (ReadingClasses.IsDeterminerReading(reading, _rules))
@@ -156,9 +158,11 @@ internal sealed class AccentVariantChoice
             return next < current.Length;
         }
 
+        // M59: the verb may be the accented spelling of the next word (te estas relacionado: estás), which the same pass gives it, so the pronoun keeps its reading as
+        // typed instead of becoming the noun té before a verb.
         if (reading.Pos == LexiconSchema.Pronoun && _rules.IsPreverbalPronoun(reading.Lemma))
         {
-            return VerbFollows(current, next);
+            return VerbFollows(current, next) || VerbFollows(current, next, variants);
         }
 
         return true;
@@ -188,8 +192,9 @@ internal sealed class AccentVariantChoice
         return head < current.Length && (current[head].Count == 0 || current[head].Any(r => r.Pos == LexiconSchema.Noun));
     }
 
-    // A verb comes after the pronouns that stand before a verb (te lo doy), at most MaxSkippedBetween of them.
-    private bool VerbFollows(IReadOnlyList<LexicalFeatures>[] current, int from)
+    // A verb comes after the pronouns that stand before a verb (te lo doy), at most MaxSkippedBetween of them; with variants, a word whose accented spelling is a finite
+    // verb counts as the verb (M59).
+    private bool VerbFollows(IReadOnlyList<LexicalFeatures>[] current, int from, IReadOnlyList<IReadOnlyList<LexicalFeatures>>? variants = null)
     {
         var index = from;
         var skipped = 0;
@@ -198,6 +203,11 @@ internal sealed class AccentVariantChoice
         {
             index++;
             skipped++;
+        }
+
+        if (variants is not null)
+        {
+            return index < current.Length && index < variants.Count && variants[index].Any(ReadingClasses.IsFiniteVerb);
         }
 
         return index < current.Length && current[index].Any(r => r.Pos == LexiconSchema.Verb);

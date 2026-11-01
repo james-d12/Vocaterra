@@ -41,9 +41,17 @@ internal sealed class SpanishAnalysisRules : IAnalysisRules
 
     public bool IsNearFutureLinker(string word) => string.Equals(word, "a", StringComparison.Ordinal);
 
+    public bool IsElapsedTimePreposition(string lemma) => SpanishAnalysisTables.IsElapsedTimePreposition(lemma);
+
+    public bool IsElapsedTimeNoun(string lemma) => SpanishAnalysisTables.IsElapsedTimeNoun(lemma);
+
     public bool IsCopula(string lemma) => lemma is "ser" or "estar";
 
     public bool IsCopulaOrAuxiliary(string lemma) => lemma is "ser" or "estar" or "haber";
+
+    public bool IsPostnominalAdjective(string lemma) => SpanishAnalysisTables.IsColourAdjective(lemma);
+
+    public bool IsDegreeAdverb(string lemma) => SpanishAnalysisTables.IsDegreeAdverb(lemma);
 
     public IAgreementChecker CreateAgreementChecker(IReadOnlyList<AnalyzedToken> resolved, List<ErrorTag> errors) =>
         new SpanishAgreementChecker(resolved, _morphology, errors, this);

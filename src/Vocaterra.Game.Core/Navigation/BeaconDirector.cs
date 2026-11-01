@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
@@ -7,7 +8,8 @@ namespace Vocaterra.Game.Core.Navigation;
 
 /// <summary>
 /// Where the beacon stands: on a named point at the start (<c>--beacon</c>, or the guide's camp for a new game, S13), on the session's arrow while
-/// there is one (S3), and nowhere once the player has reached it.
+/// there is one (S3), and nowhere once the player has reached it. An arrival is a world event (<see cref="WorldEvents.BeaconReached"/>, VILLAGE_PLAN V02): the
+/// session logs it for its own arrow (<see cref="VoxelSession.Step"/>, whose reach takes the arrow down first), and this class for a beacon it placed itself.
 /// </summary>
 public sealed class BeaconDirector
 {
@@ -61,6 +63,16 @@ public sealed class BeaconDirector
     }
 
     /// <summary>
+    /// A new play session began in the run (V12c, a sleep at the fire): the beacon is as a load starts it, with no start point of its own; the next <see cref="Sync"/> stands
+    /// it on the session's arrow, if there is one.
+    /// </summary>
+    public void Restart()
+    {
+        Beacon.Clear();
+        _shownPointer = null;
+    }
+
+    /// <summary>
     /// Once a frame: the arrow of the session is the beacon. A new arrow stands the column on its block (a review question shows no name), and
     /// when the beacon's own reach takes it down, the arrow goes too.
     /// </summary>
@@ -72,7 +84,7 @@ public sealed class BeaconDirector
             _shownPointer = pointer;
             if (pointer is { } arrow)
             {
-                Beacon.Set(arrow.Target.ToBlock(), arrow.Quiz ? _session.Data.Words.Unseen : arrow.Place);
+                Beacon.Set(arrow.Target.ToBlock(), arrow.Quiz ? _session.Data.Words.Unseen : arrow.Place, arrow.Point);
             }
             else
             {
@@ -87,13 +99,22 @@ public sealed class BeaconDirector
         }
     }
 
-    /// <summary>Once a frame, last: the beacon comes down when the player stands near it.</summary>
+    /// <summary>
+    /// Once a frame, last: the beacon comes down when the player stands near it. When it was a beacon this class placed (the start, <c>--beacon</c>) the arrival is
+    /// logged as <see cref="WorldEvents.BeaconReached"/> with the point's name (VILLAGE_PLAN V02); the session's own arrow logs its arrival itself.
+    /// </summary>
     public void ClearIfReached(VoxelSimulation sim)
     {
         var label = Beacon.Label;
+        var point = Beacon.Name ?? label;
+        var own = _shownPointer is null;
         if (Beacon.ClearIfReached(sim.Player.CenterX / (double)VoxelPhysics.UnitsPerBlock, sim.Player.CenterZ / (double)VoxelPhysics.UnitsPerBlock))
         {
             _log($"beacon: reached {label} at tick {sim.Tick}");
+            if (own && point is not null)
+            {
+                _session.NoteBeaconReached(point);
+            }
         }
     }
 }

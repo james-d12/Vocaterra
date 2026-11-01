@@ -1,0 +1,23 @@
+{
+  "answerSetId": "lesson-apple",
+  "answers": [
+    {
+      "answerId": "apple",
+      "canonical": "la manzana es roja",
+      "aliases": ["es roja", "sí es roja", "la manzana es roja y grande", "la manzana es muy roja"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": ["no lo sé", "yo no sé", "no entiendo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    }
+  ]
+}

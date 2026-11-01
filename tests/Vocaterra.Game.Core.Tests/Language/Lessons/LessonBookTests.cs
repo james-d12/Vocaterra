@@ -17,7 +17,7 @@ public sealed class LessonBookTests
 {
     /// <summary>A lesson with every step type, on phrases and lines that exist in the bundle.</summary>
     public const string Rich = """
-        { "schemaVersion": 1, "lessons": [ { "id": "rich", "npc": "guide", "title": "Rich", "english": "Every step type.", "steps": [
+        { "schemaVersion": 1, "lessons": [ { "id": "rich", "npc": "guide", "level": "a1", "title": "Rich", "english": "Every step type.", "steps": [
           { "id": "read", "type": "explain", "english": "Read this." },
           { "id": "hear", "type": "model", "line": "phrase.hola", "translation": "Hello.", "english": "Listen." },
           { "id": "pick", "type": "listen", "line": "phrase.hola", "translation": "Hello.", "english": "What does she say?", "options": ["Hello", "Goodbye", "Thank you"], "correct": 0 },
@@ -29,15 +29,15 @@ public sealed class LessonBookTests
 
     private static LessonBook Book(string json) => TestGame.Lessons(json);
 
-    private static string Lesson(string steps, string head = "\"id\": \"t\", \"npc\": \"guide\", \"title\": \"T\", \"english\": \"E\"") =>
+    private static string Lesson(string steps, string head = "\"id\": \"t\", \"npc\": \"guide\", \"level\": \"a1\", \"title\": \"T\", \"english\": \"E\"") =>
         "{ \"schemaVersion\": 1, \"lessons\": [ { " + head + ", \"steps\": [ " + steps + " ] } ] }";
 
     [Fact]
-    public void TheShippedLessonsAreTheGuidesFirstWordsPersonasInSessionTwoAndAyerYMananaInSessionThree()
+    public void TheShippedLessonsAreTheGuidesFirstWordsAndNineMoreInSessionsTwoToTen()
     {
         var book = RouteScene.DataOf(TestGame.Bundle).Lessons;
 
-        Assert.Equal(["first-words", "personas", "ayer-y-manana"], book.Lessons.Select(static l => l.Id));
+        Assert.Equal(["first-words", "personas", "ayer-y-manana", "el-pueblo", "numeros-y-pan", "gente-del-pueblo", "como-es", "ayer-en-el-pueblo", "manana-en-el-pueblo", "el-mercado"], book.Lessons.Select(static l => l.Id));
         var lesson = book.Find("first-words")!;
         Assert.Equal(("first-words", "guide", true, 1), (lesson.Id, lesson.Npc, lesson.AutoStart, lesson.Session)); // it starts by itself when the player first talks to her
         Assert.Null(book.Find("sample"));
@@ -50,7 +50,7 @@ public sealed class LessonBookTests
         Assert.Equal(
             ["hola", "si", "no", "que-es-esto", "si-por-favor", "gracias", "quiero-madera", "tengo-fruta", "necesito-agua", "no-se", "otra-vez", "mas-despacio"],
             lesson.TaughtPhrases);
-        Assert.Equal(lesson.TaughtPhrases.Concat(book.Find("personas")!.TaughtPhrases).Concat(book.Find("ayer-y-manana")!.TaughtPhrases).Distinct(), book.TaughtPhrases); // quiero-madera is asked again at the start of Personas
+        Assert.Equal(lesson.TaughtPhrases.Concat(book.Find("personas")!.TaughtPhrases).Concat(book.Find("ayer-y-manana")!.TaughtPhrases).Concat(book.Find("el-pueblo")!.TaughtPhrases).Concat(book.Find("numeros-y-pan")!.TaughtPhrases).Concat(book.Find("gente-del-pueblo")!.TaughtPhrases).Concat(book.Find("como-es")!.TaughtPhrases).Concat(book.Find("ayer-en-el-pueblo")!.TaughtPhrases).Concat(book.Find("manana-en-el-pueblo")!.TaughtPhrases).Concat(book.Find("el-mercado")!.TaughtPhrases).Distinct(), book.TaughtPhrases); // quiero-madera is asked again at the start of Personas
         Assert.All(lesson.TaughtPhrases, id => Assert.True(RouteScene.DataOf(TestGame.Bundle).Phrases.Find(id)!.IsLearnerPhrase, id));
         foreach (var type in Enum.GetValues<LessonStepType>().Where(static t => t is not (LessonStepType.Recap or LessonStepType.Review)))
         {
@@ -175,10 +175,10 @@ public sealed class LessonBookTests
         const string Step = "{ \"id\": \"s\", \"type\": \"explain\", \"english\": \"x\" }";
 
         Assert.Contains("twice", Assert.Throws<InvalidDataException>(() => Book(Lesson(Step + "," + Step))).Message, StringComparison.Ordinal);
-        Assert.Contains("not one of the NPCs", Assert.Throws<InvalidDataException>(() => Book(Lesson(Step, "\"id\": \"t\", \"npc\": \"dragon\", \"title\": \"T\", \"english\": \"E\""))).Message, StringComparison.Ordinal);
+        Assert.Contains("not one of the NPCs", Assert.Throws<InvalidDataException>(() => Book(Lesson(Step, "\"id\": \"t\", \"npc\": \"dragon\", \"level\": \"a1\", \"title\": \"T\", \"english\": \"E\""))).Message, StringComparison.Ordinal);
         Assert.Contains("no steps", Assert.Throws<InvalidDataException>(() => Book(Lesson(string.Empty))).Message, StringComparison.Ordinal);
-        Assert.Contains("earlier lesson", Assert.Throws<InvalidDataException>(() => Book(Lesson(Step, "\"id\": \"t\", \"npc\": \"guide\", \"title\": \"T\", \"english\": \"E\", \"after\": \"nope\""))).Message, StringComparison.Ordinal);
-        var two = "{ \"schemaVersion\": 1, \"lessons\": [ { \"id\": \"a\", \"npc\": \"guide\", \"title\": \"T\", \"english\": \"E\", \"steps\": [ " + Step + " ] }, { \"id\": \"a\", \"npc\": \"guide\", \"title\": \"T\", \"english\": \"E\", \"steps\": [ " + Step + " ] } ] }";
+        Assert.Contains("earlier lesson", Assert.Throws<InvalidDataException>(() => Book(Lesson(Step, "\"id\": \"t\", \"npc\": \"guide\", \"level\": \"a1\", \"title\": \"T\", \"english\": \"E\", \"after\": \"nope\""))).Message, StringComparison.Ordinal);
+        var two = "{ \"schemaVersion\": 1, \"lessons\": [ { \"id\": \"a\", \"npc\": \"guide\", \"level\": \"a1\", \"title\": \"T\", \"english\": \"E\", \"steps\": [ " + Step + " ] }, { \"id\": \"a\", \"npc\": \"guide\", \"level\": \"a1\", \"title\": \"T\", \"english\": \"E\", \"steps\": [ " + Step + " ] } ] }";
         Assert.Contains("used twice", Assert.Throws<InvalidDataException>(() => Book(two)).Message, StringComparison.Ordinal);
         Assert.Throws<InvalidDataException>(() => Book("{ nope"));
         Assert.Throws<InvalidDataException>(() => Book("{ \"schemaVersion\": 2, \"lessons\": [] }"));

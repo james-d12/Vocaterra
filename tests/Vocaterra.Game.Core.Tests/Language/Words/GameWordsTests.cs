@@ -22,10 +22,12 @@ public sealed class GameWordsTests
         Assert.Equal(("¿Escribes?", "¿?"), (Words.TypeOffer, Words.Unseen));
         Assert.Equal(new SupportWords("Puedes decir", "Escuchar la frase", "Palabras nuevas"), Words.Support);
         Assert.Equal(["yo", "tú", "él/ella/usted", "nosotros", "ustedes/ellos"], GameWords.PronounKeys.Select(key => Words.Pronoun(key[..1], key[1..])));
-        Assert.Equal(["agua", "pan"], Words.KeyWords);
         Assert.Equal(("ayuda", "no sé", "hola"), (Words.HelpLine, Words.DontKnowLine, Words.Greeting));
         Assert.Equal(("ir", "a"), (Words.NearFuture.Verb, Words.NearFuture.Joiner));
-        Assert.Equal(["mañana"], Words.NearFuture.TimeWords);
+        // VILLAGE_PLAN V10: the later markers make a present a plan too; V16: the core's markers of a time noun (semana, día, mes, año) with próximo or que viene, matched as phrases.
+        Assert.Equal(
+            ["mañana", "luego", "después", "pasado mañana", "semana que viene", "próxima semana", "próximo día", "mes que viene", "próximo mes", "año que viene", "próximo año"],
+            Words.NearFuture.TimeWords);
         Assert.Equal("río", Words.Noun("river"));
     }
 
@@ -35,8 +37,8 @@ public sealed class GameWordsTests
         var json = File.ReadAllText(Repo.Path("content", "game-v1", "game", "words.json"));
 
         Assert.Throws<InvalidDataException>(() => GameWords.Parse(json.Replace("\"blockUnit\": \"bloque\",", string.Empty, StringComparison.Ordinal)));
-        Assert.Throws<InvalidDataException>(() => GameWords.Parse(json.Replace("\"keyWords\": [\n    \"agua\",\n    \"pan\"\n  ]", "\"keyWords\": []", StringComparison.Ordinal)));
-        Assert.Throws<InvalidDataException>(() => GameWords.Parse(json.Replace("\"schemaVersion\": 1", "\"schemaVersion\": 2", StringComparison.Ordinal)));
+        Assert.Throws<InvalidDataException>(() => GameWords.Parse(System.Text.RegularExpressions.Regex.Replace(json, "\"timeWords\": \\[[^\\]]*\\]", "\"timeWords\": []")));
+        Assert.Throws<InvalidDataException>(() => GameWords.Parse(json.Replace("\"schemaVersion\": 2", "\"schemaVersion\": 1", StringComparison.Ordinal))); // schema 2: the key words left for the NPC files (V01)
         Assert.Equal(Words.Directions, GameWords.Parse(json).Directions);
     }
 
@@ -56,7 +58,10 @@ public sealed class GameWordsTests
         Assert.Equal("casa", scene.Labels["house2"]);
         Assert.Equal("campamento", scene.Labels["camp"]);
         Assert.Equal("fuego", scene.Labels["firering.player"]);
-        Assert.Equal(17, scene.Labels.Count);
+        Assert.Equal("panadería", scene.Labels["bakery"]); // VILLAGE_PLAN V04: the bakery, the smithy, the well, the tower and the field
+        Assert.Equal("pescador", scene.Labels["npc.fisher"]); // V10: where the fisher stands, which El pueblo's walk back points at
+        Assert.Equal(("herrero", "granjero"), (scene.Labels["npc.smith"], scene.Labels["npc.farmer"])); // V12: where the smith and the farmer stand, Gente del pueblo's walks
+        Assert.Equal(25, scene.Labels.Count);
     }
 
     [Fact]
@@ -69,14 +74,13 @@ public sealed class GameWordsTests
     }
 
     [Fact]
-    public void AKeyWordOrARiverThatIsNoCatalogueNounIsAProblem()
+    public void ARiverThatIsNoCatalogueNounIsAProblem()
     {
+        // The key words are the NPC files' since V01 (NpcRosterTests checks them).
         var json = File.ReadAllText(Repo.Path("content", "game-v1", "game", "words.json"))
-            .Replace("\"pan\"", "\"queso\"", StringComparison.Ordinal)
             .Replace("\"river\": \"río\"", "\"river\": \"mar\"", StringComparison.Ordinal);
         var problems = GameDataValidator.Validate(TestGame.Data.WithWords(GameWords.Parse(json)));
 
-        Assert.Contains("game/words.json: the key word 'queso' is not a catalogue noun.", problems);
         Assert.Contains("game/words.json: the river noun 'mar' is not a catalogue noun.", problems);
     }
 }

@@ -106,6 +106,14 @@ public class AnalysisSideSeamTests
 
         public bool IsCopulaOrAuxiliary(string lemma) => inner.IsCopulaOrAuxiliary(lemma);
 
+        public bool IsElapsedTimePreposition(string lemma) => inner.IsElapsedTimePreposition(lemma);
+
+        public bool IsElapsedTimeNoun(string lemma) => inner.IsElapsedTimeNoun(lemma);
+
+        public bool IsPostnominalAdjective(string lemma) => inner.IsPostnominalAdjective(lemma);
+
+        public bool IsDegreeAdverb(string lemma) => inner.IsDegreeAdverb(lemma);
+
         public IAgreementChecker CreateAgreementChecker(IReadOnlyList<AnalyzedToken> resolved, List<ErrorTag> errors) => inner.CreateAgreementChecker(resolved, errors);
     }
 
@@ -129,6 +137,10 @@ public class AnalysisSideSeamTests
         public bool IsRegularizedIrregular(string form, out string lemma, out string expected) => inner.IsRegularizedIrregular(form, out lemma, out expected);
 
         public bool TryGetRegularization(string form, out RegularizedForm result) => inner.TryGetRegularization(form, out result);
+
+        public bool TryGetRegularizationOfWord(string form, out RegularizedForm result) => inner.TryGetRegularizationOfWord(form, out result);
+
+        public bool TryGetPluralSlip(string form, out PluralSlip result) => inner.TryGetPluralSlip(form, out result);
     }
 
     /// <summary>Template functions that mark every article.</summary>
@@ -443,6 +455,14 @@ public class AnalysisSideSeamTests
 
         public bool IsCopulaOrAuxiliary(string lemma) => inner.IsCopulaOrAuxiliary(lemma);
 
+        public bool IsElapsedTimePreposition(string lemma) => inner.IsElapsedTimePreposition(lemma);
+
+        public bool IsElapsedTimeNoun(string lemma) => inner.IsElapsedTimeNoun(lemma);
+
+        public bool IsPostnominalAdjective(string lemma) => inner.IsPostnominalAdjective(lemma);
+
+        public bool IsDegreeAdverb(string lemma) => inner.IsDegreeAdverb(lemma);
+
         public IAgreementChecker CreateAgreementChecker(IReadOnlyList<AnalyzedToken> resolved, List<ErrorTag> errors) => new Nothing();
     }
 
@@ -460,11 +480,18 @@ public class AnalysisSideSeamTests
         Assert.True(rules.IsNounModifyingAdverb("solo"));
         Assert.True(rules.IsInterrogativeQuantifier("cuánto"));
         Assert.True(rules.IsInterjectionFirst("gracias"));
+        Assert.True(rules.IsElapsedTimePreposition("hace"));
+        Assert.True(rules.IsElapsedTimeNoun("día"));
+        Assert.False(rules.IsElapsedTimeNoun("domingo"));
         Assert.True(rules.IsNearFutureAuxiliary("ir"));
         Assert.True(rules.IsNearFutureLinker("a"));
         Assert.True(rules.IsCopula("estar"));
         Assert.False(rules.IsCopula("haber"));
         Assert.True(rules.IsCopulaOrAuxiliary("haber"));
+        Assert.True(rules.IsPostnominalAdjective("rojo"));
+        Assert.False(rules.IsPostnominalAdjective("grande"));
+        Assert.True(rules.IsDegreeAdverb("muy"));
+        Assert.False(rules.IsDegreeAdverb("más"));
         Assert.Same(rules.GetType(), AnalysisRules.For(Spanish).GetType());
         Assert.Same(AnalysisRules.For(Spanish), AnalysisRules.For(Spanish));
     }

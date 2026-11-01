@@ -15,11 +15,11 @@ public sealed class ReviewStepTests
     // The sample lesson teaches hola and gracias; "again" asks one of them back, between two explain steps.
     private static string Book(string candidates) => """
         { "schemaVersion": 1, "lessons": [
-          { "id": "sample", "npc": "guide", "title": "A first hello", "english": "E", "autoStart": false, "steps": [
+          { "id": "sample", "npc": "guide", "level": "a1", "title": "A first hello", "english": "E", "autoStart": false, "steps": [
             { "id": "say-hola", "type": "repeat", "phrase": "hola", "prompt": "guide-open", "english": "Say hello." },
             { "id": "say-gracias", "type": "answer", "phrase": "gracias", "prompt": "guide-open", "line": "guide_offer_yes.1", "translation": "Of course! Here you are.", "english": "Thank her." }
           ] },
-          { "id": "again", "npc": "guide", "title": "Again", "english": "E", "autoStart": false, "steps": [
+          { "id": "again", "npc": "guide", "level": "a1", "title": "Again", "english": "E", "autoStart": false, "steps": [
             { "id": "a-intro", "type": "explain", "english": "A reminder." },
             { "id": "a-review", "type": "review", "candidates": [ CANDIDATES ], "english": "She greets you as before. Answer her." },
             { "id": "a-end", "type": "explain", "english": "Well done." }

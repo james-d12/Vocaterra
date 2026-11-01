@@ -60,6 +60,14 @@ try
     // unless --scene names a file of its own, which is read from disk and skips the bundle's check.
     var locales = LocaleBundle.Load(LocaleBundle.DirectoryBeside(directory));
     var data = GameData.Load(bundle, locales.Text(LocaleBundle.ChooseCode(options.Locale, bundle)));
+    if (!options.CheckTalkTargets(data.Npcs.Ids, out var talkError))
+    {
+        // The NPCs --talk may name are the bundle's (game/npcs.json), so the check waits for the roster: a usage error like the others.
+        Console.Error.WriteLine(talkError);
+        Console.Error.Write(LaunchOptions.Usage);
+        return 2;
+    }
+
     Console.WriteLine($"locale: {data.Locale.Code}, bundle {locales.BundleHash[..12]} ({string.Join(", ", locales.Locales.Select(static l => l.Code))} shipped)");
     var sceneStarted = MonotonicClock.Milliseconds();
     var layoutFile = SceneLocator.Resolve(options.SceneFile, directory);
@@ -102,6 +110,21 @@ try
         session = new VoxelSession(data, options.Seed, GuideSession.DefaultStartedAt, scene, options.Credit);
     }
 
+    if (options.SkipToSession is { } skipTo)
+    {
+        // A test aid (V12c): the new game stands where a learner who did sessions 1 to n-1 would, built from the data; the console, the log and the saves say so.
+        var last = SessionSkip.LastSession(session.Lessons.Book);
+        if (skipTo > last)
+        {
+            Console.Error.WriteLine($"--skip-to-session needs a play session from 2 to {last}, the last session that has a lesson; got {skipTo}.");
+            Console.Error.Write(LaunchOptions.Usage);
+            return 2;
+        }
+
+        SessionSkip.Apply(session, skipTo);
+        Console.WriteLine($"session: {SessionSkip.Line(skipTo)}");
+    }
+
     if (options.Session is { } playSession)
     {
         // A run started at a given session (S26, --session): the lessons of that session are unlocked, and the objective names the new one.
@@ -116,7 +139,7 @@ try
     Console.WriteLine($"bundle: loaded in {MonotonicClock.Milliseconds() - started:0} ms; typed credit {(options.Credit.TypedUnits < WordProgress.UnitsPerUse ? "half" : "full")}, spoken credit full");
 
     // The NPCs' pre-rendered voices (S9): the startup line counts the speakable lines' files; the playback never builds Kokoro.
-    var speech = SpeechLines.Enumerate(bundle, session.Nouns, session.Phrases);
+    var speech = SpeechLines.Enumerate(bundle, session.Nouns, session.Phrases, session.Data.Npcs);
     var speechDirectory = Path.Combine(directory, SpeechLines.FolderName);
     Console.WriteLine(SpeechSummary.Of(speech, speechDirectory));
     voice = new NpcVoice(speechDirectory, new SpeechIndex(speech), new DynamicSoundOutput(), options.Muted, Console.WriteLine);

@@ -496,21 +496,21 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
 
         Assert.All(book.Lessons, static l => Assert.Equal(l.TaughtVerbs.Count, l.TaughtVerbs.Distinct().Count()));
         Assert.Equal(book.Lessons.Sum(static l => l.TaughtVerbs.Count), book.Lessons.SelectMany(static l => l.TaughtVerbs).Distinct().Count()); // each form belongs to one lesson
-        Assert.Equal([1, 2, 3], book.Lessons.Select(static l => l.Session));
+        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], book.Lessons.Select(static l => l.Session));
     }
 
     [Fact]
     public void ALessonFileMustNameItsObjectiveWhenItUnlocksLaterAndKeepItsFormsWellFormed()
     {
         string Lesson(string extra, string step = "{ \"id\": \"a\", \"type\": \"explain\", \"english\": \"E\" }") =>
-            "{ \"schemaVersion\": 1, \"lessons\": [ { \"id\": \"t\", \"npc\": \"guide\", \"title\": \"T\", \"english\": \"E\", " + extra + " \"steps\": [ " + step + " ] } ] }";
+            "{ \"schemaVersion\": 1, \"lessons\": [ { \"id\": \"t\", \"npc\": \"guide\", \"level\": \"a1\", \"title\": \"T\", \"english\": \"E\", " + extra + " \"steps\": [ " + step + " ] } ] }";
 
         Assert.Contains("objective", Assert.Throws<InvalidDataException>(() => TestGame.Lessons(Lesson("\"session\": 2,"))).Message, StringComparison.Ordinal);
         Assert.Equal(2, Assert.Single(TestGame.Lessons(Lesson("\"session\": 2, \"objective\": \"Go.\",")).Lessons).Session);
         Assert.Contains("person", Assert.Throws<InvalidDataException>(() => TestGame.Lessons(Lesson("\"verbs\": [ { \"lemma\": \"ir\", \"person\": \"4\", \"number\": \"sg\", \"tense\": \"pres\" } ],"))).Message, StringComparison.Ordinal);
         Assert.Contains("twice", Assert.Throws<InvalidDataException>(() => TestGame.Lessons(Lesson(
             "\"verbs\": [ { \"lemma\": \"ir\", \"person\": \"1\", \"number\": \"sg\", \"tense\": \"pres\" }, { \"lemma\": \"ir\", \"person\": \"1\", \"number\": \"sg\", \"tense\": \"pres\" } ],"))).Message, StringComparison.Ordinal);
-        Assert.Contains("NPC", Assert.Throws<InvalidDataException>(() => TestGame.Lessons(Lesson("", "{ \"id\": \"a\", \"type\": \"explain\", \"english\": \"E\", \"npc\": \"baker\" }"))).Message, StringComparison.Ordinal);
+        Assert.Contains("NPC", Assert.Throws<InvalidDataException>(() => TestGame.Lessons(Lesson("", "{ \"id\": \"a\", \"type\": \"explain\", \"english\": \"E\", \"npc\": \"miller\" }"))).Message, StringComparison.Ordinal);
         Assert.Contains("spoken by", Assert.Throws<InvalidDataException>(() => TestGame.Lessons(Lesson("", "{ \"id\": \"a\", \"type\": \"model\", \"line\": \"shop_need.1\", \"translation\": \"T\", \"english\": \"E\" }"))).Message, StringComparison.Ordinal);
         // C06: a do step's NPC is its trigger's npc; the old field "at" is refused, so a lesson cannot wait at an NPC by a name the matcher does not read.
         Assert.Contains("'at'", Assert.Throws<InvalidDataException>(() => TestGame.Lessons(Lesson("", "{ \"id\": \"a\", \"type\": \"do\", \"trigger\": { \"event\": \"talk_opened\", \"at\": \"shopkeeper\" }, \"english\": \"E\" }"))).Message, StringComparison.Ordinal);
@@ -603,7 +603,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         Assert.Equal(StepOutcome.MovedOn, session.Lessons.OutcomesOf("first-words")[^1].Outcome);
 
         const string Plain = """
-            { "schemaVersion": 1, "lessons": [ { "id": "t", "npc": "guide", "title": "T", "english": "E", "steps": [
+            { "schemaVersion": 1, "lessons": [ { "id": "t", "npc": "guide", "level": "a1", "title": "T", "english": "E", "steps": [
               { "id": "say", "type": "repeat", "phrase": "quiero-madera", "prompt": "lesson-want", "english": "Say it." },
               { "id": "end", "type": "explain", "english": "Done." } ] } ] }
             """;
@@ -633,7 +633,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
             ["queremos-pan"] = "1pl",
         };
 
-        foreach (var step in Book.Lessons.SelectMany(static l => l.Steps).Where(s => s.WaitsOnTurn && expected.ContainsKey(s.Phrase!)))
+        foreach (var step in Book.Lessons.SelectMany(static l => l.Steps).Where(s => s.Type is LessonStepType.Repeat or LessonStepType.Answer && expected.ContainsKey(s.Phrase!))) // a review step judges no person (X06)
         {
             Assert.Equal(expected[step.Phrase!], step.Person);
             Assert.False(string.IsNullOrWhiteSpace(step.PersonRetry), step.Id);
@@ -641,7 +641,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
 
         Assert.All(Book.Lessons.SelectMany(static l => l.Steps).Where(s => s.Type is LessonStepType.Repeat or LessonStepType.Answer && expected.ContainsKey(s.Phrase!)), s => Assert.NotNull(s.Person));
         Assert.Contains("person", Assert.Throws<InvalidDataException>(() => TestGame.Lessons(
-            "{ \"schemaVersion\": 1, \"lessons\": [ { \"id\": \"t\", \"npc\": \"guide\", \"title\": \"T\", \"english\": \"E\", \"steps\": [ { \"id\": \"a\", \"type\": \"explain\", \"english\": \"E\", \"person\": \"1sg\" } ] } ] }")).Message, StringComparison.Ordinal);
+            "{ \"schemaVersion\": 1, \"lessons\": [ { \"id\": \"t\", \"npc\": \"guide\", \"level\": \"a1\", \"title\": \"T\", \"english\": \"E\", \"steps\": [ { \"id\": \"a\", \"type\": \"explain\", \"english\": \"E\", \"person\": \"1sg\" } ] } ] }")).Message, StringComparison.Ordinal);
     }
 
     // ---- The new content

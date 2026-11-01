@@ -10,16 +10,19 @@
 # `refresh` is the whole loop after an edit of the game's content (CONTENT_PLAN 3.7, C01), with no step to forget and without the words the
 #   sandbox refuses: it rewrites the manifests of content/game-v1 (keeping its bundle id and its supportLanguage) and of the locale bundle
 #   content/locale (CONTENT_PLAN C03), lists the files that have no
-#   provenance item, validates, runs the gate's lint and the CEFR check at A1 and A2, runs the game's own checks between its files (the host's
-#   --validate-content, CONTENT_PLAN C02; the ContentBuilder references only the core and cannot), writes the grammar strings again (the host's
-#   --grammar-strings) and runs the grammar check offline from the committed cache. A cache miss means new Spanish: the message names the
+#   provenance item, validates, runs the gate's lint and CEFR checks (since V08, the A1/A2 rule of VILLAGE_PLAN 3.9, D-game-22 (b): the bundle's
+#   ceiling is A2, so the lint runs at A2 with --fail-on-level and cefr-check at A2 fails on any lemma it lists, while cefr-check at A1 is a report
+#   for the owner and never fails), runs the game's own checks between its files (the host's --validate-content, CONTENT_PLAN C02, which also
+#   holds each lesson to its own level, a1 or a2; the ContentBuilder references only the core and cannot), writes the grammar strings again (the
+#   host's --grammar-strings) and runs the grammar check offline from the committed cache. A cache miss means new Spanish: the message names the
 #   LanguageTool steps. Run it through scripts/limited.sh (it runs several tools one after the other; it never calls limited.sh itself).
+#   It is the first step of scripts/content-loop.sh, the whole edit loop in one command (V18).
 #
 # Usage: scripts/content.sh validate|hash|cefr-check|lint|pack|verify-pack|grammar [bundleDir] [tool options]
 #        scripts/content.sh refresh
 #   bundleDir defaults to content/game-v1 (relative to the repository root). Options after it are passed on, for example
 #   `hash content/game-v1 --bundle-id game-v1` (hash keeps the manifest's bundle id unless one is given) or
-#   `cefr-check content/game-v1 --level a1`.
+#   `cefr-check content/game-v1 --level a2`.
 #
 # The tool runs from source (`dotnet run --project tools/Vocaterra.Nlp.ContentBuilder`), so it is always the core at this commit; no
 # feed, no install. The sandbox used by delegated agents refuses command lines that contain the words `eval` or `hash`; run such a command
@@ -81,13 +84,20 @@ EOF
 
 step "validate"
 tool validate "$GAME"
-step "lint (the gate's arguments)"
-tool lint "$GAME" --strict --level a1 --host-pools 'guide.*'
-step "cefr-check a1 and a2"
+step "lint (the gate's arguments: at A2, the bundle's ceiling, with --fail-on-level, so a lemma above A2 anywhere fails)"
+tool lint "$GAME" --strict --level a2 --fail-on-level --host-pools 'guide.*'
+# cefr-check only prints (the core's tool exits 0 whatever it lists), so at the ceiling a lemma it lists fails the step here.
+step "cefr-check a2 (the ceiling: a lemma it lists fails)"
+ceiling="$(tool cefr-check "$GAME" --level a2)"
+printf '%s\n' "$ceiling"
+if grep -Eq ', [1-9][0-9]* not in the list$' <<<"$ceiling"; then
+  echo "refresh: cefr-check a2 lists a lemma above A2, the bundle's ceiling (VILLAGE_PLAN 3.9)" >&2
+  exit 1
+fi
+step "cefr-check a1 (a report for the owner: the lemmas above A1; it never fails, each lesson's own level is the validator's)"
 tool cefr-check "$GAME" --level a1
-tool cefr-check "$GAME" --level a2
 
-step "the game's own checks (the host's --validate-content: every game file, and the checks between them)"
+step "the game's own checks (the host's --validate-content: every game file, the checks between them, and each lesson's level)"
 dotnet run --project "$HOST" -- --content "$GAME" --validate-content
 
 step "grammar strings"
@@ -99,7 +109,8 @@ if ! tool grammar "$GAME" --strings "$STRINGS" --strings-only --offline --strict
 refresh: the grammar check failed. A cache miss means new Spanish text: start the local server (scripts/languagetool.sh start), run
   scripts/content.sh grammar content/game-v1 --strings content/grammar/game-v1-strings.jsonl --strings-only --prune
 read every finding (fix the content or add a waiver with its reason to content/grammar/game-v1-waivers.json), stop the server
-(scripts/languagetool.sh stop) and run the refresh again (docs/game/README.md, "Refreshing the cache").
+(scripts/languagetool.sh stop) and run the refresh again (docs/game/README.md, "Refreshing the cache"). scripts/content-loop.sh --grammar does
+all of this in one command (content/README.md, "The edit loop").
 EOF
   exit 1
 fi

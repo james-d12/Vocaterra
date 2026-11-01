@@ -1,0 +1,23 @@
+{
+  "answerSetId": "lesson-we-went",
+  "answers": [
+    {
+      "answerId": "river",
+      "canonical": "fuimos al río",
+      "aliases": ["nosotros fuimos al río", "ayer fuimos al río", "fuimos al río ayer", "sí fuimos al río", "mar y yo fuimos al río", "ayer mar y yo fuimos al río", "mar y yo fuimos al río ayer", "tú y yo fuimos al río", "ayer tú y yo fuimos al río", "tú y yo fuimos al río ayer", "luz y yo fuimos al río", "ayer luz y yo fuimos al río", "luz y yo fuimos al río ayer"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": ["no lo sé", "yo no sé", "no entiendo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    }
+  ]
+}

@@ -536,7 +536,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
         Assert.True(g.LinesVisible >= 8, $"{g.LinesVisible} lines visible");
 
         // A conjugation table: tense columns stand side by side while each keeps its width, and stack in blocks when the page is too narrow; the cells are inside the detail area.
-        for (var columns = 1; columns <= 3; columns++)
+        for (var columns = 1; columns <= ConjugationTable.AllColumns.Count; columns++)
         {
             var width = g.DetailRight - g.DetailLeft;
             var perBlock = ConjugationLayout.ColumnsPerBlock(width, columns);
@@ -702,13 +702,18 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
             }
         }
 
-        // The closing card: the summary gives up its last rows until the card fits.
+        // The closing card: the summary gives up its last rows until the card fits; the line offering the sleep (V12c) is a row over the keys and stays.
         var ending = new EndingLayout(canvas.Width, canvas.Height, 2, 2, 9);
         Assert.True(Inside(ending.Box, window), $"the closing card {ending.Box} is outside the canvas");
         if (ending.SummaryCut)
         {
             Assert.True(ending.SummaryShown < 9);
         }
+
+        var offering = new EndingLayout(canvas.Width, canvas.Height, 2, 2, 9, sleepRows: 1);
+        Assert.True(Inside(offering.Box, window), $"the closing card with the sleep {offering.Box} is outside the canvas");
+        Assert.True(offering.SummaryShown <= ending.SummaryShown);
+        Assert.True(Small(English.Value.Ui("sleepCard", ("session", "2"))) <= offering.Box.Width - (2 * EndingLayout.Side), "the sleep's line is wider than the card");
 
         output.WriteLine($"{canvas.Width}x{canvas.Height}: controls max scroll {new ControlsLayout(canvas.Width, canvas.Height, heights, 0).MaxScroll}, closing card {ending.Box.Height} px tall with {ending.SummaryShown} of 9 summary rows");
     }
@@ -808,6 +813,42 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
         }
 
         Assert.Empty(failures);
+    }
+
+    [Theory]
+    [MemberData(nameof(Cases))]
+    public void TheLessonsPagesLinesOfWhenAndWhereFitTheNarrowLeftPage(int windowWidth, int windowHeight, int scale)
+    {
+        // V12c: the line under a lesson not begun is its own indented row, whole on the left page at every scale (r16-text-scale: 800 x 600 at 150 %), for every lesson
+        // in each of its four waits: the next, another unlocked, its session to come, the lesson before it not done. A row of the list is cut with "...", never wrapped, so it is measured
+        // with the book's own font (PixelOperator at its native size; the stand-in of the other checks is wider than it) against the row's room: the page less the
+        // indent and the gutter.
+        var font = new FontProvider(Repo.Path("assets", "fonts", "pixel-operator", "PixelOperator.ttf")).Get(FontProvider.NativeSize);
+        var canvas = Canvas(windowWidth, windowHeight, scale);
+        var g = new BookGeometry(canvas.Width, canvas.Height);
+        var room = g.ContentRight - g.ContentLeft - BookLayer.IndentWidth - BookLayer.Gutter;
+        var session = RouteScene.NewSessionWithShippedLessons(TestGame.Bundle, TestGame.Nouns);
+        var record = session.Lessons.Record;
+        var widest = (Text: string.Empty, Width: 0f);
+        foreach (var lesson in session.Lessons.Book.Lessons)
+        {
+            var waits = new List<LessonWait> { new(LessonWaitKind.Next, lesson.Session, lesson.Npc), new(LessonWaitKind.Open, lesson.Session, lesson.Npc), new(LessonWaitKind.Session, lesson.Session, lesson.Npc) };
+            if (lesson.After is { } after)
+            {
+                waits.Add(new LessonWait(LessonWaitKind.After, lesson.Session, lesson.Npc, after));
+            }
+
+            foreach (var wait in waits)
+            {
+                var lines = BookPages.Lessons(English.Value, record, session.Phrases, null, new Dictionary<string, LessonWait> { [lesson.Id] = wait });
+                var why = lines[lines.ToList().FindIndex(l => l.Text == lesson.Title) + 1];
+                var width = Vocaterra.Game.Graphics.DrawHelpers.Width(font, why.Text);
+                Assert.True(width <= room, $"“{why.Text}” ({width} px) is wider than the left page's {room} px at {canvas.Width}x{canvas.Height}");
+                widest = width > widest.Width ? (why.Text, width) : widest;
+            }
+        }
+
+        output.WriteLine($"{canvas.Width}x{canvas.Height}: the widest line, “{widest.Text}”, is {widest.Width} px of the row's {room} px");
     }
 
     [Fact]

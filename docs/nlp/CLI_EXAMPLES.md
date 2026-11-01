@@ -122,8 +122,8 @@ agent: ¡Hola! ¿Qué buscas?
 ```
 
 `word_order`: `azul` normally follows its noun, so `azul espada` is flagged and the expected order is given. The grammar of `request_item` has no place for an
-adjective, so the sentence is not understood (`communicated` is false) and the agent asks again; the error is found anyway, because the analysis does not depend on
-the intent:
+adjective before the noun, so the sentence is not understood (`communicated` is false) and the agent asks again; the error is found anyway, because the analysis does
+not depend on the intent (since M62 the same holds for a colour that is also a noun, `quiero tres rojas manzanas`; [API.md](API.md), "Adjectives"):
 
 ```bash
 dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero una azul espada" --prompt villager-open --content content/game-v1

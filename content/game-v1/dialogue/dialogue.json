@@ -419,6 +419,12 @@
         { "lineId": "villager_point.2", "text": "Está allí, mira." }
       ]
     },
+    "villager_unknown_place": {
+      "poolId": "villager_unknown_place",
+      "variants": [
+        { "lineId": "villager_unknown_place.1", "text": "No sé dónde está." }
+      ]
+    },
     "villager_give": {
       "poolId": "villager_give",
       "variants": [
@@ -718,6 +724,845 @@
       "poolId": "guide.lesson.shop.tomorrow",
       "variants": [
         { "lineId": "guide.lesson.shop.tomorrow.1", "text": "¿Qué vas a hacer mañana?" }
+      ]
+    },
+    "fisher_hello": {
+      "poolId": "fisher_hello",
+      "variants": [
+        { "lineId": "fisher_hello.1", "text": "¡Hola!" }
+      ]
+    },
+    "fisher_greet": {
+      "poolId": "fisher_greet",
+      "variants": [
+        { "lineId": "fisher_greet.1", "text": "¿Qué buscas?" }
+      ]
+    },
+    "fisher_point": {
+      "poolId": "fisher_point",
+      "variants": [
+        { "lineId": "fisher_point.1", "text": "Mira, está allí." },
+        { "lineId": "fisher_point.2", "text": "Está por allí, mira." }
+      ]
+    },
+    "fisher_far": {
+      "poolId": "fisher_far",
+      "variants": [
+        { "lineId": "fisher_far.1", "text": "¿Lejos? ¿Qué buscas?" }
+      ]
+    },
+    "fisher_near": {
+      "poolId": "fisher_near",
+      "variants": [
+        { "lineId": "fisher_near.1", "text": "No, está cerca." }
+      ]
+    },
+    "fisher_unknown_place": {
+      "poolId": "fisher_unknown_place",
+      "variants": [
+        { "lineId": "fisher_unknown_place.1", "text": "No sé dónde está." }
+      ]
+    },
+    "fisher_help": {
+      "poolId": "fisher_help",
+      "variants": [
+        { "lineId": "fisher_help.1", "text": "Puedes preguntar: «¿Dónde está la panadería?»." }
+      ]
+    },
+    "fisher_thank": {
+      "poolId": "fisher_thank",
+      "variants": [
+        { "lineId": "fisher_thank.1", "text": "De nada." },
+        { "lineId": "fisher_thank.2", "text": "¡Con gusto!" }
+      ]
+    },
+    "fisher_bye": {
+      "poolId": "fisher_bye",
+      "variants": [
+        { "lineId": "fisher_bye.1", "text": "¡Adiós! Hasta luego." },
+        { "lineId": "fisher_bye.2", "text": "Hasta luego." }
+      ]
+    },
+    "fisher_delivered": {
+      "poolId": "fisher_delivered",
+      "variants": [
+        { "lineId": "fisher_delivered.1", "text": "¡Gracias! Toma dos monedas." }
+      ]
+    },
+    "guide.lesson.fisher.left": {
+      "poolId": "guide.lesson.fisher.left",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.left.1", "text": "En el pueblo, mira la torre. La panadería está a la izquierda." }
+      ]
+    },
+    "guide.lesson.fisher.more": {
+      "poolId": "guide.lesson.fisher.more",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.more.1", "text": "¿Algo más?" }
+      ]
+    },
+    "guide.lesson.fisher.right": {
+      "poolId": "guide.lesson.fisher.right",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.right.1", "text": "Y la herrería está a la derecha." }
+      ]
+    },
+    "guide.lesson.fisher.near": {
+      "poolId": "guide.lesson.fisher.near",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.near.1", "text": "No, está cerca. La montaña está lejos." }
+      ]
+    },
+    "guide.lesson.fisher.hay": {
+      "poolId": "guide.lesson.fisher.hay",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.hay.1", "text": "En el pueblo hay una tienda, una panadería y tres casas." }
+      ]
+    },
+    "guide.lesson.fisher.well": {
+      "poolId": "guide.lesson.fisher.well",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.well.1", "text": "Sí, hay un pozo." }
+      ]
+    },
+    "guide.lesson.fisher.going": {
+      "poolId": "guide.lesson.fisher.going",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.going.1", "text": "¿Adónde vas?" }
+      ]
+    },
+    "guide.lesson.fisher.plan": {
+      "poolId": "guide.lesson.fisher.plan",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.plan.1", "text": "¿Qué vas a hacer allí?" }
+      ]
+    },
+    "guide.lesson.fisher.went": {
+      "poolId": "guide.lesson.fisher.went",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.went.1", "text": "¿Fuiste a la panadería?" }
+      ]
+    },
+    "guide.lesson.fisher.hungry": {
+      "poolId": "guide.lesson.fisher.hungry",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.hungry.1", "text": "Tengo hambre. ¿Tienes fruta?" }
+      ]
+    },
+    "guide.lesson.fisher.end": {
+      "poolId": "guide.lesson.fisher.end",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.end.1", "text": "¡Muy bien! Ya conoces el pueblo." }
+      ]
+    },
+    "guide.lesson.villager.sign": {
+      "poolId": "guide.lesson.villager.sign",
+      "variants": [
+        { "lineId": "guide.lesson.villager.sign.1", "text": "El letrero dice: tienda, río, montaña." }
+      ]
+    },
+    "baker_hello": {
+      "poolId": "baker_hello",
+      "variants": [
+        { "lineId": "baker_hello.1", "text": "¡Hola!" }
+      ]
+    },
+    "baker_greet": {
+      "poolId": "baker_greet",
+      "variants": [
+        { "lineId": "baker_greet.1", "text": "¿Qué quieres?" }
+      ]
+    },
+    "baker_price": {
+      "poolId": "baker_price",
+      "variants": [
+        { "lineId": "baker_price.1", "text": "El pan cuesta dos monedas." }
+      ]
+    },
+    "baker_hay": {
+      "poolId": "baker_hay",
+      "variants": [
+        { "lineId": "baker_hay.1", "text": "Aquí hay pan. ¿Cuántos panes quieres?" }
+      ]
+    },
+    "baker_sell": {
+      "poolId": "baker_sell",
+      "variants": [
+        { "lineId": "baker_sell.1", "text": "Aquí tienes el pan. ¡Gracias!" },
+        { "lineId": "baker_sell.2", "text": "Toma tu pan. ¡Gracias!" }
+      ]
+    },
+    "baker_cant_pay": {
+      "poolId": "baker_cant_pay",
+      "variants": [
+        { "lineId": "baker_cant_pay.1", "text": "Necesitas más monedas." }
+      ]
+    },
+    "baker_help": {
+      "poolId": "baker_help",
+      "variants": [
+        { "lineId": "baker_help.1", "text": "Puedes decir: «Quiero dos panes, por favor»." }
+      ]
+    },
+    "baker_thank": {
+      "poolId": "baker_thank",
+      "variants": [
+        { "lineId": "baker_thank.1", "text": "De nada." },
+        { "lineId": "baker_thank.2", "text": "¡Con gusto!" }
+      ]
+    },
+    "baker_bye": {
+      "poolId": "baker_bye",
+      "variants": [
+        { "lineId": "baker_bye.1", "text": "¡Adiós! Hasta luego." },
+        { "lineId": "baker_bye.2", "text": "Hasta luego." }
+      ]
+    },
+    "baker_delivered": {
+      "poolId": "baker_delivered",
+      "variants": [
+        { "lineId": "baker_delivered.1", "text": "¡Gracias! Toma cuatro monedas." }
+      ]
+    },
+    "guide.lesson.baker.plan": {
+      "poolId": "guide.lesson.baker.plan",
+      "variants": [
+        { "lineId": "guide.lesson.baker.plan.1", "text": "¡Hola! ¿Qué vas a hacer hoy?" }
+      ]
+    },
+    "guide.lesson.baker.five": {
+      "poolId": "guide.lesson.baker.five",
+      "variants": [
+        { "lineId": "guide.lesson.baker.five.1", "text": "Uno, dos, tres, cuatro, cinco." }
+      ]
+    },
+    "guide.lesson.baker.ten": {
+      "poolId": "guide.lesson.baker.ten",
+      "variants": [
+        { "lineId": "guide.lesson.baker.ten.1", "text": "Seis, siete, ocho, nueve, diez." }
+      ]
+    },
+    "guide.lesson.baker.loaves": {
+      "poolId": "guide.lesson.baker.loaves",
+      "variants": [
+        { "lineId": "guide.lesson.baker.loaves.1", "text": "Tengo diez panes." }
+      ]
+    },
+    "guide.lesson.baker.how_many": {
+      "poolId": "guide.lesson.baker.how_many",
+      "variants": [
+        { "lineId": "guide.lesson.baker.how_many.1", "text": "¿Cuántos panes quieres?" }
+      ]
+    },
+    "guide.lesson.baker.oven": {
+      "poolId": "guide.lesson.baker.oven",
+      "variants": [
+        { "lineId": "guide.lesson.baker.oven.1", "text": "Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer?" }
+      ]
+    },
+    "guide.lesson.baker.coins": {
+      "poolId": "guide.lesson.baker.coins",
+      "variants": [
+        { "lineId": "guide.lesson.baker.coins.1", "text": "¿Cuántas monedas tienes?" }
+      ]
+    },
+    "guide.lesson.baker.model": {
+      "poolId": "guide.lesson.baker.model",
+      "variants": [
+        { "lineId": "guide.lesson.baker.model.1", "text": "Ayer compré fruta en la tienda." }
+      ]
+    },
+    "guide.lesson.baker.bought": {
+      "poolId": "guide.lesson.baker.bought",
+      "variants": [
+        { "lineId": "guide.lesson.baker.bought.1", "text": "¿Qué compraste?" }
+      ]
+    },
+    "guide.lesson.baker.you": {
+      "poolId": "guide.lesson.baker.you",
+      "variants": [
+        { "lineId": "guide.lesson.baker.you.1", "text": "Compraste dos panes. ¡Muy bien!" }
+      ]
+    },
+    "shop_price": {
+      "poolId": "shop_price",
+      "variants": [
+        { "lineId": "shop_price.1", "text": "El pan cuesta dos monedas." }
+      ]
+    },
+    "shop_hay": {
+      "poolId": "shop_hay",
+      "variants": [
+        { "lineId": "shop_hay.1", "text": "Hay agua y pan." }
+      ]
+    },
+    "guide.lesson.shop.bread": {
+      "poolId": "guide.lesson.shop.bread",
+      "variants": [
+        { "lineId": "guide.lesson.shop.bread.1", "text": "Sí, hay pan. Es pan de Luz." }
+      ]
+    },
+    "smith_hello": {
+      "poolId": "smith_hello",
+      "variants": [
+        { "lineId": "smith_hello.1", "text": "¡Hola!" }
+      ]
+    },
+    "smith_greet": {
+      "poolId": "smith_greet",
+      "variants": [
+        { "lineId": "smith_greet.1", "text": "¡Hola! Esta es mi herrería." }
+      ]
+    },
+    "smith_name": {
+      "poolId": "smith_name",
+      "variants": [
+        { "lineId": "smith_name.1", "text": "Me llamo Domingo." }
+      ]
+    },
+    "smith_job": {
+      "poolId": "smith_job",
+      "variants": [
+        { "lineId": "smith_job.1", "text": "Soy el herrero. Trabajo con fuego y madera." }
+      ]
+    },
+    "smith_offer": {
+      "poolId": "smith_offer",
+      "variants": [
+        { "lineId": "smith_offer.1", "text": "¿Quieres un hacha? Necesito dos bloques de madera y dos monedas." }
+      ]
+    },
+    "smith_help": {
+      "poolId": "smith_help",
+      "variants": [
+        { "lineId": "smith_help.1", "text": "Puedes preguntar: «¿Cómo te llamas?»." }
+      ]
+    },
+    "smith_thank": {
+      "poolId": "smith_thank",
+      "variants": [
+        { "lineId": "smith_thank.1", "text": "De nada." },
+        { "lineId": "smith_thank.2", "text": "¡Con gusto!" }
+      ]
+    },
+    "smith_bye": {
+      "poolId": "smith_bye",
+      "variants": [
+        { "lineId": "smith_bye.1", "text": "¡Adiós! Hasta luego." },
+        { "lineId": "smith_bye.2", "text": "Hasta luego." }
+      ]
+    },
+    "smith_delivered": {
+      "poolId": "smith_delivered",
+      "variants": [
+        { "lineId": "smith_delivered.1", "text": "¡Gracias! Toma el hacha." }
+      ]
+    },
+    "farmer_hello": {
+      "poolId": "farmer_hello",
+      "variants": [
+        { "lineId": "farmer_hello.1", "text": "¡Hola!" }
+      ]
+    },
+    "farmer_greet": {
+      "poolId": "farmer_greet",
+      "variants": [
+        { "lineId": "farmer_greet.1", "text": "¡Hola! Este es mi campo." }
+      ]
+    },
+    "farmer_name": {
+      "poolId": "farmer_name",
+      "variants": [
+        { "lineId": "farmer_name.1", "text": "Me llamo León." }
+      ]
+    },
+    "farmer_job": {
+      "poolId": "farmer_job",
+      "variants": [
+        { "lineId": "farmer_job.1", "text": "Soy el granjero. Trabajo en el campo." }
+      ]
+    },
+    "farmer_help": {
+      "poolId": "farmer_help",
+      "variants": [
+        { "lineId": "farmer_help.1", "text": "Puedes preguntar: «¿Qué haces?»." }
+      ]
+    },
+    "farmer_thank": {
+      "poolId": "farmer_thank",
+      "variants": [
+        { "lineId": "farmer_thank.1", "text": "De nada." },
+        { "lineId": "farmer_thank.2", "text": "¡Con gusto!" }
+      ]
+    },
+    "farmer_bye": {
+      "poolId": "farmer_bye",
+      "variants": [
+        { "lineId": "farmer_bye.1", "text": "¡Adiós! Hasta luego." },
+        { "lineId": "farmer_bye.2", "text": "Hasta luego." }
+      ]
+    },
+    "guide.lesson.villager.went_bakery": {
+      "poolId": "guide.lesson.villager.went_bakery",
+      "variants": [
+        { "lineId": "guide.lesson.villager.went_bakery.1", "text": "¡Hola! ¿Fuiste a la panadería?" }
+      ]
+    },
+    "guide.lesson.villager.smith": {
+      "poolId": "guide.lesson.villager.smith",
+      "variants": [
+        { "lineId": "guide.lesson.villager.smith.1", "text": "Mira, allí está Domingo. Es el herrero." }
+      ]
+    },
+    "guide.lesson.villager.who": {
+      "poolId": "guide.lesson.villager.who",
+      "variants": [
+        { "lineId": "guide.lesson.villager.who.1", "text": "¿Quién es Domingo?" }
+      ]
+    },
+    "guide.lesson.villager.axe": {
+      "poolId": "guide.lesson.villager.axe",
+      "variants": [
+        { "lineId": "guide.lesson.villager.axe.1", "text": "Domingo te quiere hacer un hacha." }
+      ]
+    },
+    "guide.lesson.villager.will_make": {
+      "poolId": "guide.lesson.villager.will_make",
+      "variants": [
+        { "lineId": "guide.lesson.villager.will_make.1", "text": "¿Qué va a hacer Domingo?" }
+      ]
+    },
+    "guide.lesson.villager.works": {
+      "poolId": "guide.lesson.villager.works",
+      "variants": [
+        { "lineId": "guide.lesson.villager.works.1", "text": "¿Dónde trabaja Domingo?" }
+      ]
+    },
+    "guide.lesson.villager.house": {
+      "poolId": "guide.lesson.villager.house",
+      "variants": [
+        { "lineId": "guide.lesson.villager.house.1", "text": "Domingo vive en una casa cerca de la herrería." }
+      ]
+    },
+    "guide.lesson.villager.made": {
+      "poolId": "guide.lesson.villager.made",
+      "variants": [
+        { "lineId": "guide.lesson.villager.made.1", "text": "¿Qué hizo Domingo?" }
+      ]
+    },
+    "guide.lesson.villager.much": {
+      "poolId": "guide.lesson.villager.much",
+      "variants": [
+        { "lineId": "guide.lesson.villager.much.1", "text": "Ayer Domingo trabajó mucho." }
+      ]
+    },
+    "guide.lesson.villager.need": {
+      "poolId": "guide.lesson.villager.need",
+      "variants": [
+        { "lineId": "guide.lesson.villager.need.1", "text": "¿Qué necesitas ahora?" }
+      ]
+    },
+    "guide.lesson.smith.lives": {
+      "poolId": "guide.lesson.smith.lives",
+      "variants": [
+        { "lineId": "guide.lesson.smith.lives.1", "text": "¿Dónde vives?" }
+      ]
+    },
+    "farmer_sell": {
+      "poolId": "farmer_sell",
+      "variants": [
+        { "lineId": "farmer_sell.1", "text": "Aquí tienes. ¡Gracias!" },
+        { "lineId": "farmer_sell.2", "text": "Toma. ¡Gracias!" }
+      ]
+    },
+    "farmer_cant_pay": {
+      "poolId": "farmer_cant_pay",
+      "variants": [
+        { "lineId": "farmer_cant_pay.1", "text": "Necesitas más monedas. Una manzana cuesta una moneda." }
+      ]
+    },
+    "farmer_price": {
+      "poolId": "farmer_price",
+      "variants": [
+        { "lineId": "farmer_price.1", "text": "Una manzana cuesta una moneda." }
+      ]
+    },
+    "farmer_delivered": {
+      "poolId": "farmer_delivered",
+      "variants": [
+        { "lineId": "farmer_delivered.1", "text": "¡Gracias! Toma tres manzanas." }
+      ]
+    },
+    "guide.lesson.farmer.bought": {
+      "poolId": "guide.lesson.farmer.bought",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.bought.1", "text": "¡Hola! ¿Qué compraste en la panadería?" }
+      ]
+    },
+    "guide.lesson.farmer.apples": {
+      "poolId": "guide.lesson.farmer.apples",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.apples.1", "text": "Mira mis manzanas. Son rojas y grandes." }
+      ]
+    },
+    "guide.lesson.farmer.apple": {
+      "poolId": "guide.lesson.farmer.apple",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.apple.1", "text": "¿Cómo es la manzana?" }
+      ]
+    },
+    "guide.lesson.farmer.like": {
+      "poolId": "guide.lesson.farmer.like",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.like.1", "text": "¿Te gusta el pan?" }
+      ]
+    },
+    "guide.lesson.farmer.like_apples": {
+      "poolId": "guide.lesson.farmer.like_apples",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.like_apples.1", "text": "¿Y te gustan las manzanas?" }
+      ]
+    },
+    "guide.lesson.farmer.how_many": {
+      "poolId": "guide.lesson.farmer.how_many",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.how_many.1", "text": "¿Cuántas manzanas quieres?" }
+      ]
+    },
+    "guide.lesson.farmer.water": {
+      "poolId": "guide.lesson.farmer.water",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.water.1", "text": "Mis plantas necesitan agua. Si me traes agua del río, te doy tres manzanas. ¿Qué vas a hacer?" }
+      ]
+    },
+    "guide.lesson.farmer.went": {
+      "poolId": "guide.lesson.farmer.went",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.went.1", "text": "¿Fuiste al río?" }
+      ]
+    },
+    "guide.lesson.farmer.ate": {
+      "poolId": "guide.lesson.farmer.ate",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.ate.1", "text": "Ayer comí pan de Luz. ¡Me gustó mucho!" }
+      ]
+    },
+    "guide.lesson.farmer.liked": {
+      "poolId": "guide.lesson.farmer.liked",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.liked.1", "text": "¿Te gustó el pan de Luz?" }
+      ]
+    },
+    "guide.lesson.farmer.end": {
+      "poolId": "guide.lesson.farmer.end",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.end.1", "text": "¡Hablas muy bien español!" }
+      ]
+    },
+    "guide.lesson.shop.big": {
+      "poolId": "guide.lesson.shop.big",
+      "variants": [
+        { "lineId": "guide.lesson.shop.big.1", "text": "Mira este pan. ¿Cómo es?" }
+      ]
+    },
+    "guide.lesson.shop.luz": {
+      "poolId": "guide.lesson.shop.luz",
+      "variants": [
+        { "lineId": "guide.lesson.shop.luz.1", "text": "El pan es de Luz, de la panadería." }
+      ]
+    },
+    "guide.lesson.villager.river": {
+      "poolId": "guide.lesson.villager.river",
+      "variants": [
+        { "lineId": "guide.lesson.villager.river.1", "text": "¡Hola! ¿Fuiste al río ayer?" }
+      ]
+    },
+    "guide.lesson.villager.day": {
+      "poolId": "guide.lesson.villager.day",
+      "variants": [
+        { "lineId": "guide.lesson.villager.day.1", "text": "Ayer Luz hizo pan. Domingo trabajó en la herrería. Mar pescó en el río." }
+      ]
+    },
+    "guide.lesson.villager.luz": {
+      "poolId": "guide.lesson.villager.luz",
+      "variants": [
+        { "lineId": "guide.lesson.villager.luz.1", "text": "¿Qué hizo Luz ayer?" }
+      ]
+    },
+    "guide.lesson.villager.mar": {
+      "poolId": "guide.lesson.villager.mar",
+      "variants": [
+        { "lineId": "guide.lesson.villager.mar.1", "text": "¿Y qué hizo Mar?" }
+      ]
+    },
+    "guide.lesson.villager.ate": {
+      "poolId": "guide.lesson.villager.ate",
+      "variants": [
+        { "lineId": "guide.lesson.villager.ate.1", "text": "Por la tarde, Luz y Mar comieron pan en la plaza." }
+      ]
+    },
+    "guide.lesson.villager.morning": {
+      "poolId": "guide.lesson.villager.morning",
+      "variants": [
+        { "lineId": "guide.lesson.villager.morning.1", "text": "Por la mañana, Luz y yo fuimos a la tienda." }
+      ]
+    },
+    "guide.lesson.villager.where_went": {
+      "poolId": "guide.lesson.villager.where_went",
+      "variants": [
+        { "lineId": "guide.lesson.villager.where_went.1", "text": "¿Y Mar y tú? ¿Adónde fueron ayer?" }
+      ]
+    },
+    "guide.lesson.villager.smith_waits": {
+      "poolId": "guide.lesson.villager.smith_waits",
+      "variants": [
+        { "lineId": "guide.lesson.villager.smith_waits.1", "text": "Domingo te busca. Está en la herrería." }
+      ]
+    },
+    "guide.lesson.smith.ate": {
+      "poolId": "guide.lesson.smith.ate",
+      "variants": [
+        { "lineId": "guide.lesson.smith.ate.1", "text": "¡Hola! Ayer trabajé todo el día. ¿Qué comieron Luz y Mar?" }
+      ]
+    },
+    "guide.lesson.smith.must": {
+      "poolId": "guide.lesson.smith.must",
+      "variants": [
+        { "lineId": "guide.lesson.smith.must.1", "text": "Mar fue al río y te busca. ¿Adónde tienes que ir?" }
+      ]
+    },
+    "guide.lesson.fisher.sold": {
+      "poolId": "guide.lesson.fisher.sold",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.sold.1", "text": "¡Hola! Ayer le vendí pescado a Luz. Mañana va a comprar más." }
+      ]
+    },
+    "guide.lesson.fisher.bought": {
+      "poolId": "guide.lesson.fisher.bought",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.bought.1", "text": "¿Qué compró Luz ayer?" }
+      ]
+    },
+    "guide.lesson.fisher.tomorrow": {
+      "poolId": "guide.lesson.fisher.tomorrow",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.tomorrow.1", "text": "¿Y tú? ¿Qué vas a hacer mañana?" }
+      ]
+    },
+    "guide.lesson.baker.tomorrow": {
+      "poolId": "guide.lesson.baker.tomorrow",
+      "variants": [
+        { "lineId": "guide.lesson.baker.tomorrow.1", "text": "¿Qué harás mañana?" }
+      ]
+    },
+    "guide.lesson.baker.fresh": {
+      "poolId": "guide.lesson.baker.fresh",
+      "variants": [
+        { "lineId": "guide.lesson.baker.fresh.1", "text": "¡Qué bien! Mañana tendré pan fresco." }
+      ]
+    },
+    "guide.lesson.smith.wood": {
+      "poolId": "guide.lesson.smith.wood",
+      "variants": [
+        { "lineId": "guide.lesson.smith.wood.1", "text": "¡Hola! Luz necesita madera para el horno. ¿Qué harás?" }
+      ]
+    },
+    "guide.lesson.smith.go": {
+      "poolId": "guide.lesson.smith.go",
+      "variants": [
+        { "lineId": "guide.lesson.smith.go.1", "text": "¡Muy bien! Mar pescará en el río toda la tarde. ¿Adónde irás ahora?" }
+      ]
+    },
+    "guide.lesson.fisher.day": {
+      "poolId": "guide.lesson.fisher.day",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.day.1", "text": "¡Hola! Mañana Luz hará pan. Domingo trabajará en la herrería. Y yo pescaré en el río." }
+      ]
+    },
+    "guide.lesson.fisher.luz_will": {
+      "poolId": "guide.lesson.fisher.luz_will",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.luz_will.1", "text": "¿Qué hará Luz mañana?" }
+      ]
+    },
+    "baker_buy": {
+      "poolId": "baker_buy",
+      "variants": [
+        { "lineId": "baker_buy.1", "text": "¡Gracias! Aquí tienes tus monedas." }
+      ]
+    },
+    "baker_cant_sell": {
+      "poolId": "baker_cant_sell",
+      "variants": [
+        { "lineId": "baker_cant_sell.1", "text": "No tienes madera." }
+      ]
+    },
+    "baker_wont_buy": {
+      "poolId": "baker_wont_buy",
+      "variants": [
+        { "lineId": "baker_wont_buy.1", "text": "No, gracias. Solo compro madera." }
+      ]
+    },
+    "farmer_buy": {
+      "poolId": "farmer_buy",
+      "variants": [
+        { "lineId": "farmer_buy.1", "text": "¡Gracias! Aquí tienes tus monedas." }
+      ]
+    },
+    "farmer_cant_sell": {
+      "poolId": "farmer_cant_sell",
+      "variants": [
+        { "lineId": "farmer_cant_sell.1", "text": "No tienes fruta." }
+      ]
+    },
+    "farmer_wont_buy": {
+      "poolId": "farmer_wont_buy",
+      "variants": [
+        { "lineId": "farmer_wont_buy.1", "text": "No, gracias. Solo compro fruta." }
+      ]
+    },
+    "farmer_total": {
+      "poolId": "farmer_total",
+      "variants": [
+        { "lineId": "farmer_total.1", "text": "Quince manzanas, quince monedas." }
+      ]
+    },
+    "farmer_pay": {
+      "poolId": "farmer_pay",
+      "variants": [
+        { "lineId": "farmer_pay.1", "text": "Aquí se paga con monedas. Pero yo te compro fruta." }
+      ]
+    },
+    "smith_buy": {
+      "poolId": "smith_buy",
+      "variants": [
+        { "lineId": "smith_buy.1", "text": "¡Gracias! Aquí tienes tus monedas." }
+      ]
+    },
+    "smith_cant_sell": {
+      "poolId": "smith_cant_sell",
+      "variants": [
+        { "lineId": "smith_cant_sell.1", "text": "No tienes madera." }
+      ]
+    },
+    "smith_wont_buy": {
+      "poolId": "smith_wont_buy",
+      "variants": [
+        { "lineId": "smith_wont_buy.1", "text": "No, gracias. Solo compro madera." }
+      ]
+    },
+    "guide.lesson.baker.mar": {
+      "poolId": "guide.lesson.baker.mar",
+      "variants": [
+        { "lineId": "guide.lesson.baker.mar.1", "text": "¿Y qué hizo Mar ayer?" }
+      ]
+    },
+    "guide.lesson.baker.fifteen": {
+      "poolId": "guide.lesson.baker.fifteen",
+      "variants": [
+        { "lineId": "guide.lesson.baker.fifteen.1", "text": "Once, doce, trece, catorce, quince." }
+      ]
+    },
+    "guide.lesson.baker.twenty": {
+      "poolId": "guide.lesson.baker.twenty",
+      "variants": [
+        { "lineId": "guide.lesson.baker.twenty.1", "text": "Dieciséis, diecisiete, dieciocho, diecinueve, veinte." }
+      ]
+    },
+    "guide.lesson.baker.market": {
+      "poolId": "guide.lesson.baker.market",
+      "variants": [
+        { "lineId": "guide.lesson.baker.market.1", "text": "¡Hoy hay mercado! ¿Cuántos panes tengo?" }
+      ]
+    },
+    "guide.lesson.baker.sell": {
+      "poolId": "guide.lesson.baker.sell",
+      "variants": [
+        { "lineId": "guide.lesson.baker.sell.1", "text": "Necesito madera para el horno. ¿Qué quieres hacer?" }
+      ]
+    },
+    "guide.lesson.baker.pay": {
+      "poolId": "guide.lesson.baker.pay",
+      "variants": [
+        { "lineId": "guide.lesson.baker.pay.1", "text": "Te pago una moneda por cada bloque de madera." }
+      ]
+    },
+    "guide.lesson.farmer.market": {
+      "poolId": "guide.lesson.farmer.market",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.market.1", "text": "¡Hola! Hoy hay mercado. Tengo quince manzanas." }
+      ]
+    },
+    "guide.lesson.farmer.dear": {
+      "poolId": "guide.lesson.farmer.dear",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.dear.1", "text": "¿Es caro o es barato?" }
+      ]
+    },
+    "guide.lesson.farmer.cheaper": {
+      "poolId": "guide.lesson.farmer.cheaper",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.cheaper.1", "text": "Una manzana cuesta una moneda, y un pan, dos. ¿Qué es más barato?" }
+      ]
+    },
+    "guide.lesson.farmer.will_sell": {
+      "poolId": "guide.lesson.farmer.will_sell",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.will_sell.1", "text": "¿Y qué venderás mañana?" }
+      ]
+    },
+    "guide.lesson.shop.market": {
+      "poolId": "guide.lesson.shop.market",
+      "variants": [
+        { "lineId": "guide.lesson.shop.market.1", "text": "¡Hola! ¿Qué compraste en el mercado?" }
+      ]
+    },
+    "baker_wont_sell": {
+      "poolId": "baker_wont_sell",
+      "variants": [
+        { "lineId": "baker_wont_sell.1", "text": "Solo vendo pan." }
+      ]
+    },
+    "farmer_wont_sell": {
+      "poolId": "farmer_wont_sell",
+      "variants": [
+        { "lineId": "farmer_wont_sell.1", "text": "Solo vendo manzanas." }
+      ]
+    },
+    "baker_none_offered": {
+      "poolId": "baker_none_offered",
+      "variants": [
+        { "lineId": "baker_none_offered.1", "text": "¿Cuántos bloques de madera me vendes?" }
+      ]
+    },
+    "smith_none_offered": {
+      "poolId": "smith_none_offered",
+      "variants": [
+        { "lineId": "smith_none_offered.1", "text": "¿Cuántos bloques de madera me vendes?" }
+      ]
+    },
+    "farmer_none_offered": {
+      "poolId": "farmer_none_offered",
+      "variants": [
+        { "lineId": "farmer_none_offered.1", "text": "¿Cuántas frutas me vendes?" }
+      ]
+    },
+    "baker_no_room": {
+      "poolId": "baker_no_room",
+      "variants": [
+        { "lineId": "baker_no_room.1", "text": "Tu bolsa está llena." }
+      ]
+    },
+    "farmer_no_room": {
+      "poolId": "farmer_no_room",
+      "variants": [
+        { "lineId": "farmer_no_room.1", "text": "Tu bolsa está llena." }
+      ]
+    },
+    "smith_no_room": {
+      "poolId": "smith_no_room",
+      "variants": [
+        { "lineId": "smith_no_room.1", "text": "Tu bolsa está llena." }
       ]
     }
   }

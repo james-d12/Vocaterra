@@ -46,7 +46,7 @@ public sealed class GameData
         IReadOnlyList<ControlHelp> controls,
         IReadOnlyList<SpeechLine> speech,
         LessonBook lessons,
-        IReadOnlyList<CheckItem> checks,
+        CheckBank checks,
         SceneLayout scene,
         GameWords words,
         NpcRoster npcs,
@@ -114,7 +114,7 @@ public sealed class GameData
     public LessonBook Lessons { get; }
 
     /// <summary>The check battery's items (<c>game/checks.json</c>, their text from the locale).</summary>
-    public IReadOnlyList<CheckItem> Checks { get; }
+    public CheckBank Checks { get; }
 
     /// <summary>The scene's layout (<c>game/scene.json</c>), parsed from the verified bytes.</summary>
     public SceneLayout Scene { get; }
@@ -166,8 +166,8 @@ public sealed class GameData
         var npcs = NpcRoster.Load(bundle);
         locale = locale.WithNames(npcs.All.ToDictionary(static n => n.Id, static n => n.Called, StringComparer.Ordinal), InputKeys.Defaults); // {npc:…} and {key:…} (C04)
         var nouns = NounCatalog.Load(bundle);
-        var phrases = PhraseSheet.Load(bundle, locale);
-        var speech = SpeechLines.Enumerate(bundle, nouns, phrases);
+        var phrases = PhraseSheet.Load(bundle, locale, npcs);
+        var speech = SpeechLines.Enumerate(bundle, nouns, phrases, npcs);
         return new GameData(
             bundle,
             locale,
@@ -221,9 +221,13 @@ public sealed class GameData
         return new GameData(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives);
     }
 
+    /// <summary>The same parts with another phrase sheet (the validator's tests).</summary>
+    /// <param name="phrases">The sheet.</param>
+    internal GameData WithPhrases(PhraseSheet phrases) => new(Bundle, Locale, Nouns, Recipes, phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives);
+
     /// <summary>The same parts with another check battery (the validator's tests).</summary>
     /// <param name="checks">The items.</param>
-    internal GameData WithChecks(IReadOnlyList<CheckItem> checks) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, checks, Scene, Words, Npcs, HostEvents, Objectives);
+    internal GameData WithChecks(CheckBank checks) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, checks, Scene, Words, Npcs, HostEvents, Objectives);
 
     /// <summary>The same parts with another support language (the validator's tests).</summary>
     /// <param name="locale">The locale.</param>

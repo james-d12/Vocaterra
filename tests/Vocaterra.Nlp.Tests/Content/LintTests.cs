@@ -181,8 +181,10 @@ public class LintTests
     [Fact]
     public void TheBundleLintTakesUnderFiveSeconds()
     {
+        // Read before the clock starts: loading the bundle has its own test and budget, and only the type initializer's timing kept it out of this one.
+        var bundle = TestSupport.Bundle;
         var started = System.Diagnostics.Stopwatch.StartNew();
-        ContentLinter.Lint(TestSupport.Bundle, new LintOptions { Level = "a2" });
+        ContentLinter.Lint(bundle, new LintOptions { Level = "a2" });
 
         Assert.True(started.Elapsed < TimeSpan.FromSeconds(5), $"the lint took {started.Elapsed}");
     }
@@ -522,7 +524,7 @@ public class LintTests
         Assert.Equal(0, report.Errors);
     }
 
-    // The bundle itself lints clean at A1 (the gate), so the CEFR checks are shown on a copy whose A1 list is cut down to one word and whose A2 list adds the water.
+    // The bundle itself lints clean at its ceiling, A2 (the gate), so the CEFR checks are shown on a copy whose A1 list is cut down to one word and whose A2 list adds the water.
     private static LintFixture LevelFixture()
     {
         return new LintFixture().Write("cefr/a1.txt", "hola\n").Write("cefr/a2.txt", "agua\n");
@@ -553,15 +555,19 @@ public class LintTests
     }
 
     [Fact]
-    public void TheBundleLintsCleanAtBothLevels()
+    public void TheBundleLintsCleanAtItsCeilingAndA1IsAReport()
     {
-        foreach (var level in new[] { "a1", "a2" })
-        {
-            var report = ContentLinter.Lint(TestSupport.Bundle, new LintOptions { Level = level, FailOnLevel = true, HostPools = ["guide.*"] });
+        // The game's bundle has an A2 ceiling (the game's VILLAGE_PLAN 3.9, D-game-22 (b), V08; core M61): with --fail-on-level at A2 it lints clean, and at A1
+        // a lemma above A1 is only a warning of the level's own checks, a report for the game's owner (each lesson's own level is the game's validator's).
+        var ceiling = ContentLinter.Lint(TestSupport.Bundle, new LintOptions { Level = "a2", FailOnLevel = true, HostPools = ["guide.*"] });
 
-            Assert.Equal(0, report.Errors);
-            Assert.Equal(0, report.Warnings);
-        }
+        Assert.Equal(0, ceiling.Errors);
+        Assert.Equal(0, ceiling.Warnings);
+
+        var report = ContentLinter.Lint(TestSupport.Bundle, new LintOptions { Level = "a1", HostPools = ["guide.*"] });
+
+        Assert.Equal(0, report.Errors);
+        Assert.All(report.Active(LintSeverity.Warning), f => Assert.StartsWith("cefr.", f.CheckId, StringComparison.Ordinal));
     }
 
     [Fact]

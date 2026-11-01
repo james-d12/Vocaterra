@@ -18,7 +18,7 @@ public sealed class SceneTests(ITestOutputHelper output)
     private const ulong Seed = 42;
 
     /// <summary>The world digest of the bundle's route at seed 42 (its timing test is <see cref="SceneBuildTimeTests"/>).</summary>
-    internal const string GoldenDigest = "8048644059674b5335ef2c32e230defbbe8402a32f72f7ee10324a36fc80cb47";
+    internal const string GoldenDigest = "0f652f77d2c135a4db698edfc3aec5d5fff6b3980eeddc7d41200abc69536777"; // VILLAGE_PLAN V04: the village grows; V10: the well's rim one block high
 
     private const int Units = VoxelTestSupport.Units;
 
@@ -228,7 +228,11 @@ public sealed class SceneTests(ITestOutputHelper output)
         Assert.InRange(Distance(scene.Point("stall"), scene.Point("village")), 1, 20);
         Assert.Equal(BlockId.Canvas, grid.GetBlock(scene.Point("tent").X, scene.Point("tent").Y + 3, scene.Point("tent").Z));
 
-        Assert.Equal(["guide", "shopkeeper", "villager"], scene.Npcs.Select(n => n.Name));
+        Assert.Equal(["guide", "shopkeeper", "villager", "fisher", "baker", "smith", "farmer"], scene.Npcs.Select(n => n.Name)); // V10: the fisher stands at npc.fisher, facing the river
+        Assert.Equal(scene.Point("npc.fisher"), scene.Npcs.Single(static n => n.Name == "fisher").Feet with { Y = scene.Point("npc.fisher").Y });
+        Assert.Equal(scene.Point("npc.baker"), scene.Npcs.Single(static n => n.Name == "baker").Feet with { Y = scene.Point("npc.baker").Y }); // V11: the baker at npc.baker
+        Assert.Equal(scene.Point("npc.smith"), scene.Npcs.Single(static n => n.Name == "smith").Feet with { Y = scene.Point("npc.smith").Y }); // V12: the smith at npc.smith
+        Assert.Equal(scene.Point("npc.farmer"), scene.Npcs.Single(static n => n.Name == "farmer").Feet with { Y = scene.Point("npc.farmer").Y }); // and the farmer at npc.farmer
         Assert.InRange(Distance(scene.Npc("guide").Feet, scene.Point("camp.guide")), 0, 12);
         Assert.InRange(Distance(scene.Npc("shopkeeper").Feet, scene.Point("village")), 0, 20);
         Assert.InRange(Distance(scene.Npc("villager").Feet, scene.Point("village")), 0, 20);
@@ -242,13 +246,79 @@ public sealed class SceneTests(ITestOutputHelper output)
 
         var counts = CountBlocks(grid);
         Assert.True(counts[BlockId.BerryBush] >= 3, "the camp needs at least three berry bushes for the objective");
-        Assert.Equal(3 * 5 * 5, counts[BlockId.Planks]); // three 5 x 5 house floors
-        Assert.Equal(3 * 2, counts[BlockId.Door]); // a two-block doorway each
+        Assert.Equal((3 * 5 * 5) + (6 * 5) + (5 * 5), counts[BlockId.Planks]); // three 5 x 5 house floors, the bakery's 6 x 5 and the smithy's 5 x 5 (V04)
+        Assert.Equal(5 * 2, counts[BlockId.Door]); // a two-block doorway each
         Assert.Equal(3, counts[BlockId.Stall]); // the counter
         Assert.Equal(3, counts[BlockId.Sign]); // the post column of the signpost's three boards
         Assert.Equal(5, counts[BlockId.SignTiendaA] + counts[BlockId.SignTiendaB] + counts[BlockId.SignRio] + counts[BlockId.SignMontanaA] + counts[BlockId.SignMontanaB]); // the names: two, one and two cells
-        Assert.Equal(2 * 8, counts[BlockId.FireRing]); // two rings of eight stones
+        Assert.Equal(3 * 8, counts[BlockId.FireRing]); // three rings of eight stones: the two camps' and the smith's forge (V04)
         Assert.True(TrunkBlocks(grid) > 10_000, "a dense forest has many trunk blocks");
+    }
+
+    [Fact]
+    public void TheVillagesNewBuildingsStandOnItsLevelGroundInsideTheClearingAndOnNoOtherBuilding()
+    {
+        // VILLAGE_PLAN V04: the levelled disc grows from 20 to 24 (its slope ends at 32, inside the clearing's 36); the bakery and its oven, the smithy and its
+        // forge and the well stand on it, each on flat ground, on no column of the houses, the stall, the fences, the field, the tower or one another.
+        var layout = VoxelTestSupport.RouteDraft;
+        var scene = VoxelTestSupport.BuildRoute(Seed);
+        var village = layout.Site("village")!;
+        Assert.Equal((24, 8), (village.Radius, village.Blend));
+        var clearing = layout.Trees.ClearingList.Single(static c => c.Site == "village");
+        Assert.True(village.Radius + village.Blend <= clearing.Radius, "the slope of the levelled ground ends inside the clearing");
+
+        var level = scene.Point("village").Y;
+        var added = new[] { "bakery", "oven", "smithy", "forge", "well" };
+        var before = new[] { "house1", "house2", "house3", "stall", "tower", "field" };
+        var footprints = layout.Props
+            .Where(p => p.Type is "house" or "stall" or "stamp" or "fire_ring" or "field" or "fence_line"
+                && ((p.X - village.X) * (p.X - village.X)) + ((p.Z - village.Z) * (p.Z - village.Z)) <= 32 * 32)
+            .Select(p => (Name: p.Name ?? $"{p.Type} at ({p.X}, {p.Z})", Columns: Footprint(p, layout).ToHashSet()))
+            .ToList();
+        var fences = footprints.Where(static f => f.Name.StartsWith("fence_line", StringComparison.Ordinal)).ToList();
+        Assert.Equal(2, fences.Count);
+        foreach (var name in added)
+        {
+            var columns = footprints.Single(f => f.Name == name).Columns;
+            foreach (var (x, z) in columns)
+            {
+                // On the level ground, so on flat ground: the floor or the ground of every column is at the village's height.
+                Assert.True(((x - village.X) * (x - village.X)) + ((z - village.Z) * (z - village.Z)) <= village.Radius * village.Radius, $"{name}: ({x}, {z}) is off the levelled ground");
+                Assert.True(scene.Grid.IsSolid(x, level, z) && scene.Grid.IsSolid(x, level - 1, z), $"{name}: ({x}, {z}) has no ground at the village's level {level}");
+            }
+
+            Assert.Equal(level, scene.Point(name).Y);
+            foreach (var other in footprints.Where(f => f.Name != name && (before.Contains(f.Name) || added.Contains(f.Name))).Concat(fences))
+            {
+                Assert.False(columns.Overlaps(other.Columns), $"{name} stands on a column of {other.Name}");
+            }
+        }
+    }
+
+    [Fact]
+    public void TheNewPeoplesStandPointsAreClearGroundAPlayerCanWalkTo()
+    {
+        // VILLAGE_PLAN V04 adds the places where the fisher, the baker, the smith and the farmer will stand (their placements come with their lessons, V10 to
+        // V12): each is dry ground with room for the feet and the head, as a placement needs, and the player can walk there from the village square.
+        var scene = VoxelTestSupport.BuildRoute(Seed);
+        var grid = scene.Grid;
+        var village = scene.Point("village");
+        var start = new BlockPos(village.X, village.Y + 1, village.Z);
+        foreach (var name in new[] { "npc.baker", "npc.smith", "npc.farmer", "npc.fisher" })
+        {
+            var point = scene.Point(name);
+            Assert.True(grid.IsSolid(point.X, point.Y, point.Z), $"{name}: no ground at {point}");
+            Assert.NotEqual(BlockId.Water, grid.GetBlock(point.X, point.Y + 1, point.Z));
+            Assert.False(grid.IsSolid(point.X, point.Y + 1, point.Z), $"{name}: the feet's cell is taken");
+            Assert.False(grid.IsSolid(point.X, point.Y + 2, point.Z), $"{name}: the head's cell is taken");
+            Assert.NotNull(WalkPath(grid, start, new BlockPos(point.X, point.Y + 1, point.Z)));
+        }
+
+        Assert.InRange(Distance(scene.Point("npc.fisher"), scene.Point("bridge.east")), 2, 5); // on the bridge's east landing
+        foreach (var name in new[] { "npc.baker", "npc.smith", "npc.farmer" })
+        {
+            Assert.InRange(Distance(scene.Point(name), village), 0, 20);
+        }
     }
 
     [Fact]
@@ -488,7 +558,7 @@ public sealed class SceneTests(ITestOutputHelper output)
             trunks.Add((p.X, p.Z));
         }
 
-        Assert.Equal(scene.TreeCount, trunks.Count);
+        Assert.Equal(scene.TreeCount + ExplicitTrees, trunks.Count); // the scatter's trees and the layout's own (the farmer's orchard, V04)
         var spacing = VoxelTestSupport.RouteDraft.Trees.Spacing;
         foreach (var (x, z) in trunks)
         {
@@ -552,6 +622,39 @@ public sealed class SceneTests(ITestOutputHelper output)
         var error = Assert.Throws<SceneLayoutException>(() => SceneLayout.Parse(json));
         Assert.Contains(fragment, error.Message, StringComparison.Ordinal);
     }
+
+    // The columns a building of the layout stands on, as the builder lays it out (VILLAGE_PLAN V04): a house, a stall or a field from its north-west corner with
+    // its default size, a stamp as drawn and turned to its facing, a fire ring round its centre, a fence line along its axis.
+    private static IEnumerable<(int X, int Z)> Footprint(PropSpec prop, SceneLayout layout)
+    {
+        var (x0, z0, width, depth) = prop.Type switch
+        {
+            "house" => (prop.X, prop.Z, prop.Width > 0 ? prop.Width : 5, prop.Depth > 0 ? prop.Depth : 5),
+            "stall" => (prop.X, prop.Z, prop.Width > 0 ? prop.Width : 5, prop.Depth > 0 ? prop.Depth : 2),
+            "field" => (prop.X, prop.Z, prop.Width > 0 ? prop.Width : 7, prop.Depth > 0 ? prop.Depth : 7),
+            "fence_line" => (prop.X, prop.Z, prop.AlongZ ? 1 : prop.Length, prop.AlongZ ? prop.Length : 1),
+            "fire_ring" => (prop.X - 1, prop.Z - 1, 3, 3),
+            "stamp" => StampFootprint(prop, layout.Stamps[prop.Stamp!]),
+            _ => (prop.X, prop.Z, 1, 1),
+        };
+        for (var z = z0; z < z0 + depth; z++)
+        {
+            for (var x = x0; x < x0 + width; x++)
+            {
+                yield return (x, z);
+            }
+        }
+    }
+
+    private static (int X, int Z, int Width, int Depth) StampFootprint(PropSpec prop, StampSpec stamp)
+    {
+        var drawnWidth = stamp.Layers.Max(static layer => layer.Count == 0 ? 0 : layer.Max(static row => row.Length));
+        var drawnDepth = stamp.Layers.Max(static layer => layer.Count);
+        return prop.Facing is Direction.East or Direction.West ? (prop.X, prop.Z, drawnDepth, drawnWidth) : (prop.X, prop.Z, drawnWidth, drawnDepth);
+    }
+
+    /// <summary>The trees the layout plants itself (<c>tree</c> props: the farmer's orchard, V04), which <see cref="Scene.TreeCount"/> does not count.</summary>
+    internal static int ExplicitTrees => VoxelTestSupport.RouteDraft.Props.Count(static p => p.Type == "tree");
 
     /// <summary>The y of the top block of the ground in a column: the highest block that is not a tree, a roof or air.</summary>
     private static int Ground(VoxelGrid grid, int x, int z)

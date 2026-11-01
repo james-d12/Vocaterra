@@ -3,6 +3,7 @@ namespace Vocaterra.Nlp.Es.Tests.Analysis;
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Packs;
+using Vocaterra.Nlp.Language.SlotGrammar;
 
 /// <summary>
 /// M49: tense checks for the near future (conj.tense). A future-time marker with a preterite or imperfect form expects the ir a + infinitive form; a conjugated
@@ -55,6 +56,31 @@ public class NearFutureTenseTests
     public void AConjugatedVerbAfterIrAExpectsTheInfinitive(string sentence, string expected)
     {
         Assert.Equal([expected], Described(sentence));
+    }
+
+    // M59 (c), found by the game's V12: hace is also the preposition of "hace dos días", and after "ir a" a word with a reading that is not a verb, an adverb or a
+    // conjunction was left to the noun phrase, so "va a hace un hacha" gave nothing where "va a hizo" gave conj.tense. No preposition follows the a of "ir a", so the
+    // verb is read and checked. The game's grammar binds hacer as it does at the lesson's prompt; the analysis without a grammar is the same.
+    [Theory]
+    [InlineData("va a hace un hacha", "conj.tense|hace|hacer")]
+    [InlineData("voy a hace pan", "conj.tense|hace|hacer")]
+    [InlineData("vamos a hace pan mañana", "conj.tense|hace|hacer")]
+    [InlineData("va a hizo un hacha", "conj.tense|hizo|hacer")]
+    public void AFiniteVerbThatIsAlsoAPrepositionAfterIrAExpectsTheInfinitive(string sentence, string expected)
+    {
+        Assert.Equal([expected], Described(sentence));
+        var grammar = SlotGrammar.Parse("(mañana|ayer|hoy|luego|después)? (domingo|luz|mar|león)? [VERB:ir] a [VERB:hacer] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?");
+        Assert.Equal([expected], Analyzer.Value.Analyze(TestTokens.From(sentence), [grammar]).Errors.Select(static e => $"{e.Tag}|{e.Actual}|{e.Expected}").ToArray());
+    }
+
+    [Theory]
+    [InlineData("va a hacer un hacha")]
+    [InlineData("domingo va a hacer un hacha")]
+    [InlineData("va a la herrería")]
+    [InlineData("hace dos días fui a la tienda")]
+    public void TheInfinitiveAndANounPhraseAfterIrAAreClean(string sentence)
+    {
+        Assert.Empty(Described(sentence));
     }
 
     // R02, found by the fuzz suite on the game's bundle ("va a vais a culpa ayer por favor"): a past-time marker and a finite verb after "ir a" were both
@@ -112,6 +138,39 @@ public class NearFutureTenseTests
     public void WhatLearnersAndTheGameSayIsClean(string sentence)
     {
         Assert.Empty(Described(sentence));
+    }
+
+    // M57 (b), found by the game's V10: "pasado mañana" is one time phrase, the day after tomorrow, wherever it stands. Its pasado was read as an adjective of the
+    // noun before it ("compro panes pasado mañana" gave noun.number, expected pasados) and, after a time noun, as a past marker ("voy a ir el domingo pasado
+    // mañana" gave conj.tense on voy, expected fui). Speech transcripts carry no commas, so the phrase cannot be told from its neighbours by punctuation.
+    // Found on the way: on the bundle's lexicon "la semana pasada" was no past marker at all ("compro panes la semana pasada" and "la semana pasada compro pan"
+    // gave nothing): pasada is also a noun (una pasada), and the resolver's charitable fallback took it whenever the adjective showed the slip. The form of pasado
+    // after a time noun is the marker now, whatever its reading (LinguisticAnalyzerTests' "la semana pasada vendo" runs on a lexicon without that noun).
+    [Theory]
+    [InlineData("compro panes pasado mañana")]
+    [InlineData("pasado mañana compro panes")]
+    [InlineData("compro dos panes pasado mañana")]
+    [InlineData("voy a comprar panes pasado mañana")]
+    [InlineData("voy a ir el domingo pasado mañana")]
+    [InlineData("compré panes la semana pasada")]
+    [InlineData("compré pan el año pasado")]
+    [InlineData("el pan pasado")]
+    public void PasadoMananaIsTheTimePhraseAndTheOtherPasadosKeepTheirReading(string sentence)
+    {
+        Assert.Empty(Described(sentence));
+    }
+
+    [Theory]
+    [InlineData("pasado mañana compré panes", "conj.tense|compré|voy a comprar")]
+    [InlineData("compré panes pasado mañana", "conj.tense|compré|voy a comprar")]
+    [InlineData("compré pan el domingo pasado mañana", "conj.tense|compré|voy a comprar")]
+    [InlineData("compro panes la semana pasada", "conj.tense|compro|compré")]
+    [InlineData("la semana pasada compro pan", "conj.tense|compro|compré")]
+    [InlineData("compro pan el año pasado", "conj.tense|compro|compré")]
+    [InlineData("los panes pasado", "noun.number|pasado|pasados")]
+    public void PasadoMananaKeepsItsFutureAndThePastMarkerAndTheAdjectiveKeepTheirs(string sentence, string expected)
+    {
+        Assert.Equal([expected], Described(sentence));
     }
 
     [Fact]

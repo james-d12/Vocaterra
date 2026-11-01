@@ -16,10 +16,10 @@ public sealed class GameDataTests
         var data = GameData.Load(TestGame.Bundle, TestGame.Locale);
 
         Assert.Empty(GameDataValidator.Validate(data));
-        Assert.Equal(19, data.Nouns.Nouns.Count);
-        Assert.Equal(46, data.Phrases.Rows.Count);
-        Assert.Equal(31, data.Checks.Count);
-        Assert.Equal(3, data.Lessons.Lessons.Count);
+        Assert.Equal(22, data.Nouns.Nouns.Count); // V03 added moneda, manzana and hacha
+        Assert.Equal(155, data.Phrases.Rows.Count); // V10 added El pueblo's fifteen, V11 Números y pan's sixteen, V12 Gente del pueblo's sixteen, V13 ¿Cómo es?'s sixteen, V14 Ayer en el pueblo's sixteen, V17 Mañana en el pueblo's ten, V15 El mercado's twenty
+        Assert.Equal(87, data.Checks.Count);
+        Assert.Equal(10, data.Lessons.Lessons.Count);
         Assert.Equal("prototype-valley", data.Scene.Name);
     }
 
@@ -62,9 +62,12 @@ public sealed class GameDataTests
             static p => Assert.StartsWith("game/scene.json: the scene places the NPC 'miller'", p, StringComparison.Ordinal),
             static p => Assert.Equal("game/scene.json: the scene does not place the NPC 'villager'.", p),
             static p => Assert.Equal("game/lessons.json: the lesson 'personas' is said at 'villager', whom the scene does not place.", p),
-            static p => Assert.Equal("game/lessons.json: the lesson 'ayer-y-manana' is said at 'villager', whom the scene does not place.", p));
+            static p => Assert.Equal("game/lessons.json: the lesson 'ayer-y-manana' is said at 'villager', whom the scene does not place.", p),
+            static p => Assert.Equal("game/lessons.json: the lesson 'el-pueblo' is said at 'villager', whom the scene does not place.", p), // the signpost step (V10)
+            static p => Assert.Equal("game/lessons.json: the lesson 'gente-del-pueblo' is said at 'villager', whom the scene does not place.", p), // its first and last parts (V12)
+            static p => Assert.Equal("game/lessons.json: the lesson 'ayer-en-el-pueblo' is said at 'villager', whom the scene does not place.", p)); // the day of the village (V14)
         var error = Assert.Throws<InvalidDataException>(() => GameData.Checked(data));
-        Assert.Contains("(6 problems)", error.Message, StringComparison.Ordinal);
+        Assert.Contains("(9 problems)", error.Message, StringComparison.Ordinal);
         Assert.Contains("hola-x", error.Message, StringComparison.Ordinal);
     }
 }

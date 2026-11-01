@@ -1,7 +1,8 @@
 namespace Vocaterra.Game.Core.Items;
 
 /// <summary>
-/// The item kinds the player can hold in the 3D world: wood (from a trunk), a torch (crafted at the workbench), a berry (from a berry bush), and, since S6, a bottle (empty, then full of water) and bread (both given by NPCs).
+/// The item kinds the player can hold in the 3D world: wood (from a trunk), a torch (crafted at the workbench), a berry (from a berry bush), and, since S6, a bottle (empty, then full of water) and bread (both given by NPCs);
+/// since VILLAGE_PLAN V03 the village's economy: a coin, an apple and the axe.
 /// The numeric values are saved in later milestones (S10), so a value is never changed or reused: a kind the prototype retired (the 2D tools,
 /// ores and furniture) keeps its number out of this enum. Spanish names are not here; each kind's noun is the bundle's <c>game/nouns.json</c>,
 /// keyed by <see cref="ItemDefinition.Name"/>.
@@ -28,6 +29,15 @@ public enum ItemId : ushort
 
     /// <summary>The learner's book (S20, D-game-16): given at the start; using it (selected, right-click) opens the book.</summary>
     Book = 29,
+
+    /// <summary>A coin (<c>moneda</c>, VILLAGE_PLAN V03): what an order pays and what a purchase costs (<see cref="Npc.NpcEffectKind.Sell"/>).</summary>
+    Coin = 30,
+
+    /// <summary>An apple (<c>manzana</c>, VILLAGE_PLAN V03), which the farmer sells and gives.</summary>
+    Apple = 31,
+
+    /// <summary>The axe (<c>hacha</c>, VILLAGE_PLAN V03), the smith's order: held, it gathers a trunk in a quarter of the ticks (<see cref="Simulation.VoxelSimulation.GatherTicksOf"/>).</summary>
+    Axe = 32,
 }
 
 /// <summary>
@@ -50,6 +60,9 @@ public sealed record ItemDefinition(ItemId Id, string Name, int MaxStack)
         new(ItemId.WaterBottle, "water-bottle", DefaultStackLimit),
         new(ItemId.Bread, "bread", DefaultStackLimit),
         new(ItemId.Book, "book", 1),
+        new(ItemId.Coin, "coin", DefaultStackLimit),
+        new(ItemId.Apple, "apple", DefaultStackLimit),
+        new(ItemId.Axe, "axe", 1),
     ];
 
     /// <summary>Every item kind, ordered by id.</summary>

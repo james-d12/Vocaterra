@@ -28,14 +28,42 @@ public sealed record SupportWords(string CardTag, string ListenChip, string KeyW
 /// <summary>The near future, <c>ir a</c> + infinitive (S27): the verb, its joiner, and the time words that make a present a plan.</summary>
 /// <param name="Verb">The verb in the present (<c>ir</c>).</param>
 /// <param name="Joiner">The word between it and the infinitive (<c>a</c>).</param>
-/// <param name="TimeWords">The future-time words (<c>mañana</c>) that make a present tense a plan, which is no miss.</param>
-public sealed record NearFutureWords(string Verb, string Joiner, IReadOnlyList<string> TimeWords);
+/// <param name="TimeWords">The future-time words (<c>mañana</c>, <c>luego</c>; V16: a time word of several words, <c>semana que viene</c>) that make a present tense a plan, which is no miss.</param>
+public sealed record NearFutureWords(string Verb, string Joiner, IReadOnlyList<string> TimeWords)
+{
+    /// <summary>
+    /// Which words of a line belong to one of the <see cref="TimeWords"/> (V16). A time word of one word is that word; one of several (<c>semana que viene</c>,
+    /// <c>próxima semana</c>) is those words in that order, never one of them alone, so <c>viene</c> is part of a time word in <c>la semana que viene</c> and in
+    /// no other line. The words are compared as the core normalized them (lower case, the accents kept).
+    /// </summary>
+    /// <param name="words">The line's normalized words, in order.</param>
+    /// <returns>One flag for each word: whether it is part of a time word.</returns>
+    public bool[] Mark(IReadOnlyList<string> words)
+    {
+        ArgumentNullException.ThrowIfNull(words);
+        var marked = new bool[words.Count];
+        foreach (var time in TimeWords)
+        {
+            var parts = time.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            for (var start = 0; parts.Length > 0 && start + parts.Length <= words.Count; start++)
+            {
+                if (Enumerable.Range(0, parts.Length).All(k => string.Equals(parts[k], words[start + k], StringComparison.Ordinal)))
+                {
+                    Array.Fill(marked, true, start, parts.Length);
+                }
+            }
+        }
+
+        return marked;
+    }
+}
 
 /// <summary>
 /// The target-language words the game itself uses (CONTENT_PLAN 3.3, C05), read from <c>game/words.json</c>: the guide's directions, the block unit and the
-/// list joiner, the speech buttons and the support headings, the pronouns of the conjugation tables, the key words of the stall, the help and "no sé"
-/// lines, the near future, the greeting, the letters the typing help lists, and the nouns the world's logic is about. They were constants in the code;
-/// here the grammar check sees them, and a later target language needs no code change for them. Plain values; no clock.
+/// list joiner, the speech buttons and the support headings, the pronouns of the conjugation tables, the help and "no sé" lines, the near future, the
+/// greeting, the letters the typing help lists, and the nouns the world's logic is about. They were constants in the code; here the grammar check sees
+/// them, and a later target language needs no code change for them. The key words an NPC shows first left this file for the NPC's own (schema 2,
+/// <see cref="Npc.NpcEntry.KeyWords"/>). Plain values; no clock.
 /// </summary>
 public sealed class GameWords
 {
@@ -54,7 +82,6 @@ public sealed class GameWords
         SupportWords support,
         string unseen,
         IReadOnlyDictionary<string, string> pronouns,
-        IReadOnlyList<string> keyWords,
         string helpLine,
         string dontKnowLine,
         NearFutureWords nearFuture,
@@ -70,7 +97,6 @@ public sealed class GameWords
         Support = support;
         Unseen = unseen;
         _pronouns = pronouns;
-        KeyWords = keyWords;
         HelpLine = helpLine;
         DontKnowLine = dontKnowLine;
         NearFuture = nearFuture;
@@ -99,9 +125,6 @@ public sealed class GameWords
 
     /// <summary>The label of a thing not seen yet, and of the beacon's quiz (<c>¿?</c>).</summary>
     public string Unseen { get; }
-
-    /// <summary>The key words the shopkeeper shows before his first question (S17: <c>agua</c>, <c>pan</c>).</summary>
-    public IReadOnlyList<string> KeyWords { get; }
 
     /// <summary>The line the help button says (<c>ayuda</c>).</summary>
     public string HelpLine { get; }
@@ -152,9 +175,9 @@ public sealed class GameWords
         {
             using var document = JsonDocument.Parse(json);
             var root = document.RootElement;
-            if (root.GetProperty("schemaVersion").GetInt32() != 1)
+            if (root.GetProperty("schemaVersion").GetInt32() != 2)
             {
-                throw new InvalidDataException($"{RelativePath} must have schemaVersion 1.");
+                throw new InvalidDataException($"{RelativePath} must have schemaVersion 2.");
             }
 
             var directions = root.GetProperty("directions");
@@ -172,7 +195,6 @@ public sealed class GameWords
                 new SupportWords(Text(support, "cardTag"), Text(support, "listenChip"), Text(support, "keyWordsHeading")),
                 Text(root, "unseen"),
                 pronouns,
-                Texts(root, "keyWords"),
                 Text(root, "helpLine"),
                 Text(root, "dontKnowLine"),
                 new NearFutureWords(Text(nearFuture, "verb"), Text(nearFuture, "joiner"), Texts(nearFuture, "timeWords")),
@@ -199,7 +221,6 @@ public sealed class GameWords
             ("nearFuture.verb", NearFuture.Verb), ("nearFuture.joiner", NearFuture.Joiner),
         };
         all.AddRange(PronounKeys.Select(key => ("pronouns." + key, _pronouns[key])));
-        all.AddRange(KeyWords.Select((word, i) => ("keyWords[" + i.ToString(System.Globalization.CultureInfo.InvariantCulture) + "]", word)));
         all.AddRange(NearFuture.TimeWords.Select((word, i) => ("nearFuture.timeWords[" + i.ToString(System.Globalization.CultureInfo.InvariantCulture) + "]", word)));
         all.AddRange(NounRoles.Select(role => ("nouns." + role, _nouns[role])));
         return all;

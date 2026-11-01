@@ -252,6 +252,40 @@ public sealed class LessonRunner
         return _session.PlaySession >= lesson.Session && (lesson.After is null || IsDone(lesson.After));
     }
 
+    /// <summary>
+    /// Why a lesson that is not begun waits (V12c, the book's Lessons page): it is the unlocked lesson the objective sends the learner to (<see cref="LessonWaitKind.Next"/>: the
+    /// new session's, or with no lesson under way the one to go on with), another unlocked one, its play session has not come, or the lesson it comes after is not done (its
+    /// session is said first when both hold, since it is the later of the two). <see langword="null"/> for a lesson begun or done, or an unknown one.
+    /// </summary>
+    /// <param name="lessonId">The lesson's id.</param>
+    public LessonWait? WaitOf(string lessonId)
+    {
+        ArgumentNullException.ThrowIfNull(lessonId);
+        if (_book.Find(lessonId) is not { } lesson || StatusOf(lesson.Id) != LessonStatus.NotStarted || IsDone(lesson.Id))
+        {
+            return null;
+        }
+
+        if (_session.PlaySession < lesson.Session)
+        {
+            return new LessonWait(LessonWaitKind.Session, lesson.Session, lesson.Npc);
+        }
+
+        if (lesson.After is { } after && !IsDone(after))
+        {
+            return new LessonWait(LessonWaitKind.After, lesson.Session, lesson.Npc, after);
+        }
+
+        var next = NewLesson ?? (_activeId is null ? NextUp : null);
+        return new LessonWait(string.Equals(next?.Id, lesson.Id, StringComparison.Ordinal) ? LessonWaitKind.Next : LessonWaitKind.Open, lesson.Session, lesson.Npc);
+    }
+
+    /// <summary>
+    /// The lesson the learner goes on with or starts next (V12c, the objective line when nothing else is asked): the active lesson, else the unlocked lesson that is not
+    /// done, the newest session first (as an NPC offers them); <see langword="null"/> when every unlocked lesson is done.
+    /// </summary>
+    public LessonDefinition? NextUp => Active ?? _book.Lessons.Where(l => !IsDone(l.Id) && IsUnlocked(l)).OrderByDescending(static l => l.Session).FirstOrDefault();
+
     /// <summary>The id of the lesson the learner asked to practise again from the book, which starts when they talk to its NPC; <see langword="null"/> when none.</summary>
     public string? ReplayPending => _replayId;
 
@@ -447,7 +481,7 @@ public sealed class LessonRunner
 
     /// <summary>
     /// The short English line the objective area shows while an engaged lesson waits on a <c>do</c> step that has one (S17: "Pick a fruit from a berry bush, then
-    /// go back to Rosa"), or <see langword="null"/>.
+    /// go back to Luna"), or <see langword="null"/>.
     /// </summary>
     public string? HudLine => Engaged && Current is { Type: LessonStepType.Do, Hud: { } hud } ? hud : null;
 
@@ -627,6 +661,45 @@ public sealed class LessonRunner
         return Available(npc) is { } next && (next.AutoStart || string.Equals(_replayId, next.Id, StringComparison.Ordinal));
     }
 
+    /// <summary>
+    /// Whether a lesson keeps an order back (VILLAGE_PLAN V13): an order that names the lesson that tells it (<see cref="ObjectiveSpec.Lesson"/>) is not delivered on walking up
+    /// while that lesson is under way before its step that waits for the delivery, or is about to start at this talk (an <c>autoStart</c> lesson available at the order's NPC,
+    /// or one asked to be practised again). So the plan comes first even for a learner who carries the goods already (the water filled at the river in session 1, at the
+    /// farmer in session 7). Once the lesson reaches that step, ends, or does not start at that NPC, walking up with the goods is enough again (D-game-8, D-game-9); every
+    /// step can be skipped, so the order never waits behind speech.
+    /// </summary>
+    /// <param name="order">The order.</param>
+    internal bool HoldsOrder(ObjectiveSpec order)
+    {
+        ArgumentNullException.ThrowIfNull(order);
+        if (order is not { Lesson: { } id, DeliverTo: { } npc } || _book.Find(id) is not { } lesson || DeliveryStep(lesson, order.Id) is not (>= 0 and var at))
+        {
+            return false;
+        }
+
+        if (string.Equals(_activeId, lesson.Id, StringComparison.Ordinal))
+        {
+            return _states[lesson.Id].Step < at;
+        }
+
+        return _activeId is null && Available(npc) is { } next && string.Equals(next.Id, lesson.Id, StringComparison.Ordinal)
+            && (next.AutoStart || string.Equals(_replayId, next.Id, StringComparison.Ordinal));
+    }
+
+    // The index of the lesson's do step that waits for the order's delivery (order_delivered with the order's id), or -1.
+    private static int DeliveryStep(LessonDefinition lesson, string order)
+    {
+        for (var i = 0; i < lesson.Steps.Count; i++)
+        {
+            if (lesson.Steps[i] is { Type: LessonStepType.Do, Trigger: { Event: WorldEvents.OrderDelivered, Detail: { } detail } } && string.Equals(detail, order, StringComparison.Ordinal))
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
     // ---- What the session tells the runner.
 
     // The lesson unit ("lesson/step") a line said to this NPC now lands on: the engaged lesson's step that waits on a turn, at that NPC; otherwise null.
@@ -728,11 +801,12 @@ public sealed class LessonRunner
             }
             else
             {
-                var plan = PresentForPlan(step, turn);
-                Finish(lesson, state, StepOutcome.Done, plan ? "present for a plan, credited" : turn.Errors.Count == 0 ? null : "with a slip");
-                if (plan && step.PresentNote is { } note && _activeId is not null)
+                var other = OtherFuture(step, turn);
+                Finish(lesson, state, StepOutcome.Done, other ?? (turn.Errors.Count == 0 ? null : "with a slip"));
+                if (other is not null && (step.Tense == TaughtVerbForm.SimpleFuture ? step.FutureNote : step.PresentNote) is { } note && _activeId is not null)
                 {
-                    // Correct Spanish is never a miss (S27): the plan said in the present is credited, and the next step opens with a gentle note naming the form this lesson practises.
+                    // Correct Spanish is never a miss (S27, V16): the future said another right way is credited, and the next step opens with a gentle note naming the form this
+                    // lesson practises (an ir-a step's presentNote, a fut step's futureNote).
                     state.Hint = note;
                     _version++;
                 }
@@ -774,7 +848,7 @@ public sealed class LessonRunner
             return ($"wrong person: said {said}, expected {person}", step.PersonRetry);
         }
 
-        if (step.Tense is { } tense && WrongTense(turn, tense) is { } saidTense)
+        if (step.Tense is { } tense && WrongTense(step, turn) is { } saidTense)
         {
             return ($"wrong tense: said {saidTense}, expected {tense}", step.TenseRetry);
         }
@@ -804,6 +878,37 @@ public sealed class LessonRunner
         }
 
         Finish(lesson, state, StepOutcome.Done, world.Detail);
+    }
+
+    // Counts a lesson as completed in a play session it was not played in (V12c, --skip-to-session, a test aid): its state is a completed lesson's, every step recorded
+    // as skipped (the learner took none of them), done, completed in that session. Nothing else moves: no turn, no phrase use, no lesson event (a lesson's completion
+    // changes no phrase record by itself; its turns do).
+    internal void CountAsCompleted(string lessonId, int session)
+    {
+        if (_book.Find(lessonId) is not { } lesson)
+        {
+            throw new ArgumentException($"There is no lesson '{lessonId}'.", nameof(lessonId));
+        }
+
+        if (string.Equals(_activeId, lesson.Id, StringComparison.Ordinal) || string.Equals(_replayId, lesson.Id, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException($"The lesson '{lesson.Id}' is under way or asked for again; it cannot be counted as completed.");
+        }
+
+        var state = _states[lesson.Id];
+        state.Status = LessonStatus.Completed;
+        state.Done = true;
+        state.CompletedSession = session;
+        state.Step = lesson.Steps.Count - 1; // where a completed lesson stands
+        state.Outcomes.Clear();
+        state.Outcomes.AddRange(lesson.Steps.Select(static step => (step.Id, StepOutcome.Skipped)));
+        state.Attempts = 0;
+        state.Helped = false;
+        state.Picked = -1;
+        state.Pending = null;
+        state.Hint = null;
+        state.Asked = null;
+        _version++;
     }
 
     // ---- The save (S10).
@@ -898,6 +1003,13 @@ public sealed class LessonRunner
             step = state.Asked = step with { Phrase = chosen.Phrase, Prompt = chosen.Prompt, Line = chosen.Line, Translation = chosen.Translation };
         }
 
+        if (step is { Type: LessonStepType.Do, Trigger: { Event: WorldEvents.OrderDelivered, Detail: { } order } } && _session.OrderDelivered(order))
+        {
+            // The goods of an order were brought before the step asked for them (V11): walking up with them is enough (D-game-8), so the step has nothing to wait for.
+            Finish(lesson, state, StepOutcome.Done, "delivered before");
+            return;
+        }
+
         state.Attempts = 0;
         state.Helped = false;
         state.Picked = -1;
@@ -913,6 +1025,10 @@ public sealed class LessonRunner
         if (step.Point is { } noun)
         {
             _session.LessonPointAt(lesson.NpcOf(step), noun); // a do step may send the beacon to what the learner is to pick up (S17)
+        }
+        else if (step.PointPlace is { } place)
+        {
+            _session.LessonPointAtPlace(lesson.NpcOf(step), place); // or to a place of the scene, whose arrival (beacon_reached) the step may wait for (VILLAGE_PLAN V02)
         }
 
         _version++;
@@ -973,10 +1089,9 @@ public sealed class LessonRunner
         _session.RefreshLessonSupport();
     }
 
-    // An attempt that did not work: try again, or after the step's attempts move on (fail-forward).
     // The person and number (1sg...) of the answer's finite verb when they are not the expected ones and the core found no error to flag, else null. A line with no finite verb
     // is not judged. When the line has several verbs, one with the expected person is enough.
-    private static string? WrongPerson(GuideTurn turn, string wanted)
+    private string? WrongPerson(GuideTurn turn, string wanted)
     {
         if (turn.Errors.Any(static e => e.Tag.StartsWith("conj.", StringComparison.Ordinal)) || turn.Words is not { } words)
         {
@@ -989,19 +1104,52 @@ public sealed class LessonRunner
         return verbs.Count == 0 || verbs.Contains(wanted, StringComparer.Ordinal) ? null : verbs[0];
     }
 
-    // The finite verbs of an answer: those with a person and a number that are not infinitives.
-    private static List<GuideWord> FiniteVerbs(IReadOnlyList<GuideWord> words) =>
-        words.Where(static w => string.Equals(w.Pos, "verb", StringComparison.Ordinal) && w.Person is { Length: > 0 } && w.Number is { Length: > 0 }
+    // The finite verbs of an answer: those with a person and a number that are not infinitives. A verb inside a time word is not the answer's (V16: the viene of la
+    // semana que viene, game/words.json's nearFuture.timeWords).
+    private List<GuideWord> FiniteVerbs(IReadOnlyList<GuideWord> words)
+    {
+        var time = TimeWordsOf(words);
+        return words.Where((w, i) => !time[i] && string.Equals(w.Pos, "verb", StringComparison.Ordinal) && w.Person is { Length: > 0 } && w.Number is { Length: > 0 }
             && !string.Equals(w.Mood, "inf", StringComparison.OrdinalIgnoreCase) && !string.Equals(w.Mood, "infinitive", StringComparison.OrdinalIgnoreCase)).ToList();
+    }
 
-    // Whether the answer of an ir-a step is a plan said in the present with a future-time word (S27): "mañana voy al río", "mañana como pan". It is correct Spanish, so it is no miss.
-    private bool PresentForPlan(LessonStep step, GuideTurn turn) =>
-        string.Equals(step.Tense, TaughtVerbForm.NearFuture, StringComparison.Ordinal) && !turn.Errors.Any(static e => e.Tag.StartsWith("conj.", StringComparison.Ordinal))
-        && turn.Words is { } words && PresentForPlan(turn, words, FiniteVerbs(words)) && !HasNearFuture(words, FiniteVerbs(words));
+    // Which words of an answer belong to a future-time word (S27, V16): mañana, luego, la semana que viene (a time word of several words is matched as a whole).
+    private bool[] TimeWordsOf(IReadOnlyList<GuideWord> words) => _session.Data.Words.NearFuture.Mark(words.Select(static w => w.Text).ToList());
 
-    private bool PresentForPlan(GuideTurn turn, IReadOnlyList<GuideWord> words, List<GuideWord> finite) =>
-        words.Any(w => _session.Data.Words.NearFuture.TimeWords.Contains(w.Text, StringComparer.Ordinal)) && finite.Count > 0 && finite.Any(static w => string.Equals(w.Tense, "pres", StringComparison.OrdinalIgnoreCase))
+    // The future said right in another form than the step's (S27, V16: "correct Spanish is never a miss"), with no conj.* error from the core: at an ir-a step a plan in the
+    // present with a future-time word (mañana voy al río) or the simple future (compraré pan); at a fut step the near future (voy a comprar pan) or a plan in the present
+    // with a time word (mañana compro pan). It is credited, and the next step opens with the step's note. The outcome's detail for the log, or null when the answer has the
+    // step's own form or is none of these.
+    private string? OtherFuture(LessonStep step, GuideTurn turn)
+    {
+        if (step.Tense is not (TaughtVerbForm.NearFuture or TaughtVerbForm.SimpleFuture) || turn.Errors.Any(static e => e.Tag.StartsWith("conj.", StringComparison.Ordinal))
+            || turn.Words is not { } words)
+        {
+            return null;
+        }
+
+        var finite = FiniteVerbs(words);
+        var near = HasNearFuture(words, finite);
+        var simple = HasSimpleFuture(finite);
+        if (step.Tense == TaughtVerbForm.NearFuture ? near : simple)
+        {
+            return null; // the step's own form
+        }
+
+        return near ? "near future for a plan, credited"
+            : simple ? "simple future for a plan, credited"
+            : PresentForPlan(words, finite) ? "present for a plan, credited"
+            : null;
+    }
+
+    // A plan said in the present with a future-time word (S27): "mañana voy al río", "mañana como pan", "la semana que viene compro pan". It is correct Spanish.
+    private bool PresentForPlan(IReadOnlyList<GuideWord> words, List<GuideWord> finite) =>
+        TimeWordsOf(words).Any(static time => time) && finite.Any(static w => string.Equals(w.Tense, "pres", StringComparison.OrdinalIgnoreCase))
         && !finite.Any(static w => string.Equals(w.Tense, "pret", StringComparison.OrdinalIgnoreCase) || string.Equals(w.Tense, "impf", StringComparison.OrdinalIgnoreCase));
+
+    // The simple future (V16): a finite verb the core reads in the future (compraré, iré, hará: the lexicon's tense fut).
+    private static bool HasSimpleFuture(List<GuideWord> finite) =>
+        finite.Any(static w => string.Equals(w.Tense, TaughtVerbForm.SimpleFuture, StringComparison.OrdinalIgnoreCase));
 
     private bool HasNearFuture(IReadOnlyList<GuideWord> words, List<GuideWord> finite)
     {
@@ -1016,19 +1164,23 @@ public sealed class LessonRunner
         return false;
     }
 
-    // The near future at a word: a finite form of its verb (ir), then its joiner (a), then an infinitive (game/words.json, C05).
+    // The near future at a word: a finite form of its verb (ir) in the present, then its joiner (a), then an infinitive (game/words.json, C05). The core may read vamos as an
+    // imperative with no tense (S27), which counts; ir in a past (iba a comprar, fui a comprar) is not the near future (V16).
     private bool IsNearFutureAt(IReadOnlyList<GuideWord> words, List<GuideWord> finite, int i)
     {
         var nearFuture = _session.Data.Words.NearFuture;
-        return string.Equals(words[i].Lemma, nearFuture.Verb, StringComparison.Ordinal) && finite.Contains(words[i]) && string.Equals(words[i + 1].Text, nearFuture.Joiner, StringComparison.Ordinal)
+        return string.Equals(words[i].Lemma, nearFuture.Verb, StringComparison.Ordinal) && finite.Contains(words[i])
+            && (words[i].Tense is null || string.Equals(words[i].Tense, "pres", StringComparison.OrdinalIgnoreCase))
+            && string.Equals(words[i + 1].Text, nearFuture.Joiner, StringComparison.Ordinal)
             && string.Equals(words[i + 2].Pos, "verb", StringComparison.Ordinal) && (words[i + 2].Mood is "inf" or "infinitive" || words[i + 2].Person is not { Length: > 0 });
     }
 
-    // The tense (S27) of the answer's verb when it is not the expected one and the core found no error to flag, else null: the tense said (pres, pret, ...) or "none". The near future
-    // (ir-a) is a finite form of ir, then "a", then an infinitive. A line with no finite verb is not judged. When the line has several verbs, one with the expected tense is enough.
-    private string? WrongTense(GuideTurn turn, string wanted)
+    // The tense (S27) of the answer's verb when it is not the step's and the core found no error to flag, else null: the tense said (pres, pret, ...) or "none". The near
+    // future (ir-a) is a finite form of ir, then "a", then an infinitive; the simple future (fut, V16) is the core's reading of the verb. A line with no finite verb is not
+    // judged. When the line has several verbs, one with the expected tense is enough. Another right way of saying the future at a future step is no miss (OtherFuture).
+    private string? WrongTense(LessonStep step, GuideTurn turn)
     {
-        if (turn.Errors.Any(static e => e.Tag.StartsWith("conj.", StringComparison.Ordinal)) || turn.Words is not { } words)
+        if (turn.Errors.Any(static e => e.Tag.StartsWith("conj.", StringComparison.Ordinal)) || turn.Words is not { } words || step.Tense is not { } wanted)
         {
             return null;
         }
@@ -1039,25 +1191,13 @@ public sealed class LessonRunner
             return null;
         }
 
-        if (string.Equals(wanted, TaughtVerbForm.NearFuture, StringComparison.Ordinal))
-        {
-            if (PresentForPlan(turn, words, finite))
-            {
-                return null; // right Spanish for a plan, said in the present: credited, with a note (see OnTurn)
-            }
-
-            var nearFuture = false;
-            for (var i = 0; i + 2 < words.Count; i++)
-            {
-                nearFuture |= IsNearFutureAt(words, finite, i);
-            }
-
-            return nearFuture ? null : finite[0].Tense ?? "none";
-        }
-
-        return finite.Any(w => string.Equals(w.Tense, wanted, StringComparison.OrdinalIgnoreCase)) ? null : finite[0].Tense ?? "none";
+        var right = string.Equals(wanted, TaughtVerbForm.NearFuture, StringComparison.Ordinal)
+            ? HasNearFuture(words, finite)
+            : finite.Any(w => string.Equals(w.Tense, wanted, StringComparison.OrdinalIgnoreCase));
+        return right || OtherFuture(step, turn) is not null ? null : finite[0].Tense ?? "none"; // right Spanish for the future said another way: credited, with a note (see OnTurn)
     }
 
+    // An attempt that did not work: try again, or after the step's attempts move on (fail-forward).
     private void Miss(LessonDefinition lesson, State state, LessonStep step, string reason, string? retry = null)
     {
         state.Attempts++;
@@ -1073,7 +1213,7 @@ public sealed class LessonRunner
     }
 
     // Whether the core understood the line as the step's phrase: the intent of its row. Phrases that share an intent (Sí and Sí, por favor) are one answer to
-    // the core, and the step's own phrase is the one the tracking credits (GuideSession.PhraseInPlayFor).
+    // the core, and the step's own phrase is the one the tracking credits (GuideSession.PhraseOf).
     private bool MatchesPhrase(GuideTurn turn, string phraseId) =>
         _session.Phrases.Find(phraseId) is { Intent: { } intent } && string.Equals(intent, turn.Intent, StringComparison.Ordinal);
 

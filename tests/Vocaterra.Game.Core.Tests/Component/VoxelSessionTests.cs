@@ -1,6 +1,8 @@
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Physics;
+using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Session;
+using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
@@ -46,6 +48,52 @@ public sealed class VoxelSessionTests
 
         // The arrow is out, and it is the beacon's block.
         Assert.Equal(new PointerMarker("río", expected.Cell), session.Pointer);
+    }
+
+    [Fact]
+    public void TheS3DemoLineStillHolds()
+    {
+        // IMPLEMENTATION_PLAN section 6, item 4: the game at seed 42 with --look 120,-5 and --say "¿dónde está el río?" prints "ask_directions, understood" and the
+        // guide's line, and the beacon goes out. As the scenario script runs it: the look, then a line with no panel open walks the player to the guide's
+        // stand-off cell (ScenarioScript.StartTalk), faces her chest, settles, opens the panel on her and types the line; every tick sends the look control's angles
+        // first (WorldStepper). The plan's line, "a la izquierda, a sesenta bloques", is the S3 world's; since S13 the game prints the line below (checked with the
+        // game itself on 2026-10-30, VILLAGE_PLAN V02, which does not touch the guide's answer).
+        var session = TestGame.NewSessionWithShippedLessons(seed: 42);
+        var look = new LookControl();
+        Run(session, look, [VoxelStep.Look(120, -5)]);
+        var guide = session.Scene.Npc("guide").Feet;
+        var stand = NpcStandOff.Choose(session.Scene.Grid, guide, session.Simulation.Player.FeetBlock)!.Value;
+        Run(session, look, [VoxelStep.WalkTo(stand.X, stand.Z)]);
+        var body = session.Simulation.Player;
+        look.LookAt(body.EyeX / (double)Unit, body.EyeY / (double)Unit, body.EyeZ / (double)Unit, guide.X + 0.5, guide.Y + 1.2, guide.Z + 0.5);
+        for (var tick = 0; tick < ScenarioScript.SettleTicks; tick++)
+        {
+            session.Step([VoxelCommand.Look(look.Yaw, look.Pitch)]);
+        }
+
+        _ = session.OpenTalk("guide");
+
+        var turn = session.Say("¿dónde está el río?");
+
+        Assert.Equal(("ask_directions", true), (turn.Intent, turn.Communicated));
+        Assert.Equal("El río está allí, adelante, a la izquierda, a cincuenta y cuatro bloques.", turn.WorldLine);
+        Assert.Equal(new PointerMarker("río", turn.Pointer!.Target), session.Pointer);
+        Assert.Equal(new GuideCell(230, 34, 201), turn.Pointer.Target); // the game's "arrow: río at 230,34,201 (54 blocks, adelante, a la izquierda)"
+    }
+
+    private static void Run(VoxelSession session, LookControl look, IReadOnlyList<VoxelStep> steps)
+    {
+        var script = new VoxelScript(session.Simulation, look, steps, static _ => null, static _ => { });
+        var commands = new List<VoxelCommand>();
+        for (var tick = 0; tick < 6000 && !script.IsDone; tick++)
+        {
+            commands.Clear();
+            script.Fill(commands);
+            commands.Insert(0, VoxelCommand.Look(look.Yaw, look.Pitch));
+            session.Step(commands);
+        }
+
+        Assert.True(script.IsDone, "the scripted steps did not finish");
     }
 
     [Fact]

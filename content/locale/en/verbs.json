@@ -135,10 +135,10 @@
       "past": "arrived"
     },
     "verb.gustar": {
-      "gloss": "to like",
-      "base": "like",
-      "third": "likes",
-      "past": "liked"
+      "gloss": "to please (me gusta: I like it)",
+      "base": "please",
+      "third": "pleases",
+      "past": "pleased"
     },
     "verb.ayudar": {
       "gloss": "to help",
@@ -152,11 +152,17 @@
       "third": "looks for",
       "past": "looked for"
     },
+    "verb.comprar": {
+      "gloss": "to buy",
+      "base": "buy",
+      "third": "buys",
+      "past": "bought"
+    },
     "verb.hablar": {
       "gloss": "to speak",
       "base": "speak",
       "third": "speaks",
-      "past": "speaked"
+      "past": "spoke"
     },
     "verb.llamar": {
       "gloss": "to call",
@@ -193,6 +199,36 @@
       "base": "take (time)",
       "third": "takes (time)",
       "past": "took"
+    },
+    "verb.costar": {
+      "gloss": "to cost",
+      "base": "cost",
+      "third": "costs",
+      "past": "cost"
+    },
+    "verb.trabajar": {
+      "gloss": "to work",
+      "base": "work",
+      "third": "works",
+      "past": "worked"
+    },
+    "verb.vivir": {
+      "gloss": "to live",
+      "base": "live",
+      "third": "lives",
+      "past": "lived"
+    },
+    "verb.pescar": {
+      "gloss": "to fish",
+      "base": "fish",
+      "third": "fishes",
+      "past": "fished"
+    },
+    "verb.vender": {
+      "gloss": "to sell",
+      "base": "sell",
+      "third": "sells",
+      "past": "sold"
     }
   }
 }

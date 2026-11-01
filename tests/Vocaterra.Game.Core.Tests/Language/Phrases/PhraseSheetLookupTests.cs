@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Language.Phrases;
+using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Tests.TestSupport;
 
 namespace Vocaterra.Game.Core.Tests.Language.Phrases;
@@ -13,7 +14,7 @@ public sealed class PhraseSheetLookupTests
     private static PhraseSheet Sheet => RouteScene.DataOf(TestGame.Bundle).Phrases;
 
     [Fact]
-    public void TheBundleHoldsTheFortySixPhrasesOfTheSheetInOrder()
+    public void TheBundleHoldsTheHundredAndFiftyFivePhrasesOfTheSheetInOrder()
     {
         var sheet = Sheet;
 
@@ -22,7 +23,20 @@ public sealed class PhraseSheetLookupTests
                 "me-llamo", "es-madera", "si", "no", "que-es-esto", "quieres-fruta", "de-nada", "otra-vez", "mas-despacio", "necesitas-madera",
                 "que-quieres", "quiero-madera", "tienes-fruta", "tengo-fruta", "necesito-agua",
                 "que-quiere-luna", "ella-quiere-fruta", "necesitamos-agua", "que-necesita-usted", "necesito-pan", "tengo-botella", "que-quieren-ustedes", "queremos-pan",
-                "que-vas-a-comer", "voy-a-comer-pan", "que-vamos-a-comer", "vamos-a-comer-fruta", "que-comiste-ayer", "ayer-comi-fruta", "fuiste-al-rio-ayer", "ayer-fui-al-rio", "bebiste-agua-ayer", "ayer-bebi-agua", "que-vas-a-hacer", "voy-a-ir-al-rio"],
+                "que-vas-a-comer", "voy-a-comer-pan", "que-vamos-a-comer", "vamos-a-comer-fruta", "que-comiste-ayer", "ayer-comi-fruta", "fuiste-al-rio-ayer", "ayer-fui-al-rio", "bebiste-agua-ayer", "ayer-bebi-agua", "que-vas-a-hacer", "voy-a-ir-al-rio",
+                "que-buscas", "donde-esta-la-panaderia", "esta-a-la-izquierda", "donde-esta-la-herreria", "esta-lejos", "esta-cerca", "hay-tres-casas", "hay-un-pozo", "adonde-vas", "voy-a-la-panaderia",
+                "que-vas-a-hacer-alli", "voy-a-comprar-pan", "el-letrero", "fuiste-a-la-panaderia", "fui-a-la-panaderia",
+                "uno-a-cinco", "seis-a-diez", "tengo-diez-panes", "cuantos-panes", "quiero-dos-panes", "cuanto-cuesta", "cuesta-dos-monedas", "necesito-madera-para-el-horno", "voy-a-buscar-madera",
+                "toma-cuatro-monedas", "tengo-cuatro-monedas", "ayer-compre-fruta", "que-compraste", "compre-dos-panes", "compraste-dos-panes", "hay-pan",
+                "como-te-llamas", "me-llamo-domingo", "que-haces", "soy-el-herrero", "es-el-herrero", "que-va-a-hacer-domingo", "va-a-hacer-un-hacha", "donde-vives",
+                "vivo-en-el-campamento", "quieres-un-hacha", "toma-el-hacha", "trabaja-en-la-herreria", "vive-en-la-casa", "que-hizo-domingo", "hizo-un-hacha", "ayer-trabajo-mucho",
+                "mis-manzanas-son-rojas", "como-es-la-manzana", "la-manzana-es-roja", "te-gusta-el-pan", "me-gusta-el-pan", "me-gustan-las-manzanas", "quiero-tres-manzanas-rojas", "mis-plantas-necesitan-agua",
+                "voy-a-buscar-agua", "es-grande", "el-pan-es-de-luz", "toma-tres-manzanas", "fui-al-rio", "ayer-me-gusto", "te-gusto-el-pan", "me-gusto-el-pan",
+                "el-dia-de-ayer", "que-hizo-luz", "luz-hizo-pan", "que-hizo-mar", "mar-pesco-en-el-rio", "comieron-en-la-plaza", "fuimos-a-la-tienda", "adonde-fueron",
+                "fuimos-al-rio", "que-comieron", "ellos-comieron-pan", "adonde-tienes-que-ir", "tengo-que-ir", "le-vendi-pescado", "que-compro-luz", "luz-compro-pescado",
+                "que-haras-manana", "manana-comprare-pan", "tendre-pan", "luz-necesita-madera", "buscare-madera", "mar-pescara", "ire-al-rio", "el-dia-de-manana", "que-hara-luz", "luz-hara-pan",
+                "tienes-veinte-panes", "quiero-vender-madera", "vendo-madera", "cuanto-es-todo", "es-muy-caro", "mas-barato-que", "puedo-pagar-con-fruta", "manana-vendere-fruta", "compre-tres-manzanas",
+                "once-a-quince", "dieciseis-a-veinte", "cuantos-panes-tengo", "te-pago-una-moneda", "tengo-quince-manzanas", "quince-monedas", "es-caro-o-barato", "que-es-mas-barato", "te-compro-fruta", "que-venderas-manana", "que-compraste-en-el-mercado"],
             sheet.Rows.Select(static r => r.Id));
         Assert.Equal("Quiero agua, por favor.", sheet.Find("pedir-agua")!.CardPhrase);
         Assert.Equal("¿Dónde está el río?", sheet.Find("donde-esta-el-rio")!.CardPhrase);
@@ -57,6 +71,28 @@ public sealed class PhraseSheetLookupTests
         // The guide's offer at the camp is answered with the same two phrases.
         Assert.Equal("no-gracias", sheet.Expected("guide-offer", "deny", true, "no")!.Id);
         Assert.Equal(["si-por-favor", "no-gracias"], sheet.PhrasesAt("guide-offer").Select(static r => r.Id));
+    }
+
+    [Fact]
+    public void APromptAnNpcWaitsOnWithNoRowsIsAnsweredLikeAnotherNpcPromptThatAcceptsTheSame()
+    {
+        // V01: the guide's offer took the stall's offer rows by name in the code. Now any prompt an NPC file names (guide-offer: the yes-no answer set, confirm, deny,
+        // help, "no sé") that no row names takes the rows of another NPC's prompt that accepts exactly the same answers (stall-offer). The guide's open prompt
+        // and her review share an answer set with the villager's but not its intents, so they stay without rows; a lesson's prompt is not an NPC's.
+        Assert.Empty(Sheet.PhrasesAt("guide-open"));
+        Assert.Empty(Sheet.PhrasesAt("guide-review"));
+        Assert.Empty(Sheet.PhrasesAt("lesson-name"));
+
+        // The rule comes from the data: NPCs that waited on lesson-name and lesson-unstuck (one answer set, the same intents) would share lesson-unstuck's rows.
+        var npcs = TestGame.Data.Npcs;
+        var roster = NpcRoster.Of(
+        [
+            npcs.Find("guide")! with { Prompts = new Dictionary<string, string>(StringComparer.Ordinal) { ["idle"] = "lesson-name" }, ReviewPrompt = null },
+            npcs.Find("villager")! with { Prompts = new Dictionary<string, string>(StringComparer.Ordinal) { ["idle"] = "lesson-unstuck" } },
+        ]);
+        var sheet = PhraseSheet.Load(TestGame.Bundle, TestGame.Locale, roster);
+        Assert.Equal(["otra-vez", "mas-despacio"], sheet.PhrasesAt("lesson-name").Select(static r => r.Id));
+        Assert.Empty(sheet.PhrasesAt("guide-offer")); // no NPC waits on it here
     }
 
     [Fact]

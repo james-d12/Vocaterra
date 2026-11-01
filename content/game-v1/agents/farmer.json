@@ -1,0 +1,63 @@
+{
+  "agentId": "farmer",
+  "initialState": "idle",
+  "variantPools": [
+    { "id": "answer_accepted", "count": 3 },
+    { "id": "not_understood", "count": 2 },
+    { "id": "farmer_wont_sell", "count": 1 },
+    { "id": "farmer_wont_buy", "count": 1 },
+    { "id": "farmer_total", "count": 1 },
+    { "id": "farmer_pay", "count": 1 },
+    { "id": "farmer_cant_sell", "count": 1 },
+    { "id": "farmer_none_offered", "count": 1 },
+    { "id": "farmer_no_room", "count": 1 },
+    { "id": "guide.lesson.farmer.how_many", "count": 1 },
+    { "id": "farmer_buy", "count": 1 },
+    { "id": "farmer_bye", "count": 2 },
+    { "id": "farmer_cant_pay", "count": 1 },
+    { "id": "farmer_delivered", "count": 1 },
+    { "id": "farmer_greet", "count": 1 },
+    { "id": "farmer_hello", "count": 1 },
+    { "id": "farmer_help", "count": 1 },
+    { "id": "farmer_job", "count": 1 },
+    { "id": "farmer_name", "count": 1 },
+    { "id": "farmer_price", "count": 1 },
+    { "id": "farmer_sell", "count": 2 },
+    { "id": "farmer_thank", "count": 2 }
+  ],
+  "states": [
+    {
+      "id": "idle",
+      "transitions": [
+        { "onHostEvent": "farmer.greet", "to": "idle", "actions": [{ "dialogueIntent": "farmer_hello", "variantPoolId": "farmer_hello" }] },
+        { "onHostEvent": "farmer.delivered", "to": "idle", "actions": [{ "dialogueIntent": "farmer_delivered", "hostEvent": "farmer.give_apples", "variantPoolId": "farmer_delivered" }] },
+        { "onHostEvent": "farmer.cant_pay", "to": "idle", "actions": [{ "dialogueIntent": "farmer_cant_pay", "variantPoolId": "farmer_cant_pay" }] },
+        { "onHostEvent": "farmer.wont_sell", "to": "idle", "actions": [{ "dialogueIntent": "farmer_wont_sell", "variantPoolId": "farmer_wont_sell" }] },
+        { "onHostEvent": "farmer.cant_sell", "to": "idle", "actions": [{ "dialogueIntent": "farmer_cant_sell", "variantPoolId": "farmer_cant_sell" }] },
+        { "onHostEvent": "farmer.wont_buy", "to": "idle", "actions": [{ "dialogueIntent": "farmer_wont_buy", "variantPoolId": "farmer_wont_buy" }] },
+        { "onHostEvent": "farmer.none_asked", "to": "idle", "actions": [{ "dialogueIntent": "guide.lesson.farmer.how_many", "variantPoolId": "guide.lesson.farmer.how_many" }] },
+        { "onHostEvent": "farmer.none_offered", "to": "idle", "actions": [{ "dialogueIntent": "farmer_none_offered", "variantPoolId": "farmer_none_offered" }] },
+        { "onHostEvent": "farmer.no_room", "to": "idle", "actions": [{ "dialogueIntent": "farmer_no_room", "variantPoolId": "farmer_no_room" }] },
+        { "on": {"intent": "greet", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_greet", "variantPoolId": "farmer_greet" }] },
+        { "on": {"intent": "ask_name", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_name", "variantPoolId": "farmer_name" }] },
+        { "on": {"intent": "ask_activity", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_job", "variantPoolId": "farmer_job" }] },
+        { "on": {"intent": "request_item", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_sell", "hostEvent": "farmer.sell_apples", "variantPoolId": "farmer_sell" }] },
+        { "on": {"intent": "offer_item", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_buy", "hostEvent": "farmer.buy_fruit", "variantPoolId": "farmer_buy" }] },
+        { "on": {"intent": "ask_price", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_price", "variantPoolId": "farmer_price" }] },
+        { "on": {"intent": "ask_total", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_total", "variantPoolId": "farmer_total" }] },
+        { "on": {"intent": "ask_pay", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_pay", "variantPoolId": "farmer_pay" }] },
+        { "on": {"intent": "describe", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
+        { "on": {"intent": "state_like", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
+        { "on": {"intent": "state_action", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
+        { "on": {"intent": "ask_help", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_help", "variantPoolId": "farmer_help" }] },
+        { "on": {"intent": "dont_know", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_help", "variantPoolId": "farmer_help" }] },
+        { "on": {"intent": "thank", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_thank", "variantPoolId": "farmer_thank" }] },
+        { "on": {"intent": "farewell", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_bye", "variantPoolId": "farmer_bye" }] },
+        { "on": {"communicated": false}, "to": "idle", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
+      ],
+      "fallback": {
+        "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }]
+      }
+    }
+  ]
+}

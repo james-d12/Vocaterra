@@ -29,13 +29,40 @@ public sealed class VillageArtTests
             }
         }
 
-        foreach (var cell in new[] { BlockCell.TimberSide, BlockCell.Lantern, BlockCell.Canvas, BlockCell.ChestSide, BlockCell.Loaves, BlockCell.Apples, BlockCell.Bottles, BlockCell.SignTiendaA, BlockCell.FaceGuide, BlockCell.Cloth, BlockCell.Backpack, BlockCell.IconTorch })
+        foreach (var cell in new[] { BlockCell.TimberSide, BlockCell.Lantern, BlockCell.Canvas, BlockCell.ChestSide, BlockCell.Loaves, BlockCell.Apples, BlockCell.Bottles, BlockCell.SignTiendaA, BlockCell.FaceGuide, BlockCell.Cloth, BlockCell.Backpack, BlockCell.IconTorch, BlockCell.FaceFisher, BlockCell.FaceBaker, BlockCell.FaceSmith, BlockCell.FaceFarmer, BlockCell.IconCoin, BlockCell.IconApple, BlockCell.IconAxe })
         {
             var pixels = BlockArt.Pixels(cell);
             Assert.Equal(16 * 16 * 4, pixels.Length);
             Assert.Contains(Enumerable.Range(0, 256), i => pixels[(i * 4) + 3] > 0); // not empty
             Assert.Equal(pixels, BlockArt.Pixels(cell)); // the same every time
         }
+    }
+
+    [Fact]
+    public void TheVillagesFourFacesAreDrawnAndDifferFromEachOtherAndFromTheFirstFour()
+    {
+        // VILLAGE_PLAN V05: the fisher, the baker (the one woman of the four, with hair down beside her cheeks), the smith and the farmer.
+        var faces = new[] { BlockCell.FaceGuide, BlockCell.FaceShopkeeper, BlockCell.FaceVillager, BlockCell.FacePlayer, BlockCell.FaceFisher, BlockCell.FaceBaker, BlockCell.FaceSmith, BlockCell.FaceFarmer };
+        var pictures = faces.Select(static f => Convert.ToHexString(BlockArt.Pixels(f))).ToList();
+        Assert.Equal(faces.Length, pictures.Distinct().Count());
+        foreach (var face in faces[4..])
+        {
+            Assert.True(BlockArtVillage.Draws(face));
+            Assert.All(Enumerable.Range(0, 256), i => Assert.Equal(255, BlockArt.Pixels(face)[(i * 4) + 3])); // a whole face, no hole
+        }
+
+        static bool Hair(BlockCell face, int x, int y)
+        {
+            var p = BlockArt.Pixels(face);
+            var i = ((y * 16) + x) * 4;
+            var skin = p[i] > 200 && p[i + 1] > 150; // the skin is light and warm; the hair here is darker
+            return !skin;
+        }
+
+        Assert.True(Hair(BlockCell.FaceBaker, 0, 10) && Hair(BlockCell.FaceBaker, 15, 10), "the baker's hair falls beside her cheeks");
+        Assert.False(Hair(BlockCell.FaceSmith, 0, 10) || Hair(BlockCell.FaceFarmer, 0, 10), "the men's hair is short");
+        Assert.True(Hair(BlockCell.FaceFisher, 7, 13), "the fisher has a beard");
+        Assert.True(Hair(BlockCell.FaceSmith, 5, 10) && !Hair(BlockCell.FaceSmith, 7, 13), "the smith has a moustache and no beard");
     }
 
     [Fact]

@@ -1,0 +1,12 @@
+{
+  "$schema": "../../../schema/objective.schema.json",
+  "schemaVersion": 1,
+  "id": "oven-wood",
+  "about": "The baker's order (VILLAGE_PLAN 3.4, V11): from play session 5, five wood brought to Luz at the bakery (the trees at the forest's edge); she pays four coins (baker.delivered, then baker.pay in game/host-events.json), which buy two of her loaves (bread is two coins, baker.sell_bread). Told by the lesson numeros-y-pan (voy a buscar madera, then the wood, then the delivery): a learner who carries five wood already is paid only once the lesson reaches its step that waits for the delivery (lesson, V14). Asking in Spanish is the lesson's; walking up with the wood is enough.",
+  "session": 5,
+  "deliverTo": "baker",
+  "deliver": [
+    { "item": "wood", "count": 5 }
+  ],
+  "lesson": "numeros-y-pan"
+}

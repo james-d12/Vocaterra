@@ -22,10 +22,11 @@ __pycache__/
 # LibreOffice lock files
 .~lock.*#
 
-# Claude Code: agent worktrees, gate logs and test timing runs are local; agents/ is committed
+# Claude Code: agent worktrees, gate logs, test timing runs and the content loop's logs are local; agents/ is committed
 .claude/worktrees/
 .claude/gate-logs/
 .claude/test-timings/
+.claude/content-loop/
 .claude/settings.local.json
 
 # Models are fetched, not committed (manifest.json and the README are the exceptions)

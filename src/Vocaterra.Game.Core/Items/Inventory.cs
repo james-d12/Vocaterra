@@ -68,6 +68,35 @@ public sealed class Inventory
     }
 
     /// <summary>
+    /// Whether an exchange can be made (nothing is changed): <paramref name="paidCount"/> of <paramref name="paid"/> are in the inventory, and all <paramref name="count"/>
+    /// of <paramref name="item"/> fit once they are gone. The coins of a purchase free their slot for the items bought, and the goods of a sale theirs for the coins
+    /// (VILLAGE_PLAN V19, the review's R8).
+    /// </summary>
+    /// <param name="paid">What goes out.</param>
+    /// <param name="paidCount">How many go out; zero for nothing.</param>
+    /// <param name="item">What comes in.</param>
+    /// <param name="count">How many come in.</param>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="paidCount"/> is negative, or <paramref name="count"/> is not positive.</exception>
+    public bool CanExchange(ItemId paid, int paidCount, ItemId item, int count)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(paidCount);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(count);
+        if (Count(paid) < paidCount)
+        {
+            return false;
+        }
+
+        if (paidCount == 0)
+        {
+            return CanAdd(item, count);
+        }
+
+        var after = Copy();
+        _ = after.Remove(paid, paidCount);
+        return after.CanAdd(item, count);
+    }
+
+    /// <summary>
     /// Adds <paramref name="count"/> of <paramref name="item"/>, as far as the inventory has room.
     /// </summary>
     /// <returns>How many did not fit (zero when all of them went in).</returns>

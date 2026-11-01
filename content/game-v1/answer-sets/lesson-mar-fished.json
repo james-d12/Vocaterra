@@ -1,0 +1,23 @@
+{
+  "answerSetId": "lesson-mar-fished",
+  "answers": [
+    {
+      "answerId": "river",
+      "canonical": "mar pescó en el río",
+      "aliases": ["pescó en el río", "él pescó en el río", "ayer mar pescó en el río", "mar pescó en el río ayer"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": ["no lo sé", "yo no sé", "no entiendo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    }
+  ]
+}

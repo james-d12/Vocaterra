@@ -16,7 +16,7 @@ namespace Vocaterra.Game.Core.Session;
 /// </summary>
 /// <param name="Session">The play session the summary is of.</param>
 /// <param name="History">The learner's history, every session (<see cref="LearnerRecord.History"/>); the session's own lines are the ones of <paramref name="Session"/>.</param>
-/// <param name="Events">The game events of this run (<see cref="GuideSession.Events"/>): the phrase uses and the lesson events.</param>
+/// <param name="Events">The game events of this play session (<see cref="GuideSession.SessionEvents"/>; a sleep at the fire begins the next session in the same run, V12c): the phrase uses and the lesson events.</param>
 /// <param name="Lessons">The lesson record, in the bundle's order (<see cref="LessonRunner.Record"/>).</param>
 /// <param name="Phrases">The phrase sheet, for the Spanish of each phrase.</param>
 /// <param name="PhraseRecords">The phrase records (<see cref="PhraseProgress.Records"/>): the support level each phrase stands at.</param>
@@ -33,7 +33,7 @@ public sealed record SummaryFacts(
     public static SummaryFacts Of(GuideSession session)
     {
         ArgumentNullException.ThrowIfNull(session);
-        return new SummaryFacts(session.PlaySession, session.Learner.History, session.Events, session.Lessons.Record, session.Phrases, session.PhraseProgress.Records);
+        return new SummaryFacts(session.PlaySession, session.Learner.History, session.SessionEvents, session.Lessons.Record, session.Phrases, session.PhraseProgress.Records);
     }
 }
 

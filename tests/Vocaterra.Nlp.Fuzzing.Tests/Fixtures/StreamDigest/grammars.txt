@@ -1,0 +1,95 @@
+# The slot grammars of content/game-v1/intents/intents.json at 0041eff (M57), frozen for FuzzLanguageStreamTests: intents in ordinal id order,
+# grammars in authoring order, as the IntentCatalog lists them. The test appends PipelineHarness.FixtureGrammars. Never edit this file: a content
+# edit must not move the stream digests. One pattern per line; a line that starts with # is a comment.
+qué [VERB:hacer] (tú|usted)?
+en qué [VERB:trabajar] (tú|usted)?
+dónde [VERB:trabajar] (tú|usted)?
+hay [ART]? [NUM:qty]? [NOUN:item] (en el pueblo|aquí)?
+cómo [VERB:hacer] [ART]? [NOUN:item]
+cómo se [VERB:hacer] [ART]? [NOUN:item]
+qué [VERB:necesitar] para [ART]? [NOUN:item]
+qué [VERB:necesitar] para [VERB:hacer] [ART]? [NOUN:item]
+[VERB:querer] [VERB:hacer] [ART]? [NOUN:item]
+dónde [VERB:estar] [ART]? [NOUN:place] (por favor)?
+[VERB:buscar] [ART]? [NOUN:place] (por favor)?
+[VERB:querer] [VERB:encontrar] [ART]? [NOUN:place] (por favor)?
+dónde [VERB:quedar] [ART]? [NOUN:place] (por favor)?
+[VERB:estar] muy? (lejos|cerca)
+[VERB:quedar] muy? (lejos|cerca)
+[VERB:estar] muy? (lejos|cerca) [ART] [NOUN:place]
+dónde [VERB:haber] [ART]? [NOUN:material]
+dónde [VERB:encontrar] [ART]? [NOUN:material]
+de dónde [VERB:salir] [ART]? [NOUN:material]
+ayuda (por favor)?
+me [VERB:ayudar]
+me [VERB:poder] [VERB:ayudar]
+[VERB:necesitar] ayuda
+qué (hago|hacemos)
+cómo te [VERB:llamar] (tú)?
+cómo se [VERB:llamar] (usted|él|ella)
+cuánto [VERB:costar] [ART]? [NUM:qty]? [NOUN:item]?
+cuánto [VERB:ser] [ART]? [NUM:qty]? [NOUN:item]?
+qué precio [VERB:tener] [ART]? [NOUN:item]
+otra vez (por favor)?
+[VERB:repetir] (por favor)?
+más despacio (por favor)?
+despacio (por favor)?
+más lento (por favor)?
+[VERB:hablar] más despacio (por favor)?
+qué [VERB:ser] (esto|eso)
+cómo se [VERB:llamar] (esto|eso)
+(sí|claro) (por favor|gracias)?
+de acuerdo
+claro que sí
+(sí|claro) [VERB:querer]
+por favor (sí|claro)
+(no|ahora no)
+no (muchas)? gracias
+gracias no
+no [VERB:querer]
+(sí)? [ART]? [NOUN:object]? [VERB:ser] (muy)? [ADJ]
+(sí)? [ART]? [NOUN:object]? [VERB:ser] [ADJ] y [ADJ]
+(esto|eso) [VERB:ser] (muy)? [ADJ]
+no [VERB:saber]
+no lo [VERB:saber]
+no sé
+no lo sé
+no [VERB:entender]
+(adiós|hasta (luego|mañana))
+nos [VERB:ver]
+hola [NOUN]?
+(buenos|buenas) (día|días|tardes|noches)
+buen día
+[VERB:ser] [ART] [NOUN:object]
+(eso|esto) [VERB:ser] [ART] [NOUN:object]
+(domingo|luz|mar|león) [VERB:ser] [ART] [NOUN:object]
+[VERB:querer] [ART]? [NUM:qty]? [NOUN:item] [ADJ]? (por favor)?
+[VERB:necesitar] [ART]? [NUM:qty]? [NOUN:item] [ADJ]? (por favor)?
+me [VERB:dar] [ART]? [NUM:qty]? [NOUN:item] [ADJ]? (por favor)?
+[ART]? [NUM:qty]? [NOUN:item] [ADJ]? por favor
+(mañana|ayer|hoy|luego|después)? [VERB:ir] a [VERB:comer] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?
+(mañana|ayer|hoy|luego|después)? [VERB:comer] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?
+(sí)? (mañana|ayer|hoy|luego|después)? [VERB:beber] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?
+(mañana|ayer|hoy|luego|después)? [VERB:ir] a [VERB:ir] a [ART]? [NOUN:place] (mañana|ayer|hoy|luego|después)?
+(sí)? (mañana|ayer|hoy|luego|después)? [VERB:ir] a [ART]? [NOUN:place] (mañana|ayer|hoy|luego|después)?
+(mañana|ayer|hoy|luego|después)? [VERB:ir] a [VERB:comprar] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?
+(sí)? (mañana|ayer|hoy|luego|después)? (domingo|luz|mar|león)? [VERB:comprar] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?
+(mañana|ayer|hoy|luego|después)? [VERB:ir] a [VERB:buscar] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?
+(sí)? (mañana|ayer|hoy|luego|después)? [VERB:buscar] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?
+(mañana|ayer|hoy|luego|después)? (domingo|luz|mar|león)? [VERB:ir] a [VERB:hacer] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?
+(sí)? (mañana|ayer|hoy|luego|después)? (domingo|luz|mar|león)? [VERB:hacer] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después)?
+(mañana|ayer|hoy|luego|después)? (domingo|luz|mar|león)? [VERB:ir] a [VERB:trabajar] en [ART] [NOUN:place] (mañana|ayer|hoy|luego|después)?
+(sí)? (mañana|ayer|hoy|luego|después)? (domingo|luz|mar|león)? [VERB:trabajar] en [ART] [NOUN:place] (mañana|ayer|hoy|luego|después)?
+(mañana|ayer|hoy|luego|después)? (domingo|luz|mar|león)? [VERB:ir] a [VERB:vivir] en [ART] [NOUN:place] (mañana|ayer|hoy|luego|después)?
+(sí)? (mañana|ayer|hoy|luego|después)? (domingo|luz|mar|león)? [VERB:vivir] en [ART] [NOUN:place] (mañana|ayer|hoy|luego|después)?
+(sí)? (mañana|ayer|hoy|luego|después)? (domingo|luz|mar|león)? [VERB:pescar] en [ART] [NOUN:place] (mañana|ayer|hoy|luego|después)?
+(sí)? [PRON]? [VERB:tener] [ART]? [NUM:qty]? [NOUN:item]
+(ayer|hoy)? (sí|no)? me [VERB:gustar] (mucho)? [ART] [NOUN:item] (de (luz|domingo|mar|león))? (ayer|hoy)?
+(ayer|hoy)? (sí|no)? me [VERB:gustar] (mucho)? (ayer|hoy)?
+(sí)? (hoy|mañana)? [VERB:tener] que [VERB:ir] a [ART]? [NOUN:place] (hoy|mañana)?
+(sí)? (hoy|mañana)? [VERB:tener] que [VERB:comprar] [ART]? [NUM:qty]? [NOUN:item] (hoy|mañana)?
+(sí)? (hoy|mañana)? [VERB:tener] que [VERB:buscar] [ART]? [NUM:qty]? [NOUN:item] (hoy|mañana)?
+[VERB:querer] [ART]? [NUM:qty]? [NOUN:item]
+[VERB:necesitar] [ART]? [NUM:qty]? [NOUN:item]
+gracias [NOUN]?
+muchas gracias

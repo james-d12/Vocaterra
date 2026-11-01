@@ -24,7 +24,7 @@ internal static class LintExpectations
                     continue;
                 }
 
-                grader ??= new TextGrader(context.Bundle);
+                grader ??= new TextGrader(context.Bundle, context.Analyze);
                 var actual = grader.Grade(example.Text, prompt).Errors.Select(static error => error.Tag).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
                 var expected = example.ExpectedErrors!.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
                 if (!actual.SequenceEqual(expected))

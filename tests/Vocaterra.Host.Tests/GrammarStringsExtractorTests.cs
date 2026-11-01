@@ -49,6 +49,53 @@ public sealed class GrammarStringsExtractorTests
         ["ayer-fui-al-rio"] = ["conj.tense"],
         ["ayer-bebi-agua"] = ["conj.tense"],
         ["voy-a-ir-al-rio"] = ["conj.tense"],
+        ["donde-esta-la-panaderia"] = ["gender.agree"],
+        ["donde-esta-la-herreria"] = ["conj.person"],
+        ["esta-lejos"] = ["ser_estar"],
+        ["hay-un-pozo"] = ["gender.agree"],
+        ["voy-a-la-panaderia"] = ["conj.person"],
+        ["voy-a-comprar-pan"] = ["conj.tense"],
+        ["fui-a-la-panaderia"] = ["conj.tense"],
+        ["quiero-dos-panes"] = ["noun.number"],
+        ["cuanto-cuesta"] = ["conj.irregular"], // V15: the plan's ¿cuánto costa el pan?, graded since the core's M58
+        ["voy-a-buscar-madera"] = ["conj.tense"],
+        ["tengo-cuatro-monedas"] = ["conj.person"],
+        ["compre-dos-panes"] = ["conj.tense"],
+        ["hay-pan"] = ["noun.number"],
+        ["como-te-llamas"] = ["conj.person"],
+        ["que-haces"] = ["conj.person"],
+        ["es-el-herrero"] = ["gender.agree"],
+        ["va-a-hacer-un-hacha"] = ["conj.person"],
+        ["vivo-en-el-campamento"] = ["gender.agree"],
+        ["trabaja-en-la-herreria"] = ["conj.person"],
+        ["hizo-un-hacha"] = ["conj.tense"],
+        ["la-manzana-es-roja"] = ["gender.agree"], // V15: la manzana es rojo, graded since M62
+        ["me-gusta-el-pan"] = ["conj.person"],
+        ["me-gustan-las-manzanas"] = ["conj.person"],
+        ["quiero-tres-manzanas-rojas"] = ["gender.agree"],
+        ["voy-a-buscar-agua"] = ["conj.tense"],
+        ["es-grande"] = ["noun.number"], // V15: el pan es grandes, M62
+        ["fui-al-rio"] = ["conj.tense"],
+        ["me-gusto-el-pan"] = ["conj.tense"],
+        ["luz-hizo-pan"] = ["conj.tense"],
+        ["mar-pesco-en-el-rio"] = ["conj.tense"],
+        ["fuimos-al-rio"] = ["conj.person"],
+        ["ellos-comieron-pan"] = ["conj.person"],
+        ["tengo-que-ir"] = ["conj.person"],
+        ["luz-compro-pescado"] = ["conj.tense"],
+        ["manana-comprare-pan"] = ["conj.tense"],
+        ["buscare-madera"] = ["conj.person"],
+        ["ire-al-rio"] = ["conj.person"],
+        ["luz-hara-pan"] = ["conj.tense"],
+        ["tienes-veinte-panes"] = ["noun.number"],
+        ["quiero-vender-madera"] = ["conj.person"],
+        ["vendo-madera"] = ["gender.agree"],
+        ["cuanto-es-todo"] = ["conj.irregular"],
+        ["es-muy-caro"] = ["gender.agree"],
+        ["mas-barato-que"] = ["gender.agree"],
+        ["puedo-pagar-con-fruta"] = ["conj.irregular"],
+        ["manana-vendere-fruta"] = ["conj.tense"],
+        ["compre-tres-manzanas"] = ["noun.number"],
     };
 
     [Fact]
@@ -225,12 +272,23 @@ public sealed class GrammarStringsExtractorTests
     [Fact]
     public void TheWaiverFileOnlyNamesStringsThatExist()
     {
-        // A waiver for an id the strings file no longer has would be reported unused by the core; this keeps the file honest in the test run too.
+        // A waiver for an id the strings file no longer has would be reported unused by the core; this keeps the file honest in the test run too. A waiver may name
+        // a text instead of an id (the core's grammar waivers take either): every string with that text, which must be one of them (V12: the smith's name, Domingo,
+        // in six lines).
         var ids = All.Select(static line => line.Id).ToHashSet(StringComparer.Ordinal);
+        var texts = All.Select(static line => line.Text).ToHashSet(StringComparer.Ordinal);
         using var waivers = JsonDocument.Parse(File.ReadAllText(Path.Combine(ContentDirectory, "grammar", "game-v1-waivers.json"), Encoding.UTF8));
         foreach (var waiver in waivers.RootElement.GetProperty("waivers").EnumerateArray())
         {
-            Assert.Contains(waiver.GetProperty("id").GetString()!, ids);
+            if (waiver.TryGetProperty("id", out var id))
+            {
+                Assert.Contains(id.GetString()!, ids);
+            }
+            else
+            {
+                Assert.Contains(waiver.GetProperty("text").GetString()!, texts);
+            }
+
             Assert.False(string.IsNullOrWhiteSpace(waiver.GetProperty("reason").GetString()));
         }
     }

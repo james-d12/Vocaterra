@@ -1,5 +1,7 @@
+using System.Globalization;
 using System.Text.Json;
 using Vocaterra.Game.Core.Content;
+using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Words;
@@ -172,7 +174,8 @@ public static class SaveGame
             session.Learner.Capture(),
             BookGranted: true,
             Settings: settings is null ? null : settings.Clamped(),
-            World: new WorldDims(session.Scene.Grid.ChunksX, session.Scene.Grid.ChunksY, session.Scene.Grid.ChunksZ));
+            World: new WorldDims(session.Scene.Grid.ChunksX, session.Scene.Grid.ChunksY, session.Scene.Grid.ChunksZ),
+            SkippedTo: session.SkippedTo);
     }
 
     /// <summary>Captures a session and serializes it: the text of the save file.</summary>
@@ -321,8 +324,45 @@ public static class SaveGame
         {
             session.BeginPlaySession(); // a new session's lesson, if one is unlocked, is named by the objective and pointed at (S26)
         }
+        else
+        {
+            session.SettleRest(); // the same session goes on: what its objective said is not news (V12c)
+        }
 
         return session;
+    }
+
+    /// <summary>
+    /// The sleep at the player's own fire (V12c): the running session goes on as the next play session, in the state a load of its own save would give, without a new
+    /// session or scene. <paramref name="document"/> is that save, captured now (<see cref="Capture"/>). What a save does not keep goes back to how a new session has it
+    /// (the review question, the second tries, the warm-up, the word cards not shown, the buttons' English counts), every part of the save is put back as a load puts it
+    /// back (the world is the save's already), and the session becomes the save's plus one, which lifts the spacing gaps and names the new session's lesson
+    /// (<see cref="VoxelSession.BeginPlaySession"/>). The stored time does not move, as a load adds none.
+    /// </summary>
+    /// <param name="session">The running game, at rest, with no talk open.</param>
+    /// <param name="document">The session's own save, captured now.</param>
+    /// <exception cref="InvalidOperationException">The session is not at rest.</exception>
+    /// <exception cref="ArgumentException">The save is not this session's, taken now.</exception>
+    public static void Sleep(VoxelSession session, SaveDocument document)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        ArgumentNullException.ThrowIfNull(document);
+        if (!session.CanSave)
+        {
+            throw new InvalidOperationException("The game is not at rest: the guide is still thinking, the key words are on show or an opening waits. Sleep in a moment.");
+        }
+
+        if (document.WorldSeed != session.WorldSeed || !string.Equals(document.BundleHash, session.Bundle.ContentHash, StringComparison.Ordinal) || document.Session != session.PlaySession
+            || document.Tick != session.Simulation.Tick || !string.Equals(document.StateDigest, session.Simulation.ComputeStateDigest(), StringComparison.Ordinal))
+        {
+            throw new ArgumentException("The save is not this session's own, taken now.", nameof(document));
+        }
+
+        session.ClearUnsaved();
+        RestoreParts(session, document, migrating: false);
+        session.PlaySession = document.Session + 1;
+        session.LogEvent(new WorldEvent(session.CurrentTick, session.StoredTime.UnixSeconds, WorldEvents.Slept, null, string.Create(CultureInfo.InvariantCulture, $"session {document.Session} to {session.PlaySession}"))); // the new session's first event
+        session.BeginPlaySession();
     }
 
     // Every part of the save, put back in the order the parts depend on: the simulation, the time, the progress, the NPCs.
@@ -345,7 +385,7 @@ public static class SaveGame
         session.RestoreCarded(document.Carded);
         session.KeyWordsTaught = document.KeyWordsTaught;
         session.RiverPointedState = document.RiverPointed;
-        session.RestorePointer(document.Pointer is { } pointer ? new PointerMarker(pointer.Place, pointer.Target) : null);
+        session.RestorePointer(document.Pointer is { } pointer ? new PointerMarker(pointer.Place, pointer.Target, Point: session.PointNameAt(pointer.Target, pointer.Place)) : null); // V02: the place's name is worked out again
         session.RestoreDeferredSkills(document.DeferredSkills.Select(static step => (step.Npc, step.Skill)));
         session.RestoreLastRepairs(document.LastRepairs.Select(static step => (step.Npc, step.Repair)));
         session.NextTurnId = document.NextTurnId;
@@ -365,6 +405,7 @@ public static class SaveGame
             session.Learner.Restore(learner, checksCounted: document.Version < 3); // a version 1 save has none: the learner's history starts empty (S19); a version 2 save's rows counted the checks (S19b)
         }
 
+        session.SkippedTo = document.SkippedTo; // a test run skipped to a later session stays marked (V12c)
         session.RestoreStage(); // the stage of the objective area (S17) follows from the world and the progress just put back
     }
 

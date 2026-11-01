@@ -28,7 +28,7 @@ TEXT = (".txt", ".log", ".jsonl", ".json", ".md", ".csv")
 
 # Runs whose turns land a few ticks apart from one capture to the next (the worker's timing reaches them): only the order of what they print
 # and log is compared, with every number and digest masked; their pictures, saves and sound logs move with the ticks and are not compared.
-LOOSE = {"r02-river", "r03-npcs", "r04-journal", "r05-book-play", "r06-practise", "r10-playtest", "r11-mic", "r16-text-scale", "r17-speak"}
+LOOSE = {"r02-river", "r03-npcs", "r04-journal", "r05-book-play", "r06-practise", "r10-playtest", "r11-mic", "r16-text-scale", "r17-speak", "r18-bakery", "r19-directions", "r22-market", "r23-future"}
 LOOSE_FILES = ("stdout.txt", "session/session.jsonl")
 NUMBERS = re.compile(r"\b[0-9a-f]{12,}\b|\d+(\.\d+)?")
 

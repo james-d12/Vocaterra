@@ -1,0 +1,23 @@
+{
+  "answerSetId": "lesson-went-there",
+  "answers": [
+    {
+      "answerId": "went",
+      "canonical": "sí fui a la panadería",
+      "aliases": ["fui a la panadería", "yo fui a la panadería", "sí yo fui a la panadería", "hoy fui a la panadería", "ayer fui a la panadería", "fui a la herrería"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": ["no lo sé", "yo no sé", "no entiendo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    }
+  ]
+}

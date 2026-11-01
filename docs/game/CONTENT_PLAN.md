@@ -475,16 +475,21 @@ session log.
 - the target-language label (`Guía`) and the personal name (`Luna`). The panel and the beacon use them, which fixes the raw-id label
   (2.5), and `{npc:<id>}` fills names from them;
 - the figure key (`NpcFigures` keeps the geometry and the faces in code, keyed by it);
-- the phrase tables that belong to an NPC (phrase to home NPC, prompt to scaffold).
+- the phrase tables that belong to an NPC (phrase to home NPC, prompt to scaffold);
+- since schema 2 (VILLAGE_PLAN V01, 2026-10-30), what the NPC does that was code: `prompts` (the prompt it waits on in each state of its
+  agent, a state not listed taking the initial state's; `review` names the guide's review prompt), `opening` (the host event it opens a talk
+  with, `always`, `first` or `never`), `voice` (the Kokoro speaker id, name and speed the renderer records it with), `keyWords` (the cards
+  it shows before its first question, moved from `game/words.json`) and `poolPrefix` (the name its dialogue pools carry when it is not
+  the id: the shopkeeper's are `shop_*`). A fourth NPC needs no code; `content/README.md` says what to add.
 
 **Not repeated there:**
 
 | What | Where it stays |
 | --- | --- |
 | The agent | `agents/<id>.json`, the core's file; the NPC file has the same id |
-| The prompts | each prompt's `agentId` in `prompts.json` |
+| The prompts | each prompt's `agentId` in `prompts.json` (the NPC file names which one it waits on in each state; the validator checks they are its agent's) |
 | The placement | `scene.json` `npcs` |
-| The voice | the renderer. Open point: the renderer could read the voice from the NPC file, so that one place holds it. |
+| The voice | closed by V01: the NPC file's `voice`, which the renderer reads (it was a table in the renderer) |
 | The L1 role name | the locale, `npc.<id>.role` |
 
 `NpcService.AgentIds` is built from the NPC files, and the lessons' NPC check and the saves use it.
@@ -500,9 +505,12 @@ session log.
 The phrase-to-review-pool table (`PhraseReview`) moves onto the phrase data.
 
 **What stays in code, said plainly:**
-- the choice of the opening event (`NpcService.OpeningEvent`);
-- the guide's `GuideEvents` dispatch;
-- the shopkeeper's give-up and once-only rules, and the stall key words' delay;
+- the exceptions to the opening event (closed by V01 for the rest: the ordinary opening is the NPC file's `opening`, no longer
+  `NpcService.OpeningEvent`'s switch): the guide's transfer offer (after the camp objective, once) and the shopkeeper's later visits (the
+  bottle is never withheld, then the talk picks up where it was);
+- the guide's `GuideEvents` dispatch, and her review (what is due is the learner's progress; only its prompt is data, `prompts.review`);
+- the shopkeeper's give-up and once-only rules (`ShopkeeperPatience`, the bottle after four misses), and the key words' delay (the words
+  themselves are the NPC file's since V01);
 - the river flag and the transfer offer;
 - the guide's special cases in the front end.
 

@@ -1,0 +1,236 @@
+{
+  "$schema": "../../../schema/lesson.schema.json",
+  "schemaVersion": 2,
+  "id": "el-mercado",
+  "npc": "baker",
+  "level": "a2",
+  "autoStart": true,
+  "after": "manana-en-el-pueblo",
+  "session": 10,
+  "verbs": [
+    {
+      "lemma": "vender",
+      "person": "1",
+      "number": "sg",
+      "tense": "pres"
+    },
+    {
+      "lemma": "poder",
+      "person": "1",
+      "number": "sg",
+      "tense": "pres"
+    },
+    {
+      "lemma": "pagar",
+      "person": "1",
+      "number": "sg",
+      "tense": "pres"
+    },
+    {
+      "lemma": "vender",
+      "person": "1",
+      "number": "sg",
+      "tense": "ir-a"
+    },
+    {
+      "lemma": "vender",
+      "person": "1",
+      "number": "sg",
+      "tense": "fut"
+    },
+    {
+      "lemma": "vender",
+      "person": "2",
+      "number": "sg",
+      "tense": "fut"
+    }
+  ],
+  "steps": [
+    {
+      "id": "k0-review",
+      "type": "review",
+      "candidates": [
+        {
+          "phrase": "manana-comprare-pan",
+          "line": "guide.lesson.baker.tomorrow.1"
+        },
+        {
+          "phrase": "mar-pesco-en-el-rio",
+          "line": "guide.lesson.baker.mar.1"
+        }
+      ]
+    },
+    {
+      "id": "k0-intro",
+      "type": "explain"
+    },
+    {
+      "id": "k1-fifteen",
+      "type": "listen",
+      "line": "guide.lesson.baker.fifteen.1",
+      "correct": 0
+    },
+    {
+      "id": "k1-twenty",
+      "type": "listen",
+      "line": "guide.lesson.baker.twenty.1",
+      "correct": 0
+    },
+    {
+      "id": "k1-loaves",
+      "type": "answer",
+      "phrase": "tienes-veinte-panes",
+      "prompt": "lesson-loaves",
+      "line": "guide.lesson.baker.market.1",
+      "person": "2sg",
+      "tense": "pres"
+    },
+    {
+      "id": "k2-sell",
+      "type": "answer",
+      "phrase": "quiero-vender-madera",
+      "prompt": "lesson-sell",
+      "line": "guide.lesson.baker.sell.1",
+      "person": "1sg",
+      "tense": "pres"
+    },
+    {
+      "id": "k2-pay",
+      "type": "model",
+      "line": "guide.lesson.baker.pay.1"
+    },
+    {
+      "id": "k3-wood",
+      "type": "do",
+      "point": "árbol",
+      "trigger": {
+        "event": "item_picked_up",
+        "detail": "madera"
+      }
+    },
+    {
+      "id": "k3-back",
+      "type": "do",
+      "pointPlace": "npc.baker",
+      "trigger": {
+        "event": "talk_opened",
+        "npc": "baker"
+      }
+    },
+    {
+      "id": "k3-sell",
+      "type": "answer",
+      "phrase": "vendo-madera",
+      "prompt": "baker-open",
+      "line": "baker_greet.1"
+    },
+    {
+      "id": "k4-walk",
+      "type": "do",
+      "pointPlace": "npc.farmer",
+      "trigger": {
+        "event": "talk_opened",
+        "npc": "farmer"
+      }
+    },
+    {
+      "id": "k4-all",
+      "type": "answer",
+      "npc": "farmer",
+      "phrase": "cuanto-es-todo",
+      "prompt": "farmer-open",
+      "line": "guide.lesson.farmer.market.1"
+    },
+    {
+      "id": "k4-dear",
+      "type": "answer",
+      "npc": "farmer",
+      "phrase": "es-muy-caro",
+      "prompt": "lesson-dear",
+      "line": "guide.lesson.farmer.dear.1",
+      "person": "3sg"
+    },
+    {
+      "id": "k5-cheaper",
+      "type": "answer",
+      "npc": "farmer",
+      "phrase": "mas-barato-que",
+      "prompt": "lesson-cheaper",
+      "line": "guide.lesson.farmer.cheaper.1",
+      "person": "3sg"
+    },
+    {
+      "id": "k5-fruit",
+      "type": "repeat",
+      "npc": "farmer",
+      "phrase": "puedo-pagar-con-fruta",
+      "prompt": "farmer-open"
+    },
+    {
+      "id": "k5-tomorrow",
+      "type": "answer",
+      "npc": "farmer",
+      "phrase": "manana-vendere-fruta",
+      "prompt": "lesson-will-sell",
+      "line": "guide.lesson.farmer.will_sell.1",
+      "person": "1sg",
+      "tense": "fut"
+    },
+    {
+      "id": "k6-buy",
+      "type": "do",
+      "npc": "farmer",
+      "trigger": {
+        "event": "item_given",
+        "npc": "farmer",
+        "detail": "manzana, request"
+      }
+    },
+    {
+      "id": "k7-walk",
+      "type": "do",
+      "npc": "farmer",
+      "pointPlace": "stall",
+      "trigger": {
+        "event": "talk_opened",
+        "npc": "shopkeeper"
+      }
+    },
+    {
+      "id": "k7-bought",
+      "type": "answer",
+      "npc": "shopkeeper",
+      "phrase": "compre-tres-manzanas",
+      "prompt": "lesson-market",
+      "line": "guide.lesson.shop.market.1",
+      "person": "1sg",
+      "tense": "pret"
+    },
+    {
+      "id": "k8-review",
+      "type": "review",
+      "npc": "shopkeeper",
+      "candidates": [
+        {
+          "phrase": "hay-pan",
+          "prompt": "stall-need",
+          "line": "shop_need.1"
+        },
+        {
+          "phrase": "es-grande",
+          "line": "guide.lesson.shop.big.1"
+        }
+      ]
+    },
+    {
+      "id": "k8-table",
+      "type": "explain",
+      "npc": "shopkeeper"
+    },
+    {
+      "id": "k8-recap",
+      "type": "recap",
+      "npc": "shopkeeper"
+    }
+  ]
+}

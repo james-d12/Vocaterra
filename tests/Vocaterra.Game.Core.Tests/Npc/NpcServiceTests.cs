@@ -375,14 +375,27 @@ public sealed class NpcServiceTests
             Assert.Equal(NpcEffectKind.None, table.Of(npc, hostEvent).Kind);
         }
 
-        // C08: game/host-events.json gives the five actions the code's table gave.
-        Assert.Equal(5, table.Mapped().Count);
+        // C08: game/host-events.json gives the five actions the code's table gave; V10 adds the fisher's three (he points at a place or a thing asked for, and pays for
+        // the fruit); V11 the baker's two (she sells bread, and pays for the wood); V12 the smith's one (he gives the axe for the order); V13 the farmer's two (he sells
+        // apples at a coin each, and gives three for the water); V15 the three buyers' (the baker and the smith buy wood, the farmer fruit, a coin each).
+        Assert.Equal(16, table.Mapped().Count);
+        Assert.Equal(NpcEffect.BuyAt(ItemId.Wood, 1), table.Of("baker", "baker.buy_wood"));
+        Assert.Equal(NpcEffect.BuyAt(ItemId.Wood, 1), table.Of("smith", "smith.buy_wood"));
+        Assert.Equal(NpcEffect.BuyAt(ItemId.Berry, 1), table.Of("farmer", "farmer.buy_fruit"));
+        Assert.Equal(NpcEffect.Give(ItemId.Axe, 1), table.Of("smith", "smith.give_axe"));
+        Assert.Equal(NpcEffect.SellAt(ItemId.Apple, 1), table.Of("farmer", "farmer.sell_apples"));
+        Assert.Equal(NpcEffect.Give(ItemId.Apple, 3), table.Of("farmer", "farmer.give_apples"));
+        Assert.Equal(NpcEffect.SellAt(ItemId.Bread, 2), table.Of("baker", "baker.sell_bread"));
+        Assert.Equal(NpcEffect.Give(ItemId.Coin, 4), table.Of("baker", "baker.pay"));
         Assert.Equal(NpcEffectKind.GiveItem, table.Of("shopkeeper", "stall.give_water").Kind);
         Assert.Equal(ItemId.Bottle, table.Of("shopkeeper", "stall.give_water").Item);
         Assert.Equal(ItemId.Bread, table.Of("shopkeeper", "stall.give_bread").Item);
         Assert.Equal(ItemId.Bread, table.Of("villager", "villager.give").Item);
-        Assert.Equal("río", table.Of("villager", "villager.point").Noun);
+        Assert.Equal(NpcEffect.PointAtSlotNamed("place"), table.Of("villager", "villager.point")); // V02: the place the learner names (it was point_at_noun río)
         Assert.Equal(ItemId.WaterBottle, table.Of("guide", "guide.give_water").Item);
+        Assert.Equal(NpcEffect.PointAtSlotNamed("place"), table.Of("fisher", "fisher.point"));
+        Assert.Equal(NpcEffect.PointAtSlotNamed("item"), table.Of("fisher", "fisher.show")); // ¿Hay un pozo?: the noun after hay
+        Assert.Equal(NpcEffect.Give(ItemId.Coin, 2), table.Of("fisher", "fisher.pay")); // the order fruit-for-mar's reward
     }
 
     [Fact]

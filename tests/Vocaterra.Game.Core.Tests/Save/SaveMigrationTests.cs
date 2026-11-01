@@ -39,6 +39,9 @@ public sealed class SaveMigrationTests
 
     private static SaveDocument FromOtherBundle(SaveDocument document) => document with { BundleHash = OtherBundle };
 
+    // The camp checklist's steps of a save, the objective the HUD shows: a save keys every counted step, and since VILLAGE_PLAN V10 the fisher's order has one too.
+    private static ObjectiveSave[] CampSteps(SaveDocument document) => [.. document.Objective.Where(static o => o.Key.StartsWith("camp.", StringComparison.Ordinal))];
+
     [Fact]
     public void ASaveFromAnotherBundleLoadsKeepsWhatExistsAndDropsWhatDoesNot()
     {
@@ -60,8 +63,8 @@ public sealed class SaveMigrationTests
 
         // What exists is kept as it was.
         Assert.Equal(document.Words.Count, loaded.Words.Records.Count);
-        Assert.Equal(document.Objective.Count, loaded.Objective.Steps.Count);
-        Assert.Equal(document.Objective.Select(static o => o.Count), loaded.Objective.Steps.Select(static s => s.Count));
+        Assert.Equal(CampSteps(document).Length, loaded.Objective.Steps.Count);
+        Assert.Equal(CampSteps(document).Select(static o => o.Count), loaded.Objective.Steps.Select(static s => s.Count));
         Assert.Equal(document.Inventory.Select(static s => (s.Item, s.Count)), loaded.Simulation.Inventory.Slots.Select(static s => (s.IsEmpty ? default : s.Item, s.Count)));
         Assert.Equal(document.Learner!.History.Count, loaded.Learner.History.Count);
         Assert.Equal(document.Learner.Words.Count, loaded.Learner.Rows.Count);
@@ -180,7 +183,7 @@ public sealed class SaveMigrationTests
         Assert.Equal(otherBlock, loaded.Scene.Grid.GetBlock(other.X, other.Y, other.Z));
         Assert.Equal(BlockId.Stone, loaded.Scene.Grid.GetBlock(cell.X, cell.Y, cell.Z)); // the new world stays where the old world is not the player's
         Assert.Contains(report.Notes, static n => n.Contains("digest differs", StringComparison.Ordinal));
-        Assert.Equal(document.Objective.Select(static o => o.Count), loaded.Objective.Steps.Select(static s => s.Count));
+        Assert.Equal(CampSteps(document).Select(static o => o.Count), loaded.Objective.Steps.Select(static s => s.Count));
     }
 
     [Fact]
@@ -306,7 +309,7 @@ public sealed class SaveMigrationTests
     public void EveryReadableVersionLoadsAcrossBundles(int version)
     {
         var document = CampDocument();
-        var steps = document.Objective.Select(static o => o with { Key = o.Key["camp.".Length..] }).ToArray(); // before version 5 the keys were the checklist's alone (C07)
+        var steps = CampSteps(document).Select(static o => o with { Key = o.Key["camp.".Length..] }).ToArray(); // before version 5 the keys were the checklist's alone (C07), and it was the only one
         var older = version switch
         {
             1 => document with { Version = 1, Lessons = null, Tips = null, Learner = null, BookGranted = false, Settings = null, World = null, Objective = steps },
@@ -321,7 +324,7 @@ public sealed class SaveMigrationTests
 
         Assert.NotNull(loaded.Migration);
         Assert.Contains("gone-noun", loaded.Migration!.Find("words")!.Dropped);
-        Assert.Equal(document.Objective.Select(static o => o.Count), loaded.Objective.Steps.Select(static s => s.Count));
+        Assert.Equal(CampSteps(document).Select(static o => o.Count), loaded.Objective.Steps.Select(static s => s.Count));
         Assert.Equal(version == 1 ? 0 : document.Learner!.History.Count, loaded.Learner.History.Count);
         Assert.True(loaded.Simulation.Inventory.Count(ItemId.Book) >= 1);
         Assert.Throws<SaveException>(() => Load(older, migrate: false));

@@ -12,6 +12,8 @@
 #      the kernel kills the command inside the scope; the desktop is untouched. Exit code 137 means "hit the memory cap".
 #   4. No lingering servers: MSBuild node reuse, the MSBuild server and the shared Roslyn compiler server are off, so nothing outlives
 #      the command.
+#   5. Marks its command: VOCATERRA_LIMITED=1 is set for it, so a script that calls limited.sh itself (scripts/content-loop.sh) refuses to run
+#      under it instead of waiting for ever on the lock it already holds.
 set -uo pipefail
 
 MEM_MAX="${VOCATERRA_MEM_MAX:-6G}"
@@ -24,6 +26,7 @@ export DOTNET_CLI_USE_MSBUILD_SERVER=0
 export UseSharedCompilation=false
 export DOTNET_NOLOGO=1
 export PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet"
+export VOCATERRA_LIMITED=1
 
 [ "$#" -gt 0 ] || { echo "usage: scripts/limited.sh <command> [args...]" >&2; exit 2; }
 

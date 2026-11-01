@@ -55,6 +55,17 @@ public interface IAnalysisRules
     /// <param name="word">The word as typed.</param>
     bool IsNearFutureLinker(string word);
 
+    /// <summary>
+    /// True for a preposition of elapsed time that is also a finite verb form, and that the reading resolver reads as the preposition only before a phrase of
+    /// time (Spanish: <c>hace</c>, the preposition of <c>hace dos días</c> and a form of <c>hacer</c>; M59).
+    /// </summary>
+    /// <param name="lemma">The preposition lemma.</param>
+    bool IsElapsedTimePreposition(string lemma);
+
+    /// <summary>True for a noun of a stretch of time that a preposition of elapsed time takes (Spanish: <c>día</c>, <c>semana</c>, <c>año</c>, <c>rato</c>; M59).</summary>
+    /// <param name="lemma">The noun lemma.</param>
+    bool IsElapsedTimeNoun(string lemma);
+
     /// <summary>True for a copula whose complement is not a finite verb (Spanish: <c>ser</c>, <c>estar</c>).</summary>
     /// <param name="lemma">The verb lemma.</param>
     bool IsCopula(string lemma);
@@ -62,6 +73,21 @@ public interface IAnalysisRules
     /// <summary>True for a copula or auxiliary whose imperative is rare enough that a clause-initial form followed by a noun phrase is the indicative (Spanish: <c>ser</c>, <c>estar</c>, <c>haber</c>).</summary>
     /// <param name="lemma">The verb lemma.</param>
     bool IsCopulaOrAuxiliary(string lemma);
+
+    /// <summary>
+    /// True for an adjective that goes after its noun in neutral speech, so that before a noun it is a slip of order and not a noun of its own: a word that is such an
+    /// adjective and also a noun is read as the adjective right before a word that can only be a noun (Spanish: the colours, <c>rojo</c>, <c>blanco</c>, <c>gris</c>:
+    /// <c>tres rojas manzanas</c>; M62).
+    /// </summary>
+    /// <param name="lemma">The adjective lemma.</param>
+    bool IsPostnominalAdjective(string lemma);
+
+    /// <summary>
+    /// True for an adverb of degree that modifies an adjective or an adverb and never a noun, so that a word after it that can be an adjective is one (Spanish:
+    /// <c>muy</c>, <c>tan</c>: <c>es muy cara</c> is the adjective, not the noun <c>cara</c>; M62).
+    /// </summary>
+    /// <param name="lemma">The adverb lemma.</param>
+    bool IsDegreeAdverb(string lemma);
 
     /// <summary>Creates the agreement checker (subject-verb, tense, copula, noun phrase agreement and word order) for one resolved sentence.</summary>
     /// <param name="resolved">The tokens with the readings narrowed by the resolver.</param>

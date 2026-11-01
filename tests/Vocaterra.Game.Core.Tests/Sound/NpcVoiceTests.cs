@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Language.Speech;
+using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.Tests.TestSupport;
@@ -16,7 +17,7 @@ public sealed class NpcVoiceTests
 {
     private static readonly Lazy<(string Speech, IReadOnlyList<SpeechLine> Lines)> Committed = new(() =>
     {
-        var lines = SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, TestGame.Phrases);
+        var lines = SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, TestGame.Phrases, TestGame.Data.Npcs);
         return (Path.Combine(GameBundle.ResolveDirectory(), SpeechLines.FolderName), lines);
     });
 
@@ -27,7 +28,7 @@ public sealed class NpcVoiceTests
         var logs = new List<string>();
         var voice = Voice(output, logs, muted: false);
 
-        voice.Say(SpeechSpeakers.Villager, ["Hola.", "¡Hola! ¿Qué buscas?"]);
+        voice.Say(NpcService.VillagerAgent, ["Hola.", "¡Hola! ¿Qué buscas?"]);
         Assert.Equal(["villager_hello.1"], Played(logs));
 
         output.Finish();
@@ -59,8 +60,8 @@ public sealed class NpcVoiceTests
         var logs = new List<string>();
         var voice = Voice(output, logs, muted: false);
 
-        voice.Say(SpeechSpeakers.Shopkeeper, ["¿Qué necesitas?"]);
-        voice.Say(SpeechSpeakers.Shopkeeper, ["¿Quieres pan?"]);
+        voice.Say(NpcService.ShopkeeperAgent, ["¿Qué necesitas?"]);
+        voice.Say(NpcService.ShopkeeperAgent, ["¿Quieres pan?"]);
 
         Assert.Equal(["shop_need.1", "shop_offer.1"], Played(logs));
         Assert.Equal(1, output.Stops);
@@ -143,7 +144,7 @@ public sealed class NpcVoiceTests
         var logs = new List<string>();
         var voice = Voice(output, logs, muted: false);
 
-        voice.Say(SpeechSpeakers.Villager, ["Hola."]);
+        voice.Say(NpcService.VillagerAgent, ["Hola."]);
 
         Assert.Equal(["villager_hello.1"], Played(logs));
         Assert.Equal(0, voice.Missing);

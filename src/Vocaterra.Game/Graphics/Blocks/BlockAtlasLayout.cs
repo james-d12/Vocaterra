@@ -252,6 +252,27 @@ public enum BlockCell
 
     /// <summary>The icon of the learner's book (the item, S20): a closed book with a brown cover and cream pages.</summary>
     IconBook,
+
+    /// <summary>The front of the fisher's head (VILLAGE_PLAN V05): a grey beard.</summary>
+    FaceFisher,
+
+    /// <summary>The front of the baker's head: a woman with auburn hair down the sides.</summary>
+    FaceBaker,
+
+    /// <summary>The front of the smith's head: black hair and a moustache.</summary>
+    FaceSmith,
+
+    /// <summary>The front of the farmer's head: sandy hair and freckles.</summary>
+    FaceFarmer,
+
+    /// <summary>The icon of a coin (the item, V05): a gold piece with a raised rim.</summary>
+    IconCoin,
+
+    /// <summary>The icon of an apple (the item): a red apple with a stalk and a leaf.</summary>
+    IconApple,
+
+    /// <summary>The icon of the axe (the item): a steel head on a wooden haft.</summary>
+    IconAxe,
 }
 
 /// <summary>
@@ -365,6 +386,9 @@ public static class BlockAtlasLayout
         ItemId.WaterBottle => BlockCell.IconWaterBottle,
         ItemId.Bread => BlockCell.IconBread,
         ItemId.Book => BlockCell.IconBook,
+        ItemId.Coin => BlockCell.IconCoin,
+        ItemId.Apple => BlockCell.IconApple,
+        ItemId.Axe => BlockCell.IconAxe,
         _ => null,
     };
 

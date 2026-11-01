@@ -1,20 +1,52 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "game/host-events.json",
-  "description": "What each NPC host event does in the world (C08). Loaded by HostEventTable (Vocaterra.Game.Core).",
+  "description": "What each NPC host event does in the world (C08; schema 2 since VILLAGE_PLAN V02: a count on give_item, point_at_place and point_at_slot; V03: take_item and sell; V15: buy). Loaded by HostEventTable (Vocaterra.Game.Core).",
   "type": "object",
   "required": [
     "schemaVersion",
     "events"
   ],
   "additionalProperties": false,
+  "definitions": {
+    "item": {
+      "enum": [
+        "wood",
+        "torch",
+        "berry",
+        "bottle",
+        "water-bottle",
+        "bread",
+        "book",
+        "coin",
+        "apple",
+        "axe"
+      ],
+      "description": "An item by the name the save gives it (ItemDefinition)."
+    },
+    "count": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 99
+        },
+        {
+          "enum": [
+            "qty"
+          ]
+        }
+      ],
+      "description": "How many: a number (one when left out), or qty, the number the learner said (the verdict's qty slot: 1 when none, 0 for cero, at most 5, so no talk makes gifts out of nothing)."
+    }
+  },
   "properties": {
     "$schema": {
       "type": "string"
     },
     "schemaVersion": {
       "enum": [
-        1
+        2
       ]
     },
     "about": {
@@ -55,17 +87,13 @@
                     ]
                   },
                   "item": {
-                    "enum": [
-                      "wood",
-                      "torch",
-                      "berry",
-                      "bottle",
-                      "water-bottle",
-                      "bread",
-                      "book"
-                    ]
+                    "$ref": "#/definitions/item"
+                  },
+                  "count": {
+                    "$ref": "#/definitions/count"
                   }
-                }
+                },
+                "description": "The NPC puts items in the inventory, all of them or none (the bottle once, whatever the count)."
               },
               {
                 "type": "object",
@@ -84,7 +112,120 @@
                     "type": "string",
                     "minLength": 1
                   }
-                }
+                },
+                "description": "The beacon goes to the nearest block of a catalogue noun."
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "place"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "point_at_place"
+                    ]
+                  },
+                  "place": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "description": "The beacon goes to a named place of the scene: a site, a point or a named prop (stall, river)."
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "slot"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "point_at_slot"
+                    ]
+                  },
+                  "slot": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "description": "The beacon goes to the place the verdict's slot names (place): a label of the scene, else the nearest block of a catalogue noun; neither raises <npc>.unknown_place to the agent as a host turn."
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "item"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "take_item"
+                    ]
+                  },
+                  "item": {
+                    "$ref": "#/definitions/item"
+                  },
+                  "count": {
+                    "$ref": "#/definitions/count"
+                  }
+                },
+                "description": "The NPC takes items from the inventory, all of them or none (V03)."
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "item",
+                  "price"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "sell"
+                    ]
+                  },
+                  "item": {
+                    "$ref": "#/definitions/item"
+                  },
+                  "price": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Coins for one item."
+                  }
+                },
+                "description": "The NPC sells as many of the item as the learner asked for (the verdict's qty, one when none; no cap since V19, the coins and the bag are the bound) for that many times the price in coins. Otherwise nothing changes hands and a host turn is raised to the agent: another item (or a catalogue noun of no item) <npc>.wont_sell, none asked for <npc>.none_asked, too few coins <npc>.cant_pay (V03), no room in the bag for the items <npc>.no_room (V19)."
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "item",
+                  "price"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "buy"
+                    ]
+                  },
+                  "item": {
+                    "$ref": "#/definitions/item"
+                  },
+                  "price": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Coins for one item."
+                  }
+                },
+                "description": "The NPC buys the item from the learner (V15, the sale turned round): as many as the learner said (the verdict's qty, at most what the bag holds) or, with no number, every one the bag holds, for the price each in coins. A bag with none raises <npc>.cant_sell to the agent as a host turn, a line that offers another item (or a catalogue noun of no item) <npc>.wont_buy, an offer of none <npc>.none_offered, and a bag with no room for the coins <npc>.no_room (V19); then nothing changes hands."
               }
             ]
           }

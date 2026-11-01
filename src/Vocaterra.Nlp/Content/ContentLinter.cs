@@ -3,6 +3,7 @@ using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Normalization;
+using Vocaterra.Nlp.Language.SlotGrammar;
 
 namespace Vocaterra.Nlp.Content;
 
@@ -50,6 +51,9 @@ internal sealed class LintContext
     private readonly LinguisticAnalyzer _analyzer;
     private readonly IntentResolver _resolver;
     private readonly Dictionary<(string Text, string PromptId), Evaluated> _cache = [];
+    private readonly Dictionary<string, TextAnalyses> _texts = new(StringComparer.Ordinal);
+    private readonly Dictionary<NormalizedText, TextAnalyses> _normalized = [];
+    private readonly Dictionary<PromptSpec, List<SlotGrammar>> _grammars = new(ReferenceEqualityComparer.Instance);
     private readonly Dictionary<string, PromptSpec> _synthetic = new(StringComparer.Ordinal);
     private readonly List<LintFinding> _findings = [];
 
@@ -101,18 +105,37 @@ internal sealed class LintContext
     }
 
     /// <summary>Analyzes and resolves the text the way the pipeline does for the prompt (the prompt's grammars first, then those of its allowed intents).</summary>
+    /// <remarks>
+    /// The confusion check asks about every example in a prompt of its own for each other intent, so one text meets many prompts. Of the analysis only the grammar
+    /// match depends on the prompt, so the text is read once, each grammar is matched over it once, and the analysis is completed once per winning grammar (see
+    /// <see cref="Analyze"/>). The resolver, which reads the prompt's allow-list, runs per prompt.
+    /// </remarks>
     public Evaluated Evaluate(string text, PromptSpec prompt)
     {
         var key = (text, prompt.PromptId);
         if (!_cache.TryGetValue(key, out var evaluated))
         {
-            var normalized = Bundle.Language.Normalizer.Normalize(text, KeepArticles);
-            var analysis = _analyzer.Analyze(normalized, PromptGrammars.For(Bundle.Intents, prompt));
-            evaluated = new Evaluated(analysis, _resolver.Resolve(normalized, analysis, prompt));
+            if (!_texts.TryGetValue(text, out var analyses))
+            {
+                analyses = AnalysesOf(Bundle.Language.Normalizer.Normalize(text, KeepArticles));
+                _texts.Add(text, analyses);
+            }
+
+            var analysis = analyses.For(GrammarsOf(prompt));
+            evaluated = new Evaluated(analysis, _resolver.Resolve(analyses.Readings.Text, analysis, prompt));
             _cache.Add(key, evaluated);
         }
 
         return evaluated;
+    }
+
+    /// <summary>
+    /// The analysis of the text with the prompt's grammars, exactly as <see cref="LinguisticAnalyzer.Analyze(NormalizedText, IReadOnlyList{SlotGrammar})"/> gives it,
+    /// made from what this run has computed before: the readings of an equal text, each grammar's match over them, and the completed analysis of each winning grammar.
+    /// </summary>
+    public AnalysisResult Analyze(NormalizedText text, PromptSpec prompt)
+    {
+        return AnalysesOf(text).For(GrammarsOf(prompt));
     }
 
     /// <summary>The prompts that allow all the given intents, in ordinal id order.</summary>
@@ -155,5 +178,78 @@ internal sealed class LintContext
     {
         var lexicon = Bundle.Lexicon;
         return lexicon.Lookup(word).Count > 0 || lexicon.ContainsLemma(word) || lexicon.SpellingsIgnoringAccents(word).Count > 0;
+    }
+
+    // The analyses of a normalized text, by value: the readings are a function of the normalized text alone, so equal texts share them.
+    private TextAnalyses AnalysesOf(NormalizedText text)
+    {
+        if (!_normalized.TryGetValue(text, out var analyses))
+        {
+            analyses = new TextAnalyses(_analyzer, _analyzer.Read(text));
+            _normalized.Add(text, analyses);
+        }
+
+        return analyses;
+    }
+
+    // The grammars the analyzer is given for the prompt, listed once per prompt.
+    private List<SlotGrammar> GrammarsOf(PromptSpec prompt)
+    {
+        if (!_grammars.TryGetValue(prompt, out var grammars))
+        {
+            grammars = PromptGrammars.For(Bundle.Intents, prompt);
+            _grammars.Add(prompt, grammars);
+        }
+
+        return grammars;
+    }
+
+    // The analyses of one text: its readings, each grammar's match over them, and one completed analysis per winning grammar, or for no match. The keys are the
+    // grammar objects, not their patterns, because the analysis names the grammar's id.
+    private sealed class TextAnalyses
+    {
+        private readonly LinguisticAnalyzer _analyzer;
+        private readonly Func<SlotGrammar, SlotGrammarMatch?> _match;
+        private readonly Dictionary<SlotGrammar, SlotGrammarMatch?> _matches = new(ReferenceEqualityComparer.Instance);
+        private readonly Dictionary<SlotGrammar, AnalysisResult> _completed = new(ReferenceEqualityComparer.Instance);
+        private AnalysisResult? _unmatched;
+
+        public TextAnalyses(LinguisticAnalyzer analyzer, TextReadings readings)
+        {
+            _analyzer = analyzer;
+            _match = Match;
+            Readings = readings;
+        }
+
+        public TextReadings Readings { get; }
+
+        // The analysis with the grammars: LinguisticAnalyzer.Analyze's, with each grammar matched once and the analysis completed once per winner.
+        public AnalysisResult For(IReadOnlyList<SlotGrammar> grammars)
+        {
+            var match = LinguisticAnalyzer.BestMatch(grammars, _match);
+            if (match is null)
+            {
+                return _unmatched ??= _analyzer.Complete(Readings, null);
+            }
+
+            if (!_completed.TryGetValue(match.Grammar, out var analysis))
+            {
+                analysis = _analyzer.Complete(Readings, match);
+                _completed.Add(match.Grammar, analysis);
+            }
+
+            return analysis;
+        }
+
+        private SlotGrammarMatch? Match(SlotGrammar grammar)
+        {
+            if (!_matches.TryGetValue(grammar, out var match))
+            {
+                match = _analyzer.Match(Readings, grammar);
+                _matches.Add(grammar, match);
+            }
+
+            return match;
+        }
     }
 }

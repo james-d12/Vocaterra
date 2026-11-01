@@ -86,6 +86,18 @@ public sealed class XxAnalysisRules : IAnalysisRules
     public bool IsCopulaOrAuxiliary(string lemma) => false;
 
     /// <inheritdoc />
+    public bool IsElapsedTimePreposition(string lemma) => false;
+
+    /// <inheritdoc />
+    public bool IsElapsedTimeNoun(string lemma) => false;
+
+    /// <inheritdoc />
+    public bool IsPostnominalAdjective(string lemma) => false;
+
+    /// <inheritdoc />
+    public bool IsDegreeAdverb(string lemma) => false;
+
+    /// <inheritdoc />
     public IAgreementChecker CreateAgreementChecker(IReadOnlyList<AnalyzedToken> resolved, List<ErrorTag> errors) => new XxAgreementChecker();
 }
 

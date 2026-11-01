@@ -1,7 +1,7 @@
 {
   "$schema": "../../schema/host-events.schema.json",
-  "schemaVersion": 1,
-  "about": "What each NPC host event does in the world (S6; C08: it was a table in the code). The core's agents raise the events; an event not listed changes nothing. action is give_item (an item by its stable name) or point_at_noun (the beacon goes to the nearest block of a catalogue noun).",
+  "schemaVersion": 2,
+  "about": "What each NPC host event does in the world (S6; C08: it was a table in the code; schema 2, VILLAGE_PLAN V02). The core's agents raise the events; an event not listed changes nothing. action is give_item (an item by its stable name, and a count: a number, or qty for the number the learner said, capped at 5), point_at_noun (the beacon goes to the nearest block of a catalogue noun), point_at_place (to a named place of the scene) point_at_slot (to the place a slot of the learner's line names, through the scene's labels: villager.point answers \"¿dónde está el río?\" and any other place; a place the scene does not have is answered by <npc>.unknown_place), take_item, sell (a purchase: the learner pays the price for each item asked for, no cap; another item is answered by <npc>.wont_sell, none asked for by <npc>.none_asked, too few coins by <npc>.cant_pay, a full bag by <npc>.no_room) or buy (VILLAGE_PLAN V15, the sale turned round: the NPC pays the price for each item the learner sells; none in the bag is answered by <npc>.cant_sell, another item by <npc>.wont_buy, none offered by <npc>.none_offered, a full bag by <npc>.no_room).",
   "events": [
     {
       "npc": "shopkeeper",
@@ -23,8 +23,8 @@
       "npc": "villager",
       "event": "villager.point",
       "action": {
-        "kind": "point_at_noun",
-        "noun": "río"
+        "kind": "point_at_slot",
+        "slot": "place"
       }
     },
     {
@@ -33,6 +33,102 @@
       "action": {
         "kind": "give_item",
         "item": "bread"
+      }
+    },
+    {
+      "npc": "fisher",
+      "event": "fisher.point",
+      "action": {
+        "kind": "point_at_slot",
+        "slot": "place"
+      }
+    },
+    {
+      "npc": "fisher",
+      "event": "fisher.show",
+      "action": {
+        "kind": "point_at_slot",
+        "slot": "item"
+      }
+    },
+    {
+      "npc": "fisher",
+      "event": "fisher.pay",
+      "action": {
+        "kind": "give_item",
+        "item": "coin",
+        "count": 2
+      }
+    },
+    {
+      "npc": "baker",
+      "event": "baker.sell_bread",
+      "action": {
+        "kind": "sell",
+        "item": "bread",
+        "price": 2
+      }
+    },
+    {
+      "npc": "baker",
+      "event": "baker.buy_wood",
+      "action": {
+        "kind": "buy",
+        "item": "wood",
+        "price": 1
+      }
+    },
+    {
+      "npc": "baker",
+      "event": "baker.pay",
+      "action": {
+        "kind": "give_item",
+        "item": "coin",
+        "count": 4
+      }
+    },
+    {
+      "npc": "smith",
+      "event": "smith.give_axe",
+      "action": {
+        "kind": "give_item",
+        "item": "axe"
+      }
+    },
+    {
+      "npc": "farmer",
+      "event": "farmer.sell_apples",
+      "action": {
+        "kind": "sell",
+        "item": "apple",
+        "price": 1
+      }
+    },
+    {
+      "npc": "farmer",
+      "event": "farmer.buy_fruit",
+      "action": {
+        "kind": "buy",
+        "item": "berry",
+        "price": 1
+      }
+    },
+    {
+      "npc": "farmer",
+      "event": "farmer.give_apples",
+      "action": {
+        "kind": "give_item",
+        "item": "apple",
+        "count": 3
+      }
+    },
+    {
+      "npc": "smith",
+      "event": "smith.buy_wood",
+      "action": {
+        "kind": "buy",
+        "item": "wood",
+        "price": 1
       }
     },
     {

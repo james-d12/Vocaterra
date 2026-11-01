@@ -1,0 +1,198 @@
+{
+  "$schema": "../../../schema/lesson.schema.json",
+  "schemaVersion": 2,
+  "id": "el-pueblo",
+  "npc": "fisher",
+  "level": "a1",
+  "autoStart": true,
+  "after": "ayer-y-manana",
+  "session": 4,
+  "verbs": [
+    {
+      "lemma": "buscar",
+      "person": "2",
+      "number": "sg",
+      "tense": "pres"
+    },
+    {
+      "lemma": "comprar",
+      "person": "1",
+      "number": "sg",
+      "tense": "ir-a"
+    },
+    {
+      "lemma": "hacer",
+      "person": "2",
+      "number": "sg",
+      "tense": "ir-a"
+    }
+  ],
+  "steps": [
+    {
+      "id": "v0-hello",
+      "type": "review",
+      "candidates": [
+        {
+          "phrase": "hola",
+          "line": "fisher_hello.1"
+        }
+      ]
+    },
+    {
+      "id": "v0-intro",
+      "type": "explain"
+    },
+    {
+      "id": "v1-bakery",
+      "type": "answer",
+      "phrase": "donde-esta-la-panaderia",
+      "prompt": "fisher-open",
+      "line": "fisher_greet.1"
+    },
+    {
+      "id": "v1-left",
+      "type": "listen",
+      "line": "guide.lesson.fisher.left.1",
+      "correct": 0
+    },
+    {
+      "id": "v1-smithy",
+      "type": "answer",
+      "phrase": "donde-esta-la-herreria",
+      "prompt": "lesson-place",
+      "line": "guide.lesson.fisher.more.1"
+    },
+    {
+      "id": "v1-right",
+      "type": "model",
+      "line": "guide.lesson.fisher.right.1"
+    },
+    {
+      "id": "v2-far",
+      "type": "repeat",
+      "phrase": "esta-lejos",
+      "prompt": "lesson-far"
+    },
+    {
+      "id": "v2-near",
+      "type": "listen",
+      "line": "guide.lesson.fisher.near.1",
+      "correct": 0
+    },
+    {
+      "id": "v3-houses",
+      "type": "listen",
+      "line": "guide.lesson.fisher.hay.1",
+      "correct": 0
+    },
+    {
+      "id": "v3-well",
+      "type": "repeat",
+      "phrase": "hay-un-pozo",
+      "prompt": "lesson-hay"
+    },
+    {
+      "id": "v3-yes",
+      "type": "model",
+      "line": "guide.lesson.fisher.well.1"
+    },
+    {
+      "id": "v4-going",
+      "type": "answer",
+      "phrase": "voy-a-la-panaderia",
+      "prompt": "lesson-going",
+      "line": "guide.lesson.fisher.going.1",
+      "person": "1sg",
+      "tense": "pres"
+    },
+    {
+      "id": "v4-plan",
+      "type": "answer",
+      "phrase": "voy-a-comprar-pan",
+      "prompt": "lesson-plan-there",
+      "line": "guide.lesson.fisher.plan.1",
+      "person": "1sg",
+      "tense": "ir-a"
+    },
+    {
+      "id": "v5-bakery",
+      "type": "do",
+      "pointPlace": "bakery",
+      "trigger": {
+        "event": "beacon_reached",
+        "detail": "bakery"
+      }
+    },
+    {
+      "id": "v5-smithy",
+      "type": "do",
+      "pointPlace": "smithy",
+      "trigger": {
+        "event": "beacon_reached",
+        "detail": "smithy"
+      }
+    },
+    {
+      "id": "v5-villager",
+      "type": "do",
+      "trigger": {
+        "event": "talk_opened",
+        "npc": "villager"
+      }
+    },
+    {
+      "id": "v6-sign",
+      "type": "listen",
+      "npc": "villager",
+      "line": "guide.lesson.villager.sign.1",
+      "correct": 0
+    },
+    {
+      "id": "v6-back",
+      "type": "do",
+      "npc": "villager",
+      "pointPlace": "npc.fisher",
+      "trigger": {
+        "event": "talk_opened",
+        "npc": "fisher"
+      }
+    },
+    {
+      "id": "v7-went",
+      "type": "answer",
+      "phrase": "fui-a-la-panaderia",
+      "prompt": "lesson-went-there",
+      "line": "guide.lesson.fisher.went.1",
+      "person": "1sg",
+      "tense": "pret"
+    },
+    {
+      "id": "v7-hungry",
+      "type": "model",
+      "line": "guide.lesson.fisher.hungry.1"
+    },
+    {
+      "id": "v8-thanks",
+      "type": "review",
+      "candidates": [
+        {
+          "phrase": "gracias",
+          "line": "guide.lesson.fisher.end.1"
+        }
+      ]
+    },
+    {
+      "id": "v8-bye",
+      "type": "repeat",
+      "phrase": "adios"
+    },
+    {
+      "id": "v8-table",
+      "type": "explain"
+    },
+    {
+      "id": "v8-recap",
+      "type": "recap"
+    }
+  ]
+}

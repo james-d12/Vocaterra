@@ -26,7 +26,7 @@ public sealed record SentenceRecipe(string Source, GrammarPattern Pattern, ulong
 public static class SentenceGen
 {
     /// <summary>Draws a recipe (pattern plus realiser seed).</summary>
-    public static Gen<SentenceRecipe> Recipe(PipelineHarness harness)
+    public static Gen<SentenceRecipe> Recipe(IGeneratorInputs harness)
     {
         return Gen.Select(PatternGen.Any(harness), Gen.ULong, static (pattern, seed) => new SentenceRecipe(pattern.Source, pattern.Pattern, seed));
     }
@@ -35,7 +35,7 @@ public static class SentenceGen
     /// Realises a recipe, or returns null when the pattern cannot be realised correctly from the lexicon (the reason is counted in
     /// <paramref name="diagnostics"/>). Throws an oracle failure when the DSL round trip or the normalizer disagrees with the realiser.
     /// </summary>
-    public static GeneratedSentence? Realize(PipelineHarness harness, SentenceRecipe recipe, SentenceOptions? options = null, FuzzDiagnostics? diagnostics = null)
+    public static GeneratedSentence? Realize(IGeneratorInputs harness, SentenceRecipe recipe, SentenceOptions? options = null, FuzzDiagnostics? diagnostics = null)
     {
         var rendered = recipe.Pattern.Render();
         SlotGrammarType compiled;
@@ -106,7 +106,7 @@ public static class SentenceGen
 
     // Counts the sentences that hold a generated word the lexicon reads in more than one way, so a report shows that the homographs are generated and not only allowed:
     // a noun that is also a verb form, a verb form that is also a noun, a noun that is also a noun of the other gender.
-    private static void CountHomographs(PipelineHarness harness, GeneratedSentence sentence, FuzzDiagnostics? diagnostics)
+    private static void CountHomographs(IGeneratorInputs harness, GeneratedSentence sentence, FuzzDiagnostics? diagnostics)
     {
         if (diagnostics is null)
         {
@@ -125,7 +125,7 @@ public static class SentenceGen
             }
             else if (token.Role == TokenRole.Verb)
             {
-                verbAlsoNoun |= harness.Lexicon.Lookup(token.Norm).Any(static r => r.Pos == LexiconSchema.Noun);
+                verbAlsoNoun |= harness.Words.Lexicon.Lookup(token.Norm).Any(static r => r.Pos == LexiconSchema.Noun);
             }
         }
 

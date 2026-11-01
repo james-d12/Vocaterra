@@ -218,13 +218,51 @@ public sealed class LessonFrontendTests
 
         var done = run.Log.Where(static l => l.StartsWith("  event: lesson personas step ", StringComparison.Ordinal) && (l.EndsWith(" done", StringComparison.Ordinal) || l.Contains(" done (", StringComparison.Ordinal))).ToList();
         Assert.Equal(20, done.Count);
-        Assert.Contains("  event: lesson personas completed (done 20, skipped 0, moved on 0)", run.Log);
+        Assert.Contains("  event: lesson personas completed (done 20, skipped 2, moved on 0)", run.Log); // its two review steps (X06) have nothing due in a new game
         Assert.Equal(LessonStatus.Completed, run.Session.Lessons.StatusOf("personas"));
         Assert.Equal(["quiero-madera", "ella-quiere-fruta", "necesitamos-agua", "necesito-pan", "tengo-botella", "queremos-pan"], run.Session.Events.OfType<PhraseUse>().Select(static u => u.PhraseId));
         var opened = run.Session.Events.OfType<WorldEvent>().Where(static e => e.Name == WorldEvents.TalkOpened).Select(static e => e.Npc).ToList();
         Assert.Equal("villager", opened[0]);
         Assert.Contains("shopkeeper", opened); // the run walked from the villager to the stall
         Assert.Equal(0, run.Session.Simulation.Inventory.Count(ItemId.Bottle)); // the stall handed nothing over: the statements are no requests
+    }
+
+    [Fact]
+    public void ALessonRunStepSkipsADoStepItHasNothingToWalkToAndGoesOn()
+    {
+        // VILLAGE_PLAN V11: Números y pan waits for an order and a purchase the run does not make. The run skips each such step with the panel still open; a skip after
+        // closing it did nothing, and the run walked back to the baker and asked again for ever.
+        var shipped = TestGame.Data.Lessons;
+        using var run = new Harness([new(ScriptStepKind.LessonRun, Value: "numeros-y-pan")], shipped);
+        run.Session.PlaySession = 5;
+
+        run.Go(120000);
+
+        Assert.Equal(LessonStatus.Completed, run.Session.Lessons.StatusOf("numeros-y-pan"));
+        Assert.Single(run.Log, static l => l == "lesson-run: the step 'n4-back' has nothing to walk to; it is skipped");
+        Assert.Single(run.Log, static l => l == "lesson-run: the step 'n6-buy' has nothing to walk to; it is skipped");
+        Assert.Contains("  event: lesson numeros-y-pan step 11 do (n4-back) skipped", run.Log);
+        var opened = run.Session.Events.OfType<WorldEvent>().Where(static e => e.Name == WorldEvents.TalkOpened).Select(static e => e.Npc).Distinct();
+        Assert.Equal(["baker", "shopkeeper"], opened); // from the bakery to the stall
+    }
+
+    [Fact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
+    public void ALessonRunAfterOneThatEndedAtAnotherNpcWalksToItsOwnNpc()
+    {
+        // VILLAGE_PLAN V12: Números y pan ends at the stall with the panel open, and Gente del pueblo starts at the villager. The run closes the panel and walks to him;
+        // it typed "Es el herrero" at the shopkeeper for ever, where the line is not the lesson's.
+        var shipped = TestGame.Data.Lessons;
+        using var run = new Harness([new(ScriptStepKind.LessonRun, Value: "numeros-y-pan"), new(ScriptStepKind.LessonRun, Value: "gente-del-pueblo")], shipped);
+        run.Session.PlaySession = 6;
+
+        run.Go(240000);
+
+        Assert.Equal(LessonStatus.Completed, run.Session.Lessons.StatusOf("numeros-y-pan"));
+        Assert.Equal(LessonStatus.Completed, run.Session.Lessons.StatusOf("gente-del-pueblo"));
+        Assert.DoesNotContain(run.Log, static l => l.Contains("(shopkeeper,", StringComparison.Ordinal) && l.Contains("\"Es el herrero\"", StringComparison.Ordinal));
+        var opened = run.Session.Events.OfType<WorldEvent>().Where(static e => e.Name == WorldEvents.TalkOpened).Select(static e => e.Npc).Distinct();
+        Assert.Equal(["baker", "shopkeeper", "villager", "smith", "farmer"], opened); // the stall, then the square, the smithy and the field
     }
 
     [Fact]
@@ -279,7 +317,7 @@ public sealed class LessonFrontendTests
     }
 
     private const string LessonBookTestsRich = """
-        { "schemaVersion": 1, "lessons": [ { "id": "rich", "npc": "guide", "title": "Rich", "english": "Every step type.", "steps": [
+        { "schemaVersion": 1, "lessons": [ { "id": "rich", "npc": "guide", "level": "a1", "title": "Rich", "english": "Every step type.", "steps": [
           { "id": "read", "type": "explain", "english": "Read this." },
           { "id": "hear", "type": "model", "line": "phrase.hola", "translation": "Hello.", "english": "Listen." },
           { "id": "pick", "type": "listen", "line": "phrase.hola", "translation": "Hello.", "english": "What does she say?", "options": ["Goodbye", "Hello", "Thank you"], "correct": 1 },
@@ -545,7 +583,7 @@ public sealed class LessonFrontendTests
         }
     }
 
-    private static SpeechIndex TestSpeechIndex() => new(SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, TestGame.Data.Phrases));
+    private static SpeechIndex TestSpeechIndex() => new(SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, TestGame.Data.Phrases, TestGame.Data.Npcs));
 
     // ---- Options, the log and the font.
 

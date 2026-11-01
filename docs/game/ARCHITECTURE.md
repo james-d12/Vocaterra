@@ -120,8 +120,9 @@ Language/         Book/ (the book's model, pages, tables, recordings, speakers, 
                   Phrases/ (phrase progress, the support ladder, PhraseJournalRows), Speech/ (the evaluators, MicCheck, MicCheckModel,
                   MicCheckScreen), Words/ (the noun catalogue, word progress, JournalRows, VerbReading, GreyscaleWorld)
 Mathematics/      Angles, WorldRng, PresentationRng
-Navigation/       Beacon, the walk's path search, BeaconDirector, PointLabels
-Npc/              NpcService, WorldFacts, the aim at an NPC, the guide's turns and events, the NPCs' data (NpcRoster) and HostEventTable
+Navigation/       Beacon, the walk's path search, BeaconDirector, PointLabels, ScenePlaces (the places a word names, VILLAGE_PLAN V02)
+Npc/              NpcService, WorldFacts, the aim at an NPC, the guide's turns and events, the NPCs' data (NpcRoster: since V01 also the prompt of
+                  each state, the opening, the voice and the key words) and HostEventTable
 Physics/          the player's body and its collision with the grid
 Reporting/        the F8 report (ReportPanel, ReportEntry, ReportWrap, ReportStateBuilder, BuildCommit), FrameStats, BusyFrameStats, the crash
                   report and its source (ICrashSource, CrashGameState, CrashSource)
@@ -180,6 +181,45 @@ The tests mirror the sources: `tests/Vocaterra.Game.Core.Tests/<folder>/` for Co
 Game's, with `Component/` in each for the tests that drive several classes together (the `*FrontendTests`, the route and session runs),
 `TestSupport/` for the shared helpers (Core's `Repo.cs` and `RouteScene.cs` are compiled into Game's tests too) and `Architecture/` for the
 layering rules.
+
+**The NPCs as data** (CONTENT_PLAN 3.6, C08; schema 2 since VILLAGE_PLAN V01). `NpcRoster` reads `game/npcs.json` and one `game/npcs/<id>.json` per NPC:
+its label, name and figure key, the phrases its prompts practise, and what it does that was code until V01: the prompt it waits on in each state of
+its agent (a state not listed waits on the initial state's; the guide's `review` prompt), the host event it opens a talk with and when (`always`,
+`first`, `never`), its Kokoro voice (speaker id, name, speed), its key words and the prefix of its dialogue pools. `NpcService` takes the prompts and
+the opening from it (`PromptAfter`, the constructor's check of every prompt an NPC file names); `SpeechSpeakers.OfPool` gives a pool to the NPC whose
+prefix it carries (`<prefix>_*`, `guide.lesson.<prefix>.*`; every other pool is the guide's); the speech renderer (`tools/Vocaterra.SpeechRender`)
+records each speaker with its file's voice and stops on a speaker with none (and, with `--trial`, renders the voice trial of `docs/game/voice-trial/`,
+VILLAGE_PLAN V06); `GuideSession` shows the talking NPC's key words; the phrase sheet answers
+an NPC's prompt that no row names with the rows of another NPC's prompt that accepts the same answers (the guide's offer, the stall's offer rows); and
+`--talk` accepts any NPC of the roster, checked once it has loaded. `GameDataValidator` reports an NPC with no prompts, a prompt the bundle lacks or
+of another agent, a state its agent lacks, an opening event no state takes and a voice with no name. What the data cannot say stays code, by id: the
+shopkeeper's fail-forward and later visits, and the guide's review, transfer offer and world lines. Adding an NPC is `content/README.md`'s "Adding
+an NPC".
+
+**What the NPCs' host events do** (C08; `game/host-events.json` schema 2 since VILLAGE_PLAN V02). The core's agents raise opaque host events; `HostEventTable`
+gives each (NPC, event) an action and `VoxelSession.ApplyHostEvents` carries it out on the game's thread, with the slots of the learner's line: `give_item` (a
+count, or the number the learner said, `qty`, from 1 to 5; all of the items or none, the bottle once), `point_at_noun` (a noun's nearest block),
+`point_at_place` (a named place of the scene, through `Beacon`'s points), `point_at_slot` (the place a slot names, resolved by `Navigation/ScenePlaces`: a
+label of the scene, the nearest of the points that share it, the nearest block of a place made of its word's blocks such as the river (of the blocks joined to its point: the village well's water, V04, is not the
+river), else a catalogue noun's nearest block), and since V03 `take_item` (all or none, through `VoxelSimulation.TakeItems`) and `sell` (the number asked for, at a price in coins: the coins
+go and the items come, or nothing changes hands). What the world of a turn cannot do is decided on the worker, on the turn's own copy of the world and
+inventory, because only there may the NPC's conversation move: `NpcService` drops the line of the action that raised the event and raises
+`<npc>.unknown_place` (a place the scene does not have) or `<npc>.cant_pay` (too few coins) to the agent as a host turn, whose lines follow the turn's and
+which is in the replay record (the shopkeeper's fail-forward is the model). The game's thread then does nothing in the world for it (the place is logged
+`place_asked unknown`; the coins and the items stay where they were). The arrival at an arrow is the world event `beacon_reached`, with the place's name (`PointerMarker.Point`): the session logs it when its `Step`
+takes the arrow down, and `BeaconDirector` for a beacon it placed itself (the start, `--beacon`); a save keeps the arrow's word and block, and the name is
+worked out again from the scene on load. A lesson's `do` step with a `pointPlace` points the beacon there and may wait for that arrival.
+
+**Objectives by session, and orders** (C07; VILLAGE_PLAN V03). `ObjectiveBook` reads `game/session.json` and one `game/objectives/<id>.json` per objective. An
+objective may name the play `session` it starts in: before it `VoxelSession` neither shows it (`CurrentObjective`, the HUD's line) nor counts world events for
+it. An order names the NPC the goods are brought to (`deliverTo`) and the goods (`deliver`); the loader gives it one step, `delivered`, which waits for the
+world event `order_delivered` at that NPC with the order's id, so the save keeps it as any step (`<order>.delivered`; no save field is new). The delivery
+is checked when the panel opens, in `GuideSession.OpenNow`, never on a line (D-game-8, D-game-9: walking up with the goods is enough): when no turn is on the
+worker and the inventory holds an open order's goods (`VoxelSession.OrderReadyAt`), `NpcService.Open` raises `<npc>.delivered` to the agent as the opening
+instead of the NPC's own; the goods are taken, the host events of the thanks are applied (the reward is a `give_item`), and `order_delivered` completes the
+order. The session's ending (S17) waits only for the objectives with no session that are not orders, so an order never holds back or brings back the closing
+moment. The three items of the economy (`ItemId.Coin`, `Apple`, `Axe`, V03) are ordinary items: the axe, held, makes a trunk take a quarter of its gather
+ticks (`VoxelSimulation.GatherTicksOf`, which the HUD's bar reads too).
 
 How the guide's turn meets the host's duties (see `src/Vocaterra.Game/README.md` for the steps):
 
@@ -272,4 +312,4 @@ the same `NpcService` turn, and each turn records how it arrived (`GuideTurn.Inp
   `Component/` tests; its `ArchitectureRulesTests` keep `System.Random` and `Guid` out, the wall clock in `WallClock.cs` and the `Stopwatch` in
   `FrameClock.cs`.
 - The core's own suites (fuzzing, goldens, replay) test the core; the game's tests cover only what the game does with it.
-- The continuous integration job is parked in `.github/workflows-pending/ci.yml` (D-game-3, deferred by the owner).
+- Continuous integration is `.github/workflows/ci.yml` (`build-and-test` without the speech models, and `languagetool`; `docs/game/README.md`, "Continuous integration").

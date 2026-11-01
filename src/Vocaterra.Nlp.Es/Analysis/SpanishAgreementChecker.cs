@@ -8,7 +8,13 @@ using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Morphology;
 
 /// <summary>Runs the Spanish grammar checks (subject-verb, tense, ser/estar, noun phrase agreement, word order) over analyzed tokens; part of the Spanish pack since M34.</summary>
-internal sealed class SpanishAgreementChecker : IAgreementChecker
+/// <remarks>
+/// The rules of M56 (a subject after its verb, <c>ser</c> where a place takes <c>estar</c>) are in <c>SpanishAgreementChecker.Postverbal.cs</c>, and those of M59 (a noun
+/// subject before its verb, a reflexive clitic after <c>cómo</c>) in <c>SpanishAgreementChecker.Preverbal.cs</c>, and that of M62 (an adjective after <c>ser</c> or
+/// <c>estar</c> agrees with the copula's subject) in <c>SpanishAgreementChecker.Predicate.cs</c>, and those of M64 (a subject pronoun joined by <c>y</c> ends a plural
+/// subject, an amount before a singular <c>ser</c> is one sum) in <c>SpanishAgreementChecker.Coordination.cs</c>.
+/// </remarks>
+internal sealed partial class SpanishAgreementChecker : IAgreementChecker
 {
     private readonly IReadOnlyList<AnalyzedToken> _tokens;
     private readonly IMorphology _morphology;
@@ -26,11 +32,16 @@ internal sealed class SpanishAgreementChecker : IAgreementChecker
     public void Run()
     {
         CheckSubjectVerb();
+        CheckPreverbalSubject();
+        CheckReflexiveClitic();
+        CheckPostverbalSubject();
         CheckTense();
         CheckNearFuture();
         CheckIrWithoutA();
         CheckSerEstar();
+        CheckSerOfPlace();
         CheckNounPhrases();
+        CheckPredicateAdjectives();
     }
 
     private static bool IsFiniteVerb(LexicalFeatures reading)
@@ -152,13 +163,21 @@ internal sealed class SpanishAgreementChecker : IAgreementChecker
         for (var i = 0; i < _tokens.Count; i++)
         {
             var pronoun = FirstReading(i, static r => r.Pos == LexiconSchema.Pronoun && r.Person is not null && WordClasses.IsSubjectPronoun(r.Lemma));
-            if (pronoun is null)
+            // M56: a pronoun that a preposition governs is no subject (a ella le gustan las manzanas: ella is the one who likes, the apples are the subject).
+            if (pronoun is null || (i > 0 && IsPreposition(i - 1)))
             {
                 continue;
             }
 
             var verbIndex = NextContentIndex(i + 1);
             if (verbIndex < 0)
+            {
+                continue;
+            }
+
+            // M64: a pronoun joined by y to the members before it ends a plural subject (Luz y yo fuimos), whose cells the verb agrees with; a coordination that cannot
+            // be told is not checked (SpanishAgreementChecker.Coordination.cs).
+            if (SubjectCells(i, pronoun) is not { } cells)
             {
                 continue;
             }
@@ -170,25 +189,25 @@ internal sealed class SpanishAgreementChecker : IAgreementChecker
                 var infinitive = FirstReading(verbIndex, static r => r.Pos == LexiconSchema.Verb && r.Person is null && r.Tense is null && r.Mood is null);
                 if (infinitive is not null)
                 {
-                    AddPersonError(verbIndex, infinitive.Lemma, pronoun, LexiconSchema.Present);
+                    AddPersonError(verbIndex, infinitive.Lemma, cells[0], LexiconSchema.Present);
                 }
 
                 continue;
             }
 
-            if (finite.Any(r => r.Person == pronoun.Person && r.Number == pronoun.Number))
+            if (finite.Exists(r => cells.Any(c => c.Person == r.Person && c.Number == r.Number)))
             {
                 continue;
             }
 
             var representative = finite.FirstOrDefault(static r => r.Mood == LexiconSchema.Indicative) ?? finite[0];
-            AddPersonError(verbIndex, representative.Lemma, pronoun, representative.Tense ?? LexiconSchema.Present);
+            AddPersonError(verbIndex, representative.Lemma, cells[0], representative.Tense ?? LexiconSchema.Present);
         }
     }
 
-    private void AddPersonError(int verbIndex, string lemma, LexicalFeatures pronoun, string tense)
+    private void AddPersonError(int verbIndex, string lemma, (string Person, string Number) cell, string tense)
     {
-        var expected = _morphology.Conjugate(lemma, pronoun.Person!, pronoun.Number!, tense) ?? string.Empty;
+        var expected = _morphology.Conjugate(lemma, cell.Person, cell.Number, tense) ?? string.Empty;
         Add(ErrorTags.ConjPerson, verbIndex, verbIndex, expected, TextOf(verbIndex));
     }
 
@@ -234,7 +253,8 @@ internal sealed class SpanishAgreementChecker : IAgreementChecker
     //     present ("voy"). The present stays correct ("mañana como pan") and so does the future. A sentence that also has a past marker is left to CheckTense.
     //     luego and más tarde are not markers: "luego comí" is ordinary narration.
     //  2. A finite verb right after "ir a" ("voy a como", "vamos a tenemos"): the expected form is the infinitive. A noun phrase after a ("voy a la casa") or a
-    //     word that can be a noun is left alone.
+    //     word that can be a noun is left alone. M59: a form that is also a preposition counts as the verb ("va a hace un hacha" -> "hacer"), since no preposition
+    //     follows the a of "ir a".
     private void CheckNearFuture()
     {
         var afterIrA = FormsAfterIrA();
@@ -306,7 +326,8 @@ internal sealed class SpanishAgreementChecker : IAgreementChecker
 
             var next = i + 2;
             var readings = _tokens[next].Readings;
-            if (readings.Count == 0 || readings.Any(r => !IsDeclarativeFiniteVerb(r) && r.Pos != LexiconSchema.Adverb && r.Pos != LexiconSchema.Conjunction))
+            if (readings.Count == 0
+                || readings.Any(r => !IsDeclarativeFiniteVerb(r) && r.Pos is not (LexiconSchema.Adverb or LexiconSchema.Conjunction or LexiconSchema.Preposition)))
             {
                 continue;
             }
@@ -348,19 +369,21 @@ internal sealed class SpanishAgreementChecker : IAgreementChecker
         }
     }
 
-    /// <summary>The index of the first future-time marker (the time noun for a phrase), or -1: mañana (not "la mañana"), pasado mañana, próximo/a + a time noun, or a time noun + que viene.</summary>
+    /// <summary>
+    /// The index of the first future-time marker (the time noun for a phrase), or -1: mañana (not "la mañana"), pasado mañana, próximo/a + a time noun, or a time noun
+    /// + que viene. The words are those of <see cref="SpanishTimeMarkers"/>, which the fuzz suite's sentence generator models too.
+    /// </summary>
     private int FutureTimeMarkerIndex()
     {
         for (var i = 0; i < _tokens.Count; i++)
         {
-            if (FirstReading(i, static r => r.Pos == LexiconSchema.Adverb && r.Lemma == "mañana") is not null
-                && (i == 0 || TextOf(i - 1) is not ("la" or "esta" or "una" or "cada" or "toda" or "esa" or "aquella" or "de")))
+            if (IsFutureAdverb(i) && (i == 0 || !SpanishAnalysisTables.IsWordBeforeTheNounMañana(TextOf(i - 1))))
             {
                 return i;
             }
 
             if (i > 0
-                && FirstReading(i - 1, static r => r.Pos == LexiconSchema.Adjective && r.Lemma == "próximo") is not null
+                && FirstReading(i - 1, static r => r.Pos == LexiconSchema.Adjective && r.Lemma == SpanishTimeMarkers.UpcomingAdjective) is not null
                 && FirstReading(i, static r => r.Pos == LexiconSchema.Noun && SpanishAnalysisTables.IsUpcomingTimeNoun(r.Lemma)) is not null)
             {
                 return i;
@@ -368,9 +391,9 @@ internal sealed class SpanishAgreementChecker : IAgreementChecker
 
             if (i > 0
                 && FirstReading(i - 1, static r => r.Pos == LexiconSchema.Noun && SpanishAnalysisTables.IsTimeNoun(r.Lemma)) is not null
-                && string.Equals(TextOf(i), "que", StringComparison.Ordinal)
                 && i + 1 < _tokens.Count
-                && string.Equals(TextOf(i + 1), "viene", StringComparison.Ordinal))
+                && string.Equals(TextOf(i), SpanishTimeMarkers.UpcomingClause[0], StringComparison.Ordinal)
+                && string.Equals(TextOf(i + 1), SpanishTimeMarkers.UpcomingClause[1], StringComparison.Ordinal))
             {
                 return i;
             }
@@ -379,7 +402,11 @@ internal sealed class SpanishAgreementChecker : IAgreementChecker
         return -1;
     }
 
-    /// <summary>True when the sentence has a past-time adverb (ayer, anoche, anteayer) or a time noun with <c>pasado</c> (la semana pasada).</summary>
+    /// <summary>
+    /// True when the sentence has a past-time adverb (ayer, anoche, anteayer) or a time noun followed by a form of <c>pasado</c> (la semana pasada). M57: the form is
+    /// matched as written, because the charitable fallback of the reading resolver read <c>pasada</c> as the noun (una pasada) whenever the adjective showed a slip,
+    /// so <c>compro pan la semana pasada</c> was clean; and the <c>pasado</c> of <c>pasado mañana</c> is no past marker (voy a ir el domingo pasado mañana).
+    /// </summary>
     public bool HasPastTimeMarker()
     {
         for (var i = 0; i < _tokens.Count; i++)
@@ -390,7 +417,8 @@ internal sealed class SpanishAgreementChecker : IAgreementChecker
             }
 
             if (i > 0
-                && FirstReading(i, static r => r.Pos == LexiconSchema.Adjective && r.Lemma == "pasado") is not null
+                && SpanishAnalysisTables.IsPastTimeAdjectiveForm(TextOf(i))
+                && !IsDayAfterTomorrow(i)
                 && FirstReading(i - 1, static r => r.Pos == LexiconSchema.Noun && SpanishAnalysisTables.IsTimeNoun(r.Lemma)) is not null)
             {
                 return true;
@@ -398,6 +426,20 @@ internal sealed class SpanishAgreementChecker : IAgreementChecker
         }
 
         return false;
+    }
+
+    private bool IsFutureAdverb(int index)
+    {
+        return FirstReading(index, static r => r.Pos == LexiconSchema.Adverb && r.Lemma == SpanishTimeMarkers.FutureAdverb) is not null;
+    }
+
+    // M57: the pasado of "pasado mañana" (the day after tomorrow), one time phrase wherever it stands. It is no adjective of the noun before it (compro panes pasado
+    // mañana gave noun.number, expected pasados) and no past marker after a time noun.
+    private bool IsDayAfterTomorrow(int index)
+    {
+        return index + 1 < _tokens.Count
+            && string.Equals(TextOf(index), SpanishTimeMarkers.DayAfterTomorrow[0], StringComparison.Ordinal)
+            && IsFutureAdverb(index + 1);
     }
 
     private void CheckSerEstar()
@@ -463,6 +505,11 @@ internal sealed class SpanishAgreementChecker : IAgreementChecker
 
     private bool IsAdjunct(int index)
     {
+        if (IsDayAfterTomorrow(index))
+        {
+            return false;
+        }
+
         var readings = _tokens[index].Readings;
         return readings.Any(static r => r.Pos == LexiconSchema.Adjective && !WordClasses.IsDeterminerAdjective(r.Lemma))
             && !readings.Any(static r => r.Pos == LexiconSchema.Noun || IsFiniteVerb(r));
@@ -501,7 +548,7 @@ internal sealed class SpanishAgreementChecker : IAgreementChecker
         var head = cursor;
         cursor++;
         var after = new List<int>();
-        while (cursor < count && IsAdjunct(cursor))
+        while (cursor < count && IsAdjunct(cursor) && !OpensFixedPluralExpression(cursor))
         {
             after.Add(cursor);
             cursor++;
@@ -509,6 +556,15 @@ internal sealed class SpanishAgreementChecker : IAgreementChecker
 
         phrase = new NounPhrase(determiners, before, head, after);
         return true;
+    }
+
+    // M58: an adjective that makes a fixed plural expression with the noun after it (buenos días, buenas noches) opens that expression and is no adjective of the noun
+    // before it: in hola Luz buenos días (a name said to the listener, then the greeting) buenos is not luz's, which would make it buena.
+    private bool OpensFixedPluralExpression(int index)
+    {
+        return index + 1 < _tokens.Count
+            && Readings(index, static r => r.Pos == LexiconSchema.Adjective)
+                .Exists(a => Readings(index + 1, static r => r.Pos == LexiconSchema.Noun).Exists(n => SpanishAnalysisTables.IsFixedPluralExpression(a.Lemma, n.Lemma)));
     }
 
     private void EvaluateNounPhrase(NounPhrase phrase)
@@ -701,7 +757,7 @@ internal sealed class SpanishAgreementChecker : IAgreementChecker
         }
 
         // "la próxima semana", "el próximo año": próximo goes before a time noun (but "unos próximos salones" is still a word-order mistake).
-        if (adjectives.Exists(static a => a.Lemma == "próximo") && Readings(phrase.Head, static r => r.Pos == LexiconSchema.Noun && SpanishAnalysisTables.IsUpcomingTimeNoun(r.Lemma)).Count > 0)
+        if (adjectives.Exists(static a => a.Lemma == SpanishTimeMarkers.UpcomingAdjective) && Readings(phrase.Head, static r => r.Pos == LexiconSchema.Noun && SpanishAnalysisTables.IsUpcomingTimeNoun(r.Lemma)).Count > 0)
         {
             return;
         }

@@ -1,11 +1,13 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "game/lessons/<id>.json",
-  "description": "One lesson (C06: one file each; game/lessons.json lists them in order): a list of steps of seven types, so a new lesson needs no code. Loaded by LessonBook (Vocaterra.Game.Core), which also checks the phrases, prompts, speech lines, NPCs and world events named here. The text is the locale's (lesson.<id>.*).",
+  "description": "One lesson (C06: one file each; game/lessons.json lists them in order): a list of steps of eight types, so a new lesson needs no code. Loaded by LessonBook (Vocaterra.Game.Core), which also checks the phrases, prompts, speech lines, NPCs and world events named here. The text is the locale's (lesson.<id>.*). Schema 2 (VILLAGE_PLAN V08): every lesson declares its level, and the game's validator holds its Spanish and its tenses to it.",
   "type": "object",
   "required": [
+    "schemaVersion",
     "id",
     "npc",
+    "level",
     "steps"
   ],
   "additionalProperties": false,
@@ -15,7 +17,7 @@
     },
     "schemaVersion": {
       "enum": [
-        1
+        2
       ]
     },
     "id": {
@@ -26,6 +28,13 @@
     "npc": {
       "$ref": "#/definitions/npc",
       "description": "The NPC the lesson starts at."
+    },
+    "level": {
+      "enum": [
+        "a1",
+        "a2"
+      ],
+      "description": "The level the lesson keeps to (VILLAGE_PLAN 3.9, V08): the game's validator checks the lemmas of the Spanish it teaches and says (its phrases, the lines its steps name, its prompts' text) against the bundle's lists up to that level (cefr/a1.txt; at a2 also cefr/a2.txt), and its tenses: pres, pret and ir-a at a1, fut as well at a2. The bundle's ceiling is a2 (the gate's lint); its phrases' variants, which the learner may say instead, are held to the ceiling."
     },
     "autoStart": {
       "type": "boolean",
@@ -95,7 +104,8 @@
             "pret",
             "fut",
             "ir-a"
-          ]
+          ],
+          "description": "pres, pret and ir-a (the near future) at any level; fut (the simple future) only in an a2 lesson (the validator checks it)."
         }
       }
     },
@@ -120,7 +130,8 @@
             "repeat",
             "answer",
             "do",
-            "recap"
+            "recap",
+            "review"
           ]
         },
         "attempts": {
@@ -163,14 +174,20 @@
           "enum": [
             "pres",
             "pret",
-            "ir-a"
+            "ir-a",
+            "fut"
           ],
-          "description": "repeat, answer: the tense the step expects (its retry line is the locale's lesson.<id>.<step>.tenseRetry)."
+          "description": "repeat, answer: the tense the step expects (its retry line is the locale's lesson.<id>.<step>.tenseRetry). At an ir-a step a plan said in the present with a time word or in the simple future is credited with the locale's lesson.<id>.<step>.presentNote; at a fut step (the simple future, V16; an a2 lesson only, the validator checks it) the near future or the present with a time word is credited with lesson.<id>.<step>.futureNote."
         },
         "point": {
           "type": "string",
           "minLength": 1,
           "description": "do: a noun the beacon points at when the step begins (the step's HUD line is the locale's lesson.<id>.<step>.hud)."
+        },
+        "pointPlace": {
+          "type": "string",
+          "minLength": 1,
+          "description": "do (VILLAGE_PLAN V02): a named place of the scene (a site, a point or a named prop: stall, river) the beacon points at when the step begins; a trigger { event: beacon_reached, detail: <the place> } ends the step on arrival. Not with point."
         },
         "phrases": {
           "type": "array",
@@ -183,6 +200,14 @@
         "trigger": {
           "$ref": "#/definitions/trigger",
           "description": "do: the world event the step waits for, with the npc and the exact detail it must have (C06)."
+        },
+        "candidates": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/candidate"
+          },
+          "description": "review (X06, R07): the phrases an earlier lesson of the file teaches that the step may ask, each with the existing line of the step's NPC that asks it; at run time the most overdue of those due is asked, and the step is skipped when none is."
         }
       },
       "allOf": [
@@ -268,9 +293,54 @@
               ]
             }
           ]
+        },
+        {
+          "anyOf": [
+            {
+              "properties": {
+                "type": {
+                  "not": {
+                    "enum": [
+                      "review"
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "required": [
+                "candidates"
+              ]
+            }
+          ]
         }
       ],
       "$comment": "Each rule of allOf reads: when the type is one of these, these fields are required (an implication, written with anyOf and not so that every validator reads it)."
+    },
+    "candidate": {
+      "type": "object",
+      "required": [
+        "phrase",
+        "line"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "phrase": {
+          "type": "string",
+          "minLength": 1,
+          "description": "A phrase-sheet row the learner says, taught by a repeat or answer step of an earlier lesson."
+        },
+        "line": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The speech line the step's NPC asks it with; its meaning is the line's own (line.<id> in the locale)."
+        },
+        "prompt": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The bundle prompt the answer is evaluated at (default: the row's)."
+        }
+      }
     },
     "trigger": {
       "type": "object",

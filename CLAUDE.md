@@ -20,7 +20,8 @@ never plans game content, scenes or engines; the game plan never plans core inte
 The repository is developed by one **orchestrator** session that plans and delegates all implementation to subagents and only plans,
 gates, merges and pushes. To continue, act as the orchestrator defined in `.claude/agents/orchestrator.md` (or start with
 `claude --agent orchestrator`). A QA agent, `.claude/agents/qa.md`, tests one area of the game (ui, language, speech, world,
-progression, save, content) and reports bugs to `docs/qa-reports/` without fixing them; the orchestrator turns its reports into milestones. The owner prefers Haiku 5.5 for delegated work; Sonnet only for design-heavy milestones; Opus only on request.
+progression, save, content) and reports bugs to `docs/qa-reports/` without fixing them; the orchestrator turns its reports into milestones. The owner prefers Haiku 5.5 for delegated work; Sonnet only for design-heavy milestones; Opus only on request. The village series
+(`docs/game/VILLAGE_PLAN.md`, on `feature/village`) is the owner's exception: every V milestone by Opus 5.5 at xhigh effort (D-game-22).
 
 Facts every session needs:
 - **.NET SDK is user-local:** prefix commands with `PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" DOTNET_NOLOGO=1`.
@@ -58,8 +59,10 @@ Facts every session needs:
   reads the clock or draws random numbers; a `--transcript` run uses a fixed time.
 - **The prototype (D-game-8):** the owner's brief `docs/game/PROTOTYPE_BRIEF.md` (source: the `.docx` beside it) and its plan
   `docs/game/SCENARIO_PLAN.md`, milestones S0 to S12 (branch `S<nn>-<name>`, prefix `S<nn>:`): a 3D first-person voxel slice on MonoGame,
-  merged into `main` until 2026-10-22 (`feature/prototype` is retired); new work goes to a feature branch, never `main`. Content gate from S5:
-  `scripts/content.sh lint content/game-v1 --strict --level a1` clean, `content/PHRASES.md` the source of truth (D-game-10, D-game-12).
+  merged into `main` until 2026-10-22 (`feature/prototype` is retired); new work goes to a feature branch, never `main`. Content gate from S5, at the
+  A2 ceiling since V08 (D-game-22 (b)): `scripts/content.sh lint content/game-v1 --strict --level a2 --fail-on-level --host-pools 'guide.*'`
+  clean, each lesson held to its own `level` (`a1` | `a2`) by the host's `--validate-content`, `content/PHRASES.md` the source of truth
+  (D-game-10, D-game-12).
 - **Content as data (D-game-21):** `docs/game/CONTENT_PLAN.md`, milestones C01 to C10 (prefix `C<nn>:`), all committed straight to
   `feature/content` (no milestone branches) and gated there: JSON Schemas, one `GameData` load, the L1 locale bundle `content/locale/` (outside game-v1's hash), objectives and NPCs as data.
   Closed on 2026-10-29: C01 to C08 are done (PR #16), C09 is assessed, and C10, the authoring CLI, is specified in the plan's section 3.8.

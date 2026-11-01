@@ -4,6 +4,7 @@ using System.Text.Json;
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Nlp.Content;
+using Vocaterra.Nlp.Core.Prompts;
 
 namespace Vocaterra.Game.Core.Language.Phrases;
 
@@ -65,8 +66,13 @@ public sealed class PhraseSheet
     public const string RelativePath = "game/phrases.json";
 
     private readonly List<PhraseRow> _rows;
+    private readonly IReadOnlyDictionary<string, string> _answeredAs;
 
-    private PhraseSheet(List<PhraseRow> rows) => _rows = rows;
+    private PhraseSheet(List<PhraseRow> rows, IReadOnlyDictionary<string, string>? answeredAs = null)
+    {
+        _rows = rows;
+        _answeredAs = answeredAs ?? new Dictionary<string, string>(StringComparer.Ordinal);
+    }
 
     /// <summary>The rows in the sheet's order.</summary>
     public IReadOnlyList<PhraseRow> Rows => _rows;
@@ -74,16 +80,19 @@ public sealed class PhraseSheet
     /// <summary>Reads the sheet from the bundle's verified host file.</summary>
     /// <param name="bundle">The bundle, loaded with hash verification.</param>
     /// <param name="locale">The support language, which holds each row's meaning and card (<c>phrase.&lt;id&gt;.meaning</c>, <c>.card</c>).</param>
+    /// <param name="npcs">The NPCs: the prompts they wait on that no row names are answered with the rows of one that accepts the same answers (<see cref="PhrasesAt"/>).</param>
     /// <exception cref="InvalidDataException">The bundle has no such host file, or the file is malformed, or a row's meaning or card is not in the locale.</exception>
-    public static PhraseSheet Load(ContentBundle bundle, LocaleText locale)
+    public static PhraseSheet Load(ContentBundle bundle, LocaleText locale, NpcRoster npcs)
     {
         ArgumentNullException.ThrowIfNull(bundle);
+        ArgumentNullException.ThrowIfNull(npcs);
         if (!bundle.TryReadHostFile(RelativePath, out var bytes))
         {
             throw new InvalidDataException($"The bundle has no host file {RelativePath}: it is missing from the manifest, or the bundle was loaded without hash verification.");
         }
 
-        return Parse(Encoding.UTF8.GetString(bytes.Span), locale);
+        var rows = Parse(Encoding.UTF8.GetString(bytes.Span), locale)._rows;
+        return new PhraseSheet(rows, AnsweredAlike(rows, bundle, npcs));
     }
 
     /// <summary>The locale id of a row's support-language text: <c>phrase.&lt;id&gt;.&lt;field&gt;</c> (meaning, card, explain).</summary>
@@ -153,15 +162,112 @@ public sealed class PhraseSheet
 
     /// <summary>
     /// The learner phrases an NPC prompt asks for, in the sheet's order: the rows whose prompt is this prompt's, without the service words (help,
-    /// "no sé"), which are possible at every prompt and are never what the prompt is waiting for. The guide's offer is answered with the stall's
-    /// offer rows (the sheet's <c>si-por-favor</c> and <c>no-gracias</c> work for both).
+    /// "no sé"), which are possible at every prompt and are never what the prompt is waiting for. A prompt an NPC waits on that no row names is answered
+    /// with the rows of another NPC's prompt that accepts the same answers (VILLAGE_PLAN V01): the guide's offer with the stall's offer rows (the sheet's
+    /// <c>si-por-favor</c> and <c>no-gracias</c> work for both).
     /// </summary>
     /// <param name="prompt">The prompt id (<c>stall-need</c>).</param>
     public IReadOnlyList<PhraseRow> PhrasesAt(string prompt)
     {
         ArgumentNullException.ThrowIfNull(prompt);
-        var group = GroupOf(prompt);
-        return _rows.Where(row => row.IsLearnerPhrase && !IsService(row) && string.Equals(row.Prompt, group, StringComparison.Ordinal)).ToList();
+        var group = _answeredAs.GetValueOrDefault(prompt, prompt);
+        return _rows.Where(row => IsAsked(row) && string.Equals(row.Prompt, group, StringComparison.Ordinal)).ToList();
+    }
+
+    /// <summary>
+    /// The sheet's id of the phrase a communicated turn at a prompt used, by the sheet alone: the row the prompt teaches for the turn's intent (<see cref="PhrasesAt"/>,
+    /// the rows whose home it is; <see cref="OfIntent"/> picks among several), else the fixed mapping of <see cref="PhraseIds.For"/>, which credits the stall's and the
+    /// river's phrases wherever they are said (a request is <c>pedir-agua</c> whatever the item: at the villager it is a transfer). A prompt's own row comes first
+    /// (VILLAGE_PLAN V12b): the baker's "quiero dos panes, por favor" was the stall's <c>pedir-agua</c> while her file named no focus, though her prompt teaches
+    /// <c>quiero-dos-panes</c>. <see langword="null"/> for a turn that is none of the sheet's phrases (a question about a tree).
+    /// </summary>
+    /// <param name="prompt">The prompt the turn answered.</param>
+    /// <param name="intent">The intent the core resolved.</param>
+    /// <param name="slots">The slots the core filled.</param>
+    /// <param name="river">The river's noun (<c>río</c>, <c>game/words.json</c>).</param>
+    /// <param name="practised">In free talk, the phrases the NPCs' open prompts practise (<see cref="NpcRoster.Homes"/>), for <see cref="ByPlace"/>; <see langword="null"/> in a lesson's
+    /// step or a review, whose phrase is the step's.</param>
+    public string? PhraseFor(string prompt, string intent, IReadOnlyDictionary<string, string> slots, string river, IEnumerable<string>? practised = null)
+    {
+        ArgumentNullException.ThrowIfNull(prompt);
+        var here = PhrasesAt(prompt);
+        if (practised is not null && ByPlace(here, intent, slots, practised, out var placed))
+        {
+            return placed;
+        }
+
+        return OfIntent(here, intent, slots) ?? PhraseIds.For(intent, slots, river);
+    }
+
+    /// <summary>
+    /// V12b's rule for one row (VILLAGE_PLAN V14): in free talk, when the only row of the turn's intent among these (an NPC's focus, or the rows its prompt teaches) names
+    /// another place than the one the turn asks about, the phrase is the row practised elsewhere that names it, else none. The villager practises <c>¿Dónde está el
+    /// río?</c>, and <c>¿dónde está la panadería?</c> said to him is the fisher's <c>donde-esta-la-panaderia</c> (a transfer), not the river's; <c>¿dónde está la tienda?</c>,
+    /// which no practised row names, is none of them, as at the fisher, whose two rows name neither. Returns whether the rule applies, with the phrase it gives.
+    /// </summary>
+    /// <param name="rows">The rows in play.</param>
+    /// <param name="intent">The intent the core resolved.</param>
+    /// <param name="slots">The slots the core filled: the rule needs a <c>place</c> and no <c>item</c>.</param>
+    /// <param name="practised">The phrases the NPCs' open prompts practise.</param>
+    /// <param name="phrase">The practised row of the intent that names the place, in the sheet's order, or <see langword="null"/>.</param>
+    public bool ByPlace(IEnumerable<PhraseRow> rows, string intent, IReadOnlyDictionary<string, string> slots, IEnumerable<string> practised, out string? phrase)
+    {
+        ArgumentNullException.ThrowIfNull(rows);
+        ArgumentNullException.ThrowIfNull(intent);
+        ArgumentNullException.ThrowIfNull(slots);
+        ArgumentNullException.ThrowIfNull(practised);
+        phrase = null;
+        var ofIntent = rows.Where(row => string.Equals(row.Intent, intent, StringComparison.Ordinal)).ToList();
+        if (ofIntent.Count != 1 || slots.ContainsKey("item") || !slots.TryGetValue("place", out var place) || Names(ofIntent[0], place))
+        {
+            return false;
+        }
+
+        var homes = practised.ToHashSet(StringComparer.Ordinal);
+        phrase = _rows.FirstOrDefault(row => row.IsLearnerPhrase && homes.Contains(row.Id) && string.Equals(row.Intent, intent, StringComparison.Ordinal) && Names(row, place))?.Id;
+        return true;
+    }
+
+    /// <summary>
+    /// The id of the row of an intent among these rows (the phrases in play on a prompt, or the rows it teaches): the only one, or, when several share the intent (the
+    /// fisher's <c>¿Dónde está la panadería?</c> and <c>¿Dónde está la herrería?</c>), the one whose phrase or a variant names the place or the item the turn asked
+    /// about. <see langword="null"/> when no row has the intent, or several have it and none names the turn's place or item: crediting one of them would be a guess.
+    /// </summary>
+    /// <param name="rows">The rows.</param>
+    /// <param name="intent">The intent the core resolved.</param>
+    /// <param name="slots">The slots the core filled.</param>
+    public static string? OfIntent(IEnumerable<PhraseRow> rows, string intent, IReadOnlyDictionary<string, string> slots)
+    {
+        ArgumentNullException.ThrowIfNull(rows);
+        ArgumentNullException.ThrowIfNull(intent);
+        ArgumentNullException.ThrowIfNull(slots);
+        var ofIntent = rows.Where(row => string.Equals(row.Intent, intent, StringComparison.Ordinal)).ToList();
+        if (ofIntent.Count <= 1)
+        {
+            return ofIntent.FirstOrDefault()?.Id;
+        }
+
+        if (DetailOf(slots) is not { } detail)
+        {
+            return null;
+        }
+
+        return ofIntent.FirstOrDefault(row => Names(row, detail))?.Id;
+    }
+
+    // Whether the row's phrase or one of its variants names the word (a place or an item), as a whole word.
+    private static bool Names(PhraseRow row, string word)
+    {
+        var named = " " + Plain(word) + " ";
+        return row.Texts.Any(text => (" " + Plain(text) + " ").Contains(named, StringComparison.Ordinal));
+    }
+
+    /// <summary>The slot of a turn that matters to its phrase: the item asked for, else the place asked about, else <see langword="null"/>.</summary>
+    /// <param name="slots">The slots the core filled.</param>
+    public static string? DetailOf(IReadOnlyDictionary<string, string> slots)
+    {
+        ArgumentNullException.ThrowIfNull(slots);
+        return slots.TryGetValue("item", out var item) ? item : slots.TryGetValue("place", out var place) ? place : null;
     }
 
     /// <summary>
@@ -248,8 +354,31 @@ public sealed class PhraseSheet
         return string.Join(' ', builder.ToString().Split(' ', StringSplitOptions.RemoveEmptyEntries));
     }
 
-    private static string GroupOf(string prompt) =>
-        string.Equals(prompt, NpcService.GuideOfferPrompt, StringComparison.Ordinal) ? NpcService.StallOfferPrompt : prompt;
+    // The prompts the NPC files say the NPCs wait on (by state, and the review) that no row names, each with the first such prompt, in the roster's order, that has
+    // rows and accepts exactly the same answers: the same answer set and the same allowed intents, so the same phrases answer both. It was one pair in the code
+    // (the guide's offer graded as the stall's); a lesson's prompt is left out, because its step names its own phrase.
+    private static Dictionary<string, string> AnsweredAlike(IReadOnlyList<PhraseRow> rows, ContentBundle bundle, NpcRoster npcs)
+    {
+        var standing = npcs.All.SelectMany(static npc => npc.Prompts.Values.Append(npc.ReviewPrompt)).OfType<string>()
+            .Distinct(StringComparer.Ordinal).Where(bundle.Prompts.ContainsKey).ToList();
+        var withRows = standing.Where(prompt => rows.Any(row => IsAsked(row) && string.Equals(row.Prompt, prompt, StringComparison.Ordinal))).ToList();
+        var answeredAs = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var prompt in standing.Except(withRows, StringComparer.Ordinal))
+        {
+            if (withRows.FirstOrDefault(other => AcceptTheSame(bundle.Prompts[prompt], bundle.Prompts[other])) is { } alike)
+            {
+                answeredAs[prompt] = alike;
+            }
+        }
+
+        return answeredAs;
+    }
+
+    private static bool AcceptTheSame(PromptSpec a, PromptSpec b) =>
+        string.Equals(a.AnswerSetId, b.AnswerSetId, StringComparison.Ordinal) && a.AllowedIntentIds.ToHashSet(StringComparer.Ordinal).SetEquals(b.AllowedIntentIds);
+
+    // A row the prompt can be waiting for: a phrase the learner says, not a service word.
+    private static bool IsAsked(PhraseRow row) => row.IsLearnerPhrase && !IsService(row);
 
     private static bool IsService(PhraseRow row) =>
         string.Equals(row.Intent, "ask_help", StringComparison.Ordinal) || string.Equals(row.Intent, "dont_know", StringComparison.Ordinal);

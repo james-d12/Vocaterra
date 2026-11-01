@@ -1,5 +1,6 @@
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Words;
+using Vocaterra.Game.Core.Npc;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Response.Speech;
@@ -7,48 +8,27 @@ using Vocaterra.Nlp.Response.Templates;
 
 namespace Vocaterra.Game.Core.Language.Speech;
 
-/// <summary>The speakers of the pre-rendered NPC voices (S9): the renderer chooses each one's Kokoro speaker, the game never does.</summary>
+/// <summary>
+/// The speakers of the pre-rendered NPC voices (S9): a speaker is an NPC's id, and the renderer records each one with the voice of its NPC file (VILLAGE_PLAN V01);
+/// the game never chooses a Kokoro speaker.
+/// </summary>
 public static class SpeechSpeakers
 {
-    /// <summary>The guide (<c>ef_dora</c>, speaker 28). Also the word cards and the phrase sheet's model answers.</summary>
+    /// <summary>The guide (<c>ef_dora</c>, speaker 28). Also the word cards, the phrase sheet's model answers and every pool of no other NPC.</summary>
     public const string Guide = "guide";
 
-    /// <summary>The shopkeeper at the stall (<c>em_alex</c>, speaker 29).</summary>
-    public const string Shopkeeper = "shopkeeper";
-
-    /// <summary>The villager (<c>em_santa</c>, speaker 53).</summary>
-    public const string Villager = "villager";
-
-    /// <summary>The pool-id prefix of the villager's lesson lines (S26): they are named <c>guide.lesson.*</c> so the content lint counts them as the game's own pools.</summary>
-    public const string VillagerLessonPrefix = "guide.lesson.villager.";
-
-    /// <summary>The pool-id prefix of the shopkeeper's lesson lines (S26), named like the villager's.</summary>
-    public const string ShopkeeperLessonPrefix = "guide.lesson.shop.";
-
     /// <summary>
-    /// The speaker of a dialogue pool: the shopkeeper's pools are <c>shop_*</c> and <c>guide.lesson.shop.*</c>, the villager's <c>villager_*</c> and <c>guide.lesson.villager.*</c>, and every
-    /// other pool is the guide's voice.
+    /// The speaker of a dialogue pool, from the NPC ids (VILLAGE_PLAN V01): <c>&lt;id&gt;_*</c> and <c>guide.lesson.&lt;id&gt;.*</c> belong to the NPC <c>&lt;id&gt;</c>
+    /// (or to the NPC whose file names that <c>poolPrefix</c>: the shopkeeper's pools are <c>shop_*</c> and <c>guide.lesson.shop.*</c>), and every other pool is the
+    /// guide's voice.
     /// </summary>
     /// <param name="poolId">The pool id.</param>
-    public static string OfPool(string poolId)
+    /// <param name="npcs">The NPCs.</param>
+    public static string OfPool(string poolId, NpcRoster npcs)
     {
         ArgumentNullException.ThrowIfNull(poolId);
-        if (poolId.StartsWith(VillagerLessonPrefix, StringComparison.Ordinal))
-        {
-            return Villager;
-        }
-
-        if (poolId.StartsWith(ShopkeeperLessonPrefix, StringComparison.Ordinal))
-        {
-            return Shopkeeper;
-        }
-
-        if (poolId.StartsWith("shop_", StringComparison.Ordinal))
-        {
-            return Shopkeeper;
-        }
-
-        return poolId.StartsWith("villager_", StringComparison.Ordinal) ? Villager : Guide;
+        ArgumentNullException.ThrowIfNull(npcs);
+        return npcs.OwnerOfPool(poolId)?.Id ?? Guide;
     }
 
     /// <summary>The speaker of a prompt: its agent, or the guide when the prompt names none.</summary>
@@ -100,12 +80,14 @@ public static class SpeechLines
     /// <param name="bundle">The loaded content bundle.</param>
     /// <param name="nouns">The noun catalogue (the word cards).</param>
     /// <param name="phrases">The phrase sheet (the model answers).</param>
+    /// <param name="npcs">The NPCs (the speaker of each dialogue pool, <see cref="SpeechSpeakers.OfPool"/>).</param>
     /// <exception cref="InvalidOperationException">Two lines share an id, or an id is not a plain file name.</exception>
-    public static IReadOnlyList<SpeechLine> Enumerate(ContentBundle bundle, NounCatalog nouns, PhraseSheet phrases)
+    public static IReadOnlyList<SpeechLine> Enumerate(ContentBundle bundle, NounCatalog nouns, PhraseSheet phrases, NpcRoster npcs)
     {
         ArgumentNullException.ThrowIfNull(bundle);
         ArgumentNullException.ThrowIfNull(nouns);
         ArgumentNullException.ThrowIfNull(phrases);
+        ArgumentNullException.ThrowIfNull(npcs);
 
         var lines = new List<SpeechLine>();
         foreach (var pool in bundle.Dialogue.Pools.Values)
@@ -114,7 +96,7 @@ public static class SpeechLines
             {
                 if (TemplateEngine.ReferencedSlots(template).Count == 0)
                 {
-                    lines.Add(new SpeechLine(template.LineId, SpeechSpeakers.OfPool(pool.PoolId), bundle.TemplateEngine.Render(template, SlotMap.Empty), SpeechKind.Dialogue));
+                    lines.Add(new SpeechLine(template.LineId, SpeechSpeakers.OfPool(pool.PoolId, npcs), bundle.TemplateEngine.Render(template, SlotMap.Empty), SpeechKind.Dialogue));
                 }
             }
         }

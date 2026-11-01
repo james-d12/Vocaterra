@@ -20,7 +20,7 @@ public enum HeldKind
     /// <summary>A glass bottle, empty or full of water.</summary>
     Bottle,
 
-    /// <summary>A small flat item drawn from its icon (a berry, bread).</summary>
+    /// <summary>A small flat item drawn from its icon (a berry, bread, a coin, an apple, the axe).</summary>
     Sprite,
 }
 
@@ -52,6 +52,9 @@ public static class HeldItems
             ItemId.WaterBottle => new HeldChoice(HeldKind.Bottle, BlockCell.IconWaterBottle),
             ItemId.Berry => new HeldChoice(HeldKind.Sprite, BlockCell.IconBerry),
             ItemId.Bread => new HeldChoice(HeldKind.Sprite, BlockCell.IconBread),
+            ItemId.Coin => new HeldChoice(HeldKind.Sprite, BlockCell.IconCoin),
+            ItemId.Apple => new HeldChoice(HeldKind.Sprite, BlockCell.IconApple),
+            ItemId.Axe => new HeldChoice(HeldKind.Sprite, BlockCell.IconAxe),
             _ => HeldChoice.Nothing,
         };
     }

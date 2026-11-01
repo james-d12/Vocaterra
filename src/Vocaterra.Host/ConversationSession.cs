@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Language.Speech;
+using Vocaterra.Game.Core.Npc;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Prompts;
@@ -26,21 +27,25 @@ public sealed class ConversationSession
     public const ulong DefaultWorldSeed = 42;
 
     private readonly TypedUtteranceEvaluator _evaluator;
+    private readonly IReadOnlyDictionary<string, string> _names;
     private readonly Dictionary<string, AgentState> _agentStates = new(StringComparer.Ordinal);
     private ConversationContext _context;
 
     /// <summary>
     /// Starts a conversation over the bundle: every agent in its initial state and a learner model with no evidence yet. A restored
-    /// conversation passes the repeat counts it saved; a new one passes none.
+    /// conversation passes the repeat counts it saved; a new one passes none. With the NPCs' names (by agent id, from the NPC files), a line that
+    /// names its listener as a vocative (<c>Luz, quiero pan</c> at the baker) is read without the name, as the game reads it (<see cref="Vocative"/>, V14).
     /// </summary>
     public ConversationSession(
         ContentBundle bundle,
         ulong worldSeed = DefaultWorldSeed,
-        IReadOnlyDictionary<string, int>? repeatCountsByTag = null)
+        IReadOnlyDictionary<string, int>? repeatCountsByTag = null,
+        IReadOnlyDictionary<string, string>? listenerNames = null)
     {
         ArgumentNullException.ThrowIfNull(bundle);
         Bundle = bundle;
         _evaluator = new TypedUtteranceEvaluator(bundle);
+        _names = listenerNames ?? new Dictionary<string, string>(StringComparer.Ordinal);
         _context = ConversationContext.Create(
             worldSeed,
             NoAgentId,
@@ -93,7 +98,9 @@ public sealed class ConversationSession
         var utterance = ConversationContext.Create(
             _context.WorldSeed, agentId, agentState, now, _context.Learner, _context.RepeatCountsByTag);
 
-        var result = _evaluator.Evaluate(transcript, prompt, utterance);
+        // The listener's name said as a vocative is taken out (V14), and a greeting that opens a line with something else to say is answered by the rest (V15): the game's
+        // own reading of a line (LineReading, V19).
+        var result = LineReading.Read(transcript, _names.GetValueOrDefault(agentId), prompt, line => _evaluator.Evaluate(line, prompt, utterance), static r => r.Verdict);
 
         _agentStates[agentId] = result.Decision.Agent?.Next ?? agentState;
         _context = utterance.Next(result, now);

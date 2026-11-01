@@ -33,7 +33,7 @@ public static class ConjugationLayout
 
     /// <summary>The width of one tense's column.</summary>
     /// <param name="width">The width of the area the table is written in.</param>
-    /// <param name="columns">The number of tense columns (1 to 3).</param>
+    /// <param name="columns">The number of tense columns (1 to 4).</param>
     public static int ColumnWidth(int width, int columns) => (width - LabelWidth) / Math.Max(1, columns);
 
     /// <summary>The rectangle of a tense's heading.</summary>

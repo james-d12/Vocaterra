@@ -35,4 +35,9 @@
     <None Include="../../models/manifest.json" Link="models/manifest.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <!-- The frozen inputs of FuzzLanguageStreamTests (M57): a copy of the bundle's lexicon and grammars that a content edit cannot move (Generation/GeneratorInputs.cs). -->
+  <ItemGroup>
+    <None Include="Fixtures/StreamDigest/*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

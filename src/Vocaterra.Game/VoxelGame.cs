@@ -62,7 +62,7 @@ namespace Vocaterra.Game;
 /// <b>What works in 3D.</b> Walking (WASD or the arrows, Space to jump), mouse look in relative mode (Esc lets the mouse go, a click takes it
 /// again), gathering by holding the left button on a trunk or a berry bush, placing with the right button, the hotbar, the inventory (I, or E
 /// when the crosshair is not on an NPC), the journal (J), the debug overlay (F3), toasts, the NPC figures with their names, the beacon column
-/// and its edge arrow, and the NPCs: aim the crosshair at the guide, the shopkeeper or the villager and press E (or T to type, V to talk) to open
+/// and its edge arrow, and the NPCs: aim the crosshair at the guide, the shopkeeper, the villager or one of the village's four and press E (or T to type, V to talk) to open
 /// the panel, which shows the NPC's name. The guide's answers point the beacon at the named noun's nearest block; "¿qué es esto?" names the block
 /// under the crosshair; the shopkeeper hands over a bottle that the left button fills at the river; the villager points the beacon at the river.
 /// The panel takes the keyboard and frees the mouse while it is open. The sign reads <c>Tienda / Río</c>.
@@ -185,13 +185,14 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _canvas = new UiCanvas(SaveSettings.SnapTextScale(options.TextScale ?? savedTextScale ?? 100), () => (GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height));
         _devices = new InputDevices(_canvas);
         _session = session;
+        session.SleepOffered = !options.Playtest; // a playtest plays one session per run: its post-check follows the ending, and no sleep is offered (V12c)
         _scene = scene;
         _voice = voice;
         _sim = session.Simulation;
         (_sound, _soundOutput, _soundLog) = SoundBootstrap.Create(options, session, savedVolumes, layout);
         _isSolid = (x, y, z) => _sim.Grid.IsSolid(x, y, z);
         // The book's speaker buttons (S20b): a row plays the recording the speech folder has for it (the files are read once, here).
-        _recordings = new BookRecordings(SpeechLines.Enumerate(session.Bundle, session.Nouns, session.Phrases).Select(static l => l.LineId).Where(voice.HasRecording), session.Phrases);
+        _recordings = new BookRecordings(SpeechLines.Enumerate(session.Bundle, session.Nouns, session.Phrases, session.Data.Npcs).Select(static l => l.LineId).Where(voice.HasRecording), session.Phrases);
         _bookControls = new BookSpeechControls(_book, new BookSpeaker(voice, _sound.Mixer), session, _recordings);
         _dialogue = new DialogueModel(_focus, session.OpeningLine, session.Data, session.Phrases, session.Locale, showVerdictNotes: !options.Playtest);
         _soundFrame = new SoundFrame(_sound, voice, session, () => new PanelState(_inventory.IsOpen, _crafting.IsOpen, _book.IsOpen, (int)_book.Page, _dialogue.IsOpen));
@@ -282,7 +283,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                     (text, keep) => _reportScreen.RequestScripted(text, keep, OpenScreenName()),
                     () => _report.Paused,
                     _bookScreen.PlayTarget,
-                    _bookScreen.PractiseFromScript);
+                    _bookScreen.PractiseFromScript,
+                    () =>
+                    {
+                        ClosePanels();
+                        SleepNow("--sleep");
+                    });
                 _scenario = new ScenarioScript(session, _look, _dialogue, options.Script, name => ScriptItemNames.Resolve(session.Nouns, name), hooks, Console.WriteLine, holdsCheckAnswers: options.Playtest);
             }
         }
@@ -383,9 +389,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             {
                 _worldInput.ReleaseMouse();
                 _ending.Dismiss(); // Esc takes the closing card down (S17)
-            }));
+            }),
+            Sleep: new DelegateCommand(() => SleepNow("the player")));
         _globalKeys = KeyBindings.Global(commands, options.Playtest);
-        _worldKeys = KeyBindings.World(commands, () => _aimed is not null, () => _session.Tips.Current is not null, AimedAtWorkbench);
+        _worldKeys = KeyBindings.World(commands, () => _aimed is not null, () => _session.Tips.Current is not null, AimedAtWorkbench, () => CardOffersSleep, () => FireOffersSleep);
         // The session log (S11) is opened first, so the battery's start is in it; the battery's plan is the bundle's items in the seeded order of its kind.
         (_sessionDirectory, _log, _autosave) = SessionStart.Open(options, session, _micCheck is not null, _toasts, _playtestFlow, _saves, OnAppliedTurn, Console.WriteLine);
         if (options.Check is { } battery)
@@ -427,6 +434,15 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // The world is on screen: no check battery and no mic check (the playtest's triggers and its end key need that).
     private bool WorldRunning => _checks.Screen is null && _micCheck is not { IsActive: true };
 
+    // The player is free for the sleep's offer (V12c): the world on screen, no screen, panel or report up, no voice recorded.
+    private bool SleepFree => WorldRunning && _screens.Top is null && !_dialogue.IsOpen && !_listen.Listening && !_report.Paused;
+
+    // The player's own lit fire offers the sleep: E sleeps there, after an NPC under the crosshair and the workbench (V12c).
+    private bool FireOffersSleep => SleepOffer.AtFire(_session, SleepFree && _aimed is null && !AimedAtWorkbench());
+
+    // The session's closing card offers the sleep: Enter sleeps while it is up (V12c).
+    private bool CardOffersSleep => SleepOffer.OnCard(_session, _ending.Visible(_sim.Tick), SleepFree);
+
     /// <summary>The crash handler's view of the game: its state and the last-chance save (X05).</summary>
     public ICrashSource CrashSource { get; }
 
@@ -444,7 +460,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         _drawer.Load(GraphicsDevice, MakeView, LayerStack.Build(_debug, _lesson, _playtest));
         Console.WriteLine($"scene: {_scene.Name}, seed {_scene.Seed}, {_scene.TreeCount} trees, spawn {_scene.Spawn.Feet.X},{_scene.Spawn.Feet.Y},{_scene.Spawn.Feet.Z}, digest {_scene.Grid.ComputeDigestHex()[..16]}");
-        _beacon.PlaceAtStart(_scene, _options.Beacon, loaded: _options.LoadPath is not null);
+        _beacon.PlaceAtStart(_scene, _options.Beacon, loaded: _options.LoadPath is not null || _options.SkipToSession is not null); // a skipped game starts where a load would (V12c)
     }
 
     // The frame's view: what the layers draw from, the parts that stay for the run (the parts of each frame are set in Draw).
@@ -602,6 +618,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         view.Mouse = !_options.IsScreenshotRun && GraphicsDevice.Viewport.Bounds.Contains(mouse.Position) ? _canvas.ToCanvas(mouse.Position) : null;
 
         view.LessonStripBox = LessonLayer.LayoutFor(view, _lesson) is { } lessonStrip ? lessonStrip.Box : null; // the cards keep clear of it (S22)
+        view.SleepPrompt = FireOffersSleep && !_ending.Visible(_sim.Tick) ? SleepOffer.PromptText(_session) : null; // the fire's prompt; the card says it while it is up (V12c)
+        view.EndingSleep = CardOffersSleep ? SleepOffer.CardText(_session) : null;
 
         _drawer.DrawWorld(GraphicsDevice, _camera.Camera, _sim.Target?.Block, _beacon.Beacon.Target, _sim.Tick, shoulder ? _figures.Avatar() : null, shoulder ? null : _arm.Frame(eye, _drawer.Renderer.Lights));
         _drawer.DrawLayers(width, height, canvasWidth, canvasHeight);
@@ -850,6 +868,41 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // The autosave (X05) at its safe points: only at rest, with no dialogue open, no voice being recorded, no check battery, mic check or report panel.
     private void AutosaveDue() =>
         _autosave?.Run(_sim.Tick, _session.Events, atRest: _session.CanSave && !_dialogue.IsOpen && !_listen.Listening && WorldRunning && !_report.Paused);
+
+    // The sleep at the player's own fire (V12c), from E there, Enter on the closing card or the script's --sleep: the session's own save is restored into it as the next
+    // play session (SaveGame.Sleep: the state a load of that save gives), so the session log ends the old session and starts the next as a quit and a load into the same
+    // folder write them, the autosave writes the ending session (a load of it starts the session the sleep starts) and starts again as a load starts it, and the
+    // front-end's own state goes back to a new run's: the closing card, the word cards not yet shown, the toasts waiting, the beacon of the start.
+    private void SleepNow(string how)
+    {
+        if (!_session.CanSleep || _dialogue.IsOpen)
+        {
+            Console.WriteLine($"sleep: not now ({how}): {SleepRefusal()}");
+            return;
+        }
+
+        var before = _session.PlaySession;
+        _autosave?.WriteNow(_sim.Tick, _session.Events.Count, "sleep");
+        var document = _saves.Capture();
+        _log.End(_session, _sim.Tick); // the session that ends
+        SaveGame.Sleep(_session, document);
+        SessionStart.Begin(_log, _options, _session, micCheck: false, check: false); // the session that begins
+        _autosave?.Restart(_sim.Tick, _session.Events.Count);
+        _ending.Dismiss();
+        _cards.Clear();
+        _beacon.Restart();
+        _toasts.Clear(); // the old session's toasts are not the new one's: it opens with the morning
+        _toasts.Show(SleepOffer.MorningText(_session));
+        Console.WriteLine($"sleep: {how}: session {before} ends at the fire, session {_session.PlaySession} begins (tick {_sim.Tick}, stored time {_session.StoredTime.UnixSeconds}, world digest {document.StateDigest[..16]})");
+    }
+
+    // Why the player may not sleep now, for the console.
+    private string SleepRefusal() =>
+        !_session.SleepOffered ? "a playtest plays one session per run"
+        : !_session.FireLit ? "the player's own fire is not lit"
+        : _session.Lessons.Engaged ? "a lesson step waits"
+        : _dialogue.IsOpen ? "a dialogue is open"
+        : "the game is not at rest";
 
     // At the quit, the turns still on the worker are applied first (up to five seconds), so that the save holds what the player said.
     private void DrainForSave()

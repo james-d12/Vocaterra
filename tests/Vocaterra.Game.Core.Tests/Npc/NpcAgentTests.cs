@@ -23,11 +23,17 @@ public sealed class NpcAgentTests
     private static readonly StoredTimestamp Start = new(GuideSession.DefaultStartedAt);
 
     [Fact]
-    public void TheBundleHoldsTheGuideTheShopkeeperAndTheVillagerOnly()
+    public void TheBundleHoldsTheAgentsOfTheVillageAndTheirPrompts()
     {
-        Assert.Equal(["guide", "shopkeeper", "villager"], TestGame.Bundle.Agents.Keys.Order(StringComparer.Ordinal));
+        // VILLAGE_PLAN V10 added the fisher, his prompt (fisher-open) and El pueblo's (lesson-far to lesson-went-there, and the villager's lesson-sign); V11 the baker, her
+        // prompt (baker-open) and Números y pan's (lesson-wood-plan, lesson-coins, lesson-bought); V12 the smith and the farmer, their prompts (smith-open, farmer-open)
+        // and Gente del pueblo's (the villager's lesson-who, lesson-will-make, lesson-works and lesson-made, and the smith's lesson-lives); V13 ¿Cómo es?'s (the farmer's
+        // lesson-apple, lesson-like-bread, lesson-like-apples, lesson-water-plan, lesson-water-went and lesson-liked, and the shopkeeper's lesson-big); V17 Mañana en el
+        // pueblo's (the baker's lesson-will-buy, the smith's lesson-will-fetch and lesson-will-go, the fisher's lesson-luz-will); V15 El mercado's (the baker's lesson-loaves and lesson-sell, the farmer's lesson-dear, lesson-cheaper and
+        // lesson-will-sell, the shopkeeper's lesson-market).
+        Assert.Equal(["baker", "farmer", "fisher", "guide", "shopkeeper", "smith", "villager"], TestGame.Bundle.Agents.Keys.Order(StringComparer.Ordinal));
         Assert.Equal(
-            ["guide-offer", "guide-open", "guide-review", "lesson-ate", "lesson-bottle", "lesson-had", "lesson-have", "lesson-hello", "lesson-name", "lesson-need", "lesson-offer", "lesson-plan", "lesson-plan-we", "lesson-she", "lesson-task", "lesson-thanks", "lesson-tomorrow", "lesson-unstuck", "lesson-usted", "lesson-ustedes", "lesson-want", "lesson-we", "lesson-went", "lesson-what", "lesson-yesno", "stall-need", "stall-offer", "villager-open"],
+            ["baker-open", "farmer-open", "fisher-open", "guide-offer", "guide-open", "guide-review", "lesson-apple", "lesson-ate", "lesson-big", "lesson-bottle", "lesson-bought", "lesson-cheaper", "lesson-coins", "lesson-dear", "lesson-far", "lesson-going", "lesson-had", "lesson-have", "lesson-hay", "lesson-hello", "lesson-like-apples", "lesson-like-bread", "lesson-liked", "lesson-lives", "lesson-loaves", "lesson-luz-bought", "lesson-luz-made", "lesson-luz-will", "lesson-made", "lesson-mar-fished", "lesson-market", "lesson-must-go", "lesson-name", "lesson-need", "lesson-offer", "lesson-place", "lesson-plan", "lesson-plan-there", "lesson-plan-we", "lesson-sell", "lesson-she", "lesson-sign", "lesson-task", "lesson-thanks", "lesson-they-ate", "lesson-tomorrow", "lesson-unstuck", "lesson-usted", "lesson-ustedes", "lesson-want", "lesson-water-plan", "lesson-water-went", "lesson-we", "lesson-we-went", "lesson-went", "lesson-went-there", "lesson-what", "lesson-who", "lesson-will-buy", "lesson-will-fetch", "lesson-will-go", "lesson-will-make", "lesson-will-sell", "lesson-wood-plan", "lesson-works", "lesson-yesno", "smith-open", "stall-need", "stall-offer", "villager-open"],
             TestGame.Bundle.Prompts.Keys.Order(StringComparer.Ordinal));
     }
 

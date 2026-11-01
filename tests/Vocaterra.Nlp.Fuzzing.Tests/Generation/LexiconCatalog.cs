@@ -1,5 +1,8 @@
 using Vocaterra.Nlp.Core.Stages;
+using Vocaterra.Nlp.Es;
+using Vocaterra.Nlp.Es.Analysis;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
+using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Matching;
 using Vocaterra.Nlp.Language.Morphology;
@@ -36,6 +39,9 @@ public sealed class LexiconCatalog
     /// <summary>Adjectives that normally precede the noun (mirror of <c>AnalysisTables.PrenominalAdjectives</c>).</summary>
     public static readonly IReadOnlyList<string> PrenominalLemmas = ["grande", "bueno", "malo"];
 
+    // M62: the Spanish analysis rules, read through the public interface rather than mirrored: which adjectives go after their noun (the colours).
+    private static readonly IAnalysisRules SpanishRules = AnalysisRules.For(SpanishLanguagePack.Instance);
+
     /// <summary>Adjectives that take <c>estar</c> (mirror of <c>AnalysisTables.EstarAdjectives</c>).</summary>
     public static readonly IReadOnlyList<string> EstarAdjectives =
         ["cansado", "enfermo", "contento", "triste", "ocupado", "preocupado", "enojado", "listo", "lleno", "vacío", "cerrado", "abierto"];
@@ -48,18 +54,20 @@ public sealed class LexiconCatalog
     public static readonly IReadOnlyList<string> NounModifyingAdverbs =
         ["solo", "sólo", "también", "tampoco", "incluso", "casi", "apenas", "aun", "aún", "más", "menos", "hasta", "ni"];
 
-    /// <summary>Adverbs that put a sentence in the past (mirror of <c>AnalysisTables.PastTimeAdverbs</c>).</summary>
-    public static readonly IReadOnlyList<string> PastTimeAdverbs = ["ayer", "anoche", "anteayer"];
+    // The time markers are not mirrored: since M57 they come from the pack's public table SpanishTimeMarkers, which the checker reads too, and the realiser finds
+    // their phrases with TimeMarkerModel.
 
-    /// <summary>Adverbs that put a sentence in the future (mirror of the marker in <c>AgreementChecker.CheckNearFuture</c>, M49): a preterite beside one is a tense mistake.</summary>
-    public static readonly IReadOnlyList<string> FutureTimeAdverbs = ["mañana"];
+    /// <summary>Adverbs that put a sentence in the past (<c>SpanishTimeMarkers.PastAdverbs</c>, the checker's own list).</summary>
+    public static readonly IReadOnlyList<string> PastTimeAdverbs = SpanishTimeMarkers.PastAdverbs;
 
-    /// <summary>Nouns that combine with <c>pasado</c> to mark past time (mirror of <c>AnalysisTables.TimeNouns</c>).</summary>
-    public static readonly IReadOnlyList<string> TimeNouns =
-        ["semana", "mes", "año", "día", "noche", "vez", "hora", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
+    /// <summary>The adverb that puts a sentence in the future (<c>SpanishTimeMarkers.FutureAdverb</c>); the generated adverbs leave it out, as they leave out the past ones.</summary>
+    public static readonly IReadOnlyList<string> FutureTimeAdverbs = [SpanishTimeMarkers.FutureAdverb];
 
-    /// <summary>Nouns after which <c>próximo/a</c> may come first (mirror of <c>AnalysisTables.IsUpcomingTimeNoun</c>, M49): "los próximos domingos" is correct Spanish, so it is no word-order mistake.</summary>
-    public static readonly IReadOnlyList<string> UpcomingTimeNouns = [.. TimeNouns, "siglo", "verano", "invierno", "otoño", "primavera", "fin", "finde", "sábado"];
+    /// <summary>Nouns that combine with <c>pasado</c> to mark past time and with <c>que viene</c> to mark the future (<c>SpanishTimeMarkers.TimeNouns</c>).</summary>
+    public static readonly IReadOnlyList<string> TimeNouns = SpanishTimeMarkers.TimeNouns;
+
+    /// <summary>Nouns after which <c>próximo/a</c> may come first (<c>SpanishTimeMarkers.UpcomingTimeNouns</c>, M49): "los próximos domingos" is correct Spanish, so it is no word-order mistake.</summary>
+    public static readonly IReadOnlyList<string> UpcomingTimeNouns = SpanishTimeMarkers.UpcomingTimeNouns;
 
     /// <summary>Feminine nouns that take <c>el</c> and <c>un</c> (mirror of <c>WordClasses.FeminineNounsTakingEl</c>).</summary>
     public static readonly IReadOnlyList<string> FeminineNounsTakingEl =
@@ -71,6 +79,53 @@ public sealed class LexiconCatalog
 
     /// <summary>Object pronouns that may sit between a subject pronoun and its verb (mirror of <c>WordClasses.Clitics</c>).</summary>
     public static readonly IReadOnlyList<string> CliticLemmas = ["me", "te", "lo", "le", "nos", "les"];
+
+    /// <summary>Verbs whose subject follows them after a dative pronoun (mirror of <c>SpanishAnalysisTables.ExperiencerVerbs</c>, M56: me gustan las manzanas).</summary>
+    public static readonly IReadOnlyList<string> ExperiencerVerbs =
+        ["gustar", "encantar", "interesar", "importar", "doler", "faltar", "quedar", "sobrar", "molestar", "apetecer", "fascinar", "agradar", "disgustar", "preocupar"];
+
+    /// <summary>
+    /// The verbs whose noun phrase after them the analyzer may check as their subject (M56): estar, the experiencer verbs and the verbs of price (mirror of
+    /// <c>SpanishAgreementChecker.TakesPostverbalSubject</c>, which also asks for a dative pronoun, dónde or cuánto before some of them; the realiser agrees them always).
+    /// </summary>
+    public static readonly IReadOnlyList<string> PostverbalSubjectVerbs = ["estar", "costar", "valer", .. ExperiencerVerbs];
+
+    /// <summary>The pronouns that stand before a verb, which the analyzer skips between a noun subject and its verb (mirror of <c>SpanishAnalysisTables.PreverbalPronouns</c>, M59).</summary>
+    public static readonly IReadOnlyList<string> PreverbalPronounLemmas = ["me", "te", "se", "lo", "la", "los", "las", "le", "les", "nos", "os"];
+
+    /// <summary>The verbs whose clitic after <c>cómo</c> is reflexive and agrees with them (mirror of <c>SpanishAnalysisTables.ReflexiveQuestionVerbs</c>, M59: ¿cómo te llamas?).</summary>
+    public static readonly IReadOnlyList<string> ReflexiveQuestionVerbs = ["llamar", "sentir"];
+
+    /// <summary>The dative pronouns before an experiencer verb (mirror of <c>SpanishAnalysisTables.DativePronouns</c>, M56).</summary>
+    public static readonly IReadOnlyList<string> DativePronouns = ["me", "te", "le", "nos", "os", "les"];
+
+    /// <summary>
+    /// The nouns whose phrase after a verb the analyzer may not take for its subject (M56): the nouns of time and duration (mirror of
+    /// <c>SpanishAnalysisTables.IsDurationNoun</c>) and of part or quantity (mirror of <c>SpanishAnalysisTables.QuantityNouns</c>).
+    /// </summary>
+    public static readonly IReadOnlyList<string> PostverbalNonSubjectNouns =
+    [
+        .. UpcomingTimeNouns, "tarde", "mañana", "rato", "momento", "mediodía", "medianoche", "minuto", "segundo", "tiempo", "temporada", "época",
+        "mayoría", "minoría", "mitad", "resto", "parte", "grupo", "cantidad", "montón", "número", "totalidad", "serie", "conjunto", "docena", "par", "tercio",
+    ];
+
+    /// <summary>
+    /// The words after which a phrase opens its clause (mirror of <c>SpanishAnalysisTables.SubjectClauseOpeners</c>, M59), less those the analyzer may read past as an
+    /// adverb: the realiser models a coordinated subject (M64) only where its first member surely opens its clause.
+    /// </summary>
+    public static readonly IReadOnlyList<string> SubjectClauseOpeners = ["y", "e", "pero", "porque", "si", "cuando", "aunque"];
+
+    /// <summary>
+    /// The words that say how much a sum is, as written (mirror of <c>SpanishAnalysisTables.AmountPredicates</c>, M64): after an amount and a singular <c>ser</c>
+    /// (<c>dos panes es suficiente</c>) the analyzer reads the amount as one sum.
+    /// </summary>
+    public static readonly IReadOnlyList<string> AmountPredicates = ["mucho", "poco", "bastante", "demasiado", "suficiente", "caro", "barato", "nada", "algo"];
+
+    /// <summary>Adverbs of place that take <c>estar</c>, so <c>ser</c> before one is a mistake (mirror of <c>SpanishAnalysisTables.LocationAdverbs</c>, M56).</summary>
+    public static readonly IReadOnlyList<string> LocationAdverbs = ["lejos", "cerca"];
+
+    /// <summary>The question words after which the analyzer reads a word that can be a finite verb as the verb (mirror of <c>SpanishAnalysisTables.VerbSeekingQuestionWords</c>, M56).</summary>
+    public static readonly IReadOnlyList<string> VerbSeekingQuestionWords = ["dónde", "donde", "cómo"];
 
     private static readonly string[] Genders = [LexiconSchema.Masculine, LexiconSchema.Feminine];
     private static readonly string[] Numbers = [LexiconSchema.Singular, LexiconSchema.Plural];
@@ -517,6 +572,15 @@ public sealed class LexiconCatalog
             return "nouns:excluded-form-shared-with-another-noun-lemma";
         }
 
+        // M58: a form that is also the regular cell of an irregular verb (costa for cuesta, the stem change missed; cabo, jugo, mente) is read by the analyzer as
+        // that verb, with conj.irregular, wherever a verb is expected (after a subject pronoun or a clitic, after cuánto, after the noun of a phrase that opens the
+        // sentence), and as the noun elsewhere. The generators place nouns by the pattern, not by those rules, so such a noun is not drawn (four lemmas in the
+        // bundle's lexicon).
+        if (Morphology.TryGetRegularizationOfWord(singular, out _) || Morphology.TryGetRegularizationOfWord(plural, out _))
+        {
+            return "nouns:excluded-also-a-learners-slip-of-a-verb";
+        }
+
         return null;
     }
 
@@ -625,6 +689,24 @@ public sealed class LexiconCatalog
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// True for an adjective that goes after its noun (M62: the colours, <see cref="IAnalysisRules.IsPostnominalAdjective"/> of the Spanish pack): the reading resolver
+    /// reads a word that is such an adjective and a noun as the adjective right before a word that can only be a noun.
+    /// </summary>
+    public static bool IsPostnominalAdjective(string lemma)
+    {
+        return SpanishRules.IsPostnominalAdjective(lemma);
+    }
+
+    /// <summary>
+    /// True for an adverb of degree (M62: <c>muy</c>, <c>tan</c>; <see cref="IAnalysisRules.IsDegreeAdverb"/> of the Spanish pack): the reading resolver reads the word after it
+    /// as no noun.
+    /// </summary>
+    public static bool IsDegreeAdverb(string lemma)
+    {
+        return SpanishRules.IsDegreeAdverb(lemma);
     }
 
     private IReadOnlyList<string> BuildAdjectives()

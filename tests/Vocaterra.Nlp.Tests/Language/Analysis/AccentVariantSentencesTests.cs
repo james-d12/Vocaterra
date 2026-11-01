@@ -106,8 +106,9 @@ public class AccentVariantSentencesTests
     [Fact]
     public void EstaAsTheVerbIsCheckedAsTheVerb()
     {
-        // ella está alto is a ser/estar mistake: the copula check runs on a word that used to be read as the demonstrative.
-        AssertTags("ella esta alto", ErrorTags.SerEstar);
+        // ella está alto is a ser/estar mistake: the copula check runs on a word that used to be read as the demonstrative. Since M62 the adjective agrees with ella as
+        // well (ella es alta), so the predicate check finds alto too: it sees the verb as well.
+        AssertTags("ella esta alto", ErrorTags.SerEstar, ErrorTags.GenderAgree);
         AssertTags("el esta simpatico", ErrorTags.SerEstar);
         AssertTags("estas inteligente", ErrorTags.SerEstar);
     }
@@ -325,6 +326,21 @@ public class AccentVariantSentencesTests
 
         Assert.Empty(result.Errors);
         Assert.Equal("[ART]", result.MatchedGrammarId);
+    }
+
+    // M59, found by the fuzz suite once a noun before a verb became its subject (O3, "te estas relacionado"): te and estas were decided in the same pass, te against
+    // the demonstrative estas (no verb after it, so the noun té) and estas against its neighbours (no noun after it, so the verb estás), which made "té estás", a noun
+    // subject and a verb of the second person. A pronoun before a verb now keeps its reading when the next word is a verb once accented.
+    [Theory]
+    [InlineData("te estas relacionado")]
+    [InlineData("te estas quieto")]
+    [InlineData("se esta bien")]
+    public void APronounBeforeAWordThatIsAVerbOnceAccentedStaysThePronoun(string sentence)
+    {
+        AssertNoErrors(sentence);
+        var resolved = Resolve(sentence);
+        Assert.All(resolved[0].Readings, static r => Assert.Equal(LexiconSchema.Pronoun, r.Pos));
+        Assert.Contains(resolved[1].Readings, static r => r.Pos == LexiconSchema.Verb && r.Lemma == "estar");
     }
 
     [Fact]

@@ -1,12 +1,14 @@
 {
   "$schema": "../../schema/checks.schema.json",
-  "schemaVersion": 1,
-  "about": "The check battery (S11, D-game-10): run with --check pre|post|recall, outside the world; it never changes the learner model, the phrase progress or the world. Production items are graded by the core at the row's prompt (communicated and the row's intent = correct; errors are recorded; no sé is allowed and recorded as dont_know). Comprehension items play the row's pre-rendered line (speech index id: the line id) and offer three options; the options are shown in an order drawn from the world seed and the check kind, so pre and post differ in order but not in content. The item's id is hear.<row> (comprehension) or say.<row> (production). The items' questions, options and situations are the locale's (content/locale/<code>/checks.json, check.<id>.*) since C03.",
+  "schemaVersion": 2,
+  "about": "The check battery (S11, D-game-10): run with --check pre|post|recall, outside the world; it never changes the learner model, the phrase progress or the world. Production items are graded by the core at the row's prompt (communicated and the row's intent = correct; errors are recorded; no sé is allowed and recorded as dont_know). Comprehension items play the row's pre-rendered line (speech index id: the line id) and offer three options; the options are shown in an order drawn from the world seed and the check kind, so pre and post differ in order but not in content. The item's id is hear.<row> (comprehension) or say.<row> (production). The items' questions, options and situations are the locale's (content/locale/<code>/checks.json, check.<id>.*) since C03. Since VILLAGE_PLAN V07 (schema 2) every item names the lesson it belongs to (lesson: the lesson's id, or null for an item of no lesson: the free run's phrases at the stall and the villager, which no lesson's step practises), and a battery asks the items of the lessons its play session has unlocked (a lesson's session at most the play session), and always those of no lesson and of the lessons of the first coreSessions sessions: the lessons of sessions 1 to 3 are the pilot's battery of 31 items (docs/game/PLAYTEST.md), asked whole in the pilot's first session and at its recall.",
+  "coreSessions": 3,
   "items": [
     {
       "id": "hear.que-necesitas",
       "kind": "comprehension",
       "phrase": "que-necesitas",
+      "lesson": null,
       "line": "prompt.stall-need",
       "spanish": "¿Qué necesitas?",
       "options": [
@@ -22,6 +24,7 @@
       "id": "hear.quieres-pan",
       "kind": "comprehension",
       "phrase": "quieres-pan",
+      "lesson": null,
       "line": "prompt.stall-offer",
       "spanish": "¿Quieres pan?",
       "options": [
@@ -37,6 +40,7 @@
       "id": "hear.pedir-agua",
       "kind": "comprehension",
       "phrase": "pedir-agua",
+      "lesson": null,
       "line": "phrase.pedir-agua",
       "spanish": "Quiero agua, por favor.",
       "options": [
@@ -54,6 +58,7 @@
       "id": "hear.si-por-favor",
       "kind": "comprehension",
       "phrase": "si-por-favor",
+      "lesson": "first-words",
       "line": "phrase.si-por-favor",
       "spanish": "Sí, por favor.",
       "options": [
@@ -67,6 +72,7 @@
       "id": "hear.no-gracias",
       "kind": "comprehension",
       "phrase": "no-gracias",
+      "lesson": null,
       "line": "phrase.no-gracias",
       "spanish": "No, gracias.",
       "options": [
@@ -82,6 +88,7 @@
       "id": "hear.donde-esta-el-rio",
       "kind": "comprehension",
       "phrase": "donde-esta-el-rio",
+      "lesson": null,
       "line": "phrase.donde-esta-el-rio",
       "spanish": "¿Dónde está el río?",
       "options": [
@@ -97,6 +104,7 @@
       "id": "hear.quieres-fruta",
       "kind": "comprehension",
       "phrase": "quieres-fruta",
+      "lesson": "first-words",
       "line": "guide.lesson.offer.1",
       "spanish": "¿Quieres fruta?",
       "options": [
@@ -110,6 +118,7 @@
       "id": "hear.necesitas-madera",
       "kind": "comprehension",
       "phrase": "necesitas-madera",
+      "lesson": "first-words",
       "line": "guide.lesson.task.1",
       "spanish": "Necesitas madera y frutas.",
       "options": [
@@ -125,6 +134,7 @@
       "id": "hear.me-llamo",
       "kind": "comprehension",
       "phrase": "me-llamo",
+      "lesson": "first-words",
       "line": "guide.lesson.name.1",
       "spanish": "Me llamo Luna.",
       "options": [
@@ -138,6 +148,7 @@
       "id": "hear.es-madera",
       "kind": "comprehension",
       "phrase": "es-madera",
+      "lesson": "first-words",
       "line": "guide.lesson.is_wood.1",
       "spanish": "¿Es madera?",
       "options": [
@@ -151,6 +162,7 @@
       "id": "hear.de-nada",
       "kind": "comprehension",
       "phrase": "de-nada",
+      "lesson": "first-words",
       "line": "guide.lesson.welcome.1",
       "spanish": "De nada.",
       "options": [
@@ -164,6 +176,7 @@
       "id": "hear.que-quieres",
       "kind": "comprehension",
       "phrase": "que-quieres",
+      "lesson": "first-words",
       "line": "guide.lesson.want.1",
       "spanish": "¿Qué quieres?",
       "options": [
@@ -177,6 +190,7 @@
       "id": "hear.tienes-fruta",
       "kind": "comprehension",
       "phrase": "tienes-fruta",
+      "lesson": "first-words",
       "line": "guide.lesson.have_fruit.1",
       "spanish": "¿Tienes una fruta?",
       "options": [
@@ -190,6 +204,7 @@
       "id": "hear.que-quieren-ustedes",
       "kind": "comprehension",
       "phrase": "que-quieren-ustedes",
+      "lesson": "personas",
       "line": "guide.lesson.shop.all.1",
       "spanish": "¿Qué quieren ustedes?",
       "options": [
@@ -203,6 +218,7 @@
       "id": "say.pedir-agua",
       "kind": "production",
       "phrase": "pedir-agua",
+      "lesson": null,
       "prompt": "stall-need",
       "intent": "request_item"
     },
@@ -210,6 +226,7 @@
       "id": "say.si-por-favor",
       "kind": "production",
       "phrase": "si-por-favor",
+      "lesson": "first-words",
       "prompt": "stall-offer",
       "intent": "confirm"
     },
@@ -217,6 +234,7 @@
       "id": "say.no-gracias",
       "kind": "production",
       "phrase": "no-gracias",
+      "lesson": null,
       "prompt": "stall-offer",
       "intent": "deny"
     },
@@ -224,6 +242,7 @@
       "id": "say.donde-esta-el-rio",
       "kind": "production",
       "phrase": "donde-esta-el-rio",
+      "lesson": null,
       "prompt": "villager-open",
       "intent": "ask_directions"
     },
@@ -231,6 +250,7 @@
       "id": "say.si",
       "kind": "production",
       "phrase": "si",
+      "lesson": "first-words",
       "prompt": "lesson-yesno",
       "intent": "confirm"
     },
@@ -238,6 +258,7 @@
       "id": "say.no",
       "kind": "production",
       "phrase": "no",
+      "lesson": "first-words",
       "prompt": "lesson-yesno",
       "intent": "deny"
     },
@@ -245,6 +266,7 @@
       "id": "say.que-es-esto",
       "kind": "production",
       "phrase": "que-es-esto",
+      "lesson": "first-words",
       "prompt": "lesson-what",
       "intent": "ask_what"
     },
@@ -252,6 +274,7 @@
       "id": "say.otra-vez",
       "kind": "production",
       "phrase": "otra-vez",
+      "lesson": "first-words",
       "prompt": "lesson-unstuck",
       "intent": "ask_repeat"
     },
@@ -259,6 +282,7 @@
       "id": "say.mas-despacio",
       "kind": "production",
       "phrase": "mas-despacio",
+      "lesson": "first-words",
       "prompt": "lesson-unstuck",
       "intent": "ask_slower"
     },
@@ -266,6 +290,7 @@
       "id": "say.quiero-madera",
       "kind": "production",
       "phrase": "quiero-madera",
+      "lesson": "first-words",
       "prompt": "lesson-want",
       "intent": "state_want"
     },
@@ -273,6 +298,7 @@
       "id": "say.tengo-fruta",
       "kind": "production",
       "phrase": "tengo-fruta",
+      "lesson": "first-words",
       "prompt": "lesson-have",
       "intent": "state_have"
     },
@@ -280,6 +306,7 @@
       "id": "say.ella-quiere-fruta",
       "kind": "production",
       "phrase": "ella-quiere-fruta",
+      "lesson": "personas",
       "prompt": "lesson-she",
       "intent": "state_want"
     },
@@ -287,6 +314,7 @@
       "id": "say.necesitamos-agua",
       "kind": "production",
       "phrase": "necesitamos-agua",
+      "lesson": "personas",
       "prompt": "lesson-we",
       "intent": "state_want"
     },
@@ -294,6 +322,7 @@
       "id": "hear.que-vas-a-comer",
       "kind": "comprehension",
       "phrase": "que-vas-a-comer",
+      "lesson": "ayer-y-manana",
       "line": "guide.lesson.villager.plan.1",
       "spanish": "¿Qué vas a comer mañana?",
       "options": [
@@ -307,6 +336,7 @@
       "id": "hear.que-comiste-ayer",
       "kind": "comprehension",
       "phrase": "que-comiste-ayer",
+      "lesson": "ayer-y-manana",
       "line": "guide.lesson.shop.ate.1",
       "spanish": "¿Qué comiste ayer?",
       "options": [
@@ -320,6 +350,7 @@
       "id": "say.voy-a-comer-pan",
       "kind": "production",
       "phrase": "voy-a-comer-pan",
+      "lesson": "ayer-y-manana",
       "prompt": "lesson-plan",
       "intent": "state_action"
     },
@@ -327,7 +358,618 @@
       "id": "say.ayer-comi-fruta",
       "kind": "production",
       "phrase": "ayer-comi-fruta",
+      "lesson": "ayer-y-manana",
       "prompt": "lesson-ate",
+      "intent": "state_action"
+    },
+    {
+      "id": "hear.que-buscas",
+      "kind": "comprehension",
+      "phrase": "que-buscas",
+      "lesson": "el-pueblo",
+      "line": "fisher_greet.1",
+      "spanish": "¿Qué buscas?",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.esta-a-la-izquierda",
+      "kind": "comprehension",
+      "phrase": "esta-a-la-izquierda",
+      "lesson": "el-pueblo",
+      "line": "guide.lesson.fisher.left.1",
+      "spanish": "En el pueblo, mira la torre. La panadería está a la izquierda.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.hay-tres-casas",
+      "kind": "comprehension",
+      "phrase": "hay-tres-casas",
+      "lesson": "el-pueblo",
+      "line": "guide.lesson.fisher.hay.1",
+      "spanish": "En el pueblo hay una tienda, una panadería y tres casas.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.fuiste-a-la-panaderia",
+      "kind": "comprehension",
+      "phrase": "fuiste-a-la-panaderia",
+      "lesson": "el-pueblo",
+      "line": "guide.lesson.fisher.went.1",
+      "spanish": "¿Fuiste a la panadería?",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "say.donde-esta-la-panaderia",
+      "kind": "production",
+      "phrase": "donde-esta-la-panaderia",
+      "lesson": "el-pueblo",
+      "prompt": "fisher-open",
+      "intent": "ask_directions"
+    },
+    {
+      "id": "say.esta-lejos",
+      "kind": "production",
+      "phrase": "esta-lejos",
+      "lesson": "el-pueblo",
+      "prompt": "lesson-far",
+      "intent": "ask_far"
+    },
+    {
+      "id": "say.voy-a-comprar-pan",
+      "kind": "production",
+      "phrase": "voy-a-comprar-pan",
+      "lesson": "el-pueblo",
+      "prompt": "lesson-plan-there",
+      "intent": "state_action"
+    },
+    {
+      "id": "say.fui-a-la-panaderia",
+      "kind": "production",
+      "phrase": "fui-a-la-panaderia",
+      "lesson": "el-pueblo",
+      "prompt": "lesson-went-there",
+      "intent": "state_action"
+    },
+    {
+      "id": "hear.tengo-diez-panes",
+      "kind": "comprehension",
+      "phrase": "tengo-diez-panes",
+      "lesson": "numeros-y-pan",
+      "line": "guide.lesson.baker.loaves.1",
+      "spanish": "Tengo diez panes.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.cuantos-panes",
+      "kind": "comprehension",
+      "phrase": "cuantos-panes",
+      "lesson": "numeros-y-pan",
+      "line": "guide.lesson.baker.how_many.1",
+      "spanish": "¿Cuántos panes quieres?",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.cuesta-dos-monedas",
+      "kind": "comprehension",
+      "phrase": "cuesta-dos-monedas",
+      "lesson": "numeros-y-pan",
+      "line": "baker_price.1",
+      "spanish": "El pan cuesta dos monedas.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.que-compraste",
+      "kind": "comprehension",
+      "phrase": "que-compraste",
+      "lesson": "numeros-y-pan",
+      "line": "guide.lesson.baker.bought.1",
+      "spanish": "¿Qué compraste?",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "say.quiero-dos-panes",
+      "kind": "production",
+      "phrase": "quiero-dos-panes",
+      "lesson": "numeros-y-pan",
+      "prompt": "baker-open",
+      "intent": "request_item"
+    },
+    {
+      "id": "say.cuanto-cuesta",
+      "kind": "production",
+      "phrase": "cuanto-cuesta",
+      "lesson": "numeros-y-pan",
+      "prompt": "baker-open",
+      "intent": "ask_price"
+    },
+    {
+      "id": "say.voy-a-buscar-madera",
+      "kind": "production",
+      "phrase": "voy-a-buscar-madera",
+      "lesson": "numeros-y-pan",
+      "prompt": "lesson-wood-plan",
+      "intent": "state_action"
+    },
+    {
+      "id": "say.compre-dos-panes",
+      "kind": "production",
+      "phrase": "compre-dos-panes",
+      "lesson": "numeros-y-pan",
+      "prompt": "lesson-bought",
+      "intent": "state_action"
+    },
+    {
+      "id": "hear.soy-el-herrero",
+      "kind": "comprehension",
+      "phrase": "soy-el-herrero",
+      "lesson": "gente-del-pueblo",
+      "line": "smith_job.1",
+      "spanish": "Soy el herrero. Trabajo con fuego y madera.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.quieres-un-hacha",
+      "kind": "comprehension",
+      "phrase": "quieres-un-hacha",
+      "lesson": "gente-del-pueblo",
+      "line": "smith_offer.1",
+      "spanish": "¿Quieres un hacha? Necesito dos bloques de madera y dos monedas.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.que-va-a-hacer-domingo",
+      "kind": "comprehension",
+      "phrase": "que-va-a-hacer-domingo",
+      "lesson": "gente-del-pueblo",
+      "line": "guide.lesson.villager.will_make.1",
+      "spanish": "¿Qué va a hacer Domingo?",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.ayer-trabajo-mucho",
+      "kind": "comprehension",
+      "phrase": "ayer-trabajo-mucho",
+      "lesson": "gente-del-pueblo",
+      "line": "guide.lesson.villager.much.1",
+      "spanish": "Ayer Domingo trabajó mucho.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "say.como-te-llamas",
+      "kind": "production",
+      "phrase": "como-te-llamas",
+      "lesson": "gente-del-pueblo",
+      "prompt": "smith-open",
+      "intent": "ask_name"
+    },
+    {
+      "id": "say.que-haces",
+      "kind": "production",
+      "phrase": "que-haces",
+      "lesson": "gente-del-pueblo",
+      "prompt": "smith-open",
+      "intent": "ask_activity"
+    },
+    {
+      "id": "say.va-a-hacer-un-hacha",
+      "kind": "production",
+      "phrase": "va-a-hacer-un-hacha",
+      "lesson": "gente-del-pueblo",
+      "prompt": "lesson-will-make",
+      "intent": "state_action"
+    },
+    {
+      "id": "say.hizo-un-hacha",
+      "kind": "production",
+      "phrase": "hizo-un-hacha",
+      "lesson": "gente-del-pueblo",
+      "prompt": "lesson-made",
+      "intent": "state_action"
+    },
+    {
+      "id": "hear.mis-manzanas-son-rojas",
+      "kind": "comprehension",
+      "phrase": "mis-manzanas-son-rojas",
+      "lesson": "como-es",
+      "line": "guide.lesson.farmer.apples.1",
+      "spanish": "Mira mis manzanas. Son rojas y grandes.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.te-gusta-el-pan",
+      "kind": "comprehension",
+      "phrase": "te-gusta-el-pan",
+      "lesson": "como-es",
+      "line": "guide.lesson.farmer.like.1",
+      "spanish": "¿Te gusta el pan?",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.mis-plantas-necesitan-agua",
+      "kind": "comprehension",
+      "phrase": "mis-plantas-necesitan-agua",
+      "lesson": "como-es",
+      "line": "guide.lesson.farmer.water.1",
+      "spanish": "Mis plantas necesitan agua. Si me traes agua del río, te doy tres manzanas. ¿Qué vas a hacer?",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.el-pan-es-de-luz",
+      "kind": "comprehension",
+      "phrase": "el-pan-es-de-luz",
+      "lesson": "como-es",
+      "line": "guide.lesson.shop.luz.1",
+      "spanish": "El pan es de Luz, de la panadería.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "say.la-manzana-es-roja",
+      "kind": "production",
+      "phrase": "la-manzana-es-roja",
+      "lesson": "como-es",
+      "prompt": "lesson-apple",
+      "intent": "describe"
+    },
+    {
+      "id": "say.me-gustan-las-manzanas",
+      "kind": "production",
+      "phrase": "me-gustan-las-manzanas",
+      "lesson": "como-es",
+      "prompt": "lesson-like-apples",
+      "intent": "state_like"
+    },
+    {
+      "id": "say.quiero-tres-manzanas-rojas",
+      "kind": "production",
+      "phrase": "quiero-tres-manzanas-rojas",
+      "lesson": "como-es",
+      "prompt": "farmer-open",
+      "intent": "request_item"
+    },
+    {
+      "id": "say.me-gusto-el-pan",
+      "kind": "production",
+      "phrase": "me-gusto-el-pan",
+      "lesson": "como-es",
+      "prompt": "lesson-liked",
+      "intent": "state_like"
+    },
+    {
+      "id": "hear.el-dia-de-ayer",
+      "kind": "comprehension",
+      "phrase": "el-dia-de-ayer",
+      "lesson": "ayer-en-el-pueblo",
+      "line": "guide.lesson.villager.day.1",
+      "spanish": "Ayer Luz hizo pan. Domingo trabajó en la herrería. Mar pescó en el río.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.comieron-en-la-plaza",
+      "kind": "comprehension",
+      "phrase": "comieron-en-la-plaza",
+      "lesson": "ayer-en-el-pueblo",
+      "line": "guide.lesson.villager.ate.1",
+      "spanish": "Por la tarde, Luz y Mar comieron pan en la plaza.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.adonde-fueron",
+      "kind": "comprehension",
+      "phrase": "adonde-fueron",
+      "lesson": "ayer-en-el-pueblo",
+      "line": "guide.lesson.villager.where_went.1",
+      "spanish": "¿Y Mar y tú? ¿Adónde fueron ayer?",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.le-vendi-pescado",
+      "kind": "comprehension",
+      "phrase": "le-vendi-pescado",
+      "lesson": "ayer-en-el-pueblo",
+      "line": "guide.lesson.fisher.sold.1",
+      "spanish": "¡Hola! Ayer le vendí pescado a Luz. Mañana va a comprar más.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "say.luz-hizo-pan",
+      "kind": "production",
+      "phrase": "luz-hizo-pan",
+      "lesson": "ayer-en-el-pueblo",
+      "prompt": "lesson-luz-made",
+      "intent": "state_action"
+    },
+    {
+      "id": "say.fuimos-al-rio",
+      "kind": "production",
+      "phrase": "fuimos-al-rio",
+      "lesson": "ayer-en-el-pueblo",
+      "prompt": "lesson-we-went",
+      "intent": "state_action"
+    },
+    {
+      "id": "say.ellos-comieron-pan",
+      "kind": "production",
+      "phrase": "ellos-comieron-pan",
+      "lesson": "ayer-en-el-pueblo",
+      "prompt": "lesson-they-ate",
+      "intent": "state_action"
+    },
+    {
+      "id": "say.tengo-que-ir",
+      "kind": "production",
+      "phrase": "tengo-que-ir",
+      "lesson": "ayer-en-el-pueblo",
+      "prompt": "lesson-must-go",
+      "intent": "state_obligation"
+    },
+    {
+      "id": "hear.que-haras-manana",
+      "kind": "comprehension",
+      "phrase": "que-haras-manana",
+      "lesson": "manana-en-el-pueblo",
+      "line": "guide.lesson.baker.tomorrow.1",
+      "spanish": "¿Qué harás mañana?",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.tendre-pan",
+      "kind": "comprehension",
+      "phrase": "tendre-pan",
+      "lesson": "manana-en-el-pueblo",
+      "line": "guide.lesson.baker.fresh.1",
+      "spanish": "¡Qué bien! Mañana tendré pan fresco.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.mar-pescara",
+      "kind": "comprehension",
+      "phrase": "mar-pescara",
+      "lesson": "manana-en-el-pueblo",
+      "line": "guide.lesson.smith.go.1",
+      "spanish": "¡Muy bien! Mar pescará en el río toda la tarde. ¿Adónde irás ahora?",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.el-dia-de-manana",
+      "kind": "comprehension",
+      "phrase": "el-dia-de-manana",
+      "lesson": "manana-en-el-pueblo",
+      "line": "guide.lesson.fisher.day.1",
+      "spanish": "¡Hola! Mañana Luz hará pan. Domingo trabajará en la herrería. Y yo pescaré en el río.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "say.manana-comprare-pan",
+      "kind": "production",
+      "phrase": "manana-comprare-pan",
+      "lesson": "manana-en-el-pueblo",
+      "prompt": "lesson-will-buy",
+      "intent": "state_action"
+    },
+    {
+      "id": "say.buscare-madera",
+      "kind": "production",
+      "phrase": "buscare-madera",
+      "lesson": "manana-en-el-pueblo",
+      "prompt": "lesson-will-fetch",
+      "intent": "state_action"
+    },
+    {
+      "id": "say.ire-al-rio",
+      "kind": "production",
+      "phrase": "ire-al-rio",
+      "lesson": "manana-en-el-pueblo",
+      "prompt": "lesson-will-go",
+      "intent": "state_action"
+    },
+    {
+      "id": "say.luz-hara-pan",
+      "kind": "production",
+      "phrase": "luz-hara-pan",
+      "lesson": "manana-en-el-pueblo",
+      "prompt": "lesson-luz-will",
+      "intent": "state_action"
+    },
+    {
+      "id": "hear.once-a-quince",
+      "kind": "comprehension",
+      "phrase": "once-a-quince",
+      "lesson": "el-mercado",
+      "line": "guide.lesson.baker.fifteen.1",
+      "spanish": "Once, doce, trece, catorce, quince.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.tengo-quince-manzanas",
+      "kind": "comprehension",
+      "phrase": "tengo-quince-manzanas",
+      "lesson": "el-mercado",
+      "line": "guide.lesson.farmer.market.1",
+      "spanish": "¡Hola! Hoy hay mercado. Tengo quince manzanas.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.que-venderas-manana",
+      "kind": "comprehension",
+      "phrase": "que-venderas-manana",
+      "lesson": "el-mercado",
+      "line": "guide.lesson.farmer.will_sell.1",
+      "spanish": "¿Y qué venderás mañana?",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "say.vendo-madera",
+      "kind": "production",
+      "phrase": "vendo-madera",
+      "lesson": "el-mercado",
+      "prompt": "baker-open",
+      "intent": "offer_item"
+    },
+    {
+      "id": "say.cuanto-es-todo",
+      "kind": "production",
+      "phrase": "cuanto-es-todo",
+      "lesson": "el-mercado",
+      "prompt": "farmer-open",
+      "intent": "ask_total"
+    },
+    {
+      "id": "say.mas-barato-que",
+      "kind": "production",
+      "phrase": "mas-barato-que",
+      "lesson": "el-mercado",
+      "prompt": "lesson-cheaper",
+      "intent": "describe"
+    },
+    {
+      "id": "say.puedo-pagar-con-fruta",
+      "kind": "production",
+      "phrase": "puedo-pagar-con-fruta",
+      "lesson": "el-mercado",
+      "prompt": "farmer-open",
+      "intent": "ask_pay"
+    },
+    {
+      "id": "say.manana-vendere-fruta",
+      "kind": "production",
+      "phrase": "manana-vendere-fruta",
+      "lesson": "el-mercado",
+      "prompt": "lesson-will-sell",
       "intent": "state_action"
     }
   ]

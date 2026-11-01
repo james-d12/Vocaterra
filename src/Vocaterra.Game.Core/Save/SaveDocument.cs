@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Learner;
@@ -43,7 +44,7 @@ namespace Vocaterra.Game.Core.Save;
 /// <param name="DeferredSkills">Learner-model steps of shown cards that were waiting for the next collect.</param>
 /// <param name="LastRepairs">The repair each NPC's last answered turn ended with.</param>
 /// <param name="NextTurnId">The id the next submitted turn gets.</param>
-/// <param name="Npcs">Each NPC's conversation state, in agent order (guide, shopkeeper, villager).</param>
+/// <param name="Npcs">Each NPC's conversation state, in the order of <c>game/npcs.json</c> (guide, shopkeeper, villager, fisher, baker, smith, farmer).</param>
 /// <param name="Chunks">The scene diff: the chunks that differ from the fresh scene, in chunk order.</param>
 /// <param name="Lessons">The progress of the lessons (S16): where each one stands and which is active. A save from before S16 has none.</param>
 /// <param name="Tips">The first-time tips (S16): which were shown, which wait and which is on screen. A save from before S16 has none.</param>
@@ -51,6 +52,8 @@ namespace Vocaterra.Game.Core.Save;
 /// <param name="BookGranted">Whether the book item has been granted (S22): a save written since S20 says so; a save from before S20 does not, and the load gives the learner the book once.</param>
 /// <param name="Settings">The player's settings (S24: the sound volumes), or <see langword="null"/> in a save from before S24 (the defaults then apply).</param>
 /// <param name="World">The grid's chunk counts (X01), or <see langword="null"/> in a save from before X01 (a load across bundles then assumes this build's grid).</param>
+/// <param name="SkippedTo">The play session a test run was skipped to (<c>--skip-to-session</c>, V12c): the sessions before it were counted as done, not played, so the save is
+/// no learner's. <see langword="null"/>, and left out of the file, for every other game.</param>
 public sealed record SaveDocument(
     string Format,
     int Version,
@@ -85,7 +88,8 @@ public sealed record SaveDocument(
     LearnerRecordSave? Learner = null,
     bool BookGranted = false,
     SaveSettings? Settings = null,
-    WorldDims? World = null);
+    WorldDims? World = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? SkippedTo = null);
 
 /// <summary>The size of the world's grid in chunks (X01): a save across bundles decodes the scene diff's chunk indices with it, so a world that changed size still maps by position.</summary>
 /// <param name="ChunksX">Chunks along x.</param>

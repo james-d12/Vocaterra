@@ -1,8 +1,9 @@
 {
   "$schema": "../../../schema/lesson.schema.json",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "personas",
   "npc": "villager",
+  "level": "a1",
   "autoStart": true,
   "session": 2,
   "verbs": [
@@ -80,6 +81,16 @@
     }
   ],
   "steps": [
+    {
+      "id": "p0-hello",
+      "type": "review",
+      "candidates": [
+        {
+          "phrase": "hola",
+          "line": "villager_hello.1"
+        }
+      ]
+    },
     {
       "id": "p1-intro",
       "type": "explain"
@@ -195,6 +206,21 @@
       "npc": "shopkeeper",
       "line": "guide.lesson.shop.they.1",
       "correct": 0
+    },
+    {
+      "id": "p4-review",
+      "type": "review",
+      "npc": "shopkeeper",
+      "candidates": [
+        {
+          "phrase": "si-por-favor",
+          "line": "shop_offer.1"
+        },
+        {
+          "phrase": "necesito-agua",
+          "line": "shop_need.1"
+        }
+      ]
     },
     {
       "id": "p4-table",

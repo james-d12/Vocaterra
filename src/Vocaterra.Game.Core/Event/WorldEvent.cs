@@ -27,8 +27,35 @@ public static class WorldEvents
     /// <summary>An NPC put an item in the inventory (the detail is the item's noun and how it came: request, offer or fail_forward).</summary>
     public const string ItemGiven = "item_given";
 
-    /// <summary>The villager's answer set the beacon on the nearest river block.</summary>
+    /// <summary>An NPC's answer, a lesson or an objective's hook set the beacon (the detail is the word it shows and its block).</summary>
     public const string BeaconSet = "beacon_set";
+
+    /// <summary>
+    /// The player reached the beacon and it came down (VILLAGE_PLAN V02; the detail is the scene's name of the place, <c>stall</c>, or the noun of an arrow on a noun's
+    /// block, <c>árbol</c>). A lesson's <c>do</c> step with a <c>pointPlace</c> waits for it; the guide's review question is no destination and logs none.
+    /// </summary>
+    public const string BeaconReached = "beacon_reached";
+
+    /// <summary>
+    /// An NPC answered directions to the place a slot of the learner's line names (VILLAGE_PLAN V02, <c>point_at_slot</c>; the detail is the scene's name of the place
+    /// found, the noun whose nearest block it is, or <c>unknown</c> when the NPC does not know it).
+    /// </summary>
+    public const string PlaceAsked = "place_asked";
+
+    /// <summary>The detail of <see cref="PlaceAsked"/> when the place is not one of the scene's and not a catalogue noun of the world.</summary>
+    public const string UnknownPlace = "unknown";
+
+    /// <summary>
+    /// An NPC took items from the inventory (VILLAGE_PLAN V03: <c>take_item</c>, the coins of a purchase, the goods of an order; the detail is the item's noun and how:
+    /// <c>moneda, request</c>, <c>madera, order</c>). An objective counting it counts every item taken.
+    /// </summary>
+    public const string ItemTaken = "item_taken";
+
+    /// <summary>
+    /// The player brought an NPC the goods of an order (VILLAGE_PLAN V03, an objective with <c>deliverTo</c>): the NPC took them and said its thanks. The NPC is the
+    /// one who ordered; the detail is the objective's id, whose one step waits for it.
+    /// </summary>
+    public const string OrderDelivered = "order_delivered";
 
     /// <summary>The player filled the bottle at the river.</summary>
     public const string BottleFilled = "bottle_filled";
@@ -106,6 +133,12 @@ public static class WorldEvents
     /// <summary>A phrase of an earlier session was reviewed and answered, in the warm-up or in a lesson's review step (X06; the detail is the phrase id and <c>warm-up</c> or <c>lesson</c>).</summary>
     public const string ReviewAnswered = "review_answered";
 
+    /// <summary>The player slept at their own fire (V12c): the play session ends and the next one begins in the same run, as a load would begin it (the detail: <c>session 1 to 2</c>).</summary>
+    public const string Slept = "slept";
+
+    /// <summary>A test run was skipped to a later play session (V12c, <c>--skip-to-session</c>): the sessions before it were counted as done (the detail says so).</summary>
+    public const string SessionSkipped = "session_skipped";
+
     /// <summary>Every world event name, in the order above (the tips, the lessons and the objectives check the names they use against it).</summary>
     public static IReadOnlyList<string> All { get; } =
     [
@@ -113,5 +146,7 @@ public static class WorldEvents
         KeyWordsShown, PhraseReviewAsked, SupportCardShown, ItemPickedUp, TipShown, GuideMet, FireLit, SessionComplete, SpareTorch, SecondTryAsked, SecondTryAnswered,
         TorchAtRing,
         WarmupOffered, WarmupStarted, WarmupEnded, WarmupSkipped, ReviewSkipped, ReviewAnswered,
+        BeaconReached, PlaceAsked, ItemTaken, OrderDelivered,
+        Slept, SessionSkipped,
     ];
 }

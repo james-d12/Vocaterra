@@ -327,6 +327,11 @@ public sealed class ScenarioScript
                 _hooks.BookPractise?.Invoke(step.Value);
                 _index++;
                 break;
+            case ScriptStepKind.Sleep:
+                CloseIfOpen();
+                _hooks.Sleep?.Invoke(); // the next play session, as the player's E at the fire (V12c)
+                _index++;
+                break;
             case ScriptStepKind.Pick:
                 _log($"pick {step.Value}: a check step; the check battery takes it before the world (ignored here)");
                 _index++;
@@ -369,6 +374,15 @@ public sealed class ScenarioScript
             return false;
         }
 
+        if (step.Type != LessonStepType.Do && runner.CurrentNpc is { } at && !string.Equals(_dialogue.Npc, at, StringComparison.Ordinal))
+        {
+            // The panel is open on another NPC than the step's (V12: a lesson run after one that ended at the stall, and the next lesson starts at the villager): close it,
+            // and the run walks to the step's NPC. Typed at the wrong NPC, the line is not the lesson's, and the run would say it for ever.
+            CloseIfOpen();
+            _phase = Phase.Idle;
+            return false;
+        }
+
         if (_session.PendingTurns > 0 || _dialogue.SubmitRequested || _dialogue.PendingSpeech is not null)
         {
             return true;
@@ -389,15 +403,16 @@ public sealed class ScenarioScript
                 _phase = Phase.Waiting;
                 return true;
             case LessonStepType.Do:
-                CloseIfOpen();
                 if (string.Equals(step.Event, WorldEvents.TalkOpened, StringComparison.Ordinal))
                 {
+                    CloseIfOpen();
                     _phase = Phase.Idle; // the step waits for the panel to open on another NPC (S26): the run walks up to that NPC next (LessonRun), not to the beacon
                     return true;
                 }
 
                 if (_session.Pointer is { } target)
                 {
+                    CloseIfOpen();
                     _walk = new VoxelScript(
                         _session.Simulation,
                         _look,
@@ -408,6 +423,8 @@ public sealed class ScenarioScript
                 }
                 else
                 {
+                    // Skipped with the panel still open: the strip's skip works only there (V11: a skip after closing it did nothing, and the run walked back and
+                    // asked again for ever, at a do step that waits for an order or a purchase).
                     _log($"lesson-run: the step '{step.Id}' has nothing to walk to; it is skipped");
                     _hooks.Lesson?.Invoke(ScriptStepKind.LessonSkip, string.Empty);
                 }

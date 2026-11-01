@@ -233,8 +233,10 @@ public sealed class BookSpreadTests
         var detailWidth = g.DetailRight - g.DetailLeft;
         var top = g.ContentTop + 34 + BookGeometry.LineHeight + 6; // under the verb and its English (the layer's own offsets)
         var area = new BookRect(g.DetailLeft, g.ContentTop, detailWidth, g.ContentBottom - g.ContentTop);
-        foreach (var columns in new[] { 1, 2, 3 })
+        for (var tenses = 1; tenses <= ConjugationTable.AllColumns.Count; tenses++)
         {
+            // The layer lays the tenses out in blocks of as many columns as the page holds (X08), each block a table of its own under the one before; the first is checked.
+            var columns = ConjugationLayout.ColumnsPerBlock(detailWidth, tenses);
             Assert.True(top + ConjugationLayout.Height + (3 * BookGeometry.LineHeight) <= g.ContentBottom, "the table and a few lines under it fit the page");
             var cells = new List<BookRect>();
             for (var c = 0; c < columns; c++)

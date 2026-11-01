@@ -1,0 +1,23 @@
+{
+  "answerSetId": "lesson-dear",
+  "answers": [
+    {
+      "answerId": "dear",
+      "canonical": "es muy caro",
+      "aliases": ["es caro", "sí, es muy caro", "es barato", "la manzana es muy cara", "es muy barato"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": ["no lo sé", "yo no sé", "no entiendo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    }
+  ]
+}
