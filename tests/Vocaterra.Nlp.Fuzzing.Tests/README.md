@@ -579,6 +579,13 @@ them explicitly (each is a skip or a restriction in the generator, counted in th
   a row recast as `un una`. These are properties of the language, so the sentence generator does not produce them (`skip:numeral-next-to-article`,
   `skip:adjacent-numerals`).
 - `AgentDefinition` is a plain record over lists, so it has no value equality; O16 compares its JSON only.
+- **Found at M58 and left for a decision: the `conj.tense` mutation lacks the guard M26b gave the `conj.person` mutation for a name in an alternative** (O4, CsCheck
+  seed `egVgLELrxyL4`, `MutationCase { Kind = ConjTense, Seed = 4236916336216397 }`; it fails the same way on `feature/village` at `2c747bb`, before M58, and the
+  analyzer gives the same analysis there). The random pattern `([VERB:presionar]|[ADV] [WORD:item]|[VERB]) [VERB:abusar]` gives `presiono abusar`; the mutation puts
+  `ayer` in front and expects `conj.tense` on `presiono`. With `ayer` the alternative `[ADV] [WORD:item]` fits, so the grammar binds `presiono` as a name, which has no
+  reading to check, and the analyzer rightly reports nothing (a name is never checked, `PIPELINE.md`). The `conj.person` mutation is not made on a grammar with both an
+  alternation and a name (M26b, seed `1RTZdjQ2tFb2`, listed under the narrowed oracles); giving the `conj.tense` mutation the same guard narrows O4 and O5, which a
+  milestone may not do on its own, so it waits for the orchestrator. Rare: once in the six runs of the project made for M58 (one of them at five times its depth).
 
 ## Adding to the suite
 

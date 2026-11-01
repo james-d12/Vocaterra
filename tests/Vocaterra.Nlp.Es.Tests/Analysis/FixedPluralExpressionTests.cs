@@ -87,4 +87,28 @@ public class FixedPluralExpressionTests
     {
         Assert.Equal(expected, Described(sentence));
     }
+
+    // M58 (found by its check of correct learner lines at the game's prompts): a fixed expression after a noun is its own phrase, not adjectives of that noun.
+    // hola Luz buenos días (the baker's name, then the greeting) gave gender.agree and noun.number buena on buenos, as luz's adjective, before M58.
+    [Theory]
+    [InlineData("hola luz buenos días")]
+    [InlineData("luz buenos días")]
+    [InlineData("domingo buenas tardes")]
+    [InlineData("hola mar buenas noches")]
+    [InlineData("la casa roja buenas noches")]
+    public void AFixedExpressionAfterANounIsItsOwnPhrase(string sentence)
+    {
+        Assert.Empty(Described(sentence));
+    }
+
+    // The expression's own checks still run after a noun, and an adjective of the noun is still agreed with it.
+    [Theory]
+    [InlineData("luz buenos día", new[] { "noun.number|día|días" })]
+    [InlineData("hola luz buenas días", new[] { "gender.agree|buenas|buenos" })]
+    [InlineData("la luz bueno", new[] { "gender.agree|bueno|buena" })]
+    [InlineData("la luz buenos", new[] { "gender.agree|buenos|buena", "noun.number|buenos|buena" })]
+    public void TheChecksAroundTheExpressionStillRun(string sentence, string[] expected)
+    {
+        Assert.Equal(expected, Described(sentence));
+    }
 }
