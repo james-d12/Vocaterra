@@ -422,6 +422,31 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public void AStepWaitingForAPickupIsDoneAtOnceWhenTheBagHoldsWhatTheOrderNeedsAndNotBefore()
+    {
+        // QA-progression-4: the wood step waited for a pickup although the five wood the order asks for were in the bag already (V23a).
+        var held = SessionFiveAtBaker(wood: 5);
+        while (held.Lessons.Current is { Id: not "n3-oven" } step)
+        {
+            Walk(held, step);
+        }
+
+        _ = Walk(held, held.Lessons.Current!); // the plan is said; the wood step is entered and ends by itself
+        Assert.Equal("n4-back", held.Lessons.Current!.Id);
+        Assert.Contains(held.Events.OfType<LessonEvent>(), static e => e is { Kind: LessonEventKind.StepDone, StepId: "n4-wood", Detail: "held before" });
+        Assert.Equal(5, held.Simulation.Inventory.Count(ItemId.Wood)); // nothing was taken or granted
+
+        var short_ = SessionFiveAtBaker(wood: 2); // two of five: the step still waits for a pickup
+        while (short_.Lessons.Current is { Id: not "n3-oven" } step)
+        {
+            Walk(short_, step);
+        }
+
+        _ = Walk(short_, short_.Lessons.Current!);
+        Assert.Equal("n4-wood", short_.Lessons.Current!.Id);
+    }
+
+    [Fact]
     public void TheStallsFirstExchangeCostsNothingAndTheStallNowAnswersThePriceAndHayPan()
     {
         var session = TestGame.NewSessionWithShippedLessons();

@@ -61,7 +61,7 @@ internal static class LessonDriver
         // The step ends; a review step after it that has nothing due is skipped at once (X06), so its outcome may follow.
         var outcomes = runner.OutcomesOf(lessonId);
         Assert.True(outcomes.Count > before, $"the step '{step.Id}' did not end");
-        Assert.All(outcomes.Skip(before + 1), static o => Assert.Equal(StepOutcome.Skipped, o.Outcome));
+        Assert.All(outcomes.Skip(before + 1), o => Assert.True(o.Outcome == StepOutcome.Skipped || runner.Book.Find(lessonId)!.Steps.Single(s => s.Id == o.StepId).Type == LessonStepType.Do && o.Outcome == StepOutcome.Done, $"{o.StepId} did not end by itself")); // a do step whose pickup the bag holds ends at once (V23a)
         return new Done(step.Id, LessonStepTypes.Of(step.Type), sent, outcomes[before].Outcome, shown, turn);
     }
 

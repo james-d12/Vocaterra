@@ -38,7 +38,7 @@ namespace Vocaterra.Game.Core.Save;
 /// <param name="Words">The word records of every noun the learner has met, in ordinal lemma order.</param>
 /// <param name="Phrases">The phrase records, one per sheet row, in the sheet's order.</param>
 /// <param name="Carded">The nouns whose word card was shown, in ordinal order.</param>
-/// <param name="KeyWordsTaught">Whether the stall's key words were taught (the shopkeeper's first panel opening).</param>
+/// <param name="KeyWordsTaught">Whether any NPC's key words were taught. Kept for older readers; an older save's <see langword="true"/> means the shopkeeper's (see <see cref="KeyWordsTaughtBy"/>).</param>
 /// <param name="RiverPointed">Whether an NPC has pointed the player at the river.</param>
 /// <param name="Pointer">The arrow on screen (not a review question), or <see langword="null"/>.</param>
 /// <param name="DeferredSkills">Learner-model steps of shown cards that were waiting for the next collect.</param>
@@ -56,6 +56,7 @@ namespace Vocaterra.Game.Core.Save;
 /// no learner's. <see langword="null"/>, and left out of the file, for every other game.</param>
 /// <param name="Sitting">The sitting the save was taken in (V25): the play session of the phrase-credit spacing rule, which a launch, a load and a sleep each begin. A load runs in the
 /// next one. <see langword="null"/> in a save from before V25, whose <see cref="Session"/> is then the sitting it continues from.</param>
+/// <param name="KeyWordsTaughtBy">The ids of the NPCs whose key words were taught (V23a). <see langword="null"/> in a save from before: its <see cref="KeyWordsTaught"/> then means the shopkeeper's.</param>
 public sealed record SaveDocument(
     string Format,
     int Version,
@@ -92,7 +93,8 @@ public sealed record SaveDocument(
     SaveSettings? Settings = null,
     WorldDims? World = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? SkippedTo = null,
-    int? Sitting = null);
+    int? Sitting = null,
+    IReadOnlyList<string>? KeyWordsTaughtBy = null);
 
 /// <summary>The size of the world's grid in chunks (X01): a save across bundles decodes the scene diff's chunk indices with it, so a world that changed size still maps by position.</summary>
 /// <param name="ChunksX">Chunks along x.</param>

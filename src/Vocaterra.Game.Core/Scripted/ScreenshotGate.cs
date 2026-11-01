@@ -10,6 +10,12 @@ public static class ScreenshotGate
     /// <summary>The frames a scripted run waits for the wanted size before it takes the picture anyway (ten seconds at 60 frames a second).</summary>
     public const int PatienceFrames = 600;
 
+    /// <summary>
+    /// The frames drawn at the final size before a picture is taken (V23a): the frame in which the window reached its size was drawn before it, at the old size, in a corner of
+    /// the new one (the first <c>--shot</c> showed a black band), so the picture follows a frame that was drawn whole.
+    /// </summary>
+    public const int FramesAtSize = 2;
+
     /// <summary>Whether the back buffer and the client area both have the size the game asked for.</summary>
     /// <param name="backWidth">The back buffer's width.</param>
     /// <param name="backHeight">The back buffer's height.</param>
@@ -24,4 +30,10 @@ public static class ScreenshotGate
     /// <param name="finalSize">Whether <see cref="IsFinalSize"/> holds this frame.</param>
     /// <param name="framesWaited">The frames waited so far for the final size.</param>
     public static bool MayShoot(bool finalSize, int framesWaited) => finalSize || framesWaited >= PatienceFrames;
+
+    /// <summary>Whether a picture may be taken now (V23a): after <see cref="FramesAtSize"/> frames at the final size, or after the patience of frames is spent.</summary>
+    /// <param name="finalSize">Whether <see cref="IsFinalSize"/> holds this frame.</param>
+    /// <param name="framesWaited">The frames waited so far for the final size.</param>
+    /// <param name="framesAtSize">The frames drawn at the final size so far, this one included.</param>
+    public static bool MayShoot(bool finalSize, int framesWaited, int framesAtSize) => (finalSize && framesAtSize >= FramesAtSize) || framesWaited >= PatienceFrames;
 }

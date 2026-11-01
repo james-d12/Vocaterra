@@ -32,13 +32,13 @@ public static class SleepOffer
         return cardUp && free && session.CanSleep;
     }
 
-    /// <summary>The fire's prompt: <c>E: sleep until morning (session 3)</c> (<c>ui.sleepPrompt</c>).</summary>
+    /// <summary>The fire's prompt: <c>E: sleep until morning (session 3)</c> (<c>ui.sleepPrompt</c>; <c>ui.sleepPromptDone</c> when no later session has a lesson).</summary>
     /// <param name="session">The 3D game.</param>
-    public static string PromptText(VoxelSession session) => Text(session, "sleepPrompt", 1);
+    public static string PromptText(VoxelSession session) => session.NextLessonSession is null ? Text(session, "sleepPromptDone", 1) : Text(session, "sleepPrompt", 1);
 
-    /// <summary>The closing card's line: <c>Enter: sleep until morning and start session 2</c> (<c>ui.sleepCard</c>).</summary>
+    /// <summary>The closing card's line: <c>Enter: sleep until morning and start session 2</c> (<c>ui.sleepCard</c>; <c>ui.sleepCardDone</c> when no later session has a lesson).</summary>
     /// <param name="session">The 3D game.</param>
-    public static string CardText(VoxelSession session) => Text(session, "sleepCard", 1);
+    public static string CardText(VoxelSession session) => session.NextLessonSession is null ? Text(session, "sleepCardDone", 1) : Text(session, "sleepCard", 1);
 
     /// <summary>The toast after a sleep: <c>Good morning: session 2 begins</c> (<c>ui.sleptToast</c>).</summary>
     /// <param name="session">The 3D game, in its new session.</param>

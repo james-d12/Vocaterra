@@ -168,6 +168,24 @@ public sealed class WorldFactsTests
     }
 
     [Fact]
+    public void TheWalkOverABodyOfWaterIsBoundedAndKeepsTheNearestBlockItSaw()
+    {
+        // A lake of 400 x 400 blocks (160 000 columns) is far over the cap: the walk reads a bounded number of blocks and still answers with the nearest seen.
+        var reads = 0;
+        var facts = new WorldFacts(400, 2, 400, (x, y, z) =>
+        {
+            reads++;
+            return y == 0 ? BlockId.Water : BlockId.Air;
+        }, TestGame.Nouns, TestGame.Data.Words.Directions);
+
+        var found = facts.NearestOfNounJoinedTo(Standing(200, 200, 0), "río", new GuideCell(200, 0, 200));
+
+        Assert.NotNull(found);
+        Assert.Equal(new GuideCell(200, 0, 200), found.Cell); // the start block is the player's own, so it is the nearest
+        Assert.True(reads <= 6 * 4096 + 8, $"{reads} blocks read");
+    }
+
+    [Fact]
     public void TheNounsOfAThingAreListedInLemmaOrder()
     {
         var facts = Facts((5, 1, 5, BlockId.Water), (6, 1, 5, BlockId.Trunk), (7, 1, 5, BlockId.Air));

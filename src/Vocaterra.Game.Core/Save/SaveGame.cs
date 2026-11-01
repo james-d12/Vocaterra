@@ -161,7 +161,7 @@ public static class SaveGame
             session.Words.Records.Values.OrderBy(static record => record.Lemma, StringComparer.Ordinal).Select(WordSaveOf).ToArray(),
             session.PhraseProgress.Records.Select(PhraseSaveOf).ToArray(),
             session.CardedLemmas(),
-            session.KeyWordsTaught,
+            session.KeyWordsTaughtBy.Count > 0,
             session.RiverPointedState,
             session.Pointer is { Quiz: false } pointer ? new PointerSave(pointer.Place, pointer.Target) : null,
             session.DeferredSkills.Select(static step => new DeferredSkillSave(step.Npc, step.Skill)).ToArray(),
@@ -176,7 +176,8 @@ public static class SaveGame
             Settings: settings is null ? null : settings.Clamped(),
             World: new WorldDims(session.Scene.Grid.ChunksX, session.Scene.Grid.ChunksY, session.Scene.Grid.ChunksZ),
             SkippedTo: session.SkippedTo,
-            Sitting: session.Sitting);
+            Sitting: session.Sitting,
+            KeyWordsTaughtBy: session.KeyWordsTaughtBy);
     }
 
     /// <summary>Captures a session and serializes it: the text of the save file.</summary>
@@ -381,7 +382,7 @@ public static class SaveGame
         RestorePhrases(session, document.Phrases, migrating);
         session.RestoreObjectiveCounts(document.Objective.Select(static step => (step.Key, step.Count)));
         session.RestoreCarded(document.Carded);
-        session.KeyWordsTaught = document.KeyWordsTaught;
+        session.RestoreKeyWordsTaught(document.KeyWordsTaughtBy ?? (document.KeyWordsTaught ? [NpcService.ShopkeeperAgent] : [])); // an older save's flag was the shopkeeper's (V23a)
         session.RiverPointedState = document.RiverPointed;
         session.RestorePointer(document.Pointer is { } pointer ? new PointerMarker(pointer.Place, pointer.Target, Point: session.PointNameAt(pointer.Target, pointer.Place)) : null); // V02: the place's name is worked out again
         session.RestoreDeferredSkills(document.DeferredSkills.Select(static step => (step.Npc, step.Skill)));

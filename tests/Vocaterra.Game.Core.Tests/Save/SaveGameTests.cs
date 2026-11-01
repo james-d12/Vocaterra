@@ -242,9 +242,24 @@ public sealed class SaveGameTests
 
         var loaded = LoadOf(SaveOf(session));
 
-        Assert.True(loaded.KeyWordsTaught);
+        Assert.Equal([NpcService.ShopkeeperAgent], loaded.KeyWordsTaughtBy);
+        Assert.False(loaded.KeyWordsTaughtFor("baker"));
         Assert.Contains("agua", loaded.CardedLemmas());
         Assert.Contains("pan", loaded.CardedLemmas());
+    }
+
+    [Fact]
+    public void AnOlderSavesKeyWordsFlagMeansTheShopkeepersAndANewGameHasNone()
+    {
+        var session = TestGame.NewSession();
+        session.OpenTalk(NpcService.ShopkeeperAgent, teachKeyWords: true);
+        session.FinishKeyWords();
+        _ = session.TakeOpening();
+        session.EndTalk();
+        var older = SaveGame.Serialize(SaveGame.Parse(SaveOf(session)) with { KeyWordsTaughtBy = null }); // a save from before V23a has the flag alone
+
+        Assert.Equal([NpcService.ShopkeeperAgent], LoadOf(older).KeyWordsTaughtBy);
+        Assert.Empty(LoadOf(SaveGame.Serialize(SaveGame.Parse(SaveOf(TestGame.NewSession())) with { KeyWordsTaughtBy = null })).KeyWordsTaughtBy);
     }
 
     [Fact]

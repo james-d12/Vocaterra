@@ -128,9 +128,9 @@ public sealed class SessionSkipTests
 
         var purchases = session.Lessons.Book.Lessons.SelectMany(l => SessionSkip.Purchases(l, session.Data).Select(p => (l.Id, p))).ToList();
         // The two loaves of Números y pan, from its do step and its request "Quiero dos panes, por favor."; and El mercado's apples (V15), from its do step: no step of it
-        // is a request (its do step's text asks for three), so the skip would buy one. No session follows the market, so no skip makes that purchase.
+        // is a request, so the count is read from the later phrase "Compré tres manzanas." (V23a: three, not one). No session follows the market, so no skip makes that purchase.
         Assert.Equal(
-            [("numeros-y-pan", new SessionSkip.Purchase("baker", ItemId.Bread, 2, 2)), ("el-mercado", new SessionSkip.Purchase("farmer", ItemId.Apple, 1, 1))],
+            [("numeros-y-pan", new SessionSkip.Purchase("baker", ItemId.Bread, 2, 2)), ("el-mercado", new SessionSkip.Purchase("farmer", ItemId.Apple, 3, 1))],
             purchases);
     }
 

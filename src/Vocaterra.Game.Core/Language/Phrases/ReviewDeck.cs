@@ -182,7 +182,11 @@ public sealed class ReviewDeck
         return lines;
     }
 
-    /// <summary>Takes the English notes the front-end is to show (the warm-up is done), oldest first.</summary>
+    /// <summary>Adds an English note for the front-end to show (a lesson's review step had nothing due, V23a).</summary>
+    /// <param name="note">The note.</param>
+    internal void Note(string note) => _notes.Enqueue(note);
+
+    /// <summary>Takes the English notes the front-end is to show (the warm-up is done, a review step had nothing due), oldest first.</summary>
     public IReadOnlyList<string> TakeNotes()
     {
         var notes = _notes.ToArray();

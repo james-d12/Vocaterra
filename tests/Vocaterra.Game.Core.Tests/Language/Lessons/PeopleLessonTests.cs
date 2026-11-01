@@ -295,7 +295,8 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
         var session = SessionSixAtVillager(coins: 2, wood: 2);
         Assert.Equal(LessonId, TestGame.Data.Objectives.Find("axe-handle")!.Lesson);
         Assert.False(session.Objectives.Single(static o => o.Id == "axe-handle").Complete); // talking to the villager delivers nothing
-        while (session.Lessons.Current is { Id: not "g4-wood" } step)
+        // The two wood are in the bag already, so the wood step ends by itself (V23a) and the lesson waits at the step for the delivery.
+        while (session.Lessons.Current is { Id: not "g4-back" } step)
         {
             Walk(session, step);
         }

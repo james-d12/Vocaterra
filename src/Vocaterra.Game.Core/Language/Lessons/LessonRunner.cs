@@ -996,6 +996,7 @@ public sealed class LessonRunner
             // A review step asks the first of its candidates that is due (X06, R07), and is skipped when none is: nothing not yet met, and nothing still inside its spacing gap.
             if (ChooseReview(step) is not { } chosen)
             {
+                _session.Deck.Note(_locale.Ui("reviewNothingDue")); // the learner is told it ran (V23a)
                 Finish(lesson, state, StepOutcome.Skipped, "nothing due");
                 return;
             }
@@ -1007,6 +1008,13 @@ public sealed class LessonRunner
         {
             // The goods of an order were brought before the step asked for them (V11): walking up with them is enough (D-game-8), so the step has nothing to wait for.
             Finish(lesson, state, StepOutcome.Done, "delivered before");
+            return;
+        }
+
+        if (step is { Type: LessonStepType.Do, Trigger: { Event: WorldEvents.ItemPickedUp, Detail: { } picked } } && _session.HoldsPickup(picked, PickupsNeeded(lesson, state.Step, picked)))
+        {
+            // The bag holds what the step waits to see picked up (V23a): gathered before the lesson asked for it, so the step has nothing to wait for.
+            Finish(lesson, state, StepOutcome.Done, "held before");
             return;
         }
 
@@ -1033,6 +1041,19 @@ public sealed class LessonRunner
 
         _version++;
         _session.RefreshLessonSupport();
+    }
+
+    // How many of a noun a pickup step is for: the goods of the order the next step waits to see delivered, when they hold the noun's item (the five wood of the baker's
+    // oven, V23a); otherwise one, the pickup itself.
+    private int PickupsNeeded(LessonDefinition lesson, int index, string lemma)
+    {
+        if (index + 1 < lesson.Steps.Count && lesson.Steps[index + 1] is { Type: LessonStepType.Do, Trigger: { Event: WorldEvents.OrderDelivered, Detail: { } order } }
+            && _session.Data.Objectives.Objectives.FirstOrDefault(o => string.Equals(o.Id, order, StringComparison.Ordinal)) is { } spec && _session.Nouns.ForLemma(lemma) is { } noun)
+        {
+            return spec.Goods.Where(g => noun.Items.Contains(g.Item)).Select(static g => g.Count).DefaultIfEmpty(1).Max();
+        }
+
+        return 1;
     }
 
     // The step in progress: for a review step, the step as resolved to the candidate asked (X06).

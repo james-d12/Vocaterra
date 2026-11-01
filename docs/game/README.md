@@ -791,9 +791,9 @@ Game points:
 - The stall answers any request with the bottle (`quiero pan, por favor` at `stall-need`: "Aquí tienes la botella."), older than the village (S6); V15 gave
   the bakery its "Solo vendo pan.".
 - The Lessons page opens at its top, so in sessions 8 to 10 the `next:` lesson is far down (the page has 192 lines).
-- `tener que` has no book entry (V14); the NPCs' `¡Muy bien!` plays in Luna's voice (V14, older); the closing review is skipped when nothing is due (V14).
-- The save keeps one `KeyWordsTaught` flag, so a second NPC with key words would need a field (V01; only the shopkeeper has them).
-- The host's `--transcript` mode has no bag and prints a sale's success line whatever it holds (V15; the game decides, `SellingTests`).
+- `tener que` has no book entry (V14); the NPCs' `¡Muy bien!` plays in Luna's voice (V14, older); the closing review step, when nothing is due, is skipped with a one-line note (V23a).
+- The save keeps the NPCs whose key words were taught (`KeyWordsTaughtBy`, V23a); an older save's `KeyWordsTaught` flag means the shopkeeper's.
+- The host's `--transcript` mode prints a sale's success line whatever the learner holds, unless it is given a bag: `--bag wood:4,coin:2` (V23a; the game decides in `SellingTests`).
 - The session skip buys one apple, not three, for the market (V15; no session follows 10, so it is never used). `madera`, `antorcha`, `botella`, `fuego` and
   `despacio` sit in the body of `a1.txt`, not its marked block (V08). The book counts a use correct only when communicated at its prompt (V16).
 

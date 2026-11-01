@@ -86,7 +86,8 @@ public sealed partial class VoxelSession
         if (Day > 1 && Lessons.NextUp is { } next)
         {
             var npc = Lessons.CurrentNpc ?? next.Npc; // a lesson begun goes on at its step's NPC (a do step's own line comes first while the lesson is engaged)
-            return new ObjectivePiece(Locale.Ui("lessonNextHud", ("npc", Locale.NpcName(npc).ToLowerInvariant()), ("title", next.ShortTitle)), ObjectivePieceKind.Support);
+            var key = Lessons.Active is null ? "lessonNextHud" : "lessonUnderwayHud"; // a lesson begun is under way, not next (V23a)
+            return new ObjectivePiece(Locale.Ui(key, ("npc", Locale.NpcName(npc).ToLowerInvariant()), ("title", next.ShortTitle)), ObjectivePieceKind.Support);
         }
 
         return null;

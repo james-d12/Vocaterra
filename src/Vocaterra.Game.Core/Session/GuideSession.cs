@@ -101,7 +101,7 @@ public abstract partial class GuideSession : IDisposable
     private long _nextTurnId = 1;
     private IReadOnlyList<WordCard> _keyWordCards = [];
     private bool _keyWordsPending;
-    private bool _keyWordsTaught;
+    private readonly SortedSet<string> _keyWordsTaught = new(StringComparer.Ordinal);
     private long _keyWordsStart;
     private NpcOpening? _delayedOpening;
     private bool _talkOpen;
@@ -352,12 +352,24 @@ public abstract partial class GuideSession : IDisposable
 
     // ---- The save (S10): what a save keeps of this session and a load puts back. Only the save module uses these.
 
-    /// <summary>Whether the shopkeeper's key words were taught (the first panel opening on him; never again).</summary>
-    internal bool KeyWordsTaught
+    /// <summary>The NPCs whose key words were taught (the first panel opening on each; never again), in ordinal order.</summary>
+    internal IReadOnlyList<string> KeyWordsTaughtBy => [.. _keyWordsTaught];
+
+    /// <summary>Whether the NPC's key words were taught.</summary>
+    /// <param name="npc">The NPC's id.</param>
+    internal bool KeyWordsTaughtFor(string npc) => _keyWordsTaught.Contains(npc);
+
+    /// <summary>Puts back the NPCs whose key words were taught (a load); the earlier ones are forgotten.</summary>
+    /// <param name="npcs">Their ids.</param>
+    internal void RestoreKeyWordsTaught(IEnumerable<string> npcs)
     {
-        get => _keyWordsTaught;
-        set => _keyWordsTaught = value;
+        _keyWordsTaught.Clear();
+        _keyWordsTaught.UnionWith(npcs);
     }
+
+    /// <summary>Marks the NPC's key words as taught without the cards (a session skip).</summary>
+    /// <param name="npc">The NPC's id.</param>
+    internal void MarkKeyWordsTaught(string npc) => _keyWordsTaught.Add(npc);
 
     /// <summary>
     /// Whether the session can be saved now: no turn is on the worker, the key-word cards are not standing alone and no opening waits. A save
@@ -533,7 +545,7 @@ public abstract partial class GuideSession : IDisposable
         }
 
         FlushSkills();
-        if (teachKeyWords && PendingTurns == 0 && !_keyWordsTaught && KeyWordsOf(npc).Count > 0)
+        if (teachKeyWords && PendingTurns == 0 && !_keyWordsTaught.Contains(npc) && KeyWordsOf(npc).Count > 0)
         {
             return BeginKeyWords(npc);
         }
@@ -648,6 +660,14 @@ public abstract partial class GuideSession : IDisposable
     internal virtual bool OrderDelivered(string order) => false;
 
     /// <summary>
+    /// Whether the bag already holds what a lesson's <c>do</c> step waits for a pickup of (V23a): at least <paramref name="needed"/> of the noun's items, so a learner who
+    /// gathered the wood before the lesson asked for it is not sent to gather it again. The 3D scene has the bag.
+    /// </summary>
+    /// <param name="lemma">The noun the step waits to see picked up.</param>
+    /// <param name="needed">How many the bag must hold.</param>
+    internal virtual bool HoldsPickup(string lemma, int needed) => false;
+
+    /// <summary>
     /// The player reached a beacon the front-end placed itself (the start, <c>--beacon</c>; <see cref="BeaconDirector"/>): logged as
     /// <see cref="WorldEvents.BeaconReached"/> with the point's name (VILLAGE_PLAN V02). The session logs the arrival at its own arrow itself.
     /// </summary>
@@ -683,11 +703,11 @@ public abstract partial class GuideSession : IDisposable
     }
 
     // The first time the panel of an NPC with key words opens (the shopkeeper's agua and pan), they are taught before its question (brief step 4): their word cards
-    // stand alone for KeyWordTicks, counted as heard and read (never a quiz), and the real opening follows (FinishKeyWords). The save keeps one flag (KeyWordsTaught),
-    // so the key words are taught once a game, at the first NPC that has them; a second NPC with key words would need the flag per NPC (a save field).
+    // stand alone for KeyWordTicks, counted as heard and read (never a quiz), and the real opening follows (FinishKeyWords). The save keeps the NPCs they were taught
+    // by (KeyWordsTaughtBy), so each NPC with key words teaches them once a game.
     private NpcOpening BeginKeyWords(string npc)
     {
-        _keyWordsTaught = true;
+        _keyWordsTaught.Add(npc);
         _keyWordsPending = true;
         _keyWordsStart = Tick;
         var cards = new List<WordCard>();

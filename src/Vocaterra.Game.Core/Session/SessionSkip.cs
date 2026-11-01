@@ -124,7 +124,7 @@ public static class SessionSkip
                 .FirstOrDefault(effect => effect.Kind == NpcEffectKind.Sell && noun.Items.Contains(effect.Item));
             if (sale is not null)
             {
-                purchases.Add(new Purchase(npc, sale.Item, RequestedCount(lesson, i, npc, data), sale.Price));
+                purchases.Add(new Purchase(npc, sale.Item, RequestedCount(lesson, i, npc, noun.Lemma, data), sale.Price));
             }
         }
 
@@ -132,8 +132,9 @@ public static class SessionSkip
     }
 
     // How many items the lesson's request at an NPC asks for: the first number in the phrase of the last step before `before` that is said at that NPC and asks for an
-    // item (intent request_item), as a sale gives it (no cap since V19); one when there is no such step or it names no number.
-    private static int RequestedCount(LessonDefinition lesson, int before, string npc, GameData data)
+    // item (intent request_item), as a sale gives it (no cap since V19). A lesson with no such step (the market's do step has none, V23a) is read from the first later step whose
+    // phrase names the item and a number ("Compré tres manzanas."); one when there is neither.
+    private static int RequestedCount(LessonDefinition lesson, int before, string npc, string lemma, GameData data)
     {
         for (var i = before - 1; i >= 0; i--)
         {
@@ -156,6 +157,34 @@ public static class SessionSkip
             return 1;
         }
 
+        for (var i = before + 1; i < lesson.Steps.Count; i++)
+        {
+            if (lesson.Steps[i].Phrase is { } phrase && data.Phrases.Find(phrase) is { } row && NumberIn(row.Spanish, lemma) is { } number)
+            {
+                return number;
+            }
+        }
+
         return 1;
+    }
+
+    // The first number in a phrase's Spanish when the phrase names the item (its lemma is in a word of it: manzana in manzanas); otherwise null.
+    private static int? NumberIn(string spanish, string lemma)
+    {
+        var tokens = spanish.ToLowerInvariant().Split([' ', ',', '.', '¿', '?', '¡', '!'], StringSplitOptions.RemoveEmptyEntries);
+        if (!tokens.Any(token => token.StartsWith(lemma, StringComparison.Ordinal)))
+        {
+            return null;
+        }
+
+        for (var t = 0; t < tokens.Length; t++)
+        {
+            if (SpanishNumbers.TryParsePrefix(tokens, t, out var number) > 0 && number > 0)
+            {
+                return number;
+            }
+        }
+
+        return null;
     }
 }
