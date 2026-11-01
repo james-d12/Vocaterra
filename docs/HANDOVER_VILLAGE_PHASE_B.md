@@ -352,6 +352,5 @@ after phase B".
 
 ## 8. Housekeeping
 
-- `/tmp/claude-1000/m59` (1.2 GB) is left over from M59. The orchestrator's attempt to delete it was refused by the permission check;
-  the owner can remove it.
+- `/tmp/claude-1000/m59` (1.2 GB, left over from M59) was deleted on the owner's word on 2026-11-01.
 - `/tmp/claude-1000/v09` (about 1 MB) holds V09's logs and can go too.
