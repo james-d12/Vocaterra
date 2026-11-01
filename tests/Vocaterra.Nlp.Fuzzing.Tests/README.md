@@ -610,6 +610,19 @@ them explicitly (each is a skip or a restriction in the generator, counted in th
   reading to check, and the analyzer rightly reports nothing (a name is never checked, `PIPELINE.md`). The `conj.person` mutation is not made on a grammar with both an
   alternation and a name (M26b, seed `1RTZdjQ2tFb2`, listed under the narrowed oracles); giving the `conj.tense` mutation the same guard narrows O4 and O5, which a
   milestone may not do on its own, so it waits for the orchestrator. Rare: once in the six runs of the project made for M58 (one of them at five times its depth).
+- **Found at M62, older than M62, and left for a decision** (one run of O3 to O5 at five times the default depth; three runs of the project at its default depth
+  passed). The analyzer gives the same analysis of each sentence on `feature/village` at `76f52f8`, before M62 (checked with the pattern as the grammar), and no rule of
+  M62 reads any of their words; the realiser's new draws only made the seeds reach them.
+  - *O4, the `conj.tense` mutation and a literal whose reading the grammar decided* (CsCheck seed `2ldq2rIKLrG2`, `MutationCase { Kind = ConjTense, Seed = 4340032 }`):
+    the random pattern `[ART] [ART]? [VERB]? [ART]? porque?` gives `las los despego unas porque`, where the grammar's literal keeps `porque` the conjunction. The mutation
+    puts `ayer` in front, the grammar no longer matches, and `unas porque` reads as the article and the noun `porqué` (`gender.agree` `unos`, `noun.number`
+    `porqués`) beside the expected `conj.tense`. The same family as the M58 finding above: the mutation needs a guard for a sentence whose readings the match decided,
+    which narrows O4 and O5.
+  - *O5 (and O3 on the sentence before the mutation), a subject pronoun before a question word* (CsCheck seed `8zKtIhOY3951`, `MutationCase { Kind = WordOrder, Seed =
+    19287181529 }`): the pattern `[PRON] [ADV]? [VERB] [DET]? [NOUN:item] [ADJ]?` gives `ellas adónde están un detenido lento`. The realiser agrees `están` with `ellas`;
+    M56's check of `estar` against the phrase after it starts its clause after `adónde` and gives `conj.person` `está` (on the sentence as generated too, which the
+    word-order mutation then exposes). Either the realiser models the clause opener (a generator change, a widening) or the check keeps a subject pronoun before the
+    question word (an analyzer change); it is left for the orchestrator.
 
 ## Adding to the suite
 
