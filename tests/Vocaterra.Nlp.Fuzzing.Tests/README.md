@@ -136,7 +136,9 @@ code comments and here, with the reason:
     word of `LexiconCatalog.AmountPredicates` (`mucho`, `poco`, `suficiente`, `caro`...) or can open a phrase of the singular (an article, a numeral or a determiner
     adjective of the singular), as `SpanishAgreementChecker.IsAmountReadAsUnit` asks (it also asks for the phrase's noun, so the guard is a little wider). Every other
     case of the mutation is made as before: an article before the noun (`las manzanas es roja`), a verb other than `ser` (`dos niños come pan`), a predicate of the
-    plural or an adjective that says no amount (`dos niños son altos` becomes `es altos`, expected `son`). This is the one narrowing of M64.
+    plural or an adjective that says no amount (`dos niños son altos` becomes `es altos`, expected `son`). `AmountMutationGuardTests` shows that the guard is needed
+    (without it the mutation builds `dos niños es un problema`, which the analyzer rightly finds correct) and that the mutation is still made before a predicate of the
+    plural. This is the one narrowing of M64.
 - **O8.** The dialect sites are `θ s z h ʎ ʝ ʃ ʒ` (the plan lists `θ s ʎ ʝ h`; the shipped dialects also produce the voiced `z` and the rioplatense `ʃ ʒ`).
   `Tokenize(ToIpaString())` is exact except for the pair `t` + `ʃ`, whose concatenation is the affricate token `tʃ` (the inventory documents that
   sequences are lists for this reason); a result with that pair skips the split.

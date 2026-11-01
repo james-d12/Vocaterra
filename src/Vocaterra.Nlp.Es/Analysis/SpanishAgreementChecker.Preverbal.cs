@@ -57,7 +57,7 @@ internal sealed partial class SpanishAgreementChecker
             }
 
             // M64 (b): an amount before a singular ser may be one sum (diez monedas es mucho dinero, dos panes es suficiente), so es is as right as son.
-            if (IsAmountReadAsUnit(v, third, subject))
+            if (finite.Exists(r => IsAmountReadAsUnit(v, r, subject)))
             {
                 continue;
             }

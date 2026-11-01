@@ -208,6 +208,8 @@ public class PreverbalSubjectTests
     [InlineData("dos panes no es nada")]
     [InlineData("diez monedas es muy caro")]
     [InlineData("veinte monedas es un buen precio")]
+    [InlineData("dos panes fue suficiente")]
+    [InlineData("diez monedas era mucho dinero")]
     [InlineData("dos panes son suficientes")]
     [InlineData("diez monedas son mucho dinero")]
     public void AnAmountBeforeASingularSerIsOneSum(string sentence)
