@@ -689,6 +689,14 @@ Found and fixed in M64:
   `vocab.unknown`. A noun of the pack's list of feminine nouns that take `el` (`ala`, `agua`, `hacha`...) is feminine now, whatever its article. Regression:
   `PredicateAdjectiveTests.AFeminineNounThatTakesElIsFeminine` in `tests/Vocaterra.Nlp.Es.Tests/Analysis` (`el ala es muy sincera` gave `sincero` before).
 
+Found and fixed in M66 (its own run of O3 at five times the default depth):
+
+- **A form of a modal that is also another verb's was taken for the modal** (`Vocaterra.Nlp`, `ReadingResolver.ModalComplement`, and `Vocaterra.Nlp.Es`,
+  `SpanishAgreementChecker.ModalComplementIndex`; CsCheck seed `c5E0ikVTT_s3`): the random pattern `[ART] realmente? [VERB] [NOUN]? [ART]` gave `los realmente
+  podamos estudio unas`, with `podar` drawn (`podamos`, we prune), and M66's new rule read `podamos` as `poder`'s subjunctive and `estudio` as the slip for `estudiar`
+  (`conj.tense`). A modal is now a finite verb whose readings of the indicative are all that verb's (`podemos`, `poder`'s indicative and `podar`'s subjunctive, still
+  is). Regression: `ModalComplementTests.AFormThatIsAlsoAnotherVerbsIsNoModal` in `tests/Vocaterra.Nlp.Es.Tests/Analysis` (`podemos estudio` is still flagged).
+
 ## Known, deliberately not fixed
 
 Findings that are content gaps or design limits rather than defects of one stage. None changes behaviour here; the generators step around

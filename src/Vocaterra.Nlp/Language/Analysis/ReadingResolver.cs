@@ -652,7 +652,8 @@ internal static class ReadingResolver
         }
 
         // M66: the index of the word the modal at index governs, the next one (puedo pagar) or the one after its linking word (tengo que ir), with the modal's lemma;
-        // -1 when the word at index is no finite form of a modal.
+        // -1 when the word at index is no finite verb whose readings of the indicative are all the modal's (podamos is poder's subjunctive but podar's indicative, and
+        // podar takes a noun: los podamos estudio; podemos is poder's indicative and podar's subjunctive, the modal).
         private int ModalComplement(int index, out string modal)
         {
             modal = string.Empty;
@@ -661,22 +662,28 @@ internal static class ReadingResolver
                 return -1;
             }
 
-            var reading = _candidates[index].Find(r => r.Mood != LexiconSchema.Imperative && _rules.IsModalVerb(r.Lemma, null));
-            if (reading is not null && index + 1 < Count)
+            var indicative = _candidates[index].FindAll(static r => r.Mood == LexiconSchema.Indicative);
+            if (indicative.Count == 0)
             {
-                modal = reading.Lemma;
+                return -1;
+            }
+
+            var lemma = indicative[0].Lemma;
+            if (!indicative.TrueForAll(r => string.Equals(r.Lemma, lemma, StringComparison.Ordinal)))
+            {
+                return -1;
+            }
+
+            if (index + 1 < Count && _rules.IsModalVerb(lemma, null))
+            {
+                modal = lemma;
                 return index + 1;
             }
 
-            if (index + 2 < Count && _candidates[index + 1].Count > 0)
+            if (index + 2 < Count && _candidates[index + 1].Count > 0 && _rules.IsModalVerb(lemma, _candidates[index + 1][0].Lemma))
             {
-                var linker = _candidates[index + 1][0].Lemma;
-                reading = _candidates[index].Find(r => r.Mood != LexiconSchema.Imperative && _rules.IsModalVerb(r.Lemma, linker));
-                if (reading is not null)
-                {
-                    modal = reading.Lemma;
-                    return index + 2;
-                }
+                modal = lemma;
+                return index + 2;
             }
 
             return -1;

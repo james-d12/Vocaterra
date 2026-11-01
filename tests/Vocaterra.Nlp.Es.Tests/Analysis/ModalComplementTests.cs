@@ -121,4 +121,16 @@ public class ModalComplementTests
     {
         Assert.Equal(string.Empty, Described(sentence));
     }
+
+    // Found by M66's own run of O3 at five times the default depth (CsCheck seed c5E0ikVTT_s3): podamos is poder's subjunctive and podar's indicative, and podar takes a
+    // noun (los podamos: we prune them), so a modal is a word whose readings of the indicative are all the modal's, and the noun after podamos stays the noun.
+    // podemos is poder's indicative (and podar's subjunctive), the modal.
+    [Theory]
+    [InlineData("los realmente podamos estudio unas", "")]
+    [InlineData("podamos estudio", "")]
+    [InlineData("podemos estudio", "conj.tense|estudio|estudiar")]
+    public void AFormThatIsAlsoAnotherVerbsIsNoModal(string sentence, string expected)
+    {
+        Assert.Equal(expected, Described(sentence));
+    }
 }

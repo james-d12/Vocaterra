@@ -450,26 +450,33 @@ internal sealed partial class SpanishAgreementChecker : IAgreementChecker
     }
 
     // M66: the index of the word a modal at index governs, the next one (puedo pagar) or the one after its linking word (tengo que ir), with the modal's lemma; -1 when
-    // the word at index is no finite form of a modal.
+    // the word at index is no finite verb whose readings of the indicative are all the modal's (podamos is poder's subjunctive but podar's indicative: los podamos
+    // estudio is clean; podemos is poder's indicative, the modal).
     private int ModalComplementIndex(int index, out string modal)
     {
         modal = string.Empty;
         var readings = _tokens[index].Readings;
-        if (readings.Count == 0 || !readings.All(IsFiniteVerb))
+        var indicative = Readings(index, static r => r.Mood == LexiconSchema.Indicative);
+        if (readings.Count == 0 || !readings.All(IsFiniteVerb) || indicative.Count == 0)
         {
             return -1;
         }
 
-        if (readings.FirstOrDefault(static r => IsDeclarativeFiniteVerb(r) && SpanishAnalysisTables.IsModalVerb(r.Lemma)) is { } direct)
+        var lemma = indicative[0].Lemma;
+        if (!indicative.TrueForAll(r => r.Lemma == lemma))
         {
-            modal = direct.Lemma;
+            return -1;
+        }
+
+        if (SpanishAnalysisTables.IsModalVerb(lemma))
+        {
+            modal = lemma;
             return index + 1;
         }
 
-        if (index + 2 < _tokens.Count
-            && readings.FirstOrDefault(r => IsDeclarativeFiniteVerb(r) && SpanishAnalysisTables.IsModalWithLinker(r.Lemma, TextOf(index + 1))) is { } linked)
+        if (index + 2 < _tokens.Count && SpanishAnalysisTables.IsModalWithLinker(lemma, TextOf(index + 1)))
         {
-            modal = linked.Lemma;
+            modal = lemma;
             return index + 2;
         }
 

@@ -1027,10 +1027,15 @@ public static class MutationGen
 
         private (string Person, string Number)? ModalCell(int index, string? linker)
         {
-            // The analyzer takes the word for the modal only when it is a finite verb and nothing else (debe is also a noun).
+            // The analyzer takes the word for the modal only when it is a finite verb and nothing else (debe is also a noun) whose readings of the indicative are all
+            // the modal's (podamos is podar's indicative).
             var token = _tokens[index];
             var readings = _words.Lexicon.Lookup(token.Norm);
-            if (readings.Count == 0 || !readings.All(static r => r.Pos == LexiconSchema.Verb && r.Person is not null))
+            var indicative = readings.Where(static r => r.Mood == LexiconSchema.Indicative).ToList();
+            if (readings.Count == 0
+                || !readings.All(static r => r.Pos == LexiconSchema.Verb && r.Person is not null)
+                || indicative.Count == 0
+                || !indicative.TrueForAll(r => r.Lemma == indicative[0].Lemma && LexiconCatalog.IsModalVerb(r.Lemma, linker)))
             {
                 return null;
             }
