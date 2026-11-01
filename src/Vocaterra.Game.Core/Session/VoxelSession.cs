@@ -664,6 +664,10 @@ public sealed partial class VoxelSession : GuideSession
         Objectives.Any(o => o.Spec.IsOrder && o.Complete && string.Equals(o.Id, order, StringComparison.Ordinal));
 
     /// <inheritdoc />
+    internal override bool HoldsPickup(string lemma, int needed) =>
+        Nouns.ForLemma(lemma) is { } noun && noun.Items.Sum(Simulation.Inventory.Count) >= needed;
+
+    /// <inheritdoc />
     protected override string? OrderReadyAt(string npc) =>
         Objectives.FirstOrDefault(o => o.Spec.IsOrder && !o.Complete && o.Spec.ShownIn(Day) && string.Equals(o.Spec.DeliverTo, npc, StringComparison.Ordinal)
             && o.Spec.Goods.All(goods => Simulation.Inventory.Count(goods.Item) >= goods.Count)

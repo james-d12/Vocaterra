@@ -173,6 +173,15 @@ public sealed class VillageLessonTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public void AReviewStepWithNothingDueTellsTheLearnerItRan()
+    {
+        var session = SessionFourAtFisher(); // the greeting's review step had nothing due (V23a: and said so)
+
+        Assert.Contains(session.Locale.Ui("reviewNothingDue"), session.Deck.TakeNotes());
+        Assert.Empty(session.Deck.TakeNotes());
+    }
+
+    [Fact]
     public void TheLessonRunsFromTheBridgeThroughTheVillageAndBackWithTypedAnswersAndEveryStepEndsDone()
     {
         var session = SessionFourAtFisher();
