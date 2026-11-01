@@ -391,13 +391,18 @@ internal static class ReadingResolver
                 changed |= Narrow(i, r => ReadingClasses.IsFiniteVerb(r) && _rules.IsNearFutureAuxiliary(r.Lemma));
             }
 
-            // M62: a word that is a descriptive adjective and also a noun, right after the noun of a phrase that a determiner opens and agreeing with it, is that noun's
-            // adjective and no noun of its own (las manzanas rojas son caras: the phrase is the copula's subject, and rojas is not a bare noun before the verb).
+            // M62: a word that is a descriptive adjective and also a noun, and no finite verb, right after the noun of a phrase that a determiner opens and agreeing with
+            // that noun and its determiners, is that noun's adjective and no noun of its own (las manzanas rojas son caras: the phrase is the copula's subject, and rojas
+            // is not a bare noun before the verb). A phrase that disagrees with itself (veintidós emperador americano) is left as it was, so the slip is reported once,
+            // and so is a word that can be the verb after the phrase (la tradición limpia: limpiar), which the grammar or the fallback decides.
             if (i > 1
                 && All(i - 1, r => r.Pos == LexiconSchema.Noun)
                 && HasReading(i, r => r.Pos == LexiconSchema.Noun)
-                && HasReading(i, r => r.Pos == LexiconSchema.Adjective && !_rules.IsDeterminerAdjective(r.Lemma) && HasReading(i - 1, n => Agree(r, n)))
-                && DeterminerOpensPhraseOf(i - 1))
+                && !HasReading(i, ReadingClasses.IsFiniteVerb)
+                && HasReading(i, r => r.Pos == LexiconSchema.Adjective
+                    && !_rules.IsDeterminerAdjective(r.Lemma)
+                    && HasReading(i - 1, n => Agree(r, n))
+                    && DeterminersAgreeWith(i - 1, r)))
             {
                 changed |= Narrow(i, r => r.Pos == LexiconSchema.Adjective);
             }
@@ -612,8 +617,9 @@ internal static class ReadingResolver
             return true;
         }
 
-        // M62: a determiner opens the phrase of the noun at index, past the adjectives before the noun (las manzanas, una buena manzana).
-        private bool DeterminerOpensPhraseOf(int noun)
+        // M62: a determiner opens the phrase of the noun at index, past the adjectives before the noun (las manzanas, una buena manzana), and every determiner of it
+        // agrees with the reading.
+        private bool DeterminersAgreeWith(int noun, LexicalFeatures reading)
         {
             var k = noun - 1;
             while (k >= 0 && IsCertainAdjective(k))
@@ -621,7 +627,20 @@ internal static class ReadingResolver
                 k--;
             }
 
-            return k >= 0 && IsCertainDeterminer(k);
+            if (k < 0 || !IsCertainDeterminer(k))
+            {
+                return false;
+            }
+
+            for (; k >= 0 && IsCertainDeterminer(k); k--)
+            {
+                if (!HasReading(k, d => Agree(d, reading)))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         // M62: the word before index is the noun of a phrase that a determiner opens (las manzanas, las manzanas rojas, una buena casa), past the words after that

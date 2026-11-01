@@ -1315,9 +1315,10 @@ internal sealed class SentenceRealizer
                 return false;
             }
 
-            // M62: a word that can be a descriptive adjective and a noun, right after the noun of a phrase with a determiner and agreeing with it, is read by the analyzer
-            // as that noun's adjective (the reading resolver's rule: las manzanas rojas son caras), so a pattern that puts a second noun there names a sentence the
-            // analyzer reads another way (the noun phrase grows and becomes the subject of the verb after it), and is re-rolled.
+            // M62: a word that can be a descriptive adjective and a noun, right after the noun of a phrase with a determiner and agreeing with it (and its determiners, which
+            // agree with the noun in a realised phrase), is read by the analyzer as that noun's adjective (the reading resolver's rule: las manzanas rojas son caras), so a
+            // pattern that puts a second noun there names a sentence the analyzer reads another way (the noun phrase grows and becomes the subject of the verb after
+            // it), and is re-rolled.
             if (i > 0
                 && item.Kind is Kind.Noun or Kind.Literal
                 && _items[i - 1] is { Head: { } head } previousHead
@@ -1325,6 +1326,7 @@ internal sealed class SentenceRealizer
                 && !ReferenceEquals(item.Head, head)
                 && _items.Exists(x => ReferenceEquals(x.Head, head) && IsDeterminer(x))
                 && item.Readings.Any(static r => r.Pos == LexiconSchema.Noun)
+                && !item.Readings.Any(IsFiniteVerbReading)
                 && item.Readings.Any(r => r.Pos == LexiconSchema.Adjective
                     && !LexiconCatalog.DeterminerAdjectiveLemmas.Contains(r.Lemma)
                     && previousHead.Readings.Any(n => n.Pos == LexiconSchema.Noun
@@ -1332,6 +1334,20 @@ internal sealed class SentenceRealizer
                         && (r.Number is null || n.Number is null || r.Number == n.Number))))
             {
                 skip = "noun-reads-as-adjective";
+                _detail = item.Surface!;
+                return false;
+            }
+
+            // M62: the word after an adverb of degree (muy, tan) is no noun to the analyzer (the reading resolver's rule: es muy cara), so a noun there that is also
+            // something else names a sentence the analyzer reads another way, and is re-rolled.
+            if (i > 0
+                && item.Kind is Kind.Noun or Kind.Literal
+                && item.Readings.Any(static r => r.Pos == LexiconSchema.Noun)
+                && item.Readings.Any(static r => r.Pos != LexiconSchema.Noun)
+                && _items[i - 1].Readings.Count > 0
+                && _items[i - 1].Readings.All(static r => r.Pos == LexiconSchema.Adverb && LexiconCatalog.IsDegreeAdverb(r.Lemma)))
+            {
+                skip = "noun-after-degree-adverb";
                 _detail = item.Surface!;
                 return false;
             }

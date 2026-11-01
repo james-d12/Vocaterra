@@ -221,6 +221,28 @@ public class PredicateAdjectiveTests
         Assert.Equal(expected, Described(sentence));
     }
 
+    // An adjective that is also a noun right after a noun is read as that noun's adjective only where it agrees with the noun and its determiners (las manzanas rojas),
+    // so a phrase that disagrees with itself keeps its one slip (found by the fuzz suite at five times its depth during M62: the noun's number slip made the word
+    // agree with the noun and not with the numeral, and the adjective was reported too).
+    [Theory]
+    [InlineData("22 emperador americano", "noun.number|emperador|emperadores")]
+    [InlineData("si demandó 1 martillos chinos", "noun.number|martillos|martillo")]
+    [InlineData("unos 20 polvo mate amenazas", "noun.number|polvo|polvos")]
+    public void APhraseThatDisagreesWithItselfKeepsOneSlip(string sentence, string expected)
+    {
+        Assert.Equal(expected, Described(sentence));
+    }
+
+    // A word after the noun that can also be the verb of the clause (limpia: limpiar; media: mediar) is not taken for the noun's adjective by that rule, so a grammar
+    // that binds it as the verb keeps it (also found by the fuzz suite during M62).
+    [Theory]
+    [InlineData("una gana media encantado", "[DET] [NOUN:item] [VERB] [ADJ]")]
+    [InlineData("la tradición limpia levantado", "[DET] [NOUN:item] [VERB] [ADJ]")]
+    public void AWordThatCanBeTheVerbStaysTheVerbUnderItsGrammar(string sentence, string grammar)
+    {
+        Assert.Equal(string.Empty, Described(sentence, grammar));
+    }
+
     // M59 takes the phrase for the subject when the copula disagrees with it, so the adjective agrees with the phrase too (las manzanas son rojas).
     [Theory]
     [InlineData("las manzanas es roja", "conj.person|es|son;noun.number|roja|rojas")]

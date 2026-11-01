@@ -688,6 +688,15 @@ public sealed class LexiconCatalog
         return SpanishRules.IsPostnominalAdjective(lemma);
     }
 
+    /// <summary>
+    /// True for an adverb of degree (M62: <c>muy</c>, <c>tan</c>; <see cref="IAnalysisRules.IsDegreeAdverb"/> of the Spanish pack): the reading resolver reads the word after it
+    /// as no noun.
+    /// </summary>
+    public static bool IsDegreeAdverb(string lemma)
+    {
+        return SpanishRules.IsDegreeAdverb(lemma);
+    }
+
     private IReadOnlyList<string> BuildAdjectives()
     {
         var result = new List<string>();
