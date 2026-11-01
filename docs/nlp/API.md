@@ -586,8 +586,8 @@ gives both, with `rojas`). Since M62 the same holds across a copula:
 - **Which reading is the adjective:** a word that is an adjective and also a noun (`alta`, `roja`, `cara`) after the copula is read charitably as the noun when nothing
   else decides, as the reading resolver does everywhere, so `él es alta` is clean with no grammar. A slot grammar that binds the word as `[ADJ]` (the game's
   `describe`) makes it the adjective (`él es alta` gives `alto` under `[PRON] [VERB:ser] [ADJ]`), and so does `muy` or `tan` before it (`el pan es muy cara` gives
-  `caro`). A word that is an adjective and a noun right after the noun of a phrase with a determiner, and agrees with it, is that noun's adjective, so the phrase is
-  the subject (`las manzanas rojas son caro` gives `caras`). `son` and `era`, which are also nouns, are the copula after a noun phrase with a determiner and before an
+  `caro`). A word that is an adjective and a noun (and no finite verb) right after the noun of a phrase with a determiner, and agrees with the noun and the
+  determiners, is that noun's adjective, so the phrase is the subject (`las manzanas rojas son caro` gives `caras`). `son` and `era`, which are also nouns, are the copula after a noun phrase with a determiner and before an
   adjective (`las manzanas son caro`); elsewhere `son` is the copula where a grammar binds it, as before.
 
 `word_order` is reported on an adjective that goes after its noun put before it, with the span on the adjective and the noun, `expected` the two in Spanish order and

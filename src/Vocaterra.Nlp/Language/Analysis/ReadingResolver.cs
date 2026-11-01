@@ -35,8 +35,8 @@ using Vocaterra.Nlp.Language.SlotGrammar;
 /// alone: after the interrogative quantifier, a word whose noun reading the quantifier cannot agree with is the slip (<c>cuánto costa</c>, not <c>cuánta costa</c>); and
 /// after the noun of a phrase that opens the utterance, a word whose slip is a finite verb of the third person and of that noun's number is the slip
 /// (<c>el pan costa dos monedas</c>).
-/// M62: a word that is an adjective and also a noun, right after the noun of a phrase that a determiner opens and agreeing with it, is that noun's adjective
-/// (<c>las manzanas rojas son caras</c>); a word that is an adjective of a kind that goes after its noun (<see cref="IAnalysisRules.IsPostnominalAdjective"/>: the
+/// M62: a word that is an adjective and also a noun (and no finite verb), right after the noun of a phrase that a determiner opens and agreeing with that noun and
+/// its determiners, is that noun's adjective (<c>las manzanas rojas son caras</c>); a word that is an adjective of a kind that goes after its noun (<see cref="IAnalysisRules.IsPostnominalAdjective"/>: the
 /// colours) and also a noun, right before a word that can only be a noun that it and the determiners before it agree with, is the adjective put before its noun
 /// (<c>tres rojas manzanas</c>, <c>una roja manzana</c>), so the word-order check sees it; the word after an adverb of degree (<see cref="IAnalysisRules.IsDegreeAdverb"/>: <c>muy</c>, <c>tan</c>) is no noun (<c>es muy cara</c>); and a finite
 /// form of a copula that is also a noun (<c>son</c>, <c>era</c>), right after the noun of a phrase that a determiner opens and before a word that can be an adjective,
