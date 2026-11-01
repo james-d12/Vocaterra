@@ -774,7 +774,7 @@ Game points:
 - Free talk credits only the rows an NPC's file names in its `focus` (V12b's rule), so phase B's lines said again in free talk count as no phrase use (`Mañana
   compraré pan.` to Luz, r23; `Vendo madera.` to Domingo, r22; `Me gustan las manzanas.` to León), though the book's word records count them.
 - An NPC shows the cards of its `focus` from the first talk, before their lesson: Luz `Vendo madera.` (session 10) in session 5 (r18), León `Quiero tres
-  manzanas rojas.`, `¿Cuánto es todo?` and `¿Puedo pagar con fruta?` (sessions 7 and 10) from session 1; A2 lines to an A1 learner (VILLAGE_PLAN 5, "Not
+  manzanas rojas.`, `¿Cuánto es todo?` and `¿Puedo pagar con fruta?` (sessions 7 and 10) from his first talk; A2 lines to an A1 learner (VILLAGE_PLAN 5, "Not
   overwhelming").
 - The open prompts of the villager, the fisher and the stall take no statements, and Domingo's no `tener que`, so 9 of phase B's 27 said lines get "No te
   entendí" from the NPC who taught them (above; V14's point (1) and V17: the lint's confusion check gives `busqué madera` and `buscaré madera` to
