@@ -208,6 +208,8 @@ public class PredicateAdjectiveTests
     [InlineData("la manzana no es rojo", "gender.agree|rojo|roja")]
     [InlineData("los panes son caro", "noun.number|caro|caros")]
     [InlineData("las manzanas pequeñas son caro", "gender.agree|caro|caras;noun.number|caro|caras")]
+    [InlineData("las manzanas rojas son caro", "gender.agree|caro|caras;noun.number|caro|caras")]
+    [InlineData("las manzanas rojas es barata", "conj.person|es|son;noun.number|barata|baratas")]
     [InlineData("el agua está frío", "gender.agree|frío|fría")]
     [InlineData("la manzana era rojo", "gender.agree|rojo|roja")]
     [InlineData("la manzana es tan caro como el pan", "gender.agree|caro|cara")]

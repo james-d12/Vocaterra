@@ -316,7 +316,8 @@ is also a noun (`negras`, `rosa`, `gris`) as the adjective right before a noun i
 phrase after the adjectives and the copula's number), since whether a phrase opens its clause is not modelled; candidates that disagree skip the draw
 (`skip:predicate-subject`; none in the runs made for M62). It re-rolls a word that is a colour and a noun right before a word that can only be a noun
 (`skip:colour-before-noun`, broader than the analyzer's rule, which also asks the phrase to agree; seed `f8C3x9UYGMz6` built `las 25 negras enterados despejados`
-before it). The colours are read from the Spanish pack's public rules (`IAnalysisRules.IsPostnominalAdjective`), not mirrored. The sentence stream digest of
+before it), and a word that can be an adjective and a noun right after the noun of a phrase with a determiner that it agrees with, which the analyzer reads as that
+noun's adjective (`skip:noun-reads-as-adjective`). The colours are read from the Spanish pack's public rules (`IAnalysisRules.IsPostnominalAdjective`), not mirrored. The sentence stream digest of
 `FuzzLanguageStreamTests` was recorded again for these changes.
 
 A name (M17b) has no reading the checks use: the realiser treats it like an unknown word, so it breaks every phrase and every subject-verb link around it, and

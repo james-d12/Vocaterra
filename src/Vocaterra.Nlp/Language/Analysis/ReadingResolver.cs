@@ -35,9 +35,10 @@ using Vocaterra.Nlp.Language.SlotGrammar;
 /// alone: after the interrogative quantifier, a word whose noun reading the quantifier cannot agree with is the slip (<c>cuánto costa</c>, not <c>cuánta costa</c>); and
 /// after the noun of a phrase that opens the utterance, a word whose slip is a finite verb of the third person and of that noun's number is the slip
 /// (<c>el pan costa dos monedas</c>).
-/// M62: a word that is an adjective of a kind that goes after its noun (<see cref="IAnalysisRules.IsPostnominalAdjective"/>: the colours) and also a noun, right before a
-/// word that can only be a noun, is the adjective put before its noun, after a determiner too (<c>tres rojas manzanas</c>, <c>una roja manzana</c>), so the word-order
-/// check sees it; the word after an adverb of degree (<see cref="IAnalysisRules.IsDegreeAdverb"/>: <c>muy</c>, <c>tan</c>) is no noun (<c>es muy cara</c>); and a finite
+/// M62: a word that is an adjective and also a noun, right after the noun of a phrase that a determiner opens and agreeing with it, is that noun's adjective
+/// (<c>las manzanas rojas son caras</c>); a word that is an adjective of a kind that goes after its noun (<see cref="IAnalysisRules.IsPostnominalAdjective"/>: the
+/// colours) and also a noun, right before a word that can only be a noun that it and the determiners before it agree with, is the adjective put before its noun
+/// (<c>tres rojas manzanas</c>, <c>una roja manzana</c>), so the word-order check sees it; the word after an adverb of degree (<see cref="IAnalysisRules.IsDegreeAdverb"/>: <c>muy</c>, <c>tan</c>) is no noun (<c>es muy cara</c>); and a finite
 /// form of a copula that is also a noun (<c>son</c>, <c>era</c>), right after the noun of a phrase that a determiner opens and before a word that can be an adjective,
 /// is the copula (<c>las manzanas son caras</c>), so the predicate adjective is agreed with its subject.
 /// </description></item>
@@ -390,6 +391,17 @@ internal static class ReadingResolver
                 changed |= Narrow(i, r => ReadingClasses.IsFiniteVerb(r) && _rules.IsNearFutureAuxiliary(r.Lemma));
             }
 
+            // M62: a word that is a descriptive adjective and also a noun, right after the noun of a phrase that a determiner opens and agreeing with it, is that noun's
+            // adjective and no noun of its own (las manzanas rojas son caras: the phrase is the copula's subject, and rojas is not a bare noun before the verb).
+            if (i > 1
+                && All(i - 1, r => r.Pos == LexiconSchema.Noun)
+                && HasReading(i, r => r.Pos == LexiconSchema.Noun)
+                && HasReading(i, r => r.Pos == LexiconSchema.Adjective && !_rules.IsDeterminerAdjective(r.Lemma) && HasReading(i - 1, n => Agree(r, n)))
+                && DeterminerOpensPhraseOf(i - 1))
+            {
+                changed |= Narrow(i, r => r.Pos == LexiconSchema.Adjective);
+            }
+
             // M62: a word that is an adjective of a kind that goes after its noun (IsPostnominalAdjective: the colours) and also a noun (roja, rojas, blanca, gris), right
             // before a word that can only be a noun that it and the determiners before it agree with, is the adjective put before its noun (tres rojas manzanas, una roja
             // manzana), as a word that is only such an adjective is (rojo, azul); the word-order check then reports the order. Before a word that can be something else
@@ -598,6 +610,18 @@ internal static class ReadingResolver
             }
 
             return true;
+        }
+
+        // M62: a determiner opens the phrase of the noun at index, past the adjectives before the noun (las manzanas, una buena manzana).
+        private bool DeterminerOpensPhraseOf(int noun)
+        {
+            var k = noun - 1;
+            while (k >= 0 && IsCertainAdjective(k))
+            {
+                k--;
+            }
+
+            return k >= 0 && IsCertainDeterminer(k);
         }
 
         // M62: the word before index is the noun of a phrase that a determiner opens (las manzanas, las manzanas rojas, una buena casa), past the words after that

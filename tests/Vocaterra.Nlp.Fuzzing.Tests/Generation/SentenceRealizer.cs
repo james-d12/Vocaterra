@@ -1315,6 +1315,27 @@ internal sealed class SentenceRealizer
                 return false;
             }
 
+            // M62: a word that can be a descriptive adjective and a noun, right after the noun of a phrase with a determiner and agreeing with it, is read by the analyzer
+            // as that noun's adjective (the reading resolver's rule: las manzanas rojas son caras), so a pattern that puts a second noun there names a sentence the
+            // analyzer reads another way (the noun phrase grows and becomes the subject of the verb after it), and is re-rolled.
+            if (i > 0
+                && item.Kind is Kind.Noun or Kind.Literal
+                && _items[i - 1] is { Head: { } head } previousHead
+                && ReferenceEquals(head, previousHead)
+                && !ReferenceEquals(item.Head, head)
+                && _items.Exists(x => ReferenceEquals(x.Head, head) && IsDeterminer(x))
+                && item.Readings.Any(static r => r.Pos == LexiconSchema.Noun)
+                && item.Readings.Any(r => r.Pos == LexiconSchema.Adjective
+                    && !LexiconCatalog.DeterminerAdjectiveLemmas.Contains(r.Lemma)
+                    && previousHead.Readings.Any(n => n.Pos == LexiconSchema.Noun
+                        && (r.Gender is null || n.Gender is null || r.Gender == n.Gender)
+                        && (r.Number is null || n.Number is null || r.Number == n.Number))))
+            {
+                skip = "noun-reads-as-adjective";
+                _detail = item.Surface!;
+                return false;
+            }
+
             if (item.Kind != Kind.Verb)
             {
                 continue;

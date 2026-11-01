@@ -240,7 +240,8 @@ on the resolved readings only. The returned tokens still list all readings, beca
    M56), past the pronouns before a verb (`¿cómo se llamas?`, M59); a preposition of elapsed time that is also a verb (`hace`) is the
    preposition only before a phrase of time (`hace dos días`) and the verb elsewhere (`¿qué hace?`, M59); the word after a preposition,
    and the complement of `ser`/`estar`, is not a finite verb (`a casa`, `la casa es grande`), except a verb after `ir a` that is nothing
-   else but an adverb, a conjunction or a preposition (`voy a como`, `va a hace`, M49 and M59); M62: a colour that is also a noun right before a
+   else but an adverb, a conjunction or a preposition (`voy a como`, `va a hace`, M49 and M59); M62: an adjective that is also a noun right
+   after the noun of a phrase with a determiner, agreeing with it, is that noun's adjective (`las manzanas rojas`), a colour that is also a noun right before a
    word that can only be a noun, which it and the determiners before it agree with, is the adjective (`tres rojas manzanas`), the word after `muy`
    or `tan` is no noun (`es muy cara`), and `son` or `era` after the noun of a phrase with a determiner and before an adjective is the copula
    (`las manzanas son caras`); an interjection reading is the last resort (the lexicon lists `sus` and `sé` as
