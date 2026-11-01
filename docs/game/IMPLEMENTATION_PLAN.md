@@ -2050,6 +2050,25 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     - the host demos (`quiero agua, por favor` at `stall-need`, `mañana compraré pan`);
     - the six new lines read.
   - **Left:** a zero request (`quiero cero panes`) still credits the phrase `quiero-dos-panes` as said, though nothing changes hands.
+- **QA pass, `language` (2026-11-01, the follow-ups' first item; the QA agent, Haiku; `docs/qa-reports/2026-11-01-language.md`).** On
+  `feature/village-followups` at `9dfa08b`, sessions 7 to 10 in depth: 384 CLI lines, 39 host lines, game runs. The orchestrator
+  reproduced every bug below through the host (the game's path) and the CLI.
+  - **Praise for the lesson's own error** (major, core):
+    - `las manzanas cuesta una moneda` at `farmer-open` gets "¡Muy bien!" (QA-3; to M66);
+    - `yo gusto el pan` and `me gusto el pan` get correctness 1 (QA-4; to M70);
+    - the present against a past question, at a constrained lesson prompt: `Luz compra pescado` at `lesson-luz-bought` (answer `luz compró
+      pescado`), `compro tres manzanas` at `lesson-market`, and `sí fue al río` at `lesson-water-went` all get correctness 1. The answer
+      match takes the near answer and reports nothing (QA-5, QA-10; to M67).
+  - **Broken recasts** (major, core): an unknown word is blamed on its neighbour, so `compré three manzanas` is recast «compré compré
+    manzanas» and `manana iré al río` «al iré al río» (QA-6; to M70).
+  - **Not understood:** `me llamo ana` (a learner's own name) gets "No te entendí" (QA-2; to M70). `cuanto son todo?` is read as
+    `describe` and praised (QA-8; to V20 (e)).
+  - **A preterite spelling slip:** `buscé` (for `busqué`) is an unknown word (core, to M70). The NPC then both praises a recast and
+    says "No te entendí" in the same turn (game, to V21) (QA-9).
+  - **For the owner:** `manana` for `mañana` is `vocab.unknown` at 0.6 with a correct recast, and `compre` is taken as the preterite
+    `compré` (QA-7 and an observation): how strict typed input is about `ñ` and the accent of a tense.
+  - **Not a bug:** the CLI and the host differ on lines with a greeting or the listener's name, because the host takes them out first
+    (V19). Briefs measure on the host (`scripts/try-lines.sh --host`, M65); the handover's 9.3 counts were taken on the CLI.
 
 
 ## 6. Definition of done (every milestone)
