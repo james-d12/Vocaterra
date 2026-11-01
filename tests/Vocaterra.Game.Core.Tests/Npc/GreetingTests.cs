@@ -56,6 +56,8 @@ public sealed class GreetingTests
     [InlineData("hola Luz quiero dos panes")] // the name taken out first (V14), then the greeting
     [InlineData("¡Hola, Luz! Quiero dos panes, por favor.")]
     [InlineData("buenos días, quiero dos panes")]
+    [InlineData("buenos días luz quiero dos panes")] // V19, the review's R4: the name after a two-word greeting is taken out too
+    [InlineData("Buenas tardes, Luz, quiero dos panes.")]
     public void AGreetingBeforeARequestIsAnsweredAsTheRequestAndTheBreadIsBought(string line)
     {
         var session = AtTheBakery();
@@ -85,6 +87,7 @@ public sealed class GreetingTests
     [InlineData("hola")]
     [InlineData("hola Luz")]
     [InlineData("buenos días")]
+    [InlineData("buenos días luz")] // V19: the name after any greeting; with nothing after it, the line stays the greeting
     [InlineData("hola, buenas tardes")] // the rest is a greeting too
     [InlineData("hola amigo")] // the rest is no intent: the line stays a greeting
     public void AGreetingAloneOrWithNothingElseTheBakerTakesStaysAGreeting(string line)

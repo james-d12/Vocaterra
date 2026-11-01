@@ -587,33 +587,20 @@ public sealed partial class NpcService
 
         // Phase 1: the line is read once. A spoken line is decoded here and nowhere else. The listener's name said as a vocative (Luz, quiero pan) is no part of
         // the sentence, so the core reads the line without it (V14); the turn keeps the line as it was said. A greeting that opens a line with something else to say
-        // (hola, quiero dos panes) is answered by the rest, which the core reads as a line of its own (V15, Greeting).
+        // (hola, quiero dos panes) is answered by the rest, which the core reads as a line of its own (V15, Greeting). Both are LineReading's, as on the host (V19).
         UtteranceAnalysis analysis;
         string said;
         if (clip is null)
         {
             said = typed!;
-            var bare = Vocative.Without(typed!, agent.Npc.Name);
-            analysis = _typed.Analyze(bare, prompt);
-            if (Greeting.Rest(bare) is { } rest && _typed.Analyze(rest, prompt) is var asked && Greeting.AnswersRest(analysis.Verdict, asked.Verdict, prompt))
-            {
-                analysis = asked;
-            }
+            analysis = LineReading.Read(typed!, agent.Npc.Name, prompt, line => _typed.Analyze(line, prompt), static a => a.Verdict);
         }
         else
         {
             var spoken = _spoken ?? throw new InvalidOperationException("No speech is attached to the NPCs.");
-            analysis = spoken.Analyze(clip, prompt);
-            said = analysis.Asr.Transcript;
-            if (Vocative.Without(analysis.Asr, agent.Npc.Name) is { } bare)
-            {
-                analysis = spoken.AnalyzeRecognized(bare, clip, prompt); // the recognizer is not called again
-            }
-
-            if (Greeting.Rest(analysis.Asr) is { } rest && spoken.AnalyzeRecognized(rest, clip, prompt) is var asked && Greeting.AnswersRest(analysis.Verdict, asked.Verdict, prompt))
-            {
-                analysis = asked;
-            }
+            var heard = spoken.Analyze(clip, prompt);
+            said = heard.Asr.Transcript;
+            analysis = LineReading.Read(heard, static a => a.Asr, agent.Npc.Name, prompt, recognition => spoken.AnalyzeRecognized(recognition, clip, prompt), static a => a.Verdict);
         }
 
         var line = CleanTranscript(said);

@@ -98,13 +98,9 @@ public sealed class ConversationSession
         var utterance = ConversationContext.Create(
             _context.WorldSeed, agentId, agentState, now, _context.Learner, _context.RepeatCountsByTag);
 
-        // The listener's name said as a vocative is taken out (V14), and a greeting that opens a line with something else to say is answered by the rest (V15), as in the game.
-        var bare = Vocative.Without(transcript, _names.GetValueOrDefault(agentId));
-        var result = _evaluator.Evaluate(bare, prompt, utterance);
-        if (Greeting.Rest(bare) is { } rest && _evaluator.Evaluate(rest, prompt, utterance) is var asked && Greeting.AnswersRest(result.Verdict, asked.Verdict, prompt))
-        {
-            result = asked;
-        }
+        // The listener's name said as a vocative is taken out (V14), and a greeting that opens a line with something else to say is answered by the rest (V15): the game's
+        // own reading of a line (LineReading, V19).
+        var result = LineReading.Read(transcript, _names.GetValueOrDefault(agentId), prompt, line => _evaluator.Evaluate(line, prompt, utterance), static r => r.Verdict);
 
         _agentStates[agentId] = result.Decision.Agent?.Next ?? agentState;
         _context = utterance.Next(result, now);

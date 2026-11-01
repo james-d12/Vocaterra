@@ -126,6 +126,11 @@ public sealed class VillageTalkTests
     [InlineData("baker-open", "Luz, mañana compraré pan", "state_action", "pan")] // V17: a plan at the baker's open prompt, the gate's demo
     [InlineData("lesson-will-fetch", "Domingo, buscaré madera para Luz", "state_action", "madera")] // the smith's name goes, Luz's stays: para joins it to the line
     [InlineData("lesson-luz-will", "Mar, Luz hará pan", "state_action", "pan")]
+    [InlineData("baker-open", "buenos días luz quiero pan", "request_item", "pan")] // V19, the review's R4: "No te entendí" before (the name after hola alone)
+    [InlineData("smith-open", "buenos días domingo vendo madera", "offer_item", "madera")] // a statement about Sunday before, recast «domingo vendo madera»
+    [InlineData("fisher-open", "buenas tardes mar ¿dónde está la panadería?", "ask_directions", "panadería")]
+    [InlineData("farmer-open", "buen día león quiero tres manzanas", "request_item", "manzana")] // vocab.wrong on león before
+    [InlineData("baker-open", "hola luz quiero pan", "request_item", "pan")]
     public void TheListenersNameSaidAsAVocativeIsReadAsTheLineWithoutIt(string prompt, string line, string intent, string? slot)
     {
         var verdict = Evaluate(line, prompt).Verdict;
