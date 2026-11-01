@@ -49,8 +49,14 @@ the follow-ups and what V09 found). The owner's plan (2026-11-01): review, merge
    - The worktree `.claude/worktrees/village` should be on `feature/village` and clean, at the handover commit or later. No milestone
      branch is open and no agent is running.
 2. **Phase B is done** (2026-11-01): V09 again was gated at `da8dba6` (7259 passed, 3 skipped, with the models) and recorded; the owner
-   has had the phase-B report. **Nothing is queued.** Wait for the owner's review of `feature/village` (PR #20) and their answers to the
-   open decisions below; do not start a milestone they have not asked for.
+   has had the phase-B report.
+   **The review is done** (2026-11-01, `docs/qa-reports/2026-11-review-feature-village.md`, ten findings). On the owner's word all of them
+   were fixed on `feature/village` before the merge: the core's as M64 (`23af5cd`), the game's as V19 (`716d469`), with 7420 tests passing.
+   **Nothing is queued.** The owner merges PR #20 and answers the open decisions below. Do not start a milestone they have not asked for.
+   - The fuzz family of `haber` after a noun subject (`b3HSKSLCsL_1`) now fails at the default depth too (seed `4YuZ2yubxdC1`, on M64's
+     gate), so it can fail a gate or CI.
+   - The remote branches `M64-review-core` and `V19-review-game` are merged; deleting them on the remote needs the owner's leave (the
+     permission check refused it).
 3. **Proposed to the owner, not started** (the owner chooses): a follow-up for free talk (the open prompts of the villager, the fisher
    and the stall take no statements and Domingo's no `tener que`, so 9 of phase B's 27 said lines get "No te entendí" from the NPC who
    taught them; focus cards shown before their lesson); the core gaps from V15 and M63 as core milestones; a QA agent pass on the village
@@ -82,7 +88,9 @@ the follow-ups and what V09 found). The owner's plan (2026-11-01): review, merge
     learner's route through sessions 7 to 10 (one fix: a skipped game counts the shopkeeper's bottle and key words), the documents'
     counts, CI's case, and the open points of phase B in one list (`docs/game/README.md`, "Open points after phase B");
   - `main` merged in at `0cf674b`. It brought the CI workflow with its grammar jobs, and the QA agent.
-- **Next:** the owner's review. The design is VILLAGE_PLAN sections 3.5 to 3.9, 4 and 5; the findings of every V milestone are in
+- **The review and its fixes** (2026-11-01): M64 (the core: a subject joined by `y`, an amount before `ser`, `cerca del`, ADR 0009's
+  note) and V19 (the game: the listener's name after any greeting, the market's misses, session 8's answer set, the skip).
+- **Next:** the owner merges PR #20. The design is VILLAGE_PLAN sections 3.5 to 3.9, 4 and 5; the findings of every V milestone are in
   `docs/game/IMPLEMENTATION_PLAN.md` section 5 (the V entries at its end). The used briefs in `.claude/briefs/` (V13 to V18, V09 phase B,
   M56 to M59, M62) are the models for any follow-up; fill their `@@…@@` placeholders from the last reports before launching.
 

@@ -1,5 +1,13 @@
 # Handover: the village series after phase B (2026-11-01)
 
+> **Update (2026-11-01, later):** section 3, the review, is done: `docs/qa-reports/2026-11-review-feature-village.md`. On the owner's word
+> all ten findings were fixed on `feature/village`: the core's as M64 (`23af5cd`), the game's as V19 (`716d469`), with 7420 tests passing
+> and bundle `0f8faea0…`.
+> - Section 4's item 2 (the three fuzz seeds) is more pressing now: the `haber` family also fails at the default depth (seed
+>   `4YuZ2yubxdC1`).
+> - Section 5's free-talk follow-up and the core's grading gaps are still open, apart from what the review fixed: the greeting before a
+>   name, and session 8's answer with a subject.
+
 For a fresh agent, from the orchestrator session that ran phase B. Your job, in this order:
 
 1. **Review all the code on `feature/village`** (PR #20, into `main`) before the owner merges it (section 3).

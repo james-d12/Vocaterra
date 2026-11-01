@@ -412,7 +412,7 @@ decision. The series runs on `feature/village`, commit prefix `V<nn>:`. **Phase 
 proposals, the farmer León, provisional voices heard afterwards, phase B held; every milestone by Opus 5.5 at xhigh effort); **phase A was done on
 2026-10-31** (V01 to V07, V09, V10 to V12 and the follow-up V12b; 6030 tests passing, bundle `7ba32270…`). The owner's playtest the same
 day added V12c (the next session in the game), and the CI run on PR #20 the core's M60 (the lint's speed). **Phase B started on 2026-10-31**
-on the owner's word: all of it on `feature/village`, reviewed by the owner at the end. V13 (session 7) was done on 2026-10-31; after the bottlenecks study the owner added V18 and moved the core's M56, M59 (before V14) and M58 (before V15) into the series. **Phase B was done on 2026-11-01** (V08, V13 to V18, V15b and V09 again, with the core's M56 to M62 and M62b; sessions 7 to 10 at A2, ten lessons; 7259 tests passing, bundle `36b2b8ad…`); the owner reviews the branch and PR #20. The milestones' statuses are in the plan's section 4. The findings of each milestone go into section 5.
+on the owner's word: all of it on `feature/village`, reviewed by the owner at the end. V13 (session 7) was done on 2026-10-31; after the bottlenecks study the owner added V18 and moved the core's M56, M59 (before V14) and M58 (before V15) into the series. **Phase B was done on 2026-11-01** (V08, V13 to V18, V15b and V09 again, with the core's M56 to M62 and M62b; sessions 7 to 10 at A2, ten lessons; 7259 tests passing, bundle `36b2b8ad…`); the owner reviews the branch and PR #20. **The review** (2026-11-01, `docs/qa-reports/2026-11-review-feature-village.md`) found ten points; on the owner's word all were fixed before the merge: the core's as M64, the game's as V19 (7420 tests passing, bundle `0f8faea0…`). The milestones' statuses are in the plan's section 4. The findings of each milestone go into section 5.
 
 ## 5. Findings log
 
@@ -2008,6 +2008,49 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     the bundle load 1438 of 3000 ms and the world snapshot 0.50 of 1.5 s (over at four times: the likely CI failures), the scene build and digest 708
     of 3000 ms (at the edge), the lint 0.78 of 5 s, the chunk digest and a turn well under.
   - **The orchestrator's checks:** r22 and r23 run again after the gate as described (r22's bag after: the book, three apples, the axe, four loaves, no coin, no wood; `smith.buy_wood`, `baker.sell_bread`, León's total; r23's Verbs page on `comprar` with `compraré` said twice, both correct); the diff in scope (`scripts/compare-runs.py` is outside the brief's list: the two runs' names only).
+- **V19: the game findings of the review of `feature/village` (2026-11-01, Opus 5.5 xhigh; gated on `feature/village` at `716d469`).** The
+  owner asked on 2026-11-01 for every finding of the review (`docs/qa-reports/2026-11-review-feature-village.md`) to be fixed before PR #20's
+  merge: the core's as M64 (`23af5cd`), the game's here.
+  - **R4, the listener's name after any greeting.** `Vocative` reads the name after any of `Greeting`'s openings (`Greeting.OpeningLength`;
+    its own list of `hola` alone is gone). A new `LineReading` holds the sequence: the name out, the line read, a greeting's rest answered.
+    `NpcService`'s typed and spoken paths and the host's `ConversationSession` all call it, so the three copies cannot drift again.
+    - Through the host, `buenos días luz quiero pan` was "No te entendí", `buenos días domingo vendo madera` a statement about Sunday with
+      no sale, and `buen día león quiero tres manzanas` had `vocab.wrong`. Each is now its intent at correctness 1.
+    - `buenos días luz` still greets.
+  - **R7 to R10, the market's misses.** `NpcEffect.ExchangeMiss` is the one rule for a purchase or a sale. The NPC's worker checks it on its
+    copy of the bag, and the session checks it again on the bag itself.
+    - R7: a catalogue noun with no item is another thing (`quiero casa` at the bakery, `vendo piedra` to Domingo: `wont_sell` or
+      `wont_buy`).
+    - R8: the new miss `no_room`. `Inventory.CanExchange` counts the slot the payment frees. The NPC says «Tu bolsa está llena.»
+    - R9: no cap on a purchase or a sale. The number said, bounded by the coins, the goods held and the room, as the V15 entry said.
+      `MaxQuantity` stays only for a `give_item` or `take_item` counted from `qty` (no NPC has one). Twelve digits overflow nothing.
+    - R10: zero moves nothing, with `none_asked` (the baker's `baker_hay`, León's `how_many`) or `none_offered` (new: «¿Cuántos bloques de
+      madera me vendes?», «¿Cuántas frutas me vendes?»).
+    - `ExchangeMissTests`, 13 tests.
+    - In the game, from session-10 saves: 9 wood and `vendo ocho bloques de madera` sell 8; 15 coins and `quiero quince manzanas` buy 15
+      apples; with a full bag nothing changes and the NPC says why.
+  - **R1's game side.** Nine aliases in `lesson-we-went` (`mar`, `tú` or `luz y yo fuimos al río`, with `ayer` before or after). With M64
+    they score 1, where they gave `vocab.wrong` at 0.4. The other `1pl` steps' questions invite no subject.
+  - **Found and fixed:** `vendo dos frutas` at `farmer-open` got `vocab.wrong` (0.4). León's set takes counted fruit now.
+  - **The review's risks.** `SessionSkip`'s purchase throws `InvalidOperationException`, naming the session and the item, where it would
+    have left a later order short. `docs/game/README.md`, `content/README.md`, the host-events schema and `host-events.json` describe
+    selling and buying as they now work.
+  - **Content:** six new lines (`no_room` for the baker, the farmer and the smith; `none_offered` for the three buyers), with an Opus
+    pass (`me` added to the questions) and the orchestrator's read. 12 WAVs in the NPCs' provisional voices. Speech is now 457 lines in
+    914 files. Grammar: 0 new findings, and the cache rebuilt from nothing is equal. Bundle `0f8faea0…`; the identity baseline took
+    the six lines.
+  - **Scripted runs:** the only difference is the speech count. Ticks, digests, pictures, `r18-bakery` and `r22-market` are unchanged.
+  - **Tests:** 7364 passed and 3 skipped before; 7420 and 3 after, with models. Without models (CI's case), 7378 passed and 45 skipped.
+    The bundle load was 1248 of 3000 ms and the scene build 739 of 3000 ms, both within four times of their budgets. The gate passed at
+    the first run.
+  - **The orchestrator's checks:**
+    - the four greetings with names through the host;
+    - `lesson-we-went`'s subject answers at correctness 1;
+    - `vendo dos frutas`;
+    - the host demos (`quiero agua, por favor` at `stall-need`, `mañana compraré pan`);
+    - the six new lines read.
+  - **Left:** a zero request (`quiero cero panes`) still credits the phrase `quiero-dos-panes` as said, though nothing changes hands.
+
 
 ## 6. Definition of done (every milestone)
 

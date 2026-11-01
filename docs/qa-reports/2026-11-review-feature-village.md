@@ -3,6 +3,29 @@
 Against the merge base `54ed22e` (`origin/main`), at `3575d46`. Read-only: nothing on the branch was changed. Two read-only reviewers (the core;
 the game's logic) read the diffs; every finding below was reproduced with the CLI or the host, or confirmed in the code, by the orchestrator.
 
+## Outcome (2026-11-01)
+
+The owner asked for all of it to be fixed on `feature/village` before the merge. Both milestones were gated there and pushed.
+
+| Finding | Fixed by | How |
+| --- | --- | --- |
+| R1 | M64 (`23af5cd`), V19 (`716d469`) | A subject pronoun joined by `y` ends a plural subject; `y` between clauses unchanged. `lesson-we-went` takes the answers with a subject |
+| R2 | M64 | ADR 0009's M64 note; `API.md` dates `IsVerbSeekingQuestionWord` to M34 |
+| R3 | open | This session cannot read CI; the owner reports PR #20's checks |
+| R4 | V19 | The name after any greeting; one `LineReading` for the game's two paths and the host |
+| R5, R6 | M64 | An amount before a singular `ser` is one sum (one fuzz guard, at the owner's request); `cerca del` with a time |
+| R7 to R10 | V19 | `NpcEffect.ExchangeMiss`: no item, `no_room`, no cap, zero |
+| Risks | M64, V19 | Coordinated pronoun subjects in the fuzz generator; the skip fails loudly. The other risks stand |
+| Cleanups | M64 | `SpanishTimeMarkers` read-only; `API.md` |
+
+- **Tests:** 7420 passed and 3 skipped, with models.
+- **New, from the gates:** O5 failed once on M64's gate with seed `4YuZ2yubxdC1`. It belongs to the family of the open seed `b3HSKSLCsL_1`
+  (M59's person mutation after a noun subject and `haber`), and it now fails at the default depth. The owner's decision on it is more
+  pressing.
+- **Left:** `ni tú ni yo fuimos` and `tú o yo vamos` are still flagged; `quiero cero panes` credits a phrase use though nothing changes
+  hands.
+- The details are in the core plan's §5b (M64) and the game plan's section 5 (V19).
+
 ## Must fix before the merge (recommended)
 
 **R1. Correct Spanish with a coordinated subject is marked wrong, and the NPC recasts it into wrong Spanish (core).**
