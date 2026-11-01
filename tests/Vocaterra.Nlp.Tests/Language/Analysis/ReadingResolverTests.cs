@@ -175,8 +175,11 @@ public class ReadingResolverTests
     [Fact]
     public void AGrammarBindingResolvesWhatLocalSyntaxLeavesOpen()
     {
-        // quiero libro: nothing around libro says whether it is the noun or a verb form, and the tie goes to the earlier reading (the lemma librar sorts before libro).
-        Assert.Equal("verb", PosOf(Resolve("quiero libro"), 1));
+        // compro libro: nothing around libro says whether it is the noun or a verb form, and the tie goes to the earlier reading (the lemma librar sorts before libro).
+        // M66: after a modal (quiero libro) the verb is the learner's slip for the infinitive, so the noun, which querer may take, wins the fallback; before M66 quiero
+        // libro was this test's tie, read as the verb.
+        Assert.Equal("verb", PosOf(Resolve("compro libro"), 1));
+        Assert.Equal("noun", PosOf(Resolve("quiero libro"), 1));
         Assert.Equal("noun", PosOf(Resolve("quiero libro", "[VERB:querer] [NOUN:item]"), 1));
         Assert.Equal("verb", PosOf(Resolve("quiero libro", "[VERB:querer] [VERB:librar]"), 1));
     }

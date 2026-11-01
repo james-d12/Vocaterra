@@ -404,11 +404,17 @@ public sealed class LinguisticAnalyzer
         return new WordSlip([verb], IrregularError(token, regularized), kind);
     }
 
-    // The readings of the plural the learner meant, as the lexicon has them (panes: pan, a masculine plural noun), or else those of the singular made plural.
+    // The readings of the plural the learner meant, as the lexicon has them (panes: pan, a masculine plural noun), or else those of the singular made plural. M66: an
+    // adjective's too (azules), after the noun's when the lemma is both.
     private List<LexicalFeatures> PluralReadings(PluralSlip slip)
     {
+        return [.. PluralReadings(slip, LexiconSchema.Noun), .. PluralReadings(slip, LexiconSchema.Adjective)];
+    }
+
+    private List<LexicalFeatures> PluralReadings(PluralSlip slip, string pos)
+    {
         var plural = _lexicon.Lookup(slip.Expected)
-            .Where(r => r.Pos == LexiconSchema.Noun && r.Number == LexiconSchema.Plural && string.Equals(r.Lemma, slip.Lemma, StringComparison.Ordinal))
+            .Where(r => r.Pos == pos && r.Number == LexiconSchema.Plural && string.Equals(r.Lemma, slip.Lemma, StringComparison.Ordinal))
             .ToList();
         if (plural.Count > 0)
         {
@@ -416,7 +422,7 @@ public sealed class LinguisticAnalyzer
         }
 
         return _lexicon.Lookup(slip.Lemma)
-            .Where(r => r.Pos == LexiconSchema.Noun && string.Equals(r.Lemma, slip.Lemma, StringComparison.Ordinal))
+            .Where(r => r.Pos == pos && string.Equals(r.Lemma, slip.Lemma, StringComparison.Ordinal))
             .Select(static r => r with { Number = LexiconSchema.Plural })
             .Distinct()
             .ToList();

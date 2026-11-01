@@ -6,7 +6,7 @@ baker-open     | cuánto cuesta el pan                       => ask_price comm=T
 baker-open     | cuánto cuestan los panes                   => ask_price comm=True -
 baker-open     | mañana compraré pan                        => state_action comm=True -
 baker-open     | tiene usted pan                            => unknown comm=False vocab.wrong
-baker-open     | puede usted vender pan                     => unknown comm=False vocab.wrong conj.person=vende
+baker-open     | puede usted vender pan                     => unknown comm=False vocab.wrong
 baker-open     | me gusta el pan                            => unknown comm=False vocab.wrong
 baker-open     | me gustan los panes                        => unknown comm=False vocab.wrong
 baker-open     | el pan es muy bueno                        => unknown comm=False vocab.wrong

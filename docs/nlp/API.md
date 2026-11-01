@@ -108,7 +108,9 @@ All of this is additive unless it says breaking. The game compiles and passes un
   without a lexicon), and public `ReadingClasses` and `WordClass`. `IsVerbSeekingQuestionWord` is one of the interface's own members of M34 (`678d9ad`; an earlier
   version of this page dated it to M56). Members added since, each breaking for a host that implements `IAnalysisRules`: `IsElapsedTimePreposition` and
   `IsElapsedTimeNoun` (M59, the preposition of `hace dos días` and the nouns of time it takes), `IsPostnominalAdjective` and `IsDegreeAdverb` (M62, the colours that
-  go after their noun and `muy`, `tan`; see "Adjectives" below). ADR 0009 records them (its note of M64). Breaking signatures: `ReadingClasses.IsDeterminerReading`, `IsClosedClassReading` and `IsSkippable`
+  go after their noun and `muy`, `tan`; see "Adjectives" below). ADR 0009 records them (its note of M64). M66 added two members with a default implementation
+  (none), so a host that implements the interface is not broken: `IsModalVerb(lemma, linker)` and `ModalTakesNounObject(lemma)` (the verbs that take an infinitive,
+  `poder`, `querer`, `deber`, `necesitar` and `tener que`, and those of them that also take a noun; see "Tense errors" below); ADR 0009's note of M66. Breaking signatures: `ReadingClasses.IsDeterminerReading`, `IsClosedClassReading` and `IsSkippable`
   take the rules (they were internal in effect: only the analysis used them); `AccentRestoration.SpellingsFor(lexicon, analysis, rules)`;
   `SlotGrammarMatcher.Match(tokens, grammar, language[, rules])` (the 3-argument form still works and uses `AnalysisRules.For`).
 - **Constructors that take the interface** (source compatible, `MorphologyGenerator` is an `IMorphology`): `LinguisticAnalyzer(lexicon, IMorphology, language[, rules])`,
@@ -442,7 +444,7 @@ if (result.Answer is { AnswerId: not null } answer)
 The pipeline always sets both members; they are nullable only so that a result built by hand (in a test) needs no analysis. Both are part of
 the result's `CanonicalJson`, but not of the replay record (see [REPLAY.md](REPLAY.md)).
 
-### Tense errors, `conj.tense` (M49, M51, M57, M59)
+### Tense errors, `conj.tense` (M49, M51, M57, M59, M66)
 
 `conj.tense` is reported by the analysis for the cases below, each with `expected` and `actual` on the verb token (the last one on the verb and the infinitive together).
 The time markers are phrases, listed in one public table of the Spanish pack, `SpanishTimeMarkers` (`Vocaterra.Nlp.Es.Analysis`, M57), which the checks read and the fuzz
@@ -462,6 +464,17 @@ suite's sentence generator models:
 - **A conjugated verb after `ir a`:** `voy a como` and `vamos a tenemos` expect the infinitive (`comer`, `tener`; the lemma). A noun phrase after `a`
   (`voy a la casa`, `vamos a la tienda`) and a word that can also be a noun are not checked. A form that is also a preposition is the verb there (M59: `va a hace un
   hacha` gives `hacer`; `hace` is also the preposition of `hace dos días`), since no preposition follows the `a` of `ir a`.
+- **A conjugated verb after a modal (M66):** a finite form of the indicative right after `poder`, `querer`, `deber`, `necesitar` or `tener que` expects the
+  infinitive, with the tag and shape of the line above, so the learner meets one kind of message: `puedo pago con fruta` gives `pagar`, `quiero vendo madera` `vender`,
+  `tengo que voy al río` and `tengo que va al río` `ir`, `necesito compro pan` `comprar`, `debo como más fruta` `comer`. Which word is the verb the reading resolver
+  decides from its neighbours. A word that is also a noun or an adjective is the verb after `poder` and `tener que`, which take no noun (`puedo pago`); after
+  `querer`, `deber` and `necesitar`, which do, a noun is the verb only before a word that can only be a noun (`quiero vendo madera`: two bare nouns make no phrase), so
+  `quiero vino`, `necesito pago`, `quiero vino blanco` and `quiero vino el domingo` are clean, and an adjective never is. A word that is also a conjunction or an adverb
+  is the verb only before a phrase opened by a determiner or `más`, with no object pronoun before the modal (`debo como un pan`; `necesito como mínimo dos panes`,
+  `puedo como mucho dos`, `puedo como tú` and `te quiero como a un hermano` are clean). A word that is also a preposition, a pronoun or a determiner is never the verb
+  there. Clean as well: a clause after `que` (`quiero que vengas`), and a verb that opens a clause of its own, which a comma would set off in writing: the modal again
+  (`quiero, quiero pan`), `ser`, `estar`, `haber` and `tener` (`no puedo, estoy cansado`; `no quiero, tengo pan`), and `ir` before `a` (`no puedo, voy a dormir`). A past
+  marker adds no second `conj.tense` on the word (`ayer quería compro pan` gives `comprar` alone).
 - **`ir` followed by a bare infinitive (M51):** `voy comer pan` gives expected `voy a comer`, actual `voy comer`, with the span on both words (the
   error is the gap, so the span covers the pair and `expected` is the whole corrected phrase). `vamos comer fruta` gives `vamos a comer`, `van tener`
   gives `van a tener`. Present and imperfect forms of `ir` are checked. Clean: `voy a comer`, `quiero comer`, `vamos a la tienda`, `voy al río`, `ir a comer`
@@ -470,12 +483,20 @@ suite's sentence generator models:
 
 The checks work on the whole utterance, not on clauses, and on the verb forms the lexicon lists.
 
-### Person and copula errors, `conj.person` and `ser_estar` (M56, M59, M64)
+### Person and copula errors, `conj.person` and `ser_estar` (M56, M59, M64, M66)
 
 `conj.person` is reported on the verb token, with `expected` the form of the verb for the person and number of its subject and `actual` the form said:
 
 - **A subject pronoun before its verb:** the verb after a subject pronoun, past at most two adverbs or clitics, agrees with it (`yo quiere` gives
   `quiero`; a bare infinitive, `yo comprar`, gives `compro`). A pronoun after a preposition is no subject (M56: `a ella le gustan las manzanas` is clean).
+  **A pronoun right after a finite verb (M66)** is that verb's subject, as a question puts it, so the word after the pronoun is not its verb: `¿puede usted vender
+  manzanas?`, `¿quiere usted comprar pan?`, `¿pueden ustedes venir mañana?` and `¿sabes tú dónde está la herrería?` are clean (before M66 the bare-infinitive rule gave
+  `vende`, `compra`, `vienen`, and the last `estás`); with no verb before it the pronoun is still the subject (`usted vender manzanas` gives `vende`).
+  **A question word between (M66, the filed M63):** a subject pronoun before `qué`, `dónde`, `adónde`, `cuándo` or `cómo` (written with the accent; without it the word
+  may open a relative clause) is the subject of the verb after it: `ellos dónde están`, `ellas adónde van`, `ella qué quiere` and `tú qué quieres` are clean, `ellas dónde
+  está` gives `están` and `ella qué quieres` `quiere` (before M66 nothing: the check looked for the verb at `qué`). Two readings are left alone: a verb of the third person
+  with a subject after it (`ellas dónde está la casa`), and a third person singular after `qué`, which may be the subject itself (`ellos qué pasa`, `tú qué quiere`). The
+  phrase after the verb is then no subject of it (M63: `ellas adónde están un detenido lento` gave `está` before M66).
 - **A subject pronoun joined by `y` (M64):** a subject pronoun after `y` or `e` and members before it (subject pronouns, noun phrases, names) ends one plural subject
   when the first member opens its clause, as a noun phrase does below: `mar y yo fuimos al río`, `mis amigos y yo fuimos al río`, `tú y yo somos amigos`, `usted y yo
   vamos al río`, `luz y yo compramos pan`, `ella y él son altos` are clean. The verb takes the first person plural when a member is of the first person; else the second
@@ -486,7 +507,12 @@ The checks work on the whole utterance, not on clauses, and on the verb forms th
   preposition, or a word before `y` that is no member, leaves the pronoun the subject of its own clause (`luz hizo pan y yo fui al río`, `comí pan y tú compraste
   fruta`, `mar pescó y yo comí pescado` and `fui con Luz y yo comí pan` are clean, and `luz hizo pan y yo fuimos al río` gives `fui`). A coordination that cannot be
   told is not checked: a list said without its commas (`luz mar y yo fuimos al río`, `Luz, Mar y yo`), a phrase of time, a bare noun that is also another word. A
-  pronoun first in a coordination is no subject of the verb (`yo y Luz fuimos`).
+  pronoun first in a coordination is no subject of the verb (`yo y Luz fuimos`). **`ni` and `o` (M66)** join such a subject as `y` does: `ni … ni` takes the plural
+  of the rule above (`ni tú ni yo fuimos`, `ni ella ni yo somos altas`), and `o` (`u`) takes it too and also the form of the member nearest the verb, the pronoun (`tú o yo
+  vamos`, `tú o yo voy`, `o tú o yo vamos`, `tú o ella son altas`, `tú o ella es alta`); before M66 each of them that is plural gave `conj.person`. Either may say
+  its word before the first member too (`ni tú ni yo`), and the clause then opens before that word. A verb that agrees with none is reported with the plural (`ni tú ni
+  yo fui` gives `fuimos`, `tú o yo vas` `vamos`); a coordination that mixes `y` with `o` (`tú y ella o yo`) is not checked, and noun phrases joined by `ni` or `o` are not
+  checked either (`ni luz ni mar fueron al río`, `luz o mar va`, `luz o mar van`).
 - **A noun phrase before its verb (M59):** a noun phrase that opens its clause, followed by a finite verb in the indicative (past at most two adverbs or object
   pronouns), is its subject, of the third person; two phrases joined by `y` or `e` are a plural subject. A third-person verb of the other number is reported, in every
   tense: `los niños come pan` gives `comen`, `la manzana son roja` gives `es`, `las manzanas es roja` gives `son`, `Luz y Domingo comió pan` gives `comieron`. Correct Spanish
@@ -505,8 +531,11 @@ The checks work on the whole utterance, not on clauses, and on the verb forms th
   `demasiado`, `suficiente`, `caro`, `barato`, `nada` or `algo` as written, or a phrase of the singular with a determiner, `mucho dinero`, `un buen precio`); still
   reported are a phrase with no number (`las manzanas es roja` gives `son`), another verb (`dos niños come pan` gives `comen`) and a predicate of the plural (`dos panes es
   suficientes` gives `son`); the subjunctive and the imperative. A name that the lexicon lacks, or that a grammar binds as `[WORD]`, has no reading at all. A
-  verb form that is also a noun (`son`, `cuesta`) is checked where a slot grammar binds it as the verb, as the game's prompts do; with nothing to bind it the charitable
-  reading takes the noun.
+  verb form that is also a noun (`son`, `cuesta`) is checked where a slot grammar binds it as the verb, as the game's prompts do, and **since M66 also right after the
+  noun of the phrase that opens the utterance** (and its adjectives), where the noun would make two bare nouns: `las manzanas cuesta una moneda` and `los panes cuesta
+  dos monedas` give `cuestan`, `las manzanas vale una moneda` `valen` (before M66 the charitable reading took the noun, and the game praised the first; the QA pass of
+  2026-11-01, QA-language-3). A list said without its commas (`el pan vino y agua`) is left alone, and elsewhere with nothing to bind it the charitable reading takes
+  the noun.
 - **A reflexive clitic after `cómo` (M59):** in the question `cómo` (or `como`) + `me`, `te`, `se`, `nos` or `os` + `llamar` or `sentir`, the clitic is reflexive and the
   verb takes its person (`se` the third person of either number): `cómo te llama` gives `llamas`, `cómo se llamas` gives `llama`, `cómo se llamamos` gives `llaman`,
   `cómo te siente` gives `sientes`. Clean: `cómo te llamas`, `cómo se llama usted`, `cómo os llamáis`; a clitic that is the object of a verb of another person (`te veo`,
@@ -521,7 +550,11 @@ The checks work on the whole utterance, not on clauses, and on the verb forms th
   the verb (a subject pronoun, a noun or a name that no preposition governs: `el pan me gusta`); a phrase coordinated with `y`, `o` or `ni` (`me gusta el pan
   y la fruta` may agree with the first); a phrase that disagrees with itself (`me gustan las manzana` is `noun.number`'s); a noun of part or quantity before
   `de` (`me gustan la mayoría de las frutas`); a noun of time after `estar` or a verb of price (`están el lunes en casa`); a verb of price outside the question
-  (`cuestan dos monedas`: the phrase is the price); `haber` (`hay dos panes`); a verb of the first or second person; the subjunctive.
+  (`cuestan dos monedas`: the phrase is the price); `haber` (`hay dos panes`); a verb of the first or second person; the subjunctive. **The neuter pronouns (M66)**
+  `todo`, `eso`, `esto` and `aquello`, alone after the verb, are a singular subject: `¿cuánto cuestan todo?` and `¿cuánto cuestan eso?` give `cuesta`, `me gustan todo`
+  `gusta`; and `ser` after `cuánto` is checked against them, `¿cuánto son todo?` giving `es` (`son`, also a noun, is the copula right after `cuánto`). Clean: `¿cuánto
+  cuesta todo?`, `¿cuánto es todo?`, `¿cuánto cuesta eso?`, `¿cuánto son las manzanas?` (`ser` after `cuánto` is checked against the neuter pronouns only), `¿cuánto
+  cuestan todos?`, `todo` before a phrase or an adjective (`todo el pan`) and two joined (`eso y esto`).
 
 `ser_estar` is reported on the copula, with `expected` the form of the other copula and `actual` the form said:
 
@@ -543,7 +576,7 @@ gives `están`, and `son cerca` alone is read as the noun. `hace` is the preposi
 mucho`) and the verb `hacer` elsewhere (M59: `¿qué hace?`, `¿qué hace Domingo?`, `hace frío`), also where a grammar's literal `hace` binds it, so `result.Words` reports the
 verb for a host's own person check.
 
-### Irregular forms, plurals and unknown words, `conj.irregular`, `noun.number` and `vocab.unknown` (M58)
+### Irregular forms, plurals and unknown words, `conj.irregular`, `noun.number` and `vocab.unknown` (M58, M66)
 
 `conj.irregular` is reported on a verb form that is the regular cell of an irregular verb (the stem change missed, or a regular ending on an irregular stem), with
 `expected` the lexicon's form of that cell and `actual` the form said. Whether the form is the verb depends on what else it is:
@@ -554,8 +587,9 @@ verb for a host's own person check.
   (`costar`: `cuesta`, `cuestas`), `jugo` (`juego`), `mente` and `mentes` (`miente`, `mientes`) and `cabo` (`quepo`). A verb is called for after a subject pronoun or
   a clitic (`yo jugo en el pueblo` gives `juego`, `tú mentes` gives `mientes`, `el pan me costa dos monedas` gives `cuesta`); after `cuánto` when the noun would not
   agree with it (`¿cuánto costa el pan?` gives `cuesta`, with the price intent, and `cuánto costa los panes` gives `cuesta` and `conj.person` `cuestan`; `cuánta costa`
-  is the noun); after the noun of a phrase that opens the utterance, when the verb is of the third person and of that noun's number (`el pan costa dos monedas`, `la
-  manzana costa una moneda`); and where a slot grammar binds the word as that verb (`cuánto [VERB:costar] ...`). The noun stays after a determiner or a preposition
+  is the noun); after the noun of a phrase that opens the utterance, when the verb is of the third person (`el pan costa dos monedas`, `la manzana costa una moneda`;
+  since M66 of either number: `los panes costa dos monedas` gives `conj.irregular` `cuesta` and `conj.person` `cuestan`, as `cuánto costa los panes` does, and the
+  recast says `cuestan`); and where a slot grammar binds the word as that verb (`cuánto [VERB:costar] ...`). The noun stays after a determiner or a preposition
   (`la costa`, `en la costa`, `al cabo de un rato`), alone (`costa`), and wherever reading it as the noun finds no other mistake: the verb reading counts as half a
   mistake when the resolver weighs the readings. A grammar that takes the word as written wins over one that needs the verb. `result.Words` reports the reading the
   analysis used (`costar` in `¿cuánto costa?`), and `result.Tokens` lists the verb after the noun's readings only when the analysis read the word as the verb.
@@ -570,7 +604,8 @@ plural made with the wrong ending**: a word the lexicon lacks that is a lexicon 
 and the slot `item` `pan`; `hay dos pans` gives `panes`; `flors` gives `flores`, `relojs` `relojes`, `doctors` `doctores`, `luzs` and `luzes` `luces`, and `cancions`
 (the accent left out as well) `canciones`. A determiner of the other number names its own correction instead, once (`hay un pans` gives `pan`). Nouns that end in
 another consonant are mostly loans that take `-s` (`robots`, `clubs`) and are not considered, and a plural the lexicon knows is never reported (`hay panes`, `hay dos
-panes`, `el mes`, `el país`, `los lunes`).
+panes`, `el mes`, `el país`, `los lunes`). **Since M66 an adjective** that ends in one of those consonants is the same slip, with the same tag, in either gender:
+`azuls` and `las casas azuls` give `azules`, `felizs` and `felizes` `felices`; `azules` and `las casas azules` are clean.
 
 `vocab.unknown` is reported, with an empty `expected`, on a word the lexicon lacks that is none of these slips and that no grammar binds as a name (`hay glurps`,
 `quiero un blorf`); after a fuzzy answer match the pipeline fills `expected` with the answer's nearest word (`AnswerCorrections`). A word a grammar binds as a name
@@ -617,7 +652,7 @@ gives both, with `rojas`). Since M62 the same holds across a copula:
 
 `word_order` is reported on an adjective that goes after its noun put before it, with the span on the adjective and the noun, `expected` the two in Spanish order and
 `actual` as said (`quiero una azul espada` gives `espada azul`). The adjectives that go before the noun are not reported: `grande` (`una gran casa`), `bueno` (`un
-buen pan`), `malo`, the determiner adjectives (`muchas manzanas`, `otra casa`, `mi casa`) and `próximo` before a noun of time (`la próxima semana`); a word that is
+buen pan`), `malo`, `cada` (M66: `cada manzana cuesta una moneda` gave `word_order` before), the determiner adjectives (`muchas manzanas`, `otra casa`, `mi casa`) and `próximo` before a noun of time (`la próxima semana`); a word that is
 also a noun is read as the noun (`la primera casa`). Since M62 **a colour that is also a noun** (`roja`, `rojas`, `blanca`, `negra`, `rosa`, `gris`) right before a
 word that can only be a noun is the adjective put before it, when the two would agree and so would the determiners before them: `quiero tres rojas manzanas` gives
 `manzanas rojas` and `quiero una roja manzana` `manzana roja`, as `rojo` and `azul`, which are only adjectives, always did. A list read without its commas is not an

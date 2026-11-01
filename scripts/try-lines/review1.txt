@@ -2,7 +2,7 @@
 # Each line must stay clean (no error tag), apart from these known items:
 #  - vocab.wrong at a constrained prompt (baker-, fisher-, smith- and farmer-open) whose answer set does not hold the line, also on lines a grammar understood
 #    (M67 removes it from understood lines; the host's path, which first takes out a greeting and the listener's name, gives it on fewer lines);
-#  - puede usted vender pan: conj.person=vende (M66 fixes it);
+#  - puede usted vender pan gave conj.person=vende until M66, which fixed it;
 #  - me llamo ana: vocab.unknown, ana being a name the lexicon lacks and no grammar of villager-open binds.
 # scripts/try-lines.sh --check compares the output with review1.expected (the CLI) and review1.host.expected (--host).
 # Rows: prompt|line; blank lines and lines starting with # are skipped.

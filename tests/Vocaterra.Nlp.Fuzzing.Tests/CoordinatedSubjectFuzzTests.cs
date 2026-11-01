@@ -11,7 +11,8 @@ namespace Vocaterra.Nlp.Fuzzing.Tests;
 /// their clause as the end of one plural subject (<c>luz y yo fuimos</c>), and the realiser models it (<c>SentenceRealizer.CoordinationBefore</c>) instead of agreeing the
 /// verb with the last pronoun. The oracles draw these shapes rarely (a random pattern with a conjunction before a pronoun and a verb), so this test realises them from
 /// patterns that have them and checks O3's and O4's claims on each: every sentence analyzes clean and matches its grammar, the coordinations of each person are reached,
-/// and every person or gender mutation of one is flagged as named.
+/// and every person or gender mutation of one is flagged as named. M66 widened them again to <c>ni … ni</c> and <c>o</c>, which the analyzer joins as <c>y</c> (and
+/// <c>o</c> with the nearest member's form as well).
 /// </summary>
 public sealed class CoordinatedSubjectFuzzTests
 {
@@ -29,6 +30,13 @@ public sealed class CoordinatedSubjectFuzzTests
         "[WORD:name] y [PRON] [VERB] [ART] [NOUN:item]",
         "[PRON] [VERB] [ART] [NOUN:item] y [PRON] [VERB] [ART] [NOUN:other]",
         "pero [PRON] y [PRON] [VERB] [ART] [NOUN:item]",
+
+        // M66: ni ... ni and o.
+        "ni [PRON] ni [PRON] [VERB] [ART] [NOUN:item]",
+        "[PRON] o [PRON] [VERB] [ART] [NOUN:item]",
+        "o [PRON] o [PRON] [VERB:ser] [ADJ]",
+        "ni [ART] [NOUN:who] ni [PRON] [VERB:estar] [ADJ]",
+        "[PRON] o [PRON] [VERB:ser] [ADJ]",
     ];
 
     [Fact]
@@ -36,6 +44,8 @@ public sealed class CoordinatedSubjectFuzzTests
     {
         var persons = new HashSet<string>(StringComparer.Ordinal);
         var coordinated = 0;
+        var disjunctive = 0;
+        var negative = 0;
         var personMutations = 0;
         var genderMutations = 0;
         var options = new SentenceOptions { OptionalProbability = 1.0, SubjectProbability = 1.0, PoliteProbability = 0.0, OneProbability = 0.0 };
@@ -65,6 +75,8 @@ public sealed class CoordinatedSubjectFuzzTests
 
                 coordinated++;
                 persons.Add(coordination.Person);
+                disjunctive += coordination.NearestPerson is null ? 0 : 1;
+                negative += sentence.Tokens[0].Norm == "ni" ? 1 : 0;
 
                 // O4: a person mutation of the verb, and a gender mutation of the predicate adjective, are flagged as named.
                 foreach (var kind in new[] { MutationKind.ConjPerson, MutationKind.GenderAdjective })
@@ -95,6 +107,8 @@ public sealed class CoordinatedSubjectFuzzTests
         }
 
         Assert.True(coordinated >= 50, $"Only {coordinated} coordinated subjects were realised.");
+        Assert.True(disjunctive >= 20, $"Only {disjunctive} subjects joined by o were realised.");
+        Assert.True(negative >= 20, $"Only {negative} subjects joined by ni were realised.");
         Assert.Equal(["1", "2", "3"], persons.Order(StringComparer.Ordinal));
         Assert.True(personMutations >= 20, $"Only {personMutations} person mutations of a coordinated subject.");
         Assert.True(genderMutations >= 1, "No gender mutation of a predicate adjective after a coordinated subject.");

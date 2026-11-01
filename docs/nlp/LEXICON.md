@@ -197,6 +197,10 @@ The coverage tests (`LexiconCoverageTests`) found `saeta` (an alias in the `item
 They are in `lexicon/supplement.json`. `se` was added to `cefr/a1.txt`: it counted as covered only because the accent-insensitive lookup read `se` as `sé`.
 `cefr-check` for A1 and A2 lists no template word that it did not list before, with the same word or its lemma (A1: 32 to 27 not in the list, A2: 31 to 15).
 
+M66 (2026-11-01) added `ti`, the prepositional pronoun of `tú` (`es para ti`, `tengo pan para ti`), which the import lacks and a learner of the A2 lessons says:
+`para ti` gave `vocab.unknown`. It is in `lexicon/supplement.json` as the import holds `mí`: a pronoun with its own lemma and no features, so no check takes it
+for a subject.
+
 ## Known limits
 
 - The post-processed Spanish file is deprecated by its publisher (see Re-pinning).

@@ -89,6 +89,24 @@ public interface IAnalysisRules
     /// <param name="lemma">The adverb lemma.</param>
     bool IsDegreeAdverb(string lemma);
 
+    /// <summary>
+    /// True for a verb that takes an infinitive right after it, or after the word <paramref name="linker"/> when that is not null (Spanish: <c>poder</c>,
+    /// <c>querer</c>, <c>deber</c> and <c>necesitar</c>; <c>tener</c> with <c>que</c>), so that the reading resolver reads a word there that can be a finite verb of the
+    /// indicative as that verb, the learner's slip for the infinitive, where its other readings cannot stand there (<c>puedo pago</c>, <c>tengo que voy</c>; M66). The
+    /// default is none.
+    /// </summary>
+    /// <param name="lemma">The verb lemma.</param>
+    /// <param name="linker">The lemma of the word right after the verb, or null for the verb alone.</param>
+    bool IsModalVerb(string lemma, string? linker) => false;
+
+    /// <summary>
+    /// True for a verb of <see cref="IsModalVerb"/> that may also take a noun as its object (Spanish: <c>querer</c>, <c>deber</c>, <c>necesitar</c>: <c>quiero
+    /// vino</c>, <c>necesito pago</c>), so that a word after it that is a noun and a verb stays the noun unless the word after it can only be a noun (<c>quiero vendo
+    /// madera</c>; M66). The default is none.
+    /// </summary>
+    /// <param name="lemma">The verb lemma.</param>
+    bool ModalTakesNounObject(string lemma) => false;
+
     /// <summary>Creates the agreement checker (subject-verb, tense, copula, noun phrase agreement and word order) for one resolved sentence.</summary>
     /// <param name="resolved">The tokens with the readings narrowed by the resolver.</param>
     /// <param name="errors">The list the checker adds its errors to.</param>
