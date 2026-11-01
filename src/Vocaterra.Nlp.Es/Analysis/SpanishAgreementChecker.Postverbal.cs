@@ -25,20 +25,31 @@ internal sealed partial class SpanishAgreementChecker
                 continue;
             }
 
-            var verb = FirstReading(v, r => r.Mood == LexiconSchema.Indicative && r.Person == "3" && r.Tense is not null && TakesPostverbalSubject(v, r.Lemma));
+            var start = NextContentIndex(v + 1);
+            var neuter = start >= 0 && IsLoneNeuterPronoun(start);
+            var verb = FirstReading(v, r => r.Mood == LexiconSchema.Indicative && r.Person == "3" && r.Tense is not null
+                && (TakesPostverbalSubject(v, r.Lemma) || (neuter && r.Lemma == "ser" && FollowsPriceQuestionWord(v))));
             if (verb is null || HasPreverbalSubject(v))
             {
                 continue;
             }
 
-            var start = NextContentIndex(v + 1);
-            if (start < 0 || !TryReadNounPhrase(start, out var phrase))
+            string? number;
+            if (neuter)
+            {
+                // M66: a neuter pronoun is singular (¿cuánto cuestan todo? -> cuesta, ¿cuánto son todo? -> es; ¿cuánto cuesta eso? is clean).
+                number = LexiconSchema.Singular;
+            }
+            else if (start < 0 || !TryReadNounPhrase(start, out var phrase))
             {
                 continue;
             }
+            else
+            {
+                var experiencer = SpanishAnalysisTables.IsExperiencerVerb(verb.Lemma) && HasDativePronounBefore(v);
+                number = SubjectNumber(phrase, timeIsSubject: experiencer);
+            }
 
-            var experiencer = SpanishAnalysisTables.IsExperiencerVerb(verb.Lemma) && HasDativePronounBefore(v);
-            var number = SubjectNumber(phrase, timeIsSubject: experiencer);
             if (number is null || readings.Any(r => r.Lemma == verb.Lemma && r.Person == "3" && r.Number == number && r.Tense == verb.Tense))
             {
                 continue;
@@ -137,13 +148,30 @@ internal sealed partial class SpanishAgreementChecker
             return true;
         }
 
-        if (!SpanishAnalysisTables.IsPriceVerb(lemma))
+        return SpanishAnalysisTables.IsPriceVerb(lemma) && FollowsPriceQuestionWord(verbIndex);
+    }
+
+    // The verb at index follows cuánto, with a dative pronoun between or not (¿cuánto cuesta?, ¿cuánto te cuesta?, ¿cuánto es?).
+    private bool FollowsPriceQuestionWord(int verbIndex)
+    {
+        var before = HasDativePronounBefore(verbIndex) ? verbIndex - 2 : verbIndex - 1;
+        return before >= 0 && TextOf(before) is "cuánto" or "cuanto";
+    }
+
+    // M66: a neuter pronoun (todo, eso, esto, aquello) that stands alone after the verb: no determiner, noun or adjective after it that it would be the determiner of
+    // (todo el pan, todo junto is left to the phrase), and no y, o or ni joining it to another (eso y esto).
+    private bool IsLoneNeuterPronoun(int index)
+    {
+        if (!SpanishAnalysisTables.IsNeuterPronoun(TextOf(index)))
         {
             return false;
         }
 
-        var before = HasDativePronounBefore(verbIndex) ? verbIndex - 2 : verbIndex - 1;
-        return before >= 0 && TextOf(before) is "cuánto" or "cuanto";
+        var next = index + 1;
+        return next >= _tokens.Count
+            || !(IsDeterminer(next)
+                || HasReading(next, static r => r.Pos is LexiconSchema.Noun or LexiconSchema.Adjective)
+                || TextOf(next) is "y" or "e" or "o" or "u" or "ni");
     }
 
     private bool HasDativePronounBefore(int verbIndex)
@@ -162,7 +190,9 @@ internal sealed partial class SpanishAgreementChecker
             var readings = _tokens[j].Readings;
             if (readings.Any(static r => r.Pos == LexiconSchema.Conjunction) || SpanishAnalysisTables.IsClauseOpener(TextOf(j)))
             {
-                return false;
+                // M66 (M63): a subject pronoun right before the question word is the subject of the question's verb (ellas dónde están, ellas adónde van), which
+                // CheckSubjectVerb agrees with it; the phrase after the verb is then no subject.
+                return SpanishAnalysisTables.IsQuestionWordAfterSubject(TextOf(j)) && j > 0 && IsSubjectPronounAt(j - 1);
             }
 
             if (readings.Count == 0 || readings.Any(static r => r.Pos == LexiconSchema.Pronoun && WordClasses.IsSubjectPronoun(r.Lemma)))
@@ -182,6 +212,13 @@ internal sealed partial class SpanishAgreementChecker
         }
 
         return false;
+    }
+
+    // A subject pronoun at index that no preposition governs.
+    private bool IsSubjectPronounAt(int index)
+    {
+        return HasReading(index, static r => r.Pos == LexiconSchema.Pronoun && r.Person is not null && WordClasses.IsSubjectPronoun(r.Lemma))
+            && !(index > 0 && IsPreposition(index - 1));
     }
 
     // A noun inside a phrase that a preposition opens (a mi hermano, de la plaza): the words before it back to the preposition are determiners and adjectives.

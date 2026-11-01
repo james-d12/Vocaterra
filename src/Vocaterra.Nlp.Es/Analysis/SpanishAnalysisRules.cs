@@ -53,6 +53,11 @@ internal sealed class SpanishAnalysisRules : IAnalysisRules
 
     public bool IsDegreeAdverb(string lemma) => SpanishAnalysisTables.IsDegreeAdverb(lemma);
 
+    public bool IsModalVerb(string lemma, string? linker) =>
+        linker is null ? SpanishAnalysisTables.IsModalVerb(lemma) : SpanishAnalysisTables.IsModalWithLinker(lemma, linker);
+
+    public bool ModalTakesNounObject(string lemma) => SpanishAnalysisTables.ModalTakesNounObject(lemma);
+
     public IAgreementChecker CreateAgreementChecker(IReadOnlyList<AnalyzedToken> resolved, List<ErrorTag> errors) =>
         new SpanishAgreementChecker(resolved, _morphology, errors, this);
 }

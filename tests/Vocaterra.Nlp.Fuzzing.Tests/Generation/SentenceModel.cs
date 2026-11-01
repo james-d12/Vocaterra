@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Text;
 using Vocaterra.Nlp.Core.Verdicts;
+using Vocaterra.Nlp.Language.Lexicon;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests.Generation;
 
@@ -81,11 +82,59 @@ public sealed record SentenceToken(
 /// <summary>
 /// A subject of members joined by <c>y</c> or <c>e</c> that a subject pronoun ends (M64; mirror of <c>SpanishAgreementChecker.CoordinationOf</c>): the person its verb takes,
 /// always plural (<c>1</c> when a member is of the first person; else <c>2</c> when one is of the second, whose verb may be of the second or the third person plural; else
-/// <c>3</c>), and its gender, known only when every member has one.
+/// <c>3</c>), and its gender, known only when every member has one. M66: <c>ni</c> joins one the same way, and <c>o</c> (<c>u</c>) too, whose verb may also take the
+/// person and number of the member nearest it, the pronoun (<c>tú o yo voy</c>).
 /// </summary>
 /// <param name="Person">The dominant person of the members.</param>
 /// <param name="Gender">The gender of the subject, or null.</param>
-public sealed record SubjectCoordination(string Person, string? Gender);
+/// <param name="NearestPerson">With <c>o</c>, the person of the pronoun that ends the subject; null with <c>y</c> and <c>ni</c>.</param>
+/// <param name="NearestNumber">With <c>o</c>, the number of the pronoun that ends the subject; null with <c>y</c> and <c>ni</c>.</param>
+/// <param name="NearestGender">With <c>o</c>, the gender of the pronoun that ends the subject, or null.</param>
+public sealed record SubjectCoordination(string Person, string? Gender, string? NearestPerson = null, string? NearestNumber = null, string? NearestGender = null)
+{
+    /// <summary>True when a verb of this person and number agrees with the subject: the plural of <see cref="Person"/>, or with <c>o</c> the nearest member's.</summary>
+    /// <param name="person">The verb's person.</param>
+    /// <param name="number">The verb's number.</param>
+    public bool Accepts(string? person, string? number)
+    {
+        return AcceptsPlural(person, number) || (NearestPerson is not null && person == NearestPerson && number == NearestNumber);
+    }
+
+    /// <summary>True when a verb of this person and number agrees with the subject by the person rule of <c>y</c>: the plural of <see cref="Person"/>.</summary>
+    /// <param name="person">The verb's person.</param>
+    /// <param name="number">The verb's number.</param>
+    public bool AcceptsPlural(string? person, string? number)
+    {
+        return number == LexiconSchema.Plural && Person switch
+        {
+            "1" => person == "1",
+            "2" => person is "2" or "3",
+            _ => person == "3",
+        };
+    }
+
+    /// <summary>
+    /// The gender and number a predicate adjective takes after a copula of this person and number (mirror of <c>SpanishAgreementChecker.PredicateSubjectOf</c>, M66):
+    /// with <c>o</c>, a copula of the nearest member's cell alone gives that member's; any other the plural, and a gender only where the nearest member's and the
+    /// coordination's are one; with <c>y</c> and <c>ni</c>, the plural and the coordination's gender.
+    /// </summary>
+    /// <param name="person">The copula's person.</param>
+    /// <param name="number">The copula's number.</param>
+    public (string? Gender, string Number) PredicateAgreement(string? person, string? number)
+    {
+        if (NearestPerson is null)
+        {
+            return (Gender, LexiconSchema.Plural);
+        }
+
+        if (person == NearestPerson && number == NearestNumber && !AcceptsPlural(person, number))
+        {
+            return (NearestGender, NearestNumber!);
+        }
+
+        return (Gender == NearestGender ? Gender : null, LexiconSchema.Plural);
+    }
+}
 
 /// <summary>A sentence realised from a grammar, correct by construction, with the structure the mutation generator needs.</summary>
 /// <param name="PatternSource">Where the grammar came from: <c>catalog</c>, <c>skeleton</c> or <c>random</c>.</param>

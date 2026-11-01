@@ -109,9 +109,17 @@ internal sealed partial class SpanishAgreementChecker
                 }
 
                 // M64: the last pronoun of a coordinated subject gives the plural, and a gender only when every member has one (ella y él son altos, él y yo somos
-                // altos); a coordination that cannot be told gives neither.
+                // altos); a coordination that cannot be told gives neither. M66: with o, a copula that agrees with the nearest member alone (tú o yo soy alto) takes
+                // that member's gender and number; any other copula the plural, and a gender only where the nearest member's and the coordination's are one (o
+                // vosotros o nosotras somos guapas and guapos: somos agrees with both readings).
                 return CoordinationOf(p, pronoun, out var coordinated) switch
                 {
+                    Coordination.Subject when coordinated.Nearest is { } nearest
+                        && copulas.Exists(r => r.Person == nearest.Person && r.Number == nearest.Number)
+                        && !copulas.Exists(r => coordinated.PluralCells.Contains((r.Person!, r.Number!)))
+                        => new PredicateSubject(pronoun.Gender, pronoun.Number),
+                    Coordination.Subject when coordinated.Nearest is not null
+                        => new PredicateSubject(coordinated.Gender == pronoun.Gender ? coordinated.Gender : null, LexiconSchema.Plural),
                     Coordination.Subject => new PredicateSubject(coordinated.Gender, LexiconSchema.Plural),
                     Coordination.Unknown => new PredicateSubject(null, null),
                     _ => new PredicateSubject(pronoun.Gender, pronoun.Number),

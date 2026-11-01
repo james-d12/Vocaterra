@@ -36,8 +36,8 @@ public sealed class LexiconCatalog
     public static readonly IReadOnlyList<string> DeterminerAdjectiveLemmas =
         ["mucho", "poco", "otro", "varios", "todo", "mi", "tu", "su", "nuestro", "vuestro", "este", "ese", "aquel"];
 
-    /// <summary>Adjectives that normally precede the noun (mirror of <c>AnalysisTables.PrenominalAdjectives</c>).</summary>
-    public static readonly IReadOnlyList<string> PrenominalLemmas = ["grande", "bueno", "malo"];
+    /// <summary>Adjectives that normally precede the noun (mirror of <c>AnalysisTables.PrenominalAdjectives</c>; <c>cada</c> since M66).</summary>
+    public static readonly IReadOnlyList<string> PrenominalLemmas = ["grande", "bueno", "malo", "cada"];
 
     // M62: the Spanish analysis rules, read through the public interface rather than mirrored: which adjectives go after their noun (the colours).
     private static readonly IAnalysisRules SpanishRules = AnalysisRules.For(SpanishLanguagePack.Instance);
@@ -114,6 +114,12 @@ public sealed class LexiconCatalog
     /// adverb: the realiser models a coordinated subject (M64) only where its first member surely opens its clause.
     /// </summary>
     public static readonly IReadOnlyList<string> SubjectClauseOpeners = ["y", "e", "pero", "porque", "si", "cuando", "aunque"];
+
+    /// <summary>
+    /// The question words, as written, that may stand between a subject pronoun and its verb (mirror of <c>SpanishAnalysisTables.QuestionWordsAfterSubject</c>,
+    /// M66): the pronoun before one is the subject of the verb after it (<c>ella qué quiere</c>).
+    /// </summary>
+    public static readonly IReadOnlyList<string> QuestionWordsAfterSubject = ["qué", "dónde", "adónde", "cuándo", "cómo"];
 
     /// <summary>
     /// The words that say how much a sum is, as written (mirror of <c>SpanishAnalysisTables.AmountPredicates</c>, M64): after an amount and a singular <c>ser</c>
@@ -707,6 +713,21 @@ public sealed class LexiconCatalog
     public static bool IsDegreeAdverb(string lemma)
     {
         return SpanishRules.IsDegreeAdverb(lemma);
+    }
+
+    /// <summary>
+    /// True for a verb that takes an infinitive right after it, or after <paramref name="linker"/> (M66: <c>poder</c>, <c>querer</c>, <c>deber</c>, <c>necesitar</c>;
+    /// <c>tener que</c>; <see cref="IAnalysisRules.IsModalVerb"/> of the Spanish pack): a finite verb there is the learner's slip for the infinitive.
+    /// </summary>
+    public static bool IsModalVerb(string lemma, string? linker)
+    {
+        return SpanishRules.IsModalVerb(lemma, linker);
+    }
+
+    /// <summary>True for a modal that may also take a noun as its object (M66: <c>querer</c>, <c>deber</c>, <c>necesitar</c>; <see cref="IAnalysisRules.ModalTakesNounObject"/>).</summary>
+    public static bool ModalTakesNounObject(string lemma)
+    {
+        return SpanishRules.ModalTakesNounObject(lemma);
     }
 
     private IReadOnlyList<string> BuildAdjectives()

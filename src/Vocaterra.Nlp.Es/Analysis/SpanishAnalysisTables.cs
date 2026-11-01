@@ -17,7 +17,9 @@ internal static class SpanishAnalysisTables
         "alto", "bajo", "inteligente", "simpático", "amable", "guapo", "feo", "importante", "fácil", "difícil", "trabajador",
     }.ToFrozenSet(StringComparer.Ordinal);
 
-    private static readonly FrozenSet<string> PrenominalAdjectives = new[] { "grande", "bueno", "malo" }.ToFrozenSet(StringComparer.Ordinal);
+    // The adjectives that go before their noun, so that order is no slip. M66: cada (cada manzana cuesta una moneda gave word_order "manzana cada"); it is no
+    // determiner adjective here, because cada dos días puts it before a plural.
+    private static readonly FrozenSet<string> PrenominalAdjectives = new[] { "grande", "bueno", "malo", "cada" }.ToFrozenSet(StringComparer.Ordinal);
 
     // M62: the colours go after their noun in neutral Spanish (manzanas rojas; tres rojas manzanas is a slip of order). Several are also nouns (roja, blanca, rosa,
     // gris), so the reading resolver reads such a word as the adjective right before a word that can only be a noun (IAnalysisRules.IsPostnominalAdjective).
@@ -92,6 +94,21 @@ internal static class SpanishAnalysisTables
     // M56. Verbs of price, whose subject follows them in the price question (¿cuánto cuesta el pan?, ¿cuánto valen los panes?); elsewhere the noun phrase after them is
     // the price (cuestan dos monedas).
     private static readonly FrozenSet<string> PriceVerbs = new[] { "costar", "valer" }.ToFrozenSet(StringComparer.Ordinal);
+
+    // M66. The verbs that take an infinitive right after them (puedo pagar, quiero vender, debo comer, necesito comprar); tener takes it after que (tengo que ir). A finite
+    // form of a verb in that place is the learner's slip for the infinitive (puedo pago -> pagar), as after ir a.
+    private static readonly FrozenSet<string> ModalVerbs = new[] { "poder", "querer", "deber", "necesitar" }.ToFrozenSet(StringComparer.Ordinal);
+
+    // M66. The modals of ModalVerbs that also take a noun as their object (quiero vino, necesito pago, debo dinero); poder and tener que take none.
+    private static readonly FrozenSet<string> NounObjectModals = new[] { "querer", "deber", "necesitar" }.ToFrozenSet(StringComparer.Ordinal);
+
+    // M66. The neuter pronouns, which are singular: the subject of a verb after it in the price question (¿cuánto cuesta todo?, ¿cuánto es eso?). todo is an adjective in
+    // the lexicon; alone after the verb it is the pronoun.
+    private static readonly FrozenSet<string> NeuterPronouns = new[] { "todo", "eso", "esto", "aquello" }.ToFrozenSet(StringComparer.Ordinal);
+
+    // M66 (M63). The question words that may stand between a subject pronoun and its verb (ellas dónde están, tú qué quieres), written with their accent: without it
+    // (que, donde, como) they may open a relative clause (ella que quiere pan) or be another word.
+    private static readonly FrozenSet<string> QuestionWordsAfterSubject = new[] { "qué", "dónde", "adónde", "cuándo", "cómo" }.ToFrozenSet(StringComparer.Ordinal);
 
     // M56. Nouns that measure a stretch of time, beside the time nouns: a noun phrase of one of them after a verb is how long or when (están la tarde en casa), not its subject.
     private static readonly FrozenSet<string> DurationNouns = new[]
@@ -322,6 +339,36 @@ internal static class SpanishAnalysisTables
     public static bool IsPriceVerb(string lemma)
     {
         return PriceVerbs.Contains(lemma);
+    }
+
+    /// <summary>True for a verb that takes an infinitive right after it (<c>poder</c>, <c>querer</c>, <c>deber</c>, <c>necesitar</c>; M66).</summary>
+    public static bool IsModalVerb(string lemma)
+    {
+        return ModalVerbs.Contains(lemma);
+    }
+
+    /// <summary>True for the modal that takes an infinitive after a linking word: <c>tener</c> with <c>que</c> (M66).</summary>
+    public static bool IsModalWithLinker(string lemma, string word)
+    {
+        return lemma == "tener" && word == "que";
+    }
+
+    /// <summary>True for a modal that may also take a noun as its object (<c>querer</c>, <c>deber</c>, <c>necesitar</c>: <c>quiero vino</c>; M66).</summary>
+    public static bool ModalTakesNounObject(string lemma)
+    {
+        return NounObjectModals.Contains(lemma);
+    }
+
+    /// <summary>True for a neuter pronoun as written (<c>todo</c>, <c>eso</c>, <c>esto</c>, <c>aquello</c>), which is singular (M66).</summary>
+    public static bool IsNeuterPronoun(string word)
+    {
+        return NeuterPronouns.Contains(word);
+    }
+
+    /// <summary>True for a question word, as written with its accent, that may stand between a subject pronoun and its verb (<c>tú qué quieres</c>; M66).</summary>
+    public static bool IsQuestionWordAfterSubject(string word)
+    {
+        return QuestionWordsAfterSubject.Contains(word);
     }
 
     /// <summary>True for a noun that says when or for how long (the time nouns, the seasons, <c>tarde</c>, <c>rato</c>...): a noun phrase of one after a verb is no subject.</summary>

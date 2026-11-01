@@ -240,12 +240,50 @@ public class PreverbalSubjectTests
         Assert.Equal(string.Empty, Described("domingo tengo pan", "[WORD:name] [VERB:tener] [NOUN:item]"));
     }
 
-    // cuesta is also a noun (a slope), and with no grammar to bind the verb the charitable reading takes the noun rather than report a mistake; the game's prompts
-    // bind their verbs (see the game's sentences above).
+    // cuesta is also a noun (a slope). A grammar that binds the verb makes it the verb, as the game's prompts do (see the game's sentences above); since M66 so does
+    // a phrase with a determiner that opens the utterance (below), which before M66 the charitable reading ran into the noun.
     [Fact]
     public void AVerbThatIsAlsoANounIsCheckedWhereAGrammarBindsTheVerb()
     {
-        Assert.Equal(string.Empty, Described("dos panes cuesta tres monedas"));
+        Assert.Equal("conj.person|cuesta|cuestan", Described("dos panes cuesta tres monedas"));
         Assert.Equal("conj.person|cuesta|cuestan", Described("dos panes cuesta tres monedas", "[NUM:qty]? [NOUN:item] [VERB:costar] [NUM]? [NOUN]"));
+    }
+
+    // ---- M66 (4b): a noun that is also a verb after the phrase that opens the utterance ------------------------------------------------------------------------
+
+    // The QA pass (2026-11-01, QA-language-3): las manzanas cuesta una moneda was praised at the farmer's prompt. cuesta is also a noun, and the charitable reading
+    // ran the phrase into it, so the person check saw no verb. A noun phrase does not run into a bare noun: a word right after its noun that is a noun and a verb of
+    // the third person (and no adjective) is the verb. Each gave nothing before M66, with and without the game's price grammar.
+    [Theory]
+    [InlineData("las manzanas cuesta una moneda", "conj.person|cuesta|cuestan")]
+    [InlineData("los panes cuesta dos monedas", "conj.person|cuesta|cuestan")]
+    [InlineData("las manzanas rojas cuesta una moneda", "conj.person|cuesta|cuestan")]
+    [InlineData("las manzanas vale una moneda", "conj.person|vale|valen")]
+    public void APluralNounBeforeASingularVerbOfPriceIsFlagged(string sentence, string expected)
+    {
+        Assert.Equal(expected, Described(sentence));
+        Assert.Equal(expected, Described(sentence, "[ART]? [NUM:qty]? [NOUN:item] [ADJ]? [VERB:costar] [ART]? [NUM]? [NOUN]"));
+    }
+
+    [Theory]
+    [InlineData("las manzanas es roja", "conj.person|es|son")]
+    [InlineData("un pan cuestan dos monedas", "conj.person|cuestan|cuesta")]
+    public void TheNeighboursThatWereFlaggedBeforeStillAre(string sentence, string expected)
+    {
+        Assert.Equal(expected, Described(sentence));
+    }
+
+    // cada manzana gave word_order "manzana cada" before M66 (cada, an adjective that goes before its noun, was not listed as one); the others were clean before.
+    [Theory]
+    [InlineData("las manzanas cuestan una moneda")]
+    [InlineData("la manzana cuesta una moneda")]
+    [InlineData("cada manzana cuesta una moneda")]
+    [InlineData("dos manzanas cuestan dos monedas")]
+    [InlineData("la cuesta es larga")]
+    [InlineData("el pan vino y agua")]
+    [InlineData("cada dos días como pan")]
+    public void ASubjectThatAgreesWithItsVerbOfPriceIsClean(string sentence)
+    {
+        Assert.Equal(string.Empty, Described(sentence));
     }
 }

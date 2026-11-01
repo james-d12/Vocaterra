@@ -29,9 +29,12 @@ public sealed class FuzzLanguageStreamTests
     // (V10 to V16) re-recorded them with the generators unchanged; M57 (c) moved them to the frozen inputs (copied at 0041eff), the generators unchanged. The sentence
     // digest again at M57 (a), whose realiser finds the time markers of more than one word (TimeMarkerModel) and whose fixture grammars gained two patterns with them;
     // the text digest did not move. The sentence digest again at M62, whose realiser agrees a predicate adjective with the copula's subject (a noun phrase before or
-    // after it, not only a pronoun) and re-rolls a colour that is also a noun right before a noun; the text digest did not move.
+    // after it, not only a pronoun) and re-rolls a colour that is also a noun right before a noun; the text digest did not move. The sentence digest again at M66, whose
+    // realiser joins a subject with ni and o, agrees the verb after a pronoun and a question word with the pronoun, makes the verb after tener que an infinitive, and
+    // draws no noun that is also a verb form after poder, tener que or the noun of the phrase that opens the sentence (re-rolling such a word elsewhere); the text
+    // digest did not move.
     private const string TextDigest = "24826CDAB4703637C13D991FE7D2FF0010F467C05BCD9D5C6C2F1AF9065D8D25";
-    private const string SentenceDigest = "00E3E81BD0D7067E505E5D1EFBCBF1F18F9D8B7D3067033B44BA7A321ABC418B";
+    private const string SentenceDigest = "9F6EABB2B7DC49AD0A225CE609144CF8B75956DF0F6190D9B5CB95D19E6FB843";
 
     [Fact]
     public void TheSpanishRecordUsesTheSpanishPackAndTheWholeMutationSet()

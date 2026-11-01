@@ -212,4 +212,55 @@ public class LearnerSlipTests
             Assert.Equal(first, second);
         }
     }
+
+    // ---- M66 (5, 6, 7) ---------------------------------------------------------------------------------------------------------------------------------------------
+
+    // (5) The slip reading of costa after the phrase that opens the utterance held only for a noun of its number (el pan costa); a plural noun gave nothing before M66.
+    // It is the verb of either number, so the stem change and the person are both reported, as after cuánto (cuánto costa los panes), and the recast is cuestan.
+    [Theory]
+    [InlineData("los panes costa dos monedas", "conj.person|costa|cuestan;conj.irregular|costa|cuesta")]
+    [InlineData("las manzanas costa una moneda", "conj.person|costa|cuestan;conj.irregular|costa|cuesta")]
+    public void AStemChangeMissedAfterAPluralPhraseIsTheVerbOfThePlural(string sentence, string expected)
+    {
+        Assert.Equal(expected, Described(sentence));
+    }
+
+    [Theory]
+    [InlineData("vivo en la costa")]
+    [InlineData("la costa es bonita")]
+    [InlineData("los panes cuestan dos monedas")]
+    [InlineData("las costas son bonitas")]
+    public void TheCoastAndTheRealPluralStayClean(string sentence)
+    {
+        Assert.Equal(string.Empty, Described(sentence));
+    }
+
+    // (6) The plural slip covered nouns only: azuls gave vocab.unknown before M66. An adjective that ends in l, r, n, d, z or j takes -es as well.
+    [Theory]
+    [InlineData("las casas azuls", "noun.number|azuls|azules")]
+    [InlineData("azuls", "noun.number|azuls|azules")]
+    [InlineData("los niños felizs", "noun.number|felizs|felices")]
+    public void APluralWithTheWrongEndingIsANumberSlipOfAKnownAdjective(string sentence, string expected)
+    {
+        Assert.Equal(expected, Described(sentence));
+    }
+
+    [Theory]
+    [InlineData("las casas azules")]
+    [InlineData("azules")]
+    [InlineData("la casa azul")]
+    public void TheRealPluralOfAnAdjectiveStaysClean(string sentence)
+    {
+        Assert.Equal(string.Empty, Described(sentence));
+    }
+
+    // (7) ti, the prepositional pronoun (as mí), was missing from the lexicon: para ti gave vocab.unknown before M66 (lexicon/supplement.json).
+    [Theory]
+    [InlineData("es para ti")]
+    [InlineData("tengo pan para ti")]
+    [InlineData("es para mí")]
+    public void TiIsAWordOfTheLexicon(string sentence)
+    {
+        Assert.Equal(string.Empty, Described(sentence));
+    }
 }

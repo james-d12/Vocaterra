@@ -172,6 +172,23 @@ code comments and here, with the reason:
     parts of speech is not guarded: the match does not narrow the readings of a literal spelled like the word. `NarrowedMutationGuardTests` (c) shows the analyzer's
     reading of the failing sentence, that the pattern is not mutated, and that the same pattern with `aunque` (no accent variant), drawn from the same seeds, and the
     same pattern with an `[ADV]?` in front that takes `ayer`, are still mutated and flagged as named.
+  - *O3, O4 and O5, the grading gaps of M66 (2026-11-01, widenings; no oracle narrowed).* (a) The realiser models a subject joined by `ni … ni` and by `o`, which the
+    analyzer now joins as `y` (and `o` with the nearest member's form as well): `SentenceRealizer.CoordinationBefore` reads `ni`, `o` and `u` beside `y` and `e`, and the
+    word said before the first member (`ni tú ni yo`) at the start of the sentence or after a word of `SubjectClauseOpeners`; the verb after `o` takes the nearest
+    member's form on half the draws; the person mutation leaves out the nearest member's cell too, and makes none on a verb of that cell (the analyzer's correction there
+    is the plural). Before M66 the realiser read such a pronoun alone, which the analyzer now flags for `ni` (`ni tú ni yo fui`) and accepts in more cells for `o`.
+    (b) The realiser agrees a verb after a subject pronoun and a question word (`ella qué quiere`; M63) with the pronoun, and the person mutation makes a first or
+    second person there (`ella qué quieres` gives `quiere`); a third person is not made through such a pronoun, since the analyzer leaves it unchecked in two readings.
+    It makes no person mutation through a pronoun right after a verb that agrees with it (`¿puede usted…?`), whose verb the analyzer checks no more. (c) The tense
+    mutation makes, on every other sentence that has a modal and its infinitive (by the parity of the sentence's length, so that no draw moves), the learner's slip for
+    the infinitive in place of the past marker (`puedo pagar` becomes `puedo pago`, expected `pagar`): a new case of O4 and O5, made only where the form is that verb's
+    indicative and nothing else, has no accent variant, and is no modal, copula, `haber`, `tener` or `ir`. (d) The realiser makes the verb after `tener que` an infinitive,
+    as after a modal and `ir a`, and re-rolls a word that the reading resolver may read as a verb: a word right after a modal (`skip:modal-complement-homograph`; nouns
+    that are also verb forms are not drawn after `poder` and `tener que`), and a noun that is also a verb of the third person right after the noun of the phrase that
+    opens the sentence or a noun that is also a copula right after `cuánto` (`skip:noun-reads-as-verb`; such nouns are not drawn after the opening phrase). Both are
+    broader than the resolver, which also reads what follows. `CoordinatedSubjectFuzzTests` gained five patterns with `ni` and `o`, and `ModalAndQuestionFuzzTests`
+    realises nine patterns with a modal or a pronoun before a question word, checking O3 and O4 on each. The sentence stream digest of `FuzzLanguageStreamTests` was
+    recorded again for these changes (the text digest did not move).
 - **O8.** The dialect sites are `θ s z h ʎ ʝ ʃ ʒ` (the plan lists `θ s ʎ ʝ h`; the shipped dialects also produce the voiced `z` and the rioplatense `ʃ ʒ`).
   `Tokenize(ToIpaString())` is exact except for the pair `t` + `ʃ`, whose concatenation is the affricate token `tʃ` (the inventory documents that
   sequences are lists for this reason); a result with that pair skips the split.
@@ -426,6 +443,7 @@ sentence after every attempt):
 
 No reason is above 5 %, so the test names no budget of its own; the largest is `accent-variant-homograph`, 4.2 % of O3's draws, each made good by a later attempt.
 The other reasons the realiser has (`coordinated-subject`, `ser-of-place`, `predicate-subject`, `time-marker-of-generated-words`, `past-marker-without-preterite`,
+`modal-complement-homograph` and `noun-reads-as-verb` (M66),
 `no-adjective-form` and the rest) took no draw from these seeds; `CoordinatedSubjectFuzzTests` draws the coordinated subjects on purpose.
 
 ### How the stage-2 generators stay honest
@@ -736,6 +754,8 @@ them explicitly (each is a skip or a restriction in the generator, counted in th
     M56's check of `estar` against the phrase after it starts its clause after `adónde` and gives `conj.person` `está` (on the sentence as generated too, which the
     word-order mutation then exposes). Either the realiser models the clause opener (a generator change, a widening) or the check keeps a subject pronoun before the
     question word (an analyzer change); it is left for the orchestrator, and filed as M63. O3 found the same with `ellas dónde están teme` (seed `c5SlpISRmTZ3`).
+    **Fixed in M66** (M63 folded in): the check keeps a subject pronoun before the question word as the subject, and the realiser agrees the verb after `qué` with it
+    too; both seeds pass, and `InvertedSubjectTests.TheFuzzSeedsOfM63AreClean` in `tests/Vocaterra.Nlp.Es.Tests/Analysis` holds the two sentences.
 - **Found at M64, older than M64, and left for a decision** (seven runs of O3 to O5 at five times the default depth, the last three after the fix of `el ala` above
   and all passing; every run of the project at its default depth passed). *O5, the recast of a `word_order` mutation where the grammar can bind the moved adjective as a name* (CsCheck seed `2tpLGUOSqj41`, `MutationCase { Kind =
   WordOrder, Seed = 17287070985274212 }`): the random pattern `([WORD:item]|[ADJ:qty] [PRON]|[NOUN:spell])? [ADJ]` gives `militar necesaria`; the mutation makes

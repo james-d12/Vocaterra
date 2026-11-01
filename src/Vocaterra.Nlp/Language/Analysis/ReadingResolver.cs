@@ -33,14 +33,21 @@ using Vocaterra.Nlp.Language.SlotGrammar;
 /// M58: a lexicon noun may also carry a learner's slip, the regular cell of an irregular verb its spelling is (<c>costa</c> for <c>cuesta</c>, the stem change missed),
 /// which the analyzer adds after the noun's readings. The rules above read it like any verb reading (<c>yo jugo</c>, <c>me costa</c>: the verb), and two rules read it
 /// alone: after the interrogative quantifier, a word whose noun reading the quantifier cannot agree with is the slip (<c>cuánto costa</c>, not <c>cuánta costa</c>); and
-/// after the noun of a phrase that opens the utterance, a word whose slip is a finite verb of the third person and of that noun's number is the slip
-/// (<c>el pan costa dos monedas</c>).
+/// after the noun of a phrase that opens the utterance, a word whose slip is a finite verb of the third person is the slip (<c>el pan costa dos monedas</c>; since
+/// M66 of either number, <c>los panes costa</c>).
 /// M62: a word that is an adjective and also a noun (and no finite verb), right after the noun of a phrase that a determiner opens and agreeing with that noun and
 /// its determiners, is that noun's adjective (<c>las manzanas rojas son caras</c>); a word that is an adjective of a kind that goes after its noun (<see cref="IAnalysisRules.IsPostnominalAdjective"/>: the
 /// colours) and also a noun, right before a word that can only be a noun that it and the determiners before it agree with, is the adjective put before its noun
 /// (<c>tres rojas manzanas</c>, <c>una roja manzana</c>), so the word-order check sees it; the word after an adverb of degree (<see cref="IAnalysisRules.IsDegreeAdverb"/>: <c>muy</c>, <c>tan</c>) is no noun (<c>es muy cara</c>); and a finite
 /// form of a copula that is also a noun (<c>son</c>, <c>era</c>), right after the noun of a phrase that a determiner opens and before a word that can be an adjective,
 /// is the copula (<c>las manzanas son caras</c>), so the predicate adjective is agreed with its subject.
+/// M66: a word that is a noun and a finite verb of the third person in the indicative (and no adjective), right after the noun of the phrase that opens the
+/// utterance and its adjectives, is the verb (<c>las manzanas cuesta una moneda</c>), unless <c>y</c>, <c>e</c>, <c>o</c> or <c>u</c> follows it (a list); a form of a
+/// copula that is also a noun right after the interrogative quantifier is the copula (<c>¿cuánto son?</c>); and a word right after a modal
+/// (<see cref="IAnalysisRules.IsModalVerb"/>: <c>poder</c>, <c>querer</c>, <c>deber</c>, <c>necesitar</c>, <c>tener que</c>) that can be a finite verb of the
+/// indicative is that verb, the learner's slip for the infinitive, where its other readings cannot stand there: a noun or an adjective after a modal that takes no
+/// noun (<c>puedo pago</c>), a noun before a word that can only be a noun (<c>quiero vendo madera</c>), and a conjunction or an adverb before a phrase opened by a
+/// determiner or <c>más</c> (<c>debo como más fruta</c>); a noun the modal may take stays to the fallback (<c>quiero vino</c>, <c>necesito pago</c>).
 /// </description></item>
 /// <item><description>
 /// <b>Grammar bindings.</b> When a slot grammar matched the whole utterance, every token was consumed by a grammar element, and that element names the reading:
@@ -276,9 +283,18 @@ internal static class ReadingResolver
             // M58: a noun phrase that opens the utterance does not run on into a bare noun. A word right after its noun that is a lexicon noun and, as a learner's slip,
             // a finite verb of the third person and the number of that noun is the verb (el pan costa dos monedas: costar with its stem change missed), so the slip is
             // reported. A real verb form that is also a noun (el pan cuesta) is left to the fallback as before.
+            // M66: of either number (los panes costa dos monedas: costar, which the person check then agrees with the phrase, cuestan).
             if (i == 0 && _slips is not null && HasReading(0, IsDeterminer))
             {
                 changed |= ResolveSlipAfterOpeningPhrase();
+            }
+
+            // M66: nor into a noun that is also a verb of the third person. A word right after its noun that is a lexicon noun and a finite verb of the third person in
+            // the indicative, and no adjective, is the verb (las manzanas cuesta una moneda: costar, which the person check then agrees with the phrase, cuestan; before
+            // M66 the fallback read the noun cuesta, which hid the mistake). A list said without its commas (el pan vino y agua) is left as it was.
+            if (i == 0 && HasReading(0, IsDeterminer))
+            {
+                changed |= ResolveVerbAfterOpeningPhrase();
             }
 
             // An adjective that does not follow a word that can be a noun (looking back over the adjectives before it) is prenominal, so a word after it that can be a
@@ -306,6 +322,12 @@ internal static class ReadingResolver
                 if (head < Count && HasReading(head, r => r.Pos == LexiconSchema.Noun) && interrogative && IsSlipVerbAfterQuantifier(i, head))
                 {
                     changed |= Narrow(head, r => IsSlip(head, r));
+                }
+                else if (head == next && interrogative && HasReading(head, r => r.Pos == LexiconSchema.Noun) && HasReading(head, IsCopulaReading))
+                {
+                    // M66: a form of a copula that is also a noun right after the interrogative is the copula (¿cuánto son?, ¿cuánto son todo?: ser, which the person
+                    // check agrees with todo), as after dónde.
+                    changed |= Narrow(head, IsCopulaReading);
                 }
                 else if (head < Count
                     && HasReading(head, r => r.Pos == LexiconSchema.Noun)
@@ -389,6 +411,14 @@ internal static class ReadingResolver
                 && All(next, r => r.Pos == LexiconSchema.Verb && r.Person is null))
             {
                 changed |= Narrow(i, r => ReadingClasses.IsFiniteVerb(r) && _rules.IsNearFutureAuxiliary(r.Lemma));
+            }
+
+            // M66: a modal takes an infinitive (puedo pagar, quiero vender, tengo que ir), so a word right after it that can be a finite verb of the indicative is the
+            // learner's slip for one (puedo pago, quiero vendo madera, debo como más fruta), which the checks report as after ir a, where its other readings cannot stand
+            // there (IsFiniteVerbAfterModal); a noun the modal may take stays to the fallback (quiero vino).
+            if (ModalComplement(i, out var modal) is var governed and >= 0 && IsFiniteVerbAfterModal(i, governed, modal))
+            {
+                changed |= Narrow(governed, r => IsIndicativeVerb(governed, r));
             }
 
             // M62: a word that is a descriptive adjective and also a noun, and no finite verb, right after the noun of a phrase that a determiner opens and agreeing with
@@ -496,9 +526,38 @@ internal static class ReadingResolver
                 return false;
             }
 
-            bool Agrees(LexicalFeatures r) =>
-                IsSlip(verb, r) && ReadingClasses.IsFiniteVerb(r) && r.Person == "3" && HasReading(head, h => h.Number is null || h.Number == r.Number);
-            return HasReading(verb, Agrees) && Narrow(verb, Agrees);
+            bool IsThirdPersonSlip(LexicalFeatures r) => IsSlip(verb, r) && ReadingClasses.IsFiniteVerb(r) && r.Person == "3";
+            return HasReading(verb, IsThirdPersonSlip) && Narrow(verb, IsThirdPersonSlip);
+        }
+
+        // M66: the word after the noun of the noun phrase that opens the utterance (as ResolveSlipAfterOpeningPhrase reads it) and its adjectives, when it is a lexicon noun and a finite
+        // verb of the third person in the indicative, no adjective, and no y, e, o or u follows it.
+        private bool ResolveVerbAfterOpeningPhrase()
+        {
+            var head = 1;
+            while (head < Count && (IsCertainDeterminer(head) || IsCertainAdjective(head)))
+            {
+                head++;
+            }
+
+            // Past the adjectives of the noun (las manzanas rojas cuesta), once the rule of M62 has read them as adjectives.
+            var verb = head + 1;
+            while (verb < Count && IsCertainAdjective(verb))
+            {
+                verb++;
+            }
+
+            if (verb >= Count
+                || !All(head, static r => r.Pos == LexiconSchema.Noun)
+                || !HasReading(verb, static r => r.Pos == LexiconSchema.Noun)
+                || HasReading(verb, static r => r.Pos == LexiconSchema.Adjective)
+                || (verb + 1 < Count && _candidates[verb + 1].Exists(static r => r.Pos == LexiconSchema.Conjunction && r.Lemma is "y" or "e" or "o" or "u")))
+            {
+                return false;
+            }
+
+            bool IsThirdPersonVerb(LexicalFeatures r) => IsIndicativeVerb(verb, r) && r.Person == "3";
+            return HasReading(verb, IsThirdPersonVerb) && Narrow(verb, r => ReadingClasses.IsFiniteVerb(r) && !IsSlip(verb, r));
         }
 
         // M59: the words after a preposition of elapsed time are a phrase of time: determiners (dos, un, unos, mucho, poco) and then a noun of a stretch of time (hace dos
@@ -590,6 +649,112 @@ internal static class ReadingResolver
                 && _rules.IsNearFutureLinker(_candidates[index][0].Lemma)
                 && All(index - 1, r => ReadingClasses.IsFiniteVerb(r) && _rules.IsNearFutureAuxiliary(r.Lemma))
                 && HasReading(index - 1, r => r.Mood != LexiconSchema.Imperative);
+        }
+
+        // M66: the index of the word the modal at index governs, the next one (puedo pagar) or the one after its linking word (tengo que ir), with the modal's lemma;
+        // -1 when the word at index is no finite form of a modal.
+        private int ModalComplement(int index, out string modal)
+        {
+            modal = string.Empty;
+            if (!All(index, ReadingClasses.IsFiniteVerb))
+            {
+                return -1;
+            }
+
+            var reading = _candidates[index].Find(r => r.Mood != LexiconSchema.Imperative && _rules.IsModalVerb(r.Lemma, null));
+            if (reading is not null && index + 1 < Count)
+            {
+                modal = reading.Lemma;
+                return index + 1;
+            }
+
+            if (index + 2 < Count && _candidates[index + 1].Count > 0)
+            {
+                var linker = _candidates[index + 1][0].Lemma;
+                reading = _candidates[index].Find(r => r.Mood != LexiconSchema.Imperative && _rules.IsModalVerb(r.Lemma, linker));
+                if (reading is not null)
+                {
+                    modal = reading.Lemma;
+                    return index + 2;
+                }
+            }
+
+            return -1;
+        }
+
+        // M66: a reading that is a finite verb of the indicative and no learner's slip.
+        private bool IsIndicativeVerb(int index, LexicalFeatures reading)
+        {
+            return ReadingClasses.IsFiniteVerb(reading) && reading.Mood == LexiconSchema.Indicative && !IsSlip(index, reading);
+        }
+
+        // M66: the word at complement, after the modal at modalIndex, can be a finite verb of the indicative other than the modal, and its other readings cannot stand
+        // after the modal:
+        //  - a noun or an adjective, after a modal that takes no noun as its object (puedo pago, tengo que pago: poder and tener que);
+        //  - a noun, and no adjective, before a word that can only be a noun and says no time, which a noun would run into (quiero vendo madera: two bare nouns make
+        //    no phrase);
+        //  - a conjunction or an adverb, before a phrase that a determiner or a noun-modifying adverb opens and that says no time (debo como más fruta, debo como un
+        //    pan), with no object pronoun before the modal (te quiero como a un hermano).
+        // Left to the other rules and the fallback: a word that is also a preposition, a pronoun, a determiner or a verb without a person; a noun that a modal which
+        // takes nouns may take (quiero vino, necesito pago, quiero vino blanco, quiero vino el domingo); an adjective after such a modal (quiero lleno el vaso); and the
+        // conjunction before anything else (necesito como mínimo dos panes, puedo como mucho dos, quiero como postre fruta).
+        private bool IsFiniteVerbAfterModal(int modalIndex, int complement, string modal)
+        {
+            if (!HasReading(complement, r => IsIndicativeVerb(complement, r) && !string.Equals(r.Lemma, modal, StringComparison.Ordinal)))
+            {
+                return false;
+            }
+
+            var others = _candidates[complement].FindAll(static r => !ReadingClasses.IsFiniteVerb(r));
+            if (others.Count == 0 || others.Exists(static r => r.Pos is not (LexiconSchema.Noun or LexiconSchema.Adjective or LexiconSchema.Conjunction or LexiconSchema.Adverb)))
+            {
+                return false;
+            }
+
+            var next = complement + 1;
+            if (others.TrueForAll(static r => r.Pos is LexiconSchema.Noun or LexiconSchema.Adjective))
+            {
+                return !_rules.ModalTakesNounObject(modal)
+                    || (others.TrueForAll(static r => r.Pos == LexiconSchema.Noun)
+                        && next < Count
+                        && All(next, r => r.Pos == LexiconSchema.Noun && !_rules.IsElapsedTimeNoun(r.Lemma)));
+            }
+
+            return others.TrueForAll(static r => r.Pos is LexiconSchema.Conjunction or LexiconSchema.Adverb)
+                && !(modalIndex > 0 && All(modalIndex - 1, r => r.Pos == LexiconSchema.Pronoun && _rules.IsPreverbalPronoun(r.Lemma) && !_rules.IsSubjectPronoun(r.Lemma)))
+                && OpensDeterminedPhrase(next);
+        }
+
+        // M66: a phrase that is no phrase of time starts at index, opened by a determiner (un pan, dos panes, la fruta) or a noun-modifying adverb before a noun (más
+        // fruta).
+        private bool OpensDeterminedPhrase(int index)
+        {
+            if (index >= Count)
+            {
+                return false;
+            }
+
+            int head;
+            if (All(index, r => r.Pos == LexiconSchema.Adverb && _rules.IsNounModifyingAdverb(r.Lemma)))
+            {
+                head = index + 1;
+            }
+            else if (HasReading(index, IsDeterminer) && !HasReading(index, static r => r.Pos == LexiconSchema.Preposition))
+            {
+                head = index + 1;
+                while (head < Count && (IsCertainDeterminer(head) || IsCertainAdjective(head)))
+                {
+                    head++;
+                }
+            }
+            else
+            {
+                return false;
+            }
+
+            return head < Count
+                && HasReading(head, static r => r.Pos == LexiconSchema.Noun)
+                && !HasReading(head, r => r.Pos == LexiconSchema.Noun && _rules.IsElapsedTimeNoun(r.Lemma));
         }
 
         // M62: the word at index is an adjective of a kind that goes after its noun (the colours) and also a noun, the word after it can only be a noun, and the phrase

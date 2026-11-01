@@ -175,4 +175,58 @@ public class CoordinatedSubjectTests
     {
         Assert.Equal(string.Empty, Described(sentence));
     }
+
+    // ---- M66: ni ... ni and o ----------------------------------------------------------------------------------------------------------------------------------
+
+    // ni ... ni takes the person rule of y (the plural); o takes it too and the form of the member nearest the verb. Before M66 ni tú ni yo fuimos gave conj.person
+    // "fui", tú o yo vamos "voy", ni ella ni yo somos altas "soy" (and noun.number "alta"), o tú o yo vamos "voy", tú o ella son "eres" and ni tú ni él son "es"
+    // (M64 read the pronoun alone), and o vosotros o nosotras somos guapos gender.agree "guapas" (somos agrees with nosotras and with the plural of both, so the
+    // adjective's gender is left open). Noun phrases joined by ni or o were never checked, and are not now (ni luz ni mar fueron, luz o mar va).
+    [Theory]
+    [InlineData("ni tú ni yo fuimos")]
+    [InlineData("ni tú ni yo fuimos al río")]
+    [InlineData("ni ella ni yo somos altas")]
+    [InlineData("tú o yo vamos")]
+    [InlineData("o tú o yo vamos")]
+    [InlineData("tú o ella son altas")]
+    [InlineData("ni tú ni él son amigos")]
+    [InlineData("o vosotros o nosotras somos guapos")]
+    public void NiAndOJoinASubjectAsYDoes(string sentence)
+    {
+        Assert.Equal(string.Empty, Described(sentence));
+    }
+
+    // Clean before M66 as well, and still: o with the form of the nearest member, and noun phrases joined by ni or o.
+    [Theory]
+    [InlineData("tú o yo voy")]
+    [InlineData("tú o ella es alta")]
+    [InlineData("o vosotros o nosotras somos guapas")]
+    [InlineData("ni luz ni mar fueron al río")]
+    [InlineData("luz o mar va")]
+    [InlineData("luz o mar van")]
+    public void OAlsoTakesTheNearestMemberAndNounPhrasesStayUnchecked(string sentence)
+    {
+        Assert.Equal(string.Empty, Described(sentence));
+    }
+
+    // A verb that agrees with no accepted form is flagged with the plural (tú o yo vas gave "voy" before M66; ni tú ni yo fui gave nothing, yo fui agreeing).
+    [Theory]
+    [InlineData("ni tú ni yo fui", "conj.person|fui|fuimos")]
+    [InlineData("tú o yo vas", "conj.person|vas|vamos")]
+    [InlineData("ni ella ni yo soy altas", "conj.person|soy|somos")]
+    [InlineData("tú o ella es alto", "gender.agree|alto|alta")]
+    public void AVerbThatAgreesWithNoFormOfNiOrOIsFlagged(string sentence, string expected)
+    {
+        Assert.Equal(expected, Described(sentence));
+    }
+
+    // o or ni that joins two clauses leaves the pronoun its own subject, and a coordination that mixes y and o cannot be told.
+    [Theory]
+    [InlineData("comes pan o yo como fruta")]
+    [InlineData("tú y ella o yo vamos")]
+    [InlineData("tú y ella o yo voy")]
+    public void OAfterAClauseOrMixedWithYIsLeftAsBefore(string sentence)
+    {
+        Assert.Equal(string.Empty, Described(sentence));
+    }
 }

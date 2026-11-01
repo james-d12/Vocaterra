@@ -201,4 +201,35 @@ public class PostverbalSubjectTests
     {
         Assert.Equal(expected, Described(sentence));
     }
+
+    // ---- M66 (4): todo, eso and esto are singular ---------------------------------------------------------------------------------------------------------------
+
+    // The price check agreed costar only with a noun phrase after it, so ¿cuánto cuestan todo? gave nothing; the neuter pronouns are singular. ser after cuánto takes
+    // them too (¿cuánto son todo?), and son, also a noun, is the copula right after cuánto. Each gave nothing before M66.
+    [Theory]
+    [InlineData("cuánto cuestan todo", "conj.person|cuestan|cuesta")]
+    [InlineData("cuánto cuestan eso", "conj.person|cuestan|cuesta")]
+    [InlineData("cuánto valen esto", "conj.person|valen|vale")]
+    [InlineData("cuánto son todo", "conj.person|son|es")]
+    [InlineData("cuánto son eso", "conj.person|son|es")]
+    [InlineData("me gustan todo", "conj.person|gustan|gusta")]
+    public void ANeuterPronounAfterTheVerbIsSingular(string sentence, string expected)
+    {
+        Assert.Equal(expected, Described(sentence));
+    }
+
+    [Theory]
+    [InlineData("cuánto cuesta todo")]
+    [InlineData("cuánto es todo")]
+    [InlineData("cuánto cuesta eso")]
+    [InlineData("cuánto cuestan las manzanas")]
+    [InlineData("cuánto son las manzanas")]
+    [InlineData("cuánto son")]
+    [InlineData("cuánto cuestan todos")]
+    [InlineData("cuánto cuestan eso y esto")]
+    [InlineData("me gusta todo")]
+    public void ASingularVerbBeforeANeuterPronounAndThePluralBeforeAPhraseStayClean(string sentence)
+    {
+        Assert.Equal(string.Empty, Described(sentence));
+    }
 }

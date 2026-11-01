@@ -322,7 +322,8 @@ public sealed class MorphologyGenerator : IMorphology
     /// <c>luces</c>, <c>relojes</c>); the slip is the <c>-s</c> of a noun that ends in a vowel (<c>pans</c>), or <c>-es</c> after a <c>z</c> left unchanged
     /// (<c>luzes</c>). Nouns that end in another consonant are mostly loans that take <c>-s</c> (<c>robots</c>, <c>clubs</c>, <c>tickets</c>), so they are not
     /// considered. The noun is found as written or without its accents (<c>cancions</c> is <c>canción</c>), and the expected plural is the lexicon's (or the rule's).
-    /// A form the lexicon knows, accents ignored, is never reported.
+    /// A form the lexicon knows, accents ignored, is never reported. M66: an adjective that ends in one of those consonants is the same slip (<c>azuls</c> for
+    /// <c>azules</c>, <c>felizs</c> for <c>felices</c>), found after the nouns.
     /// </remarks>
     public bool TryGetPluralSlip(string form, out PluralSlip result)
     {
@@ -354,6 +355,22 @@ public sealed class MorphologyGenerator : IMorphology
             }
 
             var expected = InflectNoun(reading.Lemma, LexiconSchema.Plural);
+            if (expected.EndsWith("es", StringComparison.Ordinal) && !string.Equals(expected, form, StringComparison.Ordinal))
+            {
+                result = new PluralSlip(reading.Lemma, expected);
+                return true;
+            }
+        }
+
+        // M66: an adjective that ends in one of those consonants takes -es as well (azul: azules, not azuls; feliz: felices; joven: jóvenes), in either gender.
+        foreach (var reading in _lexicon.Lookup(stem))
+        {
+            if (reading.Pos != LexiconSchema.Adjective || reading.Number is not (null or LexiconSchema.Singular))
+            {
+                continue;
+            }
+
+            var expected = AgreeAdjective(reading.Lemma, reading.Gender ?? LexiconSchema.Masculine, LexiconSchema.Plural);
             if (expected.EndsWith("es", StringComparison.Ordinal) && !string.Equals(expected, form, StringComparison.Ordinal))
             {
                 result = new PluralSlip(reading.Lemma, expected);
