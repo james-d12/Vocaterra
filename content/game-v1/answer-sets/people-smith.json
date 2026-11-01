@@ -22,7 +22,7 @@
     {
       "answerId": "sell",
       "canonical": "vendo madera",
-      "aliases": ["yo vendo madera", "te vendo madera", "quiero vender madera", "tengo madera para usted"],
+      "aliases": ["yo vendo madera", "te vendo madera", "quiero vender madera", "tengo madera para usted", "vendo tres bloques de madera", "te vendo tres bloques de madera", "vendo un bloque de madera", "quiero vender tres bloques de madera", "vendo dos bloques de madera", "tengo dos bloques de madera para usted"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
     },
     {

@@ -81,6 +81,38 @@ public sealed class SellingTests
         Assert.Equal("moneda, request", Assert.Single(WorldEventsOf(session, WorldEvents.ItemGiven)).Detail);
     }
 
+    [Theory]
+    [InlineData("baker", "vendo tres bloques de madera", 3)] // wood counted as Luz counts it (V15b): unknown with vocab.wrong before
+    [InlineData("baker", "te vendo tres bloques de madera", 3)]
+    [InlineData("baker", "quiero vender tres bloques de madera", 3)]
+    [InlineData("baker", "vendo un bloque de madera", 1)] // the article counts one
+    [InlineData("baker", "Luz, vendo dos bloques de madera", 2)]
+    [InlineData("smith", "vendo dos bloques de madera", 2)]
+    [InlineData("smith", "tengo dos bloques de madera para usted", 2)]
+    public void WoodCountedInBlocksSellsThatMany(string npc, string line, int sold)
+    {
+        var session = At(npc, ItemId.Wood, 4); // four: five would deliver the baker's oven order as the talk opens
+
+        var turn = session.Say(line);
+
+        Assert.Equal(("offer_item", true), (turn.Intent, turn.Communicated));
+        Assert.Empty(turn.Errors);
+        Assert.Equal("madera", turn.Slots["item"]);
+        Assert.Equal((4 - sold, sold), (Count(session, ItemId.Wood), Count(session, ItemId.Coin)));
+    }
+
+    [Fact]
+    public void AnArticleBeforeTheItemCountsOneWhenTheLineNamesNoNumber()
+    {
+        var slots = new Dictionary<string, string>(StringComparer.Ordinal) { ["item"] = "madera" };
+
+        Assert.Equal("1", NpcEffect.CountedSlots(slots, "vendo un bloque de madera")[NpcEffect.QuantitySlot]);
+        Assert.Equal("1", NpcEffect.CountedSlots(slots, "Vendo una fruta.")[NpcEffect.QuantitySlot]);
+        Assert.Same(slots, NpcEffect.CountedSlots(slots, "vendo madera")); // no article, no number: every one the bag holds
+        var three = new Dictionary<string, string>(StringComparer.Ordinal) { ["item"] = "madera", ["qty"] = "3" };
+        Assert.Same(three, NpcEffect.CountedSlots(three, "vendo tres bloques de madera"));
+    }
+
     [Fact]
     public void ANumberSaidSellsThatManyAndNeverMoreThanTheBagHolds()
     {

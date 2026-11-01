@@ -160,6 +160,14 @@ public sealed class VillageTalkTests
     [InlineData("farmer-open", "¿puedo pagar con fruta?", "ask_pay", "Aquí se paga con monedas. Pero yo te compro fruta.")]
     [InlineData("baker-open", "hola, quiero dos panes", "request_item", "Toma tu pan. ¡Gracias!")] // a greeting before a request: the rest is answered (V15)
     [InlineData("baker-open", "hola Luz quiero dos panes", "request_item", "Toma tu pan. ¡Gracias!")]
+    [InlineData("baker-open", "buenas tardes, ¿cuánto cuesta el pan?", "ask_price", "El pan cuesta dos monedas.")] // V15b: no vocab.wrong on the greeting
+    [InlineData("baker-open", "buen día, ¿cuánto cuesta el pan?", "ask_price", "El pan cuesta dos monedas.")]
+    [InlineData("farmer-open", "buenos días, ¿puedo pagar con fruta?", "ask_pay", "Aquí se paga con monedas. Pero yo te compro fruta.")]
+    [InlineData("baker-open", "vendo tres bloques de madera", "offer_item", "¡Gracias! Aquí tienes tus monedas.")] // V15b: wood counted in blocks
+    [InlineData("baker-open", "te vendo tres bloques de madera", "offer_item", "¡Gracias! Aquí tienes tus monedas.")]
+    [InlineData("baker-open", "quiero vender tres bloques de madera", "offer_item", "¡Gracias! Aquí tienes tus monedas.")]
+    [InlineData("lesson-sell", "quiero vender tres bloques de madera", "offer_item", "¡Gracias! Aquí tienes tus monedas.")]
+    [InlineData("smith-open", "vendo dos bloques de madera", "offer_item", "¡Gracias! Aquí tienes tus monedas.")]
     public void TheMarketsLinesAreTheirIntentsCommunicatedAndErrorFree(string prompt, string line, string intent, string reply)
     {
         var result = Evaluate(line, prompt);
@@ -178,12 +186,14 @@ public sealed class VillageTalkTests
     [InlineData("farmer-open", "¿podo pagar con fruta?", "ask_pay", "conj.irregular", "puedo")]
     [InlineData("lesson-will-sell", "mañana vendí fruta", "state_action", "conj.tense", "voy a vender")]
     [InlineData("lesson-will-sell", "yo venderás fruta", "state_action", "conj.person", "venderé")]
+    [InlineData("baker-open", "buenos días, ¿cuánto cuestan el pan?", "ask_price", "conj.person", "cuesta")] // V15b: the error after a greeting stays, alone
     public void TheMarketsSlipsAreGradedAndTheIntentHolds(string prompt, string line, string intent, string tag, string expected)
     {
         var verdict = Evaluate(line, prompt).Verdict;
 
         Assert.Equal((intent, true), (verdict.Intent.Value, verdict.Communicated));
         Assert.Equal(expected, Assert.Single(verdict.Errors, e => e.Tag == tag).Expected);
+        Assert.DoesNotContain(verdict.Errors, static e => e.Tag == "vocab.wrong");
     }
 
     [Theory]

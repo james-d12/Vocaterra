@@ -98,8 +98,29 @@ public sealed record NpcEffect(
     public static NpcEffect BuyAt(ItemId item, int price) => new(NpcEffectKind.Buy, item, Price: price);
 
     /// <summary>
-    /// How many items a purchase from the learner takes (<see cref="NpcEffectKind.Buy"/>): the number the learner said (<c>vendo dos frutas</c>, at most
-    /// <see cref="MaxQuantity"/>) or, with no number, every one the bag holds (<c>vendo madera</c>: the wood the learner carries); never more than the bag holds.
+    /// The verdict's slots as the host's effects read them (V15b): an indefinite article before the item (<c>vendo un bloque de madera</c>, <c>vendo una fruta</c>) counts
+    /// one when the line names no number, since the core reads <c>un</c> as an article and fills no <see cref="QuantitySlot"/>. A purchase and a gift give one with no
+    /// number anyway; a sale (<see cref="NpcEffectKind.Buy"/>) takes one instead of every one the bag holds. The verdict itself is unchanged.
+    /// </summary>
+    /// <param name="slots">The verdict's slots.</param>
+    /// <param name="line">What the learner said.</param>
+    public static IReadOnlyDictionary<string, string> CountedSlots(IReadOnlyDictionary<string, string> slots, string line)
+    {
+        ArgumentNullException.ThrowIfNull(slots);
+        ArgumentNullException.ThrowIfNull(line);
+        if (slots.ContainsKey(QuantitySlot) || !PhraseSheet.Plain(line).Split(' ').Any(static w => w is "un" or "una"))
+        {
+            return slots;
+        }
+
+        var counted = slots.ToDictionary(static s => s.Key, static s => s.Value, StringComparer.Ordinal);
+        counted[QuantitySlot] = "1";
+        return counted;
+    }
+
+    /// <summary>
+    /// How many items a purchase from the learner takes (<see cref="NpcEffectKind.Buy"/>): the number the learner said (<c>vendo dos frutas</c>, <c>vendo tres bloques de
+    /// madera</c>, <c>vendo un bloque de madera</c> through <see cref="CountedSlots"/>; at most <see cref="MaxQuantity"/>) or, with no number, every one the bag holds (<c>vendo madera</c>: the wood the learner carries); never more than the bag holds.
     /// </summary>
     /// <param name="slots">The verdict's slots.</param>
     /// <param name="held">How many of the item the bag holds.</param>

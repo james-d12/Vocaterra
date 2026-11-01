@@ -36,6 +36,9 @@ public static class Greeting
         ["buen", "dia"],
     ];
 
+    // Every word of the openings (hola, buenos, buenas, dias, tardes, noches, buen, dia), as plain words.
+    private static readonly HashSet<string> GreetingWords = Openings.SelectMany(static o => o).ToHashSet(StringComparer.Ordinal);
+
     /// <summary>The words of the line after its opening greeting, with their own punctuation, or <see langword="null"/> when the line does not open with a greeting or has nothing after it.</summary>
     /// <param name="line">What the learner typed or the recognizer heard (the listener's name already taken out, <see cref="Vocative.Without(string, string?)"/>).</param>
     public static string? Rest(string line)
@@ -67,8 +70,11 @@ public static class Greeting
     }
 
     /// <summary>
-    /// Whether the turn is answered by its rest (see the type's summary): the whole line was read as a greeting or not understood, and the rest is understood, as another
-    /// intent than a greeting, which the prompt takes.
+    /// Whether the turn is answered by its rest (see the type's summary): the rest is understood, as another intent than a greeting, which the prompt takes; and the whole
+    /// line was read as a greeting or not understood, or (V15b) as the rest's own intent with the rest's errors and some on the greeting's words besides. A greeting's
+    /// words are never flagged when the rest is understood: <c>buenas tardes, ¿cuánto cuesta el pan?</c> was the price with <c>vocab.wrong</c> on <c>buenas</c> (the
+    /// keyword <c>costar</c> read the whole line, and a constrained prompt's answers have no greeting); a real error after the greeting stays, since the rest has it too
+    /// (<c>buenos días, ¿cuánto cuestan el pan?</c> is <c>conj.person</c> alone).
     /// </summary>
     /// <param name="line">The verdict of the whole line.</param>
     /// <param name="rest">The verdict of the words after the greeting.</param>
@@ -79,11 +85,20 @@ public static class Greeting
         ArgumentNullException.ThrowIfNull(rest);
         ArgumentNullException.ThrowIfNull(prompt);
         var lineGreets = !line.Communicated || string.Equals(line.Intent.Value, Intent, StringComparison.Ordinal);
-        return lineGreets
+        var sameButTheGreeting = line.Communicated && string.Equals(line.Intent.Value, rest.Intent.Value, StringComparison.Ordinal)
+            && Errors(line, exceptOnTheGreeting: true).SequenceEqual(Errors(rest, exceptOnTheGreeting: false), StringComparer.Ordinal);
+        return (lineGreets || sameButTheGreeting)
             && rest.Communicated
             && !string.Equals(rest.Intent.Value, Intent, StringComparison.Ordinal)
             && prompt.AllowedIntentIds.Contains(rest.Intent.Value, StringComparer.Ordinal);
     }
+
+    // A verdict's errors as tag, expected and heard word, in order; without those on a greeting's words when asked (the word heard is one of the openings').
+    private static IEnumerable<string> Errors(Verdict verdict, bool exceptOnTheGreeting) =>
+        verdict.Errors
+            .Where(e => !exceptOnTheGreeting || !GreetingWords.Contains(PhraseSheet.Plain(e.Actual)))
+            .Select(static e => $"{e.Tag}|{e.Expected}|{PhraseSheet.Plain(e.Actual)}")
+            .Order(StringComparer.Ordinal);
 
     // How many tokens the opening greeting takes, with the recognizer's unknown tokens before it (0 when the line does not open with one, or has nothing after it).
     private static int OpeningLength(string[] tokens)

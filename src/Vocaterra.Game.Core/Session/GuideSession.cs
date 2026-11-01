@@ -1263,7 +1263,7 @@ public abstract partial class GuideSession : IDisposable
 
         if (turn.HostEvents.Count > 0)
         {
-            ApplyHostEvents(npc, turn.HostEvents, turn.FailForward ? "fail_forward" : "request", turn.Slots);
+            ApplyHostEvents(npc, turn.HostEvents, turn.FailForward ? "fail_forward" : "request", NpcEffect.CountedSlots(turn.Slots, turn.Line));
         }
 
         if (!turn.Unsure && turn.Input == InputKind.Spoken)
