@@ -246,6 +246,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M60 | Game finding (the V series, CI on PR #20, 2026-10-31): `LintTests.TheBundleLintTakesUnderFiveSeconds` took about 6 s on the GitHub runner. Phase A grew `content/game-v1` to 47 prompts and 385 examples, and the confusion check analysed each example once per rival intent (about 33 times; 12 139 analyses, 1.4 of the lint's 1.6 s). `LinguisticAnalyzer.Analyze` becomes exactly `Read` (the text alone), `BestMatch` (the only step that reads grammars) and `Complete`, all internal; `LintContext` reads each text once, matches each grammar once and completes once per winning grammar; the expectations check reuses those analyses (`TextGrader`'s internal constructor). The lint's output is byte-identical (30 outputs on the bundle before and after phase A); the lint takes 398 ms instead of 1610 (Debug). The timing test reads the bundle before its clock starts; its 5 s budget is unchanged | M27a | S | done (merged to `feature/village` `95bd7bf`, 2026-10-31) |
 | M62 | Game finding (the V series, V13 "¿Cómo es?", 2026-10-31): two adjective checks are silent. (a) A predicate adjective is not agreed with the subject across `ser`: `la manzana es rojo` (expected `roja`) and `el pan es grandes` (expected `grande`) give no `gender.agree` or `noun.number`, where the attributive `quiero tres manzanas rojos` gives `gender.agree` correctly; (b) an adjective before its noun is not understood: `quiero tres rojas manzanas` and `quiero una roja manzana` resolve no intent, and with a grammar that matches them give no `word_order` (expected `manzanas rojas`); colour adjectives, which do not go before the noun in neutral Spanish, are the case to flag, and `una gran casa`, `un buen pan`, `la primera casa` stay clean. Regression tests in the owning module; the fuzz oracles unchanged or widened, never narrowed. The game's sheet uses `quiero tres manzanas rojos` (`gender.agree`) meanwhile (`content/PHRASES.md`, `la-manzana-es-roja`, `quiero-tres-manzanas-rojas`) | M56 | S | done 2026-11-01 (`65b04e6`, on `feature/village`, and the follow-up M62b `5f3450b`; findings in §5b; three older fuzz findings at five times the depth left for the owner and the orchestrator) |
 | M63 | Fuzz finding (M62's runs at five times the default depth, 2026-11-01; older than M62, analysed the same at `76f52f8`): a subject pronoun before a question word is lost to M56's check. `ellas adónde están un detenido lento` (CsCheck seeds `8zKtIhOY3951`, O5, `MutationCase { Kind = WordOrder, Seed = 19287181529 }`, and `c5SlpISRmTZ3`, O3, `ellas dónde están teme`): the check of `estar` against the phrase after it starts its clause after `adónde` and gives `conj.person` `está`, where `están` agrees with `ellas`. Keep a subject pronoun before the question word as the subject (`ellos dónde están`, `ella qué quiere`), with regression tests in the owning module; the fuzz oracles unchanged or widened (the realiser may model the clause opener instead), never narrowed. Not in phase B's queue; filed for after it | M56 | S | planned (not started; filed 2026-11-01, after V09 or when the owner asks) |
+| M64 | Review finding (the review of `feature/village` before PR #20's merge, `docs/qa-reports/2026-11-review-feature-village.md` R1, R2, R5 and R6; the owner, 2026-11-01: "fix them all"): (a) a subject pronoun joined by `y` is read alone, so correct Spanish is flagged and recast into wrong Spanish (`mar y yo fuimos al río` at session 8's `lesson-we-went` gave `conj.person` `fui` and the recast «Mar y yo fui al río»; `tú y yo somos amigos` gave `soy`; M62 added `noun.number` on a predicate adjective); (b) an amount before a singular `ser` (`diez monedas es mucho dinero` gave `son`); (c) `es cerca del mediodía` gave `ser_estar`; (d) ADR 0009 had no note for M56 to M62's public surface; (e) the lists of `SpanishTimeMarkers` could be written through a cast. Regression tests in the owning module; the fuzz oracles widened, with one narrowing for (b) at the owner's request | M59, M62 | S | done 2026-11-01 (`23af5cd`, on `feature/village`; findings in §5b) |
 
 ### Delegation waves
 
@@ -1434,6 +1435,51 @@ merge into a feature branch that is pushed, and the owner merges it into `main` 
     analyzer is right; the realiser re-rolls a drawn name that is a lexicon noun right after a determiner or a stand-alone adjective
     (`skip:name-read-as-noun`, the kind M62 used; no oracle narrowed). Regression `NameReadAsNounTests`; three default runs and one at five
     times the depth passed; nothing moved. 7034 passed and 3 skipped after.
+
+- **M64, the core findings of the review of `feature/village` (2026-11-01, Opus 5.5 xhigh; merged to `feature/village` `23af5cd`, before
+  the game's V19).**
+  - (a), `SpanishAgreementChecker.Coordination.cs`: a subject pronoun joined by `y` or `e` to members before it that open their clause
+    (M59's test) ends one plural subject. A first person gives 1pl; else a second person gives 2pl or 3pl (`ustedes`; both accepted, a
+    correction proposes 3pl); else 3pl. A predicate adjective after it is plural, with a gender only when every member has one.
+    - `CheckSubjectVerb` and `PredicateSubjectOf` read it.
+    - A `y` after a verb or a preposition joins clauses, and the pronoun is checked alone: `luz hizo pan y yo fui al río` is clean,
+      `luz hizo pan y yo fuimos al río` gives `fui`.
+    - A list without its commas (`luz mar y yo`) is not checked, and a phrase with `de` is one member.
+    - A verb that agrees with no accepted person is flagged with the coordinated form (`tú y yo fui` gives `fuimos`), as M59 flags
+      `Luz y Domingo comió`.
+  - (b) A phrase of plural cardinals before a singular `ser`, `fue` or `era` with a singular amount predicate (`mucho`, `poco`,
+    `suficiente`, `caro`…, or a singular phrase with a determiner) is one sum: `diez monedas es mucho dinero` and `dos panes es suficiente`
+    are clean, `dos niños es alto` still gives `son`.
+  - (c) `IsApproximateTime` takes `del`: `es cerca del mediodía` is clean, `la tienda es cerca del río` still gives `está`.
+  - (d) ADR 0009's M64 note lists M56 to M62's public surface (M64 adds none). `API.md` dates `IsVerbSeekingQuestionWord` to M34 and
+    documents (a) to (c), and so does `PIPELINE.md`.
+  - (e) `Array.AsReadOnly`. The compiler's type for those collection expressions was already read-only, so the review's risk was theoretical.
+  - Fuzz:
+    - The realiser models a coordinated pronoun subject where it can tell what the analyzer reads (`CoordinatedSubjectFuzzTests`): O3,
+      O4 and O5 widened.
+    - **One narrowing, at the owner's request to fix the review's findings:** M59's `conj.person` mutation after a noun subject is not
+      made where the sentence opens with a numeral, the verb is `ser` going singular and an amount predicate follows
+      (`AmountMutationGuardTests`). It is documented in the fuzz README, and is a little wider than the analyzer's rule.
+    - Found and fixed at five times the depth, older than M64: `el ala es muy sincera` gave a false `gender.agree` (seed `clQQ50b0dLj2`;
+      a feminine noun that takes `el`).
+    - Found and left, older (it fails the same way at `951e7c8`): O5, a `word_order` recast where the grammar can bind the moved
+      adjective as a name (seed `2tpLGUOSqj41`, at five times the depth).
+  - Tests: 52 new cases failed before the fix (`CoordinatedSubjectTests`, `PreverbalSubjectTests`, `PostverbalSubjectTests`,
+    `PredicateAdjectiveTests`, `SpanishTimeMarkersTests`), with the clean and still-flagged neighbours as tests too. 7259 passed and 3
+    skipped before; 7364 and 3 after, with models. No golden or stream digest moved.
+  - **The gate failed once, on O5,** with CsCheck seed `4YuZ2yubxdC1`: `unas televisiones han` mutated to `ha`.
+    - It is the family of `b3HSKSLCsL_1`: M59's person mutation after a noun subject and `haber`, which M59's check leaves out by design.
+      M64 does not touch it.
+    - The seed reproduces. Five fresh runs of the test and one of the whole fuzz project passed (87 of 87), so the gate was taken as
+      passed under the rule for the open seeds.
+    - **The family now fails at the default depth,** not only at five times it, so a gate or a CI run can hit it. The owner's decision on
+      it (the handover's section 4, item 2) is more pressing.
+  - The orchestrator's spot-check:
+    - the review's 99 lines give what they gave before, except the ten fixed ones;
+    - at `lesson-we-went` through the host, `mar y yo fuimos al río` and the three others give no `conj.person`, and the recast keeps
+      `fuimos`. They still get `vocab.wrong` (correctness 0.4) because the answer set has no subject; that is V19's;
+    - the clause coordinations are clean, and the core demo is exact.
+  - Left: `ni tú ni yo fuimos` and `tú o yo vamos` are still flagged (older; `ni` and `o` were outside the brief).
 
 ## 6. Definition of done (every milestone)
 
