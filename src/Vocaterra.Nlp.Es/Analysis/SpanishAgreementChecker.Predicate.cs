@@ -192,6 +192,13 @@ internal sealed partial class SpanishAgreementChecker
             return genders.Count == 1 ? genders[0] : null;
         }
 
+        // M64 (found by O4 at five times the default depth; older than M64): a feminine noun that takes el (el ala, el agua) is feminine whatever its article says. The
+        // lexicon lists ala with both genders, and el made it masculine: el ala es tan sincera como una saeta gave gender.agree "sincero".
+        if (Readings(phrase.Head, static r => r is { Pos: LexiconSchema.Noun, Gender: LexiconSchema.Feminine } && WordClasses.TakesElBeforeFeminine(r.Lemma)).Count > 0)
+        {
+            return LexiconSchema.Feminine;
+        }
+
         foreach (var determiner in phrase.Determiners)
         {
             var own = Readings(determiner, IsDeterminerReading).Select(static r => r.Gender).OfType<string>().Distinct(StringComparer.Ordinal).ToList();

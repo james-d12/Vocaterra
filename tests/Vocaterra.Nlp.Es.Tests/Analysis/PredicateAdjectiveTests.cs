@@ -51,6 +51,20 @@ public class PredicateAdjectiveTests
         Assert.Equal(expected, Described(sentence));
     }
 
+    // M64, found by the fuzz suite's O4 at five times the default depth (CsCheck seed clQQ50b0dLj2; older than M64): a feminine noun that takes el is feminine
+    // whatever its article says. The lexicon lists ala with both genders, and the article el decided the masculine, so el ala es tan sincera como saeta (with an unknown
+    // word in place of saeta, which unbinds the grammar) and el ala es muy sincera gave gender.agree "sincero" before M64.
+    [Theory]
+    [InlineData("el ala es muy sincera", "")]
+    [InlineData("el ala es tan sincera como saeta", "")]
+    [InlineData("el ala es muy sincero", "gender.agree|sincero|sincera")]
+    [InlineData("el agua está fría", "")]
+    [InlineData("el agua está frío", "gender.agree|frío|fría")]
+    public void AFeminineNounThatTakesElIsFeminine(string sentence, string expected)
+    {
+        Assert.Equal(expected, Described(sentence));
+    }
+
     // The attributive check gives the same two tags for the same double slip, so the predicate check matches it.
     [Theory]
     [InlineData("quiero tres manzanas rojo", "gender.agree|rojo|rojas;noun.number|rojo|rojas")]
