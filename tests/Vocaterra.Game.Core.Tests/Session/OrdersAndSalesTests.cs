@@ -50,7 +50,7 @@ public sealed class OrdersAndSalesTests
     [Theory]
     [InlineData("quiero pan, por favor", 1)]
     [InlineData("quiero dos panes, por favor", 2)]
-    [InlineData("quiero nueve panes, por favor", 5)] // the number asked for is capped at five
+    [InlineData("quiero nueve panes, por favor", 9)] // the number asked for: no cap since V19 (the review's R9; five before), the coins are the bound
     public void ASaleTakesThePriceOfTheNumberAskedForAndGivesThatMany(string line, int loaves)
     {
         var session = NewSession();

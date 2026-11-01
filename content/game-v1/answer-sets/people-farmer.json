@@ -40,7 +40,7 @@
     {
       "answerId": "sell",
       "canonical": "vendo fruta",
-      "aliases": ["yo vendo fruta", "te vendo fruta", "quiero vender fruta"],
+      "aliases": ["yo vendo fruta", "te vendo fruta", "quiero vender fruta", "vendo dos frutas", "te vendo dos frutas", "vendo una fruta", "quiero vender dos frutas"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
     },
     {

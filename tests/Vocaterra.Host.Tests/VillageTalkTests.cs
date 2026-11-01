@@ -126,6 +126,11 @@ public sealed class VillageTalkTests
     [InlineData("baker-open", "Luz, mañana compraré pan", "state_action", "pan")] // V17: a plan at the baker's open prompt, the gate's demo
     [InlineData("lesson-will-fetch", "Domingo, buscaré madera para Luz", "state_action", "madera")] // the smith's name goes, Luz's stays: para joins it to the line
     [InlineData("lesson-luz-will", "Mar, Luz hará pan", "state_action", "pan")]
+    [InlineData("baker-open", "buenos días luz quiero pan", "request_item", "pan")] // V19, the review's R4: "No te entendí" before (the name after hola alone)
+    [InlineData("smith-open", "buenos días domingo vendo madera", "offer_item", "madera")] // a statement about Sunday before, recast «domingo vendo madera»
+    [InlineData("fisher-open", "buenas tardes mar ¿dónde está la panadería?", "ask_directions", "panadería")]
+    [InlineData("farmer-open", "buen día león quiero tres manzanas", "request_item", "manzana")] // vocab.wrong on león before
+    [InlineData("baker-open", "hola luz quiero pan", "request_item", "pan")]
     public void TheListenersNameSaidAsAVocativeIsReadAsTheLineWithoutIt(string prompt, string line, string intent, string? slot)
     {
         var verdict = Evaluate(line, prompt).Verdict;
@@ -168,6 +173,12 @@ public sealed class VillageTalkTests
     [InlineData("baker-open", "quiero vender tres bloques de madera", "offer_item", "¡Gracias! Aquí tienes tus monedas.")]
     [InlineData("lesson-sell", "quiero vender tres bloques de madera", "offer_item", "¡Gracias! Aquí tienes tus monedas.")]
     [InlineData("smith-open", "vendo dos bloques de madera", "offer_item", "¡Gracias! Aquí tienes tus monedas.")]
+    [InlineData("farmer-open", "vendo dos frutas", "offer_item", "¡Gracias! Aquí tienes tus monedas.")] // V19: the answer to León's «¿Cuántas frutas me vendes?» (vocab.wrong on vendo before)
+    [InlineData("farmer-open", "te vendo tres frutas", "offer_item", "¡Gracias! Aquí tienes tus monedas.")]
+    [InlineData("farmer-open", "vendo una fruta", "offer_item", "¡Gracias! Aquí tienes tus monedas.")]
+    [InlineData("baker-open", "te vendo cuatro bloques de madera", "offer_item", "¡Gracias! Aquí tienes tus monedas.")] // the answer to «¿Cuántos bloques de madera me vendes?»
+    [InlineData("farmer-open", "quiero quince manzanas", "request_item", "Aquí tienes. ¡Gracias!")] // V19: no cap (the host has no bag; the game decides)
+    [InlineData("baker-open", "quiero cero panes", "request_item", "Aquí tienes el pan. ¡Gracias!")] // the host has no bag: the game answers none_asked
     public void TheMarketsLinesAreTheirIntentsCommunicatedAndErrorFree(string prompt, string line, string intent, string reply)
     {
         var result = Evaluate(line, prompt);
@@ -194,6 +205,26 @@ public sealed class VillageTalkTests
         Assert.Equal((intent, true), (verdict.Intent.Value, verdict.Communicated));
         Assert.Equal(expected, Assert.Single(verdict.Errors, e => e.Tag == tag).Expected);
         Assert.DoesNotContain(verdict.Errors, static e => e.Tag == "vocab.wrong");
+    }
+
+    [Theory]
+    [InlineData("fuimos al río")] // the canonical answer
+    [InlineData("mar y yo fuimos al río")] // V19, the review's R1 (the game's side): vocab.wrong on mar, correctness 0.4, before the answer set had a subject
+    [InlineData("ayer mar y yo fuimos al río")]
+    [InlineData("mar y yo fuimos al río ayer")]
+    [InlineData("tú y yo fuimos al río")]
+    [InlineData("ayer tú y yo fuimos al río")]
+    [InlineData("tú y yo fuimos al río ayer")]
+    [InlineData("luz y yo fuimos al río")]
+    [InlineData("ayer luz y yo fuimos al río")]
+    [InlineData("luz y yo fuimos al río ayer")]
+    public void SessionEightsAnswerWithASubjectScoresAsTheCanonicalOne(string line)
+    {
+        // «¿Y Mar y tú? ¿Adónde fueron ayer?» invites the subject; the core grades a coordinated subject right since M64, and the answer set holds the answers with one.
+        var verdict = Evaluate(line, "lesson-we-went").Verdict;
+
+        Assert.Equal(("state_action", true, 1.0), (verdict.Intent.Value, verdict.Communicated, verdict.Correctness));
+        Assert.Empty(verdict.Errors);
     }
 
     [Theory]

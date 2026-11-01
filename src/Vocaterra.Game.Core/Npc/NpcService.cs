@@ -587,33 +587,20 @@ public sealed partial class NpcService
 
         // Phase 1: the line is read once. A spoken line is decoded here and nowhere else. The listener's name said as a vocative (Luz, quiero pan) is no part of
         // the sentence, so the core reads the line without it (V14); the turn keeps the line as it was said. A greeting that opens a line with something else to say
-        // (hola, quiero dos panes) is answered by the rest, which the core reads as a line of its own (V15, Greeting).
+        // (hola, quiero dos panes) is answered by the rest, which the core reads as a line of its own (V15, Greeting). Both are LineReading's, as on the host (V19).
         UtteranceAnalysis analysis;
         string said;
         if (clip is null)
         {
             said = typed!;
-            var bare = Vocative.Without(typed!, agent.Npc.Name);
-            analysis = _typed.Analyze(bare, prompt);
-            if (Greeting.Rest(bare) is { } rest && _typed.Analyze(rest, prompt) is var asked && Greeting.AnswersRest(analysis.Verdict, asked.Verdict, prompt))
-            {
-                analysis = asked;
-            }
+            analysis = LineReading.Read(typed!, agent.Npc.Name, prompt, line => _typed.Analyze(line, prompt), static a => a.Verdict);
         }
         else
         {
             var spoken = _spoken ?? throw new InvalidOperationException("No speech is attached to the NPCs.");
-            analysis = spoken.Analyze(clip, prompt);
-            said = analysis.Asr.Transcript;
-            if (Vocative.Without(analysis.Asr, agent.Npc.Name) is { } bare)
-            {
-                analysis = spoken.AnalyzeRecognized(bare, clip, prompt); // the recognizer is not called again
-            }
-
-            if (Greeting.Rest(analysis.Asr) is { } rest && spoken.AnalyzeRecognized(rest, clip, prompt) is var asked && Greeting.AnswersRest(analysis.Verdict, asked.Verdict, prompt))
-            {
-                analysis = asked;
-            }
+            var heard = spoken.Analyze(clip, prompt);
+            said = heard.Asr.Transcript;
+            analysis = LineReading.Read(heard, static a => a.Asr, agent.Npc.Name, prompt, recognition => spoken.AnalyzeRecognized(recognition, clip, prompt), static a => a.Verdict);
         }
 
         var line = CleanTranscript(said);
@@ -699,7 +686,7 @@ public sealed partial class NpcService
         var holdsBottle = scene.Inventory is { } inventory
             && (inventory.Count(ItemId.Bottle) + inventory.Count(ItemId.WaterBottle)) > 0;
         var followUp = new List<string>();
-        var unsaid = AnswerMisses(agent, result, verdict.Slots, scene, scene.Facts ?? _worldFacts, now, hostStateHash, hostEvents, followUp);
+        var unsaid = AnswerMisses(agent, result, NpcEffect.CountedSlots(verdict.Slots, line), scene, scene.Facts ?? _worldFacts, now, hostStateHash, hostEvents, followUp);
         string? feedback = null;
         var replies = new List<string>();
         foreach (var responseLine in result.Response.Lines)
@@ -765,9 +752,9 @@ public sealed partial class NpcService
     }
 
     // The host events of a turn that the world of the turn cannot carry out, judged on the turn's own copy of the world, as the guide's answers are (VILLAGE_PLAN
-    // V02: directions to a place the scene does not have; V03: a purchase the coins the player carried do not cover). Each is answered by the NPC as a host turn,
-    // <npc>.unknown_place or <npc>.cant_pay, whose lines follow the turn's and whose host events join it; the line of the action that raised the missed event is
-    // not said. Returns the pools of those unsaid lines. An agent with no transition for the answer says its line as before.
+    // V02: directions to a place the scene does not have; V03: a purchase the coins the player carried do not cover; V15, V19: another item, none, no room). Each is
+    // answered by the NPC as a host turn, <npc>.unknown_place, <npc>.cant_pay and the rest (Miss), whose lines follow the turn's and whose host events join it; the line
+    // of the action that raised the missed event is not said. Returns the pools of those unsaid lines. An agent with no transition for the answer says its line as before.
     private List<string> AnswerMisses(
         Agent agent,
         PipelineResult result,
@@ -806,15 +793,13 @@ public sealed partial class NpcService
         return unsaid;
     }
 
-    // What the world of the turn cannot do of an action, as the host event its NPC answers (NpcHostEvents.UnknownPlace, WontSell, CantPay, WontBuy, CantSell), or null
-    // when it can. The coins and the goods are the turn's copy of the inventory: a scene with none carries none. A purchase or a sale names its item (V15).
+    // What the world of the turn cannot do of an action, as the host event its NPC answers (NpcHostEvents.UnknownPlace; a purchase's or a sale's miss, NpcEffect.ExchangeMiss:
+    // WontSell, NoneAsked, CantPay, WontBuy, CantSell, NoneOffered, NoRoom), or null when it can. The coins, the goods and the room are the turn's copy of the
+    // inventory: a scene with none carries none. The session asks the same of the bag itself before anything changes hands (VoxelSession.ApplyHostEvents).
     private string? Miss(NpcEffect effect, IReadOnlyDictionary<string, string> slots, GuideScene scene, IGuideFacts facts) => effect.Kind switch
     {
         NpcEffectKind.PointAtSlot when !slots.TryGetValue(effect.Slot, out var word) || _places.Resolve(word, scene.Player, facts) is null => NpcHostEvents.UnknownPlace,
-        NpcEffectKind.Sell when !effect.ItemSaidIn(slots, _nouns) => NpcHostEvents.WontSell,
-        NpcEffectKind.Sell when (scene.Inventory?.Count(ItemId.Coin) ?? 0) < effect.CostFor(slots) => NpcHostEvents.CantPay,
-        NpcEffectKind.Buy when !effect.ItemSaidIn(slots, _nouns) => NpcHostEvents.WontBuy,
-        NpcEffectKind.Buy when (scene.Inventory?.Count(effect.Item) ?? 0) == 0 => NpcHostEvents.CantSell,
+        NpcEffectKind.Sell or NpcEffectKind.Buy => effect.ExchangeMiss(slots, scene.Inventory, _nouns),
         _ => null,
     };
 

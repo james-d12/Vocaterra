@@ -104,6 +104,27 @@ public sealed class MarketSpokenTests(ITestOutputHelper output)
 
     [ModelFact(needsKokoro: true)]
     [Trait(TestSpeed.Trait, TestSpeed.Slow)]
+    public void AMorningGreetingAndHerNameBeforeARequestAreHeardAndTheBreadIsBought()
+    {
+        // V19, the review's R4: the name after a two-word greeting was kept, so the typed line was not understood; the spoken path reads a line as the typed one does.
+        var data = TestGame.Data;
+        var noLessons = LessonBook.Parse("{ \"schemaVersion\": 1, \"lessons\": [] }", data.Phrases, data.Speech, data.Bundle.Prompts, data.Locale, data.Npcs.Ids);
+        using var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons) { PlaySession = 10 };
+        _ = session.Simulation.GrantItems(ItemId.Coin, 4);
+        Stage.TeleportToNpc(session, "baker");
+        _ = session.OpenTalk("baker");
+        Assert.True(session.StartWorker().WaitUntilReady(60000));
+
+        _ = session.SubmitSpeak("Buenos días, Luz, quiero dos panes.");
+        var turn = Drain(session).Turn!;
+
+        output.WriteLine($"baker-open: heard '{turn.Line}' ({turn.Confidence:0.00}) -> {turn.Intent}, errors [{string.Join(", ", turn.Errors.Select(static e => e.Tag))}]");
+        Assert.Equal(("request_item", true), (turn.Intent, turn.Communicated));
+        Assert.Equal(2, session.Simulation.Inventory.Count(ItemId.Bread));
+    }
+
+    [ModelFact(needsKokoro: true)]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void ATwoWordGreetingBeforeAQuestionIsHeardAndNotFlaggedAndBlocksOfWoodAreSold()
     {
         // V15b: the greeting's own words were vocab.wrong when the whole line read as the price; and wood counted in blocks was not understood.

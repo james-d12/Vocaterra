@@ -13,7 +13,8 @@ namespace Vocaterra.Game.Core.Npc;
 /// </summary>
 /// <remarks>
 /// Only the listener's own name (the NPC file's <c>name</c>: Luz at the baker, Mar at the fisher, Luna at the guide) is taken out, and only where it cannot be a word of
-/// the sentence: as the first word, or the word after a leading <c>hola</c>, when more follows and the next word does not join it to another (<c>Luz y Domingo
+/// the sentence: as the first word, or the word after an opening greeting (any of <see cref="Greeting"/>'s: <c>hola</c>, <c>buenos días</c>, <c>buenas tardes</c>,
+/// <c>buenas noches</c>, <c>buen día</c>; V19), when more follows and the next word does not join it to another (<c>Luz y Domingo
 /// comieron pan</c> keeps it); and as the last word, when the word before it does not make it a noun of the sentence (an article, a possessive, a preposition or a
 /// conjunction: <c>el pan de Luz</c>, <c>la luna</c>). A line that is only the name is left as it is. The punctuation the name carried is kept on its neighbour, so
 /// <c>¿Mar, dónde está la panadería?</c> is read as <c>¿dónde está la panadería?</c>. The recognizer's unknown tokens (<c>[unk]</c>) before the line are looked past (V15:
@@ -21,9 +22,6 @@ namespace Vocaterra.Game.Core.Npc;
 /// </remarks>
 public static class Vocative
 {
-    // The greeting a vocative follows at the start of a line (hola Luz, quiero pan).
-    private static readonly string[] Greetings = ["hola"];
-
     // Words after a leading name that join it to another noun: then the name is a subject (Luz y Domingo comieron pan), not the person spoken to.
     private static readonly string[] Joiners = ["y", "e", "o", "u", "ni"];
 
@@ -110,7 +108,8 @@ public static class Vocative
         return heard with { Transcript = transcript, NBest = [new AsrHypothesis(transcript, heard.NBest.Count > 0 ? heard.NBest[0].Score : heard.Confidence)], Words = words };
     }
 
-    // Where the listener's name stands as a vocative: its index at the start (or after a leading greeting) and at the end, each null when it does not.
+    // Where the listener's name stands as a vocative: its index at the start (or after an opening greeting: hola Luz, buenos días Luz) and at the end, each null when it
+    // does not.
     private static (int? Leading, int? Trailing) Positions(List<string> tokens, string? name)
     {
         if (string.IsNullOrWhiteSpace(name) || tokens.Count < 2)
@@ -134,7 +133,8 @@ public static class Vocative
             return (null, trailing);
         }
 
-        var start = words.Count - lead > 2 && Greetings.Contains(words[lead], StringComparer.Ordinal) ? lead + 1 : lead;
+        var opening = Greeting.OpeningLength(tokens); // the greeting a vocative may follow: any of Greeting's (V19, the review's R4: only hola before)
+        var start = opening > 0 ? opening : lead;
         var rest = (trailing ?? words.Count) - start - 1; // the words after the name that stay
         if (words[start] == plainName && rest > 0 && !Joiners.Contains(words[start + 1], StringComparer.Ordinal))
         {

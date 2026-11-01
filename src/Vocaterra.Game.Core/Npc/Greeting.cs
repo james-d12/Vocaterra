@@ -100,8 +100,12 @@ public static class Greeting
             .Select(static e => $"{e.Tag}|{e.Expected}|{PhraseSheet.Plain(e.Actual)}")
             .Order(StringComparer.Ordinal);
 
-    // How many tokens the opening greeting takes, with the recognizer's unknown tokens before it (0 when the line does not open with one, or has nothing after it).
-    private static int OpeningLength(string[] tokens)
+    /// <summary>
+    /// How many tokens the opening greeting takes, with the recognizer's unknown tokens before it: 0 when the line does not open with one, or has nothing after it.
+    /// <see cref="Vocative"/> reads the listener's name after it (V19, the review's R4: the vocative knew only <c>hola</c>, so <c>buenos días Luz, quiero pan</c> kept the name).
+    /// </summary>
+    /// <param name="tokens">The line's tokens, split at spaces.</param>
+    internal static int OpeningLength(IReadOnlyList<string> tokens)
     {
         var lead = tokens.TakeWhile(static t => string.Equals(t, GrammarBuilder.UnknownToken, StringComparison.Ordinal)).Count();
         var words = tokens.Skip(lead).Select(PhraseSheet.Plain).ToArray();

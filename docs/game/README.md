@@ -691,7 +691,8 @@ prompts (47); 451 speech lines in 902 files (340 in 680); 87 check items, 43 hea
   the time. An **order** is an objective shown and counted from its play session, delivered by walking up with the goods: the panel opens, the goods go, the
   NPC thanks and pays, and `order_delivered` is logged. `fruit-for-mar` (session 4: three fruits for two coins), `oven-wood` (session 5: five wood for four
   coins) and `axe-handle` (session 6: two wood and two coins for the axe). The baker sells bread at two coins a loaf (`Quiero dos panes, por favor.` buys
-  two; with too few coins nothing changes hands and she says `Necesitas más monedas.`), and the stall says its price.
+  two, and any number said as many, with no cap since V19; with too few coins nothing changes hands and she says `Necesitas más monedas.`, with no room in the bag
+  `Tu bolsa está llena.`, and asked for none, `quiero cero panes`, she asks how many), and the stall says its price.
 - **El pueblo** (session 4, after `ayer-y-manana`, the fisher at the bridge, 24 steps): `¿Dónde está…?`, `¿Está lejos?`, `¿Hay un pozo…?`, and the walk itself in
   three times (`Voy a la panadería.`, `Voy a comprar pan.`, back at the bridge `Sí, fui a la panadería.`): the arrow to the bakery and the smithy, the
   villager at the signpost, then back to the fisher, who asks for fruit (`fruit-for-mar`).
@@ -709,7 +710,8 @@ prompts (47); 451 speech lines in 902 files (340 in 680); 87 check items, 43 hea
   (`state_obligation`). The villager tells the day before and the learner retells it in the third person (`Luz hizo pan.`, `Mar pescó en el río.`) and the
   first plural (`Fuimos al río.`, true: session 7's walk ended on Mar's bank); at the smithy the third plural (`Ellos comieron pan.`) and `Tengo que ir al
   río.`; at the river Mar's sale retold (`Luz compró pescado.`). No order and no sale: a learner arrives with no coins, three apples, two loaves and the axe,
-  and leaves with them. The listener's name is taken out of a line before the core reads it (`Luz, quiero pan`; `Vocative.cs`).
+  and leaves with them. The listener's name is taken out of a line before the core reads it, at its start, after any greeting or at its end (`Luz, quiero
+  pan`, `buenos días Luz, quiero pan` since V19; `Vocative.cs`).
 - **Mañana en el pueblo** (session 9, after `ayer-en-el-pueblo`, the baker, the smith and the fisher, 14 steps, `a2`; V17): the simple future, the second way to say
   tomorrow after `voy a`, with an explain step on when each is used (a plan the learner already has, `Voy a comprar pan.`; a promise or a prediction, `Mañana compraré
   pan.`): `Mañana compraré pan.` to Luz (her `Mañana tendré pan fresco.`), `Buscaré madera para Luz.` and `Iré al río.` to Domingo (who says Mar `pescará`), then the
@@ -723,10 +725,14 @@ prompts (47); 451 speech lines in 902 files (340 in 680); 87 check items, 43 hea
   A learner arrives with no coins and leaves with none, six apples, two loaves and the axe. No order: the sale and the purchase are the session's exchange.
   Afterwards the Lessons page says every lesson is done.
 - **Selling** (V15): `vendo madera`, `quiero vender madera` (and `tengo madera para usted`) are the intent `offer_item`, which the host answers with `buy`
-  (`content/README.md`, "What a host event does"): Luz and Domingo buy wood, León fruit, a coin a piece, every piece the bag holds (or the number said), as often as
-  the learner brings some. None in the bag: `No tienes madera.`; another item: `No, gracias. Solo compro madera.`. A sale is the present only: `vendí madera` and
-  `venderé madera` are statements (`state_action`) and sell nothing. A greeting before another request is answered as the request (`hola, quiero dos panes` buys
-  the bread; `Greeting.cs`, as `Vocative.cs` takes the listener's name out): the core reads one intent per line, so the game reads the line and then its rest.
+  (`content/README.md`, "What a host event does"): Luz and Domingo buy wood, León fruit, a coin a piece, every piece the bag holds (or the number said, with no
+  cap), as often as the learner brings some. None in the bag: `No tienes madera.`; another item, or a thing that is no item (`vendo piedra`, V19): `No, gracias.
+  Solo compro madera.`; none offered (`vendo cero bloques de madera`): `¿Cuántos bloques de madera me vendes?`; no room in the bag for the coins: `Tu bolsa está
+  llena.`. A purchase is answered alike (`quiero casa` at the bakery: `Solo vendo pan.`). In every miss nothing changes hands and the NPC says no success line
+  (`NpcEffect.ExchangeMiss`, asked on the NPC's worker and again of the bag itself). A sale is the present only: `vendí madera` and `venderé madera` are
+  statements (`state_action`) and sell nothing. A greeting before another request is answered as the request (`hola, quiero dos panes` buys the bread;
+  `Greeting.cs`, as `Vocative.cs` takes the listener's name out): the core reads one intent per line, so the game reads the line and then its rest. The typed and
+  spoken paths and the host's `--transcript` read a line in one place, `LineReading.cs` (V19).
 - **Runs.** `--session 4 --lesson-run el-pueblo`, `--session 5 --lesson-run numeros-y-pan` and `--session 6 --lesson-run gente-del-pueblo` run them with typed
   answers, `--skip-to-session 7 --lesson-run como-es` the farmer's, `--skip-to-session 8 --lesson-run ayer-en-el-pueblo` the villager's, and `--skip-to-session 9
   --lesson-run manana-en-el-pueblo` and `--skip-to-session 10 --lesson-run el-mercado` the baker's. The scripted runs r18 (the bakery purchase), r19 (asking the

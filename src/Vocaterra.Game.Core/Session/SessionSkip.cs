@@ -131,7 +131,7 @@ public static class SessionSkip
     }
 
     // How many items the lesson's request at an NPC asks for: the first number in the phrase of the last step before `before` that is said at that NPC and asks for an
-    // item (intent request_item), at most what a sale gives at once; one when there is no such step or it names no number.
+    // item (intent request_item), as a sale gives it (no cap since V19); one when there is no such step or it names no number.
     private static int RequestedCount(LessonDefinition lesson, int before, string npc, GameData data)
     {
         for (var i = before - 1; i >= 0; i--)
@@ -148,7 +148,7 @@ public static class SessionSkip
             {
                 if (SpanishNumbers.TryParsePrefix(tokens, t, out var number) > 0 && number > 0)
                 {
-                    return Math.Min(number, NpcEffect.MaxQuantity);
+                    return number;
                 }
             }
 

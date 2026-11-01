@@ -6360,6 +6360,8 @@
 {"id":"dialogue:baker_hay.1","stages":{"render":"516ac49f7709f4da"}}
 {"id":"dialogue:baker_hello.1","stages":{"render":"ffb948556a252fec"}}
 {"id":"dialogue:baker_help.1","stages":{"render":"1cb2fef8158ce401"}}
+{"id":"dialogue:baker_no_room.1","stages":{"render":"863ebae1ced5d3a2"}}
+{"id":"dialogue:baker_none_offered.1","stages":{"render":"d8b773a96530268a"}}
 {"id":"dialogue:baker_price.1","stages":{"render":"bba7ea0cd2b25a11"}}
 {"id":"dialogue:baker_sell.1","stages":{"render":"ac6dbd6eb0f26fcf"}}
 {"id":"dialogue:baker_sell.2","stages":{"render":"c64cc322d01c8dc0"}}
@@ -6381,6 +6383,8 @@
 {"id":"dialogue:farmer_help.1","stages":{"render":"bab91e77cdfcf6c6"}}
 {"id":"dialogue:farmer_job.1","stages":{"render":"0334e46e7671a66c"}}
 {"id":"dialogue:farmer_name.1","stages":{"render":"203a0f1f3576f549"}}
+{"id":"dialogue:farmer_no_room.1","stages":{"render":"863ebae1ced5d3a2"}}
+{"id":"dialogue:farmer_none_offered.1","stages":{"render":"000894f71bdb78ab"}}
 {"id":"dialogue:farmer_pay.1","stages":{"render":"8ddad20e72818c82"}}
 {"id":"dialogue:farmer_price.1","stages":{"render":"6b4b5ca250311a9c"}}
 {"id":"dialogue:farmer_sell.1","stages":{"render":"8bac32291ec51509"}}
@@ -6650,6 +6654,8 @@
 {"id":"dialogue:smith_help.1","stages":{"render":"f530c9a812c4f20a"}}
 {"id":"dialogue:smith_job.1","stages":{"render":"30dcbf8f33acc480"}}
 {"id":"dialogue:smith_name.1","stages":{"render":"a9aeea12de37ab6c"}}
+{"id":"dialogue:smith_no_room.1","stages":{"render":"863ebae1ced5d3a2"}}
+{"id":"dialogue:smith_none_offered.1","stages":{"render":"d8b773a96530268a"}}
 {"id":"dialogue:smith_offer.1","stages":{"render":"182fe26a7b978365"}}
 {"id":"dialogue:smith_thank.1","stages":{"render":"267bead7d57632ce"}}
 {"id":"dialogue:smith_thank.2","stages":{"render":"e8cdb0bd91a51c89"}}

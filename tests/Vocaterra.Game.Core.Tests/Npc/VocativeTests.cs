@@ -23,6 +23,11 @@ public sealed class VocativeTests
     [InlineData("¿Mar, dónde está la panadería?", "Mar", "¿dónde está la panadería?")]
     [InlineData("¿dónde está la herrería, Mar?", "Mar", "¿dónde está la herrería?")]
     [InlineData("hola Luz, quiero dos panes", "Luz", "hola quiero dos panes")] // after a leading greeting
+    [InlineData("buenos días Luz quiero pan", "Luz", "buenos días quiero pan")] // after any of Greeting's openings (V19, the review's R4: only hola before)
+    [InlineData("Buenas tardes, Mar, ¿dónde está la panadería?", "Mar", "Buenas tardes ¿dónde está la panadería?")]
+    [InlineData("buen día León quiero tres manzanas", "León", "buen día quiero tres manzanas")]
+    [InlineData("buenas noches Domingo vendo madera", "Domingo", "buenas noches vendo madera")]
+    [InlineData("buenos días Luz", "Luz", "buenos días")] // a greeting and the name: the name at the end, as before
     [InlineData("Hola, Luz.", "Luz", "Hola.")]
     [InlineData("gracias Domingo", "Domingo", "gracias")]
     [InlineData("leon quiero tres manzanas", "León", "quiero tres manzanas")] // typed without its accent
@@ -35,6 +40,8 @@ public sealed class VocativeTests
     [Theory]
     [InlineData("Luz", "Luz")] // only the name: nothing else to read
     [InlineData("Luz y Mar comieron pan", "Luz")] // joined to another name: the subject
+    [InlineData("buenos días, Luz y Mar comieron pan", "Luz")] // after a greeting too (V19)
+    [InlineData("buenos días, luz compró pescado", "Mar")] // another NPC's name after a greeting
     [InlineData("me gustó el pan de Luz", "Luz")] // governed by a preposition
     [InlineData("¿qué es la luna?", "Luna")] // after an article
     [InlineData("quiero ver el mar", "Mar")]
@@ -119,6 +126,36 @@ public sealed class VocativeTests
         Assert.Empty(turn.Errors);
         Assert.Equal(["¿Quieres un hacha? Necesito dos bloques de madera y dos monedas."], turn.GuideLines);
         Assert.Equal(("state_action", true), (session.Say("Domingo hizo un hacha").Intent, session.Say("hizo un hacha").Communicated)); // a statement at his open prompt (V14)
+    }
+
+    [Fact]
+    public void AfterAnyGreetingTheListenersNameIsTakenOutAndTheTurnIsWhatWasAsked()
+    {
+        // V19, the review's R4: the vocative knew only hola of the greetings. "buenos días luz quiero pan" at the baker was not understood, and "buenos días domingo vendo
+        // madera" at the smith was a statement about Sunday: no bread, no sale. Sessions open in the morning, so buenos días is the likely greeting.
+        var baker = At("baker", coins: 4);
+        var bread = baker.Say("buenos días luz quiero pan");
+        Assert.Equal(("request_item", true), (bread.Intent, bread.Communicated));
+        Assert.Empty(bread.Errors);
+        Assert.Equal((2, 1), (baker.Simulation.Inventory.Count(ItemId.Coin), baker.Simulation.Inventory.Count(ItemId.Bread)));
+
+        var smith = At("smith");
+        _ = smith.Simulation.GrantItems(ItemId.Wood, 3);
+        var wood = smith.Say("buenos días domingo vendo madera");
+        Assert.Equal(("offer_item", true), (wood.Intent, wood.Communicated));
+        Assert.Empty(wood.Errors);
+        Assert.Equal((0, 3), (smith.Simulation.Inventory.Count(ItemId.Wood), smith.Simulation.Inventory.Count(ItemId.Coin)));
+
+        var fisher = At("fisher");
+        var way = fisher.Say("buenas tardes mar ¿dónde está la panadería?");
+        Assert.Equal(("ask_directions", "panadería"), (way.Intent, way.Slots["place"]));
+        Assert.Equal("bakery", fisher.Pointer?.Point);
+
+        var farmer = At("farmer", coins: 5);
+        var apples = farmer.Say("buen día león quiero tres manzanas");
+        Assert.Equal(("request_item", true), (apples.Intent, apples.Communicated));
+        Assert.Empty(apples.Errors);
+        Assert.Equal((2, 3), (farmer.Simulation.Inventory.Count(ItemId.Coin), farmer.Simulation.Inventory.Count(ItemId.Apple)));
     }
 
     [Fact]

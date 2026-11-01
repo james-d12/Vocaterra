@@ -155,6 +155,33 @@ public sealed class SessionSkipTests
     }
 
     [Fact]
+    public void APurchaseTheSkipCannotMakeIsAnErrorAndChangesNothing()
+    {
+        // V19 (the review's risk): the skip's purchase returned quietly when the coins were too few or the bag full, and only a later coin order caught the shortfall.
+        var six = SkippedTo(6);
+        Assert.Equal(2, six.Simulation.Inventory.Count(ItemId.Coin));
+
+        var dearer = Assert.Throws<InvalidOperationException>(() => six.SkipBuy(new SessionSkip.Purchase("baker", ItemId.Bread, 3, 2))); // six coins, four more than the path leaves
+        Assert.Equal("The skip cannot make session 6's purchase of 3 pan from baker: the sessions before leave 2 coins, and it costs 6.", dearer.Message);
+        Assert.Equal((2, 2), (six.Simulation.Inventory.Count(ItemId.Coin), six.Simulation.Inventory.Count(ItemId.Bread))); // nothing changed hands
+
+        for (var slot = 0; slot < Inventory.SlotCount; slot++)
+        {
+            if (six.Simulation.Inventory.Slots[slot].IsEmpty)
+            {
+                six.Simulation.Inventory.SetSlot(slot, new ItemStack(ItemId.Torch, 1)); // a bag with no room for an apple
+            }
+        }
+
+        var full = Assert.Throws<InvalidOperationException>(() => six.SkipBuy(new SessionSkip.Purchase("farmer", ItemId.Apple, 1, 1)));
+        Assert.Equal("The skip cannot make session 6's purchase of 1 manzana from farmer: the bag has no room for them.", full.Message);
+        Assert.Equal((2, 0), (six.Simulation.Inventory.Count(ItemId.Coin), six.Simulation.Inventory.Count(ItemId.Apple)));
+
+        six.SkipBuy(new SessionSkip.Purchase("baker", ItemId.Bread, 1, 2)); // the two coins pay for a loaf, and the bread's stack has room
+        Assert.Equal((0, 3), (six.Simulation.Inventory.Count(ItemId.Coin), six.Simulation.Inventory.Count(ItemId.Bread)));
+    }
+
+    [Fact]
     public void NoPracticeIsFakedTheWordAndPhraseRecordsStayANewGames()
     {
         var fresh = TestGame.NewSessionWithShippedLessons();
