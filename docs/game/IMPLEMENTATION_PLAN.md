@@ -2098,6 +2098,26 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     farmer faced and the villager (the beacon's) behind him, the villager's plate is hidden by the farmer's hat, a thin strip of it
     still showing under the farmer's plate (cosmetic); `--third-person` and the largest text scale are right.
   - **Left:** no shot of the beacon's NPC behind a building (the same depth test covers it).
+- **V25: a load keeps its day (2026-11-01, Sonnet 5.5; gated on `feature/village-followups` at `1aeaf53`; the owner's two counters,
+  D-game-22).** Fixes QA-progression-1 and 2. Run beside M66 in its own worktree with a game-only build.
+  - `PlaySession` is gone. `GuideSession.Day` (the village session) drives lessons, objectives, orders, unlocks, checks, the HUD and
+    book's "Session n", `--skip-to-session`, the crash report, the learner history and the session summary; a load restores it as
+    saved, and only a sleep or the two test aids move it. `GuideSession.Sitting` wraps `Words.Session` and `PhraseProgress.Session`: the
+    spacing rule, `ReviewDeck` (offered from sitting 2) and the session log (its folder, `session_start`'s `session`, and a new `day`
+    field). A launch, a load, a sleep, `--skip-to-session` and `--session` each begin a sitting; a sleep moves both, so everything that
+    counted as a different play session still does.
+  - A load keeps the day, sets the sitting to the saved one plus one and settles the rest (`SettleRest`, not `BeginPlaySession`).
+    `SaveDocument` gets a trailing `int? Sitting` (format version 5 kept); an older save uses its `Session` as the sitting and loads on
+    its saved day. The `save-v1` and `save-v4` fixtures load unchanged.
+  - Tests: `Save/LoadKeepsDayTests.cs` (day 5 loads as day 5 and the oven order is delivered; a save after a sleep keeps its new day; a
+    load moves only the sitting; a use in a new sitting passes the spacing gap; an older save loads on its day); about 20 tests that
+    asserted "a load is the next session" now expect the saved day. 7432 passed and 3 skipped before; 7437 and 3 after, with models;
+    the gate passed at the first run.
+  - The orchestrator's check: the QA's run (`--skip-to-session 8 --sleep`, save, load) now prints "saved in session 9, now session 9,
+    sitting 10" (it was 10) and the HUD reads Session 9.
+  - **Left:** the game run of QA-1 does not deliver the order after the load, because the lesson still holds it until its `n4-back`
+    step (V14's design; QA-progression-4, V21); the unit test proves the delivery. `WorldFactsTests` ran out of memory once under the
+    6 GB cap and passed on a rerun: the unbounded flood of `NearestOfNounJoinedTo` (V23), which moves to the front of V23.
 
 
 ## 6. Definition of done (every milestone)
