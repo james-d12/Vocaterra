@@ -98,10 +98,10 @@ public sealed partial class VoxelSession
             var coins = Simulation.Inventory.Count(ItemId.Coin);
             if (coins < cost)
             {
-                throw new InvalidOperationException($"The skip cannot make session {PlaySession}'s purchase of {purchase.Count} {item} from {purchase.Npc}: the sessions before leave {coins} coins, and it costs {cost}.");
+                throw new InvalidOperationException($"The skip cannot make session {Day}'s purchase of {purchase.Count} {item} from {purchase.Npc}: the sessions before leave {coins} coins, and it costs {cost}.");
             }
 
-            throw new InvalidOperationException($"The skip cannot make session {PlaySession}'s purchase of {purchase.Count} {item} from {purchase.Npc}: the bag has no room for them.");
+            throw new InvalidOperationException($"The skip cannot make session {Day}'s purchase of {purchase.Count} {item} from {purchase.Npc}: the bag has no room for them.");
         }
     }
 

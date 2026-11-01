@@ -33,7 +33,7 @@ public sealed record SummaryFacts(
     public static SummaryFacts Of(GuideSession session)
     {
         ArgumentNullException.ThrowIfNull(session);
-        return new SummaryFacts(session.PlaySession, session.Learner.History, session.SessionEvents, session.Lessons.Record, session.Phrases, session.PhraseProgress.Records);
+        return new SummaryFacts(session.Day, session.Learner.History, session.SessionEvents, session.Lessons.Record, session.Phrases, session.PhraseProgress.Records);
     }
 }
 

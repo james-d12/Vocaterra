@@ -60,7 +60,7 @@ public static class SessionSkip
             throw new ArgumentOutOfRangeException(nameof(target), target, $"The skip goes to a play session from 2 to {last}, the last that has a lesson.");
         }
 
-        if (session.PlaySession != 1 || session.Simulation.Tick != 0 || session.Lessons.Book.Lessons.Any(l => session.Lessons.StatusOf(l.Id) != LessonStatus.NotStarted))
+        if (session.Day != 1 || session.Simulation.Tick != 0 || session.Lessons.Book.Lessons.Any(l => session.Lessons.StatusOf(l.Id) != LessonStatus.NotStarted))
         {
             throw new InvalidOperationException("Only a new game can be skipped to a later session.");
         }
@@ -69,7 +69,7 @@ public static class SessionSkip
         var carded = session.CardedLemmas();
         for (var played = 1; played < target; played++)
         {
-            session.PlaySession = played;
+            session.Day = played;
             foreach (var lesson in session.Lessons.Book.Lessons.Where(l => l.Session == played))
             {
                 session.Lessons.CountAsCompleted(lesson.Id, played);
@@ -92,7 +92,8 @@ public static class SessionSkip
         }
 
         session.ForgetSkippedWords(words, carded);
-        session.PlaySession = target;
+        session.Day = target;
+        session.Sitting = target; // a skipped-to game is a different play session, as the sessions before it were
         session.SkippedTo = target;
         session.LogEvent(new WorldEvent(session.CurrentTick, session.StoredTime.UnixSeconds, WorldEvents.SessionSkipped, null, Line(target)));
         session.BeginPlaySession(); // the new session's lesson is named and pointed at, as after a load

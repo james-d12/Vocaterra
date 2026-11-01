@@ -88,7 +88,7 @@ public sealed class MarketSpokenTests(ITestOutputHelper output)
     {
         var data = TestGame.Data;
         var noLessons = LessonBook.Parse("{ \"schemaVersion\": 1, \"lessons\": [] }", data.Phrases, data.Speech, data.Bundle.Prompts, data.Locale, data.Npcs.Ids);
-        using var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons) { PlaySession = 10 };
+        using var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons) { Day = 10 };
         _ = session.Simulation.GrantItems(ItemId.Coin, 4);
         Stage.TeleportToNpc(session, "baker");
         _ = session.OpenTalk("baker");
@@ -109,7 +109,7 @@ public sealed class MarketSpokenTests(ITestOutputHelper output)
         // V19, the review's R4: the name after a two-word greeting was kept, so the typed line was not understood; the spoken path reads a line as the typed one does.
         var data = TestGame.Data;
         var noLessons = LessonBook.Parse("{ \"schemaVersion\": 1, \"lessons\": [] }", data.Phrases, data.Speech, data.Bundle.Prompts, data.Locale, data.Npcs.Ids);
-        using var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons) { PlaySession = 10 };
+        using var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons) { Day = 10 };
         _ = session.Simulation.GrantItems(ItemId.Coin, 4);
         Stage.TeleportToNpc(session, "baker");
         _ = session.OpenTalk("baker");
@@ -130,7 +130,7 @@ public sealed class MarketSpokenTests(ITestOutputHelper output)
         // V15b: the greeting's own words were vocab.wrong when the whole line read as the price; and wood counted in blocks was not understood.
         var data = TestGame.Data;
         var noLessons = LessonBook.Parse("{ \"schemaVersion\": 1, \"lessons\": [] }", data.Phrases, data.Speech, data.Bundle.Prompts, data.Locale, data.Npcs.Ids);
-        using var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons) { PlaySession = 10 };
+        using var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons) { Day = 10 };
         _ = session.Simulation.GrantItems(ItemId.Wood, 4); // four: five would deliver the oven order as the talk opens
         Stage.TeleportToNpc(session, "baker");
         _ = session.OpenTalk("baker");

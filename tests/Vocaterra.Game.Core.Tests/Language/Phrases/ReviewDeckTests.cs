@@ -28,7 +28,8 @@ public sealed class ReviewDeckTests
         _ = session.OpenTalk("villager");
         _ = session.Say("¿dónde está el río?");
         session.EndTalk();
-        session.PlaySession = 2;
+        session.Day = 2;
+        session.Sitting = 2;
         Stage.TeleportToNpc(session, "guide");
         return session;
     }

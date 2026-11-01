@@ -249,7 +249,7 @@ public sealed class LessonRunner
     public bool IsUnlocked(LessonDefinition lesson)
     {
         ArgumentNullException.ThrowIfNull(lesson);
-        return _session.PlaySession >= lesson.Session && (lesson.After is null || IsDone(lesson.After));
+        return _session.Day >= lesson.Session && (lesson.After is null || IsDone(lesson.After));
     }
 
     /// <summary>
@@ -266,7 +266,7 @@ public sealed class LessonRunner
             return null;
         }
 
-        if (_session.PlaySession < lesson.Session)
+        if (_session.Day < lesson.Session)
         {
             return new LessonWait(LessonWaitKind.Session, lesson.Session, lesson.Npc);
         }
@@ -1078,7 +1078,7 @@ public sealed class LessonRunner
 
         state.Status = LessonStatus.Completed;
         state.Done = true;
-        state.CompletedSession = _session.PlaySession;
+        state.CompletedSession = _session.Day;
         _activeId = null;
         _engaged = false;
         var done = state.Outcomes.Count(static o => o.Outcome == StepOutcome.Done);

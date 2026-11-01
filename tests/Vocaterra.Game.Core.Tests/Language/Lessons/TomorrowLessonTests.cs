@@ -32,7 +32,8 @@ public sealed class TomorrowLessonTests(ITestOutputHelper output)
         var session = YesterdayLessonTests.AtStep("(after the last step)"); // no step has this id: Ayer en el pueblo runs to its end
         Assert.Equal(LessonStatus.Completed, session.Lessons.StatusOf("ayer-en-el-pueblo"));
         session.EndTalk();
-        session.PlaySession = 9;
+        session.Day = 9;
+        session.Sitting = 9;
         Stage.TeleportToNpc(session, "baker");
         _ = session.OpenTalk("baker");
         return session;
@@ -231,11 +232,12 @@ public sealed class TomorrowLessonTests(ITestOutputHelper output)
     {
         var early = YesterdayLessonTests.AtStep("(after the last step)");
         early.EndTalk();
-        Assert.Equal(8, early.PlaySession);
+        Assert.Equal(8, early.Day);
         Assert.NotEqual(LessonId, early.Lessons.OfferFor("baker")?.LessonId); // Ayer en el pueblo done, but it is still session 8
 
         var skipped = TestGame.NewSessionWithShippedLessons();
-        skipped.PlaySession = 9; // session 9 reached without session 8's lesson: Mañana en el pueblo waits for it (after)
+        skipped.Day = 9; // session 9 reached without session 8's lesson: Mañana en el pueblo waits for it (after)
+        skipped.Sitting = 9;
         Assert.NotEqual(LessonId, skipped.Lessons.OfferFor("baker")?.LessonId);
         Assert.Equal(LessonStatus.NotStarted, skipped.Lessons.StatusOf(LessonId));
 

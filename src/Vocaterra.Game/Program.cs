@@ -90,7 +90,7 @@ try
         options = options with { Seed = document.WorldSeed };
         savedVolumes = document.Settings?.Sound.Clamped();
         savedTextScale = document.Settings?.Clamped().TextScale;
-        Console.WriteLine($"load: {loadPath}: saved in session {document.Session}, now session {session.PlaySession}; tick {document.Tick}, stored time {document.StoredTime}");
+        Console.WriteLine($"load: {loadPath}: saved in session {document.Session}, now session {session.Day}, sitting {session.Sitting}; tick {document.Tick}, stored time {document.StoredTime}");
         if (session.Migration is { } migration)
         {
             Console.WriteLine($"load: world digest {session.Simulation.ComputeStateDigest()[..16]}, the save's {document.StateDigest[..16]} ({(migration.WorldDigestMatched ? "equal" : "differs: the content changed")}); bundle {bundle.ContentHash[..12]}, the save's {document.BundleHash[..12]}");
@@ -128,7 +128,8 @@ try
     if (options.Session is { } playSession)
     {
         // A run started at a given session (S26, --session): the lessons of that session are unlocked, and the objective names the new one.
-        session.PlaySession = playSession;
+        session.Day = playSession;
+        session.Sitting = playSession;
         session.BeginPlaySession();
         Console.WriteLine($"session: this run is play session {playSession}");
     }

@@ -61,7 +61,7 @@ public sealed class CrashSource : ICrashSource
         long? tick = null;
         try
         {
-            session = _session.PlaySession;
+            session = _session.Day;
             tick = _session.Simulation.Tick;
         }
         catch (Exception ex)

@@ -648,7 +648,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             Console.WriteLine(line);
         }
 
-        foreach (var line in LearnerSummary.Lines(_session.Learner, _session.Lessons.Record, _session.PlaySession, _session.StoredTime.UnixSeconds))
+        foreach (var line in LearnerSummary.Lines(_session.Learner, _session.Lessons.Record, _session.Day, _session.StoredTime.UnixSeconds))
         {
             Console.WriteLine(line); // the learner's book at exit (S19): the nouns and verbs used, the lessons and their states
         }
@@ -857,7 +857,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         var path = PlaytestEnd.ManualSavePath(_options.SavePath, _playtestFlow.ManualSaveFile, DefaultSavePath);
         if (_saves.Write(path, "on F6"))
         {
-            _toasts.Show(_session.Locale.Ui("gameSaved", ("session", _session.PlaySession.ToString(CultureInfo.InvariantCulture))));
+            _toasts.Show(_session.Locale.Ui("gameSaved", ("session", _session.Day.ToString(CultureInfo.InvariantCulture))));
         }
         else
         {
@@ -881,7 +881,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             return;
         }
 
-        var before = _session.PlaySession;
+        var before = _session.Day;
         _autosave?.WriteNow(_sim.Tick, _session.Events.Count, "sleep");
         var document = _saves.Capture();
         _log.End(_session, _sim.Tick); // the session that ends
@@ -893,7 +893,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _beacon.Restart();
         _toasts.Clear(); // the old session's toasts are not the new one's: it opens with the morning
         _toasts.Show(SleepOffer.MorningText(_session));
-        Console.WriteLine($"sleep: {how}: session {before} ends at the fire, session {_session.PlaySession} begins (tick {_sim.Tick}, stored time {_session.StoredTime.UnixSeconds}, world digest {document.StateDigest[..16]})");
+        Console.WriteLine($"sleep: {how}: session {before} ends at the fire, session {_session.Day} begins (tick {_sim.Tick}, stored time {_session.StoredTime.UnixSeconds}, world digest {document.StateDigest[..16]})");
     }
 
     // Why the player may not sleep now, for the console.

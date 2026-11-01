@@ -401,7 +401,7 @@ public sealed class LearnerRecordTests
         Assert.Empty(loaded.Learner.History);
         Assert.Empty(loaded.Learner.Rows);
         Assert.Equal(1, loaded.Learner.NextId);
-        Assert.Equal(2, loaded.PlaySession);
+        Assert.Equal(1, loaded.Day); // the day as saved (V25)
         var lesson = Assert.Single(loaded.Lessons.Record, static r => r.LessonId == "first-words");
         Assert.Equal(LessonStatus.Completed, lesson.Status);
         Assert.Equal(34, lesson.Units.Count); // the lesson as the version 1 save recorded it (before the verb unit of S26)
@@ -450,7 +450,7 @@ public sealed class LearnerRecordTests
 
         var whole = resumed.Lessons.Record.Single(static r => r.LessonId == "first-words");
         Assert.Equal(LessonStatus.Completed, whole.Status);
-        Assert.Equal(2, whole.CompletedSession);
+        Assert.Equal(1, whole.CompletedSession); // the day, which a load keeps (V25)
         Assert.Equal(37, whole.Units.Count);
         Assert.Equal(unit.Count(static s => s.Sent is not null) + rest.Count(static s => s.Sent is not null), whole.Turns);
         Assert.Equal(1, whole.HelpUses);

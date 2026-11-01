@@ -121,7 +121,7 @@ public sealed class ReportScreen
 
         _picture = ScreenshotWriter.Capture(_device());
         _tick = _session.Simulation.Tick;
-        _playSession = _session.PlaySession;
+        _playSession = _session.Day;
         Panel.Show(_kind);
     }
 

@@ -31,7 +31,8 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
         var session = PeopleLessonTests.AtStep("(after the last step)"); // no step has this id: Gente del pueblo runs to its end
         Assert.Equal(LessonStatus.Completed, session.Lessons.StatusOf("gente-del-pueblo"));
         session.EndTalk();
-        session.PlaySession = 7;
+        session.Day = 7;
+        session.Sitting = 7;
         Assert.Equal(0, session.Simulation.Inventory.Count(ItemId.Coin)); // the two coins went on the axe
         if (coins > 0)
         {
@@ -212,11 +213,13 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
     public void TheLessonIsNotOfferedBeforeGenteDelPuebloIsDoneNorBeforeSessionSeven()
     {
         var early = TestGame.NewSessionWithShippedLessons();
-        early.PlaySession = 6;
+        early.Day = 6;
+        early.Sitting = 6;
         Assert.NotEqual(LessonId, early.Lessons.OfferFor("farmer")?.LessonId);
 
         var skipped = TestGame.NewSessionWithShippedLessons();
-        skipped.PlaySession = 7; // session 7 reached without session 6's lesson: ¿Cómo es? waits for it (after)
+        skipped.Day = 7; // session 7 reached without session 6's lesson: ¿Cómo es? waits for it (after)
+        skipped.Sitting = 7;
         Assert.Null(skipped.Lessons.OfferFor("farmer"));
         Assert.Equal(LessonStatus.NotStarted, skipped.Lessons.StatusOf(LessonId));
 
@@ -349,7 +352,8 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
         // The hold is the lesson's: in session 7 before Gente del pueblo is done (so ¿Cómo es? cannot start), walking up with the water is enough (D-game-8), as for every
         // other order; and once the lesson is completed, too.
         var session = TestGame.NewSessionWithShippedLessons();
-        session.PlaySession = 7;
+        session.Day = 7;
+        session.Sitting = 7;
         _ = session.Simulation.GrantItems(ItemId.WaterBottle, 1);
         Stage.TeleportToNpc(session, "farmer");
         var opening = session.OpenTalk("farmer");
@@ -358,7 +362,8 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
         Assert.Equal((0, 3), (session.Simulation.Inventory.Count(ItemId.WaterBottle), session.Simulation.Inventory.Count(ItemId.Apple)));
 
         var early = TestGame.NewSessionWithShippedLessons();
-        early.PlaySession = 6;
+        early.Day = 6;
+        early.Sitting = 6;
         _ = early.Simulation.GrantItems(ItemId.WaterBottle, 1);
         Stage.TeleportToNpc(early, "farmer");
         Assert.False(early.OpenTalk("farmer").Delivered); // before its session the order is not open: the water stays
@@ -548,7 +553,8 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
     public void TheOrderTakesTheWaterFromSessionSevenAndGivesThreeApplesOnce()
     {
         var session = TestGame.NewSessionWithShippedLessons();
-        session.PlaySession = 7;
+        session.Day = 7;
+        session.Sitting = 7;
         _ = session.Simulation.GrantItems(ItemId.WaterBottle, 2);
         Stage.TeleportToNpc(session, "farmer");
 

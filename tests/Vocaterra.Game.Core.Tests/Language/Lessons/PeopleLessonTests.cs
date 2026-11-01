@@ -31,7 +31,8 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
         var session = BakeryLessonTests.AtStep("(after the last step)"); // no step has this id: Números y pan runs to its end
         Assert.Equal(LessonStatus.Completed, session.Lessons.StatusOf("numeros-y-pan"));
         session.EndTalk();
-        session.PlaySession = 6;
+        session.Day = 6;
+        session.Sitting = 6;
         Assert.Equal(0, session.Simulation.Inventory.Count(ItemId.Coin)); // the four coins of the oven went on two loaves
         Assert.Equal(0, session.Simulation.GrantItems(ItemId.Coin, coins));
         if (wood > 0)
@@ -187,11 +188,13 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
     public void TheLessonIsNotOfferedBeforeNumerosYPanIsDoneNorBeforeSessionSix()
     {
         var early = TestGame.NewSessionWithShippedLessons();
-        early.PlaySession = 5;
+        early.Day = 5;
+        early.Sitting = 5;
         Assert.NotEqual(LessonId, early.Lessons.OfferFor("villager")?.LessonId);
 
         var skipped = TestGame.NewSessionWithShippedLessons();
-        skipped.PlaySession = 6; // session 6 reached without session 5's lesson: Gente del pueblo waits for it (after)
+        skipped.Day = 6; // session 6 reached without session 5's lesson: Gente del pueblo waits for it (after)
+        skipped.Sitting = 6;
         Assert.NotEqual(LessonId, skipped.Lessons.OfferFor("villager")?.LessonId);
         Assert.Equal(LessonStatus.NotStarted, skipped.Lessons.StatusOf(LessonId));
 
@@ -466,7 +469,8 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
     public void TheOrderTakesTwoWoodAndTwoCoinsFromSessionSixAndGivesTheAxeAndWithOneCoinNothing()
     {
         var early = TestGame.NewSessionWithShippedLessons();
-        early.PlaySession = 5;
+        early.Day = 5;
+        early.Sitting = 5;
         _ = early.Simulation.GrantItems(ItemId.Wood, 2);
         _ = early.Simulation.GrantItems(ItemId.Coin, 2);
         Stage.TeleportToNpc(early, "smith");
@@ -474,7 +478,8 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
         Assert.Equal((2, 2), (early.Simulation.Inventory.Count(ItemId.Wood), early.Simulation.Inventory.Count(ItemId.Coin)));
 
         var poor = TestGame.NewSessionWithShippedLessons();
-        poor.PlaySession = 6;
+        poor.Day = 6;
+        poor.Sitting = 6;
         _ = poor.Simulation.GrantItems(ItemId.Wood, 3);
         _ = poor.Simulation.GrantItems(ItemId.Coin, 1);
         Stage.TeleportToNpc(poor, "smith");
@@ -485,7 +490,8 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
         Assert.DoesNotContain(poor.Events.OfType<WorldEvent>(), static e => e.Name is WorldEvents.ItemTaken or WorldEvents.OrderDelivered && e.Npc == "smith");
 
         var session = TestGame.NewSessionWithShippedLessons();
-        session.PlaySession = 6;
+        session.Day = 6;
+        session.Sitting = 6;
         _ = session.Simulation.GrantItems(ItemId.Wood, 3);
         _ = session.Simulation.GrantItems(ItemId.Coin, 2);
         Stage.TeleportToNpc(session, "smith");

@@ -149,7 +149,7 @@ public static class SaveGame
             session.StartedAt,
             session.SkippedSeconds,
             session.StoredTime.UnixSeconds,
-            session.PlaySession,
+            session.Day,
             state.Tick,
             session.Simulation.ComputeStateDigest(),
             state.SelectedSlot,
@@ -175,7 +175,8 @@ public static class SaveGame
             BookGranted: true,
             Settings: settings is null ? null : settings.Clamped(),
             World: new WorldDims(session.Scene.Grid.ChunksX, session.Scene.Grid.ChunksY, session.Scene.Grid.ChunksZ),
-            SkippedTo: session.SkippedTo);
+            SkippedTo: session.SkippedTo,
+            Sitting: session.Sitting);
     }
 
     /// <summary>Captures a session and serializes it: the text of the save file.</summary>
@@ -319,21 +320,17 @@ public static class SaveGame
             _ = session.Simulation.GrantItems(ItemId.Book, 1);
         }
 
-        session.PlaySession = bumpSession ? document.Session + 1 : document.Session;
-        if (bumpSession)
-        {
-            session.BeginPlaySession(); // a new session's lesson, if one is unlocked, is named by the objective and pointed at (S26)
-        }
-        else
-        {
-            session.SettleRest(); // the same session goes on: what its objective said is not news (V12c)
-        }
+        // A load keeps the day as saved (V25): the objective, the orders and the lessons stand where the save left them, and only a sleep moves the day. The sitting is the
+        // next one (S10), which lifts the spacing gaps; a save from before V25 has none, and its session is the sitting it continues from.
+        session.Day = document.Session;
+        session.Sitting = (document.Sitting ?? document.Session) + (bumpSession ? 1 : 0);
+        session.SettleRest(); // the day goes on: what its objective said is not news (V12c), and the beacon is the save's
 
         return session;
     }
 
     /// <summary>
-    /// The sleep at the player's own fire (V12c): the running session goes on as the next play session, in the state a load of its own save would give, without a new
+    /// The sleep at the player's own fire (V12c): the running session goes on as the next day (and the next sitting, so the spacing rule sees a different play session), in the state a load of its own save would give, without a new
     /// session or scene. <paramref name="document"/> is that save, captured now (<see cref="Capture"/>). What a save does not keep goes back to how a new session has it
     /// (the review question, the second tries, the warm-up, the word cards not shown, the buttons' English counts), every part of the save is put back as a load puts it
     /// back (the world is the save's already), and the session becomes the save's plus one, which lifts the spacing gaps and names the new session's lesson
@@ -352,7 +349,7 @@ public static class SaveGame
             throw new InvalidOperationException("The game is not at rest: the guide is still thinking, the key words are on show or an opening waits. Sleep in a moment.");
         }
 
-        if (document.WorldSeed != session.WorldSeed || !string.Equals(document.BundleHash, session.Bundle.ContentHash, StringComparison.Ordinal) || document.Session != session.PlaySession
+        if (document.WorldSeed != session.WorldSeed || !string.Equals(document.BundleHash, session.Bundle.ContentHash, StringComparison.Ordinal) || document.Session != session.Day || (document.Sitting ?? document.Session) != session.Sitting
             || document.Tick != session.Simulation.Tick || !string.Equals(document.StateDigest, session.Simulation.ComputeStateDigest(), StringComparison.Ordinal))
         {
             throw new ArgumentException("The save is not this session's own, taken now.", nameof(document));
@@ -360,8 +357,9 @@ public static class SaveGame
 
         session.ClearUnsaved();
         RestoreParts(session, document, migrating: false);
-        session.PlaySession = document.Session + 1;
-        session.LogEvent(new WorldEvent(session.CurrentTick, session.StoredTime.UnixSeconds, WorldEvents.Slept, null, string.Create(CultureInfo.InvariantCulture, $"session {document.Session} to {session.PlaySession}"))); // the new session's first event
+        session.Day = document.Session + 1;
+        session.Sitting = (document.Sitting ?? document.Session) + 1;
+        session.LogEvent(new WorldEvent(session.CurrentTick, session.StoredTime.UnixSeconds, WorldEvents.Slept, null, string.Create(CultureInfo.InvariantCulture, $"session {document.Session} to {session.Day}"))); // the new session's first event
         session.BeginPlaySession();
     }
 
