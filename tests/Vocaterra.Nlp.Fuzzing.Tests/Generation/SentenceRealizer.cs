@@ -28,6 +28,7 @@ internal sealed class SentenceRealizer
     private readonly SeededRng _rng;
     private readonly SentenceOptions _options;
     private readonly List<Item> _items = [];
+    private readonly List<string> _rerolls = [];
     private string _detail = string.Empty;
     private string _tense = LexiconSchema.Present;
     private bool _pastMarker;
@@ -62,6 +63,7 @@ internal sealed class SentenceRealizer
     public GeneratedSentence? TryRealize(GrammarPattern pattern, string source, out string skipReason)
     {
         skipReason = "none";
+        _rerolls.Clear();
         for (var attempt = 0; attempt < MaxAttempts; attempt++)
         {
             var sentence = Attempt(pattern, source, out var reason);
@@ -71,6 +73,7 @@ internal sealed class SentenceRealizer
             }
 
             skipReason = reason;
+            _rerolls.Add(reason);
         }
 
         return null;
@@ -1793,6 +1796,12 @@ internal sealed class SentenceRealizer
 
     /// <summary>The detail of the last failure (for example the unknown literal), for diagnostics.</summary>
     public string Detail => _detail;
+
+    /// <summary>
+    /// The reason of every attempt of the last <see cref="TryRealize"/> that failed and was drawn again, in order (M65): a retry that succeeds still leaves out the
+    /// sentence the failed attempt drew, so the skip budget counts these and not only the recipes whose every attempt failed.
+    /// </summary>
+    public IReadOnlyList<string> Rerolls => _rerolls;
 
     private sealed record NounPhraseItems(List<int> Determiners, List<int> Before, int Head, List<int> After)
     {

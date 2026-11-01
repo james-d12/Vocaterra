@@ -8,6 +8,7 @@ using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Morphology;
 using Vocaterra.Nlp.Language.Normalization;
+using SlotGrammarType = Vocaterra.Nlp.Language.SlotGrammar.SlotGrammar;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests.Generation;
 
@@ -215,11 +216,16 @@ public static class MutationGen
         private readonly LexiconCatalog _words = harness.Words;
         private readonly IReadOnlyList<SentenceToken> _tokens = sentence.Tokens;
 
+        // M26b, and since M65 (a) for the tense mutation too (the owner's yes, 2026-11-01): a grammar with both an alternation and a name can bind a mutated verb as the
+        // name when an alternative with the name fits the mutated sentence, and a name has no reading to check (seed 1RTZdjQ2tFb2: nosotras freís against
+        // ([VERB:freír]|[ART] [NOUN:item]|[PRON] [WORD]) ...; seed egVgLELrxyL4: ayer presiono abusar against ([VERB:presionar]|[ADV] [WORD:item]|[VERB]) [VERB:abusar],
+        // where [ADV] [WORD:item] takes ayer presiono). Neither mutation is made on such a grammar.
+        private bool NameBesideAnAlternation =>
+            sentence.PatternText.Contains("[WORD", StringComparison.Ordinal) && sentence.PatternText.Contains('|', StringComparison.Ordinal);
+
         public MutatedSentence? ConjPerson()
         {
-            // A grammar with an alternative that has a name ([PRON] [WORD] beside [VERB:freír]) binds the mutated verb as the name when the alternative fits, and a name has no
-            // reading to check (seed 1RTZdjQ2tFb2: nosotras freís against ([VERB:freír]|[ART] [NOUN:item]|[PRON] [WORD]) ...; it failed on main before M26b).
-            if (sentence.PatternText.Contains("[WORD", StringComparison.Ordinal) && sentence.PatternText.Contains('|', StringComparison.Ordinal))
+            if (NameBesideAnAlternation)
             {
                 return null;
             }
@@ -383,6 +389,14 @@ public static class MutationGen
         {
             var verb = _tokens[i];
             if (verb is not { Person: "3", Number: not null, Tense: not null, Lemma: not null } || i != 2)
+            {
+                return null;
+            }
+
+            // M65 (b), the owner's yes of 2026-11-01: the analyzer leaves haber out of this check by design (hay dos panes; M59), so the mutation leaves it out too and
+            // models what the analyzer claims to check (seeds b3HSKSLCsL_1: el subtítulo ha peligroso made han; 4YuZ2yubxdC1: unas televisiones han made ha). The new form
+            // has no reading but this verb's (below), so this is exactly the analyzer's exclusion. To widen when a lesson teaches the perfect: see the README.
+            if (verb.Lemma == "haber")
             {
                 return null;
             }
@@ -781,6 +795,11 @@ public static class MutationGen
             // Only the generated verbs are flagged: a noun that is also a verb form (ayudas, lanza) is read as the noun, because the analyzer resolves the part of
             // speech of each word. The sentence must still hold a generated finite verb, and no literal word of the grammar may be a finite verb form (falta, after a
             // subject pronoun, is the verb), because the oracle names only the generated verbs.
+            if (NameBesideAnAlternation)
+            {
+                return null;
+            }
+
             var finite = Indexes(static t => t is { Role: TokenRole.Verb, Infinitive: false }).Where(IsFiniteAt).ToList();
             var literalVerbForms = Indexes(static t => t.Role == TokenRole.Literal)
                 .Where(i => _words.Lexicon.Lookup(_tokens[i].Norm).Any(static r => r.Pos == LexiconSchema.Verb && r.Person is not null && r.Tense is not null))
@@ -838,6 +857,17 @@ public static class MutationGen
             var list = new List<SentenceToken> { new("ayer", "ayer", TokenRole.Adverb, true, "ayer", null, null, null, null, -1, null, false, false) };
             list.AddRange(_tokens.Select(static t => t with { Head = t.Head >= 0 ? t.Head + 1 : -1 }));
             var mutated = sentence with { Tokens = list };
+
+            // M65 (c), the owner's yes of 2026-11-01: a literal of the grammar that is another word once its accent is written (porque and porqué) is read as typed while
+            // the grammar binds it, and the analyzer chooses between the two from the neighbouring words only when no grammar matches (ReadingResolver: a literal spelled
+            // like the word keeps every reading as typed, so the accent is the one reading the match decides). The realiser leaves that choice to the grammar for a
+            // literal. With ayer in front the grammar may no longer match (seed 2ldq2rIKLrG2: ayer las los despego unas porque against [ART] [ART]? [VERB]? [ART]?
+            // porque?, where unas porque then reads as the article and the noun porqué). Such a case is kept only when the mutated sentence matches the original's grammar;
+            // a sentence with no such literal, and one whose grammar still matches, are mutated as before.
+            if (_tokens.Any(IsLiteralWithAnAccentVariant) && !MatchesTheGrammar(mutated))
+            {
+                return null;
+            }
             var errors = finite.Select(i => new ExpectedError(ErrorTags.ConjTense, mutated.SpanOf(i + 1, i + 1), forms[i], _tokens[i].Norm)).ToArray();
             var fixedTokens = list.Select((t, j) => j > 0 && forms.TryGetValue(j - 1, out var form) ? form : t.Norm);
             corrected.AddRange(fixedTokens);
@@ -894,6 +924,19 @@ public static class MutationGen
         {
             rng.Shuffle(indexes);
             return indexes;
+        }
+
+        // M65 (c): a literal word of the grammar that is another word once its accent is written, whose reading the grammar decides while it matches.
+        private bool IsLiteralWithAnAccentVariant(SentenceToken token)
+        {
+            return token.Role == TokenRole.Literal && _words.Lexicon.LookupWithAccentVariants(token.Norm).Variants.Count > 0;
+        }
+
+        // M65 (c): whether the analyzer matches the sentence to the grammar the sentence was realised from. Only the match is read, never the errors the oracles compare.
+        private bool MatchesTheGrammar(GeneratedSentence candidate)
+        {
+            var grammar = SlotGrammarType.Parse(sentence.PatternText);
+            return string.Equals(harness.Analyzer.Analyze(PipelineHarness.Normalize(candidate.Text), [grammar]).MatchedGrammarId, grammar.Id, StringComparison.Ordinal);
         }
 
         private bool IsFiniteAt(int index)
