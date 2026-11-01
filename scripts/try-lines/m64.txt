@@ -1,0 +1,29 @@
+# M64's lines (2026-11-01): a subject that ends in a pronoun joined by y (the review's R1) and an amount before ser (R5), at villager-open.
+# Correct Spanish, which must stay clean (no error tag), apart from five deliberate mistakes that must keep exactly the tags their baseline shows:
+#  - yo quiere dos espada (the core demo): conj.person=quiero noun.number=espadas;
+#  - luz hizo pan y yo fuimos al río: conj.person=fui (yo opens a clause of its own);
+#  - tú y yo fui al río: conj.person=fuimos;
+#  - dos niños es alto: conj.person=son noun.number=altos;
+#  - la tienda es cerca del río: ser_estar=está.
+# scripts/try-lines.sh --check compares the output with m64.expected (the CLI) and m64.host.expected (--host).
+# Rows: prompt|line; blank lines and lines starting with # are skipped.
+villager-open|yo quiere dos espada
+villager-open|luz hizo pan y yo fui al río
+villager-open|luz hizo pan y yo fuimos al río
+villager-open|comí pan y tú compraste fruta
+villager-open|mar pescó y yo comí pescado
+villager-open|tú y yo fui al río
+villager-open|yo y luz fuimos al río
+villager-open|luz y yo somos amigas
+villager-open|ella y yo somos altas
+villager-open|el hermano de luz y yo fuimos al río
+villager-open|ayer luz y yo comimos pan
+villager-open|tú y ella son altas
+villager-open|usted y yo vamos al río
+villager-open|dos panes es caro
+villager-open|diez monedas son mucho dinero
+villager-open|dos niños es alto
+villager-open|la tienda es cerca del río
+villager-open|el ala es muy bonita
+villager-open|quiero pan y yo tengo dos monedas
+villager-open|compré pan y luz compró fruta
