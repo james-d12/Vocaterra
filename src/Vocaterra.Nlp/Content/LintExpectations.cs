@@ -6,7 +6,7 @@ namespace Vocaterra.Nlp.Content;
 /// <summary>
 /// Check 6: an example written as <c>{ "text": ..., "errors": [...] }</c> is graded with <see cref="TextGrader"/> and the verdict's error tags must equal the
 /// expected set. The prompt is the example's own <c>prompt</c> when it names one, otherwise the first open-mode prompt (ordinal id) that allows the example's intent, or the first prompt of any mode when
-/// none is open (an open prompt grades a sentence; a constrained prompt expects one of its answer set's phrases, so it would add <c>vocab.wrong</c> to a sentence);
+/// none is open (an open prompt grades a sentence; a constrained prompt expects one of its answer set's phrases, so it would add <c>vocab.wrong</c> to a sentence its intents do not understand);
 /// the tags then depend on that prompt's answer set and difficulty, exactly as when a player answers it.
 /// </summary>
 internal static class LintExpectations

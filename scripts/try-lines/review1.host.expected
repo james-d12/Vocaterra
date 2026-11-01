@@ -10,10 +10,10 @@ baker-open     | puede usted vender pan                     => unknown comm=Fals
 baker-open     | me gusta el pan                            => unknown comm=False vocab.wrong
 baker-open     | me gustan los panes                        => unknown comm=False vocab.wrong
 baker-open     | el pan es muy bueno                        => unknown comm=False vocab.wrong
-baker-open     | usted hará pan mañana                      => state_action comm=True vocab.wrong
-baker-open     | luz hará pan                               => state_action comm=True vocab.wrong
-baker-open     | luz y mar compraron pan                    => state_action comm=True vocab.wrong
-baker-open     | ayer compré pan para luz                   => state_action comm=True vocab.wrong
+baker-open     | usted hará pan mañana                      => state_action comm=True -
+baker-open     | luz hará pan                               => state_action comm=True -
+baker-open     | luz y mar compraron pan                    => state_action comm=True -
+baker-open     | ayer compré pan para luz                   => state_action comm=True -
 baker-open     | ustedes tienen pan                         => unknown comm=False vocab.wrong
 baker-open     | gracias luz                                => thank comm=True -
 baker-open     | tienes veinte panes                        => unknown comm=False vocab.wrong
@@ -33,8 +33,8 @@ smith-open     | domingo trabaja en la herrería             => state_action com
 smith-open     | domingo tengo madera                       => state_have comm=True -
 smith-open     | qué hace domingo                           => ask_activity comm=True -
 smith-open     | hace dos días compré pan                   => unknown comm=False vocab.wrong
-smith-open     | hace frío                                  => ask_activity comm=True vocab.wrong
-smith-open     | buscaré madera para luz                    => state_action comm=True vocab.wrong
+smith-open     | hace frío                                  => ask_activity comm=True -
+smith-open     | buscaré madera para luz                    => state_action comm=True -
 smith-open     | el día es bonito                           => unknown comm=False vocab.wrong
 smith-open     | el mapa es grande                          => unknown comm=False vocab.wrong
 smith-open     | la mano es grande                          => unknown comm=False vocab.wrong
@@ -45,12 +45,12 @@ farmer-open    | me gustan las manzanas                     => state_like comm=T
 farmer-open    | la manzana es roja                         => describe comm=True -
 farmer-open    | las manzanas son rojas                     => describe comm=True -
 farmer-open    | tengo tres manzanas rojas                  => unknown comm=True -
-farmer-open    | león es alto                               => describe comm=True vocab.wrong
-farmer-open    | ella es alta                               => describe comm=True vocab.wrong
-farmer-open    | yo soy alta                                => describe comm=True vocab.wrong
+farmer-open    | león es alto                               => describe comm=True -
+farmer-open    | ella es alta                               => describe comm=True -
+farmer-open    | yo soy alta                                => describe comm=True -
 farmer-open    | el pan está caro                           => unknown comm=False vocab.wrong
-farmer-open    | la luz es bonita                           => describe comm=True vocab.wrong
-farmer-open    | el león es grande                          => describe comm=True vocab.wrong
+farmer-open    | la luz es bonita                           => describe comm=True -
+farmer-open    | el león es grande                          => describe comm=True -
 villager-open  | dónde está la herrería                     => ask_directions comm=True -
 villager-open  | la fiesta es en la plaza                   => unknown comm=False -
 villager-open  | hay dos panes                              => unknown comm=False -
