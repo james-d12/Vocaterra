@@ -135,6 +135,19 @@ internal static class SpanishAnalysisTables
         "segundo", "minuto", "hora", "día", "noche", "semana", "mes", "año", "década", "siglo", "rato", "momento", "tiempo",
     }.ToFrozenSet(StringComparer.Ordinal);
 
+    // M64 (the review of feature/village, R5). The words that say how much a sum is, as written in the singular masculine, the form a predicate takes when the amount
+    // before ser is read as one sum (dos panes es suficiente, diez monedas es caro, quince monedas es mucho, dos panes no es nada).
+    private static readonly FrozenSet<string> AmountPredicates = new[]
+    {
+        "mucho", "poco", "bastante", "demasiado", "suficiente", "caro", "barato", "nada", "algo",
+    }.ToFrozenSet(StringComparer.Ordinal);
+
+    /// <summary>True for a word, as written, that says how much a sum is (<c>mucho</c>, <c>poco</c>, <c>suficiente</c>, <c>caro</c>...; M64).</summary>
+    public static bool IsAmountPredicate(string word)
+    {
+        return AmountPredicates.Contains(word);
+    }
+
     /// <summary>True for a word that may open the clause of a subject before its verb (<c>y</c>, <c>pero</c>, <c>cuando</c>, <c>dónde</c>...; not <c>qué</c> or <c>que</c>; M59).</summary>
     public static bool IsSubjectClauseOpener(string word)
     {

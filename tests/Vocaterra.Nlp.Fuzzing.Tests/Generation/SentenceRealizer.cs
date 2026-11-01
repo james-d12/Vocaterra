@@ -859,8 +859,29 @@ internal sealed class SentenceRealizer
             string number;
             if (item.Subject is { } subject)
             {
-                person = subject.Person!;
-                number = subject.Number!;
+                // M64: a subject pronoun joined by y or e to members before it that open their clause ends a plural subject (luz y yo comemos, tú y ella comen), which
+                // the analyzer agrees the verb with; where the realiser cannot tell what the analyzer reads there, the draw is skipped.
+                switch (CoordinationBefore(_items.IndexOf(subject), out var coordination))
+                {
+                    case PronounCoordination.Skip:
+                        skip = "coordinated-subject";
+                        _detail = subject.Surface ?? string.Empty;
+                        return false;
+                    case PronounCoordination.Subject:
+                        subject.Coordination = coordination;
+                        person = coordination!.Person switch
+                        {
+                            "1" => "1",
+                            "2" when _rng.NextDouble() < 0.3 => "2",
+                            _ => "3",
+                        };
+                        number = LexiconSchema.Plural;
+                        break;
+                    default:
+                        person = subject.Person!;
+                        number = subject.Number!;
+                        break;
+                }
             }
             else if (ReflexiveQuestionPerson(i) is { } reflexive)
             {
@@ -918,7 +939,174 @@ internal sealed class SentenceRealizer
             item.Tense = tense;
         }
 
+        // M64: a literal verb after a subject pronoun that ends a coordinated subject must agree with the coordination; the pronoun was drawn to agree with the verb alone.
+        for (var p = 0; p < _items.Count; p++)
+        {
+            var pronoun = _items[p];
+            var next = NextContent(p);
+            if (pronoun is not { Kind: Kind.Pronoun, SubjectPronoun: true } || next < 0 || _items[next] is not { Kind: Kind.Literal } literal
+                || !literal.Readings.Any(IsFiniteVerbReading))
+            {
+                continue;
+            }
+
+            var kind = CoordinationBefore(p, out var coordination);
+            if (kind == PronounCoordination.Skip
+                || (kind == PronounCoordination.Subject
+                    && !literal.Readings.Any(r => IsFiniteVerbReading(r) && r.Mood != LexiconSchema.Imperative && Agrees(coordination!, r.Person, r.Number))))
+            {
+                skip = "coordinated-subject";
+                _detail = pronoun.Surface ?? string.Empty;
+                return false;
+            }
+
+            pronoun.Coordination = coordination;
+        }
+
         return true;
+    }
+
+    // M64: what stands before a subject pronoun, as the analyzer reads it (mirror of SpanishAgreementChecker.CoordinationOf): nothing joined to it, a coordinated subject
+    // that it ends, or a shape the realiser does not model (the draw is skipped).
+    private enum PronounCoordination
+    {
+        None,
+        Subject,
+        Skip,
+    }
+
+    // M64: the subject the pronoun at index ends when y or e joins it to members before it (mirror of SpanishAgreementChecker.CoordinationOf). A member is a subject
+    // pronoun, a noun phrase or a name; its clause is surely opened when it is the sentence's first word or follows a word of LexiconCatalog.SubjectClauseOpeners, and
+    // then it is a member. A member right after a word that can be a verb or a preposition, and a word before y that can be no member, leave the pronoun its own subject
+    // (y joins two clauses). Everything else is skipped: a word not drawn yet, a word that may be a noun or a pronoun of another reading, a phrase of time, a bare noun
+    // that is also another word, a noun of both genders, a phrase with de before it (the analyzer joins it to the phrase before de) and a clause that the analyzer may
+    // open past adverbs or phrases of time.
+    private PronounCoordination CoordinationBefore(int index, out SubjectCoordination? coordination)
+    {
+        coordination = null;
+        var pronoun = SubjectPronounReading(_items[index]);
+        if (pronoun is null)
+        {
+            return PronounCoordination.None;
+        }
+
+        var persons = new List<string> { pronoun.Person! };
+        var genders = new List<string?> { pronoun.Gender };
+        var start = index;
+        while (start >= 2 && _items[start - 1].Norm?.ToLowerInvariant() is "y" or "e")
+        {
+            var member = _items[start - 2];
+            if (member.Surface is null)
+            {
+                return PronounCoordination.Skip;
+            }
+
+            int memberStart;
+            string? gender;
+            string person = "3";
+            var certain = true;
+            if (member.Kind == Kind.Word)
+            {
+                memberStart = start - 2;
+                gender = null;
+            }
+            else if (SubjectPronounReading(member) is { } other)
+            {
+                memberStart = start - 2;
+                person = other.Person!;
+                gender = other.Gender;
+                certain = member.Readings.All(static r => r.Pos == LexiconSchema.Pronoun);
+            }
+            else if (member.Head is { } head && head.Kind == Kind.Noun)
+            {
+                memberStart = start - 2;
+                while (memberStart > 0 && ReferenceEquals(_items[memberStart - 1].Head, head))
+                {
+                    memberStart--;
+                }
+
+                var bare = memberStart == start - 2 && ReferenceEquals(head, member);
+                var nounGenders = head.Readings.Where(static r => r.Pos == LexiconSchema.Noun).Select(static r => r.Gender).Distinct().Count();
+                if (nounGenders != 1
+                    || head.Readings.Any(static r => r.Pos == LexiconSchema.Noun && LexiconCatalog.PostverbalNonSubjectNouns.Contains(r.Lemma))
+                    || Enumerable.Range(memberStart, start - 1 - memberStart).Any(i => _items[i].Kind == Kind.Literal))
+                {
+                    return PronounCoordination.Skip;
+                }
+
+                gender = bare ? null : head.Gender;
+                certain = !(bare && head.Readings.Any(static r => r.Pos != LexiconSchema.Noun));
+            }
+            else if (member.Kind == Kind.Numeral
+                || member.Readings.Count == 0
+                || member.Readings.Any(static r => r.Pos == LexiconSchema.Noun || (r.Pos == LexiconSchema.Pronoun && LexiconCatalog.SubjectPronounLemmas.Contains(r.Lemma))))
+            {
+                // A word the analyzer may read as a member: a noun of another reading, a subject pronoun the realiser did not draw as one, a number.
+                return PronounCoordination.Skip;
+            }
+            else
+            {
+                // A verb, an adverb or another word that is no member: y joins two clauses (mar pescó y yo comí).
+                break;
+            }
+
+            if (memberStart >= 1 && _items[memberStart - 1].Norm?.ToLowerInvariant() is "de" or "del")
+            {
+                return PronounCoordination.Skip;
+            }
+
+            if (memberStart > 0)
+            {
+                var before = _items[memberStart - 1];
+                if (before.Surface is null || before.Kind == Kind.Numeral)
+                {
+                    return PronounCoordination.Skip;
+                }
+
+                if (before.Kind is Kind.Verb or Kind.Preposition || before.Readings.Any(static r => r.Pos is LexiconSchema.Verb or LexiconSchema.Preposition))
+                {
+                    // The member is in the clause before (luz hizo pan y yo fui): y joins two clauses.
+                    break;
+                }
+
+                if (!LexiconCatalog.SubjectClauseOpeners.Contains(before.Norm!.ToLowerInvariant())
+                    || before.Readings.Count == 0
+                    || before.Readings.All(static r => r.Pos is LexiconSchema.Adverb or LexiconSchema.Interjection))
+                {
+                    return PronounCoordination.Skip;
+                }
+            }
+
+            if (!certain)
+            {
+                return PronounCoordination.Skip;
+            }
+
+            persons.Add(person);
+            genders.Add(gender);
+            start = memberStart;
+        }
+
+        if (persons.Count == 1)
+        {
+            return PronounCoordination.None;
+        }
+
+        var dominant = persons.Contains("1") ? "1" : persons.Contains("2") ? "2" : "3";
+        var subjectGender = genders.Exists(static g => g is null) ? null : genders.Contains(LexiconSchema.Masculine) ? LexiconSchema.Masculine : LexiconSchema.Feminine;
+        coordination = new SubjectCoordination(dominant, subjectGender);
+        return PronounCoordination.Subject;
+    }
+
+    // M64: true when a verb of this person and number agrees with the coordinated subject (the first person plural; the second or the third plural; the third plural).
+    private static bool Agrees(SubjectCoordination coordination, string? person, string? number)
+    {
+        return number == LexiconSchema.Plural && coordination.Person switch
+        {
+            "1" => person == "1",
+            "2" => person is "2" or "3",
+            _ => person == "3",
+        };
     }
 
     // M59: the last word of a noun phrase right before the verb at index, past at most two skippable words or object pronouns (mirror of
@@ -1138,6 +1326,14 @@ internal sealed class SentenceRealizer
                 if (p > 0 && _items[p - 1].Kind == Kind.Preposition)
                 {
                     break;
+                }
+
+                // M64: the last pronoun of a coordinated subject gives the plural, and a gender only when every member has one (ella y él son altos).
+                if (_items[p].Coordination is { } coordination)
+                {
+                    gender = coordination.Gender;
+                    number = LexiconSchema.Plural;
+                    return true;
                 }
 
                 gender = pronoun.Gender;
@@ -1527,7 +1723,8 @@ internal sealed class SentenceRealizer
                 item.Head is null ? -1 : indexOf[item.Head],
                 item.Slot,
                 item.Infinitive,
-                item.SubjectPronoun));
+                item.SubjectPronoun,
+                item.Coordination));
             if (item.Slot is not null)
             {
                 slots.TryAdd(item.Slot, ExpectedSlotValue(item));
@@ -1631,6 +1828,8 @@ internal sealed class SentenceRealizer
         public bool Infinitive { get; set; }
 
         public bool SubjectPronoun { get; set; }
+
+        public SubjectCoordination? Coordination { get; set; }
 
         public Item? Subject { get; set; }
 

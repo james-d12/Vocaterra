@@ -109,6 +109,18 @@ public sealed class LexiconCatalog
         "mayoría", "minoría", "mitad", "resto", "parte", "grupo", "cantidad", "montón", "número", "totalidad", "serie", "conjunto", "docena", "par", "tercio",
     ];
 
+    /// <summary>
+    /// The words after which a phrase opens its clause (mirror of <c>SpanishAnalysisTables.SubjectClauseOpeners</c>, M59), less those the analyzer may read past as an
+    /// adverb: the realiser models a coordinated subject (M64) only where its first member surely opens its clause.
+    /// </summary>
+    public static readonly IReadOnlyList<string> SubjectClauseOpeners = ["y", "e", "pero", "porque", "si", "cuando", "aunque"];
+
+    /// <summary>
+    /// The words that say how much a sum is, as written (mirror of <c>SpanishAnalysisTables.AmountPredicates</c>, M64): after an amount and a singular <c>ser</c>
+    /// (<c>dos panes es suficiente</c>) the analyzer reads the amount as one sum.
+    /// </summary>
+    public static readonly IReadOnlyList<string> AmountPredicates = ["mucho", "poco", "bastante", "demasiado", "suficiente", "caro", "barato", "nada", "algo"];
+
     /// <summary>Adverbs of place that take <c>estar</c>, so <c>ser</c> before one is a mistake (mirror of <c>SpanishAnalysisTables.LocationAdverbs</c>, M56).</summary>
     public static readonly IReadOnlyList<string> LocationAdverbs = ["lejos", "cerca"];
 

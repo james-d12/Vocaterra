@@ -12,11 +12,12 @@ internal sealed partial class SpanishAgreementChecker
     // rojo -> roja, el pan es grandes -> grande, las manzanas son caro -> caras (gender.agree and noun.number, as the attributive check gives for the same double slip),
     // la manzana es más barato que el pan -> barata. The subject is, in this order:
     //  1. a subject pronoun before the copula (past at most two skippable words) that no preposition governs, with its gender when it has one: ella es alto -> alta,
-    //     nosotros somos alto -> altos; yo, tú, usted and ustedes have no gender, so only their number is checked (yo soy alto and yo soy alta are both clean);
+    //     nosotros somos alto -> altos; yo, tú, usted and ustedes have no gender, so only their number is checked (yo soy alto and yo soy alta are both clean); M64: a
+    //     pronoun that ends a coordinated subject gives the plural, and the gender only when every member has one (ella y él son altos; él y yo somos altos);
     //  2. before a copula of the third person, the noun phrase that opens its clause (M59's subject, TryFindPreverbalSubject), with its noun's gender (the determiners
     //     decide for a noun of both genders) and its number; two phrases joined by y are plural, and masculine unless both are feminine. A lone name (one bare noun,
     //     Luz es alta) may be the person spoken to, and the core does not know a name's gender, so only the copula's number is checked after it; names joined by y
-    //     give the plural and no gender;
+    //     give the plural and no gender; M64: an amount read as one sum before a singular ser gives the singular and no gender (dos panes es suficiente);
     //  3. after a copula of the third person, a noun phrase with a determiner, or a subject pronoun of the third person, right after the adjectives (es cara la manzana,
     //     ¿es alta ella?), unless it is a phrase of time (es caro el lunes) or coordinated;
     //  4. otherwise the copula's own number, and no gender: the subject that the verb agrees with, said or not (es caro and es muy caro are clean; es caros -> caro).
@@ -107,7 +108,14 @@ internal sealed partial class SpanishAgreementChecker
                     break;
                 }
 
-                return new PredicateSubject(pronoun.Gender, pronoun.Number);
+                // M64: the last pronoun of a coordinated subject gives the plural, and a gender only when every member has one (ella y él son altos, él y yo somos
+                // altos); a coordination that cannot be told gives neither.
+                return CoordinationOf(p, pronoun, out var coordinated) switch
+                {
+                    Coordination.Subject => new PredicateSubject(coordinated.Gender, LexiconSchema.Plural),
+                    Coordination.Unknown => new PredicateSubject(null, null),
+                    _ => new PredicateSubject(pronoun.Gender, pronoun.Number),
+                };
             }
 
             if (skipped >= ReadingClasses.MaxSkippedBetween || !IsSkippable(p))
@@ -121,7 +129,8 @@ internal sealed partial class SpanishAgreementChecker
         // 2. The noun phrase that opens its clause before a copula of the third person.
         if (thirdPerson && TryFindPreverbalSubject(copula, out var preverbal))
         {
-            if (preverbal.Lone)
+            // M64 (b): an amount read as one sum (dos panes es suficiente) takes the copula's singular and no gender, as a lone name does.
+            if (preverbal.Lone || copulas.Exists(r => IsAmountReadAsUnit(copula, r, preverbal)))
             {
                 return new PredicateSubject(null, copulaNumber);
             }
@@ -181,6 +190,13 @@ internal sealed partial class SpanishAgreementChecker
         if (genders.Count <= 1)
         {
             return genders.Count == 1 ? genders[0] : null;
+        }
+
+        // M64 (found by O4 at five times the default depth; older than M64): a feminine noun that takes el (el ala, el agua) is feminine whatever its article says. The
+        // lexicon lists ala with both genders, and el made it masculine: el ala es tan sincera como una saeta gave gender.agree "sincero".
+        if (Readings(phrase.Head, static r => r is { Pos: LexiconSchema.Noun, Gender: LexiconSchema.Feminine } && WordClasses.TakesElBeforeFeminine(r.Lemma)).Count > 0)
+        {
+            return LexiconSchema.Feminine;
         }
 
         foreach (var determiner in phrase.Determiners)

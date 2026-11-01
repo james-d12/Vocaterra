@@ -94,6 +94,21 @@ public class PostverbalSubjectTests
         Assert.Equal(string.Empty, Described(sentence));
     }
 
+    // M64 (c), the review of feature/village (R6): cerca del with a time is the time as well (es cerca del mediodía gave ser_estar "está" before M64, which tested de
+    // and missed del); del with a place is still a place.
+    [Theory]
+    [InlineData("es cerca del mediodía", "")]
+    [InlineData("son cerca de las tres", "")]
+    [InlineData("es cerca de la una", "")]
+    [InlineData("era cerca del mediodía", "")]
+    [InlineData("la tienda es cerca del río", "ser_estar|es|está")]
+    [InlineData("es cerca", "ser_estar|es|está")]
+    [InlineData("la casa es cerca del mar", "ser_estar|es|está")]
+    public void CercaDelWithATimeTakesSer(string sentence, string expected)
+    {
+        Assert.Equal(expected, Described(sentence));
+    }
+
     // ---- (b) a subject after its verb ---------------------------------------------------------------------------------------------------------------------
 
     [Theory]
