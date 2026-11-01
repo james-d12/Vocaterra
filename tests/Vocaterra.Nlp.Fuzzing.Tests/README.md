@@ -167,7 +167,7 @@ code comments and here, with the reason:
     where `unas porque` then reads as the article and the noun `porqué`, giving `gender.agree` and `noun.number` beside the expected `conj.tense`; found at M62, at
     five times the default depth). Such a case is kept only when the mutated sentence matches the original's grammar; the generator asks the analyzer for the match
     alone, never for the errors the oracles compare. The owner's yes covered every tense mutation, but the guard asks for the match only beside such a literal: of 6 002
-    tense mutations measured before the guard, 46 (0.8 %) still matched their grammar (`ayer` in front fits only a grammar that opens with an adverb or a name), and 237
+    tense mutations measured before the guard, 46 (0.8 %) still matched their grammar (`ayer` in front fits only a grammar that can open with an adverb or with `ayer` itself), and 237
     (4 %) had such a literal and no match, so the wider guard would have left the mutation almost nothing but grammars that open with an adverb. A literal with two
     parts of speech is not guarded: the match does not narrow the readings of a literal spelled like the word. `NarrowedMutationGuardTests` (c) shows the analyzer's
     reading of the failing sentence, that the pattern is not mutated, and that the same pattern with `aunque` (no accent variant), drawn from the same seeds, and the
@@ -742,6 +742,14 @@ them explicitly (each is a skip or a restriction in the generator, counted in th
   `necesaria militar`, and its recast is `necesaria militar` again instead of `militar necesaria` (with the order slipped, `[WORD:item] [ADJ]` can bind `necesaria`
   as a name and `militar` as the adjective). It fails the same way on `feature/village` at `951e7c8`, before M64, and no rule of M64 reads its words; it is left for the
   orchestrator with M62's findings above. The guard would be to skip `word_order` beside a `[WORD]` slot, a narrowing; the owner, 2026-11-01: leave it recorded.
+- **Found at M65, older than M65, and left for a decision** (a run of O4 after M65's last build; none of M65's four runs of the project met it, and it fails the
+  same way on the suite before M65: the build of `feature/village-followups` at `1ff8a5a`, whose core, fuzz suite and bundle are those of `9dfa08b`). *O4, a
+  `word_order` mutation that breaks the match where the grammar decided a reading* (CsCheck seed `8yc522XLB_W2`, `MutationCase { Kind = WordOrder, Seed =
+  670401880765 }`): the random pattern `([ART] [NOUN:item]|[VERB]|[VERB:encargar]) [ADJ] [NOUN:qty]? ([VERB:desfilar:spell] [ADJ]|[ART])?` gives `la joya unida rica
+  desfilaron perdido`, where the grammar binds `rica` (a noun and an adjective) as `[NOUN:qty]`, a lone noun whose verb the realiser draws freely. The mutation makes
+  `la unida joya rica`; `unida` is no noun, so the grammar no longer matches, `rica` reads as the adjective of `joya`, and M59's check gives `conj.person` `desfiló`
+  beside the expected `word_order`. The same family as M65 (c) and `2tpLGUOSqj41`: either the realiser extends M62's `noun-reads-as-adjective` re-roll past the
+  adjectives after the head (a change of O3's draws), or the mutation keeps only a case that still matches its grammar (a narrowing); it is left for the orchestrator.
 
 ## Adding to the suite
 

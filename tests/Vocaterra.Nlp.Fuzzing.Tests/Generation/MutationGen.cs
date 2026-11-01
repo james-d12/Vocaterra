@@ -792,14 +792,14 @@ public static class MutationGen
 
         public MutatedSentence? ConjTense()
         {
-            // Only the generated verbs are flagged: a noun that is also a verb form (ayudas, lanza) is read as the noun, because the analyzer resolves the part of
-            // speech of each word. The sentence must still hold a generated finite verb, and no literal word of the grammar may be a finite verb form (falta, after a
-            // subject pronoun, is the verb), because the oracle names only the generated verbs.
             if (NameBesideAnAlternation)
             {
                 return null;
             }
 
+            // Only the generated verbs are flagged: a noun that is also a verb form (ayudas, lanza) is read as the noun, because the analyzer resolves the part of
+            // speech of each word. The sentence must still hold a generated finite verb, and no literal word of the grammar may be a finite verb form (falta, after a
+            // subject pronoun, is the verb), because the oracle names only the generated verbs.
             var finite = Indexes(static t => t is { Role: TokenRole.Verb, Infinitive: false }).Where(IsFiniteAt).ToList();
             var literalVerbForms = Indexes(static t => t.Role == TokenRole.Literal)
                 .Where(i => _words.Lexicon.Lookup(_tokens[i].Norm).Any(static r => r.Pos == LexiconSchema.Verb && r.Person is not null && r.Tense is not null))
@@ -868,6 +868,7 @@ public static class MutationGen
             {
                 return null;
             }
+
             var errors = finite.Select(i => new ExpectedError(ErrorTags.ConjTense, mutated.SpanOf(i + 1, i + 1), forms[i], _tokens[i].Norm)).ToArray();
             var fixedTokens = list.Select((t, j) => j > 0 && forms.TryGetValue(j - 1, out var form) ? form : t.Norm);
             corrected.AddRange(fixedTokens);
