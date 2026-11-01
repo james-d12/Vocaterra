@@ -2325,27 +2325,27 @@
       "Gain": 0.32
     },
     "speech/guide.lesson.baker.pay.1.slow.wav": {
-      "Text": "Te pago una moneda por cada madera.",
+      "Text": "Te pago una moneda por cada bloque de madera.",
       "Speaker": "baker",
       "SpeakerId": 35,
       "Voice": "if_sara",
       "Speed": 0.8,
       "Rate": 24000,
       "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
-      "Sha256": "b668b3ddee19b66f15546bb4f940912f219ac2c6231f6d3a45db97f083e4de18",
-      "Bytes": 142962,
+      "Sha256": "7c9232957cbfc96307e64e7122dced93bb846cefad1584ef518e93abf168ffd0",
+      "Bytes": 166144,
       "Gain": 0.32
     },
     "speech/guide.lesson.baker.pay.1.wav": {
-      "Text": "Te pago una moneda por cada madera.",
+      "Text": "Te pago una moneda por cada bloque de madera.",
       "Speaker": "baker",
       "SpeakerId": 35,
       "Voice": "if_sara",
       "Speed": 1,
       "Rate": 24000,
       "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
-      "Sha256": "79c520f9dda87ff21c79d6e27e7ef4f5c75a896cc65657146733a15b5abe69ad",
-      "Bytes": 103122,
+      "Sha256": "95ec9cf8439b7eba549bb610931715be37270d45f9bc159cbab8a75f709bb724",
+      "Bytes": 126264,
       "Gain": 0.32
     },
     "speech/guide.lesson.baker.plan.1.slow.wav": {

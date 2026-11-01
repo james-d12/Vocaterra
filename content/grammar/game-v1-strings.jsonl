@@ -102,7 +102,7 @@
 {"id":"dialogue:guide.lesson.baker.market.1","text":"¡Hoy hay mercado! ¿Cuántos panes tengo?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.model.1","text":"Ayer compré fruta en la tienda.","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.oven.1","text":"Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer?","kind":"npc"}
-{"id":"dialogue:guide.lesson.baker.pay.1","text":"Te pago una moneda por cada madera.","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.pay.1","text":"Te pago una moneda por cada bloque de madera.","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.plan.1","text":"¡Hola! ¿Qué vas a hacer hoy?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.sell.1","text":"Necesito madera para el horno. ¿Qué quieres hacer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.ten.1","text":"Seis, siete, ocho, nueve, diez.","kind":"npc"}
@@ -2801,7 +2801,7 @@
 {"id":"PHRASES.md:once-a-quince.text","text":"Once, doce, trece, catorce, quince.","kind":"npc"}
 {"id":"PHRASES.md:dieciseis-a-veinte.text","text":"Dieciséis, diecisiete, dieciocho, diecinueve, veinte.","kind":"npc"}
 {"id":"PHRASES.md:cuantos-panes-tengo.text","text":"¡Hoy hay mercado! ¿Cuántos panes tengo?","kind":"npc"}
-{"id":"PHRASES.md:te-pago-una-moneda.text","text":"Te pago una moneda por cada madera.","kind":"npc"}
+{"id":"PHRASES.md:te-pago-una-moneda.text","text":"Te pago una moneda por cada bloque de madera.","kind":"npc"}
 {"id":"PHRASES.md:tengo-quince-manzanas.text","text":"¡Hola! Hoy hay mercado. Tengo quince manzanas.","kind":"npc"}
 {"id":"PHRASES.md:quince-monedas.text","text":"Quince manzanas, quince monedas.","kind":"npc"}
 {"id":"PHRASES.md:es-caro-o-barato.text","text":"¿Es caro o es barato?","kind":"npc"}

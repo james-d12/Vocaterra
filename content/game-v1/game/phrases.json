@@ -150,7 +150,7 @@
     {"id": "once-a-quince", "says": "hears", "spanish": "Once, doce, trece, catorce, quince.", "intent": null, "prompt": "baker-open", "variants": [], "audioLineIds": ["guide.lesson.baker.fifteen.1"]},
     {"id": "dieciseis-a-veinte", "says": "hears", "spanish": "Dieciséis, diecisiete, dieciocho, diecinueve, veinte.", "intent": null, "prompt": "baker-open", "variants": [], "audioLineIds": ["guide.lesson.baker.twenty.1"]},
     {"id": "cuantos-panes-tengo", "says": "hears", "spanish": "¡Hoy hay mercado! ¿Cuántos panes tengo?", "intent": null, "prompt": "lesson-loaves", "variants": [], "audioLineIds": ["guide.lesson.baker.market.1"]},
-    {"id": "te-pago-una-moneda", "says": "hears", "spanish": "Te pago una moneda por cada madera.", "intent": null, "prompt": "lesson-sell", "variants": [], "audioLineIds": ["guide.lesson.baker.pay.1"]},
+    {"id": "te-pago-una-moneda", "says": "hears", "spanish": "Te pago una moneda por cada bloque de madera.", "intent": null, "prompt": "lesson-sell", "variants": [], "audioLineIds": ["guide.lesson.baker.pay.1"]},
     {"id": "tengo-quince-manzanas", "says": "hears", "spanish": "¡Hola! Hoy hay mercado. Tengo quince manzanas.", "intent": null, "prompt": "farmer-open", "variants": [], "audioLineIds": ["guide.lesson.farmer.market.1"]},
     {"id": "quince-monedas", "says": "hears", "spanish": "Quince manzanas, quince monedas.", "intent": null, "prompt": "farmer-open", "variants": [], "audioLineIds": ["farmer_total.1"]},
     {"id": "es-caro-o-barato", "says": "hears", "spanish": "¿Es caro o es barato?", "intent": null, "prompt": "lesson-dear", "variants": [], "audioLineIds": ["guide.lesson.farmer.dear.1"]},

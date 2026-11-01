@@ -1484,7 +1484,7 @@
     "guide.lesson.baker.pay": {
       "poolId": "guide.lesson.baker.pay",
       "variants": [
-        { "lineId": "guide.lesson.baker.pay.1", "text": "Te pago una moneda por cada madera." }
+        { "lineId": "guide.lesson.baker.pay.1", "text": "Te pago una moneda por cada bloque de madera." }
       ]
     },
     "guide.lesson.farmer.market": {

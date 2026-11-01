@@ -1895,6 +1895,12 @@
       "matches": []
     },
     {
+      "key": "38209d4c7d3c051e7ad458488bbafbfe026f2b85d7d7ef9542d0081bb86774a2",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te pago una moneda por cada bloque de madera.",
+      "matches": []
+    },
+    {
       "key": "3824cfefee5211baa4cd874e14ba3af018be8abbd07aa2119f8d08bd5d2a0249",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer comí fruta",

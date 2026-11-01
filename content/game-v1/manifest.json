@@ -73,7 +73,7 @@
 {"path":"answer-sets/yes-no.json","sha256":"75fe43420c8085dc63e90f22b799d3882f7388cf7318d949e395f461d6a78b1a","bytes":873},
 {"path":"cefr/a1.txt","sha256":"2f6e338df69c118398ab21f2b5cc5e53f46ab1642045f23929c5816cec1dc656","bytes":4661},
 {"path":"cefr/a2.txt","sha256":"ca2bd4e709130d68b0375bf9df23cae7a9f31911776f7cf0500419a51516d44c","bytes":5010},
-{"path":"dialogue/dialogue.json","sha256":"5e4febc2f8c11f23ac24e2233aceb12d2b1b02ec0ba3f45aa4f0fd56370cb25c","bytes":51969},
+{"path":"dialogue/dialogue.json","sha256":"55e7b1bf81c9b9306b9c877aa296eb8633bff0cf6e20d81cebfa86ddd87ae36f","bytes":51979},
 {"path":"effects/effects.json","sha256":"47a642d10e9362d320f94022d165e52d53fc26468f3d42e41a37f4e29b003b7b","bytes":20},
 {"path":"evaluation/evaluation-config.json","sha256":"fc7d6d2567808648dd6615e4c2ea60556b50eba487ee381e74d5d0769003867d","bytes":1632},
 {"path":"feedback/feedback-policy.json","sha256":"63e3ac7e5a4e7c95ca2d26212ae2536622e606be07cc2117f89cdb34f4da9dcf","bytes":492},
@@ -107,7 +107,7 @@
 {"path":"game/objectives/meet-guide.json","sha256":"9f719299b1906c04f69ff62d6d673a308229de6541aa14c744681c466224b445","bytes":521},
 {"path":"game/objectives/oven-wood.json","sha256":"311ef5b47d1e42655aa4d2581a3998fd17a819678e8e6f09576492d97543040c","bytes":813},
 {"path":"game/objectives/water-for-plants.json","sha256":"90d29998cd37ae1bd95ea80e33046d0dcebf837400f9206b90387ce915f6422e","bytes":974},
-{"path":"game/phrases.json","sha256":"6b6d698dcee8154672754dd813d04f10157b277a691be62e0a9e57f816150600","bytes":35501},
+{"path":"game/phrases.json","sha256":"145b641055e8adbd5f1808d101613a5319d2dd8328201f0ca7e219d12eafdf7b","bytes":35511},
 {"path":"game/recipes.json","sha256":"2e4d0ad97236189771e0adc4994dafa28be162ad3c5cefc9e1cd847263d708bb","bytes":240},
 {"path":"game/scene.json","sha256":"b6deb7f60a57054f3509e87def89200f55fc044d423bb2020e13914907c953fb","bytes":18727},
 {"path":"game/session.json","sha256":"4ad9f2f386bc5f16df57e3f4978d4a4c5c9f9ff0ee4320e076576146092fd80d","bytes":650},
@@ -328,8 +328,8 @@
 {"path":"speech/guide.lesson.baker.model.1.wav","sha256":"03ddb9034a00e17962bde797840c2cf748bcb22d823cc0ad46db15c4d8590ef8","bytes":96866},
 {"path":"speech/guide.lesson.baker.oven.1.slow.wav","sha256":"a3a58061913601b263b331a797f0c347bb678f3ceeb16d25f7098eb2cea5662c","bytes":361944},
 {"path":"speech/guide.lesson.baker.oven.1.wav","sha256":"8ff15cb5c9ed7b0467028abd8c54b1e6751ba21831b30e64ce04d980453ce14f","bytes":276730},
-{"path":"speech/guide.lesson.baker.pay.1.slow.wav","sha256":"b668b3ddee19b66f15546bb4f940912f219ac2c6231f6d3a45db97f083e4de18","bytes":142962},
-{"path":"speech/guide.lesson.baker.pay.1.wav","sha256":"79c520f9dda87ff21c79d6e27e7ef4f5c75a896cc65657146733a15b5abe69ad","bytes":103122},
+{"path":"speech/guide.lesson.baker.pay.1.slow.wav","sha256":"7c9232957cbfc96307e64e7122dced93bb846cefad1584ef518e93abf168ffd0","bytes":166144},
+{"path":"speech/guide.lesson.baker.pay.1.wav","sha256":"95ec9cf8439b7eba549bb610931715be37270d45f9bc159cbab8a75f709bb724","bytes":126264},
 {"path":"speech/guide.lesson.baker.plan.1.slow.wav","sha256":"6271f8be9fa59f70e4b0611799c169212e4b682e9bb2451b02da5b33e3d5b9a4","bytes":132534},
 {"path":"speech/guide.lesson.baker.plan.1.wav","sha256":"fc66da45e0d93ec5f86851f59de3e682948fa25beb5bf4cca9bea429138a62d3","bytes":102642},
 {"path":"speech/guide.lesson.baker.sell.1.slow.wav","sha256":"81672832a4a3aa856b11b09176f2e5135b6cd2b489d831ccd2e1a5afc912e436","bytes":206570},
@@ -1024,4 +1024,4 @@
 {"path":"speech/villager_thank.2.wav","sha256":"0ee06d6e1412c4a8c3efc7d36a4179e6f2d52ce6dbb7b602ca17fad9a51247b3","bytes":54044},
 {"path":"speech/villager_unknown_place.1.slow.wav","sha256":"7e125d37b0a2bf3fac2c929cc2e2bd4a56639e9c515a39ad9ea809e1404fbe2e","bytes":83308},
 {"path":"speech/villager_unknown_place.1.wav","sha256":"926fc98c88187d508f8a0add2dc291af1e5bf62b5124ea47cf4277577b5e4215","bytes":76844}
-],"bundleHash":"acdd8f6d32e1a10ce24b5099da33e9bf921421964bb7ce73ea00947a6c65e8a2"}
+],"bundleHash":"e39e1a429c7bbeeeff083e4a062cc2b8f509a85741f1ebada9ecf7a7be078217"}

@@ -243,8 +243,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | guide.lesson.baker.model.1 | speech/guide.lesson.baker.model.1.wav | baker | 1.0 | Ayer compré fruta en la tienda. |  |
 | guide.lesson.baker.oven.1 | speech/guide.lesson.baker.oven.1.slow.wav | baker | 0.8 | Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer? |  |
 | guide.lesson.baker.oven.1 | speech/guide.lesson.baker.oven.1.wav | baker | 1.0 | Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer? |  |
-| guide.lesson.baker.pay.1 | speech/guide.lesson.baker.pay.1.slow.wav | baker | 0.8 | Te pago una moneda por cada madera. |  |
-| guide.lesson.baker.pay.1 | speech/guide.lesson.baker.pay.1.wav | baker | 1.0 | Te pago una moneda por cada madera. |  |
+| guide.lesson.baker.pay.1 | speech/guide.lesson.baker.pay.1.slow.wav | baker | 0.8 | Te pago una moneda por cada bloque de madera. |  |
+| guide.lesson.baker.pay.1 | speech/guide.lesson.baker.pay.1.wav | baker | 1.0 | Te pago una moneda por cada bloque de madera. |  |
 | guide.lesson.baker.plan.1 | speech/guide.lesson.baker.plan.1.slow.wav | baker | 0.8 | ¡Hola! ¿Qué vas a hacer hoy? |  |
 | guide.lesson.baker.plan.1 | speech/guide.lesson.baker.plan.1.wav | baker | 1.0 | ¡Hola! ¿Qué vas a hacer hoy? |  |
 | guide.lesson.baker.sell.1 | speech/guide.lesson.baker.sell.1.slow.wav | baker | 0.8 | Necesito madera para el horno. ¿Qué quieres hacer? |  |

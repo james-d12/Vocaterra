@@ -202,7 +202,7 @@ public sealed class MarketLessonTests(ITestOutputHelper output)
     [Fact]
     public void ItIsAnA2LessonAndTheValidatorPassesIt()
     {
-        // Its words are A1 but cada (A2, Luz's price for each piece of wood); it is a2 for its grammar too: the simple future of venderé.
+        // Its words are A1 but cada (A2, Luz's price for each block of wood); it is a2 for its grammar too: the simple future of venderé.
         Assert.Empty(GameDataValidator.Validate(TestGame.Data));
         Assert.Equal(LessonLevels.A2, Book.Find(LessonId)!.Level);
     }
