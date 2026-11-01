@@ -209,7 +209,8 @@ public class CoordinatedSubjectTests
         Assert.Equal(string.Empty, Described(sentence));
     }
 
-    // A verb that agrees with no accepted form is flagged with the plural (tú o yo vas gave "voy" before M66; ni tú ni yo fui gave nothing, yo fui agreeing).
+    // A verb that agrees with no accepted form is flagged with the plural (tú o yo vas gave "voy" before M66; ni tú ni yo fui gave nothing, yo fui agreeing; tú o ella
+    // es alto was flagged before as well, ella alone).
     [Theory]
     [InlineData("ni tú ni yo fui", "conj.person|fui|fuimos")]
     [InlineData("tú o yo vas", "conj.person|vas|vamos")]
@@ -220,12 +221,13 @@ public class CoordinatedSubjectTests
         Assert.Equal(expected, Described(sentence));
     }
 
-    // o or ni that joins two clauses leaves the pronoun its own subject, and a coordination that mixes y and o cannot be told.
+    // o that joins two clauses leaves the pronoun its own subject, as before M66, and a coordination that mixes y and o cannot be told, so it is not checked (tú y ella o
+    // yo vamos gave "voy" before M66, yo alone).
     [Theory]
     [InlineData("comes pan o yo como fruta")]
     [InlineData("tú y ella o yo vamos")]
     [InlineData("tú y ella o yo voy")]
-    public void OAfterAClauseOrMixedWithYIsLeftAsBefore(string sentence)
+    public void OAfterAClauseLeavesThePronounAloneAndAMixWithYIsNotChecked(string sentence)
     {
         Assert.Equal(string.Empty, Described(sentence));
     }
