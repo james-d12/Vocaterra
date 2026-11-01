@@ -45,18 +45,16 @@ is a change to the boundary and updates that record.
 1. **Check the session.**
    - Run the start checks in "Start of a session" below.
    - The worktree `.claude/worktrees/village` should be on `feature/village` and clean, at the handover commit or later.
-   - If a milestone branch (`M58-misreadings`, `M62-adjectives`, `V15-el-mercado`, `V09-…`) exists with no agent running, inspect it
+   - If a milestone branch (`V15-el-mercado`, `V09-phase-b`) exists with no agent running, inspect it
      (`git log`, `git status`, a report in `.claude/briefs/`) before relaunching or gating it.
 2. **V17 is done** (gated and recorded at `cc155d4`). Its unfinished checks (the scripted runs after it, the route from session 8, the
    timed lesson run, CI's case) are carried in V15's brief.
 3. **In order, without stopping:** M58, M62, V15, V09. Each by an Opus 5.5 agent at xhigh, one at a time, in the shared worktree.
-   - **M58 is done** (`78ce805`, 2026-11-01).
-   - **M62:** `.claude/briefs/M62-adjectives.md`. Fill `@@HEAD@@`; the count after M58 is 6891 passed and 3 skipped. The
-     orchestrator's session built its prompt with a paragraph on what M58 changed (the `word_order` guard; the open `conj.tense` finding).
-   - **V15:** `.claude/briefs/V15-el-mercado.md` is complete apart from `@@HEAD@@`, `@@COUNT@@` and `@@M58M62@@` (what M58 and M62 now
-     grade, from their reports: the stand-ins of `content/PHRASES.md` to restore, and any limit).
-   - **V09:** no brief yet. It is the documents and the scripted runs again, for phase B: VILLAGE_PLAN's V09 row (section 4) and
-     section 5, and what phase A's V09 did (its entry in the game plan's section 5, `grep -n '^- \*\*V09'`).
+   - **M58 is done** (`78ce805`, 2026-11-01). **M62 is done** (`65b04e6`, 2026-11-01); the count after it is 7031 passed and 3 skipped.
+   - **V15:** `.claude/briefs/V15-el-mercado.md` is complete apart from `@@HEAD@@` and `@@COUNT@@`. The orchestrator's session adds the
+     `Claude-Session` trailer and the rule against leaving processes behind at launch.
+   - **V09:** `.claude/briefs/V09-documents-and-runs-phase-b.md`, complete apart from `@@HEAD@@` and `@@COUNT@@`; before launching, add
+     V15's open points (from its report) to its deliverable 6.
    - After V09: report phase B as finished to the owner, with what is left open. A QA agent pass on the village (`subagent_type: qa`) is
      optional and is the owner's call.
 
@@ -78,14 +76,15 @@ is a change to the boundary and updates that record.
   - the core's M57 (`888f914`): the later time markers in one table (`SpanishTimeMarkers`); the stream digests on frozen inputs;
   - V17: session 9 "Mañana en el pueblo" (`cc155d4`), the simple future against `ir a`; no order;
   - the core's M58 (`78ce805`): `cuánto costa` and `hay pans` graded; the `word_order` mutation's guard (the owner's option 1);
+  - the core's M62 (`65b04e6`): the predicate adjective agrees across `ser` and `estar`; a colour before its noun is `word_order`;
   - `main` merged in at `0cf674b`. It brought the CI workflow with its grammar jobs, and the QA agent.
-- **Next, in order** (owner, 2026-10-31, D-game-22): the core's M62 (before V15; M62 by the owner's word after
-  V13), V15 (session 10 "El mercado"), then V09 again (the documents and the scripted runs).
+- **Next, in order** (owner, 2026-10-31, D-game-22): V15 (session 10 "El mercado"), then V09 again (the documents and the scripted
+  runs).
   - Every one by Opus 5.5 at xhigh, one at a time. The owner asked whether milestones could run in parallel, heard the reasons (the
     chain V17 → V15 → V09, the one machine-wide build lock, disk) and said "for now just continue with the development".
   - The design is VILLAGE_PLAN sections 3.5 to 3.9, 4 and 5. The findings of every V milestone so far are in
     `docs/game/IMPLEMENTATION_PLAN.md` section 5 (the V entries at its end).
-  - **Briefs** are in `.claude/briefs/`. M58 and M62 are ready, V15 is a draft and V09 is not written. Fill their `@@…@@` placeholders
+  - **Briefs** are in `.claude/briefs/`. V15's and V09's are written. Fill their `@@…@@` placeholders
     (the HEAD, the test count, the earlier milestone's findings) from the last reports before launching. The used briefs (V13, V14, V16,
     V17, V18, M56, M57, M59) are the models.
 
@@ -139,15 +138,21 @@ is a change to the boundary and updates that record.
     1275 of 3000 ms, the world snapshot 0.49 of 1.5 s): with CI's runner about four times slower, the likely CI failures if any appear;
   - the NPCs' "¡Muy bien!" plays in Luna's voice; `tener que` has no book entry.
 - **Done (M57's question, the owner's option 1):** M58 (c) gave the `word_order` mutation's guard the words' readings (seed `ff2aNwHuJBk8`).
-- **For the owner (M58's finding, not blocking):** an older O4 failure, about once in six runs of the fuzz project (seed `egVgLELrxyL4`):
-  the `conj.tense` mutation lacks M26b's guard for a name in an alternative. Giving it that guard narrows O4 and O5, so it waits for the
-  owner's word (the core plan §5b, M58). Until then a gate failing on that seed alone is rerun once after checking the seed.
-- **From M58, for V15:** the game may restore `¿cuánto costa el pan?` (row `cuanto-cuesta`) and `hay pans` (row `hay-pan`) in
-  `content/PHRASES.md`. Not graded: `los panes costa`, an adjective's plural with the wrong ending (`azuls`).
+- **For the owner (M58's and M62's fuzz findings, not blocking; the core plan §5b, M58 and M62):** three older failures whose fix
+  narrows O4 and O5, so they wait for the owner's word:
+  - the `conj.tense` mutation lacks M26b's guard for a name in an alternative (seed `egVgLELrxyL4`, about once in six runs of the fuzz
+    project at its default depth);
+  - the same mutation where a grammar's literal decided a reading (seed `2ldq2rIKLrG2`, found only at five times the depth);
+  - the `conj.person` mutation after a noun subject and `haber`, which M59 leaves out by design (seed `b3HSKSLCsL_1`, five times the
+    depth); the alternative is core work, checking the plural forms of `haber` against a singular noun subject (a widening).
+  Until then a gate failing on one of these seeds alone is rerun once after checking the seed.
+- **From M58 and M62, for V15** (in V15's brief): the stand-ins the game may restore in `content/PHRASES.md`. Not graded: `los panes
+  costa`, `azuls`, an adjective that is also a noun after the copula with no `muy` (`él es alta`), a subject with `de …` (number only).
 - **From V17** (the agent's report): a word outside a constrained prompt's answer set gets `vocab.wrong` (`usted comprará pan` at a
   lesson step; older); `fisher-open` takes no plans (the lint's confusion check gives `buscaré madera` to `ask_directions` there); the
   coin path is unchanged by session 9 (no order: a fifth order to Luz would pay her 4 coins again).
-- **Core gaps filed, not started:** M62 (next in the queue).
+- **Core gaps filed, not started:** M63 (a subject pronoun before a question word, `ellas dónde están …`, lost to M56's check; found by
+  M62's deep fuzz runs; after phase B or when the owner asks).
 
 **Gotchas learnt this series**
 - **CI.** This token cannot read CI results (`gh pr checks` and `gh run list` give 403), so the owner reports CI failures. The GitHub

@@ -244,7 +244,8 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M59 | Game finding (the V series, V12 "Gente del pueblo", 2026-10-31): person and tense checks the third person needs. (a) `conj.person` looks only after a subject pronoun: a name or noun subject before the verb is not checked (`Domingo trabajo en la herrería`, `Domingo voy a hacer un hacha` give nothing; `él trabajo …` gives `conj.person`); V13 found the same with `ser` and a noun subject: `las manzanas es roja` and `la manzana son roja` give nothing; (b) a reflexive clitic is not matched to its verb's person (`cómo te llama`, `cómo se llamas` give nothing); (c) `ir a` followed by a finite present is not flagged (`va a hace un hacha` gives nothing, where `va a hizo` gives `conj.tense`); (d) a literal word in a slot grammar binds its first reading, so `hace` in `qué hace` is read as the preposition of `hace dos días` and the verb is hidden from the host's person check. Regression tests in the owning module; the fuzz oracles unchanged or widened, never narrowed. The game's sheet puts a pronoun before the verb in its examples and the lesson's person check catches the rest meanwhile (`content/PHRASES.md`, `trabaja-en-la-herreria`, `va-a-hacer-un-hacha`, `como-te-llamas`) | M56 | S | done 2026-10-31 (`12ea9d7`, on `feature/village`; findings in §5b; a lone name is never checked) |
 | M61 | Game finding (the V series, V08, 2026-10-31): the core's tests that pinned the game's bundle to a clean A1 follow the bundle's ceiling, A2 (D-game-22 (b), VILLAGE_PLAN 3.9), so phase B's first A2 word does not fail the core suite: `LintTests.TheBundleLintsCleanAtBothLevels` becomes `TheBundleLintsCleanAtItsCeilingAndA1IsAReport` (A2 with fail-on-level: 0 errors, 0 warnings; A1: 0 errors and only `cefr.*` warnings), and `LintCommandTests.LevelAddsCefrFindingsAndFailOnLevelMakesThemFail` moves the bundle's line to A2; two comments say the gate is A2. Tests on their own fixtures are unchanged; no other assertion changed | M27a | S | done (merged to `feature/village` `808e0f0`, 2026-10-31) |
 | M60 | Game finding (the V series, CI on PR #20, 2026-10-31): `LintTests.TheBundleLintTakesUnderFiveSeconds` took about 6 s on the GitHub runner. Phase A grew `content/game-v1` to 47 prompts and 385 examples, and the confusion check analysed each example once per rival intent (about 33 times; 12 139 analyses, 1.4 of the lint's 1.6 s). `LinguisticAnalyzer.Analyze` becomes exactly `Read` (the text alone), `BestMatch` (the only step that reads grammars) and `Complete`, all internal; `LintContext` reads each text once, matches each grammar once and completes once per winning grammar; the expectations check reuses those analyses (`TextGrader`'s internal constructor). The lint's output is byte-identical (30 outputs on the bundle before and after phase A); the lint takes 398 ms instead of 1610 (Debug). The timing test reads the bundle before its clock starts; its 5 s budget is unchanged | M27a | S | done (merged to `feature/village` `95bd7bf`, 2026-10-31) |
-| M62 | Game finding (the V series, V13 "¿Cómo es?", 2026-10-31): two adjective checks are silent. (a) A predicate adjective is not agreed with the subject across `ser`: `la manzana es rojo` (expected `roja`) and `el pan es grandes` (expected `grande`) give no `gender.agree` or `noun.number`, where the attributive `quiero tres manzanas rojos` gives `gender.agree` correctly; (b) an adjective before its noun is not understood: `quiero tres rojas manzanas` and `quiero una roja manzana` resolve no intent, and with a grammar that matches them give no `word_order` (expected `manzanas rojas`); colour adjectives, which do not go before the noun in neutral Spanish, are the case to flag, and `una gran casa`, `un buen pan`, `la primera casa` stay clean. Regression tests in the owning module; the fuzz oracles unchanged or widened, never narrowed. The game's sheet uses `quiero tres manzanas rojos` (`gender.agree`) meanwhile (`content/PHRASES.md`, `la-manzana-es-roja`, `quiero-tres-manzanas-rojas`) | M56 | S | planned (not started; after M58 and before the game's V15, owner 2026-10-31: "Run m62 before v15"; V15's `es muy caro` and `más barato que` are predicate adjectives) |
+| M62 | Game finding (the V series, V13 "¿Cómo es?", 2026-10-31): two adjective checks are silent. (a) A predicate adjective is not agreed with the subject across `ser`: `la manzana es rojo` (expected `roja`) and `el pan es grandes` (expected `grande`) give no `gender.agree` or `noun.number`, where the attributive `quiero tres manzanas rojos` gives `gender.agree` correctly; (b) an adjective before its noun is not understood: `quiero tres rojas manzanas` and `quiero una roja manzana` resolve no intent, and with a grammar that matches them give no `word_order` (expected `manzanas rojas`); colour adjectives, which do not go before the noun in neutral Spanish, are the case to flag, and `una gran casa`, `un buen pan`, `la primera casa` stay clean. Regression tests in the owning module; the fuzz oracles unchanged or widened, never narrowed. The game's sheet uses `quiero tres manzanas rojos` (`gender.agree`) meanwhile (`content/PHRASES.md`, `la-manzana-es-roja`, `quiero-tres-manzanas-rojas`) | M56 | S | done 2026-11-01 (`65b04e6`, on `feature/village`; findings in §5b; three older fuzz findings at five times the depth left for the owner and the orchestrator) |
+| M63 | Fuzz finding (M62's runs at five times the default depth, 2026-11-01; older than M62, analysed the same at `76f52f8`): a subject pronoun before a question word is lost to M56's check. `ellas adónde están un detenido lento` (CsCheck seeds `8zKtIhOY3951`, O5, `MutationCase { Kind = WordOrder, Seed = 19287181529 }`, and `c5SlpISRmTZ3`, O3, `ellas dónde están teme`): the check of `estar` against the phrase after it starts its clause after `adónde` and gives `conj.person` `está`, where `están` agrees with `ellas`. Keep a subject pronoun before the question word as the subject (`ellos dónde están`, `ella qué quiere`), with regression tests in the owning module; the fuzz oracles unchanged or widened (the realiser may model the clause opener instead), never narrowed. Not in phase B's queue; filed for after it | M56 | S | planned (not started; filed 2026-11-01, after V09 or when the owner asks) |
 
 ### Delegation waves
 
@@ -1377,6 +1378,55 @@ merge into a feature branch that is pushed, and the owner merges it into `main` 
   - The orchestrator's CLI spot-check matched: at `baker-open`, `¿cuánto costa el pan?` is `ask_price` with `conj.irregular`, `hay pans`
     `ask_availability` with `noun.number`, `¿cuánto cuesta el pan?` and `hay dos panes` clean; the core demo gives exactly `conj.person`
     and `noun.number`.
+
+- **M62, the predicate adjective and the colour before its noun (2026-11-01, Opus 5.5 xhigh; merged to `feature/village` `65b04e6`,
+  before the game's V15).**
+  - (a), `SpanishAgreementChecker.Predicate.cs`: an adjective after `ser` or `estar`, past `muy`, `más`, `menos` or `tan`, in a comparison
+    and joined by `y`, agrees with the subject: a subject pronoun before the copula (with its gender where it has one: `ella es alto` gives
+    `alta`; `yo`, `tú`, `usted`, `ustedes` give number only), else M59's noun-phrase subject, else a determined phrase after the adjective
+    (`es caro la manzana` gives `cara`), else the copula's number alone. A lone name is never given a gender (`Luz es alto` is clean, as
+    M59 decided). `las manzanas son caro` gives `gender.agree` and `noun.number` with `caras`, the pair the attributive check gives. New
+    reading rules: `son` and `era` between a determined noun and an adjective are the copula; the word after `muy` or `tan` is not a noun;
+    an adjective-and-noun word after a determined noun is its adjective when it agrees with the noun and its determiners and has no finite
+    verb reading.
+  - (b): a colour that is also a noun (`roja`, `rojas`, `blanca`, `gris`) right before a noun it and its determiners agree with is the
+    adjective, so `rojas manzanas` gives `word_order`; a list of nouns without its commas is not (`una rosa, pan y agua`). New pack rules
+    `IAnalysisRules.IsPostnominalAdjective` and `IsDegreeAdverb`. `quiero tres rojas manzanas` at `farmer-open` gives `word_order` with
+    intent `unknown`, as `azul espada` did; with `[ADJ]?` before `[NOUN:item]` in `request_item` it would fill the quantity and the item
+    and still give `word_order` (a game choice, for V15).
+  - Fuzz: no oracle narrowed. The `gender.agree` mutation was widened to a predicate adjective after a subject pronoun of known gender
+    (`PredicateAdjectiveMutationTests`); the realiser learned the new rules (four skips, none narrowing), and the sentence stream digest was
+    recorded again. Four bugs in the new rules were found by the identity baseline and O3 to O5 at five times the depth, and fixed with
+    regression tests (the fuzz README's "Found and fixed in M62").
+  - Tests: `PredicateAdjectiveTests` and `PrenominalAdjectiveTests`, 139 cases (51 mistakes gave nothing or less before; 75 correct
+    neighbours passed before and after); three older tests take the new extra error (`ella está alto` twice, `las manzanas es roja`). One
+    game test pinned the old gap (`FarmLessonTests`): `la manzana es rojo` at `c1-how` is now the core's `gender.agree` with the recast
+    `roja`, the step done with the slip and no double feedback. Changed by a follow-up on the branch, the one game file, by the
+    orchestrator's leave, as at M56. 6891 passed and 3 skipped before; 7031 passed and 3 skipped after, with models. No end-to-end golden
+    moved; one identity entry did (`ella está alto`, now also `gender.agree` `alta`). `API.md`, `PIPELINE.md` and `CLI_EXAMPLES.md` name
+    the new cases.
+  - For V15: the game may restore `la-manzana-es-roja` (`la manzana es rojo`) and `es-grande` (`el pan es grandes`, `noun.number`) in
+    `content/PHRASES.md`, and `quiero-tres-manzanas-rojas` (`word_order`) if `request_item` takes the adjective; `la manzana es muy caro`,
+    `el pan es muy cara` and `la manzana es más barato que el pan` are graded.
+  - Left: an adjective that is also a noun after the copula, with no grammar and no `muy` or `tan`, stays the noun (`él es alta` is
+    clean); `son` after a lone name is a noun unless a grammar binds it; a subject with `de …` gets the number check only.
+  - **Found at five times the depth, older than M62** (each analysed the same way at `76f52f8`; every run at the default depth passed; the
+    fuzz README's "Found at M62, older than M62, and left for a decision"):
+    - **For the owner**, with M58's `egVgLELrxyL4` (the same family): O4, the `conj.tense` mutation where the grammar's literal decided a
+      reading (seed `2ldq2rIKLrG2`, `las los despego unas porque`: with `ayer` before it the grammar no longer matches and `porque` reads
+      as the noun). A guard narrows O4 and O5.
+    - **For the owner:** O5, the `conj.person` mutation after a noun subject and `haber` (seed `b3HSKSLCsL_1`, `el subtítulo ha
+      peligroso` made `han`): M59 leaves `haber` out by design (`hay dos panes`). Either the mutation takes M59's exclusion (a narrowing)
+      or the core checks the plural forms of `haber` against a singular noun subject (`el niño han comido`; a widening, core work).
+    - **A core gap, filed as M63 (no owner decision):** O5 and O3, a subject pronoun before a question word (seeds `8zKtIhOY3951`,
+      `c5SlpISRmTZ3`, `ellas adónde están un detenido lento`): M56's check of `estar` against the phrase after it starts its clause after
+      `adónde` and gives `conj.person` `está`. The check should keep the pronoun before the question word (or the realiser model the
+      clause opener, a widening).
+  - The orchestrator's CLI spot-check matched: at `farmer-open`, `la manzana es rojo` is `describe` with `gender.agree`, `las manzanas son
+    caro` `gender.agree` and `noun.number`, `el pan es grandes` `noun.number`, `quiero tres rojas manzanas` `word_order` with no intent;
+    `la manzana es roja`, `el pan es grande`, `quiero tres manzanas rojas`, `Luz es alta`, `León es alto`, `usted es muy amable`,
+    `ustedes son muy amables`, `una gran casa`, `la casa de Luz es grande` give no agreement or order error (only the older `vocab.wrong`
+    on a word outside a prompt's answer set); the core demo gives exactly `conj.person` and `noun.number`.
 
 ## 6. Definition of done (every milestone)
 
