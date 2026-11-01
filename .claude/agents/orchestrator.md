@@ -50,9 +50,9 @@ is a change to the boundary and updates that record.
 2. **V17 is done** (gated and recorded at `cc155d4`). Its unfinished checks (the scripted runs after it, the route from session 8, the
    timed lesson run, CI's case) are carried in V15's brief.
 3. **In order, without stopping:** M58, M62, V15, V09. Each by an Opus 5.5 agent at xhigh, one at a time, in the shared worktree.
-   - **M58:** `.claude/briefs/M58-misreadings.md`. Fill `@@HEAD@@` (the count is filled: 6771 passed and 3 skipped). Its part (c) is
-     the owner's "option 1", the `word_order` guard.
-   - **M62:** `.claude/briefs/M62-adjectives.md`. Fill `@@HEAD@@` and the count after M58.
+   - **M58 is done** (`78ce805`, 2026-11-01).
+   - **M62:** `.claude/briefs/M62-adjectives.md`. Fill `@@HEAD@@`; the count after M58 is 6891 passed and 3 skipped. The
+     orchestrator's session built its prompt with a paragraph on what M58 changed (the `word_order` guard; the open `conj.tense` finding).
    - **V15:** `.claude/briefs/V15-el-mercado.md` is complete apart from `@@HEAD@@`, `@@COUNT@@` and `@@M58M62@@` (what M58 and M62 now
      grade, from their reports: the stand-ins of `content/PHRASES.md` to restore, and any limit).
    - **V09:** no brief yet. It is the documents and the scripted runs again, for phase B: VILLAGE_PLAN's V09 row (section 4) and
@@ -77,8 +77,9 @@ is a change to the boundary and updates that record.
   - V16: the simple future at a step, the other futures credited with a note, the book's fourth column (`71573ba`);
   - the core's M57 (`888f914`): the later time markers in one table (`SpanishTimeMarkers`); the stream digests on frozen inputs;
   - V17: session 9 "Mañana en el pueblo" (`cc155d4`), the simple future against `ir a`; no order;
+  - the core's M58 (`78ce805`): `cuánto costa` and `hay pans` graded; the `word_order` mutation's guard (the owner's option 1);
   - `main` merged in at `0cf674b`. It brought the CI workflow with its grammar jobs, and the QA agent.
-- **Next, in order** (owner, 2026-10-31, D-game-22): the core's M58 and M62 (both before V15; M62 by the owner's word after
+- **Next, in order** (owner, 2026-10-31, D-game-22): the core's M62 (before V15; M62 by the owner's word after
   V13), V15 (session 10 "El mercado"), then V09 again (the documents and the scripted runs).
   - Every one by Opus 5.5 at xhigh, one at a time. The owner asked whether milestones could run in parallel, heard the reasons (the
     chain V17 → V15 → V09, the one machine-wide build lock, disk) and said "for now just continue with the development".
@@ -137,13 +138,16 @@ is a change to the boundary and updates that record.
   - three older timed tests sit within four times of their budgets here (the bundle load 1676 of 3000 ms, the scene build and digest
     1275 of 3000 ms, the world snapshot 0.49 of 1.5 s): with CI's runner about four times slower, the likely CI failures if any appear;
   - the NPCs' "¡Muy bien!" plays in Luna's voice; `tener que` has no book entry.
-- **Answered by the owner (M57's question):** the fuzz suite's rare O5 failure (seed `ff2aNwHuJBk8`, about one full run in eight) is
-  fixed by "option 1", the `word_order` mutation's guard reading the words' readings, in M58 (c), narrowing O4 and O5 for that case only.
-  Until M58 lands, a gate failing there is rerun once after checking the seed.
+- **Done (M57's question, the owner's option 1):** M58 (c) gave the `word_order` mutation's guard the words' readings (seed `ff2aNwHuJBk8`).
+- **For the owner (M58's finding, not blocking):** an older O4 failure, about once in six runs of the fuzz project (seed `egVgLELrxyL4`):
+  the `conj.tense` mutation lacks M26b's guard for a name in an alternative. Giving it that guard narrows O4 and O5, so it waits for the
+  owner's word (the core plan §5b, M58). Until then a gate failing on that seed alone is rerun once after checking the seed.
+- **From M58, for V15:** the game may restore `¿cuánto costa el pan?` (row `cuanto-cuesta`) and `hay pans` (row `hay-pan`) in
+  `content/PHRASES.md`. Not graded: `los panes costa`, an adjective's plural with the wrong ending (`azuls`).
 - **From V17** (the agent's report): a word outside a constrained prompt's answer set gets `vocab.wrong` (`usted comprará pan` at a
   lesson step; older); `fisher-open` takes no plans (the lint's confusion check gives `buscaré madera` to `ask_directions` there); the
   coin path is unchanged by session 9 (no order: a fifth order to Luz would pay her 4 coins again).
-- **Core gaps filed, not started:** M58 and M62 (both in the queue).
+- **Core gaps filed, not started:** M62 (next in the queue).
 
 **Gotchas learnt this series**
 - **CI.** This token cannot read CI results (`gh pr checks` and `gh run list` give 403), so the owner reports CI failures. The GitHub
