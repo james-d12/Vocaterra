@@ -4,7 +4,7 @@
     {
       "answerId": "bread",
       "canonical": "quiero dos panes por favor",
-      "aliases": ["quiero dos panes", "dos panes por favor", "me da dos panes", "me da dos panes por favor", "me das dos panes", "me das dos panes por favor", "quiero un pan", "quiero un pan por favor", "un pan por favor", "quiero pan", "quiero pan por favor", "pan por favor", "quiero tres panes", "yo quiero dos panes"],
+      "aliases": ["quiero dos panes", "dos panes por favor", "me da dos panes", "me da dos panes por favor", "me das dos panes", "me das dos panes por favor", "quiero un pan", "quiero un pan por favor", "un pan por favor", "quiero pan", "quiero pan por favor", "pan por favor", "quiero tres panes", "yo quiero dos panes", "quiero el pan de luz", "quiero dos panes de luz"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
     },
     {
@@ -17,6 +17,18 @@
       "answerId": "bread-here",
       "canonical": "hay pan",
       "aliases": ["hay pan aquí", "hay panes", "hay dos panes", "hay un pan"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "sell",
+      "canonical": "vendo madera",
+      "aliases": ["yo vendo madera", "te vendo madera", "quiero vender madera", "yo quiero vender madera"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "total",
+      "canonical": "cuánto es todo",
+      "aliases": ["cuánto cuesta todo", "cuánto es todo esto"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
     },
     {

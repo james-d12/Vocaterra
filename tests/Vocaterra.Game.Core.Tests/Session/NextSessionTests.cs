@@ -141,7 +141,8 @@ public sealed class NextSessionTests
         SessionSkip.Apply(session, 7);
         session.Lessons.CountAsCompleted("como-es", 7);
         session.Lessons.CountAsCompleted("ayer-en-el-pueblo", 7);
-        session.Lessons.CountAsCompleted("manana-en-el-pueblo", 7); // the last lesson (V17) done too, so no later session has one
+        session.Lessons.CountAsCompleted("manana-en-el-pueblo", 7);
+        session.Lessons.CountAsCompleted("el-mercado", 7); // the last lesson (V15) done too, so no later session has one
         TeleportToFire(session);
         session.Step([]);
         Assert.Equal("water-for-plants", session.CurrentObjective?.Id);

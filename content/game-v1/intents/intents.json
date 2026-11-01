@@ -117,13 +117,15 @@
       "intentId": "request_item",
       "requiredSlots": ["item"],
       "slotGrammars": [
-        "[VERB:querer] [ART]? [NUM:qty]? [NOUN:item] [ADJ]? (por favor)?",
+        "[VERB:querer] [ART]? [NUM:qty]? [NOUN:item] [ADJ]? (de (luz|domingo|mar|león))? (por favor)?",
         "[VERB:necesitar] [ART]? [NUM:qty]? [NOUN:item] [ADJ]? (por favor)?",
         "me [VERB:dar] [ART]? [NUM:qty]? [NOUN:item] [ADJ]? (por favor)?",
         "[ART]? [NUM:qty]? [NOUN:item] [ADJ]? por favor"
       ],
       "lint": {"allowOverlap": ["ask_help"]},
       "examples": [
+        {"text": "quiero el pan de luz", "errors": [], "prompt": "baker-open"},
+        {"text": "quiero dos panes de luz", "errors": [], "prompt": "baker-open"},
         {"text": "quiero agua, por favor", "errors": [], "prompt": "stall-need"},
         {"text": "agua, por favor", "errors": [], "prompt": "stall-need"},
         {"text": "quiero agua", "errors": [], "prompt": "stall-need"},
@@ -310,6 +312,10 @@
         { "lemmas": ["tener"], "requiresSlots": ["item"], "slotFromNoun": "item" }
       ],
       "examples": [
+        {"text": "tienes veinte panes", "errors": [], "prompt": "lesson-loaves"},
+        {"text": "tú tienes veinte panes", "errors": [], "prompt": "lesson-loaves"},
+        {"text": "sí, tienes veinte panes", "errors": [], "prompt": "lesson-loaves"},
+        {"text": "tienes veinte pan", "errors": ["noun.number"], "prompt": "lesson-loaves"},
         {"text": "tengo una fruta", "errors": [], "prompt": "lesson-have"},
         {"text": "sí, tengo una fruta", "errors": [], "prompt": "lesson-have"},
         {"text": "sí, yo tengo una fruta", "errors": [], "prompt": "lesson-have"},
@@ -399,6 +405,8 @@
         "(sí)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? [VERB:ir] a [ART]? [NOUN:place] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
         "(mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? [VERB:ir] a [VERB:comprar] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
         "(sí)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? (domingo|luz|mar|león)? [VERB:comprar] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
+        "(mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? [VERB:ir] a [VERB:vender] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
+        "(sí)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? (domingo|luz|mar|león)? [VERB:vender] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
         "(mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? [VERB:ir] a [VERB:buscar] [ART]? [NUM:qty]? [NOUN:item] (para luz|para domingo|para mar|para león)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
         "(sí)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? [VERB:buscar] [ART]? [NUM:qty]? [NOUN:item] (para luz|para domingo|para mar|para león)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
         "(mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? (domingo|luz|mar|león)? [VERB:ir] a [VERB:hacer] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
@@ -417,6 +425,19 @@
       ],
       "lint": {"allowRuleOnly": ["luz y mar comieron pan", "luz y mar comió pan"]},
       "examples": [
+        {"text": "mañana venderé fruta", "errors": [], "prompt": "lesson-will-sell"},
+        {"text": "venderé fruta", "errors": [], "prompt": "lesson-will-sell"},
+        {"text": "yo venderé fruta", "errors": [], "prompt": "lesson-will-sell"},
+        {"text": "venderé fruta mañana", "errors": [], "prompt": "lesson-will-sell"},
+        {"text": "mañana voy a vender fruta", "errors": [], "prompt": "lesson-will-sell"},
+        {"text": "mañana vendí fruta", "errors": ["conj.tense"], "prompt": "lesson-will-sell"},
+        {"text": "yo venderás fruta", "errors": ["conj.person"], "prompt": "lesson-will-sell"},
+        {"text": "compré tres manzanas", "errors": [], "prompt": "lesson-market"},
+        {"text": "yo compré tres manzanas", "errors": [], "prompt": "lesson-market"},
+        {"text": "hoy compré tres manzanas", "errors": [], "prompt": "lesson-market"},
+        {"text": "compré manzanas", "errors": [], "prompt": "lesson-market"},
+        {"text": "compré tres manzana", "errors": ["noun.number"], "prompt": "lesson-market"},
+        {"text": "ayer compro tres manzanas", "errors": ["conj.tense"], "prompt": "lesson-market"},
         {"text": "voy a comer pan", "errors": [], "prompt": "lesson-plan"},
         {"text": "mañana voy a comer pan", "errors": [], "prompt": "lesson-plan"},
         {"text": "yo voy a comer pan", "errors": [], "prompt": "lesson-plan"},
@@ -754,6 +775,7 @@
         {"text": "hay panes", "errors": [], "prompt": "baker-open"},
         {"text": "hay pan aquí", "errors": [], "prompt": "baker-open"},
         {"text": "hay dos pan", "errors": ["noun.number"], "prompt": "baker-open"},
+        {"text": "hay pans", "errors": ["noun.number"], "prompt": "baker-open"},
         "hay agua aquí",
         "hay una tienda en el pueblo"
       ]
@@ -779,6 +801,7 @@
         {"text": "cuánto costan los panes", "errors": ["conj.irregular"], "prompt": "baker-open"},
         {"text": "cuánto cuestan el pan", "errors": ["conj.person"], "prompt": "baker-open"},
         {"text": "cuánto cuesta la pan", "errors": ["gender.agree"], "prompt": "baker-open"},
+        {"text": "cuánto costa el pan", "errors": ["conj.irregular"], "prompt": "baker-open"},
         {"text": "cuánto cuesta", "errors": [], "prompt": "stall-need"},
         {"text": "cuánto cuesta el pan", "errors": [], "prompt": "stall-need"},
         {"text": "cuánto es", "errors": [], "prompt": "stall-need"},
@@ -839,11 +862,23 @@
       "intentId": "describe",
       "requiredSlots": [],
       "slotGrammars": [
-        "(sí)? [ART]? [NOUN:object]? [VERB:ser] (muy)? [ADJ]",
+        "(sí)? [ART]? [NOUN:object]? [VERB:ser] (muy|más|menos)? [ADJ]",
         "(sí)? [ART]? [NOUN:object]? [VERB:ser] [ADJ] y [ADJ]",
-        "(esto|eso) [VERB:ser] (muy)? [ADJ]"
+        "(esto|eso) [VERB:ser] (muy)? [ADJ]",
+        "(sí)? [ART]? [NOUN:object]? [VERB:ser] (más|menos) [ADJ] que [ART]? [NOUN]",
+        "(sí)? [ART]? [NOUN:object]? [VERB:ser] tan [ADJ] como [ART]? [NOUN]"
       ],
       "examples": [
+        {"text": "es muy caro", "errors": [], "prompt": "lesson-dear"},
+        {"text": "es caro", "errors": [], "prompt": "lesson-dear"},
+        {"text": "sí, es muy caro", "errors": [], "prompt": "lesson-dear"},
+        {"text": "la manzana es muy cara", "errors": [], "prompt": "lesson-dear"},
+        {"text": "la manzana es muy caro", "errors": ["gender.agree"], "prompt": "lesson-dear"},
+        {"text": "la manzana es más barata que el pan", "errors": [], "prompt": "lesson-cheaper"},
+        {"text": "la manzana es más barata", "errors": [], "prompt": "lesson-cheaper"},
+        {"text": "es más barata que el pan", "errors": [], "prompt": "lesson-cheaper"},
+        {"text": "el pan es más caro que la manzana", "errors": [], "prompt": "lesson-cheaper"},
+        {"text": "la manzana es más barato que el pan", "errors": ["gender.agree"], "prompt": "lesson-cheaper"},
         {"text": "la manzana es roja", "errors": [], "prompt": "lesson-apple"},
         {"text": "es roja", "errors": [], "prompt": "lesson-apple"},
         {"text": "sí, es roja", "errors": [], "prompt": "lesson-apple"},
@@ -851,11 +886,13 @@
         {"text": "la manzana es muy roja", "errors": [], "prompt": "lesson-apple"},
         {"text": "el manzana es roja", "errors": ["gender.agree"], "prompt": "lesson-apple"},
         {"text": "la manzana son roja", "errors": ["conj.person"], "prompt": "lesson-apple"},
+        {"text": "la manzana es rojo", "errors": ["gender.agree"], "prompt": "lesson-apple"},
         {"text": "es grande", "errors": [], "prompt": "lesson-big"},
         {"text": "el pan es grande", "errors": [], "prompt": "lesson-big"},
         {"text": "sí, es grande", "errors": [], "prompt": "lesson-big"},
         {"text": "es muy grande", "errors": [], "prompt": "lesson-big"},
         {"text": "la pan es grande", "errors": ["gender.agree"], "prompt": "lesson-big"},
+        {"text": "el pan es grandes", "errors": ["noun.number"], "prompt": "lesson-big"},
         "esto es grande",
         "el campo es grande",
         "el pozo es pequeño"
@@ -920,6 +957,63 @@
         "tengo que comprar pan",
         "tengo que buscar madera",
         "tienes que ir al río"
+      ]
+    },
+    {
+      "intentId": "offer_item",
+      "requiredSlots": ["item"],
+      "slotGrammars": [
+        "(yo)? (te|le)? vendo [ART]? [NUM:qty]? [NOUN:item]",
+        "[PRON]? [VERB:querer] vender [ART]? [NUM:qty]? [NOUN:item]",
+        "(yo)? tengo [ART]? [NUM:qty]? [NOUN:item] para usted"
+      ],
+      "lint": {"allowOverlap": ["state_action"]},
+      "examples": [
+        {"text": "vendo madera", "errors": [], "prompt": "baker-open"},
+        {"text": "yo vendo madera", "errors": [], "prompt": "baker-open"},
+        {"text": "te vendo madera", "errors": [], "prompt": "baker-open"},
+        {"text": "vendo el madera", "errors": ["gender.agree"], "prompt": "baker-open"},
+        {"text": "quiero vender madera", "errors": [], "prompt": "lesson-sell"},
+        {"text": "yo quiero vender madera", "errors": [], "prompt": "lesson-sell"},
+        {"text": "quiero vender la madera", "errors": [], "prompt": "lesson-sell"},
+        {"text": "yo quieres vender madera", "errors": ["conj.person"], "prompt": "lesson-sell"},
+        {"text": "quiero vender madera", "errors": [], "prompt": "baker-open"},
+        {"text": "vendo madera", "errors": [], "prompt": "smith-open"},
+        {"text": "tengo madera para usted", "errors": [], "prompt": "smith-open"},
+        {"text": "quiero vender madera", "errors": [], "prompt": "smith-open"},
+        {"text": "vendo fruta", "errors": [], "prompt": "farmer-open"},
+        {"text": "quiero vender fruta", "errors": [], "prompt": "farmer-open"},
+        "le vendo madera",
+        "tengo fruta para usted"
+      ]
+    },
+    {
+      "intentId": "ask_total",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "cuánto es todo (esto)?",
+        "cuánto [VERB:costar] todo (esto)?"
+      ],
+      "examples": [
+        {"text": "cuánto es todo", "errors": [], "prompt": "farmer-open"},
+        {"text": "cuánto cuesta todo", "errors": [], "prompt": "farmer-open"},
+        {"text": "cuánto es todo esto", "errors": [], "prompt": "farmer-open"},
+        {"text": "cuánto es todo", "errors": [], "prompt": "baker-open"}
+      ]
+    },
+    {
+      "intentId": "ask_pay",
+      "requiredSlots": ["item"],
+      "slotGrammars": [
+        "[PRON]? [VERB:poder] pagar con [ART]? [NUM:qty]? [NOUN:item]",
+        "se puede pagar con [ART]? [NUM:qty]? [NOUN:item]"
+      ],
+      "examples": [
+        {"text": "puedo pagar con fruta", "errors": [], "prompt": "farmer-open"},
+        {"text": "yo puedo pagar con fruta", "errors": [], "prompt": "farmer-open"},
+        {"text": "se puede pagar con fruta", "errors": [], "prompt": "farmer-open"},
+        {"text": "podo pagar con fruta", "errors": ["conj.irregular"], "prompt": "farmer-open"},
+        "puedo pagar con monedas"
       ]
     }
   ]

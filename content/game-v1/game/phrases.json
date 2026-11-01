@@ -137,6 +137,26 @@
     {"id": "ire-al-rio", "says": "says", "spanish": "Iré al río.", "intent": "state_action", "prompt": "lesson-will-go", "variants": ["yo iré al río", "sí, iré al río", "mañana iré al río", "la semana que viene iré al río", "pasado mañana iré al río"], "audioLineIds": []},
     {"id": "el-dia-de-manana", "says": "hears", "spanish": "¡Hola! Mañana Luz hará pan. Domingo trabajará en la herrería. Y yo pescaré en el río.", "intent": null, "prompt": "lesson-luz-will", "variants": [], "audioLineIds": ["guide.lesson.fisher.day.1"]},
     {"id": "que-hara-luz", "says": "hears", "spanish": "¿Qué hará Luz mañana?", "intent": null, "prompt": "lesson-luz-will", "variants": [], "audioLineIds": ["guide.lesson.fisher.luz_will.1"]},
-    {"id": "luz-hara-pan", "says": "says", "spanish": "Luz hará pan.", "intent": "state_action", "prompt": "lesson-luz-will", "variants": ["mañana Luz hará pan", "hará pan", "ella hará pan", "Luz hará pan mañana"], "audioLineIds": []}
+    {"id": "luz-hara-pan", "says": "says", "spanish": "Luz hará pan.", "intent": "state_action", "prompt": "lesson-luz-will", "variants": ["mañana Luz hará pan", "hará pan", "ella hará pan", "Luz hará pan mañana"], "audioLineIds": []},
+    {"id": "tienes-veinte-panes", "says": "says", "spanish": "Tienes veinte panes.", "intent": "state_have", "prompt": "lesson-loaves", "variants": ["tú tienes veinte panes", "sí, tienes veinte panes"], "audioLineIds": []},
+    {"id": "quiero-vender-madera", "says": "says", "spanish": "Quiero vender madera.", "intent": "offer_item", "prompt": "lesson-sell", "variants": ["yo quiero vender madera", "quiero vender la madera"], "audioLineIds": []},
+    {"id": "vendo-madera", "says": "says", "spanish": "Vendo madera.", "intent": "offer_item", "prompt": "baker-open", "variants": ["yo vendo madera", "te vendo madera"], "audioLineIds": []},
+    {"id": "cuanto-es-todo", "says": "says", "spanish": "¿Cuánto es todo?", "intent": "ask_total", "prompt": "farmer-open", "variants": ["¿cuánto cuesta todo?", "¿cuánto es todo esto?"], "audioLineIds": []},
+    {"id": "es-muy-caro", "says": "says", "spanish": "Es muy caro.", "intent": "describe", "prompt": "lesson-dear", "variants": ["es caro", "sí, es muy caro"], "audioLineIds": []},
+    {"id": "mas-barato-que", "says": "says", "spanish": "La manzana es más barata que el pan.", "intent": "describe", "prompt": "lesson-cheaper", "variants": ["la manzana es más barata", "es más barata que el pan", "el pan es más caro que la manzana"], "audioLineIds": []},
+    {"id": "puedo-pagar-con-fruta", "says": "says", "spanish": "¿Puedo pagar con fruta?", "intent": "ask_pay", "prompt": "farmer-open", "variants": ["¿yo puedo pagar con fruta?", "¿se puede pagar con fruta?"], "audioLineIds": []},
+    {"id": "manana-vendere-fruta", "says": "says", "spanish": "Mañana venderé fruta.", "intent": "state_action", "prompt": "lesson-will-sell", "variants": ["venderé fruta", "yo venderé fruta", "venderé fruta mañana"], "audioLineIds": []},
+    {"id": "compre-tres-manzanas", "says": "says", "spanish": "Compré tres manzanas.", "intent": "state_action", "prompt": "lesson-market", "variants": ["yo compré tres manzanas", "hoy compré tres manzanas", "compré manzanas"], "audioLineIds": []},
+    {"id": "once-a-quince", "says": "hears", "spanish": "Once, doce, trece, catorce, quince.", "intent": null, "prompt": "baker-open", "variants": [], "audioLineIds": ["guide.lesson.baker.fifteen.1"]},
+    {"id": "dieciseis-a-veinte", "says": "hears", "spanish": "Dieciséis, diecisiete, dieciocho, diecinueve, veinte.", "intent": null, "prompt": "baker-open", "variants": [], "audioLineIds": ["guide.lesson.baker.twenty.1"]},
+    {"id": "cuantos-panes-tengo", "says": "hears", "spanish": "¡Hoy hay mercado! ¿Cuántos panes tengo?", "intent": null, "prompt": "lesson-loaves", "variants": [], "audioLineIds": ["guide.lesson.baker.market.1"]},
+    {"id": "te-pago-una-moneda", "says": "hears", "spanish": "Te pago una moneda por cada bloque de madera.", "intent": null, "prompt": "lesson-sell", "variants": [], "audioLineIds": ["guide.lesson.baker.pay.1"]},
+    {"id": "tengo-quince-manzanas", "says": "hears", "spanish": "¡Hola! Hoy hay mercado. Tengo quince manzanas.", "intent": null, "prompt": "farmer-open", "variants": [], "audioLineIds": ["guide.lesson.farmer.market.1"]},
+    {"id": "quince-monedas", "says": "hears", "spanish": "Quince manzanas, quince monedas.", "intent": null, "prompt": "farmer-open", "variants": [], "audioLineIds": ["farmer_total.1"]},
+    {"id": "es-caro-o-barato", "says": "hears", "spanish": "¿Es caro o es barato?", "intent": null, "prompt": "lesson-dear", "variants": [], "audioLineIds": ["guide.lesson.farmer.dear.1"]},
+    {"id": "que-es-mas-barato", "says": "hears", "spanish": "Una manzana cuesta una moneda, y un pan, dos. ¿Qué es más barato?", "intent": null, "prompt": "lesson-cheaper", "variants": [], "audioLineIds": ["guide.lesson.farmer.cheaper.1"]},
+    {"id": "te-compro-fruta", "says": "hears", "spanish": "Aquí se paga con monedas. Pero yo te compro fruta.", "intent": null, "prompt": "farmer-open", "variants": [], "audioLineIds": ["farmer_pay.1"]},
+    {"id": "que-venderas-manana", "says": "hears", "spanish": "¿Y qué venderás mañana?", "intent": null, "prompt": "lesson-will-sell", "variants": [], "audioLineIds": ["guide.lesson.farmer.will_sell.1"]},
+    {"id": "que-compraste-en-el-mercado", "says": "hears", "spanish": "¡Hola! ¿Qué compraste en el mercado?", "intent": null, "prompt": "lesson-market", "variants": [], "audioLineIds": ["guide.lesson.shop.market.1"]}
   ]
 }

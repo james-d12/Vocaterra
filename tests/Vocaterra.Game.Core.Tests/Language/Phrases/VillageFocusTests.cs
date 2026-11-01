@@ -51,7 +51,7 @@ public sealed class VillageFocusTests
     public void FreeTalkAtTheBakerCreditsHerOwnRequestNeverTheStalls()
     {
         var session = At("baker");
-        Assert.Equal(["quiero-dos-panes", "cuanto-cuesta", "hay-pan"], session.Support.Cards.Select(static c => c.PhraseId));
+        Assert.Equal(["quiero-dos-panes", "cuanto-cuesta", "hay-pan", "vendo-madera"], session.Support.Cards.Select(static c => c.PhraseId)); // her wood since V15
 
         var use = Credit(session, "quiero dos panes, por favor");
 
@@ -67,7 +67,7 @@ public sealed class VillageFocusTests
     public void FreeTalkAtTheSmithAndTheFarmerCreditsTheirQuestionsAtHomeWithEither(string npc)
     {
         var session = At(npc);
-        Assert.Equal(npc == "farmer" ? ["como-te-llamas", "que-haces", "quiero-tres-manzanas-rojas"] : ["como-te-llamas", "que-haces"], session.Support.Cards.Select(static c => c.PhraseId)); // his apples since V13
+        Assert.Equal(npc == "farmer" ? ["como-te-llamas", "que-haces", "quiero-tres-manzanas-rojas", "cuanto-es-todo", "puedo-pagar-con-fruta"] : ["como-te-llamas", "que-haces"], session.Support.Cards.Select(static c => c.PhraseId)); // his apples since V13, the market since V15
         session.Objective.Finish(); // after the camp a phrase said away from its home is a transfer: both of them are home to these two
 
         var name = Credit(session, "¿cómo te llamas?");

@@ -92,6 +92,12 @@
       "matches": []
     },
     {
+      "key": "03b9b32382a7cc101a70780d217446ebb483489e5cdb7caced77154464850c1e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Es muy caro",
+      "matches": []
+    },
+    {
       "key": "03d9ff1f7b6078353f7fe63f382daa8939c25ba28e9ca98734ed445f60e4451a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Hola! Luz necesita madera para el horno. ¿Qué harás?",
@@ -107,6 +113,12 @@
       "key": "04d663b3bfb19af9a54fb3c86a53cbad139c3d312ef925750177af00e4c6231a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Qué es esto? Mira bien.",
+      "matches": []
+    },
+    {
+      "key": "04ecb1b912f201b29ea99f3dbe1fe7b2a4a5b4a335b549812611a4f7de88c12c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te pago una moneda por cada madera.",
       "matches": []
     },
     {
@@ -152,6 +164,23 @@
           "length": 2,
           "replacements": [
             "La"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "066a5c98a74cb1956798be6dc58e0143c3b24d056cba59647602a13a8ab1b64c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo venderás fruta",
+      "matches": [
+        {
+          "rule": "AGREEMENT_PRONOUNSUBJECT_VERB",
+          "issueType": "inconsistency",
+          "message": "Posible falta de concordancia entre «Yo» y «venderás».",
+          "offset": 3,
+          "length": 8,
+          "replacements": [
+            "venderé"
           ]
         }
       ]
@@ -252,6 +281,18 @@
       "matches": []
     },
     {
+      "key": "0a8c5de4c1dbd73ba4eb8e2242de01a3e023599e6fc60f77544cd2b556aaa9bf",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cuánto cuesta todo",
+      "matches": []
+    },
+    {
+      "key": "0a99165bb6b526191c5ec2d552db15dd73ce9231318123b2a12025fc3c930d00",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mañana voy a vender fruta",
+      "matches": []
+    },
+    {
       "key": "0abc5248e9254a3912530a99585d7cc78b6c357738714e7bb0755d66188d528b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer fuiste al río.",
@@ -318,6 +359,18 @@
       "matches": []
     },
     {
+      "key": "0d203a7f5c4181fedad15bac8dfcd628b24f3270601af2caddffad7fa9b76c1d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No, gracias. Solo compro fruta.",
+      "matches": []
+    },
+    {
+      "key": "0d3289a1605b8d89dec0c72b8103ee41fb6fcb434cd7fcd15da169e8b8570a49",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Una manzana cuesta una moneda, y un pan, dos. ¿Qué es más barato?",
+      "matches": []
+    },
+    {
       "key": "0d64481b32f69a6b3062a6839454af56b043a7d2a385cd0053879311068eb330",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Gracias, no",
@@ -365,6 +418,12 @@
       ]
     },
     {
+      "key": "0ed283f0ca312e01f79e27d5b64dca81bc218b2c6ec0454fd9c6fb3e61ad295f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo puedo pagar con fruta",
+      "matches": []
+    },
+    {
       "key": "0f2396e36d3098717d087e18d483f931db5ceabe1f2323269052d052d2e21b73",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ellos comieron pan",
@@ -407,9 +466,21 @@
       "matches": []
     },
     {
+      "key": "102f96ce45d226cd55b9d060fc01a9d8c2a0db2eee0ec0052de832bb8f602556",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tienes veinte panes.",
+      "matches": []
+    },
+    {
       "key": "104e803f1a1f0ac93214177ebb1a89a508252fd59f787d18c2419c4538dca661",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Habla más despacio por favor",
+      "matches": []
+    },
+    {
+      "key": "1069d83422d3eb65cceaa2320d1f796e31d4229c0ece4d25cd9087eb50a54696",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te vendo madera",
       "matches": []
     },
     {
@@ -446,6 +517,12 @@
       "key": "11d63c6613403c67a4a484459f57fc431139be758a724940813144f0bd045990",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo buscaré madera para luz",
+      "matches": []
+    },
+    {
+      "key": "11d9587862c8776ecbad34d439da6c07b4a70c2e32586fbfd8ac106bdfa77c7f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Solo vendo pan.",
       "matches": []
     },
     {
@@ -528,6 +605,12 @@
       "key": "14dd454cfe4bb98dd2fa9d22e79ba438e9cd9127b1439c1eb3235d3cd13ac54c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Me gustan las frutas",
+      "matches": []
+    },
+    {
+      "key": "151364849faa689c52247ad4ba785262e4a5386ed9aeee67c61022bd29ab2e6c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo vendo fruta",
       "matches": []
     },
     {
@@ -616,6 +699,12 @@
       "matches": []
     },
     {
+      "key": "16dc688d177c82b8a1c71ea8fc57f38163980cdc72b5a418e4b2a1caa7cafd42",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tienes veinte panes",
+      "matches": []
+    },
+    {
       "key": "16e2fc7bf370fc0a800ac1e43f05c8ab7b388ae43c04e2e6969a43c14486befc",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, yo tengo una fruta",
@@ -673,6 +762,12 @@
       "key": "17ee16c4e583e0f288ae7cb950c7add965f7bb94455557ee658bf69d49e476e8",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mar pescó en el río.",
+      "matches": []
+    },
+    {
+      "key": "17f1ac74f3fc17e4fb0864cada01f28ae1d5de6d639b67e8ba10246a14f9f776",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Yo puedo pagar con fruta?",
       "matches": []
     },
     {
@@ -907,6 +1002,12 @@
       "matches": []
     },
     {
+      "key": "1d56199ff3a8aa817934f436e7c7d53322dacc101d5406d966999497661c8485",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Gracias! Aquí tienes tus monedas.",
+      "matches": []
+    },
+    {
       "key": "1d57f2c3b5b11b30bd27d830e736b2efdb4f6dc31cbd48e4f0ce65f191c5ee14",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Busco el pozo",
@@ -916,6 +1017,18 @@
       "key": "1d60d7ec37587cef828abd103dbf5b5137254ecd7e4cff917fd43366c5742cb9",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Qué es esto",
+      "matches": []
+    },
+    {
+      "key": "1db5429a46562a7e780be23ab85d7d55c9edfac8950cbd576a8afb1da45c787b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Es caro o es barato?",
+      "matches": []
+    },
+    {
+      "key": "1dbf3cf9bd183ef5a7b1ee4c5d11872ee5525555516062c8dc92e7dc27e68417",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quince manzanas, quince monedas.",
       "matches": []
     },
     {
@@ -934,6 +1047,12 @@
       "key": "1e06b0d595f9c66ce5802a7a24109e765c8f46a949219d89d1700e7155430caf",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo nos vemos",
+      "matches": []
+    },
+    {
+      "key": "1ec55cf790ac9cf93776f9cf217dc4510dceb40bacb5af54cf6a02719d2a98fa",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Compré tres manzanas rojas",
       "matches": []
     },
     {
@@ -1110,6 +1229,12 @@
       "matches": []
     },
     {
+      "key": "25b900da2109484e71db3c1ebd631d5ff2146c840225b807b9ede0b05de2733d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te vendo fruta",
+      "matches": []
+    },
+    {
       "key": "25dc9949e7f2ed8c5437bb2b9460687ff118eb29b8afd3289d6757552032ad17",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí tengo",
@@ -1156,6 +1281,41 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Queremos pan.",
       "matches": []
+    },
+    {
+      "key": "28073c2602c92a15824d268246051d534bf9bf1237fa2b2a5fa562de13160f87",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Compré tres manzana",
+      "matches": [
+        {
+          "rule": "AGREEMENT_NUMERAL_PLURAL",
+          "issueType": "inconsistency",
+          "message": "Posible error de concordancia. Revise la puntuación.",
+          "offset": 12,
+          "length": 7,
+          "replacements": [
+            "manzanas"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "2828bb9cdba5d6afb5a7ac0b41fec56d6c564b974e0af622758a1de9d7796668",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Cuánto costa el pan?",
+      "matches": [
+        {
+          "rule": "AGREEMENT_DET_NOUN",
+          "issueType": "inconsistency",
+          "message": "Error de concordancia.",
+          "offset": 1,
+          "length": 12,
+          "replacements": [
+            "Cuánta costa",
+            "Cuántas costas"
+          ]
+        }
+      ]
     },
     {
       "key": "286d3e802d37d45d22176e33419f7d6f664fd6b5abf770219923adbb91b2d110",
@@ -1340,6 +1500,18 @@
       "matches": []
     },
     {
+      "key": "2c4fd8753bb517cc631cd1063bcb74bf5fd1421cf4a94fb2afac29558126c385",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Y qué hizo Mar ayer?",
+      "matches": []
+    },
+    {
+      "key": "2c677e1ef3e3ad366c5f4cacb4b749cb562cff1485d3f62c308fe9528f5e2cd6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero dos panes de luz",
+      "matches": []
+    },
+    {
       "key": "2ca6f34823da7093031f9a7302a7350fcda142e071f48a7ef7fe3ad7d1d4e01d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer Domingo trabajó mucho.",
@@ -1367,6 +1539,12 @@
       "key": "2d90b3502c37f8c76a08efd75c23b0317b4145842f82e866daa07a21cf44ee9e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Camina hasta la flecha.",
+      "matches": []
+    },
+    {
+      "key": "2dcb75107664a164bcf10b0f3e59e787527c5fe06e19e0d8932180cd9acb4129",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Puedo pagar con fruta",
       "matches": []
     },
     {
@@ -1408,6 +1586,12 @@
       "key": "2f2ae97416519fc34510c823a5aedbea4155425c6f0541a917ea5eaa3cd7e98c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, fui a la panadería.",
+      "matches": []
+    },
+    {
+      "key": "2f518e61970b7bec4eacc8cb3b6319b804d1fccaf5440e1cd413aa0ba7a28a13",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No, gracias. Solo compro madera.",
       "matches": []
     },
     {
@@ -1711,6 +1895,12 @@
       "matches": []
     },
     {
+      "key": "38209d4c7d3c051e7ad458488bbafbfe026f2b85d7d7ef9542d0081bb86774a2",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te pago una moneda por cada bloque de madera.",
+      "matches": []
+    },
+    {
       "key": "3824cfefee5211baa4cd874e14ba3af018be8abbd07aa2119f8d08bd5d2a0249",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer comí fruta",
@@ -1929,9 +2119,27 @@
       "matches": []
     },
     {
+      "key": "3c830390bffaee7275f4c38dd6c0d6c87454fe7a5210ed00e655d85845ce16c3",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mañana vendí fruta",
+      "matches": []
+    },
+    {
+      "key": "3cda9268273396f16ce92c87213b0967fcd25b2e243264d60508dc82aa5564c7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cuánto es todo",
+      "matches": []
+    },
+    {
       "key": "3d3daea7d897f5c2ae06e8435bacad0e8d9adb1b568abfc243de5ca29238179b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde está la piedra",
+      "matches": []
+    },
+    {
+      "key": "3d50bd1f8ecc4729beabc1e1b31057e510fb755ac8cd829f12a7b28b76ffadb9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mañana venderé fruta.",
       "matches": []
     },
     {
@@ -2029,6 +2237,12 @@
       "matches": []
     },
     {
+      "key": "3ff2ec5ded9a7a4e9256cb9cc27ee247f3da93461be7e3c1dc46f1ddf2677df6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mañana venderé fruta",
+      "matches": []
+    },
+    {
       "key": "401557427b46b50fae8c4e68ba1a61171fa978ab685da092aa58536f32566a6b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde queda el lago",
@@ -2109,6 +2323,12 @@
       "key": "42caea4336cf5a8eac951f7cabc5873a8e24a383e0af17e878dd4eba71a6d9ea",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Esto es una piedra.",
+      "matches": []
+    },
+    {
+      "key": "42f56f6fb490bec2d215d6161b43b3c83aaad214bdc386f6b87f1e622880c0b7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Es muy barato",
       "matches": []
     },
     {
@@ -2200,6 +2420,12 @@
       "matches": []
     },
     {
+      "key": "457efd5ea816ff4da8c6e355da3478159244d30f058e916bb03839361bb2e3ca",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Se puede pagar con fruta",
+      "matches": []
+    },
+    {
       "key": "45b5625a7b665d8b6e15a95c420796bae6b0258ee38552b3701b848002026a26",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Hola! Esta es mi herrería.",
@@ -2268,6 +2494,12 @@
           ]
         }
       ]
+    },
+    {
+      "key": "4790aed56f8a92408606351195d74a319441d0097f814d288772ab6e58ab29a5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Hola! ¿Qué compraste en el mercado?",
+      "matches": []
     },
     {
       "key": "4795e51ec0e5820e029e336ad8f6047b7bd29b5815681570181893f94869dbd8",
@@ -2371,6 +2603,12 @@
       "matches": []
     },
     {
+      "key": "4ad68e018f89034f3a8d8c31a3baf132b3018f152e0760bbd8673776f4af60e3",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Necesito madera para el horno. ¿Qué quieres hacer?",
+      "matches": []
+    },
+    {
       "key": "4adbb6db895ff6444bbe0f9df47a9705ca62dd8f6f7c1602a06c76b20d28506e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, por favor",
@@ -2440,6 +2678,12 @@
       "key": "4ba99fafb9e93f8b5a02ecad82953d58e8f9bab80aaaccf60ef0109bdec3f24c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hay un pan",
+      "matches": []
+    },
+    {
+      "key": "4bf7bde3b6389fa64e23ab6fcc8709fde0127760dc22f490b251fc740d19e5b9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tengo madera para usted",
       "matches": []
     },
     {
@@ -2608,6 +2852,12 @@
       "matches": []
     },
     {
+      "key": "50522bc6e7a6a4233d9a5d040641ddaaa383657474a876ab3e22933158c5fc18",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Vendo madera",
+      "matches": []
+    },
+    {
       "key": "506d982231beebf115173daa479803081c5b87cda76bf9394094834b3155e94b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Fuiste al río ayer?",
@@ -2760,6 +3010,12 @@
       "key": "55584c83edb9de3a9ebe72f9c55ef8c83a15e176b1182960469473a557d1e6dd",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Nos vemos",
+      "matches": []
+    },
+    {
+      "key": "5579be991ffcf5f3f0ec889c75d0b5e8694c4ad6ffb95b34293ad6f0687307e3",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Es barato",
       "matches": []
     },
     {
@@ -2934,6 +3190,12 @@
       "matches": []
     },
     {
+      "key": "5ac660412f1551d9769eb563a1d3dfa02fd5d2644b7dce54b992eb373dc997b0",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Cuánto cuesta todo?",
+      "matches": []
+    },
+    {
       "key": "5ad5b83874c21eaa7313f075750a6fc161a05415cf05ef0047aebeb6c78cc77a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Te faltan espada.",
@@ -2967,6 +3229,12 @@
       "key": "5c4cb372a5e6df485073dfd860ca6af352afb780cb139d8cc60acc4126913578",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Repite por favor",
+      "matches": []
+    },
+    {
+      "key": "5c5e693d9fa52c6e1ea250c326c7a427a55d2b2667c468a5c9756b90ded2f2fa",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No tienes fruta.",
       "matches": []
     },
     {
@@ -3020,6 +3288,12 @@
       "key": "5d7e45628e901628332bed10187fe73f380e6548b3b8ded767d54d8b26c717a3",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Luz hará pan",
+      "matches": []
+    },
+    {
+      "key": "5e0a864c864764afd721fe9f2a77a369dc2fdf67ff8204b28209b706ce076de4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "El pan es más barato que la manzana",
       "matches": []
     },
     {
@@ -3134,6 +3408,12 @@
           ]
         }
       ]
+    },
+    {
+      "key": "5f9ee7d695473694885f8ec18b600c6c44a2af02751fd8ac43f3e4ede960f3a3",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tengo veinte panes",
+      "matches": []
     },
     {
       "key": "601b2958f2cfd769569e81088283e72e85f0cfc6c237885364babe7553d0fc82",
@@ -3261,6 +3541,25 @@
       "matches": []
     },
     {
+      "key": "63668fc25f4b3521f261dfd40a480ef34c95602ae271fdca9fad96e23044b269",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay pans",
+      "matches": [
+        {
+          "rule": "MORFOLOGIK_RULE_ES",
+          "issueType": "misspelling",
+          "message": "Se ha encontrado un posible error ortográfico.",
+          "offset": 4,
+          "length": 4,
+          "replacements": [
+            "país",
+            "pan",
+            "paño"
+          ]
+        }
+      ]
+    },
+    {
       "key": "63712398bdf6507174b4de79ee00b70b50d652dc391d30030b3d9f74f4d9990c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer Luz hizo pan. Domingo trabajó en la herrería. Mar pescó en el río.",
@@ -3282,6 +3581,12 @@
       "key": "63a6d40acfff466f519db94b467f87d7bb9fde15e0b98934c876ecc600b8bdb6",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Claro! Miro.",
+      "matches": []
+    },
+    {
+      "key": "63a9316b97272f93ea7fb839e6951d6ea5bd0c354ae90943c4fa1aeebd8e55c0",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer compro tres manzanas",
       "matches": []
     },
     {
@@ -3648,6 +3953,12 @@
       "matches": []
     },
     {
+      "key": "6d23af4fc68e3411ab6b8e946436b78a63bebd7ae021c978a75040fa8acc0a38",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí se paga con monedas. Pero yo te compro fruta.",
+      "matches": []
+    },
+    {
       "key": "6d646aaed7eb39eca969a4c9c446044cc3402de71a7204274310cd6dd21f38f3",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "un espada de espada",
@@ -3703,6 +4014,12 @@
       "key": "70691c35cfec90abe5dd0b93b3f8092674991fb1b13f31a15ecd2326fd41a19a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "La espada está espada, a dos espadas.",
+      "matches": []
+    },
+    {
+      "key": "7082935bfbe6ff7e847bcf94520bda5d111b9b7549088e5e24391f6820ba5d43",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No tienes madera.",
       "matches": []
     },
     {
@@ -3784,6 +4101,24 @@
       ]
     },
     {
+      "key": "7237391dde54f647f7c18bcaab5056a21fa9377664c4bd0af9ceda8f7fd2cc8f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Cuánto costa todo?",
+      "matches": [
+        {
+          "rule": "AGREEMENT_DET_NOUN",
+          "issueType": "inconsistency",
+          "message": "Error de concordancia.",
+          "offset": 1,
+          "length": 12,
+          "replacements": [
+            "Cuánta costa",
+            "Cuántas costas"
+          ]
+        }
+      ]
+    },
+    {
       "key": "72b5feae1bbd482991f7bc3a7364c28c084d84a7707f1e1ec3268863e88b5213",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo buscará madera para Luz",
@@ -3799,6 +4134,18 @@
           ]
         }
       ]
+    },
+    {
+      "key": "72cc62495836a0d29e746092392180a80698055aa88807eb58b18f2996897eaf",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Hola! Hoy hay mercado. Tengo quince manzanas.",
+      "matches": []
+    },
+    {
+      "key": "72d2b8bb6bb0d00da30f972148560d8c030a17493e22429d2c68e42550c7e2a0",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tengo fruta para usted",
+      "matches": []
     },
     {
       "key": "72d907cbe333b98c0f0d4b03fdfaeab466dd45b0c54e5d3d3a2101c2caf4c224",
@@ -3873,6 +4220,12 @@
       "matches": []
     },
     {
+      "key": "74d3d92432b41d8ab16dcf2fbd197cf99bf05b4e488bbc51f3a355d8a871b1fa",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hoy compré tres manzanas",
+      "matches": []
+    },
+    {
       "key": "750d78e40ccd43c56f94fa3a29fade36a95f818a2b209cf78b5ccb5fc22f9d7e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Otro vez, por favor",
@@ -3894,6 +4247,12 @@
       "key": "75af87f2b40caa879a4077a8ea84a16032059945860995263edd590df879c5d8",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hay un pozo aquí",
+      "matches": []
+    },
+    {
+      "key": "76074b8bc49528730c7ebc9c438461b5505a03fcdab2cb19a87c46d068d0cb74",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Y qué venderás mañana?",
       "matches": []
     },
     {
@@ -4060,6 +4419,12 @@
       "matches": []
     },
     {
+      "key": "78fa5ad7aae65e1e3facf74503c0609282efd8bd75b1605c5e431618df93afa6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, tienes veinte panes",
+      "matches": []
+    },
+    {
       "key": "79d311096a255a247dd7c4fb2a2be5be073dc7fc47a87f4b54cb3c1ba0302ffc",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, fui al río.",
@@ -4075,6 +4440,12 @@
       "key": "7a08b0d56f30fc7add7d7d0d4701679cc5c86a5f24d63d9a385a61adceef896d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo tengo que ir al río",
+      "matches": []
+    },
+    {
+      "key": "7a53ac6223665dc511fb7e2668582b83af88ad9119107b89ca7965fe978b12b8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero comprar pan",
       "matches": []
     },
     {
@@ -4154,6 +4525,12 @@
       "matches": []
     },
     {
+      "key": "7c73c352608af5f902ff8ec1efe64bf5dd90ed60061a6e4f2a30b5d5be5c8b6d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a vender fruta",
+      "matches": []
+    },
+    {
       "key": "7c8decfb5807dd1252a10dbcef71be54f955a761ed6f185843096c1f410498b2",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer fui a la tienda",
@@ -4181,6 +4558,12 @@
       "key": "7e1b2ee34c30f7287d6e45ad10ac73f63fe523f4873c3f9c041682424d7e9b28",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde hay arena",
+      "matches": []
+    },
+    {
+      "key": "7e35429cfc3f5a43f8e419cc5cabd7655353e140e1212fc2d310be873f9b321d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Vendí fruta",
       "matches": []
     },
     {
@@ -4214,6 +4597,12 @@
       "matches": []
     },
     {
+      "key": "7f8825fd919edfddd40e6270820c5584ec30698b7596c98d6baa37c9d22b29b6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "La manzana es más barato que el pan",
+      "matches": []
+    },
+    {
       "key": "7f924efff6c033d409db3ae36c54e49d848df495ac121536442147a3bf0285b6",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Hola! ¿Qué buscas?",
@@ -4241,6 +4630,12 @@
       "key": "8001e80382df43e669077390534a987ec1aa6fa9948ed2207cc86eb342fb44b7",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No entiendo",
+      "matches": []
+    },
+    {
+      "key": "80ae5112f41e4f2e2b4dc8d60f319675d68ee4a559af425db543040a4c69ac85",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Solo vendo manzanas.",
       "matches": []
     },
     {
@@ -4283,6 +4678,12 @@
       "key": "81d6434146cb6a98ab3345f1875619dd445ac628ca1ed0b80341a5fa0cf79666",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Hola! ¿Qué necesitas?",
+      "matches": []
+    },
+    {
+      "key": "81fa97097da9124824c0a6864136a463b978ece75d14ae17cbd0fb05e30ccf16",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Se puede pagar con fruta?",
       "matches": []
     },
     {
@@ -4381,6 +4782,12 @@
       "matches": []
     },
     {
+      "key": "848e09a24278361da13a80d472bba107e0fcfe69a08714a0e1652c3b07415a43",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Venderé fruta",
+      "matches": []
+    },
+    {
       "key": "84a14d2a1eea3ff47a6230ca203440fa764fcb6f6523fe06cd88839635238fd6",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Después voy a buscar madera",
@@ -4425,6 +4832,12 @@
       "key": "85fa6e8d4cd825aacb5373d4d8c19ab0e27ff0c74fe1c872ee559731fb114f38",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mañana compro pan",
+      "matches": []
+    },
+    {
+      "key": "862b9f3c44274e97da20397b875a6b9125612279388aebb41223a904d5dec9bb",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo venderé fruta",
       "matches": []
     },
     {
@@ -4527,6 +4940,12 @@
       "key": "8ad02a29b9c30b6b1d37489c1398ae2d33b0dd4a5214879a6d74a94a1c124abe",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hay panes",
+      "matches": []
+    },
+    {
+      "key": "8b11bed4125eb059a809a6a5a6799ffa6ea4b6060ea954eda2b02e765d9f1af5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Cuánto es todo?",
       "matches": []
     },
     {
@@ -4854,6 +5273,24 @@
       "matches": []
     },
     {
+      "key": "95ee6455b8349f1184815222cbd5265bde34737911935855042583902aecd1de",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "El pan es grandes",
+      "matches": [
+        {
+          "rule": "AGREEMENT_SER_ADJ_SG",
+          "issueType": "inconsistency",
+          "message": "Posible error de concordancia.",
+          "offset": 7,
+          "length": 10,
+          "replacements": [
+            "es grande",
+            "son grandes"
+          ]
+        }
+      ]
+    },
+    {
       "key": "95fd7e64859bdcce53c74f89b2d49285b9838d96272bda7904576f735acefc9a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ellos comió pan",
@@ -4889,9 +5326,27 @@
       "matches": []
     },
     {
+      "key": "96fe36e6e6940a1fe05e303a7aa935445fd71bfbf6e8bea41578f122cbaa9e8b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "La manzana es muy cara",
+      "matches": []
+    },
+    {
+      "key": "9727c69f2b5f038e5f4dedf8ee738d70456a486ebe737aa6cd476edbe9db26be",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "La manzana es rojo",
+      "matches": []
+    },
+    {
       "key": "9731d463495dc2c2b1a2b6b0b08c5f76617a58d0b493e77b5fccbdaf086e6d7e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Granjero",
+      "matches": []
+    },
+    {
+      "key": "979c43bb058db19e28960f7d717dc93f19cb36d78ff13f372a0d2fe5827a1016",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero el pan de luz",
       "matches": []
     },
     {
@@ -5066,6 +5521,12 @@
       "matches": []
     },
     {
+      "key": "9c2e5ef78c4f7acc7f32cbd717009f1ebb971cfaaf6af975eb4eb519a91b153e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo vendo madera",
+      "matches": []
+    },
+    {
       "key": "9c44837f79479658ee58081949ab4c1585c92c902f939975f37a675fb391a33b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hasta luego. ¡Buen día!",
@@ -5124,6 +5585,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Tienes una espada.",
       "matches": []
+    },
+    {
+      "key": "9d47209694809006f5e44c40634d37c2e5c77896afef4c0753713b4ed1738a63",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo quieres vender madera",
+      "matches": [
+        {
+          "rule": "AGREEMENT_PRONOUNSUBJECT_VERB",
+          "issueType": "inconsistency",
+          "message": "Posible falta de concordancia entre «Yo» y «quieres».",
+          "offset": 3,
+          "length": 7,
+          "replacements": [
+            "quiero"
+          ]
+        }
+      ]
     },
     {
       "key": "9d62187cd045b0eb6664f8257ebd909c68b1695db87f5ab3cb7d808d40c228a3",
@@ -5232,6 +5710,12 @@
       "matches": []
     },
     {
+      "key": "9ed10f57a4f526f1bcb97b74a62bd92875f9286ebfc8da6f1d245ef0c9a69d40",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Compré tres manzanas.",
+      "matches": []
+    },
+    {
       "key": "9f2fd4f4616ce184d9c4bb97a4e4e8dc07a3737ca09f05e5df2ccea7ea7772bb",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "el camino",
@@ -5270,6 +5754,12 @@
       "key": "9feb798de7420c6e4c95a713a8f7112586e89a595fb640f2975cce87cc2cfb21",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Hay panes?",
+      "matches": []
+    },
+    {
+      "key": "a0170c1151206f6a920bf0a52a10dc0912e46aaf870243b0f454ee9229ba7f06",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo compré tres manzanas",
       "matches": []
     },
     {
@@ -5479,6 +5969,12 @@
       ]
     },
     {
+      "key": "a5bed1a85f2937a45ff733c483cefb363548fd368d0c286536f1b3ab202171c7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Compré tres manzanas",
+      "matches": []
+    },
+    {
       "key": "a5fb4fd4fd245bd9d448686f68f595c6130d420795744b062f989d2dc92ed835",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "El libro sale de el libro.",
@@ -5583,6 +6079,18 @@
       "key": "a80121c75efa8a18b515b8b398b96bfcf70ae2d9958dbe2063649c338eacb3b1",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Qué quieren ustedes?",
+      "matches": []
+    },
+    {
+      "key": "a814c985f95a77873a643a406c11f66f0890a1f8dc524129fbbef9346e14ad4a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mañana vendo fruta",
+      "matches": []
+    },
+    {
+      "key": "a8ae457779e5d17500fc109b439d82e5aedbf27d43893c595ae510e6c0398f52",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Es muy caro.",
       "matches": []
     },
     {
@@ -5818,6 +6326,12 @@
       "matches": []
     },
     {
+      "key": "b09a2805c141c5009558cbdae3dc3efb2fe4bb66e7299695cc41bceb4b157804",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "La manzana es más barata",
+      "matches": []
+    },
+    {
       "key": "b0a4abfc4311b62c7a44896dc236d73b7180db66587b235deaa36fa84367d18a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Cómo te llamas tú?",
@@ -5927,6 +6441,12 @@
       "key": "b241c461f2660664ee81b9e9f25ffda8027287223453a957bb781a4da4eb738c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde está el campamento",
+      "matches": []
+    },
+    {
+      "key": "b27029188b0bb9aa6c0a3ba7a39c4ec8efe94ee3b20491aabcb873047a2551d3",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo quiero vender madera",
       "matches": []
     },
     {
@@ -6049,9 +6569,21 @@
       "matches": []
     },
     {
+      "key": "b8188f7c9aeacd4a22eeee6e155b861fa24f35b1f508dc791bd7193e2fc37782",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero vender madera.",
+      "matches": []
+    },
+    {
       "key": "b841d2b46684ad15d76986221b06b9b4a4fdf485e45fd980cfd45226bc3abbe6",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Escribes?",
+      "matches": []
+    },
+    {
+      "key": "b892e594c171df2de3b988c2eb65306e71233a8d36514cbb284c02821c8a072b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "La manzana es muy caro",
       "matches": []
     },
     {
@@ -6121,6 +6653,12 @@
       "matches": []
     },
     {
+      "key": "bb0b2412b873a4980ceb8f379b308bcaaf10165050a2b70a4d24a481ee6ce98a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "El pan es más caro que la manzana",
+      "matches": []
+    },
+    {
       "key": "bbddef125aafc435a824d098754bdaeb05797e95f8c4b9529468a8f8a1d64ae9",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "León trabaja en el campo",
@@ -6130,6 +6668,12 @@
       "key": "bc054d5fff4732690b7695373cf3afe558057c5184907b6438d3d2090de826b4",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí: «Tengo un libro». ¡Muy bien!",
+      "matches": []
+    },
+    {
+      "key": "bc2a68ebf184aa60377a0bf747ceae69f2afea298d414d6914cd0ec649e54d52",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Venderé fruta mañana",
       "matches": []
     },
     {
@@ -6246,6 +6790,12 @@
       ]
     },
     {
+      "key": "bec9c7ba63b4e94e0771568d98c6f73e4b4d699ebd0e1fea0307a5d5713fe3a3",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cuánto es todo esto",
+      "matches": []
+    },
+    {
       "key": "bed01c1a74556ac2e73f772a60fa2f7e926b6d3d50d5a8afceefde898e95735a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hola amigo",
@@ -6315,6 +6865,12 @@
       "key": "c136da59e214d85255dd2b44b473a370e5ce8f39ee95c065e62ba3954a2dc0aa",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde está el pozo por favor",
+      "matches": []
+    },
+    {
+      "key": "c16c4397dc7282cabeed867aa97409d230a2541c818e646b08f6edd48081c7d9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "La manzana es más barata que el pan.",
       "matches": []
     },
     {
@@ -6449,6 +7005,12 @@
       "matches": []
     },
     {
+      "key": "c76d6bbb8d8ddb42fe8a3355a3852e6f1906ad799b34b1b25b42d3ebfec24311",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Es más barata que el pan",
+      "matches": []
+    },
+    {
       "key": "c77bd230add3597a2b42d2da451ea768a3581367a71d3873215ee5d307c12e2c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Hola, amigo! ¿Qué buscas?",
@@ -6481,6 +7043,12 @@
       "key": "c8163b5359acb00f6496353986d5942be17b86be59af9c541ccda0e34197001d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo quero madera",
+      "matches": []
+    },
+    {
+      "key": "c856adc7c22661a48a3f2d49df3ad967dcc30ab00896852361e7306a7d9804a4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Le vendo madera",
       "matches": []
     },
     {
@@ -6547,6 +7115,12 @@
       "key": "caa598caa560129632ecaae08f1534410af1126136d80f842e2306dddb6be68f",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Esto es una mesa.",
+      "matches": []
+    },
+    {
+      "key": "cae43b425137ac1eb9ef1daf580e5a1e38770e764f935b93a812b9229c97f57b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Once, doce, trece, catorce, quince.",
       "matches": []
     },
     {
@@ -6633,6 +7207,12 @@
       "matches": []
     },
     {
+      "key": "cd26f9783dae714a00ec7a81e6b80bbfe2501812d5fa66b26cd7d7ee18c565ba",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero vender fruta",
+      "matches": []
+    },
+    {
       "key": "cd35744d6eceb1054b31a77ff1b17c2a379079ee8dcfdae12f32a16bfec2ddef",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde queda la tienda",
@@ -6667,6 +7247,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer comí pan de Luz. ¡Me gustó mucho!",
       "matches": []
+    },
+    {
+      "key": "cf01c012ee9b206ab6bd8e96a26e10d58cacc3204548924cc298b263cde65af1",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tienes veinte pan",
+      "matches": [
+        {
+          "rule": "AGREEMENT_NUMERAL_PLURAL",
+          "issueType": "inconsistency",
+          "message": "Posible error de concordancia. Revise la puntuación.",
+          "offset": 14,
+          "length": 3,
+          "replacements": [
+            "panes"
+          ]
+        }
+      ]
     },
     {
       "key": "cf32d37daf15008e357a49406def7308cb38d4a166d3d57da5a3c1ddc4aa736a",
@@ -6728,6 +7325,12 @@
       "matches": []
     },
     {
+      "key": "d02ba6c9a8704e1e63047a73ef015a6f46ee5e20f1809b35e91f24e8bd80894b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero vender la madera",
+      "matches": []
+    },
+    {
       "key": "d05562244d901cdcb92632339a9e2afbab254451872bff1d44435f5c96ca7580",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ella necesita madera",
@@ -6767,6 +7370,12 @@
       "key": "d173806f3173021f5ce946c94e57f5eb4e8b4739290d2b713fa89363d5737451",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Queda muy cerca",
+      "matches": []
+    },
+    {
+      "key": "d1b1596ca96cebd36e62039be1f754eb089edcc791280a155ab8e255883f7a43",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero vender pan",
       "matches": []
     },
     {
@@ -7050,6 +7659,12 @@
       "key": "d94f9c6ce78f0f450cfbd039b18eaad24aa93df8d047f40385f85ebfb88b70fb",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "El río",
+      "matches": []
+    },
+    {
+      "key": "d96d3eb98f407e3337bae4717cddd65d16665edd1126a70bc8d4de820708c769",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Vendo madera.",
       "matches": []
     },
     {
@@ -7361,6 +7976,12 @@
       "matches": []
     },
     {
+      "key": "e2c254e3f91e6f4fb5b4eb715e6bee794ca46628526a6a2162b88114a4386f90",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Compro tres manzanas",
+      "matches": []
+    },
+    {
       "key": "e2c35590de423c28184b59b791f431daf3522adbd35fc4bcc76c44bf566d56e5",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí fuimos al río",
@@ -7486,6 +8107,12 @@
       "matches": []
     },
     {
+      "key": "e61cdedf0c9ed9fcd93d98aef6857c238d2c2a32b4eb629e651511e78c4cd51f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, es muy caro",
+      "matches": []
+    },
+    {
       "key": "e6e3ed74e5946033f88b294a564bfab9f07164de07bcfba4efbc1ac4db1dbd85",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí yo fui al río",
@@ -7546,9 +8173,32 @@
       "matches": []
     },
     {
+      "key": "e87f58c0f060bc0570d9c8f22b71aa2763522f24d242d1712c1ca5dfc0127d3c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Podo pagar con fruta?",
+      "matches": [
+        {
+          "rule": "PODAR_PODER",
+          "issueType": "uncategorized",
+          "message": "Posible confusión.",
+          "offset": 1,
+          "length": 4,
+          "replacements": [
+            "Puedo"
+          ]
+        }
+      ]
+    },
+    {
       "key": "e8d5377018e92646275a208402ed8af7b1df8e8e2790333ee39b124db924c350",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Te gustó el pan de Luz?",
+      "matches": []
+    },
+    {
+      "key": "e903730dfb3a3be078f4e848e6a51bf084bb7f8398c937426e3950e6f5ef8a30",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Cuánto es todo esto?",
       "matches": []
     },
     {
@@ -7600,9 +8250,21 @@
       "matches": []
     },
     {
+      "key": "eabb01dfe0cd24efd04fb611bfa2955f2b7e2e2a9e2d2867e05e81afd7d78e9f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dieciséis, diecisiete, dieciocho, diecinueve, veinte.",
+      "matches": []
+    },
+    {
       "key": "eabc33981295ae6b87a4f665ce12def714dd3e29648ec0b8fdafdd3c14ae2838",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, tengo una fruta",
+      "matches": []
+    },
+    {
+      "key": "eaf05f02ff232f20f196759c501711ecd6b9d0200adf48add897c9d181c31a67",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Puedo pagar con fruta?",
       "matches": []
     },
     {
@@ -7675,6 +8337,12 @@
       "key": "ed48b376b7d1127d2ab661e188dea2d12d36d61d2c1ed6d1c3d3d115a3eb8370",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Qué vas a comer mañana?",
+      "matches": []
+    },
+    {
+      "key": "ed78511704109901b2427986262788618493a6c7d03fc17bd0c49dfbcb3e12e1",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Compré manzanas",
       "matches": []
     },
     {
@@ -7818,6 +8486,23 @@
       "matches": []
     },
     {
+      "key": "f0515e79269439abeb74caa7816926d2f3591a100e024424e3c61725a115a6a5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Podo pagar con fruta",
+      "matches": [
+        {
+          "rule": "PODAR_PODER",
+          "issueType": "uncategorized",
+          "message": "Posible confusión.",
+          "offset": 0,
+          "length": 4,
+          "replacements": [
+            "Puedo"
+          ]
+        }
+      ]
+    },
+    {
       "key": "f0a8ab0da00b0e509dc2e18b3af08b2a0a3a156c2e114ab24ea16f422cdf32d4",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Claro. Otra vez.",
@@ -7869,6 +8554,12 @@
       "key": "f1fc4470f785dd1f034fa2187b80d7952544e0c7c5fd39cbdca7f998f59887fc",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer comieron pan",
+      "matches": []
+    },
+    {
+      "key": "f21020c0c68301bd595963d28e4cf3785d1d8ebe20fb753b03c33235266b52a7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Vendo fruta",
       "matches": []
     },
     {
@@ -7926,6 +8617,12 @@
       "matches": []
     },
     {
+      "key": "f46255ba3175dabd4703954ef24ac6574fb3723ddedd4fc8d901db200df5e7ff",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Hoy hay mercado! ¿Cuántos panes tengo?",
+      "matches": []
+    },
+    {
       "key": "f46278d23ccdef507db1a52a0461f8c77f004171da2d88b7a998023578c9f9cd",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Quiero dos agua, por favor",
@@ -7978,6 +8675,41 @@
       "matches": []
     },
     {
+      "key": "f5a030acd2895ff4e0ac02100bda80b3072164a84d6f02a8abc9d0ec6167116b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cuánto costa el pan",
+      "matches": [
+        {
+          "rule": "AGREEMENT_DET_NOUN",
+          "issueType": "inconsistency",
+          "message": "Error de concordancia.",
+          "offset": 0,
+          "length": 12,
+          "replacements": [
+            "Cuánta costa",
+            "Cuántas costas"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "f5c873ff3f3d1c4e53d034bc9dbd6e523bb77bbc6d092b959760274edc359743",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Vendo el madera",
+      "matches": [
+        {
+          "rule": "EL_TILDE",
+          "issueType": "misspelling",
+          "message": "El pronombre personal «él» lleva tilde.",
+          "offset": 6,
+          "length": 2,
+          "replacements": [
+            "él"
+          ]
+        }
+      ]
+    },
+    {
       "key": "f6cf1c0dc79b64dd0f4430a4b64825d558e2d8b74359a56aaebf0a5bab20604b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde queda el puente",
@@ -7987,6 +8719,12 @@
       "key": "f6ff36f4906e2057ea83bb2222330afc08abad6118807ea13dc00a026bf7860c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No necesitas nada más.",
+      "matches": []
+    },
+    {
+      "key": "f718b857818bee653c9f222a9ecdd8edc850e1eaf3c6ac4ad2fdf47a2d098532",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tú tienes veinte panes",
       "matches": []
     },
     {
@@ -8034,6 +8772,12 @@
       "key": "f7dce295e84042236aff45b90ec2065c394d55f47fcd153602ca787c10678b13",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Buenas noches",
+      "matches": []
+    },
+    {
+      "key": "f7de9c02b2622b1537be7d47b9e426d166d8d42dac5fc393a9fa3fd74428ce88",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero vender madera",
       "matches": []
     },
     {
@@ -8112,6 +8856,12 @@
       "key": "fa79e57fa673d11a79e4a6b6229ea6876c610367f1741018fdcac48c7f195804",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hay un pozo",
+      "matches": []
+    },
+    {
+      "key": "faa6f0f83c6db37d968a3d4007610634865ed930442e4fb34bf41526f06214ec",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "La manzana es más barata que el pan",
       "matches": []
     },
     {
@@ -8229,6 +8979,12 @@
       ]
     },
     {
+      "key": "fea48eb44e90371acc597e095a318efc5e06f139c354551e1f984120db574768",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Puedo pagar con monedas",
+      "matches": []
+    },
+    {
       "key": "fea925e9599fb5d1387914ac637f58a87df51c6d1b4ddcfbc8b5119022d8ae19",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Roca",
@@ -8265,6 +9021,12 @@
       "matches": []
     },
     {
+      "key": "ff5188d25eb0746c76700b9d10fa8630de7b6744ce9956a6b70e0b21328cc85c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Es caro",
+      "matches": []
+    },
+    {
       "key": "ff72a02edd32b7e1efd3194fd2d7f26510a8d9b3b264eafd0c4b096726dcccc5",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Está lejos el herrería",
@@ -8298,6 +9060,12 @@
       "key": "ffaf172dab3150e5ad04aa9354b08171b2b55f1f50f9d3cc7d4ad991f57cec34",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hay agua",
+      "matches": []
+    },
+    {
+      "key": "ffd4fedf0b84b964f1a5bf1f839db44e9414b884efa5502b44bdccde9502b899",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Veinte panes",
       "matches": []
     },
     {

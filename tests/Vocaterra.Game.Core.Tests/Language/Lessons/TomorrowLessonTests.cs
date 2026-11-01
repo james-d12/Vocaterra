@@ -168,7 +168,7 @@ public sealed class TomorrowLessonTests(ITestOutputHelper output)
         Assert.Equal(
             ["compraré", "comprarás", "comprará", "iré", "buscaré", "hará", "tendré", "trabajará", "pescará"],
             lesson.TaughtVerbs.Select(v => v.Text(morphology, TestGame.Data.Words.NearFuture)));
-        Assert.DoesNotContain(Book.Lessons.Where(static l => l.Id != LessonId).SelectMany(static l => l.TaughtVerbs), static v => v.Tense == TaughtVerbForm.SimpleFuture);
+        Assert.DoesNotContain(Book.Lessons.Where(static l => l.Id is not LessonId and not "el-mercado").SelectMany(static l => l.TaughtVerbs), static v => v.Tense == TaughtVerbForm.SimpleFuture); // V15 reviews it with venderé
     }
 
     [Fact]
@@ -178,7 +178,7 @@ public sealed class TomorrowLessonTests(ITestOutputHelper output)
         // it there, and the same lesson at a1 fails on each fut step and each fut form it declares.
         Assert.Empty(GameDataValidator.Validate(TestGame.Data));
         Assert.Equal(
-            [LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A2, LessonLevels.A2, LessonLevels.A2],
+            [LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A2, LessonLevels.A2, LessonLevels.A2, LessonLevels.A2],
             Book.Lessons.Select(static l => l.Level));
 
         // The shipped book with this lesson's level changed (its reviews and its after need the lessons before it).

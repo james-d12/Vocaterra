@@ -1,0 +1,23 @@
+{
+  "answerSetId": "lesson-loaves",
+  "answers": [
+    {
+      "answerId": "loaves",
+      "canonical": "tienes veinte panes",
+      "aliases": ["tú tienes veinte panes", "sí, tienes veinte panes", "veinte panes", "tengo veinte panes"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": ["no lo sé", "yo no sé", "no entiendo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    }
+  ]
+}

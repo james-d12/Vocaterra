@@ -21,7 +21,7 @@ public sealed class HostEventTable
     public const int SchemaVersion = 2;
 
     /// <summary>The kinds of action the file may name.</summary>
-    public static IReadOnlyList<string> Kinds { get; } = ["give_item", "point_at_noun", "point_at_place", "point_at_slot", "take_item", "sell"];
+    public static IReadOnlyList<string> Kinds { get; } = ["give_item", "point_at_noun", "point_at_place", "point_at_slot", "take_item", "sell", "buy"];
 
     private readonly Dictionary<(string Npc, string HostEvent), NpcEffect> _table;
 
@@ -35,7 +35,7 @@ public sealed class HostEventTable
     /// <summary>
     /// Builds the table from the file's text: <c>{ "schemaVersion": 2, "events": [ { "npc", "event", "action": { "kind": "give_item", "item", "count"? } | { "kind":
     /// "point_at_noun", "noun" } | { "kind": "point_at_place", "place" } | { "kind": "point_at_slot", "slot" } | { "kind": "take_item", "item", "count"? } | { "kind":
-    /// "sell", "item", "price" } } ] }</c>. An item is named as the save names it (<c>water-bottle</c>); a count is a number from 1 or <c>"qty"</c>, the number the
+    /// "sell", "item", "price" } | { "kind": "buy", "item", "price" } } ] }</c> (<c>buy</c> since VILLAGE_PLAN V15: the NPC pays for what the learner sells). An item is named as the save names it (<c>water-bottle</c>); a count is a number from 1 or <c>"qty"</c>, the number the
     /// learner said (<see cref="NpcEffect.Quantity"/>), and one when it is left out; a price is a number of coins from 1.
     /// </summary>
     /// <param name="json">The contents of <c>game/host-events.json</c>.</param>
@@ -66,6 +66,7 @@ public sealed class HostEventTable
                     "point_at_slot" => NpcEffect.PointAtSlotNamed(Text(action, "slot")),
                     "take_item" => Counted(NpcEffect.Take(ItemNamed(Text(action, "item"))), action, npc, name),
                     "sell" => NpcEffect.SellAt(ItemNamed(Text(action, "item")), Price(action, npc, name)),
+                    "buy" => NpcEffect.BuyAt(ItemNamed(Text(action, "item")), Price(action, npc, name)),
                     var kind => throw new InvalidDataException($"{RelativePath}: the action '{kind}' of {npc}'s '{name}' is not one of {string.Join(", ", Kinds)}."),
                 };
                 if (!table.TryAdd((npc, name), effect))

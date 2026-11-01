@@ -241,6 +241,7 @@ public static class BookPages
     /// says on its own line, under its title, why it waits and where it starts (V12c): <c>next: talk to Luna</c> for the one the objective sends the learner to (in gold,
     /// title and line, so the eye finds it first), <c>open: talk to Luna</c> for another unlocked one, <c>opens in session 4, Mar</c> for one whose session has not come,
     /// <c>after “El pueblo”</c> for one whose earlier lesson is not done. Its own line, not the title's note: at 150 % text the left page is narrow, and a note after a title is cut first.
+    /// Once every lesson is completed (after session 10's market, VILLAGE_PLAN V15) the page opens with a line that says the series is done, and no lesson says <c>next:</c>.
     /// </summary>
     /// <param name="ui">The support language (the page's words, C04).</param>
     /// <param name="lessons">The lesson record (<c>session.Lessons.Record</c>).</param>
@@ -253,6 +254,12 @@ public static class BookPages
         ArgumentNullException.ThrowIfNull(lessons);
         ArgumentNullException.ThrowIfNull(sheet);
         var lines = new List<BookLine>();
+        if (lessons.Count > 0 && lessons.All(static l => l.Status == LessonStatus.Completed))
+        {
+            lines.Add(new BookLine(BookTone.Gold, ui.Ui("bookLessonsAllDone", ("count", N(lessons.Count)))));
+            lines.Add(BookLine.Gap);
+        }
+
         foreach (var lesson in lessons)
         {
             var units = UnitsOf(lesson);

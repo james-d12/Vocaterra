@@ -1,9 +1,11 @@
 {"id":"dialogue:answer_accepted.1","text":"¡Muy bien!","kind":"npc"}
 {"id":"dialogue:answer_accepted.2","text":"¡Bien!","kind":"npc"}
 {"id":"dialogue:answer_accepted.3","text":"¡Eso es!","kind":"npc"}
+{"id":"dialogue:baker_buy.1","text":"¡Gracias! Aquí tienes tus monedas.","kind":"npc"}
 {"id":"dialogue:baker_bye.1","text":"¡Adiós! Hasta luego.","kind":"npc"}
 {"id":"dialogue:baker_bye.2","text":"Hasta luego.","kind":"npc"}
 {"id":"dialogue:baker_cant_pay.1","text":"Necesitas más monedas.","kind":"npc"}
+{"id":"dialogue:baker_cant_sell.1","text":"No tienes madera.","kind":"npc"}
 {"id":"dialogue:baker_delivered.1","text":"¡Gracias! Toma cuatro monedas.","kind":"npc"}
 {"id":"dialogue:baker_greet.1","text":"¿Qué quieres?","kind":"npc"}
 {"id":"dialogue:baker_hay.1","text":"Aquí hay pan. ¿Cuántos panes quieres?","kind":"npc"}
@@ -14,23 +16,31 @@
 {"id":"dialogue:baker_sell.2","text":"Toma tu pan. ¡Gracias!","kind":"npc"}
 {"id":"dialogue:baker_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:baker_thank.2","text":"¡Con gusto!","kind":"npc"}
+{"id":"dialogue:baker_wont_buy.1","text":"No, gracias. Solo compro madera.","kind":"npc"}
+{"id":"dialogue:baker_wont_sell.1","text":"Solo vendo pan.","kind":"npc"}
 {"id":"dialogue:farewell_reply.1","text":"¡Adiós, amigo! Hasta luego.","kind":"npc"}
 {"id":"dialogue:farewell_reply.2","text":"Hasta luego. ¡Buen día!","kind":"npc"}
 {"id":"dialogue:farewell_reply.3","text":"¡Nos vemos, amigo!","kind":"npc"}
+{"id":"dialogue:farmer_buy.1","text":"¡Gracias! Aquí tienes tus monedas.","kind":"npc"}
 {"id":"dialogue:farmer_bye.1","text":"¡Adiós! Hasta luego.","kind":"npc"}
 {"id":"dialogue:farmer_bye.2","text":"Hasta luego.","kind":"npc"}
 {"id":"dialogue:farmer_cant_pay.1","text":"Necesitas más monedas. Una manzana cuesta una moneda.","kind":"npc"}
+{"id":"dialogue:farmer_cant_sell.1","text":"No tienes fruta.","kind":"npc"}
 {"id":"dialogue:farmer_delivered.1","text":"¡Gracias! Toma tres manzanas.","kind":"npc"}
 {"id":"dialogue:farmer_greet.1","text":"¡Hola! Este es mi campo.","kind":"npc"}
 {"id":"dialogue:farmer_hello.1","text":"¡Hola!","kind":"npc"}
 {"id":"dialogue:farmer_help.1","text":"Puedes preguntar: «¿Qué haces?».","kind":"npc"}
 {"id":"dialogue:farmer_job.1","text":"Soy el granjero. Trabajo en el campo.","kind":"npc"}
 {"id":"dialogue:farmer_name.1","text":"Me llamo León.","kind":"npc"}
+{"id":"dialogue:farmer_pay.1","text":"Aquí se paga con monedas. Pero yo te compro fruta.","kind":"npc"}
 {"id":"dialogue:farmer_price.1","text":"Una manzana cuesta una moneda.","kind":"npc"}
 {"id":"dialogue:farmer_sell.1","text":"Aquí tienes. ¡Gracias!","kind":"npc"}
 {"id":"dialogue:farmer_sell.2","text":"Toma. ¡Gracias!","kind":"npc"}
 {"id":"dialogue:farmer_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:farmer_thank.2","text":"¡Con gusto!","kind":"npc"}
+{"id":"dialogue:farmer_total.1","text":"Quince manzanas, quince monedas.","kind":"npc"}
+{"id":"dialogue:farmer_wont_buy.1","text":"No, gracias. Solo compro fruta.","kind":"npc"}
+{"id":"dialogue:farmer_wont_sell.1","text":"Solo vendo manzanas.","kind":"npc"}
 {"id":"dialogue:feedback.explicit_correction.1","text":"Se dice «{expected}», no «{actual}».","kind":"template"}
 {"id":"dialogue:feedback.explicit_correction.2","text":"Se dice así: «{expected}».","kind":"template"}
 {"id":"dialogue:feedback.hint.1","text":"Casi. Piensa otra vez.","kind":"npc"}
@@ -83,28 +93,38 @@
 {"id":"dialogue:guide.identify.none.2","text":"Busca una cosa y pregunta otra vez.","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.bought.1","text":"¿Qué compraste?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.coins.1","text":"¿Cuántas monedas tienes?","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.fifteen.1","text":"Once, doce, trece, catorce, quince.","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.five.1","text":"Uno, dos, tres, cuatro, cinco.","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.fresh.1","text":"¡Qué bien! Mañana tendré pan fresco.","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.how_many.1","text":"¿Cuántos panes quieres?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.loaves.1","text":"Tengo diez panes.","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.mar.1","text":"¿Y qué hizo Mar ayer?","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.market.1","text":"¡Hoy hay mercado! ¿Cuántos panes tengo?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.model.1","text":"Ayer compré fruta en la tienda.","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.oven.1","text":"Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer?","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.pay.1","text":"Te pago una moneda por cada bloque de madera.","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.plan.1","text":"¡Hola! ¿Qué vas a hacer hoy?","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.sell.1","text":"Necesito madera para el horno. ¿Qué quieres hacer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.ten.1","text":"Seis, siete, ocho, nueve, diez.","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.tomorrow.1","text":"¿Qué harás mañana?","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.twenty.1","text":"Dieciséis, diecisiete, dieciocho, diecinueve, veinte.","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.you.1","text":"Compraste dos panes. ¡Muy bien!","kind":"npc"}
 {"id":"dialogue:guide.lesson.end.1","text":"¡Muy bien! Ya tienes fuego.","kind":"npc"}
 {"id":"dialogue:guide.lesson.farmer.apple.1","text":"¿Cómo es la manzana?","kind":"npc"}
 {"id":"dialogue:guide.lesson.farmer.apples.1","text":"Mira mis manzanas. Son rojas y grandes.","kind":"npc"}
 {"id":"dialogue:guide.lesson.farmer.ate.1","text":"Ayer comí pan de Luz. ¡Me gustó mucho!","kind":"npc"}
 {"id":"dialogue:guide.lesson.farmer.bought.1","text":"¡Hola! ¿Qué compraste en la panadería?","kind":"npc"}
+{"id":"dialogue:guide.lesson.farmer.cheaper.1","text":"Una manzana cuesta una moneda, y un pan, dos. ¿Qué es más barato?","kind":"npc"}
+{"id":"dialogue:guide.lesson.farmer.dear.1","text":"¿Es caro o es barato?","kind":"npc"}
 {"id":"dialogue:guide.lesson.farmer.end.1","text":"¡Hablas muy bien español!","kind":"npc"}
 {"id":"dialogue:guide.lesson.farmer.how_many.1","text":"¿Cuántas manzanas quieres?","kind":"npc"}
 {"id":"dialogue:guide.lesson.farmer.like.1","text":"¿Te gusta el pan?","kind":"npc"}
 {"id":"dialogue:guide.lesson.farmer.like_apples.1","text":"¿Y te gustan las manzanas?","kind":"npc"}
 {"id":"dialogue:guide.lesson.farmer.liked.1","text":"¿Te gustó el pan de Luz?","kind":"npc"}
+{"id":"dialogue:guide.lesson.farmer.market.1","text":"¡Hola! Hoy hay mercado. Tengo quince manzanas.","kind":"npc"}
 {"id":"dialogue:guide.lesson.farmer.water.1","text":"Mis plantas necesitan agua. Si me traes agua del río, te doy tres manzanas. ¿Qué vas a hacer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.farmer.went.1","text":"¿Fuiste al río?","kind":"npc"}
+{"id":"dialogue:guide.lesson.farmer.will_sell.1","text":"¿Y qué venderás mañana?","kind":"npc"}
 {"id":"dialogue:guide.lesson.fast.1","text":"Mira. La madera es para la antorcha.","kind":"npc"}
 {"id":"dialogue:guide.lesson.fisher.bought.1","text":"¿Qué compró Luz ayer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.fisher.day.1","text":"¡Hola! Mañana Luz hará pan. Domingo trabajará en la herrería. Y yo pescaré en el río.","kind":"npc"}
@@ -146,6 +166,7 @@
 {"id":"dialogue:guide.lesson.shop.bread.1","text":"Sí, hay pan. Es pan de Luz.","kind":"npc"}
 {"id":"dialogue:guide.lesson.shop.had.1","text":"¿Bebiste agua ayer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.shop.luz.1","text":"El pan es de Luz, de la panadería.","kind":"npc"}
+{"id":"dialogue:guide.lesson.shop.market.1","text":"¡Hola! ¿Qué compraste en el mercado?","kind":"npc"}
 {"id":"dialogue:guide.lesson.shop.need.1","text":"¿Qué necesita usted?","kind":"npc"}
 {"id":"dialogue:guide.lesson.shop.they.1","text":"Ellos quieren agua.","kind":"npc"}
 {"id":"dialogue:guide.lesson.shop.tomorrow.1","text":"¿Qué vas a hacer mañana?","kind":"npc"}
@@ -270,8 +291,10 @@
 {"id":"dialogue:shop_price.1","text":"El pan cuesta dos monedas.","kind":"npc"}
 {"id":"dialogue:shop_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:shop_thank.2","text":"¡Con gusto!","kind":"npc"}
+{"id":"dialogue:smith_buy.1","text":"¡Gracias! Aquí tienes tus monedas.","kind":"npc"}
 {"id":"dialogue:smith_bye.1","text":"¡Adiós! Hasta luego.","kind":"npc"}
 {"id":"dialogue:smith_bye.2","text":"Hasta luego.","kind":"npc"}
+{"id":"dialogue:smith_cant_sell.1","text":"No tienes madera.","kind":"npc"}
 {"id":"dialogue:smith_delivered.1","text":"¡Gracias! Toma el hacha.","kind":"npc"}
 {"id":"dialogue:smith_greet.1","text":"¡Hola! Esta es mi herrería.","kind":"npc"}
 {"id":"dialogue:smith_hello.1","text":"¡Hola!","kind":"npc"}
@@ -281,6 +304,7 @@
 {"id":"dialogue:smith_offer.1","text":"¿Quieres un hacha? Necesito dos bloques de madera y dos monedas.","kind":"npc"}
 {"id":"dialogue:smith_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:smith_thank.2","text":"¡Con gusto!","kind":"npc"}
+{"id":"dialogue:smith_wont_buy.1","text":"No, gracias. Solo compro madera.","kind":"npc"}
 {"id":"dialogue:villager_bye.1","text":"¡Adiós! Hasta luego.","kind":"npc"}
 {"id":"dialogue:villager_bye.2","text":"Hasta luego.","kind":"npc"}
 {"id":"dialogue:villager_give.1","text":"Aquí tienes.","kind":"npc"}
@@ -304,7 +328,9 @@
 {"id":"prompts:lesson-big","text":"Mira este pan. ¿Cómo es?","kind":"npc"}
 {"id":"prompts:lesson-bottle","text":"¿Tiene usted una botella?","kind":"npc"}
 {"id":"prompts:lesson-bought","text":"¿Qué compraste?","kind":"npc"}
+{"id":"prompts:lesson-cheaper","text":"Una manzana cuesta una moneda, y un pan, dos. ¿Qué es más barato?","kind":"npc"}
 {"id":"prompts:lesson-coins","text":"¿Cuántas monedas tienes?","kind":"npc"}
+{"id":"prompts:lesson-dear","text":"¿Es caro o es barato?","kind":"npc"}
 {"id":"prompts:lesson-far","text":"Y la herrería está a la derecha.","kind":"npc"}
 {"id":"prompts:lesson-going","text":"¿Adónde vas?","kind":"npc"}
 {"id":"prompts:lesson-had","text":"¿Bebiste agua ayer?","kind":"npc"}
@@ -315,11 +341,13 @@
 {"id":"prompts:lesson-like-bread","text":"¿Te gusta el pan?","kind":"npc"}
 {"id":"prompts:lesson-liked","text":"¿Te gustó el pan de Luz?","kind":"npc"}
 {"id":"prompts:lesson-lives","text":"¿Dónde vives?","kind":"npc"}
+{"id":"prompts:lesson-loaves","text":"¡Hoy hay mercado! ¿Cuántos panes tengo?","kind":"npc"}
 {"id":"prompts:lesson-luz-bought","text":"¿Qué compró Luz ayer?","kind":"npc"}
 {"id":"prompts:lesson-luz-made","text":"¿Qué hizo Luz ayer?","kind":"npc"}
 {"id":"prompts:lesson-luz-will","text":"¿Qué hará Luz mañana?","kind":"npc"}
 {"id":"prompts:lesson-made","text":"¿Qué hizo Domingo?","kind":"npc"}
 {"id":"prompts:lesson-mar-fished","text":"¿Y qué hizo Mar?","kind":"npc"}
+{"id":"prompts:lesson-market","text":"¡Hola! ¿Qué compraste en el mercado?","kind":"npc"}
 {"id":"prompts:lesson-must-go","text":"Mar fue al río y te busca. ¿Adónde tienes que ir?","kind":"npc"}
 {"id":"prompts:lesson-name","text":"Me llamo Luna.","kind":"npc"}
 {"id":"prompts:lesson-need","text":"¿Qué necesitas?","kind":"npc"}
@@ -328,6 +356,7 @@
 {"id":"prompts:lesson-plan","text":"¿Qué vas a comer mañana?","kind":"npc"}
 {"id":"prompts:lesson-plan-there","text":"¿Qué vas a hacer allí?","kind":"npc"}
 {"id":"prompts:lesson-plan-we","text":"¿Qué vamos a comer?","kind":"npc"}
+{"id":"prompts:lesson-sell","text":"Necesito madera para el horno. ¿Qué quieres hacer?","kind":"npc"}
 {"id":"prompts:lesson-she","text":"¿Qué quiere Luna?","kind":"npc"}
 {"id":"prompts:lesson-sign","text":"El letrero dice: tienda, río, montaña.","kind":"npc"}
 {"id":"prompts:lesson-task","text":"Necesitas madera y frutas.","kind":"npc"}
@@ -350,6 +379,7 @@
 {"id":"prompts:lesson-will-fetch","text":"¡Hola! Luz necesita madera para el horno. ¿Qué harás?","kind":"npc"}
 {"id":"prompts:lesson-will-go","text":"¡Muy bien! Mar pescará en el río toda la tarde. ¿Adónde irás ahora?","kind":"npc"}
 {"id":"prompts:lesson-will-make","text":"¿Qué va a hacer Domingo?","kind":"npc"}
+{"id":"prompts:lesson-will-sell","text":"¿Y qué venderás mañana?","kind":"npc"}
 {"id":"prompts:lesson-wood-plan","text":"Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer?","kind":"npc"}
 {"id":"prompts:lesson-works","text":"¿Dónde trabaja Domingo?","kind":"npc"}
 {"id":"prompts:lesson-yesno","text":"¿Es madera?","kind":"npc"}
@@ -433,6 +463,20 @@
 {"id":"answer-sets/lesson-bought:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/lesson-bought:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/lesson-bought:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-cheaper:cheaper","text":"la manzana es más barata que el pan","kind":"learner"}
+{"id":"answer-sets/lesson-cheaper:cheaper.alias1","text":"la manzana es más barata","kind":"learner"}
+{"id":"answer-sets/lesson-cheaper:cheaper.alias2","text":"es más barata que el pan","kind":"learner"}
+{"id":"answer-sets/lesson-cheaper:cheaper.alias3","text":"el pan es más caro que la manzana","kind":"learner"}
+{"id":"answer-sets/lesson-cheaper:cheaper.alias4","text":"el pan es más barato que la manzana","kind":"learner"}
+{"id":"answer-sets/lesson-cheaper:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-cheaper:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-cheaper:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-cheaper:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-cheaper:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-cheaper:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-cheaper:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-cheaper:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-cheaper:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-coins:coins","text":"tengo cuatro monedas","kind":"learner"}
 {"id":"answer-sets/lesson-coins:coins.alias1","text":"sí tengo cuatro monedas","kind":"learner"}
 {"id":"answer-sets/lesson-coins:coins.alias2","text":"yo tengo cuatro monedas","kind":"learner"}
@@ -448,6 +492,21 @@
 {"id":"answer-sets/lesson-coins:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/lesson-coins:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/lesson-coins:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-dear:dear","text":"es muy caro","kind":"learner"}
+{"id":"answer-sets/lesson-dear:dear.alias1","text":"es caro","kind":"learner"}
+{"id":"answer-sets/lesson-dear:dear.alias2","text":"sí, es muy caro","kind":"learner"}
+{"id":"answer-sets/lesson-dear:dear.alias3","text":"es barato","kind":"learner"}
+{"id":"answer-sets/lesson-dear:dear.alias4","text":"la manzana es muy cara","kind":"learner"}
+{"id":"answer-sets/lesson-dear:dear.alias5","text":"es muy barato","kind":"learner"}
+{"id":"answer-sets/lesson-dear:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-dear:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-dear:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-dear:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-dear:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-dear:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-dear:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-dear:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-dear:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-far:far","text":"está lejos","kind":"learner"}
 {"id":"answer-sets/lesson-far:far.alias1","text":"está muy lejos","kind":"learner"}
 {"id":"answer-sets/lesson-far:far.alias2","text":"queda lejos","kind":"learner"}
@@ -622,6 +681,20 @@
 {"id":"answer-sets/lesson-lives:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/lesson-lives:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/lesson-lives:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-loaves:loaves","text":"tienes veinte panes","kind":"learner"}
+{"id":"answer-sets/lesson-loaves:loaves.alias1","text":"tú tienes veinte panes","kind":"learner"}
+{"id":"answer-sets/lesson-loaves:loaves.alias2","text":"sí, tienes veinte panes","kind":"learner"}
+{"id":"answer-sets/lesson-loaves:loaves.alias3","text":"veinte panes","kind":"learner"}
+{"id":"answer-sets/lesson-loaves:loaves.alias4","text":"tengo veinte panes","kind":"learner"}
+{"id":"answer-sets/lesson-loaves:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-loaves:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-loaves:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-loaves:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-loaves:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-loaves:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-loaves:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-loaves:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-loaves:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-luz-bought:fish","text":"luz compró pescado","kind":"learner"}
 {"id":"answer-sets/lesson-luz-bought:fish.alias1","text":"compró pescado","kind":"learner"}
 {"id":"answer-sets/lesson-luz-bought:fish.alias2","text":"ella compró pescado","kind":"learner"}
@@ -693,6 +766,21 @@
 {"id":"answer-sets/lesson-mar-fished:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/lesson-mar-fished:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/lesson-mar-fished:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-market:apples","text":"compré tres manzanas","kind":"learner"}
+{"id":"answer-sets/lesson-market:apples.alias1","text":"yo compré tres manzanas","kind":"learner"}
+{"id":"answer-sets/lesson-market:apples.alias2","text":"hoy compré tres manzanas","kind":"learner"}
+{"id":"answer-sets/lesson-market:apples.alias3","text":"compré manzanas","kind":"learner"}
+{"id":"answer-sets/lesson-market:apples.alias4","text":"compro tres manzanas","kind":"learner"}
+{"id":"answer-sets/lesson-market:apples.alias5","text":"compré tres manzanas rojas","kind":"learner"}
+{"id":"answer-sets/lesson-market:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-market:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-market:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-market:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-market:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-market:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-market:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-market:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-market:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-must-go:river","text":"tengo que ir al río","kind":"learner"}
 {"id":"answer-sets/lesson-must-go:river.alias1","text":"yo tengo que ir al río","kind":"learner"}
 {"id":"answer-sets/lesson-must-go:river.alias2","text":"sí tengo que ir al río","kind":"learner"}
@@ -808,6 +896,21 @@
 {"id":"answer-sets/lesson-plan-we:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/lesson-plan-we:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/lesson-plan-we:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-sell:sell","text":"quiero vender madera","kind":"learner"}
+{"id":"answer-sets/lesson-sell:sell.alias1","text":"yo quiero vender madera","kind":"learner"}
+{"id":"answer-sets/lesson-sell:sell.alias2","text":"quiero vender la madera","kind":"learner"}
+{"id":"answer-sets/lesson-sell:sell.alias3","text":"vendo madera","kind":"learner"}
+{"id":"answer-sets/lesson-sell:sell.alias4","text":"quiero vender pan","kind":"learner"}
+{"id":"answer-sets/lesson-sell:sell.alias5","text":"quiero comprar pan","kind":"learner"}
+{"id":"answer-sets/lesson-sell:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-sell:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-sell:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-sell:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-sell:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-sell:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-sell:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-sell:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-sell:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-she:she","text":"ella quiere fruta","kind":"learner"}
 {"id":"answer-sets/lesson-she:she.alias1","text":"quiere fruta","kind":"learner"}
 {"id":"answer-sets/lesson-she:she.alias2","text":"ella quiere una fruta","kind":"learner"}
@@ -1165,6 +1268,23 @@
 {"id":"answer-sets/lesson-will-make:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/lesson-will-make:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/lesson-will-make:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-will-sell:fruit","text":"mañana venderé fruta","kind":"learner"}
+{"id":"answer-sets/lesson-will-sell:fruit.alias1","text":"venderé fruta","kind":"learner"}
+{"id":"answer-sets/lesson-will-sell:fruit.alias2","text":"yo venderé fruta","kind":"learner"}
+{"id":"answer-sets/lesson-will-sell:fruit.alias3","text":"venderé fruta mañana","kind":"learner"}
+{"id":"answer-sets/lesson-will-sell:fruit.alias4","text":"mañana voy a vender fruta","kind":"learner"}
+{"id":"answer-sets/lesson-will-sell:fruit.alias5","text":"voy a vender fruta","kind":"learner"}
+{"id":"answer-sets/lesson-will-sell:fruit.alias6","text":"mañana vendo fruta","kind":"learner"}
+{"id":"answer-sets/lesson-will-sell:fruit.alias7","text":"vendí fruta","kind":"learner"}
+{"id":"answer-sets/lesson-will-sell:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-will-sell:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-will-sell:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-will-sell:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-will-sell:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-will-sell:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-will-sell:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-will-sell:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-will-sell:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-wood-plan:plan","text":"voy a buscar madera","kind":"learner"}
 {"id":"answer-sets/lesson-wood-plan:plan.alias1","text":"yo voy a buscar madera","kind":"learner"}
 {"id":"answer-sets/lesson-wood-plan:plan.alias2","text":"voy a buscar la madera","kind":"learner"}
@@ -1299,6 +1419,21 @@
 {"id":"answer-sets/people-farmer:price.alias1","text":"cuánto cuesta una manzana","kind":"learner"}
 {"id":"answer-sets/people-farmer:price.alias2","text":"cuánto cuestan las manzanas","kind":"learner"}
 {"id":"answer-sets/people-farmer:price.alias3","text":"cuánto es","kind":"learner"}
+{"id":"answer-sets/people-farmer:total","text":"cuánto es todo","kind":"learner"}
+{"id":"answer-sets/people-farmer:total.alias1","text":"cuánto cuesta todo","kind":"learner"}
+{"id":"answer-sets/people-farmer:total.alias2","text":"cuánto es todo esto","kind":"learner"}
+{"id":"answer-sets/people-farmer:pay","text":"puedo pagar con fruta","kind":"learner"}
+{"id":"answer-sets/people-farmer:pay.alias1","text":"yo puedo pagar con fruta","kind":"learner"}
+{"id":"answer-sets/people-farmer:pay.alias2","text":"se puede pagar con fruta","kind":"learner"}
+{"id":"answer-sets/people-farmer:pay.alias3","text":"puedo pagar con monedas","kind":"learner"}
+{"id":"answer-sets/people-farmer:sell","text":"vendo fruta","kind":"learner"}
+{"id":"answer-sets/people-farmer:sell.alias1","text":"yo vendo fruta","kind":"learner"}
+{"id":"answer-sets/people-farmer:sell.alias2","text":"te vendo fruta","kind":"learner"}
+{"id":"answer-sets/people-farmer:sell.alias3","text":"quiero vender fruta","kind":"learner"}
+{"id":"answer-sets/people-farmer:plan","text":"mañana venderé fruta","kind":"learner"}
+{"id":"answer-sets/people-farmer:plan.alias1","text":"venderé fruta","kind":"learner"}
+{"id":"answer-sets/people-farmer:plan.alias2","text":"mañana voy a vender fruta","kind":"learner"}
+{"id":"answer-sets/people-farmer:plan.alias3","text":"compré tres manzanas","kind":"learner"}
 {"id":"answer-sets/people-farmer:like","text":"me gustan las manzanas","kind":"learner"}
 {"id":"answer-sets/people-farmer:like.alias1","text":"me gusta el pan","kind":"learner"}
 {"id":"answer-sets/people-farmer:like.alias2","text":"sí me gustan","kind":"learner"}
@@ -1343,6 +1478,11 @@
 {"id":"answer-sets/people-smith:wood.alias1","text":"tengo dos monedas","kind":"learner"}
 {"id":"answer-sets/people-smith:wood.alias2","text":"tengo dos bloques de madera","kind":"learner"}
 {"id":"answer-sets/people-smith:wood.alias3","text":"sí, tengo madera","kind":"learner"}
+{"id":"answer-sets/people-smith:sell","text":"vendo madera","kind":"learner"}
+{"id":"answer-sets/people-smith:sell.alias1","text":"yo vendo madera","kind":"learner"}
+{"id":"answer-sets/people-smith:sell.alias2","text":"te vendo madera","kind":"learner"}
+{"id":"answer-sets/people-smith:sell.alias3","text":"quiero vender madera","kind":"learner"}
+{"id":"answer-sets/people-smith:sell.alias4","text":"tengo madera para usted","kind":"learner"}
 {"id":"answer-sets/people-smith:hello","text":"hola","kind":"learner"}
 {"id":"answer-sets/people-smith:hello.alias1","text":"buenos días","kind":"learner"}
 {"id":"answer-sets/people-smith:hello.alias2","text":"buenas tardes","kind":"learner"}
@@ -1536,6 +1676,8 @@
 {"id":"answer-sets/supplies-bakery:bread.alias12","text":"pan por favor","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:bread.alias13","text":"quiero tres panes","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:bread.alias14","text":"yo quiero dos panes","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:bread.alias15","text":"quiero el pan de luz","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:bread.alias16","text":"quiero dos panes de luz","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:price","text":"cuánto cuesta","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:price.alias1","text":"cuánto cuesta el pan","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:price.alias2","text":"cuánto es","kind":"learner"}
@@ -1547,6 +1689,14 @@
 {"id":"answer-sets/supplies-bakery:bread-here.alias2","text":"hay panes","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:bread-here.alias3","text":"hay dos panes","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:bread-here.alias4","text":"hay un pan","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:sell","text":"vendo madera","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:sell.alias1","text":"yo vendo madera","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:sell.alias2","text":"te vendo madera","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:sell.alias3","text":"quiero vender madera","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:sell.alias4","text":"yo quiero vender madera","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:total","text":"cuánto es todo","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:total.alias1","text":"cuánto cuesta todo","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:total.alias2","text":"cuánto es todo esto","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:plan","text":"mañana voy a comprar pan","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:plan.alias1","text":"mañana compraré pan","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:plan.alias2","text":"voy a comprar pan","kind":"learner"}
@@ -1615,8 +1765,9 @@
 {"id":"intents:ask_availability.ex6","text":"hay panes","kind":"learner","errors":[]}
 {"id":"intents:ask_availability.ex7","text":"hay agua","kind":"learner","errors":[]}
 {"id":"intents:ask_availability.ex8","text":"hay dos pan","kind":"learner","errors":["noun.number"]}
-{"id":"intents:ask_availability.ex9","text":"hay agua aquí","kind":"learner","errors":[]}
-{"id":"intents:ask_availability.ex10","text":"hay una tienda en el pueblo","kind":"learner","errors":[]}
+{"id":"intents:ask_availability.ex9","text":"hay pans","kind":"learner","errors":["noun.number"]}
+{"id":"intents:ask_availability.ex10","text":"hay agua aquí","kind":"learner","errors":[]}
+{"id":"intents:ask_availability.ex11","text":"hay una tienda en el pueblo","kind":"learner","errors":[]}
 {"id":"intents:ask_craft.ex0","text":"cómo hago una antorcha","kind":"learner","errors":[]}
 {"id":"intents:ask_craft.ex1","text":"qué necesito para una antorcha","kind":"learner","errors":[]}
 {"id":"intents:ask_craft.ex2","text":"cómo se hace una antorcha","kind":"learner","errors":[]}
@@ -1673,6 +1824,11 @@
 {"id":"intents:ask_name.ex4","text":"cómo te llama","kind":"learner","errors":["conj.person"]}
 {"id":"intents:ask_name.ex5","text":"cómo se llama él","kind":"learner","errors":[]}
 {"id":"intents:ask_name.ex6","text":"cómo se llama ella","kind":"learner","errors":[]}
+{"id":"intents:ask_pay.ex0","text":"puedo pagar con fruta","kind":"learner","errors":[]}
+{"id":"intents:ask_pay.ex1","text":"yo puedo pagar con fruta","kind":"learner","errors":[]}
+{"id":"intents:ask_pay.ex2","text":"se puede pagar con fruta","kind":"learner","errors":[]}
+{"id":"intents:ask_pay.ex3","text":"podo pagar con fruta","kind":"learner","errors":["conj.irregular"]}
+{"id":"intents:ask_pay.ex4","text":"puedo pagar con monedas","kind":"learner","errors":[]}
 {"id":"intents:ask_price.ex0","text":"cuánto cuesta","kind":"learner","errors":[]}
 {"id":"intents:ask_price.ex1","text":"cuánto cuesta el pan","kind":"learner","errors":[]}
 {"id":"intents:ask_price.ex2","text":"cuánto es","kind":"learner","errors":[]}
@@ -1682,8 +1838,9 @@
 {"id":"intents:ask_price.ex6","text":"cuánto costan los panes","kind":"learner","errors":["conj.irregular"]}
 {"id":"intents:ask_price.ex7","text":"cuánto cuestan el pan","kind":"learner","errors":["conj.person"]}
 {"id":"intents:ask_price.ex8","text":"cuánto cuesta la pan","kind":"learner","errors":["gender.agree"]}
-{"id":"intents:ask_price.ex9","text":"cuánto cuesta el agua","kind":"learner","errors":[]}
-{"id":"intents:ask_price.ex10","text":"cuánto cuesta una manzana","kind":"learner","errors":[]}
+{"id":"intents:ask_price.ex9","text":"cuánto costa el pan","kind":"learner","errors":["conj.irregular"]}
+{"id":"intents:ask_price.ex10","text":"cuánto cuesta el agua","kind":"learner","errors":[]}
+{"id":"intents:ask_price.ex11","text":"cuánto cuesta una manzana","kind":"learner","errors":[]}
 {"id":"intents:ask_repeat.ex0","text":"otra vez, por favor","kind":"learner","errors":[]}
 {"id":"intents:ask_repeat.ex1","text":"otra vez","kind":"learner","errors":[]}
 {"id":"intents:ask_repeat.ex2","text":"repite, por favor","kind":"learner","errors":[]}
@@ -1697,6 +1854,9 @@
 {"id":"intents:ask_slower.ex4","text":"despacio, por favor","kind":"learner","errors":[]}
 {"id":"intents:ask_slower.ex5","text":"más lento","kind":"learner","errors":[]}
 {"id":"intents:ask_slower.ex6","text":"más lento, por favor","kind":"learner","errors":[]}
+{"id":"intents:ask_total.ex0","text":"cuánto es todo","kind":"learner","errors":[]}
+{"id":"intents:ask_total.ex1","text":"cuánto cuesta todo","kind":"learner","errors":[]}
+{"id":"intents:ask_total.ex2","text":"cuánto es todo esto","kind":"learner","errors":[]}
 {"id":"intents:ask_what.ex0","text":"qué es esto","kind":"learner","errors":[]}
 {"id":"intents:ask_what.ex1","text":"qué es eso","kind":"learner","errors":[]}
 {"id":"intents:ask_what.ex2","text":"cómo se llama esto","kind":"learner","errors":[]}
@@ -1723,21 +1883,33 @@
 {"id":"intents:deny.ex7","text":"no, es un madera","kind":"learner","errors":["gender.agree"]}
 {"id":"intents:deny.ex8","text":"ahora no","kind":"learner","errors":[]}
 {"id":"intents:deny.ex9","text":"no quiero","kind":"learner","errors":[]}
-{"id":"intents:describe.ex0","text":"la manzana es roja","kind":"learner","errors":[]}
-{"id":"intents:describe.ex1","text":"es roja","kind":"learner","errors":[]}
-{"id":"intents:describe.ex2","text":"sí, es roja","kind":"learner","errors":[]}
-{"id":"intents:describe.ex3","text":"la manzana es roja y grande","kind":"learner","errors":[]}
-{"id":"intents:describe.ex4","text":"la manzana es muy roja","kind":"learner","errors":[]}
-{"id":"intents:describe.ex5","text":"el manzana es roja","kind":"learner","errors":["gender.agree"]}
-{"id":"intents:describe.ex6","text":"la manzana son roja","kind":"learner","errors":["conj.person"]}
-{"id":"intents:describe.ex7","text":"es grande","kind":"learner","errors":[]}
-{"id":"intents:describe.ex8","text":"el pan es grande","kind":"learner","errors":[]}
-{"id":"intents:describe.ex9","text":"sí, es grande","kind":"learner","errors":[]}
-{"id":"intents:describe.ex10","text":"es muy grande","kind":"learner","errors":[]}
-{"id":"intents:describe.ex11","text":"la pan es grande","kind":"learner","errors":["gender.agree"]}
-{"id":"intents:describe.ex12","text":"esto es grande","kind":"learner","errors":[]}
-{"id":"intents:describe.ex13","text":"el campo es grande","kind":"learner","errors":[]}
-{"id":"intents:describe.ex14","text":"el pozo es pequeño","kind":"learner","errors":[]}
+{"id":"intents:describe.ex0","text":"es muy caro","kind":"learner","errors":[]}
+{"id":"intents:describe.ex1","text":"es caro","kind":"learner","errors":[]}
+{"id":"intents:describe.ex2","text":"sí, es muy caro","kind":"learner","errors":[]}
+{"id":"intents:describe.ex3","text":"la manzana es muy cara","kind":"learner","errors":[]}
+{"id":"intents:describe.ex4","text":"la manzana es muy caro","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:describe.ex5","text":"la manzana es más barata que el pan","kind":"learner","errors":[]}
+{"id":"intents:describe.ex6","text":"la manzana es más barata","kind":"learner","errors":[]}
+{"id":"intents:describe.ex7","text":"es más barata que el pan","kind":"learner","errors":[]}
+{"id":"intents:describe.ex8","text":"el pan es más caro que la manzana","kind":"learner","errors":[]}
+{"id":"intents:describe.ex9","text":"la manzana es más barato que el pan","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:describe.ex10","text":"la manzana es roja","kind":"learner","errors":[]}
+{"id":"intents:describe.ex11","text":"es roja","kind":"learner","errors":[]}
+{"id":"intents:describe.ex12","text":"sí, es roja","kind":"learner","errors":[]}
+{"id":"intents:describe.ex13","text":"la manzana es roja y grande","kind":"learner","errors":[]}
+{"id":"intents:describe.ex14","text":"la manzana es muy roja","kind":"learner","errors":[]}
+{"id":"intents:describe.ex15","text":"el manzana es roja","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:describe.ex16","text":"la manzana son roja","kind":"learner","errors":["conj.person"]}
+{"id":"intents:describe.ex17","text":"la manzana es rojo","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:describe.ex18","text":"es grande","kind":"learner","errors":[]}
+{"id":"intents:describe.ex19","text":"el pan es grande","kind":"learner","errors":[]}
+{"id":"intents:describe.ex20","text":"sí, es grande","kind":"learner","errors":[]}
+{"id":"intents:describe.ex21","text":"es muy grande","kind":"learner","errors":[]}
+{"id":"intents:describe.ex22","text":"la pan es grande","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:describe.ex23","text":"el pan es grandes","kind":"learner","errors":["noun.number"]}
+{"id":"intents:describe.ex24","text":"esto es grande","kind":"learner","errors":[]}
+{"id":"intents:describe.ex25","text":"el campo es grande","kind":"learner","errors":[]}
+{"id":"intents:describe.ex26","text":"el pozo es pequeño","kind":"learner","errors":[]}
 {"id":"intents:dont_know.ex0","text":"no sé","kind":"learner","errors":[]}
 {"id":"intents:dont_know.ex1","text":"no lo sé","kind":"learner","errors":[]}
 {"id":"intents:dont_know.ex2","text":"yo no sé","kind":"learner","errors":[]}
@@ -1767,271 +1939,303 @@
 {"id":"intents:name_object.ex8","text":"él es el herrero","kind":"learner","errors":[]}
 {"id":"intents:name_object.ex9","text":"es un herrero","kind":"learner","errors":[]}
 {"id":"intents:name_object.ex10","text":"es la herrero","kind":"learner","errors":["gender.agree"]}
-{"id":"intents:request_item.ex0","text":"quiero agua, por favor","kind":"learner","errors":[]}
-{"id":"intents:request_item.ex1","text":"agua, por favor","kind":"learner","errors":[]}
-{"id":"intents:request_item.ex2","text":"quiero agua","kind":"learner","errors":[]}
-{"id":"intents:request_item.ex3","text":"necesito agua","kind":"learner","errors":[]}
-{"id":"intents:request_item.ex4","text":"necesito agua, por favor","kind":"learner","errors":[]}
-{"id":"intents:request_item.ex5","text":"me da agua","kind":"learner","errors":[]}
-{"id":"intents:request_item.ex6","text":"me da agua, por favor","kind":"learner","errors":[]}
-{"id":"intents:request_item.ex7","text":"me das agua","kind":"learner","errors":[]}
-{"id":"intents:request_item.ex8","text":"me das agua, por favor","kind":"learner","errors":[]}
-{"id":"intents:request_item.ex9","text":"un agua, por favor","kind":"learner","errors":[]}
-{"id":"intents:request_item.ex10","text":"yo quieres agua, por favor","kind":"learner","errors":["conj.person"]}
-{"id":"intents:request_item.ex11","text":"quiero dos agua, por favor","kind":"learner","errors":["noun.number"]}
-{"id":"intents:request_item.ex12","text":"quiero pan, por favor","kind":"learner","errors":[]}
-{"id":"intents:request_item.ex13","text":"pan, por favor","kind":"learner","errors":[]}
-{"id":"intents:request_item.ex14","text":"necesito pan","kind":"learner","errors":[]}
-{"id":"intents:request_item.ex15","text":"me da pan","kind":"learner","errors":[]}
-{"id":"intents:request_item.ex16","text":"me das pan","kind":"learner","errors":[]}
-{"id":"intents:request_item.ex17","text":"quiero dos panes, por favor","kind":"learner","errors":[]}
-{"id":"intents:request_item.ex18","text":"quiero dos panes","kind":"learner","errors":[]}
-{"id":"intents:request_item.ex19","text":"dos panes, por favor","kind":"learner","errors":[]}
-{"id":"intents:request_item.ex20","text":"me da dos panes","kind":"learner","errors":[]}
-{"id":"intents:request_item.ex21","text":"me da dos panes, por favor","kind":"learner","errors":[]}
-{"id":"intents:request_item.ex22","text":"me das dos panes, por favor","kind":"learner","errors":[]}
-{"id":"intents:request_item.ex23","text":"quiero un pan, por favor","kind":"learner","errors":[]}
-{"id":"intents:request_item.ex24","text":"quiero pan","kind":"learner","errors":[]}
-{"id":"intents:request_item.ex25","text":"quiero tres panes","kind":"learner","errors":[]}
-{"id":"intents:request_item.ex26","text":"quiero dos pan","kind":"learner","errors":["noun.number"]}
-{"id":"intents:request_item.ex27","text":"yo quieres dos panes","kind":"learner","errors":["conj.person"]}
-{"id":"intents:request_item.ex28","text":"quiero tres manzanas rojas","kind":"learner","errors":[]}
-{"id":"intents:request_item.ex29","text":"quiero tres manzanas","kind":"learner","errors":[]}
-{"id":"intents:request_item.ex30","text":"quiero tres manzanas rojas, por favor","kind":"learner","errors":[]}
-{"id":"intents:request_item.ex31","text":"tres manzanas rojas, por favor","kind":"learner","errors":[]}
-{"id":"intents:request_item.ex32","text":"quiero una manzana roja","kind":"learner","errors":[]}
-{"id":"intents:request_item.ex33","text":"quiero tres manzanas rojos","kind":"learner","errors":["gender.agree"]}
-{"id":"intents:request_item.ex34","text":"quiero tres manzana rojas","kind":"learner","errors":["noun.number"]}
-{"id":"intents:state_action.ex0","text":"voy a comer pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex1","text":"mañana voy a comer pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex2","text":"yo voy a comer pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex3","text":"voy a comer fruta","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex4","text":"voy a comer el pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex5","text":"voy a comer pan mañana","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex6","text":"voy a comer una fruta","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex7","text":"mañana como pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex8","text":"mañana comí pan","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_action.ex9","text":"voy a como pan","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_action.ex10","text":"yo va a comer pan","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex11","text":"vamos a comer fruta","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex12","text":"nosotros vamos a comer fruta","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex13","text":"mañana vamos a comer fruta","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex14","text":"vamos a comer pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex15","text":"vamos a comer frutas","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex16","text":"vamos a comer fruta mañana","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex17","text":"vamos a comer una fruta","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex18","text":"mañana comimos fruta","kind":"learner","errors":["conj.tense","vocab.wrong"]}
-{"id":"intents:state_action.ex19","text":"vamos a comemos fruta","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_action.ex20","text":"nosotros va a comer fruta","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex21","text":"ayer comí fruta","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex22","text":"comí fruta","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex23","text":"yo comí fruta","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex24","text":"ayer comí pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex25","text":"comí pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex26","text":"comí fruta ayer","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex27","text":"ayer comí una fruta","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex28","text":"ayer comí frutas","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex29","text":"ayer como fruta","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_action.ex30","text":"yo comiste fruta","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex31","text":"yo comió fruta","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex32","text":"ayer voy a comer fruta","kind":"learner","errors":["conj.tense","vocab.wrong"]}
-{"id":"intents:state_action.ex33","text":"ayer fui al río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex34","text":"fui al río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex35","text":"sí, fui al río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex36","text":"yo fui al río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex37","text":"ayer fui a la tienda","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex38","text":"sí, ayer fui al río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex39","text":"fui al río ayer","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex40","text":"sí, fui al río ayer","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex41","text":"ayer voy al río","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_action.ex42","text":"yo fuiste al río","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex43","text":"yo fue al río","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex44","text":"ayer bebí agua","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex45","text":"bebí agua","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex46","text":"sí, bebí agua","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex47","text":"sí, ayer bebí agua","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex48","text":"yo bebí agua","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex49","text":"bebí agua ayer","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex50","text":"ayer bebo agua","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_action.ex51","text":"yo bebiste agua","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex52","text":"mañana voy a ir al río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex53","text":"voy a ir al río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex54","text":"yo voy a ir al río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex55","text":"mañana voy a ir a la tienda","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex56","text":"voy a ir al río mañana","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex57","text":"mañana voy al río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex58","text":"mañana fui al río","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_action.ex59","text":"voy a la panadería","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex60","text":"yo voy a la panadería","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex61","text":"hoy voy a la panadería","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex62","text":"voy a la panadería hoy","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex63","text":"voy a la herrería","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex64","text":"yo vas a la panadería","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex65","text":"voy a comprar pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex66","text":"yo voy a comprar pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex67","text":"voy a comprar el pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex68","text":"mañana voy a comprar pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex69","text":"luego voy a comprar pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex70","text":"voy a comprar pan mañana","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex71","text":"luego compro pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex72","text":"después compro pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex73","text":"mañana compro pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex74","text":"voy a compro pan","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_action.ex75","text":"mañana compré pan","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_action.ex76","text":"sí, fui a la panadería","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex77","text":"fui a la panadería","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex78","text":"yo fui a la panadería","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex79","text":"hoy fui a la panadería","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex80","text":"ayer voy a la panadería","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_action.ex81","text":"yo fuiste a la panadería","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex82","text":"voy a buscar madera","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex83","text":"yo voy a buscar madera","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex84","text":"voy a buscar la madera","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex85","text":"luego voy a buscar madera","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex86","text":"voy a buscar madera luego","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex87","text":"después voy a buscar madera","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex88","text":"luego busco madera","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex89","text":"después busco madera","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex90","text":"voy a busco madera","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_action.ex91","text":"yo vas a buscar madera","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex92","text":"compré dos panes","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex93","text":"yo compré dos panes","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex94","text":"hoy compré dos panes","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex95","text":"compré dos panes hoy","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex96","text":"compré pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex97","text":"compré un pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex98","text":"ayer compro dos panes","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_action.ex99","text":"yo compraste dos panes","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex100","text":"va a hacer un hacha","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex101","text":"domingo va a hacer un hacha","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex102","text":"él va a hacer un hacha","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex103","text":"va a hacer un hacha hoy","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex104","text":"mañana va a hacer un hacha","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex105","text":"luego domingo hace un hacha","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex106","text":"domingo va a hizo un hacha","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_action.ex107","text":"él voy a hacer un hacha","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex108","text":"domingo trabaja en la herrería","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex109","text":"trabaja en la herrería","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex110","text":"él trabaja en la herrería","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex111","text":"hoy domingo trabaja en la herrería","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex112","text":"él trabajo en la herrería","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex113","text":"domingo trabaja en el herrería","kind":"learner","errors":["gender.agree"]}
-{"id":"intents:state_action.ex114","text":"vivo en el campamento","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex115","text":"yo vivo en el campamento","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex116","text":"vivo en la casa","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex117","text":"vivo en la campamento","kind":"learner","errors":["gender.agree"]}
-{"id":"intents:state_action.ex118","text":"yo vives en el campamento","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex119","text":"domingo hizo un hacha","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex120","text":"hizo un hacha","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex121","text":"él hizo un hacha","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex122","text":"hoy domingo hizo un hacha","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex123","text":"domingo hizo el hacha","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex124","text":"ayer domingo hace un hacha","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_action.ex125","text":"él hice un hacha","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex126","text":"voy a buscar agua","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex127","text":"yo voy a buscar agua","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex128","text":"voy a buscar el agua","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex129","text":"luego voy a buscar agua","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex130","text":"voy a buscar agua luego","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex131","text":"luego busco agua","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex132","text":"voy a busco agua","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_action.ex133","text":"yo vas a buscar agua","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex134","text":"hoy fui al río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex135","text":"luz hizo pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex136","text":"ayer luz hizo pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex137","text":"hizo pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex138","text":"ella hizo pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex139","text":"luz hizo pan ayer","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex140","text":"ayer luz hace pan","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_action.ex141","text":"ella hice pan","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex142","text":"mar pescó en el río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex143","text":"pescó en el río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex144","text":"él pescó en el río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex145","text":"ayer mar pescó en el río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex146","text":"mar pescó en el río ayer","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex147","text":"ayer mar pesca en el río","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_action.ex148","text":"él pesqué en el río","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex149","text":"fuimos al río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex150","text":"nosotros fuimos al río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex151","text":"ayer fuimos al río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex152","text":"fuimos al río ayer","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex153","text":"sí, fuimos al río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex154","text":"nosotros fue al río","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex155","text":"ayer vamos al río","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_action.ex156","text":"ellos comieron pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex157","text":"comieron pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex158","text":"luz y mar comieron pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex159","text":"ayer comieron pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex160","text":"ellos comieron pan ayer","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex161","text":"ellos comió pan","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex162","text":"luz y mar comió pan","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex163","text":"luz compró pescado","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex164","text":"compró pescado","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex165","text":"ella compró pescado","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex166","text":"ayer luz compró pescado","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex167","text":"luz compró pescado ayer","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex168","text":"ayer luz compra pescado","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_action.ex169","text":"ella compré pescado","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex170","text":"mañana compraré pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex171","text":"compraré pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex172","text":"yo compraré pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex173","text":"compraré pan mañana","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex174","text":"mañana compraré dos panes","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex175","text":"la semana que viene compraré pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex176","text":"pasado mañana compraré pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex177","text":"la semana que viene compré pan","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_action.ex178","text":"ayer compraré pan","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_action.ex179","text":"yo comprarás pan","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex180","text":"buscaré madera para luz","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex181","text":"buscaré madera","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex182","text":"yo buscaré madera para luz","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex183","text":"mañana buscaré madera para luz","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex184","text":"buscaré madera para luz mañana","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex185","text":"voy a buscar madera para luz","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex186","text":"yo buscará madera para luz","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex187","text":"iré al río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex188","text":"yo iré al río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex189","text":"sí, iré al río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex190","text":"mañana iré al río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex191","text":"la semana que viene iré al río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex192","text":"pasado mañana iré al río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex193","text":"yo irá al río","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex194","text":"luz hará pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex195","text":"mañana luz hará pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex196","text":"hará pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex197","text":"ella hará pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex198","text":"luz hará pan mañana","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex199","text":"luz va a hacer pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex200","text":"mañana luz hizo pan","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_action.ex201","text":"ella harás pan","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex202","text":"busqué madera","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex203","text":"león trabaja en el campo","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex204","text":"luz vive en la panadería","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex205","text":"mar va a trabajar en el río","kind":"learner","errors":[]}
-{"id":"intents:state_have.ex0","text":"tengo una fruta","kind":"learner","errors":[]}
-{"id":"intents:state_have.ex1","text":"sí, tengo una fruta","kind":"learner","errors":[]}
-{"id":"intents:state_have.ex2","text":"sí, yo tengo una fruta","kind":"learner","errors":[]}
-{"id":"intents:state_have.ex3","text":"yo tengo una fruta","kind":"learner","errors":[]}
-{"id":"intents:state_have.ex4","text":"tengo fruta","kind":"learner","errors":[]}
-{"id":"intents:state_have.ex5","text":"sí, tengo fruta","kind":"learner","errors":[]}
-{"id":"intents:state_have.ex6","text":"sí, tengo una botella","kind":"learner","errors":[]}
-{"id":"intents:state_have.ex7","text":"tengo una botella","kind":"learner","errors":[]}
-{"id":"intents:state_have.ex8","text":"sí, yo tengo una botella","kind":"learner","errors":[]}
-{"id":"intents:state_have.ex9","text":"yo tengo una botella","kind":"learner","errors":[]}
-{"id":"intents:state_have.ex10","text":"sí, tengo la botella","kind":"learner","errors":[]}
-{"id":"intents:state_have.ex11","text":"sí, yo tienes una fruta","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_have.ex12","text":"yo teno una fruta","kind":"learner","errors":["conj.irregular"]}
-{"id":"intents:state_have.ex13","text":"sí, yo tiene una botella","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_have.ex14","text":"tengo cuatro monedas","kind":"learner","errors":[]}
-{"id":"intents:state_have.ex15","text":"sí, tengo cuatro monedas","kind":"learner","errors":[]}
-{"id":"intents:state_have.ex16","text":"yo tengo cuatro monedas","kind":"learner","errors":[]}
-{"id":"intents:state_have.ex17","text":"tengo monedas","kind":"learner","errors":[]}
-{"id":"intents:state_have.ex18","text":"tengo seis monedas","kind":"learner","errors":[]}
-{"id":"intents:state_have.ex19","text":"yo tiene cuatro monedas","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_have.ex20","text":"tengo cuatro moneda","kind":"learner","errors":["noun.number"]}
-{"id":"intents:state_have.ex21","text":"ella tiene madera","kind":"learner","errors":[]}
-{"id":"intents:state_have.ex22","text":"nosotros tenemos agua","kind":"learner","errors":[]}
-{"id":"intents:state_have.ex23","text":"ellos tienen pan","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex0","text":"vendo madera","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex1","text":"yo vendo madera","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex2","text":"te vendo madera","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex3","text":"vendo el madera","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:offer_item.ex4","text":"quiero vender madera","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex5","text":"yo quiero vender madera","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex6","text":"quiero vender la madera","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex7","text":"yo quieres vender madera","kind":"learner","errors":["conj.person"]}
+{"id":"intents:offer_item.ex8","text":"tengo madera para usted","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex9","text":"vendo fruta","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex10","text":"quiero vender fruta","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex11","text":"le vendo madera","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex12","text":"tengo fruta para usted","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex0","text":"quiero el pan de luz","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex1","text":"quiero dos panes de luz","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex2","text":"quiero agua, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex3","text":"agua, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex4","text":"quiero agua","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex5","text":"necesito agua","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex6","text":"necesito agua, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex7","text":"me da agua","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex8","text":"me da agua, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex9","text":"me das agua","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex10","text":"me das agua, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex11","text":"un agua, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex12","text":"yo quieres agua, por favor","kind":"learner","errors":["conj.person"]}
+{"id":"intents:request_item.ex13","text":"quiero dos agua, por favor","kind":"learner","errors":["noun.number"]}
+{"id":"intents:request_item.ex14","text":"quiero pan, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex15","text":"pan, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex16","text":"necesito pan","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex17","text":"me da pan","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex18","text":"me das pan","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex19","text":"quiero dos panes, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex20","text":"quiero dos panes","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex21","text":"dos panes, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex22","text":"me da dos panes","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex23","text":"me da dos panes, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex24","text":"me das dos panes, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex25","text":"quiero un pan, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex26","text":"quiero pan","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex27","text":"quiero tres panes","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex28","text":"quiero dos pan","kind":"learner","errors":["noun.number"]}
+{"id":"intents:request_item.ex29","text":"yo quieres dos panes","kind":"learner","errors":["conj.person"]}
+{"id":"intents:request_item.ex30","text":"quiero tres manzanas rojas","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex31","text":"quiero tres manzanas","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex32","text":"quiero tres manzanas rojas, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex33","text":"tres manzanas rojas, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex34","text":"quiero una manzana roja","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex35","text":"quiero tres manzanas rojos","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:request_item.ex36","text":"quiero tres manzana rojas","kind":"learner","errors":["noun.number"]}
+{"id":"intents:state_action.ex0","text":"mañana venderé fruta","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex1","text":"venderé fruta","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex2","text":"yo venderé fruta","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex3","text":"venderé fruta mañana","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex4","text":"mañana voy a vender fruta","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex5","text":"mañana vendí fruta","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex6","text":"yo venderás fruta","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex7","text":"compré tres manzanas","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex8","text":"yo compré tres manzanas","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex9","text":"hoy compré tres manzanas","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex10","text":"compré manzanas","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex11","text":"compré tres manzana","kind":"learner","errors":["noun.number"]}
+{"id":"intents:state_action.ex12","text":"ayer compro tres manzanas","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex13","text":"voy a comer pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex14","text":"mañana voy a comer pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex15","text":"yo voy a comer pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex16","text":"voy a comer fruta","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex17","text":"voy a comer el pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex18","text":"voy a comer pan mañana","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex19","text":"voy a comer una fruta","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex20","text":"mañana como pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex21","text":"mañana comí pan","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex22","text":"voy a como pan","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex23","text":"yo va a comer pan","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex24","text":"vamos a comer fruta","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex25","text":"nosotros vamos a comer fruta","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex26","text":"mañana vamos a comer fruta","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex27","text":"vamos a comer pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex28","text":"vamos a comer frutas","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex29","text":"vamos a comer fruta mañana","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex30","text":"vamos a comer una fruta","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex31","text":"mañana comimos fruta","kind":"learner","errors":["conj.tense","vocab.wrong"]}
+{"id":"intents:state_action.ex32","text":"vamos a comemos fruta","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex33","text":"nosotros va a comer fruta","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex34","text":"ayer comí fruta","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex35","text":"comí fruta","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex36","text":"yo comí fruta","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex37","text":"ayer comí pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex38","text":"comí pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex39","text":"comí fruta ayer","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex40","text":"ayer comí una fruta","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex41","text":"ayer comí frutas","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex42","text":"ayer como fruta","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex43","text":"yo comiste fruta","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex44","text":"yo comió fruta","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex45","text":"ayer voy a comer fruta","kind":"learner","errors":["conj.tense","vocab.wrong"]}
+{"id":"intents:state_action.ex46","text":"ayer fui al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex47","text":"fui al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex48","text":"sí, fui al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex49","text":"yo fui al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex50","text":"ayer fui a la tienda","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex51","text":"sí, ayer fui al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex52","text":"fui al río ayer","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex53","text":"sí, fui al río ayer","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex54","text":"ayer voy al río","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex55","text":"yo fuiste al río","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex56","text":"yo fue al río","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex57","text":"ayer bebí agua","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex58","text":"bebí agua","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex59","text":"sí, bebí agua","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex60","text":"sí, ayer bebí agua","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex61","text":"yo bebí agua","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex62","text":"bebí agua ayer","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex63","text":"ayer bebo agua","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex64","text":"yo bebiste agua","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex65","text":"mañana voy a ir al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex66","text":"voy a ir al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex67","text":"yo voy a ir al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex68","text":"mañana voy a ir a la tienda","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex69","text":"voy a ir al río mañana","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex70","text":"mañana voy al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex71","text":"mañana fui al río","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex72","text":"voy a la panadería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex73","text":"yo voy a la panadería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex74","text":"hoy voy a la panadería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex75","text":"voy a la panadería hoy","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex76","text":"voy a la herrería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex77","text":"yo vas a la panadería","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex78","text":"voy a comprar pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex79","text":"yo voy a comprar pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex80","text":"voy a comprar el pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex81","text":"mañana voy a comprar pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex82","text":"luego voy a comprar pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex83","text":"voy a comprar pan mañana","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex84","text":"luego compro pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex85","text":"después compro pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex86","text":"mañana compro pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex87","text":"voy a compro pan","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex88","text":"mañana compré pan","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex89","text":"sí, fui a la panadería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex90","text":"fui a la panadería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex91","text":"yo fui a la panadería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex92","text":"hoy fui a la panadería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex93","text":"ayer voy a la panadería","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex94","text":"yo fuiste a la panadería","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex95","text":"voy a buscar madera","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex96","text":"yo voy a buscar madera","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex97","text":"voy a buscar la madera","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex98","text":"luego voy a buscar madera","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex99","text":"voy a buscar madera luego","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex100","text":"después voy a buscar madera","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex101","text":"luego busco madera","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex102","text":"después busco madera","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex103","text":"voy a busco madera","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex104","text":"yo vas a buscar madera","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex105","text":"compré dos panes","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex106","text":"yo compré dos panes","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex107","text":"hoy compré dos panes","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex108","text":"compré dos panes hoy","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex109","text":"compré pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex110","text":"compré un pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex111","text":"ayer compro dos panes","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex112","text":"yo compraste dos panes","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex113","text":"va a hacer un hacha","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex114","text":"domingo va a hacer un hacha","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex115","text":"él va a hacer un hacha","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex116","text":"va a hacer un hacha hoy","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex117","text":"mañana va a hacer un hacha","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex118","text":"luego domingo hace un hacha","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex119","text":"domingo va a hizo un hacha","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex120","text":"él voy a hacer un hacha","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex121","text":"domingo trabaja en la herrería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex122","text":"trabaja en la herrería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex123","text":"él trabaja en la herrería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex124","text":"hoy domingo trabaja en la herrería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex125","text":"él trabajo en la herrería","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex126","text":"domingo trabaja en el herrería","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:state_action.ex127","text":"vivo en el campamento","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex128","text":"yo vivo en el campamento","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex129","text":"vivo en la casa","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex130","text":"vivo en la campamento","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:state_action.ex131","text":"yo vives en el campamento","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex132","text":"domingo hizo un hacha","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex133","text":"hizo un hacha","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex134","text":"él hizo un hacha","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex135","text":"hoy domingo hizo un hacha","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex136","text":"domingo hizo el hacha","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex137","text":"ayer domingo hace un hacha","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex138","text":"él hice un hacha","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex139","text":"voy a buscar agua","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex140","text":"yo voy a buscar agua","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex141","text":"voy a buscar el agua","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex142","text":"luego voy a buscar agua","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex143","text":"voy a buscar agua luego","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex144","text":"luego busco agua","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex145","text":"voy a busco agua","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex146","text":"yo vas a buscar agua","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex147","text":"hoy fui al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex148","text":"luz hizo pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex149","text":"ayer luz hizo pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex150","text":"hizo pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex151","text":"ella hizo pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex152","text":"luz hizo pan ayer","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex153","text":"ayer luz hace pan","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex154","text":"ella hice pan","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex155","text":"mar pescó en el río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex156","text":"pescó en el río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex157","text":"él pescó en el río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex158","text":"ayer mar pescó en el río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex159","text":"mar pescó en el río ayer","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex160","text":"ayer mar pesca en el río","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex161","text":"él pesqué en el río","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex162","text":"fuimos al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex163","text":"nosotros fuimos al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex164","text":"ayer fuimos al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex165","text":"fuimos al río ayer","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex166","text":"sí, fuimos al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex167","text":"nosotros fue al río","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex168","text":"ayer vamos al río","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex169","text":"ellos comieron pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex170","text":"comieron pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex171","text":"luz y mar comieron pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex172","text":"ayer comieron pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex173","text":"ellos comieron pan ayer","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex174","text":"ellos comió pan","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex175","text":"luz y mar comió pan","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex176","text":"luz compró pescado","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex177","text":"compró pescado","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex178","text":"ella compró pescado","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex179","text":"ayer luz compró pescado","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex180","text":"luz compró pescado ayer","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex181","text":"ayer luz compra pescado","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex182","text":"ella compré pescado","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex183","text":"mañana compraré pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex184","text":"compraré pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex185","text":"yo compraré pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex186","text":"compraré pan mañana","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex187","text":"mañana compraré dos panes","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex188","text":"la semana que viene compraré pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex189","text":"pasado mañana compraré pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex190","text":"la semana que viene compré pan","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex191","text":"ayer compraré pan","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex192","text":"yo comprarás pan","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex193","text":"buscaré madera para luz","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex194","text":"buscaré madera","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex195","text":"yo buscaré madera para luz","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex196","text":"mañana buscaré madera para luz","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex197","text":"buscaré madera para luz mañana","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex198","text":"voy a buscar madera para luz","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex199","text":"yo buscará madera para luz","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex200","text":"iré al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex201","text":"yo iré al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex202","text":"sí, iré al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex203","text":"mañana iré al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex204","text":"la semana que viene iré al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex205","text":"pasado mañana iré al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex206","text":"yo irá al río","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex207","text":"luz hará pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex208","text":"mañana luz hará pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex209","text":"hará pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex210","text":"ella hará pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex211","text":"luz hará pan mañana","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex212","text":"luz va a hacer pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex213","text":"mañana luz hizo pan","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex214","text":"ella harás pan","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex215","text":"busqué madera","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex216","text":"león trabaja en el campo","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex217","text":"luz vive en la panadería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex218","text":"mar va a trabajar en el río","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex0","text":"tienes veinte panes","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex1","text":"tú tienes veinte panes","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex2","text":"sí, tienes veinte panes","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex3","text":"tienes veinte pan","kind":"learner","errors":["noun.number"]}
+{"id":"intents:state_have.ex4","text":"tengo una fruta","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex5","text":"sí, tengo una fruta","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex6","text":"sí, yo tengo una fruta","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex7","text":"yo tengo una fruta","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex8","text":"tengo fruta","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex9","text":"sí, tengo fruta","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex10","text":"sí, tengo una botella","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex11","text":"tengo una botella","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex12","text":"sí, yo tengo una botella","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex13","text":"yo tengo una botella","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex14","text":"sí, tengo la botella","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex15","text":"sí, yo tienes una fruta","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_have.ex16","text":"yo teno una fruta","kind":"learner","errors":["conj.irregular"]}
+{"id":"intents:state_have.ex17","text":"sí, yo tiene una botella","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_have.ex18","text":"tengo cuatro monedas","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex19","text":"sí, tengo cuatro monedas","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex20","text":"yo tengo cuatro monedas","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex21","text":"tengo monedas","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex22","text":"tengo seis monedas","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex23","text":"yo tiene cuatro monedas","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_have.ex24","text":"tengo cuatro moneda","kind":"learner","errors":["noun.number"]}
+{"id":"intents:state_have.ex25","text":"ella tiene madera","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex26","text":"nosotros tenemos agua","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex27","text":"ellos tienen pan","kind":"learner","errors":[]}
 {"id":"intents:state_like.ex0","text":"sí, me gusta el pan","kind":"learner","errors":[]}
 {"id":"intents:state_like.ex1","text":"me gusta el pan","kind":"learner","errors":[]}
 {"id":"intents:state_like.ex2","text":"sí, me gusta","kind":"learner","errors":[]}
@@ -2358,7 +2562,7 @@
 {"id":"PHRASES.md:cuanto-cuesta.variant2","text":"¿cuánto es?","kind":"learner"}
 {"id":"PHRASES.md:cuanto-cuesta.variant3","text":"¿qué precio tiene el pan?","kind":"learner"}
 {"id":"PHRASES.md:cuanto-cuesta.variant4","text":"¿cuánto cuestan los panes?","kind":"learner"}
-{"id":"PHRASES.md:cuanto-cuesta.error","text":"cuánto cuestan el pan","kind":"learner","errors":["conj.person"]}
+{"id":"PHRASES.md:cuanto-cuesta.error","text":"¿cuánto costa el pan?","kind":"learner","errors":["conj.irregular"]}
 {"id":"PHRASES.md:cuesta-dos-monedas.text","text":"El pan cuesta dos monedas.","kind":"npc"}
 {"id":"PHRASES.md:necesito-madera-para-el-horno.text","text":"Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer?","kind":"npc"}
 {"id":"PHRASES.md:voy-a-buscar-madera.text","text":"Voy a buscar madera.","kind":"learner"}
@@ -2383,7 +2587,7 @@
 {"id":"PHRASES.md:hay-pan.text","text":"¿Hay pan?","kind":"learner"}
 {"id":"PHRASES.md:hay-pan.variant1","text":"¿hay pan aquí?","kind":"learner"}
 {"id":"PHRASES.md:hay-pan.variant2","text":"¿hay panes?","kind":"learner"}
-{"id":"PHRASES.md:hay-pan.error","text":"hay dos pan","kind":"learner","errors":["noun.number"]}
+{"id":"PHRASES.md:hay-pan.error","text":"hay pans","kind":"learner","errors":["noun.number"]}
 {"id":"PHRASES.md:como-te-llamas.text","text":"¿Cómo te llamas?","kind":"learner"}
 {"id":"PHRASES.md:como-te-llamas.variant1","text":"¿cómo te llamas tú?","kind":"learner"}
 {"id":"PHRASES.md:como-te-llamas.error","text":"cómo te llama","kind":"learner","errors":["conj.person"]}
@@ -2428,7 +2632,7 @@
 {"id":"PHRASES.md:la-manzana-es-roja.variant2","text":"sí, es roja","kind":"learner"}
 {"id":"PHRASES.md:la-manzana-es-roja.variant3","text":"la manzana es roja y grande","kind":"learner"}
 {"id":"PHRASES.md:la-manzana-es-roja.variant4","text":"la manzana es muy roja","kind":"learner"}
-{"id":"PHRASES.md:la-manzana-es-roja.error","text":"la manzana son roja","kind":"learner","errors":["conj.person"]}
+{"id":"PHRASES.md:la-manzana-es-roja.error","text":"la manzana es rojo","kind":"learner","errors":["gender.agree"]}
 {"id":"PHRASES.md:te-gusta-el-pan.text","text":"¿Te gusta el pan?","kind":"npc"}
 {"id":"PHRASES.md:me-gusta-el-pan.text","text":"Sí, me gusta el pan.","kind":"learner"}
 {"id":"PHRASES.md:me-gusta-el-pan.variant1","text":"me gusta el pan","kind":"learner"}
@@ -2459,7 +2663,7 @@
 {"id":"PHRASES.md:es-grande.variant1","text":"el pan es grande","kind":"learner"}
 {"id":"PHRASES.md:es-grande.variant2","text":"sí, es grande","kind":"learner"}
 {"id":"PHRASES.md:es-grande.variant3","text":"es muy grande","kind":"learner"}
-{"id":"PHRASES.md:es-grande.error","text":"la pan es grande","kind":"learner","errors":["gender.agree"]}
+{"id":"PHRASES.md:es-grande.error","text":"el pan es grandes","kind":"learner","errors":["noun.number"]}
 {"id":"PHRASES.md:el-pan-es-de-luz.text","text":"El pan es de Luz, de la panadería.","kind":"npc"}
 {"id":"PHRASES.md:toma-tres-manzanas.text","text":"¡Gracias! Toma tres manzanas.","kind":"npc"}
 {"id":"PHRASES.md:fui-al-rio.text","text":"Sí, fui al río.","kind":"learner"}
@@ -2555,6 +2759,56 @@
 {"id":"PHRASES.md:luz-hara-pan.variant3","text":"ella hará pan","kind":"learner"}
 {"id":"PHRASES.md:luz-hara-pan.variant4","text":"Luz hará pan mañana","kind":"learner"}
 {"id":"PHRASES.md:luz-hara-pan.error","text":"mañana Luz hizo pan","kind":"learner","errors":["conj.tense"]}
+{"id":"PHRASES.md:tienes-veinte-panes.text","text":"Tienes veinte panes.","kind":"learner"}
+{"id":"PHRASES.md:tienes-veinte-panes.variant1","text":"tú tienes veinte panes","kind":"learner"}
+{"id":"PHRASES.md:tienes-veinte-panes.variant2","text":"sí, tienes veinte panes","kind":"learner"}
+{"id":"PHRASES.md:tienes-veinte-panes.error","text":"tienes veinte pan","kind":"learner","errors":["noun.number"]}
+{"id":"PHRASES.md:quiero-vender-madera.text","text":"Quiero vender madera.","kind":"learner"}
+{"id":"PHRASES.md:quiero-vender-madera.variant1","text":"yo quiero vender madera","kind":"learner"}
+{"id":"PHRASES.md:quiero-vender-madera.variant2","text":"quiero vender la madera","kind":"learner"}
+{"id":"PHRASES.md:quiero-vender-madera.error","text":"yo quieres vender madera","kind":"learner","errors":["conj.person"]}
+{"id":"PHRASES.md:vendo-madera.text","text":"Vendo madera.","kind":"learner"}
+{"id":"PHRASES.md:vendo-madera.variant1","text":"yo vendo madera","kind":"learner"}
+{"id":"PHRASES.md:vendo-madera.variant2","text":"te vendo madera","kind":"learner"}
+{"id":"PHRASES.md:vendo-madera.error","text":"vendo el madera","kind":"learner","errors":["gender.agree"]}
+{"id":"PHRASES.md:cuanto-es-todo.text","text":"¿Cuánto es todo?","kind":"learner"}
+{"id":"PHRASES.md:cuanto-es-todo.variant1","text":"¿cuánto cuesta todo?","kind":"learner"}
+{"id":"PHRASES.md:cuanto-es-todo.variant2","text":"¿cuánto es todo esto?","kind":"learner"}
+{"id":"PHRASES.md:cuanto-es-todo.error","text":"¿cuánto costa todo?","kind":"learner","errors":["conj.irregular"]}
+{"id":"PHRASES.md:es-muy-caro.text","text":"Es muy caro.","kind":"learner"}
+{"id":"PHRASES.md:es-muy-caro.variant1","text":"es caro","kind":"learner"}
+{"id":"PHRASES.md:es-muy-caro.variant2","text":"sí, es muy caro","kind":"learner"}
+{"id":"PHRASES.md:es-muy-caro.error","text":"la manzana es muy caro","kind":"learner","errors":["gender.agree"]}
+{"id":"PHRASES.md:mas-barato-que.text","text":"La manzana es más barata que el pan.","kind":"learner"}
+{"id":"PHRASES.md:mas-barato-que.variant1","text":"la manzana es más barata","kind":"learner"}
+{"id":"PHRASES.md:mas-barato-que.variant2","text":"es más barata que el pan","kind":"learner"}
+{"id":"PHRASES.md:mas-barato-que.variant3","text":"el pan es más caro que la manzana","kind":"learner"}
+{"id":"PHRASES.md:mas-barato-que.error","text":"la manzana es más barato que el pan","kind":"learner","errors":["gender.agree"]}
+{"id":"PHRASES.md:puedo-pagar-con-fruta.text","text":"¿Puedo pagar con fruta?","kind":"learner"}
+{"id":"PHRASES.md:puedo-pagar-con-fruta.variant1","text":"¿yo puedo pagar con fruta?","kind":"learner"}
+{"id":"PHRASES.md:puedo-pagar-con-fruta.variant2","text":"¿se puede pagar con fruta?","kind":"learner"}
+{"id":"PHRASES.md:puedo-pagar-con-fruta.error","text":"¿podo pagar con fruta?","kind":"learner","errors":["conj.irregular"]}
+{"id":"PHRASES.md:manana-vendere-fruta.text","text":"Mañana venderé fruta.","kind":"learner"}
+{"id":"PHRASES.md:manana-vendere-fruta.variant1","text":"venderé fruta","kind":"learner"}
+{"id":"PHRASES.md:manana-vendere-fruta.variant2","text":"yo venderé fruta","kind":"learner"}
+{"id":"PHRASES.md:manana-vendere-fruta.variant3","text":"venderé fruta mañana","kind":"learner"}
+{"id":"PHRASES.md:manana-vendere-fruta.error","text":"mañana vendí fruta","kind":"learner","errors":["conj.tense"]}
+{"id":"PHRASES.md:compre-tres-manzanas.text","text":"Compré tres manzanas.","kind":"learner"}
+{"id":"PHRASES.md:compre-tres-manzanas.variant1","text":"yo compré tres manzanas","kind":"learner"}
+{"id":"PHRASES.md:compre-tres-manzanas.variant2","text":"hoy compré tres manzanas","kind":"learner"}
+{"id":"PHRASES.md:compre-tres-manzanas.variant3","text":"compré manzanas","kind":"learner"}
+{"id":"PHRASES.md:compre-tres-manzanas.error","text":"compré tres manzana","kind":"learner","errors":["noun.number"]}
+{"id":"PHRASES.md:once-a-quince.text","text":"Once, doce, trece, catorce, quince.","kind":"npc"}
+{"id":"PHRASES.md:dieciseis-a-veinte.text","text":"Dieciséis, diecisiete, dieciocho, diecinueve, veinte.","kind":"npc"}
+{"id":"PHRASES.md:cuantos-panes-tengo.text","text":"¡Hoy hay mercado! ¿Cuántos panes tengo?","kind":"npc"}
+{"id":"PHRASES.md:te-pago-una-moneda.text","text":"Te pago una moneda por cada bloque de madera.","kind":"npc"}
+{"id":"PHRASES.md:tengo-quince-manzanas.text","text":"¡Hola! Hoy hay mercado. Tengo quince manzanas.","kind":"npc"}
+{"id":"PHRASES.md:quince-monedas.text","text":"Quince manzanas, quince monedas.","kind":"npc"}
+{"id":"PHRASES.md:es-caro-o-barato.text","text":"¿Es caro o es barato?","kind":"npc"}
+{"id":"PHRASES.md:que-es-mas-barato.text","text":"Una manzana cuesta una moneda, y un pan, dos. ¿Qué es más barato?","kind":"npc"}
+{"id":"PHRASES.md:te-compro-fruta.text","text":"Aquí se paga con monedas. Pero yo te compro fruta.","kind":"npc"}
+{"id":"PHRASES.md:que-venderas-manana.text","text":"¿Y qué venderás mañana?","kind":"npc"}
+{"id":"PHRASES.md:que-compraste-en-el-mercado.text","text":"¡Hola! ¿Qué compraste en el mercado?","kind":"npc"}
 {"id":"checks.json:hear.que-necesitas","text":"¿Qué necesitas?","kind":"npc"}
 {"id":"checks.json:hear.quieres-pan","text":"¿Quieres pan?","kind":"npc"}
 {"id":"checks.json:hear.pedir-agua","text":"Quiero agua, por favor.","kind":"npc"}
@@ -2595,6 +2849,9 @@
 {"id":"checks.json:hear.tendre-pan","text":"¡Qué bien! Mañana tendré pan fresco.","kind":"npc"}
 {"id":"checks.json:hear.mar-pescara","text":"¡Muy bien! Mar pescará en el río toda la tarde. ¿Adónde irás ahora?","kind":"npc"}
 {"id":"checks.json:hear.el-dia-de-manana","text":"¡Hola! Mañana Luz hará pan. Domingo trabajará en la herrería. Y yo pescaré en el río.","kind":"npc"}
+{"id":"checks.json:hear.once-a-quince","text":"Once, doce, trece, catorce, quince.","kind":"npc"}
+{"id":"checks.json:hear.tengo-quince-manzanas","text":"¡Hola! Hoy hay mercado. Tengo quince manzanas.","kind":"npc"}
+{"id":"checks.json:hear.que-venderas-manana","text":"¿Y qué venderás mañana?","kind":"npc"}
 {"id":"words.json:directions.ahead","text":"adelante","kind":"npc"}
 {"id":"words.json:directions.behind","text":"detrás","kind":"npc"}
 {"id":"words.json:directions.left","text":"a la izquierda","kind":"npc"}

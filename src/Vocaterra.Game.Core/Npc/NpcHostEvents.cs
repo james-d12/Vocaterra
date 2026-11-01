@@ -1,6 +1,7 @@
 using System.Globalization;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Phrases;
+using Vocaterra.Game.Core.Language.Words;
 
 namespace Vocaterra.Game.Core.Npc;
 
@@ -30,22 +31,29 @@ public enum NpcEffectKind
 
     /// <summary>
     /// The NPC sells an item at a price in coins (VILLAGE_PLAN V03): as many as the learner asked for (the verdict's <c>qty</c>, 1 to 5) for that many times the price;
-    /// with too few coins nothing changes hands and the NPC answers <c>&lt;npc&gt;.cant_pay</c>.
+    /// with too few coins nothing changes hands and the NPC answers <c>&lt;npc&gt;.cant_pay</c>, and asked for another item (V15) <c>&lt;npc&gt;.wont_sell</c>.
     /// </summary>
     Sell,
+
+    /// <summary>
+    /// The NPC buys an item at a price in coins (VILLAGE_PLAN V15, the stall's <see cref="Sell"/> turned round): the learner sells (<c>vendo madera</c>) and is paid the price
+    /// for each item taken, as many as the learner said (<c>qty</c>, 1 to 5) or, with no number, every one the bag holds. A bag with none of the item, or a line that offers
+    /// another item, changes nothing: the NPC answers <c>&lt;npc&gt;.cant_sell</c> or <c>&lt;npc&gt;.wont_buy</c>.
+    /// </summary>
+    Buy,
 }
 
 /// <summary>
 /// One entry of the host-event table: a world effect of a host event.
 /// </summary>
 /// <param name="Kind">What the effect does.</param>
-/// <param name="Item">For <see cref="NpcEffectKind.GiveItem"/>, <see cref="NpcEffectKind.TakeItem"/> and <see cref="NpcEffectKind.Sell"/>: the item.</param>
+/// <param name="Item">For <see cref="NpcEffectKind.GiveItem"/>, <see cref="NpcEffectKind.TakeItem"/>, <see cref="NpcEffectKind.Sell"/> and <see cref="NpcEffectKind.Buy"/>: the item.</param>
 /// <param name="Noun">For <see cref="NpcEffectKind.PointAtNoun"/>: the catalogue noun the beacon goes to.</param>
 /// <param name="Count">For <see cref="NpcEffectKind.GiveItem"/> and <see cref="NpcEffectKind.TakeItem"/>: how many, when <paramref name="CountSlot"/> does not say.</param>
 /// <param name="CountSlot">For <see cref="NpcEffectKind.GiveItem"/> and <see cref="NpcEffectKind.TakeItem"/>: the slot of the verdict that says how many (<see cref="QuantitySlot"/>), or <see langword="null"/> for <paramref name="Count"/>.</param>
 /// <param name="Place">For <see cref="NpcEffectKind.PointAtPlace"/>: the scene's name of the place (<c>stall</c>, <c>river</c>).</param>
 /// <param name="Slot">For <see cref="NpcEffectKind.PointAtSlot"/>: the slot of the verdict that names the place (<c>place</c>).</param>
-/// <param name="Price">For <see cref="NpcEffectKind.Sell"/>: the price of one item, in coins.</param>
+/// <param name="Price">For <see cref="NpcEffectKind.Sell"/> and <see cref="NpcEffectKind.Buy"/>: the price of one item, in coins.</param>
 public sealed record NpcEffect(
     NpcEffectKind Kind,
     ItemId Item = ItemId.Wood,
@@ -58,6 +66,9 @@ public sealed record NpcEffect(
 {
     /// <summary>The verdict's slot of a number the learner said (<c>quiero dos panes</c>: <c>2</c>), the core's <c>[NUM:qty]</c>.</summary>
     public const string QuantitySlot = "qty";
+
+    /// <summary>The verdict's slot of the item a line names (<c>vendo madera</c>: <c>madera</c>), the core's <c>[NOUN:item]</c>.</summary>
+    public const string ItemSlot = "item";
 
     /// <summary>The most items a number the learner said can ask for at once (VILLAGE_PLAN 3.7): a larger number is read as this many.</summary>
     public const int MaxQuantity = 5;
@@ -83,6 +94,22 @@ public sealed record NpcEffect(
     /// <summary>The effect that sells <paramref name="item"/> at <paramref name="price"/> coins each.</summary>
     public static NpcEffect SellAt(ItemId item, int price) => new(NpcEffectKind.Sell, item, Price: price);
 
+    /// <summary>The effect that buys <paramref name="item"/> from the learner at <paramref name="price"/> coins each (VILLAGE_PLAN V15).</summary>
+    public static NpcEffect BuyAt(ItemId item, int price) => new(NpcEffectKind.Buy, item, Price: price);
+
+    /// <summary>
+    /// How many items a purchase from the learner takes (<see cref="NpcEffectKind.Buy"/>): the number the learner said (<c>vendo dos frutas</c>, at most
+    /// <see cref="MaxQuantity"/>) or, with no number, every one the bag holds (<c>vendo madera</c>: the wood the learner carries); never more than the bag holds.
+    /// </summary>
+    /// <param name="slots">The verdict's slots.</param>
+    /// <param name="held">How many of the item the bag holds.</param>
+    public int SaleCountFor(IReadOnlyDictionary<string, string> slots, int held)
+    {
+        ArgumentNullException.ThrowIfNull(slots);
+        var asked = slots.ContainsKey(QuantitySlot) ? Quantity(slots) : held;
+        return Math.Max(0, Math.Min(asked, held));
+    }
+
     /// <summary>
     /// How many items the effect moves for a verdict: the number the learner said for a sale or a count read from the slot (1 when the line had none, at most
     /// <see cref="MaxQuantity"/>), otherwise the fixed <see cref="Count"/>.
@@ -90,6 +117,21 @@ public sealed record NpcEffect(
     /// <param name="slots">The verdict's slots.</param>
     public int CountFor(IReadOnlyDictionary<string, string> slots) =>
         Kind == NpcEffectKind.Sell ? Quantity(slots) : CountSlot is { } slot ? Quantity(slots, slot) : Count;
+
+    /// <summary>
+    /// Whether the learner's line names this effect's item (VILLAGE_PLAN V15): its item slot is a catalogue noun of the item (<c>madera</c> the wood, <c>fruta</c> the fruit,
+    /// <c>pan</c> the bread), or names no item of the catalogue (a line with no item slot, or a word the catalogue lacks, is read as asking for this effect's item). A
+    /// purchase or a sale of another item (<c>quiero madera</c> at the bakery, <c>vendo pan</c> there) changes nothing: the NPC answers <c>&lt;npc&gt;.wont_sell</c> or
+    /// <c>&lt;npc&gt;.wont_buy</c>.
+    /// </summary>
+    /// <param name="slots">The verdict's slots.</param>
+    /// <param name="nouns">The noun catalogue.</param>
+    public bool ItemSaidIn(IReadOnlyDictionary<string, string> slots, NounCatalog nouns)
+    {
+        ArgumentNullException.ThrowIfNull(slots);
+        ArgumentNullException.ThrowIfNull(nouns);
+        return !slots.TryGetValue(ItemSlot, out var word) || nouns.ForLemma(word) is not { } noun || noun.Items.Count == 0 || noun.Items.Contains(Item);
+    }
 
     /// <summary>What a sale costs for a verdict: the price times the number asked for (<see cref="CountFor"/>); zero for any other effect.</summary>
     /// <param name="slots">The verdict's slots.</param>
@@ -157,6 +199,15 @@ public static class NpcHostEvents
     /// <summary>What an NPC is asked to answer when the learner's coins do not cover a purchase (VILLAGE_PLAN V03, <see cref="NpcEffectKind.Sell"/>): <c>&lt;npc&gt;.cant_pay</c>.</summary>
     public const string CantPay = "cant_pay";
 
+    /// <summary>What an NPC that sells is asked to answer when the learner asks it for another item than the one it sells (VILLAGE_PLAN V15): <c>&lt;npc&gt;.wont_sell</c>.</summary>
+    public const string WontSell = "wont_sell";
+
+    /// <summary>What an NPC that buys is asked to answer when the learner offers its item and the bag holds none (VILLAGE_PLAN V15, <see cref="NpcEffectKind.Buy"/>): <c>&lt;npc&gt;.cant_sell</c>.</summary>
+    public const string CantSell = "cant_sell";
+
+    /// <summary>What an NPC that buys is asked to answer when the learner offers another item than the one it buys (VILLAGE_PLAN V15): <c>&lt;npc&gt;.wont_buy</c>.</summary>
+    public const string WontBuy = "wont_buy";
+
     /// <summary>
     /// What an NPC is asked to say when the learner brings the goods of its order (VILLAGE_PLAN V03, an objective with <c>deliverTo</c>): <c>&lt;npc&gt;.delivered</c>,
     /// raised as the opening of the talk; its thanks are the NPC's own line and its reward is that line's host event (a <c>give_item</c>).
@@ -165,7 +216,7 @@ public static class NpcHostEvents
 
     /// <summary>The host event <paramref name="what"/> of an NPC: <c>villager.unknown_place</c>.</summary>
     /// <param name="npc">The NPC's agent id.</param>
-    /// <param name="what">What it answers: <see cref="UnknownPlace"/>, <see cref="CantPay"/> or <see cref="Delivered"/>.</param>
+    /// <param name="what">What it answers: <see cref="UnknownPlace"/>, <see cref="CantPay"/>, <see cref="WontSell"/>, <see cref="CantSell"/>, <see cref="WontBuy"/> or <see cref="Delivered"/>.</param>
     public static string Of(string npc, string what) => npc + "." + what;
 }
 

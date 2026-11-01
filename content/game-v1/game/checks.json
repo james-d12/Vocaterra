@@ -889,6 +889,88 @@
       "lesson": "manana-en-el-pueblo",
       "prompt": "lesson-luz-will",
       "intent": "state_action"
+    },
+    {
+      "id": "hear.once-a-quince",
+      "kind": "comprehension",
+      "phrase": "once-a-quince",
+      "lesson": "el-mercado",
+      "line": "guide.lesson.baker.fifteen.1",
+      "spanish": "Once, doce, trece, catorce, quince.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.tengo-quince-manzanas",
+      "kind": "comprehension",
+      "phrase": "tengo-quince-manzanas",
+      "lesson": "el-mercado",
+      "line": "guide.lesson.farmer.market.1",
+      "spanish": "¡Hola! Hoy hay mercado. Tengo quince manzanas.",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.que-venderas-manana",
+      "kind": "comprehension",
+      "phrase": "que-venderas-manana",
+      "lesson": "el-mercado",
+      "line": "guide.lesson.farmer.will_sell.1",
+      "spanish": "¿Y qué venderás mañana?",
+      "options": [
+        {},
+        {},
+        {}
+      ],
+      "correct": 0
+    },
+    {
+      "id": "say.vendo-madera",
+      "kind": "production",
+      "phrase": "vendo-madera",
+      "lesson": "el-mercado",
+      "prompt": "baker-open",
+      "intent": "offer_item"
+    },
+    {
+      "id": "say.cuanto-es-todo",
+      "kind": "production",
+      "phrase": "cuanto-es-todo",
+      "lesson": "el-mercado",
+      "prompt": "farmer-open",
+      "intent": "ask_total"
+    },
+    {
+      "id": "say.mas-barato-que",
+      "kind": "production",
+      "phrase": "mas-barato-que",
+      "lesson": "el-mercado",
+      "prompt": "lesson-cheaper",
+      "intent": "describe"
+    },
+    {
+      "id": "say.puedo-pagar-con-fruta",
+      "kind": "production",
+      "phrase": "puedo-pagar-con-fruta",
+      "lesson": "el-mercado",
+      "prompt": "farmer-open",
+      "intent": "ask_pay"
+    },
+    {
+      "id": "say.manana-vendere-fruta",
+      "kind": "production",
+      "phrase": "manana-vendere-fruta",
+      "lesson": "el-mercado",
+      "prompt": "lesson-will-sell",
+      "intent": "state_action"
     }
   ]
 }

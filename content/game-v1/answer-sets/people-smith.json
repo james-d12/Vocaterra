@@ -20,6 +20,12 @@
       "dialects": ["es-MX", "es-CO", "es-AR"]
     },
     {
+      "answerId": "sell",
+      "canonical": "vendo madera",
+      "aliases": ["yo vendo madera", "te vendo madera", "quiero vender madera", "tengo madera para usted"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
       "answerId": "hello",
       "canonical": "hola",
       "aliases": ["buenos días", "buenas tardes", "buen día"],

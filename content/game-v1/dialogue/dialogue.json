@@ -1384,6 +1384,150 @@
       "variants": [
         { "lineId": "guide.lesson.fisher.luz_will.1", "text": "¿Qué hará Luz mañana?" }
       ]
+    },
+    "baker_buy": {
+      "poolId": "baker_buy",
+      "variants": [
+        { "lineId": "baker_buy.1", "text": "¡Gracias! Aquí tienes tus monedas." }
+      ]
+    },
+    "baker_cant_sell": {
+      "poolId": "baker_cant_sell",
+      "variants": [
+        { "lineId": "baker_cant_sell.1", "text": "No tienes madera." }
+      ]
+    },
+    "baker_wont_buy": {
+      "poolId": "baker_wont_buy",
+      "variants": [
+        { "lineId": "baker_wont_buy.1", "text": "No, gracias. Solo compro madera." }
+      ]
+    },
+    "farmer_buy": {
+      "poolId": "farmer_buy",
+      "variants": [
+        { "lineId": "farmer_buy.1", "text": "¡Gracias! Aquí tienes tus monedas." }
+      ]
+    },
+    "farmer_cant_sell": {
+      "poolId": "farmer_cant_sell",
+      "variants": [
+        { "lineId": "farmer_cant_sell.1", "text": "No tienes fruta." }
+      ]
+    },
+    "farmer_wont_buy": {
+      "poolId": "farmer_wont_buy",
+      "variants": [
+        { "lineId": "farmer_wont_buy.1", "text": "No, gracias. Solo compro fruta." }
+      ]
+    },
+    "farmer_total": {
+      "poolId": "farmer_total",
+      "variants": [
+        { "lineId": "farmer_total.1", "text": "Quince manzanas, quince monedas." }
+      ]
+    },
+    "farmer_pay": {
+      "poolId": "farmer_pay",
+      "variants": [
+        { "lineId": "farmer_pay.1", "text": "Aquí se paga con monedas. Pero yo te compro fruta." }
+      ]
+    },
+    "smith_buy": {
+      "poolId": "smith_buy",
+      "variants": [
+        { "lineId": "smith_buy.1", "text": "¡Gracias! Aquí tienes tus monedas." }
+      ]
+    },
+    "smith_cant_sell": {
+      "poolId": "smith_cant_sell",
+      "variants": [
+        { "lineId": "smith_cant_sell.1", "text": "No tienes madera." }
+      ]
+    },
+    "smith_wont_buy": {
+      "poolId": "smith_wont_buy",
+      "variants": [
+        { "lineId": "smith_wont_buy.1", "text": "No, gracias. Solo compro madera." }
+      ]
+    },
+    "guide.lesson.baker.mar": {
+      "poolId": "guide.lesson.baker.mar",
+      "variants": [
+        { "lineId": "guide.lesson.baker.mar.1", "text": "¿Y qué hizo Mar ayer?" }
+      ]
+    },
+    "guide.lesson.baker.fifteen": {
+      "poolId": "guide.lesson.baker.fifteen",
+      "variants": [
+        { "lineId": "guide.lesson.baker.fifteen.1", "text": "Once, doce, trece, catorce, quince." }
+      ]
+    },
+    "guide.lesson.baker.twenty": {
+      "poolId": "guide.lesson.baker.twenty",
+      "variants": [
+        { "lineId": "guide.lesson.baker.twenty.1", "text": "Dieciséis, diecisiete, dieciocho, diecinueve, veinte." }
+      ]
+    },
+    "guide.lesson.baker.market": {
+      "poolId": "guide.lesson.baker.market",
+      "variants": [
+        { "lineId": "guide.lesson.baker.market.1", "text": "¡Hoy hay mercado! ¿Cuántos panes tengo?" }
+      ]
+    },
+    "guide.lesson.baker.sell": {
+      "poolId": "guide.lesson.baker.sell",
+      "variants": [
+        { "lineId": "guide.lesson.baker.sell.1", "text": "Necesito madera para el horno. ¿Qué quieres hacer?" }
+      ]
+    },
+    "guide.lesson.baker.pay": {
+      "poolId": "guide.lesson.baker.pay",
+      "variants": [
+        { "lineId": "guide.lesson.baker.pay.1", "text": "Te pago una moneda por cada bloque de madera." }
+      ]
+    },
+    "guide.lesson.farmer.market": {
+      "poolId": "guide.lesson.farmer.market",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.market.1", "text": "¡Hola! Hoy hay mercado. Tengo quince manzanas." }
+      ]
+    },
+    "guide.lesson.farmer.dear": {
+      "poolId": "guide.lesson.farmer.dear",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.dear.1", "text": "¿Es caro o es barato?" }
+      ]
+    },
+    "guide.lesson.farmer.cheaper": {
+      "poolId": "guide.lesson.farmer.cheaper",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.cheaper.1", "text": "Una manzana cuesta una moneda, y un pan, dos. ¿Qué es más barato?" }
+      ]
+    },
+    "guide.lesson.farmer.will_sell": {
+      "poolId": "guide.lesson.farmer.will_sell",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.will_sell.1", "text": "¿Y qué venderás mañana?" }
+      ]
+    },
+    "guide.lesson.shop.market": {
+      "poolId": "guide.lesson.shop.market",
+      "variants": [
+        { "lineId": "guide.lesson.shop.market.1", "text": "¡Hola! ¿Qué compraste en el mercado?" }
+      ]
+    },
+    "baker_wont_sell": {
+      "poolId": "baker_wont_sell",
+      "variants": [
+        { "lineId": "baker_wont_sell.1", "text": "Solo vendo pan." }
+      ]
+    },
+    "farmer_wont_sell": {
+      "poolId": "farmer_wont_sell",
+      "variants": [
+        { "lineId": "farmer_wont_sell.1", "text": "Solo vendo manzanas." }
+      ]
     }
   }
 }
