@@ -2118,6 +2118,23 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   - **Left:** the game run of QA-1 does not deliver the order after the load, because the lesson still holds it until its `n4-back`
     step (V14's design; QA-progression-4, V21); the unit test proves the delivery. `WorldFactsTests` ran out of memory once under the
     6 GB cap and passed on a rerun: the unbounded flood of `NearestOfNounJoinedTo` (V23), which moves to the front of V23.
+- **V23a: the small game items that touch no content (2026-11-01, Sonnet 5.5; merged at `e02b5df`, gated with the core's M71 and M66
+  at `53f63e6`).** Split from V23 to run beside M66.
+  - `NearestOfNounJoinedTo` bounded at 4 096 visited blocks (a 400 by 400 lake: 798 401 block reads before, under 25 000 after; the
+    shipped scene's results unchanged). `KeyWordsTaught` is `KeyWordsTaughtBy`, a set of NPC ids; an older save's `true` loads as
+    `{shopkeeper}`. `SessionSkip.Purchases` gives the market's three apples (the bag already held three). The host's `--bag
+    <item:count,…>` (without it, the host is unchanged). A toast when the closing review has nothing due; the objective names a lesson
+    under way; the sleep prompt and closing card after the last lesson say the lessons are done for now (locale lines
+    `ui.reviewNothingDue`, `ui.lessonUnderwayHud`, `ui.sleepPromptDone`, `ui.sleepCardDone`). A `do` step waiting on a pickup the bag
+    already holds is done at once (also `first-words` `u4-pick`, `el-mercado` `k3-wood`, `gente-del-pueblo` `g4-wood`). The first
+    screenshot waits for two whole frames.
+  - Left as it is: the farewell logged under `villager-open` is accurate (the lesson's repeat step evaluates the phrase at its own
+    prompt).
+  - The agent ran `scripts/limited.sh scripts/test.sh …`, which deadlocked on the lock for 21 minutes (M66 queued behind it); it cleared
+    its own processes. The rule is in every brief now, and M67 (c) makes `limited.sh` re-entrant.
+  - Its first gate failed on one O3 test only, "the catalog grammar … was never realised", twice in a row with no core change: a
+    flake of the fuzz suite, fixed by the core's M71 (§5b), with which it was gated. 7437 passed before; 7603 passed and 3 skipped
+    after V23a, M71 and M66, with models. The orchestrator's checks: `--bag coin:0` gives «Necesitas más monedas.».
 
 
 ## 6. Definition of done (every milestone)
