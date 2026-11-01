@@ -364,7 +364,7 @@
     "mode": "Constrained",
     "difficulty": "Beginner",
     "answerSetId": "supplies-bakery",
-    "allowedIntentIds": ["request_item", "ask_price", "ask_availability", "state_action", "greet", "thank", "farewell", "ask_help", "dont_know"],
+    "allowedIntentIds": ["request_item", "offer_item", "ask_price", "ask_total", "ask_availability", "state_action", "greet", "thank", "farewell", "ask_help", "dont_know"],
     "agentId": "baker",
     "slotGrammarIds": [],
     "text": "¿Qué quieres?"
@@ -404,7 +404,7 @@
     "mode": "Constrained",
     "difficulty": "Beginner",
     "answerSetId": "people-smith",
-    "allowedIntentIds": ["ask_name", "ask_activity", "state_have", "state_want", "state_action", "greet", "thank", "farewell", "ask_help", "dont_know"],
+    "allowedIntentIds": ["ask_name", "ask_activity", "state_have", "state_want", "offer_item", "state_action", "greet", "thank", "farewell", "ask_help", "dont_know"],
     "agentId": "smith",
     "slotGrammarIds": [],
     "text": "¡Hola! Esta es mi herrería."
@@ -414,7 +414,7 @@
     "mode": "Constrained",
     "difficulty": "Beginner",
     "answerSetId": "people-farmer",
-    "allowedIntentIds": ["ask_name", "ask_activity", "request_item", "ask_price", "describe", "state_like", "greet", "thank", "farewell", "ask_help", "dont_know"],
+    "allowedIntentIds": ["ask_name", "ask_activity", "request_item", "offer_item", "ask_price", "ask_total", "ask_pay", "describe", "state_like", "state_action", "greet", "thank", "farewell", "ask_help", "dont_know"],
     "agentId": "farmer",
     "slotGrammarIds": [],
     "text": "¡Hola! Este es mi campo."
@@ -638,5 +638,65 @@
     "agentId": "fisher",
     "slotGrammarIds": [],
     "text": "¿Qué hará Luz mañana?"
+  },
+  {
+    "promptId": "lesson-loaves",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-loaves",
+    "allowedIntentIds": ["state_have", "ask_help", "dont_know"],
+    "agentId": "baker",
+    "slotGrammarIds": [],
+    "text": "¡Hoy hay mercado! ¿Cuántos panes tengo?"
+  },
+  {
+    "promptId": "lesson-sell",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-sell",
+    "allowedIntentIds": ["offer_item", "ask_help", "dont_know"],
+    "agentId": "baker",
+    "slotGrammarIds": [],
+    "text": "Necesito madera para el horno. ¿Qué quieres hacer?"
+  },
+  {
+    "promptId": "lesson-dear",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-dear",
+    "allowedIntentIds": ["describe", "ask_help", "dont_know"],
+    "agentId": "farmer",
+    "slotGrammarIds": [],
+    "text": "¿Es caro o es barato?"
+  },
+  {
+    "promptId": "lesson-cheaper",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-cheaper",
+    "allowedIntentIds": ["describe", "ask_help", "dont_know"],
+    "agentId": "farmer",
+    "slotGrammarIds": [],
+    "text": "Una manzana cuesta una moneda, y un pan, dos. ¿Qué es más barato?"
+  },
+  {
+    "promptId": "lesson-will-sell",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-will-sell",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "farmer",
+    "slotGrammarIds": [],
+    "text": "¿Y qué venderás mañana?"
+  },
+  {
+    "promptId": "lesson-market",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-market",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "shopkeeper",
+    "slotGrammarIds": [],
+    "text": "¡Hola! ¿Qué compraste en el mercado?"
   }
 ]

@@ -124,12 +124,12 @@ public sealed class VocativeTests
     [Fact]
     public void AGreetingThatNamesTheListenerIsTheGreetingAsWithoutTheName()
     {
-        // "hola Luz quiero dos panes" was the greeting alone; so is "hola quiero dos panes": the core gives one intent a line, and the greeting's keyword wins where no
-        // grammar takes the whole line. The name is no longer the reason; a learner who greets first is answered and then asks.
+        // "hola Luz quiero dos panes" was the greeting alone; so was "hola quiero dos panes": the core gives one intent a line, and the greeting's keyword wins where no
+        // grammar takes the whole line. The name is no longer the reason. Since V15 the game answers the rest of a line a greeting opens (Greeting), so both are the request.
         var named = At("baker").Say("hola Luz, quiero dos panes");
         var plain = At("baker").Say("hola, quiero dos panes");
 
-        Assert.Equal(("greet", true), (named.Intent, named.Communicated));
+        Assert.Equal(("request_item", true), (named.Intent, named.Communicated));
         Assert.Equal(plain.Intent, named.Intent);
         Assert.Equal(plain.GuideLines, named.GuideLines);
     }

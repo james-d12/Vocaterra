@@ -43,12 +43,16 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | answer_accepted.2 | speech/answer_accepted.2.wav | guide | 1.0 | ¡Bien! |  |
 | answer_accepted.3 | speech/answer_accepted.3.slow.wav | guide | 0.8 | ¡Eso es! |  |
 | answer_accepted.3 | speech/answer_accepted.3.wav | guide | 1.0 | ¡Eso es! |  |
+| baker_buy.1 | speech/baker_buy.1.slow.wav | baker | 0.8 | ¡Gracias! Aquí tienes tus monedas. |  |
+| baker_buy.1 | speech/baker_buy.1.wav | baker | 1.0 | ¡Gracias! Aquí tienes tus monedas. |  |
 | baker_bye.1 | speech/baker_bye.1.slow.wav | baker | 0.8 | ¡Adiós! Hasta luego. |  |
 | baker_bye.1 | speech/baker_bye.1.wav | baker | 1.0 | ¡Adiós! Hasta luego. |  |
 | baker_bye.2 | speech/baker_bye.2.slow.wav | baker | 0.8 | Hasta luego. |  |
 | baker_bye.2 | speech/baker_bye.2.wav | baker | 1.0 | Hasta luego. |  |
 | baker_cant_pay.1 | speech/baker_cant_pay.1.slow.wav | baker | 0.8 | Necesitas más monedas. |  |
 | baker_cant_pay.1 | speech/baker_cant_pay.1.wav | baker | 1.0 | Necesitas más monedas. |  |
+| baker_cant_sell.1 | speech/baker_cant_sell.1.slow.wav | baker | 0.8 | No tienes madera. |  |
+| baker_cant_sell.1 | speech/baker_cant_sell.1.wav | baker | 1.0 | No tienes madera. |  |
 | baker_delivered.1 | speech/baker_delivered.1.slow.wav | baker | 0.8 | ¡Gracias! Toma cuatro monedas. |  |
 | baker_delivered.1 | speech/baker_delivered.1.wav | baker | 1.0 | ¡Gracias! Toma cuatro monedas. |  |
 | baker_greet.1 | speech/baker_greet.1.slow.wav | baker | 0.8 | ¿Qué quieres? |  |
@@ -69,6 +73,10 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | baker_thank.1 | speech/baker_thank.1.wav | baker | 1.0 | De nada. |  |
 | baker_thank.2 | speech/baker_thank.2.slow.wav | baker | 0.8 | ¡Con gusto! |  |
 | baker_thank.2 | speech/baker_thank.2.wav | baker | 1.0 | ¡Con gusto! |  |
+| baker_wont_buy.1 | speech/baker_wont_buy.1.slow.wav | baker | 0.8 | No, gracias. Solo compro madera. |  |
+| baker_wont_buy.1 | speech/baker_wont_buy.1.wav | baker | 1.0 | No, gracias. Solo compro madera. |  |
+| baker_wont_sell.1 | speech/baker_wont_sell.1.slow.wav | baker | 0.8 | Solo vendo pan. |  |
+| baker_wont_sell.1 | speech/baker_wont_sell.1.wav | baker | 1.0 | Solo vendo pan. |  |
 | card.agua | speech/card.agua.slow.wav | guide | 0.8 | el agua |  |
 | card.agua | speech/card.agua.wav | guide | 1.0 | el agua |  |
 | card.antorcha | speech/card.antorcha.slow.wav | guide | 0.8 | la antorcha |  |
@@ -119,12 +127,16 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | farewell_reply.2 | speech/farewell_reply.2.wav | guide | 1.0 | Hasta luego. ¡Buen día! |  |
 | farewell_reply.3 | speech/farewell_reply.3.slow.wav | guide | 0.8 | ¡Nos vemos, amigo! |  |
 | farewell_reply.3 | speech/farewell_reply.3.wav | guide | 1.0 | ¡Nos vemos, amigo! |  |
+| farmer_buy.1 | speech/farmer_buy.1.slow.wav | farmer | 0.8 | ¡Gracias! Aquí tienes tus monedas. |  |
+| farmer_buy.1 | speech/farmer_buy.1.wav | farmer | 1.0 | ¡Gracias! Aquí tienes tus monedas. |  |
 | farmer_bye.1 | speech/farmer_bye.1.slow.wav | farmer | 0.8 | ¡Adiós! Hasta luego. |  |
 | farmer_bye.1 | speech/farmer_bye.1.wav | farmer | 1.0 | ¡Adiós! Hasta luego. |  |
 | farmer_bye.2 | speech/farmer_bye.2.slow.wav | farmer | 0.8 | Hasta luego. |  |
 | farmer_bye.2 | speech/farmer_bye.2.wav | farmer | 1.0 | Hasta luego. |  |
 | farmer_cant_pay.1 | speech/farmer_cant_pay.1.slow.wav | farmer | 0.8 | Necesitas más monedas. Una manzana cuesta una moneda. |  |
 | farmer_cant_pay.1 | speech/farmer_cant_pay.1.wav | farmer | 1.0 | Necesitas más monedas. Una manzana cuesta una moneda. |  |
+| farmer_cant_sell.1 | speech/farmer_cant_sell.1.slow.wav | farmer | 0.8 | No tienes fruta. |  |
+| farmer_cant_sell.1 | speech/farmer_cant_sell.1.wav | farmer | 1.0 | No tienes fruta. |  |
 | farmer_delivered.1 | speech/farmer_delivered.1.slow.wav | farmer | 0.8 | ¡Gracias! Toma tres manzanas. |  |
 | farmer_delivered.1 | speech/farmer_delivered.1.wav | farmer | 1.0 | ¡Gracias! Toma tres manzanas. |  |
 | farmer_greet.1 | speech/farmer_greet.1.slow.wav | farmer | 0.8 | ¡Hola! Este es mi campo. |  |
@@ -137,6 +149,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | farmer_job.1 | speech/farmer_job.1.wav | farmer | 1.0 | Soy el granjero. Trabajo en el campo. |  |
 | farmer_name.1 | speech/farmer_name.1.slow.wav | farmer | 0.8 | Me llamo León. |  |
 | farmer_name.1 | speech/farmer_name.1.wav | farmer | 1.0 | Me llamo León. |  |
+| farmer_pay.1 | speech/farmer_pay.1.slow.wav | farmer | 0.8 | Aquí se paga con monedas. Pero yo te compro fruta. |  |
+| farmer_pay.1 | speech/farmer_pay.1.wav | farmer | 1.0 | Aquí se paga con monedas. Pero yo te compro fruta. |  |
 | farmer_price.1 | speech/farmer_price.1.slow.wav | farmer | 0.8 | Una manzana cuesta una moneda. |  |
 | farmer_price.1 | speech/farmer_price.1.wav | farmer | 1.0 | Una manzana cuesta una moneda. |  |
 | farmer_sell.1 | speech/farmer_sell.1.slow.wav | farmer | 0.8 | Aquí tienes. ¡Gracias! |  |
@@ -147,6 +161,12 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | farmer_thank.1 | speech/farmer_thank.1.wav | farmer | 1.0 | De nada. |  |
 | farmer_thank.2 | speech/farmer_thank.2.slow.wav | farmer | 0.8 | ¡Con gusto! |  |
 | farmer_thank.2 | speech/farmer_thank.2.wav | farmer | 1.0 | ¡Con gusto! |  |
+| farmer_total.1 | speech/farmer_total.1.slow.wav | farmer | 0.8 | Quince manzanas, quince monedas. |  |
+| farmer_total.1 | speech/farmer_total.1.wav | farmer | 1.0 | Quince manzanas, quince monedas. |  |
+| farmer_wont_buy.1 | speech/farmer_wont_buy.1.slow.wav | farmer | 0.8 | No, gracias. Solo compro fruta. |  |
+| farmer_wont_buy.1 | speech/farmer_wont_buy.1.wav | farmer | 1.0 | No, gracias. Solo compro fruta. |  |
+| farmer_wont_sell.1 | speech/farmer_wont_sell.1.slow.wav | farmer | 0.8 | Solo vendo manzanas. |  |
+| farmer_wont_sell.1 | speech/farmer_wont_sell.1.wav | farmer | 1.0 | Solo vendo manzanas. |  |
 | feedback.hint.1 | speech/feedback.hint.1.slow.wav | guide | 0.8 | Casi. Piensa otra vez. |  |
 | feedback.hint.1 | speech/feedback.hint.1.wav | guide | 1.0 | Casi. Piensa otra vez. |  |
 | feedback.hint.2 | speech/feedback.hint.2.slow.wav | guide | 0.8 | ¿Seguro? Dilo otra vez. |  |
@@ -205,6 +225,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | guide.lesson.baker.bought.1 | speech/guide.lesson.baker.bought.1.wav | baker | 1.0 | ¿Qué compraste? |  |
 | guide.lesson.baker.coins.1 | speech/guide.lesson.baker.coins.1.slow.wav | baker | 0.8 | ¿Cuántas monedas tienes? |  |
 | guide.lesson.baker.coins.1 | speech/guide.lesson.baker.coins.1.wav | baker | 1.0 | ¿Cuántas monedas tienes? |  |
+| guide.lesson.baker.fifteen.1 | speech/guide.lesson.baker.fifteen.1.slow.wav | baker | 0.8 | Once, doce, trece, catorce, quince. |  |
+| guide.lesson.baker.fifteen.1 | speech/guide.lesson.baker.fifteen.1.wav | baker | 1.0 | Once, doce, trece, catorce, quince. |  |
 | guide.lesson.baker.five.1 | speech/guide.lesson.baker.five.1.slow.wav | baker | 0.8 | Uno, dos, tres, cuatro, cinco. |  |
 | guide.lesson.baker.five.1 | speech/guide.lesson.baker.five.1.wav | baker | 1.0 | Uno, dos, tres, cuatro, cinco. |  |
 | guide.lesson.baker.fresh.1 | speech/guide.lesson.baker.fresh.1.slow.wav | baker | 0.8 | ¡Qué bien! Mañana tendré pan fresco. |  |
@@ -213,16 +235,26 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | guide.lesson.baker.how_many.1 | speech/guide.lesson.baker.how_many.1.wav | baker | 1.0 | ¿Cuántos panes quieres? |  |
 | guide.lesson.baker.loaves.1 | speech/guide.lesson.baker.loaves.1.slow.wav | baker | 0.8 | Tengo diez panes. |  |
 | guide.lesson.baker.loaves.1 | speech/guide.lesson.baker.loaves.1.wav | baker | 1.0 | Tengo diez panes. |  |
+| guide.lesson.baker.mar.1 | speech/guide.lesson.baker.mar.1.slow.wav | baker | 0.8 | ¿Y qué hizo Mar ayer? |  |
+| guide.lesson.baker.mar.1 | speech/guide.lesson.baker.mar.1.wav | baker | 1.0 | ¿Y qué hizo Mar ayer? |  |
+| guide.lesson.baker.market.1 | speech/guide.lesson.baker.market.1.slow.wav | baker | 0.8 | ¡Hoy hay mercado! ¿Cuántos panes tengo? |  |
+| guide.lesson.baker.market.1 | speech/guide.lesson.baker.market.1.wav | baker | 1.0 | ¡Hoy hay mercado! ¿Cuántos panes tengo? |  |
 | guide.lesson.baker.model.1 | speech/guide.lesson.baker.model.1.slow.wav | baker | 0.8 | Ayer compré fruta en la tienda. |  |
 | guide.lesson.baker.model.1 | speech/guide.lesson.baker.model.1.wav | baker | 1.0 | Ayer compré fruta en la tienda. |  |
 | guide.lesson.baker.oven.1 | speech/guide.lesson.baker.oven.1.slow.wav | baker | 0.8 | Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer? |  |
 | guide.lesson.baker.oven.1 | speech/guide.lesson.baker.oven.1.wav | baker | 1.0 | Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer? |  |
+| guide.lesson.baker.pay.1 | speech/guide.lesson.baker.pay.1.slow.wav | baker | 0.8 | Te pago una moneda por cada madera. |  |
+| guide.lesson.baker.pay.1 | speech/guide.lesson.baker.pay.1.wav | baker | 1.0 | Te pago una moneda por cada madera. |  |
 | guide.lesson.baker.plan.1 | speech/guide.lesson.baker.plan.1.slow.wav | baker | 0.8 | ¡Hola! ¿Qué vas a hacer hoy? |  |
 | guide.lesson.baker.plan.1 | speech/guide.lesson.baker.plan.1.wav | baker | 1.0 | ¡Hola! ¿Qué vas a hacer hoy? |  |
+| guide.lesson.baker.sell.1 | speech/guide.lesson.baker.sell.1.slow.wav | baker | 0.8 | Necesito madera para el horno. ¿Qué quieres hacer? |  |
+| guide.lesson.baker.sell.1 | speech/guide.lesson.baker.sell.1.wav | baker | 1.0 | Necesito madera para el horno. ¿Qué quieres hacer? |  |
 | guide.lesson.baker.ten.1 | speech/guide.lesson.baker.ten.1.slow.wav | baker | 0.8 | Seis, siete, ocho, nueve, diez. |  |
 | guide.lesson.baker.ten.1 | speech/guide.lesson.baker.ten.1.wav | baker | 1.0 | Seis, siete, ocho, nueve, diez. |  |
 | guide.lesson.baker.tomorrow.1 | speech/guide.lesson.baker.tomorrow.1.slow.wav | baker | 0.8 | ¿Qué harás mañana? |  |
 | guide.lesson.baker.tomorrow.1 | speech/guide.lesson.baker.tomorrow.1.wav | baker | 1.0 | ¿Qué harás mañana? |  |
+| guide.lesson.baker.twenty.1 | speech/guide.lesson.baker.twenty.1.slow.wav | baker | 0.8 | Dieciséis, diecisiete, dieciocho, diecinueve, veinte. |  |
+| guide.lesson.baker.twenty.1 | speech/guide.lesson.baker.twenty.1.wav | baker | 1.0 | Dieciséis, diecisiete, dieciocho, diecinueve, veinte. |  |
 | guide.lesson.baker.you.1 | speech/guide.lesson.baker.you.1.slow.wav | baker | 0.8 | Compraste dos panes. ¡Muy bien! |  |
 | guide.lesson.baker.you.1 | speech/guide.lesson.baker.you.1.wav | baker | 1.0 | Compraste dos panes. ¡Muy bien! |  |
 | guide.lesson.end.1 | speech/guide.lesson.end.1.slow.wav | guide | 0.8 | ¡Muy bien! Ya tienes fuego. |  |
@@ -235,6 +267,10 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | guide.lesson.farmer.ate.1 | speech/guide.lesson.farmer.ate.1.wav | farmer | 1.0 | Ayer comí pan de Luz. ¡Me gustó mucho! |  |
 | guide.lesson.farmer.bought.1 | speech/guide.lesson.farmer.bought.1.slow.wav | farmer | 0.8 | ¡Hola! ¿Qué compraste en la panadería? |  |
 | guide.lesson.farmer.bought.1 | speech/guide.lesson.farmer.bought.1.wav | farmer | 1.0 | ¡Hola! ¿Qué compraste en la panadería? |  |
+| guide.lesson.farmer.cheaper.1 | speech/guide.lesson.farmer.cheaper.1.slow.wav | farmer | 0.8 | Una manzana cuesta una moneda, y un pan, dos. ¿Qué es más barato? |  |
+| guide.lesson.farmer.cheaper.1 | speech/guide.lesson.farmer.cheaper.1.wav | farmer | 1.0 | Una manzana cuesta una moneda, y un pan, dos. ¿Qué es más barato? |  |
+| guide.lesson.farmer.dear.1 | speech/guide.lesson.farmer.dear.1.slow.wav | farmer | 0.8 | ¿Es caro o es barato? |  |
+| guide.lesson.farmer.dear.1 | speech/guide.lesson.farmer.dear.1.wav | farmer | 1.0 | ¿Es caro o es barato? |  |
 | guide.lesson.farmer.end.1 | speech/guide.lesson.farmer.end.1.slow.wav | farmer | 0.8 | ¡Hablas muy bien español! |  |
 | guide.lesson.farmer.end.1 | speech/guide.lesson.farmer.end.1.wav | farmer | 1.0 | ¡Hablas muy bien español! |  |
 | guide.lesson.farmer.how_many.1 | speech/guide.lesson.farmer.how_many.1.slow.wav | farmer | 0.8 | ¿Cuántas manzanas quieres? |  |
@@ -245,10 +281,14 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | guide.lesson.farmer.like_apples.1 | speech/guide.lesson.farmer.like_apples.1.wav | farmer | 1.0 | ¿Y te gustan las manzanas? |  |
 | guide.lesson.farmer.liked.1 | speech/guide.lesson.farmer.liked.1.slow.wav | farmer | 0.8 | ¿Te gustó el pan de Luz? |  |
 | guide.lesson.farmer.liked.1 | speech/guide.lesson.farmer.liked.1.wav | farmer | 1.0 | ¿Te gustó el pan de Luz? |  |
+| guide.lesson.farmer.market.1 | speech/guide.lesson.farmer.market.1.slow.wav | farmer | 0.8 | ¡Hola! Hoy hay mercado. Tengo quince manzanas. |  |
+| guide.lesson.farmer.market.1 | speech/guide.lesson.farmer.market.1.wav | farmer | 1.0 | ¡Hola! Hoy hay mercado. Tengo quince manzanas. |  |
 | guide.lesson.farmer.water.1 | speech/guide.lesson.farmer.water.1.slow.wav | farmer | 0.8 | Mis plantas necesitan agua. Si me traes agua del río, te doy tres manzanas. ¿Qué vas a hacer? |  |
 | guide.lesson.farmer.water.1 | speech/guide.lesson.farmer.water.1.wav | farmer | 1.0 | Mis plantas necesitan agua. Si me traes agua del río, te doy tres manzanas. ¿Qué vas a hacer? |  |
 | guide.lesson.farmer.went.1 | speech/guide.lesson.farmer.went.1.slow.wav | farmer | 0.8 | ¿Fuiste al río? |  |
 | guide.lesson.farmer.went.1 | speech/guide.lesson.farmer.went.1.wav | farmer | 1.0 | ¿Fuiste al río? |  |
+| guide.lesson.farmer.will_sell.1 | speech/guide.lesson.farmer.will_sell.1.slow.wav | farmer | 0.8 | ¿Y qué venderás mañana? |  |
+| guide.lesson.farmer.will_sell.1 | speech/guide.lesson.farmer.will_sell.1.wav | farmer | 1.0 | ¿Y qué venderás mañana? |  |
 | guide.lesson.fast.1 | speech/guide.lesson.fast.1.slow.wav | guide | 0.8 | Mira. La madera es para la antorcha. |  |
 | guide.lesson.fast.1 | speech/guide.lesson.fast.1.wav | guide | 1.0 | Mira. La madera es para la antorcha. |  |
 | guide.lesson.fisher.bought.1 | speech/guide.lesson.fisher.bought.1.slow.wav | fisher | 0.72 | ¿Qué compró Luz ayer? |  |
@@ -331,6 +371,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | guide.lesson.shop.had.1 | speech/guide.lesson.shop.had.1.wav | shopkeeper | 1.0 | ¿Bebiste agua ayer? |  |
 | guide.lesson.shop.luz.1 | speech/guide.lesson.shop.luz.1.slow.wav | shopkeeper | 0.8 | El pan es de Luz, de la panadería. |  |
 | guide.lesson.shop.luz.1 | speech/guide.lesson.shop.luz.1.wav | shopkeeper | 1.0 | El pan es de Luz, de la panadería. |  |
+| guide.lesson.shop.market.1 | speech/guide.lesson.shop.market.1.slow.wav | shopkeeper | 0.8 | ¡Hola! ¿Qué compraste en el mercado? |  |
+| guide.lesson.shop.market.1 | speech/guide.lesson.shop.market.1.wav | shopkeeper | 1.0 | ¡Hola! ¿Qué compraste en el mercado? |  |
 | guide.lesson.shop.need.1 | speech/guide.lesson.shop.need.1.slow.wav | shopkeeper | 0.8 | ¿Qué necesita usted? |  |
 | guide.lesson.shop.need.1 | speech/guide.lesson.shop.need.1.wav | shopkeeper | 1.0 | ¿Qué necesita usted? |  |
 | guide.lesson.shop.they.1 | speech/guide.lesson.shop.they.1.slow.wav | shopkeeper | 0.8 | Ellos quieren agua. |  |
@@ -535,8 +577,12 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | phrase.como-te-llamas | speech/phrase.como-te-llamas.wav | guide | 1.0 | ¿Cómo te llamas? |  |
 | phrase.compre-dos-panes | speech/phrase.compre-dos-panes.slow.wav | guide | 0.8 | Compré dos panes. |  |
 | phrase.compre-dos-panes | speech/phrase.compre-dos-panes.wav | guide | 1.0 | Compré dos panes. |  |
+| phrase.compre-tres-manzanas | speech/phrase.compre-tres-manzanas.slow.wav | guide | 0.8 | Compré tres manzanas. |  |
+| phrase.compre-tres-manzanas | speech/phrase.compre-tres-manzanas.wav | guide | 1.0 | Compré tres manzanas. |  |
 | phrase.cuanto-cuesta | speech/phrase.cuanto-cuesta.slow.wav | guide | 0.8 | ¿Cuánto cuesta? |  |
 | phrase.cuanto-cuesta | speech/phrase.cuanto-cuesta.wav | guide | 1.0 | ¿Cuánto cuesta? |  |
+| phrase.cuanto-es-todo | speech/phrase.cuanto-es-todo.slow.wav | guide | 0.8 | ¿Cuánto es todo? |  |
+| phrase.cuanto-es-todo | speech/phrase.cuanto-es-todo.wav | guide | 1.0 | ¿Cuánto es todo? |  |
 | phrase.donde-esta-el-rio | speech/phrase.donde-esta-el-rio.slow.wav | guide | 0.8 | ¿Dónde está el río? |  |
 | phrase.donde-esta-el-rio | speech/phrase.donde-esta-el-rio.wav | guide | 1.0 | ¿Dónde está el río? |  |
 | phrase.donde-esta-la-herreria | speech/phrase.donde-esta-la-herreria.slow.wav | guide | 0.8 | ¿Dónde está la herrería? |  |
@@ -551,6 +597,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | phrase.es-el-herrero | speech/phrase.es-el-herrero.wav | guide | 1.0 | Es el herrero. |  |
 | phrase.es-grande | speech/phrase.es-grande.slow.wav | guide | 0.8 | Es grande. |  |
 | phrase.es-grande | speech/phrase.es-grande.wav | guide | 1.0 | Es grande. |  |
+| phrase.es-muy-caro | speech/phrase.es-muy-caro.slow.wav | guide | 0.8 | Es muy caro. |  |
+| phrase.es-muy-caro | speech/phrase.es-muy-caro.wav | guide | 1.0 | Es muy caro. |  |
 | phrase.esta-lejos | speech/phrase.esta-lejos.slow.wav | guide | 0.8 | ¿Está lejos? |  |
 | phrase.esta-lejos | speech/phrase.esta-lejos.wav | guide | 1.0 | ¿Está lejos? |  |
 | phrase.fui-a-la-panaderia | speech/phrase.fui-a-la-panaderia.slow.wav | guide | 0.8 | Sí, fui a la panadería. |  |
@@ -581,8 +629,12 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | phrase.luz-hizo-pan | speech/phrase.luz-hizo-pan.wav | guide | 1.0 | Luz hizo pan. |  |
 | phrase.manana-comprare-pan | speech/phrase.manana-comprare-pan.slow.wav | guide | 0.8 | Mañana compraré pan. |  |
 | phrase.manana-comprare-pan | speech/phrase.manana-comprare-pan.wav | guide | 1.0 | Mañana compraré pan. |  |
+| phrase.manana-vendere-fruta | speech/phrase.manana-vendere-fruta.slow.wav | guide | 0.8 | Mañana venderé fruta. |  |
+| phrase.manana-vendere-fruta | speech/phrase.manana-vendere-fruta.wav | guide | 1.0 | Mañana venderé fruta. |  |
 | phrase.mar-pesco-en-el-rio | speech/phrase.mar-pesco-en-el-rio.slow.wav | guide | 0.8 | Mar pescó en el río. |  |
 | phrase.mar-pesco-en-el-rio | speech/phrase.mar-pesco-en-el-rio.wav | guide | 1.0 | Mar pescó en el río. |  |
+| phrase.mas-barato-que | speech/phrase.mas-barato-que.slow.wav | guide | 0.8 | La manzana es más barata que el pan. |  |
+| phrase.mas-barato-que | speech/phrase.mas-barato-que.wav | guide | 1.0 | La manzana es más barata que el pan. |  |
 | phrase.mas-despacio | speech/phrase.mas-despacio.slow.wav | guide | 0.8 | Más despacio, por favor. |  |
 | phrase.mas-despacio | speech/phrase.mas-despacio.wav | guide | 1.0 | Más despacio, por favor. |  |
 | phrase.me-gusta-el-pan | speech/phrase.me-gusta-el-pan.slow.wav | guide | 0.8 | Sí, me gusta el pan. |  |
@@ -607,6 +659,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | phrase.otra-vez | speech/phrase.otra-vez.wav | guide | 1.0 | Otra vez, por favor. |  |
 | phrase.pedir-agua | speech/phrase.pedir-agua.slow.wav | guide | 0.8 | Quiero agua, por favor. |  |
 | phrase.pedir-agua | speech/phrase.pedir-agua.wav | guide | 1.0 | Quiero agua, por favor. |  |
+| phrase.puedo-pagar-con-fruta | speech/phrase.puedo-pagar-con-fruta.slow.wav | guide | 0.8 | ¿Puedo pagar con fruta? |  |
+| phrase.puedo-pagar-con-fruta | speech/phrase.puedo-pagar-con-fruta.wav | guide | 1.0 | ¿Puedo pagar con fruta? |  |
 | phrase.que-es-esto | speech/phrase.que-es-esto.slow.wav | guide | 0.8 | ¿Qué es esto? |  |
 | phrase.que-es-esto | speech/phrase.que-es-esto.wav | guide | 1.0 | ¿Qué es esto? |  |
 | phrase.que-haces | speech/phrase.que-haces.slow.wav | guide | 0.8 | ¿Qué haces? |  |
@@ -619,6 +673,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | phrase.quiero-madera | speech/phrase.quiero-madera.wav | guide | 1.0 | Quiero madera. |  |
 | phrase.quiero-tres-manzanas-rojas | speech/phrase.quiero-tres-manzanas-rojas.slow.wav | guide | 0.8 | Quiero tres manzanas rojas. |  |
 | phrase.quiero-tres-manzanas-rojas | speech/phrase.quiero-tres-manzanas-rojas.wav | guide | 1.0 | Quiero tres manzanas rojas. |  |
+| phrase.quiero-vender-madera | speech/phrase.quiero-vender-madera.slow.wav | guide | 0.8 | Quiero vender madera. |  |
+| phrase.quiero-vender-madera | speech/phrase.quiero-vender-madera.wav | guide | 1.0 | Quiero vender madera. |  |
 | phrase.si | speech/phrase.si.slow.wav | guide | 0.8 | Sí. |  |
 | phrase.si | speech/phrase.si.wav | guide | 1.0 | Sí. |  |
 | phrase.si-por-favor | speech/phrase.si-por-favor.slow.wav | guide | 0.8 | Sí, por favor. |  |
@@ -631,12 +687,16 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | phrase.tengo-fruta | speech/phrase.tengo-fruta.wav | guide | 1.0 | Tengo una fruta. |  |
 | phrase.tengo-que-ir | speech/phrase.tengo-que-ir.slow.wav | guide | 0.8 | Tengo que ir al río. |  |
 | phrase.tengo-que-ir | speech/phrase.tengo-que-ir.wav | guide | 1.0 | Tengo que ir al río. |  |
+| phrase.tienes-veinte-panes | speech/phrase.tienes-veinte-panes.slow.wav | guide | 0.8 | Tienes veinte panes. |  |
+| phrase.tienes-veinte-panes | speech/phrase.tienes-veinte-panes.wav | guide | 1.0 | Tienes veinte panes. |  |
 | phrase.trabaja-en-la-herreria | speech/phrase.trabaja-en-la-herreria.slow.wav | guide | 0.8 | Domingo trabaja en la herrería. |  |
 | phrase.trabaja-en-la-herreria | speech/phrase.trabaja-en-la-herreria.wav | guide | 1.0 | Domingo trabaja en la herrería. |  |
 | phrase.va-a-hacer-un-hacha | speech/phrase.va-a-hacer-un-hacha.slow.wav | guide | 0.8 | Va a hacer un hacha. |  |
 | phrase.va-a-hacer-un-hacha | speech/phrase.va-a-hacer-un-hacha.wav | guide | 1.0 | Va a hacer un hacha. |  |
 | phrase.vamos-a-comer-fruta | speech/phrase.vamos-a-comer-fruta.slow.wav | guide | 0.8 | Vamos a comer fruta. |  |
 | phrase.vamos-a-comer-fruta | speech/phrase.vamos-a-comer-fruta.wav | guide | 1.0 | Vamos a comer fruta. |  |
+| phrase.vendo-madera | speech/phrase.vendo-madera.slow.wav | guide | 0.8 | Vendo madera. |  |
+| phrase.vendo-madera | speech/phrase.vendo-madera.wav | guide | 1.0 | Vendo madera. |  |
 | phrase.vivo-en-el-campamento | speech/phrase.vivo-en-el-campamento.slow.wav | guide | 0.8 | Vivo en el campamento. |  |
 | phrase.vivo-en-el-campamento | speech/phrase.vivo-en-el-campamento.wav | guide | 1.0 | Vivo en el campamento. |  |
 | phrase.voy-a-buscar-agua | speech/phrase.voy-a-buscar-agua.slow.wav | guide | 0.8 | Voy a buscar agua. |  |
@@ -673,8 +733,12 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | prompt.lesson-bottle | speech/prompt.lesson-bottle.wav | shopkeeper | 1.0 | ¿Tiene usted una botella? |  |
 | prompt.lesson-bought | speech/prompt.lesson-bought.slow.wav | baker | 0.8 | ¿Qué compraste? |  |
 | prompt.lesson-bought | speech/prompt.lesson-bought.wav | baker | 1.0 | ¿Qué compraste? |  |
+| prompt.lesson-cheaper | speech/prompt.lesson-cheaper.slow.wav | farmer | 0.8 | Una manzana cuesta una moneda, y un pan, dos. ¿Qué es más barato? |  |
+| prompt.lesson-cheaper | speech/prompt.lesson-cheaper.wav | farmer | 1.0 | Una manzana cuesta una moneda, y un pan, dos. ¿Qué es más barato? |  |
 | prompt.lesson-coins | speech/prompt.lesson-coins.slow.wav | baker | 0.8 | ¿Cuántas monedas tienes? |  |
 | prompt.lesson-coins | speech/prompt.lesson-coins.wav | baker | 1.0 | ¿Cuántas monedas tienes? |  |
+| prompt.lesson-dear | speech/prompt.lesson-dear.slow.wav | farmer | 0.8 | ¿Es caro o es barato? |  |
+| prompt.lesson-dear | speech/prompt.lesson-dear.wav | farmer | 1.0 | ¿Es caro o es barato? |  |
 | prompt.lesson-far | speech/prompt.lesson-far.slow.wav | fisher | 0.72 | Y la herrería está a la derecha. |  |
 | prompt.lesson-far | speech/prompt.lesson-far.wav | fisher | 0.9 | Y la herrería está a la derecha. |  |
 | prompt.lesson-going | speech/prompt.lesson-going.slow.wav | fisher | 0.72 | ¿Adónde vas? |  |
@@ -695,6 +759,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | prompt.lesson-liked | speech/prompt.lesson-liked.wav | farmer | 1.0 | ¿Te gustó el pan de Luz? |  |
 | prompt.lesson-lives | speech/prompt.lesson-lives.slow.wav | smith | 0.8 | ¿Dónde vives? |  |
 | prompt.lesson-lives | speech/prompt.lesson-lives.wav | smith | 1.0 | ¿Dónde vives? |  |
+| prompt.lesson-loaves | speech/prompt.lesson-loaves.slow.wav | baker | 0.8 | ¡Hoy hay mercado! ¿Cuántos panes tengo? |  |
+| prompt.lesson-loaves | speech/prompt.lesson-loaves.wav | baker | 1.0 | ¡Hoy hay mercado! ¿Cuántos panes tengo? |  |
 | prompt.lesson-luz-bought | speech/prompt.lesson-luz-bought.slow.wav | fisher | 0.72 | ¿Qué compró Luz ayer? |  |
 | prompt.lesson-luz-bought | speech/prompt.lesson-luz-bought.wav | fisher | 0.9 | ¿Qué compró Luz ayer? |  |
 | prompt.lesson-luz-made | speech/prompt.lesson-luz-made.slow.wav | villager | 0.8 | ¿Qué hizo Luz ayer? |  |
@@ -705,6 +771,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | prompt.lesson-made | speech/prompt.lesson-made.wav | villager | 1.0 | ¿Qué hizo Domingo? |  |
 | prompt.lesson-mar-fished | speech/prompt.lesson-mar-fished.slow.wav | villager | 0.8 | ¿Y qué hizo Mar? |  |
 | prompt.lesson-mar-fished | speech/prompt.lesson-mar-fished.wav | villager | 1.0 | ¿Y qué hizo Mar? |  |
+| prompt.lesson-market | speech/prompt.lesson-market.slow.wav | shopkeeper | 0.8 | ¡Hola! ¿Qué compraste en el mercado? |  |
+| prompt.lesson-market | speech/prompt.lesson-market.wav | shopkeeper | 1.0 | ¡Hola! ¿Qué compraste en el mercado? |  |
 | prompt.lesson-must-go | speech/prompt.lesson-must-go.slow.wav | smith | 0.8 | Mar fue al río y te busca. ¿Adónde tienes que ir? |  |
 | prompt.lesson-must-go | speech/prompt.lesson-must-go.wav | smith | 1.0 | Mar fue al río y te busca. ¿Adónde tienes que ir? |  |
 | prompt.lesson-name | speech/prompt.lesson-name.slow.wav | guide | 0.8 | Me llamo Luna. |  |
@@ -721,6 +789,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | prompt.lesson-plan-there | speech/prompt.lesson-plan-there.wav | fisher | 0.9 | ¿Qué vas a hacer allí? |  |
 | prompt.lesson-plan-we | speech/prompt.lesson-plan-we.slow.wav | villager | 0.8 | ¿Qué vamos a comer? |  |
 | prompt.lesson-plan-we | speech/prompt.lesson-plan-we.wav | villager | 1.0 | ¿Qué vamos a comer? |  |
+| prompt.lesson-sell | speech/prompt.lesson-sell.slow.wav | baker | 0.8 | Necesito madera para el horno. ¿Qué quieres hacer? |  |
+| prompt.lesson-sell | speech/prompt.lesson-sell.wav | baker | 1.0 | Necesito madera para el horno. ¿Qué quieres hacer? |  |
 | prompt.lesson-she | speech/prompt.lesson-she.slow.wav | villager | 0.8 | ¿Qué quiere Luna? |  |
 | prompt.lesson-she | speech/prompt.lesson-she.wav | villager | 1.0 | ¿Qué quiere Luna? |  |
 | prompt.lesson-sign | speech/prompt.lesson-sign.slow.wav | villager | 0.8 | El letrero dice: tienda, río, montaña. |  |
@@ -765,6 +835,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | prompt.lesson-will-go | speech/prompt.lesson-will-go.wav | smith | 1.0 | ¡Muy bien! Mar pescará en el río toda la tarde. ¿Adónde irás ahora? |  |
 | prompt.lesson-will-make | speech/prompt.lesson-will-make.slow.wav | villager | 0.8 | ¿Qué va a hacer Domingo? |  |
 | prompt.lesson-will-make | speech/prompt.lesson-will-make.wav | villager | 1.0 | ¿Qué va a hacer Domingo? |  |
+| prompt.lesson-will-sell | speech/prompt.lesson-will-sell.slow.wav | farmer | 0.8 | ¿Y qué venderás mañana? |  |
+| prompt.lesson-will-sell | speech/prompt.lesson-will-sell.wav | farmer | 1.0 | ¿Y qué venderás mañana? |  |
 | prompt.lesson-wood-plan | speech/prompt.lesson-wood-plan.slow.wav | baker | 0.8 | Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer? |  |
 | prompt.lesson-wood-plan | speech/prompt.lesson-wood-plan.wav | baker | 1.0 | Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer? |  |
 | prompt.lesson-works | speech/prompt.lesson-works.slow.wav | villager | 0.8 | ¿Dónde trabaja Domingo? |  |
@@ -815,10 +887,14 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | shop_thank.1 | speech/shop_thank.1.wav | shopkeeper | 1.0 | De nada. |  |
 | shop_thank.2 | speech/shop_thank.2.slow.wav | shopkeeper | 0.8 | ¡Con gusto! |  |
 | shop_thank.2 | speech/shop_thank.2.wav | shopkeeper | 1.0 | ¡Con gusto! |  |
+| smith_buy.1 | speech/smith_buy.1.slow.wav | smith | 0.8 | ¡Gracias! Aquí tienes tus monedas. |  |
+| smith_buy.1 | speech/smith_buy.1.wav | smith | 1.0 | ¡Gracias! Aquí tienes tus monedas. |  |
 | smith_bye.1 | speech/smith_bye.1.slow.wav | smith | 0.8 | ¡Adiós! Hasta luego. |  |
 | smith_bye.1 | speech/smith_bye.1.wav | smith | 1.0 | ¡Adiós! Hasta luego. |  |
 | smith_bye.2 | speech/smith_bye.2.slow.wav | smith | 0.8 | Hasta luego. |  |
 | smith_bye.2 | speech/smith_bye.2.wav | smith | 1.0 | Hasta luego. |  |
+| smith_cant_sell.1 | speech/smith_cant_sell.1.slow.wav | smith | 0.8 | No tienes madera. |  |
+| smith_cant_sell.1 | speech/smith_cant_sell.1.wav | smith | 1.0 | No tienes madera. |  |
 | smith_delivered.1 | speech/smith_delivered.1.slow.wav | smith | 0.8 | ¡Gracias! Toma el hacha. |  |
 | smith_delivered.1 | speech/smith_delivered.1.wav | smith | 1.0 | ¡Gracias! Toma el hacha. |  |
 | smith_greet.1 | speech/smith_greet.1.slow.wav | smith | 0.8 | ¡Hola! Esta es mi herrería. |  |
@@ -837,6 +913,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | smith_thank.1 | speech/smith_thank.1.wav | smith | 1.0 | De nada. |  |
 | smith_thank.2 | speech/smith_thank.2.slow.wav | smith | 0.8 | ¡Con gusto! |  |
 | smith_thank.2 | speech/smith_thank.2.wav | smith | 1.0 | ¡Con gusto! |  |
+| smith_wont_buy.1 | speech/smith_wont_buy.1.slow.wav | smith | 0.8 | No, gracias. Solo compro madera. |  |
+| smith_wont_buy.1 | speech/smith_wont_buy.1.wav | smith | 1.0 | No, gracias. Solo compro madera. |  |
 | villager_bye.1 | speech/villager_bye.1.slow.wav | villager | 0.8 | ¡Adiós! Hasta luego. |  |
 | villager_bye.1 | speech/villager_bye.1.wav | villager | 1.0 | ¡Adiós! Hasta luego. |  |
 | villager_bye.2 | speech/villager_bye.2.slow.wav | villager | 0.8 | Hasta luego. |  |

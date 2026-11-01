@@ -150,4 +150,46 @@ public sealed class VillageTalkTests
         Assert.Equal(("state_action", true), (Evaluate("Luz hizo pan", "lesson-luz-made").Verdict.Intent.Value, Evaluate("Luz hizo pan", "lesson-luz-made").Verdict.Communicated));
         Assert.Empty(Evaluate("sí, me gustó el pan de Luz", "lesson-liked").Verdict.Errors);
     }
+
+    [Theory]
+    [InlineData("baker-open", "vendo madera", "offer_item", "¡Gracias! Aquí tienes tus monedas.")] // V15: the gate's demos, a sale at the baker's open prompt
+    [InlineData("baker-open", "quiero vender madera", "offer_item", "¡Gracias! Aquí tienes tus monedas.")]
+    [InlineData("lesson-sell", "quiero vender madera", "offer_item", "¡Gracias! Aquí tienes tus monedas.")]
+    [InlineData("smith-open", "tengo madera para usted", "offer_item", "¡Gracias! Aquí tienes tus monedas.")]
+    [InlineData("farmer-open", "¿cuánto es todo?", "ask_total", "Quince manzanas, quince monedas.")]
+    [InlineData("farmer-open", "¿puedo pagar con fruta?", "ask_pay", "Aquí se paga con monedas. Pero yo te compro fruta.")]
+    [InlineData("baker-open", "hola, quiero dos panes", "request_item", "Toma tu pan. ¡Gracias!")] // a greeting before a request: the rest is answered (V15)
+    [InlineData("baker-open", "hola Luz quiero dos panes", "request_item", "Toma tu pan. ¡Gracias!")]
+    public void TheMarketsLinesAreTheirIntentsCommunicatedAndErrorFree(string prompt, string line, string intent, string reply)
+    {
+        var result = Evaluate(line, prompt);
+
+        Assert.Equal((intent, true), (result.Verdict.Intent.Value, result.Verdict.Communicated));
+        Assert.Empty(result.Verdict.Errors);
+        Assert.Contains(result.Response.Lines, l => l.Text == reply || (reply.EndsWith("¡Gracias!", StringComparison.Ordinal) && l.Text.EndsWith("¡Gracias!", StringComparison.Ordinal)));
+    }
+
+    [Theory]
+    [InlineData("baker-open", "¿cuánto costa el pan?", "ask_price", "conj.irregular", "cuesta")] // M58: the stand-in examples restored at V15
+    [InlineData("baker-open", "hay pans", "ask_availability", "noun.number", "panes")]
+    [InlineData("lesson-dear", "la manzana es muy caro", "describe", "gender.agree", "cara")] // M62
+    [InlineData("lesson-cheaper", "la manzana es más barato que el pan", "describe", "gender.agree", "barata")]
+    [InlineData("farmer-open", "¿cuánto costa todo?", "ask_total", "conj.irregular", "cuesta")]
+    [InlineData("farmer-open", "¿podo pagar con fruta?", "ask_pay", "conj.irregular", "puedo")]
+    [InlineData("lesson-will-sell", "mañana vendí fruta", "state_action", "conj.tense", "voy a vender")]
+    [InlineData("lesson-will-sell", "yo venderás fruta", "state_action", "conj.person", "venderé")]
+    public void TheMarketsSlipsAreGradedAndTheIntentHolds(string prompt, string line, string intent, string tag, string expected)
+    {
+        var verdict = Evaluate(line, prompt).Verdict;
+
+        Assert.Equal((intent, true), (verdict.Intent.Value, verdict.Communicated));
+        Assert.Equal(expected, Assert.Single(verdict.Errors, e => e.Tag == tag).Expected);
+    }
+
+    [Theory]
+    [InlineData("baker-open", "vendí madera")] // the DSL has no tense: offer_item names the present, state_action takes vender's other forms
+    [InlineData("baker-open", "venderé madera")]
+    [InlineData("farmer-open", "venderé fruta")] // the farmer's open prompt takes state_action since V15, so a plan is no sale
+    public void APastOrAFutureOfVenderIsAStatementNotAnOffer(string prompt, string line) =>
+        Assert.Equal("state_action", Evaluate(line, prompt).Verdict.Intent.Value);
 }

@@ -647,8 +647,11 @@ public sealed partial class VoxelSession : GuideSession
                 case NpcEffectKind.TakeItem:
                     Take(npc, effect.Item, effect.CountFor(slots), how);
                     break;
-                case NpcEffectKind.Sell:
+                case NpcEffectKind.Sell when effect.ItemSaidIn(slots, Nouns): // another item asked for: the NPC answered wont_sell on the worker (V15)
                     Sell(npc, effect.Item, effect.CountFor(slots), effect.CostFor(slots), how);
+                    break;
+                case NpcEffectKind.Buy when effect.ItemSaidIn(slots, Nouns): // another item offered: wont_buy
+                    Buy(npc, effect.Item, effect.SaleCountFor(slots, Simulation.Inventory.Count(effect.Item)), effect.Price, how);
                     break;
                 default:
                     break;
@@ -720,6 +723,19 @@ public sealed partial class VoxelSession : GuideSession
 
         Take(npc, ItemId.Coin, cost, how);
         Give(npc, item, count, how);
+    }
+
+    // A sale (VILLAGE_PLAN V15, buy): the NPC takes the items the learner offers and pays the price for each, or nothing changes hands. No items to sell (the NPC
+    // answered cant_sell on the worker) or no room for the coins keep the items and the coins where they were, as a purchase does.
+    private void Buy(string npc, ItemId item, int count, int price, string how)
+    {
+        if (count <= 0 || Simulation.Inventory.Count(item) < count || !CanGive(ItemId.Coin, count * price))
+        {
+            return;
+        }
+
+        Take(npc, item, count, how);
+        Give(npc, ItemId.Coin, count * price, how);
     }
 
     // The beacon goes to a named place of the scene (VILLAGE_PLAN V02): a host event's point_at_place, or a lesson's do step with a pointPlace. It shows the place's label.

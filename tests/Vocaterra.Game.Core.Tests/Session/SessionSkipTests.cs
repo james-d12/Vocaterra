@@ -33,6 +33,7 @@ public sealed class SessionSkipTests
         { 7, "como-es", "farmer" },
         { 8, "ayer-en-el-pueblo", "villager" },
         { 9, "manana-en-el-pueblo", "baker" },
+        { 10, "el-mercado", "baker" },
     };
 
     [Theory]
@@ -84,6 +85,7 @@ public sealed class SessionSkipTests
         { 7, 0, 2, 1 },
         { 8, 0, 2, 1 },
         { 9, 0, 2, 1 }, // V17: session 8 has no order and no sale, so a learner arrives at session 9 as at session 8
+        { 10, 0, 2, 1 }, // V15: nor has session 9, so a learner arrives at the market with no coins, three apples, two loaves and the axe
     };
 
     [Theory]
@@ -124,9 +126,11 @@ public sealed class SessionSkipTests
         Assert.Equal("skipped to play session 6 (sessions 1 to 5 counted as done; test aid)", world.Single(static e => e.Name == WorldEvents.SessionSkipped).Detail);
 
         var purchases = session.Lessons.Book.Lessons.SelectMany(l => SessionSkip.Purchases(l, session.Data).Select(p => (l.Id, p))).ToList();
-        var (lesson, purchase) = Assert.Single(purchases); // the two loaves of Números y pan, from its do step and its request "Quiero dos panes, por favor."
-        Assert.Equal("numeros-y-pan", lesson);
-        Assert.Equal(new SessionSkip.Purchase("baker", ItemId.Bread, 2, 2), purchase);
+        // The two loaves of Números y pan, from its do step and its request "Quiero dos panes, por favor."; and El mercado's apples (V15), from its do step: no step of it
+        // is a request (its do step's text asks for three), so the skip would buy one. No session follows the market, so no skip makes that purchase.
+        Assert.Equal(
+            [("numeros-y-pan", new SessionSkip.Purchase("baker", ItemId.Bread, 2, 2)), ("el-mercado", new SessionSkip.Purchase("farmer", ItemId.Apple, 1, 1))],
+            purchases);
     }
 
     [Fact]
@@ -180,9 +184,9 @@ public sealed class SessionSkipTests
     [Fact]
     public void OnlyANewGameIsSkippedAndOnlyToASessionThatHasALesson()
     {
-        Assert.Equal(9, SessionSkip.LastSession(TestGame.Data.Lessons));
+        Assert.Equal(10, SessionSkip.LastSession(TestGame.Data.Lessons)); // V15: the market is the series' last lesson
         Assert.Throws<ArgumentOutOfRangeException>(() => SkippedTo(1));
-        Assert.Throws<ArgumentOutOfRangeException>(() => SkippedTo(10));
+        Assert.Throws<ArgumentOutOfRangeException>(() => SkippedTo(11));
 
         var played = TestGame.NewSessionWithShippedLessons();
         played.Step([]);

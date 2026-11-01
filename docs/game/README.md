@@ -674,8 +674,19 @@ around an order the learner carries out (the plan, the doing, the report).
   walk to the river, where Mar tells the day of tomorrow (`Mañana Luz hará pan. Domingo trabajará en la herrería. Y yo pescaré en el río.`) and the learner retells
   `Luz hará pan.`. No order and no sale. Every answer step is `tense: fut`, so `mañana voy a comprar pan` is credited with the step's note. The baker's open
   prompt takes a plan since V17 (`mañana voy a comprar pan`, answered `¡Muy bien!`); the fisher's does not, since his directions take `busco` with any noun.
+- **El mercado** (session 10, after `manana-en-el-pueblo`, the baker, the farmer and the stall, 22 steps, `a2`; V15, the last lesson): market day. Luz counts
+  to twenty (`Tienes veinte panes.`) and buys the learner's wood (`Quiero vender madera.`, the trees, then `Vendo madera.`: a coin a piece); León shows his fifteen
+  apples (`¿Cuánto es todo?`, `Quince manzanas, quince monedas.`, `Es muy caro.`, `La manzana es más barata que el pan.`, `¿Puedo pagar con fruta?`: coins only,
+  but he buys fruit; `Mañana venderé fruta.`, a `fut` step) and sells three apples for the wood's coins; the stall hears the report (`Compré tres manzanas.`).
+  A learner arrives with no coins and leaves with none, six apples, two loaves and the axe. No order: the sale and the purchase are the session's exchange.
+  Afterwards the Lessons page says every lesson is done.
+- **Selling** (V15): `vendo madera`, `quiero vender madera` (and `tengo madera para usted`) are the intent `offer_item`, which the host answers with `buy`
+  (`content/README.md`, "What a host event does"): Luz and Domingo buy wood, León fruit, a coin a piece, every piece the bag holds (or the number said), as often as
+  the learner brings some. None in the bag: `No tienes madera.`; another item: `No, gracias. Solo compro madera.`. A sale is the present only: `vendí madera` and
+  `venderé madera` are statements (`state_action`) and sell nothing. A greeting before another request is answered as the request (`hola, quiero dos panes` buys
+  the bread; `Greeting.cs`, as `Vocative.cs` takes the listener's name out): the core reads one intent per line, so the game reads the line and then its rest.
 - **Runs.** `--session 4 --lesson-run el-pueblo`, `--session 5 --lesson-run numeros-y-pan` and `--session 6 --lesson-run gente-del-pueblo` run them with typed
-  answers, `--skip-to-session 7 --lesson-run como-es` the farmer's and `--skip-to-session 9 --lesson-run manana-en-el-pueblo` the baker's. The scripted runs r18 (the bakery purchase) and r19 (asking the way) cover the sale and the
+  answers, `--skip-to-session 7 --lesson-run como-es` the farmer's and `--skip-to-session 9 --lesson-run manana-en-el-pueblo` and `--skip-to-session 10 --lesson-run el-mercado` the baker's. The scripted runs r18 (the bakery purchase) and r19 (asking the way) cover the sale and the
   directions (`docs/game/SCRIPTED_RUNS.md`). To play a village lesson by hand, `--skip-to-session 4` (or 5, 6, 7) starts at it with the sessions before counted as
   done ("The next session: sleep at the fire" below; r21).
 

@@ -169,7 +169,7 @@ public sealed class YesterdayLessonTests(ITestOutputHelper output)
         // every person and tener que. The validator holds it to A2, and the earlier six stay a1.
         Assert.Empty(GameDataValidator.Validate(TestGame.Data));
         Assert.Equal(
-            [LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A2, LessonLevels.A2, LessonLevels.A2],
+            [LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A2, LessonLevels.A2, LessonLevels.A2, LessonLevels.A2],
             Book.Lessons.Select(static l => l.Level));
         Assert.Contains("pescar", TestGame.Bundle.Cefr["a1"]);
     }

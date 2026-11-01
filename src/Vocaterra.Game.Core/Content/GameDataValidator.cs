@@ -36,7 +36,9 @@ namespace Vocaterra.Game.Core.Content;
 /// <item>the scene: every NPC it places is an agent the game drives, and every agent is placed once; every NPC a lesson is said or waits at is placed;</item>
 /// <item>the host actions (VILLAGE_PLAN V02, V03): every place a host event (<c>point_at_place</c>) or a lesson's <c>do</c> step (<c>pointPlace</c>) sends the beacon
 /// to is a point of the scene; an NPC whose directions name the place of the learner's line (<c>point_at_slot</c>) has an agent that can say it does not know one
-/// (<c>&lt;npc&gt;.unknown_place</c>), and an NPC that sells has one that can say the coins are too few (<c>&lt;npc&gt;.cant_pay</c>);</item>
+/// (<c>&lt;npc&gt;.unknown_place</c>), an NPC that sells has one that can say the coins are too few (<c>&lt;npc&gt;.cant_pay</c>) and one that can say it sells another item (V15,
+/// <c>&lt;npc&gt;.wont_sell</c>), and an NPC that buys (V15) one that can
+/// say the learner has none to sell (<c>&lt;npc&gt;.cant_sell</c>) and one that can say it buys another item (<c>&lt;npc&gt;.wont_buy</c>);</item>
 /// <item>the orders (V03): the NPC an order is brought to is one of the NPCs, and every state of its agent takes its thanks (<c>&lt;npc&gt;.delivered</c>), so the
 /// goods are never brought in vain; the lesson an order names as the one that tells it (V13) is a lesson with a <c>do</c> step that waits for that delivery;</item>
 /// <item>the lessons' levels (VILLAGE_PLAN 3.9, V08, D-game-22 (b)): the Spanish a lesson teaches and says (its phrases, the lines its steps name, the text of
@@ -335,6 +337,24 @@ public static class GameDataValidator
             if (effect.Kind == NpcEffectKind.Sell && data.Bundle.Agents.ContainsKey(npc) && !TakenBySomeState(data, npc, NpcHostEvents.Of(npc, NpcHostEvents.CantPay)))
             {
                 problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' sells, and no state of agents/{npc}.json takes '{NpcHostEvents.Of(npc, NpcHostEvents.CantPay)}' to say the coins are too few.");
+            }
+
+            if (effect.Kind == NpcEffectKind.Sell && data.Bundle.Agents.ContainsKey(npc) && !TakenBySomeState(data, npc, NpcHostEvents.Of(npc, NpcHostEvents.WontSell)))
+            {
+                problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' sells, and no state of agents/{npc}.json takes '{NpcHostEvents.Of(npc, NpcHostEvents.WontSell)}' to say it sells another item.");
+            }
+
+            if (effect.Kind == NpcEffectKind.Buy && data.Bundle.Agents.ContainsKey(npc))
+            {
+                if (!TakenBySomeState(data, npc, NpcHostEvents.Of(npc, NpcHostEvents.CantSell)))
+                {
+                    problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' buys, and no state of agents/{npc}.json takes '{NpcHostEvents.Of(npc, NpcHostEvents.CantSell)}' to say the learner has none to sell.");
+                }
+
+                if (!TakenBySomeState(data, npc, NpcHostEvents.Of(npc, NpcHostEvents.WontBuy)))
+                {
+                    problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' buys, and no state of agents/{npc}.json takes '{NpcHostEvents.Of(npc, NpcHostEvents.WontBuy)}' to say it does not buy another item.");
+                }
             }
         }
 

@@ -57,7 +57,7 @@ public sealed class GrammarStringsExtractorTests
         ["voy-a-comprar-pan"] = ["conj.tense"],
         ["fui-a-la-panaderia"] = ["conj.tense"],
         ["quiero-dos-panes"] = ["noun.number"],
-        ["cuanto-cuesta"] = ["conj.person"],
+        ["cuanto-cuesta"] = ["conj.irregular"], // V15: the plan's ¿cuánto costa el pan?, graded since the core's M58
         ["voy-a-buscar-madera"] = ["conj.tense"],
         ["tengo-cuatro-monedas"] = ["conj.person"],
         ["compre-dos-panes"] = ["conj.tense"],
@@ -69,12 +69,12 @@ public sealed class GrammarStringsExtractorTests
         ["vivo-en-el-campamento"] = ["gender.agree"],
         ["trabaja-en-la-herreria"] = ["conj.person"],
         ["hizo-un-hacha"] = ["conj.tense"],
-        ["la-manzana-es-roja"] = ["conj.person"],
+        ["la-manzana-es-roja"] = ["gender.agree"], // V15: la manzana es rojo, graded since M62
         ["me-gusta-el-pan"] = ["conj.person"],
         ["me-gustan-las-manzanas"] = ["conj.person"],
         ["quiero-tres-manzanas-rojas"] = ["gender.agree"],
         ["voy-a-buscar-agua"] = ["conj.tense"],
-        ["es-grande"] = ["gender.agree"],
+        ["es-grande"] = ["noun.number"], // V15: el pan es grandes, M62
         ["fui-al-rio"] = ["conj.tense"],
         ["me-gusto-el-pan"] = ["conj.tense"],
         ["luz-hizo-pan"] = ["conj.tense"],
@@ -87,6 +87,15 @@ public sealed class GrammarStringsExtractorTests
         ["buscare-madera"] = ["conj.person"],
         ["ire-al-rio"] = ["conj.person"],
         ["luz-hara-pan"] = ["conj.tense"],
+        ["tienes-veinte-panes"] = ["noun.number"],
+        ["quiero-vender-madera"] = ["conj.person"],
+        ["vendo-madera"] = ["gender.agree"],
+        ["cuanto-es-todo"] = ["conj.irregular"],
+        ["es-muy-caro"] = ["gender.agree"],
+        ["mas-barato-que"] = ["gender.agree"],
+        ["puedo-pagar-con-fruta"] = ["conj.irregular"],
+        ["manana-vendere-fruta"] = ["conj.tense"],
+        ["compre-tres-manzanas"] = ["noun.number"],
     };
 
     [Fact]

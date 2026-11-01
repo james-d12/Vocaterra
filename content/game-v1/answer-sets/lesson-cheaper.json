@@ -1,0 +1,23 @@
+{
+  "answerSetId": "lesson-cheaper",
+  "answers": [
+    {
+      "answerId": "cheaper",
+      "canonical": "la manzana es más barata que el pan",
+      "aliases": ["la manzana es más barata", "es más barata que el pan", "el pan es más caro que la manzana", "el pan es más barato que la manzana"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": ["no lo sé", "yo no sé", "no entiendo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    }
+  ]
+}

@@ -9,7 +9,9 @@
     "farmer-open": [
       "como-te-llamas",
       "que-haces",
-      "quiero-tres-manzanas-rojas"
+      "quiero-tres-manzanas-rojas",
+      "cuanto-es-todo",
+      "puedo-pagar-con-fruta"
     ]
   },
   "prompts": {

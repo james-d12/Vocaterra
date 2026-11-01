@@ -192,10 +192,23 @@ specified for later in `docs/game/CONTENT_PLAN.md` section 3.8 (C10); it is not 
     number (`quiero dos panes`, the verdict's `qty`, 1 to 5, one when none) of the item for that many times the price. The coins go (`item_taken`) and the
     items come (`item_given`), or nothing changes hands: with too few coins the NPC does not say that action's line (`Aquí tienes el pan.`) and is raised
     `<npc>.cant_pay` as a host turn, which its agent answers (`Cuesta dos monedas. No tienes monedas.`); a bag with no room keeps the coins too. The
-    validator checks one state of the agent takes `<npc>.cant_pay`. For example:
+    validator checks one state of the agent takes `<npc>.cant_pay`. Since V15 a request names its item: asked for another one (`quiero madera` at the bakery), the NPC
+    says neither line and is raised `<npc>.wont_sell` (`Solo vendo pan.`), which one state must take too. For example:
 
     ```json
     { "npc": "baker", "event": "baker.sell_bread", "action": { "kind": "sell", "item": "bread", "price": 2 } }
+    ```
+  - `buy` (`item`, `price` in coins; VILLAGE_PLAN V15): a sale, the purchase turned round. Map it to the host event of the action that answers `offer_item`
+    (`vendo madera`, `quiero vender madera`) at the NPC's prompt. The NPC takes the item and pays the price for each one: as many as the learner said (`qty`,
+    1 to 5), or with no number every one the bag holds. The items go (`item_taken`, `madera, request`) and the coins come (`item_given`, `moneda, request`),
+    or nothing changes hands: a bag with none of the item, or a line that offers another item, keeps the NPC from saying that action's line, and its agent
+    is raised `<npc>.cant_sell` (`No tienes madera.`) or `<npc>.wont_buy` (`No, gracias. Solo compro madera.`) as a host turn; a bag with no room for the
+    coins keeps the items too. The validator checks that one state of the agent takes each. There is no cap: the goods are the cap (each coin is a piece of
+    wood chopped or a fruit picked, and nobody buys what an NPC sells, so nothing can be bought and sold again at a profit). Luz and Domingo buy wood, León
+    fruit, a coin each:
+
+    ```json
+    { "npc": "baker", "event": "baker.buy_wood", "action": { "kind": "buy", "item": "wood", "price": 1 } }
     ```
 - **An objective.** Add `game-v1/game/objectives/<id>.json` and its id to `game-v1/game/session.json` where the HUD should show it (the order gates
   nothing: every objective counts from the start, unless it names a `session`, V03: the play session it is shown and counted from; before it the HUD skips

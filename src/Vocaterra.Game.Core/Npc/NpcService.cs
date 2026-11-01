@@ -586,13 +586,19 @@ public sealed partial class NpcService
         }
 
         // Phase 1: the line is read once. A spoken line is decoded here and nowhere else. The listener's name said as a vocative (Luz, quiero pan) is no part of
-        // the sentence, so the core reads the line without it (V14); the turn keeps the line as it was said.
+        // the sentence, so the core reads the line without it (V14); the turn keeps the line as it was said. A greeting that opens a line with something else to say
+        // (hola, quiero dos panes) is answered by the rest, which the core reads as a line of its own (V15, Greeting).
         UtteranceAnalysis analysis;
         string said;
         if (clip is null)
         {
             said = typed!;
-            analysis = _typed.Analyze(Vocative.Without(typed!, agent.Npc.Name), prompt);
+            var bare = Vocative.Without(typed!, agent.Npc.Name);
+            analysis = _typed.Analyze(bare, prompt);
+            if (Greeting.Rest(bare) is { } rest && _typed.Analyze(rest, prompt) is var asked && Greeting.AnswersRest(analysis.Verdict, asked.Verdict, prompt))
+            {
+                analysis = asked;
+            }
         }
         else
         {
@@ -602,6 +608,11 @@ public sealed partial class NpcService
             if (Vocative.Without(analysis.Asr, agent.Npc.Name) is { } bare)
             {
                 analysis = spoken.AnalyzeRecognized(bare, clip, prompt); // the recognizer is not called again
+            }
+
+            if (Greeting.Rest(analysis.Asr) is { } rest && spoken.AnalyzeRecognized(rest, clip, prompt) is var asked && Greeting.AnswersRest(analysis.Verdict, asked.Verdict, prompt))
+            {
+                analysis = asked;
             }
         }
 
@@ -795,12 +806,15 @@ public sealed partial class NpcService
         return unsaid;
     }
 
-    // What the world of the turn cannot do of an action, as the host event its NPC answers (NpcHostEvents.UnknownPlace, CantPay), or null when it can. The coins
-    // are the turn's copy of the inventory: a scene with none carries none.
+    // What the world of the turn cannot do of an action, as the host event its NPC answers (NpcHostEvents.UnknownPlace, WontSell, CantPay, WontBuy, CantSell), or null
+    // when it can. The coins and the goods are the turn's copy of the inventory: a scene with none carries none. A purchase or a sale names its item (V15).
     private string? Miss(NpcEffect effect, IReadOnlyDictionary<string, string> slots, GuideScene scene, IGuideFacts facts) => effect.Kind switch
     {
         NpcEffectKind.PointAtSlot when !slots.TryGetValue(effect.Slot, out var word) || _places.Resolve(word, scene.Player, facts) is null => NpcHostEvents.UnknownPlace,
+        NpcEffectKind.Sell when !effect.ItemSaidIn(slots, _nouns) => NpcHostEvents.WontSell,
         NpcEffectKind.Sell when (scene.Inventory?.Count(ItemId.Coin) ?? 0) < effect.CostFor(slots) => NpcHostEvents.CantPay,
+        NpcEffectKind.Buy when !effect.ItemSaidIn(slots, _nouns) => NpcHostEvents.WontBuy,
+        NpcEffectKind.Buy when (scene.Inventory?.Count(effect.Item) ?? 0) == 0 => NpcHostEvents.CantSell,
         _ => null,
     };
 

@@ -240,6 +240,7 @@
     "ui.bookLessonOpen": "open: talk to {npc}",
     "ui.bookLessonOpensIn": "opens in session {session}, {npc}",
     "ui.bookLessonAfter": "after “{title}”",
+    "ui.bookLessonsAllDone": "Every lesson of the village is done, all {count}: the series ends here. Practise any of them again with its button below.",
     "npc.guide.role": "The guide",
     "npc.shopkeeper.role": "The shopkeeper",
     "npc.villager.role": "The villager",
