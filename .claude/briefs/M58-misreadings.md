@@ -3,7 +3,7 @@ You are implementing the core milestone **M58, two learner slips the core misrea
 Do the work yourself; do not spawn subagents.
 
 ## Where to work, and pushing
-Work only in the existing git worktree `/home/user/Dev/Vocaterra/.claude/worktrees/village`: cd there first, and never edit `/home/user/Dev/Vocaterra` itself or any other worktree. It is on branch `feature/village` (at the HEAD `git log -1` shows, `@@HEAD@@`).
+Work only in the existing git worktree `/home/user/Dev/Vocaterra/.claude/worktrees/village`: cd there first, and never edit `/home/user/Dev/Vocaterra` itself or any other worktree. It is on branch `feature/village` (at the HEAD `git log -1` shows, `06a6ce0`).
 - Create your branch with `git checkout -b M58-misreadings feature/village`.
 - **The owner wants work pushed often.** Commit after each coherent step that builds and passes `scripts/test.sh fast`, with the prefix `M58: `. Push after every commit: `git push -u origin M58-misreadings` the first time, then `git push origin M58-misreadings`.
 - Never push `main` or `feature/village`, and do not merge.
