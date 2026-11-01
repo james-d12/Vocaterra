@@ -61,6 +61,7 @@ public enum TokenRole
 /// <param name="Slot">The grammar slot the token fills, or null.</param>
 /// <param name="Infinitive">True for an infinitive verb.</param>
 /// <param name="SubjectPronoun">True for a pronoun generated as the subject of a verb.</param>
+/// <param name="Coordination">For a subject pronoun that ends a subject of members joined by <c>y</c> or <c>e</c> (<c>luz y yo comemos</c>, M64), that subject; otherwise null.</param>
 public sealed record SentenceToken(
     string Written,
     string Norm,
@@ -74,7 +75,17 @@ public sealed record SentenceToken(
     int Head,
     string? Slot,
     bool Infinitive,
-    bool SubjectPronoun);
+    bool SubjectPronoun,
+    SubjectCoordination? Coordination = null);
+
+/// <summary>
+/// A subject of members joined by <c>y</c> or <c>e</c> that a subject pronoun ends (M64; mirror of <c>SpanishAgreementChecker.CoordinationOf</c>): the person its verb takes,
+/// always plural (<c>1</c> when a member is of the first person; else <c>2</c> when one is of the second, whose verb may be of the second or the third person plural; else
+/// <c>3</c>), and its gender, known only when every member has one.
+/// </summary>
+/// <param name="Person">The dominant person of the members.</param>
+/// <param name="Gender">The gender of the subject, or null.</param>
+public sealed record SubjectCoordination(string Person, string? Gender);
 
 /// <summary>A sentence realised from a grammar, correct by construction, with the structure the mutation generator needs.</summary>
 /// <param name="PatternSource">Where the grammar came from: <c>catalog</c>, <c>skeleton</c> or <c>random</c>.</param>

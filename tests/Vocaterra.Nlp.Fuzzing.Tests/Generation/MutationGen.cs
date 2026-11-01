@@ -244,11 +244,16 @@ public static class MutationGen
 
                 var pronoun = _tokens[subject];
                 var verb = _tokens[i];
+                if (AcceptedCells(pronoun, verb) is not { } accepted)
+                {
+                    continue;
+                }
+
                 var cells = Persons.SelectMany(static p => Numbers.Select(n => (Person: p, Number: n))).ToList();
                 rng.Shuffle(cells);
                 foreach (var (person, number) in cells)
                 {
-                    if (person == pronoun.Person && number == pronoun.Number)
+                    if (accepted.Contains((person, number)))
                     {
                         continue;
                     }
@@ -263,7 +268,7 @@ public static class MutationGen
                     // correction the analyzer names would depend on which reading it picks as representative.
                     var finite = _words.Lexicon.Lookup(form).Where(static r => r.Pos == LexiconSchema.Verb && r.Person is not null).ToArray();
                     if (finite.Length == 0
-                        || finite.Any(r => r.Person == pronoun.Person && r.Number == pronoun.Number)
+                        || finite.Any(r => accepted.Contains((r.Person!, r.Number!)))
                         || finite.Any(r => r.Lemma != verb.Lemma || r.Tense != verb.Tense))
                     {
                         continue;
@@ -275,6 +280,29 @@ public static class MutationGen
             }
 
             return null;
+        }
+
+        // The person and number cells the analyzer accepts for a verb after its subject pronoun: the pronoun's own, or, for a pronoun that ends a coordinated subject
+        // (M64: luz y yo comemos), the plural cells of the coordination. A coordinated verb of the second person plural (tú y ella coméis) is not mutated: it is right,
+        // but the analyzer's correction of a mutation there is the third person plural (comen), not the form the sentence had.
+        private static List<(string, string)>? AcceptedCells(SentenceToken pronoun, SentenceToken verb)
+        {
+            if (pronoun.Coordination is not { } coordination)
+            {
+                return [(pronoun.Person!, pronoun.Number!)];
+            }
+
+            if (verb is { Person: "2", Number: LexiconSchema.Plural })
+            {
+                return null;
+            }
+
+            return coordination.Person switch
+            {
+                "1" => [("1", LexiconSchema.Plural)],
+                "2" => [("2", LexiconSchema.Plural), ("3", LexiconSchema.Plural)],
+                _ => [("3", LexiconSchema.Plural)],
+            };
         }
 
         // M56: a third-person verb whose subject follows it (¿dónde están las casas?, me gustan las manzanas) takes the other number; the analyzer reports conj.person
@@ -376,6 +404,13 @@ public static class MutationGen
             }
 
             var number = verb.Number == LexiconSchema.Singular ? LexiconSchema.Plural : LexiconSchema.Singular;
+
+            // The one guard the owner's request to fix the review's findings allows (2026-11-01, M64 (b)): an amount before a singular ser with a singular predicate is
+            // read as one sum (dos panes es suficiente, diez monedas es mucho dinero), so the analyzer accepts es after it as well as son.
+            if (_tokens[0].Role == TokenRole.Numeral && verb.Lemma == "ser" && number == LexiconSchema.Singular && SingularPredicateAfter(i))
+            {
+                return null;
+            }
             var form = _words.Morphology.Conjugate(verb.Lemma, "3", number, verb.Tense);
             if (form is null || form == verb.Norm)
             {
@@ -392,6 +427,32 @@ public static class MutationGen
 
             var mutated = Replace(i, verb with { Written = form, Norm = form, Number = number });
             return Result(MutationKind.ConjPerson, mutated, [Error(mutated, ErrorTags.ConjPerson, i, i, verb.Norm, form)], sentence.NormalizedText, keepsGrammar: true);
+        }
+
+        // M64 (b): the word after the verb at index (past at most two skippable words) is a word of LexiconCatalog.AmountPredicates or can open a noun phrase of the
+        // singular (an article, a numeral or a determiner adjective of the singular): the predicate after which the analyzer reads an amount before a singular ser as one
+        // sum (mirror of SpanishAgreementChecker.IsAmountReadAsUnit, which also asks the phrase for its noun).
+        private bool SingularPredicateAfter(int verb)
+        {
+            for (var index = verb + 1; index < _tokens.Count && index - verb <= MaxSkippedBetween + 1; index++)
+            {
+                var token = _tokens[index];
+                if (LexiconCatalog.AmountPredicates.Contains(token.Norm)
+                    || token is { Role: TokenRole.Numeral, Number: LexiconSchema.Singular }
+                    || _words.Lexicon.Lookup(token.Norm).Any(static r => r.Number == LexiconSchema.Singular
+                        && (r.Pos is LexiconSchema.Article or LexiconSchema.Numeral
+                            || (r.Pos == LexiconSchema.Adjective && LexiconCatalog.DeterminerAdjectiveLemmas.Contains(r.Lemma)))))
+                {
+                    return true;
+                }
+
+                if (!IsSkippable(token))
+                {
+                    return false;
+                }
+            }
+
+            return false;
         }
 
         public MutatedSentence? NounNumber()
@@ -546,7 +607,8 @@ public static class MutationGen
                 return null;
             }
 
-            return _tokens[pronoun].Gender;
+            // M64: a pronoun that ends a coordinated subject gives the coordination's gender, known only when every member has one (ella y él son altos).
+            return _tokens[pronoun].Coordination is { } coordination ? coordination.Gender : _tokens[pronoun].Gender;
         }
 
         public MutatedSentence? SerEstar()

@@ -125,6 +125,18 @@ code comments and here, with the reason:
     pronoun (the one the person check pairs with it, not behind a word that can be a preposition) at most two before the copula, and the new form an adjective of the
     other gender and nothing else, as for an attributive adjective. `PredicateAdjectiveMutationTests` shows that the draw reaches it. The oracles as they stood before
     M62 are unchanged.
+  - *O3, O4 and O5, a subject pronoun joined by `y` (M64, a widening).* The realiser agrees the verb after a pronoun that ends a coordinated subject with the
+    coordination (`luz y yo comemos`), and the person mutation of that verb expects the coordinated form (`luz y yo como` gives `comemos`); see "How the sentence
+    generator stays honest". The mutation leaves out the cells the analyzer accepts, as it always left out the pronoun's own, and no oracle as it stood before M64 is
+    narrowed.
+  - *O4 and O5, `conj.person` after a noun subject, an amount before a singular `ser` (M64 (b), 2026-11-01, narrowed at the owner's request to fix the review's
+    findings).* The analyzer reads a phrase of plural cardinals before a singular `ser` with a singular predicate as one sum (`diez monedas es mucho dinero`, `dos panes
+    es suficiente`; R5 of the review of `feature/village`), so `es` there is as right as `son`. M59's mutation of a third-person verb after a noun subject is not made
+    on exactly that case: the sentence opens with a numeral, the verb is `ser` and the new form singular, and the word after it (past at most two skippable words) is a
+    word of `LexiconCatalog.AmountPredicates` (`mucho`, `poco`, `suficiente`, `caro`...) or can open a phrase of the singular (an article, a numeral or a determiner
+    adjective of the singular), as `SpanishAgreementChecker.IsAmountReadAsUnit` asks (it also asks for the phrase's noun, so the guard is a little wider). Every other
+    case of the mutation is made as before: an article before the noun (`las manzanas es roja`), a verb other than `ser` (`dos niños come pan`), a predicate of the
+    plural or an adjective that says no amount (`dos niños son altos` becomes `es altos`, expected `son`). This is the one narrowing of M64.
 - **O8.** The dialect sites are `θ s z h ʎ ʝ ʃ ʒ` (the plan lists `θ s ʎ ʝ h`; the shipped dialects also produce the voiced `z` and the rioplatense `ʃ ʒ`).
   `Tokenize(ToIpaString())` is exact except for the pair `t` + `ʃ`, whose concatenation is the affricate token `tʃ` (the inventory documents that
   sequences are lists for this reason); a result with that pair skips the split.
@@ -320,6 +332,23 @@ before it), and a word that can be an adjective and a noun right after the noun 
 noun's adjective (`skip:noun-reads-as-adjective`; a word that can also be a finite verb is left alone by both), and a noun that is also something else right after
 `muy` or `tan`, where the analyzer reads no noun (`skip:noun-after-degree-adverb`). The colours are read from the Spanish pack's public rules (`IAnalysisRules.IsPostnominalAdjective`), not mirrored. The sentence stream digest of
 `FuzzLanguageStreamTests` was recorded again for these changes.
+
+M64 (the review of `feature/village`, R1) made the analyzer read a subject pronoun joined by `y` or `e` to members before it that open their clause as the end of one
+plural subject (`luz y yo fuimos`, `tú y ella son`), so the realiser models it where it can tell what the analyzer reads, a widening of O3, O4 and O5: before M64 it agreed
+the verb with the last pronoun, which the analyzer now flags. `SentenceRealizer.CoordinationBefore` (mirror of `SpanishAgreementChecker.CoordinationOf`) reads the
+members back from the pronoun: a subject pronoun, a noun phrase or a name, whose clause is surely opened when it is the sentence's first word or follows `y`, `e`, `pero`,
+`porque`, `si`, `cuando` or `aunque` (`LexiconCatalog.SubjectClauseOpeners`). The verb then takes the first person plural when a member is of the first person; else the
+third person plural (seven draws in ten) or the second (three in ten) when one is of the second; else the third plural; a literal verb that agrees with none skips the
+draw. A predicate adjective after it is plural, with the coordination's gender, known only when every member has one. A member right after a word that can be a verb or a
+preposition, or a word before `y` that can be no member, leaves the pronoun its own subject (`y` joins two clauses: `comí pan y tú bebes`), as before. Everything else is
+skipped as `skip:coordinated-subject`, the reason M59 gave a subject of noun phrases joined by `y` (unchanged): a word not drawn yet when the verb is finished, a word that
+may be a noun or a subject pronoun of another reading, a phrase of time, a bare noun of another reading, a noun of both genders, a phrase with `de` before it and a
+clause the analyzer may open past adverbs or phrases of time. The token of the pronoun carries the coordination (`SentenceToken.Coordination`), so the person mutation
+leaves out every cell the analyzer accepts (both plurals for a member of the second person) and makes none on a coordinated verb of the second person plural (the
+analyzer's correction there is the third person plural, not the form the sentence had), and the gender mutation of a predicate adjective reads the coordination's
+gender. `CoordinatedSubjectFuzzTests` realises eight patterns with `y` before a pronoun (150 seeds each: 637 coordinated subjects of all three persons, 548 person and 71
+gender mutations, all flagged as named). The shape is rare in the oracles' own draws (a random pattern with a conjunction before a pronoun and a verb), and the
+sentence stream digest did not move.
 
 A name (M17b) has no reading the checks use: the realiser treats it like an unknown word, so it breaks every phrase and every subject-verb link around it, and
 the analyzer does the same (a bound name keeps no reading at all). `CorrectSentenceFuzzTests` and `SerializationRoundTripFuzzTests` (`NameSentences_SurviveCanonicalJson`)
@@ -566,6 +595,15 @@ Found and fixed in M62b (by the gate of the game's V15):
   drawn name that is a lexicon noun right after a determiner or an adjective that belongs to no noun (`skip:name-read-as-noun`). Regression:
   `NameReadAsNounTests` (the recipe of the seed now realises a sentence the analyzer finds correct; it built `un japón Dejo` before). No digest moved.
 
+Found and fixed in M64:
+
+- **A feminine noun that takes `el` was masculine for the predicate check** (`Vocaterra.Nlp.Es`, `SpanishAgreementChecker.PhraseGender`; found by O4 at five times the
+  default depth, CsCheck seed `clQQ50b0dLj2`, `MutationCase { Kind = VocabUnknown, Seed = 8144391 }`; older than M64, the same at `951e7c8`). The pattern
+  `(sí)? [ART]? [NOUN:object]? [VERB:ser] tan [ADJ] como [ART]? [NOUN]` gave `el ala es tan sincera como saeta`; the mutation's non-word in place of `saeta` unbinds the
+  grammar, and the lexicon lists `ala` with both genders, so the article `el` decided the masculine and the analyzer gave `gender.agree` `sincero` beside the expected
+  `vocab.unknown`. A noun of the pack's list of feminine nouns that take `el` (`ala`, `agua`, `hacha`...) is feminine now, whatever its article. Regression:
+  `PredicateAdjectiveTests.AFeminineNounThatTakesElIsFeminine` in `tests/Vocaterra.Nlp.Es.Tests/Analysis` (`el ala es muy sincera` gave `sincero` before).
+
 ## Known, deliberately not fixed
 
 Findings that are content gaps or design limits rather than defects of one stage. None changes behaviour here; the generators step around
@@ -645,6 +683,12 @@ them explicitly (each is a skip or a restriction in the generator, counted in th
   - *O5, the `conj.person` mutation after a noun subject and `haber`* (CsCheck seed `b3HSKSLCsL_1`, `MutationCase { Kind = ConjPerson, Seed = 729196 }`): the pattern
     `[DET] [NOUN:item] [VERB] [ADJ]` gives `el subtítulo ha peligroso`, and M59's mutation makes `han`; M59's check leaves `haber` out by design (`hay dos panes`), so
     the analyzer reports nothing and the recast keeps `han`. The mutation needs M59's exclusion of `haber`, which narrows O4 and O5; left for the orchestrator.
+- **Found at M64, older than M64, and left for a decision** (seven runs of O3 to O5 at five times the default depth, the last three after the fix of `el ala` above
+  and all passing; every run of the project at its default depth passed). *O5, the recast of a `word_order` mutation where the grammar can bind the moved adjective as a name* (CsCheck seed `2tpLGUOSqj41`, `MutationCase { Kind =
+  WordOrder, Seed = 17287070985274212 }`): the random pattern `([WORD:item]|[ADJ:qty] [PRON]|[NOUN:spell])? [ADJ]` gives `militar necesaria`; the mutation makes
+  `necesaria militar`, and its recast is `necesaria militar` again instead of `militar necesaria` (with the order slipped, `[WORD:item] [ADJ]` can bind `necesaria`
+  as a name and `militar` as the adjective). It fails the same way on `feature/village` at `951e7c8`, before M64, and no rule of M64 reads its words; it is left for the
+  orchestrator with M62's findings above.
 
 ## Adding to the suite
 
