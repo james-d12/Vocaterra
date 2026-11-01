@@ -49,11 +49,12 @@ Found by the game's V11 (2026-10-31), each tried on the CLI at a prompt of the g
 
 ## Gate (from the worktree root, each through scripts/limited.sh)
 - `dotnet build Vocaterra.sln -warnaserror -m:4`, with 0 warnings.
-- `dotnet test Vocaterra.sln -m:2` all passing (it was @@COUNT@@); report the new count.
+- `dotnet test Vocaterra.sln -m:2` all passing (it was 6771 passed and 3 skipped, with models); report the new count.
 - `dotnet format Vocaterra.sln --verify-no-changes`.
 - `bash scripts/license-scan.sh --offline` PASSED.
 - The core demo: `dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo quiere dos espada" --prompt villager-open --content content/game-v1` still yields exactly `conj.person` and `noun.number` (through the wrapper).
 - The CLI at the game's prompts: `¿cuánto costa el pan?` at `baker-open` gives `conj.irregular` with the price intent; `hay pans` at the baker's prompt gives `noun.number` with its intent; `¿cuánto cuesta el pan?`, `cuánto cuestan los panes` and `hay dos panes` stay clean, and `cuánto costan los panes` still gives `conj.irregular` (expected `cuestan`). (If a prompt id differs, find it with `grep`.)
+- **Correct learner lines stay clean** (M59's first build flagged `Luz quiero pan`, a name said to the listener, because only the brief's error lines were tried): run the CLI on about a dozen natural, correct lines a learner says at the village's prompts (`baker-open`, `smith-open`, `fisher-open`, the farmer's and the stall's): names (`Luz quiero pan`, `Domingo hizo un hacha`), greetings, `usted` and `ustedes`, numbers (`quiero doce manzanas`), words that end in `-s` or look like a verb form (`más`, `mes`, `país`, `la costa`, `en la costa`, `cuesta`, `puedo`, `quiero`, `tienes`, `duermo`, `juego`), and unknown words that must stay `vocab.unknown`. None may be flagged; list them with their results in the report.
 - `scripts/content.sh validate` passes (the bundle is unchanged).
 - Do not commit `bin/`, `obj/` or `artifacts/`.
 
@@ -61,7 +62,6 @@ Found by the game's V11 (2026-10-31), each tried on the CLI at a prompt of the g
 Each message ends with:
 ```
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
-Claude-Session: https://claude.ai/code/session_01F9jKDdyPc3eAsDgGyBVKv6
 ```
 
 ## Report (one page, under 400 words)

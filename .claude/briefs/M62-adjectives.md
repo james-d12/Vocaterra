@@ -51,11 +51,12 @@ Found by the game's V13 (2026-10-31), each tried on the CLI at a prompt of the g
 
 ## Gate (from the worktree root, each through scripts/limited.sh)
 - `dotnet build Vocaterra.sln -warnaserror -m:4`, with 0 warnings.
-- `dotnet test Vocaterra.sln -m:2` all passing (it was @@COUNT@@); report the new count.
+- `dotnet test Vocaterra.sln -m:2` all passing (it was 6771 passed and 3 skipped, with models); report the new count.
 - `dotnet format Vocaterra.sln --verify-no-changes`.
 - `bash scripts/license-scan.sh --offline` PASSED.
 - The core demo: `dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo quiere dos espada" --prompt villager-open --content content/game-v1` still yields exactly `conj.person` and `noun.number` (through the wrapper).
 - The CLI at the game's prompts: `la manzana es rojo` at the farmer's prompt gives `gender.agree`; `el pan es muy caro` at `baker-open` stays clean and `la manzana es muy caro` gives `gender.agree`; `quiero tres rojas manzanas` at the farmer's prompt gives `word_order` (and the intent, if you chose so); `quiero tres manzanas rojas` and `me gustan las manzanas` stay clean. (If a prompt id differs, find it with `grep`.)
+- **Correct learner lines stay clean** (M59's first build flagged `Luz quiero pan`, a name said to the listener, because only the brief's error lines were tried): run the CLI on about a dozen natural, correct lines a learner says at the village's prompts (`baker-open`, `smith-open`, `fisher-open`, the farmer's and the stall's): names (`Luz quiero pan`, `Domingo hizo un hacha`), greetings, `usted` and `ustedes`, numbers (`quiero doce manzanas`), predicate and attributive adjectives that are right (`la casa es grande`, `Luz es alta`, `el pan está rico`, `es muy bonito`, `las manzanas rojas son baratas`, `una gran casa`, `un buen pan`), and a comparison (`el pan es más caro que la fruta`). None may be flagged; list them with their results in the report.
 - `scripts/content.sh validate` passes (the bundle is unchanged).
 - Do not commit `bin/`, `obj/` or `artifacts/`.
 
@@ -63,7 +64,6 @@ Found by the game's V13 (2026-10-31), each tried on the CLI at a prompt of the g
 Each message ends with:
 ```
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
-Claude-Session: https://claude.ai/code/session_01F9jKDdyPc3eAsDgGyBVKv6
 ```
 
 ## Report (one page, under 400 words)

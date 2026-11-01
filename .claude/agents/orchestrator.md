@@ -41,36 +41,20 @@ is a change to the boundary and updates that record.
   - Bring owner decisions (licences, scope, anything that changes D-numbers) to the owner rather than deciding them.
 
 ## Handover (2026-10-31, late): the village, phase B (read this first)
-**Start here (a fresh orchestrator session; the last one ended with nothing running)**
+**Start here (a fresh orchestrator session)**
 1. **Check the session.**
    - Run the start checks in "Start of a session" below.
    - The worktree `.claude/worktrees/village` should be on `feature/village` and clean, at the handover commit or later.
-   - The branch `V17-manana-en-el-pueblo` (`7176734`) is pushed and not gated.
-   - No agent or build is running.
-2. **Gate V17 first.** Its report is in `.claude/briefs/V17-report.md` (scope already checked).
-   - **Read** its new Spanish in the diff (`git diff feature/village..V17-manana-en-el-pueblo -- content/game-v1`, the lesson and pool
-     files, not the manifest).
-   - **Gate** in the background: `GATE_TARGET=feature/village scripts/merge-gate.sh "V17:V17-manana-en-el-pueblo"`.
-   - **Spot-check:**
-     - `scripts/content-loop.sh --grammar --tier none`: CI's grammar cache rebuilt from nothing, equal;
-     - the host at `baker-open`: `mañana compraré pan`, `Luz, mañana compraré pan`, `voy a comprar pan`;
-     - the lesson by `--skip-to-session 9`.
-   - The agent was stopped before its last checks. Do them yourself, cheaply, or carry them into V15's brief:
-     - the scripted runs after the change;
-     - the learner's route from session 8;
-     - the timed `--lesson-run`;
-     - CI's case without models.
-   - **Record** V17:
-     - its VILLAGE_PLAN section 4 row (only the milestone table's row; a regex on `| V17 |` also hits the 3.8 code-changes table);
-     - an entry in `docs/game/IMPLEMENTATION_PLAN.md` section 5, modelled on V16's;
-     - its open points under "Open points to carry".
-   - **Then:** commit, push `feature/village`, delete the branch locally and on the remote, and delete `.claude/briefs/V17-report.md`.
-3. **Then, in order, without stopping:** M58, M62, V15, V09. Each by an Opus 5.5 agent at xhigh, one at a time, in the shared worktree.
-   - **M58:** `.claude/briefs/M58-misreadings.md` is ready. Fill `@@HEAD@@` and `@@COUNT@@`. Its part (c) is the owner's "option 1",
-     the `word_order` guard.
-   - **M62:** `.claude/briefs/M62-adjectives.md`. Fill the same placeholders.
-   - **V15:** `.claude/briefs/V15-el-mercado.md` is a draft of its "What to build" only. Its header comment says what to add, with V17's
-     brief as the model.
+   - If a milestone branch (`M58-misreadings`, `M62-adjectives`, `V15-el-mercado`, `V09-…`) exists with no agent running, inspect it
+     (`git log`, `git status`, a report in `.claude/briefs/`) before relaunching or gating it.
+2. **V17 is done** (gated and recorded at `cc155d4`). Its unfinished checks (the scripted runs after it, the route from session 8, the
+   timed lesson run, CI's case) are carried in V15's brief.
+3. **In order, without stopping:** M58, M62, V15, V09. Each by an Opus 5.5 agent at xhigh, one at a time, in the shared worktree.
+   - **M58:** `.claude/briefs/M58-misreadings.md`. Fill `@@HEAD@@` (the count is filled: 6771 passed and 3 skipped). Its part (c) is
+     the owner's "option 1", the `word_order` guard.
+   - **M62:** `.claude/briefs/M62-adjectives.md`. Fill `@@HEAD@@` and the count after M58.
+   - **V15:** `.claude/briefs/V15-el-mercado.md` is complete apart from `@@HEAD@@`, `@@COUNT@@` and `@@M58M62@@` (what M58 and M62 now
+     grade, from their reports: the stand-ins of `content/PHRASES.md` to restore, and any limit).
    - **V09:** no brief yet. It is the documents and the scripted runs again, for phase B: VILLAGE_PLAN's V09 row (section 4) and
      section 5, and what phase A's V09 did (its entry in the game plan's section 5, `grep -n '^- \*\*V09'`).
    - After V09: report phase B as finished to the owner, with what is left open. A QA agent pass on the village (`subagent_type: qa`) is
@@ -92,9 +76,9 @@ is a change to the boundary and updates that record.
   - V14: session 8 "Ayer en el pueblo" (`78a37fa`); the listener's name as a vocative is stripped by the game;
   - V16: the simple future at a step, the other futures credited with a note, the book's fourth column (`71573ba`);
   - the core's M57 (`888f914`): the later time markers in one table (`SpanishTimeMarkers`); the stream digests on frozen inputs;
+  - V17: session 9 "Mañana en el pueblo" (`cc155d4`), the simple future against `ir a`; no order;
   - `main` merged in at `0cf674b`. It brought the CI workflow with its grammar jobs, and the QA agent.
-- **Built, not gated:** V17, session 9 "Mañana en el pueblo" (`7176734`; see "Start here").
-- **Next, in order** (owner, 2026-10-31, D-game-22): V17's gate, the core's M58 and M62 (both before V15; M62 by the owner's word after
+- **Next, in order** (owner, 2026-10-31, D-game-22): the core's M58 and M62 (both before V15; M62 by the owner's word after
   V13), V15 (session 10 "El mercado"), then V09 again (the documents and the scripted runs).
   - Every one by Opus 5.5 at xhigh, one at a time. The owner asked whether milestones could run in parallel, heard the reasons (the
     chain V17 → V15 → V09, the one machine-wide build lock, disk) and said "for now just continue with the development".

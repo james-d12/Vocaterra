@@ -1888,6 +1888,36 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     correct sentence said where its intent is not accepted shows "0 correct".
   - The orchestrator's spot-check: CI's grammar check holds (the cache rebuilt from nothing equal, 7 new strings, 0 findings).
 
+- **V17: session 9 "Mañana en el pueblo" (2026-10-31, Opus 5.5 xhigh; gated on `feature/village` at `cc155d4`).** The baker's lesson
+  of session 9, level `a2`, 14 steps, 8 check items: the simple future as the second way to say tomorrow, against `ir a` (an explain step:
+  a plan already made, `voy a comprar pan`; a promise or a prediction, `mañana compraré pan`). Luz at the bakery, Domingo at the smithy, Mar
+  at the river. The first lesson with `fut` steps: V16's machinery lacked nothing.
+  - Rows: said `manana-comprare-pan`, `buscare-madera`, `ire-al-rio`, `luz-hara-pan` (all `tense: fut`); heard `que-haras-manana`,
+    `tendre-pan`, `luz-necesita-madera`, `mar-pescara`, `el-dia-de-manana`, `que-hara-luz`; reviews `compre-dos-panes`, then
+    `luz-compro-pescado` or `voy-a-comprar-pan`. **Mar tells the day of tomorrow**, of himself in the first person (`Y yo pescaré`), which
+    keeps Luz's `hará` and Domingo's `trabajará` in the third person the learner retells; `pescará` is heard from Domingo.
+  - The Opus pass: Luz's "¡Qué bien!" and "fresco", Mar's "Y yo pescaré", Domingo's "toda la tarde"; no row dropped. The orchestrator read
+    every new line and its English: natural and neutral.
+  - M57's later markers are in every `state_action` grammar, at both ends; `buscar`'s item takes `para` + a village name. `baker-open`
+    takes plans (`state_action`); `fisher-open` does not (the lint's confusion check gives `buscaré madera` and `busqué madera` to
+    `ask_directions` there).
+  - The book's future column: `compraré`, `comprarás`, `comprará`, `iré`, `buscaré` taught; `hará`, `tendré`, `trabajará`, `pescará` heard.
+  - **No order in session 9:** the plan's four orders are done, and a fifth order to Luz would replay her one thanks-and-reward line and pay
+    her 4 coins again. The coin path is unchanged: a learner arrives with 0 coins, 3 apples, 2 loaves and the axe, and leaves with the same.
+  - Core tries: every grade right, no new core gap. An older limit seen again: a word outside a constrained prompt's answer set gets
+    `vocab.wrong` (`usted comprará pan` at a lesson step). The recognizer heard all four said rows word for word, at 1.00.
+  - Tests: 6659 passed and 3 skipped before; 6771 passed and 3 skipped after, with models. Bundle `8f27dffd…`; the identity baseline
+    gained 6 entries and 66 moved (the analyze stage only, all `state_action` sentences, from the grammars' markers), in a commit of their
+    own (`f59e49e`, whose message wrongly says "and the ones after it"); no end-to-end golden and no stream digest moved. M57's loose ends
+    are done: the content loop's step 7 and its documents say the stream digests run on frozen inputs.
+  - The agent was stopped early for a session handover. Carried into V15's brief: the scripted runs after the change, the learner's route
+    from session 8, the timed lesson run and its minutes, and CI's case without models.
+  - The orchestrator's spot-checks: on the host at `baker-open`, `mañana compraré pan`, `Luz, mañana compraré pan` and `voy a comprar pan`
+    are `state_action`, communicated, error-free; CI's grammar check holds (`scripts/content-loop.sh --grammar --tier none`: the cache
+    rebuilt from nothing equal, 0 new findings); `--skip-to-session 9` shows session 9's objective and the beacon on Luz, with 3 apples, the
+    axe and 2 loaves in the hotbar, and `--skip-to-session 9 --lesson-run manana-en-el-pueblo` completes 14 of 14 units (both reviews
+    skipped: a skipped start has nothing due).
+
 ## 6. Definition of done (every milestone)
 
 1. `dotnet build Vocaterra.sln -warnaserror` with 0 warnings and `dotnet test Vocaterra.sln` green, with the test count in the report.
