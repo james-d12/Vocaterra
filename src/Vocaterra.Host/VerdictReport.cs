@@ -26,7 +26,7 @@ public static class VerdictReport
     }
 
     /// <summary>Writes the outcome of evaluating <paramref name="transcript"/> on <paramref name="promptId"/>.</summary>
-    public static void Write(TextWriter output, string promptId, string transcript, PipelineResult result)
+    public static void Write(TextWriter output, string promptId, string transcript, PipelineResult result, ExchangeAnswer? exchange = null)
     {
         ArgumentNullException.ThrowIfNull(output);
         ArgumentNullException.ThrowIfNull(result);
@@ -49,7 +49,15 @@ public static class VerdictReport
 
         foreach (var line in result.Response.Lines)
         {
-            output.WriteLine($"  agent: {line.Text}");
+            if (exchange is null || !exchange.Unsaid.Any(pool => line.LineId.StartsWith(pool + ".", StringComparison.Ordinal)))
+            {
+                output.WriteLine($"  agent: {line.Text}");
+            }
+        }
+
+        foreach (var text in exchange?.Lines ?? [])
+        {
+            output.WriteLine($"  agent: {text}");
         }
 
         if (result.Repair is { } repair)

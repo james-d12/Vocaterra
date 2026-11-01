@@ -1,4 +1,6 @@
+using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Speech;
+using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Determinism;
@@ -29,6 +31,9 @@ public sealed class ConversationSession
     private readonly TypedUtteranceEvaluator _evaluator;
     private readonly IReadOnlyDictionary<string, string> _names;
     private readonly Dictionary<string, AgentState> _agentStates = new(StringComparer.Ordinal);
+    private readonly Inventory? _bag;
+    private readonly HostEventTable? _hostEvents;
+    private readonly NounCatalog? _nouns;
     private ConversationContext _context;
 
     /// <summary>
@@ -40,10 +45,19 @@ public sealed class ConversationSession
         ContentBundle bundle,
         ulong worldSeed = DefaultWorldSeed,
         IReadOnlyDictionary<string, int>? repeatCountsByTag = null,
-        IReadOnlyDictionary<string, string>? listenerNames = null)
+        IReadOnlyDictionary<string, string>? listenerNames = null,
+        Inventory? bag = null)
     {
         ArgumentNullException.ThrowIfNull(bundle);
         Bundle = bundle;
+        if (bag is not null)
+        {
+            // A bag makes a sale or a purchase follow it (V23a): the NPC answers a miss as it does in the game (NpcService.AnswerMisses).
+            _bag = bag;
+            _hostEvents = HostEventTable.Load(bundle);
+            _nouns = NounCatalog.Load(bundle);
+        }
+
         _evaluator = new TypedUtteranceEvaluator(bundle);
         _names = listenerNames ?? new Dictionary<string, string>(StringComparer.Ordinal);
         _context = ConversationContext.Create(
@@ -63,6 +77,9 @@ public sealed class ConversationSession
     /// and the time of the last utterance. Before any utterance the time is zero and the agent is <see cref="NoAgentId"/>.
     /// </summary>
     public ConversationContext Context => _context;
+
+    /// <summary>What the bag changed in the last <see cref="Evaluate"/>: the lines of the actions the bag cannot carry out and the NPC's answers to them; <see langword="null"/> when there is no bag or nothing missed.</summary>
+    public ExchangeAnswer? LastExchange { get; private set; }
 
     /// <summary>The ids of the bundle's prompts, in ordinal order.</summary>
     public IReadOnlyList<string> PromptIds => Bundle.Prompts.Keys.Order(StringComparer.Ordinal).ToArray();
@@ -104,7 +121,42 @@ public sealed class ConversationSession
 
         _agentStates[agentId] = result.Decision.Agent?.Next ?? agentState;
         _context = utterance.Next(result, now);
+        LastExchange = AnswerMisses(agentId, result, transcript, now);
         return result;
+    }
+
+    // The game's own answer to a purchase or a sale the bag cannot make (NpcService.AnswerMisses): the NPC takes the host event of the miss (cant_pay, cant_sell and the
+    // rest) and says its line instead of the success line of the action. The bag is only read; nothing changes hands in the host.
+    private ExchangeAnswer? AnswerMisses(string agentId, PipelineResult result, string transcript, StoredTimestamp now)
+    {
+        if (_bag is null || _hostEvents is null || _nouns is null)
+        {
+            return null;
+        }
+
+        var slots = NpcEffect.CountedSlots(result.Verdict.Slots, transcript);
+        var unsaid = new List<string>();
+        var lines = new List<string>();
+        foreach (var action in result.Decision.Agent?.Actions ?? [])
+        {
+            if (action.HostEvent is not { } hostEvent || _hostEvents.Of(agentId, hostEvent).ExchangeMiss(slots, _bag, _nouns) is not { } miss)
+            {
+                continue;
+            }
+
+            var turn = _evaluator.Advance(NpcHostEvents.Of(agentId, miss), _context);
+            if (turn is null)
+            {
+                continue; // an agent with no transition for the miss says its line as before
+            }
+
+            _agentStates[agentId] = turn.Agent.Next;
+            _context = _context.Next(turn, now);
+            unsaid.Add(action.DialogueIntent);
+            lines.AddRange(turn.Response.Lines.Select(static line => line.Text));
+        }
+
+        return unsaid.Count == 0 ? null : new ExchangeAnswer(unsaid, lines);
     }
 
     private AgentState StateOf(string agentId)
@@ -120,3 +172,8 @@ public sealed class ConversationSession
             : new AgentState(agentId, "none", 0);
     }
 }
+
+/// <summary>What a bag made of a turn (<see cref="ConversationSession.LastExchange"/>): the dialogue intents whose lines are not said and the NPC's answers that follow.</summary>
+/// <param name="Unsaid">The dialogue intents of the actions the bag cannot carry out; their lines (<c>&lt;intent&gt;.1</c>) are left out of the report.</param>
+/// <param name="Lines">The NPC's answers to the misses.</param>
+public sealed record ExchangeAnswer(IReadOnlyList<string> Unsaid, IReadOnlyList<string> Lines);
