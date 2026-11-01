@@ -399,7 +399,7 @@ instruction one session (Opus 5.5) does every milestone itself, with no subagent
 - C10, the authoring CLI (`new npc|objective|lesson`, `refs <id>`, `check`), is specified in `CONTENT_PLAN.md` section 3.8.
 - Neither C09 nor C10 is built; each becomes a milestone when the owner asks for it.
 
-### 4.8 The village and the lessons (the V series; phase A done 2026-10-31, phase B started 2026-10-31, D-game-22)
+### 4.8 The village and the lessons (the V series; phase A done 2026-10-31, phase B done 2026-11-01, D-game-22)
 
 The owner's request (2026-10-30): a bigger village with more NPCs (a blacksmith, a baker) and more lessons, without a larger map,
 with the NPCs interlinked, the map's space used, the lessons connected, A1 to A2; and, the same day, "past, present, and future use of
@@ -412,7 +412,7 @@ decision. The series runs on `feature/village`, commit prefix `V<nn>:`. **Phase 
 proposals, the farmer León, provisional voices heard afterwards, phase B held; every milestone by Opus 5.5 at xhigh effort); **phase A was done on
 2026-10-31** (V01 to V07, V09, V10 to V12 and the follow-up V12b; 6030 tests passing, bundle `7ba32270…`). The owner's playtest the same
 day added V12c (the next session in the game), and the CI run on PR #20 the core's M60 (the lint's speed). **Phase B started on 2026-10-31**
-on the owner's word: all of it on `feature/village`, reviewed by the owner at the end. V13 (session 7) was done on 2026-10-31; after the bottlenecks study the owner added V18 and moved the core's M56, M59 (before V14) and M58 (before V15) into the series. The milestones' statuses are in the plan's section 4. The findings of each milestone go into section 5.
+on the owner's word: all of it on `feature/village`, reviewed by the owner at the end. V13 (session 7) was done on 2026-10-31; after the bottlenecks study the owner added V18 and moved the core's M56, M59 (before V14) and M58 (before V15) into the series. **Phase B was done on 2026-11-01** (V08, V13 to V18, V15b and V09 again, with the core's M56 to M62 and M62b; sessions 7 to 10 at A2, ten lessons; 7259 tests passing, bundle `36b2b8ad…`); the owner reviews the branch and PR #20. The milestones' statuses are in the plan's section 4. The findings of each milestone go into section 5.
 
 ## 5. Findings log
 
@@ -1973,6 +1973,41 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     ¿cuánto cuesta el pan?` gave `vocab.wrong` on `buenas`), and wood counted in blocks did not sell (`vendo tres bloques de madera`,
     `quiero vender tres bloques de madera` not understood, though Luz says `por cada bloque de madera`): `offer_item` takes `bloque(s) de`
     and `buy` reads the number (`un` is one). After V15b the host gives each line as above; CI's grammar check holds (`scripts/content-loop.sh --grammar --tier none`: the cache rebuilt from nothing equal, 0 new findings).
+- **V09 again: documents and runs, phase B (2026-11-01, Opus 5.5 xhigh; gated on `feature/village` at `da8dba6`; phase B ends here).**
+  - **Gate:** 7259 passed, 3 skipped, 0 failed, with the models (7258 before); 0 warnings; format, the content gate at A2, `--validate-content`, grammar and the licence scan clean. The bundle is unchanged (`36b2b8ad…`).
+  - **The scripted runs against the end of phase A** (`ccf8187`, phase A with V12b and V12c, against `fa22116`, after V15b; all twenty runs, captured in
+    the one worktree; `main`'s merge `0cf674b` is older than `ccf8187`, so none of it is in the difference): every difference traces to phase B. Every
+    run's closing summary lists ten lessons; speech 340/680 → 451/902 files; every save 18.4 KB larger (155 phrase records, not 93, ten lessons, the
+    order `water-for-plants`); the Lessons pages of r20 and r21 at 192 lines (121); r21 carries session 1's bottle of water (V13), which moves its state
+    digest; r18 shows Luz's fourth card, `Vendo madera.` (V15). r10 asks the same 31 items; one turn landed a tick earlier (the order-only rule). Ticks,
+    world digests, the scene and every other picture are unchanged. No unexplained difference.
+  - **Built.** Two new runs: `r22-market` (`--skip-to-session 10`, four trunks cut, `vendo madera` to Domingo: four wood out, four coins in; two loaves
+    bought from Luz; `¿cuánto es todo?` to León) and `r23-future` (session 9's lesson, then `mañana compraré pan` to Luz in free talk, then the book's
+    Verbs page on `comprar`). Both are order-only runs (they take turns), added to `compare-runs.py`'s list; captured twice, r22 matched byte for byte
+    and r23 but for the turn's latency drawn in `reply.png`. `SCRIPTED_RUNS.md` at 22 runs. `README.md`: the village section for sessions 4 to 10 (a
+    line a lesson, the futures, the market), the counts measured (10 lessons, 229 steps, 155 phrase rows, 22 nouns, 20 verbs, 29 intents, 70 prompts,
+    451 lines in 902 speech files, 87 check items; the battery 31/31/31/39/47/55/63/71/79/87), the learner's route, the open points and CI's case.
+    `PLAYTEST.md`: the pilot's battery stays at 31 items; a new section on what a playtest of sessions 7 to 10 needs. The speech checklist's preface,
+    written by the renderer, now counts what is left to hear (902 files unmarked; phase B added 222). `ARCHITECTURE.md`'s CI line, the `--session` help.
+  - **The learner's route through phase B** (from `--skip-to-session 7`, each lesson, free talk with its NPCs, a sleep at the fire): every session
+    opens on its lesson (the objective names it and its NPC, the beacon, the morning toast); the four lessons ran to their ends; after session 10 the
+    objective and the Lessons page say the series is done.
+  - **Found and fixed:** a skipped game left the shopkeeper as if never met: in session 7 his key words stood alone again and his next visit handed
+    over a second bottle as a fail-forward, logging a use of `pedir-agua` the learner never made. The skip now counts his bottle as given and his key
+    words as taught (`SessionSkip`, `NpcService.SkipShopkeeperBottle`; `SessionSkipTests`, failing before the fix).
+  - **Found, not fixed (for the owner's review; the whole list is in `docs/game/README.md`, "Open points after phase B"):**
+    - In free talk, 9 of phase B's 27 said lines get "No te entendí" from the NPC who taught them: the open prompts of the villager, the fisher and
+      the stall take no statements, and Domingo's no `tener que` (`Es grande.`, `Compré tres manzanas.`, `Tengo que ir al río.`, `Luz hará pan.`, …).
+    - Free talk credits only an NPC's `focus` rows, so a phase-B line said again in free talk counts no phrase use (r23).
+    - An NPC shows its focus cards from the first talk, before their lesson: Luz's `Vendo madera.` in session 5 (r18), León's A2 lines from his first
+      talk.
+    - A lesson's line at an open prompt whose answer set lacks it is a slip (`buscaré madera para Luz` to Domingo: a small mistake, and the recast
+      writes `luz` lower case).
+    - The stall answers any request with the bottle (older, S6). The Lessons page opens at its top, far from `next:` (192 lines).
+  - **CI's case** (`VOCATERRA_MODELS_DIR` an empty folder): 7218 passed, 44 skipped. Timed tests under the full suite's load against their budgets:
+    the bundle load 1438 of 3000 ms and the world snapshot 0.50 of 1.5 s (over at four times: the likely CI failures), the scene build and digest 708
+    of 3000 ms (at the edge), the lint 0.78 of 5 s, the chunk digest and a turn well under.
+  - **The orchestrator's checks:** r22 and r23 run again after the gate as described (r22's bag after: the book, three apples, the axe, four loaves, no coin, no wood; `smith.buy_wood`, `baker.sell_bread`, León's total; r23's Verbs page on `comprar` with `compraré` said twice, both correct); the diff in scope (`scripts/compare-runs.py` is outside the brief's list: the two runs' names only).
 
 ## 6. Definition of done (every milestone)
 

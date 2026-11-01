@@ -40,21 +40,19 @@ is a change to the boundary and updates that record.
     resource rules and gate.
   - Bring owner decisions (licences, scope, anything that changes D-numbers) to the owner rather than deciding them.
 
-## Handover (2026-10-31, late): the village, phase B (read this first)
+## Handover (2026-11-01): the village, phase B done, the owner's review next (read this first)
 **Start here (a fresh orchestrator session)**
 1. **Check the session.**
    - Run the start checks in "Start of a session" below.
-   - The worktree `.claude/worktrees/village` should be on `feature/village` and clean, at the handover commit or later.
-   - If a milestone branch (`V09-phase-b`) exists with no agent running, inspect it
-     (`git log`, `git status`, a report in `.claude/briefs/`) before relaunching or gating it.
-2. **V17 is done** (gated and recorded at `cc155d4`). Its unfinished checks (the scripted runs after it, the route from session 8, the
-   timed lesson run, CI's case) are carried in V15's brief.
-3. **In order, without stopping:** M58, M62, V15, V09. Each by an Opus 5.5 agent at xhigh, one at a time, in the shared worktree.
-   - **M58, M62 (with M62b) and V15 (with V15b) are done** (2026-11-01; V15b gated at `557db47`, 7258 passed and 3 skipped).
-   - **V09:** `.claude/briefs/V09-documents-and-runs-phase-b.md`, complete apart from `@@HEAD@@` and `@@COUNT@@` (V15's open points are
-     in its deliverable 6).
-   - After V09: report phase B as finished to the owner, with what is left open. A QA agent pass on the village (`subagent_type: qa`) is
-     optional and is the owner's call.
+   - The worktree `.claude/worktrees/village` should be on `feature/village` and clean, at the handover commit or later. No milestone
+     branch is open and no agent is running.
+2. **Phase B is done** (2026-11-01): V09 again was gated at `da8dba6` (7259 passed, 3 skipped, with the models) and recorded; the owner
+   has had the phase-B report. **Nothing is queued.** Wait for the owner's review of `feature/village` (PR #20) and their answers to the
+   open decisions below; do not start a milestone they have not asked for.
+3. **Proposed to the owner, not started** (the owner chooses): a follow-up for free talk (the open prompts of the villager, the fisher
+   and the stall take no statements and Domingo's no `tener que`, so 9 of phase B's 27 said lines get "No te entendí" from the NPC who
+   taught them; focus cards shown before their lesson); the core gaps from V15 and M63 as core milestones; a QA agent pass on the village
+   (`subagent_type: qa`).
 
 **Where things stand**
 - The work is the village series, `docs/game/VILLAGE_PLAN.md` (D-game-22). It lives on `feature/village`, checked out in the worktree
@@ -78,15 +76,13 @@ is a change to the boundary and updates that record.
     M62b (`5f3450b`): the fuzz realiser re-rolls a drawn name the analyzer reads as a noun (found by V15's first gate);
   - V15: session 10 "El mercado" (`d082f05`), `offer_item` and the host's `buy`, a greeting before a request; V15b (`557db47`): a
     greeting's words never flagged, wood sold in blocks. The series' ten lessons are built;
+  - V09 again (`da8dba6`): the scripted runs against `ccf8187` (every difference traced), the runs `r22-market` and `r23-future`, the
+    learner's route through sessions 7 to 10 (one fix: a skipped game counts the shopkeeper's bottle and key words), the documents'
+    counts, CI's case, and the open points of phase B in one list (`docs/game/README.md`, "Open points after phase B");
   - `main` merged in at `0cf674b`. It brought the CI workflow with its grammar jobs, and the QA agent.
-- **Next** (owner, 2026-10-31, D-game-22): V09 again (the documents and the scripted runs for phase B), then the report to the owner.
-  - Every one by Opus 5.5 at xhigh, one at a time. The owner asked whether milestones could run in parallel, heard the reasons (the
-    chain V17 → V15 → V09, the one machine-wide build lock, disk) and said "for now just continue with the development".
-  - The design is VILLAGE_PLAN sections 3.5 to 3.9, 4 and 5. The findings of every V milestone so far are in
-    `docs/game/IMPLEMENTATION_PLAN.md` section 5 (the V entries at its end).
-  - **Briefs** are in `.claude/briefs/`. V09's is written. Fill their `@@…@@` placeholders
-    (the HEAD, the test count, the earlier milestone's findings) from the last reports before launching. The used briefs (V13, V14, V16,
-    V17, V18, M56, M57, M59) are the models.
+- **Next:** the owner's review. The design is VILLAGE_PLAN sections 3.5 to 3.9, 4 and 5; the findings of every V milestone are in
+  `docs/game/IMPLEMENTATION_PLAN.md` section 5 (the V entries at its end). The used briefs in `.claude/briefs/` (V13 to V18, V09 phase B,
+  M56 to M59, M62) are the models for any follow-up; fill their `@@…@@` placeholders from the last reports before launching.
 
 **The owner's instructions for this series** (they override "Model policy", "Per-milestone loop" step 2 and the template's branch line below)
 - **Every V milestone is built by Opus 5.5 at xhigh effort:** the Agent call takes `model: opus` and `effort: xhigh` (D-game-22). Use cheaper
@@ -122,21 +118,26 @@ is a change to the boundary and updates that record.
   its budget reported.
 
 **Open points to carry**
+- **The whole list after phase B** is `docs/game/README.md`, "Open points after phase B" (V09, each marked owner, game or core); what follows
+  is the orchestrator's short form.
 - **The coin path:** a learner reaches session 7 with 0 coins (+2, +4, −4 for bread, −2 for the axe) and leaves session 8 with 0 coins, 3
-  apples, 2 loaves and the axe (V13, V14 designed around it). V15's `buy` is the first repeatable source.
+  apples, 2 loaves and the axe (V13, V14 designed around it). V15's `buy` (selling wood and fruit) is the one repeatable source; session
+  10 ends with 0 coins too.
 - **From phase A:**
   - name plates show through figures;
   - `KeyWordsTaught` is one save flag.
 - **From V08:**
   - phrase variants are held to the A2 ceiling, not the lesson's level (accepted);
   - five old world words sit in the body of `a1.txt`, not its marked block;
-- **From V14:**
-  - `hola Luz quiero dos panes` (and `hola quiero dos panes`) resolves only the greeting, so nothing is bought: one intent per line. A
-    market lesson (V15) makes it likelier; its brief should say what happens;
-  - `quiero el pan de Luz` at `baker-open` resolves no intent;
-  - three older timed tests sit within four times of their budgets here (the bundle load 1676 of 3000 ms, the scene build and digest
-    1275 of 3000 ms, the world snapshot 0.49 of 1.5 s): with CI's runner about four times slower, the likely CI failures if any appear;
-  - the NPCs' "¡Muy bien!" plays in Luna's voice; `tener que` has no book entry.
+- **From V14:** the NPCs' "¡Muy bien!" plays in Luna's voice; `tener que` has no book entry. (Its greeting points were fixed by V15 and
+  V15b.)
+- **The timed tests on CI** (V09's measure under the full suite's load): the bundle load 1438 of 3000 ms and the world snapshot 0.50 of
+  1.5 s are over their budgets at four times (the likely CI failures if any appear), the scene build and digest 708 of 3000 ms at the edge.
+- **From V09:** free talk understands 18 of phase B's 27 said lines from the NPC who taught them (the villager's, the fisher's and the
+  stall's open prompts take no statements, Domingo's no `tener que`); free talk credits only an NPC's `focus` rows; focus cards show
+  before their lesson (Luz's `Vendo madera.` in session 5, León's A2 lines from his first talk); a lesson's line at an open prompt whose
+  answer set lacks it is a slip, and Domingo's recast writes `luz` lower case; the stall answers any request with the bottle (older); the
+  Lessons page opens at its top, far from `next:` (192 lines).
 - **Done (M57's question, the owner's option 1):** M58 (c) gave the `word_order` mutation's guard the words' readings (seed `ff2aNwHuJBk8`).
 - **For the owner (M58's and M62's fuzz findings, not blocking; the core plan §5b, M58 and M62):** three older failures whose fix
   narrows O4 and O5, so they wait for the owner's word:
