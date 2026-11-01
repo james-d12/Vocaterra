@@ -1,0 +1,20 @@
+villager-open  | yo quiere dos espada                       => request_item comm=True conj.person=quiero noun.number=espadas
+villager-open  | luz hizo pan y yo fui al río               => unknown comm=False -
+villager-open  | luz hizo pan y yo fuimos al río            => unknown comm=False conj.person=fui
+villager-open  | comí pan y tú compraste fruta              => unknown comm=False -
+villager-open  | mar pescó y yo comí pescado                => unknown comm=False -
+villager-open  | tú y yo fui al río                         => unknown comm=False conj.person=fuimos
+villager-open  | yo y luz fuimos al río                     => unknown comm=False -
+villager-open  | luz y yo somos amigas                      => unknown comm=False -
+villager-open  | ella y yo somos altas                      => unknown comm=False -
+villager-open  | el hermano de luz y yo fuimos al río       => unknown comm=False -
+villager-open  | ayer luz y yo comimos pan                  => unknown comm=False -
+villager-open  | tú y ella son altas                        => unknown comm=False -
+villager-open  | usted y yo vamos al río                    => unknown comm=False -
+villager-open  | dos panes es caro                          => unknown comm=False -
+villager-open  | diez monedas son mucho dinero              => unknown comm=False -
+villager-open  | dos niños es alto                          => unknown comm=False conj.person=son noun.number=altos
+villager-open  | la tienda es cerca del río                 => unknown comm=False ser_estar=está
+villager-open  | el ala es muy bonita                       => unknown comm=False -
+villager-open  | quiero pan y yo tengo dos monedas          => unknown comm=False -
+villager-open  | compré pan y luz compró fruta              => unknown comm=False -

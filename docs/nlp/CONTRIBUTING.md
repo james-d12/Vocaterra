@@ -225,6 +225,8 @@ Steps:
    `cefr-check` is advisory; it lists the lemmas of dialogue templates and of prompt text (`text`) that are not in `cefr/a1.txt` or
    `cefr/a2.txt`. Prompt findings are printed in their own section and name the prompt id.
 4. Try it: `dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "..." --prompt <your-prompt> --content content/game-v1`.
+   For many lines at once, `scripts/limited.sh scripts/try-lines.sh [--host] <file>...` grades `prompt|line` rows with the built Debug binaries, one stable line each
+   (`--host` takes the game's path); `scripts/limited.sh scripts/try-lines.sh --check` compares the correct lines of `scripts/try-lines/` with their committed baselines.
 5. Run the whole suite. No test of the core pins the bundle hash (each compares the manifest with the hash computed from the files), so a plain
    edit followed by `hash` needs no literal changed; but the core's tests do read the content, and they tell you what the edit broke:
    - `GameBundleContractTests` (`tests/Vocaterra.Nlp.Tests/Content`) states what the core relies on: every prompt resolves its answer set, agent and intents, every

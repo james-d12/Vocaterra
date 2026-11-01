@@ -100,7 +100,8 @@ code comments and here, with the reason:
     seed `fApfampI1fQ3` failed O3 on main before M26b). O5 does not compare a case whose unbound name the lexicon knows (`Mirá` is the voseo imperative `mirá`), as O4 never did (seed `belmI3pADeia`
     failed on main before M26b).
   - *O4 and O5, `conj.person` with a name in an alternative (M26b).* The mutation is not made on a grammar that has both an alternation and a name: the mutated verb can be bound as the name
-    (`nosotras freís` against `([VERB:freír]|...|[PRON] [WORD])`), which has no reading to check (seed `1RTZdjQ2tFb2` failed O4 on main before M26b).
+    (`nosotras freís` against `([VERB:freír]|...|[PRON] [WORD])`), which has no reading to check (seed `1RTZdjQ2tFb2` failed O4 on main before M26b). The tense
+    mutation shares the guard since M65 (a), below.
   - *The realiser and a literal behind a preposition (M26b).* A literal that is a noun and a verb form right behind a preposition (`de meta`) is a noun head, as the analyzer reads it, so the adjective after it
     agrees with it (seed `8OeIOEx_Hfm3` failed O3 on main before M26b).
   - *O4 and O5, tied parses.* When the analyzer's answer differs from the mutation's and the grammar itself reads a word of the sentence in two ways (`duchas complicados`: `[VERB]` or
@@ -139,6 +140,38 @@ code comments and here, with the reason:
     plural or an adjective that says no amount (`dos niños son altos` becomes `es altos`, expected `son`). `AmountMutationGuardTests` shows that the guard is needed
     (without it the mutation builds `dos niños es un problema`, which the analyzer rightly finds correct) and that the mutation is still made before a predicate of the
     plural. This is the one narrowing of M64.
+  - *O4 and O5, `conj.tense` with a name in an alternative (M65 (a), 2026-11-01, the owner's yes (M65)).* The tense mutation takes the guard M26b gave the
+    person mutation, one predicate for both (`MutationGen`, `NameBesideAnAlternation`): it is not made on a grammar that has both an alternation and a name. With
+    `ayer` in front, an alternative with the name can fit and bind the verb as the name, which has no reading to check (seed `egVgLELrxyL4`, `MutationCase { Kind =
+    ConjTense, Seed = 4236916336216397 }`: `ayer presiono abusar` against `([VERB:presionar]|[ADV] [WORD:item]|[VERB]) [VERB:abusar]`, where `[ADV] [WORD:item]`
+    takes `ayer presiono`; found at M58, it failed about one run of the project in six at its default depth). The guard is as wide as M26b's and no wider: a grammar
+    with a name and no alternation, or an alternation and no name, is mutated as before (a narrower test, a name inside the alternative itself, would rest on how the
+    matcher breaks ties between parses of one length). `NarrowedMutationGuardTests` (a) shows that the analyzer binds the verb as the name in every realisation of
+    that pattern, and that the same pattern with `[NOUN:item]` in place of the name is still mutated and flagged as named.
+  - *O4 and O5, `conj.person` after a noun subject and `haber` (M65 (b), 2026-11-01, the owner's yes (M65)).* M59's check leaves `haber` out by design (`hay dos
+    panes`: the existential agrees with nothing), so M59's mutation of a third-person verb after a noun subject leaves it out too and models what the analyzer claims
+    to check (seeds `b3HSKSLCsL_1`, `MutationCase { Kind = ConjPerson, Seed = 729196 }`: `el subtítulo ha peligroso` made `han`; `4YuZ2yubxdC1`, `Seed =
+    169110944`: `unas televisiones han` made `ha`; found at M62, at the default depth since M64's gate). The new form has no reading but that verb's, so the guard is
+    exactly the analyzer's exclusion: every other verb, and `haber` after a subject pronoun (`ellos ha` gives `han`), is mutated as before.
+    `NarrowedMutationGuardTests` (b) shows that the analyzer leaves the other number of `haber` after a noun subject unchecked, and that the same pattern with
+    `estar` is still mutated and flagged as named. The realiser draws `haber` like any verb with a full paradigm and gives it no participle (`el subtítulo ha
+    peligroso`), which is not Spanish. It stays so for now: leaving `haber` out of the draws would be a small change, but it would also take away O4's person check of
+    `haber` after a subject pronoun, which the perfect needs. *The later widening*, when a lesson teaches the perfect (`he comido`): the analyzer checks `ha` and `han`
+    against a noun subject when a participle follows (those two forms are never existential), the realiser gives `haber` its participle, and this guard keeps only a
+    `haber` with no participle after it.
+  - *O4 and O5, `conj.tense` beside a literal with an accent variant (M65 (c), 2026-11-01, the owner's yes (M65)).* A literal of the grammar that is another word
+    once its accent is written (`porque` and `porqué`) is read as typed while the grammar binds it; when no grammar matches, the analyzer chooses between the two
+    from the neighbouring words (`ReadingResolver`: a literal spelled like the word keeps every reading it has as typed, so the accent is the one reading the match
+    decides), and the realiser leaves that choice to the grammar for a literal. The tense mutation puts `ayer` in front, and then the grammar may no longer match
+    (seed `2ldq2rIKLrG2`, `MutationCase { Kind = ConjTense, Seed = 4340032 }`: `ayer las los despego unas porque` against `[ART] [ART]? [VERB]? [ART]? porque?`,
+    where `unas porque` then reads as the article and the noun `porqué`, giving `gender.agree` and `noun.number` beside the expected `conj.tense`; found at M62, at
+    five times the default depth). Such a case is kept only when the mutated sentence matches the original's grammar; the generator asks the analyzer for the match
+    alone, never for the errors the oracles compare. The owner's yes covered every tense mutation, but the guard asks for the match only beside such a literal: of 6 002
+    tense mutations measured before the guard, 46 (0.8 %) still matched their grammar (`ayer` in front fits only a grammar that can open with an adverb or with `ayer` itself), and 237
+    (4 %) had such a literal and no match, so the wider guard would have left the mutation almost nothing but grammars that open with an adverb. A literal with two
+    parts of speech is not guarded: the match does not narrow the readings of a literal spelled like the word. `NarrowedMutationGuardTests` (c) shows the analyzer's
+    reading of the failing sentence, that the pattern is not mutated, and that the same pattern with `aunque` (no accent variant), drawn from the same seeds, and the
+    same pattern with an `[ADV]?` in front that takes `ayer`, are still mutated and flagged as named.
 - **O8.** The dialect sites are `θ s z h ʎ ʝ ʃ ʒ` (the plan lists `θ s ʎ ʝ h`; the shipped dialects also produce the voiced `z` and the rioplatense `ʃ ʒ`).
   `Tokenize(ToIpaString())` is exact except for the pair `t` + `ʃ`, whose concatenation is the affricate token `tʃ` (the inventory documents that
   sequences are lists for this reason); a result with that pair skips the split.
@@ -274,6 +307,8 @@ surrogate; the content validator filled templates with Spanish sample words; the
   - `PipelineGen` - one pipeline run: a transcript from a correct sentence of the prompt's own grammars, a mutated sentence, an answer, free text or an adversarial string, plus prompt, agent, state, counter, seeds, learner, repeat counts and options.
 - `Oracles/` - `PipelineHarness` (bundle plus fakes wired once, with builders for services, pipeline, `ConversationContext`, prompts), `KnownTolerances`, `Determinism`.
 - `*FuzzTests.cs` - one file per oracle.
+- `AmountMutationGuardTests`, `WordOrderGuardTests`, `NarrowedMutationGuardTests` - the guards of the narrowed oracles, replayed from their seeds with a close neighbour
+  that is still mutated; `SkipBudgetTests` - the skip budget (M65, below).
 
 ### How the sentence generator stays honest
 
@@ -362,6 +397,36 @@ counter `unpredicted:name-known-to-lexicon` says how many, and a default run has
 Slots are compared strictly unless the pattern is ambiguous (two optional tokens that can match the same word, `[DET]` against `[ART]` or
 `[ADJ]`, `un` and `una` as article or numeral, a literal word that is also a noun): then the matcher may legitimately bind the words in more
 than one way and only the extracted values are checked against the words of the sentence.
+
+### The skip budget (M65)
+
+The realiser re-rolls a draw it cannot spell correctly: a retry, which a later attempt usually makes good, so the `skip:` counter of a recipe whose every attempt
+failed hardly moves. The oracles see only the sentences it kept, so a re-roll can leave out a whole class of sentence without a failure; one hid the review's R1
+(`tú y yo fuimos` graded wrong, fixed at M64). Since M65 each rejected draw is counted by its reason as well (`rejected:<reason>`, and `FuzzDiagnostics.Draws` for
+every draw): each attempt of the realiser that failed, and each realised sentence that `SentenceGen.Realize` rejects afterwards. `SkipBudgetTests` draws the
+sentences of O3 and the mutations of O4 and O5 from 2 000 fixed seeds each (their default depth; about two seconds, no model) and fails when one reason takes more than
+5 % of a stream's draws. A reason above 5 % gets its own budget, named in the test with a one-line reason; a reason with no entry falls under the default, so a new
+re-roll cannot silently eat a class of sentence. Measured at M65 on `content/game-v1` (each reason's share of the draws, and its share of the recipes that gave no
+sentence after every attempt):
+
+| Reason | O3 sentences: draws | O3 sentences: recipes | O4 and O5 mutations: draws | O4 and O5 mutations: recipes |
+| --- | ---: | ---: | ---: | ---: |
+| `accent-variant-homograph` | 4.21 % | 0.00 % | 3.70 % | 0.01 % |
+| `adjacent-numerals` | 0.55 % | 0.60 % | 0.56 % | 0.61 % |
+| `colour-before-noun` | 0.00 % | 0.00 % | 0.01 % | 0.00 % |
+| `conflicting-time-markers` | 0.73 % | 0.00 % | 1.68 % | 0.01 % |
+| `function-word-homograph` | 0.05 % | 0.00 % | 0.16 % | 0.00 % |
+| `literal-disagreement` | 1.01 % | 0.05 % | 0.85 % | 0.03 % |
+| `literal-verb-subject` | 0.18 % | 0.05 % | 0.13 % | 0.01 % |
+| `name-read-as-noun` | 0.00 % | 0.00 % | 0.01 % | 0.00 % |
+| `noun-reads-as-adjective` | 1.19 % | 0.00 % | 0.43 % | 0.00 % |
+| `numeral-next-to-article` | 0.64 % | 0.70 % | 0.45 % | 0.49 % |
+| `verb-form-homograph` | 1.10 % | 0.00 % | 1.07 % | 0.01 % |
+| all draws (draws, recipes) | 2 183 | 2 000 | 14 172 | 13 041 |
+
+No reason is above 5 %, so the test names no budget of its own; the largest is `accent-variant-homograph`, 4.2 % of O3's draws, each made good by a later attempt.
+The other reasons the realiser has (`coordinated-subject`, `ser-of-place`, `predicate-subject`, `time-marker-of-generated-words`, `past-marker-without-preterite`,
+`no-adjective-form` and the rest) took no draw from these seeds; `CoordinatedSubjectFuzzTests` draws the coordinated subjects on purpose.
 
 ### How the stage-2 generators stay honest
 
@@ -662,35 +727,29 @@ them explicitly (each is a skip or a restriction in the generator, counted in th
   a row recast as `un una`. These are properties of the language, so the sentence generator does not produce them (`skip:numeral-next-to-article`,
   `skip:adjacent-numerals`).
 - `AgentDefinition` is a plain record over lists, so it has no value equality; O16 compares its JSON only.
-- **Found at M58 and left for a decision: the `conj.tense` mutation lacks the guard M26b gave the `conj.person` mutation for a name in an alternative** (O4, CsCheck
-  seed `egVgLELrxyL4`, `MutationCase { Kind = ConjTense, Seed = 4236916336216397 }`; it fails the same way on `feature/village` at `2c747bb`, before M58, and the
-  analyzer gives the same analysis there). The random pattern `([VERB:presionar]|[ADV] [WORD:item]|[VERB]) [VERB:abusar]` gives `presiono abusar`; the mutation puts
-  `ayer` in front and expects `conj.tense` on `presiono`. With `ayer` the alternative `[ADV] [WORD:item]` fits, so the grammar binds `presiono` as a name, which has no
-  reading to check, and the analyzer rightly reports nothing (a name is never checked, `PIPELINE.md`). The `conj.person` mutation is not made on a grammar with both an
-  alternation and a name (M26b, seed `1RTZdjQ2tFb2`, listed under the narrowed oracles); giving the `conj.tense` mutation the same guard narrows O4 and O5, which a
-  milestone may not do on its own, so it waits for the orchestrator. Rare: once in the six runs of the project made for M58 (one of them at five times its depth).
 - **Found at M62, older than M62, and left for a decision** (seven runs of O3 to O5 at five times the default depth, three of them after the last fix of M62, found
   these besides the M62 bugs above; every run of the project at its default depth passed). The analyzer gives the same analysis of each sentence on `feature/village` at `76f52f8`, before M62 (checked with the pattern as the grammar), and no rule of
-  M62 reads any of their words; the realiser's new draws only made the seeds reach them.
-  - *O4, the `conj.tense` mutation and a literal whose reading the grammar decided* (CsCheck seed `2ldq2rIKLrG2`, `MutationCase { Kind = ConjTense, Seed = 4340032 }`):
-    the random pattern `[ART] [ART]? [VERB]? [ART]? porque?` gives `las los despego unas porque`, where the grammar's literal keeps `porque` the conjunction. The mutation
-    puts `ayer` in front, the grammar no longer matches, and `unas porque` reads as the article and the noun `porqué` (`gender.agree` `unos`, `noun.number`
-    `porqués`) beside the expected `conj.tense`. The same family as the M58 finding above: the mutation needs a guard for a sentence whose readings the match decided,
-    which narrows O4 and O5.
+  M62 reads any of their words; the realiser's new draws only made the seeds reach them. Two of them, the `conj.tense` mutation beside `porque` (`2ldq2rIKLrG2`) and
+  the `conj.person` mutation of `haber` after a noun subject (`b3HSKSLCsL_1`), are guarded since M65 with the owner's yes (under the narrowed oracles above).
   - *O5 (and O3 on the sentence before the mutation), a subject pronoun before a question word* (CsCheck seed `8zKtIhOY3951`, `MutationCase { Kind = WordOrder, Seed =
     19287181529 }`): the pattern `[PRON] [ADV]? [VERB] [DET]? [NOUN:item] [ADJ]?` gives `ellas adónde están un detenido lento`. The realiser agrees `están` with `ellas`;
     M56's check of `estar` against the phrase after it starts its clause after `adónde` and gives `conj.person` `está` (on the sentence as generated too, which the
     word-order mutation then exposes). Either the realiser models the clause opener (a generator change, a widening) or the check keeps a subject pronoun before the
-    question word (an analyzer change); it is left for the orchestrator. O3 found the same with `ellas dónde están teme` (seed `c5SlpISRmTZ3`).
-  - *O5, the `conj.person` mutation after a noun subject and `haber`* (CsCheck seed `b3HSKSLCsL_1`, `MutationCase { Kind = ConjPerson, Seed = 729196 }`): the pattern
-    `[DET] [NOUN:item] [VERB] [ADJ]` gives `el subtítulo ha peligroso`, and M59's mutation makes `han`; M59's check leaves `haber` out by design (`hay dos panes`), so
-    the analyzer reports nothing and the recast keeps `han`. The mutation needs M59's exclusion of `haber`, which narrows O4 and O5; left for the orchestrator.
+    question word (an analyzer change); it is left for the orchestrator, and filed as M63. O3 found the same with `ellas dónde están teme` (seed `c5SlpISRmTZ3`).
 - **Found at M64, older than M64, and left for a decision** (seven runs of O3 to O5 at five times the default depth, the last three after the fix of `el ala` above
   and all passing; every run of the project at its default depth passed). *O5, the recast of a `word_order` mutation where the grammar can bind the moved adjective as a name* (CsCheck seed `2tpLGUOSqj41`, `MutationCase { Kind =
   WordOrder, Seed = 17287070985274212 }`): the random pattern `([WORD:item]|[ADJ:qty] [PRON]|[NOUN:spell])? [ADJ]` gives `militar necesaria`; the mutation makes
   `necesaria militar`, and its recast is `necesaria militar` again instead of `militar necesaria` (with the order slipped, `[WORD:item] [ADJ]` can bind `necesaria`
   as a name and `militar` as the adjective). It fails the same way on `feature/village` at `951e7c8`, before M64, and no rule of M64 reads its words; it is left for the
-  orchestrator with M62's findings above.
+  orchestrator with M62's findings above. The guard would be to skip `word_order` beside a `[WORD]` slot, a narrowing; the owner, 2026-11-01: leave it recorded.
+- **Found at M65, older than M65, and left for a decision** (a run of O4 after M65's last build; none of M65's four runs of the project met it, and it fails the
+  same way on the suite before M65: the build of `feature/village-followups` at `1ff8a5a`, whose core, fuzz suite and bundle are those of `9dfa08b`). *O4, a
+  `word_order` mutation that breaks the match where the grammar decided a reading* (CsCheck seed `8yc522XLB_W2`, `MutationCase { Kind = WordOrder, Seed =
+  670401880765 }`): the random pattern `([ART] [NOUN:item]|[VERB]|[VERB:encargar]) [ADJ] [NOUN:qty]? ([VERB:desfilar:spell] [ADJ]|[ART])?` gives `la joya unida rica
+  desfilaron perdido`, where the grammar binds `rica` (a noun and an adjective) as `[NOUN:qty]`, a lone noun whose verb the realiser draws freely. The mutation makes
+  `la unida joya rica`; `unida` is no noun, so the grammar no longer matches, `rica` reads as the adjective of `joya`, and M59's check gives `conj.person` `desfiló`
+  beside the expected `word_order`. The same family as M65 (c) and `2tpLGUOSqj41`: either the realiser extends M62's `noun-reads-as-adjective` re-roll past the
+  adjectives after the head (a change of O3's draws), or the mutation keeps only a case that still matches its grammar (a narrowing); it is left for the orchestrator.
 
 ## Adding to the suite
 

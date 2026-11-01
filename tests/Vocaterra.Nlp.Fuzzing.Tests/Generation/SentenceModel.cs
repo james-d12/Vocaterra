@@ -204,6 +204,15 @@ public sealed class FuzzDiagnostics
     /// <summary>True when the homograph skips are at most one recipe in two hundred.</summary>
     public bool HomographSkipsAreRare => HomographSkips * 200 <= Recipes;
 
+    /// <summary>
+    /// The prefix of the counters of rejected draws (M65): one per attempt of the realiser that failed and was drawn again, and one per realised sentence that
+    /// <see cref="SentenceGen.Realize"/> rejected afterwards, by the same reason as the <c>skip:</c> counters but without their detail.
+    /// </summary>
+    public const string RejectedPrefix = "rejected:";
+
+    /// <summary>How many sentences the realiser drew (M65): every attempt, rejected or kept, so a re-roll that a later attempt made good is still a draw.</summary>
+    public int Draws => Sum(RejectedPrefix) + Sum("sentence:");
+
     /// <summary>Renders every counter, one per line, in ordinal key order.</summary>
     public string Report()
     {
