@@ -27,7 +27,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-19 | Verbs in the lessons | decided (owner, 2026-10-22): verbs early but gradual, across sessions (yo/tú in session 1, the other persons in session 2, ir a + infinitive and a few past forms in session 3), lessons replayable from the book; conjugation tables in the book | nothing |
 | D-game-20 | One licence for the whole repository | decided (owner, 2026-10-23): Apache-2.0 for the game as well as the core; one `LICENSE` and `NOTICE` at the root (R01) | nothing |
 | D-game-21 | Content as data and the L1 locale layer (the C series, `docs/game/CONTENT_PLAN.md`) | decided (owner, 2026-10-27 to 2026-10-29): English moves into a locale bundle `content/locale/` outside game-v1's hash (`en` only); content stays JSON with JSON Schema; objectives, NPCs and target-language words become data; the series runs after R16 phase 2, on `feature/content` | nothing |
-| D-game-22 | The village and the lessons (the V series, `docs/game/VILLAGE_PLAN.md`) | decided for phase A (owner, 2026-10-30): phase A now (sessions 4 to 6), phase B held (started 2026-10-31 on the owner's word); the plan's proposals for (b), (c), (e), (f), (h) and (i); the farmer is León; voices provisional (the plan's first candidates) and recorded, the owner listens afterwards; all work by Opus 5.5 at xhigh effort; 2026-10-31: V18 and the core's M56, M59 (before V14), M58 and M62 (before V15) join phase B | the V series |
+| D-game-22 | The village and the lessons (the V series, `docs/game/VILLAGE_PLAN.md`) | decided for phase A (owner, 2026-10-30): phase A now (sessions 4 to 6), phase B held (started 2026-10-31 on the owner's word); the plan's proposals for (b), (c), (e), (f), (h) and (i); the farmer is León; voices provisional (the plan's first candidates) and recorded, the owner listens afterwards; all work by Opus 5.5 at xhigh effort; 2026-10-31: V18 and the core's M56, M59 (before V14), M58 and M62 (before V15) join phase B; 2026-11-01, the follow-ups: models mixed (Opus for M65 to M67, M69 and V20, Sonnet for V21 to V23 and M68, Haiku for V24), M65's narrowings (a) to (c), name plates of the faced NPC depth-tested | the V series |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
@@ -305,6 +305,17 @@ gate in CI); a speech sample before V15. Phase B's order is in `VILLAGE_PLAN.md`
 **Owner's answer, 2026-10-31 (after V13):** "Run m62 before v15". **The core's M62** (V13's adjective gaps: a predicate adjective agreed
 across `ser` and `estar`, and a colour adjective before its noun) runs after M58 and before V15, whose `es muy caro` and `más barato que`
 are predicate adjectives a learner will get wrong.
+
+**Owner's answers, 2026-11-01 (the follow-ups after PR #20's merge, `docs/HANDOVER_VILLAGE_PHASE_B.md` section 9.1),** on
+`feature/village-followups`:
+1. **Models, a mix** (it replaces "every V milestone by Opus" for the follow-ups): Opus 5.5 at xhigh for the core's M65, M66, M67 and M69
+   and for V20, where Spanish is judged and the design is subtle; Sonnet 5.5 for V21 to V23 and the core's M68; Haiku 5.5 for V24, the
+   documents. The QA pass uses the QA agent's own model.
+2. **The fuzz narrowings of M65:** yes to (a) `egVgLELrxyL4`, (b) `haber` after a noun subject (`b3HSKSLCsL_1`, `4YuZ2yubxdC1`) and (c)
+   `2ldq2rIKLrG2`; (d) `2tpLGUOSqj41` stays recorded, not narrowed.
+3. **Name plates (V22):** only the plate of the NPC the player faces within talking range (and the beacon's target), drawn depth-tested
+   against the scene and the figures.
+4. **CI:** `main`'s CI was green after the merge, so M68 (the timed tests' budgets on CI) does not run unless a timed test fails there.
 
 ## Already decided
 

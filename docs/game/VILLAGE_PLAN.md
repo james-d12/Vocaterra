@@ -585,6 +585,11 @@ Today's gate demands A1 bundle-wide (section 2.5). The rule this plan proposes, 
 | V15 | Session 10 "El mercado": 11 to 20, `¿Cuánto es todo?`, `más … que`, `poder`; `offer_item` and `buy`; the market told in three times | V17 | M/L | Opus 5.5 xhigh | done 2026-11-01 (`d082f05`; V15b `557db47`) |
 | V18 | The content loop in one command (owner, 2026-10-31, from `docs/DEVELOPMENT_BOTTLENECKS.md` P2): after an edit of the bundle, the refresh, the LanguageTool cache and its rebuilt-from-nothing check, the prerender, the save fixtures' hash, the goldens on request, the fast tier and the grammar-sensitive fuzz classes, one summary | V13 | S/M | Opus 5.5 xhigh | done 2026-10-31 (`d986adf`): `scripts/content-loop.sh --grammar --speech` |
 | V19 | The game findings of the review of `feature/village` (owner, 2026-11-01: "fix them all"; `docs/qa-reports/2026-11-review-feature-village.md` R4, R7 to R10, R1's answer set and two risks): the listener's name after any greeting, one place that reads a line, the market's misses (no item, no room, no cap, zero), the skip that fails loudly | M64 | M | Opus 5.5 xhigh | done 2026-11-01 (`716d469`) |
+| V20 | Free talk (handover 9.3 D): each NPC's open prompt takes the intents of the lessons it teaches, so all 27 of phase B's practised lines are understood by the NPC who taught them (a game test runs every said row through its NPC's open prompt); practice credited for any row of a started or finished lesson, at any NPC; focus cards only once their lesson is current or done; an NPC's name capitalised in a recast (not after a determiner); `ask_total` takes `son`; `quiero cero panes` keeps its credit (documented) | M66, M67 | M/L | Opus 5.5 xhigh | planned |
+| V21 | Smaller game fixes (handover 9.3 E): the stall answers by item through `ExchangeMiss`, `shop_hay` agrees with what it sells; the shared feedback lines in each NPC's voice (the WAV count and disk cost reported before rendering); `tener que` in the book; the Lessons page opens at `next:` | V20 | M | Sonnet 5.5 | planned |
+| V22 | Name plates (handover 9.3 F; the owner's design, 2026-11-01): only the plate of the NPC the player faces within talking range (and the beacon's target), drawn depth-tested against the scene and the figures | | S | Sonnet 5.5 | planned |
+| V23 | The deferred small items (handover 9.3 G): `KeyWordsTaught` a set of NPC ids with a save migration; the skip buys three apples; the host's `--bag`; the five old world words into `a1.txt`'s block; one line when the closing review has nothing due; the book counts a correct use wherever it was understood; `NearestOfNounJoinedTo` capped | V20 | S/M | Sonnet 5.5 | planned |
+| V24 | Documents and runs after the follow-ups (handover 9.3 J), as V09 again: the README's counts and open points, `PLAYTEST.md`, `SCRIPTED_RUNS.md`, the speech checklist's counts, the learner's route through sessions 4 to 10, CI's case | all | M | Haiku 5.5 | planned |
 
 **Order** (revised 2026-10-30 when phase A started: V03 moves before V10, because the fisher's order pays in coins and every order needs
 `deliverTo`; and every milestone is Opus 5.5 at xhigh, D-game-22). V01, V02, V03, then V04, V05 and V07 (independent, one agent at a
@@ -598,6 +603,11 @@ order.
 V18 (the content loop in one command) and the core's M56 and M59 (agreement with a subject after its verb; the person checks, a lone name
 never checked) V14, V16 and the core's M57 (the later markers) done, then V17, the core's M58 and M62
 (before V15; M62 by the owner's word after V13), V15 and V09. One agent at a time, every milestone by Opus 5.5 at xhigh.
+
+**The follow-ups' order** (the owner, 2026-11-01, after PR #20's merge; `docs/HANDOVER_VILLAGE_PHASE_B.md` section 9), on
+`feature/village-followups`: a QA pass (`language`, then `progression`), the core's M65, M66 and M67, V20, V21, V22, V23, the core's M69,
+and V24; the core's M68 only if CI fails a timed test. The QA reports' confirmed bugs join where they fit. Models are the owner's mix
+(D-game-22, 2026-11-01): Opus 5.5 at xhigh for M65 to M67, M69 and V20; Sonnet 5.5 for V21 to V23; Haiku 5.5 for V24.
 
 **Every content milestone (V10 to V15)**, besides the definition of done (`IMPLEMENTATION_PLAN.md` section 6) and the content loop
 (`content/README.md`, "The edit loop"): the sheet rows first (D-game-10), each with a graded error example; the intents' examples with

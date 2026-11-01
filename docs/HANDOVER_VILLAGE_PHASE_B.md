@@ -383,6 +383,10 @@ The owner asked for the fixes to be noted here, not made, so **nothing below is 
 
 ### 9.1 Ask the owner once, at the start
 
+**Answered 2026-11-01** (recorded in `docs/game/DECISIONS.md`, D-game-22): the models as recommended; yes to M65's (a), (b) and (c), (d)
+stays recorded; name plates as recommended (the faced NPC's, depth-tested); `main`'s CI green after the merge, so M68 waits for a red
+timed test. The voices stay the owner's to listen to.
+
 1. **The model.**
    - Recommended: Opus 5.5 at xhigh for M65 to M67, M69 and V20, where Spanish is judged and the design is subtle, as in the series.
      Sonnet 5.5 for V21 to V23 and the timing milestone; Haiku 5.5 for V24, the documents.

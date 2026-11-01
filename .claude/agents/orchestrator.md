@@ -49,6 +49,9 @@ is a change to the boundary and updates that record.
   - The queue: a QA pass, then M65 (fuzz stability), M66 and M67 (core grading), V20 (free talk), V21 to V23, M69, M68 (CI timing, if
     needed) and V24 (documents).
 - Gate with `GATE_TARGET=feature/village-followups`.
+- **9.1 answered (2026-11-01, D-game-22):** models mixed (Opus 5.5 xhigh for M65 to M67, M69, V20; Sonnet 5.5 for V21 to V23 and M68;
+  Haiku 5.5 for V24); M65's narrowings (a) to (c) yes, (d) recorded; plates of the faced NPC, depth-tested; CI green, so M68 waits.
+  Rows filed: the core's §5 (M65 to M69; M63 folded into M66) and VILLAGE_PLAN section 4 (V20 to V24).
 **The full handover is `docs/HANDOVER_VILLAGE_PHASE_B.md`** (for a fresh agent: the review of `feature/village`, the owner's decisions,
 the follow-ups and what V09 found). The owner's plan (2026-11-01): review, merge PR #20, then the follow-ups on a new branch from `main`.
 **Start here (a fresh orchestrator session)**
