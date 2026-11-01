@@ -469,16 +469,32 @@ public static class MutationGen
 
         public MutatedSentence? GenderAdjective()
         {
-            foreach (var j in Shuffled(Indexes(static t => t is { Role: TokenRole.Adjective, Generated: true, Head: >= 0 })))
+            // M62 widened the mutation to a predicate adjective (Head -1) whose copula has a subject pronoun of a known gender before it (ella es alta -> alto): the
+            // analyzer agrees it with the pronoun, as it agrees an attributive adjective with its noun.
+            foreach (var j in Shuffled(Indexes(static t => t is { Role: TokenRole.Adjective, Generated: true })))
             {
                 var adjective = _tokens[j];
-                var head = _tokens[adjective.Head];
-                if (head.Role != TokenRole.Noun || !head.Generated || ReadsAsBothGenders(head))
+                string? gender;
+                if (adjective.Head >= 0)
                 {
-                    continue;
+                    var head = _tokens[adjective.Head];
+                    if (head.Role != TokenRole.Noun || !head.Generated || ReadsAsBothGenders(head))
+                    {
+                        continue;
+                    }
+
+                    gender = head.Gender;
+                }
+                else
+                {
+                    gender = PredicatePronounGender(j);
+                    if (gender is null)
+                    {
+                        continue;
+                    }
                 }
 
-                var flipped = head.Gender == LexiconSchema.Masculine ? LexiconSchema.Feminine : LexiconSchema.Masculine;
+                var flipped = gender == LexiconSchema.Masculine ? LexiconSchema.Feminine : LexiconSchema.Masculine;
                 var form = _words.AdjectiveForm(adjective.Lemma!, flipped, adjective.Number!);
                 if (form is null || form == adjective.Norm)
                 {
@@ -499,7 +515,7 @@ public static class MutationGen
                 }
 
                 var readings = _words.Lexicon.Lookup(form).Where(static r => r.Pos == LexiconSchema.Adjective).ToArray();
-                if (readings.Length == 0 || readings.Any(r => r.Gender is null || r.Gender == head.Gender) || readings[0].Lemma != adjective.Lemma)
+                if (readings.Length == 0 || readings.Any(r => r.Gender is null || r.Gender == gender) || readings[0].Lemma != adjective.Lemma)
                 {
                     continue;
                 }
@@ -509,6 +525,28 @@ public static class MutationGen
             }
 
             return null;
+        }
+
+        // M62: the gender of the subject pronoun of the copula that the standalone adjective at index follows (ella es alta, nosotros no somos altos), or null: the
+        // copula is a generated finite ser or estar right before the adjective (past skippable words), and the pronoun the analyzer pairs with it has a gender and no
+        // preposition before it (mirror of the first subject of SpanishAgreementChecker.CheckPredicateAdjectives).
+        private string? PredicatePronounGender(int index)
+        {
+            var copula = PreviousContent(index);
+            if (copula < 0
+                || index - copula > 3
+                || _tokens[copula] is not { Role: TokenRole.Verb, Generated: true, Infinitive: false, Lemma: "ser" or "estar" })
+            {
+                return null;
+            }
+
+            var pronoun = PersonSubjectOf(copula);
+            if (pronoun < 0 || copula - pronoun > 3)
+            {
+                return null;
+            }
+
+            return _tokens[pronoun].Gender;
         }
 
         public MutatedSentence? SerEstar()

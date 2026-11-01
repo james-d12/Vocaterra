@@ -10,7 +10,8 @@ using Vocaterra.Nlp.Language.Morphology;
 /// <summary>Runs the Spanish grammar checks (subject-verb, tense, ser/estar, noun phrase agreement, word order) over analyzed tokens; part of the Spanish pack since M34.</summary>
 /// <remarks>
 /// The rules of M56 (a subject after its verb, <c>ser</c> where a place takes <c>estar</c>) are in <c>SpanishAgreementChecker.Postverbal.cs</c>, and those of M59 (a noun
-/// subject before its verb, a reflexive clitic after <c>cómo</c>) in <c>SpanishAgreementChecker.Preverbal.cs</c>.
+/// subject before its verb, a reflexive clitic after <c>cómo</c>) in <c>SpanishAgreementChecker.Preverbal.cs</c>, and that of M62 (an adjective after <c>ser</c> or
+/// <c>estar</c> agrees with the copula's subject) in <c>SpanishAgreementChecker.Predicate.cs</c>.
 /// </remarks>
 internal sealed partial class SpanishAgreementChecker : IAgreementChecker
 {
@@ -39,6 +40,7 @@ internal sealed partial class SpanishAgreementChecker : IAgreementChecker
         CheckSerEstar();
         CheckSerOfPlace();
         CheckNounPhrases();
+        CheckPredicateAdjectives();
     }
 
     private static bool IsFiniteVerb(LexicalFeatures reading)

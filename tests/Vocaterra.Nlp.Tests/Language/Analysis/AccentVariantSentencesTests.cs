@@ -106,8 +106,9 @@ public class AccentVariantSentencesTests
     [Fact]
     public void EstaAsTheVerbIsCheckedAsTheVerb()
     {
-        // ella está alto is a ser/estar mistake: the copula check runs on a word that used to be read as the demonstrative.
-        AssertTags("ella esta alto", ErrorTags.SerEstar);
+        // ella está alto is a ser/estar mistake: the copula check runs on a word that used to be read as the demonstrative. Since M62 the adjective agrees with ella as
+        // well (ella es alta), so the predicate check finds alto too: it sees the verb as well.
+        AssertTags("ella esta alto", ErrorTags.SerEstar, ErrorTags.GenderAgree);
         AssertTags("el esta simpatico", ErrorTags.SerEstar);
         AssertTags("estas inteligente", ErrorTags.SerEstar);
     }

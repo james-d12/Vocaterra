@@ -19,6 +19,16 @@ internal static class SpanishAnalysisTables
 
     private static readonly FrozenSet<string> PrenominalAdjectives = new[] { "grande", "bueno", "malo" }.ToFrozenSet(StringComparer.Ordinal);
 
+    // M62: the colours go after their noun in neutral Spanish (manzanas rojas; tres rojas manzanas is a slip of order). Several are also nouns (roja, blanca, rosa,
+    // gris), so the reading resolver reads such a word as the adjective right before a word that can only be a noun (IAnalysisRules.IsPostnominalAdjective).
+    private static readonly FrozenSet<string> ColourAdjectives = new[]
+    {
+        "rojo", "azul", "verde", "amarillo", "blanco", "negro", "gris", "rosa", "naranja", "marrón", "morado", "violeta", "celeste", "dorado", "plateado",
+    }.ToFrozenSet(StringComparer.Ordinal);
+
+    // M62: the adverbs of degree that modify an adjective or an adverb and never a noun (muy caro, tan cara; never muy pan).
+    private static readonly FrozenSet<string> DegreeAdverbs = new[] { "muy", "tan" }.ToFrozenSet(StringComparer.Ordinal);
+
     private static readonly FrozenSet<string> NounModifyingAdverbs = new[]
     {
         "solo", "sólo", "también", "tampoco", "incluso", "casi", "apenas", "aun", "aún", "más", "menos", "hasta", "ni",
@@ -203,6 +213,18 @@ internal static class SpanishAnalysisTables
     public static bool TakesSer(string adjectiveLemma)
     {
         return SerAdjectives.Contains(adjectiveLemma);
+    }
+
+    /// <summary>True for the colour adjectives, which go after their noun in neutral Spanish (M62: <c>manzanas rojas</c>, not <c>rojas manzanas</c>).</summary>
+    public static bool IsColourAdjective(string adjectiveLemma)
+    {
+        return ColourAdjectives.Contains(adjectiveLemma);
+    }
+
+    /// <summary>True for the adverbs of degree that modify an adjective or an adverb and never a noun (M62: <c>muy</c>, <c>tan</c>).</summary>
+    public static bool IsDegreeAdverb(string lemma)
+    {
+        return DegreeAdverbs.Contains(lemma);
     }
 
     /// <summary>True for adjectives that normally precede their noun (grande, bueno, malo; determiner adjectives are handled elsewhere).</summary>

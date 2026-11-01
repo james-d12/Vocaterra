@@ -28,9 +28,10 @@ public sealed class FuzzLanguageStreamTests
     // edit: none can move them. History: from M35 to M59 they were recorded on content/game-v1 itself, and every content milestone that added a word or a grammar
     // (V10 to V16) re-recorded them with the generators unchanged; M57 (c) moved them to the frozen inputs (copied at 0041eff), the generators unchanged. The sentence
     // digest again at M57 (a), whose realiser finds the time markers of more than one word (TimeMarkerModel) and whose fixture grammars gained two patterns with them;
-    // the text digest did not move.
+    // the text digest did not move. The sentence digest again at M62, whose realiser agrees a predicate adjective with the copula's subject (a noun phrase before or
+    // after it, not only a pronoun) and re-rolls a colour that is also a noun right before a noun; the text digest did not move.
     private const string TextDigest = "24826CDAB4703637C13D991FE7D2FF0010F467C05BCD9D5C6C2F1AF9065D8D25";
-    private const string SentenceDigest = "2915B6C25E9A378059C23B9ECD7D001A42130850817872973FCD5395DD0EABE3";
+    private const string SentenceDigest = "00E3E81BD0D7067E505E5D1EFBCBF1F18F9D8B7D3067033B44BA7A321ABC418B";
 
     [Fact]
     public void TheSpanishRecordUsesTheSpanishPackAndTheWholeMutationSet()
