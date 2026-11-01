@@ -11,6 +11,7 @@ using Vocaterra.Game.Graphics.Figures;
 using Vocaterra.Game.Graphics.World;
 using Vocaterra.Game.Startup;
 using Vocaterra.Game.UI.Common;
+using Vocaterra.Game.UI.Hud;
 
 namespace Vocaterra.Game.Graphics;
 
@@ -98,7 +99,7 @@ public sealed class SceneDrawer : IDisposable
         _colours!.Refresh();
         renderer.Remesh(camera.Eye, camera.Frustum, _options.IsScreenshotRun ? null : _session.Worker!.IsReady ? Preset.MeshBudgetMilliseconds : 30);
         device.Clear(renderer.ClearColour);
-        renderer.DrawWorld(camera, target, beacon, tick, avatar, arm);
+        renderer.DrawWorld(camera, target, beacon, tick, avatar, arm, () => NpcLabelLayer.Draw(device, _spriteBatch!, View, camera));
     }
 
     /// <summary>Draws the 2D layers, laid out on the canvas of <paramref name="canvasWidth"/> by <paramref name="canvasHeight"/> and magnified to the window.</summary>
