@@ -202,6 +202,26 @@ public sealed class VillageTalkTests
     }
 
     [Theory]
+    [InlineData("fuimos al río")] // the canonical answer
+    [InlineData("mar y yo fuimos al río")] // V19, the review's R1 (the game's side): vocab.wrong on mar, correctness 0.4, before the answer set had a subject
+    [InlineData("ayer mar y yo fuimos al río")]
+    [InlineData("mar y yo fuimos al río ayer")]
+    [InlineData("tú y yo fuimos al río")]
+    [InlineData("ayer tú y yo fuimos al río")]
+    [InlineData("tú y yo fuimos al río ayer")]
+    [InlineData("luz y yo fuimos al río")]
+    [InlineData("ayer luz y yo fuimos al río")]
+    [InlineData("luz y yo fuimos al río ayer")]
+    public void SessionEightsAnswerWithASubjectScoresAsTheCanonicalOne(string line)
+    {
+        // «¿Y Mar y tú? ¿Adónde fueron ayer?» invites the subject; the core grades a coordinated subject right since M64, and the answer set holds the answers with one.
+        var verdict = Evaluate(line, "lesson-we-went").Verdict;
+
+        Assert.Equal(("state_action", true, 1.0), (verdict.Intent.Value, verdict.Communicated, verdict.Correctness));
+        Assert.Empty(verdict.Errors);
+    }
+
+    [Theory]
     [InlineData("baker-open", "vendí madera")] // the DSL has no tense: offer_item names the present, state_action takes vender's other forms
     [InlineData("baker-open", "venderé madera")]
     [InlineData("farmer-open", "venderé fruta")] // the farmer's open prompt takes state_action since V15, so a plan is no sale

@@ -647,11 +647,11 @@ public sealed partial class VoxelSession : GuideSession
                 case NpcEffectKind.TakeItem:
                     Take(npc, effect.Item, effect.CountFor(slots), how);
                     break;
-                case NpcEffectKind.Sell when effect.ItemSaidIn(slots, Nouns): // another item asked for: the NPC answered wont_sell on the worker (V15)
-                    Sell(npc, effect.Item, effect.CountFor(slots), effect.CostFor(slots), how);
+                case NpcEffectKind.Sell when effect.ExchangeMiss(slots, Simulation.Inventory, Nouns) is null: // a miss was answered on the worker (wont_sell, cant_pay, …)
+                    _ = Sell(npc, effect.Item, effect.CountFor(slots), effect.CostFor(slots), how);
                     break;
-                case NpcEffectKind.Buy when effect.ItemSaidIn(slots, Nouns): // another item offered: wont_buy
-                    Buy(npc, effect.Item, effect.SaleCountFor(slots, Simulation.Inventory.Count(effect.Item)), effect.Price, how);
+                case NpcEffectKind.Buy when effect.ExchangeMiss(slots, Simulation.Inventory, Nouns) is null: // a miss: wont_buy, cant_sell, none_offered, no_room
+                    Buy(npc, effect, effect.SaleCountFor(slots, Simulation.Inventory.Count(effect.Item)), how);
                     break;
                 default:
                     break;
@@ -678,16 +678,18 @@ public sealed partial class VoxelSession : GuideSession
         }
     }
 
-    // Whether an NPC can put items in the inventory: all of them fit, and a bottle goes only to a player who holds none, empty or full (the stall's rule, S6).
-    private bool CanGive(ItemId item, int count) =>
-        !(item == ItemId.Bottle && Simulation.Inventory.Count(ItemId.Bottle) + Simulation.Inventory.Count(ItemId.WaterBottle) > 0)
-        && Simulation.Inventory.CanAdd(item, count);
+    // Whether an NPC can put items in the inventory: all of them fit, and a bottle goes only to a player who holds none (SecondBottle).
+    private bool CanGive(ItemId item, int count) => !SecondBottle(item) && Simulation.Inventory.CanAdd(item, count);
+
+    // Whether the item is a bottle and the player holds one, empty or full: the stall's rule (S6) gives none then.
+    private bool SecondBottle(ItemId item) =>
+        item == ItemId.Bottle && Simulation.Inventory.Count(ItemId.Bottle) + Simulation.Inventory.Count(ItemId.WaterBottle) > 0;
 
     // An NPC puts items in the inventory, all of them or none (a pickup the player did not make: the word card shows the first time). The bottle is handed over
-    // once, whatever the count.
+    // once, whatever the count. None (a gift by the number said, cero) gives nothing.
     private void Give(string npc, ItemId item, int count, string how)
     {
-        if (!CanGive(item, count))
+        if (count <= 0 || !CanGive(item, count))
         {
             return; // a bottle held already, or the inventory is full: nothing is lost, the NPC keeps them
         }
@@ -699,10 +701,10 @@ public sealed partial class VoxelSession : GuideSession
         _eventAmount = 1;
     }
 
-    // An NPC takes items (VILLAGE_PLAN V03: take_item, the goods of an order), all of them or none: a player who has fewer keeps what they have.
+    // An NPC takes items (VILLAGE_PLAN V03: take_item, the goods of an order), all of them or none: a player who has fewer keeps what they have. None takes nothing.
     private void Take(string npc, ItemId item, int count, string how)
     {
-        if (!Simulation.TakeItems(item, count))
+        if (count <= 0 || !Simulation.TakeItems(item, count))
         {
             return;
         }
@@ -712,30 +714,32 @@ public sealed partial class VoxelSession : GuideSession
         _eventAmount = 1;
     }
 
-    // A purchase (VILLAGE_PLAN V03, sell): the coins for the items asked for go and the items come, or nothing changes hands. Too few coins (the NPC answered
-    // cant_pay on the worker) or no room for the items keep the coins and the items where they were, as the stall's bottle rule keeps a second bottle.
-    private void Sell(string npc, ItemId item, int count, int cost, string how)
+    // A purchase (VILLAGE_PLAN V03, sell): the coins for the items asked for go and the items come, or nothing changes hands (false). None asked for, too few coins
+    // or no room for the items once the coins are paid (the NPC answered none_asked, cant_pay or no_room on the worker, NpcEffect.ExchangeMiss) keep the coins and the
+    // items where they were, as the stall's bottle rule keeps a second bottle.
+    private bool Sell(string npc, ItemId item, int count, int cost, string how)
     {
-        if (Simulation.Inventory.Count(ItemId.Coin) < cost || !CanGive(item, count))
+        if (count <= 0 || SecondBottle(item) || !Simulation.Inventory.CanExchange(ItemId.Coin, cost, item, count))
         {
-            return;
+            return false;
         }
 
         Take(npc, ItemId.Coin, cost, how);
         Give(npc, item, count, how);
+        return true;
     }
 
-    // A sale (VILLAGE_PLAN V15, buy): the NPC takes the items the learner offers and pays the price for each, or nothing changes hands. No items to sell (the NPC
-    // answered cant_sell on the worker) or no room for the coins keep the items and the coins where they were, as a purchase does.
-    private void Buy(string npc, ItemId item, int count, int price, string how)
+    // A sale (VILLAGE_PLAN V15, buy): the NPC takes the items the learner offers and pays the price for each, or nothing changes hands. No items to sell, none
+    // offered or no room for the coins once the items are taken (cant_sell, none_offered, no_room) keep the items and the coins where they were, as a purchase does.
+    private void Buy(string npc, NpcEffect sale, int count, string how)
     {
-        if (count <= 0 || Simulation.Inventory.Count(item) < count || !CanGive(ItemId.Coin, count * price))
+        if (count <= 0 || !Simulation.Inventory.CanExchange(sale.Item, count, ItemId.Coin, sale.PriceOf(count)))
         {
             return;
         }
 
-        Take(npc, item, count, how);
-        Give(npc, ItemId.Coin, count * price, how);
+        Take(npc, sale.Item, count, how);
+        Give(npc, ItemId.Coin, sale.PriceOf(count), how);
     }
 
     // The beacon goes to a named place of the scene (VILLAGE_PLAN V02): a host event's point_at_place, or a lesson's do step with a pointPlace. It shows the place's label.

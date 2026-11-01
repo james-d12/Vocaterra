@@ -1528,6 +1528,42 @@
       "variants": [
         { "lineId": "farmer_wont_sell.1", "text": "Solo vendo manzanas." }
       ]
+    },
+    "baker_none_offered": {
+      "poolId": "baker_none_offered",
+      "variants": [
+        { "lineId": "baker_none_offered.1", "text": "¿Cuántos bloques de madera me vendes?" }
+      ]
+    },
+    "smith_none_offered": {
+      "poolId": "smith_none_offered",
+      "variants": [
+        { "lineId": "smith_none_offered.1", "text": "¿Cuántos bloques de madera me vendes?" }
+      ]
+    },
+    "farmer_none_offered": {
+      "poolId": "farmer_none_offered",
+      "variants": [
+        { "lineId": "farmer_none_offered.1", "text": "¿Cuántas frutas me vendes?" }
+      ]
+    },
+    "baker_no_room": {
+      "poolId": "baker_no_room",
+      "variants": [
+        { "lineId": "baker_no_room.1", "text": "Tu bolsa está llena." }
+      ]
+    },
+    "farmer_no_room": {
+      "poolId": "farmer_no_room",
+      "variants": [
+        { "lineId": "farmer_no_room.1", "text": "Tu bolsa está llena." }
+      ]
+    },
+    "smith_no_room": {
+      "poolId": "smith_no_room",
+      "variants": [
+        { "lineId": "smith_no_room.1", "text": "Tu bolsa está llena." }
+      ]
     }
   }
 }

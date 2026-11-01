@@ -176,8 +176,9 @@ specified for later in `docs/game/CONTENT_PLAN.md` section 3.8 (C10); it is not 
   its own name. The label is also the word an NPC's directions answer to (below), so a place the learner may ask for needs one.
 - **What a host event does** (`game/host-events.json`, schema 2 since VILLAGE_PLAN V02; `take_item` and `sell` since V03). Each entry names the NPC, the
   host event its agent raises and an `action`; an event the file does not map changes nothing:
-  - `give_item` (`item`, by the name the save gives it, and optionally `count`: a number, or `"qty"`, the number the learner said, `quiero dos panes`, from 1
-    to 5, one when the line has none). The items go in all together or not at all (a full bag: the NPC keeps them); the bottle is handed over once.
+  - `give_item` (`item`, by the name the save gives it, and optionally `count`: a number, or `"qty"`, the number the learner said, `quiero dos panes`, at most
+    5, so no talk makes gifts out of nothing; one when the line has none, none for `cero`). The items go in all together or not at all (a full bag: the NPC keeps
+    them); the bottle is handed over once.
   - `point_at_noun` (`noun`): the beacon goes to the nearest block of a catalogue noun.
   - `point_at_place` (`place`): the beacon goes to a named place of the scene (a site, a point or a named prop: `stall`). The validator refuses a place the
     scene does not have.
@@ -189,21 +190,25 @@ specified for later in `docs/game/CONTENT_PLAN.md` section 3.8 (C10); it is not 
     `unknown`.
   - `take_item` (`item`, and `count` as for `give_item`): the NPC takes the items, all of them or none; logged as `item_taken` (`madera, request`).
   - `sell` (`item`, `price` in coins): a purchase. Map it to the host event of the action that answers `request_item` at the NPC's prompt; the learner's
-    number (`quiero dos panes`, the verdict's `qty`, 1 to 5, one when none) of the item for that many times the price. The coins go (`item_taken`) and the
-    items come (`item_given`), or nothing changes hands: with too few coins the NPC does not say that action's line (`Aquí tienes el pan.`) and is raised
-    `<npc>.cant_pay` as a host turn, which its agent answers (`Cuesta dos monedas. No tienes monedas.`); a bag with no room keeps the coins too. The
-    validator checks one state of the agent takes `<npc>.cant_pay`. Since V15 a request names its item: asked for another one (`quiero madera` at the bakery), the NPC
-    says neither line and is raised `<npc>.wont_sell` (`Solo vendo pan.`), which one state must take too. For example:
+    number (`quiero dos panes`, the verdict's `qty`, one when none; no cap since V19, the coins and the bag are the bound) of the item for that many times the
+    price. The coins go (`item_taken`) and the items come (`item_given`), or nothing changes hands: with too few coins the NPC does not say that action's line
+    (`Aquí tienes el pan.`) and is raised `<npc>.cant_pay` as a host turn, which its agent answers (`Necesitas más monedas.`). Since V15 a request names its
+    item: asked for another one (`quiero madera` at the bakery), or since V19 for a catalogue noun of no item (`quiero casa`), the NPC says neither line and is
+    raised `<npc>.wont_sell` (`Solo vendo pan.`); a word the catalogue lacks, or a line with no item, asks for the NPC's own. Since V19 a request for none
+    (`quiero cero panes`) is raised `<npc>.none_asked` (Luz asks how many with her `Aquí hay pan. ¿Cuántos panes quieres?`), and a bag with no room for the
+    items once their coins are paid `<npc>.no_room` (`Tu bolsa está llena.`). The validator checks one state of the agent takes each of the four. For example:
 
     ```json
     { "npc": "baker", "event": "baker.sell_bread", "action": { "kind": "sell", "item": "bread", "price": 2 } }
     ```
   - `buy` (`item`, `price` in coins; VILLAGE_PLAN V15): a sale, the purchase turned round. Map it to the host event of the action that answers `offer_item`
     (`vendo madera`, `quiero vender madera`) at the NPC's prompt. The NPC takes the item and pays the price for each one: as many as the learner said (`qty`,
-    1 to 5; wood as `tres bloques de madera`, and `un`/`una` before the item is one), or with no number every one the bag holds. The items go (`item_taken`, `madera, request`) and the coins come (`item_given`, `moneda, request`),
-    or nothing changes hands: a bag with none of the item, or a line that offers another item, keeps the NPC from saying that action's line, and its agent
-    is raised `<npc>.cant_sell` (`No tienes madera.`) or `<npc>.wont_buy` (`No, gracias. Solo compro madera.`) as a host turn; a bag with no room for the
-    coins keeps the items too. The validator checks that one state of the agent takes each. There is no cap: the goods are the cap (each coin is a piece of
+    at most what the bag holds; wood as `tres bloques de madera`, and `un`/`una` before the item is one), or with no number every one the bag holds. The items go (`item_taken`, `madera, request`) and the coins come (`item_given`, `moneda, request`),
+    or nothing changes hands: a bag with none of the item, a line that offers another item (or since V19 a catalogue noun of no item, `vendo piedra`), an
+    offer of none (`vendo cero bloques de madera`, V19) or a bag with no room for the coins once the items are taken (V19) keeps the NPC from saying that action's
+    line, and its agent is raised `<npc>.cant_sell` (`No tienes madera.`), `<npc>.wont_buy` (`No, gracias. Solo compro madera.`), `<npc>.none_offered`
+    (`¿Cuántos bloques de madera me vendes?`) or `<npc>.no_room` (`Tu bolsa está llena.`) as a host turn. The validator checks that one state of the agent
+    takes each. There is no cap: the goods are the cap (each coin is a piece of
     wood chopped or a fruit picked, and nobody buys what an NPC sells, so nothing can be bought and sold again at a profit). Luz and Domingo buy wood, León
     fruit, a coin each:
 

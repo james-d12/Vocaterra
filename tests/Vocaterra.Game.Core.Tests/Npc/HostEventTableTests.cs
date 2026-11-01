@@ -9,7 +9,7 @@ namespace Vocaterra.Game.Core.Tests.Npc;
 
 /// <summary>
 /// <c>game/host-events.json</c> schema 2 (VILLAGE_PLAN V02): <c>give_item</c> with a count (a number, or the number the learner said, capped at five), and the beacon
-/// sent to a named place of the scene or to the place a slot of the learner's line names.
+/// sent to a named place of the scene or to the place a slot of the learner's line names. A purchase has no cap since V19: the number said, bounded by the coins and the bag.
 /// </summary>
 public sealed class HostEventTableTests
 {
@@ -33,18 +33,22 @@ public sealed class HostEventTableTests
     }
 
     [Theory]
-    [InlineData(null, 1)] // "quiero pan": no number, one
-    [InlineData("2", 2)]
-    [InlineData("5", 5)]
-    [InlineData("9", NpcEffect.MaxQuantity)] // "quiero nueve panes": capped at five
-    [InlineData("1000000000000", NpcEffect.MaxQuantity)]
-    [InlineData("0", 1)]
-    [InlineData("dos", 1)] // the core gives a number as its digits; anything else is read as one
-    public void TheNumberTheLearnerSaidIsOneWithoutANumberAndAtMostFive(string? qty, int expected)
+    [InlineData(null, 1, 1)] // "quiero pan": no number, one
+    [InlineData("2", 2, 2)]
+    [InlineData("5", 5, 5)]
+    [InlineData("9", 9, NpcEffect.MaxQuantity)] // "quiero nueve panes": the number said (V19, the review's R9); a gift by the number said is capped at five
+    [InlineData("15", 15, NpcEffect.MaxQuantity)] // session 10 teaches 11 to 20
+    [InlineData("1000000000000", int.MaxValue, NpcEffect.MaxQuantity)] // twelve digits overflow no int
+    [InlineData("99999999999999999999999", int.MaxValue, NpcEffect.MaxQuantity)] // nor more than a long holds
+    [InlineData("0", 0, 0)] // "quiero cero panes": none (V19, the review's R10: it was read as one)
+    [InlineData("dos", 1, 1)] // the core gives a number as its digits; anything else is read as one
+    [InlineData("-3", 1, 1)]
+    public void TheNumberTheLearnerSaidIsOneWithoutANumberAndAGiftByItIsAtMostFive(string? qty, int said, int given)
     {
         var slots = qty is null ? Slots(("item", "pan")) : Slots(("item", "pan"), ("qty", qty));
-        Assert.Equal(expected, NpcEffect.Quantity(slots));
-        Assert.Equal(expected, NpcEffect.GiveAsked(ItemId.Bread).CountFor(slots));
+        Assert.Equal(said, NpcEffect.Quantity(slots));
+        Assert.Equal(said, NpcEffect.SellAt(ItemId.Bread, 2).CountFor(slots));
+        Assert.Equal(given, NpcEffect.GiveAsked(ItemId.Bread).CountFor(slots));
     }
 
     [Fact]
@@ -65,7 +69,10 @@ public sealed class HostEventTableTests
 
         Assert.Equal((1, 2), (sell.CountFor(Slots(("item", "pan"))), sell.CostFor(Slots(("item", "pan")))));
         Assert.Equal((3, 6), (sell.CountFor(Slots(("qty", "3"))), sell.CostFor(Slots(("qty", "3")))));
-        Assert.Equal((5, 10), (sell.CountFor(Slots(("qty", "12"))), sell.CostFor(Slots(("qty", "12"))))); // capped at five
+        Assert.Equal((12, 24), (sell.CountFor(Slots(("qty", "12"))), sell.CostFor(Slots(("qty", "12"))))); // no cap since V19 (the review's R9)
+        Assert.Equal((0, 0), (sell.CountFor(Slots(("qty", "0"))), sell.CostFor(Slots(("qty", "0"))))); // none (R10)
+        Assert.Equal(int.MaxValue, sell.CostFor(Slots(("qty", "1000000000000")))); // the price times twelve digits overflows nothing: more than any bag holds
+        Assert.Equal(int.MaxValue, sell.PriceOf(int.MaxValue));
         Assert.Equal(0, NpcEffect.Give(ItemId.Bread).CostFor(Slots(("qty", "3")))); // only a sale costs
     }
 
@@ -94,6 +101,7 @@ public sealed class HostEventTableTests
         events.Add(Event("villager", "villager.show", new JsonObject { ["kind"] = "point_at_place", ["place"] = "signpost" }));
         events.Add(Event("shopkeeper", "stall.point", new JsonObject { ["kind"] = "point_at_slot", ["slot"] = "place" }));
         events.Add(Event("shopkeeper", "stall.sell", new JsonObject { ["kind"] = "sell", ["item"] = "bread", ["price"] = 2 }));
+        events.Add(Event("shopkeeper", "stall.buy", new JsonObject { ["kind"] = "buy", ["item"] = "wood", ["price"] = 1 }));
 
         var problems = GameDataValidator.Validate(TestGame.Data.WithHostEvents(HostEventTable.Parse(root.ToJsonString())));
 
@@ -102,6 +110,10 @@ public sealed class HostEventTableTests
             "game/host-events.json: shopkeeper's 'stall.point' points at the place the learner names, and no state of agents/shopkeeper.json takes 'shopkeeper.unknown_place' to say it does not know one.",
             problems);
         Assert.Contains("game/host-events.json: shopkeeper's 'stall.sell' sells, and no state of agents/shopkeeper.json takes 'shopkeeper.cant_pay' to say the coins are too few.", problems);
+        Assert.Contains("game/host-events.json: shopkeeper's 'stall.sell' sells, and no state of agents/shopkeeper.json takes 'shopkeeper.none_asked' to answer a request for none.", problems); // V19
+        Assert.Contains("game/host-events.json: shopkeeper's 'stall.sell' sells, and no state of agents/shopkeeper.json takes 'shopkeeper.no_room' to say the bag is full.", problems);
+        Assert.Contains("game/host-events.json: shopkeeper's 'stall.buy' buys, and no state of agents/shopkeeper.json takes 'shopkeeper.none_offered' to answer an offer of none.", problems);
+        Assert.Contains("game/host-events.json: shopkeeper's 'stall.buy' buys, and no state of agents/shopkeeper.json takes 'shopkeeper.no_room' to say the bag is full.", problems);
         Assert.DoesNotContain(problems, static p => p.Contains("'villager.show'", StringComparison.Ordinal)); // a named prop is a point of the scene
         Assert.DoesNotContain(problems, static p => p.Contains("'villager.point'", StringComparison.Ordinal)); // the villager can say he does not know a place
 

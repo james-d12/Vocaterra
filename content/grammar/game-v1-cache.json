@@ -21,6 +21,12 @@
       "matches": []
     },
     {
+      "key": "00ea401e14eb6f37318b301fa8a65489f1023aaa441c1376d02d5a04232fd830",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Cuántas frutas me vendes?",
+      "matches": []
+    },
+    {
       "key": "00eee0a15442e5e678f53a9c87c611719ee5df9af4b91f2d36b394b0dd89b700",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, yo tienes una fruta",
@@ -269,6 +275,12 @@
       "matches": []
     },
     {
+      "key": "0944bf8fa46023fb3fb70f701aaa4109a06ec15defa36d9bb296fdad6a19de10",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tu bolsa está llena.",
+      "matches": []
+    },
+    {
       "key": "09993789e889b111b63ecee94cb8cfa2fffe4f618173c34fa0e23e4865eab9d9",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí es madera",
@@ -499,6 +511,12 @@
       "key": "1128b776d8003ad90fc7e4cffe36d29e4c26a97a7f5db0204af93f846f6d5ae5",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Necesitas más monedas.",
+      "matches": []
+    },
+    {
+      "key": "1152fa4f5b4a34ed604267b8dc6048593a9696ef0017b18cfcf9a334352d6bab",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tú y yo fuimos al río ayer",
       "matches": []
     },
     {
@@ -1759,6 +1777,12 @@
       "matches": []
     },
     {
+      "key": "339dfc1a61036ba862315f9bd1d6e605159f430c469a597459cf9494ca85e1b4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer tú y yo fuimos al río",
+      "matches": []
+    },
+    {
       "key": "33aea77db6821aa18fda24e860fd4ea7350a2ba189417cefe08cea226c94c1a6",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ella hizo pan",
@@ -1786,6 +1810,12 @@
       "key": "35720891bc7da645abb0d41b9d389bebf0ee3357f6e893d3c5ad5f48c104bab9",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Un agua por favor",
+      "matches": []
+    },
+    {
+      "key": "358cd889c1f4a6ea4d27d10cd4334fb7964769a1289a204085274ac729c38323",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer luz y yo fuimos al río",
       "matches": []
     },
     {
@@ -2027,6 +2057,12 @@
       "key": "395a38121ee3fad1dcfbcb43734878bd9203ad7085539935ca41a5f50615c002",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No me gusta el pan",
+      "matches": []
+    },
+    {
+      "key": "395ad2435fd44d518ced0dd54c8403fbd59c0532a116f4793f7e669eab289122",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Cuántos bloques de madera me vendes?",
       "matches": []
     },
     {
@@ -2323,6 +2359,12 @@
       "key": "41d333883b2291fdb6d3479ae71f27204ca710eeded0eb1d2e6950d36b8d5508",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Me da dos panes",
+      "matches": []
+    },
+    {
+      "key": "4297c3e61ec9a0e3ba2a4a0e42fecb83e5ace5c0d745e9ed9f854ea96fdd7f68",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer mar y yo fuimos al río",
       "matches": []
     },
     {
@@ -3747,6 +3789,12 @@
       "matches": []
     },
     {
+      "key": "68579747fa64a8876a9a6a08e325f0e54cb68713704cb249165816348b4765cd",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mar y yo fuimos al río",
+      "matches": []
+    },
+    {
       "key": "688701e7eefdeecb8f67435585da35ae9cf4f60879095562fcd475ed4cc3c366",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Nosotros fue al río",
@@ -4803,6 +4851,12 @@
       "key": "84a14d2a1eea3ff47a6230ca203440fa764fcb6f6523fe06cd88839635238fd6",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Después voy a buscar madera",
+      "matches": []
+    },
+    {
+      "key": "851a092e30707760922dc029d69cc082b82b44a1abf55dff95b58ccb2d512c2e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mar y yo fuimos al río ayer",
       "matches": []
     },
     {
@@ -7171,6 +7225,12 @@
       "matches": []
     },
     {
+      "key": "cb593f4c428dc763b06055a987c018017b4376a2f710e19a2ce6496a539d4754",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tú y yo fuimos al río",
+      "matches": []
+    },
+    {
       "key": "cb9029c2bbcc1a8ff7fa29e8d8e66475defffd7b1909f678de41a9195f2e9d86",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Compré dos panes",
@@ -7614,6 +7674,12 @@
       "matches": []
     },
     {
+      "key": "d73a1f7cc40d50167c8548b96b505376c85f6f8faaac2874cacffaf17a822519",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Luz y yo fuimos al río",
+      "matches": []
+    },
+    {
       "key": "d780e9ccf412547de8b93a36decfc13ae4d8275578779110df851358cca4003d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Quiero dos panes",
@@ -7932,6 +7998,12 @@
       "key": "e10bd79f1142830a17d142aa8519ca662a5c9e6fdcde17bac35086ec617b11f6",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Voy a ir al río mañana",
+      "matches": []
+    },
+    {
+      "key": "e11b92180210bf79cce5fa802891a85473250677bdbcf3dd9d47213ad1a93b63",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Luz y yo fuimos al río ayer",
       "matches": []
     },
     {

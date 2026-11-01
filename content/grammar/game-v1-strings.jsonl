@@ -11,6 +11,8 @@
 {"id":"dialogue:baker_hay.1","text":"Aquí hay pan. ¿Cuántos panes quieres?","kind":"npc"}
 {"id":"dialogue:baker_hello.1","text":"¡Hola!","kind":"npc"}
 {"id":"dialogue:baker_help.1","text":"Puedes decir: «Quiero dos panes, por favor».","kind":"npc"}
+{"id":"dialogue:baker_no_room.1","text":"Tu bolsa está llena.","kind":"npc"}
+{"id":"dialogue:baker_none_offered.1","text":"¿Cuántos bloques de madera me vendes?","kind":"npc"}
 {"id":"dialogue:baker_price.1","text":"El pan cuesta dos monedas.","kind":"npc"}
 {"id":"dialogue:baker_sell.1","text":"Aquí tienes el pan. ¡Gracias!","kind":"npc"}
 {"id":"dialogue:baker_sell.2","text":"Toma tu pan. ¡Gracias!","kind":"npc"}
@@ -32,6 +34,8 @@
 {"id":"dialogue:farmer_help.1","text":"Puedes preguntar: «¿Qué haces?».","kind":"npc"}
 {"id":"dialogue:farmer_job.1","text":"Soy el granjero. Trabajo en el campo.","kind":"npc"}
 {"id":"dialogue:farmer_name.1","text":"Me llamo León.","kind":"npc"}
+{"id":"dialogue:farmer_no_room.1","text":"Tu bolsa está llena.","kind":"npc"}
+{"id":"dialogue:farmer_none_offered.1","text":"¿Cuántas frutas me vendes?","kind":"npc"}
 {"id":"dialogue:farmer_pay.1","text":"Aquí se paga con monedas. Pero yo te compro fruta.","kind":"npc"}
 {"id":"dialogue:farmer_price.1","text":"Una manzana cuesta una moneda.","kind":"npc"}
 {"id":"dialogue:farmer_sell.1","text":"Aquí tienes. ¡Gracias!","kind":"npc"}
@@ -301,6 +305,8 @@
 {"id":"dialogue:smith_help.1","text":"Puedes preguntar: «¿Cómo te llamas?».","kind":"npc"}
 {"id":"dialogue:smith_job.1","text":"Soy el herrero. Trabajo con fuego y madera.","kind":"npc"}
 {"id":"dialogue:smith_name.1","text":"Me llamo Domingo.","kind":"npc"}
+{"id":"dialogue:smith_no_room.1","text":"Tu bolsa está llena.","kind":"npc"}
+{"id":"dialogue:smith_none_offered.1","text":"¿Cuántos bloques de madera me vendes?","kind":"npc"}
 {"id":"dialogue:smith_offer.1","text":"¿Quieres un hacha? Necesito dos bloques de madera y dos monedas.","kind":"npc"}
 {"id":"dialogue:smith_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:smith_thank.2","text":"¡Con gusto!","kind":"npc"}
@@ -1117,6 +1123,15 @@
 {"id":"answer-sets/lesson-we-went:river.alias2","text":"ayer fuimos al río","kind":"learner"}
 {"id":"answer-sets/lesson-we-went:river.alias3","text":"fuimos al río ayer","kind":"learner"}
 {"id":"answer-sets/lesson-we-went:river.alias4","text":"sí fuimos al río","kind":"learner"}
+{"id":"answer-sets/lesson-we-went:river.alias5","text":"mar y yo fuimos al río","kind":"learner"}
+{"id":"answer-sets/lesson-we-went:river.alias6","text":"ayer mar y yo fuimos al río","kind":"learner"}
+{"id":"answer-sets/lesson-we-went:river.alias7","text":"mar y yo fuimos al río ayer","kind":"learner"}
+{"id":"answer-sets/lesson-we-went:river.alias8","text":"tú y yo fuimos al río","kind":"learner"}
+{"id":"answer-sets/lesson-we-went:river.alias9","text":"ayer tú y yo fuimos al río","kind":"learner"}
+{"id":"answer-sets/lesson-we-went:river.alias10","text":"tú y yo fuimos al río ayer","kind":"learner"}
+{"id":"answer-sets/lesson-we-went:river.alias11","text":"luz y yo fuimos al río","kind":"learner"}
+{"id":"answer-sets/lesson-we-went:river.alias12","text":"ayer luz y yo fuimos al río","kind":"learner"}
+{"id":"answer-sets/lesson-we-went:river.alias13","text":"luz y yo fuimos al río ayer","kind":"learner"}
 {"id":"answer-sets/lesson-we-went:help","text":"ayuda","kind":"learner"}
 {"id":"answer-sets/lesson-we-went:help.alias1","text":"ayuda por favor","kind":"learner"}
 {"id":"answer-sets/lesson-we-went:help.alias2","text":"necesito ayuda","kind":"learner"}

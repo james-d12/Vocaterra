@@ -33,7 +33,7 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | farmer (León) | `pm_santa` | 44 | 1.0 | `voice-trial/pm_santa-1.0.wav` |
 | fisher (Mar) | `em_santa` | 53 | 0.9 | `voice-trial/em_santa-0.9.wav` |
 
-**To hear:** 902 of the 902 files have no mark (guide 404, villager 112, farmer 90, shopkeeper 86, baker 84, fisher 76, smith 50). Two files a line: the normal speed and the slow one.
+**To hear:** 914 of the 914 files have no mark (guide 404, villager 112, farmer 94, baker 88, shopkeeper 86, fisher 76, smith 54). Two files a line: the normal speed and the slow one.
 
 ## Lines
 
@@ -65,6 +65,10 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | baker_hello.1 | speech/baker_hello.1.wav | baker | 1.0 | ¡Hola! |  |
 | baker_help.1 | speech/baker_help.1.slow.wav | baker | 0.8 | Puedes decir: «Quiero dos panes, por favor». |  |
 | baker_help.1 | speech/baker_help.1.wav | baker | 1.0 | Puedes decir: «Quiero dos panes, por favor». |  |
+| baker_no_room.1 | speech/baker_no_room.1.slow.wav | baker | 0.8 | Tu bolsa está llena. |  |
+| baker_no_room.1 | speech/baker_no_room.1.wav | baker | 1.0 | Tu bolsa está llena. |  |
+| baker_none_offered.1 | speech/baker_none_offered.1.slow.wav | baker | 0.8 | ¿Cuántos bloques de madera me vendes? |  |
+| baker_none_offered.1 | speech/baker_none_offered.1.wav | baker | 1.0 | ¿Cuántos bloques de madera me vendes? |  |
 | baker_price.1 | speech/baker_price.1.slow.wav | baker | 0.8 | El pan cuesta dos monedas. |  |
 | baker_price.1 | speech/baker_price.1.wav | baker | 1.0 | El pan cuesta dos monedas. |  |
 | baker_sell.1 | speech/baker_sell.1.slow.wav | baker | 0.8 | Aquí tienes el pan. ¡Gracias! |  |
@@ -151,6 +155,10 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | farmer_job.1 | speech/farmer_job.1.wav | farmer | 1.0 | Soy el granjero. Trabajo en el campo. |  |
 | farmer_name.1 | speech/farmer_name.1.slow.wav | farmer | 0.8 | Me llamo León. |  |
 | farmer_name.1 | speech/farmer_name.1.wav | farmer | 1.0 | Me llamo León. |  |
+| farmer_no_room.1 | speech/farmer_no_room.1.slow.wav | farmer | 0.8 | Tu bolsa está llena. |  |
+| farmer_no_room.1 | speech/farmer_no_room.1.wav | farmer | 1.0 | Tu bolsa está llena. |  |
+| farmer_none_offered.1 | speech/farmer_none_offered.1.slow.wav | farmer | 0.8 | ¿Cuántas frutas me vendes? |  |
+| farmer_none_offered.1 | speech/farmer_none_offered.1.wav | farmer | 1.0 | ¿Cuántas frutas me vendes? |  |
 | farmer_pay.1 | speech/farmer_pay.1.slow.wav | farmer | 0.8 | Aquí se paga con monedas. Pero yo te compro fruta. |  |
 | farmer_pay.1 | speech/farmer_pay.1.wav | farmer | 1.0 | Aquí se paga con monedas. Pero yo te compro fruta. |  |
 | farmer_price.1 | speech/farmer_price.1.slow.wav | farmer | 0.8 | Una manzana cuesta una moneda. |  |
@@ -909,6 +917,10 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | smith_job.1 | speech/smith_job.1.wav | smith | 1.0 | Soy el herrero. Trabajo con fuego y madera. |  |
 | smith_name.1 | speech/smith_name.1.slow.wav | smith | 0.8 | Me llamo Domingo. |  |
 | smith_name.1 | speech/smith_name.1.wav | smith | 1.0 | Me llamo Domingo. |  |
+| smith_no_room.1 | speech/smith_no_room.1.slow.wav | smith | 0.8 | Tu bolsa está llena. |  |
+| smith_no_room.1 | speech/smith_no_room.1.wav | smith | 1.0 | Tu bolsa está llena. |  |
+| smith_none_offered.1 | speech/smith_none_offered.1.slow.wav | smith | 0.8 | ¿Cuántos bloques de madera me vendes? |  |
+| smith_none_offered.1 | speech/smith_none_offered.1.wav | smith | 1.0 | ¿Cuántos bloques de madera me vendes? |  |
 | smith_offer.1 | speech/smith_offer.1.slow.wav | smith | 0.8 | ¿Quieres un hacha? Necesito dos bloques de madera y dos monedas. |  |
 | smith_offer.1 | speech/smith_offer.1.wav | smith | 1.0 | ¿Quieres un hacha? Necesito dos bloques de madera y dos monedas. |  |
 | smith_thank.1 | speech/smith_thank.1.slow.wav | smith | 0.8 | De nada. |  |

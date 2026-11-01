@@ -83,9 +83,27 @@ public sealed partial class VoxelSession
         }
     }
 
-    /// <summary>A purchase a lesson makes (V12c, <see cref="SessionSkip"/>): the NPC sells as a sale at its stall does, the coins for the items, or nothing changes hands.</summary>
+    /// <summary>A purchase a lesson makes (V12c, <see cref="SessionSkip"/>): the NPC sells as a sale at its stall does, the coins for the items.</summary>
     /// <param name="purchase">The purchase.</param>
-    internal void SkipBuy(SessionSkip.Purchase purchase) => Sell(purchase.Npc, purchase.Item, purchase.Count, purchase.Count * purchase.Price, "request");
+    /// <exception cref="InvalidOperationException">
+    /// The purchase cannot be made: the sessions before leave too few coins for it, or the bag has no room for the items (V19, the review's risk: the skip went on quietly,
+    /// and only a later order's coins caught the shortfall).
+    /// </exception>
+    internal void SkipBuy(SessionSkip.Purchase purchase)
+    {
+        var cost = (int)Math.Min((long)purchase.Count * purchase.Price, int.MaxValue);
+        if (!Sell(purchase.Npc, purchase.Item, purchase.Count, cost, "request"))
+        {
+            var item = Nouns.ForItem(purchase.Item)?.Lemma ?? ItemDefinition.Get(purchase.Item).Name;
+            var coins = Simulation.Inventory.Count(ItemId.Coin);
+            if (coins < cost)
+            {
+                throw new InvalidOperationException($"The skip cannot make session {PlaySession}'s purchase of {purchase.Count} {item} from {purchase.Npc}: the sessions before leave {coins} coins, and it costs {cost}.");
+            }
+
+            throw new InvalidOperationException($"The skip cannot make session {PlaySession}'s purchase of {purchase.Count} {item} from {purchase.Npc}: the bag has no room for them.");
+        }
+    }
 
     /// <summary>
     /// Puts back the word records and the carded nouns of before the skip and drops the word cards it queued (V12c): an item an NPC gave in a session that was not played
