@@ -1,6 +1,7 @@
 # The lexicon: what ships, where it comes from, how to regenerate it
 
-The analyzer knows only the words in the lexicon (every other word is `vocab.unknown`). The bundle `content/game-v1/lexicon/` holds five lexicon files and the sidecar of the generated one:
+The analyzer knows only the words in the lexicon (every other word is `vocab.unknown`, except a learner's slip of a lexicon word: a regularized irregular verb
+form, `quero`, and since M58 a plural made with the wrong ending, `pans`; see [API.md](API.md), "Irregular forms, plurals and unknown words"). The bundle `content/game-v1/lexicon/` holds five lexicon files and the sidecar of the generated one:
 
 | File | Origin | Entries | Lemmas |
 | --- | --- | --- | --- |

@@ -98,7 +98,9 @@ All of this is additive unless it says breaking. The game compiles and passes un
   `Recast`, `Tag`) that the content validator fills dialogue slots with when it proves a template renders. Spanish: `espada`, `tener`, `fuego`, `tengo`,
   `tiene`, `yo tengo dos espadas`, `gender.agree`, the values the validator always used. A pack of another language gives its own words.
 - **`IMorphology`** (`Vocaterra.Nlp.Language.Morphology`): `Pluralize`, `Singularize`, `InflectNoun`, `Article(definiteness, gender, number[, nounLemma])`,
-  `AgreeAdjective`, `Conjugate`, `IsRegularizedIrregular`, `TryGetRegularization`. `MorphologyGenerator` implements it; `RegularizedForm` is public.
+  `AgreeAdjective`, `Conjugate`, `IsRegularizedIrregular`, `TryGetRegularization`, and since M58 `TryGetRegularizationOfWord` (the same for a form that is also a
+  lexicon word, `costa`) and `TryGetPluralSlip` (`pans` for `panes`; `PluralSlip` is public), both default members that find none. `MorphologyGenerator` implements it;
+  `RegularizedForm` is public. What the analyzer makes of the slips is under "Irregular forms, plurals and unknown words" below.
 - **`ContentBundle`**: new `LanguageMorphology` (`IMorphology`, what the engine uses) and `AnalysisRules` (`IAnalysisRules`). `Morphology` (the Spanish
   `MorphologyGenerator`) was removed in M53 together with the generator's move; a host of a Spanish bundle calls the extension `bundle.SpanishMorphology()` (project `Vocaterra.Nlp.Es`,
   `using Vocaterra.Nlp.Es;`), which throws `NotSupportedException` for a pack that creates another implementation.
