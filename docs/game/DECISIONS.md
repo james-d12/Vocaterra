@@ -317,6 +317,15 @@ are predicate adjectives a learner will get wrong.
    against the scene and the figures.
 4. **CI:** `main`'s CI was green after the merge, so M68 (the timed tests' budgets on CI) does not run unless a timed test fails there.
 
+**Owner's answers, 2026-11-01 (on the QA passes of the follow-ups, `docs/qa-reports/2026-11-01-language.md` and `-progression.md`):**
+1. **A load and the session: two counters.** The day (the village session: lessons, objectives, orders; advanced only by sleeping, V12c)
+   is restored exactly as saved. A separate sitting counter still goes up on each launch or load, for the phrase-credit spacing rule ("a
+   different play session" above, which keeps its meaning) and the session logs. It replaces S10's "a load is the next session" (V25).
+2. **Typed `n` for `ñ`** is a typing slip, accepted as a dropped accent is (M26b), when the spelling without `ñ` is not itself a word
+   (`ano`/`año`, `pena`/`peña`, `cana`/`caña` stay distinct and are graded as today) (M70).
+3. **An accent that marks a verb's tense or person** (`compre` for `compré`, `compro` for `compró`) is still accepted on typed input with
+   no deduction, but the feedback shows the accented form with a short note (M70, and the note's display in the game, V21).
+
 ## Already decided
 
 - **The core by project reference** (D-game-7; until 2026-10-21 "packages only" from a submodule's local feed). The game never copies core

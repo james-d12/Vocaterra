@@ -2069,6 +2069,35 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     `compré` (QA-7 and an observation): how strict typed input is about `ñ` and the accent of a tense.
   - **Not a bug:** the CLI and the host differ on lines with a greeting or the listener's name, because the host takes them out first
     (V19). Briefs measure on the host (`scripts/try-lines.sh --host`, M65); the handover's 9.3 counts were taken on the CLI.
+- **QA pass, `progression` (2026-11-01; the QA agent, Haiku; `docs/qa-reports/2026-11-01-progression.md`).** On `9dfa08b`, 20 game
+  runs: the route of sessions 4 to 10 from `--skip-to-session`, the coin path (as planned: 0 coins at session 7), the orders, the
+  market, saves.
+  - **A load moves the session on** (major, game; QA-progression-1 and 2; the orchestrator confirmed it in `SaveGame.Restore`, which
+    sets the session to the saved one plus one, and in the runs' logs). A save in session 5 loads as session 6 while the objective still
+    names session 5, and the open order `oven-wood` is refused ("Necesitas más monedas"). A save made just after a sleep into session 9
+    loads as session 10 and session 9 is skipped. S10's rule ("a load is the next session") predates V12c's sessions by sleep. The
+    owner's answer: two counters (D-game-22, 2026-11-01). To V25, first in the game's queue.
+  - **Contradictory exchange lines** (minor, game; QA-progression-3 and 4): the farmer refuses apples with «No, gracias. Solo compro
+    fruta.» (apples are fruit); the baker refuses bread with «Necesitas más monedas.» while the order that pays is held back by the
+    lesson; `¿Cuánto es todo?` gets «Quince manzanas, quince monedas.» whatever the bag holds. To V21.
+  - **Small:** the do step `n4-wood` waits for a pickup when the bag already holds the wood; the objective still says "talk to the baker"
+    after the talk started the lesson; no line that the course is over after session 10's sleep; a farewell logged under the villager's
+    prompt id; a partly black first frame before any tick. To V23.
+  - **Checked and right:** the coin path, the market's wood sale, a mid-lesson save and load (the lesson resumes at its step).
+- **V22: name plates (2026-11-01, Sonnet 5.5; gated on `feature/village-followups` at `1ff8a5a`; the owner's design, D-game-22).** Run
+  beside the QA passes and M65, in its own worktree with a game-only build (the owner's "do whatever can be done in parallel").
+  - `NpcLabelLayer` was a 2D layer that drew every figure's plate on top. A pure `NamePlates.Select` (`UI/Hud/NamePlates.cs`) now
+    returns the faced NPC (`FigureDirector.Aimed`, the one E talks to, so no second range) and the beacon's NPC, one plate when they
+    are the same; the conversation's speaker is skipped as before.
+  - The plates are drawn inside `VoxelRenderer.DrawWorld` (a new `overlay` callback) after the figures, water and beacon and before the
+    first-person arm clears depth, with `DepthStencilState.DepthRead`. A plate's depth is its point moved 0.7 block towards the eye, so
+    it is not hidden by its own figure's head. The old grid line-of-sight test is gone.
+  - Tests: 8 cases in `NamePlatesTests`. 7420 passed and 3 skipped before; 7428 and 3 after, with models. The gate passed at the
+    first run.
+  - The orchestrator looked at the shots (`/tmp/claude-1000/v22/`): at session 8's morning the unfaced baker's plate is gone; with the
+    farmer faced and the villager (the beacon's) behind him, the villager's plate is hidden by the farmer's hat, a thin strip of it
+    still showing under the farmer's plate (cosmetic); `--third-person` and the largest text scale are right.
+  - **Left:** no shot of the beacon's NPC behind a building (the same depth test covers it).
 
 
 ## 6. Definition of done (every milestone)
