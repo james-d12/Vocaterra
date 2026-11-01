@@ -538,7 +538,7 @@ internal sealed partial class SpanishAgreementChecker : IAgreementChecker
         var head = cursor;
         cursor++;
         var after = new List<int>();
-        while (cursor < count && IsAdjunct(cursor))
+        while (cursor < count && IsAdjunct(cursor) && !OpensFixedPluralExpression(cursor))
         {
             after.Add(cursor);
             cursor++;
@@ -546,6 +546,15 @@ internal sealed partial class SpanishAgreementChecker : IAgreementChecker
 
         phrase = new NounPhrase(determiners, before, head, after);
         return true;
+    }
+
+    // M58: an adjective that makes a fixed plural expression with the noun after it (buenos días, buenas noches) opens that expression and is no adjective of the noun
+    // before it: in hola Luz buenos días (a name said to the listener, then the greeting) buenos is not luz's, which would make it buena.
+    private bool OpensFixedPluralExpression(int index)
+    {
+        return index + 1 < _tokens.Count
+            && Readings(index, static r => r.Pos == LexiconSchema.Adjective)
+                .Exists(a => Readings(index + 1, static r => r.Pos == LexiconSchema.Noun).Exists(n => SpanishAnalysisTables.IsFixedPluralExpression(a.Lemma, n.Lemma)));
     }
 
     private void EvaluateNounPhrase(NounPhrase phrase)

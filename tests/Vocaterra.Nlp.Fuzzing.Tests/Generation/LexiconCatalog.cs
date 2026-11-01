@@ -555,6 +555,15 @@ public sealed class LexiconCatalog
             return "nouns:excluded-form-shared-with-another-noun-lemma";
         }
 
+        // M58: a form that is also the regular cell of an irregular verb (costa for cuesta, the stem change missed; cabo, jugo, mente) is read by the analyzer as
+        // that verb, with conj.irregular, wherever a verb is expected (after a subject pronoun or a clitic, after cuánto, after the noun of a phrase that opens the
+        // sentence), and as the noun elsewhere. The generators place nouns by the pattern, not by those rules, so such a noun is not drawn (four lemmas in the
+        // bundle's lexicon).
+        if (Morphology.TryGetRegularizationOfWord(singular, out _) || Morphology.TryGetRegularizationOfWord(plural, out _))
+        {
+            return "nouns:excluded-also-a-learners-slip-of-a-verb";
+        }
+
         return null;
     }
 

@@ -87,17 +87,21 @@ public sealed class LinguisticAnalyzer
     {
         ArgumentNullException.ThrowIfNull(text);
         var analyzed = new AnalyzedToken[text.Tokens.Count];
-        var irregular = new ErrorTag?[text.Tokens.Count];
+        var slips = new WordSlip?[text.Tokens.Count];
         var variants = new IReadOnlyList<LexicalFeatures>[text.Tokens.Count];
         for (var i = 0; i < text.Tokens.Count; i++)
         {
-            analyzed[i] = new AnalyzedToken(text.Tokens[i], ReadingsFor(text.Tokens[i], out irregular[i], out variants[i]));
+            analyzed[i] = new AnalyzedToken(text.Tokens[i], ReadingsFor(text.Tokens[i], out slips[i], out variants[i]));
         }
 
-        return new TextReadings(text, analyzed, irregular, variants);
+        return new TextReadings(text, analyzed, slips, variants);
     }
 
-    /// <summary>The match an analysis completes with: the best of the grammars over every reading of every word, or null when none matches. Only this step reads the grammars.</summary>
+    /// <summary>
+    /// The match an analysis completes with: the best of the grammars over every reading of every word, or null when none matches. Only this step reads the grammars.
+    /// A grammar is matched over the readings of a learner's slip besides the lexicon's (<c>costa</c> as <c>costar</c>, M58) only when it matches nothing without
+    /// them, and among equal matches one without them wins, so correct Spanish is read as written wherever a grammar takes it.
+    /// </summary>
     internal SlotGrammarMatch? BestMatch(TextReadings readings, IReadOnlyList<SlotGrammar> grammars)
     {
         ArgumentNullException.ThrowIfNull(readings);
@@ -108,12 +112,19 @@ public sealed class LinguisticAnalyzer
     internal SlotGrammarMatch? Match(TextReadings readings, SlotGrammar grammar)
     {
         ArgumentNullException.ThrowIfNull(readings);
-        return SlotGrammarMatcher.Match(readings.Tokens, grammar, _language, _rules);
+        var match = SlotGrammarMatcher.Match(readings.Tokens, grammar, _language, _rules);
+        if (match is null && readings.HasAlternativeSlips && SlotGrammarMatcher.Match(readings.TokensWithSlips, grammar, _language, _rules) is { } slipMatch)
+        {
+            match = slipMatch with { ReadsSlips = true };
+        }
+
+        return match;
     }
 
     /// <summary>
     /// The best of the grammars' matches, each given by <paramref name="match"/>: in list order, a match replaces the best so far only when it beats it, so the earlier
-    /// grammar wins a tie. A caller that has matched a grammar over the same readings before can pass that match in (the content lint does).
+    /// grammar wins a tie, except that on a tie a match without the readings of a learner's slip replaces one with them (M58). A caller that has matched a grammar over
+    /// the same readings before can pass that match in (the content lint does).
     /// </summary>
     internal static SlotGrammarMatch? BestMatch(IReadOnlyList<SlotGrammar> grammars, Func<SlotGrammar, SlotGrammarMatch?> match)
     {
@@ -123,7 +134,10 @@ public sealed class LinguisticAnalyzer
         foreach (var grammar in grammars)
         {
             var found = match(grammar);
-            if (found is not null && (best is null || SlotGrammarMatch.Beats(found, best)))
+            if (found is not null
+                && (best is null
+                    || SlotGrammarMatch.Beats(found, best)
+                    || (best.ReadsSlips && !found.ReadsSlips && !SlotGrammarMatch.Beats(best, found))))
             {
                 best = found;
             }
@@ -142,10 +156,26 @@ public sealed class LinguisticAnalyzer
         ArgumentNullException.ThrowIfNull(readings);
         var text = readings.Text;
         var errors = new List<ErrorTag>();
+        var slipErrors = new List<ErrorTag>();
         var analyzed = new List<AnalyzedToken>(readings.Tokens);
 
-        // The grammar decides first which words are names ([WORD] elements). A name is not an unknown word, and it is no irregular verb form either, even when
-        // its spelling is one. It carries no reading at all, so no rule, check or recast treats it as a word (a lexicon verb form would be conjugated by a recast).
+        // What the reading resolver reads: the lexicon's readings and, after them, those of a learner's slip the word may stand for (M58), where the slip is one to
+        // consider: always beside a noun (costa), and only for a grammar that needed it otherwise (podo, a form of podar, as poder in me [VERB:poder] ...).
+        var input = new List<AnalyzedToken>(readings.Tokens);
+        var slips = new IReadOnlyList<LexicalFeatures>[analyzed.Count];
+        for (var i = 0; i < analyzed.Count; i++)
+        {
+            slips[i] = [];
+            if (readings.Slips[i] is { IsAlternative: true } slip && (slip.Kind == WordSlipKind.BesideNoun || match is { ReadsSlips: true }))
+            {
+                input[i] = readings.TokensWithSlips[i];
+                slips[i] = slip.Readings;
+            }
+        }
+
+        // The grammar decides first which words are names ([WORD] elements). A name is not an unknown word, and it is no learner's slip either (an irregular verb
+        // form, a plural), even when its spelling is one. It carries no reading at all, so no rule, check or recast treats it as a word (a lexicon verb form would be
+        // conjugated by a recast).
         var names = match?.WordTokens ?? new HashSet<int>();
         var allKnown = true;
         for (var i = 0; i < analyzed.Count; i++)
@@ -153,12 +183,14 @@ public sealed class LinguisticAnalyzer
             if (names.Contains(i))
             {
                 analyzed[i] = new AnalyzedToken(analyzed[i].Token, []);
+                input[i] = analyzed[i];
+                slips[i] = [];
                 continue;
             }
 
-            if (readings.Irregular[i] is { } error)
+            if (readings.Slips[i] is { Kind: WordSlipKind.Only } slip)
             {
-                errors.Add(error);
+                slipErrors.Add(slip.Error);
             }
 
             if (analyzed[i].Readings.Count == 0)
@@ -168,8 +200,30 @@ public sealed class LinguisticAnalyzer
             }
         }
 
-        var resolved = ReadingResolver.Resolve(analyzed, readings.AccentVariants, match, Cost, _rules, _language.Folding);
+        var resolved = ReadingResolver.Resolve(input, readings.AccentVariants, match, r => Cost(r, slips), _rules, _language.Folding, slips);
+
+        // An alternative slip is the learner's when the resolver read the word as the slip and nothing else; the returned token then lists its readings after the
+        // lexicon's, as the intent stage needs them (cuánto costa matches cuánto [VERB:costar]). Otherwise the word is what the lexicon says, and nothing changes.
+        for (var i = 0; i < analyzed.Count; i++)
+        {
+            if (slips[i].Count > 0 && readings.Slips[i] is { } slip && slip.IsChosen(resolved[i].Readings))
+            {
+                slipErrors.Add(slip.Error);
+                analyzed[i] = input[i];
+            }
+        }
+
         _rules.CreateAgreementChecker(resolved, errors).Run();
+
+        // A slip's error gives way to a check's error of the same tag on the same word (hay un pans: the article's number, pan, not the plural's ending).
+        foreach (var slipError in slipErrors)
+        {
+            if (!errors.Exists(e => e.Tag == slipError.Tag && e.Span == slipError.Span))
+            {
+                errors.Add(slipError);
+            }
+        }
+
         return new AnalysisResult(
             analyzed,
             match?.Slots ?? [],
@@ -206,13 +260,28 @@ public sealed class LinguisticAnalyzer
     // What the resolver minimizes: the number of distinct errors the checks find in one resolved reading of the sentence. A sentence that has a past-time adverb and
     // no finite verb at all costs two more, which is more than one tense mistake: ayer canto is not a noun and an adverb, it is a present verb after ayer. Without a
     // past-time adverb no such charge is made, because a sentence of nouns and adjectives (a list, a name, a greeting) has no verb and is fine.
-    private int Cost(IReadOnlyList<AnalyzedToken> resolved)
+    //
+    // M58: a word read as a learner's slip (costa as costar) costs half an error: the slip is an error, so a reading of the word as written that the checks find
+    // nothing wrong with is cheaper (la costa, costa alone), and a reading of it that makes another mistake is dearer (cuánto costa: the noun disagrees with
+    // cuánto, so the verb is read, with its missed stem change). The errors are counted double so that the half is a whole number; the order of every other
+    // reading is unchanged.
+    private int Cost(IReadOnlyList<AnalyzedToken> resolved, IReadOnlyList<IReadOnlyList<LexicalFeatures>> slips)
     {
         var found = new List<ErrorTag>();
         var checker = _rules.CreateAgreementChecker(resolved, found);
         checker.Run();
         var cost = found.Distinct().Count();
-        return cost + (checker.HasPastTimeMarker() && !resolved.Any(static t => t.Readings.Any(ReadingClasses.IsFiniteVerb)) ? PastMarkerWithoutVerbCost : 0);
+        cost += checker.HasPastTimeMarker() && !resolved.Any(static t => t.Readings.Any(ReadingClasses.IsFiniteVerb)) ? PastMarkerWithoutVerbCost : 0;
+        cost *= 2;
+        for (var i = 0; i < resolved.Count; i++)
+        {
+            if (slips[i].Count > 0 && resolved[i].Readings.Count > 0 && resolved[i].Readings.All(slips[i].Contains))
+            {
+                cost++;
+            }
+        }
+
+        return cost;
     }
 
     private List<ErrorTag> OrderErrors(List<ErrorTag> errors)
@@ -276,34 +345,29 @@ public sealed class LinguisticAnalyzer
         return true;
     }
 
-    // The readings of one token; an irregular verb form also yields the conj.irregular error it stands for, which the caller drops for a name. The accent
-    // variants are the readings of the accented spellings of a plain lexicon form (esta, está); only the resolver reads them, and it keeps them only where the
-    // neighbouring words call for them, so the returned tokens, the grammar matching and the intent stage see the readings of the spelling as typed.
-    private IReadOnlyList<LexicalFeatures> ReadingsFor(Token token, out ErrorTag? irregular, out IReadOnlyList<LexicalFeatures> accentVariants)
+    // The readings of one token, and the learner's slip it may stand for (M58): an irregular verb form the lexicon lacks is the verb, with the conj.irregular error it
+    // stands for (costan), a lexicon word that is also such a form gets the verb as an alternative (costa), and a plural the lexicon lacks that is a lexicon noun with
+    // the wrong ending is the plural noun, with the noun.number error it stands for (pans); the caller drops a slip for a name. The accent variants are the readings
+    // of the accented spellings of a plain lexicon form (esta, está); only the resolver reads them, and it keeps them only where the neighbouring words call for
+    // them, so the returned tokens, the grammar matching and the intent stage see the readings of the spelling as typed.
+    private IReadOnlyList<LexicalFeatures> ReadingsFor(Token token, out WordSlip? slip, out IReadOnlyList<LexicalFeatures> accentVariants)
     {
-        irregular = null;
+        slip = null;
         accentVariants = [];
         if (_morphology.TryGetRegularization(token.Text, out var regularized))
         {
-            irregular = new ErrorTag(ErrorTags.ConjIrregular, token.Span, regularized.Expected, token.Text);
-            return
-            [
-                new LexicalFeatures(
-                    regularized.Lemma,
-                    LexiconSchema.Verb,
-                    regularized.Person,
-                    regularized.Number,
-                    regularized.Tense,
-                    LexiconSchema.Indicative,
-                    null),
-            ];
+            IReadOnlyList<LexicalFeatures> verb = [VerbReading(regularized)];
+            slip = new WordSlip(verb, IrregularError(token, regularized), WordSlipKind.Only);
+            return verb;
         }
 
         var found = _lexicon.LookupWithAccentVariants(token.Text);
         if (found.Exact.Count > 0)
         {
             accentVariants = [.. found.Variants.Select(static v => v.Reading)];
-            return [.. found.Exact];
+            IReadOnlyList<LexicalFeatures> readings = [.. found.Exact];
+            slip = SlipOfWord(token, readings);
+            return readings;
         }
 
         if (IsDigits(token.Text))
@@ -312,6 +376,66 @@ public sealed class LinguisticAnalyzer
             return [new LexicalFeatures(token.Text, LexiconSchema.Numeral, null, number, null, null, null)];
         }
 
+        if (_morphology.TryGetPluralSlip(token.Text, out var plural) && PluralReadings(plural) is { Count: > 0 } nouns)
+        {
+            slip = new WordSlip(nouns, new ErrorTag(ErrorTags.NounNumber, token.Span, plural.Expected, token.Text), WordSlipKind.Only);
+            return nouns;
+        }
+
         return [];
+    }
+
+    // The regularized verb a lexicon word may also stand for (costa for cuesta), unless the word already has that reading. Beside nouns only, the resolver weighs it
+    // in every sentence; beside a word of another class (podo, solo, esto), only a grammar that names the verb does, so that yo solo quiero pan stays the adverb.
+    private WordSlip? SlipOfWord(Token token, IReadOnlyList<LexicalFeatures> readings)
+    {
+        if (!_morphology.TryGetRegularizationOfWord(token.Text, out var regularized))
+        {
+            return null;
+        }
+
+        var verb = VerbReading(regularized);
+        if (readings.Contains(verb))
+        {
+            return null;
+        }
+
+        var kind = readings.All(static r => r.Pos == LexiconSchema.Noun) ? WordSlipKind.BesideNoun : WordSlipKind.ByGrammarOnly;
+        return new WordSlip([verb], IrregularError(token, regularized), kind);
+    }
+
+    // The readings of the plural the learner meant, as the lexicon has them (panes: pan, a masculine plural noun), or else those of the singular made plural.
+    private List<LexicalFeatures> PluralReadings(PluralSlip slip)
+    {
+        var plural = _lexicon.Lookup(slip.Expected)
+            .Where(r => r.Pos == LexiconSchema.Noun && r.Number == LexiconSchema.Plural && string.Equals(r.Lemma, slip.Lemma, StringComparison.Ordinal))
+            .ToList();
+        if (plural.Count > 0)
+        {
+            return plural;
+        }
+
+        return _lexicon.Lookup(slip.Lemma)
+            .Where(r => r.Pos == LexiconSchema.Noun && string.Equals(r.Lemma, slip.Lemma, StringComparison.Ordinal))
+            .Select(static r => r with { Number = LexiconSchema.Plural })
+            .Distinct()
+            .ToList();
+    }
+
+    private static LexicalFeatures VerbReading(RegularizedForm regularized)
+    {
+        return new LexicalFeatures(
+            regularized.Lemma,
+            LexiconSchema.Verb,
+            regularized.Person,
+            regularized.Number,
+            regularized.Tense,
+            LexiconSchema.Indicative,
+            null);
+    }
+
+    private static ErrorTag IrregularError(Token token, RegularizedForm regularized)
+    {
+        return new ErrorTag(ErrorTags.ConjIrregular, token.Span, regularized.Expected, token.Text);
     }
 }

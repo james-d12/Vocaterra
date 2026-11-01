@@ -133,6 +133,10 @@ public class AnalysisSideSeamTests
         public bool IsRegularizedIrregular(string form, out string lemma, out string expected) => inner.IsRegularizedIrregular(form, out lemma, out expected);
 
         public bool TryGetRegularization(string form, out RegularizedForm result) => inner.TryGetRegularization(form, out result);
+
+        public bool TryGetRegularizationOfWord(string form, out RegularizedForm result) => inner.TryGetRegularizationOfWord(form, out result);
+
+        public bool TryGetPluralSlip(string form, out PluralSlip result) => inner.TryGetPluralSlip(form, out result);
     }
 
     /// <summary>Template functions that mark every article.</summary>

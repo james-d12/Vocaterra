@@ -293,6 +293,77 @@ public sealed class MorphologyGenerator : IMorphology
         return false;
     }
 
+    /// <inheritdoc />
+    /// <remarks>
+    /// The other half of <see cref="TryGetRegularization"/>: the regular cell of an irregular verb whose spelling is a lexicon word (<c>costa</c>, <c>jugo</c>,
+    /// <c>esto</c>). A form that differs from the expected one only in its accents (<c>esta</c>, <c>estas</c> for <c>está</c>, <c>estás</c>) is an accent variant,
+    /// which the analyzer reads without an error, so it is not reported here.
+    /// </remarks>
+    public bool TryGetRegularizationOfWord(string form, out RegularizedForm result)
+    {
+        ArgumentNullException.ThrowIfNull(form);
+        var key = TextFolding.Normalize(form);
+        if (key.Length > 0
+            && _regularized.Value.TryGetValue(key, out var found)
+            && IsKnownWord(key)
+            && !string.Equals(TextFolding.StripAccents(found.Expected), TextFolding.StripAccents(key), StringComparison.Ordinal))
+        {
+            result = found;
+            return true;
+        }
+
+        result = null!;
+        return false;
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// A noun that ends in <c>l</c>, <c>r</c>, <c>n</c>, <c>d</c>, <c>z</c> or <c>j</c> takes <c>-es</c> in the plural (<c>panes</c>, <c>flores</c>, <c>ciudades</c>,
+    /// <c>luces</c>, <c>relojes</c>); the slip is the <c>-s</c> of a noun that ends in a vowel (<c>pans</c>), or <c>-es</c> after a <c>z</c> left unchanged
+    /// (<c>luzes</c>). Nouns that end in another consonant are mostly loans that take <c>-s</c> (<c>robots</c>, <c>clubs</c>, <c>tickets</c>), so they are not
+    /// considered. The noun is found as written or without its accents (<c>cancions</c> is <c>canción</c>), and the expected plural is the lexicon's (or the rule's).
+    /// A form the lexicon knows, accents ignored, is never reported.
+    /// </remarks>
+    public bool TryGetPluralSlip(string form, out PluralSlip result)
+    {
+        ArgumentNullException.ThrowIfNull(form);
+        var key = TextFolding.Normalize(form);
+        result = null!;
+        if (key.Length < 3 || key[^1] != 's' || _lexicon.Lookup(key).Count > 0)
+        {
+            return false;
+        }
+
+        return TryPluralSlipOfStem(key, key[..^1], out result)
+            || (key.EndsWith("zes", StringComparison.Ordinal) && TryPluralSlipOfStem(key, key[..^2], out result));
+    }
+
+    private bool TryPluralSlipOfStem(string form, string stem, out PluralSlip result)
+    {
+        result = null!;
+        if (stem.Length < 2 || stem[^1] is not ('l' or 'r' or 'n' or 'd' or 'z' or 'j'))
+        {
+            return false;
+        }
+
+        foreach (var reading in _lexicon.Lookup(stem))
+        {
+            if (reading.Pos != LexiconSchema.Noun || reading.Number is not (null or LexiconSchema.Singular))
+            {
+                continue;
+            }
+
+            var expected = InflectNoun(reading.Lemma, LexiconSchema.Plural);
+            if (expected.EndsWith("es", StringComparison.Ordinal) && !string.Equals(expected, form, StringComparison.Ordinal))
+            {
+                result = new PluralSlip(reading.Lemma, expected);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private bool IsKnownWord(string key)
     {
         // An accented form with no exact entry (estó) is a deliberate spelling, so the accent-insensitive fallback (esto) does not make it known.

@@ -188,10 +188,15 @@ fixed confidence at its edge was not.
 
 `LinguisticAnalyzer` looks every token up in the lexicon (lemma, part of speech, person, number, tense, mood, gender; an
 empty reading list means an unknown word and yields `vocab.unknown`), runs the agreement rules (subject and verb, article and
-noun, noun and adjective, quantity and noun, `ser`/`estar`, adjective position), and matches the slot grammars. The grammars
+noun, noun and adjective, quantity and noun, `ser`/`estar`, adjective position), and matches the slot grammars. A word the lexicon lacks that is
+a learner's slip of a known word is read as that word: a regularized irregular verb form (`quero`) as the verb with `conj.irregular`, and (M58) a plural
+made with the wrong ending (`pans`) as the plural noun with `noun.number`; a regularized form that is also a lexicon word (`costa`) gets the verb as a
+second reading, which the analysis keeps only where a verb is expected ([API.md](API.md), "Irregular forms, plurals and unknown words"). The grammars
 tried are the prompt's own `slotGrammarIds` first, then every other grammar of the allowed intents. Between grammars the one that consumes more
 tokens with explicit elements wins; on a tie, the one that binds more tokens to literal words wins (`gracias` beats a bare noun, which the spell
-grammar `[NOUN:spell]` would also take, so `gracias` is a thank and not a spell); and on a further tie the prompt's own grammar, then the first found.
+grammar `[NOUN:spell]` would also take, so `gracias` is a thank and not a spell); on a further tie, one that matched the words as the lexicon reads them
+beats one that needed a slip's second reading (M58; a grammar is matched over those readings only when it matches nothing without them); and then the
+prompt's own grammar, then the first found.
 
 **The slot-grammar DSL.** A grammar is a sequence of these elements, matched against the whole utterance. Every grammar also allows a leading subject pronoun and a trailing `por favor`, both optional.
 

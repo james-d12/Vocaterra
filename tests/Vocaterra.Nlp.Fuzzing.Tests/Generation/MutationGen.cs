@@ -1,5 +1,6 @@
 using CsCheck;
 using Vocaterra.Nlp.Core.Determinism;
+using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Es.Analysis;
@@ -588,8 +589,12 @@ public static class MutationGen
                 // that is spelled like the adjective (suyo, temprano) in front of a noun that can be a verb could be read as that pronoun or adverb and the verb, and
                 // an adverb that goes before nouns (incluso resultado) is no mistake at all: either way the sentence has a reading without the mistake, so the
                 // mutation looks for another sentence.
+                // M58 (c), by the owner's decision (2026-10-31, "go with option 1"): the walk reads the words' readings, not the pattern's roles, so it also passes over a
+                // word that can be a descriptive adjective besides something else (plantar, a verb of the pattern and an adjective; seed ff2aNwHuJBk8: suelta plantar
+                // satisfecha is one phrase to the analyzer). A word that can be a noun ends the walk, and so does a determiner, which opens a phrase of its own.
                 var before = h - 1;
-                while (before >= 0 && _words.Lexicon.Lookup(_tokens[before].Norm) is { Count: > 0 } readingsBefore && readingsBefore.All(static r => r.Pos == LexiconSchema.Adjective))
+                while (before >= 0 && _words.Lexicon.Lookup(_tokens[before].Norm) is { Count: > 0 } readingsBefore
+                    && (readingsBefore.All(static r => r.Pos == LexiconSchema.Adjective) || CanOnlyExtendAPhrase(readingsBefore)))
                 {
                     before--;
                 }
@@ -636,6 +641,15 @@ public static class MutationGen
             }
 
             return null;
+        }
+
+        // M58 (c): a word that can be a descriptive adjective and cannot be a noun or a determiner (plantar, a verb and an adjective): the analyzer may read it as an
+        // adjective of the noun before it, so an adjective after it may belong to that noun as well.
+        private static bool CanOnlyExtendAPhrase(IReadOnlyList<LexicalFeatures> readings)
+        {
+            return readings.Any(static r => r.Pos == LexiconSchema.Adjective && !LexiconCatalog.DeterminerAdjectiveLemmas.Contains(r.Lemma))
+                && !readings.Any(static r => r.Pos is LexiconSchema.Noun or LexiconSchema.Article or LexiconSchema.Numeral
+                    || (r.Pos == LexiconSchema.Adjective && LexiconCatalog.DeterminerAdjectiveLemmas.Contains(r.Lemma)));
         }
 
         public MutatedSentence? ConjIrregular()
