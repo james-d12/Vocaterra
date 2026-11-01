@@ -110,6 +110,10 @@ public class AnalysisSideSeamTests
 
         public bool IsElapsedTimeNoun(string lemma) => inner.IsElapsedTimeNoun(lemma);
 
+        public bool IsPostnominalAdjective(string lemma) => inner.IsPostnominalAdjective(lemma);
+
+        public bool IsDegreeAdverb(string lemma) => inner.IsDegreeAdverb(lemma);
+
         public IAgreementChecker CreateAgreementChecker(IReadOnlyList<AnalyzedToken> resolved, List<ErrorTag> errors) => inner.CreateAgreementChecker(resolved, errors);
     }
 
@@ -455,6 +459,10 @@ public class AnalysisSideSeamTests
 
         public bool IsElapsedTimeNoun(string lemma) => inner.IsElapsedTimeNoun(lemma);
 
+        public bool IsPostnominalAdjective(string lemma) => inner.IsPostnominalAdjective(lemma);
+
+        public bool IsDegreeAdverb(string lemma) => inner.IsDegreeAdverb(lemma);
+
         public IAgreementChecker CreateAgreementChecker(IReadOnlyList<AnalyzedToken> resolved, List<ErrorTag> errors) => new Nothing();
     }
 
@@ -480,6 +488,10 @@ public class AnalysisSideSeamTests
         Assert.True(rules.IsCopula("estar"));
         Assert.False(rules.IsCopula("haber"));
         Assert.True(rules.IsCopulaOrAuxiliary("haber"));
+        Assert.True(rules.IsPostnominalAdjective("rojo"));
+        Assert.False(rules.IsPostnominalAdjective("grande"));
+        Assert.True(rules.IsDegreeAdverb("muy"));
+        Assert.False(rules.IsDegreeAdverb("más"));
         Assert.Same(rules.GetType(), AnalysisRules.For(Spanish).GetType());
         Assert.Same(AnalysisRules.For(Spanish), AnalysisRules.For(Spanish));
     }

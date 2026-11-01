@@ -119,6 +119,12 @@ code comments and here, with the reason:
     quantity; the verb follows the noun directly; and the new form has no reading but that verb in that tense. It never mutates the verb after a lone name (`domingo hace
     un hacha`), which the analyzer leaves unchecked because the name may be the person spoken to, and it never makes a verb of the first or second person, which the
     analyzer does not check after a noun phrase. The oracles as they stood before M59 are unchanged.
+  - *O4 and O5, `gender.agree` on a predicate adjective (M62, a widening).* The gender mutation of an adjective also flips an adjective after `ser` or `estar` whose
+    copula has a subject pronoun of a known gender before it (`ella es alta` becomes `ella es alto`, expected `alta`), which the analyzer agrees with the pronoun since
+    M62. It is made only where that reading is certain: the copula is a generated finite `ser` or `estar` at most two skippable words before the adjective, its subject
+    pronoun (the one the person check pairs with it, not behind a word that can be a preposition) at most two before the copula, and the new form an adjective of the
+    other gender and nothing else, as for an attributive adjective. `PredicateAdjectiveMutationTests` shows that the draw reaches it. The oracles as they stood before
+    M62 are unchanged.
 - **O8.** The dialect sites are `θ s z h ʎ ʝ ʃ ʒ` (the plan lists `θ s ʎ ʝ h`; the shipped dialects also produce the voiced `z` and the rioplatense `ʃ ʒ`).
   `Tokenize(ToIpaString())` is exact except for the pair `t` + `ʃ`, whose concatenation is the affricate token `tʃ` (the inventory documents that
   sequences are lists for this reason); a result with that pair skips the split.
@@ -302,6 +308,18 @@ read again: a sentence whose generated words make or unmake a marker with the li
 is drawn again (`skip:time-marker-of-generated-words`; none in a run of 20 000). `PipelineHarness.FixtureGrammars` gained two patterns that carry these markers around a verb
 and its object, in the shape of the game's `state_action` rows (one mixes past and future markers as those rows do), so the oracles cover them before the bundle has them;
 O3 on them also finds the `pasado mañana` bug below. The sentence stream digest of `FuzzLanguageStreamTests` was recorded again for these changes.
+
+M62 made the analyzer agree an adjective after `ser` or `estar` with the copula's subject (a subject pronoun before it; else a noun phrase that opens its clause before
+a copula of the third person, or a noun phrase with a determiner or a subject pronoun right after the adjectives; else the copula's own number), and read a colour that
+is also a noun (`negras`, `rosa`, `gris`) as the adjective right before a noun it agrees with. The realiser agrees a predicate adjective, and the adjectives joined to it by
+`y`, `e`, `o`, `u` or `pero`, with every candidate at once (the pronoun alone when there is one; otherwise the phrase before the copula unless it is a lone name, the
+phrase after the adjectives and the copula's number), since whether a phrase opens its clause is not modelled; candidates that disagree skip the draw
+(`skip:predicate-subject`; none in the runs made for M62). It re-rolls a word that is a colour and a noun right before a word that can only be a noun
+(`skip:colour-before-noun`, broader than the analyzer's rule, which also asks the phrase to agree; seed `f8C3x9UYGMz6` built `las 25 negras enterados despejados`
+before it), and a word that can be an adjective and a noun right after the noun of a phrase with a determiner that it agrees with, which the analyzer reads as that
+noun's adjective (`skip:noun-reads-as-adjective`; a word that can also be a finite verb is left alone by both), and a noun that is also something else right after
+`muy` or `tan`, where the analyzer reads no noun (`skip:noun-after-degree-adverb`). The colours are read from the Spanish pack's public rules (`IAnalysisRules.IsPostnominalAdjective`), not mirrored. The sentence stream digest of
+`FuzzLanguageStreamTests` was recorded again for these changes.
 
 A name (M17b) has no reading the checks use: the realiser treats it like an unknown word, so it breaks every phrase and every subject-verb link around it, and
 the analyzer does the same (a bound name keeps no reading at all). `CorrectSentenceFuzzTests` and `SerializationRoundTripFuzzTests` (`NameSentences_SurviveCanonicalJson`)
@@ -523,6 +541,21 @@ Found and fixed in M59:
   resolver's charitable fallback chose that reading to hide the slip; a form of `pasado` after a time noun is matched as written now. Regression:
   `NearFutureTenseTests.PasadoManana...` in `tests/Vocaterra.Nlp.Es.Tests/Analysis`.
 
+Found and fixed in M62:
+
+- **The first build of M62 read a list of nouns without its commas as a colour before its noun** (`Vocaterra.Nlp`, `ReadingResolver`; found by the Spanish identity
+  baseline, not the fuzz suite: `fuzz-correct-0918`, `DoRaDo, bIbLiAs, aCtUaCiOnEs, uNoS`, gave `word_order` and agreement errors on `dorado biblias`). The normalizer
+  drops commas, so `una rosa, pan y agua` reads as `una rosa pan y agua`. A colour that is also a noun is now the adjective before a noun only where it and the
+  determiners before it agree with that noun. Regression: `PrenominalAdjectiveTests.AListOfNounsIsNoSlipOfOrder` in `tests/Vocaterra.Nlp.Es.Tests/Analysis`.
+- **The rule that reads an adjective-and-noun word after a noun as that noun's adjective (added for `las manzanas rojas son caro`) fired where a mutation had made the
+  phrase disagree with itself, and on a word the grammar binds as the verb** (`Vocaterra.Nlp`, `ReadingResolver`; found by O4, O5 and O3 at five times the default
+  depth: `22 emperador americano` gave `noun.number` on `americano` beside the expected one on `emperador` (`MutationCase { Kind = NounNumber, Seed = 7228 }`), so did
+  `1 martillos chinos` and `20 polvo mate`; `una gana media encantado` under `[DET] [NOUN:item] [VERB] [ADJ]` (seed `bgaIBqtK8hv3`) and `la tradición limpia levantado`
+  (seed `95cHVPFveJD1`) read `media` and `limpia` as adjectives and gave `gender.agree` on the predicate). The word must now agree with the determiners as well as the
+  noun, and have no finite verb reading. Regressions: `PredicateAdjectiveTests.APhraseThatDisagreesWithItselfKeepsOneSlip` and
+  `AWordThatCanBeTheVerbStaysTheVerbUnderItsGrammar`. Before that, the project's first runs failed only where the realiser had not yet learned the new rules (O3's
+  digest, and O5 on seed `f8C3x9UYGMz6`).
+
 ## Known, deliberately not fixed
 
 Findings that are content gaps or design limits rather than defects of one stage. None changes behaviour here; the generators step around
@@ -586,6 +619,22 @@ them explicitly (each is a skip or a restriction in the generator, counted in th
   reading to check, and the analyzer rightly reports nothing (a name is never checked, `PIPELINE.md`). The `conj.person` mutation is not made on a grammar with both an
   alternation and a name (M26b, seed `1RTZdjQ2tFb2`, listed under the narrowed oracles); giving the `conj.tense` mutation the same guard narrows O4 and O5, which a
   milestone may not do on its own, so it waits for the orchestrator. Rare: once in the six runs of the project made for M58 (one of them at five times its depth).
+- **Found at M62, older than M62, and left for a decision** (seven runs of O3 to O5 at five times the default depth, three of them after the last fix of M62, found
+  these besides the M62 bugs above; every run of the project at its default depth passed). The analyzer gives the same analysis of each sentence on `feature/village` at `76f52f8`, before M62 (checked with the pattern as the grammar), and no rule of
+  M62 reads any of their words; the realiser's new draws only made the seeds reach them.
+  - *O4, the `conj.tense` mutation and a literal whose reading the grammar decided* (CsCheck seed `2ldq2rIKLrG2`, `MutationCase { Kind = ConjTense, Seed = 4340032 }`):
+    the random pattern `[ART] [ART]? [VERB]? [ART]? porque?` gives `las los despego unas porque`, where the grammar's literal keeps `porque` the conjunction. The mutation
+    puts `ayer` in front, the grammar no longer matches, and `unas porque` reads as the article and the noun `porqué` (`gender.agree` `unos`, `noun.number`
+    `porqués`) beside the expected `conj.tense`. The same family as the M58 finding above: the mutation needs a guard for a sentence whose readings the match decided,
+    which narrows O4 and O5.
+  - *O5 (and O3 on the sentence before the mutation), a subject pronoun before a question word* (CsCheck seed `8zKtIhOY3951`, `MutationCase { Kind = WordOrder, Seed =
+    19287181529 }`): the pattern `[PRON] [ADV]? [VERB] [DET]? [NOUN:item] [ADJ]?` gives `ellas adónde están un detenido lento`. The realiser agrees `están` with `ellas`;
+    M56's check of `estar` against the phrase after it starts its clause after `adónde` and gives `conj.person` `está` (on the sentence as generated too, which the
+    word-order mutation then exposes). Either the realiser models the clause opener (a generator change, a widening) or the check keeps a subject pronoun before the
+    question word (an analyzer change); it is left for the orchestrator. O3 found the same with `ellas dónde están teme` (seed `c5SlpISRmTZ3`).
+  - *O5, the `conj.person` mutation after a noun subject and `haber`* (CsCheck seed `b3HSKSLCsL_1`, `MutationCase { Kind = ConjPerson, Seed = 729196 }`): the pattern
+    `[DET] [NOUN:item] [VERB] [ADJ]` gives `el subtítulo ha peligroso`, and M59's mutation makes `han`; M59's check leaves `haber` out by design (`hay dos panes`), so
+    the analyzer reports nothing and the recast keeps `han`. The mutation needs M59's exclusion of `haber`, which narrows O4 and O5; left for the orchestrator.
 
 ## Adding to the suite
 

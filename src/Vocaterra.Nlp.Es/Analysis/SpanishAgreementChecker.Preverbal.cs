@@ -121,8 +121,9 @@ internal sealed partial class SpanishAgreementChecker
         }
     }
 
-    // The subject of a preverbal check: its number, and whether it is a lone name (one bare noun that nothing is joined to), which may be the person spoken to.
-    private readonly record struct PreverbalSubject(string Number, bool Lone);
+    // The subject of a preverbal check: its number, whether it is a lone name (one bare noun that nothing is joined to), which may be the person spoken to, and its
+    // phrases (two for a coordination; M62 reads their gender).
+    private readonly record struct PreverbalSubject(string Number, bool Lone, IReadOnlyList<NounPhrase> Phrases);
 
     private bool TryFindPreverbalSubject(int verb, out PreverbalSubject subject)
     {
@@ -196,7 +197,7 @@ internal sealed partial class SpanishAgreementChecker
         }
 
         var lone = !coordinated && last.Determiners.Count == 0 && last.Before.Count == 0 && last.After.Count == 0;
-        subject = new PreverbalSubject(number, lone);
+        subject = new PreverbalSubject(number, lone, phrases);
         return true;
     }
 

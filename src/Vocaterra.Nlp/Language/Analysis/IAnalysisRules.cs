@@ -74,6 +74,21 @@ public interface IAnalysisRules
     /// <param name="lemma">The verb lemma.</param>
     bool IsCopulaOrAuxiliary(string lemma);
 
+    /// <summary>
+    /// True for an adjective that goes after its noun in neutral speech, so that before a noun it is a slip of order and not a noun of its own: a word that is such an
+    /// adjective and also a noun is read as the adjective right before a word that can only be a noun (Spanish: the colours, <c>rojo</c>, <c>blanco</c>, <c>gris</c>:
+    /// <c>tres rojas manzanas</c>; M62).
+    /// </summary>
+    /// <param name="lemma">The adjective lemma.</param>
+    bool IsPostnominalAdjective(string lemma);
+
+    /// <summary>
+    /// True for an adverb of degree that modifies an adjective or an adverb and never a noun, so that a word after it that can be an adjective is one (Spanish:
+    /// <c>muy</c>, <c>tan</c>: <c>es muy cara</c> is the adjective, not the noun <c>cara</c>; M62).
+    /// </summary>
+    /// <param name="lemma">The adverb lemma.</param>
+    bool IsDegreeAdverb(string lemma);
+
     /// <summary>Creates the agreement checker (subject-verb, tense, copula, noun phrase agreement and word order) for one resolved sentence.</summary>
     /// <param name="resolved">The tokens with the readings narrowed by the resolver.</param>
     /// <param name="errors">The list the checker adds its errors to.</param>

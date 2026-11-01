@@ -467,7 +467,7 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
 
     [Theory]
     [InlineData("c3-want", "quiero tres manzanas rojos", "rojas")] // the adjective after the noun agrees with it
-    [InlineData("c1-how", "el manzana es roja", "la")] // and the article; the core does not check a predicate adjective (la manzana es rojo), a core gap
+    [InlineData("c1-how", "el manzana es roja", "la")] // and the article; the predicate adjective has its own test below (core M62)
     [InlineData("c2-apples", "me gustan los manzanas", "las")]
     public void AWordThatDoesNotAgreeIsTheCoresGenderSlipAndTheStepGoesOn(string stepId, string said, string expected)
     {
@@ -481,15 +481,35 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void ThePredicateAdjectiveIsNotCheckedByTheCoreSoLaManzanaEsRojoIsCreditedAsItStands()
+    public void LaManzanaEsRojoIsTheCoresGenderSlipWithTheRecastRojaAndTheStepIsDoneWithTheSlip()
     {
-        // A core gap (V13's report): an adjective after ser is not checked against its subject, so "la manzana es rojo" is clean to the core, and the lesson has no check of
-        // its own for it; the sheet's error example is the article instead. Pinned so that the day the core grades it, this test says the row can take the plan's example.
-        var session = AtStep("c1-how");
-        var turn = session.Say("la manzana es rojo");
+        // V13's report was a core gap: an adjective after ser was not checked against its subject. Since the core's M62 it is: "la manzana es rojo" is the core's
+        // gender.agree (expected roja), the step is done with the slip, and only the core's recast speaks (the lesson takes the turn, so the farmer's own reply is not
+        // shown, and the lesson's check gives no retry or hint of its own). The sheet's row may take the plan's error example.
+        var slip = AtStep("c1-how");
+        var attempts = slip.Lessons.Attempts;
+        var turn = slip.Say("la manzana es rojo");
 
         Assert.Equal(("describe", true), (turn.Intent, turn.Communicated));
-        Assert.Empty(turn.Errors);
+        Assert.Equal("roja", Assert.Single(turn.Errors, static e => e.Tag == "gender.agree").Expected);
+        Assert.Single(turn.Errors);
+        Assert.True(turn.LessonHandled);
+        Assert.Contains("«la manzana es roja»", turn.Feedback, StringComparison.Ordinal);
+        Assert.Equal([turn.Feedback!], turn.GuideLines); // one correction line: the recast, nothing of the lesson's own check besides it
+        Assert.Equal(attempts, slip.Lessons.Attempts); // no retry
+        Assert.DoesNotContain(slip.Events.OfType<LessonEvent>(), static e => e.Kind == LessonEventKind.Retry && e.StepId == "c1-how");
+        Assert.Equal("c2-bread", slip.Lessons.Current!.Id);
+        Assert.Contains(slip.Events.OfType<LessonEvent>(), static e => e.Kind == LessonEventKind.StepDone && e.StepId == "c1-how" && e.Detail == "with a slip");
+
+        // The clean neighbour: the right adjective is done with no correction at all.
+        var right = AtStep("c1-how");
+        var clean = right.Say("la manzana es roja");
+
+        Assert.Equal(("describe", true), (clean.Intent, clean.Communicated));
+        Assert.Empty(clean.Errors);
+        Assert.Null(clean.Feedback);
+        Assert.Equal("c2-bread", right.Lessons.Current!.Id);
+        Assert.Contains(right.Events.OfType<LessonEvent>(), static e => e.Kind == LessonEventKind.StepDone && e.StepId == "c1-how" && e.Detail != "with a slip");
     }
 
     // ---- The farmer outside the lesson: his sale, his price and his order

@@ -1,6 +1,8 @@
 using Vocaterra.Nlp.Core.Stages;
+using Vocaterra.Nlp.Es;
 using Vocaterra.Nlp.Es.Analysis;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
+using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Matching;
 using Vocaterra.Nlp.Language.Morphology;
@@ -36,6 +38,9 @@ public sealed class LexiconCatalog
 
     /// <summary>Adjectives that normally precede the noun (mirror of <c>AnalysisTables.PrenominalAdjectives</c>).</summary>
     public static readonly IReadOnlyList<string> PrenominalLemmas = ["grande", "bueno", "malo"];
+
+    // M62: the Spanish analysis rules, read through the public interface rather than mirrored: which adjectives go after their noun (the colours).
+    private static readonly IAnalysisRules SpanishRules = AnalysisRules.For(SpanishLanguagePack.Instance);
 
     /// <summary>Adjectives that take <c>estar</c> (mirror of <c>AnalysisTables.EstarAdjectives</c>).</summary>
     public static readonly IReadOnlyList<string> EstarAdjectives =
@@ -672,6 +677,24 @@ public sealed class LexiconCatalog
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// True for an adjective that goes after its noun (M62: the colours, <see cref="IAnalysisRules.IsPostnominalAdjective"/> of the Spanish pack): the reading resolver
+    /// reads a word that is such an adjective and a noun as the adjective right before a word that can only be a noun.
+    /// </summary>
+    public static bool IsPostnominalAdjective(string lemma)
+    {
+        return SpanishRules.IsPostnominalAdjective(lemma);
+    }
+
+    /// <summary>
+    /// True for an adverb of degree (M62: <c>muy</c>, <c>tan</c>; <see cref="IAnalysisRules.IsDegreeAdverb"/> of the Spanish pack): the reading resolver reads the word after it
+    /// as no noun.
+    /// </summary>
+    public static bool IsDegreeAdverb(string lemma)
+    {
+        return SpanishRules.IsDegreeAdverb(lemma);
     }
 
     private IReadOnlyList<string> BuildAdjectives()

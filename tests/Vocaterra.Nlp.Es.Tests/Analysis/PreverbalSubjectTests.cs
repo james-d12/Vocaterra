@@ -43,10 +43,11 @@ public class PreverbalSubjectTests
 
     // ---- The game's sentences (V12, V13) ------------------------------------------------------------------------------------------------------------------
 
+    // M62: the predicate adjective agrees with the phrase too, so las manzanas es roja also gives rojas (las manzanas son rojas); la manzana son roja gives es alone.
     [Theory]
-    [InlineData("las manzanas es roja", Describe, "conj.person|es|son")]
+    [InlineData("las manzanas es roja", Describe, "conj.person|es|son;noun.number|roja|rojas")]
     [InlineData("la manzana son roja", Describe, "conj.person|son|es")]
-    [InlineData("sí las manzanas es roja", Describe, "conj.person|es|son")]
+    [InlineData("sí las manzanas es roja", Describe, "conj.person|es|son;noun.number|roja|rojas")]
     public void TheGamesNounPhraseBeforeItsVerbIsChecked(string sentence, string grammar, string expected)
     {
         Assert.Equal(expected, Described(sentence, grammar));

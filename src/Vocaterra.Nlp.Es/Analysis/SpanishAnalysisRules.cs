@@ -49,6 +49,10 @@ internal sealed class SpanishAnalysisRules : IAnalysisRules
 
     public bool IsCopulaOrAuxiliary(string lemma) => lemma is "ser" or "estar" or "haber";
 
+    public bool IsPostnominalAdjective(string lemma) => SpanishAnalysisTables.IsColourAdjective(lemma);
+
+    public bool IsDegreeAdverb(string lemma) => SpanishAnalysisTables.IsDegreeAdverb(lemma);
+
     public IAgreementChecker CreateAgreementChecker(IReadOnlyList<AnalyzedToken> resolved, List<ErrorTag> errors) =>
         new SpanishAgreementChecker(resolved, _morphology, errors, this);
 }

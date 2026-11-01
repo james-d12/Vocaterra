@@ -187,7 +187,8 @@ public class HomographSentencesTests
         // The copula classes, with an adjective that is a lemma of its own (ocupada) and one that is not.
         { "soy ocupado", ["ser_estar|soy|estoy"] },
         { "ella es ocupada", ["ser_estar|es|está"] },
-        { "ella está alto", ["ser_estar|está|es"] },
+        // M62: the adjective agrees with ella as well (ella es alta).
+        { "ella está alto", ["ser_estar|está|es", "gender.agree|alto|alta"] },
         { "una casa grandes", ["noun.number|grandes|grande"] },
         { "una buen casa", ["gender.agree|buen|buena"] },
 

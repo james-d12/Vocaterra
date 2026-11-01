@@ -35,6 +35,12 @@ using Vocaterra.Nlp.Language.SlotGrammar;
 /// alone: after the interrogative quantifier, a word whose noun reading the quantifier cannot agree with is the slip (<c>cuánto costa</c>, not <c>cuánta costa</c>); and
 /// after the noun of a phrase that opens the utterance, a word whose slip is a finite verb of the third person and of that noun's number is the slip
 /// (<c>el pan costa dos monedas</c>).
+/// M62: a word that is an adjective and also a noun (and no finite verb), right after the noun of a phrase that a determiner opens and agreeing with that noun and
+/// its determiners, is that noun's adjective (<c>las manzanas rojas son caras</c>); a word that is an adjective of a kind that goes after its noun (<see cref="IAnalysisRules.IsPostnominalAdjective"/>: the
+/// colours) and also a noun, right before a word that can only be a noun that it and the determiners before it agree with, is the adjective put before its noun
+/// (<c>tres rojas manzanas</c>, <c>una roja manzana</c>), so the word-order check sees it; the word after an adverb of degree (<see cref="IAnalysisRules.IsDegreeAdverb"/>: <c>muy</c>, <c>tan</c>) is no noun (<c>es muy cara</c>); and a finite
+/// form of a copula that is also a noun (<c>son</c>, <c>era</c>), right after the noun of a phrase that a determiner opens and before a word that can be an adjective,
+/// is the copula (<c>las manzanas son caras</c>), so the predicate adjective is agreed with its subject.
 /// </description></item>
 /// <item><description>
 /// <b>Grammar bindings.</b> When a slot grammar matched the whole utterance, every token was consumed by a grammar element, and that element names the reading:
@@ -385,6 +391,52 @@ internal static class ReadingResolver
                 changed |= Narrow(i, r => ReadingClasses.IsFiniteVerb(r) && _rules.IsNearFutureAuxiliary(r.Lemma));
             }
 
+            // M62: a word that is a descriptive adjective and also a noun, and no finite verb, right after the noun of a phrase that a determiner opens and agreeing with
+            // that noun and its determiners, is that noun's adjective and no noun of its own (las manzanas rojas son caras: the phrase is the copula's subject, and rojas
+            // is not a bare noun before the verb). A phrase that disagrees with itself (veintidós emperador americano) is left as it was, so the slip is reported once,
+            // and so is a word that can be the verb after the phrase (la tradición limpia: limpiar), which the grammar or the fallback decides.
+            if (i > 1
+                && All(i - 1, r => r.Pos == LexiconSchema.Noun)
+                && HasReading(i, r => r.Pos == LexiconSchema.Noun)
+                && !HasReading(i, ReadingClasses.IsFiniteVerb)
+                && HasReading(i, r => r.Pos == LexiconSchema.Adjective
+                    && !_rules.IsDeterminerAdjective(r.Lemma)
+                    && HasReading(i - 1, n => Agree(r, n))
+                    && DeterminersAgreeWith(i - 1, r)))
+            {
+                changed |= Narrow(i, r => r.Pos == LexiconSchema.Adjective);
+            }
+
+            // M62: a word that is an adjective of a kind that goes after its noun (IsPostnominalAdjective: the colours) and also a noun (roja, rojas, blanca, gris), right
+            // before a word that can only be a noun that it and the determiners before it agree with, is the adjective put before its noun (tres rojas manzanas, una roja
+            // manzana), as a word that is only such an adjective is (rojo, azul); the word-order check then reports the order. Before a word that can be something else
+            // (la roja casa: casa is also casar), or where the phrase would not agree (una rosa, pan y agua, its commas dropped), it is left to the other rules and the
+            // fallback.
+            if (IsPostnominalAdjectiveBeforeNoun(i))
+            {
+                changed |= Narrow(i, r => r.Pos == LexiconSchema.Adjective);
+            }
+
+            // M62: an adverb of degree (muy, tan) modifies an adjective or an adverb and never a noun, so the word after it is no noun (es muy cara: the adjective, not the
+            // noun cara), and the checks see the adjective.
+            if (next < Count && All(i, r => r.Pos == LexiconSchema.Adverb && _rules.IsDegreeAdverb(r.Lemma)))
+            {
+                changed |= Narrow(next, r => r.Pos != LexiconSchema.Noun);
+            }
+
+            // M62: a noun phrase with a determiner does not run on into the noun of a copula's form. A word that is a finite form of a copula and a noun (son, era), right
+            // after the noun of such a phrase (and the adjectives after it) and before a word that can be an adjective (past adverbs), is the copula: las manzanas son
+            // caras, la casa era grande. The predicate adjective is then agreed with the phrase. Elsewhere (son cerca, el son cubano) the other rules and the fallback
+            // decide as before.
+            if (HasReading(i, r => r.Pos == LexiconSchema.Noun)
+                && HasReading(i, IsCopulaReading)
+                && FollowsDeterminedNoun(i)
+                && NextContent(next) is var predicate and >= 0
+                && HasReading(predicate, r => r.Pos == LexiconSchema.Adjective))
+            {
+                changed |= Narrow(i, IsCopulaReading);
+            }
+
             // A copula is followed by an adjective, a noun or an adverb, not by another finite verb.
             if (IsCertainCopula(i))
             {
@@ -404,7 +456,7 @@ internal static class ReadingResolver
         private bool ResolveNounPhraseHead(int determiner)
         {
             var head = determiner + 1;
-            while (head < Count && (IsCertainDeterminer(head) || IsCertainAdjective(head)))
+            while (head < Count && (IsCertainDeterminer(head) || IsCertainAdjective(head) || IsPostnominalAdjectiveBeforeNoun(head)))
             {
                 head++;
             }
@@ -538,6 +590,86 @@ internal static class ReadingResolver
                 && _rules.IsNearFutureLinker(_candidates[index][0].Lemma)
                 && All(index - 1, r => ReadingClasses.IsFiniteVerb(r) && _rules.IsNearFutureAuxiliary(r.Lemma))
                 && HasReading(index - 1, r => r.Mood != LexiconSchema.Imperative);
+        }
+
+        // M62: the word at index is an adjective of a kind that goes after its noun (the colours) and also a noun, the word after it can only be a noun, and the phrase
+        // read that way agrees but for the order: the adjective agrees with that noun, and so do the determiners right before the word (tres rojas manzanas, una roja
+        // manzana). A list read without its commas does not (una rosa, pan y agua: una is not pan's; dorado, biblias), and the two nouns stay two phrases.
+        private bool IsPostnominalAdjectiveBeforeNoun(int index)
+        {
+            var noun = index + 1;
+            if (noun >= Count
+                || !HasReading(index, r => r.Pos == LexiconSchema.Noun)
+                || !All(noun, r => r.Pos == LexiconSchema.Noun)
+                || !HasReading(index, r => r.Pos == LexiconSchema.Adjective && _rules.IsPostnominalAdjective(r.Lemma) && HasReading(noun, n => Agree(r, n))))
+            {
+                return false;
+            }
+
+            for (var k = index - 1; k >= 0 && HasReading(k, IsDeterminer); k--)
+            {
+                if (!HasReading(k, d => IsDeterminer(d) && HasReading(noun, n => Agree(d, n))))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        // M62: a determiner opens the phrase of the noun at index, past the adjectives before the noun (las manzanas, una buena manzana), and every determiner of it
+        // agrees with the reading.
+        private bool DeterminersAgreeWith(int noun, LexicalFeatures reading)
+        {
+            var k = noun - 1;
+            while (k >= 0 && IsCertainAdjective(k))
+            {
+                k--;
+            }
+
+            if (k < 0 || !IsCertainDeterminer(k))
+            {
+                return false;
+            }
+
+            for (; k >= 0 && IsCertainDeterminer(k); k--)
+            {
+                if (!HasReading(k, d => Agree(d, reading)))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        // M62: the word before index is the noun of a phrase that a determiner opens (las manzanas, las manzanas rojas, una buena casa), past the words after that
+        // noun that can be adjectives.
+        private bool FollowsDeterminedNoun(int index)
+        {
+            var k = index - 1;
+            while (k >= 0 && !All(k, r => r.Pos == LexiconSchema.Noun) && HasReading(k, r => r.Pos == LexiconSchema.Adjective))
+            {
+                k--;
+            }
+
+            if (k < 1 || !All(k, r => r.Pos == LexiconSchema.Noun))
+            {
+                return false;
+            }
+
+            k--;
+            while (k >= 0 && IsCertainAdjective(k))
+            {
+                k--;
+            }
+
+            return k >= 0 && IsCertainDeterminer(k);
+        }
+
+        private bool IsCopulaReading(LexicalFeatures reading)
+        {
+            return ReadingClasses.IsFiniteVerb(reading) && _rules.IsCopula(reading.Lemma);
         }
 
         private bool IsCertainCopula(int index)

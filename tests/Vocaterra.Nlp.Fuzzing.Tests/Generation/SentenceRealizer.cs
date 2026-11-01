@@ -1035,21 +1035,28 @@ internal sealed class SentenceRealizer
         return true;
     }
 
+    // M62: the analyzer agrees an adjective after ser or estar (and the adjectives joined to it by y, e, o, u or pero) with the copula's subject: a subject pronoun before
+    // the copula; else, for a copula of the third person, the noun phrase before it that opens its clause (a lone name gives no gender), or a noun phrase with a
+    // determiner or a subject pronoun of the third person right after the adjectives; else the copula's own number, with no gender (mirror of
+    // SpanishAgreementChecker.CheckPredicateAdjectives). Whether a phrase before the copula opens its clause is not modelled, so the realiser agrees the adjective
+    // with every candidate at once (the pronoun alone when there is one; otherwise the phrase before, the phrase after and the copula's number), which is never wrong;
+    // candidates that disagree in gender or number skip the draw (skip:predicate-subject).
     private bool SetPredicateAdjective(int index, Item item, out string skip)
     {
         skip = "none";
-        var previous = PreviousContent(index);
-        var copula = previous is { Kind: Kind.Verb, Infinitive: false } && previous.Lemma is "ser" or "estar" ? previous : null;
+        var copulaIndex = PredicateCopulaIndex(index);
+        var copula = copulaIndex >= 0 ? _items[copulaIndex] : null;
+        var first = copula is not null && ReferenceEquals(PreviousContent(index), copula);
         var serClass = _words.SerClassAdjectives;
         var estarClass = _words.EstarClassAdjectives;
         var neutral = _words.NeutralAdjectives;
 
         IReadOnlyList<string> pool;
-        if (copula is not null && _rng.NextDouble() < 0.7)
+        if (first && _rng.NextDouble() < 0.7)
         {
-            pool = copula.Lemma == "ser" ? serClass : estarClass;
+            pool = copula!.Lemma == "ser" ? serClass : estarClass;
         }
-        else if (copula is not null)
+        else if (first)
         {
             pool = neutral;
         }
@@ -1058,9 +1065,17 @@ internal sealed class SentenceRealizer
             pool = [.. _words.DescriptiveAdjectives];
         }
 
-        var subject = copula?.Subject;
-        var gender = subject?.Gender ?? LexiconSchema.Masculine;
-        var number = copula?.Number ?? subject?.Number ?? LexiconSchema.Singular;
+        string? subjectGender = null;
+        string? subjectNumber = null;
+        if (copula is not null && !PredicateAgreement(copulaIndex, index, out subjectGender, out subjectNumber))
+        {
+            skip = "predicate-subject";
+            _detail = copula.Surface ?? string.Empty;
+            return false;
+        }
+
+        var gender = subjectGender ?? LexiconSchema.Masculine;
+        var number = subjectNumber ?? LexiconSchema.Singular;
         for (var attempt = 0; attempt < 6; attempt++)
         {
             var lemma = _rng.Pick(pool);
@@ -1077,6 +1092,132 @@ internal sealed class SentenceRealizer
 
         skip = "no-adjective-form";
         return false;
+    }
+
+    // M62: the generated copula (ser or estar, finite) that the standalone adjective at index is a predicate of: the word before it past skippable words, or, for an
+    // adjective after y, e, o, u or pero, the copula of the standalone adjective before that word (la manzana es roja y grande); -1 when there is none.
+    private int PredicateCopulaIndex(int index)
+    {
+        var previous = PreviousContentIndex(index);
+        if (previous < 0)
+        {
+            return -1;
+        }
+
+        var item = _items[previous];
+        if (item is { Kind: Kind.Verb, Infinitive: false } && item.Lemma is "ser" or "estar")
+        {
+            return previous;
+        }
+
+        if (item.Kind is Kind.Literal or Kind.Conjunction && item.Norm?.ToLowerInvariant() is "y" or "e" or "o" or "u" or "pero")
+        {
+            var before = PreviousContentIndex(previous);
+            if (before >= 0 && _items[before] is { Kind: Kind.Adjective, Head: null })
+            {
+                return PredicateCopulaIndex(before);
+            }
+        }
+
+        return -1;
+    }
+
+    // M62: the gender and number every subject candidate of the copula gives the predicate adjective at index (see SetPredicateAdjective), or false when they disagree.
+    private bool PredicateAgreement(int copulaIndex, int index, out string? gender, out string? number)
+    {
+        gender = null;
+        number = null;
+        var copula = _items[copulaIndex];
+
+        // A subject pronoun before the copula (past at most two skippable words) that no preposition governs decides alone.
+        var p = copulaIndex - 1;
+        for (var skipped = 0; p >= 0; skipped++)
+        {
+            if (SubjectPronounReading(_items[p]) is { } pronoun)
+            {
+                if (p > 0 && _items[p - 1].Kind == Kind.Preposition)
+                {
+                    break;
+                }
+
+                gender = pronoun.Gender;
+                number = pronoun.Number;
+                return true;
+            }
+
+            if (skipped >= MaxSkippedBetween || !IsSkippable(_items[p]))
+            {
+                break;
+            }
+
+            p--;
+        }
+
+        var candidates = new List<(string? Gender, string? Number)> { (null, copula.Number) };
+        if (copula.Person == "3")
+        {
+            if (PreverbalPhrase(copulaIndex, out var coordinated, out var lone) is { } last)
+            {
+                if (coordinated)
+                {
+                    return false;
+                }
+
+                if (!lone)
+                {
+                    candidates.Add((last.Head!.Gender, last.PhraseNumber));
+                }
+            }
+
+            var lastAdjective = index;
+            while (lastAdjective + 2 < _items.Count
+                && _items[lastAdjective + 1].Norm?.ToLowerInvariant() is "y" or "e" or "o" or "u" or "pero"
+                && _items[lastAdjective + 2] is { Kind: Kind.Adjective, Head: null })
+            {
+                lastAdjective += 2;
+            }
+
+            var after = NextContent(lastAdjective);
+            if (after >= 0)
+            {
+                var next = _items[after];
+                if (SubjectPronounReading(next) is { Person: "3" } pronoun)
+                {
+                    candidates.Add((pronoun.Gender, pronoun.Number));
+                }
+                else if (next.Head is { } head && !ReferenceEquals(head, next) && IsDeterminer(next))
+                {
+                    candidates.Add((head.Gender, next.PhraseNumber));
+                }
+            }
+        }
+
+        foreach (var (candidateGender, candidateNumber) in candidates)
+        {
+            if ((candidateGender is not null && gender is not null && candidateGender != gender)
+                || (candidateNumber is not null && number is not null && candidateNumber != number))
+            {
+                return false;
+            }
+
+            gender ??= candidateGender;
+            number ??= candidateNumber;
+        }
+
+        return true;
+    }
+
+    // The subject pronoun reading of a pronoun item the realiser made a subject, or of a literal that is one, or null.
+    private LexicalFeatures? SubjectPronounReading(Item item)
+    {
+        if (item is { Kind: Kind.Pronoun, SubjectPronoun: true, Surface: not null })
+        {
+            return _words.FirstReading(item.Lemma!, LexiconSchema.Pronoun);
+        }
+
+        return item.Kind == Kind.Literal
+            ? item.Readings.FirstOrDefault(static r => r.Pos == LexiconSchema.Pronoun && r.Person is not null && LexiconCatalog.SubjectPronounLemmas.Contains(r.Lemma))
+            : null;
     }
 
     // A function word that is also a finite verb form or a noun is re-rolled by retrying the whole sentence. So is a verb form that is a copula only by homograph
@@ -1156,6 +1297,57 @@ internal sealed class SentenceRealizer
                 && !item.Readings.Any(r => IsFiniteVerbReading(r) && r.Person == "3" && r.Number == phrase.PhraseNumber))
             {
                 skip = "literal-verb-subject";
+                _detail = item.Surface!;
+                return false;
+            }
+
+            // M62: a word that is a colour adjective and a noun (negras, rosa, gris), right before a word that can only be a noun, is read by the analyzer as the adjective
+            // put before that noun (the reading resolver's rule: tres rojas manzanas is a slip of order), so a pattern that puts two nouns side by side with such a word
+            // first (seed f8C3x9UYGMz6: las 25 negras enterados despejados) names a sentence the analyzer reads another way, and is re-rolled.
+            if (i + 1 < _items.Count
+                && item.Readings.Any(static r => r.Pos == LexiconSchema.Adjective && LexiconCatalog.IsPostnominalAdjective(r.Lemma))
+                && item.Readings.Any(static r => r.Pos == LexiconSchema.Noun)
+                && (_items[i + 1].Kind == Kind.Noun
+                    || (_items[i + 1].Readings.Count > 0 && _items[i + 1].Readings.All(static r => r.Pos == LexiconSchema.Noun))))
+            {
+                skip = "colour-before-noun";
+                _detail = item.Surface!;
+                return false;
+            }
+
+            // M62: a word that can be a descriptive adjective and a noun, right after the noun of a phrase with a determiner and agreeing with it (and its determiners, which
+            // agree with the noun in a realised phrase), is read by the analyzer as that noun's adjective (the reading resolver's rule: las manzanas rojas son caras), so a
+            // pattern that puts a second noun there names a sentence the analyzer reads another way (the noun phrase grows and becomes the subject of the verb after
+            // it), and is re-rolled.
+            if (i > 0
+                && item.Kind is Kind.Noun or Kind.Literal
+                && _items[i - 1] is { Head: { } head } previousHead
+                && ReferenceEquals(head, previousHead)
+                && !ReferenceEquals(item.Head, head)
+                && _items.Exists(x => ReferenceEquals(x.Head, head) && IsDeterminer(x))
+                && item.Readings.Any(static r => r.Pos == LexiconSchema.Noun)
+                && !item.Readings.Any(IsFiniteVerbReading)
+                && item.Readings.Any(r => r.Pos == LexiconSchema.Adjective
+                    && !LexiconCatalog.DeterminerAdjectiveLemmas.Contains(r.Lemma)
+                    && previousHead.Readings.Any(n => n.Pos == LexiconSchema.Noun
+                        && (r.Gender is null || n.Gender is null || r.Gender == n.Gender)
+                        && (r.Number is null || n.Number is null || r.Number == n.Number))))
+            {
+                skip = "noun-reads-as-adjective";
+                _detail = item.Surface!;
+                return false;
+            }
+
+            // M62: the word after an adverb of degree (muy, tan) is no noun to the analyzer (the reading resolver's rule: es muy cara), so a noun there that is also
+            // something else names a sentence the analyzer reads another way, and is re-rolled.
+            if (i > 0
+                && item.Kind is Kind.Noun or Kind.Literal
+                && item.Readings.Any(static r => r.Pos == LexiconSchema.Noun)
+                && item.Readings.Any(static r => r.Pos != LexiconSchema.Noun)
+                && _items[i - 1].Readings.Count > 0
+                && _items[i - 1].Readings.All(static r => r.Pos == LexiconSchema.Adverb && LexiconCatalog.IsDegreeAdverb(r.Lemma)))
+            {
+                skip = "noun-after-degree-adverb";
                 _detail = item.Surface!;
                 return false;
             }
