@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.Language.Lessons;
@@ -72,7 +73,7 @@ public sealed class MarketSpokenTests(ITestOutputHelper output)
             _ = session.SubmitSpeak($"Quiero {number} panes.");
             var turn = Drain(session).Turn!;
             output.WriteLine($"'{number}': heard '{turn.Line}' ({turn.Confidence:0.00}) -> {turn.Intent}, slots {string.Join(", ", turn.Slots.Select(static s => $"{s.Key}={s.Value}"))}");
-            if (!turn.Line.Contains(number, StringComparison.OrdinalIgnoreCase))
+            if (!PhraseSheet.Plain(turn.Line).Contains(PhraseSheet.Plain(number), StringComparison.Ordinal)) // the recognizer writes dieciseis without its accent
             {
                 missed.Add(number);
             }

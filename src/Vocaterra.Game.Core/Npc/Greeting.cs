@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Language.Phrases;
+using Vocaterra.Nlp.Asr;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
@@ -16,7 +17,8 @@ namespace Vocaterra.Game.Core.Npc;
 /// <remarks>
 /// A line that is only a greeting (<c>hola</c>, <c>buenos días</c>) is left as it is, and so is a line whose rest is a greeting too (<c>hola, buenas tardes</c>), whose rest is
 /// not understood (<c>hola amigo</c>, which the core reads as a greeting with a noun) or whose rest is an intent the prompt does not take. The core is never asked to read
-/// two intents: the game reads the line, and then its rest, each as one line.
+/// two intents: the game reads the line, and then its rest, each as one line. The recognizer may put its unknown token (<c>[unk]</c>, a sound outside the prompt's words)
+/// before the greeting; the rest leaves it out with the greeting.
 /// </remarks>
 public static class Greeting
 {
@@ -83,15 +85,16 @@ public static class Greeting
             && prompt.AllowedIntentIds.Contains(rest.Intent.Value, StringComparer.Ordinal);
     }
 
-    // How many tokens the opening greeting takes (0 when the line does not open with one, or has nothing after it).
+    // How many tokens the opening greeting takes, with the recognizer's unknown tokens before it (0 when the line does not open with one, or has nothing after it).
     private static int OpeningLength(string[] tokens)
     {
-        var words = tokens.Select(PhraseSheet.Plain).ToArray();
+        var lead = tokens.TakeWhile(static t => string.Equals(t, GrammarBuilder.UnknownToken, StringComparison.Ordinal)).Count();
+        var words = tokens.Skip(lead).Select(PhraseSheet.Plain).ToArray();
         foreach (var opening in Openings)
         {
             if (words.Length > opening.Length && opening.Select((word, i) => string.Equals(words[i], word, StringComparison.Ordinal)).All(static same => same))
             {
-                return opening.Length;
+                return lead + opening.Length;
             }
         }
 

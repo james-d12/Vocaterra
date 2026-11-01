@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Language.Phrases;
+using Vocaterra.Nlp.Asr;
 using Vocaterra.Nlp.Core.Stages;
 
 namespace Vocaterra.Game.Core.Npc;
@@ -15,7 +16,8 @@ namespace Vocaterra.Game.Core.Npc;
 /// the sentence: as the first word, or the word after a leading <c>hola</c>, when more follows and the next word does not join it to another (<c>Luz y Domingo
 /// comieron pan</c> keeps it); and as the last word, when the word before it does not make it a noun of the sentence (an article, a possessive, a preposition or a
 /// conjunction: <c>el pan de Luz</c>, <c>la luna</c>). A line that is only the name is left as it is. The punctuation the name carried is kept on its neighbour, so
-/// <c>¿Mar, dónde está la panadería?</c> is read as <c>¿dónde está la panadería?</c>.
+/// <c>¿Mar, dónde está la panadería?</c> is read as <c>¿dónde está la panadería?</c>. The recognizer's unknown tokens (<c>[unk]</c>) before the line are looked past (V15:
+/// <c>[unk] hola luz quiero dos panes</c> kept the name).
 /// </remarks>
 public static class Vocative
 {
@@ -126,7 +128,13 @@ public static class Vocative
         }
 
         int? leading = null;
-        var start = words.Count > 2 && Greetings.Contains(words[0], StringComparer.Ordinal) ? 1 : 0;
+        var lead = tokens.TakeWhile(static t => string.Equals(t, GrammarBuilder.UnknownToken, StringComparison.Ordinal)).Count(); // the recognizer's [unk] before the line (V15)
+        if (lead >= words.Count - 1)
+        {
+            return (null, trailing);
+        }
+
+        var start = words.Count - lead > 2 && Greetings.Contains(words[lead], StringComparer.Ordinal) ? lead + 1 : lead;
         var rest = (trailing ?? words.Count) - start - 1; // the words after the name that stay
         if (words[start] == plainName && rest > 0 && !Joiners.Contains(words[start + 1], StringComparer.Ordinal))
         {

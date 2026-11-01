@@ -22,7 +22,12 @@ public sealed class GreetingTests
     [InlineData("Buenas tardes, vendo madera", "vendo madera")]
     [InlineData("buen día quiero pan", "quiero pan")]
     [InlineData("hola amigo", "amigo")] // a rest the core does not take as an intent leaves the line a greeting (below)
+    [InlineData("[unk] hola quiero dos panes", "quiero dos panes")] // the recognizer's unknown token before the greeting goes with it (the spoken round trip)
     public void TheRestIsTheLineAfterAnOpeningGreeting(string line, string rest) => Assert.Equal(rest, Greeting.Rest(line));
+
+    [Fact]
+    public void TheListenersNameAfterTheRecognizersUnknownTokenAndAGreetingIsTakenOut() =>
+        Assert.Equal("[unk] hola quiero dos panes", Vocative.Without("[unk] hola luz quiero dos panes", "Luz")); // heard so in the spoken round trip (V15)
 
     [Theory]
     [InlineData("hola")]
