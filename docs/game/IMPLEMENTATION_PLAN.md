@@ -1918,6 +1918,62 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     axe and 2 loaves in the hotbar, and `--skip-to-session 9 --lesson-run manana-en-el-pueblo` completes 14 of 14 units (both reviews
     skipped: a skipped start has nothing due).
 
+- **V15: session 10 "El mercado" (2026-11-01, Opus 5.5 xhigh; gated on `feature/village` at `d082f05`, V15b at `557db47`).** The last
+  lesson of phase B and of the series, level `a2`, 22 steps, 8 check items: the numbers 11 to 20, the total of a table, comparing
+  prices, `poder`, selling, and the market told in the three times. Luz counts to twenty and buys the learner's wood; León's table leads to
+  the total, the comparison, paying with fruit and the future; three apples are bought with the wood's coins; the stall hears the report.
+  - Rows: said `tienes-veinte-panes`, `quiero-vender-madera`, `vendo-madera`, `cuanto-es-todo`, `es-muy-caro`, `mas-barato-que`,
+    `puedo-pagar-con-fruta`, `manana-vendere-fruta` (`tense: fut`), `compre-tres-manzanas`; 11 heard rows; reviews of sessions 9 and 8 at
+    the start, 5 and 7 at the end. Four stand-in error examples restored (M58: `cuanto-cuesta`, `hay-pan`; M62: `la-manzana-es-roja`,
+    `es-grande`). The prenominal `[ADJ]?` in `request_item` was tried and left out: it moved 43 identity entries and the core's documented
+    `quiero una azul espada`.
+  - The Opus pass: "Solo compro" (was "Yo compro"), León's total "Quince manzanas, quince monedas." (so "todo" is his table), his answer on
+    paying also fits a question about coins, `para ti` dropped. The orchestrator read every new line and its English: natural and neutral,
+    apart from Luz's `Te pago una moneda por cada madera` (a mass noun counted), now `… por cada bloque de madera`, as the bundle counts
+    wood elsewhere (`9f7a78d`).
+  - **`offer_item` and `buy`:** the grammar takes the literal `vendo` and `quiero vender` (only the present sells; `vendí` and `venderé`
+    stay `state_action`). Luz and Domingo buy wood, León fruit, one coin each, the number said or else all in the bag; with none, "No
+    tienes madera."; another item, "No, gracias. Solo compro madera." No cap: the goods are the cap, and nothing sold can be bought back.
+    The lint's confusion check: no overlap with `state_want` or `state_have`, one waived with `state_action`. Bug found and fixed: any
+    request at the bakery sold bread (`quiero madera` took coins for bread); Luz now answers "Solo vendo pan.", León "Solo vendo
+    manzanas." The host's `--transcript` mode has no bag, so it prints the success line whatever the item; the game decides (`SellingTests`).
+  - **The coin path:** 0 coins in; three blocks of wood sold for 3 coins; three apples bought; 0 coins out. A learner with 0 coins finishes from `--skip-to-session 10` (tested). **No order:** the sale and the purchase are the session's
+    exchange. `¿Puedo pagar con fruta?`: no barter, but León buys fruit, so fruit pays in two steps. `¿Cuánto es todo?` sums León's table.
+  - **One intent per line** (V14's finding): `Greeting.cs` answers a line that opens with a greeting by its rest when the whole line is a
+    greeting or not understood and the rest is another intent the prompt takes (the greeting credits nothing); the recognizer's leading
+    `[unk]` is passed over, which had also hidden the vocative. `hola, quiero dos panes`, `hola Luz quiero dos panes` and `quiero el pan
+    de Luz` (`request_item` takes `de` + a village name) buy bread, typed, spoken and on the host.
+    V15b widened it: the rest also answers when the whole line is the rest's own intent with the same errors plus some on the greeting's
+    words, so a greeting's words are never flagged and an error after it stays (`buenas tardes, ¿cuánto cuesta el pan?` clean; `buenos
+    días, ¿cuánto cuestan el pan?` only `conj.person`).
+  - The Lessons page says the series is done once all ten lessons are: "Every lesson of the village is done, all 10: the series ends here."
+  - Core tries (not patched; core gaps for the owner's list): `¿puede usted vender manzanas?` gives a wrong `conj.person` (expects
+    `vende`); `puedo pago con fruta` and `quiero vendo madera` give no error; `¿cuánto cuestan todo?` gives no `conj.person`; `ti` is not in
+    the lexicon (`vocab.unknown`); `¿cuánto son todo?` is communicated with intent `unknown`.
+  - Recognizer: every said row heard word for word at 0.91 to 1.00, with `venderé`, `puedo`, `barata` and 11 to 20 (`dieciséis` written
+    without its accent). Timing: session 9 about 6 to 7 minutes, session 10 about 9 to 10 (the top of the target).
+  - Tests: 7031 passed and 3 skipped before (7034 after M62b); 7218 passed and 3 skipped after, with models; without models (CI's case)
+    7175 passed and 43 skipped. Timed tests alone: the scene build 0.65 of 3 s, the bundle load 0.49 of 3 s; V16 measured about 1.3 and
+    1.7 s under the full suite's load, within four times of the budget. Bundle `e39e1a42…`; no end-to-end golden moved; the identity
+    baseline gained 24 entries and 18 moved (the analyze stage, `de` + a village name in `request_item`), in commits of their own.
+  - Scripted runs: ticks and world digests unchanged; the tenth lesson, speech files 824 to 902, saves 5.9 KB larger, the Lessons-page
+    shots and Luz's `vendo-madera` card. Nothing wrong in V17's "before". The learner's route: session 9 played, slept into session 10,
+    the objective and beacon on Luz, the lesson done, free talk answered right (a scripted run cannot chop a tree, so that step was skipped).
+  - Left: the session skip buys one apple, not three, for the market (no step of it is a request); no session follows 10, so it is never
+    used.
+  - The gate: the first run failed on an O3 fuzz case older than V15 (seed `aeG5w1c3Hvh2`, fixed in the core as M62b) and on the import
+    order of `MarketSpokenTests.cs` (`e269e7b`; format had been run before the last edit). Only three commits on the branch at the first
+    report, against "commit often".
+  - The orchestrator's spot-checks: on the host, the brief's demos as stated (`hola, quiero dos panes` and `hola Luz quiero dos panes`
+    buy bread; `vendo madera` and `quiero vender madera` are `offer_item`; `¿cuánto costa el pan?` `ask_price` with `conj.irregular`;
+    `¿cuánto es todo?` and `¿puedo pagar con fruta?` León's answers; `mañana compraré pan` clean; `quiero agua, por favor` at `stall-need`
+    `request_item`); `--skip-to-session 10 --lesson-run el-mercado` completes (18 done, 4 skipped: two reviews with nothing due, two walks);
+    the Lessons page says the series is done. Two gaps went to V15b (`55f3630`, gated at `557db47`, 7258 passed and 3
+    skipped; bundle `36b2b8ad…`; no golden or identity entry moved): a two-word greeting before a question was flagged (`buenas tardes,
+    ¿cuánto cuesta el pan?` gave `vocab.wrong` on `buenas`), and wood counted in blocks did not sell (`vendo tres bloques de madera`,
+    `quiero vender tres bloques de madera` not understood, though Luz says `por cada bloque de madera`): `offer_item` takes `bloque(s) de`
+    and `buy` reads the number (`un` is one). After V15b the host gives each line as above; CI's grammar check holds (`scripts/content-loop.sh --grammar --tier none`: the cache rebuilt from nothing equal, 0 new findings).
+
 ## 6. Definition of done (every milestone)
 
 1. `dotnet build Vocaterra.sln -warnaserror` with 0 warnings and `dotnet test Vocaterra.sln` green, with the test count in the report.
