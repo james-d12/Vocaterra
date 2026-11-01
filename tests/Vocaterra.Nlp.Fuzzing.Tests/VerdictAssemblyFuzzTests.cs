@@ -167,11 +167,17 @@ public sealed class VerdictAssemblyFuzzTests(ITestOutputHelper output)
         return "[" + string.Join("; ", keys.OrderBy(static k => k.Start).ThenBy(static k => k.Tag, StringComparer.Ordinal).Select(static k => $"{k.Tag}@{k.Start}+{k.Length}")) + "]";
     }
 
-    // The derived error exists when nothing matched, the prompt is constrained, and the first content token is a word the lexicon knows. Its
-    // expected text is the answer set's single canonical answer, or empty when the set has no single answer (VerdictGen supplies none).
+    // The derived error exists when nothing matched, the prompt is constrained, the line is a miss (M67: it resolved no intent, or an intent that no
+    // slot grammar gave and its distance to the nearest answer is at most one edit past the fuzzy budget for the line's length), and the first content
+    // token is a word the lexicon knows. Its expected text is the answer set's single canonical answer, or empty when the set has no single answer
+    // (VerdictGen supplies none).
     private static ErrorTag? DerivedVocabWrong(VerdictInputs inputs)
     {
-        if (inputs.Match.Type != MatchType.None || inputs.Prompt.Mode != RecognitionMode.Constrained)
+        var length = inputs.Analysis.Tokens.Sum(static t => t.Token.Text.Length) + Math.Max(inputs.Analysis.Tokens.Count - 1, 0);
+        var budget = length / inputs.Prompt.Difficulty switch { Difficulty.Intermediate => 5, Difficulty.Advanced => 6, _ => 4 };
+        var nearMiss = length > 0 && inputs.Match.Distance <= budget + 1;
+        var miss = inputs.Intent.Intent.IsUnknown || (inputs.Intent.Rung != IntentRung.Grammar && nearMiss);
+        if (inputs.Match.Type != MatchType.None || inputs.Prompt.Mode != RecognitionMode.Constrained || !miss)
         {
             return null;
         }

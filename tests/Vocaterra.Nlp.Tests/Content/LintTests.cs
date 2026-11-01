@@ -624,10 +624,12 @@ public class LintTests
     [Fact]
     public void AnExampleMayNameThePromptItIsGradedAgainst()
     {
-        // The constrained prompt expects an answer-set phrase, so a sentence gets vocab.wrong there; the same text passes against the open prompt.
+        // The constrained prompt expects an answer-set phrase, so a sentence it does not understand gets vocab.wrong there (the stall takes no greeting);
+        // the same text passes against the open prompt, which understands it. A sentence either prompt understands gets no vocab.wrong (M67).
         using var fixture = new LintFixture().Examples(
             "request_item",
-            "[{\"text\":\"quiero dos espadas\",\"errors\":[\"vocab.wrong\"],\"prompt\":\"stall-need\"},{\"text\":\"quiero dos espadas\",\"errors\":[],\"prompt\":\"villager-open\"}]");
+            "[{\"text\":\"hola, quiero dos espadas\",\"errors\":[\"vocab.wrong\"],\"prompt\":\"stall-need\"},{\"text\":\"hola, quiero dos espadas\",\"errors\":[],\"prompt\":\"villager-open\"},"
+            + "{\"text\":\"quiero dos espadas\",\"errors\":[],\"prompt\":\"stall-need\"}]");
 
         Assert.Empty(Of(fixture.Lint(), "expect.mismatch"));
     }

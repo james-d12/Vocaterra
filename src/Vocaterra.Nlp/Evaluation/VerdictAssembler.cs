@@ -43,8 +43,14 @@ public static class VerdictAssembler
     /// </summary>
     /// <remarks>
     /// The derived <c>vocab.wrong</c> error is raised when the answer-set match is <see cref="MatchType.None"/>, the prompt is
-    /// <see cref="RecognitionMode.Constrained"/> and the first content token (the first token that is not purely an article,
-    /// pronoun, preposition or conjunction; unknown words count as content) is in <see cref="VerdictInputs.KnownLexiconWords"/>.
+    /// <see cref="RecognitionMode.Constrained"/>, the line is a miss and the first content token (the first token that is not purely an article,
+    /// pronoun, preposition or conjunction; unknown words count as content) is in <see cref="VerdictInputs.KnownLexiconWords"/>. The tag explains a
+    /// miss (M67): the line resolved no intent (<see cref="IntentId.IsUnknown"/>), or an intent that no slot grammar gave (a keyword rule or the
+    /// embedding rung) and the line is a near miss of an answer: <see cref="MatchResult.Distance"/>, the distance to the nearest answer phrase, is at
+    /// most one edit past the answer matcher's fuzzy budget for the line's length (its words joined by single spaces), <c>floor(length / 4)</c> at
+    /// Beginner, 5 at Intermediate and 6 at Advanced (<c>cuál es esto</c> for <c>qué es esto</c>). A line a slot grammar understood never gets it, nor
+    /// does a line a keyword rule understood far from every answer: <c>buscaré madera para luz</c> or <c>hola luz quiero dos panes</c> at a prompt whose
+    /// answer set does not hold the line were scored as a small mistake before M67.
     /// <c>Expected</c> is the answer set's canonical answer when the set has exactly one answer (a prompt that asks for one word), and empty
     /// otherwise: a set of several answers has no single word to name. <c>Actual</c> is the token text.
     /// </remarks>
@@ -218,7 +224,9 @@ public static class VerdictAssembler
 
     private static ErrorTag? DeriveVocabWrong(VerdictInputs inputs)
     {
-        if (inputs.Match.Type != MatchType.None || inputs.Prompt.Mode != RecognitionMode.Constrained)
+        // Only a miss has something to explain (M67): a line that resolved no intent, or a near miss of an answer that no slot grammar understood.
+        if (inputs.Match.Type != MatchType.None || inputs.Prompt.Mode != RecognitionMode.Constrained
+            || !(inputs.Intent.Intent.IsUnknown || (inputs.Intent.Rung != IntentRung.Grammar && IsNearMiss(inputs))))
         {
             return null;
         }
@@ -231,6 +239,27 @@ public static class VerdictAssembler
 
         var expected = inputs.CanonicalAnswers is { Count: 1 } answers ? answers[0] : string.Empty;
         return new ErrorTag(ErrorTags.VocabWrong, token.Span, expected, token.Text);
+    }
+
+    // A near miss: the nearest answer phrase is at most one edit past the fuzzy budget of the answer matcher (floor(length / 4, 5 or 6) for Beginner,
+    // Intermediate and Advanced), taken for the line's own length, the words joined by single spaces. One edit past the budget is the first distance
+    // the matcher's margin rejects.
+    private static bool IsNearMiss(VerdictInputs inputs)
+    {
+        var tokens = inputs.Analysis.Tokens;
+        var length = Math.Max(tokens.Count - 1, 0);
+        foreach (var analyzed in tokens)
+        {
+            length += analyzed.Token.Text.Length;
+        }
+
+        var divisor = inputs.Prompt.Difficulty switch
+        {
+            Difficulty.Intermediate => 5,
+            Difficulty.Advanced => 6,
+            _ => 4,
+        };
+        return length > 0 && inputs.Match.Distance <= (length / divisor) + 1;
     }
 
     private static Token? FirstContentToken(IReadOnlyList<AnalyzedToken> tokens)

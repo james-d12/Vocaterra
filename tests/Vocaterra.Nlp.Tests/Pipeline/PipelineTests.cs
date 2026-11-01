@@ -653,9 +653,11 @@ public class PipelineTests
     public void ThePlaceholderAnswerSetIdIsNeverSpokenAsAnExpectedForm()
     {
         var counts = new Dictionary<string, int> { [ErrorTags.VocabWrong] = 4 };
-        var prompt = Prompt("stall-need");
+        var prompt = Prompt("lesson-what");
 
-        var result = TestSupport.Pipeline("quiero madera", RecognitionMode.Constrained)
+        // A near miss of the answer qué es esto that a keyword rule understood (esto): since M67 the only understood line with a derived vocab.wrong
+        // (quiero madera at the stall, which a grammar understands, has none any more). Its set has several answers, so the error names none.
+        var result = TestSupport.Pipeline("cuál es esto", RecognitionMode.Constrained)
             .Evaluate(TestSupport.Clip(), prompt, TestSupport.Context(state: "none", agentId: "player", repeats: counts));
 
         Assert.Contains(result.Verdict.Errors, static error => error.Tag == ErrorTags.VocabWrong);
