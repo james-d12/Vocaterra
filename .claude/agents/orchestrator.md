@@ -207,6 +207,10 @@ the follow-ups and what V09 found). The owner's plan (2026-11-01): review, merge
   (SendMessage), wait for its report, put the report in `.claude/briefs/`, then `TaskStop` it before changing the worktree's branch.
   V17's agent left two wait loops (`until ! pgrep -f 'content-loop.sh …'`) that matched their own command lines and never ended; kill
   such loops after an agent finishes (`pgrep -fa content-loop`).
+- **Never nest `limited.sh`** (2026-11-01): `scripts/limited.sh scripts/test.sh …` deadlocked for 21 minutes (the outer call holds the
+  lock, the inner one waits for it), and every other agent queued behind it. Every brief says: run `scripts/test.sh` and
+  `scripts/content-loop.sh` directly; wrap only plain `dotnet` and `scripts/content.sh` calls. M67 (c) makes `limited.sh` re-entrant.
+  Killing another agent's processes is refused by the permission check; ask the owner, or wait for the agent to clear its own.
 - **Try a core change on correct learner lines, not only the brief's.** M59's first build flagged `Luz quiero pan` (a name said to the
   listener; transcripts carry no commas) because the brief asked for `Mar pescaste en el río` to be flagged. Before gating a core
   milestone, run the CLI on a few natural, correct lines at the NPCs' prompts (names, greetings, `usted`/`ustedes`).

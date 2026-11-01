@@ -26,6 +26,9 @@ Work only in the git worktree `/home/user/Dev/Vocaterra/.claude/worktrees/m65` (
 - **Clean:** every alias of each answer set at those prompts; `ayer luz compró pescado`; `sí, fui al río`; `compré tres manzanas`; and an answer with a different verb that a lesson accepts by its grammar.
 - The fuzz suite: a widening where O4 can model it (a constrained prompt's answer with one verb mutated), never a narrowing.
 
+### (c) Tooling: `scripts/limited.sh` re-entrant (this brief allows that one file)
+On 2026-11-01 an agent ran `scripts/limited.sh scripts/test.sh …`; `test.sh` calls `limited.sh` itself, so the outer call held the machine-wide lock while the inner one waited for it forever (21 minutes, every other agent's build queued behind it). `limited.sh` already sets `VOCATERRA_LIMITED=1` for its command (its header, step 5). Make it re-entrant: when `VOCATERRA_LIMITED=1` is already set, it runs the command directly (it is already inside the scope and holds the lock) and prints one line saying so. `scripts/content-loop.sh` keeps its own refusal. Test it by hand: `scripts/limited.sh scripts/test.sh project <a small test project>` finishes. One commit, prefix `M67:`.
+
 ## Proof
 - `scripts/try-lines.sh --check` over every line file: the lines that change are exactly (a)'s understood lines (their `vocab.wrong` gone) and (b)'s; lines that were not understood keep their `vocab.wrong`. Update the `.expected` files in their own commit and list every changed line in the report.
 - The goldens and the identity baseline will move: re-record them with the golden project alone (`VOCATERRA_RECORD_GOLDEN=1 VOCATERRA_RECORD_IDENTITY=1 scripts/test.sh project tests/Vocaterra.Nlp.Golden.Tests`, then again without the variables), in their own commit, and list each change.
@@ -41,7 +44,7 @@ Work only in the git worktree `/home/user/Dev/Vocaterra/.claude/worktrees/m65` (
 - The code: `VerdictAssembler.cs`, `AnswerMatcher.cs`, `TextGrader.cs`, the pipeline's use of them, and their tests; the fuzz suite's O6 (answer matching) and O10 (verdict assembly) models, which must follow the new rules.
 
 ## Rules
-- A core milestone edits only the `Vocaterra.Nlp` and `Vocaterra.Nlp.*` projects, their tests, `tests/golden`, `docs/nlp/` and `scripts/try-lines/`; the one game exception is above. It does not edit `content/`, `docs/game/` or `docs/qa-reports/`.
+- A core milestone edits only the `Vocaterra.Nlp` and `Vocaterra.Nlp.*` projects, their tests, `tests/golden`, `docs/nlp/` and `scripts/try-lines/`, plus `scripts/limited.sh` for (c); the one game exception is above. It does not edit `content/`, `docs/game/` or `docs/qa-reports/`.
 - Fix at the source with regression tests in the owning module, each failing before the fix, with the clean neighbours as tests too. **Never weaken or narrow a fuzz oracle**: O6 and O10 change because the documented rules change, so update their models to the new rules and say so; that is not a narrowing.
 - **Never flag correct Spanish.** Try a dozen natural, correct lines of your own at the lesson prompts and the NPCs' open prompts, and list them.
 - A failure on one of the recorded fuzz seeds alone (`2tpLGUOSqj41`, `8yc522XLB_W2`) is rerun once after checking the seed; any other failure is a finding.
@@ -56,6 +59,7 @@ Work only in the git worktree `/home/user/Dev/Vocaterra/.claude/worktrees/m65` (
 
 ## Resources (the desktop has crashed from overload)
 - Run every `dotnet restore|build|test|format|run` through `scripts/limited.sh` (builds `-m:4`, tests `-m:2`). Never start two heavy commands at once: no `&`, no background builds.
+- **Never run `scripts/test.sh` or `scripts/content-loop.sh` under `scripts/limited.sh`:** both call it themselves, and the nested call waits for ever on the lock the outer one holds. Run them directly.
 - While iterating, use `scripts/test.sh project <test project>`. Do not run `scripts/test.sh fast` or `full` (they build the whole solution).
 - Exit code 137 means the 6 GB cap killed the command: lower the parallelism, and never work around the cap.
 
