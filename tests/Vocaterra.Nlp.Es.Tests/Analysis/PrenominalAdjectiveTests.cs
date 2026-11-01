@@ -91,6 +91,17 @@ public class PrenominalAdjectiveTests
         Assert.Equal(string.Empty, Described(sentence));
     }
 
+    // A list read without its commas (the normalizer drops them, and speech has none): the colour is a noun of its own where the phrase it would make with the next
+    // noun does not agree, so a rose, bread and water stay three things.
+    [Theory]
+    [InlineData("quiero una rosa pan y agua")]
+    [InlineData("tengo una blanca pan y agua")]
+    [InlineData("dorado biblias")]
+    public void AListOfNounsIsNoSlipOfOrder(string sentence)
+    {
+        Assert.Equal(string.Empty, Described(sentence));
+    }
+
     [Theory]
     [InlineData("quiero tres manzanas rojas")]
     [InlineData("quiero una manzana roja")]

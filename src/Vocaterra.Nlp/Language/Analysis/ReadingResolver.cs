@@ -391,9 +391,10 @@ internal static class ReadingResolver
             }
 
             // M62: a word that is an adjective of a kind that goes after its noun (IsPostnominalAdjective: the colours) and also a noun (roja, rojas, blanca, gris), right
-            // before a word that can only be a noun, is the adjective put before its noun (tres rojas manzanas, una roja manzana), as a word that is only such an adjective
-            // is (rojo, azul); the word-order check then reports the order. Before a word that can be something else (la roja casa: casa is also casar) it is left to the
-            // other rules and the fallback.
+            // before a word that can only be a noun that it and the determiners before it agree with, is the adjective put before its noun (tres rojas manzanas, una roja
+            // manzana), as a word that is only such an adjective is (rojo, azul); the word-order check then reports the order. Before a word that can be something else
+            // (la roja casa: casa is also casar), or where the phrase would not agree (una rosa, pan y agua, its commas dropped), it is left to the other rules and the
+            // fallback.
             if (IsPostnominalAdjectiveBeforeNoun(i))
             {
                 changed |= Narrow(i, r => r.Pos == LexiconSchema.Adjective);
@@ -574,13 +575,29 @@ internal static class ReadingResolver
                 && HasReading(index - 1, r => r.Mood != LexiconSchema.Imperative);
         }
 
-        // M62: the word at index is an adjective of a kind that goes after its noun (the colours) and also a noun, and the word after it can only be a noun.
+        // M62: the word at index is an adjective of a kind that goes after its noun (the colours) and also a noun, the word after it can only be a noun, and the phrase
+        // read that way agrees but for the order: the adjective agrees with that noun, and so do the determiners right before the word (tres rojas manzanas, una roja
+        // manzana). A list read without its commas does not (una rosa, pan y agua: una is not pan's; dorado, biblias), and the two nouns stay two phrases.
         private bool IsPostnominalAdjectiveBeforeNoun(int index)
         {
-            return index + 1 < Count
-                && HasReading(index, r => r.Pos == LexiconSchema.Adjective && _rules.IsPostnominalAdjective(r.Lemma))
-                && HasReading(index, r => r.Pos == LexiconSchema.Noun)
-                && All(index + 1, r => r.Pos == LexiconSchema.Noun);
+            var noun = index + 1;
+            if (noun >= Count
+                || !HasReading(index, r => r.Pos == LexiconSchema.Noun)
+                || !All(noun, r => r.Pos == LexiconSchema.Noun)
+                || !HasReading(index, r => r.Pos == LexiconSchema.Adjective && _rules.IsPostnominalAdjective(r.Lemma) && HasReading(noun, n => Agree(r, n))))
+            {
+                return false;
+            }
+
+            for (var k = index - 1; k >= 0 && HasReading(k, IsDeterminer); k--)
+            {
+                if (!HasReading(k, d => IsDeterminer(d) && HasReading(noun, n => Agree(d, n))))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         // M62: the word before index is the noun of a phrase that a determiner opens (las manzanas, las manzanas rojas, una buena casa), past the words after that
