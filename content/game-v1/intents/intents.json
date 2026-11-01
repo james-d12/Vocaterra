@@ -963,12 +963,20 @@
       "intentId": "offer_item",
       "requiredSlots": ["item"],
       "slotGrammars": [
-        "(yo)? (te|le)? vendo [ART]? [NUM:qty]? [NOUN:item]",
-        "[PRON]? [VERB:querer] vender [ART]? [NUM:qty]? [NOUN:item]",
-        "(yo)? tengo [ART]? [NUM:qty]? [NOUN:item] para usted"
+        "(yo)? (te|le)? vendo [ART]? [NUM:qty]? (bloque de|bloques de)? [NOUN:item]",
+        "[PRON]? [VERB:querer] vender [ART]? [NUM:qty]? (bloque de|bloques de)? [NOUN:item]",
+        "(yo)? tengo [ART]? [NUM:qty]? (bloque de|bloques de)? [NOUN:item] para usted"
       ],
       "lint": {"allowOverlap": ["state_action"]},
       "examples": [
+        {"text": "vendo tres bloques de madera", "errors": [], "prompt": "baker-open"},
+        {"text": "te vendo tres bloques de madera", "errors": [], "prompt": "baker-open"},
+        {"text": "vendo un bloque de madera", "errors": [], "prompt": "baker-open"},
+        {"text": "quiero vender tres bloques de madera", "errors": [], "prompt": "baker-open"},
+        {"text": "quiero vender tres bloques de madera", "errors": [], "prompt": "lesson-sell"},
+        {"text": "vendo dos bloques de madera", "errors": [], "prompt": "smith-open"},
+        {"text": "tengo dos bloques de madera para usted", "errors": [], "prompt": "smith-open"},
+        {"text": "vendo tres bloque de madera", "errors": ["noun.number"], "prompt": "baker-open"},
         {"text": "vendo madera", "errors": [], "prompt": "baker-open"},
         {"text": "yo vendo madera", "errors": [], "prompt": "baker-open"},
         {"text": "te vendo madera", "errors": [], "prompt": "baker-open"},

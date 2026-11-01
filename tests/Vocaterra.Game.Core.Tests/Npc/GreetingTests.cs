@@ -10,7 +10,8 @@ namespace Vocaterra.Game.Core.Tests.Npc;
 /// <summary>
 /// A greeting that opens a line with something else to say (VILLAGE_PLAN V15, found at V14): the core reads one intent per line and read <c>hola, quiero dos panes</c> as
 /// the greeting alone, so nothing was bought. The game answers the rest (<see cref="Greeting"/>): the rest is read as a line of its own, and when it is an intent the prompt
-/// takes, the turn is that intent's. The greeting credits nothing.
+/// takes, the turn is that intent's. The greeting credits nothing. Since V15b a greeting's own words are never flagged when the rest is understood: a line read as the
+/// rest's intent with vocab.wrong on the greeting is answered by the rest, and a real error after the greeting stays.
 /// </summary>
 public sealed class GreetingTests
 {
@@ -95,6 +96,51 @@ public sealed class GreetingTests
         Assert.Equal(("greet", true), (turn.Intent, turn.Communicated));
         Assert.Equal(["¿Qué quieres?"], turn.Replies);
         Assert.Equal(4, session.Simulation.Inventory.Count(ItemId.Coin));
+    }
+
+    [Theory]
+    [InlineData("baker", "buenas tardes, ¿cuánto cuesta el pan?", "ask_price")] // the orchestrator's case: the price, with vocab.wrong on buenas before V15b
+    [InlineData("baker", "buenos días, ¿cuánto cuesta el pan?", "ask_price")]
+    [InlineData("baker", "buen día, ¿cuánto cuesta el pan?", "ask_price")]
+    [InlineData("baker", "buenas noches, ¿cuánto cuesta el pan?", "ask_price")]
+    [InlineData("baker", "buenas tardes, ¿hay pan?", "ask_availability")]
+    [InlineData("baker", "buenos días, ¿cuánto es todo?", "ask_total")]
+    [InlineData("baker", "buen día, vendo tres bloques de madera", "offer_item")]
+    [InlineData("farmer", "buen día, quiero tres manzanas", "request_item")]
+    [InlineData("farmer", "buenas tardes, ¿cuánto es todo?", "ask_total")]
+    [InlineData("farmer", "buenos días, ¿puedo pagar con fruta?", "ask_pay")]
+    [InlineData("farmer", "buenas noches, vendo fruta", "offer_item")]
+    [InlineData("smith", "buen día, ¿cómo te llamas?", "ask_name")]
+    public void AGreetingsOwnWordsAreNeverFlaggedWhenTheRestIsUnderstood(string npc, string line, string intent)
+    {
+        var turn = At(npc).Say(line);
+
+        Assert.Equal((intent, true), (turn.Intent, turn.Communicated));
+        Assert.Empty(turn.Errors);
+        Assert.Null(turn.Feedback); // no recast of the greeting («Buenos días cuánto cuesta el pan»)
+    }
+
+    [Theory]
+    [InlineData("baker", "buenos días, ¿cuánto cuestan el pan?", "ask_price", "conj.person", "cuesta")] // a real error after the greeting stays, alone
+    [InlineData("farmer", "buenos días, ¿podo pagar con fruta?", "ask_pay", "conj.irregular", "puedo")]
+    [InlineData("baker", "buenas tardes, vendo tres bloque de madera", "offer_item", "noun.number", "bloques")]
+    public void AnErrorAfterTheGreetingStaysAndIsTheOnlyOne(string npc, string line, string intent, string tag, string expected)
+    {
+        var turn = At(npc).Say(line);
+
+        Assert.Equal((intent, true), (turn.Intent, turn.Communicated));
+        Assert.Equal((tag, expected), Assert.Single(turn.Errors) is var error ? (error.Tag, error.Expected) : default);
+    }
+
+    // A session at an NPC, without lessons.
+    private static VoxelSession At(string npc)
+    {
+        var data = TestGame.Data;
+        var noLessons = LessonBook.Parse("{ \"schemaVersion\": 1, \"lessons\": [] }", data.Phrases, data.Speech, data.Bundle.Prompts, data.Locale, data.Npcs.Ids);
+        var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons) { PlaySession = 10 };
+        Stage.TeleportToNpc(session, npc);
+        _ = session.OpenTalk(npc);
+        return session;
     }
 
     [Fact]

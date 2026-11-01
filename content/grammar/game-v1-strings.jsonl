@@ -902,6 +902,8 @@
 {"id":"answer-sets/lesson-sell:sell.alias3","text":"vendo madera","kind":"learner"}
 {"id":"answer-sets/lesson-sell:sell.alias4","text":"quiero vender pan","kind":"learner"}
 {"id":"answer-sets/lesson-sell:sell.alias5","text":"quiero comprar pan","kind":"learner"}
+{"id":"answer-sets/lesson-sell:sell.alias6","text":"quiero vender tres bloques de madera","kind":"learner"}
+{"id":"answer-sets/lesson-sell:sell.alias7","text":"vendo tres bloques de madera","kind":"learner"}
 {"id":"answer-sets/lesson-sell:help","text":"ayuda","kind":"learner"}
 {"id":"answer-sets/lesson-sell:help.alias1","text":"ayuda por favor","kind":"learner"}
 {"id":"answer-sets/lesson-sell:help.alias2","text":"necesito ayuda","kind":"learner"}
@@ -1483,6 +1485,12 @@
 {"id":"answer-sets/people-smith:sell.alias2","text":"te vendo madera","kind":"learner"}
 {"id":"answer-sets/people-smith:sell.alias3","text":"quiero vender madera","kind":"learner"}
 {"id":"answer-sets/people-smith:sell.alias4","text":"tengo madera para usted","kind":"learner"}
+{"id":"answer-sets/people-smith:sell.alias5","text":"vendo tres bloques de madera","kind":"learner"}
+{"id":"answer-sets/people-smith:sell.alias6","text":"te vendo tres bloques de madera","kind":"learner"}
+{"id":"answer-sets/people-smith:sell.alias7","text":"vendo un bloque de madera","kind":"learner"}
+{"id":"answer-sets/people-smith:sell.alias8","text":"quiero vender tres bloques de madera","kind":"learner"}
+{"id":"answer-sets/people-smith:sell.alias9","text":"vendo dos bloques de madera","kind":"learner"}
+{"id":"answer-sets/people-smith:sell.alias10","text":"tengo dos bloques de madera para usted","kind":"learner"}
 {"id":"answer-sets/people-smith:hello","text":"hola","kind":"learner"}
 {"id":"answer-sets/people-smith:hello.alias1","text":"buenos días","kind":"learner"}
 {"id":"answer-sets/people-smith:hello.alias2","text":"buenas tardes","kind":"learner"}
@@ -1694,6 +1702,11 @@
 {"id":"answer-sets/supplies-bakery:sell.alias2","text":"te vendo madera","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:sell.alias3","text":"quiero vender madera","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:sell.alias4","text":"yo quiero vender madera","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:sell.alias5","text":"vendo tres bloques de madera","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:sell.alias6","text":"te vendo tres bloques de madera","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:sell.alias7","text":"vendo un bloque de madera","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:sell.alias8","text":"quiero vender tres bloques de madera","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:sell.alias9","text":"vendo dos bloques de madera","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:total","text":"cuánto es todo","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:total.alias1","text":"cuánto cuesta todo","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:total.alias2","text":"cuánto es todo esto","kind":"learner"}
@@ -1939,19 +1952,26 @@
 {"id":"intents:name_object.ex8","text":"él es el herrero","kind":"learner","errors":[]}
 {"id":"intents:name_object.ex9","text":"es un herrero","kind":"learner","errors":[]}
 {"id":"intents:name_object.ex10","text":"es la herrero","kind":"learner","errors":["gender.agree"]}
-{"id":"intents:offer_item.ex0","text":"vendo madera","kind":"learner","errors":[]}
-{"id":"intents:offer_item.ex1","text":"yo vendo madera","kind":"learner","errors":[]}
-{"id":"intents:offer_item.ex2","text":"te vendo madera","kind":"learner","errors":[]}
-{"id":"intents:offer_item.ex3","text":"vendo el madera","kind":"learner","errors":["gender.agree"]}
-{"id":"intents:offer_item.ex4","text":"quiero vender madera","kind":"learner","errors":[]}
-{"id":"intents:offer_item.ex5","text":"yo quiero vender madera","kind":"learner","errors":[]}
-{"id":"intents:offer_item.ex6","text":"quiero vender la madera","kind":"learner","errors":[]}
-{"id":"intents:offer_item.ex7","text":"yo quieres vender madera","kind":"learner","errors":["conj.person"]}
-{"id":"intents:offer_item.ex8","text":"tengo madera para usted","kind":"learner","errors":[]}
-{"id":"intents:offer_item.ex9","text":"vendo fruta","kind":"learner","errors":[]}
-{"id":"intents:offer_item.ex10","text":"quiero vender fruta","kind":"learner","errors":[]}
-{"id":"intents:offer_item.ex11","text":"le vendo madera","kind":"learner","errors":[]}
-{"id":"intents:offer_item.ex12","text":"tengo fruta para usted","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex0","text":"vendo tres bloques de madera","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex1","text":"te vendo tres bloques de madera","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex2","text":"vendo un bloque de madera","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex3","text":"quiero vender tres bloques de madera","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex4","text":"vendo dos bloques de madera","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex5","text":"tengo dos bloques de madera para usted","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex6","text":"vendo tres bloque de madera","kind":"learner","errors":["noun.number"]}
+{"id":"intents:offer_item.ex7","text":"vendo madera","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex8","text":"yo vendo madera","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex9","text":"te vendo madera","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex10","text":"vendo el madera","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:offer_item.ex11","text":"quiero vender madera","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex12","text":"yo quiero vender madera","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex13","text":"quiero vender la madera","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex14","text":"yo quieres vender madera","kind":"learner","errors":["conj.person"]}
+{"id":"intents:offer_item.ex15","text":"tengo madera para usted","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex16","text":"vendo fruta","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex17","text":"quiero vender fruta","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex18","text":"le vendo madera","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex19","text":"tengo fruta para usted","kind":"learner","errors":[]}
 {"id":"intents:request_item.ex0","text":"quiero el pan de luz","kind":"learner","errors":[]}
 {"id":"intents:request_item.ex1","text":"quiero dos panes de luz","kind":"learner","errors":[]}
 {"id":"intents:request_item.ex2","text":"quiero agua, por favor","kind":"learner","errors":[]}
@@ -2766,10 +2786,13 @@
 {"id":"PHRASES.md:quiero-vender-madera.text","text":"Quiero vender madera.","kind":"learner"}
 {"id":"PHRASES.md:quiero-vender-madera.variant1","text":"yo quiero vender madera","kind":"learner"}
 {"id":"PHRASES.md:quiero-vender-madera.variant2","text":"quiero vender la madera","kind":"learner"}
+{"id":"PHRASES.md:quiero-vender-madera.variant3","text":"quiero vender tres bloques de madera","kind":"learner"}
 {"id":"PHRASES.md:quiero-vender-madera.error","text":"yo quieres vender madera","kind":"learner","errors":["conj.person"]}
 {"id":"PHRASES.md:vendo-madera.text","text":"Vendo madera.","kind":"learner"}
 {"id":"PHRASES.md:vendo-madera.variant1","text":"yo vendo madera","kind":"learner"}
 {"id":"PHRASES.md:vendo-madera.variant2","text":"te vendo madera","kind":"learner"}
+{"id":"PHRASES.md:vendo-madera.variant3","text":"vendo tres bloques de madera","kind":"learner"}
+{"id":"PHRASES.md:vendo-madera.variant4","text":"vendo un bloque de madera","kind":"learner"}
 {"id":"PHRASES.md:vendo-madera.error","text":"vendo el madera","kind":"learner","errors":["gender.agree"]}
 {"id":"PHRASES.md:cuanto-es-todo.text","text":"¿Cuánto es todo?","kind":"learner"}
 {"id":"PHRASES.md:cuanto-es-todo.variant1","text":"¿cuánto cuesta todo?","kind":"learner"}

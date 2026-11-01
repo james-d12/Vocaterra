@@ -200,7 +200,7 @@ specified for later in `docs/game/CONTENT_PLAN.md` section 3.8 (C10); it is not 
     ```
   - `buy` (`item`, `price` in coins; VILLAGE_PLAN V15): a sale, the purchase turned round. Map it to the host event of the action that answers `offer_item`
     (`vendo madera`, `quiero vender madera`) at the NPC's prompt. The NPC takes the item and pays the price for each one: as many as the learner said (`qty`,
-    1 to 5), or with no number every one the bag holds. The items go (`item_taken`, `madera, request`) and the coins come (`item_given`, `moneda, request`),
+    1 to 5; wood as `tres bloques de madera`, and `un`/`una` before the item is one), or with no number every one the bag holds. The items go (`item_taken`, `madera, request`) and the coins come (`item_given`, `moneda, request`),
     or nothing changes hands: a bag with none of the item, or a line that offers another item, keeps the NPC from saying that action's line, and its agent
     is raised `<npc>.cant_sell` (`No tienes madera.`) or `<npc>.wont_buy` (`No, gracias. Solo compro madera.`) as a host turn; a bag with no room for the
     coins keeps the items too. The validator checks that one state of the agent takes each. There is no cap: the goods are the cap (each coin is a piece of

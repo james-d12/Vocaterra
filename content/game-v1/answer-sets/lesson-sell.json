@@ -4,7 +4,7 @@
     {
       "answerId": "sell",
       "canonical": "quiero vender madera",
-      "aliases": ["yo quiero vender madera", "quiero vender la madera", "vendo madera", "quiero vender pan", "quiero comprar pan"],
+      "aliases": ["yo quiero vender madera", "quiero vender la madera", "vendo madera", "quiero vender pan", "quiero comprar pan", "quiero vender tres bloques de madera", "vendo tres bloques de madera"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
     },
     {

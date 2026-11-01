@@ -102,6 +102,33 @@ public sealed class MarketSpokenTests(ITestOutputHelper output)
         Assert.Equal(2, session.Simulation.Inventory.Count(ItemId.Bread));
     }
 
+    [ModelFact(needsKokoro: true)]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
+    public void ATwoWordGreetingBeforeAQuestionIsHeardAndNotFlaggedAndBlocksOfWoodAreSold()
+    {
+        // V15b: the greeting's own words were vocab.wrong when the whole line read as the price; and wood counted in blocks was not understood.
+        var data = TestGame.Data;
+        var noLessons = LessonBook.Parse("{ \"schemaVersion\": 1, \"lessons\": [] }", data.Phrases, data.Speech, data.Bundle.Prompts, data.Locale, data.Npcs.Ids);
+        using var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons) { PlaySession = 10 };
+        _ = session.Simulation.GrantItems(ItemId.Wood, 4); // four: five would deliver the oven order as the talk opens
+        Stage.TeleportToNpc(session, "baker");
+        _ = session.OpenTalk("baker");
+        Assert.True(session.StartWorker().WaitUntilReady(60000));
+
+        _ = session.SubmitSpeak("Buenas tardes, ¿cuánto cuesta el pan?");
+        var price = Drain(session).Turn!;
+        output.WriteLine($"baker-open: heard '{price.Line}' ({price.Confidence:0.00}) -> {price.Intent}, errors [{string.Join(", ", price.Errors.Select(static e => e.Tag))}]");
+        Assert.Equal(("ask_price", true), (price.Intent, price.Communicated));
+        Assert.Empty(price.Errors);
+
+        _ = session.SubmitSpeak("Vendo tres bloques de madera.");
+        var sale = Drain(session).Turn!;
+        output.WriteLine($"baker-open: heard '{sale.Line}' ({sale.Confidence:0.00}) -> {sale.Intent}, errors [{string.Join(", ", sale.Errors.Select(static e => e.Tag))}]");
+        Assert.Equal(("offer_item", true), (sale.Intent, sale.Communicated));
+        Assert.Empty(sale.Errors);
+        Assert.Equal((1, 3), (session.Simulation.Inventory.Count(ItemId.Wood), session.Simulation.Inventory.Count(ItemId.Coin)));
+    }
+
     private static AppliedTurn Drain(VoxelSession session)
     {
         var deadline = Environment.TickCount64 + 120000;
