@@ -2069,6 +2069,10 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     `compré` (QA-7 and an observation): how strict typed input is about `ñ` and the accent of a tense.
   - **Not a bug:** the CLI and the host differ on lines with a greeting or the listener's name, because the host takes them out first
     (V19). Briefs measure on the host (`scripts/try-lines.sh --host`, M65); the handover's 9.3 counts were taken on the CLI.
+  - **Corrected at M67 (2026-11-01):** QA-language-5 and 10 (the present against a past question) do not reach a learner. At a lesson
+    step the game makes `Luz compra pescado` a miss with a tense retry and the hint «compró» (V14,
+    `YesterdayLessonTests.ThePresentAtAPastStepIsAMissWithATenseRetry`); the host's `--transcript` path runs no lesson. The core change
+    that would turn it into a slip is parked (`M67b-answer-verb-forms`).
 - **QA pass, `progression` (2026-11-01; the QA agent, Haiku; `docs/qa-reports/2026-11-01-progression.md`).** On `9dfa08b`, 20 game
   runs: the route of sessions 4 to 10 from `--skip-to-session`, the coin path (as planned: 0 coins at session 7), the orders, the
   market, saves.
