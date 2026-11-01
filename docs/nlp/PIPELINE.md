@@ -188,7 +188,9 @@ fixed confidence at its edge was not.
 
 `LinguisticAnalyzer` looks every token up in the lexicon (lemma, part of speech, person, number, tense, mood, gender; an
 empty reading list means an unknown word and yields `vocab.unknown`), runs the agreement rules (subject and verb, article and
-noun, noun and adjective, quantity and noun, `ser`/`estar`, adjective position, and since M62 a predicate adjective and the copula's subject), and matches the slot grammars. A word the lexicon lacks that is
+noun, noun and adjective, quantity and noun, `ser`/`estar`, adjective position, and since M62 a predicate adjective and the copula's subject; since M64 a subject
+pronoun joined by `y` to members before it ends a plural subject, `luz y yo fuimos`, and an amount before a singular `ser` is one sum, `dos panes es suficiente`;
+[API.md](API.md), "Person and copula errors"), and matches the slot grammars. A word the lexicon lacks that is
 a learner's slip of a known word is read as that word: a regularized irregular verb form (`quero`) as the verb with `conj.irregular`, and (M58) a plural
 made with the wrong ending (`pans`) as the plural noun with `noun.number`; a regularized form that is also a lexicon word (`costa`) gets the verb as a
 second reading, which the analysis keeps only where a verb is expected ([API.md](API.md), "Irregular forms, plurals and unknown words"). The grammars
