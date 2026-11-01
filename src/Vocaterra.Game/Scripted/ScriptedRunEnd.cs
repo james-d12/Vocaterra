@@ -47,6 +47,7 @@ public sealed class ScriptedRunEnd
     private int _settled;
     private bool _shown;
     private int _sizeFrames;
+    private int _framesAtSize;
     private bool _sizeWarned;
 
     /// <summary>Creates the end of a run.</summary>
@@ -145,7 +146,8 @@ public sealed class ScriptedRunEnd
             }
         }
 
-        var mayShoot = ScreenshotGate.MayShoot(sized, _sizeFrames);
+        _framesAtSize = sized ? _framesAtSize + 1 : 0;
+        var mayShoot = ScreenshotGate.MayShoot(sized, _sizeFrames, _framesAtSize);
         if (mayShoot && _shots.Take() is { } shot)
         {
             var saved = ScreenshotWriter.TrySave(device, shot);

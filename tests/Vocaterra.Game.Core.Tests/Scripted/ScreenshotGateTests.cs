@@ -18,4 +18,14 @@ public sealed class ScreenshotGateTests
         Assert.True(ScreenshotGate.MayShoot(false, ScreenshotGate.PatienceFrames));
         Assert.True(ScreenshotGate.MayShoot(true, 0));
     }
+
+    [Fact]
+    public void AShotFollowsAFrameDrawnWholeAtTheFinalSize()
+    {
+        // V23a: the frame in which the window reached its size was drawn before it, in a corner of the new one; the next frame is whole.
+        Assert.False(ScreenshotGate.MayShoot(true, 0, 1));
+        Assert.True(ScreenshotGate.MayShoot(true, 0, ScreenshotGate.FramesAtSize));
+        Assert.False(ScreenshotGate.MayShoot(false, 0, ScreenshotGate.FramesAtSize));
+        Assert.True(ScreenshotGate.MayShoot(false, ScreenshotGate.PatienceFrames, 0)); // a window never resized still gets its picture
+    }
 }

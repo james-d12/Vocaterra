@@ -153,7 +153,7 @@ public sealed class SleepTests
         Assert.Equal(step, session.Lessons.StepNumber);
         Assert.False(session.Lessons.Engaged); // it takes up again when the learner talks to the villager
         Assert.True(session.CanSleep);
-        Assert.Equal("Next: talk to the villager for the lesson “Personas”", string.Concat(session.ObjectiveHud().Select(static p => p.Text)));
+        Assert.Equal("The lesson “Personas” is under way: talk to the villager to go on", string.Concat(session.ObjectiveHud().Select(static p => p.Text)));
     }
 
     [Fact]

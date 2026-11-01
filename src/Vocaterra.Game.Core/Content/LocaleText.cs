@@ -75,7 +75,7 @@ public sealed class LocaleText
         "micFailed", "micContinue", "micRetry", "micSkip", "micEscSkip", "lessonMore", "replayHud", "craftMake", "craftNeeds", "craftNeedsStation", "craftFull",
         "craftMissing", "needBottle", "playtestThanks", "playtestRecallThanks", "playtestSaved", "speechUnavailable", "turnNotChecked",
         "autosaved", "greyNewWord",
-        "sleepHud", "allLessonsDoneHud", "lessonNextHud", "sleepCard", "sleepPrompt", "sleptToast", "bookLessonNext", "bookLessonOpen", "bookLessonOpensIn", "bookLessonAfter",
+        "sleepHud", "allLessonsDoneHud", "lessonNextHud", "lessonUnderwayHud", "reviewNothingDue", "sleepCard", "sleepCardDone", "sleepPrompt", "sleepPromptDone", "sleptToast", "bookLessonNext", "bookLessonOpen", "bookLessonOpensIn", "bookLessonAfter",
         "bookLessonsAllDone",
     ];
 
