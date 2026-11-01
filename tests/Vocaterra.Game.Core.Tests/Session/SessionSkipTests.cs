@@ -1,6 +1,7 @@
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Lessons;
+using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
@@ -165,6 +166,28 @@ public sealed class SessionSkipTests
         Assert.Empty(session.TakeWordCards());
         Assert.Empty(session.Learner.History);
         Assert.Equal(fresh.StoredTime, session.StoredTime); // no time passes
+    }
+
+    [Fact]
+    public void TheShopkeeperGaveSessionOnesBottleSoHeHandsOverNoOtherAndHisKeyWordsAreNotTaughtAgain()
+    {
+        // V09, the learner's route through phase B: a learner who reached session 1's ending was given the bottle at the stall, at a first visit that taught the key words.
+        // The skip carried the bottle but not his part, so in session 7 the key words stood alone again and the next visit handed over a second bottle as a fail-forward,
+        // logging a use of pedir-agua the learner never made.
+        var session = SkippedTo(7);
+        Stage.TeleportToNpc(session, "shopkeeper");
+
+        var first = session.OpenTalk("shopkeeper", teachKeyWords: true);
+        Assert.NotEmpty(first.Lines); // his opening at once, not the key words standing alone
+        session.EndTalk();
+        var second = session.OpenTalk("shopkeeper", teachKeyWords: true);
+
+        Assert.False(second.FailForward);
+        Assert.DoesNotContain(NpcHostEvents.ShopkeeperGive, second.HostEvents);
+        Assert.Equal(0, session.Simulation.Inventory.Count(ItemId.Bottle));
+        Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.WaterBottle));
+        Assert.DoesNotContain(session.Events.OfType<PhraseUse>(), static use => use.Kind == PhraseUseKind.FailForward);
+        Assert.DoesNotContain(session.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.KeyWordsShown);
     }
 
     [Fact]

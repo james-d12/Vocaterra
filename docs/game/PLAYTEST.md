@@ -2,7 +2,8 @@
 
 The facilitator's checklist for the prototype's playtests (S12, `docs/game/PROTOTYPE_BRIEF.md`, `docs/game/SCENARIO_PLAN.md` section 4 "S12"; refreshed
 at S18 for the opening at the cliff camp, the guide's lesson, the longer run, the 31-item checks, the book and the keys F5, F6 and F8; refreshed at S28 for the book as a book, the lessons of sessions 2 and 3 and "Practise again"; refreshed at V09 for the village of sessions 4 to 6,
-`docs/game/VILLAGE_PLAN.md` phase A, which a pilot does not reach). Read it
+`docs/game/VILLAGE_PLAN.md` phase A, which a pilot does not reach; and at V09 again for phase B, sessions 7 to 10, which a pilot does not reach either:
+section 14). Read it
 end to end before the first tester. It says what to recruit, what is logged, how a session runs, what to watch, how the next-day recall
 works, how the two arms are run, which evidence answers which decision gate, and the owner's own pre-flight. Nothing here is a verdict on
 learning: a small pilot gives directional evidence only (the brief).
@@ -56,8 +57,9 @@ Record consent in the observer notes (yes or no, the time, the code). A tester w
 
     scripts/playtest-build.sh <a new folder outside the repository>
 
-The script validates the bundle, publishes the game self-contained (no .NET install for the tester), copies the bundle with its 680 speech
-WAVs (300 at S18; phase A of the village plan brought the four new NPCs' lines and the lessons of sessions 4 to 6), copies the pinned Vosk model from the shared models folder (`VOCATERRA_MODELS_DIR`, default `~/.local/share/vocaterra/models`; fetch it with
+The script validates the bundle, publishes the game self-contained (no .NET install for the tester), copies the bundle with its 902 speech
+WAVs (300 at S18; 680 after phase A of the village plan, which brought the four new NPCs' lines and the lessons of sessions 4 to 6; phase B brought the
+222 of sessions 7 to 10), copies the pinned Vosk model from the shared models folder (`VOCATERRA_MODELS_DIR`, default `~/.local/share/vocaterra/models`; fetch it with
 `scripts/fetch-models.sh` first) and its manifest, copies the tester's README and the launcher, then checks the folder: no sherpa-onnx or
 ONNX Runtime native library, no espeak-ng, no sherpa model file, the Vosk model matching its pinned SHA-256 sums, and every speech WAV the
 bundle manifest lists. The build must end with `all checks passed`. Keep its output with the build folder.
@@ -105,9 +107,9 @@ took the same ticks and asked the same 31 items before and after it (V09).
    note it. The mic check never blocks the game.
 3. **Pre-check** (automatic after the mic check; "Check: before the game"). **Thirty-one items**: sixteen hear a Spanish line and choose one of three
    English meanings (1, 2, 3; R hears it again); fifteen say a Spanish phrase for an English situation (type with W, or hold V to speak, Enter
-   sends, N means "no sé"). The bank has 55 items since the village lessons came (VILLAGE_PLAN V10 to V12), but a battery asks only the items of the
+   sends, N means "no sé"). The bank has 87 items since the village lessons came (eight for each of sessions 4 to 10, VILLAGE_PLAN V10 to V15), but a battery asks only the items of the
    lessons its play session has unlocked, and always those of sessions 1 to 3 (`coreSessions: 3` in `game/checks.json`, V07): the pre-check, the
-   post-check and the next-day recall of a pilot (play sessions 1 and 2) are the same 31 items as before. The 24 items of sessions 4 to 6 are not in them. Say before it starts: "Some items are hard on purpose. Guess, or say 'no sé'. There is no score for you." Do not
+   post-check and the next-day recall of a pilot (play sessions 1 and 2) are the same 31 items as before. The 56 items of sessions 4 to 10 (24 of phase A, 32 of phase B) are not in them. Say before it starts: "Some items are hard on purpose. Guess, or say 'no sé'. There is no score for you." Do not
    help with an item. Esc ends the check (the rest is skipped; note it).
 4. **The opening, at the player's own camp on the cliff.** The tester wakes alone there; no quiz. The English tips come one at a time: look,
    walk, jump, a note at the tent (its one Spanish word, `camino`, says the guide's camp is down the trail), collecting and the inventory. The
@@ -123,7 +125,7 @@ took the same ticks and asked the same 31 items before and after it (V09).
    shopkeeper at the stall (`¿Qué necesitas?`), a villager on the path, and the guide, who after the camp makes her transfer offer
    (`¿Quieres agua?`). Four more stand in the world since the village grew (VILLAGE_PLAN phase A): the fisher on the bridge's east landing, on the
    road to the village, the baker at the bakery, the smith at the smithy and the farmer at the field. They answer when talked to, but their lessons
-   and orders start in sessions 4 to 6: the objective never points at them and nothing in the first session needs them (a tester who asks the baker
+   and orders start in sessions 4 to 7 (sessions 8 to 10 have lessons and no order): the objective never points at them and nothing in the first session needs them (a tester who asks the baker
    for bread hears `Necesitas más monedas.`: there are no coins before session 4). Note it if a tester spends time with them. The tip `Press E to talk to someone.` may now show on the road, when the crosshair passes the fisher, rather than at the stall. The ending: the tester takes the spare torch back up the trail and places it on the rim of the fire ring at their own
    camp; the fire lights, and the screen says `Session complete`. Say only: "Please go on as you would in a game." Observe (section 5). Note each time the tester asks you something; answer the game questions only with "I cannot help with the
    Spanish, but you can ask the game for help: press H, or N for 'no sé'".
@@ -292,7 +294,7 @@ Before any tester (the owner, once, end to end):
 3. Run the recall on the session's `playtest.save`: `./playtest.sh --load <folder>/playtest.save`. Check that the thank-you says "Thank you".
 4. Run `scripts/playtest-report.sh` on the two folders and read every line; then collect the owner's own F8 report with
    `scripts/playtest-report.sh --copy <collection folder> <folder>` and check its "Build commit" line.
-5. **Listen to every speech WAV** (680 since phase A of the village plan) and mark each row of `docs/game/SPEECH_CHECKLIST.md` `ok`, `cut-off` or
+5. **Listen to every speech WAV** (902: 680 after phase A of the village plan and 222 from phase B; no row is marked yet) and mark each row of `docs/game/SPEECH_CHECKLIST.md` `ok`, `cut-off` or
    `mismatch` (D-game-12, step 4). The four village voices are provisional (D-game-22 (d)): hear the voice trial first (`docs/game/voice-trial/`); the
    checklist's preface says how a rejected voice is recorded again. A tester in the first session hears those NPCs only if they talk to them.
    The owner's rows decide whether a file is played to a tester; a `mismatch` or `cut-off` is a bundle change and a new build.
@@ -305,13 +307,36 @@ Before any tester (the owner, once, end to end):
   scripted route through the built folder, with the pre-check, the lesson, the camp and the post-check answered by script) reached session
   complete and saved, but a scripted run loads no recogniser, so the speech path is not checked by them. Real use with a microphone and a
   keyboard is the owner's step 2 above.
-- The lessons of sessions 2 to 6 (S26 and S27: "Personas" at the villager, "Ayer y mañana" at the villager and the shopkeeper; VILLAGE_PLAN V10 to V12:
-  "El pueblo" at the fisher, "Números y pan" at the baker, "Gente del pueblo" at the villager, the smith and the farmer) are in the build, but a
+- The lessons of sessions 2 to 10 (S26 and S27: "Personas" at the villager, "Ayer y mañana" at the villager and the shopkeeper; VILLAGE_PLAN V10 to V12:
+  "El pueblo" at the fisher, "Números y pan" at the baker, "Gente del pueblo" at the villager, the smith and the farmer; phase B, V13 to V15: "¿Cómo es?" at
+  the farmer, "Ayer en el pueblo" at the villager, "Mañana en el pueblo" and "El mercado" at the baker) are in the build, but a
   `--playtest` load runs the recall battery and then ends (section 8), so a tester does not reach them in a playtest. Only the first session's lesson, the
   guide's, is part of the playtest, and the village lessons' check items are outside the pilot's battery (section 4, step 3). The book's Lessons page lists
-  all six, and a finished lesson has a "Practise again" button.
+  all ten, and a finished lesson has a "Practise again" button.
 - The playtest build has no Kokoro: the NPCs speak with the pre-rendered WAVs; a live spoken line of the facilitator's (`--speak`) is a
   developer option only.
 - The build is private. Its native code is the one of core D2 (sherpa-onnx's native library is left out; the managed wrapper stays). Do not
   pass the folder on.
 - The Spanish is not checked by a native speaker (the provisional note at the top of this document).
+
+## 14. A playtest of sessions 7 to 10 (what it would need)
+
+Not planned: written at V09 after phase B of the village plan, so the owner can weigh one. A pilot plays the first session only (section 13).
+
+- **A way in.** `--playtest` plays one session a run and offers no sleep at the fire, and a `--load` of its save runs the recall battery and ends;
+  `--skip-to-session`, the test aid that starts a later session, refuses `--playtest`. A playtest of sessions 7 to 10 needs a profile that starts a tester at
+  a later session (its saves and logs marked as such, as the skip's are), or sittings that allow the sleep. That is a game milestone, not a facilitator's
+  step.
+- **Testers who know A1.** The four lessons are `a2` and build on sessions 1 to 6 (numbers, prices, the three times, the people and their names). Recruit
+  testers who have A1 Spanish, or have them play sessions 4 to 6 first.
+- **The battery.** A battery asks 63 items in session 7 and 87 in session 10 (section 4, step 3): about 14 and 20 minutes at the pilot's pace (31 items in
+  about 7). That is too long beside the lessons. The 32 items of phase B (eight a lesson, by `lesson` in `game/checks.json`) need a battery of their own, or a
+  smaller fixed core than `coreSessions: 3`, decided before the bundle is frozen.
+- **The time.** A lesson takes about 6 to 10 minutes (the milestones' estimates: session 7 and 8 about 7 to 9, session 9 about 6 to 7, session 10 about 9 to
+  10), plus the walks and the free talk: about 40 minutes for the four, before any check.
+- **The voices.** None of the 222 speech files of phase B has been heard (section 12, step 5): 70 are the farmer's, 54 the guide's (the lessons' models and
+  cards), 30 the baker's, 22 each the smith's and the villager's, 14 the fisher's and 10 the shopkeeper's.
+- **What to watch.** At each session's start, whether the objective and the beacon are followed to the lesson's NPC (the Lessons page says `next: talk to
+  <NPC>`); the walks inside a lesson (session 7 to the river and back, 8 and 9 from the village to the river, 10 from the bakery to the field and the stall);
+  the market's coins (wood sold, bread or apples bought: a tester who spends the coins elsewhere sells more wood); and the free talk after a lesson, where
+  a line from the lesson is understood but counts as a phrase use only at the open prompt's own rows (`docs/game/README.md`, the village's open points).

@@ -21,7 +21,8 @@ namespace Vocaterra.Game.Core.Session;
 /// <remarks>
 /// Gathered things are not carried over: the camp's wood and fruit were used in the play, and the next session's lesson and order point at the trees and the bushes for
 /// what they need. What only an NPC gives (the coins, the bread bought, the axe) is in the bag, and so is the shopkeeper's bottle of session 1, full of the river's water the
-/// camp's checklist counted (V13: nothing in the game empties a bottle, and the farmer's order of session 7 takes it).
+/// camp's checklist counted (V13: nothing in the game empties a bottle, and the farmer's order of session 7 takes it); the shopkeeper counts it as given and his key words as
+/// taught (V09), so a later visit is not a first one.
 /// </remarks>
 public static class SessionSkip
 {
@@ -32,7 +33,7 @@ public static class SessionSkip
     /// <param name="Price">The price of one, in coins.</param>
     public sealed record Purchase(string Npc, ItemId Item, int Count, int Price);
 
-    /// <summary>The last play session that has a lesson: the highest session the skip goes to (8 today).</summary>
+    /// <summary>The last play session that has a lesson: the highest session the skip goes to (10, the market, since V15).</summary>
     /// <param name="lessons">The game's lessons.</param>
     public static int LastSession(LessonBook lessons)
     {

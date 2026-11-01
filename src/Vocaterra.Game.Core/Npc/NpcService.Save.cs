@@ -12,6 +12,17 @@ namespace Vocaterra.Game.Core.Npc;
 public sealed partial class NpcService
 {
     /// <summary>
+    /// The test aid <c>--skip-to-session</c> (<see cref="Vocaterra.Game.Core.Session.SessionSkip"/>, V09): the shopkeeper gave session 1's bottle, as he does to every learner who brings the camp
+    /// its water, at a first visit. So a later visit hands over no other bottle (his fail-forward) and picks up the talk as after a played session.
+    /// </summary>
+    internal void SkipShopkeeperBottle()
+    {
+        var agent = AgentOf(ShopkeeperAgent);
+        agent.BottleGiven = true;
+        agent.Visits = Math.Max(agent.Visits, 1);
+    }
+
+    /// <summary>
     /// The state of one NPC's conversation as a save holds it. The context's world seed is the session's and is not written: the restore keeps it.
     /// </summary>
     /// <param name="npc">The NPC's agent id.</param>

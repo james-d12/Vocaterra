@@ -64,7 +64,7 @@ public sealed record LaunchOptions
         + "  --session <n>           start the run as play session n (1 to 99), so the lessons of session n are unlocked: `--session 2` unlocks the villager's lesson `personas` (S26), `--session 3` the villager's lesson `ayer-y-manana` (S27),\n"
         + "                          `--session 4` the fisher's lesson `el-pueblo` once `ayer-y-manana` is done (`--lesson-run el-pueblo` runs it whatever came before),\n"
         + "                          `--session 5` the baker's lesson `numeros-y-pan` once `el-pueblo` is done, `--session 6` the villager's lesson `gente-del-pueblo` once\n"
-        + "                          `numeros-y-pan` is done\n"
+        + "                          `numeros-y-pan` is done, and so on to `--session 10` (`como-es`, `ayer-en-el-pueblo`, `manana-en-el-pueblo`, `el-mercado`, each after the one before)\n"
         + "  --skip-to-session <n>   a test aid: start a new game as play session n (2 up to the last session that has a lesson) as a learner who did everything before it:\n"
         + "                          the earlier sessions' lessons completed, session 1's camp done and its fire lit, the earlier orders delivered and paid, no practice counted;\n"
         + "                          the console, the session log and the saves say so. Not with --load, --session or --playtest (V12c)\n"

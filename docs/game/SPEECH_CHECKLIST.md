@@ -33,6 +33,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | farmer (León) | `pm_santa` | 44 | 1.0 | `voice-trial/pm_santa-1.0.wav` |
 | fisher (Mar) | `em_santa` | 53 | 0.9 | `voice-trial/em_santa-0.9.wav` |
 
+**To hear:** 902 of the 902 files have no mark (guide 404, villager 112, farmer 90, shopkeeper 86, baker 84, fisher 76, smith 50). Two files a line: the normal speed and the slow one.
+
 ## Lines
 
 | Line id | File | Speaker | Speed | Spanish | ok / cut-off / mismatch |

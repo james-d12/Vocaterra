@@ -426,13 +426,18 @@ internal static class Program
         builder.Append("`scripts/prerender-speech.sh` from the bundle: the marks of a row are kept while its text and its recording are unchanged, and a row\n");
         builder.Append("whose text changed or whose file was recorded again differently is listed again without a mark. The files are Kokoro model output\n");
         builder.Append("(kokoro-multi-lang-v1_0), in the voices below.\n\n");
+        var lines = rows
+            .OrderBy(static r => r.LineId, StringComparer.Ordinal)
+            .ThenBy(static r => r.Speed, StringComparer.Ordinal)
+            .Select(row => (Row: row, Mark: !newRecordings.Contains(row.File) && marks.TryGetValue(row.File, out var kept) && kept.Text == row.Text ? kept.Mark : string.Empty))
+            .ToList();
         AppendSpeakers(builder, npcs, trial);
+        AppendToHear(builder, lines.Select(static line => (line.Row.Speaker, line.Mark)).ToList());
         builder.Append("## Lines\n\n");
         builder.Append($"| Line id | File | Speaker | Speed | Spanish | {ChecklistMarksHeader} |\n");
         builder.Append("| --- | --- | --- | --- | --- | --- |\n");
-        foreach (var row in rows.OrderBy(static r => r.LineId, StringComparer.Ordinal).ThenBy(static r => r.Speed, StringComparer.Ordinal))
+        foreach (var (row, mark) in lines)
         {
-            var mark = !newRecordings.Contains(row.File) && marks.TryGetValue(row.File, out var kept) && kept.Text == row.Text ? kept.Mark : string.Empty;
             builder.Append($"| {row.LineId} | {row.File} | {row.Speaker} | {row.Speed} | {row.Text} | {mark} |\n");
         }
 
@@ -481,6 +486,25 @@ internal static class Program
         }
 
         builder.Append('\n');
+    }
+
+    // What is left to hear, counted at each render (VILLAGE_PLAN V09, phase B): the files with no mark, by speaker, most first, so the owner sees the size
+    // of the listening before reading the table. A mark is the owner's alone: a row keeps it while its text and recording are unchanged.
+    private static void AppendToHear(StringBuilder builder, IReadOnlyList<(string Speaker, string Mark)> lines)
+    {
+        var unmarked = lines.Where(static line => line.Mark.Length == 0).ToList();
+        builder.Append(CultureInfo.InvariantCulture, $"**To hear:** {unmarked.Count} of the {lines.Count} files have no mark");
+        if (unmarked.Count > 0)
+        {
+            var bySpeaker = unmarked
+                .GroupBy(static line => line.Speaker, StringComparer.Ordinal)
+                .OrderByDescending(static group => group.Count())
+                .ThenBy(static group => group.Key, StringComparer.Ordinal)
+                .Select(static group => string.Create(CultureInfo.InvariantCulture, $"{group.Key} {group.Count()}"));
+            builder.Append(" (").Append(string.Join(", ", bySpeaker)).Append(')');
+        }
+
+        builder.Append(". Two files a line: the normal speed and the slow one.\n\n");
     }
 
     private static string Speed(float speed) => speed.ToString("0.0#", CultureInfo.InvariantCulture);
