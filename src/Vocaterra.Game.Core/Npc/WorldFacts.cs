@@ -46,6 +46,10 @@ public sealed class WorldFacts : IGuideFacts
     private const int ChunkShift = VoxelChunk.Shift;
     private const int ChunkSize = VoxelChunk.Size;
 
+    // The most blocks the walk over a body of blocks visits (NearestOfNounJoinedTo, V23a): a river and its lake are tens of thousands of blocks, and the walk kept every
+    // one in a set; past this it stops and answers with the nearest it has seen.
+    private const int JoinedBlockLimit = 4096;
+
     // The six faces a body of blocks is joined through (NearestOfNounJoinedTo).
     private static readonly (int X, int Y, int Z)[] JoinedSteps = [(1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)];
 
@@ -248,7 +252,9 @@ public sealed class WorldFacts : IGuideFacts
     /// <remarks>
     /// A walk over the blocks of the noun from <paramref name="body"/>, face to face (the river and the lake it runs into are one body of water, some tens of
     /// thousands of blocks; a well's water touches none of them). Of each column it keeps the lowest block of the body, as <see cref="NearestOfNoun"/> keeps the
-    /// lowest of the noun, and the nearest column wins by the same rule: the smallest squared horizontal distance, then the smaller z, x and y.
+    /// lowest of the noun, and the nearest column wins by the same rule: the smallest squared horizontal distance, then the smaller z, x and y. The walk visits at most
+    /// <see cref="JoinedBlockLimit"/> blocks (V23a): a larger body is answered with the nearest block of those the walk reached from <paramref name="body"/>, which is the
+    /// nearest of the whole body when the viewpoint is near the block it started from.
     /// </remarks>
     public GuideNearest? NearestOfNounJoinedTo(GuideViewpoint from, string lemma, GuideCell body)
     {
@@ -277,6 +283,11 @@ public sealed class WorldFacts : IGuideFacts
 
             foreach (var (sx, sy, sz) in JoinedSteps)
             {
+                if (seen.Count >= JoinedBlockLimit)
+                {
+                    break;
+                }
+
                 var next = (X: cell.X + sx, Y: cell.Y + sy, Z: cell.Z + sz);
                 if (wanted.Contains(BlockAt(new GuideCell(next.X, next.Y, next.Z))) && seen.Add(next))
                 {
