@@ -52,6 +52,14 @@ is a change to the boundary and updates that record.
 - **9.1 answered (2026-11-01, D-game-22):** models mixed (Opus 5.5 xhigh for M65 to M67, M69, V20; Sonnet 5.5 for V21 to V23 and M68;
   Haiku 5.5 for V24); M65's narrowings (a) to (c) yes, (d) recorded; plates of the faced NPC, depth-tested; CI green, so M68 waits.
   Rows filed: the core's §5 (M65 to M69; M63 folded into M66) and VILLAGE_PLAN section 4 (V20 to V24).
+- **Parallel work (owner, 2026-11-01: "do whatever can be done in parallel").** It replaces "one agent at a time" for the follow-ups;
+  the machine stays safe because every heavy command still goes through `scripts/limited.sh` (one lock, so builds queue). Rules:
+  - an agent that holds a branch gets its own worktree (`git worktree add -b <branch> .claude/worktrees/<id> feature/village-followups`),
+    and builds only the projects it touches (a core project's build output is about 400 MB, a game project's about 90 MB); the gate
+    builds and tests the whole solution in `.claude/worktrees/village`;
+  - QA agents test `.claude/worktrees/village` read-only and can share it;
+  - disk is the limit (12 GB free on 2026-11-01): keep it above 10 GB, and remove a milestone's worktree right after its gate;
+  - milestones that edit the same files (the goldens, `content/game-v1` and its hash, the save fixture) still run one after the other.
 **The full handover is `docs/HANDOVER_VILLAGE_PHASE_B.md`** (for a fresh agent: the review of `feature/village`, the owner's decisions,
 the follow-ups and what V09 found). The owner's plan (2026-11-01): review, merge PR #20, then the follow-ups on a new branch from `main`.
 **Start here (a fresh orchestrator session)**
