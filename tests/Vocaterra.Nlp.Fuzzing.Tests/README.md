@@ -30,7 +30,7 @@ of the slowest chain, not the sum (about 70 s of test time in all). The slowest 
 | --- | --- | --- | --- | --- |
 | O1 | Normalizer never crashes (also on lone surrogates), is idempotent, spans and originals are well-formed; `Accents.Strip` and `SpanishPhoneticKey.Compute` are total | `NormalizerFuzzTests` | 3 000 | `VOCATERRA_FUZZ_ITERATIONS` |
 | O2 | Analyzer never crashes, is deterministic (also on a fresh instance), output is well-formed | `AnalyzerFuzzTests` | 3 000 | `VOCATERRA_FUZZ_ITERATIONS` |
-| O3 | Correct sentences analyze clean, match their grammar, yield their slot values; every catalog grammar is realised | `CorrectSentenceFuzzTests` | 2 000 | `VOCATERRA_FUZZ_ITERATIONS_GRAMMAR` |
+| O3 | Correct sentences analyze clean, match their grammar, yield their slot values; every catalog grammar is realised (one the sample left out from fixed recipes, M71) | `CorrectSentenceFuzzTests` | 2 000 | `VOCATERRA_FUZZ_ITERATIONS_GRAMMAR` |
 | O4 | One mutation yields exactly the named tag, with the original form as correction | `MutationTagFuzzTests` | 2 000 | `VOCATERRA_FUZZ_ITERATIONS_GRAMMAR` |
 | O5 | The recast closes the loop: it restores the corrected sentence and re-analyzes clean | `RecastLoopFuzzTests` | 2 000 | `VOCATERRA_FUZZ_ITERATIONS_GRAMMAR` |
 | O6 | Answer matching agrees with an independent model of its documented rules, plus metamorphic relations | `AnswerMatchFuzzTests` | 3 000 | `VOCATERRA_FUZZ_ITERATIONS` |
@@ -318,7 +318,8 @@ verbs agree with their subject pronoun, adjectives sit on the right side of the 
 marker sits next to a present verb. It is a model of the analyzer, so the oracles are an agreement check between two implementations. A
 pattern that cannot be realised correctly is **skipped and counted**, never silently weakened; each oracle prints its generator
 diagnostics and asserts a minimum of realised sentences, and `MutationTagFuzzTests` and `RecastLoopFuzzTests` assert that every mutation
-kind stays reachable. `CorrectSentenceFuzzTests` also asserts that every grammar of the catalog is realised at least once and that no literal
+kind stays reachable. `CorrectSentenceFuzzTests` also asserts that every grammar of the catalog is realised at least once (since M71 a grammar
+its random sample left out is first realised from fixed recipes, through the same checks: "Bounds the suite needs") and that no literal
 word of any grammar is missing from the lexicon (the old `cuál` gap would fail it). If a mirrored table in `LexiconCatalog` (the ser/estar
 adjective lists, the prenominal adjectives, ...) drifts from `SpanishAnalysisTables` in the Spanish pack, the mutation oracles fail and
 name the kind. The time markers are not mirrored (M57): the words come from the pack's public table `SpanishTimeMarkers`, which the checker reads too.
@@ -464,6 +465,28 @@ step). The minimums scale down when a smaller iteration count is requested.
   would be a minute and a half for O15. The oracle therefore loads with an opt-in `LexiconCache` (a copy whose lexicon files are byte for byte those of an earlier valid copy
   reuses the parsed and merged lexicon; any other lexicon file is parsed in full), derives each copy's manifest from the committed one, and runs on up to four threads; it
   takes 10 to 17 s alone.
+- **Catalog coverage (M71, 2026-11-01).** O3 claims that every catalog grammar is realised at least once, and its random sample draws a catalog grammar in two
+  recipes of five (`PatternGen.Any`): at the default 2 000 recipes about 800, some seven for each of the 110 grammars of `content/game-v1` at M71. A given grammar
+  is then never drawn with a probability of about e^-7.3 (0.07 %), and some grammar of the 110 in about one run in thirteen. The village lessons had grown the
+  catalog to that size, and O3 failed twice in a row on `feature/village-followups` (V23a's gate and its rerun, on the `[VERB:vender]` and `[VERB:comprar]` grammars
+  of V15 and V17) with no change of the core, the suite or the bundle since a passing gate. Measured before the fix:
+  - 2 000 simulated runs of the sample (the realisation alone, random seeds): 151 left a grammar out (7.6 %), 83 different grammars among them, 8 of them of the
+    family below; the lowest count of a run was 0 in 151 runs, 1 in 802, 2 in 925 and 3 in 122. Ten runs of O3 alone: one failed (`ayuda (por favor)?`).
+  - The O3 stream at 2 000 fixed seeds (one case each, `M71O00000000` on): 718 catalog sentences, the lowest count 2 (two grammars), and the family of V15 and V17
+    (`(sí)? (mañana|ayer|...)? (domingo|luz|mar|león)? [VERB:...] ... (mañana|ayer|...)?`, ten grammars) 4 to 8.
+  - Each catalog grammar from 400 fixed realiser seeds: every one gives a sentence from at least 90 % of its recipes (the lowest is `(buenos|buenas) (día|días|tardes|noches)`
+    at 90 %, the next 94.8 %), and the family from 100 %, with 0.16 to 0.20 re-rolled draws a recipe (`conflicting-time-markers` about one draw in ten,
+    `noun-reads-as-adjective` one in sixteen), each made good by a later attempt. The realiser does not hold the family back: drawing the second time slot
+    compatible with the first, or the verb after a name in the third person, would not raise its counts (each recipe already gives a sentence) and would move
+    the sentence stream digest, so the realiser is unchanged.
+
+  Since M71, after the sample, each grammar it left out is realised from up to 50 fixed recipes (`TargetedInputs`: the realiser seed and the safe noise drawn at
+  the CsCheck seeds `M71T00000000` on), until one gives a sentence, which goes through the same checks as the sample's; only a grammar that none of them realises
+  fails, with the reasons of its rejections (`TheCoveragePass_ReportsOnlyAGrammarTheRealiserCannotRealise`). The claim no longer depends on the draw, so it is
+  asserted at every depth (before, from 1 000 recipes). The sample, its counts and its other assertions, the realiser, the skip budget's shares and the stream
+  digests are unchanged. After it: ten runs of O3 alone, none failed; at one recipe (`VOCATERRA_FUZZ_ITERATIONS_GRAMMAR=1`) 109 of the 110 grammars took
+  the pass and each gave its sentence from the first fixed recipe, passing every check (at 20 recipes: 101 grammars, the same); the pass adds nothing
+  when the sample realised every grammar.
 
 ## Bugs found and fixed while building this suite
 
@@ -750,6 +773,12 @@ them explicitly (each is a skip or a restriction in the generator, counted in th
   `la unida joya rica`; `unida` is no noun, so the grammar no longer matches, `rica` reads as the adjective of `joya`, and M59's check gives `conj.person` `desfiló`
   beside the expected `word_order`. The same family as M65 (c) and `2tpLGUOSqj41`: either the realiser extends M62's `noun-reads-as-adjective` re-roll past the
   adjectives after the head (a change of O3's draws), or the mutation keeps only a case that still matches its grammar (a narrowing); it is left for the orchestrator.
+- **Found at M71, older than M71, and left for a decision** (while measuring the coverage above; no oracle fails on it). *O3 never realises `buenas tardes`.* From
+  400 fixed recipes the realiser gives `(buenos|buenas) (día|días|tardes|noches)` as `buenos días` (196) and `buenas noches` (164) only, and 40 recipes give nothing;
+  the analyzer finds `buenas tardes` correct. `tardes` is also a form of `tardar`, and 163 of the grammar's draws are re-rolled as `literal-verb-subject`: M59's
+  re-roll of a literal verb form that disagrees with a noun phrase before it appears to take `buenas` for that phrase, whose head is `tardes` itself
+  (`SentenceRealizer.PreverbalPhrase` does not ask whether the head is the literal it is checking). Leaving such a literal alone would widen O3's draws and may move
+  the sentence stream digest; it is left for the orchestrator.
 
 ## Adding to the suite
 
