@@ -143,8 +143,8 @@ public abstract partial class GuideSession : IDisposable
         Glosses = data.Glosses;
         var book = Data.Lessons;
         PhraseProgress = new PhraseProgress(Phrases, playSession, data.Npcs.ScaffoldPhrases.Concat(book.TaughtPhrases));
-        Support = new PhraseSupport(Phrases, PhraseProgress, Bundle, data.Npcs, Locale);
         Lessons = new LessonRunner(this, book, Locale);
+        Support = new PhraseSupport(Phrases, PhraseProgress, Bundle, data.Npcs, Locale, Lessons.CardReady); // a card waits for its lesson (V20)
         Deck = new ReviewDeck(this);
         Tips = new TipFeed(this, Data.Tips);
         _liveFacts = liveFacts;
@@ -864,7 +864,7 @@ public abstract partial class GuideSession : IDisposable
         var phraseReview = PhraseReview;
         var support = Support.Snapshot();
         var scene = review is null
-            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: LiveInventory, PromptOverride: phraseReview?.Prompt ?? Lessons.ActivePrompt)
+            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: LiveInventory, PromptOverride: phraseReview?.Prompt ?? Lessons.ActivePrompt, Credited: Lessons.CreditedPhrases)
             : new GuideScene(Viewpoint, review.Target, Pointer is not null, Review: true, Inventory: LiveInventory);
         var turn = _npcs.Say(CurrentNpc, line, scene, StoredTime, StateDigest());
         PhraseReview? answeredReview = null;
@@ -1348,18 +1348,21 @@ public abstract partial class GuideSession : IDisposable
     // The phrase a communicated turn used: the phrase in play on the prompt whose row has the turn's intent (the NPC's focus there, a lesson step's phrase, S16, or the
     // review's), else the row the prompt teaches for the intent, else the fixed mapping (PhraseSheet.PhraseFor). Of several in play with the intent (the fisher's two
     // directions), the one that names the place asked about (PhraseSheet.OfIntent); in free talk, where the NPC's focus is in play, one row of the intent that names
-    // another place gives way to the row practised elsewhere that names it (V14: the villager's river for the fisher's bakery, PhraseSheet.ByPlace).
+    // another place gives way to the row practised elsewhere that names it (V14: the villager's river for the fisher's bakery, PhraseSheet.ByPlace). In free talk, a
+    // line that is a phrase of a lesson the learner has begun or done (its Spanish or a variant, LineReading.PhraseSaid) is that phrase, at any NPC, before the fixed
+    // mapping (V20: only the focus and the prompt's rows counted, so «Mañana compraré pan.» said to Luz after its lesson was no use of it).
     private string? PhraseOf(GuideTurn turn, SupportSnapshot support)
     {
         var inPlay = support.InPlay.Select(Phrases.Find).OfType<PhraseRow>().ToList();
-        var freeTalk = support.InPlay.SequenceEqual(Data.Npcs.FocusAt(turn.Prompt), StringComparer.Ordinal);
+        var freeTalk = support.InPlay.SequenceEqual(Support.FocusAt(turn.Prompt), StringComparer.Ordinal);
         if (freeTalk && Phrases.ByPlace(inPlay, turn.Intent, turn.Slots, Data.Npcs.Homes.Keys, out var placed))
         {
             return placed;
         }
 
+        var said = freeTalk ? LineReading.PhraseSaid(Phrases, turn.Line, Data.Npcs.Find(turn.Npc)?.Name, Lessons.Credits)?.Id : null;
         return PhraseSheet.OfIntent(inPlay, turn.Intent, turn.Slots)
-            ?? Phrases.PhraseFor(turn.Prompt, turn.Intent, turn.Slots, Data.Words.Noun("river"), freeTalk ? Data.Npcs.Homes.Keys : null);
+            ?? Phrases.PhraseFor(turn.Prompt, turn.Intent, turn.Slots, Data.Words.Noun("river"), freeTalk ? Data.Npcs.Homes.Keys : null, said);
     }
 
     private static bool IsHelpRequest(GuideTurn turn) =>
@@ -1491,7 +1494,7 @@ public abstract partial class GuideSession : IDisposable
         var facts = SnapshotFacts();
         var inventory = LiveInventory.Copy();
         return review is null
-            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: inventory, Facts: facts, PromptOverride: PhraseReview?.Prompt ?? Lessons.ActivePrompt)
+            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: inventory, Facts: facts, PromptOverride: PhraseReview?.Prompt ?? Lessons.ActivePrompt, Credited: Lessons.CreditedPhrases)
             : new GuideScene(Viewpoint, review.Target, Pointer is not null, Review: true, Inventory: inventory, Facts: facts);
     }
 }

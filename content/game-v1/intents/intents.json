@@ -186,7 +186,7 @@
       "requiredSlots": ["place"],
       "slotGrammars": [
         "dónde [VERB:estar] [ART]? [NOUN:place] (por favor)?",
-        "[VERB:buscar] [ART]? [NOUN:place] (por favor)?",
+        "[VERB:buscar] [ART] [NOUN:place] (por favor)?",
         "[VERB:querer] [VERB:encontrar] [ART]? [NOUN:place] (por favor)?",
         "dónde [VERB:quedar] [ART]? [NOUN:place] (por favor)?"
       ],
@@ -408,7 +408,7 @@
         "(mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? [VERB:ir] a [VERB:vender] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
         "(sí)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? (domingo|luz|mar|león)? [VERB:vender] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
         "(mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? [VERB:ir] a [VERB:buscar] [ART]? [NUM:qty]? [NOUN:item] (para luz|para domingo|para mar|para león)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
-        "(sí)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? [VERB:buscar] [ART]? [NUM:qty]? [NOUN:item] (para luz|para domingo|para mar|para león)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
+        "(sí)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? [VERB:buscar] [NUM:qty]? [NOUN:item] (para luz|para domingo|para mar|para león)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
         "(mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? (domingo|luz|mar|león)? [VERB:ir] a [VERB:hacer] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
         "(sí)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? (domingo|luz|mar|león)? [VERB:hacer] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
         "(mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? (domingo|luz|mar|león)? [VERB:ir] a [VERB:trabajar] en [ART] [NOUN:place] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
@@ -862,11 +862,15 @@
       "intentId": "describe",
       "requiredSlots": [],
       "slotGrammars": [
-        "(sí)? [ART]? [NOUN:object]? [VERB:ser] (muy|más|menos)? [ADJ]",
-        "(sí)? [ART]? [NOUN:object]? [VERB:ser] [ADJ] y [ADJ]",
+        "(sí)? [VERB:ser] (muy|más|menos)? [ADJ]",
+        "(sí)? [ART] [NOUN:object] [VERB:ser] (muy|más|menos)? [ADJ]",
+        "(sí)? [VERB:ser] [ADJ] y [ADJ]",
+        "(sí)? [ART] [NOUN:object] [VERB:ser] [ADJ] y [ADJ]",
         "(esto|eso) [VERB:ser] (muy)? [ADJ]",
-        "(sí)? [ART]? [NOUN:object]? [VERB:ser] (más|menos) [ADJ] que [ART]? [NOUN]",
-        "(sí)? [ART]? [NOUN:object]? [VERB:ser] tan [ADJ] como [ART]? [NOUN]"
+        "(sí)? [VERB:ser] (más|menos) [ADJ] que [ART]? [NOUN]",
+        "(sí)? [ART] [NOUN:object] [VERB:ser] (más|menos) [ADJ] que [ART]? [NOUN]",
+        "(sí)? [VERB:ser] tan [ADJ] como [ART]? [NOUN]",
+        "(sí)? [ART] [NOUN:object] [VERB:ser] tan [ADJ] como [ART]? [NOUN]"
       ],
       "examples": [
         {"text": "es muy caro", "errors": [], "prompt": "lesson-dear"},
@@ -999,14 +1003,15 @@
       "intentId": "ask_total",
       "requiredSlots": [],
       "slotGrammars": [
-        "cuánto es todo (esto)?",
+        "cuánto [VERB:ser] todo (esto)?",
         "cuánto [VERB:costar] todo (esto)?"
       ],
       "examples": [
         {"text": "cuánto es todo", "errors": [], "prompt": "farmer-open"},
         {"text": "cuánto cuesta todo", "errors": [], "prompt": "farmer-open"},
         {"text": "cuánto es todo esto", "errors": [], "prompt": "farmer-open"},
-        {"text": "cuánto es todo", "errors": [], "prompt": "baker-open"}
+        {"text": "cuánto es todo", "errors": [], "prompt": "baker-open"},
+        {"text": "cuánto son todo", "errors": ["conj.person"], "prompt": "farmer-open"}
       ]
     },
     {

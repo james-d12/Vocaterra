@@ -187,7 +187,9 @@ public sealed class PhraseSheet
     /// <param name="river">The river's noun (<c>río</c>, <c>game/words.json</c>).</param>
     /// <param name="practised">In free talk, the phrases the NPCs' open prompts practise (<see cref="NpcRoster.Homes"/>), for <see cref="ByPlace"/>; <see langword="null"/> in a lesson's
     /// step or a review, whose phrase is the step's.</param>
-    public string? PhraseFor(string prompt, string intent, IReadOnlyDictionary<string, string> slots, string river, IEnumerable<string>? practised = null)
+    /// <param name="said">In free talk, the phrase of a lesson begun or done that the line is (VILLAGE_PLAN V20, <see cref="Said"/>): it comes before the fixed mapping, which
+    /// knows only the stall's and the river's phrases; <see langword="null"/> for none.</param>
+    public string? PhraseFor(string prompt, string intent, IReadOnlyDictionary<string, string> slots, string river, IEnumerable<string>? practised = null, string? said = null)
     {
         ArgumentNullException.ThrowIfNull(prompt);
         var here = PhrasesAt(prompt);
@@ -196,7 +198,7 @@ public sealed class PhraseSheet
             return placed;
         }
 
-        return OfIntent(here, intent, slots) ?? PhraseIds.For(intent, slots, river);
+        return OfIntent(here, intent, slots) ?? said ?? PhraseIds.For(intent, slots, river);
     }
 
     /// <summary>
@@ -309,6 +311,23 @@ public sealed class PhraseSheet
         ArgumentNullException.ThrowIfNull(phrase);
         var plain = Plain(phrase);
         return _rows.FirstOrDefault(row => row.IsLearnerPhrase && row.Texts.Any(text => string.Equals(Plain(text), plain, StringComparison.Ordinal)));
+    }
+
+    /// <summary>
+    /// The row a learner's line is, among the phrases a test admits (VILLAGE_PLAN V20: those of the lessons begun or done): the first in the sheet's order that the
+    /// learner says, is no service line, and whose Spanish or a variant the line equals, ignoring case, accents and punctuation (<see cref="Plain"/>); or
+    /// <see langword="null"/>.
+    /// </summary>
+    /// <param name="line">What the learner said.</param>
+    /// <param name="admits">Whether a phrase (by its id) may be the one.</param>
+    public PhraseRow? Said(string line, Func<string, bool> admits)
+    {
+        ArgumentNullException.ThrowIfNull(line);
+        ArgumentNullException.ThrowIfNull(admits);
+        var plain = Plain(line);
+        return plain.Length == 0
+            ? null
+            : _rows.FirstOrDefault(row => row.IsLearnerPhrase && !IsService(row) && admits(row.Id) && row.Texts.Any(text => string.Equals(Plain(text), plain, StringComparison.Ordinal)));
     }
 
     /// <summary>

@@ -386,6 +386,18 @@
         { "lineId": "shop_thank.2", "text": "¡Con gusto!" }
       ]
     },
+    "shop_nice": {
+      "poolId": "shop_nice",
+      "variants": [
+        { "lineId": "shop_nice.1", "text": "¡Qué bien!" }
+      ]
+    },
+    "shop_true": {
+      "poolId": "shop_true",
+      "variants": [
+        { "lineId": "shop_true.1", "text": "Sí, es verdad." }
+      ]
+    },
     "shop_bye": {
       "poolId": "shop_bye",
       "variants": [
@@ -437,6 +449,18 @@
       "variants": [
         { "lineId": "villager_thank.1", "text": "De nada." },
         { "lineId": "villager_thank.2", "text": "¡Con gusto!" }
+      ]
+    },
+    "villager_nice": {
+      "poolId": "villager_nice",
+      "variants": [
+        { "lineId": "villager_nice.1", "text": "¡Qué bien!" }
+      ]
+    },
+    "villager_true": {
+      "poolId": "villager_true",
+      "variants": [
+        { "lineId": "villager_true.1", "text": "Sí, es verdad." }
       ]
     },
     "villager_bye": {
@@ -776,6 +800,12 @@
         { "lineId": "fisher_thank.2", "text": "¡Con gusto!" }
       ]
     },
+    "fisher_nice": {
+      "poolId": "fisher_nice",
+      "variants": [
+        { "lineId": "fisher_nice.1", "text": "¡Qué bien!" }
+      ]
+    },
     "fisher_bye": {
       "poolId": "fisher_bye",
       "variants": [
@@ -909,6 +939,12 @@
       "variants": [
         { "lineId": "baker_thank.1", "text": "De nada." },
         { "lineId": "baker_thank.2", "text": "¡Con gusto!" }
+      ]
+    },
+    "baker_nice": {
+      "poolId": "baker_nice",
+      "variants": [
+        { "lineId": "baker_nice.1", "text": "¡Qué bien!" }
       ]
     },
     "baker_bye": {
@@ -1045,6 +1081,18 @@
         { "lineId": "smith_thank.2", "text": "¡Con gusto!" }
       ]
     },
+    "smith_nice": {
+      "poolId": "smith_nice",
+      "variants": [
+        { "lineId": "smith_nice.1", "text": "¡Qué bien!" }
+      ]
+    },
+    "smith_ok": {
+      "poolId": "smith_ok",
+      "variants": [
+        { "lineId": "smith_ok.1", "text": "Está bien." }
+      ]
+    },
     "smith_bye": {
       "poolId": "smith_bye",
       "variants": [
@@ -1093,6 +1141,18 @@
       "variants": [
         { "lineId": "farmer_thank.1", "text": "De nada." },
         { "lineId": "farmer_thank.2", "text": "¡Con gusto!" }
+      ]
+    },
+    "farmer_nice": {
+      "poolId": "farmer_nice",
+      "variants": [
+        { "lineId": "farmer_nice.1", "text": "¡Qué bien!" }
+      ]
+    },
+    "farmer_true": {
+      "poolId": "farmer_true",
+      "variants": [
+        { "lineId": "farmer_true.1", "text": "Sí, es verdad." }
       ]
     },
     "farmer_bye": {

@@ -692,7 +692,8 @@ prompts (47); 451 speech lines in 902 files (340 in 680); 87 check items, 43 hea
   NPC thanks and pays, and `order_delivered` is logged. `fruit-for-mar` (session 4: three fruits for two coins), `oven-wood` (session 5: five wood for four
   coins) and `axe-handle` (session 6: two wood and two coins for the axe). The baker sells bread at two coins a loaf (`Quiero dos panes, por favor.` buys
   two, and any number said as many, with no cap since V19; with too few coins nothing changes hands and she says `Necesitas más monedas.`, with no room in the bag
-  `Tu bolsa está llena.`, and asked for none, `quiero cero panes`, she asks how many), and the stall says its price.
+  `Tu bolsa está llena.`, and asked for none, `quiero cero panes`, she asks how many), and the stall says its price. `quiero cero panes` still credits the
+  phrase `quiero-dos-panes` though nothing changes hands: the Spanish was right and practised the pattern (V20, handover 9.3 D (f)).
 - **El pueblo** (session 4, after `ayer-y-manana`, the fisher at the bridge, 24 steps): `¿Dónde está…?`, `¿Está lejos?`, `¿Hay un pozo…?`, and the walk itself in
   three times (`Voy a la panadería.`, `Voy a comprar pan.`, back at the bridge `Sí, fui a la panadería.`): the arrow to the bakery and the smithy, the
   villager at the signpost, then back to the fisher, who asks for fruit (`fruit-for-mar`).
@@ -777,17 +778,12 @@ Luz); the route tried 15 of them, each as the prompts predict. One bug was found
 
 Game points:
 
-- Free talk credits only the rows an NPC's file names in its `focus` (V12b's rule), so phase B's lines said again in free talk count as no phrase use (`Mañana
-  compraré pan.` to Luz, r23; `Vendo madera.` to Domingo, r22; `Me gustan las manzanas.` to León), though the book's word records count them.
-- An NPC shows the cards of its `focus` from the first talk, before their lesson: Luz `Vendo madera.` (session 10) in session 5 (r18), León `Quiero tres
-  manzanas rojas.`, `¿Cuánto es todo?` and `¿Puedo pagar con fruta?` (sessions 7 and 10) from his first talk; A2 lines to an A1 learner (VILLAGE_PLAN 5, "Not
-  overwhelming").
-- The open prompts of the villager, the fisher and the stall take no statements, and Domingo's no `tener que`, so 9 of phase B's 27 said lines get "No te
-  entendí" from the NPC who taught them (above; V14's point (1) and V17: the lint's confusion check gives `busqué madera` and `buscaré madera` to
-  `ask_directions` at the fisher and the villager).
-- A line from a lesson at an open prompt whose answer set lacks it is a slip: `buscaré madera para Luz` to Domingo gets "a small mistake in “buscaré”" and the
-  recast `«Buscaré madera para luz»` (the same words, the name lower case), `es muy caro` to León `Claro, «es muy caro».` The open prompts' answer sets
-  (`people-smith`, `people-farmer`) could take the lessons' rows; the core's side is the next list's `vocab.wrong`.
+- Fixed by V20 (handover 9.3 D): free talk credits any phrase of a lesson the learner has begun or done, at any NPC (`Mañana compraré pan.` to Luz, `Vendo
+  madera.` to Domingo once the market is begun, `Me gustan las manzanas.` to León), not only the rows of the NPC's `focus`; an NPC shows a card of its `focus` only
+  once the row's lesson is the current one (unlocked) or done (no `Vendo madera.` from Luz before session 10); every open prompt takes the intents of the lessons its
+  NPC teaches, and its answer set the lessons' rows, so all of phase B's 27 said rows (and phase A's) are understood by the NPC who taught them, who answers with a
+  line of its own (`¡Qué bien!`, `Sí, es verdad.`, Domingo's `Está bien.`; `TaughtInFreeTalkTests` runs every row); a correction line spells an NPC's name as the
+  roster does unless a determiner comes before it (`«buscaré madera para Luz»`, `la luz`).
 - The stall answers any request with the bottle (`quiero pan, por favor` at `stall-need`: "Aquí tienes la botella."), older than the village (S6); V15 gave
   the bakery its "Solo vendo pan.".
 - The Lessons page opens at its top, so in sessions 8 to 10 the `next:` lesson is far down (the page has 192 lines).
@@ -800,7 +796,8 @@ Game points:
 Core gaps (the core's plan, `docs/nlp/IMPLEMENTATION_PLAN.md`):
 
 - From V15: `¿puede usted vender manzanas?` gives a wrong `conj.person` (expects `vende`); `puedo pago con fruta` and `quiero vendo madera` give no error;
-  `¿cuánto cuestan todo?` gives no `conj.person`; `ti` is not in the lexicon (`vocab.unknown`); `¿cuánto son todo?` is communicated with intent `unknown`.
+  `¿cuánto cuestan todo?` gives no `conj.person`; `ti` is not in the lexicon (`vocab.unknown`). (`¿cuánto son todo?`, intent `unknown`, and `cuanto son todo?`, read
+  as `describe`, are `ask_total` since V20: its grammar takes `son`, and `describe` takes a noun only after an article, so the noun `cuanto` is no subject.)
 - A word outside a constrained prompt's answer set gets `vocab.wrong` (V17's `usted comprará pan` at a lesson step; above in free talk).
 - M63, filed: a subject pronoun before a question word (`ellas adónde están`) is lost to M56's check (fuzz seeds `8zKtIhOY3951`, `c5SlpISRmTZ3`).
 - The core milestones' own left points stay in its plan: M56 (`son cerca`, `ser en`, the first and second persons after the verb), M58 (`podo` and `esto`

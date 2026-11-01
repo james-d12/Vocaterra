@@ -333,14 +333,26 @@ public sealed class LessonBook
     public const string RelativePath = "game/lessons.json";
 
     private readonly List<LessonDefinition> _lessons;
+    private readonly Dictionary<string, IReadOnlyList<LessonDefinition>> _teachers = new(StringComparer.Ordinal);
 
-    private LessonBook(List<LessonDefinition> lessons) => _lessons = lessons;
+    private LessonBook(List<LessonDefinition> lessons)
+    {
+        _lessons = lessons;
+        foreach (var phrase in TaughtPhrases)
+        {
+            _teachers[phrase] = lessons.Where(l => l.TaughtPhrases.Contains(phrase, StringComparer.Ordinal)).ToList();
+        }
+    }
 
     /// <summary>The lessons, in the file's order.</summary>
     public IReadOnlyList<LessonDefinition> Lessons => _lessons;
 
     /// <summary>Every phrase some lesson teaches (the phrases that get a place on the support ladder besides the four of the stall and the river).</summary>
     public IReadOnlyList<string> TaughtPhrases => _lessons.SelectMany(static l => l.TaughtPhrases).Distinct(StringComparer.Ordinal).ToList();
+
+    /// <summary>The lessons that teach a phrase (its <c>repeat</c> and <c>answer</c> steps), in the file's order; none for a phrase no lesson teaches (the stall's <c>pedir-agua</c>).</summary>
+    /// <param name="phraseId">The phrase sheet's id.</param>
+    public IReadOnlyList<LessonDefinition> TeachersOf(string phraseId) => _teachers.TryGetValue(phraseId, out var lessons) ? lessons : [];
 
     /// <summary>The lesson with this id, or <see langword="null"/>.</summary>
     /// <param name="id">The lesson's id.</param>

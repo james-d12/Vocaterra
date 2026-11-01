@@ -1,4 +1,5 @@
 using System.Globalization;
+using Vocaterra.Game.Core.Npc;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Pipeline;
 
@@ -7,6 +8,9 @@ namespace Vocaterra.Host;
 /// <summary>Writes one utterance's outcome as text: the verdict summary, the agent's lines, the effects and the repair step.</summary>
 public static class VerdictReport
 {
+    // The core's correction lines that are no recast (a hint, an explicit correction), as the game tells them apart (NpcService).
+    private const string FeedbackLinePrefix = "feedback.";
+
     /// <summary>
     /// Writes the prompt the text loop shows before each turn: its id, mode, agent and intents, then the agent's line
     /// (<see cref="PromptSpec.Text"/>) when the prompt has one. A prompt without text, or with only white space as its text, gets the header
@@ -25,8 +29,11 @@ public static class VerdictReport
         }
     }
 
-    /// <summary>Writes the outcome of evaluating <paramref name="transcript"/> on <paramref name="promptId"/>.</summary>
-    public static void Write(TextWriter output, string promptId, string transcript, PipelineResult result, ExchangeAnswer? exchange = null)
+    /// <summary>
+    /// Writes the outcome of evaluating <paramref name="transcript"/> on <paramref name="promptId"/>. With the NPCs' names, a correction line spells them as the game
+    /// shows it (<see cref="RecastNames"/>, V20: <c>«buscaré madera para Luz»</c>).
+    /// </summary>
+    public static void Write(TextWriter output, string promptId, string transcript, PipelineResult result, ExchangeAnswer? exchange = null, IEnumerable<string>? names = null)
     {
         ArgumentNullException.ThrowIfNull(output);
         ArgumentNullException.ThrowIfNull(result);
@@ -51,7 +58,8 @@ public static class VerdictReport
         {
             if (exchange is null || !exchange.Unsaid.Any(pool => line.LineId.StartsWith(pool + ".", StringComparison.Ordinal)))
             {
-                output.WriteLine($"  agent: {line.Text}");
+                var correction = line.IsRecast || line.LineId.StartsWith(FeedbackLinePrefix, StringComparison.Ordinal);
+                output.WriteLine($"  agent: {(correction && names is not null ? RecastNames.Capitalise(line.Text, names) : line.Text)}");
             }
         }
 
