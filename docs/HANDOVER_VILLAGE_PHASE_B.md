@@ -1,5 +1,12 @@
 # Handover: the village series after phase B (2026-11-01)
 
+> **Update (2026-11-01, after the merge): start at section 9.**
+> - The owner merged PR #20 into `main` (`1dbb0e5`) and wants **all** the follow-ups done on `feature/village-followups`. That branch was
+>   created from `origin/main` and pushed.
+> - Section 9 lists every open failure and issue, with the recommended fix for each, the queue, and what to ask the owner first.
+> - **Nothing in section 9 has been built:** the owner asked for the fixes to be noted here, not made.
+> - Sections 1 to 8 are the background.
+
 > **Update (2026-11-01, later):** section 3, the review, is done: `docs/qa-reports/2026-11-review-feature-village.md`. On the owner's word
 > all ten findings were fixed on `feature/village`: the core's as M64 (`23af5cd`), the game's as V19 (`716d469`), with 7420 tests passing
 > and bundle `0f8faea0…`.
@@ -362,3 +369,247 @@ after phase B".
 
 - `/tmp/claude-1000/m59` (1.2 GB, left over from M59) was deleted on the owner's word on 2026-11-01.
 - `/tmp/claude-1000/v09` (about 1 MB) holds V09's logs and can go too.
+
+## 9. After the merge: every open item and its recommended fix (2026-11-01)
+
+The owner merged PR #20 into `main` (`1dbb0e5`) and wants all the follow-ups done, on `feature/village-followups`. That branch was created
+from `origin/main`, pushed, and checked out in the worktree `.claude/worktrees/village`.
+
+The owner asked for the fixes to be noted here, not made, so **nothing below is built**: it is the plan for the next orchestrator.
+
+- This section replaces sections 4 to 6 as the plan; they keep the background.
+- Each item gives the problem, where it is, the recommended fix and how to prove it.
+- File the milestones' rows in the plans (the core's §5, the game's VILLAGE_PLAN table) before launching them.
+
+### 9.1 Ask the owner once, at the start
+
+1. **The model.**
+   - Recommended: Opus 5.5 at xhigh for M65 to M67, M69 and V20, where Spanish is judged and the design is subtle, as in the series.
+     Sonnet 5.5 for V21 to V23 and the timing milestone; Haiku 5.5 for V24, the documents.
+   - The series rule (D-game-22) says Opus for every V milestone; the orchestrator's default is Haiku.
+2. **The fuzz narrowings of M65 (9.3 A).** Each needs a yes or a no. Recommended: yes to (a), (b) and (c); leave (d).
+3. **The name plates' design (V22).** Recommended: show only the plate of the NPC the player faces within talking range, drawn
+   depth-tested.
+4. **The voices** (9.3 K): the owner's listening, not blocking.
+5. **What `main`'s CI showed after the merge** (9.3 H). This session's token cannot read CI.
+
+### 9.2 The queue (one agent at a time, each gated into `feature/village-followups`)
+
+| Order | Id | What | Depends on | Size |
+| --- | --- | --- | --- | --- |
+| 1 | QA | A QA pass on the village, `language` then `progression` (9.3 I) | | |
+| 2 | M65 | Fuzz stability: the four open failures, a skip budget, `scripts/try-lines.sh` (9.3 A) | the owner's yes (9.1) | S |
+| 3 | M66 | The core's grading gaps, with M63 (9.3 B) | M65 | M |
+| 4 | M67 | `vocab.wrong` only on a line that was not understood (9.3 C) | M65 | S |
+| 5 | V20 | Free talk: the NPCs understand what they teach, practice is credited, cards come after their lesson, names in recasts (9.3 D) | M66, M67 | M/L |
+| 6 | V21 | Smaller game fixes: the stall by item, feedback in each NPC's voice, `tener que` in the book, the Lessons page at `next:` (9.3 E) | V20 | M |
+| 7 | V22 | Name plates (9.3 F) | the owner's design | S |
+| 8 | V23 | The deferred small items (9.3 G) | V20 | S/M |
+| 9 | M69 | The core milestones' left points: missed errors, never false alarms (9.3 B, last part) | M66 | M |
+| 10 | M68 | The timed tests' budgets on CI, only if `main`'s CI shows one red or within reach (9.3 H) | | S |
+| 11 | V24 | Documents and runs after the follow-ups, as "V09 again" did (9.3 J) | all | M |
+
+The QA reports' confirmed bugs join the queue where they fit; a bug that blocks a lesson goes first. One PR at the end:
+`feature/village-followups` into `main`.
+
+### 9.3 Each item, with the recommended fix
+
+**A. Fuzz stability (M65, core).** It goes first because each of these failures can turn a gate or CI red at random. They are listed in
+`tests/Vocaterra.Nlp.Fuzzing.Tests/README.md` under "left for a decision". A narrowing needs the owner's yes (9.1), and each guard gets a
+test showing that what it leaves out is correct Spanish, as `AmountMutationGuardTests` does.
+
+- **(a) `egVgLELrxyL4`, O4, the most frequent:** it fails about one fuzz run in six at the default depth. The `conj.tense` mutation lacks
+  M26b's guard for a name inside a grammar alternative.
+  - Fix: give the mutation M26b's guard, so a sentence whose name sits in an alternative is skipped. This is a narrowing.
+- **(b) `b3HSKSLCsL_1` and `4YuZ2yubxdC1`, O5:** M59's `conj.person` mutation after a noun subject and `haber`. `unas televisiones han`
+  becomes `ha` and `el subtítulo ha` becomes `han`.
+  - M59 leaves `haber` out by design (`hay dos panes`). The generator also builds `haber` with no participle, which is not Spanish.
+  - Since M64's gate it fails at the default depth too.
+  - Fix now: the mutation takes M59's exclusion of `haber`, so it models what the analyzer claims to check. This is a narrowing.
+  - Later, when a lesson teaches the perfect (`he comido`), widen instead: the analyzer checks `ha` and `han` against a noun subject
+    when a participle follows (those two forms are never existential), and the realiser gives `haber` its participle.
+- **(c) `2ldq2rIKLrG2`, O4, at five times the depth:** the `conj.tense` mutation where a grammar's literal decided a reading. With `ayer`
+  added the grammar no longer matches, and `porque` reads as a noun.
+  - Fix: keep a mutated case only when it matches the same grammar as the original. This is a narrowing.
+- **(d) `2tpLGUOSqj41`, O5, at five times the depth, older than M64:** a `word_order` recast where `[WORD:item] [ADJ]` can bind the moved
+  adjective as a name.
+  - Recommended: leave it recorded, since it is rare and appears only at depth. The alternative is to skip `word_order` beside a
+    `[WORD]` slot, which is a narrowing.
+- **A skip budget (not a narrowing).** The realiser re-rolls whole sentence classes:
+  - `skip:coordinated-subject`, `literal-verb-subject`, `colour-before-noun`, `noun-reads-as-adjective`, `ser-of-place`,
+    `predicate-subject` and `time-marker-of-generated-words`;
+  - one of them hid the review's R1 (`tú y yo fuimos` graded wrong).
+
+  Add a test that counts each skip kind over a fixed-seed run and fails when one exceeds a share of the draws (for example 5 %), so a
+  re-roll cannot silently eat a class of sentence.
+- **Tooling: `scripts/try-lines.sh`** (the brief must allow `scripts/`).
+  - Every milestone of the review used two throwaway wrappers, `/tmp/claude-1000/review/batch.sh` (the CLI) and `host1.sh` (the host,
+    the game's path). Each takes a file of `prompt|line` and prints one result line per line.
+  - Turn them into one script in the repository, with the review's 99 correct lines (`/tmp/claude-1000/review/lines1.txt`, `lines2.txt`)
+    and M64's lines (`lines3.txt`) as line files beside it. Every later brief then says "the correct lines stay clean" with one command.
+- **Proof:** three runs of the fuzz project at the default depth and one at five times it pass.
+
+**B. The core's grading gaps (M66, core, with the filed M63; the left points as M69).** Try every line with the CLI on the bundle first.
+Each fix gets a regression test in `tests/Vocaterra.Nlp.Es.Tests` with its clean neighbours, and the fuzz suite widens where the realiser
+can model it.
+
+- **False alarms, first:**
+  - **`¿puede usted vender manzanas?` gives `conj.person` (expects `vende`).**
+    - Cause: `CheckSubjectVerb`'s bare-infinitive rule (`yo comprar` gives `compro`) fires on a subject pronoun after its verb.
+    - Fix: a subject pronoun right after a finite verb is that verb's subject (an inverted question), and the infinitive after it belongs
+      to the verb. Clean: `¿puede usted vender…?`, `¿quiere usted comprar…?`, `¿va usted a comprar…?`. Still flagged: `usted vender
+      manzanas`.
+    - This matters most: `poder` is session 10's verb and `usted` its register.
+  - **`ni tú ni yo fuimos` and `tú o yo vamos` are flagged** (M64 left them). Extend M64's coordination:
+    - `ni … ni` is plural;
+    - `o` accepts the plural and the form of the nearest member.
+- **Missed errors a learner of these lessons makes:**
+  - **A finite verb after a modal:** `puedo pago con fruta`, `quiero vendo madera`. After `poder`, `querer`, `deber`, `necesitar` and
+    `tener que`, a finite form of a lexicon verb is reported with its infinitive as `expected` (`pago` gives `pagar`). Use the tag that
+    `ir a` with a finite verb already gives (`voy a como` gives `comer`; `docs/nlp/API.md`, "Tense errors"), so the learner meets one
+    kind of message.
+  - **`¿cuánto cuestan todo?` gives no `conj.person`.** M56's price check agrees `costar` with the noun phrase after it. Extend it to
+    `todo`, `eso` and `esto`, which are singular: `cuestan todo` gives `cuesta`, and `¿cuánto son todo?` gives `es`. The game's grammar
+    for that question is V20 (e).
+  - **`los panes costa`** (M58 left it): the slip reading of `costa` after a phrase that opens the line holds only for the singular.
+    Extend it to the plural, giving `cuestan`. It belongs to session 10.
+  - **`azuls`** (M58 left it): the plural-slip rule covers nouns only. Extend it to adjectives that end in a consonant (`azuls` gives
+    `azules`). It belongs to session 7's colours.
+  - **`ti` is not in the lexicon** (`para ti` gives `vocab.unknown`): add it as a prepositional pronoun, following `docs/nlp/LEXICON.md`.
+  - **M63, as filed:** a subject pronoun before a question word (`ellos dónde están …`) is lost to M56's check.
+- **M69, the left points of M56, M58 and M62** (all missed errors, never false alarms, so they come last):
+  - M56: `son cerca`, `ser en` with a place, and the first and second persons after the verb;
+  - M58: `podo` and `esto` read as the slip only under a grammar;
+  - M62: `él es alta` with no grammar and no `muy`, `son` after a lone name, and the gender of a subject with `de …`.
+- **Proof:** the line files of A give what they gave before, except the lines fixed; the core demo is exact.
+
+**C. `vocab.wrong` only on a line that was not understood (M67, core).**
+
+- **Problem:** correct, understood lines are scored as small mistakes (correctness 0.4), in free talk and at lesson steps:
+  - `hola luz quiero dos panes`;
+  - `usted comprará pan` at a lesson step;
+  - `buscaré madera para luz` to Domingo, which gets "a small mistake" and a recast.
+- **Cause:** `VerdictAssembler.DeriveVocabWrong` (`src/Vocaterra.Nlp/Evaluation/VerdictAssembler.cs`, about line 219). It adds
+  `vocab.wrong` on the first content word whenever a constrained prompt's answer set has no match, even when a slot grammar understood
+  the line and resolved an intent.
+- **Fix:** derive it only when the line resolved no intent, or when it is a near miss of one answer (a fuzzy match below the threshold).
+  Never derive it on a line a grammar understood. The derived tag is meant to explain a miss, and an understood line has none.
+- **Proof:**
+  - in the line files, the `vocab.wrong` on understood lines is gone, and lines that were not understood keep it;
+  - re-record the goldens and the identity baseline, which will move, and list each change;
+  - a game test that pinned the 0.4 is changed with the orchestrator's leave, as at M56 and M62.
+
+**D. Free talk (V20, game, after M66 and M67).**
+
+- **(a) Sentences their own NPC does not understand.** In free talk, 9 of phase B's 27 practised sentences get "No te entendí" from
+  the NPC who taught them (section 5, item 4, lists them). The villager's, the fisher's and the stall's open prompts take no statements,
+  and Domingo's takes no `tener que`.
+  - Fix: each NPC's open prompt accepts the intents of the lessons it teaches (`state_action`, `describe`, `state_have`, `state_like`,
+    and `tener que`'s). The NPC answers with a short line from its pools that keeps the talk going (a recast, «¡Qué bien!»).
+  - Add a game test that runs every said row of a lesson through its NPC's open prompt, so this cannot regress.
+- **(b) Practice not counted.** Free talk credits only the rows in an NPC's `focus`.
+  - Fix: credit any phrase row of a lesson the learner has started or finished, at any NPC. The book's word records already count them.
+- **(c) Example cards before their lesson.** An NPC shows its focus cards from the first talk: Luz shows `Vendo madera.` (session 10)
+  in session 5, and León shows his A2 lines.
+  - Fix: a card shows only once its row's lesson is the current one or done.
+- **(d) Names in recasts.** Domingo's recast writes `luz` in lower case (`buscaré madera para luz`).
+  - Fix, in the game when the line is shown: capitalise an NPC's name in a recast unless a determiner comes before it (`la luz` stays).
+- **(e) `¿cuánto son todo?`** is understood with intent `unknown`.
+  - Fix: `ask_total`'s grammar (`content/game-v1/intents/intents.json`) takes `son`. With M66 the core then gives `es`.
+- **(f) `quiero cero panes` credits the phrase `quiero-dos-panes`,** though nothing changes hands (V19 left it).
+  - Recommended: keep the credit, since the Spanish was right and practised the pattern. Say so in `docs/game/README.md`.
+- **Proof:**
+  - V09's measure again: all 27 practised sentences understood by the NPC who taught them;
+  - the learner's route through sessions 7 to 10, with free talk once with each NPC;
+  - the scripted runs, every difference explained.
+
+**E. Smaller game fixes (V21).**
+
+- **The stall answers any request with the bottle** (older, S6).
+  - Fix: route the stall through V19's `ExchangeMiss`. Its items go in `host-events.json`, and another item gets `wont_sell`.
+  - Make `shop_hay` («Hay agua y pan.») agree with what it sells.
+- **The NPCs' `¡Muy bien!` and the other shared feedback lines play in Luna's voice.**
+  - Fix: render the shared feedback pools once per NPC voice (`tools/Vocaterra.SpeechRender`, with the index keyed by speaker). The game
+    plays the speaking NPC's file and falls back to the guide's.
+  - Count the WAVs first (feedback lines × 6 NPCs × 2 speeds) and report the disk cost before rendering.
+- **`tener que` has no book entry.** Add one where the book lists `ir a`, with `tengo que ir al río`.
+- **The Lessons page opens at its top.** It runs to 192 lines, and in sessions 8 to 10 the `next:` lesson is far down.
+  - Fix: open it scrolled to the `next:` lesson.
+- **Proof:** unit tests; a screenshot of the Lessons page at session 9; the stall's lines through the host.
+
+**F. Name plates (V22, after the owner's design answer).** Plates show through figures: Luz's plate over the shopkeeper's face on
+session 8's morning, and the farmer's in phase A.
+- Recommended fix: draw plates with the depth test against the scene and the figures, and show only the plate of the NPC the player
+  faces within talking range (and the beacon's target).
+- Proof: screenshots before and after at the two known places.
+
+**G. The deferred small items (V23).** The owner wants all the follow-ups, so these are queued too, after V20.
+
+- **`KeyWordsTaught` is one save flag.** Make it a set of NPC ids, with a save migration: an old save's flag means the shopkeeper's.
+- **The session skip buys one apple, not three, for the market.** Buy what session 10's lesson assumes: three.
+- **The host's `--transcript` mode has no bag.** Add an optional `--bag <item:count,…>`, so a sale's line follows the bag. Without it the
+  host behaves as today.
+- **Five old world words sit in the body of `content/game-v1/cefr/a1.txt`, not its marked block:** `madera`, `antorcha`, `botella`,
+  `fuego` and `despacio`. Move them into the block, and check that the lint and the CEFR counts do not move.
+- **The closing review is skipped when nothing is due.** Show one short line instead, so the learner knows it ran.
+- **The book counts a use as correct only when it was understood at its prompt.** Count a correct use wherever it was understood, which
+  follows D (b).
+- **`WorldFacts.NearestOfNounJoinedTo` floods a water body with no bound.** Cap the visited blocks (for example at 4096) and fall back to
+  the nearest block seen.
+
+**H. The timed tests on CI (M68, only if needed).** At four times this machine's speed (the GitHub runner), V09's measures give:
+
+| Test | Measured here | At four times | Budget |
+| --- | --- | --- | --- |
+| `GeneratedLexiconTests.LoadingTheBundleIsFastEnough` | 1438 ms | about 5.8 s | 3 s |
+| `WorldFactsTests`' snapshot | 0.50 s | about 2.0 s | 1.5 s |
+| `SceneBuildTimeTests` | 708 ms | about 2.8 s | 3 s |
+
+V19 measured the bundle load at 1248 ms. Ask the owner what `main`'s CI showed.
+- Fix, as M60's: measure after a warm-up run, and scale every budget by a factor that CI sets in an environment variable
+  (`VOCATERRA_TIMING_SCALE=4` in `.github/workflows/ci.yml`).
+- The brief must name the workflow file, and it allows this one milestone to edit both halves' tests.
+
+**I. The QA pass (first in the queue).** Run `subagent_type: qa` (`.claude/agents/qa.md`) with the area `language`, then `progression`,
+one at a time.
+- It builds and runs the game, so it counts as the one agent running.
+- Its reports land in `docs/qa-reports/`, and its confirmed bugs join the queue.
+
+**J. Documents and runs (V24, last), as "V09 again" did:**
+- `docs/game/README.md`: the counts, and the open points rewritten;
+- `PLAYTEST.md`;
+- `SCRIPTED_RUNS.md`, against `1dbb0e5`;
+- the speech checklist's counts;
+- the learner's route through sessions 4 to 10;
+- CI's case, the suite run without models.
+
+**K. The owner's own tasks (not milestones).**
+- **Listen to the voices.** None of the 914 speech files is marked.
+  - Recommended order: the voice trial first (`docs/game/voice-trial/`, one sample per NPC), then spot-check each NPC's newest lines in
+    `docs/game/SPEECH_CHECKLIST.md`.
+  - A rejected voice re-renders only that NPC's lines.
+- **The answers of 9.1.**
+- **Not needed for this queue:** the core's older decisions D8 to D11 and D13.
+
+**L. Housekeeping.**
+- The merged branches `M64-review-core` and `V19-review-game` are still on the remote. The session's permission check refused to delete
+  them; the owner can run `git push origin --delete M64-review-core V19-review-game`.
+- `/tmp/claude-1000/review` holds the review's wrappers and line files: keep it until M65 has copied them into the repository.
+  `/tmp/claude-1000/v09` can go.
+- Disk has about 12 GB free. Reuse the worktree `.claude/worktrees/village`, now on `feature/village-followups`, rather than making a new
+  one.
+
+### 9.4 How to run it
+
+- **Section 7's rules hold,** with `GATE_TARGET=feature/village-followups`. The closest models for briefs are
+  `.claude/briefs/M64-review-core.md` (core) and `.claude/briefs/V19-review-game.md` (game).
+- **Every brief keeps:**
+  - correct learner lines staying clean (the line files of A);
+  - the content loop for any content edit;
+  - the learner's route;
+  - CI's case;
+  - one page of report.
+- **Until M65 lands,** a gate that fails only on one of the open fuzz families of A is rerun once after checking the seed. Record the
+  seed.
+- **After each milestone:** record it, push `feature/village-followups`, and delete the milestone branch locally. The remote deletion
+  needs the owner's leave.

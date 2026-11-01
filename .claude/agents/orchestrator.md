@@ -41,6 +41,14 @@ is a change to the boundary and updates that record.
   - Bring owner decisions (licences, scope, anything that changes D-numbers) to the owner rather than deciding them.
 
 ## Handover (2026-11-01): the village, phase B done, the owner's review next (read this first)
+**After the merge (2026-11-01):**
+- The owner merged PR #20 into `main` (`1dbb0e5`) and wants all the follow-ups done on `feature/village-followups`. That branch was
+  created from `origin/main`, pushed, and checked out in `.claude/worktrees/village`.
+- **The plan is `docs/HANDOVER_VILLAGE_PHASE_B.md` section 9:** every open failure and issue with its recommended fix, the queue, and
+  the questions to ask the owner first. Nothing in it is built yet.
+  - The queue: a QA pass, then M65 (fuzz stability), M66 and M67 (core grading), V20 (free talk), V21 to V23, M69, M68 (CI timing, if
+    needed) and V24 (documents).
+- Gate with `GATE_TARGET=feature/village-followups`.
 **The full handover is `docs/HANDOVER_VILLAGE_PHASE_B.md`** (for a fresh agent: the review of `feature/village`, the owner's decisions,
 the follow-ups and what V09 found). The owner's plan (2026-11-01): review, merge PR #20, then the follow-ups on a new branch from `main`.
 **Start here (a fresh orchestrator session)**
@@ -90,7 +98,7 @@ the follow-ups and what V09 found). The owner's plan (2026-11-01): review, merge
   - `main` merged in at `0cf674b`. It brought the CI workflow with its grammar jobs, and the QA agent.
 - **The review and its fixes** (2026-11-01): M64 (the core: a subject joined by `y`, an amount before `ser`, `cerca del`, ADR 0009's
   note) and V19 (the game: the listener's name after any greeting, the market's misses, session 8's answer set, the skip).
-- **Next:** the owner merges PR #20. The design is VILLAGE_PLAN sections 3.5 to 3.9, 4 and 5; the findings of every V milestone are in
+- **Next:** the follow-ups, `docs/HANDOVER_VILLAGE_PHASE_B.md` section 9 (PR #20 is merged). The design is VILLAGE_PLAN sections 3.5 to 3.9, 4 and 5; the findings of every V milestone are in
   `docs/game/IMPLEMENTATION_PLAN.md` section 5 (the V entries at its end). The used briefs in `.claude/briefs/` (V13 to V18, V09 phase B,
   M56 to M59, M62) are the models for any follow-up; fill their `@@…@@` placeholders from the last reports before launching.
 
