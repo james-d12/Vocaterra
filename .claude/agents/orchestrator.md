@@ -41,6 +41,8 @@ is a change to the boundary and updates that record.
   - Bring owner decisions (licences, scope, anything that changes D-numbers) to the owner rather than deciding them.
 
 ## Handover (2026-11-01): the village, phase B done, the owner's review next (read this first)
+**The full handover is `docs/HANDOVER_VILLAGE_PHASE_B.md`** (for a fresh agent: the review of `feature/village`, the owner's decisions,
+the follow-ups and what V09 found). The owner's plan (2026-11-01): review, merge PR #20, then the follow-ups on a new branch from `main`.
 **Start here (a fresh orchestrator session)**
 1. **Check the session.**
    - Run the start checks in "Start of a session" below.
