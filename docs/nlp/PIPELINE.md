@@ -188,7 +188,7 @@ fixed confidence at its edge was not.
 
 `LinguisticAnalyzer` looks every token up in the lexicon (lemma, part of speech, person, number, tense, mood, gender; an
 empty reading list means an unknown word and yields `vocab.unknown`), runs the agreement rules (subject and verb, article and
-noun, noun and adjective, quantity and noun, `ser`/`estar`, adjective position), and matches the slot grammars. A word the lexicon lacks that is
+noun, noun and adjective, quantity and noun, `ser`/`estar`, adjective position, and since M62 a predicate adjective and the copula's subject), and matches the slot grammars. A word the lexicon lacks that is
 a learner's slip of a known word is read as that word: a regularized irregular verb form (`quero`) as the verb with `conj.irregular`, and (M58) a plural
 made with the wrong ending (`pans`) as the plural noun with `noun.number`; a regularized form that is also a lexicon word (`costa`) gets the verb as a
 second reading, which the analysis keeps only where a verb is expected ([API.md](API.md), "Irregular forms, plurals and unknown words"). The grammars
@@ -240,7 +240,10 @@ on the resolved readings only. The returned tokens still list all readings, beca
    M56), past the pronouns before a verb (`¿cómo se llamas?`, M59); a preposition of elapsed time that is also a verb (`hace`) is the
    preposition only before a phrase of time (`hace dos días`) and the verb elsewhere (`¿qué hace?`, M59); the word after a preposition,
    and the complement of `ser`/`estar`, is not a finite verb (`a casa`, `la casa es grande`), except a verb after `ir a` that is nothing
-   else but an adverb, a conjunction or a preposition (`voy a como`, `va a hace`, M49 and M59); an interjection reading is the last resort (the lexicon lists `sus` and `sé` as
+   else but an adverb, a conjunction or a preposition (`voy a como`, `va a hace`, M49 and M59); M62: a colour that is also a noun right before a
+   word that can only be a noun, which it and the determiners before it agree with, is the adjective (`tres rojas manzanas`), the word after `muy`
+   or `tan` is no noun (`es muy cara`), and `son` or `era` after the noun of a phrase with a determiner and before an adjective is the copula
+   (`las manzanas son caras`); an interjection reading is the last resort (the lexicon lists `sus` and `sé` as
    interjections too). A rule fires on a word only when every reading it has is of the kind that triggers it (an article, not
    the clitic `la`), and only when a reading of its neighbour fits. `ayer`, `anoche` and `anteayer` change nothing here: a word
    after an article is a noun with or without them (`ayer compré un libro`).

@@ -51,6 +51,15 @@ public class PredicateAdjectiveTests
         Assert.Equal(expected, Described(sentence));
     }
 
+    // The attributive check gives the same two tags for the same double slip, so the predicate check matches it.
+    [Theory]
+    [InlineData("quiero tres manzanas rojo", "gender.agree|rojo|rojas;noun.number|rojo|rojas")]
+    [InlineData("las manzanas son caro", "gender.agree|caro|caras;noun.number|caro|caras")]
+    public void TheDoubleSlipGivesTheTagsOfTheAttributiveCheck(string sentence, string expected)
+    {
+        Assert.Equal(expected, Described(sentence));
+    }
+
     [Theory]
     [InlineData("la manzana es rojo", "gender.agree|rojo|roja")]
     [InlineData("el pan es grandes", "noun.number|grandes|grande")]
@@ -241,6 +250,7 @@ public class PredicateAdjectiveTests
     [InlineData("los niños somos altos")]
     [InlineData("la fiesta es pasado mañana")]
     [InlineData("la casa es mía")]
+    [InlineData("es mucho")]
     public void CorrectSentencesStayClean(string sentence)
     {
         Assert.Equal(string.Empty, Described(sentence));

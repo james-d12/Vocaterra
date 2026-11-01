@@ -106,7 +106,8 @@ All of this is additive unless it says breaking. The game compiles and passes un
   `using Vocaterra.Nlp.Es;`), which throws `NotSupportedException` for a pack that creates another implementation.
 - **`IAnalysisRules`** and **`IAgreementChecker`** (`Vocaterra.Nlp.Language.Analysis`), `AnalysisRules.For(pack)` (the pack's rules over an empty lexicon, for callers
   without a lexicon), and public `ReadingClasses` and `WordClass`. Members added since, each breaking for a host that implements `IAnalysisRules`: `IsVerbSeekingQuestionWord`
-  (M56), `IsElapsedTimePreposition` and `IsElapsedTimeNoun` (M59, the preposition of `hace dos días` and the nouns of time it takes). Breaking signatures: `ReadingClasses.IsDeterminerReading`, `IsClosedClassReading` and `IsSkippable`
+  (M56), `IsElapsedTimePreposition` and `IsElapsedTimeNoun` (M59, the preposition of `hace dos días` and the nouns of time it takes), `IsPostnominalAdjective` and
+  `IsDegreeAdverb` (M62, the colours that go after their noun and `muy`, `tan`; see "Adjectives" below). Breaking signatures: `ReadingClasses.IsDeterminerReading`, `IsClosedClassReading` and `IsSkippable`
   take the rules (they were internal in effect: only the analysis used them); `AccentRestoration.SpellingsFor(lexicon, analysis, rules)`;
   `SlotGrammarMatcher.Match(tokens, grammar, language[, rules])` (the 3-argument form still works and uses `AnalysisRules.For`).
 - **Constructors that take the interface** (source compatible, `MorphologyGenerator` is an `IMorphology`): `LinguisticAnalyzer(lexicon, IMorphology, language[, rules])`,
@@ -556,6 +557,52 @@ panes`, `el mes`, `el país`, `los lunes`).
 `vocab.unknown` is reported, with an empty `expected`, on a word the lexicon lacks that is none of these slips and that no grammar binds as a name (`hay glurps`,
 `quiero un blorf`); after a fuzzy answer match the pipeline fills `expected` with the answer's nearest word (`AnswerCorrections`). A word a grammar binds as a name
 (`[WORD]`) is neither an unknown word nor a slip, whatever its spelling (`me llamo Pans`).
+
+### Adjectives: `gender.agree`, `noun.number` and `word_order` (M62)
+
+An adjective agrees with its noun in gender and number, and a determiner with its noun: `gender.agree` and `noun.number` are reported on the word that disagrees, with
+`expected` the form that agrees (`quiero tres manzanas rojos` gives `gender.agree` `rojas`; `una casa grandes` gives `noun.number` `grande`; `quiero tres manzanas rojo`
+gives both, with `rojas`). Since M62 the same holds across a copula:
+
+- **A predicate adjective agrees with its subject:** the adjective after a finite form of `ser` or `estar`, past at most two adverbs (`muy`, `más`, `menos`, `tan`) and
+  in a comparison (`más … que`, `tan … como`), and the adjectives joined to it by `y`, `e`, `o`, `u` or `pero`. `la manzana es rojo` gives `gender.agree` `roja`, `el
+  pan es grandes` `noun.number` `grande`, `las manzanas son caro` both with `caras` (as the attributive check gives for the same double slip), `la manzana es muy caro`
+  and `la manzana es más barato que el pan` `gender.agree` (`cara`, `barata`), `la sopa está frío` `fría`, `nosotros somos alto` `noun.number` `altos`, `la manzana es
+  roja y grandes` `noun.number` `grande`. The subject is, in this order: a subject pronoun before the copula (past at most two adverbs or clitics) that no preposition
+  governs; before a copula of the third person, the noun phrase that opens its clause (the one `conj.person` agrees the verb with, "A noun phrase before its verb"
+  above; two phrases joined by `y` are plural, and masculine unless both are feminine); after a copula of the third person, a noun phrase with a determiner, or a
+  subject pronoun of the third person, right after the adjectives (`es caro la manzana` gives `cara`); otherwise the copula's own number, and no gender (`es caros`
+  gives `caro`, `somos alto` `altos`). The noun's gender decides, not its article's, so `el manzana es roja` is the article's `gender.agree` alone, and `las manzanas
+  es roja` gives `conj.person` `son` and `noun.number` `rojas` (the recast is `las manzanas son rojas`).
+- **A pronoun gives its gender when it has one:** `ella es alto` gives `alta`, `ellas son altos` `altas`, `nosotras somos altos` `altas`. `yo`, `tú`, `usted` and
+  `ustedes` have none, so only their number is checked: `yo soy alto` and `yo soy alta` are both clean, `yo soy altos` gives `alto`.
+- **A name gives no gender:** a lone name (one bare noun, `Luz es alta`) may be the person spoken to, and the core does not know a name's gender (a woman may be called
+  `Sol`), so only the copula's number is checked after it: `Luz es alta`, `Luz es alto`, `Domingo es alto` and `León es alto` are clean, `Luz es altos` gives `alto`. A
+  host that knows the person (a lesson about Luz) checks the gender itself.
+- **Clean:** `es caro` and `es muy caro` with no subject (the gender is never guessed), `los panes son más baratos que las manzanas`, `la manzana es tan cara como el
+  pan`, an adjective before a noun after the copula (`es buena gente`: a noun phrase, whose adjective agrees with its noun), a determiner adjective (`es mucho`), a
+  preposition after the copula (`la casa es de Luz`, `el pan es para Luz`), an adverb (`es lejos`, which is `ser_estar`'s), `pasado mañana`, a subject governed by a
+  preposition (`el pan de Luz es caro`: only the copula's number), and `los niños somos altos` (a phrase before a verb of the first person is no subject).
+- **Which reading is the adjective:** a word that is an adjective and also a noun (`alta`, `roja`, `cara`) after the copula is read charitably as the noun when nothing
+  else decides, as the reading resolver does everywhere, so `él es alta` is clean with no grammar. A slot grammar that binds the word as `[ADJ]` (the game's
+  `describe`) makes it the adjective (`él es alta` gives `alto` under `[PRON] [VERB:ser] [ADJ]`), and so does `muy` or `tan` before it (`el pan es muy cara` gives
+  `caro`). `son` and `era`, which are also nouns, are the copula after a noun phrase with a determiner and before an adjective (`las manzanas son caro`); elsewhere `son`
+  is the copula where a grammar binds it, as before.
+
+`word_order` is reported on an adjective that goes after its noun put before it, with the span on the adjective and the noun, `expected` the two in Spanish order and
+`actual` as said (`quiero una azul espada` gives `espada azul`). The adjectives that go before the noun are not reported: `grande` (`una gran casa`), `bueno` (`un
+buen pan`), `malo`, the determiner adjectives (`muchas manzanas`, `otra casa`, `mi casa`) and `próximo` before a noun of time (`la próxima semana`); a word that is
+also a noun is read as the noun (`la primera casa`). Since M62 **a colour that is also a noun** (`roja`, `rojas`, `blanca`, `negra`, `rosa`, `gris`) right before a
+word that can only be a noun is the adjective put before it, when the two would agree and so would the determiners before them: `quiero tres rojas manzanas` gives
+`manzanas rojas` and `quiero una roja manzana` `manzana roja`, as `rojo` and `azul`, which are only adjectives, always did. A list read without its commas is not an
+order slip (`quiero una rosa, pan y agua`: `una` is not `pan`'s), and `una rosa roja` is clean. The colours are a short list of the Spanish pack
+(`IAnalysisRules.IsPostnominalAdjective`).
+
+**The intent with `word_order`:** the analysis reports the order whatever the intent, and a slot grammar matches words in its own order, so an utterance with the
+adjective before the noun resolves an intent only where a grammar of the prompt has a place for it there. The game's `request_item`
+(`[VERB:querer] [ART]? [NUM:qty]? [NOUN:item] [ADJ]?`) has none, so `quiero tres rojas manzanas` at the farmer's prompt is not understood (`intent` `unknown`) and
+gives `word_order` all the same; a bundle that wants the learner understood with the slip adds `[ADJ]?` before `[NOUN:item]`, and the match then binds `qty` and
+`item` and the analysis still reports `word_order` (before M62 such a grammar bound `rojas` as the noun and reported nothing).
 
 ### Carry the context to the next utterance
 

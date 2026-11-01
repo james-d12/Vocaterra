@@ -119,6 +119,12 @@ code comments and here, with the reason:
     quantity; the verb follows the noun directly; and the new form has no reading but that verb in that tense. It never mutates the verb after a lone name (`domingo hace
     un hacha`), which the analyzer leaves unchecked because the name may be the person spoken to, and it never makes a verb of the first or second person, which the
     analyzer does not check after a noun phrase. The oracles as they stood before M59 are unchanged.
+  - *O4 and O5, `gender.agree` on a predicate adjective (M62, a widening).* The gender mutation of an adjective also flips an adjective after `ser` or `estar` whose
+    copula has a subject pronoun of a known gender before it (`ella es alta` becomes `ella es alto`, expected `alta`), which the analyzer agrees with the pronoun since
+    M62. It is made only where that reading is certain: the copula is a generated finite `ser` or `estar` at most two skippable words before the adjective, its subject
+    pronoun (the one the person check pairs with it, not behind a word that can be a preposition) at most two before the copula, and the new form an adjective of the
+    other gender and nothing else, as for an attributive adjective. `PredicateAdjectiveMutationTests` shows that the draw reaches it. The oracles as they stood before
+    M62 are unchanged.
 - **O8.** The dialect sites are `θ s z h ʎ ʝ ʃ ʒ` (the plan lists `θ s ʎ ʝ h`; the shipped dialects also produce the voiced `z` and the rioplatense `ʃ ʒ`).
   `Tokenize(ToIpaString())` is exact except for the pair `t` + `ʃ`, whose concatenation is the affricate token `tʃ` (the inventory documents that
   sequences are lists for this reason); a result with that pair skips the split.
@@ -302,6 +308,16 @@ read again: a sentence whose generated words make or unmake a marker with the li
 is drawn again (`skip:time-marker-of-generated-words`; none in a run of 20 000). `PipelineHarness.FixtureGrammars` gained two patterns that carry these markers around a verb
 and its object, in the shape of the game's `state_action` rows (one mixes past and future markers as those rows do), so the oracles cover them before the bundle has them;
 O3 on them also finds the `pasado mañana` bug below. The sentence stream digest of `FuzzLanguageStreamTests` was recorded again for these changes.
+
+M62 made the analyzer agree an adjective after `ser` or `estar` with the copula's subject (a subject pronoun before it; else a noun phrase that opens its clause before
+a copula of the third person, or a noun phrase with a determiner or a subject pronoun right after the adjectives; else the copula's own number), and read a colour that
+is also a noun (`negras`, `rosa`, `gris`) as the adjective right before a noun it agrees with. The realiser agrees a predicate adjective, and the adjectives joined to it by
+`y`, `e`, `o`, `u` or `pero`, with every candidate at once (the pronoun alone when there is one; otherwise the phrase before the copula unless it is a lone name, the
+phrase after the adjectives and the copula's number), since whether a phrase opens its clause is not modelled; candidates that disagree skip the draw
+(`skip:predicate-subject`; none in the runs made for M62). It re-rolls a word that is a colour and a noun right before a word that can only be a noun
+(`skip:colour-before-noun`, broader than the analyzer's rule, which also asks the phrase to agree; seed `f8C3x9UYGMz6` built `las 25 negras enterados despejados`
+before it). The colours are read from the Spanish pack's public rules (`IAnalysisRules.IsPostnominalAdjective`), not mirrored. The sentence stream digest of
+`FuzzLanguageStreamTests` was recorded again for these changes.
 
 A name (M17b) has no reading the checks use: the realiser treats it like an unknown word, so it breaks every phrase and every subject-verb link around it, and
 the analyzer does the same (a bound name keeps no reading at all). `CorrectSentenceFuzzTests` and `SerializationRoundTripFuzzTests` (`NameSentences_SurviveCanonicalJson`)
@@ -522,6 +538,14 @@ Found and fixed in M59:
   regression tests: on the bundle's lexicon `la semana pasada` was no past marker (`compro pan la semana pasada` gave nothing), because `pasada` is also a noun and the
   resolver's charitable fallback chose that reading to hide the slip; a form of `pasado` after a time noun is matched as written now. Regression:
   `NearFutureTenseTests.PasadoManana...` in `tests/Vocaterra.Nlp.Es.Tests/Analysis`.
+
+Found and fixed in M62:
+
+- **The first build of M62 read a list of nouns without its commas as a colour before its noun** (`Vocaterra.Nlp`, `ReadingResolver`; found by the Spanish identity
+  baseline, not the fuzz suite: `fuzz-correct-0918`, `DoRaDo, bIbLiAs, aCtUaCiOnEs, uNoS`, gave `word_order` and agreement errors on `dorado biblias`). The normalizer
+  drops commas, so `una rosa, pan y agua` reads as `una rosa pan y agua`. A colour that is also a noun is now the adjective before a noun only where it and the
+  determiners before it agree with that noun. Regression: `PrenominalAdjectiveTests.AListOfNounsIsNoSlipOfOrder` in `tests/Vocaterra.Nlp.Es.Tests/Analysis`. The fuzz
+  suite found no new bug at M62; its two first runs failed only where the realiser had not yet learned the new rules (O3's digest, and O5 on seed `f8C3x9UYGMz6`).
 
 ## Known, deliberately not fixed
 
