@@ -1,3 +1,4 @@
+using System.Globalization;
 using CsCheck;
 using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Core.Verdicts;
@@ -18,10 +19,29 @@ public sealed class CorrectSentenceFuzzTests(ITestOutputHelper output)
 {
     private const string Oracle = "O3";
 
-    // Below this many iterations the chance that a particular catalog grammar is drawn is too small to assert coverage.
+    // Below this many iterations the shares of the homographs are too noisy to assert, and an accent is too rarely dropped.
     private const int MinimumIterationsForCoverage = 1000;
 
+    // The fixed recipes the coverage pass (M71) gives each catalog grammar the random sample left out. Every grammar of content/game-v1 gave a sentence from at least
+    // 90 % of its recipes when M71 measured it (README, "Bounds the suite needs"), so the first of these nearly always does, and a grammar none of them realises is
+    // one the realiser cannot.
+    private const int TargetedRecipes = 50;
+
     private static readonly PipelineHarness Harness = PipelineHarness.Shared;
+
+    // The realiser seeds and the noise of the coverage pass: drawn once from the generators O3 samples, one case per fixed seed (CsCheck seeds only the first case of a
+    // run, as SkipBudgetTests and FuzzLanguageStreamTests note), so the pass is the same on every run.
+    private static readonly Lazy<IReadOnlyList<(ulong Seed, TextNoise Noise)>> TargetedInputs = new(static () =>
+    {
+        var inputs = new List<(ulong Seed, TextNoise Noise)>(TargetedRecipes);
+        var gen = Gen.Select(Gen.ULong, SentenceGen.SafeNoise, static (seed, noise) => (seed, noise));
+        for (var i = 0; i < TargetedRecipes; i++)
+        {
+            gen.Sample(inputs.Add, iter: 1, threads: 1, seed: "M71T" + i.ToString("D8", CultureInfo.InvariantCulture));
+        }
+
+        return inputs;
+    });
 
     [Fact]
     public void CorrectSentences_AnalyzeClean_MatchTheirGrammar_AndYieldTheirSlots()
@@ -33,52 +53,8 @@ public sealed class CorrectSentenceFuzzTests(ITestOutputHelper output)
         gen.Sample(
             ((SentenceRecipe Recipe, TextNoise Noise) input) =>
             {
-                var sentence = SentenceGen.Realize(Harness, input.Recipe, diagnostics: diagnostics);
-                if (sentence is null)
-                {
-                    return;
-                }
-
-                var grammar = SlotGrammarType.Parse(input.Recipe.Pattern.Render());
-                var noisy = input.Noise.Apply(sentence.Text);
-                var normalized = PipelineHarness.Normalize(noisy);
-                var analysis = Harness.Analyzer.Analyze(normalized, [grammar]);
-                var context = $"{sentence.Describe()} noisy=\"{noisy}\" seed={input.Recipe.Seed}";
-
-                var errors = analysis.Errors.Where(static e => !ErrorTags.IsPronunciation(e.Tag)).ToArray();
-                if (errors.Length > 0)
-                {
-                    throw Determinism.Fail(Oracle, $"A correct sentence produced grammar errors: {string.Join("; ", errors.Select(Describe))}.", context);
-                }
-
-                if (!string.Equals(normalized.Text, sentence.NormalizedText, StringComparison.Ordinal))
-                {
-                    throw Determinism.Fail(Oracle, $"Noise changed the normalized text: '{normalized.Text}' instead of '{sentence.NormalizedText}'.", context);
-                }
-
-                if (!string.Equals(analysis.MatchedGrammarId, grammar.Id, StringComparison.Ordinal))
-                {
-                    throw Determinism.Fail(Oracle, $"The sentence did not match its own grammar; matched '{analysis.MatchedGrammarId ?? "(none)"}'.", context);
-                }
-
-                var slots = new Dictionary<string, string>(StringComparer.Ordinal);
-                foreach (var slot in analysis.Slots)
-                {
-                    slots.TryAdd(slot.Name, slot.Value);
-                }
-
-                if (!SlotsAgree(slots, sentence, input.Recipe.Pattern.HasAmbiguousSlots(Harness.Words.PatternClassesOf) || HomographCompetes(input.Recipe.Pattern, sentence)))
-                {
-                    throw Determinism.Fail(
-                        Oracle,
-                        $"Slot values differ. Expected {{{string.Join(", ", sentence.ExpectedSlots.Select(p => $"{p.Key}={p.Value}"))}}} but got {{{string.Join(", ", slots.Select(p => $"{p.Key}={p.Value}"))}}}.",
-                        context);
-                }
-
-                if (analysis.Confidence != 1.0)
-                {
-                    throw Determinism.Fail(Oracle, $"Confidence is {analysis.Confidence}, but every word of the sentence is in the lexicon.", context);
-                }
+                // A statement, not a predicate: a recipe the realiser skips is counted, not failed.
+                _ = CheckRecipe(input.Recipe, input.Noise, diagnostics, string.Empty);
             },
             writeLine: output.WriteLine,
             iter: iterations,
@@ -111,13 +87,125 @@ public sealed class CorrectSentenceFuzzTests(ITestOutputHelper output)
         // Every grammar word must be in the lexicon: a catalog grammar with an unknown literal (the old `cuál` gap) would be skipped here, and the
         // utterance a learner says for it would be reported as vocab.unknown.
         Assert.True(diagnostics.Sum("skip:unknown-literal") == 0, $"A literal word of a catalog or generated grammar is missing from the lexicon.\n{diagnostics.Report()}");
-        if (iterations >= MinimumIterationsForCoverage)
+
+        // Every grammar of the catalog is realised at least once, through the checks above (M71). The sample draws a catalog grammar in two recipes of five, about seven
+        // recipes for each grammar of content/game-v1 at the default depth (110 grammars at M71), and left one of them out in about one run in thirteen; so each grammar
+        // it left out is realised from fixed recipes, and only one that none of them realises fails, with its rejections listed. The counts and assertions above are
+        // those of the sample alone.
+        var coverage = new FuzzDiagnostics();
+        var unrealised = RealiseWhatTheSampleLeftOut(Harness.Grammars.Grammars.Select(static g => g.Pattern), diagnostics, coverage);
+        output.WriteLine("Coverage pass:\n" + coverage.Report());
+        Assert.True(unrealised.Count == 0, $"A catalog grammar was never realised:\n  {string.Join("\n  ", unrealised)}\n{diagnostics.Report()}");
+    }
+
+    /// <summary>
+    /// The coverage pass of O3 can fail (M71): a grammar the realiser cannot realise from any recipe (here one with a literal the lexicon lacks) is reported with the
+    /// reasons of its rejections, a grammar it can realise is not, and a grammar the sample already realised is not given the pass.
+    /// </summary>
+    [Fact]
+    public void TheCoveragePass_ReportsOnlyAGrammarTheRealiserCannotRealise()
+    {
+        var sample = new FuzzDiagnostics();
+        var realisedBefore = GrammarPattern.Parse("[VERB:comer] [ART] [NOUN:item]");
+        sample.Count("catalog:" + realisedBefore.Render());
+        var patterns = new[] { realisedBefore, GrammarPattern.Parse("muchas gracias"), GrammarPattern.Parse("zqxjv [NOUN:item]") };
+        var coverage = new FuzzDiagnostics();
+
+        var unrealised = RealiseWhatTheSampleLeftOut(patterns, sample, coverage);
+
+        var gap = Assert.Single(unrealised);
+        Assert.StartsWith("'zqxjv [NOUN:item]': no sentence from the sample nor from " + TargetedRecipes.ToString(CultureInfo.InvariantCulture) + " fixed recipes", gap, StringComparison.Ordinal);
+        Assert.Contains("skip:unknown-literal:zqxjv = " + TargetedRecipes.ToString(CultureInfo.InvariantCulture), gap, StringComparison.Ordinal);
+        Assert.Equal(2, coverage.Get("coverage:grammars-the-sample-left-out"));
+        Assert.Equal(1, coverage.Get("coverage:recipes-to-realise:muchas gracias"));
+    }
+
+    // The coverage pass (M71): each pattern the sample did not realise (no catalog: count in it) is realised from the fixed recipes of TargetedInputs, one after another
+    // until one gives a sentence, which goes through the same checks as the sample's. Returns one line for each pattern that no recipe realised, with its rejections.
+    private static List<string> RealiseWhatTheSampleLeftOut(IEnumerable<GrammarPattern> patterns, FuzzDiagnostics sample, FuzzDiagnostics coverage)
+    {
+        var unrealised = new List<string>();
+        foreach (var pattern in patterns)
         {
-            foreach (var grammar in Harness.Grammars.Grammars)
+            var rendered = pattern.Render();
+            if (sample.Get("catalog:" + rendered) > 0)
             {
-                Assert.True(diagnostics.Get("catalog:" + grammar.Pattern.Render()) > 0, $"The catalog grammar '{grammar.Pattern.Render()}' was never realised.\n{diagnostics.Report()}");
+                continue;
+            }
+
+            var own = new FuzzDiagnostics();
+            var recipes = 0;
+            while (recipes < TargetedRecipes && own.Get("catalog:" + rendered) == 0)
+            {
+                var (seed, noise) = TargetedInputs.Value[recipes++];
+                _ = CheckRecipe(new SentenceRecipe("catalog", pattern, seed), noise, own, $" coverage-pass-recipe={recipes}");
+            }
+
+            coverage.Count("coverage:grammars-the-sample-left-out");
+            coverage.Add("coverage:recipes-to-realise:" + rendered, recipes);
+            if (own.Get("catalog:" + rendered) == 0)
+            {
+                var rejections = own.Report().Split('\n', StringSplitOptions.RemoveEmptyEntries).Select(static line => line.Trim())
+                    .Where(static line => line.StartsWith(FuzzDiagnostics.RejectedPrefix, StringComparison.Ordinal) || line.StartsWith("skip:", StringComparison.Ordinal));
+                unrealised.Add($"'{rendered}': no sentence from the sample nor from {recipes} fixed recipes; {string.Join(", ", rejections)}");
             }
         }
+
+        return unrealised;
+    }
+
+    // Realises a recipe and checks the sentence: it analyzes clean, also under noise the normalizer removes, matches its own grammar and yields its slot values. Returns
+    // false when the realiser gave no sentence (counted in the diagnostics). The origin names the coverage pass in a failure's context.
+    private static bool CheckRecipe(SentenceRecipe recipe, TextNoise noise, FuzzDiagnostics diagnostics, string origin)
+    {
+        var sentence = SentenceGen.Realize(Harness, recipe, diagnostics: diagnostics);
+        if (sentence is null)
+        {
+            return false;
+        }
+
+        var grammar = SlotGrammarType.Parse(recipe.Pattern.Render());
+        var noisy = noise.Apply(sentence.Text);
+        var normalized = PipelineHarness.Normalize(noisy);
+        var analysis = Harness.Analyzer.Analyze(normalized, [grammar]);
+        var context = $"{sentence.Describe()} noisy=\"{noisy}\" seed={recipe.Seed}{origin}";
+
+        var errors = analysis.Errors.Where(static e => !ErrorTags.IsPronunciation(e.Tag)).ToArray();
+        if (errors.Length > 0)
+        {
+            throw Determinism.Fail(Oracle, $"A correct sentence produced grammar errors: {string.Join("; ", errors.Select(Describe))}.", context);
+        }
+
+        if (!string.Equals(normalized.Text, sentence.NormalizedText, StringComparison.Ordinal))
+        {
+            throw Determinism.Fail(Oracle, $"Noise changed the normalized text: '{normalized.Text}' instead of '{sentence.NormalizedText}'.", context);
+        }
+
+        if (!string.Equals(analysis.MatchedGrammarId, grammar.Id, StringComparison.Ordinal))
+        {
+            throw Determinism.Fail(Oracle, $"The sentence did not match its own grammar; matched '{analysis.MatchedGrammarId ?? "(none)"}'.", context);
+        }
+
+        var slots = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var slot in analysis.Slots)
+        {
+            slots.TryAdd(slot.Name, slot.Value);
+        }
+
+        if (!SlotsAgree(slots, sentence, recipe.Pattern.HasAmbiguousSlots(Harness.Words.PatternClassesOf) || HomographCompetes(recipe.Pattern, sentence)))
+        {
+            throw Determinism.Fail(
+                Oracle,
+                $"Slot values differ. Expected {{{string.Join(", ", sentence.ExpectedSlots.Select(p => $"{p.Key}={p.Value}"))}}} but got {{{string.Join(", ", slots.Select(p => $"{p.Key}={p.Value}"))}}}.",
+                context);
+        }
+
+        if (analysis.Confidence != 1.0)
+        {
+            throw Determinism.Fail(Oracle, $"Confidence is {analysis.Confidence}, but every word of the sentence is in the lexicon.", context);
+        }
+
+        return true;
     }
 
     /// <summary>
