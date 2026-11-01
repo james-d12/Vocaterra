@@ -232,9 +232,9 @@ public sealed class BookLayer : IFrameLayer
         var session = view.Session;
         return page switch
         {
-            BookPage.Nouns => session.Locale.Ui("bookKnownNouns", ("known", session.Words.Catalogue.Nouns.Count(noun => session.Words.RecordOf(noun.Lemma).Known).ToString(CultureInfo.InvariantCulture)), ("count", session.Words.Catalogue.Nouns.Count.ToString(CultureInfo.InvariantCulture)), ("session", session.PlaySession.ToString(CultureInfo.InvariantCulture))),
-            BookPage.Phrases => session.Locale.Ui("bookWithoutHelp", ("count", PhraseWithoutHelp(view).ToString(CultureInfo.InvariantCulture)), ("session", session.PlaySession.ToString(CultureInfo.InvariantCulture))),
-            _ => session.Locale.Ui("bookSession", ("session", session.PlaySession.ToString(CultureInfo.InvariantCulture))),
+            BookPage.Nouns => session.Locale.Ui("bookKnownNouns", ("known", session.Words.Catalogue.Nouns.Count(noun => session.Words.RecordOf(noun.Lemma).Known).ToString(CultureInfo.InvariantCulture)), ("count", session.Words.Catalogue.Nouns.Count.ToString(CultureInfo.InvariantCulture)), ("session", session.Day.ToString(CultureInfo.InvariantCulture))),
+            BookPage.Phrases => session.Locale.Ui("bookWithoutHelp", ("count", PhraseWithoutHelp(view).ToString(CultureInfo.InvariantCulture)), ("session", session.Day.ToString(CultureInfo.InvariantCulture))),
+            _ => session.Locale.Ui("bookSession", ("session", session.Day.ToString(CultureInfo.InvariantCulture))),
         };
     }
 

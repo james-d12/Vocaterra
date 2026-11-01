@@ -245,8 +245,17 @@ public abstract partial class GuideSession : IDisposable
     /// <summary>What the guide says to start a review: the word review's question, or the request line of the phrase review; <see langword="null"/> when none is open.</summary>
     public string? ReviewLine => Review?.Question ?? PhraseReview?.Request;
 
-    /// <summary>The number of this play session; setting it sets the words' and the phrases' (the saves of S10 bump it on each load, which lifts the spacing gaps).</summary>
-    public int PlaySession
+    /// <summary>
+    /// The day of the village (V12c, V25): the session that lessons, objectives, orders, unlocks and the check battery follow. A save keeps it as it is and a load puts it
+    /// back; only a sleep at the player's fire (or the test aids <c>--sleep</c> and <c>--skip-to-session</c>) moves it.
+    /// </summary>
+    public int Day { get; set; } = 1;
+
+    /// <summary>
+    /// The sitting (V25): the play session of the phrase-credit spacing rule, which a launch, a load and a sleep each begin (S10). Setting it sets the words' and the phrases'
+    /// session, so a use in a new sitting bypasses the spacing gap. A save keeps it; a save from before V25 continues from its day.
+    /// </summary>
+    public int Sitting
     {
         get => Words.Session;
         set
@@ -1092,7 +1101,7 @@ public abstract partial class GuideSession : IDisposable
             // A check answer (S11) is a line the learner gave too (S19). It changes nothing else: the battery grades it; the world and the progress do not move.
             Learner.Append(new InputEntry(
                 Learner.NextId,
-                PlaySession,
+                Day,
                 outcome.Request.Now.UnixSeconds,
                 SourceOf(grade.Input),
                 grade.Transcript,
@@ -1117,7 +1126,7 @@ public abstract partial class GuideSession : IDisposable
         var unit = Lessons.UnitFor(turn.Npc);
         Learner.Append(new InputEntry(
             Learner.NextId,
-            PlaySession,
+            Day,
             storedTime,
             SourceOf(turn.Input),
             turn.Line,

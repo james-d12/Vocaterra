@@ -287,7 +287,7 @@ public sealed class VoxelDebugOverlay : IFrameLayer
             return; // on a narrow or short canvas the developer's overlay gives way to the interface and the conversation (X08)
         }
 
-        var lines = VoxelDebugText.Lines(view.Fps, sim, view.Seed, view.Look.Yaw, view.Look.Pitch, view.Session.PlaySession);
+        var lines = VoxelDebugText.Lines(view.Fps, sim, view.Seed, view.Look.Yaw, view.Look.Pitch, view.Session.Day);
         var font = view.Fonts.Get(FontProvider.NativeSize);
         var width = 0;
         foreach (var line in lines)

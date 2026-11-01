@@ -43,7 +43,7 @@ public sealed class SessionSkipTests
     {
         var session = SkippedTo(target);
 
-        Assert.Equal(target, session.PlaySession);
+        Assert.Equal(target, session.Day);
         Assert.Equal(target, session.SkippedTo);
         Assert.Equal(lesson, session.Lessons.NewLesson?.Id);
         Assert.Equal(session.Lessons.Book.Find(lesson)!.Objective, Hud(session)); // its own line, as after a load (S26)
@@ -226,7 +226,7 @@ public sealed class SessionSkipTests
 
         var loaded = SaveGame.Load(text, TestGame.Data, static seed => TestGame.Route(seed));
         Assert.Equal(4, loaded.SkippedTo);
-        Assert.Equal(5, loaded.PlaySession);
+        Assert.Equal(4, loaded.Day); // the day as saved (V25)
 
         Assert.DoesNotContain("skippedTo", SaveGame.Save(TestGame.NewSessionWithShippedLessons(), TestGame.Route()), StringComparison.Ordinal);
     }

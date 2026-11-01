@@ -35,7 +35,8 @@ public sealed class MarketLessonTests(ITestOutputHelper output)
         var session = TomorrowLessonTests.AtStep("(after the last step)"); // no step has this id: Mañana en el pueblo runs to its end
         Assert.Equal(LessonStatus.Completed, session.Lessons.StatusOf("manana-en-el-pueblo"));
         session.EndTalk();
-        session.PlaySession = 10;
+        session.Day = 10;
+        session.Sitting = 10;
         Stage.TeleportToNpc(session, "baker");
         _ = session.OpenTalk("baker");
         return session;
@@ -234,11 +235,12 @@ public sealed class MarketLessonTests(ITestOutputHelper output)
     {
         var early = TomorrowLessonTests.AtStep("(after the last step)");
         early.EndTalk();
-        Assert.Equal(9, early.PlaySession);
+        Assert.Equal(9, early.Day);
         Assert.NotEqual(LessonId, early.Lessons.OfferFor("baker")?.LessonId); // Mañana en el pueblo done, but it is still session 9
 
         var skipped = TestGame.NewSessionWithShippedLessons();
-        skipped.PlaySession = 10; // session 10 reached without session 9's lesson: El mercado waits for it (after)
+        skipped.Day = 10; // session 10 reached without session 9's lesson: El mercado waits for it (after)
+        skipped.Sitting = 10;
         Assert.NotEqual(LessonId, skipped.Lessons.OfferFor("baker")?.LessonId);
 
         var session = SessionTenAtBakery();

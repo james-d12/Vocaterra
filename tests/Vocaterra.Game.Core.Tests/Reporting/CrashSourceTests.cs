@@ -25,7 +25,7 @@ public sealed class CrashSourceTests : IDisposable
     {
         var (crash, session, _) = Make();
         var state = crash.State();
-        Assert.Equal(session.PlaySession, state.Session);
+        Assert.Equal(session.Day, state.Session);
         Assert.Equal(0L, state.Tick);
         Assert.Equal(
             ["Bundle", "Locale", "Seed", "Position", "Objective", "Lesson", "Dialogue open", "Open panel", "Turns on the worker", "Last autosave tick"],

@@ -27,7 +27,8 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
     private static VoxelSession SessionThreeAtVillager()
     {
         var session = TestGame.NewSessionWithShippedLessons();
-        session.PlaySession = 3;
+        session.Day = 3;
+        session.Sitting = 3;
         Stage.TeleportToNpc(session, "villager");
         _ = session.OpenTalk("villager");
         return session;
@@ -134,7 +135,8 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
     public void SessionThreeUnlocksTheLessonFirstAndTheObjectiveNamesItWhileSessionTwosLessonStaysOnOffer()
     {
         var session = TestGame.NewSessionWithShippedLessons();
-        session.PlaySession = 3;
+        session.Day = 3;
+        session.Sitting = 3;
 
         Assert.Equal(LessonId, session.Lessons.OfferFor("villager")!.LessonId); // the newest session's lesson first, even when session 2's is not done
         Assert.Equal(LessonId, session.Lessons.NewLesson!.Id);
@@ -173,7 +175,8 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
     public void TheLessonIsNotOfferedBeforeSessionThree()
     {
         var session = TestGame.NewSessionWithShippedLessons();
-        session.PlaySession = 2;
+        session.Day = 2;
+        session.Sitting = 2;
         CompletePersonasSilently(session);
 
         Assert.Null(session.Lessons.OfferFor("villager"));
@@ -556,13 +559,17 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
     public void ALoadIntoSessionThreeUnlocksTheLessonAndTheSaveKeepsItsProgress()
     {
         var session = TestGame.NewSessionWithShippedLessons();
-        session.PlaySession = 2;
+        session.Day = 2;
+        session.Sitting = 2;
         CompletePersonasSilently(session);
+        session.Day = 3; // the sleep at the fire (V25: a load keeps the day, only a sleep moves it)
+        session.Sitting = 3;
+        session.BeginPlaySession();
         var text = SaveGame.Save(session, TestGame.Route());
 
         var loaded = SaveGame.Load(text, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped);
 
-        Assert.Equal(3, loaded.PlaySession);
+        Assert.Equal(3, loaded.Day);
         Assert.Equal(LessonId, loaded.Lessons.NewLesson!.Id);
         Assert.NotNull(loaded.Pointer); // the beacon points at the villager
 

@@ -233,7 +233,7 @@ teachKeyWords: true)` shows the key words `agua` and `pan` first (`KeyWordCards`
 question after `KeyWordTicks`; `TakeOpening()` returns it. The guide's due review (`BeginTalk`) asks a due phrase first (`PhraseReview`,
 `PhraseReviews`): the line is the bundle's pool `guide.review.phrase.<id with underscores>` when it exists, else a placeholder from an existing pool
 (the stall's own question for `pedir-agua`); the answer is evaluated on the phrase's own prompt (`GuideScene.PromptOverride`). What a save must keep
-(S10): the `PhraseRecord`s (`PhraseProgress.Records`, `Restore`), `PlaySession`, the carded nouns and the key-words-taught flag, and the NPCs'
+(S10): the `PhraseRecord`s (`PhraseProgress.Records`, `Restore`), `Day` and `Sitting`, the carded nouns and the key-words-taught flag, and the NPCs'
 learner models (`phrase.*` skills).
 
 ## English and the lessons (S16, D-game-13)

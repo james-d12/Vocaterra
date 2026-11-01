@@ -212,7 +212,8 @@ public sealed class LessonFrontendTests
     {
         var shipped = TestGame.Data.Lessons;
         using var run = new Harness([new(ScriptStepKind.LessonRun, Value: "personas")], shipped);
-        run.Session.PlaySession = 2; // the lesson of the second session
+        run.Session.Day = 2; // the lesson of the second session
+        run.Session.Sitting = 2;
 
         run.Go(120000);
 
@@ -234,7 +235,8 @@ public sealed class LessonFrontendTests
         // closing it did nothing, and the run walked back to the baker and asked again for ever.
         var shipped = TestGame.Data.Lessons;
         using var run = new Harness([new(ScriptStepKind.LessonRun, Value: "numeros-y-pan")], shipped);
-        run.Session.PlaySession = 5;
+        run.Session.Day = 5;
+        run.Session.Sitting = 5;
 
         run.Go(120000);
 
@@ -254,7 +256,8 @@ public sealed class LessonFrontendTests
         // it typed "Es el herrero" at the shopkeeper for ever, where the line is not the lesson's.
         var shipped = TestGame.Data.Lessons;
         using var run = new Harness([new(ScriptStepKind.LessonRun, Value: "numeros-y-pan"), new(ScriptStepKind.LessonRun, Value: "gente-del-pueblo")], shipped);
-        run.Session.PlaySession = 6;
+        run.Session.Day = 6;
+        run.Session.Sitting = 6;
 
         run.Go(240000);
 

@@ -33,7 +33,7 @@ public static class SessionStart
     /// <param name="console">Where the start's lines go.</param>
     public static SessionStarted Open(LaunchOptions options, VoxelSession session, bool micCheck, ToastQueue toasts, PlaytestFlow playtest, SaveService saves, Action<AppliedTurn> applied, Action<string> console)
     {
-        var directory = options.SessionDir ?? SessionLog.DefaultDirectory(WallClock.LocalNow, session.PlaySession);
+        var directory = options.SessionDir ?? SessionLog.DefaultDirectory(WallClock.LocalNow, session.Sitting);
         var log = SessionLog.Open(directory, static () => WallClock.Now);
         Begin(log, options, session, micCheck);
         console($"session log: {directory} ({SessionLog.SessionFileName}, {SessionLog.ReplayFileName})");
@@ -84,6 +84,6 @@ public static class SessionStart
             Check: check && options.Check is { } kind ? CheckKinds.Of(kind) : null,
             Scripted: options.IsScreenshotRun,
             Playtest: options.Playtest);
-        log.SessionStart(session.PlaySession, session.WorldSeed, session.Bundle.ContentHash, session.StoredTime.UnixSeconds, profile, session.Locale.Code, session.Locale.BundleHash, session.SkippedTo);
+        log.SessionStart(session.Sitting, session.WorldSeed, session.Bundle.ContentHash, session.StoredTime.UnixSeconds, profile, session.Locale.Code, session.Locale.BundleHash, session.SkippedTo, session.Day);
     }
 }

@@ -71,7 +71,7 @@ public sealed class NextSessionTests
 
         Sleep(session);
 
-        Assert.Equal(2, session.PlaySession);
+        Assert.Equal(2, session.Day);
         Assert.Equal("Session 2: go to the village and talk to the villager to start the lesson “Personas”", Hud(session));
         Assert.Equal("villager", session.Pointer?.Point);
         Assert.Equal("Good morning: session 2 begins", SleepOffer.MorningText(session));
@@ -160,7 +160,7 @@ public sealed class NextSessionTests
         Assert.True(SleepOffer.AtFire(session, free: true));
 
         Sleep(session);
-        Assert.Equal(8, session.PlaySession);
+        Assert.Equal(8, session.Day);
         Assert.StartsWith("Every lesson so far is done", Hud(session), StringComparison.Ordinal);
     }
 
@@ -175,7 +175,7 @@ public sealed class NextSessionTests
 
         Sleep(session); // session 3 opens no new lesson: its work is done already
 
-        Assert.Equal(3, session.PlaySession);
+        Assert.Equal(3, session.Day);
         Assert.Null(session.Lessons.NewLesson);
         Assert.Equal(4, session.NextLessonSession); // El pueblo opens in session 4 (after Ayer y mañana, done)
         Assert.Equal("Session complete: sleep at your fire to start session 4", Hud(session));

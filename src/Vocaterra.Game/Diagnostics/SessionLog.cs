@@ -119,15 +119,21 @@ public sealed class SessionLog : IDisposable, ICheckLog
     /// <param name="profile">The profile flags.</param>
     /// <param name="locale">The support-language locale (<c>en</c>; CONTENT_PLAN C03), or <see langword="null"/> to leave it out.</param>
     /// <param name="localeBundle">The locale bundle's hash, so a playtest can be reproduced (the locale is outside the game bundle's hash).</param>
+    /// <param name="day">The day of the village (V25), written as <c>day</c>; <see langword="null"/>, and left out, when not given. <c>session</c> is the sitting.</param>
     /// <param name="skippedTo">The play session a test run was skipped to (<c>--skip-to-session</c>, V12c), written as <c>skipped_to</c>; <see langword="null"/>, and left out, for a learner's own game.</param>
     /// <remarks>A run that sleeps at the player's fire writes a second start for the next play session (V12c); its <c>session_end</c> counts the wall time from its own start.</remarks>
-    public void SessionStart(int session, ulong seed, string bundleHash, long storedTime, SessionProfile profile, string? locale = null, string? localeBundle = null, int? skippedTo = null)
+    public void SessionStart(int session, ulong seed, string bundleHash, long storedTime, SessionProfile profile, string? locale = null, string? localeBundle = null, int? skippedTo = null, int? day = null)
     {
         ArgumentNullException.ThrowIfNull(profile);
         _started = _clock();
         WriteLine(Json("session_start", w =>
         {
             w.WriteNumber("session", session);
+            if (day is { } villageDay)
+            {
+                w.WriteNumber("day", villageDay);
+            }
+
             if (skippedTo is { } skipped)
             {
                 w.WriteNumber("skipped_to", skipped);
@@ -405,7 +411,7 @@ public sealed class SessionLog : IDisposable, ICheckLog
         {
             w.WriteNumber("tick", tick);
             w.WriteNumber("stored_time", session.StoredTime.UnixSeconds);
-            w.WriteNumber("session", session.PlaySession);
+            w.WriteNumber("session", session.Sitting);
             w.WriteNumber("wall_seconds", Math.Round((now - _started).TotalSeconds, 1, MidpointRounding.AwayFromZero));
             w.WriteBoolean("objective_complete", session.Objective.Complete);
             if (completedAt is { } complete)

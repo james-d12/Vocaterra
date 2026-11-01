@@ -25,7 +25,8 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
         var session = VillageLessonTests.AtStep("(after the last step)"); // no step has this id: El pueblo runs to its end
         Assert.Equal(LessonStatus.Completed, session.Lessons.StatusOf("el-pueblo"));
         session.EndTalk();
-        session.PlaySession = 5;
+        session.Day = 5;
+        session.Sitting = 5;
         if (wood > 0)
         {
             Assert.Equal(0, session.Simulation.GrantItems(ItemId.Wood, wood));
@@ -169,11 +170,13 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
     public void TheLessonIsNotOfferedBeforeElPuebloIsDoneNorBeforeSessionFive()
     {
         var early = TestGame.NewSessionWithShippedLessons();
-        early.PlaySession = 4;
+        early.Day = 4;
+        early.Sitting = 4;
         Assert.Null(early.Lessons.OfferFor("baker"));
 
         var skipped = TestGame.NewSessionWithShippedLessons();
-        skipped.PlaySession = 5; // session 5 reached without session 4's lesson: Números y pan waits for it (after)
+        skipped.Day = 5; // session 5 reached without session 4's lesson: Números y pan waits for it (after)
+        skipped.Sitting = 5;
         Assert.Null(skipped.Lessons.OfferFor("baker"));
         Assert.Equal(LessonStatus.NotStarted, skipped.Lessons.StatusOf(LessonId));
 
@@ -370,14 +373,16 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
     public void TheOrderOfWoodCountsFromSessionFiveAndBringingFiveWoodPaysFourCoins()
     {
         var early = TestGame.NewSessionWithShippedLessons();
-        early.PlaySession = 4;
+        early.Day = 4;
+        early.Sitting = 4;
         _ = early.Simulation.GrantItems(ItemId.Wood, 5);
         Stage.TeleportToNpc(early, "baker");
         Assert.False(early.OpenTalk("baker").Delivered); // before its session the order is not open: the wood stays
         Assert.Equal(5, early.Simulation.Inventory.Count(ItemId.Wood));
 
         var session = TestGame.NewSessionWithShippedLessons();
-        session.PlaySession = 5;
+        session.Day = 5;
+        session.Sitting = 5;
         _ = session.Simulation.GrantItems(ItemId.Wood, 6);
         Stage.TeleportToNpc(session, "baker");
 

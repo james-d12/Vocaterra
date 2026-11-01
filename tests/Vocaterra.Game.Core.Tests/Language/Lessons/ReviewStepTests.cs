@@ -82,7 +82,8 @@ public sealed class ReviewStepTests
         Assert.True(session.Lessons.Start("sample"));
         _ = session.Say("hola");
         _ = session.Say("gracias");
-        session.PlaySession = 2; // a new play session: hola is due
+        session.Day = 2; // a new play session: hola is due
+        session.Sitting = 2;
 
         Assert.True(session.Lessons.Start("again"));
         Assert.True(session.Lessons.Continue());
@@ -108,7 +109,8 @@ public sealed class ReviewStepTests
         _ = session.Say("hola");
         session.SkipTime(60);
         _ = session.Say("gracias"); // credited a minute after hola
-        session.PlaySession = 2;
+        session.Day = 2;
+        session.Sitting = 2;
 
         _ = session.Lessons.Start("again");
         _ = session.Lessons.Continue();

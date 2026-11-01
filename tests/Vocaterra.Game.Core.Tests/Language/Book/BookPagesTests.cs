@@ -232,7 +232,8 @@ public sealed class BookPagesTests
         Assert.Equal("opens in session 4, Mar", LessonLines(session, "el-pueblo").Why.Text); // its session is said first: it is the later of its two locks
         Assert.Equal("opens in session 5, Luz", LessonLines(session, "numeros-y-pan").Why.Text);
 
-        session.PlaySession = 4; // the session has come, the lesson before it has not been done
+        session.Day = 4; // the session has come, the lesson before it has not been done
+        session.Sitting = 4;
         Assert.Equal("after “Ayer y mañana”", LessonLines(session, "el-pueblo").Why.Text);
         Assert.Equal("next: talk to Aldeano", LessonLines(session, "ayer-y-manana").Why.Text); // the new lesson the objective names (the newest session's)
         Assert.Equal("opens in session 5, Luz", LessonLines(session, "numeros-y-pan").Why.Text);
@@ -263,7 +264,8 @@ public sealed class BookPagesTests
     {
         var session = TestGame.NewSessionWithShippedLessons();
         session.Lessons.CountAsCompleted("first-words", 1);
-        session.PlaySession = 2;
+        session.Day = 2;
+        session.Sitting = 2;
         Assert.True(session.Lessons.Start("personas"));
 
         Assert.Null(session.Lessons.WaitOf("first-words"));

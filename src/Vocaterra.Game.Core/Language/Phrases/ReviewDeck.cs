@@ -251,7 +251,7 @@ public sealed class ReviewDeck
     internal bool Claims(string npc)
     {
         _claim = string.Equals(npc, NpcService.GuideAgent, StringComparison.Ordinal) && !_session.Lessons.OwnsConversation(npc) && !_session.Lessons.Engaged
-            && (Status == DeckStatus.Pending || (Enabled && !_offered && Status == DeckStatus.Idle && _session.PlaySession >= 2 && Select(_session.PhraseProgress, _session.StoredTime.UnixSeconds, _session.Credit, Askable, 1).Count > 0));
+            && (Status == DeckStatus.Pending || (Enabled && !_offered && Status == DeckStatus.Idle && _session.Sitting >= 2 && Select(_session.PhraseProgress, _session.StoredTime.UnixSeconds, _session.Credit, Askable, 1).Count > 0));
         return _claim;
     }
 

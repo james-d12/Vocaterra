@@ -47,6 +47,6 @@ public static class SleepOffer
     private static string Text(VoxelSession session, string key, int ahead)
     {
         ArgumentNullException.ThrowIfNull(session);
-        return session.Locale.Ui(key, ("session", (session.PlaySession + ahead).ToString(CultureInfo.InvariantCulture)));
+        return session.Locale.Ui(key, ("session", (session.Day + ahead).ToString(CultureInfo.InvariantCulture)));
     }
 }

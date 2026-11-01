@@ -99,7 +99,7 @@ public sealed partial class VoxelSession : GuideSession
     /// The first objective in the HUD's order that is not done and is shown in this play session (an order of a later session is hidden, VILLAGE_PLAN V03), or
     /// <see langword="null"/> when every one is done. It gates nothing.
     /// </summary>
-    public Objective? CurrentObjective => Objectives.FirstOrDefault(o => !o.Complete && o.Spec.ShownIn(PlaySession));
+    public Objective? CurrentObjective => Objectives.FirstOrDefault(o => !o.Complete && o.Spec.ShownIn(Day));
 
     /// <summary>The step a save names (<c>camp.wood</c>), or <see langword="null"/> for a key the session's objectives do not have.</summary>
     /// <param name="key">The step's save key, <c>&lt;objective&gt;.&lt;step&gt;</c>.</param>
@@ -665,7 +665,7 @@ public sealed partial class VoxelSession : GuideSession
 
     /// <inheritdoc />
     protected override string? OrderReadyAt(string npc) =>
-        Objectives.FirstOrDefault(o => o.Spec.IsOrder && !o.Complete && o.Spec.ShownIn(PlaySession) && string.Equals(o.Spec.DeliverTo, npc, StringComparison.Ordinal)
+        Objectives.FirstOrDefault(o => o.Spec.IsOrder && !o.Complete && o.Spec.ShownIn(Day) && string.Equals(o.Spec.DeliverTo, npc, StringComparison.Ordinal)
             && o.Spec.Goods.All(goods => Simulation.Inventory.Count(goods.Item) >= goods.Count)
             && !Lessons.HoldsOrder(o.Spec))?.Id; // the lesson that tells the order may keep it back until its plan is said (VILLAGE_PLAN V13)
 
@@ -810,7 +810,7 @@ public sealed partial class VoxelSession : GuideSession
     // is lit, the guide is met, an order is delivered), so its effects follow its event in the log.
     private void RecordObjectives(WorldEvent world)
     {
-        foreach (var objective in Objectives.Where(o => !o.Complete && o.Spec.ShownIn(PlaySession)))
+        foreach (var objective in Objectives.Where(o => !o.Complete && o.Spec.ShownIn(Day)))
         {
             var done = objective.Record(world, _eventAmount);
             if (objective.IsChecklist)

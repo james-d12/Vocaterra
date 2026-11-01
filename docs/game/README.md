@@ -33,7 +33,7 @@ guide's lesson (S17):
 These are the brief's five target phrases. Nothing in the scenario ends by a language mistake: no death, no timers, no language gate. The run
 lines for the 3D world are in "The 3D world" below; they grow as S5 onward land.
 
-**Later sessions.** A load is the next play session, and so is a sleep at the player's own fire (V12c: "The next session: sleep at the fire" below), and each later
+**Later sessions.** A sleep at the player's own fire (V12c: "The next session: sleep at the fire" below) begins the next day, a load keeps the day (V25), and each later
 session unlocks one lesson: sessions 2 and 3 at the villager and the stall (S26,
 S27), and since phase A of [docs/game/VILLAGE_PLAN.md](VILLAGE_PLAN.md) (D-game-22) sessions 4 to 6 in a village grown inside its own clearing, with four
 more people: the fisher Mar on the bridge's east landing (session 4, "El pueblo": places and the way to them), the baker Luz at the bakery (session 5,
@@ -298,8 +298,8 @@ rounded panel with the speaker's name in a warm colour, and the speaker's latest
 interactive run (S15: F5 became the view key) (to the `--save` file, or `vocaterra.save.json` in the working folder); a turn still thinking means "not now", and a quit waits up to five
 seconds for it. `--load <file>` starts from a save: the same world (the trees and the scene come from the seed, and the save holds only the blocks the
 game changed), the player where they stood, the hotbar, the inventory, the objective, every word and phrase count, each NPC's conversation state, and the
-stored time. A load is the **next play session** (the journal's header and the debug overlay read `Sesión 2`), and a new session lifts the spacing gaps
-of D-game-6, so a phrase or word whose ten-minute gap had not passed becomes creditable again. **Time rule:** a load adds nothing to the stored time (it
+stored time. A load keeps the **day** as saved (V25: the objective, the orders, the lessons and the journal's header `Sesión n` stand where the save left them; only a sleep moves it) and begins the next **sitting**, which lifts the spacing gaps
+of D-game-6 (a launch, a load and a sleep each begin a sitting; the save keeps it in `Sitting`, and a save from before V25 continues from its day), so a phrase or word whose ten-minute gap had not passed becomes creditable again. **Time rule:** a load adds nothing to the stored time (it
 continues from the save: start, plus the ticks, plus the skipped seconds); the next-day recall check moves the stored time with `--skip <seconds>` after the
 load when a scenario needs a day to pass. A load is refused, with the reason, when `--seed` names another world; a save whose restored world does not match its digest is refused too. A save made
 from **another content bundle** is carried into this one (X01, below), unless the run is strict (`--strict-save`, or any `--playtest`), which refuses it. The file is canonical JSON (sorted keys, no whitespace):
@@ -570,7 +570,7 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --lesson-
   `¿Qué necesitas?`, and the learner answers with the yo forms (`Quiero madera.`, `Tengo una fruta.`, `Necesito agua.`; the fruit is the one the learner just picked). The English names the
   pattern once (-o is I, -as or -es is you) and then thins. The answers are statements (`state_want`, `state_have`), so nothing is handed over; a tú form after `yo` is a `conj.person` slip
   and `teno` for `tengo` a `conj.irregular` one, and the step goes on either way (fail-forward).
-- **Sessions.** A lesson has a `session` in `lessons.json` (default 1) and is offered only once the play session has reached it; the session is the save's number (a load is the next session).
+- **Sessions.** A lesson has a `session` in `lessons.json` (default 1) and is offered only once the play session has reached it; the session is the save's day (a load keeps it; only a sleep moves it).
   A lesson of a later session also has an English `objective` that names it: the objective area shows it (and the beacon points at the lesson's NPC) while the lesson is unlocked and not begun.
   `--session <n>` starts a run as play session n (`--session 2 --screenshot x.png --frames 120` shows session 2 opening at the camp: `Session 2: go to the village and talk to the villager to start
   the lesson “Personas”`, with the beacon on the villager). It only names the session: a lesson that comes `after` another still waits for it, so `--session 4` points at session 3's lesson.
@@ -994,7 +994,7 @@ review (the same request line and answer rules as a due phrase), with the Englis
 - **Once per session, two waiting at most** (repetition fatigue, R02). A second "no sé" on the retry does not bring it back.
 - **Never in a check.** A check is graded and changes nothing else; a check's "no sé" queues nothing.
 - **No credit before the gap.** The retry's use is counted like any review answer, so the spacing gap (D-game-6) still decides any credit.
-- **Not saved.** A loaded game is a new play session, and the queue belongs to the session it came from.
+- **Not saved.** A loaded game is a new sitting, and the queue belongs to the session it came from.
 
 Not done (R02 as written in the backlog): the retry is not asked one rung lower on the support ladder, and a "miss" at a phrase is not queued (only "no sé").
 
