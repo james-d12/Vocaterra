@@ -11,7 +11,8 @@
 #  - section 5: buscé, pescé, llegé, empezé, pagé, jugé, tocé: conj.irregular with the right form;
 #  - section 6: (V21 added the grammar; the baselines now give ask_name comm=True) me llamo ana and me llamo luis kept vocab.unknown on the name: the bundle has no grammar that binds a name after me llamo (the change is the
 #    game's V21, see VillageQaLineTests); me llamo domingo is clean (domingo is a lexicon word);
-#  - section 7: dos panes es caro: vocab.wrong now reports heard 'dos', not '2' (heard is not shown in this output);
+#  - section 7: dos panes es caro: vocab.wrong now reports heard 'dos', not '2' (heard is not shown in this output); since M73 it is a mistake as well
+#    (conj.person=son noun.number=caros: a price is one sum's only when the amount is money);
 #  - section 8: correct Spanish of my own, clean.
 # The rest is correct Spanish and stays clean (apart from vocab.wrong at a constrained prompt whose answer set does not hold a line that resolved no intent).
 # scripts/try-lines.sh --check compares the output with m70.expected (the CLI) and m70.host.expected (--host).

@@ -45,8 +45,8 @@ villager-open  | qué haces                                  => unknown comm=Fal
 smith-open     | me llamo ana                               => ask_name comm=True -
 farmer-open    | buenos días                                => greet comm=True -
 baker-open     | buenas tardes                              => greet comm=True -
-fisher-open    | cómo está usted                            => unknown comm=False -
-smith-open     | ustedes trabajan mucho                     => ask_activity comm=True -
+fisher-open    | cómo está usted                            => greet comm=True -
+smith-open     | ustedes trabajan mucho                     => unknown comm=False -
 farmer-open    | hoy hace buen tiempo                       => unknown comm=False -
 baker-open     | me gusta mucho el pan                      => unknown comm=False -
 fisher-open    | el pozo está en el pueblo                  => unknown comm=False -

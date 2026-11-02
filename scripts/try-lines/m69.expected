@@ -30,17 +30,17 @@ villager-open  | la tienda es grande                        => unknown comm=Fals
 villager-open  | la clase es mañana                         => unknown comm=False -
 villager-open  | ¿dónde estás yo?                           => unknown comm=False conj.person=estoy
 villager-open  | ¿dónde está tú?                            => unknown comm=False conj.person=estás
-villager-open  | ¿cómo está tú?                             => unknown comm=False conj.person=estás
-villager-open  | ¿cómo estás usted?                         => unknown comm=False conj.person=está
+villager-open  | ¿cómo está tú?                             => greet comm=True conj.person=estás
+villager-open  | ¿cómo estás usted?                         => greet comm=True conj.person=está
 villager-open  | ¿qué quiere tú?                            => unknown comm=False conj.person=quieres
 villager-open  | ¿dónde estás la herrería?                  => ask_directions comm=True conj.person=está
 farmer-open    | ¿cuánto cuestas el pan?                    => ask_price comm=True conj.person=cuesta
 villager-open  | ¿dónde estás tú?                           => unknown comm=False -
-villager-open  | ¿cómo está usted?                          => unknown comm=False -
+villager-open  | ¿cómo está usted?                          => greet comm=True -
 villager-open  | ¿qué quieres tú?                           => unknown comm=False -
 villager-open  | ¿dónde vive usted?                         => unknown comm=False -
 villager-open  | ¿qué haces tú?                             => unknown comm=False -
-villager-open  | ¿cómo estáis vosotros?                     => unknown comm=False -
+villager-open  | ¿cómo estáis vosotros?                     => greet comm=True -
 villager-open  | ¿dónde están ustedes?                      => unknown comm=False -
 villager-open  | ¿cómo te llamas tú?                        => unknown comm=False -
 villager-open  | ¿quién eres tú?                            => unknown comm=False -

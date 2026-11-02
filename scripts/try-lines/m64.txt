@@ -5,6 +5,8 @@
 #  - tú y yo fui al río: conj.person=fuimos;
 #  - dos niños es alto: conj.person=son noun.number=altos;
 #  - la tienda es cerca del río: ser_estar=está.
+# M73 (2026-11-02): dos panes es caro is a mistake since M73 (conj.person=son noun.number=caros): a price is one sum's only when the amount is money
+# (diez monedas es caro); M64's amounts with a predicate of quantity (dos panes es suficiente) stay clean.
 # scripts/try-lines.sh --check compares the output with m64.expected (the CLI) and m64.host.expected (--host).
 # Rows: prompt|line; blank lines and lines starting with # are skipped.
 villager-open|yo quiere dos espada
