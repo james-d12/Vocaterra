@@ -16,6 +16,11 @@ public class VillageQaLineTests
         return TestSupport.Pipeline(transcript, prompt.Mode, bundle: content).Evaluate(TestSupport.Clip(), prompt, TestSupport.Context(agentId: prompt.AgentId ?? "player"));
     }
 
+    private static string Recast(PipelineResult result)
+    {
+        return Assert.Single(result.Response.Lines, static line => line.IsRecast).Text;
+    }
+
     private static string Errors(Verdict verdict)
     {
         return string.Join(';', verdict.Errors.Select(static e => $"{e.Tag}|{e.Actual}|{e.Expected}"));
@@ -43,5 +48,26 @@ public class VillageQaLineTests
     public void AWordOfItsOwnSpelledWithNIsGradedAsBefore()
     {
         Assert.Equal("vocab.unknown|anos|", Errors(Evaluate("tengo diez anos", "villager-open").Verdict));
+    }
+
+    // ---- 4. An unknown word is blamed on itself (QA-language-6) -----------------------------------------------------------------------------------------------
+
+    // Before M70: compré three manzanas gave vocab.unknown expected compré and the recast «compré compré manzanas»; mañana iré al glorp gave expected iré and
+    // «mañana iré al iré». The recast is the core's (RecastBuilder); the line around it is the bundle's dialogue.
+    [Theory]
+    [InlineData("compré three manzanas", "lesson-market", "vocab.unknown|three|tres", "compré tres manzanas")]
+    [InlineData("mañana iré al glorp", "lesson-will-go", "vocab.unknown|glorp|río", "mañana iré al río")]
+    public void TheUnknownWordIsNamedAndTakesTheAnswersWordAtItsPlace(string transcript, string promptId, string errors, string recast)
+    {
+        var result = Evaluate(transcript, promptId);
+
+        Assert.Equal(errors, Errors(result.Verdict));
+        Assert.Contains("«" + recast + "»", Recast(result), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AnUnknownWordTheAnswerHasNoPlaceForGetsNoWord()
+    {
+        Assert.Equal("vocab.unknown|glorp|", Errors(Evaluate("glorp iré al río", "lesson-will-go").Verdict));
     }
 }
