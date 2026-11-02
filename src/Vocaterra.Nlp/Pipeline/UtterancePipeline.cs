@@ -124,7 +124,8 @@ public sealed partial class UtterancePipeline
             _services.Versions,
             CanonicalAnswersOf(answerSet),
             content.Language.ErrorTags));
-        return new UtteranceAnalysis(clip.ClipHash, prompt, asr, posteriors, normalized, analysis, match, answerSet, verdict);
+        var notes = AccentNotes.Merge(analysis.Notes, AccentNotes.FromAnswer(normalized, analysis, match, answerSet, content.Lexicon, language, Normalization));
+        return new UtteranceAnalysis(clip.ClipHash, prompt, asr, posteriors, normalized, analysis, match, answerSet, verdict, notes);
     }
 
     /// <summary>
@@ -172,7 +173,7 @@ public sealed partial class UtterancePipeline
         var effects = EffectResolver.Resolve(verdict, content.Effects);
         var repair = RepairFor(verdict, prompt, analysis.AnswerSet, counts, context);
         var replay = new ReplayRecord(analysis.ClipHash, prompt.PromptId, context.HostStateHash, _services.Versions, verdict);
-        var result = new PipelineResult(verdict, decision, response, effects, repair, replay, analysis.Words, analysis.Match);
+        var result = new PipelineResult(verdict, decision, response, effects, repair, replay, analysis.Words, analysis.Match, analysis.Notes);
         return new PipelineTrace(result, analysis.Asr, analysis.Posteriors);
     }
 

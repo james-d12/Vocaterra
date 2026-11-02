@@ -1,5 +1,6 @@
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Verdicts;
+using Vocaterra.Nlp.Es.Text;
 
 namespace Vocaterra.Nlp.Pipeline.Tests;
 
@@ -14,6 +15,11 @@ public class VillageQaLineTests
         var content = bundle ?? TestSupport.Bundle;
         var prompt = content.Prompts[promptId];
         return TestSupport.Pipeline(transcript, prompt.Mode, bundle: content).Evaluate(TestSupport.Clip(), prompt, TestSupport.Context(agentId: prompt.AgentId ?? "player"));
+    }
+
+    private static string Notes(PipelineResult result)
+    {
+        return string.Join(';', (result.Notes ?? []).Select(static n => $"{n.Written}|{n.Accented}|{n.Marks}"));
     }
 
     private static string Recast(PipelineResult result)
@@ -48,6 +54,49 @@ public class VillageQaLineTests
     public void AWordOfItsOwnSpelledWithNIsGradedAsBefore()
     {
         Assert.Equal("vocab.unknown|anos|", Errors(Evaluate("tengo diez anos", "villager-open").Verdict));
+    }
+
+    // ---- 2. An accent that marks a verb's tense (D-game-22, item 3) ---------------------------------------------------------------------------------------------
+
+    // Accepted with no deduction, as before M70, and now with a note that names the accented form (before M70: no note; ayer compre pan gave conj.tense compré).
+    [Theory]
+    [InlineData("compre dos panes", "lesson-bought", "compre|compré|Tense")]
+    [InlineData("compre tres manzanas", "lesson-market", "compre|compré|Tense")]
+    [InlineData("luz compro pescado", "lesson-luz-bought", "compro|compró|Tense")]
+    [InlineData("mar pesco en el río", "lesson-mar-fished", "pesco|pescó|Tense")]
+    [InlineData("ayer compre pan", "villager-open", "compre|compré|Tense")]
+    public void AVerbWithoutTheAccentOfItsTenseIsAcceptedWithANote(string transcript, string promptId, string notes)
+    {
+        var result = Evaluate(transcript, promptId);
+
+        Assert.Equal(string.Empty, Errors(result.Verdict));
+        Assert.Equal(1.0, result.Verdict.Correctness);
+        Assert.Equal(notes, Notes(result));
+    }
+
+    [Theory]
+    [InlineData("compré dos panes", "lesson-bought")]
+    [InlineData("luz compró pescado", "lesson-luz-bought")]
+    [InlineData("yo compro pan", "villager-open")]
+    [InlineData("quiero que compre pan", "villager-open")]
+    [InlineData("compre tres manzanas", "villager-open")]
+    [InlineData("hola luz quiero dos panes", "baker-open")]
+    public void ALineWithNothingToNoteHasNoNotes(string transcript, string promptId)
+    {
+        Assert.Null(Evaluate(transcript, promptId).Notes);
+    }
+
+    [Fact]
+    public void TheNoteIsOnTheTwoPhaseAnalysisAndHasItsSpanishLine()
+    {
+        var prompt = TestSupport.Bundle.Prompts["lesson-bought"];
+        var analysis = TestSupport.Pipeline("compre dos panes", prompt.Mode).Analyze(TestSupport.Clip(), prompt);
+        var note = Assert.Single(analysis.Notes!);
+
+        Assert.Equal(new TextSpan(0, 6), note.Span);
+        Assert.Equal("comprar", note.Reading.Lemma);
+        Assert.Equal("«compré», con tilde: es pasado", SpanishAccentNotes.Describe(note));
+        Assert.DoesNotContain("notes", TestSupport.Json(Evaluate("compré dos panes", "lesson-bought")), StringComparison.Ordinal);
     }
 
     // ---- 4. An unknown word is blamed on itself (QA-language-6) -----------------------------------------------------------------------------------------------
