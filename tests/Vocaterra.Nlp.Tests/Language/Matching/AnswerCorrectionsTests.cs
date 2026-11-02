@@ -46,12 +46,39 @@ public class AnswerCorrectionsTests
         Assert.Equal("espada", Assert.Single(result.Errors).Expected);
     }
 
+    // M70: the word comes from the phrase of the answer nearest the line, here the alias buen día (before M70 the canonical buenos días gave días, and the recast
+    // buen días).
     [Fact]
-    public void ANearestWordIsChosenFromTheCanonicalPhraseByAccentInsensitiveDistance()
+    public void TheWordComesFromTheAnswersPhraseNearestTheLine()
     {
         var result = Correct("buen dia", new MatchResult("day", MatchType.Fuzzy, 1, false, 0.9), [Unknown(5, 3, "dia")]);
 
-        Assert.Equal("días", Assert.Single(result.Errors).Expected);
+        Assert.Equal("día", Assert.Single(result.Errors).Expected);
+    }
+
+    // M70 (QA-language-6): the unknown word takes the answer's word at its own place, not the word nearest its spelling wherever it stands, and a word the phrase has
+    // no place for takes none. Before M70 three took compré (the recast said compré compré manzanas) and glorp took iré (mañana iré al iré); the phrase nearest
+    // glorp compré tres manzanas is the alias yo compré tres manzanas, whose yo stands at glorp's place.
+    [Theory]
+    [InlineData("compré three manzanas", 7, 5, "three", "tres")]
+    [InlineData("compré tres manzanaz", 9, 8, "manzanaz", "manzanas")]
+    [InlineData("mañana iré al glorp", 14, 5, "glorp", "río")]
+    [InlineData("glorp compré tres manzanas", 0, 5, "glorp", "yo")]
+    [InlineData("compré tres manzanas glorp", 18, 5, "glorp", "")]
+    public void AnUnknownWordTakesTheAnswersWordAtItsPlace(string text, int start, int length, string actual, string expected)
+    {
+        var set = new AnswerSet(
+            "lessons",
+            [
+                new Answer("market", "compré tres manzanas", ["compré manzanas", "yo compré tres manzanas"], []),
+                new Answer("river", "iré al río", ["mañana iré al río"], []),
+            ]);
+        var answerId = text.Contains("iré", StringComparison.Ordinal) ? "river" : "market";
+        var errors = new[] { Unknown(start, length, actual) };
+
+        var result = AnswerCorrections.WithCanonicalWords(Analysis(errors), Norm(text), new MatchResult(answerId, MatchType.Fuzzy, 4, false, 0.8), set, SpanishLanguagePack.Instance, Options);
+
+        Assert.Equal(expected, Assert.Single(result.Errors).Expected);
     }
 
     [Fact]
@@ -63,9 +90,9 @@ public class AnswerCorrectionsTests
     }
 
     [Fact]
-    public void TheAnswerIsCorrectedByItsCanonicalSpellingNotByAnAlias()
+    public void TheAnswerIsCorrectedByTheWordOfItsNearestPhrase()
     {
-        // The alias "una espada" matched; the expected word is still the canonical "espada".
+        // The alias "una espada" is the phrase nearest the line; its word at the place of ezpada is espada.
         var result = Correct("una ezpada", new MatchResult("sword", MatchType.Fuzzy, 1, false, 0.8), [Unknown(4, 6, "ezpada")]);
 
         Assert.Equal("espada", Assert.Single(result.Errors).Expected);

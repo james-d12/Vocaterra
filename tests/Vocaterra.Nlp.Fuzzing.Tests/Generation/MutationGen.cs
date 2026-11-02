@@ -396,23 +396,37 @@ public static class MutationGen
                 return null;
             }
 
-            var number = verb.Number == LexiconSchema.Singular ? LexiconSchema.Plural : LexiconSchema.Singular;
-            var form = _words.Morphology.Conjugate(verb.Lemma, "3", number, verb.Tense);
-            if (form is null || form == verb.Norm)
+            // M70 (a widening): gustar and encantar behind their dative pronoun agree with the thing liked, so a form of the first or second person is the slip too (me
+            // gusto el pan, gusta); half the cases of those verbs try such a form first, the other half the third person of the other number, as before.
+            var cells = new List<(string Person, string Number)> { ("3", verb.Number == LexiconSchema.Singular ? LexiconSchema.Plural : LexiconSchema.Singular) };
+            if (experiencer && LexiconCatalog.LikingVerbs.Contains(verb.Lemma))
             {
-                return null;
+                var speakers = new List<(string Person, string Number)> { ("1", LexiconSchema.Singular), ("2", LexiconSchema.Singular), ("1", LexiconSchema.Plural), ("2", LexiconSchema.Plural) };
+                rng.Shuffle(speakers);
+                cells = rng.NextDouble() < 0.5 ? [.. speakers, .. cells] : [.. cells, .. speakers];
             }
 
-            var readingsOfForm = _words.Lexicon.Lookup(form);
-            if (readingsOfForm.Count == 0
-                || readingsOfForm.Any(r => r.Pos != LexiconSchema.Verb || r.Person is null || r.Lemma != verb.Lemma)
-                || readingsOfForm.Any(r => r.Person == "3" && r.Number == verb.Number && r.Tense == verb.Tense))
+            foreach (var (person, number) in cells)
             {
-                return null;
+                var form = _words.Morphology.Conjugate(verb.Lemma, person, number, verb.Tense);
+                if (form is null || form == verb.Norm)
+                {
+                    continue;
+                }
+
+                var readingsOfForm = _words.Lexicon.Lookup(form);
+                if (readingsOfForm.Count == 0
+                    || readingsOfForm.Any(r => r.Pos != LexiconSchema.Verb || r.Person is null || r.Lemma != verb.Lemma)
+                    || readingsOfForm.Any(r => r.Person == "3" && r.Number == verb.Number && r.Tense == verb.Tense))
+                {
+                    continue;
+                }
+
+                var mutated = Replace(i, verb with { Written = form, Norm = form, Person = person, Number = number });
+                return Result(MutationKind.ConjPerson, mutated, [Error(mutated, ErrorTags.ConjPerson, i, i, verb.Norm, form)], sentence.NormalizedText, keepsGrammar: true);
             }
 
-            var mutated = Replace(i, verb with { Written = form, Norm = form, Number = number });
-            return Result(MutationKind.ConjPerson, mutated, [Error(mutated, ErrorTags.ConjPerson, i, i, verb.Norm, form)], sentence.NormalizedText, keepsGrammar: true);
+            return null;
         }
 
         // M59: a third-person verb right after a noun phrase with an article or numeral that opens the sentence is agreed with it (los niños comen pan, el pan está
@@ -812,23 +826,41 @@ public static class MutationGen
             foreach (var i in Shuffled(Indexes(static t => t is { Role: TokenRole.Verb, Generated: true, Infinitive: false, Tense: not null })))
             {
                 var verb = _tokens[i];
-                var regular = harness.RegularParadigm.Conjugate(verb.Lemma!, verb.Person!, verb.Number!, verb.Tense!);
-                if (regular is null || regular == verb.Norm)
+                foreach (var regular in RegularSpellings(verb))
                 {
-                    continue;
-                }
+                    if (regular == verb.Norm)
+                    {
+                        continue;
+                    }
 
-                // Only a regular cell that the morphology itself reports as the regularization of exactly this form counts.
-                if (!_words.Morphology.IsRegularizedIrregular(regular, out var lemma, out var expected) || lemma != verb.Lemma || expected != verb.Norm)
-                {
-                    continue;
-                }
+                    // Only a regular cell that the morphology itself reports as the regularization of exactly this form counts.
+                    if (!_words.Morphology.IsRegularizedIrregular(regular, out var lemma, out var expected) || lemma != verb.Lemma || expected != verb.Norm)
+                    {
+                        continue;
+                    }
 
-                var mutated = Replace(i, verb with { Written = regular, Norm = regular });
-                return Result(MutationKind.ConjIrregular, mutated, [Error(mutated, ErrorTags.ConjIrregular, i, i, verb.Norm, regular)], sentence.NormalizedText, keepsGrammar: true);
+                    var mutated = Replace(i, verb with { Written = regular, Norm = regular });
+                    return Result(MutationKind.ConjIrregular, mutated, [Error(mutated, ErrorTags.ConjIrregular, i, i, verb.Norm, regular)], sentence.NormalizedText, keepsGrammar: true);
+                }
             }
 
             return null;
+        }
+
+        // The regular cell of the verb's paradigm and, since M70 (a widening), the first person of the preterite of a verb in -car, -gar or -zar written without its
+        // spelling change before the é (buscar: buscé for busqué; an independent model of the analyzer's slip, which the morphology must report the same way).
+        private IEnumerable<string> RegularSpellings(SentenceToken verb)
+        {
+            if (harness.RegularParadigm.Conjugate(verb.Lemma!, verb.Person!, verb.Number!, verb.Tense!) is { } regular)
+            {
+                yield return regular;
+            }
+
+            if (verb is { Tense: LexiconSchema.Preterite, Person: "1", Number: LexiconSchema.Singular } && verb.Lemma!.Length >= 5
+                && (verb.Lemma.EndsWith("car", StringComparison.Ordinal) || verb.Lemma.EndsWith("gar", StringComparison.Ordinal) || verb.Lemma.EndsWith("zar", StringComparison.Ordinal)))
+            {
+                yield return verb.Lemma[..^2] + "é";
+            }
         }
 
         public MutatedSentence? ConjTense()

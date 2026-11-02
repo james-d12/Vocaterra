@@ -69,13 +69,18 @@ public sealed record SlotValue(string Name, string Value, TextSpan Span);
 /// <param name="MatchedGrammarId">The id of the best matching grammar, or null.</param>
 /// <param name="Confidence">The analysis confidence.</param>
 /// <param name="Words">The resolved words, one per token in token order; null when the analysis was built by hand without the resolver.</param>
+/// <param name="Notes">
+/// The verbs written without the accent that marks their tense or person and read as the accented form, in token order (M70, <see cref="AccentNote"/>); null when
+/// there is none. Omitted from JSON while null, so an analysis without a note serializes as before.
+/// </param>
 public sealed record AnalysisResult(
     IReadOnlyList<AnalyzedToken> Tokens,
     IReadOnlyList<SlotValue> Slots,
     IReadOnlyList<ErrorTag> Errors,
     string? MatchedGrammarId,
     double Confidence,
-    IReadOnlyList<ResolvedWord>? Words = null)
+    IReadOnlyList<ResolvedWord>? Words = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<AccentNote>? Notes = null)
 {
     /// <summary>Structural equality including list contents.</summary>
     public bool Equals(AnalysisResult? other)
@@ -86,7 +91,8 @@ public sealed record AnalysisResult(
             && ValueEquality.ListEquals(Errors, other.Errors)
             && string.Equals(MatchedGrammarId, other.MatchedGrammarId, StringComparison.Ordinal)
             && Confidence.Equals(other.Confidence)
-            && ValueEquality.ListEquals(Words ?? Array.Empty<ResolvedWord>(), other.Words ?? Array.Empty<ResolvedWord>());
+            && ValueEquality.ListEquals(Words ?? Array.Empty<ResolvedWord>(), other.Words ?? Array.Empty<ResolvedWord>())
+            && ValueEquality.ListEquals(Notes ?? Array.Empty<AccentNote>(), other.Notes ?? Array.Empty<AccentNote>());
     }
 
     /// <summary>Hash consistent with <see cref="Equals(AnalysisResult)"/>.</summary>
@@ -99,6 +105,7 @@ public sealed record AnalysisResult(
         hash.Add(MatchedGrammarId);
         hash.Add(Confidence);
         ValueEquality.AddList(ref hash, Words ?? Array.Empty<ResolvedWord>());
+        ValueEquality.AddList(ref hash, Notes ?? Array.Empty<AccentNote>());
         return hash.ToHashCode();
     }
 }

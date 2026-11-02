@@ -679,9 +679,29 @@ public sealed class MorphologyGenerator : IMorphology
                     }
                 }
             }
+
+            AddPreteriteSpellingSlip(index, lemma, cells[CellIndex(tenses, numbers, persons, LexiconSchema.Preterite, LexiconSchema.Singular, "1")]);
         }
 
         return index;
+    }
+
+    // M70 (QA-language-9): the first person of the preterite of a verb in -car, -gar or -zar changes its spelling before the é (busqué, llegué, empecé), and the
+    // learner's slip keeps the stem as it is (buscé, llegé, empezé). The slip is the regular cell written without the change, so it reads as the verb with
+    // conj.irregular and the lexicon's form as expected, as a missed stem change does. Only the accented spelling is taken: written without its accent (busce, llege)
+    // it is no form a reader would take for that cell. The caller reads the index only for a word the lexicon lacks, so a real word is never this slip.
+    private static void AddPreteriteSpellingSlip(Dictionary<string, RegularizedForm> index, string lemma, string? actual)
+    {
+        if (actual is null || !lemma.EndsWith("ar", StringComparison.Ordinal) || lemma.Length < 5 || lemma[^3] is not ('c' or 'g' or 'z'))
+        {
+            return;
+        }
+
+        var slip = lemma[..^2] + "é";
+        if (!string.Equals(slip, actual, StringComparison.Ordinal))
+        {
+            index.TryAdd(slip, new RegularizedForm(lemma, actual, "1", LexiconSchema.Singular, LexiconSchema.Preterite));
+        }
     }
 
     private static int CellIndex(string[] tenses, string[] numbers, string[] persons, string? tense, string? number, string? person)

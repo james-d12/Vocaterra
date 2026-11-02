@@ -283,6 +283,97 @@ public sealed class CorrectSentenceFuzzTests(ITestOutputHelper output)
         }
     }
 
+    // The plain spellings of the lexicon's forms (accents stripped, ñ kept), built once: what a word typed with n for ñ must not be for the slip to be read (M70).
+    private static readonly Lazy<HashSet<string>> PlainForms = new(static () => Harness.Lexicon.Entries.Select(static e => Accents.Strip(e.Form)).ToHashSet(StringComparer.Ordinal));
+
+    // The Spanish words that differ from another only in an n where the other has ñ, as this test models them (an independent copy of the idea, not of the pack's
+    // list): año/ano, caña/cana, caño/cano, cañón/canon, ceño/ceno, coño/cono, cuña/cuna, maña/mana, moña/mona, moño/mono, pañal/panal, peña/pena, piña/pina,
+    // piño/pino, seña/sena, tiña/tina, uña/una.
+    private static readonly HashSet<string> WordsWithAnN = new(StringComparer.Ordinal)
+    {
+        "ano", "anos", "cana", "canas", "cano", "canos", "canon", "canones", "ceno", "cono", "conos", "cuna", "cunas", "mana", "manas", "mona", "monas", "mono",
+        "monos", "panal", "panales", "pena", "penas", "pina", "pinas", "pino", "pinos", "sena", "senas", "tina", "tinas", "una", "unas",
+    };
+
+    /// <summary>
+    /// M70 (a widening; the owner's answer of 2026-11-01, D-game-22 item 2): a learner who types without the tilde writes <c>manana</c> for <c>mañana</c>. When a correct
+    /// sentence has a word with <c>ñ</c> whose spelling with <c>n</c> is no lexicon form (accents ignored) and no Spanish word of this test's own list, the sentence written
+    /// with that <c>n</c> must analyze as the sentence with <c>ñ</c> does: the same errors at the same places with the same expected forms (the heard text is the
+    /// learner's spelling). A word whose spelling with <c>n</c> is a word (<c>una</c>, <c>pena</c>) is counted and left out: it is another word.
+    /// </summary>
+    [Fact]
+    public void CorrectSentences_WithAnNTildeTypedAsNWhereThatSpellingIsNoWord_AnalyzeAsTheSentenceWithIt()
+    {
+        var diagnostics = new FuzzDiagnostics();
+        var gen = SentenceGen.Recipe(Harness);
+        var iterations = FuzzOptions.Iterations(FuzzOptions.GrammarVar, FuzzOptions.GrammarDefault);
+
+        gen.Sample(
+            (SentenceRecipe recipe) =>
+            {
+                var sentence = SentenceGen.Realize(Harness, recipe, diagnostics: diagnostics);
+                if (sentence is null)
+                {
+                    return;
+                }
+
+                var tokens = sentence.Tokens.Select(static t => t.Norm).ToArray();
+                var plain = tokens.ToArray();
+                var changed = new List<string>();
+                for (var i = 0; i < tokens.Length; i++)
+                {
+                    if (!tokens[i].Contains('ñ', StringComparison.Ordinal) || sentence.Tokens[i].Role == TokenRole.Name)
+                    {
+                        continue;
+                    }
+
+                    var typed = tokens[i].Replace('ñ', 'n');
+                    if (PlainForms.Value.Contains(Accents.Strip(typed)) || WordsWithAnN.Contains(Accents.Strip(typed)))
+                    {
+                        diagnostics.Count("ntilde:a-word-" + Accents.Strip(typed));
+                        continue;
+                    }
+
+                    diagnostics.Count("ntilde:typed-as-n");
+                    plain[i] = typed;
+                    changed.Add(tokens[i]);
+                }
+
+                if (changed.Count == 0)
+                {
+                    return;
+                }
+
+                var withTilde = Harness.Analyzer.Analyze(PipelineHarness.Normalize(string.Join(' ', tokens)), []);
+                var withN = Harness.Analyzer.Analyze(PipelineHarness.Normalize(string.Join(' ', plain)), []);
+                var context = $"{sentence.Describe()} typed=[{string.Join(", ", changed)}] withN=\"{string.Join(' ', plain)}\" seed={recipe.Seed}";
+                var expected = withTilde.Errors.Where(static e => !ErrorTags.IsPronunciation(e.Tag)).Select(DescribeWithoutHeard).ToArray();
+                var actual = withN.Errors.Where(static e => !ErrorTags.IsPronunciation(e.Tag)).Select(DescribeWithoutHeard).ToArray();
+                if (!expected.SequenceEqual(actual, StringComparer.Ordinal))
+                {
+                    throw Determinism.Fail(
+                        Oracle,
+                        $"Typing n for ñ changed the errors: with ñ [{string.Join("; ", expected)}], with n [{string.Join("; ", actual)}].",
+                        context);
+                }
+            },
+            writeLine: output.WriteLine,
+            iter: iterations,
+            threads: 1);
+
+        output.WriteLine("N for ñ diagnostics:\n" + diagnostics.Report());
+        if (iterations >= MinimumIterationsForCoverage)
+        {
+            // Words with ñ must really be drawn and typed with n, or the oracle above would hold for a generator that stopped producing them.
+            Assert.True(diagnostics.Sum("ntilde:typed-as-n") > 0, $"No ñ was ever typed as n.\n{diagnostics.Report()}");
+        }
+    }
+
+    private static string DescribeWithoutHeard(ErrorTag error)
+    {
+        return $"{error.Tag}@{error.Span.Start}+{error.Span.Length} expected '{error.Expected}'";
+    }
+
     // The independent model of the resolver's rule for the words the generators draw: a subject pronoun (él, tú) written without its accent is read as the pronoun when the next word
     // cannot go on a noun phrase (no noun, adjective or determiner reading); está and estás written without the accent are the verb when the words after them are not a noun phrase
     // (an article right after, or no noun at the end of the adjectives that follow). Anything else leaves the reader in doubt.

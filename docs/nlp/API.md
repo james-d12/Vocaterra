@@ -401,6 +401,8 @@ foreach (ErrorTag error in verdict.Errors)
 
 `communicated` says whether the learner was understood; `correctness` says how well they spoke, from 0 to 1. The errors carry the span in the
 normalized text, the expected form and what was heard. A host gates its own reactions on `communicated` and uses `correctness` for scoring.
+What was heard is the token's normalized text, except that an error on a number reports the learner's word for it (M70: `dos panes es caro` at `farmer-open`
+gives `vocab.wrong` heard `dos`; before M70 it said `2`, the digits the normalizer writes).
 
 ### The words and the answer match (CR-002, CR-004)
 
@@ -452,6 +454,44 @@ if (result.Answer is { AnswerId: not null } answer)
 The pipeline always sets both members; they are nullable only so that a result built by hand (in a test) needs no analysis. Both are part of
 the result's `CanonicalJson`, but not of the replay record (see [REPLAY.md](REPLAY.md)).
 
+### Verbs written without the accent of their tense: `result.Notes` (M70)
+
+The owner's answer of 2026-11-01 (D-game-22, item 3): a verb the learner types without the accent that marks its tense (`compre` for `compré`, `compro` for
+`compró`) is accepted with no deduction, and the feedback shows the accented form with a short note. `result.Notes` (and `UtteranceAnalysis.Notes` in a two-phase
+evaluation) lists one `AccentNote` (`Vocaterra.Nlp.Core.Stages`) per such word, in token order, and is null when there is none:
+
+| Member | What it is |
+|---|---|
+| `Span` | The word in the normalized text, as an error's span. |
+| `Written` | The word as written, normalized (`compre`). |
+| `Accented` | The accented form it was read as (`compré`). |
+| `Marks` | `AccentMark.Tense` when no reading of the written word has the accented form's tense and mood (`compre` is the present subjunctive, `compro` the present), else `AccentMark.Person`. |
+| `Reading` | The accented form's reading: lemma, person, number, tense and mood (`comprar`, `1`, `sg`, `pret`, `ind`). |
+
+A note comes from two places. **The analysis** (`AnalysisResult.Notes`): a verb whose written form has a tense error and nothing else, where the accented form of
+the same person takes it away and adds none, is read as that form: `ayer compre pan` is clean with a note `compré` (before M70 it gave `conj.tense` `compré`), and
+`result.Words` reports `comprar` in the preterite. The person stays the learner's: `ayer compro pan` keeps `conj.tense` `compré` (`compró` is the third person),
+and a person error stays one (`ella compro pan` gives `compra`, `usted compro` gives `compra`, `cómo se llamo` gives `llama`), because the accented form would
+change whom the sentence is about. **The answer match**: the answer matcher ignores accents, so `compre dos panes` matches the answer `compré dos panes` exactly and
+was already accepted; where the word of the matched answer's phrase at the same place (the phrase nearest the line, aligned word by word) is the accented form of the
+same verb in another tense or person, the note names it: `compre tres manzanas` at `lesson-market`, `luz compro pescado` at `lesson-luz-bought` (`compró`), `mar
+pesco en el río` at `lesson-mar-fished` (`pescó`). A word without its accent that is no other form (`comi` for `comí`) and a word that is no verb (`esta` for
+`está`, `el` for `él`) get no note, as before: their accent tells no tense apart. A recast made for another mistake writes the accent (`ayer compre tres manzana`
+is recast `ayer compré tres manzanas`).
+
+The note is no error: it is not in `Verdict.Errors`, it costs nothing, and it is not part of the replay record. `AnalysisResult.Notes` and `PipelineResult.Notes`
+are left out of the canonical JSON while null, so a result without a note serializes as before M70. The Spanish pack words a note for a host that wants the core's
+wording: `SpanishAccentNotes.Describe(note)` (`Vocaterra.Nlp.Es.Text`) gives `«compré», con tilde: es pasado` (the tense named from the accented form's tense and
+mood: pasado, presente, futuro, condicional, subjuntivo or imperativo; for `AccentMark.Person`, `«habló», con tilde: es de él o ella`). The demo CLI prints each
+note as a `note:` line after the agent's lines.
+
+```csharp
+foreach (AccentNote note in result.Notes ?? [])
+{
+    Console.WriteLine($"{note.Written} -> {note.Accented} ({note.Marks}): {SpanishAccentNotes.Describe(note)}");
+}
+```
+
 ### Tense errors, `conj.tense` (M49, M51, M57, M59, M66)
 
 `conj.tense` is reported by the analysis for the cases below, each with `expected` and `actual` on the verb token (the last one on the verb and the infinitive together).
@@ -491,7 +531,7 @@ suite's sentence generator models:
 
 The checks work on the whole utterance, not on clauses, and on the verb forms the lexicon lists.
 
-### Person and copula errors, `conj.person` and `ser_estar` (M56, M59, M64, M66)
+### Person and copula errors, `conj.person` and `ser_estar` (M56, M59, M64, M66, M70)
 
 `conj.person` is reported on the verb token, with `expected` the form of the verb for the person and number of its subject and `actual` the form said:
 
@@ -564,6 +604,19 @@ The checks work on the whole utterance, not on clauses, and on the verb forms th
   cuesta todo?`, `¿cuánto es todo?`, `¿cuánto cuesta eso?`, `¿cuánto son las manzanas?` (`ser` after `cuánto` is checked against the neuter pronouns only), `¿cuánto
   cuestan todos?`, `todo` before a phrase or an adjective (`todo el pan`) and two joined (`eso y esto`).
 
+- **`gustar` and `encantar` agree with the thing liked (M70, QA-language-4):** the one who likes is a dative pronoun, so a form of the first or second person right
+  behind its dative pronoun, with a noun phrase after it that would be its subject, gives the form of that phrase: `me gusto el pan` gives `gusta`, `me gusto las
+  manzanas` `gustan`, `me encanto el pan` `encanta` (the third person of the other number is M56's rule above: `me gusta las manzanas` gives `gustan`). A subject
+  pronoun before the verb with no dative pronoun at all and a noun phrase after it is the learner's English order: the error spans the pronoun and the verb, with
+  `expected` the dative of the pronoun's person and the form of the phrase, so the recast says the dative: `yo gusto el pan` gives `me gusta`, `tú gustas las
+  manzanas` `te gustan`, `ella gusta el pan` `le gusta`, `yo no gusto el pan` `no me gusta` (an adverb between stays before the dative); it replaces the person
+  error the pronoun's own check gives the verb (`tú gusto el pan`: `te gusta`, not `gustas`). The tag is `conj.person` because the verb's person is the mistake: it
+  agrees with the wrong participant. Before M70 each was clean, and the game praised `yo gusto el pan` and `me gusto el pan` at `lesson-like-bread`. Clean: `me gusta
+  el pan`, `me gustan las manzanas`, `te gusta el pan`, `a mí me gusta el pan`, `no me gusta`, `¿te gusta?`, `nos gusta la fruta`, a subject after the verb that
+  agrees with it (`me gustas tú`, `te gusto yo`), no phrase after the verb (`me gusto`, `te gusto`), a dative with a subject pronoun (`tú me gustas`, `yo te
+  gusto`), a phrase after a preposition (`ella gusta de la música`), and the other experiencer verbs, which take a subject of the first or second person or an object
+  in other senses (`me quedo el libro`).
+
 `ser_estar` is reported on the copula, with `expected` the form of the other copula and `actual` the form said:
 
 - **A copula with an adjective of the other class:** `estoy alto` gives `soy`, `soy ocupado` gives `estoy`. The classes are two short lists of the Spanish
@@ -584,13 +637,17 @@ gives `están`, and `son cerca` alone is read as the noun. `hace` is the preposi
 mucho`) and the verb `hacer` elsewhere (M59: `¿qué hace?`, `¿qué hace Domingo?`, `hace frío`), also where a grammar's literal `hace` binds it, so `result.Words` reports the
 verb for a host's own person check.
 
-### Irregular forms, plurals and unknown words, `conj.irregular`, `noun.number` and `vocab.unknown` (M58, M66)
+### Irregular forms, plurals and unknown words, `conj.irregular`, `noun.number` and `vocab.unknown` (M58, M66, M70)
 
 `conj.irregular` is reported on a verb form that is the regular cell of an irregular verb (the stem change missed, or a regular ending on an irregular stem), with
 `expected` the lexicon's form of that cell and `actual` the form said. Whether the form is the verb depends on what else it is:
 
 - **A form the lexicon lacks** is the verb wherever it stands: `sabo` gives `sé`, `tení` gives `tuve`, `quero` gives `quiero`, `tenes` gives `tienes`, `dormo` gives
-  `duermo`, and `cuánto costan los panes` gives `cuestan`, with the price intent.
+  `duermo`, and `cuánto costan los panes` gives `cuestan`, with the price intent. **Since M70 (QA-language-9)** also the first person of the preterite of a verb in
+  `-car`, `-gar` or `-zar` written without its spelling change before the `é`: `buscé` gives `busqué`, `pescé` `pesqué`, `llegé` `llegué`, `pagé` `pagué`, `jugé`
+  `jugué`, `tocé` `toqué`, `empezé` `empecé`, `cruzé` `crucé` (before M70 each was `vocab.unknown`, after a fuzzy answer match with a wrong expected word: `buscé
+  madera` at `lesson-will-fetch` gave `buscaré`). Only the accented spelling is the slip (`busce` is no form a reader would take for that cell), and a real word in
+  `-cé` is never one (`empecé`, `crucé`, `recé`, `almorcé`).
 - **A form that is also a lexicon noun (M58)** is the verb where the sentence calls for a verb, and the noun elsewhere. The bundle's lexicon has six: `costa` and `costas`
   (`costar`: `cuesta`, `cuestas`), `jugo` (`juego`), `mente` and `mentes` (`miente`, `mientes`) and `cabo` (`quepo`). A verb is called for after a subject pronoun or
   a clitic (`yo jugo en el pueblo` gives `juego`, `tú mentes` gives `mientes`, `el pan me costa dos monedas` gives `cuesta`); after `cuánto` when the noun would not
@@ -616,7 +673,13 @@ panes`, `el mes`, `el país`, `los lunes`). **Since M66 an adjective** that ends
 `azuls` and `las casas azuls` give `azules`, `felizs` and `felizes` `felices`; `azules` and `las casas azules` are clean.
 
 `vocab.unknown` is reported, with an empty `expected`, on a word the lexicon lacks that is none of these slips and that no grammar binds as a name (`hay glurps`,
-`quiero un blorf`); after a fuzzy answer match the pipeline fills `expected` with the answer's nearest word (`AnswerCorrections`). A word a grammar binds as a name
+`quiero un blorf`); after a fuzzy answer match the pipeline fills `expected` with the answer's word at the unknown word's place (`AnswerCorrections`): the line is
+aligned word by word with the phrase of the matched answer nearest it (its canonical phrase or an alias), and the unknown word takes the word it is aligned with,
+spelled with its accents and a number in words. Since M70 (QA-language-6) the error therefore names the unknown word with the expected word of its own place, and a
+recast never says a word twice: `compré three manzanas` at `lesson-market` gives `vocab.unknown` heard `three`, expected `tres`, recast «compré tres manzanas»;
+`mañana iré al glorp` at `lesson-will-go` gives `río`, recast «mañana iré al río». Before M70 the unknown word took the canonical word nearest its spelling wherever
+it stood, so these gave `compré` («compré compré manzanas») and `iré` («mañana iré al iré»). An unknown word the phrase has no place for (an added word: `glorp iré al
+río`) keeps an empty `expected`; so does one whose word stands next to it already. A one-word line still takes the whole canonical phrase (`buenosdias`). A word a grammar binds as a name
 (`[WORD]`) is neither an unknown word nor a slip, whatever its spelling (`me llamo Pans`).
 
 ### Adjectives: `gender.agree`, `noun.number` and `word_order` (M62, M64)
