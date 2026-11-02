@@ -6,6 +6,7 @@ using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Nlp.Es.Normalization;
+using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Normalization;
 using Xunit.Abstractions;
 
@@ -99,7 +100,9 @@ public sealed class GuideTurnTests(ITestOutputHelper output)
         Assert.Null(first.WorldLine);
         Assert.Null(first.Pointer);
         Assert.Null(session.Pointer);
-        Assert.Equal("¿Cómo?", first.Repair);
+        Assert.Null(first.Repair); // V26: the reply «No te entendí» has asked already; «¿Cómo?» is not said as well
+        Assert.Equal(RepairKind.AskAgain, first.RepairKind);
+        Assert.DoesNotContain("¿Cómo?", first.GuideLines);
         Assert.Single(first.Replies);
         Assert.NotEmpty(first.Errors);
 

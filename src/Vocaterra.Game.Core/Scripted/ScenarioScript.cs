@@ -107,6 +107,12 @@ public sealed class ScenarioScript
     /// <summary>Whether no step is half done (no walk, line or wait in progress), so the script can hand the steps on (S12).</summary>
     public bool AtStepBoundary => _phase == Phase.Idle;
 
+    /// <summary>How many steps the script has not started (V26: a run cut short says how many it dropped).</summary>
+    public int StepsLeft => Math.Max(0, _steps.Count - _index);
+
+    /// <summary>The next step the script has not started, or <see langword="null"/> when every step has started (V26).</summary>
+    public ScriptStep? NextStep => _index < _steps.Count ? _steps[_index] : null;
+
     /// <summary>The line being said (empty when none).</summary>
     public string CurrentLine => _line;
 

@@ -233,7 +233,7 @@ public sealed class PhraseSheet
     /// <summary>
     /// The id of the row of an intent among these rows (the phrases in play on a prompt, or the rows it teaches): the only one, or, when several share the intent (the
     /// fisher's <c>¿Dónde está la panadería?</c> and <c>¿Dónde está la herrería?</c>), the one whose phrase or a variant names the place or the item the turn asked
-    /// about. <see langword="null"/> when no row has the intent, or several have it and none names the turn's place or item: crediting one of them would be a guess.
+    /// about. <see langword="null"/> when no row has the intent, the only one names another item than the turn asks for (V26), or several have it and none names the turn's place or item: crediting one of them would be a guess.
     /// </summary>
     /// <param name="rows">The rows.</param>
     /// <param name="intent">The intent the core resolved.</param>
@@ -244,9 +244,16 @@ public sealed class PhraseSheet
         ArgumentNullException.ThrowIfNull(intent);
         ArgumentNullException.ThrowIfNull(slots);
         var ofIntent = rows.Where(row => string.Equals(row.Intent, intent, StringComparison.Ordinal)).ToList();
-        if (ofIntent.Count <= 1)
+        if (ofIntent.Count == 1)
         {
-            return ofIntent.FirstOrDefault()?.Id;
+            // V26: the only row of the intent is the phrase unless the turn asks for an item the row does not name: `quiero dos manzanas` is no use of `quiero dos panes`
+            // (a request the baker refuses). A count, a place or no item at all leaves the row credited: `quiero tres panes` names the same bread.
+            return slots.TryGetValue("item", out var asked) && !Names(ofIntent[0], asked) ? null : ofIntent[0].Id;
+        }
+
+        if (ofIntent.Count == 0)
+        {
+            return null;
         }
 
         if (DetailOf(slots) is not { } detail)

@@ -398,6 +398,19 @@ public sealed class SessionLog : IDisposable, ICheckLog
         }));
     }
 
+    /// <summary>A scripted run was cut short at the runaway limit (V26): the tick and the line the console got (the steps left, the first of them).</summary>
+    /// <param name="tick">The simulation tick the run stopped at.</param>
+    /// <param name="message">The line.</param>
+    public void RunTruncated(long tick, string message)
+    {
+        ArgumentNullException.ThrowIfNull(message);
+        WriteLine(Json("run_truncated", w =>
+        {
+            w.WriteNumber("tick", tick);
+            w.WriteString("message", message);
+        }));
+    }
+
     /// <summary>The end of a run: the objective, the phrase counts, the ticks and the wall time it took.</summary>
     /// <param name="session">The game session.</param>
     /// <param name="tick">The simulation tick at the end.</param>

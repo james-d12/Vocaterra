@@ -44,6 +44,8 @@ public sealed class ScriptedRunEnd
     private readonly (Action Book, Action Inventory, Action Crafting) _openAtEnd;
     private readonly Action _exit;
     private readonly Action<string> _console;
+    private readonly Action<long, string>? _logRunaway;
+    private bool _runaway;
     private int _settled;
     private bool _shown;
     private int _sizeFrames;
@@ -61,6 +63,7 @@ public sealed class ScriptedRunEnd
     /// <param name="openAtEnd">Open the book, the inventory and the crafting panel.</param>
     /// <param name="exit">Ends the game.</param>
     /// <param name="console">Where the run's lines go.</param>
+    /// <param name="logRunaway">Where a run cut short at <see cref="RunawayTicks"/> says so besides the console (the session log: the tick and the line), or <see langword="null"/>.</param>
     public ScriptedRunEnd(
         LaunchOptions options,
         VoxelSession session,
@@ -71,7 +74,8 @@ public sealed class ScriptedRunEnd
         ShotRequest shots,
         (Action Book, Action Inventory, Action Crafting) openAtEnd,
         Action exit,
-        Action<string> console)
+        Action<string> console,
+        Action<long, string>? logRunaway = null)
     {
         _options = options;
         _session = session;
@@ -83,9 +87,13 @@ public sealed class ScriptedRunEnd
         _openAtEnd = openAtEnd;
         _exit = exit;
         _console = console;
+        _logRunaway = logRunaway;
     }
 
-    /// <summary>The process exit code: 0 unless a picture could not be saved.</summary>
+    /// <summary>The exit code of a run cut short at <see cref="RunawayTicks"/> whose picture was saved: the script did not finish, so the capture is not the one asked for (V26).</summary>
+    public const int RunawayExitCode = 2;
+
+    /// <summary>The process exit code: 0 unless a picture could not be saved (1), or the run was cut short at <see cref="RunawayTicks"/> (<see cref="RunawayExitCode"/>).</summary>
     public int ExitCode { get; private set; }
 
     /// <summary>
@@ -160,7 +168,7 @@ public sealed class ScriptedRunEnd
             return;
         }
 
-        ExitCode = ScreenshotWriter.TrySave(device, path) ? 0 : 1;
+        ExitCode = ScreenshotWriter.TrySave(device, path) ? (_runaway ? RunawayExitCode : 0) : 1;
         _console($"scene draw (voxel world, layers, flush): {timings.DrawSummary()}");
         _console($"frame time (end of one draw to the next, no vsync): {timings.FrameSummary()}");
         _console($"voxel: {renderer.Stats.Summary()}; {renderer.DrawnChunks} chunks drawn this frame, {renderer.DrawnFigureQuads} figure quads, {renderer.DrawnPlantQuads} plant quads (within {preset.PlantDistance} blocks, {preset.PlantKeepPercent}% built), occlusion {(preset.AmbientOcclusion ? "on" : "off")}, clouds {(preset.Clouds ? "on" : "off")}");
@@ -177,7 +185,42 @@ public sealed class ScriptedRunEnd
         var tick = _session.Simulation.Tick;
         return (tick >= _options.Frames && _settled >= SettleTicks && _session.Worker!.IsReady && _session.PendingTurns == 0 && !_dialogue.SubmitRequested && _dialogue.PendingSpeech is null
                 && _micCheck is not { Phase: MicCheckPhase.Ready or MicCheckPhase.Listening or MicCheckPhase.Thinking })
-            || tick > RunawayTicks
-            || (_checks.RestsForShot && _settled >= SettleTicks);
+            || (_checks.RestsForShot && _settled >= SettleTicks)
+            || RunawayAt(tick);
     }
+
+    // A run that never settles takes its picture anyway at RunawayTicks, and says so once (V26): it had dropped the steps after the tick without a word.
+    private bool RunawayAt(long tick)
+    {
+        if (tick <= RunawayTicks)
+        {
+            return false;
+        }
+
+        if (!_runaway)
+        {
+            _runaway = true;
+            var line = RunawayLine(tick, _scenario?.StepsLeft ?? 0, _scenario?.NextStep, _scenario is { AtStepBoundary: false });
+            _console(line);
+            _logRunaway?.Invoke(tick, line);
+        }
+
+        return true;
+    }
+
+    /// <summary>The line a run cut short at <see cref="RunawayTicks"/> prints and logs: the tick, how many steps were left and the first of them.</summary>
+    /// <param name="tick">The tick the run stopped at.</param>
+    /// <param name="stepsLeft">The steps the script had not started.</param>
+    /// <param name="next">The first of them, or <see langword="null"/> when none was left.</param>
+    /// <param name="stepInProgress">Whether a step had started and was not done (a walk that never arrived, a line not yet answered).</param>
+    public static string RunawayLine(long tick, int stepsLeft, ScriptStep? next, bool stepInProgress)
+    {
+        var left = stepsLeft == 0
+            ? "no step was left to start"
+            : string.Create(CultureInfo.InvariantCulture, $"{stepsLeft} step{(stepsLeft == 1 ? string.Empty : "s")} not started, the first: {Describe(next)}");
+        return string.Create(CultureInfo.InvariantCulture, $"scripted run stopped at tick {tick} (the limit of {RunawayTicks}, five minutes of play): {left}{(stepInProgress ? "; a step was in progress" : string.Empty)}; exit {RunawayExitCode}");
+    }
+
+    private static string Describe(ScriptStep? step) =>
+        step is null ? "none" : step.Kind == ScriptStepKind.Move ? $"{step.Step}" : string.IsNullOrEmpty(step.Value) ? $"{step.Kind}" : $"{step.Kind} \"{step.Value}\"";
 }

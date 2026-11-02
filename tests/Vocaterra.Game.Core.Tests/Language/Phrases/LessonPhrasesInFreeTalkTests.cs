@@ -23,6 +23,22 @@ public sealed class LessonPhrasesInFreeTalkTests
         return session;
     }
 
+    // Luz's lesson of session 10 is on offer when the learner walks up; its steps skipped, the talk is free talk and the lesson begun (credited).
+    private static VoxelSession AtTheBakery()
+    {
+        var session = TestGame.NewSessionWithShippedLessons();
+        SessionSkip.Apply(session, 10);
+        Stage.TeleportToNpc(session, "baker");
+        _ = session.OpenTalk("baker");
+        for (var i = 0; session.Lessons.Engaged && i < 50; i++)
+        {
+            _ = session.Lessons.Skip();
+        }
+
+        Assert.False(session.Lessons.Engaged);
+        return session;
+    }
+
     private static IReadOnlyList<PhraseUse> Uses(VoxelSession session, string line)
     {
         var before = session.Events.OfType<PhraseUse>().Count();
@@ -60,6 +76,26 @@ public sealed class LessonPhrasesInFreeTalkTests
 
         Assert.Equal([phrase], Uses(session, line).Select(static u => u.PhraseId));
         Assert.Contains("phrase." + phrase, LastSkills(session));
+    }
+
+    [Fact]
+    public void ARequestForAnotherItemIsNoUseOfTheRowForBread()
+    {
+        // V26: `Quiero dos manzanas.` to Luz is refused («Solo vendo pan.») and was logged as a use of quiero-dos-panes, detail manzana: the row names bread.
+        var session = AtTheBakery();
+
+        Assert.DoesNotContain(Uses(session, "quiero dos manzanas"), static u => u.PhraseId == "quiero-dos-panes");
+        Assert.DoesNotContain("phrase.quiero-dos-panes", LastSkills(session));
+    }
+
+    [Theory]
+    [InlineData("quiero dos panes")]
+    [InlineData("quiero tres panes")] // the number is a slot of the row: another count of the same item is still a use
+    public void ARequestForBreadIsAUseOfTheRowForBread(string line)
+    {
+        var session = AtTheBakery();
+
+        Assert.Contains(Uses(session, line), static u => u.PhraseId == "quiero-dos-panes");
     }
 
     [Fact]

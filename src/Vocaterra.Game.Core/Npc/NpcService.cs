@@ -713,6 +713,10 @@ public sealed partial class NpcService
 
         agent.LastRepair = result.Repair?.Kind;
         IReadOnlyList<string>? choices = result.Repair is { Kind: RepairKind.OfferChoices, RetryRequest: { } retry } ? retry.GrammarPhrases : null;
+
+        // V26: one reply per turn (V21). The core's first repair step, «¿Cómo?», only asks again, which the NPC's own reply to a line not understood
+        // («No te entendí. ¿Me lo dices otra vez?») has said already; the later steps (the slow repeat, the choices, giving up) add something and stay.
+        var repair = result.Repair is { Kind: RepairKind.AskAgain } && replies.Count > 0 ? null : result.Repair?.AgentLine;
         return new GuideTurn(
             line,
             verdict.Intent.Value,
@@ -721,7 +725,7 @@ public sealed partial class NpcService
             verdict.Errors.Select(static e => new GuideError(e.Tag, e.Expected, e.Actual, e.Span)).ToList(),
             feedback,
             replies,
-            result.Repair?.AgentLine,
+            repair,
             agent.Context.AgentState.StateId,
             hostEvents,
             worldLine,
