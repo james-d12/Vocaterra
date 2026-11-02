@@ -196,11 +196,12 @@ public class PredicateAdjectiveTests
         Assert.Equal(expected, Described(sentence));
     }
 
-    // A predicate word that is an adjective and also a noun (alta, roja, cara) is read charitably as the noun when nothing else decides, as the reading resolver does
-    // everywhere: él es alta is clean with no grammar. A grammar that binds the word as [ADJ] (the game's describe) or muy or tan before it makes it the adjective.
+    // A predicate word that is an adjective and also a noun (alta, roja, cara) was read charitably as the noun when nothing else decided, so él es alta was clean with
+    // no grammar; a grammar that binds the word as [ADJ] (the game's describe) or muy or tan before it made it the adjective. M69: so does a noun reading that agrees
+    // with neither the subject nor the copula's number, for the common adjectives of the pack (PredicateReadingTests).
     [Theory]
-    [InlineData("él es alta", "")]
-    [InlineData("las manzanas son roja", "")]
+    [InlineData("él es alta", "gender.agree|alta|alto")]
+    [InlineData("las manzanas son roja", "noun.number|roja|rojas")]
     [InlineData("el pan es muy cara", "gender.agree|cara|caro")]
     [InlineData("él es tan alta", "gender.agree|alta|alto")]
     public void AnAdjectiveThatIsAlsoANounIsTheAdjectiveWhereSomethingSaysSo(string sentence, string expected)

@@ -39,6 +39,25 @@ public class UnmarkedSpellingTests
         Assert.Equal(expected, Described(sentence));
     }
 
+    // M69 (an O3 finding of V21's gate, CsCheck seed 2cqJbc9y05h3, typed=dañó): a spelling typed with an accent keeps only the forms with that accent, so danó is the
+    // verb dañó and not also the noun daño, whose reading made delicado danó hechos a word_order slip (danó delicado); dano, with no accent, keeps both.
+    [Theory]
+    [InlineData("delicado danó hechos", "")]
+    [InlineData("delicado dañó hechos", "")]
+    [InlineData("el niño danó la casa", "")]
+    public void ASpellingTypedWithAnAccentIsTheFormWithThatAccent(string sentence, string expected)
+    {
+        Assert.Equal(expected, Described(sentence));
+    }
+
+    [Fact]
+    public void TheTypedAccentChoosesAmongTheFormsOfOneUnmarkedSpelling()
+    {
+        Assert.All(Bundle.Lookup("danó"), static r => Assert.Equal("dañar", r.Lemma));
+        Assert.Contains(Bundle.Lookup("dano"), static r => r.Lemma == "daño");
+        Assert.Contains(Bundle.Lookup("dano"), static r => r.Lemma == "dañar");
+    }
+
     [Theory]
     [InlineData("manana", "mañana")]
     [InlineData("pequeno", "pequeño")]

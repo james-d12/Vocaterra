@@ -110,7 +110,10 @@ All of this is additive unless it says breaking. The game compiles and passes un
   `IsElapsedTimeNoun` (M59, the preposition of `hace dos días` and the nouns of time it takes), `IsPostnominalAdjective` and `IsDegreeAdverb` (M62, the colours that
   go after their noun and `muy`, `tan`; see "Adjectives" below). ADR 0009 records them (its note of M64). M66 added two members with a default implementation
   (none), so a host that implements the interface is not broken: `IsModalVerb(lemma, linker)` and `ModalTakesNounObject(lemma)` (the verbs that take an infinitive,
-  `poder`, `querer`, `deber`, `necesitar` and `tener que`, and those of them that also take a noun; see "Tense errors" below); ADR 0009's note of M66. Breaking signatures: `ReadingClasses.IsDeterminerReading`, `IsClosedClassReading` and `IsSkippable`
+  `poder`, `querer`, `deber`, `necesitar` and `tener que`, and those of them that also take a noun; see "Tense errors" below); ADR 0009's note of M66. M69 added three
+  more with a default that finds none: `IsLocationAdverb(lemma)` (`lejos`, `cerca`: `son cerca` is the copula), `CallsForSlip(tokens, index, slip)` (where a word of
+  another class is a learner's slip without a grammar: `yo podo ir`, `yo esto cansado`) and `IsPredicateAdjective(lemma)` (the common adjectives whose noun homographs
+  are no bare predicate: `él es alta`); see "Person and copula errors", "Irregular forms" and "Adjectives" below. Breaking signatures: `ReadingClasses.IsDeterminerReading`, `IsClosedClassReading` and `IsSkippable`
   take the rules (they were internal in effect: only the analysis used them); `AccentRestoration.SpellingsFor(lexicon, analysis, rules)`;
   `SlotGrammarMatcher.Match(tokens, grammar, language[, rules])` (the 3-argument form still works and uses `AnalysisRules.For`).
 - **Constructors that take the interface** (source compatible, `MorphologyGenerator` is an `IMorphology`): `LinguisticAnalyzer(lexicon, IMorphology, language[, rules])`,
@@ -531,7 +534,7 @@ suite's sentence generator models:
 
 The checks work on the whole utterance, not on clauses, and on the verb forms the lexicon lists.
 
-### Person and copula errors, `conj.person` and `ser_estar` (M56, M59, M64, M66, M70)
+### Person and copula errors, `conj.person` and `ser_estar` (M56, M59, M64, M66, M69, M70)
 
 `conj.person` is reported on the verb token, with `expected` the form of the verb for the person and number of its subject and `actual` the form said:
 
@@ -545,6 +548,14 @@ The checks work on the whole utterance, not on clauses, and on the verb forms th
   está` gives `están` and `ella qué quieres` `quiere` (before M66 nothing: the check looked for the verb at `qué`). Two readings are left alone: a verb of the third person
   with a subject after it (`ellas dónde está la casa`), and a third person singular after `qué`, which may be the subject itself (`ellos qué pasa`, `tú qué quiere`). The
   phrase after the verb is then no subject of it (M63: `ellas adónde están un detenido lento` gave `está` before M66).
+- **A subject pronoun after the verb of a question (M69, M56's left point "the first and second persons after the verb"):** in a question or a relative clause
+  the subject goes after its verb, so a subject pronoun right after a finite verb that a question word or a relative opens (`qué`, `dónde`, `adónde`, `cuándo`,
+  `cómo`, `cuánto`, `quién`, `cuál`, `que`, with or without the accent) is its subject, and a verb of another person or number is reported with the pronoun's form:
+  `¿dónde estás yo?` gives `estoy`, `¿dónde está tú?` and `¿cómo está tú?` `estás`, `¿cómo estás usted?` `está`, `¿qué quiere tú?` `quieres` (before M69 each was clean).
+  Clean: `¿dónde estás tú?`, `¿cómo está usted?`, `la casa donde vive él`; a pronoun that begins a clause of its own (`¿qué quieres? yo te doy pan`: a finite verb
+  follows it), one joined by `y`, `o` or `ni` (`¿dónde están tú y Luz?`), `tu` before a noun (`¿cómo es tu casa?`), a clitic between the question word and the verb
+  (`¿qué te gusta?`), `haber`, and a verb after any other word (`mira tú`, `me gustas tú`). Limit: a verb that is also a noun after `qué` is read charitably as the noun
+  when the verb would disagree (`qué haces yo` stays clean: `haces` is also a plural noun).
 - **A subject pronoun joined by `y` (M64):** a subject pronoun after `y` or `e` and members before it (subject pronouns, noun phrases, names) ends one plural subject
   when the first member opens its clause, as a noun phrase does below: `mar y yo fuimos al río`, `mis amigos y yo fuimos al río`, `tú y yo somos amigos`, `usted y yo
   vamos al río`, `luz y yo compramos pan`, `ella y él son altos` are clean. The verb takes the first person plural when a member is of the first person; else the second
@@ -598,11 +609,24 @@ The checks work on the whole utterance, not on clauses, and on the verb forms th
   the verb (a subject pronoun, a noun or a name that no preposition governs: `el pan me gusta`); a phrase coordinated with `y`, `o` or `ni` (`me gusta el pan
   y la fruta` may agree with the first); a phrase that disagrees with itself (`me gustan las manzana` is `noun.number`'s); a noun of part or quantity before
   `de` (`me gustan la mayoría de las frutas`); a noun of time after `estar` or a verb of price (`están el lunes en casa`); a verb of price outside the question
-  (`cuestan dos monedas`: the phrase is the price); `haber` (`hay dos panes`); a verb of the first or second person; the subjunctive. **The neuter pronouns (M66)**
+  (`cuestan dos monedas`: the phrase is the price); `haber` (`hay dos panes`); the subjunctive. **A verb of the first or second person singular (M69, M56's left
+  point):** `estar`, and a verb of price after `cuánto`, with a phrase after it that an article alone opens, take that phrase's third person: `¿dónde estás la
+  herrería?` gives `está`, `¿cuánto cuestas el pan?` `cuesta` (before M69 both were clean, and the game's `ask_directions` and `ask_price` praised them). A phrase
+  with a possessive or a demonstrative may name the person spoken to (`¿dónde estás mi amor?`), the plural may be of the people the phrase names (`¿dónde estamos los
+  niños?`: we children), and a phrase that `de` follows may be an idiom: they stay clean, as other verbs of the first or second person do. **The neuter pronouns (M66)**
   `todo`, `eso`, `esto` and `aquello`, alone after the verb, are a singular subject: `¿cuánto cuestan todo?` and `¿cuánto cuestan eso?` give `cuesta`, `me gustan todo`
   `gusta`; and `ser` after `cuánto` is checked against them, `¿cuánto son todo?` giving `es` (`son`, also a noun, is the copula right after `cuánto`). Clean: `¿cuánto
   cuesta todo?`, `¿cuánto es todo?`, `¿cuánto cuesta eso?`, `¿cuánto son las manzanas?` (`ser` after `cuánto` is checked against the neuter pronouns only), `¿cuánto
-  cuestan todos?`, `todo` before a phrase or an adjective (`todo el pan`) and two joined (`eso y esto`).
+  cuestan todos?`, `todo` before a phrase or an adjective (`todo el pan`) and two joined (`eso y esto`). **The question word typed without its accent or inflected
+  (M69, V20 and QA-language-10):** `cuanto` or `cuantos` that opens the utterance (after a greeting at most), before a word that can be a finite verb or a noun and no
+  adverb, is read as the interrogative (a recast restores the accent), so `cuanto son todo` gives `es` like `¿cuánto son todo?` (before M69 `son` was the noun, and the
+  line was praised); `cuanto más`, `cuanto antes` and `todo cuanto tengo` keep the relative. Before a verb of price or `ser` whose subject is a neuter pronoun after it,
+  the question word asks how much and is the invariable `cuánto`: when the verb disagrees with the pronoun, an inflected one is reported as well, on its own token with
+  `expected` `cuánto`, with `noun.number` for the plural and `gender.agree` for the feminine (`cuántos cuestan todo` gives `noun.number` `cuánto` and `cuesta`,
+  `cuántas cuestan todo` `gender.agree` and `noun.number` `cuánto` and `cuesta`, `¿cuántos son todo?` `cuánto` and `es`). A verb that agrees is left alone, because the
+  inflected word may count coins left unsaid (`¿cuántos es todo?`). `son` right after any form of the question word is the copula: `¿cuántos son?` (how many are there)
+  is clean (before M69 it gave a false `noun.number` `sones`). Limit: a form of `costar` that is also a noun right after `cuántas` or `cuántos` (`cuántas cuesta todo`)
+  is still read as the noun of the phrase the determiner opens.
 
 - **`gustar` and `encantar` agree with the thing liked (M70, QA-language-4):** the one who likes is a dative pronoun, so a form of the first or second person right
   behind its dative pronoun, with a noun phrase after it that would be its subject, gives the form of that phrase: `me gusto el pan` gives `gusta`, `me gusto las
@@ -615,7 +639,8 @@ The checks work on the whole utterance, not on clauses, and on the verb forms th
   el pan`, `me gustan las manzanas`, `te gusta el pan`, `a mí me gusta el pan`, `no me gusta`, `¿te gusta?`, `nos gusta la fruta`, a subject after the verb that
   agrees with it (`me gustas tú`, `te gusto yo`), no phrase after the verb (`me gusto`, `te gusto`), a dative with a subject pronoun (`tú me gustas`, `yo te
   gusto`), a phrase after a preposition (`ella gusta de la música`), and the other experiencer verbs, which take a subject of the first or second person or an object
-  in other senses (`me quedo el libro`).
+  in other senses (`me quedo el libro`). M69: a form of two tenses (`gustamos`, the present and the preterite) is taken in the preterite after a past marker, so `ayer
+  no me gustamos unos aparatos` gives `gustaron` (before M69 `gustan`).
 
 `ser_estar` is reported on the copula, with `expected` the form of the other copula and `actual` the form said:
 
@@ -629,15 +654,27 @@ The checks work on the whole utterance, not on clauses, and on the verb forms th
   an event; `de dónde` (origin: `¿de dónde es tu padre?`); a bare or indefinite noun phrase, or one with an adjective before its noun (a predicate:
   `¿dónde es profesor?`); `cerca de` with an hour or a number (`son cerca de las 3`), and `cerca del` with one (M64: `es cerca del mediodía` is clean; `la tienda es
   cerca del río` still gives `está`); a preposition between (`es de lejos`); a form that is also `ir`
-  (`fue lejos`); and `es lejano` (an adjective of neither class). `ser` with `en` and a place (`la herrería es en la plaza`) is not checked.
+  (`fue lejos`); and `es lejano` (an adjective of neither class).
+- **`ser` with `en` and a place (M69, M56's left point):** `ser` right before `en` and a place, after a subject that is a person or a thing and no event, gives the
+  form of `estar`: `la tienda es en el pueblo` gives `está`, `la herrería es en la plaza` `está`, `la tienda era en el pueblo` `estaba`, `las tiendas son en el
+  pueblo` `están`, `yo soy en casa` `estoy`, `ella es en la tienda` `está` (before M69 each was clean). The place is a noun phrase with a determiner that is no numeral
+  (`en el pueblo`, `en mi casa`, `en una tienda`) or the bare `casa` (`en casa`); the subject a subject pronoun before the copula (past at most two adverbs) or the
+  noun phrase that opens its clause ("A noun phrase before its verb" above). Clean: an event (`la fiesta es en la plaza`, `la cena es en mi casa`, `la visita es en el
+  pueblo`; M69 added `entrega`, `visita`, `excursión`, `viaje`, `sesión`, `prueba`, `accidente` and others to the pack's list); a lone name (`Luz es en la plaza`:
+  Luz may be the person spoken to); no subject (`es en la plaza`, which may be said of an event); a time, a manner or a bare noun after `en` (`la clase es en la tarde`,
+  `el pago es en monedas`, `¿es en serio?`); an adverbial phrase (`es, en el fondo, bueno`, `en la práctica`); `fue` (also `ir`); `estar` itself; and a subject after the
+  verb.
 
 The word after `dónde` or `cómo` is read as the verb when it can be one, so `¿dónde son las casas?` is `ser` and gives `están`; past the pronouns before a verb too (M59:
 `¿cómo se llamas?` is `llamar`, not the noun `llamas`). Elsewhere `son`, which is also a noun, is the copula only where its neighbours make it one: `ellos son cerca`
-gives `están`, and `son cerca` alone is read as the noun. `hace` is the preposition of elapsed time only before a phrase of time (`hace dos días`, `hace un rato`, `hace
+gives `están`; since M69 `son` and `era` with no determiner before them right before `lejos` or `cerca` (past `muy` or `tan`) are the copula too, so `son cerca` and
+`son lejos` give `están` (before M69 the noun, clean), and `el son cerca de la plaza` keeps the noun. `son` and `era` right after a noun that a preposition governs, or
+after a lone noun that opens the utterance, before an adjective, are the copula as well (M69: `las casas de luz son bonitos`, `luz son alta`), and so are they after a
+determined noun before a preposition (`la tienda y la herrería son en el pueblo`). `hace` is the preposition of elapsed time only before a phrase of time (`hace dos días`, `hace un rato`, `hace
 mucho`) and the verb `hacer` elsewhere (M59: `¿qué hace?`, `¿qué hace Domingo?`, `hace frío`), also where a grammar's literal `hace` binds it, so `result.Words` reports the
 verb for a host's own person check.
 
-### Irregular forms, plurals and unknown words, `conj.irregular`, `noun.number` and `vocab.unknown` (M58, M66, M70)
+### Irregular forms, plurals and unknown words, `conj.irregular`, `noun.number` and `vocab.unknown` (M58, M66, M69, M70)
 
 `conj.irregular` is reported on a verb form that is the regular cell of an irregular verb (the stem change missed, or a regular ending on an irregular stem), with
 `expected` the lexicon's form of that cell and `actual` the form said. Whether the form is the verb depends on what else it is:
@@ -659,8 +696,15 @@ verb for a host's own person check.
   mistake when the resolver weighs the readings. A grammar that takes the word as written wins over one that needs the verb. `result.Words` reports the reading the
   analysis used (`costar` in `¿cuánto costa?`), and `result.Tokens` lists the verb after the noun's readings only when the analysis read the word as the verb.
 - **A form that is also a word of another class** stays that word: an adjective or adverb (`solo`, `sola`: `yo solo quiero pan`), a pronoun (`esto`, which is not taken
-  for `estoy`) and a form of another verb (`podo`, `pode`, `podes`, forms of `podar`: `yo podo el árbol`). Only a slot grammar that matches nothing without it and names
-  the verb reads it as the slip: `me [VERB:poder] [VERB:ayudar]` over `me pode ayudar` gives `puede`.
+  for `estoy`) and a form of another verb (`podo`, `pode`, `podes`, forms of `podar`: `yo podo el árbol`). A slot grammar that matches nothing without it and names
+  the verb reads it as the slip: `me [VERB:poder] [VERB:ayudar]` over `me pode ayudar` gives `puede`. **Since M69 (M58's left point)** the words around it read it as the
+  slip without a grammar where no reading of it as written fits them (`IAnalysisRules.CallsForSlip`, default never): a form of `podar` that is a modal's slip right before
+  an infinitive (`podar` takes none: `yo podo ir al río` and `no podo ir` give `puedo`, `tú podes venir` `puedes`, `él pode venir mañana` `puede`), and `esto` after `yo`
+  (past `no` or another adverb) before an adjective, `bien`, `mal`, an adverb of place, `en` or `con` (`yo esto cansado`, `yo esto bien`, `yo esto en casa` give `estoy`), or
+  opening the utterance before an adjective that takes `estar`, past `muy` (`esto cansado`, `esto muy contento`), with no word after it that can only be a finite verb.
+  Before M69 each was clean. Clean: `yo podo el árbol`, `yo podo`, `esto es pan`, `yo esto no lo sé` (an object put first), `quiero esto`, `esto de aquí es pan`, `esto
+  bien`, `esto rojo`, and `solo` before an infinitive (`solo comer pan`: only a modal's slip is read there). `result.Tokens` lists the verb after the word's own readings
+  when the analysis read the word as the slip, as for the slips beside a noun.
 - A form that differs from the expected one only in its accents is not reported (`esta`, `estas` for `está`, `estás`): it is read as the accented word, without an error.
 
 `noun.number` is reported on a noun that disagrees in number with its determiner (`dos espada` gives `espadas`) or an adjective with its noun, and, since M58, on **a
@@ -682,7 +726,7 @@ it stood, so these gave `compré` («compré compré manzanas») and `iré` («m
 río`) keeps an empty `expected`; so does one whose word stands next to it already. A one-word line still takes the whole canonical phrase (`buenosdias`). A word a grammar binds as a name
 (`[WORD]`) is neither an unknown word nor a slip, whatever its spelling (`me llamo Pans`).
 
-### Adjectives: `gender.agree`, `noun.number` and `word_order` (M62, M64)
+### Adjectives: `gender.agree`, `noun.number` and `word_order` (M62, M64, M69)
 
 An adjective agrees with its noun in gender and number, and a determiner with its noun: `gender.agree` and `noun.number` are reported on the word that disagrees, with
 `expected` the form that agrees (`quiero tres manzanas rojos` gives `gender.agree` `rojas`; `una casa grandes` gives `noun.number` `grande`; `quiero tres manzanas rojo`
@@ -709,13 +753,28 @@ gives both, with `rojas`). Since M62 the same holds across a copula:
   with both genders and its article is `el` (`el agua está frío` gives `fría`, as before).
 - **A name gives no gender:** a lone name (one bare noun, `Luz es alta`) may be the person spoken to, and the core does not know a name's gender (a woman may be called
   `Sol`), so only the copula's number is checked after it: `Luz es alta`, `Luz es alto`, `Domingo es alto` and `León es alto` are clean, `Luz es altos` gives `alto`. A
-  host that knows the person (a lesson about Luz) checks the gender itself.
+  host that knows the person (a lesson about Luz) checks the gender itself. **The predicate shows the number (M69, M62's left point):** after a lone name, a copula of
+  the other number with a predicate adjective of the name's number and not of the copula's has the name as its subject after all, and the copula is the slip
+  (`conj.person`): `luz son alta` and `pan son caro` give `es` (`son` is the copula there since M69; before M69 the noun, clean). `Luz son altas` stays clean (Luz, they
+  are tall).
 - **Clean:** `es caro` and `es muy caro` with no subject (the gender is never guessed), `los panes son más baratos que las manzanas`, `la manzana es tan cara como el
   pan`, an adjective before a noun after the copula (`es buena gente`: a noun phrase, whose adjective agrees with its noun), a determiner adjective (`es mucho`), a
   preposition after the copula (`la casa es de Luz`, `el pan es para Luz`), an adverb (`es lejos`, which is `ser_estar`'s), `pasado mañana`, a subject governed by a
-  preposition (`el pan de Luz es caro`: only the copula's number), and `los niños somos altos` (a phrase before a verb of the first person is no subject).
-- **Which reading is the adjective:** a word that is an adjective and also a noun (`alta`, `roja`, `cara`) after the copula is read charitably as the noun when nothing
-  else decides, as the reading resolver does everywhere, so `él es alta` is clean with no grammar. A slot grammar that binds the word as `[ADJ]` (the game's
+  preposition when the subject cannot be told (`las casas de Luz es bonita`: the copula's number only), and `los niños somos altos` (a phrase before a verb of the first
+  person is no subject).
+- **A subject with `de` (M69, M62's left point):** the noun phrase that opens its clause, with `de` or `del` and a phrase after it (up to three links: `la casa de la
+  hermana de Luz`), is the subject of a copula of the third person of its number, and gives the predicate its gender and number: `la casa de los niños es pequeño`
+  gives `gender.agree` `pequeña`, `la casa de luz es bonito` `bonita`, `el pan de la tienda es buena` and `el pan del pueblo es buena` `bueno` (before M69 only the
+  copula's number was checked). Clean: `la casa de los niños es bonita`, `el hermano de Luz es alto`; a noun of part or quantity (`la mayoría de los niños son altos`,
+  which may agree with either); and a copula of another number than the first phrase (`la casa de Luz son bonitas`: the subject cannot be told, and the copula's
+  number decides, as before; the verb is not checked against the phrase with `de`).
+- **Which reading is the adjective:** a word that is an adjective and also a noun (`alta`, `roja`, `cara`) after the copula was read charitably as the noun when nothing
+  else decided, so `él es alta` was clean with no grammar. **Since M69 (M62's left point)** a common descriptive adjective of the pack's list
+  (`IAnalysisRules.IsPredicateAdjective`: `alto`, `caro`, `bonito`, `nuevo`, `rico`, `listo`...) that is also a noun, right after a copula with no determiner between, is
+  the adjective where none of its noun readings agrees with both the subject before the copula (a subject pronoun or the noun right before it) and the copula's number:
+  `él es alta` gives `alto`, `ella es bonito` and `la casa es bonito` `bonita` (not the tuna), `el pan es cara` `caro`, `es bonitos` `noun.number` `bonito`, `las manzanas
+  son roja` `noun.number` `rojas`. A noun that agrees may be a predicate noun (`ella es médico`, `es alta`), and so may a participle's noun (`el pan es comida`) and the
+  noun of an adjective outside the list (`ellos son pareja`); a preposition after the word makes it a noun with its complement (`es falta de respeto`). A slot grammar that binds the word as `[ADJ]` (the game's
   `describe`) makes it the adjective (`él es alta` gives `alto` under `[PRON] [VERB:ser] [ADJ]`), and so does `muy` or `tan` before it (`el pan es muy cara` gives
   `caro`). A word that is an adjective and a noun (and no finite verb) right after the noun of a phrase with a determiner, and agrees with the noun and the
   determiners, is that noun's adjective, so the phrase is the subject (`las manzanas rojas son caro` gives `caras`). `son` and `era`, which are also nouns, are the copula after a noun phrase with a determiner and before an

@@ -1,0 +1,144 @@
+# M69's lines (2026-11-02): the left points of the core's village milestones (M56, M58, M62), the price question with an inflected or unaccented question
+# word (V20, QA-language-10) and M71's buenas tardes. The deliberate mistakes, each listed with what M69 gives it (before M69 each was clean, unless noted):
+#  - section 1: son cerca and son lejos: ser_estar=están; la tienda es en el pueblo, la herrería es en la plaza, mi casa es en el pueblo, el pan es en la tienda,
+#    ella es en la tienda, la tienda era en el pueblo, yo soy en casa, los niños son en el río: ser_estar with the form of estar;
+#  - section 2: ¿dónde estás yo?: conj.person=estoy; ¿dónde está tú?, ¿cómo está tú?: estás; ¿cómo estás usted?: está; ¿qué quiere tú?: quieres;
+#    ¿dónde estás la herrería?: está; ¿cuánto cuestas el pan?: cuesta;
+#  - section 3: yo podo ir al río, no podo ir: conj.irregular=puedo; tú podes venir: puedes; él pode venir mañana: puede; yo esto cansado, esto cansado,
+#    yo esto en casa, yo esto bien: conj.irregular=estoy;
+#  - section 4: él es alta: gender.agree=alto; ella es bonito: bonita; la casa es bonito: bonita; luz son alta, pan son caro: conj.person=es;
+#    la casa de los niños es bonito, la casa de los niños es pequeño, la casa de luz es bonito, el pan de la tienda es buena: gender.agree with the form of
+#    the first phrase;
+#  - section 5: cuanto son todo: conj.person=es; cuántos cuestan todo: noun.number=cuánto conj.person=cuesta; cuántas cuestan todo: gender.agree and
+#    noun.number=cuánto, conj.person=cuesta; cuántos son todo: noun.number=cuánto conj.person=es (before M69: noun.number=sones);
+#  - section 6: buenas tardes is clean before and after (the change is the fuzz suite's realiser).
+# The rest is correct Spanish and stays clean (apart from vocab.wrong at a constrained prompt whose answer set does not hold a line that resolved no intent).
+# scripts/try-lines.sh --check compares the output with m69.expected (the CLI) and m69.host.expected (--host).
+# Rows: prompt|line; blank lines and lines starting with # are skipped.
+
+# 1. ser where a place takes estar: son before lejos or cerca, ser with en and a place (M56's left points).
+villager-open|son cerca
+villager-open|son lejos
+villager-open|la tienda es en el pueblo
+villager-open|la herrería es en la plaza
+villager-open|mi casa es en el pueblo
+villager-open|el pan es en la tienda
+villager-open|ella es en la tienda
+villager-open|la tienda era en el pueblo
+villager-open|yo soy en casa
+villager-open|los niños son en el río
+villager-open|la tienda está en el pueblo
+villager-open|la herrería está en la plaza
+villager-open|mi casa está cerca del río
+villager-open|el pan está en la tienda
+villager-open|yo estoy en casa
+villager-open|las casas están lejos
+villager-open|estamos cerca
+villager-open|son cerca de las tres
+villager-open|la fiesta es en la plaza
+villager-open|la boda es en el pueblo
+villager-open|la cena es en mi casa
+villager-open|el concierto es en la plaza
+villager-open|el examen es en la escuela
+villager-open|¿dónde es la fiesta?
+villager-open|es en la plaza
+villager-open|¿es en serio?
+villager-open|la casa es de luz
+villager-open|esta casa es de madera
+villager-open|la tienda es grande
+villager-open|la clase es mañana
+
+# 2. A subject of the first or second person after its verb (M56's left point), and a verb of the first or second person with a phrase after it.
+villager-open|¿dónde estás yo?
+villager-open|¿dónde está tú?
+villager-open|¿cómo está tú?
+villager-open|¿cómo estás usted?
+villager-open|¿qué quiere tú?
+villager-open|¿dónde estás la herrería?
+farmer-open|¿cuánto cuestas el pan?
+villager-open|¿dónde estás tú?
+villager-open|¿cómo está usted?
+villager-open|¿qué quieres tú?
+villager-open|¿dónde vive usted?
+villager-open|¿qué haces tú?
+villager-open|¿cómo estáis vosotros?
+villager-open|¿dónde están ustedes?
+villager-open|¿cómo te llamas tú?
+villager-open|¿quién eres tú?
+villager-open|¿dónde están tú y luz?
+villager-open|qué quieres yo te doy pan
+villager-open|¿cómo es tu casa?
+villager-open|me gustas tú
+villager-open|¿dónde está la herrería?
+farmer-open|¿cuánto cuesta el pan?
+
+# 3. podo and esto, read as the slip without a grammar where nothing else can be meant (M58's left point).
+villager-open|yo podo ir al río
+villager-open|no podo ir
+villager-open|tú podes venir
+villager-open|él pode venir mañana
+villager-open|yo esto cansado
+villager-open|esto cansado
+villager-open|yo esto en casa
+villager-open|yo esto bien
+villager-open|yo podo el árbol
+villager-open|yo puedo ir al río
+villager-open|no puedo ir
+villager-open|estoy cansado
+villager-open|yo estoy bien
+villager-open|esto es pan
+villager-open|esto es caro
+villager-open|quiero esto
+villager-open|¿qué es esto?
+villager-open|esto no me gusta
+villager-open|yo esto no lo sé
+villager-open|esto también
+villager-open|esto de aquí es pan
+
+# 4. The predicate adjective: a word that is also a noun after the copula, son after a lone name, a subject with de (M62's left points).
+villager-open|él es alta
+villager-open|ella es bonito
+villager-open|la casa es bonito
+villager-open|luz son alta
+villager-open|pan son caro
+villager-open|la casa de los niños es bonito
+villager-open|la casa de los niños es pequeño
+villager-open|la casa de luz es bonito
+villager-open|el pan de la tienda es buena
+villager-open|él es alto
+villager-open|ella es alta
+villager-open|ella es bonita
+villager-open|él es médico
+villager-open|ella es médico
+villager-open|la casa es bonita
+villager-open|el pan es comida
+villager-open|la casa de los niños es bonita
+villager-open|el pan de la tienda es bueno
+villager-open|las casas de luz son bonitas
+villager-open|el hermano de luz es alto
+villager-open|la mayoría de los niños son altos
+villager-open|luz es alta
+villager-open|domingo es alto
+villager-open|ellas son bonitas
+villager-open|es cara la manzana
+
+# 5. The price question with the question word unaccented or inflected (V20, QA-language-10).
+farmer-open|cuanto son todo?
+farmer-open|cuanto son todo
+farmer-open|cuántos cuestan todo
+farmer-open|cuántas cuestan todo
+farmer-open|¿cuántos son todo?
+farmer-open|¿cuánto cuesta todo?
+farmer-open|cuánto es todo
+farmer-open|cuanto cuesta el pan
+farmer-open|cuanto es todo
+farmer-open|¿cuánto cuestan las manzanas?
+farmer-open|¿cuántas manzanas quieres?
+farmer-open|¿cuántos panes tienes?
+farmer-open|¿cuántos son?
+
+# 6. Greetings (M71's finding: the fuzz suite's realiser never drew buenas tardes).
+villager-open|buenas tardes
+villager-open|hola buenas tardes
+villager-open|buenos días
+villager-open|buenas noches

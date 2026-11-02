@@ -17,6 +17,17 @@ internal static class SpanishAnalysisTables
         "alto", "bajo", "inteligente", "simpático", "amable", "guapo", "feo", "importante", "fácil", "difícil", "trabajador",
     }.ToFrozenSet(StringComparer.Ordinal);
 
+    // M69. Common descriptive adjectives, several of whose forms are also nouns that are no predicate of a person or a thing without a determiner (alta: the discharge;
+    // cara: the face; bonito: the tuna; lista: the list; nueva: the news), so that after a copula such a form is the adjective where its noun would not agree with the
+    // subject and the copula (él es alta, la casa es bonito; IAnalysisRules.IsPredicateAdjective). An adjective whose noun may be a predicate noun of a person (médico,
+    // pareja) or of a thing (comida, the food, of comido) is left out on purpose, and so are the colours that are nouns of their own (rosa, naranja).
+    private static readonly FrozenSet<string> PredicateAdjectives = new[]
+    {
+        "alto", "bajo", "bonito", "lindo", "guapo", "feo", "caro", "barato", "nuevo", "viejo", "rico", "pobre", "bueno", "malo", "pequeño", "grande", "largo",
+        "corto", "gordo", "delgado", "limpio", "sucio", "claro", "oscuro", "rojo", "blanco", "negro", "amarillo", "frío", "fresco", "duro", "blando", "rápido",
+        "lento", "raro", "cómodo", "lleno", "vacío", "listo", "tranquilo", "simpático", "antipático", "sano", "enfermo", "precioso", "sabroso", "dulce",
+    }.ToFrozenSet(StringComparer.Ordinal);
+
     // The adjectives that go before their noun, so that order is no slip. M66: cada (cada manzana cuesta una moneda gave word_order "manzana cada"); it is no
     // determiner adjective here, because cada dos días puts it before a plural.
     private static readonly FrozenSet<string> PrenominalAdjectives = new[] { "grande", "bueno", "malo", "cada" }.ToFrozenSet(StringComparer.Ordinal);
@@ -79,7 +90,29 @@ internal static class SpanishAnalysisTables
         "torneo", "cena", "comida", "almuerzo", "desayuno", "merienda", "banquete", "cumpleaños", "festival", "feria", "mercadillo", "misa", "funeral",
         "entierro", "ceremonia", "celebración", "espectáculo", "función", "obra", "película", "exposición", "conferencia", "congreso", "cita", "encuentro",
         "evento", "acto", "entrevista", "baile", "desfile", "procesión", "carnaval", "salida", "llegada",
+
+        // M69: more events, since ser with en and a place is checked too (la entrega es en la plaza, la visita es en el museo).
+        "entrega", "visita", "excursión", "viaje", "sesión", "votación", "inauguración", "graduación", "verbena", "romería", "ensayo", "actuación", "taller",
+        "charla", "prueba", "subasta", "sorteo", "batalla", "pelea", "lucha", "accidente",
     }.ToFrozenSet(StringComparer.Ordinal);
+
+    // M69. Nouns of the adverbial phrases that en makes with a determiner (en el fondo, en la práctica, en la actualidad, en el caso de), which say how or when and not
+    // where: ser before one is no place (es, en el fondo, bueno). Bare phrases (en serio, en general) are never a place for the rule.
+    private static readonly FrozenSet<string> AdverbialPhraseNouns = new[]
+    {
+        "fondo", "práctica", "actualidad", "medida", "sentido", "caso", "realidad", "principio", "teoría", "verdad", "general", "parte", "total", "cambio", "forma",
+        "manera", "modo", "palabra", "seguida", "absoluto", "punto",
+    }.ToFrozenSet(StringComparer.Ordinal);
+
+    // M69. The ordinals and words of sequence, as written, which may stand for a noun left unsaid (la tercera: the third time, ¿dónde estuviste la tercera?).
+    private static readonly FrozenSet<string> Ordinals = new[]
+    {
+        "primero", "primera", "segundo", "segunda", "tercero", "tercera", "cuarto", "cuarta", "quinto", "quinta", "sexto", "sexta", "séptimo", "séptima", "octavo",
+        "octava", "noveno", "novena", "décimo", "décima", "último", "última", "próximo", "próxima", "siguiente", "anterior",
+    }.ToFrozenSet(StringComparer.Ordinal);
+
+    // M69. The nouns that make a place with en without a determiner (en casa: at home); any other bare noun after en is a time or a manner (en marzo, en monedas, en tren).
+    private static readonly FrozenSet<string> BarePlaceNouns = new[] { "casa" }.ToFrozenSet(StringComparer.Ordinal);
 
     // M56. Verbs whose subject follows them after a dative pronoun, and which take no direct object there: me gusta el pan, me gustan las manzanas, me duele la cabeza,
     // me faltan dos monedas. parecer (me parece una buena idea: a predicate) and verbs that also take an object (me dan el pan) are not among them.
@@ -343,6 +376,30 @@ internal static class SpanishAnalysisTables
     public static bool IsEventNoun(string lemma)
     {
         return EventNouns.Contains(lemma);
+    }
+
+    /// <summary>True for a common descriptive adjective whose noun homographs are no bare predicate (<c>alto</c>: <c>alta</c>, the discharge; M69).</summary>
+    public static bool IsPredicateAdjective(string lemma)
+    {
+        return PredicateAdjectives.Contains(lemma);
+    }
+
+    /// <summary>True for the noun of an adverbial phrase with <c>en</c> and a determiner (<c>en el fondo</c>, <c>en la práctica</c>), which is no place (M69).</summary>
+    public static bool IsAdverbialPhraseNoun(string lemma)
+    {
+        return AdverbialPhraseNouns.Contains(lemma);
+    }
+
+    /// <summary>True for an ordinal or a word of sequence as written (<c>tercera</c>, <c>última</c>), which may stand for a noun left unsaid (M69).</summary>
+    public static bool IsOrdinal(string word)
+    {
+        return Ordinals.Contains(word);
+    }
+
+    /// <summary>True for a noun that is a place after <c>en</c> without a determiner (<c>en casa</c>; M69).</summary>
+    public static bool IsBarePlaceNoun(string lemma)
+    {
+        return BarePlaceNouns.Contains(lemma);
     }
 
     /// <summary>True for verbs whose subject follows them after a dative pronoun (<c>me gusta el pan</c>, <c>me duelen los pies</c>; M56).</summary>

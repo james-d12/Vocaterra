@@ -46,7 +46,7 @@ internal sealed partial class SpanishAgreementChecker
             // A lone name may be the person spoken to, and so may the people of a coordination before a verb of the first or second person; a phrase with a determiner may be
             // that verb's object put first. Only a third-person verb after a phrase that is surely its subject is checked.
             var third = finite.Find(static r => r.Person == "3");
-            if (third is null || subject.Lone)
+            if (third is null || (subject.Lone && !PredicateShowsNumber(v, third, subject.Number)))
             {
                 continue;
             }
@@ -70,6 +70,25 @@ internal sealed partial class SpanishAgreementChecker
 
             Add(ErrorTags.ConjPerson, v, v, expected, TextOf(v));
         }
+    }
+
+    // M69 (M62's left point, son after a lone name): a lone name may be the person spoken to (Luz, son altas), so its verb is not checked; but a predicate adjective
+    // of the name's number and not of the copula's after ser or estar shows that the name is the subject (luz son alta, pan son caro), and the copula is then the slip
+    // (conj.person es; the adjective is not checked against the copula's number, SpanishAgreementChecker.Predicate.cs).
+    private bool PredicateShowsNumber(int copula, LexicalFeatures verb, string number)
+    {
+        if (verb.Lemma is not ("ser" or "estar") || verb.Number == number)
+        {
+            return false;
+        }
+
+        var adjectives = PredicateAdjectivesAfter(copula);
+        return adjectives.Count > 0
+            && adjectives.TrueForAll(a =>
+            {
+                var readings = Readings(a, static r => r.Pos == LexiconSchema.Adjective && !WordClasses.IsDeterminerAdjective(r.Lemma));
+                return readings.Exists(r => r.Number == number) && !readings.Exists(r => r.Number == verb.Number);
+            });
     }
 
     // Rule M59 (b), "a reflexive clitic agrees with its verb". In the question cómo + me, te, se, nos or os + a verb of ReflexiveQuestionVerbs (¿cómo te llamas?, ¿cómo se

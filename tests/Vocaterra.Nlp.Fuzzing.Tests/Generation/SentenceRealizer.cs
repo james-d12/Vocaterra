@@ -939,6 +939,13 @@ internal sealed class SentenceRealizer
                         break;
                 }
             }
+            else if (InvertedSubjectPronoun(i) is { } inverted)
+            {
+                // M69: a subject pronoun right after a verb that a question word or a relative opens is its subject (¿dónde estás tú?, qué hiciste tú), which the
+                // analyzer agrees the verb with; the realiser agrees it wherever such a pronoun follows, which is never wrong.
+                person = inverted.Person!;
+                number = inverted.Number!;
+            }
             else if (ReflexiveQuestionPerson(i) is { } reflexive)
             {
                 // M59: in cómo + me, te, se, nos or os + llamar (¿cómo te llamas?) the clitic is reflexive and the analyzer agrees the verb with it; se is the third person.
@@ -1462,6 +1469,13 @@ internal sealed class SentenceRealizer
                 {
                     candidates.Add((last.Head!.Gender, last.PhraseNumber));
                 }
+
+                // M69: a subject with de (la casa de los niños es bonita): the analyzer gives the predicate the gender and number of the chain's first phrase when the
+                // copula has its number (mirror of SpanishAgreementChecker.TryFindSubjectWithDe), so the realiser agrees the adjective with that phrase as well.
+                if (FirstPhraseBeforeDe(last) is { } first && first.PhraseNumber == copula.Number)
+                {
+                    candidates.Add((first.Head!.Gender, first.PhraseNumber));
+                }
             }
 
             var lastAdjective = index;
@@ -1500,6 +1514,64 @@ internal sealed class SentenceRealizer
         }
 
         return true;
+    }
+
+    // M69: the words of the sentence as written (an item of several words gives each), for the mirror of the analyzer's rules that read whole sentences.
+    private List<string> Words()
+    {
+        return [.. _items.Where(static x => x.Surface is not null).SelectMany(static x => x.Surface!.Split(' ', StringSplitOptions.RemoveEmptyEntries))];
+    }
+
+    // M69: the index in Words() of the first word of the item at index.
+    private int WordIndexOf(int index)
+    {
+        return _items.Take(index).Where(static x => x.Surface is not null).Sum(static x => x.Surface!.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length);
+    }
+
+    // M69: the subject pronoun reading of the word right after the verb at index, when a question word or a relative stands right before the verb (mirror of
+    // SpanishAgreementChecker.CheckInvertedSubjectPronoun), or null.
+    private LexicalFeatures? InvertedSubjectPronoun(int index)
+    {
+        if (index < 1 || index + 1 >= _items.Count || !LexiconCatalog.InvertingClauseOpeners.Contains(_items[index - 1].Norm?.ToLowerInvariant() ?? string.Empty))
+        {
+            return null;
+        }
+
+        return SubjectPronounReading(_items[index + 1]) is { Person: not null, Number: not null } reading ? reading : null;
+    }
+
+    // M69: the last word of the first phrase of a chain of phrases joined by de or del that ends with the phrase of last (la casa de la hermana de Luz: casa), at most
+    // three links back, or null when no de stands before the phrase of last.
+    private Item? FirstPhraseBeforeDe(Item last)
+    {
+        var current = last;
+        Item? first = null;
+        for (var links = 0; links < 3; links++)
+        {
+            var end = _items.IndexOf(current);
+            var start = end;
+            while (start > 0 && ReferenceEquals(_items[start - 1].Head, current.Head))
+            {
+                start--;
+            }
+
+            var linkIndex = _items[start].Norm?.ToLowerInvariant() == "del" ? start : start - 1;
+            if (linkIndex < 1 || _items[linkIndex].Norm?.ToLowerInvariant() is not ("de" or "del"))
+            {
+                break;
+            }
+
+            var before = _items[linkIndex - 1];
+            if (before.Head is null || before.PhraseNumber is null)
+            {
+                break;
+            }
+
+            first = before;
+            current = before;
+        }
+
+        return first;
     }
 
     // The subject pronoun reading of a pronoun item the realiser made a subject, or of a literal that is one, or null.
@@ -1583,11 +1655,38 @@ internal sealed class SentenceRealizer
                 return false;
             }
 
+            // M69: a word of another class that is also an irregular verb's regular cell (podo, a form of podar, for puedo; esto for estoy) is read by the analyzer as that
+            // slip where the words around it call for it (podar takes no infinitive), so a pattern that puts an infinitive after a form of podar (21 podo pasar unos, seed
+            // 2DQ_Pma1Hfsa of M69's runs) names a sentence that is no Spanish, which the analyzer reads as poder's slip, and is re-rolled.
+            if (item.Surface is { } written
+                && !written.Contains(' ', StringComparison.Ordinal)
+                && _words.Morphology.TryGetRegularizationOfWord(written.ToLowerInvariant(), out _)
+                && _words.ReadsAsSlip(Words(), WordIndexOf(i)))
+            {
+                skip = "slip-in-context";
+                _detail = written;
+                return false;
+            }
+
+            // M69: the analyzer agrees a verb that a question word or a relative opens with a subject pronoun right after it (¿dónde estás tú?), and a literal verb form
+            // cannot be changed, so a literal one of another person or number than such a pronoun (dónde está tú) is re-rolled.
+            if (item.Kind == Kind.Literal
+                && item.Readings.Any(IsFiniteVerbReading)
+                && InvertedSubjectPronoun(i) is { } inverted
+                && !item.Readings.Any(r => IsFiniteVerbReading(r) && r.Mood != LexiconSchema.Imperative && r.Person == inverted.Person && r.Number == inverted.Number))
+            {
+                skip = "inverted-subject";
+                _detail = item.Surface!;
+                return false;
+            }
+
             // M59: the analyzer agrees a verb with a noun phrase that opens its clause before it, and a literal form cannot be changed, so a literal verb form of another
-            // person or number right after a phrase that is not a lone name is re-rolled.
+            // person or number right after a phrase that is not a lone name is re-rolled. M69 (M71's finding): not when the literal is the head of that phrase itself
+            // (buenas tardes: tardes is also tardar's, but here it is the noun buenas belongs to, and the analyzer reads the greeting as correct), so O3 draws it.
             if (item.Kind == Kind.Literal
                 && item.Readings.Any(IsFiniteVerbReading)
                 && PreverbalPhrase(i, out _, out var lone) is { } phrase
+                && !ReferenceEquals(phrase.Head, item)
                 && !lone
                 && !item.Readings.Any(r => IsFiniteVerbReading(r) && r.Person == "3" && r.Number == phrase.PhraseNumber))
             {

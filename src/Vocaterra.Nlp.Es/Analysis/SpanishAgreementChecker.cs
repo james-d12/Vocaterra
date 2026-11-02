@@ -171,6 +171,12 @@ internal sealed partial class SpanishAgreementChecker : IAgreementChecker
                 continue;
             }
 
+            // M69 (M56's left point): a subject pronoun put after the verb of a question (¿dónde estás tú?) agrees with it (CheckInvertedSubjectPronoun).
+            if (CheckInvertedSubjectPronoun(i, pronoun))
+            {
+                continue;
+            }
+
             var verbIndex = NextContentIndex(i + 1);
             if (verbIndex < 0)
             {
@@ -230,6 +236,52 @@ internal sealed partial class SpanishAgreementChecker : IAgreementChecker
             var representative = finite.FirstOrDefault(static r => r.Mood == LexiconSchema.Indicative) ?? finite[0];
             AddPersonError(verbIndex, representative.Lemma, cells[0], representative.Tense ?? LexiconSchema.Present);
         }
+    }
+
+    // Rule M69 (M56's left point, "the first and second persons after the verb"), "a subject pronoun after the verb of a question agrees with it". In a question or a
+    // relative clause the subject goes after its verb (¿dónde estás tú?, ¿cómo está usted?, ¿qué quieres tú?, la casa donde vive él), so a subject pronoun right after a
+    // finite verb that a question word or a relative opens (qué, dónde, adónde, cuándo, cómo, cuánto, quién, cuál, que, with or without the accent) is its subject, and a
+    // verb of another person or number is the slip, reported with the pronoun's form: ¿dónde estás yo? -> estoy, ¿dónde está tú? -> estás, ¿cómo estás usted? -> está, ¿qué
+    // quiere tú? -> quieres. Left clean: a pronoun that begins a clause of its own (¿qué quieres? yo te doy pan: a finite verb follows it), one joined to another by y, o or
+    // ni (¿dónde están tú y Luz?), a pronoun before a noun or an adjective (tu as written: ¿cómo es tu casa?), a clitic between the question word and the verb (¿qué te
+    // gusta?, whose subject is not the pronoun), haber, and a verb right after any other word (mira tú, the imperative; me gustas tú). Returns true when it reported.
+    private bool CheckInvertedSubjectPronoun(int pronounIndex, LexicalFeatures pronoun)
+    {
+        var verbIndex = pronounIndex - 1;
+        if (verbIndex < 1 || !SpanishAnalysisTables.IsClauseOpener(TextOf(verbIndex - 1)) || TextOf(verbIndex - 1) is "porque" or "si")
+        {
+            return false;
+        }
+
+        var readings = _tokens[verbIndex].Readings;
+        var finite = Readings(verbIndex, static r => IsDeclarativeFiniteVerb(r) && r.Tense is not null);
+        if (readings.Count == 0
+            || !readings.All(IsFiniteVerb)
+            || finite.Count == 0
+            || finite.Exists(static r => r.Lemma == "haber")
+            || finite.Exists(r => r.Person == pronoun.Person && r.Number == pronoun.Number))
+        {
+            return false;
+        }
+
+        var next = pronounIndex + 1;
+        if (next < _tokens.Count
+            && (TextOf(next) is "y" or "e" or "o" or "u" or "ni"
+                || HasReading(next, static r => r.Pos is LexiconSchema.Noun or LexiconSchema.Adjective)
+                || (NextContentIndex(next) is var after and >= 0 && HasReading(after, IsFiniteVerb))))
+        {
+            return false;
+        }
+
+        var representative = finite.FirstOrDefault(static r => r.Mood == LexiconSchema.Indicative) ?? finite[0];
+        var expected = _morphology.Conjugate(representative.Lemma, pronoun.Person!, pronoun.Number!, representative.Tense!);
+        if (string.IsNullOrEmpty(expected) || string.Equals(expected, TextOf(verbIndex), StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        Add(ErrorTags.ConjPerson, verbIndex, verbIndex, expected, TextOf(verbIndex));
+        return true;
     }
 
     // M66 (M63): the index of a question word of IsQuestionWordAfterSubject after the pronoun at index, up to and including the word the pronoun's verb would be (the

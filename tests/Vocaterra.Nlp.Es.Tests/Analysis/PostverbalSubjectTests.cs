@@ -86,7 +86,7 @@ public class PostverbalSubjectTests
     [InlineData("fue lejos")]
     [InlineData("es de lejos")]
     [InlineData("dónde es profesor")]
-    [InlineData("la herrería es en la plaza")]
+    [InlineData("la herrería está en la plaza")]
     [InlineData("dónde está la herrería")]
     [InlineData("cómo son las casas")]
     public void SerOfAnEventAndEstarOfAPlaceStayClean(string sentence)

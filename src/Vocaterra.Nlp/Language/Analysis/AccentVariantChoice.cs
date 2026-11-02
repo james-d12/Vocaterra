@@ -116,7 +116,34 @@ internal sealed class AccentVariantChoice
             return variants;
         }
 
+        // M69 (V20): the interrogative quantifier typed without its accent (cuanto, cuantos) that opens the utterance (after a greeting at most), before a word that can
+        // be a finite verb or a noun and no adverb, asks the question (cuanto son todo, cuanto cuesta el pan, cuantos panes): a relative cuanto follows a word (todo
+        // cuanto tengo), and cuanto más and cuanto antes keep it. The checks then read it as cuánto, and a recast restores the accent.
+        if (OpensTheUtterance(current, index)
+            && !typed.Any(r => _rules.IsInterrogativeQuantifier(r.Lemma))
+            && variants.Any(r => _rules.IsInterrogativeQuantifier(r.Lemma))
+            && index + 1 < current.Length
+            && current[index + 1].Any(r => ReadingClasses.IsFiniteVerb(r) || r.Pos == LexiconSchema.Noun)
+            && !current[index + 1].Any(r => r.Pos == LexiconSchema.Adverb))
+        {
+            return [.. variants.Where(r => _rules.IsInterrogativeQuantifier(r.Lemma))];
+        }
+
         return typed.Any(r => FitsContext(current, allVariants, index, r)) ? null : variants;
+    }
+
+    // M69: nothing but interjections (hola, buenas) stands before the word at index.
+    private static bool OpensTheUtterance(IReadOnlyList<LexicalFeatures>[] current, int index)
+    {
+        for (var k = 0; k < index; k++)
+        {
+            if (current[k].Count == 0 || !current[k].All(static r => r.Pos == LexiconSchema.Interjection))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     // A word that is a finite verb form as typed and has an interrogative sibling (como, cómo) is the question word when the next word starts a clause of its own and nothing

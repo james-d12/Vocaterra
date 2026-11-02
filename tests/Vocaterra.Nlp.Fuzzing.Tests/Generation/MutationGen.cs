@@ -611,7 +611,8 @@ public static class MutationGen
                 }
                 else
                 {
-                    gender = PredicatePronounGender(j);
+                    // M69: or a predicate adjective whose copula follows a subject with de that opens the utterance (la casa de los niños es bonita -> bonito).
+                    gender = PredicatePronounGender(j) ?? PredicateSubjectWithDeGender(j);
                     if (gender is null)
                     {
                         continue;
@@ -651,6 +652,32 @@ public static class MutationGen
             return null;
         }
 
+        // M69: the gender of the subject with de of the copula that the standalone adjective at index follows right after (la casa de los niños es bonita: casa), or null:
+        // the copula is a generated finite ser or estar of the third person; before it stand a phrase of an article and a noun, de, and the first phrase, an article and a
+        // generated noun of one gender that opens the utterance, is no noun of part, quantity or time and has the copula's number (mirror of
+        // SpanishAgreementChecker.TryFindSubjectWithDe, for the one shape of the skeleton).
+        private string? PredicateSubjectWithDeGender(int index)
+        {
+            var copula = index - 1;
+            if (copula < 5
+                || _tokens[copula] is not { Role: TokenRole.Verb, Generated: true, Infinitive: false, Person: "3", Lemma: "ser" or "estar" } verb
+                || _tokens[copula - 1] is not { Role: TokenRole.Noun }
+                || _tokens[copula - 2] is not { Role: TokenRole.Article }
+                || _tokens[copula - 3].Norm != "de"
+                || _tokens[copula - 4] is not { Role: TokenRole.Noun, Generated: true } head
+                || copula - 5 != 0
+                || _tokens[0] is not { Role: TokenRole.Article }
+                || head.Number != verb.Number
+                || head.Gender is null
+                || ReadsAsBothGenders(head)
+                || LexiconCatalog.PostverbalNonSubjectNouns.Contains(head.Lemma!))
+            {
+                return null;
+            }
+
+            return head.Gender;
+        }
+
         // M62: the gender of the subject pronoun of the copula that the standalone adjective at index follows (ella es alta, nosotros no somos altos), or null: the
         // copula is a generated finite ser or estar right before the adjective (past skippable words), and the pronoun the analyzer pairs with it has a gender and no
         // preposition before it (mirror of the first subject of SpanishAgreementChecker.CheckPredicateAdjectives).
@@ -682,6 +709,13 @@ public static class MutationGen
 
         public MutatedSentence? SerEstar()
         {
+            // M69: estar before en and a place, after a subject phrase that opens the utterance, becomes ser (la casa está en la plaza -> es), which the analyzer reports
+            // as ser_estar with the form of estar; first, when the sentence has that shape.
+            if (SerBeforeEnAndAPlace() is { } place)
+            {
+                return place;
+            }
+
             foreach (var i in Shuffled(Indexes(static t => t is { Role: TokenRole.Verb, Generated: true, Infinitive: false, Lemma: "ser" or "estar" })))
             {
                 var copula = _tokens[i];
@@ -727,6 +761,46 @@ public static class MutationGen
             }
 
             return null;
+        }
+
+        // M69: the ser_estar mutation of es en (mirror of SpanishAgreementChecker.CheckSerOfPlace, rule 3, for the shape of the skeleton): the generated estar of the
+        // third person at index 2 after an article and a noun that open the utterance, no event and no noun of time (a phrase of time is no subject: la semana es en
+        // los escuadrones, seed bc29DoKXymZ2 of M69's second run) or of part or quantity, followed by en, an article and a noun that is a place (no noun of time or of an
+        // adverbial phrase); the form of ser of the same cell must be ser's alone (fue is also ir) and no noun (son, era).
+        private MutatedSentence? SerBeforeEnAndAPlace()
+        {
+            const int i = 2;
+            if (_tokens.Count != 6
+                || _tokens[0] is not { Role: TokenRole.Article }
+                || _tokens[1] is not { Role: TokenRole.Noun } subject
+                || _tokens[i] is not { Role: TokenRole.Verb, Generated: true, Infinitive: false, Lemma: "estar", Person: "3" } copula
+                || _tokens[3].Norm != "en"
+                || _tokens[4] is not { Role: TokenRole.Article }
+                || _tokens[5] is not { Role: TokenRole.Noun } place
+                || LexiconCatalog.EventNouns.Contains(subject.Lemma!)
+                || LexiconCatalog.PostverbalNonSubjectNouns.Contains(subject.Lemma!)
+                || LexiconCatalog.NonPlaceNouns.Contains(place.Lemma!)
+                || _words.Lexicon.Lookup(subject.Norm).Any(static r => r.Pos == LexiconSchema.Noun
+                    && (LexiconCatalog.EventNouns.Contains(r.Lemma) || LexiconCatalog.PostverbalNonSubjectNouns.Contains(r.Lemma)))
+                || _words.Lexicon.Lookup(place.Norm).Any(static r => r.Pos == LexiconSchema.Noun && LexiconCatalog.NonPlaceNouns.Contains(r.Lemma)))
+            {
+                return null;
+            }
+
+            var form = _words.Morphology.Conjugate("ser", copula.Person!, copula.Number!, copula.Tense!);
+            if (form is null)
+            {
+                return null;
+            }
+
+            var readings = _words.Lexicon.Lookup(form);
+            if (readings.Count == 0 || readings.Any(static r => r.Pos != LexiconSchema.Verb || r.Lemma != "ser"))
+            {
+                return null;
+            }
+
+            var mutated = Replace(i, copula with { Written = form, Norm = form, Lemma = "ser" });
+            return Result(MutationKind.SerEstar, mutated, [Error(mutated, ErrorTags.SerEstar, i, i, copula.Norm, form)], sentence.NormalizedText, keepsGrammar: false);
         }
 
         public MutatedSentence? WordOrder()

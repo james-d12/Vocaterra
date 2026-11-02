@@ -171,6 +171,13 @@ public sealed class LinguisticAnalyzer
                 input[i] = readings.TokensWithSlips[i];
                 slips[i] = slip.Readings;
             }
+            else if (readings.Slips[i] is { Kind: WordSlipKind.ByGrammarOnly } other && _rules.CallsForSlip(readings.Tokens, i, other.Readings))
+            {
+                // M69: a word of another class whose neighbours call for the slip it may stand for, where no reading of it as written fits them (yo podo ir: podar takes
+                // no infinitive; yo esto cansado), is read as the slip alone, without a grammar that names the verb.
+                input[i] = new AnalyzedToken(readings.Tokens[i].Token, other.Readings);
+                slips[i] = other.Readings;
+            }
         }
 
         // The grammar decides first which words are names ([WORD] elements). A name is not an unknown word, and it is no learner's slip either (an irregular verb
@@ -209,7 +216,7 @@ public sealed class LinguisticAnalyzer
             if (slips[i].Count > 0 && readings.Slips[i] is { } slip && slip.IsChosen(resolved[i].Readings))
             {
                 slipErrors.Add(slip.Error);
-                analyzed[i] = input[i];
+                analyzed[i] = readings.TokensWithSlips[i];
             }
         }
 
