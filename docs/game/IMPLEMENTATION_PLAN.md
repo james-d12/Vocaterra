@@ -2269,3 +2269,28 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     not started, the first of them), and exit code 2.
   - **Runs:** r19, r22 and r23 unchanged; r24 credits `quiero madera` at the stall as `quiero-madera` (was `pedir-agua`) and counts `compré`.
     `try-lines --check` unchanged.
+- **V27: the off-prompt lines in the game (2026-11-02, Sonnet 5.5; gated on `feature/village-followups` at `4b01f1d`, 8212 passed, 3 skipped, with the models).**
+  The owner's option 2 (D-game-22, 2026-11-02), on M72's `Verdict.OffPromptIntent`. Bundle `e429e60e…`.
+  - **The reply:** in free talk a line the prompt does not take but the core understands gets the NPC's one off-prompt line and nothing
+    else: no correction, no repair of any kind (`NpcService`, `NpcTurnRules.OffPromptReply`, drawn from the interaction's seed; the pool is
+    `NpcEntry.OffPromptPool`, `offPromptPool` in each NPC's file and its schema). Seven pools `<npc>_understood`, the owner's lines verbatim,
+    the guide's «Te entiendo. ¿Qué quieres aprender?» and the shopkeeper's «Te entiendo. ¿Quieres comprar algo?» the orchestrator's; 14
+    WAVs, English locale lines. `cefr-check a1` reports `lugar` (Mar's line) above A1; within the A2 ceiling.
+  - **No failed attempt:** the repeat counts and the learner model are put back as they were before the turn, so the next line not
+    understood gets the ladder's first step. A spoken line under the uncertainty threshold (0.55) keeps the uncertain reply. The stall's
+    fail-forward does not count it.
+  - **The book credits it** (V20 (b)) through `GuideTurn.Taken` (communicated, or an off-prompt intent): its nouns, a phrase of a lesson
+    begun or done, its verb forms, and the turn's sound cue. No NPC action.
+  - **Lesson steps unchanged** (tested). **The host** prints the NPC's line and `off-prompt: <intent>`, with no `repair:` line, and
+    restores the repeat counts too.
+  - **Tests:** `OffPromptTests` in Game.Core and Host; M72's two renamed (`ATypedLineThePromptDoesNotTakeIsNoUncertainRecognitionAndMarksNoErrorOnTheLearner`;
+    `ALineTheOfferDoesNotTakeButTheStallUnderstoodCountsItsWordsAsCorrectUses`, now 2 of 2: the stall understands `quiero agua, por favor`
+    off its offer). The identity baseline took 7 rows, none moved. Try-lines unchanged (their host rows print the intent line only).
+    Scripted runs: only the speech counts (538 lines and 1076 files, from 531 and 1062) and the work folders' paths differ.
+  - **CI's case:** without models 8169 passed, 45 skipped and one fuzz failure, a new family for M73: O5 `26dVDqElv1l2`, the realiser
+    draws the noun `son` (a tune) in `estómago son vencido` and the analyzer reads it as `ser`. The timing lines were not printed.
+  - **The orchestrator's checks** in the game at session 10: Domingo `me gusta el río` «Te entiendo. Yo hago hachas.» then `xyzzy qwerty`
+    «No te entendí…» (the first step); Luna at `guide-offer`, the stall at `stall-need`, the villager (`el río es grande`) each their line;
+    León `la tienda está en el pueblo` «Perdón, ¿qué dices?» (no off-prompt intent); the summary credits `río` 4 of 4 and `gustar` 3 of 3.
+  - **Left, to V28:** each NPC's agent file gained an `<npc>.understood` host-event transition in every state only so the lint counts the
+    pool as used; the game says the pool directly and nothing fires the event. The learner's route with every NPC was the orchestrator's.
