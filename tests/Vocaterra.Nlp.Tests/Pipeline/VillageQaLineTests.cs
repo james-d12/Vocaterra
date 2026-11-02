@@ -201,10 +201,17 @@ public class VillageQaLineTests
         Assert.DoesNotContain(result.Response.Lines, static line => line.IsRecast);
     }
 
+    // V21 added the grammar (me [VERB:llamar] [WORD:name]) to content/game-v1, so the real bundle now binds the name (it was an unknown word at the QA pass).
     [Fact]
-    public void WithoutTheNameSlotTheNameIsAnUnknownWordAsTheQaPassFound()
+    public void TheRealBundleNowBindsTheLearnersName()
     {
-        Assert.Equal("vocab.unknown|ana|", Errors(Evaluate("me llamo ana", "farmer-open").Verdict));
+        var result = Evaluate("me llamo ana", "farmer-open");
+
+        Assert.Equal(string.Empty, Errors(result.Verdict));
+        Assert.True(result.Verdict.Communicated);
+        Assert.Equal("ask_name", result.Verdict.Intent.Value);
+        Assert.Equal("ana", result.Verdict.Slots["name"]);
+        Assert.DoesNotContain(result.Response.Lines, static line => line.IsRecast);
     }
 
     // ---- 7. The learner's own word in an error (an observation) -----------------------------------------------------------------------------------------------

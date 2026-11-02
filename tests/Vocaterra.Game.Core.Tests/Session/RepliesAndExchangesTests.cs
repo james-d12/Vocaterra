@@ -73,10 +73,21 @@ public sealed class RepliesAndExchangesTests
     {
         var session = TomorrowLessonTests.AtStep("m2-wood"); // QA-language-9: «Claro, «buscaré madera». Muy bien.» and then «No te entendí» for the same line
 
-        var turn = session.Say("buscé madera");
+        var turn = session.Say("buscaré madeda"); // M70 reads «buscé» as the preterite slip, so an unknown word stands for a line the step does not understand
 
         Assert.Null(turn.Feedback);
         Assert.Contains(turn.Replies.Concat(turn.FollowUp ?? []), static l => l.StartsWith("No te entendí", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ASpellingSlipOfThePreteriteAtTheLessonIsUnderstoodAndPraisedNotAskedAgain()
+    {
+        var session = TomorrowLessonTests.AtStep("m2-wood");
+
+        var turn = session.Say("buscé madera");
+
+        Assert.NotNull(turn.Feedback);
+        Assert.DoesNotContain(turn.Replies.Concat(turn.FollowUp ?? []), static l => l.StartsWith("No te entendí", StringComparison.Ordinal));
     }
 
     [Fact]
