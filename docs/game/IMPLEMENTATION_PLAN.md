@@ -2187,3 +2187,28 @@ Facts that shape the plan. Each one names its source; the core's own findings st
    engine code outside `src/Vocaterra.MonoGame`.
 6. `git status` is clean after the commit: no `bin/`, `obj/` or `nlp/artifacts/` output is staged.
 7. The milestone's line in section 5 and its row in section 4 are updated by the orchestrator, not by the agent.
+- **V21: replies and exchanges (2026-11-02, Sonnet 5.5; gated on `feature/village-followups` at `4a4a440`, 7885 passed, 3 skipped, with the models).**
+  - **Built:** `give_item` takes an optional `asked` list of nouns (`host-events.json`, its schema, `NpcEffect.Asked`), so `ExchangeMiss` answers any other noun
+    with the NPC's `wont_sell` line: the stall takes `agua` and `botella` («Solo tengo agua.», `shop_wont_sell.1`), the villager `pan` («Solo tengo pan.»,
+    `villager_wont_sell.1`); the missed gift leaves the turn's host events, and the offer of bread after it is dropped. León refuses apples with «No compro
+    eso. Compro fruta del bosque.» (`farmer_wont_buy.1`, apples are fruit). The baker says «Primero, la lección. Luego, las monedas.» (`baker_wait.1`, the
+    new host event `baker.cant_pay_wait`, `GuideScene.OrderHeld`) when the order that would pay her is held by the lesson. One reply per turn: a recast's
+    praise is dropped when the line is not understood, and no recast is given with the NPC's bare acknowledgement («¡Qué bien!», `answer_accepted`). A sink
+    intent `ask_how` at the free-talk prompts takes the questions V20 found read as statements (`quién/qué/cómo/cuál es grande`, `como es la manzana`, `ellas
+    adónde van`), answered by the fallback («No te entendí»). `ask_name` binds a name (`me [VERB:llamar] [WORD:name]`, M70's finding). 10 WAVs; the speech
+    lines 934 to 940 files; the scripted runs differ only in those counts.
+  - **The gate:** the first gate failed two tests that V21 and M70 broke together, each on its own branch green: V21's not-understood case `buscé madera`
+    is understood since M70 (the preterite's slip), and M70's `me llamo ana` test pinned the bundle's missing name slot. A Sonnet fix merged the feature
+    branch into V21 (`0ec4afd`) and moved both tests (`buscaré madeda` for the not-understood case; the real bundle binds the name), with the try-lines
+    baselines `m66` and `m70` re-recorded for V21's intended changes (`ellas adónde van` is `ask_how`, `me llamo ana` and `me llamo luis` are `ask_name`).
+  - **The orchestrator's Spanish pass (D-game-12):** the stall now refuses what it has: it gives the bottle, then offers bread, and its lesson says «Sí,
+    hay pan», yet `quiero pan` gets «Solo tengo agua.» and `¿hay pan?` «Hay agua.» (V21 changed it from «Hay agua y pan.», which was true). To V21b:
+    `shop_hay.1` back to «Hay agua y pan.», `shop_wont_sell.1` «No tengo eso. Tengo agua y pan.» for items the stall has neither of, and a request for
+    bread never refused. The other new lines stand.
+  - **Found by the spot-check:** the host's `--transcript` path does not follow the game's turn. With `--bag`, `quiero madera` at `stall-need` gives
+    «¿Quieres pan?» and then «Solo tengo agua.» (the game drops the offer), and `compré three manzanas` at `farmer-open` and `buscaré madeda` at
+    `lesson-will-fetch` still give the recast's praise and a second reply (the game gives one). `ConversationSession` copies the game's miss handling
+    instead of calling it, so `try-lines --host` and the QA agent see replies the game never says. To V21b: the host's replies come from the game's turn code.
+  - **Left:** the total of `¿Cuánto es todo?` («Quince manzanas, quince monedas.», the lesson row `quince-monedas`) does not follow the bag (to V21b: the
+    unit price in free talk). A fuzz O3 failure seen once in the fix's content loop, seed `2cqJbc9y05h3` (`delicado danó hechos`, `dañó` typed with `n`,
+    given `word_order`), likely M70's `ñ` fold: to M69.
