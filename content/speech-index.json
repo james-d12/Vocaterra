@@ -2,6 +2,96 @@
   "SchemaVersion": 1,
   "Model": "kokoro-multi-lang-v1_0",
   "Files": {
+    "speech/answer_accepted.1.baker.slow.wav": {
+      "Text": "\u00A1Muy bien!",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "ea4af283a300bf19b7b7acc8512f32fe1bb73268c908a1aef0be504427af4faf",
+      "Bytes": 63180,
+      "Gain": 0.32
+    },
+    "speech/answer_accepted.1.baker.wav": {
+      "Text": "\u00A1Muy bien!",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "8a1e80ac640c161ac21805c915d8ffadcd40396583b053d8729f647df4f22adc",
+      "Bytes": 48972,
+      "Gain": 0.32
+    },
+    "speech/answer_accepted.1.farmer.slow.wav": {
+      "Text": "\u00A1Muy bien!",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "99324140e895378c24c51a36d4c9f56ae9491ae112c393bff07f5f85b9656cf5",
+      "Sha256": "cd8bf44d22dc33d3393aaee37404833fc3751b2b0b907a05766a9a9adc6ca96e",
+      "Bytes": 61652
+    },
+    "speech/answer_accepted.1.farmer.wav": {
+      "Text": "\u00A1Muy bien!",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9b21535b15c9c2b30c726fc985eb38a563c9bf9e48aad254c6809beae3fab923",
+      "Sha256": "785928f7519a1374ef5b188b74287e52d4e8e63a87113ede44faa07112b11be7",
+      "Bytes": 55244
+    },
+    "speech/answer_accepted.1.fisher.slow.wav": {
+      "Text": "\u00A1Muy bien!",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "dbb6c03f464e4b47ae052cdd4dacb9465887803627d7d549498677e69b00b3a4",
+      "Bytes": 64052
+    },
+    "speech/answer_accepted.1.fisher.wav": {
+      "Text": "\u00A1Muy bien!",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "e890e7cbe8e8967847f24b6a6ae1447b2a7139e5bf67c592ecfa69f4deff4b2d",
+      "Bytes": 55244
+    },
+    "speech/answer_accepted.1.shopkeeper.slow.wav": {
+      "Text": "\u00A1Muy bien!",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "fb8e2a935145ab41ed0f66e30299d072f0fd5bb2fee4e2b8e31a5177726f9137",
+      "Sha256": "6d4a4b354a971121e04f1e481743d58f56459869e1e7ecaad392838d45cc94b8",
+      "Bytes": 61244
+    },
+    "speech/answer_accepted.1.shopkeeper.wav": {
+      "Text": "\u00A1Muy bien!",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
+      "Sha256": "e7328c577b5d8f08729479b5d29949dd2f10e6482eb2678283c2358c7c13bd83",
+      "Bytes": 50444
+    },
     "speech/answer_accepted.1.slow.wav": {
       "Text": "\u00A1Muy bien!",
       "Speaker": "guide",
@@ -12,6 +102,52 @@
       "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
       "Sha256": "51451a86215f94bde2697ddfa526b537a85838d7ebf0a45d585b04cb6a5cf546",
       "Bytes": 58844
+    },
+    "speech/answer_accepted.1.smith.slow.wav": {
+      "Text": "\u00A1Muy bien!",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "74ccefe450428c0d43b4a93003662c032b03f1b394c0c577da5163eb3bee5afe",
+      "Sha256": "bd70ee374d14bc69caf7d52bbb00b1af648f2b1143b284d26e072e1acab869e6",
+      "Bytes": 53200,
+      "Gain": 0.6
+    },
+    "speech/answer_accepted.1.smith.wav": {
+      "Text": "\u00A1Muy bien!",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
+      "Sha256": "340d38a849b00f16face7b9bf00095a23020efa2f5ed71d96a15700fc1d3bd9c",
+      "Bytes": 49918,
+      "Gain": 0.6
+    },
+    "speech/answer_accepted.1.villager.slow.wav": {
+      "Text": "\u00A1Muy bien!",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "582bff1facec664e0c88b222b72770a195e06c2d9ca39c8596ff5e65a9fc4a13",
+      "Sha256": "725c0e8970fc5d1795776a006a71dacffcc2caa3999ea3aa2f6fc276bfbabf66",
+      "Bytes": 56924
+    },
+    "speech/answer_accepted.1.villager.wav": {
+      "Text": "\u00A1Muy bien!",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
+      "Sha256": "fbbf15e6d4e7b07922d41357938ad6b67e528d3c5aaeb83ebbb043f87995043d",
+      "Bytes": 51644
     },
     "speech/answer_accepted.1.wav": {
       "Text": "\u00A1Muy bien!",
@@ -24,6 +160,96 @@
       "Sha256": "db65f6b943a2968a335da25fcef1199971ed172c65a393d461a8a47b525fa6fe",
       "Bytes": 46844
     },
+    "speech/answer_accepted.2.baker.slow.wav": {
+      "Text": "\u00A1Bien!",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "d76d6f7b88abcad9362363bce8c5382b396dfe0c59d519efea2dc0975a20aebf",
+      "Bytes": 45566,
+      "Gain": 0.32
+    },
+    "speech/answer_accepted.2.baker.wav": {
+      "Text": "\u00A1Bien!",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "a6c1d45347a64739b789200316fd4a609bc12bc2b89bf97ca43175a766414b2d",
+      "Bytes": 34462,
+      "Gain": 0.32
+    },
+    "speech/answer_accepted.2.farmer.slow.wav": {
+      "Text": "\u00A1Bien!",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "99324140e895378c24c51a36d4c9f56ae9491ae112c393bff07f5f85b9656cf5",
+      "Sha256": "4a5bc546de24442e7f95338ea3b9b67152f20ea9860cf92b1f1c103d593c0687",
+      "Bytes": 51644
+    },
+    "speech/answer_accepted.2.farmer.wav": {
+      "Text": "\u00A1Bien!",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9b21535b15c9c2b30c726fc985eb38a563c9bf9e48aad254c6809beae3fab923",
+      "Sha256": "934a860aec7a50431d02d0530bc0fa76637904c11bb576b52b040d9486fe9238",
+      "Bytes": 42044
+    },
+    "speech/answer_accepted.2.fisher.slow.wav": {
+      "Text": "\u00A1Bien!",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "966b858a847bbabe622a4fbce85add3af27e6722ab523cd22659e546d24a6e9d",
+      "Bytes": 51644
+    },
+    "speech/answer_accepted.2.fisher.wav": {
+      "Text": "\u00A1Bien!",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "3420a01f232e20710e960f5ca421a3ac880e8c081b1a7de2326437cb4231f06f",
+      "Bytes": 42044
+    },
+    "speech/answer_accepted.2.shopkeeper.slow.wav": {
+      "Text": "\u00A1Bien!",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "fb8e2a935145ab41ed0f66e30299d072f0fd5bb2fee4e2b8e31a5177726f9137",
+      "Sha256": "8d8da54963f888916b7178d758dbeb7fc97972500c833e8080fa0c88132419de",
+      "Bytes": 44444
+    },
+    "speech/answer_accepted.2.shopkeeper.wav": {
+      "Text": "\u00A1Bien!",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
+      "Sha256": "ea358ea2c2bae1da06f5850a12c959684e703b6145a420d04b5334e703925fce",
+      "Bytes": 37244
+    },
     "speech/answer_accepted.2.slow.wav": {
       "Text": "\u00A1Bien!",
       "Speaker": "guide",
@@ -34,6 +260,52 @@
       "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
       "Sha256": "f1e6aad21a2bfcd911e843c8e6b634e5853df1544b1b1ddefb52cfb23b5554d7",
       "Bytes": 43244
+    },
+    "speech/answer_accepted.2.smith.slow.wav": {
+      "Text": "\u00A1Bien!",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "74ccefe450428c0d43b4a93003662c032b03f1b394c0c577da5163eb3bee5afe",
+      "Sha256": "6c499aa5d3dea3af47a87755e1ba663770560ca76cc15f00d59291fdf87e7d69",
+      "Bytes": 46342,
+      "Gain": 0.6
+    },
+    "speech/answer_accepted.2.smith.wav": {
+      "Text": "\u00A1Bien!",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
+      "Sha256": "da83f8373e827ff203ac1a2d0e863f50ac546c7d642972a04f8fa126c2a9b8c3",
+      "Bytes": 36228,
+      "Gain": 0.6
+    },
+    "speech/answer_accepted.2.villager.slow.wav": {
+      "Text": "\u00A1Bien!",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "582bff1facec664e0c88b222b72770a195e06c2d9ca39c8596ff5e65a9fc4a13",
+      "Sha256": "977ad0c3d81395387177407f15fa1d1e3ffbf6a4f5d4cfa39fcf703d736b1539",
+      "Bytes": 48044
+    },
+    "speech/answer_accepted.2.villager.wav": {
+      "Text": "\u00A1Bien!",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
+      "Sha256": "87512eeffcea07bae1d82b8a90816d544e10cae969a2bc39d62d163a2318847c",
+      "Bytes": 38444
     },
     "speech/answer_accepted.2.wav": {
       "Text": "\u00A1Bien!",
@@ -46,6 +318,96 @@
       "Sha256": "8855a14e5593f6be08739a0a55da9cba363bdeeeec9735616b21995374e6f07b",
       "Bytes": 33644
     },
+    "speech/answer_accepted.3.baker.slow.wav": {
+      "Text": "\u00A1Eso es!",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "da3229bceaeae9697e38da8e9fc6092870c924a0b6c665195224730b106af9f0",
+      "Bytes": 59676,
+      "Gain": 0.32
+    },
+    "speech/answer_accepted.3.baker.wav": {
+      "Text": "\u00A1Eso es!",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "8a24e964ad355acbfa304eb1f2c50068106a33477062185f894bdde5c01548c1",
+      "Bytes": 45544,
+      "Gain": 0.32
+    },
+    "speech/answer_accepted.3.farmer.slow.wav": {
+      "Text": "\u00A1Eso es!",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "99324140e895378c24c51a36d4c9f56ae9491ae112c393bff07f5f85b9656cf5",
+      "Sha256": "97c511ddc2be1e470b30c47c2a005c024562177fc62550c8cd6330d19c1fcaaa",
+      "Bytes": 56862
+    },
+    "speech/answer_accepted.3.farmer.wav": {
+      "Text": "\u00A1Eso es!",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9b21535b15c9c2b30c726fc985eb38a563c9bf9e48aad254c6809beae3fab923",
+      "Sha256": "305cbc3e81b807a4188576e978c5f79db4cf1c03eb441fc4ed9b39a93060a9a2",
+      "Bytes": 52844
+    },
+    "speech/answer_accepted.3.fisher.slow.wav": {
+      "Text": "\u00A1Eso es!",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "da1456f47f189a6ae511d22c9c9a11a135b06355c5463389db7d85fc94fa6d45",
+      "Bytes": 67244
+    },
+    "speech/answer_accepted.3.fisher.wav": {
+      "Text": "\u00A1Eso es!",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "412ddf4a8238c5705dcdad25889cd766f78e03ea414aee8fc687f6b7657df2dd",
+      "Bytes": 54044
+    },
+    "speech/answer_accepted.3.shopkeeper.slow.wav": {
+      "Text": "\u00A1Eso es!",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "fb8e2a935145ab41ed0f66e30299d072f0fd5bb2fee4e2b8e31a5177726f9137",
+      "Sha256": "81fbba1d5c07b445605ba54310c24bbb15d5bbbb54bc251ff4d2858e28b4ce2b",
+      "Bytes": 60044
+    },
+    "speech/answer_accepted.3.shopkeeper.wav": {
+      "Text": "\u00A1Eso es!",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
+      "Sha256": "c9ec5b61947c376feb65ab511a1079ee3e9938a909d6729d2f5f9114e7390e1b",
+      "Bytes": 46844
+    },
     "speech/answer_accepted.3.slow.wav": {
       "Text": "\u00A1Eso es!",
       "Speaker": "guide",
@@ -56,6 +418,52 @@
       "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
       "Sha256": "241772acbdc99f9098fece39788094c032f8e850f51a4f0e6ed60125c6bd32b3",
       "Bytes": 56444
+    },
+    "speech/answer_accepted.3.smith.slow.wav": {
+      "Text": "\u00A1Eso es!",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "74ccefe450428c0d43b4a93003662c032b03f1b394c0c577da5163eb3bee5afe",
+      "Sha256": "b82feb52e19914812bc4598d722645dae3533677ba5b8a9d8efbc2fbbad0c83f",
+      "Bytes": 42358,
+      "Gain": 0.6
+    },
+    "speech/answer_accepted.3.smith.wav": {
+      "Text": "\u00A1Eso es!",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
+      "Sha256": "b62a18b829b3f1df9869c8685aa471d3d49e6a11400ce09f952acbb3ba2f25be",
+      "Bytes": 42234,
+      "Gain": 0.6
+    },
+    "speech/answer_accepted.3.villager.slow.wav": {
+      "Text": "\u00A1Eso es!",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "582bff1facec664e0c88b222b72770a195e06c2d9ca39c8596ff5e65a9fc4a13",
+      "Sha256": "bc93ea518032903c7bc2c029d2539a71026f7d9cff2c83e691f93cf8b5e3d2ff",
+      "Bytes": 60044
+    },
+    "speech/answer_accepted.3.villager.wav": {
+      "Text": "\u00A1Eso es!",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
+      "Sha256": "4aaff5db0bf7f8d658de80b0734c50359c0468e9f743f7a92ec798e9e60253a9",
+      "Bytes": 48044
     },
     "speech/answer_accepted.3.wav": {
       "Text": "\u00A1Eso es!",
@@ -1606,6 +2014,28 @@
       "Sha256": "d62b8830fb801099301a1a230064efe32167817168d0878a14c17c199709d084",
       "Bytes": 68444
     },
+    "speech/farmer_unit.1.slow.wav": {
+      "Text": "Una manzana, una moneda.",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "99324140e895378c24c51a36d4c9f56ae9491ae112c393bff07f5f85b9656cf5",
+      "Sha256": "23e45b20fce2c0a493d56682c6b631614075a5d06e131e32e01d4daf97832938",
+      "Bytes": 101868
+    },
+    "speech/farmer_unit.1.wav": {
+      "Text": "Una manzana, una moneda.",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9b21535b15c9c2b30c726fc985eb38a563c9bf9e48aad254c6809beae3fab923",
+      "Sha256": "0e6272e67521e377fcda8ea13fd10c8bac20ae90889d176032b6ef27966a5455",
+      "Bytes": 77252
+    },
     "speech/farmer_wont_buy.1.slow.wav": {
       "Text": "No compro eso. Compro fruta del bosque.",
       "Speaker": "farmer",
@@ -1650,6 +2080,96 @@
       "Sha256": "604e001b97610f3fee87110757c57846a6d4977c49094d06f6f492d36c6ab51b",
       "Bytes": 80868
     },
+    "speech/feedback.hint.1.baker.slow.wav": {
+      "Text": "Casi. Piensa otra vez.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "92a63cabb1e25be0650bd8acbcbf3004c0e9bebe7d3db8bd40f5467c825cea91",
+      "Bytes": 128710,
+      "Gain": 0.32
+    },
+    "speech/feedback.hint.1.baker.wav": {
+      "Text": "Casi. Piensa otra vez.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "5abef1ec9601a71ecb53e1aeb52a796ee5a8b9a785d46d2f9c9518b629b79af2",
+      "Bytes": 101330,
+      "Gain": 0.32
+    },
+    "speech/feedback.hint.1.farmer.slow.wav": {
+      "Text": "Casi. Piensa otra vez.",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "99324140e895378c24c51a36d4c9f56ae9491ae112c393bff07f5f85b9656cf5",
+      "Sha256": "9d41025c2aa7358c402c64d718ddcccc8987a180f7001dafa0b93ba975561ec5",
+      "Bytes": 133700
+    },
+    "speech/feedback.hint.1.farmer.wav": {
+      "Text": "Casi. Piensa otra vez.",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9b21535b15c9c2b30c726fc985eb38a563c9bf9e48aad254c6809beae3fab923",
+      "Sha256": "97b00b1ef8a12d88806cd0d6e52062d09f6009bb5b958a9424c4bdcce3143340",
+      "Bytes": 115538
+    },
+    "speech/feedback.hint.1.fisher.slow.wav": {
+      "Text": "Casi. Piensa otra vez.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "e3cdf582e6df0fac15ecf01cb4e389062edf682611cc98d9613f110431e1edfc",
+      "Bytes": 145378
+    },
+    "speech/feedback.hint.1.fisher.wav": {
+      "Text": "Casi. Piensa otra vez.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "9f52bdf7e3c7bb668205d6a783223ceb87a96ba32465fa59182c15b70401e049",
+      "Bytes": 109992
+    },
+    "speech/feedback.hint.1.shopkeeper.slow.wav": {
+      "Text": "Casi. Piensa otra vez.",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "fb8e2a935145ab41ed0f66e30299d072f0fd5bb2fee4e2b8e31a5177726f9137",
+      "Sha256": "ed3184474deb9510c792a15d84268526456b51f517ae589da392af742304467b",
+      "Bytes": 127962
+    },
+    "speech/feedback.hint.1.shopkeeper.wav": {
+      "Text": "Casi. Piensa otra vez.",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
+      "Sha256": "9821cb2c7284e96c4780698c8c1a00cf38b8e159e81a676e88ba7a8e7583e3bb",
+      "Bytes": 109698
+    },
     "speech/feedback.hint.1.slow.wav": {
       "Text": "Casi. Piensa otra vez.",
       "Speaker": "guide",
@@ -1660,6 +2180,52 @@
       "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
       "Sha256": "2465ac4ae53439622e4d7a49eb359dc9bcae335639a374e369151b2fa6897557",
       "Bytes": 133244
+    },
+    "speech/feedback.hint.1.smith.slow.wav": {
+      "Text": "Casi. Piensa otra vez.",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "74ccefe450428c0d43b4a93003662c032b03f1b394c0c577da5163eb3bee5afe",
+      "Sha256": "4fa3c506b28007ee9079710d81a88a5d3b4f5ec43eb712fde3a5a62ee09bdfca",
+      "Bytes": 123940,
+      "Gain": 0.6
+    },
+    "speech/feedback.hint.1.smith.wav": {
+      "Text": "Casi. Piensa otra vez.",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
+      "Sha256": "ec4d7248e83ddfa88ca83c032b90c2efc988630f7b07cd7513f3b3ff71873789",
+      "Bytes": 98900,
+      "Gain": 0.6
+    },
+    "speech/feedback.hint.1.villager.slow.wav": {
+      "Text": "Casi. Piensa otra vez.",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "582bff1facec664e0c88b222b72770a195e06c2d9ca39c8596ff5e65a9fc4a13",
+      "Sha256": "03e6816a42d8b80eea43fe0d447b7369e31e4a470e049ce1cadafdb4b5468fd9",
+      "Bytes": 124540
+    },
+    "speech/feedback.hint.1.villager.wav": {
+      "Text": "Casi. Piensa otra vez.",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
+      "Sha256": "4514df9522d46436c7bc41791826ab4d89b9efdafccd9ebb85818df1bdaf386f",
+      "Bytes": 101774
     },
     "speech/feedback.hint.1.wav": {
       "Text": "Casi. Piensa otra vez.",
@@ -1672,6 +2238,96 @@
       "Sha256": "e89d89125596a7dcce077b6df5e6df317cc50b1ca454a0ea01e29d0dca7a73ca",
       "Bytes": 98884
     },
+    "speech/feedback.hint.2.baker.slow.wav": {
+      "Text": "\u00BFSeguro? Dilo otra vez.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "b67a274b5e5d20e1e99dfc726991f73f9dfc1fb987b1b121c4556bb61a0e0ec2",
+      "Bytes": 133080,
+      "Gain": 0.32
+    },
+    "speech/feedback.hint.2.baker.wav": {
+      "Text": "\u00BFSeguro? Dilo otra vez.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "430d1a61df04077e4fac9700687597b34c667bff251ee1bc1c74fe2500d6206a",
+      "Bytes": 102272,
+      "Gain": 0.32
+    },
+    "speech/feedback.hint.2.farmer.slow.wav": {
+      "Text": "\u00BFSeguro? Dilo otra vez.",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "99324140e895378c24c51a36d4c9f56ae9491ae112c393bff07f5f85b9656cf5",
+      "Sha256": "40c47a1bf12565b034365a48c4f6f13f8ba8bda5a396b0d22ffbefc8ac8d5b03",
+      "Bytes": 128876
+    },
+    "speech/feedback.hint.2.farmer.wav": {
+      "Text": "\u00BFSeguro? Dilo otra vez.",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9b21535b15c9c2b30c726fc985eb38a563c9bf9e48aad254c6809beae3fab923",
+      "Sha256": "1975111224eacaa5908d74dabfada556399a378636919f27cb495ce4a635f227",
+      "Bytes": 118844
+    },
+    "speech/feedback.hint.2.fisher.slow.wav": {
+      "Text": "\u00BFSeguro? Dilo otra vez.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "5d47bda2453dd15db9e9d4487a04f1b5b3403e4e22230501c4e8ae2371d8cfac",
+      "Bytes": 132268
+    },
+    "speech/feedback.hint.2.fisher.wav": {
+      "Text": "\u00BFSeguro? Dilo otra vez.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "698eab7d3f94207c382309c83a47730195d9cfbd5822848e42ded79087ea112c",
+      "Bytes": 117644
+    },
+    "speech/feedback.hint.2.shopkeeper.slow.wav": {
+      "Text": "\u00BFSeguro? Dilo otra vez.",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "fb8e2a935145ab41ed0f66e30299d072f0fd5bb2fee4e2b8e31a5177726f9137",
+      "Sha256": "8bcd3cd800cb3e1aa52e9c986a72b06b1c9dde2f51d35bef530edabef02100f6",
+      "Bytes": 133244
+    },
+    "speech/feedback.hint.2.shopkeeper.wav": {
+      "Text": "\u00BFSeguro? Dilo otra vez.",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
+      "Sha256": "ea46e42b5d81b378e410930dcfc7f25eb2a29d0fa6e6d205de491b1aaf5c4aa5",
+      "Bytes": 105644
+    },
     "speech/feedback.hint.2.slow.wav": {
       "Text": "\u00BFSeguro? Dilo otra vez.",
       "Speaker": "guide",
@@ -1682,6 +2338,52 @@
       "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
       "Sha256": "91a2a3d0ca9a3b6287909d81dd587390c21091100c3095ad7245bb869eda1c41",
       "Bytes": 128444
+    },
+    "speech/feedback.hint.2.smith.slow.wav": {
+      "Text": "\u00BFSeguro? Dilo otra vez.",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "74ccefe450428c0d43b4a93003662c032b03f1b394c0c577da5163eb3bee5afe",
+      "Sha256": "14b2aec3999c25de0be07b876be73e27a897d9a5d560d57d758d5203cdc04870",
+      "Bytes": 118092,
+      "Gain": 0.6
+    },
+    "speech/feedback.hint.2.smith.wav": {
+      "Text": "\u00BFSeguro? Dilo otra vez.",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
+      "Sha256": "ac5475ac2de01df6c8545e43c08d661d5695e9bdbe0d2e47d845b00bf16c9b40",
+      "Bytes": 101506,
+      "Gain": 0.6
+    },
+    "speech/feedback.hint.2.villager.slow.wav": {
+      "Text": "\u00BFSeguro? Dilo otra vez.",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "582bff1facec664e0c88b222b72770a195e06c2d9ca39c8596ff5e65a9fc4a13",
+      "Sha256": "5bfb50d589bb45856089031a9af47fdba44d1491cc80fdb83835ce339f884765",
+      "Bytes": 127740
+    },
+    "speech/feedback.hint.2.villager.wav": {
+      "Text": "\u00BFSeguro? Dilo otra vez.",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
+      "Sha256": "ed038db26acc5a3e5542e25dcac8f0d9489ae40108805e86f80afb084da36ea9",
+      "Bytes": 106844
     },
     "speech/feedback.hint.2.wav": {
       "Text": "\u00BFSeguro? Dilo otra vez.",
@@ -1694,6 +2396,96 @@
       "Sha256": "b37e86c236801cbc435c4fc593d7251d2d51d8642dc2726a6502184959535558",
       "Bytes": 100844
     },
+    "speech/feedback.hint.gender.agree.1.baker.slow.wav": {
+      "Text": "Piensa otra vez: \u00BFel o la?",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "3704bcb07cbbf293def5985785c1af8019e8d4d6bf01c01e904090736de782ab",
+      "Bytes": 106636,
+      "Gain": 0.32
+    },
+    "speech/feedback.hint.gender.agree.1.baker.wav": {
+      "Text": "Piensa otra vez: \u00BFel o la?",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "6b36e7b17aea9c16745e30b8b2588fca34f01ac524cc9f00155a79326b3d2a35",
+      "Bytes": 85164,
+      "Gain": 0.32
+    },
+    "speech/feedback.hint.gender.agree.1.farmer.slow.wav": {
+      "Text": "Piensa otra vez: \u00BFel o la?",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "99324140e895378c24c51a36d4c9f56ae9491ae112c393bff07f5f85b9656cf5",
+      "Sha256": "df54d37df0f627268072eb0c20bae3eb641917630f46f311c5a2cd522b505fec",
+      "Bytes": 99724
+    },
+    "speech/feedback.hint.gender.agree.1.farmer.wav": {
+      "Text": "Piensa otra vez: \u00BFel o la?",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9b21535b15c9c2b30c726fc985eb38a563c9bf9e48aad254c6809beae3fab923",
+      "Sha256": "285eff7676cccaa638b065ac387694931d82049c959db4c01a859b0712464d63",
+      "Bytes": 82276
+    },
+    "speech/feedback.hint.gender.agree.1.fisher.slow.wav": {
+      "Text": "Piensa otra vez: \u00BFel o la?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "73c1f85e5f760d0a0f73a1e80ec96e9c40d43fc813be967d381c9182ab915ff8",
+      "Bytes": 119830
+    },
+    "speech/feedback.hint.gender.agree.1.fisher.wav": {
+      "Text": "Piensa otra vez: \u00BFel o la?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "4eaffb2eb4ad6771e4e8af28b253a769407bc9df5ec6a6ef4d7ba6aecc663e57",
+      "Bytes": 86886
+    },
+    "speech/feedback.hint.gender.agree.1.shopkeeper.slow.wav": {
+      "Text": "Piensa otra vez: \u00BFel o la?",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "fb8e2a935145ab41ed0f66e30299d072f0fd5bb2fee4e2b8e31a5177726f9137",
+      "Sha256": "cdb4d68f78ab9f0d5112ee6c94cf4619417501da43b8eee1630dddde9d68287d",
+      "Bytes": 102364
+    },
+    "speech/feedback.hint.gender.agree.1.shopkeeper.wav": {
+      "Text": "Piensa otra vez: \u00BFel o la?",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
+      "Sha256": "cca8831f30798c15b17b317a1292afa3e07380c98d6d4833c9b8bb114a2c0b26",
+      "Bytes": 87926
+    },
     "speech/feedback.hint.gender.agree.1.slow.wav": {
       "Text": "Piensa otra vez: \u00BFel o la?",
       "Speaker": "guide",
@@ -1704,6 +2496,52 @@
       "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
       "Sha256": "1662089f9e45befb06219b61e04e1faca7839625a2d4ff1a86a7cfaf408f9f42",
       "Bytes": 96402
+    },
+    "speech/feedback.hint.gender.agree.1.smith.slow.wav": {
+      "Text": "Piensa otra vez: \u00BFel o la?",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "74ccefe450428c0d43b4a93003662c032b03f1b394c0c577da5163eb3bee5afe",
+      "Sha256": "290d56a9f7b7e60a95e601227caf7ff08257cfd222e3240e5f4390d2a359100a",
+      "Bytes": 110264,
+      "Gain": 0.6
+    },
+    "speech/feedback.hint.gender.agree.1.smith.wav": {
+      "Text": "Piensa otra vez: \u00BFel o la?",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
+      "Sha256": "147db5dc3e6743daf79bc5cfedc5d3a00dd38f2db1f81eb957dc3a405dc279ff",
+      "Bytes": 86966,
+      "Gain": 0.6
+    },
+    "speech/feedback.hint.gender.agree.1.villager.slow.wav": {
+      "Text": "Piensa otra vez: \u00BFel o la?",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "582bff1facec664e0c88b222b72770a195e06c2d9ca39c8596ff5e65a9fc4a13",
+      "Sha256": "24cac404c252f9217542604124b718c8f3f321fe13be6a828a59240da7ce1bbc",
+      "Bytes": 98136
+    },
+    "speech/feedback.hint.gender.agree.1.villager.wav": {
+      "Text": "Piensa otra vez: \u00BFel o la?",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
+      "Sha256": "7a5f8497cc4bfe3c3548b8bafbdbde84756f9f42c566b301a4fb3917cc4a9292",
+      "Bytes": 87914
     },
     "speech/feedback.hint.gender.agree.1.wav": {
       "Text": "Piensa otra vez: \u00BFel o la?",
@@ -1716,6 +2554,96 @@
       "Sha256": "b72616c094e288ec45e4467f39cbfe017c0c38100f4e1f7ed617960150930271",
       "Bytes": 84326
     },
+    "speech/feedback.slow_repeat.1.baker.slow.wav": {
+      "Text": "Di \u00ABayuda\u00BB y te ayudo.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "3ff9867201b03b9a6085c5873e1432cb5c8cb3869564822107c5d6df8bce95ab",
+      "Bytes": 105130,
+      "Gain": 0.32
+    },
+    "speech/feedback.slow_repeat.1.baker.wav": {
+      "Text": "Di \u00ABayuda\u00BB y te ayudo.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "3a206b24dd4de43a448a537583326e59e6e4e0665ad0fa292cbe27d02148decf",
+      "Bytes": 82164,
+      "Gain": 0.32
+    },
+    "speech/feedback.slow_repeat.1.farmer.slow.wav": {
+      "Text": "Di \u00ABayuda\u00BB y te ayudo.",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "99324140e895378c24c51a36d4c9f56ae9491ae112c393bff07f5f85b9656cf5",
+      "Sha256": "9ad5b30ecfcbc936e586a1c510d7622aaa27ddb7877a9d31f194cf84cbdf32ae",
+      "Bytes": 95100
+    },
+    "speech/feedback.slow_repeat.1.farmer.wav": {
+      "Text": "Di \u00ABayuda\u00BB y te ayudo.",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9b21535b15c9c2b30c726fc985eb38a563c9bf9e48aad254c6809beae3fab923",
+      "Sha256": "6523257df48accb0a6d9e17312675f21895d8c62e849615bc25551f51d1eba71",
+      "Bytes": 72832
+    },
+    "speech/feedback.slow_repeat.1.fisher.slow.wav": {
+      "Text": "Di \u00ABayuda\u00BB y te ayudo.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "75be6c01b38970adc9d51f3e9e786ce75279455428fae76ff32491771a454367",
+      "Bytes": 104052
+    },
+    "speech/feedback.slow_repeat.1.fisher.wav": {
+      "Text": "Di \u00ABayuda\u00BB y te ayudo.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "e519ab399c58744418af774ba15175d848331f69223a20fe065b3a2bd3cfaa0c",
+      "Bytes": 80344
+    },
+    "speech/feedback.slow_repeat.1.shopkeeper.slow.wav": {
+      "Text": "Di \u00ABayuda\u00BB y te ayudo.",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "fb8e2a935145ab41ed0f66e30299d072f0fd5bb2fee4e2b8e31a5177726f9137",
+      "Sha256": "6fab33c93dbf7907c85daf126109c64e9699f41d4b475aa2703f419fb9120cf1",
+      "Bytes": 91522
+    },
+    "speech/feedback.slow_repeat.1.shopkeeper.wav": {
+      "Text": "Di \u00ABayuda\u00BB y te ayudo.",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
+      "Sha256": "8617810da34103106f4c25d7115f034f9d5491e334388b61174994eca5a59fa5",
+      "Bytes": 79784
+    },
     "speech/feedback.slow_repeat.1.slow.wav": {
       "Text": "Di \u00ABayuda\u00BB y te ayudo.",
       "Speaker": "guide",
@@ -1726,6 +2654,52 @@
       "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
       "Sha256": "41f0d2bebc23e21e5e3cbde29730d9945c489c9929c022582d3c1ec62fa3441c",
       "Bytes": 90754
+    },
+    "speech/feedback.slow_repeat.1.smith.slow.wav": {
+      "Text": "Di \u00ABayuda\u00BB y te ayudo.",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "74ccefe450428c0d43b4a93003662c032b03f1b394c0c577da5163eb3bee5afe",
+      "Sha256": "56d47bffafbe306a2951cb39cc575bc5c929a79c39d1f55669131cc98629b86b",
+      "Bytes": 107856,
+      "Gain": 0.6
+    },
+    "speech/feedback.slow_repeat.1.smith.wav": {
+      "Text": "Di \u00ABayuda\u00BB y te ayudo.",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
+      "Sha256": "06508592ed12f7f2d49902664bb466237c69bc892516fd76de5da84c0b10022d",
+      "Bytes": 85792,
+      "Gain": 0.6
+    },
+    "speech/feedback.slow_repeat.1.villager.slow.wav": {
+      "Text": "Di \u00ABayuda\u00BB y te ayudo.",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "582bff1facec664e0c88b222b72770a195e06c2d9ca39c8596ff5e65a9fc4a13",
+      "Sha256": "d13d044badc158a6a0bcf1e84f70664d3d2acca003081b91b01e88e457abf46d",
+      "Bytes": 91998
+    },
+    "speech/feedback.slow_repeat.1.villager.wav": {
+      "Text": "Di \u00ABayuda\u00BB y te ayudo.",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
+      "Sha256": "51ac75b4203b77ae35c43ee1c31ac53ef4778ec3f85ea230031b5d05432e445f",
+      "Bytes": 78464
     },
     "speech/feedback.slow_repeat.1.wav": {
       "Text": "Di \u00ABayuda\u00BB y te ayudo.",
@@ -1738,6 +2712,96 @@
       "Sha256": "19c13e05b2ce11d63f2bd9e5809cdaec80d337ebcac2f1d709533acb76e5f1d3",
       "Bytes": 78648
     },
+    "speech/feedback.slow_repeat.2.baker.slow.wav": {
+      "Text": "Si necesitas ayuda, di \u00ABayuda\u00BB.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "2de614cfe4ebeed766c4a2621afc126a80d01194dec0b87ecf3fdb59491db35e",
+      "Bytes": 138150,
+      "Gain": 0.32
+    },
+    "speech/feedback.slow_repeat.2.baker.wav": {
+      "Text": "Si necesitas ayuda, di \u00ABayuda\u00BB.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "b01be9b82b2f57432f0a2020d1d77ce6d3d9c340e045defac3edcc7e27b54ece",
+      "Bytes": 103068,
+      "Gain": 0.32
+    },
+    "speech/feedback.slow_repeat.2.farmer.slow.wav": {
+      "Text": "Si necesitas ayuda, di \u00ABayuda\u00BB.",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "99324140e895378c24c51a36d4c9f56ae9491ae112c393bff07f5f85b9656cf5",
+      "Sha256": "89a9038cdc445bf4badc760fdd276ef16cda022d5162d5fd80a8d9790a5c8365",
+      "Bytes": 125434
+    },
+    "speech/feedback.slow_repeat.2.farmer.wav": {
+      "Text": "Si necesitas ayuda, di \u00ABayuda\u00BB.",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9b21535b15c9c2b30c726fc985eb38a563c9bf9e48aad254c6809beae3fab923",
+      "Sha256": "95ecd4f23e62519ee3cb4b90e6de49e38dd4612a10636cffe358262a8b971641",
+      "Bytes": 98068
+    },
+    "speech/feedback.slow_repeat.2.fisher.slow.wav": {
+      "Text": "Si necesitas ayuda, di \u00ABayuda\u00BB.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "ef1f4f96d20ee2fbcb7470cf4471ec28c6b78866a78056c7abb624360b563596",
+      "Bytes": 135780
+    },
+    "speech/feedback.slow_repeat.2.fisher.wav": {
+      "Text": "Si necesitas ayuda, di \u00ABayuda\u00BB.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "6c93089de4b3d8c65df1c919bd2e11a0b4f8e2615e680b8d9911d66f4acd13b8",
+      "Bytes": 107154
+    },
+    "speech/feedback.slow_repeat.2.shopkeeper.slow.wav": {
+      "Text": "Si necesitas ayuda, di \u00ABayuda\u00BB.",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "fb8e2a935145ab41ed0f66e30299d072f0fd5bb2fee4e2b8e31a5177726f9137",
+      "Sha256": "4fb00ee2fe1fd866b590d1f148133e8c50e749ed96939daba1daee3a8726d6f2",
+      "Bytes": 125390
+    },
+    "speech/feedback.slow_repeat.2.shopkeeper.wav": {
+      "Text": "Si necesitas ayuda, di \u00ABayuda\u00BB.",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
+      "Sha256": "6bd43e1c37ab387ec796b9d4b42864d8d3f411539bcaed5950e233f8979d7219",
+      "Bytes": 114044
+    },
     "speech/feedback.slow_repeat.2.slow.wav": {
       "Text": "Si necesitas ayuda, di \u00ABayuda\u00BB.",
       "Speaker": "guide",
@@ -1748,6 +2812,52 @@
       "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
       "Sha256": "7b72a1cfd6aac29b0cc43cace2cf49561ae48613729bcf0a1ef69f8ce4222b24",
       "Bytes": 125136
+    },
+    "speech/feedback.slow_repeat.2.smith.slow.wav": {
+      "Text": "Si necesitas ayuda, di \u00ABayuda\u00BB.",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "74ccefe450428c0d43b4a93003662c032b03f1b394c0c577da5163eb3bee5afe",
+      "Sha256": "a50356601335754d79ce73990bc84806c95e3ca7339318321cfed8797b516ebc",
+      "Bytes": 140296,
+      "Gain": 0.6
+    },
+    "speech/feedback.slow_repeat.2.smith.wav": {
+      "Text": "Si necesitas ayuda, di \u00ABayuda\u00BB.",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
+      "Sha256": "cfda8b844bd1537a37868a737b672aef6036c4f64b5c1c7189c3046c4b6c96b1",
+      "Bytes": 107088,
+      "Gain": 0.6
+    },
+    "speech/feedback.slow_repeat.2.villager.slow.wav": {
+      "Text": "Si necesitas ayuda, di \u00ABayuda\u00BB.",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "582bff1facec664e0c88b222b72770a195e06c2d9ca39c8596ff5e65a9fc4a13",
+      "Sha256": "4fd6446db5b9fe4546d26bea130b4315f7fa1c1f573dc0c9ae76145a43d9f2d8",
+      "Bytes": 125956
+    },
+    "speech/feedback.slow_repeat.2.villager.wav": {
+      "Text": "Si necesitas ayuda, di \u00ABayuda\u00BB.",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
+      "Sha256": "7b072c8e9e4fb92399de7ab8deb5fddb7211d01f8ba06eb230fd29afa9aa606e",
+      "Bytes": 97320
     },
     "speech/feedback.slow_repeat.2.wav": {
       "Text": "Si necesitas ayuda, di \u00ABayuda\u00BB.",
@@ -6008,6 +7118,96 @@
       "Sha256": "692170556503ea21239a7e9773dcb5e4485efa05273f45a874866300dcd152a2",
       "Bytes": 67244
     },
+    "speech/not_understood.1.baker.slow.wav": {
+      "Text": "No te entend\u00ED. \u00BFMe lo dices otra vez?",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "3cf15ebcb399e8805747f8f06289cf308cd69af6354f9721da6d6c38c56b6bce",
+      "Bytes": 180106,
+      "Gain": 0.32
+    },
+    "speech/not_understood.1.baker.wav": {
+      "Text": "No te entend\u00ED. \u00BFMe lo dices otra vez?",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "0e419a5c5c05d1921e04e7ad270cfe5d2aac699fa72aa551fb621c27e671ae76",
+      "Bytes": 137206,
+      "Gain": 0.32
+    },
+    "speech/not_understood.1.farmer.slow.wav": {
+      "Text": "No te entend\u00ED. \u00BFMe lo dices otra vez?",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "99324140e895378c24c51a36d4c9f56ae9491ae112c393bff07f5f85b9656cf5",
+      "Sha256": "6cecbdcc10fc162a00a6fd7d77f433da14554a43583137333b6f820c0adf89e1",
+      "Bytes": 174878
+    },
+    "speech/not_understood.1.farmer.wav": {
+      "Text": "No te entend\u00ED. \u00BFMe lo dices otra vez?",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9b21535b15c9c2b30c726fc985eb38a563c9bf9e48aad254c6809beae3fab923",
+      "Sha256": "a5e022cd20dc7f3129c14701694c67fb428bfe54014bc61be3c47dd3174c81ef",
+      "Bytes": 154076
+    },
+    "speech/not_understood.1.fisher.slow.wav": {
+      "Text": "No te entend\u00ED. \u00BFMe lo dices otra vez?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "acb86bd3964959aa8cf5323824511f1dbaebc285ddcf7852f1a8c7e905cf907b",
+      "Bytes": 183320
+    },
+    "speech/not_understood.1.fisher.wav": {
+      "Text": "No te entend\u00ED. \u00BFMe lo dices otra vez?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "ab8bbb3c1e80e63e3ed4877cb6966224908249bb49aaa12eb302fd8943fba0a5",
+      "Bytes": 155316
+    },
+    "speech/not_understood.1.shopkeeper.slow.wav": {
+      "Text": "No te entend\u00ED. \u00BFMe lo dices otra vez?",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "fb8e2a935145ab41ed0f66e30299d072f0fd5bb2fee4e2b8e31a5177726f9137",
+      "Sha256": "92b343dbe21e0339164af847b9d72cd4e143d150f30d973926142fa1030fbd43",
+      "Bytes": 165976
+    },
+    "speech/not_understood.1.shopkeeper.wav": {
+      "Text": "No te entend\u00ED. \u00BFMe lo dices otra vez?",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
+      "Sha256": "ce17eb3bbcce732394a8eb0dc9a8a6cc165ac65b81dd7059307139259771f1e9",
+      "Bytes": 147644
+    },
     "speech/not_understood.1.slow.wav": {
       "Text": "No te entend\u00ED. \u00BFMe lo dices otra vez?",
       "Speaker": "guide",
@@ -6018,6 +7218,52 @@
       "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
       "Sha256": "4154e02a9f759bc3a3f7b145dc0ed4df9f2872de7acde0c7a05c9166b6f2d002",
       "Bytes": 167244
+    },
+    "speech/not_understood.1.smith.slow.wav": {
+      "Text": "No te entend\u00ED. \u00BFMe lo dices otra vez?",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "74ccefe450428c0d43b4a93003662c032b03f1b394c0c577da5163eb3bee5afe",
+      "Sha256": "151a3f82f5a2bd6606717d67ea931bec67e43018281743b6001313b097e16d83",
+      "Bytes": 175100,
+      "Gain": 0.6
+    },
+    "speech/not_understood.1.smith.wav": {
+      "Text": "No te entend\u00ED. \u00BFMe lo dices otra vez?",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
+      "Sha256": "acf818b3f0971fa1a26339917b2033acd3a1ff6390d7ec5de5c9c5253f42546c",
+      "Bytes": 137050,
+      "Gain": 0.6
+    },
+    "speech/not_understood.1.villager.slow.wav": {
+      "Text": "No te entend\u00ED. \u00BFMe lo dices otra vez?",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "582bff1facec664e0c88b222b72770a195e06c2d9ca39c8596ff5e65a9fc4a13",
+      "Sha256": "064504ab030a6b43669891486353afbfd9a1b6d1a832a5d35dbfa477865a061a",
+      "Bytes": 160542
+    },
+    "speech/not_understood.1.villager.wav": {
+      "Text": "No te entend\u00ED. \u00BFMe lo dices otra vez?",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
+      "Sha256": "d0e4f8ed971b637e1c2ea6ef24e1fc9db79af254f7bc603d78bdb6577518e0c1",
+      "Bytes": 147644
     },
     "speech/not_understood.1.wav": {
       "Text": "No te entend\u00ED. \u00BFMe lo dices otra vez?",
@@ -6030,6 +7276,96 @@
       "Sha256": "c0de9af481c30bbaf6365547cc974c1b78ac5861961bceb73c1ddcf2e362e51e",
       "Bytes": 140444
     },
+    "speech/not_understood.2.baker.slow.wav": {
+      "Text": "Perd\u00F3n, \u00BFqu\u00E9 dices?",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "3c7bd933654516375b5c1a440631ceb970aa791482c0273606d104e33314e2fd",
+      "Bytes": 91248,
+      "Gain": 0.32
+    },
+    "speech/not_understood.2.baker.wav": {
+      "Text": "Perd\u00F3n, \u00BFqu\u00E9 dices?",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "292b8ee3c8bb254e695136bdec53940123087debe773335b1292c4b77e5375bd",
+      "Bytes": 68860,
+      "Gain": 0.32
+    },
+    "speech/not_understood.2.farmer.slow.wav": {
+      "Text": "Perd\u00F3n, \u00BFqu\u00E9 dices?",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "99324140e895378c24c51a36d4c9f56ae9491ae112c393bff07f5f85b9656cf5",
+      "Sha256": "8236e645f5174d5767ec15ea5da250899cdb54fe4f74dbe1f2c9a572396fab0e",
+      "Bytes": 82580
+    },
+    "speech/not_understood.2.farmer.wav": {
+      "Text": "Perd\u00F3n, \u00BFqu\u00E9 dices?",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9b21535b15c9c2b30c726fc985eb38a563c9bf9e48aad254c6809beae3fab923",
+      "Sha256": "094828b2ad56e0fcf42cdce868ef097fcba27b80e189224b62339bbaeb46543f",
+      "Bytes": 72496
+    },
+    "speech/not_understood.2.fisher.slow.wav": {
+      "Text": "Perd\u00F3n, \u00BFqu\u00E9 dices?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "fdea1d9bc788bd78830dd7aa41cdae021647dd09e49295a36c21e71086d299c4",
+      "Bytes": 90396
+    },
+    "speech/not_understood.2.fisher.wav": {
+      "Text": "Perd\u00F3n, \u00BFqu\u00E9 dices?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "593d4910fb41c0ca4fd8cf18bc332a3d7e85b303bbc3341ce76de1ac2f3d9416",
+      "Bytes": 73924
+    },
+    "speech/not_understood.2.shopkeeper.slow.wav": {
+      "Text": "Perd\u00F3n, \u00BFqu\u00E9 dices?",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "fb8e2a935145ab41ed0f66e30299d072f0fd5bb2fee4e2b8e31a5177726f9137",
+      "Sha256": "853a49e2d2a3199c705952ffcea879e46dad83ef0d94d3455a56f81cccdddf5e",
+      "Bytes": 96044
+    },
+    "speech/not_understood.2.shopkeeper.wav": {
+      "Text": "Perd\u00F3n, \u00BFqu\u00E9 dices?",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
+      "Sha256": "d80ac3d98d7e3fa168474bff1cb864a870a2f1536dfaa36d5bcc5f915921b795",
+      "Bytes": 67704
+    },
     "speech/not_understood.2.slow.wav": {
       "Text": "Perd\u00F3n, \u00BFqu\u00E9 dices?",
       "Speaker": "guide",
@@ -6040,6 +7376,52 @@
       "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
       "Sha256": "15a9911e634ae9d14012de514d0ef8c620c34f291257f61778d720f650c69068",
       "Bytes": 92444
+    },
+    "speech/not_understood.2.smith.slow.wav": {
+      "Text": "Perd\u00F3n, \u00BFqu\u00E9 dices?",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "74ccefe450428c0d43b4a93003662c032b03f1b394c0c577da5163eb3bee5afe",
+      "Sha256": "cca248bfc6cfd809664a804e16c43cb20806427b487f81b0ed6a5138d446b355",
+      "Bytes": 93072,
+      "Gain": 0.6
+    },
+    "speech/not_understood.2.smith.wav": {
+      "Text": "Perd\u00F3n, \u00BFqu\u00E9 dices?",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
+      "Sha256": "e62c2c741436d17c57256122c00cc9f38a8cc02f751a5c151cc621751c1d0bb9",
+      "Bytes": 68940,
+      "Gain": 0.6
+    },
+    "speech/not_understood.2.villager.slow.wav": {
+      "Text": "Perd\u00F3n, \u00BFqu\u00E9 dices?",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "582bff1facec664e0c88b222b72770a195e06c2d9ca39c8596ff5e65a9fc4a13",
+      "Sha256": "e8c5c93647670a520341dc7614758a76bd445ee5ad9aeb93d0de7fd7bc301cd8",
+      "Bytes": 78616
+    },
+    "speech/not_understood.2.villager.wav": {
+      "Text": "Perd\u00F3n, \u00BFqu\u00E9 dices?",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
+      "Sha256": "2112e6968e4f5fe0659d9546936da7926684d2d3d1b9debda2b47fe3a830bb35",
+      "Bytes": 67694
     },
     "speech/not_understood.2.wav": {
       "Text": "Perd\u00F3n, \u00BFqu\u00E9 dices?",
@@ -9489,26 +10871,26 @@
       "Bytes": 47420
     },
     "speech/shop_hay.1.slow.wav": {
-      "Text": "Hay agua.",
+      "Text": "Hay agua y pan.",
       "Speaker": "shopkeeper",
       "SpeakerId": 29,
       "Voice": "em_alex",
       "Speed": 0.8,
       "Rate": 24000,
       "ModelHash": "fb8e2a935145ab41ed0f66e30299d072f0fd5bb2fee4e2b8e31a5177726f9137",
-      "Sha256": "a4ab657f7ea0dfe47f8e79b9ab70a6810597a54102c2e4ec0692ec6aadcb237d",
-      "Bytes": 63644
+      "Sha256": "6749ae97a03b0c73e2c740c5e274db1aa05ffda93347c29b8c3e7681939e936c",
+      "Bytes": 78460
     },
     "speech/shop_hay.1.wav": {
-      "Text": "Hay agua.",
+      "Text": "Hay agua y pan.",
       "Speaker": "shopkeeper",
       "SpeakerId": 29,
       "Voice": "em_alex",
       "Speed": 1,
       "Rate": 24000,
       "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
-      "Sha256": "3521b92333ac9fd0744e18f1fe1dcf4d7bbd1f58813c31498e5262c11d623864",
-      "Bytes": 48044
+      "Sha256": "aaabcddadb7a5943f3db8c169e18de1322aff1f0d5cb5acf05682a4812b7c380",
+      "Bytes": 72044
     },
     "speech/shop_help_ask.1.slow.wav": {
       "Text": "Puedes decir: \u00ABQuiero agua, por favor\u00BB.",
@@ -9709,26 +11091,26 @@
       "Bytes": 60044
     },
     "speech/shop_wont_sell.1.slow.wav": {
-      "Text": "Solo tengo agua.",
+      "Text": "No tengo eso. Tengo agua y pan.",
       "Speaker": "shopkeeper",
       "SpeakerId": 29,
       "Voice": "em_alex",
       "Speed": 0.8,
       "Rate": 24000,
       "ModelHash": "fb8e2a935145ab41ed0f66e30299d072f0fd5bb2fee4e2b8e31a5177726f9137",
-      "Sha256": "bb340b08aecfc2ed782ca26dcd7a99b025dcf791e8a860e2dbfa751fafdb72f0",
-      "Bytes": 92444
+      "Sha256": "c06a8c93ec10d30b4a6e4ada285c8ed419a4e96e52bc2a399ff783ac7483c66d",
+      "Bytes": 165674
     },
     "speech/shop_wont_sell.1.wav": {
-      "Text": "Solo tengo agua.",
+      "Text": "No tengo eso. Tengo agua y pan.",
       "Speaker": "shopkeeper",
       "SpeakerId": 29,
       "Voice": "em_alex",
       "Speed": 1,
       "Rate": 24000,
       "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
-      "Sha256": "ec00009761c3c886345952cbcd4e4df98be8e3f851024de50d56d597f2a639f1",
-      "Bytes": 69644
+      "Sha256": "1cf7411a458bd416760808472a21e27d18888e0c6e323f437a941740b3bcf584",
+      "Bytes": 139860
     },
     "speech/smith_buy.1.slow.wav": {
       "Text": "\u00A1Gracias! Aqu\u00ED tienes tus monedas.",
