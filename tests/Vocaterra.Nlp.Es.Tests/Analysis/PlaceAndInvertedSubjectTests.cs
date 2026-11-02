@@ -187,6 +187,8 @@ public class PlaceAndInvertedSubjectTests
     [InlineData("dónde estás mi amor")]
     [InlineData("dónde estamos los niños")]
     [InlineData("dónde estás el lunes")]
+    [InlineData("dónde estuviste la tercera")]
+    [InlineData("dónde estás la primera")]
     [InlineData("yo estoy en la casa")]
     [InlineData("dónde está la herrería")]
     [InlineData("cuánto cuesta el pan")]

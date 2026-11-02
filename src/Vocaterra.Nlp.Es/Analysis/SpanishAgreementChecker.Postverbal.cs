@@ -55,10 +55,11 @@ internal sealed partial class SpanishAgreementChecker
             {
                 continue;
             }
-            else if (firstOrSecond && !OpensWithArticleAlone(phrase))
+            else if (firstOrSecond && (!OpensWithArticleAlone(phrase) || SpanishAnalysisTables.IsOrdinal(TextOf(phrase.Head))))
             {
                 // A phrase with a possessive or a demonstrative, or none, after a verb of the first or second person may be the person spoken to (¿dónde estás, mi
-                // amor?), and one that de follows may be an idiom (estás la mar de guapa); the plural (¿dónde estamos los niños?: we children) is not considered.
+                // amor?), and one that de follows may be an idiom (estás la mar de guapa); the plural (¿dónde estamos los niños?: we children) is not considered. An
+                // ordinal may leave its noun unsaid, a time (¿dónde estuviste la tercera?, the third time; found by the identity baseline).
                 continue;
             }
             else

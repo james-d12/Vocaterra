@@ -104,6 +104,13 @@ internal static class SpanishAnalysisTables
         "manera", "modo", "palabra", "seguida", "absoluto", "punto",
     }.ToFrozenSet(StringComparer.Ordinal);
 
+    // M69. The ordinals and words of sequence, as written, which may stand for a noun left unsaid (la tercera: the third time, ¿dónde estuviste la tercera?).
+    private static readonly FrozenSet<string> Ordinals = new[]
+    {
+        "primero", "primera", "segundo", "segunda", "tercero", "tercera", "cuarto", "cuarta", "quinto", "quinta", "sexto", "sexta", "séptimo", "séptima", "octavo",
+        "octava", "noveno", "novena", "décimo", "décima", "último", "última", "próximo", "próxima", "siguiente", "anterior",
+    }.ToFrozenSet(StringComparer.Ordinal);
+
     // M69. The nouns that make a place with en without a determiner (en casa: at home); any other bare noun after en is a time or a manner (en marzo, en monedas, en tren).
     private static readonly FrozenSet<string> BarePlaceNouns = new[] { "casa" }.ToFrozenSet(StringComparer.Ordinal);
 
@@ -381,6 +388,12 @@ internal static class SpanishAnalysisTables
     public static bool IsAdverbialPhraseNoun(string lemma)
     {
         return AdverbialPhraseNouns.Contains(lemma);
+    }
+
+    /// <summary>True for an ordinal or a word of sequence as written (<c>tercera</c>, <c>última</c>), which may stand for a noun left unsaid (M69).</summary>
+    public static bool IsOrdinal(string word)
+    {
+        return Ordinals.Contains(word);
     }
 
     /// <summary>True for a noun that is a place after <c>en</c> without a determiner (<c>en casa</c>; M69).</summary>
