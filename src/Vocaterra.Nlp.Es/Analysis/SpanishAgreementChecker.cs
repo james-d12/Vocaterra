@@ -12,7 +12,8 @@ using Vocaterra.Nlp.Language.Morphology;
 /// The rules of M56 (a subject after its verb, <c>ser</c> where a place takes <c>estar</c>) are in <c>SpanishAgreementChecker.Postverbal.cs</c>, and those of M59 (a noun
 /// subject before its verb, a reflexive clitic after <c>cómo</c>) in <c>SpanishAgreementChecker.Preverbal.cs</c>, and that of M62 (an adjective after <c>ser</c> or
 /// <c>estar</c> agrees with the copula's subject) in <c>SpanishAgreementChecker.Predicate.cs</c>, and those of M64 (a subject pronoun joined by <c>y</c> ends a plural
-/// subject, an amount before a singular <c>ser</c> is one sum) in <c>SpanishAgreementChecker.Coordination.cs</c>.
+/// subject, an amount before a singular <c>ser</c> is one sum) in <c>SpanishAgreementChecker.Coordination.cs</c>, and that of M70 (<c>gustar</c> agrees with the thing
+/// liked) in <c>SpanishAgreementChecker.Liking.cs</c>.
 /// </remarks>
 internal sealed partial class SpanishAgreementChecker : IAgreementChecker
 {
@@ -35,6 +36,7 @@ internal sealed partial class SpanishAgreementChecker : IAgreementChecker
         CheckPreverbalSubject();
         CheckReflexiveClitic();
         CheckPostverbalSubject();
+        CheckLikingVerb();
         CheckTense();
         CheckNearFuture();
         CheckIrWithoutA();

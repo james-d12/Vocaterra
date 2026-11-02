@@ -99,6 +99,34 @@ public class VillageQaLineTests
         Assert.DoesNotContain("notes", TestSupport.Json(Evaluate("compré dos panes", "lesson-bought")), StringComparison.Ordinal);
     }
 
+    // ---- 3. gustar agrees with the thing liked (QA-language-4) ------------------------------------------------------------------------------------------------
+
+    // Before M70 both were state_like at correctness 1, and the NPC praised them.
+    [Theory]
+    [InlineData("yo gusto el pan", "lesson-like-bread", "conj.person|yo gusto|me gusta", "me gusta el pan")]
+    [InlineData("me gusto el pan", "lesson-like-bread", "conj.person|gusto|gusta", "me gusta el pan")]
+    [InlineData("yo gusto el pan", "farmer-open", "conj.person|yo gusto|me gusta", "me gusta el pan")]
+    [InlineData("me gusta las manzanas", "lesson-like-apples", "conj.person|gusta|gustan", "me gustan las manzanas")]
+    public void AWrongGustarIsAPersonErrorAndTheRecastSaysTheDative(string transcript, string promptId, string errors, string recast)
+    {
+        var result = Evaluate(transcript, promptId);
+
+        Assert.Equal(errors, Errors(result.Verdict));
+        Assert.Equal("state_like", result.Verdict.Intent.Value);
+        Assert.Contains("«" + recast + "»", Recast(result), StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("me gusta el pan", "lesson-like-bread")]
+    [InlineData("te gusta el pan", "lesson-like-bread")]
+    [InlineData("a mí me gusta el pan", "lesson-like-bread")]
+    [InlineData("no me gusta", "lesson-like-bread")]
+    [InlineData("me gustan las manzanas", "lesson-like-apples")]
+    public void ARightGustarIsClean(string transcript, string promptId)
+    {
+        Assert.Equal(string.Empty, Errors(Evaluate(transcript, promptId).Verdict));
+    }
+
     // ---- 4. An unknown word is blamed on itself (QA-language-6) -----------------------------------------------------------------------------------------------
 
     // Before M70: compré three manzanas gave vocab.unknown expected compré and the recast «compré compré manzanas»; mañana iré al glorp gave expected iré and

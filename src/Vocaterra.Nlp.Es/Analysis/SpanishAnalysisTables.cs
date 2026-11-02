@@ -91,6 +91,28 @@ internal static class SpanishAnalysisTables
     // M56. The dative pronouns before an experiencer verb (me gusta, les gustan); lo, la, los and las are accusative and se is left out.
     private static readonly FrozenSet<string> DativePronouns = new[] { "me", "te", "le", "nos", "os", "les" }.ToFrozenSet(StringComparer.Ordinal);
 
+    // M70. The experiencer verbs whose subject is the thing liked and never the one who likes, so that a form of the first or second person with a phrase after it, or a
+    // subject pronoun before it with no dative, is the learner's English order (me gusto el pan, yo gusto el pan); the others also take a subject of the first or second
+    // person, or an object, in other senses (me quedo el libro, me preocupo, te molesto).
+    private static readonly FrozenSet<string> LikingVerbs = new[] { "gustar", "encantar" }.ToFrozenSet(StringComparer.Ordinal);
+
+    // M70. The dative pronoun of each subject pronoun (yo: me, usted: le, ustedes: les).
+    private static readonly FrozenDictionary<string, string> DativeBySubject = new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        ["yo"] = "me",
+        ["tú"] = "te",
+        ["él"] = "le",
+        ["ella"] = "le",
+        ["usted"] = "le",
+        ["nosotros"] = "nos",
+        ["nosotras"] = "nos",
+        ["vosotros"] = "os",
+        ["vosotras"] = "os",
+        ["ellos"] = "les",
+        ["ellas"] = "les",
+        ["ustedes"] = "les",
+    }.ToFrozenDictionary(StringComparer.Ordinal);
+
     // M56. Verbs of price, whose subject follows them in the price question (¿cuánto cuesta el pan?, ¿cuánto valen los panes?); elsewhere the noun phrase after them is
     // the price (cuestan dos monedas).
     private static readonly FrozenSet<string> PriceVerbs = new[] { "costar", "valer" }.ToFrozenSet(StringComparer.Ordinal);
@@ -327,6 +349,18 @@ internal static class SpanishAnalysisTables
     public static bool IsExperiencerVerb(string lemma)
     {
         return ExperiencerVerbs.Contains(lemma);
+    }
+
+    /// <summary>True for <c>gustar</c> and <c>encantar</c>, whose subject is the thing liked and never the one who likes (M70).</summary>
+    public static bool IsLikingVerb(string lemma)
+    {
+        return LikingVerbs.Contains(lemma);
+    }
+
+    /// <summary>The dative pronoun of a subject pronoun (<c>yo</c>: <c>me</c>, <c>ellas</c>: <c>les</c>), or null for another word (M70).</summary>
+    public static string? DativeOf(string subjectPronoun)
+    {
+        return DativeBySubject.TryGetValue(subjectPronoun, out var dative) ? dative : null;
     }
 
     /// <summary>True for the dative pronouns that stand before an experiencer verb (<c>me</c>, <c>te</c>, <c>le</c>, <c>nos</c>, <c>os</c>, <c>les</c>).</summary>
