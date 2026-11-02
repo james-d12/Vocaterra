@@ -830,6 +830,12 @@
         { "lineId": "fisher_nice.1", "text": "¡Qué bien!" }
       ]
     },
+    "fisher_true": {
+      "poolId": "fisher_true",
+      "variants": [
+        { "lineId": "fisher_true.1", "text": "Sí, es verdad." }
+      ]
+    },
     "fisher_bye": {
       "poolId": "fisher_bye",
       "variants": [
@@ -995,6 +1001,12 @@
         { "lineId": "baker_nice.1", "text": "¡Qué bien!" }
       ]
     },
+    "baker_true": {
+      "poolId": "baker_true",
+      "variants": [
+        { "lineId": "baker_true.1", "text": "Sí, es verdad." }
+      ]
+    },
     "baker_bye": {
       "poolId": "baker_bye",
       "variants": [
@@ -1139,6 +1151,12 @@
       "poolId": "smith_nice",
       "variants": [
         { "lineId": "smith_nice.1", "text": "¡Qué bien!" }
+      ]
+    },
+    "smith_true": {
+      "poolId": "smith_true",
+      "variants": [
+        { "lineId": "smith_true.1", "text": "Sí, es verdad." }
       ]
     },
     "smith_ok": {

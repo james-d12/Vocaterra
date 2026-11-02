@@ -500,7 +500,7 @@ public sealed class PhraseSupportTests
         // The cues go to the line player by text: each text must be a speakable line of the bundle with its normal and its slow file in speech/.
         var sheet = RouteScene.DataOf(TestGame.Bundle).Phrases;
         var index = new SpeechIndex(SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, sheet, TestGame.Data.Npcs));
-        var store = new Vocaterra.Nlp.Response.Speech.StaticLineStore(Path.Combine(GameBundle.ResolveDirectory(), SpeechLines.FolderName));
+        var store = new SpeechStore(Path.Combine(GameBundle.ResolveDirectory(), SpeechLines.FolderName), index.Lines);
         var texts = new List<(string Speaker, string Text)> { ("guide", "el agua"), ("guide", "el pan") };
         foreach (var id in PhraseIds.All.Where(TestGame.Data.Npcs.HasScaffold))
         {

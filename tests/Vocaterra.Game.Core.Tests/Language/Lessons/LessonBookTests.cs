@@ -98,7 +98,7 @@ public sealed class LessonBookTests
     public void EveryLineOfEveryStepOfTheShippedLessonsHasItsFilesAndTheirEnglish()
     {
         var book = RouteScene.DataOf(TestGame.Bundle).Lessons;
-        var store = new Vocaterra.Nlp.Response.Speech.StaticLineStore(Path.Combine(GameBundle.ResolveDirectory(), SpeechLines.FolderName));
+        var store = new SpeechStore(Path.Combine(GameBundle.ResolveDirectory(), SpeechLines.FolderName), SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, RouteScene.DataOf(TestGame.Bundle).Phrases, TestGame.Data.Npcs));
         var english = RouteScene.DataOf(TestGame.Bundle).Locale;
 
         foreach (var step in book.Lessons.SelectMany(static l => l.Steps))

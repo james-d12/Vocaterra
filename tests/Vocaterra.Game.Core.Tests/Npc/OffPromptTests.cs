@@ -36,7 +36,7 @@ public sealed class OffPromptTests
         Assert.Equal(expected.Keys.Order(StringComparer.Ordinal), TestGame.Data.Npcs.Ids.Order(StringComparer.Ordinal));
         foreach (var (id, text) in expected)
         {
-            var pool = TestGame.Data.Npcs.Find(id)!.OffPromptPool;
+            var pool = NpcTurnRules.OffPromptPoolOf(TestGame.Bundle, id);
             Assert.NotNull(pool);
             var variant = Assert.Single(TestGame.Bundle.Dialogue.Pools[pool].Variants);
             Assert.Equal(text, variant.Text);
@@ -61,6 +61,38 @@ public sealed class OffPromptTests
         Assert.Null(turn.Choices);
         Assert.False(turn.Uncertain);
         Assert.Empty(turn.HostEvents);
+    }
+
+    [Theory]
+    [InlineData("baker", "Tienes veinte panes.", "Sí, es verdad.")]
+    [InlineData("baker", "Usted tiene muchas manzanas.", "Sí, es verdad.")]
+    [InlineData("smith", "Haces hachas.", "Sí, es verdad.")]
+    [InlineData("villager", "Eres el herrero.", "Sí, es verdad.")]
+    [InlineData("baker", "Tengo veinte panes.", "¡Qué bien!")]
+    [InlineData("baker", "Ella tiene veinte panes.", "¡Qué bien!")]
+    [InlineData("fisher", "Voy con usted al río.", "¡Qué bien!")]
+    public void AStatementAboutTheListenerGetsSiEsVerdadAndOneAboutTheSpeakerOrAThirdPersonKeepsQueBien(string npc, string line, string reply)
+    {
+        // V28: decided from the core's analysis (a second-person verb, or tú / usted / ustedes not after a preposition), by NpcTurnRules.AboutListener.
+        var turn = Free(NewNpcs(), npc, line);
+
+        Assert.Contains(reply, turn.Replies);
+        Assert.DoesNotContain(reply == "Sí, es verdad." ? "¡Qué bien!" : "Sí, es verdad.", turn.Replies);
+    }
+
+    [Theory]
+    [InlineData("baker")]
+    [InlineData("smith")]
+    [InlineData("fisher")]
+    [InlineData("farmer")]
+    [InlineData("villager")]
+    [InlineData("shopkeeper")]
+    public void EveryNpcWhoSaysQueBienHasASiEsVerdadPoolInItsVoice(string npc)
+    {
+        var prefix = npc == "shopkeeper" ? "shop" : npc;
+        var pool = Assert.Single(TestGame.Bundle.Dialogue.Pools.Values, p => p.PoolId == prefix + "_true");
+        Assert.Equal("Sí, es verdad.", Assert.Single(pool.Variants).Text);
+        Assert.Contains(TestGame.Data.Speech, l => l.LineId == prefix + "_true.1" && l.Speaker == npc);
     }
 
     [Fact]

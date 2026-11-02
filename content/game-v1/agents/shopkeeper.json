@@ -26,6 +26,7 @@
       "id": "idle",
       "transitions": [
         { "onHostEvent": "shopkeeper.understood", "to": "idle", "actions": [{ "dialogueIntent": "shop_understood", "variantPoolId": "shop_understood" }] },
+        { "onHostEvent": "shopkeeper.true", "to": "idle", "actions": [{ "dialogueIntent": "shop_true", "variantPoolId": "shop_true" }] },
         { "onHostEvent": "shopkeeper.ask", "to": "asking", "actions": [{ "dialogueIntent": "shop_need", "variantPoolId": "shop_need" }] },
         { "onHostEvent": "shopkeeper.give", "to": "offering", "actions": [{ "dialogueIntent": "shop_give", "hostEvent": "stall.give_water", "variantPoolId": "shop_give" }, { "dialogueIntent": "shop_offer", "variantPoolId": "shop_offer" }] },
         { "on": {"intent": "request_item", "communicated": true}, "to": "offering", "actions": [{ "dialogueIntent": "shop_give", "hostEvent": "stall.give_water", "variantPoolId": "shop_give" }, { "dialogueIntent": "shop_offer", "variantPoolId": "shop_offer" }] },

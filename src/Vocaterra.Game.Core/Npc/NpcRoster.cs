@@ -43,12 +43,6 @@ public sealed record NpcEntry(string Id, string Label, string? Name, string Figu
     /// </summary>
     public IReadOnlyDictionary<string, string> FreeTalkPools { get; init; } = new Dictionary<string, string>(StringComparer.Ordinal);
 
-    /// <summary>
-    /// The pool of the NPC's reply to a line in free talk that its prompt does not take but the core understands (V27, <c>Verdict.OffPromptIntent</c>): «Te entiendo. Yo hago
-    /// hachas.», one line, the NPC's own topic. <see langword="null"/> for an NPC whose file names none, which then answers such a line as one it did not understand.
-    /// </summary>
-    public string? OffPromptPool { get; init; }
-
     /// <summary>The key words (catalogue nouns) whose cards the NPC shows alone before its first question (the shopkeeper's <c>agua</c>, <c>pan</c>); empty for most.</summary>
     public IReadOnlyList<string> KeyWords { get; init; } = [];
 
@@ -294,7 +288,6 @@ public sealed class NpcRoster
                 Opening = root.TryGetProperty("opening", out var opening) ? OpeningOf(opening, path) : NpcOpeningRule.Never,
                 Voice = root.TryGetProperty("voice", out var voice) ? VoiceOf(voice, path) : null,
                 FreeTalkPools = root.TryGetProperty("freeTalkPools", out var freeTalk) ? freeTalk.EnumerateObject().ToDictionary(static p => p.Name, static p => p.Value.GetString() ?? string.Empty, StringComparer.Ordinal) : new Dictionary<string, string>(StringComparer.Ordinal),
-                OffPromptPool = root.TryGetProperty("offPromptPool", out var offPrompt) ? offPrompt.GetString() : null,
                 KeyWords = root.TryGetProperty("keyWords", out var keyWords) ? keyWords.EnumerateArray().Select(static w => w.GetString() ?? string.Empty).ToList() : [],
             };
             return string.IsNullOrWhiteSpace(pools) ? entry : entry with { PoolPrefix = pools };

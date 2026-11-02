@@ -133,12 +133,12 @@ internal static class Program
                 var spec = VoiceOf(line.Speaker, data.Npcs);
                 foreach (var variant in new[] { ("", spec.Speed), (SpeechFiles.SlowSuffix, spec.Speed * SlowFactor) })
                 {
-                    var fileName = line.LineId + variant.Item1 + ".wav";
-                    var relative = SpeechLines.FolderName + "/" + fileName;
-                    var target = Path.Combine(speechDir, fileName);
+                    var inFolder = SpeechFiles.RelativePath(line, variant.Item1.Length > 0); // V28: <speaker>/<id>.wav, the word cards' in cards/
+                    var relative = SpeechLines.FolderName + "/" + inFolder;
+                    var target = Path.Combine(speechDir, inFolder);
                     var synth = Synthesizer(store, spec.Speaker, variant.Item2, synthesizers);
                     var wanted = new IndexEntry(line.Text, line.Speaker, spec.Speaker, spec.Name, variant.Item2, rate, synth.ModelHash, string.Empty, 0, GainOf(spec));
-                    expected.Add(fileName);
+                    expected.Add(inFolder);
                     checklist.Add((line.LineId, relative, line.Speaker, variant.Item2.ToString("0.0#", CultureInfo.InvariantCulture), line.Text));
 
                     if (!force && index.Files.TryGetValue(relative, out var previous) && SameInputs(previous, wanted)
@@ -324,6 +324,7 @@ internal static class Program
 
     private static void WriteAtomically(string path, byte[] bytes)
     {
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         var temp = path + ".tmp";
         File.WriteAllBytes(temp, bytes);
         File.Move(temp, path, overwrite: true);
@@ -398,9 +399,9 @@ internal static class Program
     private static int DeleteStale(string speechDir, HashSet<string> expected)
     {
         var deleted = 0;
-        foreach (var file in Directory.GetFiles(speechDir, "*.wav"))
+        foreach (var file in Directory.GetFiles(speechDir, "*.wav", SearchOption.AllDirectories))
         {
-            if (!expected.Contains(Path.GetFileName(file)))
+            if (!expected.Contains(Path.GetRelativePath(speechDir, file).Replace('\\', '/')))
             {
                 File.Delete(file);
                 deleted++;
@@ -536,7 +537,7 @@ internal static class Program
         return marks;
     }
 
-    private static long FolderBytes(string folder) => Directory.GetFiles(folder, "*.wav").Sum(static f => new FileInfo(f).Length);
+    private static long FolderBytes(string folder) => Directory.GetFiles(folder, "*.wav", SearchOption.AllDirectories).Sum(static f => new FileInfo(f).Length);
 
     private static string ReadableSize(long bytes) => string.Create(CultureInfo.InvariantCulture, $"{bytes / 1048576.0:0.00} MB");
 

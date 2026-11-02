@@ -162,9 +162,11 @@ public sealed class ConversationSession
             answers.Unsaid,
             _names.Values,
             lineId => holdsBottle && events.Contains(NpcHostEvents.GiveWater, StringComparer.Ordinal) && lineId.StartsWith("shop_give.", StringComparison.Ordinal),
-            _roster.All.FirstOrDefault(npc => string.Equals(npc.Id, agentId, StringComparison.Ordinal))?.FreeTalkPools);
+            _roster.All.FirstOrDefault(npc => string.Equals(npc.Id, agentId, StringComparison.Ordinal))?.FreeTalkPools,
+            bundle: Bundle,
+            npc: agentId);
         var npc = _roster.All.FirstOrDefault(entry => string.Equals(entry.Id, agentId, StringComparison.Ordinal));
-        if (!verdict.Communicated && verdict.OffPromptIntent is { } offPrompt && npc?.OffPromptPool is { } pool
+        if (!verdict.Communicated && verdict.OffPromptIntent is { } offPrompt && NpcTurnRules.OffPromptPoolOf(Bundle, agentId) is { } pool && npc is not null
             && npc.Prompts.Values.Contains(promptId, StringComparer.Ordinal))
         {
             // V27: in free talk (the NPC's own prompt, not a lesson step) the NPC's one off-prompt line and nothing else.

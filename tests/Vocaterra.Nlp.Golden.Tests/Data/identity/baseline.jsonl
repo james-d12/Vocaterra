@@ -6368,6 +6368,7 @@
 {"id":"dialogue:baker_sell.2","stages":{"render":"c64cc322d01c8dc0"}}
 {"id":"dialogue:baker_thank.1","stages":{"render":"267bead7d57632ce"}}
 {"id":"dialogue:baker_thank.2","stages":{"render":"e8cdb0bd91a51c89"}}
+{"id":"dialogue:baker_true.1","stages":{"render":"47151d31290c66d0"}}
 {"id":"dialogue:baker_understood.1","stages":{"render":"751d341b87bcb0db"}}
 {"id":"dialogue:baker_wait.1","stages":{"render":"8993e9ccf937b111"}}
 {"id":"dialogue:baker_wont_buy.1","stages":{"render":"d1d08e969854eef0"}}
@@ -6429,6 +6430,7 @@
 {"id":"dialogue:fisher_point.2","stages":{"render":"916681fbb8b263a7"}}
 {"id":"dialogue:fisher_thank.1","stages":{"render":"267bead7d57632ce"}}
 {"id":"dialogue:fisher_thank.2","stages":{"render":"e8cdb0bd91a51c89"}}
+{"id":"dialogue:fisher_true.1","stages":{"render":"47151d31290c66d0"}}
 {"id":"dialogue:fisher_understood.1","stages":{"render":"b198caa89ad60a85"}}
 {"id":"dialogue:fisher_unknown_place.1","stages":{"render":"44ce05c222d5ccbb"}}
 {"id":"dialogue:guide.craft.lack.many.1","stages":{"render":"58632c608d0a02a5"}}
@@ -6675,6 +6677,7 @@
 {"id":"dialogue:smith_ok.1","stages":{"render":"d94adc0aee5eca7b"}}
 {"id":"dialogue:smith_thank.1","stages":{"render":"267bead7d57632ce"}}
 {"id":"dialogue:smith_thank.2","stages":{"render":"e8cdb0bd91a51c89"}}
+{"id":"dialogue:smith_true.1","stages":{"render":"47151d31290c66d0"}}
 {"id":"dialogue:smith_understood.1","stages":{"render":"78ff7458aab414e5"}}
 {"id":"dialogue:smith_wont_buy.1","stages":{"render":"d1d08e969854eef0"}}
 {"id":"dialogue:villager_bye.1","stages":{"render":"ab9fdc9e11aa15a8"}}

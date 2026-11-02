@@ -32,6 +32,17 @@ public sealed class OffPromptTests
         Assert.Empty(Lines(report, "  repair: "));
     }
 
+    [Theory]
+    [InlineData("Tienes veinte panes.", "baker-open", "Sí, es verdad.")]
+    [InlineData("Usted tiene muchas manzanas.", "baker-open", "Sí, es verdad.")]
+    [InlineData("Eres el herrero.", "villager-open", "Sí, es verdad.")]
+    [InlineData("Tengo veinte panes.", "baker-open", "¡Qué bien!")]
+    [InlineData("Ella tiene veinte panes.", "baker-open", "¡Qué bien!")]
+    public void AStatementAboutTheListenerGetsSiEsVerdadInTheHostAsInTheGame(string line, string prompt, string reply)
+    {
+        Assert.Equal([reply], Lines(Report(line, prompt), "  agent: "));
+    }
+
     [Fact]
     public void ALineNoIntentOfTheCatalogTakesKeepsTheRepairAndPrintsNoOffPromptLine()
     {

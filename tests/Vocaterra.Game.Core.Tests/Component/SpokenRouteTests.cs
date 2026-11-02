@@ -40,7 +40,7 @@ public sealed class SpokenRouteTests(ITestOutputHelper output)
         }
     }
 
-    private static string HolaWav => System.IO.Path.Combine(GameBundle.ResolveDirectory(), "speech", "phrase.hola.wav");
+    private static string HolaWav => System.IO.Path.Combine(GameBundle.ResolveDirectory(), "speech", "guide", "phrase.hola.wav");
 
     private static VoxelSession AtTheGuide()
     {
