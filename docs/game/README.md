@@ -810,12 +810,6 @@ ticks (the open points below): sessions 4 to 7 and 7 to 9 by a sleep at the fire
   another intent gets «No te entendí». A learner cannot predict which.
 - **The oven order after a load waits for its lesson** (game, V14's design). The baker's `Primero, la lección. Luego, las monedas.` (V21) tells the learner
   the order is held: after a load in session 5 the order is delivered at the lesson's `n4-back` step.
-- **A free-talk credit for another noun** (game, minor). `Quiero dos manzanas.` at Luz is refused («Solo vendo pan.») as it should be, but the book logs
-  `quiero-dos-panes` as a supported use with the detail `manzana` (V20 (b) credits a phrase by its intent, not its words).
-- **Two replies to a line not understood** (game). At an open prompt a line the NPC does not understand gets «No te entendí. ¿Me lo dices otra vez?» and then the core's repair «¿Cómo?» (`me gusta el río` to the villager): the dialogue adds the turn's repair after its reply.
-- **The book keeps a typed form without its accent** (game, minor). After `ayer compre pan` the book counts the form `compre` for `comprar` (1 sg pret ind), not `compré`.
-- **A scripted run stops at 18 000 ticks without a message** (game, the harness). `ScriptedRunEnd.RunawayTicks` (five minutes of play) ends a run and drops
-  the steps after it with no line in stdout. The route of sessions 4 to 10 needed four runs for this.
 - **At an open prompt a correct line with a word outside its answer set gets `vocab.wrong` and «No te entendí»** (core and game, V17 and M69; V21b saw it
   again). `la tienda está en el pueblo` at `farmer-open`. The core's verdict is the cause; the game's answer sets are the fix for the lessons' own lines (V20 (a)).
 - **`cuántas cuesta todo` is read as a noun phrase** (core, M69's left point, M62).
