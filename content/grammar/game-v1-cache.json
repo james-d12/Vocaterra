@@ -1002,6 +1002,12 @@
       "matches": []
     },
     {
+      "key": "1cd9af1860696adb42acfed83a9490bf88a737dbf30df47527020eca104b9efa",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No tengo eso. Tengo agua y pan.",
+      "matches": []
+    },
+    {
       "key": "1d0df8e9f9e67feee03c627a2bcfa0699276b64855ab399e189e7fd49af54657",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Qué harás mañana?",
@@ -1208,6 +1214,12 @@
       "key": "24a74c10434b62438e7c3395e32dd2aa7fd9ee1bcc7547b6517e9a1bd9fe7f3a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Quién es grande",
+      "matches": []
+    },
+    {
+      "key": "24a92154e784a46995222c2546ca3fbe645c85ef90ac45a43d5cfe29b5e00663",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay agua y pan.",
       "matches": []
     },
     {
@@ -1749,12 +1761,6 @@
       "matches": []
     },
     {
-      "key": "32d2b2c8c05bfb538fcf5dbef1b7debabd70210011e56e9fd5c0a9563db90316",
-      "settings": "language=es;level=picky;motherTongue=en",
-      "text": "Hay agua.",
-      "matches": []
-    },
-    {
       "key": "33056b7814a159213a6d54f3deb765555e6fe6c491d357f4433590b915979cb4",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "la antorcha",
@@ -1846,12 +1852,6 @@
       "key": "3596915f27256370d87be30456d6a2880b6a4c4e66420a5aeb90985cf6a0fed8",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Casi. Piensa otra vez.",
-      "matches": []
-    },
-    {
-      "key": "35cbd3c3e9dd7c3c0f58941102a35b908eb1de2f0c247c662377f61bbca935c4",
-      "settings": "language=es;level=picky;motherTongue=en",
-      "text": "Solo tengo agua.",
       "matches": []
     },
     {
@@ -2813,6 +2813,12 @@
       "matches": []
     },
     {
+      "key": "4d9af5d046d87fb472ddc5e8b3116830c57104ba80e27c07d83f93e42abce18b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Una manzana, una moneda.",
+      "matches": []
+    },
+    {
       "key": "4df2c72472e22ed1777ce53a7ed43ad161b47fcad63904451fd1051c793bca6b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Voy a la panadería",
@@ -3334,6 +3340,12 @@
       "matches": []
     },
     {
+      "key": "5c770b997338c13af2fee530ccc82eed47af075e07267202f5964bf0ff3b517a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "que",
+      "matches": []
+    },
+    {
       "key": "5cfaaa496c03cc47438f63961ae27924694c6468c450aaa4fb648f1fde4c5b66",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "el pan",
@@ -3551,6 +3563,12 @@
       "key": "61b658f27d7a480afc6f686f71dc608c80ad8a801d574a351512f642db12a18c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Cuánto cuestan las manzanas",
+      "matches": []
+    },
+    {
+      "key": "61e60bb63e18b60bb3166ee7332d4e84a3cbe63a7f9840d5706d680632b21896",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "tener",
       "matches": []
     },
     {

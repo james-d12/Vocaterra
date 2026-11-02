@@ -62,6 +62,14 @@
       },
       "description": "By state of the NPC's agent: the prompt it waits on in that state (idle: stall-need, offering: stall-offer). A state not listed waits on the prompt of the agent's initial state. The key review is no state: it names the prompt of the guide's review question (guide-review)."
     },
+    "freeTalkPools": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "V21b: pools the NPC says only while a lesson step is answered, by the pool it says in free talk instead (farmer_total: farmer_unit). The agent's transition says both pools; the game keeps the one that fits the moment."
+    },
     "opening": {
       "type": "object",
       "required": [

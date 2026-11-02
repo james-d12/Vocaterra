@@ -36,6 +36,13 @@ public sealed record NpcEntry(string Id, string Label, string? Name, string Figu
     /// <summary>The voice its lines are recorded with, or <see langword="null"/> when the file gives none (a validation error).</summary>
     public NpcVoiceSpec? Voice { get; init; }
 
+    /// <summary>
+    /// The pools an NPC says only while a lesson step is answered, by the pool it says in free talk instead (V21b: <c>farmer_total</c>, fifteen apples for fifteen coins, is
+    /// the table the market lesson teaches; outside it León says <c>farmer_unit</c>, the price of one). The agent's transition says both, and the game keeps the one that fits
+    /// (<see cref="NpcTurnRules.Compose"/>). Empty for most.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> FreeTalkPools { get; init; } = new Dictionary<string, string>(StringComparer.Ordinal);
+
     /// <summary>The key words (catalogue nouns) whose cards the NPC shows alone before its first question (the shopkeeper's <c>agua</c>, <c>pan</c>); empty for most.</summary>
     public IReadOnlyList<string> KeyWords { get; init; } = [];
 
@@ -280,6 +287,7 @@ public sealed class NpcRoster
                 ReviewPrompt = review,
                 Opening = root.TryGetProperty("opening", out var opening) ? OpeningOf(opening, path) : NpcOpeningRule.Never,
                 Voice = root.TryGetProperty("voice", out var voice) ? VoiceOf(voice, path) : null,
+                FreeTalkPools = root.TryGetProperty("freeTalkPools", out var freeTalk) ? freeTalk.EnumerateObject().ToDictionary(static p => p.Name, static p => p.Value.GetString() ?? string.Empty, StringComparer.Ordinal) : new Dictionary<string, string>(StringComparer.Ordinal),
                 KeyWords = root.TryGetProperty("keyWords", out var keyWords) ? keyWords.EnumerateArray().Select(static w => w.GetString() ?? string.Empty).ToList() : [],
             };
             return string.IsNullOrWhiteSpace(pools) ? entry : entry with { PoolPrefix = pools };

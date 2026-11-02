@@ -244,7 +244,7 @@ public sealed class SellingTests
         var farmer = At("farmer");
         var total = farmer.Say("¿Cuánto es todo?");
         Assert.Equal(("ask_total", true), (total.Intent, total.Communicated));
-        Assert.Equal(["Quince manzanas, quince monedas."], total.Replies);
+        Assert.Equal(["Una manzana, una moneda."], total.Replies); // V21b: in free talk the unit price; the market lesson's step keeps the table of fifteen (MarketLessonTests)
         Assert.Equal(1, TestGame.Data.HostEvents.Of("farmer", "farmer.sell_apples").Price); // todo: his fifteen apples at his price, a coin each, fifteen coins
         Assert.Equal(0, farmer.Simulation.Inventory.Count(ItemId.Coin));
 

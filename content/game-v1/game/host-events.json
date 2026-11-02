@@ -9,7 +9,8 @@
       "action": {
         "kind": "give_item",
         "item": "bottle",
-        "asked": ["agua", "botella"]
+        "asked": ["agua", "botella"],
+        "instead": { "pan": "give_bread" }
       }
     },
     {

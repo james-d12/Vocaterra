@@ -30,8 +30,8 @@ public sealed class RepliesAndExchangesTests
 
     [Theory]
     [InlineData("quiero madera")]
-    [InlineData("quiero pan")]
-    public void TheStallHandsOverNoBottleForAnotherItemAndSaysSo(string line)
+    [InlineData("quiero manzanas")]
+    public void TheStallHandsOverNoBottleForAnotherItemAndSaysSoOnlyForWhatItHasNeitherOf(string line)
     {
         var session = At("shopkeeper");
 
@@ -39,10 +39,34 @@ public sealed class RepliesAndExchangesTests
 
         Assert.Equal(0, session.Simulation.Inventory.Count(ItemId.Bottle));
         Assert.Empty(turn.Replies);
-        Assert.Equal(["Solo tengo agua."], turn.FollowUp!);
+        Assert.Equal(["No tengo eso. Tengo agua y pan."], turn.FollowUp!);
 
         _ = session.Say("quiero agua, por favor");
         Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Bottle));
+    }
+
+    [Fact]
+    public void ARequestForBreadAtTheStallGetsTheBreadAndNoRefusal()
+    {
+        var session = At("shopkeeper");
+
+        var turn = session.Say("quiero pan");
+
+        Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Bread));
+        Assert.Equal(0, session.Simulation.Inventory.Count(ItemId.Bottle));
+        Assert.Empty(turn.Replies);
+        Assert.Contains(turn.FollowUp!, static l => l is "Aquí tienes el pan." or "Toma el pan.");
+        Assert.DoesNotContain(turn.FollowUp!, static l => l.StartsWith("No tengo", StringComparison.Ordinal) || l.StartsWith("Solo", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void TheFarmerAnswersHowMuchIsEverythingWithTheUnitPriceOutsideTheLesson()
+    {
+        var session = At("farmer", (ItemId.Apple, 3));
+
+        var turn = session.Say("¿Cuánto es todo?");
+
+        Assert.Equal(["Una manzana, una moneda."], turn.Replies);
     }
 
     [Fact]
@@ -66,6 +90,31 @@ public sealed class RepliesAndExchangesTests
         var turn = session.Say("vendo manzanas");
 
         Assert.Equal(["No compro eso. Compro fruta del bosque."], turn.FollowUp);
+    }
+
+    [Fact]
+    public void AVerbWithoutTheAccentOfItsTenseIsAcceptedAndTheTurnCarriesTheCoresNote()
+    {
+        var session = At("farmer");
+
+        var turn = session.Say("ayer compre pan");
+
+        Assert.True(turn.Communicated);
+        Assert.Empty(turn.Errors);
+        Assert.Equal(["«compré», con tilde: es pasado"], turn.AccentNotes);
+        Assert.Empty(session.Say("ayer compré pan").AccentNotes);
+    }
+
+    [Fact]
+    public void TheBookCountsACorrectUseWhereverItWasUnderstoodFreeTalkIncluded()
+    {
+        // V21b (9.3 G): «Ayer compré pan» said to León in free talk, outside the prompt of any lesson, is a correct use of comprar and of its form.
+        var session = At("farmer");
+        _ = session.Say("ayer compré pan");
+
+        var row = session.Learner.Verbs.Single(static v => v.Lemma == "comprar");
+        Assert.Equal((1, 1), (row.Times, row.TimesCorrect));
+        Assert.Equal(1, row.Forms.Single(static f => f.Form == "compré").TimesCorrect);
     }
 
     [Fact]

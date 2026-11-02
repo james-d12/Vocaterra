@@ -937,7 +937,7 @@
     "shop_wont_sell": {
       "poolId": "shop_wont_sell",
       "variants": [
-        { "lineId": "shop_wont_sell.1", "text": "Solo tengo agua." }
+        { "lineId": "shop_wont_sell.1", "text": "No tengo eso. Tengo agua y pan." }
       ]
     },
     "villager_wont_sell": {
@@ -1047,7 +1047,7 @@
     "shop_hay": {
       "poolId": "shop_hay",
       "variants": [
-        { "lineId": "shop_hay.1", "text": "Hay agua." }
+        { "lineId": "shop_hay.1", "text": "Hay agua y pan." }
       ]
     },
     "guide.lesson.shop.bread": {
@@ -1503,6 +1503,12 @@
       "poolId": "farmer_total",
       "variants": [
         { "lineId": "farmer_total.1", "text": "Quince manzanas, quince monedas." }
+      ]
+    },
+    "farmer_unit": {
+      "poolId": "farmer_unit",
+      "variants": [
+        { "lineId": "farmer_unit.1", "text": "Una manzana, una moneda." }
       ]
     },
     "farmer_pay": {
