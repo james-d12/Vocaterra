@@ -224,7 +224,7 @@ public class PreverbalSubjectTests
     [InlineData("dos niños come pan", Makes, "conj.person|come|comen")]
     [InlineData("dos panes es suficientes", Describe, "conj.person|es|son")]
     [InlineData("dos panes es caros", Describe, "conj.person|es|son")]
-    [InlineData("dos manzanas es roja", Describe, "conj.person|es|son")]
+    [InlineData("dos manzanas es roja", Describe, "conj.person|es|son;noun.number|roja|rojas")]
     [InlineData("las diez monedas es mucho dinero", Describe, "conj.person|es|son")]
     public void AnAmountBeforeAnotherVerbOrPredicateIsStillChecked(string sentence, string grammar, string expected)
     {
@@ -266,7 +266,7 @@ public class PreverbalSubjectTests
     }
 
     [Theory]
-    [InlineData("las manzanas es roja", "conj.person|es|son")]
+    [InlineData("las manzanas es roja", "conj.person|es|son;noun.number|roja|rojas")]
     [InlineData("un pan cuestan dos monedas", "conj.person|cuestan|cuesta")]
     public void TheNeighboursThatWereFlaggedBeforeStillAre(string sentence, string expected)
     {

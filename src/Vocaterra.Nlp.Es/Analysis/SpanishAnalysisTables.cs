@@ -17,6 +17,17 @@ internal static class SpanishAnalysisTables
         "alto", "bajo", "inteligente", "simpático", "amable", "guapo", "feo", "importante", "fácil", "difícil", "trabajador",
     }.ToFrozenSet(StringComparer.Ordinal);
 
+    // M69. Common descriptive adjectives, several of whose forms are also nouns that are no predicate of a person or a thing without a determiner (alta: the discharge;
+    // cara: the face; bonito: the tuna; lista: the list; nueva: the news), so that after a copula such a form is the adjective where its noun would not agree with the
+    // subject and the copula (él es alta, la casa es bonito; IAnalysisRules.IsPredicateAdjective). An adjective whose noun may be a predicate noun of a person (médico,
+    // pareja) or of a thing (comida, the food, of comido) is left out on purpose, and so are the colours that are nouns of their own (rosa, naranja).
+    private static readonly FrozenSet<string> PredicateAdjectives = new[]
+    {
+        "alto", "bajo", "bonito", "lindo", "guapo", "feo", "caro", "barato", "nuevo", "viejo", "rico", "pobre", "bueno", "malo", "pequeño", "grande", "largo",
+        "corto", "gordo", "delgado", "limpio", "sucio", "claro", "oscuro", "rojo", "blanco", "negro", "amarillo", "frío", "fresco", "duro", "blando", "rápido",
+        "lento", "raro", "cómodo", "lleno", "vacío", "listo", "tranquilo", "simpático", "antipático", "sano", "enfermo", "precioso", "sabroso", "dulce",
+    }.ToFrozenSet(StringComparer.Ordinal);
+
     // The adjectives that go before their noun, so that order is no slip. M66: cada (cada manzana cuesta una moneda gave word_order "manzana cada"); it is no
     // determiner adjective here, because cada dos días puts it before a plural.
     private static readonly FrozenSet<string> PrenominalAdjectives = new[] { "grande", "bueno", "malo", "cada" }.ToFrozenSet(StringComparer.Ordinal);
@@ -358,6 +369,12 @@ internal static class SpanishAnalysisTables
     public static bool IsEventNoun(string lemma)
     {
         return EventNouns.Contains(lemma);
+    }
+
+    /// <summary>True for a common descriptive adjective whose noun homographs are no bare predicate (<c>alto</c>: <c>alta</c>, the discharge; M69).</summary>
+    public static bool IsPredicateAdjective(string lemma)
+    {
+        return PredicateAdjectives.Contains(lemma);
     }
 
     /// <summary>True for the noun of an adverbial phrase with <c>en</c> and a determiner (<c>en el fondo</c>, <c>en la práctica</c>), which is no place (M69).</summary>

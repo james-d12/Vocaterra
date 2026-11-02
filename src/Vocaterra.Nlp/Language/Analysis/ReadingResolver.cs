@@ -470,13 +470,27 @@ internal static class ReadingResolver
             // after the noun of such a phrase (and the adjectives after it) and before a word that can be an adjective (past adverbs), is the copula: las manzanas son
             // caras, la casa era grande. The predicate adjective is then agreed with the phrase. Elsewhere (son cerca, el son cubano) the other rules and the fallback
             // decide as before. M69: and before a preposition (la tienda y la herrería son en el pueblo, las casas son de madera), so the ser/estar check sees it.
+            // M69: and right after a lone noun that opens the utterance or a noun right after a preposition (las casas de luz son bonitos), before a word that can be an
+            // adjective (luz son alta: the checks then see the copula, whose number the predicate shows to be the slip).
             if (HasReading(i, r => r.Pos == LexiconSchema.Noun)
                 && HasReading(i, IsCopulaReading)
-                && FollowsDeterminedNoun(i)
                 && NextContent(next) is var predicate and >= 0
-                && (HasReading(predicate, r => r.Pos == LexiconSchema.Adjective) || IsCertainPreposition(predicate)))
+                && ((FollowsDeterminedNoun(i) && (HasReading(predicate, r => r.Pos == LexiconSchema.Adjective) || IsCertainPreposition(predicate)))
+                    || ((i == 1 || (i > 2 && IsCertainPreposition(i - 2)))
+                        && All(i - 1, r => r.Pos == LexiconSchema.Noun)
+                        && HasReading(predicate, r => r.Pos == LexiconSchema.Adjective))))
             {
                 changed |= Narrow(i, IsCopulaReading);
+            }
+
+            // M69: a word that is a common descriptive adjective (IsPredicateAdjective) and also a noun, and no finite verb, right after a copula with no determiner
+            // between, is the adjective when none of its noun readings agrees with both the subject before the copula (a subject pronoun, or the noun of a phrase, past
+            // its adjectives) and the copula's number: él es alta (alto, not the noun alta, the discharge), la casa es bonito (bonita, not the tuna), luz son alta (the
+            // copula's number is then the slip). A noun that agrees may be a predicate noun (es alta, la casa es alta), and a preposition after the word makes it a noun
+            // with its complement (es falta de respeto); the agreement checks then see the adjective.
+            if (IsCertainCopula(i) && NextContent(next) is var word and >= 0 && IsPredicateAdjectiveAfterCopula(i, word))
+            {
+                changed |= Narrow(word, r => r.Pos == LexiconSchema.Adjective);
             }
 
             // M69: a finite form of a copula that is also a noun (son, era), with no determiner before it, right before an adverb of place that a copula takes
@@ -860,6 +874,47 @@ internal static class ReadingResolver
             }
 
             return k >= 0 && IsCertainDeterminer(k);
+        }
+
+        // M69: the word at index, right after the copula at copula (past adverbs), is a descriptive adjective of IsPredicateAdjective and a noun, and no finite verb or
+        // determiner, no preposition follows it, and none of its noun readings agrees with the subject before the copula (when there is one) and the copula's number.
+        private bool IsPredicateAdjectiveAfterCopula(int copula, int index)
+        {
+            if (!HasReading(index, r => r.Pos == LexiconSchema.Adjective && _rules.IsPredicateAdjective(r.Lemma))
+                || !HasReading(index, r => r.Pos == LexiconSchema.Noun)
+                || HasReading(index, r => ReadingClasses.IsFiniteVerb(r) || IsDeterminer(r))
+                || (index + 1 < Count && HasReading(index + 1, r => r.Pos == LexiconSchema.Preposition)))
+            {
+                return false;
+            }
+
+            var subject = SubjectBeforeCopula(copula);
+            return !HasReading(index, n => n.Pos == LexiconSchema.Noun
+                && (subject.Count == 0 || subject.Exists(s => Agree(n, s)))
+                && _candidates[copula].Exists(c => c.Number is null || n.Number is null || c.Number == n.Number));
+        }
+
+        // M69: the readings of the subject before the copula at index, past at most two skippable words: a subject pronoun, or a word that can only be a noun (past the
+        // adjectives after it: la casa grande es); none when the word there is something else.
+        private List<LexicalFeatures> SubjectBeforeCopula(int copula)
+        {
+            var k = copula - 1;
+            for (var skipped = 0; k >= 0 && skipped < ReadingClasses.MaxSkippedBetween && ReadingClasses.IsSkippable(_candidates[k], _rules); skipped++)
+            {
+                k--;
+            }
+
+            if (k >= 0 && IsCertainSubjectPronoun(k))
+            {
+                return _candidates[k];
+            }
+
+            while (k > 0 && IsCertainAdjective(k))
+            {
+                k--;
+            }
+
+            return k >= 0 && All(k, r => r.Pos == LexiconSchema.Noun) ? _candidates[k] : [];
         }
 
         // M69: the word at index, past adverbs of degree (muy, tan), is an adverb of place that a copula takes (lejos, cerca).

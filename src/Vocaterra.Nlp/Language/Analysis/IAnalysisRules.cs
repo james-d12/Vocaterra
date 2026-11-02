@@ -116,6 +116,15 @@ public interface IAnalysisRules
     bool IsLocationAdverb(string lemma) => false;
 
     /// <summary>
+    /// True for a common descriptive adjective whose noun of the same spelling is no predicate of a person or a thing without a determiner (Spanish: <c>alto</c>,
+    /// <c>caro</c>, <c>bonito</c>, whose <c>alta</c>, <c>cara</c> and <c>bonito</c> are also the discharge, the face and the tuna), so that a word of it right after a
+    /// copula, with no determiner, is read as the adjective where none of its noun readings agrees with the subject before the copula and the copula's number (<c>él es
+    /// alta</c>, <c>la casa es bonito</c>, <c>luz son alta</c>; M69). The default is none.
+    /// </summary>
+    /// <param name="lemma">The adjective lemma.</param>
+    bool IsPredicateAdjective(string lemma) => false;
+
+    /// <summary>
     /// True when the words around a lexicon word of another class call for the learner's slip the word may stand for (M58: <c>podo</c>, a form of <c>podar</c>, for
     /// <c>puedo</c>; <c>esto</c> for <c>estoy</c>), so that the analysis reads the word as that slip, and reports its error, without a slot grammar that names the verb
     /// (M69): only where no reading of the word as written fits the words around it (<c>yo podo ir</c>: <c>podar</c> takes no infinitive; <c>yo esto cansado</c>).

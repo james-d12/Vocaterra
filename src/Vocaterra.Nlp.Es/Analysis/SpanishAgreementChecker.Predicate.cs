@@ -137,6 +137,12 @@ internal sealed partial class SpanishAgreementChecker
         // 2. The noun phrase that opens its clause before a copula of the third person.
         if (thirdPerson && TryFindPreverbalSubject(copula, out var preverbal))
         {
+            // M69: a lone name whose number the predicate shows (luz son alta) is the subject, and the copula carries the slip (CheckPreverbalSubject).
+            if (preverbal.Lone && copulas.Exists(r => PredicateShowsNumber(copula, r, preverbal.Number)))
+            {
+                return new PredicateSubject(null, preverbal.Number);
+            }
+
             // M64 (b): an amount read as one sum (dos panes es suficiente) takes the copula's singular and no gender, as a lone name does.
             if (preverbal.Lone || copulas.Exists(r => IsAmountReadAsUnit(copula, r, preverbal)))
             {
@@ -144,6 +150,13 @@ internal sealed partial class SpanishAgreementChecker
             }
 
             return new PredicateSubject(PhrasesGender(preverbal.Phrases), preverbal.Number);
+        }
+
+        // 2b. M69 (M62's left point): a subject with de, the noun phrase that opens its clause with de and a phrase after it (la casa de los niños, el pan del pueblo),
+        // before a copula of the third person of its number, gives its gender and number (la casa de los niños es pequeño -> pequeña).
+        if (thirdPerson && TryFindSubjectWithDe(copula, out var head) && SubjectNumber(head, timeIsSubject: true) is { } headNumber && headNumber == copulaNumber)
+        {
+            return new PredicateSubject(PhrasesGender([head]), headNumber);
         }
 
         // 3. A noun phrase with a determiner or a subject pronoun of the third person after the adjectives.
@@ -167,6 +180,65 @@ internal sealed partial class SpanishAgreementChecker
 
         // 4. The copula's own number.
         return new PredicateSubject(null, copulaNumber);
+    }
+
+    // M69: the first phrase of a subject with de before the verb at index: the phrase right before the verb (past at most two skippable words) follows de or del, and so on
+    // back, at most three times (la casa de la hermana de Luz), to a phrase with a determiner that opens its clause and no preposition governs, whose noun is no noun of
+    // part or quantity (la mayoría de los niños son altos agrees with either) and no noun of time. The copula's number must be that phrase's, or the subject cannot be
+    // told and the copula's own number decides (las casas de Luz es bonita), as before M69.
+    private bool TryFindSubjectWithDe(int verb, out NounPhrase head)
+    {
+        head = default!;
+        var end = verb - 1;
+        for (var skipped = 0; end >= 0 && skipped < ReadingClasses.MaxSkippedBetween && IsSkippable(end); skipped++)
+        {
+            end--;
+        }
+
+        if (end < 0 || !TryFindPhraseEndingAt(end, out var phrase))
+        {
+            return false;
+        }
+
+        var links = 0;
+        for (; links < 3; links++)
+        {
+            var start = StartOf(phrase);
+            int before;
+            if (TextOf(start) == "del")
+            {
+                before = start - 1;
+            }
+            else if (start > 0 && TextOf(start - 1) is "de" or "del")
+            {
+                before = start - 2;
+            }
+            else
+            {
+                break;
+            }
+
+            if (before < 0 || !TryFindPhraseEndingAt(before, out var previous))
+            {
+                return false;
+            }
+
+            phrase = previous;
+        }
+
+        var first = StartOf(phrase);
+        if (links == 0
+            || phrase.Determiners.Count == 0
+            || TextOf(first) == "del"
+            || !IsSubjectCandidate(phrase)
+            || !IsClauseStart(first)
+            || Readings(phrase.Head, static r => r.Pos == LexiconSchema.Noun).Exists(static n => SpanishAnalysisTables.IsQuantityNoun(n.Lemma)))
+        {
+            return false;
+        }
+
+        head = phrase;
+        return true;
     }
 
     // The gender of a subject of one or more noun phrases: that of the one noun (the determiners decide for a noun of both genders), and for phrases joined by y the
