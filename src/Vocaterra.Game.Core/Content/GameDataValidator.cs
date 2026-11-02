@@ -341,7 +341,7 @@ public static class GameDataValidator
                 problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' sells, and no state of agents/{npc}.json takes '{NpcHostEvents.Of(npc, NpcHostEvents.CantPay)}' to say the coins are too few.");
             }
 
-            if (effect.Kind == NpcEffectKind.Sell && data.Bundle.Agents.ContainsKey(npc) && !TakenBySomeState(data, npc, NpcHostEvents.Of(npc, NpcHostEvents.WontSell)))
+            if ((effect.Kind == NpcEffectKind.Sell || effect is { Kind: NpcEffectKind.GiveItem, Asked: not null }) && data.Bundle.Agents.ContainsKey(npc) && !TakenBySomeState(data, npc, NpcHostEvents.Of(npc, NpcHostEvents.WontSell)))
             {
                 problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' sells, and no state of agents/{npc}.json takes '{NpcHostEvents.Of(npc, NpcHostEvents.WontSell)}' to say it sells another item.");
             }

@@ -814,7 +814,8 @@
       "requiredSlots": [],
       "slotGrammars": [
         "cómo te [VERB:llamar] (tú)?",
-        "cómo se [VERB:llamar] (usted|él|ella)"
+        "cómo se [VERB:llamar] (usted|él|ella)",
+        "me [VERB:llamar] [WORD:name]"
       ],
       "keywordRules": [
         { "lemmas": ["llamar"], "requiresSlots": [] }
@@ -829,7 +830,30 @@
         {"text": "cómo tú te llama", "errors": ["conj.person"], "prompt": "smith-open"},
         {"text": "cómo te llama", "errors": ["conj.person"], "prompt": "smith-open"},
         "cómo se llama él",
+        {"text": "me llamo domingo", "errors": [], "prompt": "farmer-open"},
+        {"text": "me llamo luz", "errors": [], "prompt": "smith-open"},
         "cómo se llama ella"
+      ]
+    },
+    {
+      "intentId": "ask_how",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "(quién|qué|cómo|como|cuál|cual) [VERB:ser] (muy)? [ADJ]",
+        "(cómo|como) [VERB:ser] [ART] [NOUN]",
+        "(ellas|ellos|ustedes) (adónde|adonde) van",
+        "(adónde|adonde) van (ellas|ellos|ustedes)"
+      ],
+      "lint": {"allowRuleOnly": []},
+      "examples": [
+        "quién es grande",
+        "qué es grande",
+        "cómo es grande",
+        "cuál es grande",
+        "cómo es la manzana",
+        "como es la manzana",
+        "ellas adónde van",
+        "adónde van ellas"
       ]
     },
     {

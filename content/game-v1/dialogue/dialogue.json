@@ -928,6 +928,24 @@
         { "lineId": "baker_cant_pay.1", "text": "Necesitas más monedas." }
       ]
     },
+    "baker_wait": {
+      "poolId": "baker_wait",
+      "variants": [
+        { "lineId": "baker_wait.1", "text": "Primero, la lección. Luego, las monedas." }
+      ]
+    },
+    "shop_wont_sell": {
+      "poolId": "shop_wont_sell",
+      "variants": [
+        { "lineId": "shop_wont_sell.1", "text": "Solo tengo agua." }
+      ]
+    },
+    "villager_wont_sell": {
+      "poolId": "villager_wont_sell",
+      "variants": [
+        { "lineId": "villager_wont_sell.1", "text": "Solo tengo pan." }
+      ]
+    },
     "baker_help": {
       "poolId": "baker_help",
       "variants": [
@@ -1029,7 +1047,7 @@
     "shop_hay": {
       "poolId": "shop_hay",
       "variants": [
-        { "lineId": "shop_hay.1", "text": "Hay agua y pan." }
+        { "lineId": "shop_hay.1", "text": "Hay agua." }
       ]
     },
     "guide.lesson.shop.bread": {
@@ -1478,7 +1496,7 @@
     "farmer_wont_buy": {
       "poolId": "farmer_wont_buy",
       "variants": [
-        { "lineId": "farmer_wont_buy.1", "text": "No, gracias. Solo compro fruta." }
+        { "lineId": "farmer_wont_buy.1", "text": "No compro eso. Compro fruta del bosque." }
       ]
     },
     "farmer_total": {

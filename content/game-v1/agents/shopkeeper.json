@@ -17,7 +17,8 @@
     { "id": "shop_need", "count": 1 },
     { "id": "shop_offer", "count": 1 },
     { "id": "shop_price", "count": 1 },
-    { "id": "shop_thank", "count": 2 }
+    { "id": "shop_thank", "count": 2 },
+    { "id": "shop_wont_sell", "count": 1 }
   ],
   "states": [
     {
@@ -68,6 +69,7 @@
     {
       "id": "offering",
       "transitions": [
+        { "onHostEvent": "shopkeeper.wont_sell", "to": "asking", "actions": [{ "dialogueIntent": "shop_wont_sell", "variantPoolId": "shop_wont_sell" }] },
         { "onHostEvent": "shopkeeper.offer", "to": "offering", "actions": [{ "dialogueIntent": "shop_offer", "variantPoolId": "shop_offer" }] },
         { "on": {"intent": "confirm", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "shop_give_bread", "hostEvent": "stall.give_bread", "variantPoolId": "shop_give_bread" }] },
         { "on": {"intent": "deny", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "shop_deny", "variantPoolId": "shop_deny" }] },

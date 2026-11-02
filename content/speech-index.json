@@ -500,6 +500,30 @@
       "Bytes": 52124,
       "Gain": 0.32
     },
+    "speech/baker_wait.1.slow.wav": {
+      "Text": "Primero, la lecci\u00F3n. Luego, las monedas.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "f8c400b751bab5faa6b2773976373b1784fbcd8ad7ab972de5798fdf29f0d157",
+      "Bytes": 183304,
+      "Gain": 0.32
+    },
+    "speech/baker_wait.1.wav": {
+      "Text": "Primero, la lecci\u00F3n. Luego, las monedas.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "6b562d8f877be3ea93824c60d35ec29a2e08783b77fbfccebe27030b1fc6d3b4",
+      "Bytes": 134266,
+      "Gain": 0.32
+    },
     "speech/baker_wont_buy.1.slow.wav": {
       "Text": "No, gracias. Solo compro madera.",
       "Speaker": "baker",
@@ -1583,26 +1607,26 @@
       "Bytes": 68444
     },
     "speech/farmer_wont_buy.1.slow.wav": {
-      "Text": "No, gracias. Solo compro fruta.",
+      "Text": "No compro eso. Compro fruta del bosque.",
       "Speaker": "farmer",
       "SpeakerId": 44,
       "Voice": "pm_santa",
       "Speed": 0.8,
       "Rate": 24000,
       "ModelHash": "99324140e895378c24c51a36d4c9f56ae9491ae112c393bff07f5f85b9656cf5",
-      "Sha256": "508f8a8aa34875cca747a9f0411320a11b348c483a7923b09ff1a9723eff3f94",
-      "Bytes": 147976
+      "Sha256": "9ead0af8d96a1723e447cf8f10ebd77b23f62fcca58f78285e43d098de6e728d",
+      "Bytes": 177300
     },
     "speech/farmer_wont_buy.1.wav": {
-      "Text": "No, gracias. Solo compro fruta.",
+      "Text": "No compro eso. Compro fruta del bosque.",
       "Speaker": "farmer",
       "SpeakerId": 44,
       "Voice": "pm_santa",
       "Speed": 1,
       "Rate": 24000,
       "ModelHash": "9b21535b15c9c2b30c726fc985eb38a563c9bf9e48aad254c6809beae3fab923",
-      "Sha256": "4512350954ef85330705de724c629b9d8bf15d5a867b9bf736029b87424d6133",
-      "Bytes": 142844
+      "Sha256": "4f400606e4134cf27774e68f8a2248f87054433ffeb750db2af0c31a692e6078",
+      "Bytes": 157676
     },
     "speech/farmer_wont_sell.1.slow.wav": {
       "Text": "Solo vendo manzanas.",
@@ -9465,26 +9489,26 @@
       "Bytes": 47420
     },
     "speech/shop_hay.1.slow.wav": {
-      "Text": "Hay agua y pan.",
+      "Text": "Hay agua.",
       "Speaker": "shopkeeper",
       "SpeakerId": 29,
       "Voice": "em_alex",
       "Speed": 0.8,
       "Rate": 24000,
       "ModelHash": "fb8e2a935145ab41ed0f66e30299d072f0fd5bb2fee4e2b8e31a5177726f9137",
-      "Sha256": "906e17ab6a7edfb85aae1199b196117debcebe46276f2b27d3ca789366e3b2ee",
-      "Bytes": 78460
+      "Sha256": "a4ab657f7ea0dfe47f8e79b9ab70a6810597a54102c2e4ec0692ec6aadcb237d",
+      "Bytes": 63644
     },
     "speech/shop_hay.1.wav": {
-      "Text": "Hay agua y pan.",
+      "Text": "Hay agua.",
       "Speaker": "shopkeeper",
       "SpeakerId": 29,
       "Voice": "em_alex",
       "Speed": 1,
       "Rate": 24000,
       "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
-      "Sha256": "a7796ea6061114dbda2374dc33384abe47ab27a7e54442683eb4e6832e3e3884",
-      "Bytes": 72044
+      "Sha256": "3521b92333ac9fd0744e18f1fe1dcf4d7bbd1f58813c31498e5262c11d623864",
+      "Bytes": 48044
     },
     "speech/shop_help_ask.1.slow.wav": {
       "Text": "Puedes decir: \u00ABQuiero agua, por favor\u00BB.",
@@ -9683,6 +9707,28 @@
       "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
       "Sha256": "75f52e2071c573dfe10699907690f7f195f1b1eab129937bdfa130d61943d379",
       "Bytes": 60044
+    },
+    "speech/shop_wont_sell.1.slow.wav": {
+      "Text": "Solo tengo agua.",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "fb8e2a935145ab41ed0f66e30299d072f0fd5bb2fee4e2b8e31a5177726f9137",
+      "Sha256": "bb340b08aecfc2ed782ca26dcd7a99b025dcf791e8a860e2dbfa751fafdb72f0",
+      "Bytes": 92444
+    },
+    "speech/shop_wont_sell.1.wav": {
+      "Text": "Solo tengo agua.",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
+      "Sha256": "ec00009761c3c886345952cbcd4e4df98be8e3f851024de50d56d597f2a639f1",
+      "Bytes": 69644
     },
     "speech/smith_buy.1.slow.wav": {
       "Text": "\u00A1Gracias! Aqu\u00ED tienes tus monedas.",
@@ -10423,6 +10469,28 @@
       "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
       "Sha256": "926fc98c88187d508f8a0add2dc291af1e5bf62b5124ea47cf4277577b5e4215",
       "Bytes": 76844
+    },
+    "speech/villager_wont_sell.1.slow.wav": {
+      "Text": "Solo tengo pan.",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "582bff1facec664e0c88b222b72770a195e06c2d9ca39c8596ff5e65a9fc4a13",
+      "Sha256": "83d644efef23001adfc4ff99d166ae847cf4aba734770565ac951c7f2e78f26a",
+      "Bytes": 88844
+    },
+    "speech/villager_wont_sell.1.wav": {
+      "Text": "Solo tengo pan.",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
+      "Sha256": "3265f9782c9ad6140cb0111fff9faa2deaf07a0c6ebb5b798f8df03c9d25b1b9",
+      "Bytes": 67244
     }
   }
 }

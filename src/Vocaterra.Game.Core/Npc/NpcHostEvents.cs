@@ -57,6 +57,7 @@ public enum NpcEffectKind
 /// <param name="Place">For <see cref="NpcEffectKind.PointAtPlace"/>: the scene's name of the place (<c>stall</c>, <c>river</c>).</param>
 /// <param name="Slot">For <see cref="NpcEffectKind.PointAtSlot"/>: the slot of the verdict that names the place (<c>place</c>).</param>
 /// <param name="Price">For <see cref="NpcEffectKind.Sell"/> and <see cref="NpcEffectKind.Buy"/>: the price of one item, in coins.</param>
+/// <param name="Asked">For <see cref="NpcEffectKind.GiveItem"/> (V21): the catalogue nouns whose request the NPC answers with the gift (the stall's <c>agua</c> and <c>botella</c>, the villager's <c>pan</c>); a request for another noun is a miss, <c>&lt;npc&gt;.wont_sell</c>. <see langword="null"/>: the gift is not conditioned on the request.</param>
 public sealed record NpcEffect(
     NpcEffectKind Kind,
     ItemId Item = ItemId.Wood,
@@ -65,7 +66,8 @@ public sealed record NpcEffect(
     string? CountSlot = null,
     string Place = "",
     string Slot = "",
-    int Price = 0)
+    int Price = 0,
+    IReadOnlyList<string>? Asked = null)
 {
     /// <summary>The verdict's slot of a number the learner said (<c>quiero dos panes</c>: <c>2</c>), the core's <c>[NUM:qty]</c>.</summary>
     public const string QuantitySlot = "qty";
@@ -159,7 +161,12 @@ public sealed record NpcEffect(
     {
         ArgumentNullException.ThrowIfNull(slots);
         ArgumentNullException.ThrowIfNull(nouns);
-        return !slots.TryGetValue(ItemSlot, out var word) || nouns.ForLemma(word) is not { } noun || noun.Items.Contains(Item);
+        if (!slots.TryGetValue(ItemSlot, out var word) || nouns.ForLemma(word) is not { } noun)
+        {
+            return true;
+        }
+
+        return Asked is { } asked ? asked.Contains(noun.Lemma, StringComparer.Ordinal) : noun.Items.Contains(Item);
     }
 
     /// <summary>What a sale costs for a verdict: the price times the number asked for (<see cref="CountFor"/>, <see cref="PriceOf"/>); zero for any other effect.</summary>
@@ -190,6 +197,11 @@ public sealed record NpcEffect(
         ArgumentNullException.ThrowIfNull(slots);
         ArgumentNullException.ThrowIfNull(nouns);
         bag ??= new Inventory();
+        if (Kind == NpcEffectKind.GiveItem && Asked is not null)
+        {
+            return ItemSaidIn(slots, nouns) ? null : NpcHostEvents.WontSell; // V21: the stall and the villager give what they have, whatever else is asked for
+        }
+
         if (Kind == NpcEffectKind.Sell)
         {
             var count = CountFor(slots);
@@ -280,6 +292,12 @@ public static class NpcHostEvents
 
     /// <summary>What an NPC is asked to answer when the learner's coins do not cover a purchase (VILLAGE_PLAN V03, <see cref="NpcEffectKind.Sell"/>): <c>&lt;npc&gt;.cant_pay</c>.</summary>
     public const string CantPay = "cant_pay";
+
+    /// <summary>
+    /// The suffix of an NPC's answer to a purchase the coins do not cover while a lesson keeps back the order that would bring them (V21, QA-progression-4:
+    /// "Primero, la lección"): <c>&lt;npc&gt;.cant_pay_wait</c>. An agent without a state that takes it says <see cref="CantPay"/> instead.
+    /// </summary>
+    public const string CantPayWait = "cant_pay_wait";
 
     /// <summary>What an NPC that sells is asked to answer when the learner asks it for another item than the one it sells (VILLAGE_PLAN V15): <c>&lt;npc&gt;.wont_sell</c>.</summary>
     public const string WontSell = "wont_sell";

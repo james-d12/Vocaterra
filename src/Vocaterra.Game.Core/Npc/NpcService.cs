@@ -685,17 +685,25 @@ public sealed partial class NpcService
         }
 
         var hostEvents = HostEventsOf(result);
-        Note(agent, string.Empty, hostEvents);
         var holdsBottle = scene.Inventory is { } inventory
             && (inventory.Count(ItemId.Bottle) + inventory.Count(ItemId.WaterBottle)) > 0;
         var followUp = new List<string>();
         var unsaid = AnswerMisses(agent, result, NpcEffect.CountedSlots(verdict.Slots, line), scene, scene.Facts ?? _worldFacts, now, hostStateHash, hostEvents, followUp);
+        Note(agent, string.Empty, hostEvents); // after the misses: a gift the NPC refused (V21) is not an event of the turn
         string? feedback = null;
         var replies = new List<string>();
+        var acknowledgements = new List<bool>();
+        var recasted = false;
+        var understood = verdict.Communicated && !string.Equals(verdict.Intent.Value, "unknown", StringComparison.Ordinal);
         foreach (var responseLine in result.Response.Lines)
         {
-            if (responseLine.IsRecast || responseLine.LineId.StartsWith(FeedbackLinePrefix, StringComparison.Ordinal))
+            if (responseLine.IsRecast && !understood)
             {
+                // V21 (QA-language-9): a line the NPC did not take for any intent gets only the retry; the recast's praise («Claro, «buscaré madera». Muy bien.») would say it was right.
+            }
+            else if (responseLine.IsRecast || responseLine.LineId.StartsWith(FeedbackLinePrefix, StringComparison.Ordinal))
+            {
+                recasted |= responseLine.IsRecast;
                 feedback ??= RecastNames.Capitalise(responseLine.Text, _names); // the core writes the learner's words in lower case: «buscaré madera para Luz» (V20)
             }
             else if (holdsBottle && hostEvents.Contains(NpcHostEvents.GiveWater, StringComparer.Ordinal)
@@ -710,6 +718,19 @@ public sealed partial class NpcService
             else
             {
                 replies.Add(responseLine.Text);
+                acknowledgements.Add(IsAcknowledgement(responseLine.LineId));
+            }
+        }
+
+        if (recasted)
+        {
+            // V21: a recast's praise («Sí, «compré tres manzanas». ¡Muy bien!») and the NPC's bare acknowledgement («¡Qué bien!») are one reply twice: the recast stays.
+            for (var i = replies.Count - 1; i >= 0; i--)
+            {
+                if (acknowledgements[i])
+                {
+                    replies.RemoveAt(i);
+                }
             }
         }
 
@@ -772,13 +793,25 @@ public sealed partial class NpcService
         var unsaid = new List<string>();
         foreach (var action in result.Decision.Agent?.Actions ?? [])
         {
-            if (action.HostEvent is not { } hostEvent || Miss(_hostEvents.Of(agent.Id, hostEvent), slots, scene, facts) is not { } miss)
+            if (action.HostEvent is not { } hostEvent || Miss(_hostEvents.Of(agent.Id, hostEvent), slots, scene, facts) is not { } found)
             {
                 continue;
             }
 
+            var miss = found;
             var before = agent.Context;
+            if (scene.OrderHeld && string.Equals(miss, NpcHostEvents.CantPay, StringComparison.Ordinal))
+            {
+                miss = NpcHostEvents.CantPayWait; // V21: the coins are short because a lesson keeps back the order that pays; an agent that cannot say so says cant_pay
+            }
+
             var turn = _typed.Advance(NpcHostEvents.Of(agent.Id, miss), before);
+            if (turn is null && string.Equals(miss, NpcHostEvents.CantPayWait, StringComparison.Ordinal))
+            {
+                miss = NpcHostEvents.CantPay;
+                turn = _typed.Advance(NpcHostEvents.Of(agent.Id, miss), before);
+            }
+
             if (turn is null)
             {
                 continue;
@@ -791,6 +824,12 @@ public sealed partial class NpcService
             followUp.AddRange(turn.Response.Lines.Select(static l => l.Text));
             hostEvents.AddRange(events);
             unsaid.Add(action.DialogueIntent); // a pool is its dialogue intent's (every agent of the bundle names them alike)
+            if (_hostEvents.Of(agent.Id, hostEvent).Kind == NpcEffectKind.GiveItem)
+            {
+                hostEvents.Remove(hostEvent); // V21: the gift the NPC refused is not made (the sales' misses are held back by the session)
+                var after = (result.Decision.Agent?.Actions ?? []).SkipWhile(a => a != action).Skip(1);
+                unsaid.AddRange(after.Select(static a => a.DialogueIntent)); // and what the NPC would have said next ("¿Quieres pan?" after the bottle)
+            }
         }
 
         return unsaid;
@@ -802,9 +841,13 @@ public sealed partial class NpcService
     private string? Miss(NpcEffect effect, IReadOnlyDictionary<string, string> slots, GuideScene scene, IGuideFacts facts) => effect.Kind switch
     {
         NpcEffectKind.PointAtSlot when !slots.TryGetValue(effect.Slot, out var word) || _places.Resolve(word, scene.Player, facts) is null => NpcHostEvents.UnknownPlace,
-        NpcEffectKind.Sell or NpcEffectKind.Buy => effect.ExchangeMiss(slots, scene.Inventory, _nouns),
+        NpcEffectKind.Sell or NpcEffectKind.Buy or NpcEffectKind.GiveItem => effect.ExchangeMiss(slots, scene.Inventory, _nouns),
         _ => null,
     };
+
+    // Whether a line of the agent is a bare acknowledgement (V20's free-talk replies: «¡Qué bien!», «Muy bien»): the answer_accepted pool and each NPC's <npc>_nice.
+    private static bool IsAcknowledgement(string lineId) =>
+        lineId.StartsWith("answer_accepted.", StringComparison.Ordinal) || System.Text.RegularExpressions.Regex.IsMatch(lineId, @"^[a-z]+_nice\.\d+$");
 
     // The stall's fail-forward (rule 8). After a line at the stall that did not ask for anything (the repair ladder's next step, a help request, a
     // thanks), count it; when the exchange has run out of road the shopkeeper hands the bottle over with the core's own line, as a host turn.

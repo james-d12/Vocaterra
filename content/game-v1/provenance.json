@@ -164,6 +164,8 @@
     { "path": "speech/baker_thank.1.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "if_sara", "speaker": "35", "source": "baker_thank.1 (speed 1.0)" },
     { "path": "speech/baker_thank.2.slow.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "if_sara", "speaker": "35", "source": "baker_thank.2 (speed 0.8)" },
     { "path": "speech/baker_thank.2.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "if_sara", "speaker": "35", "source": "baker_thank.2 (speed 1.0)" },
+    { "path": "speech/baker_wait.1.slow.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "if_sara", "speaker": "35", "source": "baker_wait.1 (speed 0.8)" },
+    { "path": "speech/baker_wait.1.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "if_sara", "speaker": "35", "source": "baker_wait.1 (speed 1.0)" },
     { "path": "speech/baker_wont_buy.1.slow.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "if_sara", "speaker": "35", "source": "baker_wont_buy.1 (speed 0.8)" },
     { "path": "speech/baker_wont_buy.1.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "if_sara", "speaker": "35", "source": "baker_wont_buy.1 (speed 1.0)" },
     { "path": "speech/baker_wont_sell.1.slow.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "if_sara", "speaker": "35", "source": "baker_wont_sell.1 (speed 0.8)" },
@@ -992,6 +994,8 @@
     { "path": "speech/shop_thank.2.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "em_alex", "speaker": "29", "source": "shop_thank.2 (speed 1.0)" },
     { "path": "speech/shop_true.1.slow.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "em_alex", "speaker": "29", "source": "shop_true.1 (speed 0.8)" },
     { "path": "speech/shop_true.1.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "em_alex", "speaker": "29", "source": "shop_true.1 (speed 1.0)" },
+    { "path": "speech/shop_wont_sell.1.slow.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "em_alex", "speaker": "29", "source": "shop_wont_sell.1 (speed 0.8)" },
+    { "path": "speech/shop_wont_sell.1.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "em_alex", "speaker": "29", "source": "shop_wont_sell.1 (speed 1.0)" },
     { "path": "speech/smith_buy.1.slow.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "im_nicola", "speaker": "36", "source": "smith_buy.1 (speed 0.8)" },
     { "path": "speech/smith_buy.1.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "im_nicola", "speaker": "36", "source": "smith_buy.1 (speed 1.0)" },
     { "path": "speech/smith_bye.1.slow.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "im_nicola", "speaker": "36", "source": "smith_bye.1 (speed 0.8)" },
@@ -1055,6 +1059,8 @@
     { "path": "speech/villager_true.1.slow.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "em_santa", "speaker": "53", "source": "villager_true.1 (speed 0.8)" },
     { "path": "speech/villager_true.1.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "em_santa", "speaker": "53", "source": "villager_true.1 (speed 1.0)" },
     { "path": "speech/villager_unknown_place.1.slow.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "em_santa", "speaker": "53", "source": "villager_unknown_place.1 (speed 0.8)" },
-    { "path": "speech/villager_unknown_place.1.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "em_santa", "speaker": "53", "source": "villager_unknown_place.1 (speed 1.0)" }
+    { "path": "speech/villager_unknown_place.1.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "em_santa", "speaker": "53", "source": "villager_unknown_place.1 (speed 1.0)" },
+    { "path": "speech/villager_wont_sell.1.slow.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "em_santa", "speaker": "53", "source": "villager_wont_sell.1 (speed 0.8)" },
+    { "path": "speech/villager_wont_sell.1.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "em_santa", "speaker": "53", "source": "villager_wont_sell.1 (speed 1.0)" }
   ]
 }

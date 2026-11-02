@@ -9,7 +9,7 @@
 #  - section 4: compré three manzanas: vocab.unknown=tres, mañana iré al glorp: vocab.unknown=río (the word of the answer at the unknown word's place, which
 #    is the word heard); glorp iré al río: vocab.unknown with no word;
 #  - section 5: buscé, pescé, llegé, empezé, pagé, jugé, tocé: conj.irregular with the right form;
-#  - section 6: me llamo ana and me llamo luis keep vocab.unknown on the name: the bundle has no grammar that binds a name after me llamo (the change is the
+#  - section 6: (V21 added the grammar; the baselines now give ask_name comm=True) me llamo ana and me llamo luis kept vocab.unknown on the name: the bundle has no grammar that binds a name after me llamo (the change is the
 #    game's V21, see VillageQaLineTests); me llamo domingo is clean (domingo is a lexicon word);
 #  - section 7: dos panes es caro: vocab.wrong now reports heard 'dos', not '2' (heard is not shown in this output);
 #  - section 8: correct Spanish of my own, clean.

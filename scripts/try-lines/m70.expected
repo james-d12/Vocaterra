@@ -59,8 +59,8 @@ villager-open  | ayer empecé a trabajar                     => unknown comm=Fal
 villager-open  | ayer pagué dos monedas                     => unknown comm=False -
 villager-open  | ayer jugué en el río                       => unknown comm=False -
 villager-open  | ayer toqué la puerta                       => unknown comm=False -
-farmer-open    | me llamo ana                               => ask_name comm=False vocab.unknown
-smith-open     | me llamo luis                              => ask_name comm=False vocab.unknown
+farmer-open    | me llamo ana                               => ask_name comm=True -
+smith-open     | me llamo luis                              => ask_name comm=True -
 smith-open     | me llamo domingo                           => ask_name comm=True -
 villager-open  | me llamo ana                               => unknown comm=False vocab.unknown
 villager-open  | hola me llamo marta                        => greet comm=False vocab.unknown

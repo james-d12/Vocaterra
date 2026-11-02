@@ -19,6 +19,7 @@
 {"id":"dialogue:baker_sell.2","text":"Toma tu pan. ¡Gracias!","kind":"npc"}
 {"id":"dialogue:baker_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:baker_thank.2","text":"¡Con gusto!","kind":"npc"}
+{"id":"dialogue:baker_wait.1","text":"Primero, la lección. Luego, las monedas.","kind":"npc"}
 {"id":"dialogue:baker_wont_buy.1","text":"No, gracias. Solo compro madera.","kind":"npc"}
 {"id":"dialogue:baker_wont_sell.1","text":"Solo vendo pan.","kind":"npc"}
 {"id":"dialogue:farewell_reply.1","text":"¡Adiós, amigo! Hasta luego.","kind":"npc"}
@@ -46,7 +47,7 @@
 {"id":"dialogue:farmer_thank.2","text":"¡Con gusto!","kind":"npc"}
 {"id":"dialogue:farmer_total.1","text":"Quince manzanas, quince monedas.","kind":"npc"}
 {"id":"dialogue:farmer_true.1","text":"Sí, es verdad.","kind":"npc"}
-{"id":"dialogue:farmer_wont_buy.1","text":"No, gracias. Solo compro fruta.","kind":"npc"}
+{"id":"dialogue:farmer_wont_buy.1","text":"No compro eso. Compro fruta del bosque.","kind":"npc"}
 {"id":"dialogue:farmer_wont_sell.1","text":"Solo vendo manzanas.","kind":"npc"}
 {"id":"dialogue:feedback.explicit_correction.1","text":"Se dice «{expected}», no «{actual}».","kind":"template"}
 {"id":"dialogue:feedback.explicit_correction.2","text":"Se dice así: «{expected}».","kind":"template"}
@@ -291,7 +292,7 @@
 {"id":"dialogue:shop_give.2","text":"Aquí tienes la botella. El agua está en el río.","kind":"npc"}
 {"id":"dialogue:shop_give_bread.1","text":"Aquí tienes el pan.","kind":"npc"}
 {"id":"dialogue:shop_give_bread.2","text":"Toma el pan.","kind":"npc"}
-{"id":"dialogue:shop_hay.1","text":"Hay agua y pan.","kind":"npc"}
+{"id":"dialogue:shop_hay.1","text":"Hay agua.","kind":"npc"}
 {"id":"dialogue:shop_help_ask.1","text":"Puedes decir: «Quiero agua, por favor».","kind":"npc"}
 {"id":"dialogue:shop_help_offer.1","text":"Puedes decir: «Sí, por favor» o «No, gracias».","kind":"npc"}
 {"id":"dialogue:shop_need.1","text":"¿Qué necesitas?","kind":"npc"}
@@ -301,6 +302,7 @@
 {"id":"dialogue:shop_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:shop_thank.2","text":"¡Con gusto!","kind":"npc"}
 {"id":"dialogue:shop_true.1","text":"Sí, es verdad.","kind":"npc"}
+{"id":"dialogue:shop_wont_sell.1","text":"Solo tengo agua.","kind":"npc"}
 {"id":"dialogue:smith_buy.1","text":"¡Gracias! Aquí tienes tus monedas.","kind":"npc"}
 {"id":"dialogue:smith_bye.1","text":"¡Adiós! Hasta luego.","kind":"npc"}
 {"id":"dialogue:smith_bye.2","text":"Hasta luego.","kind":"npc"}
@@ -333,6 +335,7 @@
 {"id":"dialogue:villager_thank.2","text":"¡Con gusto!","kind":"npc"}
 {"id":"dialogue:villager_true.1","text":"Sí, es verdad.","kind":"npc"}
 {"id":"dialogue:villager_unknown_place.1","text":"No sé dónde está.","kind":"npc"}
+{"id":"dialogue:villager_wont_sell.1","text":"Solo tengo pan.","kind":"npc"}
 {"id":"prompts:baker-open","text":"¿Qué quieres?","kind":"npc"}
 {"id":"prompts:farmer-open","text":"¡Hola! Este es mi campo.","kind":"npc"}
 {"id":"prompts:fisher-open","text":"¿Qué buscas?","kind":"npc"}
@@ -2002,13 +2005,23 @@
 {"id":"intents:ask_help.ex4","text":"me puedes ayudar","kind":"learner","errors":[]}
 {"id":"intents:ask_help.ex5","text":"yo necesitas ayuda","kind":"learner","errors":["conj.person"]}
 {"id":"intents:ask_help.ex6","text":"qué hago","kind":"learner","errors":[]}
+{"id":"intents:ask_how.ex0","text":"quién es grande","kind":"learner","errors":[]}
+{"id":"intents:ask_how.ex1","text":"qué es grande","kind":"learner","errors":[]}
+{"id":"intents:ask_how.ex2","text":"cómo es grande","kind":"learner","errors":[]}
+{"id":"intents:ask_how.ex3","text":"cuál es grande","kind":"learner","errors":[]}
+{"id":"intents:ask_how.ex4","text":"cómo es la manzana","kind":"learner","errors":[]}
+{"id":"intents:ask_how.ex5","text":"como es la manzana","kind":"learner","errors":[]}
+{"id":"intents:ask_how.ex6","text":"ellas adónde van","kind":"learner","errors":[]}
+{"id":"intents:ask_how.ex7","text":"adónde van ellas","kind":"learner","errors":[]}
 {"id":"intents:ask_name.ex0","text":"cómo te llamas","kind":"learner","errors":[]}
 {"id":"intents:ask_name.ex1","text":"cómo te llamas tú","kind":"learner","errors":[]}
 {"id":"intents:ask_name.ex2","text":"cómo se llama usted","kind":"learner","errors":[]}
 {"id":"intents:ask_name.ex3","text":"cómo tú te llama","kind":"learner","errors":["conj.person"]}
 {"id":"intents:ask_name.ex4","text":"cómo te llama","kind":"learner","errors":["conj.person"]}
 {"id":"intents:ask_name.ex5","text":"cómo se llama él","kind":"learner","errors":[]}
-{"id":"intents:ask_name.ex6","text":"cómo se llama ella","kind":"learner","errors":[]}
+{"id":"intents:ask_name.ex6","text":"me llamo domingo","kind":"learner","errors":[]}
+{"id":"intents:ask_name.ex7","text":"me llamo luz","kind":"learner","errors":[]}
+{"id":"intents:ask_name.ex8","text":"cómo se llama ella","kind":"learner","errors":[]}
 {"id":"intents:ask_pay.ex0","text":"puedo pagar con fruta","kind":"learner","errors":[]}
 {"id":"intents:ask_pay.ex1","text":"yo puedo pagar con fruta","kind":"learner","errors":[]}
 {"id":"intents:ask_pay.ex2","text":"se puede pagar con fruta","kind":"learner","errors":[]}
