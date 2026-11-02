@@ -1516,6 +1516,18 @@ internal sealed class SentenceRealizer
         return true;
     }
 
+    // M69: the words of the sentence as written (an item of several words gives each), for the mirror of the analyzer's rules that read whole sentences.
+    private List<string> Words()
+    {
+        return [.. _items.Where(static x => x.Surface is not null).SelectMany(static x => x.Surface!.Split(' ', StringSplitOptions.RemoveEmptyEntries))];
+    }
+
+    // M69: the index in Words() of the first word of the item at index.
+    private int WordIndexOf(int index)
+    {
+        return _items.Take(index).Where(static x => x.Surface is not null).Sum(static x => x.Surface!.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length);
+    }
+
     // M69: the subject pronoun reading of the word right after the verb at index, when a question word or a relative stands right before the verb (mirror of
     // SpanishAgreementChecker.CheckInvertedSubjectPronoun), or null.
     private LexicalFeatures? InvertedSubjectPronoun(int index)
@@ -1640,6 +1652,19 @@ internal sealed class SentenceRealizer
             {
                 skip = "verb-form-homograph";
                 _detail = item.Surface!;
+                return false;
+            }
+
+            // M69: a word of another class that is also an irregular verb's regular cell (podo, a form of podar, for puedo; esto for estoy) is read by the analyzer as that
+            // slip where the words around it call for it (podar takes no infinitive), so a pattern that puts an infinitive after a form of podar (21 podo pasar unos, seed
+            // 2DQ_Pma1Hfsa of M69's runs) names a sentence that is no Spanish, which the analyzer reads as poder's slip, and is re-rolled.
+            if (item.Surface is { } written
+                && !written.Contains(' ', StringComparison.Ordinal)
+                && _words.Morphology.TryGetRegularizationOfWord(written.ToLowerInvariant(), out _)
+                && _words.ReadsAsSlip(Words(), WordIndexOf(i)))
+            {
+                skip = "slip-in-context";
+                _detail = written;
                 return false;
             }
 

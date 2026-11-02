@@ -201,6 +201,20 @@ code comments and here, with the reason:
     cristal`), which the analyzer now reads as the learner's English order (`conj.person`, `nos gusta`); the realiser cannot make a dative of the pronoun, so it
     re-rolls such a draw (`skip:liking-verb-after-a-subject-pronoun`, under the default skip budget). It is a sentence the realiser got wrong, not one an oracle left out.
     The sentence stream digest of `FuzzLanguageStreamTests` was recorded again for (d) (the text digest did not move).
+  - *O3, O4 and O5, the left points of M56, M58 and M62 (M69, 2026-11-02, widenings; no oracle narrowed).* (a) Two skeletons, drawn by O3 and the mutations: `[ART]
+    [NOUN:thing] [VERB:estar] en [ART] [NOUN:place]`, whose `estar` the `ser_estar` mutation makes `ser` (`la casa está en la plaza` becomes `es`, expected `está`; not
+    after an event noun, before a noun of time or of an adverbial phrase, nor where the form of `ser` is also `ir` or a noun, as `fue`, `son`, `era`), and `[ART]
+    [NOUN:thing] de [ART] [NOUN:owner] [VERB:ser] [ADJ:quality]`, whose predicate adjective the `gender.agree` mutation flips against the subject with `de` when the copula
+    has its number (`la casa de los niños es bonita` becomes `bonito`). `LexiconCatalog` mirrors the event nouns, the nouns that are no place after `en` and the clause
+    openers; `PlaceAndSubjectWithDeMutationTests` shows each mutation reached and flagged as named. The first draft of the `ser_estar` mutation also made `es en` after
+    a subject of time (`la semana es en los escuadrones`, seed `bc29DoKXymZ2`; `el año es en una boda`, seed `1F1qU37RZE0a` at five times), which the analyzer rightly
+    takes for no subject (a phrase of time): the mutation's own miss, fixed before the runs that count (it skips a noun of time, part or quantity as the subject). (b) The realiser models the new checks, never wrongly: a verb behind
+    a question word or a relative with a subject pronoun right after it takes the pronoun's person and number (`¿dónde estás tú?`), and a literal verb that cannot is
+    re-rolled (`skip:inverted-subject`, under the default budget); a predicate adjective agrees with the subject with `de` as well as with the other candidates. Before
+    (b) the first run failed O3, O4 and O5 on the catalog's `qué [VERB:hacer] (tú|usted)?` and `dónde [VERB:trabajar] (tú|usted)?` (seeds `9mbOVQ0eFYM3`,
+    `dUYM6Yw-H953`, `2d5pW9wRCBp4`): the realiser drew `qué hago tú` as correct, which the analyzer now reads as `conj.person`. (c) M71's finding: the
+    `literal-verb-subject` re-roll no longer takes a literal that is the head of the phrase before it, so O3 draws `buenas tardes`
+    (`TheGreetingGrammarRealisesBuenasTardes`). The sentence stream digest was recorded again for these changes (the text digest did not move).
 - **O8.** The dialect sites are `θ s z h ʎ ʝ ʃ ʒ` (the plan lists `θ s ʎ ʝ h`; the shipped dialects also produce the voiced `z` and the rioplatense `ʃ ʒ`).
   `Tokenize(ToIpaString())` is exact except for the pair `t` + `ʃ`, whose concatenation is the affricate token `tʃ` (the inventory documents that
   sequences are lists for this reason); a result with that pair skips the split.
@@ -724,6 +738,32 @@ Found and fixed in M64:
   `vocab.unknown`. A noun of the pack's list of feminine nouns that take `el` (`ala`, `agua`, `hacha`...) is feminine now, whatever its article. Regression:
   `PredicateAdjectiveTests.AFeminineNounThatTakesElIsFeminine` in `tests/Vocaterra.Nlp.Es.Tests/Analysis` (`el ala es muy sincera` gave `sincero` before).
 
+Found and fixed in M69:
+
+- **O5, a recast that kept a gender error** (`Vocaterra.Nlp`, `RecastBuilder.GenderAfter`; M67b's seed `deXmFwx4GzL4`, reproduced at M70; older than M69). The
+  random pattern `[NOUN]? [NUM:item] [DET] [NUM:qty] [NOUN]?` gave `miedo uno tu uno exposición`, the mutation `exposiciones` (`noun.number`), and the recast `miedo un
+  tu una exposición`: a digit 1 is spelled after the gender of the noun it quantifies, looking through the adjectives before that noun, and a numeral or an article
+  between stopped the walk, so the gender of the next word (the possessive `tu`, none) decided the masculine. The walk now passes over determiners, numerals and
+  articles too: the recast is `miedo una tu una exposición`, which re-analyses clean. Regression: `RecastBuilderTests.DigitsAreSpelledOutBeforeSpeaking` (`tengo 1 tu 1
+  espada` gives `una tu una`). The seed no longer replays the same case on M69's suite (its skeletons moved the draws); the case was checked with its pattern and text.
+- **O3, the ñ typed as n kept a reading the typed accent rules out** (`Vocaterra.Nlp`, `Lexicon.Lookup`; CsCheck seed `2cqJbc9y05h3`, the fact
+  `CorrectSentences_WithAnNTildeTypedAsNWhereThatSpellingIsNoWord_AnalyzeAsTheSentenceWithIt`; found once by V21's gate, older than M69: M70's fold). The pattern `[ADJ]?
+  [ART]? [VERB:dañar] [NOUN:item]` gave `delicado dañó hechos`, clean, and typed with `n`, `delicado danó hechos`, `word_order` `danó delicado`: the unmarked spelling
+  `dano` stands for `daño` (also a noun) and `dañó`, and the fold gave the readings of both, so `delicado` was read as an adjective put before the noun `daño`. An
+  accent the writer typed is a choice, so a spelling typed with an accent now keeps only the forms with that accent where it was typed (`danó` is `dañó`); one with no
+  accent (`dano`) keeps every form, as before. Regressions: `UnmarkedSpellingTests.ASpellingTypedWithAnAccentIsTheFormWithThatAccent` and
+  `TheTypedAccentChoosesAmongTheFormsOfOneUnmarkedSpelling` in `tests/Vocaterra.Nlp.Es.Tests/Lexicon`.
+
+- **O4, `gustar` in a form of two tenses after a past marker** (`Vocaterra.Nlp.Es`, `SpanishAgreementChecker.CheckLikingVerb`; CsCheck seed `cTAdl0hRGj58`,
+  M69's runs; older than M69, the rule of M70). The catalog's `(ayer|hoy)? (sí|no)? me [VERB:gustar] (mucho)? [ART] [NOUN:item] ...` gave `ayer no me gustaron unos
+  aparatos de león hoy`, and the person mutation `gustamos`, expected `gustaron`; the analyzer gave `gustan`, because it took the first reading of `gustamos`, the
+  present, though the preterite is one too. After a past marker the preterite reading is taken now. Regression:
+  `LikingVerbTests.AFormOfTwoTensesAfterAPastMarkerTakesThePreterite`.
+- **The realiser drew a form of `podar` before an infinitive as correct** (the realiser; CsCheck seed `2DQ_Pma1Hfsa`, O3, M69's runs). The random pattern
+  `[NUM:item] [VERB:podar] [VERB] [ART]` gave `21 podo pasar unos`, which is no Spanish, and which the analyzer reads since M69 as `poder`'s slip (`conj.irregular`
+  `puedo`). The realiser now asks the pack's own rule (`IAnalysisRules.CallsForSlip`, through `LexiconCatalog.ReadsAsSlip`) and re-rolls a word that the words around it
+  make a learner's slip (`skip:slip-in-context`, under the default budget). It is a sentence the realiser got wrong, not one an oracle left out.
+
 Found and fixed in M66 (its own run of O3 at five times the default depth):
 
 - **A form of a modal that is also another verb's was taken for the modal** (`Vocaterra.Nlp`, `ReadingResolver.ModalComplement`, and `Vocaterra.Nlp.Es`,
@@ -805,6 +845,10 @@ them explicitly (each is a skip or a restriction in the generator, counted in th
   `necesaria militar`, and its recast is `necesaria militar` again instead of `militar necesaria` (with the order slipped, `[WORD:item] [ADJ]` can bind `necesaria`
   as a name and `militar` as the adjective). It fails the same way on `feature/village` at `951e7c8`, before M64, and no rule of M64 reads its words; it is left for the
   orchestrator with M62's findings above. The guard would be to skip `word_order` beside a `[WORD]` slot, a narrowing; the owner, 2026-11-01: leave it recorded.
+  M69's run at five times met the same family on O4 (CsCheck seed `fSMdah3kOSd7`, `WordOrder`): the random pattern `[ART]? ([NOUN:item] [ADJ]|[WORD:qty]
+  [NOUN:spell]) [NOUN:thing] [ART] [VERB:traicionar]` gave `el pete fantástico kilos una traicionas`; the mutation `el fantástico pete` lets the alternative `[WORD:qty]
+  [NOUN:spell]` bind `fantástico` as a name, which has no reading, so no `word_order` is reported. No rule of M69 reads it (the grammar matcher binds the name); left
+  recorded with the family, and the run was made again once, as for `2tpLGUOSqj41`.
 - **Found at M65, older than M65, and left for a decision** (a run of O4 after M65's last build; none of M65's four runs of the project met it, and it fails the
   same way on the suite before M65: the build of `feature/village-followups` at `1ff8a5a`, whose core, fuzz suite and bundle are those of `9dfa08b`). *O4, a
   `word_order` mutation that breaks the match where the grammar decided a reading* (CsCheck seed `8yc522XLB_W2`, `MutationCase { Kind = WordOrder, Seed =
@@ -813,13 +857,13 @@ them explicitly (each is a skip or a restriction in the generator, counted in th
   `la unida joya rica`; `unida` is no noun, so the grammar no longer matches, `rica` reads as the adjective of `joya`, and M59's check gives `conj.person` `desfiló`
   beside the expected `word_order`. The same family as M65 (c) and `2tpLGUOSqj41`: either the realiser extends M62's `noun-reads-as-adjective` re-roll past the
   adjectives after the head (a change of O3's draws), or the mutation keeps only a case that still matches its grammar (a narrowing); it is left for the orchestrator.
-- **Found at M71, older than M71, and left for a decision** (while measuring the coverage above; no oracle fails on it). *O3 never realises `buenas tardes`.* From
+- **Found at M71, older than M71; fixed in M69** (the widening of O3 above, (c)). *O3 never realised `buenas tardes`.* From
   400 fixed recipes the realiser gives `(buenos|buenas) (día|días|tardes|noches)` as `buenos días` (196) and `buenas noches` (164) only, and 40 recipes give nothing;
   the analyzer finds `buenas tardes` correct. `tardes` is also a form of `tardar`, and 163 of the grammar's draws are re-rolled as `literal-verb-subject`: M59's
   re-roll of a literal verb form that disagrees with a noun phrase before it appears to take `buenas` for that phrase, whose head is `tardes` itself
   (`SentenceRealizer.PreverbalPhrase` does not ask whether the head is the literal it is checking). Leaving such a literal alone would widen O3's draws and may move
   the sentence stream digest; it is left for the orchestrator.
-- **Found at M67b, reproduced at M70, and left for M69** (M67b's runs on a widened O4 that was not merged found two; M70 ran each seed on its own branch, after the
+- **Found at M67b, reproduced at M70; fixed in M69** ("Found and fixed in M69" above; M67b's runs on a widened O4 that was not merged found two; M70 ran each seed on its own branch, after the
   merge of V20). *O5, a recast that keeps a gender error* (CsCheck seed `deXmFwx4GzL4`, `MutationCase { Kind = NounNumberPlural, Seed = 3622186191696 }`): the
   random pattern `[NOUN]? [NUM:item] [DET] [NUM:qty] [NOUN]?` gives `miedo uno tu uno exposición`; the mutation makes `exposiciones` (`noun.number`, expected
   `exposición`), and the recast `miedo un tu una exposición` still has `gender.agree` `una` on the first `un` (the numeral before the possessive is written as

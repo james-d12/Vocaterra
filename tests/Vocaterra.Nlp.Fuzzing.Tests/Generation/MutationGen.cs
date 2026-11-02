@@ -764,8 +764,9 @@ public static class MutationGen
         }
 
         // M69: the ser_estar mutation of es en (mirror of SpanishAgreementChecker.CheckSerOfPlace, rule 3, for the shape of the skeleton): the generated estar of the
-        // third person at index 2 after an article and a noun that open the utterance, no event, followed by en, an article and a noun that is a place (no noun of time
-        // or of an adverbial phrase); the form of ser of the same cell must be ser's alone (fue is also ir) and no noun (son, era).
+        // third person at index 2 after an article and a noun that open the utterance, no event and no noun of time (a phrase of time is no subject: la semana es en
+        // los escuadrones, seed bc29DoKXymZ2 of M69's second run) or of part or quantity, followed by en, an article and a noun that is a place (no noun of time or of an
+        // adverbial phrase); the form of ser of the same cell must be ser's alone (fue is also ir) and no noun (son, era).
         private MutatedSentence? SerBeforeEnAndAPlace()
         {
             const int i = 2;
@@ -777,8 +778,10 @@ public static class MutationGen
                 || _tokens[4] is not { Role: TokenRole.Article }
                 || _tokens[5] is not { Role: TokenRole.Noun } place
                 || LexiconCatalog.EventNouns.Contains(subject.Lemma!)
+                || LexiconCatalog.PostverbalNonSubjectNouns.Contains(subject.Lemma!)
                 || LexiconCatalog.NonPlaceNouns.Contains(place.Lemma!)
-                || _words.Lexicon.Lookup(subject.Norm).Any(static r => r.Pos == LexiconSchema.Noun && LexiconCatalog.EventNouns.Contains(r.Lemma))
+                || _words.Lexicon.Lookup(subject.Norm).Any(static r => r.Pos == LexiconSchema.Noun
+                    && (LexiconCatalog.EventNouns.Contains(r.Lemma) || LexiconCatalog.PostverbalNonSubjectNouns.Contains(r.Lemma)))
                 || _words.Lexicon.Lookup(place.Norm).Any(static r => r.Pos == LexiconSchema.Noun && LexiconCatalog.NonPlaceNouns.Contains(r.Lemma)))
             {
                 return null;

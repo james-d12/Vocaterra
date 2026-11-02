@@ -1,4 +1,5 @@
 using Vocaterra.Nlp.Core.Stages;
+using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Es;
 using Vocaterra.Nlp.Es.Analysis;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
@@ -755,6 +756,36 @@ public sealed class LexiconCatalog
     public static bool IsDegreeAdverb(string lemma)
     {
         return SpanishRules.IsDegreeAdverb(lemma);
+    }
+
+    /// <summary>
+    /// True when the word at <paramref name="index"/> of the words is a lexicon word of another class than a noun that is also an irregular verb's regular cell
+    /// (<c>podo</c>, a form of <c>podar</c>, for <c>puedo</c>; <c>esto</c> for <c>estoy</c>) and the words around it call for that slip (M69,
+    /// <see cref="IAnalysisRules.CallsForSlip"/> of the Spanish pack, over the lexicon's readings of the words as the analyzer reads them): the analyzer then reads the
+    /// word as the slip and reports it (<c>yo podo ir</c>).
+    /// </summary>
+    /// <param name="words">The words of the sentence, as written.</param>
+    /// <param name="index">The index of the word.</param>
+    public bool ReadsAsSlip(IReadOnlyList<string> words, int index)
+    {
+        var word = words[index].ToLowerInvariant();
+        var own = Lexicon.Lookup(word);
+        if (own.Count == 0 || own.All(static r => r.Pos == LexiconSchema.Noun) || !Morphology.TryGetRegularizationOfWord(word, out var regularized))
+        {
+            return false;
+        }
+
+        var tokens = new List<AnalyzedToken>(words.Count);
+        var start = 0;
+        foreach (var w in words)
+        {
+            var lower = w.ToLowerInvariant();
+            tokens.Add(new AnalyzedToken(new Token(lower, new TextSpan(start, lower.Length), w), [.. Lexicon.Lookup(lower)]));
+            start += lower.Length + 1;
+        }
+
+        LexicalFeatures slip = new(regularized.Lemma, LexiconSchema.Verb, regularized.Person, regularized.Number, regularized.Tense, LexiconSchema.Indicative, null);
+        return !own.Contains(slip) && SpanishRules.CallsForSlip(tokens, index, [slip]);
     }
 
     /// <summary>
