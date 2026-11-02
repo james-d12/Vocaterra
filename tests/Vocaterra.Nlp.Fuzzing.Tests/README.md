@@ -819,6 +819,13 @@ them explicitly (each is a skip or a restriction in the generator, counted in th
   re-roll of a literal verb form that disagrees with a noun phrase before it appears to take `buenas` for that phrase, whose head is `tardes` itself
   (`SentenceRealizer.PreverbalPhrase` does not ask whether the head is the literal it is checking). Leaving such a literal alone would widen O3's draws and may move
   the sentence stream digest; it is left for the orchestrator.
+- **Found at M67b, reproduced at M70, and left for M69** (M67b's runs on a widened O4 that was not merged found two; M70 ran each seed on its own branch, after the
+  merge of V20). *O5, a recast that keeps a gender error* (CsCheck seed `deXmFwx4GzL4`, `MutationCase { Kind = NounNumberPlural, Seed = 3622186191696 }`): the
+  random pattern `[NOUN]? [NUM:item] [DET] [NUM:qty] [NOUN]?` gives `miedo uno tu uno exposición`; the mutation makes `exposiciones` (`noun.number`, expected
+  `exposición`), and the recast `miedo un tu una exposición` still has `gender.agree` `una` on the first `un` (the numeral before the possessive is written as
+  the masculine article). It reproduces with `CsCheck_Seed=deXmFwx4GzL4` and the `RecastLoopFuzzTests` alone; no unseeded run of M70 met it (four runs, one at
+  five times). The O4 seed of the same report, `3isZGy3IeUc8` (`vaya sentir`, `ir` with a bare infinitive), does not reproduce on M70's branch.
+
 
 ## Adding to the suite
 
