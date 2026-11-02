@@ -2258,3 +2258,14 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   - **Left (game, in the README's open points):** the two replies; the book credits `quiero-dos-panes` for a refused `Quiero dos
     manzanas.`; the book keeps the typed form `compre`; the scripted run's silent stop at 18 000 ticks; an untaught statement understood at
     some NPCs and not others (the owner's rule to choose); `vocab.wrong` outside an open prompt's answer set (core and game, V17).
+- **V26: V24's four game bugs (2026-11-02, Sonnet 5.5; gated on `feature/village-followups` at `01db096`, 8142 passed, 3 skipped, with the models).**
+  - **One reply to a line not understood:** `NpcService` passes no repair when the core's is `AskAgain` and the NPC's reply asked already
+    («No te entendí. ¿Me lo dices otra vez?»); `SlowRepeat`, `OfferChoices` and `GiveUp` stay. The host's `repair:` line stays a diagnostic.
+  - **No credit for a refused request with another noun:** `PhraseSheet.OfIntent` returns an intent's only row only when the turn's item is
+    the row's (`quiero dos manzanas` at Luz is no use of `quiero-dos-panes`; `quiero tres panes` is). The refused line is now a `pedir-agua`
+    transfer through the older fixed mapping `PhraseIds.For`, left as it was.
+  - **The accented form in the book:** `GuideWord.From` takes the accent note's form (`compré (1 sg pret ind)`, not `compre`).
+  - **A scripted run cut at 18 000 ticks says so:** one line to stdout and a `run_truncated` event in the session log (the tick, the steps
+    not started, the first of them), and exit code 2.
+  - **Runs:** r19, r22 and r23 unchanged; r24 credits `quiero madera` at the stall as `quiero-madera` (was `pedir-agua`) and counts `compré`.
+    `try-lines --check` unchanged.

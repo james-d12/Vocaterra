@@ -334,6 +334,17 @@ are predicate adjectives a learner will get wrong.
 2. **A correct line with a word outside an open prompt's answer set** (`la tienda está en el pueblo` at `farmer-open`: `vocab.wrong`, «No
    te entendí»; V17, M69) **is planned now** as a core milestone and a game milestone; the plan goes to the owner before anything is built.
 
+**Owner's answers, 2026-11-02 (the off-prompt lines, after a design study of the cause):** at an NPC's constrained open prompt a correct line
+whose intent the prompt does not take was graded `vocab.wrong` (0.4, an empty expected word; M67's derived tag) and answered «No te entendí».
+1. **Option 2:** the core derives `vocab.wrong` only where it names the word or explains a near miss, and signals a line that is understood
+   but not taken at this prompt (`Verdict.OffPromptIntent`, a second resolver pass over the whole catalog, grammar and keyword rungs only):
+   the core's M72 (Opus 5.5 at xhigh). The game answers it (V27, Sonnet 5.5, after M72).
+2. **The book credits it** as free talk does since V20 (b): a use of its nouns and of any phrase of a lesson begun or done; no NPC action.
+3. **The NPC says «Te entiendo.» and points to its own topic,** one reply per turn, A1, a normal and a slow WAV in each NPC's voice:
+   Domingo «Te entiendo. Yo hago hachas.», Luz «Te entiendo. ¿Quieres pan?», León «Te entiendo. ¿Quieres manzanas?», Mar «Te entiendo.
+   ¿Buscas un lugar?», the villager «Te entiendo. ¿Qué buscas?», the guide and the shopkeeper one line each in the same form.
+4. **`hace frío` at `smith-open`** (read as `ask_activity`, a keyword rule on `hacer` alone) is fixed in M72.
+
 ## Already decided
 
 - **The core by project reference** (D-game-7; until 2026-10-21 "packages only" from a submodule's local feed). The game never copies core
