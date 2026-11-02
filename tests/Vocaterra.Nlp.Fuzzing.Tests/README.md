@@ -189,6 +189,18 @@ code comments and here, with the reason:
     broader than the resolver, which also reads what follows. `CoordinatedSubjectFuzzTests` gained five patterns with `ni` and `o`, and `ModalAndQuestionFuzzTests`
     realises nine patterns with a modal or a pronoun before a question word, checking O3 and O4 on each. The sentence stream digest of `FuzzLanguageStreamTests` was
     recorded again for these changes (the text digest did not move).
+  - *O3, O4 and O5, the core findings of the QA pass on the village (M70, 2026-11-02, widenings; no oracle narrowed).* (a) A new O3 fact,
+    `CorrectSentences_WithAnNTildeTypedAsNWhereThatSpellingIsNoWord_AnalyzeAsTheSentenceWithIt`, writes a correct sentence's words with `ñ` with an `n` where that
+    spelling is no lexicon form (accents ignored) and no Spanish word of the test's own list (`ano`, `cana`, `pena`, `una`…, an independent copy of the idea), and
+    requires the errors of the sentence with `ñ` (tag, span and expected; the heard text is the learner's spelling); it asserts that some `ñ` is typed so at the
+    default depth (`ntilde:typed-as-n`). (b) The person mutation of a subject after its verb (M56) makes, for `gustar` and `encantar` behind their dative pronoun, a
+    form of the first or second person on half its draws (`me gustas el pan`, expected `gusta`), where only the third person of the other number was made, and the form
+    has no reading but that verb's. (c) The irregular mutation also makes the first person of the preterite of a verb in `-car`, `-gar` or `-zar` without its spelling
+    change (`busqué` becomes `buscé`, expected `busqué`), modelled by the test's own spelling rule and kept only where the morphology reports the same slip. (d) A realiser
+    correction: `gustar` and `encantar` after a subject pronoun with a phrase after them were realised as correct (`nosotras gustamos los alcoholes`, `tú aquí gustas el
+    cristal`), which the analyzer now reads as the learner's English order (`conj.person`, `nos gusta`); the realiser cannot make a dative of the pronoun, so it
+    re-rolls such a draw (`skip:liking-verb-after-a-subject-pronoun`, under the default skip budget). It is a sentence the realiser got wrong, not one an oracle left out.
+    The sentence stream digest of `FuzzLanguageStreamTests` was recorded again for (d) (the text digest did not move).
 - **O8.** The dialect sites are `θ s z h ʎ ʝ ʃ ʒ` (the plan lists `θ s ʎ ʝ h`; the shipped dialects also produce the voiced `z` and the rioplatense `ʃ ʒ`).
   `Tokenize(ToIpaString())` is exact except for the pair `t` + `ʃ`, whose concatenation is the affricate token `tʃ` (the inventory documents that
   sequences are lists for this reason); a result with that pair skips the split.

@@ -897,6 +897,16 @@ internal sealed class SentenceRealizer
 
             string person;
             string number;
+            if (item.Subject is not null && LexiconCatalog.LikingVerbs.Contains(item.Lemma!) && FollowingPhrase(i) is not null)
+            {
+                // M70: gustar and encantar take the thing liked as their subject and the one who likes as a dative pronoun, so a subject pronoun before them with a
+                // phrase after (yo gusto el pan, nosotras gustamos los alcoholes) is no correct Spanish, whatever the person: the analyzer reads it as the learner's
+                // English order (conj.person, me gusta). The realiser cannot make a dative of the pronoun, so the draw is skipped.
+                skip = "liking-verb-after-a-subject-pronoun";
+                _detail = item.Lemma!;
+                return false;
+            }
+
             if (item.Subject is { } subject)
             {
                 // M64: a subject pronoun joined by y or e to members before it that open their clause ends a plural subject (luz y yo comemos, tú y ella comen), which
