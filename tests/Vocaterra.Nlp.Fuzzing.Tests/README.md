@@ -782,6 +782,15 @@ Found and fixed in M69:
   `puedo`). The realiser now asks the pack's own rule (`IAnalysisRules.CallsForSlip`, through `LexiconCatalog.ReadsAsSlip`) and re-rolls a word that the words around it
   make a learner's slip (`skip:slip-in-context`, under the default budget). It is a sentence the realiser got wrong, not one an oracle left out.
 
+Found and fixed in M73 (M72's and V27's findings, and the recorded word-order family):
+
+- **O2, two `conj.person` on one word** (`Vocaterra.Nlp.Es`, `SpanishAgreementChecker.CheckPostverbalSubject`; CsCheck seed `7HIoK0InC7l7`, M72's runs; older than
+  M72). `Nosotros Adonde Estaría Nenas En El Fecha`, analyzed with no grammar, gave `conj.person` `estaríamos` and `estarían` on `estaría`: the person check took
+  `nosotros` as the subject of the verb past the unaccented `adonde` (an adverb, skipped), and the check of a subject after its verb (M56, M69) took `nenas` as a
+  second subject, its look-back stopping at `adonde` as a clause opener. A verb that the person check agreed with a subject pronoun before it now has no subject after
+  it, as with the accented question word (M66): one `conj.person`, `estaríamos`. The same rule clears `ellas donde están la casa`, which gave `está` though `ellas`
+  agrees. Regression: `PostverbalSubjectTests.AVerbThePersonCheckAgreedWithAPronounBeforeItHasNoSubjectAfterIt` in `tests/Vocaterra.Nlp.Es.Tests/Analysis`.
+
 Found and fixed in M66 (its own run of O3 at five times the default depth):
 
 - **A form of a modal that is also another verb's was taken for the modal** (`Vocaterra.Nlp`, `ReadingResolver.ModalComplement`, and `Vocaterra.Nlp.Es`,
@@ -893,10 +902,9 @@ them explicitly (each is a skip or a restriction in the generator, counted in th
   five times). The O4 seed of the same report, `3isZGy3IeUc8` (`vaya sentir`, `ir` with a bare infinitive), does not reproduce on M70's branch.
 
 
-- **Found at M72, older than M72, and left for a core milestone** (the second of M72's runs at the default depth; the analyzer is unchanged by M72). *O2, two
-  errors with one tag on one span* (CsCheck seed `7HIoK0InC7l7`): `Nosotros Adonde Estaría Nenas En El Fecha`, analyzed with no grammar, gives `conj.person` twice
-  on `estaría`, expected `estaríamos` (against `nosotros`) and `estarían` (against `nenas`, read as a subject after its verb, M69's check). The analyzer promises
-  one error per tag and span; `nosotros adonde estaría` alone gives the one. It reproduces with the seed alone.
+- **Found at M72, older than M72; fixed in M73** ("Found and fixed in M73" above). *O2, two errors with one tag on one span* (CsCheck seed `7HIoK0InC7l7`):
+  `Nosotros Adonde Estaría Nenas En El Fecha`, analyzed with no grammar, gave `conj.person` twice on `estaría`, expected `estaríamos` (against `nosotros`) and
+  `estarían` (against `nenas`, read as a subject after its verb, M69's check). The analyzer promises one error per tag and span; it gives the one now.
 - **Found at M72, older than M72, and left for a core milestone** (M72's second run at five times the default depth; the analyzer and the grammar matcher are
   unchanged by M72). *O3, a slot the grammar does not yield* (CsCheck seed `92moRWz9NQ54`): the random pattern `[VERB:largar] ([PRON]|[VERB]|[ADJ:item]) [VERB]?
   [VERB:deportar] [PRON]?` gives `largáis suyo involucras deportar les`, built with `suyo` as `[ADJ:item]`; the analysis with that grammar yields no `item`. It

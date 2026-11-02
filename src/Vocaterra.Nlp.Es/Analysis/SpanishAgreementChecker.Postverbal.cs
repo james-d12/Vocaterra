@@ -40,7 +40,9 @@ internal sealed partial class SpanishAgreementChecker
                 firstOrSecond = verb is not null;
             }
 
-            if (verb is null || HasPreverbalSubject(v))
+            // M73 (M72's fuzz finding, O2 7HIoK0InC7l7): nor after a verb that CheckSubjectVerb agreed with a subject pronoun before it, past an adverb such as the
+            // unaccented adonde (nosotros adonde estaría nenas gave estaríamos and estarían on one word).
+            if (verb is null || HasPreverbalSubject(v) || _verbsWithPronounSubject.Contains(v))
             {
                 continue;
             }

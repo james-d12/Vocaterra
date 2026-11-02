@@ -22,6 +22,10 @@ internal sealed partial class SpanishAgreementChecker : IAgreementChecker
     private readonly List<ErrorTag> _errors;
     private readonly IAnalysisRules _rules;
 
+    // M73: the verbs CheckSubjectVerb agreed with a subject pronoun before them, so that CheckPostverbalSubject does not take a phrase after one of them as a second
+    // subject (one conj.person per word).
+    private readonly HashSet<int> _verbsWithPronounSubject = [];
+
     public SpanishAgreementChecker(IReadOnlyList<AnalyzedToken> tokens, IMorphology morphology, List<ErrorTag> errors, IAnalysisRules rules)
     {
         _tokens = tokens;
@@ -216,7 +220,11 @@ internal sealed partial class SpanishAgreementChecker : IAgreementChecker
             }
 
             var finite = Readings(verbIndex, IsDeclarativeFiniteVerb);
-            if (finite.Count == 0)
+            if (finite.Count > 0)
+            {
+                _verbsWithPronounSubject.Add(verbIndex);
+            }
+            else
             {
                 // A bare infinitive after a subject pronoun ("yo comprar") is a person error as well.
                 var infinitive = FirstReading(verbIndex, static r => r.Pos == LexiconSchema.Verb && r.Person is null && r.Tense is null && r.Mood is null);
