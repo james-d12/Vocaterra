@@ -228,7 +228,11 @@ code comments and here, with the reason:
     its intents (the owners of its catalog grammar and the resolver's answer with every intent allowed), drawn from the recipe's seed, and gets no error the
     sentence does not contain. What a sentence contains is what the analyzer finds in its words alone, with no grammar of any prompt: for a correct sentence nothing
     but `vocab.unknown` on a name only a `[WORD]` reads. Errors are compared by tag and span; a pronunciation tag is not grammar and is left out on both sides, as in
-    O3's first check (the grader scores none). The test asserts that the leg grades sentences and, at the default depth, that some carry an off-prompt intent.
+    O3's first check (the grader scores none). The one exception is the derived `vocab.wrong` of a near miss of an answer, which M72 keeps by the owner's rule: it
+    is admitted only where the test's own model of that rule holds (no match, no grammar resolution, the answer matcher's distance within the budget for the line's
+    length) and is counted as `verdict-leg:near-miss-of-an-answer`. The third run found it (seed `3omMnHLFpnr3`: `rápido por favor`, correct, at `lesson-had`, 4
+    edits from the alias `ayuda por favor` within a budget of 4); about one graded sentence in 2 000 is such a near miss, reported as a finding on M67's
+    heuristic. The test asserts that the leg grades sentences and, at the default depth, that some carry an off-prompt intent.
 - **O8.** The dialect sites are `θ s z h ʎ ʝ ʃ ʒ` (the plan lists `θ s ʎ ʝ h`; the shipped dialects also produce the voiced `z` and the rioplatense `ʃ ʒ`).
   `Tokenize(ToIpaString())` is exact except for the pair `t` + `ʃ`, whose concatenation is the affricate token `tʃ` (the inventory documents that
   sequences are lists for this reason); a result with that pair skips the split.
