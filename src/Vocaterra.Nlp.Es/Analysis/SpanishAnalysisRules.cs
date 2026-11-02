@@ -62,6 +62,8 @@ internal sealed class SpanishAnalysisRules : IAnalysisRules
 
     public bool IsPredicateAdjective(string lemma) => SpanishAnalysisTables.IsPredicateAdjective(lemma);
 
+    public bool IsNeuterPronoun(string word) => SpanishAnalysisTables.IsNeuterPronoun(word);
+
     public bool CallsForSlip(IReadOnlyList<AnalyzedToken> tokens, int index, IReadOnlyList<LexicalFeatures> slip) =>
         SpanishSlipContext.CallsForSlip(tokens, index, slip);
 

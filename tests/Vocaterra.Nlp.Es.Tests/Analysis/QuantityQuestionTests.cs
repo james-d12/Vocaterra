@@ -61,7 +61,35 @@ public class QuantityQuestionTests
         Assert.Equal(expected, Described(sentence));
     }
 
+    // M73 (M69's left point): cuántas cuesta todo read cuesta as the noun of the phrase cuántas opens (noun.number cuestas). Right after the question word and before a
+    // neuter pronoun (or, where its noun cannot agree with the question word, before a phrase a determiner opens) a word that is a noun and a finite verb is the verb, and
+    // before a verb of price whose neuter subject it agrees with the question word is the invariable cuánto, as before a verb that disagrees.
     [Theory]
+    [InlineData("cuántas cuesta todo", "gender.agree|cuántas|cuánto;noun.number|cuántas|cuánto")]
+    [InlineData("cuántos cuesta todo", "noun.number|cuántos|cuánto")]
+    [InlineData("cuánta cuesta todo", "gender.agree|cuánta|cuánto")]
+    [InlineData("cuántas cuesta eso", "gender.agree|cuántas|cuánto;noun.number|cuántas|cuánto")]
+    [InlineData("cuántas cuesta todo esto", "gender.agree|cuántas|cuánto;noun.number|cuántas|cuánto")]
+    [InlineData("cuantas cuesta todo", "gender.agree|cuantas|cuánto;noun.number|cuantas|cuánto")]
+    [InlineData("cuántos vale todo", "noun.number|cuántos|cuánto")]
+    public void AnInflectedQuestionWordBeforeAVerbOfPriceThatAgreesWithItsNeuterSubjectIsCuanto(string sentence, string expected)
+    {
+        Assert.Equal(expected, Described(sentence));
+    }
+
+    // M73: the verb, not the noun cuestas, where the noun cannot agree with the question word before a phrase a determiner opens; its subject is that phrase, so the
+    // question word is left alone (as M69 leaves it in cuántos cuestan el pan) and only a verb that disagrees with the phrase is reported.
+    [Theory]
+    [InlineData("cuántas cuesta el pan", "")]
+    [InlineData("cuántos cuesta el pan", "")]
+    [InlineData("cuántas cuesta los panes", "conj.person|cuesta|cuestan")]
+    public void AFormOfCostarThatIsAlsoANounAfterAnInflectedQuestionWordIsTheVerb(string sentence, string expected)
+    {
+        Assert.Equal(expected, Described(sentence));
+    }
+
+    [Theory]
+    [InlineData("cuántas cuesta todo", TotalPriceGrammar, "gender.agree|cuántas|cuánto;noun.number|cuántas|cuánto")]
     [InlineData("cuántos cuestan todo", TotalPriceGrammar, "noun.number|cuántos|cuánto;conj.person|cuestan|cuesta")]
     [InlineData("cuanto es todo", TotalGrammar, "")]
     [InlineData("cuánto cuesta todo", TotalPriceGrammar, "")]
@@ -73,7 +101,8 @@ public class QuantityQuestionTests
     // Clean: the price question as it should be, with or without the accent; how many with a noun; how many are there (cuántos son: before M69 noun.number sones); a
     // singular verb after cuántos or cuántas, which may leave the coins unsaid (¿cuántos es todo?: how many coins); and cuanto as a relative or before más. Left as it
     // was: a form of costar that is also a noun right after cuántas or cuántos (cuántas cuesta todo) is read as the noun of the phrase the determiner opens
-    // (noun.number cuestas), as before M69.
+    // (noun.number cuestas), as before M69; M73 reads it as the verb (above). Clean since M73 too: the noun after the question word where the noun agrees with it and no
+    // neuter pronoun follows (cuántas cuestas hay, cuántas cuestas tiene el camino), the price said with its noun (cuántas monedas cuesta todo), and the slope itself.
     [Theory]
     [InlineData("cuánto cuesta todo")]
     [InlineData("cuánto es todo")]
@@ -90,6 +119,14 @@ public class QuantityQuestionTests
     [InlineData("cuanto más mejor")]
     [InlineData("cuanto antes")]
     [InlineData("todo cuanto tengo")]
+    [InlineData("cuántas cuestas hay")]
+    [InlineData("cuántas cuestas tiene el camino")]
+    [InlineData("cuántas monedas cuesta todo")]
+    [InlineData("cuántas monedas cuesta el pan")]
+    [InlineData("la cuesta es grande")]
+    [InlineData("la cuesta es muy larga")]
+    [InlineData("cuánto cuesta eso")]
+    [InlineData("cuánto vale todo")]
     public void ThePriceAndQuantityQuestionsThatStayClean(string sentence)
     {
         Assert.Equal(string.Empty, Described(sentence));

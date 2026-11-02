@@ -284,6 +284,20 @@ internal static class ReadingResolver
                 changed |= Narrow(next, IsCopulaReading);
             }
 
+            // M73 (M69's left point): a word that is a noun and a finite verb right after the interrogative quantifier in any of its forms is the verb before a neuter
+            // pronoun (¿cuántas cuesta todo?: costar, whose subject todo is, not the noun phrase cuántas cuestas with no verb), and before a phrase that a determiner
+            // opens where its noun cannot agree with the quantifier (¿cuántas cuesta el pan?), as M69 reads it after cuánto below; the noun phrase rule after a
+            // determiner would take the noun. A noun that agrees with the quantifier and no neuter pronoun after it stays the noun (¿cuántas cuestas hay?).
+            if (next < Count
+                && All(i, r => r.Pos == LexiconSchema.Adjective && _rules.IsInterrogativeQuantifier(r.Lemma))
+                && HasReading(next, r => r.Pos == LexiconSchema.Noun)
+                && HasReading(next, r => ReadingClasses.IsFiniteVerb(r) && !IsSlip(next, r))
+                && (NeuterPronounAt(next + 1)
+                    || (!HasReading(next, n => n.Pos == LexiconSchema.Noun && HasReading(i, q => Agree(q, n))) && OpensDeterminedPhrase(next + 1))))
+            {
+                changed |= Narrow(next, r => ReadingClasses.IsFiniteVerb(r) && !IsSlip(next, r));
+            }
+
             // A noun phrase that starts with a determiner, or with an adjective that starts the utterance (buenos días), has a noun as its head.
             if (IsCertainDeterminer(i) || (i == 0 && IsCertainAdjective(i)))
             {
@@ -781,6 +795,12 @@ internal static class ReadingResolver
 
         // M66: a phrase that is no phrase of time starts at index, opened by a determiner (un pan, dos panes, la fruta) or a noun-modifying adverb before a noun (más
         // fruta).
+        // M73: the word at index is a neuter pronoun as written (todo, eso), which the language's rules name.
+        private bool NeuterPronounAt(int index)
+        {
+            return index < Count && _rules.IsNeuterPronoun(_tokens[index].Token.Text);
+        }
+
         private bool OpensDeterminedPhrase(int index)
         {
             if (index >= Count)
