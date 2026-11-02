@@ -27,7 +27,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-19 | Verbs in the lessons | decided (owner, 2026-10-22): verbs early but gradual, across sessions (yo/tú in session 1, the other persons in session 2, ir a + infinitive and a few past forms in session 3), lessons replayable from the book; conjugation tables in the book | nothing |
 | D-game-20 | One licence for the whole repository | decided (owner, 2026-10-23): Apache-2.0 for the game as well as the core; one `LICENSE` and `NOTICE` at the root (R01) | nothing |
 | D-game-21 | Content as data and the L1 locale layer (the C series, `docs/game/CONTENT_PLAN.md`) | decided (owner, 2026-10-27 to 2026-10-29): English moves into a locale bundle `content/locale/` outside game-v1's hash (`en` only); content stays JSON with JSON Schema; objectives, NPCs and target-language words become data; the series runs after R16 phase 2, on `feature/content` | nothing |
-| D-game-22 | The village and the lessons (the V series, `docs/game/VILLAGE_PLAN.md`) | decided for phase A (owner, 2026-10-30): phase A now (sessions 4 to 6), phase B held (started 2026-10-31 on the owner's word); the plan's proposals for (b), (c), (e), (f), (h) and (i); the farmer is León; voices provisional (the plan's first candidates) and recorded, the owner listens afterwards; all work by Opus 5.5 at xhigh effort; 2026-10-31: V18 and the core's M56, M59 (before V14), M58 and M62 (before V15) join phase B; 2026-11-01, the follow-ups: models mixed (Opus for M65 to M67, M69 and V20, Sonnet for V21 to V23 and M68, Haiku for V24), M65's narrowings (a) to (c), name plates of the faced NPC depth-tested | the V series |
+| D-game-22 | The village and the lessons (the V series, `docs/game/VILLAGE_PLAN.md`) | decided for phase A (owner, 2026-10-30): phase A now (sessions 4 to 6), phase B held (started 2026-10-31 on the owner's word); the plan's proposals for (b), (c), (e), (f), (h) and (i); the farmer is León; voices provisional (the plan's first candidates) and recorded, the owner listens afterwards; all work by Opus 5.5 at xhigh effort; 2026-10-31: V18 and the core's M56, M59 (before V14), M58 and M62 (before V15) join phase B; 2026-11-01, the follow-ups: models mixed (Opus for M65 to M67, M69 and V20, Sonnet for V21 to V23 and M68, Haiku for V24), M65's narrowings (a) to (c), name plates of the faced NPC depth-tested; 2026-11-02: V24's bugs first (V26), the off-prompt lines (M72, V27), the small points (M73, V28) and the speech folder by speaker; after the pull request: weather and `¿cómo estás?` intents (M74, V29), the near-miss rule (M75), a study of spoken off-prompt lines (`docs/HANDOVER_AFTER_FOLLOWUPS.md`) | the V series |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
@@ -344,6 +344,26 @@ whose intent the prompt does not take was graded `vocab.wrong` (0.4, an empty ex
    Domingo «Te entiendo. Yo hago hachas.», Luz «Te entiendo. ¿Quieres pan?», León «Te entiendo. ¿Quieres manzanas?», Mar «Te entiendo.
    ¿Buscas un lugar?», the villager «Te entiendo. ¿Qué buscas?», the guide and the shopkeeper one line each in the same form.
 4. **`hace frío` at `smith-open`** (read as `ask_activity`, a keyword rule on `hacer` alone) is fixed in M72.
+
+**Owner's answers, 2026-11-02 (the open points after V27):**
+1. **The small points are fixed on `feature/village-followups`,** before the pull request: the core's in M73 (Opus 5.5 at xhigh), the
+   game's in V28 (Sonnet 5.5).
+2. **The speech folder goes into subfolders by speaker** (`speech/<speaker>/`, the cards in `speech/cards/`), in V28: it held more than
+   1,000 files in one folder.
+
+**Owner's answers, 2026-11-02 (the open decisions after M73; built after the pull request merges, `docs/HANDOVER_AFTER_FOLLOWUPS.md`):**
+1. **Weather lines get their own intents** (a statement and a question; `hace frío` is unknown today, `¿qué tiempo hace?` is
+   `ask_activity`, `hace calor` is `state_action`): the core's M74. Each NPC answers a statement by echoing its weather word («Sí, hace
+   frío.») and the question with «Hoy hace sol.» (V29).
+2. **`¿cómo estás?` gets its own intent,** split from `greet` in M74, and each NPC answers «Bien, gracias.» in its own voice (V29), without
+   «¿Y tú?».
+3. **Spoken lines that a constrained prompt does not take are fixed** (the recognizer decodes only the answer set, so V27's «Te entiendo.»
+   is never heard for a spoken line): a design study of the options first, whose recommendation comes back to the owner, then a core and
+   a game milestone.
+4. **M67's near-miss rule: a near miss must name its word** (the orchestrator's recommendation, "go with your recommendations"): the
+   line and the nearest answer have the same number of words and differ in one, the two words are a slip pair (close in spelling, or one
+   closed class), and the expected word is always named. The core's M75 (Opus 5.5 at xhigh); O3's verdict leg becomes strict again.
+5. **Listening to the voices and deleting the merged remote branches** are the owner's, later.
 
 ## Already decided
 

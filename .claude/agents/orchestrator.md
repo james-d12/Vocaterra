@@ -40,7 +40,23 @@ is a change to the boundary and updates that record.
     resource rules and gate.
   - Bring owner decisions (licences, scope, anything that changes D-numbers) to the owner rather than deciding them.
 
-## Handover (2026-11-01): the village, phase B done, the owner's review next (read this first)
+## Handover (2026-11-02): the follow-ups done; the owner's decisions next (read this first)
+- **The follow-ups are done** on `feature/village-followups`: the core's M65 to M67 and M69 to M73, and the game's V20 to V28 (V23b
+  folded into V21b); the last gate was V28's, at `81023b2` (8286 passed, 3 skipped).
+  - The owner merges it into `main` by pull request.
+  - M67b stays parked; M68 runs only if CI fails a timed test.
+- **After that merge, read `docs/HANDOVER_AFTER_FOLLOWUPS.md`:** the owner's decisions of 2026-11-02, every one decided except the
+  spoken lines' study, whose recommendation goes to the owner. The work:
+  - M74: the weather intents and `ask_wellbeing`;
+  - M75: the near-miss rule;
+  - V29: the game's replies;
+  - the study of spoken off-prompt lines;
+  - and the known fuzz family that can fail a gate.
+  - Work on a new branch from `origin/main`, never `main`.
+- The owner deletes the merged remote milestone branches himself (the permission check refuses remote deletes) and listens to the
+  voices later.
+
+## Handover (2026-11-01): the village, phase B done, the owner's review next
 **After the merge (2026-11-01):**
 - The owner merged PR #20 into `main` (`1dbb0e5`) and wants all the follow-ups done on `feature/village-followups`. That branch was
   created from `origin/main`, pushed, and checked out in `.claude/worktrees/village`.

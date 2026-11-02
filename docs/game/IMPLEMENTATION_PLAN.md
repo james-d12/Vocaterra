@@ -2294,3 +2294,39 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     León `la tienda está en el pueblo` «Perdón, ¿qué dices?» (no off-prompt intent); the summary credits `río` 4 of 4 and `gustar` 3 of 3.
   - **Left, to V28:** each NPC's agent file gained an `<npc>.understood` host-event transition in every state only so the lint counts the
     pool as used; the game says the pool directly and nothing fires the event. The learner's route with every NPC was the orchestrator's.
+- **V28: the small game points after the follow-ups (2026-11-02, Sonnet 5.5; gated on `feature/village-followups` at `81023b2`,
+  8286 passed, 3 skipped, with the models).** The owner's word (D-game-22, 2026-11-02). Bundle `500b3df3…`.
+  - **«Sí, es verdad.»** In free talk a statement about the listener gets the NPC's `<npc>_true` line, not a bare «¡Qué bien!».
+    - `NpcTurnRules.AboutListener` reads the core's analysis, not the text: a word read as a second-person verb, or `tú`, `usted`,
+      `ustedes` not after a preposition (the lexicon reads `usted` as person 3).
+    - Three new pools, `baker_true`, `smith_true` and `fisher_true`, each with a normal and a slow WAV and an English line; the
+      shopkeeper, the villager and the farmer had theirs.
+    - The game and the host call the same `Compose`. An off-prompt line keeps «Te entiendo.».
+  - **The name plate behind a building:** a test that launches the game with the beacon on the baker. From the square her plate is
+    drawn; from north of the bakery it is not. V22's code needed no change. The test does nothing without `DISPLAY` or the built game,
+    as `PlaytestReportTests`.
+  - **The `<npc>.understood` transitions** are now the one place that names a pool. The game reads the pool from the agent's
+    transition (`NpcTurnRules.PoolSaidOn`, `OffPromptPoolOf`), so `NpcEntry.OffPromptPool`, `offPromptPool` and its schema field are
+    gone. No event is fired, so no state or counter moves. The `<npc>.true` transitions declare the new pools the same way.
+  - **The speech folder in subfolders:**
+    - `speech/<speaker>/` for the seven speakers and `speech/cards/` for the guide's 44 `card.*` files, each slow file beside its
+      normal one; 1076 files moved with `git mv`.
+    - The index, the provenance and the checklist paths followed.
+    - In the code: `SpeechFiles.FolderOf` and `RelativePath`, and a new `SpeechStore` (one core `StaticLineStore` per folder, so no
+      core change); `NpcVoice`, `SpeechSummary` and the renderer.
+    - In the scripts: `playtest-build.sh`, `content-loop.sh` and `prerender-speech.sh`.
+    - The core's `ContentManifest` hashes the subfolders as it is.
+    - The start line reads `speech: 541 lines, 1082 files, 0 missing`.
+  - **The README's open points** without `buenas tardes`, with the counts, and two new points: the «Sí, es verdad.» scope and the
+    display-gated plate test.
+  - **Unchanged:** try-lines, and the scripted runs, which differ only in the speech counts (538/1076 to 541/1082) in the same work
+    folder. The identity baseline took the three new lines, none moved.
+  - **CI's case:** without models, 8243 passed, 45 skipped, one fuzz failure. It is O5 `8ogzm5GU5h-8`, a `word_order` recast of
+    `magos relacionados compañero`, a core finding. The orchestrator replayed it on the merged branch (`CsCheck_Seed`). It is the family M73 left recorded (`2tpLGUOSqj41`): the
+    pattern `([NOUN:item] [ADJ]|[WORD:qty] [NOUN:spell]) [NOUN:thing]` lets `[WORD:qty]` bind the moved adjective `relacionados`. V28
+    changed no intent or lexicon file, so it is older. The owner kept that family recorded, not narrowed (D-game-22, 2026-11-01), so it can
+    fail a gate or CI now and then; `docs/HANDOVER_AFTER_FOLLOWUPS.md` section 7 carries it.
+  - **The orchestrator's checks** in the game at session 10: the start line `speech: 541 lines, 1082 files, 0 missing`; Luz `Tienes veinte panes.` «Sí, es verdad.»,
+    `Tengo veinte panes.` «¡Qué bien!»; Domingo `me gusta el río` «Te entiendo. Yo hago hachas.»; León `usted tiene manzanas` «Te
+    entiendo. ¿Quieres manzanas?» (off the prompt, so not «Sí, es verdad.»). Not understood, older and outside V28: `usted hace hachas muy
+    buenas` at Domingo, `tú pescas mucho` at Mar.
