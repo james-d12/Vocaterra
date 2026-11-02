@@ -1774,7 +1774,7 @@
 {"id":"fuzz-correct-0425","stages":{"normalize":"bebd82edc1e1849c","analyze":"4e34e959692d0cde","match":"5122951714a212e1","grade":"900c23e0972100e7","pipeline":"6e6784fca3ce3460","recast":"48a2cb9508e442c9","g2p":"0ab7c4df40714bd8"}}
 {"id":"fuzz-correct-0426","stages":{"normalize":"4d0abf8333bedb6b","analyze":"a9ed1017e5c51034","match":"5122951714a212e1","grade":"896fed64ce201861","pipeline":"4b0ddccf57096667","recast":"576865c59310f7aa","g2p":"2d5d7ee9b49d9deb"}}
 {"id":"fuzz-correct-0427","stages":{"normalize":"884566148923b08a","analyze":"b8fb2e682b12ff69","match":"48bef443b5c8d99e","grade":"88299c65bd1a792e","pipeline":"c3b21d1de4b03e98","recast":"6a5e4b44d5d1f979","g2p":"d8d5f9f7cd673487"}}
-{"id":"fuzz-correct-0428","stages":{"normalize":"c4c3bc35c8500167","analyze":"a0a29c7a52435890","match":"609d3121aea74d52","grade":"171e125ab4c899fc","pipeline":"e86a9179c85e6bb8","recast":"c416e73192c44cd0","g2p":"9c0b01259c811761"}}
+{"id":"fuzz-correct-0428","stages":{"normalize":"c4c3bc35c8500167","analyze":"a0a29c7a52435890","match":"609d3121aea74d52","grade":"171e125ab4c899fc","pipeline":"a2fabc86d96e2ba3","recast":"c416e73192c44cd0","g2p":"9c0b01259c811761"}}
 {"id":"fuzz-correct-0429","stages":{"normalize":"c057229760d94146","analyze":"86860c7ee7812a11","match":"48bef443b5c8d99e","grade":"cb08a0f776b2c7e7","pipeline":"03d068b57e1d18a8","recast":"2eeb4ef64e01daef","g2p":"6bfb6ecf3f677abd"}}
 {"id":"fuzz-correct-0430","stages":{"normalize":"90b9a1bd8cbd4202","analyze":"f4d268be06e8c26a","match":"45dfdc08ff30c57a","grade":"55238dc251c0f5c8","pipeline":"9190c23f42becd56","recast":"c1d22457306a364e","g2p":"1688d4683a3bbf91"}}
 {"id":"fuzz-correct-0431","stages":{"normalize":"8741155371016ee5","analyze":"14a0f2f9c182dd78","match":"505cb7faa9439433","grade":"e011cfe711d93185","pipeline":"ef7d7fd21a5893b6","recast":"2de2fbd1d90c020c","g2p":"613375c03bb945e4"}}
@@ -6368,6 +6368,7 @@
 {"id":"dialogue:baker_sell.2","stages":{"render":"c64cc322d01c8dc0"}}
 {"id":"dialogue:baker_thank.1","stages":{"render":"267bead7d57632ce"}}
 {"id":"dialogue:baker_thank.2","stages":{"render":"e8cdb0bd91a51c89"}}
+{"id":"dialogue:baker_wait.1","stages":{"render":"8993e9ccf937b111"}}
 {"id":"dialogue:baker_wont_buy.1","stages":{"render":"d1d08e969854eef0"}}
 {"id":"dialogue:baker_wont_sell.1","stages":{"render":"7c023407298540aa"}}
 {"id":"dialogue:farewell_reply.1","stages":{"render":"0da07260dcbf3540"}}
@@ -6395,7 +6396,7 @@
 {"id":"dialogue:farmer_thank.2","stages":{"render":"e8cdb0bd91a51c89"}}
 {"id":"dialogue:farmer_total.1","stages":{"render":"261441192fd8eef5"}}
 {"id":"dialogue:farmer_true.1","stages":{"render":"47151d31290c66d0"}}
-{"id":"dialogue:farmer_wont_buy.1","stages":{"render":"741b60b0577d659b"}}
+{"id":"dialogue:farmer_wont_buy.1","stages":{"render":"72128546c0357729"}}
 {"id":"dialogue:farmer_wont_sell.1","stages":{"render":"d039be936373b7d7"}}
 {"id":"dialogue:feedback.explicit_correction.1","stages":{"render":"d1818eba65ff0bc7"}}
 {"id":"dialogue:feedback.explicit_correction.2","stages":{"render":"5cac29463923ab1b"}}
@@ -6640,7 +6641,7 @@
 {"id":"dialogue:shop_give.2","stages":{"render":"16a4249f9f3e1116"}}
 {"id":"dialogue:shop_give_bread.1","stages":{"render":"94bce3f35700a67f"}}
 {"id":"dialogue:shop_give_bread.2","stages":{"render":"64dbb4865a0e59b6"}}
-{"id":"dialogue:shop_hay.1","stages":{"render":"316578249a33d64d"}}
+{"id":"dialogue:shop_hay.1","stages":{"render":"6c6ccc5547b62e5e"}}
 {"id":"dialogue:shop_help_ask.1","stages":{"render":"82ad1cac10d33054"}}
 {"id":"dialogue:shop_help_offer.1","stages":{"render":"ba8744a2c3cfdfbf"}}
 {"id":"dialogue:shop_need.1","stages":{"render":"6ff24d0780505b4c"}}
@@ -6650,6 +6651,7 @@
 {"id":"dialogue:shop_thank.1","stages":{"render":"267bead7d57632ce"}}
 {"id":"dialogue:shop_thank.2","stages":{"render":"e8cdb0bd91a51c89"}}
 {"id":"dialogue:shop_true.1","stages":{"render":"47151d31290c66d0"}}
+{"id":"dialogue:shop_wont_sell.1","stages":{"render":"cc305b5bd1cdd724"}}
 {"id":"dialogue:smith_buy.1","stages":{"render":"fd02f092f399f214"}}
 {"id":"dialogue:smith_bye.1","stages":{"render":"ab9fdc9e11aa15a8"}}
 {"id":"dialogue:smith_bye.2","stages":{"render":"4fa6d8aa9b3008d4"}}
@@ -6682,3 +6684,4 @@
 {"id":"dialogue:villager_thank.2","stages":{"render":"e8cdb0bd91a51c89"}}
 {"id":"dialogue:villager_true.1","stages":{"render":"47151d31290c66d0"}}
 {"id":"dialogue:villager_unknown_place.1","stages":{"render":"44ce05c222d5ccbb"}}
+{"id":"dialogue:villager_wont_sell.1","stages":{"render":"48b9a6c119d55ca0"}}

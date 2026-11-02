@@ -145,7 +145,7 @@ public sealed class SellingTests
 
     [Theory]
     [InlineData("baker", "vendo pan", ItemId.Bread, "No, gracias. Solo compro madera.")]
-    [InlineData("farmer", "vendo madera", ItemId.Wood, "No, gracias. Solo compro fruta.")]
+    [InlineData("farmer", "vendo madera", ItemId.Wood, "No compro eso. Compro fruta del bosque.")]
     public void AnotherItemIsNotBoughtAndTheNpcSaysWhatItBuys(string npc, string line, ItemId offered, string answer)
     {
         var session = At(npc, offered, 2);

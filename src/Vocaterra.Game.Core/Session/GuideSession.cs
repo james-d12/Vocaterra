@@ -864,7 +864,7 @@ public abstract partial class GuideSession : IDisposable
         var phraseReview = PhraseReview;
         var support = Support.Snapshot();
         var scene = review is null
-            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: LiveInventory, PromptOverride: phraseReview?.Prompt ?? Lessons.ActivePrompt, Credited: Lessons.CreditedPhrases)
+            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: LiveInventory, PromptOverride: phraseReview?.Prompt ?? Lessons.ActivePrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc))
             : new GuideScene(Viewpoint, review.Target, Pointer is not null, Review: true, Inventory: LiveInventory);
         var turn = _npcs.Say(CurrentNpc, line, scene, StoredTime, StateDigest());
         PhraseReview? answeredReview = null;
@@ -1213,6 +1213,13 @@ public abstract partial class GuideSession : IDisposable
     /// <param name="npc">The NPC the panel opens on.</param>
     protected virtual string? OrderReadyAt(string npc) => null;
 
+    /// <summary>
+    /// Whether an NPC has an order whose goods the player carries and that a lesson keeps back until its step (VILLAGE_PLAN V13): the NPC then says why a purchase the coins
+    /// do not cover waits (V21, <see cref="NpcHostEvents.CantPayWait"/>). The 3D scene has the objectives; the base game has none.
+    /// </summary>
+    /// <param name="npc">The NPC.</param>
+    protected virtual bool OrderHeldAt(string npc) => false;
+
     /// <summary>The NPC thanked the player for an order (its opening was <c>&lt;npc&gt;.delivered</c>): the goods leave the inventory. The 3D scene does it.</summary>
     /// <param name="npc">The NPC.</param>
     /// <param name="order">The order's objective id (<see cref="OrderReadyAt"/>).</param>
@@ -1494,7 +1501,7 @@ public abstract partial class GuideSession : IDisposable
         var facts = SnapshotFacts();
         var inventory = LiveInventory.Copy();
         return review is null
-            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: inventory, Facts: facts, PromptOverride: PhraseReview?.Prompt ?? Lessons.ActivePrompt, Credited: Lessons.CreditedPhrases)
+            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: inventory, Facts: facts, PromptOverride: PhraseReview?.Prompt ?? Lessons.ActivePrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc))
             : new GuideScene(Viewpoint, review.Target, Pointer is not null, Review: true, Inventory: inventory, Facts: facts);
     }
 }

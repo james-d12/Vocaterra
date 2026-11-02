@@ -669,9 +669,15 @@ public sealed partial class VoxelSession : GuideSession
 
     /// <inheritdoc />
     protected override string? OrderReadyAt(string npc) =>
-        Objectives.FirstOrDefault(o => o.Spec.IsOrder && !o.Complete && o.Spec.ShownIn(Day) && string.Equals(o.Spec.DeliverTo, npc, StringComparison.Ordinal)
-            && o.Spec.Goods.All(goods => Simulation.Inventory.Count(goods.Item) >= goods.Count)
-            && !Lessons.HoldsOrder(o.Spec))?.Id; // the lesson that tells the order may keep it back until its plan is said (VILLAGE_PLAN V13)
+        GoodsHeldOrders(npc).FirstOrDefault(o => !Lessons.HoldsOrder(o.Spec))?.Id; // the lesson that tells the order may keep it back until its plan is said (VILLAGE_PLAN V13)
+
+    /// <inheritdoc />
+    protected override bool OrderHeldAt(string npc) => GoodsHeldOrders(npc).Any(o => Lessons.HoldsOrder(o.Spec));
+
+    // The shown, undone orders of an NPC whose goods the player carries.
+    private IEnumerable<Objective> GoodsHeldOrders(string npc) =>
+        Objectives.Where(o => o.Spec.IsOrder && !o.Complete && o.Spec.ShownIn(Day) && string.Equals(o.Spec.DeliverTo, npc, StringComparison.Ordinal)
+            && o.Spec.Goods.All(goods => Simulation.Inventory.Count(goods.Item) >= goods.Count));
 
     /// <inheritdoc />
     protected override void TakeOrder(string npc, string order)

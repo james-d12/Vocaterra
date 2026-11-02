@@ -86,6 +86,12 @@
       "matches": []
     },
     {
+      "key": "02732dd864eff2bc052c1a9384402a9d09cd2f64c9797715ac69e3af466e8c01",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Adónde van ellas",
+      "matches": []
+    },
+    {
       "key": "0338d669ba9b41a9577119f7c79dd464577f7c62f9f478ad7ebcc3fda99bce21",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí tengo que ir al río",
@@ -287,6 +293,12 @@
       "matches": []
     },
     {
+      "key": "0a0c3e493a053fdd821bd03ce3d4c54d568df818406ef120c3bec329b0b65b10",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me llamo luz",
+      "matches": []
+    },
+    {
       "key": "0a8c5de4c1dbd73ba4eb8e2242de01a3e023599e6fc60f77544cd2b556aaa9bf",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Cuánto cuesta todo",
@@ -362,12 +374,6 @@
       "key": "0cec631344478d4df4dce3be2e4f3bc7bc468b04b9a6321323c702868f603ed3",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Gracias no",
-      "matches": []
-    },
-    {
-      "key": "0d203a7f5c4181fedad15bac8dfcd628b24f3270601af2caddffad7fa9b76c1d",
-      "settings": "language=es;level=picky;motherTongue=en",
-      "text": "No, gracias. Solo compro fruta.",
       "matches": []
     },
     {
@@ -1199,9 +1205,9 @@
       "matches": []
     },
     {
-      "key": "24a92154e784a46995222c2546ca3fbe645c85ef90ac45a43d5cfe29b5e00663",
+      "key": "24a74c10434b62438e7c3395e32dd2aa7fd9ee1bcc7547b6517e9a1bd9fe7f3a",
       "settings": "language=es;level=picky;motherTongue=en",
-      "text": "Hay agua y pan.",
+      "text": "Quién es grande",
       "matches": []
     },
     {
@@ -1447,6 +1453,12 @@
       "matches": []
     },
     {
+      "key": "2a0719ff0296f6221f01afebd1255f23452b98668ebf5fa71caa30bba1b906df",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Como es la manzana",
+      "matches": []
+    },
+    {
       "key": "2a112af546bb41d89dec79ebc2d8e2f8aa2f67e23ec30917daee69d1459e783e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Fuiste a la panadería?",
@@ -1569,6 +1581,12 @@
       "key": "2e207f99fe33c3056a6e7be51521a031ff769dc04b862ffc3815805271dcd20f",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Las manzanas son rojas",
+      "matches": []
+    },
+    {
+      "key": "2e6291effe63734c1b0be251f4b498b9248f2776d94b7d4afd4bf0f6625e10c8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Qué es grande",
       "matches": []
     },
     {
@@ -1731,6 +1749,12 @@
       "matches": []
     },
     {
+      "key": "32d2b2c8c05bfb538fcf5dbef1b7debabd70210011e56e9fd5c0a9563db90316",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay agua.",
+      "matches": []
+    },
+    {
       "key": "33056b7814a159213a6d54f3deb765555e6fe6c491d357f4433590b915979cb4",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "la antorcha",
@@ -1822,6 +1846,12 @@
       "key": "3596915f27256370d87be30456d6a2880b6a4c4e66420a5aeb90985cf6a0fed8",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Casi. Piensa otra vez.",
+      "matches": []
+    },
+    {
+      "key": "35cbd3c3e9dd7c3c0f58941102a35b908eb1de2f0c247c662377f61bbca935c4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Solo tengo agua.",
       "matches": []
     },
     {
@@ -2865,6 +2895,12 @@
       "matches": []
     },
     {
+      "key": "4f8255ba14a3392813a14a763c277e5603711550106922f33d4ef5f72a731d5e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me llamo domingo",
+      "matches": []
+    },
+    {
       "key": "4fcb3a8f1a025570b94c4f830b9d97a8c31af16382a64d87265375e500719062",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Domingo hizo el hacha",
@@ -2993,6 +3029,12 @@
           ]
         }
       ]
+    },
+    {
+      "key": "5259036b7eb2b36842906c8987aaa847c8c8a41c67ac2ccdb285988a8bec2a2e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No compro eso. Compro fruta del bosque.",
+      "matches": []
     },
     {
       "key": "52ca02889695626d40a087824e919c5bf7354cc34c2fb85258eff27314b0da02",
@@ -4048,6 +4090,12 @@
       "matches": []
     },
     {
+      "key": "6e8e45f61018d252f8805d5e9dcf5f5df94e20dc7e9d405db72e2be74f9f0d3d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cómo es grande",
+      "matches": []
+    },
+    {
       "key": "6f24023986e675e034f585c2a83d608f6fdf09a2c7bb26011638c5410d7df37f",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Va a hacer un hacha hoy",
@@ -4660,6 +4708,12 @@
       "key": "7e4e884ce16248229b36a26f8659ab9540445a3bbbdc017b67512f4fe3ea0d6c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Fuimos al río",
+      "matches": []
+    },
+    {
+      "key": "7e887229b65c683b602fc7589b4775785191eba8dec041bcd9676e0cd80697cb",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cómo es la manzana",
       "matches": []
     },
     {
@@ -5336,6 +5390,12 @@
       "key": "9431d3f911e1789c2cc6ab510ea961fc0b29dab82be0e2aaa8352b8eda700059",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mira este pan. ¿Cómo es?",
+      "matches": []
+    },
+    {
+      "key": "945b60fd44845bea8732450a8cd2e72a6d0c0b916b939f2d476c10824a5092bd",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ellas adónde van",
       "matches": []
     },
     {
@@ -6761,6 +6821,12 @@
       "matches": []
     },
     {
+      "key": "bbee301375e4fae7c61f1874aea8250c84836cc8c787e9d8bbebe1f6687b85f9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Solo tengo pan.",
+      "matches": []
+    },
+    {
       "key": "bc054d5fff4732690b7695373cf3afe558057c5184907b6438d3d2090de826b4",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí: «Tengo un libro». ¡Muy bien!",
@@ -8025,6 +8091,12 @@
       "matches": []
     },
     {
+      "key": "e061c9e50721087728523c7f0876d2720715fb7529bf3d1ac16efa2578618df7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cuál es grande",
+      "matches": []
+    },
+    {
       "key": "e0a4b89c184a6049a28021ad310d831b0d8b9d0e2c33ada463e279d239576e5e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Puedes repetir, por favor",
@@ -9041,6 +9113,12 @@
       "key": "fc1ce32810a30984df0eb6b37708310979e70663d4522e8050c6d4ccf427f691",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde está la casa",
+      "matches": []
+    },
+    {
+      "key": "fc432e9085030a260c06bc59afbfff1cc19e9500d0a7752c8f48c53d1b268058",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Primero, la lección. Luego, las monedas.",
       "matches": []
     },
     {

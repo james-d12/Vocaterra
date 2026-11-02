@@ -13,7 +13,8 @@
     { "id": "villager_help", "count": 1 },
     { "id": "villager_point", "count": 2 },
     { "id": "villager_thank", "count": 2 },
-    { "id": "villager_unknown_place", "count": 1 }
+    { "id": "villager_unknown_place", "count": 1 },
+    { "id": "villager_wont_sell", "count": 1 }
   ],
   "states": [
     {
@@ -22,6 +23,7 @@
         { "onHostEvent": "villager.greet", "to": "idle", "actions": [{ "dialogueIntent": "villager_hello", "variantPoolId": "villager_hello" }] },
         { "on": {"intent": "greet", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "villager_greet", "variantPoolId": "villager_greet" }] },
         { "on": {"intent": "ask_directions", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "villager_point", "hostEvent": "villager.point", "variantPoolId": "villager_point" }] },
+        { "onHostEvent": "villager.wont_sell", "to": "idle", "actions": [{ "dialogueIntent": "villager_wont_sell", "variantPoolId": "villager_wont_sell" }] },
         { "onHostEvent": "villager.unknown_place", "to": "idle", "actions": [{ "dialogueIntent": "villager_unknown_place", "variantPoolId": "villager_unknown_place" }] },
         { "on": {"intent": "request_item", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "villager_give", "hostEvent": "villager.give", "variantPoolId": "villager_give" }] },
         { "on": {"intent": "ask_help", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "villager_help", "variantPoolId": "villager_help" }] },
@@ -44,6 +46,7 @@
         { "onHostEvent": "villager.greet", "to": "pointing", "actions": [{ "dialogueIntent": "villager_hello", "variantPoolId": "villager_hello" }] },
         { "on": {"intent": "greet", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "villager_greet", "variantPoolId": "villager_greet" }] },
         { "on": {"intent": "ask_directions", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "villager_point", "hostEvent": "villager.point", "variantPoolId": "villager_point" }] },
+        { "onHostEvent": "villager.wont_sell", "to": "pointing", "actions": [{ "dialogueIntent": "villager_wont_sell", "variantPoolId": "villager_wont_sell" }] },
         { "onHostEvent": "villager.unknown_place", "to": "idle", "actions": [{ "dialogueIntent": "villager_unknown_place", "variantPoolId": "villager_unknown_place" }] },
         { "on": {"intent": "request_item", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "villager_give", "hostEvent": "villager.give", "variantPoolId": "villager_give" }] },
         { "on": {"intent": "ask_help", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "villager_help", "variantPoolId": "villager_help" }] },

@@ -33,7 +33,7 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | farmer (León) | `pm_santa` | 44 | 1.0 | `voice-trial/pm_santa-1.0.wav` |
 | fisher (Mar) | `em_santa` | 53 | 0.9 | `voice-trial/em_santa-0.9.wav` |
 
-**To hear:** 934 of the 934 files have no mark (guide 404, villager 116, farmer 98, baker 90, shopkeeper 90, fisher 78, smith 58). Two files a line: the normal speed and the slow one.
+**To hear:** 940 of the 940 files have no mark (guide 404, villager 118, farmer 98, baker 92, shopkeeper 92, fisher 78, smith 58). Two files a line: the normal speed and the slow one.
 
 ## Lines
 
@@ -81,6 +81,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | baker_thank.1 | speech/baker_thank.1.wav | baker | 1.0 | De nada. |  |
 | baker_thank.2 | speech/baker_thank.2.slow.wav | baker | 0.8 | ¡Con gusto! |  |
 | baker_thank.2 | speech/baker_thank.2.wav | baker | 1.0 | ¡Con gusto! |  |
+| baker_wait.1 | speech/baker_wait.1.slow.wav | baker | 0.8 | Primero, la lección. Luego, las monedas. |  |
+| baker_wait.1 | speech/baker_wait.1.wav | baker | 1.0 | Primero, la lección. Luego, las monedas. |  |
 | baker_wont_buy.1 | speech/baker_wont_buy.1.slow.wav | baker | 0.8 | No, gracias. Solo compro madera. |  |
 | baker_wont_buy.1 | speech/baker_wont_buy.1.wav | baker | 1.0 | No, gracias. Solo compro madera. |  |
 | baker_wont_sell.1 | speech/baker_wont_sell.1.slow.wav | baker | 0.8 | Solo vendo pan. |  |
@@ -179,8 +181,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | farmer_total.1 | speech/farmer_total.1.wav | farmer | 1.0 | Quince manzanas, quince monedas. |  |
 | farmer_true.1 | speech/farmer_true.1.slow.wav | farmer | 0.8 | Sí, es verdad. |  |
 | farmer_true.1 | speech/farmer_true.1.wav | farmer | 1.0 | Sí, es verdad. |  |
-| farmer_wont_buy.1 | speech/farmer_wont_buy.1.slow.wav | farmer | 0.8 | No, gracias. Solo compro fruta. |  |
-| farmer_wont_buy.1 | speech/farmer_wont_buy.1.wav | farmer | 1.0 | No, gracias. Solo compro fruta. |  |
+| farmer_wont_buy.1 | speech/farmer_wont_buy.1.slow.wav | farmer | 0.8 | No compro eso. Compro fruta del bosque. |  |
+| farmer_wont_buy.1 | speech/farmer_wont_buy.1.wav | farmer | 1.0 | No compro eso. Compro fruta del bosque. |  |
 | farmer_wont_sell.1 | speech/farmer_wont_sell.1.slow.wav | farmer | 0.8 | Solo vendo manzanas. |  |
 | farmer_wont_sell.1 | speech/farmer_wont_sell.1.wav | farmer | 1.0 | Solo vendo manzanas. |  |
 | feedback.hint.1 | speech/feedback.hint.1.slow.wav | guide | 0.8 | Casi. Piensa otra vez. |  |
@@ -889,8 +891,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | shop_give_bread.1 | speech/shop_give_bread.1.wav | shopkeeper | 1.0 | Aquí tienes el pan. |  |
 | shop_give_bread.2 | speech/shop_give_bread.2.slow.wav | shopkeeper | 0.8 | Toma el pan. |  |
 | shop_give_bread.2 | speech/shop_give_bread.2.wav | shopkeeper | 1.0 | Toma el pan. |  |
-| shop_hay.1 | speech/shop_hay.1.slow.wav | shopkeeper | 0.8 | Hay agua y pan. |  |
-| shop_hay.1 | speech/shop_hay.1.wav | shopkeeper | 1.0 | Hay agua y pan. |  |
+| shop_hay.1 | speech/shop_hay.1.slow.wav | shopkeeper | 0.8 | Hay agua. |  |
+| shop_hay.1 | speech/shop_hay.1.wav | shopkeeper | 1.0 | Hay agua. |  |
 | shop_help_ask.1 | speech/shop_help_ask.1.slow.wav | shopkeeper | 0.8 | Puedes decir: «Quiero agua, por favor». |  |
 | shop_help_ask.1 | speech/shop_help_ask.1.wav | shopkeeper | 1.0 | Puedes decir: «Quiero agua, por favor». |  |
 | shop_help_offer.1 | speech/shop_help_offer.1.slow.wav | shopkeeper | 0.8 | Puedes decir: «Sí, por favor» o «No, gracias». |  |
@@ -909,6 +911,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | shop_thank.2 | speech/shop_thank.2.wav | shopkeeper | 1.0 | ¡Con gusto! |  |
 | shop_true.1 | speech/shop_true.1.slow.wav | shopkeeper | 0.8 | Sí, es verdad. |  |
 | shop_true.1 | speech/shop_true.1.wav | shopkeeper | 1.0 | Sí, es verdad. |  |
+| shop_wont_sell.1 | speech/shop_wont_sell.1.slow.wav | shopkeeper | 0.8 | Solo tengo agua. |  |
+| shop_wont_sell.1 | speech/shop_wont_sell.1.wav | shopkeeper | 1.0 | Solo tengo agua. |  |
 | smith_buy.1 | speech/smith_buy.1.slow.wav | smith | 0.8 | ¡Gracias! Aquí tienes tus monedas. |  |
 | smith_buy.1 | speech/smith_buy.1.wav | smith | 1.0 | ¡Gracias! Aquí tienes tus monedas. |  |
 | smith_bye.1 | speech/smith_bye.1.slow.wav | smith | 0.8 | ¡Adiós! Hasta luego. |  |
@@ -973,3 +977,5 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | villager_true.1 | speech/villager_true.1.wav | villager | 1.0 | Sí, es verdad. |  |
 | villager_unknown_place.1 | speech/villager_unknown_place.1.slow.wav | villager | 0.8 | No sé dónde está. |  |
 | villager_unknown_place.1 | speech/villager_unknown_place.1.wav | villager | 1.0 | No sé dónde está. |  |
+| villager_wont_sell.1 | speech/villager_wont_sell.1.slow.wav | villager | 0.8 | Solo tengo pan. |  |
+| villager_wont_sell.1 | speech/villager_wont_sell.1.wav | villager | 1.0 | Solo tengo pan. |  |
