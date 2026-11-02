@@ -839,8 +839,8 @@
       "intentId": "ask_how",
       "requiredSlots": [],
       "slotGrammars": [
-        "(quién|qué|cómo|como|cuál|cual) es (muy)? [ADJ]",
-        "(cómo|como) es [ART] [NOUN]",
+        "(quién|qué|cómo|como|cuál|cual) [VERB:ser] (muy)? [ADJ]",
+        "(cómo|como) [VERB:ser] [ART] [NOUN]",
         "(ellas|ellos|ustedes) (adónde|adonde) van",
         "(adónde|adonde) van (ellas|ellos|ustedes)"
       ],
