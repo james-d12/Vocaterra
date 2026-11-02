@@ -79,6 +79,34 @@ internal sealed partial class SpanishAgreementChecker
             }
 
             Add(ErrorTags.ConjPerson, v, v, expected, TextOf(v));
+            if (neuter)
+            {
+                CheckPriceQuestionWord(v);
+            }
+        }
+    }
+
+    // M69 (QA-language-10): before a verb of price or ser whose subject is a neuter pronoun after it (todo, eso), the question word asks how much and is the invariable
+    // cuánto, so an inflected one is reported with it when the verb disagrees with the pronoun as well: cuántos cuestan todo -> cuánto (noun.number) and cuesta,
+    // cuántas cuestan todo -> cuánto (gender.agree and noun.number), cuántos son todo -> cuánto and es. With a verb that agrees, the inflected word may count coins left
+    // unsaid (¿cuántas cuesta todo?: how many coins), and it is left alone.
+    private void CheckPriceQuestionWord(int verbIndex)
+    {
+        var question = HasDativePronounBefore(verbIndex) ? verbIndex - 2 : verbIndex - 1;
+        var word = question >= 0 ? FirstReading(question, static r => r.Pos == LexiconSchema.Adjective && SpanishAnalysisTables.IsInterrogativeQuantifier(r.Lemma)) : null;
+        if (word is null)
+        {
+            return;
+        }
+
+        if (word.Gender is not null && word.Gender != LexiconSchema.Masculine)
+        {
+            Add(ErrorTags.GenderAgree, question, question, "cuánto", TextOf(question));
+        }
+
+        if (word.Number is not null && word.Number != LexiconSchema.Singular)
+        {
+            Add(ErrorTags.NounNumber, question, question, "cuánto", TextOf(question));
         }
     }
 
@@ -241,11 +269,14 @@ internal sealed partial class SpanishAgreementChecker
             && !(next < _tokens.Count && TextOf(next) is "de" or "del");
     }
 
-    // The verb at index follows cuánto, with a dative pronoun between or not (¿cuánto cuesta?, ¿cuánto te cuesta?, ¿cuánto es?).
+    // The verb at index follows cuánto, with a dative pronoun between or not (¿cuánto cuesta?, ¿cuánto te cuesta?, ¿cuánto es?). M69: or another form of it, with or
+    // without the accent (cuántos cuestan todo, cuantos son todo), which CheckPriceQuestionWord reports.
     private bool FollowsPriceQuestionWord(int verbIndex)
     {
         var before = HasDativePronounBefore(verbIndex) ? verbIndex - 2 : verbIndex - 1;
-        return before >= 0 && TextOf(before) is "cuánto" or "cuanto";
+        return before >= 0
+            && (TextOf(before) is "cuánto" or "cuanto"
+                || HasReading(before, static r => r.Pos == LexiconSchema.Adjective && SpanishAnalysisTables.IsInterrogativeQuantifier(r.Lemma)));
     }
 
     // M66: a neuter pronoun (todo, eso, esto, aquello) that stands alone after the verb: no determiner, noun or adjective after it that it would be the determiner of

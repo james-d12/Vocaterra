@@ -274,6 +274,16 @@ internal static class ReadingResolver
                 changed |= Narrow(i, IsDeterminer);
             }
 
+            // M69: a form of a copula that is also a noun right after the interrogative quantifier in any of its forms is the copula (¿cuántos son?: how many are there,
+            // not cuántos sones; ¿cuántos son todo?), as M66 reads it after cuánto below; the noun phrase rule after a determiner would take the noun.
+            if (next < Count
+                && All(i, r => r.Pos == LexiconSchema.Adjective && _rules.IsInterrogativeQuantifier(r.Lemma))
+                && HasReading(next, r => r.Pos == LexiconSchema.Noun)
+                && HasReading(next, IsCopulaReading))
+            {
+                changed |= Narrow(next, IsCopulaReading);
+            }
+
             // A noun phrase that starts with a determiner, or with an adjective that starts the utterance (buenos días), has a noun as its head.
             if (IsCertainDeterminer(i) || (i == 0 && IsCertainAdjective(i)))
             {
