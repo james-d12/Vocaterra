@@ -226,8 +226,8 @@ public class VillageQaLineTests
         var prompt = TestSupport.QuizPrompt;
         var result = TestSupport.Pipeline(transcript, prompt.Mode).Evaluate(TestSupport.Clip(), prompt, TestSupport.Context(agentId: "player"));
 
-        var error = Assert.Single(result.Verdict.Errors);
-        Assert.Equal("vocab.wrong", error.Tag);
+        // M73: dos panes es caro also has its grammar errors now (conj.person son, noun.number caros: goods are dear in the plural); the vocab.wrong is the one read.
+        var error = Assert.Single(result.Verdict.Errors, static e => e.Tag == "vocab.wrong");
         Assert.Equal(heard, error.Actual);
     }
 }

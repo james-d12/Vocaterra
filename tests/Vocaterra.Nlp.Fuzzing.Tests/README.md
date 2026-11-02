@@ -135,7 +135,9 @@ code comments and here, with the reason:
     es suficiente`; R5 of the review of `feature/village`), so `es` there is as right as `son`. M59's mutation of a third-person verb after a noun subject is not made
     on exactly that case: the sentence opens with a numeral, the verb is `ser` and the new form singular, and the word after it (past at most two skippable words) is a
     word of `LexiconCatalog.AmountPredicates` (`mucho`, `poco`, `suficiente`, `caro`...) or can open a phrase of the singular (an article, a numeral or a determiner
-    adjective of the singular), as `SpanishAgreementChecker.IsAmountReadAsUnit` asks (it also asks for the phrase's noun, so the guard is a little wider). Every other
+    adjective of the singular), as `SpanishAgreementChecker.IsAmountReadAsUnit` asks (it also asks for the phrase's noun, so the guard is a little wider). Since M73
+    a price (`caro`, `barato`) counts only after a money unit (`diez monedas es caro`), as the analyzer reads it (`dos panes es caro` gives `son`): the guard follows,
+    a widening. Every other
     case of the mutation is made as before: an article before the noun (`las manzanas es roja`), a verb other than `ser` (`dos niños come pan`), a predicate of the
     plural or an adjective that says no amount (`dos niños son altos` becomes `es altos`, expected `son`). `AmountMutationGuardTests` shows that the guard is needed
     (without it the mutation builds `dos niños es un problema`, which the analyzer rightly finds correct) and that the mutation is still made before a predicate of the

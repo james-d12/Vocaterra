@@ -494,13 +494,15 @@ public static class MutationGen
 
         // M64 (b): the word after the verb at index (past at most two skippable words) is a word of LexiconCatalog.AmountPredicates or can open a noun phrase of the
         // singular (an article, a numeral or a determiner adjective of the singular): the predicate after which the analyzer reads an amount before a singular ser as one
-        // sum (mirror of SpanishAgreementChecker.IsAmountReadAsUnit, which also asks the phrase for its noun).
+        // sum (mirror of SpanishAgreementChecker.IsAmountReadAsUnit, which also asks the phrase for its noun). M73: a price (caro, barato) only after money (diez
+        // monedas es caro; dos panes es caro is mutated, a widening).
         private bool SingularPredicateAfter(int verb)
         {
+            var money = _tokens.Take(verb).Any(static t => t is { Role: TokenRole.Noun, Lemma: { } lemma } && LexiconCatalog.MoneyNouns.Contains(lemma));
             for (var index = verb + 1; index < _tokens.Count && index - verb <= MaxSkippedBetween + 1; index++)
             {
                 var token = _tokens[index];
-                if (LexiconCatalog.AmountPredicates.Contains(token.Norm)
+                if ((LexiconCatalog.AmountPredicates.Contains(token.Norm) && (money || !LexiconCatalog.PricePredicates.Contains(token.Norm)))
                     || token is { Role: TokenRole.Numeral, Number: LexiconSchema.Singular }
                     || _words.Lexicon.Lookup(token.Norm).Any(static r => r.Number == LexiconSchema.Singular
                         && (r.Pos is LexiconSchema.Article or LexiconSchema.Numeral
