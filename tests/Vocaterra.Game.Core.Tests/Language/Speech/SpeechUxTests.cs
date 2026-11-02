@@ -154,7 +154,7 @@ public sealed class SpeechUxTests
     }
 
     [Fact]
-    public void ATypedLineTheCoreDidNotUnderstandStillMarksTheLearnerBecauseItIsALanguageFailure()
+    public void ATypedLineThePromptDoesNotTakeIsNoUncertainRecognitionAndMarksNoErrorOnTheLearner()
     {
         var session = TestGame.NewSession();
         Stage.TeleportToNpc(session, "shopkeeper");

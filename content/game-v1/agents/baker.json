@@ -2,6 +2,7 @@
   "agentId": "baker",
   "initialState": "idle",
   "variantPools": [
+    { "id": "baker_understood", "count": 1 },
     { "id": "answer_accepted", "count": 3 },
     { "id": "not_understood", "count": 2 },
     { "id": "baker_nice", "count": 1 },
@@ -27,6 +28,7 @@
     {
       "id": "idle",
       "transitions": [
+        { "onHostEvent": "baker.understood", "to": "idle", "actions": [{ "dialogueIntent": "baker_understood", "variantPoolId": "baker_understood" }] },
         { "onHostEvent": "baker.greet", "to": "idle", "actions": [{ "dialogueIntent": "baker_hello", "variantPoolId": "baker_hello" }] },
         { "onHostEvent": "baker.delivered", "to": "idle", "actions": [{ "dialogueIntent": "baker_delivered", "hostEvent": "baker.pay", "variantPoolId": "baker_delivered" }] },
         { "onHostEvent": "baker.cant_pay", "to": "idle", "actions": [{ "dialogueIntent": "baker_cant_pay", "variantPoolId": "baker_cant_pay" }] },

@@ -17,6 +17,7 @@
     "idle": "stall-need",
     "offering": "stall-offer"
   },
+  "offPromptPool": "shop_understood",
   "opening": {
     "event": "shopkeeper.ask",
     "when": "first"

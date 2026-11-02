@@ -908,6 +908,30 @@
       "Bytes": 52124,
       "Gain": 0.32
     },
+    "speech/baker_understood.1.slow.wav": {
+      "Text": "Te entiendo. \u00BFQuieres pan?",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "49c5f5f8d09d4839e8d7c832dad0b379c00a5b0cac61f9226087b7eeaf6811db",
+      "Bytes": 137374,
+      "Gain": 0.32
+    },
+    "speech/baker_understood.1.wav": {
+      "Text": "Te entiendo. \u00BFQuieres pan?",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "4c268e9c8d464c0635bd87af697945dc17eabf9fcaaff7a99dd5b78833f33ee9",
+      "Bytes": 104160,
+      "Gain": 0.32
+    },
     "speech/baker_wait.1.slow.wav": {
       "Text": "Primero, la lecci\u00F3n. Luego, las monedas.",
       "Speaker": "baker",
@@ -2013,6 +2037,28 @@
       "ModelHash": "9b21535b15c9c2b30c726fc985eb38a563c9bf9e48aad254c6809beae3fab923",
       "Sha256": "d62b8830fb801099301a1a230064efe32167817168d0878a14c17c199709d084",
       "Bytes": 68444
+    },
+    "speech/farmer_understood.1.slow.wav": {
+      "Text": "Te entiendo. \u00BFQuieres manzanas?",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "99324140e895378c24c51a36d4c9f56ae9491ae112c393bff07f5f85b9656cf5",
+      "Sha256": "930fdc34fbf2b6c2b78d449134a3b1e93495a1bc4c4316a1ec8c752bcd13b7c2",
+      "Bytes": 141458
+    },
+    "speech/farmer_understood.1.wav": {
+      "Text": "Te entiendo. \u00BFQuieres manzanas?",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9b21535b15c9c2b30c726fc985eb38a563c9bf9e48aad254c6809beae3fab923",
+      "Sha256": "040e94964de23ee1ae4dac939b935d6d74ae5d45c5546ec47537a900748cd28f",
+      "Bytes": 125990
     },
     "speech/farmer_unit.1.slow.wav": {
       "Text": "Una manzana, una moneda.",
@@ -3155,6 +3201,28 @@
       "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
       "Sha256": "72a4924f643f48f5e756dafb27fdbac359e7e5af4008bc9cda4eda304e589c21",
       "Bytes": 58844
+    },
+    "speech/fisher_understood.1.slow.wav": {
+      "Text": "Te entiendo. \u00BFBuscas un lugar?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "d315e7cfe2374ef2ca12bb876e8813de0c15a1fe79f466a25ce2206b59d8d12f",
+      "Bytes": 147852
+    },
+    "speech/fisher_understood.1.wav": {
+      "Text": "Te entiendo. \u00BFBuscas un lugar?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "e9e87e4677ef0e2003b9a159b8db2f4f1e896079f4d55007651c94a044e4019b",
+      "Bytes": 133856
     },
     "speech/fisher_unknown_place.1.slow.wav": {
       "Text": "No s\u00E9 d\u00F3nde est\u00E1.",
@@ -7117,6 +7185,28 @@
       "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
       "Sha256": "692170556503ea21239a7e9773dcb5e4485efa05273f45a874866300dcd152a2",
       "Bytes": 67244
+    },
+    "speech/guide_understood.1.slow.wav": {
+      "Text": "Te entiendo. \u00BFQu\u00E9 quieres aprender?",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "7103bff8546c2dd42e34fc5cc4d417fc6b193599cc2dea980d4f0936ee8e35d5",
+      "Bytes": 162044
+    },
+    "speech/guide_understood.1.wav": {
+      "Text": "Te entiendo. \u00BFQu\u00E9 quieres aprender?",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "67d8dd075a8012852eb334789d9521a952c1d8e0d5ca03681ef79bbe693b8441",
+      "Bytes": 119410
     },
     "speech/not_understood.1.baker.slow.wav": {
       "Text": "No te entend\u00ED. \u00BFMe lo dices otra vez?",
@@ -11090,6 +11180,28 @@
       "Sha256": "75f52e2071c573dfe10699907690f7f195f1b1eab129937bdfa130d61943d379",
       "Bytes": 60044
     },
+    "speech/shop_understood.1.slow.wav": {
+      "Text": "Te entiendo. \u00BFQuieres comprar algo?",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "fb8e2a935145ab41ed0f66e30299d072f0fd5bb2fee4e2b8e31a5177726f9137",
+      "Sha256": "466f75d080542242ace88f74943a653927d899b41f21898cc0b93fef23db1d98",
+      "Bytes": 162472
+    },
+    "speech/shop_understood.1.wav": {
+      "Text": "Te entiendo. \u00BFQuieres comprar algo?",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
+      "Sha256": "7df1551fa753bf5240e37418c958d2db8bd75211fd6f544301348a770399c0c1",
+      "Bytes": 131340
+    },
     "speech/shop_wont_sell.1.slow.wav": {
       "Text": "No tengo eso. Tengo agua y pan.",
       "Speaker": "shopkeeper",
@@ -11520,6 +11632,30 @@
       "Bytes": 52466,
       "Gain": 0.6
     },
+    "speech/smith_understood.1.slow.wav": {
+      "Text": "Te entiendo. Yo hago hachas.",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "74ccefe450428c0d43b4a93003662c032b03f1b394c0c577da5163eb3bee5afe",
+      "Sha256": "858402cb1b1a6dc2eba03c33702b845cf66ff6ab07c4db019768b923216ea3ce",
+      "Bytes": 132282,
+      "Gain": 0.6
+    },
+    "speech/smith_understood.1.wav": {
+      "Text": "Te entiendo. Yo hago hachas.",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
+      "Sha256": "cd4453dfcb9d463ea81927798e54b04e3508f9947e0bdb50d2929b10474e4024",
+      "Bytes": 105406,
+      "Gain": 0.6
+    },
     "speech/smith_wont_buy.1.slow.wav": {
       "Text": "No, gracias. Solo compro madera.",
       "Speaker": "smith",
@@ -11829,6 +11965,28 @@
       "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
       "Sha256": "7356470cb3baa8b6083c8b4a2e8bd2ce9e43ad153321b73ca0d58a666efa986b",
       "Bytes": 63644
+    },
+    "speech/villager_understood.1.slow.wav": {
+      "Text": "Te entiendo. \u00BFQu\u00E9 buscas?",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "582bff1facec664e0c88b222b72770a195e06c2d9ca39c8596ff5e65a9fc4a13",
+      "Sha256": "b80b715a09ab585a58a3f499b8fccd096948831213a45cb456bfc4df6679087f",
+      "Bytes": 144044
+    },
+    "speech/villager_understood.1.wav": {
+      "Text": "Te entiendo. \u00BFQu\u00E9 buscas?",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
+      "Sha256": "8fda98c204a7f6276931f5545c535ee51ea77fa249bc69f3e9a11ebdaf28e74c",
+      "Bytes": 104900
     },
     "speech/villager_unknown_place.1.slow.wav": {
       "Text": "No s\u00E9 d\u00F3nde est\u00E1.",

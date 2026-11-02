@@ -2,6 +2,7 @@
   "agentId": "fisher",
   "initialState": "idle",
   "variantPools": [
+    { "id": "fisher_understood", "count": 1 },
     { "id": "answer_accepted", "count": 3 },
     { "id": "not_understood", "count": 2 },
     { "id": "fisher_nice", "count": 1 },
@@ -20,6 +21,7 @@
     {
       "id": "idle",
       "transitions": [
+        { "onHostEvent": "fisher.understood", "to": "idle", "actions": [{ "dialogueIntent": "fisher_understood", "variantPoolId": "fisher_understood" }] },
         { "onHostEvent": "fisher.greet", "to": "idle", "actions": [{ "dialogueIntent": "fisher_hello", "variantPoolId": "fisher_hello" }] },
         { "onHostEvent": "fisher.delivered", "to": "idle", "actions": [{ "dialogueIntent": "fisher_delivered", "hostEvent": "fisher.pay", "variantPoolId": "fisher_delivered" }] },
         { "on": {"intent": "greet", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "fisher_greet", "variantPoolId": "fisher_greet" }] },
@@ -41,6 +43,7 @@
     {
       "id": "pointing",
       "transitions": [
+        { "onHostEvent": "fisher.understood", "to": "pointing", "actions": [{ "dialogueIntent": "fisher_understood", "variantPoolId": "fisher_understood" }] },
         { "onHostEvent": "fisher.greet", "to": "pointing", "actions": [{ "dialogueIntent": "fisher_hello", "variantPoolId": "fisher_hello" }] },
         { "onHostEvent": "fisher.delivered", "to": "pointing", "actions": [{ "dialogueIntent": "fisher_delivered", "hostEvent": "fisher.pay", "variantPoolId": "fisher_delivered" }] },
         { "on": {"intent": "greet", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "fisher_greet", "variantPoolId": "fisher_greet" }] },

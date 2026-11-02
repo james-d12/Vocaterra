@@ -2,6 +2,7 @@
   "agentId": "smith",
   "initialState": "idle",
   "variantPools": [
+    { "id": "smith_understood", "count": 1 },
     { "id": "answer_accepted", "count": 3 },
     { "id": "not_understood", "count": 2 },
     { "id": "smith_nice", "count": 1 },
@@ -25,6 +26,7 @@
     {
       "id": "idle",
       "transitions": [
+        { "onHostEvent": "smith.understood", "to": "idle", "actions": [{ "dialogueIntent": "smith_understood", "variantPoolId": "smith_understood" }] },
         { "onHostEvent": "smith.greet", "to": "idle", "actions": [{ "dialogueIntent": "smith_hello", "variantPoolId": "smith_hello" }] },
         { "onHostEvent": "smith.delivered", "to": "idle", "actions": [{ "dialogueIntent": "smith_delivered", "hostEvent": "smith.give_axe", "variantPoolId": "smith_delivered" }] },
         { "onHostEvent": "smith.cant_sell", "to": "idle", "actions": [{ "dialogueIntent": "smith_cant_sell", "variantPoolId": "smith_cant_sell" }] },

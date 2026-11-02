@@ -190,6 +190,12 @@
         { "lineId": "guide.review.phrase.no_gracias.1", "text": "¿Quieres agua?" }
       ]
     },
+    "guide_understood": {
+      "poolId": "guide_understood",
+      "variants": [
+        { "lineId": "guide_understood.1", "text": "Te entiendo. ¿Qué quieres aprender?" }
+      ]
+    },
     "guide.uncertain": {
       "poolId": "guide.uncertain",
       "variants": [
@@ -386,6 +392,12 @@
         { "lineId": "shop_thank.2", "text": "¡Con gusto!" }
       ]
     },
+    "shop_understood": {
+      "poolId": "shop_understood",
+      "variants": [
+        { "lineId": "shop_understood.1", "text": "Te entiendo. ¿Quieres comprar algo?" }
+      ]
+    },
     "shop_nice": {
       "poolId": "shop_nice",
       "variants": [
@@ -449,6 +461,12 @@
       "variants": [
         { "lineId": "villager_thank.1", "text": "De nada." },
         { "lineId": "villager_thank.2", "text": "¡Con gusto!" }
+      ]
+    },
+    "villager_understood": {
+      "poolId": "villager_understood",
+      "variants": [
+        { "lineId": "villager_understood.1", "text": "Te entiendo. ¿Qué buscas?" }
       ]
     },
     "villager_nice": {
@@ -800,6 +818,12 @@
         { "lineId": "fisher_thank.2", "text": "¡Con gusto!" }
       ]
     },
+    "fisher_understood": {
+      "poolId": "fisher_understood",
+      "variants": [
+        { "lineId": "fisher_understood.1", "text": "Te entiendo. ¿Buscas un lugar?" }
+      ]
+    },
     "fisher_nice": {
       "poolId": "fisher_nice",
       "variants": [
@@ -959,6 +983,12 @@
         { "lineId": "baker_thank.2", "text": "¡Con gusto!" }
       ]
     },
+    "baker_understood": {
+      "poolId": "baker_understood",
+      "variants": [
+        { "lineId": "baker_understood.1", "text": "Te entiendo. ¿Quieres pan?" }
+      ]
+    },
     "baker_nice": {
       "poolId": "baker_nice",
       "variants": [
@@ -1099,6 +1129,12 @@
         { "lineId": "smith_thank.2", "text": "¡Con gusto!" }
       ]
     },
+    "smith_understood": {
+      "poolId": "smith_understood",
+      "variants": [
+        { "lineId": "smith_understood.1", "text": "Te entiendo. Yo hago hachas." }
+      ]
+    },
     "smith_nice": {
       "poolId": "smith_nice",
       "variants": [
@@ -1159,6 +1195,12 @@
       "variants": [
         { "lineId": "farmer_thank.1", "text": "De nada." },
         { "lineId": "farmer_thank.2", "text": "¡Con gusto!" }
+      ]
+    },
+    "farmer_understood": {
+      "poolId": "farmer_understood",
+      "variants": [
+        { "lineId": "farmer_understood.1", "text": "Te entiendo. ¿Quieres manzanas?" }
       ]
     },
     "farmer_nice": {

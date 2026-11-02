@@ -1,7 +1,10 @@
 using Vocaterra.Game.Core.Language.Speech;
+using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Determinism;
+using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Pipeline;
+using Vocaterra.Nlp.Response.Templates;
 
 namespace Vocaterra.Game.Core.Npc;
 
@@ -94,6 +97,26 @@ public static class NpcTurnRules
         }
 
         return new MissAnswers(unsaid, lines, context);
+    }
+
+    /// <summary>The stream of the draw of an off-prompt reply (V27), the same in the game and the host.</summary>
+    public const string OffPromptStream = "guide.offprompt";
+
+    /// <summary>
+    /// The NPC's reply to a line in free talk that its prompt does not take but the core understands (V27, <c>Verdict.OffPromptIntent</c>): the line of the NPC's own pool
+    /// (<see cref="NpcEntry.OffPromptPool"/>), «Te entiendo. Yo hago hachas.», drawn from the interaction's seed, with no repair step and no correction.
+    /// </summary>
+    /// <param name="bundle">The content bundle.</param>
+    /// <param name="pool">The NPC's off-prompt pool.</param>
+    /// <param name="worldSeed">The world seed.</param>
+    /// <param name="counter">The agent's interaction counter before the turn.</param>
+    public static string OffPromptReply(ContentBundle bundle, string pool, ulong worldSeed, long counter)
+    {
+        ArgumentNullException.ThrowIfNull(bundle);
+        ArgumentNullException.ThrowIfNull(pool);
+        var found = bundle.Dialogue.TryGetPool(pool, out var p) ? p : throw new InvalidOperationException($"The bundle has no dialogue pool '{pool}'.");
+        var variant = DialogueSelector.Select(found, SeededRng.ForInteraction(worldSeed, OffPromptStream, counter));
+        return bundle.TemplateEngine.Render(variant, SlotMap.Empty);
     }
 
     /// <summary>

@@ -186,6 +186,15 @@ public sealed record GuideTurn(
     /// </summary>
     public IReadOnlyList<string> AccentNotes { get; init; } = [];
 
+    /// <summary>
+    /// The intent the core found for a line the prompt does not take (<c>Verdict.OffPromptIntent</c>, M72), set when the NPC answered it with its off-prompt line in free
+    /// talk (V27); <see langword="null"/> otherwise. The line is not <see cref="Communicated"/>, and no repair step follows it.
+    /// </summary>
+    public string? OffPromptIntent { get; init; }
+
+    /// <summary>Whether the NPC took the line: the core communicated it, or it is one the NPC understood off its prompt (V27). The book credits what it takes.</summary>
+    public bool Taken => Communicated || OffPromptIntent is not null;
+
     /// <summary>Whether the follow-up lines are the guide's last line said again slowly (the learner asked <c>Más despacio, por favor</c>, S17): the front-end plays the slow recording.</summary>
     public bool SlowFollowUp { get; init; }
 

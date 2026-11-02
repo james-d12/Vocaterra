@@ -2,6 +2,7 @@
   "agentId": "villager",
   "initialState": "idle",
   "variantPools": [
+    { "id": "villager_understood", "count": 1 },
     { "id": "answer_accepted", "count": 3 },
     { "id": "not_understood", "count": 2 },
     { "id": "villager_nice", "count": 1 },
@@ -20,6 +21,7 @@
     {
       "id": "idle",
       "transitions": [
+        { "onHostEvent": "villager.understood", "to": "idle", "actions": [{ "dialogueIntent": "villager_understood", "variantPoolId": "villager_understood" }] },
         { "onHostEvent": "villager.greet", "to": "idle", "actions": [{ "dialogueIntent": "villager_hello", "variantPoolId": "villager_hello" }] },
         { "on": {"intent": "greet", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "villager_greet", "variantPoolId": "villager_greet" }] },
         { "on": {"intent": "ask_directions", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "villager_point", "hostEvent": "villager.point", "variantPoolId": "villager_point" }] },
@@ -43,6 +45,7 @@
     {
       "id": "pointing",
       "transitions": [
+        { "onHostEvent": "villager.understood", "to": "pointing", "actions": [{ "dialogueIntent": "villager_understood", "variantPoolId": "villager_understood" }] },
         { "onHostEvent": "villager.greet", "to": "pointing", "actions": [{ "dialogueIntent": "villager_hello", "variantPoolId": "villager_hello" }] },
         { "on": {"intent": "greet", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "villager_greet", "variantPoolId": "villager_greet" }] },
         { "on": {"intent": "ask_directions", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "villager_point", "hostEvent": "villager.point", "variantPoolId": "villager_point" }] },

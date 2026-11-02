@@ -1691,6 +1691,12 @@
       "matches": []
     },
     {
+      "key": "30614d92fa4b3bad97d6a2069500814a48d34dcfeceb67d8f5aab4c7d472a68a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te entiendo. ¿Qué buscas?",
+      "matches": []
+    },
+    {
       "key": "307386d572b6485f0960dcd125734ad11ecbf0a1c4bf8b9b02b0b3587ee59a72",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer vamos al río",
@@ -3954,6 +3960,12 @@
       "matches": []
     },
     {
+      "key": "6a776e59b4dd431784c95ea91da65f4cfd7517842017b189b76a2b26dd7774ec",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te entiendo. ¿Buscas un lugar?",
+      "matches": []
+    },
+    {
       "key": "6a7b890d7ef5fd08cb23f7148f83de8a7eb4dc44b6635e89c18be2943647dc13",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, me gustó el pan de Luz.",
@@ -5966,6 +5978,12 @@
       "matches": []
     },
     {
+      "key": "a0dc3bc6519416459ff8cc8d780a21879915cbe3fba19a593a6b2e0a3881aa46",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te entiendo. ¿Qué quieres aprender?",
+      "matches": []
+    },
+    {
       "key": "a12a48302de1bda3afa5ae5b7deecd4bada585e40e1c818157a427645f1e53a8",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "el puente",
@@ -6355,6 +6373,12 @@
       "key": "ab9a1946667043a5a1aad6e9b123efa460799ee63de9e026f8f39c7e3a92a13e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Bebí agua ayer",
+      "matches": []
+    },
+    {
+      "key": "ac8f1778dfbc2f9f4be60912556793e3c29f5466960b4deaf0743dccf36efd79",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te entiendo. ¿Quieres manzanas?",
       "matches": []
     },
     {
@@ -7972,6 +7996,18 @@
       "matches": []
     },
     {
+      "key": "db342223d562bd44c03c6b638145acc4d963e953195b873c32bc4418e480ff9f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te entiendo. ¿Quieres pan?",
+      "matches": []
+    },
+    {
+      "key": "db95d0c1188fc235246e6fa3c3a84362f5ed315316b211d1a6ed5e1cfd8e076e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te entiendo. Yo hago hachas.",
+      "matches": []
+    },
+    {
       "key": "db994df40c6cae123177df50eaa7a6127f928d892985e10e6af32f1b4ac3335d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Esto es grande",
@@ -8522,6 +8558,12 @@
       "key": "eb6a91abd8941aa22b9f944abb5a3c9b2915d7b06bfefc524f11470ca4ef95c4",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Busco la tienda",
+      "matches": []
+    },
+    {
+      "key": "eb8498f13844663d1dacb897f8f8ec52ba43c62ca2ea2fee022282e8d010964c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te entiendo. ¿Quieres comprar algo?",
       "matches": []
     },
     {
