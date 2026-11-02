@@ -40,7 +40,9 @@ internal sealed partial class SpanishAgreementChecker
                 firstOrSecond = verb is not null;
             }
 
-            if (verb is null || HasPreverbalSubject(v))
+            // M73 (M72's fuzz finding, O2 7HIoK0InC7l7): nor after a verb that CheckSubjectVerb agreed with a subject pronoun before it, past an adverb such as the
+            // unaccented adonde (nosotros adonde estaría nenas gave estaríamos and estarían on one word).
+            if (verb is null || HasPreverbalSubject(v) || _verbsWithPronounSubject.Contains(v))
             {
                 continue;
             }
@@ -70,6 +72,12 @@ internal sealed partial class SpanishAgreementChecker
 
             if (number is null || readings.Any(r => r.Lemma == verb.Lemma && r.Person == "3" && r.Number == number && r.Tense == verb.Tense))
             {
+                if (number is not null && neuter && SpanishAnalysisTables.IsPriceVerb(verb.Lemma))
+                {
+                    // M73 (M69's left point): a verb of price that agrees with its neuter subject still asks how much (¿cuántas cuesta todo? -> cuánto).
+                    CheckPriceQuestionWord(v);
+                }
+
                 continue;
             }
 
@@ -89,8 +97,9 @@ internal sealed partial class SpanishAgreementChecker
 
     // M69 (QA-language-10): before a verb of price or ser whose subject is a neuter pronoun after it (todo, eso), the question word asks how much and is the invariable
     // cuánto, so an inflected one is reported with it when the verb disagrees with the pronoun as well: cuántos cuestan todo -> cuánto (noun.number) and cuesta,
-    // cuántas cuestan todo -> cuánto (gender.agree and noun.number), cuántos son todo -> cuánto and es. With a verb that agrees, the inflected word may count coins left
-    // unsaid (¿cuántas cuesta todo?: how many coins), and it is left alone.
+    // cuántas cuestan todo -> cuánto (gender.agree and noun.number), cuántos son todo -> cuánto and es. M73 (M69's left point): so is a verb of price that agrees
+    // with the pronoun (¿cuántas cuesta todo? -> cuánto; before M73 cuesta was read as a noun, noun.number cuestas), where no noun is said for the inflected word to
+    // count. ser that agrees is left alone, as M69 left it: the inflected word may count coins left unsaid (¿cuántos es todo?).
     private void CheckPriceQuestionWord(int verbIndex)
     {
         var question = HasDativePronounBefore(verbIndex) ? verbIndex - 2 : verbIndex - 1;

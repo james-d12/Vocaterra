@@ -2133,7 +2133,10 @@
 {"id":"intents:greet.ex4","text":"buen día","kind":"learner","errors":[]}
 {"id":"intents:greet.ex5","text":"hola, Luna","kind":"learner","errors":[]}
 {"id":"intents:greet.ex6","text":"buenos día","kind":"learner","errors":["noun.number"]}
-{"id":"intents:greet.ex7","text":"hola amigo","kind":"learner","errors":[]}
+{"id":"intents:greet.ex7","text":"cómo estás","kind":"learner","errors":[]}
+{"id":"intents:greet.ex8","text":"cómo está usted","kind":"learner","errors":[]}
+{"id":"intents:greet.ex9","text":"cómo estás usted","kind":"learner","errors":["conj.person"]}
+{"id":"intents:greet.ex10","text":"hola amigo","kind":"learner","errors":[]}
 {"id":"intents:name_object.ex0","text":"es un árbol","kind":"learner","errors":[]}
 {"id":"intents:name_object.ex1","text":"es una piedra","kind":"learner","errors":[]}
 {"id":"intents:name_object.ex2","text":"eso es un árbol","kind":"learner","errors":[]}

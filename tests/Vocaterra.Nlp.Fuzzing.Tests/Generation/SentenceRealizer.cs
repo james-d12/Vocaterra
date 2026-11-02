@@ -205,7 +205,15 @@ internal sealed class SentenceRealizer
 
                 break;
             case GroupPattern group:
-                ExpandSequence(_rng.Pick(group.Alternatives));
+                var chosen = _rng.Pick(group.Alternatives);
+                var start = _items.Count;
+                ExpandSequence(chosen);
+                if (chosen is [TypedPattern] && _items.Count == start + 1)
+                {
+                    // M73: the one-element alternatives before the chosen one, which the matcher tries first (CheckVerbForms, alternative-homograph).
+                    _items[start].EarlierAlternatives = [.. group.Alternatives.TakeWhile(a => !ReferenceEquals(a, chosen)).Where(static a => a is [TypedPattern]).Select(static a => (TypedPattern)a[0])];
+                }
+
                 break;
             default:
                 throw new InvalidOperationException($"Unexpected pattern node {node.GetType().Name}.");
@@ -369,6 +377,32 @@ internal sealed class SentenceRealizer
         }
 
         return -1;
+    }
+
+    // M73: the head of a noun phrase right before the item at index, or before the adjectives of that head that come right before it; null when there is none.
+    private Item? HeadPastItsAdjectives(int index)
+    {
+        var k = index - 1;
+        while (k >= 0 && _items[k].Kind == Kind.Adjective && _items[k].Head is { } head && !ReferenceEquals(head, _items[k]))
+        {
+            k--;
+        }
+
+        return k >= 0 && _items[k] is { Head: { } own } candidate && ReferenceEquals(own, candidate) ? candidate : null;
+    }
+
+    // M73: the item before the one at index, past the adjectives of a noun, is that noun (a noun drawn for the pattern, or a literal that can only be one).
+    private bool FollowsNounPastItsAdjectives(int index)
+    {
+        var k = index - 1;
+        while (k >= 0 && _items[k].Kind == Kind.Adjective && _items[k].Head is { } head && !ReferenceEquals(head, _items[k]))
+        {
+            k--;
+        }
+
+        return k >= 0
+            && (_items[k].Kind == Kind.Noun
+                || (_items[k].Kind == Kind.Literal && _items[k].Readings.Count > 0 && _items[k].Readings.All(static r => r.Pos == LexiconSchema.Noun)));
     }
 
     private Item? PreviousContent(int from)
@@ -1712,11 +1746,13 @@ internal sealed class SentenceRealizer
             // M62: a word that can be a descriptive adjective and a noun, right after the noun of a phrase with a determiner and agreeing with it (and its determiners, which
             // agree with the noun in a realised phrase), is read by the analyzer as that noun's adjective (the reading resolver's rule: las manzanas rojas son caras), so a
             // pattern that puts a second noun there names a sentence the analyzer reads another way (the noun phrase grows and becomes the subject of the verb after
-            // it), and is re-rolled.
+            // it), and is re-rolled. M73 (the recorded O4 seed 8yc522XLB_W2): past that noun's adjectives too (la joya unida rica, with rica drawn as a noun: a
+            // reader takes it as joya's second adjective, and the verb after it then disagrees with the phrase; the word-order mutation la unida joya rica put it right
+            // after the noun, where the analyzer reads it so, and gave conj.person besides word_order).
             if (i > 0
                 && item.Kind is Kind.Noun or Kind.Literal
-                && _items[i - 1] is { Head: { } head } previousHead
-                && ReferenceEquals(head, previousHead)
+                && HeadPastItsAdjectives(i) is { } previousHead
+                && previousHead.Head is { } head
                 && !ReferenceEquals(item.Head, head)
                 && _items.Exists(x => ReferenceEquals(x.Head, head) && IsDeterminer(x))
                 && item.Readings.Any(static r => r.Pos == LexiconSchema.Noun)
@@ -1745,6 +1781,42 @@ internal sealed class SentenceRealizer
                         && beforeName.Readings.All(static r => r.Pos is LexiconSchema.Article or LexiconSchema.Numeral or LexiconSchema.Adjective))))
             {
                 skip = "name-read-as-noun";
+                _detail = item.Surface!;
+                return false;
+            }
+
+            // M73 (M72's run at five times, O3 seed 92moRWz9NQ54): the matcher keeps the first of the parses that tie (SlotGrammarMatcher: "ties go to ... the first
+            // found"), so a word drawn for one alternative of a group that a one-element alternative before it, of another class, also takes is that earlier element's
+            // to the analyzer: ([PRON]|[VERB]|[ADJ:item]) with suyo drawn as the adjective is read as the pronoun, and the slot item is not yielded. Where the two
+            // elements fill different slots, the realiser's slots are not the sentence's, and the draw is re-rolled (two elements of one class are the oracle's
+            // ambiguous slots already).
+            if (item.EarlierAlternatives.Count > 0
+                && item.PatternTag is { } chosenTag
+                && item.Norm is { } drawn
+                && item.EarlierAlternatives.Any(earlier => earlier.Tag != chosenTag
+                    && earlier.Slot != item.Slot
+                    && _words.PatternClassesOf(drawn).Contains(earlier.Tag, StringComparer.Ordinal)
+                    && (earlier.Lemma is null || _words.Lexicon.Lookup(drawn).Any(r => r.Lemma == earlier.Lemma))))
+            {
+                skip = "alternative-homograph";
+                _detail = item.Surface!;
+                return false;
+            }
+
+            // M73 (V27's run without models, O5 seed 26dVDqElv1l2): a noun that is also a finite form of a copula (son, a tune, and ser's son; era, an age, and ser's
+            // era), right after a noun (past that noun's adjectives) and before a word that can be an adjective or a preposition, is read by the analyzer as the copula
+            // (the reading resolver's rules of M62 and M69: las manzanas son caras, luz son alta), before and over a grammar that binds it as a noun, and a reader
+            // takes it so too: [NOUN:spell] [NOUN:who] [ADJ] gave estómago son vencido, which reads "the stomach are beaten", not "stomach, tune, beaten". The
+            // realiser does not model that reading, so such a noun in such a place is re-rolled.
+            if (item.Kind == Kind.Noun
+                && item.Readings.Any(static r => r.Pos == LexiconSchema.Noun)
+                && item.Readings.Any(r => IsFiniteVerbReading(r) && r.Lemma is "ser" or "estar")
+                && FollowsNounPastItsAdjectives(i)
+                && NextContent(i) is var predicate and >= 0
+                && (_items[predicate].Kind is Kind.Adjective or Kind.Preposition
+                    || _items[predicate].Readings.Any(static r => r.Pos is LexiconSchema.Adjective or LexiconSchema.Preposition)))
+            {
+                skip = "copula-homograph";
                 _detail = item.Surface!;
                 return false;
             }
@@ -2204,5 +2276,7 @@ internal sealed class SentenceRealizer
         public string? PhraseNumber { get; set; }
 
         public List<LexicalFeatures> Readings { get; } = [];
+
+        public IReadOnlyList<TypedPattern> EarlierAlternatives { get; set; } = [];
     }
 }

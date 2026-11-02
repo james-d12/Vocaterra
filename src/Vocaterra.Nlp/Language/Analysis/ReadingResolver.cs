@@ -48,6 +48,8 @@ using Vocaterra.Nlp.Language.SlotGrammar;
 /// indicative is that verb, the learner's slip for the infinitive, where its other readings cannot stand there: a noun or an adjective after a modal that takes no
 /// noun (<c>puedo pago</c>), a noun before a word that can only be a noun (<c>quiero vendo madera</c>), and a conjunction or an adverb before a phrase opened by a
 /// determiner or <c>más</c> (<c>debo como más fruta</c>); a noun the modal may take stays to the fallback (<c>quiero vino</c>, <c>necesito pago</c>).
+/// M73: a word that is a noun and a finite verb right after the interrogative quantifier in any of its forms is the verb before a neuter pronoun
+/// (<see cref="IAnalysisRules.IsNeuterPronoun"/>: <c>¿cuántas cuesta todo?</c>), and before a phrase a determiner opens where its noun cannot agree with the quantifier.
 /// </description></item>
 /// <item><description>
 /// <b>Grammar bindings.</b> When a slot grammar matched the whole utterance, every token was consumed by a grammar element, and that element names the reading:
@@ -282,6 +284,20 @@ internal static class ReadingResolver
                 && HasReading(next, IsCopulaReading))
             {
                 changed |= Narrow(next, IsCopulaReading);
+            }
+
+            // M73 (M69's left point): a word that is a noun and a finite verb right after the interrogative quantifier in any of its forms is the verb before a neuter
+            // pronoun (¿cuántas cuesta todo?: costar, whose subject todo is, not the noun phrase cuántas cuestas with no verb), and before a phrase that a determiner
+            // opens where its noun cannot agree with the quantifier (¿cuántas cuesta el pan?), as M69 reads it after cuánto below; the noun phrase rule after a
+            // determiner would take the noun. A noun that agrees with the quantifier and no neuter pronoun after it stays the noun (¿cuántas cuestas hay?).
+            if (next < Count
+                && All(i, r => r.Pos == LexiconSchema.Adjective && _rules.IsInterrogativeQuantifier(r.Lemma))
+                && HasReading(next, r => r.Pos == LexiconSchema.Noun)
+                && HasReading(next, r => ReadingClasses.IsFiniteVerb(r) && !IsSlip(next, r))
+                && (NeuterPronounAt(next + 1)
+                    || (!HasReading(next, n => n.Pos == LexiconSchema.Noun && HasReading(i, q => Agree(q, n))) && OpensDeterminedPhrase(next + 1))))
+            {
+                changed |= Narrow(next, r => ReadingClasses.IsFiniteVerb(r) && !IsSlip(next, r));
             }
 
             // A noun phrase that starts with a determiner, or with an adjective that starts the utterance (buenos días), has a noun as its head.
@@ -781,6 +797,12 @@ internal static class ReadingResolver
 
         // M66: a phrase that is no phrase of time starts at index, opened by a determiner (un pan, dos panes, la fruta) or a noun-modifying adverb before a noun (más
         // fruta).
+        // M73: the word at index is a neuter pronoun as written (todo, eso), which the language's rules name.
+        private bool NeuterPronounAt(int index)
+        {
+            return index < Count && _rules.IsNeuterPronoun(_tokens[index].Token.Text);
+        }
+
         private bool OpensDeterminedPhrase(int index)
         {
             if (index >= Count)

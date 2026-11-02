@@ -7,7 +7,8 @@
       "slotGrammars": [
         "hola [NOUN]?",
         "(buenos|buenas) (día|días|tardes|noches)",
-        "buen día"
+        "buen día",
+        "(cómo|como) (estás|está|están|estáis) (tú|usted|ustedes|vosotros|vosotras)?"
       ],
       "keywordRules": [
         { "lemmas": ["hola"], "requiresSlots": [] }
@@ -20,6 +21,9 @@
         {"text": "buen día", "errors": [], "prompt": "villager-open"},
         {"text": "hola, Luna", "errors": [], "prompt": "villager-open"},
         {"text": "buenos día", "errors": ["noun.number"], "prompt": "villager-open"},
+        {"text": "cómo estás", "errors": [], "prompt": "villager-open"},
+        {"text": "cómo está usted", "errors": [], "prompt": "villager-open"},
+        {"text": "cómo estás usted", "errors": ["conj.person"], "prompt": "villager-open"},
         "hola amigo"
       ]
     },
@@ -226,10 +230,12 @@
         "cómo se [VERB:hacer] [ART]? [NOUN:item]",
         "qué [VERB:necesitar] para [ART]? [NOUN:item]",
         "qué [VERB:necesitar] para [VERB:hacer] [ART]? [NOUN:item]",
-        "[VERB:querer] [VERB:hacer] [ART]? [NOUN:item]"
+        "[VERB:querer] [VERB:hacer] [ART]? [NOUN:item]",
+        "[VERB:poder] [VERB:hacer] [ART] [NOUN:item]"
       ],
       "keywordRules": [
-        { "lemmas": ["hacer"], "requiresSlots": ["item"], "slotFromNoun": "item" }
+        { "lemmas": ["cómo", "hacer"], "requiresSlots": ["item"], "slotFromNoun": "item" },
+        { "lemmas": ["querer", "hacer"], "requiresSlots": ["item"], "slotFromNoun": "item" }
       ],
       "examples": [
         "cómo hago una antorcha",
@@ -865,7 +871,9 @@
         "dónde [VERB:trabajar] (tú|usted)?"
       ],
       "keywordRules": [
-        { "lemmas": ["trabajar"], "requiresSlots": [] },
+        { "lemmas": ["qué", "trabajar"], "requiresSlots": [] },
+        { "lemmas": ["dónde", "trabajar"], "requiresSlots": [] },
+        { "lemmas": ["cuál", "trabajar"], "requiresSlots": [] },
         { "lemmas": ["qué", "hacer"], "requiresSlots": [] }
       ],
       "lint": {"allowOverlap": ["ask_help"], "allowRuleOnly": ["qué tú hace"]},

@@ -125,6 +125,14 @@ public interface IAnalysisRules
     bool IsPredicateAdjective(string lemma) => false;
 
     /// <summary>
+    /// True for a neuter pronoun as written, which stands alone as a singular subject (Spanish: <c>todo</c>, <c>eso</c>, <c>esto</c>, <c>aquello</c>), so that a word
+    /// that is a noun and a finite verb, right after the interrogative quantifier in any of its forms and before such a pronoun, is the verb (<c>¿cuántas cuesta
+    /// todo?</c>: <c>costar</c>, not the noun phrase <c>cuántas cuestas</c>; M73). The default is none.
+    /// </summary>
+    /// <param name="word">The word as written.</param>
+    bool IsNeuterPronoun(string word) => false;
+
+    /// <summary>
     /// True when the words around a lexicon word of another class call for the learner's slip the word may stand for (M58: <c>podo</c>, a form of <c>podar</c>, for
     /// <c>puedo</c>; <c>esto</c> for <c>estoy</c>), so that the analysis reads the word as that slip, and reports its error, without a slot grammar that names the verb
     /// (M69): only where no reading of the word as written fits the words around it (<c>yo podo ir</c>: <c>podar</c> takes no infinitive; <c>yo esto cansado</c>).

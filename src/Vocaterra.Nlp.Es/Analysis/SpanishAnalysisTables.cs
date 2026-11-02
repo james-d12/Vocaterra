@@ -214,10 +214,31 @@ internal static class SpanishAnalysisTables
         "mucho", "poco", "bastante", "demasiado", "suficiente", "caro", "barato", "nada", "algo",
     }.ToFrozenSet(StringComparer.Ordinal);
 
+    // M73 (M72's finding). The words of AmountPredicates that say a price, which a sum of money has (diez monedas es caro) and goods have themselves (dos panes son
+    // caros), and the nouns of money units, the amounts that are such a sum.
+    private static readonly FrozenSet<string> PricePredicates = new[] { "caro", "barato" }.ToFrozenSet(StringComparer.Ordinal);
+
+    private static readonly FrozenSet<string> MoneyNouns = new[]
+    {
+        "moneda", "euro", "céntimo", "centavo", "dólar", "peso", "libra", "real",
+    }.ToFrozenSet(StringComparer.Ordinal);
+
     /// <summary>True for a word, as written, that says how much a sum is (<c>mucho</c>, <c>poco</c>, <c>suficiente</c>, <c>caro</c>...; M64).</summary>
     public static bool IsAmountPredicate(string word)
     {
         return AmountPredicates.Contains(word);
+    }
+
+    /// <summary>True for a word of <see cref="IsAmountPredicate"/> that says a price (<c>caro</c>, <c>barato</c>), which only a sum of money has as one sum (M73).</summary>
+    public static bool IsPricePredicate(string word)
+    {
+        return PricePredicates.Contains(word);
+    }
+
+    /// <summary>True for the lemma of a noun of a money unit (<c>moneda</c>, <c>euro</c>, <c>peso</c>...), whose amount is a sum of money (M73).</summary>
+    public static bool IsMoneyNoun(string lemma)
+    {
+        return MoneyNouns.Contains(lemma);
     }
 
     /// <summary>True for a word that may open the clause of a subject before its verb (<c>y</c>, <c>pero</c>, <c>cuando</c>, <c>dónde</c>...; not <c>qué</c> or <c>que</c>; M59).</summary>

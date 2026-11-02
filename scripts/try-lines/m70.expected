@@ -64,7 +64,7 @@ smith-open     | me llamo luis                              => ask_name comm=Tru
 smith-open     | me llamo domingo                           => ask_name comm=True -
 villager-open  | me llamo ana                               => unknown comm=False vocab.unknown
 villager-open  | hola me llamo marta                        => greet comm=False vocab.unknown
-farmer-open    | dos panes es caro                          => unknown comm=False -
+farmer-open    | dos panes es caro                          => unknown comm=False conj.person=son noun.number=caros
 farmer-open    | dos panes son caros                        => unknown comm=False -
 lesson-will-buy | mañana compraré pan para el niño           => state_action comm=True -
 lesson-like-bread | sí, me gusta mucho el pan de Luz           => state_like comm=True -

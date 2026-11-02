@@ -186,7 +186,8 @@ internal sealed partial class SpanishAgreementChecker
     // panes es poco, quince monedas es mucho, dos panes no es nada. son is as right (dos panes son suficientes). The predicate is a word of
     // SpanishAnalysisTables.AmountPredicates (mucho, poco, suficiente, caro...), past at most two adverbs, or a noun phrase of the singular with a determiner (mucho dinero,
     // un buen precio). Still flagged: a phrase with no number (las manzanas es roja), another verb (dos niños come pan), a predicate of the plural (dos panes es
-    // suficientes) and one that says no amount (dos manzanas es roja).
+    // suficientes) and one that says no amount (dos manzanas es roja). M73 (M72's finding): a price (caro, barato) is a sum's only when the amount is money (diez monedas
+    // es caro); goods are dear themselves, in the plural (dos panes es caro -> son, caros; before M73 it was clean).
     private bool IsAmountReadAsUnit(int verb, LexicalFeatures copula, PreverbalSubject subject)
     {
         if (copula is not { Lemma: "ser", Number: LexiconSchema.Singular }
@@ -204,7 +205,7 @@ internal sealed partial class SpanishAgreementChecker
         {
             if (SpanishAnalysisTables.IsAmountPredicate(TextOf(index)))
             {
-                return true;
+                return !SpanishAnalysisTables.IsPricePredicate(TextOf(index)) || IsMoney(subject.Phrases[0].Head);
             }
 
             if (TryReadNounPhrase(index, out var predicate))
@@ -219,5 +220,12 @@ internal sealed partial class SpanishAgreementChecker
         }
 
         return false;
+    }
+
+    // M73: the noun at index is a money unit (monedas, euros, pesos) in every noun reading it has.
+    private bool IsMoney(int index)
+    {
+        var nouns = Readings(index, static r => r.Pos == LexiconSchema.Noun);
+        return nouns.Count > 0 && nouns.TrueForAll(static r => SpanishAnalysisTables.IsMoneyNoun(r.Lemma));
     }
 }

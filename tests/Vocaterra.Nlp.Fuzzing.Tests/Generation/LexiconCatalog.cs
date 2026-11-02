@@ -146,6 +146,15 @@ public sealed class LexiconCatalog
     public static readonly IReadOnlyList<string> AmountPredicates = ["mucho", "poco", "bastante", "demasiado", "suficiente", "caro", "barato", "nada", "algo"];
 
     /// <summary>
+    /// The words of <see cref="AmountPredicates"/> that say a price, and the lemmas of the money units (mirror of <c>SpanishAnalysisTables.PricePredicates</c> and
+    /// <c>MoneyNouns</c>, M73): a price is a sum's only when the amount is money (<c>diez monedas es caro</c>; <c>dos panes es caro</c> is a person mistake).
+    /// </summary>
+    public static readonly IReadOnlyList<string> PricePredicates = ["caro", "barato"];
+
+    /// <inheritdoc cref="PricePredicates"/>
+    public static readonly IReadOnlyList<string> MoneyNouns = ["moneda", "euro", "céntimo", "centavo", "dólar", "peso", "libra", "real"];
+
+    /// <summary>
     /// Nouns of events, whose place takes <c>ser</c> (mirror of <c>SpanishAnalysisTables.EventNouns</c>, M56 and M69): the <c>ser_estar</c> mutation of M69 makes no
     /// <c>es en</c> after a subject of one (<c>la fiesta es en la plaza</c> is correct).
     /// </summary>

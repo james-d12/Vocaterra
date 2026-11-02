@@ -11,7 +11,7 @@ villager-open  | el hermano de luz y yo fuimos al río       => state_action com
 villager-open  | ayer luz y yo comimos pan                  => state_action comm=True -
 villager-open  | tú y ella son altas                        => unknown comm=False -
 villager-open  | usted y yo vamos al río                    => state_action comm=True -
-villager-open  | dos panes es caro                          => unknown comm=False -
+villager-open  | dos panes es caro                          => unknown comm=False conj.person=son noun.number=caros
 villager-open  | diez monedas son mucho dinero              => unknown comm=False -
 villager-open  | dos niños es alto                          => unknown comm=False conj.person=son noun.number=altos
 villager-open  | la tienda es cerca del río                 => unknown comm=False ser_estar=está

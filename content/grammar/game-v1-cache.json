@@ -1518,6 +1518,12 @@
       "matches": []
     },
     {
+      "key": "2b30b9da3dff53fe3a959878cbcd38685ad7e41b9c0263176d26893681e252b2",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cómo estás",
+      "matches": []
+    },
+    {
       "key": "2b3f66fdba8da17f7912bb813831452918b07238f3cc46caf2ce09ad5fde63a0",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Está muy lejos",
@@ -6702,6 +6708,12 @@
       "matches": []
     },
     {
+      "key": "b666e949d812c8b09567c7271fb9647b74055e2118b3f3a605e388befbbe8a78",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cómo está usted",
+      "matches": []
+    },
+    {
       "key": "b67a9d9f56e90987523000086bdd35a3bd33be0094f91e2435ecd2b46836d1c9",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Nosotros tenemos agua",
@@ -8689,6 +8701,12 @@
       "key": "ee9f2e775d2f11e5dfdbc9b4994a98484dd26feec1755ca15b23e411856f553e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Voy a busco madera",
+      "matches": []
+    },
+    {
+      "key": "eefa32114cf5a48c1a932aafd5384468c2fc99a3703877a7c832d4329f8cea4c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cómo estás usted",
       "matches": []
     },
     {

@@ -232,4 +232,31 @@ public class PostverbalSubjectTests
     {
         Assert.Equal(string.Empty, Described(sentence));
     }
+
+    // ---- M73: one subject for one verb --------------------------------------------------------------------------------------------------------------------
+
+    // M72's fuzz finding (O2, CsCheck seed 7HIoK0InC7l7): the person check took the pronoun before the unaccented adonde as the subject of the verb after it (the
+    // question word typed without its accent, skipped as an adverb) and gave estaríamos, and the check of a subject after its verb took nenas as its subject as well and
+    // gave estarían: two conj.person on one word. A verb the person check has agreed with a subject pronoun before it has no subject after it, as with the accented
+    // question word (ellas dónde están un detenido lento). Before M73 the first gave both errors, and the others gave the one of the phrase after the verb.
+    [Theory]
+    [InlineData("nosotros adonde estaría nenas en el fecha", "conj.person|estaría|estaríamos;gender.agree|el|la")]
+    [InlineData("nosotros adonde estaría nenas", "conj.person|estaría|estaríamos")]
+    [InlineData("nosotros adonde estaríamos nenas", "")]
+    [InlineData("ellas donde están la casa", "")]
+    [InlineData("ella donde está las casas", "")]
+    public void AVerbThePersonCheckAgreedWithAPronounBeforeItHasNoSubjectAfterIt(string sentence, string expected)
+    {
+        Assert.Equal(expected, Described(sentence));
+    }
+
+    // Unchanged: with no subject pronoun before it, the phrase after the verb is its subject.
+    [Theory]
+    [InlineData("adonde estaría nenas", "conj.person|estaría|estarían")]
+    [InlineData("dónde están la herrería", "conj.person|están|está")]
+    [InlineData("donde está las casas", "conj.person|está|están")]
+    public void WithNoPronounBeforeItThePhraseAfterTheVerbIsItsSubject(string sentence, string expected)
+    {
+        Assert.Equal(expected, Described(sentence));
+    }
 }

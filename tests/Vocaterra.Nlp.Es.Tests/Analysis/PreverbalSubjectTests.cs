@@ -231,6 +231,36 @@ public class PreverbalSubjectTests
         Assert.Equal(expected, Described(sentence, grammar));
     }
 
+    // M73 (M72's finding): caro and barato say a price, which a sum of money has (diez monedas es caro: ten coins is dear), and goods have themselves: an amount of goods
+    // before a singular ser and caro or barato is no sum, and is checked as a plural subject with an article is (los panes es caro). Before M73 each gave no error.
+    [Theory]
+    [InlineData("dos panes es caro", "conj.person|es|son;noun.number|caro|caros")]
+    [InlineData("dos panes es muy caro", "conj.person|es|son;noun.number|caro|caros")]
+    [InlineData("tres libros es barato", "conj.person|es|son;noun.number|barato|baratos")]
+    [InlineData("dos panes era caro", "conj.person|era|eran;noun.number|caro|caros")]
+    public void AnAmountOfGoodsBeforeASingularSerAndAPriceIsNoSum(string sentence, string expected)
+    {
+        Assert.Equal(expected, Described(sentence));
+        Assert.Equal(expected, Described(sentence, Describe));
+    }
+
+    // Clean: a sum of money that is dear or cheap, the goods with the plural, and an amount of goods with a predicate of quantity (M64).
+    [Theory]
+    [InlineData("diez monedas es caro")]
+    [InlineData("cinco monedas es barato")]
+    [InlineData("veinte pesos es mucho")]
+    [InlineData("dos panes son caros")]
+    [InlineData("dos panes son muy caros")]
+    [InlineData("los panes son caros")]
+    [InlineData("dos panes es mucho")]
+    [InlineData("dos panes es demasiado")]
+    [InlineData("tres manzanas son baratas")]
+    public void ASumOfMoneyIsDearAndGoodsAreDearInThePlural(string sentence)
+    {
+        Assert.Equal(string.Empty, Described(sentence));
+        Assert.Equal(string.Empty, Described(sentence, Describe));
+    }
+
     // A name the lexicon lacks (vocab.unknown, nothing else) or that a grammar binds has no reading, so nothing is said about its verb.
     [Fact]
     public void ANameWithoutAReadingHasNothingToAgree()
