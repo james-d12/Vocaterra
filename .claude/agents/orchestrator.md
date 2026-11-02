@@ -56,6 +56,8 @@ is a change to the boundary and updates that record.
 - **M76 (2026-11-02, in PR #28 before the merge, the owner's word):** `scripts/try-lines/` becomes C# tests and the other check
   scripts are audited (core plan §5, D-game-22). **A regression check is a C# test, never a script with text baselines:** no brief asks
   for line files or a check script again.
+  - M76 is done (gated at `523f818`, 8797 passed). Then, in PR #28 too: M77 (IDE0005, unused usings fail the build) and V30 (the
+    PR #28 review's game fixes, VILLAGE_PLAN §4); the review's items 8 and 14 went to M75 and V29 (the handover document).
 - The owner deletes the merged remote milestone branches himself (the permission check refuses remote deletes) and listens to the
   voices later.
 

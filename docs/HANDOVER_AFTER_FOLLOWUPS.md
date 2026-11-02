@@ -55,6 +55,9 @@ M73 reported that the fix needs either a weather intent or a way to rule a lemma
   - a statement gets «Sí, hace frío.», echoing the learner's weather word (a template with a slot), or «¡Sí!» when there is no word;
   - `¿qué tiempo hace?` gets «Hoy hace sol.», or whatever the world's weather is if the game has one (it does not today).
 - The book credits the line as free talk does (V20 (b)).
+- The PR #28 review's item 14: the acknowledgement and «Sí, es verdad.» handling matches pool names in code (`^[a-z]+_nice\.\d+$`,
+  `answer_accepted.`, `NpcTurnRules` about line 268), and `ListenerReply` always takes the first variant. Declare these pools in the NPC
+  files (`content/game-v1/game/npcs/*.json`) before adding the weather and `¿cómo estás?` pools, so no new name is written in code.
 
 ## 3. Spoken lines that the prompt does not take (design first, then core and game)
 
@@ -124,6 +127,8 @@ example «¡Hola! ¿Qué buscas?» (the villager) or «¡Hola! Esta es mi herrer
   - `quiero hacer un hacha` (an added word), `pasado mañana iré al río con Mar` and `rápido por favor` (content words far apart) lose it;
   - the praise and the score agree again.
 - **The milestone:** a core milestone (Opus 5.5 at xhigh).
+  - Also the PR #28 review's item 8: a constrained prompt with no answers gives the matcher distance 0, so every unresolved line is a
+    "near miss" (`VerdictAssembler.IsNearMiss`). The new rule needs an answer to name, so it holds no such case; test it.
   - O10's model and generator follow the rule.
   - O3's verdict leg becomes strict again (a widening).
   - The grading tests (M76) and the identity baseline move. List every changed case by kind.

@@ -6,7 +6,7 @@ Do the work yourself; do not spawn subagents.
 > "I would prefer things like this to be a csharp unit test, not some throwaway script or junk text file. This just adds to the general tech debt."
 
 `scripts/try-lines.sh` grades `prompt|line` rows through the core's CLI (`tools/Vocaterra.Nlp.Cli`, its eval subcommand, on `content/game-v1`) or, with `--host`, through the game's host (`src/Vocaterra.Host --transcript`, which first takes out a greeting and the listener's name). It compares each row with committed text baselines.
-- **Its files:** `scripts/try-lines/`, 12 line files (`review1`, `review2`, `m64`, `m66`, `m67`, `m69`, `m70`, `m72`, `m73`), 540 rows in all, each file with a header naming its items. Each has a `.expected` baseline (the CLI) and a `.host.expected` baseline (the host).
+- **Its files:** `scripts/try-lines/`, 9 line files (`review1`, `review2`, `m64`, `m66`, `m67`, `m69`, `m70`, `m72`, `m73`), 540 rows in all, each file with a header naming its items. Each has a `.expected` baseline (the CLI) and a `.host.expected` baseline (the host).
 - **The trouble:** neither the gate nor CI runs it. The owner wants such checks to be tests that `dotnet test` runs, and the script and its files gone.
 
 ## Where to work, and pushing

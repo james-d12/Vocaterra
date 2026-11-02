@@ -372,6 +372,14 @@ unit test, not some throwaway script or junk text file. This just adds to the ge
 3. **M76 also audits the other check and one-off scripts** of `scripts/`: each becomes a test, stays as tooling, or is deleted; anything
    large comes back to the owner.
 
+**Owner's answers, 2026-11-02 (after M76's audit, and a review of PR #28):**
+1. **"Do the IDE0005 warning too":** the core's M77 makes an unused using a build warning (an error under `-warnaserror`) in every project,
+   and deletes `scripts/audit-usings.py`. The scripted runs as game tests (M76's other proposal, 3 to 5 days) are not asked for.
+2. **The review of PR #28** (14 findings), "check what makes sense to fix": the orchestrator checked them against the code. Eleven go into
+   V30, in PR #28 before the merge (the review's items 1 to 7 and 9 to 13; three of them to verify with a test first). The review's item 8
+   (an empty answer set counts as a near miss) goes to M75, which rewrites that rule after the merge. Item 14 (pool names written in code)
+   goes to V29, before it adds new pools.
+
 ## Already decided
 
 - **The core by project reference** (D-game-7; until 2026-10-21 "packages only" from a submodule's local feed). The game never copies core
