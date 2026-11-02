@@ -22,6 +22,15 @@ public interface ILexiconFolding
 
     /// <summary>The key of answer matching: marks removed from the text as it is (no case folding), never applied to normalized text.</summary>
     string MatchingKey(string text);
+
+    /// <summary>
+    /// The spellings a writer may type for a lexicon form by leaving out a mark that <see cref="LenientKey"/> keeps, each in <see cref="LenientKey"/> form (M70). The
+    /// lexicon reads such a spelling as the form, as it reads a word written without its accent, only when no lexicon form folds to the spelling itself (see
+    /// <c>Lexicon.Lookup</c>). Spanish: an <c>n</c> for each <c>ñ</c> (<c>niño</c> gives <c>nino</c>, <c>mañana</c> <c>manana</c>), except where that spelling is
+    /// a Spanish word of its own (<c>año</c> gives none, because <c>ano</c> is a word). The default is none.
+    /// </summary>
+    /// <param name="form">A lexicon form, in <see cref="Key"/> form.</param>
+    IReadOnlyList<string> UnmarkedSpellings(string form) => [];
 }
 
 /// <summary>Number words of one language.</summary>
