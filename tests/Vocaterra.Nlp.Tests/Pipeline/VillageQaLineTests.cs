@@ -10,6 +10,8 @@ namespace Vocaterra.Nlp.Pipeline.Tests;
 /// </summary>
 public class VillageQaLineTests
 {
+    private static readonly Lazy<ContentBundle> NameBundle = new(BuildNameBundle);
+
     private static PipelineResult Evaluate(string transcript, string promptId, ContentBundle? bundle = null)
     {
         var content = bundle ?? TestSupport.Bundle;
@@ -25,6 +27,25 @@ public class VillageQaLineTests
     private static string Recast(PipelineResult result)
     {
         return Assert.Single(result.Response.Lines, static line => line.IsRecast).Text;
+    }
+
+    // The change for the game's V21 (QA-language-2): the intent ask_name binds a free name after me llamo. The bundle as it is has no such grammar.
+    private static ContentBundle BuildNameBundle()
+    {
+        using var copy = new TempBundle(rehash: false);
+        copy.EditJson(
+            "intents/intents.json",
+            root =>
+            {
+                foreach (var intent in root["intents"]!.AsArray())
+                {
+                    if ((string?)intent!["intentId"] == "ask_name")
+                    {
+                        intent["slotGrammars"]!.AsArray().Add("me [VERB:llamar] [WORD:name]");
+                    }
+                }
+            });
+        return copy.Load();
     }
 
     private static string Errors(Verdict verdict)
@@ -158,6 +179,32 @@ public class VillageQaLineTests
     public void TheSpellingSlipIsTheVerbsSlip(string transcript, string promptId, string errors)
     {
         Assert.Equal(errors, Errors(Evaluate(transcript, promptId).Verdict));
+    }
+
+    // ---- 6. A learner's own name (QA-language-2) --------------------------------------------------------------------------------------------------------------
+
+    // The cause is the bundle: no grammar of ask_name binds a name after me llamo (the keyword rule llamar understood the line and ana stayed an unknown word). With
+    // the grammar V21 adds, the core binds any word of letters as the name: no error, the name in the slot, and no recast that drops it.
+    [Theory]
+    [InlineData("me llamo ana", "farmer-open", "ana")]
+    [InlineData("me llamo luis", "smith-open", "luis")]
+    [InlineData("me llamo domingo", "smith-open", "domingo")]
+    [InlineData("me llamo marta", "farmer-open", "marta")]
+    public void WithANameSlotTheLearnersNameIsAName(string transcript, string promptId, string name)
+    {
+        var result = Evaluate(transcript, promptId, NameBundle.Value);
+
+        Assert.Equal(string.Empty, Errors(result.Verdict));
+        Assert.True(result.Verdict.Communicated);
+        Assert.Equal("ask_name", result.Verdict.Intent.Value);
+        Assert.Equal(name, result.Verdict.Slots["name"]);
+        Assert.DoesNotContain(result.Response.Lines, static line => line.IsRecast);
+    }
+
+    [Fact]
+    public void WithoutTheNameSlotTheNameIsAnUnknownWordAsTheQaPassFound()
+    {
+        Assert.Equal("vocab.unknown|ana|", Errors(Evaluate("me llamo ana", "farmer-open").Verdict));
     }
 
     // ---- 7. The learner's own word in an error (an observation) -----------------------------------------------------------------------------------------------
