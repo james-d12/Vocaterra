@@ -330,7 +330,7 @@ Not planned: written at V09 after phase B of the village plan and checked at V24
 - The Lessons page opens at the `next:` lesson, so the page a tester reaches first names the lesson to talk to (V21b).
 - Two session counters: the day (lessons, objectives, the HUD, the book) and the sitting (the spacing rule, the review deck, the session log); a load
   keeps the day and sets the sitting on (V25). A tester who saves in session 5 and loads sees session 5 again.
-- The accent note: a missing accent on a past verb at a lesson's answer step is shown as a note under the reply, and accepted (M70, V21b).
+- The accent note: a verb typed without the accent of its tense (`ayer compre pan`) is accepted, and a note under the reply names the accented form, in free talk as in a lesson (M70, V21b).
 - The name plates show only for the NPC the tester faces and the beacon's NPC (V22), and the stall and the market answer what was said (V21, V21b).
 - **A way in.** `--playtest` plays one session a run and offers no sleep at the fire, and a `--load` of its save runs the recall battery and ends;
   `--skip-to-session`, the test aid that starts a later session, refuses `--playtest`. A playtest of sessions 7 to 10 needs a profile that starts a tester at
@@ -351,5 +351,5 @@ Not planned: written at V09 after phase B of the village plan and checked at V24
   `next: talk to Luz` in session 9); the walks inside a lesson (session 7 to the river and back, 8 and 9 from the village to the river, 10 from the bakery to
   the field and the stall); the market's coins (wood sold, bread or apples bought: a tester who spends the coins elsewhere sells more wood); the free talk
   after a lesson, where a line the lesson taught is understood by its NPC (V20: all 11 in the route of V24) and a line it did not teach is understood only
-  when its intent is one that NPC takes (6 of 11 in the route); the accent note, which shows only at a lesson's answer step; and the session counters: a
+  when its intent is one that NPC takes (6 of 11 in the route); the accent note under the reply (`ayer compre pan`); and the session counters: a
   load keeps the day, a sleep moves it, and a save made after a sleep loads on the new day (V25).

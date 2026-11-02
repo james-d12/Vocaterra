@@ -676,8 +676,8 @@ doing, the report). Phase B, in a line a lesson:
 talk takes the lessons' lines: an NPC understands the statements its lessons taught, and a phrase of a lesson that has begun counts as a use at any NPC (V20).
 Each NPC answers in its own voice (`¡Qué bien!`, `Sí, es verdad.`, `Está bien.`, in ten pools; the shared feedback lines are in each NPC's voice, V21b).
 The stall and the market answer what was said: `quiero madera` at the stall gets «No tengo eso. Tengo agua y pan.» and no bottle, a request for bread gets the
-bread, and León answers `¿Cuánto es todo?` in free talk with the unit price (V21, V21b). A verb written without its accent (`ayer compre pan`) is understood;
-in a lesson's answer step its accent note shows under the reply in the correction colour (M70, V21b). The Lessons page opens at the `next:` lesson (V21b). The
+bread, and León answers `¿Cuánto es todo?` in free talk with the unit price (V21, V21b). A verb typed without the accent of its tense (`ayer compre pan`) is understood, and a note under the reply names the accented
+form in the correction colour («compré», con tilde: es pasado), in free talk as in a lesson (M70, V21b). The Lessons page opens at the `next:` lesson (V21b). The
 name plates show only for the NPC the learner faces and the beacon's NPC, drawn in the world (V22). A load keeps its day, and a sleep is the only thing that
 moves it. Two counters: the day (lessons, objectives, the HUD, the book) and the sitting (the spacing rule, the review deck and the session log) (V25).
 
@@ -795,9 +795,9 @@ ticks (the open points below): sessions 4 to 7 and 7 to 9 by a sleep at the fire
 - **Free talk, untaught lines:** 6 of 11 were understood and 5 were not. `Hoy hace sol.` is understood at the villager, the smith and the fisher, `Hace calor.`
   at Luz and `Hoy compro fruta.` at Luz; `Me gusta el río.` gets «No te entendí» at the villager and at the smith, `Tengo un hacha.` at León (twice),
   `Tengo dos manzanas.` at Mar. A true sentence of a kind the NPC takes is understood whether or not it was taught; the rest is not.
-- **What a learner would find wrong or stuck:** nothing blocks the route. Three things are not right. A request the stall or Luz cannot fill is refused
-  correctly (`Quiero dos manzanas.` at Luz: «Solo vendo pan.»), but the book logs it as a use of `quiero-dos-panes` (the noun `manzana`); an untaught line
-  gets «No te entendí» and then «¿Cómo?» at the same NPC, two replies for one line; and an accent missed in free talk is not noted (the open points). No game
+- **What a learner would find wrong or stuck:** nothing blocks the route. Two things are not right. A request the stall or Luz cannot fill is refused
+  correctly (`Quiero dos manzanas.` at Luz: «Solo vendo pan.»), but the book logs it as a use of `quiero-dos-panes` (the noun `manzana`); and an untaught line
+  gets «No te entendí» and then «¿Cómo?» at the same NPC, two replies for one line. No game
   change was made in this milestone: none of these had a one-line fix that a test would pin.
 
 **Open points after the follow-ups** (V24, 2026-11-02; checked against the follow-ups' entries and the core's, with what a later milestone fixed left out; each is marked owner, game or core).
@@ -805,19 +805,15 @@ ticks (the open points below): sessions 4 to 7 and 7 to 9 by a sleep at the fire
 - **The voices** (owner). None of the 1 062 speech files is marked in `docs/game/SPEECH_CHECKLIST.md`. Phase B added 222 files; the follow-ups 148 (74 lines:
   the villager 13, the farmer 13, the shopkeeper 13, the baker 12, the smith 12, the fisher 11). The shared feedback lines of V21b are in each NPC's voice
   (120 files), so an NPC's voice is judged on its own lines and on those.
-- **Typed input is strict about accents and `ñ`** (owner, QA-language-7). `manana` for `mañana` is `vocab.unknown` with a correct recast, and `compre` is
-  read as `compré` with a note. Whether a learner should be told a missing accent as a slip, or as an error, is the owner's call (the accent note of M70 is
-  shown at a lesson's answer step only, see the next point).
 - **An untaught statement is understood by some NPCs and not others** (owner decision, the game's rule). In the route, `Hoy hace sol.` is understood at three
   NPCs and `Me gusta el río.` is not at the villager or the smith. The open prompts take the intents of their NPC's lessons (V20 (a)); a true sentence of
   another intent gets «No te entendí». A learner cannot predict which.
-- **The accent note only at a lesson's answer step** (game). `ayer compre pan` to Luz in free talk is understood and no note is shown (`r24-followups`); the
-  note shows where an answer set holds the accented form (`compré dos panes` at numeros-y-pan, `compré tres manzanas` at the stall in el-mercado).
-  A session-10 learner who writes the accent wrong in free talk is not told.
 - **The oven order after a load waits for its lesson** (game, V14's design). The baker's `Primero, la lección. Luego, las monedas.` (V21) tells the learner
   the order is held: after a load in session 5 the order is delivered at the lesson's `n4-back` step.
 - **A free-talk credit for another noun** (game, minor). `Quiero dos manzanas.` at Luz is refused («Solo vendo pan.») as it should be, but the book logs
   `quiero-dos-panes` as a supported use with the detail `manzana` (V20 (b) credits a phrase by its intent, not its words).
+- **Two replies to a line not understood** (game). At an open prompt a line the NPC does not understand gets «No te entendí. ¿Me lo dices otra vez?» and then the core's repair «¿Cómo?» (`me gusta el río` to the villager): the dialogue adds the turn's repair after its reply.
+- **The book keeps a typed form without its accent** (game, minor). After `ayer compre pan` the book counts the form `compre` for `comprar` (1 sg pret ind), not `compré`.
 - **A scripted run stops at 18 000 ticks without a message** (game, the harness). `ScriptedRunEnd.RunawayTicks` (five minutes of play) ends a run and drops
   the steps after it with no line in stdout. The route of sessions 4 to 10 needed four runs for this.
 - **At an open prompt a correct line with a word outside its answer set gets `vocab.wrong` and «No te entendí»** (core and game, V17 and M69; V21b saw it
