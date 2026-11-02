@@ -17,7 +17,6 @@ amiga
 amigo
 animal
 antes
-antorcha
 aprender
 aquel
 aquí
@@ -42,7 +41,6 @@ bloque
 boca
 bolsa
 bonito
-botella
 bueno
 buscar
 caballo
@@ -94,7 +92,6 @@ de
 decir
 demasiado
 desde
-despacio
 después
 difícil
 dinero
@@ -130,7 +127,6 @@ feliz
 feo
 flecha
 fruta
-fuego
 frío
 fácil
 gallina
@@ -187,7 +183,6 @@ lo
 luego
 luna
 lunes
-madera
 madre
 mal
 malo
@@ -395,3 +390,13 @@ hacha
 león
 # pescar: to fish, the fisher Mar's own verb (pescó in the day of the village, V14); in neither of the core's lists.
 pescar
+# madera: wood, the first item of the village (S5) and the oven's and the smith's order; in every game since the first lesson; an old world word, moved into the block (V21b).
+madera
+# antorcha: the torch, the item the camp's crafting makes (S6); an old world word, moved into the block (V21b).
+antorcha
+# botella: the bottle, the stall's gift and the water's container (S6); an old world word, moved into the block (V21b).
+botella
+# fuego: fire, the camp's fire the torch lights (S6); an old world word, moved into the block (V21b).
+fuego
+# despacio: slowly, "más despacio, por favor", the slow-repeat button's word (S3); an old world word, moved into the block (V21b).
+despacio
