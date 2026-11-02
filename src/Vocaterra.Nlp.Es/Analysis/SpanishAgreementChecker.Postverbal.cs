@@ -29,6 +29,17 @@ internal sealed partial class SpanishAgreementChecker
             var neuter = start >= 0 && IsLoneNeuterPronoun(start);
             var verb = FirstReading(v, r => r.Mood == LexiconSchema.Indicative && r.Person == "3" && r.Tense is not null
                 && (TakesPostverbalSubject(v, r.Lemma) || (neuter && r.Lemma == "ser" && FollowsPriceQuestionWord(v))));
+
+            // M69 (M56's left point): estar, and a verb of price after cuánto, in the first or second person singular with a phrase after it that an article opens
+            // (¿dónde estás la herrería?, ¿cuánto cuestas el pan?): the phrase is the subject, so the verb takes its third person (está, cuesta).
+            var firstOrSecond = false;
+            if (verb is null && !neuter)
+            {
+                verb = FirstReading(v, r => r.Mood == LexiconSchema.Indicative && r.Person is "1" or "2" && r.Number == LexiconSchema.Singular && r.Tense is not null
+                    && (r.Lemma == "estar" || (SpanishAnalysisTables.IsPriceVerb(r.Lemma) && FollowsPriceQuestionWord(v))));
+                firstOrSecond = verb is not null;
+            }
+
             if (verb is null || HasPreverbalSubject(v))
             {
                 continue;
@@ -42,6 +53,12 @@ internal sealed partial class SpanishAgreementChecker
             }
             else if (start < 0 || !TryReadNounPhrase(start, out var phrase))
             {
+                continue;
+            }
+            else if (firstOrSecond && !OpensWithArticleAlone(phrase))
+            {
+                // A phrase with a possessive or a demonstrative, or none, after a verb of the first or second person may be the person spoken to (¿dónde estás, mi
+                // amor?), and one that de follows may be an idiom (estás la mar de guapa); the plural (¿dónde estamos los niños?: we children) is not considered.
                 continue;
             }
             else
@@ -72,6 +89,11 @@ internal sealed partial class SpanishAgreementChecker
     //  2. dónde with a third-person ser and a noun phrase with a definite determiner (¿dónde es la herrería? -> está; ¿dónde son las casas? -> están; the form agrees with
     //     the phrase). Left clean: an event (¿dónde es la fiesta?, ¿dónde es la clase?), dónde after a preposition (¿de dónde es Luz?, origin), a bare or indefinite
     //     phrase and one with an adjective before its noun (¿dónde es profesor?, ¿dónde es el mejor sitio?: a predicate), and ¿dónde es? alone, whose subject may be an event.
+    //  3. M69 (M56's left point): ser right before en and a place, after a subject that is a person or a thing and no event (la tienda es en el pueblo -> está, yo soy
+    //     en casa -> estoy, las tiendas son en el pueblo -> están). The place is a noun phrase with a determiner that is no numeral, or the bare casa (PlaceFollowsEn);
+    //     the subject a subject pronoun or the noun phrase that opens the clause (TryFindSubjectOfPlace). Left clean: an event (la fiesta es en la plaza), a lone name
+    //     (Luz, es en la plaza: the person spoken to), no subject (es en la plaza, whose subject may be an event), a phrase of time or manner after en (mi cumpleaños es
+    //     en marzo, el pago es en monedas, ¿es en serio?) and the adverbial phrases (es, en el fondo, bueno), fue (also ir) and a subject after the verb.
     private void CheckSerOfPlace()
     {
         for (var i = 0; i < _tokens.Count; i++)
@@ -115,6 +137,10 @@ internal sealed partial class SpanishAgreementChecker
 
                 number = SubjectNumber(phrase, timeIsSubject: true) ?? copula.Number;
             }
+            else if (PlaceFollowsEn(i) && TryFindSubjectOfPlace(i, copula, out var subjectNumber))
+            {
+                number = subjectNumber;
+            }
 
             if (number is null)
             {
@@ -127,6 +153,61 @@ internal sealed partial class SpanishAgreementChecker
                 Add(ErrorTags.SerEstar, i, i, expected, TextOf(i));
             }
         }
+    }
+
+    // M69: en right after the copula at index, and after it a noun phrase of a place: one with a determiner that is no numeral (en el pueblo, en la plaza, en mi casa,
+    // en una tienda) or the bare noun of SpanishAnalysisTables.IsBarePlaceNoun (en casa), whose noun is no noun of time (en la tarde, en el verano) and none of an
+    // adverbial phrase (en el fondo, en la práctica). A bare noun is a time or a manner (en marzo, en monedas, en serio, en tren).
+    private bool PlaceFollowsEn(int copulaIndex)
+    {
+        var en = copulaIndex + 1;
+        if (en + 1 >= _tokens.Count || TextOf(en) != "en" || !TryReadNounPhrase(en + 1, out var place))
+        {
+            return false;
+        }
+
+        var nouns = Readings(place.Head, static r => r.Pos == LexiconSchema.Noun);
+        if (nouns.Exists(static n => SpanishAnalysisTables.IsDurationNoun(n.Lemma) || SpanishAnalysisTables.IsAdverbialPhraseNoun(n.Lemma))
+            || place.Determiners.Exists(d => HasReading(d, static r => r.Pos == LexiconSchema.Numeral) && !HasReading(d, static r => r.Pos == LexiconSchema.Article)))
+        {
+            return false;
+        }
+
+        return place.Determiners.Count > 0
+            || (place.Before.Count == 0 && place.After.Count == 0 && nouns.Exists(static n => SpanishAnalysisTables.IsBarePlaceNoun(n.Lemma)));
+    }
+
+    // M69: the subject of ser with en and a place (rule M56 (a) 3), with the number estar takes from it: a subject pronoun before the copula, past at most two skippable
+    // words, that no preposition governs (yo soy en casa: the copula's own person and number); or the noun phrase that opens the clause before a copula of the third
+    // person (M59's subject: la tienda es en el pueblo), with its number, when it is no lone name (Luz, es en la plaza: the name may be the person spoken to) and no
+    // event (SpanishAnalysisTables.IsEventNoun) stands in the clause as its subject.
+    private bool TryFindSubjectOfPlace(int copulaIndex, LexicalFeatures copula, out string? number)
+    {
+        number = null;
+        var p = copulaIndex - 1;
+        for (var skipped = 0; p >= 0; skipped++)
+        {
+            if (IsSubjectPronounAt(p))
+            {
+                number = copula.Number;
+                return true;
+            }
+
+            if (skipped >= ReadingClasses.MaxSkippedBetween || !IsSkippable(p))
+            {
+                break;
+            }
+
+            p--;
+        }
+
+        if (copula.Person != "3" || !TryFindPreverbalSubject(copulaIndex, out var subject) || subject.Lone || HasEventSubject(copulaIndex, copulaIndex))
+        {
+            return false;
+        }
+
+        number = subject.Number;
+        return true;
     }
 
     // The verbs whose noun phrase after them is the subject at this place: estar anywhere, an experiencer verb after its dative pronoun, quedar after dónde and a verb of
@@ -149,6 +230,15 @@ internal sealed partial class SpanishAgreementChecker
         }
 
         return SpanishAnalysisTables.IsPriceVerb(lemma) && FollowsPriceQuestionWord(verbIndex);
+    }
+
+    // M69: the phrase is opened by an article and nothing else among its determiners (la herrería, el pan, un pan), and no de follows it.
+    private bool OpensWithArticleAlone(NounPhrase phrase)
+    {
+        var next = phrase.Last + 1;
+        return phrase.Determiners.Count == 1
+            && _tokens[phrase.Determiners[0]].Readings.All(static r => r.Pos == LexiconSchema.Article)
+            && !(next < _tokens.Count && TextOf(next) is "de" or "del");
     }
 
     // The verb at index follows cuánto, with a dative pronoun between or not (¿cuánto cuesta?, ¿cuánto te cuesta?, ¿cuánto es?).

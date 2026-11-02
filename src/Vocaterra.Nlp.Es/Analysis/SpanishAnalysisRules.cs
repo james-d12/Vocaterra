@@ -58,6 +58,8 @@ internal sealed class SpanishAnalysisRules : IAnalysisRules
 
     public bool ModalTakesNounObject(string lemma) => SpanishAnalysisTables.ModalTakesNounObject(lemma);
 
+    public bool IsLocationAdverb(string lemma) => SpanishAnalysisTables.IsLocationAdverb(lemma);
+
     public IAgreementChecker CreateAgreementChecker(IReadOnlyList<AnalyzedToken> resolved, List<ErrorTag> errors) =>
         new SpanishAgreementChecker(resolved, _morphology, errors, this);
 }

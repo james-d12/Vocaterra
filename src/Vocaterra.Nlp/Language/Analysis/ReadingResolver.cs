@@ -329,6 +329,18 @@ internal static class ReadingResolver
                     // check agrees with todo), as after dónde.
                     changed |= Narrow(head, IsCopulaReading);
                 }
+                else if (head == next
+                    && interrogative
+                    && HasReading(head, r => ReadingClasses.IsFiniteVerb(r) && !IsSlip(head, r))
+                    && HasReading(head, r => r.Pos == LexiconSchema.Noun)
+                    && !HasReading(head, n => n.Pos == LexiconSchema.Noun && HasReading(i, q => q.Pos == LexiconSchema.Adjective && Agree(q, n)))
+                    && OpensDeterminedPhrase(head + 1))
+                {
+                    // M69: a word that is a noun and a finite verb right after the interrogative, whose noun the interrogative cannot agree with as its determiner, and
+                    // before a phrase that a determiner opens, is the verb (¿cuánto cuestas el pan?: costar, which the person check agrees with the phrase, cuesta; not
+                    // the adverb and the noun cuestas, slopes), as M58 reads a learner's slip there.
+                    changed |= Narrow(head, r => ReadingClasses.IsFiniteVerb(r) && !IsSlip(head, r));
+                }
                 else if (head < Count
                     && HasReading(head, r => r.Pos == LexiconSchema.Noun)
                     && !(interrogative && HasReading(head, ReadingClasses.IsFiniteVerb)))
@@ -457,12 +469,23 @@ internal static class ReadingResolver
             // M62: a noun phrase with a determiner does not run on into the noun of a copula's form. A word that is a finite form of a copula and a noun (son, era), right
             // after the noun of such a phrase (and the adjectives after it) and before a word that can be an adjective (past adverbs), is the copula: las manzanas son
             // caras, la casa era grande. The predicate adjective is then agreed with the phrase. Elsewhere (son cerca, el son cubano) the other rules and the fallback
-            // decide as before.
+            // decide as before. M69: and before a preposition (la tienda y la herrería son en el pueblo, las casas son de madera), so the ser/estar check sees it.
             if (HasReading(i, r => r.Pos == LexiconSchema.Noun)
                 && HasReading(i, IsCopulaReading)
                 && FollowsDeterminedNoun(i)
                 && NextContent(next) is var predicate and >= 0
-                && HasReading(predicate, r => r.Pos == LexiconSchema.Adjective))
+                && (HasReading(predicate, r => r.Pos == LexiconSchema.Adjective) || IsCertainPreposition(predicate)))
+            {
+                changed |= Narrow(i, IsCopulaReading);
+            }
+
+            // M69: a finite form of a copula that is also a noun (son, era), with no determiner before it, right before an adverb of place that a copula takes
+            // (IsLocationAdverb: lejos, cerca), past adverbs of degree, is the copula: son cerca, son muy lejos, era cerca (a noun takes no such adverb), so the
+            // ser/estar check sees the copula. After a determiner (el son cerca de la plaza) the noun phrase rules have already decided.
+            if (HasReading(i, r => r.Pos == LexiconSchema.Noun)
+                && HasReading(i, IsCopulaReading)
+                && !(i > 0 && HasReading(i - 1, IsDeterminer))
+                && LocationAdverbFollows(next))
             {
                 changed |= Narrow(i, IsCopulaReading);
             }
@@ -837,6 +860,18 @@ internal static class ReadingResolver
             }
 
             return k >= 0 && IsCertainDeterminer(k);
+        }
+
+        // M69: the word at index, past adverbs of degree (muy, tan), is an adverb of place that a copula takes (lejos, cerca).
+        private bool LocationAdverbFollows(int index)
+        {
+            var adverb = index;
+            while (adverb < Count - 1 && adverb - index < ReadingClasses.MaxSkippedBetween && All(adverb, r => r.Pos == LexiconSchema.Adverb && _rules.IsDegreeAdverb(r.Lemma)))
+            {
+                adverb++;
+            }
+
+            return adverb < Count && HasReading(adverb, r => r.Pos == LexiconSchema.Adverb && _rules.IsLocationAdverb(r.Lemma));
         }
 
         private bool IsCopulaReading(LexicalFeatures reading)

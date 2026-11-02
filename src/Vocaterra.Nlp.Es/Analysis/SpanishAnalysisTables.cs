@@ -79,7 +79,22 @@ internal static class SpanishAnalysisTables
         "torneo", "cena", "comida", "almuerzo", "desayuno", "merienda", "banquete", "cumpleaños", "festival", "feria", "mercadillo", "misa", "funeral",
         "entierro", "ceremonia", "celebración", "espectáculo", "función", "obra", "película", "exposición", "conferencia", "congreso", "cita", "encuentro",
         "evento", "acto", "entrevista", "baile", "desfile", "procesión", "carnaval", "salida", "llegada",
+
+        // M69: more events, since ser with en and a place is checked too (la entrega es en la plaza, la visita es en el museo).
+        "entrega", "visita", "excursión", "viaje", "sesión", "votación", "inauguración", "graduación", "verbena", "romería", "ensayo", "actuación", "taller",
+        "charla", "prueba", "subasta", "sorteo", "batalla", "pelea", "lucha", "accidente",
     }.ToFrozenSet(StringComparer.Ordinal);
+
+    // M69. Nouns of the adverbial phrases that en makes with a determiner (en el fondo, en la práctica, en la actualidad, en el caso de), which say how or when and not
+    // where: ser before one is no place (es, en el fondo, bueno). Bare phrases (en serio, en general) are never a place for the rule.
+    private static readonly FrozenSet<string> AdverbialPhraseNouns = new[]
+    {
+        "fondo", "práctica", "actualidad", "medida", "sentido", "caso", "realidad", "principio", "teoría", "verdad", "general", "parte", "total", "cambio", "forma",
+        "manera", "modo", "palabra", "seguida", "absoluto", "punto",
+    }.ToFrozenSet(StringComparer.Ordinal);
+
+    // M69. The nouns that make a place with en without a determiner (en casa: at home); any other bare noun after en is a time or a manner (en marzo, en monedas, en tren).
+    private static readonly FrozenSet<string> BarePlaceNouns = new[] { "casa" }.ToFrozenSet(StringComparer.Ordinal);
 
     // M56. Verbs whose subject follows them after a dative pronoun, and which take no direct object there: me gusta el pan, me gustan las manzanas, me duele la cabeza,
     // me faltan dos monedas. parecer (me parece una buena idea: a predicate) and verbs that also take an object (me dan el pan) are not among them.
@@ -343,6 +358,18 @@ internal static class SpanishAnalysisTables
     public static bool IsEventNoun(string lemma)
     {
         return EventNouns.Contains(lemma);
+    }
+
+    /// <summary>True for the noun of an adverbial phrase with <c>en</c> and a determiner (<c>en el fondo</c>, <c>en la práctica</c>), which is no place (M69).</summary>
+    public static bool IsAdverbialPhraseNoun(string lemma)
+    {
+        return AdverbialPhraseNouns.Contains(lemma);
+    }
+
+    /// <summary>True for a noun that is a place after <c>en</c> without a determiner (<c>en casa</c>; M69).</summary>
+    public static bool IsBarePlaceNoun(string lemma)
+    {
+        return BarePlaceNouns.Contains(lemma);
     }
 
     /// <summary>True for verbs whose subject follows them after a dative pronoun (<c>me gusta el pan</c>, <c>me duelen los pies</c>; M56).</summary>

@@ -107,6 +107,14 @@ public interface IAnalysisRules
     /// <param name="lemma">The verb lemma.</param>
     bool ModalTakesNounObject(string lemma) => false;
 
+    /// <summary>
+    /// True for an adverb of where a thing is, which a copula takes and a noun does not (Spanish: <c>lejos</c>, <c>cerca</c>), so that a finite form of a copula that
+    /// is also a noun, with no determiner before it, right before such an adverb (past adverbs of degree) is the copula (<c>son cerca</c>, <c>son muy lejos</c>; M69).
+    /// The default is none.
+    /// </summary>
+    /// <param name="lemma">The adverb lemma.</param>
+    bool IsLocationAdverb(string lemma) => false;
+
     /// <summary>Creates the agreement checker (subject-verb, tense, copula, noun phrase agreement and word order) for one resolved sentence.</summary>
     /// <param name="resolved">The tokens with the readings narrowed by the resolver.</param>
     /// <param name="errors">The list the checker adds its errors to.</param>
