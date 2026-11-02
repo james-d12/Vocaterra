@@ -84,6 +84,7 @@ public sealed class BookLayer : IFrameLayer
         // The left page: the list.
         var lines = BookPages.ListFor(view.Session, page, view.Recordings);
         var visible = geometry.LinesVisible;
+        view.Book.OpenAtNext(lines, visible);
         view.Book.ClampTo(lines.Count, visible);
         var offset = view.Book.Offset;
         var textWidth = right - left;
