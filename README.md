@@ -32,7 +32,7 @@ content/                   game-v1 (the one content bundle; the core runs on it 
 assets/                    the game's CC0 art, fonts and sounds
 models/                    the pinned speech-model manifest (the model files are fetched and ignored)
 docs/nlp/, docs/game/      each half's plan, decisions, README and documents
-scripts/                   merge-gate.sh, content.sh, limited.sh, fetch-models.sh, license-scan.sh, check-links.sh, playtest and speech scripts
+scripts/                   merge-gate.sh, content.sh, limited.sh, fetch-models.sh, license-scan.sh, playtest and speech scripts
 .claude/agents/            the orchestrator's role file (the entry point for a Claude Code session; see CLAUDE.md)
 .github/workflows/         ci.yml (build, test and the grammar checks)
 ```

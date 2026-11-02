@@ -423,7 +423,7 @@ consent rules and manifest schema are in [tests/golden/README.md](../../tests/go
 | `content/game-v1` | The repository's one content bundle: versioned, hashed JSON, the host files and speech clips of the game, and its `ATTRIBUTION.md` (R02: the core's sample bundle `content/v1` is gone) |
 | `tests/golden/` | Golden learner audio manifest and recording protocol; the audio itself is gitignored |
 | `models/` | `manifest.json` and a README are committed; the model files are fetched and gitignored |
-| `scripts/` | `fetch-models.sh`, `fetch-lexicon-sources.sh`, `license-scan.sh` and its allowlist and overrides, `check-links.sh` ([scripts/README.md](../../scripts/README.md)) |
+| `scripts/` | `fetch-models.sh`, `fetch-lexicon-sources.sh`, `license-scan.sh` and its allowlist and overrides ([scripts/README.md](../../scripts/README.md)) |
 | `.github/workflows-pending/ci.yml` | The CI workflow, parked until the push token has the `workflow` scope |
 | `docs/nlp/` | [API.md](API.md), [PIPELINE.md](PIPELINE.md), [REPLAY.md](REPLAY.md), [LEXICON.md](LEXICON.md), [CLI_EXAMPLES.md](CLI_EXAMPLES.md) and the architecture decision records in `docs/nlp/adr/` |
 | `docs/nlp/diagrams/` | The draw.io system overview and how to open it ([README](diagrams/README.md)) |
