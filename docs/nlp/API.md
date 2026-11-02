@@ -434,13 +434,18 @@ chose, so `esta` is `estar` after `donde`, and its `Original` stays `esta`.
 `None`), `Distance` (the edit distance, or the phonetic distance when that is smaller, so `ezpada` for `espada` is 0), `LikelyPronunciation`
 (the spelling differs but the phonetic key matches) and `Confidence`.
 
-**What a constrained prompt's answer set adds to the verdict (M67).** At a constrained prompt whose answer set the line does not match, the verdict
+**What a constrained prompt's answer set adds to the verdict (M67, M72).** At a constrained prompt whose answer set the line does not match, the verdict
 derives a `vocab.wrong` on the first content word (a word the lexicon knows; `expected` is the canonical answer when the set has one answer, else empty) to
-explain the miss. It is derived only for a miss: a line that resolved no intent, or one that a keyword rule (not a slot grammar) understood and that is a
-near miss of an answer, its distance to the nearest answer phrase within the fuzzy budget taken for the line's own length (`cuál es esto` at `lesson-what`,
+explain the miss. It is derived only for a miss it can explain: a line that resolved no intent at a prompt that names the word (an answer set of one answer,
+or a quiz, which allows no intent and asks only for a word), or a line that resolved no intent or that a keyword rule (not a slot grammar) understood and that
+is a near miss of an answer, its distance to the nearest answer phrase within the fuzzy budget taken for the line's own length (`cuál es esto` at `lesson-what`,
 3 edits from its answer `qué es esto`, a budget of 3 for 12 characters; the matcher took 2, for the phrase). A line a
 slot grammar understood never gets it, nor does one a keyword rule understood far from every answer: before M67 `hola luz quiero dos panes` at
-`baker-open`, `buscaré madera para luz` at `smith-open` and `me llamo domingo` at `smith-open` were scored 0.4 for it.
+`baker-open`, `buscaré madera para luz` at `smith-open` and `me llamo domingo` at `smith-open` were scored 0.4 for it. Since M72 (the owner, D-game-22,
+2026-11-02) a correct line that is simply not among the several answers of a prompt (no intent the prompt takes, no near miss) gets no error either and stays
+`communicated=false`: before M72 `la tienda está en el pueblo` at `farmer-open`, `tengo dos manzanas` at `fisher-open` and `me gusta el río` at `smith-open`
+were scored 0.4 for a `vocab.wrong` with an empty expected word.
+At a lesson step, a line that answers another question is still not communicated: the step's prompt does not take it.
 
 ```csharp
 foreach (ResolvedWord word in result.Words!)

@@ -554,17 +554,72 @@ public class VerdictAssemblerTests
         Assert.Empty(VerdictAssembler.Assemble(inputs with { Prompt = inputs.Prompt with { Difficulty = Difficulty.Advanced } }).Errors);
     }
 
-    [Fact]
-    public void VocabWrongIsStillDerivedOnALineThatResolvedNoIntentHoweverFarItIs()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ALineThatResolvedNoIntentFarFromEveryOneOfSeveralAnswersGetsNoDerivedTag(bool answersKnown)
     {
-        // The clean neighbour of the cases above: a line with no intent was not understood, and the derived tag explains the miss.
+        // M72 (D-game-22, 2026-11-02): la tienda está en el pueblo at farmer-open, whose 24 answers name no single word, resolved no intent the prompt takes and was
+        // scored 0.4 with vocab.wrong and an empty expected word. A correct line that is simply not among the answers has no word to name and is no near miss.
         var inputs = VocabInputs([Fixtures.Token("perro", 0, "noun")]) with
         {
             Intent = Fixtures.UnknownIntent(),
             Match = new MatchResult(null, MatchType.None, 40, false, 0.0),
+            CanonicalAnswers = answersKnown ? ["gato negro", "no sé"] : null,
         };
 
-        Assert.Equal(ErrorTags.VocabWrong, Assert.Single(VerdictAssembler.Assemble(inputs).Errors).Tag);
+        var verdict = VerdictAssembler.Assemble(inputs);
+
+        Assert.Empty(verdict.Errors);
+        Assert.Equal(1.0, verdict.Correctness);
+        Assert.False(verdict.Communicated);
+    }
+
+    [Fact]
+    public void ALineThatResolvedNoIntentAtAOneAnswerSetIsTaggedHoweverFarItIs()
+    {
+        // The set asks for one word, so the tag names it, wherever the line is.
+        var inputs = VocabInputs([Fixtures.Token("perro", 0, "noun")]) with
+        {
+            Intent = Fixtures.UnknownIntent(),
+            Match = new MatchResult(null, MatchType.None, 40, false, 0.0),
+            CanonicalAnswers = ["gato"],
+        };
+
+        Assert.Equal(new ErrorTag(ErrorTags.VocabWrong, new TextSpan(0, 5), "gato", "perro"), Assert.Single(VerdictAssembler.Assemble(inputs).Errors));
+    }
+
+    [Fact]
+    public void ALineAtAQuizIsTaggedHoweverFarItIsAndWhateverItsAnswers()
+    {
+        // A quiz allows no intent: it asks only for a word, so any other known word is the wrong one, even when its set has several answers.
+        var inputs = VocabInputs([Fixtures.Token("perro", 0, "noun")]) with
+        {
+            Prompt = Fixtures.Prompt(RecognitionMode.Constrained, answerSetId: "animals") with { AllowedIntentIds = [] },
+            Intent = Fixtures.UnknownIntent(),
+            Match = new MatchResult(null, MatchType.None, 40, false, 0.0),
+            CanonicalAnswers = ["gato", "gato negro"],
+        };
+
+        Assert.Equal(new ErrorTag(ErrorTags.VocabWrong, new TextSpan(0, 5), string.Empty, "perro"), Assert.Single(VerdictAssembler.Assemble(inputs).Errors));
+    }
+
+    [Theory]
+    [InlineData(1, true)]
+    [InlineData(2, false)]
+    public void ALineThatResolvedNoIntentKeepsTheTagWhenItIsANearMissOfAnAnswer(int distance, bool derived)
+    {
+        // perro: 5 characters, a budget of 1 at Beginner. A line one edit from an answer of several is a near miss and the tag explains it; two edits is too far.
+        var inputs = VocabInputs([Fixtures.Token("perro", 0, "noun")]) with
+        {
+            Intent = Fixtures.UnknownIntent(),
+            Match = new MatchResult(null, MatchType.None, distance, false, 0.0),
+            CanonicalAnswers = ["perra", "no sé"],
+        };
+
+        ErrorTag[] expected = derived ? [new ErrorTag(ErrorTags.VocabWrong, new TextSpan(0, 5), string.Empty, "perro")] : [];
+
+        Assert.Equal(expected, VerdictAssembler.Assemble(inputs).Errors);
     }
 
     [Fact]

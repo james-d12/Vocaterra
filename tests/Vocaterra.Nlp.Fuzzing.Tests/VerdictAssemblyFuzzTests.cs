@@ -167,16 +167,20 @@ public sealed class VerdictAssemblyFuzzTests(ITestOutputHelper output)
         return "[" + string.Join("; ", keys.OrderBy(static k => k.Start).ThenBy(static k => k.Tag, StringComparer.Ordinal).Select(static k => $"{k.Tag}@{k.Start}+{k.Length}")) + "]";
     }
 
-    // The derived error exists when nothing matched, the prompt is constrained, the line is a miss (M67: it resolved no intent, or an intent that no
-    // slot grammar gave and its distance to the nearest answer is within the fuzzy budget for the line's own length), and the first content
-    // token is a word the lexicon knows. Its expected text is the answer set's single canonical answer, or empty when the set has no single answer
-    // (VerdictGen supplies none).
+    // The derived error exists when nothing matched, the prompt is constrained, the line is a miss the tag can explain, and the first content token is a
+    // word the lexicon knows. A miss it can explain (M67, M72): the line resolved no intent at a prompt that names its word (an answer set of one canonical
+    // answer, or a quiz: a prompt that allows no intent), or it resolved no intent or an intent that no slot grammar gave and its distance to the nearest
+    // answer is within the fuzzy budget for the line's own length (a near miss). A line that resolved no intent far from every one of several answers, or
+    // with the answers unknown, is a correct line the prompt does not take and has none (M72). Its expected text is the answer set's single canonical
+    // answer, or empty when the set has no single answer (VerdictGen supplies none, the set's answers, or one).
     private static ErrorTag? DerivedVocabWrong(VerdictInputs inputs)
     {
         var length = inputs.Analysis.Tokens.Sum(static t => t.Token.Text.Length) + Math.Max(inputs.Analysis.Tokens.Count - 1, 0);
         var budget = length / inputs.Prompt.Difficulty switch { Difficulty.Intermediate => 5, Difficulty.Advanced => 6, _ => 4 };
         var nearMiss = length > 0 && inputs.Match.Distance <= budget;
-        var miss = inputs.Intent.Intent.IsUnknown || (inputs.Intent.Rung != IntentRung.Grammar && nearMiss);
+        var unknown = inputs.Intent.Intent.IsUnknown;
+        var namesTheWord = inputs.CanonicalAnswers?.Count == 1 || inputs.Prompt.AllowedIntentIds.Count == 0;
+        var miss = (unknown && namesTheWord) || ((unknown || inputs.Intent.Rung != IntentRung.Grammar) && nearMiss);
         if (inputs.Match.Type != MatchType.None || inputs.Prompt.Mode != RecognitionMode.Constrained || !miss)
         {
             return null;
