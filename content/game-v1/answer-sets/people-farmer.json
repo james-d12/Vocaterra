@@ -90,6 +90,60 @@
       "canonical": "no sé",
       "aliases": ["no lo sé", "yo no sé", "no entiendo"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "la-manzana-es-roja",
+      "canonical": "sí, es roja",
+      "aliases": ["la manzana es roja y grande", "la manzana es muy roja"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "me-gusta-el-pan",
+      "canonical": "sí, me gusta el pan",
+      "aliases": ["sí, me gusta", "me gusta mucho el pan", "sí, me gusta mucho"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "me-gustan-las-manzanas",
+      "canonical": "sí, me gustan las manzanas",
+      "aliases": [],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "voy-a-buscar-agua",
+      "canonical": "voy a buscar agua",
+      "aliases": ["yo voy a buscar agua", "voy a buscar el agua", "luego voy a buscar agua", "voy a buscar agua luego", "luego busco agua"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "fui-al-rio",
+      "canonical": "sí, fui al río",
+      "aliases": ["fui al río", "yo fui al río", "hoy fui al río"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "me-gusto-el-pan",
+      "canonical": "sí, me gustó el pan de Luz",
+      "aliases": ["me gustó el pan de Luz", "me gustó el pan", "sí, me gustó", "me gustó mucho el pan", "ayer me gustó el pan"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "es-muy-caro",
+      "canonical": "es muy caro",
+      "aliases": ["es caro", "sí, es muy caro"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "mas-barato-que",
+      "canonical": "la manzana es más barata que el pan",
+      "aliases": ["la manzana es más barata", "es más barata que el pan", "el pan es más caro que la manzana"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "manana-vendere-fruta",
+      "canonical": "yo venderé fruta",
+      "aliases": ["venderé fruta mañana"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
     }
   ]
 }

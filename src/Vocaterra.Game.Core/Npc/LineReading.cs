@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
@@ -49,6 +50,24 @@ public static class LineReading
         ArgumentNullException.ThrowIfNull(verdictOf);
         var whole = Vocative.Without(recognitionOf(heard), listener) is { } bare ? read(bare) : heard;
         return ByTheRest(whole, Greeting.Rest(recognitionOf(whole)), prompt, read, verdictOf);
+    }
+
+    /// <summary>
+    /// The phrase row a learner's line is, read as the NPC reads it (VILLAGE_PLAN V20): the line as said, else without the listener's name (<c>Luz, mañana compraré pan</c>),
+    /// else the rest after an opening greeting (<c>hola, mañana compraré pan</c>), each matched against the rows a test admits (<see cref="PhraseSheet.Said"/>); or
+    /// <see langword="null"/>.
+    /// </summary>
+    /// <param name="sheet">The phrase sheet.</param>
+    /// <param name="line">What the learner said.</param>
+    /// <param name="listener">The listener's name, or <see langword="null"/>.</param>
+    /// <param name="admits">Whether a phrase (by its id) may be the one.</param>
+    public static PhraseRow? PhraseSaid(PhraseSheet sheet, string line, string? listener, Func<string, bool> admits)
+    {
+        ArgumentNullException.ThrowIfNull(sheet);
+        ArgumentNullException.ThrowIfNull(line);
+        ArgumentNullException.ThrowIfNull(admits);
+        var bare = Vocative.Without(line, listener);
+        return sheet.Said(line, admits) ?? sheet.Said(bare, admits) ?? (Greeting.Rest(bare) is { } rest ? sheet.Said(rest, admits) : null);
     }
 
     // The reading of the rest after an opening greeting when it answers the turn (Greeting.AnswersRest), or the reading of the whole line.

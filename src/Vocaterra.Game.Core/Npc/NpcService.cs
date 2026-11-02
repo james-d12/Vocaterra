@@ -182,6 +182,7 @@ public sealed partial class NpcService
     private readonly RecipeBook _recipes;
     private readonly PhraseSheet _phrases;
     private readonly IReadOnlyList<string> _practised;
+    private readonly IReadOnlyList<string> _names;
     private readonly GameWords _words;
     private readonly HostEventTable _hostEvents;
     private readonly ScenePlaces _places;
@@ -245,6 +246,7 @@ public sealed partial class NpcService
         _typed = new TypedUtteranceEvaluator(bundle);
         _phrases = data.Phrases;
         _practised = [.. data.Npcs.Homes.Keys];
+        _names = [.. data.Npcs.All.Select(static npc => npc.Name).OfType<string>()];
         _words = data.Words;
         _hostEvents = data.HostEvents;
         _places = places ?? ScenePlaces.None;
@@ -656,7 +658,8 @@ public sealed partial class NpcService
         // Phase 2: the decision, the response and the replay record, with the host's facts and the word skills in the context. The learner is
         // updated once, here. The digest covers the slots and skills (HostDigest, the core's contract); without them the context keeps the bare
         // digest, as the core does when no slots are given.
-        var skills = verdict.Communicated ? WordSkillsOf(GuideWord.From(analysis.Words), PhraseSkillsOf(verdict, promptId, origin, scene.PromptOverride is null)) : [];
+        var lessonPhrase = scene.PromptOverride is null && scene.Credited is { } credited ? LineReading.PhraseSaid(_phrases, line, agent.Npc.Name, credited.Contains)?.Id : null; // V20
+        var skills = verdict.Communicated ? WordSkillsOf(GuideWord.From(analysis.Words), PhraseSkillsOf(verdict, promptId, origin, scene.PromptOverride is null, lessonPhrase)) : [];
         var created = ConversationContext.Create(
             utterance.WorldSeed,
             utterance.AgentId,
@@ -693,7 +696,7 @@ public sealed partial class NpcService
         {
             if (responseLine.IsRecast || responseLine.LineId.StartsWith(FeedbackLinePrefix, StringComparison.Ordinal))
             {
-                feedback ??= responseLine.Text;
+                feedback ??= RecastNames.Capitalise(responseLine.Text, _names); // the core writes the learner's words in lower case: «buscaré madera para Luz» (V20)
             }
             else if (holdsBottle && hostEvents.Contains(NpcHostEvents.GiveWater, StringComparer.Ordinal)
                 && responseLine.LineId.StartsWith("shop_give.", StringComparison.Ordinal))
@@ -950,7 +953,7 @@ public sealed partial class NpcService
     // when the line was understood and had no mistake; a choice picked from the offered buttons is a recognition signal and exercises no skill; the
     // service words (help, "no sé") exercise none either. In free talk (the NPC's own prompt, no lesson step or review) a place the prompt's one row of the
     // intent does not name is the row practised elsewhere that names it (V14, PhraseSheet.ByPlace).
-    private List<string> PhraseSkillsOf(Verdict verdict, string promptId, LineOrigin origin, bool freeTalk)
+    private List<string> PhraseSkillsOf(Verdict verdict, string promptId, LineOrigin origin, bool freeTalk, string? said)
     {
         var skills = new List<string>();
         if (!verdict.Communicated || verdict.Errors.Count > 0 || origin == LineOrigin.Choice
@@ -959,7 +962,7 @@ public sealed partial class NpcService
             return skills;
         }
 
-        if (_phrases.PhraseFor(promptId, verdict.Intent.Value, verdict.Slots, _words.Noun("river"), freeTalk ? _practised : null) is { } used) // the prompt's own row first (V12b)
+        if (_phrases.PhraseFor(promptId, verdict.Intent.Value, verdict.Slots, _words.Noun("river"), freeTalk ? _practised : null, said) is { } used) // the prompt's own row first (V12b), then a lesson's (V20)
         {
             skills.Add(PhraseSkillPrefix + used);
         }

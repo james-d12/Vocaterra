@@ -89,6 +89,7 @@ public sealed class PhraseSupport
     private readonly PhraseSheet _sheet;
     private readonly PhraseProgress _progress;
     private readonly LocaleText? _locale;
+    private readonly Func<string, bool>? _ready;
     private readonly Dictionary<string, string> _lineText = new(StringComparer.Ordinal);
     private readonly HashSet<string> _revealed = new(StringComparer.Ordinal);
     private readonly HashSet<string> _counted = new(StringComparer.Ordinal);
@@ -109,7 +110,9 @@ public sealed class PhraseSupport
     /// <param name="bundle">The bundle whose dialogue lines hold the model audio's text.</param>
     /// <param name="npcs">The NPCs, whose prompts name the phrases in play (C08).</param>
     /// <param name="english">The game's English text (the explanations on the cards), or <see langword="null"/> for cards without them.</param>
-    public PhraseSupport(PhraseSheet sheet, PhraseProgress progress, ContentBundle bundle, NpcRoster npcs, LocaleText? english = null)
+    /// <param name="ready">Whether a phrase of an NPC's focus is in play yet (VILLAGE_PLAN V20: once the lesson that teaches it is the current one or done,
+    /// <see cref="Lessons.LessonRunner.CardReady"/>), or <see langword="null"/> for the whole focus always.</param>
+    public PhraseSupport(PhraseSheet sheet, PhraseProgress progress, ContentBundle bundle, NpcRoster npcs, LocaleText? english = null, Func<string, bool>? ready = null)
     {
         ArgumentNullException.ThrowIfNull(sheet);
         ArgumentNullException.ThrowIfNull(progress);
@@ -118,6 +121,7 @@ public sealed class PhraseSupport
         _sheet = sheet;
         _progress = progress;
         _locale = english;
+        _ready = ready;
         var wanted = new HashSet<string>(sheet.Rows.SelectMany(static r => r.AudioLineIds), StringComparer.Ordinal);
         foreach (var pool in bundle.Dialogue.Pools.Values)
         {
@@ -140,10 +144,21 @@ public sealed class PhraseSupport
     /// <summary>Whether help was given on this prompt (Ayuda or "no sé" and the NPC's model line), so the next use is supported, not unaided.</summary>
     public bool HelpGiven => _help;
 
-    /// <summary>The phrases in play on this prompt: the review's phrase during a review, otherwise the prompt's focus (its NPC's, <see cref="NpcRoster.FocusAt"/>).</summary>
+    /// <summary>The phrases in play on this prompt: the review's phrase during a review, otherwise the prompt's focus (<see cref="FocusAt"/>).</summary>
     public IReadOnlyList<string> InPlay => _npc is null
         ? []
-        : _forcedPhrase is not null ? [_forcedPhrase] : _reviewPhrase is not null ? [_reviewPhrase] : _ratedPhrase is not null ? [_ratedPhrase] : _npcs.FocusAt(_prompt ?? string.Empty);
+        : _forcedPhrase is not null ? [_forcedPhrase] : _reviewPhrase is not null ? [_reviewPhrase] : _ratedPhrase is not null ? [_ratedPhrase] : FocusAt(_prompt ?? string.Empty);
+
+    /// <summary>
+    /// The phrases of a prompt's focus in play now: its NPC's (<see cref="NpcRoster.FocusAt"/>) whose lesson has come (VILLAGE_PLAN V20, the constructor's <c>ready</c>), so an
+    /// NPC shows no card of a later lesson (Luz's <c>Vendo madera.</c> before the market's).
+    /// </summary>
+    /// <param name="prompt">The prompt id.</param>
+    public IReadOnlyList<string> FocusAt(string prompt)
+    {
+        var focus = _npcs.FocusAt(prompt);
+        return _ready is null ? focus : focus.Where(_ready).ToList();
+    }
 
     /// <summary>The support cards to draw now, in the phrase sheet's order; each says whether its English is drawn (<see cref="SupportCard.EnglishShown"/>).</summary>
     public IReadOnlyList<SupportCard> Cards => _npc is null

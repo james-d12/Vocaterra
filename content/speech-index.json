@@ -308,6 +308,30 @@
       "Bytes": 119188,
       "Gain": 0.32
     },
+    "speech/baker_nice.1.slow.wav": {
+      "Text": "\u00A1Qu\u00E9 bien!",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "fbf42d482d63cca4e620f4232642def902fcab82dd4ed734bf03577df81ca9de",
+      "Bytes": 57240,
+      "Gain": 0.32
+    },
+    "speech/baker_nice.1.wav": {
+      "Text": "\u00A1Qu\u00E9 bien!",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "2ef696d3d2c2fefdd6beac90a9fb92e1d45dc1628776d4e75b2ad02b1f5bad72",
+      "Bytes": 42972,
+      "Gain": 0.32
+    },
     "speech/baker_no_room.1.slow.wav": {
       "Text": "Tu bolsa est\u00E1 llena.",
       "Speaker": "baker",
@@ -1316,6 +1340,28 @@
       "Sha256": "61950869f96b34720115170bef7b115adb8e8fba5ee7dd2cd7410a2ca9f4a574",
       "Bytes": 66472
     },
+    "speech/farmer_nice.1.slow.wav": {
+      "Text": "\u00A1Qu\u00E9 bien!",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "99324140e895378c24c51a36d4c9f56ae9491ae112c393bff07f5f85b9656cf5",
+      "Sha256": "add24589f3c4d48400d9b07e5adcc2735866e87e59eb47f8287221e946609b1d",
+      "Bytes": 58076
+    },
+    "speech/farmer_nice.1.wav": {
+      "Text": "\u00A1Qu\u00E9 bien!",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9b21535b15c9c2b30c726fc985eb38a563c9bf9e48aad254c6809beae3fab923",
+      "Sha256": "7f4939c8e14365a23567e48fe420c4d4a87f245943cb6243045a8683132a5094",
+      "Bytes": 50444
+    },
     "speech/farmer_no_room.1.slow.wav": {
       "Text": "Tu bolsa est\u00E1 llena.",
       "Speaker": "farmer",
@@ -1513,6 +1559,28 @@
       "ModelHash": "9b21535b15c9c2b30c726fc985eb38a563c9bf9e48aad254c6809beae3fab923",
       "Sha256": "ea7787509928040b0d8ed74e27925ed0875a5d45309b236893a0ccf670d99f76",
       "Bytes": 107228
+    },
+    "speech/farmer_true.1.slow.wav": {
+      "Text": "S\u00ED, es verdad.",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "99324140e895378c24c51a36d4c9f56ae9491ae112c393bff07f5f85b9656cf5",
+      "Sha256": "1bee7cc721d87f91c6499787aa2940d44a8baf3f73d2deb457c9f9aa216a1f5f",
+      "Bytes": 75540
+    },
+    "speech/farmer_true.1.wav": {
+      "Text": "S\u00ED, es verdad.",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9b21535b15c9c2b30c726fc985eb38a563c9bf9e48aad254c6809beae3fab923",
+      "Sha256": "d62b8830fb801099301a1a230064efe32167817168d0878a14c17c199709d084",
+      "Bytes": 68444
     },
     "speech/farmer_wont_buy.1.slow.wav": {
       "Text": "No, gracias. Solo compro fruta.",
@@ -1843,6 +1911,28 @@
       "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
       "Sha256": "a56411a9798ba4d94c9a7e780f9bb778191bb57a86cee38958314d6cd5757b31",
       "Bytes": 74444
+    },
+    "speech/fisher_nice.1.slow.wav": {
+      "Text": "\u00A1Qu\u00E9 bien!",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "08bd4973931b93fab0d1b8db80ff35ae3e28954126c3f651d4956e809dcf6c51",
+      "Bytes": 68444
+    },
+    "speech/fisher_nice.1.wav": {
+      "Text": "\u00A1Qu\u00E9 bien!",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "9bfaa68ef474bda6f49a4f9d60126c73ebb01d2e5034bf2d98ca1d076ce36b34",
+      "Bytes": 43526
     },
     "speech/fisher_point.1.slow.wav": {
       "Text": "Mira, est\u00E1 all\u00ED.",
@@ -9462,6 +9552,28 @@
       "Sha256": "5c89ec046cd022d7e626a49b8d94de42307a8350abf378930fa9dba332742071",
       "Bytes": 64844
     },
+    "speech/shop_nice.1.slow.wav": {
+      "Text": "\u00A1Qu\u00E9 bien!",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "fb8e2a935145ab41ed0f66e30299d072f0fd5bb2fee4e2b8e31a5177726f9137",
+      "Sha256": "a5230d8d78ebc3f212a9bf4f278057ee32d775c9b4dd572e286657e2582200bf",
+      "Bytes": 58844
+    },
+    "speech/shop_nice.1.wav": {
+      "Text": "\u00A1Qu\u00E9 bien!",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
+      "Sha256": "76a86a6951ced02a05b7e2be99d47b2802e4b96c742d6438365c8b296e82cd13",
+      "Bytes": 46844
+    },
     "speech/shop_offer.1.slow.wav": {
       "Text": "\u00BFQuieres pan?",
       "Speaker": "shopkeeper",
@@ -9549,6 +9661,28 @@
       "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
       "Sha256": "154c957ca07ebb21e8c736953c7521d4fc38216bc47396d9516d01cf5d686803",
       "Bytes": 55244
+    },
+    "speech/shop_true.1.slow.wav": {
+      "Text": "S\u00ED, es verdad.",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "fb8e2a935145ab41ed0f66e30299d072f0fd5bb2fee4e2b8e31a5177726f9137",
+      "Sha256": "2a2f7eb1c09b8aa679f255234e0543980620272e27381b0cab08b710d7c4361b",
+      "Bytes": 80444
+    },
+    "speech/shop_true.1.wav": {
+      "Text": "S\u00ED, es verdad.",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
+      "Sha256": "75f52e2071c573dfe10699907690f7f195f1b1eab129937bdfa130d61943d379",
+      "Bytes": 60044
     },
     "speech/smith_buy.1.slow.wav": {
       "Text": "\u00A1Gracias! Aqu\u00ED tienes tus monedas.",
@@ -9790,6 +9924,30 @@
       "Bytes": 69840,
       "Gain": 0.6
     },
+    "speech/smith_nice.1.slow.wav": {
+      "Text": "\u00A1Qu\u00E9 bien!",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "74ccefe450428c0d43b4a93003662c032b03f1b394c0c577da5163eb3bee5afe",
+      "Sha256": "0dd0759407616def169d3efad68fb3afe315ed362b1acca54c07190a69c9533a",
+      "Bytes": 47914,
+      "Gain": 0.6
+    },
+    "speech/smith_nice.1.wav": {
+      "Text": "\u00A1Qu\u00E9 bien!",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
+      "Sha256": "54b88114c69ee8ceb2a68952991832fa54b454f9e7a3c2c620eb5e0c4852a618",
+      "Bytes": 44204,
+      "Gain": 0.6
+    },
     "speech/smith_no_room.1.slow.wav": {
       "Text": "Tu bolsa est\u00E1 llena.",
       "Speaker": "smith",
@@ -9860,6 +10018,30 @@
       "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
       "Sha256": "2d85c8b8e3464ddca9fec164684d97770bfe32dd68cca86278943083cdc53e28",
       "Bytes": 197868,
+      "Gain": 0.6
+    },
+    "speech/smith_ok.1.slow.wav": {
+      "Text": "Est\u00E1 bien.",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "74ccefe450428c0d43b4a93003662c032b03f1b394c0c577da5163eb3bee5afe",
+      "Sha256": "adb3e7fb0439eed970d665ed85b77e4becb941508cafd49b17a37bbb784fe8b5",
+      "Bytes": 59530,
+      "Gain": 0.6
+    },
+    "speech/smith_ok.1.wav": {
+      "Text": "Est\u00E1 bien.",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
+      "Sha256": "50e365a8d78039a82a4b6b0ccd1edec3a7d5130c38e2add4aba05bf688ab15bf",
+      "Bytes": 47812,
       "Gain": 0.6
     },
     "speech/smith_thank.1.slow.wav": {
@@ -10088,6 +10270,28 @@
       "Sha256": "6f98b69bfef938302f112d5668f5d83697f556ce48a1a7e381eafa059a6e8a65",
       "Bytes": 108310
     },
+    "speech/villager_nice.1.slow.wav": {
+      "Text": "\u00A1Qu\u00E9 bien!",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "582bff1facec664e0c88b222b72770a195e06c2d9ca39c8596ff5e65a9fc4a13",
+      "Sha256": "159bb270099557854d8f66bd66095e6c7a77bcd31b8e08efcb119cdffc0d8ef6",
+      "Bytes": 50550
+    },
+    "speech/villager_nice.1.wav": {
+      "Text": "\u00A1Qu\u00E9 bien!",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
+      "Sha256": "68199a3e138bf67e1a0a2d49bc64d433bd2c5ebe605b51d46f6cf917206dedd6",
+      "Bytes": 48044
+    },
     "speech/villager_point.1.slow.wav": {
       "Text": "Mira, est\u00E1 all\u00ED.",
       "Speaker": "villager",
@@ -10175,6 +10379,28 @@
       "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
       "Sha256": "0ee06d6e1412c4a8c3efc7d36a4179e6f2d52ce6dbb7b602ca17fad9a51247b3",
       "Bytes": 54044
+    },
+    "speech/villager_true.1.slow.wav": {
+      "Text": "S\u00ED, es verdad.",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "582bff1facec664e0c88b222b72770a195e06c2d9ca39c8596ff5e65a9fc4a13",
+      "Sha256": "e5725e9cfb3d21d592f5dbd8346d8896dffa5e227e66b77af1bd7744c1e6ed3b",
+      "Bytes": 68340
+    },
+    "speech/villager_true.1.wav": {
+      "Text": "S\u00ED, es verdad.",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
+      "Sha256": "7356470cb3baa8b6083c8b4a2e8bd2ce9e43ad153321b73ca0d58a666efa986b",
+      "Bytes": 63644
     },
     "speech/villager_unknown_place.1.slow.wav": {
       "Text": "No s\u00E9 d\u00F3nde est\u00E1.",
