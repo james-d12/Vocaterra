@@ -159,4 +159,18 @@ public class VillageQaLineTests
     {
         Assert.Equal(errors, Errors(Evaluate(transcript, promptId).Verdict));
     }
+
+    // ---- 7. The learner's own word in an error (an observation) -----------------------------------------------------------------------------------------------
+
+    // Before M70: heard '2'.
+    [Theory]
+    [InlineData("dos panes es caro", "dos")]
+    [InlineData("Dos panes son caros", "dos")]
+    public void AnErrorOnANumberReportsTheLearnersWord(string transcript, string heard)
+    {
+        var error = Assert.Single(Evaluate(transcript, "farmer-open").Verdict.Errors);
+
+        Assert.Equal("vocab.wrong", error.Tag);
+        Assert.Equal(heard, error.Actual);
+    }
 }

@@ -53,7 +53,8 @@ public static class VerdictAssembler
     /// does a line a keyword rule understood far from every answer: <c>buscaré madera para luz</c> or <c>hola luz quiero dos panes</c> at a prompt whose
     /// answer set does not hold the line were scored as a small mistake before M67.
     /// <c>Expected</c> is the answer set's canonical answer when the set has exactly one answer (a prompt that asks for one word), and empty
-    /// otherwise: a set of several answers has no single word to name. <c>Actual</c> is the token text.
+    /// otherwise: a set of several answers has no single word to name. <c>Actual</c> is the token text. An error on a number reports the learner's word for it
+    /// (M70: <c>dos</c>, not the <c>2</c> of the normalized text), whichever stage reported it.
     /// </remarks>
     public static Verdict Assemble(VerdictInputs inputs)
     {
@@ -170,10 +171,34 @@ public static class VerdictAssembler
             unique.TryAdd((derived.Tag, derived.Span.Start, derived.Span.Length), derived);
         }
 
-        var sorted = unique.Values.ToArray();
+        var sorted = unique.Values.Select(error => WithLearnersWord(error, inputs.Analysis.Tokens)).ToArray();
         var tags = inputs.ErrorTags ?? ErrorTagSet.V1;
         Array.Sort(sorted, (left, right) => CompareErrors(left, right, tags));
         return sorted;
+    }
+
+    // M70: an error on a number reports the learner's own word, not the digits the normalizer wrote for it (dos panes es caro: heard dos, not 2). The span and the
+    // expected text are unchanged; a number the learner wrote in digits keeps them.
+    private static ErrorTag WithLearnersWord(ErrorTag error, IReadOnlyList<AnalyzedToken> tokens)
+    {
+        foreach (var analyzed in tokens)
+        {
+            var token = analyzed.Token;
+            if (token.Span == error.Span
+                && string.Equals(error.Actual, token.Text, StringComparison.Ordinal)
+                && IsDigits(token.Text)
+                && !IsDigits(token.Original))
+            {
+                return error with { Actual = token.Original.ToLowerInvariant() };
+            }
+        }
+
+        return error;
+    }
+
+    private static bool IsDigits(string text)
+    {
+        return text.Length > 0 && text.All(char.IsAsciiDigit);
     }
 
     private static void AddUnique(Dictionary<(string Tag, int Start, int Length), ErrorTag> unique, ErrorTag error)
