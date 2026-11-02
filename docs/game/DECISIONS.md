@@ -326,6 +326,14 @@ are predicate adjectives a learner will get wrong.
 3. **An accent that marks a verb's tense or person** (`compre` for `compré`, `compro` for `compró`) is still accepted on typed input with
    no deduction, but the feedback shows the accented form with a short note (M70, and the note's display in the game, V21).
 
+**Owner's answers, 2026-11-02 (after V24, the last of the follow-ups' queue):**
+1. **V24's four game bugs are fixed first, on `feature/village-followups`,** as one game milestone (V26, Sonnet 5.5), before the pull
+   request into `main`: two replies to a line not understood, the book's credit of a refused request (`Quiero dos manzanas.` at Luz logged
+   as a use of `quiero-dos-panes`), the book keeping a typed form without its accent (`compre`), and a scripted run's silent stop at 18 000
+   ticks.
+2. **A correct line with a word outside an open prompt's answer set** (`la tienda está en el pueblo` at `farmer-open`: `vocab.wrong`, «No
+   te entendí»; V17, M69) **is planned now** as a core milestone and a game milestone; the plan goes to the owner before anything is built.
+
 ## Already decided
 
 - **The core by project reference** (D-game-7; until 2026-10-21 "packages only" from a submodule's local feed). The game never copies core
