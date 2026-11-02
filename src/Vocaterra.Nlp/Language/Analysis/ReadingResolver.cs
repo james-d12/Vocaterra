@@ -48,6 +48,8 @@ using Vocaterra.Nlp.Language.SlotGrammar;
 /// indicative is that verb, the learner's slip for the infinitive, where its other readings cannot stand there: a noun or an adjective after a modal that takes no
 /// noun (<c>puedo pago</c>), a noun before a word that can only be a noun (<c>quiero vendo madera</c>), and a conjunction or an adverb before a phrase opened by a
 /// determiner or <c>más</c> (<c>debo como más fruta</c>); a noun the modal may take stays to the fallback (<c>quiero vino</c>, <c>necesito pago</c>).
+/// M73: a word that is a noun and a finite verb right after the interrogative quantifier in any of its forms is the verb before a neuter pronoun
+/// (<see cref="IAnalysisRules.IsNeuterPronoun"/>: <c>¿cuántas cuesta todo?</c>), and before a phrase a determiner opens where its noun cannot agree with the quantifier.
 /// </description></item>
 /// <item><description>
 /// <b>Grammar bindings.</b> When a slot grammar matched the whole utterance, every token was consumed by a grammar element, and that element names the reading:

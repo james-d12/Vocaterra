@@ -113,7 +113,8 @@ All of this is additive unless it says breaking. The game compiles and passes un
   `poder`, `querer`, `deber`, `necesitar` and `tener que`, and those of them that also take a noun; see "Tense errors" below); ADR 0009's note of M66. M69 added three
   more with a default that finds none: `IsLocationAdverb(lemma)` (`lejos`, `cerca`: `son cerca` is the copula), `CallsForSlip(tokens, index, slip)` (where a word of
   another class is a learner's slip without a grammar: `yo podo ir`, `yo esto cansado`) and `IsPredicateAdjective(lemma)` (the common adjectives whose noun homographs
-  are no bare predicate: `él es alta`); see "Person and copula errors", "Irregular forms" and "Adjectives" below. Breaking signatures: `ReadingClasses.IsDeterminerReading`, `IsClosedClassReading` and `IsSkippable`
+  are no bare predicate: `él es alta`); see "Person and copula errors", "Irregular forms" and "Adjectives" below. M73 added `IsNeuterPronoun(word)` with the same
+  default (`todo`, `eso`, `esto`, `aquello`: `¿cuántas cuesta todo?` reads `cuesta` as the verb). Breaking signatures: `ReadingClasses.IsDeterminerReading`, `IsClosedClassReading` and `IsSkippable`
   take the rules (they were internal in effect: only the analysis used them); `AccentRestoration.SpellingsFor(lexicon, analysis, rules)`;
   `SlotGrammarMatcher.Match(tokens, grammar, language[, rules])` (the 3-argument form still works and uses `AnalysisRules.For`).
 - **Constructors that take the interface** (source compatible, `MorphologyGenerator` is an `IMorphology`): `LinguisticAnalyzer(lexicon, IMorphology, language[, rules])`,
@@ -626,7 +627,8 @@ The checks work on the whole utterance, not on clauses, and on the verb forms th
   `quince monedas es mucho` and `dos panes no es nada` are clean, as `dos panes son suficientes` is (the predicate, past at most two adverbs: `mucho`, `poco`, `bastante`,
   `demasiado`, `suficiente`, `caro`, `barato`, `nada` or `algo` as written, or a phrase of the singular with a determiner, `mucho dinero`, `un buen precio`); still
   reported are a phrase with no number (`las manzanas es roja` gives `son`), another verb (`dos niños come pan` gives `comen`) and a predicate of the plural (`dos panes es
-  suficientes` gives `son`); the subjunctive and the imperative. A name that the lexicon lacks, or that a grammar binds as `[WORD]`, has no reading at all. A
+  suficientes` gives `son`); **since M73** a price (`caro`, `barato`) is a sum's only when the amount is money (`diez monedas es caro`, `cinco monedas es barato`, a money
+  unit: `moneda`, `euro`, `peso`...), and goods are dear in the plural, so `dos panes es caro` gives `son` and `noun.number` `caros` (before M73 it was clean); the subjunctive and the imperative. A name that the lexicon lacks, or that a grammar binds as `[WORD]`, has no reading at all. A
   verb form that is also a noun (`son`, `cuesta`) is checked where a slot grammar binds it as the verb, as the game's prompts do, and **since M66 also right after the
   noun of the phrase that opens the utterance** (and its adjectives), where the noun would make two bare nouns: `las manzanas cuesta una moneda` and `los panes cuesta
   dos monedas` give `cuestan`, `las manzanas vale una moneda` `valen` (before M66 the charitable reading took the noun, and the game praised the first; the QA pass of
@@ -646,7 +648,8 @@ The checks work on the whole utterance, not on clauses, and on the verb forms th
   the verb (a subject pronoun, a noun or a name that no preposition governs: `el pan me gusta`); a phrase coordinated with `y`, `o` or `ni` (`me gusta el pan
   y la fruta` may agree with the first); a phrase that disagrees with itself (`me gustan las manzana` is `noun.number`'s); a noun of part or quantity before
   `de` (`me gustan la mayoría de las frutas`); a noun of time after `estar` or a verb of price (`están el lunes en casa`); a verb of price outside the question
-  (`cuestan dos monedas`: the phrase is the price); `haber` (`hay dos panes`); the subjunctive. **A verb of the first or second person singular (M69, M56's left
+  (`cuestan dos monedas`: the phrase is the price); `haber` (`hay dos panes`); the subjunctive; since M73, a verb that the person check agreed with a subject pronoun
+  before it (`nosotros adonde estaría nenas` gives `estaríamos` alone; before, `estarían` as well: two `conj.person` on one word). **A verb of the first or second person singular (M69, M56's left
   point):** `estar`, and a verb of price after `cuánto`, with a phrase after it that an article alone opens, take that phrase's third person: `¿dónde estás la
   herrería?` gives `está`, `¿cuánto cuestas el pan?` `cuesta` (before M69 both were clean, and the game's `ask_directions` and `ask_price` praised them). A phrase
   with a possessive or a demonstrative may name the person spoken to (`¿dónde estás mi amor?`), the plural may be of the people the phrase names (`¿dónde estamos los
@@ -660,10 +663,12 @@ The checks work on the whole utterance, not on clauses, and on the verb forms th
   line was praised); `cuanto más`, `cuanto antes` and `todo cuanto tengo` keep the relative. Before a verb of price or `ser` whose subject is a neuter pronoun after it,
   the question word asks how much and is the invariable `cuánto`: when the verb disagrees with the pronoun, an inflected one is reported as well, on its own token with
   `expected` `cuánto`, with `noun.number` for the plural and `gender.agree` for the feminine (`cuántos cuestan todo` gives `noun.number` `cuánto` and `cuesta`,
-  `cuántas cuestan todo` `gender.agree` and `noun.number` `cuánto` and `cuesta`, `¿cuántos son todo?` `cuánto` and `es`). A verb that agrees is left alone, because the
+  `cuántas cuestan todo` `gender.agree` and `noun.number` `cuánto` and `cuesta`, `¿cuántos son todo?` `cuánto` and `es`). Since M73 so is a verb of price that agrees
+  (`cuántas cuesta todo` gives `gender.agree` and `noun.number` `cuánto`, `cuántos vale todo` `noun.number` `cuánto`); `ser` that agrees is left alone, because the
   inflected word may count coins left unsaid (`¿cuántos es todo?`). `son` right after any form of the question word is the copula: `¿cuántos son?` (how many are there)
-  is clean (before M69 it gave a false `noun.number` `sones`). Limit: a form of `costar` that is also a noun right after `cuántas` or `cuántos` (`cuántas cuesta todo`)
-  is still read as the noun of the phrase the determiner opens.
+  is clean (before M69 it gave a false `noun.number` `sones`). A form of `costar` that is also a noun right after `cuántas` or `cuántos` is the verb before a neuter
+  pronoun, and before a phrase a determiner opens where its noun cannot agree with the question word (M73: `cuántas cuesta todo` gave `noun.number` `cuestas`, and
+  `cuántas cuesta el pan` is clean now); `cuántas cuestas hay` keeps the noun.
 
 - **`gustar` and `encantar` agree with the thing liked (M70, QA-language-4):** the one who likes is a dative pronoun, so a form of the first or second person right
   behind its dative pronoun, with a noun phrase after it that would be its subject, gives the form of that phrase: `me gusto el pan` gives `gusta`, `me gusto las
