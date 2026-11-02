@@ -87,11 +87,17 @@ public static class VerdictGen
         var versions = RandomVersions(harness, rng);
 
         // M72, drawn last so the draws above keep their places in the stream: the answer set's canonical answers (none, the set's own, or one answer, which names
-        // the word of a derived vocab.wrong), and one prompt in seven a quiz, which allows no intent.
+        // the word of a derived vocab.wrong), one prompt in seven a quiz, which allows no intent, and the off-prompt intent below.
         var canonical = CanonicalAnswers(harness, rng, prompt);
         if (rng.NextInt(7) == 0)
         {
             prompt = prompt with { AllowedIntentIds = [] };
+        }
+
+        // The intent stage's off-prompt intent (M72), one time in three, whatever the intent: the assembler carries it only for an unknown intent and no match.
+        if (rng.NextInt(3) == 0)
+        {
+            intent = intent with { OffPromptIntent = harness.Bundle.Intents.Intents[rng.NextInt(harness.Bundle.Intents.Intents.Count)].Id };
         }
 
         return new VerdictInputs(prompt, asr, match, analysis, intent, pronunciation, required, knownWords, config, versions, canonical);

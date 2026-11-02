@@ -635,6 +635,65 @@ public class VerdictAssemblerTests
     }
 
     [Fact]
+    public void ALineThePromptDidNotTakeCarriesItsOffPromptIntentAndStaysNotCommunicated()
+    {
+        // M72: me gusta el río at smith-open resolves no intent the prompt allows; the catalog's state_like rides along, the intent and the flag stay as they were.
+        var inputs = VocabInputs([Fixtures.Token("gusta", 3, "verb")]) with
+        {
+            Intent = Fixtures.UnknownIntent() with { OffPromptIntent = new IntentId("state_like") },
+            Match = new MatchResult(null, MatchType.None, 30, false, 0.0),
+            CanonicalAnswers = ["cómo te llamas", "qué haces"],
+        };
+
+        var verdict = VerdictAssembler.Assemble(inputs);
+
+        Assert.Equal(new IntentId("state_like"), verdict.OffPromptIntent);
+        Assert.Equal(IntentId.Unknown, verdict.Intent);
+        Assert.False(verdict.Communicated);
+        Assert.Empty(verdict.Errors);
+        Assert.Equal(ResolvedBy.Unresolved, verdict.ResolvedBy);
+    }
+
+    [Theory]
+    [InlineData(MatchType.Exact)]
+    [InlineData(MatchType.Alias)]
+    [InlineData(MatchType.Fuzzy)]
+    public void ALineThatMatchedAnAnswerWasTakenAndHasNoOffPromptIntent(MatchType matchType)
+    {
+        var inputs = VocabInputs([Fixtures.Token("perro", 0, "noun")]) with
+        {
+            Intent = Fixtures.UnknownIntent() with { OffPromptIntent = new IntentId("state_like") },
+            Match = Fixtures.Matched(matchType),
+        };
+
+        Assert.Null(VerdictAssembler.Assemble(inputs).OffPromptIntent);
+    }
+
+    [Fact]
+    public void AResolvedIntentHasNoOffPromptIntent()
+    {
+        // The resolver never sets both; a hand-built input that does keeps the verdict's rule.
+        var inputs = VocabInputs([Fixtures.Token("perro", 0, "noun")]) with { Intent = Fixtures.Intent("answer") with { OffPromptIntent = new IntentId("state_like") } };
+
+        Assert.Null(VerdictAssembler.Assemble(inputs).OffPromptIntent);
+    }
+
+    [Fact]
+    public void TheOffPromptIntentIsLeftOutOfTheJsonWhileNullAndTakesPartInEquality()
+    {
+        var without = VerdictAssembler.Assemble(Fixtures.WorkedExample());
+        var with = without with { OffPromptIntent = new IntentId("state_like") };
+
+        Assert.DoesNotContain("offPromptIntent", CanonicalJson.Serialize(without), StringComparison.Ordinal);
+        Assert.Contains("\"offPromptIntent\":\"state_like\"", CanonicalJson.Serialize(with), StringComparison.Ordinal);
+        Assert.Equal(with, CanonicalJson.Deserialize<Verdict>(CanonicalJson.Serialize(with)));
+        Assert.Equal(without, CanonicalJson.Deserialize<Verdict>(CanonicalJson.Serialize(without)));
+        Assert.NotEqual(without, with);
+        Assert.NotEqual(with, with with { OffPromptIntent = new IntentId("greet") });
+        Assert.Equal(with.GetHashCode(), (without with { OffPromptIntent = new IntentId("state_like") }).GetHashCode());
+    }
+
+    [Fact]
     public void AssemblingTwiceGivesByteIdenticalCanonicalJson()
     {
         var first = CanonicalJson.Serialize(VerdictAssembler.Assemble(Fixtures.WorkedExample()));

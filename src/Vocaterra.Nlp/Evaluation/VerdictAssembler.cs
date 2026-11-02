@@ -38,6 +38,7 @@ public static class VerdictAssembler
     /// An <see cref="MarginDecision.Uncertain"/> confidence counts as communicated in both rules: the host rewards communication.</description></item>
     /// <item><description><b>Errors</b> merge analysis, pronunciation and the derived <c>vocab.wrong</c> error, deduplicated by (tag, span) and sorted by span start, tag order, then expected text.</description></item>
     /// <item><description><b>Correctness</b> is 1 minus the sum of the difficulty's error weights in sorted error order, clamped to [0, 1] and rounded to 9 decimals.</description></item>
+    /// <item><description><b>OffPromptIntent</b> (M72) is the intent stage's <see cref="IntentResolution.OffPromptIntent"/> when the intent is unknown and the answer set did not match, and null otherwise.</description></item>
     /// <item><description><b>Confidence</b> is the minimum of the stage confidences (match confidence only counts when something matched, and an unresolved intent only counts when nothing matched); NaN counts as 0 and values are clamped to [0, 1].</description></item>
     /// </list>
     /// </summary>
@@ -78,7 +79,15 @@ public static class VerdictAssembler
             inputs.Pronunciation?.Phones.ToArray() ?? [],
             confidence,
             ResolveBy(inputs),
-            inputs.Versions);
+            inputs.Versions,
+            OffPromptIntentOf(inputs));
+    }
+
+    // M72: the intent the catalog gives a line this prompt did not take. An answer match is a line the prompt took, so the member is set only when the intent is
+    // unknown and nothing matched, which is also when the line is not communicated.
+    private static IntentId? OffPromptIntentOf(VerdictInputs inputs)
+    {
+        return inputs.Intent.Intent.IsUnknown && inputs.Match.Type == MatchType.None ? inputs.Intent.OffPromptIntent : null;
     }
 
     private static bool IsCommunicated(VerdictInputs inputs, SlotMap slots, double confidence, DifficultyEvaluationConfig settings)

@@ -15,7 +15,8 @@ namespace Vocaterra.Nlp.Fuzzing.Tests;
 /// <summary>
 /// O10: verdict assembly follows its documented rules for any stage results. Correctness is one minus the weights of the surviving errors,
 /// confidence is the minimum of the stage confidences, the communicated flag follows the two documented rules through the margin, errors are
-/// unique per tag and span and sorted, the order of unordered inputs does not matter, and the verdict survives a canonical JSON round trip.
+/// unique per tag and span and sorted, the derived vocab.wrong follows its rule (M67, M72), the off-prompt intent is carried only for a line the prompt did not
+/// take (M72), the order of unordered inputs does not matter, and the verdict survives a canonical JSON round trip.
 /// </summary>
 public sealed class VerdictAssemblyFuzzTests(ITestOutputHelper output)
 {
@@ -62,6 +63,15 @@ public sealed class VerdictAssemblyFuzzTests(ITestOutputHelper output)
                     throw Determinism.Fail(Oracle, "The verdict does not carry the intent, version stamp and phone scores of its inputs.", inputs);
                 }
 
+                // M72: the off-prompt intent is the intent stage's for a line the prompt did not take (an unknown intent, no answer matched), which is never communicated.
+                var offPrompt = inputs.Intent.Intent.IsUnknown && inputs.Match.Type == MatchType.None ? inputs.Intent.OffPromptIntent : null;
+                if (!Nullable.Equals(verdict.OffPromptIntent, offPrompt) || (verdict.OffPromptIntent is not null && verdict.Communicated))
+                {
+                    throw Determinism.Fail(Oracle, $"The off-prompt intent is '{verdict.OffPromptIntent}' (communicated {verdict.Communicated}); the rule gives '{offPrompt}', never on a communicated line.", inputs);
+                }
+
+                diagnostics.Count(verdict.OffPromptIntent is null ? "offPrompt:none" : "offPrompt:set");
+
                 // Unordered inputs in another order, and a second assembly, give the identical verdict.
                 var permuted = VerdictGen.Permuted(inputs, new SeededRng(input.Seed));
                 Determinism.AssertSame(Oracle, "Assemble (shuffled errors, slots and word lists)", inputs, () => verdict, () => VerdictAssembler.Assemble(permuted));
@@ -89,6 +99,7 @@ public sealed class VerdictAssemblyFuzzTests(ITestOutputHelper output)
 
         output.WriteLine("Verdict diagnostics:\n" + diagnostics.Report());
         Assert.True(diagnostics.Get("communicated:yes") > 0 && diagnostics.Get("communicated:no") > 0, "Both outcomes of the communicated rule must be reached.\n" + diagnostics.Report());
+        Assert.True(diagnostics.Get("offPrompt:set") > 0, "A verdict with an off-prompt intent must be reached (M72).\n" + diagnostics.Report());
     }
 
     private static void CheckErrors(Verdict verdict, VerdictInputs inputs)
