@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Determinism;
@@ -102,6 +103,25 @@ public static class NpcTurnRules
         }
 
         return new MissAnswers(unsaid, lines, context);
+    }
+
+    /// <summary>The host events a turn's decision raises, in order (the game and the host read them alike, V30).</summary>
+    /// <param name="result">The turn's result.</param>
+    public static List<string> HostEventsOf(PipelineResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        return (result.Decision.Agent?.Actions ?? []).Where(static a => a.HostEvent is not null).Select(static a => a.HostEvent!).ToList();
+    }
+
+    /// <summary>The stall's bottle rule (V30): a line of the stall's gift is not said when the player holds a bottle already, since nothing is given.</summary>
+    /// <param name="bag">What the player carries, or <see langword="null"/> for nothing.</param>
+    /// <param name="hostEvents">The turn's host events.</param>
+    /// <returns>The test that tells a line id to leave out.</returns>
+    public static Func<string, bool> SkipLineOfBottleGift(Inventory? bag, IReadOnlyList<string> hostEvents)
+    {
+        ArgumentNullException.ThrowIfNull(hostEvents);
+        var holdsBottle = bag is { } held && (held.Count(ItemId.Bottle) + held.Count(ItemId.WaterBottle)) > 0;
+        return lineId => holdsBottle && hostEvents.Contains(NpcHostEvents.GiveWater, StringComparer.Ordinal) && lineId.StartsWith("shop_give.", StringComparison.Ordinal);
     }
 
     /// <summary>The stream of the draw of an off-prompt reply (V27), the same in the game and the host.</summary>

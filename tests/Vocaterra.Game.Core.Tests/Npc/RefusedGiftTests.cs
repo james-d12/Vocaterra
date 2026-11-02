@@ -1,9 +1,9 @@
+using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Nlp.Core.Determinism;
-using Vocaterra.Nlp.Pipeline;
 using Vocaterra.Nlp.Decision.Learning;
-using Vocaterra.Game.Core.Language.Speech;
+using Vocaterra.Nlp.Pipeline;
 
 namespace Vocaterra.Game.Core.Tests.Npc;
 

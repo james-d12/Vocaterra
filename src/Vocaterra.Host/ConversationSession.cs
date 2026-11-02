@@ -125,7 +125,7 @@ public sealed class ConversationSession
         LastExchange = AnswerTurn(agentId, result, transcript, now, promptId, agentState.InteractionCounter);
         if (LastExchange.OffPromptIntent is not null)
         {
-            _context = _context with { RepeatCountsByTag = utterance.RepeatCountsByTag }; // V27: an off-prompt line is no failed attempt
+            _context = _context with { RepeatCountsByTag = utterance.RepeatCountsByTag, Learner = utterance.Learner }; // V27: an off-prompt line is no failed attempt, and the learner is not marked down
         }
         return result;
     }
@@ -137,7 +137,7 @@ public sealed class ConversationSession
         var slots = NpcEffect.CountedSlots(result.Verdict.Slots, transcript);
         var verdict = result.Verdict;
         var understood = verdict.Communicated && !string.Equals(verdict.Intent.Value, "unknown", StringComparison.Ordinal);
-        var events = (result.Decision.Agent?.Actions ?? []).Where(static a => a.HostEvent is not null).Select(static a => a.HostEvent!).ToList();
+        var events = NpcTurnRules.HostEventsOf(result);
         var answers = NpcTurnRules.AnswerMisses(
             agentId,
             result,
@@ -150,18 +150,13 @@ public sealed class ConversationSession
             effect => effect.Kind == NpcEffectKind.GiveItem || _bag is not null ? effect.ExchangeMiss(slots, _bag, _nouns) : null,
             events);
         _context = answers.Context;
-        if (answers.Lines.Count > 0)
-        {
-            _agentStates[agentId] = _context.AgentState;
-        }
-
-        var holdsBottle = _bag is { } bag && bag.Count(ItemId.Bottle) + bag.Count(ItemId.WaterBottle) > 0;
+        _agentStates[agentId] = _context.AgentState; // as the game: the agent's state after the misses, whether or not they gave lines (V30)
         var composed = NpcTurnRules.Compose(
             result,
             understood,
             answers.Unsaid,
             _names.Values,
-            lineId => holdsBottle && events.Contains(NpcHostEvents.GiveWater, StringComparer.Ordinal) && lineId.StartsWith("shop_give.", StringComparison.Ordinal),
+            NpcTurnRules.SkipLineOfBottleGift(_bag, events),
             _roster.All.FirstOrDefault(npc => string.Equals(npc.Id, agentId, StringComparison.Ordinal))?.FreeTalkPools,
             bundle: Bundle,
             npc: agentId);
