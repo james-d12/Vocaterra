@@ -2,12 +2,17 @@
 # observation) and the owner's answers of 2026-11-01 (D-game-22, items 2 and 3). The deliberate mistakes, each listed with what M70 gives it:
 #  - section 1: a typed n for ñ is no error where the spelling with n is no word (manana, pequeno, senor, espanol, nino); ano, pena, una, mono, suena keep
 #    their own reading (ano stays an unknown word: tengo diez anos);
-#  - section 2: compre, compro (for compré, compró) are no error; the note naming the accented form is on the result (result.Notes), not in this output;
+#  - section 2: compre, compro (for compré, compró) at the lessons and ayer compre pan are no error, with a note naming the accented form on the result
+#    (result.Notes; the CLI prints it as a note: line, not in this output); a person error stays one (ella compro pan: conj.person=compra), and ayer compro
+#    pan keeps conj.tense=compré;
 #  - section 3: yo gusto el pan and me gusto el pan: conj.person=gusta; me gusta las manzanas: conj.person=gustan;
-#  - section 4: compré three manzanas and manana iré al glorp: vocab.unknown on the unknown word itself (heard is that word);
+#  - section 4: compré three manzanas: vocab.unknown=tres, mañana iré al glorp: vocab.unknown=río (the word of the answer at the unknown word's place, which
+#    is the word heard); glorp iré al río: vocab.unknown with no word;
 #  - section 5: buscé, pescé, llegé, empezé, pagé, jugé, tocé: conj.irregular with the right form;
-#  - section 6: me llamo ana and me llamo domingo are clean (the name is a name);
-#  - section 7: dos panes es caro: the error, if any, reports the learner's dos (heard is not shown in this output).
+#  - section 6: me llamo ana and me llamo luis keep vocab.unknown on the name: the bundle has no grammar that binds a name after me llamo (the change is the
+#    game's V21, see VillageQaLineTests); me llamo domingo is clean (domingo is a lexicon word);
+#  - section 7: dos panes es caro: vocab.wrong now reports heard 'dos', not '2' (heard is not shown in this output);
+#  - section 8: correct Spanish of my own, clean.
 # The rest is correct Spanish and stays clean (apart from vocab.wrong at a constrained prompt whose answer set does not hold a line that resolved no intent).
 # scripts/try-lines.sh --check compares the output with m70.expected (the CLI) and m70.host.expected (--host).
 # Rows: prompt|line; blank lines and lines starting with # are skipped.
@@ -93,3 +98,21 @@ villager-open|hola me llamo marta
 # 7. The learner's own word in an error (an observation).
 farmer-open|dos panes es caro
 farmer-open|dos panes son caros
+
+# 8. Correct Spanish of my own at the lessons' and NPCs' prompts (with ñ, accents, gustar, names): no error but vocab.wrong where a constrained prompt's
+#    answer set lacks a line that resolved no intent.
+lesson-will-buy|mañana compraré pan para el niño
+lesson-like-bread|sí, me gusta mucho el pan de Luz
+lesson-like-apples|me encantan las manzanas rojas
+farmer-open|¿te gustan las manzanas?
+baker-open|quiero dos panes pequeños, por favor
+villager-open|buenos días, señor
+smith-open|el año pasado compré una espada
+lesson-bought|ayer compré dos panes
+lesson-market|compré tres manzanas en el mercado
+farmer-open|a mi hermano le gusta la fruta
+lesson-will-go|pasado mañana iré al río con Mar
+lesson-mar-fished|Mar pescó en el río ayer
+lesson-luz-bought|Luz compró pescado y pan
+baker-open|¿cuánto cuesta el pan pequeño?
+villager-open|la niña habla español
