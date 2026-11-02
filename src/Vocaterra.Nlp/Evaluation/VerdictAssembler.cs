@@ -38,20 +38,24 @@ public static class VerdictAssembler
     /// An <see cref="MarginDecision.Uncertain"/> confidence counts as communicated in both rules: the host rewards communication.</description></item>
     /// <item><description><b>Errors</b> merge analysis, pronunciation and the derived <c>vocab.wrong</c> error, deduplicated by (tag, span) and sorted by span start, tag order, then expected text.</description></item>
     /// <item><description><b>Correctness</b> is 1 minus the sum of the difficulty's error weights in sorted error order, clamped to [0, 1] and rounded to 9 decimals.</description></item>
+    /// <item><description><b>OffPromptIntent</b> (M72) is the intent stage's <see cref="IntentResolution.OffPromptIntent"/> when the intent is unknown and the answer set did not match, and null otherwise.</description></item>
     /// <item><description><b>Confidence</b> is the minimum of the stage confidences (match confidence only counts when something matched, and an unresolved intent only counts when nothing matched); NaN counts as 0 and values are clamped to [0, 1].</description></item>
     /// </list>
     /// </summary>
     /// <remarks>
     /// The derived <c>vocab.wrong</c> error is raised when the answer-set match is <see cref="MatchType.None"/>, the prompt is
-    /// <see cref="RecognitionMode.Constrained"/>, the line is a miss and the first content token (the first token that is not purely an article,
+    /// <see cref="RecognitionMode.Constrained"/>, the line is a miss the tag can explain and the first content token (the first token that is not purely an article,
     /// pronoun, preposition or conjunction; unknown words count as content) is in <see cref="VerdictInputs.KnownLexiconWords"/>. The tag explains a
-    /// miss (M67): the line resolved no intent (<see cref="IntentId.IsUnknown"/>), or an intent that no slot grammar gave (a keyword rule or the
-    /// embedding rung) and the line is a near miss of an answer: <see cref="MatchResult.Distance"/>, the distance to the nearest answer phrase, is
+    /// miss it can name (M67, M72): a line that resolved no intent (<see cref="IntentId.IsUnknown"/>) at a prompt that asks for one word (an answer set of
+    /// exactly one answer, or a quiz, which allows no intent), or a line that resolved no intent or an intent that no slot grammar gave (a keyword rule or the
+    /// embedding rung) and that is a near miss of an answer: <see cref="MatchResult.Distance"/>, the distance to the nearest answer phrase, is
     /// within the answer matcher's fuzzy budget taken for the line's own length (its words joined by single spaces), <c>floor(length / 4)</c> at
     /// Beginner, 5 at Intermediate and 6 at Advanced, although the matcher, which measures the budget by the phrase's length, rejected it
     /// (<c>cuál es esto</c> for <c>qué es esto</c>: 3 edits, a budget of 3 for its 12 characters and 2 for the phrase's 11). A line a slot grammar understood never gets it, nor
     /// does a line a keyword rule understood far from every answer: <c>buscaré madera para luz</c> or <c>hola luz quiero dos panes</c> at a prompt whose
-    /// answer set does not hold the line were scored as a small mistake before M67.
+    /// answer set does not hold the line were scored as a small mistake before M67. Nor, since M72, does a correct line that resolved no intent far from every
+    /// one of several answers (<c>la tienda está en el pueblo</c> at an open prompt whose answers are a farmer's): it names no word and explains no miss, so
+    /// it has no error and is not communicated (before M72 it was scored 0.4 with an empty expected word).
     /// <c>Expected</c> is the answer set's canonical answer when the set has exactly one answer (a prompt that asks for one word), and empty
     /// otherwise: a set of several answers has no single word to name. <c>Actual</c> is the token text. An error on a number reports the learner's word for it
     /// (M70: <c>dos</c>, not the <c>2</c> of the normalized text), whichever stage reported it.
@@ -75,7 +79,15 @@ public static class VerdictAssembler
             inputs.Pronunciation?.Phones.ToArray() ?? [],
             confidence,
             ResolveBy(inputs),
-            inputs.Versions);
+            inputs.Versions,
+            OffPromptIntentOf(inputs));
+    }
+
+    // M72: the intent the catalog gives a line this prompt did not take. An answer match is a line the prompt took, so the member is set only when the intent is
+    // unknown and nothing matched, which is also when the line is not communicated.
+    private static IntentId? OffPromptIntentOf(VerdictInputs inputs)
+    {
+        return inputs.Intent.Intent.IsUnknown && inputs.Match.Type == MatchType.None ? inputs.Intent.OffPromptIntent : null;
     }
 
     private static bool IsCommunicated(VerdictInputs inputs, SlotMap slots, double confidence, DifficultyEvaluationConfig settings)
@@ -250,9 +262,7 @@ public static class VerdictAssembler
 
     private static ErrorTag? DeriveVocabWrong(VerdictInputs inputs)
     {
-        // Only a miss has something to explain (M67): a line that resolved no intent, or a near miss of an answer that no slot grammar understood.
-        if (inputs.Match.Type != MatchType.None || inputs.Prompt.Mode != RecognitionMode.Constrained
-            || !(inputs.Intent.Intent.IsUnknown || (inputs.Intent.Rung != IntentRung.Grammar && IsNearMiss(inputs))))
+        if (inputs.Match.Type != MatchType.None || inputs.Prompt.Mode != RecognitionMode.Constrained || !ExplainsAMiss(inputs))
         {
             return null;
         }
@@ -265,6 +275,21 @@ public static class VerdictAssembler
 
         var expected = inputs.CanonicalAnswers is { Count: 1 } answers ? answers[0] : string.Empty;
         return new ErrorTag(ErrorTags.VocabWrong, token.Span, expected, token.Text);
+    }
+
+    // The derived tag explains a miss it can name (M67, M72): a line that resolved no intent at a prompt that asks for one word (a one-answer set, or a quiz, which
+    // allows no intent), or a near miss of an answer that no slot grammar understood. A correct line that is simply not among a prompt's several answers (la tienda
+    // está en el pueblo at farmer-open) has no word to name and is no near miss: it gets no error and stays not communicated.
+    private static bool ExplainsAMiss(VerdictInputs inputs)
+    {
+        var unknown = inputs.Intent.Intent.IsUnknown;
+        return (unknown && NamesTheWord(inputs)) || ((unknown || inputs.Intent.Rung != IntentRung.Grammar) && IsNearMiss(inputs));
+    }
+
+    // A prompt names the word a line missed when its answer set has exactly one answer, or when it is a quiz (it allows no intent, so it asks only for an answer).
+    private static bool NamesTheWord(VerdictInputs inputs)
+    {
+        return inputs.CanonicalAnswers is { Count: 1 } || inputs.Prompt.AllowedIntentIds.Count == 0;
     }
 
     // A near miss: the nearest answer phrase is within the answer matcher's fuzzy budget (floor(length / 4, 5 or 6) for Beginner, Intermediate and

@@ -145,6 +145,22 @@ public class CliTests
     }
 
     [Fact]
+    public void EvalPrintsTheIntentOfALineThePromptDidNotTake()
+    {
+        // M72: smith-open does not take state_like; the verdict carries it and the demo prints it. A line the prompt takes prints none.
+        var (code, output, _) = Run("eval", "--transcript", "me gusta el río", "--prompt", "smith-open", "--content", TestSupport.BundleDir);
+        var (_, taken, _) = Run("eval", "--transcript", "me gusta el río", "--prompt", "lesson-like-apples", "--content", TestSupport.BundleDir);
+
+        Assert.Equal(CliProgram.ExitOk, code);
+        using var verdict = JsonDocument.Parse(output.Split('\n')[0]);
+        Assert.Equal("unknown", verdict.RootElement.GetProperty("intent").GetString());
+        Assert.Equal("state_like", verdict.RootElement.GetProperty("offPromptIntent").GetString());
+        Assert.Empty(verdict.RootElement.GetProperty("errors").EnumerateArray());
+        Assert.Contains("\noff-prompt: state_like\n", output, StringComparison.Ordinal);
+        Assert.DoesNotContain("off-prompt", taken, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void EvalPrintsResolvedEffects()
     {
         using var bundle = TestSupport.CliBundle();

@@ -165,7 +165,7 @@ public sealed class SpeechUxTests
 
         Assert.False(turn.Uncertain); // only a spoken line is an uncertain recognition
         Assert.False(turn.Communicated);
-        Assert.NotSame(learner, session.Conversation.ContextOf("shopkeeper").Learner);
+        Assert.Same(learner, session.Conversation.ContextOf("shopkeeper").Learner); // M72: a correct line the prompt does not take has no error, so nothing marks the learner
     }
 
     // The turn as the worker would hand it to the session: applied on the caller's thread (the same call Collect makes).

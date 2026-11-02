@@ -236,6 +236,12 @@ public static class Program
             output.WriteLine($"note: {SpanishAccentNotes.Describe(note)}");
         }
 
+        // M72: a line the prompt did not take carries the intent the catalog gives it; the host answers it, the core does not.
+        if (result.Verdict.OffPromptIntent is { } offPrompt)
+        {
+            output.WriteLine($"off-prompt: {offPrompt.Value}");
+        }
+
         foreach (var effect in result.Effects)
         {
             output.WriteLine($"effect: {effect.EffectId} {effect.Kind} {effect.Value.ToString("R", CultureInfo.InvariantCulture)}");

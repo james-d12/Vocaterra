@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Vocaterra.Nlp.Core.Verdicts;
 
 namespace Vocaterra.Nlp.Core.Stages;
@@ -19,4 +20,20 @@ public enum IntentRung
 }
 
 /// <summary>Resolved intent with slots, deciding rung, the margin over the runner-up and a confidence.</summary>
-public sealed record IntentResolution(IntentId Intent, SlotMap Slots, IntentRung Rung, double Margin, double Confidence);
+/// <param name="Intent">The intent among the prompt's allowed intents, or <see cref="IntentId.Unknown"/>.</param>
+/// <param name="Slots">The slots of that intent.</param>
+/// <param name="Rung">The rung that decided it.</param>
+/// <param name="Margin">The margin over the runner-up.</param>
+/// <param name="Confidence">The confidence of the deciding rung.</param>
+/// <param name="OffPromptIntent">
+/// M72: when the allowed intents gave <see cref="IntentId.Unknown"/> at a prompt that lists allowed intents, the intent the line has over the whole catalog
+/// (the grammar and keyword rungs only, no embedding), which the prompt does not allow: <c>me gusta el río</c> at a prompt that does not take
+/// <c>state_like</c>. Null otherwise, and left out of the canonical JSON while null.
+/// </param>
+public sealed record IntentResolution(
+    IntentId Intent,
+    SlotMap Slots,
+    IntentRung Rung,
+    double Margin,
+    double Confidence,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IntentId? OffPromptIntent = null);

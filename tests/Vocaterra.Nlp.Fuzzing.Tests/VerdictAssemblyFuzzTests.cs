@@ -15,7 +15,8 @@ namespace Vocaterra.Nlp.Fuzzing.Tests;
 /// <summary>
 /// O10: verdict assembly follows its documented rules for any stage results. Correctness is one minus the weights of the surviving errors,
 /// confidence is the minimum of the stage confidences, the communicated flag follows the two documented rules through the margin, errors are
-/// unique per tag and span and sorted, the order of unordered inputs does not matter, and the verdict survives a canonical JSON round trip.
+/// unique per tag and span and sorted, the derived vocab.wrong follows its rule (M67, M72), the off-prompt intent is carried only for a line the prompt did not
+/// take (M72), the order of unordered inputs does not matter, and the verdict survives a canonical JSON round trip.
 /// </summary>
 public sealed class VerdictAssemblyFuzzTests(ITestOutputHelper output)
 {
@@ -62,6 +63,15 @@ public sealed class VerdictAssemblyFuzzTests(ITestOutputHelper output)
                     throw Determinism.Fail(Oracle, "The verdict does not carry the intent, version stamp and phone scores of its inputs.", inputs);
                 }
 
+                // M72: the off-prompt intent is the intent stage's for a line the prompt did not take (an unknown intent, no answer matched), which is never communicated.
+                var offPrompt = inputs.Intent.Intent.IsUnknown && inputs.Match.Type == MatchType.None ? inputs.Intent.OffPromptIntent : null;
+                if (!Nullable.Equals(verdict.OffPromptIntent, offPrompt) || (verdict.OffPromptIntent is not null && verdict.Communicated))
+                {
+                    throw Determinism.Fail(Oracle, $"The off-prompt intent is '{verdict.OffPromptIntent}' (communicated {verdict.Communicated}); the rule gives '{offPrompt}', never on a communicated line.", inputs);
+                }
+
+                diagnostics.Count(verdict.OffPromptIntent is null ? "offPrompt:none" : "offPrompt:set");
+
                 // Unordered inputs in another order, and a second assembly, give the identical verdict.
                 var permuted = VerdictGen.Permuted(inputs, new SeededRng(input.Seed));
                 Determinism.AssertSame(Oracle, "Assemble (shuffled errors, slots and word lists)", inputs, () => verdict, () => VerdictAssembler.Assemble(permuted));
@@ -89,6 +99,7 @@ public sealed class VerdictAssemblyFuzzTests(ITestOutputHelper output)
 
         output.WriteLine("Verdict diagnostics:\n" + diagnostics.Report());
         Assert.True(diagnostics.Get("communicated:yes") > 0 && diagnostics.Get("communicated:no") > 0, "Both outcomes of the communicated rule must be reached.\n" + diagnostics.Report());
+        Assert.True(diagnostics.Get("offPrompt:set") > 0, "A verdict with an off-prompt intent must be reached (M72).\n" + diagnostics.Report());
     }
 
     private static void CheckErrors(Verdict verdict, VerdictInputs inputs)
@@ -167,16 +178,20 @@ public sealed class VerdictAssemblyFuzzTests(ITestOutputHelper output)
         return "[" + string.Join("; ", keys.OrderBy(static k => k.Start).ThenBy(static k => k.Tag, StringComparer.Ordinal).Select(static k => $"{k.Tag}@{k.Start}+{k.Length}")) + "]";
     }
 
-    // The derived error exists when nothing matched, the prompt is constrained, the line is a miss (M67: it resolved no intent, or an intent that no
-    // slot grammar gave and its distance to the nearest answer is within the fuzzy budget for the line's own length), and the first content
-    // token is a word the lexicon knows. Its expected text is the answer set's single canonical answer, or empty when the set has no single answer
-    // (VerdictGen supplies none).
+    // The derived error exists when nothing matched, the prompt is constrained, the line is a miss the tag can explain, and the first content token is a
+    // word the lexicon knows. A miss it can explain (M67, M72): the line resolved no intent at a prompt that names its word (an answer set of one canonical
+    // answer, or a quiz: a prompt that allows no intent), or it resolved no intent or an intent that no slot grammar gave and its distance to the nearest
+    // answer is within the fuzzy budget for the line's own length (a near miss). A line that resolved no intent far from every one of several answers, or
+    // with the answers unknown, is a correct line the prompt does not take and has none (M72). Its expected text is the answer set's single canonical
+    // answer, or empty when the set has no single answer (VerdictGen supplies none, the set's answers, or one).
     private static ErrorTag? DerivedVocabWrong(VerdictInputs inputs)
     {
         var length = inputs.Analysis.Tokens.Sum(static t => t.Token.Text.Length) + Math.Max(inputs.Analysis.Tokens.Count - 1, 0);
         var budget = length / inputs.Prompt.Difficulty switch { Difficulty.Intermediate => 5, Difficulty.Advanced => 6, _ => 4 };
         var nearMiss = length > 0 && inputs.Match.Distance <= budget;
-        var miss = inputs.Intent.Intent.IsUnknown || (inputs.Intent.Rung != IntentRung.Grammar && nearMiss);
+        var unknown = inputs.Intent.Intent.IsUnknown;
+        var namesTheWord = inputs.CanonicalAnswers?.Count == 1 || inputs.Prompt.AllowedIntentIds.Count == 0;
+        var miss = (unknown && namesTheWord) || ((unknown || inputs.Intent.Rung != IntentRung.Grammar) && nearMiss);
         if (inputs.Match.Type != MatchType.None || inputs.Prompt.Mode != RecognitionMode.Constrained || !miss)
         {
             return null;

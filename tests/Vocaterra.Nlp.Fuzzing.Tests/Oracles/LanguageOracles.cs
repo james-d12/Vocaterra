@@ -207,6 +207,7 @@ public static class LanguageOracles
 
                     CheckResolution(oracle, pack, resolution, label == "with embeddings", candidates, grammars, analysis, sentence, context);
                     diagnostics.Count($"rung:{resolution.Rung}");
+                    CheckOffPrompt(oracle, resolver, label == "with embeddings", resolution, prompt, normalized, analysis, candidates, context, diagnostics);
 
                     // The same prompt with its allowed intents reordered and repeated resolves identically; and every sixteenth time a resolver
                     // built from scratch agrees.
@@ -603,6 +604,57 @@ public static class LanguageOracles
         else if (sentence is { PatternSource: "catalog" } && candidates.Any(c => c.Grammars.Any(g => g.Id == sentence.PatternText)))
         {
             throw Determinism.Fail(oracle, $"A sentence built from the allowed grammar '{sentence.PatternText}' matched no grammar.", context);
+        }
+    }
+
+    // M72 widened O7: the intent of a line the prompt does not take. It is null whenever the intent is known, and at a prompt with no allowed intent (every intent
+    // a candidate already). When it is set, it is an intent the prompt does not allow, and it is the intent the resolver gives the same analysis with every intent
+    // allowed. When it is null with the intent unknown at a prompt that lists allowed intents, the resolver with every intent allowed finds nothing either, or
+    // finds it only on the embedding rung, which the off-prompt pass never runs.
+    private static void CheckOffPrompt(
+        string oracle,
+        IntentResolver resolver,
+        bool hasEmbeddings,
+        IntentResolution resolution,
+        PromptSpec prompt,
+        NormalizedText normalized,
+        AnalysisResult analysis,
+        List<IntentDefinition> candidates,
+        object context,
+        FuzzDiagnostics diagnostics)
+    {
+        var offPrompt = resolution.OffPromptIntent;
+        if (!resolution.Intent.IsUnknown || prompt.AllowedIntentIds.Count == 0)
+        {
+            if (offPrompt is not null)
+            {
+                throw Determinism.Fail(oracle, $"The off-prompt intent '{offPrompt}' is set although the intent is '{resolution.Intent}' and the prompt allows {prompt.AllowedIntentIds.Count} intents.", context);
+            }
+
+            return;
+        }
+
+        var everyIntent = resolver.Resolve(normalized, analysis, prompt with { AllowedIntentIds = [] });
+        if (offPrompt is { } intent)
+        {
+            diagnostics.Count("off-prompt:set");
+            if (candidates.Any(c => c.Id == intent) || prompt.AllowedIntentIds.Contains(intent.Value))
+            {
+                throw Determinism.Fail(oracle, $"The off-prompt intent '{intent}' is one the prompt allows.", context);
+            }
+
+            if (everyIntent.Intent != intent || everyIntent.Rung is not (IntentRung.Grammar or IntentRung.Rules))
+            {
+                throw Determinism.Fail(oracle, $"The off-prompt intent is '{intent}', but with every intent allowed the resolver gives {everyIntent.Rung} '{everyIntent.Intent}'.", context);
+            }
+        }
+        else
+        {
+            diagnostics.Count("off-prompt:none");
+            if (!everyIntent.Intent.IsUnknown && !(hasEmbeddings && everyIntent.Rung == IntentRung.Embedding))
+            {
+                throw Determinism.Fail(oracle, $"No off-prompt intent, but with every intent allowed the resolver gives {everyIntent.Rung} '{everyIntent.Intent}'.", context);
+            }
         }
     }
 

@@ -151,7 +151,7 @@ public sealed class LearnerRecordTests
         _ = session.Say("quiero dos aguas"); // understood at the stall's need: "quiero" and "aguas" are right
         var turn = session.Say("quiero agua, por favor"); // at the offer, "quiero" is wrong (vocab.wrong over its span) and the line is not understood
 
-        Assert.Contains(turn.Errors, static e => e.Span.Start == 0 && e.Span.Length == 6);
+        Assert.DoesNotContain(turn.Errors, static e => e.Span.Start == 0 && e.Span.Length == 6); // M72: a correct line the offer does not take gets no derived vocab.wrong
         var verb = Assert.Single(session.Learner.Verbs);
         Assert.Equal(2, verb.Times);
         Assert.Equal(1, verb.TimesCorrect);

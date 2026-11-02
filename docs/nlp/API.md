@@ -434,13 +434,18 @@ chose, so `esta` is `estar` after `donde`, and its `Original` stays `esta`.
 `None`), `Distance` (the edit distance, or the phonetic distance when that is smaller, so `ezpada` for `espada` is 0), `LikelyPronunciation`
 (the spelling differs but the phonetic key matches) and `Confidence`.
 
-**What a constrained prompt's answer set adds to the verdict (M67).** At a constrained prompt whose answer set the line does not match, the verdict
+**What a constrained prompt's answer set adds to the verdict (M67, M72).** At a constrained prompt whose answer set the line does not match, the verdict
 derives a `vocab.wrong` on the first content word (a word the lexicon knows; `expected` is the canonical answer when the set has one answer, else empty) to
-explain the miss. It is derived only for a miss: a line that resolved no intent, or one that a keyword rule (not a slot grammar) understood and that is a
-near miss of an answer, its distance to the nearest answer phrase within the fuzzy budget taken for the line's own length (`cuál es esto` at `lesson-what`,
+explain the miss. It is derived only for a miss it can explain: a line that resolved no intent at a prompt that names the word (an answer set of one answer,
+or a quiz, which allows no intent and asks only for a word), or a line that resolved no intent or that a keyword rule (not a slot grammar) understood and that
+is a near miss of an answer, its distance to the nearest answer phrase within the fuzzy budget taken for the line's own length (`cuál es esto` at `lesson-what`,
 3 edits from its answer `qué es esto`, a budget of 3 for 12 characters; the matcher took 2, for the phrase). A line a
 slot grammar understood never gets it, nor does one a keyword rule understood far from every answer: before M67 `hola luz quiero dos panes` at
-`baker-open`, `buscaré madera para luz` at `smith-open` and `me llamo domingo` at `smith-open` were scored 0.4 for it.
+`baker-open`, `buscaré madera para luz` at `smith-open` and `me llamo domingo` at `smith-open` were scored 0.4 for it. Since M72 (the owner, D-game-22,
+2026-11-02) a correct line that is simply not among the several answers of a prompt (no intent the prompt takes, no near miss) gets no error either and stays
+`communicated=false`: before M72 `la tienda está en el pueblo` at `farmer-open`, `tengo dos manzanas` at `fisher-open` and `me gusta el río` at `smith-open`
+were scored 0.4 for a `vocab.wrong` with an empty expected word. Such a line carries the intent it has elsewhere in the catalog, `Verdict.OffPromptIntent`
+(below), so a host can answer it. At a lesson step, a line that answers another question is still not communicated: the step's prompt does not take it.
 
 ```csharp
 foreach (ResolvedWord word in result.Words!)
@@ -456,6 +461,38 @@ if (result.Answer is { AnswerId: not null } answer)
 
 The pipeline always sets both members; they are nullable only so that a result built by hand (in a test) needs no analysis. Both are part of
 the result's `CanonicalJson`, but not of the replay record (see [REPLAY.md](REPLAY.md)).
+
+### A line the prompt does not take: `Verdict.OffPromptIntent` (M72)
+
+The owner's answer of 2026-11-02 (D-game-22, option 2): at a prompt that lists allowed intents, a line that none of them resolves may still be one the
+intent catalog understands: `me gusta el río` at `smith-open`, which does not take `state_like`. The resolver then runs its grammar and keyword rungs a second
+time over every intent of the catalog, with the same rules and order (the embedding rung does not run: a guess is no ground for saying what a line means), and
+reports what they find as `IntentResolution.OffPromptIntent`. The verdict carries it as `Verdict.OffPromptIntent` (`IntentId?`) for a line the prompt did not
+take: the intent is unknown and no answer matched, so the line is never communicated. Everything else is as it was: `Intent` stays unknown, `Communicated`
+false, no slot is filled, and the decision, the response, the repair ladder and the effects do not read it. The core plans no reply; the host decides what an
+agent says (the game's V27 answers it «Te entiendo» and points to its own topic).
+
+| Line | Prompt | `Intent` | `OffPromptIntent` |
+|---|---|---|---|
+| `me gusta el río` | `smith-open` (no `state_like`) | `unknown` | `state_like` |
+| `tengo dos manzanas` | `fisher-open` (no `state_have`) | `unknown` | `state_have` |
+| `el río es grande` | `baker-open` (no `describe`) | `unknown` | `describe` |
+| `la tienda está en el pueblo` | `farmer-open` | `unknown` | null: no intent of the catalog takes it |
+| `me gusta el río` | `lesson-like-apples` (takes `state_like`) | `state_like` | null |
+| anything | a quiz (no allowed intent: the intent stage does not run) | `unknown` | null |
+
+It is always an intent the prompt does not allow, the one the grammar or rules rung would resolve with every intent allowed. A prompt whose allowed list is
+empty already has every intent as a candidate, so there is no second pass. Both members are the last positional parameter of their record, default to null,
+are left out of the canonical JSON while null (a verdict without one serializes as before M72) and take part in the verdict's equality and hash. They are part
+of the replay record with the verdict, so an old log with such a line shows a difference when replayed. The demo CLI prints the member as an
+`off-prompt:` line after the notes.
+
+```csharp
+if (result.Verdict.OffPromptIntent is { } offPrompt)
+{
+    Console.WriteLine($"understood as {offPrompt.Value}, which this prompt does not take");
+}
+```
 
 ### Verbs written without the accent of their tense: `result.Notes` (M70)
 

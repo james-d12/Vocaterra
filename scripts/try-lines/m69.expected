@@ -106,8 +106,8 @@ farmer-open    | cuánto es todo                             => ask_total comm=T
 farmer-open    | cuanto cuesta el pan                       => ask_price comm=True -
 farmer-open    | cuanto es todo                             => ask_total comm=True -
 farmer-open    | ¿cuánto cuestan las manzanas?              => ask_price comm=True -
-farmer-open    | ¿cuántas manzanas quieres?                 => unknown comm=False vocab.wrong
-farmer-open    | ¿cuántos panes tienes?                     => unknown comm=False vocab.wrong
+farmer-open    | ¿cuántas manzanas quieres?                 => unknown comm=False -
+farmer-open    | ¿cuántos panes tienes?                     => unknown comm=False -
 farmer-open    | ¿cuántos son?                              => ask_price comm=True -
 villager-open  | buenas tardes                              => greet comm=True -
 villager-open  | hola buenas tardes                         => greet comm=True -

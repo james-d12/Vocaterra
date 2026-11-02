@@ -32,11 +32,11 @@ public class VocabWrongExpectedTests
         Assert.Equal(ErrorTags.VocabWrong, error.Tag);
     }
 
-    // A quiz prompt on the animals set: the player says a known word that is not in the set.
+    // A quiz prompt on the animals set (it allows no intent, so it asks for a word; M72): the player says a known word that is not in the set.
     private static VerdictInputs Inputs(string spoken, IReadOnlyList<string>? canonicalAnswers)
     {
         return new VerdictInputs(
-            Fixtures.Prompt(RecognitionMode.Constrained, answerSetId: "animals"),
+            Fixtures.Prompt(RecognitionMode.Constrained, answerSetId: "animals") with { AllowedIntentIds = [] },
             Fixtures.Asr(mode: RecognitionMode.Constrained),
             Fixtures.NoMatch(),
             Fixtures.Analysis([Fixtures.Token(spoken, 0, "noun")]),

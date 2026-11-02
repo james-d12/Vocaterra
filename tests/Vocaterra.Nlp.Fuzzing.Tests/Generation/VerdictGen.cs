@@ -84,7 +84,34 @@ public static class VerdictGen
         }
 
         var knownWords = rng.NextDouble() < 0.2 ? Shuffled(known.ToList(), rng) : known.ToList();
-        return new VerdictInputs(prompt, asr, match, analysis, intent, pronunciation, required, knownWords, config, RandomVersions(harness, rng));
+        var versions = RandomVersions(harness, rng);
+
+        // M72, drawn last so the draws above keep their places in the stream: the answer set's canonical answers (none, the set's own, or one answer, which names
+        // the word of a derived vocab.wrong), one prompt in seven a quiz, which allows no intent, and the off-prompt intent below.
+        var canonical = CanonicalAnswers(harness, rng, prompt);
+        if (rng.NextInt(7) == 0)
+        {
+            prompt = prompt with { AllowedIntentIds = [] };
+        }
+
+        // The intent stage's off-prompt intent (M72), one time in three, whatever the intent: the assembler carries it only for an unknown intent and no match.
+        if (rng.NextInt(3) == 0)
+        {
+            intent = intent with { OffPromptIntent = harness.Bundle.Intents.Intents[rng.NextInt(harness.Bundle.Intents.Intents.Count)].Id };
+        }
+
+        return new VerdictInputs(prompt, asr, match, analysis, intent, pronunciation, required, knownWords, config, versions, canonical);
+    }
+
+    private static IReadOnlyList<string>? CanonicalAnswers(PipelineHarness harness, SeededRng rng, PromptSpec prompt)
+    {
+        var answers = harness.Bundle.AnswerSets.TryGetValue(prompt.AnswerSetId, out var set) ? set.Answers.Select(static a => a.Canonical).ToArray() : [];
+        return rng.NextInt(3) switch
+        {
+            0 => null,
+            1 => answers,
+            _ => [answers.Length > 0 ? rng.Pick(answers) : rng.Pick(harness.Words.AllForms)],
+        };
     }
 
     /// <summary>

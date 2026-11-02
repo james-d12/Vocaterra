@@ -866,7 +866,7 @@
       ],
       "keywordRules": [
         { "lemmas": ["trabajar"], "requiresSlots": [] },
-        { "lemmas": ["hacer"], "requiresSlots": [] }
+        { "lemmas": ["qué", "hacer"], "requiresSlots": [] }
       ],
       "lint": {"allowOverlap": ["ask_help"], "allowRuleOnly": ["qué tú hace"]},
       "examples": [

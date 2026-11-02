@@ -1,0 +1,85 @@
+# M72's lines (2026-11-02): a correct line that the prompt does not take (D-game-22, the owner's answers of 2026-11-02, option 2).
+# (a) At a constrained prompt the derived vocab.wrong only explains a miss it can name: a one-answer set or a quiz names the word, and a near miss
+#     of an answer (cuál es esto for qué es esto) keeps it. A correct line that is simply not among the prompt's answers gets no error and stays
+#     comm=False (before M72 each was scored 0.4 with vocab.wrong and an empty expected word).
+# (b) Such a line carries the intent it has over the whole catalog, Verdict.OffPromptIntent (the CLI's JSON shows it as offPromptIntent; the
+#     result line here shows only the intent, which stays unknown).
+# (c) hace frío, hace calor, hoy hace sol are about the weather, not ask_activity; qué haces still is.
+# Everything is correct Spanish apart from the near misses of section 3 (cuál es esto, qué tú hace).
+# scripts/try-lines.sh --check compares the output with m72.expected (the CLI) and m72.host.expected (--host).
+# Rows: prompt|line; blank lines and lines starting with # are skipped.
+
+# 1. (a, b) The orchestrator's table of 2026-11-02: correct lines whose intent the prompt does not take.
+farmer-open|la tienda está en el pueblo
+farmer-open|tengo un hacha
+fisher-open|tengo dos manzanas
+smith-open|me gusta el río
+villager-open|me gusta el río
+baker-open|el río es grande
+smith-open|la panadería está cerca
+smith-open|tengo un hacha
+fisher-open|me gusta el pan
+baker-open|tengo un hacha
+smith-open|quiero dos panes
+farmer-open|dónde está la panadería
+
+# 2. Clean neighbours: the same kinds of line at a prompt that takes them.
+farmer-open|me gustan las manzanas
+farmer-open|las manzanas me gustan
+smith-open|tengo madera
+fisher-open|dónde está la panadería
+baker-open|quiero dos panes por favor
+smith-open|cómo te llamas
+farmer-open|el pan es bonito
+smith-open|buscaré madera para luz
+
+# 3. Near misses keep their vocab.wrong; a line that resolved nothing at a lesson step stays comm=False.
+lesson-what|cuál es esto
+smith-open|qué tú hace
+lesson-luz-bought|el pan es grande
+lesson-want|el río es grande
+lesson-hello|me gusta el pan
+
+# 4. A lesson step's miss: a line that answers another question is still not communicated.
+lesson-ate|ayer fui al río
+lesson-went|ayer comí fruta
+lesson-luz-bought|mar pescó en el río
+lesson-have|quiero madera
+lesson-like-bread|tengo una fruta
+lesson-coins|voy al río
+
+# 5. (c) The weather is not a question about work; qué haces still is.
+smith-open|hace frío
+smith-open|hace calor
+smith-open|hoy hace sol
+farmer-open|hace frío
+farmer-open|hoy hace sol
+villager-open|hace calor
+baker-open|hace frío
+smith-open|qué haces
+smith-open|qué haces tú
+smith-open|qué hace usted
+smith-open|en qué trabajas
+farmer-open|qué haces
+villager-open|qué haces
+
+# 6. Natural, correct lines of M72's own at the NPCs' open prompts and at lesson prompts: no error, apart from two that are older than M72 and not
+#    its own: a name no grammar binds (pedro, vocab.unknown, at farmer-open and lesson-name: M70's finding, a name slot for the game), and
+#    ustedes trabajan mucho, which the keyword rule on trabajar reads as ask_activity. hoy hace buen tiempo is off the prompt as ask_craft (its rule
+#    on hacer with a noun); cómo está usted is not understood (ask_how has no form with usted).
+smith-open|me llamo ana
+farmer-open|buenos días
+baker-open|buenas tardes
+fisher-open|cómo está usted
+smith-open|ustedes trabajan mucho
+farmer-open|hoy hace buen tiempo
+baker-open|me gusta mucho el pan
+fisher-open|el pozo está en el pueblo
+smith-open|vivo en el campamento
+fisher-open|el río es muy bonito
+farmer-open|mi amigo se llama pedro
+baker-open|ustedes tienen pan
+lesson-hello|buenos días
+lesson-name|me llamo pedro
+lesson-like-apples|me gusta el río
+lesson-have|tengo dos manzanas
