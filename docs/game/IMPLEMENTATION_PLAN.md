@@ -2139,6 +2139,35 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   - Its first gate failed on one O3 test only, "the catalog grammar … was never realised", twice in a row with no core change: a
     flake of the fuzz suite, fixed by the core's M71 (§5b), with which it was gated. 7437 passed before; 7603 passed and 3 skipped
     after V23a, M71 and M66, with models. The orchestrator's checks: `--bag coin:0` gives «Necesitas más monedas.».
+- **V20: free talk, the NPCs understand what they teach (2026-11-02, Opus 5.5 xhigh; gated on `feature/village-followups` at `92c2763`).**
+  Run beside M67 in the `village` worktree; M67 merged in before its final checks (`d9865cf`, the conflicts resolved by the content loop
+  with `--record`). Bundle `91e6e967…`.
+  - **(a)** Open prompts take the intents of their NPC's lessons: the villager `state_action` and `name_object`; the stall `state_have`,
+    `state_action`, `describe`; the fisher `state_action`; Luz `state_have`; Domingo `state_obligation`; Luna and her review prompt
+    `state_want`, `state_have`. Each constrained open prompt's answer set holds its lessons' rows (graded 1, heard when spoken). Lint
+    clashes fixed: wants stay requests at the stall and the villager; the two `buscar` grammars are told apart by the article (directions
+    name a place with one), so `buscaré madera` at the fisher is `state_action`. `TaughtInFreeTalkTests` runs all 75 said steps through
+    their NPC's open prompt, and every focus row. **All 27 of phase B's practised sentences are understood** by the NPC who taught them
+    (9 got "No te entendí" before); replies «¡Qué bien!», «Sí, es verdad.», «Está bien.» in ten per-NPC pools, each in its NPC's voice
+    (20 WAVs; the Opus pass dropped «Ah, ¿sí?»: `ah` is in no CEFR list).
+  - **(b)** Free talk credits any phrase of a lesson begun or done, at any NPC, and the learner model gets it too. **(c)** A focus card
+    shows once its lesson is unlocked or done. **(d)** Names in correction lines take the roster's spelling unless a determiner precedes
+    them (`para Luz`, `la luz`), in the game and the host. **(e)** `¿cuánto son todo?` and `cuanto son todo?` are `ask_total`, through a
+    keyword rule (`cuánto` with `todo`), not `son` in the grammar: that made O3 generate `cuánto son todo esto` as correct, which the
+    core rightly flags; `describe` takes a noun subject only after an article or a name. **(f)** One line in `docs/game/README.md`.
+  - **Scripted runs:** 467 lines and 934 speech files (457 and 914 before); r09's replays show the new pools; r18 and r19 show no cards
+    (their sessions do not unlock the cards' lessons: in r18 that removes Luz's `Vendo madera.`, (c)'s bug); r23 credits
+    `manana-comprare-pan` and answers «¡Qué bien!».
+  - **Tests:** 7612 passed and 3 skipped before; 7682 and 3 after, with models (7640 and 45 without). The bundle load 1185 ms and the
+    scene build 651 to 675 ms of 3000, within four times of their budgets. The identity baseline took 10 entries and moved 417 (333 at
+    the merge); the goldens and stream digests did not move. `scripts/try-lines.sh --check` differs in 38 lines, all at the prompts V20
+    opened and now understood (the baselines are re-recorded by M70). The gate passed at the first run.
+  - **The orchestrator's checks** through the host: `Luz compró pescado.` at `fisher-open`, `Tengo que ir al río.` at `smith-open`,
+    `Fuimos al río.` at `villager-open`, `cuanto son todo?` at `farmer-open` all understood; the stall demo unchanged. The new Spanish read.
+  - **Left, to V21:** the villager hands over bread for any request (as the stall its bottle); `quién`/`qué`/`cómo es grande` read as
+    `describe` at León's and the stall's prompts; `como es la manzana` and `ellas adónde van` read as `state_action` through keyword rules.
+    **To the core (M69):** `cuanto son todo?` is understood but `son` is not corrected and the recast keeps «cuanto» (the unaccented
+    question word). Replies match on intent only, so Luz says «¡Qué bien!» to `Tienes veinte panes.` (accepted).
 
 
 ## 6. Definition of done (every milestone)
