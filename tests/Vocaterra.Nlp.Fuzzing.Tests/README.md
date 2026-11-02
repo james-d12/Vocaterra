@@ -30,14 +30,14 @@ of the slowest chain, not the sum (about 70 s of test time in all). The slowest 
 | --- | --- | --- | --- | --- |
 | O1 | Normalizer never crashes (also on lone surrogates), is idempotent, spans and originals are well-formed; `Accents.Strip` and `SpanishPhoneticKey.Compute` are total | `NormalizerFuzzTests` | 3 000 | `VOCATERRA_FUZZ_ITERATIONS` |
 | O2 | Analyzer never crashes, is deterministic (also on a fresh instance), output is well-formed | `AnalyzerFuzzTests` | 3 000 | `VOCATERRA_FUZZ_ITERATIONS` |
-| O3 | Correct sentences analyze clean, match their grammar, yield their slot values; every catalog grammar is realised (one the sample left out from fixed recipes, M71) | `CorrectSentenceFuzzTests` | 2 000 | `VOCATERRA_FUZZ_ITERATIONS_GRAMMAR` |
+| O3 | Correct sentences analyze clean, match their grammar, yield their slot values; every catalog grammar is realised (one the sample left out from fixed recipes, M71); graded at an agent's constrained prompt that does not take them, they get no error they do not contain (M72) | `CorrectSentenceFuzzTests` | 2 000 | `VOCATERRA_FUZZ_ITERATIONS_GRAMMAR` |
 | O4 | One mutation yields exactly the named tag, with the original form as correction | `MutationTagFuzzTests` | 2 000 | `VOCATERRA_FUZZ_ITERATIONS_GRAMMAR` |
 | O5 | The recast closes the loop: it restores the corrected sentence and re-analyzes clean | `RecastLoopFuzzTests` | 2 000 | `VOCATERRA_FUZZ_ITERATIONS_GRAMMAR` |
 | O6 | Answer matching agrees with an independent model of its documented rules, plus metamorphic relations | `AnswerMatchFuzzTests` | 3 000 | `VOCATERRA_FUZZ_ITERATIONS` |
-| O7 | Intent resolver: allowed intents respected, ladder order respected, unresolved is margin 0 and confidence 0 | `IntentResolverFuzzTests` | 2 000 | `VOCATERRA_FUZZ_ITERATIONS_GRAMMAR` |
+| O7 | Intent resolver: allowed intents respected, ladder order respected, unresolved is margin 0 and confidence 0; the off-prompt intent is a disallowed intent the resolver gives with every intent allowed, null on a known intent (M72) | `IntentResolverFuzzTests` | 2 000 | `VOCATERRA_FUZZ_ITERATIONS_GRAMMAR` |
 | O8 | G2P: phones in the inventory, syllables partition each word and own the phones, one stressed syllable per word, deterministic, IPA string splits back, dialects differ only at dialect sites, predicted errors are one edit away | `G2pFuzzTests` | 3 000 | `VOCATERRA_FUZZ_ITERATIONS` |
 | O9 | Pronunciation scoring: perfect posteriors score 1 and tag nothing, one injected predicted error gives exactly that tag at that grapheme span, scores and confidence in [0, 1], deterministic, CTC segments ordered and disjoint | `PronunciationFuzzTests` | 1 000 (two facts) | `VOCATERRA_FUZZ_ITERATIONS_SIGNAL` |
-| O10 | Verdict assembly follows its documented rules; order of unordered inputs does not matter; JSON round trip | `VerdictAssemblyFuzzTests` | 3 000 | `VOCATERRA_FUZZ_ITERATIONS` |
+| O10 | Verdict assembly follows its documented rules (the derived `vocab.wrong` and the off-prompt intent, M72); order of unordered inputs does not matter; JSON round trip | `VerdictAssemblyFuzzTests` | 3 000 | `VOCATERRA_FUZZ_ITERATIONS` |
 | O11 | Decision layer: agent step agrees with the documented rules, lands in a declared state, draws variants in range, same seed same path, defective definitions rejected with `InvalidDataException`; BKT follows its formula; FSRS stays positive, schedules ahead and orders the ratings; feedback plans follow the rule precedence; the repeat counts after one verdict (`RepeatCounts.Next`) are exactly the verdict's tags plus `not_communicated`, each one more than before (1 when new, saturating at `int.MaxValue`), and do not depend on the order of the input | `DecisionFuzzTests` | 3 000 (seven facts) | `VOCATERRA_FUZZ_ITERATIONS` |
 | O12 | Every template renders clean text; only the missing-slot `TemplateException`; stable seeded selection; planner | `TemplateFuzzTests` | 2 000 (three facts) | `VOCATERRA_FUZZ_ITERATIONS_GRAMMAR` |
 | O13 | Audio front-end: `WavFile.Read` throws only `InvalidDataException` / `NotSupportedException` on damaged bytes; a valid clip reads back exactly and survives write and read; `Process` agrees with the stages composed by hand (downmix, resampled length, gain, VAD slice, hash) | `AudioFrontEndFuzzTests` | 1 000 (two facts) | `VOCATERRA_FUZZ_ITERATIONS_SIGNAL` |
@@ -215,6 +215,20 @@ code comments and here, with the reason:
     `dUYM6Yw-H953`, `2d5pW9wRCBp4`): the realiser drew `qué hago tú` as correct, which the analyzer now reads as `conj.person`. (c) M71's finding: the
     `literal-verb-subject` re-roll no longer takes a literal that is the head of the phrase before it, so O3 draws `buenas tardes`
     (`TheGreetingGrammarRealisesBuenasTardes`). The sentence stream digest was recorded again for these changes (the text digest did not move).
+  - *O3, O7 and O10, the off-prompt lines (M72, 2026-11-02; two widenings and a documented rule change, no oracle narrowed).* (a) O10's model of the derived
+    `vocab.wrong` follows the rule of M72: an unknown intent gets it only where the prompt names the word (one canonical answer, or a quiz, which allows no
+    intent), and any line no slot grammar understood only when it is a near miss of an answer; a correct line far from every one of several answers gets none.
+    `VerdictGen` draws, after its earlier draws (so no other oracle's stream moves before them), the canonical answers (none, the set's, or one), a quiz one prompt
+    in seven, and an off-prompt intent one time in three; O10 checks that the verdict carries the intent stage's off-prompt intent exactly for an unknown intent
+    and no match, never on a communicated line, and that a verdict with one is reached. (b) O7 checks the resolver's new member: null whenever the intent is
+    known or the prompt allows every intent; when set, an intent the prompt does not allow and the intent the resolver gives the same analysis with every intent
+    allowed, on the grammar or rules rung; when null at a prompt that lists intents, that resolver finds nothing either, or only on the embedding rung, which the
+    off-prompt pass does not run. `IntentResolverFuzzTests` asserts that unknown lines with and without the member are both reached. (c) O3 gained a verdict leg:
+    each realised sentence is graded with `TextGrader` at a constrained prompt an agent asks (an NPC's open prompt, a stall's, a lesson step's) that allows none of
+    its intents (the owners of its catalog grammar and the resolver's answer with every intent allowed), drawn from the recipe's seed, and gets no error the
+    sentence does not contain. What a sentence contains is what the analyzer finds in its words alone, with no grammar of any prompt: for a correct sentence nothing
+    but `vocab.unknown` on a name only a `[WORD]` reads. Errors are compared by tag and span; a pronunciation tag is not grammar and is left out on both sides, as in
+    O3's first check (the grader scores none). The test asserts that the leg grades sentences and, at the default depth, that some carry an off-prompt intent.
 - **O8.** The dialect sites are `θ s z h ʎ ʝ ʃ ʒ` (the plan lists `θ s ʎ ʝ h`; the shipped dialects also produce the voiced `z` and the rioplatense `ʃ ʒ`).
   `Tokenize(ToIpaString())` is exact except for the pair `t` + `ʃ`, whose concatenation is the affricate token `tʃ` (the inventory documents that
   sequences are lists for this reason); a result with that pair skips the split.

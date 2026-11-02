@@ -1,9 +1,14 @@
 using System.Globalization;
 using CsCheck;
+using Vocaterra.Nlp.Content;
+using Vocaterra.Nlp.Core.Determinism;
+using Vocaterra.Nlp.Core.Prompts;
+using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Fuzzing.Tests.Generation;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
+using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Normalization;
 using Xunit.Abstractions;
@@ -14,6 +19,8 @@ namespace Vocaterra.Nlp.Fuzzing.Tests;
 /// <summary>
 /// O3: a sentence realised correctly from a grammar analyzes clean (no grammar errors, every word known), matches its own grammar and
 /// yields the slot values it was built from. Noise that cannot change the normalizer's output must not change the analysis either.
+/// Since M72 it also has a verdict leg: graded with <see cref="TextGrader"/> at an agent's constrained prompt that does not take its intent, the sentence gets no
+/// error it does not contain (<see cref="CheckAtAPromptThatDoesNotTakeIt"/>).
 /// </summary>
 public sealed class CorrectSentenceFuzzTests(ITestOutputHelper output)
 {
@@ -28,6 +35,19 @@ public sealed class CorrectSentenceFuzzTests(ITestOutputHelper output)
     private const int TargetedRecipes = 50;
 
     private static readonly PipelineHarness Harness = PipelineHarness.Shared;
+
+    // The verdict leg (M72): the grader of the content lint and of a host's typed input, and the analyzer it uses, over the same bundle.
+    private static readonly Lazy<TextGrader> Grader = new(static () => new TextGrader(Harness.Bundle));
+
+    private static readonly Lazy<LinguisticAnalyzer> GraderAnalyzer = new(static () =>
+        new LinguisticAnalyzer(Harness.Bundle.Lexicon, Harness.Bundle.LanguageMorphology, Harness.Bundle.Language, Harness.Bundle.AnalysisRules));
+
+    // The prompts of the leg: every constrained prompt of the bundle that an agent asks and that lists the intents it takes (an NPC's open prompt, a stall's, a
+    // lesson step's), in ordinal order.
+    private static readonly Lazy<PromptSpec[]> AgentPrompts = new(static () =>
+        [.. Harness.Bundle.Prompts.Values
+            .Where(static p => p.Mode == RecognitionMode.Constrained && p.AgentId is not null && p.AllowedIntentIds.Count > 0)
+            .OrderBy(static p => p.PromptId, StringComparer.Ordinal)]);
 
     // The realiser seeds and the noise of the coverage pass: drawn once from the generators O3 samples, one case per fixed seed (CsCheck seeds only the first case of a
     // run, as SkipBudgetTests and FuzzLanguageStreamTests note), so the pass is the same on every run.
@@ -82,6 +102,13 @@ public sealed class CorrectSentenceFuzzTests(ITestOutputHelper output)
                     diagnostics.Get($"homograph:sentence-with-{kind}") * 50 >= realized,
                     $"Fewer than one sentence in fifty holds {kind.Replace('-', ' ')}.\n{diagnostics.Report()}");
             }
+        }
+
+        // The verdict leg (M72) must really grade sentences off their prompts, and some of them must be understood off the prompt.
+        Assert.True(diagnostics.Get("verdict-leg:graded") > 0, $"No correct sentence was graded at a prompt that does not take it.\n{diagnostics.Report()}");
+        if (iterations >= MinimumIterationsForCoverage)
+        {
+            Assert.True(diagnostics.Get("verdict-leg:off-prompt") > 0, $"No correct sentence graded off its prompt carried an off-prompt intent.\n{diagnostics.Report()}");
         }
 
         // Every grammar word must be in the lexicon: a catalog grammar with an unknown literal (the old `cuál` gap) would be skipped here, and the
@@ -205,7 +232,68 @@ public sealed class CorrectSentenceFuzzTests(ITestOutputHelper output)
             throw Determinism.Fail(Oracle, $"Confidence is {analysis.Confidence}, but every word of the sentence is in the lexicon.", context);
         }
 
+        CheckAtAPromptThatDoesNotTakeIt(recipe, grammar.Id, noisy, normalized, analysis, diagnostics, context);
         return true;
+    }
+
+    /// <summary>
+    /// The verdict leg of O3 (M72, a widening): the sentence, graded with <see cref="TextGrader"/> at a constrained prompt an agent asks that does not take its
+    /// intent, gets no error that the sentence does not contain. Its intents are the intents that own its grammar (a catalog grammar) and the intent the resolver
+    /// gives it with every intent allowed; the prompt, drawn from the recipe's seed, allows none of them. What a sentence contains is what the analyzer finds in its
+    /// words alone, with no grammar of any prompt: for a correct sentence nothing but <c>vocab.unknown</c> on a name only a <c>[WORD]</c> of a grammar reads (no
+    /// lexicon has it). Errors are compared by tag and span. A pronunciation tag is not grammar and is left out on both sides, as in O3's first check (the grader
+    /// scores no pronunciation, so none arises). Before M72 the derived <c>vocab.wrong</c> fell on such a sentence at every prompt whose answers it missed.
+    /// </summary>
+    private static void CheckAtAPromptThatDoesNotTakeIt(
+        SentenceRecipe recipe,
+        string grammarId,
+        string text,
+        NormalizedText normalized,
+        AnalysisResult analysis,
+        FuzzDiagnostics diagnostics,
+        string context)
+    {
+        var intents = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var grammar in Harness.Grammars.Grammars.Where(g => string.Equals(g.Id, grammarId, StringComparison.Ordinal)))
+        {
+            intents.UnionWith(grammar.IntentIds);
+        }
+
+        var everyIntent = Harness.NewResolver(embeddings: false).Resolve(normalized, analysis, AgentPrompts.Value[0] with { AllowedIntentIds = [] });
+        if (!everyIntent.Intent.IsUnknown)
+        {
+            intents.Add(everyIntent.Intent.Value);
+        }
+
+        var prompts = AgentPrompts.Value.Where(p => !p.AllowedIntentIds.Any(intents.Contains)).ToArray();
+        if (prompts.Length == 0)
+        {
+            diagnostics.Count("verdict-leg:every-prompt-takes-it");
+            return;
+        }
+
+        var prompt = new SeededRng(recipe.Seed ^ 0x4D37_3256_4C45_4731UL).Pick(prompts);
+        var verdict = Grader.Value.Grade(text, prompt);
+        var contained = GraderAnalyzer.Value.Analyze(normalized, []).Errors
+            .Where(static e => !ErrorTags.IsPronunciation(e.Tag))
+            .Select(static e => (e.Tag, e.Span))
+            .ToHashSet();
+        var added = verdict.Errors.Where(e => !ErrorTags.IsPronunciation(e.Tag) && !contained.Contains((e.Tag, e.Span))).ToArray();
+        if (added.Length > 0)
+        {
+            throw Determinism.Fail(
+                Oracle,
+                $"A correct sentence graded at {prompt.PromptId}, which takes none of its intents [{string.Join(", ", intents.Order(StringComparer.Ordinal))}], got errors it does not contain: "
+                + $"{string.Join("; ", added.Select(Describe))} (intent {verdict.Intent}, off the prompt {verdict.OffPromptIntent?.Value ?? "none"}).",
+                context);
+        }
+
+        diagnostics.Count("verdict-leg:graded");
+        diagnostics.Count(verdict.Intent.IsUnknown ? (verdict.OffPromptIntent is null ? "verdict-leg:not-understood" : "verdict-leg:off-prompt") : "verdict-leg:taken-by-another-intent");
+        if (contained.Count > 0)
+        {
+            diagnostics.Count("verdict-leg:contains-an-error-alone");
+        }
     }
 
     /// <summary>
