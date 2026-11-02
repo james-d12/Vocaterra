@@ -33,7 +33,7 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | farmer (León) | `pm_santa` | 44 | 1.0 | `voice-trial/pm_santa-1.0.wav` |
 | fisher (Mar) | `em_santa` | 53 | 0.9 | `voice-trial/em_santa-0.9.wav` |
 
-**To hear:** 1062 of the 1062 files have no mark (guide 404, villager 138, farmer 120, baker 112, shopkeeper 112, fisher 98, smith 78). Two files a line: the normal speed and the slow one.
+**To hear:** 1076 of the 1076 files have no mark (guide 406, villager 140, farmer 122, baker 114, shopkeeper 114, fisher 100, smith 80). Two files a line: the normal speed and the slow one.
 
 ## Lines
 
@@ -117,6 +117,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | baker_thank.1 | speech/baker_thank.1.wav | baker | 1.0 | De nada. |  |
 | baker_thank.2 | speech/baker_thank.2.slow.wav | baker | 0.8 | ¡Con gusto! |  |
 | baker_thank.2 | speech/baker_thank.2.wav | baker | 1.0 | ¡Con gusto! |  |
+| baker_understood.1 | speech/baker_understood.1.slow.wav | baker | 0.8 | Te entiendo. ¿Quieres pan? |  |
+| baker_understood.1 | speech/baker_understood.1.wav | baker | 1.0 | Te entiendo. ¿Quieres pan? |  |
 | baker_wait.1 | speech/baker_wait.1.slow.wav | baker | 0.8 | Primero, la lección. Luego, las monedas. |  |
 | baker_wait.1 | speech/baker_wait.1.wav | baker | 1.0 | Primero, la lección. Luego, las monedas. |  |
 | baker_wont_buy.1 | speech/baker_wont_buy.1.slow.wav | baker | 0.8 | No, gracias. Solo compro madera. |  |
@@ -217,6 +219,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | farmer_total.1 | speech/farmer_total.1.wav | farmer | 1.0 | Quince manzanas, quince monedas. |  |
 | farmer_true.1 | speech/farmer_true.1.slow.wav | farmer | 0.8 | Sí, es verdad. |  |
 | farmer_true.1 | speech/farmer_true.1.wav | farmer | 1.0 | Sí, es verdad. |  |
+| farmer_understood.1 | speech/farmer_understood.1.slow.wav | farmer | 0.8 | Te entiendo. ¿Quieres manzanas? |  |
+| farmer_understood.1 | speech/farmer_understood.1.wav | farmer | 1.0 | Te entiendo. ¿Quieres manzanas? |  |
 | farmer_unit.1 | speech/farmer_unit.1.slow.wav | farmer | 0.8 | Una manzana, una moneda. |  |
 | farmer_unit.1 | speech/farmer_unit.1.wav | farmer | 1.0 | Una manzana, una moneda. |  |
 | farmer_wont_buy.1 | speech/farmer_wont_buy.1.slow.wav | farmer | 0.8 | No compro eso. Compro fruta del bosque. |  |
@@ -319,6 +323,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | fisher_thank.1 | speech/fisher_thank.1.wav | fisher | 0.9 | De nada. |  |
 | fisher_thank.2 | speech/fisher_thank.2.slow.wav | fisher | 0.72 | ¡Con gusto! |  |
 | fisher_thank.2 | speech/fisher_thank.2.wav | fisher | 0.9 | ¡Con gusto! |  |
+| fisher_understood.1 | speech/fisher_understood.1.slow.wav | fisher | 0.72 | Te entiendo. ¿Buscas un lugar? |  |
+| fisher_understood.1 | speech/fisher_understood.1.wav | fisher | 0.9 | Te entiendo. ¿Buscas un lugar? |  |
 | fisher_unknown_place.1 | speech/fisher_unknown_place.1.slow.wav | fisher | 0.72 | No sé dónde está. |  |
 | fisher_unknown_place.1 | speech/fisher_unknown_place.1.wav | fisher | 0.9 | No sé dónde está. |  |
 | guide.craft.none.1 | speech/guide.craft.none.1.slow.wav | guide | 0.8 | Eso no se puede hacer. |  |
@@ -675,6 +681,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | guide_thank.2 | speech/guide_thank.2.wav | guide | 1.0 | ¡De nada! |  |
 | guide_thank.3 | speech/guide_thank.3.slow.wav | guide | 0.8 | ¡De nada, amigo! |  |
 | guide_thank.3 | speech/guide_thank.3.wav | guide | 1.0 | ¡De nada, amigo! |  |
+| guide_understood.1 | speech/guide_understood.1.slow.wav | guide | 0.8 | Te entiendo. ¿Qué quieres aprender? |  |
+| guide_understood.1 | speech/guide_understood.1.wav | guide | 1.0 | Te entiendo. ¿Qué quieres aprender? |  |
 | not_understood.1 | speech/not_understood.1.slow.wav | guide | 0.8 | No te entendí. ¿Me lo dices otra vez? |  |
 | not_understood.1 | speech/not_understood.1.wav | guide | 1.0 | No te entendí. ¿Me lo dices otra vez? |  |
 | not_understood.1.baker | speech/not_understood.1.baker.slow.wav | baker | 0.8 | No te entendí. ¿Me lo dices otra vez? |  |
@@ -1033,6 +1041,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | shop_thank.2 | speech/shop_thank.2.wav | shopkeeper | 1.0 | ¡Con gusto! |  |
 | shop_true.1 | speech/shop_true.1.slow.wav | shopkeeper | 0.8 | Sí, es verdad. |  |
 | shop_true.1 | speech/shop_true.1.wav | shopkeeper | 1.0 | Sí, es verdad. |  |
+| shop_understood.1 | speech/shop_understood.1.slow.wav | shopkeeper | 0.8 | Te entiendo. ¿Quieres comprar algo? |  |
+| shop_understood.1 | speech/shop_understood.1.wav | shopkeeper | 1.0 | Te entiendo. ¿Quieres comprar algo? |  |
 | shop_wont_sell.1 | speech/shop_wont_sell.1.slow.wav | shopkeeper | 0.8 | No tengo eso. Tengo agua y pan. |  |
 | shop_wont_sell.1 | speech/shop_wont_sell.1.wav | shopkeeper | 1.0 | No tengo eso. Tengo agua y pan. |  |
 | smith_buy.1 | speech/smith_buy.1.slow.wav | smith | 0.8 | ¡Gracias! Aquí tienes tus monedas. |  |
@@ -1069,6 +1079,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | smith_thank.1 | speech/smith_thank.1.wav | smith | 1.0 | De nada. |  |
 | smith_thank.2 | speech/smith_thank.2.slow.wav | smith | 0.8 | ¡Con gusto! |  |
 | smith_thank.2 | speech/smith_thank.2.wav | smith | 1.0 | ¡Con gusto! |  |
+| smith_understood.1 | speech/smith_understood.1.slow.wav | smith | 0.8 | Te entiendo. Yo hago hachas. |  |
+| smith_understood.1 | speech/smith_understood.1.wav | smith | 1.0 | Te entiendo. Yo hago hachas. |  |
 | smith_wont_buy.1 | speech/smith_wont_buy.1.slow.wav | smith | 0.8 | No, gracias. Solo compro madera. |  |
 | smith_wont_buy.1 | speech/smith_wont_buy.1.wav | smith | 1.0 | No, gracias. Solo compro madera. |  |
 | villager_bye.1 | speech/villager_bye.1.slow.wav | villager | 0.8 | ¡Adiós! Hasta luego. |  |
@@ -1097,6 +1109,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | villager_thank.2 | speech/villager_thank.2.wav | villager | 1.0 | ¡Con gusto! |  |
 | villager_true.1 | speech/villager_true.1.slow.wav | villager | 0.8 | Sí, es verdad. |  |
 | villager_true.1 | speech/villager_true.1.wav | villager | 1.0 | Sí, es verdad. |  |
+| villager_understood.1 | speech/villager_understood.1.slow.wav | villager | 0.8 | Te entiendo. ¿Qué buscas? |  |
+| villager_understood.1 | speech/villager_understood.1.wav | villager | 1.0 | Te entiendo. ¿Qué buscas? |  |
 | villager_unknown_place.1 | speech/villager_unknown_place.1.slow.wav | villager | 0.8 | No sé dónde está. |  |
 | villager_unknown_place.1 | speech/villager_unknown_place.1.wav | villager | 1.0 | No sé dónde está. |  |
 | villager_wont_sell.1 | speech/villager_wont_sell.1.slow.wav | villager | 0.8 | Solo tengo pan. |  |

@@ -1155,7 +1155,7 @@ public abstract partial class GuideSession : IDisposable
             unit is null ? InputPlace.Dialogue : InputPlace.Lesson,
             unit,
             turn.Intent,
-            turn.Communicated,
+            turn.Taken,
             turn.Unsure,
             turn.Errors,
             turn.Words ?? []));
@@ -1255,7 +1255,7 @@ public abstract partial class GuideSession : IDisposable
         var formMiss = Lessons.IsFormMiss(turn);
         var retryAnswer = phraseReview is not null && ReferenceEquals(phraseReview, _retry) && turn.Communicated && !IsHelpRequest(turn);
         var recovered = false;
-        if (turn.Communicated && !formMiss && PhraseOf(turn, support) is { } phrase)
+        if (turn.Taken && !formMiss && PhraseOf(turn, support) is { } phrase)
         {
             var kind = Classify(turn, phrase, previousRepair, phraseReview, support);
             var detail = PhraseSheet.DetailOf(turn.Slots);
@@ -1362,6 +1362,12 @@ public abstract partial class GuideSession : IDisposable
     {
         var inPlay = support.InPlay.Select(Phrases.Find).OfType<PhraseRow>().ToList();
         var freeTalk = support.InPlay.SequenceEqual(Support.FocusAt(turn.Prompt), StringComparer.Ordinal);
+        if (turn.OffPromptIntent is not null)
+        {
+            // V27: a line the NPC understood off its prompt credits only a phrase of a lesson begun or done that it is; the intent it has elsewhere says no phrase of this prompt.
+            return freeTalk ? LineReading.PhraseSaid(Phrases, turn.Line, Data.Npcs.Find(turn.Npc)?.Name, Lessons.Credits)?.Id : null;
+        }
+
         if (freeTalk && Phrases.ByPlace(inPlay, turn.Intent, turn.Slots, Data.Npcs.Homes.Keys, out var placed))
         {
             return placed;

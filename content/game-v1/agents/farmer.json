@@ -2,6 +2,7 @@
   "agentId": "farmer",
   "initialState": "idle",
   "variantPools": [
+    { "id": "farmer_understood", "count": 1 },
     { "id": "answer_accepted", "count": 3 },
     { "id": "not_understood", "count": 2 },
     { "id": "farmer_nice", "count": 1 },
@@ -32,6 +33,7 @@
     {
       "id": "idle",
       "transitions": [
+        { "onHostEvent": "farmer.understood", "to": "idle", "actions": [{ "dialogueIntent": "farmer_understood", "variantPoolId": "farmer_understood" }] },
         { "onHostEvent": "farmer.greet", "to": "idle", "actions": [{ "dialogueIntent": "farmer_hello", "variantPoolId": "farmer_hello" }] },
         { "onHostEvent": "farmer.delivered", "to": "idle", "actions": [{ "dialogueIntent": "farmer_delivered", "hostEvent": "farmer.give_apples", "variantPoolId": "farmer_delivered" }] },
         { "onHostEvent": "farmer.cant_pay", "to": "idle", "actions": [{ "dialogueIntent": "farmer_cant_pay", "variantPoolId": "farmer_cant_pay" }] },

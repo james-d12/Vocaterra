@@ -143,24 +143,23 @@ public sealed class LearnerRecordTests
     }
 
     [Fact]
-    public void AnErrorSpanMarksAWordUsedButNotCorrect()
+    public void ALineTheOfferDoesNotTakeButTheStallUnderstoodCountsItsWordsAsCorrectUses()
     {
         var session = TestGame.NewSession(credit: CreditRules.Default);
         session.OpenTalk("shopkeeper");
 
         _ = session.Say("quiero dos aguas"); // understood at the stall's need: "quiero" and "aguas" are right
-        var turn = session.Say("quiero agua, por favor"); // at the offer, "quiero" is wrong (vocab.wrong over its span) and the line is not understood
+        var turn = session.Say("quiero agua, por favor"); // at the offer: M72 gives it no derived vocab.wrong; V27: the stall understood it off its prompt, so the book counts it
 
-        Assert.DoesNotContain(turn.Errors, static e => e.Span.Start == 0 && e.Span.Length == 6); // M72: a correct line the offer does not take gets no derived vocab.wrong
+        Assert.DoesNotContain(turn.Errors, static e => e.Span.Start == 0 && e.Span.Length == 6);
+        Assert.False(turn.Communicated);
+        Assert.True(turn.Taken);
         var verb = Assert.Single(session.Learner.Verbs);
-        Assert.Equal(2, verb.Times);
-        Assert.Equal(1, verb.TimesCorrect);
+        Assert.Equal((2, 2), (verb.Times, verb.TimesCorrect));
         var quiero = Assert.Single(verb.Forms);
-        Assert.Equal(2, quiero.Times);
-        Assert.Equal(1, quiero.TimesCorrect);
+        Assert.Equal((2, 2), (quiero.Times, quiero.TimesCorrect));
         var noun = Assert.Single(session.Learner.Nouns, static row => row.Lemma == "agua");
-        Assert.Equal(2, noun.Times);
-        Assert.Equal(1, noun.TimesCorrect); // "aguas" in the understood line; "agua" in the line the core did not understand is used, not correct
+        Assert.Equal((2, 2), (noun.Times, noun.TimesCorrect));
     }
 
     [Fact]

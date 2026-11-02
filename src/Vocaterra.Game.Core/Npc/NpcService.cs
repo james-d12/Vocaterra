@@ -616,6 +616,12 @@ public sealed partial class NpcService
             return Unsure(agent, npc, promptId, line, sure, utterance, hostStateHash);
         }
 
+        // V27: in free talk a line the prompt does not take but the core understands (M72) gets the NPC's one off-prompt line and nothing else: it is no failed attempt. A
+        // spoken line the recognizer was unsure of keeps the uncertain reply (D-game-9): what was heard is not known well enough to say it was understood.
+        var offPromptPool = scene.PromptOverride is null && !verdict.Communicated && verdict.OffPromptIntent is not null && (confidence is null || confidence >= UncertaintyRule.ConfidenceThreshold)
+            ? agent.Npc.OffPromptPool
+            : null;
+        var offPrompt = offPromptPool is not null;
         var facts = new Dictionary<string, string>(StringComparer.Ordinal);
         string? worldLine = null;
         GuidePointer? pointer = null;
@@ -660,7 +666,9 @@ public sealed partial class NpcService
         // updated once, here. The digest covers the slots and skills (HostDigest, the core's contract); without them the context keeps the bare
         // digest, as the core does when no slots are given.
         var lessonPhrase = scene.PromptOverride is null && scene.Credited is { } credited ? LineReading.PhraseSaid(_phrases, line, agent.Npc.Name, credited.Contains)?.Id : null; // V20
-        var skills = verdict.Communicated ? WordSkillsOf(GuideWord.From(analysis.Words), PhraseSkillsOf(verdict, promptId, origin, scene.PromptOverride is null, lessonPhrase)) : [];
+        var skills = offPrompt
+            ? WordSkillsOf(GuideWord.From(analysis.Words), lessonPhrase is null ? null : [PhraseSkillPrefix + lessonPhrase]) // V27: the nouns used and a phrase of a lesson begun or done
+            : verdict.Communicated ? WordSkillsOf(GuideWord.From(analysis.Words), PhraseSkillsOf(verdict, promptId, origin, scene.PromptOverride is null, lessonPhrase)) : [];
         var created = ConversationContext.Create(
             utterance.WorldSeed,
             utterance.AgentId,
@@ -675,8 +683,14 @@ public sealed partial class NpcService
         var trace = Complete(clip is null, analysis, carried);
         var result = trace.Result;
         Record(new ReplayEntry(ReplayEnvelope.From(trace, carried), null));
-        var uncertain = confidence is not null && UncertaintyRule.IsUncertain(verdict.Communicated, confidence);
+        var uncertain = !offPrompt && confidence is not null && UncertaintyRule.IsUncertain(verdict.Communicated, confidence);
         agent.Context = carried.Next(result, now) with { HostStateHash = hostStateHash }; // the digest of the world again, not the core's hash of the values
+        if (offPrompt)
+        {
+            // V27: not a failed attempt: the repeat counts are as they were before the turn (the next line not understood gets the ladder's first step), and the learner model
+            // is not marked down; it keeps the skills the line used.
+            agent.Context = agent.Context with { RepeatCountsByTag = utterance.RepeatCountsByTag, Learner = skills.Count == 0 ? utterance.Learner : utterance.Learner.StepSkills(skills, true) };
+        }
         if (uncertain)
         {
             // A spoken line the NPC did not understand is the recognition's trouble before it is the language's (D-game-9): the repeat counts
@@ -700,23 +714,26 @@ public sealed partial class NpcService
             lineId => holdsBottle && hostEvents.Contains(NpcHostEvents.GiveWater, StringComparer.Ordinal) && lineId.StartsWith("shop_give.", StringComparison.Ordinal), // the player has the bottle already: nothing is given and the line is not said
             agent.Npc.FreeTalkPools,
             scene.PromptOverride is null);
-        var feedback = composed.Feedback;
-        var replies = composed.Replies.ToList();
+        var feedback = offPrompt ? null : composed.Feedback;
+        var replies = offPrompt
+            ? [NpcTurnRules.OffPromptReply(_bundle, offPromptPool!, utterance.WorldSeed, utterance.AgentState.InteractionCounter)]
+            : composed.Replies.ToList();
 
         var failForward = false;
 
         // The stall's fail-forward stays code, by id (CONTENT_PLAN 3.6): the bottle after four misses is a rule about this exchange, not data.
-        if (string.Equals(npc, ShopkeeperAgent, StringComparison.Ordinal) && string.Equals(promptId, StallNeedPrompt, StringComparison.Ordinal))
+        if (!offPrompt && string.Equals(npc, ShopkeeperAgent, StringComparison.Ordinal) && string.Equals(promptId, StallNeedPrompt, StringComparison.Ordinal))
         {
             failForward = ShopkeeperPatience(agent, verdict, result, now, hostStateHash, hostEvents, followUp);
         }
 
-        agent.LastRepair = result.Repair?.Kind;
-        IReadOnlyList<string>? choices = result.Repair is { Kind: RepairKind.OfferChoices, RetryRequest: { } retry } ? retry.GrammarPhrases : null;
+        var step = offPrompt ? null : result.Repair; // V27: no repair line of any kind after an off-prompt reply
+        agent.LastRepair = step?.Kind;
+        IReadOnlyList<string>? choices = step is { Kind: RepairKind.OfferChoices, RetryRequest: { } retry } ? retry.GrammarPhrases : null;
 
         // V26: one reply per turn (V21). The core's first repair step, «¿Cómo?», only asks again, which the NPC's own reply to a line not understood
         // («No te entendí. ¿Me lo dices otra vez?») has said already; the later steps (the slow repeat, the choices, giving up) add something and stay.
-        var repair = result.Repair is { Kind: RepairKind.AskAgain } && replies.Count > 0 ? null : result.Repair?.AgentLine;
+        var repair = step is { Kind: RepairKind.AskAgain } && replies.Count > 0 ? null : step?.AgentLine;
         return new GuideTurn(
             line,
             verdict.Intent.Value,
@@ -740,7 +757,7 @@ public sealed partial class NpcService
             confidence,
             npc,
             promptId,
-            result.Repair?.Kind,
+            step?.Kind,
             followUp,
             failForward,
             choices,
@@ -748,6 +765,7 @@ public sealed partial class NpcService
             origin == LineOrigin.Choice)
         {
             AccentNotes = AccentNotesOf(result),
+            OffPromptIntent = offPrompt ? verdict.OffPromptIntent!.Value.Value : null,
         };
     }
 

@@ -70,6 +70,11 @@
       },
       "description": "V21b: pools the NPC says only while a lesson step is answered, by the pool it says in free talk instead (farmer_total: farmer_unit). The agent's transition says both pools; the game keeps the one that fits the moment."
     },
+    "offPromptPool": {
+      "type": "string",
+      "minLength": 1,
+      "description": "V27: the pool of the NPC's one reply, in free talk, to a line its prompt does not take but the core understands (Verdict.OffPromptIntent): Te entiendo, and the NPC's own topic. No repair line follows it."
+    },
     "opening": {
       "type": "object",
       "required": [

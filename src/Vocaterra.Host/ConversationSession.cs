@@ -122,13 +122,17 @@ public sealed class ConversationSession
 
         _agentStates[agentId] = result.Decision.Agent?.Next ?? agentState;
         _context = utterance.Next(result, now);
-        LastExchange = AnswerTurn(agentId, result, transcript, now);
+        LastExchange = AnswerTurn(agentId, result, transcript, now, promptId, agentState.InteractionCounter);
+        if (LastExchange.OffPromptIntent is not null)
+        {
+            _context = _context with { RepeatCountsByTag = utterance.RepeatCountsByTag }; // V27: an off-prompt line is no failed attempt
+        }
         return result;
     }
 
     // The game's own turn rules (NpcTurnRules, shared with NpcService): the NPC's answer to a gift it refuses and, with a bag, to a purchase or a sale the bag cannot make,
     // and the one reply of the turn. The bag is only read; nothing changes hands in the host.
-    private ExchangeAnswer AnswerTurn(string agentId, PipelineResult result, string transcript, StoredTimestamp now)
+    private ExchangeAnswer AnswerTurn(string agentId, PipelineResult result, string transcript, StoredTimestamp now, string promptId, long counter)
     {
         var slots = NpcEffect.CountedSlots(result.Verdict.Slots, transcript);
         var verdict = result.Verdict;
@@ -159,6 +163,14 @@ public sealed class ConversationSession
             _names.Values,
             lineId => holdsBottle && events.Contains(NpcHostEvents.GiveWater, StringComparer.Ordinal) && lineId.StartsWith("shop_give.", StringComparison.Ordinal),
             _roster.All.FirstOrDefault(npc => string.Equals(npc.Id, agentId, StringComparison.Ordinal))?.FreeTalkPools);
+        var npc = _roster.All.FirstOrDefault(entry => string.Equals(entry.Id, agentId, StringComparison.Ordinal));
+        if (!verdict.Communicated && verdict.OffPromptIntent is { } offPrompt && npc?.OffPromptPool is { } pool
+            && npc.Prompts.Values.Contains(promptId, StringComparer.Ordinal))
+        {
+            // V27: in free talk (the NPC's own prompt, not a lesson step) the NPC's one off-prompt line and nothing else.
+            return new ExchangeAnswer(answers.Unsaid, [], null, [NpcTurnRules.OffPromptReply(Bundle, pool, _context.WorldSeed, counter)], offPrompt.Value);
+        }
+
         return new ExchangeAnswer(answers.Unsaid, answers.Lines, composed.Feedback, composed.Replies);
     }
 
@@ -181,4 +193,5 @@ public sealed class ConversationSession
 /// <param name="Lines">The NPC's answers to the misses.</param>
 /// <param name="Feedback">The turn's one recast or hint, names spelled, or <see langword="null"/>.</param>
 /// <param name="Replies">The NPC's lines of the turn, once the rules have run (one reply, V21).</param>
-public sealed record ExchangeAnswer(IReadOnlyList<string> Unsaid, IReadOnlyList<string> Lines, string? Feedback, IReadOnlyList<string> Replies);
+/// <param name="OffPromptIntent">The intent the core found for a line the prompt does not take, when the NPC answered it with its off-prompt line (V27); <see langword="null"/> otherwise.</param>
+public sealed record ExchangeAnswer(IReadOnlyList<string> Unsaid, IReadOnlyList<string> Lines, string? Feedback, IReadOnlyList<string> Replies, string? OffPromptIntent = null);

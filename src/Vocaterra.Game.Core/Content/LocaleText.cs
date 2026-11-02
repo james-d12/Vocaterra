@@ -385,7 +385,7 @@ public sealed class LocaleText
             return lines;
         }
 
-        if (!turn.Communicated)
+        if (!turn.Taken)
         {
             lines.Add(Outcome("not_understood", ("npc", npc)));
             return lines;

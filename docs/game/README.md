@@ -386,7 +386,7 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --playtest --seed 42 --ses
 folder (a tester needs no .NET install), copies the bundle with its speech WAVs, the pinned Vosk model with its manifest (copied from
 `VOCATERRA_MODELS_DIR`, after its checksums are checked), the tester's README (`scripts/playtest/README-tester.md`) and the launcher
 (`scripts/playtest/playtest.sh`, which runs `--playtest` with the folder's own models). Then it checks the folder: no sherpa-onnx or ONNX Runtime native
-library, no espeak-ng, no sherpa model file, the Vosk model's checksums, every speech file the bundle's manifest lists (1 062 since the follow-ups); the build fails if one check does not pass. The
+library, no espeak-ng, no sherpa model file, the Vosk model's checksums, every speech file the bundle's manifest lists (1 076 since V27); the build fails if one check does not pass. The
 sherpa-onnx native library is left out by the build property `VocaterraPlaytest=true` (in `src/Vocaterra.Game/Vocaterra.Game.csproj`:
 the native assets of the linux-x64 runtime pack are excluded, and the ONNX Runtime Windows DLLs that its props add are dropped from the publish).
 The managed `sherpa-onnx.dll` stays, because the core's assemblies reference it. The playtest loads Vosk only; the NPCs' voices are the
@@ -688,7 +688,7 @@ credited at the other's step with the step's note ("The simple future at a step"
 
 **Counts** (measured from `content/game-v1` at V24, 2026-11-02; after phase B in brackets): 10 lessons, 229 steps (6 `a1` and 4 `a2`; the same); 155 phrase
 rows, 74 said, 80 heard and 1 both (the same); 22 catalogue nouns (22); 20 verbs in the lessons' tables (20); 30 intents (29: `ask_how` came with V21) and 70
-prompts (70); 531 speech lines in 1 062 files (451 in 902; the follow-ups added 74 lines and 148 files); 87 check items, 43 heard and 44 said (the same). The
+prompts (70); 538 speech lines in 1 076 files (451 in 902; the follow-ups added 81 lines and 162 files); 87 check items, 43 heard and 44 said (the same). The
 battery by play session: 31 items in sessions 1 to 3 (the pilot's), then 39, 47, 55, 63, 71, 79 and 87 in sessions 4 to 10 (eight a lesson; the same).
 
 
@@ -802,16 +802,16 @@ ticks (the open points below): sessions 4 to 7 and 7 to 9 by a sleep at the fire
 
 **Open points after the follow-ups** (V24, 2026-11-02; checked against the follow-ups' entries and the core's, with what a later milestone fixed left out; each is marked owner, game or core).
 
-- **The voices** (owner). None of the 1 062 speech files is marked in `docs/game/SPEECH_CHECKLIST.md`. Phase B added 222 files; the follow-ups 148 (74 lines:
-  the villager 13, the farmer 13, the shopkeeper 13, the baker 12, the smith 12, the fisher 11). The shared feedback lines of V21b are in each NPC's voice
-  (120 files), so an NPC's voice is judged on its own lines and on those.
-- **An untaught statement is understood by some NPCs and not others** (owner decision, the game's rule). In the route, `Hoy hace sol.` is understood at three
-  NPCs and `Me gusta el río.` is not at the villager or the smith. The open prompts take the intents of their NPC's lessons (V20 (a)); a true sentence of
-  another intent gets «No te entendí». A learner cannot predict which.
+- **The voices** (owner). None of the 1 076 speech files is marked in `docs/game/SPEECH_CHECKLIST.md`. Phase B added 222 files; the follow-ups 162 (81 lines:
+  the villager 14, the farmer 14, the shopkeeper 14, the baker 13, the smith 13, the fisher 12, the guide 1; V27's seven «Te entiendo.» lines, one per NPC, are
+  14 of them). The shared feedback lines of V21b are in each NPC's voice (120 files), so an NPC's voice is judged on its own lines and on those.
+- **A spoken line the prompt does not take is still «No te entendí»** (game, V27's scope). A typed line the core understands off the prompt (`Me gusta el río.`
+  at the smith) gets the NPC's «Te entiendo.» and its topic; a spoken line at a constrained prompt is decoded against the answer set only (the owner's decision), so
+  the core never sees the words and the NPC does not understand it. A spoken line the recognizer was unsure of keeps «No te entendí bien…» too.
+- **A line no intent of the catalog takes is «No te entendí»** (core and game). `la tienda está en el pueblo` at `farmer-open` has no `OffPromptIntent` (M72), so the
+  repair ladder runs as before. The intent catalog is the fix, if the owner wants more lines understood.
 - **The oven order after a load waits for its lesson** (game, V14's design). The baker's `Primero, la lección. Luego, las monedas.` (V21) tells the learner
   the order is held: after a load in session 5 the order is delivered at the lesson's `n4-back` step.
-- **At an open prompt a correct line with a word outside its answer set gets `vocab.wrong` and «No te entendí»** (core and game, V17 and M69; V21b saw it
-  again). `la tienda está en el pueblo` at `farmer-open`. The core's verdict is the cause; the game's answer sets are the fix for the lessons' own lines (V20 (a)).
 - **`cuántas cuesta todo` is read as a noun phrase** (core, M69's left point, M62).
 - **`buenas tardes` is never drawn by the realiser** (core, M71's finding, filed with M69): the analyzer accepts it, the O3 generator never produces it.
 - **The recorded fuzz families** (core, rerun once): `2tpLGUOSqj41` with `fSMdah3kOSd7` (`word_order`, a `[WORD]` slot binds the moved adjective, M69) and

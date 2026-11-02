@@ -87,7 +87,12 @@ public static class VerdictReport
             output.WriteLine($"  note: {SpanishAccentNotes.Describe(note)}"); // M70: the accent the learner left out, accepted with no deduction
         }
 
-        if (result.Repair is { } repair)
+        if (exchange?.OffPromptIntent is { } offPrompt)
+        {
+            output.WriteLine($"  off-prompt: {offPrompt}"); // V27: the intent the core found for a line the prompt does not take (a diagnostic, like repair:)
+        }
+
+        if (exchange?.OffPromptIntent is null && result.Repair is { } repair)
         {
             output.WriteLine($"  repair: {repair.Kind} {repair.AgentLine}");
         }

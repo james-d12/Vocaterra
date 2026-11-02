@@ -19,6 +19,7 @@
 {"id":"dialogue:baker_sell.2","text":"Toma tu pan. ¡Gracias!","kind":"npc"}
 {"id":"dialogue:baker_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:baker_thank.2","text":"¡Con gusto!","kind":"npc"}
+{"id":"dialogue:baker_understood.1","text":"Te entiendo. ¿Quieres pan?","kind":"npc"}
 {"id":"dialogue:baker_wait.1","text":"Primero, la lección. Luego, las monedas.","kind":"npc"}
 {"id":"dialogue:baker_wont_buy.1","text":"No, gracias. Solo compro madera.","kind":"npc"}
 {"id":"dialogue:baker_wont_sell.1","text":"Solo vendo pan.","kind":"npc"}
@@ -47,6 +48,7 @@
 {"id":"dialogue:farmer_thank.2","text":"¡Con gusto!","kind":"npc"}
 {"id":"dialogue:farmer_total.1","text":"Quince manzanas, quince monedas.","kind":"npc"}
 {"id":"dialogue:farmer_true.1","text":"Sí, es verdad.","kind":"npc"}
+{"id":"dialogue:farmer_understood.1","text":"Te entiendo. ¿Quieres manzanas?","kind":"npc"}
 {"id":"dialogue:farmer_unit.1","text":"Una manzana, una moneda.","kind":"npc"}
 {"id":"dialogue:farmer_wont_buy.1","text":"No compro eso. Compro fruta del bosque.","kind":"npc"}
 {"id":"dialogue:farmer_wont_sell.1","text":"Solo vendo manzanas.","kind":"npc"}
@@ -78,6 +80,7 @@
 {"id":"dialogue:fisher_point.2","text":"Está por allí, mira.","kind":"npc"}
 {"id":"dialogue:fisher_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:fisher_thank.2","text":"¡Con gusto!","kind":"npc"}
+{"id":"dialogue:fisher_understood.1","text":"Te entiendo. ¿Buscas un lugar?","kind":"npc"}
 {"id":"dialogue:fisher_unknown_place.1","text":"No sé dónde está.","kind":"npc"}
 {"id":"dialogue:guide.craft.lack.many.1","text":"Te faltan {lack}.","kind":"template"}
 {"id":"dialogue:guide.craft.lack.one.1","text":"Te falta {lack}.","kind":"template"}
@@ -281,6 +284,7 @@
 {"id":"dialogue:guide_thank.1","text":"¡Con gusto, amigo!","kind":"npc"}
 {"id":"dialogue:guide_thank.2","text":"¡De nada!","kind":"npc"}
 {"id":"dialogue:guide_thank.3","text":"¡De nada, amigo!","kind":"npc"}
+{"id":"dialogue:guide_understood.1","text":"Te entiendo. ¿Qué quieres aprender?","kind":"npc"}
 {"id":"dialogue:not_understood.1","text":"No te entendí. ¿Me lo dices otra vez?","kind":"npc"}
 {"id":"dialogue:not_understood.2","text":"Perdón, ¿qué dices?","kind":"npc"}
 {"id":"dialogue:shop_bye.1","text":"¡Adiós! Hasta luego.","kind":"npc"}
@@ -303,6 +307,7 @@
 {"id":"dialogue:shop_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:shop_thank.2","text":"¡Con gusto!","kind":"npc"}
 {"id":"dialogue:shop_true.1","text":"Sí, es verdad.","kind":"npc"}
+{"id":"dialogue:shop_understood.1","text":"Te entiendo. ¿Quieres comprar algo?","kind":"npc"}
 {"id":"dialogue:shop_wont_sell.1","text":"No tengo eso. Tengo agua y pan.","kind":"npc"}
 {"id":"dialogue:smith_buy.1","text":"¡Gracias! Aquí tienes tus monedas.","kind":"npc"}
 {"id":"dialogue:smith_bye.1","text":"¡Adiós! Hasta luego.","kind":"npc"}
@@ -321,6 +326,7 @@
 {"id":"dialogue:smith_ok.1","text":"Está bien.","kind":"npc"}
 {"id":"dialogue:smith_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:smith_thank.2","text":"¡Con gusto!","kind":"npc"}
+{"id":"dialogue:smith_understood.1","text":"Te entiendo. Yo hago hachas.","kind":"npc"}
 {"id":"dialogue:smith_wont_buy.1","text":"No, gracias. Solo compro madera.","kind":"npc"}
 {"id":"dialogue:villager_bye.1","text":"¡Adiós! Hasta luego.","kind":"npc"}
 {"id":"dialogue:villager_bye.2","text":"Hasta luego.","kind":"npc"}
@@ -335,6 +341,7 @@
 {"id":"dialogue:villager_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:villager_thank.2","text":"¡Con gusto!","kind":"npc"}
 {"id":"dialogue:villager_true.1","text":"Sí, es verdad.","kind":"npc"}
+{"id":"dialogue:villager_understood.1","text":"Te entiendo. ¿Qué buscas?","kind":"npc"}
 {"id":"dialogue:villager_unknown_place.1","text":"No sé dónde está.","kind":"npc"}
 {"id":"dialogue:villager_wont_sell.1","text":"Solo tengo pan.","kind":"npc"}
 {"id":"prompts:baker-open","text":"¿Qué quieres?","kind":"npc"}
