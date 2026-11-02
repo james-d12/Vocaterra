@@ -97,6 +97,48 @@ public class OffPromptLineTests
         Assert.Equal(new IntentId(offPrompt), verdict.OffPromptIntent);
     }
 
+    // (c) hace frío at smith-open resolved ask_activity by a keyword rule on hacer alone, so Domingo answered a remark about the weather with his job. The rule
+    // now needs qué with hacer: the weather is no question about work at any prompt, taken or off the prompt.
+    [Theory]
+    [InlineData("hace frío")]
+    [InlineData("hace calor")]
+    [InlineData("hoy hace sol")]
+    [InlineData("¿Hace frío?")]
+    [InlineData("hoy hace mucho calor")]
+    public void TheWeatherIsNoQuestionAboutWorkAtAnyPrompt(string line)
+    {
+        var grader = new Content.TextGrader(TestSupport.Bundle);
+        var activity = new IntentId("ask_activity");
+
+        foreach (var prompt in TestSupport.Bundle.Prompts.Values)
+        {
+            var verdict = grader.Grade(line, prompt);
+            Assert.True(verdict.Intent != activity && verdict.OffPromptIntent != activity, $"'{line}' at {prompt.PromptId}: {verdict.Intent} (off the prompt {verdict.OffPromptIntent})");
+        }
+    }
+
+    // The clean neighbours of (c): a question about work is still one, by the grammar or by the rule (qué tú hace, a person error the rule alone reads).
+    [Theory]
+    [InlineData("¿Qué haces?", "smith-open")]
+    [InlineData("qué haces", "farmer-open")]
+    [InlineData("qué hace usted", "smith-open")]
+    [InlineData("¿En qué trabajas?", "smith-open")]
+    [InlineData("qué tú hace", "smith-open")]
+    [InlineData("y tú qué haces", "smith-open")]
+    public void AQuestionAboutWorkIsStillAskActivity(string line, string promptId)
+    {
+        Assert.Equal(new IntentId("ask_activity"), Evaluate(line, promptId).Verdict.Intent);
+    }
+
+    [Fact]
+    public void AQuestionAboutWorkAtAPromptThatDoesNotTakeItIsOffThePrompt()
+    {
+        var verdict = Evaluate("¿qué haces?", "villager-open").Verdict;
+
+        Assert.Equal(IntentId.Unknown, verdict.Intent);
+        Assert.Equal(new IntentId("ask_activity"), verdict.OffPromptIntent);
+    }
+
     [Fact]
     public void TheTwoPhaseEvaluationAndTheTextGraderGiveTheSameOffPromptVerdict()
     {
