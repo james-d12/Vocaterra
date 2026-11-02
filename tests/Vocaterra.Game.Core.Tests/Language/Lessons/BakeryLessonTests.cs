@@ -454,7 +454,7 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
 
         Assert.Equal(["¿Qué necesitas?"], session.OpenTalk("shopkeeper").Lines);
         Assert.Equal(["El pan cuesta dos monedas."], session.Say("¿Cuánto cuesta el pan?").GuideLines);
-        Assert.Equal(["Hay agua."], session.Say("¿Hay pan?").GuideLines);
+        Assert.Equal(["Hay agua y pan."], session.Say("¿Hay pan?").GuideLines);
         var water = session.Say("Quiero agua, por favor");
         Assert.Equal("request_item", water.Intent);
         Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Bottle));

@@ -316,4 +316,38 @@ public sealed class BookPagesTests
         Assert.Equal(row.English, BookPages.SheetEnglish(Sheet.Value, row.Spanish));
         Assert.Null(BookPages.SheetEnglish(Sheet.Value, "una frase que no está en la hoja"));
     }
+
+    [Fact]
+    public void TheLessonsPageOpensScrolledToTheNextLessonAtSessionNine()
+    {
+        // V21b: the page runs to about 190 lines; in sessions 8 to 10 the lesson the objective names is far down, so the page opens with its title at the top.
+        var session = TestGame.NewSessionWithShippedLessons();
+        SessionSkip.Apply(session, 9);
+        var lines = BookPages.Lessons(session.Locale, session.Lessons.Record, session.Phrases, null, BookPages.Waits(session.Lessons));
+        var next = lines.ToList().FindIndex(static l => l.Next);
+        Assert.True(next > 40, $"the next lesson is at line {next}");
+        Assert.StartsWith("next:", lines[next + 1].Text, StringComparison.Ordinal);
+
+        const int visible = 20;
+        var offset = BookScroll.OpeningOffset(lines, visible);
+        Assert.Equal(Math.Min(next, lines.Count - visible), offset);
+        Assert.InRange(next, offset, offset + visible - 1);
+
+        var model = new BookModel();
+        model.Open(new Vocaterra.Game.Core.Language.Words.WordProgress(TestGame.Nouns));
+        Assert.Equal(0, model.Offset);
+        model.Show(BookPage.Lessons, animate: false);
+        model.OpenAtNext(lines, visible);
+        model.ClampTo(lines.Count, visible);
+        Assert.Equal(offset, model.Offset);
+        model.Scroll(-3);
+        model.OpenAtNext(lines, visible); // once only: the learner's own scrolling stays
+        Assert.Equal(offset - 3, model.Offset);
+    }
+
+    [Fact]
+    public void ThePageOpensAtTheTopWhenNoLessonIsNext()
+    {
+        Assert.Equal(0, BookScroll.OpeningOffset([new BookLine(BookTone.Known, "a"), BookLine.Gap], 5));
+    }
 }

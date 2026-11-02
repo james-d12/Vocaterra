@@ -172,6 +172,7 @@
     "ui.bookColumnPast": "past",
     "ui.bookColumnNearFuture": "future (ir a)",
     "ui.bookColumnFuture": "future",
+    "ui.bookColumnObligation": "must (tener que)",
     "ui.reportTitle": "Report a bug or a feature request",
     "ui.reportHintsFirst": "Ctrl+Enter: save report   Esc: cancel   Tab: Bug / Feature request   Enter: new line",
     "ui.reportHintsSecond": "Alt+vowel: á é í ó ú   Alt+N: ñ   Alt+/: ¿   Alt+1: ¡",

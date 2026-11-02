@@ -156,7 +156,7 @@ public sealed class YesterdayLessonTests(ITestOutputHelper output)
         // and the fisher's vendí. hizo and trabajó are Gente del pueblo's, and tengo (of tengo que) the guide's lesson's: the forms stay their first lesson's.
         Assert.All(lesson.TaughtVerbs, static v => Assert.Contains(v.Tense, LessonLevels.TensesAt(LessonLevels.A2)));
         var morphology = TestGame.Bundle.SpanishMorphology();
-        Assert.Equal(["pescó", "compró", "fue", "fuimos", "fueron", "comieron", "vendí"], lesson.TaughtVerbs.Select(v => v.Text(morphology, TestGame.Data.Words.NearFuture)));
+        Assert.Equal(["pescó", "compró", "fue", "fuimos", "fueron", "comieron", "vendí", "tengo que ir"], lesson.TaughtVerbs.Select(v => v.Text(morphology, TestGame.Data.Words.NearFuture, TestGame.Data.Words.Obligation)));
         var earlier = Book.Lessons.Where(static l => l.Id != LessonId).SelectMany(static l => l.TaughtVerbs).ToList();
         Assert.Contains(new TaughtVerbForm("hacer", "3", "sg", "pret"), earlier);
         Assert.Contains(new TaughtVerbForm("trabajar", "3", "sg", "pret"), earlier);

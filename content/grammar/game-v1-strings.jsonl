@@ -47,6 +47,7 @@
 {"id":"dialogue:farmer_thank.2","text":"¡Con gusto!","kind":"npc"}
 {"id":"dialogue:farmer_total.1","text":"Quince manzanas, quince monedas.","kind":"npc"}
 {"id":"dialogue:farmer_true.1","text":"Sí, es verdad.","kind":"npc"}
+{"id":"dialogue:farmer_unit.1","text":"Una manzana, una moneda.","kind":"npc"}
 {"id":"dialogue:farmer_wont_buy.1","text":"No compro eso. Compro fruta del bosque.","kind":"npc"}
 {"id":"dialogue:farmer_wont_sell.1","text":"Solo vendo manzanas.","kind":"npc"}
 {"id":"dialogue:feedback.explicit_correction.1","text":"Se dice «{expected}», no «{actual}».","kind":"template"}
@@ -292,7 +293,7 @@
 {"id":"dialogue:shop_give.2","text":"Aquí tienes la botella. El agua está en el río.","kind":"npc"}
 {"id":"dialogue:shop_give_bread.1","text":"Aquí tienes el pan.","kind":"npc"}
 {"id":"dialogue:shop_give_bread.2","text":"Toma el pan.","kind":"npc"}
-{"id":"dialogue:shop_hay.1","text":"Hay agua.","kind":"npc"}
+{"id":"dialogue:shop_hay.1","text":"Hay agua y pan.","kind":"npc"}
 {"id":"dialogue:shop_help_ask.1","text":"Puedes decir: «Quiero agua, por favor».","kind":"npc"}
 {"id":"dialogue:shop_help_offer.1","text":"Puedes decir: «Sí, por favor» o «No, gracias».","kind":"npc"}
 {"id":"dialogue:shop_need.1","text":"¿Qué necesitas?","kind":"npc"}
@@ -302,7 +303,7 @@
 {"id":"dialogue:shop_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:shop_thank.2","text":"¡Con gusto!","kind":"npc"}
 {"id":"dialogue:shop_true.1","text":"Sí, es verdad.","kind":"npc"}
-{"id":"dialogue:shop_wont_sell.1","text":"Solo tengo agua.","kind":"npc"}
+{"id":"dialogue:shop_wont_sell.1","text":"No tengo eso. Tengo agua y pan.","kind":"npc"}
 {"id":"dialogue:smith_buy.1","text":"¡Gracias! Aquí tienes tus monedas.","kind":"npc"}
 {"id":"dialogue:smith_bye.1","text":"¡Adiós! Hasta luego.","kind":"npc"}
 {"id":"dialogue:smith_bye.2","text":"Hasta luego.","kind":"npc"}
@@ -3080,6 +3081,8 @@
 {"id":"words.json:greeting","text":"hola","kind":"npc"}
 {"id":"words.json:nearFuture.verb","text":"ir","kind":"npc"}
 {"id":"words.json:nearFuture.joiner","text":"a","kind":"npc"}
+{"id":"words.json:obligation.verb","text":"tener","kind":"npc"}
+{"id":"words.json:obligation.joiner","text":"que","kind":"npc"}
 {"id":"words.json:pronouns.1sg","text":"yo","kind":"npc"}
 {"id":"words.json:pronouns.2sg","text":"tú","kind":"npc"}
 {"id":"words.json:pronouns.3sg","text":"él/ella/usted","kind":"npc"}

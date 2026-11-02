@@ -33,7 +33,7 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | farmer (León) | `pm_santa` | 44 | 1.0 | `voice-trial/pm_santa-1.0.wav` |
 | fisher (Mar) | `em_santa` | 53 | 0.9 | `voice-trial/em_santa-0.9.wav` |
 
-**To hear:** 940 of the 940 files have no mark (guide 404, villager 118, farmer 98, baker 92, shopkeeper 92, fisher 78, smith 58). Two files a line: the normal speed and the slow one.
+**To hear:** 1062 of the 1062 files have no mark (guide 404, villager 138, farmer 120, baker 112, shopkeeper 112, fisher 98, smith 78). Two files a line: the normal speed and the slow one.
 
 ## Lines
 
@@ -41,10 +41,46 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | --- | --- | --- | --- | --- | --- |
 | answer_accepted.1 | speech/answer_accepted.1.slow.wav | guide | 0.8 | ¡Muy bien! |  |
 | answer_accepted.1 | speech/answer_accepted.1.wav | guide | 1.0 | ¡Muy bien! |  |
+| answer_accepted.1.baker | speech/answer_accepted.1.baker.slow.wav | baker | 0.8 | ¡Muy bien! |  |
+| answer_accepted.1.baker | speech/answer_accepted.1.baker.wav | baker | 1.0 | ¡Muy bien! |  |
+| answer_accepted.1.farmer | speech/answer_accepted.1.farmer.slow.wav | farmer | 0.8 | ¡Muy bien! |  |
+| answer_accepted.1.farmer | speech/answer_accepted.1.farmer.wav | farmer | 1.0 | ¡Muy bien! |  |
+| answer_accepted.1.fisher | speech/answer_accepted.1.fisher.slow.wav | fisher | 0.72 | ¡Muy bien! |  |
+| answer_accepted.1.fisher | speech/answer_accepted.1.fisher.wav | fisher | 0.9 | ¡Muy bien! |  |
+| answer_accepted.1.shopkeeper | speech/answer_accepted.1.shopkeeper.slow.wav | shopkeeper | 0.8 | ¡Muy bien! |  |
+| answer_accepted.1.shopkeeper | speech/answer_accepted.1.shopkeeper.wav | shopkeeper | 1.0 | ¡Muy bien! |  |
+| answer_accepted.1.smith | speech/answer_accepted.1.smith.slow.wav | smith | 0.8 | ¡Muy bien! |  |
+| answer_accepted.1.smith | speech/answer_accepted.1.smith.wav | smith | 1.0 | ¡Muy bien! |  |
+| answer_accepted.1.villager | speech/answer_accepted.1.villager.slow.wav | villager | 0.8 | ¡Muy bien! |  |
+| answer_accepted.1.villager | speech/answer_accepted.1.villager.wav | villager | 1.0 | ¡Muy bien! |  |
 | answer_accepted.2 | speech/answer_accepted.2.slow.wav | guide | 0.8 | ¡Bien! |  |
 | answer_accepted.2 | speech/answer_accepted.2.wav | guide | 1.0 | ¡Bien! |  |
+| answer_accepted.2.baker | speech/answer_accepted.2.baker.slow.wav | baker | 0.8 | ¡Bien! |  |
+| answer_accepted.2.baker | speech/answer_accepted.2.baker.wav | baker | 1.0 | ¡Bien! |  |
+| answer_accepted.2.farmer | speech/answer_accepted.2.farmer.slow.wav | farmer | 0.8 | ¡Bien! |  |
+| answer_accepted.2.farmer | speech/answer_accepted.2.farmer.wav | farmer | 1.0 | ¡Bien! |  |
+| answer_accepted.2.fisher | speech/answer_accepted.2.fisher.slow.wav | fisher | 0.72 | ¡Bien! |  |
+| answer_accepted.2.fisher | speech/answer_accepted.2.fisher.wav | fisher | 0.9 | ¡Bien! |  |
+| answer_accepted.2.shopkeeper | speech/answer_accepted.2.shopkeeper.slow.wav | shopkeeper | 0.8 | ¡Bien! |  |
+| answer_accepted.2.shopkeeper | speech/answer_accepted.2.shopkeeper.wav | shopkeeper | 1.0 | ¡Bien! |  |
+| answer_accepted.2.smith | speech/answer_accepted.2.smith.slow.wav | smith | 0.8 | ¡Bien! |  |
+| answer_accepted.2.smith | speech/answer_accepted.2.smith.wav | smith | 1.0 | ¡Bien! |  |
+| answer_accepted.2.villager | speech/answer_accepted.2.villager.slow.wav | villager | 0.8 | ¡Bien! |  |
+| answer_accepted.2.villager | speech/answer_accepted.2.villager.wav | villager | 1.0 | ¡Bien! |  |
 | answer_accepted.3 | speech/answer_accepted.3.slow.wav | guide | 0.8 | ¡Eso es! |  |
 | answer_accepted.3 | speech/answer_accepted.3.wav | guide | 1.0 | ¡Eso es! |  |
+| answer_accepted.3.baker | speech/answer_accepted.3.baker.slow.wav | baker | 0.8 | ¡Eso es! |  |
+| answer_accepted.3.baker | speech/answer_accepted.3.baker.wav | baker | 1.0 | ¡Eso es! |  |
+| answer_accepted.3.farmer | speech/answer_accepted.3.farmer.slow.wav | farmer | 0.8 | ¡Eso es! |  |
+| answer_accepted.3.farmer | speech/answer_accepted.3.farmer.wav | farmer | 1.0 | ¡Eso es! |  |
+| answer_accepted.3.fisher | speech/answer_accepted.3.fisher.slow.wav | fisher | 0.72 | ¡Eso es! |  |
+| answer_accepted.3.fisher | speech/answer_accepted.3.fisher.wav | fisher | 0.9 | ¡Eso es! |  |
+| answer_accepted.3.shopkeeper | speech/answer_accepted.3.shopkeeper.slow.wav | shopkeeper | 0.8 | ¡Eso es! |  |
+| answer_accepted.3.shopkeeper | speech/answer_accepted.3.shopkeeper.wav | shopkeeper | 1.0 | ¡Eso es! |  |
+| answer_accepted.3.smith | speech/answer_accepted.3.smith.slow.wav | smith | 0.8 | ¡Eso es! |  |
+| answer_accepted.3.smith | speech/answer_accepted.3.smith.wav | smith | 1.0 | ¡Eso es! |  |
+| answer_accepted.3.villager | speech/answer_accepted.3.villager.slow.wav | villager | 0.8 | ¡Eso es! |  |
+| answer_accepted.3.villager | speech/answer_accepted.3.villager.wav | villager | 1.0 | ¡Eso es! |  |
 | baker_buy.1 | speech/baker_buy.1.slow.wav | baker | 0.8 | ¡Gracias! Aquí tienes tus monedas. |  |
 | baker_buy.1 | speech/baker_buy.1.wav | baker | 1.0 | ¡Gracias! Aquí tienes tus monedas. |  |
 | baker_bye.1 | speech/baker_bye.1.slow.wav | baker | 0.8 | ¡Adiós! Hasta luego. |  |
@@ -181,20 +217,82 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | farmer_total.1 | speech/farmer_total.1.wav | farmer | 1.0 | Quince manzanas, quince monedas. |  |
 | farmer_true.1 | speech/farmer_true.1.slow.wav | farmer | 0.8 | Sí, es verdad. |  |
 | farmer_true.1 | speech/farmer_true.1.wav | farmer | 1.0 | Sí, es verdad. |  |
+| farmer_unit.1 | speech/farmer_unit.1.slow.wav | farmer | 0.8 | Una manzana, una moneda. |  |
+| farmer_unit.1 | speech/farmer_unit.1.wav | farmer | 1.0 | Una manzana, una moneda. |  |
 | farmer_wont_buy.1 | speech/farmer_wont_buy.1.slow.wav | farmer | 0.8 | No compro eso. Compro fruta del bosque. |  |
 | farmer_wont_buy.1 | speech/farmer_wont_buy.1.wav | farmer | 1.0 | No compro eso. Compro fruta del bosque. |  |
 | farmer_wont_sell.1 | speech/farmer_wont_sell.1.slow.wav | farmer | 0.8 | Solo vendo manzanas. |  |
 | farmer_wont_sell.1 | speech/farmer_wont_sell.1.wav | farmer | 1.0 | Solo vendo manzanas. |  |
 | feedback.hint.1 | speech/feedback.hint.1.slow.wav | guide | 0.8 | Casi. Piensa otra vez. |  |
 | feedback.hint.1 | speech/feedback.hint.1.wav | guide | 1.0 | Casi. Piensa otra vez. |  |
+| feedback.hint.1.baker | speech/feedback.hint.1.baker.slow.wav | baker | 0.8 | Casi. Piensa otra vez. |  |
+| feedback.hint.1.baker | speech/feedback.hint.1.baker.wav | baker | 1.0 | Casi. Piensa otra vez. |  |
+| feedback.hint.1.farmer | speech/feedback.hint.1.farmer.slow.wav | farmer | 0.8 | Casi. Piensa otra vez. |  |
+| feedback.hint.1.farmer | speech/feedback.hint.1.farmer.wav | farmer | 1.0 | Casi. Piensa otra vez. |  |
+| feedback.hint.1.fisher | speech/feedback.hint.1.fisher.slow.wav | fisher | 0.72 | Casi. Piensa otra vez. |  |
+| feedback.hint.1.fisher | speech/feedback.hint.1.fisher.wav | fisher | 0.9 | Casi. Piensa otra vez. |  |
+| feedback.hint.1.shopkeeper | speech/feedback.hint.1.shopkeeper.slow.wav | shopkeeper | 0.8 | Casi. Piensa otra vez. |  |
+| feedback.hint.1.shopkeeper | speech/feedback.hint.1.shopkeeper.wav | shopkeeper | 1.0 | Casi. Piensa otra vez. |  |
+| feedback.hint.1.smith | speech/feedback.hint.1.smith.slow.wav | smith | 0.8 | Casi. Piensa otra vez. |  |
+| feedback.hint.1.smith | speech/feedback.hint.1.smith.wav | smith | 1.0 | Casi. Piensa otra vez. |  |
+| feedback.hint.1.villager | speech/feedback.hint.1.villager.slow.wav | villager | 0.8 | Casi. Piensa otra vez. |  |
+| feedback.hint.1.villager | speech/feedback.hint.1.villager.wav | villager | 1.0 | Casi. Piensa otra vez. |  |
 | feedback.hint.2 | speech/feedback.hint.2.slow.wav | guide | 0.8 | ¿Seguro? Dilo otra vez. |  |
 | feedback.hint.2 | speech/feedback.hint.2.wav | guide | 1.0 | ¿Seguro? Dilo otra vez. |  |
+| feedback.hint.2.baker | speech/feedback.hint.2.baker.slow.wav | baker | 0.8 | ¿Seguro? Dilo otra vez. |  |
+| feedback.hint.2.baker | speech/feedback.hint.2.baker.wav | baker | 1.0 | ¿Seguro? Dilo otra vez. |  |
+| feedback.hint.2.farmer | speech/feedback.hint.2.farmer.slow.wav | farmer | 0.8 | ¿Seguro? Dilo otra vez. |  |
+| feedback.hint.2.farmer | speech/feedback.hint.2.farmer.wav | farmer | 1.0 | ¿Seguro? Dilo otra vez. |  |
+| feedback.hint.2.fisher | speech/feedback.hint.2.fisher.slow.wav | fisher | 0.72 | ¿Seguro? Dilo otra vez. |  |
+| feedback.hint.2.fisher | speech/feedback.hint.2.fisher.wav | fisher | 0.9 | ¿Seguro? Dilo otra vez. |  |
+| feedback.hint.2.shopkeeper | speech/feedback.hint.2.shopkeeper.slow.wav | shopkeeper | 0.8 | ¿Seguro? Dilo otra vez. |  |
+| feedback.hint.2.shopkeeper | speech/feedback.hint.2.shopkeeper.wav | shopkeeper | 1.0 | ¿Seguro? Dilo otra vez. |  |
+| feedback.hint.2.smith | speech/feedback.hint.2.smith.slow.wav | smith | 0.8 | ¿Seguro? Dilo otra vez. |  |
+| feedback.hint.2.smith | speech/feedback.hint.2.smith.wav | smith | 1.0 | ¿Seguro? Dilo otra vez. |  |
+| feedback.hint.2.villager | speech/feedback.hint.2.villager.slow.wav | villager | 0.8 | ¿Seguro? Dilo otra vez. |  |
+| feedback.hint.2.villager | speech/feedback.hint.2.villager.wav | villager | 1.0 | ¿Seguro? Dilo otra vez. |  |
 | feedback.hint.gender.agree.1 | speech/feedback.hint.gender.agree.1.slow.wav | guide | 0.8 | Piensa otra vez: ¿el o la? |  |
 | feedback.hint.gender.agree.1 | speech/feedback.hint.gender.agree.1.wav | guide | 1.0 | Piensa otra vez: ¿el o la? |  |
+| feedback.hint.gender.agree.1.baker | speech/feedback.hint.gender.agree.1.baker.slow.wav | baker | 0.8 | Piensa otra vez: ¿el o la? |  |
+| feedback.hint.gender.agree.1.baker | speech/feedback.hint.gender.agree.1.baker.wav | baker | 1.0 | Piensa otra vez: ¿el o la? |  |
+| feedback.hint.gender.agree.1.farmer | speech/feedback.hint.gender.agree.1.farmer.slow.wav | farmer | 0.8 | Piensa otra vez: ¿el o la? |  |
+| feedback.hint.gender.agree.1.farmer | speech/feedback.hint.gender.agree.1.farmer.wav | farmer | 1.0 | Piensa otra vez: ¿el o la? |  |
+| feedback.hint.gender.agree.1.fisher | speech/feedback.hint.gender.agree.1.fisher.slow.wav | fisher | 0.72 | Piensa otra vez: ¿el o la? |  |
+| feedback.hint.gender.agree.1.fisher | speech/feedback.hint.gender.agree.1.fisher.wav | fisher | 0.9 | Piensa otra vez: ¿el o la? |  |
+| feedback.hint.gender.agree.1.shopkeeper | speech/feedback.hint.gender.agree.1.shopkeeper.slow.wav | shopkeeper | 0.8 | Piensa otra vez: ¿el o la? |  |
+| feedback.hint.gender.agree.1.shopkeeper | speech/feedback.hint.gender.agree.1.shopkeeper.wav | shopkeeper | 1.0 | Piensa otra vez: ¿el o la? |  |
+| feedback.hint.gender.agree.1.smith | speech/feedback.hint.gender.agree.1.smith.slow.wav | smith | 0.8 | Piensa otra vez: ¿el o la? |  |
+| feedback.hint.gender.agree.1.smith | speech/feedback.hint.gender.agree.1.smith.wav | smith | 1.0 | Piensa otra vez: ¿el o la? |  |
+| feedback.hint.gender.agree.1.villager | speech/feedback.hint.gender.agree.1.villager.slow.wav | villager | 0.8 | Piensa otra vez: ¿el o la? |  |
+| feedback.hint.gender.agree.1.villager | speech/feedback.hint.gender.agree.1.villager.wav | villager | 1.0 | Piensa otra vez: ¿el o la? |  |
 | feedback.slow_repeat.1 | speech/feedback.slow_repeat.1.slow.wav | guide | 0.8 | Di «ayuda» y te ayudo. |  |
 | feedback.slow_repeat.1 | speech/feedback.slow_repeat.1.wav | guide | 1.0 | Di «ayuda» y te ayudo. |  |
+| feedback.slow_repeat.1.baker | speech/feedback.slow_repeat.1.baker.slow.wav | baker | 0.8 | Di «ayuda» y te ayudo. |  |
+| feedback.slow_repeat.1.baker | speech/feedback.slow_repeat.1.baker.wav | baker | 1.0 | Di «ayuda» y te ayudo. |  |
+| feedback.slow_repeat.1.farmer | speech/feedback.slow_repeat.1.farmer.slow.wav | farmer | 0.8 | Di «ayuda» y te ayudo. |  |
+| feedback.slow_repeat.1.farmer | speech/feedback.slow_repeat.1.farmer.wav | farmer | 1.0 | Di «ayuda» y te ayudo. |  |
+| feedback.slow_repeat.1.fisher | speech/feedback.slow_repeat.1.fisher.slow.wav | fisher | 0.72 | Di «ayuda» y te ayudo. |  |
+| feedback.slow_repeat.1.fisher | speech/feedback.slow_repeat.1.fisher.wav | fisher | 0.9 | Di «ayuda» y te ayudo. |  |
+| feedback.slow_repeat.1.shopkeeper | speech/feedback.slow_repeat.1.shopkeeper.slow.wav | shopkeeper | 0.8 | Di «ayuda» y te ayudo. |  |
+| feedback.slow_repeat.1.shopkeeper | speech/feedback.slow_repeat.1.shopkeeper.wav | shopkeeper | 1.0 | Di «ayuda» y te ayudo. |  |
+| feedback.slow_repeat.1.smith | speech/feedback.slow_repeat.1.smith.slow.wav | smith | 0.8 | Di «ayuda» y te ayudo. |  |
+| feedback.slow_repeat.1.smith | speech/feedback.slow_repeat.1.smith.wav | smith | 1.0 | Di «ayuda» y te ayudo. |  |
+| feedback.slow_repeat.1.villager | speech/feedback.slow_repeat.1.villager.slow.wav | villager | 0.8 | Di «ayuda» y te ayudo. |  |
+| feedback.slow_repeat.1.villager | speech/feedback.slow_repeat.1.villager.wav | villager | 1.0 | Di «ayuda» y te ayudo. |  |
 | feedback.slow_repeat.2 | speech/feedback.slow_repeat.2.slow.wav | guide | 0.8 | Si necesitas ayuda, di «ayuda». |  |
 | feedback.slow_repeat.2 | speech/feedback.slow_repeat.2.wav | guide | 1.0 | Si necesitas ayuda, di «ayuda». |  |
+| feedback.slow_repeat.2.baker | speech/feedback.slow_repeat.2.baker.slow.wav | baker | 0.8 | Si necesitas ayuda, di «ayuda». |  |
+| feedback.slow_repeat.2.baker | speech/feedback.slow_repeat.2.baker.wav | baker | 1.0 | Si necesitas ayuda, di «ayuda». |  |
+| feedback.slow_repeat.2.farmer | speech/feedback.slow_repeat.2.farmer.slow.wav | farmer | 0.8 | Si necesitas ayuda, di «ayuda». |  |
+| feedback.slow_repeat.2.farmer | speech/feedback.slow_repeat.2.farmer.wav | farmer | 1.0 | Si necesitas ayuda, di «ayuda». |  |
+| feedback.slow_repeat.2.fisher | speech/feedback.slow_repeat.2.fisher.slow.wav | fisher | 0.72 | Si necesitas ayuda, di «ayuda». |  |
+| feedback.slow_repeat.2.fisher | speech/feedback.slow_repeat.2.fisher.wav | fisher | 0.9 | Si necesitas ayuda, di «ayuda». |  |
+| feedback.slow_repeat.2.shopkeeper | speech/feedback.slow_repeat.2.shopkeeper.slow.wav | shopkeeper | 0.8 | Si necesitas ayuda, di «ayuda». |  |
+| feedback.slow_repeat.2.shopkeeper | speech/feedback.slow_repeat.2.shopkeeper.wav | shopkeeper | 1.0 | Si necesitas ayuda, di «ayuda». |  |
+| feedback.slow_repeat.2.smith | speech/feedback.slow_repeat.2.smith.slow.wav | smith | 0.8 | Si necesitas ayuda, di «ayuda». |  |
+| feedback.slow_repeat.2.smith | speech/feedback.slow_repeat.2.smith.wav | smith | 1.0 | Si necesitas ayuda, di «ayuda». |  |
+| feedback.slow_repeat.2.villager | speech/feedback.slow_repeat.2.villager.slow.wav | villager | 0.8 | Si necesitas ayuda, di «ayuda». |  |
+| feedback.slow_repeat.2.villager | speech/feedback.slow_repeat.2.villager.wav | villager | 1.0 | Si necesitas ayuda, di «ayuda». |  |
 | fisher_bye.1 | speech/fisher_bye.1.slow.wav | fisher | 0.72 | ¡Adiós! Hasta luego. |  |
 | fisher_bye.1 | speech/fisher_bye.1.wav | fisher | 0.9 | ¡Adiós! Hasta luego. |  |
 | fisher_bye.2 | speech/fisher_bye.2.slow.wav | fisher | 0.72 | Hasta luego. |  |
@@ -579,8 +677,32 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | guide_thank.3 | speech/guide_thank.3.wav | guide | 1.0 | ¡De nada, amigo! |  |
 | not_understood.1 | speech/not_understood.1.slow.wav | guide | 0.8 | No te entendí. ¿Me lo dices otra vez? |  |
 | not_understood.1 | speech/not_understood.1.wav | guide | 1.0 | No te entendí. ¿Me lo dices otra vez? |  |
+| not_understood.1.baker | speech/not_understood.1.baker.slow.wav | baker | 0.8 | No te entendí. ¿Me lo dices otra vez? |  |
+| not_understood.1.baker | speech/not_understood.1.baker.wav | baker | 1.0 | No te entendí. ¿Me lo dices otra vez? |  |
+| not_understood.1.farmer | speech/not_understood.1.farmer.slow.wav | farmer | 0.8 | No te entendí. ¿Me lo dices otra vez? |  |
+| not_understood.1.farmer | speech/not_understood.1.farmer.wav | farmer | 1.0 | No te entendí. ¿Me lo dices otra vez? |  |
+| not_understood.1.fisher | speech/not_understood.1.fisher.slow.wav | fisher | 0.72 | No te entendí. ¿Me lo dices otra vez? |  |
+| not_understood.1.fisher | speech/not_understood.1.fisher.wav | fisher | 0.9 | No te entendí. ¿Me lo dices otra vez? |  |
+| not_understood.1.shopkeeper | speech/not_understood.1.shopkeeper.slow.wav | shopkeeper | 0.8 | No te entendí. ¿Me lo dices otra vez? |  |
+| not_understood.1.shopkeeper | speech/not_understood.1.shopkeeper.wav | shopkeeper | 1.0 | No te entendí. ¿Me lo dices otra vez? |  |
+| not_understood.1.smith | speech/not_understood.1.smith.slow.wav | smith | 0.8 | No te entendí. ¿Me lo dices otra vez? |  |
+| not_understood.1.smith | speech/not_understood.1.smith.wav | smith | 1.0 | No te entendí. ¿Me lo dices otra vez? |  |
+| not_understood.1.villager | speech/not_understood.1.villager.slow.wav | villager | 0.8 | No te entendí. ¿Me lo dices otra vez? |  |
+| not_understood.1.villager | speech/not_understood.1.villager.wav | villager | 1.0 | No te entendí. ¿Me lo dices otra vez? |  |
 | not_understood.2 | speech/not_understood.2.slow.wav | guide | 0.8 | Perdón, ¿qué dices? |  |
 | not_understood.2 | speech/not_understood.2.wav | guide | 1.0 | Perdón, ¿qué dices? |  |
+| not_understood.2.baker | speech/not_understood.2.baker.slow.wav | baker | 0.8 | Perdón, ¿qué dices? |  |
+| not_understood.2.baker | speech/not_understood.2.baker.wav | baker | 1.0 | Perdón, ¿qué dices? |  |
+| not_understood.2.farmer | speech/not_understood.2.farmer.slow.wav | farmer | 0.8 | Perdón, ¿qué dices? |  |
+| not_understood.2.farmer | speech/not_understood.2.farmer.wav | farmer | 1.0 | Perdón, ¿qué dices? |  |
+| not_understood.2.fisher | speech/not_understood.2.fisher.slow.wav | fisher | 0.72 | Perdón, ¿qué dices? |  |
+| not_understood.2.fisher | speech/not_understood.2.fisher.wav | fisher | 0.9 | Perdón, ¿qué dices? |  |
+| not_understood.2.shopkeeper | speech/not_understood.2.shopkeeper.slow.wav | shopkeeper | 0.8 | Perdón, ¿qué dices? |  |
+| not_understood.2.shopkeeper | speech/not_understood.2.shopkeeper.wav | shopkeeper | 1.0 | Perdón, ¿qué dices? |  |
+| not_understood.2.smith | speech/not_understood.2.smith.slow.wav | smith | 0.8 | Perdón, ¿qué dices? |  |
+| not_understood.2.smith | speech/not_understood.2.smith.wav | smith | 1.0 | Perdón, ¿qué dices? |  |
+| not_understood.2.villager | speech/not_understood.2.villager.slow.wav | villager | 0.8 | Perdón, ¿qué dices? |  |
+| not_understood.2.villager | speech/not_understood.2.villager.wav | villager | 1.0 | Perdón, ¿qué dices? |  |
 | phrase.adios | speech/phrase.adios.slow.wav | guide | 0.8 | Adiós. |  |
 | phrase.adios | speech/phrase.adios.wav | guide | 1.0 | Adiós. |  |
 | phrase.ayer-bebi-agua | speech/phrase.ayer-bebi-agua.slow.wav | guide | 0.8 | Ayer bebí agua. |  |
@@ -891,8 +1013,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | shop_give_bread.1 | speech/shop_give_bread.1.wav | shopkeeper | 1.0 | Aquí tienes el pan. |  |
 | shop_give_bread.2 | speech/shop_give_bread.2.slow.wav | shopkeeper | 0.8 | Toma el pan. |  |
 | shop_give_bread.2 | speech/shop_give_bread.2.wav | shopkeeper | 1.0 | Toma el pan. |  |
-| shop_hay.1 | speech/shop_hay.1.slow.wav | shopkeeper | 0.8 | Hay agua. |  |
-| shop_hay.1 | speech/shop_hay.1.wav | shopkeeper | 1.0 | Hay agua. |  |
+| shop_hay.1 | speech/shop_hay.1.slow.wav | shopkeeper | 0.8 | Hay agua y pan. |  |
+| shop_hay.1 | speech/shop_hay.1.wav | shopkeeper | 1.0 | Hay agua y pan. |  |
 | shop_help_ask.1 | speech/shop_help_ask.1.slow.wav | shopkeeper | 0.8 | Puedes decir: «Quiero agua, por favor». |  |
 | shop_help_ask.1 | speech/shop_help_ask.1.wav | shopkeeper | 1.0 | Puedes decir: «Quiero agua, por favor». |  |
 | shop_help_offer.1 | speech/shop_help_offer.1.slow.wav | shopkeeper | 0.8 | Puedes decir: «Sí, por favor» o «No, gracias». |  |
@@ -911,8 +1033,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | shop_thank.2 | speech/shop_thank.2.wav | shopkeeper | 1.0 | ¡Con gusto! |  |
 | shop_true.1 | speech/shop_true.1.slow.wav | shopkeeper | 0.8 | Sí, es verdad. |  |
 | shop_true.1 | speech/shop_true.1.wav | shopkeeper | 1.0 | Sí, es verdad. |  |
-| shop_wont_sell.1 | speech/shop_wont_sell.1.slow.wav | shopkeeper | 0.8 | Solo tengo agua. |  |
-| shop_wont_sell.1 | speech/shop_wont_sell.1.wav | shopkeeper | 1.0 | Solo tengo agua. |  |
+| shop_wont_sell.1 | speech/shop_wont_sell.1.slow.wav | shopkeeper | 0.8 | No tengo eso. Tengo agua y pan. |  |
+| shop_wont_sell.1 | speech/shop_wont_sell.1.wav | shopkeeper | 1.0 | No tengo eso. Tengo agua y pan. |  |
 | smith_buy.1 | speech/smith_buy.1.slow.wav | smith | 0.8 | ¡Gracias! Aquí tienes tus monedas. |  |
 | smith_buy.1 | speech/smith_buy.1.wav | smith | 1.0 | ¡Gracias! Aquí tienes tus monedas. |  |
 | smith_bye.1 | speech/smith_bye.1.slow.wav | smith | 0.8 | ¡Adiós! Hasta luego. |  |

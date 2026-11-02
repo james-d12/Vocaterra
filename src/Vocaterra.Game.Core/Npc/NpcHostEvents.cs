@@ -57,6 +57,7 @@ public enum NpcEffectKind
 /// <param name="Place">For <see cref="NpcEffectKind.PointAtPlace"/>: the scene's name of the place (<c>stall</c>, <c>river</c>).</param>
 /// <param name="Slot">For <see cref="NpcEffectKind.PointAtSlot"/>: the slot of the verdict that names the place (<c>place</c>).</param>
 /// <param name="Price">For <see cref="NpcEffectKind.Sell"/> and <see cref="NpcEffectKind.Buy"/>: the price of one item, in coins.</param>
+/// <param name="Instead">For a gift with <paramref name="Asked"/> (V21b): the catalogue nouns the NPC gives something else for, by the suffix of the host event it answers instead (the stall's <c>pan</c>: <c>give_bread</c>, so a request for bread gets the bread and no refusal).</param>
 /// <param name="Asked">For <see cref="NpcEffectKind.GiveItem"/> (V21): the catalogue nouns whose request the NPC answers with the gift (the stall's <c>agua</c> and <c>botella</c>, the villager's <c>pan</c>); a request for another noun is a miss, <c>&lt;npc&gt;.wont_sell</c>. <see langword="null"/>: the gift is not conditioned on the request.</param>
 public sealed record NpcEffect(
     NpcEffectKind Kind,
@@ -67,7 +68,8 @@ public sealed record NpcEffect(
     string Place = "",
     string Slot = "",
     int Price = 0,
-    IReadOnlyList<string>? Asked = null)
+    IReadOnlyList<string>? Asked = null,
+    IReadOnlyDictionary<string, string>? Instead = null)
 {
     /// <summary>The verdict's slot of a number the learner said (<c>quiero dos panes</c>: <c>2</c>), the core's <c>[NUM:qty]</c>.</summary>
     public const string QuantitySlot = "qty";
@@ -199,7 +201,13 @@ public sealed record NpcEffect(
         bag ??= new Inventory();
         if (Kind == NpcEffectKind.GiveItem && Asked is not null)
         {
-            return ItemSaidIn(slots, nouns) ? null : NpcHostEvents.WontSell; // V21: the stall and the villager give what they have, whatever else is asked for
+            if (ItemSaidIn(slots, nouns))
+            {
+                return null;
+            }
+
+            // V21b: the noun the NPC has something else for (the stall's bread) is answered by that gift, never by a refusal
+            return Instead is not null && slots.TryGetValue(ItemSlot, out var asked) && nouns.ForLemma(asked) is { } noun && Instead.TryGetValue(noun.Lemma, out var other) ? other : NpcHostEvents.WontSell; // V21: the stall and the villager give what they have, whatever else is asked for
         }
 
         if (Kind == NpcEffectKind.Sell)

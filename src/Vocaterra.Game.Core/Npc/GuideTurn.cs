@@ -173,6 +173,12 @@ public sealed record GuideTurn(
     /// </summary>
     public bool LessonHandled { get; init; }
 
+    /// <summary>
+    /// The core's notes on verbs typed without the accent of their tense (M70, V21b): <c>«compré», con tilde: es pasado</c>, one per word, worded by the Spanish pack
+    /// (<c>SpanishAccentNotes.Describe</c>). The line was accepted with no deduction; the notes only tell the learner the accent. Empty when there is none.
+    /// </summary>
+    public IReadOnlyList<string> AccentNotes { get; init; } = [];
+
     /// <summary>Whether the follow-up lines are the guide's last line said again slowly (the learner asked <c>Más despacio, por favor</c>, S17): the front-end plays the slow recording.</summary>
     public bool SlowFollowUp { get; init; }
 

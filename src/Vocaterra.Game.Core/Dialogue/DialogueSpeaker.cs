@@ -15,6 +15,9 @@ public enum DialogueSpeaker
     /// <summary>The guide's correction of the player's line (a recast, a hint or a correction).</summary>
     Correction,
 
+    /// <summary>The note on a verb typed without the accent of its tense (M70, V21b): «compré», con tilde: es pasado. Under the reply, in the correction's colour; never spoken.</summary>
+    Accent,
+
     /// <summary>The NPC's own reply (the guide's, the shopkeeper's or the villager's: the panel's title says whose).</summary>
     Guide,
 

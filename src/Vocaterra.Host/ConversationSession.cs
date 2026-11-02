@@ -32,8 +32,9 @@ public sealed class ConversationSession
     private readonly IReadOnlyDictionary<string, string> _names;
     private readonly Dictionary<string, AgentState> _agentStates = new(StringComparer.Ordinal);
     private readonly Inventory? _bag;
-    private readonly HostEventTable? _hostEvents;
-    private readonly NounCatalog? _nouns;
+    private readonly HostEventTable _hostEvents;
+    private readonly NounCatalog _nouns;
+    private readonly NpcRoster _roster;
     private ConversationContext _context;
 
     /// <summary>
@@ -50,13 +51,13 @@ public sealed class ConversationSession
     {
         ArgumentNullException.ThrowIfNull(bundle);
         Bundle = bundle;
-        if (bag is not null)
-        {
-            // A bag makes a sale or a purchase follow it (V23a): the NPC answers a miss as it does in the game (NpcService.AnswerMisses).
-            _bag = bag;
-            _hostEvents = HostEventTable.Load(bundle);
-            _nouns = NounCatalog.Load(bundle);
-        }
+
+        // A bag makes a sale or a purchase follow it (V23a); a gift is refused for what the NPC does not give with or without one. The NPC answers a miss as it does in the
+        // game, through the same code (NpcTurnRules, V21b).
+        _bag = bag;
+        _hostEvents = HostEventTable.Load(bundle);
+        _nouns = NounCatalog.Load(bundle);
+        _roster = NpcRoster.Load(bundle);
 
         _evaluator = new TypedUtteranceEvaluator(bundle);
         _names = listenerNames ?? new Dictionary<string, string>(StringComparer.Ordinal);
@@ -78,7 +79,7 @@ public sealed class ConversationSession
     /// </summary>
     public ConversationContext Context => _context;
 
-    /// <summary>What the bag changed in the last <see cref="Evaluate"/>: the lines of the actions the bag cannot carry out and the NPC's answers to them; <see langword="null"/> when there is no bag or nothing missed.</summary>
+    /// <summary>The last <see cref="Evaluate"/>'s reply as the game says it (the one reply of the turn, the refused gift and the misses a bag makes); <see langword="null"/> before the first.</summary>
     public ExchangeAnswer? LastExchange { get; private set; }
 
     /// <summary>The ids of the bundle's prompts, in ordinal order.</summary>
@@ -121,42 +122,44 @@ public sealed class ConversationSession
 
         _agentStates[agentId] = result.Decision.Agent?.Next ?? agentState;
         _context = utterance.Next(result, now);
-        LastExchange = AnswerMisses(agentId, result, transcript, now);
+        LastExchange = AnswerTurn(agentId, result, transcript, now);
         return result;
     }
 
-    // The game's own answer to a purchase or a sale the bag cannot make (NpcService.AnswerMisses): the NPC takes the host event of the miss (cant_pay, cant_sell and the
-    // rest) and says its line instead of the success line of the action. The bag is only read; nothing changes hands in the host.
-    private ExchangeAnswer? AnswerMisses(string agentId, PipelineResult result, string transcript, StoredTimestamp now)
+    // The game's own turn rules (NpcTurnRules, shared with NpcService): the NPC's answer to a gift it refuses and, with a bag, to a purchase or a sale the bag cannot make,
+    // and the one reply of the turn. The bag is only read; nothing changes hands in the host.
+    private ExchangeAnswer AnswerTurn(string agentId, PipelineResult result, string transcript, StoredTimestamp now)
     {
-        if (_bag is null || _hostEvents is null || _nouns is null)
-        {
-            return null;
-        }
-
         var slots = NpcEffect.CountedSlots(result.Verdict.Slots, transcript);
-        var unsaid = new List<string>();
-        var lines = new List<string>();
-        foreach (var action in result.Decision.Agent?.Actions ?? [])
+        var verdict = result.Verdict;
+        var understood = verdict.Communicated && !string.Equals(verdict.Intent.Value, "unknown", StringComparison.Ordinal);
+        var events = (result.Decision.Agent?.Actions ?? []).Where(static a => a.HostEvent is not null).Select(static a => a.HostEvent!).ToList();
+        var answers = NpcTurnRules.AnswerMisses(
+            agentId,
+            result,
+            _hostEvents,
+            _evaluator,
+            _context,
+            now,
+            null,
+            false,
+            effect => effect.Kind == NpcEffectKind.GiveItem || _bag is not null ? effect.ExchangeMiss(slots, _bag, _nouns) : null,
+            events);
+        _context = answers.Context;
+        if (answers.Lines.Count > 0)
         {
-            if (action.HostEvent is not { } hostEvent || _hostEvents.Of(agentId, hostEvent).ExchangeMiss(slots, _bag, _nouns) is not { } miss)
-            {
-                continue;
-            }
-
-            var turn = _evaluator.Advance(NpcHostEvents.Of(agentId, miss), _context);
-            if (turn is null)
-            {
-                continue; // an agent with no transition for the miss says its line as before
-            }
-
-            _agentStates[agentId] = turn.Agent.Next;
-            _context = _context.Next(turn, now);
-            unsaid.Add(action.DialogueIntent);
-            lines.AddRange(turn.Response.Lines.Select(static line => line.Text));
+            _agentStates[agentId] = _context.AgentState;
         }
 
-        return unsaid.Count == 0 ? null : new ExchangeAnswer(unsaid, lines);
+        var holdsBottle = _bag is { } bag && bag.Count(ItemId.Bottle) + bag.Count(ItemId.WaterBottle) > 0;
+        var composed = NpcTurnRules.Compose(
+            result,
+            understood,
+            answers.Unsaid,
+            _names.Values,
+            lineId => holdsBottle && events.Contains(NpcHostEvents.GiveWater, StringComparer.Ordinal) && lineId.StartsWith("shop_give.", StringComparison.Ordinal),
+            _roster.All.FirstOrDefault(npc => string.Equals(npc.Id, agentId, StringComparison.Ordinal))?.FreeTalkPools);
+        return new ExchangeAnswer(answers.Unsaid, answers.Lines, composed.Feedback, composed.Replies);
     }
 
     private AgentState StateOf(string agentId)
@@ -173,7 +176,9 @@ public sealed class ConversationSession
     }
 }
 
-/// <summary>What a bag made of a turn (<see cref="ConversationSession.LastExchange"/>): the dialogue intents whose lines are not said and the NPC's answers that follow.</summary>
-/// <param name="Unsaid">The dialogue intents of the actions the bag cannot carry out; their lines (<c>&lt;intent&gt;.1</c>) are left out of the report.</param>
+/// <summary>What the game's turn rules made of a turn (<see cref="ConversationSession.LastExchange"/>): the NPC's lines as the game says them.</summary>
+/// <param name="Unsaid">The dialogue intents of the actions the world cannot carry out; their lines (<c>&lt;intent&gt;.1</c>) are left out of the report.</param>
 /// <param name="Lines">The NPC's answers to the misses.</param>
-public sealed record ExchangeAnswer(IReadOnlyList<string> Unsaid, IReadOnlyList<string> Lines);
+/// <param name="Feedback">The turn's one recast or hint, names spelled, or <see langword="null"/>.</param>
+/// <param name="Replies">The NPC's lines of the turn, once the rules have run (one reply, V21).</param>
+public sealed record ExchangeAnswer(IReadOnlyList<string> Unsaid, IReadOnlyList<string> Lines, string? Feedback, IReadOnlyList<string> Replies);

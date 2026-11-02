@@ -16,6 +16,7 @@ namespace Vocaterra.Game.Core.Language.Book;
 /// <param name="Speak">The line id of the recording the row's speaker button plays (S20b), or <see langword="null"/> for no button.</param>
 /// <param name="Practise">The id of the completed lesson the row's "Practise again" button starts (S26), or <see langword="null"/> for no button.</param>
 /// <param name="Verb">The infinitive of the verb the row lists on the verbs page (S28): choosing the row shows its conjugation table on the right page, or <see langword="null"/>.</param>
+/// <param name="Next">Whether the line is the title of the lesson the objective sends the learner to (the lessons page's <c>next:</c> lesson, V21b): the page opens scrolled to it.</param>
 public sealed record BookLine(
     BookTone Tone,
     string Text,
@@ -28,7 +29,8 @@ public sealed record BookLine(
     bool Indent = false,
     string? Speak = null,
     string? Practise = null,
-    string? Verb = null)
+    string? Verb = null,
+    bool Next = false)
 {
     /// <summary>The empty line between two entries.</summary>
     public static BookLine Gap { get; } = new(BookTone.Hint, string.Empty);

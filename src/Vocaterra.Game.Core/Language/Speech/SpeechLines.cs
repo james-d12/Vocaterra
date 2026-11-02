@@ -50,6 +50,12 @@ public enum SpeechKind
 
     /// <summary>A learner phrase of the phrase sheet, spoken as the model answer (its Spanish).</summary>
     Phrase,
+
+    /// <summary>
+    /// A line every NPC says (V21b: «¡Muy bien!», «No te entendí», the core's hints), recorded once more in the voice of each NPC: the line id is the shared line's, then
+    /// <c>.&lt;npc&gt;</c> (<c>answer_accepted.1.baker</c>). The game plays the speaking NPC's file and the guide's when a file is missing.
+    /// </summary>
+    NpcCopy,
 }
 
 /// <summary>
@@ -101,6 +107,19 @@ public static class SpeechLines
             }
         }
 
+        // V21b: the lines every NPC says are recorded in each NPC's own voice too (the guide's file stays the fallback).
+        var shared = SharedPools(bundle);
+        foreach (var pool in bundle.Dialogue.Pools.Values.Where(pool => shared.Contains(pool.PoolId) && npcs.OwnerOfPool(pool.PoolId) is null))
+        {
+            foreach (var template in pool.Variants.Where(static t => TemplateEngine.ReferencedSlots(t).Count == 0))
+            {
+                foreach (var npc in npcs.All.Where(static n => !string.Equals(n.Id, SpeechSpeakers.Guide, StringComparison.Ordinal)))
+                {
+                    lines.Add(new SpeechLine(template.LineId + "." + npc.Id, npc.Id, bundle.TemplateEngine.Render(template, SlotMap.Empty), SpeechKind.NpcCopy));
+                }
+            }
+        }
+
         foreach (var prompt in bundle.Prompts.Values)
         {
             if (!string.IsNullOrWhiteSpace(prompt.Text))
@@ -139,6 +158,19 @@ public static class SpeechLines
         }
 
         return lines;
+    }
+
+    // The pools more than one agent says (answer_accepted, not_understood) and the core's feedback pools: said by whoever speaks, so the guide's voice would be wrong.
+    private static HashSet<string> SharedPools(ContentBundle bundle)
+    {
+        var shared = bundle.Agents.Values
+            .SelectMany(static machine => machine.Definition.VariantPools ?? [])
+            .GroupBy(static pool => pool.Id, StringComparer.Ordinal)
+            .Where(static group => group.Count() > 1)
+            .Select(static group => group.Key)
+            .ToHashSet(StringComparer.Ordinal);
+        shared.UnionWith(bundle.Dialogue.Pools.Keys.Where(static id => id.StartsWith("feedback.", StringComparison.Ordinal)));
+        return shared;
     }
 }
 

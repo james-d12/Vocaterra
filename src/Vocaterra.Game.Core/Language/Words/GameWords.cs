@@ -25,6 +25,11 @@ public sealed record ButtonWords(string Repeat, string Slower, string Help, stri
 /// <param name="KeyWordsHeading">The heading over the key-word cards (<c>Palabras nuevas</c>).</param>
 public sealed record SupportWords(string CardTag, string ListenChip, string KeyWordsHeading);
 
+/// <summary>The obligation, <c>tener que</c> + infinitive (V21b, the book's column «must»): the verb and the word that joins it to the infinitive.</summary>
+/// <param name="Verb">The verb in the present (<c>tener</c>).</param>
+/// <param name="Joiner">The word between it and the infinitive (<c>que</c>).</param>
+public sealed record ObligationWords(string Verb, string Joiner);
+
 /// <summary>The near future, <c>ir a</c> + infinitive (S27): the verb, its joiner, and the time words that make a present a plan.</summary>
 /// <param name="Verb">The verb in the present (<c>ir</c>).</param>
 /// <param name="Joiner">The word between it and the infinitive (<c>a</c>).</param>
@@ -85,6 +90,7 @@ public sealed class GameWords
         string helpLine,
         string dontKnowLine,
         NearFutureWords nearFuture,
+        ObligationWords obligation,
         string greeting,
         string letters,
         IReadOnlyDictionary<string, string> nouns)
@@ -100,6 +106,7 @@ public sealed class GameWords
         HelpLine = helpLine;
         DontKnowLine = dontKnowLine;
         NearFuture = nearFuture;
+        Obligation = obligation;
         Greeting = greeting;
         Letters = letters;
         _nouns = nouns;
@@ -134,6 +141,9 @@ public sealed class GameWords
 
     /// <summary>The near future, <c>ir a</c> + infinitive.</summary>
     public NearFutureWords NearFuture { get; }
+
+    /// <summary>The obligation, <c>tener que</c> + infinitive (V21b).</summary>
+    public ObligationWords Obligation { get; }
 
     /// <summary>The greeting the mic check asks for and the worker warms up with (<c>hola</c>; also the hello phrase's id).</summary>
     public string Greeting { get; }
@@ -184,6 +194,7 @@ public sealed class GameWords
             var buttons = root.GetProperty("buttons");
             var support = root.GetProperty("support");
             var nearFuture = root.GetProperty("nearFuture");
+            var obligation = root.GetProperty("obligation");
             var pronouns = Map(root, "pronouns", PronounKeys);
             var nouns = Map(root, "nouns", NounRoles);
             return new GameWords(
@@ -198,6 +209,7 @@ public sealed class GameWords
                 Text(root, "helpLine"),
                 Text(root, "dontKnowLine"),
                 new NearFutureWords(Text(nearFuture, "verb"), Text(nearFuture, "joiner"), Texts(nearFuture, "timeWords")),
+                new ObligationWords(Text(obligation, "verb"), Text(obligation, "joiner")),
                 Text(root, "greeting"),
                 Text(root, "letters"),
                 nouns);
@@ -218,7 +230,7 @@ public sealed class GameWords
             ("buttons.repeat", Buttons.Repeat), ("buttons.slower", Buttons.Slower), ("buttons.help", Buttons.Help), ("buttons.dontKnow", Buttons.DontKnow), ("buttons.type", Buttons.Type),
             ("typeOffer", TypeOffer), ("support.cardTag", Support.CardTag), ("support.listenChip", Support.ListenChip), ("support.keyWordsHeading", Support.KeyWordsHeading),
             ("helpLine", HelpLine), ("dontKnowLine", DontKnowLine), ("greeting", Greeting),
-            ("nearFuture.verb", NearFuture.Verb), ("nearFuture.joiner", NearFuture.Joiner),
+            ("nearFuture.verb", NearFuture.Verb), ("nearFuture.joiner", NearFuture.Joiner), ("obligation.verb", Obligation.Verb), ("obligation.joiner", Obligation.Joiner),
         };
         all.AddRange(PronounKeys.Select(key => ("pronouns." + key, _pronouns[key])));
         all.AddRange(NearFuture.TimeWords.Select((word, i) => ("nearFuture.timeWords[" + i.ToString(System.Globalization.CultureInfo.InvariantCulture) + "]", word)));
