@@ -11,7 +11,6 @@ public sealed partial class NpcService
     // engine (CR-016: the core cannot choose between the three cases of a world line, so the game renders them; the facts are host slots of the
     // turn's completion, so the replay record holds the inputs of the line).
 
-    private const string FeedbackLinePrefix = "feedback.";
     private const string PointFound = "guide.point.found";
     private const string PointHere = "guide.point.here";
     private const string PointNone = "guide.point.none";

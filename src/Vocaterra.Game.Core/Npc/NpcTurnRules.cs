@@ -16,7 +16,7 @@ namespace Vocaterra.Game.Core.Npc;
 public static class NpcTurnRules
 {
     /// <summary>The prefix of the core's correction lines that are no recast (a hint, an explicit correction).</summary>
-    public const string FeedbackLinePrefix = "feedback.";
+    public const string FeedbackLinePrefix = ReservedPools.FeedbackPrefix; // the core's one definition
 
     /// <summary>
     /// The answers of a turn's missed actions. For each action of the decision whose host event makes a miss (<paramref name="missOf"/>), the NPC takes the host event of
@@ -227,9 +227,6 @@ public static class NpcTurnRules
 
         return new ComposedReply(feedback, replies);
     }
-
-    // The prepositions after which tú or usted is not the subject («con usted», «para ti»).
-    private static readonly HashSet<string> Prepositions = new(["a", "con", "de", "en", "para", "por", "sin", "sobre", "hasta", "desde"], StringComparer.Ordinal);
 
     /// <summary>
     /// Whether the line says something about the listener (V28): the core's analysis finds a verb of the second person (<c>tienes</c>, <c>eres</c>) or the pronoun
