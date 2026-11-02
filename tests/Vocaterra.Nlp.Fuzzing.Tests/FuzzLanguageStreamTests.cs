@@ -33,9 +33,12 @@ public sealed class FuzzLanguageStreamTests
     // realiser joins a subject with ni and o, agrees the verb after a pronoun and a question word with the pronoun, makes the verb after tener que an infinitive, and
     // draws no noun that is also a verb form after poder, tener que or the noun of the phrase that opens the sentence (re-rolling such a word elsewhere); the text
     // digest did not move. The sentence digest again at M70, whose realiser re-rolls gustar or encantar after a subject pronoun with a phrase after it (yo gusto el
-    // pan, which the analyzer now reads as conj.person); the text digest did not move.
+    // pan, which the analyzer now reads as conj.person); the text digest did not move. The sentence digest again at M69, whose skeletons gained two shapes (estar en and
+    // a place; a subject with de before ser), whose realiser agrees a verb with a subject pronoun right after it behind a question word (and re-rolls a literal verb that
+    // cannot), agrees a predicate adjective with a subject with de as well, and no longer re-rolls a literal that is the head of the phrase before it (buenas tardes);
+    // the text digest did not move.
     private const string TextDigest = "24826CDAB4703637C13D991FE7D2FF0010F467C05BCD9D5C6C2F1AF9065D8D25";
-    private const string SentenceDigest = "024F42AEF865E1C0630546B1D81B2E07D4811064B4DB5552AE1F558A3670139E";
+    private const string SentenceDigest = "014D2B4BB2BE591D66B333860F5D17EA2BD9443272F936A8AEF7C912B7E1F8CB";
 
     [Fact]
     public void TheSpanishRecordUsesTheSpanishPackAndTheWholeMutationSet()

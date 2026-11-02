@@ -35,6 +35,11 @@ public static class PatternGen
         "[INTERJ]? [PRON]? [VERB] [NOUN:item]",
         "[PRON] [VERB:tener] [NUM:qty] [NOUN:item] [ADJ]?",
         "[PRON] [VERB:ir] [PREP] [ART] [NOUN:place]",
+
+        // M69: a thing and its place with estar (the ser_estar mutation makes es en of it), and a subject with de before ser and its adjective (the gender.agree
+        // mutation flips the adjective against the first phrase).
+        "[ART] [NOUN:thing] [VERB:estar] en [ART] [NOUN:place]",
+        "[ART] [NOUN:thing] de [ART] [NOUN:owner] [VERB:ser] [ADJ:quality]",
     ];
 
     private static readonly string[] SlotNames = ["item", "qty", "spell", "thing", "who", "what", "extra", "more", "other"];
