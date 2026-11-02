@@ -63,8 +63,21 @@ public sealed record GuideWord(
         }
 
         // V26: a verb typed without the accent of its tense (M70) is counted as the form the core read, `compré`, not the written `compre`: the reading is the accented form's.
-        return [.. words.Select(word => notes.FirstOrDefault(note => note.Span == word.Span) is { } note ? word with { Text = note.Accented } : word)];
+        return [.. words.Select(word => notes.FirstOrDefault(note => note.Span == word.Span) is { } note ? word.ReadAs(note) : word)];
     }
+
+    /// <summary>The word as the core's accent note reads it (V30): the accented form with the note's reading (person, number, tense, mood), not the written word's own, so <c>compro</c> for the answer <c>compró</c> is the third person's.</summary>
+    private GuideWord ReadAs(AccentNote note) => this with
+    {
+        Text = note.Accented,
+        Lemma = note.Reading.Lemma,
+        Pos = note.Reading.Pos,
+        Person = note.Reading.Person,
+        Number = note.Reading.Number,
+        Tense = note.Reading.Tense,
+        Mood = note.Reading.Mood,
+        Gender = note.Reading.Gender,
+    };
 
     /// <summary>The words of a phase-1 analysis (<c>UtteranceAnalysis.Words</c>), in order; empty for <see langword="null"/>.</summary>
     /// <param name="words">The resolved words of one analysed line.</param>
