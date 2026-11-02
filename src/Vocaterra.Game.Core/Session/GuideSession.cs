@@ -1374,7 +1374,7 @@ public abstract partial class GuideSession : IDisposable
         }
 
         var said = freeTalk ? LineReading.PhraseSaid(Phrases, turn.Line, Data.Npcs.Find(turn.Npc)?.Name, Lessons.Credits)?.Id : null;
-        return PhraseSheet.OfIntent(inPlay, turn.Intent, turn.Slots)
+        return PhraseSheet.OfIntent(inPlay, turn.Intent, turn.Slots, Data.Nouns)
             ?? Phrases.PhraseFor(turn.Prompt, turn.Intent, turn.Slots, Data.Words.Noun("river"), freeTalk ? Data.Npcs.Homes.Keys : null, said);
     }
 

@@ -14,6 +14,17 @@ public sealed class PhraseSheetLookupTests
     private static PhraseSheet Sheet => RouteScene.DataOf(TestGame.Bundle).Phrases;
 
     [Fact]
+    public void ARowWhoseEveryVariantIsInThePluralNamesTheItemAsked()
+    {
+        // V30: `quiero manzanas` names the item `manzana` (the catalogue's plural), not only a text that says the singular.
+        var row = new PhraseRow("quiero-manzanas", "says", "Quiero manzanas.", "I want apples.", "request_item", "baker-open", ["Quiero dos manzanas."], "Quiero manzanas.", []);
+        var slots = new Dictionary<string, string> { ["item"] = "manzana" };
+
+        Assert.Equal("quiero-manzanas", PhraseSheet.OfIntent([row], "request_item", slots, TestGame.Nouns));
+        Assert.Null(PhraseSheet.OfIntent([row], "request_item", new Dictionary<string, string> { ["item"] = "pan" }, TestGame.Nouns));
+    }
+
+    [Fact]
     public void TheBundleHoldsTheHundredAndFiftyFivePhrasesOfTheSheetInOrder()
     {
         var sheet = Sheet;
