@@ -115,6 +115,17 @@ public interface IAnalysisRules
     /// <param name="lemma">The adverb lemma.</param>
     bool IsLocationAdverb(string lemma) => false;
 
+    /// <summary>
+    /// True when the words around a lexicon word of another class call for the learner's slip the word may stand for (M58: <c>podo</c>, a form of <c>podar</c>, for
+    /// <c>puedo</c>; <c>esto</c> for <c>estoy</c>), so that the analysis reads the word as that slip, and reports its error, without a slot grammar that names the verb
+    /// (M69): only where no reading of the word as written fits the words around it (<c>yo podo ir</c>: <c>podar</c> takes no infinitive; <c>yo esto cansado</c>).
+    /// The default is never, as before M69.
+    /// </summary>
+    /// <param name="tokens">The tokens with every lexicon reading (the readings of the slip are not among them).</param>
+    /// <param name="index">The index of the word.</param>
+    /// <param name="slip">The readings of the slip: the verb form the learner meant.</param>
+    bool CallsForSlip(IReadOnlyList<AnalyzedToken> tokens, int index, IReadOnlyList<LexicalFeatures> slip) => false;
+
     /// <summary>Creates the agreement checker (subject-verb, tense, copula, noun phrase agreement and word order) for one resolved sentence.</summary>
     /// <param name="resolved">The tokens with the readings narrowed by the resolver.</param>
     /// <param name="errors">The list the checker adds its errors to.</param>

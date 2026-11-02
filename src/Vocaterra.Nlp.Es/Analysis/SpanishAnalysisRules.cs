@@ -60,6 +60,9 @@ internal sealed class SpanishAnalysisRules : IAnalysisRules
 
     public bool IsLocationAdverb(string lemma) => SpanishAnalysisTables.IsLocationAdverb(lemma);
 
+    public bool CallsForSlip(IReadOnlyList<AnalyzedToken> tokens, int index, IReadOnlyList<LexicalFeatures> slip) =>
+        SpanishSlipContext.CallsForSlip(tokens, index, slip);
+
     public IAgreementChecker CreateAgreementChecker(IReadOnlyList<AnalyzedToken> resolved, List<ErrorTag> errors) =>
         new SpanishAgreementChecker(resolved, _morphology, errors, this);
 }
