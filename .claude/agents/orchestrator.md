@@ -49,6 +49,12 @@ is a change to the boundary and updates that record.
   - The queue: a QA pass, then M65 (fuzz stability), M66 and M67 (core grading), V20 (free talk), V21 to V23, M69, M68 (CI timing, if
     needed) and V24 (documents).
 - Gate with `GATE_TARGET=feature/village-followups`.
+**The follow-ups are done (2026-11-02):** the whole queue of section 9.2 is gated and pushed on `feature/village-followups` (V22, V25,
+V23a, V20, V21, V21b, V24 in the game; M65, M71, M66, M67, M70, M69 in the core; 8133 passed, 3 skipped, at `56d2790`). M68 waits for a
+CI failure of a timed test. Next: the owner's pull request of `feature/village-followups` into `main`. The open points are
+`docs/game/README.md`, "Open points after the follow-ups" (V24); the game's small ones (two replies to a line not understood, the book's
+credit of a refused request, the typed form `compre` in the book, the scripted run's silent stop at 18 000 ticks) were proposed to the
+owner as one milestone, not started.
 - **9.1 answered (2026-11-01, D-game-22):** models mixed (Opus 5.5 xhigh for M65 to M67, M69, V20; Sonnet 5.5 for V21 to V23 and M68;
   Haiku 5.5 for V24); M65's narrowings (a) to (c) yes, (d) recorded; plates of the faced NPC, depth-tested; CI green, so M68 waits.
   Rows filed: the core's §5 (M65 to M69; M63 folded into M66) and VILLAGE_PLAN section 4 (V20 to V24).

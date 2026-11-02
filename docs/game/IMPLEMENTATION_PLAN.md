@@ -2237,3 +2237,24 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     replayed on the merged tree it passes (M69's fix: a typed accent picks the form that has it).
   - **Left:** a correct line with a word outside an open prompt's answer set gets `vocab.wrong` and "No te entendí" (V17, seen again by
     M69 and here); the commit that holds item 1 also holds the content refresh, so the earlier commits do not all pass on their own.
+- **V24: documents and runs after the follow-ups (2026-11-02, Haiku 5.5; gated on `feature/village-followups` at `56d2790`, 8133 passed, 3 skipped, with the models).**
+  - **The scripted runs against `1dbb0e5`** (22 runs): every difference traces to a follow-up. `session_start` gains `day` and every save
+    the sitting (V25); speech 914 to 1062 files (V20, V21, V21b); r15 no plate on the fisher (V22); r18 and r19 no early focus cards
+    (V20 (c)); r20 and r21 the Lessons page at `next:` (V21b); r22 León's «Una manzana, una moneda.» (V21b) and «Nothing to review yet»
+    (V23a); r23 the free-talk line credited and answered (V20). Nothing unexplained.
+  - **The new run `r24-followups`:** `mañana compraré pan` and `ayer compre pan` to Luz in free talk, `quiero madera` at the stall;
+    deterministic after the masks but for the turn's latency label in the pictures, so it joins `compare-runs.py`'s order-only runs.
+  - **The learner's route, sessions 4 to 10:** each objective and beacon lead to the lesson's NPC; the seven lessons ran to their ends; 11 of
+    11 taught lines understood in free talk by the NPC who taught them, 6 of 11 untaught ones. Four runs were needed: a scripted run stops
+    at 18 000 ticks with no message.
+  - **The documents:** `docs/game/README.md` (the counts: 30 intents, 531 lines in 1062 speech files; the follow-ups' paragraph; the route;
+    CI's case; "Open points after the follow-ups"), `PLAYTEST.md`, `SCRIPTED_RUNS.md`. The speech checklist had nothing to render. The
+    follow-ups added 74 lines and 148 files, none heard yet.
+  - **CI's case:** without models 8091 passed and 45 skipped. The bundle load (1.1 to 1.7 s of 3000 ms) would likely fail at four times;
+    the scene build (668 of 3000 ms), the world snapshot (923 ms) and the chunk digest (105 ms of 100, the whole test) are at risk.
+  - **The orchestrator's checks:** in the game, `ayer compre pan` to Luz in free talk does show the accent note under the reply, and
+    `manana compraré pan` is understood (M70); the agent's report and documents said otherwise, corrected in `236e741`. Confirmed: a line
+    not understood at an open prompt gets two replies («No te entendí. ¿Me lo dices otra vez?» and the core's repair «¿Cómo?»).
+  - **Left (game, in the README's open points):** the two replies; the book credits `quiero-dos-panes` for a refused `Quiero dos
+    manzanas.`; the book keeps the typed form `compre`; the scripted run's silent stop at 18 000 ticks; an untaught statement understood at
+    some NPCs and not others (the owner's rule to choose); `vocab.wrong` outside an open prompt's answer set (core and game, V17).
