@@ -1,7 +1,7 @@
+using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Pipeline;
-using Vocaterra.Game.Core.Language.Speech;
 
 namespace Vocaterra.Game.Core.Npc;
 
