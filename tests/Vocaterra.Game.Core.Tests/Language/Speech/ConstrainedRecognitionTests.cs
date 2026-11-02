@@ -99,7 +99,7 @@ public sealed class ConstrainedRecognitionTests(ITestOutputHelper output)
         var turns = new List<GuideTurn>();
         for (var i = 0; i < 3; i++)
         {
-            _ = session.SubmitSpeak("el gato come queso");
+            _ = session.SubmitSpeak("el gato duerme"); // nothing the stall teaches (V20: its grammar has «Ayer comí fruta.», and «come queso» was heard as «comí»)
             var turn = Drain(session).Turn!;
             turns.Add(turn);
             output.WriteLine($"heard '{turn.Line}' ({turn.Confidence:0.00}) -> {turn.Summary}, repair {turn.RepairKind}, choices {(turn.Choices is null ? "-" : string.Join(" | ", turn.Choices))}");
