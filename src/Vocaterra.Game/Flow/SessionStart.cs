@@ -4,7 +4,6 @@ using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Diagnostics;
-using Vocaterra.Game.Graphics.World;
 using Vocaterra.Game.Startup;
 
 namespace Vocaterra.Game.Flow;

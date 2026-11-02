@@ -1,9 +1,4 @@
-using Vocaterra.Nlp.Content;
-using Vocaterra.Nlp.Language.Intent;
-using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Normalization;
-using Vocaterra.Nlp.Phonology;
-using Vocaterra.Nlp.Response.Templates;
 
 namespace Vocaterra.Nlp.Es.Tests.Packs;
 

@@ -1,4 +1,3 @@
-using Vocaterra.Game.Core.Npc;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Core.Language.Phrases;

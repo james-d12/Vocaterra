@@ -1,7 +1,6 @@
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Phrases;
-using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.Component;

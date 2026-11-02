@@ -5,7 +5,6 @@ using Vocaterra.Game.Core.Language.Learner;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Npc;
-using Vocaterra.Game.Core.Tip;
 using Vocaterra.Nlp.Core.Stages;
 
 namespace Vocaterra.Game.Core.Session;

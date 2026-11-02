@@ -5,8 +5,6 @@ using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Fuzzing.Tests.Generation;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
 using Vocaterra.Nlp.Language.Matching;
-using Vocaterra.Nlp.Language.Normalization;
-using Vocaterra.Nlp.Language.Packs;
 using Xunit.Abstractions;
 using MatchType = Vocaterra.Nlp.Core.Stages.MatchType;
 

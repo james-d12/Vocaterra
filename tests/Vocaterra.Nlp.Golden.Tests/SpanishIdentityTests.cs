@@ -7,15 +7,10 @@ using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
-using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Learning;
 using Vocaterra.Nlp.Language.Analysis;
-using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Matching;
-using Vocaterra.Nlp.Language.Normalization;
-using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
-using Vocaterra.Nlp.Phonology;
 using Vocaterra.Nlp.Pipeline;
 using Vocaterra.Nlp.Response.Templates;
 

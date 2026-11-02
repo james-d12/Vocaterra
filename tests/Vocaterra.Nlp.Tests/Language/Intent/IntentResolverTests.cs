@@ -5,7 +5,6 @@ using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Language.Embeddings;
 using Vocaterra.Nlp.Language.Intent;
-using Vocaterra.Nlp.Language.Packs;
 
 public class IntentResolverTests
 {

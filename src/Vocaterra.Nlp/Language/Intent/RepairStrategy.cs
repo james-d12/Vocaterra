@@ -1,4 +1,3 @@
-using System.Text;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Language.Packs;

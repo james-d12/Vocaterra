@@ -2,7 +2,6 @@ using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Verdicts;
-using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Pipeline;
 using Vocaterra.Nlp.Response.Templates;
 

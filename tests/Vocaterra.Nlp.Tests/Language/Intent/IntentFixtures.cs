@@ -5,7 +5,6 @@ using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Normalization;
-using Vocaterra.Nlp.Language.Packs;
 
 /// <summary>Shared catalog, analyzer and helpers for the intent tests.</summary>
 internal static class IntentFixtures

@@ -2,7 +2,6 @@ using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Language.Matching;
 using Vocaterra.Nlp.Language.Normalization;
-using Vocaterra.Nlp.Language.Packs;
 // System.IO.MatchType (implicit usings) would otherwise make the name ambiguous.
 using MatchType = Vocaterra.Nlp.Core.Stages.MatchType;
 

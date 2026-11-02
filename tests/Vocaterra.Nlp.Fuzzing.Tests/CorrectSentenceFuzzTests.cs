@@ -11,7 +11,6 @@ using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Matching;
-using Vocaterra.Nlp.Language.Normalization;
 using Xunit.Abstractions;
 using MatchType = Vocaterra.Nlp.Core.Stages.MatchType;
 using SlotGrammarType = Vocaterra.Nlp.Language.SlotGrammar.SlotGrammar;

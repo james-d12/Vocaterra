@@ -1,6 +1,3 @@
-using Vocaterra.Nlp.Language.Lexicon;
-using Vocaterra.Nlp.Language.Morphology;
-
 namespace Vocaterra.Nlp.Es.Text;
 
 /// <summary>

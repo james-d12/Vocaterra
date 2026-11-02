@@ -6,7 +6,6 @@ using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
-using Vocaterra.Game.Core.Tip;
 
 namespace Vocaterra.Game.Core.Language.Lessons;
 

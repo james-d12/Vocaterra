@@ -1,7 +1,5 @@
 namespace Vocaterra.Nlp.Es.Tests.Lexicon;
 
-using Vocaterra.Nlp.Language.Lexicon;
-
 public class TextFoldingTests
 {
     [Theory]

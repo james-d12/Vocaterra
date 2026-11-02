@@ -14,12 +14,24 @@
     <InvariantGlobalization>false</InvariantGlobalization>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisLevel>latest</AnalysisLevel>
+    <!-- M77: IDE rules run in the build, so IDE0005 (unused using, set to warning in .editorconfig) fails -warnaserror. The compiler reports
+         IDE0005 only when the project generates its XML documentation file, so every project does (the core's src/ libraries already did, and
+         ship it). The group below mutes the XML-doc warnings for the others. -->
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <IsPackable>false</IsPackable>
     <!-- The core is the engine project Vocaterra.Nlp (src/Vocaterra.Nlp, ADR 0012), its tests and tools (Vocaterra.Nlp.*). MSBuild has no
          Or in a property value, so the engine's exact name is a second assignment. -->
     <VocaterraCore>$(MSBuildProjectName.StartsWith('Vocaterra.Nlp.'))</VocaterraCore>
     <VocaterraCore Condition="'$(MSBuildProjectName)' == 'Vocaterra.Nlp'">true</VocaterraCore>
+  </PropertyGroup>
+
+  <!-- The XML documentation file exists in the other projects (the game, the tools, every test project) only so that IDE0005 can report. Their
+       comments are not an API doc, so the XML-doc warnings are off: CS1591 (missing comment), CS1570 (badly formed XML), CS1573 (a missing param tag),
+       CS1574 and CS0419 (a cref that does not resolve). The core's src/ libraries keep all of them (CS1591 is off there too, as before). -->
+  <PropertyGroup Condition="'$(VocaterraCore)' != 'true' Or !$(MSBuildProjectDirectory.StartsWith('$(MSBuildThisFileDirectory)src$(MSBuildDirectorySeparatorChar)'))">
+    <NoWarn>$(NoWarn);CS1591;CS1570;CS1573;CS1574;CS0419</NoWarn>
   </PropertyGroup>
 
   <!-- The language core's own: its default namespace and the XML-doc warning switch. -->

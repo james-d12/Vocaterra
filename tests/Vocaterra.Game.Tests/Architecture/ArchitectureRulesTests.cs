@@ -1,5 +1,4 @@
 using Vocaterra.Game.Core.Tests.TestSupport;
-using Vocaterra.Game.Diagnostics;
 
 namespace Vocaterra.Game.Tests.Architecture;
 

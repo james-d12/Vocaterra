@@ -1,5 +1,3 @@
-using Vocaterra.Game.Core.Language.Book;
-
 namespace Vocaterra.Game.Core.Sound;
 
 /// <summary>The mixer's categories (S24, D-game-18): each has its own volume, and the mixer's rules (ducking, the microphone) apply by category.</summary>

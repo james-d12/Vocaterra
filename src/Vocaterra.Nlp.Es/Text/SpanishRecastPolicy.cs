@@ -1,8 +1,4 @@
-using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Es.Analysis;
-using Vocaterra.Nlp.Language.Analysis;
-using Vocaterra.Nlp.Language.Lexicon;
-using Vocaterra.Nlp.Language.Normalization;
 
 namespace Vocaterra.Nlp.Es.Text;
 

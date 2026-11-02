@@ -1,5 +1,4 @@
 using Vocaterra.Game.Core.Event;
-using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 
 namespace Vocaterra.Game.Core.Tests.Session;

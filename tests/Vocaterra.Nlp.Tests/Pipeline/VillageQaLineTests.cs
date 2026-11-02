@@ -1,6 +1,5 @@
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Verdicts;
-using Vocaterra.Nlp.Es.Text;
 
 namespace Vocaterra.Nlp.Pipeline.Tests;
 

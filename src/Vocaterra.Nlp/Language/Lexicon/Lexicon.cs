@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Text;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Language.Packs;

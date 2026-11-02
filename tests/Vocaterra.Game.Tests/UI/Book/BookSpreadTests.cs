@@ -1,6 +1,5 @@
 using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Learner;
-using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;

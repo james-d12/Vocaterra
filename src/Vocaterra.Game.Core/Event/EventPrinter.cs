@@ -1,5 +1,3 @@
-using Vocaterra.Game.Core.Event;
-
 namespace Vocaterra.Game.Core.Event;
 
 /// <summary>The game events since the last frame, one console line each (the phrase uses, the voice events, the world events) and the support lines an event adds.</summary>

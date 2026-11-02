@@ -1,6 +1,3 @@
-using Vocaterra.Nlp.Core.Stages;
-using Vocaterra.Nlp.Language.Lexicon;
-
 namespace Vocaterra.Nlp.Es.Text;
 
 /// <summary>

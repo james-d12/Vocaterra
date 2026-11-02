@@ -1,7 +1,6 @@
 using System.Globalization;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Language.Lessons;
-using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Save;

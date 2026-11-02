@@ -1,6 +1,3 @@
-using Vocaterra.Nlp.Core.Taxonomy;
-using Vocaterra.Nlp.Core.Verdicts;
-
 namespace Vocaterra.Nlp.Es.Tests.Phonology;
 
 /// <summary>Tests for the predicted English-speaker error variants.</summary>

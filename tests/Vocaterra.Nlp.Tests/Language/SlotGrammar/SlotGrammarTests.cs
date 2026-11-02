@@ -3,7 +3,6 @@ namespace Vocaterra.Nlp.Language.Tests.SlotGrammar;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Es.Tests.Analysis;
-using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
 
 public class SlotGrammarTests

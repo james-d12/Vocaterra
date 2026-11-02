@@ -1,5 +1,3 @@
-using Vocaterra.Game.Core.Language.Book;
-
 namespace Vocaterra.Game.Core.Scripted;
 
 /// <summary>The kinds of step of the scripted run: the body's steps and the talk steps.</summary>

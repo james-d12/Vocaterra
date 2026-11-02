@@ -1,4 +1,3 @@
-using System.Globalization;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;

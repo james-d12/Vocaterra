@@ -7,7 +7,6 @@ namespace Vocaterra.Nlp.Language.Intent;
 
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Embeddings;
-using Vocaterra.Nlp.Language.Normalization;
 using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
 
