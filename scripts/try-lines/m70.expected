@@ -1,7 +1,7 @@
 lesson-will-buy | manana compraré pan                        => state_action comm=True -
 lesson-will-buy | mañana compraré pan                        => state_action comm=True -
 lesson-will-sell | manana venderé fruta                       => state_action comm=True -
-villager-open  | manana venderé fruta                       => unknown comm=False -
+villager-open  | manana venderé fruta                       => state_action comm=True -
 villager-open  | el nino es pequeno                         => unknown comm=False -
 villager-open  | el niño es pequeño                         => unknown comm=False -
 villager-open  | buenos días senor                          => unknown comm=False -
@@ -11,7 +11,7 @@ villager-open  | tengo diez anos                            => unknown comm=Fals
 villager-open  | tengo diez años                            => unknown comm=False -
 villager-open  | tengo una pena                             => unknown comm=False -
 villager-open  | tengo una uña                              => unknown comm=False -
-villager-open  | el mono come fruta                         => unknown comm=False -
+villager-open  | el mono come fruta                         => state_action comm=True -
 villager-open  | el pan suena bien                          => unknown comm=False -
 lesson-bought  | compre dos panes                           => state_action comm=True -
 lesson-bought  | compré dos panes                           => state_action comm=True -
@@ -19,10 +19,10 @@ lesson-market  | compre tres manzanas                       => state_action comm
 lesson-luz-bought | luz compro pescado                         => state_action comm=True -
 lesson-luz-bought | luz compró pescado                         => state_action comm=True -
 lesson-mar-fished | mar pesco en el río                        => state_action comm=True -
-villager-open  | ayer compre pan                            => unknown comm=False -
-villager-open  | yo compro pan                              => unknown comm=False -
-villager-open  | ella compro pan                            => unknown comm=False conj.person=compra
-villager-open  | quiero que compre pan                      => unknown comm=False -
+villager-open  | ayer compre pan                            => state_action comm=True -
+villager-open  | yo compro pan                              => state_action comm=True -
+villager-open  | ella compro pan                            => state_action comm=True conj.person=compra
+villager-open  | quiero que compre pan                      => state_action comm=True -
 lesson-like-bread | yo gusto el pan                            => state_like comm=True conj.person=me gusta
 lesson-like-bread | me gusto el pan                            => state_like comm=True conj.person=gusta
 lesson-like-apples | me gusta las manzanas                      => state_like comm=True conj.person=gustan
@@ -52,8 +52,8 @@ villager-open  | ayer empezé a trabajar                     => unknown comm=Fal
 villager-open  | ayer pagé dos monedas                      => unknown comm=False conj.irregular=pagué
 villager-open  | ayer jugé en el río                        => unknown comm=False conj.irregular=jugué
 villager-open  | ayer tocé la puerta                        => unknown comm=False conj.irregular=toqué
-villager-open  | ayer busqué madera                         => ask_directions comm=True -
-villager-open  | ayer pesqué en el río                      => unknown comm=False -
+villager-open  | ayer busqué madera                         => state_action comm=True -
+villager-open  | ayer pesqué en el río                      => state_action comm=True -
 villager-open  | ayer llegué al río                         => unknown comm=False -
 villager-open  | ayer empecé a trabajar                     => unknown comm=False -
 villager-open  | ayer pagué dos monedas                     => unknown comm=False -

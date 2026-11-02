@@ -5,7 +5,7 @@ baker-open     | quiero dos panes por favor                 => request_item comm
 baker-open     | cuánto cuesta el pan                       => ask_price comm=True -
 baker-open     | cuánto cuestan los panes                   => ask_price comm=True -
 baker-open     | mañana compraré pan                        => state_action comm=True -
-baker-open     | tiene usted pan                            => unknown comm=False vocab.wrong
+baker-open     | tiene usted pan                            => state_have comm=True -
 baker-open     | puede usted vender pan                     => unknown comm=False vocab.wrong
 baker-open     | me gusta el pan                            => unknown comm=False vocab.wrong
 baker-open     | me gustan los panes                        => unknown comm=False vocab.wrong
@@ -14,21 +14,21 @@ baker-open     | usted hará pan mañana                      => state_action co
 baker-open     | luz hará pan                               => state_action comm=True -
 baker-open     | luz y mar compraron pan                    => state_action comm=True -
 baker-open     | ayer compré pan para luz                   => state_action comm=True -
-baker-open     | ustedes tienen pan                         => unknown comm=False vocab.wrong
+baker-open     | ustedes tienen pan                         => state_have comm=True -
 baker-open     | gracias luz                                => thank comm=True -
-baker-open     | tienes veinte panes                        => unknown comm=False vocab.wrong
-fisher-open    | luz compró pescado                         => unknown comm=False vocab.wrong
-fisher-open    | mar pescaste en el río                     => unknown comm=False vocab.wrong
+baker-open     | tienes veinte panes                        => state_have comm=True -
+fisher-open    | luz compró pescado                         => state_action comm=True -
+fisher-open    | mar pescaste en el río                     => state_action comm=True -
 fisher-open    | hola mar                                   => greet comm=True -
 fisher-open    | el mar es grande                           => unknown comm=False vocab.wrong
 fisher-open    | mar está en el río                         => unknown comm=False vocab.wrong
 fisher-open    | mañana vendrá mar                          => unknown comm=False vocab.wrong
 fisher-open    | el agua está fría                          => unknown comm=False vocab.wrong
 fisher-open    | el agua es buena                           => unknown comm=False vocab.wrong
-fisher-open    | nosotros fuimos al río                     => unknown comm=False vocab.wrong
-fisher-open    | ellos comieron pescado                     => unknown comm=False vocab.wrong
+fisher-open    | nosotros fuimos al río                     => state_action comm=True -
+fisher-open    | ellos comieron pescado                     => state_action comm=True -
 smith-open     | vendo madera                               => offer_item comm=True -
-smith-open     | tengo que ir al río                        => unknown comm=False vocab.wrong
+smith-open     | tengo que ir al río                        => state_obligation comm=True -
 smith-open     | domingo trabaja en la herrería             => state_action comm=True -
 smith-open     | domingo tengo madera                       => state_have comm=True -
 smith-open     | qué hace domingo                           => ask_activity comm=True -
@@ -57,10 +57,10 @@ villager-open  | hay dos panes                              => unknown comm=Fals
 villager-open  | cómo te llamas                             => unknown comm=False -
 villager-open  | cómo se llama usted                        => unknown comm=False -
 villager-open  | me llamo ana                               => unknown comm=False vocab.unknown
-villager-open  | qué compró luz                             => unknown comm=False -
-villager-open  | el domingo voy al mercado                  => unknown comm=False -
-villager-open  | vamos a ir al río                          => unknown comm=False -
-villager-open  | qué vas a hacer mañana                     => unknown comm=False -
-villager-open  | mañana iré al mercado                      => unknown comm=False -
+villager-open  | qué compró luz                             => state_action comm=True -
+villager-open  | el domingo voy al mercado                  => state_action comm=True -
+villager-open  | vamos a ir al río                          => state_action comm=True -
+villager-open  | qué vas a hacer mañana                     => state_action comm=True -
+villager-open  | mañana iré al mercado                      => state_action comm=True -
 villager-open  | estoy contento                             => unknown comm=False -
 villager-open  | mi casa es pequeña                         => unknown comm=False -
