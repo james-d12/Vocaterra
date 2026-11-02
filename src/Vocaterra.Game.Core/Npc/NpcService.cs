@@ -13,6 +13,7 @@ using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Learning;
 using Vocaterra.Nlp.Language.Intent;
+using Vocaterra.Nlp.Es.Text;
 using Vocaterra.Nlp.Pipeline;
 
 namespace Vocaterra.Game.Core.Npc;
@@ -690,49 +691,17 @@ public sealed partial class NpcService
         var followUp = new List<string>();
         var unsaid = AnswerMisses(agent, result, NpcEffect.CountedSlots(verdict.Slots, line), scene, scene.Facts ?? _worldFacts, now, hostStateHash, hostEvents, followUp);
         Note(agent, string.Empty, hostEvents); // after the misses: a gift the NPC refused (V21) is not an event of the turn
-        string? feedback = null;
-        var replies = new List<string>();
-        var acknowledgements = new List<bool>();
-        var recasted = false;
         var understood = verdict.Communicated && !string.Equals(verdict.Intent.Value, "unknown", StringComparison.Ordinal);
-        foreach (var responseLine in result.Response.Lines)
-        {
-            if (responseLine.IsRecast && !understood)
-            {
-                // V21 (QA-language-9): a line the NPC did not take for any intent gets only the retry; the recast's praise («Claro, «buscaré madera». Muy bien.») would say it was right.
-            }
-            else if (responseLine.IsRecast || responseLine.LineId.StartsWith(FeedbackLinePrefix, StringComparison.Ordinal))
-            {
-                recasted |= responseLine.IsRecast;
-                feedback ??= RecastNames.Capitalise(responseLine.Text, _names); // the core writes the learner's words in lower case: «buscaré madera para Luz» (V20)
-            }
-            else if (holdsBottle && hostEvents.Contains(NpcHostEvents.GiveWater, StringComparer.Ordinal)
-                && responseLine.LineId.StartsWith("shop_give.", StringComparison.Ordinal))
-            {
-                // The shopkeeper's line gives the bottle; the player has it already, so nothing is given and the line is not said.
-            }
-            else if (unsaid.Any(pool => responseLine.LineId.StartsWith(pool + ".", StringComparison.Ordinal)))
-            {
-                // The line of an action the world cannot do (VILLAGE_PLAN V02: "Mira, está allí." for a place there is not); the NPC's answer to the miss follows.
-            }
-            else
-            {
-                replies.Add(responseLine.Text);
-                acknowledgements.Add(IsAcknowledgement(responseLine.LineId));
-            }
-        }
-
-        if (recasted)
-        {
-            // V21: a recast's praise («Sí, «compré tres manzanas». ¡Muy bien!») and the NPC's bare acknowledgement («¡Qué bien!») are one reply twice: the recast stays.
-            for (var i = replies.Count - 1; i >= 0; i--)
-            {
-                if (acknowledgements[i])
-                {
-                    replies.RemoveAt(i);
-                }
-            }
-        }
+        var composed = NpcTurnRules.Compose(
+            result,
+            understood,
+            unsaid,
+            _names,
+            lineId => holdsBottle && hostEvents.Contains(NpcHostEvents.GiveWater, StringComparer.Ordinal) && lineId.StartsWith("shop_give.", StringComparison.Ordinal), // the player has the bottle already: nothing is given and the line is not said
+            agent.Npc.FreeTalkPools,
+            scene.PromptOverride is null);
+        var feedback = composed.Feedback;
+        var replies = composed.Replies.ToList();
 
         var failForward = false;
 
@@ -772,8 +741,14 @@ public sealed partial class NpcService
             failForward,
             choices,
             uncertain,
-            origin == LineOrigin.Choice);
+            origin == LineOrigin.Choice)
+        {
+            AccentNotes = AccentNotesOf(result),
+        };
     }
+
+    // The core's notes on verbs typed without the accent of their tense (M70), worded by the Spanish pack: «compré», con tilde: es pasado.
+    internal static IReadOnlyList<string> AccentNotesOf(PipelineResult result) => [.. (result.Notes ?? []).Select(SpanishAccentNotes.Describe)];
 
     // The host events of a turn that the world of the turn cannot carry out, judged on the turn's own copy of the world, as the guide's answers are (VILLAGE_PLAN
     // V02: directions to a place the scene does not have; V03: a purchase the coins the player carried do not cover; V15, V19: another item, none, no room). Each is
@@ -790,49 +765,25 @@ public sealed partial class NpcService
         List<string> hostEvents,
         List<string> followUp)
     {
-        var unsaid = new List<string>();
-        foreach (var action in result.Decision.Agent?.Actions ?? [])
-        {
-            if (action.HostEvent is not { } hostEvent || Miss(_hostEvents.Of(agent.Id, hostEvent), slots, scene, facts) is not { } found)
+        var answers = NpcTurnRules.AnswerMisses(
+            agent.Id,
+            result,
+            _hostEvents,
+            _typed,
+            agent.Context,
+            now,
+            hostStateHash,
+            scene.OrderHeld,
+            effect => Miss(effect, slots, scene, facts),
+            hostEvents,
+            (miss, turn, before) =>
             {
-                continue;
-            }
-
-            var miss = found;
-            var before = agent.Context;
-            if (scene.OrderHeld && string.Equals(miss, NpcHostEvents.CantPay, StringComparison.Ordinal))
-            {
-                miss = NpcHostEvents.CantPayWait; // V21: the coins are short because a lesson keeps back the order that pays; an agent that cannot say so says cant_pay
-            }
-
-            var turn = _typed.Advance(NpcHostEvents.Of(agent.Id, miss), before);
-            if (turn is null && string.Equals(miss, NpcHostEvents.CantPayWait, StringComparison.Ordinal))
-            {
-                miss = NpcHostEvents.CantPay;
-                turn = _typed.Advance(NpcHostEvents.Of(agent.Id, miss), before);
-            }
-
-            if (turn is null)
-            {
-                continue;
-            }
-
-            Record(new ReplayEntry(null, HostTurnEnvelope.From(turn, before)));
-            agent.Context = before.Next(turn, now) with { HostStateHash = hostStateHash };
-            var events = HostEventsOf(turn.Agent.Actions);
-            Note(agent, NpcHostEvents.Of(agent.Id, miss), events);
-            followUp.AddRange(turn.Response.Lines.Select(static l => l.Text));
-            hostEvents.AddRange(events);
-            unsaid.Add(action.DialogueIntent); // a pool is its dialogue intent's (every agent of the bundle names them alike)
-            if (_hostEvents.Of(agent.Id, hostEvent).Kind == NpcEffectKind.GiveItem)
-            {
-                hostEvents.Remove(hostEvent); // V21: the gift the NPC refused is not made (the sales' misses are held back by the session)
-                var after = (result.Decision.Agent?.Actions ?? []).SkipWhile(a => a != action).Skip(1);
-                unsaid.AddRange(after.Select(static a => a.DialogueIntent)); // and what the NPC would have said next ("¿Quieres pan?" after the bottle)
-            }
-        }
-
-        return unsaid;
+                Record(new ReplayEntry(null, HostTurnEnvelope.From(turn, before)));
+                Note(agent, NpcHostEvents.Of(agent.Id, miss), HostEventsOf(turn.Agent.Actions));
+            });
+        agent.Context = answers.Context;
+        followUp.AddRange(answers.Lines);
+        return answers.Unsaid.ToList();
     }
 
     // What the world of the turn cannot do of an action, as the host event its NPC answers (NpcHostEvents.UnknownPlace; a purchase's or a sale's miss, NpcEffect.ExchangeMiss:
@@ -844,10 +795,6 @@ public sealed partial class NpcService
         NpcEffectKind.Sell or NpcEffectKind.Buy or NpcEffectKind.GiveItem => effect.ExchangeMiss(slots, scene.Inventory, _nouns),
         _ => null,
     };
-
-    // Whether a line of the agent is a bare acknowledgement (V20's free-talk replies: «¡Qué bien!», «Muy bien»): the answer_accepted pool and each NPC's <npc>_nice.
-    private static bool IsAcknowledgement(string lineId) =>
-        lineId.StartsWith("answer_accepted.", StringComparison.Ordinal) || System.Text.RegularExpressions.Regex.IsMatch(lineId, @"^[a-z]+_nice\.\d+$");
 
     // The stall's fail-forward (rule 8). After a line at the stall that did not ask for anything (the repair ladder's next step, a help request, a
     // thanks), count it; when the exchange has run out of road the shopkeeper hands the bottle over with the core's own line, as a host turn.

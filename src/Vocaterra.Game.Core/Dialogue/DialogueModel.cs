@@ -557,6 +557,11 @@ public sealed class DialogueModel
             }
         }
 
+        foreach (var note in turn.AccentNotes)
+        {
+            Add(DialogueSpeaker.Accent, note); // under the reply: the accent the learner left out (M70)
+        }
+
         if (_locale is not null)
         {
             foreach (var line in _locale.FeedbackFor(turn))

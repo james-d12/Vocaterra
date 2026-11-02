@@ -1,6 +1,7 @@
 using System.Globalization;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Nlp.Core.Prompts;
+using Vocaterra.Nlp.Es.Text;
 using Vocaterra.Nlp.Pipeline;
 
 namespace Vocaterra.Host;
@@ -54,18 +55,36 @@ public static class VerdictReport
                 $"  effect {effect.EffectId} {effect.Kind} {Format(effect.Value)}"));
         }
 
-        foreach (var line in result.Response.Lines)
+        if (exchange is null)
         {
-            if (exchange is null || !exchange.Unsaid.Any(pool => line.LineId.StartsWith(pool + ".", StringComparison.Ordinal)))
+            foreach (var line in result.Response.Lines)
             {
                 var correction = line.IsRecast || line.LineId.StartsWith(FeedbackLinePrefix, StringComparison.Ordinal);
                 output.WriteLine($"  agent: {(correction && names is not null ? RecastNames.Capitalise(line.Text, names) : line.Text)}");
             }
         }
-
-        foreach (var text in exchange?.Lines ?? [])
+        else
         {
-            output.WriteLine($"  agent: {text}");
+            // The game's reply (NpcTurnRules, V21b): the NPC's lines, the one correction, then the NPC's answers to what the world could not do.
+            foreach (var text in exchange.Replies)
+            {
+                output.WriteLine($"  agent: {text}");
+            }
+
+            if (exchange.Feedback is { } feedback)
+            {
+                output.WriteLine($"  agent: {feedback}");
+            }
+
+            foreach (var text in exchange.Lines)
+            {
+                output.WriteLine($"  agent: {text}");
+            }
+        }
+
+        foreach (var note in result.Notes ?? [])
+        {
+            output.WriteLine($"  note: {SpanishAccentNotes.Describe(note)}"); // M70: the accent the learner left out, accepted with no deduction
         }
 
         if (result.Repair is { } repair)

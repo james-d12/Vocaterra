@@ -240,7 +240,7 @@ public sealed class DialoguePanel : IFrameLayer
             {
                 DialogueSpeaker.Player or DialogueSpeaker.PlayerSpoken => PlayerColor,
                 DialogueSpeaker.Note => NoteColor,
-                DialogueSpeaker.Correction => CorrectionColor,
+                DialogueSpeaker.Correction or DialogueSpeaker.Accent => CorrectionColor,
                 DialogueSpeaker.World => WorldColor,
                 DialogueSpeaker.Hint => HintColor,
                 DialogueSpeaker.English => EnglishColor,

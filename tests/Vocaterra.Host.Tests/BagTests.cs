@@ -35,7 +35,7 @@ public sealed class BagTests
         var asBefore = Said("hola, quiero dos panes", "baker-open", null, out var none);
         var broke = Said("hola, quiero dos panes", "baker-open", Bag(), out var exchange);
 
-        Assert.Null(none);
+        Assert.Empty(none!.Lines); // no bag: nothing the bag could miss (the report is the game's reply, V21b)
         Assert.NotNull(exchange);
         var saleLine = Assert.Single(asBefore.Split('\n'), static l => l.StartsWith("  agent:", StringComparison.Ordinal) && !l.Contains("Hola", StringComparison.Ordinal));
         Assert.DoesNotContain(saleLine, broke.Split('\n'));
@@ -48,7 +48,7 @@ public sealed class BagTests
         var asBefore = Said("hola, quiero dos panes", "baker-open", null, out _);
         var paid = Said("hola, quiero dos panes", "baker-open", Bag((ItemId.Coin, 4)), out var exchange);
 
-        Assert.Null(exchange);
+        Assert.Empty(exchange!.Lines);
         Assert.Equal(asBefore, paid);
     }
 
@@ -60,7 +60,7 @@ public sealed class BagTests
 
         Assert.NotNull(empty);
         Assert.Equal(["No tienes madera."], empty.Lines);
-        Assert.Null(held);
+        Assert.Empty(held!.Lines);
     }
 
     [Theory]
