@@ -161,7 +161,7 @@ public static class SaveGame
             session.Words.Records.Values.OrderBy(static record => record.Lemma, StringComparer.Ordinal).Select(WordSaveOf).ToArray(),
             session.PhraseProgress.Records.Select(PhraseSaveOf).ToArray(),
             session.CardedLemmas(),
-            session.KeyWordsTaughtBy.Count > 0,
+            session.KeyWordsTaughtBy.Contains(NpcService.ShopkeeperAgent), // V30: the old flag is the shopkeeper's, as older builds and this reader take it
             session.RiverPointedState,
             session.Pointer is { Quiz: false } pointer ? new PointerSave(pointer.Place, pointer.Target) : null,
             session.DeferredSkills.Select(static step => new DeferredSkillSave(step.Npc, step.Skill)).ToArray(),
