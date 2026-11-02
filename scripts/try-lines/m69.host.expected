@@ -1,13 +1,13 @@
-villager-open  | son cerca                                  => unknown comm=False -
-villager-open  | son lejos                                  => unknown comm=False -
-villager-open  | la tienda es en el pueblo                  => unknown comm=False -
-villager-open  | la herrería es en la plaza                 => unknown comm=False -
-villager-open  | mi casa es en el pueblo                    => unknown comm=False -
-villager-open  | el pan es en la tienda                     => unknown comm=False -
-villager-open  | ella es en la tienda                       => unknown comm=False -
-villager-open  | la tienda era en el pueblo                 => unknown comm=False -
-villager-open  | yo soy en casa                             => unknown comm=False -
-villager-open  | los niños son en el río                    => unknown comm=False -
+villager-open  | son cerca                                  => unknown comm=False ser_estar=están
+villager-open  | son lejos                                  => unknown comm=False ser_estar=están
+villager-open  | la tienda es en el pueblo                  => unknown comm=False ser_estar=está
+villager-open  | la herrería es en la plaza                 => unknown comm=False ser_estar=está
+villager-open  | mi casa es en el pueblo                    => unknown comm=False ser_estar=está
+villager-open  | el pan es en la tienda                     => unknown comm=False ser_estar=está
+villager-open  | ella es en la tienda                       => unknown comm=False ser_estar=está
+villager-open  | la tienda era en el pueblo                 => unknown comm=False ser_estar=estaba
+villager-open  | yo soy en casa                             => unknown comm=False ser_estar=estoy
+villager-open  | los niños son en el río                    => unknown comm=False ser_estar=están
 villager-open  | la tienda está en el pueblo                => unknown comm=False -
 villager-open  | la herrería está en la plaza               => unknown comm=False -
 villager-open  | mi casa está cerca del río                 => unknown comm=False -
@@ -28,13 +28,13 @@ villager-open  | la casa es de luz                          => unknown comm=Fals
 villager-open  | esta casa es de madera                     => unknown comm=False -
 villager-open  | la tienda es grande                        => unknown comm=False -
 villager-open  | la clase es mañana                         => unknown comm=False -
-villager-open  | ¿dónde estás yo?                           => unknown comm=False -
-villager-open  | ¿dónde está tú?                            => unknown comm=False -
-villager-open  | ¿cómo está tú?                             => unknown comm=False -
-villager-open  | ¿cómo estás usted?                         => unknown comm=False -
-villager-open  | ¿qué quiere tú?                            => unknown comm=False -
-villager-open  | ¿dónde estás la herrería?                  => ask_directions comm=True -
-farmer-open    | ¿cuánto cuestas el pan?                    => ask_price comm=True -
+villager-open  | ¿dónde estás yo?                           => unknown comm=False conj.person=estoy
+villager-open  | ¿dónde está tú?                            => unknown comm=False conj.person=estás
+villager-open  | ¿cómo está tú?                             => unknown comm=False conj.person=estás
+villager-open  | ¿cómo estás usted?                         => unknown comm=False conj.person=está
+villager-open  | ¿qué quiere tú?                            => unknown comm=False conj.person=quieres
+villager-open  | ¿dónde estás la herrería?                  => ask_directions comm=True conj.person=está
+farmer-open    | ¿cuánto cuestas el pan?                    => ask_price comm=True conj.person=cuesta
 villager-open  | ¿dónde estás tú?                           => unknown comm=False -
 villager-open  | ¿cómo está usted?                          => unknown comm=False -
 villager-open  | ¿qué quieres tú?                           => unknown comm=False -
@@ -50,14 +50,14 @@ villager-open  | ¿cómo es tu casa?                          => unknown comm=Fa
 villager-open  | me gustas tú                               => unknown comm=False -
 villager-open  | ¿dónde está la herrería?                   => ask_directions comm=True -
 farmer-open    | ¿cuánto cuesta el pan?                     => ask_price comm=True -
-villager-open  | yo podo ir al río                          => state_action comm=True -
-villager-open  | no podo ir                                 => state_action comm=True -
-villager-open  | tú podes venir                             => unknown comm=False -
-villager-open  | él pode venir mañana                       => unknown comm=False -
-villager-open  | yo esto cansado                            => unknown comm=False -
-villager-open  | esto cansado                               => unknown comm=False -
-villager-open  | yo esto en casa                            => unknown comm=False -
-villager-open  | yo esto bien                               => unknown comm=False -
+villager-open  | yo podo ir al río                          => state_action comm=True conj.irregular=puedo
+villager-open  | no podo ir                                 => state_action comm=True conj.irregular=puedo
+villager-open  | tú podes venir                             => unknown comm=False conj.irregular=puedes
+villager-open  | él pode venir mañana                       => unknown comm=False conj.irregular=puede
+villager-open  | yo esto cansado                            => unknown comm=False conj.irregular=estoy
+villager-open  | esto cansado                               => unknown comm=False conj.irregular=estoy
+villager-open  | yo esto en casa                            => unknown comm=False conj.irregular=estoy
+villager-open  | yo esto bien                               => unknown comm=False conj.irregular=estoy
 villager-open  | yo podo el árbol                           => unknown comm=False -
 villager-open  | yo puedo ir al río                         => state_action comm=True -
 villager-open  | no puedo ir                                => state_action comm=True -
@@ -71,15 +71,15 @@ villager-open  | esto no me gusta                           => unknown comm=Fals
 villager-open  | yo esto no lo sé                           => unknown comm=False -
 villager-open  | esto también                               => unknown comm=False -
 villager-open  | esto de aquí es pan                        => unknown comm=False -
-villager-open  | él es alta                                 => unknown comm=False -
-villager-open  | ella es bonito                             => unknown comm=False -
-villager-open  | la casa es bonito                          => unknown comm=False -
-villager-open  | luz son alta                               => unknown comm=False -
-villager-open  | pan son caro                               => unknown comm=False -
-villager-open  | la casa de los niños es bonito             => unknown comm=False -
-villager-open  | la casa de los niños es pequeño            => unknown comm=False -
-villager-open  | la casa de luz es bonito                   => unknown comm=False -
-villager-open  | el pan de la tienda es buena               => unknown comm=False -
+villager-open  | él es alta                                 => unknown comm=False gender.agree=alto
+villager-open  | ella es bonito                             => unknown comm=False gender.agree=bonita
+villager-open  | la casa es bonito                          => unknown comm=False gender.agree=bonita
+villager-open  | luz son alta                               => unknown comm=False conj.person=es
+villager-open  | pan son caro                               => unknown comm=False conj.person=es
+villager-open  | la casa de los niños es bonito             => unknown comm=False gender.agree=bonita
+villager-open  | la casa de los niños es pequeño            => unknown comm=False gender.agree=pequeña
+villager-open  | la casa de luz es bonito                   => unknown comm=False gender.agree=bonita
+villager-open  | el pan de la tienda es buena               => unknown comm=False gender.agree=bueno
 villager-open  | él es alto                                 => unknown comm=False -
 villager-open  | ella es alta                               => unknown comm=False -
 villager-open  | ella es bonita                             => unknown comm=False -
@@ -96,11 +96,11 @@ villager-open  | luz es alta                                => unknown comm=Fals
 villager-open  | domingo es alto                            => unknown comm=False -
 villager-open  | ellas son bonitas                          => unknown comm=False -
 villager-open  | es cara la manzana                         => unknown comm=False -
-farmer-open    | cuanto son todo?                           => ask_total comm=True -
-farmer-open    | cuanto son todo                            => ask_total comm=True -
-farmer-open    | cuántos cuestan todo                       => ask_total comm=True -
-farmer-open    | cuántas cuestan todo                       => ask_total comm=True -
-farmer-open    | ¿cuántos son todo?                         => ask_total comm=True vocab.wrong noun.number=sones
+farmer-open    | cuanto son todo?                           => ask_total comm=True conj.person=es
+farmer-open    | cuanto son todo                            => ask_total comm=True conj.person=es
+farmer-open    | cuántos cuestan todo                       => ask_total comm=True noun.number=cuánto conj.person=cuesta
+farmer-open    | cuántas cuestan todo                       => ask_total comm=True gender.agree=cuánto noun.number=cuánto conj.person=cuesta
+farmer-open    | ¿cuántos son todo?                         => ask_total comm=True vocab.wrong noun.number=cuánto conj.person=es
 farmer-open    | ¿cuánto cuesta todo?                       => ask_total comm=True -
 farmer-open    | cuánto es todo                             => ask_total comm=True -
 farmer-open    | cuanto cuesta el pan                       => ask_price comm=True -
@@ -108,7 +108,7 @@ farmer-open    | cuanto es todo                             => ask_total comm=Tr
 farmer-open    | ¿cuánto cuestan las manzanas?              => ask_price comm=True -
 farmer-open    | ¿cuántas manzanas quieres?                 => unknown comm=False vocab.wrong
 farmer-open    | ¿cuántos panes tienes?                     => unknown comm=False vocab.wrong
-farmer-open    | ¿cuántos son?                              => ask_price comm=True noun.number=sones
+farmer-open    | ¿cuántos son?                              => ask_price comm=True -
 villager-open  | buenas tardes                              => greet comm=True -
 villager-open  | hola buenas tardes                         => greet comm=True -
 villager-open  | buenos días                                => greet comm=True -
