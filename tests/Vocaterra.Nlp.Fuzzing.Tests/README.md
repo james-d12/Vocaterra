@@ -432,7 +432,11 @@ phrase after the adjectives and the copula's number), since whether a phrase ope
 before it), and a word that can be an adjective and a noun right after the noun of a phrase with a determiner that it agrees with, which the analyzer reads as that
 noun's adjective (`skip:noun-reads-as-adjective`; a word that can also be a finite verb is left alone by both), and a noun that is also something else right after
 `muy` or `tan`, where the analyzer reads no noun (`skip:noun-after-degree-adverb`). The colours are read from the Spanish pack's public rules (`IAnalysisRules.IsPostnominalAdjective`), not mirrored. The sentence stream digest of
-`FuzzLanguageStreamTests` was recorded again for these changes.
+`FuzzLanguageStreamTests` was recorded again for these changes. M73 re-rolls three more draws that a reader and the analyzer take another way (the stream digest did
+not move): `noun-reads-as-adjective` also past the adjectives of the head (`la joya unida rica`), a noun that is also a finite form of a copula right after a noun
+(past its adjectives) and before a word that can be an adjective or a preposition (`skip:copula-homograph`: `estómago son vencido` reads "the stomach are beaten"), and
+a word drawn for one alternative of a group that a one-element alternative before it, of another class and with another slot, also takes, since the matcher keeps the
+first of the parses that tie (`skip:alternative-homograph`: `suyo` for `[ADJ:item]` in `([PRON]|[VERB]|[ADJ:item])` is the pronoun and fills no slot).
 
 M64 (the review of `feature/village`, R1) made the analyzer read a subject pronoun joined by `y` or `e` to members before it that open their clause as the end of one
 plural subject (`luz y yo fuimos`, `tú y ella son`), so the realiser models it where it can tell what the analyzer reads, a widening of O3, O4 and O5: before M64 it agreed
@@ -490,8 +494,8 @@ sentence after every attempt):
 
 No reason is above 5 %, so the test names no budget of its own; the largest is `accent-variant-homograph`, 4.2 % of O3's draws, each made good by a later attempt.
 The other reasons the realiser has (`coordinated-subject`, `ser-of-place`, `predicate-subject`, `time-marker-of-generated-words`, `past-marker-without-preterite`,
-`modal-complement-homograph` and `noun-reads-as-verb` (M66),
-`no-adjective-form` and the rest) took no draw from these seeds; `CoordinatedSubjectFuzzTests` draws the coordinated subjects on purpose.
+`modal-complement-homograph` and `noun-reads-as-verb` (M66), `copula-homograph` (M73),
+`no-adjective-form` and the rest) took no draw from these seeds (M73's `alternative-homograph` took 0.03 % of the mutations' draws and none of O3's); `CoordinatedSubjectFuzzTests` draws the coordinated subjects on purpose.
 
 ### How the stage-2 generators stay honest
 
@@ -786,6 +790,27 @@ Found and fixed in M69:
 
 Found and fixed in M73 (M72's and V27's findings, and the recorded word-order family):
 
+- **O5, the realiser drew the noun `son` where it is the copula** (the realiser, a generator fix and not a narrowing; V27's run without models, CsCheck seed
+  `26dVDqElv1l2`, `MutationCase { Kind = GenderAdjective, Seed = 671827055 }`). The random pattern `([NOUN:item] [NOUN:qty]|[NOUN:spell]|[NOUN:thing] [PRON]) [NOUN:who]
+  [ADJ]` gave `estómago son vencido`, with `son` (a tune) drawn for `[NOUN:who]`; the analyzer reads `son` right after a lone noun and before an adjective as `ser`
+  (M69's rule for `luz son alta`, which runs before the grammar's binding and wins over it), so the sentence gives `conj.person` `es`, and the gender mutation's recast
+  was `estómago es vencida`. A reader takes it the same way ("the stomach are beaten"; the noun reading, "stomach, tune, beaten", is no sentence), so the analysis is
+  right and the draw was not: a noun that is also a finite form of a copula, right after a noun past its adjectives and before a word that can be an adjective or a
+  preposition, is re-rolled (`skip:copula-homograph`), as M62b re-rolls a name the analyzer reads as a noun. Regression: `HomographRerollTests` (the case, and why).
+- **O4, a `word_order` mutation that broke the match where the grammar decided a reading** (the realiser, a generator fix; M65's CsCheck seed `8yc522XLB_W2`,
+  `MutationCase { Kind = WordOrder, Seed = 670401880765 }`, recorded until M73). The random pattern `([ART] [NOUN:item]|[VERB]|[VERB:encargar]) [ADJ] [NOUN:qty]?
+  ([VERB:desfilar:spell] [ADJ]|[ART])?` gave `la joya unida rica desfilaron perdido`, with `rica` drawn as the noun `[NOUN:qty]` past the adjective of `joya`. A
+  reader takes `rica` as `joya`'s second adjective, and then the verb disagrees with the phrase; the grammar's binding hid it, and the mutation `la unida joya rica`
+  broke the match and put `rica` right after the noun, where the analyzer reads it so (`conj.person` `desfiló` beside the expected `word_order`). M62's
+  `skip:noun-reads-as-adjective` now looks past the head's adjectives. The seed no longer replays the case on M73's suite (the draws had moved before); the case was
+  checked with its pattern and text. Regression: `HomographRerollTests`.
+- **O3, a slot the grammar does not yield** (the realiser, a generator fix; M72's CsCheck seed `92moRWz9NQ54`). The random pattern `[VERB:largar]
+  ([PRON]|[VERB]|[ADJ:item]) [VERB]? [VERB:deportar] [PRON]?` gave `largáis suyo involucras deportar les`, with `suyo` drawn for `[ADJ:item]`. `suyo` is also a
+  pronoun, so `[PRON]` takes it too; the parses tie, and the matcher keeps the first found (its documented rule), which fills no slot. The analysis is clean and the
+  matcher follows its rule; the realiser's expected slots were wrong. A word drawn for one alternative of a group that a one-element alternative before it, of another
+  class and with another slot, also takes is re-rolled (`skip:alternative-homograph`; two elements of one class are already the oracle's ambiguous slots).
+  Regression: `HomographRerollTests`.
+
 - **O2, two `conj.person` on one word** (`Vocaterra.Nlp.Es`, `SpanishAgreementChecker.CheckPostverbalSubject`; CsCheck seed `7HIoK0InC7l7`, M72's runs; older than
   M72). `Nosotros Adonde Estaría Nenas En El Fecha`, analyzed with no grammar, gave `conj.person` `estaríamos` and `estarían` on `estaría`: the person check took
   `nosotros` as the subject of the verb past the unaccented `adonde` (an adverb, skipped), and the check of a subject after its verb (M56, M69) took `nenas` as a
@@ -882,7 +907,14 @@ them explicitly (each is a skip or a restriction in the generator, counted in th
   `novecientos cincuenta y tres mil quinientos cincuenta oscuridades mojadas`; the mutation makes `mojadas oscuridades`, which `[WORD] [NOUN]` binds as a name and a
   noun, and the recast keeps the slip. No code of M72 reads it (the analyzer, the grammar matcher and the recast are unchanged); it reproduces with the seed alone,
   is left recorded with the family, and the run was made again once.
-- **Found at M65, older than M65, and left for a decision** (a run of O4 after M65's last build; none of M65's four runs of the project met it, and it fails the
+  **M73 (the owner, 2026-11-02: fixed at the source where the analysis or the recast is wrong, never narrowed): left recorded, the cause confirmed.** In each case the
+  mutated sentence matches the grammar with the moved adjective bound by `[WORD]` (`necesaria militar`: `item=necesaria`; `el fantástico pete …`:
+  `qty=fantástico`; `953550 mojadas oscuridades`: `[WORD] [NOUN]`), a parse the grammar names and that is correct under it, so the analyzer rightly reports
+  nothing, and the recast rightly keeps the words. Neither is wrong: a `[WORD]` slot takes any word of letters by design, and a lexicon adjective can be a name
+  (`Clara`, `Blanca`), so refusing it would flag correct Spanish (`me llamo Clara`). The original sentences are correct under any reading, so no re-roll of the
+  realiser applies; the only fix is to leave out such a mutation (a narrowing). `2tpLGUOSqj41` and `fSMdah3kOSd7` no longer replay their cases on M73's suite (the
+  draws moved), checked with their patterns and texts; `3-VvCuMLFEA2` replays.
+- **Found at M65, older than M65; fixed in M73** ("Found and fixed in M73" above; a run of O4 after M65's last build; none of M65's four runs of the project met it, and it fails the
   same way on the suite before M65: the build of `feature/village-followups` at `1ff8a5a`, whose core, fuzz suite and bundle are those of `9dfa08b`). *O4, a
   `word_order` mutation that breaks the match where the grammar decided a reading* (CsCheck seed `8yc522XLB_W2`, `MutationCase { Kind = WordOrder, Seed =
   670401880765 }`): the random pattern `([ART] [NOUN:item]|[VERB]|[VERB:encargar]) [ADJ] [NOUN:qty]? ([VERB:desfilar:spell] [ADJ]|[ART])?` gives `la joya unida rica
@@ -907,8 +939,8 @@ them explicitly (each is a skip or a restriction in the generator, counted in th
 - **Found at M72, older than M72; fixed in M73** ("Found and fixed in M73" above). *O2, two errors with one tag on one span* (CsCheck seed `7HIoK0InC7l7`):
   `Nosotros Adonde Estaría Nenas En El Fecha`, analyzed with no grammar, gave `conj.person` twice on `estaría`, expected `estaríamos` (against `nosotros`) and
   `estarían` (against `nenas`, read as a subject after its verb, M69's check). The analyzer promises one error per tag and span; it gives the one now.
-- **Found at M72, older than M72, and left for a core milestone** (M72's second run at five times the default depth; the analyzer and the grammar matcher are
-  unchanged by M72). *O3, a slot the grammar does not yield* (CsCheck seed `92moRWz9NQ54`): the random pattern `[VERB:largar] ([PRON]|[VERB]|[ADJ:item]) [VERB]?
+- **Found at M72, older than M72; fixed in M73** ("Found and fixed in M73" above; M72's second run at five times the default depth). *O3, a slot the grammar
+  does not yield* (CsCheck seed `92moRWz9NQ54`): the random pattern `[VERB:largar] ([PRON]|[VERB]|[ADJ:item]) [VERB]?
   [VERB:deportar] [PRON]?` gives `largáis suyo involucras deportar les`, built with `suyo` as `[ADJ:item]`; the analysis with that grammar yields no `item`. It
   reproduces with the seed alone.
 - **Found at M72 by O3's verdict leg; M67's rule, kept by the owner's choice** (the third of M72's runs at the default depth, CsCheck seed `3omMnHLFpnr3`). The
