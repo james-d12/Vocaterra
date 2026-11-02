@@ -9,7 +9,6 @@ using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Decision.Learning;
 using Vocaterra.Nlp.Es.Normalization;
-using Vocaterra.Nlp.Language.Normalization;
 using Vocaterra.Nlp.Pipeline;
 
 namespace Vocaterra.Game.Core.Tests.Language.Words;

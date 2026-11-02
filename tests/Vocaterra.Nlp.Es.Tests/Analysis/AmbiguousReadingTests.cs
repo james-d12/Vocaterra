@@ -4,7 +4,6 @@ using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
-using Vocaterra.Nlp.Language.Packs;
 
 /// <summary>
 /// Regression tests for the analyzer on words that have several readings, which an imported lexicon makes common: an imperative that is spelled like the

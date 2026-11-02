@@ -1,6 +1,3 @@
-using Vocaterra.Nlp.Core.Stages;
-using Vocaterra.Nlp.Core.Verdicts;
-
 namespace Vocaterra.Nlp.Es.Phonology;
 
 /// <summary>The phonology of one word before the cross-word allophone pass.</summary>

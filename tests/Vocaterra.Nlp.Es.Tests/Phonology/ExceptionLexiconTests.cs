@@ -1,5 +1,3 @@
-using Vocaterra.Nlp.Core.Verdicts;
-
 namespace Vocaterra.Nlp.Es.Tests.Phonology;
 
 /// <summary>Tests for the exception lexicon and its integration into the pipeline.</summary>

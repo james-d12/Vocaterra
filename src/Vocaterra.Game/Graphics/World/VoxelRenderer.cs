@@ -4,7 +4,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Diagnostics;
-using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Graphics.Blocks;
 using Vocaterra.Game.Graphics.Camera;
 using Vocaterra.Game.Graphics.Figures;

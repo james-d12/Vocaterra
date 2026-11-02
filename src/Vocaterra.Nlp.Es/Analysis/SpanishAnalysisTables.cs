@@ -1,7 +1,5 @@
 using System.Collections.Frozen;
 
-using Vocaterra.Nlp.Language.Lexicon;
-
 namespace Vocaterra.Nlp.Es.Analysis;
 
 /// <summary>Small hand-written Spanish word tables used by the Spanish analysis rules (M34: moved into the Spanish pack; the shared analysis reaches them through <see cref="IAnalysisRules"/>).</summary>

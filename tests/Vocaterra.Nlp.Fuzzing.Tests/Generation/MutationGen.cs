@@ -7,7 +7,6 @@ using Vocaterra.Nlp.Es.Analysis;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Morphology;
-using Vocaterra.Nlp.Language.Normalization;
 using SlotGrammarType = Vocaterra.Nlp.Language.SlotGrammar.SlotGrammar;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests.Generation;

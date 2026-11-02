@@ -1,4 +1,3 @@
-using Vocaterra.Game.Graphics.World;
 using Vocaterra.Game.UI.Common;
 
 namespace Vocaterra.Game.UI.Overlays;

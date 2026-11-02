@@ -1,6 +1,5 @@
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Language.Speech;
-using Vocaterra.Game.Graphics.World;
 using Vocaterra.Game.UI.Common;
 
 namespace Vocaterra.Game.UI.Checks;

@@ -1,4 +1,3 @@
-using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Words;
 
 namespace Vocaterra.Game.Core.Items.Crafting;

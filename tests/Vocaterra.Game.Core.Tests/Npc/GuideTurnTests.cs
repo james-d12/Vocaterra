@@ -7,7 +7,6 @@ using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Nlp.Es.Normalization;
 using Vocaterra.Nlp.Language.Intent;
-using Vocaterra.Nlp.Language.Normalization;
 using Xunit.Abstractions;
 
 namespace Vocaterra.Game.Core.Tests.Npc;

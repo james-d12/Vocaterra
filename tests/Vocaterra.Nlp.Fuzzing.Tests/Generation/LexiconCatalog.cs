@@ -1,13 +1,10 @@
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
-using Vocaterra.Nlp.Es;
 using Vocaterra.Nlp.Es.Analysis;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Matching;
-using Vocaterra.Nlp.Language.Morphology;
-using Vocaterra.Nlp.Language.Normalization;
 using NlpLexicon = Vocaterra.Nlp.Language.Lexicon.Lexicon;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests.Generation;

@@ -1,4 +1,3 @@
-using System.Globalization;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -6,7 +5,6 @@ using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Graphics.Camera;
-using Vocaterra.Game.Graphics.World;
 using Vocaterra.Game.UI.Common;
 using Vocaterra.Game.UI.Dialogue;
 using DrawHelpers = Vocaterra.Game.Graphics.DrawHelpers;

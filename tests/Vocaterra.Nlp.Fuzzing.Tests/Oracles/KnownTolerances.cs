@@ -2,7 +2,6 @@ using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Decision.ConversationAgents;
-using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
 using Vocaterra.Nlp.Response.Templates;
 

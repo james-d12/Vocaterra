@@ -4,8 +4,6 @@ using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
-using Vocaterra.Nlp.Language.Morphology;
-using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
 
 /// <summary>Builds hand-made normalized text from a space-separated string, standing in for the real normalizer.</summary>

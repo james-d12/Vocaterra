@@ -4,7 +4,6 @@ using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Normalization;
-using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Response.Templates;
 
 /// <summary>

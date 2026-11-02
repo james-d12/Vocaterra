@@ -1,5 +1,3 @@
-using Vocaterra.Game.Core.Items;
-
 namespace Vocaterra.Game.Core.Items.Crafting;
 
 /// <summary>An ingredient of a recipe: a number of one item kind.</summary>

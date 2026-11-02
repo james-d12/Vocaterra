@@ -3,7 +3,6 @@ using System.Text;
 using CsCheck;
 using Vocaterra.Nlp.Fuzzing.Tests.Generation;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
-using Vocaterra.Nlp.Language.Packs;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests;
 

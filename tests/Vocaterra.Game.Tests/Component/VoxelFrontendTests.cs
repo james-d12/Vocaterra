@@ -1,6 +1,5 @@
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Mathematics;
-using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;

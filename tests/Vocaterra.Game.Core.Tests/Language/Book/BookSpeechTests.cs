@@ -12,7 +12,6 @@ using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
-using Vocaterra.Nlp.Response.Speech;
 
 namespace Vocaterra.Game.Core.Tests.Language.Book;
 

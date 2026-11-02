@@ -1,5 +1,3 @@
-using Vocaterra.Game.Core.Items;
-
 namespace Vocaterra.Game.Core.Items.Crafting;
 
 /// <summary>One line of the crafting panel: a recipe, what the player has of each ingredient and whether it can be made now.</summary>

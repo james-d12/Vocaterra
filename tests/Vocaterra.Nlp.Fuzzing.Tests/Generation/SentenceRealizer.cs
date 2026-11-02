@@ -3,7 +3,6 @@ using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Morphology;
-using Vocaterra.Nlp.Language.Normalization;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests.Generation;
 

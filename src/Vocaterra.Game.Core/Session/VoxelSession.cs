@@ -1,7 +1,6 @@
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
-using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Navigation;
@@ -12,7 +11,6 @@ using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
-using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Core.Session;
 

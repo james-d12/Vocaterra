@@ -24,7 +24,6 @@ using Vocaterra.Nlp.Language.SlotGrammar;
 using Vocaterra.Nlp.Pipeline;
 using Vocaterra.Nlp.Response.Speech;
 using Xunit.Abstractions;
-using NlpLexicon = Vocaterra.Nlp.Language.Lexicon.Lexicon;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests.Oracles;
 
