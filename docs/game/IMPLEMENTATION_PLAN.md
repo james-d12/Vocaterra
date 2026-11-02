@@ -2330,3 +2330,30 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     `Tengo veinte panes.` «¡Qué bien!»; Domingo `me gusta el río` «Te entiendo. Yo hago hachas.»; León `usted tiene manzanas` «Te
     entiendo. ¿Quieres manzanas?» (off the prompt, so not «Sí, es verdad.»). Not understood, older and outside V28: `usted hace hachas muy
     buenas` at Domingo, `tú pescas mucho` at Mar.
+- **V30: the PR #28 review's game fixes (2026-11-02, Sonnet 5.5; gated on `feature/village-followups` at `b455b1c`, 8817 passed,
+  3 skipped, with the models).** The owner's review of PR #28, triaged by the orchestrator (D-game-22). No content changed.
+  - **A failed `--shot`** keeps the run's exit code (`ScriptedRunEnd.WorstExit`, tested on the helper; a real failed shot needs a device).
+  - **An accent fix** takes the person, number, tense and mood from the note's reading (`GuideTurn`). It was a real bug: `luz compro
+    pescado` was recorded as `compró` in the first person; the test failed before.
+  - **A refused gift is never made,** with or without a transition (`NpcTurnRules`; the no-transition case failed before).
+    - `GameDataValidator` now fails on an `instead` target that no agent state takes, and on an `asked` or `instead` noun that is not in
+      the catalog.
+    - `asked` holds nouns, not events.
+  - **An NPC's copy of a shared line with no file** plays the guide's file, counted as `NpcVoice.FellBack` with a log line. There is no
+    speech summary to extend.
+  - **The save's old flag** is the shopkeeper's (`KeyWordsTaughtBy.Contains(ShopkeeperAgent)`); no fixture pinned it.
+  - **The recall message** names `Day`, not `Day - 1`: a load keeps the saved day (the test failed before, "session 2" for 3).
+  - **A plural-only phrase** is credited: `PhraseSheet` matches the item's lemma and plural from the noun catalog.
+  - **The skip's number** goes with the item as a whole word: 3 apples and 2 loaves in `Compré tres manzanas y dos panes`,
+    `treinta y dos panes` 32, `panadería` none.
+  - **The host** already called `NpcTurnRules` for misses.
+    - The two copies left, the host events and the bottle rule, are shared helpers now (`HostEventsOf`, `SkipLineOfBottleGift`).
+    - After a miss the host always updates the agent's state, and an off-prompt line keeps the learner model, as in the game.
+    - No host case moved, and no miss test runs through both paths.
+  - **The Lessons page's selection** starts at the first row at or after `next:` (`BookModel`; a real bug, tested on synthetic rows).
+  - **Dead code:** `NpcService.FeedbackLinePrefix` and `NpcTurnRules.Prepositions` are removed. `NpcTurnRules.FeedbackLinePrefix`, from
+    the core's `ReservedPools.FeedbackPrefix`, is the one definition, and `VerdictReport` uses it.
+  - **The scripted runs:** 21 of 23 are identical. `r20-sleep` and `r21-skip` differ only in their last picture: the Lessons page now
+    highlights the row after `next:`.
+  - **Not tested before the fix:** most of the regression tests, which follow from the old code by reading it. The report marks the
+    three that failed first.

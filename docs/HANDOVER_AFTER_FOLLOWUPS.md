@@ -45,6 +45,8 @@ M73 reported that the fix needs either a weather intent or a way to rule a lemma
 - Give them a slot for the weather word if a reply will echo it.
 - Keep `hacer` with a weather noun out of `state_action`, `ask_activity` and `ask_craft`, by the resolver's order or the grammars, not by a
   hack. `¿qué haces?`, `hago pan` and the lessons' craft questions keep what they have.
+- `hace dos días compré pan` at `smith-open` is `state_action` (a side effect of M72): `hace` with a time is "ago", neither an action nor
+  the weather. Test it with the weather lines.
 - Fuzz: O7 and O3 widened for the new intents, never narrowed. Add the new lines to the grading tests by topic (M76 turned `scripts/try-lines/` into C# tests) and
   re-record the identity baseline, as M72 and M73 did.
 - Check every weather word against the A2 ceiling (`cefr-check`).
@@ -147,8 +149,11 @@ The machine allows one agent at a time, with no second full-build worktree (disk
 1. **M74 (core):** the weather intents and `ask_wellbeing`, in the catalog.
 2. **M75 (core): the near-miss rule** (section 5), Opus 5.5 at xhigh.
 3. **V29 (game):** the weather and `¿cómo estás?` replies, and the prompts' allowed intents.
-4. **The design study for spoken lines,** with the owner's choice, then its core and game milestones.
-5. **A pull request** of the new branch into `main`.
+4. **M78 (core): the small core points left** (section 8).
+5. **The design study for spoken lines,** with the owner's choice, then its core and game milestones.
+6. **A pull request** of the new branch into `main`.
+
+Section 8 lists every other point left open after PR #28, with where it goes.
 
 M68 (CI timing) runs only if CI fails a timed test. The owner reports CI failures, because this token cannot read CI results.
 
@@ -163,3 +168,43 @@ M68 (CI timing) runs only if CI fails a timed test. The owner reports CI failure
 - **What to do:** a gate or CI run that fails on this family alone is rerun once, after checking with `CsCheck_Seed` that the seed is
   this family. If it fails often, bring the owner the choice again: keep it recorded, or narrow the `word_order` mutation where a
   `[WORD]` slot can bind the moved word (a guard with a test that what it leaves out is correct Spanish, as M65's).
+
+## 8. Everything else left open after PR #28
+
+Nothing below is built in PR #28. Each row says where it goes: a milestone of this document, a decision for the owner, or accepted as it is.
+The sources are `docs/game/README.md` ("Open points after the follow-ups"), the milestones' entries in both findings logs, and the review of
+PR #28 (D-game-22, 2026-11-02).
+
+**For the milestones of this document**
+
+| Point | Half | Where it goes |
+|---|---|---|
+| The weather lines; `hace dos días compré pan` read as `state_action` | core, game | M74, V29 (section 2) |
+| `¿cómo estás?` answered as `hola` | core, game | M74, V29 (section 4) |
+| The near-miss rule tags correct Spanish (`quiero hacer un hacha` at `smith-open`, 0.4 while Domingo praises it); the review's item 8, an empty answer set counted as a near miss | core | M75 (section 5) |
+| The review's item 14: pool names written in code (`^[a-z]+_nice\.\d+$`, `answer_accepted.`), and `ListenerReply` always takes the first variant | game | V29 (section 2) |
+| A spoken line at a constrained prompt is never understood off the prompt | core, game | the study (section 3) |
+| `cómo hago un hacha` at `smith-open` is off the prompt (`ask_craft`), so Domingo, who makes axes, answers «Te entiendo. Yo hago hachas.» | game | V29: let `smith-open` take `ask_craft` with a reply, if the lessons allow it |
+| Correct lines that no intent of the catalog takes, so the NPC says «No te entendí»: `la tienda está en el pueblo` at `farmer-open`, `usted hace hachas muy buenas` at `smith-open`, `tú pescas mucho` at `fisher-open` | core | M78: say which intent each should be, or that it stays unknown; the catalog is the fix |
+| `pedro`, a name the lexicon does not know, gets `vocab.unknown` (M72's finding; M70 fixed `me llamo …` only) | core | M78 |
+| `necesito ayuda domingo` (a name said to the listener) is flagged by the CLI; the host takes the name out (M66's known limit) | core | M78, or accepted: the game's path is right |
+| No test runs one miss through both the host and the game (V30 shared their code instead) | game | V29: one test, a miss and an off-prompt line through both paths |
+| `docs/nlp/TOOLS.md` still describes a parked workflow (`workflows-pending/`); M76 fixed only its two broken links | core docs | M78 |
+
+**For the owner**
+
+| Point | Why it is the owner's |
+|---|---|
+| The voices: none of the 1 082 speech files is marked in `docs/game/SPEECH_CHECKLIST.md` | the owner listens (said: later) |
+| The merged milestone branches on the remote (keep `M67b-answer-verb-forms`) | the permission check refuses remote deletes (said: later) |
+| The recorded fuzz family `2tpLGUOSqj41` (section 7) | its only fix narrows an oracle; the owner kept it recorded |
+| `NamePlatesTests` needs a display, so CI skips it | running it on CI means a virtual display in `.github/workflows/ci.yml` |
+| The scripted runs as game tests (M76's proposal, 3 to 5 days): `scripted-runs.sh` with `compare-runs.py` launch the game and compare captures | not asked; the QA agent and `docs/game/SCRIPTED_RUNS.md` use them |
+| M67b, an answer's verb forms (parked) | parked by the owner's plan; the game already retries a tense miss with its hint |
+| The timed tests on CI (M68) | runs only if CI fails a timed test; the owner reports CI failures |
+| Older, outside the village: SonarCloud, the speech models in CI, CI on feature branches, one checks script shared by the gate and CI; the open questions of 2026-10-23 | `.claude/agents/orchestrator.md`, "CI" and "Open owner questions" |
+
+**Accepted as they are** (by design; reopen only on the owner's word)
+- The oven order after a load waits for its lesson's `n4-back` step (V14's design). The baker says `Primero, la lección. Luego, las monedas.`
+- «Sí, es verdad.» only at the NPC's own prompt: an off-prompt statement about the listener keeps «Te entiendo.» and its topic (V28).
+- M77 made a clean build about 17 % slower (34.6 s to 40.4 s), the cost of IDE0005 in the build.

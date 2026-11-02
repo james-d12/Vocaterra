@@ -56,8 +56,9 @@ is a change to the boundary and updates that record.
 - **M76 (2026-11-02, in PR #28 before the merge, the owner's word):** `scripts/try-lines/` becomes C# tests and the other check
   scripts are audited (core plan §5, D-game-22). **A regression check is a C# test, never a script with text baselines:** no brief asks
   for line files or a check script again.
-  - M76 is done (gated at `523f818`, 8797 passed). Then, in PR #28 too: M77 (IDE0005, unused usings fail the build) and V30 (the
-    PR #28 review's game fixes, VILLAGE_PLAN §4); the review's items 8 and 14 went to M75 and V29 (the handover document).
+  - In PR #28 too, all gated: M76 (`523f818`), M77 (IDE0005, unused usings fail the build, `7bcaefd`) and V30 (the PR #28 review's
+    game fixes, `b455b1c`, 8817 passed). The review's items 8 and 14 went to M75 and V29. Every point left open after PR #28 is in
+    `docs/HANDOVER_AFTER_FOLLOWUPS.md` section 8.
 - The owner deletes the merged remote milestone branches himself (the permission check refuses remote deletes) and listens to the
   voices later.
 
@@ -299,6 +300,33 @@ state, the gate's one known failure and the rules learnt so far are in
   engine host's architecture), or when a Haiku attempt has failed the gate twice or returned a report whose claims did not verify.
 - **Opus 5.5 only when the owner asks** (research, architecture reviews).
 - Never set an effort level unless the owner asks. One agent per milestone, and **one agent at a time** (see Machine resources).
+
+## Token usage (owner, 2026-11-02)
+Output tokens cost money and the owner's attention. Make every message as short as its job allows, and no shorter.
+
+**Keep it short:**
+- Replies to the owner:
+  - Lead with the outcome, then only what changes a decision or needs the owner's action.
+  - Use a table for three or more like items.
+  - Do not recap what the owner just said or already knows, and do not restate a plan that is committed: link it.
+- A status line while an agent or a gate runs is one or two sentences.
+- Narrate as you go in a few words, not a paragraph per step.
+- Say a thing once: do not repeat in the reply what a committed document already holds; name the document.
+- Tool output: `grep -n`, `head`, `sed -n` ranges and log files. Never print a whole large file or log.
+
+**Do not cut quality where it matters.** Write these fully, though still without padding:
+- design documents, plans and studies;
+- decision records and handovers;
+- a brief's scope, rules and checks, and anything an agent would otherwise have to guess;
+- the owner's questions (each must stand on its own);
+- anything a fresh session must act on without this conversation.
+
+**The test:** would the owner or the agent lose anything if this sentence went? If not, cut it.
+
+**Subagents:**
+- Briefs point at files and sections instead of retyping them (see "Lean context" above).
+- Reports are one page; name what to leave out.
+- The model and the effort follow "Model policy". Do not raise either for length.
 
 ## Machine resources (owner, 2026-10-22: never max out the computer)
 The desktop crashed twice on 2026-10-22 with CPU and RAM maxed out: two Sonnet agents (S14, S17) built and tested at the same time, each
