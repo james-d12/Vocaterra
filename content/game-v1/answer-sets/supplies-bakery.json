@@ -66,6 +66,42 @@
       "canonical": "no sé",
       "aliases": ["no lo sé", "yo no sé", "no entiendo"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "voy-a-buscar-madera",
+      "canonical": "voy a buscar madera",
+      "aliases": ["yo voy a buscar madera", "voy a buscar la madera", "luego voy a buscar madera"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "tengo-cuatro-monedas",
+      "canonical": "tengo cuatro monedas",
+      "aliases": ["sí, tengo cuatro monedas", "yo tengo cuatro monedas", "tengo monedas"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "compre-dos-panes",
+      "canonical": "compré dos panes",
+      "aliases": ["yo compré dos panes", "hoy compré dos panes", "compré pan"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "manana-comprare-pan",
+      "canonical": "yo compraré pan",
+      "aliases": ["compraré pan mañana", "mañana compraré dos panes"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "tienes-veinte-panes",
+      "canonical": "tienes veinte panes",
+      "aliases": ["tú tienes veinte panes", "sí, tienes veinte panes"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "quiero-vender-madera",
+      "canonical": "quiero vender la madera",
+      "aliases": [],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
     }
   ]
 }

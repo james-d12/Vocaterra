@@ -4,6 +4,8 @@
   "variantPools": [
     { "id": "answer_accepted", "count": 3 },
     { "id": "not_understood", "count": 2 },
+    { "id": "smith_nice", "count": 1 },
+    { "id": "smith_ok", "count": 1 },
     { "id": "smith_wont_buy", "count": 1 },
     { "id": "smith_cant_sell", "count": 1 },
     { "id": "smith_none_offered", "count": 1 },
@@ -35,7 +37,8 @@
         { "on": {"intent": "state_have", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_offer", "variantPoolId": "smith_offer" }] },
         { "on": {"intent": "state_want", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_offer", "variantPoolId": "smith_offer" }] },
         { "on": {"intent": "offer_item", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_buy", "hostEvent": "smith.buy_wood", "variantPoolId": "smith_buy" }] },
-        { "on": {"intent": "state_action", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
+        { "on": {"intent": "state_action", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_nice", "variantPoolId": "smith_nice" }] },
+        { "on": {"intent": "state_obligation", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_ok", "variantPoolId": "smith_ok" }] },
         { "on": {"intent": "ask_help", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_help", "variantPoolId": "smith_help" }] },
         { "on": {"intent": "dont_know", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_help", "variantPoolId": "smith_help" }] },
         { "on": {"intent": "thank", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_thank", "variantPoolId": "smith_thank" }] },

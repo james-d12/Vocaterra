@@ -130,7 +130,7 @@ if (options.Transcript is { } transcript && options.PromptId is { } oneShotPromp
         return ExitUsage;
     }
 
-    VerdictReport.Write(Console.Out, oneShotPrompt, transcript, session.Evaluate(transcript, oneShotPrompt, oneShotTime), session.LastExchange);
+    VerdictReport.Write(Console.Out, oneShotPrompt, transcript, session.Evaluate(transcript, oneShotPrompt, oneShotTime), session.LastExchange, names.Values);
     return ExitOk;
 }
 
@@ -140,11 +140,11 @@ if (options.PromptId is { } startPrompt && !session.HasPrompt(startPrompt))
     return ExitUsage;
 }
 
-return RunLoop(session, options.PromptId ?? session.PromptIds[0]);
+return RunLoop(session, options.PromptId ?? session.PromptIds[0], names.Values);
 
 // The text loop: show the current prompt, read a line, evaluate it and print the outcome. The session carries the agent states, the learner
-// model and the repeat counts from one line to the next; /prompt <id> changes the prompt and /quit leaves.
-static int RunLoop(ConversationSession session, string promptId)
+// model and the repeat counts from one line to the next; /prompt <id> changes the prompt and /quit leaves. A correction line spells the NPCs' names as the game shows it.
+static int RunLoop(ConversationSession session, string promptId, IEnumerable<string> names)
 {
     var bundle = session.Bundle;
     Console.WriteLine(string.Create(
@@ -193,7 +193,7 @@ static int RunLoop(ConversationSession session, string promptId)
             continue;
         }
 
-        VerdictReport.Write(Console.Out, promptId, text, session.Evaluate(text, promptId, Now()), session.LastExchange);
+        VerdictReport.Write(Console.Out, promptId, text, session.Evaluate(text, promptId, Now()), session.LastExchange, names);
         Console.WriteLine();
     }
 }

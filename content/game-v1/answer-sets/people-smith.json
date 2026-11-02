@@ -66,6 +66,36 @@
       "canonical": "no sé",
       "aliases": ["no lo sé", "yo no sé", "no entiendo"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "vivo-en-el-campamento",
+      "canonical": "vivo en el campamento",
+      "aliases": ["yo vivo en el campamento"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "ellos-comieron-pan",
+      "canonical": "comieron pan",
+      "aliases": ["luz y mar comieron pan", "ayer comieron pan", "ellos comieron pan ayer"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "tengo-que-ir",
+      "canonical": "tengo que ir al río",
+      "aliases": ["yo tengo que ir al río", "sí, tengo que ir al río", "hoy tengo que ir al río", "tengo que ir al río hoy"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "buscare-madera",
+      "canonical": "buscaré madera para Luz",
+      "aliases": ["buscaré madera", "yo buscaré madera para Luz", "mañana buscaré madera para Luz", "buscaré madera para Luz mañana"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "ire-al-rio",
+      "canonical": "iré al río",
+      "aliases": ["yo iré al río", "sí, iré al río", "mañana iré al río", "la semana que viene iré al río", "pasado mañana iré al río"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
     }
   ]
 }

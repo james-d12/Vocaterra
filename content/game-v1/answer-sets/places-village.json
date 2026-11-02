@@ -120,6 +120,36 @@
       "canonical": "no sé",
       "aliases": ["no lo sé", "yo no sé", "no entiendo"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "voy-a-la-panaderia",
+      "canonical": "voy a la panadería",
+      "aliases": ["yo voy a la panadería", "hoy voy a la panadería", "voy a la panadería hoy"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "voy-a-comprar-pan",
+      "canonical": "voy a comprar pan",
+      "aliases": ["yo voy a comprar pan", "voy a comprar el pan", "mañana voy a comprar pan", "luego voy a comprar pan", "voy a comprar pan mañana"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "fui-a-la-panaderia",
+      "canonical": "sí, fui a la panadería",
+      "aliases": ["fui a la panadería", "yo fui a la panadería", "hoy fui a la panadería"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "luz-compro-pescado",
+      "canonical": "luz compró pescado",
+      "aliases": ["compró pescado", "ella compró pescado", "ayer Luz compró pescado", "luz compró pescado ayer"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "luz-hara-pan",
+      "canonical": "luz hará pan",
+      "aliases": ["mañana Luz hará pan", "hará pan", "ella hará pan", "luz hará pan mañana"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
     }
   ]
 }

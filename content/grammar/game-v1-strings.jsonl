@@ -11,6 +11,7 @@
 {"id":"dialogue:baker_hay.1","text":"Aquí hay pan. ¿Cuántos panes quieres?","kind":"npc"}
 {"id":"dialogue:baker_hello.1","text":"¡Hola!","kind":"npc"}
 {"id":"dialogue:baker_help.1","text":"Puedes decir: «Quiero dos panes, por favor».","kind":"npc"}
+{"id":"dialogue:baker_nice.1","text":"¡Qué bien!","kind":"npc"}
 {"id":"dialogue:baker_no_room.1","text":"Tu bolsa está llena.","kind":"npc"}
 {"id":"dialogue:baker_none_offered.1","text":"¿Cuántos bloques de madera me vendes?","kind":"npc"}
 {"id":"dialogue:baker_price.1","text":"El pan cuesta dos monedas.","kind":"npc"}
@@ -34,6 +35,7 @@
 {"id":"dialogue:farmer_help.1","text":"Puedes preguntar: «¿Qué haces?».","kind":"npc"}
 {"id":"dialogue:farmer_job.1","text":"Soy el granjero. Trabajo en el campo.","kind":"npc"}
 {"id":"dialogue:farmer_name.1","text":"Me llamo León.","kind":"npc"}
+{"id":"dialogue:farmer_nice.1","text":"¡Qué bien!","kind":"npc"}
 {"id":"dialogue:farmer_no_room.1","text":"Tu bolsa está llena.","kind":"npc"}
 {"id":"dialogue:farmer_none_offered.1","text":"¿Cuántas frutas me vendes?","kind":"npc"}
 {"id":"dialogue:farmer_pay.1","text":"Aquí se paga con monedas. Pero yo te compro fruta.","kind":"npc"}
@@ -43,6 +45,7 @@
 {"id":"dialogue:farmer_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:farmer_thank.2","text":"¡Con gusto!","kind":"npc"}
 {"id":"dialogue:farmer_total.1","text":"Quince manzanas, quince monedas.","kind":"npc"}
+{"id":"dialogue:farmer_true.1","text":"Sí, es verdad.","kind":"npc"}
 {"id":"dialogue:farmer_wont_buy.1","text":"No, gracias. Solo compro fruta.","kind":"npc"}
 {"id":"dialogue:farmer_wont_sell.1","text":"Solo vendo manzanas.","kind":"npc"}
 {"id":"dialogue:feedback.explicit_correction.1","text":"Se dice «{expected}», no «{actual}».","kind":"template"}
@@ -68,6 +71,7 @@
 {"id":"dialogue:fisher_hello.1","text":"¡Hola!","kind":"npc"}
 {"id":"dialogue:fisher_help.1","text":"Puedes preguntar: «¿Dónde está la panadería?».","kind":"npc"}
 {"id":"dialogue:fisher_near.1","text":"No, está cerca.","kind":"npc"}
+{"id":"dialogue:fisher_nice.1","text":"¡Qué bien!","kind":"npc"}
 {"id":"dialogue:fisher_point.1","text":"Mira, está allí.","kind":"npc"}
 {"id":"dialogue:fisher_point.2","text":"Está por allí, mira.","kind":"npc"}
 {"id":"dialogue:fisher_thank.1","text":"De nada.","kind":"npc"}
@@ -291,10 +295,12 @@
 {"id":"dialogue:shop_help_ask.1","text":"Puedes decir: «Quiero agua, por favor».","kind":"npc"}
 {"id":"dialogue:shop_help_offer.1","text":"Puedes decir: «Sí, por favor» o «No, gracias».","kind":"npc"}
 {"id":"dialogue:shop_need.1","text":"¿Qué necesitas?","kind":"npc"}
+{"id":"dialogue:shop_nice.1","text":"¡Qué bien!","kind":"npc"}
 {"id":"dialogue:shop_offer.1","text":"¿Quieres pan?","kind":"npc"}
 {"id":"dialogue:shop_price.1","text":"El pan cuesta dos monedas.","kind":"npc"}
 {"id":"dialogue:shop_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:shop_thank.2","text":"¡Con gusto!","kind":"npc"}
+{"id":"dialogue:shop_true.1","text":"Sí, es verdad.","kind":"npc"}
 {"id":"dialogue:smith_buy.1","text":"¡Gracias! Aquí tienes tus monedas.","kind":"npc"}
 {"id":"dialogue:smith_bye.1","text":"¡Adiós! Hasta luego.","kind":"npc"}
 {"id":"dialogue:smith_bye.2","text":"Hasta luego.","kind":"npc"}
@@ -305,9 +311,11 @@
 {"id":"dialogue:smith_help.1","text":"Puedes preguntar: «¿Cómo te llamas?».","kind":"npc"}
 {"id":"dialogue:smith_job.1","text":"Soy el herrero. Trabajo con fuego y madera.","kind":"npc"}
 {"id":"dialogue:smith_name.1","text":"Me llamo Domingo.","kind":"npc"}
+{"id":"dialogue:smith_nice.1","text":"¡Qué bien!","kind":"npc"}
 {"id":"dialogue:smith_no_room.1","text":"Tu bolsa está llena.","kind":"npc"}
 {"id":"dialogue:smith_none_offered.1","text":"¿Cuántos bloques de madera me vendes?","kind":"npc"}
 {"id":"dialogue:smith_offer.1","text":"¿Quieres un hacha? Necesito dos bloques de madera y dos monedas.","kind":"npc"}
+{"id":"dialogue:smith_ok.1","text":"Está bien.","kind":"npc"}
 {"id":"dialogue:smith_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:smith_thank.2","text":"¡Con gusto!","kind":"npc"}
 {"id":"dialogue:smith_wont_buy.1","text":"No, gracias. Solo compro madera.","kind":"npc"}
@@ -318,10 +326,12 @@
 {"id":"dialogue:villager_greet.1","text":"¡Hola! ¿Qué buscas?","kind":"npc"}
 {"id":"dialogue:villager_hello.1","text":"Hola.","kind":"npc"}
 {"id":"dialogue:villager_help.1","text":"Puedes preguntar: «¿Dónde está el río?».","kind":"npc"}
+{"id":"dialogue:villager_nice.1","text":"¡Qué bien!","kind":"npc"}
 {"id":"dialogue:villager_point.1","text":"Mira, está allí.","kind":"npc"}
 {"id":"dialogue:villager_point.2","text":"Está allí, mira.","kind":"npc"}
 {"id":"dialogue:villager_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:villager_thank.2","text":"¡Con gusto!","kind":"npc"}
+{"id":"dialogue:villager_true.1","text":"Sí, es verdad.","kind":"npc"}
 {"id":"dialogue:villager_unknown_place.1","text":"No sé dónde está.","kind":"npc"}
 {"id":"prompts:baker-open","text":"¿Qué quieres?","kind":"npc"}
 {"id":"prompts:farmer-open","text":"¡Hola! Este es mi campo.","kind":"npc"}
@@ -1485,6 +1495,39 @@
 {"id":"answer-sets/people-farmer:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/people-farmer:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/people-farmer:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/people-farmer:la-manzana-es-roja","text":"sí, es roja","kind":"learner"}
+{"id":"answer-sets/people-farmer:la-manzana-es-roja.alias1","text":"la manzana es roja y grande","kind":"learner"}
+{"id":"answer-sets/people-farmer:la-manzana-es-roja.alias2","text":"la manzana es muy roja","kind":"learner"}
+{"id":"answer-sets/people-farmer:me-gusta-el-pan","text":"sí, me gusta el pan","kind":"learner"}
+{"id":"answer-sets/people-farmer:me-gusta-el-pan.alias1","text":"sí, me gusta","kind":"learner"}
+{"id":"answer-sets/people-farmer:me-gusta-el-pan.alias2","text":"me gusta mucho el pan","kind":"learner"}
+{"id":"answer-sets/people-farmer:me-gusta-el-pan.alias3","text":"sí, me gusta mucho","kind":"learner"}
+{"id":"answer-sets/people-farmer:me-gustan-las-manzanas","text":"sí, me gustan las manzanas","kind":"learner"}
+{"id":"answer-sets/people-farmer:voy-a-buscar-agua","text":"voy a buscar agua","kind":"learner"}
+{"id":"answer-sets/people-farmer:voy-a-buscar-agua.alias1","text":"yo voy a buscar agua","kind":"learner"}
+{"id":"answer-sets/people-farmer:voy-a-buscar-agua.alias2","text":"voy a buscar el agua","kind":"learner"}
+{"id":"answer-sets/people-farmer:voy-a-buscar-agua.alias3","text":"luego voy a buscar agua","kind":"learner"}
+{"id":"answer-sets/people-farmer:voy-a-buscar-agua.alias4","text":"voy a buscar agua luego","kind":"learner"}
+{"id":"answer-sets/people-farmer:voy-a-buscar-agua.alias5","text":"luego busco agua","kind":"learner"}
+{"id":"answer-sets/people-farmer:fui-al-rio","text":"sí, fui al río","kind":"learner"}
+{"id":"answer-sets/people-farmer:fui-al-rio.alias1","text":"fui al río","kind":"learner"}
+{"id":"answer-sets/people-farmer:fui-al-rio.alias2","text":"yo fui al río","kind":"learner"}
+{"id":"answer-sets/people-farmer:fui-al-rio.alias3","text":"hoy fui al río","kind":"learner"}
+{"id":"answer-sets/people-farmer:me-gusto-el-pan","text":"sí, me gustó el pan de Luz","kind":"learner"}
+{"id":"answer-sets/people-farmer:me-gusto-el-pan.alias1","text":"me gustó el pan de Luz","kind":"learner"}
+{"id":"answer-sets/people-farmer:me-gusto-el-pan.alias2","text":"me gustó el pan","kind":"learner"}
+{"id":"answer-sets/people-farmer:me-gusto-el-pan.alias3","text":"sí, me gustó","kind":"learner"}
+{"id":"answer-sets/people-farmer:me-gusto-el-pan.alias4","text":"me gustó mucho el pan","kind":"learner"}
+{"id":"answer-sets/people-farmer:me-gusto-el-pan.alias5","text":"ayer me gustó el pan","kind":"learner"}
+{"id":"answer-sets/people-farmer:es-muy-caro","text":"es muy caro","kind":"learner"}
+{"id":"answer-sets/people-farmer:es-muy-caro.alias1","text":"es caro","kind":"learner"}
+{"id":"answer-sets/people-farmer:es-muy-caro.alias2","text":"sí, es muy caro","kind":"learner"}
+{"id":"answer-sets/people-farmer:mas-barato-que","text":"la manzana es más barata que el pan","kind":"learner"}
+{"id":"answer-sets/people-farmer:mas-barato-que.alias1","text":"la manzana es más barata","kind":"learner"}
+{"id":"answer-sets/people-farmer:mas-barato-que.alias2","text":"es más barata que el pan","kind":"learner"}
+{"id":"answer-sets/people-farmer:mas-barato-que.alias3","text":"el pan es más caro que la manzana","kind":"learner"}
+{"id":"answer-sets/people-farmer:manana-vendere-fruta","text":"yo venderé fruta","kind":"learner"}
+{"id":"answer-sets/people-farmer:manana-vendere-fruta.alias1","text":"venderé fruta mañana","kind":"learner"}
 {"id":"answer-sets/people-smith:name","text":"cómo te llamas","kind":"learner"}
 {"id":"answer-sets/people-smith:name.alias1","text":"cómo te llamas tú","kind":"learner"}
 {"id":"answer-sets/people-smith:name.alias2","text":"cómo se llama usted","kind":"learner"}
@@ -1541,6 +1584,28 @@
 {"id":"answer-sets/people-smith:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/people-smith:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/people-smith:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/people-smith:vivo-en-el-campamento","text":"vivo en el campamento","kind":"learner"}
+{"id":"answer-sets/people-smith:vivo-en-el-campamento.alias1","text":"yo vivo en el campamento","kind":"learner"}
+{"id":"answer-sets/people-smith:ellos-comieron-pan","text":"comieron pan","kind":"learner"}
+{"id":"answer-sets/people-smith:ellos-comieron-pan.alias1","text":"luz y mar comieron pan","kind":"learner"}
+{"id":"answer-sets/people-smith:ellos-comieron-pan.alias2","text":"ayer comieron pan","kind":"learner"}
+{"id":"answer-sets/people-smith:ellos-comieron-pan.alias3","text":"ellos comieron pan ayer","kind":"learner"}
+{"id":"answer-sets/people-smith:tengo-que-ir","text":"tengo que ir al río","kind":"learner"}
+{"id":"answer-sets/people-smith:tengo-que-ir.alias1","text":"yo tengo que ir al río","kind":"learner"}
+{"id":"answer-sets/people-smith:tengo-que-ir.alias2","text":"sí, tengo que ir al río","kind":"learner"}
+{"id":"answer-sets/people-smith:tengo-que-ir.alias3","text":"hoy tengo que ir al río","kind":"learner"}
+{"id":"answer-sets/people-smith:tengo-que-ir.alias4","text":"tengo que ir al río hoy","kind":"learner"}
+{"id":"answer-sets/people-smith:buscare-madera","text":"buscaré madera para Luz","kind":"learner"}
+{"id":"answer-sets/people-smith:buscare-madera.alias1","text":"buscaré madera","kind":"learner"}
+{"id":"answer-sets/people-smith:buscare-madera.alias2","text":"yo buscaré madera para Luz","kind":"learner"}
+{"id":"answer-sets/people-smith:buscare-madera.alias3","text":"mañana buscaré madera para Luz","kind":"learner"}
+{"id":"answer-sets/people-smith:buscare-madera.alias4","text":"buscaré madera para Luz mañana","kind":"learner"}
+{"id":"answer-sets/people-smith:ire-al-rio","text":"iré al río","kind":"learner"}
+{"id":"answer-sets/people-smith:ire-al-rio.alias1","text":"yo iré al río","kind":"learner"}
+{"id":"answer-sets/people-smith:ire-al-rio.alias2","text":"sí, iré al río","kind":"learner"}
+{"id":"answer-sets/people-smith:ire-al-rio.alias3","text":"mañana iré al río","kind":"learner"}
+{"id":"answer-sets/people-smith:ire-al-rio.alias4","text":"la semana que viene iré al río","kind":"learner"}
+{"id":"answer-sets/people-smith:ire-al-rio.alias5","text":"pasado mañana iré al río","kind":"learner"}
 {"id":"answer-sets/places-basic:tree","text":"árbol","kind":"learner"}
 {"id":"answer-sets/places-basic:tree.alias1","text":"el árbol","kind":"learner"}
 {"id":"answer-sets/places-basic:tree.alias2","text":"un árbol","kind":"learner"}
@@ -1636,6 +1701,30 @@
 {"id":"answer-sets/places-village:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/places-village:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/places-village:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/places-village:voy-a-la-panaderia","text":"voy a la panadería","kind":"learner"}
+{"id":"answer-sets/places-village:voy-a-la-panaderia.alias1","text":"yo voy a la panadería","kind":"learner"}
+{"id":"answer-sets/places-village:voy-a-la-panaderia.alias2","text":"hoy voy a la panadería","kind":"learner"}
+{"id":"answer-sets/places-village:voy-a-la-panaderia.alias3","text":"voy a la panadería hoy","kind":"learner"}
+{"id":"answer-sets/places-village:voy-a-comprar-pan","text":"voy a comprar pan","kind":"learner"}
+{"id":"answer-sets/places-village:voy-a-comprar-pan.alias1","text":"yo voy a comprar pan","kind":"learner"}
+{"id":"answer-sets/places-village:voy-a-comprar-pan.alias2","text":"voy a comprar el pan","kind":"learner"}
+{"id":"answer-sets/places-village:voy-a-comprar-pan.alias3","text":"mañana voy a comprar pan","kind":"learner"}
+{"id":"answer-sets/places-village:voy-a-comprar-pan.alias4","text":"luego voy a comprar pan","kind":"learner"}
+{"id":"answer-sets/places-village:voy-a-comprar-pan.alias5","text":"voy a comprar pan mañana","kind":"learner"}
+{"id":"answer-sets/places-village:fui-a-la-panaderia","text":"sí, fui a la panadería","kind":"learner"}
+{"id":"answer-sets/places-village:fui-a-la-panaderia.alias1","text":"fui a la panadería","kind":"learner"}
+{"id":"answer-sets/places-village:fui-a-la-panaderia.alias2","text":"yo fui a la panadería","kind":"learner"}
+{"id":"answer-sets/places-village:fui-a-la-panaderia.alias3","text":"hoy fui a la panadería","kind":"learner"}
+{"id":"answer-sets/places-village:luz-compro-pescado","text":"luz compró pescado","kind":"learner"}
+{"id":"answer-sets/places-village:luz-compro-pescado.alias1","text":"compró pescado","kind":"learner"}
+{"id":"answer-sets/places-village:luz-compro-pescado.alias2","text":"ella compró pescado","kind":"learner"}
+{"id":"answer-sets/places-village:luz-compro-pescado.alias3","text":"ayer Luz compró pescado","kind":"learner"}
+{"id":"answer-sets/places-village:luz-compro-pescado.alias4","text":"luz compró pescado ayer","kind":"learner"}
+{"id":"answer-sets/places-village:luz-hara-pan","text":"luz hará pan","kind":"learner"}
+{"id":"answer-sets/places-village:luz-hara-pan.alias1","text":"mañana Luz hará pan","kind":"learner"}
+{"id":"answer-sets/places-village:luz-hara-pan.alias2","text":"hará pan","kind":"learner"}
+{"id":"answer-sets/places-village:luz-hara-pan.alias3","text":"ella hará pan","kind":"learner"}
+{"id":"answer-sets/places-village:luz-hara-pan.alias4","text":"luz hará pan mañana","kind":"learner"}
 {"id":"answer-sets/supplies:water","text":"quiero agua por favor","kind":"learner"}
 {"id":"answer-sets/supplies:water.alias1","text":"un agua por favor","kind":"learner"}
 {"id":"answer-sets/supplies:water.alias2","text":"quiero un agua","kind":"learner"}
@@ -1688,6 +1777,51 @@
 {"id":"answer-sets/supplies:bread-here.alias3","text":"hay agua","kind":"learner"}
 {"id":"answer-sets/supplies:bread-here.alias4","text":"hay dos panes","kind":"learner"}
 {"id":"answer-sets/supplies:bread-here.alias5","text":"hay un pan","kind":"learner"}
+{"id":"answer-sets/supplies:necesito-pan","text":"yo necesito pan","kind":"learner"}
+{"id":"answer-sets/supplies:tengo-botella","text":"tengo una botella","kind":"learner"}
+{"id":"answer-sets/supplies:tengo-botella.alias1","text":"sí, tengo una botella","kind":"learner"}
+{"id":"answer-sets/supplies:tengo-botella.alias2","text":"sí, yo tengo una botella","kind":"learner"}
+{"id":"answer-sets/supplies:tengo-botella.alias3","text":"yo tengo una botella","kind":"learner"}
+{"id":"answer-sets/supplies:tengo-botella.alias4","text":"sí, tengo la botella","kind":"learner"}
+{"id":"answer-sets/supplies:queremos-pan","text":"queremos pan","kind":"learner"}
+{"id":"answer-sets/supplies:queremos-pan.alias1","text":"nosotros queremos pan","kind":"learner"}
+{"id":"answer-sets/supplies:queremos-pan.alias2","text":"queremos pan, por favor","kind":"learner"}
+{"id":"answer-sets/supplies:queremos-pan.alias3","text":"necesitamos pan","kind":"learner"}
+{"id":"answer-sets/supplies:ayer-comi-fruta","text":"ayer comí fruta","kind":"learner"}
+{"id":"answer-sets/supplies:ayer-comi-fruta.alias1","text":"comí fruta","kind":"learner"}
+{"id":"answer-sets/supplies:ayer-comi-fruta.alias2","text":"yo comí fruta","kind":"learner"}
+{"id":"answer-sets/supplies:ayer-comi-fruta.alias3","text":"ayer comí pan","kind":"learner"}
+{"id":"answer-sets/supplies:ayer-comi-fruta.alias4","text":"comí pan","kind":"learner"}
+{"id":"answer-sets/supplies:ayer-comi-fruta.alias5","text":"comí fruta ayer","kind":"learner"}
+{"id":"answer-sets/supplies:ayer-comi-fruta.alias6","text":"ayer comí una fruta","kind":"learner"}
+{"id":"answer-sets/supplies:ayer-comi-fruta.alias7","text":"ayer comí frutas","kind":"learner"}
+{"id":"answer-sets/supplies:ayer-fui-al-rio","text":"ayer fui al río","kind":"learner"}
+{"id":"answer-sets/supplies:ayer-fui-al-rio.alias1","text":"fui al río","kind":"learner"}
+{"id":"answer-sets/supplies:ayer-fui-al-rio.alias2","text":"sí, fui al río","kind":"learner"}
+{"id":"answer-sets/supplies:ayer-fui-al-rio.alias3","text":"yo fui al río","kind":"learner"}
+{"id":"answer-sets/supplies:ayer-fui-al-rio.alias4","text":"ayer fui a la tienda","kind":"learner"}
+{"id":"answer-sets/supplies:ayer-fui-al-rio.alias5","text":"sí, ayer fui al río","kind":"learner"}
+{"id":"answer-sets/supplies:ayer-fui-al-rio.alias6","text":"fui al río ayer","kind":"learner"}
+{"id":"answer-sets/supplies:ayer-fui-al-rio.alias7","text":"sí, fui al río ayer","kind":"learner"}
+{"id":"answer-sets/supplies:ayer-bebi-agua","text":"ayer bebí agua","kind":"learner"}
+{"id":"answer-sets/supplies:ayer-bebi-agua.alias1","text":"bebí agua","kind":"learner"}
+{"id":"answer-sets/supplies:ayer-bebi-agua.alias2","text":"sí, bebí agua","kind":"learner"}
+{"id":"answer-sets/supplies:ayer-bebi-agua.alias3","text":"sí, ayer bebí agua","kind":"learner"}
+{"id":"answer-sets/supplies:ayer-bebi-agua.alias4","text":"yo bebí agua","kind":"learner"}
+{"id":"answer-sets/supplies:ayer-bebi-agua.alias5","text":"bebí agua ayer","kind":"learner"}
+{"id":"answer-sets/supplies:voy-a-ir-al-rio","text":"mañana voy a ir al río","kind":"learner"}
+{"id":"answer-sets/supplies:voy-a-ir-al-rio.alias1","text":"voy a ir al río","kind":"learner"}
+{"id":"answer-sets/supplies:voy-a-ir-al-rio.alias2","text":"yo voy a ir al río","kind":"learner"}
+{"id":"answer-sets/supplies:voy-a-ir-al-rio.alias3","text":"mañana voy a ir a la tienda","kind":"learner"}
+{"id":"answer-sets/supplies:voy-a-ir-al-rio.alias4","text":"voy a ir al río mañana","kind":"learner"}
+{"id":"answer-sets/supplies:es-grande","text":"es grande","kind":"learner"}
+{"id":"answer-sets/supplies:es-grande.alias1","text":"el pan es grande","kind":"learner"}
+{"id":"answer-sets/supplies:es-grande.alias2","text":"sí, es grande","kind":"learner"}
+{"id":"answer-sets/supplies:es-grande.alias3","text":"es muy grande","kind":"learner"}
+{"id":"answer-sets/supplies:compre-tres-manzanas","text":"compré tres manzanas","kind":"learner"}
+{"id":"answer-sets/supplies:compre-tres-manzanas.alias1","text":"yo compré tres manzanas","kind":"learner"}
+{"id":"answer-sets/supplies:compre-tres-manzanas.alias2","text":"hoy compré tres manzanas","kind":"learner"}
+{"id":"answer-sets/supplies:compre-tres-manzanas.alias3","text":"compré manzanas","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:bread","text":"quiero dos panes por favor","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:bread.alias1","text":"quiero dos panes","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:bread.alias2","text":"dos panes por favor","kind":"learner"}
@@ -1756,6 +1890,25 @@
 {"id":"answer-sets/supplies-bakery:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:voy-a-buscar-madera","text":"voy a buscar madera","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:voy-a-buscar-madera.alias1","text":"yo voy a buscar madera","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:voy-a-buscar-madera.alias2","text":"voy a buscar la madera","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:voy-a-buscar-madera.alias3","text":"luego voy a buscar madera","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:tengo-cuatro-monedas","text":"tengo cuatro monedas","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:tengo-cuatro-monedas.alias1","text":"sí, tengo cuatro monedas","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:tengo-cuatro-monedas.alias2","text":"yo tengo cuatro monedas","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:tengo-cuatro-monedas.alias3","text":"tengo monedas","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:compre-dos-panes","text":"compré dos panes","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:compre-dos-panes.alias1","text":"yo compré dos panes","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:compre-dos-panes.alias2","text":"hoy compré dos panes","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:compre-dos-panes.alias3","text":"compré pan","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:manana-comprare-pan","text":"yo compraré pan","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:manana-comprare-pan.alias1","text":"compraré pan mañana","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:manana-comprare-pan.alias2","text":"mañana compraré dos panes","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:tienes-veinte-panes","text":"tienes veinte panes","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:tienes-veinte-panes.alias1","text":"tú tienes veinte panes","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:tienes-veinte-panes.alias2","text":"sí, tienes veinte panes","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:quiero-vender-madera","text":"quiero vender la madera","kind":"learner"}
 {"id":"answer-sets/yes-no:yes","text":"sí por favor","kind":"learner"}
 {"id":"answer-sets/yes-no:yes.alias1","text":"sí","kind":"learner"}
 {"id":"answer-sets/yes-no:yes.alias2","text":"si","kind":"learner"}

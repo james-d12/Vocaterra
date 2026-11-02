@@ -3735,6 +3735,12 @@
       "matches": []
     },
     {
+      "key": "66774f79fbb33e2f95e78fad452debe0c75a09cfeeaa3dd9f8df1bfec4f42880",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Buscaré madera para Luz",
+      "matches": []
+    },
+    {
       "key": "66997e51a57740279e5d9ebdb1540d84f0cd74109876af44f07244611f5c4532",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, quiero",
@@ -4262,6 +4268,12 @@
       "matches": []
     },
     {
+      "key": "7441074caed1f0e9912bc0b6e696db0a1b7b7b9cf784ee9f0958419dd02abc12",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, me gustó el pan de Luz",
+      "matches": []
+    },
+    {
       "key": "7453ffbbec582e04128b6367010fa6c75e8a3dd00486ea21cbfe280960078dc2",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Tendero",
@@ -4482,6 +4494,12 @@
       "key": "78d364885b0bbf19ea6067fa2cb40c0e1596df9a21b9f2f0a45a4f7c33a5523b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo voy a buscar agua",
+      "matches": []
+    },
+    {
+      "key": "78e2ac2248524603f35778b3b902426b9c880886eadb6711dac6be8425de9f5e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Qué bien!",
       "matches": []
     },
     {
@@ -8845,6 +8863,12 @@
           ]
         }
       ]
+    },
+    {
+      "key": "f60f3163e1e38a6bf04ece575b63e7741b8e1c88d16fd2fd5d2ee2cce4146e0f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, es verdad.",
+      "matches": []
     },
     {
       "key": "f6cf1c0dc79b64dd0f4430a4b64825d558e2d8b74359a56aaebf0a5bab20604b",

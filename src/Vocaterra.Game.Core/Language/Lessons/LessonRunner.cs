@@ -252,6 +252,32 @@ public sealed class LessonRunner
         return _session.Day >= lesson.Session && (lesson.After is null || IsDone(lesson.After));
     }
 
+    /// <summary>Whether the learner has begun a lesson or done it (VILLAGE_PLAN V20): free talk credits the phrases it teaches (<see cref="Credits"/>).</summary>
+    /// <param name="lessonId">The lesson's id.</param>
+    public bool IsBegun(string lessonId) => StatusOf(lessonId) != LessonStatus.NotStarted || IsDone(lessonId);
+
+    /// <summary>
+    /// Whether an NPC may show its support card for a phrase (VILLAGE_PLAN V20, handover 9.3 D (c)): a lesson that teaches the phrase is the current one (unlocked:
+    /// its play session has come and the lesson before it is done), begun or done. A phrase no lesson teaches (the stall's <c>pedir-agua</c>) always may. Luz showed
+    /// <c>Vendo madera.</c>, which session 10's lesson teaches, from her first talk in session 5, and León his A2 lines to an A1 learner.
+    /// </summary>
+    /// <param name="phraseId">The phrase sheet's id.</param>
+    public bool CardReady(string phraseId)
+    {
+        var teachers = _book.TeachersOf(phraseId);
+        return teachers.Count == 0 || teachers.Any(lesson => IsUnlocked(lesson) || IsBegun(lesson.Id));
+    }
+
+    /// <summary>
+    /// Whether free talk credits a phrase said at any NPC (VILLAGE_PLAN V20, handover 9.3 D (b)): a lesson the learner has begun or done teaches it. Before, free talk
+    /// credited only the rows of the NPC's focus, so <c>Mañana compraré pan.</c> said to Luz after its lesson counted no use.
+    /// </summary>
+    /// <param name="phraseId">The phrase sheet's id.</param>
+    public bool Credits(string phraseId) => _book.TeachersOf(phraseId).Any(lesson => IsBegun(lesson.Id));
+
+    /// <summary>The phrases free talk credits now (<see cref="Credits"/>): those of the lessons begun or done, for a turn's scene (<see cref="Npc.GuideScene.Credited"/>).</summary>
+    public IReadOnlySet<string> CreditedPhrases => _book.Lessons.Where(lesson => IsBegun(lesson.Id)).SelectMany(static lesson => lesson.TaughtPhrases).ToHashSet(StringComparer.Ordinal);
+
     /// <summary>
     /// Why a lesson that is not begun waits (V12c, the book's Lessons page): it is the unlocked lesson the objective sends the learner to (<see cref="LessonWaitKind.Next"/>: the
     /// new session's, or with no lesson under way the one to go on with), another unlocked one, its play session has not come, or the lesson it comes after is not done (its

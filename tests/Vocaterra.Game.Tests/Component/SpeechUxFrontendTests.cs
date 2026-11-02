@@ -354,7 +354,7 @@ public sealed class SpeechUxFrontendTests
         using var stall = new AtTheStall();
         for (var i = 0; i < 3; i++)
         {
-            stall.Dialogue.Entry.Insert("el gato come queso");
+            stall.Dialogue.Entry.Insert("el gato duerme");
             stall.Dialogue.RequestSubmit();
             stall.Pump.Submit();
             _ = stall.Await(1);
