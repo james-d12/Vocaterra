@@ -157,7 +157,33 @@ public sealed class ConjugationTableTests
         Assert.Equal(new ConjugationCell("compraré", CellState.Taught, 0), At(later, "1", "sg", "fut"));
         Assert.Equal(new ConjugationCell("comprará", CellState.Taught, 0), At(later, "3", "sg", "fut"));
         Assert.Equal(new ConjugationCell(null, CellState.Locked, 0), At(later, "2", "sg", "fut"));
-        Assert.Equal(ConjugationTable.AllColumns, later.Columns);
+        Assert.Equal(ConjugationTable.AllColumns.Take(4), later.Columns); // the fifth, tener que (V21b), waits for its own lesson
+    }
+
+    [Fact]
+    public void TenerQueIsTheFifthColumnShownOnceTheLessonThatTeachesItIsDone()
+    {
+        // V21b: «tengo que ir al río» (session 8's tener que) has its column beside the future (ir a), built from tener's present and the infinitive.
+        var ir = Verb("ir", Form("voy", "1", "sg", "pres", "ind", 1));
+        var morphology = TestGame.Bundle.SpanishMorphology();
+
+        var before = TestGame.NewSessionWithShippedLessons();
+        SessionSkip.Apply(before, 8); // Ayer en el pueblo is next, not begun
+        var early = ConjugationTable.Build(ir, [], BookPages.TaughtForms(before), morphology, null, TestGame.Data.Words);
+        Assert.DoesNotContain("tener-que", early.Columns.Select(static c => c.Tense));
+
+        var after = TestGame.NewSessionWithShippedLessons();
+        SessionSkip.Apply(after, 9); // Ayer en el pueblo is done
+        var table = ConjugationTable.Build(ir, [], BookPages.TaughtForms(after), morphology, null, TestGame.Data.Words);
+        Assert.Contains("tener-que", table.Columns.Select(static c => c.Tense));
+        Assert.Equal("must (tener que)", TestGame.Data.Locale.Ui(table.Columns.Single(static c => c.Tense == "tener-que").TitleId));
+        Assert.Equal(new ConjugationCell("tengo que ir", CellState.Taught, 0), At(table, "1", "sg", "tener-que"));
+        Assert.Equal(new ConjugationCell(null, CellState.Locked, 0), At(table, "2", "sg", "tener-que"));
+
+        // Said, it is counted: «tengo que ir al río» uses the form.
+        var said = Entry(1, "tengo que ir al río", [Word("tengo", 0, "tener", "1", "sg", "pres", "ind"), Word("que", 6, "que"), Word("ir", 10, "ir"), Word("al", 13, "a"), Word("río", 16, "río")]);
+        var used = ConjugationTable.Build(ir, [said], [], morphology, null, TestGame.Data.Words);
+        Assert.Equal(new ConjugationCell("tengo que ir", CellState.Used, 1), At(used, "1", "sg", "tener-que"));
     }
 
     [Fact]
@@ -260,7 +286,7 @@ public sealed class ConjugationTableTests
                 var table = ConjugationTable.Build(Verb(form.Lemma, Form(form.Lemma, null, null, null, null, 1)), [], [form], morphology, null, TestGame.Data.Words);
                 var cell = At(table, form.Person, form.Number, form.Tense);
                 Assert.Equal(CellState.Taught, cell.State);
-                Assert.Equal(form.Text(morphology, TestGame.Data.Words.NearFuture), cell.Text);
+                Assert.Equal(form.Text(morphology, TestGame.Data.Words.NearFuture, TestGame.Data.Words.Obligation), cell.Text);
             }
         }
     }

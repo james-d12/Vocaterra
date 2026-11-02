@@ -50,6 +50,10 @@
       "próximo año"
     ]
   },
+  "obligation": {
+    "verb": "tener",
+    "joiner": "que"
+  },
   "greeting": "hola",
   "letters": "á é í ó ú ñ ¿ ¡",
   "nouns": {

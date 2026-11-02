@@ -110,7 +110,7 @@ public sealed class LessonLevelTests
             Problems(Lesson("a1", Explain, Verbs)));
         Assert.Empty(Problems(Lesson("a2", Explain, Verbs)));
         Assert.Equal(["pres", "pret", TaughtVerbForm.NearFuture], LessonLevels.TensesAt(LessonLevels.A1));
-        Assert.Equal(["pres", "pret", TaughtVerbForm.NearFuture, TaughtVerbForm.SimpleFuture], LessonLevels.TensesAt(LessonLevels.A2));
+        Assert.Equal(["pres", "pret", TaughtVerbForm.NearFuture, TaughtVerbForm.SimpleFuture, TaughtVerbForm.Obligation], LessonLevels.TensesAt(LessonLevels.A2));
     }
 
     [Fact]

@@ -488,7 +488,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
             var text = Plain(LessonText(lesson));
             foreach (var form in lesson.TaughtVerbs)
             {
-                var word = form.Text(TestGame.Bundle.SpanishMorphology(), TestGame.Data.Words.NearFuture); // voy a comer for the near future (ir-a): ir's present, a and the infinitive
+                var word = form.Text(TestGame.Bundle.SpanishMorphology(), TestGame.Data.Words.NearFuture, TestGame.Data.Words.Obligation); // voy a comer for the near future (ir-a): ir's present, a and the infinitive
                 Assert.True(word is not null, $"{lesson.Id}: the core has no form for {Show(form)}.");
                 Assert.True(text.Contains(Plain(word), StringComparison.Ordinal), $"{lesson.Id} declares {Show(form)} ({word}) but never shows it.");
             }

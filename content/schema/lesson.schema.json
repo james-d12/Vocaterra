@@ -103,9 +103,10 @@
             "pres",
             "pret",
             "fut",
-            "ir-a"
+            "ir-a",
+            "tener-que"
           ],
-          "description": "pres, pret and ir-a (the near future) at any level; fut (the simple future) only in an a2 lesson (the validator checks it)."
+          "description": "pres, pret and ir-a (the near future) at any level; fut (the simple future) and tener-que (the obligation, tener que + infinitive: the book's column \"must\", V21b) only in an a2 lesson (the validator checks it)."
         }
       }
     },

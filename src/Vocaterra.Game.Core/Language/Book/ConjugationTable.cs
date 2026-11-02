@@ -37,6 +37,7 @@ public sealed record ConjugationTable(string Lemma, string? Gloss, IReadOnlyList
         new("pret", "bookColumnPast"),
         new(TaughtVerbForm.NearFuture, "bookColumnNearFuture"),
         new(TaughtVerbForm.SimpleFuture, "bookColumnFuture"),
+        new(TaughtVerbForm.Obligation, "bookColumnObligation"),
     ];
 
     /// <summary>
@@ -60,7 +61,8 @@ public sealed record ConjugationTable(string Lemma, string? Gloss, IReadOnlyList
         ArgumentNullException.ThrowIfNull(morphology);
         ArgumentNullException.ThrowIfNull(words);
         var lemma = verb.Lemma;
-        var nearFutureUses = NearFutureUses(history, lemma, morphology, words.NearFuture);
+        var nearFutureUses = PeriphrasisUses(history, lemma, morphology, words.NearFuture.Verb, words.NearFuture.Joiner);
+        var obligationUses = PeriphrasisUses(history, lemma, morphology, words.Obligation.Verb, words.Obligation.Joiner);
 
         var cellsByTense = new Dictionary<string, List<ConjugationCell>>(StringComparer.Ordinal);
         foreach (var column in AllColumns)
@@ -69,10 +71,12 @@ public sealed record ConjugationTable(string Lemma, string? Gloss, IReadOnlyList
             foreach (var (person, number) in Persons)
             {
                 var form = new TaughtVerbForm(lemma, person, number, column.Tense);
-                var text = form.Text(morphology, words.NearFuture);
+                var text = form.Text(morphology, words.NearFuture, words.Obligation);
                 var uses = column.Tense == TaughtVerbForm.NearFuture
                     ? nearFutureUses.GetValueOrDefault((person, number))
-                    : WordRecordUses(verb, person, number, column.Tense, morphology);
+                    : column.Tense == TaughtVerbForm.Obligation
+                        ? obligationUses.GetValueOrDefault((person, number))
+                        : WordRecordUses(verb, person, number, column.Tense, morphology);
                 var isTaught = taught.Any(t => Same(t, form));
                 var state = uses > 0 ? CellState.Used : isTaught ? CellState.Taught : CellState.Locked;
                 cells.Add(new ConjugationCell(state == CellState.Locked ? null : text, state, uses));
@@ -114,17 +118,17 @@ public sealed record ConjugationTable(string Lemma, string? Gloss, IReadOnlyList
     }
 
     /// <summary>
-    /// The uses of the future (ir a) of a verb, by person and number: <c>ir</c> in the present (the text of its form for that person), then <c>a</c>, then the verb. It
+    /// The uses of a periphrasis of a verb, by person and number: the future (ir a) or the obligation (tener que, V21b). For the future: <c>ir</c> in the present (the text of its form for that person), then <c>a</c>, then the verb. It
     /// is read from the history's words in order, over the lines the word record counts (not held, not a button, not a check answer). <c>vamos a comer</c> counts
     /// for <c>comer</c>, 1 pl, whatever the core made of <c>vamos</c>.
     /// </summary>
-    private static Dictionary<(string Person, string Number), int> NearFutureUses(IReadOnlyList<InputEntry> history, string lemma, MorphologyGenerator morphology, NearFutureWords nearFuture)
+    private static Dictionary<(string Person, string Number), int> PeriphrasisUses(IReadOnlyList<InputEntry> history, string lemma, MorphologyGenerator morphology, string auxiliary, string joiner)
     {
         var uses = new Dictionary<(string, string), int>();
         var irForms = new Dictionary<string, (string Person, string Number)>(StringComparer.Ordinal);
         foreach (var (person, number) in Persons)
         {
-            if (morphology.Conjugate(nearFuture.Verb, person, number, "pres") is { } ir)
+            if (morphology.Conjugate(auxiliary, person, number, "pres") is { } ir)
             {
                 irForms[Plain(ir)] = (person, number);
             }
@@ -136,7 +140,7 @@ public sealed record ConjugationTable(string Lemma, string? Gloss, IReadOnlyList
             for (var i = 0; i + 2 < words.Count; i++)
             {
                 if (irForms.TryGetValue(Plain(words[i].Text), out var key)
-                    && string.Equals(Plain(words[i + 1].Text), nearFuture.Joiner, StringComparison.Ordinal)
+                    && string.Equals(Plain(words[i + 1].Text), joiner, StringComparison.Ordinal)
                     && string.Equals(words[i + 2].Lemma, lemma, StringComparison.Ordinal))
                 {
                     uses[key] = uses.GetValueOrDefault(key) + 1;

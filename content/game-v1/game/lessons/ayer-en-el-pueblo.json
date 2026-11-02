@@ -49,6 +49,12 @@
       "person": "1",
       "number": "sg",
       "tense": "pret"
+    },
+    {
+      "lemma": "ir",
+      "person": "1",
+      "number": "sg",
+      "tense": "tener-que"
     }
   ],
   "steps": [
