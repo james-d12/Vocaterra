@@ -56,7 +56,14 @@ public sealed record GuideWord(
     public static IReadOnlyList<GuideWord> From(PipelineResult result)
     {
         ArgumentNullException.ThrowIfNull(result);
-        return From(result.Words);
+        var words = From(result.Words);
+        if (result.Notes is not { Count: > 0 } notes)
+        {
+            return words;
+        }
+
+        // V26: a verb typed without the accent of its tense (M70) is counted as the form the core read, `compré`, not the written `compre`: the reading is the accented form's.
+        return [.. words.Select(word => notes.FirstOrDefault(note => note.Span == word.Span) is { } note ? word with { Text = note.Accented } : word)];
     }
 
     /// <summary>The words of a phase-1 analysis (<c>UtteranceAnalysis.Words</c>), in order; empty for <see langword="null"/>.</summary>

@@ -118,6 +118,18 @@ public sealed class RepliesAndExchangesTests
     }
 
     [Fact]
+    public void AVerbTypedWithoutTheAccentIsCountedAsTheFormTheCoreRead()
+    {
+        // V26: the summary and the book's Verbs page counted `compre`, as typed, not `compré`.
+        var session = At("farmer");
+
+        _ = session.Say("ayer compre pan");
+
+        var row = session.Learner.Verbs.Single(static v => v.Lemma == "comprar");
+        Assert.Equal(["compré"], row.Forms.Select(static f => f.Form));
+    }
+
+    [Fact]
     public void ALineThatIsNotUnderstoodGetsNoPraiseWithTheRetry()
     {
         var session = TomorrowLessonTests.AtStep("m2-wood"); // QA-language-9: «Claro, «buscaré madera». Muy bien.» and then «No te entendí» for the same line
