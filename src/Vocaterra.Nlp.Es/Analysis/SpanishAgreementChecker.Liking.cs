@@ -28,7 +28,12 @@ internal sealed partial class SpanishAgreementChecker
                 continue;
             }
 
-            var verb = FirstReading(v, static r => SpanishAnalysisTables.IsLikingVerb(r.Lemma) && r.Mood == LexiconSchema.Indicative && r.Tense is not null);
+            // M69 (an O4 finding of M69's runs, seed cTAdl0hRGj58): a form of two tenses (gustamos, the present and the preterite) is taken in the preterite after a
+            // past marker, so ayer no me gustamos unos aparatos gives gustaron, not gustan.
+            var verb = (HasPastTimeMarker()
+                    ? FirstReading(v, static r => SpanishAnalysisTables.IsLikingVerb(r.Lemma) && r.Mood == LexiconSchema.Indicative && r.Tense == LexiconSchema.Preterite)
+                    : null)
+                ?? FirstReading(v, static r => SpanishAnalysisTables.IsLikingVerb(r.Lemma) && r.Mood == LexiconSchema.Indicative && r.Tense is not null);
             var start = NextContentIndex(v + 1);
             if (verb is null || start < 0 || !TryReadNounPhrase(start, out var phrase) || SubjectNumber(phrase, timeIsSubject: true) is not { } number)
             {

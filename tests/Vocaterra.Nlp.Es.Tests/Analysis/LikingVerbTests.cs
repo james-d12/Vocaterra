@@ -35,6 +35,17 @@ public class LikingVerbTests
         Assert.Equal(expected, Described(sentence, LikeGrammar));
     }
 
+    // M69 (an O4 finding of M69's runs, seed cTAdl0hRGj58): gustamos is the present and the preterite, and after a past marker the form of the thing liked is the
+    // preterite's (before M69 the present's: ayer no me gustamos unos aparatos gave gustan).
+    [Theory]
+    [InlineData("ayer no me gustamos unos aparatos", "conj.person|gustamos|gustaron")]
+    [InlineData("ayer nos gustamos el pan", "conj.person|gustamos|gustó")]
+    [InlineData("hoy nos gustamos el pan", "conj.person|gustamos|gusta")]
+    public void AFormOfTwoTensesAfterAPastMarkerTakesThePreterite(string sentence, string expected)
+    {
+        Assert.Equal(expected, Described(sentence));
+    }
+
     // A subject pronoun and no dative: the dative of the pronoun with the form of the thing, over the pronoun and the verb, so the recast says me gusta el pan.
     [Theory]
     [InlineData("yo gusto el pan", "conj.person|yo gusto|me gusta")]

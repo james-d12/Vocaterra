@@ -639,7 +639,8 @@ The checks work on the whole utterance, not on clauses, and on the verb forms th
   el pan`, `me gustan las manzanas`, `te gusta el pan`, `a mí me gusta el pan`, `no me gusta`, `¿te gusta?`, `nos gusta la fruta`, a subject after the verb that
   agrees with it (`me gustas tú`, `te gusto yo`), no phrase after the verb (`me gusto`, `te gusto`), a dative with a subject pronoun (`tú me gustas`, `yo te
   gusto`), a phrase after a preposition (`ella gusta de la música`), and the other experiencer verbs, which take a subject of the first or second person or an object
-  in other senses (`me quedo el libro`).
+  in other senses (`me quedo el libro`). M69: a form of two tenses (`gustamos`, the present and the preterite) is taken in the preterite after a past marker, so `ayer
+  no me gustamos unos aparatos` gives `gustaron` (before M69 `gustan`).
 
 `ser_estar` is reported on the copula, with `expected` the form of the other copula and `actual` the form said:
 
