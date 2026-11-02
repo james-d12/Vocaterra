@@ -57,9 +57,9 @@ Record consent in the observer notes (yes or no, the time, the code). A tester w
 
     scripts/playtest-build.sh <a new folder outside the repository>
 
-The script validates the bundle, publishes the game self-contained (no .NET install for the tester), copies the bundle with its 902 speech
-WAVs (300 at S18; 680 after phase A of the village plan, which brought the four new NPCs' lines and the lessons of sessions 4 to 6; phase B brought the
-222 of sessions 7 to 10), copies the pinned Vosk model from the shared models folder (`VOCATERRA_MODELS_DIR`, default `~/.local/share/vocaterra/models`; fetch it with
+The script validates the bundle, publishes the game self-contained (no .NET install for the tester), copies the bundle with its 1 062 speech
+WAVs (300 at S18; 680 after phase A of the village plan, which brought the four new NPCs' lines and the lessons of sessions 4 to 6; 902 after phase B, which brought
+the lessons of sessions 7 to 10; 1 062 after the follow-ups, the feedback lines in each NPC's voice and the free talk's replies), copies the pinned Vosk model from the shared models folder (`VOCATERRA_MODELS_DIR`, default `~/.local/share/vocaterra/models`; fetch it with
 `scripts/fetch-models.sh` first) and its manifest, copies the tester's README and the launcher, then checks the folder: no sherpa-onnx or
 ONNX Runtime native library, no espeak-ng, no sherpa model file, the Vosk model matching its pinned SHA-256 sums, and every speech WAV the
 bundle manifest lists. The build must end with `all checks passed`. Keep its output with the build folder.
@@ -321,8 +321,17 @@ Before any tester (the owner, once, end to end):
 
 ## 14. A playtest of sessions 7 to 10 (what it would need)
 
-Not planned: written at V09 after phase B of the village plan, so the owner can weigh one. A pilot plays the first session only (section 13).
+Not planned: written at V09 after phase B of the village plan and checked at V24 after the follow-ups, so the owner can weigh one. A pilot plays the first session only (section 13).
 
+
+**What changed for a playtest since phase B** (the follow-ups, V20 to V25; the playtest's own build is the same):
+
+- Free talk takes the lessons' lines: a learner who says a line of the lesson to its NPC gets a reply, and the phrase counts as a use (V20).
+- The Lessons page opens at the `next:` lesson, so the page a tester reaches first names the lesson to talk to (V21b).
+- Two session counters: the day (lessons, objectives, the HUD, the book) and the sitting (the spacing rule, the review deck, the session log); a load
+  keeps the day and sets the sitting on (V25). A tester who saves in session 5 and loads sees session 5 again.
+- The accent note: a missing accent on a past verb at a lesson's answer step is shown as a note under the reply, and accepted (M70, V21b).
+- The name plates show only for the NPC the tester faces and the beacon's NPC (V22), and the stall and the market answer what was said (V21, V21b).
 - **A way in.** `--playtest` plays one session a run and offers no sleep at the fire, and a `--load` of its save runs the recall battery and ends;
   `--skip-to-session`, the test aid that starts a later session, refuses `--playtest`. A playtest of sessions 7 to 10 needs a profile that starts a tester at
   a later session (its saves and logs marked as such, as the skip's are), or sittings that allow the sleep. That is a game milestone, not a facilitator's
@@ -334,9 +343,13 @@ Not planned: written at V09 after phase B of the village plan, so the owner can 
   smaller fixed core than `coreSessions: 3`, decided before the bundle is frozen.
 - **The time.** A lesson takes about 6 to 10 minutes (the milestones' estimates: session 7 and 8 about 7 to 9, session 9 about 6 to 7, session 10 about 9 to
   10), plus the walks and the free talk: about 40 minutes for the four, before any check.
-- **The voices.** None of the 222 speech files of phase B has been heard (section 12, step 5): 70 are the farmer's, 54 the guide's (the lessons' models and
-  cards), 30 the baker's, 22 each the smith's and the villager's, 14 the fisher's and 10 the shopkeeper's.
-- **What to watch.** At each session's start, whether the objective and the beacon are followed to the lesson's NPC (the Lessons page says `next: talk to
-  <NPC>`); the walks inside a lesson (session 7 to the river and back, 8 and 9 from the village to the river, 10 from the bakery to the field and the stall);
-  the market's coins (wood sold, bread or apples bought: a tester who spends the coins elsewhere sells more wood); and the free talk after a lesson, where
-  a line from the lesson is understood but counts as a phrase use only at the open prompt's own rows (`docs/game/README.md`, the village's open points).
+- **The voices.** None of the 1 062 speech files has been heard (section 12, step 5). Phase B's 222 are 70 the farmer's, 54 the guide's (the lessons' models
+  and cards), 30 the baker's, 22 each the smith's and the villager's, 14 the fisher's and 10 the shopkeeper's; the follow-ups' 148 (74 lines) are the
+  villager's 26 files, the farmer's 26, the shopkeeper's 26, the baker's 24, the smith's 24 and the fisher's 22: the NPCs' free-talk replies and the
+  feedback lines (`answer_accepted`, `not_understood`, `feedback.hint`, `hint.gender.agree`, `slow_repeat`) in each NPC's voice (V20, V21b).
+- **What to watch.** At each session's start, whether the objective and the beacon are followed to the lesson's NPC (the Lessons page opens at `next:`,
+  `next: talk to Luz` in session 9); the walks inside a lesson (session 7 to the river and back, 8 and 9 from the village to the river, 10 from the bakery to
+  the field and the stall); the market's coins (wood sold, bread or apples bought: a tester who spends the coins elsewhere sells more wood); the free talk
+  after a lesson, where a line the lesson taught is understood by its NPC (V20: all 11 in the route of V24) and a line it did not teach is understood only
+  when its intent is one that NPC takes (6 of 11 in the route); the accent note, which shows only at a lesson's answer step; and the session counters: a
+  load keeps the day, a sleep moves it, and a save made after a sleep loads on the new day (V25).
