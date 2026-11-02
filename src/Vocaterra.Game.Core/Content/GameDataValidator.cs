@@ -326,6 +326,19 @@ public static class GameDataValidator
         foreach (var (npc, hostEvent) in data.HostEvents.Mapped())
         {
             var effect = data.HostEvents.Of(npc, hostEvent);
+            foreach (var (noun, answer) in effect.Instead ?? new Dictionary<string, string>())
+            {
+                if (!TakenBySomeState(data, npc, NpcHostEvents.Of(npc, answer)))
+                {
+                    problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' answers '{noun}' with '{answer}' instead, and no state of agents/{npc}.json takes '{NpcHostEvents.Of(npc, answer)}'.");
+                }
+            }
+
+            foreach (var noun in (effect.Asked ?? []).Concat(effect.Instead?.Keys ?? []).Where(noun => data.Nouns.ForLemma(noun) is null))
+            {
+                problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' names '{noun}', which is not a catalogue noun.");
+            }
+
             if (effect.Kind == NpcEffectKind.PointAtPlace && !places.Contains(effect.Place))
             {
                 problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' points at the place '{effect.Place}', which is not a point of the scene.");

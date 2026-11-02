@@ -77,8 +77,14 @@ public static class NpcTurnRules
                 turn = typed.Advance(NpcHostEvents.Of(agentId, miss), before);
             }
 
+            var refusedGift = hostEvents.Of(agentId, hostEvent).Kind == NpcEffectKind.GiveItem;
             if (turn is null)
             {
+                if (refusedGift)
+                {
+                    hostEventsOfTurn.Remove(hostEvent); // V30: the gift the NPC refused is not made, with or without a line for the refusal
+                }
+
                 continue; // an agent with no transition for the miss says its line as before
             }
 
@@ -88,7 +94,7 @@ public static class NpcTurnRules
             lines.AddRange(turn.Response.Lines.Select(static l => l.Text));
             hostEventsOfTurn.AddRange(events);
             unsaid.Add(action.DialogueIntent); // a pool is its dialogue intent's (every agent of the bundle names them alike)
-            if (hostEvents.Of(agentId, hostEvent).Kind == NpcEffectKind.GiveItem)
+            if (refusedGift)
             {
                 hostEventsOfTurn.Remove(hostEvent); // the gift the NPC refused is not made (the sales' misses are held back by the session)
                 unsaid.AddRange(actions.SkipWhile(a => a != action).Skip(1).Select(static a => a.DialogueIntent)); // and what the NPC would have said next ("¿Quieres pan?" after the bottle)
