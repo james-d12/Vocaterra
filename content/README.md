@@ -12,7 +12,7 @@ Everything the game says, shows and builds its world from, outside the code. The
 | `schema/` | The JSON Schemas of the game's files (draft-07), for editors and for one test. | no |
 | `grammar/` | The grammar check's strings, its committed LanguageTool cache and its waivers (`docs/game/README.md`). | no |
 | `PHRASES.md` | The phrase sheet's source of truth (D-game-10); `PhraseSheetTests` keeps `game-v1/game/phrases.json` in step with it. | no |
-| `speech-index.json` | What each pre-rendered WAV of `game-v1/speech/` says, and how it was rendered. | no |
+| `speech-index.json` | What each pre-rendered WAV of `game-v1/speech/<speaker>/` (the word cards in `speech/cards/`) says, and how it was rendered. | no |
 
 ## Who owns what in `game-v1/`
 

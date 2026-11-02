@@ -384,7 +384,7 @@ step_speech() {
   files="$(sed -E 's/.* ([0-9]+) files;.*/\1/' <<<"$line")"
   would="$(sed -E 's/.*; ([0-9]+) would be rendered.*/\1/' <<<"$line")"
   # --check does not count the WAVs of lines that are gone; a render deletes them.
-  wavs="$(find "$GAME/speech" -maxdepth 1 -name '*.wav' | wc -l)"
+  wavs="$(find "$GAME/speech" -name '*.wav' | wc -l)"
   stale=$((wavs > files ? wavs - files : 0))
   checked="check: $would of $files files to render"
   [ "$stale" -gt 0 ] && checked="$checked, $stale stale WAVs to delete"

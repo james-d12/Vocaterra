@@ -219,7 +219,7 @@ dotnet run --project src/Vocaterra.Game -- --seed 42 --look 120,-5 --beacon rive
 # console prints "heard "hola"" and the greet intent). It needs the Vosk model in VOCATERRA_MODELS_DIR; the other steps are typed.
 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute \
   --lesson-run first-words --shot /tmp/s17-lesson.png \
-  --talk guide --wav content/game-v1/speech/phrase.hola.wav \
+  --talk guide --wav content/game-v1/speech/guide/phrase.hola.wav \
   --walk-to 172,187 --interact 170,43,189 --interact 169,43,185 --walk-to 173,183 --interact 171,43,181 --walk-to 155,187 --interact 153,42,186 --interact 153,43,186 --interact 153,44,186 --interact 153,45,186 --interact 153,41,189 --walk-to 177,185 --craft antorcha --walk-to 174,185 --place antorcha@175,44,187 \
   --talk shopkeeper --say "quiero agua, por favor" --shot /tmp/s17-stall.png --say "sí, por favor" \
   --talk villager --say "¿dónde está el río?" \
@@ -1020,7 +1020,7 @@ Not done (R02 as written in the backlog): the retry is not asked one rung lower 
 # S17's route with a "no sé" at the villager's first talk, then a second talk: the villager asks the river question again with the English note (the
 # console prints second_try_asked and second_try_answered); the closing card, with its summary, is in the last PNG (--size 800x600 for the small window)
 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --session-dir /tmp/x04/session --lesson-run first-words --shot /tmp/x04/lesson.png \
-  --talk guide --wav content/game-v1/speech/phrase.hola.wav \
+  --talk guide --wav content/game-v1/speech/guide/phrase.hola.wav \
   --walk-to 172,187 --interact 170,43,189 --interact 169,43,185 --walk-to 173,183 --interact 171,43,181 --walk-to 155,187 --interact 153,42,186 --interact 153,43,186 --interact 153,44,186 --interact 153,45,186 --interact 153,41,189 --walk-to 177,185 --craft antorcha --walk-to 174,185 --place antorcha@175,44,187 \
   --talk shopkeeper --say "quiero agua, por favor" --shot /tmp/x04/stall.png --say "sí, por favor" \
   --talk villager --say "no sé" --shot /tmp/x04/no-se.png --leave \

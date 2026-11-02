@@ -166,7 +166,7 @@ public sealed class SpeechLinesTests
     [Fact]
     public void EveryCommittedFileIsAReadableMonoWavOfKokoroRate()
     {
-        var store = new StaticLineStore(SpeechDirectory);
+        var store = new SpeechStore(SpeechDirectory, Lines);
         foreach (var line in Lines.Where(static l => !PendingSpeech.Contains(l.LineId)))
         {
             foreach (var id in new[] { line.LineId, SpeechFiles.SlowId(line.LineId) })
@@ -176,5 +176,35 @@ public sealed class SpeechLinesTests
                 Assert.True(clip.Samples.Length > 0, id);
             }
         }
+    }
+
+    [Fact]
+    public void EveryFileIsInItsSpeakersFolderOrInCardsAndNoneIsLeftLoose()
+    {
+        // V28: speech/<speaker>/<id>.wav (the word cards' in speech/cards/), the slow file beside its normal one, nothing in the speech folder itself.
+        Assert.Empty(Directory.GetFiles(SpeechDirectory));
+        foreach (var line in Lines.Where(static l => !PendingSpeech.Contains(l.LineId)))
+        {
+            Assert.Equal(line.Kind == SpeechKind.Word ? "cards" : line.Speaker, SpeechFiles.FolderOf(line));
+            Assert.True(File.Exists(Path.Combine(SpeechDirectory, SpeechFiles.RelativePath(line, false))), SpeechFiles.RelativePath(line, false));
+            Assert.True(File.Exists(Path.Combine(SpeechDirectory, SpeechFiles.RelativePath(line, true))), SpeechFiles.RelativePath(line, true));
+        }
+
+        Assert.Equal(
+            ["baker", "cards", "farmer", "fisher", "guide", "shopkeeper", "smith", "villager"],
+            Directory.GetDirectories(SpeechDirectory).Select(static d => Path.GetFileName(d)).Order(StringComparer.Ordinal));
+        Assert.Equal(2 * Lines.Count - (2 * PendingSpeech.Ids.Count), Directory.GetFiles(SpeechDirectory, "*.wav", SearchOption.AllDirectories).Length);
+    }
+
+    [Fact]
+    public void AStoreFindsAFileByItsLineIdThroughTheLinesFolder()
+    {
+        var store = new SpeechStore(SpeechDirectory, Lines);
+        var card = Lines.First(static l => l.Kind == SpeechKind.Word);
+
+        Assert.True(store.Contains(card.LineId));
+        Assert.True(store.Contains(SpeechFiles.SlowId(card.LineId)));
+        Assert.False(store.Contains("no_such_line.1"));
+        Assert.False(store.Contains(SpeechFiles.SlowId("no_such_line.1")));
     }
 }

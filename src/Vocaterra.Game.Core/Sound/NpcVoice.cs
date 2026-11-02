@@ -41,7 +41,7 @@ public interface IAudioOutput : IDisposable
 /// </remarks>
 public sealed class NpcVoice : ILinePlayer, IDisposable
 {
-    private readonly StaticLineStore _store;
+    private readonly SpeechStore _store;
     private readonly SpeechIndex _index;
     private readonly IAudioOutput _output;
     private readonly Action<string> _log;
@@ -58,8 +58,8 @@ public sealed class NpcVoice : ILinePlayer, IDisposable
     public NpcVoice(string speechDirectory, SpeechIndex index, IAudioOutput output, bool muted, Action<string> log)
     {
         ArgumentNullException.ThrowIfNull(speechDirectory);
-        _store = new StaticLineStore(speechDirectory);
         _index = index ?? throw new ArgumentNullException(nameof(index));
+        _store = new SpeechStore(speechDirectory, _index.Lines);
         _output = output ?? throw new ArgumentNullException(nameof(output));
         _log = log ?? throw new ArgumentNullException(nameof(log));
         Muted = muted;

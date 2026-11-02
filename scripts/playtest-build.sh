@@ -150,8 +150,9 @@ bundle = os.path.join(dest, "content", "game-v1")
 with open(os.path.join(bundle, "manifest.json"), encoding="utf-8") as handle:
     bundle_manifest = json.load(handle)
 listed = [f["path"] for f in bundle_manifest["files"] if f["path"].startswith("speech/") and f["path"].endswith(".wav")]
-wavs = sorted(os.listdir(os.path.join(bundle, "speech"))) if os.path.isdir(os.path.join(bundle, "speech")) else []
-report(len(wavs) == len(listed) > 0 and all(name.endswith(".wav") for name in wavs), "speech WAVs in the bundle",
+# V28: the files are in a folder per speaker (and cards/), so the folder is walked
+wavs = sorted(os.path.relpath(os.path.join(root, name), bundle).replace(os.sep, "/") for root, _, names in os.walk(os.path.join(bundle, "speech")) for name in names)
+report(wavs == sorted(listed) and len(wavs) > 0 and all(name.endswith(".wav") for name in wavs), "speech WAVs in the bundle",
        f"{len(wavs)} files, the manifest lists {len(listed)}")
 size = sum(os.path.getsize(os.path.join(dest, path)) for path in files)
 print(f"bundle: {bundle_manifest['bundleId']}, bundle hash {bundle_manifest['bundleHash']}")

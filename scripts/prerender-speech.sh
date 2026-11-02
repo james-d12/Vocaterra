@@ -2,7 +2,7 @@
 # Renders the speakable lines of the game bundle with Kokoro (S9; tools/Vocaterra.SpeechRender): every slot-free dialogue line (the pools of
 # every NPC of game/npcs.json, `<id>_*` and the lesson lines `guide.lesson.<id>.*`, and the guide's, feedback and not-understood lines), each
 # prompt's text, one line per word-card noun, and each learner phrase of the phrase sheet spoken as its model answer. Output:
-# content/game-v1/speech/<lineId>.wav (at the speaker's speed) and <lineId>.slow.wav (0.8 of it), 16-bit mono, host-owned bundle files, hashed
+# content/game-v1/speech/<speaker>/<lineId>.wav (at the speaker's speed; the word cards' in speech/cards/) and <lineId>.slow.wav (0.8 of it), 16-bit mono, host-owned bundle files, hashed
 # in manifest.json and listed in provenance.json; the listening table docs/game/SPEECH_CHECKLIST.md; and the re-run index
 # content/speech-index.json (outside the bundle).
 #
