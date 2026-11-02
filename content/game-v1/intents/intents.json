@@ -864,13 +864,17 @@
       "slotGrammars": [
         "(sí)? [VERB:ser] (muy|más|menos)? [ADJ]",
         "(sí)? [ART] [NOUN:object] [VERB:ser] (muy|más|menos)? [ADJ]",
+        "(sí)? (luz|domingo|mar|león) [VERB:ser] (muy|más|menos)? [ADJ]",
         "(sí)? [VERB:ser] [ADJ] y [ADJ]",
         "(sí)? [ART] [NOUN:object] [VERB:ser] [ADJ] y [ADJ]",
+        "(sí)? (luz|domingo|mar|león) [VERB:ser] [ADJ] y [ADJ]",
         "(esto|eso) [VERB:ser] (muy)? [ADJ]",
         "(sí)? [VERB:ser] (más|menos) [ADJ] que [ART]? [NOUN]",
         "(sí)? [ART] [NOUN:object] [VERB:ser] (más|menos) [ADJ] que [ART]? [NOUN]",
+        "(sí)? (luz|domingo|mar|león) [VERB:ser] (más|menos) [ADJ] que [ART]? [NOUN]",
         "(sí)? [VERB:ser] tan [ADJ] como [ART]? [NOUN]",
-        "(sí)? [ART] [NOUN:object] [VERB:ser] tan [ADJ] como [ART]? [NOUN]"
+        "(sí)? [ART] [NOUN:object] [VERB:ser] tan [ADJ] como [ART]? [NOUN]",
+        "(sí)? (luz|domingo|mar|león) [VERB:ser] tan [ADJ] como [ART]? [NOUN]"
       ],
       "examples": [
         {"text": "es muy caro", "errors": [], "prompt": "lesson-dear"},
@@ -1003,15 +1007,18 @@
       "intentId": "ask_total",
       "requiredSlots": [],
       "slotGrammars": [
-        "cuánto [VERB:ser] todo (esto)?",
+        "cuánto es todo (esto)?",
         "cuánto [VERB:costar] todo (esto)?"
+      ],
+      "keywordRules": [
+        { "lemmas": ["cuánto", "todo"], "requiresSlots": [] },
+        { "lemmas": ["cuanto", "todo"], "requiresSlots": [] }
       ],
       "examples": [
         {"text": "cuánto es todo", "errors": [], "prompt": "farmer-open"},
         {"text": "cuánto cuesta todo", "errors": [], "prompt": "farmer-open"},
         {"text": "cuánto es todo esto", "errors": [], "prompt": "farmer-open"},
-        {"text": "cuánto es todo", "errors": [], "prompt": "baker-open"},
-        {"text": "cuánto son todo", "errors": ["conj.person"], "prompt": "farmer-open"}
+        {"text": "cuánto es todo", "errors": [], "prompt": "baker-open"}
       ]
     },
     {

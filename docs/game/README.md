@@ -797,7 +797,8 @@ Core gaps (the core's plan, `docs/nlp/IMPLEMENTATION_PLAN.md`):
 
 - From V15: `¿puede usted vender manzanas?` gives a wrong `conj.person` (expects `vende`); `puedo pago con fruta` and `quiero vendo madera` give no error;
   `¿cuánto cuestan todo?` gives no `conj.person`; `ti` is not in the lexicon (`vocab.unknown`). (`¿cuánto son todo?`, intent `unknown`, and `cuanto son todo?`, read
-  as `describe`, are `ask_total` since V20: its grammar takes `son`, and `describe` takes a noun only after an article, so the noun `cuanto` is no subject.)
+  as `describe`, are `ask_total` since V20: a keyword rule (`cuánto` and `todo`) takes `son`, where a grammar would have the fuzz suite realise `cuánto son
+  todo` as correct, and `describe` takes a noun subject only after an article or a name, so the noun `cuanto` is no subject.)
 - A word outside a constrained prompt's answer set gets `vocab.wrong` (V17's `usted comprará pan` at a lesson step; above in free talk).
 - M63, filed: a subject pronoun before a question word (`ellas adónde están`) is lost to M56's check (fuzz seeds `8zKtIhOY3951`, `c5SlpISRmTZ3`).
 - The core milestones' own left points stay in its plan: M56 (`son cerca`, `ser en`, the first and second persons after the verb), M58 (`podo` and `esto`

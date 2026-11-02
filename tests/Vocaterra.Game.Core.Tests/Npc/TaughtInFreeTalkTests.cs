@@ -86,6 +86,26 @@ public sealed class TaughtInFreeTalkTests(ITestOutputHelper output)
         Assert.True(failures.Count == 0, string.Join(Environment.NewLine, failures));
     }
 
+    [Theory]
+    [InlineData("farmer", "¿cuánto es todo?", "ask_total")]
+    [InlineData("farmer", "¿cuánto son todo?", "ask_total")] // was unknown (handover 9.3 D (e)); the core grades son as es (M66)
+    [InlineData("farmer", "cuanto son todo?", "ask_total")] // was describe and praised (QA-language-8): the noun cuanto took the subject
+    [InlineData("baker", "¿cuánto son todo?", "ask_total")]
+    [InlineData("baker", "cuanto es todo", "ask_total")]
+    [InlineData("farmer", "¿cuánto cuesta?", "ask_price")]
+    [InlineData("farmer", "cuanto cuestan las manzanas", "ask_price")]
+    [InlineData("farmer", "¿puedo pagar con fruta?", "ask_pay")]
+    public void TheMarketsQuestionsAreQuestionsAccentedOrNot(string npc, string line, string intent)
+    {
+        // ask_total takes son by a keyword rule (cuánto and todo), not a grammar, which the fuzz suite would realise as a correct sentence; describe takes a noun
+        // subject only after an article or a name, so cuanto (a noun too, the quantum) is no subject and no question reads as a description.
+        var npcs = new NpcService(TestGame.Data, new NoFacts(), TestGame.Seed, new StoredTimestamp(GuideSession.DefaultStartedAt));
+
+        var turn = npcs.Say(npc, line, new GuideScene(new GuideCell(0, 0, 0)), Now, "hash");
+
+        Assert.Equal((intent, true), (turn.Intent, turn.Communicated));
+    }
+
     // The turns ask nothing of the world (the guide's answers name no tile here).
     private sealed class NoFacts : IGuideFacts
     {

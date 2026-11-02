@@ -2042,7 +2042,6 @@
 {"id":"intents:ask_total.ex0","text":"cuánto es todo","kind":"learner","errors":[]}
 {"id":"intents:ask_total.ex1","text":"cuánto cuesta todo","kind":"learner","errors":[]}
 {"id":"intents:ask_total.ex2","text":"cuánto es todo esto","kind":"learner","errors":[]}
-{"id":"intents:ask_total.ex3","text":"cuánto son todo","kind":"learner","errors":["conj.person"]}
 {"id":"intents:ask_what.ex0","text":"qué es esto","kind":"learner","errors":[]}
 {"id":"intents:ask_what.ex1","text":"qué es eso","kind":"learner","errors":[]}
 {"id":"intents:ask_what.ex2","text":"cómo se llama esto","kind":"learner","errors":[]}
