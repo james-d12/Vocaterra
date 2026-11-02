@@ -182,6 +182,14 @@ public sealed class BookModel
         if (_openAtNext && Page == BookPage.Lessons)
         {
             Offset = BookScroll.OpeningOffset(lines, visible);
+            if (BookScroll.NextIndex(lines) is { } next)
+            {
+                // V30: the selection starts at the row the page opened on, so the first arrow key moves on from there and does not jump back to the top.
+                var rows = BookSpeakers.Selectable(lines);
+                var at = rows.ToList().FindIndex(row => row >= next);
+                _selected = at < 0 ? Math.Max(0, rows.Count - 1) : at; // no row at or after it: the last row above it, the nearest
+                DetailOffset = 0;
+            }
         }
 
         _openAtNext = false;

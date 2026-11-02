@@ -96,6 +96,10 @@ public sealed class ScriptedRunEnd
     /// <summary>The process exit code: 0 unless a picture could not be saved (1), or the run was cut short at <see cref="RunawayTicks"/> (<see cref="RunawayExitCode"/>).</summary>
     public int ExitCode { get; private set; }
 
+    /// <summary>The exit code after one more picture: the worst code wins, so a mid-run shot that failed (1) is not wiped by a final picture that saved (V30).</summary>
+    public static int WorstExit(int current, bool saved, bool runaway) =>
+        Math.Max(current, saved ? (runaway ? RunawayExitCode : 0) : 1);
+
     /// <summary>
     /// Once a frame, after the world: counts the frames the run has been settled, and opens the panels asked for at the end once the world's script
     /// is done. Settled: the world's script is done (or there is none) with no battery on screen, a battery that ends the run has shown its end,
@@ -160,7 +164,7 @@ public sealed class ScriptedRunEnd
         {
             var saved = ScreenshotWriter.TrySave(device, shot);
             _console($"shot: {shot} ({(saved ? "saved" : "FAILED")}) at tick {sim.Tick}, {_session.Objective.Summary}");
-            ExitCode = saved ? ExitCode : 1;
+            ExitCode = WorstExit(ExitCode, saved, false);
         }
 
         if (!mayShoot || _options.ScreenshotPath is not { } path || !ReadyForPicture())
@@ -168,7 +172,7 @@ public sealed class ScriptedRunEnd
             return;
         }
 
-        ExitCode = ScreenshotWriter.TrySave(device, path) ? (_runaway ? RunawayExitCode : 0) : 1;
+        ExitCode = WorstExit(ExitCode, ScreenshotWriter.TrySave(device, path), _runaway);
         _console($"scene draw (voxel world, layers, flush): {timings.DrawSummary()}");
         _console($"frame time (end of one draw to the next, no vsync): {timings.FrameSummary()}");
         _console($"voxel: {renderer.Stats.Summary()}; {renderer.DrawnChunks} chunks drawn this frame, {renderer.DrawnFigureQuads} figure quads, {renderer.DrawnPlantQuads} plant quads (within {preset.PlantDistance} blocks, {preset.PlantKeepPercent}% built), occlusion {(preset.AmbientOcclusion ? "on" : "off")}, clouds {(preset.Clouds ? "on" : "off")}");

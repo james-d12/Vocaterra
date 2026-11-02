@@ -152,10 +152,26 @@ public sealed class NpcVoiceTests
         Assert.True(output.Clips[0].Samples.Length > 0);
     }
 
+    [Fact]
+    public void AnNpcCopyWithNoFilePlaysTheGuidesFileOfTheSameLine()
+    {
+        // V30: «Hola.» as the baker's copy of villager_hello.1, whose file is not in the folder: the villager's (the shared line's) file plays, and the voice counts the fall back.
+        var copy = new SpeechLine("villager_hello.1.baker", "baker", "Hola.", SpeechKind.NpcCopy);
+        var output = new FakeOutput();
+        var logs = new List<string>();
+        var voice = new NpcVoice(Committed.Value.Speech, new SpeechIndex([.. Committed.Value.Lines, copy]), output, muted: false, logs.Add);
+
+        voice.Say("baker", ["Hola."]);
+
+        Assert.Equal(["villager_hello.1"], Played(logs));
+        Assert.Equal((1, 1, 0), (voice.FellBack, voice.Played, voice.Missing));
+        Assert.Single(output.Clips);
+    }
+
     /// <summary>The ids the voice started, read from its log (the missing and no-device lines are not clips).</summary>
     private static string[] Played(List<string> logs) =>
         logs.Where(static line => line.StartsWith("voice: ", StringComparison.Ordinal) && !line.StartsWith("voice: missing", StringComparison.Ordinal)
-            && !line.StartsWith("voice: no audio device", StringComparison.Ordinal))
+            && !line.StartsWith("voice: no audio device", StringComparison.Ordinal) && !line.StartsWith("voice: fallback", StringComparison.Ordinal))
             .Select(static line => line["voice: ".Length..])
             .ToArray();
 

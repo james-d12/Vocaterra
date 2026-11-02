@@ -249,6 +249,22 @@ public sealed class SaveGameTests
     }
 
     [Fact]
+    public void TheOldKeyWordsFlagIsTheShopkeepersAndNotAnyNpcs()
+    {
+        // V30: older builds, and this build's reader of a save with no list, read the flag as the shopkeeper's.
+        var baker = TestGame.NewSession();
+        baker.RestoreKeyWordsTaught(["baker"]);
+
+        Assert.False(SaveGame.Parse(SaveOf(baker)).KeyWordsTaught);
+        var shop = TestGame.NewSession();
+        shop.OpenTalk(NpcService.ShopkeeperAgent, teachKeyWords: true);
+        shop.FinishKeyWords();
+        _ = shop.TakeOpening();
+        shop.EndTalk();
+        Assert.True(SaveGame.Parse(SaveOf(shop)).KeyWordsTaught);
+    }
+
+    [Fact]
     public void AnOlderSavesKeyWordsFlagMeansTheShopkeepersAndANewGameHasNone()
     {
         var session = TestGame.NewSession();

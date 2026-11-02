@@ -121,6 +121,21 @@ public sealed class HostEventTableTests
     }
 
     [Fact]
+    public void AnInsteadThatNoStateTakesOrANounOffTheCatalogueIsAProblem()
+    {
+        var root = JsonNode.Parse(System.IO.File.ReadAllText(Repo.Path("content", "game-v1", "game", "host-events.json")))!;
+        var gift = root["events"]!.AsArray().First(static e => e!["event"]!.GetValue<string>() == "stall.give_water")!["action"]!;
+        gift["instead"] = new JsonObject { ["pan"] = "give_bred" }; // V30: a typo in the event's name
+        gift["asked"] = new JsonArray("agua", "botela"); // and in a noun
+
+        var problems = GameDataValidator.Validate(TestGame.Data.WithHostEvents(HostEventTable.Parse(root.ToJsonString())));
+
+        Assert.Contains("game/host-events.json: shopkeeper's 'stall.give_water' answers 'pan' with 'give_bred' instead, and no state of agents/shopkeeper.json takes 'shopkeeper.give_bred'.", problems);
+        Assert.Contains("game/host-events.json: shopkeeper's 'stall.give_water' names 'botela', which is not a catalogue noun.", problems);
+        Assert.Empty(GameDataValidator.Validate(TestGame.Data));
+    }
+
+    [Fact]
     public void AFileOfSchemaOneIsRefused()
     {
         var error = Assert.Throws<InvalidDataException>(() => HostEventTable.Parse(File("""{ "kind": "give_item", "item": "bread" }""").Replace("\"schemaVersion\": 2", "\"schemaVersion\": 1", StringComparison.Ordinal)));

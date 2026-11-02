@@ -9,8 +9,6 @@ namespace Vocaterra.Host;
 /// <summary>Writes one utterance's outcome as text: the verdict summary, the agent's lines, the effects and the repair step.</summary>
 public static class VerdictReport
 {
-    // The core's correction lines that are no recast (a hint, an explicit correction), as the game tells them apart (NpcService).
-    private const string FeedbackLinePrefix = "feedback.";
 
     /// <summary>
     /// Writes the prompt the text loop shows before each turn: its id, mode, agent and intents, then the agent's line
@@ -59,7 +57,7 @@ public static class VerdictReport
         {
             foreach (var line in result.Response.Lines)
             {
-                var correction = line.IsRecast || line.LineId.StartsWith(FeedbackLinePrefix, StringComparison.Ordinal);
+                var correction = line.IsRecast || line.LineId.StartsWith(NpcTurnRules.FeedbackLinePrefix, StringComparison.Ordinal);
                 output.WriteLine($"  agent: {(correction && names is not null ? RecastNames.Capitalise(line.Text, names) : line.Text)}");
             }
         }

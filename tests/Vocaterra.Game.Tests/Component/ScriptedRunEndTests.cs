@@ -49,4 +49,13 @@ public sealed class ScriptedRunEndTests
 
     [Fact]
     public void ARunCutShortExitsNonZero() => Assert.NotEqual(0, ScriptedRunEnd.RunawayExitCode);
+
+    [Theory]
+    [InlineData(0, true, false, 0)]
+    [InlineData(1, true, false, 1)]
+    [InlineData(1, true, true, ScriptedRunEnd.RunawayExitCode)]
+    [InlineData(ScriptedRunEnd.RunawayExitCode, false, false, ScriptedRunEnd.RunawayExitCode)]
+    [InlineData(0, false, true, 1)]
+    public void TheWorstExitCodeWins(int current, bool saved, bool runaway, int expected) =>
+        Assert.Equal(expected, ScriptedRunEnd.WorstExit(current, saved, runaway));
 }

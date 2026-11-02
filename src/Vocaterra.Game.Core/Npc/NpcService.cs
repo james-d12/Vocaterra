@@ -1,5 +1,4 @@
 using Vocaterra.Game.Core.Content;
-using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
@@ -700,8 +699,6 @@ public sealed partial class NpcService
         }
 
         var hostEvents = HostEventsOf(result);
-        var holdsBottle = scene.Inventory is { } inventory
-            && (inventory.Count(ItemId.Bottle) + inventory.Count(ItemId.WaterBottle)) > 0;
         var followUp = new List<string>();
         var unsaid = AnswerMisses(agent, result, NpcEffect.CountedSlots(verdict.Slots, line), scene, scene.Facts ?? _worldFacts, now, hostStateHash, hostEvents, followUp);
         Note(agent, string.Empty, hostEvents); // after the misses: a gift the NPC refused (V21) is not an event of the turn
@@ -711,7 +708,7 @@ public sealed partial class NpcService
             understood,
             unsaid,
             _names,
-            lineId => holdsBottle && hostEvents.Contains(NpcHostEvents.GiveWater, StringComparer.Ordinal) && lineId.StartsWith("shop_give.", StringComparison.Ordinal), // the player has the bottle already: nothing is given and the line is not said
+            NpcTurnRules.SkipLineOfBottleGift(scene.Inventory, hostEvents), // the player has the bottle already: nothing is given and the line is not said
             agent.Npc.FreeTalkPools,
             scene.PromptOverride is null,
             _bundle,
@@ -958,7 +955,7 @@ public sealed partial class NpcService
         }
     }
 
-    private static List<string> HostEventsOf(PipelineResult result) => HostEventsOf(result.Decision.Agent?.Actions ?? []);
+    private static List<string> HostEventsOf(PipelineResult result) => NpcTurnRules.HostEventsOf(result);
 
     private static List<string> HostEventsOf(IReadOnlyList<AgentAction> actions) =>
         actions.Where(static a => a.HostEvent is not null).Select(static a => a.HostEvent!).ToList();

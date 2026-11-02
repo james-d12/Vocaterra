@@ -51,4 +51,16 @@ public sealed class OffPromptTests
         Assert.Empty(Lines(report, "  off-prompt: "));
         Assert.NotEmpty(Lines(report, "  repair: "));
     }
+
+    [Fact]
+    public void AnOffPromptLineDoesNotMarkTheLearnerDownInTheHostAsInTheGame()
+    {
+        // V30: the game keeps the learner model as it was before the line (V27); the host kept the model the core had marked down.
+        var session = new ConversationSession(GameContent.Bundle);
+
+        _ = session.Evaluate("me gusta el río", "smith-open", Now);
+
+        Assert.NotNull(session.LastExchange!.OffPromptIntent);
+        Assert.Equal(Vocaterra.Nlp.Decision.Learning.LearnerModel.New(), session.Context.Learner);
+    }
 }

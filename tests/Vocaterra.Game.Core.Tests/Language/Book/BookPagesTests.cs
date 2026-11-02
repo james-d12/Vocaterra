@@ -345,6 +345,31 @@ public sealed class BookPagesTests
     }
 
     [Fact]
+    public void TheSelectionStartsAtTheRowThePageOpenedOn()
+    {
+        // V30: the first arrow key moves on from the next lesson's row; it does not jump back to the top of the page.
+        var lines = new List<BookLine>();
+        for (var lesson = 0; lesson < 30; lesson++)
+        {
+            lines.Add(new BookLine(BookTone.Known, "lesson " + lesson, Next: lesson == 20));
+            lines.Add(new BookLine(BookTone.Known, "row " + lesson, Speak: "line." + lesson));
+        }
+
+        var rows = BookSpeakers.Selectable(lines);
+        var expected = rows.ToList().FindIndex(row => row >= 40);
+        Assert.Equal(20, expected);
+
+        var model = new BookModel();
+        model.Open(new Vocaterra.Game.Core.Language.Words.WordProgress(TestGame.Nouns));
+        model.Show(BookPage.Lessons, animate: false);
+        model.OpenAtNext(lines, 20);
+
+        Assert.Equal(expected, model.SelectedIndex(rows.Count));
+        model.MoveSelection(-1, rows.Count);
+        Assert.Equal(expected - 1, model.SelectedIndex(rows.Count));
+    }
+
+    [Fact]
     public void ThePageOpensAtTheTopWhenNoLessonIsNext()
     {
         Assert.Equal(0, BookScroll.OpeningOffset([new BookLine(BookTone.Known, "a"), BookLine.Gap], 5));

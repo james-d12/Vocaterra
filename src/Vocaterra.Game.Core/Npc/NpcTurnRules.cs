@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Determinism;
@@ -16,7 +17,7 @@ namespace Vocaterra.Game.Core.Npc;
 public static class NpcTurnRules
 {
     /// <summary>The prefix of the core's correction lines that are no recast (a hint, an explicit correction).</summary>
-    public const string FeedbackLinePrefix = "feedback.";
+    public const string FeedbackLinePrefix = ReservedPools.FeedbackPrefix; // the core's one definition
 
     /// <summary>
     /// The answers of a turn's missed actions. For each action of the decision whose host event makes a miss (<paramref name="missOf"/>), the NPC takes the host event of
@@ -77,8 +78,14 @@ public static class NpcTurnRules
                 turn = typed.Advance(NpcHostEvents.Of(agentId, miss), before);
             }
 
+            var refusedGift = hostEvents.Of(agentId, hostEvent).Kind == NpcEffectKind.GiveItem;
             if (turn is null)
             {
+                if (refusedGift)
+                {
+                    hostEventsOfTurn.Remove(hostEvent); // V30: the gift the NPC refused is not made, with or without a line for the refusal
+                }
+
                 continue; // an agent with no transition for the miss says its line as before
             }
 
@@ -88,7 +95,7 @@ public static class NpcTurnRules
             lines.AddRange(turn.Response.Lines.Select(static l => l.Text));
             hostEventsOfTurn.AddRange(events);
             unsaid.Add(action.DialogueIntent); // a pool is its dialogue intent's (every agent of the bundle names them alike)
-            if (hostEvents.Of(agentId, hostEvent).Kind == NpcEffectKind.GiveItem)
+            if (refusedGift)
             {
                 hostEventsOfTurn.Remove(hostEvent); // the gift the NPC refused is not made (the sales' misses are held back by the session)
                 unsaid.AddRange(actions.SkipWhile(a => a != action).Skip(1).Select(static a => a.DialogueIntent)); // and what the NPC would have said next ("¿Quieres pan?" after the bottle)
@@ -96,6 +103,25 @@ public static class NpcTurnRules
         }
 
         return new MissAnswers(unsaid, lines, context);
+    }
+
+    /// <summary>The host events a turn's decision raises, in order (the game and the host read them alike, V30).</summary>
+    /// <param name="result">The turn's result.</param>
+    public static List<string> HostEventsOf(PipelineResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        return (result.Decision.Agent?.Actions ?? []).Where(static a => a.HostEvent is not null).Select(static a => a.HostEvent!).ToList();
+    }
+
+    /// <summary>The stall's bottle rule (V30): a line of the stall's gift is not said when the player holds a bottle already, since nothing is given.</summary>
+    /// <param name="bag">What the player carries, or <see langword="null"/> for nothing.</param>
+    /// <param name="hostEvents">The turn's host events.</param>
+    /// <returns>The test that tells a line id to leave out.</returns>
+    public static Func<string, bool> SkipLineOfBottleGift(Inventory? bag, IReadOnlyList<string> hostEvents)
+    {
+        ArgumentNullException.ThrowIfNull(hostEvents);
+        var holdsBottle = bag is { } held && (held.Count(ItemId.Bottle) + held.Count(ItemId.WaterBottle)) > 0;
+        return lineId => holdsBottle && hostEvents.Contains(NpcHostEvents.GiveWater, StringComparer.Ordinal) && lineId.StartsWith("shop_give.", StringComparison.Ordinal);
     }
 
     /// <summary>The stream of the draw of an off-prompt reply (V27), the same in the game and the host.</summary>
@@ -221,9 +247,6 @@ public static class NpcTurnRules
 
         return new ComposedReply(feedback, replies);
     }
-
-    // The prepositions after which tú or usted is not the subject («con usted», «para ti»).
-    private static readonly HashSet<string> Prepositions = new(["a", "con", "de", "en", "para", "por", "sin", "sobre", "hasta", "desde"], StringComparer.Ordinal);
 
     /// <summary>
     /// Whether the line says something about the listener (V28): the core's analysis finds a verb of the second person (<c>tienes</c>, <c>eres</c>) or the pronoun
