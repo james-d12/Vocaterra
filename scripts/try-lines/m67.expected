@@ -2,7 +2,7 @@ baker-open     | hola luz quiero dos panes                  => greet comm=True -
 lesson-will-buy | usted comprará pan                         => state_action comm=True -
 smith-open     | buscaré madera para luz                    => state_action comm=True -
 farmer-open    | los panes cuestan dos monedas              => ask_price comm=True -
-farmer-open    | puedo pagar con fruta y con pan            => unknown comm=False vocab.wrong
+farmer-open    | puedo pagar con fruta y con pan            => unknown comm=False -
 smith-open     | me llamo domingo                           => ask_name comm=True -
 farmer-open    | las manzanas me gustan                     => state_like comm=True -
 baker-open     | cuesta dos monedas                         => ask_price comm=True -
@@ -12,11 +12,11 @@ smith-open     | tengo que ir a la tienda                   => state_obligation 
 lesson-must-go | tengo que ir a la panadería                => state_obligation comm=True -
 lesson-luz-bought | luz comió pescado                          => state_action comm=True -
 lesson-water-went | sí, fui a la tienda                        => state_action comm=True -
-lesson-want    | el río es grande                           => unknown comm=False vocab.wrong
-lesson-hello   | me gusta el pan                            => unknown comm=False vocab.wrong
-lesson-coins   | voy al río                                 => unknown comm=False vocab.wrong
+lesson-want    | el río es grande                           => unknown comm=False -
+lesson-hello   | me gusta el pan                            => unknown comm=False -
+lesson-coins   | voy al río                                 => unknown comm=False -
 stall-need     | el pan es grande                           => describe comm=True -
-lesson-luz-bought | el pan es grande                           => unknown comm=False vocab.wrong
+lesson-luz-bought | el pan es grande                           => unknown comm=False -
 lesson-luz-bought | Luz compra pescado                         => state_action comm=True -
 lesson-market  | compro tres manzanas                       => state_action comm=True -
 lesson-water-went | sí fue al río                              => state_action comm=True -
@@ -60,7 +60,7 @@ lesson-we-went | fuimos al río ayer                         => state_action com
 lesson-they-ate | Luz y Mar comieron pan                     => state_action comm=True -
 lesson-loaves  | usted tiene veinte panes                   => state_have comm=True -
 lesson-liked   | sí, me gustó mucho el pan                  => state_like comm=True -
-baker-open     | buenos días, quiero un pan                 => unknown comm=False vocab.wrong
+baker-open     | buenos días, quiero un pan                 => unknown comm=False -
 farmer-open    | quiero tres manzanas rojas, por favor      => request_item comm=True -
 smith-open     | ¿cómo se llama usted?                      => ask_name comm=True -
 fisher-open    | ¿dónde está la panadería?                  => ask_directions comm=True -

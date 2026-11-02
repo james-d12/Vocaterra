@@ -1,0 +1,60 @@
+farmer-open    | la tienda está en el pueblo                => unknown comm=False -
+farmer-open    | tengo un hacha                             => unknown comm=False -
+fisher-open    | tengo dos manzanas                         => unknown comm=False -
+smith-open     | me gusta el río                            => unknown comm=False -
+villager-open  | me gusta el río                            => unknown comm=False -
+baker-open     | el río es grande                           => unknown comm=False -
+smith-open     | la panadería está cerca                    => unknown comm=False -
+smith-open     | tengo un hacha                             => state_have comm=True -
+fisher-open    | me gusta el pan                            => unknown comm=False -
+baker-open     | tengo un hacha                             => state_have comm=True -
+smith-open     | quiero dos panes                           => state_want comm=True -
+farmer-open    | dónde está la panadería                    => unknown comm=False -
+farmer-open    | me gustan las manzanas                     => state_like comm=True -
+farmer-open    | las manzanas me gustan                     => state_like comm=True -
+smith-open     | tengo madera                               => state_have comm=True -
+fisher-open    | dónde está la panadería                    => ask_directions comm=True -
+baker-open     | quiero dos panes por favor                 => request_item comm=True -
+smith-open     | cómo te llamas                             => ask_name comm=True -
+farmer-open    | el pan es bonito                           => describe comm=True -
+smith-open     | buscaré madera para luz                    => state_action comm=True -
+lesson-what    | cuál es esto                               => ask_what comm=True vocab.wrong
+smith-open     | qué tú hace                                => ask_activity comm=True conj.person=haces
+lesson-luz-bought | el pan es grande                           => unknown comm=False -
+lesson-want    | el río es grande                           => unknown comm=False -
+lesson-hello   | me gusta el pan                            => unknown comm=False -
+lesson-ate     | ayer fui al río                            => state_action comm=True -
+lesson-went    | ayer comí fruta                            => state_action comm=True -
+lesson-luz-bought | mar pescó en el río                        => state_action comm=True -
+lesson-have    | quiero madera                              => unknown comm=False -
+lesson-like-bread | tengo una fruta                            => unknown comm=False -
+lesson-coins   | voy al río                                 => unknown comm=False -
+smith-open     | hace frío                                  => unknown comm=False -
+smith-open     | hace calor                                 => state_action comm=True -
+smith-open     | hoy hace sol                               => state_action comm=True -
+farmer-open    | hace frío                                  => unknown comm=False -
+farmer-open    | hoy hace sol                               => state_action comm=True -
+villager-open  | hace calor                                 => state_action comm=True -
+baker-open     | hace frío                                  => unknown comm=False -
+smith-open     | qué haces                                  => ask_activity comm=True -
+smith-open     | qué haces tú                               => ask_activity comm=True -
+smith-open     | qué hace usted                             => ask_activity comm=True -
+smith-open     | en qué trabajas                            => ask_activity comm=True -
+farmer-open    | qué haces                                  => ask_activity comm=True -
+villager-open  | qué haces                                  => unknown comm=False -
+smith-open     | me llamo ana                               => ask_name comm=True -
+farmer-open    | buenos días                                => greet comm=True -
+baker-open     | buenas tardes                              => greet comm=True -
+fisher-open    | cómo está usted                            => unknown comm=False -
+smith-open     | ustedes trabajan mucho                     => ask_activity comm=True -
+farmer-open    | hoy hace buen tiempo                       => unknown comm=False -
+baker-open     | me gusta mucho el pan                      => unknown comm=False -
+fisher-open    | el pozo está en el pueblo                  => unknown comm=False -
+smith-open     | vivo en el campamento                      => state_action comm=True -
+fisher-open    | el río es muy bonito                       => unknown comm=False -
+farmer-open    | mi amigo se llama pedro                    => ask_name comm=False vocab.unknown
+baker-open     | ustedes tienen pan                         => state_have comm=True -
+lesson-hello   | buenos días                                => greet comm=True -
+lesson-name    | me llamo pedro                             => unknown comm=False vocab.unknown
+lesson-like-apples | me gusta el río                            => state_like comm=True -
+lesson-have    | tengo dos manzanas                         => state_have comm=True -

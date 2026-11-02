@@ -44,7 +44,7 @@ lesson-market  | compré three manzanas                      => state_action com
 lesson-will-go | manana iré al río                          => state_action comm=True -
 lesson-will-go | mañana iré al glorp                        => state_action comm=True vocab.unknown=río
 lesson-will-go | glorp iré al río                           => state_action comm=False vocab.unknown
-lesson-market  | compré tres glorps                         => unknown comm=False vocab.wrong vocab.unknown
+lesson-market  | compré tres glorps                         => unknown comm=False vocab.unknown
 lesson-will-fetch | buscé madera                               => state_action comm=True conj.irregular=busqué
 lesson-mar-fished | mar pescé en el río                        => state_action comm=True conj.irregular=pesqué
 villager-open  | ayer llegé al río                          => unknown comm=False conj.irregular=llegué
@@ -64,11 +64,11 @@ smith-open     | me llamo luis                              => ask_name comm=Tru
 smith-open     | me llamo domingo                           => ask_name comm=True -
 villager-open  | me llamo ana                               => unknown comm=False vocab.unknown
 villager-open  | hola me llamo marta                        => greet comm=False vocab.unknown
-farmer-open    | dos panes es caro                          => unknown comm=False vocab.wrong
-farmer-open    | dos panes son caros                        => unknown comm=False vocab.wrong
+farmer-open    | dos panes es caro                          => unknown comm=False -
+farmer-open    | dos panes son caros                        => unknown comm=False -
 lesson-will-buy | mañana compraré pan para el niño           => state_action comm=True -
 lesson-like-bread | sí, me gusta mucho el pan de Luz           => state_like comm=True -
-lesson-like-apples | me encantan las manzanas rojas             => unknown comm=False vocab.wrong
+lesson-like-apples | me encantan las manzanas rojas             => unknown comm=False -
 farmer-open    | ¿te gustan las manzanas?                   => state_like comm=True -
 baker-open     | quiero dos panes pequeños, por favor       => request_item comm=True -
 villager-open  | buenos días, señor                         => unknown comm=False -

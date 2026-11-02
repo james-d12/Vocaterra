@@ -1,15 +1,15 @@
-baker-open     | luz quiero pan                             => unknown comm=False vocab.wrong
+baker-open     | luz quiero pan                             => unknown comm=False -
 baker-open     | hola luz quiero dos panes                  => greet comm=True -
-baker-open     | buenos días luz                            => unknown comm=False vocab.wrong
+baker-open     | buenos días luz                            => unknown comm=False -
 baker-open     | quiero dos panes por favor                 => request_item comm=True -
 baker-open     | cuánto cuesta el pan                       => ask_price comm=True -
 baker-open     | cuánto cuestan los panes                   => ask_price comm=True -
 baker-open     | mañana compraré pan                        => state_action comm=True -
 baker-open     | tiene usted pan                            => state_have comm=True -
-baker-open     | puede usted vender pan                     => unknown comm=False vocab.wrong
-baker-open     | me gusta el pan                            => unknown comm=False vocab.wrong
-baker-open     | me gustan los panes                        => unknown comm=False vocab.wrong
-baker-open     | el pan es muy bueno                        => unknown comm=False vocab.wrong
+baker-open     | puede usted vender pan                     => unknown comm=False -
+baker-open     | me gusta el pan                            => unknown comm=False -
+baker-open     | me gustan los panes                        => unknown comm=False -
+baker-open     | el pan es muy bueno                        => unknown comm=False -
 baker-open     | usted hará pan mañana                      => state_action comm=True -
 baker-open     | luz hará pan                               => state_action comm=True -
 baker-open     | luz y mar compraron pan                    => state_action comm=True -
@@ -20,11 +20,11 @@ baker-open     | tienes veinte panes                        => state_have comm=T
 fisher-open    | luz compró pescado                         => state_action comm=True -
 fisher-open    | mar pescaste en el río                     => state_action comm=True -
 fisher-open    | hola mar                                   => greet comm=True -
-fisher-open    | el mar es grande                           => unknown comm=False vocab.wrong
-fisher-open    | mar está en el río                         => unknown comm=False vocab.wrong
-fisher-open    | mañana vendrá mar                          => unknown comm=False vocab.wrong
-fisher-open    | el agua está fría                          => unknown comm=False vocab.wrong
-fisher-open    | el agua es buena                           => unknown comm=False vocab.wrong
+fisher-open    | el mar es grande                           => unknown comm=False -
+fisher-open    | mar está en el río                         => unknown comm=False -
+fisher-open    | mañana vendrá mar                          => unknown comm=False -
+fisher-open    | el agua está fría                          => unknown comm=False -
+fisher-open    | el agua es buena                           => unknown comm=False -
 fisher-open    | nosotros fuimos al río                     => state_action comm=True -
 fisher-open    | ellos comieron pescado                     => state_action comm=True -
 smith-open     | vendo madera                               => offer_item comm=True -
@@ -32,15 +32,15 @@ smith-open     | tengo que ir al río                        => state_obligation
 smith-open     | domingo trabaja en la herrería             => state_action comm=True -
 smith-open     | domingo tengo madera                       => state_have comm=True -
 smith-open     | qué hace domingo                           => ask_activity comm=True -
-smith-open     | hace dos días compré pan                   => unknown comm=False vocab.wrong
-smith-open     | hace frío                                  => ask_activity comm=True -
+smith-open     | hace dos días compré pan                   => state_action comm=True -
+smith-open     | hace frío                                  => unknown comm=False -
 smith-open     | buscaré madera para luz                    => state_action comm=True -
-smith-open     | el día es bonito                           => unknown comm=False vocab.wrong
-smith-open     | el mapa es grande                          => unknown comm=False vocab.wrong
-smith-open     | la mano es grande                          => unknown comm=False vocab.wrong
+smith-open     | el día es bonito                           => unknown comm=False -
+smith-open     | el mapa es grande                          => unknown comm=False -
+smith-open     | la mano es grande                          => unknown comm=False -
 farmer-open    | cuánto es todo                             => ask_total comm=True -
 farmer-open    | quiero quince manzanas                     => request_item comm=True -
-farmer-open    | son quince monedas                         => unknown comm=False vocab.wrong
+farmer-open    | son quince monedas                         => unknown comm=False -
 farmer-open    | me gustan las manzanas                     => state_like comm=True -
 farmer-open    | la manzana es roja                         => describe comm=True -
 farmer-open    | las manzanas son rojas                     => describe comm=True -
@@ -48,7 +48,7 @@ farmer-open    | tengo tres manzanas rojas                  => unknown comm=True
 farmer-open    | león es alto                               => describe comm=True -
 farmer-open    | ella es alta                               => describe comm=True -
 farmer-open    | yo soy alta                                => describe comm=True -
-farmer-open    | el pan está caro                           => unknown comm=False vocab.wrong
+farmer-open    | el pan está caro                           => unknown comm=False -
 farmer-open    | la luz es bonita                           => describe comm=True -
 farmer-open    | el león es grande                          => describe comm=True -
 villager-open  | dónde está la herrería                     => ask_directions comm=True -

@@ -63,7 +63,10 @@ smith-open|en qué trabajas
 farmer-open|qué haces
 villager-open|qué haces
 
-# 6. Natural, correct lines of M72's own at the NPCs' open prompts and at lesson prompts: no error.
+# 6. Natural, correct lines of M72's own at the NPCs' open prompts and at lesson prompts: no error, apart from two that are older than M72 and not
+#    its own: a name no grammar binds (pedro, vocab.unknown, at farmer-open and lesson-name: M70's finding, a name slot for the game), and
+#    ustedes trabajan mucho, which the keyword rule on trabajar reads as ask_activity. hoy hace buen tiempo is off the prompt as ask_craft (its rule
+#    on hacer with a noun); cómo está usted is not understood (ask_how has no form with usted).
 smith-open|me llamo ana
 farmer-open|buenos días
 baker-open|buenas tardes
