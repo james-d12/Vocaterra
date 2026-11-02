@@ -12,6 +12,7 @@ public sealed class BookModel
     private bool _read;
     private int _selected;
     private (BookPage Page, int Line)? _detailKey;
+    private bool _openAtNext;
 
     /// <summary>Whether the book is on screen.</summary>
     public bool IsOpen { get; private set; }
@@ -78,6 +79,7 @@ public sealed class BookModel
         _words = words;
         _read = false;
         Page = BookPage.Nouns;
+        _openAtNext = false;
         Offset = 0;
         _selected = 0;
         DetailOffset = 0;
@@ -97,6 +99,7 @@ public sealed class BookModel
 
         if (page != Page)
         {
+            _openAtNext = page == BookPage.Lessons;
             Offset = 0;
             _selected = 0;
             DetailOffset = 0;
@@ -165,6 +168,31 @@ public sealed class BookModel
         }
 
         _detailKey = key;
+    }
+
+    /// <summary>
+    /// Scrolls the lessons page to its <c>next:</c> lesson (V21b) the first time its lines are known after the page was turned to; the learner's own scrolling is left alone
+    /// after that. Does nothing on another page.
+    /// </summary>
+    /// <param name="lines">The page's lines.</param>
+    /// <param name="visible">The lines on screen.</param>
+    public void OpenAtNext(IReadOnlyList<BookLine> lines, int visible)
+    {
+        ArgumentNullException.ThrowIfNull(lines);
+        if (_openAtNext && Page == BookPage.Lessons)
+        {
+            Offset = BookScroll.OpeningOffset(lines, visible);
+            if (BookScroll.NextIndex(lines) is { } next)
+            {
+                // V30: the selection starts at the row the page opened on, so the first arrow key moves on from there and does not jump back to the top.
+                var rows = BookSpeakers.Selectable(lines);
+                var at = rows.ToList().FindIndex(row => row >= next);
+                _selected = at < 0 ? Math.Max(0, rows.Count - 1) : at; // no row at or after it: the last row above it, the nearest
+                DetailOffset = 0;
+            }
+        }
+
+        _openAtNext = false;
     }
 
     /// <summary>Keeps the scroll inside a page's lines, once the layer knows how many there are and how many fit.</summary>

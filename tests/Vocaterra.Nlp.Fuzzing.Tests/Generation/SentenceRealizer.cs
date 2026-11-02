@@ -3,7 +3,6 @@ using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Morphology;
-using Vocaterra.Nlp.Language.Normalization;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests.Generation;
 
@@ -28,6 +27,7 @@ internal sealed class SentenceRealizer
     private readonly SeededRng _rng;
     private readonly SentenceOptions _options;
     private readonly List<Item> _items = [];
+    private readonly List<string> _rerolls = [];
     private string _detail = string.Empty;
     private string _tense = LexiconSchema.Present;
     private bool _pastMarker;
@@ -62,6 +62,7 @@ internal sealed class SentenceRealizer
     public GeneratedSentence? TryRealize(GrammarPattern pattern, string source, out string skipReason)
     {
         skipReason = "none";
+        _rerolls.Clear();
         for (var attempt = 0; attempt < MaxAttempts; attempt++)
         {
             var sentence = Attempt(pattern, source, out var reason);
@@ -71,6 +72,7 @@ internal sealed class SentenceRealizer
             }
 
             skipReason = reason;
+            _rerolls.Add(reason);
         }
 
         return null;
@@ -146,6 +148,13 @@ internal sealed class SentenceRealizer
             return null;
         }
 
+        // M66: the reading resolver reads a word right after a modal (puedo pago), after the noun of the phrase that opens the sentence (las manzanas cuesta) and after
+        // cuánto (cuánto son) as a verb where its other readings cannot stand there; a word drawn as something else that it may read so is drawn again.
+        if (!CheckWordsReadAsVerbs(out skip))
+        {
+            return null;
+        }
+
         var sentence = Build(pattern, source);
         skip = "none";
         return sentence;
@@ -195,7 +204,15 @@ internal sealed class SentenceRealizer
 
                 break;
             case GroupPattern group:
-                ExpandSequence(_rng.Pick(group.Alternatives));
+                var chosen = _rng.Pick(group.Alternatives);
+                var start = _items.Count;
+                ExpandSequence(chosen);
+                if (chosen is [TypedPattern] && _items.Count == start + 1)
+                {
+                    // M73: the one-element alternatives before the chosen one, which the matcher tries first (CheckVerbForms, alternative-homograph).
+                    _items[start].EarlierAlternatives = [.. group.Alternatives.TakeWhile(a => !ReferenceEquals(a, chosen)).Where(static a => a is [TypedPattern]).Select(static a => (TypedPattern)a[0])];
+                }
+
                 break;
             default:
                 throw new InvalidOperationException($"Unexpected pattern node {node.GetType().Name}.");
@@ -361,6 +378,32 @@ internal sealed class SentenceRealizer
         return -1;
     }
 
+    // M73: the head of a noun phrase right before the item at index, or before the adjectives of that head that come right before it; null when there is none.
+    private Item? HeadPastItsAdjectives(int index)
+    {
+        var k = index - 1;
+        while (k >= 0 && _items[k].Kind == Kind.Adjective && _items[k].Head is { } head && !ReferenceEquals(head, _items[k]))
+        {
+            k--;
+        }
+
+        return k >= 0 && _items[k] is { Head: { } own } candidate && ReferenceEquals(own, candidate) ? candidate : null;
+    }
+
+    // M73: the item before the one at index, past the adjectives of a noun, is that noun (a noun drawn for the pattern, or a literal that can only be one).
+    private bool FollowsNounPastItsAdjectives(int index)
+    {
+        var k = index - 1;
+        while (k >= 0 && _items[k].Kind == Kind.Adjective && _items[k].Head is { } head && !ReferenceEquals(head, _items[k]))
+        {
+            k--;
+        }
+
+        return k >= 0
+            && (_items[k].Kind == Kind.Noun
+                || (_items[k].Kind == Kind.Literal && _items[k].Readings.Count > 0 && _items[k].Readings.All(static r => r.Pos == LexiconSchema.Noun)));
+    }
+
     private Item? PreviousContent(int from)
     {
         for (var index = from - 1; index >= 0; index--)
@@ -429,6 +472,15 @@ internal sealed class SentenceRealizer
 
             var target = NextContent(i);
             var next = target >= 0 ? _items[target] : null;
+
+            // M66 (M63): a subject pronoun before a question word (ella qué quiere) is the subject of the verb after the question word, which the analyzer agrees with it.
+            if (next is { Kind: Kind.Literal } && LexiconCatalog.QuestionWordsAfterSubject.Contains(next.Norm?.ToLowerInvariant() ?? string.Empty)
+                && NextContent(target) is var asked and >= 0
+                && (_items[asked].Kind == Kind.Verb || (_items[asked].Kind == Kind.Literal && _items[asked].Readings.Any(IsFiniteVerbReading))))
+            {
+                next = _items[asked];
+            }
+
             var generatedVerb = next is { Kind: Kind.Verb };
             var literalVerb = next is { Kind: Kind.Literal } && next.Readings.Any(IsFiniteVerbReading);
 
@@ -541,6 +593,15 @@ internal sealed class SentenceRealizer
                 item.Infinitive = true;
             }
 
+            // M66: so is a verb behind a form of tener and que (tengo que ir), as the analyzer reads a finite verb there as the slip for the infinitive.
+            if (!item.Infinitive
+                && previous is { Kind: Kind.Literal } && string.Equals(previous.Surface, "que", StringComparison.OrdinalIgnoreCase)
+                && PreviousContentIndex(previousIndex) is var beforeQue and >= 0
+                && IsFiniteModal(_items[beforeQue], "que"))
+            {
+                item.Infinitive = true;
+            }
+
             // M51: ir followed directly by an infinitive without "a" (voy comer) is a conj.tense mistake now, so it is not a correct sentence; the draw is skipped, as M49 did for mañana.
             if (item.Infinitive && string.Equals(previous!.Lemma, "ir", StringComparison.Ordinal))
             {
@@ -567,6 +628,18 @@ internal sealed class SentenceRealizer
             // (M18). The one place a verb form is not wanted is right behind a subject pronoun, where a noun is not what a reader (or the analyzer) expects.
             // M56: so is the place right behind dónde, donde or cómo, where the analyzer reads a word that can be a finite verb as the verb (¿dónde son las casas?).
             if (i > 0 && IsVerbSeekingQuestionLiteral(_items[i - 1]))
+            {
+                item.ForbidHomograph = true;
+            }
+
+            // M66: and the place right after poder or tener que, which take no noun (the analyzer reads a word there that can be a finite verb as the verb: puedo pago),
+            // and right after the noun of the phrase that opens the sentence, which does not run into a bare noun (las manzanas cuesta: the verb).
+            if (ModalBefore(i) is { } modal && !LexiconCatalog.ModalTakesNounObject(modal))
+            {
+                item.ForbidHomograph = true;
+            }
+
+            if (FollowsOpeningPhraseNoun(i))
             {
                 item.ForbidHomograph = true;
             }
@@ -857,6 +930,16 @@ internal sealed class SentenceRealizer
 
             string person;
             string number;
+            if (item.Subject is not null && LexiconCatalog.LikingVerbs.Contains(item.Lemma!) && FollowingPhrase(i) is not null)
+            {
+                // M70: gustar and encantar take the thing liked as their subject and the one who likes as a dative pronoun, so a subject pronoun before them with a
+                // phrase after (yo gusto el pan, nosotras gustamos los alcoholes) is no correct Spanish, whatever the person: the analyzer reads it as the learner's
+                // English order (conj.person, me gusta). The realiser cannot make a dative of the pronoun, so the draw is skipped.
+                skip = "liking-verb-after-a-subject-pronoun";
+                _detail = item.Lemma!;
+                return false;
+            }
+
             if (item.Subject is { } subject)
             {
                 // M64: a subject pronoun joined by y or e to members before it that open their clause ends a plural subject (luz y yo comemos, tú y ella comen), which
@@ -867,6 +950,12 @@ internal sealed class SentenceRealizer
                         skip = "coordinated-subject";
                         _detail = subject.Surface ?? string.Empty;
                         return false;
+                    case PronounCoordination.Subject when coordination!.NearestPerson is not null && _rng.NextDouble() < 0.5:
+                        // M66: o lets the verb agree with the member nearest it, the pronoun (tú o yo voy).
+                        subject.Coordination = coordination;
+                        person = coordination.NearestPerson;
+                        number = coordination.NearestNumber!;
+                        break;
                     case PronounCoordination.Subject:
                         subject.Coordination = coordination;
                         person = coordination!.Person switch
@@ -882,6 +971,13 @@ internal sealed class SentenceRealizer
                         number = subject.Number!;
                         break;
                 }
+            }
+            else if (InvertedSubjectPronoun(i) is { } inverted)
+            {
+                // M69: a subject pronoun right after a verb that a question word or a relative opens is its subject (¿dónde estás tú?, qué hiciste tú), which the
+                // analyzer agrees the verb with; the realiser agrees it wherever such a pronoun follows, which is never wrong.
+                person = inverted.Person!;
+                number = inverted.Number!;
             }
             else if (ReflexiveQuestionPerson(i) is { } reflexive)
             {
@@ -953,7 +1049,7 @@ internal sealed class SentenceRealizer
             var kind = CoordinationBefore(p, out var coordination);
             if (kind == PronounCoordination.Skip
                 || (kind == PronounCoordination.Subject
-                    && !literal.Readings.Any(r => IsFiniteVerbReading(r) && r.Mood != LexiconSchema.Imperative && Agrees(coordination!, r.Person, r.Number))))
+                    && !literal.Readings.Any(r => IsFiniteVerbReading(r) && r.Mood != LexiconSchema.Imperative && coordination!.Accepts(r.Person, r.Number))))
             {
                 skip = "coordinated-subject";
                 _detail = pronoun.Surface ?? string.Empty;
@@ -993,8 +1089,17 @@ internal sealed class SentenceRealizer
         var persons = new List<string> { pronoun.Person! };
         var genders = new List<string?> { pronoun.Gender };
         var start = index;
-        while (start >= 2 && _items[start - 1].Norm?.ToLowerInvariant() is "y" or "e")
+        string? kind = null;
+        var leading = false;
+        while (!leading && start >= 2 && CoordinatorKind(_items[start - 1].Norm) is { } coordinator)
         {
+            // M66: ni and o join a subject as y does; a coordination that mixes them is not modelled.
+            if (kind is not null && kind != coordinator)
+            {
+                return PronounCoordination.Skip;
+            }
+
+            kind = coordinator;
             var member = _items[start - 2];
             if (member.Surface is null)
             {
@@ -1055,7 +1160,18 @@ internal sealed class SentenceRealizer
                 return PronounCoordination.Skip;
             }
 
-            if (memberStart > 0)
+            if (memberStart > 0 && kind is "ni" or "o" && CoordinatorKind(_items[memberStart - 1].Norm) == kind)
+            {
+                // M66: ni ... ni and o ... o say their word before the first member too (ni tú ni yo); the clause opens before that word, which the realiser models at
+                // the start of the sentence or after a word of SubjectClauseOpeners. A chain of more members, or anything else before it, is skipped.
+                if (memberStart - 1 > 0 && !OpensSubjectClause(_items[memberStart - 2]))
+                {
+                    return PronounCoordination.Skip;
+                }
+
+                leading = true;
+            }
+            else if (memberStart > 0)
             {
                 var before = _items[memberStart - 1];
                 if (before.Surface is null || before.Kind == Kind.Numeral)
@@ -1069,9 +1185,7 @@ internal sealed class SentenceRealizer
                     break;
                 }
 
-                if (!LexiconCatalog.SubjectClauseOpeners.Contains(before.Norm!.ToLowerInvariant())
-                    || before.Readings.Count == 0
-                    || before.Readings.All(static r => r.Pos is LexiconSchema.Adverb or LexiconSchema.Interjection))
+                if (!OpensSubjectClause(before))
                 {
                     return PronounCoordination.Skip;
                 }
@@ -1094,18 +1208,42 @@ internal sealed class SentenceRealizer
 
         var dominant = persons.Contains("1") ? "1" : persons.Contains("2") ? "2" : "3";
         var subjectGender = genders.Exists(static g => g is null) ? null : genders.Contains(LexiconSchema.Masculine) ? LexiconSchema.Masculine : LexiconSchema.Feminine;
-        coordination = new SubjectCoordination(dominant, subjectGender);
+        coordination = kind == "o"
+            ? new SubjectCoordination(dominant, subjectGender, pronoun.Person, pronoun.Number, pronoun.Gender)
+            : new SubjectCoordination(dominant, subjectGender);
         return PronounCoordination.Subject;
     }
 
-    // M64: true when a verb of this person and number agrees with the coordinated subject (the first person plural; the second or the third plural; the third plural).
-    private static bool Agrees(SubjectCoordination coordination, string? person, string? number)
+    // M66: the person and number of the copula after a coordinated subject: the drawn copula's own, or a literal's reading that the coordination accepts.
+    private (string? Person, string? Number) CopulaCell(Item copula, SubjectCoordination coordination)
     {
-        return number == LexiconSchema.Plural && coordination.Person switch
+        if (copula.Person is not null)
         {
-            "1" => person == "1",
-            "2" => person is "2" or "3",
-            _ => person == "3",
+            return (copula.Person, copula.Number);
+        }
+
+        var reading = copula.Readings.FirstOrDefault(r => IsFiniteVerbReading(r) && coordination.Accepts(r.Person, r.Number));
+        return (reading?.Person, reading?.Number);
+    }
+
+    // A word after which a member opens its clause: a word of SubjectClauseOpeners that the analyzer cannot read past as an adverb or an interjection.
+    private static bool OpensSubjectClause(Item before)
+    {
+        return before.Norm is { } norm
+            && LexiconCatalog.SubjectClauseOpeners.Contains(norm.ToLowerInvariant())
+            && before.Readings.Count > 0
+            && !before.Readings.All(static r => r.Pos is LexiconSchema.Adverb or LexiconSchema.Interjection);
+    }
+
+    // M66: the kind of a word that joins two members of a subject (mirror of SpanishAgreementChecker.CoordinatorKind): y (y, e), o (o, u) or ni; null for any other.
+    private static string? CoordinatorKind(string? norm)
+    {
+        return norm?.ToLowerInvariant() switch
+        {
+            "y" or "e" => "y",
+            "o" or "u" => "o",
+            "ni" => "ni",
+            _ => null,
         };
     }
 
@@ -1331,8 +1469,9 @@ internal sealed class SentenceRealizer
                 // M64: the last pronoun of a coordinated subject gives the plural, and a gender only when every member has one (ella y él son altos).
                 if (_items[p].Coordination is { } coordination)
                 {
-                    gender = coordination.Gender;
-                    number = LexiconSchema.Plural;
+                    // M66: with o, a copula of the nearest member's cell alone (tú o yo soy alto) takes that member's gender and number (SubjectCoordination.PredicateAgreement).
+                    var (person, cellNumber) = CopulaCell(copula, coordination);
+                    (gender, number) = coordination.PredicateAgreement(person, cellNumber);
                     return true;
                 }
 
@@ -1362,6 +1501,13 @@ internal sealed class SentenceRealizer
                 if (!lone)
                 {
                     candidates.Add((last.Head!.Gender, last.PhraseNumber));
+                }
+
+                // M69: a subject with de (la casa de los niños es bonita): the analyzer gives the predicate the gender and number of the chain's first phrase when the
+                // copula has its number (mirror of SpanishAgreementChecker.TryFindSubjectWithDe), so the realiser agrees the adjective with that phrase as well.
+                if (FirstPhraseBeforeDe(last) is { } first && first.PhraseNumber == copula.Number)
+                {
+                    candidates.Add((first.Head!.Gender, first.PhraseNumber));
                 }
             }
 
@@ -1401,6 +1547,64 @@ internal sealed class SentenceRealizer
         }
 
         return true;
+    }
+
+    // M69: the words of the sentence as written (an item of several words gives each), for the mirror of the analyzer's rules that read whole sentences.
+    private List<string> Words()
+    {
+        return [.. _items.Where(static x => x.Surface is not null).SelectMany(static x => x.Surface!.Split(' ', StringSplitOptions.RemoveEmptyEntries))];
+    }
+
+    // M69: the index in Words() of the first word of the item at index.
+    private int WordIndexOf(int index)
+    {
+        return _items.Take(index).Where(static x => x.Surface is not null).Sum(static x => x.Surface!.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length);
+    }
+
+    // M69: the subject pronoun reading of the word right after the verb at index, when a question word or a relative stands right before the verb (mirror of
+    // SpanishAgreementChecker.CheckInvertedSubjectPronoun), or null.
+    private LexicalFeatures? InvertedSubjectPronoun(int index)
+    {
+        if (index < 1 || index + 1 >= _items.Count || !LexiconCatalog.InvertingClauseOpeners.Contains(_items[index - 1].Norm?.ToLowerInvariant() ?? string.Empty))
+        {
+            return null;
+        }
+
+        return SubjectPronounReading(_items[index + 1]) is { Person: not null, Number: not null } reading ? reading : null;
+    }
+
+    // M69: the last word of the first phrase of a chain of phrases joined by de or del that ends with the phrase of last (la casa de la hermana de Luz: casa), at most
+    // three links back, or null when no de stands before the phrase of last.
+    private Item? FirstPhraseBeforeDe(Item last)
+    {
+        var current = last;
+        Item? first = null;
+        for (var links = 0; links < 3; links++)
+        {
+            var end = _items.IndexOf(current);
+            var start = end;
+            while (start > 0 && ReferenceEquals(_items[start - 1].Head, current.Head))
+            {
+                start--;
+            }
+
+            var linkIndex = _items[start].Norm?.ToLowerInvariant() == "del" ? start : start - 1;
+            if (linkIndex < 1 || _items[linkIndex].Norm?.ToLowerInvariant() is not ("de" or "del"))
+            {
+                break;
+            }
+
+            var before = _items[linkIndex - 1];
+            if (before.Head is null || before.PhraseNumber is null)
+            {
+                break;
+            }
+
+            first = before;
+            current = before;
+        }
+
+        return first;
     }
 
     // The subject pronoun reading of a pronoun item the realiser made a subject, or of a literal that is one, or null.
@@ -1484,11 +1688,38 @@ internal sealed class SentenceRealizer
                 return false;
             }
 
+            // M69: a word of another class that is also an irregular verb's regular cell (podo, a form of podar, for puedo; esto for estoy) is read by the analyzer as that
+            // slip where the words around it call for it (podar takes no infinitive), so a pattern that puts an infinitive after a form of podar (21 podo pasar unos, seed
+            // 2DQ_Pma1Hfsa of M69's runs) names a sentence that is no Spanish, which the analyzer reads as poder's slip, and is re-rolled.
+            if (item.Surface is { } written
+                && !written.Contains(' ', StringComparison.Ordinal)
+                && _words.Morphology.TryGetRegularizationOfWord(written.ToLowerInvariant(), out _)
+                && _words.ReadsAsSlip(Words(), WordIndexOf(i)))
+            {
+                skip = "slip-in-context";
+                _detail = written;
+                return false;
+            }
+
+            // M69: the analyzer agrees a verb that a question word or a relative opens with a subject pronoun right after it (¿dónde estás tú?), and a literal verb form
+            // cannot be changed, so a literal one of another person or number than such a pronoun (dónde está tú) is re-rolled.
+            if (item.Kind == Kind.Literal
+                && item.Readings.Any(IsFiniteVerbReading)
+                && InvertedSubjectPronoun(i) is { } inverted
+                && !item.Readings.Any(r => IsFiniteVerbReading(r) && r.Mood != LexiconSchema.Imperative && r.Person == inverted.Person && r.Number == inverted.Number))
+            {
+                skip = "inverted-subject";
+                _detail = item.Surface!;
+                return false;
+            }
+
             // M59: the analyzer agrees a verb with a noun phrase that opens its clause before it, and a literal form cannot be changed, so a literal verb form of another
-            // person or number right after a phrase that is not a lone name is re-rolled.
+            // person or number right after a phrase that is not a lone name is re-rolled. M69 (M71's finding): not when the literal is the head of that phrase itself
+            // (buenas tardes: tardes is also tardar's, but here it is the noun buenas belongs to, and the analyzer reads the greeting as correct), so O3 draws it.
             if (item.Kind == Kind.Literal
                 && item.Readings.Any(IsFiniteVerbReading)
                 && PreverbalPhrase(i, out _, out var lone) is { } phrase
+                && !ReferenceEquals(phrase.Head, item)
                 && !lone
                 && !item.Readings.Any(r => IsFiniteVerbReading(r) && r.Person == "3" && r.Number == phrase.PhraseNumber))
             {
@@ -1514,11 +1745,13 @@ internal sealed class SentenceRealizer
             // M62: a word that can be a descriptive adjective and a noun, right after the noun of a phrase with a determiner and agreeing with it (and its determiners, which
             // agree with the noun in a realised phrase), is read by the analyzer as that noun's adjective (the reading resolver's rule: las manzanas rojas son caras), so a
             // pattern that puts a second noun there names a sentence the analyzer reads another way (the noun phrase grows and becomes the subject of the verb after
-            // it), and is re-rolled.
+            // it), and is re-rolled. M73 (the recorded O4 seed 8yc522XLB_W2): past that noun's adjectives too (la joya unida rica, with rica drawn as a noun: a
+            // reader takes it as joya's second adjective, and the verb after it then disagrees with the phrase; the word-order mutation la unida joya rica put it right
+            // after the noun, where the analyzer reads it so, and gave conj.person besides word_order).
             if (i > 0
                 && item.Kind is Kind.Noun or Kind.Literal
-                && _items[i - 1] is { Head: { } head } previousHead
-                && ReferenceEquals(head, previousHead)
+                && HeadPastItsAdjectives(i) is { } previousHead
+                && previousHead.Head is { } head
                 && !ReferenceEquals(item.Head, head)
                 && _items.Exists(x => ReferenceEquals(x.Head, head) && IsDeterminer(x))
                 && item.Readings.Any(static r => r.Pos == LexiconSchema.Noun)
@@ -1547,6 +1780,42 @@ internal sealed class SentenceRealizer
                         && beforeName.Readings.All(static r => r.Pos is LexiconSchema.Article or LexiconSchema.Numeral or LexiconSchema.Adjective))))
             {
                 skip = "name-read-as-noun";
+                _detail = item.Surface!;
+                return false;
+            }
+
+            // M73 (M72's run at five times, O3 seed 92moRWz9NQ54): the matcher keeps the first of the parses that tie (SlotGrammarMatcher: "ties go to ... the first
+            // found"), so a word drawn for one alternative of a group that a one-element alternative before it, of another class, also takes is that earlier element's
+            // to the analyzer: ([PRON]|[VERB]|[ADJ:item]) with suyo drawn as the adjective is read as the pronoun, and the slot item is not yielded. Where the two
+            // elements fill different slots, the realiser's slots are not the sentence's, and the draw is re-rolled (two elements of one class are the oracle's
+            // ambiguous slots already).
+            if (item.EarlierAlternatives.Count > 0
+                && item.PatternTag is { } chosenTag
+                && item.Norm is { } drawn
+                && item.EarlierAlternatives.Any(earlier => earlier.Tag != chosenTag
+                    && earlier.Slot != item.Slot
+                    && _words.PatternClassesOf(drawn).Contains(earlier.Tag, StringComparer.Ordinal)
+                    && (earlier.Lemma is null || _words.Lexicon.Lookup(drawn).Any(r => r.Lemma == earlier.Lemma))))
+            {
+                skip = "alternative-homograph";
+                _detail = item.Surface!;
+                return false;
+            }
+
+            // M73 (V27's run without models, O5 seed 26dVDqElv1l2): a noun that is also a finite form of a copula (son, a tune, and ser's son; era, an age, and ser's
+            // era), right after a noun (past that noun's adjectives) and before a word that can be an adjective or a preposition, is read by the analyzer as the copula
+            // (the reading resolver's rules of M62 and M69: las manzanas son caras, luz son alta), before and over a grammar that binds it as a noun, and a reader
+            // takes it so too: [NOUN:spell] [NOUN:who] [ADJ] gave estómago son vencido, which reads "the stomach are beaten", not "stomach, tune, beaten". The
+            // realiser does not model that reading, so such a noun in such a place is re-rolled.
+            if (item.Kind == Kind.Noun
+                && item.Readings.Any(static r => r.Pos == LexiconSchema.Noun)
+                && item.Readings.Any(r => IsFiniteVerbReading(r) && r.Lemma is "ser" or "estar")
+                && FollowsNounPastItsAdjectives(i)
+                && NextContent(i) is var predicate and >= 0
+                && (_items[predicate].Kind is Kind.Adjective or Kind.Preposition
+                    || _items[predicate].Readings.Any(static r => r.Pos is LexiconSchema.Adjective or LexiconSchema.Preposition)))
+            {
+                skip = "copula-homograph";
                 _detail = item.Surface!;
                 return false;
             }
@@ -1629,6 +1898,164 @@ internal sealed class SentenceRealizer
     }
 
     // A literal dónde, donde or cómo: the analyzer reads the next word as a verb when it can be one (M56).
+    // M66: a finite form of a modal (poder, querer, deber, necesitar; with linker "que", tener), drawn or a literal.
+    private bool IsFiniteModal(Item item, string? linker)
+    {
+        return item.Kind switch
+        {
+            Kind.Verb => !item.Infinitive && item.Lemma is { } lemma && LexiconCatalog.IsModalVerb(lemma, linker),
+            Kind.Literal => item.Readings.Any(r => IsFiniteVerbReading(r) && r.Mood != LexiconSchema.Imperative && LexiconCatalog.IsModalVerb(r.Lemma, linker)),
+            _ => false,
+        };
+    }
+
+    // M66: the lemma of the modal whose complement the item at index is: the item right after a finite modal (puedo pago), or right after tener and que (tengo que
+    // voy); null otherwise.
+    private string? ModalBefore(int index)
+    {
+        if (index >= 1 && IsFiniteModal(_items[index - 1], null))
+        {
+            return ModalLemma(_items[index - 1], null);
+        }
+
+        if (index >= 2 && _items[index - 1].Norm?.ToLowerInvariant() == "que" && IsFiniteModal(_items[index - 2], "que"))
+        {
+            return ModalLemma(_items[index - 2], "que");
+        }
+
+        return null;
+    }
+
+    private string? ModalLemma(Item item, string? linker)
+    {
+        return item.Kind == Kind.Verb
+            ? item.Lemma
+            : item.Readings.FirstOrDefault(r => IsFiniteVerbReading(r) && LexiconCatalog.IsModalVerb(r.Lemma, linker))?.Lemma;
+    }
+
+    // M66: the item at index follows the noun of the noun phrase that opens the sentence (a determiner first, then determiners and adjectives, a noun, and the
+    // adjectives after it), as the reading resolver's rule after the opening phrase reads it; broader where an item's class is not certain yet.
+    private bool FollowsOpeningPhraseNoun(int index)
+    {
+        if (_items.Count == 0 || !CanBeDeterminer(_items[0]))
+        {
+            return false;
+        }
+
+        var k = index - 1;
+        while (k > 0 && CanBeAdjective(_items[k]))
+        {
+            k--;
+        }
+
+        if (k < 1 || !CanBeNoun(_items[k]))
+        {
+            return false;
+        }
+
+        for (var j = k - 1; j >= 1; j--)
+        {
+            if (!CanBeDeterminer(_items[j]) && !CanBeAdjective(_items[j]))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private bool CanBeDeterminer(Item item)
+    {
+        return item.Kind is Kind.Article or Kind.Determiner or Kind.Numeral
+            || (item.Kind == Kind.Literal && item.Readings.Any(r => r.Pos is LexiconSchema.Article or LexiconSchema.Numeral || IsDeterminerAdjective(r)));
+    }
+
+    private static bool CanBeAdjective(Item item)
+    {
+        return item.Kind == Kind.Adjective || (item.Kind == Kind.Literal && item.Readings.Any(static r => r.Pos == LexiconSchema.Adjective));
+    }
+
+    private static bool CanBeNoun(Item item)
+    {
+        return item.Kind == Kind.Noun || (item.Kind == Kind.Literal && item.Readings.Any(static r => r.Pos == LexiconSchema.Noun));
+    }
+
+    // M66: the words of the sentence as drawn, against the rules of the reading resolver that read a word as a verb (ReadingResolver.IsFiniteVerbAfterModal,
+    // ResolveVerbAfterOpeningPhrase, and the copula after cuánto). Broader than the resolver where the realiser cannot tell what follows: a word that is not drawn as a
+    // verb and that the resolver may read as one there skips the draw, as skip:modal-complement-homograph or skip:noun-reads-as-verb.
+    private bool CheckWordsReadAsVerbs(out string skip)
+    {
+        skip = "none";
+        for (var i = 0; i < _items.Count; i++)
+        {
+            var item = _items[i];
+            if (item.Kind is Kind.Verb or Kind.Word || item.Norm is null)
+            {
+                continue;
+            }
+
+            IReadOnlyList<LexicalFeatures> readings = item.Kind == Kind.Literal ? item.Readings : [.. _words.Lexicon.Lookup(item.Norm.ToLowerInvariant())];
+            var finite = readings.Where(r => IsFiniteVerbReading(r) && r.Mood == LexiconSchema.Indicative).ToList();
+            if (finite.Count == 0)
+            {
+                continue;
+            }
+
+            if (ModalBefore(i) is { } modal && finite.Exists(r => r.Lemma != modal) && MayReadAsVerbAfterModal(i, modal, readings))
+            {
+                skip = "modal-complement-homograph";
+                _detail = item.Norm;
+                return false;
+            }
+
+            if (finite.Exists(static r => r.Person == "3")
+                && readings.Any(static r => r.Pos == LexiconSchema.Noun)
+                && !readings.Any(static r => r.Pos == LexiconSchema.Adjective)
+                && FollowsOpeningPhraseNoun(i))
+            {
+                skip = "noun-reads-as-verb";
+                _detail = item.Norm;
+                return false;
+            }
+
+            if (i > 0
+                && _items[i - 1].Norm?.ToLowerInvariant() is "cuánto" or "cuanto"
+                && readings.Any(static r => r.Pos == LexiconSchema.Noun)
+                && finite.Exists(static r => r.Lemma is "ser" or "estar"))
+            {
+                skip = "noun-reads-as-verb";
+                _detail = item.Norm;
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // M66: the resolver may read the word at index, after the modal, as a finite verb (broader than ReadingResolver.IsFiniteVerbAfterModal, which also reads what
+    // follows): a word that is only a finite verb (a literal), and a word whose other readings are all nouns, adjectives, conjunctions or adverbs, except a noun or an
+    // adjective after a modal that takes nouns when nothing follows it.
+    private bool MayReadAsVerbAfterModal(int index, string modal, IReadOnlyList<LexicalFeatures> readings)
+    {
+        var others = readings.Where(r => !IsFiniteVerbReading(r)).ToList();
+        if (others.Count == 0)
+        {
+            return true;
+        }
+
+        if (others.Exists(static r => r.Pos is not (LexiconSchema.Noun or LexiconSchema.Adjective or LexiconSchema.Conjunction or LexiconSchema.Adverb)))
+        {
+            return false;
+        }
+
+        if (others.TrueForAll(static r => r.Pos is LexiconSchema.Noun or LexiconSchema.Adjective) && LexiconCatalog.ModalTakesNounObject(modal))
+        {
+            return others.TrueForAll(static r => r.Pos == LexiconSchema.Noun) && index + 1 < _items.Count;
+        }
+
+        return true;
+    }
+
     private static bool IsVerbSeekingQuestionLiteral(Item item)
     {
         return item.Kind == Kind.Literal && LexiconCatalog.VerbSeekingQuestionWords.Contains(item.Norm?.ToLowerInvariant() ?? string.Empty);
@@ -1794,6 +2221,12 @@ internal sealed class SentenceRealizer
     /// <summary>The detail of the last failure (for example the unknown literal), for diagnostics.</summary>
     public string Detail => _detail;
 
+    /// <summary>
+    /// The reason of every attempt of the last <see cref="TryRealize"/> that failed and was drawn again, in order (M65): a retry that succeeds still leaves out the
+    /// sentence the failed attempt drew, so the skip budget counts these and not only the recipes whose every attempt failed.
+    /// </summary>
+    public IReadOnlyList<string> Rerolls => _rerolls;
+
     private sealed record NounPhraseItems(List<int> Determiners, List<int> Before, int Head, List<int> After)
     {
         public int Last => After.Count > 0 ? After[^1] : Head;
@@ -1842,5 +2275,7 @@ internal sealed class SentenceRealizer
         public string? PhraseNumber { get; set; }
 
         public List<LexicalFeatures> Readings { get; } = [];
+
+        public IReadOnlyList<TypedPattern> EarlierAlternatives { get; set; } = [];
     }
 }

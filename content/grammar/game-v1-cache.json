@@ -86,6 +86,12 @@
       "matches": []
     },
     {
+      "key": "02732dd864eff2bc052c1a9384402a9d09cd2f64c9797715ac69e3af466e8c01",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Adónde van ellas",
+      "matches": []
+    },
+    {
       "key": "0338d669ba9b41a9577119f7c79dd464577f7c62f9f478ad7ebcc3fda99bce21",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí tengo que ir al río",
@@ -287,6 +293,12 @@
       "matches": []
     },
     {
+      "key": "0a0c3e493a053fdd821bd03ce3d4c54d568df818406ef120c3bec329b0b65b10",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me llamo luz",
+      "matches": []
+    },
+    {
       "key": "0a8c5de4c1dbd73ba4eb8e2242de01a3e023599e6fc60f77544cd2b556aaa9bf",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Cuánto cuesta todo",
@@ -362,12 +374,6 @@
       "key": "0cec631344478d4df4dce3be2e4f3bc7bc468b04b9a6321323c702868f603ed3",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Gracias no",
-      "matches": []
-    },
-    {
-      "key": "0d203a7f5c4181fedad15bac8dfcd628b24f3270601af2caddffad7fa9b76c1d",
-      "settings": "language=es;level=picky;motherTongue=en",
-      "text": "No, gracias. Solo compro fruta.",
       "matches": []
     },
     {
@@ -996,6 +1002,12 @@
       "matches": []
     },
     {
+      "key": "1cd9af1860696adb42acfed83a9490bf88a737dbf30df47527020eca104b9efa",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No tengo eso. Tengo agua y pan.",
+      "matches": []
+    },
+    {
       "key": "1d0df8e9f9e67feee03c627a2bcfa0699276b64855ab399e189e7fd49af54657",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Qué harás mañana?",
@@ -1196,6 +1208,12 @@
       "key": "24a2da1831ccea5dc14fc8f5f6e542b43b3bfbf493df76d765ae4c2e8b5b605f",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Más despacio, por favor.",
+      "matches": []
+    },
+    {
+      "key": "24a74c10434b62438e7c3395e32dd2aa7fd9ee1bcc7547b6517e9a1bd9fe7f3a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quién es grande",
       "matches": []
     },
     {
@@ -1447,6 +1465,12 @@
       "matches": []
     },
     {
+      "key": "2a0719ff0296f6221f01afebd1255f23452b98668ebf5fa71caa30bba1b906df",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Como es la manzana",
+      "matches": []
+    },
+    {
       "key": "2a112af546bb41d89dec79ebc2d8e2f8aa2f67e23ec30917daee69d1459e783e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Fuiste a la panadería?",
@@ -1491,6 +1515,12 @@
       "key": "2ae4a282ec0ac97b333139aa89feada319c9f664f5ff66c5cb60b1d53c5ac46a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "El campo es grande",
+      "matches": []
+    },
+    {
+      "key": "2b30b9da3dff53fe3a959878cbcd38685ad7e41b9c0263176d26893681e252b2",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cómo estás",
       "matches": []
     },
     {
@@ -1569,6 +1599,12 @@
       "key": "2e207f99fe33c3056a6e7be51521a031ff769dc04b862ffc3815805271dcd20f",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Las manzanas son rojas",
+      "matches": []
+    },
+    {
+      "key": "2e6291effe63734c1b0be251f4b498b9248f2776d94b7d4afd4bf0f6625e10c8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Qué es grande",
       "matches": []
     },
     {
@@ -1658,6 +1694,12 @@
       "key": "301d92b3ce04e9e1e4e9f92fa03e653cc79dd8b65aa7ba717c0c00079230519c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Muy bien! Es una espada.",
+      "matches": []
+    },
+    {
+      "key": "30614d92fa4b3bad97d6a2069500814a48d34dcfeceb67d8f5aab4c7d472a68a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te entiendo. ¿Qué buscas?",
       "matches": []
     },
     {
@@ -2783,6 +2825,12 @@
       "matches": []
     },
     {
+      "key": "4d9af5d046d87fb472ddc5e8b3116830c57104ba80e27c07d83f93e42abce18b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Una manzana, una moneda.",
+      "matches": []
+    },
+    {
       "key": "4df2c72472e22ed1777ce53a7ed43ad161b47fcad63904451fd1051c793bca6b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Voy a la panadería",
@@ -2862,6 +2910,12 @@
       "key": "4f59d1cd8073e7670bb107f35c5444214e3cc4bdf314d5965df5ce9cd01ddf94",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Guía",
+      "matches": []
+    },
+    {
+      "key": "4f8255ba14a3392813a14a763c277e5603711550106922f33d4ef5f72a731d5e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me llamo domingo",
       "matches": []
     },
     {
@@ -2993,6 +3047,12 @@
           ]
         }
       ]
+    },
+    {
+      "key": "5259036b7eb2b36842906c8987aaa847c8c8a41c67ac2ccdb285988a8bec2a2e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No compro eso. Compro fruta del bosque.",
+      "matches": []
     },
     {
       "key": "52ca02889695626d40a087824e919c5bf7354cc34c2fb85258eff27314b0da02",
@@ -3292,6 +3352,12 @@
       "matches": []
     },
     {
+      "key": "5c770b997338c13af2fee530ccc82eed47af075e07267202f5964bf0ff3b517a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "que",
+      "matches": []
+    },
+    {
       "key": "5cfaaa496c03cc47438f63961ae27924694c6468c450aaa4fb648f1fde4c5b66",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "el pan",
@@ -3509,6 +3575,12 @@
       "key": "61b658f27d7a480afc6f686f71dc608c80ad8a801d574a351512f642db12a18c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Cuánto cuestan las manzanas",
+      "matches": []
+    },
+    {
+      "key": "61e60bb63e18b60bb3166ee7332d4e84a3cbe63a7f9840d5706d680632b21896",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "tener",
       "matches": []
     },
     {
@@ -3735,6 +3807,12 @@
       "matches": []
     },
     {
+      "key": "66774f79fbb33e2f95e78fad452debe0c75a09cfeeaa3dd9f8df1bfec4f42880",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Buscaré madera para Luz",
+      "matches": []
+    },
+    {
       "key": "66997e51a57740279e5d9ebdb1540d84f0cd74109876af44f07244611f5c4532",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, quiero",
@@ -3885,6 +3963,12 @@
       "key": "6a69133fe7ba13c9ac4db0ef6d10d5718f5b7dd5508d0a2e6dfd8af945ad67ed",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Repite, por favor",
+      "matches": []
+    },
+    {
+      "key": "6a776e59b4dd431784c95ea91da65f4cfd7517842017b189b76a2b26dd7774ec",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te entiendo. ¿Buscas un lugar?",
       "matches": []
     },
     {
@@ -4039,6 +4123,12 @@
       "key": "6e47d641fc8799a6d22ee63b640e2ea901712681a892e420ab592af243d0a634",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Y te gustan las manzanas?",
+      "matches": []
+    },
+    {
+      "key": "6e8e45f61018d252f8805d5e9dcf5f5df94e20dc7e9d405db72e2be74f9f0d3d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cómo es grande",
       "matches": []
     },
     {
@@ -4259,6 +4349,12 @@
       "key": "74333f12ff83759867e826670bbc5301dc96782b983721642400af1307e2d009",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No, gracias",
+      "matches": []
+    },
+    {
+      "key": "7441074caed1f0e9912bc0b6e696db0a1b7b7b9cf784ee9f0958419dd02abc12",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, me gustó el pan de Luz",
       "matches": []
     },
     {
@@ -4485,6 +4581,12 @@
       "matches": []
     },
     {
+      "key": "78e2ac2248524603f35778b3b902426b9c880886eadb6711dac6be8425de9f5e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Qué bien!",
+      "matches": []
+    },
+    {
       "key": "78fa5ad7aae65e1e3facf74503c0609282efd8bd75b1605c5e431618df93afa6",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, tienes veinte panes",
@@ -4642,6 +4744,12 @@
       "key": "7e4e884ce16248229b36a26f8659ab9540445a3bbbdc017b67512f4fe3ea0d6c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Fuimos al río",
+      "matches": []
+    },
+    {
+      "key": "7e887229b65c683b602fc7589b4775785191eba8dec041bcd9676e0cd80697cb",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cómo es la manzana",
       "matches": []
     },
     {
@@ -5321,6 +5429,12 @@
       "matches": []
     },
     {
+      "key": "945b60fd44845bea8732450a8cd2e72a6d0c0b916b939f2d476c10824a5092bd",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ellas adónde van",
+      "matches": []
+    },
+    {
       "key": "946d9af7c2987d95f0edf63bd021e1984f3c538d15355480bb52ce34113ff59c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mañana tengo que ir a la herrería",
@@ -5870,6 +5984,12 @@
       "matches": []
     },
     {
+      "key": "a0dc3bc6519416459ff8cc8d780a21879915cbe3fba19a593a6b2e0a3881aa46",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te entiendo. ¿Qué quieres aprender?",
+      "matches": []
+    },
+    {
       "key": "a12a48302de1bda3afa5ae5b7deecd4bada585e40e1c818157a427645f1e53a8",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "el puente",
@@ -6262,6 +6382,12 @@
       "matches": []
     },
     {
+      "key": "ac8f1778dfbc2f9f4be60912556793e3c29f5466960b4deaf0743dccf36efd79",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te entiendo. ¿Quieres manzanas?",
+      "matches": []
+    },
+    {
       "key": "aca6a438d6bc866b4ee54eb1d2426b2e4af5dda2011c74064e8b983d2ae124fb",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Más despacio",
@@ -6582,6 +6708,12 @@
       "matches": []
     },
     {
+      "key": "b666e949d812c8b09567c7271fb9647b74055e2118b3f3a605e388befbbe8a78",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cómo está usted",
+      "matches": []
+    },
+    {
       "key": "b67a9d9f56e90987523000086bdd35a3bd33be0094f91e2435ecd2b46836d1c9",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Nosotros tenemos agua",
@@ -6740,6 +6872,12 @@
       "key": "bbddef125aafc435a824d098754bdaeb05797e95f8c4b9529468a8f8a1d64ae9",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "León trabaja en el campo",
+      "matches": []
+    },
+    {
+      "key": "bbee301375e4fae7c61f1874aea8250c84836cc8c787e9d8bbebe1f6687b85f9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Solo tengo pan.",
       "matches": []
     },
     {
@@ -7870,6 +8008,18 @@
       "matches": []
     },
     {
+      "key": "db342223d562bd44c03c6b638145acc4d963e953195b873c32bc4418e480ff9f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te entiendo. ¿Quieres pan?",
+      "matches": []
+    },
+    {
+      "key": "db95d0c1188fc235246e6fa3c3a84362f5ed315316b211d1a6ed5e1cfd8e076e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te entiendo. Yo hago hachas.",
+      "matches": []
+    },
+    {
       "key": "db994df40c6cae123177df50eaa7a6127f928d892985e10e6af32f1b4ac3335d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Esto es grande",
@@ -8004,6 +8154,12 @@
       "key": "dff8734c73d3c2f1af220624b24f9e3cdc98f3954dafd78a09facd4989cf04f4",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer luz compra pescado",
+      "matches": []
+    },
+    {
+      "key": "e061c9e50721087728523c7f0876d2720715fb7529bf3d1ac16efa2578618df7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cuál es grande",
       "matches": []
     },
     {
@@ -8417,6 +8573,12 @@
       "matches": []
     },
     {
+      "key": "eb8498f13844663d1dacb897f8f8ec52ba43c62ca2ea2fee022282e8d010964c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te entiendo. ¿Quieres comprar algo?",
+      "matches": []
+    },
+    {
       "key": "ebdce26959dddfb4eb20f60c381071c07e34fe8e875f5b05136717cdd85e6b06",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "De nada.",
@@ -8539,6 +8701,12 @@
       "key": "ee9f2e775d2f11e5dfdbc9b4994a98484dd26feec1755ca15b23e411856f553e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Voy a busco madera",
+      "matches": []
+    },
+    {
+      "key": "eefa32114cf5a48c1a932aafd5384468c2fc99a3703877a7c832d4329f8cea4c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cómo estás usted",
       "matches": []
     },
     {
@@ -8847,6 +9015,12 @@
       ]
     },
     {
+      "key": "f60f3163e1e38a6bf04ece575b63e7741b8e1c88d16fd2fd5d2ee2cce4146e0f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, es verdad.",
+      "matches": []
+    },
+    {
       "key": "f6cf1c0dc79b64dd0f4430a4b64825d558e2d8b74359a56aaebf0a5bab20604b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde queda el puente",
@@ -9017,6 +9191,12 @@
       "key": "fc1ce32810a30984df0eb6b37708310979e70663d4522e8050c6d4ccf427f691",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde está la casa",
+      "matches": []
+    },
+    {
+      "key": "fc432e9085030a260c06bc59afbfff1cc19e9500d0a7752c8f48c53d1b268058",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Primero, la lección. Luego, las monedas.",
       "matches": []
     },
     {

@@ -1,4 +1,6 @@
+using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Speech;
+using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Determinism;
@@ -29,6 +31,10 @@ public sealed class ConversationSession
     private readonly TypedUtteranceEvaluator _evaluator;
     private readonly IReadOnlyDictionary<string, string> _names;
     private readonly Dictionary<string, AgentState> _agentStates = new(StringComparer.Ordinal);
+    private readonly Inventory? _bag;
+    private readonly HostEventTable _hostEvents;
+    private readonly NounCatalog _nouns;
+    private readonly NpcRoster _roster;
     private ConversationContext _context;
 
     /// <summary>
@@ -40,10 +46,19 @@ public sealed class ConversationSession
         ContentBundle bundle,
         ulong worldSeed = DefaultWorldSeed,
         IReadOnlyDictionary<string, int>? repeatCountsByTag = null,
-        IReadOnlyDictionary<string, string>? listenerNames = null)
+        IReadOnlyDictionary<string, string>? listenerNames = null,
+        Inventory? bag = null)
     {
         ArgumentNullException.ThrowIfNull(bundle);
         Bundle = bundle;
+
+        // A bag makes a sale or a purchase follow it (V23a); a gift is refused for what the NPC does not give with or without one. The NPC answers a miss as it does in the
+        // game, through the same code (NpcTurnRules, V21b).
+        _bag = bag;
+        _hostEvents = HostEventTable.Load(bundle);
+        _nouns = NounCatalog.Load(bundle);
+        _roster = NpcRoster.Load(bundle);
+
         _evaluator = new TypedUtteranceEvaluator(bundle);
         _names = listenerNames ?? new Dictionary<string, string>(StringComparer.Ordinal);
         _context = ConversationContext.Create(
@@ -63,6 +78,9 @@ public sealed class ConversationSession
     /// and the time of the last utterance. Before any utterance the time is zero and the agent is <see cref="NoAgentId"/>.
     /// </summary>
     public ConversationContext Context => _context;
+
+    /// <summary>The last <see cref="Evaluate"/>'s reply as the game says it (the one reply of the turn, the refused gift and the misses a bag makes); <see langword="null"/> before the first.</summary>
+    public ExchangeAnswer? LastExchange { get; private set; }
 
     /// <summary>The ids of the bundle's prompts, in ordinal order.</summary>
     public IReadOnlyList<string> PromptIds => Bundle.Prompts.Keys.Order(StringComparer.Ordinal).ToArray();
@@ -104,7 +122,53 @@ public sealed class ConversationSession
 
         _agentStates[agentId] = result.Decision.Agent?.Next ?? agentState;
         _context = utterance.Next(result, now);
+        LastExchange = AnswerTurn(agentId, result, transcript, now, promptId, agentState.InteractionCounter);
+        if (LastExchange.OffPromptIntent is not null)
+        {
+            _context = _context with { RepeatCountsByTag = utterance.RepeatCountsByTag, Learner = utterance.Learner }; // V27: an off-prompt line is no failed attempt, and the learner is not marked down
+        }
         return result;
+    }
+
+    // The game's own turn rules (NpcTurnRules, shared with NpcService): the NPC's answer to a gift it refuses and, with a bag, to a purchase or a sale the bag cannot make,
+    // and the one reply of the turn. The bag is only read; nothing changes hands in the host.
+    private ExchangeAnswer AnswerTurn(string agentId, PipelineResult result, string transcript, StoredTimestamp now, string promptId, long counter)
+    {
+        var slots = NpcEffect.CountedSlots(result.Verdict.Slots, transcript);
+        var verdict = result.Verdict;
+        var understood = verdict.Communicated && !string.Equals(verdict.Intent.Value, "unknown", StringComparison.Ordinal);
+        var events = NpcTurnRules.HostEventsOf(result);
+        var answers = NpcTurnRules.AnswerMisses(
+            agentId,
+            result,
+            _hostEvents,
+            _evaluator,
+            _context,
+            now,
+            null,
+            false,
+            effect => effect.Kind == NpcEffectKind.GiveItem || _bag is not null ? effect.ExchangeMiss(slots, _bag, _nouns) : null,
+            events);
+        _context = answers.Context;
+        _agentStates[agentId] = _context.AgentState; // as the game: the agent's state after the misses, whether or not they gave lines (V30)
+        var composed = NpcTurnRules.Compose(
+            result,
+            understood,
+            answers.Unsaid,
+            _names.Values,
+            NpcTurnRules.SkipLineOfBottleGift(_bag, events),
+            _roster.All.FirstOrDefault(npc => string.Equals(npc.Id, agentId, StringComparison.Ordinal))?.FreeTalkPools,
+            bundle: Bundle,
+            npc: agentId);
+        var npc = _roster.All.FirstOrDefault(entry => string.Equals(entry.Id, agentId, StringComparison.Ordinal));
+        if (!verdict.Communicated && verdict.OffPromptIntent is { } offPrompt && NpcTurnRules.OffPromptPoolOf(Bundle, agentId) is { } pool && npc is not null
+            && npc.Prompts.Values.Contains(promptId, StringComparer.Ordinal))
+        {
+            // V27: in free talk (the NPC's own prompt, not a lesson step) the NPC's one off-prompt line and nothing else.
+            return new ExchangeAnswer(answers.Unsaid, [], null, [NpcTurnRules.OffPromptReply(Bundle, pool, _context.WorldSeed, counter)], offPrompt.Value);
+        }
+
+        return new ExchangeAnswer(answers.Unsaid, answers.Lines, composed.Feedback, composed.Replies);
     }
 
     private AgentState StateOf(string agentId)
@@ -120,3 +184,11 @@ public sealed class ConversationSession
             : new AgentState(agentId, "none", 0);
     }
 }
+
+/// <summary>What the game's turn rules made of a turn (<see cref="ConversationSession.LastExchange"/>): the NPC's lines as the game says them.</summary>
+/// <param name="Unsaid">The dialogue intents of the actions the world cannot carry out; their lines (<c>&lt;intent&gt;.1</c>) are left out of the report.</param>
+/// <param name="Lines">The NPC's answers to the misses.</param>
+/// <param name="Feedback">The turn's one recast or hint, names spelled, or <see langword="null"/>.</param>
+/// <param name="Replies">The NPC's lines of the turn, once the rules have run (one reply, V21).</param>
+/// <param name="OffPromptIntent">The intent the core found for a line the prompt does not take, when the NPC answered it with its off-prompt line (V27); <see langword="null"/> otherwise.</param>
+public sealed record ExchangeAnswer(IReadOnlyList<string> Unsaid, IReadOnlyList<string> Lines, string? Feedback, IReadOnlyList<string> Replies, string? OffPromptIntent = null);

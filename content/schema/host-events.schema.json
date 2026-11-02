@@ -91,6 +91,24 @@
                   },
                   "count": {
                     "$ref": "#/definitions/count"
+                  },
+                  "instead": {
+                    "type": "object",
+                    "minProperties": 1,
+                    "additionalProperties": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "description": "V21b: with asked. Catalogue nouns the NPC has something else for, by the suffix of the host event it answers instead of <npc>.wont_sell (pan: give_bread, so <npc>.give_bread). The agent takes that event with onHostEvent."
+                  },
+                  "asked": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "description": "V21: the catalogue nouns whose request this gift answers (agua, botella). A request for another noun raises <npc>.wont_sell to the agent as a host turn and nothing is given; a line with no noun, or a word the catalogue lacks, is read as a request for the gift."
                   }
                 },
                 "description": "The NPC puts items in the inventory, all of them or none (the bottle once, whatever the count)."

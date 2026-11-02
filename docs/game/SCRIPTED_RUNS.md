@@ -55,6 +55,7 @@ in the output.
 | r21-skip | `--skip-to-session 4` (V12c, a test aid): the console's and the log's `skipped to play session 4 (sessions 1 to 3 counted as done; test aid)`, El pueblo's objective with the beacon on Mar from the player's camp (`beacon.png`), the book's Lessons page with the three earlier lessons completed in sessions 1, 2 and 3; the save carries `skippedTo` | `--seed 42 --mute --skip-to-session 4 --wait 1 --shot "$W/beacon.png" --book-page lessons --screenshot "$W/shot.png" --frames 30 --save "$W/game.save"` |
 | r22-market | The market of session 10 (VILLAGE_PLAN V15): `--skip-to-session 10` (no coin, three apples, two loaves, the axe), four trunks cut in the farmer's orchard (`before.png`: four wood in the hotbar, no coin), `vendo madera` to Domingo (`offer_item`, `smith.buy_wood`: the four wood out, four coins in; `sold.png`), `quiero dos panes, por favor` to Luz, whose lesson El mercado starts as her panel opens and waits at its first explanation (`baker.sell_bread`: four coins out, two loaves in; `bought.png`), and `¿cuánto es todo?` to León (`ask_total`, "Quince manzanas, quince monedas."; `total.png`); the screenshot is the inventory (the book, three apples, the axe, four loaves, no coin, no wood) and the save holds it | `--seed 42 --mute --skip-to-session 10 --teleport 309,216 --interact 311,38,214 --interact 311,39,214 --interact 311,40,214 --interact 311,38,218 --shot "$W/before.png" --talk smith --say "vendo madera" --leave --shot "$W/sold.png" --talk baker --say "quiero dos panes, por favor" --leave --shot "$W/bought.png" --talk farmer --say "¿cuánto es todo?" --shot "$W/total.png" --leave --inventory --screenshot "$W/shot.png" --frames 30 --save "$W/game.save"` |
 | r23-future | The simple future (VILLAGE_PLAN V16, V17): `--skip-to-session 9`, Luz's lesson Mañana en el pueblo with typed answers (`Mañana compraré pan`, `Buscaré madera para Luz` and `Iré al río` to Domingo, `Luz hará pan` to Mar: 12 steps done, the two reviews skipped with nothing due), then free talk with Luz at her open prompt, `mañana compraré pan` (`state_action`, understood, "¡Eso es!"; `reply.png`; no phrase use is logged: her prompt's rows have no `state_action`, see `docs/game/README.md`, the village's open points); the screenshot is the book's Verbs page on `comprar`, its columns past, future (ir a) and future, `compraré` said twice, both correct | `--seed 42 --mute --skip-to-session 9 --lesson-run manana-en-el-pueblo --talk baker --say "mañana compraré pan" --shot "$W/reply.png" --leave --book-verb comprar --screenshot "$W/shot.png" --frames 30` |
+| r24-followups | The follow-ups (VILLAGE_PLAN V20, V21, V21b): from `--skip-to-session 10`, `mañana compraré pan` to Luz in free talk (`understood`, «¡Qué bien!», `phrase manana-comprare-pan unaided`; `future.png`), `quiero madera` to the stall (`request_item`, «No tengo eso. Tengo agua y pan.», no bottle; `stall.png`), and `ayer compre pan` to Luz (understood, «¡Qué bien!», and under it the accent note «compré», con tilde: es pasado, in the correction colour; `accent.png`); the screenshot is the hotbar and the save holds them | `--seed 42 --mute --skip-to-session 10 --talk baker --say "mañana compraré pan" --shot "$W/future.png" --leave --talk shopkeeper --say "quiero madera" --shot "$W/stall.png" --leave --talk baker --say "ayer compre pan" --shot "$W/accent.png" --leave --screenshot "$W/shot.png" --frames 30 --save "$W/game.save"` |
 
 The pre-check answers (r09 and r10; the battery's order for seed 42):
 
@@ -70,6 +71,19 @@ The post-check answers (r10):
 
 There is no r13: `--report-open` leaves the report panel open, and a paused world takes no more ticks, so the run never ends by design
 (S21, `IMPLEMENTATION_PLAN.md`). Check the open panel by hand (below).
+
+**The follow-ups against `1dbb0e5`** (V24, 2026-11-02; the merge of PR #20, where the follow-ups start, against `768a3e5`, the follow-ups' tip; 22 runs, captured once each in the one worktree). Every difference traces to a follow-up milestone:
+
+- **Every run:** the `session_start` line gains a `day` field (V25), and every save and autosave is 34 to 46 bytes larger (the sitting, V25).
+- **The speech line:** `457 lines, 914 files` to `531 lines, 1062 files` (V20 +20 files, V21 +6, V21b +122).
+- **The exact runs** (r01, r07, r08, r09, r12, r14, r15, r20, r21): the bundle hash in the session log and the replay record (content, V20 to V21b); r15 shows no name plate on the fisher, who is neither faced nor the beacon's NPC (V22); r20 and r21 show the Lessons page at `next:` (V21b, the picture).
+- **r18 and r19** (order only): Luz's and Mar's focus cards are no longer shown in these sessions, whose lessons are not yet unlocked (V20 (c)), so the
+  phrases `quiero-dos-panes`, `donde-esta-la-panaderia` and `donde-esta-la-herreria` are `unaided`, not `supported` (no card to lean on).
+- **r22:** León's total in free talk is «Una manzana, una moneda.» (V21b); a session with nothing due says «Nothing to review yet» once (V23a, the toast).
+- **r23:** the free-talk line `mañana compraré pan` is a phrase use (V20 (b)), answered «¡Qué bien!» (V20), with the card-and-audio support of its turn; Luz's two
+  `vendo-madera` cards are no longer shown (V20 (c)).
+- **Nothing else moved:** the ticks, the world digests, the scene (`1958 trees`, `9b952982f5e1bc44`), every other picture and every other line of the logs.
+The runs that moved only in `day` and the speech count are order-only or exact as before.
 
 ## Comparing two captures
 
@@ -88,7 +102,8 @@ the session log's `wall_seconds`, `*_ms` and latency fields. Measured on 2026-10
   is a finding: a scripted run does not freeze the world exactly while a turn is out. r18 and r19 (VILLAGE_PLAN V09) have a turn each, so they
   are order only too; captured twice on 2026-10-31 they matched byte for byte but for the turn's latency, which r19's `arrow.png` draws in the
   panel (`18.4 ms`, `18.9 ms`). r22 and r23 (V09 after phase B) have three and five turns; captured twice on 2026-11-01, r22 matched byte for byte, pictures and save
-  included, and r23 but for the free-talk turn's latency in `reply.png` (`2.7 ms`, `3.3 ms`).
+  included, and r23 but for the free-talk turn's latency in `reply.png` (`2.7 ms`, `3.3 ms`). r24 (V24, three turns) captured twice on 2026-11-02: the session log, the stdout and the save match after the masks, and the three pictures
+differ only in the panel's latency label (a box of about 20 by 10 pixels, measured with a pixel difference). r24 is an order-only run in `compare-runs.py` (its `LOOSE` set), like r22 and r23.
 
 **Across a content change** every run differs, and each difference must trace to the change. Phase A of the village plan (`f3a242f` against
 `feature/village` at `1f201e4`, V09; the captures of r01 to r17) moved: in every run the closing summary's lessons (six; `personas` 22 steps and

@@ -1,4 +1,3 @@
-using Vocaterra.Nlp.Es;
 using Vocaterra.Nlp.Pipeline;
 
 namespace Vocaterra.Nlp.Core.Fixtures;

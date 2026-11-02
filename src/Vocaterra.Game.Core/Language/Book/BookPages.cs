@@ -5,7 +5,6 @@ using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Session;
-using Vocaterra.Game.Core.Tip;
 using Vocaterra.Nlp.Es;
 using Vocaterra.Nlp.Es.Morphology;
 
@@ -271,7 +270,7 @@ public static class BookPages
                 LessonStatus.InProgress => (BookTone.Learning, ui.Ui("bookLessonInProgress", ("done", N(doneUnits)), ("units", N(units.Count)))),
                 _ => (wait is { Kind: LessonWaitKind.Next } ? BookTone.Gold : BookTone.Unseen, wait is null ? ui.Ui("bookLessonNotStarted") : null),
             };
-            lines.Add(new BookLine(tone, lesson.Title, Aside: state, Practise: lesson.Status == LessonStatus.Completed ? lesson.LessonId : null));
+            lines.Add(new BookLine(tone, lesson.Title, Aside: state, Practise: lesson.Status == LessonStatus.Completed ? lesson.LessonId : null, Next: wait is { Kind: LessonWaitKind.Next }));
             if (wait is not null)
             {
                 lines.Add(new BookLine(wait.Kind switch { LessonWaitKind.Next => BookTone.Gold, LessonWaitKind.Open => BookTone.Seen, _ => BookTone.Hint }, WaitText(ui, wait, lessons), Indent: true));

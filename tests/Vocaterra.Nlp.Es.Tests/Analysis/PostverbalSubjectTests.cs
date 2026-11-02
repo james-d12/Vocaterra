@@ -2,7 +2,6 @@ namespace Vocaterra.Nlp.Es.Tests.Analysis;
 
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
-using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
 
 /// <summary>
@@ -86,7 +85,7 @@ public class PostverbalSubjectTests
     [InlineData("fue lejos")]
     [InlineData("es de lejos")]
     [InlineData("dónde es profesor")]
-    [InlineData("la herrería es en la plaza")]
+    [InlineData("la herrería está en la plaza")]
     [InlineData("dónde está la herrería")]
     [InlineData("cómo son las casas")]
     public void SerOfAnEventAndEstarOfAPlaceStayClean(string sentence)
@@ -198,6 +197,64 @@ public class PostverbalSubjectTests
     [InlineData("a ella le gusta las manzanas", "conj.person|gusta|gustan")]
     [InlineData("a nosotros nos gustan el pan", "conj.person|gustan|gusta")]
     public void AnExperiencerAfterAPrepositionLeavesTheSubjectAfterTheVerb(string sentence, string expected)
+    {
+        Assert.Equal(expected, Described(sentence));
+    }
+
+    // ---- M66 (4): todo, eso and esto are singular ---------------------------------------------------------------------------------------------------------------
+
+    // The price check agreed costar only with a noun phrase after it, so ¿cuánto cuestan todo? gave nothing; the neuter pronouns are singular. ser after cuánto takes
+    // them too (¿cuánto son todo?), and son, also a noun, is the copula right after cuánto. Each gave nothing before M66.
+    [Theory]
+    [InlineData("cuánto cuestan todo", "conj.person|cuestan|cuesta")]
+    [InlineData("cuánto cuestan eso", "conj.person|cuestan|cuesta")]
+    [InlineData("cuánto valen esto", "conj.person|valen|vale")]
+    [InlineData("cuánto son todo", "conj.person|son|es")]
+    [InlineData("cuánto son eso", "conj.person|son|es")]
+    [InlineData("me gustan todo", "conj.person|gustan|gusta")]
+    public void ANeuterPronounAfterTheVerbIsSingular(string sentence, string expected)
+    {
+        Assert.Equal(expected, Described(sentence));
+    }
+
+    [Theory]
+    [InlineData("cuánto cuesta todo")]
+    [InlineData("cuánto es todo")]
+    [InlineData("cuánto cuesta eso")]
+    [InlineData("cuánto cuestan las manzanas")]
+    [InlineData("cuánto son las manzanas")]
+    [InlineData("cuánto son")]
+    [InlineData("cuánto cuestan todos")]
+    [InlineData("cuánto cuestan eso y esto")]
+    [InlineData("me gusta todo")]
+    public void ASingularVerbBeforeANeuterPronounAndThePluralBeforeAPhraseStayClean(string sentence)
+    {
+        Assert.Equal(string.Empty, Described(sentence));
+    }
+
+    // ---- M73: one subject for one verb --------------------------------------------------------------------------------------------------------------------
+
+    // M72's fuzz finding (O2, CsCheck seed 7HIoK0InC7l7): the person check took the pronoun before the unaccented adonde as the subject of the verb after it (the
+    // question word typed without its accent, skipped as an adverb) and gave estaríamos, and the check of a subject after its verb took nenas as its subject as well and
+    // gave estarían: two conj.person on one word. A verb the person check has agreed with a subject pronoun before it has no subject after it, as with the accented
+    // question word (ellas dónde están un detenido lento). Before M73 the first gave both errors, and the others gave the one of the phrase after the verb.
+    [Theory]
+    [InlineData("nosotros adonde estaría nenas en el fecha", "conj.person|estaría|estaríamos;gender.agree|el|la")]
+    [InlineData("nosotros adonde estaría nenas", "conj.person|estaría|estaríamos")]
+    [InlineData("nosotros adonde estaríamos nenas", "")]
+    [InlineData("ellas donde están la casa", "")]
+    [InlineData("ella donde está las casas", "")]
+    public void AVerbThePersonCheckAgreedWithAPronounBeforeItHasNoSubjectAfterIt(string sentence, string expected)
+    {
+        Assert.Equal(expected, Described(sentence));
+    }
+
+    // Unchanged: with no subject pronoun before it, the phrase after the verb is its subject.
+    [Theory]
+    [InlineData("adonde estaría nenas", "conj.person|estaría|estarían")]
+    [InlineData("dónde están la herrería", "conj.person|están|está")]
+    [InlineData("donde está las casas", "conj.person|está|están")]
+    public void WithNoPronounBeforeItThePhraseAfterTheVerbIsItsSubject(string sentence, string expected)
     {
         Assert.Equal(expected, Described(sentence));
     }

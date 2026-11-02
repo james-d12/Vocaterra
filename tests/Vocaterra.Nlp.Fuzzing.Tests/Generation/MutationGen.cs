@@ -7,7 +7,7 @@ using Vocaterra.Nlp.Es.Analysis;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Morphology;
-using Vocaterra.Nlp.Language.Normalization;
+using SlotGrammarType = Vocaterra.Nlp.Language.SlotGrammar.SlotGrammar;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests.Generation;
 
@@ -215,11 +215,16 @@ public static class MutationGen
         private readonly LexiconCatalog _words = harness.Words;
         private readonly IReadOnlyList<SentenceToken> _tokens = sentence.Tokens;
 
+        // M26b, and since M65 (a) for the tense mutation too (the owner's yes, 2026-11-01): a grammar with both an alternation and a name can bind a mutated verb as the
+        // name when an alternative with the name fits the mutated sentence, and a name has no reading to check (seed 1RTZdjQ2tFb2: nosotras freís against
+        // ([VERB:freír]|[ART] [NOUN:item]|[PRON] [WORD]) ...; seed egVgLELrxyL4: ayer presiono abusar against ([VERB:presionar]|[ADV] [WORD:item]|[VERB]) [VERB:abusar],
+        // where [ADV] [WORD:item] takes ayer presiono). Neither mutation is made on such a grammar.
+        private bool NameBesideAnAlternation =>
+            sentence.PatternText.Contains("[WORD", StringComparison.Ordinal) && sentence.PatternText.Contains('|', StringComparison.Ordinal);
+
         public MutatedSentence? ConjPerson()
         {
-            // A grammar with an alternative that has a name ([PRON] [WORD] beside [VERB:freír]) binds the mutated verb as the name when the alternative fits, and a name has no
-            // reading to check (seed 1RTZdjQ2tFb2: nosotras freís against ([VERB:freír]|[ART] [NOUN:item]|[PRON] [WORD]) ...; it failed on main before M26b).
-            if (sentence.PatternText.Contains("[WORD", StringComparison.Ordinal) && sentence.PatternText.Contains('|', StringComparison.Ordinal))
+            if (NameBesideAnAlternation)
             {
                 return null;
             }
@@ -227,6 +232,22 @@ public static class MutationGen
             foreach (var i in Shuffled(Indexes(static t => t is { Role: TokenRole.Verb, Generated: true, Infinitive: false, Tense: not null })))
             {
                 var subject = PersonSubjectOf(i);
+
+                // M66 (M63): a subject pronoun before a question word (ella qué quiere, ellas dónde están) is the subject of the verb after it. The analyzer leaves a third
+                // person there unchecked in two readings (a subject after the verb; qué as the subject), so through such a pronoun only a first or second person is made.
+                var asked = subject >= 0 && Enumerable.Range(subject + 1, i - subject - 1).Any(k => LexiconCatalog.QuestionWordsAfterSubject.Contains(_tokens[k].Norm));
+                if (subject < 0 && QuestionSubjectOf(i) is var questioned and >= 0)
+                {
+                    subject = questioned;
+                    asked = true;
+                }
+
+                // M66: a pronoun right after a finite verb that agrees with it is that verb's subject (¿puede usted…?), and the analyzer checks no verb after it.
+                if (subject > 0 && FollowsAgreeingVerb(subject))
+                {
+                    continue;
+                }
+
                 if (subject < 0)
                 {
                     if (PostverbalSubject(i) is { } postverbal)
@@ -253,7 +274,7 @@ public static class MutationGen
                 rng.Shuffle(cells);
                 foreach (var (person, number) in cells)
                 {
-                    if (accepted.Contains((person, number)))
+                    if (accepted.Contains((person, number)) || (asked && person == "3"))
                     {
                         continue;
                     }
@@ -269,7 +290,8 @@ public static class MutationGen
                     var finite = _words.Lexicon.Lookup(form).Where(static r => r.Pos == LexiconSchema.Verb && r.Person is not null).ToArray();
                     if (finite.Length == 0
                         || finite.Any(r => accepted.Contains((r.Person!, r.Number!)))
-                        || finite.Any(r => r.Lemma != verb.Lemma || r.Tense != verb.Tense))
+                        || finite.Any(r => r.Lemma != verb.Lemma || r.Tense != verb.Tense)
+                        || (asked && _words.Lexicon.Lookup(form).Any(static r => !(r.Pos == LexiconSchema.Verb && r.Person is not null))))
                     {
                         continue;
                     }
@@ -283,8 +305,9 @@ public static class MutationGen
         }
 
         // The person and number cells the analyzer accepts for a verb after its subject pronoun: the pronoun's own, or, for a pronoun that ends a coordinated subject
-        // (M64: luz y yo comemos), the plural cells of the coordination. A coordinated verb of the second person plural (tú y ella coméis) is not mutated: it is right,
-        // but the analyzer's correction of a mutation there is the third person plural (comen), not the form the sentence had.
+        // (M64: luz y yo comemos), the plural cells of the coordination, and after o the cell of the member nearest the verb (M66). A coordinated verb of the second
+        // person plural (tú y ella coméis), or of the nearest member's singular (tú o yo voy), is not mutated: it is right, but the analyzer's correction of a mutation
+        // there is the plural (comen, vamos), not the form the sentence had.
         private static List<(string, string)>? AcceptedCells(SentenceToken pronoun, SentenceToken verb)
         {
             if (pronoun.Coordination is not { } coordination)
@@ -297,12 +320,29 @@ public static class MutationGen
                 return null;
             }
 
-            return coordination.Person switch
+            // M66: nor is one that agrees with the member nearest it after o (tú o yo voy, nosotras o ellos vuelan), unless that is the coordination's first plural cell:
+            // the analyzer's correction of a mutation there is the first plural cell (vamos, volamos).
+            var first = coordination.Person == "1" ? ("1", LexiconSchema.Plural) : ("3", LexiconSchema.Plural);
+            if (coordination.NearestPerson is not null && verb.Person == coordination.NearestPerson && verb.Number == coordination.NearestNumber
+                && (verb.Person, verb.Number) != first)
+            {
+                return null;
+            }
+
+            List<(string, string)> cells = coordination.Person switch
             {
                 "1" => [("1", LexiconSchema.Plural)],
                 "2" => [("2", LexiconSchema.Plural), ("3", LexiconSchema.Plural)],
                 _ => [("3", LexiconSchema.Plural)],
             };
+
+            // M66: o also accepts the cell of the member nearest the verb (tú o yo voy).
+            if (coordination is { NearestPerson: { } person, NearestNumber: { } number })
+            {
+                cells.Add((person, number));
+            }
+
+            return cells;
         }
 
         // M56: a third-person verb whose subject follows it (¿dónde están las casas?, me gustan las manzanas) takes the other number; the analyzer reports conj.person
@@ -355,23 +395,37 @@ public static class MutationGen
                 return null;
             }
 
-            var number = verb.Number == LexiconSchema.Singular ? LexiconSchema.Plural : LexiconSchema.Singular;
-            var form = _words.Morphology.Conjugate(verb.Lemma, "3", number, verb.Tense);
-            if (form is null || form == verb.Norm)
+            // M70 (a widening): gustar and encantar behind their dative pronoun agree with the thing liked, so a form of the first or second person is the slip too (me
+            // gusto el pan, gusta); half the cases of those verbs try such a form first, the other half the third person of the other number, as before.
+            var cells = new List<(string Person, string Number)> { ("3", verb.Number == LexiconSchema.Singular ? LexiconSchema.Plural : LexiconSchema.Singular) };
+            if (experiencer && LexiconCatalog.LikingVerbs.Contains(verb.Lemma))
             {
-                return null;
+                var speakers = new List<(string Person, string Number)> { ("1", LexiconSchema.Singular), ("2", LexiconSchema.Singular), ("1", LexiconSchema.Plural), ("2", LexiconSchema.Plural) };
+                rng.Shuffle(speakers);
+                cells = rng.NextDouble() < 0.5 ? [.. speakers, .. cells] : [.. cells, .. speakers];
             }
 
-            var readingsOfForm = _words.Lexicon.Lookup(form);
-            if (readingsOfForm.Count == 0
-                || readingsOfForm.Any(r => r.Pos != LexiconSchema.Verb || r.Person is null || r.Lemma != verb.Lemma)
-                || readingsOfForm.Any(r => r.Person == "3" && r.Number == verb.Number && r.Tense == verb.Tense))
+            foreach (var (person, number) in cells)
             {
-                return null;
+                var form = _words.Morphology.Conjugate(verb.Lemma, person, number, verb.Tense);
+                if (form is null || form == verb.Norm)
+                {
+                    continue;
+                }
+
+                var readingsOfForm = _words.Lexicon.Lookup(form);
+                if (readingsOfForm.Count == 0
+                    || readingsOfForm.Any(r => r.Pos != LexiconSchema.Verb || r.Person is null || r.Lemma != verb.Lemma)
+                    || readingsOfForm.Any(r => r.Person == "3" && r.Number == verb.Number && r.Tense == verb.Tense))
+                {
+                    continue;
+                }
+
+                var mutated = Replace(i, verb with { Written = form, Norm = form, Person = person, Number = number });
+                return Result(MutationKind.ConjPerson, mutated, [Error(mutated, ErrorTags.ConjPerson, i, i, verb.Norm, form)], sentence.NormalizedText, keepsGrammar: true);
             }
 
-            var mutated = Replace(i, verb with { Written = form, Norm = form, Number = number });
-            return Result(MutationKind.ConjPerson, mutated, [Error(mutated, ErrorTags.ConjPerson, i, i, verb.Norm, form)], sentence.NormalizedText, keepsGrammar: true);
+            return null;
         }
 
         // M59: a third-person verb right after a noun phrase with an article or numeral that opens the sentence is agreed with it (los niños comen pan, el pan está
@@ -383,6 +437,14 @@ public static class MutationGen
         {
             var verb = _tokens[i];
             if (verb is not { Person: "3", Number: not null, Tense: not null, Lemma: not null } || i != 2)
+            {
+                return null;
+            }
+
+            // M65 (b), the owner's yes of 2026-11-01: the analyzer leaves haber out of this check by design (hay dos panes; M59), so the mutation leaves it out too and
+            // models what the analyzer claims to check (seeds b3HSKSLCsL_1: el subtítulo ha peligroso made han; 4YuZ2yubxdC1: unas televisiones han made ha). The new form
+            // has no reading but this verb's (below), so this is exactly the analyzer's exclusion. To widen when a lesson teaches the perfect: see the README.
+            if (verb.Lemma == "haber")
             {
                 return null;
             }
@@ -431,13 +493,15 @@ public static class MutationGen
 
         // M64 (b): the word after the verb at index (past at most two skippable words) is a word of LexiconCatalog.AmountPredicates or can open a noun phrase of the
         // singular (an article, a numeral or a determiner adjective of the singular): the predicate after which the analyzer reads an amount before a singular ser as one
-        // sum (mirror of SpanishAgreementChecker.IsAmountReadAsUnit, which also asks the phrase for its noun).
+        // sum (mirror of SpanishAgreementChecker.IsAmountReadAsUnit, which also asks the phrase for its noun). M73: a price (caro, barato) only after money (diez
+        // monedas es caro; dos panes es caro is mutated, a widening).
         private bool SingularPredicateAfter(int verb)
         {
+            var money = _tokens.Take(verb).Any(static t => t is { Role: TokenRole.Noun, Lemma: { } lemma } && LexiconCatalog.MoneyNouns.Contains(lemma));
             for (var index = verb + 1; index < _tokens.Count && index - verb <= MaxSkippedBetween + 1; index++)
             {
                 var token = _tokens[index];
-                if (LexiconCatalog.AmountPredicates.Contains(token.Norm)
+                if ((LexiconCatalog.AmountPredicates.Contains(token.Norm) && (money || !LexiconCatalog.PricePredicates.Contains(token.Norm)))
                     || token is { Role: TokenRole.Numeral, Number: LexiconSchema.Singular }
                     || _words.Lexicon.Lookup(token.Norm).Any(static r => r.Number == LexiconSchema.Singular
                         && (r.Pos is LexiconSchema.Article or LexiconSchema.Numeral
@@ -548,7 +612,8 @@ public static class MutationGen
                 }
                 else
                 {
-                    gender = PredicatePronounGender(j);
+                    // M69: or a predicate adjective whose copula follows a subject with de that opens the utterance (la casa de los niños es bonita -> bonito).
+                    gender = PredicatePronounGender(j) ?? PredicateSubjectWithDeGender(j);
                     if (gender is null)
                     {
                         continue;
@@ -588,6 +653,32 @@ public static class MutationGen
             return null;
         }
 
+        // M69: the gender of the subject with de of the copula that the standalone adjective at index follows right after (la casa de los niños es bonita: casa), or null:
+        // the copula is a generated finite ser or estar of the third person; before it stand a phrase of an article and a noun, de, and the first phrase, an article and a
+        // generated noun of one gender that opens the utterance, is no noun of part, quantity or time and has the copula's number (mirror of
+        // SpanishAgreementChecker.TryFindSubjectWithDe, for the one shape of the skeleton).
+        private string? PredicateSubjectWithDeGender(int index)
+        {
+            var copula = index - 1;
+            if (copula < 5
+                || _tokens[copula] is not { Role: TokenRole.Verb, Generated: true, Infinitive: false, Person: "3", Lemma: "ser" or "estar" } verb
+                || _tokens[copula - 1] is not { Role: TokenRole.Noun }
+                || _tokens[copula - 2] is not { Role: TokenRole.Article }
+                || _tokens[copula - 3].Norm != "de"
+                || _tokens[copula - 4] is not { Role: TokenRole.Noun, Generated: true } head
+                || copula - 5 != 0
+                || _tokens[0] is not { Role: TokenRole.Article }
+                || head.Number != verb.Number
+                || head.Gender is null
+                || ReadsAsBothGenders(head)
+                || LexiconCatalog.PostverbalNonSubjectNouns.Contains(head.Lemma!))
+            {
+                return null;
+            }
+
+            return head.Gender;
+        }
+
         // M62: the gender of the subject pronoun of the copula that the standalone adjective at index follows (ella es alta, nosotros no somos altos), or null: the
         // copula is a generated finite ser or estar right before the adjective (past skippable words), and the pronoun the analyzer pairs with it has a gender and no
         // preposition before it (mirror of the first subject of SpanishAgreementChecker.CheckPredicateAdjectives).
@@ -607,12 +698,25 @@ public static class MutationGen
                 return null;
             }
 
-            // M64: a pronoun that ends a coordinated subject gives the coordination's gender, known only when every member has one (ella y él son altos).
-            return _tokens[pronoun].Coordination is { } coordination ? coordination.Gender : _tokens[pronoun].Gender;
+            // M64: a pronoun that ends a coordinated subject gives the coordination's gender, known only when every member has one (ella y él son altos). M66: after
+            // o, a copula of the nearest member's cell alone gives that member's gender (tú o ella es alta), and one of both cells a gender only where they share it.
+            if (_tokens[pronoun].Coordination is not { } coordination)
+            {
+                return _tokens[pronoun].Gender;
+            }
+
+            return coordination.PredicateAgreement(_tokens[copula].Person, _tokens[copula].Number).Gender;
         }
 
         public MutatedSentence? SerEstar()
         {
+            // M69: estar before en and a place, after a subject phrase that opens the utterance, becomes ser (la casa está en la plaza -> es), which the analyzer reports
+            // as ser_estar with the form of estar; first, when the sentence has that shape.
+            if (SerBeforeEnAndAPlace() is { } place)
+            {
+                return place;
+            }
+
             foreach (var i in Shuffled(Indexes(static t => t is { Role: TokenRole.Verb, Generated: true, Infinitive: false, Lemma: "ser" or "estar" })))
             {
                 var copula = _tokens[i];
@@ -658,6 +762,46 @@ public static class MutationGen
             }
 
             return null;
+        }
+
+        // M69: the ser_estar mutation of es en (mirror of SpanishAgreementChecker.CheckSerOfPlace, rule 3, for the shape of the skeleton): the generated estar of the
+        // third person at index 2 after an article and a noun that open the utterance, no event and no noun of time (a phrase of time is no subject: la semana es en
+        // los escuadrones, seed bc29DoKXymZ2 of M69's second run) or of part or quantity, followed by en, an article and a noun that is a place (no noun of time or of an
+        // adverbial phrase); the form of ser of the same cell must be ser's alone (fue is also ir) and no noun (son, era).
+        private MutatedSentence? SerBeforeEnAndAPlace()
+        {
+            const int i = 2;
+            if (_tokens.Count != 6
+                || _tokens[0] is not { Role: TokenRole.Article }
+                || _tokens[1] is not { Role: TokenRole.Noun } subject
+                || _tokens[i] is not { Role: TokenRole.Verb, Generated: true, Infinitive: false, Lemma: "estar", Person: "3" } copula
+                || _tokens[3].Norm != "en"
+                || _tokens[4] is not { Role: TokenRole.Article }
+                || _tokens[5] is not { Role: TokenRole.Noun } place
+                || LexiconCatalog.EventNouns.Contains(subject.Lemma!)
+                || LexiconCatalog.PostverbalNonSubjectNouns.Contains(subject.Lemma!)
+                || LexiconCatalog.NonPlaceNouns.Contains(place.Lemma!)
+                || _words.Lexicon.Lookup(subject.Norm).Any(static r => r.Pos == LexiconSchema.Noun
+                    && (LexiconCatalog.EventNouns.Contains(r.Lemma) || LexiconCatalog.PostverbalNonSubjectNouns.Contains(r.Lemma)))
+                || _words.Lexicon.Lookup(place.Norm).Any(static r => r.Pos == LexiconSchema.Noun && LexiconCatalog.NonPlaceNouns.Contains(r.Lemma)))
+            {
+                return null;
+            }
+
+            var form = _words.Morphology.Conjugate("ser", copula.Person!, copula.Number!, copula.Tense!);
+            if (form is null)
+            {
+                return null;
+            }
+
+            var readings = _words.Lexicon.Lookup(form);
+            if (readings.Count == 0 || readings.Any(static r => r.Pos != LexiconSchema.Verb || r.Lemma != "ser"))
+            {
+                return null;
+            }
+
+            var mutated = Replace(i, copula with { Written = form, Norm = form, Lemma = "ser" });
+            return Result(MutationKind.SerEstar, mutated, [Error(mutated, ErrorTags.SerEstar, i, i, copula.Norm, form)], sentence.NormalizedText, keepsGrammar: false);
         }
 
         public MutatedSentence? WordOrder()
@@ -757,27 +901,58 @@ public static class MutationGen
             foreach (var i in Shuffled(Indexes(static t => t is { Role: TokenRole.Verb, Generated: true, Infinitive: false, Tense: not null })))
             {
                 var verb = _tokens[i];
-                var regular = harness.RegularParadigm.Conjugate(verb.Lemma!, verb.Person!, verb.Number!, verb.Tense!);
-                if (regular is null || regular == verb.Norm)
+                foreach (var regular in RegularSpellings(verb))
                 {
-                    continue;
-                }
+                    if (regular == verb.Norm)
+                    {
+                        continue;
+                    }
 
-                // Only a regular cell that the morphology itself reports as the regularization of exactly this form counts.
-                if (!_words.Morphology.IsRegularizedIrregular(regular, out var lemma, out var expected) || lemma != verb.Lemma || expected != verb.Norm)
-                {
-                    continue;
-                }
+                    // Only a regular cell that the morphology itself reports as the regularization of exactly this form counts.
+                    if (!_words.Morphology.IsRegularizedIrregular(regular, out var lemma, out var expected) || lemma != verb.Lemma || expected != verb.Norm)
+                    {
+                        continue;
+                    }
 
-                var mutated = Replace(i, verb with { Written = regular, Norm = regular });
-                return Result(MutationKind.ConjIrregular, mutated, [Error(mutated, ErrorTags.ConjIrregular, i, i, verb.Norm, regular)], sentence.NormalizedText, keepsGrammar: true);
+                    var mutated = Replace(i, verb with { Written = regular, Norm = regular });
+                    return Result(MutationKind.ConjIrregular, mutated, [Error(mutated, ErrorTags.ConjIrregular, i, i, verb.Norm, regular)], sentence.NormalizedText, keepsGrammar: true);
+                }
             }
 
             return null;
         }
 
+        // The regular cell of the verb's paradigm and, since M70 (a widening), the first person of the preterite of a verb in -car, -gar or -zar written without its
+        // spelling change before the é (buscar: buscé for busqué; an independent model of the analyzer's slip, which the morphology must report the same way).
+        private IEnumerable<string> RegularSpellings(SentenceToken verb)
+        {
+            if (harness.RegularParadigm.Conjugate(verb.Lemma!, verb.Person!, verb.Number!, verb.Tense!) is { } regular)
+            {
+                yield return regular;
+            }
+
+            if (verb is { Tense: LexiconSchema.Preterite, Person: "1", Number: LexiconSchema.Singular } && verb.Lemma!.Length >= 5
+                && (verb.Lemma.EndsWith("car", StringComparison.Ordinal) || verb.Lemma.EndsWith("gar", StringComparison.Ordinal) || verb.Lemma.EndsWith("zar", StringComparison.Ordinal)))
+            {
+                yield return verb.Lemma[..^2] + "é";
+            }
+        }
+
         public MutatedSentence? ConjTense()
         {
+            if (NameBesideAnAlternation)
+            {
+                return null;
+            }
+
+            // M66, a widening of O4 and O5: a sentence with a modal and its infinitive (puedo pagar, tengo que ir) gets, on every other sentence (by the parity of its
+            // length, so that no draw of the search moves), the learner's slip for that infinitive instead of the past marker: a finite form right after the modal
+            // (puedo pago), which the analyzer reports as conj.tense with the infinitive expected, as after ir a.
+            if (_tokens.Count % 2 == 0 && ModalSlip() is { } modalSlip)
+            {
+                return modalSlip;
+            }
+
             // Only the generated verbs are flagged: a noun that is also a verb form (ayudas, lanza) is read as the noun, because the analyzer resolves the part of
             // speech of each word. The sentence must still hold a generated finite verb, and no literal word of the grammar may be a finite verb form (falta, after a
             // subject pronoun, is the verb), because the oracle names only the generated verbs.
@@ -838,6 +1013,18 @@ public static class MutationGen
             var list = new List<SentenceToken> { new("ayer", "ayer", TokenRole.Adverb, true, "ayer", null, null, null, null, -1, null, false, false) };
             list.AddRange(_tokens.Select(static t => t with { Head = t.Head >= 0 ? t.Head + 1 : -1 }));
             var mutated = sentence with { Tokens = list };
+
+            // M65 (c), the owner's yes of 2026-11-01: a literal of the grammar that is another word once its accent is written (porque and porqué) is read as typed while
+            // the grammar binds it, and the analyzer chooses between the two from the neighbouring words only when no grammar matches (ReadingResolver: a literal spelled
+            // like the word keeps every reading as typed, so the accent is the one reading the match decides). The realiser leaves that choice to the grammar for a
+            // literal. With ayer in front the grammar may no longer match (seed 2ldq2rIKLrG2: ayer las los despego unas porque against [ART] [ART]? [VERB]? [ART]?
+            // porque?, where unas porque then reads as the article and the noun porqué). Such a case is kept only when the mutated sentence matches the original's grammar;
+            // a sentence with no such literal, and one whose grammar still matches, are mutated as before.
+            if (_tokens.Any(IsLiteralWithAnAccentVariant) && !MatchesTheGrammar(mutated))
+            {
+                return null;
+            }
+
             var errors = finite.Select(i => new ExpectedError(ErrorTags.ConjTense, mutated.SpanOf(i + 1, i + 1), forms[i], _tokens[i].Norm)).ToArray();
             var fixedTokens = list.Select((t, j) => j > 0 && forms.TryGetValue(j - 1, out var form) ? form : t.Norm);
             corrected.AddRange(fixedTokens);
@@ -896,6 +1083,97 @@ public static class MutationGen
             return indexes;
         }
 
+        // M66: the finite form of the person and number of the modal, in the present, in place of a generated infinitive right after a finite modal (poder, querer,
+        // deber, necesitar; tener and que): puedo pagar -> puedo pago, tienes que ir -> tienes que vas. Made only where the analyzer's reading is certain: the form is
+        // that verb's indicative and nothing else, and has no accent variant (hablo, habló); the verb is no modal, copula, haber, tener or ir, which the analyzer reads
+        // as a clause of its own or another construction (no puedo, estoy cansado; voy a). Or null.
+        private MutatedSentence? ModalSlip()
+        {
+            for (var i = 1; i < _tokens.Count; i++)
+            {
+                var verb = _tokens[i];
+                if (verb is not { Role: TokenRole.Verb, Generated: true, Infinitive: true, Lemma: { } lemma }
+                    || LexiconCatalog.IsModalVerb(lemma, null)
+                    || lemma is "ser" or "estar" or "haber" or "tener" or "ir"
+                    || ModalCellBefore(i) is not { } cell)
+                {
+                    continue;
+                }
+
+                var form = _words.Morphology.Conjugate(lemma, cell.Person, cell.Number, LexiconSchema.Present);
+                if (form is null || form == verb.Norm)
+                {
+                    continue;
+                }
+
+                var found = _words.Lexicon.LookupWithAccentVariants(form);
+                if (found.Exact.Count == 0
+                    || found.Variants.Count > 0
+                    || found.Exact.Any(r => !(r.Pos == LexiconSchema.Verb && r.Person is not null && r.Mood == LexiconSchema.Indicative && r.Lemma == lemma)))
+                {
+                    continue;
+                }
+
+                var mutated = Replace(i, verb with { Written = form, Norm = form, Person = cell.Person, Number = cell.Number, Tense = LexiconSchema.Present, Infinitive = false });
+                return Result(MutationKind.ConjTense, mutated, [Error(mutated, ErrorTags.ConjTense, i, i, verb.Norm, form)], sentence.NormalizedText, keepsGrammar: false);
+            }
+
+            return null;
+        }
+
+        // M66: the person and number of the finite modal right before the token at index (or before que, for tener), or null when there is none.
+        private (string Person, string Number)? ModalCellBefore(int index)
+        {
+            if (ModalCell(index - 1, null) is { } direct)
+            {
+                return direct;
+            }
+
+            return index >= 2 && _tokens[index - 1].Norm == "que" ? ModalCell(index - 2, "que") : null;
+        }
+
+        private (string Person, string Number)? ModalCell(int index, string? linker)
+        {
+            // The analyzer takes the word for the modal only when it is a finite verb and nothing else (debe is also a noun) whose readings of the indicative are all
+            // the modal's (podamos is podar's indicative).
+            var token = _tokens[index];
+            var readings = _words.Lexicon.Lookup(token.Norm);
+            var indicative = readings.Where(static r => r.Mood == LexiconSchema.Indicative).ToList();
+            if (readings.Count == 0
+                || !readings.All(static r => r.Pos == LexiconSchema.Verb && r.Person is not null)
+                || indicative.Count == 0
+                || !indicative.TrueForAll(r => r.Lemma == indicative[0].Lemma && LexiconCatalog.IsModalVerb(r.Lemma, linker)))
+            {
+                return null;
+            }
+
+            if (token is { Role: TokenRole.Verb, Infinitive: false, Lemma: { } lemma, Person: { } person, Number: { } number })
+            {
+                return LexiconCatalog.IsModalVerb(lemma, linker) ? (person, number) : null;
+            }
+
+            if (token.Role != TokenRole.Literal)
+            {
+                return null;
+            }
+
+            var modal = readings.FirstOrDefault(r => r.Mood == LexiconSchema.Indicative && LexiconCatalog.IsModalVerb(r.Lemma, linker));
+            return modal is null ? null : (modal.Person!, modal.Number!);
+        }
+
+        // M65 (c): a literal word of the grammar that is another word once its accent is written, whose reading the grammar decides while it matches.
+        private bool IsLiteralWithAnAccentVariant(SentenceToken token)
+        {
+            return token.Role == TokenRole.Literal && _words.Lexicon.LookupWithAccentVariants(token.Norm).Variants.Count > 0;
+        }
+
+        // M65 (c): whether the analyzer matches the sentence to the grammar the sentence was realised from. Only the match is read, never the errors the oracles compare.
+        private bool MatchesTheGrammar(GeneratedSentence candidate)
+        {
+            var grammar = SlotGrammarType.Parse(sentence.PatternText);
+            return string.Equals(harness.Analyzer.Analyze(PipelineHarness.Normalize(candidate.Text), [grammar]).MatchedGrammarId, grammar.Id, StringComparison.Ordinal);
+        }
+
         private bool IsFiniteAt(int index)
         {
             return _words.Lexicon.Lookup(_tokens[index].Norm).Any(static r => r.Pos == LexiconSchema.Verb && r.Person is not null);
@@ -950,6 +1228,35 @@ public static class MutationGen
                 {
                     return p;
                 }
+            }
+
+            return -1;
+        }
+
+        // M66: the subject pronoun at index follows a word that can be a finite verb of the pronoun's person and number (puede usted), so the analyzer reads the pronoun
+        // as that verb's subject put after it.
+        private bool FollowsAgreeingVerb(int pronoun)
+        {
+            var token = _tokens[pronoun];
+            return _words.Lexicon.Lookup(_tokens[pronoun - 1].Norm)
+                .Any(r => r.Pos == LexiconSchema.Verb && r.Person == token.Person && r.Number == token.Number && r.Mood != LexiconSchema.Imperative);
+        }
+
+        // M66 (M63): a subject pronoun right before a question word of QuestionWordsAfterSubject that stands right before the verb (past skippable words), and no
+        // preposition before the pronoun; -1 otherwise.
+        private int QuestionSubjectOf(int verb)
+        {
+            for (var p = verb - 1; p >= 0; p--)
+            {
+                if (_tokens[p] is not { Role: TokenRole.Pronoun, SubjectPronoun: true }
+                    || NextContent(p) is not (var question and >= 0)
+                    || !LexiconCatalog.QuestionWordsAfterSubject.Contains(_tokens[question].Norm)
+                    || NextContent(question) != verb)
+                {
+                    continue;
+                }
+
+                return p > 0 && _words.Lexicon.Lookup(_tokens[p - 1].Norm).Any(static r => r.Pos == LexiconSchema.Preposition) ? -1 : p;
             }
 
             return -1;

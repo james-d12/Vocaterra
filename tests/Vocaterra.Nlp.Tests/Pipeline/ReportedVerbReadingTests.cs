@@ -1,5 +1,4 @@
 using Vocaterra.Nlp.Asr;
-using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
 
 namespace Vocaterra.Nlp.Pipeline.Tests;

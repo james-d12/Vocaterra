@@ -137,11 +137,11 @@ there and records why in the commit body.
 Integration branch `feature/game_refactor` from `main` at `5cb321e` (owner, 2026-10-27; `feature/language-packs` is merged into `main`).
 Each batch is an agent branch `R16-p2-b<n>` gated into it. Commit prefix `R16:`, one commit per step. Push to the feature
 branch; the owner opens the pull request into `main`. The method for each move is in R16_PHASE2.md §3 and §6, and the checks are in
-§7: `git mv`, then the namespace follows the folder, then fix the `using`s (`scripts/audit-usings.py`), then `dotnet format`, then
+§7: `git mv`, then the namespace follows the folder, then fix the `using`s (an unused one fails the build: IDE0005, M77; `scripts/audit-usings.py` is removed), then `dotnet format`, then
 move the tests. Use explicit pathspecs, because the owner edits the same tree.
 
 0. **Baseline.**
-   - Run `scripts/scripted-runs.sh /tmp/r16p2-base` and `python3 -I scripts/core-move-scan.py .`.
+   - Run `scripts/scripted-runs.sh /tmp/r16p2-base` and `python3 -I scripts/core-move-scan.py .` (removed in M76).
    - Record the test counts: Game.Core.Tests 851/12, Game.Tests 870/2, Host.Tests 36.
    - Write the four decisions above into R16_PHASE2.md §5.4 (done, 2026-10-27).
 1. **Batches 1–4 of R16_PHASE2 §6.**
@@ -180,6 +180,6 @@ move the tests. Use explicit pathspecs, because the owner edits the same tree.
   - The total test count stays the same; tests only move between projects.
 - **At the end:**
   - `GATE_TARGET=feature/game_refactor scripts/merge-gate.sh "R16-b<n>:R16-p2-b<n>"` for each batch.
-  - `core-move-scan.py` shows no MOVABLE game-logic file left in Game.
+  - `core-move-scan.py` (removed in M76) showed no MOVABLE game-logic file left in Game.
   - Game no longer has a `Utilities/` folder, and Core no longer has `Utilities/` or a root-level `.cs` file.
   - A live run by hand following `docs/game/SCRIPTED_RUNS.md` "By hand".

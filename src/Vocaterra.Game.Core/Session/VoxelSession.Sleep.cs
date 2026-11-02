@@ -48,11 +48,11 @@ public sealed partial class VoxelSession
     /// on, no lesson is under way and every unlocked lesson is done (the session's new lesson completed).
     /// </summary>
     public bool SessionWorkDone =>
-        PlaySession <= 1 ? SessionComplete : Lessons.Active is null && !Lessons.Book.Lessons.Any(l => Lessons.IsUnlocked(l) && !Lessons.IsDone(l.Id));
+        Day <= 1 ? SessionComplete : Lessons.Active is null && !Lessons.Book.Lessons.Any(l => Lessons.IsUnlocked(l) && !Lessons.IsDone(l.Id));
 
     /// <summary>The play session of the first lesson a later session opens that is not done, or <see langword="null"/> when no later session has one (after session 6 today).</summary>
     public int? NextLessonSession =>
-        Lessons.Book.Lessons.Where(l => l.Session > PlaySession && !Lessons.IsDone(l.Id)).Select(static l => (int?)l.Session).Min();
+        Lessons.Book.Lessons.Where(l => l.Session > Day && !Lessons.IsDone(l.Id)).Select(static l => (int?)l.Session).Min();
 
     /// <summary>
     /// Whether the objective sends the player to their fire to sleep (V12c): sleep is offered, the fire is lit, the session's work is done and a later session has a lesson.
@@ -79,14 +79,15 @@ public sealed partial class VoxelSession
             }
 
             return SleepOffered && FireLit
-                ? new ObjectivePiece(Locale.Ui("sleepHud", ("session", (PlaySession + 1).ToString(CultureInfo.InvariantCulture))), ObjectivePieceKind.Support, Done: true)
+                ? new ObjectivePiece(Locale.Ui("sleepHud", ("session", (Day + 1).ToString(CultureInfo.InvariantCulture))), ObjectivePieceKind.Support, Done: true)
                 : null;
         }
 
-        if (PlaySession > 1 && Lessons.NextUp is { } next)
+        if (Day > 1 && Lessons.NextUp is { } next)
         {
             var npc = Lessons.CurrentNpc ?? next.Npc; // a lesson begun goes on at its step's NPC (a do step's own line comes first while the lesson is engaged)
-            return new ObjectivePiece(Locale.Ui("lessonNextHud", ("npc", Locale.NpcName(npc).ToLowerInvariant()), ("title", next.ShortTitle)), ObjectivePieceKind.Support);
+            var key = Lessons.Active is null ? "lessonNextHud" : "lessonUnderwayHud"; // a lesson begun is under way, not next (V23a)
+            return new ObjectivePiece(Locale.Ui(key, ("npc", Locale.NpcName(npc).ToLowerInvariant()), ("title", next.ShortTitle)), ObjectivePieceKind.Support);
         }
 
         return null;

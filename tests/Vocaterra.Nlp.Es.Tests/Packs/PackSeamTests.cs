@@ -1,8 +1,5 @@
 using Vocaterra.Nlp.Core.Determinism;
-using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Es.Tests.Analysis;
-using Vocaterra.Nlp.Language.Intent;
-using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Normalization;
 using Vocaterra.Nlp.Language.SlotGrammar;
 using Vocaterra.Nlp.Response.Speech;

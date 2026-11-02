@@ -1,8 +1,6 @@
 using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Words;
-using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
-using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Es;
 
 namespace Vocaterra.Game.Core.Tests.Language.Words;

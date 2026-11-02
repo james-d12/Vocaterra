@@ -4,9 +4,7 @@ using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Items;
-using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Lessons;
-using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
@@ -15,7 +13,6 @@ using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.Tests.TestSupport;
-using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Startup;
 using Vocaterra.Game.Tests.TestSupport;
@@ -212,7 +209,8 @@ public sealed class LessonFrontendTests
     {
         var shipped = TestGame.Data.Lessons;
         using var run = new Harness([new(ScriptStepKind.LessonRun, Value: "personas")], shipped);
-        run.Session.PlaySession = 2; // the lesson of the second session
+        run.Session.Day = 2; // the lesson of the second session
+        run.Session.Sitting = 2;
 
         run.Go(120000);
 
@@ -234,7 +232,8 @@ public sealed class LessonFrontendTests
         // closing it did nothing, and the run walked back to the baker and asked again for ever.
         var shipped = TestGame.Data.Lessons;
         using var run = new Harness([new(ScriptStepKind.LessonRun, Value: "numeros-y-pan")], shipped);
-        run.Session.PlaySession = 5;
+        run.Session.Day = 5;
+        run.Session.Sitting = 5;
 
         run.Go(120000);
 
@@ -254,7 +253,8 @@ public sealed class LessonFrontendTests
         // it typed "Es el herrero" at the shopkeeper for ever, where the line is not the lesson's.
         var shipped = TestGame.Data.Lessons;
         using var run = new Harness([new(ScriptStepKind.LessonRun, Value: "numeros-y-pan"), new(ScriptStepKind.LessonRun, Value: "gente-del-pueblo")], shipped);
-        run.Session.PlaySession = 6;
+        run.Session.Day = 6;
+        run.Session.Sitting = 6;
 
         run.Go(240000);
 

@@ -24,7 +24,7 @@ public sealed class ExchangeMissTests
     {
         var data = TestGame.Data;
         var noLessons = LessonBook.Parse("{ \"schemaVersion\": 1, \"lessons\": [] }", data.Phrases, data.Speech, data.Bundle.Prompts, data.Locale, data.Npcs.Ids);
-        var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons) { PlaySession = 10 };
+        var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons) { Day = 10 };
         foreach (var (item, count) in held)
         {
             Assert.Equal(0, session.Simulation.GrantItems(item, count));

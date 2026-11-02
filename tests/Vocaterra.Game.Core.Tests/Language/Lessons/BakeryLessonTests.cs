@@ -25,7 +25,8 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
         var session = VillageLessonTests.AtStep("(after the last step)"); // no step has this id: El pueblo runs to its end
         Assert.Equal(LessonStatus.Completed, session.Lessons.StatusOf("el-pueblo"));
         session.EndTalk();
-        session.PlaySession = 5;
+        session.Day = 5;
+        session.Sitting = 5;
         if (wood > 0)
         {
             Assert.Equal(0, session.Simulation.GrantItems(ItemId.Wood, wood));
@@ -169,11 +170,13 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
     public void TheLessonIsNotOfferedBeforeElPuebloIsDoneNorBeforeSessionFive()
     {
         var early = TestGame.NewSessionWithShippedLessons();
-        early.PlaySession = 4;
+        early.Day = 4;
+        early.Sitting = 4;
         Assert.Null(early.Lessons.OfferFor("baker"));
 
         var skipped = TestGame.NewSessionWithShippedLessons();
-        skipped.PlaySession = 5; // session 5 reached without session 4's lesson: Números y pan waits for it (after)
+        skipped.Day = 5; // session 5 reached without session 4's lesson: Números y pan waits for it (after)
+        skipped.Sitting = 5;
         Assert.Null(skipped.Lessons.OfferFor("baker"));
         Assert.Equal(LessonStatus.NotStarted, skipped.Lessons.StatusOf(LessonId));
 
@@ -370,14 +373,16 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
     public void TheOrderOfWoodCountsFromSessionFiveAndBringingFiveWoodPaysFourCoins()
     {
         var early = TestGame.NewSessionWithShippedLessons();
-        early.PlaySession = 4;
+        early.Day = 4;
+        early.Sitting = 4;
         _ = early.Simulation.GrantItems(ItemId.Wood, 5);
         Stage.TeleportToNpc(early, "baker");
         Assert.False(early.OpenTalk("baker").Delivered); // before its session the order is not open: the wood stays
         Assert.Equal(5, early.Simulation.Inventory.Count(ItemId.Wood));
 
         var session = TestGame.NewSessionWithShippedLessons();
-        session.PlaySession = 5;
+        session.Day = 5;
+        session.Sitting = 5;
         _ = session.Simulation.GrantItems(ItemId.Wood, 6);
         Stage.TeleportToNpc(session, "baker");
 
@@ -414,6 +419,31 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
         Assert.True(session.Objectives.Single(static o => o.Id == "oven-wood").Complete);
         Assert.Equal(4, session.Simulation.Inventory.Count(ItemId.Coin));
         Assert.DoesNotContain(session.Events.OfType<LessonEvent>(), static e => e.StepId == "n4-back" && e.Detail == "delivered before");
+    }
+
+    [Fact]
+    public void AStepWaitingForAPickupIsDoneAtOnceWhenTheBagHoldsWhatTheOrderNeedsAndNotBefore()
+    {
+        // QA-progression-4: the wood step waited for a pickup although the five wood the order asks for were in the bag already (V23a).
+        var held = SessionFiveAtBaker(wood: 5);
+        while (held.Lessons.Current is { Id: not "n3-oven" } step)
+        {
+            Walk(held, step);
+        }
+
+        _ = Walk(held, held.Lessons.Current!); // the plan is said; the wood step is entered and ends by itself
+        Assert.Equal("n4-back", held.Lessons.Current!.Id);
+        Assert.Contains(held.Events.OfType<LessonEvent>(), static e => e is { Kind: LessonEventKind.StepDone, StepId: "n4-wood", Detail: "held before" });
+        Assert.Equal(5, held.Simulation.Inventory.Count(ItemId.Wood)); // nothing was taken or granted
+
+        var short_ = SessionFiveAtBaker(wood: 2); // two of five: the step still waits for a pickup
+        while (short_.Lessons.Current is { Id: not "n3-oven" } step)
+        {
+            Walk(short_, step);
+        }
+
+        _ = Walk(short_, short_.Lessons.Current!);
+        Assert.Equal("n4-wood", short_.Lessons.Current!.Id);
     }
 
     [Fact]

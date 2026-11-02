@@ -91,6 +91,8 @@ public sealed class SpanishLanguagePack : ILanguagePack
         public string LenientKey(string text) => TextFolding.StripAccents(text);
 
         public string MatchingKey(string text) => Accents.Strip(text);
+
+        public IReadOnlyList<string> UnmarkedSpellings(string form) => TextFolding.UnmarkedSpelling(form) is { } spelling ? [spelling] : [];
     }
 
     private sealed class SpanishNumberWords : INumberWords

@@ -3,7 +3,6 @@ using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Decision.Feedback;
 using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Packs;
-using Vocaterra.Nlp.Pipeline;
 
 namespace Vocaterra.Nlp.Pipeline.Tests;
 

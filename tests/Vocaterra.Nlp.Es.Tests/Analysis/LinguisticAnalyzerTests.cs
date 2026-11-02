@@ -5,8 +5,6 @@ using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Language.Analysis;
-using Vocaterra.Nlp.Language.Lexicon;
-using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
 
 public class LinguisticAnalyzerTests

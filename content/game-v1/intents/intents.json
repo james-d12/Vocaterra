@@ -7,7 +7,8 @@
       "slotGrammars": [
         "hola [NOUN]?",
         "(buenos|buenas) (día|días|tardes|noches)",
-        "buen día"
+        "buen día",
+        "(cómo|como) (estás|está|están|estáis) (tú|usted|ustedes|vosotros|vosotras)?"
       ],
       "keywordRules": [
         { "lemmas": ["hola"], "requiresSlots": [] }
@@ -20,6 +21,9 @@
         {"text": "buen día", "errors": [], "prompt": "villager-open"},
         {"text": "hola, Luna", "errors": [], "prompt": "villager-open"},
         {"text": "buenos día", "errors": ["noun.number"], "prompt": "villager-open"},
+        {"text": "cómo estás", "errors": [], "prompt": "villager-open"},
+        {"text": "cómo está usted", "errors": [], "prompt": "villager-open"},
+        {"text": "cómo estás usted", "errors": ["conj.person"], "prompt": "villager-open"},
         "hola amigo"
       ]
     },
@@ -186,7 +190,7 @@
       "requiredSlots": ["place"],
       "slotGrammars": [
         "dónde [VERB:estar] [ART]? [NOUN:place] (por favor)?",
-        "[VERB:buscar] [ART]? [NOUN:place] (por favor)?",
+        "[VERB:buscar] [ART] [NOUN:place] (por favor)?",
         "[VERB:querer] [VERB:encontrar] [ART]? [NOUN:place] (por favor)?",
         "dónde [VERB:quedar] [ART]? [NOUN:place] (por favor)?"
       ],
@@ -226,10 +230,12 @@
         "cómo se [VERB:hacer] [ART]? [NOUN:item]",
         "qué [VERB:necesitar] para [ART]? [NOUN:item]",
         "qué [VERB:necesitar] para [VERB:hacer] [ART]? [NOUN:item]",
-        "[VERB:querer] [VERB:hacer] [ART]? [NOUN:item]"
+        "[VERB:querer] [VERB:hacer] [ART]? [NOUN:item]",
+        "[VERB:poder] [VERB:hacer] [ART] [NOUN:item]"
       ],
       "keywordRules": [
-        { "lemmas": ["hacer"], "requiresSlots": ["item"], "slotFromNoun": "item" }
+        { "lemmas": ["cómo", "hacer"], "requiresSlots": ["item"], "slotFromNoun": "item" },
+        { "lemmas": ["querer", "hacer"], "requiresSlots": ["item"], "slotFromNoun": "item" }
       ],
       "examples": [
         "cómo hago una antorcha",
@@ -408,7 +414,7 @@
         "(mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? [VERB:ir] a [VERB:vender] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
         "(sí)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? (domingo|luz|mar|león)? [VERB:vender] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
         "(mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? [VERB:ir] a [VERB:buscar] [ART]? [NUM:qty]? [NOUN:item] (para luz|para domingo|para mar|para león)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
-        "(sí)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? [VERB:buscar] [ART]? [NUM:qty]? [NOUN:item] (para luz|para domingo|para mar|para león)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
+        "(sí)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? [VERB:buscar] [NUM:qty]? [NOUN:item] (para luz|para domingo|para mar|para león)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
         "(mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? (domingo|luz|mar|león)? [VERB:ir] a [VERB:hacer] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
         "(sí)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? (domingo|luz|mar|león)? [VERB:hacer] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
         "(mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? (domingo|luz|mar|león)? [VERB:ir] a [VERB:trabajar] en [ART] [NOUN:place] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
@@ -456,7 +462,7 @@
         {"text": "vamos a comer frutas", "errors": [], "prompt": "lesson-plan-we"},
         {"text": "vamos a comer fruta mañana", "errors": [], "prompt": "lesson-plan-we"},
         {"text": "vamos a comer una fruta", "errors": [], "prompt": "lesson-plan-we"},
-        {"text": "mañana comimos fruta", "errors": ["conj.tense", "vocab.wrong"], "prompt": "lesson-plan-we"},
+        {"text": "mañana comimos fruta", "errors": ["conj.tense"], "prompt": "lesson-plan-we"},
         {"text": "vamos a comemos fruta", "errors": ["conj.tense"], "prompt": "lesson-plan-we"},
         {"text": "nosotros va a comer fruta", "errors": ["conj.person"], "prompt": "lesson-plan-we"},
         {"text": "ayer comí fruta", "errors": [], "prompt": "lesson-ate"},
@@ -470,7 +476,7 @@
         {"text": "ayer como fruta", "errors": ["conj.tense"], "prompt": "lesson-ate"},
         {"text": "yo comiste fruta", "errors": ["conj.person"], "prompt": "lesson-ate"},
         {"text": "yo comió fruta", "errors": ["conj.person"], "prompt": "lesson-ate"},
-        {"text": "ayer voy a comer fruta", "errors": ["conj.tense", "vocab.wrong"], "prompt": "lesson-ate"},
+        {"text": "ayer voy a comer fruta", "errors": ["conj.tense"], "prompt": "lesson-ate"},
         {"text": "ayer fui al río", "errors": [], "prompt": "lesson-went"},
         {"text": "fui al río", "errors": [], "prompt": "lesson-went"},
         {"text": "sí, fui al río", "errors": [], "prompt": "lesson-went"},
@@ -814,7 +820,8 @@
       "requiredSlots": [],
       "slotGrammars": [
         "cómo te [VERB:llamar] (tú)?",
-        "cómo se [VERB:llamar] (usted|él|ella)"
+        "cómo se [VERB:llamar] (usted|él|ella)",
+        "me [VERB:llamar] [WORD:name]"
       ],
       "keywordRules": [
         { "lemmas": ["llamar"], "requiresSlots": [] }
@@ -829,7 +836,30 @@
         {"text": "cómo tú te llama", "errors": ["conj.person"], "prompt": "smith-open"},
         {"text": "cómo te llama", "errors": ["conj.person"], "prompt": "smith-open"},
         "cómo se llama él",
+        {"text": "me llamo domingo", "errors": [], "prompt": "farmer-open"},
+        {"text": "me llamo luz", "errors": [], "prompt": "smith-open"},
         "cómo se llama ella"
+      ]
+    },
+    {
+      "intentId": "ask_how",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "(quién|qué|cómo|como|cuál|cual) [VERB:ser] (muy)? [ADJ]",
+        "(cómo|como) [VERB:ser] [ART] [NOUN]",
+        "(ellas|ellos|ustedes) (adónde|adonde) van",
+        "(adónde|adonde) van (ellas|ellos|ustedes)"
+      ],
+      "lint": {"allowRuleOnly": []},
+      "examples": [
+        "quién es grande",
+        "qué es grande",
+        "cómo es grande",
+        "cuál es grande",
+        "cómo es la manzana",
+        "como es la manzana",
+        "ellas adónde van",
+        "adónde van ellas"
       ]
     },
     {
@@ -841,8 +871,10 @@
         "dónde [VERB:trabajar] (tú|usted)?"
       ],
       "keywordRules": [
-        { "lemmas": ["trabajar"], "requiresSlots": [] },
-        { "lemmas": ["hacer"], "requiresSlots": [] }
+        { "lemmas": ["qué", "trabajar"], "requiresSlots": [] },
+        { "lemmas": ["dónde", "trabajar"], "requiresSlots": [] },
+        { "lemmas": ["cuál", "trabajar"], "requiresSlots": [] },
+        { "lemmas": ["qué", "hacer"], "requiresSlots": [] }
       ],
       "lint": {"allowOverlap": ["ask_help"], "allowRuleOnly": ["qué tú hace"]},
       "examples": [
@@ -862,11 +894,19 @@
       "intentId": "describe",
       "requiredSlots": [],
       "slotGrammars": [
-        "(sí)? [ART]? [NOUN:object]? [VERB:ser] (muy|más|menos)? [ADJ]",
-        "(sí)? [ART]? [NOUN:object]? [VERB:ser] [ADJ] y [ADJ]",
+        "(sí)? [VERB:ser] (muy|más|menos)? [ADJ]",
+        "(sí)? [ART] [NOUN:object] [VERB:ser] (muy|más|menos)? [ADJ]",
+        "(sí)? (luz|domingo|mar|león) [VERB:ser] (muy|más|menos)? [ADJ]",
+        "(sí)? [VERB:ser] [ADJ] y [ADJ]",
+        "(sí)? [ART] [NOUN:object] [VERB:ser] [ADJ] y [ADJ]",
+        "(sí)? (luz|domingo|mar|león) [VERB:ser] [ADJ] y [ADJ]",
         "(esto|eso) [VERB:ser] (muy)? [ADJ]",
-        "(sí)? [ART]? [NOUN:object]? [VERB:ser] (más|menos) [ADJ] que [ART]? [NOUN]",
-        "(sí)? [ART]? [NOUN:object]? [VERB:ser] tan [ADJ] como [ART]? [NOUN]"
+        "(sí)? [VERB:ser] (más|menos) [ADJ] que [ART]? [NOUN]",
+        "(sí)? [ART] [NOUN:object] [VERB:ser] (más|menos) [ADJ] que [ART]? [NOUN]",
+        "(sí)? (luz|domingo|mar|león) [VERB:ser] (más|menos) [ADJ] que [ART]? [NOUN]",
+        "(sí)? [VERB:ser] tan [ADJ] como [ART]? [NOUN]",
+        "(sí)? [ART] [NOUN:object] [VERB:ser] tan [ADJ] como [ART]? [NOUN]",
+        "(sí)? (luz|domingo|mar|león) [VERB:ser] tan [ADJ] como [ART]? [NOUN]"
       ],
       "examples": [
         {"text": "es muy caro", "errors": [], "prompt": "lesson-dear"},
@@ -1001,6 +1041,10 @@
       "slotGrammars": [
         "cuánto es todo (esto)?",
         "cuánto [VERB:costar] todo (esto)?"
+      ],
+      "keywordRules": [
+        { "lemmas": ["cuánto", "todo"], "requiresSlots": [] },
+        { "lemmas": ["cuanto", "todo"], "requiresSlots": [] }
       ],
       "examples": [
         {"text": "cuánto es todo", "errors": [], "prompt": "farmer-open"},

@@ -41,7 +41,7 @@ public interface IAudioOutput : IDisposable
 /// </remarks>
 public sealed class NpcVoice : ILinePlayer, IDisposable
 {
-    private readonly StaticLineStore _store;
+    private readonly SpeechStore _store;
     private readonly SpeechIndex _index;
     private readonly IAudioOutput _output;
     private readonly Action<string> _log;
@@ -58,8 +58,8 @@ public sealed class NpcVoice : ILinePlayer, IDisposable
     public NpcVoice(string speechDirectory, SpeechIndex index, IAudioOutput output, bool muted, Action<string> log)
     {
         ArgumentNullException.ThrowIfNull(speechDirectory);
-        _store = new StaticLineStore(speechDirectory);
         _index = index ?? throw new ArgumentNullException(nameof(index));
+        _store = new SpeechStore(speechDirectory, _index.Lines);
         _output = output ?? throw new ArgumentNullException(nameof(output));
         _log = log ?? throw new ArgumentNullException(nameof(log));
         Muted = muted;
@@ -73,6 +73,9 @@ public sealed class NpcVoice : ILinePlayer, IDisposable
 
     /// <summary>How many lines had a speakable id whose file was not there (or not readable).</summary>
     public int Missing { get; private set; }
+
+    /// <summary>How many NPC copies of a shared line had no file and played the guide's file of the same line instead (V30).</summary>
+    public int FellBack { get; private set; }
 
     /// <summary>How many shown NPC lines have no speakable line (a templated world line): text only, by design.</summary>
     public int TextOnly { get; private set; }
@@ -149,7 +152,7 @@ public sealed class NpcVoice : ILinePlayer, IDisposable
         }
 
         Stop();
-        if (!TryQueue(slow ? SpeechFiles.SlowId(lineId) : lineId))
+        if (!TryQueue(slow ? SpeechFiles.SlowId(lineId) : lineId, countMissing: true))
         {
             return false;
         }
@@ -212,11 +215,22 @@ public sealed class NpcVoice : ILinePlayer, IDisposable
             return;
         }
 
-        _ = TryQueue(slow ? SpeechFiles.SlowId(line.LineId) : line.LineId);
+        if (TryQueue(slow ? SpeechFiles.SlowId(line.LineId) : line.LineId, countMissing: line.Kind != SpeechKind.NpcCopy) || line.Kind != SpeechKind.NpcCopy)
+        {
+            return;
+        }
+
+        // V30: an NPC's copy of a shared line (<id>.<npc>) with no file plays the guide's file of the same line (SpeechKind.NpcCopy documents the fallback).
+        var shared = line.LineId[..^(line.Speaker.Length + 1)];
+        if (TryQueue(slow ? SpeechFiles.SlowId(shared) : shared, countMissing: true))
+        {
+            FellBack++;
+            _log($"voice: fallback {line.LineId} to the guide's {shared}");
+        }
     }
 
     // Queues the file of a line id; a missing or unreadable file counts as Missing and is logged.
-    private bool TryQueue(string id)
+    private bool TryQueue(string id, bool countMissing)
     {
         try
         {
@@ -231,8 +245,12 @@ public sealed class NpcVoice : ILinePlayer, IDisposable
             // A file that is not mono 16-bit PCM is no voice: it counts as missing, like one that is not there.
         }
 
-        Missing++;
-        _log($"voice: missing {id}.wav");
+        if (countMissing)
+        {
+            Missing++;
+            _log($"voice: missing {id}.wav");
+        }
+
         return false;
     }
 

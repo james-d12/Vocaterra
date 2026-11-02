@@ -44,7 +44,7 @@ public sealed class GreetingTests
     {
         var data = TestGame.Data;
         var noLessons = LessonBook.Parse("{ \"schemaVersion\": 1, \"lessons\": [] }", data.Phrases, data.Speech, data.Bundle.Prompts, data.Locale, data.Npcs.Ids);
-        var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons) { PlaySession = 10 };
+        var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons) { Day = 10 };
         _ = session.Simulation.GrantItems(ItemId.Coin, coins);
         Stage.TeleportToNpc(session, "baker");
         _ = session.OpenTalk("baker");
@@ -140,7 +140,7 @@ public sealed class GreetingTests
     {
         var data = TestGame.Data;
         var noLessons = LessonBook.Parse("{ \"schemaVersion\": 1, \"lessons\": [] }", data.Phrases, data.Speech, data.Bundle.Prompts, data.Locale, data.Npcs.Ids);
-        var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons) { PlaySession = 10 };
+        var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons) { Day = 10 };
         Stage.TeleportToNpc(session, npc);
         _ = session.OpenTalk(npc);
         return session;
@@ -152,7 +152,7 @@ public sealed class GreetingTests
         // The stall's question takes requests, prices and availability, not a sale: "hola, vendo madera" there stays the greeting it was.
         var data = TestGame.Data;
         var noLessons = LessonBook.Parse("{ \"schemaVersion\": 1, \"lessons\": [] }", data.Phrases, data.Speech, data.Bundle.Prompts, data.Locale, data.Npcs.Ids);
-        var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons) { PlaySession = 10 };
+        var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons) { Day = 10 };
         Stage.TeleportToNpc(session, "shopkeeper");
         _ = session.OpenTalk("shopkeeper");
 

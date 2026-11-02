@@ -1,5 +1,4 @@
 using Vocaterra.Game.Core.Content;
-using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
@@ -12,6 +11,7 @@ using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Learning;
+using Vocaterra.Nlp.Es.Text;
 using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Pipeline;
 
@@ -182,6 +182,7 @@ public sealed partial class NpcService
     private readonly RecipeBook _recipes;
     private readonly PhraseSheet _phrases;
     private readonly IReadOnlyList<string> _practised;
+    private readonly IReadOnlyList<string> _names;
     private readonly GameWords _words;
     private readonly HostEventTable _hostEvents;
     private readonly ScenePlaces _places;
@@ -245,6 +246,7 @@ public sealed partial class NpcService
         _typed = new TypedUtteranceEvaluator(bundle);
         _phrases = data.Phrases;
         _practised = [.. data.Npcs.Homes.Keys];
+        _names = [.. data.Npcs.All.Select(static npc => npc.Name).OfType<string>()];
         _words = data.Words;
         _hostEvents = data.HostEvents;
         _places = places ?? ScenePlaces.None;
@@ -613,6 +615,12 @@ public sealed partial class NpcService
             return Unsure(agent, npc, promptId, line, sure, utterance, hostStateHash);
         }
 
+        // V27: in free talk a line the prompt does not take but the core understands (M72) gets the NPC's one off-prompt line and nothing else: it is no failed attempt. A
+        // spoken line the recognizer was unsure of keeps the uncertain reply (D-game-9): what was heard is not known well enough to say it was understood.
+        var offPromptPool = scene.PromptOverride is null && !verdict.Communicated && verdict.OffPromptIntent is not null && (confidence is null || confidence >= UncertaintyRule.ConfidenceThreshold)
+            ? NpcTurnRules.OffPromptPoolOf(_bundle, npc)
+            : null;
+        var offPrompt = offPromptPool is not null;
         var facts = new Dictionary<string, string>(StringComparer.Ordinal);
         string? worldLine = null;
         GuidePointer? pointer = null;
@@ -656,7 +664,10 @@ public sealed partial class NpcService
         // Phase 2: the decision, the response and the replay record, with the host's facts and the word skills in the context. The learner is
         // updated once, here. The digest covers the slots and skills (HostDigest, the core's contract); without them the context keeps the bare
         // digest, as the core does when no slots are given.
-        var skills = verdict.Communicated ? WordSkillsOf(GuideWord.From(analysis.Words), PhraseSkillsOf(verdict, promptId, origin, scene.PromptOverride is null)) : [];
+        var lessonPhrase = scene.PromptOverride is null && scene.Credited is { } credited ? LineReading.PhraseSaid(_phrases, line, agent.Npc.Name, credited.Contains)?.Id : null; // V20
+        var skills = offPrompt
+            ? WordSkillsOf(GuideWord.From(analysis.Words), lessonPhrase is null ? null : [PhraseSkillPrefix + lessonPhrase]) // V27: the nouns used and a phrase of a lesson begun or done
+            : verdict.Communicated ? WordSkillsOf(GuideWord.From(analysis.Words), PhraseSkillsOf(verdict, promptId, origin, scene.PromptOverride is null, lessonPhrase)) : [];
         var created = ConversationContext.Create(
             utterance.WorldSeed,
             utterance.AgentId,
@@ -671,8 +682,14 @@ public sealed partial class NpcService
         var trace = Complete(clip is null, analysis, carried);
         var result = trace.Result;
         Record(new ReplayEntry(ReplayEnvelope.From(trace, carried), null));
-        var uncertain = confidence is not null && UncertaintyRule.IsUncertain(verdict.Communicated, confidence);
+        var uncertain = !offPrompt && confidence is not null && UncertaintyRule.IsUncertain(verdict.Communicated, confidence);
         agent.Context = carried.Next(result, now) with { HostStateHash = hostStateHash }; // the digest of the world again, not the core's hash of the values
+        if (offPrompt)
+        {
+            // V27: not a failed attempt: the repeat counts are as they were before the turn (the next line not understood gets the ladder's first step), and the learner model
+            // is not marked down; it keeps the skills the line used.
+            agent.Context = agent.Context with { RepeatCountsByTag = utterance.RepeatCountsByTag, Learner = skills.Count == 0 ? utterance.Learner : utterance.Learner.StepSkills(skills, true) };
+        }
         if (uncertain)
         {
             // A spoken line the NPC did not understand is the recognition's trouble before it is the language's (D-game-9): the repeat counts
@@ -682,44 +699,40 @@ public sealed partial class NpcService
         }
 
         var hostEvents = HostEventsOf(result);
-        Note(agent, string.Empty, hostEvents);
-        var holdsBottle = scene.Inventory is { } inventory
-            && (inventory.Count(ItemId.Bottle) + inventory.Count(ItemId.WaterBottle)) > 0;
         var followUp = new List<string>();
         var unsaid = AnswerMisses(agent, result, NpcEffect.CountedSlots(verdict.Slots, line), scene, scene.Facts ?? _worldFacts, now, hostStateHash, hostEvents, followUp);
-        string? feedback = null;
-        var replies = new List<string>();
-        foreach (var responseLine in result.Response.Lines)
-        {
-            if (responseLine.IsRecast || responseLine.LineId.StartsWith(FeedbackLinePrefix, StringComparison.Ordinal))
-            {
-                feedback ??= responseLine.Text;
-            }
-            else if (holdsBottle && hostEvents.Contains(NpcHostEvents.GiveWater, StringComparer.Ordinal)
-                && responseLine.LineId.StartsWith("shop_give.", StringComparison.Ordinal))
-            {
-                // The shopkeeper's line gives the bottle; the player has it already, so nothing is given and the line is not said.
-            }
-            else if (unsaid.Any(pool => responseLine.LineId.StartsWith(pool + ".", StringComparison.Ordinal)))
-            {
-                // The line of an action the world cannot do (VILLAGE_PLAN V02: "Mira, está allí." for a place there is not); the NPC's answer to the miss follows.
-            }
-            else
-            {
-                replies.Add(responseLine.Text);
-            }
-        }
+        Note(agent, string.Empty, hostEvents); // after the misses: a gift the NPC refused (V21) is not an event of the turn
+        var understood = verdict.Communicated && !string.Equals(verdict.Intent.Value, "unknown", StringComparison.Ordinal);
+        var composed = NpcTurnRules.Compose(
+            result,
+            understood,
+            unsaid,
+            _names,
+            NpcTurnRules.SkipLineOfBottleGift(scene.Inventory, hostEvents), // the player has the bottle already: nothing is given and the line is not said
+            agent.Npc.FreeTalkPools,
+            scene.PromptOverride is null,
+            _bundle,
+            npc);
+        var feedback = offPrompt ? null : composed.Feedback;
+        var replies = offPrompt
+            ? [NpcTurnRules.OffPromptReply(_bundle, offPromptPool!, utterance.WorldSeed, utterance.AgentState.InteractionCounter)]
+            : composed.Replies.ToList();
 
         var failForward = false;
 
         // The stall's fail-forward stays code, by id (CONTENT_PLAN 3.6): the bottle after four misses is a rule about this exchange, not data.
-        if (string.Equals(npc, ShopkeeperAgent, StringComparison.Ordinal) && string.Equals(promptId, StallNeedPrompt, StringComparison.Ordinal))
+        if (!offPrompt && string.Equals(npc, ShopkeeperAgent, StringComparison.Ordinal) && string.Equals(promptId, StallNeedPrompt, StringComparison.Ordinal))
         {
             failForward = ShopkeeperPatience(agent, verdict, result, now, hostStateHash, hostEvents, followUp);
         }
 
-        agent.LastRepair = result.Repair?.Kind;
-        IReadOnlyList<string>? choices = result.Repair is { Kind: RepairKind.OfferChoices, RetryRequest: { } retry } ? retry.GrammarPhrases : null;
+        var step = offPrompt ? null : result.Repair; // V27: no repair line of any kind after an off-prompt reply
+        agent.LastRepair = step?.Kind;
+        IReadOnlyList<string>? choices = step is { Kind: RepairKind.OfferChoices, RetryRequest: { } retry } ? retry.GrammarPhrases : null;
+
+        // V26: one reply per turn (V21). The core's first repair step, «¿Cómo?», only asks again, which the NPC's own reply to a line not understood
+        // («No te entendí. ¿Me lo dices otra vez?») has said already; the later steps (the slow repeat, the choices, giving up) add something and stay.
+        var repair = step is { Kind: RepairKind.AskAgain } && replies.Count > 0 ? null : step?.AgentLine;
         return new GuideTurn(
             line,
             verdict.Intent.Value,
@@ -728,7 +741,7 @@ public sealed partial class NpcService
             verdict.Errors.Select(static e => new GuideError(e.Tag, e.Expected, e.Actual, e.Span)).ToList(),
             feedback,
             replies,
-            result.Repair?.AgentLine,
+            repair,
             agent.Context.AgentState.StateId,
             hostEvents,
             worldLine,
@@ -743,13 +756,20 @@ public sealed partial class NpcService
             confidence,
             npc,
             promptId,
-            result.Repair?.Kind,
+            step?.Kind,
             followUp,
             failForward,
             choices,
             uncertain,
-            origin == LineOrigin.Choice);
+            origin == LineOrigin.Choice)
+        {
+            AccentNotes = AccentNotesOf(result),
+            OffPromptIntent = offPrompt ? verdict.OffPromptIntent!.Value.Value : null,
+        };
     }
+
+    // The core's notes on verbs typed without the accent of their tense (M70), worded by the Spanish pack: «compré», con tilde: es pasado.
+    internal static IReadOnlyList<string> AccentNotesOf(PipelineResult result) => [.. (result.Notes ?? []).Select(SpanishAccentNotes.Describe)];
 
     // The host events of a turn that the world of the turn cannot carry out, judged on the turn's own copy of the world, as the guide's answers are (VILLAGE_PLAN
     // V02: directions to a place the scene does not have; V03: a purchase the coins the player carried do not cover; V15, V19: another item, none, no room). Each is
@@ -766,31 +786,25 @@ public sealed partial class NpcService
         List<string> hostEvents,
         List<string> followUp)
     {
-        var unsaid = new List<string>();
-        foreach (var action in result.Decision.Agent?.Actions ?? [])
-        {
-            if (action.HostEvent is not { } hostEvent || Miss(_hostEvents.Of(agent.Id, hostEvent), slots, scene, facts) is not { } miss)
+        var answers = NpcTurnRules.AnswerMisses(
+            agent.Id,
+            result,
+            _hostEvents,
+            _typed,
+            agent.Context,
+            now,
+            hostStateHash,
+            scene.OrderHeld,
+            effect => Miss(effect, slots, scene, facts),
+            hostEvents,
+            (miss, turn, before) =>
             {
-                continue;
-            }
-
-            var before = agent.Context;
-            var turn = _typed.Advance(NpcHostEvents.Of(agent.Id, miss), before);
-            if (turn is null)
-            {
-                continue;
-            }
-
-            Record(new ReplayEntry(null, HostTurnEnvelope.From(turn, before)));
-            agent.Context = before.Next(turn, now) with { HostStateHash = hostStateHash };
-            var events = HostEventsOf(turn.Agent.Actions);
-            Note(agent, NpcHostEvents.Of(agent.Id, miss), events);
-            followUp.AddRange(turn.Response.Lines.Select(static l => l.Text));
-            hostEvents.AddRange(events);
-            unsaid.Add(action.DialogueIntent); // a pool is its dialogue intent's (every agent of the bundle names them alike)
-        }
-
-        return unsaid;
+                Record(new ReplayEntry(null, HostTurnEnvelope.From(turn, before)));
+                Note(agent, NpcHostEvents.Of(agent.Id, miss), HostEventsOf(turn.Agent.Actions));
+            });
+        agent.Context = answers.Context;
+        followUp.AddRange(answers.Lines);
+        return answers.Unsaid.ToList();
     }
 
     // What the world of the turn cannot do of an action, as the host event its NPC answers (NpcHostEvents.UnknownPlace; a purchase's or a sale's miss, NpcEffect.ExchangeMiss:
@@ -799,7 +813,7 @@ public sealed partial class NpcService
     private string? Miss(NpcEffect effect, IReadOnlyDictionary<string, string> slots, GuideScene scene, IGuideFacts facts) => effect.Kind switch
     {
         NpcEffectKind.PointAtSlot when !slots.TryGetValue(effect.Slot, out var word) || _places.Resolve(word, scene.Player, facts) is null => NpcHostEvents.UnknownPlace,
-        NpcEffectKind.Sell or NpcEffectKind.Buy => effect.ExchangeMiss(slots, scene.Inventory, _nouns),
+        NpcEffectKind.Sell or NpcEffectKind.Buy or NpcEffectKind.GiveItem => effect.ExchangeMiss(slots, scene.Inventory, _nouns),
         _ => null,
     };
 
@@ -941,7 +955,7 @@ public sealed partial class NpcService
         }
     }
 
-    private static List<string> HostEventsOf(PipelineResult result) => HostEventsOf(result.Decision.Agent?.Actions ?? []);
+    private static List<string> HostEventsOf(PipelineResult result) => NpcTurnRules.HostEventsOf(result);
 
     private static List<string> HostEventsOf(IReadOnlyList<AgentAction> actions) =>
         actions.Where(static a => a.HostEvent is not null).Select(static a => a.HostEvent!).ToList();
@@ -950,7 +964,7 @@ public sealed partial class NpcService
     // when the line was understood and had no mistake; a choice picked from the offered buttons is a recognition signal and exercises no skill; the
     // service words (help, "no sé") exercise none either. In free talk (the NPC's own prompt, no lesson step or review) a place the prompt's one row of the
     // intent does not name is the row practised elsewhere that names it (V14, PhraseSheet.ByPlace).
-    private List<string> PhraseSkillsOf(Verdict verdict, string promptId, LineOrigin origin, bool freeTalk)
+    private List<string> PhraseSkillsOf(Verdict verdict, string promptId, LineOrigin origin, bool freeTalk, string? said)
     {
         var skills = new List<string>();
         if (!verdict.Communicated || verdict.Errors.Count > 0 || origin == LineOrigin.Choice
@@ -959,7 +973,7 @@ public sealed partial class NpcService
             return skills;
         }
 
-        if (_phrases.PhraseFor(promptId, verdict.Intent.Value, verdict.Slots, _words.Noun("river"), freeTalk ? _practised : null) is { } used) // the prompt's own row first (V12b)
+        if (_phrases.PhraseFor(promptId, verdict.Intent.Value, verdict.Slots, _words.Noun("river"), freeTalk ? _practised : null, said) is { } used) // the prompt's own row first (V12b), then a lesson's (V20)
         {
             skills.Add(PhraseSkillPrefix + used);
         }

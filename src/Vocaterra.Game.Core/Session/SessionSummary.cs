@@ -5,7 +5,6 @@ using Vocaterra.Game.Core.Language.Learner;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Npc;
-using Vocaterra.Game.Core.Tip;
 using Vocaterra.Nlp.Core.Stages;
 
 namespace Vocaterra.Game.Core.Session;
@@ -33,7 +32,7 @@ public sealed record SummaryFacts(
     public static SummaryFacts Of(GuideSession session)
     {
         ArgumentNullException.ThrowIfNull(session);
-        return new SummaryFacts(session.PlaySession, session.Learner.History, session.SessionEvents, session.Lessons.Record, session.Phrases, session.PhraseProgress.Records);
+        return new SummaryFacts(session.Day, session.Learner.History, session.SessionEvents, session.Lessons.Record, session.Phrases, session.PhraseProgress.Records);
     }
 }
 

@@ -182,7 +182,11 @@ public sealed class ReviewDeck
         return lines;
     }
 
-    /// <summary>Takes the English notes the front-end is to show (the warm-up is done), oldest first.</summary>
+    /// <summary>Adds an English note for the front-end to show (a lesson's review step had nothing due, V23a).</summary>
+    /// <param name="note">The note.</param>
+    internal void Note(string note) => _notes.Enqueue(note);
+
+    /// <summary>Takes the English notes the front-end is to show (the warm-up is done, a review step had nothing due), oldest first.</summary>
     public IReadOnlyList<string> TakeNotes()
     {
         var notes = _notes.ToArray();
@@ -251,7 +255,7 @@ public sealed class ReviewDeck
     internal bool Claims(string npc)
     {
         _claim = string.Equals(npc, NpcService.GuideAgent, StringComparison.Ordinal) && !_session.Lessons.OwnsConversation(npc) && !_session.Lessons.Engaged
-            && (Status == DeckStatus.Pending || (Enabled && !_offered && Status == DeckStatus.Idle && _session.PlaySession >= 2 && Select(_session.PhraseProgress, _session.StoredTime.UnixSeconds, _session.Credit, Askable, 1).Count > 0));
+            && (Status == DeckStatus.Pending || (Enabled && !_offered && Status == DeckStatus.Idle && _session.Sitting >= 2 && Select(_session.PhraseProgress, _session.StoredTime.UnixSeconds, _session.Credit, Askable, 1).Count > 0));
         return _claim;
     }
 

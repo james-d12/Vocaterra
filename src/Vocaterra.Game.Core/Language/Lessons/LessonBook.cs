@@ -1,12 +1,10 @@
 using System.Globalization;
-using System.Text;
 using System.Text.Json;
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
-using Vocaterra.Game.Core.Npc;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Prompts;
 
@@ -102,7 +100,7 @@ public static class LessonLevels
     public const string A2 = "a2";
 
     private static readonly string[] A1Tenses = ["pres", "pret", TaughtVerbForm.NearFuture];
-    private static readonly string[] A2Tenses = ["pres", "pret", TaughtVerbForm.NearFuture, TaughtVerbForm.SimpleFuture];
+    private static readonly string[] A2Tenses = ["pres", "pret", TaughtVerbForm.NearFuture, TaughtVerbForm.SimpleFuture, TaughtVerbForm.Obligation];
 
     /// <summary>
     /// The bundle's ceiling (D-game-22 (b)): no Spanish of the bundle is above it (the gate's lint, <c>--level a2 --fail-on-level</c>), and a phrase's variants, which
@@ -115,7 +113,7 @@ public static class LessonLevels
 
     /// <summary>
     /// The tenses a lesson of the level may teach, in its <c>verbs</c> and at its steps: the present, the preterite and the near future (<c>pres</c>, <c>pret</c>,
-    /// <c>ir-a</c>) at A1, and the simple future (<c>fut</c>, VILLAGE_PLAN V16) as well at A2.
+    /// <c>ir-a</c>) at A1, and the simple future (<c>fut</c>, VILLAGE_PLAN V16) and the obligation (<c>tener-que</c>, V21b, for the book's column) as well at A2.
     /// </summary>
     /// <param name="level">The lesson's level (<see cref="All"/>).</param>
     /// <exception cref="ArgumentException">The level is not one of <see cref="All"/>.</exception>
@@ -218,6 +216,9 @@ public sealed record TaughtVerbForm(string Lemma, string Person, string Number, 
     /// </summary>
     public const string SimpleFuture = "fut";
 
+    /// <summary>The tense of the obligation, <c>tener que</c> + infinitive (V21b): a periphrasis like <see cref="NearFuture"/>, <c>tengo que ir</c>; the book's column «must».</summary>
+    public const string Obligation = "tener-que";
+
     /// <summary>
     /// The form as the learner meets it. For the tenses the core's morphology generates (<c>pres</c>, <c>pret</c>, <c>fut</c>) it is the conjugated word (<c>comí</c>). The near future is a
     /// <i>periphrastic</i> form (S27, for the book's conjugation tables, S28): it has no word of its own, so the form is <c>ir</c> in the present for that person and number, then
@@ -227,10 +228,16 @@ public sealed record TaughtVerbForm(string Lemma, string Person, string Number, 
     /// <param name="morphology">The bundle's morphology.</param>
     /// <param name="nearFuture">The near future's verb and joiner (<c>ir</c>, <c>a</c>; <c>game/words.json</c>, C05).</param>
     /// <returns>The form's text, or <see langword="null"/> when the core cannot generate it.</returns>
-    public string? Text(Vocaterra.Nlp.Es.Morphology.MorphologyGenerator morphology, NearFutureWords nearFuture)
+    /// <param name="obligation">The obligation's verb and joiner (<c>tener</c>, <c>que</c>), for a <see cref="Obligation"/> form; <see langword="null"/> for any other tense.</param>
+    public string? Text(Vocaterra.Nlp.Es.Morphology.MorphologyGenerator morphology, NearFutureWords nearFuture, ObligationWords? obligation = null)
     {
         ArgumentNullException.ThrowIfNull(morphology);
         ArgumentNullException.ThrowIfNull(nearFuture);
+        if (string.Equals(Tense, Obligation, StringComparison.Ordinal))
+        {
+            return obligation is not null && morphology.Conjugate(obligation.Verb, Person, Number, "pres") is { } tener ? $"{tener} {obligation.Joiner} {Lemma}" : null;
+        }
+
         if (!string.Equals(Tense, NearFuture, StringComparison.Ordinal))
         {
             return morphology.Conjugate(Lemma, Person, Number, Tense);
@@ -333,14 +340,26 @@ public sealed class LessonBook
     public const string RelativePath = "game/lessons.json";
 
     private readonly List<LessonDefinition> _lessons;
+    private readonly Dictionary<string, IReadOnlyList<LessonDefinition>> _teachers = new(StringComparer.Ordinal);
 
-    private LessonBook(List<LessonDefinition> lessons) => _lessons = lessons;
+    private LessonBook(List<LessonDefinition> lessons)
+    {
+        _lessons = lessons;
+        foreach (var phrase in TaughtPhrases)
+        {
+            _teachers[phrase] = lessons.Where(l => l.TaughtPhrases.Contains(phrase, StringComparer.Ordinal)).ToList();
+        }
+    }
 
     /// <summary>The lessons, in the file's order.</summary>
     public IReadOnlyList<LessonDefinition> Lessons => _lessons;
 
     /// <summary>Every phrase some lesson teaches (the phrases that get a place on the support ladder besides the four of the stall and the river).</summary>
     public IReadOnlyList<string> TaughtPhrases => _lessons.SelectMany(static l => l.TaughtPhrases).Distinct(StringComparer.Ordinal).ToList();
+
+    /// <summary>The lessons that teach a phrase (its <c>repeat</c> and <c>answer</c> steps), in the file's order; none for a phrase no lesson teaches (the stall's <c>pedir-agua</c>).</summary>
+    /// <param name="phraseId">The phrase sheet's id.</param>
+    public IReadOnlyList<LessonDefinition> TeachersOf(string phraseId) => _teachers.TryGetValue(phraseId, out var lessons) ? lessons : [];
 
     /// <summary>The lesson with this id, or <see langword="null"/>.</summary>
     /// <param name="id">The lesson's id.</param>
@@ -559,9 +578,9 @@ public sealed class LessonBook
         foreach (var item in listed.EnumerateArray())
         {
             var form = new TaughtVerbForm(Text(item, "lemma"), Text(item, "person"), Text(item, "number"), Text(item, "tense"));
-            if (form.Person is not ("1" or "2" or "3") || form.Number is not ("sg" or "pl") || form.Tense is not ("pres" or "pret" or TaughtVerbForm.SimpleFuture or TaughtVerbForm.NearFuture))
+            if (form.Person is not ("1" or "2" or "3") || form.Number is not ("sg" or "pl") || form.Tense is not ("pres" or "pret" or TaughtVerbForm.SimpleFuture or TaughtVerbForm.NearFuture or TaughtVerbForm.Obligation))
             {
-                throw Bad(lesson, $"declares the verb form {form.Lemma} {form.Person} {form.Number} {form.Tense}, which is not a person 1 to 3, a number sg or pl and a tense pres, pret, fut or ir-a");
+                throw Bad(lesson, $"declares the verb form {form.Lemma} {form.Person} {form.Number} {form.Tense}, which is not a person 1 to 3, a number sg or pl and a tense pres, pret, fut, ir-a or tener-que");
             }
 
             if (!seen.Add($"{form.Lemma}/{form.Person}/{form.Number}/{form.Tense}"))

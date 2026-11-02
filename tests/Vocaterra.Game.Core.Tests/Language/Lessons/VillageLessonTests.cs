@@ -1,7 +1,6 @@
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Lessons;
-using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Nlp.Es;
@@ -24,7 +23,8 @@ public sealed class VillageLessonTests(ITestOutputHelper output)
     private static VoxelSession SessionFourAtFisher()
     {
         var session = TestGame.NewSessionWithShippedLessons();
-        session.PlaySession = 3;
+        session.Day = 3;
+        session.Sitting = 3;
         Stage.TeleportToNpc(session, "villager");
         _ = session.OpenTalk("villager");
         Assert.Equal("ayer-y-manana", session.Lessons.Active!.Id);
@@ -42,7 +42,8 @@ public sealed class VillageLessonTests(ITestOutputHelper output)
         }
 
         session.EndTalk();
-        session.PlaySession = 4;
+        session.Day = 4;
+        session.Sitting = 4;
         Stage.TeleportToNpc(session, "fisher");
         _ = session.OpenTalk("fisher");
         return session;
@@ -155,17 +156,28 @@ public sealed class VillageLessonTests(ITestOutputHelper output)
     public void TheLessonIsNotOfferedBeforeAyerYMananaIsDoneNorBeforeSessionFour()
     {
         var early = TestGame.NewSessionWithShippedLessons();
-        early.PlaySession = 3;
+        early.Day = 3;
+        early.Sitting = 3;
         Assert.Null(early.Lessons.OfferFor("fisher"));
 
         var skipped = TestGame.NewSessionWithShippedLessons();
-        skipped.PlaySession = 4; // session 4 reached without session 3's lesson: El pueblo waits for it (after)
+        skipped.Day = 4; // session 4 reached without session 3's lesson: El pueblo waits for it (after)
+        skipped.Sitting = 4;
         Assert.Null(skipped.Lessons.OfferFor("fisher"));
         Assert.Equal(LessonStatus.NotStarted, skipped.Lessons.StatusOf(LessonId));
 
         var session = SessionFourAtFisher();
         Assert.Equal(LessonId, session.Lessons.Active!.Id);
         Assert.True(session.Lessons.Engaged);
+    }
+
+    [Fact]
+    public void AReviewStepWithNothingDueTellsTheLearnerItRan()
+    {
+        var session = SessionFourAtFisher(); // the greeting's review step had nothing due (V23a: and said so)
+
+        Assert.Contains(session.Locale.Ui("reviewNothingDue"), session.Deck.TakeNotes());
+        Assert.Empty(session.Deck.TakeNotes());
     }
 
     [Fact]
@@ -350,7 +362,8 @@ public sealed class VillageLessonTests(ITestOutputHelper output)
         Assert.Equal(3, early.Simulation.Inventory.Count(ItemId.Berry));
 
         var session = TestGame.NewSessionWithShippedLessons();
-        session.PlaySession = 4;
+        session.Day = 4;
+        session.Sitting = 4;
         _ = session.Simulation.GrantItems(ItemId.Berry, 4);
         Stage.TeleportToNpc(session, "fisher");
 
@@ -387,7 +400,8 @@ public sealed class VillageLessonTests(ITestOutputHelper output)
         _ = session.OpenTalk("villager");
         Assert.True(session.Say("hola").Communicated); // hola said in session 1, at the villager
         session.EndTalk();
-        session.PlaySession = 2; // a new play session: hola is due
+        session.Day = 2; // a new play session: hola is due
+        session.Sitting = 2;
 
         _ = session.OpenTalk("villager");
 

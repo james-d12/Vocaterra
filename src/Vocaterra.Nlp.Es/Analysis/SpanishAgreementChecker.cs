@@ -12,7 +12,8 @@ using Vocaterra.Nlp.Language.Morphology;
 /// The rules of M56 (a subject after its verb, <c>ser</c> where a place takes <c>estar</c>) are in <c>SpanishAgreementChecker.Postverbal.cs</c>, and those of M59 (a noun
 /// subject before its verb, a reflexive clitic after <c>cómo</c>) in <c>SpanishAgreementChecker.Preverbal.cs</c>, and that of M62 (an adjective after <c>ser</c> or
 /// <c>estar</c> agrees with the copula's subject) in <c>SpanishAgreementChecker.Predicate.cs</c>, and those of M64 (a subject pronoun joined by <c>y</c> ends a plural
-/// subject, an amount before a singular <c>ser</c> is one sum) in <c>SpanishAgreementChecker.Coordination.cs</c>.
+/// subject, an amount before a singular <c>ser</c> is one sum) in <c>SpanishAgreementChecker.Coordination.cs</c>, and that of M70 (<c>gustar</c> agrees with the thing
+/// liked) in <c>SpanishAgreementChecker.Liking.cs</c>.
 /// </remarks>
 internal sealed partial class SpanishAgreementChecker : IAgreementChecker
 {
@@ -20,6 +21,10 @@ internal sealed partial class SpanishAgreementChecker : IAgreementChecker
     private readonly IMorphology _morphology;
     private readonly List<ErrorTag> _errors;
     private readonly IAnalysisRules _rules;
+
+    // M73: the verbs CheckSubjectVerb agreed with a subject pronoun before them, so that CheckPostverbalSubject does not take a phrase after one of them as a second
+    // subject (one conj.person per word).
+    private readonly HashSet<int> _verbsWithPronounSubject = [];
 
     public SpanishAgreementChecker(IReadOnlyList<AnalyzedToken> tokens, IMorphology morphology, List<ErrorTag> errors, IAnalysisRules rules)
     {
@@ -35,6 +40,7 @@ internal sealed partial class SpanishAgreementChecker : IAgreementChecker
         CheckPreverbalSubject();
         CheckReflexiveClitic();
         CheckPostverbalSubject();
+        CheckLikingVerb();
         CheckTense();
         CheckNearFuture();
         CheckIrWithoutA();
@@ -169,8 +175,26 @@ internal sealed partial class SpanishAgreementChecker : IAgreementChecker
                 continue;
             }
 
+            // M69 (M56's left point): a subject pronoun put after the verb of a question (¿dónde estás tú?) agrees with it (CheckInvertedSubjectPronoun).
+            if (CheckInvertedSubjectPronoun(i, pronoun))
+            {
+                continue;
+            }
+
             var verbIndex = NextContentIndex(i + 1);
             if (verbIndex < 0)
+            {
+                continue;
+            }
+
+            // M66: a subject pronoun right after a finite verb that agrees with it is that verb's subject, put after it as a question puts it (¿puede usted vender
+            // manzanas?, ¿quiere usted comprar pan?, ¿pueden ustedes venir mañana?, ¿sabes tú dónde está?), so the word after the pronoun is not its verb; and an
+            // infinitive after a pronoun that follows any finite verb belongs to that verb (¿puedes usted vender?: the slip is puedes, not vender). With no verb before
+            // it the pronoun is still the subject of what follows (usted vender manzanas and yo comprar pan are person errors), and a finite verb after a pronoun that
+            // follows a word of another person is checked as before (mira, yo quiere pan -> quiero).
+            if (i > 0 && HasReading(i - 1, IsFiniteVerb)
+                && (HasReading(i - 1, r => IsDeclarativeFiniteVerb(r) && r.Person == pronoun.Person && r.Number == pronoun.Number)
+                    || !HasReading(verbIndex, IsDeclarativeFiniteVerb)))
             {
                 continue;
             }
@@ -182,8 +206,25 @@ internal sealed partial class SpanishAgreementChecker : IAgreementChecker
                 continue;
             }
 
+            // M66 (M63): a question word between the pronoun and the verb leaves the pronoun the subject (tú qué quieres, ellas dónde están; ella qué quieres -> quiere).
+            var question = QuestionWordBetween(i, verbIndex);
+            if (question >= 0)
+            {
+                verbIndex = question == verbIndex ? NextContentIndex(question + 1) : verbIndex;
+                if (verbIndex >= 0)
+                {
+                    CheckVerbAfterQuestionWord(question, verbIndex, cells);
+                }
+
+                continue;
+            }
+
             var finite = Readings(verbIndex, IsDeclarativeFiniteVerb);
-            if (finite.Count == 0)
+            if (finite.Count > 0)
+            {
+                _verbsWithPronounSubject.Add(verbIndex);
+            }
+            else
             {
                 // A bare infinitive after a subject pronoun ("yo comprar") is a person error as well.
                 var infinitive = FirstReading(verbIndex, static r => r.Pos == LexiconSchema.Verb && r.Person is null && r.Tense is null && r.Mood is null);
@@ -205,6 +246,88 @@ internal sealed partial class SpanishAgreementChecker : IAgreementChecker
         }
     }
 
+    // Rule M69 (M56's left point, "the first and second persons after the verb"), "a subject pronoun after the verb of a question agrees with it". In a question or a
+    // relative clause the subject goes after its verb (¿dónde estás tú?, ¿cómo está usted?, ¿qué quieres tú?, la casa donde vive él), so a subject pronoun right after a
+    // finite verb that a question word or a relative opens (qué, dónde, adónde, cuándo, cómo, cuánto, quién, cuál, que, with or without the accent) is its subject, and a
+    // verb of another person or number is the slip, reported with the pronoun's form: ¿dónde estás yo? -> estoy, ¿dónde está tú? -> estás, ¿cómo estás usted? -> está, ¿qué
+    // quiere tú? -> quieres. Left clean: a pronoun that begins a clause of its own (¿qué quieres? yo te doy pan: a finite verb follows it), one joined to another by y, o or
+    // ni (¿dónde están tú y Luz?), a pronoun before a noun or an adjective (tu as written: ¿cómo es tu casa?), a clitic between the question word and the verb (¿qué te
+    // gusta?, whose subject is not the pronoun), haber, and a verb right after any other word (mira tú, the imperative; me gustas tú). Returns true when it reported.
+    private bool CheckInvertedSubjectPronoun(int pronounIndex, LexicalFeatures pronoun)
+    {
+        var verbIndex = pronounIndex - 1;
+        if (verbIndex < 1 || !SpanishAnalysisTables.IsClauseOpener(TextOf(verbIndex - 1)) || TextOf(verbIndex - 1) is "porque" or "si")
+        {
+            return false;
+        }
+
+        var readings = _tokens[verbIndex].Readings;
+        var finite = Readings(verbIndex, static r => IsDeclarativeFiniteVerb(r) && r.Tense is not null);
+        if (readings.Count == 0
+            || !readings.All(IsFiniteVerb)
+            || finite.Count == 0
+            || finite.Exists(static r => r.Lemma == "haber")
+            || finite.Exists(r => r.Person == pronoun.Person && r.Number == pronoun.Number))
+        {
+            return false;
+        }
+
+        var next = pronounIndex + 1;
+        if (next < _tokens.Count
+            && (TextOf(next) is "y" or "e" or "o" or "u" or "ni"
+                || HasReading(next, static r => r.Pos is LexiconSchema.Noun or LexiconSchema.Adjective)
+                || (NextContentIndex(next) is var after and >= 0 && HasReading(after, IsFiniteVerb))))
+        {
+            return false;
+        }
+
+        var representative = finite.FirstOrDefault(static r => r.Mood == LexiconSchema.Indicative) ?? finite[0];
+        var expected = _morphology.Conjugate(representative.Lemma, pronoun.Person!, pronoun.Number!, representative.Tense!);
+        if (string.IsNullOrEmpty(expected) || string.Equals(expected, TextOf(verbIndex), StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        Add(ErrorTags.ConjPerson, verbIndex, verbIndex, expected, TextOf(verbIndex));
+        return true;
+    }
+
+    // M66 (M63): the index of a question word of IsQuestionWordAfterSubject after the pronoun at index, up to and including the word the pronoun's verb would be (the
+    // adverbs dónde and cómo are skipped on the way to the verb; qué is that word), or -1.
+    private int QuestionWordBetween(int pronounIndex, int verbIndex)
+    {
+        for (var k = pronounIndex + 1; k <= verbIndex; k++)
+        {
+            if (SpanishAnalysisTables.IsQuestionWordAfterSubject(TextOf(k)))
+            {
+                return k;
+            }
+        }
+
+        return -1;
+    }
+
+    // Rule M66 (M63), "a subject pronoun before a question word is its verb's subject". In ellas dónde están, tú qué quieres, ella qué quiere and ellos adónde van the
+    // pronoun put before the question is the subject of the verb after it (past at most two adverbs or clitics), which agrees with it as with a pronoun right before it:
+    // ellas dónde está -> están, ella qué quieres -> quiere. Correct Spanish is never flagged, so two readings are left alone: a verb of the third person with a subject
+    // after it (ellas, ¿dónde está la casa?: the pronoun said first is no subject), and a third person singular after qué, which may be the subject itself (ellos, ¿qué
+    // pasa?). A word that is not only a finite verb, and a bare infinitive (yo qué hacer), are not checked.
+    private void CheckVerbAfterQuestionWord(int questionIndex, int verbIndex, IReadOnlyList<(string Person, string Number)> cells)
+    {
+        var finite = Readings(verbIndex, IsDeclarativeFiniteVerb);
+        if (finite.Count == 0
+            || !_tokens[verbIndex].Readings.All(IsFiniteVerb)
+            || finite.Exists(r => cells.Any(c => c.Person == r.Person && c.Number == r.Number))
+            || (finite.Exists(static r => r.Person == "3") && HasThirdPersonSubjectAfter(verbIndex))
+            || (TextOf(questionIndex) == "qué" && finite.Exists(static r => r is { Person: "3", Number: LexiconSchema.Singular })))
+        {
+            return;
+        }
+
+        var representative = finite.FirstOrDefault(static r => r.Mood == LexiconSchema.Indicative) ?? finite[0];
+        AddPersonError(verbIndex, representative.Lemma, cells[0], representative.Tense ?? LexiconSchema.Present);
+    }
+
     private void AddPersonError(int verbIndex, string lemma, (string Person, string Number) cell, string tense)
     {
         var expected = _morphology.Conjugate(lemma, cell.Person, cell.Number, tense) ?? string.Empty;
@@ -221,9 +344,10 @@ internal sealed partial class SpanishAgreementChecker : IAgreementChecker
         // A finite verb right after "ir a" is already reported by CheckNearFuture, with the infinitive as the expected form ("ayer voy a como" -> "comer"); a second
         // conj.tense on the same word would be two errors with one tag and one span.
         var afterIrA = FormsAfterIrA();
+        var afterModal = FormsAfterModal();
         for (var i = 0; i < _tokens.Count; i++)
         {
-            if (afterIrA.ContainsKey(i))
+            if (afterIrA.ContainsKey(i) || afterModal.ContainsKey(i))
             {
                 continue;
             }
@@ -263,6 +387,13 @@ internal sealed partial class SpanishAgreementChecker : IAgreementChecker
             Add(ErrorTags.ConjTense, next, next, verb.Lemma, TextOf(next));
         }
 
+        // M66: a finite verb after a modal takes the same error, with the infinitive as the expected form (puedo pago -> pagar), so the learner meets one message.
+        var afterModal = FormsAfterModal();
+        foreach (var (next, verb) in afterModal.OrderBy(static pair => pair.Key).Select(static pair => (pair.Key, pair.Value)))
+        {
+            Add(ErrorTags.ConjTense, next, next, verb.Lemma, TextOf(next));
+        }
+
         var marker = FutureTimeMarkerIndex();
         if (marker < 0 || HasPastTimeMarker())
         {
@@ -283,7 +414,7 @@ internal sealed partial class SpanishAgreementChecker : IAgreementChecker
                 continue;
             }
 
-            if (afterIrA.ContainsKey(i))
+            if (afterIrA.ContainsKey(i) || afterModal.ContainsKey(i))
             {
                 continue;
             }
@@ -340,6 +471,78 @@ internal sealed partial class SpanishAgreementChecker : IAgreementChecker
         }
 
         return found;
+    }
+
+    // Rule M66, "a modal takes an infinitive". A finite verb of the indicative right after poder, querer, deber or necesitar, or after tener que, is the learner's
+    // slip for the infinitive, which the error expects, as after ir a (puedo pago con fruta -> pagar, quiero vendo madera -> vender, tengo que voy al río -> ir, debo
+    // como más fruta -> comer). Which word is the verb the reading resolver decides (a noun the modal may take stays the noun: quiero vino, necesito pago); here only a
+    // word read as a finite verb alone counts. Left clean, as the start of a clause of its own that a comma would set off in writing: the modal again (quiero, quiero
+    // pan), ser, estar, haber and tener (no puedo, estoy cansado; no quiero, tengo pan), and ir before a (no puedo, voy a dormir). A clause after que (quiero que
+    // vengas) is no complement of this kind.
+    private Dictionary<int, LexicalFeatures> FormsAfterModal()
+    {
+        var found = new Dictionary<int, LexicalFeatures>();
+        for (var i = 0; i + 1 < _tokens.Count; i++)
+        {
+            var next = ModalComplementIndex(i, out var modal);
+            if (next < 0)
+            {
+                continue;
+            }
+
+            var readings = _tokens[next].Readings;
+            if (readings.Count == 0 || !readings.All(IsFiniteVerb))
+            {
+                continue;
+            }
+
+            var verb = readings.FirstOrDefault(static r => r.Mood == LexiconSchema.Indicative && r.Tense is not null);
+            if (verb is null
+                || verb.Lemma == modal
+                || verb.Lemma is "ser" or "estar" or "haber" or "tener"
+                || (verb.Lemma == "ir" && next + 1 < _tokens.Count && TextOf(next + 1) == "a"))
+            {
+                continue;
+            }
+
+            found[next] = verb;
+        }
+
+        return found;
+    }
+
+    // M66: the index of the word a modal at index governs, the next one (puedo pagar) or the one after its linking word (tengo que ir), with the modal's lemma; -1 when
+    // the word at index is no finite verb whose readings of the indicative are all the modal's (podamos is poder's subjunctive but podar's indicative: los podamos
+    // estudio is clean; podemos is poder's indicative, the modal).
+    private int ModalComplementIndex(int index, out string modal)
+    {
+        modal = string.Empty;
+        var readings = _tokens[index].Readings;
+        var indicative = Readings(index, static r => r.Mood == LexiconSchema.Indicative);
+        if (readings.Count == 0 || !readings.All(IsFiniteVerb) || indicative.Count == 0)
+        {
+            return -1;
+        }
+
+        var lemma = indicative[0].Lemma;
+        if (!indicative.TrueForAll(r => r.Lemma == lemma))
+        {
+            return -1;
+        }
+
+        if (SpanishAnalysisTables.IsModalVerb(lemma))
+        {
+            modal = lemma;
+            return index + 1;
+        }
+
+        if (index + 2 < _tokens.Count && SpanishAnalysisTables.IsModalWithLinker(lemma, TextOf(index + 1)))
+        {
+            modal = lemma;
+            return index + 2;
+        }
+
+        return -1;
     }
 
     // Rule M51 (ir + a bare infinitive). A present or imperfect form of "ir" directly followed by an infinitive drops the "a": "voy comer pan" -> "voy a comer".

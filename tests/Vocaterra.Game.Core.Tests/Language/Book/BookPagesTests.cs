@@ -8,7 +8,6 @@ using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
-using Vocaterra.Game.Core.Tip;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Es;
@@ -232,7 +231,8 @@ public sealed class BookPagesTests
         Assert.Equal("opens in session 4, Mar", LessonLines(session, "el-pueblo").Why.Text); // its session is said first: it is the later of its two locks
         Assert.Equal("opens in session 5, Luz", LessonLines(session, "numeros-y-pan").Why.Text);
 
-        session.PlaySession = 4; // the session has come, the lesson before it has not been done
+        session.Day = 4; // the session has come, the lesson before it has not been done
+        session.Sitting = 4;
         Assert.Equal("after “Ayer y mañana”", LessonLines(session, "el-pueblo").Why.Text);
         Assert.Equal("next: talk to Aldeano", LessonLines(session, "ayer-y-manana").Why.Text); // the new lesson the objective names (the newest session's)
         Assert.Equal("opens in session 5, Luz", LessonLines(session, "numeros-y-pan").Why.Text);
@@ -263,7 +263,8 @@ public sealed class BookPagesTests
     {
         var session = TestGame.NewSessionWithShippedLessons();
         session.Lessons.CountAsCompleted("first-words", 1);
-        session.PlaySession = 2;
+        session.Day = 2;
+        session.Sitting = 2;
         Assert.True(session.Lessons.Start("personas"));
 
         Assert.Null(session.Lessons.WaitOf("first-words"));
@@ -313,5 +314,64 @@ public sealed class BookPagesTests
         var row = Sheet.Value.Find("pedir-agua")!;
         Assert.Equal(row.English, BookPages.SheetEnglish(Sheet.Value, row.Spanish));
         Assert.Null(BookPages.SheetEnglish(Sheet.Value, "una frase que no está en la hoja"));
+    }
+
+    [Fact]
+    public void TheLessonsPageOpensScrolledToTheNextLessonAtSessionNine()
+    {
+        // V21b: the page runs to about 190 lines; in sessions 8 to 10 the lesson the objective names is far down, so the page opens with its title at the top.
+        var session = TestGame.NewSessionWithShippedLessons();
+        SessionSkip.Apply(session, 9);
+        var lines = BookPages.Lessons(session.Locale, session.Lessons.Record, session.Phrases, null, BookPages.Waits(session.Lessons));
+        var next = lines.ToList().FindIndex(static l => l.Next);
+        Assert.True(next > 40, $"the next lesson is at line {next}");
+        Assert.StartsWith("next:", lines[next + 1].Text, StringComparison.Ordinal);
+
+        const int visible = 20;
+        var offset = BookScroll.OpeningOffset(lines, visible);
+        Assert.Equal(Math.Min(next, lines.Count - visible), offset);
+        Assert.InRange(next, offset, offset + visible - 1);
+
+        var model = new BookModel();
+        model.Open(new Vocaterra.Game.Core.Language.Words.WordProgress(TestGame.Nouns));
+        Assert.Equal(0, model.Offset);
+        model.Show(BookPage.Lessons, animate: false);
+        model.OpenAtNext(lines, visible);
+        model.ClampTo(lines.Count, visible);
+        Assert.Equal(offset, model.Offset);
+        model.Scroll(-3);
+        model.OpenAtNext(lines, visible); // once only: the learner's own scrolling stays
+        Assert.Equal(offset - 3, model.Offset);
+    }
+
+    [Fact]
+    public void TheSelectionStartsAtTheRowThePageOpenedOn()
+    {
+        // V30: the first arrow key moves on from the next lesson's row; it does not jump back to the top of the page.
+        var lines = new List<BookLine>();
+        for (var lesson = 0; lesson < 30; lesson++)
+        {
+            lines.Add(new BookLine(BookTone.Known, "lesson " + lesson, Next: lesson == 20));
+            lines.Add(new BookLine(BookTone.Known, "row " + lesson, Speak: "line." + lesson));
+        }
+
+        var rows = BookSpeakers.Selectable(lines);
+        var expected = rows.ToList().FindIndex(row => row >= 40);
+        Assert.Equal(20, expected);
+
+        var model = new BookModel();
+        model.Open(new Vocaterra.Game.Core.Language.Words.WordProgress(TestGame.Nouns));
+        model.Show(BookPage.Lessons, animate: false);
+        model.OpenAtNext(lines, 20);
+
+        Assert.Equal(expected, model.SelectedIndex(rows.Count));
+        model.MoveSelection(-1, rows.Count);
+        Assert.Equal(expected - 1, model.SelectedIndex(rows.Count));
+    }
+
+    [Fact]
+    public void ThePageOpensAtTheTopWhenNoLessonIsNext()
+    {
+        Assert.Equal(0, BookScroll.OpeningOffset([new BookLine(BookTone.Known, "a"), BookLine.Gap], 5));
     }
 }

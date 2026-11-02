@@ -1,5 +1,3 @@
-using Vocaterra.Game.Core.Items;
-
 namespace Vocaterra.Game.Core.Items.Crafting;
 
 /// <summary>The pure crafting rule over an inventory: no world, no clock, integer arithmetic.</summary>

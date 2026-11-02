@@ -8,9 +8,12 @@ namespace Vocaterra.Nlp.Language.Morphology;
 /// <param name="Tense">The tense of the cell.</param>
 public sealed record RegularizedForm(string Lemma, string Expected, string Person, string Number, string Tense);
 
-/// <summary>A learner's plural of a lexicon noun made with the wrong ending (such as <c>pans</c>), with the plural the learner should have used (M58).</summary>
-/// <param name="Lemma">The lemma of the noun.</param>
-/// <param name="Expected">The plural of the noun.</param>
+/// <summary>
+/// A learner's plural of a lexicon noun made with the wrong ending (such as <c>pans</c>), with the plural the learner should have used (M58); since M66 also of a lexicon
+/// adjective (<c>azuls</c>).
+/// </summary>
+/// <param name="Lemma">The lemma of the noun or adjective.</param>
+/// <param name="Expected">The plural of the noun or adjective.</param>
 public sealed record PluralSlip(string Lemma, string Expected);
 
 /// <summary>
@@ -86,10 +89,11 @@ public interface IMorphology
 
     /// <summary>
     /// Detects a form the lexicon lacks that is the plural of a lexicon noun made with the ending of another class of nouns (M58; Spanish: <c>pans</c>,
-    /// <c>flors</c>, <c>relojs</c> for <c>panes</c>, <c>flores</c>, <c>relojes</c>). The default finds none.
+    /// <c>flors</c>, <c>relojs</c> for <c>panes</c>, <c>flores</c>, <c>relojes</c>), or of a lexicon adjective made the same way (M66; Spanish: <c>azuls</c> for
+    /// <c>azules</c>). The default finds none.
     /// </summary>
     /// <param name="form">The word as typed.</param>
-    /// <param name="result">The noun and the plural the learner should have used, when the method returns true.</param>
+    /// <param name="result">The noun or adjective and the plural the learner should have used, when the method returns true.</param>
     bool TryGetPluralSlip(string form, out PluralSlip result)
     {
         result = null!;

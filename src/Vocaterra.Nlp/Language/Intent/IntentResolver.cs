@@ -7,7 +7,6 @@ namespace Vocaterra.Nlp.Language.Intent;
 
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Embeddings;
-using Vocaterra.Nlp.Language.Normalization;
 using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
 
@@ -38,6 +37,12 @@ using Vocaterra.Nlp.Language.SlotGrammar;
 /// Margin is the gap and confidence the top score.
 /// </para>
 /// Unknown resolves with <see cref="IntentRung.Unresolved"/>, empty slots, margin 0 and confidence 0.
+/// <para>
+/// Off the prompt (M72): when the allowed intents resolve nothing at a prompt that lists allowed intents, the grammar and keyword rungs run again over every
+/// intent of the catalog, in the same order and with the same rules, and the intent they find is reported as <see cref="IntentResolution.OffPromptIntent"/>
+/// of the unknown resolution (the intent, slots, rung, margin and confidence stay those of Unknown). It is always an intent the prompt does not allow, and it is
+/// the intent the grammar or rules rung would resolve with every intent allowed. A prompt with no allowed intent (every intent a candidate) has no second pass.
+/// </para>
 /// <para>
 /// The utterance is embedded exactly as given (<see cref="NormalizedText.Text"/>) while the catalog examples are normalized with
 /// <see cref="IntentResolverOptions.ExampleNormalization"/>, so normalize the utterance with the same options (indefinite articles
@@ -85,15 +90,26 @@ public sealed class IntentResolver
         ArgumentNullException.ThrowIfNull(analysis);
         ArgumentNullException.ThrowIfNull(prompt);
         var candidates = Candidates(prompt);
-        if (candidates.Count == 0)
+        var resolution = candidates.Count == 0
+            ? null
+            : TryGrammar(analysis, candidates) ?? TryRules(analysis, candidates) ?? TryEmbedding(text, analysis, candidates);
+        if (resolution is not null)
         {
-            return Unresolved;
+            return resolution;
         }
 
-        return TryGrammar(analysis, candidates)
-            ?? TryRules(analysis, candidates)
-            ?? TryEmbedding(text, analysis, candidates)
-            ?? Unresolved;
+        // M72: a line the prompt's intents do not take may still be one the catalog understands (me gusta el río at a prompt without state_like). With every intent
+        // allowed already (an empty list) there is nothing more to find.
+        return prompt.AllowedIntentIds.Count > 0 ? OffPrompt(analysis) : Unresolved;
+    }
+
+    // The second pass over the whole catalog, with the grammar and keyword rungs only: the embedding rung is a guess, and a guess is no ground for saying what
+    // a line the prompt does not take means. The analysis is the one the prompt's grammars gave; the grammar rung matches every intent's own grammars itself.
+    private IntentResolution OffPrompt(AnalysisResult analysis)
+    {
+        var all = _catalog.Intents;
+        var found = TryGrammar(analysis, all) ?? TryRules(analysis, all);
+        return found is null ? Unresolved : Unresolved with { OffPromptIntent = found.Intent };
     }
 
     private static SlotMap SlotsOf(IReadOnlyList<SlotValue> slots)
@@ -148,7 +164,7 @@ public sealed class IntentResolver
         return result;
     }
 
-    private IntentResolution? TryGrammar(AnalysisResult analysis, List<IntentDefinition> candidates)
+    private IntentResolution? TryGrammar(AnalysisResult analysis, IReadOnlyList<IntentDefinition> candidates)
     {
         if (analysis.MatchedGrammarId is { } matchedId)
         {
@@ -184,7 +200,7 @@ public sealed class IntentResolver
             : new IntentResolution(bestIntent.Id, best.ToSlotMap(), IntentRung.Grammar, 1.0, analysis.Confidence);
     }
 
-    private IntentResolution? TryRules(AnalysisResult analysis, List<IntentDefinition> candidates)
+    private IntentResolution? TryRules(AnalysisResult analysis, IReadOnlyList<IntentDefinition> candidates)
     {
         IntentDefinition? winner = null;
         SlotMap winnerSlots = SlotMap.Empty;

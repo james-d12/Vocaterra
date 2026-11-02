@@ -55,6 +55,11 @@ public static class SentenceGen
 
         var realizer = new SentenceRealizer(harness.Words, new SeededRng(recipe.Seed), options ?? SentenceOptions.Default);
         var sentence = realizer.TryRealize(recipe.Pattern, recipe.Source, out var reason);
+        foreach (var reroll in realizer.Rerolls)
+        {
+            diagnostics?.Count(FuzzDiagnostics.RejectedPrefix + reroll);
+        }
+
         if (sentence is null)
         {
             diagnostics?.Count($"skip:{reason}" + (reason == "unknown-literal" ? $":{realizer.Detail}" : string.Empty));
@@ -68,6 +73,7 @@ public static class SentenceGen
         if (numeralIndexes.Any(i => IsUno(i + 1) || IsUno(i - 1)))
         {
             diagnostics?.Count("skip:numeral-next-to-article");
+            diagnostics?.Count(FuzzDiagnostics.RejectedPrefix + "numeral-next-to-article");
             return null;
         }
 
@@ -75,6 +81,7 @@ public static class SentenceGen
         if (numeralIndexes.Zip(numeralIndexes.Skip(1)).Any(static pair => pair.Second - pair.First == 1))
         {
             diagnostics?.Count("skip:adjacent-numerals");
+            diagnostics?.Count(FuzzDiagnostics.RejectedPrefix + "adjacent-numerals");
             return null;
         }
 
@@ -85,6 +92,7 @@ public static class SentenceGen
             if (numeralIndexes.Zip(numeralIndexes.Skip(1)).Any(static pair => pair.Second - pair.First <= 2))
             {
                 diagnostics?.Count("skip:close-numerals");
+                diagnostics?.Count(FuzzDiagnostics.RejectedPrefix + "close-numerals");
                 return null;
             }
 

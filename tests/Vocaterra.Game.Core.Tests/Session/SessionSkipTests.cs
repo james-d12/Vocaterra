@@ -43,7 +43,7 @@ public sealed class SessionSkipTests
     {
         var session = SkippedTo(target);
 
-        Assert.Equal(target, session.PlaySession);
+        Assert.Equal(target, session.Day);
         Assert.Equal(target, session.SkippedTo);
         Assert.Equal(lesson, session.Lessons.NewLesson?.Id);
         Assert.Equal(session.Lessons.Book.Find(lesson)!.Objective, Hud(session)); // its own line, as after a load (S26)
@@ -128,9 +128,9 @@ public sealed class SessionSkipTests
 
         var purchases = session.Lessons.Book.Lessons.SelectMany(l => SessionSkip.Purchases(l, session.Data).Select(p => (l.Id, p))).ToList();
         // The two loaves of Números y pan, from its do step and its request "Quiero dos panes, por favor."; and El mercado's apples (V15), from its do step: no step of it
-        // is a request (its do step's text asks for three), so the skip would buy one. No session follows the market, so no skip makes that purchase.
+        // is a request, so the count is read from the later phrase "Compré tres manzanas." (V23a: three, not one). No session follows the market, so no skip makes that purchase.
         Assert.Equal(
-            [("numeros-y-pan", new SessionSkip.Purchase("baker", ItemId.Bread, 2, 2)), ("el-mercado", new SessionSkip.Purchase("farmer", ItemId.Apple, 1, 1))],
+            [("numeros-y-pan", new SessionSkip.Purchase("baker", ItemId.Bread, 2, 2)), ("el-mercado", new SessionSkip.Purchase("farmer", ItemId.Apple, 3, 1))],
             purchases);
     }
 
@@ -226,7 +226,7 @@ public sealed class SessionSkipTests
 
         var loaded = SaveGame.Load(text, TestGame.Data, static seed => TestGame.Route(seed));
         Assert.Equal(4, loaded.SkippedTo);
-        Assert.Equal(5, loaded.PlaySession);
+        Assert.Equal(4, loaded.Day); // the day as saved (V25)
 
         Assert.DoesNotContain("skippedTo", SaveGame.Save(TestGame.NewSessionWithShippedLessons(), TestGame.Route()), StringComparison.Ordinal);
     }

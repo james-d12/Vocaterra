@@ -42,6 +42,60 @@
       "canonical": "hay pan",
       "aliases": ["hay pan aquí", "hay panes", "hay agua", "hay dos panes", "hay un pan"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "necesito-pan",
+      "canonical": "yo necesito pan",
+      "aliases": [],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "tengo-botella",
+      "canonical": "tengo una botella",
+      "aliases": ["sí, tengo una botella", "sí, yo tengo una botella", "yo tengo una botella", "sí, tengo la botella"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "queremos-pan",
+      "canonical": "queremos pan",
+      "aliases": ["nosotros queremos pan", "queremos pan, por favor", "necesitamos pan"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "ayer-comi-fruta",
+      "canonical": "ayer comí fruta",
+      "aliases": ["comí fruta", "yo comí fruta", "ayer comí pan", "comí pan", "comí fruta ayer", "ayer comí una fruta", "ayer comí frutas"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "ayer-fui-al-rio",
+      "canonical": "ayer fui al río",
+      "aliases": ["fui al río", "sí, fui al río", "yo fui al río", "ayer fui a la tienda", "sí, ayer fui al río", "fui al río ayer", "sí, fui al río ayer"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "ayer-bebi-agua",
+      "canonical": "ayer bebí agua",
+      "aliases": ["bebí agua", "sí, bebí agua", "sí, ayer bebí agua", "yo bebí agua", "bebí agua ayer"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "voy-a-ir-al-rio",
+      "canonical": "mañana voy a ir al río",
+      "aliases": ["voy a ir al río", "yo voy a ir al río", "mañana voy a ir a la tienda", "voy a ir al río mañana"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "es-grande",
+      "canonical": "es grande",
+      "aliases": ["el pan es grande", "sí, es grande", "es muy grande"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "compre-tres-manzanas",
+      "canonical": "compré tres manzanas",
+      "aliases": ["yo compré tres manzanas", "hoy compré tres manzanas", "compré manzanas"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
     }
   ]
 }

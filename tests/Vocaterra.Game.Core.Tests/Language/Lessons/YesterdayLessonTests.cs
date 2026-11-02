@@ -29,7 +29,8 @@ public sealed class YesterdayLessonTests(ITestOutputHelper output)
         var session = FarmLessonTests.AtStep("(after the last step)"); // no step has this id: ¿Cómo es? runs to its end
         Assert.Equal(LessonStatus.Completed, session.Lessons.StatusOf("como-es"));
         session.EndTalk();
-        session.PlaySession = 8;
+        session.Day = 8;
+        session.Sitting = 8;
         Stage.TeleportToNpc(session, "villager");
         _ = session.OpenTalk("villager");
         return session;
@@ -155,7 +156,7 @@ public sealed class YesterdayLessonTests(ITestOutputHelper output)
         // and the fisher's vendí. hizo and trabajó are Gente del pueblo's, and tengo (of tengo que) the guide's lesson's: the forms stay their first lesson's.
         Assert.All(lesson.TaughtVerbs, static v => Assert.Contains(v.Tense, LessonLevels.TensesAt(LessonLevels.A2)));
         var morphology = TestGame.Bundle.SpanishMorphology();
-        Assert.Equal(["pescó", "compró", "fue", "fuimos", "fueron", "comieron", "vendí"], lesson.TaughtVerbs.Select(v => v.Text(morphology, TestGame.Data.Words.NearFuture)));
+        Assert.Equal(["pescó", "compró", "fue", "fuimos", "fueron", "comieron", "vendí", "tengo que ir"], lesson.TaughtVerbs.Select(v => v.Text(morphology, TestGame.Data.Words.NearFuture, TestGame.Data.Words.Obligation)));
         var earlier = Book.Lessons.Where(static l => l.Id != LessonId).SelectMany(static l => l.TaughtVerbs).ToList();
         Assert.Contains(new TaughtVerbForm("hacer", "3", "sg", "pret"), earlier);
         Assert.Contains(new TaughtVerbForm("trabajar", "3", "sg", "pret"), earlier);
@@ -179,11 +180,12 @@ public sealed class YesterdayLessonTests(ITestOutputHelper output)
     {
         var early = FarmLessonTests.AtStep("(after the last step)");
         early.EndTalk();
-        Assert.Equal(7, early.PlaySession);
+        Assert.Equal(7, early.Day);
         Assert.NotEqual(LessonId, early.Lessons.OfferFor("villager")?.LessonId); // ¿Cómo es? done, but it is still session 7
 
         var skipped = TestGame.NewSessionWithShippedLessons();
-        skipped.PlaySession = 8; // session 8 reached without session 7's lesson: Ayer en el pueblo waits for it (after)
+        skipped.Day = 8; // session 8 reached without session 7's lesson: Ayer en el pueblo waits for it (after)
+        skipped.Sitting = 8;
         Assert.NotEqual(LessonId, skipped.Lessons.OfferFor("villager")?.LessonId);
         Assert.Equal(LessonStatus.NotStarted, skipped.Lessons.StatusOf(LessonId));
 

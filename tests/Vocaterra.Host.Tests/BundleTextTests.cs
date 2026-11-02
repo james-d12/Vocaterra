@@ -27,7 +27,7 @@ public sealed class BundleTextTests
 
         var lines = writer.ToString().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
         Assert.Equal(
-            new[] { "[stall-need] Constrained, agent shopkeeper, intents request_item, ask_price, ask_availability, ask_help, dont_know", "  agent: ¿Qué necesitas?" },
+            new[] { "[stall-need] Constrained, agent shopkeeper, intents request_item, ask_price, ask_availability, state_have, state_action, describe, ask_help, dont_know, ask_how", "  agent: ¿Qué necesitas?" },
             lines);
     }
 }

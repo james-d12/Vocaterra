@@ -7,7 +7,6 @@ using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Morphology;
 using Vocaterra.Nlp.Language.Normalization;
 using Vocaterra.Nlp.Language.Packs;
-using Vocaterra.Nlp.Phonology;
 using NlpLexicon = Vocaterra.Nlp.Language.Lexicon.Lexicon;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests.Languages.Xx;

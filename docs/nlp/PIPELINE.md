@@ -169,10 +169,13 @@ fuzzy stage of `AnswerMatcher` and `AnswerCorrections` implement it, and the fuz
 - **Communication.** A fuzzy match is communicated with `resolvedBy: Fuzzy`, and its confidence is the verdict's confidence (the
   minimum of the stage confidences). With the shipped thresholds (0.6 with epsilon 0.02) no fuzzy match within budget is rejected,
   because its confidence is at least 0.75.
-- **Vocabulary.** An unknown word of a near miss (a `vocab.unknown` error) takes the canonical word of the matched answer as its
-  `expected`, so the recast says the answer. Its spelling is the canonical one, with accents (`pocion` gives `poción`). A one-word
-  input takes the whole canonical phrase (`buenosdias` gives `buenos días`). Otherwise the unknown word takes the canonical word it is
-  nearest to (accent-insensitive distance, the earlier word on a tie), so `una ezpada` gives `espada` and the recast reads `una espada`. Words the lexicon knows are never changed.
+- **Vocabulary.** An unknown word of a near miss (a `vocab.unknown` error) takes the matched answer's word at its place as its
+  `expected`, so the recast says the answer. Its spelling is the answer's, with accents and a number in words (`pocion` gives `poción`). A one-word
+  input takes the whole canonical phrase (`buenosdias` gives `buenos días`). Otherwise (M70, QA-language-6) the line is aligned word by word with the
+  matched answer's phrase nearest it, its canonical phrase or an alias (`AnswerAlignment`), and the unknown word takes the word aligned with it: `una
+  ezpada` gives `espada` and the recast reads `una espada`; `compré three manzanas` gives `tres` (before M70 the canonical word nearest its spelling,
+  `compré`, and the recast `compré compré manzanas`). An added word, and one whose word stands next to it already, takes none, so a recast never says
+  a word twice. Words the lexicon knows are never changed.
 - **Inflected forms.** The matcher compares spelled phrases, so an inflection that is a lexicon form (`espadas` for `espada`) is a
   near miss by spelling: it is communicated at confidence 0.83 with no error tag, and `correctness` stays 1. The alternative, an
   `Exact` match with `noun.number`, would need the matcher to read the lexicon, and an answer-only prompt has no grammar to check
@@ -190,7 +193,9 @@ fixed confidence at its edge was not.
 empty reading list means an unknown word and yields `vocab.unknown`), runs the agreement rules (subject and verb, article and
 noun, noun and adjective, quantity and noun, `ser`/`estar`, adjective position, and since M62 a predicate adjective and the copula's subject; since M64 a subject
 pronoun joined by `y` to members before it ends a plural subject, `luz y yo fuimos`, and an amount before a singular `ser` is one sum, `dos panes es suficiente`;
-[API.md](API.md), "Person and copula errors"), and matches the slot grammars. A word the lexicon lacks that is
+since M66 `ni` and `o` join such a subject too, a pronoun right after a finite verb is that verb's subject, a pronoun before a question word is the subject of the
+verb after it, the neuter pronouns are singular after a verb of price, and a finite verb after a modal is the slip for the infinitive, `puedo pago`;
+[API.md](API.md), "Person and copula errors" and "Tense errors"), and matches the slot grammars. A word the lexicon lacks that is
 a learner's slip of a known word is read as that word: a regularized irregular verb form (`quero`) as the verb with `conj.irregular`, and (M58) a plural
 made with the wrong ending (`pans`) as the plural noun with `noun.number`; a regularized form that is also a lexicon word (`costa`) gets the verb as a
 second reading, which the analysis keeps only where a verb is expected ([API.md](API.md), "Irregular forms, plurals and unknown words"). The grammars
@@ -246,7 +251,10 @@ on the resolved readings only. The returned tokens still list all readings, beca
    after the noun of a phrase with a determiner, agreeing with the noun and the determiners, is that noun's adjective (`las manzanas rojas`), a colour that is also a noun right before a
    word that can only be a noun, which it and the determiners before it agree with, is the adjective (`tres rojas manzanas`), the word after `muy`
    or `tan` is no noun (`es muy cara`), and `son` or `era` after the noun of a phrase with a determiner and before an adjective is the copula
-   (`las manzanas son caras`); an interjection reading is the last resort (the lexicon lists `sus` and `sé` as
+   (`las manzanas son caras`); M66: a noun that is also a verb of the third person right after the noun of the phrase that opens the utterance is the verb
+   (`las manzanas cuesta`), `son` right after `cuánto` is the copula, and a word right after a modal (`poder`, `querer`, `deber`, `necesitar`, `tener que`) that
+   can be a finite verb is the verb where its other readings cannot stand there (`puedo pago`, `quiero vendo madera`, `debo como más fruta`; not `quiero vino`);
+   an interjection reading is the last resort (the lexicon lists `sus` and `sé` as
    interjections too). A rule fires on a word only when every reading it has is of the kind that triggers it (an article, not
    the clitic `la`), and only when a reading of its neighbour fits. `ayer`, `anoche` and `anteayer` change nothing here: a word
    after an article is a noun with or without them (`ayer compré un libro`).
@@ -345,7 +353,10 @@ evaluation configuration and the version stamp:
 - **errors**: analysis errors, pronunciation errors and the derived `vocab.wrong`, de-duplicated by (tag, span) and sorted by
   span start, then tag order in the taxonomy, then expected text. The derived `vocab.wrong` (a word the lexicon knows but the answer
   set does not contain) has as `expected` the answer set's canonical answer when the set has exactly one answer, and an empty
-  `expected` otherwise; its `actual` is the word. A `vocab.unknown` of a fuzzy answer match already carries the canonical word.
+  `expected` otherwise; its `actual` is the word. It explains a miss, so since M67 it is derived only when the line resolved no intent,
+  or resolved one by a keyword rule (not a slot grammar) and is a near miss of an answer (within the fuzzy budget taken for the line's own
+  length: `cuál es esto` for `qué es esto`); a line a slot grammar understood never gets it. A `vocab.unknown` of a fuzzy answer match
+  already carries the answer's word at its place. An error on a number reports the learner's word for it (M70: `dos`, not `2`).
 - **correctness**: 1 minus the sum of the error weights for the prompt's difficulty (`content/game-v1/evaluation/evaluation-config.json`),
   clamped to [0, 1], rounded to 9 decimals. For the beginner difficulty `conj.person` costs 0.25 and `noun.number` 0.15, so
   1 - 0.25 - 0.15 = 0.6.
@@ -490,14 +501,14 @@ Each of these is a real run of the CLI on `content/game-v1` (verdict line shorte
 | `--transcript "quiero agua por favor" --prompt stall-need` | intent `request_item`, slot `item=agua`, communicated, correctness 1, `resolvedBy: Exact` | `agent: Toma la botella. El agua está en el río.`, `agent: ¿Quieres pan?` and `decision: rating Easy, learner skills 1, feedback items 0` |
 | `--transcript "hola" --prompt lesson-hello` | intent `greet`, communicated, correctness 1, `resolvedBy: Exact` | `agent: ¡Hola! Soy la guía.` and `decision: rating Easy, learner skills 1, feedback items 0` |
 | `--transcript "quiero aguas por favor" --prompt stall-need` | intent `request_item`, `item=agua`, communicated, correctness 1, no errors, `resolvedBy: Fuzzy`, confidence 0.952 (a near miss, an inflected form of the answer; see [Near misses](#near-misses)) | the same two agent lines and `decision: rating Easy, learner skills 1, feedback items 0` |
-| `--transcript "ayer tengo dos frutas" --prompt lesson-have` | intent `state_have`, `item=fruta`, communicated, correctness 0.15, `vocab.wrong` (`ayer`, not an answer of the constrained prompt) and `conj.tense` (`tengo` to `tuve`), `resolvedBy: Rules`, confidence 0.9 | `agent: ¡Eso es! «Ayer tuve dos frutas».`, `agent: ¡Muy bien!` and `decision: rating Hard, learner skills 3, feedback items 2` |
+| `--transcript "ayer tengo dos frutas" --prompt lesson-have` | intent `state_have`, `item=fruta`, communicated, correctness 0.75, `conj.tense` (`tengo` to `tuve`), `resolvedBy: Rules`, confidence 0.9 | `agent: ¡Eso es! «Ayer tuve dos frutas».`, `agent: ¡Muy bien!` and `decision: rating Good, learner skills 2, feedback items 1` |
 | `--transcript "bla bla" --prompt villager-open` | intent `unknown`, not communicated, correctness 0.2, two `vocab.unknown` errors, `resolvedBy: Unresolved`, confidence 0 | `agent: No te entendí. ¿Me lo dices otra vez?`, `repair: AskAgain ¿Cómo?`, `decision: rating Again, learner skills 1, feedback items 1` |
 | the same with `--repeat not_communicated=1` (the second failure) | as above | `repair: SlowRepeat Perdón, te lo repito más despacio.` |
 | the same with `--repeat not_communicated=2` (the third failure) | as above | `repair: OfferChoices ¿Quieres decir «árbol», «piedra» o «río»?` |
 
 The first rows show a constrained prompt: the answer set matched, and the intent grammar reads the same words. The fourth shows what the same prompt makes of a
-sentence that is not one of its phrases: the intent is found by the keyword rule, the words outside the answer set are `vocab.wrong`, and the tense is still
-checked.
+sentence that is not one of its phrases: the intent is found by the keyword rule, and the tense is still checked. Before M67 the first word outside the answer
+set was also `vocab.wrong` (`ayer`, correctness 0.15); the sentence was understood and is far from every phrase, so it has no miss for the tag to explain.
 
 ## Guarantees
 

@@ -190,6 +190,12 @@
         { "lineId": "guide.review.phrase.no_gracias.1", "text": "¿Quieres agua?" }
       ]
     },
+    "guide_understood": {
+      "poolId": "guide_understood",
+      "variants": [
+        { "lineId": "guide_understood.1", "text": "Te entiendo. ¿Qué quieres aprender?" }
+      ]
+    },
     "guide.uncertain": {
       "poolId": "guide.uncertain",
       "variants": [
@@ -386,6 +392,24 @@
         { "lineId": "shop_thank.2", "text": "¡Con gusto!" }
       ]
     },
+    "shop_understood": {
+      "poolId": "shop_understood",
+      "variants": [
+        { "lineId": "shop_understood.1", "text": "Te entiendo. ¿Quieres comprar algo?" }
+      ]
+    },
+    "shop_nice": {
+      "poolId": "shop_nice",
+      "variants": [
+        { "lineId": "shop_nice.1", "text": "¡Qué bien!" }
+      ]
+    },
+    "shop_true": {
+      "poolId": "shop_true",
+      "variants": [
+        { "lineId": "shop_true.1", "text": "Sí, es verdad." }
+      ]
+    },
     "shop_bye": {
       "poolId": "shop_bye",
       "variants": [
@@ -437,6 +461,24 @@
       "variants": [
         { "lineId": "villager_thank.1", "text": "De nada." },
         { "lineId": "villager_thank.2", "text": "¡Con gusto!" }
+      ]
+    },
+    "villager_understood": {
+      "poolId": "villager_understood",
+      "variants": [
+        { "lineId": "villager_understood.1", "text": "Te entiendo. ¿Qué buscas?" }
+      ]
+    },
+    "villager_nice": {
+      "poolId": "villager_nice",
+      "variants": [
+        { "lineId": "villager_nice.1", "text": "¡Qué bien!" }
+      ]
+    },
+    "villager_true": {
+      "poolId": "villager_true",
+      "variants": [
+        { "lineId": "villager_true.1", "text": "Sí, es verdad." }
       ]
     },
     "villager_bye": {
@@ -776,6 +818,24 @@
         { "lineId": "fisher_thank.2", "text": "¡Con gusto!" }
       ]
     },
+    "fisher_understood": {
+      "poolId": "fisher_understood",
+      "variants": [
+        { "lineId": "fisher_understood.1", "text": "Te entiendo. ¿Buscas un lugar?" }
+      ]
+    },
+    "fisher_nice": {
+      "poolId": "fisher_nice",
+      "variants": [
+        { "lineId": "fisher_nice.1", "text": "¡Qué bien!" }
+      ]
+    },
+    "fisher_true": {
+      "poolId": "fisher_true",
+      "variants": [
+        { "lineId": "fisher_true.1", "text": "Sí, es verdad." }
+      ]
+    },
     "fisher_bye": {
       "poolId": "fisher_bye",
       "variants": [
@@ -898,6 +958,24 @@
         { "lineId": "baker_cant_pay.1", "text": "Necesitas más monedas." }
       ]
     },
+    "baker_wait": {
+      "poolId": "baker_wait",
+      "variants": [
+        { "lineId": "baker_wait.1", "text": "Primero, la lección. Luego, las monedas." }
+      ]
+    },
+    "shop_wont_sell": {
+      "poolId": "shop_wont_sell",
+      "variants": [
+        { "lineId": "shop_wont_sell.1", "text": "No tengo eso. Tengo agua y pan." }
+      ]
+    },
+    "villager_wont_sell": {
+      "poolId": "villager_wont_sell",
+      "variants": [
+        { "lineId": "villager_wont_sell.1", "text": "Solo tengo pan." }
+      ]
+    },
     "baker_help": {
       "poolId": "baker_help",
       "variants": [
@@ -909,6 +987,24 @@
       "variants": [
         { "lineId": "baker_thank.1", "text": "De nada." },
         { "lineId": "baker_thank.2", "text": "¡Con gusto!" }
+      ]
+    },
+    "baker_understood": {
+      "poolId": "baker_understood",
+      "variants": [
+        { "lineId": "baker_understood.1", "text": "Te entiendo. ¿Quieres pan?" }
+      ]
+    },
+    "baker_nice": {
+      "poolId": "baker_nice",
+      "variants": [
+        { "lineId": "baker_nice.1", "text": "¡Qué bien!" }
+      ]
+    },
+    "baker_true": {
+      "poolId": "baker_true",
+      "variants": [
+        { "lineId": "baker_true.1", "text": "Sí, es verdad." }
       ]
     },
     "baker_bye": {
@@ -1045,6 +1141,30 @@
         { "lineId": "smith_thank.2", "text": "¡Con gusto!" }
       ]
     },
+    "smith_understood": {
+      "poolId": "smith_understood",
+      "variants": [
+        { "lineId": "smith_understood.1", "text": "Te entiendo. Yo hago hachas." }
+      ]
+    },
+    "smith_nice": {
+      "poolId": "smith_nice",
+      "variants": [
+        { "lineId": "smith_nice.1", "text": "¡Qué bien!" }
+      ]
+    },
+    "smith_true": {
+      "poolId": "smith_true",
+      "variants": [
+        { "lineId": "smith_true.1", "text": "Sí, es verdad." }
+      ]
+    },
+    "smith_ok": {
+      "poolId": "smith_ok",
+      "variants": [
+        { "lineId": "smith_ok.1", "text": "Está bien." }
+      ]
+    },
     "smith_bye": {
       "poolId": "smith_bye",
       "variants": [
@@ -1093,6 +1213,24 @@
       "variants": [
         { "lineId": "farmer_thank.1", "text": "De nada." },
         { "lineId": "farmer_thank.2", "text": "¡Con gusto!" }
+      ]
+    },
+    "farmer_understood": {
+      "poolId": "farmer_understood",
+      "variants": [
+        { "lineId": "farmer_understood.1", "text": "Te entiendo. ¿Quieres manzanas?" }
+      ]
+    },
+    "farmer_nice": {
+      "poolId": "farmer_nice",
+      "variants": [
+        { "lineId": "farmer_nice.1", "text": "¡Qué bien!" }
+      ]
+    },
+    "farmer_true": {
+      "poolId": "farmer_true",
+      "variants": [
+        { "lineId": "farmer_true.1", "text": "Sí, es verdad." }
       ]
     },
     "farmer_bye": {
@@ -1418,13 +1556,19 @@
     "farmer_wont_buy": {
       "poolId": "farmer_wont_buy",
       "variants": [
-        { "lineId": "farmer_wont_buy.1", "text": "No, gracias. Solo compro fruta." }
+        { "lineId": "farmer_wont_buy.1", "text": "No compro eso. Compro fruta del bosque." }
       ]
     },
     "farmer_total": {
       "poolId": "farmer_total",
       "variants": [
         { "lineId": "farmer_total.1", "text": "Quince manzanas, quince monedas." }
+      ]
+    },
+    "farmer_unit": {
+      "poolId": "farmer_unit",
+      "variants": [
+        { "lineId": "farmer_unit.1", "text": "Una manzana, una moneda." }
       ]
     },
     "farmer_pay": {

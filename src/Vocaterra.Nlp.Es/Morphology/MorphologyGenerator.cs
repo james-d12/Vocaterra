@@ -322,7 +322,8 @@ public sealed class MorphologyGenerator : IMorphology
     /// <c>luces</c>, <c>relojes</c>); the slip is the <c>-s</c> of a noun that ends in a vowel (<c>pans</c>), or <c>-es</c> after a <c>z</c> left unchanged
     /// (<c>luzes</c>). Nouns that end in another consonant are mostly loans that take <c>-s</c> (<c>robots</c>, <c>clubs</c>, <c>tickets</c>), so they are not
     /// considered. The noun is found as written or without its accents (<c>cancions</c> is <c>canción</c>), and the expected plural is the lexicon's (or the rule's).
-    /// A form the lexicon knows, accents ignored, is never reported.
+    /// A form the lexicon knows, accents ignored, is never reported. M66: an adjective that ends in one of those consonants is the same slip (<c>azuls</c> for
+    /// <c>azules</c>, <c>felizs</c> for <c>felices</c>), found after the nouns.
     /// </remarks>
     public bool TryGetPluralSlip(string form, out PluralSlip result)
     {
@@ -354,6 +355,22 @@ public sealed class MorphologyGenerator : IMorphology
             }
 
             var expected = InflectNoun(reading.Lemma, LexiconSchema.Plural);
+            if (expected.EndsWith("es", StringComparison.Ordinal) && !string.Equals(expected, form, StringComparison.Ordinal))
+            {
+                result = new PluralSlip(reading.Lemma, expected);
+                return true;
+            }
+        }
+
+        // M66: an adjective that ends in one of those consonants takes -es as well (azul: azules, not azuls; feliz: felices; joven: jóvenes), in either gender.
+        foreach (var reading in _lexicon.Lookup(stem))
+        {
+            if (reading.Pos != LexiconSchema.Adjective || reading.Number is not (null or LexiconSchema.Singular))
+            {
+                continue;
+            }
+
+            var expected = AgreeAdjective(reading.Lemma, reading.Gender ?? LexiconSchema.Masculine, LexiconSchema.Plural);
             if (expected.EndsWith("es", StringComparison.Ordinal) && !string.Equals(expected, form, StringComparison.Ordinal))
             {
                 result = new PluralSlip(reading.Lemma, expected);
@@ -662,9 +679,29 @@ public sealed class MorphologyGenerator : IMorphology
                     }
                 }
             }
+
+            AddPreteriteSpellingSlip(index, lemma, cells[CellIndex(tenses, numbers, persons, LexiconSchema.Preterite, LexiconSchema.Singular, "1")]);
         }
 
         return index;
+    }
+
+    // M70 (QA-language-9): the first person of the preterite of a verb in -car, -gar or -zar changes its spelling before the é (busqué, llegué, empecé), and the
+    // learner's slip keeps the stem as it is (buscé, llegé, empezé). The slip is the regular cell written without the change, so it reads as the verb with
+    // conj.irregular and the lexicon's form as expected, as a missed stem change does. Only the accented spelling is taken: written without its accent (busce, llege)
+    // it is no form a reader would take for that cell. The caller reads the index only for a word the lexicon lacks, so a real word is never this slip.
+    private static void AddPreteriteSpellingSlip(Dictionary<string, RegularizedForm> index, string lemma, string? actual)
+    {
+        if (actual is null || !lemma.EndsWith("ar", StringComparison.Ordinal) || lemma.Length < 5 || lemma[^3] is not ('c' or 'g' or 'z'))
+        {
+            return;
+        }
+
+        var slip = lemma[..^2] + "é";
+        if (!string.Equals(slip, actual, StringComparison.Ordinal))
+        {
+            index.TryAdd(slip, new RegularizedForm(lemma, actual, "1", LexiconSchema.Singular, LexiconSchema.Preterite));
+        }
     }
 
     private static int CellIndex(string[] tenses, string[] numbers, string[] persons, string? tense, string? number, string? person)

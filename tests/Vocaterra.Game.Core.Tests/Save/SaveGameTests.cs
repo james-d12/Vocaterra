@@ -50,7 +50,7 @@ public sealed class SaveGameTests
         Assert.Equal(session.Simulation.ComputeStateDigest(), loaded.Simulation.ComputeStateDigest());
         Assert.Equal(session.StoredTime, loaded.StoredTime);
         Assert.Equal(session.SkippedSeconds, loaded.SkippedSeconds);
-        Assert.Equal(session.PlaySession, loaded.PlaySession);
+        Assert.Equal(session.Day, loaded.Day);
         Assert.Equal(session.Objective.Summary, loaded.Objective.Summary);
         Assert.Equal(session.Simulation.Inventory.Slots, loaded.Simulation.Inventory.Slots);
         Assert.Equal(session.Simulation.SelectedSlot, loaded.Simulation.SelectedSlot);
@@ -137,9 +137,8 @@ public sealed class SaveGameTests
         var loaded = LoadOf(first);
         var second = SaveOf(loaded);
 
-        Assert.Equal(2, loaded.PlaySession);
-        // S26: the new session points the beacon at the NPC of its new lesson (Personas, the villager); nothing else differs.
-        Assert.Equal(SaveGame.Serialize(SaveGame.Parse(first) with { Session = 2, Pointer = new PointerSave(loaded.Pointer!.Place, loaded.Pointer.Target) }), second);
+        Assert.Equal(1, loaded.Day); // V25: a load keeps the day; the sitting is the next one, and nothing else differs
+        Assert.Equal(SaveGame.Serialize(SaveGame.Parse(first) with { Sitting = 2 }), second);
     }
 
     [Fact]
@@ -193,7 +192,7 @@ public sealed class SaveGameTests
         Assert.Equal(1, sameSession.PhraseProgress.RecordOf("pedir-agua").CreditedUses); // the gap still stands in the same session
 
         var nextSession = LoadOf(text, credit);
-        Assert.Equal(2, nextSession.PlaySession);
+        Assert.Equal((1, 2), (nextSession.Day, nextSession.Sitting)); // the day is the save's, the sitting the next one (V25)
         _ = nextSession.PhraseProgress.Apply(Use("pedir-agua", PhraseUseKind.Supported, T0 + 60), credit);
         Assert.Equal(2, nextSession.PhraseProgress.RecordOf("pedir-agua").CreditedUses); // a new session lifts it: creditable
         Assert.Equal(2, nextSession.PhraseProgress.RecordOf("pedir-agua").LastCreditedSession);
@@ -208,7 +207,8 @@ public sealed class SaveGameTests
         var loaded = LoadOf(text);
 
         // The original is put in the next session at the same moment the load puts the other one there; then both run the same ticks and turns.
-        original.PlaySession = loaded.PlaySession;
+        original.Day = loaded.Day;
+        original.Sitting = loaded.Sitting;
         Continue(original);
         Continue(loaded);
 
@@ -242,9 +242,40 @@ public sealed class SaveGameTests
 
         var loaded = LoadOf(SaveOf(session));
 
-        Assert.True(loaded.KeyWordsTaught);
+        Assert.Equal([NpcService.ShopkeeperAgent], loaded.KeyWordsTaughtBy);
+        Assert.False(loaded.KeyWordsTaughtFor("baker"));
         Assert.Contains("agua", loaded.CardedLemmas());
         Assert.Contains("pan", loaded.CardedLemmas());
+    }
+
+    [Fact]
+    public void TheOldKeyWordsFlagIsTheShopkeepersAndNotAnyNpcs()
+    {
+        // V30: older builds, and this build's reader of a save with no list, read the flag as the shopkeeper's.
+        var baker = TestGame.NewSession();
+        baker.RestoreKeyWordsTaught(["baker"]);
+
+        Assert.False(SaveGame.Parse(SaveOf(baker)).KeyWordsTaught);
+        var shop = TestGame.NewSession();
+        shop.OpenTalk(NpcService.ShopkeeperAgent, teachKeyWords: true);
+        shop.FinishKeyWords();
+        _ = shop.TakeOpening();
+        shop.EndTalk();
+        Assert.True(SaveGame.Parse(SaveOf(shop)).KeyWordsTaught);
+    }
+
+    [Fact]
+    public void AnOlderSavesKeyWordsFlagMeansTheShopkeepersAndANewGameHasNone()
+    {
+        var session = TestGame.NewSession();
+        session.OpenTalk(NpcService.ShopkeeperAgent, teachKeyWords: true);
+        session.FinishKeyWords();
+        _ = session.TakeOpening();
+        session.EndTalk();
+        var older = SaveGame.Serialize(SaveGame.Parse(SaveOf(session)) with { KeyWordsTaughtBy = null }); // a save from before V23a has the flag alone
+
+        Assert.Equal([NpcService.ShopkeeperAgent], LoadOf(older).KeyWordsTaughtBy);
+        Assert.Empty(LoadOf(SaveGame.Serialize(SaveGame.Parse(SaveOf(TestGame.NewSession())) with { KeyWordsTaughtBy = null })).KeyWordsTaughtBy);
     }
 
     [Fact]

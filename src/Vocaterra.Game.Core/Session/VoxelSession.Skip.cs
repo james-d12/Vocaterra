@@ -1,5 +1,6 @@
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Voxel;
 
 namespace Vocaterra.Game.Core.Session;
@@ -32,7 +33,7 @@ public sealed partial class VoxelSession
 
                     // The shopkeeper gave that bottle, at a first visit that taught his key words (V09): without his part a later visit failed forward with a
                     // second bottle and a use of his phrase the learner never made, and his key words stood alone again.
-                    KeyWordsTaught = true;
+                    MarkKeyWordsTaught(NpcService.ShopkeeperAgent);
                     Conversation.SkipShopkeeperBottle();
                 }
             }
@@ -98,10 +99,10 @@ public sealed partial class VoxelSession
             var coins = Simulation.Inventory.Count(ItemId.Coin);
             if (coins < cost)
             {
-                throw new InvalidOperationException($"The skip cannot make session {PlaySession}'s purchase of {purchase.Count} {item} from {purchase.Npc}: the sessions before leave {coins} coins, and it costs {cost}.");
+                throw new InvalidOperationException($"The skip cannot make session {Day}'s purchase of {purchase.Count} {item} from {purchase.Npc}: the sessions before leave {coins} coins, and it costs {cost}.");
             }
 
-            throw new InvalidOperationException($"The skip cannot make session {PlaySession}'s purchase of {purchase.Count} {item} from {purchase.Npc}: the bag has no room for them.");
+            throw new InvalidOperationException($"The skip cannot make session {Day}'s purchase of {purchase.Count} {item} from {purchase.Npc}: the bag has no room for them.");
         }
     }
 

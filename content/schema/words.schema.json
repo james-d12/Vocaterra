@@ -17,6 +17,7 @@
     "helpLine",
     "dontKnowLine",
     "nearFuture",
+    "obligation",
     "greeting",
     "letters",
     "nouns"
@@ -185,6 +186,23 @@
         }
       },
       "description": "ir a + infinitive: the verb, its joiner, and the time words that make a present a plan (at an ir-a or a fut step of a lesson). A time word of several words (semana que viene) is matched as a whole, its words in order (V16)."
+    },
+    "obligation": {
+      "type": "object",
+      "required": [
+        "verb",
+        "joiner"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "verb": {
+          "$ref": "#/definitions/word"
+        },
+        "joiner": {
+          "$ref": "#/definitions/word"
+        }
+      },
+      "description": "tener que + infinitive (V21b, the book's column \"must\"): the verb, in the present, and the word between it and the infinitive."
     },
     "greeting": {
       "$ref": "#/definitions/word",

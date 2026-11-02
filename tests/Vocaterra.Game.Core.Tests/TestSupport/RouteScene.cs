@@ -2,8 +2,6 @@ using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Language.Lessons;
-using Vocaterra.Game.Core.Language.Phrases;
-using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.World;

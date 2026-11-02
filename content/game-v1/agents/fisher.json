@@ -2,8 +2,11 @@
   "agentId": "fisher",
   "initialState": "idle",
   "variantPools": [
+    { "id": "fisher_true", "count": 1 },
+    { "id": "fisher_understood", "count": 1 },
     { "id": "answer_accepted", "count": 3 },
     { "id": "not_understood", "count": 2 },
+    { "id": "fisher_nice", "count": 1 },
     { "id": "fisher_bye", "count": 2 },
     { "id": "fisher_delivered", "count": 1 },
     { "id": "fisher_far", "count": 1 },
@@ -19,6 +22,8 @@
     {
       "id": "idle",
       "transitions": [
+        { "onHostEvent": "fisher.understood", "to": "idle", "actions": [{ "dialogueIntent": "fisher_understood", "variantPoolId": "fisher_understood" }] },
+        { "onHostEvent": "fisher.true", "to": "idle", "actions": [{ "dialogueIntent": "fisher_true", "variantPoolId": "fisher_true" }] },
         { "onHostEvent": "fisher.greet", "to": "idle", "actions": [{ "dialogueIntent": "fisher_hello", "variantPoolId": "fisher_hello" }] },
         { "onHostEvent": "fisher.delivered", "to": "idle", "actions": [{ "dialogueIntent": "fisher_delivered", "hostEvent": "fisher.pay", "variantPoolId": "fisher_delivered" }] },
         { "on": {"intent": "greet", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "fisher_greet", "variantPoolId": "fisher_greet" }] },
@@ -28,7 +33,7 @@
         { "on": {"intent": "ask_far", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "fisher_far", "variantPoolId": "fisher_far" }] },
         { "on": {"intent": "ask_help", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "fisher_help", "variantPoolId": "fisher_help" }] },
         { "on": {"intent": "dont_know", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "fisher_help", "variantPoolId": "fisher_help" }] },
-        { "on": {"intent": "state_action", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
+        { "on": {"intent": "state_action", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "fisher_nice", "variantPoolId": "fisher_nice" }] },
         { "on": {"intent": "thank", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "fisher_thank", "variantPoolId": "fisher_thank" }] },
         { "on": {"intent": "farewell", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "fisher_bye", "variantPoolId": "fisher_bye" }] },
         { "on": {"communicated": false}, "to": "idle", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
@@ -40,6 +45,7 @@
     {
       "id": "pointing",
       "transitions": [
+        { "onHostEvent": "fisher.understood", "to": "pointing", "actions": [{ "dialogueIntent": "fisher_understood", "variantPoolId": "fisher_understood" }] },
         { "onHostEvent": "fisher.greet", "to": "pointing", "actions": [{ "dialogueIntent": "fisher_hello", "variantPoolId": "fisher_hello" }] },
         { "onHostEvent": "fisher.delivered", "to": "pointing", "actions": [{ "dialogueIntent": "fisher_delivered", "hostEvent": "fisher.pay", "variantPoolId": "fisher_delivered" }] },
         { "on": {"intent": "greet", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "fisher_greet", "variantPoolId": "fisher_greet" }] },
@@ -49,7 +55,7 @@
         { "on": {"intent": "ask_far", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "fisher_near", "variantPoolId": "fisher_near" }] },
         { "on": {"intent": "ask_help", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "fisher_help", "variantPoolId": "fisher_help" }] },
         { "on": {"intent": "dont_know", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "fisher_help", "variantPoolId": "fisher_help" }] },
-        { "on": {"intent": "state_action", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
+        { "on": {"intent": "state_action", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "fisher_nice", "variantPoolId": "fisher_nice" }] },
         { "on": {"intent": "thank", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "fisher_thank", "variantPoolId": "fisher_thank" }] },
         { "on": {"intent": "farewell", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "fisher_bye", "variantPoolId": "fisher_bye" }] },
         { "on": {"communicated": false}, "to": "pointing", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }

@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Text;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Language.Lessons;
-using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Save;
@@ -32,7 +31,8 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
     private static VoxelSession SessionTwoAtVillager()
     {
         var session = TestGame.NewSessionWithShippedLessons();
-        session.PlaySession = 2;
+        session.Day = 2;
+        session.Sitting = 2;
         Stage.TeleportToNpc(session, "villager");
         _ = session.OpenTalk("villager");
         return session;
@@ -255,7 +255,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         var session = TestGame.NewSessionWithShippedLessons();
         Stage.TeleportToNpc(session, "villager");
 
-        Assert.Equal(1, session.PlaySession);
+        Assert.Equal(1, session.Day);
         Assert.Null(session.Lessons.OfferFor("villager"));
         Assert.Null(session.Lessons.NewLesson);
         var opening = session.OpenTalk("villager");
@@ -268,7 +268,8 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
     public void SessionTwoUnlocksPersonasAndTheObjectiveNamesIt()
     {
         var session = TestGame.NewSessionWithShippedLessons();
-        session.PlaySession = 2;
+        session.Day = 2;
+        session.Sitting = 2;
 
         var offer = session.Lessons.OfferFor("villager");
         Assert.Equal("personas", offer!.LessonId);
@@ -282,7 +283,8 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
     public void WhenSessionTwoOpensTheBeaconPointsAtTheVillager()
     {
         var session = TestGame.NewSessionWithShippedLessons();
-        session.PlaySession = 2;
+        session.Day = 2;
+        session.Sitting = 2;
 
         session.BeginPlaySession();
 
@@ -306,14 +308,17 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         var session = AtGuide();
         _ = LessonDriver.CompleteAll(session);
         session.EndTalk();
+        session.Day = 2; // the sleep at the fire (V25: a load keeps the day, only a sleep moves it)
+        session.Sitting = 2;
+        session.BeginPlaySession();
 
         var text = SaveGame.Save(session, TestGame.Route());
         var document = SaveGame.Parse(text);
         var loaded = SaveGame.Load(text, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped);
 
         Assert.Equal(SaveGame.CurrentVersion, document.Version);
-        Assert.Equal(1, document.Session);
-        Assert.Equal(2, loaded.PlaySession);
+        Assert.Equal(2, document.Session);
+        Assert.Equal(2, loaded.Day);
         Assert.Equal("personas", loaded.Lessons.NewLesson!.Id);
         Assert.NotNull(loaded.Pointer); // the beacon points at the villager
         Assert.Equal(LessonStatus.Completed, loaded.Lessons.StatusOf("first-words"));
@@ -482,7 +487,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
             var text = Plain(LessonText(lesson));
             foreach (var form in lesson.TaughtVerbs)
             {
-                var word = form.Text(TestGame.Bundle.SpanishMorphology(), TestGame.Data.Words.NearFuture); // voy a comer for the near future (ir-a): ir's present, a and the infinitive
+                var word = form.Text(TestGame.Bundle.SpanishMorphology(), TestGame.Data.Words.NearFuture, TestGame.Data.Words.Obligation); // voy a comer for the near future (ir-a): ir's present, a and the infinitive
                 Assert.True(word is not null, $"{lesson.Id}: the core has no form for {Show(form)}.");
                 Assert.True(text.Contains(Plain(word), StringComparison.Ordinal), $"{lesson.Id} declares {Show(form)} ({word}) but never shows it.");
             }

@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using Vocaterra.Game.Core.Content;
+using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.World.Layout;
@@ -100,7 +101,27 @@ if (options.ValidateContent || options.GrammarStringsOut is not null)
 
 // The NPCs' names, so that a line naming its listener (Luz, quiero pan) is read as the game reads it (V14).
 var names = NpcRoster.Load(bundle).All.Where(static npc => npc.Name is not null).ToDictionary(static npc => npc.Id, static npc => npc.Name!, StringComparer.Ordinal);
-var session = new ConversationSession(bundle, listenerNames: names);
+Inventory? bag = null;
+if (options.Bag is { } entries)
+{
+    bag = new Inventory();
+    foreach (var entry in entries)
+    {
+        if (ItemDefinition.All.FirstOrDefault(item => string.Equals(item.Name, entry.Item, StringComparison.Ordinal)) is not { } definition)
+        {
+            Console.Error.WriteLine($"There is no item '{entry.Item}'. The items are: {string.Join(", ", ItemDefinition.All.Select(static item => item.Name))}.");
+            return ExitUsage;
+        }
+
+        if (entry.Count > 0 && bag.Add(definition.Id, entry.Count) > 0)
+        {
+            Console.Error.WriteLine($"The bag has no room for {entry.Count} {entry.Item}.");
+            return ExitUsage;
+        }
+    }
+}
+
+var session = new ConversationSession(bundle, listenerNames: names, bag: bag);
 if (options.Transcript is { } transcript && options.PromptId is { } oneShotPrompt)
 {
     if (!session.HasPrompt(oneShotPrompt))
@@ -109,7 +130,7 @@ if (options.Transcript is { } transcript && options.PromptId is { } oneShotPromp
         return ExitUsage;
     }
 
-    VerdictReport.Write(Console.Out, oneShotPrompt, transcript, session.Evaluate(transcript, oneShotPrompt, oneShotTime));
+    VerdictReport.Write(Console.Out, oneShotPrompt, transcript, session.Evaluate(transcript, oneShotPrompt, oneShotTime), session.LastExchange, names.Values);
     return ExitOk;
 }
 
@@ -119,11 +140,11 @@ if (options.PromptId is { } startPrompt && !session.HasPrompt(startPrompt))
     return ExitUsage;
 }
 
-return RunLoop(session, options.PromptId ?? session.PromptIds[0]);
+return RunLoop(session, options.PromptId ?? session.PromptIds[0], names.Values);
 
 // The text loop: show the current prompt, read a line, evaluate it and print the outcome. The session carries the agent states, the learner
-// model and the repeat counts from one line to the next; /prompt <id> changes the prompt and /quit leaves.
-static int RunLoop(ConversationSession session, string promptId)
+// model and the repeat counts from one line to the next; /prompt <id> changes the prompt and /quit leaves. A correction line spells the NPCs' names as the game shows it.
+static int RunLoop(ConversationSession session, string promptId, IEnumerable<string> names)
 {
     var bundle = session.Bundle;
     Console.WriteLine(string.Create(
@@ -172,7 +193,7 @@ static int RunLoop(ConversationSession session, string promptId)
             continue;
         }
 
-        VerdictReport.Write(Console.Out, promptId, text, session.Evaluate(text, promptId, Now()));
+        VerdictReport.Write(Console.Out, promptId, text, session.Evaluate(text, promptId, Now()), session.LastExchange, names);
         Console.WriteLine();
     }
 }

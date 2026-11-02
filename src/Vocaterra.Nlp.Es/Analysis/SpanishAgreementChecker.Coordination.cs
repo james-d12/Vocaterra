@@ -28,15 +28,22 @@ internal sealed partial class SpanishAgreementChecker
     // The subject a subject pronoun ends when y or e joins it to the members before it: the person of its verb ("1" when a member is of the first person, else "2" when
     // one is of the second, else "3"; always plural) and its gender, known only when every member has one (ella y él: masculine; ella y ella: feminine; yo, tú, usted, a
     // name: none).
-    private readonly record struct CoordinatedSubject(string Person, string? Gender)
+    //
+    // M66: with o (or u) the verb may also agree with the member nearest it, the pronoun itself (tú o yo vamos, tú o yo voy), so Nearest holds that member's cell; with y
+    // and ni it is null.
+    private readonly record struct CoordinatedSubject(string Person, string? Gender, (string Person, string Number)? Nearest = null)
     {
-        // The person and number cells of a verb that agrees with the subject; a correction proposes the first.
-        public IReadOnlyList<(string Person, string Number)> Cells => Person switch
+        // The plural cells of a verb that agrees with the subject by the person rule of y.
+        public IReadOnlyList<(string Person, string Number)> PluralCells => Person switch
         {
             "1" => FirstPersonPlural,
             "2" => SecondPersonPlural,
             _ => ThirdPersonPlural,
         };
+
+        // The person and number cells of a verb that agrees with the subject, the plural ones and with o the nearest member's; a correction proposes the first.
+        public IReadOnlyList<(string Person, string Number)> Cells =>
+            Nearest is { } nearest && !PluralCells.Contains(nearest) ? [.. PluralCells, nearest] : PluralCells;
     }
 
     // A member of a coordination before y or e: where it starts, its person and gender, and whether it is surely a member (a pronoun or a noun phrase and nothing else).
@@ -51,20 +58,31 @@ internal sealed partial class SpanishAgreementChecker
     // clause before (mar pescó y yo comí pescado: None). A member that neither opens its clause nor follows a verb or a preposition (a list said without its commas, luz
     // mar y yo) and one that may be something else (a phrase of time, a bare noun that is also an adverb or an interjection, a pronoun that is also another word) cannot
     // be told: Unknown, and the verb is not checked.
+    //
+    // M66: ni and o (u) join a subject as y does. ni ... ni takes the person rule of y (ni tú ni yo fuimos, ni ella ni yo somos altas); o takes it too and also the
+    // form of the member nearest the verb, the pronoun (tú o yo vamos, tú o yo voy, tú o ella son, tú o ella eres). Both may say their word before the first member as
+    // well (ni tú ni yo, o tú o yo), and then that word is where the clause has to open. A coordination that mixes them (tú y ella o yo) cannot be told.
     private Coordination CoordinationOf(int pronounIndex, LexicalFeatures pronoun, out CoordinatedSubject subject)
     {
         subject = default;
         var persons = new List<string> { pronoun.Person! };
         var genders = new List<string?> { pronoun.Gender };
         var start = pronounIndex;
-        while (start >= 2 && TextOf(start - 1) is "y" or "e")
+        string? kind = null;
+        while (start >= 2 && CoordinatorKind(TextOf(start - 1)) is { } coordinator)
         {
+            if (kind is not null && kind != coordinator)
+            {
+                return Coordination.Unknown;
+            }
+
+            kind = coordinator;
             if (!TryReadMemberEndingAt(start - 2, out var member) || FollowsVerbOrPreposition(member.Start))
             {
                 break;
             }
 
-            if (!member.Certain || !IsClauseStart(member.Start))
+            if (!member.Certain)
             {
                 return Coordination.Unknown;
             }
@@ -79,10 +97,35 @@ internal sealed partial class SpanishAgreementChecker
             return Coordination.None;
         }
 
+        // The first member opens the clause (a member after y always does, y being an opener). The first member of ni ... ni (o ... o) may have the word before it
+        // too, and the clause then opens before that word.
+        var opening = start;
+        if (kind is "ni" or "o" && opening > 0 && CoordinatorKind(TextOf(opening - 1)) == kind)
+        {
+            opening--;
+        }
+
+        if (!IsClauseStart(opening))
+        {
+            return Coordination.Unknown;
+        }
+
         var person = persons.Contains("1") ? "1" : persons.Contains("2") ? "2" : "3";
         var gender = genders.Exists(static g => g is null) ? null : genders.Contains(LexiconSchema.Masculine) ? LexiconSchema.Masculine : LexiconSchema.Feminine;
-        subject = new CoordinatedSubject(person, gender);
+        subject = new CoordinatedSubject(person, gender, kind == "o" ? (pronoun.Person!, pronoun.Number!) : null);
         return Coordination.Subject;
+    }
+
+    // M66: the kind of the word that joins two members of a subject: y (y, e), o (o, u) or ni; null for any other word.
+    private static string? CoordinatorKind(string word)
+    {
+        return word switch
+        {
+            "y" or "e" => "y",
+            "o" or "u" => "o",
+            "ni" => "ni",
+            _ => null,
+        };
     }
 
     // The member of a coordination that ends at index: a word the lexicon lacks (a name), a subject pronoun or the noun phrase that ends there, with the phrases that
@@ -143,7 +186,8 @@ internal sealed partial class SpanishAgreementChecker
     // panes es poco, quince monedas es mucho, dos panes no es nada. son is as right (dos panes son suficientes). The predicate is a word of
     // SpanishAnalysisTables.AmountPredicates (mucho, poco, suficiente, caro...), past at most two adverbs, or a noun phrase of the singular with a determiner (mucho dinero,
     // un buen precio). Still flagged: a phrase with no number (las manzanas es roja), another verb (dos niños come pan), a predicate of the plural (dos panes es
-    // suficientes) and one that says no amount (dos manzanas es roja).
+    // suficientes) and one that says no amount (dos manzanas es roja). M73 (M72's finding): a price (caro, barato) is a sum's only when the amount is money (diez monedas
+    // es caro); goods are dear themselves, in the plural (dos panes es caro -> son, caros; before M73 it was clean).
     private bool IsAmountReadAsUnit(int verb, LexicalFeatures copula, PreverbalSubject subject)
     {
         if (copula is not { Lemma: "ser", Number: LexiconSchema.Singular }
@@ -161,7 +205,7 @@ internal sealed partial class SpanishAgreementChecker
         {
             if (SpanishAnalysisTables.IsAmountPredicate(TextOf(index)))
             {
-                return true;
+                return !SpanishAnalysisTables.IsPricePredicate(TextOf(index)) || IsMoney(subject.Phrases[0].Head);
             }
 
             if (TryReadNounPhrase(index, out var predicate))
@@ -176,5 +220,12 @@ internal sealed partial class SpanishAgreementChecker
         }
 
         return false;
+    }
+
+    // M73: the noun at index is a money unit (monedas, euros, pesos) in every noun reading it has.
+    private bool IsMoney(int index)
+    {
+        var nouns = Readings(index, static r => r.Pos == LexiconSchema.Noun);
+        return nouns.Count > 0 && nouns.TrueForAll(static r => SpanishAnalysisTables.IsMoneyNoun(r.Lemma));
     }
 }

@@ -1,7 +1,5 @@
 using System.Globalization;
 using System.Text;
-using Vocaterra.Nlp.Core.Stages;
-using Vocaterra.Nlp.Core.Verdicts;
 
 namespace Vocaterra.Nlp.Es.Phonology;
 

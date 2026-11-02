@@ -1,7 +1,5 @@
 namespace Vocaterra.Nlp.Es.Tests.Morphology;
 
-using Vocaterra.Nlp.Language.Morphology;
-
 public class SpanishOrthographyTests
 {
     [Theory]

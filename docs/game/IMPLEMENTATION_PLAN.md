@@ -2050,6 +2050,124 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     - the host demos (`quiero agua, por favor` at `stall-need`, `mañana compraré pan`);
     - the six new lines read.
   - **Left:** a zero request (`quiero cero panes`) still credits the phrase `quiero-dos-panes` as said, though nothing changes hands.
+- **QA pass, `language` (2026-11-01, the follow-ups' first item; the QA agent, Haiku; `docs/qa-reports/2026-11-01-language.md`).** On
+  `feature/village-followups` at `9dfa08b`, sessions 7 to 10 in depth: 384 CLI lines, 39 host lines, game runs. The orchestrator
+  reproduced every bug below through the host (the game's path) and the CLI.
+  - **Praise for the lesson's own error** (major, core):
+    - `las manzanas cuesta una moneda` at `farmer-open` gets "¡Muy bien!" (QA-3; to M66);
+    - `yo gusto el pan` and `me gusto el pan` get correctness 1 (QA-4; to M70);
+    - the present against a past question, at a constrained lesson prompt: `Luz compra pescado` at `lesson-luz-bought` (answer `luz compró
+      pescado`), `compro tres manzanas` at `lesson-market`, and `sí fue al río` at `lesson-water-went` all get correctness 1. The answer
+      match takes the near answer and reports nothing (QA-5, QA-10; to M67).
+  - **Broken recasts** (major, core): an unknown word is blamed on its neighbour, so `compré three manzanas` is recast «compré compré
+    manzanas» and `manana iré al río` «al iré al río» (QA-6; to M70).
+  - **Not understood:** `me llamo ana` (a learner's own name) gets "No te entendí" (QA-2; to M70). `cuanto son todo?` is read as
+    `describe` and praised (QA-8; to V20 (e)).
+  - **A preterite spelling slip:** `buscé` (for `busqué`) is an unknown word (core, to M70). The NPC then both praises a recast and
+    says "No te entendí" in the same turn (game, to V21) (QA-9).
+  - **For the owner:** `manana` for `mañana` is `vocab.unknown` at 0.6 with a correct recast, and `compre` is taken as the preterite
+    `compré` (QA-7 and an observation): how strict typed input is about `ñ` and the accent of a tense.
+  - **Not a bug:** the CLI and the host differ on lines with a greeting or the listener's name, because the host takes them out first
+    (V19). Briefs measure on the host (`scripts/try-lines.sh --host`, M65); the handover's 9.3 counts were taken on the CLI.
+  - **Corrected at M67 (2026-11-01):** QA-language-5 and 10 (the present against a past question) do not reach a learner. At a lesson
+    step the game makes `Luz compra pescado` a miss with a tense retry and the hint «compró» (V14,
+    `YesterdayLessonTests.ThePresentAtAPastStepIsAMissWithATenseRetry`); the host's `--transcript` path runs no lesson. The core change
+    that would turn it into a slip is parked (`M67b-answer-verb-forms`).
+- **QA pass, `progression` (2026-11-01; the QA agent, Haiku; `docs/qa-reports/2026-11-01-progression.md`).** On `9dfa08b`, 20 game
+  runs: the route of sessions 4 to 10 from `--skip-to-session`, the coin path (as planned: 0 coins at session 7), the orders, the
+  market, saves.
+  - **A load moves the session on** (major, game; QA-progression-1 and 2; the orchestrator confirmed it in `SaveGame.Restore`, which
+    sets the session to the saved one plus one, and in the runs' logs). A save in session 5 loads as session 6 while the objective still
+    names session 5, and the open order `oven-wood` is refused ("Necesitas más monedas"). A save made just after a sleep into session 9
+    loads as session 10 and session 9 is skipped. S10's rule ("a load is the next session") predates V12c's sessions by sleep. The
+    owner's answer: two counters (D-game-22, 2026-11-01). To V25, first in the game's queue.
+  - **Contradictory exchange lines** (minor, game; QA-progression-3 and 4): the farmer refuses apples with «No, gracias. Solo compro
+    fruta.» (apples are fruit); the baker refuses bread with «Necesitas más monedas.» while the order that pays is held back by the
+    lesson; `¿Cuánto es todo?` gets «Quince manzanas, quince monedas.» whatever the bag holds. To V21.
+  - **Small:** the do step `n4-wood` waits for a pickup when the bag already holds the wood; the objective still says "talk to the baker"
+    after the talk started the lesson; no line that the course is over after session 10's sleep; a farewell logged under the villager's
+    prompt id; a partly black first frame before any tick. To V23.
+  - **Checked and right:** the coin path, the market's wood sale, a mid-lesson save and load (the lesson resumes at its step).
+- **V22: name plates (2026-11-01, Sonnet 5.5; gated on `feature/village-followups` at `1ff8a5a`; the owner's design, D-game-22).** Run
+  beside the QA passes and M65, in its own worktree with a game-only build (the owner's "do whatever can be done in parallel").
+  - `NpcLabelLayer` was a 2D layer that drew every figure's plate on top. A pure `NamePlates.Select` (`UI/Hud/NamePlates.cs`) now
+    returns the faced NPC (`FigureDirector.Aimed`, the one E talks to, so no second range) and the beacon's NPC, one plate when they
+    are the same; the conversation's speaker is skipped as before.
+  - The plates are drawn inside `VoxelRenderer.DrawWorld` (a new `overlay` callback) after the figures, water and beacon and before the
+    first-person arm clears depth, with `DepthStencilState.DepthRead`. A plate's depth is its point moved 0.7 block towards the eye, so
+    it is not hidden by its own figure's head. The old grid line-of-sight test is gone.
+  - Tests: 8 cases in `NamePlatesTests`. 7420 passed and 3 skipped before; 7428 and 3 after, with models. The gate passed at the
+    first run.
+  - The orchestrator looked at the shots (`/tmp/claude-1000/v22/`): at session 8's morning the unfaced baker's plate is gone; with the
+    farmer faced and the villager (the beacon's) behind him, the villager's plate is hidden by the farmer's hat, a thin strip of it
+    still showing under the farmer's plate (cosmetic); `--third-person` and the largest text scale are right.
+  - **Left:** no shot of the beacon's NPC behind a building (the same depth test covers it).
+- **V25: a load keeps its day (2026-11-01, Sonnet 5.5; gated on `feature/village-followups` at `1aeaf53`; the owner's two counters,
+  D-game-22).** Fixes QA-progression-1 and 2. Run beside M66 in its own worktree with a game-only build.
+  - `PlaySession` is gone. `GuideSession.Day` (the village session) drives lessons, objectives, orders, unlocks, checks, the HUD and
+    book's "Session n", `--skip-to-session`, the crash report, the learner history and the session summary; a load restores it as
+    saved, and only a sleep or the two test aids move it. `GuideSession.Sitting` wraps `Words.Session` and `PhraseProgress.Session`: the
+    spacing rule, `ReviewDeck` (offered from sitting 2) and the session log (its folder, `session_start`'s `session`, and a new `day`
+    field). A launch, a load, a sleep, `--skip-to-session` and `--session` each begin a sitting; a sleep moves both, so everything that
+    counted as a different play session still does.
+  - A load keeps the day, sets the sitting to the saved one plus one and settles the rest (`SettleRest`, not `BeginPlaySession`).
+    `SaveDocument` gets a trailing `int? Sitting` (format version 5 kept); an older save uses its `Session` as the sitting and loads on
+    its saved day. The `save-v1` and `save-v4` fixtures load unchanged.
+  - Tests: `Save/LoadKeepsDayTests.cs` (day 5 loads as day 5 and the oven order is delivered; a save after a sleep keeps its new day; a
+    load moves only the sitting; a use in a new sitting passes the spacing gap; an older save loads on its day); about 20 tests that
+    asserted "a load is the next session" now expect the saved day. 7432 passed and 3 skipped before; 7437 and 3 after, with models;
+    the gate passed at the first run.
+  - The orchestrator's check: the QA's run (`--skip-to-session 8 --sleep`, save, load) now prints "saved in session 9, now session 9,
+    sitting 10" (it was 10) and the HUD reads Session 9.
+  - **Left:** the game run of QA-1 does not deliver the order after the load, because the lesson still holds it until its `n4-back`
+    step (V14's design; QA-progression-4, V21); the unit test proves the delivery. `WorldFactsTests` ran out of memory once under the
+    6 GB cap and passed on a rerun: the unbounded flood of `NearestOfNounJoinedTo` (V23), which moves to the front of V23.
+- **V23a: the small game items that touch no content (2026-11-01, Sonnet 5.5; merged at `e02b5df`, gated with the core's M71 and M66
+  at `53f63e6`).** Split from V23 to run beside M66.
+  - `NearestOfNounJoinedTo` bounded at 4 096 visited blocks (a 400 by 400 lake: 798 401 block reads before, under 25 000 after; the
+    shipped scene's results unchanged). `KeyWordsTaught` is `KeyWordsTaughtBy`, a set of NPC ids; an older save's `true` loads as
+    `{shopkeeper}`. `SessionSkip.Purchases` gives the market's three apples (the bag already held three). The host's `--bag
+    <item:count,…>` (without it, the host is unchanged). A toast when the closing review has nothing due; the objective names a lesson
+    under way; the sleep prompt and closing card after the last lesson say the lessons are done for now (locale lines
+    `ui.reviewNothingDue`, `ui.lessonUnderwayHud`, `ui.sleepPromptDone`, `ui.sleepCardDone`). A `do` step waiting on a pickup the bag
+    already holds is done at once (also `first-words` `u4-pick`, `el-mercado` `k3-wood`, `gente-del-pueblo` `g4-wood`). The first
+    screenshot waits for two whole frames.
+  - Left as it is: the farewell logged under `villager-open` is accurate (the lesson's repeat step evaluates the phrase at its own
+    prompt).
+  - The agent ran `scripts/limited.sh scripts/test.sh …`, which deadlocked on the lock for 21 minutes (M66 queued behind it); it cleared
+    its own processes. The rule is in every brief now, and M67 (c) makes `limited.sh` re-entrant.
+  - Its first gate failed on one O3 test only, "the catalog grammar … was never realised", twice in a row with no core change: a
+    flake of the fuzz suite, fixed by the core's M71 (§5b), with which it was gated. 7437 passed before; 7603 passed and 3 skipped
+    after V23a, M71 and M66, with models. The orchestrator's checks: `--bag coin:0` gives «Necesitas más monedas.».
+- **V20: free talk, the NPCs understand what they teach (2026-11-02, Opus 5.5 xhigh; gated on `feature/village-followups` at `92c2763`).**
+  Run beside M67 in the `village` worktree; M67 merged in before its final checks (`d9865cf`, the conflicts resolved by the content loop
+  with `--record`). Bundle `91e6e967…`.
+  - **(a)** Open prompts take the intents of their NPC's lessons: the villager `state_action` and `name_object`; the stall `state_have`,
+    `state_action`, `describe`; the fisher `state_action`; Luz `state_have`; Domingo `state_obligation`; Luna and her review prompt
+    `state_want`, `state_have`. Each constrained open prompt's answer set holds its lessons' rows (graded 1, heard when spoken). Lint
+    clashes fixed: wants stay requests at the stall and the villager; the two `buscar` grammars are told apart by the article (directions
+    name a place with one), so `buscaré madera` at the fisher is `state_action`. `TaughtInFreeTalkTests` runs all 75 said steps through
+    their NPC's open prompt, and every focus row. **All 27 of phase B's practised sentences are understood** by the NPC who taught them
+    (9 got "No te entendí" before); replies «¡Qué bien!», «Sí, es verdad.», «Está bien.» in ten per-NPC pools, each in its NPC's voice
+    (20 WAVs; the Opus pass dropped «Ah, ¿sí?»: `ah` is in no CEFR list).
+  - **(b)** Free talk credits any phrase of a lesson begun or done, at any NPC, and the learner model gets it too. **(c)** A focus card
+    shows once its lesson is unlocked or done. **(d)** Names in correction lines take the roster's spelling unless a determiner precedes
+    them (`para Luz`, `la luz`), in the game and the host. **(e)** `¿cuánto son todo?` and `cuanto son todo?` are `ask_total`, through a
+    keyword rule (`cuánto` with `todo`), not `son` in the grammar: that made O3 generate `cuánto son todo esto` as correct, which the
+    core rightly flags; `describe` takes a noun subject only after an article or a name. **(f)** One line in `docs/game/README.md`.
+  - **Scripted runs:** 467 lines and 934 speech files (457 and 914 before); r09's replays show the new pools; r18 and r19 show no cards
+    (their sessions do not unlock the cards' lessons: in r18 that removes Luz's `Vendo madera.`, (c)'s bug); r23 credits
+    `manana-comprare-pan` and answers «¡Qué bien!».
+  - **Tests:** 7612 passed and 3 skipped before; 7682 and 3 after, with models (7640 and 45 without). The bundle load 1185 ms and the
+    scene build 651 to 675 ms of 3000, within four times of their budgets. The identity baseline took 10 entries and moved 417 (333 at
+    the merge); the goldens and stream digests did not move. `scripts/try-lines.sh --check` differs in 38 lines, all at the prompts V20
+    opened and now understood (the baselines are re-recorded by M70). The gate passed at the first run.
+  - **The orchestrator's checks** through the host: `Luz compró pescado.` at `fisher-open`, `Tengo que ir al río.` at `smith-open`,
+    `Fuimos al río.` at `villager-open`, `cuanto son todo?` at `farmer-open` all understood; the stall demo unchanged. The new Spanish read.
+  - **Left, to V21:** the villager hands over bread for any request (as the stall its bottle); `quién`/`qué`/`cómo es grande` read as
+    `describe` at León's and the stall's prompts; `como es la manzana` and `ellas adónde van` read as `state_action` through keyword rules.
+    **To the core (M69):** `cuanto son todo?` is understood but `son` is not corrected and the recast keeps «cuanto» (the unaccented
+    question word). Replies match on intent only, so Luz says «¡Qué bien!» to `Tienes veinte panes.` (accepted).
 
 
 ## 6. Definition of done (every milestone)
@@ -2069,3 +2187,173 @@ Facts that shape the plan. Each one names its source; the core's own findings st
    engine code outside `src/Vocaterra.MonoGame`.
 6. `git status` is clean after the commit: no `bin/`, `obj/` or `nlp/artifacts/` output is staged.
 7. The milestone's line in section 5 and its row in section 4 are updated by the orchestrator, not by the agent.
+- **V21: replies and exchanges (2026-11-02, Sonnet 5.5; gated on `feature/village-followups` at `4a4a440`, 7885 passed, 3 skipped, with the models).**
+  - **Built:** `give_item` takes an optional `asked` list of nouns (`host-events.json`, its schema, `NpcEffect.Asked`), so `ExchangeMiss` answers any other noun
+    with the NPC's `wont_sell` line: the stall takes `agua` and `botella` («Solo tengo agua.», `shop_wont_sell.1`), the villager `pan` («Solo tengo pan.»,
+    `villager_wont_sell.1`); the missed gift leaves the turn's host events, and the offer of bread after it is dropped. León refuses apples with «No compro
+    eso. Compro fruta del bosque.» (`farmer_wont_buy.1`, apples are fruit). The baker says «Primero, la lección. Luego, las monedas.» (`baker_wait.1`, the
+    new host event `baker.cant_pay_wait`, `GuideScene.OrderHeld`) when the order that would pay her is held by the lesson. One reply per turn: a recast's
+    praise is dropped when the line is not understood, and no recast is given with the NPC's bare acknowledgement («¡Qué bien!», `answer_accepted`). A sink
+    intent `ask_how` at the free-talk prompts takes the questions V20 found read as statements (`quién/qué/cómo/cuál es grande`, `como es la manzana`, `ellas
+    adónde van`), answered by the fallback («No te entendí»). `ask_name` binds a name (`me [VERB:llamar] [WORD:name]`, M70's finding). 10 WAVs; the speech
+    lines 934 to 940 files; the scripted runs differ only in those counts.
+  - **The gate:** the first gate failed two tests that V21 and M70 broke together, each on its own branch green: V21's not-understood case `buscé madera`
+    is understood since M70 (the preterite's slip), and M70's `me llamo ana` test pinned the bundle's missing name slot. A Sonnet fix merged the feature
+    branch into V21 (`0ec4afd`) and moved both tests (`buscaré madeda` for the not-understood case; the real bundle binds the name), with the try-lines
+    baselines `m66` and `m70` re-recorded for V21's intended changes (`ellas adónde van` is `ask_how`, `me llamo ana` and `me llamo luis` are `ask_name`).
+  - **The orchestrator's Spanish pass (D-game-12):** the stall now refuses what it has: it gives the bottle, then offers bread, and its lesson says «Sí,
+    hay pan», yet `quiero pan` gets «Solo tengo agua.» and `¿hay pan?` «Hay agua.» (V21 changed it from «Hay agua y pan.», which was true). To V21b:
+    `shop_hay.1` back to «Hay agua y pan.», `shop_wont_sell.1` «No tengo eso. Tengo agua y pan.» for items the stall has neither of, and a request for
+    bread never refused. The other new lines stand.
+  - **Found by the spot-check:** the host's `--transcript` path does not follow the game's turn. With `--bag`, `quiero madera` at `stall-need` gives
+    «¿Quieres pan?» and then «Solo tengo agua.» (the game drops the offer), and `compré three manzanas` at `farmer-open` and `buscaré madeda` at
+    `lesson-will-fetch` still give the recast's praise and a second reply (the game gives one). `ConversationSession` copies the game's miss handling
+    instead of calling it, so `try-lines --host` and the QA agent see replies the game never says. To V21b: the host's replies come from the game's turn code.
+  - **Left:** the total of `¿Cuánto es todo?` («Quince manzanas, quince monedas.», the lesson row `quince-monedas`) does not follow the bag (to V21b: the
+    unit price in free talk). A fuzz O3 failure seen once in the fix's content loop, seed `2cqJbc9y05h3` (`delicado danó hechos`, `dañó` typed with `n`,
+    given `word_order`), likely M70's `ñ` fold: to M69.
+- **V21b: voice, book and pages (2026-11-02, Sonnet 5.5; gated on `feature/village-followups` at `d6afaba`, 8133 passed, 3 skipped, with the models).**
+  - **The Spanish pass over V21's lines:** `shop_hay.1` «Hay agua y pan.» again; `shop_wont_sell.1` «No tengo eso. Tengo agua y pan.» only for
+    an item the stall has neither of; `quiero pan` at the stall gives the bread (`stall.give_water` takes `instead: {pan: give_bread}`, a
+    `shopkeeper.give_bread` transition). León answers `¿Cuánto es todo?` in free talk with «Una manzana, una moneda.» (`farmer_unit.1`, the
+    NPC's `freeTalkPools`); the market lesson keeps «Quince manzanas, quince monedas.».
+  - **The shared feedback lines in each NPC's voice:** 10 lines (`answer_accepted`, `not_understood`, `feedback.hint`, `hint.gender.agree`,
+    `slow_repeat`) × 6 NPCs, 120 WAVs at two speeds, about 10.8 MB; ids `<line>.<npc>`, the guide's file the fallback. Proof: the sound log
+    plays `not_understood.1.shopkeeper`; no screenshot of a «¡Muy bien!».
+  - **`tener que` in the book:** a fifth column «must (tener que)», tener's present and the infinitive; `ayer-en-el-pueblo` declares it.
+  - **The Lessons page** opens with the `next:` lesson at its top (session 9: lines 158 to 186 of 192).
+  - **M70's accent note** under the reply in the correction colour (`GuideTurn.AccentNotes`, `DialogueSpeaker.Accent`); the host prints
+    `note: «compré», con tilde: es pasado` for `ayer compre pan`.
+  - **V23b's two items:** the five world words moved into `a1.txt`'s block (lint and cefr counts unchanged). The book already counts a use
+    as correct wherever the line was understood; the «0 correct» V20 saw came from a prompt whose answer set rejects the line (`vocab.wrong`,
+    intent `unknown`, the core's verdict: the open point below). A regression test pins a free-talk `ayer compré pan` counted correct.
+  - **The host's replies from the game's turn code:** `NpcTurnRules` (`AnswerMisses`, `Compose`) in Game.Core, called by `NpcService` and
+    the host's `ConversationSession` (one path). Through the host: `quiero madera` at `stall-need` «No tengo eso. Tengo agua y pan.»;
+    `compré three manzanas` at `farmer-open` the recast's praise alone; `buscaré madeda` at `lesson-will-fetch` «No te entendí» alone.
+  - **Runs and baselines:** the scripted runs differ in the speech count (940 to 1062 files), `r20-sleep` and `r21-skip`'s screenshots (the
+    Lessons page) and `r22-market`'s total line. The identity baseline: 1 new entry, 3 moved. `try-lines --check` unchanged.
+  - **The orchestrator's checks** on the merged tree through the host: the lines above as stated; the host demos hold. A fuzz O3 failure
+    in its content loop (seed `emOiS5FTcQv3`, `me catorce dañó seguro uno` typed with `n` given `noun.number`) ran on the core before M69;
+    replayed on the merged tree it passes (M69's fix: a typed accent picks the form that has it).
+  - **Left:** a correct line with a word outside an open prompt's answer set gets `vocab.wrong` and "No te entendí" (V17, seen again by
+    M69 and here); the commit that holds item 1 also holds the content refresh, so the earlier commits do not all pass on their own.
+- **V24: documents and runs after the follow-ups (2026-11-02, Haiku 5.5; gated on `feature/village-followups` at `56d2790`, 8133 passed, 3 skipped, with the models).**
+  - **The scripted runs against `1dbb0e5`** (22 runs): every difference traces to a follow-up. `session_start` gains `day` and every save
+    the sitting (V25); speech 914 to 1062 files (V20, V21, V21b); r15 no plate on the fisher (V22); r18 and r19 no early focus cards
+    (V20 (c)); r20 and r21 the Lessons page at `next:` (V21b); r22 León's «Una manzana, una moneda.» (V21b) and «Nothing to review yet»
+    (V23a); r23 the free-talk line credited and answered (V20). Nothing unexplained.
+  - **The new run `r24-followups`:** `mañana compraré pan` and `ayer compre pan` to Luz in free talk, `quiero madera` at the stall;
+    deterministic after the masks but for the turn's latency label in the pictures, so it joins `compare-runs.py`'s order-only runs.
+  - **The learner's route, sessions 4 to 10:** each objective and beacon lead to the lesson's NPC; the seven lessons ran to their ends; 11 of
+    11 taught lines understood in free talk by the NPC who taught them, 6 of 11 untaught ones. Four runs were needed: a scripted run stops
+    at 18 000 ticks with no message.
+  - **The documents:** `docs/game/README.md` (the counts: 30 intents, 531 lines in 1062 speech files; the follow-ups' paragraph; the route;
+    CI's case; "Open points after the follow-ups"), `PLAYTEST.md`, `SCRIPTED_RUNS.md`. The speech checklist had nothing to render. The
+    follow-ups added 74 lines and 148 files, none heard yet.
+  - **CI's case:** without models 8091 passed and 45 skipped. The bundle load (1.1 to 1.7 s of 3000 ms) would likely fail at four times;
+    the scene build (668 of 3000 ms), the world snapshot (923 ms) and the chunk digest (105 ms of 100, the whole test) are at risk.
+  - **The orchestrator's checks:** in the game, `ayer compre pan` to Luz in free talk does show the accent note under the reply, and
+    `manana compraré pan` is understood (M70); the agent's report and documents said otherwise, corrected in `236e741`. Confirmed: a line
+    not understood at an open prompt gets two replies («No te entendí. ¿Me lo dices otra vez?» and the core's repair «¿Cómo?»).
+  - **Left (game, in the README's open points):** the two replies; the book credits `quiero-dos-panes` for a refused `Quiero dos
+    manzanas.`; the book keeps the typed form `compre`; the scripted run's silent stop at 18 000 ticks; an untaught statement understood at
+    some NPCs and not others (the owner's rule to choose); `vocab.wrong` outside an open prompt's answer set (core and game, V17).
+- **V26: V24's four game bugs (2026-11-02, Sonnet 5.5; gated on `feature/village-followups` at `01db096`, 8142 passed, 3 skipped, with the models).**
+  - **One reply to a line not understood:** `NpcService` passes no repair when the core's is `AskAgain` and the NPC's reply asked already
+    («No te entendí. ¿Me lo dices otra vez?»); `SlowRepeat`, `OfferChoices` and `GiveUp` stay. The host's `repair:` line stays a diagnostic.
+  - **No credit for a refused request with another noun:** `PhraseSheet.OfIntent` returns an intent's only row only when the turn's item is
+    the row's (`quiero dos manzanas` at Luz is no use of `quiero-dos-panes`; `quiero tres panes` is). The refused line is now a `pedir-agua`
+    transfer through the older fixed mapping `PhraseIds.For`, left as it was.
+  - **The accented form in the book:** `GuideWord.From` takes the accent note's form (`compré (1 sg pret ind)`, not `compre`).
+  - **A scripted run cut at 18 000 ticks says so:** one line to stdout and a `run_truncated` event in the session log (the tick, the steps
+    not started, the first of them), and exit code 2.
+  - **Runs:** r19, r22 and r23 unchanged; r24 credits `quiero madera` at the stall as `quiero-madera` (was `pedir-agua`) and counts `compré`.
+    `try-lines --check` unchanged.
+- **V27: the off-prompt lines in the game (2026-11-02, Sonnet 5.5; gated on `feature/village-followups` at `4b01f1d`, 8212 passed, 3 skipped, with the models).**
+  The owner's option 2 (D-game-22, 2026-11-02), on M72's `Verdict.OffPromptIntent`. Bundle `e429e60e…`.
+  - **The reply:** in free talk a line the prompt does not take but the core understands gets the NPC's one off-prompt line and nothing
+    else: no correction, no repair of any kind (`NpcService`, `NpcTurnRules.OffPromptReply`, drawn from the interaction's seed; the pool is
+    `NpcEntry.OffPromptPool`, `offPromptPool` in each NPC's file and its schema). Seven pools `<npc>_understood`, the owner's lines verbatim,
+    the guide's «Te entiendo. ¿Qué quieres aprender?» and the shopkeeper's «Te entiendo. ¿Quieres comprar algo?» the orchestrator's; 14
+    WAVs, English locale lines. `cefr-check a1` reports `lugar` (Mar's line) above A1; within the A2 ceiling.
+  - **No failed attempt:** the repeat counts and the learner model are put back as they were before the turn, so the next line not
+    understood gets the ladder's first step. A spoken line under the uncertainty threshold (0.55) keeps the uncertain reply. The stall's
+    fail-forward does not count it.
+  - **The book credits it** (V20 (b)) through `GuideTurn.Taken` (communicated, or an off-prompt intent): its nouns, a phrase of a lesson
+    begun or done, its verb forms, and the turn's sound cue. No NPC action.
+  - **Lesson steps unchanged** (tested). **The host** prints the NPC's line and `off-prompt: <intent>`, with no `repair:` line, and
+    restores the repeat counts too.
+  - **Tests:** `OffPromptTests` in Game.Core and Host; M72's two renamed (`ATypedLineThePromptDoesNotTakeIsNoUncertainRecognitionAndMarksNoErrorOnTheLearner`;
+    `ALineTheOfferDoesNotTakeButTheStallUnderstoodCountsItsWordsAsCorrectUses`, now 2 of 2: the stall understands `quiero agua, por favor`
+    off its offer). The identity baseline took 7 rows, none moved. Try-lines unchanged (their host rows print the intent line only).
+    Scripted runs: only the speech counts (538 lines and 1076 files, from 531 and 1062) and the work folders' paths differ.
+  - **CI's case:** without models 8169 passed, 45 skipped and one fuzz failure, a new family for M73: O5 `26dVDqElv1l2`, the realiser
+    draws the noun `son` (a tune) in `estómago son vencido` and the analyzer reads it as `ser`. The timing lines were not printed.
+  - **The orchestrator's checks** in the game at session 10: Domingo `me gusta el río` «Te entiendo. Yo hago hachas.» then `xyzzy qwerty`
+    «No te entendí…» (the first step); Luna at `guide-offer`, the stall at `stall-need`, the villager (`el río es grande`) each their line;
+    León `la tienda está en el pueblo` «Perdón, ¿qué dices?» (no off-prompt intent); the summary credits `río` 4 of 4 and `gustar` 3 of 3.
+  - **Left, to V28:** each NPC's agent file gained an `<npc>.understood` host-event transition in every state only so the lint counts the
+    pool as used; the game says the pool directly and nothing fires the event. The learner's route with every NPC was the orchestrator's.
+- **V28: the small game points after the follow-ups (2026-11-02, Sonnet 5.5; gated on `feature/village-followups` at `81023b2`,
+  8286 passed, 3 skipped, with the models).** The owner's word (D-game-22, 2026-11-02). Bundle `500b3df3…`.
+  - **«Sí, es verdad.»** In free talk a statement about the listener gets the NPC's `<npc>_true` line, not a bare «¡Qué bien!».
+    - `NpcTurnRules.AboutListener` reads the core's analysis, not the text: a word read as a second-person verb, or `tú`, `usted`,
+      `ustedes` not after a preposition (the lexicon reads `usted` as person 3).
+    - Three new pools, `baker_true`, `smith_true` and `fisher_true`, each with a normal and a slow WAV and an English line; the
+      shopkeeper, the villager and the farmer had theirs.
+    - The game and the host call the same `Compose`. An off-prompt line keeps «Te entiendo.».
+  - **The name plate behind a building:** a test that launches the game with the beacon on the baker. From the square her plate is
+    drawn; from north of the bakery it is not. V22's code needed no change. The test does nothing without `DISPLAY` or the built game,
+    as `PlaytestReportTests`.
+  - **The `<npc>.understood` transitions** are now the one place that names a pool. The game reads the pool from the agent's
+    transition (`NpcTurnRules.PoolSaidOn`, `OffPromptPoolOf`), so `NpcEntry.OffPromptPool`, `offPromptPool` and its schema field are
+    gone. No event is fired, so no state or counter moves. The `<npc>.true` transitions declare the new pools the same way.
+  - **The speech folder in subfolders:**
+    - `speech/<speaker>/` for the seven speakers and `speech/cards/` for the guide's 44 `card.*` files, each slow file beside its
+      normal one; 1076 files moved with `git mv`.
+    - The index, the provenance and the checklist paths followed.
+    - In the code: `SpeechFiles.FolderOf` and `RelativePath`, and a new `SpeechStore` (one core `StaticLineStore` per folder, so no
+      core change); `NpcVoice`, `SpeechSummary` and the renderer.
+    - In the scripts: `playtest-build.sh`, `content-loop.sh` and `prerender-speech.sh`.
+    - The core's `ContentManifest` hashes the subfolders as it is.
+    - The start line reads `speech: 541 lines, 1082 files, 0 missing`.
+  - **The README's open points** without `buenas tardes`, with the counts, and two new points: the «Sí, es verdad.» scope and the
+    display-gated plate test.
+  - **Unchanged:** try-lines, and the scripted runs, which differ only in the speech counts (538/1076 to 541/1082) in the same work
+    folder. The identity baseline took the three new lines, none moved.
+  - **CI's case:** without models, 8243 passed, 45 skipped, one fuzz failure. It is O5 `8ogzm5GU5h-8`, a `word_order` recast of
+    `magos relacionados compañero`, a core finding. The orchestrator replayed it on the merged branch (`CsCheck_Seed`). It is the family M73 left recorded (`2tpLGUOSqj41`): the
+    pattern `([NOUN:item] [ADJ]|[WORD:qty] [NOUN:spell]) [NOUN:thing]` lets `[WORD:qty]` bind the moved adjective `relacionados`. V28
+    changed no intent or lexicon file, so it is older. The owner kept that family recorded, not narrowed (D-game-22, 2026-11-01), so it can
+    fail a gate or CI now and then; `docs/HANDOVER_AFTER_FOLLOWUPS.md` section 7 carries it.
+  - **The orchestrator's checks** in the game at session 10: the start line `speech: 541 lines, 1082 files, 0 missing`; Luz `Tienes veinte panes.` «Sí, es verdad.»,
+    `Tengo veinte panes.` «¡Qué bien!»; Domingo `me gusta el río` «Te entiendo. Yo hago hachas.»; León `usted tiene manzanas` «Te
+    entiendo. ¿Quieres manzanas?» (off the prompt, so not «Sí, es verdad.»). Not understood, older and outside V28: `usted hace hachas muy
+    buenas` at Domingo, `tú pescas mucho` at Mar.
+- **V30: the PR #28 review's game fixes (2026-11-02, Sonnet 5.5; gated on `feature/village-followups` at `b455b1c`, 8817 passed,
+  3 skipped, with the models).** The owner's review of PR #28, triaged by the orchestrator (D-game-22). No content changed.
+  - **A failed `--shot`** keeps the run's exit code (`ScriptedRunEnd.WorstExit`, tested on the helper; a real failed shot needs a device).
+  - **An accent fix** takes the person, number, tense and mood from the note's reading (`GuideTurn`). It was a real bug: `luz compro
+    pescado` was recorded as `compró` in the first person; the test failed before.
+  - **A refused gift is never made,** with or without a transition (`NpcTurnRules`; the no-transition case failed before).
+    - `GameDataValidator` now fails on an `instead` target that no agent state takes, and on an `asked` or `instead` noun that is not in
+      the catalog.
+    - `asked` holds nouns, not events.
+  - **An NPC's copy of a shared line with no file** plays the guide's file, counted as `NpcVoice.FellBack` with a log line. There is no
+    speech summary to extend.
+  - **The save's old flag** is the shopkeeper's (`KeyWordsTaughtBy.Contains(ShopkeeperAgent)`); no fixture pinned it.
+  - **The recall message** names `Day`, not `Day - 1`: a load keeps the saved day (the test failed before, "session 2" for 3).
+  - **A plural-only phrase** is credited: `PhraseSheet` matches the item's lemma and plural from the noun catalog.
+  - **The skip's number** goes with the item as a whole word: 3 apples and 2 loaves in `Compré tres manzanas y dos panes`,
+    `treinta y dos panes` 32, `panadería` none.
+  - **The host** already called `NpcTurnRules` for misses.
+    - The two copies left, the host events and the bottle rule, are shared helpers now (`HostEventsOf`, `SkipLineOfBottleGift`).
+    - After a miss the host always updates the agent's state, and an off-prompt line keeps the learner model, as in the game.
+    - No host case moved, and no miss test runs through both paths.
+  - **The Lessons page's selection** starts at the first row at or after `next:` (`BookModel`; a real bug, tested on synthetic rows).
+  - **Dead code:** `NpcService.FeedbackLinePrefix` and `NpcTurnRules.Prepositions` are removed. `NpcTurnRules.FeedbackLinePrefix`, from
+    the core's `ReservedPools.FeedbackPrefix`, is the one definition, and `VerdictReport` uses it.
+  - **The scripted runs:** 21 of 23 are identical. `r20-sleep` and `r21-skip` differ only in their last picture: the Lessons page now
+    highlights the row after `next:`.
+  - **Not tested before the fix:** most of the regression tests, which follow from the old code by reading it. The report marks the
+    three that failed first.

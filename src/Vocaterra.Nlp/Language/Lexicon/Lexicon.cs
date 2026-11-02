@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Text;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Language.Packs;
@@ -200,7 +199,12 @@ public sealed class Lexicon
         return Create(entries, null, folding, profile);
     }
 
-    /// <summary>Returns the readings of a surface form: exact matches first, else accent-insensitive matches flagged on the result.</summary>
+    /// <summary>
+    /// Returns the readings of a surface form: exact matches first, else accent-insensitive matches flagged on the result. Since M70 the fallback also reads a
+    /// spelling that no lexicon form folds to as the forms whose unmarked spelling it is (<see cref="ILexiconFolding.UnmarkedSpellings"/>; Spanish: <c>manana</c>
+    /// gives the readings of <c>mañana</c>, flagged the same way), so a word typed with <c>n</c> for <c>ñ</c> is read as one typed without its accent is; a spelling
+    /// that is itself a lexicon form (<c>una</c>, not <c>uña</c>) keeps its own readings.
+    /// </summary>
     public LexiconLookupResult Lookup(string form)
     {
         var key = _folding.Key(form);
@@ -209,12 +213,60 @@ public sealed class Lexicon
             return new LexiconLookupResult(key, exact, accentInsensitive: false);
         }
 
-        if (_byFoldedForm.TryGetValue(_folding.LenientKey(key), out var folded))
+        var lenient = _folding.LenientKey(key);
+        if (_byFoldedForm.TryGetValue(lenient, out var folded))
         {
             return new LexiconLookupResult(key, folded, accentInsensitive: true);
         }
 
+        if (UnmarkedIndex().Readings.TryGetValue(lenient, out var unmarked))
+        {
+            return new LexiconLookupResult(key, KeepTypedAccents(key, lenient, unmarked), accentInsensitive: true);
+        }
+
         return new LexiconLookupResult(key, NoReadings, accentInsensitive: false);
+    }
+
+    // M69 (an O3 finding of V21's gate, seed 2cqJbc9y05h3): an accent the writer typed is a choice (LookupWithAccentVariants says so too), so among the forms an
+    // unmarked spelling stands for, a spelling typed with an accent keeps those that carry the same accent where it was typed: danó (dañó with n for ñ) is the verb
+    // dañó, not also the noun daño, whose noun reading made delicado danó hechos a word_order slip. A spelling with no accent (dano), or one that no such form keeps,
+    // keeps every form, as before.
+    private LexicalFeatures[] KeepTypedAccents(string key, string lenient, LexicalFeatures[] unmarked)
+    {
+        if (string.Equals(key, lenient, StringComparison.Ordinal)
+            || !UnmarkedIndex().Spellings.TryGetValue(lenient, out var forms)
+            || forms.Length < 2)
+        {
+            return unmarked;
+        }
+
+        var kept = forms.Where(f => CarriesTheTypedAccents(key, _folding.Key(f))).ToList();
+        if (kept.Count == 0 || kept.Count == forms.Length)
+        {
+            return unmarked;
+        }
+
+        return [.. kept.SelectMany(f => _byForm.TryGetValue(_folding.Key(f), out var readings) ? readings : NoReadings)];
+    }
+
+    // True when the form has the typed spelling's accented letter at every place the typed spelling has one (the two are of one length).
+    private bool CarriesTheTypedAccents(string typed, string form)
+    {
+        if (typed.Length != form.Length)
+        {
+            return true;
+        }
+
+        for (var i = 0; i < typed.Length; i++)
+        {
+            var letter = typed[i].ToString();
+            if (!string.Equals(letter, _folding.LenientKey(letter), StringComparison.Ordinal) && form[i] != typed[i])
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -237,13 +289,20 @@ public sealed class Lexicon
     /// <summary>
     /// Returns the distinct surface forms that are the same word as <paramref name="form"/> once accents are ignored, in ordinal order, so
     /// the accented spellings of an accent-less form (<c>dias</c> gives <c>días</c>). Empty when no form folds to the same key; the form
-    /// itself is one of them when it is a lexicon form.
+    /// itself is one of them when it is a lexicon form. Since M70, for a spelling that no form folds to, the forms whose unmarked spelling it is, as
+    /// <see cref="Lookup"/> reads them (<c>manana</c> gives <c>mañana</c>).
     /// </summary>
     public IReadOnlyList<string> SpellingsIgnoringAccents(string form)
     {
         ArgumentNullException.ThrowIfNull(form);
         var index = Derive("spellings-by-folded-key", static lexicon => lexicon.BuildSpellingsByFoldedKey());
-        return index.TryGetValue(_folding.LenientKey(form), out var spellings) ? spellings : [];
+        var lenient = _folding.LenientKey(form);
+        if (index.TryGetValue(lenient, out var spellings))
+        {
+            return spellings;
+        }
+
+        return UnmarkedIndex().Spellings.TryGetValue(lenient, out var unmarked) ? unmarked : [];
     }
 
     /// <summary>
@@ -278,6 +337,58 @@ public sealed class Lexicon
     public string ToJson()
     {
         return CanonicalJson.Serialize(new LexiconFile(LexiconSchema.CurrentVersion, GeneratedBy, _entries));
+    }
+
+    // M70: the unmarked spellings of the forms (UnmarkedSpellings: manana for mañana), each with the readings and the forms it stands for, in entry order. A spelling
+    // that a lexicon form folds to is left out: it is a word of its own (una, not uña), which Lookup finds first anyway and SpellingsIgnoringAccents must not widen.
+    private UnmarkedSpellingIndex UnmarkedIndex()
+    {
+        return Derive("unmarked-spellings", static lexicon => lexicon.BuildUnmarkedIndex());
+    }
+
+    private UnmarkedSpellingIndex BuildUnmarkedIndex()
+    {
+        var readings = new Dictionary<string, List<LexicalFeatures>>(StringComparer.Ordinal);
+        var spellings = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        string? previous = null;
+        foreach (var entry in _entries)
+        {
+            var unmarkedSpellings = _folding.UnmarkedSpellings(entry.Form);
+            var newForm = !string.Equals(entry.Form, previous, StringComparison.Ordinal);
+            previous = entry.Form;
+            foreach (var spelling in unmarkedSpellings)
+            {
+                if (_byFoldedForm.ContainsKey(spelling))
+                {
+                    continue;
+                }
+
+                if (!readings.TryGetValue(spelling, out var forSpelling))
+                {
+                    forSpelling = [];
+                    readings.Add(spelling, forSpelling);
+                    spellings.Add(spelling, []);
+                }
+
+                forSpelling.Add(entry.ToFeatures());
+                if (newForm)
+                {
+                    spellings[spelling].Add(entry.Form);
+                }
+            }
+        }
+
+        var readingIndex = new Dictionary<string, LexicalFeatures[]>(readings.Count, StringComparer.Ordinal);
+        var spellingIndex = new Dictionary<string, string[]>(spellings.Count, StringComparer.Ordinal);
+        foreach (var pair in readings)
+        {
+            readingIndex.Add(pair.Key, [.. pair.Value]);
+            var forms = spellings[pair.Key].Distinct(StringComparer.Ordinal).ToArray();
+            Array.Sort(forms, StringComparer.Ordinal);
+            spellingIndex.Add(pair.Key, forms);
+        }
+
+        return new UnmarkedSpellingIndex(readingIndex, spellingIndex);
     }
 
     // The entries are sorted by form, so the forms are adjacent and each is seen once.
@@ -422,3 +533,6 @@ public sealed class Lexicon
         return b is null ? 1 : string.CompareOrdinal(a, b);
     }
 }
+
+// The unmarked spellings of a lexicon (M70): each spelling with the readings and the forms it stands for.
+internal sealed record UnmarkedSpellingIndex(Dictionary<string, LexicalFeatures[]> Readings, Dictionary<string, string[]> Spellings);

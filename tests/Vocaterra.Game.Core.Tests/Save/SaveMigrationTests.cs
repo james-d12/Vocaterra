@@ -68,7 +68,7 @@ public sealed class SaveMigrationTests
         Assert.Equal(document.Inventory.Select(static s => (s.Item, s.Count)), loaded.Simulation.Inventory.Slots.Select(static s => (s.IsEmpty ? default : s.Item, s.Count)));
         Assert.Equal(document.Learner!.History.Count, loaded.Learner.History.Count);
         Assert.Equal(document.Learner.Words.Count, loaded.Learner.Rows.Count);
-        Assert.Equal(document.Session, loaded.PlaySession); // bump off here: the session number is kept
+        Assert.Equal(document.Session, loaded.Day); // bump off here: the session number is kept
         Assert.Equal(document.StoredTime, loaded.StoredTime.UnixSeconds);
         Assert.Equal(document.Phrases[2], PhraseSaveOf(loaded.PhraseProgress.RecordOf(document.Phrases[2].Id)));
 
@@ -343,7 +343,7 @@ public sealed class SaveMigrationTests
         Assert.NotNull(loaded.Migration);
         Assert.True(loaded.Migration!.WorldDigestMatched);
         Assert.Empty(loaded.Learner.History);
-        Assert.Equal(2, loaded.PlaySession);
+        Assert.Equal(1, loaded.Day); // the day as saved (V25)
     }
 
     [Fact]

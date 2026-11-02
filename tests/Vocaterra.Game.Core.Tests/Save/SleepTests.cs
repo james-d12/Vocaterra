@@ -1,7 +1,6 @@
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Phrases;
-using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.Component;
@@ -22,7 +21,14 @@ public sealed class SleepTests
 
     private static string SaveOf(VoxelSession session) => SaveGame.Save(session, Pristine());
 
-    private static VoxelSession LoadOf(string text, VoxelSession like) => SaveGame.Load(text, TestGame.Data, Pristine, credit: like.Credit);
+    // A load keeps the day (V25) and a sleep moves it: the load that a sleep equals is a load and then the next day.
+    private static VoxelSession LoadOf(string text, VoxelSession like)
+    {
+        var loaded = SaveGame.Load(text, TestGame.Data, Pristine, credit: like.Credit);
+        loaded.Day++;
+        loaded.BeginPlaySession();
+        return loaded;
+    }
 
     private static void Sleep(VoxelSession session) => SaveGame.Sleep(session, SaveGame.Capture(session, Pristine()));
 
@@ -41,7 +47,7 @@ public sealed class SleepTests
     private static void SameAsALoad(VoxelSession loaded, VoxelSession slept)
     {
         Assert.Equal(SaveOf(loaded), SaveOf(slept));
-        Assert.Equal(loaded.PlaySession, slept.PlaySession);
+        Assert.Equal(loaded.Day, slept.Day);
         Assert.Equal(loaded.StoredTime, slept.StoredTime);
         Assert.Equal(loaded.Simulation.ComputeStateDigest(), slept.Simulation.ComputeStateDigest());
         Assert.Equal(loaded.ObjectiveHud(), slept.ObjectiveHud());
@@ -95,7 +101,7 @@ public sealed class SleepTests
         Sleep(session);
 
         SameAsALoad(loaded, session);
-        Assert.Equal(2, session.PlaySession);
+        Assert.Equal(2, session.Day);
         Assert.Equal("personas", session.Lessons.NewLesson?.Id);
         Assert.Equal("villager", session.Pointer?.Point); // the new session's lesson is pointed at (S26)
     }
@@ -104,7 +110,8 @@ public sealed class SleepTests
     public void ASleepWithAReviewAWarmUpAndASecondTryOpenClearsThemAsALoadDoes()
     {
         var session = EndedFirstSession();
-        session.PlaySession = 2;
+        session.Day = 2;
+        session.Sitting = 2;
         session.Deck.Enabled = true;
         session.OpenTalk("shopkeeper"); // the shopkeeper has no lesson: his own conversation
         session.Say("no sé"); // a second try waits for him
@@ -127,7 +134,8 @@ public sealed class SleepTests
     public void ALessonUnderWayStaysAtItsStepAndWaitsForItsNpcAsAfterALoad()
     {
         var session = EndedFirstSession();
-        session.PlaySession = 2;
+        session.Day = 2;
+        session.Sitting = 2;
         session.OpenTalk("villager"); // Personas starts by itself
         Assert.True(session.Lessons.Engaged);
         Assert.Equal("personas", session.Lessons.Active?.Id);
@@ -144,7 +152,7 @@ public sealed class SleepTests
         Assert.Equal(step, session.Lessons.StepNumber);
         Assert.False(session.Lessons.Engaged); // it takes up again when the learner talks to the villager
         Assert.True(session.CanSleep);
-        Assert.Equal("Next: talk to the villager for the lesson “Personas”", string.Concat(session.ObjectiveHud().Select(static p => p.Text)));
+        Assert.Equal("The lesson “Personas” is under way: talk to the villager to go on", string.Concat(session.ObjectiveHud().Select(static p => p.Text)));
     }
 
     [Fact]
@@ -157,7 +165,7 @@ public sealed class SleepTests
         Sleep(session);
 
         SameAsALoad(loaded, session);
-        Assert.Equal(6, session.PlaySession);
+        Assert.Equal(6, session.Day);
         Assert.Equal(5, session.SkippedTo);
     }
 
@@ -190,7 +198,7 @@ public sealed class SleepTests
 
         Assert.Throws<ArgumentException>(() => SaveGame.Sleep(session, document)); // a tick later: not the session as it is now
         Assert.Throws<ArgumentException>(() => SaveGame.Sleep(session, SaveGame.Capture(session, Pristine()) with { Session = 3 }));
-        Assert.Equal(1, session.PlaySession);
+        Assert.Equal(1, session.Day);
     }
 
     [Fact]
@@ -202,7 +210,7 @@ public sealed class SleepTests
         Sleep(session);
         Sleep(session);
 
-        Assert.Equal(3, session.PlaySession);
+        Assert.Equal(3, session.Day);
         Assert.Equal(SaveOf(twice), SaveOf(session));
     }
 }

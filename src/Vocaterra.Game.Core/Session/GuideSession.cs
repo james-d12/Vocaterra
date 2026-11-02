@@ -101,7 +101,7 @@ public abstract partial class GuideSession : IDisposable
     private long _nextTurnId = 1;
     private IReadOnlyList<WordCard> _keyWordCards = [];
     private bool _keyWordsPending;
-    private bool _keyWordsTaught;
+    private readonly SortedSet<string> _keyWordsTaught = new(StringComparer.Ordinal);
     private long _keyWordsStart;
     private NpcOpening? _delayedOpening;
     private bool _talkOpen;
@@ -143,8 +143,8 @@ public abstract partial class GuideSession : IDisposable
         Glosses = data.Glosses;
         var book = Data.Lessons;
         PhraseProgress = new PhraseProgress(Phrases, playSession, data.Npcs.ScaffoldPhrases.Concat(book.TaughtPhrases));
-        Support = new PhraseSupport(Phrases, PhraseProgress, Bundle, data.Npcs, Locale);
         Lessons = new LessonRunner(this, book, Locale);
+        Support = new PhraseSupport(Phrases, PhraseProgress, Bundle, data.Npcs, Locale, Lessons.CardReady); // a card waits for its lesson (V20)
         Deck = new ReviewDeck(this);
         Tips = new TipFeed(this, Data.Tips);
         _liveFacts = liveFacts;
@@ -245,8 +245,17 @@ public abstract partial class GuideSession : IDisposable
     /// <summary>What the guide says to start a review: the word review's question, or the request line of the phrase review; <see langword="null"/> when none is open.</summary>
     public string? ReviewLine => Review?.Question ?? PhraseReview?.Request;
 
-    /// <summary>The number of this play session; setting it sets the words' and the phrases' (the saves of S10 bump it on each load, which lifts the spacing gaps).</summary>
-    public int PlaySession
+    /// <summary>
+    /// The day of the village (V12c, V25): the session that lessons, objectives, orders, unlocks and the check battery follow. A save keeps it as it is and a load puts it
+    /// back; only a sleep at the player's fire (or the test aids <c>--sleep</c> and <c>--skip-to-session</c>) moves it.
+    /// </summary>
+    public int Day { get; set; } = 1;
+
+    /// <summary>
+    /// The sitting (V25): the play session of the phrase-credit spacing rule, which a launch, a load and a sleep each begin (S10). Setting it sets the words' and the phrases'
+    /// session, so a use in a new sitting bypasses the spacing gap. A save keeps it; a save from before V25 continues from its day.
+    /// </summary>
+    public int Sitting
     {
         get => Words.Session;
         set
@@ -343,12 +352,24 @@ public abstract partial class GuideSession : IDisposable
 
     // ---- The save (S10): what a save keeps of this session and a load puts back. Only the save module uses these.
 
-    /// <summary>Whether the shopkeeper's key words were taught (the first panel opening on him; never again).</summary>
-    internal bool KeyWordsTaught
+    /// <summary>The NPCs whose key words were taught (the first panel opening on each; never again), in ordinal order.</summary>
+    internal IReadOnlyList<string> KeyWordsTaughtBy => [.. _keyWordsTaught];
+
+    /// <summary>Whether the NPC's key words were taught.</summary>
+    /// <param name="npc">The NPC's id.</param>
+    internal bool KeyWordsTaughtFor(string npc) => _keyWordsTaught.Contains(npc);
+
+    /// <summary>Puts back the NPCs whose key words were taught (a load); the earlier ones are forgotten.</summary>
+    /// <param name="npcs">Their ids.</param>
+    internal void RestoreKeyWordsTaught(IEnumerable<string> npcs)
     {
-        get => _keyWordsTaught;
-        set => _keyWordsTaught = value;
+        _keyWordsTaught.Clear();
+        _keyWordsTaught.UnionWith(npcs);
     }
+
+    /// <summary>Marks the NPC's key words as taught without the cards (a session skip).</summary>
+    /// <param name="npc">The NPC's id.</param>
+    internal void MarkKeyWordsTaught(string npc) => _keyWordsTaught.Add(npc);
 
     /// <summary>
     /// Whether the session can be saved now: no turn is on the worker, the key-word cards are not standing alone and no opening waits. A save
@@ -524,7 +545,7 @@ public abstract partial class GuideSession : IDisposable
         }
 
         FlushSkills();
-        if (teachKeyWords && PendingTurns == 0 && !_keyWordsTaught && KeyWordsOf(npc).Count > 0)
+        if (teachKeyWords && PendingTurns == 0 && !_keyWordsTaught.Contains(npc) && KeyWordsOf(npc).Count > 0)
         {
             return BeginKeyWords(npc);
         }
@@ -639,6 +660,14 @@ public abstract partial class GuideSession : IDisposable
     internal virtual bool OrderDelivered(string order) => false;
 
     /// <summary>
+    /// Whether the bag already holds what a lesson's <c>do</c> step waits for a pickup of (V23a): at least <paramref name="needed"/> of the noun's items, so a learner who
+    /// gathered the wood before the lesson asked for it is not sent to gather it again. The 3D scene has the bag.
+    /// </summary>
+    /// <param name="lemma">The noun the step waits to see picked up.</param>
+    /// <param name="needed">How many the bag must hold.</param>
+    internal virtual bool HoldsPickup(string lemma, int needed) => false;
+
+    /// <summary>
     /// The player reached a beacon the front-end placed itself (the start, <c>--beacon</c>; <see cref="BeaconDirector"/>): logged as
     /// <see cref="WorldEvents.BeaconReached"/> with the point's name (VILLAGE_PLAN V02). The session logs the arrival at its own arrow itself.
     /// </summary>
@@ -674,11 +703,11 @@ public abstract partial class GuideSession : IDisposable
     }
 
     // The first time the panel of an NPC with key words opens (the shopkeeper's agua and pan), they are taught before its question (brief step 4): their word cards
-    // stand alone for KeyWordTicks, counted as heard and read (never a quiz), and the real opening follows (FinishKeyWords). The save keeps one flag (KeyWordsTaught),
-    // so the key words are taught once a game, at the first NPC that has them; a second NPC with key words would need the flag per NPC (a save field).
+    // stand alone for KeyWordTicks, counted as heard and read (never a quiz), and the real opening follows (FinishKeyWords). The save keeps the NPCs they were taught
+    // by (KeyWordsTaughtBy), so each NPC with key words teaches them once a game.
     private NpcOpening BeginKeyWords(string npc)
     {
-        _keyWordsTaught = true;
+        _keyWordsTaught.Add(npc);
         _keyWordsPending = true;
         _keyWordsStart = Tick;
         var cards = new List<WordCard>();
@@ -835,7 +864,7 @@ public abstract partial class GuideSession : IDisposable
         var phraseReview = PhraseReview;
         var support = Support.Snapshot();
         var scene = review is null
-            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: LiveInventory, PromptOverride: phraseReview?.Prompt ?? Lessons.ActivePrompt)
+            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: LiveInventory, PromptOverride: phraseReview?.Prompt ?? Lessons.ActivePrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc))
             : new GuideScene(Viewpoint, review.Target, Pointer is not null, Review: true, Inventory: LiveInventory);
         var turn = _npcs.Say(CurrentNpc, line, scene, StoredTime, StateDigest());
         PhraseReview? answeredReview = null;
@@ -1092,7 +1121,7 @@ public abstract partial class GuideSession : IDisposable
             // A check answer (S11) is a line the learner gave too (S19). It changes nothing else: the battery grades it; the world and the progress do not move.
             Learner.Append(new InputEntry(
                 Learner.NextId,
-                PlaySession,
+                Day,
                 outcome.Request.Now.UnixSeconds,
                 SourceOf(grade.Input),
                 grade.Transcript,
@@ -1117,7 +1146,7 @@ public abstract partial class GuideSession : IDisposable
         var unit = Lessons.UnitFor(turn.Npc);
         Learner.Append(new InputEntry(
             Learner.NextId,
-            PlaySession,
+            Day,
             storedTime,
             SourceOf(turn.Input),
             turn.Line,
@@ -1126,7 +1155,7 @@ public abstract partial class GuideSession : IDisposable
             unit is null ? InputPlace.Dialogue : InputPlace.Lesson,
             unit,
             turn.Intent,
-            turn.Communicated,
+            turn.Taken,
             turn.Unsure,
             turn.Errors,
             turn.Words ?? []));
@@ -1184,6 +1213,13 @@ public abstract partial class GuideSession : IDisposable
     /// <param name="npc">The NPC the panel opens on.</param>
     protected virtual string? OrderReadyAt(string npc) => null;
 
+    /// <summary>
+    /// Whether an NPC has an order whose goods the player carries and that a lesson keeps back until its step (VILLAGE_PLAN V13): the NPC then says why a purchase the coins
+    /// do not cover waits (V21, <see cref="NpcHostEvents.CantPayWait"/>). The 3D scene has the objectives; the base game has none.
+    /// </summary>
+    /// <param name="npc">The NPC.</param>
+    protected virtual bool OrderHeldAt(string npc) => false;
+
     /// <summary>The NPC thanked the player for an order (its opening was <c>&lt;npc&gt;.delivered</c>): the goods leave the inventory. The 3D scene does it.</summary>
     /// <param name="npc">The NPC.</param>
     /// <param name="order">The order's objective id (<see cref="OrderReadyAt"/>).</param>
@@ -1219,7 +1255,7 @@ public abstract partial class GuideSession : IDisposable
         var formMiss = Lessons.IsFormMiss(turn);
         var retryAnswer = phraseReview is not null && ReferenceEquals(phraseReview, _retry) && turn.Communicated && !IsHelpRequest(turn);
         var recovered = false;
-        if (turn.Communicated && !formMiss && PhraseOf(turn, support) is { } phrase)
+        if (turn.Taken && !formMiss && PhraseOf(turn, support) is { } phrase)
         {
             var kind = Classify(turn, phrase, previousRepair, phraseReview, support);
             var detail = PhraseSheet.DetailOf(turn.Slots);
@@ -1319,18 +1355,27 @@ public abstract partial class GuideSession : IDisposable
     // The phrase a communicated turn used: the phrase in play on the prompt whose row has the turn's intent (the NPC's focus there, a lesson step's phrase, S16, or the
     // review's), else the row the prompt teaches for the intent, else the fixed mapping (PhraseSheet.PhraseFor). Of several in play with the intent (the fisher's two
     // directions), the one that names the place asked about (PhraseSheet.OfIntent); in free talk, where the NPC's focus is in play, one row of the intent that names
-    // another place gives way to the row practised elsewhere that names it (V14: the villager's river for the fisher's bakery, PhraseSheet.ByPlace).
+    // another place gives way to the row practised elsewhere that names it (V14: the villager's river for the fisher's bakery, PhraseSheet.ByPlace). In free talk, a
+    // line that is a phrase of a lesson the learner has begun or done (its Spanish or a variant, LineReading.PhraseSaid) is that phrase, at any NPC, before the fixed
+    // mapping (V20: only the focus and the prompt's rows counted, so «Mañana compraré pan.» said to Luz after its lesson was no use of it).
     private string? PhraseOf(GuideTurn turn, SupportSnapshot support)
     {
         var inPlay = support.InPlay.Select(Phrases.Find).OfType<PhraseRow>().ToList();
-        var freeTalk = support.InPlay.SequenceEqual(Data.Npcs.FocusAt(turn.Prompt), StringComparer.Ordinal);
+        var freeTalk = support.InPlay.SequenceEqual(Support.FocusAt(turn.Prompt), StringComparer.Ordinal);
+        if (turn.OffPromptIntent is not null)
+        {
+            // V27: a line the NPC understood off its prompt credits only a phrase of a lesson begun or done that it is; the intent it has elsewhere says no phrase of this prompt.
+            return freeTalk ? LineReading.PhraseSaid(Phrases, turn.Line, Data.Npcs.Find(turn.Npc)?.Name, Lessons.Credits)?.Id : null;
+        }
+
         if (freeTalk && Phrases.ByPlace(inPlay, turn.Intent, turn.Slots, Data.Npcs.Homes.Keys, out var placed))
         {
             return placed;
         }
 
-        return PhraseSheet.OfIntent(inPlay, turn.Intent, turn.Slots)
-            ?? Phrases.PhraseFor(turn.Prompt, turn.Intent, turn.Slots, Data.Words.Noun("river"), freeTalk ? Data.Npcs.Homes.Keys : null);
+        var said = freeTalk ? LineReading.PhraseSaid(Phrases, turn.Line, Data.Npcs.Find(turn.Npc)?.Name, Lessons.Credits)?.Id : null;
+        return PhraseSheet.OfIntent(inPlay, turn.Intent, turn.Slots, Data.Nouns)
+            ?? Phrases.PhraseFor(turn.Prompt, turn.Intent, turn.Slots, Data.Words.Noun("river"), freeTalk ? Data.Npcs.Homes.Keys : null, said);
     }
 
     private static bool IsHelpRequest(GuideTurn turn) =>
@@ -1462,7 +1507,7 @@ public abstract partial class GuideSession : IDisposable
         var facts = SnapshotFacts();
         var inventory = LiveInventory.Copy();
         return review is null
-            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: inventory, Facts: facts, PromptOverride: PhraseReview?.Prompt ?? Lessons.ActivePrompt)
+            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: inventory, Facts: facts, PromptOverride: PhraseReview?.Prompt ?? Lessons.ActivePrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc))
             : new GuideScene(Viewpoint, review.Target, Pointer is not null, Review: true, Inventory: inventory, Facts: facts);
     }
 }

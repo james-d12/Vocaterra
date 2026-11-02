@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Vocaterra.Nlp.Core.Replay;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
@@ -30,6 +31,11 @@ public sealed record DecisionOutcome(AgentStepResult? Agent, LearnerModel Learne
 /// Null only for a result built by hand.
 /// </param>
 /// <param name="Answer">The answer match the pipeline computed for the prompt's answer set (answer id, match type, distance, likely pronunciation); the pipeline always sets it.</param>
+/// <param name="Notes">
+/// The verbs the learner wrote without the accent that marks their tense or person, each read as the accented form at no cost, in token order (M70,
+/// <see cref="AccentNote"/>): the analysis's notes, then those of the answer match. Null when there is none, and omitted from JSON while null. A host shows each
+/// with a short note (the Spanish pack's <c>SpanishAccentNotes.Describe</c>: «compré», con tilde: es pasado). Not part of the verdict or the replay record.
+/// </param>
 public sealed record PipelineResult(
     Verdict Verdict,
     DecisionOutcome Decision,
@@ -38,7 +44,8 @@ public sealed record PipelineResult(
     RepairStep? Repair,
     ReplayRecord Replay,
     IReadOnlyList<ResolvedWord>? Words = null,
-    MatchResult? Answer = null)
+    MatchResult? Answer = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<AccentNote>? Notes = null)
 {
     /// <summary>Compares every member, including the effect list, the resolved words and the answer match.</summary>
     public bool Equals(PipelineResult? other)
@@ -51,7 +58,8 @@ public sealed record PipelineResult(
             && EqualityComparer<RepairStep?>.Default.Equals(Repair, other.Repair)
             && Replay.Equals(other.Replay)
             && ListEquality.Equal(Words, other.Words)
-            && EqualityComparer<MatchResult?>.Default.Equals(Answer, other.Answer);
+            && EqualityComparer<MatchResult?>.Default.Equals(Answer, other.Answer)
+            && ListEquality.Equal(Notes, other.Notes);
     }
 
     /// <summary>Hash consistent with <see cref="Equals(PipelineResult)"/>.</summary>
@@ -66,6 +74,7 @@ public sealed record PipelineResult(
         hash.Add(Replay);
         ListEquality.Add(ref hash, Words);
         hash.Add(Answer);
+        ListEquality.Add(ref hash, Notes);
         return hash.ToHashCode();
     }
 }

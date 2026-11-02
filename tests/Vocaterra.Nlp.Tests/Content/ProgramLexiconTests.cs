@@ -1,6 +1,5 @@
 using System.Text;
 using Vocaterra.Nlp.ContentBuilder;
-using NlpLexicon = Vocaterra.Nlp.Language.Lexicon.Lexicon;
 
 namespace Vocaterra.Nlp.Content.Tests;
 

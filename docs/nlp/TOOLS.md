@@ -34,7 +34,7 @@ An inventory of everything external that the language core builds on, runs, down
 | Globalization / ICU | `InvariantGlobalization` is **false**, so .NET uses the operating system's ICU for Unicode normalization (NFC, NFKC). On Linux the `libicu` shared library must be installed (the authoring machine has ICU 74). Pinning an app-local ICU is an open item for an ADR | `Directory.Build.props`; [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md) section 3.5 | ICU license for the system version: **unverified** (Unicode License family); not shipped by the repository |
 | Base class library features used | `System.Text.Json` (canonical JSON, content files, `Utf8JsonReader` for the lexicon), `System.Security.Cryptography` SHA-256 (hashing), `System.Text.RegularExpressions` (kaikki importer), `string.Normalize` (NFC / NFKC) | `src/Vocaterra.Nlp/Core` (`CanonicalJson`, `DeterministicHash`), `src/Vocaterra.Nlp/Language`, `src/Vocaterra.Nlp/Phonology`, `src/Vocaterra.Nlp/Content`, `tools/Vocaterra.Nlp.ContentBuilder` | part of the runtime, MIT |
 | Source languages | C#, plus bash and embedded python3 in `scripts/`, YAML for CI, JSON / JSONL for content | - | - |
-| OS / CPU targets | `ubuntu-latest`, `ubuntu-24.04-arm`, `windows-latest`, `macos-latest` (CI matrix, currently parked, see section 7) | [`.github/workflows-pending/ci.yml`](../../.github/workflows-pending/ci.yml) | - |
+| OS / CPU targets | `ubuntu-latest`, `ubuntu-24.04-arm`, `windows-latest`, `macos-latest` (CI matrix, currently parked, see section 7) | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) | - |
 | Minimum hardware | 8 GB RAM, 4-core x86-64, no GPU; CPU-only inference, 1 intra-op and 1 inter-op thread for ONNX Runtime sessions | `IMPLEMENTATION_PLAN.md` section 1; `OnnxEmbeddingModel`, `Wav2Vec2PhonemeRecognizer`, `KokoroSynthesizer` | - |
 
 ## 2. NuGet packages: direct
@@ -150,7 +150,7 @@ The hand-authored content has no third-party text in it, and it is licensed Apac
 | NuGet | bundled in the SDK | package restore from nuget.org; license scan reads `~/.nuget/packages` or `NUGET_PACKAGES` | `scripts/license-scan.sh` | Apache-2.0 / MIT |
 | NuGet registration API | `https://api.nuget.org/v3/registration5-gz-semver2/{id}/{version}.json` | online license lookup when a nuspec names no license (skipped with `--offline`) | `scripts/license-scan.sh` | service |
 | `git` | 2.43.0 | version control; LF normalization via [`.gitattributes`](../../.gitattributes) (`* text=auto eol=lf`, `*.wav` and `*.onnx` binary); worktrees for parallel agents | repository | GPL-2.0 |
-| `gh` (GitHub CLI) | 2.102.0 | `gh auth refresh -h github.com -s workflow` to activate the parked workflow | [`.github/workflows-pending/ci.yml`](../../.github/workflows-pending/ci.yml) | MIT |
+| `gh` (GitHub CLI) | 2.102.0 | `gh auth refresh -h github.com -s workflow` to activate the parked workflow | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) | MIT |
 | `bash` | not recorded | `scripts/fetch-models.sh`, `scripts/fetch-lexicon-sources.sh`, `scripts/license-scan.sh` (`set -euo pipefail`) | [`scripts/`](../../scripts/README.md) | GPL-3.0-or-later |
 | `python3` | 3.12.3, standard library only, run as `python3 -I` | parses `models/manifest.json` in the fetch script and writes `lexicon-sources/sources.json` in the lexicon fetch script; evaluates SPDX expressions, reads nuspecs and calls the NuGet API in the license scan (`json`, `re`, `gzip`, `urllib`, `xml.etree`, `datetime`, `os`, `time`) | both scripts | PSF-2.0 |
 | `python3` with `yaml` (YAML syntax check of `ci.yml`) | **unverified**: named in the task brief, not referenced anywhere in the repository | validating the parked workflow file | - | - |
@@ -221,7 +221,7 @@ and are not graded. The lint grades the text with `TextGrader`, which is the tex
 normalization, answer matching against the prompt's answer set, analysis with the prompt's grammars, intent resolution, verdict assembly, without
 pronunciation. The prompt is the example's `prompt` when given (it must allow the intent), otherwise the first **open-mode** prompt (ordinal id) that
 allows the intent, or the first of any mode when none is open: an open prompt grades a sentence, while a constrained prompt expects one of its
-answer set's phrases and would add `vocab.wrong`. The tags can depend on the prompt's difficulty and answer set, which is why an example may name its
+answer set's phrases and would add `vocab.wrong` to a sentence its intents do not understand (M67: not to one a slot grammar understands). The tags can depend on the prompt's difficulty and answer set, which is why an example may name its
 prompt.
 
 **Waivers.** Per intent, `"lint": { "allowOverlap": [...], "allowRuleOnly": [...], "allowHomograph": [...] }`. A waived finding is still printed (as

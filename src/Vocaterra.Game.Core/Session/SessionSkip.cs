@@ -3,6 +3,7 @@ using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Lessons;
+using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Nlp.Es.Normalization;
 
@@ -60,7 +61,7 @@ public static class SessionSkip
             throw new ArgumentOutOfRangeException(nameof(target), target, $"The skip goes to a play session from 2 to {last}, the last that has a lesson.");
         }
 
-        if (session.PlaySession != 1 || session.Simulation.Tick != 0 || session.Lessons.Book.Lessons.Any(l => session.Lessons.StatusOf(l.Id) != LessonStatus.NotStarted))
+        if (session.Day != 1 || session.Simulation.Tick != 0 || session.Lessons.Book.Lessons.Any(l => session.Lessons.StatusOf(l.Id) != LessonStatus.NotStarted))
         {
             throw new InvalidOperationException("Only a new game can be skipped to a later session.");
         }
@@ -69,7 +70,7 @@ public static class SessionSkip
         var carded = session.CardedLemmas();
         for (var played = 1; played < target; played++)
         {
-            session.PlaySession = played;
+            session.Day = played;
             foreach (var lesson in session.Lessons.Book.Lessons.Where(l => l.Session == played))
             {
                 session.Lessons.CountAsCompleted(lesson.Id, played);
@@ -92,7 +93,8 @@ public static class SessionSkip
         }
 
         session.ForgetSkippedWords(words, carded);
-        session.PlaySession = target;
+        session.Day = target;
+        session.Sitting = target; // a skipped-to game is a different play session, as the sessions before it were
         session.SkippedTo = target;
         session.LogEvent(new WorldEvent(session.CurrentTick, session.StoredTime.UnixSeconds, WorldEvents.SessionSkipped, null, Line(target)));
         session.BeginPlaySession(); // the new session's lesson is named and pointed at, as after a load
@@ -123,7 +125,7 @@ public static class SessionSkip
                 .FirstOrDefault(effect => effect.Kind == NpcEffectKind.Sell && noun.Items.Contains(effect.Item));
             if (sale is not null)
             {
-                purchases.Add(new Purchase(npc, sale.Item, RequestedCount(lesson, i, npc, data), sale.Price));
+                purchases.Add(new Purchase(npc, sale.Item, RequestedCount(lesson, i, npc, noun, data), sale.Price));
             }
         }
 
@@ -131,8 +133,9 @@ public static class SessionSkip
     }
 
     // How many items the lesson's request at an NPC asks for: the first number in the phrase of the last step before `before` that is said at that NPC and asks for an
-    // item (intent request_item), as a sale gives it (no cap since V19); one when there is no such step or it names no number.
-    private static int RequestedCount(LessonDefinition lesson, int before, string npc, GameData data)
+    // item (intent request_item), as a sale gives it (no cap since V19). A lesson with no such step (the market's do step has none, V23a) is read from the first later step whose
+    // phrase names the item and a number ("Compré tres manzanas."); one when there is neither.
+    private static int RequestedCount(LessonDefinition lesson, int before, string npc, NounEntry noun, GameData data)
     {
         for (var i = before - 1; i >= 0; i--)
         {
@@ -155,6 +158,38 @@ public static class SessionSkip
             return 1;
         }
 
+        for (var i = before + 1; i < lesson.Steps.Count; i++)
+        {
+            if (lesson.Steps[i].Phrase is { } phrase && data.Phrases.Find(phrase) is { } row && NumberIn(row.Spanish, noun) is { } number)
+            {
+                return number;
+            }
+        }
+
         return 1;
+    }
+
+    // The number that goes with the item in a phrase's Spanish (V30): the item as a whole word, its singular or its plural, and the number written just before it ("tres manzanas" in
+    // "Compré tres manzanas y dos panes" is 3 for the apple, "dos panes" is 2 for the bread); null when the phrase does not name the item with a number.
+    internal static int? NumberIn(string spanish, NounEntry noun)
+    {
+        var tokens = spanish.ToLowerInvariant().Split([' ', ',', '.', '¿', '?', '¡', '!'], StringSplitOptions.RemoveEmptyEntries);
+        for (var t = 0; t < tokens.Length; t++)
+        {
+            if (!string.Equals(tokens[t], noun.Lemma, StringComparison.OrdinalIgnoreCase) && !string.Equals(tokens[t], noun.Plural, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            for (var start = Math.Max(0, t - 4); start < t; start++) // the longest run first: "treinta y dos" is 32, not 2
+            {
+                if (SpanishNumbers.TryParsePrefix(tokens, start, out var number) == t - start && number > 0)
+                {
+                    return number;
+                }
+            }
+        }
+
+        return null;
     }
 }

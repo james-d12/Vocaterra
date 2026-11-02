@@ -1,12 +1,10 @@
 using Vocaterra.Nlp.Core.Stages;
-using Vocaterra.Nlp.Es;
+using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Es.Analysis;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Matching;
-using Vocaterra.Nlp.Language.Morphology;
-using Vocaterra.Nlp.Language.Normalization;
 using NlpLexicon = Vocaterra.Nlp.Language.Lexicon.Lexicon;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests.Generation;
@@ -36,8 +34,8 @@ public sealed class LexiconCatalog
     public static readonly IReadOnlyList<string> DeterminerAdjectiveLemmas =
         ["mucho", "poco", "otro", "varios", "todo", "mi", "tu", "su", "nuestro", "vuestro", "este", "ese", "aquel"];
 
-    /// <summary>Adjectives that normally precede the noun (mirror of <c>AnalysisTables.PrenominalAdjectives</c>).</summary>
-    public static readonly IReadOnlyList<string> PrenominalLemmas = ["grande", "bueno", "malo"];
+    /// <summary>Adjectives that normally precede the noun (mirror of <c>AnalysisTables.PrenominalAdjectives</c>; <c>cada</c> since M66).</summary>
+    public static readonly IReadOnlyList<string> PrenominalLemmas = ["grande", "bueno", "malo", "cada"];
 
     // M62: the Spanish analysis rules, read through the public interface rather than mirrored: which adjectives go after their noun (the colours).
     private static readonly IAnalysisRules SpanishRules = AnalysisRules.For(SpanishLanguagePack.Instance);
@@ -96,6 +94,12 @@ public sealed class LexiconCatalog
     /// <summary>The verbs whose clitic after <c>cómo</c> is reflexive and agrees with them (mirror of <c>SpanishAnalysisTables.ReflexiveQuestionVerbs</c>, M59: ¿cómo te llamas?).</summary>
     public static readonly IReadOnlyList<string> ReflexiveQuestionVerbs = ["llamar", "sentir"];
 
+    /// <summary>
+    /// The experiencer verbs whose subject is the thing liked and never the one who likes (mirror of <c>SpanishAnalysisTables.LikingVerbs</c>, M70): behind a dative
+    /// pronoun a form of the first or second person with a phrase after it is the learner's slip (me gusto el pan, gusta).
+    /// </summary>
+    public static readonly IReadOnlyList<string> LikingVerbs = ["gustar", "encantar"];
+
     /// <summary>The dative pronouns before an experiencer verb (mirror of <c>SpanishAnalysisTables.DativePronouns</c>, M56).</summary>
     public static readonly IReadOnlyList<string> DativePronouns = ["me", "te", "le", "nos", "os", "les"];
 
@@ -116,10 +120,61 @@ public sealed class LexiconCatalog
     public static readonly IReadOnlyList<string> SubjectClauseOpeners = ["y", "e", "pero", "porque", "si", "cuando", "aunque"];
 
     /// <summary>
+    /// The question words, as written, that may stand between a subject pronoun and its verb (mirror of <c>SpanishAnalysisTables.QuestionWordsAfterSubject</c>,
+    /// M66): the pronoun before one is the subject of the verb after it (<c>ella qué quiere</c>).
+    /// </summary>
+    public static readonly IReadOnlyList<string> QuestionWordsAfterSubject = ["qué", "dónde", "adónde", "cuándo", "cómo"];
+
+    /// <summary>
+    /// The question words and relatives, as written with and without the accent, that open a clause whose subject pronoun may follow its verb (mirror of
+    /// <c>SpanishAnalysisTables.ClauseOpeners</c> less <c>porque</c> and <c>si</c>, M69): the analyzer agrees the verb with a subject pronoun right after it
+    /// (<c>¿dónde estás tú?</c>).
+    /// </summary>
+    public static readonly IReadOnlyList<string> InvertingClauseOpeners =
+    [
+        "que", "qué", "dónde", "donde", "adónde", "adonde", "cuándo", "cuando", "cómo", "como", "cuánto", "cuanto", "cuánta", "cuanta", "cuántos", "cuantos", "cuántas",
+        "cuantas", "quién", "quien", "quiénes", "quienes", "cuál", "cual", "cuáles", "cuales",
+    ];
+
+    /// <summary>
     /// The words that say how much a sum is, as written (mirror of <c>SpanishAnalysisTables.AmountPredicates</c>, M64): after an amount and a singular <c>ser</c>
     /// (<c>dos panes es suficiente</c>) the analyzer reads the amount as one sum.
     /// </summary>
     public static readonly IReadOnlyList<string> AmountPredicates = ["mucho", "poco", "bastante", "demasiado", "suficiente", "caro", "barato", "nada", "algo"];
+
+    /// <summary>
+    /// The words of <see cref="AmountPredicates"/> that say a price, and the lemmas of the money units (mirror of <c>SpanishAnalysisTables.PricePredicates</c> and
+    /// <c>MoneyNouns</c>, M73): a price is a sum's only when the amount is money (<c>diez monedas es caro</c>; <c>dos panes es caro</c> is a person mistake).
+    /// </summary>
+    public static readonly IReadOnlyList<string> PricePredicates = ["caro", "barato"];
+
+    /// <inheritdoc cref="PricePredicates"/>
+    public static readonly IReadOnlyList<string> MoneyNouns = ["moneda", "euro", "céntimo", "centavo", "dólar", "peso", "libra", "real"];
+
+    /// <summary>
+    /// Nouns of events, whose place takes <c>ser</c> (mirror of <c>SpanishAnalysisTables.EventNouns</c>, M56 and M69): the <c>ser_estar</c> mutation of M69 makes no
+    /// <c>es en</c> after a subject of one (<c>la fiesta es en la plaza</c> is correct).
+    /// </summary>
+    public static readonly IReadOnlyList<string> EventNouns =
+    [
+        "fiesta", "reunión", "boda", "concierto", "clase", "lección", "curso", "examen", "partido", "partida", "juego", "carrera", "competición", "concurso",
+        "torneo", "cena", "comida", "almuerzo", "desayuno", "merienda", "banquete", "cumpleaños", "festival", "feria", "mercadillo", "misa", "funeral",
+        "entierro", "ceremonia", "celebración", "espectáculo", "función", "obra", "película", "exposición", "conferencia", "congreso", "cita", "encuentro",
+        "evento", "acto", "entrevista", "baile", "desfile", "procesión", "carnaval", "salida", "llegada", "entrega", "visita", "excursión", "viaje", "sesión",
+        "votación", "inauguración", "graduación", "verbena", "romería", "ensayo", "actuación", "taller", "charla", "prueba", "subasta", "sorteo", "batalla", "pelea",
+        "lucha", "accidente",
+    ];
+
+    /// <summary>
+    /// Nouns that are no place after <c>en</c> (M69, mirror of <c>SpanishAnalysisTables.IsDurationNoun</c> and <c>AdverbialPhraseNouns</c>): <c>ser</c> before
+    /// <c>en</c> and one of them is not checked (<c>la clase es en la tarde</c>, <c>es en el fondo bueno</c>).
+    /// </summary>
+    public static readonly IReadOnlyList<string> NonPlaceNouns =
+    [
+        .. UpcomingTimeNouns, "tarde", "mañana", "rato", "momento", "mediodía", "medianoche", "minuto", "segundo", "tiempo", "temporada", "época",
+        "fondo", "práctica", "actualidad", "medida", "sentido", "caso", "realidad", "principio", "teoría", "verdad", "general", "parte", "total", "cambio", "forma",
+        "manera", "modo", "palabra", "seguida", "absoluto", "punto",
+    ];
 
     /// <summary>Adverbs of place that take <c>estar</c>, so <c>ser</c> before one is a mistake (mirror of <c>SpanishAnalysisTables.LocationAdverbs</c>, M56).</summary>
     public static readonly IReadOnlyList<string> LocationAdverbs = ["lejos", "cerca"];
@@ -707,6 +762,51 @@ public sealed class LexiconCatalog
     public static bool IsDegreeAdverb(string lemma)
     {
         return SpanishRules.IsDegreeAdverb(lemma);
+    }
+
+    /// <summary>
+    /// True when the word at <paramref name="index"/> of the words is a lexicon word of another class than a noun that is also an irregular verb's regular cell
+    /// (<c>podo</c>, a form of <c>podar</c>, for <c>puedo</c>; <c>esto</c> for <c>estoy</c>) and the words around it call for that slip (M69,
+    /// <see cref="IAnalysisRules.CallsForSlip"/> of the Spanish pack, over the lexicon's readings of the words as the analyzer reads them): the analyzer then reads the
+    /// word as the slip and reports it (<c>yo podo ir</c>).
+    /// </summary>
+    /// <param name="words">The words of the sentence, as written.</param>
+    /// <param name="index">The index of the word.</param>
+    public bool ReadsAsSlip(IReadOnlyList<string> words, int index)
+    {
+        var word = words[index].ToLowerInvariant();
+        var own = Lexicon.Lookup(word);
+        if (own.Count == 0 || own.All(static r => r.Pos == LexiconSchema.Noun) || !Morphology.TryGetRegularizationOfWord(word, out var regularized))
+        {
+            return false;
+        }
+
+        var tokens = new List<AnalyzedToken>(words.Count);
+        var start = 0;
+        foreach (var w in words)
+        {
+            var lower = w.ToLowerInvariant();
+            tokens.Add(new AnalyzedToken(new Token(lower, new TextSpan(start, lower.Length), w), [.. Lexicon.Lookup(lower)]));
+            start += lower.Length + 1;
+        }
+
+        LexicalFeatures slip = new(regularized.Lemma, LexiconSchema.Verb, regularized.Person, regularized.Number, regularized.Tense, LexiconSchema.Indicative, null);
+        return !own.Contains(slip) && SpanishRules.CallsForSlip(tokens, index, [slip]);
+    }
+
+    /// <summary>
+    /// True for a verb that takes an infinitive right after it, or after <paramref name="linker"/> (M66: <c>poder</c>, <c>querer</c>, <c>deber</c>, <c>necesitar</c>;
+    /// <c>tener que</c>; <see cref="IAnalysisRules.IsModalVerb"/> of the Spanish pack): a finite verb there is the learner's slip for the infinitive.
+    /// </summary>
+    public static bool IsModalVerb(string lemma, string? linker)
+    {
+        return SpanishRules.IsModalVerb(lemma, linker);
+    }
+
+    /// <summary>True for a modal that may also take a noun as its object (M66: <c>querer</c>, <c>deber</c>, <c>necesitar</c>; <see cref="IAnalysisRules.ModalTakesNounObject"/>).</summary>
+    public static bool ModalTakesNounObject(string lemma)
+    {
+        return SpanishRules.ModalTakesNounObject(lemma);
     }
 
     private IReadOnlyList<string> BuildAdjectives()

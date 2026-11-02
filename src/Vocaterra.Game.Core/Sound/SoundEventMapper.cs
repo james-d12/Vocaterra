@@ -152,7 +152,7 @@ public sealed partial class SoundEventMapper
         }
 
         var cues = new List<SoundCue>();
-        if (turn.Intent is "dont_know" or "ask_help" || !turn.Communicated || turn.Uncertain)
+        if (turn.Intent is "dont_know" or "ask_help" || !turn.Taken || turn.Uncertain)
         {
             cues.Add(SoundCue.AnswerNeutral);
         }

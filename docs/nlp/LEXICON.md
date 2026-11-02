@@ -191,11 +191,34 @@ reporting the false errors, and starts reporting the true ones that the old read
 reason restores the accent on a word the analysis read as accented (`AccentRestoration`, used by `RecastBuilder`), as it already did for a word the lexicon lacks (`arbol` gives
 `árbol`); a word read as typed keeps its spelling.
 
+### A typed `n` for `ñ` (M70)
+
+The owner's answer of 2026-11-01 (D-game-22, item 2; QA-language-7): a word typed with `n` for `ñ` is a typing slip, read as a word written without its accent is,
+when the spelling with `n` is not itself a word. Before M70 `manana compraré pan` at `lesson-will-buy` gave `vocab.unknown` (expected `mañana`, correctness 0.6),
+and on the CLI `manana venderé fruta` at `lesson-will-sell` lost its intent. The fold lives in `Lexicon.Lookup`'s accent-insensitive fallback: after the exact form
+and the form with its accents ignored, a spelling that no lexicon form folds to is looked up among the *unmarked spellings* of the lexicon's forms, which the language
+pack gives through `ILexiconFolding.UnmarkedSpellings` (default none; the Spanish pack: each `ñ` typed as `n`, accents stripped). The readings come back flagged
+accent-insensitive, as `arbol` does, so the analysis, the intent stage and the recast treat `manana` as `mañana`, and `SpellingsIgnoringAccents("manana")` gives
+`mañana` for a recast. The index is built once per lexicon, on first use.
+
+How the lexicon is asked whether the plain spelling is a word: first the lexicon itself (a spelling that is a lexicon form, accents ignored, keeps its own readings:
+`una` not `uña`, `pena`, `mono`, `suena` and the other forms of `sonar` beside `soñar`, `campana`, `dona`), then a closed list of the Spanish pack
+(`TextFolding.IsWordSpelledWithN`) for the words a bundle's lexicon may lack: `ano`, `cana`, `cano`, `canon`, `cono`, `cuna`, `mana`, `mona`, `mono`, `panal`,
+`pena`, `pina`, `pino`, `sena`, `tina`, `una` and their plurals, and `ceno`. The game's lexicon lacks `ano`, `cana`, `peña`, `caña` and `moño`, so without the
+list `ano` would have been read as `año`; with it `tengo diez anos` keeps its `vocab.unknown`, as before. Accepted: `manana`, `pequeno`, `senor`, `espanol`, `nino`,
+`anadio` (`añadió`, an accent left out as well). Graded as before: `ano`/`año`, `pena`/`peña`, `cana`/`caña`, `una`/`uña`, `mono`/`moño`, `suena`/`sueña`. The
+answer matcher is unchanged: it keeps `ñ` (`Accents.Strip`), so `manana compraré pan` is a fuzzy match of distance 1 to `mañana compraré pan`, which is
+communicated as before. The content lint's coverage check uses `Lookup`, so a content word with `n` for `ñ` counts as covered, as one without its accent already did.
+
 ## Words the content uses and the lexicon lacked
 
 The coverage tests (`LexiconCoverageTests`) found `saeta` (an alias in the `items-basic` answer set), `género`, `ayudarte`, `inténtalo` and `mmm` (dialogue lines).
 They are in `lexicon/supplement.json`. `se` was added to `cefr/a1.txt`: it counted as covered only because the accent-insensitive lookup read `se` as `sé`.
 `cefr-check` for A1 and A2 lists no template word that it did not list before, with the same word or its lemma (A1: 32 to 27 not in the list, A2: 31 to 15).
+
+M66 (2026-11-01) added `ti`, the prepositional pronoun of `tú` (`es para ti`, `tengo pan para ti`), which the import lacks and a learner of the A2 lessons says:
+`para ti` gave `vocab.unknown`. It is in `lexicon/supplement.json` as the import holds `mí`: a pronoun with its own lemma and no features, so no check takes it
+for a subject.
 
 ## Known limits
 

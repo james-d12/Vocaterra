@@ -6,7 +6,6 @@ using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
-using Vocaterra.Game.Core.Tip;
 
 namespace Vocaterra.Game.Core.Language.Lessons;
 
@@ -249,8 +248,34 @@ public sealed class LessonRunner
     public bool IsUnlocked(LessonDefinition lesson)
     {
         ArgumentNullException.ThrowIfNull(lesson);
-        return _session.PlaySession >= lesson.Session && (lesson.After is null || IsDone(lesson.After));
+        return _session.Day >= lesson.Session && (lesson.After is null || IsDone(lesson.After));
     }
+
+    /// <summary>Whether the learner has begun a lesson or done it (VILLAGE_PLAN V20): free talk credits the phrases it teaches (<see cref="Credits"/>).</summary>
+    /// <param name="lessonId">The lesson's id.</param>
+    public bool IsBegun(string lessonId) => StatusOf(lessonId) != LessonStatus.NotStarted || IsDone(lessonId);
+
+    /// <summary>
+    /// Whether an NPC may show its support card for a phrase (VILLAGE_PLAN V20, handover 9.3 D (c)): a lesson that teaches the phrase is the current one (unlocked:
+    /// its play session has come and the lesson before it is done), begun or done. A phrase no lesson teaches (the stall's <c>pedir-agua</c>) always may. Luz showed
+    /// <c>Vendo madera.</c>, which session 10's lesson teaches, from her first talk in session 5, and León his A2 lines to an A1 learner.
+    /// </summary>
+    /// <param name="phraseId">The phrase sheet's id.</param>
+    public bool CardReady(string phraseId)
+    {
+        var teachers = _book.TeachersOf(phraseId);
+        return teachers.Count == 0 || teachers.Any(lesson => IsUnlocked(lesson) || IsBegun(lesson.Id));
+    }
+
+    /// <summary>
+    /// Whether free talk credits a phrase said at any NPC (VILLAGE_PLAN V20, handover 9.3 D (b)): a lesson the learner has begun or done teaches it. Before, free talk
+    /// credited only the rows of the NPC's focus, so <c>Mañana compraré pan.</c> said to Luz after its lesson counted no use.
+    /// </summary>
+    /// <param name="phraseId">The phrase sheet's id.</param>
+    public bool Credits(string phraseId) => _book.TeachersOf(phraseId).Any(lesson => IsBegun(lesson.Id));
+
+    /// <summary>The phrases free talk credits now (<see cref="Credits"/>): those of the lessons begun or done, for a turn's scene (<see cref="Npc.GuideScene.Credited"/>).</summary>
+    public IReadOnlySet<string> CreditedPhrases => _book.Lessons.Where(lesson => IsBegun(lesson.Id)).SelectMany(static lesson => lesson.TaughtPhrases).ToHashSet(StringComparer.Ordinal);
 
     /// <summary>
     /// Why a lesson that is not begun waits (V12c, the book's Lessons page): it is the unlocked lesson the objective sends the learner to (<see cref="LessonWaitKind.Next"/>: the
@@ -266,7 +291,7 @@ public sealed class LessonRunner
             return null;
         }
 
-        if (_session.PlaySession < lesson.Session)
+        if (_session.Day < lesson.Session)
         {
             return new LessonWait(LessonWaitKind.Session, lesson.Session, lesson.Npc);
         }
@@ -996,6 +1021,7 @@ public sealed class LessonRunner
             // A review step asks the first of its candidates that is due (X06, R07), and is skipped when none is: nothing not yet met, and nothing still inside its spacing gap.
             if (ChooseReview(step) is not { } chosen)
             {
+                _session.Deck.Note(_locale.Ui("reviewNothingDue")); // the learner is told it ran (V23a)
                 Finish(lesson, state, StepOutcome.Skipped, "nothing due");
                 return;
             }
@@ -1007,6 +1033,13 @@ public sealed class LessonRunner
         {
             // The goods of an order were brought before the step asked for them (V11): walking up with them is enough (D-game-8), so the step has nothing to wait for.
             Finish(lesson, state, StepOutcome.Done, "delivered before");
+            return;
+        }
+
+        if (step is { Type: LessonStepType.Do, Trigger: { Event: WorldEvents.ItemPickedUp, Detail: { } picked } } && _session.HoldsPickup(picked, PickupsNeeded(lesson, state.Step, picked)))
+        {
+            // The bag holds what the step waits to see picked up (V23a): gathered before the lesson asked for it, so the step has nothing to wait for.
+            Finish(lesson, state, StepOutcome.Done, "held before");
             return;
         }
 
@@ -1033,6 +1066,19 @@ public sealed class LessonRunner
 
         _version++;
         _session.RefreshLessonSupport();
+    }
+
+    // How many of a noun a pickup step is for: the goods of the order the next step waits to see delivered, when they hold the noun's item (the five wood of the baker's
+    // oven, V23a); otherwise one, the pickup itself.
+    private int PickupsNeeded(LessonDefinition lesson, int index, string lemma)
+    {
+        if (index + 1 < lesson.Steps.Count && lesson.Steps[index + 1] is { Type: LessonStepType.Do, Trigger: { Event: WorldEvents.OrderDelivered, Detail: { } order } }
+            && _session.Data.Objectives.Objectives.FirstOrDefault(o => string.Equals(o.Id, order, StringComparison.Ordinal)) is { } spec && _session.Nouns.ForLemma(lemma) is { } noun)
+        {
+            return spec.Goods.Where(g => noun.Items.Contains(g.Item)).Select(static g => g.Count).DefaultIfEmpty(1).Max();
+        }
+
+        return 1;
     }
 
     // The step in progress: for a review step, the step as resolved to the candidate asked (X06).
@@ -1078,7 +1124,7 @@ public sealed class LessonRunner
 
         state.Status = LessonStatus.Completed;
         state.Done = true;
-        state.CompletedSession = _session.PlaySession;
+        state.CompletedSession = _session.Day;
         _activeId = null;
         _engaged = false;
         var done = state.Outcomes.Count(static o => o.Outcome == StepOutcome.Done);

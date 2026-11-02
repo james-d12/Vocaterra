@@ -135,7 +135,7 @@ public sealed class SpeechUxTests
     [Fact]
     public void ALineTheCoreDidNotUnderstandIsUncertainRunsTheRepairLadderAndCostsTheLearnerNothing()
     {
-        var (session, npcs) = AtStall(new Scripted("el gato come queso", 0.99));
+        var (session, npcs) = AtStall(new Scripted("el gato duerme", 0.99));
         var learner = npcs.ContextOf("shopkeeper").Learner;
 
         var first = SaySpoken(session);
@@ -154,18 +154,18 @@ public sealed class SpeechUxTests
     }
 
     [Fact]
-    public void ATypedLineTheCoreDidNotUnderstandStillMarksTheLearnerBecauseItIsALanguageFailure()
+    public void ATypedLineThePromptDoesNotTakeIsNoUncertainRecognitionAndMarksNoErrorOnTheLearner()
     {
         var session = TestGame.NewSession();
         Stage.TeleportToNpc(session, "shopkeeper");
         _ = session.OpenTalk("shopkeeper");
         var learner = session.Conversation.ContextOf("shopkeeper").Learner;
 
-        var turn = session.Say("el gato come queso");
+        var turn = session.Say("el gato duerme");
 
         Assert.False(turn.Uncertain); // only a spoken line is an uncertain recognition
         Assert.False(turn.Communicated);
-        Assert.NotSame(learner, session.Conversation.ContextOf("shopkeeper").Learner);
+        Assert.Same(learner, session.Conversation.ContextOf("shopkeeper").Learner); // M72: a correct line the prompt does not take has no error, so nothing marks the learner
     }
 
     // The turn as the worker would hand it to the session: applied on the caller's thread (the same call Collect makes).
@@ -191,7 +191,7 @@ public sealed class SpeechUxTests
         Assert.Equal("asking", npcs.ContextOf("shopkeeper").AgentState.StateId);
 
         // A line the core did not understand: the same voice event, no phrase use, and the ladder goes on.
-        npcs.AttachSpeech(new SpokenUtteranceEvaluator(TestGame.Bundle, new Scripted("el gato come queso", 0.99)));
+        npcs.AttachSpeech(new SpokenUtteranceEvaluator(TestGame.Bundle, new Scripted("el gato duerme", 0.99)));
         var lost = Apply(session, SaySpoken(session));
         Assert.True(lost.Turn!.Uncertain);
         Assert.Equal(2, session.Events.OfType<VoiceEvent>().Count());
@@ -250,10 +250,10 @@ public sealed class SpeechUxTests
 
         for (var i = 0; i < 2; i++)
         {
-            Assert.Null(session.Say("el gato come queso").Choices);
+            Assert.Null(session.Say("el gato duerme").Choices);
         }
 
-        var offered = session.Say("el gato come queso");
+        var offered = session.Say("el gato duerme");
         Assert.Equal(RepairKind.OfferChoices, offered.RepairKind);
         var options = session.Phrases.OptionsFor(offered.Choices!);
         Assert.Equal(["Quiero agua, por favor.", "Quiero pan por favor.", "Quiero fruta por favor."], options.Select(static o => o.Label));
@@ -302,7 +302,7 @@ public sealed class SpeechUxTests
     public void AnUnsureTurnDoesNotForgetThatChoicesWereOffered()
     {
         // The line after an offer of choices is marked as a choice even when a held-back line came in between.
-        var (session, npcs) = AtStall(new Scripted("el gato come queso", 0.99));
+        var (session, npcs) = AtStall(new Scripted("el gato duerme", 0.99));
         _ = SaySpoken(session);
         _ = SaySpoken(session);
         var offered = SaySpoken(session);

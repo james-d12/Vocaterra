@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using Vocaterra.Game.Core.Content;
+using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Prompts;
@@ -67,9 +68,11 @@ public sealed class PhraseSheet
 
     private readonly List<PhraseRow> _rows;
     private readonly IReadOnlyDictionary<string, string> _answeredAs;
+    private readonly NounCatalog? _nouns;
 
-    private PhraseSheet(List<PhraseRow> rows, IReadOnlyDictionary<string, string>? answeredAs = null)
+    private PhraseSheet(List<PhraseRow> rows, IReadOnlyDictionary<string, string>? answeredAs = null, NounCatalog? nouns = null)
     {
+        _nouns = nouns;
         _rows = rows;
         _answeredAs = answeredAs ?? new Dictionary<string, string>(StringComparer.Ordinal);
     }
@@ -92,7 +95,7 @@ public sealed class PhraseSheet
         }
 
         var rows = Parse(Encoding.UTF8.GetString(bytes.Span), locale)._rows;
-        return new PhraseSheet(rows, AnsweredAlike(rows, bundle, npcs));
+        return new PhraseSheet(rows, AnsweredAlike(rows, bundle, npcs), NounCatalog.Load(bundle));
     }
 
     /// <summary>The locale id of a row's support-language text: <c>phrase.&lt;id&gt;.&lt;field&gt;</c> (meaning, card, explain).</summary>
@@ -187,7 +190,9 @@ public sealed class PhraseSheet
     /// <param name="river">The river's noun (<c>río</c>, <c>game/words.json</c>).</param>
     /// <param name="practised">In free talk, the phrases the NPCs' open prompts practise (<see cref="NpcRoster.Homes"/>), for <see cref="ByPlace"/>; <see langword="null"/> in a lesson's
     /// step or a review, whose phrase is the step's.</param>
-    public string? PhraseFor(string prompt, string intent, IReadOnlyDictionary<string, string> slots, string river, IEnumerable<string>? practised = null)
+    /// <param name="said">In free talk, the phrase of a lesson begun or done that the line is (VILLAGE_PLAN V20, <see cref="Said"/>): it comes before the fixed mapping, which
+    /// knows only the stall's and the river's phrases; <see langword="null"/> for none.</param>
+    public string? PhraseFor(string prompt, string intent, IReadOnlyDictionary<string, string> slots, string river, IEnumerable<string>? practised = null, string? said = null)
     {
         ArgumentNullException.ThrowIfNull(prompt);
         var here = PhrasesAt(prompt);
@@ -196,7 +201,7 @@ public sealed class PhraseSheet
             return placed;
         }
 
-        return OfIntent(here, intent, slots) ?? PhraseIds.For(intent, slots, river);
+        return OfIntent(here, intent, slots, _nouns) ?? said ?? PhraseIds.For(intent, slots, river);
     }
 
     /// <summary>
@@ -218,33 +223,41 @@ public sealed class PhraseSheet
         ArgumentNullException.ThrowIfNull(practised);
         phrase = null;
         var ofIntent = rows.Where(row => string.Equals(row.Intent, intent, StringComparison.Ordinal)).ToList();
-        if (ofIntent.Count != 1 || slots.ContainsKey("item") || !slots.TryGetValue("place", out var place) || Names(ofIntent[0], place))
+        if (ofIntent.Count != 1 || slots.ContainsKey("item") || !slots.TryGetValue("place", out var place) || Names(ofIntent[0], place, _nouns))
         {
             return false;
         }
 
         var homes = practised.ToHashSet(StringComparer.Ordinal);
-        phrase = _rows.FirstOrDefault(row => row.IsLearnerPhrase && homes.Contains(row.Id) && string.Equals(row.Intent, intent, StringComparison.Ordinal) && Names(row, place))?.Id;
+        phrase = _rows.FirstOrDefault(row => row.IsLearnerPhrase && homes.Contains(row.Id) && string.Equals(row.Intent, intent, StringComparison.Ordinal) && Names(row, place, _nouns))?.Id;
         return true;
     }
 
     /// <summary>
     /// The id of the row of an intent among these rows (the phrases in play on a prompt, or the rows it teaches): the only one, or, when several share the intent (the
     /// fisher's <c>¿Dónde está la panadería?</c> and <c>¿Dónde está la herrería?</c>), the one whose phrase or a variant names the place or the item the turn asked
-    /// about. <see langword="null"/> when no row has the intent, or several have it and none names the turn's place or item: crediting one of them would be a guess.
+    /// about. <see langword="null"/> when no row has the intent, the only one names another item than the turn asks for (V26), or several have it and none names the turn's place or item: crediting one of them would be a guess.
     /// </summary>
     /// <param name="rows">The rows.</param>
     /// <param name="intent">The intent the core resolved.</param>
     /// <param name="slots">The slots the core filled.</param>
-    public static string? OfIntent(IEnumerable<PhraseRow> rows, string intent, IReadOnlyDictionary<string, string> slots)
+    /// <param name="nouns">The noun catalogue, for the plural of an item (V30: a row whose every variant says <c>manzanas</c> names <c>manzana</c>); <see langword="null"/> names the word as given only.</param>
+    public static string? OfIntent(IEnumerable<PhraseRow> rows, string intent, IReadOnlyDictionary<string, string> slots, NounCatalog? nouns = null)
     {
         ArgumentNullException.ThrowIfNull(rows);
         ArgumentNullException.ThrowIfNull(intent);
         ArgumentNullException.ThrowIfNull(slots);
         var ofIntent = rows.Where(row => string.Equals(row.Intent, intent, StringComparison.Ordinal)).ToList();
-        if (ofIntent.Count <= 1)
+        if (ofIntent.Count == 1)
         {
-            return ofIntent.FirstOrDefault()?.Id;
+            // V26: the only row of the intent is the phrase unless the turn asks for an item the row does not name: `quiero dos manzanas` is no use of `quiero dos panes`
+            // (a request the baker refuses). A count, a place or no item at all leaves the row credited: `quiero tres panes` names the same bread.
+            return slots.TryGetValue("item", out var asked) && !Names(ofIntent[0], asked, nouns) ? null : ofIntent[0].Id;
+        }
+
+        if (ofIntent.Count == 0)
+        {
+            return null;
         }
 
         if (DetailOf(slots) is not { } detail)
@@ -252,14 +265,22 @@ public sealed class PhraseSheet
             return null;
         }
 
-        return ofIntent.FirstOrDefault(row => Names(row, detail))?.Id;
+        return ofIntent.FirstOrDefault(row => Names(row, detail, nouns))?.Id;
     }
 
-    // Whether the row's phrase or one of its variants names the word (a place or an item), as a whole word.
-    private static bool Names(PhraseRow row, string word)
+    // Whether the row's phrase or one of its variants names the word (a place or an item), as a whole word, in its singular or its plural: the catalogue's forms of the noun, never a
+    // made-up ending (V30).
+    private static bool Names(PhraseRow row, string word, NounCatalog? nouns)
     {
-        var named = " " + Plain(word) + " ";
-        return row.Texts.Any(text => (" " + Plain(text) + " ").Contains(named, StringComparison.Ordinal));
+        var forms = new List<string> { " " + Plain(word) + " " };
+        var entry = nouns?.ForLemma(word) ?? nouns?.Nouns.FirstOrDefault(n => string.Equals(Plain(n.Plural), Plain(word), StringComparison.Ordinal));
+        if (entry is not null)
+        {
+            forms.Add(" " + Plain(entry.Lemma) + " ");
+            forms.Add(" " + Plain(entry.Plural) + " ");
+        }
+
+        return row.Texts.Any(text => forms.Any(form => (" " + Plain(text) + " ").Contains(form, StringComparison.Ordinal)));
     }
 
     /// <summary>The slot of a turn that matters to its phrase: the item asked for, else the place asked about, else <see langword="null"/>.</summary>
@@ -309,6 +330,23 @@ public sealed class PhraseSheet
         ArgumentNullException.ThrowIfNull(phrase);
         var plain = Plain(phrase);
         return _rows.FirstOrDefault(row => row.IsLearnerPhrase && row.Texts.Any(text => string.Equals(Plain(text), plain, StringComparison.Ordinal)));
+    }
+
+    /// <summary>
+    /// The row a learner's line is, among the phrases a test admits (VILLAGE_PLAN V20: those of the lessons begun or done): the first in the sheet's order that the
+    /// learner says, is no service line, and whose Spanish or a variant the line equals, ignoring case, accents and punctuation (<see cref="Plain"/>); or
+    /// <see langword="null"/>.
+    /// </summary>
+    /// <param name="line">What the learner said.</param>
+    /// <param name="admits">Whether a phrase (by its id) may be the one.</param>
+    public PhraseRow? Said(string line, Func<string, bool> admits)
+    {
+        ArgumentNullException.ThrowIfNull(line);
+        ArgumentNullException.ThrowIfNull(admits);
+        var plain = Plain(line);
+        return plain.Length == 0
+            ? null
+            : _rows.FirstOrDefault(row => row.IsLearnerPhrase && !IsService(row) && admits(row.Id) && row.Texts.Any(text => string.Equals(Plain(text), plain, StringComparison.Ordinal)));
     }
 
     /// <summary>

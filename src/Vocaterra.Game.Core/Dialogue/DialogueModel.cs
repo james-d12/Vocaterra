@@ -6,7 +6,6 @@ using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
-using Vocaterra.Game.Core.Tip;
 
 namespace Vocaterra.Game.Core.Dialogue;
 
@@ -555,6 +554,11 @@ public sealed class DialogueModel
             {
                 Add(DialogueSpeaker.Guide, line);
             }
+        }
+
+        foreach (var note in turn.AccentNotes)
+        {
+            Add(DialogueSpeaker.Accent, note); // under the reply: the accent the learner left out (M70)
         }
 
         if (_locale is not null)

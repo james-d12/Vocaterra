@@ -27,7 +27,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-19 | Verbs in the lessons | decided (owner, 2026-10-22): verbs early but gradual, across sessions (yo/tú in session 1, the other persons in session 2, ir a + infinitive and a few past forms in session 3), lessons replayable from the book; conjugation tables in the book | nothing |
 | D-game-20 | One licence for the whole repository | decided (owner, 2026-10-23): Apache-2.0 for the game as well as the core; one `LICENSE` and `NOTICE` at the root (R01) | nothing |
 | D-game-21 | Content as data and the L1 locale layer (the C series, `docs/game/CONTENT_PLAN.md`) | decided (owner, 2026-10-27 to 2026-10-29): English moves into a locale bundle `content/locale/` outside game-v1's hash (`en` only); content stays JSON with JSON Schema; objectives, NPCs and target-language words become data; the series runs after R16 phase 2, on `feature/content` | nothing |
-| D-game-22 | The village and the lessons (the V series, `docs/game/VILLAGE_PLAN.md`) | decided for phase A (owner, 2026-10-30): phase A now (sessions 4 to 6), phase B held (started 2026-10-31 on the owner's word); the plan's proposals for (b), (c), (e), (f), (h) and (i); the farmer is León; voices provisional (the plan's first candidates) and recorded, the owner listens afterwards; all work by Opus 5.5 at xhigh effort; 2026-10-31: V18 and the core's M56, M59 (before V14), M58 and M62 (before V15) join phase B | the V series |
+| D-game-22 | The village and the lessons (the V series, `docs/game/VILLAGE_PLAN.md`) | decided for phase A (owner, 2026-10-30): phase A now (sessions 4 to 6), phase B held (started 2026-10-31 on the owner's word); the plan's proposals for (b), (c), (e), (f), (h) and (i); the farmer is León; voices provisional (the plan's first candidates) and recorded, the owner listens afterwards; all work by Opus 5.5 at xhigh effort; 2026-10-31: V18 and the core's M56, M59 (before V14), M58 and M62 (before V15) join phase B; 2026-11-01, the follow-ups: models mixed (Opus for M65 to M67, M69 and V20, Sonnet for V21 to V23 and M68, Haiku for V24), M65's narrowings (a) to (c), name plates of the faced NPC depth-tested; 2026-11-02: V24's bugs first (V26), the off-prompt lines (M72, V27), the small points (M73, V28) and the speech folder by speaker; after the pull request: weather and `¿cómo estás?` intents (M74, V29), the near-miss rule (M75), a study of spoken off-prompt lines (`docs/HANDOVER_AFTER_FOLLOWUPS.md`) | the V series |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
@@ -305,6 +305,80 @@ gate in CI); a speech sample before V15. Phase B's order is in `VILLAGE_PLAN.md`
 **Owner's answer, 2026-10-31 (after V13):** "Run m62 before v15". **The core's M62** (V13's adjective gaps: a predicate adjective agreed
 across `ser` and `estar`, and a colour adjective before its noun) runs after M58 and before V15, whose `es muy caro` and `más barato que`
 are predicate adjectives a learner will get wrong.
+
+**Owner's answers, 2026-11-01 (the follow-ups after PR #20's merge, `docs/HANDOVER_VILLAGE_PHASE_B.md` section 9.1),** on
+`feature/village-followups`:
+1. **Models, a mix** (it replaces "every V milestone by Opus" for the follow-ups): Opus 5.5 at xhigh for the core's M65, M66, M67 and M69
+   and for V20, where Spanish is judged and the design is subtle; Sonnet 5.5 for V21 to V23 and the core's M68; Haiku 5.5 for V24, the
+   documents. The QA pass uses the QA agent's own model.
+2. **The fuzz narrowings of M65:** yes to (a) `egVgLELrxyL4`, (b) `haber` after a noun subject (`b3HSKSLCsL_1`, `4YuZ2yubxdC1`) and (c)
+   `2ldq2rIKLrG2`; (d) `2tpLGUOSqj41` stays recorded, not narrowed.
+3. **Name plates (V22):** only the plate of the NPC the player faces within talking range (and the beacon's target), drawn depth-tested
+   against the scene and the figures.
+4. **CI:** `main`'s CI was green after the merge, so M68 (the timed tests' budgets on CI) does not run unless a timed test fails there.
+
+**Owner's answers, 2026-11-01 (on the QA passes of the follow-ups, `docs/qa-reports/2026-11-01-language.md` and `-progression.md`):**
+1. **A load and the session: two counters.** The day (the village session: lessons, objectives, orders; advanced only by sleeping, V12c)
+   is restored exactly as saved. A separate sitting counter still goes up on each launch or load, for the phrase-credit spacing rule ("a
+   different play session" above, which keeps its meaning) and the session logs. It replaces S10's "a load is the next session" (V25).
+2. **Typed `n` for `ñ`** is a typing slip, accepted as a dropped accent is (M26b), when the spelling without `ñ` is not itself a word
+   (`ano`/`año`, `pena`/`peña`, `cana`/`caña` stay distinct and are graded as today) (M70).
+3. **An accent that marks a verb's tense or person** (`compre` for `compré`, `compro` for `compró`) is still accepted on typed input with
+   no deduction, but the feedback shows the accented form with a short note (M70, and the note's display in the game, V21).
+
+**Owner's answers, 2026-11-02 (after V24, the last of the follow-ups' queue):**
+1. **V24's four game bugs are fixed first, on `feature/village-followups`,** as one game milestone (V26, Sonnet 5.5), before the pull
+   request into `main`: two replies to a line not understood, the book's credit of a refused request (`Quiero dos manzanas.` at Luz logged
+   as a use of `quiero-dos-panes`), the book keeping a typed form without its accent (`compre`), and a scripted run's silent stop at 18 000
+   ticks.
+2. **A correct line with a word outside an open prompt's answer set** (`la tienda está en el pueblo` at `farmer-open`: `vocab.wrong`, «No
+   te entendí»; V17, M69) **is planned now** as a core milestone and a game milestone; the plan goes to the owner before anything is built.
+
+**Owner's answers, 2026-11-02 (the off-prompt lines, after a design study of the cause):** at an NPC's constrained open prompt a correct line
+whose intent the prompt does not take was graded `vocab.wrong` (0.4, an empty expected word; M67's derived tag) and answered «No te entendí».
+1. **Option 2:** the core derives `vocab.wrong` only where it names the word or explains a near miss, and signals a line that is understood
+   but not taken at this prompt (`Verdict.OffPromptIntent`, a second resolver pass over the whole catalog, grammar and keyword rungs only):
+   the core's M72 (Opus 5.5 at xhigh). The game answers it (V27, Sonnet 5.5, after M72).
+2. **The book credits it** as free talk does since V20 (b): a use of its nouns and of any phrase of a lesson begun or done; no NPC action.
+3. **The NPC says «Te entiendo.» and points to its own topic,** one reply per turn, A1, a normal and a slow WAV in each NPC's voice:
+   Domingo «Te entiendo. Yo hago hachas.», Luz «Te entiendo. ¿Quieres pan?», León «Te entiendo. ¿Quieres manzanas?», Mar «Te entiendo.
+   ¿Buscas un lugar?», the villager «Te entiendo. ¿Qué buscas?», the guide and the shopkeeper one line each in the same form.
+4. **`hace frío` at `smith-open`** (read as `ask_activity`, a keyword rule on `hacer` alone) is fixed in M72.
+
+**Owner's answers, 2026-11-02 (the open points after V27):**
+1. **The small points are fixed on `feature/village-followups`,** before the pull request: the core's in M73 (Opus 5.5 at xhigh), the
+   game's in V28 (Sonnet 5.5).
+2. **The speech folder goes into subfolders by speaker** (`speech/<speaker>/`, the cards in `speech/cards/`), in V28: it held more than
+   1,000 files in one folder.
+
+**Owner's answers, 2026-11-02 (the open decisions after M73; built after the pull request merges, `docs/HANDOVER_AFTER_FOLLOWUPS.md`):**
+1. **Weather lines get their own intents** (a statement and a question; `hace frío` is unknown today, `¿qué tiempo hace?` is
+   `ask_activity`, `hace calor` is `state_action`): the core's M74. Each NPC answers a statement by echoing its weather word («Sí, hace
+   frío.») and the question with «Hoy hace sol.» (V29).
+2. **`¿cómo estás?` gets its own intent,** split from `greet` in M74, and each NPC answers «Bien, gracias.» in its own voice (V29), without
+   «¿Y tú?».
+3. **Spoken lines that a constrained prompt does not take are fixed** (the recognizer decodes only the answer set, so V27's «Te entiendo.»
+   is never heard for a spoken line): a design study of the options first, whose recommendation comes back to the owner, then a core and
+   a game milestone.
+4. **M67's near-miss rule: a near miss must name its word** (the orchestrator's recommendation, "go with your recommendations"): the
+   line and the nearest answer have the same number of words and differ in one, the two words are a slip pair (close in spelling, or one
+   closed class), and the expected word is always named. The core's M75 (Opus 5.5 at xhigh); O3's verdict leg becomes strict again.
+5. **Listening to the voices and deleting the merged remote branches** are the owner's, later.
+
+**Owner's answers, 2026-11-02 (on `scripts/try-lines/`, after PR #28 was opened):** "I would prefer things like this to be a csharp
+unit test, not some throwaway script or junk text file. This just adds to the general tech debt."
+1. **A regression check is a C# test** run by `dotnet test` (so the gate and CI run it), never a script with text baselines.
+2. **The core's M76 turns `scripts/try-lines/` into tests now, in PR #28,** before the merge, and deletes the script and its files.
+3. **M76 also audits the other check and one-off scripts** of `scripts/`: each becomes a test, stays as tooling, or is deleted; anything
+   large comes back to the owner.
+
+**Owner's answers, 2026-11-02 (after M76's audit, and a review of PR #28):**
+1. **"Do the IDE0005 warning too":** the core's M77 makes an unused using a build warning (an error under `-warnaserror`) in every project,
+   and deletes `scripts/audit-usings.py`. The scripted runs as game tests (M76's other proposal, 3 to 5 days) are not asked for.
+2. **The review of PR #28** (14 findings), "check what makes sense to fix": the orchestrator checked them against the code. Eleven go into
+   V30, in PR #28 before the merge (the review's items 1 to 7 and 9 to 13; three of them to verify with a test first). The review's item 8
+   (an empty answer set counts as a near miss) goes to M75, which rewrites that rule after the merge. Item 14 (pool names written in code)
+   goes to V29, before it adds new pools.
 
 ## Already decided
 

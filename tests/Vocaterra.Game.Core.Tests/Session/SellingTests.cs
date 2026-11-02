@@ -24,7 +24,7 @@ public sealed class SellingTests
     {
         var data = TestGame.Data;
         var noLessons = LessonBook.Parse("{ \"schemaVersion\": 1, \"lessons\": [] }", data.Phrases, data.Speech, data.Bundle.Prompts, data.Locale, data.Npcs.Ids);
-        return new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons) { PlaySession = 10 };
+        return new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons) { Day = 10 };
     }
 
     private static VoxelSession At(string npc, ItemId? item = null, int count = 0)
@@ -145,7 +145,7 @@ public sealed class SellingTests
 
     [Theory]
     [InlineData("baker", "vendo pan", ItemId.Bread, "No, gracias. Solo compro madera.")]
-    [InlineData("farmer", "vendo madera", ItemId.Wood, "No, gracias. Solo compro fruta.")]
+    [InlineData("farmer", "vendo madera", ItemId.Wood, "No compro eso. Compro fruta del bosque.")]
     public void AnotherItemIsNotBoughtAndTheNpcSaysWhatItBuys(string npc, string line, ItemId offered, string answer)
     {
         var session = At(npc, offered, 2);
@@ -244,7 +244,7 @@ public sealed class SellingTests
         var farmer = At("farmer");
         var total = farmer.Say("¿Cuánto es todo?");
         Assert.Equal(("ask_total", true), (total.Intent, total.Communicated));
-        Assert.Equal(["Quince manzanas, quince monedas."], total.Replies);
+        Assert.Equal(["Una manzana, una moneda."], total.Replies); // V21b: in free talk the unit price; the market lesson's step keeps the table of fifteen (MarketLessonTests)
         Assert.Equal(1, TestGame.Data.HostEvents.Of("farmer", "farmer.sell_apples").Price); // todo: his fifteen apples at his price, a coin each, fifteen coins
         Assert.Equal(0, farmer.Simulation.Inventory.Count(ItemId.Coin));
 

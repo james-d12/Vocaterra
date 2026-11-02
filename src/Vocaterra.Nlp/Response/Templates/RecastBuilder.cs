@@ -2,7 +2,6 @@ using System.Globalization;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Language.Analysis;
-using Vocaterra.Nlp.Language.Normalization;
 using Vocaterra.Nlp.Language.Packs;
 using NlpLexicon = Vocaterra.Nlp.Language.Lexicon.Lexicon;
 
@@ -179,7 +178,8 @@ public static class RecastBuilder
     }
 
     // The numeral agrees with the noun it quantifies, which can stand behind adjectives (1 grande queso gives un grande queso, not una), so the
-    // adjectives are looked through first; without a noun the gender of the next word decides.
+    // adjectives are looked through first; without a noun the gender of the next word decides. M69 (M67b's O5 seed deXmFwx4GzL4): and behind the other words of its
+    // phrase, determiners, numerals and articles (miedo 1 tu 1 exposición gives una tu una, not un tu una, whose un the analyzer then reported as gender.agree).
     private static string GenderAfter(AnalysisResult analysis, NormalizedText playerText, int numberIndex)
     {
         for (var j = numberIndex + 1; j < playerText.Tokens.Count; j++)
@@ -194,7 +194,7 @@ public static class RecastBuilder
                 return noun.Gender!;
             }
 
-            if (!readings.Exists(static r => string.Equals(r.Pos, "adj", StringComparison.Ordinal)))
+            if (!readings.Exists(static r => r.Pos is "adj" or "num" or "art"))
             {
                 break;
             }

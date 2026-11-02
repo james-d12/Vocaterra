@@ -5,7 +5,6 @@ using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Language.Embeddings;
 using Vocaterra.Nlp.Language.Intent;
-using Vocaterra.Nlp.Language.Packs;
 
 public class IntentResolverTests
 {
@@ -78,7 +77,8 @@ public class IntentResolverTests
 
         var resolution = resolver.Resolve(IntentFixtures.Normalize("tengo dos espadas"), analysis, IntentFixtures.Prompt("buy_item", "greet"));
 
-        AssertUnresolved(resolution);
+        // The intent stays unknown; since M72 the intent the prompt does not allow is reported beside it.
+        Assert.Equal(new IntentResolution(IntentId.Unknown, SlotMap.Empty, IntentRung.Unresolved, 0.0, 0.0, new IntentId("offer_item")), resolution);
     }
 
     // Rung 2: rules
@@ -405,9 +405,82 @@ public class IntentResolverTests
     [Fact]
     public void RulesAndGrammarsRespectTheAllowedList()
     {
-        AssertUnresolved(Resolve("quiero comprar una espada", null, "greet"));
+        Assert.Equal(IntentId.Unknown, Resolve("quiero comprar una espada", null, "greet").Intent);
         Assert.Equal(new IntentId("buy_item"), Resolve("quiero comprar una espada", null, "buy_item", "greet").Intent);
         Assert.Equal(new IntentId("offer_item"), Resolve("tengo dos espadas", null, "offer_item").Intent);
+    }
+
+    // Off the prompt (M72)
+    [Theory]
+    [InlineData("tengo dos espadas", "offer_item")]
+    [InlineData("tú tienes dos espadas", "offer_item")]
+    [InlineData("quiero comprar una espada", "buy_item")]
+    [InlineData("cuánto cuesta la espada", "ask_price")]
+    public void ALineThePromptDoesNotTakeCarriesTheIntentTheCatalogGivesIt(string text, string intent)
+    {
+        // me gusta el río at smith-open, which does not allow state_like, resolved nothing and said nothing more before M72.
+        var resolution = Resolve(text, null, "greet");
+
+        Assert.Equal(new IntentResolution(IntentId.Unknown, SlotMap.Empty, IntentRung.Unresolved, 0.0, 0.0, new IntentId(intent)), resolution);
+        Assert.Equal(Resolve(text).Intent, resolution.OffPromptIntent);
+    }
+
+    [Fact]
+    public void TheOffPromptPassUsesNoEmbedding()
+    {
+        // The embedding rung finds buy_item with every intent allowed; a guess is no ground for the off-prompt intent.
+        Assert.Equal(new IntentId("buy_item"), Resolve("necesito una espada nueva", Fake).Intent);
+
+        AssertUnresolved(Resolve("necesito una espada nueva", Fake, "greet"));
+    }
+
+    [Theory]
+    [InlineData("tengo dos espadas")]
+    [InlineData("quiero comprar una espada")]
+    public void AResolvedLineHasNoOffPromptIntent(string text)
+    {
+        Assert.Null(Resolve(text).OffPromptIntent);
+        Assert.Null(Resolve(text, null, "offer_item", "buy_item").OffPromptIntent);
+    }
+
+    [Fact]
+    public void WithEveryIntentAllowedOrNothingToFindThereIsNoOffPromptIntent()
+    {
+        AssertUnresolved(Resolve("el dragón vuela sobre la montaña", Fake));
+        AssertUnresolved(Resolve("el dragón vuela sobre la montaña", Fake, "greet"));
+        AssertUnresolved(Resolve(string.Empty, null, "greet"));
+    }
+
+    [Fact]
+    public void TheOffPromptPassFollowsTheRulesRungsSpecificityAndAmbiguity()
+    {
+        var catalog = IntentCatalog.Load("""
+            { "schemaVersion": 1, "intents": [
+              { "intentId": "a_general", "keywordRules": [ { "lemmas": ["comprar"] } ] },
+              { "intentId": "b_specific", "keywordRules": [ { "lemmas": ["comprar", "espada"] } ] },
+              { "intentId": "c_tie", "keywordRules": [ { "lemmas": ["querer", "escudo"] } ] },
+              { "intentId": "d_tie", "keywordRules": [ { "lemmas": ["comprar", "escudo"] } ] },
+              { "intentId": "e_other", "keywordRules": [ { "lemmas": ["vender"] } ] } ] }
+            """);
+        var resolver = new IntentResolver(catalog, SpanishLanguagePack.Instance);
+
+        IntentResolution Run(string text) =>
+            resolver.Resolve(IntentFixtures.Normalize(text), IntentFixtures.Analyze(text), IntentFixtures.Prompt("e_other"));
+
+        Assert.Equal(new IntentId("b_specific"), Run("quiero comprar una espada").OffPromptIntent);
+        Assert.Equal(new IntentId("a_general"), Run("quiero comprar").OffPromptIntent);
+        AssertUnresolved(Run("quiero comprar un escudo"));
+    }
+
+    [Fact]
+    public void TheOffPromptIntentIsLeftOutOfTheJsonWhileNull()
+    {
+        var unresolved = Resolve("el dragón vuela sobre la montaña", null, "greet");
+        var offPrompt = Resolve("tengo dos espadas", null, "greet");
+
+        Assert.Equal("""{"intent":"unknown","slots":{},"rung":"Unresolved","margin":0,"confidence":0}""", CanonicalJson.Serialize(unresolved));
+        Assert.Equal("""{"intent":"unknown","slots":{},"rung":"Unresolved","margin":0,"confidence":0,"offPromptIntent":"offer_item"}""", CanonicalJson.Serialize(offPrompt));
+        Assert.Equal(offPrompt, CanonicalJson.Deserialize<IntentResolution>(CanonicalJson.Serialize(offPrompt)));
     }
 
     // Determinism

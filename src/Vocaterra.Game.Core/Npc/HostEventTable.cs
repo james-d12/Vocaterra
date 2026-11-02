@@ -60,7 +60,7 @@ public sealed class HostEventTable
                 var action = entry.GetProperty("action");
                 var effect = Text(action, "kind") switch
                 {
-                    "give_item" => Counted(NpcEffect.Give(ItemNamed(Text(action, "item"))), action, npc, name),
+                    "give_item" => Counted(NpcEffect.Give(ItemNamed(Text(action, "item"))), action, npc, name) with { Asked = AskedNouns(action, npc, name), Instead = InsteadNouns(action, npc, name) },
                     "point_at_noun" => NpcEffect.PointAt(Text(action, "noun")),
                     "point_at_place" => NpcEffect.PointAtPlaceNamed(Text(action, "place")),
                     "point_at_slot" => NpcEffect.PointAtSlotNamed(Text(action, "slot")),
@@ -113,6 +113,36 @@ public sealed class HostEventTable
         return count.ValueKind == JsonValueKind.Number && count.TryGetInt32(out var number) && number >= 1 && number <= ItemDefinition.Get(effect.Item).MaxStack
             ? effect with { Count = number }
             : throw new InvalidDataException($"{RelativePath}: the count of {npc}'s '{name}' must be \"{NpcEffect.QuantitySlot}\" or a number from 1 to the item's stack.");
+    }
+
+    // The nouns whose request a gift answers (V21, "asked"): a list of catalogue lemmas, or none when the gift does not depend on the request.
+    private static IReadOnlyList<string>? AskedNouns(JsonElement action, string npc, string name)
+    {
+        if (!action.TryGetProperty("asked", out var asked))
+        {
+            return null;
+        }
+
+        var nouns = asked.ValueKind == JsonValueKind.Array ? asked.EnumerateArray().Select(static n => n.ValueKind == JsonValueKind.String ? n.GetString() ?? string.Empty : string.Empty).ToList() : [];
+        return nouns.Count > 0 && nouns.All(static n => !string.IsNullOrWhiteSpace(n))
+            ? nouns
+            : throw new InvalidDataException($"{RelativePath}: the 'asked' of {npc}'s '{name}' must be a list of nouns.");
+    }
+
+    // The nouns a gift answers with another NPC event (V21b, "instead"): a map of catalogue lemma to the suffix of the host event the NPC answers (pan: give_bread).
+    private static IReadOnlyDictionary<string, string>? InsteadNouns(JsonElement action, string npc, string name)
+    {
+        if (!action.TryGetProperty("instead", out var instead))
+        {
+            return null;
+        }
+
+        var map = instead.ValueKind == JsonValueKind.Object
+            ? instead.EnumerateObject().ToDictionary(static p => p.Name, static p => p.Value.ValueKind == JsonValueKind.String ? p.Value.GetString() ?? string.Empty : string.Empty, StringComparer.Ordinal)
+            : [];
+        return map.Count > 0 && map.All(static p => !string.IsNullOrWhiteSpace(p.Key) && !string.IsNullOrWhiteSpace(p.Value)) && action.TryGetProperty("asked", out _)
+            ? map
+            : throw new InvalidDataException($"{RelativePath}: the 'instead' of {npc}'s '{name}' must map nouns to event names, and the gift must have 'asked'.");
     }
 
     // The price of a sale: a number of coins from 1.

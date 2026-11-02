@@ -89,6 +89,60 @@ public interface IAnalysisRules
     /// <param name="lemma">The adverb lemma.</param>
     bool IsDegreeAdverb(string lemma);
 
+    /// <summary>
+    /// True for a verb that takes an infinitive right after it, or after the word <paramref name="linker"/> when that is not null (Spanish: <c>poder</c>,
+    /// <c>querer</c>, <c>deber</c> and <c>necesitar</c>; <c>tener</c> with <c>que</c>), so that the reading resolver reads a word there that can be a finite verb of the
+    /// indicative as that verb, the learner's slip for the infinitive, where its other readings cannot stand there (<c>puedo pago</c>, <c>tengo que voy</c>; M66). The
+    /// default is none.
+    /// </summary>
+    /// <param name="lemma">The verb lemma.</param>
+    /// <param name="linker">The lemma of the word right after the verb, or null for the verb alone.</param>
+    bool IsModalVerb(string lemma, string? linker) => false;
+
+    /// <summary>
+    /// True for a verb of <see cref="IsModalVerb"/> that may also take a noun as its object (Spanish: <c>querer</c>, <c>deber</c>, <c>necesitar</c>: <c>quiero
+    /// vino</c>, <c>necesito pago</c>), so that a word after it that is a noun and a verb stays the noun unless the word after it can only be a noun (<c>quiero vendo
+    /// madera</c>; M66). The default is none.
+    /// </summary>
+    /// <param name="lemma">The verb lemma.</param>
+    bool ModalTakesNounObject(string lemma) => false;
+
+    /// <summary>
+    /// True for an adverb of where a thing is, which a copula takes and a noun does not (Spanish: <c>lejos</c>, <c>cerca</c>), so that a finite form of a copula that
+    /// is also a noun, with no determiner before it, right before such an adverb (past adverbs of degree) is the copula (<c>son cerca</c>, <c>son muy lejos</c>; M69).
+    /// The default is none.
+    /// </summary>
+    /// <param name="lemma">The adverb lemma.</param>
+    bool IsLocationAdverb(string lemma) => false;
+
+    /// <summary>
+    /// True for a common descriptive adjective whose noun of the same spelling is no predicate of a person or a thing without a determiner (Spanish: <c>alto</c>,
+    /// <c>caro</c>, <c>bonito</c>, whose <c>alta</c>, <c>cara</c> and <c>bonito</c> are also the discharge, the face and the tuna), so that a word of it right after a
+    /// copula, with no determiner, is read as the adjective where none of its noun readings agrees with the subject before the copula and the copula's number (<c>él es
+    /// alta</c>, <c>la casa es bonito</c>, <c>luz son alta</c>; M69). The default is none.
+    /// </summary>
+    /// <param name="lemma">The adjective lemma.</param>
+    bool IsPredicateAdjective(string lemma) => false;
+
+    /// <summary>
+    /// True for a neuter pronoun as written, which stands alone as a singular subject (Spanish: <c>todo</c>, <c>eso</c>, <c>esto</c>, <c>aquello</c>), so that a word
+    /// that is a noun and a finite verb, right after the interrogative quantifier in any of its forms and before such a pronoun, is the verb (<c>¿cuántas cuesta
+    /// todo?</c>: <c>costar</c>, not the noun phrase <c>cuántas cuestas</c>; M73). The default is none.
+    /// </summary>
+    /// <param name="word">The word as written.</param>
+    bool IsNeuterPronoun(string word) => false;
+
+    /// <summary>
+    /// True when the words around a lexicon word of another class call for the learner's slip the word may stand for (M58: <c>podo</c>, a form of <c>podar</c>, for
+    /// <c>puedo</c>; <c>esto</c> for <c>estoy</c>), so that the analysis reads the word as that slip, and reports its error, without a slot grammar that names the verb
+    /// (M69): only where no reading of the word as written fits the words around it (<c>yo podo ir</c>: <c>podar</c> takes no infinitive; <c>yo esto cansado</c>).
+    /// The default is never, as before M69.
+    /// </summary>
+    /// <param name="tokens">The tokens with every lexicon reading (the readings of the slip are not among them).</param>
+    /// <param name="index">The index of the word.</param>
+    /// <param name="slip">The readings of the slip: the verb form the learner meant.</param>
+    bool CallsForSlip(IReadOnlyList<AnalyzedToken> tokens, int index, IReadOnlyList<LexicalFeatures> slip) => false;
+
     /// <summary>Creates the agreement checker (subject-verb, tense, copula, noun phrase agreement and word order) for one resolved sentence.</summary>
     /// <param name="resolved">The tokens with the readings narrowed by the resolver.</param>
     /// <param name="errors">The list the checker adds its errors to.</param>

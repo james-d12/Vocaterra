@@ -2,8 +2,11 @@
   "agentId": "baker",
   "initialState": "idle",
   "variantPools": [
+    { "id": "baker_true", "count": 1 },
+    { "id": "baker_understood", "count": 1 },
     { "id": "answer_accepted", "count": 3 },
     { "id": "not_understood", "count": 2 },
+    { "id": "baker_nice", "count": 1 },
     { "id": "baker_wont_sell", "count": 1 },
     { "id": "baker_wont_buy", "count": 1 },
     { "id": "baker_cant_sell", "count": 1 },
@@ -12,6 +15,7 @@
     { "id": "baker_buy", "count": 1 },
     { "id": "baker_bye", "count": 2 },
     { "id": "baker_cant_pay", "count": 1 },
+    { "id": "baker_wait", "count": 1 },
     { "id": "baker_delivered", "count": 1 },
     { "id": "baker_greet", "count": 1 },
     { "id": "baker_hay", "count": 1 },
@@ -25,9 +29,12 @@
     {
       "id": "idle",
       "transitions": [
+        { "onHostEvent": "baker.understood", "to": "idle", "actions": [{ "dialogueIntent": "baker_understood", "variantPoolId": "baker_understood" }] },
+        { "onHostEvent": "baker.true", "to": "idle", "actions": [{ "dialogueIntent": "baker_true", "variantPoolId": "baker_true" }] },
         { "onHostEvent": "baker.greet", "to": "idle", "actions": [{ "dialogueIntent": "baker_hello", "variantPoolId": "baker_hello" }] },
         { "onHostEvent": "baker.delivered", "to": "idle", "actions": [{ "dialogueIntent": "baker_delivered", "hostEvent": "baker.pay", "variantPoolId": "baker_delivered" }] },
         { "onHostEvent": "baker.cant_pay", "to": "idle", "actions": [{ "dialogueIntent": "baker_cant_pay", "variantPoolId": "baker_cant_pay" }] },
+        { "onHostEvent": "baker.cant_pay_wait", "to": "idle", "actions": [{ "dialogueIntent": "baker_wait", "variantPoolId": "baker_wait" }] },
         { "onHostEvent": "baker.wont_sell", "to": "idle", "actions": [{ "dialogueIntent": "baker_wont_sell", "variantPoolId": "baker_wont_sell" }] },
         { "onHostEvent": "baker.cant_sell", "to": "idle", "actions": [{ "dialogueIntent": "baker_cant_sell", "variantPoolId": "baker_cant_sell" }] },
         { "onHostEvent": "baker.wont_buy", "to": "idle", "actions": [{ "dialogueIntent": "baker_wont_buy", "variantPoolId": "baker_wont_buy" }] },
@@ -42,8 +49,8 @@
         { "on": {"intent": "ask_availability", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_hay", "variantPoolId": "baker_hay" }] },
         { "on": {"intent": "ask_help", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_help", "variantPoolId": "baker_help" }] },
         { "on": {"intent": "dont_know", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_help", "variantPoolId": "baker_help" }] },
-        { "on": {"intent": "state_have", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
-        { "on": {"intent": "state_action", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
+        { "on": {"intent": "state_have", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_nice", "variantPoolId": "baker_nice" }] },
+        { "on": {"intent": "state_action", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_nice", "variantPoolId": "baker_nice" }] },
         { "on": {"intent": "thank", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_thank", "variantPoolId": "baker_thank" }] },
         { "on": {"intent": "farewell", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_bye", "variantPoolId": "baker_bye" }] },
         { "on": {"communicated": false}, "to": "idle", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }

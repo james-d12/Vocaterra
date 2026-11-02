@@ -1,7 +1,6 @@
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
-using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Navigation;
@@ -12,7 +11,6 @@ using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
-using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Core.Session;
 
@@ -99,7 +97,7 @@ public sealed partial class VoxelSession : GuideSession
     /// The first objective in the HUD's order that is not done and is shown in this play session (an order of a later session is hidden, VILLAGE_PLAN V03), or
     /// <see langword="null"/> when every one is done. It gates nothing.
     /// </summary>
-    public Objective? CurrentObjective => Objectives.FirstOrDefault(o => !o.Complete && o.Spec.ShownIn(PlaySession));
+    public Objective? CurrentObjective => Objectives.FirstOrDefault(o => !o.Complete && o.Spec.ShownIn(Day));
 
     /// <summary>The step a save names (<c>camp.wood</c>), or <see langword="null"/> for a key the session's objectives do not have.</summary>
     /// <param name="key">The step's save key, <c>&lt;objective&gt;.&lt;step&gt;</c>.</param>
@@ -664,10 +662,20 @@ public sealed partial class VoxelSession : GuideSession
         Objectives.Any(o => o.Spec.IsOrder && o.Complete && string.Equals(o.Id, order, StringComparison.Ordinal));
 
     /// <inheritdoc />
+    internal override bool HoldsPickup(string lemma, int needed) =>
+        Nouns.ForLemma(lemma) is { } noun && noun.Items.Sum(Simulation.Inventory.Count) >= needed;
+
+    /// <inheritdoc />
     protected override string? OrderReadyAt(string npc) =>
-        Objectives.FirstOrDefault(o => o.Spec.IsOrder && !o.Complete && o.Spec.ShownIn(PlaySession) && string.Equals(o.Spec.DeliverTo, npc, StringComparison.Ordinal)
-            && o.Spec.Goods.All(goods => Simulation.Inventory.Count(goods.Item) >= goods.Count)
-            && !Lessons.HoldsOrder(o.Spec))?.Id; // the lesson that tells the order may keep it back until its plan is said (VILLAGE_PLAN V13)
+        GoodsHeldOrders(npc).FirstOrDefault(o => !Lessons.HoldsOrder(o.Spec))?.Id; // the lesson that tells the order may keep it back until its plan is said (VILLAGE_PLAN V13)
+
+    /// <inheritdoc />
+    protected override bool OrderHeldAt(string npc) => GoodsHeldOrders(npc).Any(o => Lessons.HoldsOrder(o.Spec));
+
+    // The shown, undone orders of an NPC whose goods the player carries.
+    private IEnumerable<Objective> GoodsHeldOrders(string npc) =>
+        Objectives.Where(o => o.Spec.IsOrder && !o.Complete && o.Spec.ShownIn(Day) && string.Equals(o.Spec.DeliverTo, npc, StringComparison.Ordinal)
+            && o.Spec.Goods.All(goods => Simulation.Inventory.Count(goods.Item) >= goods.Count));
 
     /// <inheritdoc />
     protected override void TakeOrder(string npc, string order)
@@ -810,7 +818,7 @@ public sealed partial class VoxelSession : GuideSession
     // is lit, the guide is met, an order is delivered), so its effects follow its event in the log.
     private void RecordObjectives(WorldEvent world)
     {
-        foreach (var objective in Objectives.Where(o => !o.Complete && o.Spec.ShownIn(PlaySession)))
+        foreach (var objective in Objectives.Where(o => !o.Complete && o.Spec.ShownIn(Day)))
         {
             var done = objective.Record(world, _eventAmount);
             if (objective.IsChecklist)

@@ -56,8 +56,28 @@ public sealed record GuideWord(
     public static IReadOnlyList<GuideWord> From(PipelineResult result)
     {
         ArgumentNullException.ThrowIfNull(result);
-        return From(result.Words);
+        var words = From(result.Words);
+        if (result.Notes is not { Count: > 0 } notes)
+        {
+            return words;
+        }
+
+        // V26: a verb typed without the accent of its tense (M70) is counted as the form the core read, `compré`, not the written `compre`: the reading is the accented form's.
+        return [.. words.Select(word => notes.FirstOrDefault(note => note.Span == word.Span) is { } note ? word.ReadAs(note) : word)];
     }
+
+    /// <summary>The word as the core's accent note reads it (V30): the accented form with the note's reading (person, number, tense, mood), not the written word's own, so <c>compro</c> for the answer <c>compró</c> is the third person's.</summary>
+    private GuideWord ReadAs(AccentNote note) => this with
+    {
+        Text = note.Accented,
+        Lemma = note.Reading.Lemma,
+        Pos = note.Reading.Pos,
+        Person = note.Reading.Person,
+        Number = note.Reading.Number,
+        Tense = note.Reading.Tense,
+        Mood = note.Reading.Mood,
+        Gender = note.Reading.Gender,
+    };
 
     /// <summary>The words of a phase-1 analysis (<c>UtteranceAnalysis.Words</c>), in order; empty for <see langword="null"/>.</summary>
     /// <param name="words">The resolved words of one analysed line.</param>
@@ -99,7 +119,10 @@ public enum NameCheck
 /// <param name="PromptOverride">The prompt to evaluate the line on instead of the NPC's own (S8: the guide's phrase review is answered on the prompt the phrase was taught at, so the core recognizes its intent); <see langword="null"/> for an ordinary turn.</param>
 /// <param name="Facts">The world as the guide sees it for this turn: a copy of the blocks around the player taken when the line was submitted (<see cref="WorldFacts.Snapshot"/>), so the turn does not read a world that keeps changing under the worker thread; <see langword="null"/> uses the facts the guide was built with.</param>
 /// <param name="Inventory">What the player carries, for the crafting and finding answers ("te faltan dos bloques de madera", "tienes un hacha"); <see langword="null"/> is read as nothing carried and nothing said about it.</param>
-public sealed record GuideScene(GuideViewpoint Player, GuideCell? Cursor = null, bool PointerActive = false, bool Review = false, Inventory? Inventory = null, IGuideFacts? Facts = null, string? PromptOverride = null);
+/// <param name="OrderHeld">Whether the NPC talked to has an order whose goods the player carries and that a lesson keeps back (V21): a purchase the coins do not cover is then answered <c>cant_pay_wait</c>.</param>
+/// <param name="Credited">The phrases of the lessons the learner has begun or done when the line was submitted (VILLAGE_PLAN V20, <c>LessonRunner.Credits</c>): a line in free talk that is
+/// one of them is that phrase for the learner model, at any NPC; <see langword="null"/> for none.</param>
+public sealed record GuideScene(GuideViewpoint Player, GuideCell? Cursor = null, bool PointerActive = false, bool Review = false, Inventory? Inventory = null, IGuideFacts? Facts = null, string? PromptOverride = null, IReadOnlySet<string>? Credited = null, bool OrderHeld = false);
 
 /// <summary>
 /// The outcome of one typed turn with the guide: the core's verdict in plain values, the lines to show (the correction first, then the
@@ -169,6 +192,21 @@ public sealed record GuideTurn(
     /// world line (<c>Replies</c>, <c>WorldLine</c>) are not shown or played. The correction and any follow-up stay. Set by the session when it applies the turn.
     /// </summary>
     public bool LessonHandled { get; init; }
+
+    /// <summary>
+    /// The core's notes on verbs typed without the accent of their tense (M70, V21b): <c>«compré», con tilde: es pasado</c>, one per word, worded by the Spanish pack
+    /// (<c>SpanishAccentNotes.Describe</c>). The line was accepted with no deduction; the notes only tell the learner the accent. Empty when there is none.
+    /// </summary>
+    public IReadOnlyList<string> AccentNotes { get; init; } = [];
+
+    /// <summary>
+    /// The intent the core found for a line the prompt does not take (<c>Verdict.OffPromptIntent</c>, M72), set when the NPC answered it with its off-prompt line in free
+    /// talk (V27); <see langword="null"/> otherwise. The line is not <see cref="Communicated"/>, and no repair step follows it.
+    /// </summary>
+    public string? OffPromptIntent { get; init; }
+
+    /// <summary>Whether the NPC took the line: the core communicated it, or it is one the NPC understood off its prompt (V27). The book credits what it takes.</summary>
+    public bool Taken => Communicated || OffPromptIntent is not null;
 
     /// <summary>Whether the follow-up lines are the guide's last line said again slowly (the learner asked <c>Más despacio, por favor</c>, S17): the front-end plays the slow recording.</summary>
     public bool SlowFollowUp { get; init; }

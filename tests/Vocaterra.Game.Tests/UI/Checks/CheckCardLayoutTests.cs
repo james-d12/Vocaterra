@@ -1,5 +1,4 @@
 using Vocaterra.Game.Core.Language.Checks;
-using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.UI.Checks;
 using Xunit.Abstractions;

@@ -6,7 +6,6 @@ using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Diagnostics;
-using Vocaterra.Game.Graphics.World;
 
 namespace Vocaterra.Game.Tests.Diagnostics;
 

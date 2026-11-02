@@ -85,11 +85,24 @@ public class SlipDetectionTests
         Assert.Equal(new PluralSlip(lemma, expected), found);
     }
 
+    // M66: an adjective that ends in one of those consonants (azul: azules, feliz: felices).
+    [Theory]
+    [InlineData("azuls", "azul", "azules")]
+    [InlineData("felizs", "feliz", "felices")]
+    [InlineData("felizes", "feliz", "felices")]
+    public void FindsAnAdjectivesPluralMadeWithTheWrongEnding(string form, string lemma, string expected)
+    {
+        Assert.True(Morphology.Value.TryGetPluralSlip(form, out var found));
+        Assert.Equal(new PluralSlip(lemma, expected), found);
+    }
+
     // A form the lexicon knows (panes, robots, clubs), a noun that takes -s (a loan that ends in t: robots would be robots), a stem that is no noun, and a word too short.
     [Theory]
     [InlineData("panes")]
     [InlineData("pan")]
     [InlineData("flores")]
+    [InlineData("azules")]
+    [InlineData("rojos")]
     [InlineData("robots")]
     [InlineData("clubs")]
     [InlineData("glurps")]

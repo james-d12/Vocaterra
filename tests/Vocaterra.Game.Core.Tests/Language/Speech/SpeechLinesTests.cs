@@ -1,9 +1,7 @@
-using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
-using Vocaterra.Nlp.Response.Speech;
 
 namespace Vocaterra.Game.Core.Tests.Language.Speech;
 
@@ -69,9 +67,33 @@ public sealed class SpeechLinesTests
 
         var pools = TestGame.Bundle.Dialogue.Pools.Keys.Order(StringComparer.Ordinal).ToList();
 
-        Assert.Equal(248, pools.Count); // V02 added villager_unknown_place; V10 the fisher's 21 and the villager's signpost line; V11 the baker's 20 and the stall's 3; V12 the smith's 10, the farmer's 7 and the villager's 10; V13 the farmer's 15 and the stall's 2; V14 the villager's 8, the smith's 2 and the fisher's 3; V17 the baker's 2, the smith's 2 and the fisher's 2; V15 the baker's 10, the farmer's 10, the smith's 3 and the stall's 1; V19 the baker's, the farmer's and the smith's no_room and none_offered
+        Assert.Equal(272, pools.Count); // V28 added «Sí, es verdad.» for the baker, the smith and the fisher; V27 added the NPCs' off-prompt pools, one each; V21b added farmer_unit; V02 added villager_unknown_place; V10 the fisher's 21 and the villager's signpost line; V11 the baker's 20 and the stall's 3; V12 the smith's 10, the farmer's 7 and the villager's 10; V13 the farmer's 15 and the stall's 2; V14 the villager's 8, the smith's 2 and the fisher's 3; V17 the baker's 2, the smith's 2 and the fisher's 2; V15 the baker's 10, the farmer's 10, the smith's 3 and the stall's 1; V19 the baker's, the farmer's and the smith's no_room and none_offered; V20 the free-talk replies, the villager's 2, the stall's 2, the fisher's, the baker's, the smith's 2 and the farmer's 2; V21 the stall's and the villager's wont_sell and the baker's wait
         Assert.All(pools, pool => Assert.Equal((pool, Before(pool)), (pool, SpeechSpeakers.OfPool(pool, TestGame.Data.Npcs))));
-        Assert.Equal([("baker", 34), ("farmer", 34), ("fisher", 26), ("guide", 70), ("shopkeeper", 26), ("smith", 19), ("villager", 39)], pools.GroupBy(pool => SpeechSpeakers.OfPool(pool, TestGame.Data.Npcs)).Select(static g => (g.Key, g.Count())).OrderBy(static g => g.Key, StringComparer.Ordinal));
+        Assert.Equal([("baker", 38), ("farmer", 38), ("fisher", 29), ("guide", 71), ("shopkeeper", 30), ("smith", 23), ("villager", 43)], pools.GroupBy(pool => SpeechSpeakers.OfPool(pool, TestGame.Data.Npcs)).Select(static g => (g.Key, g.Count())).OrderBy(static g => g.Key, StringComparer.Ordinal));
+    }
+
+    [Fact]
+    public void TheLinesEveryNpcSaysAreRecordedInEachNpcsOwnVoiceAndTheSpeakerWinsTheLookup()
+    {
+        // V21b: «¡Muy bien!» (answer_accepted), «No te entendí» (not_understood) and the core's hints played in Luna's voice for every NPC.
+        var shared = new[] { "answer_accepted.1", "answer_accepted.2", "answer_accepted.3", "not_understood.1", "not_understood.2", "feedback.hint.1", "feedback.hint.2", "feedback.hint.gender.agree.1", "feedback.slow_repeat.1", "feedback.slow_repeat.2" };
+        var npcs = TestGame.Data.Npcs.All.Select(static n => n.Id).Where(static id => id != SpeechSpeakers.Guide).Order(StringComparer.Ordinal).ToList();
+        Assert.Equal(6, npcs.Count);
+        var copies = Lines.Where(static l => l.Kind == SpeechKind.NpcCopy).ToList();
+        Assert.Equal(npcs.Count * shared.Length, copies.Count);
+        foreach (var id in shared)
+        {
+            foreach (var npc in npcs)
+            {
+                var copy = Line($"{id}.{npc}");
+                Assert.Equal((npc, SpeechKind.NpcCopy, Line(id).Text), (copy.Speaker, copy.Kind, copy.Text));
+            }
+        }
+
+        var index = new SpeechIndex(Lines);
+        Assert.Equal("answer_accepted.1.baker", index.Find("baker", "¡Muy bien!")!.LineId);
+        Assert.Equal("answer_accepted.1", index.Find(SpeechSpeakers.Guide, "¡Muy bien!")!.LineId);
+        Assert.Equal("not_understood.1.shopkeeper", index.Find("shopkeeper", Line("not_understood.1").Text)!.LineId);
     }
 
     [Fact]
@@ -142,7 +164,7 @@ public sealed class SpeechLinesTests
     [Fact]
     public void EveryCommittedFileIsAReadableMonoWavOfKokoroRate()
     {
-        var store = new StaticLineStore(SpeechDirectory);
+        var store = new SpeechStore(SpeechDirectory, Lines);
         foreach (var line in Lines.Where(static l => !PendingSpeech.Contains(l.LineId)))
         {
             foreach (var id in new[] { line.LineId, SpeechFiles.SlowId(line.LineId) })
@@ -152,5 +174,35 @@ public sealed class SpeechLinesTests
                 Assert.True(clip.Samples.Length > 0, id);
             }
         }
+    }
+
+    [Fact]
+    public void EveryFileIsInItsSpeakersFolderOrInCardsAndNoneIsLeftLoose()
+    {
+        // V28: speech/<speaker>/<id>.wav (the word cards' in speech/cards/), the slow file beside its normal one, nothing in the speech folder itself.
+        Assert.Empty(Directory.GetFiles(SpeechDirectory));
+        foreach (var line in Lines.Where(static l => !PendingSpeech.Contains(l.LineId)))
+        {
+            Assert.Equal(line.Kind == SpeechKind.Word ? "cards" : line.Speaker, SpeechFiles.FolderOf(line));
+            Assert.True(File.Exists(Path.Combine(SpeechDirectory, SpeechFiles.RelativePath(line, false))), SpeechFiles.RelativePath(line, false));
+            Assert.True(File.Exists(Path.Combine(SpeechDirectory, SpeechFiles.RelativePath(line, true))), SpeechFiles.RelativePath(line, true));
+        }
+
+        Assert.Equal(
+            ["baker", "cards", "farmer", "fisher", "guide", "shopkeeper", "smith", "villager"],
+            Directory.GetDirectories(SpeechDirectory).Select(static d => Path.GetFileName(d)).Order(StringComparer.Ordinal));
+        Assert.Equal(2 * Lines.Count - (2 * PendingSpeech.Ids.Count), Directory.GetFiles(SpeechDirectory, "*.wav", SearchOption.AllDirectories).Length);
+    }
+
+    [Fact]
+    public void AStoreFindsAFileByItsLineIdThroughTheLinesFolder()
+    {
+        var store = new SpeechStore(SpeechDirectory, Lines);
+        var card = Lines.First(static l => l.Kind == SpeechKind.Word);
+
+        Assert.True(store.Contains(card.LineId));
+        Assert.True(store.Contains(SpeechFiles.SlowId(card.LineId)));
+        Assert.False(store.Contains("no_such_line.1"));
+        Assert.False(store.Contains(SpeechFiles.SlowId("no_such_line.1")));
     }
 }

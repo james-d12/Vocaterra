@@ -245,8 +245,19 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M61 | Game finding (the V series, V08, 2026-10-31): the core's tests that pinned the game's bundle to a clean A1 follow the bundle's ceiling, A2 (D-game-22 (b), VILLAGE_PLAN 3.9), so phase B's first A2 word does not fail the core suite: `LintTests.TheBundleLintsCleanAtBothLevels` becomes `TheBundleLintsCleanAtItsCeilingAndA1IsAReport` (A2 with fail-on-level: 0 errors, 0 warnings; A1: 0 errors and only `cefr.*` warnings), and `LintCommandTests.LevelAddsCefrFindingsAndFailOnLevelMakesThemFail` moves the bundle's line to A2; two comments say the gate is A2. Tests on their own fixtures are unchanged; no other assertion changed | M27a | S | done (merged to `feature/village` `808e0f0`, 2026-10-31) |
 | M60 | Game finding (the V series, CI on PR #20, 2026-10-31): `LintTests.TheBundleLintTakesUnderFiveSeconds` took about 6 s on the GitHub runner. Phase A grew `content/game-v1` to 47 prompts and 385 examples, and the confusion check analysed each example once per rival intent (about 33 times; 12 139 analyses, 1.4 of the lint's 1.6 s). `LinguisticAnalyzer.Analyze` becomes exactly `Read` (the text alone), `BestMatch` (the only step that reads grammars) and `Complete`, all internal; `LintContext` reads each text once, matches each grammar once and completes once per winning grammar; the expectations check reuses those analyses (`TextGrader`'s internal constructor). The lint's output is byte-identical (30 outputs on the bundle before and after phase A); the lint takes 398 ms instead of 1610 (Debug). The timing test reads the bundle before its clock starts; its 5 s budget is unchanged | M27a | S | done (merged to `feature/village` `95bd7bf`, 2026-10-31) |
 | M62 | Game finding (the V series, V13 "¿Cómo es?", 2026-10-31): two adjective checks are silent. (a) A predicate adjective is not agreed with the subject across `ser`: `la manzana es rojo` (expected `roja`) and `el pan es grandes` (expected `grande`) give no `gender.agree` or `noun.number`, where the attributive `quiero tres manzanas rojos` gives `gender.agree` correctly; (b) an adjective before its noun is not understood: `quiero tres rojas manzanas` and `quiero una roja manzana` resolve no intent, and with a grammar that matches them give no `word_order` (expected `manzanas rojas`); colour adjectives, which do not go before the noun in neutral Spanish, are the case to flag, and `una gran casa`, `un buen pan`, `la primera casa` stay clean. Regression tests in the owning module; the fuzz oracles unchanged or widened, never narrowed. The game's sheet uses `quiero tres manzanas rojos` (`gender.agree`) meanwhile (`content/PHRASES.md`, `la-manzana-es-roja`, `quiero-tres-manzanas-rojas`) | M56 | S | done 2026-11-01 (`65b04e6`, on `feature/village`, and the follow-up M62b `5f3450b`; findings in §5b; three older fuzz findings at five times the depth left for the owner and the orchestrator) |
-| M63 | Fuzz finding (M62's runs at five times the default depth, 2026-11-01; older than M62, analysed the same at `76f52f8`): a subject pronoun before a question word is lost to M56's check. `ellas adónde están un detenido lento` (CsCheck seeds `8zKtIhOY3951`, O5, `MutationCase { Kind = WordOrder, Seed = 19287181529 }`, and `c5SlpISRmTZ3`, O3, `ellas dónde están teme`): the check of `estar` against the phrase after it starts its clause after `adónde` and gives `conj.person` `está`, where `están` agrees with `ellas`. Keep a subject pronoun before the question word as the subject (`ellos dónde están`, `ella qué quiere`), with regression tests in the owning module; the fuzz oracles unchanged or widened (the realiser may model the clause opener instead), never narrowed. Not in phase B's queue; filed for after it | M56 | S | planned (not started; filed 2026-11-01, after V09 or when the owner asks) |
+| M63 | Fuzz finding (M62's runs at five times the default depth, 2026-11-01; older than M62, analysed the same at `76f52f8`): a subject pronoun before a question word is lost to M56's check. `ellas adónde están un detenido lento` (CsCheck seeds `8zKtIhOY3951`, O5, `MutationCase { Kind = WordOrder, Seed = 19287181529 }`, and `c5SlpISRmTZ3`, O3, `ellas dónde están teme`): the check of `estar` against the phrase after it starts its clause after `adónde` and gives `conj.person` `está`, where `están` agrees with `ellas`. Keep a subject pronoun before the question word as the subject (`ellos dónde están`, `ella qué quiere`), with regression tests in the owning module; the fuzz oracles unchanged or widened (the realiser may model the clause opener instead), never narrowed. Not in phase B's queue; filed for after it | M56 | S | folded into M66 (2026-11-01, the follow-ups) |
 | M64 | Review finding (the review of `feature/village` before PR #20's merge, `docs/qa-reports/2026-11-review-feature-village.md` R1, R2, R5 and R6; the owner, 2026-11-01: "fix them all"): (a) a subject pronoun joined by `y` is read alone, so correct Spanish is flagged and recast into wrong Spanish (`mar y yo fuimos al río` at session 8's `lesson-we-went` gave `conj.person` `fui` and the recast «Mar y yo fui al río»; `tú y yo somos amigos` gave `soy`; M62 added `noun.number` on a predicate adjective); (b) an amount before a singular `ser` (`diez monedas es mucho dinero` gave `son`); (c) `es cerca del mediodía` gave `ser_estar`; (d) ADR 0009 had no note for M56 to M62's public surface; (e) the lists of `SpanishTimeMarkers` could be written through a cast. Regression tests in the owning module; the fuzz oracles widened, with one narrowing for (b) at the owner's request | M59, M62 | S | done 2026-11-01 (`23af5cd`, on `feature/village`; findings in §5b) |
+| M65 | Review follow-up (`docs/HANDOVER_VILLAGE_PHASE_B.md` 9.3 A; the owner, 2026-11-01): fuzz stability. The open fuzz failures, with the owner's yes to three narrowings, each guard with a test that what it leaves out is correct Spanish (as `AmountMutationGuardTests`): (a) the `conj.tense` mutation takes M26b's guard for a name inside a grammar alternative (`egVgLELrxyL4`, O4, about one run in six); (b) the `conj.person` mutation takes M59's exclusion of `haber` after a noun subject (`b3HSKSLCsL_1`, `4YuZ2yubxdC1`, O5; at the default depth since M64); (c) the `conj.tense` mutation keeps a mutated case only when it matches the same grammar as the original (`2ldq2rIKLrG2`, O4). (d) `2tpLGUOSqj41` stays recorded (owner). A skip budget: a fixed-seed test that fails when one realiser skip kind exceeds a share of the draws. `scripts/try-lines.sh`, the review's two wrappers in one script, with the review's correct lines and M64's as line files | M64 | S | done 2026-11-01 (`479eae4`, on `feature/village-followups`; findings in §5b) |
+| M66 | Review follow-up (handover 9.3 B): the grading gaps a learner of sessions 7 to 10 meets, with M63 folded in. False alarms first: `¿puede usted vender manzanas?` gives `conj.person` (an inverted subject pronoun before an infinitive); `ni tú ni yo fuimos` and `tú o yo vamos` (M64's coordination extended). Missed errors: a finite verb after a modal (`puedo pago`, `quiero vendo`; the tag `ir a` + a finite verb already gives); `¿cuánto cuestan todo?` and `¿cuánto son todo?` (`todo`, `eso`, `esto` singular); `los panes costa`; `azuls`; `ti` in the lexicon; M63; and the QA pass's QA-language-3 (`las manzanas cuesta una moneda` praised: a plural subject before a singular `costar`) | M65 | M | done 2026-11-01 (`53f63e6`, on `feature/village-followups`; findings in §5b) |
+| M67 | Review follow-up (handover 9.3 C): `vocab.wrong` is derived only on a line that resolved no intent or is a near miss of one answer, never on a line a grammar understood (`VerdictAssembler.DeriveVocabWrong`; `hola luz quiero dos panes`, `usted comprará pan`, `buscaré madera para luz` were scored 0.4). With the QA pass's QA-language-5 and 10 (`docs/qa-reports/2026-11-01-language.md`): a line at a constrained prompt that differs from its nearest answer only in a verb's form gets `conj.tense` or `conj.person` with the answer's form as expected (`Luz compra pescado` against `luz compró pescado`, `sí fue al río` against `fui`), where today the near answer is taken with no error. The goldens and the identity baseline re-recorded, each change listed | M65 | M | done 2026-11-01 for (a) and the tooling (`6b922d7`, on `feature/village-followups`; findings in §5b); the answer-set verb forms of QA-5 and 10 parked as `M67b-answer-verb-forms` (the game's lessons already give a tense retry) |
+| M68 | Review follow-up (handover 9.3 H): the timed tests' budgets on CI, measured after a warm-up and scaled by `VOCATERRA_TIMING_SCALE` set in `.github/workflows/ci.yml` (the brief names the file and lets this one milestone edit both halves' tests) | | S | not needed now (the owner, 2026-11-01: `main`'s CI green after PR #20's merge); runs only if a timed test fails on CI (Sonnet 5.5) |
+| M69 | Review follow-up (handover 9.3 B, last part): the left points of M56, M58 and M62, all missed errors: M56's `son cerca`, `ser en` with a place, the first and second persons after the verb; M58's `podo` and `esto` read as the slip without a grammar; M62's `él es alta` with no grammar and no `muy`, `son` after a lone name, the gender of a subject with `de …`; and M71's finding: the realiser never draws `buenas tardes` (re-rolled as `literal-verb-subject`, `tardes` being a form of `tardar`); and two analyzer findings of M67b's widened O4 (not merged), if they reproduce: `vaya sentir` read as `ir` plus a bare infinitive (O4 `3isZGy3IeUc8`), a recast keeping a gender error (O5 `deXmFwx4GzL4`); and V20's: `cuanto son todo?` (the question word without its accent) is understood but `son` is not corrected; QA-language-10's `cuántos cuestan todo` (the quantity word not checked) | M66 | M | done (2026-11-02, Opus 5.5 xhigh; gated at `76d3658`) |
+| M70 | QA follow-up (the QA pass on the village, `docs/qa-reports/2026-11-01-language.md`, 2026-11-01): (a) `me llamo ana`, a learner's own name, is not understood (`vocab.unknown` on the name; `me llamo domingo` gets a recast that drops the name), QA-2; (b) `gustar`: `yo gusto el pan` and `me gusto el pan` get correctness 1 (expected `me gusta`), QA-4; (c) an unknown word is blamed on its neighbour, so the recast repeats the wrong word (`compré three manzanas` gives `vocab.unknown` expected `compré`, recast «compré compré manzanas»; `manana iré al río` gives expected `al`), QA-6; (d) the preterite's spelling changes: `buscé`, `pescé`, `llegé`, `empezé` read as unknown words, to be graded as the verb's slip (`busqué`), QA-9; (e) `dos panes es caro` reports `heard '2'` for the learner's `dos`; (f) the owner's answers of 2026-11-01 (D-game-22): typed `n` for `ñ` accepted as a dropped accent when the spelling without `ñ` is not itself a word (`manana`, QA-7; `ano`/`año` stay distinct), and an accent that marks a verb's tense or person (`compre` for `compré`) accepted with no deduction but with a note naming the accented form (a public addition: ADR 0009 and `docs/nlp/API.md`). Each with regression tests; the fuzz oracles widened where the realiser can model them | M67 | M | done 2026-11-02 (`f1a02d3`, on `feature/village-followups`; findings in §5b) |
+| M71 | Fuzz finding (V23a's gate, 2026-11-01, `feature/village-followups` at `e02b5df`; no core change since the last pass): O3's check that every catalog grammar is realised fails at random on the family of V15's and V17's grammars with an optional name and two time slots, `(sí)? (time)? (domingo|luz|mar|león)? [VERB:vender] [ART]? [NUM:qty]? [NOUN:item] (time)?` and its `comprar` sibling (twice in a row, a different grammar each time). The realiser rejects most of their draws (`literal-disagreement`, `conflicting-time-markers`), so one of them is sometimes drawn zero times in 2 000; it predates M65 (whose change only counts rejections). Fix by widening: the realiser honours a name before the verb and a first time marker when it draws, and the coverage check gives each grammar not yet realised a targeted, fixed-seed pass before it asserts | M65 | S | done 2026-11-01 (`35ece1c`, on `feature/village-followups`; findings in §5b) |
+| M72 | The off-prompt lines (the owner, D-game-22, 2026-11-02, option 2, after a design study; V27 waits on it): at an NPC's constrained open prompt a correct line whose intent the prompt does not take got `vocab.wrong` (0.4, an empty expected word: M67's derived tag) — (a) the derived tag only where it names the word (a one-answer set, a quiz) or explains a near miss; (b) a second resolver pass over the whole catalog (grammar and keyword rungs) when the allowed pass gives `unknown`: `IntentResolution.OffPromptIntent` and `Verdict.OffPromptIntent`, optional and null-omitted, `Intent` and `Communicated` unchanged, ADR 0009's note; (c) `hace frío` is not `ask_activity` (a keyword rule on `hacer` alone). Fuzz: O10's model follows the rule; O7 and O3 widened (an off-topic correct sentence gets no error at a prompt) | | M | Opus 5.5 at xhigh | done (gated at `4af6bd7`, 8199 passed) |
+| M73 | The small core points after the follow-ups (the owner, 2026-11-02; after V27): (a) `cuántas cuesta todo` is read as a noun phrase (M69's left point): graded as M69 grades `cuántos cuestan todo`; (b) the recorded fuzz families `2tpLGUOSqj41` with `fSMdah3kOSd7` (O5, a `word_order` recast where a `[WORD]` slot binds the moved adjective) and `8yc522XLB_W2` (O4, `word_order`: the mutation breaks the grammar match, `rica` read as an adjective, a false `conj.person`): fixed at the source where the analysis or the recast is wrong, never narrowed (the owner's (d)); a cause whose only fix is a narrowing is reported and the seed stays recorded; (c) found by M72's fuzz runs and tries: O2 `7HIoK0InC7l7` (`conj.person` reported twice on one word), O3 slots `92moRWz9NQ54` (no `item=suyo`), O5 `3-VvCuMLFEA2` (a new seed of the word-order family), `ustedes trabajan mucho` read as `ask_activity` (the `trabajar` rule), `hoy hace buen tiempo` read as `ask_craft`, `cómo está usted` and `cómo estás` not understood (`greet` takes neither), `dos panes es caro` with no error (a numeral subject is not checked); (d) found by V27's run without models: O5 `26dVDqElv1l2`, the realiser draws the noun `son` in `estómago son vencido` and the analyzer reads it as `ser`: each fixed at the source, or reported with its cause | M72 | M | Opus 5.5 at xhigh | done (gated at `59d4044`, 8265 passed) |
+| M76 | Checks as C# tests (the owner, 2026-11-02, before PR #28 merges: "I would prefer things like this to be a csharp unit test, not some throwaway script or junk text file"; D-game-22): (a) the 540 rows of `scripts/try-lines/` (9 line files with their CLI and host baselines, M64 to M73) become xUnit tests grouped by topic, the core path in the core's test projects and the game's path (a greeting and the listener's name taken out) in `tests/Vocaterra.Host.Tests`, deduplicated against each other and the existing tests; then `scripts/try-lines.sh` and `scripts/try-lines/` are deleted and `docs/nlp/CONTRIBUTING.md` follows; (b) an audit of the other check and one-off scripts in `scripts/` (test, keep or delete each; the straightforward ones done, anything large or called by the gate or CI proposed). The brief lets it edit both halves' tests and `scripts/`. (M74 and M75 are reserved by `docs/HANDOVER_AFTER_FOLLOWUPS.md`) | M73, V28 | M | Sonnet 5.5 | done (gated at `523f818`, 8797 passed) |
+| M77 | Unused usings as a build warning (the owner, 2026-11-02, "do the IDE0005 warning too", after M76's audit): IDE0005 at warning with `EnforceCodeStyleInBuild` for every project of `Vocaterra.sln` (with the documentation file it needs, its missing-comment warnings suppressed), every unused using removed, no other rule changed, `scripts/audit-usings.py` deleted; the brief lets it edit the root `Directory.Build.props` and `.editorconfig` and the using lines of both halves | M76 | S | Sonnet 5.5 | done (gated at `7bcaefd`, 8797 passed) |
 
 ### Delegation waves
 
@@ -1480,7 +1491,255 @@ merge into a feature branch that is pushed, and the owner merges it into `main` 
       `fuimos`. They still get `vocab.wrong` (correctness 0.4) because the answer set has no subject; that is V19's;
     - the clause coordinations are clean, and the core demo is exact.
   - Left: `ni tú ni yo fuimos` and `tú o yo vamos` are still flagged (older; `ni` and `o` were outside the brief).
+- **M65, fuzz stability (2026-11-01, Opus 5.5 xhigh; gated on `feature/village-followups` at `479eae4`; the owner's yes to (a) to
+  (c), D-game-22).** The first follow-up after PR #20's merge, run in its own worktree with a lean build, beside two QA passes and V22.
+  - **The three narrowings** (all in `Generation/MutationGen.cs`, each pinned by a fact in `NarrowedMutationGuardTests`: the failing
+    pattern is not mutated, the analyzer shows why, and a close neighbour is still mutated and flagged):
+    - (a) the `conj.tense` mutation shares M26b's guard (`NameBesideAnAlternation`), no wider than M26b; seed `egVgLELrxyL4`;
+    - (b) M59's preverbal `conj.person` mutation leaves out `haber`, the analyzer's own exclusion; seeds `b3HSKSLCsL_1` and
+      `4YuZ2yubxdC1`. The realiser still builds `haber` with no participle: dropping it now would lose O4's check of `ellos ha`, which the
+      perfect will need. The README records the widening for when a lesson teaches the perfect;
+    - (c) narrower than the handover's wording: "keep only a case that still matches its grammar" would have kept 46 of 6 002 tense
+      cases, because `ayer` in front rarely fits. The match decides only a literal's accent reading (`porque`/`porqué`), so the guard asks
+      for it only when a literal has an accent variant (237 cases skipped, 4 %); seed `2ldq2rIKLrG2`.
+    - (d) `2tpLGUOSqj41` recorded, not narrowed (the owner).
+  - **The skip budget:** the realiser counts every re-rolled attempt (`rejected:<reason>`); `SkipBudgetTests` (about 2 s, 2 000 fixed
+    seeds each for O3 and O4/O5) fails when one reason passes 5 % of the draws. None does: the largest is `accent-variant-homograph`
+    (4.21 % in O3, 3.70 % in O4/O5). `coordinated-subject`, `ser-of-place`, `predicate-subject` and `time-marker-of-generated-words`
+    took no draws. The table is in the fuzz README.
+  - **`scripts/try-lines.sh [--host] <file>...` and `--check`**, with `scripts/try-lines/review1.txt`, `review2.txt` (the review's 100
+    lines) and `m64.txt`, and their CLI and host baselines. Its output equals the review's two wrappers on the three files.
+  - **Runs:** the fuzz project (91 tests, 87 before) passed three times at the default depth (about 1 min 6 s each) and once at five
+    times it (3 min 59 s). The gate: 7428 passed and 3 skipped before, 7432 and 3 after, with models, at the first run.
+  - **New finding, older than M65:** seed `8yc522XLB_W2` (O4, `word_order`) fails the same way on `9dfa08b`. The mutation breaks the
+    grammar match, so `rica`, which the grammar bound as a noun, reads as an adjective and the analyzer adds `conj.person` `desfiló`. The
+    same family as (c) and (d); recorded in the fuzz README. Until it is decided, a gate failing on it alone is rerun once.
+  - The orchestrator's spot-check: `scripts/try-lines.sh --check` on the merged branch gives the six baselines, and the core demo is
+    exact.
+- **M71, the O3 coverage flake (2026-11-01, Opus 5.5 xhigh; merged at `35ece1c`, gated with V23a and M66 at `53f63e6`).** Found at
+  V23a's gate: O3's "the catalog grammar … was never realised" failed twice in a row with no core change.
+  - **The cause was the draw, not the realiser** (the brief's guess was wrong): O3 picks a catalog grammar in 40 % of its 2 000 recipes,
+    about 7 per grammar for 110 grammars, so some grammar is never drawn in about 7.5 % of runs (151 of 2 000 simulated runs, over 83
+    grammars; 1 of 10 real runs). V15's and V17's family realises from every recipe it gets; its re-rolls are all made good.
+  - **The fix:** after the random sample, each grammar it missed is realised from up to 50 fixed recipes (`M71T00000000` on) through the
+    same checks; a grammar none of them realises still fails, with its rejections listed (`TheCoveragePass_ReportsOnlyAGrammarTheRealiserCannotRealise`).
+    The coverage is now asserted at every depth (before, from 1 000 recipes). The realiser and the skip shares are unchanged. O3 alone
+    passed 10 runs of 10; the project passed three times at the default depth and once at five times.
+  - **New finding, not fixed:** the realiser never draws `buenas tardes`, which the analyzer accepts (`tardes` is a form of `tardar`, so
+    `PreverbalPhrase` takes `buenas` as a subject and re-rolls it as `literal-verb-subject`). Filed with M69.
+- **M66, the grading gaps of sessions 7 to 10, with M63 (2026-11-01, Opus 5.5 xhigh; merged at `53f63e6`, gated with V23a and M71).**
+  Run beside V25 and V23a in M65's worktree, from M65's last commit. 63 new cases in `tests/Vocaterra.Nlp.Es.Tests`, each failing
+  before the fix.
+  - **False alarms gone:** `¿puede usted vender manzanas?` (a pronoun right after a finite verb that agrees with it is its subject; an
+    infinitive after it is not checked against it; `usted vender manzanas` and `yo comprar pan` still flagged); `ni tú ni yo fuimos` (`ni`
+    plural) and `tú o yo vamos` (`o`: the plural or the nearest member's form; the gender after a two-reading `o` is not checked; a mix
+    of `y` and `o` is not checked); `cada manzana` no longer gives `word_order`.
+  - **Errors now caught:** a finite verb after a modal gives `conj.tense` with the infinitive (`puedo pago` `pagar`, `quiero vendo`
+    `vender`, `tengo que voy` `ir`, `debo como más fruta` `comer`). Homographs: after `poder` and `tener que` a noun/verb word is the
+    verb; after `querer`, `deber` and `necesitar` only before a word that can only be a noun, so `quiero vino`, `necesito pago` stay
+    clean; `como` is the verb only before `más` or a determiner; a new clause after a modal (`no puedo estoy cansado`) is not checked.
+    `¿cuánto cuestan todo?` gives `cuesta`, `¿cuánto son todo?` `es`; `las manzanas cuesta una moneda` gives `cuestan` (QA-language-3:
+    `cuesta` was read as the noun); `los panes costa` gives `cuestan` and `cuesta`; `azuls` gives `noun.number` `azules`; `ella qué
+    quieres` gives `quiere` (M63; seeds `8zKtIhOY3951` and `c5SlpISRmTZ3` pass). `ti` added to `lexicon/supplement.json`; bundle
+    `356a257e…` (`save-v1.json` and `save-v4.json` took the hash).
+  - **Public surface:** `IAnalysisRules.IsModalVerb` and `ModalTakesNounObject`, with defaults; ADR 0009 has a note, `API.md`,
+    `PIPELINE.md` and `LEXICON.md` are updated.
+  - **Fuzz, widened only:** the realiser builds `ni`/`o` subjects and a pronoun before `qué`; the person mutation works through a
+    question word; a new O4/O5 case makes the infinitive after a modal finite; the verb after `tener que` is an infinitive; two re-rolls
+    broader than the analyzer (`modal-complement-homograph`, `noun-reads-as-verb`); `ModalAndQuestionFuzzTests`; the stream digest
+    re-recorded. One fuzz finding fixed (`c5E0ikVTT_s3`: `podamos` is `podar`'s, not a modal). 93 tests, four runs passing.
+  - **Goldens:** none moved. Six identity entries moved, each checked by the orchestrator: `mi madre cocina`, `la voz programa`, `el
+    aniversario toma` (verbs now), `necesitamos ruedas` (the noun), and two "correct" corpus sentences that are not Spanish and are now
+    flagged (`14 alienígenas entrega` `entregan`, `aquellas vacaciones amenaza emocionado` `amenazan`).
+  - **The orchestrator's checks** on the merged tree, through the host: `las manzanas cuesta una moneda` `cuestan`, `puedo pago con fruta`
+    `pagar`, `¿cuánto cuestan todo?` `cuesta`, `ni tú ni yo fuimos al río` clean, `tengo pan para ti` with no unknown word;
+    `scripts/try-lines.sh --check` gives all eight baselines.
+  - **Known limit:** `necesito ayuda domingo` (a name said to the listener) would be flagged on the CLI; the host takes the name out.
+- **M67, what a constrained prompt's answer set tells the verdict (2026-11-01, Opus 5.5 xhigh; gated on `feature/village-followups`
+  at `6b922d7`).** Run beside V20, in M66's worktree from M66's last commit; gated from that worktree on the feature branch.
+  - **(a)** `VerdictAssembler.DeriveVocabWrong` adds the tag only when the line resolved no intent, or when a keyword rule (never a slot
+    grammar) understood it and it is a near miss (the distance to the nearest answer within the fuzzy budget for the line's own length;
+    `cuál es esto` keeps it). Understood lines lose their correctness 0.4: 27 rows of the line files changed, each only losing its
+    `vocab.wrong` (`hola luz quiero dos panes`, `los panes cuestan dos monedas`, `buscaré madera para luz`, `me llamo domingo`, …); no
+    line that was not understood changed. Two content examples of `intents.json` (`ayer voy a comer fruta`, `mañana comimos fruta`)
+    dropped the tag (bundle `ebbf17f3…`, the save fixtures took it). The identity baseline moved in 306 entries, the grade and pipeline
+    stages only; no golden and no game test moved. O10's model follows the new rule.
+  - **(b) parked as `M67b-answer-verb-forms`** (pushed, not merged): `AnswerVerbForms` turned a lesson answer that differs from the
+    nearest answer in one verb's form into `conj.tense`/`conj.person`. It failed 32 game tests, which pin V14's design: at a lesson step
+    the game itself makes `Luz compra pescado` a miss with a tense retry and the hint «compró»
+    (`YesterdayLessonTests.ThePresentAtAPastStepIsAMissWithATenseRetry`). QA-language-5 and 10 were seen on the host's `--transcript`
+    path, which runs no lesson; in the game they are already handled. M67b would change the design, so it waits for the owner's word.
+  - **(c)** `scripts/limited.sh` is re-entrant: under `VOCATERRA_LIMITED=1` it runs its command directly.
+  - **Runs:** the fuzz project four times on M67 (70 s, 60 s, 60 s, 208 s at five times). On M67b's widened O4, two analyzer findings
+    (filed with M69 if they reproduce without it): O4 `3isZGy3IeUc8` (`vaya sentir`), O5 `deXmFwx4GzL4` (a recast keeps a gender
+    error). The gate: 7603 passed and 3 skipped before, 7612 and 3 after, with models, at the first run.
+  - The orchestrator's checks on the merged tree, through the host: the four understood lines above are clean, `tengo pan para ti` (not
+    understood) keeps `vocab.wrong`, the core demo is exact, and `scripts/try-lines.sh --check` gives every baseline.
+- **M70, the core findings of the QA pass on the village (2026-11-02, Opus 5.5 xhigh; gated on `feature/village-followups` at
+  `f1a02d3`).** Run beside V20 and V21 in M66's worktree; V20 merged in before its final checks.
+  - **Typed `n` for `ñ`** (the owner's answer): `Lexicon.Lookup`'s accent-insensitive fallback also tries the unmarked spelling through a
+    new `ILexiconFolding.UnmarkedSpellings` (none by default). A spelling that is itself a word keeps its reading (`una`, `pena`, `mono`,
+    `suena`); the Spanish pack keeps a closed list of real words the game's lexicon lacks (`ano`, `cana`, `cono`, …) that are never
+    folded. `manana compraré pan` is clean (it was `vocab.unknown`, 0.6).
+  - **A tense-marking accent typed without it** (the owner's answer): the public record `AccentNote(Span, Written, Accented, Marks,
+    Reading)` on `PipelineResult.Notes`, `UtteranceAnalysis.Notes` and `AnalysisResult.Notes` (null when none, left out of the JSON, so
+    verdicts and replay are unchanged). From the analysis (a tense error alone that the accented form of the same person removes: `ayer
+    compre pan` is clean with a note) and from the answer match (`compre dos panes`, `luz compro pescado`). A person error stays an error
+    (`ella compro pan` gives `compra`). V21b reads `result.Notes ?? []` and shows `SpanishAccentNotes.Describe(note)` («compré», con
+    tilde: es pasado). ADR 0009 and `API.md` updated.
+  - **`gustar` and `encantar`** agree with the thing liked: `me gusto el pan` gives `conj.person` `gusta`; `yo gusto el pan` gives
+    `conj.person` over both words with `me gusta` (the recast says «me gusta el pan»); `me gustas tú` and the other neighbours stay clean.
+  - **An unknown word takes the answer's word at its own place** (`AnswerCorrections` aligns the line with the nearest answer phrase;
+    the recast is the core's `RecastBuilder`): `compré three manzanas` gives `tres` and «compré tres manzanas». One test moved: `buen
+    dia` takes `día`, not `días`.
+  - **The preterite's spelling slips** `buscé`, `pescé`, `llegé`, `empezé`, `pagé`, `jugé`, `tocé` give `conj.irregular` with the right
+    form (M58's machinery). Limit: the unaccented `busce` is not taken as the slip.
+  - **A learner's own name:** the cause is content (no `ask_name` grammar binds a name); V21 adds `me [VERB:llamar] [WORD:name]`.
+  - **An error on a number** reports the learner's word (`dos`), not its digits.
+  - **Fuzz, widened only:** an O3 check for `ñ` typed as `n`; the person mutation makes first- and second-person `gustar`; the
+    irregular mutation makes `buscé`; the realiser re-rolls `nosotras gustamos los…` (it drew it as correct); the stream digest
+    re-recorded. Four runs passing before the merge, one after. M67b's O5 seed `deXmFwx4GzL4` reproduces (filed with M69); its O4 seed
+    `3isZGy3IeUc8` does not.
+  - **Baselines:** the line files' baselines re-recorded after V20's merge (`d67d991`): 47 rows per path moved, all V20's (lines at
+    newly opened prompts now resolve an intent); M70's own changes are in `m70.txt`. The identity baseline moved in 318 entries (317 the
+    number word, 1 `encantar`); no golden moved. Tests: 7682 passed and 3 skipped before, 7867 and 3 after, with models; the gate passed
+    at the first run.
+  - **History:** the commit `3bbfde0` does not build on its own (it names a type the next commit adds); a force-push to fix it was
+    refused, and the tip builds.
+  - **The orchestrator's checks** on the merged tree through the host: the lines above as stated, and `try-lines --check` gives every
+    baseline. Found: `compré three manzanas` at `lesson-market` answers with the recast's «¡Muy bien!» and then «¡Qué bien!» in one turn
+    (to V21's one reply per turn).
+- **M69, the left points of the core's village milestones (2026-11-02, Opus 5.5 xhigh; gated on `feature/village-followups` at
+  `76d3658`, 8119 passed and 3 skipped, with the models).** Every item a missed error or a fuzz finding; no correct line flagged.
+  - **M56's left points:** `son` and `era` before `lejos` or `cerca` read as the copula (`IAnalysisRules.IsLocationAdverb`): `las casas son
+    cerca` gives `ser_estar` `están`. `ser` before `en` and a place gives `ser_estar` (`la tienda es en el pueblo` → `está`, `yo soy en
+    casa` → `estoy`), clean after an event (the list gained `visita`, `entrega`, …), a lone name, no subject, a time, a manner or an
+    idiom (`en serio`, `en monedas`). "The first and second persons after the verb" read as a subject pronoun after a question's verb
+    (`¿dónde estás yo?` → `estoy`, `¿cómo estás usted?` → `está`) and `estar` or a price verb in the 1st or 2nd singular before an
+    article phrase (`¿dónde estás la herrería?` → `está`); ordinals left alone (`¿dónde estuviste la tercera?` is right; the identity
+    baseline caught it).
+  - **M58's left point:** `IAnalysisRules.CallsForSlip`: `yo podo ir` → `puedo` (`podar` takes no infinitive), `yo esto cansado` and
+    `esto cansado` → `estoy`; clean: `esto es pan`, `yo esto no lo sé`, `yo podo el árbol`.
+  - **M62's left points:** `IsPredicateAdjective` (a closed list of common adjectives): `él es alta` → `alto`, `la casa es bonito` →
+    `bonita`; clean: `ella es médico`, `el pan es comida`. `luz son alta` → `conj.person` `es`. A `de …` subject gives the predicate its
+    head's gender (`la casa de los niños es pequeño` → `pequeña`).
+  - **Question words:** `cuanto son todo` → `es`, the recast restoring the accent; `cuántos cuestan todo` → `noun.number` `cuánto` and
+    `cuesta`; `¿cuántos son?` lost a false `noun.number` (`sones`). Left: `cuántas cuesta todo` is still read as a noun phrase (as before).
+  - **Fuzz:** the realiser draws `buenas tardes` (O3 widened, a test pins it). O5 `deXmFwx4GzL4` fixed at the source (`RecastBuilder`:
+    the numeral 1 ignored its noun behind a possessive). O3 `2cqJbc9y05h3` (found by V21's merge fix, M70's `ñ` fold gave `danó` the
+    readings of `daño` and `dañó`): an accent the learner typed now picks the form that has it. Two older bugs found by its runs and
+    fixed: `gustamos` after `ayer` corrected to `gustan`, not `gustaron`; the realiser drew `21 podo pasar` as correct (re-rolled now).
+    Widened: two skeletons, `es en` for the `ser_estar` mutation, the `gender.agree` mutation against a `de` subject; nothing narrowed;
+    the sentence digest re-recorded. Three runs at the default depth and one at five times: the five-times run met `fSMdah3kOSd7`, a new
+    seed of the recorded `2tpLGUOSqj41` family (`word_order`, a `[WORD]` slot binds the moved adjective), recorded in the fuzz README;
+    its rerun and a last default run passed.
+  - **Proof:** `try-lines --check` gives every earlier file unchanged on the CLI and the host; `m69.txt` moved in 40 rows a path, all
+    its listed mistakes. The identity baseline moved in 6 entries (all `dónde estoy el mar`-type non-Spanish sentences); no golden moved;
+    the core demo unchanged. Tests: Nlp.Es 1997 → 2225, Nlp 3146 → 3149, Fuzzing 95 → 98, Golden 17; the game's tests unchanged.
+  - **The orchestrator's checks** on the merged tree (CLI and host), 30 correct lines of its own: no grammar error on any (`el agua es
+    fría`, `el hacha es pesada`, `el hijo de la panadera es alto`, `la fiesta es en la plaza`, `la clase es en la escuela`, `esto es
+    pan`, `buenas tardes`, `¿cuántos son?`, …); the nine mistakes above graded as stated. Seen again, older (V17's point): at a
+    constrained open prompt a correct line with a word outside its answer set gets `vocab.wrong` and is not understood (`la tienda está en
+    el pueblo` or `domingo es alto` at `farmer-open`).
+- **M72, a correct line that the prompt does not take (2026-11-02, Opus 5.5 xhigh; gated on `feature/village-followups` at
+  `4af6bd7`, 8199 passed, 3 skipped, with the models).** The owner's option 2 (D-game-22, 2026-11-02); V27 builds the game's half.
+  - **(a) The derived `vocab.wrong`** (`VerdictAssembler.ExplainsAMiss`): a line with no intent gets it only at a prompt that names the
+    word (an answer set of one answer, or a quiz) or when it is a near miss of an answer. `la tienda está en el pueblo` at `farmer-open`,
+    `tengo dos manzanas` at `fisher-open` and `me gusta el río` at `smith-open` have no error and stay not communicated (each was 0.4 with
+    an empty expected word). `cuál es esto` keeps its tag; a line a slot grammar understood never gets one.
+  - **(b) `IntentResolution.OffPromptIntent` and `Verdict.OffPromptIntent`** (`IntentId?`, the last parameter, left out of the JSON while
+    null, in the hand-written `Equals` and `GetHashCode`): when the allowed intents resolve nothing, `IntentResolver` runs the grammar and
+    keyword rungs over the whole catalog (no embedding). The verdict carries it only when the intent is unknown and no answer matched, so
+    never on a communicated line. The CLI prints an `off-prompt:` line; `API.md` (with a table) and ADR 0009 are updated.
+  - **(c) `ask_activity`'s keyword rule** is `qué` with `hacer` (it was `hacer` alone): `hace frío`, `hace calor` and `hoy hace sol` are
+    not `ask_activity` at any of the 70 prompts; `¿qué haces?` still is. Side effect: `hace dos días compré pan` at `smith-open` is now
+    `state_action`. Bundle `a2075569…`; both save fixtures follow.
+  - **Moved:** try-lines 37 CLI and 33 host rows (35 and 31 only lost the derived tag, 2 each are (c)); every near miss kept its tag. The
+    identity baseline moved 4007 of 6688 entries, in the grade and pipeline stages only, each checked against M67's rule re-assembled
+    (2399 lost the tag, 1427 lost it and gained an off-prompt intent, 181 only gained one). No golden moved. Two game tests changed their
+    expected value only (`LearnerRecordTests.AnErrorSpanMarksAWordUsedButNotCorrect`, `SpeechUxTests.ATypedLineTheCoreDidNotUnderstand…`;
+    their names no longer say what they assert, V27 renames them).
+  - **Fuzz:** O10's model and generator follow the rule; O7 checks the new member against the resolver run with every intent allowed; O3
+    gains a verdict leg (a correct sentence's verdict holds no error the analyzer does not find in its words with no prompt's grammar).
+    The leg admits a near-miss `vocab.wrong` only where its own copy of M67's rule holds, and counts it (about 1 in 2,000): a correct
+    sentence can be a near miss of an answer (`rápido por favor`, `pasado mañana iré al río con Mar`). Default depth: three clean runs
+    and the full suite. Five times the depth: old findings only, O5 `3-VvCuMLFEA2` (a new seed of the recorded word-order family) and O3
+    slots `92moRWz9NQ54` (the grammar does not yield `item=suyo`); M72's own oracles passed alone at five times.
+  - **Found, none in code M72 changed (for M73 or the owner's list):** O2 `7HIoK0InC7l7` (`conj.person` twice on one word); M67's
+    near-miss rule tags correct Spanish (above); `dos panes es caro` has no error (a numeral subject is not checked); `pedro` gets
+    `vocab.unknown` (no name slot); `ustedes trabajan mucho` is `ask_activity` (the `trabajar` rule); `hoy hace buen tiempo` is off the
+    prompt as `ask_craft`; `cómo está usted` is not understood.
+  - **The orchestrator's checks** through the host: `me gusta el río` at `smith-open`, `tengo dos manzanas` at `fisher-open`, `el río es grande` at `baker-open` and `la tienda está en el pueblo` at `farmer-open` are unknown, not communicated, correctness 1, no error (the game still says «No te entendí» until V27); `hace frío` at `smith-open` is no longer `ask_activity`, `qué haces` still is; `quiero dos panes` at `baker-open` unchanged; the core demo gives exactly `conj.person` and `noun.number`. Seen, older (M67): `cuál es esto` at `lesson-what` keeps `vocab.wrong` with an empty expected word and the step praises it as «Cuál es esto».
+- **M73, the small core points after the follow-ups (2026-11-02, Opus 5.5 xhigh; gated on `feature/village-followups` at `59d4044`,
+  8265 passed, 3 skipped, with the models).** Bundle `fa2c8825…`.
+  - **(a) `cuántas cuesta todo`:** `ReadingResolver` reads `cuesta` as `costar` after a form of `cuánto` before a neuter pronoun
+    (`IAnalysisRules.IsNeuterPronoun`, with a default); the agreement check grades the question word: `gender.agree` and `noun.number`,
+    both `cuánto` (it was `noun.number` `cuestas`). `cuánto cuesta todo`, `cuántas cuestas hay` and `la cuesta es grande` stay clean;
+    `cuántos es todo` stays clean as M69 left it.
+  - **O2 `7HIoK0InC7l7`:** a verb the person check matched to a subject pronoun before it gets no second subject after it (it gave
+    `conj.person` twice).
+  - **`dos panes es caro`:** the cause was M64's one-sum rule counting `caro` as an amount; a price is one sum only when the amount is money
+    (`diez monedas es caro` stays clean). It gives `son` and `caros`; the fuzz guard follows (a widening).
+  - **The intent catalog:** `ask_activity` takes `trabajar` with `qué`, `dónde` or `cuál` (`ustedes trabajan mucho` and `¿trabajas
+    mucho?` lose it; `¿qué haces?` and `¿en qué trabajas?` keep it); `ask_craft` takes `hacer` with `cómo` or `querer`, and a grammar
+    `[VERB:poder] [VERB:hacer] [ART] [NOUN:item]` (the weather is out; the lessons' craft questions keep it; bare `hacer una antorcha` and
+    `hago pan` lose it); `greet` has a grammar for `cómo estás/está/están/estáis` (the NPCs answer it as `hola`: «¡Hola! ¿Qué buscas?»).
+    The identity baseline moved 9 entries; no golden moved.
+  - **Fuzz:** `26dVDqElv1l2` (the noun `son`), `8yc522XLB_W2` (`rica` drawn as a noun after `joya unida`) and `92moRWz9NQ54` (`suyo`
+    drawn for an alternative a pronoun before it takes) are fixed in the realiser: a reader takes each as the analyzer does, so the draw is
+    re-rolled (`HomographRerollTests`; documented as generator fixes). **Still recorded:** `2tpLGUOSqj41` with `fSMdah3kOSd7` and
+    `3-VvCuMLFEA2`: the `[WORD]` slot rightly binds the moved adjective as a name (`Clara`), and the only fix would narrow the mutation.
+    Three default runs and one at five times passed.
+  - **Found, older (for the owner):** `qué tiempo hace` is `ask_activity` (M72's `qué` with `hacer`); `hace calor` and `hoy hace sol` are
+    `state_action` through a lesson's `[VERB:hacer] [NOUN:item]` grammar. A weather intent, or a way to rule a lemma out, is the owner's call.
+  - **The orchestrator's checks** through the host: the lines above as stated; `ustedes trabajan mucho` and `hoy hace buen tiempo` at
+    `smith-open` are now «No te entendí» (no intent of the catalog takes them); `cómo hago un hacha` is off the prompt as `ask_craft`; the
+    core demo gives exactly `conj.person` and `noun.number`. **Older, M67's near-miss rule:** `quiero hacer un hacha` at `smith-open` is
+    `state_want` by a keyword rule and a near miss of an answer, so it gets `vocab.wrong` with an empty expected word (0.4) while Domingo
+    praises it («Claro, «quiero hacer un hacha». Muy bien.»): the clearest case of the rule tagging correct Spanish (M72's finding), for the
+    owner with M67b.
 
+- **M76, checks as C# tests (2026-11-02, Sonnet 5.5; gated on `feature/village-followups` at `523f818`, 8797 passed, 3 skipped,
+  with the models).** The owner's word (D-game-22, 2026-11-02): "I would prefer things like this to be a csharp unit test, not some
+  throwaway script or junk text file." In PR #28, before the merge.
+  - **(a) `scripts/try-lines/` as tests:**
+    - The 540 rows of its 9 line files are 502 unique (prompt, line) pairs. 496 give the same result through the CLI and the host.
+    - 20 rows were dropped because `OffPromptLineTests` already asserts them in full.
+    - The core keeps 482 cases, in `tests/Vocaterra.Nlp.Tests/Pipeline/Lines/`: one `LineGrading` helper (the CLI's eval path) and one
+      class per topic. Tenses has 93, correct statements 78, gender and number 77, person agreement 55, questions 43, prices and amounts
+      39, lines not taken 39, greetings and names 35, vocabulary 12, and `ser` and `estar` 11.
+    - The host keeps 28 cases in `tests/Vocaterra.Host.Tests/LineHostPathTests.cs`: the 6 rows whose host result differs, and 22 with a
+      greeting or the listener's name.
+    - Each case is a `TheoryData` row whose failure names the prompt and the line. All pass, and no row disagreed with an existing test.
+      The agent proved the tests bite with one changed word and one changed intent, both reverted. They take about 2 s in all (not
+      `Slow`).
+    - `scripts/try-lines.sh` and its 27 files are deleted. `CONTRIBUTING.md`, `scripts/README.md` and the READMEs follow. The history in
+      the plans, the briefs and the handovers stays.
+    - Some topic placements were made by a script and are debatable; Tenses and correct statements are broad.
+  - **(b) The audit of `scripts/`:**
+    - `check-links.sh` became `MarkdownLinkTests` (`tests/Vocaterra.Nlp.Tests/Documents/`, skipping the build output, the models, the
+      worktrees and the gate logs). It found 2 broken links in `docs/nlp/TOOLS.md` (to `workflows-pending/ci.yml`), now fixed; the
+      "parked workflow" text around them is still stale.
+    - `identity-check.sh` (phase A's rules against `f4694ff`) and `core-move-scan.py` (R16 phase 2) were obsolete, and are deleted.
+    - Kept as tooling: `test-timings.py`, `playtest-report.sh`, `scripts/playtest/`.
+    - **Proposed, not built:**
+      - `audit-usings.py` becomes IDE0005 as a build warning (about half a day, the build's configuration);
+      - the scripted runs (`scripted-runs.sh` with `compare-runs.py`, used by the QA agent and `SCRIPTED_RUNS.md`) become game tests
+        (3 to 5 days).
+- **M77, unused usings as a build warning (2026-11-02, Sonnet 5.5; gated on `feature/village-followups` at `7bcaefd`, 8797 passed,
+  3 skipped, with the models).** The owner: "do the IDE0005 warning too", after M76's audit.
+  - **The settings:**
+    - `.editorconfig` sets `dotnet_diagnostic.IDE0005.severity = warning`.
+    - `Directory.Build.props` turns on `EnforceCodeStyleInBuild`, and `GenerateDocumentationFile` for every project: the compiler reports
+      IDE0005 only with the documentation file.
+    - Outside the core's `src/` libraries, the XML-doc warnings that the file brings are muted: CS1591, CS1570, CS1573, CS1574 and CS0419.
+      The core's libraries keep theirs.
+    - No `.csproj` changed.
+  - **The first build** reported IDE0005 410 times. No other IDE rule fired: the file-scoped namespaces were already clean.
+  - **240 unused usings removed in 179 files**, and only `using` and blank lines (checked by the orchestrator on the diff).
+  - **The proof:** an unused using added to a core file and then to a game file each failed the `-warnaserror` build (reverted).
+  - **The cost:** a clean build went from 34.6 s to 40.4 s (about 17 % slower). CI inherits the rule with no workflow change.
+  - **`scripts/audit-usings.py` is deleted;** the R16 documents carry a dated note.
 ## 6. Definition of done (every milestone)
 
 1. `dotnet build` with warnings as errors and `dotnet test` green for the whole solution.

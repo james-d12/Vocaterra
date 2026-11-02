@@ -171,6 +171,13 @@ public sealed class LinguisticAnalyzer
                 input[i] = readings.TokensWithSlips[i];
                 slips[i] = slip.Readings;
             }
+            else if (readings.Slips[i] is { Kind: WordSlipKind.ByGrammarOnly } other && _rules.CallsForSlip(readings.Tokens, i, other.Readings))
+            {
+                // M69: a word of another class whose neighbours call for the slip it may stand for, where no reading of it as written fits them (yo podo ir: podar takes
+                // no infinitive; yo esto cansado), is read as the slip alone, without a grammar that names the verb.
+                input[i] = new AnalyzedToken(readings.Tokens[i].Token, other.Readings);
+                slips[i] = other.Readings;
+            }
         }
 
         // The grammar decides first which words are names ([WORD] elements). A name is not an unknown word, and it is no learner's slip either (an irregular verb
@@ -209,11 +216,14 @@ public sealed class LinguisticAnalyzer
             if (slips[i].Count > 0 && readings.Slips[i] is { } slip && slip.IsChosen(resolved[i].Readings))
             {
                 slipErrors.Add(slip.Error);
-                analyzed[i] = input[i];
+                analyzed[i] = readings.TokensWithSlips[i];
             }
         }
 
-        _rules.CreateAgreementChecker(resolved, errors).Run();
+        var checkErrors = new List<ErrorTag>();
+        _rules.CreateAgreementChecker(resolved, checkErrors).Run();
+        var notes = ReadAccentedVerbs(names, ref resolved, ref checkErrors);
+        errors.AddRange(checkErrors);
 
         // A slip's error gives way to a check's error of the same tag on the same word (hay un pans: the article's number, pan, not the plural's ending).
         foreach (var slipError in slipErrors)
@@ -230,7 +240,66 @@ public sealed class LinguisticAnalyzer
             OrderErrors(errors),
             match?.Grammar.Id,
             allKnown ? 1.0 : 0.5,
-            ResolvedWords(text, analyzed, resolved, names));
+            ResolvedWords(text, analyzed, resolved, names),
+            notes.Count == 0 ? null : notes);
+    }
+
+    // M70 (the owner's answer of 2026-11-01, D-game-22 item 3): a verb written without the accent that marks its tense (compre for compré) is read as the accented
+    // form where the written form has a tense error and nothing else, the accented form has a person and number of the written one, and reading it takes the error
+    // away and adds none: ayer compre pan is ayer compré pan, with a note that names compré and no cost. The person is the learner's: ayer compro pan keeps
+    // conj.tense compré (compró is the third person, another sentence), and a person error is left as it is (ella compro pan: compra; usted compro: compra; cómo se
+    // llamo: llama), because the accented form there would change whom the sentence is about. A word whose accented forms are another verb's or no verb's (como,
+    // cómo) is left to the accent variants of step 0.
+    private List<AccentNote> ReadAccentedVerbs(IReadOnlySet<int> names, ref IReadOnlyList<AnalyzedToken> resolved, ref List<ErrorTag> checkErrors)
+    {
+        var notes = new List<AccentNote>();
+        for (var i = 0; i < resolved.Count; i++)
+        {
+            var token = resolved[i].Token;
+            var onWord = checkErrors.FindAll(e => e.Span.Start < token.Span.End && token.Span.Start < e.Span.End);
+            var written = resolved[i].Readings.Where(ReadingClasses.IsFiniteVerb).ToList();
+            if (names.Contains(i) || onWord.Count == 0 || !onWord.TrueForAll(e => e.Tag == ErrorTags.ConjTense && e.Span == token.Span) || written.Count == 0)
+            {
+                continue;
+            }
+
+            var variants = _lexicon.LookupWithAccentVariants(token.Text).Variants
+                .Where(v => ReadingClasses.IsFiniteVerb(v.Reading) && written.Exists(w => string.Equals(w.Lemma, v.Reading.Lemma, StringComparison.Ordinal)))
+                .ToList();
+            foreach (var form in variants.Select(static v => v.Form).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal))
+            {
+                var readings = variants
+                    .Where(v => string.Equals(v.Form, form, StringComparison.Ordinal) && written.Exists(w => w.Person == v.Reading.Person && w.Number == v.Reading.Number))
+                    .Select(static v => v.Reading)
+                    .Distinct()
+                    .ToList();
+                if (readings.Count == 0)
+                {
+                    continue;
+                }
+
+                var trial = new List<AnalyzedToken>(resolved);
+                trial[i] = new AnalyzedToken(token, readings);
+                var trialErrors = new List<ErrorTag>();
+                _rules.CreateAgreementChecker(trial, trialErrors).Run();
+                var before = checkErrors;
+                if (trialErrors.Exists(e => e.Span.Start < token.Span.End && token.Span.Start < e.Span.End) || trialErrors.Exists(e => !before.Contains(e)))
+                {
+                    continue;
+                }
+
+                resolved = trial;
+                checkErrors = trialErrors;
+                var reading = readings[0];
+                var marks = written.Exists(w => string.Equals(w.Lemma, reading.Lemma, StringComparison.Ordinal) && w.Tense == reading.Tense && w.Mood == reading.Mood)
+                    ? AccentMark.Person
+                    : AccentMark.Tense;
+                notes.Add(new AccentNote(token.Span, token.Text, form, marks, reading));
+                break;
+            }
+        }
+
+        return notes;
     }
 
     // One resolved word per token: a name keeps no reading, an unknown word has none, and a word gets the reading the resolver left first.
@@ -404,11 +473,17 @@ public sealed class LinguisticAnalyzer
         return new WordSlip([verb], IrregularError(token, regularized), kind);
     }
 
-    // The readings of the plural the learner meant, as the lexicon has them (panes: pan, a masculine plural noun), or else those of the singular made plural.
+    // The readings of the plural the learner meant, as the lexicon has them (panes: pan, a masculine plural noun), or else those of the singular made plural. M66: an
+    // adjective's too (azules), after the noun's when the lemma is both.
     private List<LexicalFeatures> PluralReadings(PluralSlip slip)
     {
+        return [.. PluralReadings(slip, LexiconSchema.Noun), .. PluralReadings(slip, LexiconSchema.Adjective)];
+    }
+
+    private List<LexicalFeatures> PluralReadings(PluralSlip slip, string pos)
+    {
         var plural = _lexicon.Lookup(slip.Expected)
-            .Where(r => r.Pos == LexiconSchema.Noun && r.Number == LexiconSchema.Plural && string.Equals(r.Lemma, slip.Lemma, StringComparison.Ordinal))
+            .Where(r => r.Pos == pos && r.Number == LexiconSchema.Plural && string.Equals(r.Lemma, slip.Lemma, StringComparison.Ordinal))
             .ToList();
         if (plural.Count > 0)
         {
@@ -416,7 +491,7 @@ public sealed class LinguisticAnalyzer
         }
 
         return _lexicon.Lookup(slip.Lemma)
-            .Where(r => r.Pos == LexiconSchema.Noun && string.Equals(r.Lemma, slip.Lemma, StringComparison.Ordinal))
+            .Where(r => r.Pos == pos && string.Equals(r.Lemma, slip.Lemma, StringComparison.Ordinal))
             .Select(static r => r with { Number = LexiconSchema.Plural })
             .Distinct()
             .ToList();

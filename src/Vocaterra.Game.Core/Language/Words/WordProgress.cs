@@ -2,7 +2,6 @@ using System.Collections.Immutable;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Nlp.Es.Normalization;
-using Vocaterra.Nlp.Language.Normalization;
 
 namespace Vocaterra.Game.Core.Language.Words;
 
@@ -342,7 +341,7 @@ public sealed class WordProgress
         var credited = new List<string>();
         var newlyKnown = new List<string>();
         var outcomes = new List<WordCredit>();
-        if (!turn.Communicated || kind == InputKind.Button)
+        if (!turn.Taken || kind == InputKind.Button)
         {
             // A line a button sent (a choice, Ayuda, No sé) is a recognition signal: the words it holds were heard and read, never said (D-game-10).
             return new WordTurnResult(credited, newlyKnown, outcomes);

@@ -68,7 +68,7 @@ public sealed class PlaytestFlow
 
         SavePath = PlaytestEnd.SaveIn(sessionDirectory);
         _console(_recall
-            ? $"playtest: the next-day recall of the save from session {_session.PlaySession - 1}; the run ends after the check"
+            ? $"playtest: the next-day recall of the save from session {_session.Day}; the run ends after the check"
             : $"playtest: the pre-check, the run, then the post-check when the camp is done, the fire at the player's camp is lit and the transfer offered (or F10); the save is {SavePath}");
     }
 

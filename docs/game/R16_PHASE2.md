@@ -62,7 +62,7 @@ test projects. `tests/Vocaterra.Game.Tests/ArchitectureRulesTests.cs` has the Ga
 
 ## 5. The inventory: what moves, what stays, what waits
 
-`python3 -I scripts/core-move-scan.py .` classifies every file of `src/Vocaterra.Game` (MOVABLE: no banned token and no package, and every Game
+`python3 -I scripts/core-move-scan.py .` (removed in M76, R16 being done; `ArchitectureRulesTests` keep the bans) classified every file of `src/Vocaterra.Game` (MOVABLE: no banned token and no package, and every Game
 file it needs is MOVABLE too; BLOCKED-self: it uses one, listed; BLOCKED-deps: it needs blocked Game files, listed). At handover: 99 MOVABLE, 58
 BLOCKED-self, 15 BLOCKED-deps. MOVABLE means engine-free, not "belongs in Core": the guideline keeps graphics and UI in Game even without
 MonoGame types. The judgement below is the plan.
@@ -171,7 +171,7 @@ Each batch is a few commits; each commit builds, formats and passes `Vocaterra.G
 
 How a move goes: `git mv` the file (split it first if it holds several types); change its namespace to its new folder; build, and add the
 `using`s the errors ask for across `src/`, `tests/` and `tools/` (most files that used it need `using Vocaterra.Game.Core.<Folder>;`); remove
-`using`s that became unused (`python3 -I scripts/audit-usings.py . <files>` lists a `Vocaterra.*` using with no type of it named in the file;
+`using`s that became unused (`python3 -I scripts/audit-usings.py . <files>`, removed in M77 (the build reports IDE0005 now), listed a `Vocaterra.*` using with no type of it named in the file;
 it misses names used only through members, so let the build confirm a removal); `dotnet format` fixes the order of the usings
 (`dotnet format style Vocaterra.sln --diagnostics IMPORTS --include <files>`); move the class's tests; build, format, test.
 
@@ -203,7 +203,7 @@ it misses names used only through members, so let the build confirm a removal); 
 - **The owner's parallel edits** (section 2): commit with explicit pathspecs; check `git status` and `git log` first, as a commit can land under you.
 - **Shell:** quote heredocs (`<<'EOF'`) that carry Markdown: an unquoted one runs the backticked text as commands. The sandbox refuses command
   lines with the words `eval` or `hash` (CLAUDE.md).
-- **`dotnet format`** reported no IDE0005 (unused usings are not enforced), which is why `scripts/audit-usings.py` exists.
+- **`dotnet format`** reported no IDE0005 (unused usings are not enforced), which is why `scripts/audit-usings.py` existed (removed in M77, 2026-11-02: IDE0005 is a build warning now, so `-warnaserror` fails on an unused using).
 
 ## 9. Left for later (not phase 2)
 

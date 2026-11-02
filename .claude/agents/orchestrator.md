@@ -40,7 +40,29 @@ is a change to the boundary and updates that record.
     resource rules and gate.
   - Bring owner decisions (licences, scope, anything that changes D-numbers) to the owner rather than deciding them.
 
-## Handover (2026-11-01): the village, phase B done, the owner's review next (read this first)
+## Handover (2026-11-02): the follow-ups done; the owner's decisions next (read this first)
+- **The follow-ups are done** on `feature/village-followups`: the core's M65 to M67 and M69 to M73, and the game's V20 to V28 (V23b
+  folded into V21b); the last gate was V28's, at `81023b2` (8286 passed, 3 skipped).
+  - The owner merges it into `main` by pull request.
+  - M67b stays parked; M68 runs only if CI fails a timed test.
+- **After that merge, read `docs/HANDOVER_AFTER_FOLLOWUPS.md`:** the owner's decisions of 2026-11-02, every one decided except the
+  spoken lines' study, whose recommendation goes to the owner. The work:
+  - M74: the weather intents and `ask_wellbeing`;
+  - M75: the near-miss rule;
+  - V29: the game's replies;
+  - the study of spoken off-prompt lines;
+  - and the known fuzz family that can fail a gate.
+  - Work on a new branch from `origin/main`, never `main`.
+- **M76 (2026-11-02, in PR #28 before the merge, the owner's word):** `scripts/try-lines/` becomes C# tests and the other check
+  scripts are audited (core plan §5, D-game-22). **A regression check is a C# test, never a script with text baselines:** no brief asks
+  for line files or a check script again.
+  - In PR #28 too, all gated: M76 (`523f818`), M77 (IDE0005, unused usings fail the build, `7bcaefd`) and V30 (the PR #28 review's
+    game fixes, `b455b1c`, 8817 passed). The review's items 8 and 14 went to M75 and V29. Every point left open after PR #28 is in
+    `docs/HANDOVER_AFTER_FOLLOWUPS.md` section 8.
+- The owner deletes the merged remote milestone branches himself (the permission check refuses remote deletes) and listens to the
+  voices later.
+
+## Handover (2026-11-01): the village, phase B done, the owner's review next
 **After the merge (2026-11-01):**
 - The owner merged PR #20 into `main` (`1dbb0e5`) and wants all the follow-ups done on `feature/village-followups`. That branch was
   created from `origin/main`, pushed, and checked out in `.claude/worktrees/village`.
@@ -49,6 +71,23 @@ is a change to the boundary and updates that record.
   - The queue: a QA pass, then M65 (fuzz stability), M66 and M67 (core grading), V20 (free talk), V21 to V23, M69, M68 (CI timing, if
     needed) and V24 (documents).
 - Gate with `GATE_TARGET=feature/village-followups`.
+**The follow-ups are done (2026-11-02):** the whole queue of section 9.2 is gated and pushed on `feature/village-followups` (V22, V25,
+V23a, V20, V21, V21b, V24 in the game; M65, M71, M66, M67, M70, M69 in the core; 8133 passed, 3 skipped, at `56d2790`). M68 waits for a
+CI failure of a timed test. Next: the owner's pull request of `feature/village-followups` into `main`. The open points are
+`docs/game/README.md`, "Open points after the follow-ups" (V24); the game's small ones (two replies to a line not understood, the book's
+credit of a refused request, the typed form `compre` in the book, the scripted run's silent stop at 18 000 ticks) were proposed to the
+owner as one milestone, not started.
+- **9.1 answered (2026-11-01, D-game-22):** models mixed (Opus 5.5 xhigh for M65 to M67, M69, V20; Sonnet 5.5 for V21 to V23 and M68;
+  Haiku 5.5 for V24); M65's narrowings (a) to (c) yes, (d) recorded; plates of the faced NPC, depth-tested; CI green, so M68 waits.
+  Rows filed: the core's §5 (M65 to M69; M63 folded into M66) and VILLAGE_PLAN section 4 (V20 to V24).
+- **Parallel work (owner, 2026-11-01: "do whatever can be done in parallel").** It replaces "one agent at a time" for the follow-ups;
+  the machine stays safe because every heavy command still goes through `scripts/limited.sh` (one lock, so builds queue). Rules:
+  - an agent that holds a branch gets its own worktree (`git worktree add -b <branch> .claude/worktrees/<id> feature/village-followups`),
+    and builds only the projects it touches (a core project's build output is about 400 MB, a game project's about 90 MB); the gate
+    builds and tests the whole solution in `.claude/worktrees/village`;
+  - QA agents test `.claude/worktrees/village` read-only and can share it;
+  - disk is the limit (12 GB free on 2026-11-01): keep it above 10 GB, and remove a milestone's worktree right after its gate;
+  - milestones that edit the same files (the goldens, `content/game-v1` and its hash, the save fixture) still run one after the other.
 **The full handover is `docs/HANDOVER_VILLAGE_PHASE_B.md`** (for a fresh agent: the review of `feature/village`, the owner's decisions,
 the follow-ups and what V09 found). The owner's plan (2026-11-01): review, merge PR #20, then the follow-ups on a new branch from `main`.
 **Start here (a fresh orchestrator session)**
@@ -196,6 +235,10 @@ the follow-ups and what V09 found). The owner's plan (2026-11-01): review, merge
   (SendMessage), wait for its report, put the report in `.claude/briefs/`, then `TaskStop` it before changing the worktree's branch.
   V17's agent left two wait loops (`until ! pgrep -f 'content-loop.sh …'`) that matched their own command lines and never ended; kill
   such loops after an agent finishes (`pgrep -fa content-loop`).
+- **Never nest `limited.sh`** (2026-11-01): `scripts/limited.sh scripts/test.sh …` deadlocked for 21 minutes (the outer call holds the
+  lock, the inner one waits for it), and every other agent queued behind it. Every brief says: run `scripts/test.sh` and
+  `scripts/content-loop.sh` directly; wrap only plain `dotnet` and `scripts/content.sh` calls. M67 (c) makes `limited.sh` re-entrant.
+  Killing another agent's processes is refused by the permission check; ask the owner, or wait for the agent to clear its own.
 - **Try a core change on correct learner lines, not only the brief's.** M59's first build flagged `Luz quiero pan` (a name said to the
   listener; transcripts carry no commas) because the brief asked for `Mar pescaste en el río` to be flagged. Before gating a core
   milestone, run the CLI on a few natural, correct lines at the NPCs' prompts (names, greetings, `usted`/`ustedes`).
@@ -257,6 +300,33 @@ state, the gate's one known failure and the rules learnt so far are in
   engine host's architecture), or when a Haiku attempt has failed the gate twice or returned a report whose claims did not verify.
 - **Opus 5.5 only when the owner asks** (research, architecture reviews).
 - Never set an effort level unless the owner asks. One agent per milestone, and **one agent at a time** (see Machine resources).
+
+## Token usage (owner, 2026-11-02)
+Output tokens cost money and the owner's attention. Make every message as short as its job allows, and no shorter.
+
+**Keep it short:**
+- Replies to the owner:
+  - Lead with the outcome, then only what changes a decision or needs the owner's action.
+  - Use a table for three or more like items.
+  - Do not recap what the owner just said or already knows, and do not restate a plan that is committed: link it.
+- A status line while an agent or a gate runs is one or two sentences.
+- Narrate as you go in a few words, not a paragraph per step.
+- Say a thing once: do not repeat in the reply what a committed document already holds; name the document.
+- Tool output: `grep -n`, `head`, `sed -n` ranges and log files. Never print a whole large file or log.
+
+**Do not cut quality where it matters.** Write these fully, though still without padding:
+- design documents, plans and studies;
+- decision records and handovers;
+- a brief's scope, rules and checks, and anything an agent would otherwise have to guess;
+- the owner's questions (each must stand on its own);
+- anything a fresh session must act on without this conversation.
+
+**The test:** would the owner or the agent lose anything if this sentence went? If not, cut it.
+
+**Subagents:**
+- Briefs point at files and sections instead of retyping them (see "Lean context" above).
+- Reports are one page; name what to leave out.
+- The model and the effort follow "Model policy". Do not raise either for length.
 
 ## Machine resources (owner, 2026-10-22: never max out the computer)
 The desktop crashed twice on 2026-10-22 with CPU and RAM maxed out: two Sonnet agents (S14, S17) built and tested at the same time, each

@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Vocaterra.Nlp.Language.Matching;
-using Vocaterra.Nlp.Language.Packs;
 
 namespace Vocaterra.Nlp.Language.Tests.Matching;
 

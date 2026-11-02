@@ -1,4 +1,3 @@
-using System.Globalization;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -6,7 +5,6 @@ using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Graphics.Camera;
-using Vocaterra.Game.Graphics.World;
 using Vocaterra.Game.UI.Common;
 using Vocaterra.Game.UI.Dialogue;
 using DrawHelpers = Vocaterra.Game.Graphics.DrawHelpers;
@@ -52,16 +50,21 @@ public sealed class CrosshairLayer : IFrameLayer
 }
 
 /// <summary>
-/// The names over the NPC figures: the Spanish word on a dark plate, at the point above the head, drawn through the font after the scene. A name
-/// is hidden behind the camera, farther than <see cref="FullDistance"/> plus the fade, or when a solid block is in the way.
+/// The names over the NPC figures: the Spanish word on a dark plate, at the point above the head, drawn through the font in the world's pass, after the figures and
+/// before the first-person arm (V22). Only the plates <see cref="NamePlates.Select"/> picks are drawn, and each is depth-tested against the scene and the figures (it
+/// reads the depth buffer and does not write it), so a wall, a building or another figure in front hides the plate, or the part of it behind them. A name is also
+/// hidden behind the camera and farther than <see cref="FullDistance"/> plus the fade.
 /// </summary>
-public sealed class NpcLabelLayer : IFrameLayer
+public static class NpcLabelLayer
 {
     /// <summary>The distance in blocks up to which a label is fully visible.</summary>
     public const double FullDistance = 24.0;
 
     /// <summary>The further distance over which the label fades out.</summary>
     public const double FadeDistance = 12.0;
+
+    /// <summary>How far, in blocks, the plate's depth is moved towards the eye from the point above the head, so the plate's lower half is not hidden by its own figure's head and hat.</summary>
+    public const float DepthPull = 0.7f;
 
     /// <summary>
     /// Where a name's plate stands for the point above the head projected at <paramref name="x"/>, <paramref name="y"/> on the canvas, or <see langword="null"/>
@@ -81,27 +84,33 @@ public sealed class NpcLabelLayer : IFrameLayer
         return outside ? null : Called.Clamp(plate, viewportWidth, viewportHeight);
     }
 
-    /// <inheritdoc />
-    public void Draw(SpriteBatch spriteBatch, FrameView view)
+    /// <summary>
+    /// Draws the plates of the figures picked for this frame, over the world drawn so far: each in its own sprite batch under the interface transform, moved in depth to the
+    /// plate's place in the scene (a sprite's z is its depth-buffer value under the batch's projection).
+    /// </summary>
+    /// <param name="device">The graphics device, whose depth buffer holds the scene and the figures.</param>
+    /// <param name="spriteBatch">The sprite batch, not begun.</param>
+    /// <param name="view">The frame's view.</param>
+    /// <param name="camera">The camera of this frame.</param>
+    public static void Draw(GraphicsDevice device, SpriteBatch spriteBatch, FrameView view, FirstPersonCamera camera)
     {
-        if (view.Voxel is not { } sim || view.Camera3D is not { } camera)
+        var shown = NamePlates.Select(view.Figures, view.Aimed, view.Beacon?.Target, view.Dialogue.IsOpen ? view.Dialogue.Npc : null);
+        if (shown.Count == 0)
         {
             return;
         }
 
+        var parameters = device.PresentationParameters;
+        UiTransform.Set(parameters.BackBufferWidth, parameters.BackBufferHeight, view.ViewportWidth, view.ViewportHeight);
         var font = view.Fonts.Get(FontProvider.NativeSize);
         var eye = view.Eye;
-        foreach (var figure in view.Figures)
+        var viewProjection = camera.View * camera.Projection;
+        foreach (var figure in shown)
         {
-            if (view.Dialogue.IsOpen && string.Equals(view.Dialogue.Npc, figure.Name, StringComparison.Ordinal))
-            {
-                continue; // the speaker has the bubble over the head (S15)
-            }
-
             var (x, y, z) = figure.LabelPosition;
             var point = camera.Screen.Project(x, y, z);
             var distance = Math.Sqrt(Math.Pow(x - eye.X, 2) + Math.Pow(y - eye.Y, 2) + Math.Pow(z - eye.Z, 2));
-            if (!point.InFront || distance > FullDistance + FadeDistance || LineOfSight.Blocked(sim.Grid, (eye.X, eye.Y, eye.Z), (x, y, z), distance))
+            if (!point.InFront || distance > FullDistance + FadeDistance)
             {
                 continue;
             }
@@ -113,10 +122,15 @@ public sealed class NpcLabelLayer : IFrameLayer
                 continue;
             }
 
+            var pulled = new Vector3(x, y, z) + (Vector3.Normalize(eye - new Vector3(x, y, z)) * DepthPull);
+            var clip = Vector4.Transform(new Vector4(pulled, 1f), viewProjection);
+            var depth = Math.Clamp(clip.Z / clip.W, 0f, 1f);
+            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.DepthRead, RasterizerState.CullNone, null, UiTransform.Matrix * Matrix.CreateTranslation(0f, 0f, depth));
             var box = new Rectangle(placed.X, placed.Y, placed.Width, placed.Height);
             spriteBatch.Draw(view.Pixel, box, new Color(0, 0, 0, 175) * alpha);
             DrawHelpers.Border(spriteBatch, view.Pixel, box, 1, new Color(255, 214, 64) * alpha);
             DrawHelpers.Outlined(spriteBatch, font, figure.Label, new Vector2(box.X + 7, box.Y + 3), Color.White * alpha);
+            spriteBatch.End();
         }
     }
 }
@@ -271,7 +285,7 @@ public sealed class VoxelDebugOverlay : IFrameLayer
             return; // on a narrow or short canvas the developer's overlay gives way to the interface and the conversation (X08)
         }
 
-        var lines = VoxelDebugText.Lines(view.Fps, sim, view.Seed, view.Look.Yaw, view.Look.Pitch, view.Session.PlaySession);
+        var lines = VoxelDebugText.Lines(view.Fps, sim, view.Seed, view.Look.Yaw, view.Look.Pitch, view.Session.Day);
         var font = view.Fonts.Get(FontProvider.NativeSize);
         var width = 0;
         foreach (var line in lines)

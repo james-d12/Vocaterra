@@ -50,6 +50,12 @@ public enum SpeechKind
 
     /// <summary>A learner phrase of the phrase sheet, spoken as the model answer (its Spanish).</summary>
     Phrase,
+
+    /// <summary>
+    /// A line every NPC says (V21b: «¡Muy bien!», «No te entendí», the core's hints), recorded once more in the voice of each NPC: the line id is the shared line's, then
+    /// <c>.&lt;npc&gt;</c> (<c>answer_accepted.1.baker</c>). The game plays the speaking NPC's file and the guide's when a file is missing.
+    /// </summary>
+    NpcCopy,
 }
 
 /// <summary>
@@ -101,6 +107,19 @@ public static class SpeechLines
             }
         }
 
+        // V21b: the lines every NPC says are recorded in each NPC's own voice too (the guide's file stays the fallback).
+        var shared = SharedPools(bundle);
+        foreach (var pool in bundle.Dialogue.Pools.Values.Where(pool => shared.Contains(pool.PoolId) && npcs.OwnerOfPool(pool.PoolId) is null))
+        {
+            foreach (var template in pool.Variants.Where(static t => TemplateEngine.ReferencedSlots(t).Count == 0))
+            {
+                foreach (var npc in npcs.All.Where(static n => !string.Equals(n.Id, SpeechSpeakers.Guide, StringComparison.Ordinal)))
+                {
+                    lines.Add(new SpeechLine(template.LineId + "." + npc.Id, npc.Id, bundle.TemplateEngine.Render(template, SlotMap.Empty), SpeechKind.NpcCopy));
+                }
+            }
+        }
+
         foreach (var prompt in bundle.Prompts.Values)
         {
             if (!string.IsNullOrWhiteSpace(prompt.Text))
@@ -140,6 +159,19 @@ public static class SpeechLines
 
         return lines;
     }
+
+    // The pools more than one agent says (answer_accepted, not_understood) and the core's feedback pools: said by whoever speaks, so the guide's voice would be wrong.
+    private static HashSet<string> SharedPools(ContentBundle bundle)
+    {
+        var shared = bundle.Agents.Values
+            .SelectMany(static machine => machine.Definition.VariantPools ?? [])
+            .GroupBy(static pool => pool.Id, StringComparer.Ordinal)
+            .Where(static group => group.Count() > 1)
+            .Select(static group => group.Key)
+            .ToHashSet(StringComparer.Ordinal);
+        shared.UnionWith(bundle.Dialogue.Pools.Keys.Where(static id => id.StartsWith("feedback.", StringComparison.Ordinal)));
+        return shared;
+    }
 }
 
 /// <summary>The file names of the speech folder.</summary>
@@ -168,6 +200,25 @@ public static class SpeechFiles
 
         return true;
     }
+
+    /// <summary>The subfolder of the speech folder that holds the word cards' files (V28: the other lines' files are in their speaker's).</summary>
+    public const string CardsFolder = "cards";
+
+    /// <summary>
+    /// The subfolder of the speech folder a line's files are in (V28): the speaker's id (<c>baker</c>, <c>shopkeeper</c>), or <see cref="CardsFolder"/> for a word card (the guide's
+    /// <c>card.*</c> files).
+    /// </summary>
+    /// <param name="line">The line.</param>
+    public static string FolderOf(SpeechLine line)
+    {
+        ArgumentNullException.ThrowIfNull(line);
+        return line.Kind == SpeechKind.Word ? CardsFolder : line.Speaker;
+    }
+
+    /// <summary>The path of a line's file under the speech folder, with <c>/</c> (V28): <c>baker/baker_greet.1.slow.wav</c>.</summary>
+    /// <param name="line">The line.</param>
+    /// <param name="slow">Whether it is the slow file.</param>
+    public static string RelativePath(SpeechLine line, bool slow) => FolderOf(line) + "/" + line.LineId + (slow ? SlowSuffix : string.Empty) + ".wav";
 
     /// <summary>The id of the slow file: <c>shop_need.1</c> gives <c>shop_need.1.slow</c>.</summary>
     /// <param name="lineId">The normal line id.</param>
@@ -204,7 +255,9 @@ public sealed record SpeechSummary(int Lines, int Files, int Missing)
     public static SpeechSummary Of(IEnumerable<SpeechLine> lines, string speechDirectory)
     {
         ArgumentNullException.ThrowIfNull(lines);
-        var store = new StaticLineStore(speechDirectory);
+        var lineList = lines as IReadOnlyCollection<SpeechLine> ?? lines.ToList();
+        lines = lineList;
+        var store = new SpeechStore(speechDirectory, lineList);
         var count = 0;
         var missing = 0;
         foreach (var line in lines)
@@ -233,14 +286,16 @@ public sealed record SpeechSummary(int Lines, int Files, int Missing)
 public sealed class SpeechIndex
 {
     private readonly Dictionary<string, List<SpeechLine>> _byText = new(StringComparer.Ordinal);
+    private readonly List<SpeechLine> _lines = [];
 
     /// <summary>Indexes the lines.</summary>
     /// <param name="lines">The speakable lines, in any order.</param>
     public SpeechIndex(IEnumerable<SpeechLine> lines)
     {
         ArgumentNullException.ThrowIfNull(lines);
+        _lines.AddRange(lines);
         // A dialogue line before a prompt's text, so a shared text is played as the dialogue line (the same words, the same speaker).
-        foreach (var line in lines.OrderBy(static l => l.Kind == SpeechKind.Dialogue ? 0 : 1).ThenBy(static l => l.LineId, StringComparer.Ordinal))
+        foreach (var line in _lines.OrderBy(static l => l.Kind == SpeechKind.Dialogue ? 0 : 1).ThenBy(static l => l.LineId, StringComparer.Ordinal))
         {
             if (!_byText.TryGetValue(line.Text, out var same))
             {
@@ -250,6 +305,9 @@ public sealed class SpeechIndex
             same.Add(line);
         }
     }
+
+    /// <summary>The lines the index was made of.</summary>
+    public IReadOnlyList<SpeechLine> Lines => _lines;
 
     /// <summary>The line the text is spoken from by this speaker (or by any speaker when none says it), or <see langword="null"/> when no line has the text.</summary>
     /// <param name="speaker">The NPC that says the text.</param>
@@ -264,5 +322,58 @@ public sealed class SpeechIndex
         }
 
         return same.FirstOrDefault(line => string.Equals(line.Speaker, speaker, StringComparison.Ordinal)) ?? same[0];
+    }
+}
+
+/// <summary>
+/// The pre-rendered files of the speech folder, found by line id through the folder each line is in (V28, <see cref="SpeechFiles.FolderOf"/>): one core
+/// <see cref="StaticLineStore"/> per subfolder. The slow file of a line (<c>&lt;lineId&gt;.slow</c>) is in the folder of its line. An id of no line has no file.
+/// </summary>
+public sealed class SpeechStore
+{
+    private readonly Dictionary<string, StaticLineStore> _byLine = new(StringComparer.Ordinal);
+
+    /// <summary>Creates the store over the bundle's speech folder.</summary>
+    /// <param name="speechDirectory">The bundle's <c>speech/</c> folder (it need not exist: every file is then missing).</param>
+    /// <param name="lines">The speakable lines.</param>
+    public SpeechStore(string speechDirectory, IEnumerable<SpeechLine> lines)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(speechDirectory);
+        ArgumentNullException.ThrowIfNull(lines);
+        var folders = new Dictionary<string, StaticLineStore>(StringComparer.Ordinal);
+        foreach (var line in lines)
+        {
+            var folder = SpeechFiles.FolderOf(line);
+            if (!folders.TryGetValue(folder, out var store))
+            {
+                folders[folder] = store = new StaticLineStore(Path.Combine(speechDirectory, folder));
+            }
+
+            _byLine[line.LineId] = store;
+        }
+    }
+
+    /// <summary>Whether the folder has the file of a line id (a normal id or its slow one).</summary>
+    /// <param name="id">The line id, or the slow file's id.</param>
+    public bool Contains(string id)
+    {
+        ArgumentNullException.ThrowIfNull(id);
+        return StoreOf(id, out var store) && store.Contains(id);
+    }
+
+    /// <summary>Reads the audio of a line id (a normal id or its slow one).</summary>
+    /// <param name="id">The line id, or the slow file's id.</param>
+    /// <param name="buffer">The audio, when the file is there.</param>
+    public bool TryGet(string id, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out Vocaterra.Nlp.Core.Audio.AudioBuffer? buffer)
+    {
+        ArgumentNullException.ThrowIfNull(id);
+        buffer = null;
+        return StoreOf(id, out var store) && store.TryGet(id, out buffer);
+    }
+
+    private bool StoreOf(string id, out StaticLineStore store)
+    {
+        var line = id.EndsWith(SpeechFiles.SlowSuffix, StringComparison.Ordinal) ? id[..^SpeechFiles.SlowSuffix.Length] : id;
+        return _byLine.TryGetValue(line, out store!);
     }
 }

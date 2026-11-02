@@ -1,6 +1,4 @@
 using System.Text.Json;
-using Vocaterra.Nlp.Es.Phonology;
-using Vocaterra.Nlp.Phonology;
 
 namespace Vocaterra.Nlp.Es.Tests.Phonology;
 

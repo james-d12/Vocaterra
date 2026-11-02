@@ -4,7 +4,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Diagnostics;
-using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Graphics.Blocks;
 using Vocaterra.Game.Graphics.Camera;
 using Vocaterra.Game.Graphics.Figures;
@@ -352,7 +351,8 @@ public sealed class VoxelRenderer : IDisposable
     /// <param name="tick">The simulation tick (animates the beacon and the figures).</param>
     /// <param name="avatar">The player's own figure, drawn in the behind-the-shoulder view, or <see langword="null"/> in first person.</param>
     /// <param name="arm">The first-person arm and what it holds, drawn last over a cleared depth buffer, or <see langword="null"/> in the shoulder view.</param>
-    public void DrawWorld(FirstPersonCamera camera, BlockPos? highlight, BlockPos? beacon, long tick, PlayerAvatar? avatar = null, ArmFrame? arm = null)
+    /// <param name="overlay">Drawn after the figures, the water and the beacon and before the arm clears the depth buffer, so it can test against the scene (the NPCs' name plates, V22), or <see langword="null"/>.</param>
+    public void DrawWorld(FirstPersonCamera camera, BlockPos? highlight, BlockPos? beacon, long tick, PlayerAvatar? avatar = null, ArmFrame? arm = null, Action? overlay = null)
     {
         _sky.Draw(camera, tick, Preset.Clouds);
 
@@ -451,6 +451,8 @@ public sealed class VoxelRenderer : IDisposable
             DrawDynamic(OverlayMeshes.Beacon(target, tick));
             _effect.FogEnabled = true;
         }
+
+        overlay?.Invoke();
 
         if (arm is { } held)
         {

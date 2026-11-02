@@ -12,7 +12,6 @@ using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
-using Vocaterra.Nlp.Response.Speech;
 
 namespace Vocaterra.Game.Core.Tests.Language.Book;
 
@@ -31,7 +30,7 @@ public sealed class BookSpeechTests
 
     private static BookRecordings Committed()
     {
-        var store = new StaticLineStore(Folder.Value);
+        var store = new SpeechStore(Folder.Value, Lines.Value);
         return new BookRecordings(Lines.Value.Select(static l => l.LineId).Where(store.Contains), Sheet.Value);
     }
 
@@ -46,8 +45,8 @@ public sealed class BookSpeechTests
             var card = recordings.ForNoun(noun.Lemma);
             Assert.NotNull(card);
             Assert.Equal(SpeechFiles.CardId(noun.Lemma), card);
-            Assert.True(File.Exists(Path.Combine(Folder.Value, card + ".wav")), $"{card}.wav");
-            Assert.True(File.Exists(Path.Combine(Folder.Value, card + ".slow.wav")), $"{card}.slow.wav");
+            Assert.True(File.Exists(Path.Combine(Folder.Value, SpeechFiles.CardsFolder, card + ".wav")), $"{card}.wav");
+            Assert.True(File.Exists(Path.Combine(Folder.Value, SpeechFiles.CardsFolder, card + ".slow.wav")), $"{card}.slow.wav");
         }
 
         Assert.Equal("card.rio", recordings.ForNoun("río")); // the file name is plain ASCII; the card's text keeps the accent
@@ -68,7 +67,7 @@ public sealed class BookSpeechTests
             }
 
             Assert.True(recording is not null, $"the phrase '{row.Id}' has no recording");
-            Assert.True(File.Exists(Path.Combine(Folder.Value, recording + ".wav")), $"{recording}.wav");
+            Assert.True(new SpeechStore(Folder.Value, Lines.Value).Contains(recording), $"{recording}.wav");
         }
     }
 
