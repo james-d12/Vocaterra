@@ -866,7 +866,11 @@ them explicitly (each is a skip or a restriction in the generator, counted in th
   M69's run at five times met the same family on O4 (CsCheck seed `fSMdah3kOSd7`, `WordOrder`): the random pattern `[ART]? ([NOUN:item] [ADJ]|[WORD:qty]
   [NOUN:spell]) [NOUN:thing] [ART] [VERB:traicionar]` gave `el pete fantástico kilos una traicionas`; the mutation `el fantástico pete` lets the alternative `[WORD:qty]
   [NOUN:spell]` bind `fantástico` as a name, which has no reading, so no `word_order` is reported. No rule of M69 reads it (the grammar matcher binds the name); left
-  recorded with the family, and the run was made again once, as for `2tpLGUOSqj41`.
+  recorded with the family, and the run was made again once, as for `2tpLGUOSqj41`. M72's run at five times met it on O5 (CsCheck seed `3-VvCuMLFEA2`,
+  `MutationCase { Kind = WordOrder, Seed = 1064786144 }`): the random pattern `[NUM:item] ([NOUN:qty]|[NOUN:spell] [ADJ:thing]|[WORD] [NOUN])?` gives
+  `novecientos cincuenta y tres mil quinientos cincuenta oscuridades mojadas`; the mutation makes `mojadas oscuridades`, which `[WORD] [NOUN]` binds as a name and a
+  noun, and the recast keeps the slip. No code of M72 reads it (the analyzer, the grammar matcher and the recast are unchanged); it reproduces with the seed alone,
+  is left recorded with the family, and the run was made again once.
 - **Found at M65, older than M65, and left for a decision** (a run of O4 after M65's last build; none of M65's four runs of the project met it, and it fails the
   same way on the suite before M65: the build of `feature/village-followups` at `1ff8a5a`, whose core, fuzz suite and bundle are those of `9dfa08b`). *O4, a
   `word_order` mutation that breaks the match where the grammar decided a reading* (CsCheck seed `8yc522XLB_W2`, `MutationCase { Kind = WordOrder, Seed =
@@ -888,6 +892,19 @@ them explicitly (each is a skip or a restriction in the generator, counted in th
   the masculine article). It reproduces with `CsCheck_Seed=deXmFwx4GzL4` and the `RecastLoopFuzzTests` alone; no unseeded run of M70 met it (four runs, one at
   five times). The O4 seed of the same report, `3isZGy3IeUc8` (`vaya sentir`, `ir` with a bare infinitive), does not reproduce on M70's branch.
 
+
+- **Found at M72, older than M72, and left for a core milestone** (the second of M72's runs at the default depth; the analyzer is unchanged by M72). *O2, two
+  errors with one tag on one span* (CsCheck seed `7HIoK0InC7l7`): `Nosotros Adonde Estaría Nenas En El Fecha`, analyzed with no grammar, gives `conj.person` twice
+  on `estaría`, expected `estaríamos` (against `nosotros`) and `estarían` (against `nenas`, read as a subject after its verb, M69's check). The analyzer promises
+  one error per tag and span; `nosotros adonde estaría` alone gives the one. It reproduces with the seed alone.
+- **Found at M72, older than M72, and left for a core milestone** (M72's second run at five times the default depth; the analyzer and the grammar matcher are
+  unchanged by M72). *O3, a slot the grammar does not yield* (CsCheck seed `92moRWz9NQ54`): the random pattern `[VERB:largar] ([PRON]|[VERB]|[ADJ:item]) [VERB]?
+  [VERB:deportar] [PRON]?` gives `largáis suyo involucras deportar les`, built with `suyo` as `[ADJ:item]`; the analysis with that grammar yields no `item`. It
+  reproduces with the seed alone.
+- **Found at M72 by O3's verdict leg; M67's rule, kept by the owner's choice** (the third of M72's runs at the default depth, CsCheck seed `3omMnHLFpnr3`). The
+  near-miss rule of the derived `vocab.wrong` tags a correct sentence that shares most of its letters with an answer: `rápido por favor` at `lesson-had` is 4 edits
+  from the help row's alias `ayuda por favor`, within the budget of 4 for its 16 characters. The leg admits that one tag where its model of the rule holds and
+  counts it (about one graded sentence in 2 000); measuring a near miss against the step's own answers only, or the word that differs, is for the owner.
 
 ## Adding to the suite
 
