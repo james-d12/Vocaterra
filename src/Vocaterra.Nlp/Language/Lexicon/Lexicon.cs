@@ -222,10 +222,52 @@ public sealed class Lexicon
 
         if (UnmarkedIndex().Readings.TryGetValue(lenient, out var unmarked))
         {
-            return new LexiconLookupResult(key, unmarked, accentInsensitive: true);
+            return new LexiconLookupResult(key, KeepTypedAccents(key, lenient, unmarked), accentInsensitive: true);
         }
 
         return new LexiconLookupResult(key, NoReadings, accentInsensitive: false);
+    }
+
+    // M69 (an O3 finding of V21's gate, seed 2cqJbc9y05h3): an accent the writer typed is a choice (LookupWithAccentVariants says so too), so among the forms an
+    // unmarked spelling stands for, a spelling typed with an accent keeps those that carry the same accent where it was typed: danó (dañó with n for ñ) is the verb
+    // dañó, not also the noun daño, whose noun reading made delicado danó hechos a word_order slip. A spelling with no accent (dano), or one that no such form keeps,
+    // keeps every form, as before.
+    private LexicalFeatures[] KeepTypedAccents(string key, string lenient, LexicalFeatures[] unmarked)
+    {
+        if (string.Equals(key, lenient, StringComparison.Ordinal)
+            || !UnmarkedIndex().Spellings.TryGetValue(lenient, out var forms)
+            || forms.Length < 2)
+        {
+            return unmarked;
+        }
+
+        var kept = forms.Where(f => CarriesTheTypedAccents(key, _folding.Key(f))).ToList();
+        if (kept.Count == 0 || kept.Count == forms.Length)
+        {
+            return unmarked;
+        }
+
+        return [.. kept.SelectMany(f => _byForm.TryGetValue(_folding.Key(f), out var readings) ? readings : NoReadings)];
+    }
+
+    // True when the form has the typed spelling's accented letter at every place the typed spelling has one (the two are of one length).
+    private bool CarriesTheTypedAccents(string typed, string form)
+    {
+        if (typed.Length != form.Length)
+        {
+            return true;
+        }
+
+        for (var i = 0; i < typed.Length; i++)
+        {
+            var letter = typed[i].ToString();
+            if (!string.Equals(letter, _folding.LenientKey(letter), StringComparison.Ordinal) && form[i] != typed[i])
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>
