@@ -37,16 +37,26 @@ public sealed class PlaytestFlowTests
         Assert.Empty(lines);
     }
 
-    private static (PlaytestFlow Flow, List<string> Lines) Make(bool enabled)
+    [Fact]
+    public void TheRecallNamesTheSessionTheSaveWasMadeIn()
+    {
+        // V30: a load keeps Day as saved (V25), so the save of day 3 is loaded at day 3, not 4.
+        var (flow, lines) = Make(enabled: true, recall: true, day: 3);
+        flow.Prepare("/tmp/session-z");
+        Assert.Equal("playtest: the next-day recall of the save from session 3; the run ends after the check", Assert.Single(lines));
+    }
+
+    private static (PlaytestFlow Flow, List<string> Lines) Make(bool enabled, bool recall = false, int day = 1)
     {
         var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
+        session.Day = day;
         var lines = new List<string>();
         var sound = new SoundFrontend(new SoundMixer(new NullSoundOutput(), new SoundVolumes(), new PresentationRng(1)), new SoundEventMapper());
         var voice = new NpcVoice(Path.GetTempPath(), new SpeechIndex([]), new NoOutput(), muted: true, _ => { });
         var checks = new CheckBattery(session, static () => null, static () => 0, sound, voice, new ListenSession(new PushToTalkSpeechCapture(null)), new OpenKeySwallow(), [], false, enabled,
             new CheckBatteryHooks(_ => { }, static () => false, static () => false, _ => { }, () => { }, _ => { }), _ => { });
         var saves = new SaveService(session, () => RouteScene.Build(), () => new SaveSettings(new SoundVolumes()), lines.Add);
-        var flow = new PlaytestFlow(enabled, recall: false, scriptedRun: false, scriptLength: 0, session, checks, saves, new PlaytestHooks(static () => 0, _ => { }, () => { }, () => { }), lines.Add);
+        var flow = new PlaytestFlow(enabled, recall, scriptedRun: false, scriptLength: 0, session, checks, saves, new PlaytestHooks(static () => 0, _ => { }, () => { }, () => { }), lines.Add);
         return (flow, lines);
     }
 
