@@ -66,7 +66,7 @@ happens to one utterance, [docs/nlp/adr/](adr/) for why the rules exist, and [IM
    adding it: every package passes the license scan (`scripts/license-scan.sh [--offline]`), and the scan only means something if
    the list is curated.
 
-6. Documents: after you change a Markdown file anywhere in the repository, `scripts/check-links.sh` must report no broken relative links.
+6. Documents: after you change a Markdown file anywhere in the repository, `dotnet test --filter MarkdownLinkTests` (in `tests/Vocaterra.Nlp.Tests`) must pass: it reports each broken relative link.
 
 ## Branches and commits
 

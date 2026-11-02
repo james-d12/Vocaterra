@@ -62,7 +62,7 @@ test projects. `tests/Vocaterra.Game.Tests/ArchitectureRulesTests.cs` has the Ga
 
 ## 5. The inventory: what moves, what stays, what waits
 
-`python3 -I scripts/core-move-scan.py .` classifies every file of `src/Vocaterra.Game` (MOVABLE: no banned token and no package, and every Game
+`python3 -I scripts/core-move-scan.py .` (removed in M76, R16 being done; `ArchitectureRulesTests` keep the bans) classified every file of `src/Vocaterra.Game` (MOVABLE: no banned token and no package, and every Game
 file it needs is MOVABLE too; BLOCKED-self: it uses one, listed; BLOCKED-deps: it needs blocked Game files, listed). At handover: 99 MOVABLE, 58
 BLOCKED-self, 15 BLOCKED-deps. MOVABLE means engine-free, not "belongs in Core": the guideline keeps graphics and UI in Game even without
 MonoGame types. The judgement below is the plan.
