@@ -96,6 +96,12 @@ public sealed class LexiconCatalog
     /// <summary>The verbs whose clitic after <c>cómo</c> is reflexive and agrees with them (mirror of <c>SpanishAnalysisTables.ReflexiveQuestionVerbs</c>, M59: ¿cómo te llamas?).</summary>
     public static readonly IReadOnlyList<string> ReflexiveQuestionVerbs = ["llamar", "sentir"];
 
+    /// <summary>
+    /// The experiencer verbs whose subject is the thing liked and never the one who likes (mirror of <c>SpanishAnalysisTables.LikingVerbs</c>, M70): behind a dative
+    /// pronoun a form of the first or second person with a phrase after it is the learner's slip (me gusto el pan, gusta).
+    /// </summary>
+    public static readonly IReadOnlyList<string> LikingVerbs = ["gustar", "encantar"];
+
     /// <summary>The dative pronouns before an experiencer verb (mirror of <c>SpanishAnalysisTables.DativePronouns</c>, M56).</summary>
     public static readonly IReadOnlyList<string> DativePronouns = ["me", "te", "le", "nos", "os", "les"];
 

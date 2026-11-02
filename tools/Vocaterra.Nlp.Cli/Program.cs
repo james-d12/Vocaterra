@@ -12,6 +12,7 @@ using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Learning;
 using Vocaterra.Nlp.Es;
+using Vocaterra.Nlp.Es.Text;
 using Vocaterra.Nlp.Pipeline;
 using Vocaterra.Nlp.Pronunciation;
 
@@ -227,6 +228,12 @@ public static class Program
         foreach (var line in result.Response.Lines)
         {
             output.WriteLine($"agent: {line.Text}");
+        }
+
+        // M70: a verb written without the accent that marks its tense or person, read as the accented form at no cost.
+        foreach (var note in result.Notes ?? [])
+        {
+            output.WriteLine($"note: {SpanishAccentNotes.Describe(note)}");
         }
 
         foreach (var effect in result.Effects)

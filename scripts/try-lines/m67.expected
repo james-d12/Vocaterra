@@ -8,14 +8,14 @@ farmer-open    | las manzanas me gustan                     => state_like comm=T
 baker-open     | cuesta dos monedas                         => ask_price comm=True -
 farmer-open    | el pan es bonito                           => describe comm=True -
 baker-open     | fuimos a la tienda                         => state_action comm=True -
-smith-open     | tengo que ir a la tienda                   => unknown comm=False vocab.wrong
+smith-open     | tengo que ir a la tienda                   => state_obligation comm=True -
 lesson-must-go | tengo que ir a la panadería                => state_obligation comm=True -
 lesson-luz-bought | luz comió pescado                          => state_action comm=True -
 lesson-water-went | sí, fui a la tienda                        => state_action comm=True -
 lesson-want    | el río es grande                           => unknown comm=False vocab.wrong
 lesson-hello   | me gusta el pan                            => unknown comm=False vocab.wrong
 lesson-coins   | voy al río                                 => unknown comm=False vocab.wrong
-stall-need     | el pan es grande                           => unknown comm=False vocab.wrong
+stall-need     | el pan es grande                           => describe comm=True -
 lesson-luz-bought | el pan es grande                           => unknown comm=False vocab.wrong
 lesson-luz-bought | Luz compra pescado                         => state_action comm=True -
 lesson-market  | compro tres manzanas                       => state_action comm=True -

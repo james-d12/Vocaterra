@@ -169,10 +169,13 @@ fuzzy stage of `AnswerMatcher` and `AnswerCorrections` implement it, and the fuz
 - **Communication.** A fuzzy match is communicated with `resolvedBy: Fuzzy`, and its confidence is the verdict's confidence (the
   minimum of the stage confidences). With the shipped thresholds (0.6 with epsilon 0.02) no fuzzy match within budget is rejected,
   because its confidence is at least 0.75.
-- **Vocabulary.** An unknown word of a near miss (a `vocab.unknown` error) takes the canonical word of the matched answer as its
-  `expected`, so the recast says the answer. Its spelling is the canonical one, with accents (`pocion` gives `poción`). A one-word
-  input takes the whole canonical phrase (`buenosdias` gives `buenos días`). Otherwise the unknown word takes the canonical word it is
-  nearest to (accent-insensitive distance, the earlier word on a tie), so `una ezpada` gives `espada` and the recast reads `una espada`. Words the lexicon knows are never changed.
+- **Vocabulary.** An unknown word of a near miss (a `vocab.unknown` error) takes the matched answer's word at its place as its
+  `expected`, so the recast says the answer. Its spelling is the answer's, with accents and a number in words (`pocion` gives `poción`). A one-word
+  input takes the whole canonical phrase (`buenosdias` gives `buenos días`). Otherwise (M70, QA-language-6) the line is aligned word by word with the
+  matched answer's phrase nearest it, its canonical phrase or an alias (`AnswerAlignment`), and the unknown word takes the word aligned with it: `una
+  ezpada` gives `espada` and the recast reads `una espada`; `compré three manzanas` gives `tres` (before M70 the canonical word nearest its spelling,
+  `compré`, and the recast `compré compré manzanas`). An added word, and one whose word stands next to it already, takes none, so a recast never says
+  a word twice. Words the lexicon knows are never changed.
 - **Inflected forms.** The matcher compares spelled phrases, so an inflection that is a lexicon form (`espadas` for `espada`) is a
   near miss by spelling: it is communicated at confidence 0.83 with no error tag, and `correctness` stays 1. The alternative, an
   `Exact` match with `noun.number`, would need the matcher to read the lexicon, and an answer-only prompt has no grammar to check
@@ -353,7 +356,7 @@ evaluation configuration and the version stamp:
   `expected` otherwise; its `actual` is the word. It explains a miss, so since M67 it is derived only when the line resolved no intent,
   or resolved one by a keyword rule (not a slot grammar) and is a near miss of an answer (within the fuzzy budget taken for the line's own
   length: `cuál es esto` for `qué es esto`); a line a slot grammar understood never gets it. A `vocab.unknown` of a fuzzy answer match
-  already carries the canonical word.
+  already carries the answer's word at its place. An error on a number reports the learner's word for it (M70: `dos`, not `2`).
 - **correctness**: 1 minus the sum of the error weights for the prompt's difficulty (`content/game-v1/evaluation/evaluation-config.json`),
   clamped to [0, 1], rounded to 9 decimals. For the beginner difficulty `conj.person` costs 0.25 and `noun.number` 0.15, so
   1 - 0.25 - 0.15 = 0.6.

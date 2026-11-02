@@ -8,7 +8,8 @@ namespace Vocaterra.Nlp.Es.Text;
 
 /// <summary>
 /// The Spanish recast policy: a word the lexicon knows only once its accents are ignored takes the lexicon's accented spelling (<c>dias</c> to
-/// <c>días</c>), and a word the analysis read as an accented word takes that spelling (<see cref="AccentRestoration"/>). The first rule wins a token.
+/// <c>días</c>, and since M70 <c>manana</c> to <c>mañana</c>), a word the analysis read as an accented word takes that spelling (<see cref="AccentRestoration"/>),
+/// and a verb the analysis read as its accented form takes it (M70: <c>compre</c> to <c>compré</c>, an <see cref="AccentNote"/>). The first rule wins a token.
 /// </summary>
 /// <remarks>
 /// This is the Spanish implementation of <see cref="IRecastPolicy"/> (M33; the moved logic of <c>RecastBuilder</c>). A token is keyed by its span start,
@@ -43,6 +44,11 @@ internal sealed class SpanishRecastPolicy : IRecastPolicy
             else if (analysed.TryGetValue(span.Start, out var read))
             {
                 result[span.Start] = read;
+            }
+            else if (analysis.Notes?.FirstOrDefault(n => n.Span == span) is { } note)
+            {
+                // M70: a verb read as its accented form (compre as compré) takes that spelling, as an accent variant read from its neighbours does.
+                result[span.Start] = note.Accented;
             }
         }
 

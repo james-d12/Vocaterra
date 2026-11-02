@@ -28,7 +28,8 @@ public sealed class UtteranceAnalysis
         AnalysisResult analysis,
         MatchResult match,
         AnswerSet answerSet,
-        Verdict verdict)
+        Verdict verdict,
+        IReadOnlyList<AccentNote>? notes = null)
     {
         ClipHash = clipHash;
         Prompt = prompt;
@@ -39,6 +40,7 @@ public sealed class UtteranceAnalysis
         Match = match;
         AnswerSet = answerSet;
         Verdict = verdict;
+        Notes = notes;
     }
 
     /// <summary>The hash of the clip that was recognized (copied into the replay record).</summary>
@@ -61,6 +63,9 @@ public sealed class UtteranceAnalysis
 
     /// <summary>The answer match for the prompt's answer set: the same value <see cref="PipelineResult.Answer"/> will carry.</summary>
     public MatchResult Answer => Match;
+
+    /// <summary>The verbs written without the accent that marks their tense or person, read as the accented form (M70): the same value <see cref="PipelineResult.Notes"/> will carry; null when there is none.</summary>
+    public IReadOnlyList<AccentNote>? Notes { get; }
 
     internal NormalizedText Normalized { get; }
 
