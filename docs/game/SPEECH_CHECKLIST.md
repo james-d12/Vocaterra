@@ -33,7 +33,7 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | farmer (León) | `pm_santa` | 44 | 1.0 | `voice-trial/pm_santa-1.0.wav` |
 | fisher (Mar) | `em_santa` | 53 | 0.9 | `voice-trial/em_santa-0.9.wav` |
 
-**To hear:** 1076 of the 1076 files have no mark (guide 406, villager 140, farmer 122, baker 114, shopkeeper 114, fisher 100, smith 80). Two files a line: the normal speed and the slow one.
+**To hear:** 1082 of the 1082 files have no mark (guide 406, villager 140, farmer 122, baker 116, shopkeeper 114, fisher 102, smith 82). Two files a line: the normal speed and the slow one.
 
 ## Lines
 
@@ -117,6 +117,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | baker_thank.1 | speech/baker/baker_thank.1.wav | baker | 1.0 | De nada. |  |
 | baker_thank.2 | speech/baker/baker_thank.2.slow.wav | baker | 0.8 | ¡Con gusto! |  |
 | baker_thank.2 | speech/baker/baker_thank.2.wav | baker | 1.0 | ¡Con gusto! |  |
+| baker_true.1 | speech/baker/baker_true.1.slow.wav | baker | 0.8 | Sí, es verdad. |  |
+| baker_true.1 | speech/baker/baker_true.1.wav | baker | 1.0 | Sí, es verdad. |  |
 | baker_understood.1 | speech/baker/baker_understood.1.slow.wav | baker | 0.8 | Te entiendo. ¿Quieres pan? |  |
 | baker_understood.1 | speech/baker/baker_understood.1.wav | baker | 1.0 | Te entiendo. ¿Quieres pan? |  |
 | baker_wait.1 | speech/baker/baker_wait.1.slow.wav | baker | 0.8 | Primero, la lección. Luego, las monedas. |  |
@@ -323,6 +325,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | fisher_thank.1 | speech/fisher/fisher_thank.1.wav | fisher | 0.9 | De nada. |  |
 | fisher_thank.2 | speech/fisher/fisher_thank.2.slow.wav | fisher | 0.72 | ¡Con gusto! |  |
 | fisher_thank.2 | speech/fisher/fisher_thank.2.wav | fisher | 0.9 | ¡Con gusto! |  |
+| fisher_true.1 | speech/fisher/fisher_true.1.slow.wav | fisher | 0.72 | Sí, es verdad. |  |
+| fisher_true.1 | speech/fisher/fisher_true.1.wav | fisher | 0.9 | Sí, es verdad. |  |
 | fisher_understood.1 | speech/fisher/fisher_understood.1.slow.wav | fisher | 0.72 | Te entiendo. ¿Buscas un lugar? |  |
 | fisher_understood.1 | speech/fisher/fisher_understood.1.wav | fisher | 0.9 | Te entiendo. ¿Buscas un lugar? |  |
 | fisher_unknown_place.1 | speech/fisher/fisher_unknown_place.1.slow.wav | fisher | 0.72 | No sé dónde está. |  |
@@ -1079,6 +1083,8 @@ the content loop follows (`content/README.md`, "The edit loop"). A voice is list
 | smith_thank.1 | speech/smith/smith_thank.1.wav | smith | 1.0 | De nada. |  |
 | smith_thank.2 | speech/smith/smith_thank.2.slow.wav | smith | 0.8 | ¡Con gusto! |  |
 | smith_thank.2 | speech/smith/smith_thank.2.wav | smith | 1.0 | ¡Con gusto! |  |
+| smith_true.1 | speech/smith/smith_true.1.slow.wav | smith | 0.8 | Sí, es verdad. |  |
+| smith_true.1 | speech/smith/smith_true.1.wav | smith | 1.0 | Sí, es verdad. |  |
 | smith_understood.1 | speech/smith/smith_understood.1.slow.wav | smith | 0.8 | Te entiendo. Yo hago hachas. |  |
 | smith_understood.1 | speech/smith/smith_understood.1.wav | smith | 1.0 | Te entiendo. Yo hago hachas. |  |
 | smith_wont_buy.1 | speech/smith/smith_wont_buy.1.slow.wav | smith | 0.8 | No, gracias. Solo compro madera. |  |

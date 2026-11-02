@@ -20,7 +20,6 @@
   "prompts": {
     "idle": "farmer-open"
   },
-  "offPromptPool": "farmer_understood",
   "opening": {
     "event": "farmer.greet",
     "when": "always"

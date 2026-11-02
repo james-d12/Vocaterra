@@ -22,6 +22,7 @@
       "id": "idle",
       "transitions": [
         { "onHostEvent": "villager.understood", "to": "idle", "actions": [{ "dialogueIntent": "villager_understood", "variantPoolId": "villager_understood" }] },
+        { "onHostEvent": "villager.true", "to": "idle", "actions": [{ "dialogueIntent": "villager_true", "variantPoolId": "villager_true" }] },
         { "onHostEvent": "villager.greet", "to": "idle", "actions": [{ "dialogueIntent": "villager_hello", "variantPoolId": "villager_hello" }] },
         { "on": {"intent": "greet", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "villager_greet", "variantPoolId": "villager_greet" }] },
         { "on": {"intent": "ask_directions", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "villager_point", "hostEvent": "villager.point", "variantPoolId": "villager_point" }] },

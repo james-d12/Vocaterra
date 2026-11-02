@@ -12,7 +12,6 @@
   "prompts": {
     "idle": "villager-open"
   },
-  "offPromptPool": "villager_understood",
   "opening": {
     "event": "villager.greet",
     "when": "always"

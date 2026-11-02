@@ -102,9 +102,46 @@ public static class NpcTurnRules
     /// <summary>The stream of the draw of an off-prompt reply (V27), the same in the game and the host.</summary>
     public const string OffPromptStream = "guide.offprompt";
 
+    /// <summary>The host event whose transition names an NPC's off-prompt pool (<c>baker.understood</c>): the game never fires it (V28).</summary>
+    /// <param name="npc">The NPC's id.</param>
+    public static string UnderstoodEvent(string npc) => npc + ".understood";
+
+    /// <summary>The host event whose transition names the NPC's «Sí, es verdad.» pool (<c>baker.true</c>): the game never fires it (V28).</summary>
+    /// <param name="npc">The NPC's id.</param>
+    public static string TrueEvent(string npc) => npc + ".true";
+
+    /// <summary>
+    /// The pool the NPC's agent says in its transition on a host event that the game never fires (V28): the agent file is the one place that names such a pool (and the lint
+    /// counts it used), the game reads the name, so no turn is run and no state or counter moves. <see langword="null"/> for an agent with no such transition.
+    /// </summary>
+    /// <param name="bundle">The content bundle.</param>
+    /// <param name="npc">The NPC's id (its agent's id).</param>
+    /// <param name="hostEvent">The event of the transition.</param>
+    public static string? PoolSaidOn(ContentBundle bundle, string npc, string hostEvent)
+    {
+        ArgumentNullException.ThrowIfNull(bundle);
+        ArgumentNullException.ThrowIfNull(npc);
+        return bundle.Agents.TryGetValue(npc, out var machine)
+            ? machine.Definition.States
+                .SelectMany(static state => state.Transitions)
+                .Where(transition => string.Equals(transition.OnHostEvent, hostEvent, StringComparison.Ordinal))
+                .SelectMany(static transition => transition.Actions)
+                .Select(static action => action.VariantPoolId)
+                .FirstOrDefault(static pool => pool is not null)
+            : null;
+    }
+
+    /// <summary>
+    /// The pool of the NPC's reply to a line in free talk that its prompt does not take but the core understands (V27, <c>Verdict.OffPromptIntent</c>): the pool its agent says
+    /// in the <c>&lt;npc&gt;.understood</c> transition (<see cref="PoolSaidOn"/>), or <see langword="null"/>, and the NPC then answers such a line as one it did not understand.
+    /// </summary>
+    /// <param name="bundle">The content bundle.</param>
+    /// <param name="npc">The NPC's id (its agent's id).</param>
+    public static string? OffPromptPoolOf(ContentBundle bundle, string npc) => PoolSaidOn(bundle, npc, UnderstoodEvent(npc));
+
     /// <summary>
     /// The NPC's reply to a line in free talk that its prompt does not take but the core understands (V27, <c>Verdict.OffPromptIntent</c>): the line of the NPC's own pool
-    /// (<see cref="NpcEntry.OffPromptPool"/>), «Te entiendo. Yo hago hachas.», drawn from the interaction's seed, with no repair step and no correction.
+    /// (<see cref="OffPromptPoolOf"/>), «Te entiendo. Yo hago hachas.», drawn from the interaction's seed, with no repair step and no correction.
     /// </summary>
     /// <param name="bundle">The content bundle.</param>
     /// <param name="pool">The NPC's off-prompt pool.</param>
@@ -131,9 +168,12 @@ public static class NpcTurnRules
     /// <param name="skip">The ids of other lines the game does not say (the bottle the player holds already), or <see langword="null"/>.</param>
     /// <param name="freeTalkPools">The NPC's lesson pools by the pool said in free talk instead (<see cref="NpcEntry.FreeTalkPools"/>), or <see langword="null"/>.</param>
     /// <param name="freeTalk">Whether the line was said in free talk, not as the answer of a lesson step or a review.</param>
-    public static ComposedReply Compose(PipelineResult result, bool understood, IReadOnlyList<string> unsaid, IEnumerable<string> names, Func<string, bool>? skip = null, IReadOnlyDictionary<string, string>? freeTalkPools = null, bool freeTalk = true)
+    /// <param name="bundle">The content bundle, for the NPC's «Sí, es verdad.» (V28): without it a statement about the listener is answered as any other.</param>
+    /// <param name="npc">The NPC's id (its agent's id), whose <c>&lt;npc&gt;.true</c> transition names the pool of «Sí, es verdad.».</param>
+    public static ComposedReply Compose(PipelineResult result, bool understood, IReadOnlyList<string> unsaid, IEnumerable<string> names, Func<string, bool>? skip = null, IReadOnlyDictionary<string, string>? freeTalkPools = null, bool freeTalk = true, ContentBundle? bundle = null, string? npc = null)
     {
         ArgumentNullException.ThrowIfNull(result);
+        var listenerPool = freeTalk && bundle is not null && npc is not null && AboutListener(result) ? PoolSaidOn(bundle, npc, TrueEvent(npc)) : null;
         ArgumentNullException.ThrowIfNull(unsaid);
         string? feedback = null;
         var replies = new List<string>();
@@ -164,7 +204,7 @@ public static class NpcTurnRules
             }
             else
             {
-                replies.Add(line.Text);
+                replies.Add(listenerPool is not null && System.Text.RegularExpressions.Regex.IsMatch(line.LineId, @"^[a-z]+_nice\.\d+$") ? ListenerReply(bundle!, listenerPool, line) : line.Text);
                 acknowledgements.Add(IsAcknowledgement(line.LineId));
             }
         }
@@ -182,6 +222,49 @@ public static class NpcTurnRules
 
         return new ComposedReply(feedback, replies);
     }
+
+    // The prepositions after which tú or usted is not the subject («con usted», «para ti»).
+    private static readonly HashSet<string> Prepositions = new(["a", "con", "de", "en", "para", "por", "sin", "sobre", "hasta", "desde"], StringComparer.Ordinal);
+
+    /// <summary>
+    /// Whether the line says something about the listener (V28): the core's analysis finds a verb of the second person (<c>tienes</c>, <c>eres</c>) or the pronoun
+    /// <c>tú</c>, <c>usted</c> or <c>ustedes</c> not after a preposition (<c>Usted tiene muchas manzanas.</c>: <c>tiene</c> reads as the third person, the pronoun says who).
+    /// It is the person of the words the resolver chose, not a search of the text.
+    /// </summary>
+    /// <param name="result">The turn's result.</param>
+    public static bool AboutListener(PipelineResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        if (result.Words is not { } words)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < words.Count; i++)
+        {
+            if (words[i].Reading is not { } reading)
+            {
+                continue;
+            }
+
+            if (string.Equals(reading.Pos, "verb", StringComparison.Ordinal) && string.Equals(reading.Person, "2", StringComparison.Ordinal))
+            {
+                return true;
+            }
+
+            if (string.Equals(reading.Pos, "pron", StringComparison.Ordinal) && reading.Lemma is "tú" or "usted" or "ustedes"
+                && (i == 0 || words[i - 1].Reading is not { Pos: "prep" }))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // The NPC's «Sí, es verdad.» in the place of its bare «¡Qué bien!» (the pool its agent says on <npc>.true), when the bundle has the pool.
+    private static string ListenerReply(ContentBundle bundle, string pool, ResponseLine line) =>
+        bundle.Dialogue.TryGetPool(pool, out var found) && found.Variants.Count > 0 ? bundle.TemplateEngine.Render(found.Variants[0], SlotMap.Empty) : line.Text;
 
     // Whether a line of the agent is a bare acknowledgement (V20's free-talk replies: «¡Qué bien!», «Muy bien»): the answer_accepted pool and each NPC's <npc>_nice.
     private static bool IsAcknowledgement(string lineId) =>

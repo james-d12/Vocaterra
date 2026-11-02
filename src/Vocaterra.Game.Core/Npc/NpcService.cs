@@ -619,7 +619,7 @@ public sealed partial class NpcService
         // V27: in free talk a line the prompt does not take but the core understands (M72) gets the NPC's one off-prompt line and nothing else: it is no failed attempt. A
         // spoken line the recognizer was unsure of keeps the uncertain reply (D-game-9): what was heard is not known well enough to say it was understood.
         var offPromptPool = scene.PromptOverride is null && !verdict.Communicated && verdict.OffPromptIntent is not null && (confidence is null || confidence >= UncertaintyRule.ConfidenceThreshold)
-            ? agent.Npc.OffPromptPool
+            ? NpcTurnRules.OffPromptPoolOf(_bundle, npc)
             : null;
         var offPrompt = offPromptPool is not null;
         var facts = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -713,7 +713,9 @@ public sealed partial class NpcService
             _names,
             lineId => holdsBottle && hostEvents.Contains(NpcHostEvents.GiveWater, StringComparer.Ordinal) && lineId.StartsWith("shop_give.", StringComparison.Ordinal), // the player has the bottle already: nothing is given and the line is not said
             agent.Npc.FreeTalkPools,
-            scene.PromptOverride is null);
+            scene.PromptOverride is null,
+            _bundle,
+            npc);
         var feedback = offPrompt ? null : composed.Feedback;
         var replies = offPrompt
             ? [NpcTurnRules.OffPromptReply(_bundle, offPromptPool!, utterance.WorldSeed, utterance.AgentState.InteractionCounter)]

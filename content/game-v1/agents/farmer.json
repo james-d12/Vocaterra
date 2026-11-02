@@ -34,6 +34,7 @@
       "id": "idle",
       "transitions": [
         { "onHostEvent": "farmer.understood", "to": "idle", "actions": [{ "dialogueIntent": "farmer_understood", "variantPoolId": "farmer_understood" }] },
+        { "onHostEvent": "farmer.true", "to": "idle", "actions": [{ "dialogueIntent": "farmer_true", "variantPoolId": "farmer_true" }] },
         { "onHostEvent": "farmer.greet", "to": "idle", "actions": [{ "dialogueIntent": "farmer_hello", "variantPoolId": "farmer_hello" }] },
         { "onHostEvent": "farmer.delivered", "to": "idle", "actions": [{ "dialogueIntent": "farmer_delivered", "hostEvent": "farmer.give_apples", "variantPoolId": "farmer_delivered" }] },
         { "onHostEvent": "farmer.cant_pay", "to": "idle", "actions": [{ "dialogueIntent": "farmer_cant_pay", "variantPoolId": "farmer_cant_pay" }] },

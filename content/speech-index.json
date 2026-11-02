@@ -506,6 +506,30 @@
       "Bytes": 52124,
       "Gain": 0.32
     },
+    "speech/baker/baker_true.1.slow.wav": {
+      "Text": "S\u00ED, es verdad.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "30d6ae3028c3e633d84d9b5cd719429891785b1304bcb527031f565339f3739d",
+      "Bytes": 77686,
+      "Gain": 0.32
+    },
+    "speech/baker/baker_true.1.wav": {
+      "Text": "S\u00ED, es verdad.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "dc0153d35d3f06576f2d2cfd08590f2ca9db01e24c912f2a083e538ecb67768a",
+      "Bytes": 57876,
+      "Gain": 0.32
+    },
     "speech/baker/baker_understood.1.slow.wav": {
       "Text": "Te entiendo. \u00BFQuieres pan?",
       "Speaker": "baker",
@@ -3657,6 +3681,28 @@
       "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
       "Sha256": "72a4924f643f48f5e756dafb27fdbac359e7e5af4008bc9cda4eda304e589c21",
       "Bytes": 58844
+    },
+    "speech/fisher/fisher_true.1.slow.wav": {
+      "Text": "S\u00ED, es verdad.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "5f1b4985a50ccab7353808ccb159542660b8738a5f0b01a41a233e73eea52495",
+      "Bytes": 74122
+    },
+    "speech/fisher/fisher_true.1.wav": {
+      "Text": "S\u00ED, es verdad.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "4f8168679641b6c934a0576c9efc6518f511bc75670b2631826ff51bb1d20e8a",
+      "Bytes": 69644
     },
     "speech/fisher/fisher_understood.1.slow.wav": {
       "Text": "Te entiendo. \u00BFBuscas un lugar?",
@@ -10442,6 +10488,30 @@
       "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
       "Sha256": "5df7355029cde6b21e511165c954936b1563d3c0cb24a291961fbce203e31338",
       "Bytes": 52466,
+      "Gain": 0.6
+    },
+    "speech/smith/smith_true.1.slow.wav": {
+      "Text": "S\u00ED, es verdad.",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "74ccefe450428c0d43b4a93003662c032b03f1b394c0c577da5163eb3bee5afe",
+      "Sha256": "21029a7ce3987664bb151b1ac32c874b494f3c31dbc1168a157e6128ff9c4b5d",
+      "Bytes": 71088,
+      "Gain": 0.6
+    },
+    "speech/smith/smith_true.1.wav": {
+      "Text": "S\u00ED, es verdad.",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
+      "Sha256": "fd144abab2ada3d9ec5d7c1c81d24fc81bf640a3a628f41583bc6461f550b455",
+      "Bytes": 59852,
       "Gain": 0.6
     },
     "speech/smith/smith_understood.1.slow.wav": {

@@ -16,7 +16,6 @@
   "prompts": {
     "idle": "baker-open"
   },
-  "offPromptPool": "baker_understood",
   "opening": {
     "event": "baker.greet",
     "when": "always"
