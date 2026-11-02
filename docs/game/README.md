@@ -386,7 +386,7 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --playtest --seed 42 --ses
 folder (a tester needs no .NET install), copies the bundle with its speech WAVs, the pinned Vosk model with its manifest (copied from
 `VOCATERRA_MODELS_DIR`, after its checksums are checked), the tester's README (`scripts/playtest/README-tester.md`) and the launcher
 (`scripts/playtest/playtest.sh`, which runs `--playtest` with the folder's own models). Then it checks the folder: no sherpa-onnx or ONNX Runtime native
-library, no espeak-ng, no sherpa model file, the Vosk model's checksums, every speech file the bundle's manifest lists (1 076 since V27); the build fails if one check does not pass. The
+library, no espeak-ng, no sherpa model file, the Vosk model's checksums, every speech file the bundle's manifest lists (1 082 since V28; the check walks the folders); the build fails if one check does not pass. The
 sherpa-onnx native library is left out by the build property `VocaterraPlaytest=true` (in `src/Vocaterra.Game/Vocaterra.Game.csproj`:
 the native assets of the linux-x64 runtime pack are excluded, and the ONNX Runtime Windows DLLs that its props add are dropped from the publish).
 The managed `sherpa-onnx.dll` stays, because the core's assemblies reference it. The playtest loads Vosk only; the NPCs' voices are the
@@ -688,7 +688,7 @@ credited at the other's step with the step's note ("The simple future at a step"
 
 **Counts** (measured from `content/game-v1` at V24, 2026-11-02; after phase B in brackets): 10 lessons, 229 steps (6 `a1` and 4 `a2`; the same); 155 phrase
 rows, 74 said, 80 heard and 1 both (the same); 22 catalogue nouns (22); 20 verbs in the lessons' tables (20); 30 intents (29: `ask_how` came with V21) and 70
-prompts (70); 538 speech lines in 1 076 files (451 in 902; the follow-ups added 81 lines and 162 files); 87 check items, 43 heard and 44 said (the same). The
+prompts (70); 541 speech lines in 1 082 files, in `speech/<speaker>/` and `speech/cards/` since V28 (451 in 902 before the follow-ups, which added 81 lines and 162 files; V28 added 3 lines and 6 files); 87 check items, 43 heard and 44 said (the same). The
 battery by play session: 31 items in sessions 1 to 3 (the pilot's), then 39, 47, 55, 63, 71, 79 and 87 in sessions 4 to 10 (eight a lesson; the same).
 
 
@@ -802,7 +802,7 @@ ticks (the open points below): sessions 4 to 7 and 7 to 9 by a sleep at the fire
 
 **Open points after the follow-ups** (V24, 2026-11-02; checked against the follow-ups' entries and the core's, with what a later milestone fixed left out; each is marked owner, game or core).
 
-- **The voices** (owner). None of the 1 076 speech files is marked in `docs/game/SPEECH_CHECKLIST.md`. Phase B added 222 files; the follow-ups 162 (81 lines:
+- **The voices** (owner). None of the 1 082 speech files is marked in `docs/game/SPEECH_CHECKLIST.md`. Phase B added 222 files; the follow-ups 162 (81 lines, and V28 6 more, «Sí, es verdad.» for the baker, the smith and the fisher:
   the villager 14, the farmer 14, the shopkeeper 14, the baker 13, the smith 13, the fisher 12, the guide 1; V27's seven «Te entiendo.» lines, one per NPC, are
   14 of them). The shared feedback lines of V21b are in each NPC's voice (120 files), so an NPC's voice is judged on its own lines and on those.
 - **A spoken line the prompt does not take is still «No te entendí»** (game, V27's scope). A typed line the core understands off the prompt (`Me gusta el río.`
@@ -812,17 +812,18 @@ ticks (the open points below): sessions 4 to 7 and 7 to 9 by a sleep at the fire
   repair ladder runs as before. The intent catalog is the fix, if the owner wants more lines understood.
 - **The oven order after a load waits for its lesson** (game, V14's design). The baker's `Primero, la lección. Luego, las monedas.` (V21) tells the learner
   the order is held: after a load in session 5 the order is delivered at the lesson's `n4-back` step.
-- **`cuántas cuesta todo` is read as a noun phrase** (core, M69's left point, M62).
-- **`buenas tardes` is never drawn by the realiser** (core, M71's finding, filed with M69): the analyzer accepts it, the O3 generator never produces it.
-- **The recorded fuzz families** (core, rerun once): `2tpLGUOSqj41` with `fSMdah3kOSd7` (`word_order`, a `[WORD]` slot binds the moved adjective, M69) and
-  `8yc522XLB_W2` (M69 reran both; both passed on the last default run).
+- **The recorded fuzz families** (core): `2tpLGUOSqj41` with `fSMdah3kOSd7` (`word_order`, a `[WORD]` slot binds the moved adjective, M69) and `3-VvCuMLFEA2`
+  (recorded; M73 reported that the only fix would narrow the mutation). `8yc522XLB_W2` was fixed by M73.
+- **«Sí, es verdad.» only at the NPC's own prompt** (game, V28). A statement about the listener (a second-person verb, or `tú`, `usted`, `ustedes` not after a preposition)
+  gets «Sí, es verdad.» in place of «¡Qué bien!» when the NPC's prompt takes it; an off-prompt line (`Eres el herrero.` at the smith) keeps «Te entiendo.» and its
+  topic, and `tu`/`su` alone do not count as the listener.
+- **The name-plate picture test needs a display** (game, V28). `NamePlatesTests` runs the game window for the beacon's NPC behind the bakery and does nothing
+  without `DISPLAY` or the built game, so CI does not run it.
 - **M67b parked** (core). An answer's verb forms (`AnswerVerbForms`) would turn a lesson's near answer into a slip in the CLI and the host, which run no lesson.
   The game already retries a tense miss with its hint (V14), so the learner meets the right behaviour in the game only.
 - **The timed tests on CI** (game and core). The six in the table under "Continuous integration" were measured in V24; the first three are the likely
   failures. M68 only if one fails.
 - **The merged milestone branches still on the remote** (owner).
-- **Replies match on intent only** (game, accepted): Luz says «¡Qué bien!» to `Tienes veinte panes.` (V20).
-- **Name plates behind a building** (game, a test gap from V22): the beacon's NPC behind a building has no picture; the same depth test covers it.
 
 ## The next session: sleep at the fire (V12c)
 
