@@ -2212,3 +2212,28 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   - **Left:** the total of `¿Cuánto es todo?` («Quince manzanas, quince monedas.», the lesson row `quince-monedas`) does not follow the bag (to V21b: the
     unit price in free talk). A fuzz O3 failure seen once in the fix's content loop, seed `2cqJbc9y05h3` (`delicado danó hechos`, `dañó` typed with `n`,
     given `word_order`), likely M70's `ñ` fold: to M69.
+- **V21b: voice, book and pages (2026-11-02, Sonnet 5.5; gated on `feature/village-followups` at `d6afaba`, 8133 passed, 3 skipped, with the models).**
+  - **The Spanish pass over V21's lines:** `shop_hay.1` «Hay agua y pan.» again; `shop_wont_sell.1` «No tengo eso. Tengo agua y pan.» only for
+    an item the stall has neither of; `quiero pan` at the stall gives the bread (`stall.give_water` takes `instead: {pan: give_bread}`, a
+    `shopkeeper.give_bread` transition). León answers `¿Cuánto es todo?` in free talk with «Una manzana, una moneda.» (`farmer_unit.1`, the
+    NPC's `freeTalkPools`); the market lesson keeps «Quince manzanas, quince monedas.».
+  - **The shared feedback lines in each NPC's voice:** 10 lines (`answer_accepted`, `not_understood`, `feedback.hint`, `hint.gender.agree`,
+    `slow_repeat`) × 6 NPCs, 120 WAVs at two speeds, about 10.8 MB; ids `<line>.<npc>`, the guide's file the fallback. Proof: the sound log
+    plays `not_understood.1.shopkeeper`; no screenshot of a «¡Muy bien!».
+  - **`tener que` in the book:** a fifth column «must (tener que)», tener's present and the infinitive; `ayer-en-el-pueblo` declares it.
+  - **The Lessons page** opens with the `next:` lesson at its top (session 9: lines 158 to 186 of 192).
+  - **M70's accent note** under the reply in the correction colour (`GuideTurn.AccentNotes`, `DialogueSpeaker.Accent`); the host prints
+    `note: «compré», con tilde: es pasado` for `ayer compre pan`.
+  - **V23b's two items:** the five world words moved into `a1.txt`'s block (lint and cefr counts unchanged). The book already counts a use
+    as correct wherever the line was understood; the «0 correct» V20 saw came from a prompt whose answer set rejects the line (`vocab.wrong`,
+    intent `unknown`, the core's verdict: the open point below). A regression test pins a free-talk `ayer compré pan` counted correct.
+  - **The host's replies from the game's turn code:** `NpcTurnRules` (`AnswerMisses`, `Compose`) in Game.Core, called by `NpcService` and
+    the host's `ConversationSession` (one path). Through the host: `quiero madera` at `stall-need` «No tengo eso. Tengo agua y pan.»;
+    `compré three manzanas` at `farmer-open` the recast's praise alone; `buscaré madeda` at `lesson-will-fetch` «No te entendí» alone.
+  - **Runs and baselines:** the scripted runs differ in the speech count (940 to 1062 files), `r20-sleep` and `r21-skip`'s screenshots (the
+    Lessons page) and `r22-market`'s total line. The identity baseline: 1 new entry, 3 moved. `try-lines --check` unchanged.
+  - **The orchestrator's checks** on the merged tree through the host: the lines above as stated; the host demos hold. A fuzz O3 failure
+    in its content loop (seed `emOiS5FTcQv3`, `me catorce dañó seguro uno` typed with `n` given `noun.number`) ran on the core before M69;
+    replayed on the merged tree it passes (M69's fix: a typed accent picks the form that has it).
+  - **Left:** a correct line with a word outside an open prompt's answer set gets `vocab.wrong` and "No te entendí" (V17, seen again by
+    M69 and here); the commit that holds item 1 also holds the content refresh, so the earlier commits do not all pass on their own.
