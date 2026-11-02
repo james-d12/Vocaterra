@@ -147,4 +147,16 @@ public class VillageQaLineTests
     {
         Assert.Equal("vocab.unknown|glorp|", Errors(Evaluate("glorp iré al río", "lesson-will-go").Verdict));
     }
+
+    // ---- 5. The preterite's spelling changes (QA-language-9) --------------------------------------------------------------------------------------------------
+
+    // Before M70: vocab.unknown with the wrong expected word (buscaré, pescó), no intent, and the NPC said both «buscaré madera» and No te entendí.
+    [Theory]
+    [InlineData("buscé madera", "lesson-will-fetch", "conj.irregular|buscé|busqué")]
+    [InlineData("mar pescé en el río", "lesson-mar-fished", "conj.irregular|pescé|pesqué")]
+    [InlineData("ayer llegé al río", "villager-open", "conj.irregular|llegé|llegué")]
+    public void TheSpellingSlipIsTheVerbsSlip(string transcript, string promptId, string errors)
+    {
+        Assert.Equal(errors, Errors(Evaluate(transcript, promptId).Verdict));
+    }
 }
