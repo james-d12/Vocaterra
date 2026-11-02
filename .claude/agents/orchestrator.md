@@ -53,6 +53,9 @@ is a change to the boundary and updates that record.
   - the study of spoken off-prompt lines;
   - and the known fuzz family that can fail a gate.
   - Work on a new branch from `origin/main`, never `main`.
+- **M76 (2026-11-02, in PR #28 before the merge, the owner's word):** `scripts/try-lines/` becomes C# tests and the other check
+  scripts are audited (core plan §5, D-game-22). **A regression check is a C# test, never a script with text baselines:** no brief asks
+  for line files or a check script again.
 - The owner deletes the merged remote milestone branches himself (the permission check refuses remote deletes) and listens to the
   voices later.
 

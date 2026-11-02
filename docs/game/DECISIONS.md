@@ -365,6 +365,13 @@ whose intent the prompt does not take was graded `vocab.wrong` (0.4, an empty ex
    closed class), and the expected word is always named. The core's M75 (Opus 5.5 at xhigh); O3's verdict leg becomes strict again.
 5. **Listening to the voices and deleting the merged remote branches** are the owner's, later.
 
+**Owner's answers, 2026-11-02 (on `scripts/try-lines/`, after PR #28 was opened):** "I would prefer things like this to be a csharp
+unit test, not some throwaway script or junk text file. This just adds to the general tech debt."
+1. **A regression check is a C# test** run by `dotnet test` (so the gate and CI run it), never a script with text baselines.
+2. **The core's M76 turns `scripts/try-lines/` into tests now, in PR #28,** before the merge, and deletes the script and its files.
+3. **M76 also audits the other check and one-off scripts** of `scripts/`: each becomes a test, stays as tooling, or is deleted; anything
+   large comes back to the owner.
+
 ## Already decided
 
 - **The core by project reference** (D-game-7; until 2026-10-21 "packages only" from a submodule's local feed). The game never copies core

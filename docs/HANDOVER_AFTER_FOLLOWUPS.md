@@ -45,8 +45,8 @@ M73 reported that the fix needs either a weather intent or a way to rule a lemma
 - Give them a slot for the weather word if a reply will echo it.
 - Keep `hacer` with a weather noun out of `state_action`, `ask_activity` and `ask_craft`, by the resolver's order or the grammars, not by a
   hack. `¿qué haces?`, `hago pan` and the lessons' craft questions keep what they have.
-- Fuzz: O7 and O3 widened for the new intents, never narrowed. Run `scripts/try-lines.sh --check` and re-record the identity baseline, as
-  M72 and M73 did.
+- Fuzz: O7 and O3 widened for the new intents, never narrowed. Add the new lines to the grading tests by topic (M76 turned `scripts/try-lines/` into C# tests) and
+  re-record the identity baseline, as M72 and M73 did.
 - Check every weather word against the A2 ceiling (`cefr-check`).
 
 **Game milestone (V29, Sonnet 5.5):**
@@ -126,7 +126,7 @@ example «¡Hola! ¿Qué buscas?» (the villager) or «¡Hola! Esta es mi herrer
 - **The milestone:** a core milestone (Opus 5.5 at xhigh).
   - O10's model and generator follow the rule.
   - O3's verdict leg becomes strict again (a widening).
-  - The try-lines baselines and the identity baseline move. List every changed row by kind.
+  - The grading tests (M76) and the identity baseline move. List every changed case by kind.
 
 **The alternatives the owner did not choose** (kept for the record):
 - **(b) Keyword lines out:** drop the keyword-rule case, so only a line with no intent can be a near miss. It is simpler, but check first
