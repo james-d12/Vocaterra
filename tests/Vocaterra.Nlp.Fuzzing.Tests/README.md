@@ -1,7 +1,7 @@
 # Vocaterra.Nlp.Fuzzing.Tests
 
 Combinatorial, property-based fuzz testing for the voice pipeline, modelled on `CodeGuard.RuleFuzzing.Tests`. The design is
-`docs/nlp/FUZZING_PLAN.md` (generators, oracles O1 to O16, tolerances, iteration budgets). In short: every generator walks **our own
+`docs/nlp/fuzzing-plan.md` (generators, oracles O1 to O16, tolerances, iteration budgets). In short: every generator walks **our own
 catalogs** (the lexicon, the `IntentCatalog` grammars, `ErrorTags.All`, the `DialogueCatalog` templates, the `AnswerSet`s and the JSON files
 of `content/game-v1`, `PhoneInventory`, `DialectConfig.AllShipped`, the agent definitions), mixes benign and adversarial inputs 3 to 1, and runs them
 through the real stages looking for crashes, drift between components that must agree, and broken determinism. Because the generators read the
@@ -636,7 +636,7 @@ Found and fixed in M18 (the seeds belong to the code of that moment and do not r
 - **The analyzer's checks read every word as every part of speech it can be** (`Vocaterra.Nlp.Language`, the M16a and M17a findings: 21 % of the usable nouns are also a verb form). `ayer compré un libro`
   was `conj.tense` (`libro` is `librar` in the first person), `yo lanza` passed or failed by the order of the readings, `cuánto cuesta la espada` was `gender.agree` (`cuánto` the adjective
   agreeing with `cuesta` the noun), `tú ayudas` and `las ayudas` could not both be right. `ReadingResolver` now narrows each word to one reading from local syntax, the slot grammar and, last,
-  the reading with the fewest errors, and every check runs on that reading (design in [docs/nlp/PIPELINE.md](../../docs/nlp/PIPELINE.md#4-linguistic-analysis-d0)). Regression:
+  the reading with the fewest errors, and every check runs on that reading (design in [docs/nlp/pipeline.md](../../docs/nlp/pipeline.md#4-linguistic-analysis-d0)). Regression:
   `HomographSentencesTests` (47 correct sentences, 20 more under the grammars of the bundle, 26 incorrect ones that keep their mistake, the `cuánto cuesta` family) and `ReadingResolverTests` in `tests/Vocaterra.Nlp.Tests/Language/Analysis`, and the
   matcher bindings in `SlotGrammarTests`. With the CLI (`eval --transcript ... --prompt buy-item-open`) `ayer compré un libro` went from correctness 0.75 and `conj.tense` (`libro` -> `libré`) to
   correctness 1 and no errors, and so do the 19 homograph sentences checked on both `buy-item-open` and `offer-items-open` (`quiero comprar una lanza`, `ayer compré una lanza`,
@@ -848,7 +848,7 @@ them explicitly (each is a skip or a restriction in the generator, counted in th
   envelope for the raw text). `Vocaterra.Nlp.Core` is final, so the fix (write U+FFFD as an escape, or reject at serialization) is a maintainers' decision.
 - **Measurements with the imported lexicon (M17a).** Lexicon file `wiktionary-es.json`: 4 718 227 bytes (limit 15 MB); first load of the bundle with hash verification in a
   fresh process 217 to 267 ms, repeated in one process 114 to 213 ms (before: 8 ms); fuzz project alone 18.7 to 20.3 s (before 17.1 to 18.2 s); whole solution 24.6 to 25.5 s
-  (before 20.5 to 21.0 s). The same numbers at 5 000 lemmas (6.6 MB, first load 333 to 373 ms) are in [docs/nlp/LEXICON.md](../../docs/nlp/LEXICON.md); 5 000 fails the 300 ms load gate.
+  (before 20.5 to 21.0 s). The same numbers at 5 000 lemmas (6.6 MB, first load 333 to 373 ms) are in [docs/nlp/lexicon.md](../../docs/nlp/lexicon.md); 5 000 fails the 300 ms load gate.
   Scaling traps found on the way: building a fresh `MorphologyGenerator` costs 7 ms with this lexicon (it indexes every irregular verb), which is now done once per lexicon;
   the non-word generator compared each candidate with 10 000 forms; a linear scan per sentence in the realizer.
 - **Pronunciation scoring grows with the cube of the phone count** (table above). Follow-up: make `PredictedErrorMatcher.Match` compare a predicted

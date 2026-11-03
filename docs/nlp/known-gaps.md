@@ -1,6 +1,6 @@
 # Known gaps and next steps
 
-What the core does not do yet, and what it does only partly. Milestones and their status are in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) §5.
+What the core does not do yet, and what it does only partly. Milestones and their status are in [implementation-plan.md](implementation-plan.md) §5.
 
 - **Engine integration.** This folder is the core, not a host. A host still has to capture the microphone (v1 has no
   operating-system capture adapter, only WAV files and `PushToTalkSession`), play the synthesized audio, map its saves to
@@ -23,10 +23,10 @@ What the core does not do yet, and what it does only partly. Milestones and thei
   core's tests run on it, so a lesson that breaks the core fails a core test. Its effect table is empty, and no intent binds a free name (`[WORD]`); the tests
   build small fixtures for both. `pron.stress` is recognized by the taxonomy but is not scored in v1.
 - **Open decisions.** The sherpa-onnx native build (D2) and the terms of the frequency list (D4) decide what may be released publicly; the
-  rest are in [docs/nlp/DECISIONS.md](DECISIONS.md).
+  rest are in [docs/nlp/decisions.md](decisions.md).
 - **Build size.** A full build writes about 3 GB per checkout; trimming the runtime packs is a follow-up.
 - **Part of speech.** Since M18 the analyzer resolves each word to one part of speech before it checks anything, from the neighbouring words, the
-  slot grammar that matched and, last, the reading with the fewest errors ([how](PIPELINE.md#4-linguistic-analysis-d0)), so correct sentences
+  slot grammar that matched and, last, the reading with the fewest errors ([how](pipeline.md#4-linguistic-analysis-d0)), so correct sentences
   with `libro`, `lanza`, `vino` or `ayudas` analyze clean and the mistakes in sentences with them are still found. Two verbs that share a form (`fue` is `ir`
   and `ser`) are not told apart, and a sentence that is a mistake under one reading and correct under another, with nothing around the word to
   prefer either, is read the charitable way ([fuzz suite findings](../../tests/Vocaterra.Nlp.Fuzzing.Tests/README.md)).

@@ -1,7 +1,7 @@
 # Cheaper content authoring: intents and bundles
 
 Research report, 2026-10-21. Question from the owner: writing the intents and the content folder is expensive, so how can authoring be
-made cheaper, and what should the core build? `IMPLEMENTATION_PLAN.md` §10 lists six options; this report tests them as a hypothesis.
+made cheaper, and what should the core build? `implementation-plan.md` §10 lists six options; this report tests them as a hypothesis.
 It does not repeat `docs/research/2026-10-20-scaling-approaches.md`, which already argues for build-time LLM drafting (its §3.3, M21) and a trained
 open-prompt classifier (M23).
 
@@ -83,7 +83,7 @@ Totals: the sample has about 1,234 hand lines and the game about 1,606. §10 est
 | Game P3 `ed5133c` (ask_directions, ask_what, ask_help, plus the guide agent) | 3 | intents 61, agent 61, dialogue 99, answer set 35, prompts 10, lexicon 11, cefr 5, attribution and provenance 16 ≈ 298 | ~100 |
 | Game P4 `07137ed` (name_object) | 1 | intents 16, dialogue 29, agent 4, nouns 11, cefr 3 ≈ 63 | ~63 |
 
-The intent entry is only 20–30 % of the work. Every edit then runs the procedure in `CONTRIBUTING.md`:
+The intent entry is only 20–30 % of the work. Every edit then runs the procedure in `contributing.md`:
 1. validate;
 2. update `provenance.json`;
 3. hash, which rewrites the manifest;
@@ -513,7 +513,7 @@ Ordered:
      - every verdict in the goldens is unchanged apart from `contentHash`;
      - `std-v1` passes `cefr-check --level a1` with zero unlisted lemmas, which is G2's cost removed;
      - a layered bundle is packed, verified and hashed by the tool;
-     - `docs/API.md` shows the route;
+     - `docs/api.md` shows the route;
      - an answer to the game in `CORE_REQUESTS.md` or `NOTES_FROM_CORE.md`, with no game edits.
 
 3. **M27c, de-duplication (O8 + O3), Haiku 5.5 with a precise brief, size S.** Additive schema; old files load identically.
@@ -608,7 +608,7 @@ milestone safer: the overlay's behaviour can be checked against the sample's by 
 37. ADIOS, Solan et al. 2005: https://pmc.ncbi.nlm.nih.gov/articles/PMC1187953
 38. Drain3: https://pypi.org/project/drain3/
 
-Repository evidence: `IMPLEMENTATION_PLAN.md` §5b (M13b, M16b, M17c, M17b-core, M18, M19f, M26b, M26c); core commits `14f9963`, `b234506`,
-`34f6927`; game commits `d17c674` (G2), `ed5133c` (P3), `07137ed` (P4); game `docs/DECISIONS.md` (D-game-4); game `IMPLEMENTATION_PLAN.md`
+Repository evidence: `implementation-plan.md` §5b (M13b, M16b, M17c, M17b-core, M18, M19f, M26b, M26c); core commits `14f9963`, `b234506`,
+`34f6927`; game commits `d17c674` (G2), `ed5133c` (P3), `07137ed` (P4); game `docs/decisions.md` (D-game-4); game `implementation-plan.md`
 §5 (G2, P3, P4); `src/Vocaterra.Nlp.Content/ContentValidator.cs`, `ContentPaths.cs`;
 `src/Vocaterra.Nlp.Language/Intent/IntentResolver.cs`, `IntentResolverOptions.cs`; `SlotGrammar/SlotGrammarMatcher.cs`.

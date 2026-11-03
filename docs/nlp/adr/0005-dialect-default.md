@@ -4,7 +4,7 @@
 
 - Status: accepted
 - Date: 2026-10-20
-- Deciders: repository owner and the implementation plan (`IMPLEMENTATION_PLAN.md` section 1, "Default dialect")
+- Deciders: repository owner and the implementation plan (`implementation-plan.md` section 1, "Default dialect")
 
 ## Context
 

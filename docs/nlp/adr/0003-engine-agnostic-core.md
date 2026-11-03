@@ -8,7 +8,7 @@
 
 - Status: accepted
 - Date: 2026-10-20
-- Deciders: repository owner and the implementation plan (`IMPLEMENTATION_PLAN.md` section 1, "Engine")
+- Deciders: repository owner and the implementation plan (`implementation-plan.md` section 1, "Engine")
 
 ## Context
 
@@ -20,7 +20,7 @@ the engine choice irreversible and would make the system untestable outside the 
 ## Decision
 
 - Everything under `src/` is a plain `net10.0` class library with no reference to an engine, a UI toolkit or an audio device.
-- The libraries are layered as in `IMPLEMENTATION_PLAN.md` section 2. `Slg.Core` holds the contracts (the verdict, the stage
+- The libraries are layered as in `implementation-plan.md` section 2. `Slg.Core` holds the contracts (the verdict, the stage
   records, the determinism primitives, the error taxonomy) and depends on nothing. The stage libraries (`Slg.Audio`,
   `Slg.Phonology`, `Slg.Nlp`, `Slg.Pronunciation`, `Slg.Asr`, `Slg.Evaluation`, `Slg.Decision`, `Slg.Response`) depend only on
   `Slg.Core`, except `Slg.Pronunciation` (also `Slg.Phonology`) and `Slg.Response` (also `Slg.Nlp` for morphology and

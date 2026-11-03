@@ -8,7 +8,7 @@ namespace Vocaterra.Game.Core.Tip;
 
 /// <summary>
 /// The first-time tips and the controls help (S16): when each tip comes up and the order of the controls are game data (<c>game/tips.json</c>,
-/// <c>game/controls.json</c>); what they say is the support language's (<c>tip.&lt;id&gt;</c>, <c>control.&lt;id&gt;.keys</c> and <c>.text</c>; CONTENT_PLAN C03).
+/// <c>game/controls.json</c>); what they say is the support language's (<c>tip.&lt;id&gt;</c>, <c>control.&lt;id&gt;.keys</c> and <c>.text</c>; content-plan C03).
 /// </summary>
 public static class TipBook
 {

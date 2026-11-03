@@ -6,8 +6,8 @@ using Xunit.Abstractions;
 namespace Vocaterra.Game.Core.Tests.Language.Speech;
 
 /// <summary>
-/// The phrases ¿Cómo es? asks the learner to say (VILLAGE_PLAN V13), spoken: Kokoro says each at its step and Vosk hears it through the worker at the step's prompt (the
-/// round trip every content milestone runs once, VILLAGE_PLAN section 4). The lesson's new words must be heard: gusta, gustan and gustó, manzanas, the colour (roja,
+/// The phrases ¿Cómo es? asks the learner to say (village-plan V13), spoken: Kokoro says each at its step and Vosk hears it through the worker at the step's prompt (the
+/// round trip every content milestone runs once, village-plan section 4). The lesson's new words must be heard: gusta, gustan and gustó, manzanas, the colour (roja,
 /// rojas), grande, agua and río. A word the recognizer cannot hear would fail here; it would go to the learner's hearing side or to a typed-only variant. Skipped
 /// without the models.
 /// </summary>

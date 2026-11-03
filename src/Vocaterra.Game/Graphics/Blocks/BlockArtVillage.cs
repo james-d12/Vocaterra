@@ -425,7 +425,7 @@ public static class BlockArtVillage
     }
 
     // A face of the 16 x 16 cell the head's front shows: skin, brows, eyes, nose, mouth, a fringe of hair, long hair beside the cheeks, a beard, or only a moustache,
-    // and freckles over the nose (VILLAGE_PLAN V05).
+    // and freckles over the nose (village-plan V05).
     private static Rgba FacePixel(int x, int y, uint n, Rgba hair, bool longHair, bool beard, bool cheeks, Rgba eyes, bool moustache = false, bool freckles = false)
     {
         var skin = Jit(240, 196, 150, n, 2);

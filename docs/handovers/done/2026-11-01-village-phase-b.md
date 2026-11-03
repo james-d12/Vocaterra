@@ -58,7 +58,7 @@ me before changing anything."*
 `feature/village` is at `529c055` or later, about 170 commits ahead of `main`. `origin/main` is `54ed22e`, which is also the merge base:
 the branch is up to date with `main` (its merge at `0cf674b` brought the CI workflow and the QA agent).
 
-**The village series** (`docs/game/VILLAGE_PLAN.md`; decision D-game-22 in `docs/game/DECISIONS.md`): a bigger village with four more
+**The village series** (`docs/game/village-plan.md`; decision D-game-22 in `docs/game/decisions.md`): a bigger village with four more
 NPCs, items and orders, and seven lessons, sessions 4 to 10.
 
 - **The NPCs:** guide Luna, the shopkeeper at the stall, the villager (shown as Aldeano), farmer León, fisher Mar, baker Luz and smith
@@ -119,9 +119,9 @@ The hand-written content is:
 - the intents, the lexicon and the dialogue.
 
 **Where each milestone is recorded:**
-- the game's findings log, `docs/game/IMPLEMENTATION_PLAN.md` section 5 (the V entries at its end);
-- the core's milestone table and findings, `docs/nlp/IMPLEMENTATION_PLAN.md` §5 and §5b;
-- the design, `docs/game/VILLAGE_PLAN.md` sections 3.5 to 3.9, 4 and 5;
+- the game's findings log, `docs/game/implementation-plan.md` section 5 (the V entries at its end);
+- the core's milestone table and findings, `docs/nlp/implementation-plan.md` §5 and §5b;
+- the design, `docs/game/village-plan.md` sections 3.5 to 3.9, 4 and 5;
 - each milestone's brief, `.claude/briefs/`.
 
 **Last measured** (V09's gate, 2026-11-01):
@@ -154,7 +154,7 @@ Suggested order and what to look for:
    - **The fuzz suite** (`tests/Vocaterra.Nlp.Fuzzing.Tests`, its README lists the narrowed oracles). No oracle may be weakened without
      the owner. M58 (c) narrowed O4 and O5 for the `word_order` case only, by the owner's decision. M62b is a re-roll in the sentence
      generator, not a narrowing.
-2. **The boundary.** `docs/nlp/API.md` grew by 166 lines on the branch. It records new members on `IAnalysisRules` and `IMorphology`,
+2. **The boundary.** `docs/nlp/api.md` grew by 166 lines on the branch. It records new members on `IAnalysisRules` and `IMorphology`,
    "each breaking for a host that implements" them. `docs/nlp/adr/0009-core-and-game-boundary.md` says "a change to a public type listed
    there is a change to the boundary and needs this record updated", and ADR 0009 was not changed on the branch. Check whether it should
    be: the likely one fix before the merge.
@@ -184,7 +184,7 @@ Suggested order and what to look for:
    - `scripts/content-loop.sh` (630 lines, new);
    - `scripts/merge-gate.sh`, `content.sh`, `prerender-speech.sh`, `limited.sh`;
    - `scripted-runs.sh` and `compare-runs.py` (the scripted runs).
-8. **The documents** read true against the code: `docs/game/README.md` (the village section), `PLAYTEST.md`, `SCRIPTED_RUNS.md`.
+8. **The documents** read true against the code: `docs/game/README.md` (the village section), `playtest.md`, `scripted-runs.md`.
 
 To check behaviour cheaply (each through `scripts/limited.sh`, one at a time):
 - **Build:** `dotnet build Vocaterra.sln -warnaserror -m:4`.
@@ -202,7 +202,7 @@ To check behaviour cheaply (each through `scripts/limited.sh`, one at a time):
 ## 4. Decisions for the owner
 
 1. **The voices.**
-   - None of the 902 speech files has been listened to (`docs/game/SPEECH_CHECKLIST.md`: no file marked).
+   - None of the 902 speech files has been listened to (`docs/game/speech-checklist.md`: no file marked).
    - Phase B added 222 files (111 lines, two speeds each). By NPC, in files: the farmer 70, the guide 54, the baker 30, the smith and the
      villager 22 each, the fisher 14, the shopkeeper 10.
    - The voices are provisional (D-game-22). Rejecting a voice re-renders only that NPC's lines.
@@ -231,7 +231,7 @@ To check behaviour cheaply (each through `scripts/limited.sh`, one at a time):
 4. **Name plates show through figures** (Luz's plate over the shopkeeper's face at session 8's morning; the farmer's in phase A). This is
    a design question.
 5. **Older open questions,** not from this series:
-   - the core's D8 to D11 and D13 (`docs/nlp/DECISIONS.md`; D1 and D4 are deferred, do not raise them);
+   - the core's D8 to D11 and D13 (`docs/nlp/decisions.md`; D1 and D4 are deferred, do not raise them);
    - the open questions in `.claude/agents/orchestrator.md`'s 2026-10-23 handover.
 
 ## 5. The follow-ups (proposed, not started)
@@ -250,7 +250,7 @@ PR #20 is already about 170 commits. Phase B is a finished, gated unit. A new PR
 1. **A QA pass on the village** (`subagent_type: qa`, `.claude/agents/qa.md`, areas `language` or `progression`). It goes first, so its
    findings are planned with the rest.
 2. **The owner's fuzz decision** (section 4, item 2). The first seed can fail a gate about once in six fuzz runs.
-3. **The core's grading gaps**, as core milestones (M-numbers in `docs/nlp/IMPLEMENTATION_PLAN.md`):
+3. **The core's grading gaps**, as core milestones (M-numbers in `docs/nlp/implementation-plan.md`):
    - **From V15:**
      - `¿puede usted vender manzanas?` gives a wrong `conj.person` (expects `vende`): a false alarm on a correct line;
      - `puedo pago con fruta` and `quiero vendo madera` give no error;
@@ -261,7 +261,7 @@ PR #20 is already about 170 commits. Phase B is a finished, gated unit. A new PR
      `usted comprará pan` at a lesson step; in free talk, section 6).
    - **M63, filed:** a subject pronoun before a question word is lost to M56's check (`ellas adónde están …`; fuzz seeds
      `8zKtIhOY3951`, `c5SlpISRmTZ3`).
-   - **The core milestones' own left points** (`docs/nlp/IMPLEMENTATION_PLAN.md` §5b):
+   - **The core milestones' own left points** (`docs/nlp/implementation-plan.md` §5b):
      - M56: `son cerca`, `ser en`, the first and second persons after the verb;
      - M58: `podo` and `esto` only under a grammar, `azuls`, `los panes costa`;
      - M62: `él es alta` clean, `son` after a lone name, a `de …` subject's number only.
@@ -278,7 +278,7 @@ PR #20 is already about 170 commits. Phase B is a finished, gated unit. A new PR
      no phrase use, though the book's word records count it (`Mañana compraré pan.` to Luz, `Vendo madera.` to Domingo, `Me gustan las
      manzanas.` to León).
    - **Example cards before their lesson.** An NPC shows its focus cards from the first talk: Luz shows `Vendo madera.` (session 10) in
-     session 5, and León his A2 lines from his first talk. That is A2 to an A1 learner (VILLAGE_PLAN section 5, "Not overwhelming").
+     session 5, and León his A2 lines from his first talk. That is A2 to an A1 learner (village-plan section 5, "Not overwhelming").
    - **A lesson's sentence counted as a slip.** At an open prompt whose answer set lacks it, it is flagged: `buscaré madera para Luz` to
      Domingo gets "a small mistake" and a recast that writes `luz` lower case.
    - **The Lessons page opens at its top,** so in sessions 8 to 10 the `next:` lesson is far down (192 lines).
@@ -304,10 +304,10 @@ PR #20 is already about 170 commits. Phase B is a finished, gated unit. A new PR
 
 ## 6. What V09 found (phase B's documents and runs)
 
-Recorded in `docs/game/IMPLEMENTATION_PLAN.md` section 5 ("V09 again"). The full open-points list is `docs/game/VILLAGE_PLAN.md` section 5,
+Recorded in `docs/game/implementation-plan.md` section 5 ("V09 again"). The full open-points list is `docs/game/village-plan.md` section 5,
 "Open points after the follow-ups" (it replaced "Open points after phase B").
 
-- **The scripted runs against the end of phase A** (`ccf8187` against `fa22116`; all 20 runs, `docs/game/SCRIPTED_RUNS.md`). Every
+- **The scripted runs against the end of phase A** (`ccf8187` against `fa22116`; all 20 runs, `docs/game/scripted-runs.md`). Every
   difference traces to phase B:
   - ten lessons in each closing summary;
   - speech at 451 lines in 902 files (680 files before);
@@ -340,7 +340,7 @@ Recorded in `docs/game/IMPLEMENTATION_PLAN.md` section 5 ("V09 again"). The full
   - 451 speech lines in 902 files (340 in 680);
   - 87 check items (55): 43 heard, 44 said.
 
-  The check battery by session is 31, 31, 31, 39, 47, 55, 63, 71, 79, 87. The pilot playtest stays at its 31 items; `docs/game/PLAYTEST.md`
+  The check battery by session is 31, 31, 31, 39, 47, 55, 63, 71, 79, 87. The pilot playtest stays at its 31 items; `docs/game/playtest.md`
   section 14 says what a playtest of sessions 7 to 10 would need.
 - **The coin path:** a learner reaches session 7 with 0 coins and leaves session 10 with 0 coins. Selling wood or fruit to NPCs (V15) is
   the one repeatable source of coins.
@@ -379,11 +379,11 @@ The owner asked for the fixes to be noted here, not made, so **nothing below is 
 
 - This section replaces sections 4 to 6 as the plan; they keep the background.
 - Each item gives the problem, where it is, the recommended fix and how to prove it.
-- File the milestones' rows in the plans (the core's §5, the game's VILLAGE_PLAN table) before launching them.
+- File the milestones' rows in the plans (the core's §5, the game's village-plan table) before launching them.
 
 ### 9.1 Ask the owner once, at the start
 
-**Answered 2026-11-01** (recorded in `docs/game/DECISIONS.md`, D-game-22): the models as recommended; yes to M65's (a), (b) and (c), (d)
+**Answered 2026-11-01** (recorded in `docs/game/decisions.md`, D-game-22): the models as recommended; yes to M65's (a), (b) and (c), (d)
 stays recorded; name plates as recommended (the faced NPC's, depth-tested); `main`'s CI green after the merge, so M68 waits for a red
 timed test. The voices stay the owner's to listen to.
 
@@ -470,7 +470,7 @@ can model it.
 - **Missed errors a learner of these lessons makes:**
   - **A finite verb after a modal:** `puedo pago con fruta`, `quiero vendo madera`. After `poder`, `querer`, `deber`, `necesitar` and
     `tener que`, a finite form of a lexicon verb is reported with its infinitive as `expected` (`pago` gives `pagar`). Use the tag that
-    `ir a` with a finite verb already gives (`voy a como` gives `comer`; `docs/nlp/API.md`, "Tense errors"), so the learner meets one
+    `ir a` with a finite verb already gives (`voy a como` gives `comer`; `docs/nlp/api.md`, "Tense errors"), so the learner meets one
     kind of message.
   - **`¿cuánto cuestan todo?` gives no `conj.person`.** M56's price check agrees `costar` with the noun phrase after it. Extend it to
     `todo`, `eso` and `esto`, which are singular: `cuestan todo` gives `cuesta`, and `¿cuánto son todo?` gives `es`. The game's grammar
@@ -479,7 +479,7 @@ can model it.
     Extend it to the plural, giving `cuestan`. It belongs to session 10.
   - **`azuls`** (M58 left it): the plural-slip rule covers nouns only. Extend it to adjectives that end in a consonant (`azuls` gives
     `azules`). It belongs to session 7's colours.
-  - **`ti` is not in the lexicon** (`para ti` gives `vocab.unknown`): add it as a prepositional pronoun, following `docs/nlp/LEXICON.md`.
+  - **`ti` is not in the lexicon** (`para ti` gives `vocab.unknown`): add it as a prepositional pronoun, following `docs/nlp/lexicon.md`.
   - **M63, as filed:** a subject pronoun before a question word (`ellos dónde están …`) is lost to M56's check.
 - **M69, the left points of M56, M58 and M62** (all missed errors, never false alarms, so they come last):
   - M56: `son cerca`, `ser en` with a place, and the first and second persons after the verb;
@@ -581,8 +581,8 @@ one at a time.
 
 **J. Documents and runs (V24, last), as "V09 again" did:**
 - `docs/game/README.md`: the counts, and the open points rewritten;
-- `PLAYTEST.md`;
-- `SCRIPTED_RUNS.md`, against `1dbb0e5`;
+- `playtest.md`;
+- `scripted-runs.md`, against `1dbb0e5`;
 - the speech checklist's counts;
 - the learner's route through sessions 4 to 10;
 - CI's case, the suite run without models.
@@ -590,7 +590,7 @@ one at a time.
 **K. The owner's own tasks (not milestones).**
 - **Listen to the voices.** None of the 914 speech files is marked.
   - Recommended order: the voice trial first (`docs/game/voice-trial/`, one sample per NPC), then spot-check each NPC's newest lines in
-    `docs/game/SPEECH_CHECKLIST.md`.
+    `docs/game/speech-checklist.md`.
   - A rejected voice re-renders only that NPC's lines.
 - **The answers of 9.1.**
 - **Not needed for this queue:** the core's older decisions D8 to D11 and D13.
@@ -606,7 +606,7 @@ one at a time.
 ### 9.4 How to run it
 
 - **Section 7's rules hold,** with `GATE_TARGET=feature/village-followups`. The closest models for briefs are
-  `.claude/briefs/M64-review-core.md` (core) and `.claude/briefs/V19-review-game.md` (game).
+  `.claude/briefs/m64-review-core.md` (core) and `.claude/briefs/v19-review-game.md` (game).
 - **Every brief keeps:**
   - correct learner lines staying clean (the line files of A);
   - the content loop for any content edit;
@@ -633,12 +633,12 @@ one at a time.
 **The follow-ups are done (2026-11-02):** the whole queue of section 9.2 is gated and pushed on `feature/village-followups` (V22, V25,
 V23a, V20, V21, V21b, V24 in the game; M65, M71, M66, M67, M70, M69 in the core; 8133 passed, 3 skipped, at `56d2790`). M68 waits for a
 CI failure of a timed test. Next: the owner's pull request of `feature/village-followups` into `main`. The open points are
-`docs/game/VILLAGE_PLAN.md` section 5, "Open points after the follow-ups" (V24); the game's small ones (two replies to a line not understood, the book's
+`docs/game/village-plan.md` section 5, "Open points after the follow-ups" (V24); the game's small ones (two replies to a line not understood, the book's
 credit of a refused request, the typed form `compre` in the book, the scripted run's silent stop at 18 000 ticks) were proposed to the
 owner as one milestone, not started.
 - **9.1 answered (2026-11-01, D-game-22):** models mixed (Opus 5.5 xhigh for M65 to M67, M69, V20; Sonnet 5.5 for V21 to V23 and M68;
   Haiku 5.5 for V24); M65's narrowings (a) to (c) yes, (d) recorded; plates of the faced NPC, depth-tested; CI green, so M68 waits.
-  Rows filed: the core's §5 (M65 to M69; M63 folded into M66) and VILLAGE_PLAN section 4 (V20 to V24).
+  Rows filed: the core's §5 (M65 to M69; M63 folded into M66) and village-plan section 4 (V20 to V24).
 - **Parallel work (owner, 2026-11-01: "do whatever can be done in parallel").** It replaces "one agent at a time" for the follow-ups;
   the machine stays safe because every heavy command still goes through `scripts/limited.sh` (one lock, so builds queue). Rules:
   - an agent that holds a branch gets its own worktree (`git worktree add -b <branch> .claude/worktrees/<id> feature/village-followups`),
@@ -669,7 +669,7 @@ the follow-ups and what V09 found). The owner's plan (2026-11-01): review, merge
    (`subagent_type: qa`).
 
 **Where things stand**
-- The work is the village series, `docs/game/VILLAGE_PLAN.md` (D-game-22). It lives on `feature/village`, checked out in the worktree
+- The work is the village series, `docs/game/village-plan.md` (D-game-22). It lives on `feature/village`, checked out in the worktree
   `.claude/worktrees/village`; start every session there. PR #20 (`feature/village` into `main`) is open, and the owner merges it.
 - **Done and pushed:**
   - phase A: V01 to V07, V09, V10 to V12 and V12b (sessions 4 to 6, all `a1`);
@@ -692,16 +692,16 @@ the follow-ups and what V09 found). The owner's plan (2026-11-01): review, merge
     greeting's words never flagged, wood sold in blocks. The series' ten lessons are built;
   - V09 again (`da8dba6`): the scripted runs against `ccf8187` (every difference traced), the runs `r22-market` and `r23-future`, the
     learner's route through sessions 7 to 10 (one fix: a skipped game counts the shopkeeper's bottle and key words), the documents'
-    counts, CI's case, and the open points of phase B in one list (`docs/game/VILLAGE_PLAN.md` section 5, "Open points after the follow-ups" (it replaced "Open points after phase B"));
+    counts, CI's case, and the open points of phase B in one list (`docs/game/village-plan.md` section 5, "Open points after the follow-ups" (it replaced "Open points after phase B"));
   - `main` merged in at `0cf674b`. It brought the CI workflow with its grammar jobs, and the QA agent.
 - **The review and its fixes** (2026-11-01): M64 (the core: a subject joined by `y`, an amount before `ser`, `cerca del`, ADR 0009's
   note) and V19 (the game: the listener's name after any greeting, the market's misses, session 8's answer set, the skip).
-- **Next:** the follow-ups, `docs/handovers/done/2026-11-01-village-phase-b.md` section 9 (PR #20 is merged). The design is VILLAGE_PLAN sections 3.5 to 3.9, 4 and 5; the findings of every V milestone are in
-  `docs/game/IMPLEMENTATION_PLAN.md` section 5 (the V entries at its end). The used briefs in `.claude/briefs/` (V13 to V18, V09 phase B,
+- **Next:** the follow-ups, `docs/handovers/done/2026-11-01-village-phase-b.md` section 9 (PR #20 is merged). The design is village-plan sections 3.5 to 3.9, 4 and 5; the findings of every V milestone are in
+  `docs/game/implementation-plan.md` section 5 (the V entries at its end). The used briefs in `.claude/briefs/` (V13 to V18, V09 phase B,
   M56 to M59, M62) are the models for any follow-up; fill their `@@…@@` placeholders from the last reports before launching.
 
 **Open points to carry**
-- **The whole list after phase B** is `docs/game/VILLAGE_PLAN.md` section 5, "Open points after the follow-ups" (it replaced "Open points after phase B") (V09, each marked owner, game or core); what follows
+- **The whole list after phase B** is `docs/game/village-plan.md` section 5, "Open points after the follow-ups" (it replaced "Open points after phase B") (V09, each marked owner, game or core); what follows
   is the orchestrator's short form.
 - **The coin path:** a learner reaches session 7 with 0 coins (+2, +4, −4 for bread, −2 for the axe) and leaves session 8 with 0 coins, 3
   apples, 2 loaves and the axe (V13, V14 designed around it). V15's `buy` (selling wood and fruit) is the one repeatable source; session

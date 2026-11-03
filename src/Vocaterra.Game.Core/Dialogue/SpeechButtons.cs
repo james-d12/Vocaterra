@@ -7,7 +7,7 @@ namespace Vocaterra.Game.Core.Dialogue;
 /// <summary>The speech buttons of the dialogue panel, their keys and the voice event each press raises (S7, D-game-9: replay, slower audio, help, "no sé" and the typed fallback are always available).</summary>
 public static class SpeechButtons
 {
-    /// <summary>The fixed buttons, left to right, with their labels in the target language (<c>game/words.json</c>, CONTENT_PLAN C05).</summary>
+    /// <summary>The fixed buttons, left to right, with their labels in the target language (<c>game/words.json</c>, content-plan C05).</summary>
     /// <param name="words">The labels.</param>
     public static IReadOnlyList<SpeechButton> For(ButtonWords words)
     {

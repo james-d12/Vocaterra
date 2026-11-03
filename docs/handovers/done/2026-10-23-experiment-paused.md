@@ -4,7 +4,7 @@
 
 **Where things stand**
 - `main` (`1e3d2cc`) holds the owner's whole queue: S13 to S28, S17b, S19b, S20b, M29j, M30, M49 and M50, all gated and pushed.
-- `feature/experiment` holds the X series (see `docs/game/IMPLEMENTATION_PLAN.md` section 4.5):
+- `feature/experiment` holds the X series (see `docs/game/implementation-plan.md` section 4.5):
   - merged and gated: X00 research, X01 saves across bundles, X04 the summary card and the "no sé" retry, X05 autosave and crash report,
     X02/M51 `voy comer`, X03 book polish, X08 text scale;
   - **X06 (the review deck) was stopped mid-work.** Its partial work is the unbuilt, ungated WIP commit `0ab3300` on the pushed branch

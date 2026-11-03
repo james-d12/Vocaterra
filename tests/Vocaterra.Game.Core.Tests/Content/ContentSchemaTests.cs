@@ -9,7 +9,7 @@ using Vocaterra.Game.Core.Voxel;
 namespace Vocaterra.Game.Core.Tests.Content;
 
 /// <summary>
-/// The JSON Schemas in <c>content/schema</c> (CONTENT_PLAN 3.7, C01): every game content file names its schema in <c>$schema</c> and validates against
+/// The JSON Schemas in <c>content/schema</c> (content-plan 3.7, C01): every game content file names its schema in <c>$schema</c> and validates against
 /// it, every schema is used, and the schemas keep in step with the code's tables. The schemas serve editors (Rider and VS Code validate and complete
 /// as you type); the loaders stay the authority, and this test keeps the two in step.
 /// </summary>
@@ -73,7 +73,7 @@ public sealed class ContentSchemaTests
     [Fact]
     public async Task ACheckItemNamesItsLessonInSchemaTwo()
     {
-        // VILLAGE_PLAN V07: every item names the lesson it belongs to, or null for none; the battery may say its core sessions.
+        // village-plan V07: every item names the lesson it belongs to, or null for none; the battery may say its core sessions.
         var schema = await JsonSchema.FromFileAsync(Path.Combine(SchemaFolder, "checks.schema.json"));
         static string Checks(string version, string lesson, string core = "") =>
             $$"""{ "schemaVersion": {{version}}, {{core}} "items": [ { "id": "say.x", "kind": "production", "phrase": "pedir-agua", {{lesson}} "prompt": "stall-need", "intent": "request_item" } ] }""";

@@ -11,7 +11,7 @@ using Vocaterra.Nlp.Pipeline;
 namespace Vocaterra.Game.Core.Tests.Language.Phrases;
 
 /// <summary>
-/// Free talk with the village's NPCs (VILLAGE_PLAN V12b): the phrase a turn is credited with, and the cards the panel shows. V09's scripted runs found the baker's
+/// Free talk with the village's NPCs (village-plan V12b): the phrase a turn is credited with, and the cards the panel shows. V09's scripted runs found the baker's
 /// "quiero dos panes, por favor" credited as the stall's <c>pedir-agua</c>: her file had no <c>focus</c>, so no phrase was in play at <c>baker-open</c>, and the
 /// fixed mapping (<see cref="PhraseIds.For"/>: a request is the stall's phrase whatever the item) took the turn. Each new NPC's file now names the phrases its
 /// prompt practises, and a prompt that is the home of a row of the turn's intent credits that row before the fixed mapping, focus or not.

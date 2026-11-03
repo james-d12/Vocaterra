@@ -72,7 +72,7 @@ to `feature/village`.
 | Docx question | Answer in force |
 | --- | --- |
 | 2D side view or 3D | 3D, first person, voxel (D-game-8, D-game-14); the 2D slice was removed at S4 |
-| Single player or co-op | everything is built for one player: one world seed, one stored time, the learner records, the turn worker (`ARCHITECTURE.md`). Co-op would rework the host's duties; I'd close this as single player |
+| Single player or co-op | everything is built for one player: one world seed, one stored time, the learner records, the turn worker (`architecture.md`). Co-op would rework the host's duties; I'd close this as single player |
 | Stack size for tools | 1 (`ItemDefinition`) |
 | Death penalty | the brief: no starvation, death or permanent loss from language mistakes; D-game-8: nothing gated behind language or voice |
 | Land upkeep | not decided. I'd say none: upkeep is a chore loop, and it puts a timer on something earned through Spanish |
@@ -87,7 +87,7 @@ to `feature/village`.
    have. With no combat, the gear rating has nothing to measure.
 3. **The cast and the voices.** The docx has eleven NPCs, five of them women. Kokoro has three native Spanish voices and all three are
    taken; the baker speaks with the Italian `if_sara`, the smith with `im_nicola`, and another woman would need a French or Portuguese
-   voice or a speed variant, after a trial (VILLAGE_PLAN 2.6). Several docx roles also contradict the built NPCs: "el guía" is Luna,
+   voice or a speed variant, after a trial (village-plan 2.6). Several docx roles also contradict the built NPCs: "el guía" is Luna,
    "la granjera" is León, "la comerciante" is the shopkeeper, who is a man (D-game-22 (e)).
 4. **Specialist words and the content gate.** The gate is an A2 ceiling across the bundle (V08). I checked a sample of words per domain
    against the bundle's lists (`content/game-v1/cefr/a1.txt`, 397 lemmas; `a2.txt`, 663) and its lexicon:
@@ -283,7 +283,7 @@ higher-level instructions, and a runner that repeats rather than completing once
   teach-back: Luz has forgotten a step, and the learner tells her.
 - **Speaking inside the activity**, through intents that exist. The getting-unstuck phrases as controls (`ask_repeat`, `ask_slower`,
   `ask_help`, `dont_know`: "Otra vez, por favor" may become the most used sentence in the game). Asking for what is missing ("¿Tienes
-  huevos?", `ask_availability`, `request_item`). The plan and the report around the activity (VILLAGE_PLAN principle 7: "¿Qué vas a
+  huevos?", `ask_availability`, `request_item`). The plan and the report around the activity (village-plan principle 7: "¿Qué vas a
   hacer?" "Voy a hacer pan", and afterwards "¿Qué hiciste?" "Hice pan"). Later, telling an apprentice the steps, which produces the
   imperative and needs a core milestone to grade.
 - **Quality is a bonus.** Steps in order, the right tool, the right amount: a better dish and a bigger buff. Understanding is rewarded and
@@ -299,7 +299,7 @@ higher-level instructions, and a runner that repeats rather than completing once
 - **Spoken instructions must be recorded.** Lines rendered at run time have no voice by design (`Sound/NpcVoice.cs`: "a templated world
   line of the guide … has no voice by design"), so the audio rung needs a closed bank of recorded instructions, and recipes should be
   built from it. Reuse is the point twice over: the more recipes share "Pon … en el bol", the more the learner hears it, and the less
-  there is to review and to listen to (the owner's listening is the real cost, VILLAGE_PLAN section 5). A report of each recipe's new
+  there is to review and to listen to (the owner's listening is the real cost, village-plan section 5). A report of each recipe's new
   lines and each line's number of recipes would keep authors honest.
 - **Latin American neutral Spanish** (D-game-8, core ADR 0005) matters more in the kitchen than anywhere else: papa not patata, jugo not
   zumo, frijoles, aguacate, with accepted variants for the rest. Latin American dishes suit it: arepas, quesadillas, guacamole, arroz con

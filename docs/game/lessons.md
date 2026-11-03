@@ -52,11 +52,11 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --lesson-
   A lesson of a later session also has an English `objective` that names it: the objective area shows it (and the beacon points at the lesson's NPC) while the lesson is unlocked and not begun.
   `--session <n>` starts a run as play session n (`--session 2 --screenshot x.png --frames 120` shows session 2 opening at the camp: `Session 2: go to the village and talk to the villager to start
   the lesson “Personas”`, with the beacon on the villager). It only names the session: a lesson that comes `after` another still waits for it, so `--session 4` points at session 3's lesson.
-  `--skip-to-session <n>` (V12c, a test aid) starts a new game where a learner who did sessions 1 to n-1 would stand, so session n's own lesson is open ("The next session" below). Since VILLAGE_PLAN V10 a lesson may also name the lesson it comes `after`, and is offered only once that one is done: sessions 4 to 10
+  `--skip-to-session <n>` (V12c, a test aid) starts a new game where a learner who did sessions 1 to n-1 would stand, so session n's own lesson is open ("The next session" below). Since village-plan V10 a lesson may also name the lesson it comes `after`, and is offered only once that one is done: sessions 4 to 10
   (`--session 4` to `--session 10`) unlock `el-pueblo` after `ayer-y-manana`, `numeros-y-pan` after `el-pueblo`, `gente-del-pueblo` after `numeros-y-pan`, `como-es` after `gente-del-pueblo`,
   `ayer-en-el-pueblo` after `como-es`, `manana-en-el-pueblo` after `ayer-en-el-pueblo` and `el-mercado` after `manana-en-el-pueblo` ("The village: sessions 4 to 10" below), so `--session n`
   alone opens no village lesson; `--skip-to-session n` (2 to 10) does. `--lesson-run <id>` starts a lesson whatever came before.
-- **Personas** (session 2, the villager then the shopkeeper, 22 steps since VILLAGE_PLAN V10 added its two `review` steps, `autoStart`): él, ella, usted, nosotros, ustedes and ellos of `querer`, `tener`, `necesitar`, `ser`, `estar` and `ir`. The learner
+- **Personas** (session 2, the villager then the shopkeeper, 22 steps since village-plan V10 added its two `review` steps, `autoStart`): él, ella, usted, nosotros, ustedes and ellos of `querer`, `tener`, `necesitar`, `ser`, `estar` and `ir`. The learner
   says what Luna wants, what we need and what we want and answers the shopkeeper's `usted` questions about themself; the other forms are heard (listen steps) and listed once. A step may name its NPC
   (`npc`), and a `do` step may wait for the panel to open on an NPC (`at`): the walk from the villager to the stall. While such a step waits the objective says `Walk to the stall and talk to the
   shopkeeper`. The villager's and the shopkeeper's lines are in pools named `guide.lesson.villager.*` and `guide.lesson.shop.*` (the voices follow the prefix; `--host-pools 'guide.*'` counts them).
@@ -64,7 +64,7 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --lesson-
 - **The forms a lesson teaches.** `lessons.json` declares them (`verbs`: lemma, person 1 to 3, number sg or pl, tense): the yo and tú of the three verbs (`first-words`) and the third person singular, the
   first and the third person plural of the verbs it uses (`personas`, 12 forms: only those heard, said or named; the conjugation of `ir` waits for session 3). A test checks each is a word the learner meets in the lesson and that the core's morphology knows it; the book's conjugation
   tables (S28) read them.
-- **The level a lesson keeps to.** Every lesson declares `level`, `a1` or `a2` (VILLAGE_PLAN V08; the six lessons of sessions 1 to 6 are `a1`, the four of sessions 7 to 10 `a2`). The host's `--validate-content` holds the Spanish it
+- **The level a lesson keeps to.** Every lesson declares `level`, `a1` or `a2` (village-plan V08; the six lessons of sessions 1 to 6 are `a1`, the four of sessions 7 to 10 `a2`). The host's `--validate-content` holds the Spanish it
   teaches and says to the bundle's CEFR lists up to that level, its phrases' variants to A2 (the bundle's ceiling), and its tenses to the level's (`fut` only at `a2`); `content/README.md`, "A
   lesson's level", has the rule.
 - **Practise again.** A completed lesson's heading on the book's Lessons page has a `Practise again` button (a click, or P with the page open). It closes the book, sets the objective line (`Practise
@@ -99,7 +99,7 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --lesson-
   `ir` row of its present column and the verb's infinitive, never typed by hand; `TaughtVerbForm.Text(morphology)` gives the text of any declared form (`voy a comer`, `comí`, `fuiste`). The column and the preterite
   column stay hidden until a lesson declares a form of that tense.
 
-## The simple future at a step (VILLAGE_PLAN V16, phase B)
+## The simple future at a step (village-plan V16, phase B)
 
 Session 9 ("Mañana en el pueblo", V17) teaches the simple future (`compraré`, `iré`, `hará`) against `ir a`; V16 made the runner and the book ready for it. Its four
 answer steps are the bundle's `fut` steps (`TomorrowLessonTests`); `SimpleFutureStepTests` keeps V16's fixture lessons.
@@ -138,9 +138,9 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --no-auto
   --say "compro pan" --leave --book-verb comprar --book-detail 30 --screenshot /tmp/v16-book-small.png --frames 30
 ```
 
-## The village: sessions 4 to 10 (VILLAGE_PLAN phases A and B, D-game-22)
+## The village: sessions 4 to 10 (village-plan phases A and B, D-game-22)
 
-The plan is [docs/game/VILLAGE_PLAN.md](VILLAGE_PLAN.md): phase A (V01 to V07, V10 to V12, sessions 4 to 6, `a1`) and phase B (V08, V13 to V18, sessions 7
+The plan is [docs/game/village-plan.md](village-plan.md): phase A (V01 to V07, V10 to V12, sessions 4 to 6, `a1`) and phase B (V08, V13 to V18, sessions 7
 to 10, `a2`). Each lesson uses its verbs in the present, the preterite and the near future, in phase A around an order the learner carries out (the plan, the
 doing, the report). Phase B, in a line a lesson:
 
@@ -149,7 +149,7 @@ doing, the report). Phase B, in a line a lesson:
 - **9, "Mañana en el pueblo"** (Luz, then Domingo and Mar, 14 steps): the simple future against `ir a`; no order.
 - **10, "El mercado"** (Luz, then León and the stall, 22 steps): 11 to 20, a total, `más … que`, `poder` and selling; no order. The series ends here.
 
-**The follow-ups** (VILLAGE_PLAN V22, V25, V23a, V20, V21 and V21b, on `feature/village-followups`, 2026-11-01 and 02; the core's M65 to M70 beside them). Free
+**The follow-ups** (village-plan V22, V25, V23a, V20, V21 and V21b, on `feature/village-followups`, 2026-11-01 and 02; the core's M65 to M70 beside them). Free
 talk takes the lessons' lines: an NPC understands the statements its lessons taught, and a phrase of a lesson that has begun counts as a use at any NPC (V20).
 Each NPC answers in its own voice (`¡Qué bien!`, `Sí, es verdad.`, `Está bien.`, in ten pools; the shared feedback lines are in each NPC's voice, V21b).
 The stall and the market answer what was said: `quiero madera` at the stall gets «No tengo eso. Tengo agua y pan.» and no bottle, a request for bread gets the
@@ -172,7 +172,7 @@ battery by play session: 31 items in sessions 1 to 3 (the pilot's), then 39, 47,
 - **The people.** Seven NPCs, in the order of `game/npcs.json`: the guide Luna, the shopkeeper (`Tendero`), the villager (`Aldeano`), the fisher Mar (`Pescador`),
   the baker Luz (`Panadera`), the smith Domingo (`Herrero`) and the farmer León (`Granjero`). An NPC is data alone (`game/npcs/<id>.json`, schema 2, V01: its
   prompts by state, its opening, its voice, its key words; `content/README.md`, "Adding an NPC"). The four new voices are provisional (D-game-22 (d): the
-  fisher `em_santa` at 0.9, the baker `if_sara`, the smith `im_nicola`, the farmer `pm_santa`; `docs/game/SPEECH_CHECKLIST.md` and `docs/game/voice-trial/`).
+  fisher `em_santa` at 0.9, the baker `if_sara`, the smith `im_nicola`, the farmer `pm_santa`; `docs/game/speech-checklist.md`; the voice trial is in git history).
 - **Directions** (V02). The fisher and the villager point the beacon at the place the learner names (`¿Dónde está la panadería?`: the scene's labels, then a
   catalogue noun; any other word is "No sé dónde está."); every answer logs `place_asked` and the arrival at the arrow logs `beacon_reached`.
 - **Coins, apples and the axe** (V03, V05): `moneda`, `manzana` and `hacha` are items with their icons and held sprites; the axe fells a trunk in a quarter of
@@ -226,7 +226,7 @@ battery by play session: 31 items in sessions 1 to 3 (the pilot's), then 39, 47,
   answers, `--skip-to-session 7 --lesson-run como-es` the farmer's, `--skip-to-session 8 --lesson-run ayer-en-el-pueblo` the villager's, and `--skip-to-session 9
   --lesson-run manana-en-el-pueblo` and `--skip-to-session 10 --lesson-run el-mercado` the baker's. The scripted runs r18 (the bakery purchase), r19 (asking the
   way), r22 (the market: wood sold, bread bought, the total) and r23 (the future in free talk and the book's future column) cover them
-  (`docs/game/SCRIPTED_RUNS.md`). To play a village lesson by hand, `--skip-to-session n` (4 to 10) starts at it with the sessions before counted as done ("The
+  (`docs/game/scripted-runs.md`). To play a village lesson by hand, `--skip-to-session n` (4 to 10) starts at it with the sessions before counted as done ("The
   next session: sleep at the fire" below; r21); from `--skip-to-session 7` a sleep at the fire after each lesson plays 7 to 10 in one sitting (V09).
 
 ```bash
@@ -277,7 +277,7 @@ ticks (the open points below): sessions 4 to 7 and 7 to 9 by a sleep at the fire
   gets «No te entendí» and then «¿Cómo?» at the same NPC, two replies for one line. No game
   change was made in this milestone: none of these had a one-line fix that a test would pin.
 
-The open points after the follow-ups (V24, 2026-11-02) are in [VILLAGE_PLAN.md](VILLAGE_PLAN.md) section 5.
+The open points after the follow-ups (V24, 2026-11-02) are in [village-plan.md](village-plan.md) section 5.
 
 ## The next session: sleep at the fire (V12c)
 
@@ -322,7 +322,7 @@ shopkeeper gave it, the river filled it, and nothing in the game empties it, V13
 later visit is not a first one, V09); each earlier order is delivered by the NPC's own `<npc>.delivered` thanks (what
 the bag lacks of its goods brought, the coins it asks for paid from the bag, since only an NPC gives coins, its reward paid); and each earlier lesson's purchases are
 made (a `do` step waiting for an NPC that sells, as many as the lesson's request names: the two loaves of `numeros-y-pan`). So the coins and the items follow
-VILLAGE_PLAN 3.4: none at session 4, two coins at 5, two coins and two loaves at 6 (the axe order's two coins), no coins, two loaves and the axe at 7 (the farmer's
+village-plan 3.4: none at session 4, two coins at 5, two coins and two loaves at 6 (the axe order's two coins), no coins, two loaves and the axe at 7 (the farmer's
 apples are the water order's). What the world gives (wood, fruit) is not carried over: the next lesson and order point at it. No
 practice is faked: no turn is taken and the word and phrase records stay a new game's. The objective and the beacon then name session n's lesson and its NPC, as
 after a load. The console says `session: skipped to play session 4 (sessions 1 to 3 counted as done; test aid)`, the session log has the same line (the world event

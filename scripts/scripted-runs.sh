@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The scripted runs of docs/game/SCRIPTED_RUNS.md: runs each one and keeps what it wrote (stdout, screenshots, saves, sound logs, the session
+# The scripted runs of docs/game/scripted-runs.md: runs each one and keeps what it wrote (stdout, screenshots, saves, sound logs, the session
 # log, reports) in OUT/<name>, to compare two captures with scripts/compare-runs.py (a baseline before a change, a capture after it).
 # Every run writes into the same work folder, so the paths it prints are the same in every capture.
 #

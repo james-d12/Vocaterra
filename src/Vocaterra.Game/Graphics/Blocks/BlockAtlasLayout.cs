@@ -253,7 +253,7 @@ public enum BlockCell
     /// <summary>The icon of the learner's book (the item, S20): a closed book with a brown cover and cream pages.</summary>
     IconBook,
 
-    /// <summary>The front of the fisher's head (VILLAGE_PLAN V05): a grey beard.</summary>
+    /// <summary>The front of the fisher's head (village-plan V05): a grey beard.</summary>
     FaceFisher,
 
     /// <summary>The front of the baker's head: a woman with auburn hair down the sides.</summary>

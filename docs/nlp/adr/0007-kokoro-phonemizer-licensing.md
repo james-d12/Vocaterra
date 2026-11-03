@@ -9,7 +9,7 @@
 - Deciders: repository owner; raised by the implementation plan (M11, `// TODO(ADR)` in `KokoroSynthesizer`)
 
 This ADR records an engineering decision and the evidence behind it. It is not legal advice; the repository owner has to get the
-licensing conclusion confirmed before release, as `docs/archive/nlp/history/HIGH_LEVEL_DOCS.md` ("Licensing") already says.
+licensing conclusion confirmed before release, as `docs/archive/nlp/history/high-level-docs.md` ("Licensing") already says.
 
 ## Context
 
@@ -62,7 +62,7 @@ engine for dynamic NPC speech. Two facts complicate that:
   from our dialect-aware G2P (ADR 0005), including the golden set. The risk is audio quality: the in-house phones must match
   what Kokoro was trained on, and stress and syllable boundaries must survive the mapping. A sensible check is a comparison
   of the mapped tokens with espeak-ng output for a word list, run only on developer machines.
-- The decision adds an item to the checklist in `CONTRIBUTING.md` for D1 adapters: record the license of every native binary,
+- The decision adds an item to the checklist in `changing-the-core.md` for D1 adapters: record the license of every native binary,
   not only of the package that carries it.
 - The code comments `TODO(ADR)` in `src/Slg.Response/Speech/KokoroSynthesizer.cs` refer to this record. They can be reworded to
   point here when that file is next touched.

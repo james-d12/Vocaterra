@@ -9,7 +9,7 @@ using Xunit.Abstractions;
 namespace Vocaterra.Game.Core.Tests.Language.Lessons;
 
 /// <summary>
-/// The lesson "El pueblo" of session 4 (VILLAGE_PLAN V10, 3.5): the fisher Mar at the bridge, places and the way to them (¿Dónde está…?, cerca and lejos, a la izquierda and
+/// The lesson "El pueblo" of session 4 (village-plan V10, 3.5): the fisher Mar at the bridge, places and the way to them (¿Dónde está…?, cerca and lejos, a la izquierda and
 /// a la derecha, hay), and one verb in the three times around the walk it makes (voy a la panadería, voy a comprar pan, fui a la panadería); the walk from the bridge to the
 /// bakery, the smithy and the villager's signpost line, and back; the tense steps; the fisher's order fruit-for-mar; and the fisher's own answers outside the lesson.
 /// </summary>
@@ -146,7 +146,7 @@ public sealed class VillageLessonTests(ITestOutputHelper output)
             Assert.Equal(step.Tense == TaughtVerbForm.NearFuture, step.PresentNote is not null);
         }
 
-        // The forms it declares for the book: the present, the past and the near future only (an a1 lesson, VILLAGE_PLAN 3.9), each a word of the lesson.
+        // The forms it declares for the book: the present, the past and the near future only (an a1 lesson, village-plan 3.9), each a word of the lesson.
         Assert.All(lesson.TaughtVerbs, static v => Assert.Contains(v.Tense, new[] { "pres", "pret", TaughtVerbForm.NearFuture }));
         var morphology = TestGame.Bundle.SpanishMorphology();
         Assert.Equal(["buscas", "voy a comprar", "vas a hacer"], lesson.TaughtVerbs.Select(v => v.Text(morphology, TestGame.Data.Words.NearFuture)));
@@ -378,7 +378,7 @@ public sealed class VillageLessonTests(ITestOutputHelper output)
         Assert.Equal(1, session.ObjectiveStep("fruit-for-mar.delivered")!.Count);
     }
 
-    // ---- The review steps X06 left undone (VILLAGE_PLAN 2.8)
+    // ---- The review steps X06 left undone (village-plan 2.8)
 
     [Fact]
     public void PersonasAndAyerYMananaEachAskTwoEarlierPhrasesAgainAtTheirNpcs()

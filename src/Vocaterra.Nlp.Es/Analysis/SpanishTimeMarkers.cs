@@ -1,7 +1,7 @@
 namespace Vocaterra.Nlp.Es.Analysis;
 
 /// <summary>
-/// The Spanish time markers of the tense checks (<c>conj.tense</c>; M49, M57; docs/nlp/API.md, "Tense errors"), in one table: the agreement checker reads it, and the
+/// The Spanish time markers of the tense checks (<c>conj.tense</c>; M49, M57; docs/nlp/api.md, "Tense errors"), in one table: the agreement checker reads it, and the
 /// fuzz suite's sentence generator models the same phrases from it, so the two cannot drift apart. A marker is a phrase, not a word:
 /// <list type="bullet">
 /// <item>past: an adverb of <see cref="PastAdverbs"/> (<c>ayer</c>), or a noun of <see cref="TimeNouns"/> followed by a form of <see cref="PastAdjectiveForms"/>

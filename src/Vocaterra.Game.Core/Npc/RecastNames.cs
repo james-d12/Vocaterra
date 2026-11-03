@@ -4,7 +4,7 @@ using Vocaterra.Game.Core.Language.Phrases;
 namespace Vocaterra.Game.Core.Npc;
 
 /// <summary>
-/// The villagers' names in a correction line as the game shows it (VILLAGE_PLAN V20, handover 9.3 D (d)): the core writes the learner's words back in lower case, so
+/// The villagers' names in a correction line as the game shows it (village-plan V20, handover 9.3 D (d)): the core writes the learner's words back in lower case, so
 /// Domingo's recast of <c>buscaré madera para Luz</c> read <c>«buscaré madera para luz»</c>. Before the line is shown, a word that is an NPC's name (the roster's, never a
 /// list here) gets the name's own spelling, <c>Luz</c>, unless a determiner comes before it: then it is the common noun (<c>la luz</c>, <c>el domingo</c>, <c>del mar</c>,
 /// <c>la luna</c>) and stays as it is. The core's own text is unchanged; only the game's copy of the line is.

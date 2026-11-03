@@ -10,13 +10,13 @@ The owner asked for all of it to be fixed on `feature/village` before the merge.
 | Finding | Fixed by | How |
 | --- | --- | --- |
 | R1 | M64 (`23af5cd`), V19 (`716d469`) | A subject pronoun joined by `y` ends a plural subject; `y` between clauses unchanged. `lesson-we-went` takes the answers with a subject |
-| R2 | M64 | ADR 0009's M64 note; `API.md` dates `IsVerbSeekingQuestionWord` to M34 |
+| R2 | M64 | ADR 0009's M64 note; `api.md` dates `IsVerbSeekingQuestionWord` to M34 |
 | R3 | open | This session cannot read CI; the owner reports PR #20's checks |
 | R4 | V19 | The name after any greeting; one `LineReading` for the game's two paths and the host |
 | R5, R6 | M64 | An amount before a singular `ser` is one sum (one fuzz guard, at the owner's request); `cerca del` with a time |
 | R7 to R10 | V19 | `NpcEffect.ExchangeMiss`: no item, `no_room`, no cap, zero |
 | Risks | M64, V19 | Coordinated pronoun subjects in the fuzz generator; the skip fails loudly. The other risks stand |
-| Cleanups | M64 | `SpanishTimeMarkers` read-only; `API.md` |
+| Cleanups | M64 | `SpanishTimeMarkers` read-only; `api.md` |
 
 - **Tests:** 7420 passed and 3 skipped, with models.
 - **New, from the gates:** O5 failed once on M64's gate with seed `4YuZ2yubxdC1`. It belongs to the family of the open seed `b3HSKSLCsL_1`
@@ -55,13 +55,13 @@ The owner asked for all of it to be fixed on `feature/village` before the merge.
 
 **R2. ADR 0009 is not updated for the public surface the branch adds (boundary, docs only).**
 - ADR 0009: "A change to a public type listed there is a change to the boundary and needs this record updated". M32, M34, M52 and M53 each
-  added a dated note; M56 to M62 added none. `API.md` records the changes correctly:
+  added a dated note; M56 to M62 added none. `api.md` records the changes correctly:
   - `IAnalysisRules` +4 members with no default (`IsElapsedTimePreposition`, `IsElapsedTimeNoun` (M59), `IsPostnominalAdjective`,
     `IsDegreeAdverb` (M62)): breaking for any implementer;
   - `IMorphology` +2 default members (`TryGetRegularizationOfWord`, `TryGetPluralSlip`) and the public record `PluralSlip` (M58);
   - the public static class `SpanishTimeMarkers` (M57).
 - One note in ADR 0009 is the fix; the boundary is unchanged in kind (no game word in the core).
-- **API.md cleanup:** it lists `IsVerbSeekingQuestionWord` as added by M56, but it came with M34 (`678d9ad`) and is on `main` already.
+- **api.md cleanup:** it lists `IsVerbSeekingQuestionWord` as added by M56, but it came with M34 (`678d9ad`) and is on `main` already.
 
 **R3. CI.** This session cannot read PR #20's checks. If the build-and-test job is red on a timed test (handover section 4, item 3), it is
 fixed here before the merge.

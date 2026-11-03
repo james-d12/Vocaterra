@@ -1,7 +1,7 @@
 # Building and testing the core
 
 The prerequisites, the build, the tests and the fuzz suite, and the speech benchmark. The rules for changes are in
-[CONTRIBUTING.md](CONTRIBUTING.md).
+[changing-the-core.md](changing-the-core.md).
 
 ## Prerequisites
 
@@ -35,6 +35,18 @@ dotnet format --verify-no-changes   # what CI checks
 Tests that need a real model are skipped, not failed, unless `VOCATERRA_MODELS_DIR` points at a directory holding the verified model
 (see below).
 
+`dotnet test tests/Vocaterra.Nlp.Tests` runs the engine's unit tests and `dotnet test tests/Vocaterra.Nlp.Es.Tests` the Spanish pack's (M53); add `--filter "FullyQualifiedName~LinguisticAnalyzer"` for one class.
+`dotnet format` (without `--verify-no-changes`) fixes formatting.
+
+The suite has two tiers ([scripts/README.md](../../scripts/README.md), `test.sh`). `scripts/test.sh fast` builds and runs every test that is
+not marked slow, in under a minute: run it after every step. It leaves out the tests marked `[Trait(TestSpeed.Trait, TestSpeed.Slow)]`:
+the fuzz suite (an assembly trait), the model-gated tests, the content tool's full-bundle classes (`CliTests`, `ProgramTests`, `LintTests`,
+`LintCommandTests`), `SpanishIdentityTests` and a few long single tests. `scripts/test.sh full` runs the whole suite, as the merge gate and
+CI do: run it before you report a milestone, and `scripts/test.sh project Vocaterra.Nlp.Tests` when you change an area whose tests are
+marked slow. Both go through `scripts/limited.sh`. A new test that takes more than a few seconds on its own, needs a model or starts a
+process is marked slow (the constant is in `tests/Shared/TestSpeed.cs`); a test that only reads the bundle uses
+`GameBundleLocator.Bundle`, the one load of the test process, instead of loading its own.
+
 ### Fuzz tests
 
 `tests/Vocaterra.Nlp.Fuzzing.Tests` generates inputs from the lexicon, the intent grammars and `content/game-v1`, and checks sixteen oracles against the
@@ -59,8 +71,18 @@ CsCheck_Seed=<seed> dotnet test tests/Vocaterra.Nlp.Fuzzing.Tests
 ```
 
 The failure message also carries the generated input, which is what a regression test needs. The design is in
-[docs/nlp/FUZZING_PLAN.md](FUZZING_PLAN.md); the oracles, the bounds and the bugs found so far are in
+[docs/nlp/fuzzing-plan.md](fuzzing-plan.md); the oracles, the bounds and the bugs found so far are in
 [tests/Vocaterra.Nlp.Fuzzing.Tests/README.md](../../tests/Vocaterra.Nlp.Fuzzing.Tests/README.md).
+
+
+The rules for the fuzz suite:
+
+- Before you open a pull request that touches the engine folders `Language`, `Evaluation`, `Response`, `Audio`, `Phonology`,
+  `Pronunciation`, `Decision`, `Content` or `Pipeline`, run `dotnet test tests/Vocaterra.Nlp.Fuzzing.Tests`.
+- A bug the fuzzer finds is fixed in the owning module, with a regression test in that module's test project. List the bug with its
+  CsCheck seed in the "Bugs found and fixed" section of the fuzz README.
+- A documented exception may be waved through only in `tests/Vocaterra.Nlp.Fuzzing.Tests/Oracles/KnownTolerances.cs`, and it needs a reason.
+- Never weaken an oracle to make a failure go away.
 
 ## Benchmark and golden audio
 

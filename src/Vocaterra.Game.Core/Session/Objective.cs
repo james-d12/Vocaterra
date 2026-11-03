@@ -25,7 +25,7 @@ public sealed record ObjectiveStep(string Key, string Label, string Noun, int Ta
 /// <summary>
 /// One objective of the session, as <c>game/objectives/&lt;id&gt;.json</c> gives it (C07; before it the camp checklist was code): steps that count the world events
 /// their triggers match. A checklist (the camp, <c>Campamento</c>) shows its steps; the others show one line. Steps move only on world events (pickups, the placed
-/// torch, the filled bottle), never on the learner's language (IMPLEMENTATION_PLAN rule 8). Plain values, no clock: the same events give the same checklist.
+/// torch, the filled bottle), never on the learner's language (implementation-plan rule 8). Plain values, no clock: the same events give the same checklist.
 /// </summary>
 public sealed class Objective
 {

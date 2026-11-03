@@ -1,7 +1,7 @@
 # Running the game
 
 The 3D world, its command-line options and the demo runs that show each part of it, then the playtest. Run every command from the
-repository root. The scripted regression runs are in [SCRIPTED_RUNS.md](SCRIPTED_RUNS.md), the facilitator's script in [PLAYTEST.md](PLAYTEST.md).
+repository root. The scripted regression runs are in [scripted-runs.md](scripted-runs.md), the facilitator's script in [playtest.md](playtest.md).
 
 ## The 3D world (S2 to S4)
 
@@ -9,7 +9,7 @@ The prototype's world is the first-person voxel scene: it loads the world from t
 parameters and named sites, not blocks, a 384 x 384 x 128 block valley with high snow-capped mountains along the north and the west, a waterfall off
 the northern cliffs, a river through a dense forest to a lake, the guide's camp in a clearing, the village on the meadow across the river with the stall,
 three timber-framed houses with stepped roofs and chimneys, a stone tower, a fenced crop field, lanterns on posts and the signpost with its three boards
-`Tienda`, `Río` and `Montaña` (S15); since VILLAGE_PLAN V04 also a bakery with its oven, a smithy with a lit forge and an anvil, a well, the farmer's
+`Tienda`, `Río` and `Montaña` (S15); since village-plan V04 also a bakery with its oven, a smithy with a lit forge and an anvil, a well, the farmer's
 apple crate and an orchard of three trees, and the fisher's crates and lamp on the bridge's east landing; and the player's own camp on a cliff ledge at the top of a switchback trail) at `--seed` (default 42; the
 seed changes the land between the sites and the forest, never a site), and shows it from the player's eyes. A new game starts at the player's camp
 (facing south-east, a canvas tent, a chest and a cold fire ring beside it) with the beacon on the guide's camp: the first thing to do is the walk down the trail.
@@ -71,7 +71,7 @@ speech buttons (S7)**: `[R] Repetir`, `[S] Más despacio`, `[H] Ayuda`, `[N] No 
 `Escribir` (W or Tab) opens the text box, where Enter sends and Tab or Esc go back to the buttons; Esc cancels a turn that is "Thinking…", then closes the
 panel. After a spoken turn the line `Heard: «…» · Expected: «…»` stays under the conversation; when the NPC offers choices they are buttons too (keys 1 to 3).
 A mic check (`Say "hola"`, a level meter, what was heard) opens an interactive run (`--no-mic-check` skips it, `--mic-check` forces it). Her answers point the beacon at the named noun's nearest block (the arrow at the screen edge when it is off
-screen); "¿qué es esto?" names the block under the crosshair. **The shopkeeper and the villager are talked to the same way** (S6), and so are the fisher, the baker, the smith and the farmer (VILLAGE_PLAN V10 to V12): aim at any figure, `E: talk`; the panel's title is the NPC's name. Outside a lesson each shows the cards of the phrases its prompt practises (its `focus`, V12b): the fisher `¿Dónde está la panadería?` and `¿Dónde está la herrería?`, the baker `Quiero dos panes, por favor.`, `¿Cuánto cuesta?` and `¿Hay pan?` (the third collapses to a strip at 1280 x 720), the smith and the farmer `¿Cómo te llamas?` and `¿Qué haces?`; a turn is credited to the phrase it used there (`phrase quiero-dos-panes supported at baker`).
+screen); "¿qué es esto?" names the block under the crosshair. **The shopkeeper and the villager are talked to the same way** (S6), and so are the fisher, the baker, the smith and the farmer (village-plan V10 to V12): aim at any figure, `E: talk`; the panel's title is the NPC's name. Outside a lesson each shows the cards of the phrases its prompt practises (its `focus`, V12b): the fisher `¿Dónde está la panadería?` and `¿Dónde está la herrería?`, the baker `Quiero dos panes, por favor.`, `¿Cuánto cuesta?` and `¿Hay pan?` (the third collapses to a strip at 1280 x 720), the smith and the farmer `¿Cómo te llamas?` and `¿Qué haces?`; a turn is credited to the phrase it used there (`phrase quiero-dos-panes supported at baker`).
 
 **The camp objective (S4).** The checklist top right, `Campamento: madera 5/5 · frutas 3/3 · antorcha 1/1 · agua 0/1`, is completed by the
 game's events and the inventory, never by a language score: five trunks, three berries, the torch placed at the fire ring, and the water: the shopkeeper hands over an empty bottle (`la botella`), and holding the left button on the river with it in the
@@ -160,7 +160,7 @@ Everything is placed by `SceneBuilder` from `scene.json` and the seed's `WorldRn
 a test pins the village's and the camps' structure.
 
 **The figures.** The guide Luna (green jacket, yellow scarf, long hair, a pack), the shopkeeper (a white shirt with rolled sleeves, a leather apron, a beard and a
-baker's hat), the villager (a blue tunic and a straw hat), since VILLAGE_PLAN V05 the fisher Mar (a blue coat, tall boots, a knitted cap and a grey beard), the
+baker's hat), the villager (a blue tunic and a straw hat), since village-plan V05 the fisher Mar (a blue coat, tall boots, a knitted cap and a grey beard), the
 baker Luz (a rose dress with flour-white sleeves, a white apron and cap), the smith Domingo (a rust shirt, a long dark apron, a moustache) and the farmer León (a
 green shirt and the villager's straw hat in tan), and the player (a blue shirt and a backpack with a bedroll) are boxes of the atlas's cloth, skin and
 hair pictures with a drawn face on the front of the head, shaded by the same sun table as the blocks. They idle (a breath, swaying arms, a head that looks about);
@@ -170,7 +170,7 @@ the figure walking when you walk; first person has the arm instead.
 
 **The arm.** The first-person arm is a blocky forearm in the player's blue sleeve with a hand in the player's skin, drawn in 3D with the figures' cloth and skin
 pictures, no outline, tinted by the light where you stand (dimmer under cover, warm near a lantern or with a torch in hand). It holds what the hotbar has selected:
-a log for wood, a torch with its flame for a torch, a bottle, or a flat berry or loaf, and since VILLAGE_PLAN V05 a coin, an apple or the axe; it sways when you walk, chops while you gather and dips once when you place.
+a log for wood, a torch with its flame for a torch, a bottle, or a flat berry or loaf, and since village-plan V05 a coin, an apple or the axe; it sways when you walk, chops while you gather and dips once when you place.
 
 **The HUD.** The hotbar is a row of dark rounded slots with the item's pixel-art icon and the count; the selected one has a bright frame. At the workbench a panel at the
 right shows the recipe as icons: what it makes at the top and, under the arrow, each ingredient with `have/need` in green or red. The dialogue panel is a dark
@@ -207,7 +207,7 @@ dotnet run --project src/Vocaterra.Game -- --load /tmp/s10.save --seed 7
 **Checks, the session log and the report (S11).** `--check pre|post|recall` runs the check battery outside the world, on its own screen (the
 items are `content/game-v1/game/checks.json`): items that play a Spanish line and offer three meanings (keys **1**, **2**, **3**; **R**
 plays it again), and items that ask the learner to say a phrase in Spanish for an English situation (hold **V** to speak, **W** to type and
-**Enter** to send, **N** for "no sé"). S11 had ten; since VILLAGE_PLAN V07 a battery asks the items of the lessons its play session has unlocked and
+**Enter** to send, **N** for "no sé"). S11 had ten; since village-plan V07 a battery asks the items of the lessons its play session has unlocked and
 always those of the first three sessions (`coreSessions: 3`): 31 items up to session 3 (16 heard, 15 said; the pilot's battery), then eight more with each
 village lesson, 39 in session 4 to 79 in session 9, and all 87 of the bank in session 10. The order and the options' order come from the world seed and the kind, so a pre-check and a post-check
 hold the same items in other orders. **Esc** ends the battery (the rest is skipped). `pre` is followed by the world; `post` and `recall` end the
@@ -238,7 +238,7 @@ The report (`scripts/playtest-report.sh`, bash and Python 3's standard library, 
 
 ## The playtest (S12)
 
-`--playtest` is the profile for the playtests (the facilitator's script is [docs/game/PLAYTEST.md](PLAYTEST.md)): no debug overlay (F3 is off),
+`--playtest` is the profile for the playtests (the facilitator's script is [docs/game/playtest.md](playtest.md)): no debug overlay (F3 is off),
 the mic check on, the session log in its own folder under `~/.local/share/vocaterra/sessions/` (or `--session-dir`), the pre-check before the
 world (a fresh start) or the recall check (with `--load`), and `--greyscale` only when given (the A/B arm B; arm A is the default). Nothing in
 the profile blocks progress, and Esc always works. The run ends like this: the **post-check** starts by itself once the camp is complete and the
@@ -266,7 +266,7 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --playtest --seed 42 --ses
 
 **The build folder.** `scripts/playtest-build.sh <a new folder outside the repository>` publishes the game for linux-x64 as a self-contained
 folder (a tester needs no .NET install), copies the bundle with its speech WAVs, the pinned Vosk model with its manifest (copied from
-`VOCATERRA_MODELS_DIR`, after its checksums are checked), the tester's README (`scripts/playtest/README-tester.md`) and the launcher
+`VOCATERRA_MODELS_DIR`, after its checksums are checked), the tester's README (`scripts/playtest/tester-readme.md`) and the launcher
 (`scripts/playtest/playtest.sh`, which runs `--playtest` with the folder's own models). Then it checks the folder: no sherpa-onnx or ONNX Runtime native
 library, no espeak-ng, no sherpa model file, the Vosk model's checksums, every speech file the bundle's manifest lists (1 082 since V28; the check walks the folders); the build fails if one check does not pass. The
 sherpa-onnx native library is left out by the build property `VocaterraPlaytest=true` (in `src/Vocaterra.Game/Vocaterra.Game.csproj`:

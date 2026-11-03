@@ -10,7 +10,7 @@
 #
 # A file that is already present and matches its pin is kept, and its recorded retrieval date is kept too. A downloaded file whose hash
 # differs from the pin is deleted and the script stops: the kaikki.org URL is not versioned (the site replaces the file with every new
-# extraction), so a mismatch means upstream moved on. Re-pinning is a deliberate act described in docs/nlp/LEXICON.md; nothing is substituted
+# extraction), so a mismatch means upstream moved on. Re-pinning is a deliberate act described in docs/nlp/lexicon.md; nothing is substituted
 # silently. Downloaded files are data: the import tool reads them, nothing in them is ever executed.
 # Needs bash, python3, curl and sha256sum (or shasum).
 set -euo pipefail
@@ -103,7 +103,7 @@ for pin in "${pins[@]}"; do
   file="$dest/$name"
   retrieved="$(recorded_date "$id")"
   if [ -z "$sha" ]; then
-    fail "the pin for $id has no sha256 yet; see docs/nlp/LEXICON.md (re-pinning)"
+    fail "the pin for $id has no sha256 yet; see docs/nlp/lexicon.md (re-pinning)"
   fi
 
   rc=0
@@ -116,7 +116,7 @@ for pin in "${pins[@]}"; do
       status=1
       continue
     fi
-    fail "$id: $file does not match the pin; delete it to download again, or re-pin on purpose (docs/nlp/LEXICON.md)"
+    fail "$id: $file does not match the pin; delete it to download again, or re-pin on purpose (docs/nlp/lexicon.md)"
   else
     if [ "$check_only" -eq 1 ]; then
       echo "$id: missing ($file)"
@@ -130,7 +130,7 @@ for pin in "${pins[@]}"; do
     actual="$(sha256_of "$part")"
     if [ "$size" != "$bytes" ] || [ "$actual" != "$sha" ]; then
       rm -f "$part"
-      fail "$id: the download has $size bytes and sha256 $actual; the pin says $bytes bytes and $sha. The upstream file changed (kaikki.org replaces it with every extraction); the partial download was deleted. See docs/nlp/LEXICON.md (re-pinning)."
+      fail "$id: the download has $size bytes and sha256 $actual; the pin says $bytes bytes and $sha. The upstream file changed (kaikki.org replaces it with every extraction); the partial download was deleted. See docs/nlp/lexicon.md (re-pinning)."
     fi
     mv "$part" "$file"
     retrieved="$today"

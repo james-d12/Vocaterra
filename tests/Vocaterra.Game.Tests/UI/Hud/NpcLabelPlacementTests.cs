@@ -4,7 +4,7 @@ using Vocaterra.Game.UI.Hud;
 namespace Vocaterra.Game.Tests.UI.Hud;
 
 /// <summary>
-/// Where an NPC's name plate stands (<see cref="NpcLabelLayer.Place"/>). VILLAGE_PLAN V09's scripted runs found the farmer's plate, <c>Granjero</c>, pinned to the
+/// Where an NPC's name plate stands (<see cref="NpcLabelLayer.Place"/>). village-plan V09's scripted runs found the farmer's plate, <c>Granjero</c>, pinned to the
 /// window's left edge in r03, while the player stood at the villager facing south-south-east and the farmer was 70 degrees to the left: in front of the camera
 /// but out of the picture, and the clamp of X08 moved his plate inside the window. A plate wholly outside the canvas is now left out.
 /// </summary>

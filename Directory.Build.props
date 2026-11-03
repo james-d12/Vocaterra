@@ -43,7 +43,7 @@
   </PropertyGroup>
 
   <!-- Package metadata shared by the core's libraries. The version is 0.1.0; nothing is published (the game references the projects directly). The licence is Apache-2.0
-       (LICENSE and NOTICE at the repository root; docs/nlp/DECISIONS.md D3). The Wiktionary-derived lexicon data is CC BY-SA 4.0 and is not in the packages. -->
+       (LICENSE and NOTICE at the repository root; docs/nlp/decisions.md D3). The Wiktionary-derived lexicon data is CC BY-SA 4.0 and is not in the packages. -->
   <PropertyGroup Condition="'$(VocaterraCore)' == 'true'">
     <VersionPrefix>0.1.0</VersionPrefix>
     <Authors>james-d12</Authors>
@@ -74,7 +74,7 @@
   <ItemGroup Condition="'$(VocaterraCore)' == 'true' And $(MSBuildProjectDirectory.StartsWith('$(MSBuildThisFileDirectory)src$(MSBuildDirectorySeparatorChar)'))">
     <InternalsVisibleTo Include="$(MSBuildProjectName).Tests" />
     <!-- One README for every package, shipped at the root of each as README.md. -->
-    <None Include="$(MSBuildThisFileDirectory)docs/nlp/PACKAGE_README.md" Pack="true" PackagePath="README.md" />
+    <None Include="$(MSBuildThisFileDirectory)docs/nlp/package-readme.md" Pack="true" PackagePath="README.md" />
   </ItemGroup>
 
   <!-- The licence and the notice travel with every package that redistributes this code, the content tool's included (Apache-2.0,

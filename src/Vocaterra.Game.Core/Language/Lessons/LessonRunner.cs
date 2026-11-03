@@ -251,12 +251,12 @@ public sealed class LessonRunner
         return _session.Day >= lesson.Session && (lesson.After is null || IsDone(lesson.After));
     }
 
-    /// <summary>Whether the learner has begun a lesson or done it (VILLAGE_PLAN V20): free talk credits the phrases it teaches (<see cref="Credits"/>).</summary>
+    /// <summary>Whether the learner has begun a lesson or done it (village-plan V20): free talk credits the phrases it teaches (<see cref="Credits"/>).</summary>
     /// <param name="lessonId">The lesson's id.</param>
     public bool IsBegun(string lessonId) => StatusOf(lessonId) != LessonStatus.NotStarted || IsDone(lessonId);
 
     /// <summary>
-    /// Whether an NPC may show its support card for a phrase (VILLAGE_PLAN V20, handover 9.3 D (c)): a lesson that teaches the phrase is the current one (unlocked:
+    /// Whether an NPC may show its support card for a phrase (village-plan V20, handover 9.3 D (c)): a lesson that teaches the phrase is the current one (unlocked:
     /// its play session has come and the lesson before it is done), begun or done. A phrase no lesson teaches (the stall's <c>pedir-agua</c>) always may. Luz showed
     /// <c>Vendo madera.</c>, which session 10's lesson teaches, from her first talk in session 5, and León his A2 lines to an A1 learner.
     /// </summary>
@@ -268,7 +268,7 @@ public sealed class LessonRunner
     }
 
     /// <summary>
-    /// Whether free talk credits a phrase said at any NPC (VILLAGE_PLAN V20, handover 9.3 D (b)): a lesson the learner has begun or done teaches it. Before, free talk
+    /// Whether free talk credits a phrase said at any NPC (village-plan V20, handover 9.3 D (b)): a lesson the learner has begun or done teaches it. Before, free talk
     /// credited only the rows of the NPC's focus, so <c>Mañana compraré pan.</c> said to Luz after its lesson counted no use.
     /// </summary>
     /// <param name="phraseId">The phrase sheet's id.</param>
@@ -687,7 +687,7 @@ public sealed class LessonRunner
     }
 
     /// <summary>
-    /// Whether a lesson keeps an order back (VILLAGE_PLAN V13): an order that names the lesson that tells it (<see cref="ObjectiveSpec.Lesson"/>) is not delivered on walking up
+    /// Whether a lesson keeps an order back (village-plan V13): an order that names the lesson that tells it (<see cref="ObjectiveSpec.Lesson"/>) is not delivered on walking up
     /// while that lesson is under way before its step that waits for the delivery, or is about to start at this talk (an <c>autoStart</c> lesson available at the order's NPC,
     /// or one asked to be practised again). So the plan comes first even for a learner who carries the goods already (the water filled at the river in session 1, at the
     /// farmer in session 7). Once the lesson reaches that step, ends, or does not start at that NPC, walking up with the goods is enough again (D-game-8, D-game-9); every
@@ -1061,7 +1061,7 @@ public sealed class LessonRunner
         }
         else if (step.PointPlace is { } place)
         {
-            _session.LessonPointAtPlace(lesson.NpcOf(step), place); // or to a place of the scene, whose arrival (beacon_reached) the step may wait for (VILLAGE_PLAN V02)
+            _session.LessonPointAtPlace(lesson.NpcOf(step), place); // or to a place of the scene, whose arrival (beacon_reached) the step may wait for (village-plan V02)
         }
 
         _version++;

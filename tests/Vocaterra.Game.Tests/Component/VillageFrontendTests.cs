@@ -86,7 +86,7 @@ public sealed class VillageFrontendTests(ITestOutputHelper output)
 
     // ---- the figures ----
 
-    // The looks the game draws: the three NPCs of S15, the village's four of VILLAGE_PLAN V05 and the player.
+    // The looks the game draws: the three NPCs of S15, the village's four of village-plan V05 and the player.
     private static readonly string[] Looks = ["guide", "shopkeeper", "villager", "fisher", "baker", "smith", "farmer", NpcFigures.PlayerName];
 
     [Fact]
@@ -115,7 +115,7 @@ public sealed class VillageFrontendTests(ITestOutputHelper output)
     [Fact]
     public void TheVillagesFourFiguresAreDrawnByTheirOwnKeysAndNeverAsTheGreyStranger()
     {
-        // VILLAGE_PLAN V05: the fisher, the baker, the smith and the farmer (the figure keys their NPC files will name), each with its own clothes and face; an unknown
+        // village-plan V05: the fisher, the baker, the smith and the farmer (the figure keys their NPC files will name), each with its own clothes and face; an unknown
         // key is the plain grey figure, and none of the four is it.
         static (byte R, byte G, byte B) Body(string look) => NpcFigures.PartsOf(look)[2].Colour; // the body is the third part
         static BlockCell? Face(string look) => NpcFigures.PartsOf(look).First(static p => p.Special is not null && p.Group == FigureGroup.Head).Special;
@@ -365,7 +365,7 @@ public sealed class VillageFrontendTests(ITestOutputHelper output)
         Assert.Equal(new HeldChoice(HeldKind.Bottle, BlockCell.IconWaterBottle), HeldItems.For(false, ItemId.WaterBottle));
         Assert.Equal(new HeldChoice(HeldKind.Sprite, BlockCell.IconBerry), HeldItems.For(false, ItemId.Berry));
         Assert.Equal(new HeldChoice(HeldKind.Sprite, BlockCell.IconBread), HeldItems.For(false, ItemId.Bread));
-        Assert.Equal(new HeldChoice(HeldKind.Sprite, BlockCell.IconCoin), HeldItems.For(false, ItemId.Coin)); // VILLAGE_PLAN V05: their own pictures
+        Assert.Equal(new HeldChoice(HeldKind.Sprite, BlockCell.IconCoin), HeldItems.For(false, ItemId.Coin)); // village-plan V05: their own pictures
         Assert.Equal(new HeldChoice(HeldKind.Sprite, BlockCell.IconApple), HeldItems.For(false, ItemId.Apple));
         Assert.Equal(new HeldChoice(HeldKind.Sprite, BlockCell.IconAxe), HeldItems.For(false, ItemId.Axe));
         Assert.Equal(HeldKind.Torch, HeldItems.For(new ItemStack(ItemId.Torch, 1)).Kind);

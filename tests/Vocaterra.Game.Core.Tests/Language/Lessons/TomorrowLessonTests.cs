@@ -13,7 +13,7 @@ using Xunit.Abstractions;
 namespace Vocaterra.Game.Core.Tests.Language.Lessons;
 
 /// <summary>
-/// The lesson "Mañana en el pueblo" of session 9 (VILLAGE_PLAN V17, 3.5), an <c>a2</c> lesson and the series' only new tense: the simple future as the second way to say
+/// The lesson "Mañana en el pueblo" of session 9 (village-plan V17, 3.5), an <c>a2</c> lesson and the series' only new tense: the simple future as the second way to say
 /// tomorrow, against <c>ir a</c>. The baker Luz at the bakery (mañana compraré pan, and her tendré), the smith Domingo at the smithy (buscaré madera para Luz, a promise;
 /// iré al río, kept at once by the walk) and the fisher Mar at the river, who tells the day of tomorrow (Luz hará pan, Domingo trabajará, yo pescaré) and hears Luz's part
 /// retold. Every step that teaches the future declares <c>tense: fut</c> (V16): the near future and a present with a time word are credited with the step's note. No order

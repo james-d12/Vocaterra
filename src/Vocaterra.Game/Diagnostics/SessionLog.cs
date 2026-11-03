@@ -116,7 +116,7 @@ public sealed class SessionLog : IDisposable, ICheckLog
     /// <param name="bundleHash">The bundle's content hash.</param>
     /// <param name="storedTime">The stored time at the start (Unix seconds).</param>
     /// <param name="profile">The profile flags.</param>
-    /// <param name="locale">The support-language locale (<c>en</c>; CONTENT_PLAN C03), or <see langword="null"/> to leave it out.</param>
+    /// <param name="locale">The support-language locale (<c>en</c>; content-plan C03), or <see langword="null"/> to leave it out.</param>
     /// <param name="localeBundle">The locale bundle's hash, so a playtest can be reproduced (the locale is outside the game bundle's hash).</param>
     /// <param name="day">The day of the village (V25), written as <c>day</c>; <see langword="null"/>, and left out, when not given. <c>session</c> is the sitting.</param>
     /// <param name="skippedTo">The play session a test run was skipped to (<c>--skip-to-session</c>, V12c), written as <c>skipped_to</c>; <see langword="null"/>, and left out, for a learner's own game.</param>

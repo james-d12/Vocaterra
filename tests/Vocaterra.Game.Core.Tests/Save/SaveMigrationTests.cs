@@ -39,7 +39,7 @@ public sealed class SaveMigrationTests
 
     private static SaveDocument FromOtherBundle(SaveDocument document) => document with { BundleHash = OtherBundle };
 
-    // The camp checklist's steps of a save, the objective the HUD shows: a save keys every counted step, and since VILLAGE_PLAN V10 the fisher's order has one too.
+    // The camp checklist's steps of a save, the objective the HUD shows: a save keys every counted step, and since village-plan V10 the fisher's order has one too.
     private static ObjectiveSave[] CampSteps(SaveDocument document) => [.. document.Objective.Where(static o => o.Key.StartsWith("camp.", StringComparison.Ordinal))];
 
     [Fact]

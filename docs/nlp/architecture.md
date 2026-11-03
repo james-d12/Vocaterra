@@ -1,7 +1,7 @@
 # Architecture of the core
 
 The core's stages and how they depend on each other, how a host uses it, and where its files are. What each stage does with a real
-utterance is in [PIPELINE.md](PIPELINE.md).
+utterance is in [pipeline.md](pipeline.md).
 
 ## The stages
 
@@ -49,14 +49,14 @@ flowchart TD
 The language lives outside the engine: `Vocaterra.Nlp.Es` references `Vocaterra.Nlp` and a host registers it (`SpanishContent.Load`, `LanguagePacks.Default.WithSpanish()`); the engine cannot reference it (ADR 0012).
 The dependency direction is `Core` <- stage libraries <- `Content` <- `Pipeline` <- tools, with no cycles; only `Pronunciation` and
 `Response` reference a sibling (see [ADR 0003](adr/0003-engine-agnostic-core.md)). For what each stage does with a real
-utterance, read [docs/nlp/PIPELINE.md](PIPELINE.md).
+utterance, read [docs/nlp/pipeline.md](pipeline.md).
 
 The same system is also drawn as a one-page draw.io diagram in
 [docs/nlp/diagrams/system-overview.drawio](diagrams/system-overview.drawio); [docs/nlp/diagrams/README.md](diagrams/README.md) explains how to open it.
 
 ## Using the core from a host
 
-A host calls the core as [docs/nlp/API.md](API.md) lists: load a bundle, build the services, evaluate an utterance, plan a response, replay
+A host calls the core as [docs/nlp/api.md](api.md) lists: load a bundle, build the services, evaluate an utterance, plan a response, replay
 a log. The game in this repository (`Vocaterra.Game.Core`, `Vocaterra.Game`, `Vocaterra.Host`) is a host: it references the core's projects directly, so there is no pack step and no feed.
 Nothing is published. `ContentBuilder pack <bundleDir> <out.zip>` archives a bundle with a `.sha256` sidecar holding its bundle hash, and
 `verify-pack <zip>` checks the archive; hosts ship the extracted folder, since the loader reads a directory.
@@ -91,7 +91,7 @@ Nothing is published. `ContentBuilder pack <bundleDir> <out.zip>` archives a bun
 | `models/` | `manifest.json` and a README are committed; the model files are fetched and gitignored |
 | `scripts/` | `fetch-models.sh`, `fetch-lexicon-sources.sh`, `license-scan.sh` and its allowlist and overrides ([scripts/README.md](../../scripts/README.md)) |
 | `.github/workflows/ci.yml` | CI: the `build-and-test` and `languagetool` jobs, on Linux x64 |
-| `docs/nlp/` | [API.md](API.md), [PIPELINE.md](PIPELINE.md), [REPLAY.md](REPLAY.md), [LEXICON.md](LEXICON.md), [CLI_EXAMPLES.md](CLI_EXAMPLES.md) and the architecture decision records in `docs/nlp/adr/` |
+| `docs/nlp/` | [api.md](api.md), [pipeline.md](pipeline.md), [replay.md](replay.md), [lexicon.md](lexicon.md), [cli-examples.md](cli-examples.md) and the architecture decision records in `docs/nlp/adr/` |
 | `docs/nlp/diagrams/` | The draw.io system overview and how to open it ([README](diagrams/README.md)) |
-| `docs/archive/nlp/history/` | [HIGH_LEVEL_DOCS.md](../archive/nlp/history/HIGH_LEVEL_DOCS.md), the original design note (2026-10-18), kept for history |
-| `docs/nlp/IMPLEMENTATION_PLAN.md` | The milestone plan, the findings log and the split roadmap. Host designs, such as the game's, are not in this document |
+| `docs/archive/nlp/history/` | [high-level-docs.md](../archive/nlp/history/high-level-docs.md), the original design note (2026-10-18), kept for history |
+| `docs/nlp/implementation-plan.md` | The milestone plan, the findings log and the split roadmap. Host designs, such as the game's, are not in this document |

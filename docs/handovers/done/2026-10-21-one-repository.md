@@ -1,6 +1,6 @@
 # Handover: the game before the one repository, and the prototype brief (2026-10-21)
 
-> Moved on 2026-11-03 from `docs/game/IMPLEMENTATION_PLAN.md` section 4, where it stood above the milestone table; the text is unchanged. Historical: verify any state against git before acting on it.
+> Moved on 2026-11-03 from `docs/game/implementation-plan.md` section 4, where it stood above the milestone table; the text is unchanged. Historical: verify any state against git before acting on it.
 
 ## Handover (2026-10-21, end of session; the owner plans to merge the game and the core into one repository)
 
@@ -37,7 +37,7 @@ to do with each:
    isolation only if packages remain, the `VOCATERRA_MODELS_DIR` export, the content validation, and the core's own checks (licence scan,
    goldens).
 4. *Two orchestrators and their files*: `.claude/agents/orchestrator.md` (game) and the core's role file become one; `docs/game/CORE_REQUESTS.md`
-   rows that are still open become plan items; the two `IMPLEMENTATION_PLAN.md` files and the two `DECISIONS.md` files merge (the core's
+   rows that are still open become plan items; the two `implementation-plan.md` files and the two `decisions.md` files merge (the core's
    D1 to D13 and the game's D-game-1 to D-game-7; ids stay as they are).
 5. *Determinism and replay*: unchanged; `HostDigest.Of` and the game's host slots stay as they are.
 6. *Bundles*: `content/game-v1` (the game's) and the core's sample `content/v1` both stay; D-game-4 (diverge) still holds.
@@ -48,10 +48,10 @@ to do with each:
 
 **Now (2026-10-21, night): the S series is running** on `feature/prototype` (owner: through S12 overnight, push after each merge; the Opus
 review of the phrase sheet and the content hash step approved; the owner's own steps, listening to the S9 WAVs and following the S12
-checklist, wait for the owner). Design per milestone: section 4.4 and `docs/game/SCENARIO_PLAN.md`.
+checklist, wait for the owner). Design per milestone: section 4.4 and `docs/game/scenario-plan.md`.
 
 **Previously (2026-10-21, evening): the Prototype Design Brief.** The owner's brief (`docs/game/design/sources/Vocaterra_Prototype_Design_Brief.docx`, v1.2) replaces the
 Terraria design: a 3D first-person voxel slice on MonoGame (forest, path, village stall, river; two or three NPCs; five phrases; speech UX and
-learning checks). The plan for it is `docs/game/SCENARIO_PLAN.md` (milestones S0 to S12, decisions D-game-8 to D-game-12, D-game-6 amended). The
+learning checks). The plan for it is `docs/game/scenario-plan.md` (milestones S0 to S12, decisions D-game-8 to D-game-12, D-game-6 amended). The
 orchestrator runs **S0** first: it folds that document into this section, records the decisions, and marks P8, P9, G3 and G4 superseded.
-Until S0 is done, `docs/game/SCENARIO_PLAN.md` is the plan of record for the scenario.
+Until S0 is done, `docs/game/scenario-plan.md` is the plan of record for the scenario.

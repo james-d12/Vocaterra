@@ -104,12 +104,12 @@ public sealed class SceneLayout
     public UndergrowthSpec Undergrowth { get; }
 
     /// <summary>
-    /// The beacon's words for the named places (CONTENT_PLAN C05): a site's, a point's or a named prop's <c>label</c> (<c>river</c> shows <c>río</c>). A place
+    /// The beacon's words for the named places (content-plan C05): a site's, a point's or a named prop's <c>label</c> (<c>river</c> shows <c>río</c>). A place
     /// with none shows its own name.
     /// </summary>
     public IReadOnlyDictionary<string, string> Labels { get; init; } = new Dictionary<string, string>(StringComparer.Ordinal);
 
-    /// <summary>The names of the points a scene built from the layout has (VILLAGE_PLAN V02: the places the data may send the beacon to): every site, every point and every named prop.</summary>
+    /// <summary>The names of the points a scene built from the layout has (village-plan V02: the places the data may send the beacon to): every site, every point and every named prop.</summary>
     public IEnumerable<string> PointNames =>
         Sites.Select(static site => site.Name).Concat(Points.Select(static point => point.Name)).Concat(Props.Select(static prop => prop.Name).OfType<string>());
 

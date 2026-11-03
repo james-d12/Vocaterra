@@ -7,7 +7,7 @@ using Vocaterra.Game.Core.Tests.TestSupport;
 namespace Vocaterra.Game.Core.Tests.Language.Checks;
 
 /// <summary>
-/// The check battery's items (<c>game/checks.json</c>, S11): what is in the bundle, that a bad item is refused when it is read, and since VILLAGE_PLAN V07 the
+/// The check battery's items (<c>game/checks.json</c>, S11): what is in the bundle, that a bad item is refused when it is read, and since village-plan V07 the
 /// lesson each belongs to.
 /// </summary>
 public sealed class CheckBankTests
@@ -28,7 +28,7 @@ public sealed class CheckBankTests
     [Fact]
     public void TheBundleHoldsFortyThreeComprehensionItemsAndFortyFourProductionItems()
     {
-        // The pilot's 31 (sixteen heard, fifteen said) and, since VILLAGE_PLAN V10, El pueblo's eight (four of each), since V11 Números y pan's eight, since V12 Gente
+        // The pilot's 31 (sixteen heard, fifteen said) and, since village-plan V10, El pueblo's eight (four of each), since V11 Números y pan's eight, since V12 Gente
         // del pueblo's eight, since V13 ¿Cómo es?'s eight, since V14 Ayer en el pueblo's eight, since V17 Mañana en el pueblo's eight (four of
         // each) and since V15 El mercado's eight (three heard, five said).
         var bank = Bank;
@@ -58,7 +58,7 @@ public sealed class CheckBankTests
     [Fact]
     public void EveryItemBelongsToALessonOrIsOneOfTheFreeRunsEight()
     {
-        // VILLAGE_PLAN V07: read from each item's phrase and the lessons' steps. Eight belong to no lesson: the stall's exchange and the villager's directions of the
+        // village-plan V07: read from each item's phrase and the lessons' steps. Eight belong to no lesson: the stall's exchange and the villager's directions of the
         // first session's free run (que-necesitas, quieres-pan, pedir-agua, no-gracias, donde-esta-el-rio), which no lesson's step practises.
         var bank = RouteScene.DataOf(TestGame.Bundle).Checks;
         Assert.Equal(3, bank.CoreSessions);
@@ -199,7 +199,7 @@ public sealed class CheckBankTests
         Assert.Empty(Problems(Battery(Comprehension, Production)));
     }
 
-    // The references of the items are checked against the other files by the validator (CONTENT_PLAN C02), as the game's load does.
+    // The references of the items are checked against the other files by the validator (content-plan C02), as the game's load does.
     // The shipped battery's locale strings are orphans once a fixture replaces the battery, so those are left out.
     private static IReadOnlyList<string> Problems(string json) =>
         GameDataValidator.Validate(TestGame.Data.WithChecks(Parse(json))).Where(static p => !p.EndsWith("(an orphan).", StringComparison.Ordinal)).ToList();

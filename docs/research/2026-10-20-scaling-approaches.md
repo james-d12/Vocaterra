@@ -27,7 +27,7 @@ stack**. The first part is good and cheap to keep:
   is the right waist for the system, and it does not care what produces it.
 - **Determinism primitives and replay.** Seeded RNG, stored timestamps, canonical JSON and SHA-256 pins are small and done. More
   important, the replay envelope already records the outputs of the model-backed stages (`asr`, `posteriors`), so everything after
-  recognition is a pure function of recorded inputs (`docs/REPLAY.md`). That is exactly the hook that makes it safe to put *more*
+  recognition is a pure function of recorded inputs (`docs/replay.md`). That is exactly the hook that makes it safe to put *more*
   models, even non-deterministic ones, in front of the verdict: record their output and replay it.
 - **Content bundle with provenance.** `provenance.json` already has `generatedBy`, `approvedBy` and `approvedOn` per file, and the
   loader enforces the `wiktionary-import` marking. The Freeze pattern has its data model; it only lacks a generator.
@@ -43,11 +43,11 @@ stack**. The first part is good and cheap to keep:
 
 | Strain | Evidence (repository) |
 | --- | --- |
-| The analyzer is not part-of-speech aware, and vocabulary growth multiplies the damage | After M17a, forms with more than one reading rose from 89 to 7 216 (22 % of forms); 339 of 1 583 usable nouns (21 %) are also verb forms; `ayer compré un libro` yields a false `conj.tense` (`libro` read as `librar`) and `cuánto cuesta la espada` a false `gender.agree`; four more analyzer bugs surfaced in the first run on the new words (`LEXICON.md`, findings log) |
+| The analyzer is not part-of-speech aware, and vocabulary growth multiplies the damage | After M17a, forms with more than one reading rose from 89 to 7 216 (22 % of forms); 339 of 1 583 usable nouns (21 %) are also verb forms; `ayer compré un libro` yields a false `conj.tense` (`libro` read as `librar`) and `cuánto cuesta la espada` a false `gender.agree`; four more analyzer bugs surfaced in the first run on the new words (`lexicon.md`, findings log) |
 | Every error type is a hand-written check | `AgreementChecker.cs` is 475 lines of linear scans; `ser_estar` is decided by a list of 23 adjectives, `conj.tense` by three past adverbs (`AnalysisTables.cs`); subjunctive, por/para and pronoun placement are still open questions in the design |
 | Every intent, grammar and line is hand-authored | Six intents, 20 slot grammars, eight keyword rules, 31 examples, one NPC, 14 prompts; `ayer tengo dos espadas` is not understood because no grammar allows a leading adverb (CLI-examples review); M17b, ten intents and two NPCs, is sized L |
 | The fuzz oracles check agreement between two hand-written models, not Spanish | `SentenceRealizer` "is a model of the analyzer, so the oracles are an agreement check between two implementations" (fuzz README); homographs are skipped and counted rather than tested, so a linguistic mistake both models share is invisible |
-| A lexicon used as the analyzer costs run time too | 3 000 lemmas became 41 078 entries; bundle load went from 8 ms to 217–267 ms; 5 000 lemmas failed the 300 ms gate (`LEXICON.md`) |
+| A lexicon used as the analyzer costs run time too | 3 000 lemmas became 41 078 entries; bundle load went from 8 ms to 217–267 ms; 5 000 lemmas failed the 300 ms gate (`lexicon.md`) |
 | The model-backed half mostly does not run yet | The phoneme model has no ONNX export, so no `pron.*` tag can fire outside tests; Parakeet is unbenchmarked; Kokoro is blocked by GPL espeak-ng inside sherpa-onnx (ADR 0007); the golden learner set holds three synthetic entries; there is no microphone adapter and no engine (README, Known gaps) |
 
 Code size makes the split visible. Of about 21 400 lines in `src/`, the language-understanding code in `Vocaterra.Nlp.Language` is about 5 900
@@ -218,7 +218,7 @@ way. A training step then turns the approved examples into an ONNX classifier pi
 | Model | Licence | Size | Native Spanish WER | CPU, 3 s clip | Biasing | .NET route |
 | --- | --- | --- | --- | --- | --- | --- |
 | Vosk small es 0.42 (current) | Apache-2.0 [54] | 39 MB [54] | CV 16.0, MLS 11.2 [54] | fast, streaming; HLD target under 150 ms after key release (unmeasured) | runtime grammar on small models [55] | current |
-| Parakeet TDT 0.6B v3 (pinned) | CC-BY-4.0 [56] | 0.6B; int8 about 670 MB (TOOLS.md) | FLEURS 3.45, MLS 4.39 [56] | about 1.2 s: RTF 0.325 with 2 threads, CPU unnamed [57] | sherpa-onnx hotwords need a transducer and modified beam search [65]; with Parakeet v3 **unverified** | sherpa-onnx; Whisper.net's new Parakeet runtime [58] |
+| Parakeet TDT 0.6B v3 (pinned) | CC-BY-4.0 [56] | 0.6B; int8 about 670 MB (tools.md) | FLEURS 3.45, MLS 4.39 [56] | about 1.2 s: RTF 0.325 with 2 threads, CPU unnamed [57] | sherpa-onnx hotwords need a transducer and modified beam search [65]; with Parakeet v3 **unverified** | sherpa-onnx; Whisper.net's new Parakeet runtime [58] |
 | Whisper small (whisper.cpp) | MIT [59] | 466 MiB [59] | FLEURS 5.6 [61] | seconds: always encodes a 30 s window (est.) | GBNF grammar, prompt [60] | Whisper.net [58] |
 | Whisper large-v3 | MIT | 2.9 GiB [59] | FLEURS about 3 | too slow for min-spec (est.) | same | same |
 | Canary-180M-flash | CC-BY-4.0 [62] | 182M [62] | MLS 3.17 [62] | under Parakeet (est.) | – | sherpa-onnx (package **unverified**) |

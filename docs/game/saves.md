@@ -25,7 +25,7 @@ updated. Now a `--load` of a save made from another bundle **migrates** it (`Sav
 - **Told and logged:** the toast "The game was updated. Your progress was kept; N old records no longer in the game were dropped.", the console lines
   `migrate: ...` (the areas, then each dropped id), and a `save_migration` line in the session log. `VoxelSession.Migration` holds the `SaveMigrationReport`.
 - **Strict mode.** `--strict-save` refuses a save of another bundle with the old message plus the reason; **`--playtest` implies it** (a playtest's recall
-  session needs the bundle frozen between the sessions, D-game-10; see `docs/game/PLAYTEST.md`). The library's `SaveGame.Load/Check/Restore` take
+  session needs the bundle frozen between the sessions, D-game-10; see `docs/game/playtest.md`). The library's `SaveGame.Load/Check/Restore` take
   `migrate` (default off: strict), and the front-end passes `!StrictSave`.
 
 ```bash
@@ -71,7 +71,7 @@ The game saves itself at its safe points, and a crash leaves a report instead of
 Then the handler prints both paths (`crash: report written to ...`, `crash: last-chance save written to ...`) and the process exits with code 1. An unobserved task
 exception writes a report and no save, and the game goes on. The handler never throws: a folder that cannot be made, or a read that fails, is said on the console.
 
-`scripts/playtest-report.sh` lists the crash reports with the F8 reports (kind `Crash`). For the facilitator, see `docs/game/PLAYTEST.md` section 10.
+`scripts/playtest-report.sh` lists the crash reports with the F8 reports (kind `Crash`). For the facilitator, see `docs/game/playtest.md` section 10.
 
 `--debug-crash-after <tick>` is a **test-only** hook (not in `--help`): the game throws on the game loop once the simulation reaches that tick, so the crash handler
 can be seen working. Nothing in a playtest uses it.

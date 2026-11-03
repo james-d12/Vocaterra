@@ -17,7 +17,7 @@ using Vocaterra.Nlp.Response.Templates;
 namespace Vocaterra.Game.Core.Content;
 
 /// <summary>
-/// The checks between the game's content files (CONTENT_PLAN 3.7, C02): what no single loader can see, because it needs another file. Every problem is
+/// The checks between the game's content files (content-plan 3.7, C02): what no single loader can see, because it needs another file. Every problem is
 /// reported, not only the first, each naming the file and the id at fault, so one run of the host's <c>--validate-content</c> lists all there is to fix.
 /// </summary>
 /// <remarks>
@@ -30,11 +30,11 @@ namespace Vocaterra.Game.Core.Content;
 /// bundle prompt on a phrase the learner says;</item>
 /// <item>the target-language words (C05): the river is a catalogue noun, the near future's verb is in the lexicon, and the greeting is a phrase of the
 /// sheet;</item>
-/// <item>the NPCs (C08, schema 2 since VILLAGE_PLAN V01): each is an agent of the bundle; its focus, its prompts by state and its review prompt are prompts of
+/// <item>the NPCs (C08, schema 2 since village-plan V01): each is an agent of the bundle; its focus, its prompts by state and its review prompt are prompts of
 /// that agent, the states it names are the agent's, and its initial state has a prompt; its opening event is one a state of the agent takes; it has a voice
 /// with a name; its key words are catalogue nouns; no two share a pool prefix;</item>
 /// <item>the scene: every NPC it places is an agent the game drives, and every agent is placed once; every NPC a lesson is said or waits at is placed;</item>
-/// <item>the host actions (VILLAGE_PLAN V02, V03): every place a host event (<c>point_at_place</c>) or a lesson's <c>do</c> step (<c>pointPlace</c>) sends the beacon
+/// <item>the host actions (village-plan V02, V03): every place a host event (<c>point_at_place</c>) or a lesson's <c>do</c> step (<c>pointPlace</c>) sends the beacon
 /// to is a point of the scene; an NPC whose directions name the place of the learner's line (<c>point_at_slot</c>) has an agent that can say it does not know one
 /// (<c>&lt;npc&gt;.unknown_place</c>), an NPC that sells has one that can say the coins are too few (<c>&lt;npc&gt;.cant_pay</c>) and one that can say it sells another item (V15,
 /// <c>&lt;npc&gt;.wont_sell</c>), and an NPC that buys (V15) one that can
@@ -43,7 +43,7 @@ namespace Vocaterra.Game.Core.Content;
 /// (<c>&lt;npc&gt;.none_offered</c>);</item>
 /// <item>the orders (V03): the NPC an order is brought to is one of the NPCs, and every state of its agent takes its thanks (<c>&lt;npc&gt;.delivered</c>), so the
 /// goods are never brought in vain; the lesson an order names as the one that tells it (V13) is a lesson with a <c>do</c> step that waits for that delivery;</item>
-/// <item>the lessons' levels (VILLAGE_PLAN 3.9, V08, D-game-22 (b)): the Spanish a lesson teaches and says (its phrases, the lines its steps name, the text of
+/// <item>the lessons' levels (village-plan 3.9, V08, D-game-22 (b)): the Spanish a lesson teaches and says (its phrases, the lines its steps name, the text of
 /// the prompts its turns are evaluated at) has no lemma above its level, <c>a1</c> or <c>a2</c>, in the bundle's cumulative CEFR lists (<c>cefr/a1.txt</c>,
 /// <c>cefr/a2.txt</c>), and its phrases' variants none above the bundle's ceiling (<see cref="LessonLevels.Ceiling"/>), lemmatized by the core's
 /// <see cref="CefrChecker"/> as the content lint does; and the tenses its verbs and steps name are its level's (<see cref="LessonLevels.TensesAt"/>: no
@@ -397,7 +397,7 @@ public static class GameDataValidator
         }
     }
 
-    // VILLAGE_PLAN 3.9, V08 (D-game-22 (b)): the bundle's ceiling is A2 (the gate's lint), and each lesson promises its own level. The lists hold lemmas, so a
+    // village-plan 3.9, V08 (D-game-22 (b)): the bundle's ceiling is A2 (the gate's lint), and each lesson promises its own level. The lists hold lemmas, so a
     // form's tense is invisible to them: the tenses the lesson's verbs and steps name are checked against the level too.
     private static void CheckLessonLevels(GameData data, List<string> problems)
     {
@@ -553,7 +553,7 @@ public static class GameDataValidator
         data.Bundle.Agents.TryGetValue(npc, out var machine)
         && machine.Definition.States.SelectMany(static state => state.Transitions).Any(t => string.Equals(t.OnHostEvent, hostEvent, StringComparison.Ordinal));
 
-    // Schema 2 (VILLAGE_PLAN V01): what the NPC file says the NPC does. Before it, an NPC the code did not know waited on the villager's prompt and opened with his
+    // Schema 2 (village-plan V01): what the NPC file says the NPC does. Before it, an NPC the code did not know waited on the villager's prompt and opened with his
     // greeting, with no error; now a missing or unknown prompt, an opening event no state takes and a voice with no name are problems.
     private static void CheckNpcBehaviour(GameData data, NpcEntry npc, string file, List<string> problems)
     {

@@ -6,8 +6,8 @@
 ## From the orchestrator
 
 D14 Phase A on `feature/language-packs` is complete (2026-10-27): M31, M52, G8, M32 to M35 and M53 are gated and pushed, awaiting the
-owner's pull request into `main`. Proposed next, not started (owner to choose the order): R16 phase 2 (`docs/archive/game/GAME_PROJECTS_LAYOUT.md`) and
-the C series (`docs/game/CONTENT_PLAN.md`; it edits `content/game-v1`, so it runs after Phase A). Its
+owner's pull request into `main`. Proposed next, not started (owner to choose the order): R16 phase 2 (`docs/archive/game/game-projects-layout.md`) and
+the C series (`docs/game/content-plan.md`; it edits `content/game-v1`, so it runs after Phase A). Its
 state, the gate's one known failure and the rules learnt so far are in
 `docs/research/2026-10-26-engine-and-language-packs.md` §7. Read that first. The X-series handover below is still valid for
 `feature/experiment`, which is paused.
@@ -33,7 +33,7 @@ merges it into `main` by pull request. The gate needs a clean checkout of that b
 | 3 | M35 | done | `dd8eaa7` | `FuzzLanguage` harness; toy `xx` pack in the Fuzzing project; three hidden Spanish dependencies fixed |
 | 4 | M53 | done | `65de544` | `src/Vocaterra.Nlp.Es` and `tests/Vocaterra.Nlp.Es.Tests`; hosts register the pack (`SpanishContent`) |
 
-The details and numbers of M31 and M52 are in `docs/nlp/IMPLEMENTATION_PLAN.md` §5b.
+The details and numbers of M31 and M52 are in `docs/nlp/implementation-plan.md` §5b.
 
 **Gate state.** The last gate (M52) gave 5,258 passed, 3 skipped and 1 failed, with build, format, content, grammar and licence scan clean.
 The one failure is `Vocaterra.Game.Core.Tests.SpokenModelTests.AMistakeInASpokenLineIsHeardAsSaidAndTheCoreCorrectsIt`. It also fails on

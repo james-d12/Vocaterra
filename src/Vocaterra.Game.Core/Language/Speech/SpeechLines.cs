@@ -9,7 +9,7 @@ using Vocaterra.Nlp.Response.Templates;
 namespace Vocaterra.Game.Core.Language.Speech;
 
 /// <summary>
-/// The speakers of the pre-rendered NPC voices (S9): a speaker is an NPC's id, and the renderer records each one with the voice of its NPC file (VILLAGE_PLAN V01);
+/// The speakers of the pre-rendered NPC voices (S9): a speaker is an NPC's id, and the renderer records each one with the voice of its NPC file (village-plan V01);
 /// the game never chooses a Kokoro speaker.
 /// </summary>
 public static class SpeechSpeakers
@@ -18,7 +18,7 @@ public static class SpeechSpeakers
     public const string Guide = "guide";
 
     /// <summary>
-    /// The speaker of a dialogue pool, from the NPC ids (VILLAGE_PLAN V01): <c>&lt;id&gt;_*</c> and <c>guide.lesson.&lt;id&gt;.*</c> belong to the NPC <c>&lt;id&gt;</c>
+    /// The speaker of a dialogue pool, from the NPC ids (village-plan V01): <c>&lt;id&gt;_*</c> and <c>guide.lesson.&lt;id&gt;.*</c> belong to the NPC <c>&lt;id&gt;</c>
     /// (or to the NPC whose file names that <c>poolPrefix</c>: the shopkeeper's pools are <c>shop_*</c> and <c>guide.lesson.shop.*</c>), and every other pool is the
     /// guide's voice.
     /// </summary>

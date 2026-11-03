@@ -1,7 +1,7 @@
 namespace Vocaterra.Game.Core.Input;
 
 /// <summary>
-/// The keys of the world's commands by name (CONTENT_PLAN 3.2, C04): <see cref="KeyBindings"/> binds them, and the support language names them with
+/// The keys of the world's commands by name (content-plan 3.2, C04): <see cref="KeyBindings"/> binds them, and the support language names them with
 /// <c>{key:&lt;command&gt;}</c> (<c>Hold {key:listen} to speak</c>), spelled with the locale's <c>key.&lt;GameKey&gt;</c>, so a text never names a key the
 /// bindings do not use. The keys of a screen's own controls (the dialogue panel's Enter, the book's Tab) are fixed in that screen and named in its text.
 /// </summary>

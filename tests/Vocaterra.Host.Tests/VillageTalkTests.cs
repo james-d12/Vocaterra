@@ -10,7 +10,7 @@ using Vocaterra.Nlp.Language.Normalization;
 namespace Vocaterra.Host.Tests;
 
 /// <summary>
-/// The village's talk on the host's path (<c>--transcript … --prompt …</c>, VILLAGE_PLAN V14): a statement at the smith's open prompt, <c>tener que</c> against
+/// The village's talk on the host's path (<c>--transcript … --prompt …</c>, village-plan V14): a statement at the smith's open prompt, <c>tener que</c> against
 /// <c>tener</c> with a noun, and the listener's name said as a vocative, which the host reads as the game does (<see cref="Vocative"/>); and since V17 a plan at the
 /// baker's open prompt, and the simple future with the later markers at the steps of Mañana en el pueblo.
 /// </summary>

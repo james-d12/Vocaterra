@@ -41,7 +41,7 @@ public sealed class VillageArtTests
     [Fact]
     public void TheVillagesFourFacesAreDrawnAndDifferFromEachOtherAndFromTheFirstFour()
     {
-        // VILLAGE_PLAN V05: the fisher, the baker (the one woman of the four, with hair down beside her cheeks), the smith and the farmer.
+        // village-plan V05: the fisher, the baker (the one woman of the four, with hair down beside her cheeks), the smith and the farmer.
         var faces = new[] { BlockCell.FaceGuide, BlockCell.FaceShopkeeper, BlockCell.FaceVillager, BlockCell.FacePlayer, BlockCell.FaceFisher, BlockCell.FaceBaker, BlockCell.FaceSmith, BlockCell.FaceFarmer };
         var pictures = faces.Select(static f => Convert.ToHexString(BlockArt.Pixels(f))).ToList();
         Assert.Equal(faces.Length, pictures.Distinct().Count());

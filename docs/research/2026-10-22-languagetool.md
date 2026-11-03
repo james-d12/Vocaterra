@@ -117,7 +117,7 @@ against the report's 9 on a 6.9 snapshot; it still misses `tú habla`, `las casa
 ## 3. Constraints that shape the design
 
 - **Licence.** LanguageTool and its Spanish dictionary are LGPL-2.1 [2][3]. D10's recommendation (allow LGPL/GPL only as a separate process at
-  development time, never linked or shipped) fits exactly; D10 is still marked open in `docs/nlp/DECISIONS.md`, and M22 already assumes it. A C#
+  development time, never linked or shipped) fits exactly; D10 is still marked open in `docs/nlp/decisions.md`, and M22 already assumes it. A C#
   HTTP client has no LanguageTool code in it, so `scripts/license-scan.sh` (NuGet only, copyleft refused) stays clean and needs no new package
   (`System.Net.Http`). The JRE is GPLv2 with Classpath Exception [4]: a tool we download, not ship. Add both to a `NOTICE` development-tools note.
 - **Determinism (plan section 3, D9).** Nothing in the evaluation path may depend on it. A network oracle at gate time would break reproducibility,
@@ -211,7 +211,7 @@ sampler turns out to be fiddly). Depends on M27a (done) and D10. Replaces the La
 COWS-L2H sample.
 - Scope: `vocaterra-content grammar` as in section 4 (`LanguageToolClient` in ContentBuilder, bundle string extraction, `TemplateEngine`
   sampling, `--strings` JSONL input, cache, waivers, rule-to-tag map, lint-style and `--json` output, exit codes 0/1/2/3); `scripts/fetch-tools.sh`,
-  `tools/manifest.json`, `scripts/languagetool.sh`; docs (`docs/nlp/TOOLS.md` section, a `NOTICE` development-tools line, `CONTRIBUTING.md` step);
+  `tools/manifest.json`, `scripts/languagetool.sh`; docs (`docs/nlp/tools.md` section, a `NOTICE` development-tools line, `contributing.md` step);
   run it on `content/v1`, commit `grammar-cache.json` and the waivers with a reason each.
 - Deliverables: the command with unit tests that use a **fake HTTP server** (a canned response; the tests never need Java, so `dotnet test` stays
   unchanged); the cache and waivers for the sample bundle; the item-2 and item-3 fixes via the bundle's re-hash procedure.
@@ -244,5 +244,5 @@ the content gate in `scripts/merge-gate.sh` and to the D-game-12 checklist (befo
 5. LanguageTool HTTP API (`/v2/check` parameters, annotated text): https://languagetool.org/http-api/
 6. `docs/research/2026-10-20-scaling-approaches.md` section 3.2 (the 9-of-20 experiment) and its sources 24 to 28.
 7. LanguageTool public API and its limits: https://dev.languagetool.org/public-http-api
-8. Repository: `docs/nlp/DECISIONS.md` D8 to D10; `docs/nlp/IMPLEMENTATION_PLAN.md` M22, M27a, M27a2, section 3; `docs/game/DECISIONS.md` D-game-10, 12, 13;
-   `docs/nlp/TOOLS.md` (lint); `scripts/license-scan.sh`; `scripts/content.sh`; `scripts/merge-gate.sh`.
+8. Repository: `docs/nlp/decisions.md` D8 to D10; `docs/nlp/implementation-plan.md` M22, M27a, M27a2, section 3; `docs/game/decisions.md` D-game-10, 12, 13;
+   `docs/nlp/tools.md` (lint); `scripts/license-scan.sh`; `scripts/content.sh`; `scripts/merge-gate.sh`.

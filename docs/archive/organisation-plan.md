@@ -14,17 +14,17 @@ The problems are navigation, document purpose and freshness:
 
 - There was no `docs/README.md`. Shared engineering guidance, performance work, a bottlenecks study, two handovers and a Word design
   document sat together at the root without an index.
-- Session state is scattered across `HANDOVER_*.md`, dated sections of the orchestrator, `R16_PHASE2.md` and a research document.
+- Session state is scattered across `HANDOVER_*.md`, dated sections of the orchestrator, `r16-phase2.md` and a research document.
   The orchestrator contains snapshots from October 23 and 26 and November 1 and 2, including instructions for branches and merges
   that must be checked against current git state.
-- Current guidance shares folders with completed migration plans and original design sources. For example, `R16_PHASE2.md` is
+- Current guidance shares folders with completed migration plans and original design sources. For example, `r16-phase2.md` is
   explicitly marked done, but sits next to the current architecture; `PROTOTYPE_BRIEF.md` has a Word source alongside it.
 - The game README is 1,210 lines and the NLP README 559. Both combine onboarding with substantial reference material and milestone
   history. The implementation plans are 2,359 and 2,068 lines, combining live status with a long findings log.
 - Some descriptions have drifted: the game README's opening says Terraria-like while the specification describes the voxel
   prototype; the NLP README's known gaps still describe CI activation as blocked, although CI is now active. Moving files alone
   will not fix this.
-- Paths are used outside Markdown links. `Directory.Build.props` includes `docs/nlp/PACKAGE_README.md` as package content, and briefs,
+- Paths are used outside Markdown links. `Directory.Build.props` includes `docs/nlp/package-readme.md` as package content, and briefs,
   instructions and commands name document paths literally. A link check alone will miss those references.
 - `docs/Vocaterra_Adaptation_Design_Document.docx` is an existing **untracked** file, about 32 MB. Its contents were not reviewed.
   Leave it untouched and untracked during this cleanup; its eventual inclusion and role need a separate owner decision.
@@ -48,10 +48,10 @@ docs/
     research/development-bottlenecks.md
   game/
     README.md                     quick start and links
-    SPECIFICATION.md
-    ARCHITECTURE.md
-    IMPLEMENTATION_PLAN.md        milestone status and current findings
-    DECISIONS.md
+    specification.md
+    architecture.md
+    implementation-plan.md        milestone status and current findings
+    decisions.md
     plans/                        feature plans still used for work
     design/                       readable briefs and owner design notes
       sources/                    original Word documents
@@ -61,10 +61,10 @@ docs/
     voice-trial/                  recordings, trial.json and their instructions together
   nlp/
     README.md                     quick start and links
-    API.md, PIPELINE.md, REPLAY.md published technical reference paths retained
-    IMPLEMENTATION_PLAN.md
-    DECISIONS.md
-    PACKAGE_README.md             retained: referenced by package metadata
+    api.md, pipeline.md, replay.md published technical reference paths retained
+    implementation-plan.md
+    decisions.md
+    package-readme.md             retained: referenced by package metadata
     plans/                        specialist plans still in use
     guides/                       worked CLI examples and other extracted how-to material
     adr/, research/, history/, diagrams/
@@ -88,16 +88,16 @@ All paths below are relative to `docs/`. Update incoming references and the move
 | `code_guidelines.md` | `engineering/code-guidelines.md` |
 | `TEST_PERFORMANCE_PLAN.md` | `engineering/test-performance-plan.md`; separate durable test-tier instructions from completed optimisation history |
 | `DEVELOPMENT_BOTTLENECKS.md` | `engineering/research/development-bottlenecks.md`; retain its date, evidence and historical measurements |
-| `game/ACTIVITIES_PLAN.md`, `CONTENT_PLAN.md`, `VILLAGE_PLAN.md`, `SCENARIO_PLAN.md` | `game/plans/` while still used; label completed or superseded series and archive only once their live dependencies are resolved |
-| `game/R16_PHASE2.md`, `GAME_PROJECTS_LAYOUT.md` | `game/history/` as completed migration records; current layout remains in `ARCHITECTURE.md` |
+| `game/activities-plan.md`, `content-plan.md`, `village-plan.md`, `scenario-plan.md` | `game/plans/` while still used; label completed or superseded series and archive only once their live dependencies are resolved |
+| `game/r16-phase2.md`, `game-projects-layout.md` | `game/history/` as completed migration records; current layout remains in `architecture.md` |
 | `game/PROTOTYPE_BRIEF.md`, `Vocaterra_Crafting_Cooking.md` | `game/design/`; retain their relationship to the specification, review and W-series plan |
 | The two tracked Word documents in `game/` | `game/design/sources/`, linked to their readable brief or review; preserve the originals |
 | `game/CORE_SYSTEMS_REVIEW.md` | `game/research/core-systems-review.md`; link the source document and resulting activities plan |
-| `game/PLAYTEST.md`, `SCRIPTED_RUNS.md`, `SPEECH_CHECKLIST.md` | `game/guides/`; preserve run commands and the checklist's evidence/status |
+| `game/playtest.md`, `scripted-runs.md`, `speech-checklist.md` | `game/guides/`; preserve run commands and the checklist's evidence/status |
 | Long game README sections | Extract coherent guides for world/running, content and speech, lessons, saves and UI; leave quick start and a guide index |
-| NLP README demo material and `CLI_EXAMPLES.md` | One CLI guide under `nlp/guides/`; retain a minimal demo in the README |
-| `nlp/FUZZING_PLAN.md` | `nlp/plans/`; keep execution instructions linked to the fuzz test project's README |
-| `nlp/API.md`, `PIPELINE.md`, `REPLAY.md`, `LEXICON.md`, `TOOLS.md`, `CONTRIBUTING.md`, `PACKAGE_README.md` | Retain these established paths; link them clearly from the NLP README |
+| NLP README demo material and `cli-examples.md` | One CLI guide under `nlp/guides/`; retain a minimal demo in the README |
+| `nlp/fuzzing-plan.md` | `nlp/plans/`; keep execution instructions linked to the fuzz test project's README |
+| `nlp/api.md`, `pipeline.md`, `replay.md`, `lexicon.md`, `tools.md`, `contributing.md`, `package-readme.md` | Retain these established paths; link them clearly from the NLP README |
 | `game/voice-trial/`, domain research, NLP ADRs/diagrams and `qa-reports/` | Keep their current grouping and filenames |
 
 For the untracked adaptation design document, the potential home is `game/design/sources/` if the owner decides to include it. This

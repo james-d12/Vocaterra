@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 # Runs the language core's content tool (vocaterra-content, the Vocaterra.Nlp.ContentBuilder project under tools/) on a game content
 # bundle. `validate` checks every file's hash and the cross-references; `hash` rewrites manifest.json from the files on disk, which is the
-# step after any edit to a bundle. `cefr-check`, `lint`, `pack` and `verify-pack` are passed through as well (docs/nlp/TOOLS.md).
+# step after any edit to a bundle. `cefr-check`, `lint`, `pack` and `verify-pack` are passed through as well (docs/nlp/tools.md).
 #
-# `grammar` runs the core's grammar check (docs/nlp/API.md, "Grammar check the strings"): the bundle's Spanish, or with
+# `grammar` runs the core's grammar check (docs/nlp/api.md, "Grammar check the strings"): the bundle's Spanish, or with
 #   `--strings content/grammar/game-v1-strings.jsonl --strings-only` the game's whole list (written by the host's --grammar-strings).
 #   It needs a local LanguageTool server (scripts/languagetool.sh start) unless `--offline` replays the committed cache.
 #
-# `refresh` is the whole loop after an edit of the game's content (CONTENT_PLAN 3.7, C01), with no step to forget and without the words the
+# `refresh` is the whole loop after an edit of the game's content (content-plan 3.7, C01), with no step to forget and without the words the
 #   sandbox refuses: it rewrites the manifests of content/game-v1 (keeping its bundle id and its supportLanguage) and of the locale bundle
-#   content/locale (CONTENT_PLAN C03), lists the files that have no
-#   provenance item, validates, runs the gate's lint and CEFR checks (since V08, the A1/A2 rule of VILLAGE_PLAN 3.9, D-game-22 (b): the bundle's
+#   content/locale (content-plan C03), lists the files that have no
+#   provenance item, validates, runs the gate's lint and CEFR checks (since V08, the A1/A2 rule of village-plan 3.9, D-game-22 (b): the bundle's
 #   ceiling is A2, so the lint runs at A2 with --fail-on-level and cefr-check at A2 fails on any lemma it lists, while cefr-check at A1 is a report
-#   for the owner and never fails), runs the game's own checks between its files (the host's --validate-content, CONTENT_PLAN C02, which also
+#   for the owner and never fails), runs the game's own checks between its files (the host's --validate-content, content-plan C02, which also
 #   holds each lesson to its own level, a1 or a2; the ContentBuilder references only the core and cannot), writes the grammar strings again (the
 #   host's --grammar-strings) and runs the grammar check offline from the committed cache. A cache miss means new Spanish: the message names the
 #   LanguageTool steps. Run it through scripts/limited.sh (it runs several tools one after the other; it never calls limited.sh itself).
@@ -61,7 +61,7 @@ step() { printf '\n== refresh: %s\n' "$*"; }
 
 step "manifest of $GAME"
 tool hash "$GAME"
-# The support-language bundle beside it (CONTENT_PLAN C03): its own manifest, outside game-v1's hash, so an L1 edit touches no save or golden.
+# The support-language bundle beside it (content-plan C03): its own manifest, outside game-v1's hash, so an L1 edit touches no save or golden.
 step "manifest of $LOCALE"
 tool hash "$LOCALE" --bundle-id locale
 
@@ -91,7 +91,7 @@ step "cefr-check a2 (the ceiling: a lemma it lists fails)"
 ceiling="$(tool cefr-check "$GAME" --level a2)"
 printf '%s\n' "$ceiling"
 if grep -Eq ', [1-9][0-9]* not in the list$' <<<"$ceiling"; then
-  echo "refresh: cefr-check a2 lists a lemma above A2, the bundle's ceiling (VILLAGE_PLAN 3.9)" >&2
+  echo "refresh: cefr-check a2 lists a lemma above A2, the bundle's ceiling (village-plan 3.9)" >&2
   exit 1
 fi
 step "cefr-check a1 (a report for the owner: the lemmas above A1; it never fails, each lesson's own level is the validator's)"

@@ -6,8 +6,8 @@ spanish implementation on top of the core shared NLP code. So adding languages c
 target shape and the scope (section 3). Nothing has been implemented yet.
 
 **How to take over.** Act as the orchestrator (`.claude/agents/orchestrator.md`, or `claude --agent orchestrator`). The milestones are
-M31, then M52, then M32 to M35, then M53, in that order (section 4). They are rows in `docs/nlp/IMPLEMENTATION_PLAN.md` (§5 for M52 and
-M53, §11 for M31 to M35), and D14 in `docs/nlp/DECISIONS.md` carries the amendment. Each milestone is a branch `M<nn>-<name>` off `main`,
+M31, then M52, then M32 to M35, then M53, in that order (section 4). They are rows in `docs/nlp/implementation-plan.md` (§5 for M52 and
+M53, §11 for M31 to M35), and D14 in `docs/nlp/decisions.md` carries the amendment. Each milestone is a branch `M<nn>-<name>` off `main`,
 goes through `scripts/merge-gate.sh` and is pushed to that branch, never to `main` (the owner merges by pull request). Agents run one at
 a time, and every heavy command goes through `scripts/limited.sh`. Start only after the owner has merged `feature/organise`, which
 touches `src/Vocaterra.Game.Core`.
@@ -36,7 +36,7 @@ tests/
 ### 2.1 For the merge (from the repository as it stands)
 
 - **Nothing is published.** `Directory.Build.props` says so, and `nuget.config` lists nuget.org only. The 11-package table in
-  `docs/nlp/PACKAGE_README.md` describes packages that do not exist.
+  `docs/nlp/package-readme.md` describes packages that do not exist.
 - **No consumer takes a subset.**
   - `Vocaterra.Nlp.Content` and `Vocaterra.Nlp.Pipeline` each reference all the other libraries.
   - `Vocaterra.Game.Core` and `Vocaterra.Host` list 7 projects and get all 11 transitively.
@@ -108,7 +108,7 @@ and `tests/Vocaterra.Nlp.De.Tests`, not into §4.7's `Vocaterra.Nlp.Language.De`
   - `Language/`: `../../content/game-v1/lexicon/seed.json`, the same relative depth;
   - `Phonology/Data/exceptions.json`;
   - `Pronunciation/Data/espeak-to-vocaterra.json`.
-- One `Vocaterra.Nlp.AssemblyMarker` replaces the 11 per-project markers. Update `docs/nlp/CONTRIBUTING.md` line 80, which asks to
+- One `Vocaterra.Nlp.AssemblyMarker` replaces the 11 per-project markers. Update `docs/nlp/contributing.md` line 80, which asks to
   keep them.
 
 **Build settings.** In `Directory.Build.props`, `VocaterraCore` becomes
@@ -144,9 +144,9 @@ change. Update the file's comments.
 **Docs.**
 - ADR `docs/nlp/adr/0012-one-engine-assembly-and-language-packs.md`, which supersedes ADR 0003's layering bullet: the layering stays,
   enforced by the test, and the project boundary becomes engine/pack.
-- ADR 0009's table and `PACKAGE_README.md` (one package).
-- Project paths in `docs/nlp/README.md`, `API.md`, `CONTRIBUTING.md`, `TOOLS.md`, `REPLAY.md`, `LEXICON.md`, `scripts/README.md`,
-  `docs/game/ARCHITECTURE.md` and CLAUDE.md's `.slnf` line.
+- ADR 0009's table and `package-readme.md` (one package).
+- Project paths in `docs/nlp/README.md`, `api.md`, `contributing.md`, `tools.md`, `replay.md`, `lexicon.md`, `scripts/README.md`,
+  `docs/game/architecture.md` and CLAUDE.md's `.slnf` line.
 - Leave `docs/archive/nlp/history/` and older research as they are.
 
 **Gate, beyond §6.**
@@ -180,7 +180,7 @@ Whether the espeak phone map is Spanish or neutral is decided during the milesto
   - `Game.Core` and `Host`: one line each, plus a project reference to `Vocaterra.Nlp.Es`;
   - the CLI, Bench and ContentBuilder;
   - the Fuzzing and Golden test projects.
-- Record the change in `docs/nlp/API.md` as host-facing.
+- Record the change in `docs/nlp/api.md` as host-facing.
 
 **Guards and tests.**
 - `LayeringTests` gains a rule: no `Vocaterra.Nlp` namespace depends on `Vocaterra.Nlp.Es`. The assembly boundary enforces this too.

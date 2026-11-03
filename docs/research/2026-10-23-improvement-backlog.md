@@ -1,10 +1,10 @@
 # X00: a ranked improvement backlog (2026-10-23)
 
-Research for the X series on `feature/experiment` (`docs/game/IMPLEMENTATION_PLAN.md` section 4.5). Read-only: nothing was built, run or
-changed. The evidence is the plans, the findings log (`IMPLEMENTATION_PLAN.md` section 5), the decisions (`docs/game/DECISIONS.md`,
-`docs/nlp/DECISIONS.md`), the playtest and README documents, the code (file and line where it matters) and earlier agents' screenshots
+Research for the X series on `feature/experiment` (`docs/game/implementation-plan.md` section 4.5). Read-only: nothing was built, run or
+changed. The evidence is the plans, the findings log (`implementation-plan.md` section 5), the decisions (`docs/game/decisions.md`,
+`docs/nlp/decisions.md`), the playtest and README documents, the code (file and line where it matters) and earlier agents' screenshots
 under `/tmp/claude-1000/` (s22, s20b, s28). Nothing was learned from a real tester: no tester session exists yet (the owner's pre-flight in
-`docs/PLAYTEST.md` section 12 is still open), so every "effect" below is a hypothesis a playtest can check, not a measurement.
+`docs/playtest.md` section 12 is still open), so every "effect" below is a hypothesis a playtest can check, not a measurement.
 
 Limits kept: Spanish speech with English support text (D-game-13), offline with local reports (D8 open, D-game-17), CC0 assets
 (D-game-5), MonoGame (D-game-1), no German (D14), no automated CEFR placement or global score (D-game-10), no gating behind language or
@@ -27,7 +27,7 @@ is deferred, D-game-12). NPC voices are pre-rendered Kokoro WAVs; the learner sp
 | 3 | "Ayer y mañana" (about 19 steps): ir, ir a + infinitive, comí/bebí/fui, ayer, hoy, mañana | about 5 to 8 min |
 
 A session is a load of the save (`--load`), so a "session" is a relaunch. In a playtest the pre-check (31 items, about 7 min) comes first,
-the post-check last, and the recall check on a later load (`docs/PLAYTEST.md` sections 2, 3 and 8; 45 to 55 minutes in all).
+the post-check last, and the recall check on a later load (`docs/playtest.md` sections 2, 3 and 8; 45 to 55 minutes in all).
 
 **The systems.** The language core (`Vocaterra.Nlp.*`): utterance to verdict, error codes, word readings, conversation steps. In the game: the lesson
 runner with fail-forward and person and tense checks (`LessonRunner.cs`); fading English scaffolds per phrase (S8); spaced credit for words
@@ -82,7 +82,7 @@ Sonnet 5.5 for design-heavy work.
 
 - **Problem.** The session ends with the `Session complete` card and Luna's closing line (`README.md` line 495), then, in a playtest, the post-check. The learner is told nothing about what they did, though the data exists (S19's `LearnerRecord`; the book header already shows "Without help: 0", `s20b-shots/play-final.png`). The brief's comparable-game section names visible progress among the things reviewers praise (`PROTOTYPE_BRIEF.md`).
 - **Change.** On `session_complete`, one card in English: phrases heard, said with help and said without help this session; the verbs used, with the form; "next time Luna will ask you about: ..." (the due list). Counts only, no score, no CEFR label (D-game-10), the same in both arms.
-- **Effect.** A reason to return, and a name for what is due. Playtest: the debrief question "which words or phrases did you remember" (`PLAYTEST.md` section 6, question 2) should name more items; watch whether the tester reads the card.
+- **Effect.** A reason to return, and a name for what is due. Playtest: the debrief question "which words or phrases did you remember" (`playtest.md` section 6, question 2) should name more items; watch whether the tester reads the card.
 - **Effort / model.** S, Haiku. An engine-free model in `Vocaterra.Game`, one layer in MonoGame, tests.
 - **Risks.** It reads like a score and discourages a weak session: phrase it as things done, never failures. It must not touch the evaluation path (presentation only).
 - **Owner decision.** No.
@@ -107,7 +107,7 @@ Sonnet 5.5 for design-heavy work.
 
 ### R04. Autosave and a crash handler
 
-- **Problem.** Saves are F6 only (`VoxelGame.cs` about lines 978 and 2422) and there is no unhandled-exception handler (`Program.cs`, `game.Run()` after the `try`). The learner record, lesson progress and spaced-credit times are both the learner's progress and the research data. A crash 20 minutes in loses the session. The playtest save is written only at the end or on F10 (`PLAYTEST.md` section 4).
+- **Problem.** Saves are F6 only (`VoxelGame.cs` about lines 978 and 2422) and there is no unhandled-exception handler (`Program.cs`, `game.Run()` after the `try`). The learner record, lesson progress and spaced-credit times are both the learner's progress and the research data. A crash 20 minutes in loses the session. The playtest save is written only at the end or on F10 (`playtest.md` section 4).
 - **Change.** Autosave to a rotating `autosave.save` in the session folder at each lesson unit boundary, on closing a dialogue, and every 5 minutes of play time (the stored time, not the clock). A try around `game.Run()` and an `AppDomain.UnhandledException` hook that write the last save and a crash report in the F8 format (Markdown plus the log tail, local only, D-game-17), then exit with a message. `--load` of an autosave works like any save. Keep the atomic move.
 - **Effect.** No lost sessions; a tester's crash arrives as a report. Playtest: no session missing its post-check because of a crash.
 - **Effort / model.** S to M, Haiku. After X01.
@@ -116,7 +116,7 @@ Sonnet 5.5 for design-heavy work.
 
 ### R05. The pre-check stops early for a lost beginner
 
-- **Problem.** In a playtest the first thing a true beginner meets is the mic check and a 31-item pre-check of about 7 minutes before the world (`PLAYTEST.md` sections 3 and 4). The brief says "no quiz at spawn" and warns against punishing beginners (issues 1 and 2). A tester who answers "no sé" fifteen times learns little from item 16 and may quit before seeing the game.
+- **Problem.** In a playtest the first thing a true beginner meets is the mic check and a 31-item pre-check of about 7 minutes before the world (`playtest.md` sections 3 and 4). The brief says "no quiz at spawn" and warns against punishing beginners (issues 1 and 2). A tester who answers "no sé" fifteen times learns little from item 16 and may quit before seeing the game.
 - **Change.** After 8 consecutive `dont_know` or empty answers, offer "Skip the rest"; the unanswered items are logged as `skipped_after_dont_know` and the report counts them as not known. Optionally order items easy to hard.
 - **Effect.** Fewer testers who give up in the first 10 minutes. Playtest: the minute the tester first reaches the world, and how many leave in the pre-check.
 - **Effort / model.** S, Haiku.
@@ -161,8 +161,8 @@ Sonnet 5.5 for design-heavy work.
 
 ### R10. Playtest tooling: per-step evidence, and doc counts under test
 
-- **Problem.** The report script prints the gate lines (`scripts/playtest-report.sh`) but not where a learner stalled; time per unit, skipped steps, microphone failure rate and hint use need someone to read JSONL. The notes template is on paper (`PLAYTEST.md` section 7). The documents' counts drifted three times (S26, S27, S28; see section 1).
-- **Change.** (a) The report adds time per lesson unit and step, retries, the help rung used, the `voice` failure rate, items recovered after `dont_know` (R02), the skipped count (R05), and a CSV. (b) A test that reads the counts in `docs/PLAYTEST.md`, `README.md` and `playtest/README-tester.md` ("31 items", "37 steps", "7 units") from fixed markers and compares them to the bundle.
+- **Problem.** The report script prints the gate lines (`scripts/playtest-report.sh`) but not where a learner stalled; time per unit, skipped steps, microphone failure rate and hint use need someone to read JSONL. The notes template is on paper (`playtest.md` section 7). The documents' counts drifted three times (S26, S27, S28; see section 1).
+- **Change.** (a) The report adds time per lesson unit and step, retries, the help rung used, the `voice` failure rate, items recovered after `dont_know` (R02), the skipped count (R05), and a CSV. (b) A test that reads the counts in `docs/playtest.md`, `README.md` and `playtest/tester-readme.md` ("31 items", "37 steps", "7 units") from fixed markers and compares them to the bundle.
 - **Effect.** The first batch of testers yields numbers the owner can read in ten minutes and the three hypotheses (gameplay, learning, transfer) can be answered without opening a log.
 - **Effort / model.** S to M, Haiku. Python standard library only, `python3 -I`.
 - **Risks.** Nothing is sent (D-game-17); per-tester data is kept by code, not name.
@@ -179,7 +179,7 @@ Sonnet 5.5 for design-heavy work.
 
 ### R12. Adaptive pacing from the learner's record
 
-- **Problem.** Every learner walks the same 37 steps. Someone who says "hola" and "gracias" already (the screener allows it, `PLAYTEST.md` section 1) repeats the hello unit; someone who misses four steps in a row gets the same next unit. The record that could steer this exists (S19) and so does the per-step attempt count (`LessonRunner.cs` about line 928).
+- **Problem.** Every learner walks the same 37 steps. Someone who says "hola" and "gracias" already (the screener allows it, `playtest.md` section 1) repeats the hello unit; someone who misses four steps in a row gets the same next unit. The record that could steer this exists (S19) and so does the per-step attempt count (`LessonRunner.cs` about line 928).
 - **Change.** Two local rules, no global level: after two unaided correct answers in a unit, offer "You know this. Skip the rest of this unit?"; after two misses, insert one extra supported repeat of the missed phrase. Both logged as `adapted`.
 - **Effect.** Fewer bored and fewer lost players. Playtest: the spread of lesson duration (the 5 to 8.5 minute estimate has never been measured, S18), and how many use the skip.
 - **Effort / model.** M to L, Sonnet (a 1,052-line runner with person and tense checks; tests assert exact step counts).
@@ -266,7 +266,7 @@ R05, R12, R14, R15 and R18 wait for the owner's answers. R08, R10 and R17 are go
 2. **Adapting a lesson (R12).** Is per-unit skipping and extra practice acceptable in the study arm, or must every tester get the same lesson so pre and post compare cleanly? (D-game-10 forbids placement and a global score; this is neither, but it changes what each tester lived through.)
 3. **More content before the pilot (R14, R15, R18).** The brief says to test the learning loop before expanding the world. Do you want numbers and prices, more NPCs and orders now, or only after the first pilot's recall data?
 4. **Voices and review for new text (R14, R15).** Which Kokoro speakers for new NPCs? Is the LLM review plus your listening still the interim for each new row, with the native-speaker check still deferred (D-game-12), though the unreviewed set (about 60 rows) keeps growing?
-5. **The human hardware steps.** Can you run the mic lab (R03) and the real-GPU bench (R13) once each, and the open pre-flight (`PLAYTEST.md` section 12), and when? They are better done before more content.
+5. **The human hardware steps.** Can you run the mic lab (R03) and the real-GPU bench (R13) once each, and the open pre-flight (`playtest.md` section 12), and when? They are better done before more content.
 6. **The first pilot.** Is there a date or a set of testers? Most "effect" lines above are hypotheses only a session folder can confirm, so R10's report should be ready first.
 7. **A front door (R11).** Is a title screen with Continue in scope for the prototype, or do `--load` and the launcher stay the way back in until after the pilot?
 8. **Decision log.** R01, R02 and R06 extend D-game-6, D-game-9 and D-game-10 without changing them. Shall they get one D-game number, or only a plan entry?

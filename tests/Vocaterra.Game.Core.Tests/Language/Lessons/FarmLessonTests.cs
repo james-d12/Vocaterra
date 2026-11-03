@@ -11,7 +11,7 @@ using Xunit.Abstractions;
 namespace Vocaterra.Game.Core.Tests.Language.Lessons;
 
 /// <summary>
-/// The lesson "¿Cómo es?" of session 7 (VILLAGE_PLAN V13, 3.5), the first of phase B and the first <c>a2</c> lesson: the farmer León at the field, what things are like
+/// The lesson "¿Cómo es?" of session 7 (village-plan V13, 3.5), the first of phase B and the first <c>a2</c> lesson: the farmer León at the field, what things are like
 /// (la manzana es roja: the adjective after the noun, agreeing with it; es grande at the stall), what the learner likes (me gusta el pan, me gustan las manzanas) and liked
 /// (me gustó el pan de Luz, gustar in the past), his apples for sale (one coin each), and his order water-for-plants told in the three times (voy a buscar agua, the walk
 /// to the river, fui al río). A learner who followed sessions 4 to 6 has no coins left, so the apples come from the order; a learner who carries the water already (filled

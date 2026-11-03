@@ -7,7 +7,7 @@ using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Core.Session;
 
-/// <summary>One step of an objective as the data gives it (CONTENT_PLAN 3.5, C07).</summary>
+/// <summary>One step of an objective as the data gives it (content-plan 3.5, C07).</summary>
 /// <param name="Id">The step's id inside its objective (<c>wood</c>); the save keys it <c>&lt;objective&gt;.&lt;step&gt;</c>.</param>
 /// <param name="Noun">For a checklist step, the catalogue noun it is about (<c>madera</c>); otherwise empty.</param>
 /// <param name="Label">The word the checklist shows (<c>frutas</c>): the file's <c>label</c>, or the noun's lemma for a mass noun or a target of one, else its plural.</param>
@@ -16,22 +16,22 @@ namespace Vocaterra.Game.Core.Session;
 /// <param name="Restore">The code hook that works the step out again from a loaded world (<see cref="ObjectiveBook.RestoreHooks"/>), or <see langword="null"/> for a step the save keeps.</param>
 public sealed record ObjectiveStepSpec(string Id, string Noun, string Label, int Target, Trigger Trigger, string? Restore);
 
-/// <summary>Goods an order asks for (VILLAGE_PLAN V03): an item and how many.</summary>
+/// <summary>Goods an order asks for (village-plan V03): an item and how many.</summary>
 /// <param name="Item">The item.</param>
 /// <param name="Count">How many, from 1.</param>
 public sealed record OrderGoods(ItemId Item, int Count);
 
-/// <summary>One objective as the data gives it (<c>game/objectives/&lt;id&gt;.json</c>, CONTENT_PLAN 3.5, C07).</summary>
+/// <summary>One objective as the data gives it (<c>game/objectives/&lt;id&gt;.json</c>, content-plan 3.5, C07).</summary>
 /// <param name="Id">The objective's id, its file's name.</param>
 /// <param name="Title">The target-language title of a checklist (<c>Campamento</c>), or <see langword="null"/> for an objective the HUD shows as one line (<c>objective.&lt;id&gt;.hud</c>).</param>
 /// <param name="Steps">The steps, in checklist order.</param>
 /// <param name="AlsoDoneBy">The objectives whose progress also completes this one (the guide counts as met once the camp checklist has moved).</param>
 /// <param name="OnComplete">The code hooks run when the objective is completed (<see cref="ObjectiveBook.CompleteHooks"/>).</param>
-/// <param name="Session">The play session the objective is shown and counted from (VILLAGE_PLAN V03), or <see langword="null"/> for every session.</param>
-/// <param name="DeliverTo">For an order (VILLAGE_PLAN V03): the NPC the goods are brought to; its one step is the delivery (<see cref="ObjectiveBook.DeliveredStep"/>).</param>
+/// <param name="Session">The play session the objective is shown and counted from (village-plan V03), or <see langword="null"/> for every session.</param>
+/// <param name="DeliverTo">For an order (village-plan V03): the NPC the goods are brought to; its one step is the delivery (<see cref="ObjectiveBook.DeliveredStep"/>).</param>
 /// <param name="Deliver">For an order: the goods, each item once.</param>
 /// <param name="Lesson">
-/// For an order (VILLAGE_PLAN V13): the lesson that tells it in the three times, whose <c>do</c> step waits for the delivery, or <see langword="null"/>. While that lesson is
+/// For an order (village-plan V13): the lesson that tells it in the three times, whose <c>do</c> step waits for the delivery, or <see langword="null"/>. While that lesson is
 /// under way before the step, or is about to start at the talk, walking up with the goods does not deliver them (<see cref="Language.Lessons.LessonRunner"/>), so the plan
 /// is said first even by a learner who carries them already.
 /// </param>
@@ -67,9 +67,9 @@ public sealed record ObjectiveSpec(
 }
 
 /// <summary>
-/// The session's objectives (CONTENT_PLAN 3.5, C07): <c>game/session.json</c> gives their order, the dialogue pool of the closing line, the items the learner starts
+/// The session's objectives (content-plan 3.5, C07): <c>game/session.json</c> gives their order, the dialogue pool of the closing line, the items the learner starts
 /// with and the place the beacon starts on; each objective is its own file, <c>game/objectives/&lt;id&gt;.json</c>. The order is the HUD's: it gates nothing, and
-/// every objective counts from the start, unless it names the play <c>session</c> it is shown and counted from (VILLAGE_PLAN V03). What the data cannot say is a
+/// every objective counts from the start, unless it names the play <c>session</c> it is shown and counted from (village-plan V03). What the data cannot say is a
 /// named hook, and the hooks are code. An order (<c>deliverTo</c> and <c>deliver</c>, V03) has one step the loader makes: the delivery, which waits for
 /// <see cref="WorldEvents.OrderDelivered"/> at its NPC with its id.
 /// </summary>
@@ -238,7 +238,7 @@ public sealed class ObjectiveBook
                 if (title is not null)
                 {
                     var entry = nouns.ForLemma(noun) ?? throw new InvalidDataException($"{path}: the checklist step '{stepId}' names '{noun}', which is not a catalogue noun.");
-                    label ??= entry.Mass || target == 1 ? entry.Lemma : entry.Plural; // CONTENT_PLAN 3.5: the label rule reproduces the old checklist's words
+                    label ??= entry.Mass || target == 1 ? entry.Lemma : entry.Plural; // content-plan 3.5: the label rule reproduces the old checklist's words
                 }
 
                 steps.Add(new ObjectiveStepSpec(stepId, noun, label ?? stepId, target, trigger, restore));

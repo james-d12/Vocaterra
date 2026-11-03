@@ -18,7 +18,7 @@ public sealed class SceneTests(ITestOutputHelper output)
     private const ulong Seed = 42;
 
     /// <summary>The world digest of the bundle's route at seed 42 (its timing test is <see cref="SceneBuildTimeTests"/>).</summary>
-    internal const string GoldenDigest = "0f652f77d2c135a4db698edfc3aec5d5fff6b3980eeddc7d41200abc69536777"; // VILLAGE_PLAN V04: the village grows; V10: the well's rim one block high
+    internal const string GoldenDigest = "0f652f77d2c135a4db698edfc3aec5d5fff6b3980eeddc7d41200abc69536777"; // village-plan V04: the village grows; V10: the well's rim one block high
 
     private const int Units = VoxelTestSupport.Units;
 
@@ -258,7 +258,7 @@ public sealed class SceneTests(ITestOutputHelper output)
     [Fact]
     public void TheVillagesNewBuildingsStandOnItsLevelGroundInsideTheClearingAndOnNoOtherBuilding()
     {
-        // VILLAGE_PLAN V04: the levelled disc grows from 20 to 24 (its slope ends at 32, inside the clearing's 36); the bakery and its oven, the smithy and its
+        // village-plan V04: the levelled disc grows from 20 to 24 (its slope ends at 32, inside the clearing's 36); the bakery and its oven, the smithy and its
         // forge and the well stand on it, each on flat ground, on no column of the houses, the stall, the fences, the field, the tower or one another.
         var layout = VoxelTestSupport.RouteDraft;
         var scene = VoxelTestSupport.BuildRoute(Seed);
@@ -298,7 +298,7 @@ public sealed class SceneTests(ITestOutputHelper output)
     [Fact]
     public void TheNewPeoplesStandPointsAreClearGroundAPlayerCanWalkTo()
     {
-        // VILLAGE_PLAN V04 adds the places where the fisher, the baker, the smith and the farmer will stand (their placements come with their lessons, V10 to
+        // village-plan V04 adds the places where the fisher, the baker, the smith and the farmer will stand (their placements come with their lessons, V10 to
         // V12): each is dry ground with room for the feet and the head, as a placement needs, and the player can walk there from the village square.
         var scene = VoxelTestSupport.BuildRoute(Seed);
         var grid = scene.Grid;
@@ -623,7 +623,7 @@ public sealed class SceneTests(ITestOutputHelper output)
         Assert.Contains(fragment, error.Message, StringComparison.Ordinal);
     }
 
-    // The columns a building of the layout stands on, as the builder lays it out (VILLAGE_PLAN V04): a house, a stall or a field from its north-west corner with
+    // The columns a building of the layout stands on, as the builder lays it out (village-plan V04): a house, a stall or a field from its north-west corner with
     // its default size, a stamp as drawn and turned to its facing, a fire ring round its centre, a fence line along its axis.
     private static IEnumerable<(int X, int Z)> Footprint(PropSpec prop, SceneLayout layout)
     {

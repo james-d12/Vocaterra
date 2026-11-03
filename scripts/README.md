@@ -45,9 +45,9 @@ Runs the language core's content tool on a game content bundle (default `content
   new bundle id is set with `hash content/game-v1 --bundle-id game-v1`; without the option the manifest keeps its id.
 - `cefr-check` lists dialogue-template and prompt-text lemmas missing from a CEFR list (`cefr-check content/game-v1 --level a2`). It only
   prints (it exits 0 whatever it lists); `refresh` and the merge gate fail on a lemma it lists at A2.
-- `lint`, `grammar`, `pack` and `verify-pack` are passed through as [docs/nlp/TOOLS.md](../docs/nlp/TOOLS.md) describes.
+- `lint`, `grammar`, `pack` and `verify-pack` are passed through as [docs/nlp/tools.md](../docs/nlp/tools.md) describes.
 - `refresh` is the whole loop after an edit of the game's content ([content/README.md](../content/README.md), "The edit loop"). Its lint
-  and CEFR checks are the gate's: the bundle's ceiling is A2 (VILLAGE_PLAN 3.9, D-game-22 (b), V08), so the lint runs with
+  and CEFR checks are the gate's: the bundle's ceiling is A2 (village-plan 3.9, D-game-22 (b), V08), so the lint runs with
   `--strict --level a2 --fail-on-level --host-pools 'guide.*'` and `cefr-check --level a2` fails on any lemma it lists, while
   `cefr-check --level a1` is a report of what is above A1 and never fails. Each lesson's own level is the host's `--validate-content`.
   `content-loop.sh` (below) runs it as its first step.
@@ -97,13 +97,13 @@ Downloads the models listed in `models/manifest.json` into `${VOCATERRA_MODELS_D
 
 ## fetch-lexicon-sources.sh
 
-Downloads the two data sets the lexicon import reads into `${VOCATERRA_LEXICON_SOURCES_DIR:-lexicon-sources}/` (git-ignored): the kaikki.org Spanish extract of English Wiktionary (about 1 GB of JSONL) and `es_50k.txt` of hermitdave/FrequencyWords at a pinned commit. The URLs, byte sizes and SHA-256 hashes are pinned in the script; a file that is already there and matches is kept, a download that does not match is deleted and the script stops (the kaikki.org URL is not versioned, so a mismatch means upstream replaced the file; re-pinning is described in [docs/nlp/LEXICON.md](../docs/nlp/LEXICON.md)). It then writes `sources.json` next to the files with URL, hash, size, licence and retrieval date, which `Vocaterra.Nlp.ContentBuilder import-lexicon --sidecar` copies into the sidecar of the generated lexicon. `--check` verifies the files that are present and downloads nothing. Needs bash, python3, curl and sha256sum (or shasum). Downloaded files are data: nothing in them is ever executed.
+Downloads the two data sets the lexicon import reads into `${VOCATERRA_LEXICON_SOURCES_DIR:-lexicon-sources}/` (git-ignored): the kaikki.org Spanish extract of English Wiktionary (about 1 GB of JSONL) and `es_50k.txt` of hermitdave/FrequencyWords at a pinned commit. The URLs, byte sizes and SHA-256 hashes are pinned in the script; a file that is already there and matches is kept, a download that does not match is deleted and the script stops (the kaikki.org URL is not versioned, so a mismatch means upstream replaced the file; re-pinning is described in [docs/nlp/lexicon.md](../docs/nlp/lexicon.md)). It then writes `sources.json` next to the files with URL, hash, size, licence and retrieval date, which `Vocaterra.Nlp.ContentBuilder import-lexicon --sidecar` copies into the sidecar of the generated lexicon. `--check` verifies the files that are present and downloads nothing. Needs bash, python3, curl and sha256sum (or shasum). Downloaded files are data: nothing in them is ever executed.
 
 ## fetch-tools.sh and languagetool.sh
 
 `fetch-tools.sh` installs the grammar check's development tools (the Temurin JRE and LanguageTool, pinned in `tools/manifest.json`) under
 `~/.local/share/vocaterra/tools`; `languagetool.sh start|stop|status` runs the local LanguageTool server that `content.sh grammar` calls.
-Both are described in [docs/nlp/TOOLS.md](../docs/nlp/TOOLS.md).
+Both are described in [docs/nlp/tools.md](../docs/nlp/tools.md).
 
 ## license-scan.sh
 

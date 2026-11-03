@@ -8,7 +8,7 @@ using Vocaterra.Game.Core.Tests.TestSupport;
 namespace Vocaterra.Game.Core.Tests.Npc;
 
 /// <summary>
-/// A greeting that opens a line with something else to say (VILLAGE_PLAN V15, found at V14): the core reads one intent per line and read <c>hola, quiero dos panes</c> as
+/// A greeting that opens a line with something else to say (village-plan V15, found at V14): the core reads one intent per line and read <c>hola, quiero dos panes</c> as
 /// the greeting alone, so nothing was bought. The game answers the rest (<see cref="Greeting"/>): the rest is read as a line of its own, and when it is an intent the prompt
 /// takes, the turn is that intent's. The greeting credits nothing. Since V15b a greeting's own words are never flagged when the rest is understood: a line read as the
 /// rest's intent with vocab.wrong on the greeting is answered by the rest, and a real error after the greeting stays.

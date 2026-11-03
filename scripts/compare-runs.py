@@ -1,7 +1,7 @@
 """Compares two captures of scripts/scripted-runs.sh: python3 -I scripts/compare-runs.py BASE NEW. Prints every difference; exit 1 when there is one.
 
 Timings (a number followed by ms, or by s in a duration), wall-clock times and dates are masked first; everything else must be the same
-byte for byte, the pictures included. The content bundles' hashes are masked too (CONTENT_PLAN C01), so a content move that changes no behaviour
+byte for byte, the pictures included. The content bundles' hashes are masked too (content-plan C01), so a content move that changes no behaviour
 compares equal: game-v1's in the session log, the saves and the core's version stamps, and the locale bundle's beside it. So are the checkout's
 path (a baseline taken in another worktree) and the lines scripts/limited.sh prints while it waits for another heavy command (R16 phase 2).
 """

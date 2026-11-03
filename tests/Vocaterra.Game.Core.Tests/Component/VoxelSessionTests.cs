@@ -53,11 +53,11 @@ public sealed class VoxelSessionTests
     [Fact]
     public void TheS3DemoLineStillHolds()
     {
-        // IMPLEMENTATION_PLAN section 6, item 4: the game at seed 42 with --look 120,-5 and --say "¿dónde está el río?" prints "ask_directions, understood" and the
+        // implementation-plan section 6, item 4: the game at seed 42 with --look 120,-5 and --say "¿dónde está el río?" prints "ask_directions, understood" and the
         // guide's line, and the beacon goes out. As the scenario script runs it: the look, then a line with no panel open walks the player to the guide's
         // stand-off cell (ScenarioScript.StartTalk), faces her chest, settles, opens the panel on her and types the line; every tick sends the look control's angles
         // first (WorldStepper). The plan's line, "a la izquierda, a sesenta bloques", is the S3 world's; since S13 the game prints the line below (checked with the
-        // game itself on 2026-10-30, VILLAGE_PLAN V02, which does not touch the guide's answer).
+        // game itself on 2026-10-30, village-plan V02, which does not touch the guide's answer).
         var session = TestGame.NewSessionWithShippedLessons(seed: 42);
         var look = new LookControl();
         Run(session, look, [VoxelStep.Look(120, -5)]);

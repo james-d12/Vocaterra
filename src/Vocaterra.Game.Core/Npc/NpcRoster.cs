@@ -5,7 +5,7 @@ using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Core.Npc;
 
-/// <summary>One NPC as the game's data gives it (CONTENT_PLAN 3.6, C08): only what no other file holds, and since schema 2 (VILLAGE_PLAN V01) what it does that was code.</summary>
+/// <summary>One NPC as the game's data gives it (content-plan 3.6, C08): only what no other file holds, and since schema 2 (village-plan V01) what it does that was code.</summary>
 /// <param name="Id">The agent id (<c>guide</c>): the core's <c>agents/&lt;id&gt;.json</c> has the same id, the scene places it, and the saves name it.</param>
 /// <param name="Label">The target-language label over the NPC's head and on the dialogue panel (<c>Guía</c>, <c>Tendero</c>).</param>
 /// <param name="Name">The NPC's own name (<c>Luna</c>), or <see langword="null"/> for an NPC known by its label.</param>
@@ -85,9 +85,9 @@ public sealed record NpcEntry(string Id, string Label, string? Name, string Figu
 }
 
 /// <summary>
-/// The game's NPCs (CONTENT_PLAN 3.6, C08): <c>game/npcs.json</c> lists their ids in order (the saves keep the NPCs in this order), and each NPC is its own file,
+/// The game's NPCs (content-plan 3.6, C08): <c>game/npcs.json</c> lists their ids in order (the saves keep the NPCs in this order), and each NPC is its own file,
 /// <c>game/npcs/&lt;id&gt;.json</c>. What the NPC is in the conversation (its states and prompts) stays the core's <c>agents/</c> and <c>prompts/</c>, where it is placed
-/// stays the scene's, and its role in the support language is the locale's. Since schema 2 (VILLAGE_PLAN V01) the file also says which prompt it waits on in each
+/// stays the scene's, and its role in the support language is the locale's. Since schema 2 (village-plan V01) the file also says which prompt it waits on in each
 /// state, the host event it opens a talk with, its voice, its key words and the name of its pools, so a new NPC needs no code; the behaviour the data cannot say
 /// (the shopkeeper's fail-forward, the guide's review and transfer offer) stays code, by id.
 /// </summary>
@@ -105,7 +105,7 @@ public sealed class NpcRoster
     /// <summary>The pool-id prefix of the NPCs' lesson lines (S26): <c>guide.lesson.&lt;poolPrefix&gt;.*</c> is the NPC's, named so the content lint counts it as the game's own pool.</summary>
     public const string LessonPoolPrefix = "guide.lesson.";
 
-    /// <summary>The largest gain a voice may take (<see cref="NpcVoiceSpec.Gain"/>, VILLAGE_PLAN V11): a voice is brought down or up to the others' level, not made to clip.</summary>
+    /// <summary>The largest gain a voice may take (<see cref="NpcVoiceSpec.Gain"/>, village-plan V11): a voice is brought down or up to the others' level, not made to clip.</summary>
     public const float MaxGain = 4.0f;
 
     private readonly Dictionary<string, NpcEntry> _byId;
@@ -178,7 +178,7 @@ public sealed class NpcRoster
 
     /// <summary>
     /// Whether a phrase is at home with an NPC: one of its prompts practises it. A phrase can be at home with two NPCs (the smith's and the farmer's
-    /// <c>como-te-llamas</c>, VILLAGE_PLAN V12b); <see cref="HomeOf"/> names the first of them in the index's order.
+    /// <c>como-te-llamas</c>, village-plan V12b); <see cref="HomeOf"/> names the first of them in the index's order.
     /// </summary>
     /// <param name="npc">The agent id.</param>
     /// <param name="phraseId">The phrase sheet's id.</param>

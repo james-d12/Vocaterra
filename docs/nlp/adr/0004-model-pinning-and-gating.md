@@ -6,7 +6,7 @@
 
 - Status: accepted
 - Date: 2026-10-20
-- Deciders: repository owner and the implementation plan (`IMPLEMENTATION_PLAN.md` section 3, rules 7 and 9)
+- Deciders: repository owner and the implementation plan (`implementation-plan.md` section 3, rules 7 and 9)
 
 ## Context
 
@@ -32,14 +32,14 @@ produced them. Contributors and CI runners must also be able to build and test w
 4. **Adapters are deterministic by configuration.** One intra-op thread, CPU execution provider, greedy decoding, no
    sampling. Stock Vosk models leave Kaldi's dithering on and then give slightly different scores for the same audio, so
    `VoskWordRecognizer` decodes with a temporary copy of the model whose `conf/mfcc.conf` has `--dither=0.0` appended; the
-   files in the models directory are never modified (finding recorded in `IMPLEMENTATION_PLAN.md` section 5b).
+   files in the models directory are never modified (finding recorded in `implementation-plan.md` section 5b).
 5. **Adapters are gated.** An adapter implements a `Slg.Core` interface, so everything else is tested with fakes
    (`ScriptedWordRecognizer`, `ReplayWordRecognizer`, `FakePhonemeRecognizer`, `FakeEmbeddingModel`). A test that needs the real
    model runs only when `SLG_MODELS_DIR` is set and `ModelStore.Verify` says the files match the manifest; otherwise xUnit
    reports it as skipped, never failed. The optional `models` job in `.github/workflows-pending/ci.yml` opts in with the
    repository variable `SLG_RUN_MODEL_TESTS` and fetches only the Vosk model.
 6. **Replays do not need models.** The replay envelope stores the recognizers' outputs, so a log can be checked on a machine
-   that has no models at all (`docs/nlp/REPLAY.md`).
+   that has no models at all (`docs/nlp/replay.md`).
 
 ## Consequences
 

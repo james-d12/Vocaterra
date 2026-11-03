@@ -2,19 +2,19 @@
 
 Vocaterra is a Minecraft-inspired voxel game, played in the first person, in which the player learns practical spoken Spanish by talking to the
 people of a valley for supplies, directions and work. The design is the owner's [prototype brief](design/prototype-brief.md), summed up in
-[SPECIFICATION.md](SPECIFICATION.md).
+[specification.md](specification.md).
 
 The Spanish is graded by the language core in the same repository ([docs/nlp/README.md](../nlp/README.md)): it takes what the learner said to a
 verdict, feedback, a conversation step and the agent's reply. The game references the core's projects directly and copies none of its source;
-[ARCHITECTURE.md](ARCHITECTURE.md) says what each side owns, [the core's API](../nlp/API.md) lists the calls and
-[ADR 0009](../nlp/adr/0009-core-and-game-boundary.md) fixes the boundary. The engine is MonoGame (D-game-1 in [DECISIONS.md](DECISIONS.md); the
+[architecture.md](architecture.md) says what each side owns, [the core's API](../nlp/api.md) lists the calls and
+[ADR 0009](../nlp/adr/0009-core-and-game-boundary.md) fixes the boundary. The engine is MonoGame (D-game-1 in [decisions.md](decisions.md); the
 final engine is open), and all engine code lives in `src/Vocaterra.Game`. The console host, `src/Vocaterra.Host`, is the cheapest way to try the
 core's calls and the content.
 
 ## The prototype scenario
 
 The prototype is the Minecraft-inspired first-person voxel slice in [docs/game/design/prototype-brief.md](design/prototype-brief.md) (the owner's Prototype
-Design Brief, v1.2); its plan, milestone by milestone, is [docs/game/SCENARIO_PLAN.md](SCENARIO_PLAN.md). The scenario takes 10 to 15 minutes beside the
+Design Brief, v1.2); its plan, milestone by milestone, is [docs/game/scenario-plan.md](scenario-plan.md). The scenario takes 10 to 15 minutes beside the
 guide's lesson (S17):
 
 - **The opening (S17).** The player wakes alone at their own camp on the cliff. English tips teach looking, walking, jumping, a note at the tent that says the
@@ -34,7 +34,7 @@ lines for the 3D world are in [running.md](running.md).
 
 **Later sessions.** A sleep at the player's own fire (V12c: [lessons.md](lessons.md), "The next session: sleep at the fire") begins the next day, a load keeps the day (V25), and each later
 session unlocks one lesson: sessions 2 and 3 at the villager and the stall (S26,
-S27), and since phase A of [docs/game/VILLAGE_PLAN.md](VILLAGE_PLAN.md) (D-game-22) sessions 4 to 6 in a village grown inside its own clearing, with four
+S27), and since phase A of [docs/game/village-plan.md](village-plan.md) (D-game-22) sessions 4 to 6 in a village grown inside its own clearing, with four
 more people: the fisher Mar on the bridge's east landing (session 4, "El pueblo": places and the way to them), the baker Luz at the bakery (session 5,
 "Números y pan": numbers, prices and bread for coins), the smith Domingo at the smithy and the farmer León at the wheat field (session 6, "Gente del
 pueblo": names, jobs and someone else in three times). Coins, apples and an axe are items, and four orders pay in them. Phase B adds sessions 7 to 10,
@@ -50,7 +50,7 @@ The game is one half of the repository: the projects below, `content/game-v1`, `
 ```
 Directory.Build.props            (at the root) the shared build settings, with the game's Linux-only native trim
 src/Vocaterra.Game.Core/         the game's engine-free systems: the voxel world and its 60 Hz tick, the session, the guide's turns, the
-                                 language systems, the screens' models and their keys (no packages, no engine; docs/game/ARCHITECTURE.md)
+                                 language systems, the screens' models and their keys (no packages, no engine; docs/game/architecture.md)
 src/Vocaterra.Game/              the MonoGame DesktopGL front-end: the window, the drawing, the devices, the UI's layers (the only engine code)
 src/Vocaterra.Host/              the console host: loads the bundle, evaluates lines, runs the text loop
 tests/                           one test project per source project (Game.Core, Game, Host), their folders mirroring the sources'
@@ -90,15 +90,15 @@ Without the models the game still runs, but nothing spoken is heard and the mode
 | [The book](book.md) | The learner's book, its pages, replay, the conjugation tables |
 | [Saves](saves.md) | Saves across content updates, autosave and the crash report |
 | [Sound and display](sound-and-display.md) | The audio system and sounds, UI scale and readable text |
-| [PLAYTEST](PLAYTEST.md), [SCRIPTED_RUNS](SCRIPTED_RUNS.md) | The facilitator's script; the scripted runs, the front-end's regression set |
+| [playtest](playtest.md), [scripted-runs](scripted-runs.md) | The facilitator's script; the scripted runs, the front-end's regression set |
 | [content/README.md](../../content/README.md) | Editing the content: the edit loop, lessons and their level |
 
-The milestones and the findings log are in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md), the owner's decisions in [DECISIONS.md](DECISIONS.md),
-and the series plans are listed in the [docs index](../README.md). The village series' open points are in [VILLAGE_PLAN.md](VILLAGE_PLAN.md) section 5.
+The milestones and the findings log are in [implementation-plan.md](implementation-plan.md), the owner's decisions in [decisions.md](decisions.md),
+and the series plans are listed in the [docs index](../README.md). The village series' open points are in [village-plan.md](village-plan.md) section 5.
 
 ## Licence
 
-- **This repository, the game and the language core alike:** Apache-2.0 (see [LICENSE](../../LICENSE) and [NOTICE](../../NOTICE)). The game was MIT until the owner relicensed the whole repository in R01 (D-game-2 superseded; recorded in [DECISIONS.md](DECISIONS.md)).
+- **This repository, the game and the language core alike:** Apache-2.0 (see [LICENSE](../../LICENSE) and [NOTICE](../../NOTICE)). The game was MIT until the owner relicensed the whole repository in R01 (D-game-2 superseded; recorded in [decisions.md](decisions.md)).
 - **Content bundle:** the Wiktionary lexicon in `content/game-v1` stays CC BY-SA 4.0; its notices are in
   [content/game-v1/ATTRIBUTION.md](../../content/game-v1/ATTRIBUTION.md).
 - **Language core:** the `Vocaterra.Nlp.*` projects are Apache-2.0 too (core D3, [LICENSE](../../LICENSE)). **MonoGame** is Ms-PL.

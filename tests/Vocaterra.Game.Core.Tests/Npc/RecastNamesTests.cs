@@ -4,7 +4,7 @@ using Vocaterra.Game.Core.Tests.TestSupport;
 namespace Vocaterra.Game.Core.Tests.Npc;
 
 /// <summary>
-/// The NPCs' names in a correction line as the game shows it (VILLAGE_PLAN V20, handover 9.3 D (d)): the core writes the learner's words in lower case, and Domingo's
+/// The NPCs' names in a correction line as the game shows it (village-plan V20, handover 9.3 D (d)): the core writes the learner's words in lower case, and Domingo's
 /// recast of <c>buscaré madera para Luz</c> read <c>«buscaré madera para luz»</c>. A name gets the roster's spelling unless a determiner makes it the common noun.
 /// </summary>
 public sealed class RecastNamesTests

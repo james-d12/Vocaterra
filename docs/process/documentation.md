@@ -14,7 +14,7 @@ How the documents under `docs/` are organised, named and moved. Adopted 2026-11-
 
 | It is | It goes in | Named |
 | --- | --- | --- |
-| A session's state for the next session | `handovers/` (open); later `handovers/done/` | `YYYY-MM-DD-HHMMZ-<slug>.md`, UTC |
+| A session's state for the next session | `handovers/` (open); later `handovers/done/` | `YYYY-MM-DD-HHMM-<slug>.md`, UTC |
 | A study, review or report answering one question | `research/`, plus a row in its README | `YYYY-MM-DD-<slug>.md`, or a folder of that name |
 | A QA pass or a branch review | `qa-reports/`, plus its bugs in the triage table | `YYYY-MM-DD-<area>.md`, `YYYY-MM-DD-review-<branch>.md` |
 | A superseded document | `archive/`, at its original path, plus a row in its README | its original name |
@@ -41,19 +41,24 @@ everything else links to them. Milestone briefs are sent inline and kept in `.cl
 
 ## Names
 
-- New files under `docs/` use lowercase kebab-case, apart from `README.md`. A file that moves takes this form (records also take the
-  date prefix), except in the archive, which keeps the original name.
-- The established upper-case names of living documents (`IMPLEMENTATION_PLAN.md`, `API.md`, …) stay as they are: renaming them would
-  break references for no gain.
+- **Every Markdown file is lowercase kebab-case** (`implementation-plan.md`, `2026-11-03-1019-docs-structure.md`,
+  `.claude/briefs/m70-qa-core-findings.md`), adopted 2026-11-03. Records add their date prefix; the archive keeps a document's path
+  with its kebab-case name.
+- **The exceptions are names that a tool or code reads:** `README.md` (a folder's index, which GitHub and other tools look for),
+  `CLAUDE.md` (Claude Code reads that name), and the data files `content/PHRASES.md`, `content/game-v1/ATTRIBUTION.md`,
+  `assets/ATTRIBUTION.md` and `assets/audio/SOURCES.md` (the game, its tests and the hashed bundle name them). Renaming one of these is
+  a code change.
+- A document is named in prose by its file name without `.md` (`village-plan V16`, `implementation-plan` section 5).
 - Ids keep their meaning for good: milestone ids (M, G, P, S, X, R, C, V, W), decision ids (D, D-game), ADR numbers and bug ids.
 
 ## Paths that code reads
 
 These paths are read by code or the build, so moving them is a code change too:
 
-- `docs/game/SPEECH_CHECKLIST.md` and `docs/game/voice-trial/`: written and read by `tools/Vocaterra.SpeechRender` (`Program.cs`,
-  `DefaultChecklist`, `DefaultTrial`) and named by `scripts/prerender-speech.sh`; the checklist links into the trial as `voice-trial/…`.
-- `docs/nlp/PACKAGE_README.md`: the core's NuGet readme, included by `Directory.Build.props`.
+- `docs/game/speech-checklist.md`: written by `tools/Vocaterra.SpeechRender` (`Program.cs`, `DefaultChecklist`) and named by
+  `scripts/prerender-speech.sh`. SpeechRender also looks for a voice trial in `docs/game/voice-trial/` (`DefaultTrial`); the V06 trial was
+  deleted on 2026-11-03, so the checklist has no provisional-voices table, and a new trial belongs outside `docs/` (`--trial-folder`).
+- `docs/nlp/package-readme.md`: the core's NuGet readme, included by `Directory.Build.props`.
 
 ## Moving a document
 

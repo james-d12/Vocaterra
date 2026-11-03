@@ -8,8 +8,8 @@
 Read first:
 - `.claude/agents/orchestrator.md`: the roles, the resources, the per-milestone loop, and the gotchas in "Handover (2026-11-01)".
 - The milestone entries that this work builds on, in their findings logs (`grep -n '^- \*\*M72\|^- \*\*M73'
-  docs/nlp/IMPLEMENTATION_PLAN.md`, `grep -n '^- \*\*V2[078]' docs/game/IMPLEMENTATION_PLAN.md`).
-- `docs/game/VILLAGE_PLAN.md` section 5, "Open points after the follow-ups".
+  docs/nlp/implementation-plan.md`, `grep -n '^- \*\*V2[078]' docs/game/implementation-plan.md`).
+- `docs/game/village-plan.md` section 5, "Open points after the follow-ups".
 
 The used briefs in `.claude/briefs/` (M72, M73, V27, V28) are the models for the new ones.
 
@@ -24,7 +24,7 @@ The used briefs in `.claude/briefs/` (M72, M73, V27, V28) are the models for the
 | 5 | The replies to weather lines and to `¿cómo estás?` | "go with your recommendations" (sections 2 and 4) | Decided; build them |
 | 6 | Listening to the voices; deleting the merged remote branches | "I will do later" | The owner's; not for agents |
 
-Items 1 to 5 are recorded in D-game-22 (`docs/game/DECISIONS.md`, 2026-11-02).
+Items 1 to 5 are recorded in D-game-22 (`docs/game/decisions.md`, 2026-11-02).
 
 ## 2. The weather intent (core, then game)
 
@@ -189,17 +189,17 @@ PR #28 (D-game-22, 2026-11-02).
 | `pedro`, a name the lexicon does not know, gets `vocab.unknown` (M72's finding; M70 fixed `me llamo …` only) | core | M78 |
 | `necesito ayuda domingo` (a name said to the listener) is flagged by the CLI; the host takes the name out (M66's known limit) | core | M78, or accepted: the game's path is right |
 | No test runs one miss through both the host and the game (V30 shared their code instead) | game | V29: one test, a miss and an off-prompt line through both paths |
-| `docs/nlp/TOOLS.md` still describes a parked workflow (`workflows-pending/`); M76 fixed only its two broken links | core docs | M78 |
+| `docs/nlp/tools.md` still describes a parked workflow (`workflows-pending/`); M76 fixed only its two broken links | core docs | M78 |
 
 **For the owner**
 
 | Point | Why it is the owner's |
 |---|---|
-| The voices: none of the 1 082 speech files is marked in `docs/game/SPEECH_CHECKLIST.md` | the owner listens (said: later) |
+| The voices: none of the 1 082 speech files is marked in `docs/game/speech-checklist.md` | the owner listens (said: later) |
 | The merged milestone branches on the remote (keep `M67b-answer-verb-forms`) | the permission check refuses remote deletes (said: later) |
 | The recorded fuzz family `2tpLGUOSqj41` (section 7) | its only fix narrows an oracle; the owner kept it recorded |
 | `NamePlatesTests` needs a display, so CI skips it | running it on CI means a virtual display in `.github/workflows/ci.yml` |
-| The scripted runs as game tests (M76's proposal, 3 to 5 days): `scripted-runs.sh` with `compare-runs.py` launch the game and compare captures | not asked; the QA agent and `docs/game/SCRIPTED_RUNS.md` use them |
+| The scripted runs as game tests (M76's proposal, 3 to 5 days): `scripted-runs.sh` with `compare-runs.py` launch the game and compare captures | not asked; the QA agent and `docs/game/scripted-runs.md` use them |
 | M67b, an answer's verb forms (parked) | parked by the owner's plan; the game already retries a tense miss with its hint |
 | The timed tests on CI (M68) | runs only if CI fails a timed test; the owner reports CI failures |
 | Older, outside the village: SonarCloud, the speech models in CI, CI on feature branches, one checks script shared by the gate and CI; the open questions of 2026-10-23 | `.claude/agents/orchestrator.md`, "CI" and "Open owner questions" |

@@ -1,8 +1,8 @@
 # QA reports
 
 Bug reports from QA passes and code reviews. A report is a record: written once, never overwritten, and its bugs are tracked in the
-triage table below. Confirmed bugs also go into the findings logs ([game plan section 5](../game/IMPLEMENTATION_PLAN.md),
-[core §5b](../nlp/IMPLEMENTATION_PLAN.md)) and are fixed as milestones.
+triage table below. Confirmed bugs also go into the findings logs ([game plan section 5](../game/implementation-plan.md),
+[core §5b](../nlp/implementation-plan.md)) and are fixed as milestones.
 
 - **QA passes** by the QA agent ([`.claude/agents/qa.md`](../../.claude/agents/qa.md)) test one area of the game (ui, language, speech,
   world, progression, save, content, or all) and write `<yyyy-mm-dd>-<area>.md`, with `-2`, `-3` for another run of the same area on

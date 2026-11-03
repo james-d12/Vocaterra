@@ -5,7 +5,7 @@ using Vocaterra.Nlp.Core.Stages;
 namespace Vocaterra.Game.Core.Npc;
 
 /// <summary>
-/// The listener's name said as a vocative (VILLAGE_PLAN V14): a learner who knows the villagers' names opens or closes a line with the name of the one spoken to
+/// The listener's name said as a vocative (village-plan V14): a learner who knows the villagers' names opens or closes a line with the name of the one spoken to
 /// (<c>Luz, quiero pan</c>, <c>quiero pan, Luz</c>, <c>hola Luz, quiero pan</c>). The name is no part of the sentence, and no grammar of the bundle has room for it, so the
 /// line is read without it: the core resolved <c>Luz quiero pan</c> at the baker to no intent and read <c>Mar dónde está la panadería</c> at the fisher as a question about
 /// the sea. The core leaves a lone name before a verb unchecked since M59 for this reason (it may be the person spoken to, and a transcript has no comma); the game, which

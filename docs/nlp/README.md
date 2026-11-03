@@ -7,7 +7,7 @@
 Vocaterra.NLP is a standalone Spanish voice-and-language evaluation core, written in C# on .NET. Given an utterance (audio, or a transcript
 for development), it works out what the learner meant and how well they said it, and returns one deterministic **verdict**, with tagged
 errors such as `conj.person` or `pron.r`, a feedback plan, a conversation step and the response text. It is a library first: a host loads a
-content bundle, builds the services, evaluates utterances and plans responses; [docs/nlp/API.md](API.md) lists the calls in order. The
+content bundle, builds the services, evaluates utterances and plans responses; [docs/nlp/api.md](api.md) lists the calls in order. The
 `Vocaterra.Nlp.Cli` tool is a demo host that drives the same API from the command line. Hosts live outside the core; nothing host-specific (scenes, items, prices, rewards) is in the core. There is one content bundle in the
 repository, the game's `content/game-v1`; the core's demo CLI and its tests run on it (R02, [ADR 0009](adr/0009-core-and-game-boundary.md)), and a game edit that
 breaks the core fails a core test.
@@ -16,7 +16,7 @@ The verdict separates whether the learner *communicated* (the agent understood) 
 pronunciation). The guiding principle is to reward communication and coach correctness: if the learner was understood the conversation
 responds, and the correction rides along on the response, for example as a recast ("Claro, «yo quiero dos espadas»").
 
-**Every runtime step is deterministic.** The same audio clip, host state and content version always produce the same verdict, feedback and outcome. Algorithmic stages are plain code with fixed-order math; the neural models (speech recognition, phoneme recognition, embeddings, speech synthesis) are frozen, run greedily on one CPU thread, and are pinned by SHA-256, with a margin on every threshold so floating-point drift cannot flip an outcome. Every graded interaction can be written to a replay log and re-checked later without the models. The libraries are engine-agnostic; the host engine is still an open decision ([docs/nlp/DECISIONS.md](DECISIONS.md)).
+**Every runtime step is deterministic.** The same audio clip, host state and content version always produce the same verdict, feedback and outcome. Algorithmic stages are plain code with fixed-order math; the neural models (speech recognition, phoneme recognition, embeddings, speech synthesis) are frozen, run greedily on one CPU thread, and are pinned by SHA-256, with a margin on every threshold so floating-point drift cannot flip an outcome. Every graded interaction can be written to a replay log and re-checked later without the models. The libraries are engine-agnostic; the host engine is still an open decision ([docs/nlp/decisions.md](decisions.md)).
 
 ## Quick start
 
@@ -31,18 +31,18 @@ dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo quiere dos
 
 The last line is the design's worked example in the words of the game's bundle: a wrong verb form and a noun left singular after a number. The
 CLI prints the verdict, with `conj.person` and `noun.number` and the corrected forms, then the agent's recast and reply.
-[CLI_EXAMPLES.md](CLI_EXAMPLES.md) explains the output and runs many more.
+[cli-examples.md](cli-examples.md) explains the output and runs many more.
 
 ## How it is built
 
 The engine `Vocaterra.Nlp` (one assembly, its stages as folders) knows no particular language; the Spanish pack `Vocaterra.Nlp.Es` supplies
 everything Spanish, and a host registers it (ADR 0012). [architecture.md](architecture.md) has the diagram of the stages, the dependency rules, how a
-host uses the core and where its files are; [PIPELINE.md](PIPELINE.md) follows one utterance through every stage.
+host uses the core and where its files are; [pipeline.md](pipeline.md) follows one utterance through every stage.
 
 ## Determinism rules in brief
 
 The full rules, with where each is enforced, are in [ADR 0002](adr/0002-determinism-rules.md); the pull request checklist is in
-[CONTRIBUTING.md](CONTRIBUTING.md). In short, code under `src/` must:
+[changing-the-core.md](changing-the-core.md). In short, code under `src/` must:
 
 - use no `System.Random` (only `SeededRng.ForInteraction(worldSeed, agentId, counter)`) and no wall clock (time arrives as a `StoredTimestamp`);
 - hash with `DeterministicHash` (SHA-256) only, and never let `Dictionary` or `HashSet` order reach any output;
@@ -57,21 +57,21 @@ The full rules, with where each is enforced, are in [ADR 0002](adr/0002-determin
 | --- | --- |
 | [architecture.md](architecture.md) | The stages, their dependencies, using the core from a host, the repository layout |
 | [building-and-testing.md](building-and-testing.md) | Prerequisites, build, tests, the fuzz suite, the benchmark and golden audio |
-| [CLI_EXAMPLES.md](CLI_EXAMPLES.md) | The demo CLI with and without models, worked runs, replay logs, the content builder |
-| [PIPELINE.md](PIPELINE.md) | The pipeline stage by stage, with the worked example and the CLI's verdict |
-| [API.md](API.md) | What a host calls, in order: load a bundle, build the services, evaluate, plan a response, record and replay |
-| [REPLAY.md](REPLAY.md) | The replay log and envelope format, with a real example |
-| [LEXICON.md](LEXICON.md) | The lexicon files, their sources, hashes and licences, how to regenerate them |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Development setup, conventions, the determinism checklist, recipes for error tags, content, golden clips and model adapters |
-| [TOOLS.md](TOOLS.md) | The third-party tools, libraries, models and data sources, with their licences |
+| [cli-examples.md](cli-examples.md) | The demo CLI with and without models, worked runs, replay logs, the content builder |
+| [pipeline.md](pipeline.md) | The pipeline stage by stage, with the worked example and the CLI's verdict |
+| [api.md](api.md) | What a host calls, in order: load a bundle, build the services, evaluate, plan a response, record and replay |
+| [replay.md](replay.md) | The replay log and envelope format, with a real example |
+| [lexicon.md](lexicon.md) | The lexicon files, their sources, hashes and licences, how to regenerate them |
+| [changing-the-core.md](changing-the-core.md) | Conventions, the determinism checklist, the definition of done, recipes for error tags, content, golden clips and model adapters, gotchas |
+| [tools.md](tools.md) | The third-party tools, libraries, models and data sources, with their licences |
 | [known-gaps.md](known-gaps.md) | What the core does not do yet |
-| [FUZZING_PLAN.md](FUZZING_PLAN.md), [the fuzz suite's README](../../tests/Vocaterra.Nlp.Fuzzing.Tests/README.md) | The fuzz design, its oracles and iteration budgets; the bugs it found and the known findings |
-| [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md), [DECISIONS.md](DECISIONS.md) | The milestones (§5) and the findings log (§5b); the owner's decisions |
+| [fuzzing-plan.md](fuzzing-plan.md), [the fuzz suite's README](../../tests/Vocaterra.Nlp.Fuzzing.Tests/README.md) | The fuzz design, its oracles and iteration budgets; the bugs it found and the known findings |
+| [implementation-plan.md](implementation-plan.md), [decisions.md](decisions.md) | The milestones (§5) and the findings log (§5b); the owner's decisions |
 | [adr/](adr/) | The architecture decision records, 0001 to 0012 |
 | [diagrams/README.md](diagrams/README.md) | The system diagram in draw.io, and how to open it |
 | [models/README.md](../../models/README.md), [tests/golden/README.md](../../tests/golden/README.md), [scripts/README.md](../../scripts/README.md) | The model manifest, the recording protocol, the helper scripts |
 
-The original design note is archived at [docs/archive/nlp/history/HIGH_LEVEL_DOCS.md](../archive/nlp/history/HIGH_LEVEL_DOCS.md); the research
+The original design note is archived at [docs/archive/nlp/history/high-level-docs.md](../archive/nlp/history/high-level-docs.md); the research
 behind the core is in [docs/research/](../research/README.md).
 
 ## Licence
@@ -80,7 +80,7 @@ behind the core is in [docs/research/](../research/README.md).
   third-party data are in [NOTICE](../../NOTICE).
 - **The Wiktionary-derived lexicon** `content/game-v1/lexicon/wiktionary-es.json` is derived from Wiktionary and is licensed under CC BY-SA 4.0, not
   under Apache-2.0. Its attribution, and the terms of the frequency list it was selected with, are in
-  [content/game-v1/ATTRIBUTION.md](../../content/game-v1/ATTRIBUTION.md) and [docs/nlp/LEXICON.md](LEXICON.md).
+  [content/game-v1/ATTRIBUTION.md](../../content/game-v1/ATTRIBUTION.md) and [docs/nlp/lexicon.md](lexicon.md).
 - **Models** are downloaded, not committed. Each model's licence is recorded in [models/manifest.json](../../models/manifest.json).
 
 Third-party checks:

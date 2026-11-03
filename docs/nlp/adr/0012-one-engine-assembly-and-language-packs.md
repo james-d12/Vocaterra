@@ -3,7 +3,7 @@
 - Status: accepted
 - Date: 2026-10-26
 - Deciders: repository owner (2026-10-26: "move all the `src/Vocaterra.Nlp.*` projects into one Nlp project", and the language-agnostic goal;
-  research `docs/research/2026-10-26-engine-and-language-packs.md` section 3); decision D14 in [DECISIONS.md](../DECISIONS.md)
+  research `docs/research/2026-10-26-engine-and-language-packs.md` section 3); decision D14 in [decisions.md](../decisions.md)
 - Supersedes: the layering bullet of [ADR 0003](0003-engine-agnostic-core.md) (the layering stays; the project boundary changes)
 
 ## Context
@@ -59,7 +59,7 @@ is the one between the language-neutral engine and each language pack, not betwe
 - Consumers reference one project: `src/Vocaterra.Game.Core`, `src/Vocaterra.Host` and the three tools. The game still never copies core source.
 - Behaviour does not change. The `content/game-v1` bundle hash, the goldens and the Spanish identity baseline are untouched; the core demo gives
   the same output.
-- The package table in [PACKAGE_README.md](../PACKAGE_README.md) now describes one package, `Vocaterra.Nlp`.
+- The package table in [package-readme.md](../package-readme.md) now describes one package, `Vocaterra.Nlp`.
 - ADR 0003's layering bullet is superseded by this record. Its other points (the engine-agnostic contracts, the interfaces for models and
   capture devices, the thin host) stand.
 - ADR 0009's boundary is unchanged: the core is the `Vocaterra.Nlp` engine and its packs, and the game is still the other side of it.
@@ -77,7 +77,7 @@ engine references nothing of it. Behaviour is unchanged: the bundle hash, the go
   `SpanishRecastPolicy`, `PunctuationFixer` (the `¿ ¡` balancing) and `NumberAgreement`, the repair lines (`SpanishRepairLines`, the constants of the former `RepairStrategy`), the whole
   Spanish G2P (`SpanishG2p`, `G2pNormalizer`, `DigraphGrouper`, `Syllabifier`, `StressAssigner`, `PhoneMapper`, `AllophoneRules`, `WordPipeline`, `ExceptionLexicon` and `exceptions.json`), and the
   seed lexicon resource (`../../content/game-v1/lexicon/seed.json`, same logical name as before). New in the pack: `SpanishLexicon` (the seed and the Spanish-default `Load` and
-  `FromEntries`) and `SpanishContent` (`WithSpanish`, `Load`, `SpanishMorphology`, `CreateTemplateEngine`), the host-facing entry points (API.md, "The Spanish pack project (M53)").
+  `FromEntries`) and `SpanishContent` (`WithSpanish`, `Load`, `SpanishMorphology`, `CreateTemplateEngine`), the host-facing entry points (api.md, "The Spanish pack project (M53)").
 - `tests/Vocaterra.Nlp.Es.Tests` holds the Spanish tests (Analysis, Lexicon, Morphology, Normalization, Phonology, the pack seams and the G2P golden with its data file, moved with `git mv`-equivalent
   renames). `VocaterraCore` already covers the name, so the pack has XML docs, `CS1591` and package metadata, and its tests see the pack's internals through `InternalsVisibleTo $(MSBuildProjectName).Tests`.
   There is **no** `InternalsVisibleTo` from the engine to the pack: every engine member the pack needed was made public with XML docs (`Utf16`, `TextKey`, `Lexicon.Derive`, and the new `TextTokenizer`,

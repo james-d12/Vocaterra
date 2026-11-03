@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Installs the development tools of the grammar check (tools/manifest.json): the Temurin JRE and LanguageTool, both pinned by URL and SHA-256,
-# below ${VOCATERRA_TOOLS_DIR:-$HOME/.local/share/vocaterra/tools}. They run as separate local processes (docs/nlp/DECISIONS.md D10): no LanguageTool
+# below ${VOCATERRA_TOOLS_DIR:-$HOME/.local/share/vocaterra/tools}. They run as separate local processes (docs/nlp/decisions.md D10): no LanguageTool
 # code is linked or shipped, and no n-gram data is installed.
 #
 # Usage: scripts/fetch-tools.sh [--list] [--clean]

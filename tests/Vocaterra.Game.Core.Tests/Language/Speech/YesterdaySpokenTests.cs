@@ -6,8 +6,8 @@ using Xunit.Abstractions;
 namespace Vocaterra.Game.Core.Tests.Language.Speech;
 
 /// <summary>
-/// The phrases Ayer en el pueblo asks the learner to say (VILLAGE_PLAN V14), spoken: Kokoro says each at its step and Vosk hears it through the worker at the step's prompt
-/// (the round trip every content milestone runs once, VILLAGE_PLAN section 4). The lesson's new forms must be heard: hizo, pescó, fuimos, comieron, tengo que and compró, and
+/// The phrases Ayer en el pueblo asks the learner to say (village-plan V14), spoken: Kokoro says each at its step and Vosk hears it through the worker at the step's prompt
+/// (the round trip every content milestone runs once, village-plan section 4). The lesson's new forms must be heard: hizo, pescó, fuimos, comieron, tengo que and compró, and
 /// fueron, which the learner hears in "¿Adónde fueron?". A word the recognizer cannot hear would fail here; it would go to the learner's hearing side or to a typed-only
 /// variant. And a name said as a vocative to the smith, whose answer set holds the village's names, is heard and read without it. Skipped without the models.
 /// </summary>

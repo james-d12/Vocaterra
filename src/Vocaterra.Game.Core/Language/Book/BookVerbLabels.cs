@@ -6,7 +6,7 @@ namespace Vocaterra.Game.Core.Language.Book;
 /// The plain-English label of a Spanish verb form (S20, the book's Verbs page): <c>quiero — I want</c>, <c>¿quieres? — do you want?</c>,
 /// <c>está — he/she/it is</c>. The English is a small table over the reading's person, number, tense and mood (the core's codes: person 1 to 3,
 /// number <c>sg</c> or <c>pl</c>, tense <c>pres</c>, <c>pret</c>, <c>impf</c>, <c>fut</c>, <c>cond</c>, mood <c>ind</c>, <c>subj</c>, <c>imp</c>), filled with
-/// the verb's forms the locale lists (<see cref="VerbGloss"/>: base, third person, past; CONTENT_PLAN C03, no form is built by a rule). A verb whose base is
+/// the verb's forms the locale lists (<see cref="VerbGloss"/>: base, third person, past; content-plan C03, no form is built by a rule). A verb whose base is
 /// <c>be</c> has its own present and past (am, is, are, was, were). Plain values; no clock.
 /// </summary>
 public static class BookVerbLabels

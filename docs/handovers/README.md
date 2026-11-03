@@ -18,8 +18,8 @@ session, pauses work or hands it on, and whenever the owner asks.
 
 ## Naming
 
-`YYYY-MM-DD-HHMMZ-<slug>.md`: the creation time in UTC (`date -u +%Y-%m-%d-%H%MZ`; never a commit's date or an example), then a short
-lowercase kebab-case slug that names the workstream, for example `2026-11-03-1430Z-village-decisions.md`. If the name is taken, add
+`YYYY-MM-DD-HHMM-<slug>.md`, all lowercase kebab-case: the creation time in UTC (`date -u +%Y-%m-%d-%H%M`; never a commit's date or an
+example), then a short slug that names the workstream, for example `2026-11-03-1430-village-decisions.md`. If the name is taken, add
 `-2`, `-3`. The handovers written before 2026-11-03 have a known date but no recorded time, so they are named `YYYY-MM-DD-<slug>.md`;
 several of them were moved out of the orchestrator, the game plan and a research report, each with a note saying where from.
 
@@ -29,14 +29,15 @@ several of them were moved out of the orchestrator, the game plan and a research
 
 | Handover | Workstream | What it waits for |
 | --- | --- | --- |
-| [2026-11-03-1019Z-docs-structure](2026-11-03-1019Z-docs-structure.md) | The documentation layout | The owner's review and pull request of `feature/docs-structure` |
+| [2026-11-03-1133-docs-cleanup](2026-11-03-1133-docs-cleanup.md) | The documentation cleanup: layout, READMEs, names, the orchestrator | The owner's review and merge of the `docs_cleanup` pull request |
 | [2026-11-02-after-followups](2026-11-02-after-followups.md) | The owner's decisions after the village follow-ups: M74, M75, V29, the study of spoken off-prompt lines, the known fuzz family | A new branch from `origin/main`; PR #28 (`feature/village-followups`) is merged |
 
 **Done**
 
 | Handover | Workstream | Closed |
 | --- | --- | --- |
-| [2026-11-03-0952Z-docs-organisation](done/2026-11-03-0952Z-docs-organisation.md) | The first documentation review and its proposed layout | Replaced by [2026-11-03-1019Z-docs-structure](2026-11-03-1019Z-docs-structure.md) |
+| [2026-11-03-1019-docs-structure](done/2026-11-03-1019-docs-structure.md) | The documentation layout, before the READMEs and names | Replaced by [2026-11-03-1133-docs-cleanup](2026-11-03-1133-docs-cleanup.md) |
+| [2026-11-03-0952-docs-organisation](done/2026-11-03-0952-docs-organisation.md) | The first documentation review and its proposed layout | Replaced by [2026-11-03-1019-docs-structure](done/2026-11-03-1019-docs-structure.md) |
 | [2026-11-01-village-phase-b](done/2026-11-01-village-phase-b.md) | The village, phase B, its review and the follow-up queue | Replaced by 2026-11-02-after-followups; the follow-ups merged in PR #28 |
 | [2026-10-26-engine-and-language-packs](done/2026-10-26-engine-and-language-packs.md) | D14 phase A: one engine assembly and language packs | `feature/language-packs` merged into `main` |
 | [2026-10-23-experiment-paused](done/2026-10-23-experiment-paused.md) | The X series on `feature/experiment` | `feature/experiment` and `X06-review-deck` merged into `main` |

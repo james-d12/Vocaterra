@@ -20,11 +20,11 @@ NLP architecture, implementation plans and decisions live under [`docs/nlp/`](do
 
 The whole repository is licensed under the Apache License 2.0 ([`LICENSE`](LICENSE), [`NOTICE`](NOTICE)). Third-party data and models retain their own licences, listed in `NOTICE` and in the bundles' `ATTRIBUTION.md`.
 
-The boundary between the language core and the game is defined in [`docs/nlp/adr/0009-core-and-game-boundary.md`](docs/nlp/adr/0009-core-and-game-boundary.md), while the APIs exposed to hosts are documented in [`docs/nlp/API.md`](docs/nlp/API.md).
+The boundary between the language core and the game is defined in [`docs/nlp/adr/0009-core-and-game-boundary.md`](docs/nlp/adr/0009-core-and-game-boundary.md), while the APIs exposed to hosts are documented in [`docs/nlp/api.md`](docs/nlp/api.md).
 
 Until 2026-10-21 the two components were maintained as separate repositories, and until R01 they remained separate sibling folders (`nlp/` and `game/`).
 
-The game's prototype is the Minecraft-inspired first-person voxel slice described in [`docs/game/design/prototype-brief.md`](docs/game/design/prototype-brief.md) (the owner's Prototype Design Brief, v1.2), planned milestone by milestone in [`docs/game/SCENARIO_PLAN.md`](docs/game/SCENARIO_PLAN.md).
+The game's prototype is the Minecraft-inspired first-person voxel slice described in [`docs/game/design/prototype-brief.md`](docs/game/design/prototype-brief.md) (the owner's Prototype Design Brief, v1.2), planned milestone by milestone in [`docs/game/scenario-plan.md`](docs/game/scenario-plan.md).
 
 The [documentation index](docs/README.md) links the guides, plans, decisions, QA reports and [session handovers](docs/handovers/README.md).
 
@@ -69,13 +69,13 @@ Tests that need the speech models read `VOCATERRA_MODELS_DIR` and are skipped wi
 
 Each component keeps its own implementation plan:
 
-- `docs/nlp/IMPLEMENTATION_PLAN.md`
-- `docs/game/IMPLEMENTATION_PLAN.md`
+- `docs/nlp/implementation-plan.md`
+- `docs/game/implementation-plan.md`
 
 and its own owner decisions:
 
-- `docs/nlp/DECISIONS.md`
-- `docs/game/DECISIONS.md`
+- `docs/nlp/decisions.md`
+- `docs/game/decisions.md`
 
 The IDs in those documents are unchanged from the separate repositories.
 
@@ -90,4 +90,4 @@ scripts/content.sh cefr-check
 
 The language core's tests and demo CLI also run against this bundle. As a result, changing the game's language content re-runs the relevant core validation and test suite.
 
-See [`docs/nlp/CONTRIBUTING.md`](docs/nlp/CONTRIBUTING.md) for the core's contribution and validation workflow.
+See [`docs/nlp/changing-the-core.md`](docs/nlp/changing-the-core.md) for the core's rules for a change and its recipes.

@@ -158,7 +158,7 @@ public sealed record LaunchOptions
     /// <summary>The content bundle folder, or <see langword="null"/> to search for <c>content/game-v1</c>.</summary>
     public string? ContentDirectory { get; init; }
 
-    /// <summary>The support-language locale named by <c>--locale</c> (CONTENT_PLAN C03), or <see langword="null"/> for the bundle's <c>supportLanguage</c>.</summary>
+    /// <summary>The support-language locale named by <c>--locale</c> (content-plan C03), or <see langword="null"/> for the bundle's <c>supportLanguage</c>.</summary>
     public string? Locale { get; init; }
 
     /// <summary>The scene layout file named by <c>--scene</c>, or <see langword="null"/> for the bundle's <c>game/scene.json</c>.</summary>
@@ -180,7 +180,7 @@ public sealed record LaunchOptions
     public IReadOnlyList<ScriptStep> Script { get; init; } = [];
 
     /// <summary>
-    /// Checks the NPCs the <c>--talk</c> steps name against the bundle's NPCs, once the roster has loaded (VILLAGE_PLAN V01; a fixed list of three before): a fourth NPC
+    /// Checks the NPCs the <c>--talk</c> steps name against the bundle's NPCs, once the roster has loaded (village-plan V01; a fixed list of three before): a fourth NPC
     /// in <c>game/npcs.json</c> can be talked to with no code change.
     /// </summary>
     /// <param name="npcs">The NPCs' ids, in the roster's order.</param>
@@ -661,7 +661,7 @@ public sealed record LaunchOptions
                     script.Add(new ScriptStep(arg == "--book-play" ? ScriptStepKind.BookPlay : ScriptStepKind.BookPlaySlow, Value: value.Trim()));
                     break;
                 case "--talk":
-                    // Which NPCs there are is the bundle's (game/npcs.json): CheckTalkTargets refuses an unknown one once the roster has loaded (VILLAGE_PLAN V01).
+                    // Which NPCs there are is the bundle's (game/npcs.json): CheckTalkTargets refuses an unknown one once the roster has loaded (village-plan V01).
                     if (value.Trim().Length == 0)
                     {
                         error = $"--talk needs an NPC, got '{value}'.";

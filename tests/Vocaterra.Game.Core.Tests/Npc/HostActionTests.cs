@@ -10,7 +10,7 @@ using Vocaterra.Nlp.Pipeline;
 namespace Vocaterra.Game.Core.Tests.Npc;
 
 /// <summary>
-/// The host actions of VILLAGE_PLAN V02 through the real core and the bundle's route: the villager points from the place the learner names (a label of the scene,
+/// The host actions of village-plan V02 through the real core and the bundle's route: the villager points from the place the learner names (a label of the scene,
 /// the river as before, a catalogue noun, or a place he does not know, which he says as a host turn), every answer is logged as <c>place_asked</c>, and
 /// <c>give_item</c> gives the number asked for, capped at five.
 /// </summary>
@@ -136,7 +136,7 @@ public sealed class HostActionTests
     [Fact]
     public void TakeItemTakesThemAllOrNothing()
     {
-        // VILLAGE_PLAN V03: an NPC takes items (here the villager's villager.give, mapped to take two wood); a player with fewer keeps what they have.
+        // village-plan V03: an NPC takes items (here the villager's villager.give, mapped to take two wood); a player with fewer keeps what they have.
         var session = AtVillager(WithVillagerGive(new JsonObject { ["kind"] = "take_item", ["item"] = "wood", ["count"] = 2 }));
         _ = session.Simulation.GrantItems(ItemId.Wood, 3);
 

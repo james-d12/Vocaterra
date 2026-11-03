@@ -9,7 +9,7 @@ using Vocaterra.Nlp.Core.Stages;
 namespace Vocaterra.Game.Core.Tests.Npc;
 
 /// <summary>
-/// The listener's name said as a vocative (VILLAGE_PLAN V14, found by the orchestrator at the core's M59): <c>Luz quiero pan</c> at the baker resolved no intent, <c>hola Luz
+/// The listener's name said as a vocative (village-plan V14, found by the orchestrator at the core's M59): <c>Luz quiero pan</c> at the baker resolved no intent, <c>hola Luz
 /// quiero dos panes</c> only the greeting, <c>Domingo necesito un hacha</c> at the smith nothing, and <c>Mar dónde está la panadería</c> at the fisher asked for the sea.
 /// Session 8 teaches the villagers' names, so learners open with them: the game reads a line without its listener's name at its start or its end.
 /// </summary>

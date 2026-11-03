@@ -176,7 +176,7 @@ def clock(seconds):
 
 
 def duration_lines(runs, out):
-    """The measured durations, one block per run (S22). PLAYTEST.md tells the facilitator to read them here and not to estimate."""
+    """The measured durations, one block per run (S22). playtest.md tells the facilitator to read them here and not to estimate."""
     if not runs:
         out.append("  Durations: no session_start in this folder")
         return

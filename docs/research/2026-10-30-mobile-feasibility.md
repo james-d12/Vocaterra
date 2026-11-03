@@ -140,7 +140,7 @@ Tablets are the easier first target, because their screens are closer to the des
 The quality presets draw 224, 304 and 400 blocks out, with plants, ambient occlusion and clouds on every level
 (`src/Vocaterra.Game/Graphics/QualityPreset.cs:41-46`). Chunk meshing runs on the frame thread with a per-frame budget of 4 to 6 ms. The
 only measurements are on desktop: software GL (llvmpipe) frame medians of 23 to 49 ms, and about 2 s to mesh 1,762 chunks
-(`docs/game/IMPLEMENTATION_PLAN.md:894,922,987`, the S13 and S14 findings).
+(`docs/game/implementation-plan.md:894,922,987`, the S13 and S14 findings).
 
 A phone needs:
 - a **Mobile** preset, likely 96 to 160 blocks with fewer plants and no clouds;
@@ -153,7 +153,7 @@ must be rebuilt (a re-mesh). This is *unverified*: test it on a device.
 
 ### 3.7 Speech on phones (game and core: Android S, iOS L; the main iOS risk)
 
-The `Vosk` NuGet package (0.3.38) carries linux-x64, win-x64 and osx only (`docs/nlp/TOOLS.md:97-108`). The managed wrapper calls a native
+The `Vosk` NuGet package (0.3.38) carries linux-x64, win-x64 and osx only (`docs/nlp/tools.md:97-108`). The managed wrapper calls a native
 `libvosk`.
 
 - **Android: low risk.** The Vosk project publishes an Android library (`vosk-android` AAR on Maven) carrying `libvosk.so` for the Android ABIs.
@@ -245,8 +245,8 @@ no decision.
 
 ## 5. Proposed order
 
-Each step is a milestone row or rows. The core rows go in `docs/nlp/IMPLEMENTATION_PLAN.md`, and the game rows in a new section of
-`docs/game/IMPLEMENTATION_PLAN.md`.
+Each step is a milestone row or rows. The core rows go in `docs/nlp/implementation-plan.md`, and the game rows in a new section of
+`docs/game/implementation-plan.md`.
 
 1. **Core preparation** (core, S each):
    - the explicit model and runtime folders (3.2);
@@ -269,7 +269,7 @@ once a Mac is available.
 
 ## 6. Owner decisions to raise
 
-None of these is raised in `docs/game/DECISIONS.md` yet; each becomes a decision only when the owner opens it.
+None of these is raised in `docs/game/decisions.md` yet; each becomes a decision only when the owner opens it.
 
 1. **Is mobile a goal**, and is Android first acceptable?
 2. **The engine for mobile** (D-game-1): MonoGame heads (this report's recommendation) or Godot (P10 first).

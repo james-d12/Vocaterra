@@ -83,7 +83,7 @@ public sealed record NpcFigure(string Name, string Label, BlockPos Feet, int Yaw
 /// <summary>
 /// The look of the figures, as textured boxes (S15): the guide Luna with long hair, a green jacket, a yellow scarf and a pack; the shopkeeper in a white
 /// shirt with rolled sleeves, a leather apron, a beard and a baker's hat; the villager in a blue tunic and a straw hat; and the player in a blue shirt with a
-/// leather backpack, seen over the shoulder when F5 is pressed. VILLAGE_PLAN V05 adds the village's four: the fisher in a blue coat, tall boots and a knitted
+/// leather backpack, seen over the shoulder when F5 is pressed. village-plan V05 adds the village's four: the fisher in a blue coat, tall boots and a knitted
 /// cap, with a grey beard; the baker, a woman in a rose dress with flour-white sleeves, a white apron and a white cap; the smith in a rust shirt with rolled
 /// sleeves and a long dark apron, bareheaded, with a moustache; and the farmer in a green shirt and the villager's straw hat in tan. They are drawn in code
 /// (D-game-5): the faces, the cloth, the skin and the hair are cells of the block atlas (<see cref="BlockArtVillage"/>), tinted by the part's colour.

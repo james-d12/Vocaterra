@@ -7,7 +7,7 @@ using Vocaterra.Game.Core.Tests.TestSupport;
 namespace Vocaterra.Game.Core.Tests.Language.Lessons;
 
 /// <summary>
-/// The lessons' levels (VILLAGE_PLAN 3.9, V08, D-game-22 (b)): every lesson declares <c>a1</c> or <c>a2</c>, and the game's validator holds the Spanish it teaches and
+/// The lessons' levels (village-plan 3.9, V08, D-game-22 (b)): every lesson declares <c>a1</c> or <c>a2</c>, and the game's validator holds the Spanish it teaches and
 /// says to the bundle's CEFR lists up to that level, its phrases' variants to the bundle's ceiling (A2), and its tenses to the level's (no simple future at A1). The
 /// fixtures' words are the word cards of two catalogue nouns, placed by the bundle's own lists: <c>hierba</c> (grass) is A2, <c>arena</c> (sand) is in neither list.
 /// </summary>

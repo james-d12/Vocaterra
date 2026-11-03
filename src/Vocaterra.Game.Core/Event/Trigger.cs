@@ -3,7 +3,7 @@ using System.Text.Json;
 namespace Vocaterra.Game.Core.Event;
 
 /// <summary>
-/// What a tip, a lesson's <c>do</c> step or an objective's step waits for (CONTENT_PLAN 3.4, C06): one world event (<see cref="WorldEvents"/>, or for a tip the
+/// What a tip, a lesson's <c>do</c> step or an objective's step waits for (content-plan 3.4, C06): one world event (<see cref="WorldEvents"/>, or for a tip the
 /// moments <c>start</c> and <c>aimed_npc</c>), with an optional NPC and an optional detail that must match exactly. The matcher reads world events only, so
 /// every trigger can be seen in the session log. In a file: <c>{ "event": "item_picked_up", "detail": "madera" }</c>, <c>{ "event": "talk_opened", "npc": "guide" }</c>.
 /// </summary>

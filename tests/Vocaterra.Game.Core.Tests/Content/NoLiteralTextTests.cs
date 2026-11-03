@@ -4,7 +4,7 @@ using Vocaterra.Game.Core.Tests.TestSupport;
 namespace Vocaterra.Game.Core.Tests.Content;
 
 /// <summary>
-/// No player-facing English in the code (CONTENT_PLAN 3.2, C04): the support language's words are the locale's (<c>content/locale/</c>), so a scan of
+/// No player-facing English in the code (content-plan 3.2, C04): the support language's words are the locale's (<c>content/locale/</c>), so a scan of
 /// <c>Vocaterra.Game</c> and <c>Vocaterra.Game.Core</c> finds no string literal that reads like an English phrase for the player. Developer text (the command
 /// line, logs and console lines, exceptions, the saved report and crash files, the debug overlay) stays English and is allowed below, each file with its reason.
 /// </summary>

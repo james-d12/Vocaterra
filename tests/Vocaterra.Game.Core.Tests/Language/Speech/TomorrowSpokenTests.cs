@@ -6,8 +6,8 @@ using Xunit.Abstractions;
 namespace Vocaterra.Game.Core.Tests.Language.Speech;
 
 /// <summary>
-/// The phrases Mañana en el pueblo asks the learner to say (VILLAGE_PLAN V17), spoken: Kokoro says each at its step and Vosk hears it through the worker at the step's prompt
-/// (the round trip every content milestone runs once, VILLAGE_PLAN section 4). The lesson's simple futures must be heard: compraré, buscaré, iré and hará. A word the
+/// The phrases Mañana en el pueblo asks the learner to say (village-plan V17), spoken: Kokoro says each at its step and Vosk hears it through the worker at the step's prompt
+/// (the round trip every content milestone runs once, village-plan section 4). The lesson's simple futures must be heard: compraré, buscaré, iré and hará. A word the
 /// recognizer cannot hear would fail here; it would go to the learner's hearing side or to a typed-only variant. And the baker's name said as a vocative before a plan, at
 /// her open prompt (which takes state_action since V17), is heard and read without it. Skipped without the models.
 /// </summary>

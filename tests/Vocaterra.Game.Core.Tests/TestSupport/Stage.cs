@@ -52,7 +52,7 @@ internal static class Stage
 
     /// <summary>
     /// The nearest river block to the player, as the guide's facts find it: the nearest water of the river's body (the water joined to the scene's <c>river</c>
-    /// point), not the village well's (VILLAGE_PLAN V04), which is nearer to the villager (a bottle can be filled there too since V10).
+    /// point), not the village well's (village-plan V04), which is nearer to the villager (a bottle can be filled there too since V10).
     /// </summary>
     public static BlockPos NearestRiver(VoxelSession session) =>
         TestGame.FactsOf(session).NearestOfNounJoinedTo(TestGame.ViewpointOf(session), "río", session.Scene.Point("river"))!.Cell.ToBlock();

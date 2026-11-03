@@ -37,7 +37,7 @@ scripts/fetch-models.sh vosk-model-small-es-0.42 kokoro-multi-lang-v1_0   # need
 
 On a Linux x64 build host the build copies only the linux-x64 native libraries (about 400 MB less per build); the commands and the output
 paths are the same. `dotnet build -p:VocaterraAllRuntimes=true` copies every platform's natives again (for a release build). See
-[docs/game/ARCHITECTURE.md](ARCHITECTURE.md).
+[docs/game/architecture.md](architecture.md).
 
 Run the host (the default bundle is `content/game-v1` in the current directory, else the game's bundle found above the executable; `--content <dir>`
 names another):
@@ -55,7 +55,7 @@ dotnet run --project src/Vocaterra.Host
 ```
 
 The host makes these calls of the core's API, in order, on the packages (the details are in
-[docs/game/ARCHITECTURE.md](ARCHITECTURE.md)): `ContentLoader.Load` for the bundle; `PipelineServices` and `UtterancePipeline.Evaluate`
+[docs/game/architecture.md](architecture.md)): `ContentLoader.Load` for the bundle; `PipelineServices` and `UtterancePipeline.Evaluate`
 for each typed line; `ConversationContext.Create` for the utterance's context and `ConversationContext.Next` after it, which applies the core's
 `RepeatCounts.Next` to the error tags. The host owns the world seed, the stored time (fixed for `--transcript`, the clock in the loop),
 the learner model and the repeat counts.

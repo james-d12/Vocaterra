@@ -40,12 +40,12 @@ current checkout). No area means `all`: a light pass over each area below.
   wrapper script under `/tmp/vocaterra-qa/` and run the script.
 
 ## Tools (read these; do not guess flags)
-- `docs/game/SCRIPTED_RUNS.md`: the sixteen scripted runs, their exact commands, and the baseline and templates for every area.
+- `docs/game/scripted-runs.md`: the sixteen scripted runs, their exact commands, and the baseline and templates for every area.
   `scripts/scripted-runs.sh OUT [name...]` runs them; `python3 -I scripts/compare-runs.py BASE NEW` compares two captures.
 - `src/Vocaterra.Game/Startup/LaunchOptions.cs` (or `Vocaterra.Game --help`): every game flag.
 - `tools/Vocaterra.Nlp.Cli`: `eval --prompt <id> --content content/game-v1 (--transcript "<text>" | --wav <file> --models <dir>)` and
   `replay`, for language tests without the renderer. `--help` lists the rest.
-- `content/PHRASES.md` (the source of truth for the phrases), `content/game-v1/agents/*.json` (the NPCs), `docs/game/PLAYTEST.md` section 13
+- `content/PHRASES.md` (the source of truth for the phrases), `content/game-v1/agents/*.json` (the NPCs), `docs/game/playtest.md` section 13
   (known limits; these are not new bugs).
 - Evidence for each run: the exit code, stdout and stderr, the screenshot (read the PNG and look at it), the save, the sound log and the
   session log.

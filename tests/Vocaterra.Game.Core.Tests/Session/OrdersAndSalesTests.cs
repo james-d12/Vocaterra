@@ -11,7 +11,7 @@ using Vocaterra.Nlp.Pipeline;
 namespace Vocaterra.Game.Core.Tests.Session;
 
 /// <summary>
-/// A purchase and an order by data alone (VILLAGE_PLAN V03), on the shipped baker since V11 (until then a test baker on a copy of the bundle, added the way
+/// A purchase and an order by data alone (village-plan V03), on the shipped baker since V11 (until then a test baker on a copy of the bundle, added the way
 /// <c>content/README.md</c> says): her agent sells bread at two coins (<c>sell</c>), says when the coins are too few (<c>baker.cant_pay</c>) and thanks the player for
 /// the oven's wood (<c>baker.delivered</c>, whose reward is four coins); the order <c>oven-wood</c> (five wood, from play session 5) is an objective with
 /// <c>deliverTo</c>.

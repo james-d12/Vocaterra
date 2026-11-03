@@ -4,7 +4,7 @@ Written during phase B of the village series (`feature/village`, V13 in progress
 - the gate logs (`.claude/gate-logs/` in the main checkout and each worktree: 76 runs, 10-21 to 10-31);
 - the agents' TRX files (`.claude/test-timings/`);
 - `git log --all` (762 commits);
-- the findings logs (`docs/game/IMPLEMENTATION_PLAN.md` section 5, `docs/nlp/IMPLEMENTATION_PLAN.md` §5 and §5b, `docs/game/VILLAGE_PLAN.md`
+- the findings logs (`docs/game/implementation-plan.md` section 5, `docs/nlp/implementation-plan.md` §5 and §5b, `docs/game/village-plan.md`
   sections 4 and 5, `docs/process/test-performance-plan.md`);
 - the Claude Code transcripts (125 files, 17 sessions and 108 agents, 764 MB, streamed; the running session was left out).
 
@@ -62,10 +62,10 @@ Written during phase B of the village series (`feature/village`, V13 in progress
   - Test and build output is about 3 %, because `scripts/test.sh` already summarises.
   - 49 % of the V agents' output tokens are thinking (1.08M of 2.19M).
 - **What the brief asks the agent to read.**
-  - The drafted V13 brief lists `VILLAGE_PLAN.md` "all of it" (71 KB), `content/PHRASES.md` (78 KB) and `docs/game/SPEECH_CHECKLIST.md`
+  - The drafted V13 brief lists `village-plan.md` "all of it" (71 KB), `content/PHRASES.md` (78 KB) and `docs/game/speech-checklist.md`
     (71 KB, a generated table).
   - Read in full, that list holds ≈ 70K tokens in context for the rest of the run (est.: about 10 % of a content milestone's cost).
-  - `VILLAGE_PLAN.md` was read whole 15 times across all the sessions.
+  - `village-plan.md` was read whole 15 times across all the sessions.
 - **The model is not the lever.**
   - At API prices the same tokens would cost $231 on Sonnet (−15 %, since the cache-read price is the same) and $12 on Haiku.
   - Context size and turn count are what cost.
@@ -161,7 +161,7 @@ none of steps 3 to 7.
   - V17 waits on M57.
   - V15's prices sit beside M58.
 - **Listening.**
-  - 0 of 680 rows in `docs/game/SPEECH_CHECKLIST.md` are marked: 340 lines at two speeds, 62 MB.
+  - 0 of 680 rows in `docs/game/speech-checklist.md` are marked: 340 lines at two speeds, 62 MB.
   - Phase B adds about 240 files.
   - A voice rejected late re-renders its NPC's lines and moves the hash again.
 - **What the gate and CI miss.**
@@ -192,7 +192,7 @@ none of steps 3 to 7.
 - **When:** now, from V14's brief.
 - **What to change:**
   - Name sections, never "all of it".
-  - Never read `SPEECH_CHECKLIST.md`, `manifest.json` or the whole of `PHRASES.md`: grep the rows instead.
+  - Never read `speech-checklist.md`, `manifest.json` or the whole of `PHRASES.md`: grep the rows instead.
   - Send every heavy command to a log and print at most 30 lines.
   - Keep `sed -n` ranges under about 150 lines.
   - Wait with Monitor or `until`, not repeated `tail`.

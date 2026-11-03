@@ -3,14 +3,14 @@
 # every NPC of game/npcs.json, `<id>_*` and the lesson lines `guide.lesson.<id>.*`, and the guide's, feedback and not-understood lines), each
 # prompt's text, one line per word-card noun, and each learner phrase of the phrase sheet spoken as its model answer. Output:
 # content/game-v1/speech/<speaker>/<lineId>.wav (at the speaker's speed; the word cards' in speech/cards/) and <lineId>.slow.wav (0.8 of it), 16-bit mono, host-owned bundle files, hashed
-# in manifest.json and listed in provenance.json; the listening table docs/game/SPEECH_CHECKLIST.md; and the re-run index
+# in manifest.json and listed in provenance.json; the listening table docs/game/speech-checklist.md; and the re-run index
 # content/speech-index.json (outside the bundle).
 #
-# Speakers: each NPC's voice comes from its file, game/npcs/<id>.json `voice` (VILLAGE_PLAN V01): the Kokoro speaker id and voice name, the
+# Speakers: each NPC's voice comes from its file, game/npcs/<id>.json `voice` (village-plan V01): the Kokoro speaker id and voice name, the
 # speed of the normal recordings, and an optional `gain` that scales the samples of a voice the model renders louder or quieter (V11). The
 # guide 28 ef_dora also speaks the word cards, the model answers and every pool of no other NPC; the shopkeeper is 29 em_alex and the villager
-# 53 em_santa (the core's Kokoro voice table, docs/nlp/API.md section 6); the fisher (em_santa at 0.9), the baker (if_sara, gain 0.32), the
-# smith (im_nicola, gain 0.6) and the farmer (pm_santa) have the provisional voices of docs/game/voice-trial/ (D-game-22 (d)).
+# 53 em_santa (the core's Kokoro voice table, docs/nlp/api.md section 6); the fisher (em_santa at 0.9), the baker (if_sara, gain 0.32), the
+# smith (im_nicola, gain 0.6) and the farmer (pm_santa) have provisional voices from the V06 voice trial (D-game-22 (d); the trial is in git history).
 # Re-runnable: a file whose text, speaker, voice, speed, gain, rate and bytes match the index is skipped, so a changed `voice` renders only
 # that NPC's lines again (no --force needed), and the checklist keeps the owner's marks except on rows whose text or recording changed.
 #
@@ -46,4 +46,4 @@ dotnet run --project "$TOOL" -- --bundle "$BUNDLE" "$@"
 # 3. Hash the bundle with the new files, then validate it.
 scripts/content.sh hash "$BUNDLE" --bundle-id game-v1
 scripts/content.sh validate "$BUNDLE"
-echo "speech: done; the listening table is docs/game/SPEECH_CHECKLIST.md"
+echo "speech: done; the listening table is docs/game/speech-checklist.md"

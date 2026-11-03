@@ -1,4 +1,4 @@
-> **Historical (R1, the 2D era).** This document describes the 2D Terraria-inspired slice (P1 to P7), retired by the prototype brief (D-game-8, 2026-10-21). The current design is `docs/PROTOTYPE_BRIEF.md`; its plan is `docs/SCENARIO_PLAN.md`.
+> **Historical (R1, the 2D era).** This document describes the 2D Terraria-inspired slice (P1 to P7), retired by the prototype brief (D-game-8, 2026-10-21). The current design is `docs/PROTOTYPE_BRIEF.md`; its plan is `docs/scenario-plan.md`.
 
 # Prototype research: a Terraria-inspired slice on the language core (R1)
 
@@ -9,11 +9,11 @@ progress system; nouns drawn in colour once known and in greyscale before (the N
 .NET later.
 
 Each section answers one question of the brief and ends with a recommendation. The milestone table and the proposed core requests are also in
-[PROTOTYPE_PLAN.md](../archive/game/research/PROTOTYPE_PLAN.md), in a form the orchestrator can paste.
+[prototype-plan.md](../archive/game/research/prototype-plan.md), in a form the orchestrator can paste.
 
 **How the facts were checked.** Core facts were read from the core's documents and source at the main checkout's submodule
-(`external/Vocaterra.NLP`, gitlink `db39999`): `docs/API.md`, `docs/PIPELINE.md`, `docs/LEXICON.md`, `docs/PACKAGING.md`, `docs/DECISIONS.md`,
-`TOOLS.md`, `HIGH_LEVEL_DOCS.md`, `docs/research/2026-10-20-scaling-approaches.md`, `models/manifest.json` and the public types under `src/`. Nothing was
+(`external/Vocaterra.NLP`, gitlink `db39999`): `docs/api.md`, `docs/pipeline.md`, `docs/lexicon.md`, `docs/PACKAGING.md`, `docs/decisions.md`,
+`tools.md`, `high-level-docs.md`, `docs/research/2026-10-20-scaling-approaches.md`, `models/manifest.json` and the public types under `src/`. Nothing was
 built or run. Web facts carry their URL; anything not confirmed from a primary source is marked **unverified**.
 
 Contents:
@@ -40,11 +40,11 @@ push-to-talk. The table lists, for each capability the brief names, the public c
 
 | Capability | Public call (package) | State at `db39999` |
 | --- | --- | --- |
-| Load content | `ContentLoader.Load(dir)` returns `ContentBundle` with `Prompts`, `Agents`, `Intents`, `Dialogue`, `Effects`, `AnswerSets`, `Lexicon`, `Morphology`, `TemplateEngine`, `Cefr`, `ContentHash` (Content) | ready; about 220 to 270 ms per load with the 3 000-lemma lexicon (`LEXICON.md`), so load once at start-up |
-| Text evaluation | `new UtterancePipeline(new PipelineServices(new ScriptedWordRecognizer(asr), null, embeddings, synth, bundle)).Evaluate(clip, prompt, context)` returns `PipelineResult` (Pipeline) | ready; this is what `src/Vocaterra.Host` does; D0, under 5 ms per utterance as a target (`HIGH_LEVEL_DOCS.md`) |
+| Load content | `ContentLoader.Load(dir)` returns `ContentBundle` with `Prompts`, `Agents`, `Intents`, `Dialogue`, `Effects`, `AnswerSets`, `Lexicon`, `Morphology`, `TemplateEngine`, `Cefr`, `ContentHash` (Content) | ready; about 220 to 270 ms per load with the 3 000-lemma lexicon (`lexicon.md`), so load once at start-up |
+| Text evaluation | `new UtterancePipeline(new PipelineServices(new ScriptedWordRecognizer(asr), null, embeddings, synth, bundle)).Evaluate(clip, prompt, context)` returns `PipelineResult` (Pipeline) | ready; this is what `src/Vocaterra.Host` does; D0, under 5 ms per utterance as a target (`high-level-docs.md`) |
 | Verdict | `result.Verdict`: `Intent`, `Slots` (slot name to lemma), `Communicated`, `Correctness` 0 to 1, `Errors` (tag, span in the normalized text, expected, actual), `Confidence`, `ResolvedBy`, `Versions` (Core) | ready |
 | Speech capture front-end | `PushToTalkSession.Begin()`, `Append(ReadOnlySpan<short>)` of 16 kHz mono samples, `End()` returns a gain-normalized, VAD-trimmed `PcmClip`; `Resampler.To16k(short[] mono, int sourceRate)`; `Downmixer.ToMono(WavData)` (Audio) | ready; device capture is the engine's job (ADR 0009) |
-| Speech recognition, constrained | `VoskWordRecognizer.FromStore(ModelStore.FromEnvironment(), "vosk-model-small-es-0.42")`: grammar from the prompt's answer set, or free vocabulary for an open prompt (Asr) | ready: the only model fetched and fully pinned (`TOOLS.md`; 58 MB in the core's models directory) |
+| Speech recognition, constrained | `VoskWordRecognizer.FromStore(ModelStore.FromEnvironment(), "vosk-model-small-es-0.42")`: grammar from the prompt's answer set, or free vocabulary for an open prompt (Asr) | ready: the only model fetched and fully pinned (`tools.md`; 58 MB in the core's models directory) |
 | Speech recognition, open | `SherpaOnnxOfflineRecognizer.FromStore(store, "sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8")` (Asr) | code ready, model **not pinned**: file hashes are `null` in `models/manifest.json`, so `ModelStore.ModelHash` throws; the constructor `new SherpaOnnxOfflineRecognizer(dir)` hashes the files itself. 670 MB, about 1.2 s for a 3 s clip (core research, unverified CPU) |
 | Text to speech | `pipeline.Synthesize(result.Response, voiceId)` returns `AudioBuffer` per line (`short[]`, sample rate); `new KokoroSynthesizer(dir, speakerId)`; `CachedSynthesizer`; `StaticLineStore` for pre-rendered lines by line id; `SilentSynthesizer` (Response) | code ready, model **not pinned** (`kokoro-multi-lang-v1_0`, 350 MB archive); one voice per instance; carries espeak-ng GPL-3.0 data (core D2: private builds only) |
 | Intents and slots | bundle `intents/intents.json`: slot grammars (`[NOUN:place]`, `[VERB:lemma]`, `[WORD:name]`, literals, optional and alternative groups), keyword rules, examples; resolution grammar, then rules, then embeddings (Language) | ready; free-form questions outside the authored intents resolve to `unknown` |
@@ -57,7 +57,7 @@ push-to-talk. The table lists, for each capability the brief names, the public c
 | Repeat counts | `RepeatCounts.Next(before, verdict)`; `context.Next(result, now)` builds the next context (Pipeline) | ready since core M19d; the host still has its own copy until G1 |
 | Lexicon | `bundle.Lexicon.Lookup(form)` gives every reading (`LexicalFeatures`: lemma, part of speech, person, number, tense, mood, gender), accent-insensitive as a fallback (`IsAccentInsensitive`); `EntriesForLemma`, `ContainsLemma`, `SpellingsIgnoringAccents` (Language) | ready; 3 372 lemmas, 41 078 entries |
 | Articles and plurals | `bundle.Morphology.Article(Definiteness.Definite, gender, number, lemma)` (handles `el agua`, `el hacha`), `Pluralize`, `InflectNoun`, `AgreeAdjective`, `Conjugate` | ready |
-| CEFR level | `bundle.Cefr["a1"]`, `bundle.Cefr["a2"]`: lemma sets; no level per lexicon entry (`LEXICON.md`, known limits) | ready for A1/A2 membership |
+| CEFR level | `bundle.Cefr["a1"]`, `bundle.Cefr["a2"]`: lemma sets; no level per lexicon entry (`lexicon.md`, known limits) | ready for A1/A2 membership |
 | Analysis of the utterance | not on `PipelineResult`. `TextNormalizer.Normalize` and `new LinguisticAnalyzer(lexicon, morphology).Analyze(text, grammars)` are public | gap CR-002 |
 | Matched answer | not on `PipelineResult` (`MatchResult` is internal to the pipeline's flow; `AnswerMatcher` is public) | gap CR-004 |
 | Replay | `pipeline.Trace(...)`, `ReplayLog`, `ReplayEnvelope.From`, `Replayer.Replay` | ready; records the recognizer output, so a spoken turn can be replayed without audio |
@@ -80,7 +80,7 @@ push-to-talk. The table lists, for each capability the brief names, the public c
 ### 1.3 Gaps, as proposed rows for `docs/CORE_REQUESTS.md`
 
 None of the gaps blocks a prototype milestone except speech out: each has a workaround through public calls of 0.1.0. The rows are written in
-the core's terms (call or field, then the game reason); [PROTOTYPE_PLAN.md](../archive/game/research/PROTOTYPE_PLAN.md) has them in the requests file's table shape.
+the core's terms (call or field, then the game reason); [prototype-plan.md](../archive/game/research/prototype-plan.md) has them in the requests file's table shape.
 
 1. **CR-002, the analysis on the result (should).** `PipelineResult` or `PipelineTrace` carries the normalized tokens, their spans and the
    reading the resolver chose (lemma, part of speech, gender, number), with names (`[WORD]`) and unknown words marked. Reason: word-level
@@ -100,7 +100,7 @@ the core's terms (call or field, then the game reason); [PROTOTYPE_PLAN.md](../a
    plain counts (section 6), so this waits.
 5. **CR-006, speech-out readiness (should).** Pin the Kokoro and Parakeet file hashes in `models/manifest.json`, add
    `KokoroSynthesizer.FromStore`, and document Kokoro's Spanish speaker ids. Reason: the guide speaks (P8); open voice prompts later. Today only
-   Vosk is pinned (`TOOLS.md`). Private builds only under core D2.
+   Vosk is pinned (`tools.md`). Private builds only under core D2.
 6. **CR-007, host-owned bundle files (should).** Confirm and document that a bundle may hold files the loader does not parse (such as
    `game/nouns.json`), hashed by the manifest and listed in `provenance.json`, and expose their verified bytes on `ContentBundle`. Reading
    `ContentLoader.cs` at `db39999`, an extra listed file appears to be hashed and accepted (the loader rejects only unlisted or missing files),
@@ -108,7 +108,7 @@ the core's terms (call or field, then the game reason); [PROTOTYPE_PLAN.md](../a
    the file from disk after `Load`. **Unverified** until P4 runs `scripts/content.sh validate` on such a file.
 7. **CR-008, a threading and load-cost contract (should, documentation).** Whether one `UtterancePipeline` with Vosk or sherpa-onnx may be
    called on a worker thread while `Synthesize` runs on another, whether recognizers may be shared, and when models load. Reason: the game
-   must never block its frame. `PIPELINE.md` says the pipeline keeps no state between utterances, but says nothing of concurrent calls.
+   must never block its frame. `pipeline.md` says the pipeline keeps no state between utterances, but says nothing of concurrent calls.
 8. **CR-009, a `net8.0` target (conditional).** Only if the Godot spike (P10) shows that Godot's .NET SDK cannot build against `net10.0`
    libraries. See section 3.4.
 
@@ -178,24 +178,24 @@ twelve nouns times three patterns), so Vosk's grammar mode has a closed phrase l
 5. Optional speech out: the lines go to the synthesizer on the worker, and the audio plays when it is ready. The text never waits for audio.
 6. Every turn is appended to the session's replay log (`ReplayLog`), so a turn can be reproduced without the microphone.
 
-**Latency budget** for a 2 to 3 second utterance on the 4-core minimum machine the core targets (`TOOLS.md`), from key release:
+**Latency budget** for a 2 to 3 second utterance on the 4-core minimum machine the core targets (`tools.md`), from key release:
 
 | Step | Budget | Basis |
 | --- | --- | --- |
 | VAD trim and resample | under 10 ms | D0 code over about 48 000 samples |
-| Vosk, grammar or small open model | under 150 ms (core target, unmeasured) | `HIGH_LEVEL_DOCS.md` performance budget |
-| Parakeet open, if used | under 400 ms target; about 1.2 s reported | `HIGH_LEVEL_DOCS.md`; core research section 3.4 |
-| Evaluation from transcript to response plan | under 5 ms | `HIGH_LEVEL_DOCS.md` |
+| Vosk, grammar or small open model | under 150 ms (core target, unmeasured) | `high-level-docs.md` performance budget |
+| Parakeet open, if used | under 400 ms target; about 1.2 s reported | `high-level-docs.md`; core research section 3.4 |
+| Evaluation from transcript to response plan | under 5 ms | `high-level-docs.md` |
 | Host line and world query | under 5 ms | a breadth-first search within 64 tiles |
 | **Text on screen** | **under 0.5 s with Vosk** | the sum, with margin |
-| Kokoro speech, first audio | under 300 ms target, likely more on one thread | `HIGH_LEVEL_DOCS.md`; measure in P8 |
+| Kokoro speech, first audio | under 300 ms target, likely more on one thread | `high-level-docs.md`; measure in P8 |
 
 Models load once, behind the loading screen, on a worker: the bundle (about 0.25 s), Vosk (seconds), Kokoro (seconds). Constructors of the
 adapters load their models eagerly or on first use; the exact point is CR-008.
 
 ### 2.4 Where audio lives
 
-Audio capture and playback are engine code (ADR 0009, `docs/ARCHITECTURE.md`). `Vocaterra.Game` defines two small interfaces and keeps every
+Audio capture and playback are engine code (ADR 0009, `docs/architecture.md`). `Vocaterra.Game` defines two small interfaces and keeps every
 sample-rate and clip decision on its side of them:
 
 ```csharp
@@ -262,7 +262,7 @@ The plan's rule 2 holds unchanged, and extends to the world:
   read from the clock once when a save is created) plus elapsed play seconds (`tick / 60`), and passes that as `StoredTimestamp`. Nothing in
   the evaluation path reads the clock; tests pass a fixed `startedAt`, as the host's `--transcript` mode does.
 - **Seeds for conversation.** The `ConversationContext` world seed is the same save seed. `HostStateHash` is the game's own digest (save id,
-  tick, a hash of the modified chunks and of word progress), passed to the context's constructor, as `docs/API.md` section 4 allows.
+  tick, a hash of the modified chunks and of word progress), passed to the context's constructor, as `docs/api.md` section 4 allows.
 - **Dictionaries** that reach a save or a log use `StringComparer.Ordinal`; culture is invariant.
 
 ### 3.3 MonoGame specifics
@@ -296,7 +296,7 @@ The plan's rule 2 holds unchanged, and extends to the world:
 - **Microphone.** `Microsoft.Xna.Framework.Audio.Microphone` is implemented only on OpenAL platforms, DesktopGL included. It delivers 16-bit
   PCM, at 44 100 Hz by default, through `BufferReady`/`GetData`, with a buffer of 100 to 1 000 ms
   ([how-to](https://docs.monogame.net/articles/getting_to_know/howto/audio/HowTo_Microphone.html),
-  [API](https://docs.monogame.net/api/Microsoft.Xna.Framework.Audio.Microphone.html)). The forum reports old problems: distorted, repeating
+  [api](https://docs.monogame.net/api/Microsoft.Xna.Framework.Audio.Microphone.html)). The forum reports old problems: distorted, repeating
   audio on DesktopGL 3.8.1 ([thread](https://community.monogame.net/t/cant-get-microphone-to-work-properly-in-monogame-3-8-1/19332)) and a
   Linux crash while listing devices ([thread](https://community.monogame.net/t/microphone-in-3-7/10280)). No release since mentions the
   microphone. The alternatives:
@@ -690,7 +690,7 @@ licence per file, the same way `content/game-v1/ATTRIBUTION.md` records the lexi
 
 **What core D2 means.** sherpa-onnx 1.13.8, which the core pins and which the `Asr` and `Response` packages bring in, statically contains
 espeak-ng (GPL-3.0). The core accepted this for private development builds only, and the GPL-free pin blocks any distribution (core
-`docs/DECISIONS.md`, D2). Upstream closed "Remove espeak-ng and piper-phonemize" on 20 October 2026 (PR #4055), for a breaking 2.0.0 that
+`docs/decisions.md`, D2). Upstream closed "Remove espeak-ng and piper-phonemize" on 20 October 2026 (PR #4055), for a breaking 2.0.0 that
 takes phonemes from a lexicon or an outside phonemizer ([issue #3731](https://github.com/k2-fsa/sherpa-onnx/issues/3731)). So:
 
 - the prototype is a private build;
@@ -708,7 +708,7 @@ Other licences in the speech path:
 
 ## 9. Milestone plan
 
-The full table, with deliverables, demos, tests, models, dependencies and sizes, is in [PROTOTYPE_PLAN.md](../archive/game/research/PROTOTYPE_PLAN.md). In order:
+The full table, with deliverables, demos, tests, models, dependencies and sizes, is in [prototype-plan.md](../archive/game/research/prototype-plan.md). In order:
 
 | ID | Milestone | Model | Size |
 | --- | --- | --- | --- |
@@ -788,15 +788,15 @@ Questions for the owner, each with the recommendation above:
 
 Core sources, at gitlink `db39999` in `external/Vocaterra.NLP`:
 
-- documents: `docs/API.md`, `docs/PIPELINE.md`, `docs/LEXICON.md`, `docs/PACKAGING.md`, `docs/DECISIONS.md` (D2, D8, D11),
-  `docs/adr/0009-core-and-game-boundary.md`, `docs/research/2026-10-20-scaling-approaches.md` (sections 3.4, 6), `TOOLS.md`, `HIGH_LEVEL_DOCS.md`
-  (performance budget), `models/manifest.json`, `IMPLEMENTATION_PLAN.md` (milestones M20 to M25);
+- documents: `docs/api.md`, `docs/pipeline.md`, `docs/lexicon.md`, `docs/PACKAGING.md`, `docs/decisions.md` (D2, D8, D11),
+  `docs/adr/0009-core-and-game-boundary.md`, `docs/research/2026-10-20-scaling-approaches.md` (sections 3.4, 6), `tools.md`, `high-level-docs.md`
+  (performance budget), `models/manifest.json`, `implementation-plan.md` (milestones M20 to M25);
 - source files: `src/Vocaterra.Nlp.Content/ContentBundle.cs` and `ContentLoader.cs`, `src/Vocaterra.Nlp.Pipeline/PipelineResult.cs`,
   `ConversationContext.cs` and `UtterancePipeline.Response.cs`, `src/Vocaterra.Nlp.Decision/Learning/LearnerModel.cs`,
   `src/Vocaterra.Nlp.Audio/PushToTalkSession.cs`, `src/Vocaterra.Nlp.Response/Speech/KokoroSynthesizer.cs`,
   `src/Vocaterra.Nlp.Asr/Models/ModelStore.cs`, `src/Vocaterra.Nlp.Language/Lexicon/Lexicon.cs`.
 
-Game sources: `IMPLEMENTATION_PLAN.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, `docs/CORE_REQUESTS.md`, `src/Vocaterra.Host`,
+Game sources: `implementation-plan.md`, `docs/architecture.md`, `docs/decisions.md`, `docs/CORE_REQUESTS.md`, `src/Vocaterra.Host`,
 `content/game-v1` (lexicon checked for the world nouns).
 
 Web sources, retrieved on 2026-10-21. Each URL is cited where its fact is used.
@@ -810,7 +810,7 @@ Web sources, retrieved on 2026-10-21. Each URL is cited where its fact is used.
     [docs](https://docs.monogame.net/articles/getting_started/content_pipeline/content_builder_project.html)
   - [shader tutorial](https://docs.monogame.net/articles/tutorials/building_2d_games/24_shaders/index.html)
   - [Microphone how-to](https://docs.monogame.net/articles/getting_to_know/howto/audio/HowTo_Microphone.html) and
-    [API](https://docs.monogame.net/api/Microsoft.Xna.Framework.Audio.Microphone.html)
+    [api](https://docs.monogame.net/api/Microsoft.Xna.Framework.Audio.Microphone.html)
   - [FontImporter](https://docs.monogame.net/api/Microsoft.Xna.Framework.Content.Pipeline.FontImporter.html)
   - [licence](https://github.com/MonoGame/MonoGame/blob/develop/LICENSE.txt)
   - forum threads [1](https://community.monogame.net/t/cant-get-microphone-to-work-properly-in-monogame-3-8-1/19332) and

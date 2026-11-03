@@ -6,7 +6,7 @@ using Vocaterra.Game.Core.World.Layout;
 namespace Vocaterra.Game.Core.Tests.Language.Words;
 
 /// <summary>
-/// The target-language words the game itself uses (CONTENT_PLAN C05): <c>game/words.json</c>, the articles from the lexicon and the beacon's place labels from
+/// The target-language words the game itself uses (content-plan C05): <c>game/words.json</c>, the articles from the lexicon and the beacon's place labels from
 /// the scene. They were constants in the code; the words are the same, and the validator checks them against the other files.
 /// </summary>
 public sealed class GameWordsTests
@@ -24,7 +24,7 @@ public sealed class GameWordsTests
         Assert.Equal(["yo", "tú", "él/ella/usted", "nosotros", "ustedes/ellos"], GameWords.PronounKeys.Select(key => Words.Pronoun(key[..1], key[1..])));
         Assert.Equal(("ayuda", "no sé", "hola"), (Words.HelpLine, Words.DontKnowLine, Words.Greeting));
         Assert.Equal(("ir", "a"), (Words.NearFuture.Verb, Words.NearFuture.Joiner));
-        // VILLAGE_PLAN V10: the later markers make a present a plan too; V16: the core's markers of a time noun (semana, día, mes, año) with próximo or que viene, matched as phrases.
+        // village-plan V10: the later markers make a present a plan too; V16: the core's markers of a time noun (semana, día, mes, año) with próximo or que viene, matched as phrases.
         Assert.Equal(
             ["mañana", "luego", "después", "pasado mañana", "semana que viene", "próxima semana", "próximo día", "mes que viene", "próximo mes", "año que viene", "próximo año"],
             Words.NearFuture.TimeWords);
@@ -58,7 +58,7 @@ public sealed class GameWordsTests
         Assert.Equal("casa", scene.Labels["house2"]);
         Assert.Equal("campamento", scene.Labels["camp"]);
         Assert.Equal("fuego", scene.Labels["firering.player"]);
-        Assert.Equal("panadería", scene.Labels["bakery"]); // VILLAGE_PLAN V04: the bakery, the smithy, the well, the tower and the field
+        Assert.Equal("panadería", scene.Labels["bakery"]); // village-plan V04: the bakery, the smithy, the well, the tower and the field
         Assert.Equal("pescador", scene.Labels["npc.fisher"]); // V10: where the fisher stands, which El pueblo's walk back points at
         Assert.Equal(("herrero", "granjero"), (scene.Labels["npc.smith"], scene.Labels["npc.farmer"])); // V12: where the smith and the farmer stand, Gente del pueblo's walks
         Assert.Equal(25, scene.Labels.Count);

@@ -18,7 +18,7 @@ agents `fisher`, `baker`, `smith` and `farmer`, the intents `ask_far`, `ask_avai
 (with each lesson's `lesson-*` prompts and answer sets). The blacksmith and the spells left the bundle in S5 (they went with the core's former sample). **The phrase sheet [content/PHRASES.md](../../content/PHRASES.md) is the source of truth for the Spanish the learner is
 taught** (decision D-game-10): every row is checked against the bundle by `tests/Vocaterra.Host.Tests/PhraseSheetTests.cs`. Since R02 this is the repository's only bundle: the
 core's tests, its fuzz suite and its demo CLI run on it, so an edit of the game's content re-runs the core suite, and a core test that fails is the signal that the
-edit broke something the core relies on (`docs/nlp/CONTRIBUTING.md`). The bundle has its own hash, which the loader
+edit broke something the core relies on (`docs/nlp/changing-the-core.md`). The bundle has its own hash, which the loader
 checks against `manifest.json`. After any edit, rewrite the manifest:
 
 ```bash
@@ -68,7 +68,7 @@ Since S4 the catalogue holds only the nouns of the 3D world (the ores, tools and
 workbench's torch alone.
 
 The content gate from S5 on: `lint --strict` clean (an example expectation for every phrase the learner says, in `intents/intents.json`), and
-the phrase-sheet test green. Since V08 (VILLAGE_PLAN 3.9, D-game-22 (b)) the bundle's ceiling is A2: the lint runs at A2 with `--fail-on-level`,
+the phrase-sheet test green. Since V08 (village-plan 3.9, D-game-22 (b)) the bundle's ceiling is A2: the lint runs at A2 with `--fail-on-level`,
 `cefr-check` at A2 fails the gate on any lemma it lists, and `cefr-check` at A1 is a report for the owner that never fails; each lesson declares
 its own `level` (`a1` or `a2`), and the host's `--validate-content` holds its Spanish and its tenses to it (`content/README.md`, "A lesson's
 level"). `--host-pools 'guide.*'` tells the lint that the game voices the guide's templated world lines itself (they have no agent action);

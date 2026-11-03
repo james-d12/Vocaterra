@@ -4,14 +4,14 @@ using Vocaterra.Game.Core.World;
 
 namespace Vocaterra.Game.Core.Navigation;
 
-/// <summary>A place an NPC's directions found (VILLAGE_PLAN V02): the scene's name for it, the word the beacon shows and the block the beacon stands on.</summary>
+/// <summary>A place an NPC's directions found (village-plan V02): the scene's name for it, the word the beacon shows and the block the beacon stands on.</summary>
 /// <param name="Name">The scene's name of the place (<c>river</c>, <c>stall</c>), or the catalogue noun when no label named it (<c>árbol</c>).</param>
 /// <param name="Label">The word the beacon shows (<c>río</c>, <c>tienda</c>).</param>
 /// <param name="Cell">The block the beacon stands on.</param>
 public sealed record FoundPlace(string Name, string Label, GuideCell Cell);
 
 /// <summary>
-/// The places of the scene a word can name (VILLAGE_PLAN V02): its named points (the sites, the points and the named props) and the word each shows (its label,
+/// The places of the scene a word can name (village-plan V02): its named points (the sites, the points and the named props) and the word each shows (its label,
 /// <c>río</c>, <c>tienda</c>). An NPC's directions to the place the learner asked for are resolved here (<see cref="NpcEffectKind.PointAtSlot"/>):
 /// <list type="number">
 /// <item>a word a label shows names the labelled point nearest the player (three houses show <c>casa</c>); when the word is also a catalogue noun of the block at
