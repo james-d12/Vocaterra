@@ -94,10 +94,10 @@ out of the core.
 
 ## The game layer (P3)
 
-The game is one engine-free library and one front-end (`docs/code_guidelines.md`, R16), so that the engine can change without rewriting the
+The game is one engine-free library and one front-end (`docs/process/code-guidelines.md`, R16), so that the engine can change without rewriting the
 game: `Vocaterra.Game.Core` holds the systems and mechanics, `Vocaterra.Game` what needs MonoGame or draws. The old `Vocaterra.Simulation` and
-the engine-free half of the old `Vocaterra.Game` are `Vocaterra.Game.Core`; R16 phase 2 (2026-10-28, `R16_PHASE2.md`,
-`GAME_PROJECTS_LAYOUT.md`) moved the screens' models, the screens and their keys, the turn flow, the scripts and the tick there. A folder is a
+the engine-free half of the old `Vocaterra.Game` are `Vocaterra.Game.Core`; R16 phase 2 (2026-10-28, `docs/archive/game/R16_PHASE2.md`,
+`docs/archive/game/GAME_PROJECTS_LAYOUT.md`) moved the screens' models, the screens and their keys, the turn flow, the scripts and the tick there. A folder is a
 namespace (`src/Vocaterra.Game.Core/Language/Book/` is `Vocaterra.Game.Core.Language.Book`), and a file holds one type.
 
 **`src/Vocaterra.Game.Core`**, folders by system: no package, no engine type, no clock and no `System.Random` (its `ArchitectureRulesTests`).

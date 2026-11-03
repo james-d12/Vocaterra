@@ -5,7 +5,7 @@ Written during phase B of the village series (`feature/village`, V13 in progress
 - the agents' TRX files (`.claude/test-timings/`);
 - `git log --all` (762 commits);
 - the findings logs (`docs/game/IMPLEMENTATION_PLAN.md` section 5, `docs/nlp/IMPLEMENTATION_PLAN.md` §5 and §5b, `docs/game/VILLAGE_PLAN.md`
-  sections 4 and 5, `docs/TEST_PERFORMANCE_PLAN.md`);
+  sections 4 and 5, `docs/process/test-performance-plan.md`);
 - the Claude Code transcripts (125 files, 17 sessions and 108 agents, 764 MB, streamed; the running session was left out).
 
 **Conventions.**

@@ -205,7 +205,7 @@ Two steps, both core:
 The goldens and the fuzz oracles are recorded on x64. The core already avoids `Math.Sin` and `Math.Exp` in audio for reproducibility
 (`src/Vocaterra.Nlp/Audio/DeterministicMath.cs:6`). The scheduler still uses `Math.Pow` and `Math.Exp`
 (`src/Vocaterra.Nlp/Decision/Scheduling/Fsrs.cs:90-157`), but rounds to 8 decimals, which almost always hides last-bit differences between
-platforms. `docs/nlp/research/SCALING_APPROACHES.md:90` already raises relaxing "bit-identical across x64, ARM64".
+platforms. `docs/research/2026-10-20-scaling-approaches.md:90` already raises relaxing "bit-identical across x64, ARM64".
 
 Recommendation: run the full suite once on a linux-arm64 machine (a cloud ARM VM is enough) before the port, and decide from the result
 whether the cross-platform promise is "bit-identical" or "identical verdicts".

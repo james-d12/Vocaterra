@@ -3,7 +3,7 @@
 RUN (and BASE) is a folder of .trx files, searched recursively, as `dotnet test --logger trx --results-directory RUN` writes them (one file per
 test assembly), or a single .trx file. It prints the wall time and the outcome counts of each assembly, the N slowest tests (default 30) and the
 total time of each class (the N largest); --top 0 prints the assemblies alone. With BASE it also prints, per assembly, the wall time and the counts of both runs side by side, so a
-phase of docs/TEST_PERFORMANCE_PLAN.md reports against the baseline: the passed and skipped counts must match or rise only by the tests the
+phase of docs/process/test-performance-plan.md reports against the baseline: the passed and skipped counts must match or rise only by the tests the
 phase adds, and the wall time must go down.
 
 A test's time is the duration the runner reports for it (a theory row is one test); the time of a class's constructor and fixtures lands on its

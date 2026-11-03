@@ -96,7 +96,7 @@ C# binding) is MPL-2.0; LanguageTool (LGPL) is useful only as a separate develop
 with a note), allow GPL/LGPL tools only as separate processes used at development time, never linked
 or shipped. **Waiting on it:** M20 (tagger choice), M22 (evaluation oracles).
 
-**Owner, 2026-10-22 (the dev-time half).** After the LanguageTool research (`docs/nlp/research/2026-10-22-languagetool.md`), the owner accepted
+**Owner, 2026-10-22 (the dev-time half).** After the LanguageTool research (`docs/research/2026-10-22-languagetool.md`), the owner accepted
 LanguageTool as a separate, local, development-time grammar check called over HTTP: no LanguageTool code is linked, nothing is shipped,
 and no content is sent to the public API. The check covers the Spanish content of both bundles, with plain `es` as the stand-in for
 neutral Latin American Spanish. It is advisory in the merge gate until one round of waivers is done, then required. The MPL-2.0 half
@@ -122,7 +122,7 @@ errors; until then the phoneme stage stays optional. **Waiting on it:** M24 resu
 ## D14. German and a multi-language core
 
 **Owner, 2026-10-22.** "See what it will take to make it also support German, and make the architecture for it support multi lang."
-The research (`docs/nlp/research/2026-10-22-multilingual.md`) found about 23 % of the core Spanish-specific (about 6,400 lines). It proposed
+The research (`docs/research/2026-10-22-multilingual.md`) found about 23 % of the core Spanish-specific (about 6,400 lines). It proposed
 the target language as a property of the content bundle (`manifest.json` `language`, absent meaning `es`), resolved through a language-pack
 registry, with Spanish kept byte-identical behind an identity guard. It also proposed a staged roadmap, M31 to M48. The owner chose:
 - **record only:** the roadmap is planned (`IMPLEMENTATION_PLAN.md` §11) and nothing runs until the owner says so;
@@ -136,7 +136,7 @@ content trust (no reviewer; the Goethe A1 list has no licence, so it can only be
 
 **Amended, owner, 2026-10-26.** "Move all the `src/Vocaterra.Nlp.*` projects into one Nlp project", and "i want the NLP to become
 language agnostic kind of, so we have the current spanish implementation on top of the core shared NLP code". The owner chose
-(`docs/nlp/research/2026-10-26-engine-and-language-packs.md`):
+(`docs/research/2026-10-26-engine-and-language-packs.md`):
 - **target shape:** one language-neutral engine `Vocaterra.Nlp` (today's 11 libraries, merged in M52) plus one project per language,
   `Vocaterra.Nlp.Es` first (M53), then `Vocaterra.Nlp.De`. This supersedes research §4.7's advice to extract Spanish "only if a third
   language arrives";

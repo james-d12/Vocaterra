@@ -14,7 +14,7 @@ core's calls and the content. The 2D slice (P1 to P7) was retired at S4; its cod
 
 ## The prototype scenario
 
-The prototype is the Minecraft-inspired first-person voxel slice in [docs/game/PROTOTYPE_BRIEF.md](PROTOTYPE_BRIEF.md) (the owner's Prototype
+The prototype is the Minecraft-inspired first-person voxel slice in [docs/game/design/prototype-brief.md](design/prototype-brief.md) (the owner's Prototype
 Design Brief, v1.2); its plan, milestone by milestone, is [docs/game/SCENARIO_PLAN.md](SCENARIO_PLAN.md). The scenario takes 10 to 15 minutes beside the
 guide's lesson (S17):
 

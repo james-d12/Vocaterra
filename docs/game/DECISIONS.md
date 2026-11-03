@@ -16,7 +16,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-8 | The prototype brief adopted | decided (owner, 2026-10-21): 3D voxel, first person, MonoGame; the 2D slice parked (tag `2d-slice-p7`, removed at S4); Latin American neutral Spanish; nothing gated behind language or voice | nothing |
 | D-game-9 | Speech rules for the prototype | decided (owner, 2026-10-21, from the brief) | nothing |
 | D-game-10 | Learning measurement for the prototype | decided (owner, 2026-10-21, from the brief) | nothing |
-| D-game-11 | The Noun Town review data | decided (owner, 2026-10-21): raw review JSON never committed; summaries and fetch scripts in `docs/game/research/noun-town/` | nothing |
+| D-game-11 | The Noun Town review data | decided (owner, 2026-10-21): raw review JSON never committed; summaries and fetch scripts in `docs/research/2026-10-21-noun-town/` | nothing |
 | D-game-12 | A competent Spanish reviewer for the phrase sheet and recordings | deferred by the owner (2026-10-21) with an interim workaround (provisional rows); the owner approved the LLM review pass (Opus) on 2026-10-21 | nothing; the playtest's content-trust gate stays provisional |
 | D-game-13 | English guidance for a player with no Spanish | decided (owner, 2026-10-22): on-screen English text only, fading per phrase; only Spanish is spoken | nothing |
 | D-game-14 | World scale and look | decided (owner, 2026-10-22): about 384 x 384 x 128, rich voxel (D-game-8 kept), close to the brief's references A to C, target a real GPU with quality presets | nothing |
@@ -27,16 +27,16 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-19 | Verbs in the lessons | decided (owner, 2026-10-22): verbs early but gradual, across sessions (yo/tú in session 1, the other persons in session 2, ir a + infinitive and a few past forms in session 3), lessons replayable from the book; conjugation tables in the book | nothing |
 | D-game-20 | One licence for the whole repository | decided (owner, 2026-10-23): Apache-2.0 for the game as well as the core; one `LICENSE` and `NOTICE` at the root (R01) | nothing |
 | D-game-21 | Content as data and the L1 locale layer (the C series, `docs/game/CONTENT_PLAN.md`) | decided (owner, 2026-10-27 to 2026-10-29): English moves into a locale bundle `content/locale/` outside game-v1's hash (`en` only); content stays JSON with JSON Schema; objectives, NPCs and target-language words become data; the series runs after R16 phase 2, on `feature/content` | nothing |
-| D-game-22 | The village and the lessons (the V series, `docs/game/VILLAGE_PLAN.md`) | decided for phase A (owner, 2026-10-30): phase A now (sessions 4 to 6), phase B held (started 2026-10-31 on the owner's word); the plan's proposals for (b), (c), (e), (f), (h) and (i); the farmer is León; voices provisional (the plan's first candidates) and recorded, the owner listens afterwards; all work by Opus 5.5 at xhigh effort; 2026-10-31: V18 and the core's M56, M59 (before V14), M58 and M62 (before V15) join phase B; 2026-11-01, the follow-ups: models mixed (Opus for M65 to M67, M69 and V20, Sonnet for V21 to V23 and M68, Haiku for V24), M65's narrowings (a) to (c), name plates of the faced NPC depth-tested; 2026-11-02: V24's bugs first (V26), the off-prompt lines (M72, V27), the small points (M73, V28) and the speech folder by speaker; after the pull request: weather and `¿cómo estás?` intents (M74, V29), the near-miss rule (M75), a study of spoken off-prompt lines (`docs/HANDOVER_AFTER_FOLLOWUPS.md`) | the V series |
+| D-game-22 | The village and the lessons (the V series, `docs/game/VILLAGE_PLAN.md`) | decided for phase A (owner, 2026-10-30): phase A now (sessions 4 to 6), phase B held (started 2026-10-31 on the owner's word); the plan's proposals for (b), (c), (e), (f), (h) and (i); the farmer is León; voices provisional (the plan's first candidates) and recorded, the owner listens afterwards; all work by Opus 5.5 at xhigh effort; 2026-10-31: V18 and the core's M56, M59 (before V14), M58 and M62 (before V15) join phase B; 2026-11-01, the follow-ups: models mixed (Opus for M65 to M67, M69 and V20, Sonnet for V21 to V23 and M68, Haiku for V24), M65's narrowings (a) to (c), name plates of the faced NPC depth-tested; 2026-11-02: V24's bugs first (V26), the off-prompt lines (M72, V27), the small points (M73, V28) and the speech folder by speaker; after the pull request: weather and `¿cómo estás?` intents (M74, V29), the near-miss rule (M75), a study of spoken off-prompt lines (`docs/handovers/2026-11-02-after-followups.md`) | the V series |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
-**Question.** Which engine renders the game and plays its audio. The core's research report (core `docs/nlp/research`) suggested Godot .NET;
+**Question.** Which engine renders the game and plays its audio. The core's research report (core `docs/research`) suggested Godot .NET;
 the core's high-level design also listed MonoGame, Bevy and macroquad, and Ebitengine. The core's language is C# (core ADR 0001), which
 Godot .NET and MonoGame share.
 
 **Owner, 2026-10-21.** The Terraria-inspired prototype uses MonoGame (3.8 DesktopGL), with a plan to perhaps move to Godot (.NET) later. The
-layout from research R1 (`docs/game/research/PROTOTYPE_PLAN.md`), adopted by the owner the same day: `src/Vocaterra.Simulation` (no packages, no
+layout from research R1 (`docs/archive/game/research/PROTOTYPE_PLAN.md`), adopted by the owner the same day: `src/Vocaterra.Simulation` (no packages, no
 engine), `src/Vocaterra.Game` (the `Vocaterra.Nlp.*` packages, no engine) and `src/Vocaterra.MonoGame` (the only engine code). Engine code never
 goes into `src/Vocaterra.Host`, `src/Vocaterra.Simulation` or `src/Vocaterra.Game`. The final engine stays open; P10 (an optional Godot spike)
 measures the cost of the move. G5 is replaced by P2.
@@ -104,7 +104,7 @@ The grey atlas stays behind `--greyscale` for an A/B in the playtest. Colour nev
 
 ## D-game-8: the prototype brief adopted (decided)
 
-The owner's Prototype Design Brief v1.2 (`docs/game/Vocaterra_Prototype_Design_Brief.docx`, as Markdown in `docs/game/PROTOTYPE_BRIEF.md`) defines the
+The owner's Prototype Design Brief v1.2 (`docs/game/design/sources/Vocaterra_Prototype_Design_Brief.docx`, as Markdown in `docs/game/design/prototype-brief.md`) defines the
 prototype's scope, scenario, guardrails and gates; `docs/game/SCENARIO_PLAN.md` is its plan (the S series). World: 3D voxel, first person, MonoGame
 (D-game-1 unchanged; engine code only in `src/Vocaterra.MonoGame`). The 2D Terraria slice is parked: its code is tagged `2d-slice-p7` and removed
 once the 3D world reaches gathering and crafting (S4). Spanish variety: Latin American neutral (core ADR 0005). Nothing in the game is gated
@@ -127,7 +127,7 @@ check. Telemetry is local only (JSONL in the session folder).
 ## D-game-11: the Noun Town review data (decided)
 
 The raw Steam review JSON (about 450 KB of third-party text) is never committed: `.gitignore` covers `scripts/noun_town/*.json` and
-`docs/game/research/noun-town/*.json`. The two summaries and the fetch scripts are committed and live in `docs/game/research/noun-town/` (moved in S0).
+`docs/research/2026-10-21-noun-town/*.json`. The two summaries and the fetch scripts are committed and live in `docs/research/2026-10-21-noun-town/` (moved in S0).
 
 ## D-game-12: the Spanish reviewer (deferred, interim workaround)
 
@@ -290,7 +290,7 @@ use of verbs." The plan is `docs/game/VILLAGE_PLAN.md` (the V series); its secti
 - **Models:** every V milestone is implemented by Opus 5.5 at xhigh effort (the owner's instruction for this series; it replaces the plan's
   Haiku and Sonnet column), with cheaper agents only where necessary.
 
-**Owner's answers, 2026-10-31 (during phase B, on the study of the project's bottlenecks, `docs/DEVELOPMENT_BOTTLENECKS.md`).** The owner
+**Owner's answers, 2026-10-31 (during phase B, on the study of the project's bottlenecks, `docs/research/2026-10-31-development-bottlenecks.md`).** The owner
 asked for the study ("figure out during development what has caused the biggest bottlenecks and issues, and come up with a plan"), by Opus,
 and answered its first three proposals "yes to 1, 2 and 3":
 1. **The core's M59 before V14** (the person and tense checks the third person needs: session 8 retells the village's day with named
@@ -306,7 +306,7 @@ gate in CI); a speech sample before V15. Phase B's order is in `VILLAGE_PLAN.md`
 across `ser` and `estar`, and a colour adjective before its noun) runs after M58 and before V15, whose `es muy caro` and `más barato que`
 are predicate adjectives a learner will get wrong.
 
-**Owner's answers, 2026-11-01 (the follow-ups after PR #20's merge, `docs/HANDOVER_VILLAGE_PHASE_B.md` section 9.1),** on
+**Owner's answers, 2026-11-01 (the follow-ups after PR #20's merge, `docs/handovers/done/2026-11-01-village-phase-b.md` section 9.1),** on
 `feature/village-followups`:
 1. **Models, a mix** (it replaces "every V milestone by Opus" for the follow-ups): Opus 5.5 at xhigh for the core's M65, M66, M67 and M69
    and for V20, where Spanish is judged and the design is subtle; Sonnet 5.5 for V21 to V23 and the core's M68; Haiku 5.5 for V24, the
@@ -351,7 +351,7 @@ whose intent the prompt does not take was graded `vocab.wrong` (0.4, an empty ex
 2. **The speech folder goes into subfolders by speaker** (`speech/<speaker>/`, the cards in `speech/cards/`), in V28: it held more than
    1,000 files in one folder.
 
-**Owner's answers, 2026-11-02 (the open decisions after M73; built after the pull request merges, `docs/HANDOVER_AFTER_FOLLOWUPS.md`):**
+**Owner's answers, 2026-11-02 (the open decisions after M73; built after the pull request merges, `docs/handovers/2026-11-02-after-followups.md`):**
 1. **Weather lines get their own intents** (a statement and a question; `hace frío` is unknown today, `¿qué tiempo hace?` is
    `ask_activity`, `hace calor` is `state_action`): the core's M74. Each NPC answers a statement by echoing its weather word («Sí, hace
    frío.») and the question with «Hoy hace sol.» (V29).

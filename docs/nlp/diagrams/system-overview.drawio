@@ -202,7 +202,7 @@
         <mxCell id="route-label" value="PronunciationResult: phone scores + pron.* tags" style="text;html=1;whiteSpace=wrap;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;align=center;verticalAlign=middle;spacing=2;rotation=270;" vertex="1" parent="1">
           <mxGeometry x="1354" y="560" width="300" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="footer" value="Derived from docs/history/HIGH_LEVEL_DOCS.md (Architecture overview, Components) and IMPLEMENTATION_PLAN.md section 2. Update this diagram when a stage or project is added." style="text;html=1;whiteSpace=wrap;fontFamily=Helvetica;fontSize=9;fontColor=#6b7480;align=left;verticalAlign=top;spacing=2;" vertex="1" parent="1">
+        <mxCell id="footer" value="Derived from docs/archive/nlp/history/HIGH_LEVEL_DOCS.md (Architecture overview, Components) and IMPLEMENTATION_PLAN.md section 2. Update this diagram when a stage or project is added." style="text;html=1;whiteSpace=wrap;fontFamily=Helvetica;fontSize=9;fontColor=#6b7480;align=left;verticalAlign=top;spacing=2;" vertex="1" parent="1">
           <mxGeometry x="30" y="1380" width="1500" height="20" as="geometry" />
         </mxCell>
         <mxCell id="legend-key-solid" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=7;strokeWidth=2;strokeColor=#2b2f36;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;labelBackgroundColor=#ffffff;" edge="1" parent="1">

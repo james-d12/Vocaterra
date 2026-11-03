@@ -1,3 +1,5 @@
+> **Archived 2026-11-03** from `docs/game/GAME_PROJECTS_LAYOUT.md`: a finished layout report (done 2026-10-28). The layout as it is now: [ARCHITECTURE.md](../../game/ARCHITECTURE.md).
+
 # Game and Game.Core: keep the two projects; finish R16 phase 2 and regroup the folders (report, 2026-10-27)
 
 > **Status: done (2026-10-28, on `feature/game_refactor`).** Both trees below are in place, with the placements that differ recorded in
@@ -7,13 +9,13 @@
 ## Context
 
 The owner asked whether `src/Vocaterra.Game` and `src/Vocaterra.Game.Core` should be merged into one project, and what the folders
-should look like, in light of `docs/code_guidelines.md`.
+should look like, in light of `docs/process/code-guidelines.md`.
 
 What the investigation found:
 - `Vocaterra.Game` has 172 files, and only 70 of them need MonoGame (54 name it, 16 more use those 54). The other ~100 have no engine
   type. Some are game logic that the guideline puts in Core, and some are layout or meshing code that the guideline keeps in Game.
 - R16 phase 1 (on this branch since `e5779e9`) split `VoxelGame.cs` into components. Phase 2, which moves the engine-free logic
-  to Core, is fully planned in `docs/game/R16_PHASE2.md` but has not started. It waits on four owner decisions (D-p2-1 to D-p2-4).
+  to Core, is fully planned in `docs/archive/game/R16_PHASE2.md` but has not started. It waits on four owner decisions (D-p2-1 to D-p2-4).
 - Game's folders have grown into catch-alls. `Utilities/` holds 22 unrelated files. `UI/` holds 46 files with no subfolders, its
   `*Screen`/`*Panel`/`*Layer` files duplicate `Screens/`, and `UI/English/` groups files by the language of their text.
 - About 115 test files sit at the roots of the two test projects. The guideline wants test folders to mirror the source folders.
@@ -23,7 +25,7 @@ What the investigation found:
 
 ## Recommendation: do not merge
 
-1. **The guideline sets the split.** `docs/code_guidelines.md` names both projects: Core holds the logic, and Game holds the MonoGame,
+1. **The guideline sets the split.** `docs/process/code-guidelines.md` names both projects: Core holds the logic, and Game holds the MonoGame,
    graphics and UI code.
 2. **Only a project boundary is enforced.** Core references no packages, so it cannot see MonoGame at all.
    `tests/Vocaterra.Game.Core.Tests/ArchitectureRulesTests.cs` also bans the clock, `Random` and engine tokens in Core. After a

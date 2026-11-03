@@ -147,7 +147,8 @@ the dialogue and the learner model. Add it in this order:
    array. Append at the end: errors in a verdict are sorted by position and then by the tag's index in `ErrorTags.All`, so inserting
    in the middle changes the order of existing verdicts and breaks golden files. Tags are `family.name`; the family (the text before
    the first dot) is also the learner-model skill id, so `conj.person` and `conj.tense` train the same skill `conj`.
-   Update `tests/Vocaterra.Nlp.Tests/Core/ErrorTagsTests.cs` (it pins the count and the order) and the taxonomy table in `docs/nlp/history/HIGH_LEVEL_DOCS.md`.
+   Update `tests/Vocaterra.Nlp.Tests/Core/ErrorTagsTests.cs` (it pins the count and the order). The taxonomy table of the original design note is archived
+   (`docs/archive/nlp/history/HIGH_LEVEL_DOCS.md`) and is no longer updated.
    This is a change to the engine's `Core` folder: agree it with a maintainer first.
 2. **Analyzer.** Produce the tag where the error is detected, with the span in the normalized text and the expected form:
    - grammar and vocabulary tags: `src/Vocaterra.Nlp/Language/Analysis/AgreementChecker.cs` (agreement rules) or `LinguisticAnalyzer.cs`; the

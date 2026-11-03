@@ -163,7 +163,7 @@ layers and their layouts, by feature). Both trees are in `docs/game/ARCHITECTURE
 
 ## Architecture
 
-The game's code is in two projects (R16, `docs/code_guidelines.md`): `Vocaterra.Game.Core` holds the systems and the mechanics (no package,
+The game's code is in two projects (R16, `docs/process/code-guidelines.md`): `Vocaterra.Game.Core` holds the systems and the mechanics (no package,
 no engine type, no clock: its `ArchitectureRulesTests` fail on one), and this project holds the window, the drawing, the devices and the
 layers. `docs/game/ARCHITECTURE.md` lists both trees, folder by folder.
 

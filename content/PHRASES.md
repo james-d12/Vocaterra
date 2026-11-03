@@ -1,6 +1,6 @@
 # The phrase sheet
 
-The source of truth for the prototype's Spanish (decision D-game-10; the brief is `../docs/PROTOTYPE_BRIEF.md`, the plan `../docs/SCENARIO_PLAN.md`,
+The source of truth for the prototype's Spanish (decision D-game-10; the brief is `../docs/game/design/prototype-brief.md`, the plan `../docs/game/SCENARIO_PLAN.md`,
 milestone S5). The bundle `game-v1` and this sheet are the same set: every phrase here is in `game-v1`, and a test
 (`tests/Vocaterra.Host.Tests/PhraseSheetTests.cs`) reads this file and checks it against the bundle on every run.
 

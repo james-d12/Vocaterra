@@ -44,7 +44,7 @@ is the rule every later change to the core is checked against.
 
 The core was built inside one game project, so game words reached its code: the conversation state machine was called an NPC machine, the
 verdict context was a `GameContext` with NPC fields, and the effect table named two outcome kinds for spells and trade prices. The research
-report (`docs/nlp/research/SCALING_APPROACHES.md`) and the plan's section 8 both assume the core will be consumed as NuGet packages by a game that
+report (`docs/research/2026-10-20-scaling-approaches.md`) and the plan's section 8 both assume the core will be consumed as NuGet packages by a game that
 is not in this repository. That needs a boundary the code can be checked against, and names that do not presuppose a game.
 
 ## Decision

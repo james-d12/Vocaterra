@@ -33,7 +33,7 @@ and counts.
 `python3 -I scripts/test-timings.py RUN [BASE] [--top N]` reads the TRX files of a run (a folder, as `dotnet test --logger trx
 --results-directory RUN` or `test.sh` writes them) and prints each assembly's wall time and counts, the run's wall time (first start to last
 finish, so time spent queued in `limited.sh` is not counted), the N slowest tests and the N classes with the most test time. With `BASE` it
-also prints both runs' wall times and counts side by side, as [docs/TEST_PERFORMANCE_PLAN.md](../docs/TEST_PERFORMANCE_PLAN.md) reports
+also prints both runs' wall times and counts side by side, as [docs/process/test-performance-plan.md](../docs/process/test-performance-plan.md) reports
 each phase. `--top 0` prints the assemblies alone.
 
 ## content.sh

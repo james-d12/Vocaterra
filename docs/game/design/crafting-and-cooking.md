@@ -1,3 +1,5 @@
+# Crafting and cooking: the owner's design principle
+
 Alter Vocaterra so that cooking and crafting are two concrete examples of a broader design principle: normal gameplay systems should be deep enough to create repeated, contextual language practice without needing endless unique quests or NPCs.
 
 Cooking should be an in-depth system based on many real-life recipes. The player should gather ingredients, select cookware and utensils such as pans, bowls, knives, spatulas, and whisks, and then carry out the recipe step by step. It should support optional guided walkthroughs, especially for beginners, where instructions can highlight the correct item or tool and provide Spanish text, audio, and translation. Over time, guidance should reduce from full support, to Spanish-only instructions, to spoken instructions, and eventually to higher-level recipe steps that the player completes independently. This naturally reinforces vocabulary for ingredients, kitchen objects, actions such as cut, mix, pour, whisk, heat, and stir, as well as quantities and sequencing.

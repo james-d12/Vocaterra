@@ -47,7 +47,7 @@ scripts/merge-gate.sh         the orchestrator's merge gate (both halves)
 
 The S series adds `src/Vocaterra.Simulation/Voxel/` (S1; now `src/Vocaterra.Game.Core/Voxel/`; the 2D simulation, generator and light map are removed at S4),
 `content/game-v1/game/scene.json` (the hand-authored route), `content/PHRASES.md` (the phrase sheet, S5), `content/game-v1/speech/` (pre-rendered
-lines, S9), `docs/game/PROTOTYPE_BRIEF.md` and `docs/game/SCENARIO_PLAN.md` (the brief and its plan) and `docs/game/research/noun-town/` (D-game-11).
+lines, S9), `docs/game/design/prototype-brief.md` and `docs/game/SCENARIO_PLAN.md` (the brief and its plan) and `docs/research/2026-10-21-noun-town/` (D-game-11).
 
 ## 3. Rules every agent follows
 
@@ -59,7 +59,7 @@ lines, S9), `docs/game/PROTOTYPE_BRIEF.md` and `docs/game/SCENARIO_PLAN.md` (the
    (`WorldRng`); never `System.Random`, never the clock, and no `Math.Sin` or `Math.Pow` in generation. Only the interactive text loop reads the clock; a `--transcript` run uses a fixed time. Dictionaries that reach output are
    ordered with `StringComparer.Ordinal`. Culture is invariant.
 3. **Engine code only in `src/Vocaterra.Game`** (D-game-1, later a Godot front-end of its own). Never in `src/Vocaterra.Host` or
-   `src/Vocaterra.Game.Core`, which takes no packages at all and holds the game's logic (`docs/code_guidelines.md`; its
+   `src/Vocaterra.Game.Core`, which takes no packages at all and holds the game's logic (`docs/process/code-guidelines.md`; its
    `ArchitectureRulesTests` gate it). A screen in Core names keys as `GameKey` and reads the frame as `IInputFrame` (D-p2-1a).
 4. **Content procedure.** Every edit to `content/game-v1` (from the repository root): `scripts/content.sh validate`, then
    `scripts/content.sh hash content/game-v1 --bundle-id game-v1` (rewrites `manifest.json`), then `scripts/content.sh validate` and the tests.
@@ -80,73 +80,7 @@ lines, S9), `docs/game/PROTOTYPE_BRIEF.md` and `docs/game/SCENARIO_PLAN.md` (the
 
 ## 4. Milestones
 
-### Handover (2026-10-21, end of session; the owner plans to merge the game and the core into one repository)
-
-**Done, 2026-10-21 (later the same day):** the repositories are one (D-game-7). The core is `nlp/`, the game is `game/`; the notes below
-were followed as listed (see the section 5 entry "One repository"). P8 and later are unblocked.
-
-Where things stand (as written before the merge):
-- **Done and pushed:** G0, G1, G2, R1, P1, P2, P3, P4, P4b, P6, G6, P6b, G7, P5, P7. Core pin `53c52b7` (M26a to M26e). Tests on `main`:
-  625 (8 need the speech models in `VOCATERRA_MODELS_DIR`). Bundle `game-v1` `17ae6d14…`, 28 files. Licence MIT (D-game-2). No worktrees,
-  no agent branches, no agent running.
-- **The owner stopped after P7** (2026-10-21): P8 (the guide speaks), P9 (save and load), P10, G3 and G4 wait for the merged repository
-  (D-game-7). The models P8 needs are fetched (`~/.local/share/vocaterra/models`: Vosk small es, Kokoro).
-- **Core requests:** done in the core but not in the pin: CR-010, CR-011 (M26f, content tool), CR-015 (`UtterancePipeline.Advance` with
-  `onHostEvent` transitions: the guide's review question can become a core turn), CR-017 (`Analyze` then `Complete`: the guide can evaluate
-  once and drop the double evaluation). Accepted, not done: CR-014, CR-016, CR-018 (M28). Open: CR-019 to CR-022 (P5), CR-024 (fresh-clone
-  pack). Each of these becomes ordinary work once the repositories are one.
-- **Fresh clone today:** see `CLAUDE.md` (CR-024): the core's pack fails on a clean machine unless `external/Vocaterra.NLP/nuget.config`
-  (uncommitted, `<clear/>` + nuget.org) exists first; after a pull that moves the submodule, `git submodule update --init`, delete
-  `~/.nuget/packages/vocaterra.nlp.*` and pack again. The README's build steps (line 46) still lack this note.
-- **Owner items still open:** the orchestrator defaults in the P4b entry (wrong names earn nothing; Esc ends a review); the ASR confidence
-  choice in P5 (CR-022: Vosk asked for one hypothesis, so the core's confidence gate is off); live push-to-talk with real speech is untried;
-  content pass items in the P4, P5, P6b and G6 entries (recast wording, "Habla más despacio" for an unknown intent, "¿de dónde sale la
-  madera?" while carrying wood, "Usa mesa" without the article).
-
-**Notes for merging the game and the core into one repository (D-game-7).** What exists only because they are two repositories, and what
-to do with each:
-1. *Packages only* (core ADR 0009, CLAUDE.md, section 3 rule 1): becomes project references inside one solution; `Directory.Packages.props`
-   drops the `Vocaterra.Nlp.*` entries; the direct `Vosk` and `Microsoft.ML.OnnxRuntime` (`ExcludeAssets="native"`) references (P5,
-   CR-021) are still needed in the executables and test projects that run Vosk and Kokoro.
-2. *The submodule, the local feed and `nuget.config`*: remove `external/`, `.gitmodules` and the local source; `scripts/content.sh` installs
-   the content tool from the feed (`.tools/`) and becomes a `dotnet run --project` of the core's ContentBuilder (or keep the tool, packed
-   in-tree). The stale 0.1.0 cache problem (P4, CR-024) and the pack-before-build step disappear.
-3. *The merge gate*: `scripts/merge-gate.sh` (game) and the core's `scripts/merge-gate.sh` become one; keep the game's package-folder
-   isolation only if packages remain, the `VOCATERRA_MODELS_DIR` export, the content validation, and the core's own checks (licence scan,
-   goldens).
-4. *Two orchestrators and their files*: `.claude/agents/orchestrator.md` (game) and the core's role file become one; `docs/game/CORE_REQUESTS.md`
-   rows that are still open become plan items; the two `IMPLEMENTATION_PLAN.md` files and the two `DECISIONS.md` files merge (the core's
-   D1 to D13 and the game's D-game-1 to D-game-7; ids stay as they are).
-5. *Determinism and replay*: unchanged; `HostDigest.Of` and the game's host slots stay as they are.
-6. *Bundles*: `content/game-v1` (the game's) and the core's sample `content/v1` both stay; D-game-4 (diverge) still holds.
-7. *Models*: `ModelStore` reads `manifest.json` from the models folder; in one repository the manifest path is fixed and CR-019's fallback
-   (`VOCATERRA_MODELS_MANIFEST`, the submodule path in `SpeechEngine`) changes to the in-repo path.
-8. *Licences*: the game is MIT, the core Apache-2.0 (core D3): the merged repository needs one decision (or per-directory licences).
-9. *CI*: still deferred (D-game-3, core D1).
-
-**Handover (2026-10-22, morning): the S series is done** on `feature/prototype` (pushed; `main` untouched). S0 to S12 and S4b merged
-through the gate; core M29c, M29e, M29f, M29g, M29h merged; 3,889 tests pass (5 model-gated skips without models). Bundle `game-v1`
-`cd63077b…` (253 files, 226 pre-rendered WAVs). The playtest: `--playtest` (mic check, pre-check, the route, post-check after the transfer
-or F10, `playtest.save`, thank-you), recall with `--playtest --load <folder>/playtest.save`, `scripts/playtest-report.sh`, the private
-linux-x64 folder from `scripts/playtest-build.sh` (no sherpa-onnx or ONNX Runtime native; Vosk model copied; 193 MiB).
-**Waiting for the owner:** (1) listen to every WAV and mark `docs/game/SPEECH_CHECKLIST.md` (D-game-12 step 4); (2) the pre-flight in
-`docs/game/PLAYTEST.md` section 12 — real keyboard, mouse look, E/T/V, push-to-talk with a real microphone, F10 and Esc were never exercised
-by an agent (no input automation on this machine); (3) core D2: does handing the private build folder to testers count as distribution
-(the WAVs were rendered by Kokoro through sherpa-onnx, whose native runtime carries GPL code; the folder ships only the managed wrapper);
-(4) the native-speaker check stays deferred (D-game-12; rows provisional, reviewed by llm-opus); (5) whether to merge `feature/prototype`
-into `main`; (6) freeze the bundle before testers' recall sessions (a save refuses another bundle hash). Proposed, not started: core M29b
-(retry with the repair's request), M29d and M29i (fuzz findings), M28b (item-dependent replies: today "quiero pan" at the stall also gets
-the bottle line), M28c, M28d.
-
-**Now (2026-10-21, night): the S series is running** on `feature/prototype` (owner: through S12 overnight, push after each merge; the Opus
-review of the phrase sheet and the content hash step approved; the owner's own steps, listening to the S9 WAVs and following the S12
-checklist, wait for the owner). Design per milestone: section 4.4 and `docs/game/SCENARIO_PLAN.md`.
-
-**Previously (2026-10-21, evening): the Prototype Design Brief.** The owner's brief (`docs/game/Vocaterra_Prototype_Design_Brief.docx`, v1.2) replaces the
-Terraria design: a 3D first-person voxel slice on MonoGame (forest, path, village stall, river; two or three NPCs; five phrases; speech UX and
-learning checks). The plan for it is `docs/game/SCENARIO_PLAN.md` (milestones S0 to S12, decisions D-game-8 to D-game-12, D-game-6 amended). The
-orchestrator runs **S0** first: it folds that document into this section, records the decisions, and marks P8, P9, G3 and G4 superseded.
-Until S0 is done, `docs/game/SCENARIO_PLAN.md` is the plan of record for the scenario.
+The session handovers that stood here (2026-10-21 and 2026-10-22) are in [`docs/handovers/`](../handovers/README.md). The milestone table:
 
 | ID | Milestone | Status | Model | Depends on |
 | --- | --- | --- | --- | --- |
@@ -170,8 +104,8 @@ Until S0 is done, `docs/game/SCENARIO_PLAN.md` is the plan of record for the sce
 | G6 | Core bump to `53c52b7` (M26a to M26e) and adoption: drop the CR-012 double evaluation, the CR-013 `esta` lexicon entry if no longer needed, read `nouns.json` with `TryReadHostFile` (CR-007), word lists from `PipelineResult.Words` (CR-002), the guide's world line through host slots (CR-003), the named answer through `PipelineResult.Answer` where it fits (CR-004), `word.<lemma>` extra skills (CR-005) | done (merged 2026-10-21; core pin `53c52b7`) | Haiku 5.5 | P6 |
 | G7 | Build trim and licence: Linux-only native assets (owner, 2026-10-21; about 1.5 GB less per build), `LICENSE` (MIT, D-game-2) and README licence lines | done (merged 2026-10-21) | Haiku 5.5 | P6b |
 | G8 | The spoken-mistake test (`SpokenModelTests.AMistakeInASpokenLineIsHeardAsSaidAndTheCoreCorrectsIt`, section 4.6 R01 findings): Vosk hears `a dónde está la árbol` for Kokoro's `dónde está la árbol`. Fix the cause if it is the game's (stale cache clip, synthesis settings) with a regression test; a core Asr cause is reported as a core gap; if the recognizer only prefers the bundle's own `a dónde`, allow an optional leading `a ` and keep the `la árbol` assertion. No edit to `content/game-v1`. Owner-approved 2026-10-26; branch `G8-spoken-mistake`, gated into `feature/language-packs` | done (merged to `feature/language-packs` 2026-10-27, `00ff1e5`) | Haiku 5.5 | R01 |
-| R1 | Research: Terraria-inspired prototype (guide NPC by text and speech, mining, building, movement, forest biome, map and cave generation, language progress tracking, known nouns in colour and unknown in greyscale, inventory) on MonoGame; findings in `docs/game/research/` | done (merged 2026-10-21, `0e8d601`); proposals await the owner | Opus 5.5 (owner's request) | G0 |
-| R2 | Research: the same game on iOS and Android (desk research, no spikes; owner's request 2026-10-30): what carries over, what changes (platform heads, file seams, touch controls, phone UI, drawing budget, Vosk on Android and iOS, JSON under trimming, lifecycle, ARM64 results, toolchain and stores), size, order, owner questions; findings in `docs/game/research/2026-10-30-mobile-feasibility.md` | done (on `feature/mobile-research`); proposals await the owner | Opus 5.5 (owner's session) | none |
+| R1 | Research: Terraria-inspired prototype (guide NPC by text and speech, mining, building, movement, forest biome, map and cave generation, language progress tracking, known nouns in colour and unknown in greyscale, inventory) on MonoGame; findings in `docs/research/` | done (merged 2026-10-21, `0e8d601`); proposals await the owner | Opus 5.5 (owner's request) | G0 |
+| R2 | Research: the same game on iOS and Android (desk research, no spikes; owner's request 2026-10-30): what carries over, what changes (platform heads, file seams, touch controls, phone UI, drawing budget, Vosk on Android and iOS, JSON under trimming, lifecycle, ARM64 results, toolchain and stores), size, order, owner questions; findings in `docs/research/2026-10-30-mobile-feasibility.md` | done (on `feature/mobile-research`); proposals await the owner | Opus 5.5 (owner's session) | none |
 | S0 | Plan and docs for the prototype brief: D-game-8 to D-game-12, D-game-6 amended, this section, the brief as Markdown, READMEs, Noun Town research moved | done (merged to `feature/prototype` 2026-10-21, `0a60928`) | Haiku 5.5 (docs) | `docs/game/SCENARIO_PLAN.md` |
 | S1 | 3D voxel simulation, headless (`Vocaterra.Simulation.Voxel`, `scene.json`, `PlayerBody3D`, `BlockRay`) | done (merged to `feature/prototype` 2026-10-21, `d2329cb`) | Sonnet 5.5 | S0 |
 | S2 | First-person voxel front-end (mesher, renderer, camera, figures, beacon; 2D UI over the scene) | done (merged to `feature/prototype` 2026-10-22, `c5af3d6`) | Sonnet 5.5 | S1 |
@@ -217,8 +151,8 @@ it into `main` by pull request. S0 to S23 were merged into
 `feature/prototype`, which `main` fast-forwarded to; that branch is retired.
 
 Prototype order (owner, 2026-10-21): G1 and G2 run alongside P1 and P2 (P1 and P2 do not use the packages); then P3, the smallest vertical
-slice; then P4 to P9; P10 is optional. Details, demos and test approaches per milestone: `docs/game/research/PROTOTYPE_PLAN.md`; reasons and
-sources: `docs/game/research/PROTOTYPE_RESEARCH.md`. G5 is replaced by D-game-1 and P2.
+slice; then P4 to P9; P10 is optional. Details, demos and test approaches per milestone: `docs/archive/game/research/PROTOTYPE_PLAN.md`; reasons and
+sources: `docs/research/2026-10-21-prototype-research.md`. G5 is replaced by D-game-1 and P2.
 
 ### 4.1 G3: the innkeeper (design, moved from the core's plan section 7.4)
 
@@ -305,7 +239,7 @@ The guide's crafting answers (P6b, Sonnet for the design, the content by Haiku):
 
 The design of record is `docs/game/SCENARIO_PLAN.md`: section 2 maps the brief to the codebase, section 4 gives each milestone's deliverables and
 demo, section 5 the determinism and boundary rules that carry over, section 6 the possible core gaps (M29a, M29b), section 7 verification.
-The brief itself is `docs/game/PROTOTYPE_BRIEF.md`. Order: S0, then S1 beside S5 (disjoint folders), then S2, S3, S4, S6, then S7 beside S8 only if
+The brief itself is `docs/game/design/prototype-brief.md`. Order: S0, then S1 beside S5 (disjoint folders), then S2, S3, S4, S6, then S7 beside S8 only if
 their files stay disjoint (otherwise one after the other), S9, S10, S11, S12. P8, P9, G3 and G4 are superseded (section 4 table); the
 blacksmith and spell material leaves `content/game-v1` in S5 (the core's sample keeps it). The route: spawn in a forest clearing with the camp
 (a `mesa`, an unlit fire ring, the guide), a path south-east to the village (a stall with an awning, three houses, a signpost `Tienda / Río`),
@@ -322,7 +256,7 @@ not made. The German milestones stay parked (D14).
 
 | ID | Experiment | Status | Model | Depends on |
 | --- | --- | --- | --- | --- |
-| X00 | Research: a ranked backlog of improvements (learning effect, player experience, robustness, technical debt), with evidence from the code, plans, findings and screenshots | done (`docs/game/research/2026-10-23-improvement-backlog.md`, R01 to R18) | Sonnet 5.5 | S28 |
+| X00 | Research: a ranked backlog of improvements (learning effect, player experience, robustness, technical debt), with evidence from the code, plans, findings and screenshots | done (`docs/research/2026-10-23-improvement-backlog.md`, R01 to R18) | Sonnet 5.5 | S28 |
 | X01 | Saves survive content updates: a save made under an older bundle loads under a newer one (learner record, lessons, phrases, inventory and world edits kept where their ids still exist; the rest dropped and logged), instead of being refused; a strict mode keeps the refusal for the playtest's frozen bundle | done (merged to `feature/experiment` 2026-10-23, `bf90201`) | Sonnet 5.5 | S28 |
 | X02 | Core M51: `ir` + a bare infinitive (`voy comer`) flagged | done (merged to `feature/experiment` 2026-10-23, `e70441c`; see core §5b M51) | Sonnet 5.5 | M49 |
 | X03 | Book polish: the right page scrolls; `vamos` glossed "we go" in What you said; ser and estar glossed apart ("to be: what", "to be: where or how") | done (merged to `feature/experiment` 2026-10-23, `08152fb`, bundle `2156744b…`) | Haiku 5.5 | S28 |
@@ -354,7 +288,7 @@ the owner-approved plan of 2026-10-23 (the flatten, then one bundle).
 | --- | --- | --- |
 | R01 | Flatten `nlp/` and `game/` into one root layout (`src/`, `tests/`, `tools/`, `docs/nlp/`, `docs/game/`, `content/`, `assets/`, `models/`, `scripts/`); one `Directory.Build.props` keyed on project name; `Vocaterra.sln` regenerated (the three duplicated tool entries gone) plus `Vocaterra.Nlp.slnf`; Apache-2.0 everywhere (D-game-20); the gate refuses `main` | done (Sonnet), gated on `feature/flatten` 2026-10-23, pushed |
 | R02 | The core runs on `content/game-v1`; `content/v1` (the blacksmith sample, core D7) is deleted. Core tests break when game content breaks the core (the owner wants that signal); hash literals become computed checks; effects, quantity slots and the worked example get in-memory fixtures; goldens re-recorded on game-v1 | done (Sonnet), gated on `feature/flatten` 2026-10-23, pushed |
-| R16p2 | R16 phase 2 and the game's folders (`docs/game/GAME_PROJECTS_LAYOUT.md`): engine-free logic to `Vocaterra.Game.Core`, `GameKey`/`IInputFrame` (D-p2-1a), Game regrouped by area and feature, tests mirror source folders, stale project names fixed. Batches 1 to 8 on `feature/game_refactor` | done (2026-10-28, on `feature/game_refactor`; see the R16 phase 2 entry in section 5) |
+| R16p2 | R16 phase 2 and the game's folders (`docs/archive/game/GAME_PROJECTS_LAYOUT.md`): engine-free logic to `Vocaterra.Game.Core`, `GameKey`/`IInputFrame` (D-p2-1a), Game regrouped by area and feature, tests mirror source folders, stale project names fixed. Batches 1 to 8 on `feature/game_refactor` | done (2026-10-28, on `feature/game_refactor`; see the R16 phase 2 entry in section 5) |
 
 **R01 findings.**
 - 1517 renames at 100% in the move commit; `git log --follow` reaches pre-move history on both sides. Test counts identical to the
@@ -412,7 +346,7 @@ decision. The series runs on `feature/village`, commit prefix `V<nn>:`. **Phase 
 proposals, the farmer León, provisional voices heard afterwards, phase B held; every milestone by Opus 5.5 at xhigh effort); **phase A was done on
 2026-10-31** (V01 to V07, V09, V10 to V12 and the follow-up V12b; 6030 tests passing, bundle `7ba32270…`). The owner's playtest the same
 day added V12c (the next session in the game), and the CI run on PR #20 the core's M60 (the lint's speed). **Phase B started on 2026-10-31**
-on the owner's word: all of it on `feature/village`, reviewed by the owner at the end. V13 (session 7) was done on 2026-10-31; after the bottlenecks study the owner added V18 and moved the core's M56, M59 (before V14) and M58 (before V15) into the series. **Phase B was done on 2026-11-01** (V08, V13 to V18, V15b and V09 again, with the core's M56 to M62 and M62b; sessions 7 to 10 at A2, ten lessons; 7259 tests passing, bundle `36b2b8ad…`); the owner reviews the branch and PR #20. **The review** (2026-11-01, `docs/qa-reports/2026-11-review-feature-village.md`) found ten points; on the owner's word all were fixed before the merge: the core's as M64, the game's as V19 (7420 tests passing, bundle `0f8faea0…`). The milestones' statuses are in the plan's section 4. The findings of each milestone go into section 5.
+on the owner's word: all of it on `feature/village`, reviewed by the owner at the end. V13 (session 7) was done on 2026-10-31; after the bottlenecks study the owner added V18 and moved the core's M56, M59 (before V14) and M58 (before V15) into the series. **Phase B was done on 2026-11-01** (V08, V13 to V18, V15b and V09 again, with the core's M56 to M62 and M62b; sessions 7 to 10 at A2, ten lessons; 7259 tests passing, bundle `36b2b8ad…`); the owner reviews the branch and PR #20. **The review** (2026-11-01, `docs/qa-reports/2026-11-01-review-feature-village.md`) found ten points; on the owner's word all were fixed before the merge: the core's as M64, the game's as V19 (7420 tests passing, bundle `0f8faea0…`). The milestones' statuses are in the plan's section 4. The findings of each milestone go into section 5.
 
 ## 5. Findings log
 
@@ -450,7 +384,7 @@ Facts that shape the plan. Each one names its source; the core's own findings st
 - **Setup (G0).** The old `scripts/content.sh` refused any option after the bundle directory, so `hash --bundle-id` could not run; the new
   script passes options through. The old `nuget.config` pointed at a folder named `SpanishLearningGame`, which no longer exists.
 
-- **R1 (prototype research, 2026-10-21).** `docs/game/research/PROTOTYPE_RESEARCH.md` and `PROTOTYPE_PLAN.md` propose three new projects
+- **R1 (prototype research, 2026-10-21).** `docs/research/2026-10-21-prototype-research.md` and `PROTOTYPE_PLAN.md` propose three new projects
   (`Vocaterra.Simulation` with no packages and no engine, `Vocaterra.Game` on the packages, `Vocaterra.MonoGame` for the only engine code),
   milestones P1 to P10 with P3 (the guide, typed) as the smallest slice that proves the language core in game, core requests CR-002 to CR-009 (only
   P8, the guide speaking, is blocked, on CR-006), and decisions D-game-5 (CC0-only assets) and D-game-6 (when a noun counts as known). None of
@@ -709,7 +643,7 @@ Facts that shape the plan. Each one names its source; the core's own findings st
 - **The prototype brief (2026-10-21, S0, orchestrator).** The owner's brief v1.2 replaces the Terraria design (D-game-8). Plan:
   `docs/game/SCENARIO_PLAN.md`, folded into section 4 (table and 4.4); decisions D-game-8 to D-game-12 recorded, D-game-6 amended; core M29a and
   M29b proposed, conditional; the merge gate takes `GATE_TARGET` so the S series lands on `feature/prototype`. The
-  docs part (Haiku 5.5): `docs/game/PROTOTYPE_BRIEF.md` extracted from the docx by a standard-library script (every paragraph and table
+  docs part (Haiku 5.5): `docs/game/design/prototype-brief.md` extracted from the docx by a standard-library script (every paragraph and table
   cell present, headings set by hand; the docx has no heading styles), `SPECIFICATION.md` a pointer, Noun Town research moved, R1 notes,
   READMEs. Gate: 3,605 passed, 5 skipped (models set), lint 0 errors, licence scan passed. Agent worktrees branch from `main`: every
   S brief starts with a fast-forward to `feature/prototype`. The orchestrator's status
@@ -1183,7 +1117,7 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   - **Gate:** 4,481 passed, 5 skipped.
   - **Not fixed:**
     - a check that was trimmed out of a version 2 history stays counted;
-    - `docs/game/research/PROTOTYPE_RESEARCH.md` (a dated snapshot) still cites the removed files;
+    - `docs/research/2026-10-21-prototype-research.md` (a dated snapshot) still cites the removed files;
     - the parked `.github/workflows-pending/ci.yml` still calls `pack.sh` and `sample-host.sh`. CI is deferred (D1), so it is noted for
       when CI returns.
 - **S20b, replay from the book (2026-10-23, Haiku 5.5; merged to `main` `b9c64de`, bundle `e244285b…`).**
@@ -1409,7 +1343,7 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     MonoGame's loop, which calls the components in the frame's order (a `FrameLoop` class was planned; it would only have taken every
     component to call them in the same order, so the order stays in `Update`). The checks are the three game test projects and the scripted
     runs of `SCRIPTED_RUNS.md`, compared with a baseline taken before the first step.
-  - **Not done (phase 2, handed over in `docs/game/R16_PHASE2.md`):** moving the engine-free components (the screens' flows, `ListenSession`'s logic, the report's state
+  - **Not done (phase 2, handed over in `docs/archive/game/R16_PHASE2.md`):** moving the engine-free components (the screens' flows, `ListenSession`'s logic, the report's state
     and the like) to `Vocaterra.Game.Core`; renaming the test projects to `*.Unit.Tests` and `*.Component.Tests`.
   - **Findings:**
     - Every scripted run with a turn for the worker lands its turns 1 to 8 ticks apart from one capture to the next, with the same binary
@@ -1420,7 +1354,7 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     - F6 and `--save` rebuilt the fresh scene at every save (about 0.6 s); the autosave and the crash save used a cached one. All saves now
       use the cache, and they come out the same (r09).
     - The hotbar's and the panels' wheel baselines were two fields with the same value at every frame the panels can see; they are one.
-- **R16 phase 2 and the game's folders (2026-10-28, Opus 5.5; on `feature/game_refactor`, `docs/game/GAME_PROJECTS_LAYOUT.md`).**
+- **R16 phase 2 and the game's folders (2026-10-28, Opus 5.5; on `feature/game_refactor`, `docs/archive/game/GAME_PROJECTS_LAYOUT.md`).**
   - **Done, batches 1 to 8:** the leaves, the screens' models, the flows and the scripts moved to `Vocaterra.Game.Core` (batches 1 to 4);
     `GameKey`, `IInputFrame` and Game's `KeyMap` (D-p2-1a), the screens, the key bindings, the push-to-talk, `WorldStepper`, `PlaytestFlow`
     and `CheckBattery` after it (batch 5); Game regrouped into `Startup/`, `Diagnostics/`, `Graphics/` and `UI/` by feature (batch 6); the
@@ -1468,7 +1402,7 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     audio within a process but different audio across processes (SHA-256 prefixes `736AD51E…` and `F93AD1C0…`, same code and model). So a
     `DirectorySynthesisCache` entry cannot be checked against a fresh render. The cached clip for this line matches no fresh rendering.
     Owner, 2026-10-27: keep it logged for later; no milestone now.
-- **Test performance, the game's half (2026-10-29, Opus 5.5, `feature/test-performance`; plan `docs/TEST_PERFORMANCE_PLAN.md`, T1, T2, T4).**
+- **Test performance, the game's half (2026-10-29, Opus 5.5, `feature/test-performance`; plan `docs/process/test-performance-plan.md`, T1, T2, T4).**
   - **The route was rebuilt for almost every test.** A build of the 384×128×384 route takes about 0.6 s alone and up to 2.5 s beside the
     other tests. `VoxelGrid`, `VoxelChunk` and `Scene` get an internal `Clone` (blocks copied; version, edit count and cached digests kept);
     `RouteScene` builds each seed once per test process and hands out clones, and `TestGame.Route`, `VoxelTestSupport.BuildRoute` and seven
@@ -1789,7 +1723,7 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   - **Scripted runs:** all 20 keep their ticks and world digests except r21 (the skip now carries the bottle, which moves its state digest);
     every summary lists a seventh lesson; 373 lines and 746 speech files; the Lessons page of r20 and r21 has 141 lines. `SCRIPTED_RUNS.md`
     is left for V09.
-- **The bottlenecks study (2026-10-31, Opus 5.5, read-only; `docs/DEVELOPMENT_BOTTLENECKS.md`).** Asked for by the owner during phase B. The
+- **The bottlenecks study (2026-10-31, Opus 5.5, read-only; `docs/research/2026-10-31-development-bottlenecks.md`).** Asked for by the owner during phase B. The
   cost of a milestone is its turns times its context (phase A's 11 agents: 954M tokens, 97 % cache reads), not the gate (175 s, every phase A
   gate passed first time); follow-ups found late (V12b, V12c, M60) took 22 % of phase A's agent time; each content edit moves seven artefacts
   by hand. The briefs from V14 on read named sections only, send output to logs, test the learner's route and run the suite once without
@@ -1797,7 +1731,7 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   before V15; the questions on two agents at once, effort, split milestones, CI and listening are left as they are.
 
 - **V18: the content loop in one command (2026-10-31, Opus 5.5 xhigh; gated on `feature/village` at `d986adf`; tooling, from
-  `docs/DEVELOPMENT_BOTTLENECKS.md` P2).** `scripts/content-loop.sh`, a new script rather than a mode of `content.sh`, runs the eight steps
+  `docs/research/2026-10-31-development-bottlenecks.md` P2).** `scripts/content-loop.sh`, a new script rather than a mode of `content.sh`, runs the eight steps
   after a content edit, in order: refresh, grammar, speech, fixtures, build, goldens, digests, tests. It stops at the first failure, names
   the next thing to do and prints a summary of at most 30 lines; each step's log goes to `.claude/content-loop/<stamp>/` (ignored).
   - Options: `--grammar` (LanguageTool start, `--prune`, the rebuilt-from-nothing check, the new findings, the server stopped by a trap),
@@ -2009,7 +1943,7 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     of 3000 ms (at the edge), the lint 0.78 of 5 s, the chunk digest and a turn well under.
   - **The orchestrator's checks:** r22 and r23 run again after the gate as described (r22's bag after: the book, three apples, the axe, four loaves, no coin, no wood; `smith.buy_wood`, `baker.sell_bread`, León's total; r23's Verbs page on `comprar` with `compraré` said twice, both correct); the diff in scope (`scripts/compare-runs.py` is outside the brief's list: the two runs' names only).
 - **V19: the game findings of the review of `feature/village` (2026-11-01, Opus 5.5 xhigh; gated on `feature/village` at `716d469`).** The
-  owner asked on 2026-11-01 for every finding of the review (`docs/qa-reports/2026-11-review-feature-village.md`) to be fixed before PR #20's
+  owner asked on 2026-11-01 for every finding of the review (`docs/qa-reports/2026-11-01-review-feature-village.md`) to be fixed before PR #20's
   merge: the core's as M64 (`23af5cd`), the game's here.
   - **R4, the listener's name after any greeting.** `Vocative` reads the name after any of `Greeting`'s openings (`Greeting.OpeningLength`;
     its own list of `hola` alone is gone). A new `LineReading` holds the sequence: the name out, the line read, a greeting's rest answered.
@@ -2325,7 +2259,7 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     `magos relacionados compañero`, a core finding. The orchestrator replayed it on the merged branch (`CsCheck_Seed`). It is the family M73 left recorded (`2tpLGUOSqj41`): the
     pattern `([NOUN:item] [ADJ]|[WORD:qty] [NOUN:spell]) [NOUN:thing]` lets `[WORD:qty]` bind the moved adjective `relacionados`. V28
     changed no intent or lexicon file, so it is older. The owner kept that family recorded, not narrowed (D-game-22, 2026-11-01), so it can
-    fail a gate or CI now and then; `docs/HANDOVER_AFTER_FOLLOWUPS.md` section 7 carries it.
+    fail a gate or CI now and then; `docs/handovers/2026-11-02-after-followups.md` section 7 carries it.
   - **The orchestrator's checks** in the game at session 10: the start line `speech: 541 lines, 1082 files, 0 missing`; Luz `Tienes veinte panes.` «Sí, es verdad.»,
     `Tengo veinte panes.` «¡Qué bien!»; Domingo `me gusta el río` «Te entiendo. Yo hago hachas.»; León `usted tiene manzanas` «Te
     entiendo. ¿Quieres manzanas?» (off the prompt, so not «Sí, es verdad.»). Not understood, older and outside V28: `usted hace hachas muy

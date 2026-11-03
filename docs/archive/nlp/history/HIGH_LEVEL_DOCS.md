@@ -1,3 +1,5 @@
+> **Archived 2026-11-03** from `docs/nlp/history/HIGH_LEVEL_DOCS.md`: the original design note. The pipeline as it is now: [PIPELINE.md](../../../nlp/PIPELINE.md).
+
 > the original design note (2026-10-18), kept for history
 
 # Voice Recognition & Feedback System — High-Level Design
@@ -271,8 +273,8 @@ Starting error taxonomy (beginner to intermediate). Tags are stable IDs; the lea
 
 | Tag | Meaning | Example |
 | --- | --- | --- |
-| `vocab.wrong` | Wrong word for the concept; `expected` is the answer set's canonical word when the set has exactly one answer, otherwise empty (M17c, [docs/nlp/PIPELINE.md](../PIPELINE.md)) | *perro* for *gato* |
-| `vocab.unknown` | Word not in lexicon; after a fuzzy answer match `expected` is the canonical word of the answer (M17c, [docs/nlp/PIPELINE.md](../PIPELINE.md)) | *espado* |
+| `vocab.wrong` | Wrong word for the concept; `expected` is the answer set's canonical word when the set has exactly one answer, otherwise empty (M17c, [docs/nlp/PIPELINE.md](../../../nlp/PIPELINE.md)) | *perro* for *gato* |
+| `vocab.unknown` | Word not in lexicon; after a fuzzy answer match `expected` is the canonical word of the answer (M17c, [docs/nlp/PIPELINE.md](../../../nlp/PIPELINE.md)) | *espado* |
 | `conj.person` | Verb person/number mismatch | *yo tiene* |
 | `conj.tense` | Wrong tense | *ayer como* |
 | `conj.irregular` | Regularized irregular verb | *yo sabo* |

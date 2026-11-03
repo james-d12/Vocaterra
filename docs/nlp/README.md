@@ -427,7 +427,7 @@ consent rules and manifest schema are in [tests/golden/README.md](../../tests/go
 | `.github/workflows-pending/ci.yml` | The CI workflow, parked until the push token has the `workflow` scope |
 | `docs/nlp/` | [API.md](API.md), [PIPELINE.md](PIPELINE.md), [REPLAY.md](REPLAY.md), [LEXICON.md](LEXICON.md), [CLI_EXAMPLES.md](CLI_EXAMPLES.md) and the architecture decision records in `docs/nlp/adr/` |
 | `docs/nlp/diagrams/` | The draw.io system overview and how to open it ([README](diagrams/README.md)) |
-| `docs/nlp/history/` | [HIGH_LEVEL_DOCS.md](history/HIGH_LEVEL_DOCS.md), the original design note (2026-10-18), kept for history |
+| `docs/archive/nlp/history/` | [HIGH_LEVEL_DOCS.md](../archive/nlp/history/HIGH_LEVEL_DOCS.md), the original design note (2026-10-18), kept for history |
 | `docs/nlp/IMPLEMENTATION_PLAN.md` | The milestone plan, the findings log and the split roadmap. Host designs, such as the game's, are not in this document |
 
 ## Determinism rules in brief
@@ -488,7 +488,7 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
 | M18 | Part-of-speech disambiguation: the analyzer resolves each word to one reading before its checks (see [docs/nlp/PIPELINE.md](PIPELINE.md#4-linguistic-analysis-d0)) | done |
 | M19a | Standalone core, step 1: the solution, projects and namespaces are `Vocaterra.Nlp.*`; the conversation engine is a generic agent; the boundary is in [ADR 0009](adr/0009-core-and-game-boundary.md) and the host API in [docs/nlp/API.md](API.md) | done |
 | M19b | Standalone core, step 2: NuGet packaging of the eleven libraries (version 0.1.0, symbols, a shared readme), a local feed from `scripts/pack.sh`, content bundle archives (`ContentBuilder pack` and `verify-pack`), and `samples/HostConsole` consuming the packages; nothing is published (`docs/nlp/PACKAGING.md` was retired in M50) | done |
-| M50 | Folder cleanup after the two-repository era: the packaging scripts, the sample host and `docs/nlp/PACKAGING.md` retired (D5 superseded; no pack step or feed), `HIGH_LEVEL_DOCS.md` moved to `docs/nlp/history/`, `TOOLS.md` refreshed, link check in `scripts/check-links.sh`; no behaviour change | done |
+| M50 | Folder cleanup after the two-repository era: the packaging scripts, the sample host and `docs/nlp/PACKAGING.md` retired (D5 superseded; no pack step or feed), `HIGH_LEVEL_DOCS.md` moved to `docs/archive/nlp/history/`, `TOOLS.md` refreshed, link check in `scripts/check-links.sh`; no behaviour change | done |
 | M19c | Standalone core, step 3: the first consumer, the [Vocaterra](https://github.com/james-d12/Vocaterra) game repository, is built on the packages (its own console host, smoke tests, content bundle and parked CI job); its design lives in that repository | done |
 | M17b-core | Generic conversation intents (`confirm`, `deny`, `farewell`, `thank`, `introduce_self`), the `[WORD:slot]` name token of the slot-grammar DSL, the blacksmith's `confirming` state and their dialogue (see [docs/nlp/PIPELINE.md](PIPELINE.md#4-linguistic-analysis-d0)) | done |
 
@@ -545,7 +545,7 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
 - [docs/nlp/REPLAY.md](REPLAY.md): replay log and envelope format, with a real example
 - [docs/nlp/CLI_EXAMPLES.md](CLI_EXAMPLES.md): more worked runs of the demo CLI: the other intents and error tags, the repair ladder and a replay log
 - [docs/nlp/DECISIONS.md](DECISIONS.md): the register of open owner decisions, with context and recommendations
-- [docs/nlp/research/SCALING_APPROACHES.md](research/SCALING_APPROACHES.md): research on scaling the core with existing NLP, speech and model components
+- [docs/research/2026-10-20-scaling-approaches.md](../research/2026-10-20-scaling-approaches.md): research on scaling the core with existing NLP, speech and model components
 - [docs/nlp/FUZZING_PLAN.md](FUZZING_PLAN.md): the fuzz testing design, its generators, oracles O1 to O16 and iteration budgets
 - [tests/Vocaterra.Nlp.Fuzzing.Tests/README.md](../../tests/Vocaterra.Nlp.Fuzzing.Tests/README.md): the fuzz suite, how to run and soak it, its oracles, the bugs it found and the known findings
 - [docs/nlp/LEXICON.md](LEXICON.md): the lexicon files, the Wiktionary and frequency-list sources with hashes and licences, how to fetch and regenerate, the merge policy, measurements
@@ -554,6 +554,6 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
 - [docs/nlp/diagrams/README.md](diagrams/README.md): the system diagram in draw.io, and how to open it
 - [TOOLS.md](TOOLS.md): the inventory of third-party tools, libraries, models and data sources, with their licenses
 - [CONTRIBUTING.md](CONTRIBUTING.md): development setup, conventions, the determinism checklist, and how to add error tags, content, golden clips and model adapters
-- [docs/nlp/history/HIGH_LEVEL_DOCS.md](history/HIGH_LEVEL_DOCS.md): the original design note (2026-10-18), kept for history
+- [docs/archive/nlp/history/HIGH_LEVEL_DOCS.md](../archive/nlp/history/HIGH_LEVEL_DOCS.md): the original design note (2026-10-18), kept for history
 - [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md): milestones, repository layout, determinism rules, findings log
 - [models/README.md](../../models/README.md), [tests/golden/README.md](../../tests/golden/README.md), [scripts/README.md](../../scripts/README.md): the model manifest, the recording protocol and the helper scripts

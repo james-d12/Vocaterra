@@ -3,7 +3,7 @@
 `Vocaterra.Nlp.Pipeline.UtterancePipeline` turns one recorded utterance into everything the host needs to react: a graded **verdict**, the
 agent's and learner model's **decision**, the **lines** the agent says, the **effects**, an optional **repair** step and a
 **replay record**. This page walks through `Evaluate` stage by stage, using the worked example from the high-level design
-(`docs/nlp/history/HIGH_LEVEL_DOCS.md`, "Verdict contract and error taxonomy"), and shows the actual output of the CLI for it.
+(`docs/archive/nlp/history/HIGH_LEVEL_DOCS.md`, "Verdict contract and error taxonomy"), and shows the actual output of the CLI for it.
 
 - [The call](#the-call)
 - [The stages at a glance](#the-stages-at-a-glance)

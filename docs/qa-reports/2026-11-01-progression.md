@@ -7,7 +7,7 @@ Covered: 20 game runs (folders `/tmp/vocaterra-qa/progression-*`, each with `std
 - **The coin path:** `--skip-to-session 7`, the farmer's refused order at 0 coins, the water order (three apples), the sleep, then session 8's inventory.
 - **Orders:** `oven-wood` with the wrong NPC (smith: no delivery), with the right NPC after the lesson (five wood out, four coins in), and a second talk to the baker (no second delivery). The session 10 market: `vendo madera` to the smith (four coins in), `Vendo manzanas.` to the farmer, `Vendo madera.` to the baker with no wood left.
 - **Saves:** a mid-lesson save and load (session 5 to 6), a save with five wood before the oven order and its load, a save made right after a sleep and its load.
-- **`--lesson-skip`** on all 28 steps of `gente-del-pueblo`, and **`--check pre`** at `--session 7` (first screen only: `check: pre, 63 items`, which matches the battery table in `docs/HANDOVER_VILLAGE_PHASE_B.md`).
+- **`--lesson-skip`** on all 28 steps of `gente-del-pueblo`, and **`--check pre`** at `--session 7` (first screen only: `check: pre, 63 items`, which matches the battery table in `docs/handovers/done/2026-11-01-village-phase-b.md`).
 - The known items of handover section 9.3 were only re-checked where the same behaviour showed up again.
 
 ## Bugs

@@ -9,11 +9,11 @@ progress system; nouns drawn in colour once known and in greyscale before (the N
 .NET later.
 
 Each section answers one question of the brief and ends with a recommendation. The milestone table and the proposed core requests are also in
-[PROTOTYPE_PLAN.md](PROTOTYPE_PLAN.md), in a form the orchestrator can paste.
+[PROTOTYPE_PLAN.md](../archive/game/research/PROTOTYPE_PLAN.md), in a form the orchestrator can paste.
 
 **How the facts were checked.** Core facts were read from the core's documents and source at the main checkout's submodule
 (`external/Vocaterra.NLP`, gitlink `db39999`): `docs/API.md`, `docs/PIPELINE.md`, `docs/LEXICON.md`, `docs/PACKAGING.md`, `docs/DECISIONS.md`,
-`TOOLS.md`, `HIGH_LEVEL_DOCS.md`, `docs/research/SCALING_APPROACHES.md`, `models/manifest.json` and the public types under `src/`. Nothing was
+`TOOLS.md`, `HIGH_LEVEL_DOCS.md`, `docs/research/2026-10-20-scaling-approaches.md`, `models/manifest.json` and the public types under `src/`. Nothing was
 built or run. Web facts carry their URL; anything not confirmed from a primary source is marked **unverified**.
 
 Contents:
@@ -80,7 +80,7 @@ push-to-talk. The table lists, for each capability the brief names, the public c
 ### 1.3 Gaps, as proposed rows for `docs/CORE_REQUESTS.md`
 
 None of the gaps blocks a prototype milestone except speech out: each has a workaround through public calls of 0.1.0. The rows are written in
-the core's terms (call or field, then the game reason); [PROTOTYPE_PLAN.md](PROTOTYPE_PLAN.md) has them in the requests file's table shape.
+the core's terms (call or field, then the game reason); [PROTOTYPE_PLAN.md](../archive/game/research/PROTOTYPE_PLAN.md) has them in the requests file's table shape.
 
 1. **CR-002, the analysis on the result (should).** `PipelineResult` or `PipelineTrace` carries the normalized tokens, their spans and the
    reading the resolver chose (lemma, part of speech, gender, number), with names (`[WORD]`) and unknown words marked. Reason: word-level
@@ -708,7 +708,7 @@ Other licences in the speech path:
 
 ## 9. Milestone plan
 
-The full table, with deliverables, demos, tests, models, dependencies and sizes, is in [PROTOTYPE_PLAN.md](PROTOTYPE_PLAN.md). In order:
+The full table, with deliverables, demos, tests, models, dependencies and sizes, is in [PROTOTYPE_PLAN.md](../archive/game/research/PROTOTYPE_PLAN.md). In order:
 
 | ID | Milestone | Model | Size |
 | --- | --- | --- | --- |
@@ -789,7 +789,7 @@ Questions for the owner, each with the recommendation above:
 Core sources, at gitlink `db39999` in `external/Vocaterra.NLP`:
 
 - documents: `docs/API.md`, `docs/PIPELINE.md`, `docs/LEXICON.md`, `docs/PACKAGING.md`, `docs/DECISIONS.md` (D2, D8, D11),
-  `docs/adr/0009-core-and-game-boundary.md`, `docs/research/SCALING_APPROACHES.md` (sections 3.4, 6), `TOOLS.md`, `HIGH_LEVEL_DOCS.md`
+  `docs/adr/0009-core-and-game-boundary.md`, `docs/research/2026-10-20-scaling-approaches.md` (sections 3.4, 6), `TOOLS.md`, `HIGH_LEVEL_DOCS.md`
   (performance budget), `models/manifest.json`, `IMPLEMENTATION_PLAN.md` (milestones M20 to M25);
 - source files: `src/Vocaterra.Nlp.Content/ContentBundle.cs` and `ContentLoader.cs`, `src/Vocaterra.Nlp.Pipeline/PipelineResult.cs`,
   `ConversationContext.cs` and `UtterancePipeline.Response.cs`, `src/Vocaterra.Nlp.Decision/Learning/LearnerModel.cs`,

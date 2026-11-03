@@ -24,6 +24,9 @@ progression, save, content) and reports bugs to `docs/qa-reports/` without fixin
 (`docs/game/VILLAGE_PLAN.md`, on `feature/village`) is the owner's exception: every V milestone by Opus 5.5 at xhigh effort (D-game-22).
 
 Facts every session needs:
+- **Docs and session state:** the index is `docs/README.md`. To resume work, read the open handovers at the top of `docs/handovers/`
+  (finished ones are in `done/`); a session that stops writes one there. Research goes to `docs/research/`, bug reports and their triage
+  table to `docs/qa-reports/`, superseded documents to `docs/archive/`; the rules are `docs/process/documentation.md`.
 - **.NET SDK is user-local:** prefix commands with `PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" DOTNET_NOLOGO=1`.
 - **Machine resources (the desktop crashed twice from overload, 2026-10-22):** one agent at a time; every heavy command (dotnet
   restore/build/test/format/run, `scripts/content.sh`, prerender, screenshots) runs through `scripts/limited.sh`, which serialises them
@@ -52,12 +55,12 @@ Facts every session needs:
   on a feature branch like any other change.
 - **Engine (D-game-1):** MonoGame for the prototype; engine code lives only in `src/Vocaterra.Game`, never in `Vocaterra.Host` or
   `Vocaterra.Game.Core` (which references no package; its `ArchitectureRulesTests` gate it). Core holds the game's logic, Game the drawing,
-  the devices, the layers and the host (`docs/code_guidelines.md`, `docs/game/ARCHITECTURE.md`). Assets are CC0 only (D-game-5).
+  the devices, the layers and the host (`docs/process/code-guidelines.md`, `docs/game/ARCHITECTURE.md`). Assets are CC0 only (D-game-5).
 - **Game words live in the game (`content/game-v1` and the game projects):** scenes, characters, items, spells, prices, rewards, dialogue and the meaning of each effect kind. The core
   needs only opaque effect kinds and host event names.
 - **Determinism:** the host owns the world seed, the stored time, the learner model and the repeat counts. Nothing in the evaluation path
   reads the clock or draws random numbers; a `--transcript` run uses a fixed time.
-- **The prototype (D-game-8):** the owner's brief `docs/game/PROTOTYPE_BRIEF.md` (source: the `.docx` beside it) and its plan
+- **The prototype (D-game-8):** the owner's brief `docs/game/design/prototype-brief.md` (source: the `.docx` in `docs/game/design/sources/`) and its plan
   `docs/game/SCENARIO_PLAN.md`, milestones S0 to S12 (branch `S<nn>-<name>`, prefix `S<nn>:`): a 3D first-person voxel slice on MonoGame,
   merged into `main` until 2026-10-22 (`feature/prototype` is retired); new work goes to a feature branch, never `main`. Content gate from S5, at the
   A2 ceiling since V08 (D-game-22 (b)): `scripts/content.sh lint content/game-v1 --strict --level a2 --fail-on-level --host-pools 'guide.*'`

@@ -43,4 +43,4 @@ lexicon-sources/
 # Noun Town research (D-game-11, owner 2026-10-21): the raw Steam review JSON is third-party text and is never committed;
 # the summaries and the fetch scripts are. Both the current and the planned folder are covered.
 scripts/noun_town/*.json
-docs/game/research/noun-town/*.json
+docs/research/2026-10-21-noun-town/*.json

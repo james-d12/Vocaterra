@@ -1,8 +1,8 @@
 # Activities and the core systems: the W series
 
 A plan written on 2026-11-01 at the owner's request ("make a more detailed implementation plan"), from the owner's design plan
-(`docs/game/Vocaterra — Core Systems Design Plan.docx`), the owner's principle (`docs/game/Vocaterra_Crafting_Cooking.md`) and their review
-(`docs/game/CORE_SYSTEMS_REVIEW.md`). It is written against `feature/village` at `3575d46e`, the code the series will start from once PR #20
+(`docs/game/design/sources/Vocaterra — Core Systems Design Plan.docx`), the owner's principle (`docs/game/design/crafting-and-cooking.md`) and their review
+(`docs/research/2026-11-01-core-systems-review.md`). It is written against `feature/village` at `3575d46e`, the code the series will start from once PR #20
 is merged. Nothing was built or run.
 
 **Status:** proposed. The series waits for PR #20 to merge and for the owner's answers in section 12 (decision D-game-23, proposed).

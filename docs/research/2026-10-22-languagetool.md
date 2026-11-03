@@ -242,7 +242,7 @@ the content gate in `scripts/merge-gate.sh` and to the D-game-12 checklist (befo
 3. LanguageTool download (`LanguageTool-stable.zip`, here 6.6): https://languagetool.org/download/
 4. Eclipse Temurin (Adoptium) 21 JRE, GPLv2 with Classpath Exception: https://adoptium.net/temurin/releases/
 5. LanguageTool HTTP API (`/v2/check` parameters, annotated text): https://languagetool.org/http-api/
-6. `docs/nlp/research/SCALING_APPROACHES.md` section 3.2 (the 9-of-20 experiment) and its sources 24 to 28.
+6. `docs/research/2026-10-20-scaling-approaches.md` section 3.2 (the 9-of-20 experiment) and its sources 24 to 28.
 7. LanguageTool public API and its limits: https://dev.languagetool.org/public-http-api
 8. Repository: `docs/nlp/DECISIONS.md` D8 to D10; `docs/nlp/IMPLEMENTATION_PLAN.md` M22, M27a, M27a2, section 3; `docs/game/DECISIONS.md` D-game-10, 12, 13;
    `docs/nlp/TOOLS.md` (lint); `scripts/license-scan.sh`; `scripts/content.sh`; `scripts/merge-gate.sh`.

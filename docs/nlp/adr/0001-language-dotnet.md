@@ -10,7 +10,7 @@
 
 ## Context
 
-The high-level design (`docs/nlp/history/HIGH_LEVEL_DOCS.md`, "Technology choices") allows Rust, C# or Go and recommends C#. The constraints
+The high-level design (`docs/archive/nlp/history/HIGH_LEVEL_DOCS.md`, "Technology choices") allows Rust, C# or Go and recommends C#. The constraints
 that matter are:
 
 - Everything runs locally and offline, on consumer hardware (the plan assumes 8 GB RAM, 4 cores, no GPU).

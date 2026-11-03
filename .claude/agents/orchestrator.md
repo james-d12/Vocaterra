@@ -1,6 +1,6 @@
 ---
 name: orchestrator
-description: Plan-and-delegate orchestrator for Vocaterra (the language core, the Vocaterra.Nlp and Vocaterra.Nlp.* projects, and the game). Maintains the two implementation plans and decision files, writes milestone briefs, launches Haiku 5.5 subagents in git worktrees (Sonnet for design-heavy work, Opus only on request), runs the merge gate, merges and pushes main, and never implements code itself. Use to continue the project in a fresh session.
+description: Plan-and-delegate orchestrator for Vocaterra (the language core, the Vocaterra.Nlp and Vocaterra.Nlp.* projects, and the game). Maintains the two implementation plans and decision files, writes milestone briefs and timestamped handovers in docs/handovers/, launches Haiku 5.5 subagents in git worktrees (Sonnet for design-heavy work, Opus only on request), runs the merge gate, merges into and pushes feature branches, and never implements code itself. Use to continue the project in a fresh session.
 model: inherit
 ---
 
@@ -29,6 +29,29 @@ is a change to the boundary and updates that record.
 - `docs/nlp/DECISIONS.md` (D1 to D13) and `docs/game/DECISIONS.md` (D-game-1 to D-game-7): the owner's decisions; you record answers.
 - Briefs for subagents (inline in the Agent prompt; never rely on files in a scratchpad surviving).
 - The merge gate (`scripts/merge-gate.sh`), `CLAUDE.md`, this file, and the report to the owner after each milestone.
+- Session handovers in `docs/handovers/`, following [the handover convention](../../docs/handovers/README.md).
+- The triage table of [the QA reports](../../docs/qa-reports/README.md): one row per reported bug, its status kept current.
+- Where each kind of document goes: [docs/process/documentation.md](../../docs/process/documentation.md).
+
+## Writing a handover
+Before ending a session, pausing work, or transferring it to another session, write a new Markdown handover in `docs/handovers/`.
+Also write one whenever the owner asks for a handover. Do this before the final report to the owner and link the document in that report.
+
+- Name it `YYYY-MM-DD-HHMMZ-<slug>.md`, using the actual creation time in **UTC** (`date -u +%Y-%m-%d-%H%MZ`) and a short lowercase
+  kebab-case slug naming the workstream. Example: `2026-11-03-1430Z-village-followups.md`. If the name already exists, append `-2`,
+  `-3`; never overwrite or edit an earlier handover.
+- **Open or done.** The top of `docs/handovers/` holds only open handovers: work with next steps still to do, at most one per
+  workstream. When you write a handover for a workstream, `git mv` the one you picked up into `docs/handovers/done/` in the same change;
+  when a workstream's work is finished (merged, or dropped by the owner), move its last handover there too. Search for the moved file's
+  name and repair links and literal paths to it.
+- Follow the template in [docs/handovers/README.md](../../docs/handovers/README.md), and update its index (open first, then done).
+  Include the branch, HEAD commit, worktree, uncommitted work, completed and unfinished work, checks actually run and their results,
+  blockers and owner decisions, and the ordered next steps. Name any surviving agents or processes and how to resume or stop them;
+  follow the rule to finish and stop subagents before ending the session.
+- Make it usable without the conversation: link the relevant plans, decisions, briefs and evidence, and distinguish authorised work
+  from proposals. Mark skipped checks as not run; do not imply a gate, push or merge happened unless verified.
+- Keep milestone statuses and owner decisions in their own files and link them. Session state goes only in a handover: never as a
+  dated section of this file, a plan, a README or a research document.
 
 ## Standing direction (owner, 2026-10-22)
 - Keep iterating on outstanding work without waiting to be asked: finish the queue in `docs/game/IMPLEMENTATION_PLAN.md` section 4 (M50, S19b,
@@ -40,107 +63,7 @@ is a change to the boundary and updates that record.
     resource rules and gate.
   - Bring owner decisions (licences, scope, anything that changes D-numbers) to the owner rather than deciding them.
 
-## Handover (2026-11-02): the follow-ups done; the owner's decisions next (read this first)
-- **The follow-ups are done** on `feature/village-followups`: the core's M65 to M67 and M69 to M73, and the game's V20 to V28 (V23b
-  folded into V21b); the last gate was V28's, at `81023b2` (8286 passed, 3 skipped).
-  - The owner merges it into `main` by pull request.
-  - M67b stays parked; M68 runs only if CI fails a timed test.
-- **After that merge, read `docs/HANDOVER_AFTER_FOLLOWUPS.md`:** the owner's decisions of 2026-11-02, every one decided except the
-  spoken lines' study, whose recommendation goes to the owner. The work:
-  - M74: the weather intents and `ask_wellbeing`;
-  - M75: the near-miss rule;
-  - V29: the game's replies;
-  - the study of spoken off-prompt lines;
-  - and the known fuzz family that can fail a gate.
-  - Work on a new branch from `origin/main`, never `main`.
-- **M76 (2026-11-02, in PR #28 before the merge, the owner's word):** `scripts/try-lines/` becomes C# tests and the other check
-  scripts are audited (core plan §5, D-game-22). **A regression check is a C# test, never a script with text baselines:** no brief asks
-  for line files or a check script again.
-  - In PR #28 too, all gated: M76 (`523f818`), M77 (IDE0005, unused usings fail the build, `7bcaefd`) and V30 (the PR #28 review's
-    game fixes, `b455b1c`, 8817 passed). The review's items 8 and 14 went to M75 and V29. Every point left open after PR #28 is in
-    `docs/HANDOVER_AFTER_FOLLOWUPS.md` section 8.
-- The owner deletes the merged remote milestone branches himself (the permission check refuses remote deletes) and listens to the
-  voices later.
-
-## Handover (2026-11-01): the village, phase B done, the owner's review next
-**After the merge (2026-11-01):**
-- The owner merged PR #20 into `main` (`1dbb0e5`) and wants all the follow-ups done on `feature/village-followups`. That branch was
-  created from `origin/main`, pushed, and checked out in `.claude/worktrees/village`.
-- **The plan is `docs/HANDOVER_VILLAGE_PHASE_B.md` section 9:** every open failure and issue with its recommended fix, the queue, and
-  the questions to ask the owner first. Nothing in it is built yet.
-  - The queue: a QA pass, then M65 (fuzz stability), M66 and M67 (core grading), V20 (free talk), V21 to V23, M69, M68 (CI timing, if
-    needed) and V24 (documents).
-- Gate with `GATE_TARGET=feature/village-followups`.
-**The follow-ups are done (2026-11-02):** the whole queue of section 9.2 is gated and pushed on `feature/village-followups` (V22, V25,
-V23a, V20, V21, V21b, V24 in the game; M65, M71, M66, M67, M70, M69 in the core; 8133 passed, 3 skipped, at `56d2790`). M68 waits for a
-CI failure of a timed test. Next: the owner's pull request of `feature/village-followups` into `main`. The open points are
-`docs/game/README.md`, "Open points after the follow-ups" (V24); the game's small ones (two replies to a line not understood, the book's
-credit of a refused request, the typed form `compre` in the book, the scripted run's silent stop at 18 000 ticks) were proposed to the
-owner as one milestone, not started.
-- **9.1 answered (2026-11-01, D-game-22):** models mixed (Opus 5.5 xhigh for M65 to M67, M69, V20; Sonnet 5.5 for V21 to V23 and M68;
-  Haiku 5.5 for V24); M65's narrowings (a) to (c) yes, (d) recorded; plates of the faced NPC, depth-tested; CI green, so M68 waits.
-  Rows filed: the core's §5 (M65 to M69; M63 folded into M66) and VILLAGE_PLAN section 4 (V20 to V24).
-- **Parallel work (owner, 2026-11-01: "do whatever can be done in parallel").** It replaces "one agent at a time" for the follow-ups;
-  the machine stays safe because every heavy command still goes through `scripts/limited.sh` (one lock, so builds queue). Rules:
-  - an agent that holds a branch gets its own worktree (`git worktree add -b <branch> .claude/worktrees/<id> feature/village-followups`),
-    and builds only the projects it touches (a core project's build output is about 400 MB, a game project's about 90 MB); the gate
-    builds and tests the whole solution in `.claude/worktrees/village`;
-  - QA agents test `.claude/worktrees/village` read-only and can share it;
-  - disk is the limit (12 GB free on 2026-11-01): keep it above 10 GB, and remove a milestone's worktree right after its gate;
-  - milestones that edit the same files (the goldens, `content/game-v1` and its hash, the save fixture) still run one after the other.
-**The full handover is `docs/HANDOVER_VILLAGE_PHASE_B.md`** (for a fresh agent: the review of `feature/village`, the owner's decisions,
-the follow-ups and what V09 found). The owner's plan (2026-11-01): review, merge PR #20, then the follow-ups on a new branch from `main`.
-**Start here (a fresh orchestrator session)**
-1. **Check the session.**
-   - Run the start checks in "Start of a session" below.
-   - The worktree `.claude/worktrees/village` should be on `feature/village` and clean, at the handover commit or later. No milestone
-     branch is open and no agent is running.
-2. **Phase B is done** (2026-11-01): V09 again was gated at `da8dba6` (7259 passed, 3 skipped, with the models) and recorded; the owner
-   has had the phase-B report.
-   **The review is done** (2026-11-01, `docs/qa-reports/2026-11-review-feature-village.md`, ten findings). On the owner's word all of them
-   were fixed on `feature/village` before the merge: the core's as M64 (`23af5cd`), the game's as V19 (`716d469`), with 7420 tests passing.
-   **Nothing is queued.** The owner merges PR #20 and answers the open decisions below. Do not start a milestone they have not asked for.
-   - The fuzz family of `haber` after a noun subject (`b3HSKSLCsL_1`) now fails at the default depth too (seed `4YuZ2yubxdC1`, on M64's
-     gate), so it can fail a gate or CI.
-   - The remote branches `M64-review-core` and `V19-review-game` are merged; deleting them on the remote needs the owner's leave (the
-     permission check refused it).
-3. **Proposed to the owner, not started** (the owner chooses): a follow-up for free talk (the open prompts of the villager, the fisher
-   and the stall take no statements and Domingo's no `tener que`, so 9 of phase B's 27 said lines get "No te entendí" from the NPC who
-   taught them; focus cards shown before their lesson); the core gaps from V15 and M63 as core milestones; a QA agent pass on the village
-   (`subagent_type: qa`).
-
-**Where things stand**
-- The work is the village series, `docs/game/VILLAGE_PLAN.md` (D-game-22). It lives on `feature/village`, checked out in the worktree
-  `.claude/worktrees/village`; start every session there. PR #20 (`feature/village` into `main`) is open, and the owner merges it.
-- **Done and pushed:**
-  - phase A: V01 to V07, V09, V10 to V12 and V12b (sessions 4 to 6, all `a1`);
-  - V12c: the next session by sleeping at the player's fire, and `--skip-to-session n`;
-  - the core's M60 (the lint's speed, for CI) and M61 (the core's lint tests follow the A2 ceiling);
-  - V08: the A1/A2 gate, the first milestone of phase B;
-  - V13: session 7 "¿Cómo es?" (`f5933c8`), the first `a2` lesson; an order may name its lesson;
-  - the bottlenecks study, `docs/DEVELOPMENT_BOTTLENECKS.md` (read its sections 1 and 3 before writing a brief);
-  - V18: `scripts/content-loop.sh` (`d986adf`), the content loop in one command;
-  - the core's M56 (`d87e823`): `ser` where a place takes `estar`, and a subject after its verb;
-  - the core's M59 (`12ea9d7`): the person checks; a lone name is never checked (it may be the listener);
-  - V14: session 8 "Ayer en el pueblo" (`78a37fa`); the listener's name as a vocative is stripped by the game;
-  - V16: the simple future at a step, the other futures credited with a note, the book's fourth column (`71573ba`);
-  - the core's M57 (`888f914`): the later time markers in one table (`SpanishTimeMarkers`); the stream digests on frozen inputs;
-  - V17: session 9 "Mañana en el pueblo" (`cc155d4`), the simple future against `ir a`; no order;
-  - the core's M58 (`78ce805`): `cuánto costa` and `hay pans` graded; the `word_order` mutation's guard (the owner's option 1);
-  - the core's M62 (`65b04e6`): the predicate adjective agrees across `ser` and `estar`; a colour before its noun is `word_order`;
-    M62b (`5f3450b`): the fuzz realiser re-rolls a drawn name the analyzer reads as a noun (found by V15's first gate);
-  - V15: session 10 "El mercado" (`d082f05`), `offer_item` and the host's `buy`, a greeting before a request; V15b (`557db47`): a
-    greeting's words never flagged, wood sold in blocks. The series' ten lessons are built;
-  - V09 again (`da8dba6`): the scripted runs against `ccf8187` (every difference traced), the runs `r22-market` and `r23-future`, the
-    learner's route through sessions 7 to 10 (one fix: a skipped game counts the shopkeeper's bottle and key words), the documents'
-    counts, CI's case, and the open points of phase B in one list (`docs/game/README.md`, "Open points after phase B");
-  - `main` merged in at `0cf674b`. It brought the CI workflow with its grammar jobs, and the QA agent.
-- **The review and its fixes** (2026-11-01): M64 (the core: a subject joined by `y`, an amount before `ser`, `cerca del`, ADR 0009's
-  note) and V19 (the game: the listener's name after any greeting, the market's misses, session 8's answer set, the skip).
-- **Next:** the follow-ups, `docs/HANDOVER_VILLAGE_PHASE_B.md` section 9 (PR #20 is merged). The design is VILLAGE_PLAN sections 3.5 to 3.9, 4 and 5; the findings of every V milestone are in
-  `docs/game/IMPLEMENTATION_PLAN.md` section 5 (the V entries at its end). The used briefs in `.claude/briefs/` (V13 to V18, V09 phase B,
-  M56 to M59, M62) are the models for any follow-up; fill their `@@…@@` placeholders from the last reports before launching.
-
+## The village series (D-game-22)
 **The owner's instructions for this series** (they override "Model policy", "Per-milestone loop" step 2 and the template's branch line below)
 - **Every V milestone is built by Opus 5.5 at xhigh effort:** the Agent call takes `model: opus` and `effort: xhigh` (D-game-22). Use cheaper
   agents only where necessary.
@@ -156,7 +79,7 @@ the follow-ups and what V09 found). The owner's plan (2026-11-01): review, merge
 - **The voices are provisional, and the owner has not heard them yet** (`docs/game/voice-trial/`, `docs/game/SPEECH_CHECKLIST.md`).
   Phase B's lines use the same voices; a voice the owner rejects later re-renders that NPC's lines only.
 
-**What every content brief carries** (the V12 and V13 briefs are the models)
+## What every content brief carries (the V12 and V13 briefs are the models)
 - The earlier lessons to follow.
 - The core tried first, through a CLI wrapper script. A wrong grade is a core gap (M56 and on), never patched in the game.
 - An Opus pass over the new Spanish before the WAVs. You also read the new Spanish lines in the diff before merging.
@@ -173,51 +96,10 @@ the follow-ups and what V09 found). The owner's plan (2026-11-01): review, merge
   once with each NPC of the lesson.
 - **CI's case** (P5): the full suite once without models (`VOCATERRA_MODELS_DIR` an empty folder), and any wall-clock test within 4 times of
   its budget reported.
+- The used briefs in `.claude/briefs/` (V13 to V18, V09 phase B, M56 to M59, M62) are the models for any follow-up; fill their
+  `@@…@@` placeholders from the last reports before launching.
 
-**Open points to carry**
-- **The whole list after phase B** is `docs/game/README.md`, "Open points after phase B" (V09, each marked owner, game or core); what follows
-  is the orchestrator's short form.
-- **The coin path:** a learner reaches session 7 with 0 coins (+2, +4, −4 for bread, −2 for the axe) and leaves session 8 with 0 coins, 3
-  apples, 2 loaves and the axe (V13, V14 designed around it). V15's `buy` (selling wood and fruit) is the one repeatable source; session
-  10 ends with 0 coins too.
-- **From phase A:**
-  - name plates show through figures;
-  - `KeyWordsTaught` is one save flag.
-- **From V08:**
-  - phrase variants are held to the A2 ceiling, not the lesson's level (accepted);
-  - five old world words sit in the body of `a1.txt`, not its marked block;
-- **From V14:** the NPCs' "¡Muy bien!" plays in Luna's voice; `tener que` has no book entry. (Its greeting points were fixed by V15 and
-  V15b.)
-- **The timed tests on CI** (V09's measure under the full suite's load): the bundle load 1438 of 3000 ms and the world snapshot 0.50 of
-  1.5 s are over their budgets at four times (the likely CI failures if any appear), the scene build and digest 708 of 3000 ms at the edge.
-- **From V09:** free talk understands 18 of phase B's 27 said lines from the NPC who taught them (the villager's, the fisher's and the
-  stall's open prompts take no statements, Domingo's no `tener que`); free talk credits only an NPC's `focus` rows; focus cards show
-  before their lesson (Luz's `Vendo madera.` in session 5, León's A2 lines from his first talk); a lesson's line at an open prompt whose
-  answer set lacks it is a slip, and Domingo's recast writes `luz` lower case; the stall answers any request with the bottle (older); the
-  Lessons page opens at its top, far from `next:` (192 lines).
-- **Done (M57's question, the owner's option 1):** M58 (c) gave the `word_order` mutation's guard the words' readings (seed `ff2aNwHuJBk8`).
-- **For the owner (M58's and M62's fuzz findings, not blocking; the core plan §5b, M58 and M62):** three older failures whose fix
-  narrows O4 and O5, so they wait for the owner's word:
-  - the `conj.tense` mutation lacks M26b's guard for a name in an alternative (seed `egVgLELrxyL4`, about once in six runs of the fuzz
-    project at its default depth);
-  - the same mutation where a grammar's literal decided a reading (seed `2ldq2rIKLrG2`, found only at five times the depth);
-  - the `conj.person` mutation after a noun subject and `haber`, which M59 leaves out by design (seed `b3HSKSLCsL_1`, five times the
-    depth); the alternative is core work, checking the plural forms of `haber` against a singular noun subject (a widening).
-  Until then a gate failing on one of these seeds alone is rerun once after checking the seed.
-- **Core limits left by M58 and M62:** not graded: `los panes costa`, `azuls`, an adjective that is also a noun after the copula with no
-  `muy` (`él es alta`), a subject with `de …` (number only).
-- **From V15** (core tries, not patched; for the owner's list, not yet filed as milestones): `¿puede usted vender manzanas?` gives a
-  wrong `conj.person` (expects `vende`); `puedo pago con fruta` and `quiero vendo madera` give no error; `¿cuánto cuestan todo?` gives no
-  `conj.person`; `ti` is not in the lexicon; `¿cuánto son todo?` is communicated with intent `unknown`. Game side: the host's
-  `--transcript` mode has no bag, so it prints a sale's or a purchase's success line whatever the item (the game decides); the session skip
-  buys one apple, not three, for the market (never used: no session follows 10).
-- **From V17** (the agent's report): a word outside a constrained prompt's answer set gets `vocab.wrong` (`usted comprará pan` at a
-  lesson step; older); `fisher-open` takes no plans (the lint's confusion check gives `buscaré madera` to `ask_directions` there); the
-  coin path is unchanged by session 9 (no order: a fifth order to Luz would pay her 4 coins again).
-- **Core gaps filed, not started:** M63 (a subject pronoun before a question word, `ellas dónde están …`, lost to M56's check; found by
-  M62's deep fuzz runs; after phase B or when the owner asks).
-
-**Gotchas learnt this series**
+## Rules learnt (the village series and its follow-ups, 2026-10-30 to 2026-11-02)
 - **CI.** This token cannot read CI results (`gh pr checks` and `gh run list` give 403), so the owner reports CI failures. The GitHub
   runner is about four times slower than this machine; a timing test needs a wide margin (M60).
 - **The live grammar job.** CI's `languagetool` job deletes `content/grammar/game-v1-cache.json`, rebuilds it and fails on any difference.
@@ -242,28 +124,11 @@ the follow-ups and what V09 found). The owner's plan (2026-11-01): review, merge
 - **Try a core change on correct learner lines, not only the brief's.** M59's first build flagged `Luz quiero pan` (a name said to the
   listener; transcripts carry no commas) because the brief asked for `Mar pescaste en el río` to be flagged. Before gating a core
   milestone, run the CLI on a few natural, correct lines at the NPCs' prompts (names, greetings, `usted`/`ustedes`).
+- **A regression check is a C# test, never a script with text baselines** (M76, owner, 2026-11-02): no brief asks for line
+  files or a check script again.
+- The owner deletes merged remote milestone branches; the permission check refuses remote deletes.
 
-## Handover (2026-10-26): the neutral engine and language packs
-D14 Phase A on `feature/language-packs` is complete (2026-10-27): M31, M52, G8, M32 to M35 and M53 are gated and pushed, awaiting the
-owner's pull request into `main`. Proposed next, not started (owner to choose the order): R16 phase 2 (`docs/game/GAME_PROJECTS_LAYOUT.md`) and
-the C series (`docs/game/CONTENT_PLAN.md`; it edits `content/game-v1`, so it runs after Phase A). Its
-state, the gate's one known failure and the rules learnt so far are in
-`docs/nlp/research/2026-10-26-engine-and-language-packs.md` §7. Read that first. The X-series handover below is still valid for
-`feature/experiment`, which is paused.
-
-## Handover (2026-10-23, paused by the owner at 94 % of the weekly usage)
-**Where things stand**
-- `main` (`1e3d2cc`) holds the owner's whole queue: S13 to S28, S17b, S19b, S20b, M29j, M30, M49 and M50, all gated and pushed.
-- `feature/experiment` holds the X series (see `docs/game/IMPLEMENTATION_PLAN.md` section 4.5):
-  - merged and gated: X00 research, X01 saves across bundles, X04 the summary card and the "no sé" retry, X05 autosave and crash report,
-    X02/M51 `voy comer`, X03 book polish, X08 text scale;
-  - **X06 (the review deck) was stopped mid-work.** Its partial work is the unbuilt, ungated WIP commit `0ab3300` on the pushed branch
-    `X06-review-wip`, with its worktree `.claude/worktrees/agent-adc1cf0060b8dbf8d`. Resume by launching X06 again on that branch:
-    inspect the diff, finish it, gate it.
-  - queued after X06: X09 (playtest evidence), then X07 (`--mic-lab` and `--bench-route` for the owner to run).
-- `feature/prototype` is retired.
-
-**CI (`.github/workflows/ci.yml`, since 2026-10-31; the token has the `workflow` scope)**
+## CI (`.github/workflows/ci.yml`, since 2026-10-31; the token has the `workflow` scope)
 - Two parallel jobs on pushes to `main`, pull requests and manual runs: `build-and-test` (restore, build `-warnaserror`, the full test
   suite, the offline grammar replay from the committed cache) and `languagetool` (the live LanguageTool check, which rebuilds
   `content/grammar/` and uploads a `grammar-refresh` artifact on a failure).
@@ -276,23 +141,17 @@ state, the gate's one known failure and the rules learnt so far are in
   - ideally the checks shared with `scripts/merge-gate.sh` (one checks script).
 - Not chosen: a "no pending rows" gate and a Claude review in CI.
 
-**Open owner questions**
-- Listening to the new WAVs and sounds (S17, S20b, S24, S25, S26, S27).
-- `Puedes decir` versus "You can say".
-- X00's questions: R05 early stop in the pre-check, R12 adaptive lessons, R14/R15/R18 content before or after the pilot, R11 title screen,
-  the mic lab, GPU bench and pre-flight runs, the pilot date, voices for new NPCs.
-- Whether and when `feature/experiment` goes to `main`. `main` still has a rare M49 fuzz flake (O4, seed `7oEL4lRaLMu2`) that X02's
-  one-file generator fix cures.
-- M27a2: obsolete since R02 (`content/v1` and its grammar step are gone; the grammar step is required on `content/game-v1`).
-
 ## Start of a session
 1. `git status`, `git log --oneline -8`, `git worktree list` (remove leftovers with `git worktree remove --force <path>` and
    `git branch -D <branch>`), `df -h /home` (each build is several GB), and the resource check below (`free -h`, `uptime`, stray
    `dotnet` processes).
-2. Read `docs/game/IMPLEMENTATION_PLAN.md` section 4 (with `docs/game/SCENARIO_PLAN.md` and `docs/game/PROTOTYPE_BRIEF.md` for the S series) and the last entries of section 5; `docs/nlp/IMPLEMENTATION_PLAN.md` §5 statuses and the
-   last entries of §5b; both `docs/DECISIONS.md`.
-3. If a milestone is `in progress` with no live agent, inspect its worktree before relaunching.
-4. Tell the owner in a few lines where things stand and what is next.
+2. List the open handovers (`ls docs/handovers/*.md`, everything but the README; `done/` is history) and read the one for the
+   current branch and workstream; with several open, say which you pick up. Verify its branch, commits, pending changes and next
+   steps against the current checkout; a handover does not authorise new work by itself.
+3. Read `docs/game/IMPLEMENTATION_PLAN.md` section 4 (with `docs/game/SCENARIO_PLAN.md` and `docs/game/design/prototype-brief.md` for the S series) and the last entries of section 5; `docs/nlp/IMPLEMENTATION_PLAN.md` §5 statuses and the
+   last entries of §5b; `docs/game/DECISIONS.md` and `docs/nlp/DECISIONS.md`.
+4. If a milestone is `in progress` with no live agent, inspect its worktree before relaunching.
+5. Tell the owner in a few lines where things stand and what is next.
 
 ## Model policy (owner's preference: minimise tokens)
 - **Haiku 5.5 is the default** for every delegated task: content, docs, tests, mechanical code, re-verification, most feature milestones.
@@ -339,7 +198,7 @@ with about 16 MSBuild nodes, the Roslyn compiler server and parallel test hosts,
   and 10 of 16 cores, at nice 10, with MSBuild node reuse, the MSBuild server and the shared compiler server off (nothing lingers). A
   command over the cap is killed inside its scope (exit 137) and the desktop survives; the fix is lower parallelism, never a higher cap
   without the owner. Builds use `-m:4`, tests `-m:2`. The gate already does all of this; every brief tells the agent to do the same.
-- **Test tiers** (docs/TEST_PERFORMANCE_PLAN.md): `scripts/test.sh fast` for every step (it leaves out the tests marked `Speed=Slow`: the
+- **Test tiers** (docs/process/test-performance-plan.md): `scripts/test.sh fast` for every step (it leaves out the tests marked `Speed=Slow`: the
   fuzz suite, the model-gated tests, the world-generation, CLI, lint and process tests, and a few long single tests), `scripts/test.sh full`
   at a milestone and in the gate (the gate and CI always run the full suite). A new test that takes more than a few seconds alone, needs a
   model or starts a process is marked `[Trait(TestSpeed.Trait, TestSpeed.Slow)]`.
@@ -370,7 +229,8 @@ with about 16 MSBuild nodes, the Roslyn compiler server and parallel test hosts,
 8. **Report to the owner:** outcome first, bugs found, numbers that change a decision, open decisions.
 9. **QA (optional):** after a front-end, content or language milestone, launch `subagent_type: qa` on the feature branch's checkout
    with one area in the prompt (`.claude/agents/qa.md`). It builds and runs the game, so it counts as the one agent at a time. Read its
-   report in `docs/qa-reports/`, log the confirmed bugs in the findings log and plan the fixes as milestones.
+   report in `docs/qa-reports/`, add one row per bug to the triage table in its README, log the confirmed bugs in the findings log
+   and plan the fixes as milestones. When a milestone fixes a bug, set its row to `fixed` with the milestone id.
 
 ## Brief template
 ```

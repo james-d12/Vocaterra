@@ -7,7 +7,7 @@
 > - **Nothing in section 9 has been built:** the owner asked for the fixes to be noted here, not made.
 > - Sections 1 to 8 are the background.
 
-> **Update (2026-11-01, later):** section 3, the review, is done: `docs/qa-reports/2026-11-review-feature-village.md`. On the owner's word
+> **Update (2026-11-01, later):** section 3, the review, is done: `docs/qa-reports/2026-11-01-review-feature-village.md`. On the owner's word
 > all ten findings were fixed on `feature/village`: the core's as M64 (`23af5cd`), the game's as V19 (`716d469`), with 7420 tests passing
 > and bundle `0f8faea0…`.
 > - Section 4's item 2 (the three fuzz seeds) is more pressing now: the `haber` family also fails at the default depth (seed
@@ -24,7 +24,7 @@ For a fresh agent, from the orchestrator session that ran phase B. Your job, in 
 The owner's own words for this handover: "The agent will then review all of the current code on the branch, and I can also decide whether
 to continue with the follow-ups and the decisions and also what the V09 found."
 
-A prompt the owner can give you: *"Read `docs/HANDOVER_VILLAGE_PHASE_B.md` on `feature/village` and do its section 3, the review. Report to
+A prompt the owner can give you: *"Read `docs/handovers/done/2026-11-01-village-phase-b.md` on `feature/village` and do its section 3, the review. Report to
 me before changing anything."*
 
 ## 1. Ground rules (read before running anything)
@@ -51,7 +51,7 @@ me before changing anything."*
 - **CI:** the session's token cannot read CI results (`gh pr checks` and `gh run list` give 403). Ask the owner what PR #20's checks
   show.
 - **Project rules:** `CLAUDE.md` (the repository's instructions), `.claude/agents/orchestrator.md` (the orchestrator's role; its "Handover
-  (2026-11-01)" is the short form of this document) and `docs/code_guidelines.md`.
+  (2026-11-01)" is the short form of this document) and `docs/process/code-guidelines.md`.
 
 ## 2. What the branch holds
 
@@ -135,7 +135,7 @@ The hand-written content is:
 
 Review by area against the merge base: `git diff 54ed22e feature/village -- <path>`. Read each milestone's findings entry alongside its
 code: it says what was meant and what was left. Write the findings to one file, `docs/qa-reports/` is the usual place (for example
-`docs/qa-reports/2026-11-review-feature-village.md`), and give the owner a summary: bugs first, then risks, then cleanups. Rank what
+`docs/qa-reports/2026-11-01-review-feature-village.md`), and give the owner a summary: bugs first, then risks, then cleanups. Rank what
 must be fixed before the merge above what can wait for the follow-up branch.
 
 Suggested order and what to look for:
@@ -617,3 +617,128 @@ one at a time.
   seed.
 - **After each milestone:** record it, push `feature/village-followups`, and delete the milestone branch locally. The remote deletion
   needs the owner's leave.
+
+## Appendix: the orchestrator's summary (2026-11-01, updated 2026-11-02)
+
+> Moved on 2026-11-03 from `.claude/agents/orchestrator.md`, where it stood as a dated section; the text is unchanged. Its standing rules (the series' instructions, what every content brief carries, the gotchas) stay in the orchestrator.
+
+**After the merge (2026-11-01):**
+- The owner merged PR #20 into `main` (`1dbb0e5`) and wants all the follow-ups done on `feature/village-followups`. That branch was
+  created from `origin/main`, pushed, and checked out in `.claude/worktrees/village`.
+- **The plan is `docs/handovers/done/2026-11-01-village-phase-b.md` section 9:** every open failure and issue with its recommended fix, the queue, and
+  the questions to ask the owner first. Nothing in it is built yet.
+  - The queue: a QA pass, then M65 (fuzz stability), M66 and M67 (core grading), V20 (free talk), V21 to V23, M69, M68 (CI timing, if
+    needed) and V24 (documents).
+- Gate with `GATE_TARGET=feature/village-followups`.
+**The follow-ups are done (2026-11-02):** the whole queue of section 9.2 is gated and pushed on `feature/village-followups` (V22, V25,
+V23a, V20, V21, V21b, V24 in the game; M65, M71, M66, M67, M70, M69 in the core; 8133 passed, 3 skipped, at `56d2790`). M68 waits for a
+CI failure of a timed test. Next: the owner's pull request of `feature/village-followups` into `main`. The open points are
+`docs/game/README.md`, "Open points after the follow-ups" (V24); the game's small ones (two replies to a line not understood, the book's
+credit of a refused request, the typed form `compre` in the book, the scripted run's silent stop at 18 000 ticks) were proposed to the
+owner as one milestone, not started.
+- **9.1 answered (2026-11-01, D-game-22):** models mixed (Opus 5.5 xhigh for M65 to M67, M69, V20; Sonnet 5.5 for V21 to V23 and M68;
+  Haiku 5.5 for V24); M65's narrowings (a) to (c) yes, (d) recorded; plates of the faced NPC, depth-tested; CI green, so M68 waits.
+  Rows filed: the core's §5 (M65 to M69; M63 folded into M66) and VILLAGE_PLAN section 4 (V20 to V24).
+- **Parallel work (owner, 2026-11-01: "do whatever can be done in parallel").** It replaces "one agent at a time" for the follow-ups;
+  the machine stays safe because every heavy command still goes through `scripts/limited.sh` (one lock, so builds queue). Rules:
+  - an agent that holds a branch gets its own worktree (`git worktree add -b <branch> .claude/worktrees/<id> feature/village-followups`),
+    and builds only the projects it touches (a core project's build output is about 400 MB, a game project's about 90 MB); the gate
+    builds and tests the whole solution in `.claude/worktrees/village`;
+  - QA agents test `.claude/worktrees/village` read-only and can share it;
+  - disk is the limit (12 GB free on 2026-11-01): keep it above 10 GB, and remove a milestone's worktree right after its gate;
+  - milestones that edit the same files (the goldens, `content/game-v1` and its hash, the save fixture) still run one after the other.
+**The full handover is `docs/handovers/done/2026-11-01-village-phase-b.md`** (for a fresh agent: the review of `feature/village`, the owner's decisions,
+the follow-ups and what V09 found). The owner's plan (2026-11-01): review, merge PR #20, then the follow-ups on a new branch from `main`.
+**Start here (a fresh orchestrator session)**
+1. **Check the session.**
+   - Run the start checks in "Start of a session" below.
+   - The worktree `.claude/worktrees/village` should be on `feature/village` and clean, at the handover commit or later. No milestone
+     branch is open and no agent is running.
+2. **Phase B is done** (2026-11-01): V09 again was gated at `da8dba6` (7259 passed, 3 skipped, with the models) and recorded; the owner
+   has had the phase-B report.
+   **The review is done** (2026-11-01, `docs/qa-reports/2026-11-01-review-feature-village.md`, ten findings). On the owner's word all of them
+   were fixed on `feature/village` before the merge: the core's as M64 (`23af5cd`), the game's as V19 (`716d469`), with 7420 tests passing.
+   **Nothing is queued.** The owner merges PR #20 and answers the open decisions below. Do not start a milestone they have not asked for.
+   - The fuzz family of `haber` after a noun subject (`b3HSKSLCsL_1`) now fails at the default depth too (seed `4YuZ2yubxdC1`, on M64's
+     gate), so it can fail a gate or CI.
+   - The remote branches `M64-review-core` and `V19-review-game` are merged; deleting them on the remote needs the owner's leave (the
+     permission check refused it).
+3. **Proposed to the owner, not started** (the owner chooses): a follow-up for free talk (the open prompts of the villager, the fisher
+   and the stall take no statements and Domingo's no `tener que`, so 9 of phase B's 27 said lines get "No te entendí" from the NPC who
+   taught them; focus cards shown before their lesson); the core gaps from V15 and M63 as core milestones; a QA agent pass on the village
+   (`subagent_type: qa`).
+
+**Where things stand**
+- The work is the village series, `docs/game/VILLAGE_PLAN.md` (D-game-22). It lives on `feature/village`, checked out in the worktree
+  `.claude/worktrees/village`; start every session there. PR #20 (`feature/village` into `main`) is open, and the owner merges it.
+- **Done and pushed:**
+  - phase A: V01 to V07, V09, V10 to V12 and V12b (sessions 4 to 6, all `a1`);
+  - V12c: the next session by sleeping at the player's fire, and `--skip-to-session n`;
+  - the core's M60 (the lint's speed, for CI) and M61 (the core's lint tests follow the A2 ceiling);
+  - V08: the A1/A2 gate, the first milestone of phase B;
+  - V13: session 7 "¿Cómo es?" (`f5933c8`), the first `a2` lesson; an order may name its lesson;
+  - the bottlenecks study, `docs/research/2026-10-31-development-bottlenecks.md` (read its sections 1 and 3 before writing a brief);
+  - V18: `scripts/content-loop.sh` (`d986adf`), the content loop in one command;
+  - the core's M56 (`d87e823`): `ser` where a place takes `estar`, and a subject after its verb;
+  - the core's M59 (`12ea9d7`): the person checks; a lone name is never checked (it may be the listener);
+  - V14: session 8 "Ayer en el pueblo" (`78a37fa`); the listener's name as a vocative is stripped by the game;
+  - V16: the simple future at a step, the other futures credited with a note, the book's fourth column (`71573ba`);
+  - the core's M57 (`888f914`): the later time markers in one table (`SpanishTimeMarkers`); the stream digests on frozen inputs;
+  - V17: session 9 "Mañana en el pueblo" (`cc155d4`), the simple future against `ir a`; no order;
+  - the core's M58 (`78ce805`): `cuánto costa` and `hay pans` graded; the `word_order` mutation's guard (the owner's option 1);
+  - the core's M62 (`65b04e6`): the predicate adjective agrees across `ser` and `estar`; a colour before its noun is `word_order`;
+    M62b (`5f3450b`): the fuzz realiser re-rolls a drawn name the analyzer reads as a noun (found by V15's first gate);
+  - V15: session 10 "El mercado" (`d082f05`), `offer_item` and the host's `buy`, a greeting before a request; V15b (`557db47`): a
+    greeting's words never flagged, wood sold in blocks. The series' ten lessons are built;
+  - V09 again (`da8dba6`): the scripted runs against `ccf8187` (every difference traced), the runs `r22-market` and `r23-future`, the
+    learner's route through sessions 7 to 10 (one fix: a skipped game counts the shopkeeper's bottle and key words), the documents'
+    counts, CI's case, and the open points of phase B in one list (`docs/game/README.md`, "Open points after phase B");
+  - `main` merged in at `0cf674b`. It brought the CI workflow with its grammar jobs, and the QA agent.
+- **The review and its fixes** (2026-11-01): M64 (the core: a subject joined by `y`, an amount before `ser`, `cerca del`, ADR 0009's
+  note) and V19 (the game: the listener's name after any greeting, the market's misses, session 8's answer set, the skip).
+- **Next:** the follow-ups, `docs/handovers/done/2026-11-01-village-phase-b.md` section 9 (PR #20 is merged). The design is VILLAGE_PLAN sections 3.5 to 3.9, 4 and 5; the findings of every V milestone are in
+  `docs/game/IMPLEMENTATION_PLAN.md` section 5 (the V entries at its end). The used briefs in `.claude/briefs/` (V13 to V18, V09 phase B,
+  M56 to M59, M62) are the models for any follow-up; fill their `@@…@@` placeholders from the last reports before launching.
+
+**Open points to carry**
+- **The whole list after phase B** is `docs/game/README.md`, "Open points after phase B" (V09, each marked owner, game or core); what follows
+  is the orchestrator's short form.
+- **The coin path:** a learner reaches session 7 with 0 coins (+2, +4, −4 for bread, −2 for the axe) and leaves session 8 with 0 coins, 3
+  apples, 2 loaves and the axe (V13, V14 designed around it). V15's `buy` (selling wood and fruit) is the one repeatable source; session
+  10 ends with 0 coins too.
+- **From phase A:**
+  - name plates show through figures;
+  - `KeyWordsTaught` is one save flag.
+- **From V08:**
+  - phrase variants are held to the A2 ceiling, not the lesson's level (accepted);
+  - five old world words sit in the body of `a1.txt`, not its marked block;
+- **From V14:** the NPCs' "¡Muy bien!" plays in Luna's voice; `tener que` has no book entry. (Its greeting points were fixed by V15 and
+  V15b.)
+- **The timed tests on CI** (V09's measure under the full suite's load): the bundle load 1438 of 3000 ms and the world snapshot 0.50 of
+  1.5 s are over their budgets at four times (the likely CI failures if any appear), the scene build and digest 708 of 3000 ms at the edge.
+- **From V09:** free talk understands 18 of phase B's 27 said lines from the NPC who taught them (the villager's, the fisher's and the
+  stall's open prompts take no statements, Domingo's no `tener que`); free talk credits only an NPC's `focus` rows; focus cards show
+  before their lesson (Luz's `Vendo madera.` in session 5, León's A2 lines from his first talk); a lesson's line at an open prompt whose
+  answer set lacks it is a slip, and Domingo's recast writes `luz` lower case; the stall answers any request with the bottle (older); the
+  Lessons page opens at its top, far from `next:` (192 lines).
+- **Done (M57's question, the owner's option 1):** M58 (c) gave the `word_order` mutation's guard the words' readings (seed `ff2aNwHuJBk8`).
+- **For the owner (M58's and M62's fuzz findings, not blocking; the core plan §5b, M58 and M62):** three older failures whose fix
+  narrows O4 and O5, so they wait for the owner's word:
+  - the `conj.tense` mutation lacks M26b's guard for a name in an alternative (seed `egVgLELrxyL4`, about once in six runs of the fuzz
+    project at its default depth);
+  - the same mutation where a grammar's literal decided a reading (seed `2ldq2rIKLrG2`, found only at five times the depth);
+  - the `conj.person` mutation after a noun subject and `haber`, which M59 leaves out by design (seed `b3HSKSLCsL_1`, five times the
+    depth); the alternative is core work, checking the plural forms of `haber` against a singular noun subject (a widening).
+  Until then a gate failing on one of these seeds alone is rerun once after checking the seed.
+- **Core limits left by M58 and M62:** not graded: `los panes costa`, `azuls`, an adjective that is also a noun after the copula with no
+  `muy` (`él es alta`), a subject with `de …` (number only).
+- **From V15** (core tries, not patched; for the owner's list, not yet filed as milestones): `¿puede usted vender manzanas?` gives a
+  wrong `conj.person` (expects `vende`); `puedo pago con fruta` and `quiero vendo madera` give no error; `¿cuánto cuestan todo?` gives no
+  `conj.person`; `ti` is not in the lexicon; `¿cuánto son todo?` is communicated with intent `unknown`. Game side: the host's
+  `--transcript` mode has no bag, so it prints a sale's or a purchase's success line whatever the item (the game decides); the session skip
+  buys one apple, not three, for the market (never used: no session follows 10).
+- **From V17** (the agent's report): a word outside a constrained prompt's answer set gets `vocab.wrong` (`usted comprará pan` at a
+  lesson step; older); `fisher-open` takes no plans (the lint's confusion check gives `buscaré madera` to `ask_directions` there); the
+  coin path is unchanged by session 9 (no order: a fifth order to Luz would pay her 4 coins again).
+- **Core gaps filed, not started:** M63 (a subject pronoun before a question word, `ellas dónde están …`, lost to M56's check; found by
+  M62's deep fuzz runs; after phase B or when the owner asks).

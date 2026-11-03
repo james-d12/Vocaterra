@@ -31,10 +31,10 @@ And, the same day, after the first draft: "The lesson should also include past, 
 session 4 on uses its verbs in the three times, around something the player has just done or is about to do (section 3.5, principle 7),
 and the series ends with the simple future at A2 (session 9). Section 2.9 says what the core, the runner and the book already do for tenses.
 
-Two earlier owner answers bear on it (`docs/game/research/2026-10-23-improvement-backlog.md`): R14 (numbers and prices, "yes") and R15
+Two earlier owner answers bear on it (`docs/research/2026-10-23-improvement-backlog.md`): R14 (numbers and prices, "yes") and R15
 (more NPCs with other voices, "yes for the voices and the unreviewed text"); R18 (an orders loop, "yes, better after the first pilot") is
 taken up here on the owner's new request, in the smallest form that gives numbers a use (section 3.4). The brief's own caution stands:
-"if recall or transfer is weak, improve the learning loop before expanding the world" (`PROTOTYPE_BRIEF.md`, decision gates). This plan
+"if recall or transfer is weak, improve the learning loop before expanding the world" (`docs/game/design/prototype-brief.md`, decision gates). This plan
 therefore has a cut line after phase A (section 4): three lessons that finish A1, before anything at A2.
 
 ## 2. What the investigation found
@@ -583,8 +583,8 @@ Today's gate demands A1 bundle-wide (section 2.5). The rule this plan proposes, 
 | V16 | The simple future in the runner and the book: `tense: fut` on a step, `ir a` credited there with a note, the fourth column, the schema (3.8) | V08 | S | Opus 5.5 xhigh | done 2026-10-31 (`71573ba`) |
 | V17 | Session 9 "Mañana en el pueblo": the simple future (-é, -ás, -á, -emos, -án; `iré`; `hará`, `tendré` heard) against `ir a`; the later markers; the day of tomorrow | V14, V16 | M | Opus 5.5 xhigh | done 2026-10-31 (`cc155d4`) |
 | V15 | Session 10 "El mercado": 11 to 20, `¿Cuánto es todo?`, `más … que`, `poder`; `offer_item` and `buy`; the market told in three times | V17 | M/L | Opus 5.5 xhigh | done 2026-11-01 (`d082f05`; V15b `557db47`) |
-| V18 | The content loop in one command (owner, 2026-10-31, from `docs/DEVELOPMENT_BOTTLENECKS.md` P2): after an edit of the bundle, the refresh, the LanguageTool cache and its rebuilt-from-nothing check, the prerender, the save fixtures' hash, the goldens on request, the fast tier and the grammar-sensitive fuzz classes, one summary | V13 | S/M | Opus 5.5 xhigh | done 2026-10-31 (`d986adf`): `scripts/content-loop.sh --grammar --speech` |
-| V19 | The game findings of the review of `feature/village` (owner, 2026-11-01: "fix them all"; `docs/qa-reports/2026-11-review-feature-village.md` R4, R7 to R10, R1's answer set and two risks): the listener's name after any greeting, one place that reads a line, the market's misses (no item, no room, no cap, zero), the skip that fails loudly | M64 | M | Opus 5.5 xhigh | done 2026-11-01 (`716d469`) |
+| V18 | The content loop in one command (owner, 2026-10-31, from `docs/research/2026-10-31-development-bottlenecks.md` P2): after an edit of the bundle, the refresh, the LanguageTool cache and its rebuilt-from-nothing check, the prerender, the save fixtures' hash, the goldens on request, the fast tier and the grammar-sensitive fuzz classes, one summary | V13 | S/M | Opus 5.5 xhigh | done 2026-10-31 (`d986adf`): `scripts/content-loop.sh --grammar --speech` |
+| V19 | The game findings of the review of `feature/village` (owner, 2026-11-01: "fix them all"; `docs/qa-reports/2026-11-01-review-feature-village.md` R4, R7 to R10, R1's answer set and two risks): the listener's name after any greeting, one place that reads a line, the market's misses (no item, no room, no cap, zero), the skip that fails loudly | M64 | M | Opus 5.5 xhigh | done 2026-11-01 (`716d469`) |
 | V20 | Free talk (handover 9.3 D): each NPC's open prompt takes the intents of the lessons it teaches, so all 27 of phase B's practised lines are understood by the NPC who taught them (a game test runs every said row through its NPC's open prompt); practice credited for any row of a started or finished lesson, at any NPC; focus cards only once their lesson is current or done; an NPC's name capitalised in a recast (not after a determiner); `ask_total` takes `son`, and `cuanto son todo?` (no accent) is `ask_total`, not `describe` (QA-language-8); `quiero cero panes` keeps its credit (documented) | M66, M67 | M/L | Opus 5.5 xhigh | done 2026-11-02 (`92c2763`) |
 | V21 | Replies and exchanges (handover 9.3 E, the QA passes, V20's leftovers): the stall and the villager answer by item through `ExchangeMiss` (today the stall gives the bottle and the villager bread for any request), `shop_hay` agrees with what it sells; the exchange lines that contradict the deal (the farmer's «Solo compro fruta» to apples, the baker's «Necesitas más monedas» while the lesson holds the order, a fixed `¿Cuánto es todo?` answer); one reply per turn, never a recast's praise and "No te entendí" together (QA-language-9); the intent clashes V20 found (`quién`/`qué`/`cómo es grande` read as `describe` at León's and the stall's prompts, `como es la manzana` and `ellas adónde van` read as `state_action` through the `comer` and `ir` keyword rules) | V20 | M | Sonnet 5.5 | done (2026-11-02, gated at `4a4a440`) |
 | V21b | Voice, book and pages (handover 9.3 E and G): the shared feedback lines in each NPC's voice (the WAV count and disk cost reported before rendering); `tener que` in the book; the Lessons page opens at `next:`; the display of M70's accent note; and V23b folded in: the five old world words into `a1.txt`'s block, the book counts a correct use wherever it was understood; added after V21 (2026-11-02): the orchestrator's Spanish pass over V21's stall lines, the free-talk total, and the host's replies from the game's turn code | V21, M70 | M | Sonnet 5.5 | done (2026-11-02, gated at `d6afaba`) |
@@ -606,12 +606,12 @@ content M). The gate runs on `feature/village` after each. **Phase B** (V08, V13
 simple future last but one) waits for the owner's word after listening to phase A, or for the pilot's data if the owner prefers the brief's
 order.
 
-**Phase B's order** (owner, 2026-10-31, after the study of the project's bottlenecks, `docs/DEVELOPMENT_BOTTLENECKS.md`): V08, V13,
+**Phase B's order** (owner, 2026-10-31, after the study of the project's bottlenecks, `docs/research/2026-10-31-development-bottlenecks.md`): V08, V13,
 V18 (the content loop in one command) and the core's M56 and M59 (agreement with a subject after its verb; the person checks, a lone name
 never checked) V14, V16 and the core's M57 (the later markers) done, then V17, the core's M58 and M62
 (before V15; M62 by the owner's word after V13), V15 and V09. One agent at a time, every milestone by Opus 5.5 at xhigh.
 
-**The follow-ups' order** (the owner, 2026-11-01, after PR #20's merge; `docs/HANDOVER_VILLAGE_PHASE_B.md` section 9), on
+**The follow-ups' order** (the owner, 2026-11-01, after PR #20's merge; `docs/handovers/done/2026-11-01-village-phase-b.md` section 9), on
 `feature/village-followups`: a QA pass (`language`, then `progression`), the core's M65, M66 and M67, V20, V21, V22, V23, the core's M69,
 and V24; the core's M68 only if CI fails a timed test. The QA passes added the core's M70 after M67 and V25 (a load keeps its day) first in the game's queue, beside M66 (2026-11-01). The QA reports' confirmed bugs join where they fit. Models are the owner's mix
 (D-game-22, 2026-11-01): Opus 5.5 at xhigh for M65 to M67, M69 and V20; Sonnet 5.5 for V21 to V23; Haiku 5.5 for V24.

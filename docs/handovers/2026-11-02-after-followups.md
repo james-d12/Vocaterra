@@ -208,3 +208,28 @@ PR #28 (D-game-22, 2026-11-02).
 - The oven order after a load waits for its lesson's `n4-back` step (V14's design). The baker says `Primero, la lección. Luego, las monedas.`
 - «Sí, es verdad.» only at the NPC's own prompt: an off-prompt statement about the listener keeps «Te entiendo.» and its topic (V28).
 - M77 made a clean build about 17 % slower (34.6 s to 40.4 s), the cost of IDE0005 in the build.
+
+## Appendix: the orchestrator's summary (2026-11-02)
+
+> Moved on 2026-11-03 from `.claude/agents/orchestrator.md`, where it stood as a dated section; the text is unchanged.
+
+- **The follow-ups are done** on `feature/village-followups`: the core's M65 to M67 and M69 to M73, and the game's V20 to V28 (V23b
+  folded into V21b); the last gate was V28's, at `81023b2` (8286 passed, 3 skipped).
+  - The owner merges it into `main` by pull request.
+  - M67b stays parked; M68 runs only if CI fails a timed test.
+- **After that merge, read `docs/handovers/2026-11-02-after-followups.md`:** the owner's decisions of 2026-11-02, every one decided except the
+  spoken lines' study, whose recommendation goes to the owner. The work:
+  - M74: the weather intents and `ask_wellbeing`;
+  - M75: the near-miss rule;
+  - V29: the game's replies;
+  - the study of spoken off-prompt lines;
+  - and the known fuzz family that can fail a gate.
+  - Work on a new branch from `origin/main`, never `main`.
+- **M76 (2026-11-02, in PR #28 before the merge, the owner's word):** `scripts/try-lines/` becomes C# tests and the other check
+  scripts are audited (core plan §5, D-game-22). **A regression check is a C# test, never a script with text baselines:** no brief asks
+  for line files or a check script again.
+  - In PR #28 too, all gated: M76 (`523f818`), M77 (IDE0005, unused usings fail the build, `7bcaefd`) and V30 (the PR #28 review's
+    game fixes, `b455b1c`, 8817 passed). The review's items 8 and 14 went to M75 and V29. Every point left open after PR #28 is in
+    `docs/handovers/2026-11-02-after-followups.md` section 8.
+- The owner deletes the merged remote milestone branches himself (the permission check refuses remote deletes) and listens to the
+  voices later.

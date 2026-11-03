@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The content loop in one command (V18; docs/DEVELOPMENT_BOTTLENECKS.md 2.4, action P2): every step after an edit of the game's content
+# The content loop in one command (V18; docs/research/2026-10-31-development-bottlenecks.md 2.4, action P2): every step after an edit of the game's content
 # (content/game-v1, content/locale, content/PHRASES.md), in order. It stops at the first failure with a message naming the next thing to do,
 # then prints one summary of at most 30 lines: each step, passed, failed, skipped or not run, what it changed (files, counts) and its log.
 # Every step's full output goes to a log under .claude/content-loop/<stamp>/ (git-ignored; the ten newest runs are kept), never to the terminal.

@@ -1,3 +1,5 @@
+> **Archived 2026-11-03** from `docs/game/R16_PHASE2.md`: a finished migration plan (done 2026-10-28). The layout as it is now: [ARCHITECTURE.md](../../game/ARCHITECTURE.md).
+
 # R16 phase 2: moving the engine-free game logic to `Vocaterra.Game.Core`
 
 > **Status: done (2026-10-28, on `feature/game_refactor`).** Batches 1 to 8 are complete; what was done, the seams and the findings are in
@@ -5,12 +7,12 @@
 > live run by hand (section 7) is left for the owner.
 
 A handover for the agent that takes R16 on (written 2026-10-26, at the end of phase 1, branch `feature/organise`, commit `e5779e9`). Read it
-with `docs/code_guidelines.md` (the owner's rules), `CLAUDE.md` (the machine and repository rules), `docs/game/ARCHITECTURE.md` (the two
+with `docs/process/code-guidelines.md` (the owner's rules), `CLAUDE.md` (the machine and repository rules), `docs/game/ARCHITECTURE.md` (the two
 projects and their folders) and the R16 entry of `docs/game/IMPLEMENTATION_PLAN.md` section 5 (what phase 1 did and found).
 
 ## 1. The goal
 
-`docs/code_guidelines.md` puts the game's systems and mechanics in `Vocaterra.Game.Core` (anything not tied to MonoGame: algorithms, inventory,
+`docs/process/code-guidelines.md` puts the game's systems and mechanics in `Vocaterra.Game.Core` (anything not tied to MonoGame: algorithms, inventory,
 physics, NPC logic, language processing, decisions) and keeps in `Vocaterra.Game` only what needs MonoGame: graphics, rendering, input management,
 UI elements. Phase 1 split the 2,957-line `VoxelGame.cs` into components inside `Vocaterra.Game` (it is now about 850 lines: the composition
 root and MonoGame's loop). Phase 2 moves the components and models that do not need MonoGame into Core, so that they are tested there and

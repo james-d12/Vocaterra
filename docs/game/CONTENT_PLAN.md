@@ -13,7 +13,7 @@ CLI) is specified in section 3.8 for later; the owner closed the series there (s
 - English moves into a locale layer, but no second locale is added yet (2026-10-27).
 - Content stays JSON, with JSON Schema added (2026-10-27).
 - The locale is a bundle of its own, `content/locale/`, beside `content/game-v1` and outside its hash (2026-10-28; section 3.1).
-- R16 phase 2 (`GAME_PROJECTS_LAYOUT.md`) runs first, and the series starts on its layout (2026-10-28; section 4).
+- R16 phase 2 (`docs/archive/game/GAME_PROJECTS_LAYOUT.md`) runs first, and the series starts on its layout (2026-10-28; section 4).
 - Proceed (2026-10-29). One session (Opus 5.5) does all the work itself, with no subagents, in a worktree of `feature/content` made from `main`.
 
 **What the review changed (2026-10-28):**

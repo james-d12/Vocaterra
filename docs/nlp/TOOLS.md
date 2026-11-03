@@ -2,7 +2,7 @@
 
 An inventory of everything external that the language core builds on, runs, downloads or plans to use: runtimes, NuGet packages, native binaries, machine-learning models, data sources and developer tooling, with versions, licenses and sources. It is a hand-checked snapshot of the language core (`nlp/`, in the Vocaterra repository) at commit `a642066` (2026-10-22, the M50 base); regenerate the numbers when a dependency changes. It replaces the snapshot of 2026-10-20 (commit `4a91cad`), which was taken when the core was a repository of its own.
 
-**How this was compiled.** From the repository root's `global.json` and `Directory.Packages.props`, the root `Directory.Build.props`, every `*.csproj`, the output of `scripts/license-scan.sh --offline` (run on 2026-10-22 after `dotnet restore`: 28 packages, 28 pass; see the note on the counts below), the cached `.nuspec` files and native binaries of the restored packages, `models/manifest.json`, `scripts/*.sh`, `.github/workflows-pending/ci.yml`, `content/game-v1/ATTRIBUTION.md` and `provenance.json`, `docs/nlp/history/HIGH_LEVEL_DOCS.md`, `IMPLEMENTATION_PLAN.md` and `docs/nlp/FUZZING_PLAN.md`.
+**How this was compiled.** From the repository root's `global.json` and `Directory.Packages.props`, the root `Directory.Build.props`, every `*.csproj`, the output of `scripts/license-scan.sh --offline` (run on 2026-10-22 after `dotnet restore`: 28 packages, 28 pass; see the note on the counts below), the cached `.nuspec` files and native binaries of the restored packages, `models/manifest.json`, `scripts/*.sh`, `.github/workflows-pending/ci.yml`, `content/game-v1/ATTRIBUTION.md` and `provenance.json`, `docs/archive/nlp/history/HIGH_LEVEL_DOCS.md`, `IMPLEMENTATION_PLAN.md` and `docs/nlp/FUZZING_PLAN.md`.
 
 **Counts.** The licence scan at the M50 base reports 28 packages, one more than the 27 of the earlier snapshot. Every one of the 28 is named in this file, but the package-by-package tables (sections 2, 3 and 9) were not re-audited for that difference, so their counts still read as they were at `4a91cad`. The scan is the authority for the total.
 
@@ -159,7 +159,7 @@ The hand-authored content has no third-party text in it, and it is licensed Apac
 | `unzip`, `tar` with bzip2 | UnZip 6.00, GNU tar 1.35 | extracting `.zip` and `.tar.bz2` model archives | `scripts/fetch-models.sh` | Info-ZIP / GPL-3.0-or-later |
 | coreutils (`mktemp`, `cut`, `wc`, `tr`, `basename`) | coreutils 9.4 | fetch script housekeeping | `scripts/fetch-models.sh` | GPL-3.0-or-later |
 | `.editorconfig` | - | 4-space C#, 2-space JSON/YAML/XML, LF, file-scoped namespaces as a warning; enforced by `dotnet format` | [`.editorconfig`](../../.editorconfig) | - |
-| Mermaid | rendered by GitHub | flowcharts in `docs/nlp/history/HIGH_LEVEL_DOCS.md` | `docs/nlp/history/HIGH_LEVEL_DOCS.md` | MIT |
+| Mermaid | rendered by GitHub | flowcharts in `docs/archive/nlp/history/HIGH_LEVEL_DOCS.md` | `docs/archive/nlp/history/HIGH_LEVEL_DOCS.md` | MIT |
 | Temurin JRE | 21.0.13+9 (`tools/manifest.json`) | the Java runtime of the LanguageTool server (M30); a separate local process, never linked or shipped; started by `scripts/languagetool.sh` (repository root) | `scripts/fetch-tools.sh` installs it under `${VOCATERRA_TOOLS_DIR:-~/.local/share/vocaterra/tools}` | GPL-2.0 with the classpath exception (declared in the manifest; D10) |
 | LanguageTool | 6.6 (`tools/manifest.json`) | grammar check of the authored content (M30, `lint`); a separate local server on localhost, no n-gram data installed | `scripts/fetch-tools.sh` and `scripts/languagetool.sh` (repository root) | LGPL-2.1 (declared in the manifest; D10) |
 | draw.io (diagrams.net) | file format only | the hand-written overview diagram | [`docs/nlp/diagrams/system-overview.drawio`](diagrams/system-overview.drawio) | Apache-2.0 |
@@ -238,7 +238,7 @@ neither serializes byte for byte as before.
 
 ## 8. Planned or referenced but not used
 
-**None of the items in this section is a dependency of the code today.** They come from `docs/nlp/history/HIGH_LEVEL_DOCS.md` ("Technology choices", "Licensing", per-step "Non-deterministic considerations"), `IMPLEMENTATION_PLAN.md` and `docs/nlp/FUZZING_PLAN.md`.
+**None of the items in this section is a dependency of the code today.** They come from `docs/archive/nlp/history/HIGH_LEVEL_DOCS.md` ("Technology choices", "Licensing", per-step "Non-deterministic considerations"), `IMPLEMENTATION_PLAN.md` and `docs/nlp/FUZZING_PLAN.md`.
 
 | Item | Intended role | License per the HLD | Status | Source |
 | --- | --- | --- | --- | --- |

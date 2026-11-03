@@ -1,4 +1,4 @@
-Source: `Vocaterra_Prototype_Design_Brief.docx` (v1.2, the owner's). The three concept images (references A, B, C) stay inside the docx.
+Source: [`sources/Vocaterra_Prototype_Design_Brief.docx`](sources/Vocaterra_Prototype_Design_Brief.docx) (v1.2, the owner's). The three concept images (references A, B, C) stay inside the docx.
 
 PROTOTYPE DESIGN BRIEF / V1.2
 

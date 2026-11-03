@@ -2,7 +2,7 @@
 
 Research report, 2026-10-21. Question from the owner: writing the intents and the content folder is expensive, so how can authoring be
 made cheaper, and what should the core build? `IMPLEMENTATION_PLAN.md` §10 lists six options; this report tests them as a hypothesis.
-It does not repeat `docs/research/SCALING_APPROACHES.md`, which already argues for build-time LLM drafting (its §3.3, M21) and a trained
+It does not repeat `docs/research/2026-10-20-scaling-approaches.md`, which already argues for build-time LLM drafting (its §3.3, M21) and a trained
 open-prompt classifier (M23).
 
 Method: I read the sample bundle (`content/v1`), the game bundle (`~/Dev/Vocaterra/content/game-v1` at game `b968f2f`), the loaders,

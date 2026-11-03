@@ -344,7 +344,7 @@ its article helper and its English error table, and would add a German bundle. T
 ### 4.7 Project layout
 
 > **Superseded 2026-10-26** (D14 amendment): the core becomes one neutral `Vocaterra.Nlp` plus one project per language
-> (`Vocaterra.Nlp.Es`, later `Vocaterra.Nlp.De`). See `docs/nlp/research/2026-10-26-engine-and-language-packs.md`.
+> (`Vocaterra.Nlp.Es`, later `Vocaterra.Nlp.De`). See `docs/research/2026-10-26-engine-and-language-packs.md`.
 
 Two steps, so that the risky one is small:
 
@@ -518,5 +518,5 @@ Accessed 2026-10-22.
 
 **Repository (read at `ecd646d`)**
 `docs/nlp/IMPLEMENTATION_PLAN.md` (§1–§5, §5b M26b, M29c, M29j, §7, §9, §10); `docs/nlp/DECISIONS.md`; `docs/nlp/API.md`; `docs/nlp/adr/0002`, `0005`,
-`0007`, `0008`, `0009`; `docs/nlp/LEXICON.md`; `docs/nlp/FUZZING_PLAN.md`; `models/manifest.json`; `docs/nlp/research/SCALING_APPROACHES.md`;
+`0007`, `0008`, `0009`; `docs/nlp/LEXICON.md`; `docs/nlp/FUZZING_PLAN.md`; `models/manifest.json`; `docs/research/2026-10-20-scaling-approaches.md`;
 `docs/game/DECISIONS.md` (D-game-9, 10, 12, 13, 16); `docs/game/ARCHITECTURE.md`; source files as cited in section 1.

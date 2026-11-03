@@ -1,6 +1,6 @@
 # Playtest: the facilitator's script
 
-The facilitator's checklist for the prototype's playtests (S12, `docs/game/PROTOTYPE_BRIEF.md`, `docs/game/SCENARIO_PLAN.md` section 4 "S12"; refreshed
+The facilitator's checklist for the prototype's playtests (S12, `docs/game/design/prototype-brief.md`, `docs/game/SCENARIO_PLAN.md` section 4 "S12"; refreshed
 at S18 for the opening at the cliff camp, the guide's lesson, the longer run, the 31-item checks, the book and the keys F5, F6 and F8; refreshed at S28 for the book as a book, the lessons of sessions 2 and 3 and "Practise again"; refreshed at V09 for the village of sessions 4 to 6,
 `docs/game/VILLAGE_PLAN.md` phase A, which a pilot does not reach; and at V09 again for phase B, sessions 7 to 10, which a pilot does not reach either:
 section 14). Read it
@@ -266,7 +266,7 @@ code 1.
 
 ## 11. The decision gates and the evidence that answers them
 
-From the brief (`docs/game/PROTOTYPE_BRIEF.md`). The report gives evidence lines; the decision is yours and the owner's, with the notes.
+From the brief (`docs/game/design/prototype-brief.md`). The report gives evidence lines; the decision is yours and the owner's, with the notes.
 
 | Gate | Criterion (the brief) | Evidence that answers it | Where |
 | --- | --- | --- | --- |

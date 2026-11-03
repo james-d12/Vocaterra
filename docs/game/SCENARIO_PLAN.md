@@ -1,6 +1,6 @@
 # The prototype scenario plan (the S series)
 
-Written 2026-10-21 from the owner's Prototype Design Brief v1.2 (`Vocaterra_Prototype_Design_Brief.docx`, this folder) and a review of the
+Written 2026-10-21 from the owner's Prototype Design Brief v1.2 (`docs/game/design/sources/Vocaterra_Prototype_Design_Brief.docx`) and a review of the
 codebase as it stands after P7 and D-game-7 (one repository, 3,585 tests, bundle `game-v1` at `fa8fb030…`). It is the orchestrator's entry point
 for the next phase: **run S0 first** (it folds this document into `IMPLEMENTATION_PLAN.md` section 4 and records the decisions), then launch
 S1 and S5 in parallel. S0 is done (2026-10-21): the plan of record is `docs/game/IMPLEMENTATION_PLAN.md` section 4, with this file as the per-milestone design; the milestone and decision ids below are reserved.
@@ -59,8 +59,8 @@ colour with the counts, the journal and the spaced review kept, and the grey atl
   shown-card, supported, unaided, choice-only (a recognition signal) and "no sé" uses; no automated CEFR placement or global score; a pre-check,
   a post-check and a later recall check; telemetry local only (JSONL in the session folder).
 - **D-game-11, the Noun Town review data (decided, owner, 2026-10-21).** The raw Steam review JSON (450 KB of third-party text) is never
-  committed: `.gitignore` covers `scripts/noun_town/*.json` and `docs/game/research/noun-town/*.json` (done the same day). The two summaries and the
-  fetch scripts are committed and move to `docs/game/research/noun-town/` in S0.
+  committed: `.gitignore` covers `scripts/noun_town/*.json` and `docs/research/2026-10-21-noun-town/*.json` (done the same day). The two summaries and the
+  fetch scripts are committed and move to `docs/research/2026-10-21-noun-town/` in S0.
 - **D-game-12, the Spanish reviewer (deferred by the owner, 2026-10-21; a workaround is needed).** The brief wants every phrase, translation,
   accepted response and recording checked by a competent Spanish speaker before testing; none is available yet. Interim workaround until a
   speaker checks the sheet: (1) the phrase set stays at the brief's five phrases plus the five service words, all textbook A1, so a later
@@ -100,7 +100,7 @@ screenshot looked at). Sizes: S about one agent session, M two to three.
 ### S0: plan and docs (the orchestrator; no code, no agent)
 
 1. `DECISIONS.md`: the rows and sections of section 3 above.
-2. `docs/game/PROTOTYPE_BRIEF.md`: the brief's text as Markdown so agents can read it (the docx stays as the source; `pandoc` is not installed, so
+2. `docs/game/design/prototype-brief.md`: the brief's text as Markdown so agents can read it (the docx stays as the source; `pandoc` is not installed, so
    extract with a Python standard-library script over `word/document.xml`: paragraphs, headings and tables; the three concept images stay inside
    the docx). `docs/game/SPECIFICATION.md` becomes a pointer to the brief with the one-paragraph premise.
 3. `IMPLEMENTATION_PLAN.md`: section 1 (the decisions), section 2 (the layout after S4), section 3 rule 8 ("nothing is gated behind language or
@@ -110,8 +110,8 @@ screenshot looked at). Sizes: S about one agent session, M two to three.
 5. `../README.md` (Terraria to Minecraft-inspired voxel), `README.md` (this folder: the scenario, the new run lines as they land),
    `../CLAUDE.md` (facts: the brief, 3D first person, the S series, the content gate with lint `--strict`), `../.claude/agents/orchestrator.md`
    (read-first list gains the brief and this plan; commit prefix `S<nn>:`).
-6. `../scripts/noun_town/` to `docs/game/research/noun-town/` (the summaries and the fetch scripts only; the raw JSON is already git-ignored,
-   D-game-11). `docs/game/research/PROTOTYPE_PLAN.md` and `PROTOTYPE_RESEARCH.md` get a note at the top: they describe the 2D era (R1).
+6. `../scripts/noun_town/` to `docs/research/2026-10-21-noun-town/` (the summaries and the fetch scripts only; the raw JSON is already git-ignored,
+   D-game-11). `docs/archive/game/research/PROTOTYPE_PLAN.md` and `PROTOTYPE_RESEARCH.md` get a note at the top: they describe the 2D era (R1).
 7. One commit with the brief and the deleted `.odt`, pushed.
 
 ### S1: 3D voxel simulation, headless (Sonnet 5.5, M)
@@ -303,7 +303,7 @@ The owner played the S12 build: "it's ok", with five changes asked for:
 
 The decisions are D-game-13 (English guidance), D-game-14 (world scale and look) and D-game-15 (the opening and the guide's lesson). The
 reference images are inside `Vocaterra_Prototype_Design_Brief.docx`. Extract them to a scratch folder (outside the repository) with
-`unzip -o -j docs/game/Vocaterra_Prototype_Design_Brief.docx 'word/media/*' -d <scratch>`; image1 is reference A, image2 is B and image3 is C.
+`unzip -o -j docs/game/design/sources/Vocaterra_Prototype_Design_Brief.docx 'word/media/*' -d <scratch>`; image1 is reference A, image2 is B and image3 is C.
 They are generated concept art: never commit them and never copy from them. They set the target (shape, colour, scale, detail).
 
 What the references show, against the S12 build. The S12 build has a dark grey sky, flat untextured blocks with dull colours, a small flat
@@ -642,7 +642,7 @@ S18, S20) and left open.
 
 ### S23: the LanguageTool check over the game's Spanish (Haiku 5.5, S)
 
-After core M30 (D10's dev-time half, owner 2026-10-22; research in `docs/nlp/research/2026-10-22-languagetool.md`).
+After core M30 (D10's dev-time half, owner 2026-10-22; research in `docs/research/2026-10-22-languagetool.md`).
 - **The game's strings.** A `--strings` JSONL extractor for the game's Spanish: dialogue lines, prompts, answer sets, PHRASES.md rows
   (Spanish, variants and learner-error examples), lessons, checks, and the Spanish sides of english.json. Slot templates are rendered by the
   core. Spanish only; the owner chose to leave the English support text out.

@@ -62,7 +62,8 @@ Write `docs/qa-reports/<yyyy-mm-dd>-<area>.md`; on a second report for the same 
 earlier report. Return the same text as your final message. The layout is the one in `docs/qa-reports/README.md`:
 
 - Branch, commit, area, date, and what was covered (runs, inputs, CLI evaluations).
-- **Bugs**, most severe first. For each: `QA-<area>-<n>`, the severity (crash, blocker, major, minor, cosmetic), the exact command that
+- **Bugs**, most severe first. For each: `QA-<report>-<n>`, where `<report>` is the report's file name without `.md`
+  (`QA-2026-11-05-ui-1`; in `2026-11-05-ui-2.md`, `QA-2026-11-05-ui-2-1`), so every id is unique across reports; the severity (crash, blocker, major, minor, cosmetic), the exact command that
   reproduces it, expected and actual, the evidence (file path or log line), and the owner: core (`Vocaterra.Nlp*`) or game, per
   `docs/nlp/adr/0009-core-and-game-boundary.md`. Name the likely file if you know it; do not propose a fix.
 - **Observations**: things that are not bugs but would trouble a learner.

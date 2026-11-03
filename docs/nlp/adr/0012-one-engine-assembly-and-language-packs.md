@@ -3,7 +3,7 @@
 - Status: accepted
 - Date: 2026-10-26
 - Deciders: repository owner (2026-10-26: "move all the `src/Vocaterra.Nlp.*` projects into one Nlp project", and the language-agnostic goal;
-  research `docs/nlp/research/2026-10-26-engine-and-language-packs.md` section 3); decision D14 in [DECISIONS.md](../DECISIONS.md)
+  research `docs/research/2026-10-26-engine-and-language-packs.md` section 3); decision D14 in [DECISIONS.md](../DECISIONS.md)
 - Supersedes: the layering bullet of [ADR 0003](0003-engine-agnostic-core.md) (the layering stays; the project boundary changes)
 
 ## Context

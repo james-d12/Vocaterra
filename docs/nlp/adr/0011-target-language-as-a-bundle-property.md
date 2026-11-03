@@ -2,8 +2,8 @@
 
 - Status: accepted
 - Date: 2026-10-27
-- Deciders: repository owner (decision D14, the language-agnostic goal); design in `docs/nlp/research/2026-10-22-multilingual.md` sections 4.1 to 4.6 and 4.9,
-  as amended by `docs/nlp/research/2026-10-26-engine-and-language-packs.md`; milestone M32 of `IMPLEMENTATION_PLAN.md`
+- Deciders: repository owner (decision D14, the language-agnostic goal); design in `docs/research/2026-10-22-multilingual.md` sections 4.1 to 4.6 and 4.9,
+  as amended by `docs/research/2026-10-26-engine-and-language-packs.md`; milestone M32 of `IMPLEMENTATION_PLAN.md`
 - Relates to: [ADR 0009](0009-core-and-game-boundary.md) (the boundary), [ADR 0012](0012-one-engine-assembly-and-language-packs.md) (one engine, packs beside it).
   Number 0010 is reserved for D9's determinism record.
 
