@@ -2,8 +2,8 @@
 
 - Status: accepted
 - Date: 2026-10-27
-- Deciders: repository owner (decision D14, the language-agnostic goal); design in `docs/nlp/research/2026-10-22-multilingual.md` sections 4.1 to 4.6 and 4.9,
-  as amended by `docs/nlp/research/2026-10-26-engine-and-language-packs.md`; milestone M32 of `IMPLEMENTATION_PLAN.md`
+- Deciders: repository owner (decision D14, the language-agnostic goal); design in `docs/research/2026-10-22-multilingual.md` sections 4.1 to 4.6 and 4.9,
+  as amended by `docs/research/2026-10-26-engine-and-language-packs.md`; milestone M32 of `implementation-plan.md`
 - Relates to: [ADR 0009](0009-core-and-game-boundary.md) (the boundary), [ADR 0012](0012-one-engine-assembly-and-language-packs.md) (one engine, packs beside it).
   Number 0010 is reserved for D9's determinism record.
 
@@ -72,7 +72,7 @@ engine finds the code for it. Spanish must stay byte-identical while this is don
   Spanish identity baseline are untouched.
 - A bundle may now declare `language`; today only Spanish tags load. Adding `"language":"es"` to a manifest changes its bundle hash (and so every
   verdict stamp), which is the intended property: a language can never be changed silently under a hash. Hosts that want the old hash leave the field out.
-- All additions are public API and additive (docs/nlp/API.md section 1, "The bundle's language"): `ContentManifest.Language`, `.SupportLanguage`,
+- All additions are public API and additive (docs/nlp/api.md section 1, "The bundle's language"): `ContentManifest.Language`, `.SupportLanguage`,
   `.DefaultLanguage`, `ComputeBundleHash(files, language)` and two optional parameters of `Compute`; `ContentLoadOptions.LanguagePacks`;
   `ContentBundle.Language` and `.LanguageId`; and the types of `Vocaterra.Nlp.Language.Packs`. The `ContentBundle` constructor is internal.
 - `ContentManifest` is a positional record: `with` expressions, equality (now including both fields) and `ToJson` handle the new members; a consumer
@@ -152,7 +152,7 @@ item 14).
 M34 puts the analysis side of the language behind the pack. After it, no engine code outside the Spanish pack, the Spanish statics' own files and the
 documented compatibility entry points calls Spanish code (`SpanishCallSiteTests` checks it). Spanish output is byte-identical: `content/game-v1`
 (bundle hash `aab525f9...`), the goldens, the identity baseline and the 96 homograph sentences are unchanged. Everything below is additive except the
-signatures marked breaking in `API.md`; the game compiles and passes unchanged.
+signatures marked breaking in `api.md`; the game compiles and passes unchanged.
 
 **The pack grew five members.**
 - `LexiconProfile LexiconProfile` (`Vocaterra.Nlp.Language.Lexicon.LexiconProfile`): the closed vocabularies of the lexicon files (genders, numbers,

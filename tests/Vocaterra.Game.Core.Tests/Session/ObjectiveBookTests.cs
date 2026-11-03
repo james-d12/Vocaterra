@@ -10,7 +10,7 @@ using Vocaterra.Game.Core.Tests.TestSupport;
 namespace Vocaterra.Game.Core.Tests.Session;
 
 /// <summary>
-/// The objectives and the session as data (CONTENT_PLAN 3.5, C07): <c>game/session.json</c> and <c>game/objectives/&lt;id&gt;.json</c>. They were code
+/// The objectives and the session as data (content-plan 3.5, C07): <c>game/session.json</c> and <c>game/objectives/&lt;id&gt;.json</c>. They were code
 /// (<c>Objective.Camp()</c>, the <c>SessionStage</c> rules, the book grant, the closing pool, the beacon's start); the data gives the same session, the
 /// validator checks the hooks and the references, and save version 5 keys the steps by objective.
 /// </summary>
@@ -23,7 +23,7 @@ public sealed class ObjectiveBookTests
     [Fact]
     public void TheShippedSessionIsTheOneTheCodeHeld()
     {
-        // The three the code held, and since VILLAGE_PLAN V10 the fisher's order of session 4: three fruits brought to him at the bridge; since V11 the baker's of
+        // The three the code held, and since village-plan V10 the fisher's order of session 4: three fruits brought to him at the bridge; since V11 the baker's of
         // session 5: five wood for her oven; since V12 the smith's of session 6: two wood and two coins for the axe.
         Assert.Equal(["meet-guide", "camp", "light-fire", "fruit-for-mar", "oven-wood", "axe-handle", "water-for-plants"], Book.Objectives.Select(static o => o.Id));
         var order = Book.Find("fruit-for-mar")!;
@@ -108,7 +108,7 @@ public sealed class ObjectiveBookTests
     [Fact]
     public void AnOrderNamesItsNpcAndGoodsAndItsOneStepIsTheDelivery()
     {
-        // VILLAGE_PLAN V03: an objective with deliverTo and deliver, from a play session; the loader makes its step, which order_delivered at that NPC completes.
+        // village-plan V03: an objective with deliverTo and deliver, from a play session; the loader makes its step, which order_delivered at that NPC completes.
         var order = ObjectiveBook.Parse(
             "game/objectives/axe-handle.json",
             """{ "schemaVersion": 1, "id": "axe-handle", "session": 6, "deliverTo": "smith", "deliver": [ { "item": "wood", "count": 2 }, { "item": "coin", "count": 3 } ] }""",

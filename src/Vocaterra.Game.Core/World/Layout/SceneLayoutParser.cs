@@ -83,7 +83,7 @@ internal static class SceneLayoutParser
         }
     }
 
-    // The words the beacon shows for the named places (CONTENT_PLAN C05): a site's, a point's or a named prop's optional "label", in the target language.
+    // The words the beacon shows for the named places (content-plan C05): a site's, a point's or a named prop's optional "label", in the target language.
     private static Dictionary<string, string> ParseLabels(JsonElement root)
     {
         var labels = new Dictionary<string, string>(StringComparer.Ordinal);

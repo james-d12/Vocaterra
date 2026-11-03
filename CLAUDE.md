@@ -5,12 +5,12 @@ one `Vocaterra.sln`; R01, 2026-10-23). The halves are told apart by project name
 
 - **The core**: the `Vocaterra.Nlp` engine (one project since M52, `src/Vocaterra.Nlp`, its stages as folders; layering enforced by
   `LayeringTests`, ADR 0012) and the `Vocaterra.Nlp.*` test, tool and language-pack projects (the Spanish pack `src/Vocaterra.Nlp.Es` since M53; hosts register it with `SpanishContent`, ADR 0012) (with `tests/golden`, `models/` and `docs/nlp/`), the language core (Spanish utterance to verdict, feedback, conversation step, response text, speech).
-  Its plan is `docs/nlp/IMPLEMENTATION_PLAN.md` (section 5 the milestone table, 5b the findings log, 7 and 10 the expansion plans), its owner
-  decisions `docs/nlp/DECISIONS.md` (D1 to D13), its boundary `docs/nlp/adr/0009-core-and-game-boundary.md`, its API `docs/nlp/API.md`.
+  Its plan is `docs/nlp/implementation-plan.md` (section 5 the milestone table, 5b the findings log, 7 and 10 the expansion plans), its owner
+  decisions `docs/nlp/decisions.md` (D1 to D14), its boundary `docs/nlp/adr/0009-core-and-game-boundary.md`, its API `docs/nlp/api.md`.
   Licence Apache-2.0 (`LICENSE`, `NOTICE`).
 - **The game**: `Vocaterra.Game.Core` (the engine-free systems), `Vocaterra.Game` (MonoGame), `Vocaterra.Host` and `tools/Vocaterra.SpeechRender` (with their tests, `content/game-v1`,
   `assets/` and `docs/game/`). Its plan is
-  `docs/game/IMPLEMENTATION_PLAN.md` (section 4 status, section 5 findings), its decisions `docs/game/DECISIONS.md` (D-game-1 to D-game-7).
+  `docs/game/implementation-plan.md` (section 4 status, section 5 findings), its decisions `docs/game/decisions.md` (D-game-1 to D-game-22).
   Licence Apache-2.0 like the core (one `LICENSE` and `NOTICE` at the root; the game was MIT until R01).
 
 The two were separate repositories until 2026-10-21 (game D-game-7); both sets of ids (M-numbers,
@@ -21,9 +21,12 @@ The repository is developed by one **orchestrator** session that plans and deleg
 gates, merges and pushes. To continue, act as the orchestrator defined in `.claude/agents/orchestrator.md` (or start with
 `claude --agent orchestrator`). A QA agent, `.claude/agents/qa.md`, tests one area of the game (ui, language, speech, world,
 progression, save, content) and reports bugs to `docs/qa-reports/` without fixing them; the orchestrator turns its reports into milestones. The owner prefers Haiku 5.5 for delegated work; Sonnet only for design-heavy milestones; Opus only on request. The village series
-(`docs/game/VILLAGE_PLAN.md`, on `feature/village`) is the owner's exception: every V milestone by Opus 5.5 at xhigh effort (D-game-22).
+(`docs/game/village-plan.md`, on `feature/village`) is the owner's exception: every V milestone by Opus 5.5 at xhigh effort (D-game-22).
 
 Facts every session needs:
+- **Docs and session state:** the index is `docs/README.md`. To resume work, read the open handovers at the top of `docs/handovers/`
+  (finished ones are in `done/`); a session that stops writes one there. Research goes to `docs/research/`, bug reports and their triage
+  table to `docs/qa-reports/`, superseded documents to `docs/archive/`; the rules are `docs/process/documentation.md`.
 - **.NET SDK is user-local:** prefix commands with `PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" DOTNET_NOLOGO=1`.
 - **Machine resources (the desktop crashed twice from overload, 2026-10-22):** one agent at a time; every heavy command (dotnet
   restore/build/test/format/run, `scripts/content.sh`, prerender, screenshots) runs through `scripts/limited.sh`, which serialises them
@@ -40,7 +43,7 @@ Facts every session needs:
   command from a wrapper script outside the repository. One bundle (R02): the core's tests, fuzz suite and demo CLI run on `content/game-v1`, so any edit of it re-runs the core
   suite and a failing core test is wanted feedback. After `hash`, run the whole suite; re-record the end-to-end goldens if the edit moved them
   (`VOCATERRA_RECORD_GOLDEN=1 dotnet test tests/Vocaterra.Nlp.Golden.Tests`) and put the new bundle hash into
-  `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v1.json`. No core test pins the hash (`docs/nlp/CONTRIBUTING.md`). Core demo:
+  `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v1.json`. No core test pins the hash (`docs/nlp/changing-the-core.md`). Core demo:
   `dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo quiere dos espada" --prompt villager-open --content content/game-v1`.
 - **Never push to `main` or merge into it** (owner, 2026-10-23). Work lands on a feature branch and is pushed there; the owner merges
   feature branches into `main` by pull request.
@@ -52,19 +55,19 @@ Facts every session needs:
   on a feature branch like any other change.
 - **Engine (D-game-1):** MonoGame for the prototype; engine code lives only in `src/Vocaterra.Game`, never in `Vocaterra.Host` or
   `Vocaterra.Game.Core` (which references no package; its `ArchitectureRulesTests` gate it). Core holds the game's logic, Game the drawing,
-  the devices, the layers and the host (`docs/code_guidelines.md`, `docs/game/ARCHITECTURE.md`). Assets are CC0 only (D-game-5).
+  the devices, the layers and the host (`docs/process/code-guidelines.md`, `docs/game/architecture.md`). Assets are CC0 only (D-game-5).
 - **Game words live in the game (`content/game-v1` and the game projects):** scenes, characters, items, spells, prices, rewards, dialogue and the meaning of each effect kind. The core
   needs only opaque effect kinds and host event names.
 - **Determinism:** the host owns the world seed, the stored time, the learner model and the repeat counts. Nothing in the evaluation path
   reads the clock or draws random numbers; a `--transcript` run uses a fixed time.
-- **The prototype (D-game-8):** the owner's brief `docs/game/PROTOTYPE_BRIEF.md` (source: the `.docx` beside it) and its plan
-  `docs/game/SCENARIO_PLAN.md`, milestones S0 to S12 (branch `S<nn>-<name>`, prefix `S<nn>:`): a 3D first-person voxel slice on MonoGame,
+- **The prototype (D-game-8):** the owner's brief `docs/game/design/prototype-brief.md` (source: the `.docx` in `docs/game/design/sources/`) and its plan
+  `docs/game/scenario-plan.md`, milestones S0 to S12 (branch `S<nn>-<name>`, prefix `S<nn>:`): a 3D first-person voxel slice on MonoGame,
   merged into `main` until 2026-10-22 (`feature/prototype` is retired); new work goes to a feature branch, never `main`. Content gate from S5, at the
   A2 ceiling since V08 (D-game-22 (b)): `scripts/content.sh lint content/game-v1 --strict --level a2 --fail-on-level --host-pools 'guide.*'`
   clean, each lesson held to its own `level` (`a1` | `a2`) by the host's `--validate-content`, `content/PHRASES.md` the source of truth
   (D-game-10, D-game-12).
-- **Content as data (D-game-21):** `docs/game/CONTENT_PLAN.md`, milestones C01 to C10 (prefix `C<nn>:`), all committed straight to
+- **Content as data (D-game-21):** `docs/game/content-plan.md`, milestones C01 to C10 (prefix `C<nn>:`), all committed straight to
   `feature/content` (no milestone branches) and gated there: JSON Schemas, one `GameData` load, the L1 locale bundle `content/locale/` (outside game-v1's hash), objectives and NPCs as data.
   Closed on 2026-10-29: C01 to C08 are done (PR #16), C09 is assessed, and C10, the authoring CLI, is specified in the plan's section 3.8.
   Do not start C09 or C10 unless the owner asks. How to edit content: `content/README.md`.
-- **Open owner decisions:** core D8 to D11 and D13 (`docs/nlp/DECISIONS.md`); D1 and D4 deferred, do not raise them.
+- **Open owner decisions:** core D8 to D11 and D13 (`docs/nlp/decisions.md`); D1 and D4 deferred, do not raise them.

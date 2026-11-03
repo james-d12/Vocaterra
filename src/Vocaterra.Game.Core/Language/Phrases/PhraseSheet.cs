@@ -166,7 +166,7 @@ public sealed class PhraseSheet
     /// <summary>
     /// The learner phrases an NPC prompt asks for, in the sheet's order: the rows whose prompt is this prompt's, without the service words (help,
     /// "no sé"), which are possible at every prompt and are never what the prompt is waiting for. A prompt an NPC waits on that no row names is answered
-    /// with the rows of another NPC's prompt that accepts the same answers (VILLAGE_PLAN V01): the guide's offer with the stall's offer rows (the sheet's
+    /// with the rows of another NPC's prompt that accepts the same answers (village-plan V01): the guide's offer with the stall's offer rows (the sheet's
     /// <c>si-por-favor</c> and <c>no-gracias</c> work for both).
     /// </summary>
     /// <param name="prompt">The prompt id (<c>stall-need</c>).</param>
@@ -181,7 +181,7 @@ public sealed class PhraseSheet
     /// The sheet's id of the phrase a communicated turn at a prompt used, by the sheet alone: the row the prompt teaches for the turn's intent (<see cref="PhrasesAt"/>,
     /// the rows whose home it is; <see cref="OfIntent"/> picks among several), else the fixed mapping of <see cref="PhraseIds.For"/>, which credits the stall's and the
     /// river's phrases wherever they are said (a request is <c>pedir-agua</c> whatever the item: at the villager it is a transfer). A prompt's own row comes first
-    /// (VILLAGE_PLAN V12b): the baker's "quiero dos panes, por favor" was the stall's <c>pedir-agua</c> while her file named no focus, though her prompt teaches
+    /// (village-plan V12b): the baker's "quiero dos panes, por favor" was the stall's <c>pedir-agua</c> while her file named no focus, though her prompt teaches
     /// <c>quiero-dos-panes</c>. <see langword="null"/> for a turn that is none of the sheet's phrases (a question about a tree).
     /// </summary>
     /// <param name="prompt">The prompt the turn answered.</param>
@@ -190,7 +190,7 @@ public sealed class PhraseSheet
     /// <param name="river">The river's noun (<c>río</c>, <c>game/words.json</c>).</param>
     /// <param name="practised">In free talk, the phrases the NPCs' open prompts practise (<see cref="NpcRoster.Homes"/>), for <see cref="ByPlace"/>; <see langword="null"/> in a lesson's
     /// step or a review, whose phrase is the step's.</param>
-    /// <param name="said">In free talk, the phrase of a lesson begun or done that the line is (VILLAGE_PLAN V20, <see cref="Said"/>): it comes before the fixed mapping, which
+    /// <param name="said">In free talk, the phrase of a lesson begun or done that the line is (village-plan V20, <see cref="Said"/>): it comes before the fixed mapping, which
     /// knows only the stall's and the river's phrases; <see langword="null"/> for none.</param>
     public string? PhraseFor(string prompt, string intent, IReadOnlyDictionary<string, string> slots, string river, IEnumerable<string>? practised = null, string? said = null)
     {
@@ -205,7 +205,7 @@ public sealed class PhraseSheet
     }
 
     /// <summary>
-    /// V12b's rule for one row (VILLAGE_PLAN V14): in free talk, when the only row of the turn's intent among these (an NPC's focus, or the rows its prompt teaches) names
+    /// V12b's rule for one row (village-plan V14): in free talk, when the only row of the turn's intent among these (an NPC's focus, or the rows its prompt teaches) names
     /// another place than the one the turn asks about, the phrase is the row practised elsewhere that names it, else none. The villager practises <c>¿Dónde está el
     /// río?</c>, and <c>¿dónde está la panadería?</c> said to him is the fisher's <c>donde-esta-la-panaderia</c> (a transfer), not the river's; <c>¿dónde está la tienda?</c>,
     /// which no practised row names, is none of them, as at the fisher, whose two rows name neither. Returns whether the rule applies, with the phrase it gives.
@@ -333,7 +333,7 @@ public sealed class PhraseSheet
     }
 
     /// <summary>
-    /// The row a learner's line is, among the phrases a test admits (VILLAGE_PLAN V20: those of the lessons begun or done): the first in the sheet's order that the
+    /// The row a learner's line is, among the phrases a test admits (village-plan V20: those of the lessons begun or done): the first in the sheet's order that the
     /// learner says, is no service line, and whose Spanish or a variant the line equals, ignoring case, accents and punctuation (<see cref="Plain"/>); or
     /// <see langword="null"/>.
     /// </summary>

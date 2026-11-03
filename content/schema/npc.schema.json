@@ -105,7 +105,7 @@
           "type": "integer",
           "minimum": 0,
           "maximum": 53,
-          "description": "The Kokoro speaker id (kokoro-multi-lang-v1_0 has 54 speakers, 0 to 53; docs/nlp/API.md section 6): 28 ef_dora, 29 em_alex, 53 em_santa."
+          "description": "The Kokoro speaker id (kokoro-multi-lang-v1_0 has 54 speakers, 0 to 53; docs/nlp/api.md section 6): 28 ef_dora, 29 em_alex, 53 em_santa."
         },
         "name": {
           "type": "string",

@@ -557,7 +557,7 @@ public class LintTests
     [Fact]
     public void TheBundleLintsCleanAtItsCeilingAndA1IsAReport()
     {
-        // The game's bundle has an A2 ceiling (the game's VILLAGE_PLAN 3.9, D-game-22 (b), V08; core M61): with --fail-on-level at A2 it lints clean, and at A1
+        // The game's bundle has an A2 ceiling (the game's village-plan 3.9, D-game-22 (b), V08; core M61): with --fail-on-level at A2 it lints clean, and at A1
         // a lemma above A1 is only a warning of the level's own checks, a report for the game's owner (each lesson's own level is the game's validator's).
         var ceiling = ContentLinter.Lint(TestSupport.Bundle, new LintOptions { Level = "a2", FailOnLevel = true, HostPools = ["guide.*"] });
 

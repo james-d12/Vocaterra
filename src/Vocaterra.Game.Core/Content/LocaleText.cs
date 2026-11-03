@@ -19,7 +19,7 @@ namespace Vocaterra.Game.Core.Content;
 public sealed record VerbForms(string Gloss, string Base, string Third, string Past);
 
 /// <summary>
-/// The learner's support language (L1), read from one locale of the locale bundle <c>content/locale</c> (CONTENT_PLAN 3.1 and 3.2, C03; it replaces the
+/// The learner's support language (L1), read from one locale of the locale bundle <c>content/locale</c> (content-plan 3.1 and 3.2, C03; it replaces the
 /// <c>EnglishText</c> of S16, <c>game/english.json</c>): every word the game draws that is not the target language, each by its id. The target-language data carries the ids, never
 /// the text, so a second locale is a folder of strings, and an edit here touches no save, no fixture and no golden.
 /// </summary>

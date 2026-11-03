@@ -7,7 +7,7 @@ using Vocaterra.Nlp.Es;
 namespace Vocaterra.Game.Core.Tests.Language.Lessons;
 
 /// <summary>
-/// The simple future at a lesson step (VILLAGE_PLAN 3.8, V16), before any lesson of the bundle has one (session 9, V17): a step may expect <c>fut</c>, the finite future
+/// The simple future at a lesson step (village-plan 3.8, V16), before any lesson of the bundle has one (session 9, V17): a step may expect <c>fut</c>, the finite future
 /// (<c>compraré</c>) is its answer, and correct Spanish for the future is never a miss: the near future or a present with a future-time word is credited with the step's
 /// <c>futureNote</c>, and at an <c>ir-a</c> step the simple future is credited with its <c>presentNote</c>. The fixtures ask <c>voy-a-comprar-pan</c> at the fisher's
 /// <c>¿Qué vas a hacer allí?</c> (<c>lesson-plan-there</c>), whose intent, <c>state_action</c>, the core recognises in every tense.

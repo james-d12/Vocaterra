@@ -5,7 +5,7 @@ using Vocaterra.Game.Core.World.Layout;
 namespace Vocaterra.Game.Core.Tests.Content;
 
 /// <summary>
-/// The game's content in one load (CONTENT_PLAN C02): every game file read from the bundle's verified bytes, and the checks between the files, which report
+/// The game's content in one load (content-plan C02): every game file read from the bundle's verified bytes, and the checks between the files, which report
 /// every problem at once.
 /// </summary>
 public sealed class GameDataTests

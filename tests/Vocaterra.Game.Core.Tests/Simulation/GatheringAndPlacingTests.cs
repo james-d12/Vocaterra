@@ -57,7 +57,7 @@ public sealed class GatheringAndPlacingTests
     [InlineData(BlockId.BirchTrunk)]
     public void TheAxeHeldCutsATrunkInAQuarterOfTheTicks(BlockId trunk)
     {
-        // VILLAGE_PLAN V03: the smith's axe, held (the selected hotbar slot), makes a trunk 15 ticks instead of 60; in the bag it does nothing.
+        // village-plan V03: the smith's axe, held (the selected hotbar slot), makes a trunk 15 ticks instead of 60; in the bag it does nothing.
         var sim = WithBlock(trunk);
         sim.Inventory.SetSlot(0, new ItemStack(ItemId.Axe, 1));
         sim.Step([VoxelCommand.SelectSlot(0)]);

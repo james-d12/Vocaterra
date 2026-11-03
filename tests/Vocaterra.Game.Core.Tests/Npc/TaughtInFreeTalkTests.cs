@@ -9,7 +9,7 @@ using Xunit.Abstractions;
 namespace Vocaterra.Game.Core.Tests.Npc;
 
 /// <summary>
-/// The NPCs understand what they teach (VILLAGE_PLAN V20, handover 9.3 D (a)). Every row a lesson's learner says (the phrase of each <c>repeat</c> and <c>answer</c> step),
+/// The NPCs understand what they teach (village-plan V20, handover 9.3 D (a)). Every row a lesson's learner says (the phrase of each <c>repeat</c> and <c>answer</c> step),
 /// said in free talk to the NPC the step is said to, at the prompt that NPC waits on in its first state (its open prompt), is understood: the row's intent, communicated,
 /// and an answer of the NPC's that is not "No te entendí". V09 measured 9 of phase B's 27 rows that their own NPC did not understand: the open prompts of the villager,
 /// the fisher and the stall took no statements, and Domingo's no <c>tener que</c>. A yes or a no (<c>confirm</c>, <c>deny</c>) answers a question, which an open prompt

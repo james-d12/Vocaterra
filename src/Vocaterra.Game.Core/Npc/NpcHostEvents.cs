@@ -11,26 +11,26 @@ public enum NpcEffectKind
     /// <summary>Nothing happens in the world (the event is a note for the log, or for a later milestone).</summary>
     None,
 
-    /// <summary>The NPC puts an item in the inventory: one, a fixed number, or the number the learner asked for (VILLAGE_PLAN V02).</summary>
+    /// <summary>The NPC puts an item in the inventory: one, a fixed number, or the number the learner asked for (village-plan V02).</summary>
     GiveItem,
 
     /// <summary>The NPC sends the player to the nearest block of a noun: the beacon is set on it.</summary>
     PointAtNoun,
 
-    /// <summary>The NPC sends the player to a named place of the scene, a point or a named prop (VILLAGE_PLAN V02): the beacon is set on it.</summary>
+    /// <summary>The NPC sends the player to a named place of the scene, a point or a named prop (village-plan V02): the beacon is set on it.</summary>
     PointAtPlace,
 
     /// <summary>
-    /// The NPC sends the player to the place the learner named, read from a slot of the verdict (VILLAGE_PLAN V02, <c>place</c>): a word a label of the scene
+    /// The NPC sends the player to the place the learner named, read from a slot of the verdict (village-plan V02, <c>place</c>): a word a label of the scene
     /// shows, or else a catalogue noun's nearest block (<see cref="Navigation.ScenePlaces"/>); a word that is neither is answered with <c>&lt;npc&gt;.unknown_place</c>.
     /// </summary>
     PointAtSlot,
 
-    /// <summary>The NPC takes items from the inventory (VILLAGE_PLAN V03), all of them or none.</summary>
+    /// <summary>The NPC takes items from the inventory (village-plan V03), all of them or none.</summary>
     TakeItem,
 
     /// <summary>
-    /// The NPC sells an item at a price in coins (VILLAGE_PLAN V03): as many as the learner asked for (the verdict's <c>qty</c>; one with no number; no cap since V19, the
+    /// The NPC sells an item at a price in coins (village-plan V03): as many as the learner asked for (the verdict's <c>qty</c>; one with no number; no cap since V19, the
     /// coins and the bag are the bound) for that many times the price. Otherwise nothing changes hands, and the NPC says why (<see cref="NpcEffect.ExchangeMiss"/>): asked
     /// for another item (V15) <c>&lt;npc&gt;.wont_sell</c>, for none (<c>quiero cero panes</c>, V19) <c>&lt;npc&gt;.none_asked</c>, with too few coins
     /// <c>&lt;npc&gt;.cant_pay</c>, and with no room in the bag for the items (V19) <c>&lt;npc&gt;.no_room</c>.
@@ -38,7 +38,7 @@ public enum NpcEffectKind
     Sell,
 
     /// <summary>
-    /// The NPC buys an item at a price in coins (VILLAGE_PLAN V15, the stall's <see cref="Sell"/> turned round): the learner sells (<c>vendo madera</c>) and is paid the price
+    /// The NPC buys an item at a price in coins (village-plan V15, the stall's <see cref="Sell"/> turned round): the learner sells (<c>vendo madera</c>) and is paid the price
     /// for each item taken, as many as the learner said (<c>qty</c>, at most what the bag holds) or, with no number, every one the bag holds. Otherwise nothing changes
     /// hands, and the NPC says why (<see cref="NpcEffect.ExchangeMiss"/>): another item offered <c>&lt;npc&gt;.wont_buy</c>, none in the bag <c>&lt;npc&gt;.cant_sell</c>,
     /// none offered (<c>vendo cero bloques de madera</c>, V19) <c>&lt;npc&gt;.none_offered</c>, and no room in the bag for the coins (V19) <c>&lt;npc&gt;.no_room</c>.
@@ -79,7 +79,7 @@ public sealed record NpcEffect(
 
     /// <summary>
     /// The most items a gift or a take by the number the learner said moves at once (<see cref="CountSlot"/>, a <c>give_item</c> or <c>take_item</c> whose count is
-    /// <c>qty</c>; VILLAGE_PLAN 3.7): a larger number is read as this many, so no talk makes items out of nothing. A purchase and a sale have no cap since V19 (the
+    /// <c>qty</c>; village-plan 3.7): a larger number is read as this many, so no talk makes items out of nothing. A purchase and a sale have no cap since V19 (the
     /// review's R9): their bound is the coins, the goods and the bag.
     /// </summary>
     public const int MaxQuantity = 5;
@@ -105,7 +105,7 @@ public sealed record NpcEffect(
     /// <summary>The effect that sells <paramref name="item"/> at <paramref name="price"/> coins each.</summary>
     public static NpcEffect SellAt(ItemId item, int price) => new(NpcEffectKind.Sell, item, Price: price);
 
-    /// <summary>The effect that buys <paramref name="item"/> from the learner at <paramref name="price"/> coins each (VILLAGE_PLAN V15).</summary>
+    /// <summary>The effect that buys <paramref name="item"/> from the learner at <paramref name="price"/> coins each (village-plan V15).</summary>
     public static NpcEffect BuyAt(ItemId item, int price) => new(NpcEffectKind.Buy, item, Price: price);
 
     /// <summary>
@@ -152,7 +152,7 @@ public sealed record NpcEffect(
         Kind == NpcEffectKind.Sell ? Quantity(slots) : CountSlot is { } slot ? Math.Min(Quantity(slots, slot), MaxQuantity) : Count;
 
     /// <summary>
-    /// Whether the learner's line names this effect's item (VILLAGE_PLAN V15): its item slot is a catalogue noun of the item (<c>madera</c> the wood, <c>fruta</c> the fruit,
+    /// Whether the learner's line names this effect's item (village-plan V15): its item slot is a catalogue noun of the item (<c>madera</c> the wood, <c>fruta</c> the fruit,
     /// <c>pan</c> the bread), or a word the catalogue lacks; a line with no item slot is read as asking for this effect's item too. A catalogue noun of another item, or of
     /// no item at all (V19, the review's R7: <c>quiero casa</c> at the bakery bought bread, <c>vendo piedra</c> to Domingo sold the wood), names another thing: the purchase
     /// or the sale changes nothing, and the NPC answers <c>&lt;npc&gt;.wont_sell</c> or <c>&lt;npc&gt;.wont_buy</c>.
@@ -258,7 +258,7 @@ public sealed record NpcEffect(
 /// The names of the NPCs' host events the game's code reacts to (S6). The core knows the events as opaque strings in the agents' files (<c>agents/*.json</c>);
 /// what an event does in the world (a bottle, a bread, the beacon on the river) is data since C08, <c>game/host-events.json</c> (<see cref="HostEventTable"/>).
 /// The names here are the ones the code itself waits for (the guide's offer, the shopkeeper's later visits); an NPC's ordinary opening event is its NPC file's
-/// (<see cref="NpcEntry.Opening"/>, VILLAGE_PLAN V01).
+/// (<see cref="NpcEntry.Opening"/>, village-plan V01).
 /// </summary>
 public static class NpcHostEvents
 {
@@ -293,12 +293,12 @@ public static class NpcHostEvents
     public const string GuideGiveWater = "guide.give_water";
 
     /// <summary>
-    /// What an NPC is asked to answer when its directions name a place the scene does not have (VILLAGE_PLAN V02, <see cref="NpcEffectKind.PointAtSlot"/>): the host
+    /// What an NPC is asked to answer when its directions name a place the scene does not have (village-plan V02, <see cref="NpcEffectKind.PointAtSlot"/>): the host
     /// event <c>&lt;npc&gt;.unknown_place</c>, raised to its agent as a host turn (<see cref="Of"/>).
     /// </summary>
     public const string UnknownPlace = "unknown_place";
 
-    /// <summary>What an NPC is asked to answer when the learner's coins do not cover a purchase (VILLAGE_PLAN V03, <see cref="NpcEffectKind.Sell"/>): <c>&lt;npc&gt;.cant_pay</c>.</summary>
+    /// <summary>What an NPC is asked to answer when the learner's coins do not cover a purchase (village-plan V03, <see cref="NpcEffectKind.Sell"/>): <c>&lt;npc&gt;.cant_pay</c>.</summary>
     public const string CantPay = "cant_pay";
 
     /// <summary>
@@ -307,13 +307,13 @@ public static class NpcHostEvents
     /// </summary>
     public const string CantPayWait = "cant_pay_wait";
 
-    /// <summary>What an NPC that sells is asked to answer when the learner asks it for another item than the one it sells (VILLAGE_PLAN V15): <c>&lt;npc&gt;.wont_sell</c>.</summary>
+    /// <summary>What an NPC that sells is asked to answer when the learner asks it for another item than the one it sells (village-plan V15): <c>&lt;npc&gt;.wont_sell</c>.</summary>
     public const string WontSell = "wont_sell";
 
-    /// <summary>What an NPC that buys is asked to answer when the learner offers its item and the bag holds none (VILLAGE_PLAN V15, <see cref="NpcEffectKind.Buy"/>): <c>&lt;npc&gt;.cant_sell</c>.</summary>
+    /// <summary>What an NPC that buys is asked to answer when the learner offers its item and the bag holds none (village-plan V15, <see cref="NpcEffectKind.Buy"/>): <c>&lt;npc&gt;.cant_sell</c>.</summary>
     public const string CantSell = "cant_sell";
 
-    /// <summary>What an NPC that buys is asked to answer when the learner offers another item than the one it buys (VILLAGE_PLAN V15): <c>&lt;npc&gt;.wont_buy</c>.</summary>
+    /// <summary>What an NPC that buys is asked to answer when the learner offers another item than the one it buys (village-plan V15): <c>&lt;npc&gt;.wont_buy</c>.</summary>
     public const string WontBuy = "wont_buy";
 
     /// <summary>
@@ -329,7 +329,7 @@ public static class NpcHostEvents
     public const string NoneOffered = "none_offered";
 
     /// <summary>
-    /// What an NPC is asked to say when the learner brings the goods of its order (VILLAGE_PLAN V03, an objective with <c>deliverTo</c>): <c>&lt;npc&gt;.delivered</c>,
+    /// What an NPC is asked to say when the learner brings the goods of its order (village-plan V03, an objective with <c>deliverTo</c>): <c>&lt;npc&gt;.delivered</c>,
     /// raised as the opening of the talk; its thanks are the NPC's own line and its reward is that line's host event (a <c>give_item</c>).
     /// </summary>
     public const string Delivered = "delivered";
@@ -343,7 +343,7 @@ public static class NpcHostEvents
 
 /// <summary>
 /// The phrase sheet's ids (<c>content/PHRASES.md</c>) as the game resolves them: a phrase is found from the intent the core resolved, the prompt
-/// it was said at and the slots. The phrases in play and the row the prompt teaches come first (<c>PhraseSheet.PhraseFor</c>, VILLAGE_PLAN V12b); this is the
+/// it was said at and the slots. The phrases in play and the row the prompt teaches come first (<c>PhraseSheet.PhraseFor</c>, village-plan V12b); this is the
 /// fixed mapping after them (<see cref="For"/>). A test reads the sheet and checks that every id here is a row of it.
 /// </summary>
 public static class PhraseIds

@@ -1,6 +1,6 @@
 # Content
 
-Everything the game says, shows and builds its world from, outside the code. The plan behind this layout is `docs/game/CONTENT_PLAN.md`
+Everything the game says, shows and builds its world from, outside the code. The plan behind this layout is `docs/game/content-plan.md`
 (D-game-21).
 
 ## What lives where
@@ -10,7 +10,7 @@ Everything the game says, shows and builds its world from, outside the code. The
 | `game-v1/` | The content bundle: the core's files and the game's files, in the target language (Spanish), with ids for everything the learner reads in their own language. Its `manifest.json` pins the sha256 of every file; a save records the bundle's hash. | yes, by its manifest |
 | `locale/` | The learner's support language (L1): `locales.json` and one folder per locale (`en/` only), every string by its id. Outside game-v1's hash, so an edit here touches no save, fixture or golden; game-v1's `supportLanguage` names the default locale. | yes, by its own manifest |
 | `schema/` | The JSON Schemas of the game's files (draft-07), for editors and for one test. | no |
-| `grammar/` | The grammar check's strings, its committed LanguageTool cache and its waivers (`docs/game/README.md`). | no |
+| `grammar/` | The grammar check's strings, its committed LanguageTool cache and its waivers (`docs/game/content.md`). | no |
 | `PHRASES.md` | The phrase sheet's source of truth (D-game-10); `PhraseSheetTests` keeps `game-v1/game/phrases.json` in step with it. | no |
 | `speech-index.json` | What each pre-rendered WAV of `game-v1/speech/<speaker>/` (the word cards in `speech/cards/`) says, and how it was rendered. | no |
 
@@ -29,8 +29,8 @@ Everything the game says, shows and builds its world from, outside the code. The
   | `game/recipes.json` | `recipes.schema.json` | `RecipeBook` |
   | `game/phrases.json` | `phrases.schema.json` | `PhraseSheet` |
   | `game/lessons.json` | `lessons.schema.json` (the lessons' ids, in order) | `LessonBook` |
-  | `game/lessons/<id>.json` | `lesson.schema.json` (one lesson each, C06; schema 2, VILLAGE_PLAN V08: the lesson's `level`, `a1` or `a2`) | `LessonBook` |
-  | `game/checks.json` | `checks.schema.json` (schema 2, VILLAGE_PLAN V07: each item's `lesson`, null for none; a battery asks the items of the lessons its play session has unlocked, and always those of the first `coreSessions`) | `CheckBank` |
+  | `game/lessons/<id>.json` | `lesson.schema.json` (one lesson each, C06; schema 2, village-plan V08: the lesson's `level`, `a1` or `a2`) | `LessonBook` |
+  | `game/checks.json` | `checks.schema.json` (schema 2, village-plan V07: each item's `lesson`, null for none; a battery asks the items of the lessons its play session has unlocked, and always those of the first `coreSessions`) | `CheckBank` |
   | `game/tips.json` | `tips.schema.json` | `TipBook` |
   | `game/controls.json` | `controls.schema.json` | `TipBook` |
   | `game/words.json` | `words.schema.json` | `GameWords` (the target-language words the game itself uses: the guide's directions, the buttons, the pronouns, the greeting...; the key words moved to the NPC files in schema 2) |
@@ -94,7 +94,7 @@ Everything the game says, shows and builds its world from, outside the code. The
    1. runs `scripts/content.sh refresh` (below);
    2. with `--grammar`, starts the local LanguageTool server, checks the strings the cache lacks and prunes the entries no string uses, checks
       that a cache rebuilt from nothing equals it (CI's `languagetool` job), prints every new finding, and stops the server, even on a failure
-      (`docs/game/README.md`, "Refreshing the cache"). Read each finding it prints: fix the content, or add a waiver with its reason to
+      (`docs/game/content.md`, "Refreshing the cache"). Read each finding it prints: fix the content, or add a waiver with its reason to
       `grammar/game-v1-waivers.json`. Without `--grammar`, new Spanish stops the loop at step 1;
    3. asks the renderer which speech files are new or changed (`scripts/prerender-speech.sh --check`) and, with `--speech`, renders them and
       refreshes again (the manifest after the new WAVs, provenance, the strings);
@@ -118,7 +118,7 @@ Everything the game says, shows and builds its world from, outside the code. The
    - validates;
    - runs the gate's lint at the bundle's ceiling, A2 (`--strict --level a2 --fail-on-level --host-pools 'guide.*'`: a lemma above A2 in a
      dialogue line, a prompt's text or an answer set's canonical answer fails), then `cefr-check` at A2, which fails on any lemma it lists, and
-     at A1, a report of what is above A1 that never fails (VILLAGE_PLAN 3.9, D-game-22 (b));
+     at A1, a report of what is above A1 that never fails (village-plan 3.9, D-game-22 (b));
    - runs the game's own checks between its files (`dotnet run --project src/Vocaterra.Host -- --validate-content`): a phrase, line, prompt,
      noun or NPC that one file names and another lacks, and a lesson above its own level (below), every problem at once (`GameDataValidator`);
    - writes the grammar strings again and runs the grammar check offline from the committed cache. New Spanish text misses the cache, and the
@@ -131,7 +131,7 @@ Everything the game says, shows and builds its world from, outside the code. The
 ## Adding things
 
 These steps are by hand. An authoring CLI that does them (`new npc|objective|lesson`, `refs <id>` to find an id's uses, and `check`) is
-specified for later in `docs/game/CONTENT_PLAN.md` section 3.8 (C10); it is not built.
+specified for later in `docs/game/content-plan.md` section 3.8 (C10); it is not built.
 
 - **A trigger.** A tip, a lesson's `do` step and an objective's step wait for a trigger: `{ "event": "<world event>", "npc": "<agent>", "detail":
   "<exact detail>" }` (only `event` is required; a tip may also wait for `start` or `aimed_npc`). The events are `WorldEvents` (`Event/WorldEvent.cs`), and the
@@ -143,7 +143,7 @@ specified for later in `docs/game/CONTENT_PLAN.md` section 3.8 (C10); it is not 
   `game/phrases.json`, its lines recorded speech lines, and its `do` events world events (`WorldEvents`). A `do` step may point the beacon when it begins, at
   a catalogue noun's nearest block (`point`) or at a named place of the scene (`pointPlace`, V02; one of the two); a walk to a place waits for its arrival:
   `{ "type": "do", "pointPlace": "stall", "trigger": { "event": "beacon_reached", "detail": "stall" } }`.
-- **A lesson's level.** Every lesson declares the level it keeps to, `"level": "a1"` or `"a2"` (schema 2, VILLAGE_PLAN 3.9 and V08; sessions 1
+- **A lesson's level.** Every lesson declares the level it keeps to, `"level": "a1"` or `"a2"` (schema 2, village-plan 3.9 and V08; sessions 1
   to 6 are `a1`). The bundle's ceiling is A2 (the gate's lint), and the game's validator (`--validate-content`, in `refresh` and the gate)
   holds each lesson to its own level:
   - the Spanish it teaches and says, which is its phrases, the lines its steps name (a review step's candidates too) and the text of the prompts its
@@ -162,7 +162,7 @@ specified for later in `docs/game/CONTENT_PLAN.md` section 3.8 (C10); it is not 
   or in the simple future and shows its `.presentNote`; a `fut` step credits the near future or a present with a time word and shows its
   `.futureNote`. Each note names the form the step practises (`That is right too. Here we practise “compraré”: Mañana compraré pan.`).
 - **A time word.** The words that make a present a plan are `game/words.json`'s `nearFuture.timeWords`. An entry of several words (`semana que
-  viene`, `próxima semana`) is matched as a whole, in order. Keep them to the core's future markers (`docs/nlp/API.md`, "Tense errors") and to the
+  viene`, `próxima semana`) is matched as a whole, in order. Keep them to the core's future markers (`docs/nlp/api.md`, "Tense errors") and to the
   adverbs that say later (`luego`, `después`), which the core does not grade: a verb inside an entry (`viene`) is no longer the answer's verb.
   The intents that take a time word list the same markers as phrases of their grammars: `state_action`'s take `pasado mañana`, `la semana que viene`,
   `la próxima semana`, `el próximo día` (and `mes`, `año`), `la semana pasada` and `el año pasado` at either end since V17, so the item of `la semana
@@ -174,7 +174,7 @@ specified for later in `docs/game/CONTENT_PLAN.md` section 3.8 (C10); it is not 
   reading of it with a gender.
 - **A place the beacon names.** Give the site, the point or the named prop a `label` in `game/scene.json` (`"label": "río"`); a place with no label shows
   its own name. The label is also the word an NPC's directions answer to (below), so a place the learner may ask for needs one.
-- **What a host event does** (`game/host-events.json`, schema 2 since VILLAGE_PLAN V02; `take_item` and `sell` since V03). Each entry names the NPC, the
+- **What a host event does** (`game/host-events.json`, schema 2 since village-plan V02; `take_item` and `sell` since V03). Each entry names the NPC, the
   host event its agent raises and an `action`; an event the file does not map changes nothing:
   - `give_item` (`item`, by the name the save gives it, and optionally `count`: a number, or `"qty"`, the number the learner said, `quiero dos panes`, at most
     5, so no talk makes gifts out of nothing; one when the line has none, none for `cero`). The items go in all together or not at all (a full bag: the NPC keeps
@@ -201,7 +201,7 @@ specified for later in `docs/game/CONTENT_PLAN.md` section 3.8 (C10); it is not 
     ```json
     { "npc": "baker", "event": "baker.sell_bread", "action": { "kind": "sell", "item": "bread", "price": 2 } }
     ```
-  - `buy` (`item`, `price` in coins; VILLAGE_PLAN V15): a sale, the purchase turned round. Map it to the host event of the action that answers `offer_item`
+  - `buy` (`item`, `price` in coins; village-plan V15): a sale, the purchase turned round. Map it to the host event of the action that answers `offer_item`
     (`vendo madera`, `quiero vender madera`) at the NPC's prompt. The NPC takes the item and pays the price for each one: as many as the learner said (`qty`,
     at most what the bag holds; wood as `tres bloques de madera`, and `un`/`una` before the item is one), or with no number every one the bag holds. The items go (`item_taken`, `madera, request`) and the coins come (`item_given`, `moneda, request`),
     or nothing changes hands: a bag with none of the item, a line that offers another item (or since V19 a catalogue noun of no item, `vendo piedra`), an
@@ -224,7 +224,7 @@ specified for later in `docs/game/CONTENT_PLAN.md` section 3.8 (C10); it is not 
   `restore` (`lesson-begun`, `scan-fire-ring`), which works the step out again from a loaded world, so the save does not keep it. `alsoDoneBy` lists
   objectives whose progress completes this one. The validator refuses an unknown hook. A save keys a step `<objective>.<step>`, so renaming one
   drops its count from older saves. The session's ending (S17's closing moment) waits for the objectives with no `session` that are not orders.
-- **An order** (VILLAGE_PLAN V03) is an objective that names the NPC the goods are brought to (`deliverTo`) and the goods (`deliver`: items by the name
+- **An order** (village-plan V03) is an objective that names the NPC the goods are brought to (`deliverTo`) and the goods (`deliver`: items by the name
   the save gives them, each once, and a count), usually from a play `session`; it has no `title` and no `steps`, and its line is `objective.<id>.hud`:
 
   ```json
@@ -234,7 +234,7 @@ specified for later in `docs/game/CONTENT_PLAN.md` section 3.8 (C10); it is not 
 
   An order may ask for several items: the smith's `axe-handle` (V12) takes two wood and two coins, and is delivered only when the inventory holds both.
 
-  An order may name the lesson that tells it (`"lesson": "como-es"`, VILLAGE_PLAN V13): while that lesson is under way before its `do` step that waits for the
+  An order may name the lesson that tells it (`"lesson": "como-es"`, village-plan V13): while that lesson is under way before its `do` step that waits for the
   delivery (`order_delivered` at the order's NPC with the order's id), or is about to start at the talk (an `autoStart` lesson available at that NPC), walking up
   with the goods does not deliver them, so the plan comes first even for a learner who carries the goods already (the farmer's `water-for-plants`: the bottle
   filled at the river in session 1 is still full). Once the lesson reaches that step, ends, or does not start there, walking up is enough again; every step can be
@@ -254,8 +254,8 @@ specified for later in `docs/game/CONTENT_PLAN.md` section 3.8 (C10); it is not 
 
 ## Adding an NPC
 
-An NPC is data alone since schema 2 of `game/npcs/<id>.json` (VILLAGE_PLAN V01): no code names it. A fisher, `fisher`, takes these files, in this order (the
-fisher Mar of the lesson `el-pueblo`, VILLAGE_PLAN V10, was added exactly so; his files are the worked example, and the baker Luz of `numeros-y-pan`, V11, with
+An NPC is data alone since schema 2 of `game/npcs/<id>.json` (village-plan V01): no code names it. A fisher, `fisher`, takes these files, in this order (the
+fisher Mar of the lesson `el-pueblo`, village-plan V10, was added exactly so; his files are the worked example, and the baker Luz of `numeros-y-pan`, V11, with
 her purchase and her order, is the second; the smith Domingo and the farmer León of `gente-del-pueblo`, V12, are two more, met in the villager's lesson):
 
 1. **The core's agent and prompts** (`game-v1/agents/fisher.json`, `game-v1/prompts/prompts.json`): the agent's states and transitions, with an
@@ -286,13 +286,14 @@ her purchase and her order, is the second; the smith Domingo and the farmer Leó
      The key `review` is no state: it names the prompt of the guide's review question (only the guide has one).
    - `opening`: `always` raises the event at every talk (the villager's "Hola."), `first` at the first talk only, while the agent is in its
      initial state (the shopkeeper's "¿Qué necesitas?"), `never` opens with the prompt's text (the guide; no `event`).
-   - `voice`: the Kokoro speaker id and the voice's name (`docs/nlp/API.md` section 6: 28 `ef_dora`, 29 `em_alex`, 53 `em_santa`), and the speed of
+   - `voice`: the Kokoro speaker id and the voice's name (`docs/nlp/api.md` section 6: 28 `ef_dora`, 29 `em_alex`, 53 `em_santa`), and the speed of
      the normal recordings (the slow ones are 0.8 of it). The renderer records every line of the NPC with it. The other voices of the model that read
-     Spanish, and the village's provisional choices, are in the voice trial, `docs/game/voice-trial/` (VILLAGE_PLAN V06), with their speaker ids. An optional
+     Spanish, and the village's provisional choices, were compared in the voice trial (village-plan V06), deleted on 2026-11-03; its clips and
+     `trial.json`, with the speaker ids, are in git history (`git log -- docs/game/voice-trial`). An optional
      `gain` (default 1, at most 4; V11) scales the voice's samples, for a voice the model renders louder or quieter than the Spanish ones: the baker's
      `if_sara` is about 10 dB louder, so it takes 0.32. The speech index records a gain that is not 1, and changing it renders that NPC's lines again.
      So does any change of the voice: `scripts/limited.sh scripts/prerender-speech.sh` renders only that NPC's files (no `--force`), and their rows
-     of `docs/game/SPEECH_CHECKLIST.md` lose the owner's marks. The fisher's, the baker's, the smith's and the farmer's voices are provisional until
+     of `docs/game/speech-checklist.md` lose the owner's marks. The fisher's, the baker's, the smith's and the farmer's voices are provisional until
      the owner has heard them (D-game-22 (d); the checklist's preface lists them).
    - `keyWords` (optional): catalogue nouns whose cards the NPC shows alone before its first question (the shopkeeper's `agua` and `pan`). The save
      keeps one flag, so the key words are taught once a game, at the first NPC that has them.
@@ -303,13 +304,13 @@ her purchase and her order, is the second; the smith Domingo and the farmer Leó
      one intent (the fisher's), the one that names the place asked; and of one that names another place than the turn asks about (the villager's `¿Dónde está el
      río?` for `¿dónde está la panadería?`, V14), the row another NPC practises that names it (a transfer), else none. A prompt that is the home of no row may practise another NPC's (the farmer's
      `farmer-open` takes the smith's `como-te-llamas` and `que-haces`; a phrase at home with two NPCs is no transfer at either). Its lesson prompts need
-     none: each step names its own phrase. Without a focus a turn is still credited to the prompt's own row (VILLAGE_PLAN V12b; before it the baker's
+     none: each step names its own phrase. Without a focus a turn is still credited to the prompt's own row (village-plan V12b; before it the baker's
      `quiero dos panes` was the stall's `pedir-agua`), but no card shows; the validator refuses that (below).
 3. **`game-v1/game/npcs.json`**: its id **at the end** (the saves keep the NPCs in this order).
 4. **The scene placement**: `game/scene.json` `npcs` (where it stands and faces).
 5. **The locale role**: `npc.fisher.role` in `locale/en/ui.json`, and each new line's gloss in `locale/en/lines.json`.
 6. **The figure**: the figure key is drawn by `Graphics/Figures/NpcFigures.cs` (its colours, geometry and face cell); the keys drawn are `guide`,
-   `shopkeeper`, `villager` and, since VILLAGE_PLAN V05, `fisher`, `baker`, `smith` and `farmer`. A key the game does not draw yet gets a plain grey
+   `shopkeeper`, `villager` and, since village-plan V05, `fisher`, `baker`, `smith` and `farmer`. A key the game does not draw yet gets a plain grey
    figure until a milestone adds it.
 7. **What its host events do** in the world (`game/host-events.json`; an event not listed changes nothing), a provenance item for each new file,
    the recordings (`scripts/prerender-speech.sh`, which reads the voice from the NPC file), and the refresh.
@@ -319,4 +320,4 @@ agent's, a state its agent lacks, no prompt for the initial state, an opening ev
 key word that is no catalogue noun, a pool prefix another NPC has, and a prompt it waits on that is the home of rows the learner practises with a
 focus there that names none of them (V12b). `--talk fisher` then walks up to it in a scripted run. Behaviour the data
 cannot say stays code, by id: the shopkeeper's fail-forward (the bottle after four misses, and on a later visit) and the guide's review, transfer
-offer and world lines (`docs/game/CONTENT_PLAN.md` section 3.6).
+offer and world lines (`docs/game/content-plan.md` section 3.6).

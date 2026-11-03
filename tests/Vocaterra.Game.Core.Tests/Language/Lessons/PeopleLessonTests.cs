@@ -11,7 +11,7 @@ using Xunit.Abstractions;
 namespace Vocaterra.Game.Core.Tests.Language.Lessons;
 
 /// <summary>
-/// The lesson "Gente del pueblo" of session 6 (VILLAGE_PLAN V12, 3.5), the last of phase A: the villager in the square shows the learner the smith Domingo, the learner meets
+/// The lesson "Gente del pueblo" of session 6 (village-plan V12, 3.5), the last of phase A: the villager in the square shows the learner the smith Domingo, the learner meets
 /// him and the farmer León, asks their names and what they do (¿Cómo te llamas?, ¿Qué haces?), says where they live (vivo en), and tells the villager about Domingo in the
 /// three times, the third person for the first time: va a hacer un hacha (before the order, asked before the learner meets him), Domingo trabaja en la herrería (now),
 /// Domingo hizo un hacha (after it). The order axe-handle (two wood and two coins for the axe); a learner who arrives with the goods; the tense and person steps; the smith
@@ -176,7 +176,7 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
         }
 
         // The forms it declares for the book: llamar (me llamo, te llamas), hacer in the three times for él (hace, va a hacer, hizo) and haces, trabajar (trabajo,
-        // trabaja, trabajó) and vivir (vivo, vive). An a1 lesson: no simple future (VILLAGE_PLAN 3.9).
+        // trabaja, trabajó) and vivir (vivo, vive). An a1 lesson: no simple future (village-plan 3.9).
         Assert.All(lesson.TaughtVerbs, static v => Assert.Contains(v.Tense, new[] { "pres", "pret", TaughtVerbForm.NearFuture }));
         var morphology = TestGame.Bundle.SpanishMorphology();
         Assert.Equal(

@@ -21,7 +21,7 @@
 
 > **Note (2026-10-27, M32):** the target language is a property of the content bundle (`manifest.json` `language`, absent means `es`), resolved to an `ILanguagePack` through a registry; see [ADR 0011](0011-target-language-as-a-bundle-property.md). The changes are additive (`ContentManifest.Language`, `ContentBundle.Language`, `ContentLoadOptions.LanguagePacks`, the `Vocaterra.Nlp.Language.Packs` types) and the boundary is unchanged in kind: a language, like the lexicon, is content, and the core still names no game word. A Spanish bundle without `language` keeps its hash.
 
-> **Note (2026-11-01, M64; the review of `feature/village`, R2):** M56 to M62 added public surface that this record did not note; `docs/nlp/API.md` lists each change. `IAnalysisRules` (`Vocaterra.Nlp.Language.Analysis`) gained four members with no default implementation, so each is breaking for a host that implements the interface: `IsElapsedTimePreposition` and `IsElapsedTimeNoun` (M59, the preposition of `hace dos días` and the nouns of time it takes) and `IsPostnominalAdjective` and `IsDegreeAdverb` (M62, the colours that go after their noun, and `muy` and `tan`). `IMorphology` (`Vocaterra.Nlp.Language.Morphology`) gained two default members, `TryGetRegularizationOfWord` and `TryGetPluralSlip`, which find none unless a pack overrides them, and the public record `PluralSlip` (M58). The Spanish pack gained the public static class `SpanishTimeMarkers` (M57, `Vocaterra.Nlp.Es.Analysis`), the table of time markers that its checker and the fuzz suite's sentence generator both read; since M64 its lists are read-only collections, with the property types unchanged. M64 itself adds no public type or member. The boundary is unchanged in kind: each addition is a seam of the language pack or a Spanish word table of the pack, and no game word (no scene, character, item, price or reward) moved into the core.
+> **Note (2026-11-01, M64; the review of `feature/village`, R2):** M56 to M62 added public surface that this record did not note; `docs/nlp/api.md` lists each change. `IAnalysisRules` (`Vocaterra.Nlp.Language.Analysis`) gained four members with no default implementation, so each is breaking for a host that implements the interface: `IsElapsedTimePreposition` and `IsElapsedTimeNoun` (M59, the preposition of `hace dos días` and the nouns of time it takes) and `IsPostnominalAdjective` and `IsDegreeAdverb` (M62, the colours that go after their noun, and `muy` and `tan`). `IMorphology` (`Vocaterra.Nlp.Language.Morphology`) gained two default members, `TryGetRegularizationOfWord` and `TryGetPluralSlip`, which find none unless a pack overrides them, and the public record `PluralSlip` (M58). The Spanish pack gained the public static class `SpanishTimeMarkers` (M57, `Vocaterra.Nlp.Es.Analysis`), the table of time markers that its checker and the fuzz suite's sentence generator both read; since M64 its lists are read-only collections, with the property types unchanged. M64 itself adds no public type or member. The boundary is unchanged in kind: each addition is a seam of the language pack or a Spanish word table of the pack, and no game word (no scene, character, item, price or reward) moved into the core.
 
 > **Note (2026-11-01, M66; the grading gaps of sessions 7 to 10, handover 9.3 B):** `IAnalysisRules` gained two members, each with a default implementation that finds none, so neither breaks a host that implements the interface: `IsModalVerb(lemma, linker)` (the verbs that take an infinitive right after them, or after a linking word: Spanish `poder`, `querer`, `deber`, `necesitar`, and `tener` with `que`) and `ModalTakesNounObject(lemma)` (those of them that also take a noun: `querer`, `deber`, `necesitar`); the shared reading resolver reads them to take a finite verb after a modal for the learner's slip (`puedo pago`). `IMorphology.TryGetPluralSlip` and the record `PluralSlip` keep their signatures; their documentation now covers an adjective's plural slip (`azuls`) as well as a noun's. No public type was added, and the boundary is unchanged in kind: the new members are seams of the language pack, and the one bundle edit (`ti` in `lexicon/supplement.json`) is a word of the language, not of the game.
 
@@ -35,7 +35,7 @@
 
 - Status: accepted
 - Date: 2026-10-20
-- Deciders: the repository owner (repository names, the rename to `Vocaterra.Nlp.*`, and decisions D6 and D7 in [docs/nlp/DECISIONS.md](../DECISIONS.md)); the implementation plan (`IMPLEMENTATION_PLAN.md` section 8, milestone M19a)
+- Deciders: the repository owner (repository names, the rename to `Vocaterra.Nlp.*`, and decisions D6 and D7 in [docs/nlp/decisions.md](../decisions.md)); the implementation plan (`implementation-plan.md` section 8, milestone M19a)
 
 This record fixes what the language core `Vocaterra.NLP` (this repository) owns and what the game `Vocaterra` (a separate repository) owns. It
 is the rule every later change to the core is checked against.
@@ -44,7 +44,7 @@ is the rule every later change to the core is checked against.
 
 The core was built inside one game project, so game words reached its code: the conversation state machine was called an NPC machine, the
 verdict context was a `GameContext` with NPC fields, and the effect table named two outcome kinds for spells and trade prices. The research
-report (`docs/nlp/research/SCALING_APPROACHES.md`) and the plan's section 8 both assume the core will be consumed as NuGet packages by a game that
+report (`docs/research/2026-10-20-scaling-approaches.md`) and the plan's section 8 both assume the core will be consumed as NuGet packages by a game that
 is not in this repository. That needs a boundary the code can be checked against, and names that do not presuppose a game.
 
 ## Decision
@@ -53,7 +53,7 @@ is not in this repository. That needs a boundary the code can be checked against
 
 | Stays in the core (the engine `Vocaterra.Nlp` and its packs: `Vocaterra.Nlp.Es`) | Moves to the game repository (`Vocaterra`) |
 | --- | --- |
-| The contracts: verdict, prompt spec, error tags, replay envelope | `SPECIFICATION.md` and the game design |
+| The contracts: verdict, prompt spec, error tags, replay envelope | `specification.md` and the game design |
 | Audio, ASR, phonology, pronunciation, NLP, evaluation | Character definitions (blacksmith, innkeeper, captain) and their dialogue pools |
 | Decision: learner model (BKT), scheduling (FSRS), feedback policy, and the conversation state-machine **engine** (`ConversationAgents`) | Items, spells, quests, prices and rewards: the effect tables and the names of host events |
 | Response: templates, recasts, speech synthesis, and the effect resolver with opaque outcome kinds | The game's content bundles, built with the core's ContentBuilder |
@@ -65,8 +65,8 @@ is not in this repository. That needs a boundary the code can be checked against
 The sample bundle in `content/v1` (a blacksmith's dialogue, spells and items) stays in the core as its demo and as the fixture the goldens,
 the fuzz suite and the docs run against (decision D7). The game keeps its own bundle.
 
-> Note (M19c, 2026-10-20): the game design moved out of this repository. The `SPECIFICATION.md` row in the table above now refers to
-> `docs/game/SPECIFICATION.md` in the game repository ([Vocaterra](https://github.com/james-d12/Vocaterra)), and the game's bundle is its
+> Note (M19c, 2026-10-20): the game design moved out of this repository. The `specification.md` row in the table above now refers to
+> `docs/game/specification.md` in the game repository ([Vocaterra](https://github.com/james-d12/Vocaterra)), and the game's bundle is its
 > `content/game-v1`. The table records the boundary as it was decided.
 
 ### 2. What the core knows, and what it does not
@@ -108,7 +108,7 @@ M19b.
 - Replay logs and end-to-end goldens recorded before this change do not replay: the replay envelope and the verdict's bundle hash carry the
   renamed keys and the new bundle hash. The goldens were re-recorded (only the names, the bundle hash and the host state hash changed).
 - The bundle hash changed with the file and key renames. `tests/golden/manifest.jsonl` is untouched, and `cefr-check` at a1 and a2 is unchanged.
-- The game repository consumes the core through `docs/nlp/API.md`. A change to a public type listed there is a change to the boundary and
+- The game repository consumes the core through `docs/nlp/api.md`. A change to a public type listed there is a change to the boundary and
   needs this record updated.
 - Anything a host needs that the core does not provide (microphone capture, save files, rendering) stays out of the core.
 

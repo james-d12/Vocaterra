@@ -62,7 +62,7 @@ public interface IGuideFacts
 
     /// <summary>
     /// The nearest place of a catalogue noun from a viewpoint among the blocks joined to <paramref name="body"/> through blocks of the noun (face to face): one
-    /// body of it, as the river is the water its point lies in and not the water of a well (VILLAGE_PLAN V04). The nearest is chosen as in
+    /// body of it, as the river is the water its point lies in and not the water of a well (village-plan V04). The nearest is chosen as in
     /// <see cref="NearestOfNoun"/>; <see langword="null"/> when the block at <paramref name="body"/> is not the noun.
     /// </summary>
     /// <param name="from">Where the player is.</param>

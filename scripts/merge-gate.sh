@@ -75,7 +75,7 @@ CONTENTLOG=".claude/gate-logs/content-$STAMP.log"
 "$L" bash scripts/content.sh validate > "$CONTENTLOG" 2>&1
 content_rc=$?
 tail -1 "$CONTENTLOG"
-# The prototype's content gate (S5, D-game-10 and D-game-12), since V08 with the A1/A2 rule of VILLAGE_PLAN 3.9 (D-game-22 (b)). The bundle's
+# The prototype's content gate (S5, D-game-10 and D-game-12), since V08 with the A1/A2 rule of village-plan 3.9 (D-game-22 (b)). The bundle's
 # ceiling is A2: the strict lint at A2 with --fail-on-level fails on a lemma above A2 in a dialogue template, a prompt's text or an answer set's
 # canonical answer (the guide's host-voiced pools are rendered by the game), and cefr-check at A2 fails on any lemma it lists (the tool itself
 # only prints, so its counts are read here). cefr-check at A1 is a report for the owner, what is above A1, and never fails the gate. A lesson's
@@ -110,7 +110,7 @@ fi
 
 # The LanguageTool grammar check (core M30, D10's dev-time half), on the repository's one bundle (R02: content/v1 and its advisory step are gone).
 # REQUIRED since the first waiver round (owner, 2026-10-22). --strict fails on any unwaived warning or a cache miss, offline from the committed
-# cache; after a content change, refresh the strings file and the cache (docs/game/README.md) with the local server, then rerun.
+# cache; after a content change, refresh the strings file and the cache (docs/game/content.md) with the local server, then rerun.
 GRAMMARLOG=".claude/gate-logs/grammar-$STAMP.log"
 grammar_rc=0
 if [ -f content/grammar/game-v1-cache.json ]; then
@@ -124,7 +124,7 @@ LICENSELOG=".claude/gate-logs/license-$STAMP.log"
 "$L" bash scripts/license-scan.sh --offline > "$LICENSELOG" 2>&1
 license_rc=$?
 tail -1 "$LICENSELOG"
-# The content schema test's project (CONTENT_PLAN C01) is scanned too: it is the one game test project with a package of its own (NJsonSchema).
+# The content schema test's project (content-plan C01) is scanned too: it is the one game test project with a package of its own (NJsonSchema).
 { echo "=== tests/Vocaterra.Game.Core.Tests"; "$L" bash scripts/license-scan.sh --offline --target tests/Vocaterra.Game.Core.Tests/Vocaterra.Game.Core.Tests.csproj; } >> "$LICENSELOG" 2>&1 || license_rc=1
 echo "licence scan (Game.Core.Tests): $(tail -1 "$LICENSELOG")"
 

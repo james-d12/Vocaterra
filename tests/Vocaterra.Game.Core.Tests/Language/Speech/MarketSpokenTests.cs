@@ -9,8 +9,8 @@ using Xunit.Abstractions;
 namespace Vocaterra.Game.Core.Tests.Language.Speech;
 
 /// <summary>
-/// The phrases El mercado asks the learner to say (VILLAGE_PLAN V15), spoken: Kokoro says each at its step and Vosk hears it through the worker at the step's prompt (the round
-/// trip every content milestone runs once, VILLAGE_PLAN section 4). The numbers from 11 to 20, venderé, puedo and barato must be heard; a word the recognizer cannot hear
+/// The phrases El mercado asks the learner to say (village-plan V15), spoken: Kokoro says each at its step and Vosk hears it through the worker at the step's prompt (the round
+/// trip every content milestone runs once, village-plan section 4). The numbers from 11 to 20, venderé, puedo and barato must be heard; a word the recognizer cannot hear
 /// would fail here, and would go to the learner's hearing side or to a typed-only variant. And a greeting before a request, with the baker's name, is heard and answered as
 /// the request (V15). Skipped without the models.
 /// </summary>

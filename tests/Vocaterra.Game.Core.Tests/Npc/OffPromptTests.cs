@@ -8,7 +8,7 @@ using Vocaterra.Nlp.Language.Intent;
 namespace Vocaterra.Game.Core.Tests.Npc;
 
 /// <summary>
-/// The off-prompt lines in the game (VILLAGE_PLAN V27, the owner's answer of 2026-11-02): in free talk a line the NPC's prompt does not take but the core understands
+/// The off-prompt lines in the game (village-plan V27, the owner's answer of 2026-11-02): in free talk a line the NPC's prompt does not take but the core understands
 /// (<c>Verdict.OffPromptIntent</c>, M72) gets the NPC's one line, «Te entiendo.» and its topic, and nothing else; it is no failed attempt, and the book credits it.
 /// </summary>
 public sealed class OffPromptTests

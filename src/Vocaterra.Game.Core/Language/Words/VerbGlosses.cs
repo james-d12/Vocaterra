@@ -12,7 +12,7 @@ public sealed record VerbGloss(string Lemma, string English, string Base, string
 
 /// <summary>
 /// The verbs' support-language forms (S20, D-game-13: the support language is on-screen text), read from the locale's <c>verb.&lt;lemma&gt;</c> entries
-/// (CONTENT_PLAN C03; until then <c>game/glosses.json</c>). The lexicon carries no gloss, so the locale gives one per verb the learner can meet; a verb not in
+/// (content-plan C03; until then <c>game/glosses.json</c>). The lexicon carries no gloss, so the locale gives one per verb the learner can meet; a verb not in
 /// it is shown by its infinitive alone.
 /// </summary>
 public sealed class VerbGlosses

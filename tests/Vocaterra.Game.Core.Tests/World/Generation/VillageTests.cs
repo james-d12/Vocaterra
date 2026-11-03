@@ -9,7 +9,7 @@ using Xunit.Abstractions;
 namespace Vocaterra.Game.Core.Tests.World.Generation;
 
 /// <summary>
-/// The village, the stall, the two camps and the signposts (S15), and since VILLAGE_PLAN V04 the bakery, the smithy, the well, the farmer's corner and the fisher's
+/// The village, the stall, the two camps and the signposts (S15), and since village-plan V04 the bakery, the smithy, the well, the farmer's corner and the fisher's
 /// bank: what is built where, that it comes from the layout and the seed alone, and its digests.
 /// </summary>
 [Trait(TestSpeed.Trait, TestSpeed.Slow)]
@@ -21,7 +21,7 @@ public sealed class VillageTests(ITestOutputHelper output)
     private const string VillageStructureDigest = "a03be5dc938ea1d6"; // V10: the well's rim one block high
     private const string CampsStructureDigest = "ed42e2a69d88beb7c801126a48c72c7a";
 
-    // The village's levelled disc, whose structure the digest covers: 24 since VILLAGE_PLAN V04 (the bakery, the smithy, the well), 19 of the 20 before.
+    // The village's levelled disc, whose structure the digest covers: 24 since village-plan V04 (the bakery, the smithy, the well), 19 of the 20 before.
     private const int VillageRadius = 24;
 
     // The columns within radius of (cx, cz), from y0 to y1: the level ground of a site, where nothing but the built things rises above the ground.
@@ -354,7 +354,7 @@ public sealed class VillageTests(ITestOutputHelper output)
     [Fact]
     public void TheWellShowsItsWaterOverARimOneBlockHighAndABottleIsFilledThere()
     {
-        // VILLAGE_PLAN V10: the rim was two blocks high (V04), so from eye height the well read as a stone cube and hid its water. One block high, the water lies
+        // village-plan V10: the rim was two blocks high (V04), so from eye height the well read as a stone cube and hid its water. One block high, the water lies
         // level with the rim's top: an eye on the ground beside the well sees it, and a bottle is filled there as at the river.
         var scene = VoxelTestSupport.BuildRoute(Seed);
         var grid = scene.Grid;

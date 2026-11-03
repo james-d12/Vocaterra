@@ -163,7 +163,7 @@ public sealed class NounCatalog
             }
         }
 
-        // The articles are the lexicon's (its art readings: el, la, los, las, un, una, unos, unas), not a list in the code (CONTENT_PLAN C05).
+        // The articles are the lexicon's (its art readings: el, la, los, las, un, una, unos, unas), not a list in the code (content-plan C05).
         var articles = bundle.Lexicon.Entries.Where(static e => string.Equals(e.Pos, "art", StringComparison.Ordinal)).Select(static e => e.Form).ToHashSet(StringComparer.Ordinal);
         return new NounCatalog(nouns, articles);
     }

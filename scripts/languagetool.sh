@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Starts, stops or reports the local LanguageTool server that `vocaterra-content grammar` calls (docs/nlp/DECISIONS.md D10). The server is a
+# Starts, stops or reports the local LanguageTool server that `vocaterra-content grammar` calls (docs/nlp/decisions.md D10). The server is a
 # separate development-time process: the public API is never used, and no content leaves the machine.
 #
 # Usage: scripts/languagetool.sh start|stop|status

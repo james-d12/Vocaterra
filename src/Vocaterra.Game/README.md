@@ -4,7 +4,7 @@ The game's window: the only engine code in the repository (plan section 3 rule 3
 content pipeline (no MGCB: textures are made in code, text is a TTF read at run time through FontStashSharp). It references
 `Vocaterra.Game.Core` (the game's engine-free systems: the world and its tick, the session, the guide, the word progress, the screens' models;
 it brings the language core's projects) by project and names no `Vocaterra.Nlp.*` package itself. Its folders are in
-`docs/game/ARCHITECTURE.md`.
+`docs/game/architecture.md`.
 
 The prototype's world is the first-person voxel scene (S2 to S4). The 2D slice (P1 to P7) was retired at S4; its last commit is tagged
 `2d-slice-p7`.
@@ -56,7 +56,7 @@ pointer to the middle of the window if that library cannot be reached); **Esc** 
 button** on a gatherable block (a trunk, a berry bush) to gather it, the **right button** places the selected item in the cell in front of the
 face the crosshair is on, `1`..`0` and the wheel pick the hotbar slot, **I** or **E** the inventory, **C** (or **E** with the crosshair on the
 workbench) the crafting panel, **E** at the player's own lit fire once the session's work is done (or **Enter** on the closing card) a sleep until the next play session (V12c: `SleepOffer`,
-`SaveGame.Sleep`; `docs/game/README.md`, "The next session: sleep at the fire"), **J** the book (S20; the selected book item, used with the right button, opens the same book), **F3** the debug overlay. The camera eases over a step-up (`CameraEase`: the eye lifts a block in
+`SaveGame.Sleep`; `docs/game/lessons.md`, "The next session: sleep at the fire"), **J** the book (S20; the selected book item, used with the right button, opens the same book), **F3** the debug overlay. The camera eases over a step-up (`CameraEase`: the eye lifts a block in
 one tick; the camera holds the old height and lets it go over 8 ticks).
 
 ## What is drawn
@@ -159,13 +159,13 @@ others come through the platform's text input).
 (the screens, the turn flow, the scripts, the tick and the session). This project keeps what needs MonoGame or draws: `Startup/` (the command
 line, `SceneLocator`, the asset paths), `Diagnostics/` (the session log, the crash handler, the clocks), `Input/` (the devices, `InputSnapshot` and
 `KeyMap`, Keys to `GameKey`), `Sound/` (the outputs and the microphone), `Graphics/` (the renderers and the meshers, by feature) and `UI/` (the
-layers and their layouts, by feature). Both trees are in `docs/game/ARCHITECTURE.md`.
+layers and their layouts, by feature). Both trees are in `docs/game/architecture.md`.
 
 ## Architecture
 
-The game's code is in two projects (R16, `docs/code_guidelines.md`): `Vocaterra.Game.Core` holds the systems and the mechanics (no package,
+The game's code is in two projects (R16, `docs/process/code-guidelines.md`): `Vocaterra.Game.Core` holds the systems and the mechanics (no package,
 no engine type, no clock: its `ArchitectureRulesTests` fail on one), and this project holds the window, the drawing, the devices and the
-layers. `docs/game/ARCHITECTURE.md` lists both trees, folder by folder.
+layers. `docs/game/architecture.md` lists both trees, folder by folder.
 
 The frame is: `Update` reads the clock, reads the keyboard and the mouse once (the panel's keys, the crafting clicks), the accumulator returns 0 to 5
 ticks, and for each tick the commands are built (the script's or the device's, the queued crafts, the look first) and given to `VoxelSession.Step`
@@ -202,7 +202,7 @@ in `tests/Vocaterra.Game.Core.Tests`, in the same folders as their classes (R16)
 
 - The sandbox or CI may have no display: `--screenshot` then needs `xvfb-run -a dotnet run ...`. The Linux runtime needs `libSDL2`
   and `libopenal` (the DesktopGL package ships its own copies; on a Linux x64 build they are copied next to the executable, see
-  `docs/game/ARCHITECTURE.md` for the native-asset trim).
+  `docs/game/architecture.md` for the native-asset trim).
 - The back buffer is read after the frame is drawn and before the swap; on DesktopGL it comes back upright (checked), not flipped.
 - **S17.** `GuideApproach` opens the panel on the guide when the player walks up to her and her lesson is waiting (or her transfer offer is, once the camp is
   done); `SessionEnding` and `EndingLayer` are the closing card; `SpeechButtons.TextFor` and `HintsFor` add the English to the buttons and the hold-to-talk hint (a

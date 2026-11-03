@@ -25,7 +25,7 @@ public sealed class NpcAgentTests
     [Fact]
     public void TheBundleHoldsTheAgentsOfTheVillageAndTheirPrompts()
     {
-        // VILLAGE_PLAN V10 added the fisher, his prompt (fisher-open) and El pueblo's (lesson-far to lesson-went-there, and the villager's lesson-sign); V11 the baker, her
+        // village-plan V10 added the fisher, his prompt (fisher-open) and El pueblo's (lesson-far to lesson-went-there, and the villager's lesson-sign); V11 the baker, her
         // prompt (baker-open) and Números y pan's (lesson-wood-plan, lesson-coins, lesson-bought); V12 the smith and the farmer, their prompts (smith-open, farmer-open)
         // and Gente del pueblo's (the villager's lesson-who, lesson-will-make, lesson-works and lesson-made, and the smith's lesson-lives); V13 ¿Cómo es?'s (the farmer's
         // lesson-apple, lesson-like-bread, lesson-like-apples, lesson-water-plan, lesson-water-went and lesson-liked, and the shopkeeper's lesson-big); V17 Mañana en el

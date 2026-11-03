@@ -352,7 +352,7 @@ public static class BlockArt
 
     private static (byte R, byte G, byte B, byte A) CoinIconPixel(int x, int y)
     {
-        // A gold piece seen face on (VILLAGE_PLAN V05): a raised rim, darker where it turns away from the light, a ring struck in the face and a gleam at the top left.
+        // A gold piece seen face on (village-plan V05): a raised rim, darker where it turns away from the light, a ring struck in the face and a gleam at the top left.
         var dx = x - 7.5;
         var dy = y - 7.5;
         var r = Math.Sqrt((dx * dx) + (dy * dy));

@@ -13,7 +13,7 @@ using Xunit.Abstractions;
 namespace Vocaterra.Game.Core.Tests.Language.Lessons;
 
 /// <summary>
-/// The lesson "El mercado" of session 10 (VILLAGE_PLAN V15, 3.5), an <c>a2</c> lesson and the last of the village: market day. The baker Luz at the bakery counts her loaves
+/// The lesson "El mercado" of session 10 (village-plan V15, 3.5), an <c>a2</c> lesson and the last of the village: market day. The baker Luz at the bakery counts her loaves
 /// to twenty and buys the learner's wood (<c>quiero vender madera</c>, then <c>vendo madera</c>: the new intent <c>offer_item</c> and the host's <c>buy</c>); the farmer
 /// León at the field shows his fifteen apples (<c>¿cuánto es todo?</c>, <c>es muy caro</c>, <c>la manzana es más barata que el pan</c>, <c>¿puedo pagar con fruta?</c>,
 /// <c>mañana venderé fruta</c>) and sells three; the shopkeeper at the stall hears the report (<c>compré tres manzanas</c>). The market told in the three times, the review

@@ -10,7 +10,7 @@ using Vocaterra.Nlp.Pipeline;
 namespace Vocaterra.Game.Core.Tests.Session;
 
 /// <summary>
-/// Selling to the village (VILLAGE_PLAN V15, 3.4 and 3.6): the intent <c>offer_item</c> (<c>vendo madera</c>, <c>quiero vender madera</c>, <c>tengo madera para usted</c>) and
+/// Selling to the village (village-plan V15, 3.4 and 3.6): the intent <c>offer_item</c> (<c>vendo madera</c>, <c>quiero vender madera</c>, <c>tengo madera para usted</c>) and
 /// the host's <c>buy</c>, the stall's <c>sell</c> turned round, the series' one repeatable source of coins. Luz and Domingo buy wood, León fruit, a coin each; with no number
 /// the NPC takes every piece the bag holds, with one that many. A bag with none (<c>&lt;npc&gt;.cant_sell</c>) or another item offered (<c>&lt;npc&gt;.wont_buy</c>) changes
 /// nothing, and the NPC says why. No cap: the goods are the cap. And the market's questions answered as the world works: the total of León's table and paying with fruit.

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Runs the test suite, or a tier of it, the way the merge gate does: the build with -m:4 and the tests with -m:2, each through
-# scripts/limited.sh (one heavy command on the machine at a time, under the memory and CPU caps). docs/TEST_PERFORMANCE_PLAN.md, T4.
+# scripts/limited.sh (one heavy command on the machine at a time, under the memory and CPU caps). docs/process/test-performance-plan.md, T4.
 #
 #   scripts/test.sh fast                every test that is not marked slow ([Trait(TestSpeed.Trait, TestSpeed.Slow)] on a class or a method, or
 #                                       the fuzz suite's assembly trait): run it after every step of the work

@@ -53,7 +53,7 @@ public static class LineReading
     }
 
     /// <summary>
-    /// The phrase row a learner's line is, read as the NPC reads it (VILLAGE_PLAN V20): the line as said, else without the listener's name (<c>Luz, mañana compraré pan</c>),
+    /// The phrase row a learner's line is, read as the NPC reads it (village-plan V20): the line as said, else without the listener's name (<c>Luz, mañana compraré pan</c>),
     /// else the rest after an opening greeting (<c>hola, mañana compraré pan</c>), each matched against the rows a test admits (<see cref="PhraseSheet.Said"/>); or
     /// <see langword="null"/>.
     /// </summary>

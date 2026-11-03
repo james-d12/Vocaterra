@@ -61,7 +61,7 @@ public sealed record CheckPlanEntry(CheckItem Item, int Position, IReadOnlyList<
 /// <summary>
 /// The order of a check battery: which items come in which order and how each comprehension item's options are shown, drawn from the world seed
 /// and the check kind (<see cref="WorldRng"/>, never <c>System.Random</c>). A pre-check and a post-check have the same items and options, in other
-/// orders; the same seed and kind always give the same plan. Since VILLAGE_PLAN V07 a battery asks the items of the lessons its play session has unlocked
+/// orders; the same seed and kind always give the same plan. Since village-plan V07 a battery asks the items of the lessons its play session has unlocked
 /// (<see cref="CheckBank.AskedIn"/>); with every item asked, the plan is the one the whole bank gave before.
 /// </summary>
 public static class CheckPlan

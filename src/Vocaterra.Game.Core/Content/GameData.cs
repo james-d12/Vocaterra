@@ -15,7 +15,7 @@ using Vocaterra.Nlp.Content;
 namespace Vocaterra.Game.Core.Content;
 
 /// <summary>
-/// The game's content, loaded once from the bundle's verified host files and checked as a whole (CONTENT_PLAN 3.7, C02): the noun catalogue, the recipes,
+/// The game's content, loaded once from the bundle's verified host files and checked as a whole (content-plan 3.7, C02): the noun catalogue, the recipes,
 /// the phrase sheet, the tips and the controls, the speakable lines, the lessons, the check battery and the scene's layout, with the learner's support
 /// language from the locale bundle (C03). The game builds it once at start and hands it to the session; no call site reads a game file of its own.
 /// </summary>

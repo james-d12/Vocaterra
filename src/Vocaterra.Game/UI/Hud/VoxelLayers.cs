@@ -69,7 +69,7 @@ public static class NpcLabelLayer
     /// <summary>
     /// Where a name's plate stands for the point above the head projected at <paramref name="x"/>, <paramref name="y"/> on the canvas, or <see langword="null"/>
     /// when the plate would lie wholly outside the canvas. A plate partly over an edge is moved inside it (X08); one whose figure is out of the picture, beside
-    /// the player but in front of the camera, is left out (VILLAGE_PLAN V09: the farmer's name stood at the window's left edge while the player talked to the
+    /// the player but in front of the camera, is left out (village-plan V09: the farmer's name stood at the window's left edge while the player talked to the
     /// villager beside him, the plate of a figure nobody could see).
     /// </summary>
     /// <param name="x">The projected x of the point above the head.</param>

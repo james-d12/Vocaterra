@@ -10,7 +10,7 @@ using Vocaterra.Nlp.Core.Determinism;
 namespace Vocaterra.Game.Core.Tests.Npc;
 
 /// <summary>
-/// Another NPC by data alone (VILLAGE_PLAN V01): a copy of the bundle with a miller added the way <c>content/README.md</c> says ("Adding an NPC": the core's
+/// Another NPC by data alone (village-plan V01): a copy of the bundle with a miller added the way <c>content/README.md</c> says ("Adding an NPC": the core's
 /// agent, its prompts and pools, <c>game/npcs/miller.json</c> and its id at the end of <c>game/npcs.json</c>) and no code. Before V01 he would have waited on
 /// the villager's prompt, opened with the villager's greeting and spoken with the guide's voice; now his file decides all three. The copy leaves out the
 /// speech folder (no recording is needed to talk), and the shipped bundle is not touched. The test's NPC was a fisher until V10 shipped the real one, Mar,

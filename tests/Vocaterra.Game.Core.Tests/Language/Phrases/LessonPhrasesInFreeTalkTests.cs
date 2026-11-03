@@ -6,7 +6,7 @@ using Vocaterra.Nlp.Pipeline;
 namespace Vocaterra.Game.Core.Tests.Language.Phrases;
 
 /// <summary>
-/// A lesson's phrases in free talk (VILLAGE_PLAN V20, handover 9.3 D (b) and (c)). Free talk credited only the rows of an NPC's <c>focus</c>, so a phase-B line said again
+/// A lesson's phrases in free talk (village-plan V20, handover 9.3 D (b) and (c)). Free talk credited only the rows of an NPC's <c>focus</c>, so a phase-B line said again
 /// counted no use (<c>Mañana compraré pan.</c> to Luz, r23); it now credits any phrase of a lesson the learner has begun or done, at any NPC. And an NPC showed its focus
 /// cards from the first talk, before their lesson (Luz <c>Vendo madera.</c>, session 10, in session 5; León his A2 lines); a card now waits until its lesson is the current
 /// one (unlocked) or done.

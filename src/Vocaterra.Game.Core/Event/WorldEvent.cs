@@ -31,13 +31,13 @@ public static class WorldEvents
     public const string BeaconSet = "beacon_set";
 
     /// <summary>
-    /// The player reached the beacon and it came down (VILLAGE_PLAN V02; the detail is the scene's name of the place, <c>stall</c>, or the noun of an arrow on a noun's
+    /// The player reached the beacon and it came down (village-plan V02; the detail is the scene's name of the place, <c>stall</c>, or the noun of an arrow on a noun's
     /// block, <c>árbol</c>). A lesson's <c>do</c> step with a <c>pointPlace</c> waits for it; the guide's review question is no destination and logs none.
     /// </summary>
     public const string BeaconReached = "beacon_reached";
 
     /// <summary>
-    /// An NPC answered directions to the place a slot of the learner's line names (VILLAGE_PLAN V02, <c>point_at_slot</c>; the detail is the scene's name of the place
+    /// An NPC answered directions to the place a slot of the learner's line names (village-plan V02, <c>point_at_slot</c>; the detail is the scene's name of the place
     /// found, the noun whose nearest block it is, or <c>unknown</c> when the NPC does not know it).
     /// </summary>
     public const string PlaceAsked = "place_asked";
@@ -46,13 +46,13 @@ public static class WorldEvents
     public const string UnknownPlace = "unknown";
 
     /// <summary>
-    /// An NPC took items from the inventory (VILLAGE_PLAN V03: <c>take_item</c>, the coins of a purchase, the goods of an order; the detail is the item's noun and how:
+    /// An NPC took items from the inventory (village-plan V03: <c>take_item</c>, the coins of a purchase, the goods of an order; the detail is the item's noun and how:
     /// <c>moneda, request</c>, <c>madera, order</c>). An objective counting it counts every item taken.
     /// </summary>
     public const string ItemTaken = "item_taken";
 
     /// <summary>
-    /// The player brought an NPC the goods of an order (VILLAGE_PLAN V03, an objective with <c>deliverTo</c>): the NPC took them and said its thanks. The NPC is the
+    /// The player brought an NPC the goods of an order (village-plan V03, an objective with <c>deliverTo</c>): the NPC took them and said its thanks. The NPC is the
     /// one who ordered; the detail is the objective's id, whose one step waits for it.
     /// </summary>
     public const string OrderDelivered = "order_delivered";
@@ -109,7 +109,7 @@ public static class WorldEvents
     public const string SpareTorch = "spare_torch";
 
     /// <summary>
-    /// A torch was placed at a fire ring (CONTENT_PLAN C06): in the three-by-three square around a ring stone, on its layer or on top of a stone. The detail is
+    /// A torch was placed at a fire ring (content-plan C06): in the three-by-three square around a ring stone, on its layer or on top of a stone. The detail is
     /// the ring's prop name (<c>firering</c> at the guide's camp, <c>firering.player</c> at the player's own); in a scene that names no camp ring, every ring
     /// that is not the player's counts as <c>firering</c>. The camp's checklist step waits for it.
     /// </summary>

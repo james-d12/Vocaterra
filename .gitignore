@@ -37,10 +37,10 @@ models/*
 # Golden learner audio is local-only
 tests/golden/audio/
 
-# Lexicon source data (kaikki.org Wiktionary extract, FrequencyWords) is fetched, not committed; see docs/nlp/LEXICON.md
+# Lexicon source data (kaikki.org Wiktionary extract, FrequencyWords) is fetched, not committed; see docs/nlp/lexicon.md
 lexicon-sources/
 
 # Noun Town research (D-game-11, owner 2026-10-21): the raw Steam review JSON is third-party text and is never committed;
 # the summaries and the fetch scripts are. Both the current and the planned folder are covered.
 scripts/noun_town/*.json
-docs/game/research/noun-town/*.json
+docs/research/2026-10-21-noun-town/*.json

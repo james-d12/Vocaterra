@@ -6,7 +6,7 @@ using Vocaterra.Game.Core.Tests.TestSupport;
 namespace Vocaterra.Game.Core.Tests.Event;
 
 /// <summary>
-/// One trigger model for the tips, the lessons' <c>do</c> steps and the objectives (CONTENT_PLAN 3.4, C06): a world event, with an NPC and a detail that must
+/// One trigger model for the tips, the lessons' <c>do</c> steps and the objectives (content-plan 3.4, C06): a world event, with an NPC and a detail that must
 /// match exactly when the trigger names them.
 /// </summary>
 public sealed class TriggerTests
@@ -66,7 +66,7 @@ public sealed class TriggerTests
     public void TheShippedLessonsDetailFiltersAreWholeDetails()
     {
         // Before C06 a do step's detail matched as a part of the event's, ignoring case. The shipped lessons' detail filters are whole details: the noun the pickup
-        // names, and since VILLAGE_PLAN V10 the scene's names of the places El pueblo walks to (the arrival's detail is the place's name), so matching exactly changes nothing.
+        // names, and since village-plan V10 the scene's names of the places El pueblo walks to (the arrival's detail is the place's name), so matching exactly changes nothing.
         // V11: Números y pan's wood (a pickup's noun), its order (the delivery's detail is the order's id) and its purchase (a gift's detail is the noun and how it came).
         // V12: Gente del pueblo's wood and its order, the same two kinds. V13: ¿Cómo es?'s walk to the river by the fisher (an arrival at his point) and its order.
         // V15: El mercado's wood (a pickup's noun) and its purchase of apples (a gift's detail).

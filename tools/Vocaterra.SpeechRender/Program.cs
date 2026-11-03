@@ -17,19 +17,19 @@ namespace Vocaterra.SpeechRender;
 /// <summary>
 /// Renders the bundle's speakable lines with Kokoro (S9): <c>&lt;lineId&gt;.wav</c> at the speaker's speed (1.0) and <c>&lt;lineId&gt;.slow.wav</c> at 0.8 of it,
 /// in the bundle's <c>speech/</c> folder, as 16-bit mono PCM. A speaker is an NPC, and its Kokoro speaker id, voice name and speed are its NPC file's
-/// <c>voice</c> (VILLAGE_PLAN V01; they were fixed here): the guide 28 <c>ef_dora</c>, the shopkeeper 29 <c>em_alex</c>, the villager 53 <c>em_santa</c>, and the
+/// <c>voice</c> (village-plan V01; they were fixed here): the guide 28 <c>ef_dora</c>, the shopkeeper 29 <c>em_alex</c>, the villager 53 <c>em_santa</c>, and the
 /// village's fisher, baker, smith and farmer in the provisional voices of the trial (D-game-22 (d)), with a <c>gain</c> for a voice the model renders louder
-/// (VILLAGE_PLAN V11). A speaker with no NPC file or no voice stops the run before anything is rendered.
+/// (village-plan V11). A speaker with no NPC file or no voice stops the run before anything is rendered.
 /// </summary>
 /// <remarks>
 /// <b>Re-runs.</b> <c>content/speech-index.json</c> (outside the bundle, so it is not hashed) records for each file its text, speaker, speed,
-/// rate, the voice's gain when it is not 1 (VILLAGE_PLAN V11), the adapter's model hash and the file's SHA-256. A file whose inputs and bytes match is skipped;
-/// a line whose text or voice changed is rendered again; a file of a line that no longer exists is deleted. <c>docs/game/SPEECH_CHECKLIST.md</c> is rewritten from the bundle, and the owner's
+/// rate, the voice's gain when it is not 1 (village-plan V11), the adapter's model hash and the file's SHA-256. A file whose inputs and bytes match is skipped;
+/// a line whose text or voice changed is rendered again; a file of a line that no longer exists is deleted. <c>docs/game/speech-checklist.md</c> is rewritten from the bundle, and the owner's
 /// marks in its last column are kept for every row whose text and recording did not change (a file rendered again with other bytes, a new voice for one, loses
-/// its mark: VILLAGE_PLAN V09). The bundle's <c>manifest.json</c> and <c>provenance.json</c> are
+/// its mark: village-plan V09). The bundle's <c>manifest.json</c> and <c>provenance.json</c> are
 /// then updated by the caller (the content tool's <c>hash</c> step, run by <c>scripts/prerender-speech.sh</c>).
 /// <para>
-/// <b>The voice trial</b> (VILLAGE_PLAN V06). <c>--trial &lt;folder&gt;</c> renders the folder's <c>trial.json</c> instead of the bundle: one line for every candidate
+/// <b>The voice trial</b> (village-plan V06). <c>--trial &lt;folder&gt;</c> renders the folder's <c>trial.json</c> instead of the bundle: one line for every candidate
 /// voice and speed, as <c>&lt;folder&gt;/&lt;file&gt;</c> at Kokoro's own rate (24 kHz mono), for the owner to hear. It writes nothing else. The checklist lists the
 /// trial's provisional voices, every one the trial names an NPC for (D-game-22 (d): the voices were recorded before the owner heard them), until the owner's
 /// decision takes the NPC out of the trial's entry.
@@ -45,7 +45,7 @@ internal static class Program
 
     private const string DefaultBundle = "content/game-v1";
     private const string DefaultIndex = "content/speech-index.json";
-    private const string DefaultChecklist = "docs/game/SPEECH_CHECKLIST.md";
+    private const string DefaultChecklist = "docs/game/speech-checklist.md";
     private const string DefaultTrial = "docs/game/voice-trial";
     private const string TrialFileName = "trial.json";
     /// <summary>The core's provenance kind for a host-owned file a model rendered (M29g).</summary>
@@ -56,7 +56,7 @@ internal static class Program
     private static readonly JsonSerializerOptions TrialJson = new(JsonSerializerDefaults.Web);
 
     /// <summary>
-    /// One rendered file as recorded in the index. <paramref name="Gain"/> is the voice's gain (VILLAGE_PLAN V11), written only when it is not 1, so the entries of
+    /// One rendered file as recorded in the index. <paramref name="Gain"/> is the voice's gain (village-plan V11), written only when it is not 1, so the entries of
     /// the voices at the model's own level read as they did before it.
     /// </summary>
     private sealed record IndexEntry(
@@ -125,7 +125,7 @@ internal static class Program
         var rendered = 0;
         var skipped = 0;
         var checklist = new List<(string LineId, string File, string Speaker, string Speed, string Text)>();
-        var newRecordings = new HashSet<string>(StringComparer.Ordinal); // files whose bytes changed: the owner hears them again (VILLAGE_PLAN V09)
+        var newRecordings = new HashSet<string>(StringComparer.Ordinal); // files whose bytes changed: the owner hears them again (village-plan V09)
         try
         {
             foreach (var line in lines)
@@ -196,7 +196,7 @@ internal static class Program
         return 0;
     }
 
-    /// <summary>The Kokoro speaker, voice name and speed of a speaker: its NPC file's voice (the core's voice table, docs/nlp/API.md section 6).</summary>
+    /// <summary>The Kokoro speaker, voice name and speed of a speaker: its NPC file's voice (the core's voice table, docs/nlp/api.md section 6).</summary>
     /// <param name="speaker">One of the game's speakers (an NPC's id).</param>
     /// <param name="npcs">The NPCs.</param>
     /// <exception cref="InvalidOperationException">The speaker is no NPC, or its file gives no voice with a name (<see cref="UnvoicedSpeaker"/> says so first).</exception>
@@ -274,11 +274,11 @@ internal static class Program
         && previous.Voice == wanted.Voice && previous.Speed == wanted.Speed && previous.Rate == wanted.Rate && previous.ModelHash == wanted.ModelHash
         && (previous.Gain ?? 1.0f) == (wanted.Gain ?? 1.0f);
 
-    /// <summary>The gain the index records for a voice: <see langword="null"/> for 1, the model's own level (VILLAGE_PLAN V11).</summary>
+    /// <summary>The gain the index records for a voice: <see langword="null"/> for 1, the model's own level (village-plan V11).</summary>
     private static float? GainOf(NpcVoiceSpec spec) => spec.Gain == 1.0f ? null : spec.Gain;
 
     /// <summary>
-    /// The samples scaled by a voice's gain (VILLAGE_PLAN V11), rounded and held inside 16 bits; the same array for a gain of 1. Kokoro renders the Italian
+    /// The samples scaled by a voice's gain (village-plan V11), rounded and held inside 16 bits; the same array for a gain of 1. Kokoro renders the Italian
     /// <c>if_sara</c> about 10 dB louder than the Spanish voices, with peaks near full scale, so the baker's lines are brought down to their level.
     /// </summary>
     private static short[] Scaled(short[] samples, float gain)
@@ -414,7 +414,7 @@ internal static class Program
     /// <summary>
     /// Writes the listening table. The owner's marks in the last column are kept for every row whose Spanish text and recording are unchanged, so a
     /// re-render does not erase them; a row whose file was rendered again with other bytes (<paramref name="newRecordings"/>: a new voice, gain or speed)
-    /// loses its mark, since what the owner heard is gone (VILLAGE_PLAN V09). The speakers come first: each NPC's voice, then the trial's provisional voices.
+    /// loses its mark, since what the owner heard is gone (village-plan V09). The speakers come first: each NPC's voice, then the trial's provisional voices.
     /// </summary>
     private static void WriteChecklist(
         string path, List<(string LineId, string File, string Speaker, string Speed, string Text)> rows, IReadOnlySet<string> newRecordings, NpcRoster npcs, Trial? trial)
@@ -446,7 +446,7 @@ internal static class Program
         File.WriteAllText(path, builder.ToString(), new UTF8Encoding(false));
     }
 
-    // The speakers: each NPC of the roster with its file's voice and what it says, then the voice trial's provisional choices (VILLAGE_PLAN V06,
+    // The speakers: each NPC of the roster with its file's voice and what it says, then the voice trial's provisional choices (village-plan V06,
     // D-game-22 (d)): every voice the trial names an NPC for, recorded or not yet, with the trial folder the owner hears them in and what to do
     // with a voice the owner rejects. A voice leaves the list when the owner's decision takes its NPC out of the trial's entry.
     private static void AppendSpeakers(StringBuilder builder, NpcRoster npcs, Trial? trial)
@@ -471,7 +471,7 @@ internal static class Program
             return;
         }
 
-        builder.Append("**Provisional voices** (VILLAGE_PLAN V06, D-game-22 (d)). The voices below were chosen from the voice trial and their NPCs' lines recorded\n");
+        builder.Append("**Provisional voices** (village-plan V06, D-game-22 (d)). The voices below were chosen from the voice trial and their NPCs' lines recorded\n");
         builder.Append($"in them before the owner heard them: hear each in the trial, `{DefaultTrial}/` (its README; the trial is at the model's own level,\n");
         builder.Append("the recordings carry the gain of the table above), then the NPC's rows. A voice the owner rejects is changed in the NPC's file,\n");
         builder.Append("`content/game-v1/game/npcs/<id>.json` (`voice`: `speaker`, `name`, `speed`, and `gain` for a voice louder or quieter than the Spanish\n");
@@ -489,7 +489,7 @@ internal static class Program
         builder.Append('\n');
     }
 
-    // What is left to hear, counted at each render (VILLAGE_PLAN V09, phase B): the files with no mark, by speaker, most first, so the owner sees the size
+    // What is left to hear, counted at each render (village-plan V09, phase B): the files with no mark, by speaker, most first, so the owner sees the size
     // of the listening before reading the table. A mark is the owner's alone: a row keeps it while its text and recording are unchanged.
     private static void AppendToHear(StringBuilder builder, IReadOnlyList<(string Speaker, string Mark)> lines)
     {

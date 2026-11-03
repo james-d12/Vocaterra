@@ -56,7 +56,7 @@ try
     var started = MonotonicClock.Milliseconds();
     var directory = GameBundle.ResolveDirectory(options.ContentDirectory);
     var bundle = GameBundle.Load(directory);
-    // Every game file is read once, from the bytes the bundle's load verified, and checked against the others (CONTENT_PLAN C02): the scene too,
+    // Every game file is read once, from the bytes the bundle's load verified, and checked against the others (content-plan C02): the scene too,
     // unless --scene names a file of its own, which is read from disk and skips the bundle's check.
     var locales = LocaleBundle.Load(LocaleBundle.DirectoryBeside(directory));
     var data = GameData.Load(bundle, locales.Text(LocaleBundle.ChooseCode(options.Locale, bundle)));

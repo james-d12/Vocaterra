@@ -6,8 +6,8 @@ using Xunit.Abstractions;
 namespace Vocaterra.Game.Core.Tests.Language.Speech;
 
 /// <summary>
-/// The phrases Números y pan asks the learner to say (VILLAGE_PLAN V11), spoken: Kokoro says each at its step and Vosk hears it through the worker at the step's
-/// prompt (the round trip every content milestone runs once, VILLAGE_PLAN section 4), the numbers included: "dos" and "cuatro" must be heard, since the purchase and
+/// The phrases Números y pan asks the learner to say (village-plan V11), spoken: Kokoro says each at its step and Vosk hears it through the worker at the step's
+/// prompt (the round trip every content milestone runs once, village-plan section 4), the numbers included: "dos" and "cuatro" must be heard, since the purchase and
 /// the coins hang on them. A word the recognizer cannot hear would fail here; it would go to the learner's hearing side or to a typed-only variant. Skipped without the
 /// models.
 /// </summary>

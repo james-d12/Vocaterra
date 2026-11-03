@@ -6,11 +6,11 @@
 
 - Status: accepted
 - Date: 2026-10-20
-- Deciders: repository owner and the implementation plan (`IMPLEMENTATION_PLAN.md` section 1)
+- Deciders: repository owner and the implementation plan (`implementation-plan.md` section 1)
 
 ## Context
 
-The high-level design (`docs/nlp/history/HIGH_LEVEL_DOCS.md`, "Technology choices") allows Rust, C# or Go and recommends C#. The constraints
+The high-level design (`docs/archive/nlp/history/high-level-docs.md`, "Technology choices") allows Rust, C# or Go and recommends C#. The constraints
 that matter are:
 
 - Everything runs locally and offline, on consumer hardware (the plan assumes 8 GB RAM, 4 cores, no GPU).

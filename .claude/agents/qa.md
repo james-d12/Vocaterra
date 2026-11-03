@@ -40,12 +40,12 @@ current checkout). No area means `all`: a light pass over each area below.
   wrapper script under `/tmp/vocaterra-qa/` and run the script.
 
 ## Tools (read these; do not guess flags)
-- `docs/game/SCRIPTED_RUNS.md`: the sixteen scripted runs, their exact commands, and the baseline and templates for every area.
+- `docs/game/scripted-runs.md`: the sixteen scripted runs, their exact commands, and the baseline and templates for every area.
   `scripts/scripted-runs.sh OUT [name...]` runs them; `python3 -I scripts/compare-runs.py BASE NEW` compares two captures.
 - `src/Vocaterra.Game/Startup/LaunchOptions.cs` (or `Vocaterra.Game --help`): every game flag.
 - `tools/Vocaterra.Nlp.Cli`: `eval --prompt <id> --content content/game-v1 (--transcript "<text>" | --wav <file> --models <dir>)` and
   `replay`, for language tests without the renderer. `--help` lists the rest.
-- `content/PHRASES.md` (the source of truth for the phrases), `content/game-v1/agents/*.json` (the NPCs), `docs/game/PLAYTEST.md` section 13
+- `content/PHRASES.md` (the source of truth for the phrases), `content/game-v1/agents/*.json` (the NPCs), `docs/game/playtest.md` section 13
   (known limits; these are not new bugs).
 - Evidence for each run: the exit code, stdout and stderr, the screenshot (read the PNG and look at it), the save, the sound log and the
   session log.
@@ -62,7 +62,8 @@ Write `docs/qa-reports/<yyyy-mm-dd>-<area>.md`; on a second report for the same 
 earlier report. Return the same text as your final message. The layout is the one in `docs/qa-reports/README.md`:
 
 - Branch, commit, area, date, and what was covered (runs, inputs, CLI evaluations).
-- **Bugs**, most severe first. For each: `QA-<area>-<n>`, the severity (crash, blocker, major, minor, cosmetic), the exact command that
+- **Bugs**, most severe first. For each: `QA-<report>-<n>`, where `<report>` is the report's file name without `.md`
+  (`QA-2026-11-05-ui-1`; in `2026-11-05-ui-2.md`, `QA-2026-11-05-ui-2-1`), so every id is unique across reports; the severity (crash, blocker, major, minor, cosmetic), the exact command that
   reproduces it, expected and actual, the evidence (file path or log line), and the owner: core (`Vocaterra.Nlp*`) or game, per
   `docs/nlp/adr/0009-core-and-game-boundary.md`. Name the likely file if you know it; do not propose a fix.
 - **Observations**: things that are not bugs but would trouble a learner.

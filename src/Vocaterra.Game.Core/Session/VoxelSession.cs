@@ -20,7 +20,7 @@ namespace Vocaterra.Game.Core.Session;
 /// is <see cref="GuideSession"/>). The guide's facts are the blocks of the scene: the nearest block of a noun and its direction from where the
 /// player faces (<see cref="WorldFacts"/>). Since S6 the NPCs' host events act on this world (<see cref="NpcHostEvents"/>): the shopkeeper hands
 /// over the bottle, which the player fills at the river (the objective's water step), the villager points the beacon at the place the learner asked
-/// for (since VILLAGE_PLAN V02 through the scene's labels, <see cref="ScenePlaces"/>).
+/// for (since village-plan V02 through the scene's labels, <see cref="ScenePlaces"/>).
 /// </summary>
 /// <remarks>
 /// The front-end owns the clock and the input: it calls <see cref="Step"/> once per tick with the body's commands, and it reads the simulation,
@@ -81,7 +81,7 @@ public sealed partial class VoxelSession : GuideSession
     /// <summary>The built scene (the world the facts read).</summary>
     public Scene Scene { get; }
 
-    /// <summary>The places of the scene the NPCs' directions and the lessons name (VILLAGE_PLAN V02).</summary>
+    /// <summary>The places of the scene the NPCs' directions and the lessons name (village-plan V02).</summary>
     public ScenePlaces Places { get; }
 
     /// <summary>The 3D simulation: the body, the inventory, the tick counter and the events.</summary>
@@ -94,7 +94,7 @@ public sealed partial class VoxelSession : GuideSession
     public Objective Objective { get; }
 
     /// <summary>
-    /// The first objective in the HUD's order that is not done and is shown in this play session (an order of a later session is hidden, VILLAGE_PLAN V03), or
+    /// The first objective in the HUD's order that is not done and is shown in this play session (an order of a later session is hidden, village-plan V03), or
     /// <see langword="null"/> when every one is done. It gates nothing.
     /// </summary>
     public Objective? CurrentObjective => Objectives.FirstOrDefault(o => !o.Complete && o.Spec.ShownIn(Day));
@@ -200,7 +200,7 @@ public sealed partial class VoxelSession : GuideSession
 
     /// <summary>
     /// Whether the session is complete: the camp checklist is done and the player's own fire is lit (every objective the ending waits for, <see cref="ObjectiveSpec.EndsSession"/>:
-    /// not the orders, VILLAGE_PLAN V03). The front-end then shows the closing moment.
+    /// not the orders, village-plan V03). The front-end then shows the closing moment.
     /// </summary>
     public bool SessionComplete => _sessionComplete;
 
@@ -243,7 +243,7 @@ public sealed partial class VoxelSession : GuideSession
     internal override void LessonPointAtPlace(string npc, string place) => PointAtPlace(npc, place);
 
     /// <summary>
-    /// The scene's name of the place an arrow a save kept points at (the save keeps its word and its block, VILLAGE_PLAN V02): a named place with that label on that
+    /// The scene's name of the place an arrow a save kept points at (the save keeps its word and its block, village-plan V02): a named place with that label on that
     /// block, or an NPC standing there; <see langword="null"/> for an arrow on a noun's block.
     /// </summary>
     /// <param name="target">The arrow's block.</param>
@@ -327,7 +327,7 @@ public sealed partial class VoxelSession : GuideSession
     /// <summary>
     /// Advances the simulation one tick with the body's commands, then feeds the objective and the word cards from the tick's events, and takes
     /// the arrow down when the player is within <see cref="ReachBlocks"/> of its target, which logs <see cref="WorldEvents.BeaconReached"/> with the
-    /// place's name (VILLAGE_PLAN V02; not for the guide's review question). The conversation does not run here (see <see cref="GuideSession.Say"/>).
+    /// place's name (village-plan V02; not for the guide's review question). The conversation does not run here (see <see cref="GuideSession.Say"/>).
     /// </summary>
     public void Step(IReadOnlyList<VoxelCommand> commands)
     {
@@ -667,7 +667,7 @@ public sealed partial class VoxelSession : GuideSession
 
     /// <inheritdoc />
     protected override string? OrderReadyAt(string npc) =>
-        GoodsHeldOrders(npc).FirstOrDefault(o => !Lessons.HoldsOrder(o.Spec))?.Id; // the lesson that tells the order may keep it back until its plan is said (VILLAGE_PLAN V13)
+        GoodsHeldOrders(npc).FirstOrDefault(o => !Lessons.HoldsOrder(o.Spec))?.Id; // the lesson that tells the order may keep it back until its plan is said (village-plan V13)
 
     /// <inheritdoc />
     protected override bool OrderHeldAt(string npc) => GoodsHeldOrders(npc).Any(o => Lessons.HoldsOrder(o.Spec));
@@ -709,7 +709,7 @@ public sealed partial class VoxelSession : GuideSession
         _eventAmount = 1;
     }
 
-    // An NPC takes items (VILLAGE_PLAN V03: take_item, the goods of an order), all of them or none: a player who has fewer keeps what they have. None takes nothing.
+    // An NPC takes items (village-plan V03: take_item, the goods of an order), all of them or none: a player who has fewer keeps what they have. None takes nothing.
     private void Take(string npc, ItemId item, int count, string how)
     {
         if (count <= 0 || !Simulation.TakeItems(item, count))
@@ -722,7 +722,7 @@ public sealed partial class VoxelSession : GuideSession
         _eventAmount = 1;
     }
 
-    // A purchase (VILLAGE_PLAN V03, sell): the coins for the items asked for go and the items come, or nothing changes hands (false). None asked for, too few coins
+    // A purchase (village-plan V03, sell): the coins for the items asked for go and the items come, or nothing changes hands (false). None asked for, too few coins
     // or no room for the items once the coins are paid (the NPC answered none_asked, cant_pay or no_room on the worker, NpcEffect.ExchangeMiss) keep the coins and the
     // items where they were, as the stall's bottle rule keeps a second bottle.
     private bool Sell(string npc, ItemId item, int count, int cost, string how)
@@ -737,7 +737,7 @@ public sealed partial class VoxelSession : GuideSession
         return true;
     }
 
-    // A sale (VILLAGE_PLAN V15, buy): the NPC takes the items the learner offers and pays the price for each, or nothing changes hands. No items to sell, none
+    // A sale (village-plan V15, buy): the NPC takes the items the learner offers and pays the price for each, or nothing changes hands. No items to sell, none
     // offered or no room for the coins once the items are taken (cant_sell, none_offered, no_room) keep the items and the coins where they were, as a purchase does.
     private void Buy(string npc, NpcEffect sale, int count, string how)
     {
@@ -750,7 +750,7 @@ public sealed partial class VoxelSession : GuideSession
         Give(npc, ItemId.Coin, sale.PriceOf(count), how);
     }
 
-    // The beacon goes to a named place of the scene (VILLAGE_PLAN V02): a host event's point_at_place, or a lesson's do step with a pointPlace. It shows the place's label.
+    // The beacon goes to a named place of the scene (village-plan V02): a host event's point_at_place, or a lesson's do step with a pointPlace. It shows the place's label.
     private void PointAtPlace(string npc, string place)
     {
         if (Places.Point(place) is not { } point)
@@ -763,7 +763,7 @@ public sealed partial class VoxelSession : GuideSession
         LogWorld(WorldEvents.BeaconSet, npc, $"{label} at {point.X},{point.Y},{point.Z}");
     }
 
-    // The beacon goes to the place the learner asked for (VILLAGE_PLAN V02, point_at_slot): a label of the scene, else a catalogue noun's nearest block
+    // The beacon goes to the place the learner asked for (village-plan V02, point_at_slot): a label of the scene, else a catalogue noun's nearest block
     // (ScenePlaces.Resolve). The answer is logged as place_asked; a place the NPC does not know points nowhere, and the NPC said so on the worker (unknown_place).
     private void PointAtSlot(string npc, string? word)
     {

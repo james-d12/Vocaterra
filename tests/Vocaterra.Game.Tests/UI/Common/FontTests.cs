@@ -85,7 +85,7 @@ public sealed class FontTests
     [Fact]
     public void EveryCharacterOfEveryShippedLocaleIsInTheFontAndInTheLocalesGlyphList()
     {
-        // CONTENT_PLAN 3.2 (C04): the support language's strings are data, so the font check reads them all, as they are drawn ({npc:…} and {key:…} filled).
+        // content-plan 3.2 (C04): the support language's strings are data, so the font check reads them all, as they are drawn ({npc:…} and {key:…} filled).
         // locales.json lists each locale's characters beyond printable ASCII, the set a font for it must draw.
         var cmap = TrueTypeCmap.Load(CommittedFont);
         var bundle = LocaleBundle.Load(Repo.Path("content", "locale"));

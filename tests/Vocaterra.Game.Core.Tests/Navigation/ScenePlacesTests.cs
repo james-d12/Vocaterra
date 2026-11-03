@@ -6,7 +6,7 @@ using Vocaterra.Game.Core.Voxel;
 namespace Vocaterra.Game.Core.Tests.Navigation;
 
 /// <summary>
-/// The places a word names on the bundle's route (VILLAGE_PLAN V02): a label of the scene (<c>tienda</c> is the stall), the nearest of the points that share one (the
+/// The places a word names on the bundle's route (village-plan V02): a label of the scene (<c>tienda</c> is the stall), the nearest of the points that share one (the
 /// three houses), the river as its nearest water (the villager's answer before V02), a catalogue noun no label shows as its nearest block, and a word that is neither.
 /// </summary>
 public sealed class ScenePlacesTests
@@ -46,7 +46,7 @@ public sealed class ScenePlacesTests
     [Fact]
     public void TheWellIsNotTheRiverThoughItsWaterIsNearer()
     {
-        // VILLAGE_PLAN V04: the village's well holds a block of water a few steps from the villager. The river is the water its point lies in, so the villager
+        // village-plan V04: the village's well holds a block of water a few steps from the villager. The river is the water its point lies in, so the villager
         // still sends the learner down the road to it; a word no label shows is its nearest block, and the nearest water ("agua") is the well's.
         var session = TestGame.NewSession();
         Stage.TeleportToNpc(session, "villager");
@@ -75,7 +75,7 @@ public sealed class ScenePlacesTests
     [InlineData("puente", "bridge")]
     public void TheVillagesPlacesAreFoundByTheirLabels(string word, string name)
     {
-        // VILLAGE_PLAN V04: the places the lessons of sessions 4 to 6 send the learner to, by the words an NPC's directions answer to (V02's point_at_slot).
+        // village-plan V04: the places the lessons of sessions 4 to 6 send the learner to, by the words an NPC's directions answer to (V02's point_at_slot).
         var session = TestGame.NewSession();
         Stage.TeleportToNpc(session, "villager");
 
@@ -94,7 +94,7 @@ public sealed class ScenePlacesTests
         var tree = session.Places.Resolve("árbol", from, TestGame.FactsOf(session));
         Assert.Equal(new FoundPlace("árbol", "árbol", TestGame.NearestOf(session, "árbol")), tree);
 
-        Assert.Null(session.Places.Resolve("montaña", from, TestGame.FactsOf(session))); // the signpost's third arm: no point, no block (VILLAGE_PLAN 3.2)
+        Assert.Null(session.Places.Resolve("montaña", from, TestGame.FactsOf(session))); // the signpost's third arm: no point, no block (village-plan 3.2)
         Assert.Null(session.Places.Resolve("botella", from, TestGame.FactsOf(session))); // a catalogue noun of no block in the world
         var noLabels = ScenePlaces.None.Resolve("tienda", from, TestGame.FactsOf(session)); // without the labels a word is still a noun of blocks (the stall's and the roofs')
         Assert.Equal(new FoundPlace("tienda", "tienda", TestGame.NearestOf(session, "tienda")), noLabels);

@@ -70,7 +70,7 @@ public sealed class Inventory
     /// <summary>
     /// Whether an exchange can be made (nothing is changed): <paramref name="paidCount"/> of <paramref name="paid"/> are in the inventory, and all <paramref name="count"/>
     /// of <paramref name="item"/> fit once they are gone. The coins of a purchase free their slot for the items bought, and the goods of a sale theirs for the coins
-    /// (VILLAGE_PLAN V19, the review's R8).
+    /// (village-plan V19, the review's R8).
     /// </summary>
     /// <param name="paid">What goes out.</param>
     /// <param name="paidCount">How many go out; zero for nothing.</param>

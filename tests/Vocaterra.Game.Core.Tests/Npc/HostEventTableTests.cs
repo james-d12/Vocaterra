@@ -8,7 +8,7 @@ using Vocaterra.Nlp.Core.Verdicts;
 namespace Vocaterra.Game.Core.Tests.Npc;
 
 /// <summary>
-/// <c>game/host-events.json</c> schema 2 (VILLAGE_PLAN V02): <c>give_item</c> with a count (a number, or the number the learner said, capped at five), and the beacon
+/// <c>game/host-events.json</c> schema 2 (village-plan V02): <c>give_item</c> with a count (a number, or the number the learner said, capped at five), and the beacon
 /// sent to a named place of the scene or to the place a slot of the learner's line names. A purchase has no cap since V19: the number said, bounded by the coins and the bag.
 /// </summary>
 public sealed class HostEventTableTests

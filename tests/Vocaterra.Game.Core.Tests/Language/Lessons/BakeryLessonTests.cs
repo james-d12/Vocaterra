@@ -9,7 +9,7 @@ using Xunit.Abstractions;
 namespace Vocaterra.Game.Core.Tests.Language.Lessons;
 
 /// <summary>
-/// The lesson "Números y pan" of session 5 (VILLAGE_PLAN V11, 3.5): the baker Luz at the bakery, the numbers 1 to 10, plurals, ¿Cuántos…?, ¿Cuánto cuesta?, and the order
+/// The lesson "Números y pan" of session 5 (village-plan V11, 3.5): the baker Luz at the bakery, the numbers 1 to 10, plurals, ¿Cuántos…?, ¿Cuánto cuesta?, and the order
 /// oven-wood told in the three times (voy a buscar madera, tengo cuatro monedas, compré dos panes: the regular -ar past); the purchase of bread with the coins the order
 /// pays; ¿Hay pan? at the stall; the tense steps; the baker's own answers outside the lesson; and the stall's first exchange, which costs nothing still.
 /// </summary>
@@ -160,7 +160,7 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
         }
 
         // The forms it declares for the book: costar in the present, buscar as a plan, and the regular -ar past of comprar for yo and tú (an a1 lesson: no simple
-        // future, VILLAGE_PLAN 3.9).
+        // future, village-plan 3.9).
         Assert.All(lesson.TaughtVerbs, static v => Assert.Contains(v.Tense, new[] { "pres", "pret", TaughtVerbForm.NearFuture }));
         var morphology = TestGame.Bundle.SpanishMorphology();
         Assert.Equal(["cuesta", "cuestan", "voy a buscar", "compré", "compraste"], lesson.TaughtVerbs.Select(v => v.Text(morphology, TestGame.Data.Words.NearFuture)));

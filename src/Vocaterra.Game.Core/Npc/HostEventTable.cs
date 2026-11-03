@@ -6,10 +6,10 @@ using Vocaterra.Nlp.Content;
 namespace Vocaterra.Game.Core.Npc;
 
 /// <summary>
-/// What each NPC host event does in the world (CONTENT_PLAN 3.6, C08), read from <c>game/host-events.json</c>: the shopkeeper's <c>stall.give_water</c> gives the
+/// What each NPC host event does in the world (content-plan 3.6, C08), read from <c>game/host-events.json</c>: the shopkeeper's <c>stall.give_water</c> gives the
 /// bottle, the villager's <c>villager.point</c> points the beacon at the place the learner asked for. The core's agents raise the host events; the game gives each
 /// one its action. An event the file does not map changes nothing. The field is <c>action</c>, because the core's <c>effects/effects.json</c> already says "effect"
-/// for another thing. Schema 2 (VILLAGE_PLAN V02) gave <c>give_item</c> a count and added the pointing at a place and at the place a slot names; V03 added
+/// for another thing. Schema 2 (village-plan V02) gave <c>give_item</c> a count and added the pointing at a place and at the place a slot names; V03 added
 /// <c>take_item</c> and <c>sell</c>.
 /// </summary>
 public sealed class HostEventTable
@@ -17,7 +17,7 @@ public sealed class HostEventTable
     /// <summary>The file's path inside the bundle folder.</summary>
     public const string RelativePath = "game/host-events.json";
 
-    /// <summary>The file's format: 2 since VILLAGE_PLAN V02 (a count on <c>give_item</c>, <c>point_at_place</c>, <c>point_at_slot</c>).</summary>
+    /// <summary>The file's format: 2 since village-plan V02 (a count on <c>give_item</c>, <c>point_at_place</c>, <c>point_at_slot</c>).</summary>
     public const int SchemaVersion = 2;
 
     /// <summary>The kinds of action the file may name.</summary>
@@ -35,7 +35,7 @@ public sealed class HostEventTable
     /// <summary>
     /// Builds the table from the file's text: <c>{ "schemaVersion": 2, "events": [ { "npc", "event", "action": { "kind": "give_item", "item", "count"? } | { "kind":
     /// "point_at_noun", "noun" } | { "kind": "point_at_place", "place" } | { "kind": "point_at_slot", "slot" } | { "kind": "take_item", "item", "count"? } | { "kind":
-    /// "sell", "item", "price" } | { "kind": "buy", "item", "price" } } ] }</c> (<c>buy</c> since VILLAGE_PLAN V15: the NPC pays for what the learner sells). An item is named as the save names it (<c>water-bottle</c>); a count is a number from 1 or <c>"qty"</c>, the number the
+    /// "sell", "item", "price" } | { "kind": "buy", "item", "price" } } ] }</c> (<c>buy</c> since village-plan V15: the NPC pays for what the learner sells). An item is named as the save names it (<c>water-bottle</c>); a count is a number from 1 or <c>"qty"</c>, the number the
     /// learner said (<see cref="NpcEffect.Quantity"/>), and one when it is left out; a price is a number of coins from 1.
     /// </summary>
     /// <param name="json">The contents of <c>game/host-events.json</c>.</param>

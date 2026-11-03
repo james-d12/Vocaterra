@@ -8,7 +8,7 @@ namespace Vocaterra.Game.Core.Session;
 public abstract partial class GuideSession
 {
     /// <summary>
-    /// Delivers an order as the panel's opening does when the player walks up with its goods (<see cref="OpenTalk"/>, VILLAGE_PLAN V03), without a panel: the NPC's thanks
+    /// Delivers an order as the panel's opening does when the player walks up with its goods (<see cref="OpenTalk"/>, village-plan V03), without a panel: the NPC's thanks
     /// is its <c>&lt;npc&gt;.delivered</c> host turn, the goods go, the reward its host events give comes in, and <see cref="WorldEvents.OrderDelivered"/> is logged (the
     /// order's step waits for it). Returns <see langword="false"/>, and changes nothing in the world, when the NPC's agent does not take the delivery.
     /// </summary>

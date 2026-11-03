@@ -109,7 +109,7 @@ public sealed class PhraseSupport
     /// <param name="bundle">The bundle whose dialogue lines hold the model audio's text.</param>
     /// <param name="npcs">The NPCs, whose prompts name the phrases in play (C08).</param>
     /// <param name="english">The game's English text (the explanations on the cards), or <see langword="null"/> for cards without them.</param>
-    /// <param name="ready">Whether a phrase of an NPC's focus is in play yet (VILLAGE_PLAN V20: once the lesson that teaches it is the current one or done,
+    /// <param name="ready">Whether a phrase of an NPC's focus is in play yet (village-plan V20: once the lesson that teaches it is the current one or done,
     /// <see cref="Lessons.LessonRunner.CardReady"/>), or <see langword="null"/> for the whole focus always.</param>
     public PhraseSupport(PhraseSheet sheet, PhraseProgress progress, ContentBundle bundle, NpcRoster npcs, LocaleText? english = null, Func<string, bool>? ready = null)
     {
@@ -149,7 +149,7 @@ public sealed class PhraseSupport
         : _forcedPhrase is not null ? [_forcedPhrase] : _reviewPhrase is not null ? [_reviewPhrase] : _ratedPhrase is not null ? [_ratedPhrase] : FocusAt(_prompt ?? string.Empty);
 
     /// <summary>
-    /// The phrases of a prompt's focus in play now: its NPC's (<see cref="NpcRoster.FocusAt"/>) whose lesson has come (VILLAGE_PLAN V20, the constructor's <c>ready</c>), so an
+    /// The phrases of a prompt's focus in play now: its NPC's (<see cref="NpcRoster.FocusAt"/>) whose lesson has come (village-plan V20, the constructor's <c>ready</c>), so an
     /// NPC shows no card of a later lesson (Luz's <c>Vendo madera.</c> before the market's).
     /// </summary>
     /// <param name="prompt">The prompt id.</param>

@@ -51,7 +51,7 @@ mkdir -p "$DEST/content" "$DEST/models"
 cp -r "$BUNDLE" "$DEST/content/game-v1"
 cp "$MANIFEST" "$DEST/models/manifest.json"
 cp -r "$MODELS/$VOSK_ID" "$DEST/models/$VOSK_ID"
-cp "$ROOT/scripts/playtest/README-tester.md" "$DEST/README.md"
+cp "$ROOT/scripts/playtest/tester-readme.md" "$DEST/README.md"
 cp "$ROOT/scripts/playtest/playtest.sh" "$DEST/playtest.sh"
 chmod +x "$DEST/playtest.sh" "$DEST/Vocaterra.Game"
 

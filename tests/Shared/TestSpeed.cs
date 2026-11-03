@@ -3,7 +3,7 @@ namespace Vocaterra.Nlp.Testing;
 /// <summary>
 /// The trait that keeps a test out of the fast tier: <c>[Trait(TestSpeed.Trait, TestSpeed.Slow)]</c> on a class or a method, or
 /// <c>[assembly: AssemblyTrait(TestSpeed.Trait, TestSpeed.Slow)]</c>. <c>scripts/test.sh fast</c> runs <c>--filter "Speed!=Slow"</c>; the merge
-/// gate, CI and <c>scripts/test.sh full</c> run every test (docs/TEST_PERFORMANCE_PLAN.md, T4). One source file, linked into the core's test
+/// gate, CI and <c>scripts/test.sh full</c> run every test (docs/process/test-performance-plan.md, T4). One source file, linked into the core's test
 /// projects that mark tests.
 /// </summary>
 internal static class TestSpeed

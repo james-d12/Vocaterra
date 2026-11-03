@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "note": "Development-time tools the grammar check runs as separate local processes (docs/nlp/DECISIONS.md D10). Nothing here is linked, shipped or sent to a public service. Installed by scripts/fetch-tools.sh under ${VOCATERRA_TOOLS_DIR:-~/.local/share/vocaterra/tools}; started by scripts/languagetool.sh. No n-gram data is installed.",
+  "note": "Development-time tools the grammar check runs as separate local processes (docs/nlp/decisions.md D10). Nothing here is linked, shipped or sent to a public service. Installed by scripts/fetch-tools.sh under ${VOCATERRA_TOOLS_DIR:-~/.local/share/vocaterra/tools}; started by scripts/languagetool.sh. No n-gram data is installed.",
   "tools": [
     {
       "id": "temurin-jre-21.0.13+9",

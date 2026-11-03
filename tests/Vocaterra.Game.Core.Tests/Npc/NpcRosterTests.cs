@@ -9,9 +9,9 @@ using Vocaterra.Game.Core.Tip;
 namespace Vocaterra.Game.Core.Tests.Npc;
 
 /// <summary>
-/// The NPCs as data (CONTENT_PLAN 3.6, C08): <c>game/npcs.json</c>, one file per NPC, and <c>game/host-events.json</c>. They were tables in the code
+/// The NPCs as data (content-plan 3.6, C08): <c>game/npcs.json</c>, one file per NPC, and <c>game/host-events.json</c>. They were tables in the code
 /// (<c>NpcService.AgentIds</c>, <c>NpcNames</c>, <c>PhraseIds.FocusAt</c> and <c>HomeOf</c>, <c>NpcHostEvents</c>'s table); the data gives the same answers,
-/// and the validator checks it against the core's agents and prompts. Since schema 2 (VILLAGE_PLAN V01) the file also holds the prompt of each state, the
+/// and the validator checks it against the core's agents and prompts. Since schema 2 (village-plan V01) the file also holds the prompt of each state, the
 /// opening, the voice, the key words and the pool prefix, which were switches in <c>NpcService</c>, the renderer and <c>SpeechSpeakers</c>.
 /// </summary>
 public sealed class NpcRosterTests
@@ -33,7 +33,7 @@ public sealed class NpcRosterTests
     [Fact]
     public void TheShippedNpcsAreTheOnesTheCodeHeld()
     {
-        // The three the code held, and since VILLAGE_PLAN V10 the fisher Mar, V11 the baker Luz and V12 the smith Domingo and the farmer León, at the end (the saves
+        // The three the code held, and since village-plan V10 the fisher Mar, V11 the baker Luz and V12 the smith Domingo and the farmer León, at the end (the saves
         // keep the NPCs in this order).
         Assert.Equal(["guide", "shopkeeper", "villager", "fisher", "baker", "smith", "farmer"], Npcs.Ids);
         Assert.Equal(["Guía", "Tendero", "Aldeano", "Pescador", "Panadera", "Herrero", "Granjero"], Npcs.All.Select(static n => n.Label));
@@ -59,7 +59,7 @@ public sealed class NpcRosterTests
         Assert.Equal(new NpcOpeningRule("shopkeeper.ask", OpeningWhen.First), shopkeeper.Opening);
         Assert.Equal(new NpcOpeningRule("villager.greet", OpeningWhen.Always), villager.Opening);
 
-        // The renderer's table (docs/nlp/API.md section 6), the key words that were words.json's, and the pools' names.
+        // The renderer's table (docs/nlp/api.md section 6), the key words that were words.json's, and the pools' names.
         // V10: the fisher's provisional voice is the villager's at 0.9 (D-game-22), his pools his own. V11: the baker's is the Italian if_sara (V06's trial), brought
         // down to the Spanish voices' level (gain 0.32: Kokoro renders it about 10 dB louder). V12: the smith's is the Italian im_nicola (gain 0.6: about 4 dB
         // louder in the trial), the farmer's the Portuguese pm_santa (as loud as the Spanish voices).
@@ -117,7 +117,7 @@ public sealed class NpcRosterTests
     [Fact]
     public void AnNpcWhoseBehaviourDoesNotFitTheBundleIsAProblem()
     {
-        // V01 (VILLAGE_PLAN 2.8): an NPC the code did not know used to wait on the villager's prompt with no error.
+        // V01 (village-plan 2.8): an NPC the code did not know used to wait on the villager's prompt with no error.
         var shopkeeper = Npcs.Find("shopkeeper")!;
         var villager = Npcs.Find("villager")!;
         var guide = Npcs.Find("guide")! with { Voice = null, KeyWords = ["queso"] };

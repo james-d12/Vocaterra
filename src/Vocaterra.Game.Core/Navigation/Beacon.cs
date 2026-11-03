@@ -27,7 +27,7 @@ public sealed class Beacon
     /// <summary>Puts the beacon on a block.</summary>
     /// <param name="target">The block.</param>
     /// <param name="label">The word shown with it.</param>
-    /// <param name="name">The scene's name of the place, when the block is one (VILLAGE_PLAN V02: the arrival is logged with it).</param>
+    /// <param name="name">The scene's name of the place, when the block is one (village-plan V02: the arrival is logged with it).</param>
     public void Set(BlockPos target, string? label = null, string? name = null)
     {
         Target = target;

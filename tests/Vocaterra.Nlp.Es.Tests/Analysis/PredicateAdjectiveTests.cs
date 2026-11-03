@@ -143,7 +143,7 @@ public class PredicateAdjectiveTests
     }
 
     // A name may be the person spoken to, and the core does not know a name's gender (Sol may be a woman): only the copula's number is checked after it. The game's
-    // names that are also nouns carry their person's gender (VILLAGE_PLAN 5), so its correct lines are clean either way.
+    // names that are also nouns carry their person's gender (village-plan 5), so its correct lines are clean either way.
     [Theory]
     [InlineData("luz es alta")]
     [InlineData("luz es alto")]

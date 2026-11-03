@@ -1,0 +1,315 @@
+# Architecture: how the game consumes the language core
+
+Vocaterra is the game: the projects `Vocaterra.Game.Core`, `Vocaterra.Game`, `Vocaterra.Host` and `tools/Vocaterra.SpeechRender` of the repository. The language core, Vocaterra.NLP (the engine project `Vocaterra.Nlp` and its `Vocaterra.Nlp.*` tests and tools, Apache-2.0), is the other half of the same `src/`, `tests/` and `tools/` folders;
+the two were separate repositories until 2026-10-21 (D-game-7) and sibling folders until the root layout of R01 (2026-10-23). The game references the core's library projects under `src` directly
+(`Vocaterra.Game.Core` and `Vocaterra.Host` list them as `ProjectReference`s) and copies nothing of its source. This document says what the game
+takes from the core, what the game owns, and how the two meet. The core's contract is [docs/nlp/api.md](../nlp/api.md), and the
+boundary is [ADR 0009](../nlp/adr/0009-core-and-game-boundary.md). The game design is [specification.md](specification.md).
+
+## The boundary
+
+The core takes a learner's utterance, from audio or a transcript, to a deterministic verdict, feedback, a conversation step and the agent's
+response text. The game takes that outcome and decides what it means in the world.
+
+| The core provides (`Vocaterra.Nlp`) | The game owns (this repository and its engine) |
+| --- | --- |
+| The verdict contract: intent, communicated, correctness, tagged errors | Scenes, characters, dialogue pools and the agents' stories |
+| Speech recognition, phonology, pronunciation, NLP and evaluation (behind interfaces) | Items, spells, quests, prices and rewards, and the meaning of each effect kind |
+| The learner model (BKT), scheduling (FSRS) and the feedback policy | The save file, the world seed, the stored time and the host state digest |
+| The conversation state-machine engine (`ConversationAgents`), with opaque host event names | Mapping host events and effect kinds to game state |
+| Response templates, recasts, speech synthesis, and the effect resolver with opaque kinds | Rendering, device audio capture, playback, and the engine itself |
+| Content formats: the bundle loader, validator, hashing, provenance, the lexicon and CEFR lists | The game's content bundles (`content/`), built with the core's content tool |
+
+The core knows nothing about prices, items, spells or quests. An effect's `kind` and an action's `hostEvent` are strings the game interprets.
+A change to a public type in the core's API document is a change to this boundary, and the core updates its ADR when it makes one.
+
+## What the game takes from the core
+
+The host in `src/Vocaterra.Host` makes the calls of the core's API document, in order, against the packages only (no project references
+to the core). Each step below names the call in the host.
+
+1. **Load a bundle.** `SpanishContent.Load(directory)` (the core's `ContentLoader.Load` with the Spanish pack registered) verifies every file's hash and the cross-references, and returns the bundle with its
+   `ContentHash`. The game's bundle is `content/game-v1`. A bundle is hashed and its manifest rewritten by the core's content tool, through
+   `scripts/content.sh`.
+2. **Build the services.** `PipelineServices` takes a word recognizer, an optional phoneme recognizer, an embedding model, a synthesizer and
+   the bundle. The host uses the scripted recognizer (the typed line is the transcript), `FakeEmbeddingModel` and `SilentSynthesizer`, so no
+   model file and no audio are involved yet. Real models come from the core's model store (`ModelStore.FromEnvironment()`, with
+   `VOCATERRA_MODELS_DIR`) once the game needs them.
+3. **Build a pipeline and evaluate.** `UtterancePipeline.Evaluate(clip, prompt, context)` returns a `PipelineResult`: the verdict, the
+   decision (agent step, learner, rating, feedback), the agent's lines, the resolved effects and an optional repair step. `PromptSpec.Text`
+   is the line the agent says before the player answers (null when there is none). The text loop shows it before each turn, under the
+   prompt's header (`VerdictReport.WritePrompt`); a prompt without text shows the header alone. A `--transcript` run prints no prompt line,
+   so it prints no prompt text either.
+4. **Carry the conversation.** `ConversationContext` holds the world seed, the agent id and its state, the stored time, the learner model
+   and the repeat counts per error tag. After each utterance the host calls the core's `ConversationContext.Next(result, now)`
+   (`ConversationSession.Evaluate`), which builds the next context from this one and the result; it calls `RepeatCounts.Next(before,
+   verdict)` inside it (core M19d, API document sections 4 and 5). The counts count each error tag, and `not_communicated` when the player
+   was not understood, one more in a row, and an int stops at `int.MaxValue`. The host keeps the state of each agent it talks to in its own
+   map, because `Next` carries only the agent of the utterance.
+5. **Read the outcome.** The verdict's errors and correctness, the lines of the response plan and the effects are what the game maps to its
+   own rules. The host prints them; the game does the mapping.
+
+Speech, replay and the save of a log are the core's other calls (API document sections 6 and 7). Since P5 the game recognizes speech (Vosk) and, for the scripted `--speak` lines, synthesizes it (Kokoro behind `CachedSynthesizer`); it does not use replay logs yet, and the guide does not speak until P8.
+
+## What the host owns
+
+The core cannot know these, so the host supplies them (API document, "The host owns what the core cannot know"):
+
+- **The world seed** (`ConversationSession.DefaultWorldSeed` until the game has saves). It seeds every random draw with the agent id and the
+  interaction counter.
+- **The stored time.** The text loop reads the clock; a one-shot `--transcript` run uses a fixed time so its output is repeatable.
+- **The learner model.** It is persisted by the game and passed back in, as `LearnerModel.New()` for a new player.
+- **The repeat counts** per error tag, counted in a row, which the feedback policy uses to vary its repair. The core provides the rule
+  (`RepeatCounts.Next`, called by `ConversationContext.Next`); the host keeps the counts and passes them into the next utterance. A
+  restored conversation passes the counts it saved to the `ConversationSession` constructor.
+- **`HostStateHash`.** `ConversationContext.Create` computes it over the values above. A game with its own state digest uses the
+  constructor instead, and recomputes it after `Next`.
+
+## Versions and the build
+
+- The game and the core are built from the same commit by the root `Vocaterra.sln`: `Vocaterra.Game` and `Vocaterra.Host` reference the
+  core's projects (`../Vocaterra.Nlp/Vocaterra.Nlp.csproj` and, since M53, the Spanish pack `../Vocaterra.Nlp.Es/Vocaterra.Nlp.Es.csproj`, which `GameBundle` and the host register), so a core change is visible to the game in the same build. There is no
+  package version to bump, no feed and no pack step (M50 retired the packaging scripts and the sample host; core D5 is superseded); the root
+  `nuget.config` lists nuget.org only.
+- Third-party package versions for both halves are in the root `Directory.Packages.props`.
+- A core change the game needs is a core milestone in `docs/nlp/implementation-plan.md`; a game milestone never edits the engine `Vocaterra.Nlp` or its `Vocaterra.Nlp.*` projects.
+- The content tool is the core's `tools/Vocaterra.Nlp.ContentBuilder`, run from source by `scripts/content.sh`.
+- The core is Apache-2.0 (core D3); the game is Apache-2.0 too (the whole repository since R01; D-game-2 in [decisions.md](decisions.md) was MIT).
+- The core's sherpa-onnx dependency carries GPL-3.0 code in its native build (core D2). Nothing here ships the native libraries, and the
+  game does not distribute a build that includes them until D2 is settled in the core.
+
+**Native-asset trim (G7).** The speech packages and MonoGame ship native libraries for every platform, and a plain build copied all of them
+(about 400 MB in the front-end's `bin` alone). `Directory.Build.props` therefore sets `RuntimeIdentifier=linux-x64` (with
+`SelfContained=false` and `AppendRuntimeIdentifierToOutputPath=false`, so the output stays at `bin/Debug/net10.0/`) when the build host is
+Linux x64. NuGet then copies only that runtime's natives, and the same `dotnet build`, `dotnet test` and `dotnet run` commands work. The
+property `VocaterraAllRuntimes=true` turns the condition off, so a release build that must carry every platform restores the full copy; other
+build hosts never get the trim. Restore again after changing the property, because the assets file records the runtimes restored.
+
+## The engine
+
+The engine is MonoGame for the prototype and the final engine is open (D-game-1 in [decisions.md](decisions.md)); a Godot .NET front-end is a
+later spike. The console host stays as the cheapest way to exercise the core's calls and the content. A front-end references the same packages
+(through `Vocaterra.Game.Core`), calls the same sequence and renders the outcome itself. Audio capture and playback belong to the front-end and stay
+out of the core.
+
+## The game layer (P3)
+
+The game is one engine-free library and one front-end (`docs/process/code-guidelines.md`, R16), so that the engine can change without rewriting the
+game: `Vocaterra.Game.Core` holds the systems and mechanics, `Vocaterra.Game` what needs MonoGame or draws. The old `Vocaterra.Simulation` and
+the engine-free half of the old `Vocaterra.Game` are `Vocaterra.Game.Core`; R16 phase 2 (2026-10-28, `docs/archive/game/r16-phase2.md`,
+`docs/archive/game/game-projects-layout.md`) moved the screens' models, the screens and their keys, the turn flow, the scripts and the tick there. A folder is a
+namespace (`src/Vocaterra.Game.Core/Language/Book/` is `Vocaterra.Game.Core.Language.Book`), and a file holds one type.
+
+**`src/Vocaterra.Game.Core`**, folders by system: no package, no engine type, no clock and no `System.Random` (its `ArchitectureRulesTests`).
+
+```
+Content/          GameData (every game file of the bundle, read once from its verified bytes), GameDataValidator (the checks between the files,
+                  content-plan C02), LocaleBundle and LocaleText (the learner's support language from content/locale, C03)
+Event/            the game's events (WorldEvents, GameEvent), EventPrinter (the console's event lines) and Trigger (what a tip, a lesson step
+                  or an objective waits for, C06)
+Input/            the keys without the engine (GameKey, IInputFrame, D-p2-1a), the command pattern (IGameCommand, DelegateCommand,
+                  GameCommands, KeyBinding, KeyBindings, InputKeys: the commands' keys by name, which the locale's {key:…} spells),
+                  InputFocus, KeyRepeater, OpenKeySwallow, TextEntry, AccentShortcuts, TextEdits, TextEditKeys, the push-to-talk
+                  (PushToTalkSpeechCapture, ListenSession, ListenTarget), BookItemUse
+Items/            Inventory, ItemDefinition, ScriptItemNames, InventoryScreen and its panel (InventoryPanel)
+  Crafting/       Recipe, RecipeBook and their records, CraftingRules, CraftingScreen, CraftingRow, RecipePanelModel, CraftingPanel
+Dialogue/         DialogueModel and its records, the speech buttons, TextWrap, the turn flow (TurnPump, SpeechActionRunner, SupportFrontend,
+                  TurnPresenter, GuideGreeting) and DialogueScreen
+Language/         Book/ (the book's model, pages, tables, recordings, speakers, geometry and BookScreen), Checks/ (the battery's bank, plan,
+                  grader, CheckScreen, CheckBattery and ICheckLog), Learner/, Lessons/ (LessonRunner, LessonFrontend, LessonActions),
+                  Phrases/ (phrase progress, the support ladder, PhraseJournalRows), Speech/ (the evaluators, MicCheck, MicCheckModel,
+                  MicCheckScreen), Words/ (the noun catalogue, word progress, JournalRows, VerbReading, GreyscaleWorld)
+Mathematics/      Angles, WorldRng, PresentationRng
+Navigation/       Beacon, the walk's path search, BeaconDirector, PointLabels, ScenePlaces (the places a word names, village-plan V02)
+Npc/              NpcService, WorldFacts, the aim at an NPC, the guide's turns and events, the NPCs' data (NpcRoster: since V01 also the prompt of
+                  each state, the opening, the voice and the key words) and HostEventTable
+Physics/          the player's body and its collision with the grid
+Reporting/        the F8 report (ReportPanel, ReportEntry, ReportWrap, ReportStateBuilder, BuildCommit), FrameStats, BusyFrameStats, the crash
+                  report and its source (ICrashSource, CrashGameState, CrashSource)
+Save/             the save document, its migrations, SaveService and AutosaveController (its clock injected)
+Screens/          IScreen, ScreenStack (the top open screen takes the keys), ControlsHelp
+Scripted/         the scripts' steps (ScriptStep, VoxelStep and their kinds), VoxelScript, ScenarioScript, CheckScript, ScreenshotGate, ShotRequest
+Session/          VoxelSession, GuideSession, TurnWorker, the objectives (ObjectiveBook reads game/session.json and game/objectives/), PlaytestEnd,
+                  GuideApproach, SessionEnding, ObjectiveAnnouncer,
+                  WordCardPresenter, PlaytestFlow
+Simulation/       VoxelSimulation (the fixed 60 Hz tick: gathering, placing, crafting) and its commands, TickAccumulator, TurnWatchdog, the
+                  observer pattern (ITickObserver, DelegateTickObserver), LiveVoxelInput, LookControl, WorldStepper
+Sound/            the mixer, the cues and their mapping, the ambient beds, the footsteps, the NPC voice, SoundFrame, SoundTickObserver,
+                  SoundSetup with its SoundOptions
+Tip/              the tips (TipFeed, TipBook, TipSpec), the controls help's lines (ControlHelp), the objective line's pieces, ToastQueue
+Voxel/            the blocks, the chunks and the grid, the block ray and the line of sight
+World/            the built Scene; Layout/ (the layout file), Generation/ (the terrain and the scene builder)
+```
+
+**`src/Vocaterra.Game`**, folders by area with feature subfolders: the window, the drawing, the devices and the layers, and the only engine
+code. `VoxelGame` is the composition root (its constructor makes the components, MonoGame's `Update` and `Draw` call them in the frame's
+order) and `Program` starts it.
+
+```
+Startup/          LaunchOptions (the command line, D-p2-3) and MicCheckMode, AssetPaths, SceneLocator, SoundBootstrap
+Diagnostics/      SessionLog (it implements Core's ICheckLog), CrashHandler, CrashOutcome, WallClock, FrameClock, FrameTimings
+Flow/             SessionStart, SessionEndingFlow (they read the wall clock, D-p2-2)
+Input/            InputDevices, InputSnapshot (it implements IInputFrame), KeyMap (Keys to GameKey, one table), MouseLook, WorldInput
+Sound/            SoundEffectOutput, DynamicSoundOutput, MicrophoneCapture
+Scripted/         ScriptedRunEnd (it saves the pictures)
+Graphics/         SceneDrawer, DrawHelpers, QualityPreset, ScreenshotWriter
+  Camera/         FirstPersonCamera, PlayerCamera, CameraEase, ViewMath (CameraBasis, EdgeArrow), PlayerView
+  Blocks/         BlockArt, BlockArtNature, BlockArtVillage, BlockAtlas, BlockAtlasLayout
+  World/          VoxelRenderer, ChunkMesher, ChunkVersionTracker, ChunkViewSet, MeshVertex, OverlayMeshes, Greyscale
+  Figures/        FigureMesher, FigureFacing, FigureDirector, NpcFigures, HeldArm, ArmPresenter
+  Sky/            SkyModel, SkyRenderer
+UI/
+  Common/         UiCanvas, UiTransform, UiPalette, UiScale, FontProvider, FrameView, LayerStack, CountBadge, NounIcons, PixelBox
+  Hud/            HudLayers, HudLayout, HotbarLayer, ToastLayer, TipLayer, BeaconLabel, VoxelLayers, VoxelDebugText
+  Overlays/       OverlayLayouts, LoadingLayer, ControlsLayer, EndingLayer
+  Dialogue/       DialoguePanel, DialogueLayout, DialogueBubble, DialogueBubbleLayer, ConversationFrame, ConversationLayout, ConversationCards,
+                  VoxelTalkLayers, SupportLayer, SupportLayout
+  Book/           BookLayer, ConjugationLayout
+  Checks/         CheckLayer, CheckCardLayout, MicCheckLayer, MicCheckLayout
+  Crafting/       CraftingLayer, CraftingLayout, RecipePanelLayer
+  Inventory/      InventoryLayer, InventoryLayout
+  Lesson/         LessonLayer, LessonStripLayout
+  Report/         ReportLayer, ReportLayout, ReportScreen (it reads the frame's pixels)
+```
+
+How a screen meets the engine: the screens in Core read the frame as an `IInputFrame` and name keys as `GameKey`; Game's `InputSnapshot`
+answers through `KeyMap`. Where a screen hit-tests a click against a layout that needs the font or the canvas, Game gives it the layout as a
+delegate (the dialogue's lesson strip and speech buttons, the mic check's buttons, the crafting rows, the book's geometry). A Game type that
+names Core's `Inventory` under `UI/` writes `Core.Items.Inventory`: the namespace `Vocaterra.Game.UI.Inventory` hides the type there.
+
+The tests mirror the sources: `tests/Vocaterra.Game.Core.Tests/<folder>/` for Core's classes and `tests/Vocaterra.Game.Tests/<folder>/` for
+Game's, with `Component/` in each for the tests that drive several classes together (the `*FrontendTests`, the route and session runs),
+`TestSupport/` for the shared helpers (Core's `Repo.cs` and `RouteScene.cs` are compiled into Game's tests too) and `Architecture/` for the
+layering rules.
+
+**The NPCs as data** (content-plan 3.6, C08; schema 2 since village-plan V01). `NpcRoster` reads `game/npcs.json` and one `game/npcs/<id>.json` per NPC:
+its label, name and figure key, the phrases its prompts practise, and what it does that was code until V01: the prompt it waits on in each state of
+its agent (a state not listed waits on the initial state's; the guide's `review` prompt), the host event it opens a talk with and when (`always`,
+`first`, `never`), its Kokoro voice (speaker id, name, speed), its key words and the prefix of its dialogue pools. `NpcService` takes the prompts and
+the opening from it (`PromptAfter`, the constructor's check of every prompt an NPC file names); `SpeechSpeakers.OfPool` gives a pool to the NPC whose
+prefix it carries (`<prefix>_*`, `guide.lesson.<prefix>.*`; every other pool is the guide's); the speech renderer (`tools/Vocaterra.SpeechRender`)
+records each speaker with its file's voice and stops on a speaker with none (and, with `--trial <folder>`, renders a voice trial from the folder's `trial.json`,
+village-plan V06; the V06 trial was deleted on 2026-11-03 and is in git history); `GuideSession` shows the talking NPC's key words; the phrase sheet answers
+an NPC's prompt that no row names with the rows of another NPC's prompt that accepts the same answers (the guide's offer, the stall's offer rows); and
+`--talk` accepts any NPC of the roster, checked once it has loaded. `GameDataValidator` reports an NPC with no prompts, a prompt the bundle lacks or
+of another agent, a state its agent lacks, an opening event no state takes and a voice with no name. What the data cannot say stays code, by id: the
+shopkeeper's fail-forward and later visits, and the guide's review, transfer offer and world lines. Adding an NPC is `content/README.md`'s "Adding
+an NPC".
+
+**What the NPCs' host events do** (C08; `game/host-events.json` schema 2 since village-plan V02). The core's agents raise opaque host events; `HostEventTable`
+gives each (NPC, event) an action and `VoxelSession.ApplyHostEvents` carries it out on the game's thread, with the slots of the learner's line: `give_item` (a
+count, or the number the learner said, `qty`, from 1 to 5; all of the items or none, the bottle once), `point_at_noun` (a noun's nearest block),
+`point_at_place` (a named place of the scene, through `Beacon`'s points), `point_at_slot` (the place a slot names, resolved by `Navigation/ScenePlaces`: a
+label of the scene, the nearest of the points that share it, the nearest block of a place made of its word's blocks such as the river (of the blocks joined to its point: the village well's water, V04, is not the
+river), else a catalogue noun's nearest block), and since V03 `take_item` (all or none, through `VoxelSimulation.TakeItems`) and `sell` (the number asked for, at a price in coins: the coins
+go and the items come, or nothing changes hands). What the world of a turn cannot do is decided on the worker, on the turn's own copy of the world and
+inventory, because only there may the NPC's conversation move: `NpcService` drops the line of the action that raised the event and raises
+`<npc>.unknown_place` (a place the scene does not have) or `<npc>.cant_pay` (too few coins) to the agent as a host turn, whose lines follow the turn's and
+which is in the replay record (the shopkeeper's fail-forward is the model). The game's thread then does nothing in the world for it (the place is logged
+`place_asked unknown`; the coins and the items stay where they were). The arrival at an arrow is the world event `beacon_reached`, with the place's name (`PointerMarker.Point`): the session logs it when its `Step`
+takes the arrow down, and `BeaconDirector` for a beacon it placed itself (the start, `--beacon`); a save keeps the arrow's word and block, and the name is
+worked out again from the scene on load. A lesson's `do` step with a `pointPlace` points the beacon there and may wait for that arrival.
+
+**Objectives by session, and orders** (C07; village-plan V03). `ObjectiveBook` reads `game/session.json` and one `game/objectives/<id>.json` per objective. An
+objective may name the play `session` it starts in: before it `VoxelSession` neither shows it (`CurrentObjective`, the HUD's line) nor counts world events for
+it. An order names the NPC the goods are brought to (`deliverTo`) and the goods (`deliver`); the loader gives it one step, `delivered`, which waits for the
+world event `order_delivered` at that NPC with the order's id, so the save keeps it as any step (`<order>.delivered`; no save field is new). The delivery
+is checked when the panel opens, in `GuideSession.OpenNow`, never on a line (D-game-8, D-game-9: walking up with the goods is enough): when no turn is on the
+worker and the inventory holds an open order's goods (`VoxelSession.OrderReadyAt`), `NpcService.Open` raises `<npc>.delivered` to the agent as the opening
+instead of the NPC's own; the goods are taken, the host events of the thanks are applied (the reward is a `give_item`), and `order_delivered` completes the
+order. The session's ending (S17) waits only for the objectives with no session that are not orders, so an order never holds back or brings back the closing
+moment. The three items of the economy (`ItemId.Coin`, `Apple`, `Axe`, V03) are ordinary items: the axe, held, makes a trunk take a quarter of its gather
+ticks (`VoxelSimulation.GatherTicksOf`, which the HUD's bar reads too).
+
+How the guide's turn meets the host's duties (see `src/Vocaterra.Game/README.md` for the steps):
+
+- **The stored time** is a fixed start plus `Tick / 60` seconds of game time (`GuideSession.StoredTime`); nothing reads the clock, so a scripted
+  run gives the same turns everywhere. The save file will own the start time.
+- **`HostStateHash`** is the simulation's state digest (`VoxelSimulation.ComputeStateDigest()`), given to the context's constructor instead of the
+  core's default digest and set again before each turn, because `ConversationContext.Next` recomputes the default.
+- **Repeat counts.** The pipeline adds the utterance's own repeats to the counts in the context and `Next` carries them to the next utterance
+  (CR-012, core M26a). The guide and the console host both evaluate once with the carried counts, so the recast, hint and correction ladder and
+  the repair ladder move one step per repeat: a repeated mistake is recast once, then hinted.
+- **Host facts in replies** (CR-003 in part, core M26d). The facts of the guide's line go in `hostSlots` of the second evaluation, so the replay
+  record holds them. The line itself ("El árbol está a la derecha, a doce bloques.") is still rendered by the game from the bundle's dialogue
+  pools with the bundle's template engine, because the core cannot pick one of three templates from a host fact (CR-016, open). The agent's
+  reply and the correction come from the core.
+- **Words and learner skills** (CR-002, CR-005, core M26c and M26d). The guide's evaluation reads the catalogue nouns of a turn from the core's
+  resolved words, and gives each one its `word.<lemma>` skill in the same learner update, through `extraSkills`.
+- **Host events.** The guide's state machine raises `guide.point`, `guide.identify` and `guide.help` (opaque strings to the core); the game maps
+  them to the nearest block, the cursor block and a hint, and the front-end draws the beacon.
+- **Evaluation** never runs inside `VoxelSession.Step`. Since P5 it runs on the turn worker (next section); `GuideSession.Say` is the synchronous
+  path that the tests and any headless caller still use.
+
+## Spoken input, the worker thread and the models folder (P5)
+
+A turn is either typed (the line is the transcript, the core's scripted recognizer) or spoken (a 16 kHz clip decoded by Vosk). Both go through
+the same `NpcService` turn, and each turn records how it arrived (`GuideTurn.Input`) so that word progress applies the credit of that kind
+(`CreditRules`: typed input half, spoken full, D-game-6; `--typed-credit full` switches typed back to full).
+
+- **One worker thread owns the recognizer.** `TurnWorker` (in `Vocaterra.Game.Core`, no engine type) is the only thread that loads the Vosk model
+  (`VoskWordRecognizer`, one instance), decodes with it, runs the guide's evaluations and disposes it, as the core's thread rules require
+  (API document section 8: Vosk is not safe for concurrent calls and must not be disposed while a call may run). The pipeline is built with
+  `RunRecognizersConcurrently = false`, so Vosk is never called from a pool thread. The game thread never calls the recognizer or the guide.
+- **Submit, then apply.** The frame calls `GuideSession.SubmitTyped / SubmitClip / SubmitWav / SubmitSpeak` between ticks and goes on. Every
+  input of the evaluation is fixed at that moment: the stored time, the simulation's state digest, a copy of the inventory and a copy of the
+  blocks around the player (`WorldFacts.Snapshot`), so the worker never reads a world that keeps changing and a turn does not depend on when
+  the worker gets to it. `GuideSession.Collect` (called at the start of each frame through `TurnPump`) takes the finished turns in submission
+  order and applies them on the game thread: the arrow, the review question, the word counts and the panel. The panel shows "Thinking…"
+  while a turn is out and "Listening…" while the key is held. A scripted (`--screenshot`) run freezes the world while a turn is out, so its
+  ticks and output do not depend on how fast the worker is.
+- **The double evaluation recognizes once** (CR-017). The guide evaluates a line twice (the first finds the verdict, the words and the host
+  events; the facts and skills they give go into the second, whose result is the one kept). For a spoken line the first evaluation is
+  `UtterancePipeline.Trace` with Vosk, whose `PipelineTrace.Asr` is kept; the second is `TypedUtteranceEvaluator.EvaluateRecognized`, the core's
+  scripted recognizer over that `AsrResult` with the real clip (so the replay record names the audio), so both verdicts see the same transcript,
+  hypotheses and confidence and the clip is decoded once.
+- **Vosk runs single-best.** With the pipeline's default of five n-best hypotheses `AsrResult.Confidence` is a softmax over near-identical
+  hypotheses and measured 0.34 to 0.66 for clean, correct speech, under the verdict's communicated threshold of 0.6 (CR-022). The spoken
+  pipeline asks for one hypothesis (`SpokenUtteranceEvaluator.SingleBest`), the result's confidence is then 1.0, and the turn line shows the mean
+  of Vosk's per-word confidences instead (`GuideTurn.Confidence`). The intent stage decides whether the words were understood.
+- **Loading screen.** The bundle loads before the window opens (about 0.6 s). The worker then warms up the guide with a typed evaluation, loads
+  Vosk (about 0.25 s) and runs one spoken evaluation of half a second of silence, while the window shows "Cargando la voz…" and the world does
+  not step and reads no key. Kokoro is not loaded at start: it loads an engine for every line it speaks (about 1.5 to 2.5 s), so it is only
+  used for the scripted `--speak` lines, through the core's `CachedSynthesizer` over a directory cache (`~/.cache/vocaterra/tts`).
+- **The models folder.** `VOCATERRA_MODELS_DIR` names a folder with `vosk-model-small-es-0.42` and `kokoro-multi-lang-v1_0` (fetched outside the
+  repository with the core's `scripts/fetch-models.sh`, never committed). The core's `ModelStore` reads `manifest.json` from that folder, and
+  the fetch script does not copy it there (CR-019), so `SpeechEngine` falls back to `VOCATERRA_MODELS_MANIFEST` and then to the core's
+  `models/manifest.json` found above the executable. With no folder, no model or no manifest the game says so in English ("Speech off...") and typing
+  works as before; the model tests are skipped with the reason.
+- **Native libraries.** `libvosk.so` is copied by Vosk's `build/Vosk.targets`, which NuGet imports only into a project that references `Vosk`
+  directly, so the executable and the test projects that run the recognizer name `Vosk` 0.3.38 (the core's own version, Apache-2.0) in
+  `Directory.Packages.props`. The same projects name `Microsoft.ML.OnnxRuntime` 1.31.0 with `ExcludeAssets="native"` because its
+  `libonnxruntime.so` would overwrite sherpa-onnx's in the same folder and Kokoro would fail to load (CR-021); the game uses the core's fake
+  embeddings, so it never needs that copy.
+- **Push-to-talk and the microphone** (the device in `src/Vocaterra.Game/Sound/`, the session in Core's `Input/ListenSession`). MonoGame's `Microphone` (OpenAL capture) records at the device's own rate
+  (44.1 kHz mono on the development machine) and `AudioClips.Prepare` converts to 16 kHz, trims the silence at both ends and cuts at 8 seconds.
+  Hold **V** or **Space** while the dialogue is open (S7: **Tab** now opens the text box), or hold **V** with the crosshair on an NPC to open it and listen; letting go sends the clip. No PortAudio was
+  needed. MonoGame 3.8.6 only fills the buffer `GetData` reads while something subscribes to `BufferReady`, so `MicrophoneCapture` subscribes an
+  empty handler. With no microphone the panel says "No microphone: type your answer." and the keyboard keeps working.
+- **Speech UX (S7).** The uncertainty rule (`UncertaintyRule`, D-game-9) works on the per-word confidences the core already returns in
+  `AsrResult.Words` (the result's own confidence is 1.0 for the single-best decode, CR-022), leaving out `[unk]`; a line the core understood on words
+  under the threshold is held back by `NpcService` before phase 2, so nothing moves in the conversation, the learner model or the world. A turn the player
+  cancels is rolled back on the worker (`NpcService.Checkpoint` and `Rollback`) and its outcome dropped by `GuideSession.Collect`. The NPC prompts at the stall
+  and the guide's offer are Constrained in the bundle: `UtterancePipeline.Analyze` builds the Vosk grammar from the prompt's answer set, so the game only
+  evaluates on the prompt. The expected phrase of the panel's heard-versus-expected line and the labels of the offered choices come from `game/phrases.json`
+  (`PhraseSheet`), the machine-readable copy of `content/PHRASES.md` that a test holds row by row.
+- **Scripted speech for demos and tests.** `--wav <file>` feeds a 16-bit PCM WAV (any rate), `--speak "<text>"` synthesizes the line with
+  Kokoro speaker 28 (`ef_dora`), converts 24 kHz to 16 kHz and recognizes it, and `--listen <seconds>` records the real microphone; all are
+  ordered script steps like `--say`, and the turn line prints the transcript, the confidence and the stage timings.
+
+## Where the rules are checked
+
+- `tests/Vocaterra.Host.Tests` runs the two demo utterances through the host's evaluation path on `content/game-v1`, checks the bundle hash in
+  the manifest against the loader's, and checks that the conversation carries its counts and learner from one utterance to the next. It
+  checks that a count at `int.MaxValue` stays there, and that the prompt's line is written under its header (`PromptReportTests`).
+- `tests/Vocaterra.Game.Core.Tests` runs the guide's turns on a fixed seed and a fixed stored time with the scripted recognizer (the verdict, the
+  guide's state, the host event, the target tile and the world line; an unaccented line; the repair path; determinism), `WorldFacts` on the
+  route, the guide's content in the bundle, the layering rules of `Vocaterra.Game.Core` (no clock, no `System.Random`, no engine type, no package),
+  the audio handling (`AudioClips`), the turn worker (order, fixed inputs, the snapshot), and the model tests: Kokoro speaks a line, Vosk
+  recognizes it once, the guide answers it like the typed line. Those are skipped with a reason when `VOCATERRA_MODELS_DIR` is unset or a model
+  is missing.
+- `tests/Vocaterra.Game.Tests` runs what needs Game's types without a GPU: the meshers, the layouts, the device input, the session log and the
+  `Component/` tests; its `ArchitectureRulesTests` keep `System.Random` and `Guid` out, the wall clock in `WallClock.cs` and the `Stopwatch` in
+  `FrameClock.cs`.
+- The core's own suites (fuzzing, goldens, replay) test the core; the game's tests cover only what the game does with it.
+- Continuous integration is `.github/workflows/ci.yml` (`build-and-test` without the speech models, and `languagetool`; `docs/game/building-and-testing.md`, "Continuous integration").

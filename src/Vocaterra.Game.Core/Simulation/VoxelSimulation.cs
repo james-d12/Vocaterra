@@ -25,7 +25,7 @@ public sealed class VoxelSimulation
     /// <summary>The ticks a player holds <see cref="VoxelCommandKind.Interact"/> on water with a bottle to fill it (half a second).</summary>
     public const int BottleFillTicks = 30;
 
-    /// <summary>How many times faster a trunk is cut while the axe is held (VILLAGE_PLAN 3.4, V03): it takes a quarter of the ticks.</summary>
+    /// <summary>How many times faster a trunk is cut while the axe is held (village-plan 3.4, V03): it takes a quarter of the ticks.</summary>
     public const int AxeSpeedUp = 4;
 
     /// <summary>The fixed-point factor that keeps a diagonal walk as fast as a straight one: 1 / sqrt(2) in units of 1/65 536.</summary>
@@ -80,7 +80,7 @@ public sealed class VoxelSimulation
 
     /// <summary>
     /// The ticks of holding it takes to gather a block now: the block's own gather ticks, and a quarter of them for a trunk (a block that drops wood) while the selected
-    /// hotbar slot holds the axe (VILLAGE_PLAN V03). The gathering, its progress events and the front-end's bar all read this number.
+    /// hotbar slot holds the axe (village-plan V03). The gathering, its progress events and the front-end's bar all read this number.
     /// </summary>
     /// <param name="block">The block kind.</param>
     public int GatherTicksOf(BlockId block)
@@ -183,7 +183,7 @@ public sealed class VoxelSimulation
     public int GrantItems(ItemId item, int count) => Inventory.Add(item, count);
 
     /// <summary>
-    /// Takes items from the player outside the command stream, all of them or none: an NPC's purchase or order (VILLAGE_PLAN V03). A host action like
+    /// Takes items from the player outside the command stream, all of them or none: an NPC's purchase or order (village-plan V03). A host action like
     /// <see cref="GrantItems"/>.
     /// </summary>
     /// <returns>Whether the player had that many and they were taken.</returns>

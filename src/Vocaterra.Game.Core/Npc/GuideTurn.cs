@@ -120,7 +120,7 @@ public enum NameCheck
 /// <param name="Facts">The world as the guide sees it for this turn: a copy of the blocks around the player taken when the line was submitted (<see cref="WorldFacts.Snapshot"/>), so the turn does not read a world that keeps changing under the worker thread; <see langword="null"/> uses the facts the guide was built with.</param>
 /// <param name="Inventory">What the player carries, for the crafting and finding answers ("te faltan dos bloques de madera", "tienes un hacha"); <see langword="null"/> is read as nothing carried and nothing said about it.</param>
 /// <param name="OrderHeld">Whether the NPC talked to has an order whose goods the player carries and that a lesson keeps back (V21): a purchase the coins do not cover is then answered <c>cant_pay_wait</c>.</param>
-/// <param name="Credited">The phrases of the lessons the learner has begun or done when the line was submitted (VILLAGE_PLAN V20, <c>LessonRunner.Credits</c>): a line in free talk that is
+/// <param name="Credited">The phrases of the lessons the learner has begun or done when the line was submitted (village-plan V20, <c>LessonRunner.Credits</c>): a line in free talk that is
 /// one of them is that phrase for the learner model, at any NPC; <see langword="null"/> for none.</param>
 public sealed record GuideScene(GuideViewpoint Player, GuideCell? Cursor = null, bool PointerActive = false, bool Review = false, Inventory? Inventory = null, IGuideFacts? Facts = null, string? PromptOverride = null, IReadOnlySet<string>? Credited = null, bool OrderHeld = false);
 

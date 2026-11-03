@@ -6,12 +6,12 @@
 
 - Status: accepted
 - Date: 2026-10-20
-- Deciders: repository owner and the implementation plan (`IMPLEMENTATION_PLAN.md` section 3)
+- Deciders: repository owner and the implementation plan (`implementation-plan.md` section 3)
 
 ## Context
 
 The core promise of the system is that the same audio clip, game state and content version always produce the same verdict,
-the same feedback and the same game outcome. `docs/nlp/history/HIGH_LEVEL_DOCS.md` ("Determinism model") sorts every component into one of
+the same feedback and the same game outcome. `docs/archive/nlp/history/high-level-docs.md` ("Determinism model") sorts every component into one of
 three classes:
 
 - **D0, algorithmic:** plain code with fixed-order math. Identical output on every machine.
@@ -20,11 +20,11 @@ three classes:
 - **N, non-deterministic:** sampled generation or anything not reproducible run to run. Not allowed in the core.
 
 Determinism is only useful if it can be checked, so the rules also have to make every graded interaction replayable
-(ADR 0004 covers the model side; `docs/nlp/REPLAY.md` covers the log format).
+(ADR 0004 covers the model side; `docs/nlp/replay.md` covers the log format).
 
 ## Decision
 
-The runtime (`src/`) follows these rules. They are the checklist in `CONTRIBUTING.md` and apply to every change.
+The runtime (`src/`) follows these rules. They are the checklist in `changing-the-core.md` and apply to every change.
 
 | # | Rule | Where it lives |
 | --- | --- | --- |
@@ -42,7 +42,7 @@ The runtime (`src/`) follows these rules. They are the checklist in `CONTRIBUTIN
 Verification is part of the decision, not an afterthought:
 
 - Every graded interaction can be written to a replay log and re-evaluated without the models. A replay that differs from
-  the recording fails with the JSON paths that changed (`docs/nlp/REPLAY.md`).
+  the recording fails with the JSON paths that changed (`docs/nlp/replay.md`).
 - `tests/Slg.Golden.Tests` pins the worked example end to end (a committed golden JSON file), the G2P output for 1,788
   golden lines (Latin American and Castilian), and the golden manifest layout. The content bundle hash is pinned in
   `tests/Slg.Content.Tests/ManifestTests.cs`.

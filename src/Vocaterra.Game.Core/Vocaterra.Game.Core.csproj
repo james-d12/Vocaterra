@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- The game's engine-free systems and mechanics (plan section 3 rule 3, D-game-1, docs/code_guidelines.md): the voxel world and its tick,
+  <!-- The game's engine-free systems and mechanics (plan section 3 rule 3, D-game-1, docs/process/code-guidelines.md): the voxel world and its tick,
        the session, the guide's turns, the language systems, and the screens' models with their keys as GameKey and IInputFrame (R16). It
        references the language core (src/Vocaterra.Nlp and the Spanish pack src/Vocaterra.Nlp.Es) and no package. No engine type belongs here. -->
   <PropertyGroup>

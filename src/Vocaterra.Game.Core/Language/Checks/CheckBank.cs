@@ -52,7 +52,7 @@ public sealed record CheckOption(string Label, string? Icon = null);
 /// <param name="Situation">The support-language situation of a production item; empty for comprehension.</param>
 /// <param name="Prompt">The prompt a production item is graded at (<c>stall-need</c>); empty for comprehension.</param>
 /// <param name="Intent">The intent a production item must resolve to (<c>request_item</c>); empty for comprehension.</param>
-/// <param name="Lesson">The lesson the item belongs to (VILLAGE_PLAN V07), or <see langword="null"/> for an item of no lesson (the free run's stall and villager).</param>
+/// <param name="Lesson">The lesson the item belongs to (village-plan V07), or <see langword="null"/> for an item of no lesson (the free run's stall and villager).</param>
 public sealed record CheckItem(
     string Id,
     CheckItemKind Kind,
@@ -73,17 +73,17 @@ public sealed record CheckItem(
 /// so a bad item is a load error, not a surprise in a playtest.
 /// </summary>
 /// <remarks>
-/// <b>By lesson</b> (VILLAGE_PLAN V07, schema 2). Each item names the lesson it belongs to, and a battery asks the items of the lessons the play session has
+/// <b>By lesson</b> (village-plan V07, schema 2). Each item names the lesson it belongs to, and a battery asks the items of the lessons the play session has
 /// unlocked (<see cref="AskedIn"/>), so a new lesson's items join the battery from the session it opens in and the battery does not grow with the bundle. The
 /// file's <see cref="CoreSessions"/> are asked in every battery from the first session on: the lessons of sessions 1 to 3 are the pilot's battery of 31 items
-/// (<c>docs/game/PLAYTEST.md</c>), which the pilot asks whole in its first session and at the recall in its second.
+/// (<c>docs/game/playtest.md</c>), which the pilot asks whole in its first session and at the recall in its second.
 /// </remarks>
 public sealed class CheckBank : IReadOnlyList<CheckItem>
 {
     /// <summary>The file's path inside the bundle folder.</summary>
     public const string RelativePath = "game/checks.json";
 
-    /// <summary>The file's schema version: 2 since VILLAGE_PLAN V07 (an item's <c>lesson</c>, the battery's <c>coreSessions</c>).</summary>
+    /// <summary>The file's schema version: 2 since village-plan V07 (an item's <c>lesson</c>, the battery's <c>coreSessions</c>).</summary>
     public const int SchemaVersion = 2;
 
     private readonly IReadOnlyList<CheckItem> _items;
@@ -205,7 +205,7 @@ public sealed class CheckBank : IReadOnlyList<CheckItem>
             throw new InvalidDataException($"checks.json: item '{id}' names no phrase.");
         }
 
-        // Every item says which lesson it belongs to, null for none (VILLAGE_PLAN V07): an item that leaves it out was not looked at.
+        // Every item says which lesson it belongs to, null for none (village-plan V07): an item that leaves it out was not looked at.
         if (!element.TryGetProperty("lesson", out var lessonElement) || lessonElement.ValueKind is not (JsonValueKind.String or JsonValueKind.Null))
         {
             throw new InvalidDataException($"checks.json: item '{id}' names no lesson (\"lesson\": a lesson's id, or null for an item of no lesson).");

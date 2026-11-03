@@ -7,7 +7,7 @@ Covered: 20 game runs (folders `/tmp/vocaterra-qa/progression-*`, each with `std
 - **The coin path:** `--skip-to-session 7`, the farmer's refused order at 0 coins, the water order (three apples), the sleep, then session 8's inventory.
 - **Orders:** `oven-wood` with the wrong NPC (smith: no delivery), with the right NPC after the lesson (five wood out, four coins in), and a second talk to the baker (no second delivery). The session 10 market: `vendo madera` to the smith (four coins in), `Vendo manzanas.` to the farmer, `Vendo madera.` to the baker with no wood left.
 - **Saves:** a mid-lesson save and load (session 5 to 6), a save with five wood before the oven order and its load, a save made right after a sleep and its load.
-- **`--lesson-skip`** on all 28 steps of `gente-del-pueblo`, and **`--check pre`** at `--session 7` (first screen only: `check: pre, 63 items`, which matches the battery table in `docs/HANDOVER_VILLAGE_PHASE_B.md`).
+- **`--lesson-skip`** on all 28 steps of `gente-del-pueblo`, and **`--check pre`** at `--session 7` (first screen only: `check: pre, 63 items`, which matches the battery table in `docs/handovers/done/2026-11-01-village-phase-b.md`).
 - The known items of handover section 9.3 were only re-checked where the same behaviour showed up again.
 
 ## Bugs
@@ -61,7 +61,7 @@ Covered: 20 game runs (folders `/tmp/vocaterra-qa/progression-*`, each with `std
 - **A mid-lesson save and load keeps the lesson:** saved at step 2 of `numeros-y-pan` in session 5, the load (session 6) resumes at step 2 on the baker's talk (`progression-mid-load/stdout.txt` lines 16 to 22). The session counter still moves on, as in QA-progression-1.
 - **The sleep after the last lesson:** `--sleep` in session 10 goes on into session 11, and the stdout gives no line that the course is over (`progression-chain-9-10/stdout.txt` line 328). I did not look at the screen for a closing card. Possibly intended.
 - **The `--sleep` test aid** starts the next session without the session's objective done (QA-progression-2 caveat). In play, E at the fire is gated by `RestDue` (`VoxelSession.Sleep.cs`), so this is the aid only.
-- **A fixed answer to a total:** the farmer answers `¿Cuánto es todo?` with `Quince manzanas, quince monedas.` whatever the learner holds (three apples in the session 10 bag, `progression-chain-9-10/stdout.txt` line 314). The same fixed line is in `docs/game/SCRIPTED_RUNS.md` r22.
+- **A fixed answer to a total:** the farmer answers `¿Cuánto es todo?` with `Quince manzanas, quince monedas.` whatever the learner holds (three apples in the session 10 bag, `progression-chain-9-10/stdout.txt` line 314). The same fixed line is in `docs/game/scripted-runs.md` r22.
 - **A log label:** the farewell `Adiós` is logged as `turn 8 (fisher, villager-open)` (`progression-r4-route/stdout.txt` line 153), so the prompt id in the log is the villager's. Log only.
 - **Cosmetic:** the first `--shot` before any tick (`progression-r4-route/start.png`) is a partly black frame (a black band above and to the right). Shots after `--wait 1` are whole.
 

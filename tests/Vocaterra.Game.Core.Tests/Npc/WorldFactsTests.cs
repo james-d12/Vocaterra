@@ -150,7 +150,7 @@ public sealed class WorldFactsTests
     [Fact]
     public void TheNearestOfABodyIsTheNearestOfTheBlocksJoinedToItAndNotOfAnotherBody()
     {
-        // VILLAGE_PLAN V04: a river three blocks long at x 4 to 6 (two deep at x 5) and a well of one block at x 20, beside the player at x 18.
+        // village-plan V04: a river three blocks long at x 4 to 6 (two deep at x 5) and a well of one block at x 20, beside the player at x 18.
         var facts = Facts((4, 1, 16, BlockId.Water), (5, 1, 16, BlockId.Water), (5, 0, 16, BlockId.Water), (6, 1, 16, BlockId.Water), (20, 1, 16, BlockId.Water));
         var player = Standing(18, 16, 90);
 

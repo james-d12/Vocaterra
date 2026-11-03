@@ -28,7 +28,7 @@ namespace Vocaterra.Game.Core.Session;
 /// <param name="Place">The word the arrow shows: the noun the player asked about (<c>árbol</c>), or the label of a place of the scene (<c>tienda</c>).</param>
 /// <param name="Target">The tile or block it points at.</param>
 /// <param name="Quiz">Whether it is the guide's review question: the front-end then hides the noun, which is the answer.</param>
-/// <param name="Point">The scene's name of the place it points at (<c>stall</c>, VILLAGE_PLAN V02), which its arrival is logged with; <see langword="null"/> for an arrow on a noun's block.</param>
+/// <param name="Point">The scene's name of the place it points at (<c>stall</c>, village-plan V02), which its arrival is logged with; <see langword="null"/> for an arrow on a noun's block.</param>
 public sealed record PointerMarker(string Place, GuideCell Target, bool Quiz = false, string? Point = null);
 
 /// <summary>
@@ -117,7 +117,7 @@ public abstract partial class GuideSession : IDisposable
     /// <param name="playSession">The number of this play session (1 for a new game; the saves of S10 will bump it on each load).</param>
     /// <param name="credit">The credit per kind of input and the gaps; <see cref="CreditRules.Default"/> (typed half, spoken full) when <see langword="null"/>.</param>
     /// <param name="lessons">The lessons to run instead of the bundle's <c>game/lessons.json</c> (the tests' own), or <see langword="null"/> for the bundle's.</param>
-    /// <param name="places">The places of the scene the NPCs' directions can name (VILLAGE_PLAN V02), or <see langword="null"/> for none.</param>
+    /// <param name="places">The places of the scene the NPCs' directions can name (village-plan V02), or <see langword="null"/> for none.</param>
     protected GuideSession(
         GameData data,
         ulong worldSeed,
@@ -278,7 +278,7 @@ public abstract partial class GuideSession : IDisposable
     private const string QuietPrompt = "guide-open";
 
     /// <summary>
-    /// The key words an NPC teaches before its first exchange (brief step 4), from its NPC file (VILLAGE_PLAN V01; <c>game/words.json</c> before): the shopkeeper's are the
+    /// The key words an NPC teaches before its first exchange (brief step 4), from its NPC file (village-plan V01; <c>game/words.json</c> before): the shopkeeper's are the
     /// nouns of the first request and the bread. Empty for an NPC that has none, or no such NPC.
     /// </summary>
     /// <param name="npc">The NPC's agent id.</param>
@@ -519,7 +519,7 @@ public abstract partial class GuideSession : IDisposable
     /// The player starts talking to an NPC (S6). The NPC opens with a core host turn when its state has one (the shopkeeper's "¿Qué necesitas?",
     /// the villager's "Hola.", the guide's transfer offer), and with its prompt's text otherwise; the guide may instead open with her review
     /// question (<see cref="BeginTalk"/>, returned in <see cref="Review"/>). What the opening's host events mean in the world is applied here
-    /// (the shopkeeper's second visit hands over the bottle). When the player carries the goods of the NPC's order (VILLAGE_PLAN V03), the opening is its
+    /// (the shopkeeper's second visit hands over the bottle). When the player carries the goods of the NPC's order (village-plan V03), the opening is its
     /// thanks instead: the goods are taken, its reward given and <see cref="WorldEvents.OrderDelivered"/> logged. Later typed and spoken lines go to this NPC until
     /// <see cref="EndTalk"/>.
     /// </summary>
@@ -647,13 +647,13 @@ public abstract partial class GuideSession : IDisposable
     {
     }
 
-    /// <summary>A lesson step sends the beacon to a named place of the scene (VILLAGE_PLAN V02, a <c>do</c> step with a <c>pointPlace</c>). The 3D scene does it.</summary>
+    /// <summary>A lesson step sends the beacon to a named place of the scene (village-plan V02, a <c>do</c> step with a <c>pointPlace</c>). The 3D scene does it.</summary>
     internal virtual void LessonPointAtPlace(string npc, string place)
     {
     }
 
     /// <summary>
-    /// Whether an order (an objective with <c>deliverTo</c>, VILLAGE_PLAN V03) has been delivered: a lesson's <c>do</c> step that waits for it ends at once, since the
+    /// Whether an order (an objective with <c>deliverTo</c>, village-plan V03) has been delivered: a lesson's <c>do</c> step that waits for it ends at once, since the
     /// goods may be brought before the lesson asks for them (V11: walking up is enough). The 3D scene keeps the objectives.
     /// </summary>
     /// <param name="order">The order's objective id.</param>
@@ -669,7 +669,7 @@ public abstract partial class GuideSession : IDisposable
 
     /// <summary>
     /// The player reached a beacon the front-end placed itself (the start, <c>--beacon</c>; <see cref="BeaconDirector"/>): logged as
-    /// <see cref="WorldEvents.BeaconReached"/> with the point's name (VILLAGE_PLAN V02). The session logs the arrival at its own arrow itself.
+    /// <see cref="WorldEvents.BeaconReached"/> with the point's name (village-plan V02). The session logs the arrival at its own arrow itself.
     /// </summary>
     /// <param name="point">The scene's name of the point.</param>
     public void NoteBeaconReached(string point)
@@ -774,7 +774,7 @@ public abstract partial class GuideSession : IDisposable
         }
         else
         {
-            order = OrderReadyAt(npc); // the player walked up with an order's goods (VILLAGE_PLAN V03): nothing is gated behind speech, the NPC thanks them at once
+            order = OrderReadyAt(npc); // the player walked up with an order's goods (village-plan V03): nothing is gated behind speech, the NPC thanks them at once
             opening = _npcs.Open(npc, ObjectiveComplete, StoredTime, StateDigest(), order is null ? null : NpcHostEvents.Of(npc, NpcHostEvents.Delivered));
             if (string.Equals(npc, NpcService.GuideAgent, StringComparison.Ordinal) && !opening.HostTurn
                 && !string.Equals(_npcs.GuideState.StateId, "offering", StringComparison.Ordinal))
@@ -1179,7 +1179,7 @@ public abstract partial class GuideSession : IDisposable
     /// <param name="npc">The NPC's agent id.</param>
     /// <param name="hostEvents">The events, in the order they were raised.</param>
     /// <param name="how">How they came about: <c>request</c>, <c>offer</c> or <c>fail_forward</c> (for the log).</param>
-    /// <param name="slots">The slots of the learner's line (VILLAGE_PLAN V02: the place a direction names, the number of items asked for); empty for an opening.</param>
+    /// <param name="slots">The slots of the learner's line (village-plan V02: the place a direction names, the number of items asked for); empty for an opening.</param>
     protected virtual void ApplyHostEvents(string npc, IReadOnlyList<string> hostEvents, string how, IReadOnlyDictionary<string, string> slots)
     {
     }
@@ -1207,14 +1207,14 @@ public abstract partial class GuideSession : IDisposable
     }
 
     /// <summary>
-    /// The order of an NPC whose goods the player carries now (VILLAGE_PLAN V03: an objective with <c>deliverTo</c> that is shown and not done), or
+    /// The order of an NPC whose goods the player carries now (village-plan V03: an objective with <c>deliverTo</c> that is shown and not done), or
     /// <see langword="null"/>. The talk then opens with the NPC's thanks (<c>&lt;npc&gt;.delivered</c>). The 3D scene has the objectives; the base game has none.
     /// </summary>
     /// <param name="npc">The NPC the panel opens on.</param>
     protected virtual string? OrderReadyAt(string npc) => null;
 
     /// <summary>
-    /// Whether an NPC has an order whose goods the player carries and that a lesson keeps back until its step (VILLAGE_PLAN V13): the NPC then says why a purchase the coins
+    /// Whether an NPC has an order whose goods the player carries and that a lesson keeps back until its step (village-plan V13): the NPC then says why a purchase the coins
     /// do not cover waits (V21, <see cref="NpcHostEvents.CantPayWait"/>). The 3D scene has the objectives; the base game has none.
     /// </summary>
     /// <param name="npc">The NPC.</param>

@@ -63,13 +63,13 @@ catch (Exception ex) when (ex is ContentValidationException or IOException or Un
 
 if (options.ValidateContent || options.GrammarStringsOut is not null)
 {
-    // The game's content (CONTENT_PLAN C02): every game file read once from the verified bundle and checked against the others. The ContentBuilder
+    // The game's content (content-plan C02): every game file read once from the verified bundle and checked against the others. The ContentBuilder
     // cannot run this check (it references only the core), so the host does.
     GameData data;
     LocaleBundle locales;
     try
     {
-        // The support language comes from the locale bundle beside the game's (CONTENT_PLAN C03); every shipped locale is checked, the default one loaded.
+        // The support language comes from the locale bundle beside the game's (content-plan C03); every shipped locale is checked, the default one loaded.
         locales = LocaleBundle.Load(LocaleBundle.DirectoryBeside(contentDirectory));
         data = GameData.Load(bundle, locales.Text(LocaleBundle.ChooseCode(null, bundle)));
         foreach (var other in locales.Locales.Where(locale => !string.Equals(locale.Code, data.Locale.Code, StringComparison.Ordinal)))

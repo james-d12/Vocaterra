@@ -55,7 +55,7 @@ public sealed class SpeechLinesTests
     {
         // The rule V01 replaced, as it was in SpeechSpeakers.OfPool: the speaker of a pool now comes from the NPC files (<id>_* and guide.lesson.<id>.*, the
         // shopkeeper's pools by his poolPrefix "shop"), and no pool of the shipped bundle may change voice: the recordings stay as they are.
-        // The fisher's pools (VILLAGE_PLAN V10), the baker's (V11), the smith's and the farmer's (V12) and the farmer's lesson lines (V13) are new: theirs by the same rule.
+        // The fisher's pools (village-plan V10), the baker's (V11), the smith's and the farmer's (V12) and the farmer's lesson lines (V13) are new: theirs by the same rule.
         static string Before(string pool) =>
             pool.StartsWith("guide.lesson.villager.", StringComparison.Ordinal) || pool.StartsWith("villager_", StringComparison.Ordinal) ? "villager"
             : pool.StartsWith("guide.lesson.shop.", StringComparison.Ordinal) || pool.StartsWith("shop_", StringComparison.Ordinal) ? "shopkeeper"

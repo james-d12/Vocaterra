@@ -11,7 +11,7 @@ using Xunit.Abstractions;
 namespace Vocaterra.Game.Core.Tests.Language.Lessons;
 
 /// <summary>
-/// The lesson "Ayer en el pueblo" of session 8 (VILLAGE_PLAN V14, 3.5), an <c>a2</c> lesson: the day of the village told by the villager in the square and retold by the
+/// The lesson "Ayer en el pueblo" of session 8 (village-plan V14, 3.5), an <c>a2</c> lesson: the day of the village told by the villager in the square and retold by the
 /// learner, to him (Luz hizo pan, Mar pescó en el río, fuimos al río), to the smith Domingo at the smithy (ellos comieron pan, tengo que ir al río) and to the fisher Mar at
 /// the river (Luz compró pescado): the preterite in the persons the series still lacked (él and ella, nosotros, ellos) on verbs met before, and <c>tener que</c> with an
 /// infinitive (the new intent <c>state_obligation</c>). No order and no sale: a learner who followed sessions 4 to 7 has no coins, and nothing changes hands.

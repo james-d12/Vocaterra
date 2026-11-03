@@ -18,7 +18,7 @@ namespace Vocaterra.Host;
 /// <remarks>
 /// The word recognizer is the core's scripted one: the typed line is the transcript, so no model and no audio take part (the call
 /// sequence is <see cref="TypedUtteranceEvaluator"/> in <c>Vocaterra.Game.Core</c>, shared with the guide). The host owns the state the core
-/// cannot know (the world seed, the stored time, the learner model and the repeat counts), as docs/nlp/API.md describes.
+/// cannot know (the world seed, the stored time, the learner model and the repeat counts), as docs/nlp/api.md describes.
 /// </remarks>
 public sealed class ConversationSession
 {

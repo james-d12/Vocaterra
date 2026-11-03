@@ -228,7 +228,7 @@ public sealed class LessonFrontendTests
     [Fact]
     public void ALessonRunStepSkipsADoStepItHasNothingToWalkToAndGoesOn()
     {
-        // VILLAGE_PLAN V11: Números y pan waits for an order and a purchase the run does not make. The run skips each such step with the panel still open; a skip after
+        // village-plan V11: Números y pan waits for an order and a purchase the run does not make. The run skips each such step with the panel still open; a skip after
         // closing it did nothing, and the run walked back to the baker and asked again for ever.
         var shipped = TestGame.Data.Lessons;
         using var run = new Harness([new(ScriptStepKind.LessonRun, Value: "numeros-y-pan")], shipped);
@@ -249,7 +249,7 @@ public sealed class LessonFrontendTests
     [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void ALessonRunAfterOneThatEndedAtAnotherNpcWalksToItsOwnNpc()
     {
-        // VILLAGE_PLAN V12: Números y pan ends at the stall with the panel open, and Gente del pueblo starts at the villager. The run closes the panel and walks to him;
+        // village-plan V12: Números y pan ends at the stall with the panel open, and Gente del pueblo starts at the villager. The run closes the panel and walks to him;
         // it typed "Es el herrero" at the shopkeeper for ever, where the line is not the lesson's.
         var shipped = TestGame.Data.Lessons;
         using var run = new Harness([new(ScriptStepKind.LessonRun, Value: "numeros-y-pan"), new(ScriptStepKind.LessonRun, Value: "gente-del-pueblo")], shipped);

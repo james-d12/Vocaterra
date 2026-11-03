@@ -6,8 +6,8 @@ using Xunit.Abstractions;
 namespace Vocaterra.Game.Core.Tests.Language.Speech;
 
 /// <summary>
-/// The phrases Gente del pueblo asks the learner to say (VILLAGE_PLAN V12), spoken: Kokoro says each at its step and Vosk hears it through the worker at the step's prompt
-/// (the round trip every content milestone runs once, VILLAGE_PLAN section 4). The lesson's new words must be heard: llamas, haces, herrería, hacha, campamento, and the
+/// The phrases Gente del pueblo asks the learner to say (village-plan V12), spoken: Kokoro says each at its step and Vosk hears it through the worker at the step's prompt
+/// (the round trip every content milestone runs once, village-plan section 4). The lesson's new words must be heard: llamas, haces, herrería, hacha, campamento, and the
 /// name Domingo at the start of a line. A word the recognizer cannot hear would fail here; it would go to the learner's hearing side or to a typed-only variant. Skipped
 /// without the models.
 /// </summary>

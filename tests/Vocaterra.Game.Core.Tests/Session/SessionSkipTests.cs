@@ -11,7 +11,7 @@ namespace Vocaterra.Game.Core.Tests.Session;
 /// <summary>
 /// The test aid <c>--skip-to-session</c> (V12c): a new game stands where a learner who did sessions 1 to n-1 would, built from the data. The lesson of session n is unlocked,
 /// named by the objective and pointed at; the earlier lessons are completed in their own sessions; session 1's ending is reached; the earlier orders are delivered and paid
-/// and the lessons' purchases made, so the coins and the items follow the plan's path (VILLAGE_PLAN 3.4); and no practice is faked.
+/// and the lessons' purchases made, so the coins and the items follow the plan's path (village-plan 3.4); and no practice is faked.
 /// </summary>
 public sealed class SessionSkipTests
 {
@@ -73,7 +73,7 @@ public sealed class SessionSkipTests
         Assert.All(session.Objectives.Where(o => o.Spec.IsOrder), o => Assert.Equal(o.Spec.Session < target, o.Complete)); // the earlier orders delivered, the later ones open
     }
 
-    // The coins and the items in hand at the start of the session, on the plan's path (VILLAGE_PLAN 3.4; the axe order's file says it: two coins from fruit-for-mar, four from
+    // The coins and the items in hand at the start of the session, on the plan's path (village-plan 3.4; the axe order's file says it: two coins from fruit-for-mar, four from
     // oven-wood, four spent on two loaves, and V13: two on the axe, so none at session 7): what the scripted play of the sessions before reaches in what only an NPC gives.
     // The gathered goods were used in the play; the bottle the shopkeeper gave in session 1 stays full of the river's water (nothing empties a bottle).
     public static TheoryData<int, int, int, int> Economy => new()

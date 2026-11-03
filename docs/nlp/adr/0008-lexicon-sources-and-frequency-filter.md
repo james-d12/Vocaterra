@@ -6,10 +6,10 @@
 
 - Status: accepted
 - Date: 2026-10-20
-- Deciders: the implementation plan (`IMPLEMENTATION_PLAN.md` section 7, milestone M17a); the repository owner confirms the licensing conclusion
+- Deciders: the implementation plan (`implementation-plan.md` section 7, milestone M17a); the repository owner confirms the licensing conclusion
 
 This ADR records engineering decisions and the evidence behind them. It is not legal advice; the repository owner has to get the licensing
-conclusion confirmed before release, as `docs/nlp/history/HIGH_LEVEL_DOCS.md` ("Licensing") already says. The practical recipe is in [docs/nlp/LEXICON.md](../LEXICON.md).
+conclusion confirmed before release, as `docs/archive/nlp/history/high-level-docs.md` ("Licensing") already says. The practical recipe is in [docs/nlp/lexicon.md](../lexicon.md).
 
 ## Context
 
@@ -113,7 +113,7 @@ marked so in `provenance.json` (and the reverse), has no sidecar, or has a sidec
 At 3 000 lemmas the file is 4.7 MB (limit 15 MB), there are 41 078 entries in the merged lexicon, the first load of the bundle in a fresh process takes
 217 to 267 ms (limit 300 ms), the fuzz suite is green at default depth in about 20 s (limit 60 s), and the whole suite is about 21 % slower (limit 25 %). At 5 000
 lemmas the file is 6.6 MB and the suites are green, but the first load takes 333 to 373 ms and the suite time has no margin left, so 3 000 is kept. The
-measurements are in [docs/nlp/LEXICON.md](../LEXICON.md). To keep the gates at 3 000
+measurements are in [docs/nlp/lexicon.md](../lexicon.md). To keep the gates at 3 000
 the loader reads the lexicon with a hand-written `Utf8JsonReader` instead of the reflection deserializer and builds its indexes without
 intermediate lists, and the fuzz oracle that loads 500 damaged copies of the bundle uses an opt-in cache of the parsed lexicon files (`LexiconCache`)
 and four threads; the generators index the lexicon instead of scanning it.
@@ -123,8 +123,8 @@ and four threads; the generators index the lexicon instead of scanning it.
 - The lexicon grows from 404 to 3 372 lemmas and from 1 268 to 41 078 entries. A noun is also a verb form in 21 % of the usable nouns
   (339 of 1 583; before: 3 of 154), and 7 216 of 32 494 forms of the merged lexicon have more than one reading (before: 89 of 1 179). The analyzer is not part-of-speech aware, so
   such words trip the person, tense and number checks on correct sentences. The fuzz generators leave those words out of the sentences they build
-  and count them; making the analyzer choose is M18. This is the cost of the milestone, and the numbers that decide M18 are in LEXICON.md. *Update:* M18 did it
-  (`ReadingResolver`, [PIPELINE.md](../PIPELINE.md#4-linguistic-analysis-d0)), and the generators now draw these words.
+  and count them; making the analyzer choose is M18. This is the cost of the milestone, and the numbers that decide M18 are in lexicon.md. *Update:* M18 did it
+  (`ReadingResolver`, [pipeline.md](../pipeline.md#4-linguistic-analysis-d0)), and the generators now draw these words.
 - Analyzer fixes that the new words forced (regression tests in `Slg.Nlp.Tests/Analysis/AmbiguousReadingTests.cs`): a subject pronoun is checked
   against the declarative readings of its verb, because an imperative is spelled like the third person (`tú habla` is a person mistake); the copula
   check uses the declarative reading (`está` is also the imperative of `estar`, so the correction of `ella está alta` is `es`, not `eres`); a form
@@ -150,6 +150,6 @@ and four threads; the generators index the lexicon instead of scanning it.
 
 ## Open items
 
-- Part-of-speech disambiguation in the analyzer (M18), decided on the numbers in LEXICON.md.
+- Part-of-speech disambiguation in the analyzer (M18), decided on the numbers in lexicon.md.
 - The OpenSubtitles terms (point 1) and the choice of a licence for the repository are the owner's.
 - If kaikki.org withdraws the post-processed Spanish file, regenerate from the raw data with a new pin and a bumped importer version.

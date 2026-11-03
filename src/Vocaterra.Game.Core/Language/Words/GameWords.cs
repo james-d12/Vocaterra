@@ -64,7 +64,7 @@ public sealed record NearFutureWords(string Verb, string Joiner, IReadOnlyList<s
 }
 
 /// <summary>
-/// The target-language words the game itself uses (CONTENT_PLAN 3.3, C05), read from <c>game/words.json</c>: the guide's directions, the block unit and the
+/// The target-language words the game itself uses (content-plan 3.3, C05), read from <c>game/words.json</c>: the guide's directions, the block unit and the
 /// list joiner, the speech buttons and the support headings, the pronouns of the conjugation tables, the help and "no sé" lines, the near future, the
 /// greeting, the letters the typing help lists, and the nouns the world's logic is about. They were constants in the code; here the grammar check sees
 /// them, and a later target language needs no code change for them. The key words an NPC shows first left this file for the NPC's own (schema 2,
@@ -220,7 +220,7 @@ public sealed class GameWords
         }
     }
 
-    /// <summary>Every word of the file, by a path inside it (<c>directions.left</c>), for the grammar check (CONTENT_PLAN C05).</summary>
+    /// <summary>Every word of the file, by a path inside it (<c>directions.left</c>), for the grammar check (content-plan C05).</summary>
     public IReadOnlyList<(string Path, string Text)> All()
     {
         var all = new List<(string, string)>

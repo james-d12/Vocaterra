@@ -11,7 +11,7 @@ namespace Vocaterra.Game.Core.Content;
 public sealed record LocaleInfo(string Code, string Name, string Glyphs);
 
 /// <summary>
-/// The support-language bundle <c>content/locale</c> (CONTENT_PLAN 3.1, C03): beside <c>content/game-v1</c> and outside its hash, so an edit of the
+/// The support-language bundle <c>content/locale</c> (content-plan 3.1, C03): beside <c>content/game-v1</c> and outside its hash, so an edit of the
 /// learner's language changes no save, no fixture and no golden. It has its own <c>manifest.json</c> (written by
 /// <c>scripts/content.sh hash content/locale --bundle-id locale</c>); every file is checked against it at load, and a file that differs is refused.
 /// </summary>

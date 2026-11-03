@@ -8,7 +8,7 @@ namespace Vocaterra.Game.Core.Navigation;
 
 /// <summary>
 /// Where the beacon stands: on a named point at the start (<c>--beacon</c>, or the guide's camp for a new game, S13), on the session's arrow while
-/// there is one (S3), and nowhere once the player has reached it. An arrival is a world event (<see cref="WorldEvents.BeaconReached"/>, VILLAGE_PLAN V02): the
+/// there is one (S3), and nowhere once the player has reached it. An arrival is a world event (<see cref="WorldEvents.BeaconReached"/>, village-plan V02): the
 /// session logs it for its own arrow (<see cref="VoxelSession.Step"/>, whose reach takes the arrow down first), and this class for a beacon it placed itself.
 /// </summary>
 public sealed class BeaconDirector
@@ -101,7 +101,7 @@ public sealed class BeaconDirector
 
     /// <summary>
     /// Once a frame, last: the beacon comes down when the player stands near it. When it was a beacon this class placed (the start, <c>--beacon</c>) the arrival is
-    /// logged as <see cref="WorldEvents.BeaconReached"/> with the point's name (VILLAGE_PLAN V02); the session's own arrow logs its arrival itself.
+    /// logged as <see cref="WorldEvents.BeaconReached"/> with the point's name (village-plan V02); the session's own arrow logs its arrival itself.
     /// </summary>
     public void ClearIfReached(VoxelSimulation sim)
     {

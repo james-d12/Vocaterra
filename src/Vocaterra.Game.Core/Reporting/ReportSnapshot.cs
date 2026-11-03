@@ -33,7 +33,7 @@ public static class ReportBounds
 /// <param name="Greyscale">Whether the greyscale A/B switch is on.</param>
 /// <param name="Speech">The speech models' state (found, not loaded, off).</param>
 /// <param name="Microphone">The microphone's state (found, not found, not used).</param>
-/// <param name="Locale">The support-language locale and its bundle's hash (<c>en, hash ...</c>; CONTENT_PLAN C03), or <see langword="null"/> when not known.</param>
+/// <param name="Locale">The support-language locale and its bundle's hash (<c>en, hash ...</c>; content-plan C03), or <see langword="null"/> when not known.</param>
 public sealed record ReportGameState(
     string BuildCommit,
     string BundleId,

@@ -7,7 +7,7 @@ using Vocaterra.Nlp.Core.Verdicts;
 namespace Vocaterra.Game.Core.Npc;
 
 /// <summary>
-/// A greeting that opens a line with something else to say (VILLAGE_PLAN V15): <c>hola, quiero dos panes</c>, <c>buenos días, ¿cuánto cuesta el pan?</c>. The core reads one
+/// A greeting that opens a line with something else to say (village-plan V15): <c>hola, quiero dos panes</c>, <c>buenos días, ¿cuánto cuesta el pan?</c>. The core reads one
 /// intent per line, and it read such a line as the greeting alone, so the bread was never bought (found at V14: <c>hola Luz quiero dos panes</c> at the bakery). A market
 /// makes the line likelier, and the greeting is no part of what is asked, so the game answers the rest: when the whole line is read as a greeting (or as nothing) and the
 /// words after the greeting are understood as another intent the prompt takes, the turn is that intent's. The greeting itself credits nothing (no greeting phrase, no

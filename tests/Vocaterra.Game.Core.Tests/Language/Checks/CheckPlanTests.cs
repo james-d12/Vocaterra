@@ -5,7 +5,7 @@ namespace Vocaterra.Game.Core.Tests.Language.Checks;
 
 /// <summary>
 /// The order of a check battery (S11): seeded by the world seed and the check kind, the same for the same pair, and the same content in every order; since
-/// VILLAGE_PLAN V07 the items of the lessons the play session has unlocked, the pilot's 31 kept whole.
+/// village-plan V07 the items of the lessons the play session has unlocked, the pilot's 31 kept whole.
 /// </summary>
 public sealed class CheckPlanTests
 {
@@ -70,7 +70,7 @@ public sealed class CheckPlanTests
         Assert.Equal(Bank.Count, plan.Count);
     }
 
-    // The pilot's battery (docs/game/PLAYTEST.md, sections 3, 4 and 8): these 31 items in this order, the pre- and post-check in the first play session, the recall
+    // The pilot's battery (docs/game/playtest.md, sections 3, 4 and 8): these 31 items in this order, the pre- and post-check in the first play session, the recall
     // in the second.
     private static readonly string[] PilotBattery =
     [
@@ -87,7 +87,7 @@ public sealed class CheckPlanTests
     [InlineData(3)]
     public void ThePilotsSessionsAskTheWholeBatteryOfThirtyOneExactlyAsBefore(int playSession)
     {
-        // VILLAGE_PLAN V07: a battery asks the items of the lessons its play session has unlocked, and the lessons of the first three sessions are the pilot's,
+        // village-plan V07: a battery asks the items of the lessons its play session has unlocked, and the lessons of the first three sessions are the pilot's,
         // asked from the first session on (coreSessions). So the pilot's batteries are the 31 items, in the same order with the same options, as before.
         var data = RouteScene.DataOf(TestGame.Bundle);
         Assert.Equal(PilotBattery, data.Checks.AskedIn(playSession, data.Lessons).Select(static i => i.Id));

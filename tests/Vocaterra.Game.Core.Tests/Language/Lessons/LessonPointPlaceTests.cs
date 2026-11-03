@@ -7,7 +7,7 @@ using Vocaterra.Game.Core.Voxel;
 namespace Vocaterra.Game.Core.Tests.Language.Lessons;
 
 /// <summary>
-/// A <c>do</c> step that sends the learner to a place of the scene (VILLAGE_PLAN V02, <c>pointPlace</c>): the beacon goes there when the step begins, and the step
+/// A <c>do</c> step that sends the learner to a place of the scene (village-plan V02, <c>pointPlace</c>): the beacon goes there when the step begins, and the step
 /// waiting for <c>beacon_reached</c> with that place is done on arrival, as session 4 walks the learner to the bakery and the smithy.
 /// </summary>
 public sealed class LessonPointPlaceTests

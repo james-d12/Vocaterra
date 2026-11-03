@@ -10,7 +10,7 @@ namespace Vocaterra.Game.Core.Tests.Navigation;
 
 /// <summary>
 /// Where the beacon stands: the guide's camp for a new game, a requested point or none, and nothing once the player is there; the arrival at a beacon the director
-/// placed is logged with its point's name (VILLAGE_PLAN V02), the arrival at the session's own arrow by the session.
+/// placed is logged with its point's name (village-plan V02), the arrival at the session's own arrow by the session.
 /// </summary>
 public sealed class BeaconDirectorTests
 {

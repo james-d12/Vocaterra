@@ -60,7 +60,7 @@ jobs:
           path: TestResults/
           retention-days: 7
 
-  # Rebuilds content/grammar/ against a live LanguageTool server (docs/game/README.md, "The grammar check"). On a failure, commit the
+  # Rebuilds content/grammar/ against a live LanguageTool server (docs/game/content.md, "The grammar check"). On a failure, commit the
   # files from the grammar-refresh artifact, fix the content, or add a waiver.
   languagetool:
     runs-on: ubuntu-latest

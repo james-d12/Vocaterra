@@ -163,7 +163,7 @@ public sealed class BlockAtlasTests
         Assert.Equal(BlockCell.IconBottle, BlockAtlasLayout.IconFor(ItemId.Bottle));
         Assert.Equal(BlockCell.IconWaterBottle, BlockAtlasLayout.IconFor(ItemId.WaterBottle));
         Assert.Equal(BlockCell.IconBread, BlockAtlasLayout.IconFor(ItemId.Bread));
-        Assert.Equal(BlockCell.IconCoin, BlockAtlasLayout.IconFor(ItemId.Coin)); // VILLAGE_PLAN V05: drawn for them (V03 borrowed the lantern, the apples and the workbench)
+        Assert.Equal(BlockCell.IconCoin, BlockAtlasLayout.IconFor(ItemId.Coin)); // village-plan V05: drawn for them (V03 borrowed the lantern, the apples and the workbench)
         Assert.Equal(BlockCell.IconApple, BlockAtlasLayout.IconFor(ItemId.Apple));
         Assert.Equal(BlockCell.IconAxe, BlockAtlasLayout.IconFor(ItemId.Axe));
         Assert.All(ItemDefinition.All, static d => Assert.NotNull(BlockAtlasLayout.IconFor(d.Id))); // every item draws something in the hotbar
