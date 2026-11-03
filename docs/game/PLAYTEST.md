@@ -14,7 +14,7 @@ listened to the recordings (`docs/game/SPEECH_CHECKLIST.md`). **Tell every teste
 speaker yet." Put that sentence in the consent script too. Do not claim the Spanish is correct to a tester.
 
 **The review chain (D-game-12, S23).** Before a build goes to a tester the content runs lint `--strict`, `cefr-check` (A1 and A2), the grammar
-check (LanguageTool over every Spanish string, from the committed cache, `docs/game/README.md`), then the Opus pass. Each step is supplementary: a clean
+check (LanguageTool over every Spanish string, from the committed cache, `docs/game/content.md`), then the Opus pass. Each step is supplementary: a clean
 grammar run is not native-speaker approval, and `reviewer` in `content/PHRASES.md` does not change because of it.
 
 ## 1. Who to recruit
@@ -75,7 +75,7 @@ game in it (not built), the launcher says so and asks for `scripts/playtest-buil
 `VOCATERRA_MODELS_DIR` set. The developer build also carries Kokoro (`--speak`), which the playtest build does not.
 
 **Fresh clone.** A clone needs the .NET 10 SDK, the speech models (`scripts/fetch-models.sh`) and `dotnet build Vocaterra.sln`. The
-README's build steps are the reference; S12's fresh-clone check is in `docs/game/README.md`.
+README's build steps are the reference; S12's fresh-clone check is in `docs/game/building-and-testing.md`.
 
 **Before the tester sits down:** the microphone works (the mic check will tell you), the screen is at least 1280 x 720, and the session folder
 root is empty of old runs you do not want mixed in (each run makes its own folder anyway).

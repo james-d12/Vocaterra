@@ -145,7 +145,7 @@ first and the voice into `game/npcs/<id>.json` (section 3.7, V01) and leaves the
   A1 and A2 only prints (`Program.cs:273`). The core's level lists are cumulative: A2 includes A1 (`CefrChecker.cs:119`). So today **every
   Spanish word an NPC speaks must be in `cefr/a1.txt`**, and the practice since S5 has been to add world words there as provisional
   (`botella`, `madera`, `antorcha`, `fuego`, `despacio`; the sheet's notes). An A2 lesson cannot pass this gate as it is; section 3.9 changes it.
-- **The grammar gate** needs the LanguageTool server once per batch of new Spanish (`docs/game/README.md`, "Refreshing the cache").
+- **The grammar gate** needs the LanguageTool server once per batch of new Spanish (`docs/game/content.md`, "Refreshing the cache").
 - **Every bundle edit** re-hashes `game-v1`, so: the goldens may move, `Fixtures/save-v1.json` takes the new hash, the scripted runs are
   re-baselined, and the documents' counts (`README.md`, `PLAYTEST.md`) change; X06 noted that a roster test counts review lines.
 - **The sheet test** (`PhraseSheetTests`) checks every row: the variants resolve to the intent at the prompt with no error, the learner-error
@@ -660,6 +660,35 @@ hash and the scripted runs re-baselined; the lesson timed in a scripted run (5 t
 - **Build time.** More props cost nothing measurable; the seed-42 budget test keeps watch.
 - **The recognizer.** Vosk has no word list to check; a new word the learner must say that the round-trip test cannot hear goes to the
   `hears` side or to a typed-only variant, reported in the milestone.
+
+### Open points after the follow-ups
+
+Moved on 2026-11-03 from `docs/game/README.md`, where V09 and V24 kept them; the text is unchanged.
+
+**Open points after the follow-ups** (V24, 2026-11-02; checked against the follow-ups' entries and the core's, with what a later milestone fixed left out; each is marked owner, game or core).
+
+- **The voices** (owner). None of the 1 082 speech files is marked in `docs/game/SPEECH_CHECKLIST.md`. Phase B added 222 files; the follow-ups 162 (81 lines, and V28 6 more, «Sí, es verdad.» for the baker, the smith and the fisher:
+  the villager 14, the farmer 14, the shopkeeper 14, the baker 13, the smith 13, the fisher 12, the guide 1; V27's seven «Te entiendo.» lines, one per NPC, are
+  14 of them). The shared feedback lines of V21b are in each NPC's voice (120 files), so an NPC's voice is judged on its own lines and on those.
+- **A spoken line the prompt does not take is still «No te entendí»** (game, V27's scope). A typed line the core understands off the prompt (`Me gusta el río.`
+  at the smith) gets the NPC's «Te entiendo.» and its topic; a spoken line at a constrained prompt is decoded against the answer set only (the owner's decision), so
+  the core never sees the words and the NPC does not understand it. A spoken line the recognizer was unsure of keeps «No te entendí bien…» too.
+- **A line no intent of the catalog takes is «No te entendí»** (core and game). `la tienda está en el pueblo` at `farmer-open` has no `OffPromptIntent` (M72), so the
+  repair ladder runs as before. The intent catalog is the fix, if the owner wants more lines understood.
+- **The oven order after a load waits for its lesson** (game, V14's design). The baker's `Primero, la lección. Luego, las monedas.` (V21) tells the learner
+  the order is held: after a load in session 5 the order is delivered at the lesson's `n4-back` step.
+- **The recorded fuzz families** (core): `2tpLGUOSqj41` with `fSMdah3kOSd7` (`word_order`, a `[WORD]` slot binds the moved adjective, M69) and `3-VvCuMLFEA2`
+  (recorded; M73 reported that the only fix would narrow the mutation). `8yc522XLB_W2` was fixed by M73.
+- **«Sí, es verdad.» only at the NPC's own prompt** (game, V28). A statement about the listener (a second-person verb, or `tú`, `usted`, `ustedes` not after a preposition)
+  gets «Sí, es verdad.» in place of «¡Qué bien!» when the NPC's prompt takes it; an off-prompt line (`Eres el herrero.` at the smith) keeps «Te entiendo.» and its
+  topic, and `tu`/`su` alone do not count as the listener.
+- **The name-plate picture test needs a display** (game, V28). `NamePlatesTests` runs the game window for the beacon's NPC behind the bakery and does nothing
+  without `DISPLAY` or the built game, so CI does not run it.
+- **M67b parked** (core). An answer's verb forms (`AnswerVerbForms`) would turn a lesson's near answer into a slip in the CLI and the host, which run no lesson.
+  The game already retries a tense miss with its hint (V14), so the learner meets the right behaviour in the game only.
+- **The timed tests on CI** (game and core). The six in the table of `docs/game/building-and-testing.md`, "Continuous integration", were measured in V24; the first three are the likely
+  failures. M68 only if one fails.
+- **The merged milestone branches still on the remote** (owner).
 
 ## 6. Owner decisions (D-game-22, proposed)
 

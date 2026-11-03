@@ -304,8 +304,8 @@ PR #20 is already about 170 commits. Phase B is a finished, gated unit. A new PR
 
 ## 6. What V09 found (phase B's documents and runs)
 
-Recorded in `docs/game/IMPLEMENTATION_PLAN.md` section 5 ("V09 again"). The full open-points list is `docs/game/README.md`, "Open points
-after phase B".
+Recorded in `docs/game/IMPLEMENTATION_PLAN.md` section 5 ("V09 again"). The full open-points list is `docs/game/VILLAGE_PLAN.md` section 5,
+"Open points after the follow-ups" (it replaced "Open points after phase B").
 
 - **The scripted runs against the end of phase A** (`ccf8187` against `fa22116`; all 20 runs, `docs/game/SCRIPTED_RUNS.md`). Every
   difference traces to phase B:
@@ -633,7 +633,7 @@ one at a time.
 **The follow-ups are done (2026-11-02):** the whole queue of section 9.2 is gated and pushed on `feature/village-followups` (V22, V25,
 V23a, V20, V21, V21b, V24 in the game; M65, M71, M66, M67, M70, M69 in the core; 8133 passed, 3 skipped, at `56d2790`). M68 waits for a
 CI failure of a timed test. Next: the owner's pull request of `feature/village-followups` into `main`. The open points are
-`docs/game/README.md`, "Open points after the follow-ups" (V24); the game's small ones (two replies to a line not understood, the book's
+`docs/game/VILLAGE_PLAN.md` section 5, "Open points after the follow-ups" (V24); the game's small ones (two replies to a line not understood, the book's
 credit of a refused request, the typed form `compre` in the book, the scripted run's silent stop at 18 000 ticks) were proposed to the
 owner as one milestone, not started.
 - **9.1 answered (2026-11-01, D-game-22):** models mixed (Opus 5.5 xhigh for M65 to M67, M69, V20; Sonnet 5.5 for V21 to V23 and M68;
@@ -692,7 +692,7 @@ the follow-ups and what V09 found). The owner's plan (2026-11-01): review, merge
     greeting's words never flagged, wood sold in blocks. The series' ten lessons are built;
   - V09 again (`da8dba6`): the scripted runs against `ccf8187` (every difference traced), the runs `r22-market` and `r23-future`, the
     learner's route through sessions 7 to 10 (one fix: a skipped game counts the shopkeeper's bottle and key words), the documents'
-    counts, CI's case, and the open points of phase B in one list (`docs/game/README.md`, "Open points after phase B");
+    counts, CI's case, and the open points of phase B in one list (`docs/game/VILLAGE_PLAN.md` section 5, "Open points after the follow-ups" (it replaced "Open points after phase B"));
   - `main` merged in at `0cf674b`. It brought the CI workflow with its grammar jobs, and the QA agent.
 - **The review and its fixes** (2026-11-01): M64 (the core: a subject joined by `y`, an amount before `ser`, `cerca del`, ADR 0009's
   note) and V19 (the game: the listener's name after any greeting, the market's misses, session 8's answer set, the skip).
@@ -701,7 +701,7 @@ the follow-ups and what V09 found). The owner's plan (2026-11-01): review, merge
   M56 to M59, M62) are the models for any follow-up; fill their `@@…@@` placeholders from the last reports before launching.
 
 **Open points to carry**
-- **The whole list after phase B** is `docs/game/README.md`, "Open points after phase B" (V09, each marked owner, game or core); what follows
+- **The whole list after phase B** is `docs/game/VILLAGE_PLAN.md` section 5, "Open points after the follow-ups" (it replaced "Open points after phase B") (V09, each marked owner, game or core); what follows
   is the orchestrator's short form.
 - **The coin path:** a learner reaches session 7 with 0 coins (+2, +4, −4 for bread, −2 for the axe) and leaves session 8 with 0 coins, 3
   apples, 2 loaves and the axe (V13, V14 designed around it). V15's `buy` (selling wood and fruit) is the one repeatable source; session

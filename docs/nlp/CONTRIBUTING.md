@@ -22,7 +22,7 @@ happens to one utterance, [docs/nlp/adr/](adr/) for why the rules exist, and [IM
 ## Development setup
 
 1. Install the .NET SDK pinned in `global.json` (at the repository root) (10.0.402; later patch releases are accepted). A user-local install is fine
-   (see the README, "Prerequisites"). In every shell that builds the project, `DOTNET_ROOT` and `PATH` must point at it:
+   (see [building-and-testing.md](building-and-testing.md), "Prerequisites"). In every shell that builds the project, `DOTNET_ROOT` and `PATH` must point at it:
 
    ```bash
    export DOTNET_ROOT="$HOME/.dotnet"
@@ -180,7 +180,7 @@ the dialogue and the learner model. Add it in this order:
 There is one bundle in the repository (R02): `content/game-v1`, the game's. The core's demo CLI, its tests and its fuzz suite run on it, so a core change that
 needs content edits this bundle, and a game edit that breaks something the core relies on fails a core test; that is the feedback this arrangement is for. The
 game's own rules for editing it (the phrases of `content/PHRASES.md` are the source of truth for the Spanish the learner is taught, `scripts/content.sh` is the
-tool, and the gate runs `lint --strict --level a1 --host-pools 'guide.*'`) are in [docs/game/README.md](../game/README.md); this recipe is the core's side of the
+tool, and the gate runs `lint --strict --level a1 --host-pools 'guide.*'`) are in [docs/game/content.md](../game/content.md); this recipe is the core's side of the
 same workflow.
 
 The bundle is a folder of JSON files under `content/game-v1`, listed with SHA-256 hashes in `content/game-v1/manifest.json`. The loader

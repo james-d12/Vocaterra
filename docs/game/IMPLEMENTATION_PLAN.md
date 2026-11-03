@@ -1929,7 +1929,7 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   - **Found and fixed:** a skipped game left the shopkeeper as if never met: in session 7 his key words stood alone again and his next visit handed
     over a second bottle as a fail-forward, logging a use of `pedir-agua` the learner never made. The skip now counts his bottle as given and his key
     words as taught (`SessionSkip`, `NpcService.SkipShopkeeperBottle`; `SessionSkipTests`, failing before the fix).
-  - **Found, not fixed (for the owner's review; the whole list is in `docs/game/README.md`, "Open points after phase B"):**
+  - **Found, not fixed (for the owner's review; the whole list is in `docs/game/VILLAGE_PLAN.md` section 5, "Open points after the follow-ups" (it replaced "Open points after phase B")):**
     - In free talk, 9 of phase B's 27 said lines get "No te entendí" from the NPC who taught them: the open prompts of the villager, the fisher and
       the stall take no statements, and Domingo's no `tener que` (`Es grande.`, `Compré tres manzanas.`, `Tengo que ir al río.`, `Luz hará pan.`, …).
     - Free talk credits only an NPC's `focus` rows, so a phase-B line said again in free talk counts no phrase use (r23).

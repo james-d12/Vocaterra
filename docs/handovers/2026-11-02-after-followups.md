@@ -9,7 +9,7 @@ Read first:
 - `.claude/agents/orchestrator.md`: the roles, the resources, the per-milestone loop, and the gotchas in "Handover (2026-11-01)".
 - The milestone entries that this work builds on, in their findings logs (`grep -n '^- \*\*M72\|^- \*\*M73'
   docs/nlp/IMPLEMENTATION_PLAN.md`, `grep -n '^- \*\*V2[078]' docs/game/IMPLEMENTATION_PLAN.md`).
-- `docs/game/README.md`, "Open points after the follow-ups".
+- `docs/game/VILLAGE_PLAN.md` section 5, "Open points after the follow-ups".
 
 The used briefs in `.claude/briefs/` (M72, M73, V27, V28) are the models for the new ones.
 

@@ -1,6 +1,6 @@
 # Combinatorial Fuzz Testing Plan
 
-Status: planned (milestone M16 in `IMPLEMENTATION_PLAN.md`). Modelled on
+Status: built at M16; the suite is `tests/Vocaterra.Nlp.Fuzzing.Tests` (its README lists the oracles and the bugs found). Modelled on
 [CodeGuard.RuleFuzzing.Tests](https://github.com/james-d12/CodeGuard/tree/main/tests/CodeGuard.RuleFuzzing.Tests):
 catalog-driven generators, explicit oracles, full soak by default, seed replay for reproduction.
 

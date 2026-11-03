@@ -110,7 +110,7 @@ fi
 
 # The LanguageTool grammar check (core M30, D10's dev-time half), on the repository's one bundle (R02: content/v1 and its advisory step are gone).
 # REQUIRED since the first waiver round (owner, 2026-10-22). --strict fails on any unwaived warning or a cache miss, offline from the committed
-# cache; after a content change, refresh the strings file and the cache (docs/game/README.md) with the local server, then rerun.
+# cache; after a content change, refresh the strings file and the cache (docs/game/content.md) with the local server, then rerun.
 GRAMMARLOG=".claude/gate-logs/grammar-$STAMP.log"
 grammar_rc=0
 if [ -f content/grammar/game-v1-cache.json ]; then

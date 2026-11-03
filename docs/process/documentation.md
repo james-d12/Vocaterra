@@ -19,7 +19,7 @@ How the documents under `docs/` are organised, named and moved. Adopted 2026-11-
 | A QA pass or a branch review | `qa-reports/`, plus its bugs in the triage table | `YYYY-MM-DD-<area>.md`, `YYYY-MM-DD-review-<branch>.md` |
 | A superseded document | `archive/`, at its original path, plus a row in its README | its original name |
 | A plan for a milestone series | `game/` or `nlp/`, beside the implementation plan | `<SERIES>_PLAN.md`, as the existing plans |
-| Reference or a guide to the game or the core | `game/` or `nlp/` | as its neighbours |
+| Reference or a guide to the game or the core | `game/` or `nlp/`, linked from that half's README | lowercase kebab-case |
 | The owner's design inputs | `game/design/`; the original Word files in `game/design/sources/` | lowercase kebab-case |
 | How we work on both halves | `process/` | lowercase kebab-case |
 | A document about code or data | beside it (`content/`, `scripts/`, `src/…/README.md`) | `README.md` or as its neighbours |

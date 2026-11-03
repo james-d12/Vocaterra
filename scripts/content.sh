@@ -109,7 +109,7 @@ if ! tool grammar "$GAME" --strings "$STRINGS" --strings-only --offline --strict
 refresh: the grammar check failed. A cache miss means new Spanish text: start the local server (scripts/languagetool.sh start), run
   scripts/content.sh grammar content/game-v1 --strings content/grammar/game-v1-strings.jsonl --strings-only --prune
 read every finding (fix the content or add a waiver with its reason to content/grammar/game-v1-waivers.json), stop the server
-(scripts/languagetool.sh stop) and run the refresh again (docs/game/README.md, "Refreshing the cache"). scripts/content-loop.sh --grammar does
+(scripts/languagetool.sh stop) and run the refresh again (docs/game/content.md, "Refreshing the cache"). scripts/content-loop.sh --grammar does
 all of this in one command (content/README.md, "The edit loop").
 EOF
   exit 1

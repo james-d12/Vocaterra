@@ -161,7 +161,7 @@ lowered an oracle's depth or changed a golden.
 - `scripts/test.sh fast|full|project <name>` builds with `-m:4` and tests with `-m:2` through `limited.sh`, sets `VOCATERRA_MODELS_DIR`
   to the shared folder when it exists (as the gate does), writes the TRX files to `.claude/test-timings/<mode>-<stamp>/`, names the tests
   the fast tier left out and ends with each assembly's wall time. `fast` is `--filter "Speed!=Slow"`; a `--filter` given to it is combined.
-- The tiers are documented in `docs/nlp/CONTRIBUTING.md`, `docs/game/README.md`, `scripts/README.md` and the orchestrator's brief template
+- The tiers are documented in `docs/nlp/CONTRIBUTING.md`, `docs/game/building-and-testing.md`, `scripts/README.md` and the orchestrator's brief template
   and resource rules: `fast` per step, `full` at a milestone and in the gate.
 - The gate (`scripts/merge-gate.sh`) and CI (`.github/workflows/ci.yml`, which exists since 2026-10-29 and runs the full suite without
   models) still run the full suite.
@@ -200,7 +200,7 @@ lowered an oracle's depth or changed a golden.
   `Content/TestSupport.cs`, `Pipeline/TestSupport.cs`, the Golden.Tests loaders
 - **Call sites:** the 34 game test classes and five calls that dropped their own load, the seven direct scene builds, and the classes and
   methods marked slow
-- **Docs:** this plan, `docs/nlp/CONTRIBUTING.md`, `docs/game/README.md`, `scripts/README.md`, `.claude/agents/orchestrator.md`, and the
+- **Docs:** this plan, `docs/nlp/CONTRIBUTING.md`, `docs/game/building-and-testing.md`, `scripts/README.md`, `.claude/agents/orchestrator.md`, and the
   findings logs of both plans (`docs/nlp/IMPLEMENTATION_PLAN.md` 5b and `docs/game/IMPLEMENTATION_PLAN.md` section 5), each for its half
 
 ## Verification

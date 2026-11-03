@@ -10,7 +10,7 @@ Everything the game says, shows and builds its world from, outside the code. The
 | `game-v1/` | The content bundle: the core's files and the game's files, in the target language (Spanish), with ids for everything the learner reads in their own language. Its `manifest.json` pins the sha256 of every file; a save records the bundle's hash. | yes, by its manifest |
 | `locale/` | The learner's support language (L1): `locales.json` and one folder per locale (`en/` only), every string by its id. Outside game-v1's hash, so an edit here touches no save, fixture or golden; game-v1's `supportLanguage` names the default locale. | yes, by its own manifest |
 | `schema/` | The JSON Schemas of the game's files (draft-07), for editors and for one test. | no |
-| `grammar/` | The grammar check's strings, its committed LanguageTool cache and its waivers (`docs/game/README.md`). | no |
+| `grammar/` | The grammar check's strings, its committed LanguageTool cache and its waivers (`docs/game/content.md`). | no |
 | `PHRASES.md` | The phrase sheet's source of truth (D-game-10); `PhraseSheetTests` keeps `game-v1/game/phrases.json` in step with it. | no |
 | `speech-index.json` | What each pre-rendered WAV of `game-v1/speech/<speaker>/` (the word cards in `speech/cards/`) says, and how it was rendered. | no |
 
@@ -94,7 +94,7 @@ Everything the game says, shows and builds its world from, outside the code. The
    1. runs `scripts/content.sh refresh` (below);
    2. with `--grammar`, starts the local LanguageTool server, checks the strings the cache lacks and prunes the entries no string uses, checks
       that a cache rebuilt from nothing equals it (CI's `languagetool` job), prints every new finding, and stops the server, even on a failure
-      (`docs/game/README.md`, "Refreshing the cache"). Read each finding it prints: fix the content, or add a waiver with its reason to
+      (`docs/game/content.md`, "Refreshing the cache"). Read each finding it prints: fix the content, or add a waiver with its reason to
       `grammar/game-v1-waivers.json`. Without `--grammar`, new Spanish stops the loop at step 1;
    3. asks the renderer which speech files are new or changed (`scripts/prerender-speech.sh --check`) and, with `--speech`, renders them and
       refreshes again (the manifest after the new WAVs, provenance, the strings);

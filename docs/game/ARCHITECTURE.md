@@ -312,4 +312,4 @@ the same `NpcService` turn, and each turn records how it arrived (`GuideTurn.Inp
   `Component/` tests; its `ArchitectureRulesTests` keep `System.Random` and `Guid` out, the wall clock in `WallClock.cs` and the `Stopwatch` in
   `FrameClock.cs`.
 - The core's own suites (fuzzing, goldens, replay) test the core; the game's tests cover only what the game does with it.
-- Continuous integration is `.github/workflows/ci.yml` (`build-and-test` without the speech models, and `languagetool`; `docs/game/README.md`, "Continuous integration").
+- Continuous integration is `.github/workflows/ci.yml` (`build-and-test` without the speech models, and `languagetool`; `docs/game/building-and-testing.md`, "Continuous integration").

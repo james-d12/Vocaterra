@@ -47,7 +47,12 @@ Documents beside the code or data they describe stay there: `content/README.md`,
 
 | Document | What it is |
 | --- | --- |
-| [README](game/README.md) | Running the game, its options and the open points |
+| [README](game/README.md) | What the game is, its layout and a quick start |
+| [building-and-testing](game/building-and-testing.md) | The build, the test tiers, the speech models, the host, CI and its timed tests |
+| [running](game/running.md) | The 3D world, its options and demo runs, saving and loading, the checks, the playtest |
+| [content](game/content.md) | The content bundle, its gate and the grammar check |
+| [lessons](game/lessons.md), [book](game/book.md) | How the game teaches: the lessons and sessions; the learner's book |
+| [saves](game/saves.md), [sound-and-display](game/sound-and-display.md) | Saves across updates, autosave, the crash report; sounds, UI scale |
 | [SPECIFICATION](game/SPECIFICATION.md) | The game in one paragraph, with its design, plan and decision |
 | [ARCHITECTURE](game/ARCHITECTURE.md) | The game's projects and folders, and what may depend on what |
 | [IMPLEMENTATION_PLAN](game/IMPLEMENTATION_PLAN.md) | Section 4 the milestone table, section 5 the findings log |
@@ -65,10 +70,14 @@ Documents beside the code or data they describe stay there: `content/README.md`,
 
 | Document | What it is |
 | --- | --- |
-| [README](nlp/README.md) | The core's overview, quick start and demo |
+| [README](nlp/README.md) | What the core is, a quick start, the determinism rules |
+| [architecture](nlp/architecture.md) | The stages and their dependencies, using the core from a host, the repository layout |
+| [building-and-testing](nlp/building-and-testing.md) | Prerequisites, build, tests, the fuzz suite, the benchmark |
+| [CLI_EXAMPLES](nlp/CLI_EXAMPLES.md) | The demo CLI with and without models, worked runs, replay logs, the content builder |
+| [known-gaps](nlp/known-gaps.md) | What the core does not do yet |
 | [API](nlp/API.md) | The public types, the boundary with the game |
 | [PIPELINE](nlp/PIPELINE.md), [REPLAY](nlp/REPLAY.md), [LEXICON](nlp/LEXICON.md) | How an utterance is processed, replayed, and how the lexicon is built |
-| [TOOLS](nlp/TOOLS.md), [CLI_EXAMPLES](nlp/CLI_EXAMPLES.md) | The developer tools and worked CLI runs |
+| [TOOLS](nlp/TOOLS.md) | The third-party tools, libraries, models and data sources |
 | [CONTRIBUTING](nlp/CONTRIBUTING.md) | The core's rules for changes and tests |
 | [FUZZING_PLAN](nlp/FUZZING_PLAN.md) | The fuzz suite's design (built at M16) |
 | [IMPLEMENTATION_PLAN](nlp/IMPLEMENTATION_PLAN.md) | §5 the milestone table, §5b the findings log |
