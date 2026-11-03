@@ -1,5 +1,11 @@
 Source: [`sources/Vocaterra_Prototype_Design_Brief.docx`](sources/Vocaterra_Prototype_Design_Brief.docx) (v1.2, the owner's). The three concept images (references A, B, C) stay inside the docx.
 
+> **Amended by D-game-24 (owner, 2026-11-03):** survival needs (hunger, thirst, stamina and health) come first, from session 1, with
+> damage and real death at a cost. This replaces the brief's "no damage or countdown" and its "leave for later" line on hunger and
+> thirst timers that can kill. What still holds: a language mistake never kills, because every need has a route without Spanish. The
+> specification is section 9 of the [adaptation design](sources/Vocaterra_Adaptation_Design_Document.docx) (revision 3), and the
+> decision is in [decisions.md](../decisions.md).
+
 PROTOTYPE DESIGN BRIEF / V1.2
 
 # VOCATERRA

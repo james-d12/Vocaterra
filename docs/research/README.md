@@ -10,6 +10,7 @@ updated as the project moves on. Its outcome is recorded here, and a later repor
 
 | Date | Report | Area | Question | Outcome |
 | --- | --- | --- | --- | --- |
+| 2026-11-03 | [Adaptation design review](2026-11-03-adaptation-design-review.md) | game | Does the owner's Adaptation Design Document (revision 2) hold against the code, and what does an implementer still need? | Its facts mostly hold; thirteen major flaws, five settled by the owner on 2026-11-03 (D-game-23 in part; D-game-24, survival needs first, with real death). The document itself became revision 3, with the detail and the open decisions |
 | 2026-11-01 | [Core systems review](2026-11-01-core-systems-review.md) | game | How does the owner's Core Systems Design Plan compare with the code? | The conversation half is mostly built, the survival-sandbox half is not; five conflicts for the owner. Led to [the W series](../game/activities-plan.md) |
 | 2026-10-31 | [Development bottlenecks](2026-10-31-development-bottlenecks.md) | process | Where do development time and tokens go, and what would cut them? | Cost is context times turns; actions P1 to P5 (P2 became V18's `scripts/content-loop.sh`) |
 | 2026-10-30 | [Mobile feasibility](2026-10-30-mobile-feasibility.md) (R2) | game | Can the same game ship on iOS and Android, and at what cost? | Yes; the engine-free split makes most of the port additive. Nothing planned |
