@@ -28,6 +28,8 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-20 | One licence for the whole repository | decided (owner, 2026-10-23): Apache-2.0 for the game as well as the core; one `LICENSE` and `NOTICE` at the root (R01) | nothing |
 | D-game-21 | Content as data and the L1 locale layer (the C series, `docs/game/content-plan.md`) | decided (owner, 2026-10-27 to 2026-10-29): English moves into a locale bundle `content/locale/` outside game-v1's hash (`en` only); content stays JSON with JSON Schema; objectives, NPCs and target-language words become data; the series runs after R16 phase 2, on `feature/content` | nothing |
 | D-game-22 | The village and the lessons (the V series, `docs/game/village-plan.md`) | decided for phase A (owner, 2026-10-30): phase A now (sessions 4 to 6), phase B held (started 2026-10-31 on the owner's word); the plan's proposals for (b), (c), (e), (f), (h) and (i); the farmer is León; voices provisional (the plan's first candidates) and recorded, the owner listens afterwards; all work by Opus 5.5 at xhigh effort; 2026-10-31: V18 and the core's M56, M59 (before V14), M58 and M62 (before V15) join phase B; 2026-11-01, the follow-ups: models mixed (Opus for M65 to M67, M69 and V20, Sonnet for V21 to V23 and M68, Haiku for V24), M65's narrowings (a) to (c), name plates of the faced NPC depth-tested; 2026-11-02: V24's bugs first (V26), the off-prompt lines (M72, V27), the small points (M73, V28) and the speech folder by speaker; after the pull request: weather and `¿cómo estás?` intents (M74, V29), the near-miss rule (M75), a study of spoken off-prompt lines (`docs/handovers/2026-11-02-after-followups.md`) | the V series |
+| D-game-23 | Activities and the adaptation (the W series, `docs/game/activities-plan.md`; the owner's Adaptation Design Document, revision 3, `docs/game/design/sources/Vocaterra_Adaptation_Design_Document.docx`) | open, decided in part (owner, 2026-11-03): the queued follow-ups first, then player needs (D-game-24), then the W series; an overlay station; the stall buys bread for one coin; the pilot's instructions heard only, no imperative taught; the rest proposed (activities-plan section 12, the design document's section 18) | the W series |
+| D-game-24 | Player needs: hunger, thirst, sleep, health and stamina (the adaptation design's section 9; the N series, proposed ids) | decided (owner, 2026-11-03): five needs, hunger, thirst and sleep in stages whose effects grow worse, pushing health and stamina; built after the queued follow-ups and before every other system, from session 1; real death with a cost; the meters pause in conversations, lessons, the book and every panel; stamina spent by gathering and a new sprint; amends D-game-8's guardrail and replaces D-game-23 (b) | the N and W series |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
@@ -379,6 +381,79 @@ unit test, not some throwaway script or junk text file. This just adds to the ge
    V30, in PR #28 before the merge (the review's items 1 to 7 and 9 to 13; three of them to verify with a test first). The review's item 8
    (an empty answer set counts as a near miss) goes to M75, which rewrites that rule after the merge. Item 14 (pool names written in code)
    goes to V29, before it adds new pools.
+
+## D-game-23: activities and the adaptation (open; decided in part)
+
+**Question.** The W series (`docs/game/activities-plan.md`) proposed answers (a) to (q) in its section 12 on 2026-11-01. The owner's
+Adaptation Design Document (revision 2, 2026-11-03) set the direction above it: one bread procedure with Luz as the pilot, then repair,
+meals and farming. Its revision 3 (2026-11-03; its review record is its section 19) lists the questions
+still open in its section 18.
+
+**Owner's answers, 2026-11-03** (during the review of the adaptation design):
+1. **The order (replaces (j)):** the queued follow-ups first (M74, M75, V29, M78 and the study of spoken off-prompt lines,
+   `docs/handovers/2026-11-02-after-followups.md`), then the W series; player needs (D-game-24) were later put between them. V29
+   declares the NPCs' reply pools in their files before W03, W04 and W08 change those files.
+2. **The station view ((o)):** an overlay panel over the live world for the pilot; an in-world kitchen only after it.
+3. **What bread is for (new, (r)):** the stall buys bread for one coin, a fixed `buy` at the shopkeeper.
+4. **The tú imperative (replaces (h)):** heard only in the pilot. No imperative is taught, so W09 leaves the pilot's path and the book
+   gets no imperative column.
+
+**Still proposed:** (a), (c) to (g), (i), (k), (l), (m), (n), (p) and (q) of activities-plan section 12 ((b), needs as buffs only, is
+replaced by D-game-24), and the recommendations in the design document's section 18: the pilot protocol, a listening gate for Luz's
+lines, the fold rule, act evidence as an amendment to D-game-10, the recipe's changes, session 11 at `a2` with flour sold at the stall, a
+presentation track (U01 to U04), combat left out, the cost of death, Spanish for needs, the pyramid's middle layers, and five points from
+the owner's survival-first proposal (conditions, a first bush at the camp, expansion inside the valley, a chosen starting session and a
+relaxed needs option).
+
+## D-game-24: player needs (decided)
+
+**Owner, 2026-11-03,** on reading the adaptation design: "does this design doc talk about hunger, thirst, health and stamina? those basic
+needs need to be implemented first, otherwise cooking and crafting aren't of much use". The document had them only as missing (needs
+as buffs after the pilot, D-game-23 (b), proposed). Asked how they should work, the owner chose:
+1. **At zero: real death with a cost.** Health falls while hunger or thirst is empty; at zero health the player dies and wakes at the
+   last fire they slept at. The cost recommended in the design (the bag, except the items that stack to 1, left in a chest until the
+   next sleep) waits for the owner's word (its section 18, decision 10).
+2. **The meters pause** in conversations, lessons, the book and every panel, so no one runs down while working out their Spanish.
+3. **From the start:** the meters run from session 1.
+4. **Stamina** is spent by gathering and by a new sprint.
+
+**What it changes:**
+- **It amends D-game-8.** The brief's prototype had "no damage or countdown" and left "hunger/thirst timers that can kill or
+  permanently punish" for later. It also replaces D-game-23 (b), needs as buffs only.
+- **What still holds from the brief:** a language mistake never kills. Every need has a route without Spanish (berries by hand; water by
+  hand at the river, the lake or the well). Death never loses the learner record, the lessons or the book (D-game-16).
+- **The order:** the queued follow-ups, then the N series (proposed ids; N01 to N07 and a needs check since the addenda below), then
+  the W series. Save version 6 and its `systems` map come with N01, and W15 shrinks to cooked dishes and buffs.
+- **The specification** is the adaptation design's section 9 (`docs/game/design/sources/Vocaterra_Adaptation_Design_Document.docx`,
+  revision 3).
+
+**Owner, 2026-11-03 (later),** with a second review of the design by Copilot: "these fundamental needs should come first, they form the
+basis of our pyramid of needs and drive the player to interact with cooking / other systems". The design now orders the work as a
+pyramid:
+1. needs and consumption (N01 to N05);
+2. food that grows back, fair gifts and rest, checked in a short playtest (N06 and the needs check);
+3. useful cooking at the fire (N07);
+4. procedural cooking with fading guidance (the bread pilot);
+5. farming and repair.
+
+N06 and N07 are proposed (the design's section 18, decision 12).
+
+**Owner, 2026-11-03 (later still):** "I'm thinking around player needs that we include hunger, thirst, sleep, health and stamina.
+Hunger, [thirst] and sleep should affect and link to health and stamina. Hunger and thirst are required needs and have increasingly
+negative effects the more hungry or thirsty you are. I like the idea from project zomboid that has needs. And needs have stages
+(slightly thirsty, thirsty, dehydrated, etc) [...] this is the fundamental pillar and needs to be done before the rest of the systems
+are added." ("[thirst]" is this record's reading of the owner's "hunger health and sleep".) The design's section 9 now has:
+- five needs: three drives (hunger, thirst and sleep), each with four stages whose effects grow worse, and two conditions (health and
+  stamina) that the drives push;
+- hunger and thirst required: their last stage costs health. Sleep never kills, but its last stage ends in a collapse;
+- sleep as it is today (a night, once the day's work is done, moves the day and the sitting), plus a nap at the player's fire for a
+  tired player, so Spanish never keeps a tired player from sleep and the needs add no sittings;
+- needs before every other system: the N series is N01 to N07 and the needs check (proposed ids).
+
+The owner also gave a Survival-First Game Design Proposal, consolidated into the design, with its assessment in the design's
+section 19.4; no separate copy is kept (the owner's wish). Its compatible parts are in the design. Five points wait for the owner: the
+design's section 18, decisions 13 to 17 (conditions, a first bush at the camp, expansion, a chosen starting session and a relaxed
+needs option).
 
 ## Already decided
 

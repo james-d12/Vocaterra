@@ -1,6 +1,6 @@
 # Core Systems Design Plan: a review against `feature/village`
 
-A review of `docs/game/design/sources/Vocaterra — Core Systems Design Plan.docx` (30 Oct 2026, exported from Claude Docs) against the code and the
+A review of `docs/game/design/sources/Vocaterra_Core_Systems_Design_Document.docx` (30 Oct 2026, exported from Claude Docs) against the code and the
 decisions on `feature/village` (`3575d46e`, 173 commits ahead of `main`, PR #20 open), and of `docs/game/design/crafting-and-cooking.md` as a
 principle for the docx and for the codebase. Written 2026-11-01 as a draft to iterate on. Nothing was built or run. File references are
 to `feature/village`.

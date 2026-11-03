@@ -1,11 +1,19 @@
 # Activities and the core systems: the W series
 
 A plan written on 2026-11-01 at the owner's request ("make a more detailed implementation plan"), from the owner's design plan
-(`docs/game/design/sources/Vocaterra — Core Systems Design Plan.docx`), the owner's principle (`docs/game/design/crafting-and-cooking.md`) and their review
+(`docs/game/design/sources/Vocaterra_Core_Systems_Design_Document.docx`), the owner's principle (`docs/game/design/crafting-and-cooking.md`) and their review
 (`docs/research/2026-11-01-core-systems-review.md`). It is written against `feature/village` at `3575d46e`, the code the series will start from once PR #20
 is merged. Nothing was built or run.
 
-**Status:** proposed. The series waits for PR #20 to merge and for the owner's answers in section 12 (decision D-game-23, proposed).
+**Status:** proposed. On 2026-11-03 D-game-23 was decided in part and D-game-24 decided (`docs/game/decisions.md`). PR #20 and PR #28
+are merged. The series waits for:
+- the queued follow-ups;
+- then player needs (D-game-24: the N series, specified in the design document's section 9), which take save version 6 and its
+  `systems` map from W06 and shrink W15 to cooked dishes and buffs;
+- the rest of section 12.
+
+The owner's Adaptation Design Document, revision 3 (`docs/game/design/sources/Vocaterra_Adaptation_Design_Document.docx`), changes
+this plan; its section 17 lists how. Where the two differ, the design document applies until this plan is revised.
 **Branch:** `feature/activities`, made from `main` after PR #20 merges; milestone branches `W<nn>-<name>`, gated into it; never `main`.
 **Commit prefix:** `W<nn>:` (W for work, the world's trades; A would read as a CEFR level).
 **Where this file goes:** when R19 (the docs restructure) runs, it moves to `docs/plans/series/w-activities.md`.
