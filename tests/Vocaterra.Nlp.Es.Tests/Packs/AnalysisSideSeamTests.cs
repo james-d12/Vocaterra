@@ -493,6 +493,28 @@ public class AnalysisSideSeamTests
         Assert.Same(AnalysisRules.For(Spanish), AnalysisRules.For(Spanish));
     }
 
+    // M75: the question words of a near miss (cuál es esto for qué es esto), in every form, with their accent or without it; a pack that leaves the member out has none.
+    [Theory]
+    [InlineData("qué", true)]
+    [InlineData("cuál", true)]
+    [InlineData("cuáles", true)]
+    [InlineData("quiénes", true)]
+    [InlineData("adónde", true)]
+    [InlineData("cuántas", true)]
+    [InlineData("donde", true)]
+    [InlineData("cuantás", true)] // the accent on another letter
+    [InlineData("esto", false)]
+    [InlineData("porque", false)]
+    [InlineData("es", false)]
+    public void TheSpanishQuestionWordsAreKnownWithOrWithoutTheirAccent(string word, bool questionWord)
+    {
+        var rules = Spanish.CreateAnalysisRules(SpanishLexicon.Seed, Spanish.CreateMorphology(SpanishLexicon.Seed));
+
+        Assert.Equal(questionWord, rules.IsQuestionWord(word));
+        IAnalysisRules withoutTheMember = new NoSubjectRules(rules);
+        Assert.False(withoutTheMember.IsQuestionWord(word));
+    }
+
     // ---- IMorphology and ContentBundle.SpanishMorphology() ------------------------------------------------------------------------------------
 
     [Fact]

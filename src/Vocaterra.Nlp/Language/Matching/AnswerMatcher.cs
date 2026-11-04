@@ -93,8 +93,7 @@ public static class AnswerMatcher
         // Candidates are sorted by ordinal answer id, so keeping the first of equal distances breaks ties by id.
         foreach (var candidate in candidates)
         {
-            var spelling = DamerauLevenshtein.Distance(input, candidate.Phrase);
-            var phoneticDistance = DamerauLevenshtein.Distance(inputKey, phonetic.Compute(candidate.Phrase));
+            var (spelling, phoneticDistance) = Distances(input, inputKey, candidate.Phrase, phonetic);
             var distance = Math.Min(spelling, phoneticDistance);
             smallest = Math.Min(smallest, distance);
 
@@ -123,6 +122,15 @@ public static class AnswerMatcher
         return new MatchResult(winner.AnswerId, MatchType.Fuzzy, bestDistance, likelyPronunciation, confidence);
     }
 
+    /// <summary>
+    /// The spelling and the phonetic distance between an input and a candidate phrase, both in matching-key form; the match distance is the smaller. The near miss
+    /// of <see cref="AnswerNearMisses"/> measures the nearest phrase with the same distance.
+    /// </summary>
+    internal static (int Spelling, int Phonetic) Distances(string input, string inputKey, string phrase, IPhoneticKey phonetic)
+    {
+        return (DamerauLevenshtein.Distance(input, phrase), DamerauLevenshtein.Distance(inputKey, phonetic.Compute(phrase)));
+    }
+
     // Lower distance is better, so the score is the negated distance and the threshold the negated limit.
     private static MarginDecision Decide(int distance, int limit)
     {
@@ -140,7 +148,11 @@ public static class AnswerMatcher
         };
     }
 
-    private static List<Candidate> BuildCandidates(AnswerSet set, ILanguagePack language, NormalizationOptions options)
+    /// <summary>
+    /// The phrases of the set the matcher compares a line with, every canonical phrase and alias normalized and in matching-key form, in the matcher's order:
+    /// ordinal answer id, the canonical phrase before the aliases, then ordinal phrase. A phrase that normalizes to nothing is left out.
+    /// </summary>
+    internal static List<Candidate> BuildCandidates(AnswerSet set, ILanguagePack language, NormalizationOptions options)
     {
         var candidates = new List<Candidate>();
         foreach (var answer in set.Answers)
@@ -162,12 +174,14 @@ public static class AnswerMatcher
 
     private static void AddCandidate(List<Candidate> candidates, string answerId, string raw, bool isAlias, ILanguagePack language, NormalizationOptions options)
     {
-        var phrase = language.Folding.MatchingKey(language.Normalizer.Normalize(raw, options).Text);
+        var normalized = language.Normalizer.Normalize(raw, options);
+        var phrase = language.Folding.MatchingKey(normalized.Text);
         if (phrase.Length > 0)
         {
-            candidates.Add(new Candidate(answerId, phrase, isAlias));
+            candidates.Add(new Candidate(answerId, phrase, isAlias, normalized));
         }
     }
 
-    private readonly record struct Candidate(string AnswerId, string Phrase, bool IsAlias);
+    /// <summary>One phrase of an answer: its matching key (<see cref="Phrase"/>) and the phrase normalized as the line is (<see cref="Normalized"/>).</summary>
+    internal readonly record struct Candidate(string AnswerId, string Phrase, bool IsAlias, NormalizedText Normalized);
 }

@@ -221,7 +221,8 @@ and are not graded. The lint grades the text with `TextGrader`, which is the tex
 normalization, answer matching against the prompt's answer set, analysis with the prompt's grammars, intent resolution, verdict assembly, without
 pronunciation. The prompt is the example's `prompt` when given (it must allow the intent), otherwise the first **open-mode** prompt (ordinal id) that
 allows the intent, or the first of any mode when none is open: an open prompt grades a sentence, while a constrained prompt expects one of its
-answer set's phrases and would add `vocab.wrong` to a sentence its intents do not understand (M67: not to one a slot grammar understands). The tags can depend on the prompt's difficulty and answer set, which is why an example may name its
+answer set's phrases and adds `vocab.wrong` to a sentence that misses one of them by one word of a slip pair, naming the answer's word (M75: `cuál es esto`
+at `lesson-what` names `qué`; M67: never to one a slot grammar understands). The tags can depend on the prompt's difficulty and answer set, which is why an example may name its
 prompt.
 
 **Waivers.** Per intent, `"lint": { "allowOverlap": [...], "allowRuleOnly": [...], "allowHomograph": [...] }`. A waived finding is still printed (as

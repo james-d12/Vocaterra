@@ -302,17 +302,16 @@ dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "sí, tengo un
 agent: ¡Muy bien!
 ```
 
-The same prompt shows what a constrained prompt does with a sentence that is not one of its phrases: "tengo dos frutas" is understood (the intent and both
-slots are found) but the words are not an answer, so the verdict carries `vocab.wrong` and the agent recasts what the learner said:
+The same prompt shows what a constrained prompt does with a sentence that is not one of its phrases: "tengo dos frutas" is understood by a slot grammar (the
+intent and both slots are found), so it is communicated with no error although its words are not an answer (since M67 a line a slot grammar understood never
+gets the derived `vocab.wrong`):
 
 ```bash
 dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "tengo dos frutas" --prompt lesson-have --content content/game-v1
 ```
 
 ```text
-{"intent":"state_have","slots":{"item":"fruta","qty":"2"},"communicated":true,"correctness":0.4,
- "errors":[{"tag":"vocab.wrong","span":{"start":0,"length":5},"expected":"","actual":"tengo"}],…}
-agent: ¡Eso es! «Tengo dos frutas».
+{"intent":"state_have","slots":{"item":"fruta","qty":"2"},"communicated":true,"correctness":1,"errors":[],…,"resolvedBy":"Grammar",…}
 agent: ¡Muy bien!
 ```
 
@@ -383,21 +382,27 @@ agent: Claro, «ayer fui a comer pan». Muy bien.
 agent: ¡Muy bien!
 ```
 
-`vocab.wrong`: this tag is derived rather than analyzed. On a constrained prompt, a word the lexicon knows but the answer set does not
-contain (here a spell-like word given to the stall) is wrong, not unknown. Its `expected` field is the answer set's canonical answer when
-the set has exactly one answer, and empty otherwise; `supplies` has three item answers, so it is empty here. The sentence is not understood and the
-agent asks again:
+`vocab.wrong`: this tag is derived rather than analyzed. On a constrained prompt, a line that matched no answer gets it where it can name a word (M67, M72,
+M75). A near miss names its word: the line misses the answer phrase nearest it by one word of a slip pair (close in spelling, or both question words,
+articles, prepositions or pronouns), and the tag is on that word with the answer's word as `expected`. `lesson-what` asks «¿Qué es esto?»; `cuál` is a
+question word where the answer has `qué`. A keyword rule understood the line (`ask_what`), so it is communicated, at 0.4:
 
 ```bash
-dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "fuego" --prompt stall-need --content content/game-v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "cuál es esto" --prompt lesson-what --content content/game-v1
 ```
 
 ```text
-{"intent":"unknown","slots":{},"communicated":false,"correctness":0.4,
- "errors":[{"tag":"vocab.wrong","span":{"start":0,"length":5},"expected":"","actual":"fuego"}],…}
-agent: No te entendí. ¿Me lo dices otra vez?
-repair: AskAgain ¿Cómo?
+{"intent":"ask_what","slots":{},"communicated":true,"correctness":0.4,
+ "errors":[{"tag":"vocab.wrong","span":{"start":0,"length":4},"expected":"qué","actual":"cuál"}],…,"resolvedBy":"Rules",…}
+agent: ¡Eso es! «Cuál es esto».
+agent: Miro bien.
 ```
+
+Before M75 the tag was on `es` with an empty `expected`, and M67's rule (a distance to the nearest answer within the fuzzy budget for the line's length) also
+put it on correct Spanish: `quiero hacer un hacha` at `smith-open` scored 0.4 while the agent said «Sí, «quiero hacer un hacha». ¡Muy bien!»; it has no
+error now. The recast still says the line as it was: it is built from the analysis's errors, and the derived tag is the verdict's. A line that resolved no
+intent at a prompt whose answer set has one answer, or at a quiz (no intent allowed), gets the tag on its first content word, with the canonical answer as
+`expected` when the set has one; a correct line that is simply not among a prompt's several answers gets none (M72) and is not communicated.
 
 ## A confirmation and a goodbye
 

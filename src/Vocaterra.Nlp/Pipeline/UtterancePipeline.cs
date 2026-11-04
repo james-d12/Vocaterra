@@ -16,6 +16,7 @@ using Vocaterra.Nlp.Pronunciation;
 using Vocaterra.Nlp.Response.Effects;
 using Vocaterra.Nlp.Response.Speech;
 using Vocaterra.Nlp.Response.Templates;
+using MatchType = Vocaterra.Nlp.Core.Stages.MatchType;
 
 namespace Vocaterra.Nlp.Pipeline;
 
@@ -121,7 +122,8 @@ public sealed partial class UtterancePipeline
             content.EvaluationConfig,
             _services.Versions,
             CanonicalAnswersOf(answerSet),
-            content.Language.ErrorTags));
+            content.Language.ErrorTags,
+            NearMissOf(normalized, match, answerSet, prompt)));
         var notes = AccentNotes.Merge(analysis.Notes, AccentNotes.FromAnswer(normalized, analysis, match, answerSet, content.Lexicon, language, Normalization));
         return new UtteranceAnalysis(clip.ClipHash, prompt, asr, posteriors, normalized, analysis, match, answerSet, verdict, notes);
     }
@@ -214,6 +216,19 @@ public sealed partial class UtterancePipeline
     private static IReadOnlyList<string> CanonicalAnswersOf(AnswerSet answerSet)
     {
         return [.. answerSet.Answers.Select(static answer => answer.Canonical)];
+    }
+
+    // M75: the one word by which a line that matched no answer of a constrained prompt misses the nearest answer phrase, which a derived vocab.wrong names. The
+    // verdict uses it nowhere else, so it is looked for only there.
+    private AnswerNearMiss? NearMissOf(NormalizedText normalized, MatchResult match, AnswerSet answerSet, PromptSpec prompt)
+    {
+        if (match.Type != MatchType.None || prompt.Mode != RecognitionMode.Constrained)
+        {
+            return null;
+        }
+
+        var content = _services.Content;
+        return AnswerNearMisses.Find(normalized, answerSet, prompt.Difficulty, content.Language, content.Lexicon, content.AnalysisRules, Normalization);
     }
 
     private AnswerSet AnswerSetFor(PromptSpec prompt)

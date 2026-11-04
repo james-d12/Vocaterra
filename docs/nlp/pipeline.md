@@ -361,12 +361,26 @@ evaluation configuration and the version stamp:
   counts as communicated: the host rewards being understood. A fuzzy match at the edge of its budget has the confidence of its
   distance, so it is communicated like any other near miss (see [Near misses](#near-misses)).
 - **errors**: analysis errors, pronunciation errors and the derived `vocab.wrong`, de-duplicated by (tag, span) and sorted by
-  span start, then tag order in the taxonomy, then expected text. The derived `vocab.wrong` (a word the lexicon knows but the answer
-  set does not contain) has as `expected` the answer set's canonical answer when the set has exactly one answer, and an empty
-  `expected` otherwise; its `actual` is the word. It explains a miss, so since M67 it is derived only when the line resolved no intent,
-  or resolved one by a keyword rule (not a slot grammar) and is a near miss of an answer (within the fuzzy budget taken for the line's own
-  length: `cuál es esto` for `qué es esto`); a line a slot grammar understood never gets it. A `vocab.unknown` of a fuzzy answer match
-  already carries the answer's word at its place. An error on a number reports the learner's word for it (M70: `dos`, not `2`).
+  span start, then tag order in the taxonomy, then expected text. The derived `vocab.wrong` (a word the lexicon knows where the answer
+  set wanted another) explains a miss by naming a word, at a constrained prompt whose answer set the line did not match, in one of two
+  cases (M67, M72, M75):
+  - **A near miss** (M75; the owner, 2026-11-02, D-game-22: "a near miss must name its word"): the line resolved no intent, or resolved
+    one by a keyword rule or the embedding rung (not a slot grammar), and it misses the answer phrase nearest it (the matcher's distance;
+    a canonical phrase or an alias) by one word of a slip pair: the two have the same number of words, exactly one differs (accents
+    ignored), and the two words are close in spelling (within the answer word's own fuzzy budget, measured as the matcher measures a
+    phrase) or both question words, articles, prepositions or pronouns (`AnswerNearMisses`, `IAnalysisRules.IsQuestionWord`). The tag
+    is on that word, with the answer's word as `expected`, so it is never empty: `cuál es esto` at `lesson-what` gives `cuál`, expected
+    `qué`. M67's rule (the distance within the fuzzy budget taken for the line's own length) also tagged correct Spanish, which the agent
+    praised while it scored 0.4: `quiero hacer un hacha` at `smith-open` (an added word), `pasado mañana iré al río con Mar` and
+    `rápido por favor` (content words far apart) have no error since M75. A set with no answers has no near miss (the matcher reports
+    distance 0 there, which M67's rule read as a near miss of every line).
+  - **A prompt that names its word** (M72): a line that resolved no intent at a prompt whose answer set has exactly one answer, or at a
+    quiz (no intent allowed): the tag is on the first content word, with the set's canonical answer as `expected` when it has exactly
+    one answer, and an empty `expected` at a quiz of several answers.
+
+  A line a slot grammar understood never gets it, nor does a correct line that is simply not among a prompt's several answers. Its
+  `actual` is the word. A `vocab.unknown` of a fuzzy answer match already carries the answer's word at its place. An error on a number
+  reports the learner's word for it (M70: `dos`, not `2`).
 - **correctness**: 1 minus the sum of the error weights for the prompt's difficulty (`content/game-v1/evaluation/evaluation-config.json`),
   clamped to [0, 1], rounded to 9 decimals. For the beginner difficulty `conj.person` costs 0.25 and `noun.number` 0.15, so
   1 - 0.25 - 0.15 = 0.6.

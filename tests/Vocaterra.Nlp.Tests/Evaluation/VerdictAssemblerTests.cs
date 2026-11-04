@@ -408,9 +408,9 @@ public class VerdictAssemblerTests
     }
 
     [Fact]
-    public void VocabWrongIsDerivedForAClosedPromptWhenTheFirstContentWordIsKnown()
+    public void VocabWrongIsDerivedAtAQuizWhenTheFirstContentWordIsKnown()
     {
-        var inputs = VocabInputs([Fixtures.Token("perro", 0, "noun")]);
+        var inputs = QuizVocabInputs([Fixtures.Token("perro", 0, "noun")]);
 
         var verdict = VerdictAssembler.Assemble(inputs);
 
@@ -422,7 +422,7 @@ public class VerdictAssemblerTests
     [Fact]
     public void VocabWrongSkipsLeadingFunctionWords()
     {
-        var inputs = VocabInputs([Fixtures.Token("el", 0, "art"), Fixtures.Token("perro", 3, "noun")]);
+        var inputs = QuizVocabInputs([Fixtures.Token("el", 0, "art"), Fixtures.Token("perro", 3, "noun")]);
 
         var error = Assert.Single(VerdictAssembler.Assemble(inputs).Errors);
 
@@ -432,7 +432,7 @@ public class VerdictAssemblerTests
     [Fact]
     public void VocabWrongPicksTheFirstContentTokenByPositionNotByListOrder()
     {
-        var inputs = VocabInputs([Fixtures.Token("gato", 6, "noun"), Fixtures.Token("perro", 0, "noun")]);
+        var inputs = QuizVocabInputs([Fixtures.Token("gato", 6, "noun"), Fixtures.Token("perro", 0, "noun")]);
 
         var error = Assert.Single(VerdictAssembler.Assemble(inputs).Errors);
 
@@ -442,9 +442,10 @@ public class VerdictAssemblerTests
     [Fact]
     public void VocabWrongIsNotDerivedInOpenMode()
     {
-        var inputs = VocabInputs([Fixtures.Token("perro", 0, "noun")]) with { Prompt = Fixtures.Prompt(RecognitionMode.Open, answerSetId: "animals") };
+        var inputs = QuizVocabInputs([Fixtures.Token("perro", 0, "noun")]) with { Prompt = Fixtures.Prompt(RecognitionMode.Open, answerSetId: "animals") with { AllowedIntentIds = [] } };
 
         Assert.Empty(VerdictAssembler.Assemble(inputs).Errors);
+        Assert.Empty(VerdictAssembler.Assemble(NearMissInputs() with { Prompt = Fixtures.Prompt(RecognitionMode.Open, answerSetId: "animals") }).Errors);
     }
 
     [Theory]
@@ -453,15 +454,16 @@ public class VerdictAssemblerTests
     [InlineData(MatchType.Fuzzy)]
     public void VocabWrongIsNotDerivedWhenTheAnswerMatched(MatchType matchType)
     {
-        var inputs = VocabInputs([Fixtures.Token("perro", 0, "noun")]) with { Match = Fixtures.Matched(matchType) };
+        var inputs = QuizVocabInputs([Fixtures.Token("perro", 0, "noun")]) with { Match = Fixtures.Matched(matchType) };
 
         Assert.Empty(VerdictAssembler.Assemble(inputs).Errors);
+        Assert.Empty(VerdictAssembler.Assemble(NearMissInputs() with { Match = Fixtures.Matched(matchType) }).Errors);
     }
 
     [Fact]
     public void VocabWrongIsNotDerivedWhenTheWordIsNotInTheLexicon()
     {
-        var inputs = VocabInputs([Fixtures.Token("blorp", 0)]);
+        var inputs = QuizVocabInputs([Fixtures.Token("blorp", 0)]);
 
         Assert.Empty(VerdictAssembler.Assemble(inputs).Errors);
     }
@@ -469,7 +471,7 @@ public class VerdictAssemblerTests
     [Fact]
     public void VocabWrongOnlyLooksAtTheFirstContentToken()
     {
-        var inputs = VocabInputs([Fixtures.Token("blorp", 0), Fixtures.Token("perro", 6, "noun")]);
+        var inputs = QuizVocabInputs([Fixtures.Token("blorp", 0), Fixtures.Token("perro", 6, "noun")]);
 
         Assert.Empty(VerdictAssembler.Assemble(inputs).Errors);
     }
@@ -477,23 +479,16 @@ public class VerdictAssemblerTests
     [Fact]
     public void VocabWrongIsNotDerivedWithoutContentTokens()
     {
-        Assert.Empty(VerdictAssembler.Assemble(VocabInputs([])).Errors);
-        Assert.Empty(VerdictAssembler.Assemble(VocabInputs([Fixtures.Token("el", 0, "art")])).Errors);
+        Assert.Empty(VerdictAssembler.Assemble(QuizVocabInputs([])).Errors);
+        Assert.Empty(VerdictAssembler.Assemble(QuizVocabInputs([Fixtures.Token("el", 0, "art")])).Errors);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(2)]
-    [InlineData(9)]
-    public void VocabWrongIsNeverDerivedOnALineASlotGrammarUnderstood(int distance)
+    [Fact]
+    public void VocabWrongIsNeverDerivedOnALineASlotGrammarUnderstood()
     {
         // M67: the derived tag explains a miss, and a line a slot grammar understood has none, however near an answer it is (buscaré madera para luz
         // at the smith's open prompt and usted comprará pan at a lesson step were scored 0.4 with vocab.wrong on their first content word).
-        var inputs = VocabInputs([Fixtures.Token("perro", 0, "noun")]) with
-        {
-            Intent = Fixtures.Intent("answer", IntentRung.Grammar),
-            Match = new MatchResult(null, MatchType.None, distance, false, 0.0),
-        };
+        var inputs = NearMissInputs() with { Intent = Fixtures.Intent("ask_what", IntentRung.Grammar) };
 
         var verdict = VerdictAssembler.Assemble(inputs);
 
@@ -504,14 +499,14 @@ public class VerdictAssemblerTests
     [Theory]
     [InlineData(IntentRung.Rules)]
     [InlineData(IntentRung.Embedding)]
-    public void VocabWrongIsNotDerivedOnALineARuleUnderstoodFarFromEveryAnswer(IntentRung rung)
+    public void VocabWrongIsNotDerivedOnALineARuleUnderstoodThatIsNoNearMiss(IntentRung rung)
     {
-        // hola luz quiero dos panes at the baker's open prompt (greet, by the keyword hola): 23 characters, a budget of 5 at Beginner, so a near miss is
-        // 5 edits at most; the nearest answer phrase (quiero dos panes) is 9 away, and 6 is already too far.
+        // hola luz quiero dos panes at the baker's open prompt (greet, by the keyword hola): no answer phrase is one word from it, so the finder gives no near
+        // miss, whatever the matcher's distance.
         var inputs = VocabInputs([Fixtures.Token("hola", 0, "interj"), Fixtures.Token("luz", 5, "noun"), Fixtures.Token("quiero", 9, "verb"), Fixtures.Token("2", 16, "num"), Fixtures.Token("panes", 18, "noun")]) with
         {
             Intent = Fixtures.Intent("greet", rung),
-            Match = new MatchResult(null, MatchType.None, 6, false, 0.0),
+            Match = new MatchResult(null, MatchType.None, 2, false, 0.0),
             KnownLexiconWords = ["hola", "luz", "quiero", "panes"],
         };
 
@@ -519,39 +514,79 @@ public class VerdictAssemblerTests
     }
 
     [Theory]
-    [InlineData(3, true)]
-    [InlineData(4, false)]
-    public void VocabWrongIsDerivedOnALineARuleUnderstoodThatIsANearMissOfAnAnswer(int distance, bool derived)
+    [InlineData(IntentRung.Rules)]
+    [InlineData(IntentRung.Embedding)]
+    [InlineData(IntentRung.Unresolved)]
+    public void ANearMissNamesItsWordWithTheAnswersWordAsTheExpectedText(IntentRung rung)
     {
-        // cuál es esto for qué es esto (ask_what, by the keyword esto): 12 characters, a budget of 3 at Beginner, so a near miss is 3 edits at most (it
-        // is 3; the matcher took the budget for qué es esto, 11 characters, 2). me llamo at the smith's (ask_name, by llamar) is 3 from qué hago, with
-        // a budget of 2 for its 8 characters: no near miss.
-        var inputs = VocabInputs([Fixtures.Token("cuál", 0, "adj"), Fixtures.Token("es", 5, "verb"), Fixtures.Token("esto", 8, "pron")]) with
+        // M75: cuál es esto for qué es esto (ask_what, by the keyword esto): the tag is on cuál, the one word that differs, and names qué. M67's rule put it on the
+        // first content word (es), with an empty expected word, since the set has several answers.
+        var inputs = NearMissInputs() with
+        {
+            Intent = rung == IntentRung.Unresolved ? Fixtures.UnknownIntent() : Fixtures.Intent("ask_what", rung),
+        };
+
+        var verdict = VerdictAssembler.Assemble(inputs);
+
+        Assert.Equal(new ErrorTag(ErrorTags.VocabWrong, new TextSpan(0, 4), "qué", "cuál"), Assert.Single(verdict.Errors));
+        Assert.Equal(0.4, verdict.Correctness);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(3)]
+    [InlineData(40)]
+    public void WithoutANearMissAnUnderstoodLineHasNoDerivedTagWhateverTheDistance(int distance)
+    {
+        // M75 replaces M67's rule (the distance to the nearest answer within the fuzzy budget for the line's own length) with the near miss: quiero hacer un hacha
+        // at smith-open (an added word) and rápido por favor at lesson-had (content words far apart) were within that budget and lost 0.6 as correct Spanish.
+        var inputs = NearMissInputs() with
         {
             Intent = Fixtures.Intent("ask_what", IntentRung.Rules),
             Match = new MatchResult(null, MatchType.None, distance, false, 0.0),
-            KnownLexiconWords = ["cuál", "es", "esto"],
+            NearMiss = null,
         };
 
-        ErrorTag[] expected = derived ? [new ErrorTag(ErrorTags.VocabWrong, new TextSpan(0, 4), string.Empty, "cuál")] : [];
-
-        Assert.Equal(expected, VerdictAssembler.Assemble(inputs).Errors);
+        Assert.Empty(VerdictAssembler.Assemble(inputs).Errors);
     }
 
     [Fact]
-    public void TheNearMissBudgetFollowsTheDifficulty()
+    public void ASetWithNoAnswersGivesNoNearMissAndNoTag()
     {
-        // The same 12 characters allow 2 edits at Intermediate and at Advanced (floor(12 / 5) = floor(12 / 6) = 2), against 3 at Beginner.
-        var inputs = VocabInputs([Fixtures.Token("cuál", 0, "adj"), Fixtures.Token("es", 5, "verb"), Fixtures.Token("esto", 8, "pron")]) with
+        // The PR #28 review's item 8: a constrained prompt whose set has no answers gives the matcher distance 0, which M67's rule read as a near miss of every
+        // line that resolved no intent. With no answer there is no word to name: no near miss, and the line names no word, so it has no error.
+        var inputs = VocabInputs([Fixtures.Token("perro", 0, "noun")]) with
         {
-            Intent = Fixtures.Intent("ask_what", IntentRung.Rules),
-            Match = new MatchResult(null, MatchType.None, 3, false, 0.0),
-            KnownLexiconWords = ["cuál", "es", "esto"],
+            Intent = Fixtures.UnknownIntent(),
+            Match = new MatchResult(null, MatchType.None, 0, false, 0.0),
+            CanonicalAnswers = [],
         };
 
-        Assert.Single(VerdictAssembler.Assemble(inputs).Errors);
-        Assert.Empty(VerdictAssembler.Assemble(inputs with { Prompt = inputs.Prompt with { Difficulty = Difficulty.Intermediate } }).Errors);
-        Assert.Empty(VerdictAssembler.Assemble(inputs with { Prompt = inputs.Prompt with { Difficulty = Difficulty.Advanced } }).Errors);
+        var verdict = VerdictAssembler.Assemble(inputs);
+
+        Assert.Empty(verdict.Errors);
+        Assert.Equal(1.0, verdict.Correctness);
+        Assert.False(verdict.Communicated);
+    }
+
+    [Fact]
+    public void ANearMissOnAWordTheLexiconDoesNotKnowIsLeftToItsVocabUnknown()
+    {
+        var inputs = NearMissInputs() with { KnownLexiconWords = ["es", "esto"] };
+
+        Assert.Empty(VerdictAssembler.Assemble(inputs).Errors);
+    }
+
+    [Fact]
+    public void ANearMissIsPreferredToTheFirstContentWordAtAPromptThatNamesItsWord()
+    {
+        // A one-answer set names its canonical answer on the first content word of a line that resolved no intent; a near miss names the very word.
+        var inputs = NearMissInputs() with { Intent = Fixtures.UnknownIntent(), CanonicalAnswers = ["qué es esto"] };
+
+        Assert.Equal(new ErrorTag(ErrorTags.VocabWrong, new TextSpan(0, 4), "qué", "cuál"), Assert.Single(VerdictAssembler.Assemble(inputs).Errors));
+        Assert.Equal(
+            new ErrorTag(ErrorTags.VocabWrong, new TextSpan(5, 2), "qué es esto", "es"),
+            Assert.Single(VerdictAssembler.Assemble(inputs with { NearMiss = null }).Errors));
     }
 
     [Theory]
@@ -593,10 +628,8 @@ public class VerdictAssemblerTests
     public void ALineAtAQuizIsTaggedHoweverFarItIsAndWhateverItsAnswers()
     {
         // A quiz allows no intent: it asks only for a word, so any other known word is the wrong one, even when its set has several answers.
-        var inputs = VocabInputs([Fixtures.Token("perro", 0, "noun")]) with
+        var inputs = QuizVocabInputs([Fixtures.Token("perro", 0, "noun")]) with
         {
-            Prompt = Fixtures.Prompt(RecognitionMode.Constrained, answerSetId: "animals") with { AllowedIntentIds = [] },
-            Intent = Fixtures.UnknownIntent(),
             Match = new MatchResult(null, MatchType.None, 40, false, 0.0),
             CanonicalAnswers = ["gato", "gato negro"],
         };
@@ -604,34 +637,35 @@ public class VerdictAssemblerTests
         Assert.Equal(new ErrorTag(ErrorTags.VocabWrong, new TextSpan(0, 5), string.Empty, "perro"), Assert.Single(VerdictAssembler.Assemble(inputs).Errors));
     }
 
-    [Theory]
-    [InlineData(1, true)]
-    [InlineData(2, false)]
-    public void ALineThatResolvedNoIntentKeepsTheTagWhenItIsANearMissOfAnAnswer(int distance, bool derived)
+    [Fact]
+    public void ALineThatResolvedNoIntentKeepsTheTagWhenItIsANearMissOfOneOfSeveralAnswers()
     {
-        // perro: 5 characters, a budget of 1 at Beginner. A line one edit from an answer of several is a near miss and the tag explains it; two edits is too far.
+        // perro for perra, one of two answers: one word, close in spelling. M67's rule gave it an empty expected word; the near miss names perra.
         var inputs = VocabInputs([Fixtures.Token("perro", 0, "noun")]) with
         {
             Intent = Fixtures.UnknownIntent(),
-            Match = new MatchResult(null, MatchType.None, distance, false, 0.0),
+            Match = new MatchResult(null, MatchType.None, 1, false, 0.0),
             CanonicalAnswers = ["perra", "no sé"],
+            NearMiss = new AnswerNearMiss("dog", "perra", new TextSpan(0, 5), "perro", "perra", SlipPair.Spelling),
         };
 
-        ErrorTag[] expected = derived ? [new ErrorTag(ErrorTags.VocabWrong, new TextSpan(0, 5), string.Empty, "perro")] : [];
-
-        Assert.Equal(expected, VerdictAssembler.Assemble(inputs).Errors);
+        Assert.Equal(new ErrorTag(ErrorTags.VocabWrong, new TextSpan(0, 5), "perra", "perro"), Assert.Single(VerdictAssembler.Assemble(inputs).Errors));
     }
 
     [Fact]
     public void ADerivedVocabWrongNeverReplacesAStageReportedOneAtTheSameSpan()
     {
         var reported = new ErrorTag(ErrorTags.VocabWrong, new TextSpan(0, 5), "gato", "perro");
-        var inputs = VocabInputs([Fixtures.Token("perro", 0, "noun")]);
+        var inputs = QuizVocabInputs([Fixtures.Token("perro", 0, "noun")]);
         inputs = inputs with { Analysis = inputs.Analysis with { Errors = [reported] } };
 
         var error = Assert.Single(VerdictAssembler.Assemble(inputs).Errors);
 
         Assert.Equal(reported, error);
+
+        var nearMiss = NearMissInputs();
+        var stage = new ErrorTag(ErrorTags.VocabWrong, new TextSpan(0, 4), "cuáles", "cuál");
+        Assert.Equal(stage, Assert.Single(VerdictAssembler.Assemble(nearMiss with { Analysis = nearMiss.Analysis with { Errors = [stage] } }).Errors));
     }
 
     [Fact]
@@ -764,6 +798,25 @@ public class VerdictAssemblerTests
             ["gato", "perro", "el"],
             EvaluationConfig.Default,
             Fixtures.Versions());
+    }
+
+    // A quiz on the animals set: it allows no intent, so it asks only for a word, and a line that resolved none is tagged on its first content word (M72).
+    private static VerdictInputs QuizVocabInputs(IReadOnlyList<AnalyzedToken> tokens)
+    {
+        return VocabInputs(tokens) with { Prompt = Fixtures.Prompt(RecognitionMode.Constrained, answerSetId: "animals") with { AllowedIntentIds = [] } };
+    }
+
+    // M75: cuál es esto at lesson-what, a near miss of the answer qué es esto (the finder's cuál for qué, two question words), understood by a keyword rule.
+    private static VerdictInputs NearMissInputs()
+    {
+        return VocabInputs([Fixtures.Token("cuál", 0, "pron"), Fixtures.Token("es", 5, "verb"), Fixtures.Token("esto", 8, "pron")]) with
+        {
+            Intent = Fixtures.Intent("ask_what", IntentRung.Rules),
+            Match = new MatchResult(null, MatchType.None, 3, false, 0.0),
+            KnownLexiconWords = ["cuál", "es", "esto"],
+            CanonicalAnswers = ["qué es esto", "ayuda", "no sé"],
+            NearMiss = new AnswerNearMiss("what", "qué es esto", new TextSpan(0, 4), "cuál", "qué", SlipPair.QuestionWord),
+        };
     }
 
     private static VerdictInputs WithConfidences(

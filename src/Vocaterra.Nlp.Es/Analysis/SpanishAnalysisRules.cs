@@ -58,6 +58,8 @@ internal sealed class SpanishAnalysisRules : IAnalysisRules
 
     public bool IsNeuterPronoun(string word) => SpanishAnalysisTables.IsNeuterPronoun(word);
 
+    public bool IsQuestionWord(string word) => SpanishAnalysisTables.IsQuestionWord(word);
+
     public bool CallsForSlip(IReadOnlyList<AnalyzedToken> tokens, int index, IReadOnlyList<LexicalFeatures> slip) =>
         SpanishSlipContext.CallsForSlip(tokens, index, slip);
 

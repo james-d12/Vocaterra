@@ -6,7 +6,7 @@ public class LineVocabularyTests
     // Near misses and unknown words: the word the line should have had, and a typed n for ñ.
     public static TheoryData<string, string, string, bool, string[]> Rows => new()
     {
-        { "farmer-open", "¿cuántos son todo?", "ask_total", true, ["vocab.wrong", "noun.number=cuánto", "conj.person=es"] },
+        { "farmer-open", "¿cuántos son todo?", "ask_total", true, ["noun.number=cuánto", "conj.person=es"] }, // M75: no answer phrase is one slip away; the grammar errors name the words
         { "villager-open", "tengo diez anos", "unknown", false, ["vocab.unknown"] },
         { "lesson-market", "compré three manzanas", "state_action", true, ["vocab.unknown=tres"] },
         { "lesson-will-go", "mañana iré al glorp", "state_action", true, ["vocab.unknown=río"] },
@@ -14,8 +14,8 @@ public class LineVocabularyTests
         { "lesson-market", "compré tres glorps", "unknown", false, ["vocab.unknown"] },
         { "villager-open", "me llamo ana", "unknown", false, ["vocab.unknown"] },
         { "villager-open", "hola me llamo marta", "greet", false, ["vocab.unknown"] },
-        { "lesson-will-go", "pasado mañana iré al río con Mar", "state_action", true, ["vocab.wrong"] },
-        { "lesson-what", "cuál es esto", "ask_what", true, ["vocab.wrong"] },
+        { "lesson-will-go", "pasado mañana iré al río con Mar", "state_action", true, [] }, // M75: correct Spanish, a word added to the answer: no near miss
+        { "lesson-what", "cuál es esto", "ask_what", true, ["vocab.wrong=qué"] }, // M75: the near miss names its word
         { "farmer-open", "mi amigo se llama pedro", "ask_name", false, ["vocab.unknown"] },
         { "lesson-name", "me llamo pedro", "unknown", false, ["vocab.unknown"] },
     };

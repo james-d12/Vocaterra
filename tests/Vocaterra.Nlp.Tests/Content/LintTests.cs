@@ -631,7 +631,7 @@ public class LintTests
     [Fact]
     public void AnExampleMayNameThePromptItIsGradedAgainst()
     {
-        // The constrained prompt expects an answer-set phrase, so a near miss of one gets vocab.wrong there (cuál es esto for qué es esto, M67); the same
+        // The constrained prompt expects an answer-set phrase, so a near miss of one gets vocab.wrong there (cuál es esto for qué es esto, M67 and M75); the same
         // text passes against the open prompt. A sentence the constrained prompt does not take, far from its answers, gets no error there (M72: hola, quiero dos
         // espadas at the stall, which takes no greeting, was vocab.wrong before), and a sentence it understands gets none either (M67).
         using var fixture = new LintFixture()
