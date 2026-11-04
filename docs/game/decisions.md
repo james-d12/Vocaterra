@@ -28,8 +28,9 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-20 | One licence for the whole repository | decided (owner, 2026-10-23): Apache-2.0 for the game as well as the core; one `LICENSE` and `NOTICE` at the root (R01) | nothing |
 | D-game-21 | Content as data and the L1 locale layer (the C series, `docs/game/content-plan.md`) | decided (owner, 2026-10-27 to 2026-10-29): English moves into a locale bundle `content/locale/` outside game-v1's hash (`en` only); content stays JSON with JSON Schema; objectives, NPCs and target-language words become data; the series runs after R16 phase 2, on `feature/content` | nothing |
 | D-game-22 | The village and the lessons (the V series, `docs/game/village-plan.md`) | decided for phase A (owner, 2026-10-30): phase A now (sessions 4 to 6), phase B held (started 2026-10-31 on the owner's word); the plan's proposals for (b), (c), (e), (f), (h) and (i); the farmer is León; voices provisional (the plan's first candidates) and recorded, the owner listens afterwards; all work by Opus 5.5 at xhigh effort; 2026-10-31: V18 and the core's M56, M59 (before V14), M58 and M62 (before V15) join phase B; 2026-11-01, the follow-ups: models mixed (Opus for M65 to M67, M69 and V20, Sonnet for V21 to V23 and M68, Haiku for V24), M65's narrowings (a) to (c), name plates of the faced NPC depth-tested; 2026-11-02: V24's bugs first (V26), the off-prompt lines (M72, V27), the small points (M73, V28) and the speech folder by speaker; after the pull request: weather and `¿cómo estás?` intents (M74, V29), the near-miss rule (M75), a study of spoken off-prompt lines (`docs/handovers/2026-11-02-after-followups.md`) | the V series |
-| D-game-23 | Activities and the adaptation (the W series, `docs/game/activities-plan.md`; the owner's Adaptation Design Document, revision 3, `docs/game/design/sources/Vocaterra_Adaptation_Design_Document.docx`) | open, decided in part (owner, 2026-11-03): the queued follow-ups first, then player needs (D-game-24), then the W series; an overlay station; the stall buys bread for one coin; the pilot's instructions heard only, no imperative taught; the rest proposed (activities-plan section 12, the design document's section 18) | the W series |
+| D-game-23 | Activities and the adaptation (the W series, `docs/game/activities-plan.md`; the owner's Adaptation Design Document, `docs/game/design/sources/Vocaterra_Adaptation_Design_Document.docx`) | open, decided in part (owner, 2026-11-03): the queued follow-ups first, then player needs (D-game-24), then the W series; an overlay station; the stall buys bread for one coin; the pilot's instructions heard only, no imperative taught; the rest proposed (activities-plan section 12, the design document's section 18) | the W series |
 | D-game-24 | Player needs: hunger, thirst, sleep, health and stamina (the adaptation design's section 9; the N series, proposed ids) | decided (owner, 2026-11-03): five needs, hunger, thirst and sleep in stages whose effects grow worse, pushing health and stamina; built after the queued follow-ups and before every other system, from session 1; real death with a cost; the meters pause in conversations, lessons, the book and every panel; stamina spent by gathering and a new sprint; amends D-game-8's guardrail and replaces D-game-23 (b) | the N and W series |
+| D-game-25 | Lessons optional: classes the player takes on, not the game's goal (the adaptation design's sections 5.3 and 5.4; L01) | decided (owner, 2026-11-04): a short required introduction with Luna, every other lesson an offered class; sleep whenever tired (the sleep drive below 75), every sleep a night, no nap; orders open once their NPC is met; Luz shows the player how to bake on request, session 11 an optional class; amends V12c and D-game-15, answers the design's decision 16 | L01, N03, W08, W10, W11 |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
@@ -386,8 +387,7 @@ unit test, not some throwaway script or junk text file. This just adds to the ge
 
 **Question.** The W series (`docs/game/activities-plan.md`) proposed answers (a) to (q) in its section 12 on 2026-11-01. The owner's
 Adaptation Design Document (revision 2, 2026-11-03) set the direction above it: one bread procedure with Luz as the pilot, then repair,
-meals and farming. Its revision 3 (2026-11-03; its review record is its section 19) lists the questions
-still open in its section 18.
+meals and farming. The current document lists open decisions in section 18, including needs edge cases, accessible instruction evidence and ingredient grants during lessons (decisions 18–20).
 
 **Owner's answers, 2026-11-03** (during the review of the adaptation design):
 1. **The order (replaces (j)):** the queued follow-ups first (M74, M75, V29, M78 and the study of spoken off-prompt lines,
@@ -448,12 +448,34 @@ are added." ("[thirst]" is this record's reading of the owner's "hunger health a
 - hunger and thirst required: their last stage costs health. Sleep never kills, but its last stage ends in a collapse;
 - sleep as it is today (a night, once the day's work is done, moves the day and the sitting), plus a nap at the player's fire for a
   tired player, so Spanish never keeps a tired player from sleep and the needs add no sittings;
+  (superseded by D-game-25: sleep whenever tired, every sleep a night, no nap)
 - needs before every other system: the N series is N01 to N07 and the needs check (proposed ids).
 
-The owner also gave a Survival-First Game Design Proposal, consolidated into the design, with its assessment in the design's
-section 19.4; no separate copy is kept (the owner's wish). Its compatible parts are in the design. Five points wait for the owner: the
+The owner also gave a Survival-First Game Design Proposal, incorporated into sections 1, 9, 12, 13 and 16 of the design.
+Five points wait for the owner: the
 design's section 18, decisions 13 to 17 (conditions, a first bush at the camp, expansion, a chosen starting session and a relaxed
-needs option).
+needs option); D-game-25 answered the chosen starting session).
+
+## D-game-25: lessons optional (decided)
+
+**Owner, 2026-11-04,** on reviewing the adaptation design: "One important thing we need to move the game away from, is centering it
+around the lessons. The lessons so far are ok, but they shouldnt be the main goal. They should be optional things the player takes on."
+The code made lessons the spine: from day 2 the fire offered no sleep until the day's lesson was done (V12c), a waiting lesson owned its
+NPC's conversation, orders opened on the lesson calendar (days 4 to 7) and the beacon pointed at the next teacher. Asked how the pieces
+should work, the owner chose the recommended answer each time:
+1. **The first lesson: a short required introduction.** Luna's first meeting teaches the getting-unstuck phrases (hola, sí and no,
+   ¿qué es esto?, no sé, otra vez, más despacio) and the camp task; the rest of `first-words` becomes her first class. Every other lesson
+   is a class an NPC offers and the player chooses; declining costs nothing.
+2. **Sleep whenever tired.** From day 2 the fire offers sleep whenever the sleep drive is below 75; every sleep is a night (the day and
+   the sitting move). The nap goes; a collapse is always a night.
+3. **Orders open once their NPC is met** (and any order or capability they need), not on a day.
+4. **Luz shows the player how to bake** on request or by her offer; the first guided bake is the teaching. Session 11, "En la
+   panadería", becomes an optional class.
+
+**What it changes:** it amends V12c (the day moved only after the day's lesson work) and D-game-15 (the guide's 5 to 10 minute lesson
+is now a short introduction plus a class). It answers the design's decision 16 (a chosen starting session is no longer needed). The
+specification is the adaptation design's sections 5.3 and 5.4, with 9.5 (sleep) and section 10 (bread); L01 builds it, after N01 and
+before N03. `docs/game/lessons.md` describes today's behaviour and changes with L01.
 
 ## Already decided
 
