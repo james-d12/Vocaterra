@@ -30,11 +30,11 @@ of the slowest chain, not the sum (about 70 s of test time in all). The slowest 
 | --- | --- | --- | --- | --- |
 | O1 | Normalizer never crashes (also on lone surrogates), is idempotent, spans and originals are well-formed; `Accents.Strip` and `SpanishPhoneticKey.Compute` are total | `NormalizerFuzzTests` | 3 000 | `VOCATERRA_FUZZ_ITERATIONS` |
 | O2 | Analyzer never crashes, is deterministic (also on a fresh instance), output is well-formed | `AnalyzerFuzzTests` | 3 000 | `VOCATERRA_FUZZ_ITERATIONS` |
-| O3 | Correct sentences analyze clean, match their grammar, yield their slot values; every catalog grammar is realised (one the sample left out from fixed recipes, M71); graded at an agent's constrained prompt that does not take them, they get no error they do not contain (M72) | `CorrectSentenceFuzzTests` | 2 000 | `VOCATERRA_FUZZ_ITERATIONS_GRAMMAR` |
+| O3 | Correct sentences analyze clean, match their grammar, yield their slot values; every catalog grammar is realised (one the sample left out from fixed recipes, M71); graded at an agent's constrained prompt that does not take them, they get no error they do not contain (M72), and one of the weather or of `¿cómo estás?` is understood off the prompt as its own intent (M74) | `CorrectSentenceFuzzTests` | 2 000 | `VOCATERRA_FUZZ_ITERATIONS_GRAMMAR` |
 | O4 | One mutation yields exactly the named tag, with the original form as correction | `MutationTagFuzzTests` | 2 000 | `VOCATERRA_FUZZ_ITERATIONS_GRAMMAR` |
 | O5 | The recast closes the loop: it restores the corrected sentence and re-analyzes clean | `RecastLoopFuzzTests` | 2 000 | `VOCATERRA_FUZZ_ITERATIONS_GRAMMAR` |
 | O6 | Answer matching agrees with an independent model of its documented rules, plus metamorphic relations | `AnswerMatchFuzzTests` | 3 000 | `VOCATERRA_FUZZ_ITERATIONS` |
-| O7 | Intent resolver: allowed intents respected, ladder order respected, unresolved is margin 0 and confidence 0; the off-prompt intent is a disallowed intent the resolver gives with every intent allowed, null on a known intent (M72) | `IntentResolverFuzzTests` | 2 000 | `VOCATERRA_FUZZ_ITERATIONS_GRAMMAR` |
+| O7 | Intent resolver: allowed intents respected, ladder order respected, unresolved is margin 0 and confidence 0; the off-prompt intent is a disallowed intent the resolver gives with every intent allowed, null on a known intent (M72); the grammar rung reads the whole catalog first (M74) | `IntentResolverFuzzTests` | 2 000 | `VOCATERRA_FUZZ_ITERATIONS_GRAMMAR` |
 | O8 | G2P: phones in the inventory, syllables partition each word and own the phones, one stressed syllable per word, deterministic, IPA string splits back, dialects differ only at dialect sites, predicted errors are one edit away | `G2pFuzzTests` | 3 000 | `VOCATERRA_FUZZ_ITERATIONS` |
 | O9 | Pronunciation scoring: perfect posteriors score 1 and tag nothing, one injected predicted error gives exactly that tag at that grapheme span, scores and confidence in [0, 1], deterministic, CTC segments ordered and disjoint | `PronunciationFuzzTests` | 1 000 (two facts) | `VOCATERRA_FUZZ_ITERATIONS_SIGNAL` |
 | O10 | Verdict assembly follows its documented rules (the derived `vocab.wrong` and the off-prompt intent, M72); order of unordered inputs does not matter; JSON round trip | `VerdictAssemblyFuzzTests` | 3 000 | `VOCATERRA_FUZZ_ITERATIONS` |
@@ -235,6 +235,17 @@ code comments and here, with the reason:
     length) and is counted as `verdict-leg:near-miss-of-an-answer`. The third run found it (seed `3omMnHLFpnr3`: `rápido por favor`, correct, at `lesson-had`, 4
     edits from the alias `ayuda por favor` within a budget of 4); about one graded sentence in 2 000 is such a near miss, reported as a finding on M67's
     heuristic. The test asserts that the leg grades sentences and, at the default depth, that some carry an off-prompt intent.
+  - *O3 and O7, the weather and `¿cómo estás?` (M74, 2026-11-04; widenings and a documented rule change, no oracle narrowed).* (a) O7 follows the resolver's
+    new order (the grammar rung reads the whole catalog before the prompt narrows it): where the analyzer's grammar is beaten in the rung's order by a grammar of
+    an intent the prompt does not allow that also names more of the words (literal words and `[VERB:lemma]`s), the line must be unknown with that intent off
+    the prompt (counted as `catalog-reading:taken-off-the-prompt`), and otherwise it is the grammar's intent as before; it is widened by a check that no
+    disallowed grammar outranks the grammar an intent was resolved by. (b) O3's verdict leg asserts that a sentence of `state_weather`, `ask_weather` or
+    `ask_wellbeing` graded at a prompt that takes none of its intents is never taken by another intent's grammar: it is unknown and understood off the prompt as
+    one of its own intents unless an answer matched it or an allowed keyword rule took it (`¿qué tiempo hace?` at `smith-open`, `ask_activity`'s `qué` with
+    `hacer`, until the game allows `ask_weather` there) (`verdict-leg:m74-intent-off-prompt`, reached at the default depth). (c) The pattern tree, the realiser and O3's slot check know the group's slot of the DSL
+    (`(frío|calor|buen tiempo):weather`): its value is the chosen alternative's words, literals as written in the grammar. (d) The matcher refuses before its
+    search a grammar the line cannot match (token count, a required word, lemma, class or name missing); `SlotGrammarTests` checks over the bundle that it never
+    refuses one the search matches.
 - **O8.** The dialect sites are `θ s z h ʎ ʝ ʃ ʒ` (the plan lists `θ s ʎ ʝ h`; the shipped dialects also produce the voiced `z` and the rioplatense `ʃ ʒ`).
   `Tokenize(ToIpaString())` is exact except for the pair `t` + `ʃ`, whose concatenation is the affricate token `tʃ` (the inventory documents that
   sequences are lists for this reason); a result with that pair skips the split.

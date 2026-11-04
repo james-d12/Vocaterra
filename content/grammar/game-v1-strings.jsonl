@@ -2066,6 +2066,20 @@
 {"id":"intents:ask_total.ex0","text":"cuánto es todo","kind":"learner","errors":[]}
 {"id":"intents:ask_total.ex1","text":"cuánto cuesta todo","kind":"learner","errors":[]}
 {"id":"intents:ask_total.ex2","text":"cuánto es todo esto","kind":"learner","errors":[]}
+{"id":"intents:ask_weather.ex0","text":"qué tiempo hace","kind":"learner","errors":[]}
+{"id":"intents:ask_weather.ex1","text":"qué tiempo hace hoy","kind":"learner","errors":[]}
+{"id":"intents:ask_weather.ex2","text":"hoy qué tiempo hace","kind":"learner","errors":[]}
+{"id":"intents:ask_weather.ex3","text":"qué tiempo hará mañana","kind":"learner","errors":[]}
+{"id":"intents:ask_weather.ex4","text":"cómo está el tiempo","kind":"learner","errors":[]}
+{"id":"intents:ask_wellbeing.ex0","text":"cómo estás","kind":"learner","errors":[]}
+{"id":"intents:ask_wellbeing.ex1","text":"cómo está usted","kind":"learner","errors":[]}
+{"id":"intents:ask_wellbeing.ex2","text":"cómo están ustedes","kind":"learner","errors":[]}
+{"id":"intents:ask_wellbeing.ex3","text":"cómo estáis","kind":"learner","errors":[]}
+{"id":"intents:ask_wellbeing.ex4","text":"hola, ¿cómo estás?","kind":"learner","errors":[]}
+{"id":"intents:ask_wellbeing.ex5","text":"buenos días, cómo está usted","kind":"learner","errors":[]}
+{"id":"intents:ask_wellbeing.ex6","text":"qué tal","kind":"learner","errors":[]}
+{"id":"intents:ask_wellbeing.ex7","text":"hola, ¿qué tal?","kind":"learner","errors":[]}
+{"id":"intents:ask_wellbeing.ex8","text":"cómo estás usted","kind":"learner","errors":["conj.person"]}
 {"id":"intents:ask_what.ex0","text":"qué es esto","kind":"learner","errors":[]}
 {"id":"intents:ask_what.ex1","text":"qué es eso","kind":"learner","errors":[]}
 {"id":"intents:ask_what.ex2","text":"cómo se llama esto","kind":"learner","errors":[]}
@@ -2136,10 +2150,7 @@
 {"id":"intents:greet.ex4","text":"buen día","kind":"learner","errors":[]}
 {"id":"intents:greet.ex5","text":"hola, Luna","kind":"learner","errors":[]}
 {"id":"intents:greet.ex6","text":"buenos día","kind":"learner","errors":["noun.number"]}
-{"id":"intents:greet.ex7","text":"cómo estás","kind":"learner","errors":[]}
-{"id":"intents:greet.ex8","text":"cómo está usted","kind":"learner","errors":[]}
-{"id":"intents:greet.ex9","text":"cómo estás usted","kind":"learner","errors":["conj.person"]}
-{"id":"intents:greet.ex10","text":"hola amigo","kind":"learner","errors":[]}
+{"id":"intents:greet.ex7","text":"hola amigo","kind":"learner","errors":[]}
 {"id":"intents:name_object.ex0","text":"es un árbol","kind":"learner","errors":[]}
 {"id":"intents:name_object.ex1","text":"es una piedra","kind":"learner","errors":[]}
 {"id":"intents:name_object.ex2","text":"eso es un árbol","kind":"learner","errors":[]}
@@ -2526,6 +2537,19 @@
 {"id":"intents:state_want.ex34","text":"ella quere fruta","kind":"learner","errors":["conj.irregular"]}
 {"id":"intents:state_want.ex35","text":"ellos quieren agua","kind":"learner","errors":[]}
 {"id":"intents:state_want.ex36","text":"usted necesita pan","kind":"learner","errors":[]}
+{"id":"intents:state_weather.ex0","text":"hace frío","kind":"learner","errors":[]}
+{"id":"intents:state_weather.ex1","text":"hace calor","kind":"learner","errors":[]}
+{"id":"intents:state_weather.ex2","text":"hace sol","kind":"learner","errors":[]}
+{"id":"intents:state_weather.ex3","text":"hace buen tiempo","kind":"learner","errors":[]}
+{"id":"intents:state_weather.ex4","text":"hace mal tiempo","kind":"learner","errors":[]}
+{"id":"intents:state_weather.ex5","text":"hoy hace frío","kind":"learner","errors":[]}
+{"id":"intents:state_weather.ex6","text":"hoy hace buen tiempo","kind":"learner","errors":[]}
+{"id":"intents:state_weather.ex7","text":"hace mucho calor","kind":"learner","errors":[]}
+{"id":"intents:state_weather.ex8","text":"ayer hizo sol","kind":"learner","errors":[]}
+{"id":"intents:state_weather.ex9","text":"llueve","kind":"learner","errors":[]}
+{"id":"intents:state_weather.ex10","text":"hoy llueve mucho","kind":"learner","errors":[]}
+{"id":"intents:state_weather.ex11","text":"está nublado","kind":"learner","errors":[]}
+{"id":"intents:state_weather.ex12","text":"qué frío","kind":"learner","errors":[]}
 {"id":"intents:thank.ex0","text":"gracias","kind":"learner","errors":[]}
 {"id":"intents:thank.ex1","text":"muchas gracias","kind":"learner","errors":[]}
 {"id":"intents:thank.ex2","text":"mucho gracias","kind":"learner","errors":["gender.agree","noun.number"]}

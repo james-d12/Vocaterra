@@ -204,7 +204,7 @@ with `--strict`.
 | `hazard.lexicon-gap` | error | A grammar literal, a `[VERB:lemma]` lemma or a keyword-rule lemma the lexicon does not know |
 | `hazard.homograph` | info | A `[VERB:x]` lemma some of whose forms are also noun forms (`cuesta`). Info, because inside the grammar the typed element binds the verb reading; the noun reading only matters outside it |
 | `reach.pool` | warning | A dialogue pool no agent action uses and the pipeline does not reach by itself (reserved: `not_understood`, `answer_accepted`, `feedback.<kind>[.<tag>]`), or used only by agents no prompt names; a `feedback.` pool whose kind is not a feedback kind |
-| `reach.intent` / `reach.answer-set` / `reach.agent` | warning | An intent no prompt allows, an answer set or an agent no prompt names |
+| `reach.intent` / `reach.answer-set` / `reach.agent` | warning | An intent no prompt allows, an answer set or an agent no prompt names. Since M74 an intent no prompt allows that has a grammar or a keyword rule is an info: it is read off the prompt at every prompt that lists its intents (M72's off-prompt intent) |
 | `reach.state` | warning | An agent state that cannot be reached from the initial state |
 | `cefr.dialogue` / `cefr.prompt` / `cefr.answer` | warning, error with `--fail-on-level` | A lemma of dialogue templates, prompt text or answer-set canonicals (aliases are not held to the level) not in the CEFR list of `--level` or below |
 | `expect.mismatch` | error | An example with `errors` whose verdict's tag set differs |

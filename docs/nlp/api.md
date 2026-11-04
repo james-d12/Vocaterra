@@ -495,6 +495,37 @@ if (result.Verdict.OffPromptIntent is { } offPrompt)
 }
 ```
 
+### The weather and `¿cómo estás?` (M74)
+
+The owner's items 1 and 3 of 2026-11-02 (D-game-22): three intents of `content/game-v1`'s catalog, and an order of the resolver's grammar rung that keeps the
+weather out of the intents that read `hacer`.
+
+| Intent | Lines | Slot |
+|---|---|---|
+| `state_weather` | `hace frío`, `hace calor`, `hace sol`, `hace viento`, `hace fresco`, `hace buen tiempo`, `hace mal tiempo` (also `hacía`, `hizo`, `hará`, `mucho frío`), `hoy hace …`, `llueve`, `nieva`, `está nublado`, `¡qué frío!` | `weather`: the words after `hace` (`frío`, `buen tiempo`, `mucho calor`), or after `qué`; none for `llueve`, `nieva`, `está nublado` |
+| `ask_weather` | `¿qué tiempo hace?` (`hoy`, `mañana`, `hará`, `va a hacer`), `¿cómo está el tiempo?` | none |
+| `ask_wellbeing` | `¿cómo estás?`, `¿cómo está usted?`, `¿cómo están ustedes?`, `¿cómo estáis?`, `¿qué tal?`, each also after `hola` or `buenos días` | none |
+
+- **`ask_wellbeing` is taken out of `greet`**, so a host can tell the question from `hola`; it is allowed wherever `greet` is, and the bundle's agents answer
+  it as they answer a greeting until the game gives them their own reply. `hola, ¿cómo estás?` is `ask_wellbeing` (its grammar takes the greeting before the
+  question; the reply «Bien, gracias.» greets too); `hola` alone stays `greet`. `cómo estás usted` keeps its `conj.person` (`está`).
+- **A yes-no question is its statement:** `¿hace frío?` is `state_weather`, as `hace frío` is, because no transcript carries the question mark (the reply «Sí,
+  hace frío.» answers both).
+- **No prompt allows the weather intents yet** (the game's next step). Until then a weather line is unknown at every prompt, with `state_weather` or
+  `ask_weather` as its off-prompt intent; the content lint reports `reach.intent` for them as an info.
+- **The grammar rung reads the whole catalog** ([pipeline.md](pipeline.md#5-intent-resolution-d0-plus-an-optional-d1-rung)): a grammar of an intent the
+  prompt does not allow takes the line from the best allowed grammar when it beats it in the rung's order and names more of the line's words
+  (`SlotGrammarMatch.NamedTokenCount`: literal words and `[VERB:lemma]` elements). `hace calor` at a lesson that takes only `state_action` is unknown with
+  `state_weather` off the prompt, not the `[NOUN:item]` of `[VERB:hacer] [NOUN:item]`; `hago pan`, `¿qué haces?` and the craft questions keep their intents. A
+  line no allowed grammar matches goes down the ladder as before: `¿qué tiempo hace?` at `smith-open` and `farmer-open` is `ask_activity`'s keyword rule of `qué`
+  with `hacer` until the game allows `ask_weather` there (then its grammar comes first); at `villager-open` it is unknown with `ask_weather` off the prompt.
+- **`hace dos días compré pan`** is neither the weather nor `hacer`: `hace` is the preposition of elapsed time there (M59), so no weather grammar takes it, and
+  the keyword rule of `comprar` makes it the past action it says (`state_action`, as `compré pan` is), with `item=pan`: the noun of a phrase of elapsed time is
+  no longer a rule's item (it was `día`).
+- **The slot grammar DSL** gains a slot on a group: `(frío|calor|buen tiempo):weather` fills `weather` with the words of the alternative that matched, each
+  literal as the grammar writes it (`frío` for a learner's `frio`), any other element's token as written, joined by single spaces; nothing when the group
+  consumed nothing. The name follows the `)` before any `?`: `(a|b):slot?`. `SlotGrammarMatch.LiteralTokenCount` and `NamedTokenCount` are public (additive).
+
 ### Verbs written without the accent of their tense: `result.Notes` (M70)
 
 The owner's answer of 2026-11-01 (D-game-22, item 3): a verb the learner types without the accent that marks its tense (`compre` for `compré`, `compro` for

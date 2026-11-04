@@ -27,6 +27,9 @@ public sealed class CorrectSentenceFuzzTests(ITestOutputHelper output)
 {
     private const string Oracle = "O3";
 
+    // The intents of M74: the weather's statement and question, and ¿cómo estás?.
+    private static readonly HashSet<string> M74Intents = new(["state_weather", "ask_weather", "ask_wellbeing"], StringComparer.Ordinal);
+
     // Below this many iterations the shares of the homographs are too noisy to assert, and an accent is too rarely dropped.
     private const int MinimumIterationsForCoverage = 1000;
 
@@ -110,6 +113,7 @@ public sealed class CorrectSentenceFuzzTests(ITestOutputHelper output)
         if (iterations >= MinimumIterationsForCoverage)
         {
             Assert.True(diagnostics.Get("verdict-leg:off-prompt") > 0, $"No correct sentence graded off its prompt carried an off-prompt intent.\n{diagnostics.Report()}");
+            Assert.True(diagnostics.Get("verdict-leg:m74-intent-off-prompt") > 0, $"No sentence of the weather or of ¿cómo estás? was graded off its prompt.\n{diagnostics.Report()}");
         }
 
         // Every grammar word must be in the lexicon: a catalog grammar with an unknown literal (the old `cuál` gap) would be skipped here, and the
@@ -263,6 +267,8 @@ public sealed class CorrectSentenceFuzzTests(ITestOutputHelper output)
             intents.UnionWith(grammar.IntentIds);
         }
 
+        var owners = new HashSet<string>(intents, StringComparer.Ordinal);
+
         var everyIntent = Harness.NewResolver(embeddings: false).Resolve(normalized, analysis, AgentPrompts.Value[0] with { AllowedIntentIds = [] });
         if (!everyIntent.Intent.IsUnknown)
         {
@@ -301,6 +307,22 @@ public sealed class CorrectSentenceFuzzTests(ITestOutputHelper output)
                 $"A correct sentence graded at {prompt.PromptId}, which takes none of its intents [{string.Join(", ", intents.Order(StringComparer.Ordinal))}], got errors it does not contain: "
                 + $"{string.Join("; ", added.Select(Describe))} (intent {verdict.Intent}, off the prompt {verdict.OffPromptIntent?.Value ?? "none"}).",
                 context);
+        }
+
+        // M74 (a widening for the new intents): a sentence of the weather or of ¿cómo estás?, graded where none of its intents is allowed, is never taken by another
+        // intent's grammar (hace calor by a [VERB:hacer] [NOUN:item] of state_action, cómo estás by greet): unless an answer of the prompt matched it or an allowed
+        // keyword rule took it (qué tiempo hace by ask_activity's qué with hacer, until a host allows ask_weather there), it is unknown and understood off the prompt
+        // as one of its own intents.
+        if (owners.Overlaps(M74Intents) && verdict.ResolvedBy is not (ResolvedBy.Exact or ResolvedBy.Alias or ResolvedBy.Fuzzy or ResolvedBy.Rules))
+        {
+            diagnostics.Count("verdict-leg:m74-intent-off-prompt");
+            if (!verdict.Intent.IsUnknown || verdict.OffPromptIntent is not { } offPrompt || !intents.Contains(offPrompt.Value))
+            {
+                throw Determinism.Fail(
+                    Oracle,
+                    $"A sentence of [{string.Join(", ", owners.Order(StringComparer.Ordinal))}] graded at {prompt.PromptId} is {verdict.Intent} (off the prompt {verdict.OffPromptIntent?.Value ?? "none"}), not understood off the prompt as its own intent.",
+                    context);
+            }
         }
 
         diagnostics.Count("verdict-leg:graded");
@@ -571,7 +593,8 @@ public sealed class CorrectSentenceFuzzTests(ITestOutputHelper output)
                 }
             }
 
-            return actual.Values.All(candidates.Contains);
+            // A group's slot (M74) holds several words of the sentence.
+            return actual.Values.All(value => candidates.Contains(value) || value.Split(' ').All(candidates.Contains));
         }
 
         return actual.Count == expected.Count && expected.All(pair => actual.TryGetValue(pair.Key, out var value) && value == pair.Value);
