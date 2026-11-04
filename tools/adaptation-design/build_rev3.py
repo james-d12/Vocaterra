@@ -66,18 +66,21 @@ set_text(6, 'Code review: 3 November 2026',
 
 expect(11, 'CORE DESIGN MOVE')
 replace[11] = callout('CORE DESIGN MOVE', [
-    'Player needs create reasons to gather, cook, trade and rest. Lessons introduce the language; repeatable activities put it to use; evidence of understanding reduces support. Build needs and fire cooking, prove the bread procedure, then extend the model to other activities.'], 'sand')
+    'Player needs create reasons to gather, cook, trade and rest; projects in the valley give goals beyond them. The world introduces the language, repeatable activities put it to use, and evidence of understanding reduces support. Lessons are optional classes the villagers offer, never the goal and never a gate (D-game-25). Build needs and fire cooking, prove the bread procedure, then extend the model to other activities.'], 'sand')
+expect(18, 'The generated valley')
+replace[18] = bullet('The generated valley, authored village sites, 40-slot inventory, 10-slot hotbar, existing trades and orders, and the ten lessons, as optional classes (section 5.3).')
 expect(20, 'Adapt')
 put_after(20, bullet('Add player needs first (hunger, thirst and sleep in stages that grow worse, pushing health and stamina): the base that makes food, water, rest and tools '
-                     'matter, and that sends the player to cooking and the other systems (section 9).'))
+                     'matter, and that sends the player to cooking and the other systems (section 9).'),
+          bullet('Make lessons optional (D-game-25): after a short required introduction with Luna, every lesson is a class an NPC offers and the player chooses. No lesson holds the day, a conversation, an order or an activity (section 5.3).'))
 
 expect(12, '')
 put_after(12,
           h2('Status: what may be built now'),
-          p('Register each N, W and U milestone in `docs/game/implementation-plan.md` section 4 and resolve its required decisions before implementation. Section 18 distinguishes confirmed direction from recommendations; a detailed proposal is not approval to build it.'),
-          p('**Order of work:** queued language follow-ups (M74, M75, V29, M78 and the spoken-lines study), then the N series, then the W pilot. The proposed presentation work U01 and U02 fits between needs and the pilot (decision 7). Section 15 gives the dependencies and acceptance gates.'),
+          p('Register each N, L, W and U milestone in `docs/game/implementation-plan.md` section 4 and resolve its required decisions before implementation. Section 18 distinguishes confirmed direction from recommendations; a detailed proposal is not approval to build it.'),
+          p('**Order of work:** queued language follow-ups (M74, M75, V29, M78 and the spoken-lines study), then the N series with L01 (lessons as optional classes) after N01, then the W pilot. The proposed presentation work U01 and U02 fits between needs and the pilot (decision 7). Section 15 gives the dependencies and acceptance gates.'),
           callout('BUILD ORDER', [
-              'Player needs and consumption (N01 to N05) → renewable food and daily gifts (N06) → cooking at the fire (N07) → the needs playtest → bread with Luz (the W pilot) → repair (W14) and farming (W18).',
+              'Player needs and consumption (N01 to N05, with L01 after N01) → renewable food and daily gifts (N06) → cooking at the fire (N07) → the needs playtest → bread with Luz (the W pilot) → repair (W14) and farming (W18).',
               'Each phase gives the next a purpose. Better food, tools and reliable supplies reduce the time spent meeting basic needs. Building, exploring and talking also offer goals of their own.'], 'gold'),
           spacer())
 
@@ -89,8 +92,19 @@ set_text(28, 'Use the concept images',
 set_text(31, 'Baseline:',
          'Implementation baseline: `main` at 14fb2d63. Source and bundle data establish implemented behaviour. The screenshots illustrate layout and visual style; the requirements in this document define the intended experience.')
 
+def sub_xml(i, old, new):
+    """Element i (or its pending replacement) with one exact text swapped, in its own formatting."""
+    xml = replace.get(i, els[i][3])
+    assert xml.count(old) == 1, (i, old)
+    replace[i] = xml.replace(old, new)
+
+
+expect(39, 'System')
+sub_xml(39, 'No cooking/repair procedures or new activity sessions yet.',
+        'Lessons gate the day, their NPCs’ conversations and the orders (section 2.2); no cooking or repair procedures yet.')
+
 set_text(40, '“Survival adventure” is the long-term setting',
-         'Player needs begin in session 1 and make food, water and rest useful (D-game-24; section 9). Players can meet every need without Spanish, and the meters pause during conversations, lessons and panels.')
+         'Player needs begin on day 1 and make food, water and rest useful (D-game-24; section 9). Players can meet every need without Spanish, and the meters pause during conversations, lessons and panels.')
 set_text(41, 'These findings are from the code',
          'The implementation facts below identify the foundations and interfaces used by the adaptation.')
 
@@ -107,6 +121,12 @@ FACTS = [
      'Game.Core `Language/Phrases/PhraseProgress.cs:26, 413`'],
     ['Sittings', 'A launch, a load or a sleep starts a sitting, and a use in a new sitting meets any gap. The day (lessons, orders) '
      'moves only by sleeping.', 'Game.Core `Session/GuideSession.cs:255`'],
+    ['Lesson gates', 'Every lesson is `autoStart` and unlocks on its day (`session`) and its `after` lesson. From day 2 the fire '
+     'offers no sleep while an unlocked lesson is unfinished, and none while a lesson is engaged. A waiting lesson owns its NPC’s '
+     'conversation, and Esc leaves it engaged. Luna opens hers within 5 blocks. On waking the beacon points at the next lesson’s NPC. '
+     'Orders appear on days 4 to 7, and a lesson can hold a delivery back. Trades, crafting and places have no lesson gate.',
+     'Game.Core `Session/VoxelSession.Sleep.cs:47, 67`; `Language/Lessons/LessonRunner.cs:248, 677, 745–770`; '
+     '`Session/GuideApproach.cs:31`; `Session/VoxelSession.cs:265`; `Session/ObjectiveBook.cs:66`'],
     ['Credit units', '6 per spoken use and 3 per typed (the default); 0 for any other input, so a click earns nothing. A choice, a '
      'fail-forward and “no sé” step a phrase up one rung.',
      'Game.Core `Language/Words/WordProgress.cs:64`; `PhraseProgress.cs:289, 454`'],
@@ -157,11 +177,20 @@ put_after(56,
 
 # ---------------------------------------------------------------- 4. Target experience
 
+set_text(62, 'Five target feelings', 'Six target feelings')
+expect(63, 'Target')
+_row = re.findall(r'<w:tr[ >].*?</w:tr>', els[63][3])[-1]
+assert 'Progressively independent' in _row
+sub_xml(63, _row, _row + _row.replace('<w:t>Progressively independent</w:t>', '<w:t>Self-directed</w:t>').replace(
+    '<w:t>Support fades from bilingual guidance to Spanish-only, audio-only and finally unassisted action.</w:t>',
+    '<w:t>The player chooses what to do next: a need to meet, a project, a request, or a class to take. Lessons are offered, never '
+    'required, and no lesson holds the day or the world.</w:t>'))
+
 expect(64, '')
 put_after(64,
           h2('How the bread pilot shows each feeling'),
           table([2600, 7768], ['Feeling', 'Evidence in the pilot'], [
-              ['Readable', 'After the lesson, testers find the oven and the stall from the square without the beacon; no tester asks '
+              ['Readable', 'After Luz’s first bake, testers find the oven and the stall from the square without the beacon; no tester asks '
                'what to do at the station after the first bake.'],
               ['Warm', 'Testers’ own ratings and comments on the bakery; no debug text in ordinary play (U01).'],
               ['Useful', 'The bread feeds the player and sells at the stall, and the coins buy flour; testers bake when hungry and sell without '
@@ -170,6 +199,8 @@ put_after(64,
                'different order each bake; enjoyment holds from the first sitting to the third.'],
               ['Progressively independent', 'The share of instructions acted on right first time without help at audio only rises '
                'from sitting 2 to sitting 3, and the first grouped instruction (“Haz la masa”) appears in sitting 2.'],
+              ['Self-directed', 'Testers ask Luz to show them, or accept her offer, without being told; whether a tester takes the '
+               'optional bread class, and when, is the tester’s choice and is recorded, never required.'],
           ]),
           spacer())
 
@@ -179,8 +210,9 @@ expect(81, '6.  Reintroduce')
 put_after(81,
           h2('How the six steps are built'),
           table([2200, 5568, 2600], ['Step', 'Mechanism', 'Status'], [
-              ['1. Introduce', 'A lesson (`game/lessons/*.json`, `LessonRunner`): session 11, “En la panadería”, at Luz.',
-               'Built (lessons); planned (W10)'],
+              ['1. Introduce', 'Luz’s first guided bake, when the player asks her or accepts her offer: every row at rung 1, with its '
+               'English (W08). The optional class, session 11, “En la panadería”, adds talking about baking (W10).',
+               'Proposed (W08); planned (W10)'],
               ['2. Act with support', 'The station shows each instruction at its row’s rung (`SupportLevel`); the highlight comes after '
                'a slip or on help (section 10.10).', 'Proposed (W06, W07; section 10)'],
               ['3. Repeat in the same system', 'The recipe is baked again for its reward: bread to eat, or to sell at the stall.',
@@ -193,7 +225,61 @@ put_after(81,
                'pan juntos?”). The review deck asks only learner phrases with a prompt, so it does not serve them.',
                'Proposed (W06; guided review)'],
           ]),
-          spacer())
+          spacer(),
+          h2('Lessons are optional classes'),
+          p('Lessons are not the game’s goal. The player’s goals come from the world: the needs first (section 9), then projects such as the '
+            'camp, recipes, tools and the village’s requests. A lesson is a class a villager offers for deeper study, and the player takes it '
+            'when they want to (D-game-25). The ten lessons keep their steps and lines; what changes is when they start and what they hold.'),
+          bullet('**One required introduction.** On day 1, Luna’s first meeting teaches what gets a learner unstuck in any conversation: '
+                 '“Hola”, “Sí” and “No”, “¿Qué es esto?”, “No sé”, “Otra vez” and “Más despacio”, then the camp task (units u1, u2, u3, u5 '
+                 'and u6 of `first-words`). Units u4 and u4v (“Sí, por favor”, “Gracias”, “Quiero madera”, “Tengo una fruta”, “Necesito '
+                 'agua”) become Luna’s first class. The camp objectives stay as they are: they are survival, not a lesson.'),
+          bullet('**Every other lesson is a class.** The player asks (“¿Me enseñas?”, or the Lessons page’s “Ask for a class”), or accepts '
+                 'when the teacher offers it in one line with Sí or No. “No, gracias” and walking away cost nothing: the NPC goes on '
+                 'trading, giving and taking orders.'),
+          bullet('**What opens a class:** having met its teacher, and its `after` lesson where the grammar needs it (the preterite before '
+                 'session 8’s retelling). Never the day: a lesson’s `session` only orders the Lessons page.'),
+          bullet('**A class never holds the game.** No lesson starts by itself except the introduction. Esc pauses a lesson and frees its '
+                 'NPC; a paused lesson holds back no sleep, trade, order or delivery, and resumes when the player asks.'),
+          bullet('**What a class is worth:** a gift on finishing, as today’s lessons give; the language that makes its teacher’s activity '
+                 'easier (support that has already faded, the book’s verb tables); and practice speaking, which the world asks for but '
+                 'does not drill. It rewards taking part, never correctness (D-game-8).'),
+          bullet('**The world introduces the language:** words discovered from objects, every NPC’s scaffold phrases with their cards from '
+                 'rung 1 whether or not a class taught them, and each activity’s own first run at the English rung, such as Luz’s first bake. '
+                 'Classes go deeper: tenses, retelling, production.'),
+          bullet('**Orders** appear once the player has met their NPC, and any order or capability they need. **Sleep** from day 2 is at '
+                 'the lit fire whenever the sleep drive is below 75 (section 9.5); no lesson, objective or order holds it back.'),
+          bullet('**Words in this document:** a day is the in-game day, the save’s `Day`, which a sleep moves; “session n” names a '
+                 'lesson’s place in the series, not a day.'),
+          h2('For implementers: L01, lessons as classes (proposed)'),
+          p('L01 removes each lesson gate in section 2.2. It lands after N01, which supplies the sleep drive, and before N03. Size M; Sonnet.',
+            keep_next=True),
+          table([3000, 3268, 4100], ['Today', 'Where (Game.Core)', 'After L01'], [
+              ['From day 2 no sleep while an unlocked lesson is unfinished, or while one is engaged',
+               '`Session/VoxelSession.Sleep.cs:47` (`SessionWorkDone`), `:67` (`CanSleep`)',
+               'Day 1 keeps its ending (the introduction, the camp, the fire). From day 2 the fire offers sleep when the sleep drive is below '
+               '75; otherwise it says “No tengo sueño.” An engaged lesson pauses.'],
+              ['Every lesson is `autoStart`; a waiting lesson owns its NPC’s conversation; Esc leaves it engaged',
+               '`Language/Lessons/LessonRunner.cs:677, 745–770`; `content/game-v1/game/lessons/*.json`',
+               '`autoStart` only for the introduction. A class owns the conversation only once accepted; the offer is one line with Sí or No; '
+               'Esc pauses.'],
+              ['A lesson unlocks on `Day >= session` and its `after`', '`LessonRunner.cs:248`',
+               'It unlocks on its `after` and on having met its teacher.'],
+              ['Luna opens a waiting lesson within 5 blocks', '`Session/GuideApproach.cs:31`', 'Only for the introduction.'],
+              ['On waking the beacon points at the next lesson’s NPC', '`Session/VoxelSession.cs:265`',
+               'The beacon follows the tracked objective; the Lessons page says where each class is.'],
+              ['Orders appear on days 4 to 7; a lesson can hold a delivery', '`Session/ObjectiveBook.cs:66`; `HoldsOrder` in '
+               '`LessonRunner.cs`; `game/objectives/*.json`', 'An order shows once its NPC is met; no lesson holds a delivery.'],
+              ['A phrase’s card waits for its lesson', '`LessonRunner.cs:264` (`CardReady`); `Session/GuideSession.cs:147`',
+               'Every scaffold phrase has its card from rung 1.'],
+          ]),
+          spacer(),
+          bullet('**Acceptance.** A player who takes no class after the introduction can sleep, trade, take and deliver every order, reach '
+                 'the bakery and bake with Luz; a declined offer leaves the NPC’s trade prompt in place; a class taken late runs as it does '
+                 'today; saves of versions 1 to 5 with an engaged lesson load with it paused; determinism holds.'),
+          bullet('**Runs and documents.** `r20-sleep` and `r21-skip` are re-baselined; `--skip-to-session n` counts the classes before n '
+                 'as done; a new run, `r30-no-classes`, plays days 1 to 3 taking no class (confirm the id when registering). '
+                 '`docs/game/lessons.md` (its rules on when a lesson opens and on sleep) changes with L01.'))
 
 # ---------------------------------------------------------------- 6. World and settlement
 
@@ -265,22 +351,28 @@ set_text(107, 'Nouns:',
          '**Nouns:** retain encountered and used words, their articles, word-card audio and per-noun icons (`BookLayer.DrawNounIcon`; grey until known under `--greyscale`). W07 adds icons by key for fixtures such as el bol and la cuchara.')
 set_text(108, 'Verbs:',
          'Verbs: retain forms taught or used, with locked cells hidden. The columns are present, preterite, near future, simple future and obligation (tener que). The pilot adds no imperative column (the instructions are for comprehension, section 18). When a later lesson teaches the imperative, note that echa, mezcla, saca and espera are spelt like the third-person present, which the book counts as present (`VerbReading`), so an imperative column needs its own rule.')
+set_text(110, 'Lessons:',
+         '**Lessons:** retain progress, summaries and “Practise again” at the teaching NPC. The page lists the classes on offer, who '
+         'teaches each, where they are and what each needs (its `after` lesson), with “Ask for a class”; it never shows a next '
+         'required lesson (section 5.3).')
 expect(113, 'Keep the five tabs')
 put_after(113,
           h2('For implementers: what the bread pilot adds to the book'),
           bullet('**Phrases:** the nine instruction rows (section 10.16) in their own group, “Instrucciones”, each with heard, understood '
                  'first time, help and its rung, drawn in an “understood” tone rather than the “known” tone of production (the page '
                  'colours rows by production counts today).'),
-          bullet('**Lessons:** session 11 like the others, with the recipe’s line beneath it: bakes, sittings finished without help, '
-                 'mastered.'),
+          bullet('**Lessons:** the recipe’s line, shown from the first bake whether or not the class was taken: bakes, sittings finished '
+                 'without help, mastered; session 11, “En la panadería”, listed as an optional class like the others.'),
           bullet('**Nouns:** harina (an item), el bol and la cuchara (fixtures), with icons.'),
           bullet('**No new tab and no recipe book in the pilot;** the station lists the recipes the learner knows.'))
 
 # ---------------------------------------------------------------- 9. Cooking
 
 LOOP = [
-    'Learn bread from Luz in a new lesson, session 11, “En la panadería”, after sessions 1–10 (section 10.6).',
-    'Gather water in the bottle, one wood and flour bought at the stall. Luz provides missing ingredients once per in-game day (10.12). Keep lesson completion recoverable; the grant’s lesson exception is an open implementation decision (18.2, decision 20).',
+    'Ask Luz to show you (“¿Me enseñas a hacer pan?”), or accept her offer at the bakery (“¿Quieres hacer pan conmigo?”). Her first '
+    'guided bake is the teaching: every row at rung 1, with its English. No lesson is needed; the optional class, session 11, '
+    '“En la panadería”, teaches talking about baking (section 10.6).',
+    'Gather water in the bottle, one wood and flour bought at the stall. Luz provides missing ingredients once per in-game day (10.12), and always for the first guided bake (decision 20).',
     'Press E at Luz’s oven to open the station, an overlay panel over the live world (decided).',
     'Follow six short instructions by holding a thing and using it on a target: no timing or reflex test.',
     'Each instruction follows the phrase support ladder; repeat and slower audio are always there, and help (H, or “Ayuda”) shows the '
@@ -390,20 +482,22 @@ SPEC_9 = [
     bullet('**Confirmed direction:** needs precede the pilot; the station is an overlay; the stall buys bread for one coin; learners understand commands but are not assessed on producing imperative forms. The support ladder includes written Spanish and English at its earlier rungs.'),
     bullet('**Proposed settings (section 18):** session 11 at A2, flour sold at the stall, the six-action recipe in 10.9, varied order for the first two steps, a verb choice only for distinct actions, and a one-loaf bonus. Act evidence and the pilot protocol require decisions 4 and 1.'),
 
-    h2('10.6 The lesson: session 11, “En la panadería”'),
-    p('A lesson file, `game/lessons/en-la-panaderia.json`, built like `el-mercado.json`: `npc` baker, `level` a2, `after` el-mercado, '
-      '`session` 11, `autoStart` true, and `verbs` hacer (1 sg, ir-a), hacer (1 sg, pret) and vender (1 sg, pres). It follows the '
-      'village plan’s principle 7: a plan, a doing and a report.'),
+    h2('10.6 The optional class: session 11, “En la panadería”'),
+    p('A lesson file, `game/lessons/en-la-panaderia.json`, built like `el-mercado.json`: `npc` baker, `level` a2, `after` ayer-y-manana '
+      '(session 3, where ir a and the preterite are first taught), `session` 11, `autoStart` false, and `verbs` hacer (1 sg, ir-a), '
+      'hacer (1 sg, pret) and vender (1 sg, pres). Luz offers it after the player’s first bake, and the player can ask for it at any '
+      'time once it is open; the bread station never waits for it (section 5.3). It follows the village plan’s principle 7: a plan, a '
+      'doing and a report.'),
     table([1500, 1100, 5168, 2600], ['Step', 'Type', 'Content', 'Evidence'], [
-        ['k0-review', 'review', 'Two candidates from sessions 9 and 10 at Luz.', 'as today'],
+        ['k0-review', 'review', 'Up to two due candidates at Luz, if there are any.', 'as today'],
         ['k0-intro', 'explain', '(English) Luz will show you how to make bread. Her instructions are short commands: pon (put), echa '
          '(pour), mezcla (mix), saca (take out). You only need to understand them.', 'none'],
         ['k1-plan', 'model', 'Luz: “Hoy vamos a hacer pan. ¿Me ayudas?”', 'heard'],
         ['k1-answer', 'answer', '“Voy a hacer pan.” at a lesson prompt (tense ir-a, 1 sg).', 'production'],
         ['k2-mezcla', 'listen', '“Mezcla con la cuchara.” Pick its meaning from three.', 'comprehension'],
         ['k2-saca', 'listen', '“Saca el pan del horno.” Pick its meaning from three.', 'comprehension'],
-        ['k3-oven', 'do', 'Trigger `procedure_done`, detail `pan`; the beacon points at the oven. The first bake runs at rung 1.',
-         'acts (10.10)'],
+        ['k3-oven', 'do', 'Trigger `procedure_done`, detail `pan`; the beacon points at the oven. The bake runs at each row’s own rung, '
+         'so rung 1 only for a player who has not baked yet.', 'acts (10.10)'],
         ['k4-report', 'answer', 'To “¿Qué hiciste?”: “Hice pan.” (pret, 1 sg).', 'production'],
         ['k5-sell', 'do', 'Sell a loaf at the stall; the trigger is the world event the stall’s purchase logs (check '
          '`VoxelSession.ApplyHostEvents`).', 'the selling turn'],
@@ -433,7 +527,8 @@ SPEC_9 = [
            'crosshair is on no NPC. Priority: an NPC, then a station prop, then the workbench. This needs a lookup from a prop’s name to '
            'its cells, built from the scene’s stamp placements (as `AtFireRing` does for rings). The oven keeps no `label`.'),
     bullet('**The teacher.** Luz stays at her door, about six blocks away. Talking from the station (V or Space, or W to type) goes to '
-           'her wherever she stands (W08). After the lesson the station opens without talking to her first.'),
+           'her wherever she stands (W08). The first bake starts from her: the player asks her or accepts her offer, and the station '
+           'opens at rung 1. After that first bake the station opens without talking to her first.'),
     bullet('**Layout.** The overlay of the W plan (its section 4.3), drawn over the live world: the instruction strip with Repetir, Más '
            'despacio and Ayuda and a dot per step; the fixtures on the left; the targets in the middle; what can be held along the '
            'bottom. The world keeps running (only F8 pauses it), but the need meters stop while the station is open, as in every panel '
@@ -494,7 +589,7 @@ SPEC_9 = [
     p('With two bakes in each sitting, at least ten minutes of play apart and with no sleep between them, a tester who acts right first '
       'time without help sees:', keep_next=True),
     table([3400, 6968], ['When', 'What changes'], [
-        ['Sitting 1, first bake (the lesson)', 'every row moves from rung 1 to rung 2, at once'],
+        ['Sitting 1, first bake (Luz shows the player)', 'every row moves from rung 1 to rung 2, at once'],
         ['Sitting 1, second bake', 'rows right first time move to rung 3 (audio only)'],
         ['Sitting 2 (another day), first bake', 'rows right first time move to rung 4; a chunk whose steps are all at rung 4 folds'],
         ['Sitting 2, second bake', 'the first grouped instruction, “Haz la masa” (a chunk row starts at rung 2)'],
@@ -518,8 +613,8 @@ SPEC_9 = [
            'shopkeeper’s open prompt, `stall-need`. Another item offered answers `stall.wont_buy`; no bread in the bag, '
            '`stall.cant_sell`. The lines are in the shopkeeper’s voice (`em_alex`). New answers at `stall-need` change what the '
            'recognizer decodes there, so session 1’s stall runs are checked again.'),
-    bullet('**Missing ingredients:** on “¿Tienes harina?”, “Quiero harina” or “Ayuda”, Luz supplies the ingredients currently missing from the bake through `give_missing` (W08), once per in-game day. Persist grant use across reloads. Decision 20 specifies the lesson exception and the route after the daily grant has been used.'),
-    bullet('**After session 11** no lesson follows. The pull to bake again is hunger, the coin, and Luz’s offer when the goal row is due.'),
+    bullet('**Missing ingredients:** on “¿Tienes harina?”, “Quiero harina” or “Ayuda”, Luz supplies the ingredients currently missing from the bake through `give_missing` (W08), once per in-game day. Persist grant use across reloads. Decision 20 specifies the first bake’s grant and the route after the daily grant has been used.'),
+    bullet('**No lesson asks for a bake.** The pull to bake again is hunger, the coin, and Luz’s offer when the goal row is due.'),
 
     h2('10.13 Saving and transactions'),
     bullet('**Nothing is used up during the bake.** At the last step, one exchange checks everything and makes every change: take the '
@@ -549,6 +644,10 @@ SPEC_9 = [
         ['“Gracias.”', '`thank`', '—', 'Luz’s line'],
     ]),
     spacer(),
+    p('**Starting the first bake.** Outside a bake, at her open prompt, Luz offers it once per in-game day until the player has baked '
+      '(“¿Quieres hacer pan conmigo?”): “Sí” (`confirm`) opens the station at rung 1 and enters `teaching`; “No, gracias” '
+      '(`deny`) costs nothing. A request to be taught, “¿Me enseñas a hacer pan?”, needs a core intent (a core milestone); until it '
+      'exists, the offer and a “Hacer pan” button are the routes. Check in the core’s CLI how the request is read today.'),
     p('W08 comes after V29, which declares the NPCs’ reply pools in their files, and after the spoken-lines study (the decided order). '
       'Until the study lands, a spoken line outside the answer set reads as its nearest answer.'),
 
@@ -588,9 +687,9 @@ SPEC_9 = [
            'milliseconds since the instruction. Per bake: the sitting, the day, steps right first time, help, slips, seconds, completed, '
            'loaves. The log writer, `scripts/playtest-report.sh` and the consent text in `docs/game/playtest.md` change with it.'),
     bullet('**The session summary** (`Session/SessionSummary.cs`) gains a line: “Pan: 4 de 6 pasos sin ayuda.”'),
-    bullet('**Checks:** two or three comprehension items for the lesson in `checks.json` (`lesson`: en-la-panaderia; hear an '
-           'instruction, pick its meaning; three options, so chance is one in three). `CheckBank.AskedIn` asks the whole cumulative '
-           'battery at session 11, so the pilot’s battery needs a lesson filter.'),
+    bullet('**Checks:** two or three comprehension items for the recipe in `checks.json` (hear an instruction, pick its meaning; three '
+           'options, so chance is one in three), tied to the recipe `pan` rather than to a lesson, because the class is optional. '
+           '`CheckBank.AskedIn` asks the whole cumulative battery by session today, so the pilot’s battery needs a filter by recipe.'),
 
     h2('10.18 Tests and runs'),
     bullet('**Game.Core** (`tests/Vocaterra.Game.Core.Tests/Activities/`): every rung; folding and the goal; help unfolds and steps up; '
@@ -603,7 +702,7 @@ SPEC_9 = [
            'teacher is an NPC; the Spanish is held to the recipe’s level.'),
     bullet('**Game** (`tests/Vocaterra.Game.Tests/UI/Station/`): layouts on 1280×720 and 800×600 at 100, 125 and 150 %; the verb '
            'choice only for a pair with two verbs; the English only at rung 1 or on help; the keyboard path.'),
-    bullet('**Scripted runs:** r27-bread (session 11 end to end), r28-bread-again (a later sitting through `--sleep`) and r29-bread-fold (folding, the goal and mastery). Reserve r25 and r26 for needs. New steps: `--station`, `--act <hold> <target> [verb]`, `--proc-help`. Confirm unused run IDs when registering milestones.'),
+    bullet('**Scripted runs:** r27-bread (Luz’s offer and the first guided bake with no class taken, then the optional class end to end), r28-bread-again (a later sitting through `--sleep`) and r29-bread-fold (folding, the goal and mastery). Reserve r25 and r26 for needs. New steps: `--station`, `--act <hold> <target> [verb]`, `--proc-help`. Confirm unused run IDs when registering milestones.'),
     bullet('**The content loop:** `scripts/content-loop.sh --grammar --speech`; goldens re-recorded in a commit of their own; the new '
            'bundle hash in `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v1.json`.'),
 ]
@@ -704,13 +803,13 @@ replace[197] = table([2100, 5068, 3200], ['Phase', 'Focus and dependencies', 'Re
     ['A — Follow-ups (decided)', 'M74, M75, V29, M78 and the spoken-lines study with its milestones, then their pull request '
      '(`docs/handovers/2026-11-02-after-followups.md`).', 'Weather and “¿cómo estás?” replies; the near-miss rule; spoken off-prompt '
      'lines decided'],
-    ['B — Player needs (decided), the base of the pyramid', 'N01 to N05; W01 (`item_crafted`); N06; N07 (and N08, decision 14); then the needs check '
-     '(section 9.12). Save version 6 and its `systems` map come with N01. No other system starts before the check passes.', 'Five needs in play from session 1, in stages; food that grows back and fair gifts; cooking at the fire; the rates tuned'],
+    ['B — Player needs (decided), the base of the pyramid', 'N01; L01 (lessons as classes, section 5.4); N02 to N05; W01 (`item_crafted`); N06; N07 (and N08, decision 14); then the needs check '
+     '(section 9.12). Save version 6 and its `systems` map come with N01. No other system starts before the check passes.', 'Five needs in play from day 1, in stages; lessons offered, never required; food that grows back and fair gifts; cooking at the fire; the rates tuned'],
     ['C — A clean surface', 'U01 and U02 (decision 7): code and support-language text only.',
      'Ordinary play without debug text; a calmer conversation panel'],
     ['D — Foundations', 'W01 supplies item_crafted in phase B. W02 (tools/materials) and W03 (patience) are outside the pilot path. W04 is required only if the owner chooses multi-item vendor pricing.',
      'Small validated extensions'],
-    ['E — One procedure', 'W05, W06 (its `procedures` entry joins the `systems` map), W07, W08 and W10. W09 (the imperative) is left out: instructions are for comprehension (decided).', 'Bread with Luz end to end; session 11; recordings; save recovery'],
+    ['E — One procedure', 'W05, W06 (its `procedures` entry joins the `systems` map), W07, W08 and W10. W09 (the imperative) is left out: instructions are for comprehension (decided).', 'Bread with Luz end to end, from her offer; the optional class, session 11; recordings; save recovery'],
     ['F — The pilot', 'The owner listens to Luz’s lines (decision 2); the bundle is frozen; W11 with testers (decision 1).',
      'The go or no-go on the criteria below'],
     ['G — Repair and meals', 'After the pilot passes: W02 (tool/material definitions), then W12 (items as data), W13 (wear), W14 (repair), W15 (cooked dishes and buffs), then W16 (stage checks).', 'The runner reused with Domingo and at the camp'],
@@ -733,7 +832,8 @@ put_after(200,
           p('U identifies presentation work. Sections 6, 7 and 14 are its specification; register delivery status in `docs/game/implementation-plan.md` section 4.'))
 
 CRITERIA = [
-    '**Protocol (decision 1):** recruit 3–5 testers who completed sessions 1–10, or learners prepared for the same A2 material. Start at session 11 (`--skip-to-session 11`) with a primer. Freeze the executable, bundle, rates and presentation settings across three sittings on three days, with two bakes per sitting at least ten minutes of play apart and no intervening sleep. Run the lesson-filtered checks before the lesson, after it and at least 24 hours after the last sitting. The owner’s run checks functionality; testers provide the pilot evidence.',
+    '**Protocol (decision 1):** recruit 3–5 learners at about A2, chosen by a short level conversation, not a placement score. Start from a prepared save with the village met and the needs on (the introduction done; no class required), with a primer. Testers may take the bread class or not; record whether and when. Freeze the executable, bundle, rates and presentation settings across three sittings on three days, with two bakes per sitting at least ten minutes of play apart and no intervening sleep. Run the bread checks before the first bake, after the first sitting and at least 24 hours after the last sitting. The owner’s run checks functionality; testers provide the pilot evidence.',
+    '**Self-directed:** testers start the first bake by asking Luz or accepting her offer, without the facilitator telling them; report learning separately for testers who took the class and those who did not.',
     '**Playable:** every tester finishes a bake in every sitting by speech, typing or help. Missing ingredients, wrong acts, a full '
     'bag, leaving and resuming are covered by tests and scripted runs, and noted when they happen. Deaths are counted with their '
     'cause; a death caused by a language problem is a defect.',
@@ -744,7 +844,7 @@ CRITERIA = [
     '(and of the camp objective, where they played it).',
     '**Preparation:** testers take food and water with them before a long walk (to the farm, the bridge or the mountain) without '
     'being told, and start bakes before hunger runs low.',
-    '**Learning and transfer:** the bread battery (lesson-filtered, three options) from the pre-check to the post-check and the recall; '
+    '**Learning and transfer:** the bread battery (filtered by recipe, three options) from the pre-check to the post-check and the recall; '
     'harina asked for and pan sold at the stall, correctly and without the station’s support.',
     '**Cost and presentation:** new lines, WAVs, art and steps per recipe; minutes and help per bake; no overlapping layers (the '
     'layout tests).',
@@ -757,7 +857,7 @@ for i, prefix in [(203, 'Comprehension target'), (204, 'Fading target'), (205, '
     replace[i] = ''
 set_text(208, 'Priority:',
          'Priority: one existing village, one bread procedure and recoverable support. Take the pilot’s go or no-go before recipe '
-         'expansion, tool repair, farming or new regions, and keep sessions 1–10 playable throughout. If understanding is weak, change '
+         'expansion, tool repair, farming or new regions, and keep the ten classes playable throughout. If understanding is weak, change '
          'the ladder (more first-rung bakes, slower audio) before stage 3; if it works but feels like homework, shorten the recipe and '
          'lean on the one-click bake.')
 
@@ -821,8 +921,9 @@ expect(261, 'DESIGN COMMITMENT')
 replace[261] = callout('DESIGN COMMITMENT', [
     'Evolve the working first-person village and language foundation. Use one bread procedure to prove repeated contextual practice, '
     'recoverable support and a useful reward: bread that feeds the player and sells at the stall. Build player needs first; '
-    'preserve current learning credit, speech recovery and sessions 1–10. Expand to repair, meals and farming only after the '
-    'pilot’s go and the decisions of section 18.'], 'green')
+    'preserve current learning credit, speech recovery and the ten lessons, which become optional classes: the world sets the '
+    'goals, and no lesson holds the day or an activity. Expand to repair, meals and farming only after the pilot’s go and the '
+    'decisions of section 18.'], 'green')
 
 # ---------------------------------------------------------------- 18. Source basis
 
@@ -866,17 +967,22 @@ DECIDED = [
      'stages whose effects grow worse; they push health and stamina. Built after the follow-ups and before every other system, '
      'from session 1; real death with a cost; the meters pause in conversations, lessons, the book and every panel; stamina spent '
      'by gathering and a new sprint.', 'Section 9 specifies the N series; section 15 places it before the bread pilot.'],
+    ['Lessons optional (D-game-25)', 'Lessons are not the main goal; they are optional classes the player takes on. A short required '
+     'introduction with Luna stays; every other lesson is offered and chosen. Sleep is allowed whenever the player is tired; orders '
+     'open once their NPC is met; Luz shows the player how to bake on request, and session 11 becomes an optional class.',
+     'Section 5.3 specifies it and L01 builds it, after N01 and before N03; section 9.5 loses the nap; decision 16 is answered.'],
 ]
 OPEN = [
-    ['1. The pilot protocol', '3 to 5 testers who completed sessions 1–10, or learners prepared for the same A2 material. Use a primer, three sittings on three days, two bakes per sitting, a frozen build and bundle, filtered checks and recall at least 24 hours later. The owner’s run checks functionality; the tester sessions provide the pilot evidence.', 'W11'],
+    ['1. The pilot protocol', '3 to 5 learners at about A2, chosen by a short level conversation; a prepared save with the village met and no class required; the bread class taken or not, as the tester chooses. Use a primer, three sittings on three days, two bakes per sitting, a frozen build and bundle, filtered checks and recall at least 24 hours later. The owner’s run checks functionality; the tester sessions provide the pilot evidence.', 'W11'],
     ['2. A listening gate', 'The owner hears Luz’s instruction lines, and decides whether `if_sara` stays, before audio-only '
      'understanding is measured.', 'W11'],
     ['3. The fold rule', 'Fold a chunk when every step reaches rung 4. Start its grouped instruction at rung 2 on the next bake. Use two spaced bakes per sitting for the pilot; section 10.11 gives the expected progression.', 'W06'],
     ['4. Act evidence (amends D-game-10)', 'Acts fade instruction rows only; Answered only when right first time without help at rung '
      '2 or 3; never production, transfer or noun credit.', 'W06'],
     ['5. The recipe', 'Six actions including oven fuel; a seeded order for flour and water; verb choices only between distinct actions; one bonus loaf for at least five first-attempt successes. Help remains available without reducing the food reward.', 'W05, W10'],
-    ['6. Session 11 and flour', 'Session 11 at a2 (it follows the a2 sessions 7–10, and sacar is A2). Flour sold at the stall (a fixed '
-     'sell, so no W04 in the pilot) rather than by Luz through W04.', 'W10'],
+    ['6. Session 11 and flour', 'Session 11, the optional class, at a2 (sacar is A2), after ayer-y-manana, where ir a and the '
+     'preterite are first taught. Flour sold at the stall (a fixed sell, so no W04 in the pilot) rather than by Luz through W04.',
+     'W10'],
     ['7. A presentation track', 'U01 and U02 before the pilot; U03 and U04 after the last recall.', 'the pilot’s look'],
     ['8. The rest of D-game-23', 'Resolve the W-series options in activities-plan section 12: setting and scope, cast, one-click mastery, item migration, staffing, price-line delivery and instruction wording. The mechanics in sections 9 and 10 define needs, station behaviour and the pilot recipe.', 'each W milestone'],
     ['9. Combat and other harm', 'Combat stays out (D-game-23 (c)). Health falls only from hunger and thirst: no fall damage '
@@ -888,21 +994,21 @@ OPEN = [
     ['12. The pyramid’s middle layers', 'N06 (berry bushes grow back after a night; free bread and water once per in-game day each) '
      'and N07 (cooking at the fire), then the needs check, before the bread procedure (section 1, build order).', 'N06, N07'],
     ['13. Conditions: disease, unsafe water and food', 'Not in the needs base. If added later, a condition is a status with one '
-     'clear cause, one clear cure and visible symptoms, never a meter; remedies are fictional; session 1’s river water stays '
+     'clear cause, one clear cure and visible symptoms, never a meter; remedies are fictional; day 1’s river water stays '
      'safe. Wait until the needs check shows the base is fun.', 'after the needs check'],
     ['14. Self-sufficiency at the camp', 'Optional N08: plant a berry near the camp to establish a bush using N06’s regrowth rules. Include it before the needs playtest only if accepted. Shelter that improves sleep belongs to building work after the pilot.', 'N08; later'],
     ['15. Expansion', 'Inside the valley for now: D-game-22 grows the village inward and the brief has no extra biomes. Ambition '
      'comes from projects and the places already in the scene (the lake, the waterfall, the mountains). New regions, outposts and '
      'other peoples need a new decision after the pilot.', 'W22 onward'],
-    ['16. Learners who already know Spanish', 'A starting session the learner chooses, from a menu on `--skip-to-session`’s rules, '
-     'rather than automated placement (the brief’s risk 6; D-game-10). Today the day moves only after each session’s work.',
-     'a later milestone'],
+    ['16. Learners who already know Spanish', 'Answered by D-game-25: after the introduction no class is required, so a learner '
+     'who knows Spanish plays the world and takes only the classes they want. No placement and no chosen starting session '
+     '(the brief’s risk 6; D-game-10).', 'nothing'],
     ['17. A relaxed needs option', 'One setting, “relaxed needs”: half the rates; at zero health the player faints and wakes at the '
      'camp without the chest. Real death stays the default (D-game-24).', 'N05'],
 
-    ['18. Needs edge cases', 'Set the gathering stamina cost; nap and collapse hunger/thirst floors; whether full players can eat for healing; and the handling of repeated deaths, occupied chest sites and returning to camp before chest expiry. Preserve the no-dead-end rule and save every persistent state.', 'N01 to N04'],
+    ['18. Needs edge cases', 'Set the gathering stamina cost; the night’s and the collapse’s hunger/thirst floors; whether full players can eat for healing; and the handling of repeated deaths, occupied chest sites and returning to camp before chest expiry. Preserve the no-dead-end rule and save every persistent state.', 'N01 to N04'],
     ['19. Accessible instruction evidence', 'Keep text and keyboard recovery available. Report reading and listening separately; decide how muted play and text fallback affect instruction fading and mastery before implementing RecordAct.', 'W06, W07'],
-    ['20. Ingredient grants during lessons', 'Keep the daily grant for repeat bakes, with a recoverable route for the introductory lesson after a grant is used. Define which lesson state permits replenishment and prevent repeated requests or reloads from duplicating it.', 'W08, W10'],
+    ['20. Ingredient grants', 'Luz always supplies what is missing for the first guided bake, and once per in-game day after that. Define which bake state permits replenishment (the first bake, the class’s do step), and prevent repeated requests or reloads from duplicating it.', 'W08, W10'],
 ]
 expect(275, 'Capture a station run')
 put_after(275,
@@ -912,7 +1018,8 @@ put_after(275,
               ['W05', 'Procedure, station, action and progress schemas; stable ids; cross-reference validation (10.7).'],
               ['W06', 'ProcedureRunner; act evidence and spacing; folding; the systems.procedures save entry; atomic completion and ReadyToCollect (10.10 to 10.15).'],
               ['W07 and W08', 'An overlay station with complete keyboard access and speech recovery; Luz’s teaching state and a daily ingredient grant (10.8 and 10.14).'],
-              ['W10', 'Session 11 at A2; six actions, two chunk rows and one goal row; flour sold and bread bought at the stall; normal and slow recordings (section 10).'],
+              ['L01', 'Lessons as optional classes: the introduction alone required; classes offered and chosen; sleep when tired; orders by NPC met; no lesson holds an NPC, an order or the day (5.3 and 5.4).'],
+              ['W10', 'Session 11, the optional class, at A2; Luz’s offer of the first bake; six actions, two chunk rows and one goal row; flour sold and bread bought at the stall; normal and slow recordings (section 10).'],
               ['W11', 'Three-sitting pilot, filtered checks and delayed recall (15.3). Runs r27 to r29; --sleep advances a completed day.'],
               ['W12 to W21', 'Items as data (W12), wear (W13), repair (W14), cooked dishes and buffs (W15), stage checks (W16), directions (W17), farming (W18), orders (W19), prices (W20) and stage checks (W21).'],
               ['U01 to U04', 'Presentation work specified in sections 6, 7 and 14; the timing is in 15.2.'],
@@ -924,7 +1031,7 @@ put_after(275,
           h2('Confirmed direction'),
           table([2300, 4268, 3800], ['Question', 'The owner’s answer', 'What follows'], DECIDED),
           spacer(),
-          p('Recorded as D-game-23 (in part) and D-game-24 in `docs/game/decisions.md`.'),
+          p('Recorded as D-game-23 (in part), D-game-24 and D-game-25 in `docs/game/decisions.md`.'),
           h2('Open, with recommendations'),
           table([2400, 6168, 1800], ['Decision', 'Recommendation', 'Blocks'], OPEN))
 
@@ -953,7 +1060,7 @@ NEEDS_SECTION = [
         'Stage names, icons, numerical values and HUD treatments use Vocaterra’s own visual identity (D-game-14).'], 'gold'),
     spacer(),
     h2('9.1 Scope and guardrails'),
-    bullet('Build N01 to N07 after the queued language follow-ups, with W01 before N07, and pass the needs playtest before the bread pilot. Optional camp planting depends on decision 14.'),
+    bullet('Build N01 to N07 after the queued language follow-ups, with L01 after N01 and W01 before N07, and pass the needs playtest before the bread pilot. Optional camp planting depends on decision 14.'),
     bullet('D-game-24 defines five needs, stages of increasing severity, death with a cost, and stamina spent on gathering and sprinting. All need changes pause during conversations, lessons and panels.'),
     bullet('Every need has a route without Spanish: berries by hand, water at the river, lake or well, and sleep at the camp. A language error or recognition failure never damages the player or blocks these routes (D-game-8, D-game-9).'),
     bullet('**Never lost, even in death:** the learner record and the book (D-game-16), lessons and their progress, objectives and '
@@ -1040,13 +1147,13 @@ NEEDS_SECTION = [
         '**Every death has a named cause:** the event and the death screen say whether it was hunger or thirst.'], 'blue'),
     spacer(),
     h2('9.5 Sleep'),
-    bullet('**A night.** Once the day’s work is done (`VoxelSession.SessionWorkDone`), E at the player’s lit camp fire or Enter on the closing card sleeps until morning (`SleepOffer`). Advance the day and sitting, then begin the next lesson. Sleep applies fixed need changes rather than elapsed-time decay. `--playtest` supports one lesson session per run, so use ordinary play for the multi-day needs playtest.'),
+    bullet('**A night, whenever the player is tired.** E at the player’s lit camp fire, or Enter on the closing card, sleeps until morning (`SleepOffer`) whenever the sleep drive is below 75 (stage 1 or worse). Above that, the fire says “No tengo sueño.” (“I’m not sleepy.”). No lesson, objective or order holds sleep back (D-game-25); day 1 alone keeps its ending first (the introduction, the camp and the fire, `SessionComplete`). Every sleep advances the day and the sitting. Sleep applies fixed need changes rather than elapsed-time decay. `--playtest` supports one sitting per run, so use ordinary play for the multi-day needs playtest.'),
     bullet('**A night** sets sleep to 100, adds 20 health up to 100, and subtracts 15 hunger and 20 thirst without reducing a drive below 10. Recompute stage penalties before filling stamina to its effective maximum. The treatment of a drive already below 10 is part of decision 18.'),
-    bullet('**A nap (new).** Before the day’s work is done, a tired player (stage 2 or worse) can still sleep: E at their lit fire offers “sleep a while; the lesson waits”. A nap sets sleep to 75 and fills stamina; it costs 10 hunger and 10 thirst and gives no health. The day, the sitting and the lesson do not move, so a nap never skips a lesson (V12c’s rule) and Spanish never keeps a tired player from sleep (9.1).'),
-    bullet('**A collapse.** After 60 s of active play at the last stage, the screen fades and the player sleeps where they stand: sleep to 50, stamina full, no health gain, and a cost of 15 hunger and 20 thirst. It counts as a night if the day’s work is done (the day moves) and as a nap if not. The player wakes where they fell; the tip explains it the first time.'),
+    bullet('**No nap.** The nap of the earlier design existed only because a lesson held the night back; with lessons optional, a tired player simply sleeps. The threshold of 75, about 30 minutes of active play after a night, keeps sleep from being used to meet the support ladder’s gaps again and again (D-game-6 spacing).'),
+    bullet('**A collapse.** After 60 s of active play at the last stage, the screen fades and the player sleeps where they stand: sleep to 50, stamina full, no health gain, and a cost of 15 hunger and 20 thirst. It always counts as a night: the day and the sitting move. The player wakes where they fell; the tip explains it the first time.'),
     bullet('**The day’s resets come with a night,** when the day moves: picked bushes grow back and gifts return (N06), and a chest '
            'left by a death goes (9.7).'),
-    bullet('**Sittings and days.** A completed night or a collapse after the day’s work advances both counters. A nap or pre-completion collapse advances neither. A launch or load starts a sitting without advancing the day. Preserve D-game-6 spacing; `--sleep` is the scripted aid for a night.'),
+    bullet('**Sittings and days.** Every night and every collapse advances both counters. A launch or load starts a sitting without advancing the day. Preserve D-game-6 spacing; `--sleep` is the scripted aid for a night.'),
     bullet('**No day–night cycle.** The renderer has none (only the `--dusk` look and its evening sounds), and a night is the '
            'session’s boundary, not a clock. An evening look at bedtime would be presentation work (the U series), not a need.'),
     h2('9.6 Eating, drinking and sprinting'),
@@ -1086,13 +1193,13 @@ NEEDS_SECTION = [
            'disappears with whatever is left in it.'),
     bullet('**A lesson, an order or an objective in progress continues where it was.** Death cannot happen in a conversation, a '
            'lesson, the station or a menu, because the meters stop there.'),
-    h2('9.8 From session 1'),
+    h2('9.8 From day 1'),
     bullet('**The needs start full when the player wakes at the cliff camp:** fed, watered and rested. An English tip at the first '
            'stage explains them (`game/tips.json` and its locale): “Hunger, thirst and sleep go down as you walk and work. Eat berries '
            'or bread, drink water from the river or your bottle, and sleep at your camp when you are tired.”'),
-    bullet('**Opening acceptance.** The camp objectives introduce berries and water before deprivation becomes dangerous. Verify that the session-1 route can be completed safely at the intended pace, including a slower novice pace. Record active time, effort and recovery actions; completing the objectives alone is not a guarantee against death if the player delays indefinitely.'),
-    bullet('**The lessons do not change:** sessions 1–10 keep their steps and lines, and their phrases gain a reason: “Necesito '
-           'agua.” and “Tengo una fruta.” in session 1, then the apples and the bread of the village.'),
+    bullet('**Opening acceptance.** The camp objectives introduce berries and water before deprivation becomes dangerous. Verify that the day-1 route can be completed safely at the intended pace, including a slower novice pace. Record active time, effort and recovery actions; completing the objectives alone is not a guarantee against death if the player delays indefinitely.'),
+    bullet('**The lessons keep their steps and lines** and become optional classes (section 5.3); their phrases gain a reason: “Necesito '
+           'agua.” and “Tengo una fruta.” in Luna’s first class, then the apples and the bread of the village.'),
     bullet('**The stage lines are written Spanish in the HUD,** text only with no recordings (the player has no voice): the player’s '
            'own words, such as “Tengo sed.”, “Tengo mucha hambre.”, “Me muero de sueño.” and “Estoy débil.”, with the English beneath '
            '(D-game-13). They are what the learner can say to someone who can help (9.11). The lint holds them to the A2 ceiling '
@@ -1158,12 +1265,12 @@ NEEDS_SECTION = [
          'M/L; Sonnet'],
         ['N02 Eating, drinking and sprinting', '9.6: the eat and drink actions, water by hand, the sprint control, the gathering cost, '
          'rest at a fire', 'S/M; Haiku'],
-        ['N03 Sleep, the nap and the collapse', '9.5: a night’s effects on the needs, the nap at the fire and its prompt, the collapse and waking where the player fell; a night or a post-work collapse advances the day; loading starts a sitting without advancing the day',
+        ['N03 Sleep and the collapse', '9.5: a night’s effects on the needs, the collapse and waking where the player fell; every night and collapse advances the day; loading starts a sitting without advancing the day. The rule of when the fire offers sleep is L01’s (section 5.4)',
          'S/M; Haiku'],
         ['N04 Health and death', '9.4 and 9.7: losses and recovery, death and the chest, waking at the fire; `r25-thirst` and '
          '`r26-death`', 'M; Sonnet'],
         ['N05 The HUD and the opening', '9.8 and 9.9: the bars, the icons and their stages, the lines, the sounds, the view effects '
-         'and their option, the tip and the death screen; layout tests at every scale; the session-1 route proven safe',
+         'and their option, the tip and the death screen; layout tests at every scale; the day-1 route proven safe',
          'S/M; Haiku'],
         ['N06 Food that grows back, and fair gifts', '9.6: a picked berry bush grows back after the next night; the stall’s and the '
          'villager’s bread and Luna’s water once per in-game day each (a lesson’s gift is always given); the rules in `needs.json` '
@@ -1171,13 +1278,13 @@ NEEDS_SECTION = [
         ['N07 Cooking at the fire', '9.6: the catalogue noun fuego and an instant recipe at any lit fire, an apple to a roast apple '
          '(hunger +20, health +5), through the crafting path that exists and W01’s `item_crafted`; the roast apple takes the next '
          'free item number', 'S/M; Haiku, then content'],
-        ['The needs check', 'The owner and two or three testers play sessions 1 to 3 with needs on, in ordinary play (`--playtest` '
-         'offers no sleep), so through two nights; the rates and stages are tuned; deaths, naps, collapses and their causes are '
+        ['The needs check', 'The owner and two or three testers play days 1 to 3 with needs on, in ordinary play (`--playtest` '
+         'offers no sleep), so through two nights, taking classes or not as they like; the rates and stages are tuned; deaths, collapses and their causes are '
          'noted; the go for the W pilot', 'the owner'],
         ['Later: Spanish for needs', '9.11: a core intent, then the gifts and the replies', 'a core milestone, then content'],
     ]),
     spacer(),
-    p('The N series runs in this order: N01 to N05; N06; W01 before N07; N07; optional N08 if decision 14 is accepted; then the needs playtest. Sessions 1–10 retain their lesson steps. Existing language runs use `--needs off` where fixed needs are required; needs-enabled runs test the survival experience.'),
+    p('The N series runs in this order: N01; L01 (section 5.4); N02 to N05; N06; W01 before N07; N07; optional N08 if decision 14 is accepted; then the needs playtest. The ten lessons keep their steps, as optional classes. Existing language runs use `--needs off` where fixed needs are required; needs-enabled runs test the survival experience.'),
     p('**The needs playtest passes** when:',
       keep_next=True),
     bullet('the needs push testers to act without irritating them;'),
@@ -1194,12 +1301,12 @@ NEEDS_SECTION = [
     bullet('Stamina’s maximum is 100 minus the three penalties, never below 20; the refill factors multiply, never below a quarter; '
            'at zero stamina gathering slows but never stops; no sprint at any drive’s last stage or at very weak health.'),
     bullet('Health damage adds when hunger and thirst are both at stage 4. Passive recovery requires every drive below stage 3; sleep and cooked-food healing follow their explicit rules. Rest doubles passive recovery and stamina refill.'),
-    bullet('Check the night, nap and collapse effects against 9.5, including drive floors and stamina’s effective maximum. A collapse occurs after 60 active seconds at stage 4. A night or post-work collapse advances the day and sitting; a nap or pre-completion collapse does not. Test the edge cases resolved by decision 18.'),
+    bullet('Check the night and collapse effects against 9.5, including drive floors and stamina’s effective maximum. A collapse occurs after 60 active seconds at stage 4. The fire offers sleep only with the sleep drive below 75, from day 2 whatever the lessons’ state; every night and collapse advances the day and the sitting. Test the edge cases resolved by decision 18.'),
     bullet('Eating and drinking restore and cap; at full hunger the food is kept; the bottle comes back empty; a drink by hand works '
            'with nothing held.'),
     bullet('Death at zero health: the chest holds the bag minus the items that stack to 1; the waking values; the learner record, '
            'lessons, objectives and placed blocks unchanged; the day unchanged; the chest gone at the next night.'),
-    bullet('The session-1 route completes without death or collapse at the intended pace and a slower novice pace.'),
+    bullet('The day-1 route completes without death or collapse at the intended pace and a slower novice pace.'),
     bullet('No dead ends (9.4): from the farthest walkable point, at the last stages of thirst and hunger with full health, the '
            'walk to water is shorter than the health that is left.'),
     bullet('A picked berry bush grows back after the next night; a gift comes once per in-game day, except in a lesson step; a roast '
@@ -1220,7 +1327,7 @@ put_after(165,
           p('Progress should unlock a capability or reduce routine effort: portable water, renewable food, better meals and longer-lasting tools.', keep_next=True),
           table([2700, 4668, 3000], ['Capability', 'What it removes or opens', 'Where'], [
               ['Water: the bottle, and drinking by hand', 'thirst anywhere near water; a bottle for longer trips',
-               'the bottle is built (session 1); drinking, N02'],
+               'the bottle is built (day 1); drinking, N02'],
               ['Food that grows back, and fair gifts', 'renewable berries without coins or Spanish; gifts through conversation', 'N06'],
               ['Cooking at the fire', 'more food from the same apple, and healing', 'N07'],
               ['Baking with Luz', 'cheap bread, and a procedure whose guidance fades', 'section 10 (the W pilot)'],
@@ -1264,14 +1371,20 @@ put_after(262,
                  'cure.'),
           num(10, '**Freedom in the valley.** Several ways to meet each need, and projects for their own sake.'),
           num(11, '**Small steps.** Prove how two systems interact before deepening either: the needs check before the pilot.'),
+          num(12, '**Lessons are optional.** The world teaches enough to play; classes go deeper when the player chooses, and never '
+                  'hold the day, an NPC, an order or an activity (section 5.3).'),
           h2('Risks and how this design answers them'),
           table([2400, 4968, 3000], ['Risk', 'The answer here', 'Measured by'], [
               ['Survival becomes maintenance', 'moderate rates; pressure that falls with each layer; no penalty counted twice',
                'the needs check: time on the drives; testers’ ratings'],
               ['A spiral the player cannot leave', 'stages with warnings; walking never stops; free water and food; no dead ends '
                '(section 9.4)', 'its test; deaths and their causes'],
-              ['Spanish becomes optional', 'buying, gifts, recipes, directions and help need Spanish; the day moves only after the '
-               'day’s lesson work (V12c)', 'gifts asked for; conversations per hour'],
+              ['Spanish becomes optional', 'buying, gifts, orders, recipes, directions and help need Spanish; no lesson rule carries '
+               'this, because lessons are optional (D-game-25)', 'gifts asked for; conversations per hour; the share of food and water '
+               'got by talking'],
+              ['Optional classes are never taken, so grammar stops growing', 'each class pays in the world (a gift, support already '
+               'faded, the book’s tables); teachers offer classes where they fit; the Lessons page shows what is open and where',
+               'classes taken per tester; the tenses used in free talk'],
               ['Spanish interrupts survival', 'routine actions need none; the meters stop in every conversation and panel',
                'testers’ comments; the panel tests (section 9.13)'],
               ['Too complex a simulation', 'five needs; disease, nutrition and spoilage left out (decision 13)',
