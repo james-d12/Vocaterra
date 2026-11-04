@@ -114,7 +114,8 @@ All of this is additive unless it says breaking. The game compiles and passes un
   more with a default that finds none: `IsLocationAdverb(lemma)` (`lejos`, `cerca`: `son cerca` is the copula), `CallsForSlip(tokens, index, slip)` (where a word of
   another class is a learner's slip without a grammar: `yo podo ir`, `yo esto cansado`) and `IsPredicateAdjective(lemma)` (the common adjectives whose noun homographs
   are no bare predicate: `él es alta`); see "Person and copula errors", "Irregular forms" and "Adjectives" below. M73 added `IsNeuterPronoun(word)` with the same
-  default (`todo`, `eso`, `esto`, `aquello`: `¿cuántas cuesta todo?` reads `cuesta` as the verb). Breaking signatures: `ReadingClasses.IsDeterminerReading`, `IsClosedClassReading` and `IsSkippable`
+  default (`todo`, `eso`, `esto`, `aquello`: `¿cuántas cuesta todo?` reads `cuesta` as the verb), and M75 `IsQuestionWord(word)`, also with a default that finds
+  none (the question words in every form, with or without the accent: `cuál` for `qué` is a near miss that names `qué`; see "The words and the answer match" below). Breaking signatures: `ReadingClasses.IsDeterminerReading`, `IsClosedClassReading` and `IsSkippable`
   take the rules (they were internal in effect: only the analysis used them); `AccentRestoration.SpellingsFor(lexicon, analysis, rules)`;
   `SlotGrammarMatcher.Match(tokens, grammar, language[, rules])` (the 3-argument form still works and uses `AnalysisRules.For`).
 - **Constructors that take the interface** (source compatible, `MorphologyGenerator` is an `IMorphology`): `LinguisticAnalyzer(lexicon, IMorphology, language[, rules])`,
@@ -435,18 +436,34 @@ chose, so `esta` is `estar` after `donde`, and its `Original` stays `esta`.
 `None`), `Distance` (the edit distance, or the phonetic distance when that is smaller, so `ezpada` for `espada` is 0), `LikelyPronunciation`
 (the spelling differs but the phonetic key matches) and `Confidence`.
 
-**What a constrained prompt's answer set adds to the verdict (M67, M72).** At a constrained prompt whose answer set the line does not match, the verdict
-derives a `vocab.wrong` on the first content word (a word the lexicon knows; `expected` is the canonical answer when the set has one answer, else empty) to
-explain the miss. It is derived only for a miss it can explain: a line that resolved no intent at a prompt that names the word (an answer set of one answer,
-or a quiz, which allows no intent and asks only for a word), or a line that resolved no intent or that a keyword rule (not a slot grammar) understood and that
-is a near miss of an answer, its distance to the nearest answer phrase within the fuzzy budget taken for the line's own length (`cuál es esto` at `lesson-what`,
-3 edits from its answer `qué es esto`, a budget of 3 for 12 characters; the matcher took 2, for the phrase). A line a
-slot grammar understood never gets it, nor does one a keyword rule understood far from every answer: before M67 `hola luz quiero dos panes` at
+**What a constrained prompt's answer set adds to the verdict (M67, M72, M75).** At a constrained prompt whose answer set the line does not match, the
+verdict derives a `vocab.wrong` to explain the miss, only where it can name a word:
+
+- **A near miss of an answer** (M75; the owner, 2026-11-02, D-game-22: "a near miss must name its word"): the line resolved no intent, or a keyword rule
+  or the embedding rung (not a slot grammar) understood it, and it misses the answer phrase nearest it (a canonical phrase or an alias, at the matcher's
+  distance) by one word of a slip pair: the same number of words, exactly one differing (accents ignored), the two words close in spelling (within the
+  answer word's own fuzzy budget) or both question words, articles, prepositions or pronouns. The tag is on that word, a word the lexicon knows, and its
+  `expected` is the answer's word, never empty: `cuál es esto` at `lesson-what` gives `vocab.wrong` on `cuál` (span 0+4), expected `qué`. Before M75 (M67's
+  rule: the distance within the fuzzy budget taken for the line's own length) the tag sat on the first content word (`es`) with an empty expected word, and
+  it fell on correct Spanish that the agent praised: `quiero hacer un hacha` at `smith-open` (an added word), `pasado mañana iré al río con Mar` at
+  `lesson-will-go` and `rápido por favor` at `lesson-had` (content words far apart) have no error since M75. A set with no answers has no near miss.
+- **A prompt that names its word** (M72): a line that resolved no intent at a prompt whose answer set has exactly one answer, or at a quiz, which allows no
+  intent and asks only for a word: the tag is on the first content word (a word the lexicon knows), with the canonical answer as `expected` when the set has
+  one answer, else empty.
+
+A line a slot grammar understood never gets it, nor does one a keyword rule understood that is no near miss: before M67 `hola luz quiero dos panes` at
 `baker-open`, `buscaré madera para luz` at `smith-open` and `me llamo domingo` at `smith-open` were scored 0.4 for it. Since M72 (the owner, D-game-22,
 2026-11-02) a correct line that is simply not among the several answers of a prompt (no intent the prompt takes, no near miss) gets no error either and stays
 `communicated=false`: before M72 `la tienda está en el pueblo` at `farmer-open`, `tengo dos manzanas` at `fisher-open` and `me gusta el río` at `smith-open`
 were scored 0.4 for a `vocab.wrong` with an empty expected word. Such a line carries the intent it has elsewhere in the catalog, `Verdict.OffPromptIntent`
 (below), so a host can answer it. At a lesson step, a line that answers another question is still not communicated: the step's prompt does not take it.
+
+**The near miss itself (M75, public additions).** `AnswerNearMisses.Find(text, set, difficulty, language, lexicon, rules, options = null)`
+(`Vocaterra.Nlp.Language.Matching`) returns the line's `AnswerNearMiss` (`Vocaterra.Nlp.Core.Stages`: `AnswerId`, `Phrase`, the normalized answer phrase,
+`Span`, `Actual`, the line's word, `Expected`, the answer's word, and `Pair`, a `SlipPair`: `Spelling`, `QuestionWord`, `Article`, `Preposition` or
+`Pronoun`), or null. It does not look at whether the line matched; the pipeline and `TextGrader` ask only for a constrained prompt with no match and pass the
+result to `VerdictInputs.NearMiss` (a new optional trailing parameter, null by default), which `VerdictAssembler` reads only there. A host that assembles a
+verdict by hand passes it the same way. The verdict, its JSON and the replay record have no new member: the near miss shows only as the derived error.
 
 ```csharp
 foreach (ResolvedWord word in result.Words!)
