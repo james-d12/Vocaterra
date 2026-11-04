@@ -756,6 +756,15 @@ public sealed class LexiconCatalog
     }
 
     /// <summary>
+    /// True for a common descriptive adjective whose noun homographs are no bare predicate (M69: <c>cómodo</c>, <c>claro</c>; <see cref="IAnalysisRules.IsPredicateAdjective"/>
+    /// of the Spanish pack): right after a copula the reading resolver reads such a word as the predicate adjective where its noun does not agree.
+    /// </summary>
+    public static bool IsPredicateAdjective(string lemma)
+    {
+        return SpanishRules.IsPredicateAdjective(lemma);
+    }
+
+    /// <summary>
     /// True for an adverb of degree (M62: <c>muy</c>, <c>tan</c>; <see cref="IAnalysisRules.IsDegreeAdverb"/> of the Spanish pack): the reading resolver reads the word after it
     /// as no noun.
     /// </summary>

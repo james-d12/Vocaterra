@@ -413,6 +413,12 @@ internal sealed class SentenceRealizer
                 || (_items[k].Kind == Kind.Literal && _items[k].Readings.Count > 0 && _items[k].Readings.All(static r => r.Pos == LexiconSchema.Noun)));
     }
 
+    // M74: a finite form of ser or estar: a verb drawn for the pattern, or a literal whose readings are all such forms.
+    private bool IsFiniteCopula(Item item) =>
+        item.Kind == Kind.Verb
+            ? !item.Infinitive && item.Lemma is "ser" or "estar"
+            : item.Kind == Kind.Literal && item.Readings.Count > 0 && item.Readings.All(r => IsFiniteVerbReading(r) && r.Lemma is "ser" or "estar");
+
     private Item? PreviousContent(int from)
     {
         for (var index = from - 1; index >= 0; index--)
@@ -1825,6 +1831,23 @@ internal sealed class SentenceRealizer
                     || _items[predicate].Readings.Any(static r => r.Pos is LexiconSchema.Adjective or LexiconSchema.Preposition)))
             {
                 skip = "copula-homograph";
+                _detail = item.Surface!;
+                return false;
+            }
+
+            // M74 (the merge gate's O3 seed 8vYtnrmXN4e2; older than M74, the same recipe realises it on 45305998): a noun that is also one of the common descriptive
+            // adjectives of the reading resolver's M69 rule (IAnalysisRules.IsPredicateAdjective: cómoda, the chest of drawers, and cómodo; clara, the egg white, and
+            // claro), right after a finite form of ser or estar (past skippable words, no determiner between), is read by the analyzer as the predicate adjective
+            // wherever none of its noun readings agrees with the subject before the copula and the copula's number, before and over a grammar that binds it as a noun, and
+            // a reader takes it so too: cuánto [VERB:ser] [ART]? [NUM:qty]? [NOUN:item]? gave cuánto sois cómoda ("how comfortable are you all", whose adjective disagrees
+            // with sois: noun.number cómodas) and cuánto eres claras (clara). The realiser does not model the subject the resolver weighs, so such a noun right after a
+            // copula is re-rolled, which is broader than the resolver (leaving out a correct sentence is never wrong).
+            if (item.Kind == Kind.Noun
+                && item.Readings.Any(static r => r.Pos == LexiconSchema.Adjective && LexiconCatalog.IsPredicateAdjective(r.Lemma))
+                && PreviousContentIndex(i) is var copula and >= 0
+                && IsFiniteCopula(_items[copula]))
+            {
+                skip = "noun-reads-as-predicate-adjective";
                 _detail = item.Surface!;
                 return false;
             }

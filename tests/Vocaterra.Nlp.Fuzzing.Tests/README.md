@@ -245,7 +245,12 @@ code comments and here, with the reason:
     `hacer`, until the game allows `ask_weather` there) (`verdict-leg:m74-intent-off-prompt`, reached at the default depth). (c) The pattern tree, the realiser and O3's slot check know the group's slot of the DSL
     (`(frío|calor|buen tiempo):weather`): its value is the chosen alternative's words, literals as written in the grammar. (d) The matcher refuses before its
     search a grammar the line cannot match (token count, a required word, lemma, class or name missing); `SlotGrammarTests` checks over the bundle that it never
-    refuses one the search matches.
+    refuses one the search matches. (e) A generator fix, found by the merge gate's O3 seed `8vYtnrmXN4e2` and older than M74 (the same recipe realises the same
+    sentence on `45305998`; M74's new grammars only moved the sample stream onto it): `cuánto [VERB:ser] [ART]? [NUM:qty]? [NOUN:item]?` gave `cuánto sois
+    cómoda`, with `cómoda` (the chest of drawers) drawn as the noun right after the copula, where the reading resolver's M69 rule reads the adjective `cómodo`
+    (`IAnalysisRules.IsPredicateAdjective`) and agrees it with `sois` (`noun.number` `cómodas`), as a reader does; seeds 1 to 4000 of the recipe also gave `cuánto
+    eres claras`. Such a noun right after a finite copula is re-rolled (`skip:noun-reads-as-predicate-adjective`, `HomographRerollTests`), broader than the
+    resolver, which also weighs the subject: leaving out a correct sentence is never wrong. The analyzer and the oracle are unchanged.
 - **O8.** The dialect sites are `θ s z h ʎ ʝ ʃ ʒ` (the plan lists `θ s ʎ ʝ h`; the shipped dialects also produce the voiced `z` and the rioplatense `ʃ ʒ`).
   `Tokenize(ToIpaString())` is exact except for the pair `t` + `ʃ`, whose concatenation is the affricate token `tʃ` (the inventory documents that
   sequences are lists for this reason); a result with that pair skips the split.
