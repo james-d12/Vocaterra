@@ -1,12 +1,12 @@
 {"schemaVersion":1,"bundleId":"game-v1","contentVersion":"1.0.0","supportLanguage":"en","files":[
 {"path":"ATTRIBUTION.md","sha256":"2850ffe4b92c6228299d243d49d4f0c8af660a454ed1911f7abe8567eb4104b3","bytes":7924},
-{"path":"agents/baker.json","sha256":"86991816df7e365e173a1b82933ec02e83f7ab286ec6598e4820b57f31eb2cb6","bytes":5116},
-{"path":"agents/farmer.json","sha256":"9fa083bc103a162656fad125739886cd373da809ab31db8d617811f7eb321508","bytes":5822},
-{"path":"agents/fisher.json","sha256":"5a9f08ff14fe03c5b1cf08701eccba480a7dbdd918efee82d9b287342bba2fc9","bytes":5912},
-{"path":"agents/guide.json","sha256":"563ef5c2a7645c9b4b29c708726f83ab7d574ced16da51e2410b1ce0dbbf384e","bytes":14342},
+{"path":"agents/baker.json","sha256":"1a120e0efb0b75411b2b108dccba19a74133bce2b25cdb521a80ee59e2435c59","bytes":5281},
+{"path":"agents/farmer.json","sha256":"f126e41bb46968b1ecf8db81d17995e3d0757b59e07ae899df64badb08d203ca","bytes":5989},
+{"path":"agents/fisher.json","sha256":"93fb05b7bee9a705abd03942e7b163ddb9f0a34864c1794c898849da1e33e4fd","bytes":6250},
+{"path":"agents/guide.json","sha256":"bd22691b53b4f54581a9acd253de78e38ff0e58edea988529be2609d84d801f7","bytes":14942},
 {"path":"agents/shopkeeper.json","sha256":"053a436e0e264ba695fb15f581d26ba8e362b986ba868fcf78c131852d058c45","bytes":11667},
-{"path":"agents/smith.json","sha256":"16641241a593f036755fa4345c6da16adf9743dd61b033f2da475a486e238fe2","bytes":4413},
-{"path":"agents/villager.json","sha256":"a2b567d3ba3352dc5bd8ebea1d0bd883b0a0d84c6b2aa5e462625cc24663af46","bytes":6660},
+{"path":"agents/smith.json","sha256":"74f3d4a1105df620c0e9728a530c4af53446f93b675b2d1b431633efa2a9dadc","bytes":4578},
+{"path":"agents/villager.json","sha256":"70d662c1a694a46846f1c479e9d8c2cd65929740bf005abc7d82f1191f9e8448","bytes":7006},
 {"path":"answer-sets/lesson-apple.json","sha256":"bec86661bcb2650ed615a97c9bd887ce03ac88874012ec2cd62ee59cd16f8cc7","bytes":665},
 {"path":"answer-sets/lesson-ate.json","sha256":"8b02d733995ded87d8ccaf7640dc9aee3991c119f63d1bbc768428f78cef48f0","bytes":724},
 {"path":"answer-sets/lesson-big.json","sha256":"5557e12067068f6cde996891661e82f1c6b8703c2eed3ab52bc2355bf19595b2","bytes":623},
@@ -1204,4 +1204,4 @@
 {"path":"speech/villager/villager_unknown_place.1.wav","sha256":"926fc98c88187d508f8a0add2dc291af1e5bf62b5124ea47cf4277577b5e4215","bytes":76844},
 {"path":"speech/villager/villager_wont_sell.1.slow.wav","sha256":"83d644efef23001adfc4ff99d166ae847cf4aba734770565ac951c7f2e78f26a","bytes":88844},
 {"path":"speech/villager/villager_wont_sell.1.wav","sha256":"3265f9782c9ad6140cb0111fff9faa2deaf07a0c6ebb5b798f8df03c9d25b1b9","bytes":67244}
-],"bundleHash":"1020feb49b1ac7c15a66a22724c7e8127fdd18850712b686089d554c5636aa32"}
+],"bundleHash":"9ebec412c66ec56260d7b9b47c10e495e1fc5d0870361d063b6048f3b16a5b28"}

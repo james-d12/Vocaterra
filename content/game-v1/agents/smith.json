@@ -36,6 +36,7 @@
         { "onHostEvent": "smith.none_offered", "to": "idle", "actions": [{ "dialogueIntent": "smith_none_offered", "variantPoolId": "smith_none_offered" }] },
         { "onHostEvent": "smith.no_room", "to": "idle", "actions": [{ "dialogueIntent": "smith_no_room", "variantPoolId": "smith_no_room" }] },
         { "on": {"intent": "greet", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_greet", "variantPoolId": "smith_greet" }] },
+        { "on": {"intent": "ask_wellbeing", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_greet", "variantPoolId": "smith_greet" }] },
         { "on": {"intent": "ask_name", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_name", "variantPoolId": "smith_name" }] },
         { "on": {"intent": "ask_activity", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_job", "variantPoolId": "smith_job" }] },
         { "on": {"intent": "state_have", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_offer", "variantPoolId": "smith_offer" }] },
