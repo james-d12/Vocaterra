@@ -1,42 +1,29 @@
 # Activities and the core systems: the W series
 
-A plan written on 2026-11-01 at the owner's request ("make a more detailed implementation plan"), from the owner's design plan
-(`docs/game/design/sources/Vocaterra_Core_Systems_Design_Document.docx`), the owner's principle (`docs/game/design/crafting-and-cooking.md`) and their review
-(`docs/research/2026-11-01-core-systems-review.md`). It is written against `feature/village` at `3575d46e`, the code the series will start from once PR #20
-is merged. Nothing was built or run.
+The W series implements repeatable activities in the existing village. The
+[Adaptation Design Document](design/sources/Vocaterra_Adaptation_Design_Document.docx) specifies the intended mechanics:
+section 9 covers player needs, section 10 the bread procedure, section 15 the delivery sequence and section 18 the open decisions.
+This plan provides milestone briefs and the later activity roadmap.
 
-**Status:** proposed. On 2026-11-03 D-game-23 was decided in part and D-game-24 decided (`docs/game/decisions.md`). PR #20 and PR #28
-are merged. The series waits for:
-- the queued follow-ups;
-- then player needs (D-game-24: the N series, specified in the design document's section 9), which take save version 6 and its
-  `systems` map from W06 and shrink W15 to cooked dishes and buffs;
-- the rest of section 12.
+**Status:** proposed, with direction confirmed in D-game-23 and D-game-24. Complete the queued language follow-ups, then N01–N07
+and the needs playtest before the bread pilot. W01 supplies `item_crafted` before N07. N01 owns save version 6 and its `systems`
+map; W06 adds procedure state; W15 adds cooked dishes and buffs to the needs system. Register milestones in
+`implementation-plan.md` section 4 and resolve their required decisions before implementation.
 
-The owner's Adaptation Design Document, revision 3 (`docs/game/design/sources/Vocaterra_Adaptation_Design_Document.docx`), changes
-this plan; its section 17 lists how. Where the two differ, the design document applies until this plan is revised.
-**Branch:** `feature/activities`, made from `main` after PR #20 merges; milestone branches `W<nn>-<name>`, gated into it; never `main`.
-**Commit prefix:** `W<nn>:` (W for work, the world's trades; A would read as a CEFR level).
-**Where this file goes:** when R19 (the docs restructure) runs, it moves to `docs/plans/series/w-activities.md`.
+**Branch:** `feature/activities`, from `main`; milestone branches `W<nn>-<name>` are gated into it.
+**Commit prefix:** `W<nn>:`.
 
-**In short.** Four cheap foundations; then one activity end to end (bread with Luz, a new session 11) as the test of the principle,
-ending in the owner's go or no-go; then repair with Domingo, meals and dinner at the camp fire; then directions without the arrow, farming
-with León, a notice board and market prices. Land, storage, trust, gear and new NPCs wait for the pilot.
+Build one bread procedure with Luz and test it across three sittings. Expand to repair, meals, directions, farming, orders and
+prices after the pilot passes. Land, storage, trust, gear and new NPCs depend on later decisions.
 
-## 1. The request
+## 1. Purpose
 
-The owner's design plan describes a survival game in which needs send the player to NPCs. The owner's principle asks for more than
-that: "normal gameplay systems should be deep enough to create repeated, contextual language practice without needing endless unique
-quests or NPCs", with cooking and crafting as the reference systems (real procedures with tools, materials and ordered steps, and
-guidance that fades from highlighted, translated, spoken instructions to the player working alone), and the same approach applied to
-farming, building, trading, exploration, gathering, repairs and survival.
-
-The review found that the conversation half of the design plan is mostly built, the survival half is not, five parts conflict with
-decisions in force, and the code already has most of a procedure engine: the lesson runner and the phrase support ladder. This plan turns
-that into milestones.
+Useful activities repeat Spanish in context. Lessons introduce the language; actions provide practice; demonstrated understanding
+reduces support. Keep instant crafting for routine items and use procedures where their actions teach useful language.
 
 ## 2. What the plan builds on
 
-From the review, the facts every milestone below relies on (paths are on `feature/village`):
+Implementation foundations (paths are relative to the repository or the named project):
 
 - **Lessons are data** with eight step types; a `do` step waits for a world event with an exact NPC and detail
   (`content/schema/lesson.schema.json`, `Language/Lessons/LessonRunner.cs`). The runner is plain state: the session feeds it turns and
@@ -60,7 +47,7 @@ From the review, the facts every milestone below relies on (paths are on `featur
 - **Speech**: every spoken NPC line is a pre-rendered WAV (two speeds) in the NPC's voice, chosen by the pool's prefix (`<npc>_*`). Lines
   rendered at run time are text-only by design (`Sound/NpcVoice.cs`).
 - **The core reads the imperative** (a clause-initial `corta` is the second-person imperative; the lexicon has the imperative forms), but
-  lessons and the book teach only `pres`, `pret`, `ir-a` and `fut`.
+  lessons and the book teach only `pres`, `pret`, `ir-a`, `fut` and `tener-que`.
 - **Words**: the bundle's level lists are short (397 A1 and 663 A2 lemmas); common kitchen nouns (sartén, olla, cuchara, tenedor, harina,
   cebolla) are not in the lexicon (review, 1.3).
 - **The learner model** of the core is one copy per NPC conversation and nothing reads it (`NpcService.Save.cs`).
@@ -92,13 +79,13 @@ The plan is written on the review's recommendations. Each is in section 12 for t
 
 | Decision | Assumed | If the owner says otherwise |
 | --- | --- | --- |
-| Needs | buffs only; nothing kills | W15 grows a health model, and the brief's guardrail needs a new decision |
+| Needs | five needs, staged effects and death with a cost; N series before the pilot (D-game-24) | resolve the detailed options in design section 18 |
 | Combat | none; gear is for places | stage 5 gains combat milestones; W26 changes |
 | Tool tiers | hands, stone, iron (from the smith) | W02's table grows; ores need terrain work |
 | Cast | the seven NPCs; new ones only after a voice trial | stage 5 adds NPC milestones earlier |
 | Land, storage, trust | after the pilot (stage 5) | W22 to W25 move up |
 | Items as data | at W12, before stage 3 (not now) | W12 moves to stage 1, or never (new items then go into the enum, as V03 did) |
-| The tú imperative | allowed in an `a1` lesson | W09 gates it to `a2`, and W10's lesson becomes `a2` |
+| The tú imperative | comprehension only; session 11 at `a2` | teaching production is a later W09 decision |
 | First activity lessons | new sessions 11 to 13; sessions 1 to 10 untouched | weaving activities into earlier sessions moves their goldens and runs |
 | The station view | an overlay panel, as crafting is | an in-world kitchen is a project of its own (block states, animation) |
 
@@ -111,189 +98,50 @@ sessions 1 to 10, no speech synthesised at run time, no unrestricted dialogue. T
 
 ### 4.1 Procedures: the data
 
-A **procedure** is a repeatable lesson whose steps are actions. Four new file kinds, each with a schema in `content/schema/`:
-
-`game/procedures/<id>.json` (listed in order by `game/procedures.json`):
-
-```json
-{
-  "$schema": "../../../schema/procedure.schema.json",
-  "schemaVersion": 1,
-  "id": "pan",
-  "station": "horno",
-  "teacher": "baker",
-  "level": "a1",
-  "makes": { "item": "bread", "count": 2 },
-  "uses": [ { "item": "flour", "count": 1 }, { "item": "water-bottle", "count": 1, "leaves": "bottle" } ],
-  "steps": [
-    { "id": "harina",  "row": "pon-la-harina",    "do": "poner",   "what": "harina", "where": "bol" },
-    { "id": "agua",    "row": "echa-el-agua",     "do": "echar",   "what": "agua",   "where": "bol" },
-    { "id": "mezclar", "row": "mezcla-la-masa",   "do": "mezclar", "what": "bol",    "with": "cuchara" },
-    { "id": "horno",   "row": "pon-la-masa",      "do": "poner",   "what": "masa",   "where": "horno" },
-    { "id": "esperar", "row": "espera-diez",      "wait": 10 },
-    { "id": "sacar",   "row": "saca-el-pan",      "do": "sacar",   "what": "pan",    "from": "horno" }
-  ],
-  "chunks": [
-    { "id": "masa",    "row": "haz-la-masa",      "steps": ["harina", "agua", "mezclar"] },
-    { "id": "cocinar", "row": "cocina-el-pan",    "steps": ["horno", "esperar", "sacar"] }
-  ],
-  "goal": { "row": "haz-pan" }
-}
-```
-
-- A step is an **act** (`do` a verb lemma on `what`, optionally `with` a tool, `where`, `from`) or a **wait** (seconds of game time; its
-  instruction carries a number). The player makes an act by holding one thing and using it on another: the tool on the thing (`with`
-  on `what`: the spoon on the bowl), the thing on its place (`what` on `where`: the flour on the bowl), or the empty hand on where it comes
-  `from` (the hand on the oven). An act may have a `count` ("Pon dos tazas de harina" needs two acts): numbers in use, as session 5 taught
-  them. Intermediate things (the dough, the bowl's contents) live in the station view, not in the inventory.
-- `uses` are taken from the inventory when the procedure finishes, never at its start, so leaving half-way costs nothing. `leaves` gives
-  back a container (the bottle, emptied: the player refills it at the river or the well, which S6 built).
-- `row` names a phrase-sheet row of the new kind `does` (below); the row names its recorded line.
-- `teacher` is the NPC whose voice records the instructions and who teaches at the station; the player working alone later hears the same
-  recordings.
-
-`game/stations.json`:
-
-```json
-{
-  "schemaVersion": 1,
-  "stations": [
-    { "id": "horno", "prop": "oven", "npc": "baker",
-      "fixtures": [ { "noun": "bol", "icon": "bowl" }, { "noun": "cuchara", "icon": "spoon" }, { "noun": "horno", "icon": "oven" } ] },
-    { "id": "fuego", "prop": "firering.player",
-      "fixtures": [ { "noun": "fuego", "icon": "fire" }, { "noun": "palo", "icon": "stick" } ] }
-  ]
-}
-```
-
-A station is a named prop of the scene (or a block kind); E at it opens the station view. `npc` is who stands there to teach and talk.
-**Fixtures** (utensils and tools fixed at the station) are not inventory items: they need a noun and an icon, nothing else.
-
-`game/actions.json`, the verbs each pair allows (what the player holds, what it is used on):
-
-```json
-{
-  "schemaVersion": 1,
-  "actions": [
-    { "use": "harina",  "on": "bol",   "verbs": ["poner", "echar"] },
-    { "use": "agua",    "on": "bol",   "verbs": ["echar", "poner"] },
-    { "use": "cuchara", "on": "bol",   "verbs": ["mezclar"] },
-    { "use": "masa",    "on": "horno", "verbs": ["poner"] },
-    { "use": "mano",    "on": "horno", "verbs": ["sacar", "abrir"] }
-  ]
-}
-```
-
-`mano` is the empty hand. Where a pair allows one verb the act happens on the click; where it allows several, a short choice of Spanish
-verbs appears. Real recipes make several verbs per pair common, and that is what makes the verb worth understanding.
-
-**Instruction rows.** The phrase sheet (`content/PHRASES.md`, its machine copy `game/phrases.json`, `Language/Phrases/PhraseSheet.cs`)
-gains a third kind beside `says` and `hears`: `does`, a line the learner hears and acts on. A `does` row has the Spanish, the English, the
-card text, its audio line ids and no intent or prompt. Lines live in the teacher's pools (`baker_proc_harina`), so the voice is the
-teacher's (V01's rule). The sheet test checks that each `does` row has audio and that a procedure step, chunk or goal names it.
+Use design sections 10.7 and 10.16 for the procedure, station, action and phrase definitions. W05 provides schemas and loaders for
+`game/procedures/<id>.json`, `game/procedures.json`, `game/stations.json` and `game/actions.json`. The bread procedure has six actions,
+two chunks and one goal; three ingredients (flour, water and wood); and bowl/spoon fixtures. Flour and water have a seeded order per
+bake. Offer a verb choice only where the actions have distinct results. The nine `does` rows carry instruction text and audio,
+without a learner intent or prompt. The recipe level is `a2`.
 
 ### 4.2 Procedures: the runtime
 
-`Activities/ProcedureRunner` (a new folder of Game.Core, namespace `Vocaterra.Game.Core.Activities`) is plain state like the lesson runner:
-the session feeds it acts and world events; it reports `ProcedureEvent`s and world events; it reads no clock.
+`Activities/ProcedureRunner` is deterministic plain state. It accepts actions and reports events; the host owns time and seeded draws.
+Design sections 10.10–10.15 define support, spacing, folding, transactions and mastery.
 
-**The ladder climbs the recipe's tree.** Each step shows its instruction by its row's rung:
-
-| Rung of the step's row | What the step shows | A right act without help counts as |
-| --- | --- | --- |
-| English and card | the instruction spoken, its Spanish text, its English; what to hold and where to use it highlighted | supported |
-| Card and audio | spoken and written in Spanish; the English on Ayuda | unaided |
-| Audio only | spoken, with `Repetir` and `Más despacio`; the text on Ayuda | unaided |
-| None | nothing of its own: the step folds into its chunk, whose row's line is given instead ("Haz la masa") | unaided, for the chunk's row and the step's |
-
-A chunk row starts at card and audio (its parts are known; the sentence is new) and fades the same way; when it reaches none, the goal's
-line ("Haz pan") replaces the chunk. When the goal row reaches none, the learner makes the recipe from its name alone.
-
-- **Credit.** Showing an instruction counts `Heard` for its row. A right act counts `Answered` (comprehension evidence) and, past the row's
-  D-game-6 gap, a credited act that steps the row down: one credited act from the first rung, then one unaided credited act per rung. Three
-  spaced acts fold a step, as three spaced uses make a noun known. `PhraseProgress` gains `RecordAct(row, helped, now, session)` beside
-  its use rules; `Supported` and `Unaided`, the production counts, are not touched.
-- **Help and mistakes.** Ayuda (the H key, or "ayuda" or "no sé" said to the teacher) shows the English and the highlight, makes the act
-  supported and steps the row up one, as "no sé" does for a phrase; on a folded step it unfolds it. A wrong act is a slip on the row: the
-  first repeats the instruction, the second plays it slowly, the third shows the highlight (counted as help). An act on a later step says
-  "Primero, …" and repeats the current one. Nothing blocks: every step can be done with help.
-- **Quality.** Steps right first time, out of all steps: a dish of one, two or three stars, carried by the `procedure_done` event (meals
-  read it in W15). Help never lowers the quality; only slips do.
-- **Mastery.** When the goal row is at none and the recipe was finished without help in two different play sessions, the procedure is
-  mastered (`procedure_mastered`) and the station offers it as an **instant craft** (one click, as the torch is). The guided run stays on
-  offer and comes first when the goal row is due again by its gap ("¿Hacemos pan juntos?"); it is never forced. The game stops repeating
-  a recipe when it stops teaching.
-- **World events:** `procedure_started` (detail: the id), `procedure_step` (`pan.mezclar first-try | retried | helped`), `procedure_done`
-  (the id; amount: the count made), `procedure_mastered`. A lesson's `do` step can wait for `procedure_done pan`, so no new step type is
-  needed.
-- **Save:** the procedures' progress (runs, sessions finished without help, best quality, mastered) and a run in progress, in the save's
-  new `systems` map (4.6).
+- A first successful rung-1 act moves the instruction to rung 2 without comprehension credit. First-attempt, unassisted acts at
+  rungs 2 and 3 record comprehension and eligible instruction-spacing credit. Acts never add production, transfer or noun credit.
+- Help restores support; repeat and slower are listening aids. A wrong action changes no inventory and stays outside production slips.
+- Bread yields two loaves, plus one for at least five first-attempt successes. Help is allowed for the food reward.
+- Exchange all ingredients and outputs atomically on completion. A full bag leaves `ReadyToCollect`; load/resume cannot duplicate output.
+- Fold chunks when all constituent rows reach rung 4; introduce the chunk on the next bake. Credit the displayed instruction only.
+- Mastery requires the goal at rung 4 and two unassisted completed sittings. Offer a one-click bake and retain guided practice.
 
 ### 4.3 The station view
 
-A Core model and panel (`Activities/StationScreen`, `Activities/StationPanel : IScreen`) and a Game layer (`UI/Station/StationLayer`,
-`StationLayout`), built as crafting is (`CraftingScreen`, `CraftingPanel`, `CraftingLayer`, layout delegates for hit tests):
-
-```
- ┌──────────────────────────────────────────────────────────────┐
- │ Luz: "Pon la harina en el bol."  [Repetir] [Despacio] [Ayuda]│  the instruction, by rung
- │      Put the flour in the bowl.                    ● ● ○ ○ ○ ○│  the English (rung 1 only); the steps
- ├──────────┬───────────────────────────────────┬───────────────┤
- │ el bol   │                                   │               │
- │ la       │      [ el bol ]      [ el horno ] │   ★ ★ ☆       │  the work area: the targets
- │ cuchara  │                                   │               │
- ├──────────┴───────────────────────────────────┴───────────────┤
- │ la harina ×1   el agua ×1   (the bag's ingredients)           │  what can be held
- └──────────────────────────────────────────────────────────────┘
-```
-
-- Labels are nouns with their article (`la harina`, `el bol`): the gender for free, as the design plan wanted. A noun's English shows on
-  hover until the noun is known (D-game-6's rule, three spaced spoken uses).
-- Keys: 1 to 9 pick what to hold, a click uses it on a target, H help, R repeat, S slower, Esc leaves (the run is kept). Push-to-talk works
-  as in the dialogue panel and goes to the teacher (4.4).
-- The instruction's audio is the row's line through the existing line player (`NpcVoice`), the slow file for `Más despacio`.
-- The station's list shows the procedures the learner knows and, when mastered, their instant crafts.
-- Scripted runs gain `--station <id>`, `--act <use> <on> [verb]` and `--proc-help` (`Scripted/ScriptStepKind.cs`).
+Build `Activities/StationScreen`, `StationPanel` and `UI/Station/StationLayer`, with layout delegates as used by crafting.
+Design section 10.8 defines entry priority, fixture layout, inventory paging, target selection and speech recovery. The station is
+an overlay; needs pause while it is open. All actions are available by keyboard. Scripted steps are `--station`, `--act` and
+`--proc-help`. Follow design decision 19 for text fallback and listening evidence.
 
 ### 4.4 The teacher in the loop
 
-While a procedure runs at a station with its teacher, the teacher's agent is in a `teaching` state at a constrained prompt
-(`<npc>-proc`) that takes the getting-unstuck phrases and requests:
-
-| The learner says | Intent | The agent raises | The game does |
-| --- | --- | --- | --- |
-| "Otra vez, por favor." | `ask_repeat` | `<npc>.proc_repeat` | the instruction again |
-| "Más despacio, por favor." | `ask_slower` | `<npc>.proc_slower` | the slow recording |
-| "Ayuda." / "No sé." | `ask_help` / `dont_know` | `<npc>.proc_help` | help, as the H key |
-| "¿Tienes harina?" / "Quiero harina." | `ask_availability` / `request_item` | `<npc>.give_missing` | the missing ingredient, once a run (never stuck) |
-| "Gracias." | `thank` | (a line) | |
-
-New host-event kinds `procedure_repeat`, `procedure_slower` and `procedure_help` call the runner; `give_missing` gives the item the run
-lacks (a `give_item` names a fixed item, and the agent cannot branch on which one is missing, so the host decides it). The agent enters `teaching` on `<npc>.teach_start` (raised by the runner's start) and leaves on `<npc>.teach_end`.
-`npcs/<id>.json` names the prompt of the state (`"prompts": { "idle": "baker-open", "teaching": "baker-proc" }`, V01's field).
-"Otra vez, por favor" and "Más despacio" were taught in session 1 and are reviewed here with a reason.
-
-**Learning a recipe by asking** (the design plan's recetario): at the teacher's open prompt, `ask_craft` ("¿Cómo se hace el pan?") gets the
-recipe's ingredients (the guide's pattern) and an offer; `confirm` raises `<npc>.teach`, a new kind `teach_recipe` that adds the procedure
-to the known list, and its first run starts at the first rung.
+Design section 10.14 defines the teaching prompt and host kinds: `procedure_repeat`, `procedure_slower`, `procedure_help`,
+`give_missing` and `teach_recipe`. Enter on `<npc>.teach_start` and leave on `<npc>.teach_end`. V29 supplies NPC reply-pool declarations;
+W08 follows V29 and the spoken-lines study. Luz supplies missing ingredients once per in-game day. Persist the grant state and
+resolve the introductory lesson exception in design decision 20 before implementation.
 
 ### 4.5 The tú imperative
 
-Instructions are tú imperatives (pon, echa, mezcla, saca, corta; pon and haz are irregular and in nearly every recipe). The lesson schema's
-`tense` gains `imp`; `TaughtVerbForm` reads the second-person singular imperative from the lexicon; the book's conjugation table gains a
-column once a lesson teaches an `imp` form (`ConjugationTable.AllColumns`, `ui.bookColumnImperative`), as V16 did for the future. At an
-`imp` step the runner reads the core's word reading (mood `imp`, second person singular); a correct present ("pones la harina") is credited
-with a note, by S27's rule that correct Spanish is never a miss. Understanding needs nothing from the core; grading the learner's own
-imperatives beyond mood and person is a core milestone (section 6, core).
+The pilot asks learners to understand commands through the support ladder. It does not assess imperative production or add a book
+column. W09 is outside the pilot path and requires a later decision on taught forms and level policy.
 
 ### 4.6 Saves
 
-- **Version 6 (W06): a `systems` map.** `SaveDocument` gains `Systems`, a map from a system's id to its own versioned object
-  (`{ "procedures": { "version": 1, … } }`). A system with no entry starts fresh. Later systems (meals, crops, the board) add an entry
-  instead of bumping the save's version. The migration from 5 adds an empty map; every older fixture still loads.
-- **Version 7 (W12): items by name, and wear.** `SlotSave` writes the item's data name (`wood`, not `Wood`) and a `wear` (0 when new). The
-  migration maps the ten frozen enum names. This is the one change the C09 assessment warned about, made once, with a test that every
-  version from 1 loads.
+- **Version 6 (N01):** an optional `systems` map. Versions 1–5 initialise full needs. W06 adds `systems.procedures` and preserves needs;
+  existing version-6 saves initialise absent procedure state. Persist in-progress steps, drawn order, attempts and completion state.
+- **Version 7 (W12):** data item IDs and wear. Migrate every enum item present by then, including N07 and W10 additions, and verify
+  every supported save version. Each later system has a versioned entry in `systems`.
 
 ### 4.7 World events added
 
@@ -302,7 +150,7 @@ imperatives beyond mood and person is a core milestone (section 6, core).
 | `item_crafted` | `VoxelSession` (a craft, an instant procedure) | the output's noun; amount: the count | W01 |
 | `procedure_started`, `procedure_step`, `procedure_done`, `procedure_mastered` | `ProcedureRunner` | 4.2 | W06 |
 | `tool_worn`, `tool_repaired` | the simulation, the repair | the tool's noun | W13, W14 |
-| `meal_eaten` | `VoxelSession` | the food's noun | W15 |
+| `meal_eaten` | `VoxelSession` | the food's noun | N02; reused by W15 |
 | `crop_planted`, `crop_ready`, `crop_harvested` | `Activities/Crops` | the crop's noun | W18 |
 | `board_read`, `order_posted`, `order_taken` | `Activities/OrderBoard` | the order's id | W19 |
 
@@ -312,40 +160,39 @@ Each joins `WorldEvents.All`, so tips, lessons and objectives may wait for it, a
 
 | ID | What | Depends on | Size | Model | Status |
 | --- | --- | --- | --- | --- | --- |
-| W00 | This plan; D-game-23 proposed; the owner's edits to the design plan; the row in `implementation-plan.md` section 4 | the review | | orchestrator | written 2026-11-01 |
+| W00 | Register milestones and resolve required decisions | design section 18 | | orchestrator | pending |
 | **Stage 1: foundations** | | | | | |
 | W01 | `item_crafted`: a craft is a world event | | S | Haiku | |
 | W02 | Tools and materials: a material per block, a tool spec per item, the axe's special case replaced | | S/M | Haiku | |
 | W03 | Fail-forward as data: `patience` in the NPC file; the stall's rule moved there | | S/M | Haiku | |
 | W04 | Price lists: `sell` and `buy` by the item the learner names; `<npc>.dont_sell` | | M | Haiku | |
 | **Stage 2: procedures, and bread with Luz** | | | | | |
-| W05 | Procedures, stations and actions as data; the `does` rows of the phrase sheet; the validator's rules | | S/M | Haiku | |
-| W06 | The procedure runner: the ladder up the recipe's tree, credits, help, quality, mastery, events; save version 6 with the `systems` map | W05 | M/L | Sonnet | |
+| W05 | Procedures, stations and actions as data; the `does` rows of the phrase sheet; the validator's rules | needs playtest | S/M | Haiku | |
+| W06 | The procedure runner: the ladder up the recipe's tree, credits, help, rewards, mastery, events; `systems.procedures` in save version 6 | W05, N01 | M/L | Sonnet | |
 | W07 | The station view: model, panel, layer, layout, fixture icons, scripted steps | W06 | M | Sonnet | |
-| W08 | The teacher in the loop: the `teaching` state and prompt, the three host kinds, the missing ingredient, learning a recipe by asking | W06, W07 | S/M | Haiku | |
-| W09 | The tú imperative in the lessons and the book | | S | Haiku | |
-| W10 | Session 11 "En la panadería": the lesson, the `pan` procedure, flour, Luz's teaching, the rows and recordings, the checks, run `r24-bread` | W04, W07, W08, W09 | M | content (decision l) | |
-| W11 | Stage 2's documents and runs; the pilot measure (telemetry, the session summary, `playtest.md`); run `r25-bread-again` | W10 | S | Haiku | **owner's go or no-go** |
+| W08 | The teacher in the loop: the `teaching` state and prompt, the three host kinds, the missing ingredient, learning a recipe by asking | W06, W07, V29, spoken-lines study | S/M | Haiku | |
+| W09 | Imperative production in lessons and the book | separate decision | S | Haiku | outside pilot |
+| W10 | Session 11 "En la panadería": the lesson, the `pan` procedure, flour, Luz's teaching, the rows and recordings, the checks, run `r27-bread` | W07, W08; W04 only for multi-item vendor pricing | M | content (decision l) | |
+| W11 | Stage 2's documents and runs; the pilot measure (telemetry, the session summary, `playtest.md`); run `r28-bread-again` | W10 | S | Haiku | **owner's go or no-go** |
 | **Stage 3: crafting, repair and meals** | | | | | |
 | W12 | Items as data (C09 revisited): `game/items.json`, icons by key with a fallback, save version 7 (names and wear) | W02 | M | Sonnet | |
 | W13 | Durability: wear per tool slot, a worn tool at hands' speed (never lost), `tool_worn` | W12 | S/M | Haiku | |
-| W14 | The axe's handle with Domingo: "Se rompió el mango", the `mango` procedure at the forge, `repair`, run `r26-repair` | W08, W13 | M | content (decision l) | |
-| W15 | Meals and the camp fire: fullness and buffs in stored time, eating, `meal_eaten`; session 12 "En el campamento" with Luna; dinner before sleep; run `r27-dinner` | W08, W12 | M | Sonnet, then content | |
+| W14 | The axe's handle with Domingo: "Se rompió el mango", the `mango` procedure at the forge, `repair`, run `r30-repair` | W08, W13 | M | content (decision l) | |
+| W15 | Meals and the camp fire: cooked dishes and buffs using the N-series needs and eating rules; session 12 "En el campamento" with Luna; dinner before sleep; run `r31-dinner` | W08, W12, N07 | M | Sonnet, then content | |
 | W16 | Stage 3's documents and runs | W14, W15 | S | Haiku | |
 | **Stage 4: the principle spread** | | | | | |
-| W17 | The fading beacon: an NPC's directions hold the arrow at the later rungs; arriving unaided is credited; run `r28-no-arrow` | W06 | S/M | Haiku | |
-| W18 | Farming with León: crops that grow by play session; session 13 "En el campo"; run `r29-farm` | W06, W07, W12 | M | Sonnet, then content | |
-| W19 | The notice board: order templates, a seeded generator weighted by what is due, written notices; run `r30-board` | W12 | M | Sonnet | |
+| W17 | The fading beacon: an NPC's directions hold the arrow at the later rungs; arriving unaided is credited; run `r32-no-arrow` | W06 | S/M | Haiku | |
+| W18 | Farming with León: crops that grow by play session; session 13 "En el campo"; run `r33-farm` | W06, W07, W12 | M | Sonnet, then content | |
+| W19 | The notice board: order templates, a seeded generator weighted by what is due, written notices; run `r34-board` | W12 | M | Sonnet | |
 | W20 | Market prices by session | W04 | S/M | Haiku | |
 | W21 | Stage 4's documents and runs | W17 to W20 | S | Haiku | |
 | **Stage 5: held for the pilot's data** | | | | | |
 | W22 to W29 | Land and plots; frontier claims; storage; trust and "¿Lo de siempre?"; gear for places and the tailor; the healer and foraging; tenants and building to a description; fishing with Mar | section 6 | L | | held |
 
-**Order.** Stage 1's four milestones are independent and cheap; none blocks stage 2 (W04 is needed only by W10). Stage 2 is the hypothesis
-test and runs in its own order: W05, W06, W07, W08, with W09 anywhere before W10, then W10 and W11. **After W11 the owner plays (or pilots)
-session 11 twice, in two play sessions, and decides whether to go on** (section 10's measures). Stage 3: W12 first (its item data
-carries the tools' wear and the food values), then W13 and W14, and W15 once W12 is in. Stage 4's milestones are independent of each other. One agent at a time throughout (the machine rules); the gate after
-each milestone.
+**Order.** Complete language follow-ups, N01–N07 and the needs playtest first; W01 runs before N07. U01 and U02 precede the pilot
+if accepted. The pilot path is W05, W06, W07, W08, W10 and W11. W02 and W03 are outside this path; W04 is conditional on the vendor
+decision; W09 is later work. W11 uses three tester sittings and delayed recall, then an owner go/no-go. Stage 3 adds W12–W16; stage 4
+adds W17–W21. W12 needs W02. U03 and U04 follow the final recall. Gate each milestone and observe the repository’s machine limits.
 
 ## 6. The milestones in detail
 
@@ -412,11 +259,10 @@ runs the content loop (`scripts/content-loop.sh --grammar --speech`, V18), re-re
 **W06: the procedure runner (M/L, Sonnet).**
 - *Code.* `Activities/ProcedureRunner` (4.2): `Start(procedure, station, teacherPresent)`, `Act(use, on, verb)` returning right, wrong verb,
   wrong thing, out of order; `Repeat`, `Slower`, `Help`, `Leave`; `View` (the instruction, its rung, the highlight); `OnEvent`; `Capture`,
-  `Restore`. `Activities/ProcedureProgress` (runs, sessions finished without help, best quality, mastered). `PhraseProgress.RecordAct` with
-  the gap rules shared with uses. The wiring in a new partial `Session/GuideSession.Activities.cs` (as `GuideSession.Review.cs`), so the
-  1,468-line `GuideSession.cs` does not grow. Instant crafts through `CraftingRules` with the procedure's `uses` and `makes`.
-- *Save.* Version 6, the `systems` map (4.6), with the `procedures` section.
-- *Tests.* A three-step test procedure through every rung; folding into a chunk and the goal; a slip unfolds; help steps up; two runs within
+  `Restore`. `Activities/ProcedureProgress` (runs, sessions finished without help, first-attempt successes, mastered). `PhraseProgress.RecordAct` with
+  the gap rules shared with uses. The wiring in a new partial `Session/GuideSession.Activities.cs` (as `GuideSession.Review.cs`), so `GuideSession.cs` stays focused. Instant crafts through `CraftingRules` with the procedure's `uses` and `makes`.
+- *Save.* Add `systems.procedures` to N01’s version-6 map, preserving needs (4.6).
+- *Tests.* A three-step test procedure through every rung; folding into a chunk and the goal; help unfolds a chunk and restores support; two runs within
   ten minutes credit once (the gap); mastery after two play sessions; leaving half-way takes nothing; the run survives a save and a load;
   the same acts give the same events (determinism); the migration from version 5.
 - *Done when* the runner passes, with no UI.
@@ -427,7 +273,7 @@ runs the content loop (`scripts/content-loop.sh --grammar --speech`, V18), re-re
   panel; the icons of W10's fixtures (`bowl`, `spoon`, `oven`) painted in the atlas as V05 painted the coin, the apple and the axe, found
   by a key lookup with a plain fallback tile for any key without art. E at a station's prop opens it; the arm and the camera do not move while it is open.
 - *Scripted.* `--station`, `--act`, `--proc-help` (`ScriptStepKind`, `ScenarioScript`).
-- *Tests.* The verb choice appears only for a pair with several verbs; the highlight only at the first rung; the English only at the first
+- *Tests.* The verb choice appears only for a pair with several verbs; the highlight after a slip or on help, according to design 10.10; the English only at the first
   rung or after help; a component test runs the test procedure through the panel; layout tests at every UI scale (no overlap).
 - *Done when* a scripted run with `--station` and a screenshot shows the view at the first rung (look at the PNG).
 
@@ -437,40 +283,28 @@ runs the content loop (`scripts/content-loop.sh --grammar --speech`, V18), re-re
   the teacher at the prompt of its `teaching` state (`NpcService.PromptAfter`).
 - *Content (the first instance, Luz).* `agents/baker.json` gains the `teaching` state of 4.4; `prompts.json` `baker-proc` with an answer set
   of the unstuck phrases and requests; `npcs/baker.json` names it; Luz's `ask_craft` answer and offer. The content loop.
-- *Tests.* The agent's transitions at `baker-proc` with typed lines; each kind reaches the runner; the missing ingredient is given once a
-  run; `teach_recipe` adds the procedure to the known list.
+- *Tests.* The agent's transitions at `baker-proc` with typed lines; each kind reaches the runner; the daily grant survives reloads, with the accepted lesson exception; `teach_recipe` adds the procedure to the known list.
 
-**W09: the tú imperative (S, Haiku).** 4.5.
-- *Code.* `lesson.schema.json` (`imp` in `tense` and in `verbForm.tense`); `LessonBook` (the tense parse); `TaughtVerbForm.Text` (the
-  lexicon's imperative); `ConjugationTable.AllColumns` and `ui.bookColumnImperative`; the step's tense judge and an `impNote` (the
-  locale); `GameDataValidator` allows `imp` at `a1` (decision h).
-- *Tests.* The lexicon has `pon`, `echa`, `mezcla`, `saca`, `corta`, `haz`, `espera`, `toma` as second-person imperatives; the column shows
-  once taught; `pones la harina` at an `imp` step is credited with the note.
+**W09: imperative production (S, Haiku; outside the pilot).** Define taught forms, book columns, homographs with present-tense
+forms and assessment rules after a separate owner decision (4.5).
 
-**W10: session 11 "En la panadería" (M, content model by decision l).**
-- *The lesson* `en-la-panaderia` (session 11, `a1`, at Luz, after `el-mercado`): an `explain`; Luz's `model` ("Hoy vamos a hacer pan.
-  ¿Me ayudas?"); `answer` "Voy a hacer pan." (`ir-a`); two `listen` steps on the key verbs (mezcla, echa); a `do` step waiting for
-  `procedure_done pan`, its HUD line sending the learner to the oven (the procedure at the first rung, in Luz's voice); `answer` "Hice pan." (`pret`, to "¿Qué
-  hiciste?"); a `review` step; a `recap`. The plan, the doing and the report of village-plan's principle 7.
-- *The procedure* `pan` of 4.1 (six steps, two chunks, a goal), the station `horno` at the bakery's oven, the actions.
-- *Items.* `flour` (`ItemId.Flour = 33` and its icon, as V03 added items, unless W12 has run); `harina` in `nouns.json`; Luz's price list
-  (W04) with `harina` at 1 coin; `harina` in her answer set.
-- *Words.* `harina`, `bol`, `cuchara`, `masa` in `lexicon/world.json` with their gender; world-word waivers in `cefr/a1.txt`'s marked block,
-  one reason each; the choice of `bol` or `tazón` made with the Opus pass (Latin American usage).
-- *Rows.* About eight `does` rows (six steps, two chunks, the goal), three `says` rows with graded error examples, five `hears` rows; the
-  Opus pass (D-game-12 step 3); `scripts/prerender-speech.sh` for Luz's voice; `speech-checklist.md`.
-- *Checks.* Two or three items for the lesson in `checks.json` (`lesson`, V07): hear an instruction, pick its meaning.
-- *Run.* `r24-bread` in `scripted-runs.md`: the lesson end to end, timed at 5 to 10 minutes.
-- *Before writing rows,* try in the core's CLI that the lesson's sentences grade as expected (`voy a hacer pan`, `hice pan`, `ayer hago
-  pan` → `conj.tense`); a wrong grade waits for a core milestone, as in village-plan section 5.
+**W10: session 11 “En la panadería” (M, content model by decision l).**
+- Implement design sections 10.6, 10.9, 10.12 and 10.16: A2 lesson, six-action bread recipe, nine instruction rows and four learner rows.
+- Add flour using the next free enum ID (34 if N07’s roast apple uses 33). The stall sells flour for one coin and buys bread for one
+  coin using fixed host events. Check that `instead` can target the flour sale; include buying and selling turns in the lesson flow.
+- Register the nouns, icons, lexicon entries, justified world-word waivers, normal/slow recordings and support-language text.
+  Confirm bol or tazón in the content review and use it consistently. The owner listens to Luz’s instruction audio before the pilot.
+- Add lesson-filtered comprehension checks and `r27-bread`. Try the lesson’s production lines and error examples in the core’s CLI
+  before content depends on them. Follow the content loop and preserve sessions 1–10.
 
 **W11: stage 2's documents, runs and measure (S, Haiku).**
 - *Telemetry* (local JSONL, D-game-10): per act, the row, its rung, right first time, help, slips, the seconds from instruction to act;
   per run, the procedure, the session, the quality, the time.
 - *The session summary* (`Session/SessionSummary.cs`): "Pan: 4 de 6 pasos sin ayuda."
 - *Documents.* `playtest.md` (an activities section and its measures), `README.md` counts, `scripted-runs.md`, `speech-checklist.md`.
-- *Run.* `r25-bread-again`: the procedure in a later session (`--skip-to-session 12` or a sleep), showing the fade.
-- *Then the owner's go or no-go* (section 10).
+- *Run.* `r28-bread-again`: the procedure in a later session (through `--sleep` after completing the day’s work), showing the fade.
+- *Runs.* Add `r29-bread-fold` for folding, the goal and mastery.
+- *Then the owner's go or no-go* using design section 15.3 and section 10 below.
 
 ### Stage 3: crafting, repair and meals
 
@@ -503,25 +337,20 @@ runs the content loop (`scripts/content-loop.sh --grammar --speech`, V18), re-re
 - *Content.* Domingo's `teaching` state and `smith-proc` prompt; a `report_broken` intent (slot grammars `[ART] [NOUN:item] [VERB:estar]
   (roto|rota)`, `se [VERB:romper] [ART] [NOUN:part]`); the `mango` procedure, the forge station (`forge` prop), fixtures (martillo,
   yunque); `mango` (the handle; the lexicon's fruit sense noted), `martillo`, `golpear` with waivers; the rows, the Opus pass, Domingo's
-  recordings; run `r26-repair` (`--wear axe 99`).
+  recordings; run `r30-repair` (`--wear axe 99`).
 - *Two ways, as the design plan's "craft it yourself or commission it".* Domingo offers both: "¿Lo hacemos juntos, o lo arreglo yo por dos
   monedas?". The hands-on way is the procedure (free, one wood); the service is a new host kind `repair` (the price in coins, the wear to
   0). With no coins the hands-on way is always open, and his patience rule (W03) offers the choices when the learner cannot say it.
 - *Before writing rows,* try `se rompió el mango`, `el hacha está rota` and `el hacha está roto` (`gender.agree` expected: `hacha` is
   feminine with `el`) in the core's CLI; a wrong grade is a core milestone.
 
-**W15: meals and the camp fire (M; Sonnet for the code, then content).**
-- *Code.* `Activities/PlayerCondition`: fullness from 100 down by one each N seconds of stored time while awake, restored by eating
-  (`food.fill` in the item data); buffs with an end in stored time: "bien alimentado" (gather ticks × 0.8) and "comida caliente" (walking
-  × 1.1), from the dish's quality. Eating is using a food item (right-click, as `BookItemUse` uses the book); `meal_eaten`. At zero
-  fullness the buffs end and the HUD shows once, in Spanish, "Tienes hambre." (its English by the ladder); nothing else happens. The
-  `systems` map's `condition` section. Game: a small fullness icon on the HUD.
-- *Content: session 12 "En el campamento".* Luna teaches a camp dish at her fire (`tostadas`: cut the bread, put it on the fire, turn it,
-  take it out; or `manzanas asadas`, decided with the Opus pass); then the learner cooks it at their own fire (`firering.player`, station
-  `fuego`) alone, hearing Luna's recordings. The sleep offer (V12c) asks "¿Cenamos antes de dormir?" when the bag holds what the dish needs;
-  never required. Run `r27-dinner`.
-- *Why here.* Every session ends at the player's fire; a dinner there turns that moment into a nightly procedure, and a new session meets
-  D-game-6's gap, so each night's cooking earns spaced credit by construction.
+**W15: cooked dishes and the camp fire (M; Sonnet for code, then content).**
+- Use N-series hunger, eating, healing, pause and save rules. Add dish-specific buffs with deterministic expiry; do not introduce
+  another hunger/fullness meter. W12 item data holds food values. Emit the existing `meal_eaten` event.
+- Session 12, “En el campamento”, introduces a dish with Luna, followed by independent cooking at the player’s fire. Select the dish
+  and recordings through the content review. N07’s instant roast apple remains available.
+- Offer dinner before sleep when ingredients are available; dinner remains optional. Add `r31-dinner` and cover buff expiry,
+  save/load, needs pauses and the existing sleep rules.
 
 **W16: stage 3's documents and runs (S, Haiku).** As W11, for W12 to W15.
 
@@ -530,7 +359,7 @@ runs the content loop (`scripts/content-loop.sh --grammar --speech`, V18), re-re
 **W17: the fading beacon (S/M, Haiku).** When an NPC's directions answer at the later rungs of their row (audio only, none), the beacon
 is *held*: its target is known and its arrival still checked, but nothing is drawn (`Navigation/Beacon` gains `Held`). Ayuda, or asking
 again, draws it (a supported use). Arriving at the place (`beacon_reached`) after a held direction credits the row's act unaided. Arrows
-set by lessons, objectives and hooks are never held. Run `r28-no-arrow`.
+set by lessons, objectives and hooks are never held. Run `r32-no-arrow`.
 - *The catch:* a held arrow needs a line that says where. The villager's and the fisher's point lines are fixed ("allí") and the guide's
   are templated, so text-only. Either each directing NPC gets a recorded line per place ("La panadería está al lado de la torre.", about
   ten places for the villager and the fisher: about 20 lines, as session 4 recorded a few), or the guide's templated lines hold the arrow
@@ -541,14 +370,14 @@ player's plot) with a crop state (planted in session n, watered); a watered crop
 seeds in the earth, pour water) and `cosechar`; `crop_planted`, `crop_ready`, `crop_harvested`; the `systems` map's `crops` section. Session
 13 "En el campo" with León (seeds, water, the weather words he has). New words with waivers (`sembrar`, `regar`, `cosechar`, `semilla`,
 `maíz`). The fit: planting and harvesting fall in different sessions, so the farm's words come back across the gap by design. Run
-`r29-farm`.
+`r33-farm`.
 
 **W19: the notice board (M, Sonnet).** `game/order-templates/<id>.json`: the NPC, the goods with a choice of counts, the pay per item, the
 rows it exercises, the level, and the notice as a bundle template ("Necesito {count:words} {item:plural-if(count)}. Pago {pay:words}
 monedas."), text only, since notices are read. `Activities/OrderBoard`: three orders posted each play session with
 `WorldRng.For(seed, "board", session)`, weighted by the due rows of each template (`ReviewDeck.Select`'s rule), added as runtime orders
 (`ObjectiveSpec` with `deliverTo`, `deliver`, `session`); delivery is the existing order path. A board prop in the square (E opens it;
-the notices with the ladder's English). The `systems` map's `board` section; `board_read`, `order_posted`, `order_taken`. Run `r30-board`.
+the notices with the ladder's English). The `systems` map's `board` section; `board_read`, `order_posted`, `order_taken`. Run `r34-board`.
 
 **W20: market prices by session (S/M, Haiku).** A price list entry may carry a range; the day's price is drawn per session
 (`WorldRng.For(seed, "price", session)`), so "¿Cuánto cuesta?" stays worth asking. The price line is either recorded (a line per number per
@@ -601,7 +430,7 @@ Filed by the orchestrator in `docs/nlp/implementation-plan.md` (the next free M 
 | `game/nouns.json`, `lexicon/world.json`, `cefr/a1.txt` | the new nouns, their gender, the waivers | W10, W14, W15, W18 |
 | `agents/*.json`, `prompts/prompts.json`, `answer-sets/*`, `intents/intents.json`, `dialogue/dialogue.json` | the teaching states, `<npc>-proc` prompts, `report_broken`, the lines | W08, W10, W14, W15, W18 |
 | `content/locale/en/*` | the English of every new row, step, station, fixture, event line and UI string | each |
-| Save | version 6 (`systems`), version 7 (item names, wear) | W06, W12 |
+| Save | version 6 (`systems`), version 7 (data item IDs, wear) | N01; W06 adds procedures; W12 |
 
 ## 8. What changes in code
 
@@ -610,13 +439,13 @@ Filed by the orchestrator in `docs/nlp/implementation-plan.md` (the next free M 
 | Game.Core `Event/` | the new world event names | W01, and each system |
 | Game.Core `Voxel/`, `Items/`, `Simulation/` | materials, tool specs, `GatherTicksOf`; the item catalog; wear | W02, W12, W13 |
 | Game.Core `Npc/` | the patience rule; price lists and `dont_sell`; the new host kinds | W03, W04, W08, W14 |
-| Game.Core `Activities/` (new) | `ProcedureBook`, `StationBook`, `ActionTable`, `ProcedureRunner`, `ProcedureProgress`, `StationScreen`, `StationPanel`, `PlayerCondition`, `Crops`, `OrderBoard` | W05 to W08, W15, W18, W19 |
+| Game.Core `Activities/` (new) | `ProcedureBook`, `StationBook`, `ActionTable`, `ProcedureRunner`, `ProcedureProgress`, `StationScreen`, `StationPanel`, `Crops`, `OrderBoard` | W05 to W08, W15, W18, W19; needs in N01 |
 | Game.Core `Language/` | `does` rows (`PhraseSheet`), `RecordAct` (`PhraseProgress`), the imperative (`LessonBook`, `TaughtVerbForm`, `ConjugationTable`) | W05, W06, W09 |
 | Game.Core `Session/` | `GuideSession.Activities.cs` (the wiring); the sleep offer's dinner; the summary line | W06, W11, W15 |
 | Game.Core `Navigation/` | the held beacon | W17 |
 | Game.Core `Save/` | versions 6 and 7 and their migrations | W06, W12 |
 | Game.Core `Scripted/` | `--station`, `--act`, `--proc-help`, `--wear` | W07, W13 |
-| Game `UI/Station/` (new), `UI/Hud/`, `Graphics/Blocks/` | the station layer and layout; the wear bar and the fullness icon; icons by key | W07, W12, W13, W15 |
+| Game `UI/Station/` (new), `UI/Hud/`, `Graphics/Blocks/` | the station layer and layout; the wear bar and dish-buff indicators; icons by key | W07, W12, W13, W15 |
 | The core | nothing in stages 1 to 4, unless a CLI trial finds a grading gap (section 6, core) | |
 
 ## 9. Content cost
@@ -627,7 +456,7 @@ The owner's listening is the real cost (village-plan section 5): each line is tw
 | --- | --- | --- | --- | --- | --- |
 | W08 (Luz's teaching) | | about 4 | about 8 | | |
 | W07 the station view | | | | | bowl, spoon, oven (fixtures) |
-| W10 bread | 8, 3, 5 | about 14 | about 28 | harina, bol, cuchara, masa | flour |
+| W10 bread | 9, 4, 5 | about 20–25 | about 40–50 | harina, bol, cuchara, masa | flour |
 | W14 the handle | 5, 2, 4 | about 10 | about 20 | mango, martillo, golpear, roto | hammer, anvil |
 | W15 the camp dish | 5, 2, 4 | about 10 | about 20 | the dish's words | the dish, fire, stick |
 | W17 directions | the direction rows | 0 or about 20 | 0 or about 40 | | |
@@ -641,57 +470,57 @@ W05's validator can print, per procedure, its new rows and, per row, the procedu
 
 ## 10. Tests, gates and the go or no-go
 
-- **The gate** is unchanged: `GATE_TARGET=feature/activities scripts/merge-gate.sh "<label>:<branch>"` after each milestone.
-- **New scripted runs:** `r24-bread`, `r25-bread-again`, `r26-repair`, `r27-dinner`, `r28-no-arrow`, `r29-farm`, `r30-board`
-  (`scripted-runs.md`, compared with `compare-runs.py`).
-- **The go or no-go after W11** (proposed thresholds, the owner's to change):
-  - *playable*: no tester is blocked; every run makes the dish;
-  - *understanding*: right first time on at least 70 % of the instructions shown at card-and-audio or audio-only, by the second session;
-  - *fading*: at least one chunk folds by the third session for most testers;
-  - *enjoyment*: testers rate the bakery at least as well as the camp objective, and some bake again without being asked (the design plan's
-    "talk to NPCs without a quest", turned to activities);
-  - *recall*: the instruction items of the check battery improve from the pre-check to the recall check.
-- If understanding is weak, change the ladder (more first-rung runs, slower audio) before stage 3. If it works but feels like homework,
-  shorten the procedures and lean on the instant craft. If both hold, go on.
+Use the milestone gate: `GATE_TARGET=feature/activities scripts/merge-gate.sh "<label>:<branch>"`.
+Reserve r25–r26 for needs, r27–r29 for bread, then r30-repair, r31-dinner, r32-no-arrow, r33-farm and r34-board.
+Confirm availability when registering each run.
+
+Design section 15.3 is the pilot protocol: 3–5 prepared testers, three sittings on separate days, two spaced bakes per sitting,
+a frozen executable and bundle, lesson-filtered checks and delayed recall. Report listening separately from text-supported evidence;
+the proposed listening target is 70% on eligible first-attempt, unassisted actions. Most testers should encounter a grouped
+instruction by the second sitting’s second bake. Measure voluntary replay, useful bread consumption/trade, preparation and transfer.
+The owner’s own run is a functional check. Resolve design decisions 1–7 and the relevant edge cases before implementation.
+
+After W11, the owner decides whether to expand, revise the support ladder or shorten the procedure. Keep the frozen pilot unchanged
+through its final recall.
 
 ## 11. Risks and open points
 
 - **A station view can feel like a minigame**, which the brief warns against. Keep it to holding and using things, with no timing or
   dexterity; measure enjoyment in the go or no-go.
-- **`NpcService` (1,013 lines) and `GuideSession` (1,468 lines) are large.** W03, W04 and W08 touch the first; W06 puts its wiring in a
+- **Keep session and NPC wiring focused.** W03, W04 and W08 touch the first; W06 puts its wiring in a
   partial of the second. A milestone that cannot keep a change small says so in its report.
-- **Two save versions** (6 and 7) in one series. Each comes with a migration and the every-version test; later systems use the `systems`
+- **Save versions 6 (N01) and 7 (W12).** Each comes with a migration and the every-version test; later systems use the `systems`
   map and bump nothing.
 - **Recognition is not mastery.** Acts and verb choices are understanding. Production comes from the plan and the report around each
   activity, from asking for what is missing and from the repair phrases.
 - **Words.** Kitchen and farm nouns are missing from the lexicon; each milestone adds them with their gender and a reason, and regional
   choices (`bol` or `tazón`, `papa`) go through the Opus pass and the reviewer's later check (D-game-12).
 - **Grading.** `se rompió el mango`, `está rota` and the imperative must be tried in the core's CLI before rows rely on them.
-- **The order with other work.** R19 (the docs restructure) and the village follow-ups (a QA pass, the core's grading gaps, free talk) also
-  wait for PR #20. This plan assumes R19 first (it is docs only), the follow-ups' QA pass and free talk next, and W01 after them; stage 1
-  could run beside the core follow-ups, one agent at a time.
+- **Dependencies.** Language follow-ups precede needs; needs precede the bread pilot. W03, W04 and W08 build on V29’s NPC reply-pool
+  declarations. W08 also follows the spoken-lines study.
+
 - **Scripted-run baselines** move with every content milestone; each re-baselines its own and says which.
 
 ## 12. Owner decisions (D-game-23, proposed)
 
 **Before stage 1:**
-- (a) **Pillars**: reword the design plan's first pillar and add the activity principle (the review, 2.3).
-- (b) **Needs as buffs**, nothing kills (W15).
+- (a) **Activity principle:** useful activities repeat Spanish, with support reduced by learning evidence.
+- (b) **Needs (confirmed, D-game-24):** five needs, staged effects and death with a cost, built in the N series before the pilot.
 - (c) **No combat**; gear for places (W26).
 - (d) **Tool tiers**: hands, stone and iron from the smith; no copper, steel or reforging (W02).
 - (e) **The cast**: the seven NPCs take the design plan's roles; new NPCs only after a voice trial, in stage 5.
 - (f) **Land, storage and trust in stage 5**, after the pilot.
-- (g) **Items as data at W12**, before stage 3: this reverses C09's assessment for items (which said not now), for the reason in W12.
-- (j) **The order**: R19, then the village follow-ups' QA pass and free talk, then this series.
+- (g) **Items as data at W12**, before stage 3: requires approval under D-game-21.
+- (j) **Order (confirmed):** queued language follow-ups, needs and the needs playtest, then the W pilot.
 - (l) **Models**: Haiku and Sonnet as the table says, with the content milestones (W10, W14, the content of W15 and W18) by Opus 5.5 at xhigh
   as the V series was, or by Sonnet.
 
 **Before stage 2:**
-- (h) **The tú imperative at `a1`.**
+- (h) **Imperative comprehension (confirmed):** commands understood through support; production teaching is outside the pilot. Session 11 at A2 is proposed.
 - (i) **Instructions as `does` rows**, recorded in the teacher's voice, with the Opus pass and the owner's listening, and the reuse report.
 - (m) **New sessions 11 to 13** for the first activities; sessions 1 to 10 untouched.
-- (n) **Flour sold by Luz** at one coin (W04's price list).
-- (o) **The station view as an overlay.**
+- (n) **Flour sold at the stall** for one coin through a fixed sell (proposed; design decision 6).
+- (o) **The station view as an overlay (confirmed).**
 
 **After stage 2:**
 - (q) **The go or no-go** on section 10's measures, and their thresholds.
