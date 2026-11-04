@@ -10,6 +10,8 @@ updated as the project moves on. Its outcome is recorded here, and a later repor
 
 | Date | Report | Area | Question | Outcome |
 | --- | --- | --- | --- | --- |
+| 2026-11-04 | [Vocaterra Studio plan](2026-11-04-vocaterra-studio-plan.md) | game | How should a desktop editor let a person author the game's lessons, objectives, NPCs, voices, dialogue and English text? | An Avalonia app on a library that edits the JSON in place and shows the loaders' findings; milestones ST01 to ST08; replaces C10 once accepted; five owner questions |
+| 2026-11-04 | [German in the game](2026-11-04-german-in-the-game.md) | game | What would the game and the core need so a player can learn German as well as Spanish? | The core is ready (Phase A done); the game needs a neutral pass first (T01 to T05), then the core's German pack and a German A1 bundle. Content and review are the main cost; seven owner decisions |
 | 2026-11-01 | [Core systems review](2026-11-01-core-systems-review.md) | game | How does the owner's Core Systems Design Plan compare with the code? | The conversation half is mostly built, the survival-sandbox half is not; five conflicts for the owner. Led to [the W series](../game/activities-plan.md) |
 | 2026-10-31 | [Development bottlenecks](2026-10-31-development-bottlenecks.md) | process | Where do development time and tokens go, and what would cut them? | Cost is context times turns; actions P1 to P5 (P2 became V18's `scripts/content-loop.sh`) |
 | 2026-10-30 | [Mobile feasibility](2026-10-30-mobile-feasibility.md) (R2) | game | Can the same game ship on iOS and Android, and at what cost? | Yes; the engine-free split makes most of the port additive. Nothing planned |

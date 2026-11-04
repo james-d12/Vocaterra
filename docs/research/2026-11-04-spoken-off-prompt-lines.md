@@ -136,7 +136,7 @@ means a design goal nobody has measured; **estimated** means the study's own rec
   recordings (M24); the measurement below reports how often forced answers occur.
 - **Lesson steps stay constrained.** No reason was found to change them.
 
-## 5. Core milestone (proposed: M79, Opus 5.5 at xhigh)
+## 5. Core milestone (proposed: M80, Opus 5.5 at xhigh)
 
 **Scope.**
 - **The switch.** `PipelineOptions.OpenRecognitionFallback` (a `bool`, default `false`), an additive host option rather than a prompt
