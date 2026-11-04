@@ -27,6 +27,9 @@ internal sealed class SentenceRealizer
     private readonly SeededRng _rng;
     private readonly SentenceOptions _options;
     private readonly List<Item> _items = [];
+
+    // M74: the groups with a slot name that the expansion chose an alternative of, with the items of that alternative (in order); the slot is their words.
+    private readonly List<(string Slot, Item[] Items)> _groupSlots = [];
     private readonly List<string> _rerolls = [];
     private string _detail = string.Empty;
     private string _tense = LexiconSchema.Present;
@@ -91,6 +94,7 @@ internal sealed class SentenceRealizer
     private GeneratedSentence? Attempt(GrammarPattern pattern, string source, out string skip)
     {
         _items.Clear();
+        _groupSlots.Clear();
         _detail = string.Empty;
         _tense = _rng.NextDouble() < _options.PreteriteProbability ? LexiconSchema.Preterite : LexiconSchema.Present;
         ExpandSequence(pattern.Nodes);
@@ -211,6 +215,11 @@ internal sealed class SentenceRealizer
                 {
                     // M73: the one-element alternatives before the chosen one, which the matcher tries first (CheckVerbForms, alternative-homograph).
                     _items[start].EarlierAlternatives = [.. group.Alternatives.TakeWhile(a => !ReferenceEquals(a, chosen)).Where(static a => a is [TypedPattern]).Select(static a => (TypedPattern)a[0])];
+                }
+
+                if (group.Slot is not null && _items.Count > start)
+                {
+                    _groupSlots.Add((group.Slot, [.. _items.Skip(start)]));
                 }
 
                 break;
@@ -403,6 +412,12 @@ internal sealed class SentenceRealizer
             && (_items[k].Kind == Kind.Noun
                 || (_items[k].Kind == Kind.Literal && _items[k].Readings.Count > 0 && _items[k].Readings.All(static r => r.Pos == LexiconSchema.Noun)));
     }
+
+    // M74: a finite form of ser or estar: a verb drawn for the pattern, or a literal whose readings are all such forms.
+    private bool IsFiniteCopula(Item item) =>
+        item.Kind == Kind.Verb
+            ? !item.Infinitive && item.Lemma is "ser" or "estar"
+            : item.Kind == Kind.Literal && item.Readings.Count > 0 && item.Readings.All(r => IsFiniteVerbReading(r) && r.Lemma is "ser" or "estar");
 
     private Item? PreviousContent(int from)
     {
@@ -1820,6 +1835,23 @@ internal sealed class SentenceRealizer
                 return false;
             }
 
+            // M74 (the merge gate's O3 seed 8vYtnrmXN4e2; older than M74, the same recipe realises it on 45305998): a noun that is also one of the common descriptive
+            // adjectives of the reading resolver's M69 rule (IAnalysisRules.IsPredicateAdjective: cómoda, the chest of drawers, and cómodo; clara, the egg white, and
+            // claro), right after a finite form of ser or estar (past skippable words, no determiner between), is read by the analyzer as the predicate adjective
+            // wherever none of its noun readings agrees with the subject before the copula and the copula's number, before and over a grammar that binds it as a noun, and
+            // a reader takes it so too: cuánto [VERB:ser] [ART]? [NUM:qty]? [NOUN:item]? gave cuánto sois cómoda ("how comfortable are you all", whose adjective disagrees
+            // with sois: noun.number cómodas) and cuánto eres claras (clara). The realiser does not model the subject the resolver weighs, so such a noun right after a
+            // copula is re-rolled, which is broader than the resolver (leaving out a correct sentence is never wrong).
+            if (item.Kind == Kind.Noun
+                && item.Readings.Any(static r => r.Pos == LexiconSchema.Adjective && LexiconCatalog.IsPredicateAdjective(r.Lemma))
+                && PreviousContentIndex(i) is var copula and >= 0
+                && IsFiniteCopula(_items[copula]))
+            {
+                skip = "noun-reads-as-predicate-adjective";
+                _detail = item.Surface!;
+                return false;
+            }
+
             // M62: the word after an adverb of degree (muy, tan) is no noun to the analyzer (the reading resolver's rule: es muy cara), so a noun there that is also
             // something else names a sentence the analyzer reads another way, and is re-rolled.
             if (i > 0
@@ -2155,6 +2187,16 @@ internal sealed class SentenceRealizer
             if (item.Slot is not null)
             {
                 slots.TryAdd(item.Slot, ExpectedSlotValue(item));
+            }
+
+            // M74: a group's slot follows the last word of its alternative, as the matcher fills it: each literal as the grammar writes it, any other word as
+            // written in the normalized text.
+            foreach (var (slot, words) in _groupSlots)
+            {
+                if (ReferenceEquals(words[^1], item))
+                {
+                    slots.TryAdd(slot, string.Join(' ', words.Select(static w => w.Norm!)));
+                }
             }
         }
 

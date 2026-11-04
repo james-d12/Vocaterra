@@ -19,7 +19,6 @@ using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Matching;
 using Vocaterra.Nlp.Language.Normalization;
-using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
 using Vocaterra.Nlp.Pipeline;
 using Vocaterra.Nlp.Response.Speech;
@@ -204,7 +203,7 @@ public static class LanguageOracles
                         throw Determinism.Fail(oracle, $"Resolve ({label}) threw {ex.GetType().Name}: {ex.Message}", context);
                     }
 
-                    CheckResolution(oracle, pack, resolution, label == "with embeddings", candidates, grammars, analysis, sentence, context);
+                    CheckResolution(oracle, language, resolution, label == "with embeddings", candidates, grammars, analysis, sentence, context, diagnostics);
                     diagnostics.Count($"rung:{resolution.Rung}");
                     CheckOffPrompt(oracle, resolver, label == "with embeddings", resolution, prompt, normalized, analysis, candidates, context, diagnostics);
 
@@ -528,15 +527,17 @@ public static class LanguageOracles
 
     private static void CheckResolution(
         string oracle,
-        ILanguagePack pack,
+        FuzzLanguage language,
         IntentResolution resolution,
         bool hasEmbeddings,
         List<IntentDefinition> candidates,
         IReadOnlyList<SlotGrammar> grammars,
         AnalysisResult analysis,
         FuzzSentence? sentence,
-        object context)
+        object context,
+        FuzzDiagnostics diagnostics)
     {
+        var pack = language.Pack;
         if (double.IsNaN(resolution.Confidence) || double.IsNaN(resolution.Margin) || resolution.Confidence < 0 || resolution.Margin < 0 || resolution.Margin > 1.0 + 1e-9 || resolution.Confidence > 1.0 + 1e-9)
         {
             throw Determinism.Fail(oracle, $"Margin {resolution.Margin} or confidence {resolution.Confidence} is outside [0, 1].", context);
@@ -561,6 +562,13 @@ public static class LanguageOracles
         }
 
         var someGrammarMatches = grammars.Any(g => SlotGrammarMatcher.Match(analysis.Tokens, g, pack) is not null);
+
+        // M74 widened O7: an intent the grammar rung decides is never one whose reading a grammar the prompt does not allow takes from it (below).
+        var outside = language.Bundle.Intents.Intents.Where(i => !candidates.Contains(i))
+            .SelectMany(i => i.Grammars.Select(g => (Intent: i, Match: SlotGrammarMatcher.Match(analysis.Tokens, g, pack))))
+            .Where(static m => m.Match is not null)
+            .ToArray();
+
         switch (resolution.Rung)
         {
             case IntentRung.Grammar:
@@ -592,12 +600,38 @@ public static class LanguageOracles
 
         // The ladder's first rung: a grammar the analyzer matched (it was given only the allowed intents' grammars) decides, and the intent
         // is the first allowed intent that owns it.
+        // M74: unless a grammar of an intent the prompt does not allow takes the line from it, by the documented rule modelled here: it beats the matched grammar in the
+        // rung's order (more tokens consumed by explicit elements, or as many and more bound to literal words) and names more of the words. The line is then unknown,
+        // and its off-prompt intent is the intent of the best such grammar (CheckOffPrompt checks it against the resolver with every intent allowed).
         if (analysis.MatchedGrammarId is { } matched)
         {
             var owner = candidates.FirstOrDefault(c => c.Grammars.Any(g => g.Id == matched));
-            if (resolution.Rung != IntentRung.Grammar || owner is null || resolution.Intent != owner.Id)
+            var matchedMatch = owner is null ? null : SlotGrammarMatcher.Match(analysis.Tokens, owner.Grammars.First(g => g.Id == matched), pack);
+            var takers = matchedMatch is null ? [] : outside.Where(o => Outranks(o.Match!, matchedMatch)).ToArray();
+            if (takers.Length > 0)
+            {
+                diagnostics.Count("catalog-reading:taken-off-the-prompt");
+                if (!resolution.Intent.IsUnknown || resolution.OffPromptIntent is not { } taken || !takers.Any(t => t.Intent.Id == taken))
+                {
+                    throw Determinism.Fail(oracle, $"The analyzer matched '{matched}' (owned by '{owner!.Id}'), which '{takers[0].Intent.Id}''s grammar \"{takers[0].Match!.Grammar.Pattern}\" outranks, but the resolution is {resolution.Rung} '{resolution.Intent}' (off the prompt '{resolution.OffPromptIntent}').", context);
+                }
+            }
+            else if (resolution.Rung != IntentRung.Grammar || owner is null || resolution.Intent != owner.Id)
             {
                 throw Determinism.Fail(oracle, $"The analyzer matched '{matched}' (owned by '{owner?.Id}') but the resolution is {resolution.Rung} '{resolution.Intent}'.", context);
+            }
+            else if (outside.Any(o => Outranks(o.Match!, matchedMatch!)))
+            {
+                throw Determinism.Fail(oracle, $"The grammar rung kept '{resolution.Intent}' although a grammar the prompt does not allow outranks '{matched}'.", context);
+            }
+        }
+        else if (resolution.Rung == IntentRung.Grammar)
+        {
+            // The resolver's own match then, the best of the resolved intent's grammars: no grammar the prompt does not allow may outrank it.
+            var own = candidates.First(c => c.Id == resolution.Intent).Grammars.Select(g => SlotGrammarMatcher.Match(analysis.Tokens, g, pack)).Where(static m => m is not null).ToArray();
+            if (own.Length > 0 && own.All(b => outside.Any(o => Outranks(o.Match!, b!))))
+            {
+                throw Determinism.Fail(oracle, $"The grammar rung decided '{resolution.Intent}' although a grammar the prompt does not allow outranks every grammar of it that matches.", context);
             }
         }
         else if (sentence is { PatternSource: "catalog" } && candidates.Any(c => c.Grammars.Any(g => g.Id == sentence.PatternText)))
@@ -605,6 +639,12 @@ public static class LanguageOracles
             throw Determinism.Fail(oracle, $"A sentence built from the allowed grammar '{sentence.PatternText}' matched no grammar.", context);
         }
     }
+
+    // M74's rule, modelled from the match's public counts: the outside match beats the allowed one in the rung's order and names more of the words.
+    private static bool Outranks(SlotGrammarMatch outside, SlotGrammarMatch allowed) =>
+        (outside.ExplicitTokenCount > allowed.ExplicitTokenCount
+            || (outside.ExplicitTokenCount == allowed.ExplicitTokenCount && outside.LiteralTokenCount > allowed.LiteralTokenCount))
+        && outside.NamedTokenCount > allowed.NamedTokenCount;
 
     // M72 widened O7: the intent of a line the prompt does not take. It is null whenever the intent is known, and at a prompt with no allowed intent (every intent
     // a candidate already). When it is set, it is an intent the prompt does not allow, and it is the intent the resolver gives the same analysis with every intent

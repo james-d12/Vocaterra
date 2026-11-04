@@ -15,8 +15,15 @@ internal sealed record TypedNode(string Tag, string Pos, string? Lemma, string? 
 /// </summary>
 internal sealed record WordNode(string? Slot) : GrammarNode;
 
-/// <summary>A parenthesized choice between sequences, such as <c>(quiero|necesito)</c>.</summary>
-internal sealed record GroupNode(IReadOnlyList<IReadOnlyList<GrammarNode>> Alternatives) : GrammarNode;
+/// <summary>
+/// A parenthesized choice between sequences, such as <c>(quiero|necesito)</c>. With a slot name (<c>(frío|calor|buen tiempo):weather</c>, M74) the group fills the
+/// slot with the words of the alternative that matched: each literal as the grammar writes it, any other element's token as written in the normalized text, joined
+/// by single spaces.
+/// </summary>
+internal sealed record GroupNode(IReadOnlyList<IReadOnlyList<GrammarNode>> Alternatives, string? Slot = null) : GrammarNode;
+
+/// <summary>The matcher's marker of where a group with a slot name ends: the slot and the token position where the group began. It consumes no token.</summary>
+internal sealed record GroupSlotEndNode(string Slot, int Start) : GrammarNode;
 
 /// <summary>A node followed by <c>?</c>: it may match or be skipped.</summary>
 internal sealed record OptionalNode(GrammarNode Inner) : GrammarNode;

@@ -1,5 +1,6 @@
 namespace Vocaterra.Nlp.Language.SlotGrammar;
 
+using System.Runtime.CompilerServices;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Language.Analysis;
@@ -34,8 +35,14 @@ public sealed record SlotGrammarMatch(SlotGrammar Grammar, IReadOnlyList<SlotVal
     /// </summary>
     internal IReadOnlySet<int> WordTokens => new HashSet<int>(Bindings.Where(static b => b.Nodes.All(static n => n is WordNode)).Select(static b => b.TokenIndex));
 
-    /// <summary>How many of the consumed tokens the best parses bind to a literal word (a phrase of the grammar, not a class of word).</summary>
-    internal int LiteralTokenCount => Bindings.Count(static b => b.Nodes.Any(static n => n is LiteralNode));
+    /// <summary>How many of the consumed tokens the best parses bind to a literal word (a phrase of the grammar, not a class of word); public since M74.</summary>
+    public int LiteralTokenCount => Bindings.Count(static b => b.Nodes.Any(static n => n is LiteralNode));
+
+    /// <summary>
+    /// How many of the consumed tokens the best parses bind to an element that names the word: a literal word or a verb of a named lemma (<c>[VERB:hacer]</c>), not
+    /// a class of word alone (<c>[NOUN:item]</c>) or a name. The intent resolver compares it across intents (M74).
+    /// </summary>
+    public int NamedTokenCount => Bindings.Count(static b => b.Nodes.Any(static n => n is LiteralNode or TypedNode { Lemma: not null }));
 
     /// <summary>
     /// True when <paramref name="candidate"/> beats <paramref name="best"/> among grammars: more tokens consumed by explicit elements, or on a tie more tokens
@@ -91,8 +98,19 @@ public static class SlotGrammarMatcher
         ArgumentNullException.ThrowIfNull(grammar);
         ArgumentNullException.ThrowIfNull(language);
         ArgumentNullException.ThrowIfNull(rules);
-        var defaults = language.GrammarDefaults;
-        var search = new Search(tokens, defaults.TrailingPoliteWords, new TypedMatching(language.Folding, rules));
+        return Match(TokenFacts.Of(tokens, language, rules), grammar);
+    }
+
+    /// <summary>The same match over tokens whose facts are known (M74): a caller that matches many grammars over one analysis computes them once.</summary>
+    internal static SlotGrammarMatch? Match(TokenFacts facts, SlotGrammar grammar) => facts.CanMatch(grammar) ? SearchOnly(facts, grammar) : null;
+
+    /// <summary>The search for the best parse alone, without the check of <see cref="TokenFacts.CanMatch"/> first (a test compares the two).</summary>
+    internal static SlotGrammarMatch? SearchOnly(TokenFacts facts, SlotGrammar grammar)
+    {
+        var tokens = facts.Tokens;
+        var defaults = facts.Language.GrammarDefaults;
+        var typed = facts.Typed;
+        var search = new Search(tokens, defaults.TrailingPoliteWords, typed);
         var nodes = new List<GrammarNode>(grammar.Nodes.Count + 2);
         if (defaults.OptionalSubjectPronoun)
         {
@@ -217,11 +235,16 @@ public static class SlotGrammarMatcher
                     Step(rest, position, captures, score);
                     break;
                 case GroupNode group:
+                    // M74: a group with a slot name ends with a marker that fills the slot from the tokens the alternative consumed.
+                    var after = group.Slot is null ? rest : new Frame(new GroupSlotEndNode(group.Slot, position), rest);
                     foreach (var alternative in group.Alternatives)
                     {
-                        Step(Frame.Prepend(alternative, rest), position, captures, score);
+                        Step(Frame.Prepend(alternative, after), position, captures, score);
                     }
 
+                    break;
+                case GroupSlotEndNode end:
+                    Step(rest, position, GroupSlot(end, position, captures), score);
                     break;
                 case DefaultSubjectNode:
                     if (position < _tokens.Count && _typed.IsSubjectPronoun(_tokens[position]))
@@ -246,6 +269,31 @@ public static class SlotGrammarMatcher
                 default:
                     throw new InvalidOperationException($"Unexpected grammar node {frame.Node.GetType().Name}.");
             }
+        }
+
+        // The slot of a group that consumed the tokens from end.Start to position: a capture that consumes no token (Position -1), or the captures unchanged when the
+        // alternative consumed nothing. A literal gives its word as the grammar writes it; any other element the token as written in the normalized text.
+        private Capture? GroupSlot(GroupSlotEndNode end, int position, Capture? captures)
+        {
+            if (position == end.Start)
+            {
+                return captures;
+            }
+
+            var words = new List<string>(position - end.Start);
+            for (var capture = captures; capture is not null && words.Count < position - end.Start; capture = capture.Previous)
+            {
+                if (capture.Position >= end.Start)
+                {
+                    words.Add(capture.Node is LiteralNode literal ? literal.Word : _tokens[capture.Position].Token.Text);
+                }
+            }
+
+            words.Reverse();
+            var first = _tokens[end.Start].Token.Span;
+            var last = _tokens[position - 1].Token.Span;
+            var span = new TextSpan(first.Start, last.Start + last.Length - first.Start);
+            return new Capture(-1, end, new SlotValue(end.Slot, string.Join(' ', words), span), captures);
         }
 
         private void Offer(Capture? captures, int score)
@@ -288,6 +336,12 @@ public static class SlotGrammarMatcher
         {
             for (var capture = captures; capture is not null; capture = capture.Previous)
             {
+                if (capture.Position < 0)
+                {
+                    // A group's slot (M74) consumes no token.
+                    continue;
+                }
+
                 if (!_alternatives.TryGetValue(capture.Position, out var nodes))
                 {
                     nodes = [];
@@ -300,6 +354,131 @@ public static class SlotGrammarMatcher
                 }
             }
         }
+    }
+}
+
+/// <summary>
+/// What the grammar matcher asks of each token of one analysis, worked out once (M74): the folded keys of its text and of its readings' lemmas, its readings' parts
+/// of speech with their folded lemmas, and whether it can be a name. With them the matcher checks, before it searches, what every match of a grammar needs: the
+/// pattern's own elements consume between their fewest and most tokens (the implicit subject pronoun one more, the polite phrase its words), and every element that
+/// no optional element or alternative skips (a literal word, a typed element, a name) can take one of the tokens. A grammar that fails it matches nothing, so no
+/// result changes; the intent resolver reads every line over the whole catalog, and this keeps that cheap.
+/// </summary>
+internal sealed class TokenFacts
+{
+    // The facts of the token lists matched lately, by reference: the analyzer matches every grammar of a prompt over one list, and the resolver every grammar of the
+    // catalog. An entry is used only while the list still holds the same tokens (a list changed in place is worked out again), and goes with its list.
+    private static readonly ConditionalWeakTable<IReadOnlyList<AnalyzedToken>, TokenFacts> Known = new();
+
+    private readonly IAnalysisRules _rules;
+    private readonly AnalyzedToken[] _snapshot;
+
+    // Over all the tokens: the folded keys of their texts and of their readings' lemmas, their readings' parts of speech with the folded lemmas, their readings'
+    // parts of speech (with the determiner of [DET]), and whether one of them can be a name.
+    private readonly HashSet<string> _keys = new(StringComparer.Ordinal);
+    private readonly HashSet<(string Pos, string Lemma)> _readings = [];
+    private readonly HashSet<string> _positions = new(StringComparer.Ordinal);
+    private readonly bool _name;
+
+    private TokenFacts(IReadOnlyList<AnalyzedToken> tokens, ILanguagePack language, IAnalysisRules rules, TypedMatching typed)
+    {
+        _rules = rules;
+        _snapshot = [.. tokens];
+        Tokens = _snapshot;
+        Language = language;
+        Typed = typed;
+        var folding = language.Folding;
+        foreach (var token in _snapshot)
+        {
+            _keys.Add(folding.LenientKey(token.Token.Text));
+            foreach (var reading in token.Readings)
+            {
+                var lemma = folding.LenientKey(reading.Lemma);
+                _keys.Add(lemma);
+                _readings.Add((reading.Pos, lemma));
+                _positions.Add(reading.Pos);
+                if (typed.IsDeterminer(reading))
+                {
+                    _positions.Add(TypedMatching.DeterminerPos);
+                }
+            }
+
+            _name |= typed.CanBeName(token);
+        }
+    }
+
+    /// <summary>The tokens.</summary>
+    public IReadOnlyList<AnalyzedToken> Tokens { get; }
+
+    /// <summary>The language whose grammar defaults and folding apply.</summary>
+    public ILanguagePack Language { get; }
+
+    /// <summary>The token-level matching rules of the language.</summary>
+    public TypedMatching Typed { get; }
+
+    /// <summary>The facts of the tokens under the language and its analysis rules.</summary>
+    public static TokenFacts Of(IReadOnlyList<AnalyzedToken> tokens, ILanguagePack language, IAnalysisRules rules)
+    {
+        if (Known.TryGetValue(tokens, out var known) && ReferenceEquals(known.Language, language) && ReferenceEquals(known._rules, rules) && known.Holds(tokens))
+        {
+            return known;
+        }
+
+        var facts = new TokenFacts(tokens, language, rules, new TypedMatching(language.Folding, rules));
+        Known.AddOrUpdate(tokens, facts);
+        return facts;
+    }
+
+    /// <summary>False when the grammar cannot match the tokens (see the summary); true does not mean it does.</summary>
+    public bool CanMatch(SlotGrammar grammar)
+    {
+        var defaults = Language.GrammarDefaults;
+        var extra = (defaults.OptionalSubjectPronoun ? 1 : 0) + defaults.TrailingPoliteWords.Count;
+        if (_snapshot.Length < grammar.MinTokens || _snapshot.Length > grammar.MaxTokens + extra)
+        {
+            return false;
+        }
+
+        var elements = grammar.RequiredElements;
+        var keys = grammar.RequiredKeys(Language.Folding);
+        for (var e = 0; e < elements.Count; e++)
+        {
+            // Whether one of the tokens can be consumed by the element, by the rules of TypedMatching (MatchesLiteral, MatchesTyped, CanBeName).
+            var taken = elements[e] switch
+            {
+                LiteralNode => _keys.Contains(keys[e]!),
+                TypedNode { Lemma: not null, Pos: TypedMatching.DeterminerPos } typed => _snapshot.Any(token => token.Readings.Any(r => Typed.MatchesTyped(r, typed))),
+                TypedNode { Lemma: not null } typed => _readings.Contains((typed.Pos, keys[e]!)),
+                TypedNode typed => _positions.Contains(typed.Pos),
+                WordNode => _name,
+                _ => true,
+            };
+            if (!taken)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // True when the list holds the very tokens these facts were worked out from.
+    private bool Holds(IReadOnlyList<AnalyzedToken> tokens)
+    {
+        if (tokens.Count != _snapshot.Length)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < _snapshot.Length; i++)
+        {
+            if (!ReferenceEquals(tokens[i], _snapshot[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
 
@@ -406,10 +585,13 @@ internal sealed class TypedMatching
     {
         if (pos == DeterminerPos)
         {
-            return reading.Pos == LexiconSchema.Article
-                || (reading.Pos == LexiconSchema.Adjective && _rules.IsDeterminerAdjective(reading.Lemma));
+            return IsDeterminer(reading);
         }
 
         return string.Equals(reading.Pos, pos, StringComparison.Ordinal);
     }
+
+    /// <summary>True when the reading is one a <c>[DET]</c> element takes: an article, or a determiner adjective of the language.</summary>
+    public bool IsDeterminer(LexicalFeatures reading) =>
+        reading.Pos == LexiconSchema.Article || (reading.Pos == LexiconSchema.Adjective && _rules.IsDeterminerAdjective(reading.Lemma));
 }

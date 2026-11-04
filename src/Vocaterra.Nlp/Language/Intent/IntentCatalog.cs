@@ -378,6 +378,8 @@ public sealed class IntentCatalog
                     CollectGrammarSlots([optional.Inner], kinds);
                     break;
                 case GroupNode group:
+                    // M74: a group's slot holds words, filled like a name by the embedding rung from the first noun.
+                    AddKind(kinds, group.Slot, SlotKind.Noun);
                     foreach (var alternative in group.Alternatives)
                     {
                         CollectGrammarSlots(alternative, kinds);

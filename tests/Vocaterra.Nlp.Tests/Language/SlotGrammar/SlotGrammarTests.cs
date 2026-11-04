@@ -46,6 +46,8 @@ public class SlotGrammarTests
     [InlineData("[VERB] [ADJ:color]", "[VERB] [ADJ:color]")]
     [InlineData("hola (por favor|)", "hola (por favor|)")]
     [InlineData("(a (b|c)?|d)", "(a (b|c)?|d)")]
+    [InlineData("hace (frío|buen tiempo):weather", "hace (frío|buen tiempo):weather")]
+    [InlineData("(Sol|calor):w_1? hoy", "(sol|calor):w_1? hoy")]
     public void ParseRoundTripsCanonicalText(string pattern, string canonical)
     {
         Assert.Equal(canonical, SlotGrammar.Parse(pattern).Pattern);
@@ -65,6 +67,9 @@ public class SlotGrammarTests
     [InlineData("[VERB::slot]")]
     [InlineData("? hola")]
     [InlineData("hola ?")]
+    [InlineData("(a|b):")]
+    [InlineData("(a|b):1x")]
+    [InlineData("(a|b)?:x")]
     public void ParseRejectsMalformedPatterns(string pattern)
     {
         Assert.Throws<FormatException>(() => SlotGrammar.Parse(pattern));
@@ -147,6 +152,64 @@ public class SlotGrammarTests
 
         Assert.Equal("item=amigo", Slots(Match("hola qué tal amigo", pattern)));
         Assert.Equal("item=amigo", Slots(Match("hola amigo", pattern)));
+    }
+
+    [Fact]
+    public void AGroupWithASlotNameFillsItWithTheWordsOfTheAlternativeThatMatched()
+    {
+        // M74: each literal as the grammar writes it (frío, not frio), joined by single spaces, with the span of the words.
+        const string pattern = "(hoy)? [VERB:hacer] (frío|calor|buen tiempo):weather";
+
+        Assert.Equal("weather=frío", Slots(Match("hace frio", pattern)));
+        Assert.Equal("weather=buen tiempo", Slots(Match("hoy hace buen tiempo", pattern)));
+        var span = Assert.Single(Match("hoy hace buen tiempo", pattern)!.Slots).Span;
+        Assert.Equal(new TextSpan(9, 11), span);
+    }
+
+    [Fact]
+    public void AGroupSlotTakesAnElementsTokenAsWrittenAndIsLeftOutWhenTheGroupConsumesNothing()
+    {
+        Assert.Equal("item=pan,what=pan", Slots(Match("compro pan", "[VERB:comprar] ([NOUN:item]):what")));
+        Assert.Equal(string.Empty, string.Join(",", Match("hola", "hola (mucho|):extra")!.Slots.Select(static s => s.Name)));
+        Assert.Equal(string.Empty, string.Join(",", Match("hola", "hola (mucho):extra?")!.Slots.Select(static s => s.Name)));
+    }
+
+    [Fact]
+    public void AGroupSlotIsNoBindingOfItsOwnSoTheWordsKeepTheirElements()
+    {
+        Assert.Equal("0:VERB 1:frío", Bindings(Match("hace frío", "[VERB:hacer] (frío|calor):weather")));
+    }
+
+    [Fact]
+    public void TheCheckBeforeTheSearchNeverRefusesAGrammarTheSearchMatches()
+    {
+        // M74: the matcher refuses a grammar before searching when the line has too few or too many tokens for it, or lacks a word, a lemma, a class of word or a
+        // name that every match needs. Over every grammar of the bundle and every example of its catalog, and the lines of the weather, it refuses only what the
+        // search would not match.
+        var bundle = Vocaterra.Nlp.Pipeline.Tests.TestSupport.Bundle;
+        var grammars = bundle.Intents.Grammars;
+        var analyzer = new Vocaterra.Nlp.Language.Analysis.LinguisticAnalyzer(bundle.Lexicon, bundle.LanguageMorphology, bundle.Language, bundle.AnalysisRules);
+        var lines = bundle.Intents.Intents.SelectMany(static i => i.Examples)
+            .Concat(["hace frío", "hoy hace buen tiempo", "qué tiempo hace", "hace dos días compré pan", "cómo estás usted", "yo tengo dos espadas por favor"])
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+        var refused = 0;
+        foreach (var line in lines)
+        {
+            var tokens = analyzer.Analyze(bundle.Language.Normalizer.Normalize(line), []).Tokens;
+            var facts = TokenFacts.Of(tokens, bundle.Language, bundle.AnalysisRules);
+            foreach (var grammar in grammars)
+            {
+                var searched = SlotGrammarMatcher.SearchOnly(facts, grammar);
+                if (!facts.CanMatch(grammar))
+                {
+                    refused++;
+                    Assert.True(searched is null, $"'{grammar.Pattern}' was refused before the search for \"{line}\", which it matches.");
+                }
+            }
+        }
+
+        Assert.True(refused > lines.Length, "The check refused almost nothing; it no longer saves the search.");
     }
 
     [Fact]

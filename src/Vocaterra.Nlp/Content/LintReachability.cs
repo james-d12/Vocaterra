@@ -25,7 +25,16 @@ internal static class LintReachability
 
         foreach (var intent in bundle.Intents.Intents.Where(intent => !allowedIntents.Contains(intent.Id.Value)))
         {
-            context.Add(LintSeverity.Warning, "reach.intent", ContentPaths.Intents, [intent.Id.Value], $"{none} allows intent '{intent.Id.Value}'.");
+            // M74: since M72 an intent with a grammar or a keyword rule is read off the prompt at every prompt that lists its intents (the verdict's off-prompt
+            // intent, which a host answers), so no prompt allowing it is a fact, not a hazard: the weather intents before a host allows them anywhere.
+            if (intent.Grammars.Count > 0 || intent.KeywordRules.Count > 0)
+            {
+                context.Add(LintSeverity.Info, "reach.intent", ContentPaths.Intents, [intent.Id.Value], $"{none} allows intent '{intent.Id.Value}'; it is read only off the prompt.");
+            }
+            else
+            {
+                context.Add(LintSeverity.Warning, "reach.intent", ContentPaths.Intents, [intent.Id.Value], $"{none} allows intent '{intent.Id.Value}'.");
+            }
         }
 
         foreach (var id in bundle.AnswerSets.Keys.Where(id => !answerSets.Contains(id)))

@@ -247,6 +247,26 @@ public class GameBundleContractTests
 
     [Theory]
     [MemberData(nameof(AgentIds))]
+    public void AnAgentThatAnswersAGreetingAlsoAnswersHowAreYou(string agentId)
+    {
+        // M74: ¿cómo estás? is ask_wellbeing, taken out of greet; a prompt that took it as a greeting still takes it, and the agent that answered it then answers it
+        // now (the greeting's reply until the game gives each one its own), never «No te entendí».
+        var agent = Bundle.Agents[agentId];
+        foreach (var state in agent.Definition.States)
+        {
+            var greeting = agent.Step(new AgentState(agentId, state.Id, 0), TestSupport.MakeVerdict("greet", true, 1.0), 5UL);
+            if (greeting.Actions.Any(static action => action.DialogueIntent == "not_understood"))
+            {
+                continue;
+            }
+
+            var howAreYou = agent.Step(new AgentState(agentId, state.Id, 0), TestSupport.MakeVerdict("ask_wellbeing", true, 1.0), 5UL);
+            Assert.DoesNotContain(howAreYou.Actions, static action => action.DialogueIntent == "not_understood");
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(AgentIds))]
     public void AnAgentThatDoesNotUnderstandSaysSoAndStaysWhereItIs(string agentId)
     {
         var agent = Bundle.Agents[agentId];

@@ -15,6 +15,12 @@
       "matches": []
     },
     {
+      "key": "00a760ae1e6ee49b52ab96874ae6c64af1c3b9760e83f2f8f377178f39f529be",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Llueve",
+      "matches": []
+    },
+    {
       "key": "00a8133e364f61f0235fa4b15a9308cc0d0ecad93654b4352c77cfecc559c096",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Repetir",
@@ -290,6 +296,12 @@
       "key": "09993789e889b111b63ecee94cb8cfa2fffe4f618173c34fa0e23e4865eab9d9",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí es madera",
+      "matches": []
+    },
+    {
+      "key": "09d2a44fa1f0308b9bc80d403c9e5a309bc2a2793f059697100ccd8acb0ee59e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Está nublado",
       "matches": []
     },
     {
@@ -2345,6 +2357,12 @@
       "matches": []
     },
     {
+      "key": "40eefe2799112317aea33c598f78ed60d3c14d78d8c71b99403d98558f819c6a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hola, ¿qué tal?",
+      "matches": []
+    },
+    {
       "key": "4132751a71b24423ee6d56f204cb548cbfbc19c2f16f8328629e78897b8f5905",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí yo tengo una botella",
@@ -3157,9 +3175,21 @@
       "matches": []
     },
     {
+      "key": "56e3a806076b97b79397f08de67affab8da748459d4683415ce0661ec20cdbe6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Qué tiempo hará mañana",
+      "matches": []
+    },
+    {
       "key": "56e6fde7e21be7cd328bfd97b8f530a6ae6d61817f99d830911648db15a63a06",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí.",
+      "matches": []
+    },
+    {
+      "key": "570171345d3488db60c5eb292a4bed0d62b885d56fc10b8098e8ecd5d0bafebb",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hace buen tiempo",
       "matches": []
     },
     {
@@ -3218,6 +3248,12 @@
       "key": "588b3fd87ce5950b6e8cc5ced6c2aa81ad902f894ba4c0c4e205e62dbf4a9a06",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Quiere fruta",
+      "matches": []
+    },
+    {
+      "key": "5894f3e83c277697dab13bcf1bb9fbd0986cd6e6478934e772b27b01b81b46f8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Qué frío",
       "matches": []
     },
     {
@@ -4120,6 +4156,12 @@
       ]
     },
     {
+      "key": "6de2e1a17882f819d7b74d84c8a86d0877b6871c7df039a72ba3bfb706edce6f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cómo estáis",
+      "matches": []
+    },
+    {
       "key": "6e47d641fc8799a6d22ee63b640e2ea901712681a892e420ab592af243d0a634",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Y te gustan las manzanas?",
@@ -4558,6 +4600,12 @@
       "matches": []
     },
     {
+      "key": "784d72ed424eea19f61ca0ba2c2160fe53a6fd5aee0093b8a18b4921aa7177da",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hoy hace frío",
+      "matches": []
+    },
+    {
       "key": "78d337b688759850a7f49a55c4d1f7ac0ee184f1f5851ca402255a85361ed51b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "la madera",
@@ -4867,6 +4915,12 @@
       "matches": []
     },
     {
+      "key": "8243670555506f48ef7283c84394422853837d071e3fc88f121dbc52b9b96503",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cómo están ustedes",
+      "matches": []
+    },
+    {
       "key": "828df0489d5108e44510f9018b6d15ef2f9771f5d00f4aff6ba7af0c6ee55f28",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Luna es la guía. Ella es mi amiga.",
@@ -4900,6 +4954,12 @@
       "key": "8305d52dfc0f7edf08539816e03fd7093c4cf065467b3ef50b9291480bc814fe",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde encuentro madera",
+      "matches": []
+    },
+    {
+      "key": "833a44366c4768b42e4afe50e691926eff9b20107a2ebb3a8d701984ea55c4d1",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Buenos días, cómo está usted",
       "matches": []
     },
     {
@@ -5288,6 +5348,12 @@
       "key": "90af35973af7546495c37d40cc3be2483ea50d106928042c12502a6fc2031440",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Río",
+      "matches": []
+    },
+    {
+      "key": "90b7b9a824120ba4aa45f5737553d217178b5636fb4e48a39e2b18bbd13138cc",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cómo está el tiempo",
       "matches": []
     },
     {
@@ -6429,6 +6495,12 @@
       "matches": []
     },
     {
+      "key": "ad0e8936ed35054097a3a1f38eaf77f1d95ed67b8d9ef02db7a774dc91303f16",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hace mucho calor",
+      "matches": []
+    },
+    {
       "key": "ad2ce93378346ccdb72079a761f52df64543124b5c349409cbc900e2dba12e8b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Cómo tú te llama",
@@ -6494,6 +6566,12 @@
       "matches": []
     },
     {
+      "key": "af4af736fa91b0ac159770e470a97b424d4835e5e6d24ac287e38a8230348fda",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Qué tal",
+      "matches": []
+    },
+    {
       "key": "af51ff67a0f316b114009274c9756b1b3729584afa5f11cf65c5cab39c236a1d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Claro! Te lo digo otra vez.",
@@ -6527,6 +6605,12 @@
       "key": "b044bc3aa24dcccbbfe11e812b4eb9c9cf34f618307f1e336f47436accdf61f0",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde hay piedra",
+      "matches": []
+    },
+    {
+      "key": "b071300925ebc176bb52059edbe53f2e04cd0c07dc53de8f0b58d4333d5d6e8b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hoy hace buen tiempo",
       "matches": []
     },
     {
@@ -6987,6 +7071,12 @@
       "matches": []
     },
     {
+      "key": "be1b0e7cce7a0d7038feeb550fc8f5c51bbb748247c44e541329738aae5e509f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer hizo sol",
+      "matches": []
+    },
+    {
       "key": "be5e1c953cd56d99612cd2b1748fecb997de2c923494f2761b56503199a2122c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ella quere fruta",
@@ -7021,6 +7111,12 @@
       "key": "beede482275a3e0dd159dae1ff0d83c21f287285695559fc3b412cc40b8a274d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, por favo",
+      "matches": []
+    },
+    {
+      "key": "beefe7786ea5a24d67b642e2418e1bf4d3ed20eedbd13c254ebd07f32836ca0b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hace frío",
       "matches": []
     },
     {
@@ -7256,6 +7352,12 @@
       "matches": []
     },
     {
+      "key": "c7e81b55e5d176808e72445899eff83f94bc4d6e9f937b2baa647ce506efb48b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hoy qué tiempo hace",
+      "matches": []
+    },
+    {
       "key": "c8163b5359acb00f6496353986d5942be17b86be59af9c541ccda0e34197001d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo quero madera",
@@ -7318,6 +7420,12 @@
       "key": "c8f28e7e26de6d928d47319f7a78b93a66649d5f42eb45cfc122371dfe31c664",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo voy a comer pan",
+      "matches": []
+    },
+    {
+      "key": "c98033c10a0fd6242fd15115bb6b296b0d1fdf697bfde5399b583c193d195654",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hace calor",
       "matches": []
     },
     {
@@ -8287,6 +8395,12 @@
       "matches": []
     },
     {
+      "key": "e2f12b12c645f77f6540262f2e063d4cdde7dad23e81d7020161e3a538a10c1f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hoy llueve mucho",
+      "matches": []
+    },
+    {
       "key": "e31d91ca0b8c2f28db1e171432843ecfb1a8e2726b17fd5171f42a7dc38f5dce",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Voy a la panadería.",
@@ -8820,6 +8934,12 @@
       "matches": []
     },
     {
+      "key": "f13fda57b041bdb83dd2fdda2a271d11b2cddc2a7c8ff240cbb5ce6855ae2b5a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hace sol",
+      "matches": []
+    },
+    {
       "key": "f14754199ad37b2f75a4a7923801bf690145540db9148b3249cb04ef2eefcc7d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Necesitamos madera",
@@ -8844,6 +8964,12 @@
       "matches": []
     },
     {
+      "key": "f1a42de4d16df20c94e87f42a7c8f32477aa12aa08f32b4db75ca41883c467fc",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Qué tiempo hace hoy",
+      "matches": []
+    },
+    {
       "key": "f1a9cb51f6c0c707739fa066cc2ef40c7f63d76ac246682db1bd130e86e3fc6c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo fui al río",
@@ -8853,6 +8979,12 @@
       "key": "f1fc4470f785dd1f034fa2187b80d7952544e0c7c5fd39cbdca7f998f59887fc",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer comieron pan",
+      "matches": []
+    },
+    {
+      "key": "f20adb437211b1c641100dde2d0efd6929a7b90a8f535f1413456f0a679e4090",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hace mal tiempo",
       "matches": []
     },
     {
@@ -9027,6 +9159,12 @@
       "matches": []
     },
     {
+      "key": "f6e03724987ed96aac2aced31a8217b764f450bb0e74f2375d16f7567140f876",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Qué tiempo hace",
+      "matches": []
+    },
+    {
       "key": "f6ff36f4906e2057ea83bb2222330afc08abad6118807ea13dc00a026bf7860c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No necesitas nada más.",
@@ -9173,6 +9311,12 @@
       "key": "faa6f0f83c6db37d968a3d4007610634865ed930442e4fb34bf41526f06214ec",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "La manzana es más barata que el pan",
+      "matches": []
+    },
+    {
+      "key": "fac2273caf3ea1b6b6383d034f78603befbafc28649c6c961b0e5c5a8a7cd6b1",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hola, ¿cómo estás?",
       "matches": []
     },
     {

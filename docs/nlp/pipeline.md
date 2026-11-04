@@ -323,6 +323,16 @@ for an answer; its answer match is its resolution, and no intent grammar may cla
 For the example the grammar rung resolves it: `{"intent":"request_item","slots":{"item":"espada","qty":"2"},"rung":"Grammar","margin":1,"confidence":1}`.
 The catalog says `request_item` needs the slot `item`, filled; `qty` is an optional element of its grammar.
 
+**The grammar rung reads the whole catalog (M74).** Before the prompt narrows the candidates, the resolver also matches the grammars of the intents the prompt
+does not allow. One of them takes the line from the best allowed grammar when it beats it in the rung's order and names more of the line's words (a literal word
+or a `[VERB:lemma]`): `hace calor` is `state_weather`'s `hace (…|calor|…):weather`, not the `[NOUN:item]` of a lesson's `[VERB:hacer] [NOUN:item]`. The line is
+then unknown at that prompt, with the intent as its off-prompt intent (M72), and it is that intent wherever the prompt allows it. Beating the allowed grammar
+without naming more words is not enough: `necesito pan, por favor` stays `state_want` at a lesson (`(por favor)?` of `request_item` reads the same words as the
+polite phrase every grammar allows), and `vendo fruta` stays `state_action` (`vendo` names the verb `[VERB:vender]` names). A line no allowed grammar matches goes
+down the ladder as before, the allowed keyword rules first: `¿qué tiempo hace?` at `smith-open` is still `ask_activity`'s rule of `qué` with `hacer` until the
+prompt allows `ask_weather` (letting the catalog's grammars pre-empt the allowed rules also took `sí, gracias` from `thank` at a thanks lesson). With every intent
+allowed the line is read over the whole catalog whatever grammars the analyzer was given.
+
 A leading adverb defeats the grammars: they allow a leading subject pronoun only, so `ayer tengo dos frutas` matches no grammar. The
 `state_have` intent therefore has a keyword rule for `tener` that requires `item`. Such an utterance
 resolves on the `Rules` rung (`resolvedBy: Rules`), and the analysis still reports the tense (`conj.tense`, `tengo` to `tuve`). An intent without a keyword rule,

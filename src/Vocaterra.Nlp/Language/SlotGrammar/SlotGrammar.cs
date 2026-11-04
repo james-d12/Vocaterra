@@ -13,6 +13,11 @@ public sealed class SlotGrammar
         Id = id;
         Pattern = pattern;
         Nodes = nodes;
+        MinTokens = MinTokensOf(nodes);
+        MaxTokens = MaxTokensOf(nodes);
+        MaxLiteralTokens = MaxCountOf(nodes, static node => node is LiteralNode);
+        MaxNamedTokens = MaxCountOf(nodes, static node => node is LiteralNode or TypedNode { Lemma: not null });
+        RequiredElements = [.. RequiredElementsOf(nodes)];
     }
 
     /// <summary>The grammar identifier reported as <c>MatchedGrammarId</c>; defaults to the canonical pattern text.</summary>
@@ -23,11 +28,54 @@ public sealed class SlotGrammar
 
     internal IReadOnlyList<GrammarNode> Nodes { get; }
 
+    /// <summary>The fewest tokens the pattern's own elements consume in a match (the implicit subject pronoun and polite phrase not counted).</summary>
+    internal int MinTokens { get; }
+
+    /// <summary>The most tokens the pattern's own elements consume in a match (the implicit subject pronoun and polite phrase not counted).</summary>
+    internal int MaxTokens { get; }
+
+    /// <summary>The most tokens a match binds to literal words (an upper bound of <see cref="SlotGrammarMatch.LiteralTokenCount"/>).</summary>
+    internal int MaxLiteralTokens { get; }
+
+    /// <summary>The most tokens a match binds to elements that name the word (an upper bound of <see cref="SlotGrammarMatch.NamedTokenCount"/>).</summary>
+    internal int MaxNamedTokens { get; }
+
+    /// <summary>
+    /// The elements that consume a token in every match: the literal words, typed elements and names outside every optional element, and those every alternative of a
+    /// group has; distinct, in pattern order.
+    /// </summary>
+    internal IReadOnlyList<GrammarNode> RequiredElements { get; }
+
+    // The folded keys of the required elements' words (a literal's word, a typed element's lemma; null for the others) under the last folding asked for, in one
+    // object so that a reader on another thread sees a folding with its own keys.
+    private RequiredKeySet? _requiredKeys;
+
+    /// <summary>The folded keys (<see cref="ILexiconFolding.LenientKey"/>) of <see cref="RequiredElements"/>: a literal's word, a typed element's lemma, null for the others.</summary>
+    internal string?[] RequiredKeys(ILexiconFolding folding)
+    {
+        if (_requiredKeys is { } cached && ReferenceEquals(cached.Folding, folding))
+        {
+            return cached.Keys;
+        }
+
+        var keys = RequiredElements.Select(element => element switch
+        {
+            LiteralNode literal => folding.LenientKey(literal.Word),
+            TypedNode { Lemma: { } lemma } => folding.LenientKey(lemma),
+            _ => null,
+        }).ToArray();
+        _requiredKeys = new RequiredKeySet(folding, keys);
+        return keys;
+    }
+
+    private sealed record RequiredKeySet(ILexiconFolding Folding, string?[] Keys);
+
     /// <summary>
     /// Parses a pattern. Tokens: literal words; <c>[ART]</c>, <c>[PRON]</c>, <c>[DET]</c>, <c>[NUM:slot]</c>, <c>[NOUN:slot]</c>,
     /// <c>[ADJ:slot]</c>, <c>[ADV]</c>, <c>[PREP]</c>, <c>[CONJ]</c>, <c>[INTERJ]</c> (each with an optional slot), <c>[VERB]</c>,
     /// <c>[VERB:lemma]</c> and <c>[VERB:lemma:slot]</c>, <c>[WORD]</c> and <c>[WORD:slot]</c> (one token of letters that is not only closed-class words; a name); a <c>?</c>
-    /// suffix makes an element optional; <c>(a|b c)</c> lists alternatives.
+    /// suffix makes an element optional; <c>(a|b c)</c> lists alternatives, and <c>(a|b c):slot</c> fills the slot with the words of the alternative that matched
+    /// (M74: <c>(frío|buen tiempo):weather</c> gives <c>weather=buen tiempo</c>; each literal as the grammar writes it, any other element's token as written).
     /// </summary>
     /// <param name="pattern">The pattern text.</param>
     /// <param name="id">The grammar id; the canonical pattern when null.</param>
@@ -118,6 +166,59 @@ public sealed class SlotGrammar
                     break;
             }
         }
+    }
+
+    private static int MinTokensOf(IReadOnlyList<GrammarNode> nodes) => nodes.Sum(static node => node switch
+    {
+        OptionalNode => 0,
+        GroupNode group => group.Alternatives.Min(MinTokensOf),
+        _ => 1,
+    });
+
+    private static int MaxTokensOf(IReadOnlyList<GrammarNode> nodes) => nodes.Sum(static node => node switch
+    {
+        OptionalNode optional => MaxTokensOf([optional.Inner]),
+        GroupNode group => group.Alternatives.Max(MaxTokensOf),
+        _ => 1,
+    });
+
+    private static int MaxCountOf(IReadOnlyList<GrammarNode> nodes, Func<GrammarNode, bool> counts) => nodes.Sum(node => node switch
+    {
+        OptionalNode optional => MaxCountOf([optional.Inner], counts),
+        GroupNode group => group.Alternatives.Max(alternative => MaxCountOf(alternative, counts)),
+        _ => counts(node) ? 1 : 0,
+    });
+
+    private static List<GrammarNode> RequiredElementsOf(IReadOnlyList<GrammarNode> nodes)
+    {
+        var required = new List<GrammarNode>();
+        foreach (var node in nodes)
+        {
+            switch (node)
+            {
+                case LiteralNode or TypedNode or WordNode:
+                    if (!required.Contains(node))
+                    {
+                        required.Add(node);
+                    }
+
+                    break;
+                case GroupNode group:
+                    var common = RequiredElementsOf(group.Alternatives[0]);
+                    foreach (var alternative in group.Alternatives.Skip(1))
+                    {
+                        var other = RequiredElementsOf(alternative);
+                        common.RemoveAll(element => !other.Contains(element));
+                    }
+
+                    required.AddRange(common.Where(element => !required.Contains(element)));
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        return required;
     }
 
     private static void Walk(IReadOnlyList<GrammarNode> nodes, Action<GrammarNode> visit)
@@ -212,6 +313,11 @@ public sealed class SlotGrammar
                 }
 
                 builder.Append(')');
+                if (group.Slot is not null)
+                {
+                    builder.Append(':').Append(group.Slot);
+                }
+
                 break;
             default:
                 throw new InvalidOperationException($"Unexpected grammar node {node.GetType().Name}.");
@@ -334,7 +440,14 @@ internal sealed class SlotGrammarParser
                 _index++;
             }
 
-            node = new LiteralNode(Key(_text[start.._index]));
+            var word = _text[start.._index];
+            if (word.StartsWith(':'))
+            {
+                // M74: a group's slot name follows its closing parenthesis directly, before any '?': (a|b):slot?.
+                throw Error($"unexpected '{word}': a group's slot name follows its ')' before any '?'");
+            }
+
+            node = new LiteralNode(Key(word));
         }
         else
         {
@@ -364,8 +477,31 @@ internal sealed class SlotGrammarParser
             }
 
             _index++;
-            return new GroupNode(alternatives);
+            return new GroupNode(alternatives, ParseGroupSlot());
         }
+    }
+
+    // M74: a group may name a slot right after its closing parenthesis, (frío|calor):weather.
+    private string? ParseGroupSlot()
+    {
+        if (_index >= _text.Length || _text[_index] != ':')
+        {
+            return null;
+        }
+
+        var start = ++_index;
+        while (_index < _text.Length && (char.IsAsciiLetterOrDigit(_text[_index]) || _text[_index] == '_'))
+        {
+            _index++;
+        }
+
+        var slot = _text[start.._index];
+        if (!IsSlotName(slot))
+        {
+            throw Error($"invalid slot name '{slot}' after a group");
+        }
+
+        return slot;
     }
 
     private GrammarNode ParseTyped()

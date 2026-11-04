@@ -9,6 +9,10 @@
     {"form":"ayudarte","lemma":"ayudar","pos":"verb","features":{}},
     {"form":"inténtalo","lemma":"intentar","pos":"verb","features":{"person":"2","number":"sg","mood":"imp"}},
     {"form":"mmm","lemma":"mmm","pos":"interj","features":{}},
-    {"form":"ti","lemma":"ti","pos":"pron","features":{}}
+    {"form":"ti","lemma":"ti","pos":"pron","features":{}},
+    {"form":"nublado","lemma":"nublado","pos":"adj","features":{"number":"sg","gender":"m"}},
+    {"form":"nublada","lemma":"nublado","pos":"adj","features":{"number":"sg","gender":"f"}},
+    {"form":"nublados","lemma":"nublado","pos":"adj","features":{"number":"pl","gender":"m"}},
+    {"form":"nubladas","lemma":"nublado","pos":"adj","features":{"number":"pl","gender":"f"}}
   ]
 }

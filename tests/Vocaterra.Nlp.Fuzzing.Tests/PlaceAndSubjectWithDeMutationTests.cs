@@ -48,7 +48,8 @@ public sealed class PlaceAndSubjectWithDeMutationTests
     [Fact]
     public void TheGreetingGrammarRealisesBuenasTardes()
     {
-        var pattern = Harness.Grammars.Grammars.Single(static g => g.Id.Contains("tardes", StringComparison.Ordinal) && g.Id.Contains("buenas", StringComparison.Ordinal)).Pattern;
+        // greet's grammar (M74: ask_wellbeing's takes the greeting before ¿cómo estás? too).
+        var pattern = Harness.Grammars.Grammars.Single(static g => g.IntentIds.Contains("greet") && g.Id.Contains("tardes", StringComparison.Ordinal) && g.Id.Contains("buenas", StringComparison.Ordinal)).Pattern;
         var drawn = new Dictionary<string, int>(StringComparer.Ordinal);
         for (var seed = 1UL; seed <= 400; seed++)
         {

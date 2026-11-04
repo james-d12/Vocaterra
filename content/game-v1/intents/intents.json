@@ -7,8 +7,7 @@
       "slotGrammars": [
         "hola [NOUN]?",
         "(buenos|buenas) (día|días|tardes|noches)",
-        "buen día",
-        "(cómo|como) (estás|está|están|estáis) (tú|usted|ustedes|vosotros|vosotras)?"
+        "buen día"
       ],
       "keywordRules": [
         { "lemmas": ["hola"], "requiresSlots": [] }
@@ -21,10 +20,27 @@
         {"text": "buen día", "errors": [], "prompt": "villager-open"},
         {"text": "hola, Luna", "errors": [], "prompt": "villager-open"},
         {"text": "buenos día", "errors": ["noun.number"], "prompt": "villager-open"},
+        "hola amigo"
+      ]
+    },
+    {
+      "intentId": "ask_wellbeing",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "(hola [NOUN]?|(buenos|buenas) (día|días|tardes|noches)|buen día)? (cómo|como) (estás|está|están|estáis) (tú|usted|ustedes|vosotros|vosotras)?",
+        "(hola [NOUN]?)? qué tal"
+      ],
+      "keywordRules": [],
+      "examples": [
         {"text": "cómo estás", "errors": [], "prompt": "villager-open"},
         {"text": "cómo está usted", "errors": [], "prompt": "villager-open"},
-        {"text": "cómo estás usted", "errors": ["conj.person"], "prompt": "villager-open"},
-        "hola amigo"
+        {"text": "cómo están ustedes", "errors": [], "prompt": "baker-open"},
+        {"text": "cómo estáis", "errors": [], "prompt": "villager-open"},
+        {"text": "hola, ¿cómo estás?", "errors": [], "prompt": "villager-open"},
+        {"text": "buenos días, cómo está usted", "errors": [], "prompt": "smith-open"},
+        {"text": "qué tal", "errors": [], "prompt": "villager-open"},
+        {"text": "hola, ¿qué tal?", "errors": [], "prompt": "fisher-open"},
+        {"text": "cómo estás usted", "errors": ["conj.person"], "prompt": "villager-open"}
       ]
     },
     {
@@ -662,6 +678,56 @@
         "león trabaja en el campo",
         "luz vive en la panadería",
         "mar va a trabajar en el río"
+      ]
+    },
+    {
+      "intentId": "state_weather",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "(hoy|mañana)? hace (mucho frío|mucho calor|mucho sol|mucho viento|frío|calor|sol|viento|fresco|buen tiempo|mal tiempo):weather (hoy|mañana)?",
+        "(ayer)? (hizo|hacía) (mucho frío|mucho calor|mucho sol|mucho viento|frío|calor|sol|viento|fresco|buen tiempo|mal tiempo):weather (ayer)?",
+        "(mañana)? hará (mucho frío|mucho calor|mucho sol|mucho viento|frío|calor|sol|viento|fresco|buen tiempo|mal tiempo):weather (mañana)?",
+        "(hoy|mañana)? (llueve|nieva) (mucho)? (hoy|mañana)?",
+        "(ayer)? (llovió|llovía|nevó) (mucho)? (ayer)?",
+        "(mañana)? (lloverá|nevará) (mucho)? (mañana)?",
+        "(hoy|mañana)? está nublado (hoy|mañana)?",
+        "(ayer)? estaba nublado (ayer)?",
+        "qué (frío|calor):weather"
+      ],
+      "keywordRules": [],
+      "lint": {"allowOverlap": ["state_action"]},
+      "examples": [
+        "hace frío",
+        "hace calor",
+        "hace sol",
+        "hace buen tiempo",
+        "hace mal tiempo",
+        "hoy hace frío",
+        "hoy hace buen tiempo",
+        "hace mucho calor",
+        "ayer hizo sol",
+        "llueve",
+        "hoy llueve mucho",
+        "está nublado",
+        "qué frío"
+      ]
+    },
+    {
+      "intentId": "ask_weather",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "(hoy|mañana)? qué tiempo hace (hoy|mañana)?",
+        "(mañana)? qué tiempo (hará|va a hacer) (mañana)?",
+        "(ayer)? qué tiempo hacía (ayer)?",
+        "(cómo|como) está el tiempo (hoy)?"
+      ],
+      "keywordRules": [],
+      "examples": [
+        "qué tiempo hace",
+        "qué tiempo hace hoy",
+        "hoy qué tiempo hace",
+        "qué tiempo hará mañana",
+        "cómo está el tiempo"
       ]
     },
     {
