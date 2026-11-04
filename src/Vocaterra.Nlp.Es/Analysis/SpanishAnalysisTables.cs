@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using Vocaterra.Nlp.Es.Normalization;
 
 namespace Vocaterra.Nlp.Es.Analysis;
 
@@ -162,6 +163,14 @@ internal static class SpanishAnalysisTables
     // M66 (M63). The question words that may stand between a subject pronoun and its verb (ellas dónde están, tú qué quieres), written with their accent: without it
     // (que, donde, como) they may open a relative clause (ella que quiere pan) or be another word.
     private static readonly FrozenSet<string> QuestionWordsAfterSubject = new[] { "qué", "dónde", "adónde", "cuándo", "cómo" }.ToFrozenSet(StringComparer.Ordinal);
+
+    // M75. The question words in every form, written without their accents: a line that has one where the nearest answer phrase has another (cuál es esto for qué es
+    // esto) is a near miss that names the answer's word. A word is looked up with its accents taken away, because a learner who types without accents (or puts one
+    // on another letter) still means the question word.
+    private static readonly FrozenSet<string> QuestionWords = new[]
+    {
+        "que", "cual", "cuales", "quien", "quienes", "donde", "adonde", "cuando", "como", "cuanto", "cuanta", "cuantos", "cuantas",
+    }.ToFrozenSet(StringComparer.Ordinal);
 
     // M56. Nouns that measure a stretch of time, beside the time nouns: a noun phrase of one of them after a verb is how long or when (están la tarde en casa), not its subject.
     private static readonly FrozenSet<string> DurationNouns = new[]
@@ -479,6 +488,12 @@ internal static class SpanishAnalysisTables
     public static bool IsQuestionWordAfterSubject(string word)
     {
         return QuestionWordsAfterSubject.Contains(word);
+    }
+
+    /// <summary>True for a question word in any of its forms, written with its accent or without it (<c>cuál</c>, <c>cuántas</c>, <c>donde</c>; M75).</summary>
+    public static bool IsQuestionWord(string word)
+    {
+        return QuestionWords.Contains(Accents.Strip(word));
     }
 
     /// <summary>True for a noun that says when or for how long (the time nouns, the seasons, <c>tarde</c>, <c>rato</c>...): a noun phrase of one after a verb is no subject.</summary>

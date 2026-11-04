@@ -17,8 +17,12 @@ namespace Vocaterra.Nlp.Evaluation;
 /// <param name="KnownLexiconWords">Normalized words the lexicon knows; used to tell a wrong word from an unknown one.</param>
 /// <param name="Config">Evaluation weights and thresholds.</param>
 /// <param name="Versions">Content and model hashes copied into the verdict.</param>
-/// <param name="CanonicalAnswers">The canonical answers of the prompt's answer set; a derived <c>vocab.wrong</c> names its word only when there is exactly one. Null when unknown.</param>
+/// <param name="CanonicalAnswers">The canonical answers of the prompt's answer set; a derived <c>vocab.wrong</c> of a line that resolved no intent names the set's word when there is exactly one. Null when unknown.</param>
 /// <param name="ErrorTags">The error tags of the language and their ranks, which order errors at one position (M34, additive); null for the frozen v1 set, which is the Spanish one.</param>
+/// <param name="NearMiss">
+/// The line's near miss of the answer set (M75, <c>AnswerNearMisses.Find</c>): the one word by which it misses the nearest answer phrase, a slip pair. Null when there
+/// is none, and when the line matched an answer or the prompt is open (the pipeline and <c>TextGrader</c> then do not look; the assembler ignores it there).
+/// </param>
 public sealed record VerdictInputs(
     PromptSpec Prompt,
     AsrResult Asr,
@@ -31,4 +35,5 @@ public sealed record VerdictInputs(
     EvaluationConfig Config,
     VersionStamp Versions,
     IReadOnlyList<string>? CanonicalAnswers = null,
-    ErrorTagSet? ErrorTags = null);
+    ErrorTagSet? ErrorTags = null,
+    AnswerNearMiss? NearMiss = null);

@@ -425,7 +425,10 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
             [.. known],
             bundle.EvaluationConfig,
             services.Versions,
-            [.. answerSet.Answers.Select(static answer => answer.Canonical)]));
+            [.. answerSet.Answers.Select(static answer => answer.Canonical)],
+            NearMiss: match.Type == Vocaterra.Nlp.Core.Stages.MatchType.None && prompt.Mode == RecognitionMode.Constrained
+                ? AnswerNearMisses.Find(normalized, answerSet, prompt.Difficulty, SpanishLanguagePack.Instance, bundle.Lexicon, bundle.AnalysisRules, PipelineHarness.Normalization)
+                : null));
 
         Determinism.AssertSame(Oracle, "The verdict (pipeline against the stages called by hand)", c, () => trace.Result.Verdict, () => byHand);
     }

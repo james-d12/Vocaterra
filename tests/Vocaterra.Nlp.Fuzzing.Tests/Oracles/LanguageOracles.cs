@@ -834,7 +834,10 @@ public static class LanguageOracles
             bundle.EvaluationConfig,
             services.Versions,
             [.. answerSet.Answers.Select(static answer => answer.Canonical)],
-            pack.ErrorTags));
+            pack.ErrorTags,
+            match.Type == Vocaterra.Nlp.Core.Stages.MatchType.None && prompt.Mode == RecognitionMode.Constrained
+                ? AnswerNearMisses.Find(normalized, answerSet, prompt.Difficulty, pack, bundle.Lexicon, bundle.AnalysisRules, PipelineHarness.Normalization)
+                : null));
         Determinism.AssertSame("O14", "The verdict (pipeline against the stages called by hand)", c, () => trace.Result.Verdict, () => byHand);
     }
 

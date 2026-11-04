@@ -656,11 +656,11 @@ public class PipelineTests
         var prompt = Prompt("lesson-what");
 
         // A near miss of the answer qué es esto that a keyword rule understood (esto): since M67 the only understood line with a derived vocab.wrong
-        // (quiero madera at the stall, which a grammar understands, has none any more). Its set has several answers, so the error names none.
+        // (quiero madera at the stall, which a grammar understands, has none any more). Since M75 the error names the answer's word, qué, not the set.
         var result = TestSupport.Pipeline("cuál es esto", RecognitionMode.Constrained)
             .Evaluate(TestSupport.Clip(), prompt, TestSupport.Context(state: "none", agentId: "player", repeats: counts));
 
-        Assert.Contains(result.Verdict.Errors, static error => error.Tag == ErrorTags.VocabWrong);
+        Assert.Contains(result.Verdict.Errors, static error => error.Tag == ErrorTags.VocabWrong && error.Expected == "qué");
         Assert.Equal(FeedbackType.ExplicitCorrection, result.Decision.Feedback.Items[0].Type);
         Assert.DoesNotContain(result.Response.Lines, line => line.Text.Contains(prompt.AnswerSetId, StringComparison.Ordinal));
     }

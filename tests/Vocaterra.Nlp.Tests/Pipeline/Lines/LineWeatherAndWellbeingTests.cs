@@ -86,7 +86,7 @@ public class LineWeatherAndWellbeingTests
         { "smith-open", "compré pan hace dos días", "state_action", true, [], "none" },
         { "smith-open", "¿qué haces?", "ask_activity", true, [], "none" },
         { "smith-open", "hago pan", "state_action", true, [], "none" },
-        { "smith-open", "quiero hacer un hacha", "state_want", true, ["vocab.wrong"], "none" },
+        { "smith-open", "quiero hacer un hacha", "state_want", true, [], "none" }, // M75: correct Spanish, a word added to an answer: no near miss
         { "guide-open", "¿cómo hago una antorcha?", "ask_craft", true, [], "none" },
         { "guide-open", "quiero hacer una antorcha", "ask_craft", true, [], "none" },
         { "farmer-open", "¿qué tiempo hace?", "ask_activity", true, [], "none" },

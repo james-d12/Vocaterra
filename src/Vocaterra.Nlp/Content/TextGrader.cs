@@ -9,6 +9,7 @@ using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Matching;
 using Vocaterra.Nlp.Language.Normalization;
 using Vocaterra.Nlp.Language.SlotGrammar;
+using MatchType = Vocaterra.Nlp.Core.Stages.MatchType;
 
 namespace Vocaterra.Nlp.Content;
 
@@ -94,7 +95,10 @@ public sealed class TextGrader
             _bundle.EvaluationConfig,
             _versions,
             [.. answerSet.Answers.Select(static answer => answer.Canonical)],
-            _bundle.Language.ErrorTags));
+            _bundle.Language.ErrorTags,
+            match.Type == MatchType.None && prompt.Mode == RecognitionMode.Constrained
+                ? AnswerNearMisses.Find(normalized, answerSet, prompt.Difficulty, language, _bundle.Lexicon, _bundle.AnalysisRules, Normalization)
+                : null));
     }
 
     private static string CleanTranscript(string transcript)

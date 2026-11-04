@@ -61,10 +61,10 @@ public class OffPromptLineTests
     [Fact]
     public void ANearMissOfAnAnswerKeepsItsTag()
     {
-        // cuál es esto for qué es esto (M67): a keyword rule understood it, three edits from the answer, within the budget for its own length.
+        // cuál es esto for qué es esto (M67): a keyword rule understood it, and it misses the answer by one question word for another (M75), which the tag names.
         var verdict = Evaluate("cuál es esto", "lesson-what").Verdict;
 
-        Assert.Equal(ErrorTags.VocabWrong, Assert.Single(verdict.Errors).Tag);
+        Assert.Equal(new ErrorTag(ErrorTags.VocabWrong, new TextSpan(0, 4), "qué", "cuál"), Assert.Single(verdict.Errors));
         Assert.Null(verdict.OffPromptIntent);
     }
 
