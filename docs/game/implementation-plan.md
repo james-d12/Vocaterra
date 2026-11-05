@@ -374,7 +374,7 @@ there. Commit prefixes `N<nn>:`, `L01:`, `U<nn>:`, `W<nn>:`; one milestone branc
 | N01 | The needs model (design 9.2 to 9.4, 9.10, 9.13): five needs in `Game.Core/Needs/` (`PlayerNeeds`), their stages and links, `game/needs.json` and its schema, save version 6 with the optional systems map, the world events, `--needs off` and `--set-need`; the session told each tick whether play is active | the follow-ups | M/L | Sonnet 5.5 | done (2026-11-05, gated at `3a63832e`, 9158 passed) |
 | L01 | Lessons as optional classes (5.3, 5.4; D-game-25): the introduction alone required; classes offered and chosen; sleep when the sleep drive is below 75; orders by NPC met; no lesson holds an NPC, an order or the day; r20 and r21 re-baselined, a new run with no classes | N01 | M | Sonnet 5.5 | planned |
 | N02 | Eating, drinking and sprinting (9.6): eat and drink actions, water by hand, the sprint control, the gathering cost, rest at a lit fire | N01 | S/M | Sonnet 5.5 | done (2026-11-05, gated at `3a4345f8`, 9195 passed) |
-| N03 | Sleep and the collapse (9.5): a night's effects, the collapse and waking where the player fell, every night and collapse advances the day; the offer rule is L01's | L01, N02 | S/M | Sonnet 5.5 | planned |
+| N03 | Sleep and the collapse (9.5): a night's effects, the collapse and waking where the player fell, every night and collapse advances the day; the offer rule is L01's | L01, N02 | S/M | Sonnet 5.5 | done (2026-11-05, gated at `7cf2e115`, 9219 passed) |
 | N04 | Health and death (9.4, 9.7): losses and recovery, death and the belongings chest (decision 10), waking at the fire; runs r25-thirst and r26-death | N03 | M | Sonnet 5.5 | planned |
 | N05 | The HUD and the opening (9.8, 9.9): bars, icons, stage lines, sounds, view effects and their option, the tip and the death screen, the relaxed-needs option (decision 17); layout tests at every scale; the day-1 route proven safe | N04 | S/M | Sonnet 5.5 | planned |
 | N06 | Food that grows back, and fair gifts (9.6; decision 12): berry bushes regrow after a night; bread and water gifts once per in-game day | N05 | S/M | Sonnet 5.5 | planned |
@@ -2164,6 +2164,14 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   («No tengo hambre.», «No tengo sed.») N05's. The 23 scripted runs are unchanged. The orchestrator's check: `--set-need hunger 40 --eat
   manzana` gives hunger 52 and `meal_eaten (manzana)`; `--drink` at the river gives thirst 30 to 40 and `water_drunk (río)`. Report
   `.claude/briefs/n02-report.md`.
+- **N03, sleep and the collapse (2026-11-05, Sonnet 5.5; gated on `feature/adaptive_design` at `7cf2e115`, 9219 passed, 3 skipped).** Every
+  night path (E at the fire, Enter on the card, `--sleep`) applies the night to the needs (`VoxelSession.Night.cs`; `SleepTests` keeps "a sleep
+  equals a load" for all but the needs). After 60 active seconds at the sleep drive's last stage the player collapses where they stand (a fade,
+  the collapse night, waking in place; `player_collapsed`, `player_woke`, a first-time tip in English); it is the sleep drive's alone, as
+  N01's `CollapseDue` and 9.5 read (scripted: `--set-need sleep 0 --wait 62`). Nights and collapses advance the day and the sitting, a load only
+  the sitting; one seam, `RunDayResets`, runs the day's resets for N04 and N06. A tick-sum rounding delayed the collapse by a tick
+  (`CollapseDue` tolerates 1e-6 s). The fire's offer rule is unchanged, for L01 (`SleepOffer`, `CanSleep`). Runs unchanged. The orchestrator's
+  check: day 2, sleep 40 and thirst 15, `--sleep`: thirst stops at the floor of 10, sleep 100, day 3. Report `.claude/briefs/n03-report.md`.
 
 
 ## 6. Definition of done (every milestone)
