@@ -150,9 +150,8 @@ public class LintTests
     public void TheBundleIsFullyReachableAndReservedPoolsAreNeverReported()
     {
         Assert.Empty(Of(Sample, "reach.pool"));
-        // M74: the weather intents, which no prompt allows yet (the host's next step), are read off the prompt: an info each.
-        Assert.All(Of(Sample, "reach.intent"), f => Assert.Equal(LintSeverity.Info, f.Severity));
-        Assert.Equal(["ask_weather", "state_weather"], Of(Sample, "reach.intent").Select(static f => f.Ids.Single()).Order(StringComparer.Ordinal));
+        // M74 read the weather intents off the prompt (an info each); the game's V29 allows them at the NPCs' open prompts, so every intent is reachable.
+        Assert.Empty(Of(Sample, "reach.intent"));
         Assert.Empty(Of(Sample, "reach.answer-set"));
         Assert.Empty(Of(Sample, "reach.agent"));
         Assert.Empty(Of(Sample, "reach.state"));
