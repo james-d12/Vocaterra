@@ -12,8 +12,8 @@ You are implementing <milestone id and name> for the Vocaterra repository (C#, .
 the Spanish pack Vocaterra.Nlp.Es and the Vocaterra.Nlp.* test and tool projects; the game is Vocaterra.Game.Core (the engine-free
 logic), Vocaterra.Game (MonoGame), Vocaterra.Host and tools/Vocaterra.SpeechRender. This milestone's work is in <the core or the game>.
 Where to work: <the worktree>. First `git fetch origin` and `git checkout -b <branch> origin/<feature branch>`. Commit after each item that
-builds and passes its tests, with the prefix `<id>: `, and push your branch after every commit (`git push -u origin <branch>` the first
-time). Never push or merge <feature branch> or main. When you finish, leave the worktree on your branch, clean.
+builds and passes its tests, with the prefix `<id>: `. Do not push your branch: it stays local and the gate merges it from there (owner,
+2026-11-05). Never push or merge <feature branch> or main. When you finish, leave the worktree on your branch, clean.
 Resources (the machine has crashed from overload): run every dotnet restore, build, test, format and run, every scripts/content.sh call,
 speech prerender and screenshot run through scripts/limited.sh (for example `scripts/limited.sh dotnet build Vocaterra.sln -warnaserror
 -m:4`; tests with `-m:2`). scripts/test.sh and scripts/content-loop.sh call it themselves: run them directly. Never start two heavy
