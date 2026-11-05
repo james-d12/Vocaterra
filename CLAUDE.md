@@ -28,9 +28,9 @@ Facts every session needs:
   (finished ones are in `done/`); a session that stops writes one there. Research goes to `docs/research/`, bug reports and their triage
   table to `docs/qa-reports/`, superseded documents to `docs/archive/`; the rules are `docs/process/documentation.md`.
 - **.NET SDK is user-local:** prefix commands with `PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" DOTNET_NOLOGO=1`.
-- **Machine resources (the desktop crashed twice from overload, 2026-10-22):** one agent at a time; every heavy command (dotnet
-  restore/build/test/format/run, `scripts/content.sh`, prerender, screenshots) runs through `scripts/limited.sh`, which serialises them
-  machine-wide and caps each at 6 GB of RAM, no swap and 10 of 16 cores. Builds use `-m:4`, tests `-m:2`. Details in the orchestrator's
+- **Machine resources (the desktop crashed twice from overload, 2026-10-22):** at most two building agents at a time (the owner, 2026-11-05; one until then); every heavy command (dotnet
+  restore/build/test/format/run, `scripts/content.sh`, prerender, screenshots) runs through `scripts/limited.sh`, which runs at most two at
+  once machine-wide, caps each at 6 GB of RAM, no swap and 10 of 16 cores, and all of them together at 8 GB and 14 cores. Builds use `-m:4`, tests `-m:2`. Details in the orchestrator's
   "Machine resources" section.
 - **Build, test, format (from the root):** `dotnet build Vocaterra.sln -warnaserror`, `dotnet test Vocaterra.sln`,
   `dotnet format Vocaterra.sln --verify-no-changes`. `Vocaterra.Nlp.slnf` builds the core alone (its pack and licence scan use it).

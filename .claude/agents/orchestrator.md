@@ -60,7 +60,7 @@ in `docs/nlp/api.md` updates that record.
    refuses remote deletes.
 8. **Report to the owner:** outcome first, bugs found, numbers that change a decision, open decisions.
 9. **QA (optional):** after a front-end, content or language milestone, launch `subagent_type: qa` on the feature branch's checkout with
-   one area in the prompt (`.claude/agents/qa.md`); it counts as the one agent at a time. Add one row per bug to the triage table in
+   one area in the prompt (`.claude/agents/qa.md`); it counts as one of the two building agents. Add one row per bug to the triage table in
    `docs/qa-reports/README.md`, log the confirmed bugs in the findings log and plan the fixes as milestones; when a milestone fixes a bug,
    set its row to `fixed` with the milestone id.
 
@@ -74,19 +74,23 @@ in `docs/nlp/api.md` updates that record.
 | A series whose decision names its model: the V series (D-game-22) | Opus 5.5 | xhigh |
 
 Never set an effort level the owner or a decision has not asked for, and never raise a model or effort for length. One agent per
-milestone, one agent at a time.
+milestone, at most two building agents at a time.
 
-## Machine resources (owner, 2026-10-22: never max out the computer)
+## Machine resources (owner, 2026-10-22: never max out the computer; 2026-11-05: up to two agents within the machine's limits)
 
-The desktop crashed twice on 2026-10-22 when two agents built and tested at once (16 cores, 11 GiB of RAM, 2 GiB of swap).
+The desktop crashed twice on 2026-10-22 when two agents built and tested at once with no limits (16 cores, 11 GiB of RAM, 2 GiB of
+swap). On 2026-11-05 the owner allowed two agents at once, "so long as it's within the maximum CPU and memory usage of the machine".
 
-- **One agent at a time.** Do not launch a second agent while one is running, even on disjoint directories. The only exception is an
-  agent that runs no build, test or `dotnet run` at all (pure reading or writing docs), and then at most two in total.
+- **At most two building agents at a time**, on milestones whose dependencies are met and whose code does not overlap (both may edit
+  `content/game-v1`: the second to merge re-runs the content loop on its merge). An agent that runs no build, test or `dotnet run` at all
+  (pure reading or writing docs) may run beside them, at most three in total. Each agent's worktree takes about 3.5 GB once built: check
+  the disk before launching the second.
 - **Every heavy command goes through `scripts/limited.sh`**: `dotnet restore|build|test|format|run`, `scripts/content.sh`,
-  `scripts/prerender-speech.sh`, the licence scan, screenshot runs. It holds one machine-wide lock, waits until at least 3 GB is free and
-  the load is under the core count, then runs the command capped at 6 GB of RAM, no swap and 10 of 16 cores, with MSBuild node reuse and
-  the compiler servers off. A command over the cap is killed inside its scope (exit 137); the fix is lower parallelism, never a higher cap
-  without the owner. Builds use `-m:4`, tests `-m:2`. `scripts/test.sh` and `scripts/content-loop.sh` call it themselves; it is
+  `scripts/prerender-speech.sh`, the licence scan, screenshot runs. It has two machine-wide slots (a third command waits), waits until
+  at least 3 GB is free and the load is under the core count, then runs the command capped at 6 GB of RAM, no swap and 10 of 16 cores, in
+  one slice that caps all of them together at 8 GB and 14 cores, with MSBuild node reuse and the compiler servers off; it prints each
+  command's peak memory. A command over a cap is killed inside its scope (exit 137 or 143); the fix is lower parallelism or a rerun when
+  the other slot is free, never a higher cap without the owner. `VOCATERRA_HEAVY_SLOTS=1` restores one at a time. Builds use `-m:4`, tests `-m:2`. `scripts/test.sh` and `scripts/content-loop.sh` call it themselves; it is
   re-entrant (M67).
 - **Test tiers** (`docs/process/test-performance-plan.md`): `scripts/test.sh fast` for every step, `scripts/test.sh full` at a milestone
   and in the gate (the gate and CI always run the full suite). A test that takes more than a few seconds alone, needs a model or starts a
