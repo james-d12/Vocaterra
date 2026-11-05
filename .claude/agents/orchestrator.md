@@ -131,7 +131,9 @@ session" above), so it must name every running agent with its worktree, branch a
 - **Open or done.** The top of `docs/handovers/` holds only open handovers: work with next steps still to do, at most one per workstream.
   When you write a handover for a workstream, `git mv` the one you picked up into `docs/handovers/done/` in the same change; when a
   workstream's work is finished (merged, or dropped by the owner), move its last handover there too. Search for the moved file's name and
-  repair links and literal paths to it.
+  repair links and literal paths to it, then run the doc-link test before pushing (`scripts/test.sh project tests/Vocaterra.Nlp.Tests`
+  with `--filter MarkdownLinkTests`, or `scripts/limited.sh dotnet test tests/Vocaterra.Nlp.Tests -m:2 --filter MarkdownLinkTests`): a move
+  on 2026-11-05 left one stale link that a later sync caught.
 - Follow the template in [docs/handovers/README.md](../../docs/handovers/README.md) and update its index (open first, then done).
   Include the branch, HEAD commit, worktree, uncommitted work, completed and unfinished work, checks actually run and their results,
   blockers and owner decisions, and the ordered next steps. Name any surviving agents or processes and how to resume or stop them.

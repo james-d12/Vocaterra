@@ -381,7 +381,7 @@ there. Commit prefixes `N<nn>:`, `L01:`, `U<nn>:`, `W<nn>:`; one milestone branc
 | W01 | `item_crafted`: a craft is a world event (activities plan) | N06 | S | Haiku 5.5 | done (2026-11-05, gated at 56f88b4b, 9385 passed) |
 | N07 | Cooking at the fire (9.6): the noun `fuego`, an apple to a roast apple at any lit fire, through the crafting path and `item_crafted` | W01 | S/M | Sonnet 5.5 | done (2026-11-05, gated at 20a8da0c, 9461 passed) |
 | N08 | A berry planted at the camp (decision 14, adopted provisionally) | N06 | S | Haiku 5.5 | proposed; after N07 if time allows |
-| N09 | The drive rates as a setting (owner, 2026-11-05): a slider in the settings and `--needs-rate`, multiplying every drive's rate, for the needs playtest; a fixed value after it | N05 | S | Sonnet 5.5 | planned |
+| N09 | The drive rates as a setting (owner, 2026-11-05): a slider in the settings and `--needs-rate`, multiplying every drive's rate, for the needs playtest; a fixed value after it | N05 | S | Sonnet 5.5 | done (2026-11-05, gated at 37c7640b, 9501 passed) |
 | U01 | Clean defaults (14.3): the debug text off by default; one speak hint; the objective tracker; room for the need meters | N05 | S | Sonnet 5.5 | done (2026-11-05, gated at dd01a6e9, 9476 passed) |
 | U02 | The conversation surface (7.2): developer notes behind `--dev`/F3, older lines collapsed, the lesson strip in the header, every D-game-9 route reachable by key | U01 | M | Sonnet 5.5 | planned |
 | The needs check | The owner and two or three testers play days 1 to 3 with needs on (9.12) | N01 to N07 | | the owner | waits for the owner |
@@ -2256,6 +2256,17 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   building, the no-models suite failed `GeneratedLexiconTests.LoadingTheBundleIsFastEnough` once (9 s against its 3 s budget; it passes
   alone and passed in the gate): a wall-clock test that two parallel agents can starve, to watch. The orchestrator's check: a day-4 world
   with thirst 40 shows no debug text, a one-line tracker, the drop icon and the health bar. Report `.claude/briefs/u01-report.md`.
+- **N09, the drive rates as a setting (2026-11-05, Sonnet 5.5, then a Haiku sync with U01; gated on `feature/adaptive_design` at
+  `37c7640b`, 9501 passed, 3 skipped).** The owner's answer of 2026-11-05 built: a settings panel on **F8** (keyboard only, a menu pause)
+  with the drive rate as a slider (×0.5 to ×4 in steps of 0.25, default ×1), the view effects and relaxed needs; `--needs-rate <x>` for runs
+  (an off-step value is refused); `SaveSettings.NeedsRate` written only when not 1. The rate multiplies hunger, thirst and sleep only, and
+  with relaxed needs (×0.5); stamina, health, food and the collapse delay are unchanged; no meter, digest or replay holds it. The session
+  summary and the console name the rate when it is not ×1, so a playtest's numbers say what rate they ran at. Measured: 60 s of play at ×3
+  drops each drive exactly three times as much as at ×1. A helper property was being serialised and would have changed default saves; now
+  ignored. **Machine:** one of the agent's full runs was killed at the shared 8 GB cap of two slots (exit 143) and passed on the rerun:
+  the cap held the desktop, as designed. The sync caught a stale link in the handovers README left by the orchestrator's handover move
+  (the doc-link test failed on the merged tree); fixed in the sync. The orchestrator's check: the panel at ×2.5 (screenshot), `--needs-rate
+  2.3` refused. Report `.claude/briefs/n09-report.md`.
 
 ## 6. Definition of done (every milestone)
 

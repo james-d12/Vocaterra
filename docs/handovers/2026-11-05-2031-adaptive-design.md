@@ -1,8 +1,8 @@
 # Handover: the adaptation, phases B to D, on feature/adaptive_design
 
 Created: 2026-11-05T20:31Z (UTC)
-Updated: 2026-11-05T21:05Z (UTC), after N09's report and the launch of its sync with U01 (kept current after every gate, launch and owner
-decision: the owner, 2026-11-05)
+Updated: 2026-11-05T21:55Z (UTC), after N09's gate (kept current after every gate, launch and owner decision: the owner,
+2026-11-05)
 Workstream: the owner's Adaptation Design Document, phases B to E: the needs (N), lessons as classes (L01), the presentation track (U),
 then the bread pilot (W)
 Branch: `feature/adaptive_design` (pushed; the owner merges it into `main` once, at the end); HEAD: see `git log -1` (the last record
@@ -23,12 +23,7 @@ track) is half done; phase E (the bread pilot, W05 to W10) waits for the owner's
 
 ## Working tree and running work
 
-- **Two building agents run in parallel** (allowed since 2026-11-05; `scripts/limited.sh` has two slots inside one capped slice):
-  - **N09, the drive rates as a setting:** built (report [`.claude/briefs/n09-report.md`](../../.claude/briefs/n09-report.md); 9486
-    passed before the sync). Its `LaunchOptions.cs` conflicts with U01's, so a **Haiku sync agent** merges `feature/adaptive_design` into
-    the local branch `N09-needs-rate` in worktree `.claude/worktrees/n09` (brief [`n09-sync.md`](../../.claude/briefs/n09-sync.md)). Then
-    the gate. If the sync agent's report is lost: check the worktree for the merge commit and a clean status, finish the merge by the
-    brief, then gate.
+- **One building agent runs** (two are allowed since 2026-11-05; `scripts/limited.sh` has two slots inside one capped slice):
   - **U02, the conversation surface:** worktree `.claude/worktrees/u02`, local branch `U02-conversation-surface`, brief
     [`.claude/briefs/u02-conversation-surface.md`](../../.claude/briefs/u02-conversation-surface.md), Sonnet 5.5.
   - Their reports reach only the session that launched them. **If this session is gone:** check each worktree (`git -C <wt> status`,
@@ -51,6 +46,7 @@ track) is half done; phase E (the bread pilot, W05 to W10) waits for the owner's
 | L01 | Lessons as optional classes (D-game-25) | `971b1058`, 9451 |
 | N07 | Cooking at the fire (the roast apple) | `20a8da0c`, 9461 |
 | U01 | Clean defaults (`--dev`/F3, one speak hint, the tracker) | `dd01a6e9`, 9476 |
+| N09 | The drive rate as a setting: the F8 panel's slider ×0.5 to ×4, `--needs-rate` (the owner, 2026-11-05) | `37c7640b`, 9501 |
 
 - Plans: [game plan](../game/implementation-plan.md) section 4.9 (the table) and section 5 (one findings entry per milestone);
   [core plan](../nlp/implementation-plan.md) §5 and §5b; [activities plan](../game/activities-plan.md) section 4.7.
@@ -61,7 +57,7 @@ track) is half done; phase E (the bread pilot, W05 to W10) waits for the owner's
 
 ## Unfinished and blocked
 
-- **Authorised, in progress:** N09 and U02 (above).
+- **Authorised, in progress:** U02 (above).
 - **Authorised, next:** none beyond them in phases B to D. **N08** (a berry planted at the camp, design decision 14, adopted only
   provisionally) is "proposed; after N07 if time allows": launch it only if the owner says so or nothing else is left.
 - **Blocked on the owner:**
@@ -87,12 +83,12 @@ track) is half done; phase E (the bread pilot, W05 to W10) waits for the owner's
 
 ## Next steps
 
-1. When N09 or U02 reports: verify the branch (`git diff --stat <merge-base>..<branch>`, scope), check conflicts with
+1. When U02 reports: verify the branch (`git diff --stat <merge-base>..<branch>`, scope), check conflicts with
    `git merge-tree --write-tree --name-only HEAD <branch>`; if only generated files or docs conflict, merge the base into the branch in its
    worktree, resolve, run `scripts/content-loop.sh --speech --tier none` (or `--grammar --speech --tier full` if code or content changed on
    both sides), commit; otherwise brief a Haiku sync as [`n07-sync.md`](../../.claude/briefs/n07-sync.md).
 2. Gate from the adaptive worktree: `GATE_TARGET=feature/adaptive_design scripts/merge-gate.sh "<ID>:<branch>"` (in the background, with
    `VOCATERRA_MODELS_DIR` set), spot-check in the game, record the plan row and a findings entry, save the report, commit, push
    `feature/adaptive_design`, remove the worktree and the local branch, **update this handover**.
-3. With N09 and U02 merged, phases B to D are done apart from N08: write the owner a review notice (what to playtest, with N09's slider:
+3. With U02 merged, phases B to D are done apart from N08: write the owner a review notice (what to playtest, with N09's slider:
    the settings panel and `--needs-rate`), and wait for the needs check or the owner's word on W05 to W07.
