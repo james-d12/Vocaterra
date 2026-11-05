@@ -3,6 +3,38 @@
 How the game teaches: the English guidance, the guide's lesson, verbs and tenses, the village's sessions 4 to 10, sleeping into the
 next session, and the summary card with its second try. Each section names the milestones that built it.
 
+## Lessons are optional classes (L01, D-game-25)
+
+L01 supersedes every rule below that says a lesson "starts by itself", "unlocks on a play session" or holds the night, an order or the beacon. The rules now:
+
+- **One required introduction.** `first-words` is Luna's first meeting on day 1: units u1, u2, u3, u5 and u6 (hello, yes and no, what is this, no sé, otra vez, más despacio),
+  25 steps, then the camp task. It alone has `autoStart` and Luna's greeting within 5 blocks (`GuideApproach`). Units u4 and u4v (please, thanks, I want, I have, I need; 12 steps)
+  are **Luna's first class**, the lesson `first-class` (`after: first-words`, `autoStart: false`), with every step and line as they were. The camp objectives are unchanged.
+- **Every other lesson is a class.** Nothing starts a class by itself. When the player talks to a teacher with a class open, the teacher adds one line, the offer
+  (`guide.lesson.<npc>.offer.1`, «¿Quieres una clase? ¿Sí o no?»), beside the usual greeting and trade prompt. «Sí» (or «claro», «vale»...) starts the class; «No», «No, gracias» and
+  walking away cost nothing: the offer is dropped, the NPC's prompt is where it was, and the teacher does not ask again that day. Any other line withdraws the offer, so a later «sí» is
+  the NPC's own question's. The player can also ask: «¿Me enseñas?» (the core has no intent for it, so `game/words.json` `classAnswers` lists the plain forms the game reads from the
+  turn's text; a core gap, reported) or the Lessons page's **Ask for a class** button (P key), which sends the beacon to the teacher and starts the class on the next talk. A class owns
+  the conversation only once accepted.
+- **Esc pauses.** Closing the panel on a class at a talk step pauses it and frees its NPC; a class at a `do` step (walk to the bush, the stall) stays engaged until the world event it waits for,
+  and holds nothing back. A paused class holds back no sleep, trade, order or delivery; the teacher offers it again, or the Lessons page asks for it, and it resumes where it stopped.
+  A save never keeps a lesson engaged: a loaded class is paused (versions 1 to 6).
+- **What opens a class:** having met its teacher (`GuideSession.HasMet`: the panel opened on them once; saved as `metNpcs`, and for a save from before L01 every NPC counts as met from
+  day 2) and its `after` lesson done where the grammar needs it (the preterite before session 8's retelling). Never the day: a lesson's `session` only orders the Lessons page and the
+  skip aid. A teacher with several classes open offers the first of the series that is not done.
+- **Sleep.** Day 1 keeps its ending (the introduction, the camp, the fire; `SessionComplete`). From day 2 the lit fire offers sleep whenever the sleep drive is below 75
+  (`VoxelSession.SleepWanted`); above it E there shows the player's line «No tengo sueño.» with "I'm not sleepy." beside it, text only. No lesson, class, objective or order holds sleep back
+  (`CanSleep` is a lit fire and a session at rest). The test aids `--sleep` and the scripted sleep step sleep whatever the drive says (`--needs off` keeps it full).
+- **Orders** show once their NPC is met (`VoxelSession.Shown`), not on a day; no lesson holds a delivery (`HoldsOrder` is gone, and the oven order no longer waits for `n4-back`: a learner
+  who carries the wood is paid at the first talk, and a class taken late finds the order done: its `do` step ends "delivered before"). The order's `session` field now only says
+  when `--skip-to-session` delivers it.
+- **Cards:** every scaffold phrase has its card from rung 1, whether or not a class taught it.
+- **The beacon and the objective line** follow the tracked objective; neither names a class or its teacher. The Lessons page lists every class with who teaches it
+  (`open: ask Luna for a class`), what it needs (`meet Luna first`, `after “Personas”`) and the **Ask for a class** button; it never shows a next required lesson, except the
+  introduction (`next: talk to Luna`).
+- **Tests and runs:** `--skip-to-session n` counts the classes before n as done and the teachers of n's classes as met; `r30-no-classes` plays days 1 to 3 taking no class
+  (`docs/game/scripted-runs.md`).
+
 ## English guidance and the lesson runner (S16)
 
 English is drawn, never spoken (D-game-13): an English line under the guide's Spanish in its own colour (`English: ...`), the bilingual camp checklist, plain-English

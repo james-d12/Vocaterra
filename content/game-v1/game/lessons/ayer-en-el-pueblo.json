@@ -4,7 +4,7 @@
   "id": "ayer-en-el-pueblo",
   "npc": "villager",
   "level": "a2",
-  "autoStart": true,
+  "autoStart": false,
   "after": "como-es",
   "session": 8,
   "verbs": [

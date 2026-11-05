@@ -829,7 +829,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
         var widest = (Text: string.Empty, Width: 0f);
         foreach (var lesson in session.Lessons.Book.Lessons)
         {
-            var waits = new List<LessonWait> { new(LessonWaitKind.Next, lesson.Session, lesson.Npc), new(LessonWaitKind.Open, lesson.Session, lesson.Npc), new(LessonWaitKind.Session, lesson.Session, lesson.Npc) };
+            var waits = new List<LessonWait> { new(LessonWaitKind.Open, lesson.Session, lesson.Npc), new(LessonWaitKind.Meet, lesson.Session, lesson.Npc) };
             if (lesson.After is { } after)
             {
                 waits.Add(new LessonWait(LessonWaitKind.After, lesson.Session, lesson.Npc, after));

@@ -49,7 +49,7 @@ public sealed class LoadKeepsDayTests
 
         Assert.Equal(2, loaded.Day);
         Assert.Equal(session.Sitting + 1, loaded.Sitting);
-        Assert.Equal(session.Lessons.NewLesson?.Id, loaded.Lessons.NewLesson?.Id);
+        Assert.Equal(session.Lessons.OpenClass()?.Id, loaded.Lessons.OpenClass()?.Id);
     }
 
     [Fact]

@@ -23,7 +23,7 @@ public sealed class LessonPointPlaceTests
     {
         var session = TestGame.NewSession(lessons: TestGame.Lessons(Walk));
         Stage.TeleportToNpc(session, "villager");
-        _ = session.OpenTalk("villager"); // the lesson starts by itself, and its first step points the beacon at the stall
+        _ = session.OpenTalkForClass("villager"); // the lesson starts by itself, and its first step points the beacon at the stall
 
         var stall = session.Scene.Point("stall");
         Assert.Equal(new PointerMarker("tienda", stall, Point: "stall"), session.Pointer);

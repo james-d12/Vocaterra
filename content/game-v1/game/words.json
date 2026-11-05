@@ -82,5 +82,40 @@
   "letters": "á é í ó ú ñ ¿ ¡",
   "nouns": {
     "river": "río"
+  },
+  "classAnswers": {
+    "yes": [
+      "sí",
+      "claro",
+      "vale",
+      "bueno",
+      "sí, por favor",
+      "sí, gracias",
+      "claro que sí",
+      "sí, quiero",
+      "quiero",
+      "sí, claro"
+    ],
+    "no": [
+      "no",
+      "no, gracias",
+      "ahora no",
+      "no quiero",
+      "no, por favor",
+      "hoy no"
+    ],
+    "ask": [
+      "¿me enseñas?",
+      "¿me enseñas, por favor?",
+      "enséñame",
+      "enséñame, por favor",
+      "una clase",
+      "una clase, por favor",
+      "quiero una clase",
+      "¿me das una clase?",
+      "¿me puedes enseñar?",
+      "quiero aprender",
+      "clase"
+    ]
   }
 }

@@ -45,9 +45,10 @@ public sealed class SessionSkipTests
 
         Assert.Equal(target, session.Day);
         Assert.Equal(target, session.SkippedTo);
-        Assert.Equal(lesson, session.Lessons.NewLesson?.Id);
-        Assert.Equal(session.Lessons.Book.Find(lesson)!.Objective, Hud(session)); // its own line, as after a load (S26)
-        Assert.Equal(npc, session.Pointer?.Point);
+        Assert.True(session.Lessons.IsUnlocked(session.Lessons.Book.Find(lesson)!)); // the target session's class is open: its earlier lesson is done and its teacher counts as met (L01)
+        Assert.True(session.HasMet(npc));
+        Assert.Equal(lesson, session.Lessons.OfferFor(npc)?.LessonId);
+        Assert.NotEqual(npc, session.Pointer?.Point); // the beacon follows the tracked objective, not the class's teacher
         foreach (var earlier in session.Lessons.Book.Lessons)
         {
             var row = session.Lessons.Record.Single(r => r.LessonId == earlier.Id);

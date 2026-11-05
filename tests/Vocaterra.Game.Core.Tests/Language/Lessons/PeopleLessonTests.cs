@@ -41,7 +41,7 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
         }
 
         Stage.TeleportToNpc(session, "villager");
-        _ = session.OpenTalk("villager");
+        _ = session.OpenTalkForClass("villager");
         return session;
     }
 
@@ -71,7 +71,7 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
         {
             session.EndTalk();
             Stage.TeleportToNpc(session, npc);
-            _ = session.OpenTalk(npc);
+            _ = session.OpenTalkForClass(npc);
             return null;
         }
 
@@ -85,7 +85,7 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
     {
         var lesson = Book.Find(LessonId)!;
 
-        Assert.Equal(("villager", 6, true, "numeros-y-pan"), (lesson.Npc, lesson.Session, lesson.AutoStart, lesson.After));
+        Assert.Equal(("villager", 6, false, "numeros-y-pan"), (lesson.Npc, lesson.Session, lesson.AutoStart, lesson.After));
         Assert.StartsWith("Session 6", lesson.Objective, StringComparison.Ordinal);
         Assert.Contains("square", lesson.Objective, StringComparison.Ordinal); // the objective line names where to go: the villager in the square, who shows the smith
         Assert.Contains("Domingo", lesson.Objective, StringComparison.Ordinal);
@@ -286,7 +286,7 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void ALearnerWhoArrivesWithTheWoodAndTheCoinsSaysThePlanAndHearsTheOfferBeforeTheAxeIsMade()
+    public void ALearnerWhoArrivesWithTheWoodAndTheCoinsHasTheAxeAtTheFirstTalkAndTheClassTakenLateGoesOn()
     {
         // The objective line shows the order from the session's start, so the goods may come first. The lesson starts at the villager, who asks the plan before the
         // learner meets the smith, and the order names its lesson (V14): the first talk with Domingo delivers nothing, so his offer ("¿Quieres un hacha? Necesito dos
@@ -294,28 +294,22 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
         // the offer followed the axe it offered.
         var session = SessionSixAtVillager(coins: 2, wood: 2);
         Assert.Equal(LessonId, TestGame.Data.Objectives.Find("axe-handle")!.Lesson);
-        Assert.False(session.Objectives.Single(static o => o.Id == "axe-handle").Complete); // talking to the villager delivers nothing
+        Assert.False(session.Objectives.Single(static o => o.Id == "axe-handle").Complete); // talking to the villager delivers nothing: Domingo is not met yet
         // The two wood are in the bag already, so the wood step ends by itself (V23a) and the lesson waits at the step for the delivery.
         while (session.Lessons.Current is { Id: not "g4-back" } step)
         {
             Walk(session, step);
         }
 
-        Assert.False(session.Objectives.Single(static o => o.Id == "axe-handle").Complete); // nor the first talk with Domingo
-        Assert.Equal(0, session.Simulation.Inventory.Count(ItemId.Axe));
+        Assert.True(session.Objectives.Single(static o => o.Id == "axe-handle").Complete); // no lesson holds a delivery (L01): the first talk with Domingo made the axe
+        Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Axe));
         while (session.Lessons.Current is { Id: not "g4-axe" } step)
         {
             Walk(session, step);
         }
 
-        var events = session.Events.ToList();
-        var plan = events.FindIndex(static e => e is LessonEvent { Kind: LessonEventKind.StepDone, StepId: "g1-plan" });
-        var offer = events.FindIndex(static e => e is LessonEvent { Kind: LessonEventKind.StepDone, StepId: "g4-offer" });
-        var delivered = events.FindIndex(static e => e is WorldEvent { Name: WorldEvents.OrderDelivered, Detail: "axe-handle" });
-        Assert.InRange(plan, 0, offer - 1); // the plan, the offer, then the axe
-        Assert.InRange(offer, 0, delivered - 1);
         Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Axe));
-        Assert.DoesNotContain(session.Events.OfType<LessonEvent>(), static e => e.StepId == "g4-back" && e.Detail == "delivered before");
+        Assert.Contains(session.Events.OfType<LessonEvent>(), static e => e.StepId == "g4-back" && e.Detail == "delivered before"); // the class finds the axe made, and goes on
     }
 
     // ---- The tense and person checks
@@ -450,7 +444,7 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
 
         var session = TestGame.NewSessionWithShippedLessons(); // session 1: no lesson of theirs, so they talk as themselves
         Stage.TeleportToNpc(session, "smith");
-        Assert.Equal(["¡Hola!"], session.OpenTalk("smith").Lines); // he greets at every talk
+        Assert.Equal(["¡Hola!"], session.OpenTalkForClass("smith").Lines); // he greets at every talk
         Assert.Equal(["¡Hola! Esta es mi herrería."], session.Say("Hola").GuideLines);
         Assert.Equal(["Me llamo Domingo."], session.Say("¿Cómo te llamas?").GuideLines);
         Assert.Equal(["Soy el herrero. Trabajo con fuego y madera."], session.Say("¿Qué haces?").GuideLines);
@@ -461,13 +455,13 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
         session.EndTalk();
 
         Stage.TeleportToNpc(session, "farmer");
-        Assert.Equal(["¡Hola!"], session.OpenTalk("farmer").Lines);
+        Assert.Equal(["¡Hola!"], session.OpenTalkForClass("farmer").Lines);
         Assert.Equal(["Me llamo León."], session.Say("¿Cómo te llamas?").GuideLines);
         Assert.Equal(["Soy el granjero. Trabajo en el campo."], session.Say("¿Qué haces?").GuideLines);
     }
 
     [Fact]
-    public void TheOrderTakesTwoWoodAndTwoCoinsFromSessionSixAndGivesTheAxeAndWithOneCoinNothing()
+    public void TheOrderTakesTwoWoodAndTwoCoinsOnceDomingoIsMetAndGivesTheAxeAndWithOneCoinNothing()
     {
         var early = TestGame.NewSessionWithShippedLessons();
         early.Day = 5;
@@ -475,8 +469,8 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
         _ = early.Simulation.GrantItems(ItemId.Wood, 2);
         _ = early.Simulation.GrantItems(ItemId.Coin, 2);
         Stage.TeleportToNpc(early, "smith");
-        Assert.False(early.OpenTalk("smith").Delivered); // before its session the order is not open: the goods stay
-        Assert.Equal((2, 2), (early.Simulation.Inventory.Count(ItemId.Wood), early.Simulation.Inventory.Count(ItemId.Coin)));
+        Assert.True(early.OpenTalkForClass("smith").Delivered); // L01: the order opens once Domingo is met, whatever the day
+        Assert.Equal((0, 0, 1), (early.Simulation.Inventory.Count(ItemId.Wood), early.Simulation.Inventory.Count(ItemId.Coin), early.Simulation.Inventory.Count(ItemId.Axe)));
 
         var poor = TestGame.NewSessionWithShippedLessons();
         poor.Day = 6;
@@ -484,7 +478,7 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
         _ = poor.Simulation.GrantItems(ItemId.Wood, 3);
         _ = poor.Simulation.GrantItems(ItemId.Coin, 1);
         Stage.TeleportToNpc(poor, "smith");
-        var short1 = poor.OpenTalk("smith"); // one coin is not enough: nothing changes hands, he greets as usual
+        var short1 = poor.OpenTalkForClass("smith"); // one coin is not enough: nothing changes hands, he greets as usual
         Assert.False(short1.Delivered);
         Assert.Equal(["¡Hola!"], short1.Lines);
         Assert.Equal((3, 1, 0), (poor.Simulation.Inventory.Count(ItemId.Wood), poor.Simulation.Inventory.Count(ItemId.Coin), poor.Simulation.Inventory.Count(ItemId.Axe)));
@@ -497,7 +491,7 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
         _ = session.Simulation.GrantItems(ItemId.Coin, 2);
         Stage.TeleportToNpc(session, "smith");
 
-        var opening = session.OpenTalk("smith"); // walking up with the goods is enough (D-game-8, D-game-9)
+        var opening = session.OpenTalkForClass("smith"); // walking up with the goods is enough (D-game-8, D-game-9)
 
         Assert.True(opening.Delivered);
         Assert.Equal(["¡Gracias! Toma el hacha."], opening.Lines);
@@ -509,7 +503,7 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
         // Once is enough: the next talk is an ordinary one.
         session.EndTalk();
         _ = session.Simulation.GrantItems(ItemId.Coin, 2);
-        Assert.False(session.OpenTalk("smith").Delivered);
+        Assert.False(session.OpenTalkForClass("smith").Delivered);
         Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Axe));
     }
 }

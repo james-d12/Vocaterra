@@ -20,7 +20,8 @@
     "obligation",
     "greeting",
     "letters",
-    "nouns"
+    "nouns",
+    "classAnswers"
   ],
   "properties": {
     "$schema": {
@@ -224,6 +225,42 @@
         }
       },
       "description": "The catalogue nouns the game's logic is about, by role."
+    },
+    "classAnswers": {
+      "type": "object",
+      "required": [
+        "yes",
+        "no",
+        "ask"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "yes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/word"
+          },
+          "description": "Lines that take the class a teacher offers (L01)."
+        },
+        "no": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/word"
+          },
+          "description": "Lines that decline it at no cost."
+        },
+        "ask": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/word"
+          },
+          "description": "Lines that ask a teacher for a class (the core has no intent for them)."
+        }
+      },
+      "description": "The plain answers to a teacher's offer of a class and the ways to ask for one (L01, D-game-25); the game reads them from the text of a turn."
     },
     "hudLines": {
       "type": "object",

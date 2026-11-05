@@ -30,31 +30,36 @@ public sealed class LessonBookTests
         "{ \"schemaVersion\": 1, \"lessons\": [ { " + head + ", \"steps\": [ " + steps + " ] } ] }";
 
     [Fact]
-    public void TheShippedLessonsAreTheGuidesFirstWordsAndNineMoreInSessionsTwoToTen()
+    public void TheShippedLessonsAreTheGuidesIntroductionHerFirstClassAndNineMoreInSessionsTwoToTen()
     {
         var book = RouteScene.DataOf(TestGame.Bundle).Lessons;
 
-        Assert.Equal(["first-words", "personas", "ayer-y-manana", "el-pueblo", "numeros-y-pan", "gente-del-pueblo", "como-es", "ayer-en-el-pueblo", "manana-en-el-pueblo", "el-mercado"], book.Lessons.Select(static l => l.Id));
+        Assert.Equal(["first-words", "first-class", "personas", "ayer-y-manana", "el-pueblo", "numeros-y-pan", "gente-del-pueblo", "como-es", "ayer-en-el-pueblo", "manana-en-el-pueblo", "el-mercado"], book.Lessons.Select(static l => l.Id));
         var lesson = book.Find("first-words")!;
         Assert.Equal(("first-words", "guide", true, 1), (lesson.Id, lesson.Npc, lesson.AutoStart, lesson.Session)); // it starts by itself when the player first talks to her
         Assert.Null(book.Find("sample"));
-        foreach (var unit in new[] { "u1", "u2", "u3", "u4", "u4v", "u5", "u6" })
+        foreach (var unit in new[] { "u1", "u2", "u3", "u5", "u6" })
         {
             Assert.Contains(lesson.Steps, s => s.Id.StartsWith(unit + "-", StringComparison.Ordinal));
         }
 
+        var firstClass = book.Find("first-class")!; // units u4 and u4v became Luna's first class (L01): she offers it once the introduction is done
+        Assert.Equal(("guide", false, "first-words"), (firstClass.Npc, firstClass.AutoStart, firstClass.After));
+        Assert.All(firstClass.Steps, s => Assert.StartsWith("u4", s.Id, StringComparison.Ordinal));
+
         Assert.Equal(LessonStepType.Recap, lesson.Steps[^1].Type); // the recap of the phrases learnt closes it
         Assert.Equal(
-            ["hola", "si", "no", "que-es-esto", "si-por-favor", "gracias", "quiero-madera", "tengo-fruta", "necesito-agua", "no-se", "otra-vez", "mas-despacio"],
+            ["hola", "si", "no", "que-es-esto", "no-se", "otra-vez", "mas-despacio"],
             lesson.TaughtPhrases);
-        Assert.Equal(lesson.TaughtPhrases.Concat(book.Find("personas")!.TaughtPhrases).Concat(book.Find("ayer-y-manana")!.TaughtPhrases).Concat(book.Find("el-pueblo")!.TaughtPhrases).Concat(book.Find("numeros-y-pan")!.TaughtPhrases).Concat(book.Find("gente-del-pueblo")!.TaughtPhrases).Concat(book.Find("como-es")!.TaughtPhrases).Concat(book.Find("ayer-en-el-pueblo")!.TaughtPhrases).Concat(book.Find("manana-en-el-pueblo")!.TaughtPhrases).Concat(book.Find("el-mercado")!.TaughtPhrases).Distinct(), book.TaughtPhrases); // quiero-madera is asked again at the start of Personas
+        Assert.Equal(["si-por-favor", "gracias", "quiero-madera", "tengo-fruta", "necesito-agua"], firstClass.TaughtPhrases);
+        Assert.Equal(lesson.TaughtPhrases.Concat(firstClass.TaughtPhrases).Concat(book.Find("personas")!.TaughtPhrases).Concat(book.Find("ayer-y-manana")!.TaughtPhrases).Concat(book.Find("el-pueblo")!.TaughtPhrases).Concat(book.Find("numeros-y-pan")!.TaughtPhrases).Concat(book.Find("gente-del-pueblo")!.TaughtPhrases).Concat(book.Find("como-es")!.TaughtPhrases).Concat(book.Find("ayer-en-el-pueblo")!.TaughtPhrases).Concat(book.Find("manana-en-el-pueblo")!.TaughtPhrases).Concat(book.Find("el-mercado")!.TaughtPhrases).Distinct(), book.TaughtPhrases); // quiero-madera is asked again at the start of Personas
         Assert.All(lesson.TaughtPhrases, id => Assert.True(RouteScene.DataOf(TestGame.Bundle).Phrases.Find(id)!.IsLearnerPhrase, id));
         foreach (var type in Enum.GetValues<LessonStepType>().Where(static t => t is not (LessonStepType.Recap or LessonStepType.Review)))
         {
-            Assert.Contains(lesson.Steps, s => s.Type == type); // built from the runner's step types: explain, model, listen, repeat, answer and do (a review needs an earlier lesson, X06)
+            Assert.Contains(lesson.Steps.Concat(firstClass.Steps), s => s.Type == type); // built from the runner's step types: explain, model, listen, repeat, answer and do (a review needs an earlier lesson, X06)
         }
 
-        var pick = Assert.Single(lesson.Steps, static s => s.Type == LessonStepType.Do);
+        var pick = Assert.Single(firstClass.Steps, static s => s.Type == LessonStepType.Do);
         Assert.Equal(("item_picked_up", "fruta", "fruta"), (pick.Event, pick.Detail, pick.Point)); // the fruit Luna offers is picked up from a bush
         Assert.False(string.IsNullOrWhiteSpace(pick.Hud));
     }
@@ -192,6 +197,6 @@ public sealed class LessonBookTests
         var provenance = File.ReadAllText(Path.Combine(GameBundle.ResolveDirectory(), "provenance.json"));
         Assert.Contains("\"path\": \"game/lessons.json\", \"generatedBy\": \"hand-authored\"", provenance, StringComparison.Ordinal);
         Assert.DoesNotContain("english", File.ReadAllText(Repo.Path("content", "game-v1", "game", "lessons.json")).Split('"').Where(static token => token is "english" or "title" or "translation" or "help" or "retry"));
-        Assert.Equal("First words with Luna", TestGame.Locale.Text(LessonBook.LessonId("first-words", "title")));
+        Assert.Equal("Welcome: first words with Luna", TestGame.Locale.Text(LessonBook.LessonId("first-words", "title")));
     }
 }

@@ -4,7 +4,7 @@
   "id": "el-pueblo",
   "npc": "fisher",
   "level": "a1",
-  "autoStart": true,
+  "autoStart": false,
   "after": "ayer-y-manana",
   "session": 4,
   "verbs": [

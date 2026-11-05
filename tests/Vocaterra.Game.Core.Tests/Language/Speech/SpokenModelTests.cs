@@ -231,7 +231,7 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
         using var session = TestGame.NewSession();
         Assert.True(session.StartWorker().WaitUntilReady(60000));
         Stage.TeleportToNpc(session, "shopkeeper");
-        var opening = session.OpenTalk("shopkeeper");
+        var opening = session.OpenTalkForClass("shopkeeper");
         Assert.Equal(["¿Qué necesitas?"], opening.Lines);
 
         _ = session.SubmitSpeak("quiero agua, por favor");

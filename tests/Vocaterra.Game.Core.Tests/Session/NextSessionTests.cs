@@ -1,4 +1,5 @@
-using Vocaterra.Game.Core.Event;
+using Vocaterra.Game.Core.Language.Lessons;
+using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.Save;
@@ -9,9 +10,8 @@ using Vocaterra.Game.Core.Voxel;
 namespace Vocaterra.Game.Core.Tests.Session;
 
 /// <summary>
-/// What comes next once a play session's work is done (V12c): the objective line sends the player to sleep at their fire (and the arrow goes there when they are away), or
-/// says every lesson is done when no later session has one, or names the lesson to go on with; the fire offers the sleep when the player stands at it, the fire is lit, the
-/// game is at rest and no lesson step waits; a playtest offers none.
+/// When the player sleeps (L01, D-game-25, design 9.5): day 1 keeps its ending (the objective sends the player to the fire and the arrow goes there); from day 2 the fire offers
+/// the sleep whenever the sleep drive is below 75 and says «No tengo sueño.» otherwise; no lesson, class or order holds it back; a playtest offers none.
 /// </summary>
 public sealed class NextSessionTests
 {
@@ -30,14 +30,13 @@ public sealed class NextSessionTests
     }
 
     [Fact]
-    public void AfterTheFirstSessionsEndingTheObjectiveSaysToSleepAtTheFireAndAPlaytestKeepsItsLine()
+    public void AfterTheFirstDaysEndingTheObjectiveSaysToSleepAtTheFireAndAPlaytestKeepsItsLine()
     {
         var session = SleepTests.EndedFirstSession();
         TeleportToFire(session);
 
         Assert.Null(session.CurrentObjective);
-        Assert.True(session.SessionWorkDone);
-        Assert.Equal(2, session.NextLessonSession);
+        Assert.True(session.SleepWanted);
         Assert.True(session.RestDue);
         var line = Assert.Single(session.ObjectiveHud());
         Assert.Equal("Session complete: sleep at your fire to start session 2", line.Text);
@@ -60,7 +59,7 @@ public sealed class NextSessionTests
     }
 
     [Fact]
-    public void AwayFromTheFireThePromptIsNotShownAndTheSleepOfTheNewSessionNamesItsLesson()
+    public void AwayFromTheFireThePromptIsNotShownAndTheMorningNamesNoLesson()
     {
         var session = SleepTests.EndedFirstSession();
         Stage.TeleportToNpc(session, "guide");
@@ -72,115 +71,60 @@ public sealed class NextSessionTests
         Sleep(session);
 
         Assert.Equal(2, session.Day);
-        Assert.Equal("Session 2: go to the village and talk to the villager to start the lesson “Personas”", Hud(session));
-        Assert.Equal("villager", session.Pointer?.Point);
+        Assert.NotEqual("villager", session.Pointer?.Point);
         Assert.Equal("Good morning: session 2 begins", SleepOffer.MorningText(session));
-        Assert.Equal("E: sleep until morning (session 3)", SleepOffer.PromptText(session));
     }
 
-    [Fact]
-    public void OnWakingTheFireOffersNoSleepWhileTheNewSessionsLessonIsLeftAndOffersItOnceTheLessonIsDone()
+    [Theory]
+    [InlineData(100, false)]
+    [InlineData(90, false)]
+    [InlineData(75, false)]
+    [InlineData(74, true)]
+    [InlineData(60, true)]
+    [InlineData(0, true)]
+    public void FromDayTwoTheFireOffersSleepWhenTheSleepDriveIsBelow75AndSaysNoTengoSuenoOtherwise(double sleep, bool tired)
     {
         var session = SleepTests.EndedFirstSession();
         TeleportToFire(session);
-        Sleep(session); // session 2 begins at the fire
+        Sleep(session);
+        session.SetNeed(NeedMeter.Sleep, sleep);
 
         Assert.True(session.AtOwnFire);
-        Assert.True(session.CanSleep); // --sleep would still sleep (a script's step)
-        Assert.False(session.SessionWorkDone); // Personas is left: the objective names it
-        Assert.False(SleepOffer.AtFire(session, free: true)); // no prompt that would skip it
-
-        session.Lessons.CountAsCompleted("personas", 2);
-        session.Step([]);
-
-        Assert.True(session.SessionWorkDone);
-        Assert.Equal("Session complete: sleep at your fire to start session 3", Hud(session));
-        Assert.True(SleepOffer.AtFire(session, free: true));
+        Assert.True(session.CanSleep); // nothing holds it back: the drive alone says whether the player wants it
+        Assert.Equal(tired, session.SleepWanted);
+        Assert.Equal(tired, SleepOffer.AtFire(session, free: true));
+        Assert.Equal(!tired, SleepOffer.AtFireNotTired(session, free: true));
+        Assert.Equal("“No tengo sueño.” (I'm not sleepy.)", SleepOffer.NotSleepyText(session));
     }
 
     [Fact]
-    public void WhenTheSessionsLessonIsDoneTheObjectiveSendsThePlayerBackToSleepAndTheArrowGoesToTheFire()
+    public void NoClassNoOrderAndNoLessonHoldsTheSleepBack()
     {
         var session = SleepTests.EndedFirstSession();
+        TeleportToFire(session);
         Sleep(session);
-        Stage.TeleportToNpc(session, "shopkeeper");
-        session.Step([]);
-        Assert.False(session.SessionWorkDone); // Personas is unlocked and not done
-        Assert.Equal("villager", session.Pointer?.Point);
-
-        session.Lessons.CountAsCompleted("personas", 2); // the lesson ends at the stall, far from the fire
-        session.Step([]);
-
-        Assert.True(session.SessionWorkDone);
-        Assert.Equal("Session complete: sleep at your fire to start session 3", Hud(session));
-        Assert.Equal(VoxelSession.PlayerFireRing, session.Pointer?.Point);
-        Assert.Contains(session.SessionEvents.OfType<WorldEvent>(), e => e.Name == WorldEvents.BeaconSet && e.Detail!.StartsWith("fuego", StringComparison.Ordinal));
-        session.Step([]);
-        Assert.Equal(1, session.SessionEvents.OfType<WorldEvent>().Count(e => e.Name == WorldEvents.BeaconSet && e.Detail!.StartsWith("fuego", StringComparison.Ordinal))); // once, when it begins
-    }
-
-    [Fact]
-    public void ALessonUnderWayHoldsTheSleepBackAndTheObjectiveNamesItsNpc()
-    {
-        var session = SleepTests.EndedFirstSession();
-        Sleep(session);
-        session.OpenTalk("villager"); // Personas starts by itself
+        session.SetNeed(NeedMeter.Sleep, 40);
+        session.OpenTalk("villager");
+        Assert.True(session.Lessons.Start("personas")); // a class taken, then left with Esc: paused
         session.EndTalk();
 
-        Assert.True(session.Lessons.Engaged);
-        Assert.False(session.SessionWorkDone);
-        Assert.False(session.CanSleep); // a lesson step waits: it comes first
-        Assert.False(session.RestDue);
-        Assert.Equal("The lesson “Personas” is under way: talk to the villager to go on", Hud(session)); // V23a: begun, so not "Next:"
-    }
-
-    [Fact]
-    public void WhenNoLaterSessionHasALessonTheObjectiveSaysEveryLessonIsDoneAndTheFireStillSleeps()
-    {
-        var session = TestGame.NewSessionWithShippedLessons();
-        SessionSkip.Apply(session, 7);
-        session.Lessons.CountAsCompleted("como-es", 7);
-        session.Lessons.CountAsCompleted("ayer-en-el-pueblo", 7);
-        session.Lessons.CountAsCompleted("manana-en-el-pueblo", 7);
-        session.Lessons.CountAsCompleted("el-mercado", 7); // the last lesson (V15) done too, so no later session has one
-        TeleportToFire(session);
-        session.Step([]);
-        Assert.Equal("water-for-plants", session.CurrentObjective?.Id);
-        Assert.Equal(session.Locale.ObjectiveHudLine("water-for-plants"), Hud(session)); // an open order keeps its own line: there is still something to do
-
-        session.SkipDeliver(session.Objectives.Single(static o => o.Id == "water-for-plants"));
-        session.Step([]);
-
-        Assert.Null(session.CurrentObjective);
-        Assert.Null(session.NextLessonSession);
-        Assert.True(session.SessionWorkDone);
-        Assert.False(session.RestDue); // nothing to sleep for: no arrow to the fire
-        Assert.Equal("Every lesson so far is done: practise any of them again in the book (J), or talk to the people of the village", Hud(session));
-        Assert.True(session.CanSleep); // a sleep still lifts the spacing gaps
+        Assert.Equal("personas", session.Lessons.Active?.Id);
+        Assert.False(session.Lessons.Engaged);
+        Assert.True(session.CanSleep);
         Assert.True(SleepOffer.AtFire(session, free: true));
-        Assert.Equal("E: sleep until morning (session 8); the lessons are all done for now", SleepOffer.PromptText(session)); // V23a: said, not a silent session 8
-        Assert.Equal("Enter: sleep until morning (session 8); the lessons are all done for now", SleepOffer.CardText(session));
-
-        Sleep(session);
-        Assert.Equal(8, session.Day);
-        Assert.StartsWith("Every lesson so far is done", Hud(session), StringComparison.Ordinal);
+        Assert.True(session.Lessons.IsUnlocked(session.Lessons.Book.Find("personas")!));
+        Assert.Equal(LessonStatus.InProgress, session.Lessons.StatusOf("personas"));
     }
 
     [Fact]
-    public void ANewSessionWhoseWorkIsAlreadyDoneSendsThePlayerToTheFire()
+    public void WithTheNeedsOffTheDriveStaysFullButTheScriptsAidsCanSleep()
     {
         var session = SleepTests.EndedFirstSession();
+        TeleportToFire(session);
         Sleep(session);
-        session.Lessons.CountAsCompleted("personas", 2);
-        session.Lessons.CountAsCompleted("ayer-y-manana", 2); // run early (--lesson-run runs a lesson whatever came before)
-        Stage.TeleportToNpc(session, "shopkeeper");
+        session.NeedsEnabled = false;
 
-        Sleep(session); // session 3 opens no new lesson: its work is done already
-
-        Assert.Equal(3, session.Day);
-        Assert.Null(session.Lessons.NewLesson);
-        Assert.Equal(4, session.NextLessonSession); // El pueblo opens in session 4 (after Ayer y mañana, done)
-        Assert.Equal("Session complete: sleep at your fire to start session 4", Hud(session));
-        Assert.Equal(VoxelSession.PlayerFireRing, session.Pointer?.Point);
+        Assert.False(session.SleepWanted); // the player is never tired
+        Assert.True(session.CanSleep); // --sleep and the scripted sleep step ask CanSleep alone
     }
 }

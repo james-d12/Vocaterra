@@ -4,7 +4,7 @@
   "id": "manana-en-el-pueblo",
   "npc": "baker",
   "level": "a2",
-  "autoStart": true,
+  "autoStart": false,
   "after": "ayer-en-el-pueblo",
   "session": 9,
   "verbs": [

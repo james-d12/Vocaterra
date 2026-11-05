@@ -128,6 +128,7 @@
 {"id":"dialogue:guide.lesson.baker.mar.1","text":"¿Y qué hizo Mar ayer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.market.1","text":"¡Hoy hay mercado! ¿Cuántos panes tengo?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.model.1","text":"Ayer compré fruta en la tienda.","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.offer.1","text":"¿Quieres una clase? ¿Sí o no?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.oven.1","text":"Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.pay.1","text":"Te pago una moneda por cada bloque de madera.","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.plan.1","text":"¡Hola! ¿Qué vas a hacer hoy?","kind":"npc"}
@@ -149,6 +150,7 @@
 {"id":"dialogue:guide.lesson.farmer.like_apples.1","text":"¿Y te gustan las manzanas?","kind":"npc"}
 {"id":"dialogue:guide.lesson.farmer.liked.1","text":"¿Te gustó el pan de Luz?","kind":"npc"}
 {"id":"dialogue:guide.lesson.farmer.market.1","text":"¡Hola! Hoy hay mercado. Tengo quince manzanas.","kind":"npc"}
+{"id":"dialogue:guide.lesson.farmer.offer.1","text":"¿Quieres una clase? ¿Sí o no?","kind":"npc"}
 {"id":"dialogue:guide.lesson.farmer.water.1","text":"Mis plantas necesitan agua. Si me traes agua del río, te doy tres manzanas. ¿Qué vas a hacer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.farmer.went.1","text":"¿Fuiste al río?","kind":"npc"}
 {"id":"dialogue:guide.lesson.farmer.will_sell.1","text":"¿Y qué venderás mañana?","kind":"npc"}
@@ -163,12 +165,14 @@
 {"id":"dialogue:guide.lesson.fisher.luz_will.1","text":"¿Qué hará Luz mañana?","kind":"npc"}
 {"id":"dialogue:guide.lesson.fisher.more.1","text":"¿Algo más?","kind":"npc"}
 {"id":"dialogue:guide.lesson.fisher.near.1","text":"No, está cerca. La montaña está lejos.","kind":"npc"}
+{"id":"dialogue:guide.lesson.fisher.offer.1","text":"¿Quieres una clase? ¿Sí o no?","kind":"npc"}
 {"id":"dialogue:guide.lesson.fisher.plan.1","text":"¿Qué vas a hacer allí?","kind":"npc"}
 {"id":"dialogue:guide.lesson.fisher.right.1","text":"Y la herrería está a la derecha.","kind":"npc"}
 {"id":"dialogue:guide.lesson.fisher.sold.1","text":"¡Hola! Ayer le vendí pescado a Luz. Mañana va a comprar más.","kind":"npc"}
 {"id":"dialogue:guide.lesson.fisher.tomorrow.1","text":"¿Y tú? ¿Qué vas a hacer mañana?","kind":"npc"}
 {"id":"dialogue:guide.lesson.fisher.well.1","text":"Sí, hay un pozo.","kind":"npc"}
 {"id":"dialogue:guide.lesson.fisher.went.1","text":"¿Fuiste a la panadería?","kind":"npc"}
+{"id":"dialogue:guide.lesson.guide.offer.1","text":"¿Quieres una clase? ¿Sí o no?","kind":"npc"}
 {"id":"dialogue:guide.lesson.have.1","text":"¡Muy bien! Tienes una fruta.","kind":"npc"}
 {"id":"dialogue:guide.lesson.have_fruit.1","text":"¿Tienes una fruta?","kind":"npc"}
 {"id":"dialogue:guide.lesson.hello.1","text":"¡Hola!","kind":"npc"}
@@ -221,6 +225,7 @@
 {"id":"dialogue:guide.lesson.villager.morning.1","text":"Por la mañana, Luz y yo fuimos a la tienda.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.much.1","text":"Ayer Domingo trabajó mucho.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.need.1","text":"¿Qué necesitas ahora?","kind":"npc"}
+{"id":"dialogue:guide.lesson.villager.offer.1","text":"¿Una clase hoy? ¿Sí o no?","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.plan.1","text":"¿Qué vas a comer mañana?","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.plan_we.1","text":"¿Qué vamos a comer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.river.1","text":"¡Hola! ¿Fuiste al río ayer?","kind":"npc"}
@@ -260,6 +265,7 @@
 {"id":"dialogue:guide.review.phrase.no_gracias.1","text":"¿Quieres agua?","kind":"npc"}
 {"id":"dialogue:guide.review.phrase.pedir_agua.1","text":"¿Qué necesitas?","kind":"npc"}
 {"id":"dialogue:guide.review.phrase.si_por_favor.1","text":"¿Quieres agua?","kind":"npc"}
+{"id":"dialogue:guide.sleep.not_sleepy.1","text":"No tengo sueño.","kind":"npc"}
 {"id":"dialogue:guide.uncertain.1","text":"No te entendí bien. ¿Lo dices otra vez?","kind":"npc"}
 {"id":"dialogue:guide.uncertain.2","text":"No te entendí bien. ¿Me lo dices otra vez?","kind":"npc"}
 {"id":"dialogue:guide_again.1","text":"Claro. Otra vez.","kind":"npc"}
