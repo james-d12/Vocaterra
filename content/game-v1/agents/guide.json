@@ -133,6 +133,7 @@
         { "onHostEvent": "guide.understood", "to": "offering", "actions": [{ "dialogueIntent": "guide_understood", "variantPoolId": "guide_understood" }] },
         {"on": {"intent": "request_item", "communicated": true}, "to": "offering", "actions": [{"dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted"}]},
         {"on": {"intent": "confirm", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_offer_yes", "hostEvent": "guide.give_water", "variantPoolId": "guide_offer_yes"}]},
+        {"onHostEvent": "guide.gift_used", "to": "talking", "actions": [{"dialogueIntent": "guide_offer_no", "variantPoolId": "guide_offer_no"}]},
         {"on": {"intent": "deny", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_offer_no", "variantPoolId": "guide_offer_no"}]},
         {"on": {"intent": "ask_help", "communicated": true}, "to": "offering", "actions": [{"dialogueIntent": "guide_offer_help", "variantPoolId": "guide_offer_help"}]},
         {"on": {"intent": "dont_know", "communicated": true}, "to": "offering", "actions": [{"dialogueIntent": "guide_offer_help", "variantPoolId": "guide_offer_help"}]},

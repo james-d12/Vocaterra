@@ -122,7 +122,8 @@ public enum NameCheck
 /// <param name="OrderHeld">Whether the NPC talked to has an order whose goods the player carries and that a lesson keeps back (V21): a purchase the coins do not cover is then answered <c>cant_pay_wait</c>.</param>
 /// <param name="Credited">The phrases of the lessons the learner has begun or done when the line was submitted (village-plan V20, <c>LessonRunner.Credits</c>): a line in free talk that is
 /// one of them is that phrase for the learner model, at any NPC; <see langword="null"/> for none.</param>
-public sealed record GuideScene(GuideViewpoint Player, GuideCell? Cursor = null, bool PointerActive = false, bool Review = false, Inventory? Inventory = null, IGuideFacts? Facts = null, string? PromptOverride = null, IReadOnlySet<string>? Credited = null, bool OrderHeld = false);
+/// <param name="ClosedGifts">The gifts that are not to be given now (N06, <c>GiftRule.Key</c>: <c>shopkeeper:bread</c>), those given already today that no lesson step requires; <see langword="null"/> for none. An NPC asked for one answers <c>&lt;npc&gt;.gift_used</c>.</param>
+public sealed record GuideScene(GuideViewpoint Player, GuideCell? Cursor = null, bool PointerActive = false, bool Review = false, Inventory? Inventory = null, IGuideFacts? Facts = null, string? PromptOverride = null, IReadOnlySet<string>? Credited = null, bool OrderHeld = false, IReadOnlySet<string>? ClosedGifts = null);
 
 /// <summary>
 /// The outcome of one typed turn with the guide: the core's verdict in plain values, the lines to show (the correction first, then the

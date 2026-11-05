@@ -42,11 +42,12 @@ public sealed partial class VoxelSession
         }
     }
 
-    // The day's resets: one place where a passing night (a sleep or a collapse) resets what belongs to a day. The chest a death left goes (N04); N06 (picked bushes grow back,
-    // the gifts return) adds its lines here. Never called by a load, and a death is not a night.
+    // The day's resets: one place where a passing night (a sleep or a collapse) resets what belongs to a day. The chest a death left goes (N04); N06's picked bushes grow back and its gifts
+    // return (RenewAtNight). Never called by a load, and a death is not a night.
     private void RunDayResets()
     {
         DayResetCount++;
         RemoveChestAtNight();
+        RenewAtNight();
     }
 }

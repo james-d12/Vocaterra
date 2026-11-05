@@ -356,6 +356,9 @@ public sealed partial class VoxelSession : GuideSession
                 case SimulationEventKind.ItemCrafted:
                     LearnItem((ItemId)e.Detail);
                     break;
+                case SimulationEventKind.BlockRemoved:
+                    NoteGathered((BlockId)e.Detail, e.X, e.Y, e.Z); // N06: a bush picked by hand grows back after the next night
+                    break;
                 case SimulationEventKind.BlockPlaced:
                     if ((BlockId)e.Detail == BlockId.Torch)
                     {
@@ -634,8 +637,14 @@ public sealed partial class VoxelSession : GuideSession
             var effect = Data.HostEvents.Of(npc, hostEvent);
             switch (effect.Kind)
             {
+                case NpcEffectKind.GiveItem when GiftClosed(npc, effect.Item): // N06: a gift given today is not made again (the worker answered gift_used)
+                    break;
                 case NpcEffectKind.GiveItem:
-                    Give(npc, effect.Item, effect.CountFor(slots), how);
+                    if (Give(npc, effect.Item, effect.CountFor(slots), how))
+                    {
+                        CountGift(npc, effect.Item);
+                    }
+
                     break;
                 case NpcEffectKind.PointAtNoun:
                     PointAt(npc, effect.Noun);
@@ -699,11 +708,11 @@ public sealed partial class VoxelSession : GuideSession
 
     // An NPC puts items in the inventory, all of them or none (a pickup the player did not make: the word card shows the first time). The bottle is handed over
     // once, whatever the count. None (a gift by the number said, cero) gives nothing.
-    private void Give(string npc, ItemId item, int count, string how)
+    private bool Give(string npc, ItemId item, int count, string how)
     {
         if (count <= 0 || !CanGive(item, count))
         {
-            return; // a bottle held already, or the inventory is full: nothing is lost, the NPC keeps them
+            return false; // a bottle held already, or the inventory is full: nothing is lost, the NPC keeps them
         }
 
         _ = Simulation.GrantItems(item, count);
@@ -711,6 +720,7 @@ public sealed partial class VoxelSession : GuideSession
         _eventAmount = count; // an objective counting what was given counts every item, as a pickup's
         LogWorld(WorldEvents.ItemGiven, npc, $"{Nouns.ForItem(item)?.Lemma ?? ItemDefinition.Get(item).Name}, {how}");
         _eventAmount = 1;
+        return true;
     }
 
     // An NPC takes items (village-plan V03: take_item, the goods of an order), all of them or none: a player who has fewer keeps what they have. None takes nothing.
@@ -737,7 +747,7 @@ public sealed partial class VoxelSession : GuideSession
         }
 
         Take(npc, ItemId.Coin, cost, how);
-        Give(npc, item, count, how);
+        _ = Give(npc, item, count, how);
         return true;
     }
 
@@ -751,7 +761,7 @@ public sealed partial class VoxelSession : GuideSession
         }
 
         Take(npc, sale.Item, count, how);
-        Give(npc, ItemId.Coin, sale.PriceOf(count), how);
+        _ = Give(npc, ItemId.Coin, sale.PriceOf(count), how);
     }
 
     // The beacon goes to a named place of the scene (village-plan V02): a host event's point_at_place, or a lesson's do step with a pointPlace. It shows the place's label.

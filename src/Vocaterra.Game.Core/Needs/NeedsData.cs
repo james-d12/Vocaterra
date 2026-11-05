@@ -102,10 +102,30 @@ public sealed record NeedFood(string Item, double Hunger, double Thirst, double 
 /// <param name="ChestLastsUntil">When the chest goes (<c>night</c>).</param>
 public sealed record DeathSpec(string WakeAt, double Health, double Hunger, double Thirst, double Sleep, string KeepInBag, string ChestLastsUntil);
 
+/// <summary>A block that grows back (N06, design 9.6): what the player gathered by hand returns after the next night.</summary>
+/// <param name="Block">The block's name (<c>berry-bush</c>): the block the world has before a gather. The gathered cell holds the block's <c>BecomesWhenGathered</c> until it grows back.</param>
+/// <param name="After">When it grows back: <c>night</c> (a sleep or a collapse, <c>RunDayResets</c>).</param>
+public sealed record RegrowRule(string Block, string After);
+
+/// <summary>A gift an NPC gives once a day (N06, design 9.6). A gift a lesson step requires is always given.</summary>
+/// <param name="Npc">The NPC's agent id (<c>shopkeeper</c>, <c>villager</c>, <c>guide</c>).</param>
+/// <param name="Item">The item's key (<c>bread</c>): the NPC's host event that gives it is the gift.</param>
+/// <param name="Per">How often: <c>day</c>, once between two nights.</param>
+public sealed record GiftRule(string Npc, string Item, string Per)
+{
+    /// <summary>The gift's key in the session and the save: <c>shopkeeper:bread</c>.</summary>
+    public string Key => KeyOf(Npc, Item);
+
+    /// <summary>The key of an NPC's item.</summary>
+    /// <param name="npc">The agent id.</param>
+    /// <param name="item">The item's key.</param>
+    public static string KeyOf(string npc, string item) => $"{npc}:{item}";
+}
+
 /// <summary>
 /// The player's needs as data (N01, <c>game/needs.json</c>; adaptation design 9.10): the three drives, health and stamina with their stages and links, the foods, and
 /// the rules of a night, a collapse and a death. The loader reads the shape; <see cref="GameDataValidator"/> checks the values (every food an item, every rate
-/// positive, the stages in order). The regrowth and gift rules (N06) and the roast apple (N07) are not here yet: the schema takes them as optional parts later.
+/// positive, the stages in order). The regrowth and gift rules are N06's, both optional in the file; the roast apple (N07) is not here yet: the schema takes it as an optional part later.
 /// </summary>
 /// <param name="Drives">Hunger, thirst and sleep, in that order.</param>
 /// <param name="Health">Health's rules.</param>
@@ -117,6 +137,8 @@ public sealed record DeathSpec(string WakeAt, double Health, double Hunger, doub
 /// <param name="DrinkByHandThirst">Thirst restored by a drink by hand.</param>
 /// <param name="Foods">What each food gives.</param>
 /// <param name="Death">The death rules.</param>
+/// <param name="Regrowth">The blocks that grow back after a night (N06); none when the file has no <c>regrowth</c>.</param>
+/// <param name="Gifts">The gifts given once a day (N06); none when the file has no <c>gifts</c>.</param>
 public sealed record NeedsData(
     IReadOnlyList<DriveSpec> Drives,
     HealthSpec Health,
@@ -127,7 +149,9 @@ public sealed record NeedsData(
     double CollapseDelaySeconds,
     double DrinkByHandThirst,
     IReadOnlyList<NeedFood> Foods,
-    DeathSpec Death)
+    DeathSpec Death,
+    IReadOnlyList<RegrowRule> Regrowth,
+    IReadOnlyList<GiftRule> Gifts)
 {
     /// <summary>The file's path inside the bundle folder.</summary>
     public const string RelativePath = "game/needs.json";
@@ -135,12 +159,23 @@ public sealed record NeedsData(
     /// <summary>The file's format.</summary>
     public const int SchemaVersion = 1;
 
+    /// <summary>The only moment a block grows back (<see cref="RegrowRule.After"/>).</summary>
+    public const string AfterNight = "night";
+
+    /// <summary>The only rate of a gift (<see cref="GiftRule.Per"/>).</summary>
+    public const string PerDay = "day";
+
     /// <summary>The simulation's ticks a second (the gather cost is per tick).</summary>
     public const int TicksPerSecond = 60;
 
     /// <summary>One drive's rules.</summary>
     /// <param name="drive">Which drive.</param>
     public DriveSpec Of(Drive drive) => Drives.First(d => d.Drive == drive);
+
+    /// <summary>The gift rule of an NPC's item, or <see langword="null"/> when the NPC gives it freely.</summary>
+    /// <param name="npc">The agent id.</param>
+    /// <param name="item">The item's key.</param>
+    public GiftRule? GiftOf(string npc, string item) => Gifts.FirstOrDefault(g => string.Equals(g.Npc, npc, StringComparison.Ordinal) && string.Equals(g.Item, item, StringComparison.Ordinal));
 
     /// <summary>What a food item gives, or <see langword="null"/> when the item is not a food.</summary>
     /// <param name="item">The item's key (<c>bread</c>).</param>
@@ -186,7 +221,9 @@ public sealed record NeedsData(
                 Number(collapse, "delaySeconds"),
                 Number(root.GetProperty("drinkByHand"), "thirst"),
                 root.GetProperty("foods").EnumerateArray().Select(FoodOf).ToList(),
-                new DeathSpec(Text(death, "wakeAt"), Number(wake, "health"), Number(wake, "hunger"), Number(wake, "thirst"), Number(wake, "sleep"), Text(death, "keepInBag"), Text(death, "chestLastsUntil")));
+                new DeathSpec(Text(death, "wakeAt"), Number(wake, "health"), Number(wake, "hunger"), Number(wake, "thirst"), Number(wake, "sleep"), Text(death, "keepInBag"), Text(death, "chestLastsUntil")),
+                root.TryGetProperty("regrowth", out var regrowth) ? regrowth.EnumerateArray().Select(static r => new RegrowRule(Text(r, "block"), Text(r, "after"))).ToList() : [],
+                root.TryGetProperty("gifts", out var gifts) ? gifts.EnumerateArray().Select(static g => new GiftRule(Text(g, "npc"), Text(g, "item"), Text(g, "per"))).ToList() : []);
         }
         catch (Exception ex) when (ex is JsonException or KeyNotFoundException or InvalidOperationException or FormatException)
         {

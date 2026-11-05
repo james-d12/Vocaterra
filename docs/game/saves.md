@@ -53,6 +53,13 @@ chest state as optional fields of the entry. Stages and their effects are never 
 - **The belongings chest (N04)** is the `chest` entry of `systems`: `{"x","y","z","stacks":[{"item","count"}]}`, the cell of the Chest block and one total per item kind, absent when
   no chest stands. The Chest block itself is in the world's block edits (`chunks`), as any placed block; a load restores both and never removes a chest, a night does
   (`RunDayResets`), with its contents. No version change: an older v6 save has no chest.
+- **Picked bushes and the day's gifts (N06)** are the `bushes` and `gifts` entries of `systems`, both absent when empty. `bushes` is `[{"x","y","z"}]`, the cells of the berry bushes
+  picked by hand since the last night (the rule is `regrowth` in `game/needs.json`); each is a plain bush in the world's block edits until a night (`RunDayResets`, `RenewAtNight`) sets it
+  back to a berry bush. A regrown bush is the generated block again, so the world's digest is the unpicked world's: the digest follows the blocks, as for any placed or removed block, and
+  a cell the player built on meanwhile is let go. `gifts` is the keys (`shopkeeper:bread`, `villager:bread`, `guide:water-bottle`; `gifts` in `game/needs.json`) given since the last night.
+  A gift a lesson step requires (a `do` step on `item_given` at that NPC) is never closed and never counted. With `--needs off` nothing is recorded, nothing grows back and every gift is
+  given. The NPC whose gift is used answers its `<npc>.gift_used` with a line of its existing pools (the stall `shop_price`, the villager `villager_bye`, the guide `guide_offer_no`).
+  No version change; a save before N06 has neither entry (a bush picked in it stays picked).
 - **A load raises no `need_stage` event** for what was saved: the stages are taken as they are.
 
 ## Autosave and the crash report (X05, R04)

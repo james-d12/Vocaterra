@@ -1,6 +1,7 @@
 using System.Globalization;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Input;
+using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Phrases;
@@ -10,6 +11,7 @@ using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tip;
+using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Taxonomy;
@@ -69,6 +71,7 @@ public static class GameDataValidator
         CheckHostActions(data, problems);
         CheckObjectives(data, problems);
         problems.AddRange(NeedsValidator.Validate(data.Needs)); // N01: every food an item, every rate positive, the stages in order
+        CheckRenewal(data, problems);
         CheckLessonLevels(data, problems);
         return problems;
     }
@@ -318,6 +321,74 @@ public static class GameDataValidator
             if (data.HostEvents.Of(npc, hostEvent) is { Kind: NpcEffectKind.PointAtNoun, Noun: var noun } && data.Nouns.ForLemma(noun) is null)
             {
                 problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' points at '{noun}', which is not a catalogue noun.");
+            }
+        }
+    }
+
+    // N06: the regrowth and the gift rules of game/needs.json name things that exist. A regrowing block is a block the player gathers; a gift is an item an NPC of the
+    // bundle gives (a host event of game/host-events.json), once, and its agent has a state that takes <npc>.gift_used to say today's is given.
+    private static void CheckRenewal(GameData data, List<string> problems)
+    {
+        const string File = NeedsData.RelativePath;
+        var seenBlocks = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var rule in data.Needs.Regrowth)
+        {
+            var block = BlockDefinition.FromName(rule.Block);
+            if (block is null)
+            {
+                problems.Add($"{File}: the regrowth names '{rule.Block}', which is not a block.");
+            }
+            else if (!block.Gatherable)
+            {
+                problems.Add($"{File}: the regrowth names '{rule.Block}', which the player cannot gather, so it never needs to grow back.");
+            }
+
+            if (!string.Equals(rule.After, NeedsData.AfterNight, StringComparison.Ordinal))
+            {
+                problems.Add($"{File}: the regrowth of '{rule.Block}' is after '{rule.After}'; only '{NeedsData.AfterNight}' is known.");
+            }
+
+            if (!seenBlocks.Add(rule.Block))
+            {
+                problems.Add($"{File}: the regrowth of '{rule.Block}' is listed twice.");
+            }
+        }
+
+        var items = ItemDefinition.All.Select(static d => d.Name).ToHashSet(StringComparer.Ordinal);
+        var seenGifts = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var gift in data.Needs.Gifts)
+        {
+            if (!items.Contains(gift.Item))
+            {
+                problems.Add($"{File}: the gift of '{gift.Item}' by {gift.Npc} names an item that does not exist (one of {string.Join(", ", items.Order(StringComparer.Ordinal))}).");
+            }
+
+            if (!data.Bundle.Agents.ContainsKey(gift.Npc))
+            {
+                problems.Add($"{File}: the gift of '{gift.Item}' is by '{gift.Npc}', which is not an NPC of the bundle (agents/).");
+                continue;
+            }
+
+            if (!string.Equals(gift.Per, NeedsData.PerDay, StringComparison.Ordinal))
+            {
+                problems.Add($"{File}: the gift of '{gift.Item}' by {gift.Npc} is per '{gift.Per}'; only '{NeedsData.PerDay}' is known.");
+            }
+
+            if (!seenGifts.Add(gift.Key))
+            {
+                problems.Add($"{File}: the gift {gift.Key} is listed twice.");
+            }
+
+            var gives = data.HostEvents.Mapped().Any(m => string.Equals(m.Npc, gift.Npc, StringComparison.Ordinal)
+                && data.HostEvents.Of(m.Npc, m.HostEvent) is { Kind: NpcEffectKind.GiveItem } effect && string.Equals(ItemDefinition.Get(effect.Item).Name, gift.Item, StringComparison.Ordinal));
+            if (!gives)
+            {
+                problems.Add($"{File}: {gift.Npc} gives no '{gift.Item}' in {HostEventTable.RelativePath}, so there is no gift to limit.");
+            }
+
+            if (!TakenBySomeState(data, gift.Npc, NpcHostEvents.Of(gift.Npc, NpcHostEvents.GiftUsed)))
+            {
+                problems.Add($"{File}: the gift {gift.Key} is once a day, and no state of agents/{gift.Npc}.json takes '{NpcHostEvents.Of(gift.Npc, NpcHostEvents.GiftUsed)}' to say it is given.");
             }
         }
     }

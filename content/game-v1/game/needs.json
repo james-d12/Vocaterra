@@ -66,6 +66,14 @@
     { "item": "bread", "hunger": 25, "healing": 5 },
     { "item": "water-bottle", "thirst": 40, "leaves": "bottle" }
   ],
+  "regrowth": [
+    { "block": "berry-bush", "after": "night" }
+  ],
+  "gifts": [
+    { "npc": "shopkeeper", "item": "bread", "per": "day" },
+    { "npc": "villager", "item": "bread", "per": "day" },
+    { "npc": "guide", "item": "water-bottle", "per": "day" }
+  ],
   "death": {
     "wakeAt": "firering.player",
     "wake": { "health": 50, "hunger": 50, "thirst": 50, "sleep": 50 },

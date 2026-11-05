@@ -3,10 +3,10 @@
 {"path":"agents/baker.json","sha256":"d82b399974288367e4329b9254e1ad6eb21c34de45bbc154c397819aa9080171","bytes":5904},
 {"path":"agents/farmer.json","sha256":"d8bdf4c2004d3196b030d55d417ca0ef9437ece282087b9b56845f0f007f9fb1","bytes":6623},
 {"path":"agents/fisher.json","sha256":"e5941de56de1746780f4a3f92959158b5289beb300c34df29d6c7f7489fa1f75","bytes":7214},
-{"path":"agents/guide.json","sha256":"b1f50925cb43856352ef3273eac5b75b0c03d844b965fd9b10e57632750ee03a","bytes":16698},
-{"path":"agents/shopkeeper.json","sha256":"2e59016fc4983153d7c572ed21afac5540f4504aa27e21c821918a6c38028d2a","bytes":13897},
+{"path":"agents/guide.json","sha256":"dcd66d5b0fd07c25435c9ada456c0a299a77f53f9d33cd42b0c9cb6b5fdbbe77","bytes":16845},
+{"path":"agents/shopkeeper.json","sha256":"855b5c602a7b5acd02719971e4a260bc586bf8a318335440fd3d3489ec2e4545","bytes":14042},
 {"path":"agents/smith.json","sha256":"7f90c4050019f72d77f2d1a529d953949a7ea24e8a543b28f0e534c4f199401b","bytes":5201},
-{"path":"agents/villager.json","sha256":"eb492407c537b9a314eea8357380a6fab77e41338ed99a42b5066cec08eb0e31","bytes":8000},
+{"path":"agents/villager.json","sha256":"b5ede2ba77211952fa87458145716756ae6ab8b0dac84bbf9b27b4dd777cecf2","bytes":8298},
 {"path":"answer-sets/lesson-apple.json","sha256":"bec86661bcb2650ed615a97c9bd887ce03ac88874012ec2cd62ee59cd16f8cc7","bytes":665},
 {"path":"answer-sets/lesson-ate.json","sha256":"8b02d733995ded87d8ccaf7640dc9aee3991c119f63d1bbc768428f78cef48f0","bytes":724},
 {"path":"answer-sets/lesson-big.json","sha256":"5557e12067068f6cde996891661e82f1c6b8703c2eed3ab52bc2355bf19595b2","bytes":623},
@@ -91,7 +91,7 @@
 {"path":"game/lessons/manana-en-el-pueblo.json","sha256":"9472c3e29938fe01b40fb14d35ed7f653f3d256133153893f0b48f3e4838fa3e","bytes":3617},
 {"path":"game/lessons/numeros-y-pan.json","sha256":"09be9e001f157178a136f292ed06835ec95153c1ba29827bab814acbccd15f37","bytes":4196},
 {"path":"game/lessons/personas.json","sha256":"49de470283d57eb68b5e3b2aae974e279cf8124e98dae6e6b9277d580fcf0144","bytes":4549},
-{"path":"game/needs.json","sha256":"a2c11dbde2571b9995192b91e219b3dc34961e499f856485cf254e80d161440c","bytes":3910},
+{"path":"game/needs.json","sha256":"5350824b029851dce04ec365082105358065ecb4a32c3ea435be54fd39cc5f9a","bytes":4176},
 {"path":"game/nouns.json","sha256":"c2ae7e71db331c9c3da3a6df819f00d2e6e1c8b216aab6c44ce45770ab46d179","bytes":1750},
 {"path":"game/npcs.json","sha256":"e56af3363f38ce851776eb0274037ef0573113fda995423f4b2849864fb28760","bytes":620},
 {"path":"game/npcs/baker.json","sha256":"e2b8528c023e67ae9999d57465ca0934ee668deb9e3bf6ac5c915b22668847c1","bytes":897},
@@ -1401,4 +1401,4 @@
 {"path":"speech/villager/villager_wont_sell.1.wav","sha256":"3265f9782c9ad6140cb0111fff9faa2deaf07a0c6ebb5b798f8df03c9d25b1b9","bytes":67244},
 {"path":"speech/villager/villager_yes.1.slow.wav","sha256":"c89db269d94d9525b8b6e1294b6edfef8682dfd5fb5522ac7d2de7539b546c42","bytes":38444},
 {"path":"speech/villager/villager_yes.1.wav","sha256":"b7de709cd242f8181619ba356c6a8223d9a489231b934e1ee81f522f1d0442a3","bytes":30044}
-],"bundleHash":"eec0472c8ec52558fd491ecd83337f1e7be7a80b41aa4050bd8f39e6cd655698"}
+],"bundleHash":"643299541146bf3391594d86659cdf57a523ff81329b1b2d51c7add80917c13d"}

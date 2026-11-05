@@ -102,6 +102,7 @@ public sealed class SleepTests
         var loaded = LoadOf(SaveOf(session), session);
         Sleep(session);
 
+        loaded.RenewAtNight(); // the night's one change a load does not make (N06): the three bushes the camp picked grow back
         SameAsALoad(loaded, session);
         Assert.Equal(2, session.Day);
         Assert.Equal("personas", session.Lessons.NewLesson?.Id);
