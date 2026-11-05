@@ -380,7 +380,7 @@ there. Commit prefixes `N<nn>:`, `L01:`, `U<nn>:`, `W<nn>:`; one milestone branc
 | N06 | Food that grows back, and fair gifts (9.6; decision 12): berry bushes regrow after a night; bread and water gifts once per in-game day | N05 | S/M | Sonnet 5.5 | done (2026-11-05, gated at 468a1b29, 9382 passed; built before N05, its Spanish lines left to N05) |
 | W01 | `item_crafted`: a craft is a world event (activities plan) | N06 | S | Haiku 5.5 | done (2026-11-05, gated at 56f88b4b, 9385 passed) |
 | N07 | Cooking at the fire (9.6): the noun `fuego`, an apple to a roast apple at any lit fire, through the crafting path and `item_crafted` | W01 | S/M | Sonnet 5.5 | done (2026-11-05, gated at 20a8da0c, 9461 passed) |
-| N08 | A berry planted at the camp (decision 14, adopted provisionally) | N06 | S | Haiku 5.5 | proposed; after N07 if time allows |
+| N08 | A berry planted at the camp (decision 14, adopted provisionally) | N06 | S | Haiku 5.5 | in progress (the owner, 2026-11-05: "run N08 alongside U02") |
 | N09 | The drive rates as a setting (owner, 2026-11-05): a slider in the settings and `--needs-rate`, multiplying every drive's rate, for the needs playtest; a fixed value after it | N05 | S | Sonnet 5.5 | done (2026-11-05, gated at 37c7640b, 9501 passed) |
 | U01 | Clean defaults (14.3): the debug text off by default; one speak hint; the objective tracker; room for the need meters | N05 | S | Sonnet 5.5 | done (2026-11-05, gated at dd01a6e9, 9476 passed) |
 | U02 | The conversation surface (7.2): developer notes behind `--dev`/F3, older lines collapsed, the lesson strip in the header, every D-game-9 route reachable by key | U01 | M | Sonnet 5.5 | planned |

@@ -1,8 +1,8 @@
 # Handover: the adaptation, phases B to D, on feature/adaptive_design
 
 Created: 2026-11-05T20:31Z (UTC)
-Updated: 2026-11-05T21:55Z (UTC), after N09's gate (kept current after every gate, launch and owner decision: the owner,
-2026-11-05)
+Updated: 2026-11-05T22:00Z (UTC), after N08's launch beside U02 (kept current after every gate, launch and owner decision: the
+owner, 2026-11-05)
 Workstream: the owner's Adaptation Design Document, phases B to E: the needs (N), lessons as classes (L01), the presentation track (U),
 then the bread pilot (W)
 Branch: `feature/adaptive_design` (pushed; the owner merges it into `main` once, at the end); HEAD: see `git log -1` (the last record
@@ -23,7 +23,9 @@ track) is half done; phase E (the bread pilot, W05 to W10) waits for the owner's
 
 ## Working tree and running work
 
-- **One building agent runs** (two are allowed since 2026-11-05; `scripts/limited.sh` has two slots inside one capped slice):
+- **Two building agents run in parallel** (allowed since 2026-11-05; `scripts/limited.sh` has two slots inside one capped slice):
+  - **N08, a berry planted at the camp** (the owner said "run N08 alongside U02", 2026-11-05): worktree `.claude/worktrees/n08`, local
+    branch `N08-camp-berry`, brief [`.claude/briefs/n08-camp-berry.md`](../../.claude/briefs/n08-camp-berry.md), Haiku 5.5.
   - **U02, the conversation surface:** worktree `.claude/worktrees/u02`, local branch `U02-conversation-surface`, brief
     [`.claude/briefs/u02-conversation-surface.md`](../../.claude/briefs/u02-conversation-surface.md), Sonnet 5.5.
   - Their reports reach only the session that launched them. **If this session is gone:** check each worktree (`git -C <wt> status`,
@@ -57,9 +59,8 @@ track) is half done; phase E (the bread pilot, W05 to W10) waits for the owner's
 
 ## Unfinished and blocked
 
-- **Authorised, in progress:** U02 (above).
-- **Authorised, next:** none beyond them in phases B to D. **N08** (a berry planted at the camp, design decision 14, adopted only
-  provisionally) is "proposed; after N07 if time allows": launch it only if the owner says so or nothing else is left.
+- **Authorised, in progress:** U02 and N08 (above).
+- **Authorised, next:** none beyond them in phases B to D.
 - **Blocked on the owner:**
   - **The needs check** (design 9.12): the owner and two or three testers play days 1 to 3 with needs on. Its pass criteria are in the
     game plan's row and the design's 9.12. Its "go" starts the bread pilot W05 to W10 (activities plan section 4.7). The owner may lift
@@ -83,12 +84,12 @@ track) is half done; phase E (the bread pilot, W05 to W10) waits for the owner's
 
 ## Next steps
 
-1. When U02 reports: verify the branch (`git diff --stat <merge-base>..<branch>`, scope), check conflicts with
+1. When U02 or N08 reports: verify the branch (`git diff --stat <merge-base>..<branch>`, scope), check conflicts with
    `git merge-tree --write-tree --name-only HEAD <branch>`; if only generated files or docs conflict, merge the base into the branch in its
    worktree, resolve, run `scripts/content-loop.sh --speech --tier none` (or `--grammar --speech --tier full` if code or content changed on
    both sides), commit; otherwise brief a Haiku sync as [`n07-sync.md`](../../.claude/briefs/n07-sync.md).
 2. Gate from the adaptive worktree: `GATE_TARGET=feature/adaptive_design scripts/merge-gate.sh "<ID>:<branch>"` (in the background, with
    `VOCATERRA_MODELS_DIR` set), spot-check in the game, record the plan row and a findings entry, save the report, commit, push
    `feature/adaptive_design`, remove the worktree and the local branch, **update this handover**.
-3. With U02 merged, phases B to D are done apart from N08: write the owner a review notice (what to playtest, with N09's slider:
+3. With U02 and N08 merged, phases B to D are done: write the owner a review notice (what to playtest, with N09's slider:
    the settings panel and `--needs-rate`), and wait for the needs check or the owner's word on W05 to W07.
