@@ -197,6 +197,6 @@ public sealed class LessonBookTests
         var provenance = File.ReadAllText(Path.Combine(GameBundle.ResolveDirectory(), "provenance.json"));
         Assert.Contains("\"path\": \"game/lessons.json\", \"generatedBy\": \"hand-authored\"", provenance, StringComparison.Ordinal);
         Assert.DoesNotContain("english", File.ReadAllText(Repo.Path("content", "game-v1", "game", "lessons.json")).Split('"').Where(static token => token is "english" or "title" or "translation" or "help" or "retry"));
-        Assert.Equal("Getting started with Luna", TestGame.Locale.Text(LessonBook.LessonId("first-words", "title")));
+        Assert.Equal("Welcome: first words with Luna", TestGame.Locale.Text(LessonBook.LessonId("first-words", "title")));
     }
 }

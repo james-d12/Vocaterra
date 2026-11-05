@@ -2,7 +2,7 @@
   "$schema": "../../schema/locale.schema.json",
   "about": "The lessons' support-language text: lesson.<id>.title, .text, .summary, .objective; each step's lesson.<id>.<step>.text, .translation, .help, .retry, .personRetry, .tenseRetry, .presentNote, .futureNote, .hud and .option.<n>.",
   "strings": {
-    "lesson.first-words.title": "Getting started with {npc:guide}",
+    "lesson.first-words.title": "Welcome: first words with {npc:guide}",
     "lesson.first-words.text": "A short introduction: hello, yes and no, what is this, and what to say when you are stuck, then the camp.",
     "lesson.first-words.summary": "You can greet, say yes and no, ask what something is, and get unstuck: I don’t know, again, slower.",
     "lesson.first-words.u1-welcome.text": "This is {npc:guide}, the guide. She teaches you Spanish one phrase at a time. Nothing here is a test. Enter goes on, H helps, K skips a step.",
@@ -830,7 +830,7 @@
     "lesson.el-mercado.k8-review.text": "He asks something you have answered before. Answer him.",
     "lesson.el-mercado.k8-table.text": "At the market: ¿cuánto cuesta? for one thing, ¿cuánto es todo? for everything; caro (expensive), barato (cheap); más barata que (cheaper than), the adjective agreeing with the first thing compared. Poder: puedo and an infinitive. Vender in three times: compré tres manzanas (the past), quiero vender madera and vendo madera (now), mañana venderé fruta or voy a vender fruta (the future).",
     "lesson.el-mercado.k8-recap.text": "You can now count to twenty, ask what everything costs, compare prices, ask how to pay and sell, and tell the market in the past, the present and the future. That was the last lesson of the village: every lesson is done. Practise any of them in your book, and sell wood or fruit for coins whenever you like.",
-    "lesson.first-class.title": "Luna’s first class: please, thanks and I want",
+    "lesson.first-class.title": "Luna's first class: please, thanks and I want",
     "lesson.first-class.text": "A short class with {npc:guide}: yes, please and thank you, then the verbs I want, I have and I need.",
     "lesson.first-class.summary": "You can accept politely, say thanks, and say what you want, have and need."
   }

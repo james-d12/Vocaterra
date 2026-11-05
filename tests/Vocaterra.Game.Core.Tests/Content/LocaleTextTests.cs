@@ -246,14 +246,14 @@ public sealed class LocaleTextTests
         // C04: {npc:guide} is what the guide is called (game/npcs/guide.json: Luna), {key:listen} the key bound to listening, spelled as keys.json spells it.
         var ui = TestGame.Data.Locale;
 
-        Assert.Equal("Getting started with {npc:guide}", ui.Raw(LessonBook.LessonId("first-words", "title")));
-        Assert.Equal("Getting started with Luna", ui.Text(LessonBook.LessonId("first-words", "title")));
+        Assert.Equal("Welcome: first words with {npc:guide}", ui.Raw(LessonBook.LessonId("first-words", "title")));
+        Assert.Equal("Welcome: first words with Luna", ui.Text(LessonBook.LessonId("first-words", "title")));
         Assert.Equal("Hold V or Space: speak   Esc: cancel or close", ui.Ui("dialogueButtonHints"));
         Assert.Equal(["V", "Space", "Esc"], new[] { GameKey.V, GameKey.Space, GameKey.Escape }.Select(ui.KeyName));
         Assert.Equal("F11", ui.KeyName(GameKey.F11)); // a key the locale does not name keeps its own name
 
         var renamed = ui.WithNames(new Dictionary<string, string>(StringComparer.Ordinal) { ["guide"] = "Rosa" }, new Dictionary<string, GameKey>(StringComparer.Ordinal) { ["listen"] = GameKey.B, ["listenAlt"] = GameKey.Enter });
-        Assert.Equal("Getting started with Rosa", renamed.Text(LessonBook.LessonId("first-words", "title")));
+        Assert.Equal("Welcome: first words with Rosa", renamed.Text(LessonBook.LessonId("first-words", "title")));
         Assert.Equal("Hold B or Enter: speak   Esc: cancel or close", renamed.Ui("dialogueButtonHints")); // a rebound key shows in every text that names it
         Assert.Equal("Talk to {npc:nobody}", LocaleText.Parse("xx", "h", [("x.json", """{ "strings": { "x": "Talk to {npc:nobody}" } }""")]).Text("x")); // an unknown name stays as written
     }

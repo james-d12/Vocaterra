@@ -254,7 +254,7 @@ public sealed class BookSpeechTests
         var lines = bench.Controls.Lines;
         var heading = lines.Select((line, index) => (line, index)).Single(static x => x.line.Practise is not null);
         Assert.Equal("first-words", heading.line.Practise);
-        Assert.Equal("Getting started with Luna", heading.line.Text);
+        Assert.Equal("Welcome: first words with Luna", heading.line.Text);
         Assert.Single(lines, static l => l.Practise is not null); // Personas is not completed
 
         var geometry = new BookGeometry(1280, 720);
@@ -286,7 +286,7 @@ public sealed class BookSpeechTests
         var button = BookPractise.ButtonRect(geometry, geometry.ContentTop);
         Assert.Equal("first-words", bench.Controls.ClickPractise(geometry, button.X + 3, button.Y + 3));
         Assert.Equal("first-words", bench.Session.Lessons.ReplayPending);
-        Assert.Equal("Practise again: talk to the guide to start “Getting started with Luna”", bench.Session.ObjectiveHud()[0].Text);
+        Assert.Equal("Practise again: talk to the guide to start “Welcome: first words with Luna”", bench.Session.ObjectiveHud()[0].Text);
 
         Assert.Null(bench.Controls.Practise("personas")); // never completed
         Assert.Equal("first-words", bench.Controls.PractiseFirst(geometry)); // the P key asks for the first lesson on screen

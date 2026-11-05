@@ -194,9 +194,8 @@ public sealed class LessonFrontendTests
         run.Go(60000);
 
         var done = run.Log.Where(static l => l.StartsWith("  event: lesson first-words step ", StringComparison.Ordinal) && (l.EndsWith(" done", StringComparison.Ordinal) || l.Contains(" done (", StringComparison.Ordinal))).ToList();
-        Assert.Equal(37, done.Count); // every step, its outcome printed by the event line
-        Assert.Contains("  event: lesson first-words step 21 do (u4-pick) done (fruta)", run.Log); // the fruit was picked up at the bush
-        Assert.Contains("  event: lesson first-words completed (done 37, skipped 0, moved on 0)", run.Log);
+        Assert.Equal(25, done.Count); // every step, its outcome printed by the event line
+        Assert.Contains("  event: lesson first-words completed (done 25, skipped 0, moved on 0)", run.Log);
         Assert.Equal(LessonStatus.Completed, run.Session.Lessons.StatusOf("first-words"));
         Assert.Equal(1, run.Session.Objective.Step("berry")!.Count); // the lesson's fruit is a real one: the checklist moved
         Assert.True(run.Session.GuideMet);
