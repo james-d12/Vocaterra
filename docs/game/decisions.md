@@ -469,6 +469,13 @@ Five points wait for the owner: the
 design's section 18, decisions 13 to 17 (conditions, a first bush at the camp, expansion, a chosen starting session and a relaxed
 needs option); D-game-25 answered the chosen starting session).
 
+**Owner's answers, 2026-11-05** (on N05's findings):
+1. **The drive rates are a setting for now:** "make this a configurable slider in the settings for now so it can be easily adjusted for
+   playtesting. Perhaps in the final test we just put up a fixed value." N05 found that day 1 barely touches the needs at N01's rates
+   (thirst 91 at the lowest at a novice's pace). Built by N09; the fixed value is chosen after the needs check.
+2. **«Me muero de hambre / sed / sueño» stays**, though `morir` is above A2 in the lists: "it applies to the game about death, so we kind
+   of need that in the game". The HUD's stage lines are text the player reads, not lines the lint holds to the ceiling.
+
 ## D-game-25: lessons optional (decided)
 
 **Owner, 2026-11-04,** on reviewing the adaptation design: "One important thing we need to move the game away from, is centering it

@@ -4,6 +4,7 @@ using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Mathematics;
+using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
@@ -243,7 +244,7 @@ public sealed class VoxelSimulation
             {
                 for (var x = bx - radius; x <= bx + radius; x++)
                 {
-                    if (Grid.GetBlock(x, y, z) != station)
+                    if (Grid.GetBlock(x, y, z) != station || (station == BlockId.FireRing && !Fires.StoneBurns(new BlockPos(x, y, z))))
                     {
                         continue;
                     }
@@ -261,6 +262,9 @@ public sealed class VoxelSimulation
 
         return false;
     }
+
+    /// <summary>The fire rings of the world (N07): a fire-ring stone is a station (<c>fuego</c>) only while its ring burns.</summary>
+    private FireRings Fires => _fires ??= new FireRings(Grid);
 
     /// <summary>What crafting the recipe at <paramref name="recipeIndex"/> would do now (nothing is changed).</summary>
     public CraftResult CanCraft(int recipeIndex)
@@ -376,6 +380,8 @@ public sealed class VoxelSimulation
         hash.AppendData(rest);
         return Convert.ToHexString(hash.GetHashAndReset()).ToLowerInvariant();
     }
+
+    private FireRings? _fires;
 
     private bool RecipeStationInReach(Recipe recipe) =>
         recipe.Station is { } station && StationInReach(station);

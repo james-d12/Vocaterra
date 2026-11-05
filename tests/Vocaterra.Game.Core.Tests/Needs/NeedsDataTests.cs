@@ -17,7 +17,7 @@ public sealed class NeedsDataTests
     [Fact]
     public void TheShippedFoodsAreTheItemsThatExistToday()
     {
-        Assert.Equal(["berry", "apple", "bread", "water-bottle"], Needs.Foods.Select(static f => f.Item).ToArray());
+        Assert.Equal(["berry", "apple", "roast-apple", "bread", "water-bottle"], Needs.Foods.Select(static f => f.Item).ToArray());
         Assert.Equal((8, 12, 25), (Needs.FoodOf("berry")!.Hunger, Needs.FoodOf("apple")!.Hunger, Needs.FoodOf("bread")!.Hunger));
         Assert.Equal(40, Needs.FoodOf("water-bottle")!.Thirst);
         Assert.Equal(10, Needs.DrinkByHandThirst);

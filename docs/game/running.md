@@ -76,7 +76,7 @@ nothing held and without Spanish. **Hold Left Shift** while walking to sprint (a
 and a sprint cost stamina, and standing still within 3 blocks of a lit fire (the own fire once its torch is on the rim, the guide's camp fire likewise, the forge always)
 doubles stamina's refill and health's recovery. The events `meal_eaten` (the food's noun) and `water_drunk` (`botella`, or `pozo`, `lago` or the river's noun) print like
 `need_stage`. `--needs off` keeps the actions (the food is used up, the events are raised) and leaves the meters still. Two scripted steps drive them, both test aids:
-`--eat <item>` gives the item if the bag has none and eats or drinks it as the right click does (`pan`, `fruta`, `manzana`, `agua`), `--drink` drinks by hand at the water the
+`--eat <item>` gives the item if the bag has none and eats or drinks it as the right click does (`pan`, `fruta`, `manzana`, `agua`), `--give <item>` puts one in the bag (N07, a test aid: `--give manzana` then `--craft roast-apple` at a lit fire; the item key `roast-apple` names the roast apple, `manzana` the apple; `--eat` prints the health too for a food that heals), `--drink` drinks by hand at the water the
 crosshair is on (walk to the bank, `--look` at the water and `--wait 1` first: the look takes a tick). Each prints a line, `eat: Done (Bread), hunger 65, thirst 100` or `drink: Done, thirst 40`.
 
 **The needs on screen (N05).** Health is a thin bar beside the hotbar; stamina has its own bar only while it is below its maximum, with a dashed end for what the drives cut from it. A drive at stage 1 or more shows
@@ -108,7 +108,7 @@ dotnet run --project src/Vocaterra.Game -- --seed 42 --greyscale --look 120,-5 -
 WASD or the arrows walk, Space jumps, the mouse looks (Esc lets the mouse go, a click takes it back). **Hold the left button** on a trunk
 (`madera`, five for the camp) or a berry bush (`fruta`, three) to gather it, the right button places the selected item, `1`..`0` or the wheel
 pick the hotbar slot, **I** the inventory, **C** the crafting panel, **E** the inventory or, with the crosshair on the workbench (`mesa`), the
-crafting panel. The panel lists the recipes (the torch: `antorcha` from two `madera` at the workbench); a click on a row crafts it. **J** the
+crafting panel; the same at a lit fire ring (`fuego`, N07: a ring with a torch in its three-by-three; an unlit ring does nothing, and the sleep offer waits while the crosshair is on a lit ring). The panel lists the recipes (the torch: `antorcha` from two `madera` at the workbench; the roast apple: `manzana` from one `manzana` at a lit fire, labelled `manzana asada`); a click on a row crafts it. **J** the
 book, **F3** the debug overlay and the dialogue's developer note (the grey "intent, understood, 100 %, 12 ms" line under your line), both off at the start unless the run has `--dev` (U01; not in a playtest, where F3 does nothing), **F5** the view over your own shoulder and back (S15: first person is where every run starts; `--third-person` starts
 in the shoulder view), **F6** saves. **Aim the crosshair at the guide's figure**: the hint `E: talk` shows, and **E** (or **T** to type, or **V**
 to talk: hold it, the clip goes when it is let go) opens the dialogue panel, which takes the keyboard and frees the mouse. **The panel has

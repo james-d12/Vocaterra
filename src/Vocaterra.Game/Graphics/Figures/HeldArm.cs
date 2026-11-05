@@ -55,6 +55,7 @@ public static class HeldItems
             ItemId.Coin => new HeldChoice(HeldKind.Sprite, BlockCell.IconCoin),
             ItemId.Apple => new HeldChoice(HeldKind.Sprite, BlockCell.IconApple),
             ItemId.Axe => new HeldChoice(HeldKind.Sprite, BlockCell.IconAxe),
+            ItemId.RoastApple => new HeldChoice(HeldKind.Sprite, BlockCell.IconRoastApple),
             _ => HeldChoice.Nothing,
         };
     }

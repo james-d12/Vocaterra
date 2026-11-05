@@ -322,3 +322,9 @@ key word that is no catalogue noun, a pool prefix another NPC has, and a prompt 
 focus there that names none of them (V12b). `--talk fisher` then walks up to it in a scripted run. Behaviour the data
 cannot say stays code, by id: the shopkeeper's fail-forward (the bottle after four misses, and on a later visit) and the guide's review, transfer
 offer and world lines (`docs/game/content-plan.md` section 3.6).
+
+## Stations and items that share a noun (N07)
+
+A recipe's `station` is a catalogue noun that names a block (`mesa` the table, `fuego` the fire-ring stones; the fire counts only while its ring burns). When the output noun names several items
+(`manzana`: the apple and the roast apple), the recipe's `makes` gives the item's key (`roast-apple`), and the noun's `labels` gives the text that labels it (`manzana asada`). A new item key joins the enums
+of the schemas that list items (`nouns`, `host-events`, `objective`) and, if it is food, `foods` in `game/needs.json`.

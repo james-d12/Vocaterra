@@ -42,7 +42,8 @@ in `docs/nlp/api.md` updates that record.
    `W`), for example `V29: `.
 2. **Launch** with `subagent_type: general-purpose` and the model and effort from "Models" below. Give it its own worktree
    (`isolation: worktree`, or `git worktree add -b <branch> .claude/worktrees/<id> <feature branch>` when disk is short). The agent
-   commits and pushes its milestone branch often (owner, 2026-10-30).
+   commits its milestone branch often and never pushes it: only the feature branch goes to the remote (owner, 2026-11-05: "Local
+   branches are fine, but we dont need to push those ones to remote"; it replaces the 2026-10-30 rule of pushing every milestone branch).
 3. **Verify the report cheaply** before merging: the branch exists and is clean, `git diff --stat <merge-base>..<branch>` matches the
    report, no unexplained deletions, nothing under `.github/workflows/` unless its brief names it, no edits to either plan or decision
    register, nothing under `bin/`, `obj/` or `artifacts/`, and no game milestone edited the core (or a core milestone the game) unless its

@@ -379,8 +379,9 @@ there. Commit prefixes `N<nn>:`, `L01:`, `U<nn>:`, `W<nn>:`; one milestone branc
 | N05 | The HUD and the opening (9.8, 9.9): bars, icons, stage lines, sounds, view effects and their option, the tip and the death screen, the relaxed-needs option (decision 17); layout tests at every scale; the day-1 route proven safe | N04 | S/M | Sonnet 5.5 | done (2026-11-05, gated at 6dfa8566, 9433 passed) |
 | N06 | Food that grows back, and fair gifts (9.6; decision 12): berry bushes regrow after a night; bread and water gifts once per in-game day | N05 | S/M | Sonnet 5.5 | done (2026-11-05, gated at 468a1b29, 9382 passed; built before N05, its Spanish lines left to N05) |
 | W01 | `item_crafted`: a craft is a world event (activities plan) | N06 | S | Haiku 5.5 | done (2026-11-05, gated at 56f88b4b, 9385 passed) |
-| N07 | Cooking at the fire (9.6): the noun `fuego`, an apple to a roast apple at any lit fire, through the crafting path and `item_crafted` | W01 | S/M | Sonnet 5.5 | planned |
+| N07 | Cooking at the fire (9.6): the noun `fuego`, an apple to a roast apple at any lit fire, through the crafting path and `item_crafted` | W01 | S/M | Sonnet 5.5 | done (2026-11-05, gated at 20a8da0c, 9461 passed) |
 | N08 | A berry planted at the camp (decision 14, adopted provisionally) | N06 | S | Haiku 5.5 | proposed; after N07 if time allows |
+| N09 | The drive rates as a setting (owner, 2026-11-05): a slider in the settings and `--needs-rate`, multiplying every drive's rate, for the needs playtest; a fixed value after it | N05 | S | Sonnet 5.5 | planned |
 | U01 | Clean defaults (14.3): the debug text off by default; one speak hint; the objective tracker; room for the need meters | N05 | S | Sonnet 5.5 | planned |
 | U02 | The conversation surface (7.2): developer notes behind `--dev`/F3, older lines collapsed, the lesson strip in the header, every D-game-9 route reachable by key | U01 | M | Sonnet 5.5 | planned |
 | The needs check | The owner and two or three testers play days 1 to 3 with needs on (9.12) | N01 to N07 | | the owner | waits for the owner |
@@ -2235,6 +2236,16 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   `limited.sh`'s new peak-memory line in place of the lint and licence results; `scripts/merge-gate.sh` now skips those lines (the
   results themselves were read from the logs: lint 0 errors, 149 warnings, unused `guide.*` pools; licences passed). Report
   `.claude/briefs/l01-report.md`.
+- **N07, cooking at the fire (2026-11-05, Sonnet 5.5, then a Haiku sync with L01; gated on `feature/adaptive_design` at `20a8da0c`,
+  9461 passed, 3 skipped).** A lit fire ring is the station `fuego` (a catalogue noun): with the crosshair on its stones or the ground
+  inside, E opens the crafting panel ("Fire"), as at the workbench; an unlit ring does nothing. The roast apple is item 33 (`roast-apple`),
+  listed under `manzana` with the label «manzana asada» (a new optional noun field `labels`); its recipe needs a new optional `makes`, since
+  a noun's first item is the raw apple. Hunger +20, healing 5; raw food keeps its values. The craft logs `item_crafted (manzana)`. A test aid
+  `--give <item>`; `--eat` prints health for a food that heals. **Design against code:** E needs the crosshair on the ring, though the
+  panel's hint shows within 6 blocks; on a lit ring crafting comes before the sleep offer. Scripted runs: the speech count (the `fuego`
+  card), a recipe row in r08, the Fire panel in runs that end at the camp with apples; no re-baseline. The orchestrator's check: the camp
+  route, a torch by the ring, `--give manzana --craft roast-apple`, `item_crafted (manzana)`, eaten from hunger 40 to 58.8. Report
+  `.claude/briefs/n07-report.md`.
 
 ## 6. Definition of done (every milestone)
 

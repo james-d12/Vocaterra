@@ -306,7 +306,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                         }
 
                         var result = session.EatItem(item);
-                        Console.WriteLine($"eat: {result} ({item}), hunger {session.Needs.Value(NeedMeter.Hunger):0.#}, thirst {session.Needs.Value(NeedMeter.Thirst):0.#}");
+                        var healed = session.Data.Needs.FoodOf(ItemDefinition.Get(item).Name) is { Healing: > 0 } ? $", health {session.Needs.Value(NeedMeter.Health):0.#}" : string.Empty; // a food that heals shows the health too (N07)
+                        Console.WriteLine($"eat: {result} ({item}), hunger {session.Needs.Value(NeedMeter.Hunger):0.#}, thirst {session.Needs.Value(NeedMeter.Thirst):0.#}{healed}");
                     },
                     () => Console.WriteLine($"drink: {session.DrinkByHand()}, thirst {session.Needs.Value(NeedMeter.Thirst):0.#}"),
                     () => Console.WriteLine($"take-belongings: {session.TakeBelongings()}, chest {(session.Chest is { } chest ? $"{chest.Total} items at {chest.Cell.X},{chest.Cell.Y},{chest.Cell.Z}" : "gone")}"),
@@ -315,6 +316,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                         var parts = text.Split(' ');
                         session.SetNeed(Enum.Parse<NeedMeter>(parts[0], ignoreCase: true), double.Parse(parts[1], System.Globalization.CultureInfo.InvariantCulture));
                         Console.WriteLine($"need: {text}");
+                    },
+                    item =>
+                    {
+                        session.Simulation.GrantItems(item, 1); // a test aid (N07): --give puts one in the bag
+                        Console.WriteLine($"give: {item}, bag {session.Simulation.Inventory.Count(item)}");
                     });
                 _scenario = new ScenarioScript(session, _look, _dialogue, options.Script, name => ScriptItemNames.Resolve(session.Nouns, name), hooks, Console.WriteLine, holdsCheckAnswers: options.Playtest);
             }
@@ -740,8 +746,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         base.UnloadContent();
     }
 
-    // The crosshair is on the workbench (the mesa): E opens the crafting panel there, as C does anywhere.
-    private bool AimedAtWorkbench() => _sim.Target is { } hit && hit.Id == BlockId.Table;
+    // The crosshair is on a crafting station: the workbench (the mesa), or a lit fire (N07: a stone of a burning ring, or the ground inside it). E opens the crafting panel there, as C does
+    // anywhere, and comes before the sleep at the same fire (an unlit ring does nothing, as before).
+    private bool AimedAtWorkbench() =>
+        _sim.Target is { } hit && (hit.Id == BlockId.Table
+            || (hit.Id == BlockId.FireRing && _session.Fires.StoneBurns(hit.Block))
+            || (_session.Fires.Middles.Contains(hit.Adjacent) && _session.Fires.IsLit(hit.Adjacent)));
 
     // Keys and mouse, once per frame, for the interactive run. The device state becomes this frame's commands (LiveVoxelInput) and the look.
     private void ReadInput()

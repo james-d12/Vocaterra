@@ -14,7 +14,7 @@ public sealed class RecipeBookTests
     {
         Assert.True(TestGame.Bundle.TryReadHostFile(RecipeBook.RelativePath, out var bytes));
         Assert.True(bytes.Length > 0);
-        Assert.Single(Book.Entries);
+        Assert.Equal(2, Book.Entries.Count); // the workbench torch, and (N07) the roast apple at the fire
         Assert.Equal("antorcha", Book.Entries[0].Output.Lemma);
         Assert.Equal(1, Book.Entries[0].OutputCount);
         Assert.Equal("mesa", Book.Entries[0].Station!.Lemma);
@@ -59,6 +59,9 @@ public sealed class RecipeBookTests
     }
 
     [Theory]
+    [InlineData("""{"schemaVersion":1,"recipes":[{"output":"antorcha","count":1,"ingredients":[{"item":"madera","count":1}],"station":"horno"}]}""")] // N07: a station that is no catalogue noun
+    [InlineData("""{"schemaVersion":1,"recipes":[{"output":"antorcha","count":1,"ingredients":[{"item":"madera","count":1}],"station":"botella"}]}""")] // and one that names no block
+    [InlineData("""{"schemaVersion":1,"recipes":[{"output":"manzana","makes":"axe","count":1,"ingredients":[{"item":"madera","count":1}],"station":"fuego"}]}""")] // and a made item the noun does not name
     [InlineData("""{"schemaVersion":1,"recipes":[{"output":"nube","count":1,"ingredients":[{"item":"madera","count":1}],"station":null}]}""")]
     [InlineData("""{"schemaVersion":1,"recipes":[{"output":"antorcha","count":1,"ingredients":[{"item":"nube","count":1}],"station":null}]}""")]
     [InlineData("""{"schemaVersion":1,"recipes":[{"output":"antorcha","count":1,"ingredients":[],"station":null}]}""")]

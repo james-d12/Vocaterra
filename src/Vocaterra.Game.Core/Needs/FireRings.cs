@@ -63,6 +63,21 @@ public sealed class FireRings
         return false;
     }
 
+    /// <summary>Whether the stone at <paramref name="stone"/> belongs to a ring that burns now (N07: the fire as a crafting station).</summary>
+    /// <param name="stone">A <see cref="BlockId.FireRing"/> cell.</param>
+    public bool StoneBurns(BlockPos stone)
+    {
+        foreach (var middle in _middles)
+        {
+            if (middle.Y == stone.Y && Math.Abs(middle.X - stone.X) <= 1 && Math.Abs(middle.Z - stone.Z) <= 1 && IsLit(middle))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /// <summary>Whether a lit ring's middle lies within <paramref name="blocks"/> across of the feet (and within six blocks in height): the player is at the fire.</summary>
     /// <param name="feet">The block the player's feet are in.</param>
     /// <param name="blocks">The radius in blocks.</param>

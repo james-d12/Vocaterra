@@ -16,7 +16,7 @@ public sealed class GameDataTests
         var data = GameData.Load(TestGame.Bundle, TestGame.Locale);
 
         Assert.Empty(GameDataValidator.Validate(data));
-        Assert.Equal(22, data.Nouns.Nouns.Count); // V03 added moneda, manzana and hacha
+        Assert.Equal(23, data.Nouns.Nouns.Count); // V03 added moneda, manzana and hacha, N07 fuego
         Assert.Equal(155, data.Phrases.Rows.Count); // V10 added El pueblo's fifteen, V11 Números y pan's sixteen, V12 Gente del pueblo's sixteen, V13 ¿Cómo es?'s sixteen, V14 Ayer en el pueblo's sixteen, V17 Mañana en el pueblo's ten, V15 El mercado's twenty
         Assert.Equal(87, data.Checks.Count);
         Assert.Equal(11, data.Lessons.Lessons.Count); // L01 split Luna's first class from the introduction

@@ -273,6 +273,9 @@ public enum BlockCell
 
     /// <summary>The icon of the axe (the item): a steel head on a wooden haft.</summary>
     IconAxe,
+
+    /// <summary>The icon of a roast apple (the item, N07): the apple, browned and cooked, with a golden highlight.</summary>
+    IconRoastApple,
 }
 
 /// <summary>
@@ -389,6 +392,7 @@ public static class BlockAtlasLayout
         ItemId.Coin => BlockCell.IconCoin,
         ItemId.Apple => BlockCell.IconApple,
         ItemId.Axe => BlockCell.IconAxe,
+        ItemId.RoastApple => BlockCell.IconRoastApple,
         _ => null,
     };
 
