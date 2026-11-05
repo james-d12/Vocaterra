@@ -16,6 +16,29 @@
     "event": "villager.greet",
     "when": "always"
   },
+  "acknowledgementPools": [
+    "answer_accepted",
+    "villager_nice"
+  ],
+  "slotReplies": {
+    "state_weather": {
+      "slot": "weather",
+      "event": "villager.weather",
+      "values": [
+        "mucho frío",
+        "mucho calor",
+        "mucho sol",
+        "mucho viento",
+        "frío",
+        "calor",
+        "sol",
+        "viento",
+        "fresco",
+        "buen tiempo",
+        "mal tiempo"
+      ]
+    }
+  },
   "voice": {
     "speaker": 53,
     "name": "em_santa",

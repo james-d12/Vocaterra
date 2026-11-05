@@ -136,6 +136,50 @@
       },
       "description": "The key words (catalogue nouns) whose cards the NPC shows alone before its first question (the shopkeeper's agua and pan); moved here from game/words.json."
     },
+    "acknowledgementPools": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "description": "V29: the dialogue pools of the NPC's bare acknowledgements (answer_accepted, smith_nice). A recast is not said beside one (V21); the one the NPC owns gives way to its <poolPrefix>_true («Sí, es verdad.») when the line was about the listener (V28)."
+    },
+    "slotReplies": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "slot",
+          "event",
+          "values"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "slot": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The verdict's slot the reply says back (weather)."
+          },
+          "event": {
+            "type": "string",
+            "minLength": 1,
+            "description": "A host event the game never fires, whose transition in agents/<id>.json names the template pool (smith.weather): the pool takes the slot ({weather})."
+          },
+          "values": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "The slot values the template can take; the speech renderer records one WAV of the template per value. Another value, or none, keeps the plain reply of the intent's transition."
+          }
+        }
+      },
+      "description": "V29: by intent (state_weather), the reply that says a word of the learner's line back (Sí, hace frío.) in place of the intent's plain reply (¡Sí!)."
+    },
     "poolPrefix": {
       "type": "string",
       "minLength": 1,

@@ -19,7 +19,8 @@ public class OffPromptLineTests
 
     // The orchestrator's table of 2026-11-02 and its kind: before M72 each constrained row was vocab.wrong (expected '') at 0.4, and none said what it meant.
     [Theory]
-    [InlineData("la tienda está en el pueblo", "farmer-open", null)]
+    [InlineData("usted hace hachas muy buenas", "smith-open", "describe")] // M78: a compliment is describe
+    [InlineData("la tienda está en el pueblo", "baker-open", "describe")] // M78: a location statement is describe
     [InlineData("tengo un hacha", "farmer-open", "state_have")]
     [InlineData("tengo dos manzanas", "fisher-open", "state_have")]
     [InlineData("me gusta el río", "smith-open", "state_like")]
@@ -48,6 +49,8 @@ public class OffPromptLineTests
     [InlineData("dónde está la panadería", "fisher-open", "ask_directions")]
     [InlineData("el pan es bonito", "farmer-open", "describe")]
     [InlineData("quiero dos panes por favor", "baker-open", "request_item")]
+    [InlineData("la tienda está en el pueblo", "farmer-open", "describe")] // M78: it was unknown at every prompt, and the NPC said «No te entendí»
+    [InlineData("tú pescas mucho", "fisher-open", "state_action")] // M78: a statement about the listener's activity
     public void TheSameKindOfLineAtAPromptThatTakesItIsUnderstood(string transcript, string promptId, string intent)
     {
         var verdict = Evaluate(transcript, promptId).Verdict;

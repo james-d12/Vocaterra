@@ -12,12 +12,19 @@ public class LineVocabularyTests
         { "lesson-will-go", "mañana iré al glorp", "state_action", true, ["vocab.unknown=río"] },
         { "lesson-will-go", "glorp iré al río", "state_action", false, ["vocab.unknown"] },
         { "lesson-market", "compré tres glorps", "unknown", false, ["vocab.unknown"] },
-        { "villager-open", "me llamo ana", "unknown", false, ["vocab.unknown"] },
-        { "villager-open", "hola me llamo marta", "greet", false, ["vocab.unknown"] },
+        { "villager-open", "me llamo ana", "unknown", false, [] }, // M78: a name after me llamo is no unknown word, at any prompt
+        { "villager-open", "hola me llamo marta", "greet", true, [] },
+        { "villager-open", "Pedro", "unknown", false, [] }, // M78: a lone capitalised word of a free line is a name
+        { "villager-open", "soy pedro", "unknown", false, [] },
+        { "villager-open", "hola, soy pedro", "greet", true, [] },
+        { "villager-open", "hola pedro", "greet", true, [] },
+        { "smith-open", "buenos días pedro", "unknown", false, [] }, // no intent takes a name after buenos días, but it is no unknown word
+        { "villager-open", "quiero pedro", "unknown", false, ["vocab.unknown"] }, // M78: an unknown word anywhere else stays unknown
+        { "villager-open", "hace pedro", "unknown", false, ["vocab.unknown"] },
         { "lesson-will-go", "pasado mañana iré al río con Mar", "state_action", true, [] }, // M75: correct Spanish, a word added to the answer: no near miss
         { "lesson-what", "cuál es esto", "ask_what", true, ["vocab.wrong=qué"] }, // M75: the near miss names its word
         { "farmer-open", "mi amigo se llama pedro", "ask_name", false, ["vocab.unknown"] },
-        { "lesson-name", "me llamo pedro", "unknown", false, ["vocab.unknown"] },
+        { "lesson-name", "me llamo pedro", "unknown", false, [] }, // M78: a name after me llamo is no unknown word
     };
 
     [Theory]

@@ -82,6 +82,15 @@ public sealed class LinguisticAnalyzer
         return Complete(readings, BestMatch(readings, grammars));
     }
 
+    /// <summary>The analysis of <see cref="Analyze(NormalizedText, IReadOnlyList{SlotGrammar})"/> with the name reading of M78 (<paramref name="names"/>).</summary>
+    public AnalysisResult Analyze(NormalizedText text, IReadOnlyList<SlotGrammar> grammars, NameFallback names)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        ArgumentNullException.ThrowIfNull(grammars);
+        var readings = Read(text);
+        return Complete(readings, BestMatch(readings, grammars), names);
+    }
+
     /// <summary>The first half of an analysis: every lexicon reading of every token, which depends on the text alone.</summary>
     internal TextReadings Read(NormalizedText text)
     {
@@ -151,7 +160,7 @@ public sealed class LinguisticAnalyzer
     /// function of the two alone, and since a match is a function of the readings and its grammar, a caller that analyzes one text against many lists of grammars can
     /// complete it once per winning grammar (the content lint does). The readings are not changed: each result gets its own list of tokens.
     /// </summary>
-    internal AnalysisResult Complete(TextReadings readings, SlotGrammarMatch? match)
+    internal AnalysisResult Complete(TextReadings readings, SlotGrammarMatch? match, NameFallback fallback = NameFallback.None)
     {
         ArgumentNullException.ThrowIfNull(readings);
         var text = readings.Text;
@@ -183,7 +192,22 @@ public sealed class LinguisticAnalyzer
         // The grammar decides first which words are names ([WORD] elements). A name is not an unknown word, and it is no learner's slip either (an irregular verb
         // form, a plural), even when its spelling is one. It carries no reading at all, so no rule, check or recast treats it as a word (a lexicon verb form would be
         // conjugated by a recast).
-        var names = match?.WordTokens ?? new HashSet<int>();
+        // M78: and, where the caller asks for it, a word the lexicon lacks that no grammar binds is a name where a name is said (soy pedro, hola, soy pedro, hola pedro:
+        // after the words that introduce a name, the pack's IsNamePosition), or alone on the line when written with a capital (Pedro; a lone lower-case word, xyzzy, cannot be told from a mistyped word). Any other unknown word stays unknown.
+        var names = new HashSet<int>(match?.WordTokens ?? new HashSet<int>());
+        if (fallback != NameFallback.None)
+        {
+            var words = analyzed.Select(static a => a.Token.Text).ToList();
+            for (var i = 0; i < analyzed.Count; i++)
+            {
+                var alone = fallback == NameFallback.IntroducedOrAlone && analyzed.Count == 1 && char.IsUpper(analyzed[i].Token.Original.FirstOrDefault());
+                if (analyzed[i].Readings.Count == 0 && readings.Slips[i] is null && (alone || _rules.IsNamePosition(words, i)) && IsNameShaped(analyzed[i].Token.Text))
+                {
+                    names.Add(i);
+                }
+            }
+        }
+
         var allKnown = true;
         for (var i = 0; i < analyzed.Count; i++)
         {
@@ -243,6 +267,8 @@ public sealed class LinguisticAnalyzer
             ResolvedWords(text, analyzed, resolved, names),
             notes.Count == 0 ? null : notes);
     }
+
+    private static bool IsNameShaped(string text) => text.Length > 0 && text.All(static c => char.IsLetter(c));
 
     // M70 (the owner's answer of 2026-11-01, D-game-22 item 3): a verb written without the accent that marks its tense (compre for compré) is read as the accented
     // form where the written form has a tense error and nothing else, the accented form has a person and number of the written one, and reading it takes the error

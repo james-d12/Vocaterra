@@ -389,7 +389,7 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
         var normalized = SpanishTextNormalizer.Normalize(asr.Transcript.Replace(GrammarBuilder.UnknownToken, " ", StringComparison.Ordinal), PipelineHarness.Normalization);
         var match = AnswerMatcher.Match(normalized, answerSet, prompt.Difficulty, SpanishLanguagePack.Instance, PipelineHarness.Normalization);
         var analysis = AnswerCorrections.WithCanonicalWords(
-            new LinguisticAnalyzer(bundle.Lexicon, bundle.SpanishMorphology(), SpanishLanguagePack.Instance).Analyze(normalized, GrammarsFor(bundle, prompt)),
+            new LinguisticAnalyzer(bundle.Lexicon, bundle.SpanishMorphology(), SpanishLanguagePack.Instance).Analyze(normalized, GrammarsFor(bundle, prompt), NameFallbacks.For(prompt)),
             normalized,
             match,
             answerSet, SpanishLanguagePack.Instance,

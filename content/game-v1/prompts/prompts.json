@@ -14,7 +14,7 @@
     "mode": "Open",
     "difficulty": "Beginner",
     "answerSetId": "places-basic",
-    "allowedIntentIds": ["ask_directions", "ask_craft", "ask_find", "ask_what", "state_want", "state_have", "ask_help", "dont_know", "name_object", "greet", "ask_wellbeing", "thank", "farewell", "ask_repeat", "ask_slower"],
+    "allowedIntentIds": ["ask_directions", "ask_craft", "ask_find", "ask_what", "state_want", "state_have", "ask_help", "dont_know", "name_object", "greet", "ask_wellbeing", "thank", "farewell", "ask_repeat", "ask_slower", "state_weather", "ask_weather"],
     "agentId": "guide",
     "slotGrammarIds": [],
     "text": "¡Hola! Soy la guía. ¿En qué te ayudo?"
@@ -24,7 +24,7 @@
     "mode": "Open",
     "difficulty": "Beginner",
     "answerSetId": "places-basic",
-    "allowedIntentIds": ["ask_directions", "ask_craft", "ask_find", "ask_what", "state_want", "state_have", "ask_help", "dont_know", "name_object", "greet", "ask_wellbeing", "thank", "farewell", "ask_repeat", "ask_slower"],
+    "allowedIntentIds": ["ask_directions", "ask_craft", "ask_find", "ask_what", "state_want", "state_have", "ask_help", "dont_know", "name_object", "greet", "ask_wellbeing", "thank", "farewell", "ask_repeat", "ask_slower", "state_weather", "ask_weather"],
     "agentId": "guide",
     "slotGrammarIds": [],
     "text": "¿Qué es esto?"
@@ -34,7 +34,7 @@
     "mode": "Constrained",
     "difficulty": "Beginner",
     "answerSetId": "supplies",
-    "allowedIntentIds": ["request_item", "ask_price", "ask_availability", "state_have", "state_action", "describe", "ask_help", "dont_know", "ask_how"],
+    "allowedIntentIds": ["request_item", "ask_price", "ask_availability", "state_have", "state_action", "describe", "ask_help", "dont_know", "ask_how", "state_weather", "ask_weather", "ask_wellbeing"],
     "agentId": "shopkeeper",
     "slotGrammarIds": [],
     "text": "¿Qué necesitas?"
@@ -54,7 +54,7 @@
     "mode": "Open",
     "difficulty": "Beginner",
     "answerSetId": "places-basic",
-    "allowedIntentIds": ["ask_directions", "request_item", "state_action", "greet", "ask_wellbeing", "thank", "farewell", "ask_help", "dont_know", "name_object", "ask_how"],
+    "allowedIntentIds": ["ask_directions", "request_item", "state_action", "greet", "ask_wellbeing", "thank", "farewell", "ask_help", "dont_know", "name_object", "ask_how", "state_weather", "ask_weather"],
     "agentId": "villager",
     "slotGrammarIds": [],
     "text": "Hola."
@@ -284,7 +284,7 @@
     "mode": "Constrained",
     "difficulty": "Beginner",
     "answerSetId": "places-village",
-    "allowedIntentIds": ["ask_directions", "ask_far", "ask_availability", "state_action", "greet", "ask_wellbeing", "thank", "farewell", "ask_help", "dont_know", "ask_how"],
+    "allowedIntentIds": ["ask_directions", "ask_far", "ask_availability", "state_action", "greet", "ask_wellbeing", "thank", "farewell", "ask_help", "dont_know", "ask_how", "state_weather", "ask_weather"],
     "agentId": "fisher",
     "slotGrammarIds": [],
     "text": "¿Qué buscas?"
@@ -364,7 +364,7 @@
     "mode": "Constrained",
     "difficulty": "Beginner",
     "answerSetId": "supplies-bakery",
-    "allowedIntentIds": ["request_item", "offer_item", "ask_price", "ask_total", "ask_availability", "state_action", "state_have", "greet", "ask_wellbeing", "thank", "farewell", "ask_help", "dont_know", "ask_how"],
+    "allowedIntentIds": ["request_item", "offer_item", "ask_price", "ask_total", "ask_availability", "state_action", "state_have", "greet", "ask_wellbeing", "thank", "farewell", "ask_help", "dont_know", "ask_how", "state_weather", "ask_weather"],
     "agentId": "baker",
     "slotGrammarIds": [],
     "text": "¿Qué quieres?"
@@ -404,7 +404,7 @@
     "mode": "Constrained",
     "difficulty": "Beginner",
     "answerSetId": "people-smith",
-    "allowedIntentIds": ["ask_name", "ask_activity", "state_have", "state_want", "offer_item", "state_action", "state_obligation", "greet", "ask_wellbeing", "thank", "farewell", "ask_help", "dont_know", "ask_how"],
+    "allowedIntentIds": ["ask_name", "ask_activity", "state_have", "state_want", "offer_item", "state_action", "state_obligation", "greet", "ask_wellbeing", "thank", "farewell", "ask_help", "dont_know", "ask_how", "state_weather", "ask_weather"],
     "agentId": "smith",
     "slotGrammarIds": [],
     "text": "¡Hola! Esta es mi herrería."
@@ -414,7 +414,7 @@
     "mode": "Constrained",
     "difficulty": "Beginner",
     "answerSetId": "people-farmer",
-    "allowedIntentIds": ["ask_name", "ask_activity", "request_item", "offer_item", "ask_price", "ask_total", "ask_pay", "describe", "state_like", "state_action", "greet", "ask_wellbeing", "thank", "farewell", "ask_help", "dont_know", "ask_how"],
+    "allowedIntentIds": ["ask_name", "ask_activity", "request_item", "offer_item", "ask_price", "ask_total", "ask_pay", "describe", "state_like", "state_action", "greet", "ask_wellbeing", "thank", "farewell", "ask_help", "dont_know", "ask_how", "state_weather", "ask_weather"],
     "agentId": "farmer",
     "slotGrammarIds": [],
     "text": "¡Hola! Este es mi campo."

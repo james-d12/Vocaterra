@@ -809,7 +809,7 @@ public static class LanguageOracles
         var normalized = pack.Normalizer.Normalize(asr.Transcript.Replace(GrammarBuilder.UnknownToken, " ", StringComparison.Ordinal), PipelineHarness.Normalization);
         var match = AnswerMatcher.Match(normalized, answerSet, prompt.Difficulty, pack, PipelineHarness.Normalization);
         var analysis = AnswerCorrections.WithCanonicalWords(
-            new LinguisticAnalyzer(bundle.Lexicon, bundle.LanguageMorphology, pack).Analyze(normalized, GrammarsFor(bundle, prompt)),
+            new LinguisticAnalyzer(bundle.Lexicon, bundle.LanguageMorphology, pack).Analyze(normalized, GrammarsFor(bundle, prompt), NameFallbacks.For(prompt)),
             normalized,
             match,
             answerSet,

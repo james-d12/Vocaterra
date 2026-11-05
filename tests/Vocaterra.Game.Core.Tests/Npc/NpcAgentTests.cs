@@ -197,7 +197,7 @@ public sealed class NpcAgentTests
         var bundle = TestGame.Bundle;
         foreach (var agentId in new[] { "shopkeeper", "villager" })
         {
-            foreach (var poolId in bundle.Agents[agentId].Definition.VariantPools!.Select(static p => p.Id))
+            foreach (var poolId in bundle.Agents[agentId].Definition.VariantPools!.Select(static p => p.Id).Where(pool => !bundle.Agents[agentId].Definition.States.SelectMany(static s => s.Transitions).Any(t => t.OnHostEvent is { } e && e.EndsWith(".weather", StringComparison.Ordinal) && t.Actions.Any(a => a.VariantPoolId == pool)))) // V29: the slot reply's template pool is recorded once per value
             {
                 Assert.True(bundle.Dialogue.TryGetPool(poolId, out var pool), $"{agentId}: no pool {poolId}.");
                 foreach (var variant in pool.Variants)

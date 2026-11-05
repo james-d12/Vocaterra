@@ -59,7 +59,7 @@ public sealed partial class UtterancePipeline
         ConversationContext context)
     {
         var content = _services.Content;
-        var (request, recast) = BuildFeedback(decision.Feedback, normalized, analysis, match, content.AnswerSets, content.Lexicon, content.Language);
+        var (request, recast) = BuildFeedback(decision.Feedback, verdict, normalized, analysis, match, content.AnswerSets, content.Lexicon, content.Language);
         if (prompt.AgentId is null && IsAcceptedAnswer(verdict) && content.Dialogue.TryGetPool(AnswerAcceptedPool, out _))
         {
             return PlanWithFallback(verdict, request, recast, AnswerAcceptedPool, content.Dialogue, context);
@@ -159,6 +159,7 @@ public sealed partial class UtterancePipeline
 
     private static (FeedbackRequest? Request, string? Recast) BuildFeedback(
         FeedbackPlan plan,
+        Verdict verdict,
         NormalizedText normalized,
         AnalysisResult analysis,
         MatchResult match,
@@ -185,7 +186,7 @@ public sealed partial class UtterancePipeline
             return (null, null);
         }
 
-        var recast = item.Type == FeedbackType.Recast ? RecastBuilder.Build(normalized, analysis, lexicon, language) : null;
+        var recast = item.Type == FeedbackType.Recast ? RecastBuilder.Build(normalized, analysis, lexicon, language, verdict.Errors) : null;
         return (new FeedbackRequest(item.Tag, expected, item.Actual, KindOf(item.Type)), recast);
     }
 

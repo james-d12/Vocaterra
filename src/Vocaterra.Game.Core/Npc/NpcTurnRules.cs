@@ -194,11 +194,14 @@ public static class NpcTurnRules
     /// <param name="freeTalkPools">The NPC's lesson pools by the pool said in free talk instead (<see cref="NpcEntry.FreeTalkPools"/>), or <see langword="null"/>.</param>
     /// <param name="freeTalk">Whether the line was said in free talk, not as the answer of a lesson step or a review.</param>
     /// <param name="bundle">The content bundle, for the NPC's «Sí, es verdad.» (V28): without it a statement about the listener is answered as any other.</param>
-    /// <param name="npc">The NPC's id (its agent's id), whose <c>&lt;npc&gt;.true</c> transition names the pool of «Sí, es verdad.».</param>
-    public static ComposedReply Compose(PipelineResult result, bool understood, IReadOnlyList<string> unsaid, IEnumerable<string> names, Func<string, bool>? skip = null, IReadOnlyDictionary<string, string>? freeTalkPools = null, bool freeTalk = true, ContentBundle? bundle = null, string? npc = null)
+    /// <param name="npc">The NPC, whose <c>&lt;id&gt;.true</c> transition names the pool of «Sí, es verdad.» and whose file declares its acknowledgement pools (<see cref="NpcEntry.AcknowledgementPools"/>) and its slot replies (<see cref="NpcEntry.SlotReplies"/>, V29).</param>
+    /// <param name="worldSeed">The world seed, for the draw among the variants of the NPC's replies (V29).</param>
+    /// <param name="counter">The agent's interaction counter before the turn, for the same draw.</param>
+    public static ComposedReply Compose(PipelineResult result, bool understood, IReadOnlyList<string> unsaid, IEnumerable<string> names, Func<string, bool>? skip = null, IReadOnlyDictionary<string, string>? freeTalkPools = null, bool freeTalk = true, ContentBundle? bundle = null, NpcEntry? npc = null, ulong worldSeed = 0, long counter = 0)
     {
         ArgumentNullException.ThrowIfNull(result);
-        var listenerPool = freeTalk && bundle is not null && npc is not null && AboutListener(result) ? PoolSaidOn(bundle, npc, TrueEvent(npc)) : null;
+        var listenerPool = freeTalk && bundle is not null && npc is not null && AboutListener(result) ? PoolSaidOn(bundle, npc.Id, TrueEvent(npc.Id)) : null;
+        var acknowledgementPools = npc?.AcknowledgementPools ?? [];
         ArgumentNullException.ThrowIfNull(unsaid);
         string? feedback = null;
         var replies = new List<string>();
@@ -229,8 +232,9 @@ public static class NpcTurnRules
             }
             else
             {
-                replies.Add(listenerPool is not null && System.Text.RegularExpressions.Regex.IsMatch(line.LineId, @"^[a-z]+_nice\.\d+$") ? ListenerReply(bundle!, listenerPool, line) : line.Text);
-                acknowledgements.Add(IsAcknowledgement(line.LineId));
+                var acknowledgement = acknowledgementPools.FirstOrDefault(pool => line.LineId.StartsWith(pool + ".", StringComparison.Ordinal));
+                replies.Add(listenerPool is not null && acknowledgement is not null && npc!.OwnsPool(acknowledgement) ? ListenerReply(bundle!, listenerPool, worldSeed, counter, line.Text) : line.Text);
+                acknowledgements.Add(acknowledgement is not null);
             }
         }
 
@@ -245,7 +249,47 @@ public static class NpcTurnRules
             }
         }
 
+        if (freeTalk && bundle is not null && npc is not null && replies.Count > 0 && SlotReplyOf(bundle, npc, result.Verdict, worldSeed, counter) is { } echo)
+        {
+            replies[0] = echo;
+        }
+
         return new ComposedReply(feedback, replies);
+    }
+
+    /// <summary>The stream of the draw among the variants of an NPC's «Sí, es verdad.» and of its slot replies (V29), the same in the game and the host.</summary>
+    public const string ReplyStream = "npc.reply";
+
+    /// <summary>The variant of an NPC's pool for an interaction, drawn from the world seed and the agent's counter on <see cref="ReplyStream"/>: no clock, no <c>System.Random</c>.</summary>
+    /// <param name="pool">The pool.</param>
+    /// <param name="worldSeed">The world seed.</param>
+    /// <param name="counter">The agent's interaction counter before the turn.</param>
+    public static DialogueTemplate Pick(VariantPool pool, ulong worldSeed, long counter) =>
+        DialogueSelector.Select(pool, SeededRng.ForInteraction(worldSeed, ReplyStream, counter));
+
+    /// <summary>
+    /// The NPC's reply that says a word of the line back (V29, <see cref="NpcEntry.SlotReplies"/>): «Sí, hace frío.» for <c>hace frío</c>, rendered from the pool its agent names on the
+    /// reply's host event with the verdict's slot; <see langword="null"/> when the verdict's intent has no such reply, the line has no such slot or its value is not on the reply's list
+    /// (the plain reply then stands).
+    /// </summary>
+    /// <param name="bundle">The content bundle.</param>
+    /// <param name="npc">The NPC.</param>
+    /// <param name="verdict">The turn's verdict.</param>
+    /// <param name="worldSeed">The world seed.</param>
+    /// <param name="counter">The agent's interaction counter before the turn.</param>
+    public static string? SlotReplyOf(ContentBundle bundle, NpcEntry npc, Verdict verdict, ulong worldSeed, long counter)
+    {
+        ArgumentNullException.ThrowIfNull(bundle);
+        ArgumentNullException.ThrowIfNull(npc);
+        ArgumentNullException.ThrowIfNull(verdict);
+        if (!verdict.Communicated || !npc.SlotReplies.TryGetValue(verdict.Intent.Value, out var reply)
+            || !verdict.Slots.TryGetValue(reply.Slot, out var value) || !reply.Values.Contains(value, StringComparer.Ordinal)
+            || PoolSaidOn(bundle, npc.Id, reply.Event) is not { } pool || !bundle.Dialogue.TryGetPool(pool, out var found) || found.Variants.Count == 0)
+        {
+            return null;
+        }
+
+        return bundle.TemplateEngine.Render(Pick(found, worldSeed, counter), SlotMap.From(new Dictionary<string, string>(StringComparer.Ordinal) { [reply.Slot] = value }));
     }
 
     /// <summary>
@@ -284,13 +328,11 @@ public static class NpcTurnRules
         return false;
     }
 
-    // The NPC's «Sí, es verdad.» in the place of its bare «¡Qué bien!» (the pool its agent says on <npc>.true), when the bundle has the pool.
-    private static string ListenerReply(ContentBundle bundle, string pool, ResponseLine line) =>
-        bundle.Dialogue.TryGetPool(pool, out var found) && found.Variants.Count > 0 ? bundle.TemplateEngine.Render(found.Variants[0], SlotMap.Empty) : line.Text;
-
-    // Whether a line of the agent is a bare acknowledgement (V20's free-talk replies: «¡Qué bien!», «Muy bien»): the answer_accepted pool and each NPC's <npc>_nice.
-    private static bool IsAcknowledgement(string lineId) =>
-        lineId.StartsWith("answer_accepted.", StringComparison.Ordinal) || System.Text.RegularExpressions.Regex.IsMatch(lineId, @"^[a-z]+_nice\.\d+$");
+    // The NPC's «Sí, es verdad.» in the place of its bare «¡Qué bien!» (the pool its agent says on <npc>.true), drawn from the interaction's seed, when the bundle has the pool.
+    private static string ListenerReply(ContentBundle bundle, string pool, ulong worldSeed, long counter, string otherwise) =>
+        bundle.Dialogue.TryGetPool(pool, out var found) && found.Variants.Count > 0
+            ? bundle.TemplateEngine.Render(Pick(found, worldSeed, counter), SlotMap.Empty)
+            : otherwise;
 }
 
 /// <summary>The NPC's answers to a turn's missed actions (<see cref="NpcTurnRules.AnswerMisses"/>).</summary>

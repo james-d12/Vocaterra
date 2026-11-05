@@ -43,6 +43,18 @@ public sealed record NpcEntry(string Id, string Label, string? Name, string Figu
     /// </summary>
     public IReadOnlyDictionary<string, string> FreeTalkPools { get; init; } = new Dictionary<string, string>(StringComparer.Ordinal);
 
+    /// <summary>
+    /// The pools of the NPC's bare acknowledgements, the ids its file declares (V29: <c>answer_accepted</c> and the NPC's own <c>&lt;npc&gt;_nice</c>): a recast is not said beside one
+    /// (V21), and the one the NPC owns (<see cref="OwnsPool"/>) gives way to its «Sí, es verdad.» when the line was about the listener (V28). Empty for an NPC that says none.
+    /// </summary>
+    public IReadOnlyList<string> AcknowledgementPools { get; init; } = [];
+
+    /// <summary>
+    /// The replies that echo a word of the learner's line (V29), by the intent whose plain reply they replace (<c>state_weather</c>): see <see cref="SlotReply"/>.
+    /// Empty for an NPC that echoes nothing.
+    /// </summary>
+    public IReadOnlyDictionary<string, SlotReply> SlotReplies { get; init; } = new Dictionary<string, SlotReply>(StringComparer.Ordinal);
+
     /// <summary>The key words (catalogue nouns) whose cards the NPC shows alone before its first question (the shopkeeper's <c>agua</c>, <c>pan</c>); empty for most.</summary>
     public IReadOnlyList<string> KeyWords { get; init; } = [];
 
@@ -83,6 +95,16 @@ public sealed record NpcEntry(string Id, string Label, string? Name, string Figu
         return poolId.StartsWith(PoolPrefix + "_", StringComparison.Ordinal) || poolId.StartsWith(NpcRoster.LessonPoolPrefix + PoolPrefix + ".", StringComparison.Ordinal);
     }
 }
+
+/// <summary>
+/// A reply that says a word of the learner's line back (V29: «Sí, hace frío.»): when the verdict's <paramref name="Slot"/> holds one of <paramref name="Values"/>, the NPC says
+/// the pool its agent names on <paramref name="Event"/> (a host event the game never fires, as <c>&lt;npc&gt;.true</c>), rendered with the slot, in place of the plain reply of the
+/// intent's transition («¡Sí!»). The closed list of values is what the speech renderer records (one WAV per value); any other value, and a line with no slot, keeps the plain reply.
+/// </summary>
+/// <param name="Slot">The verdict's slot (<c>weather</c>).</param>
+/// <param name="Event">The host event whose transition names the template pool (<c>smith.weather</c>).</param>
+/// <param name="Values">The slot values the template can take.</param>
+public sealed record SlotReply(string Slot, string Event, IReadOnlyList<string> Values);
 
 /// <summary>
 /// The game's NPCs (content-plan 3.6, C08): <c>game/npcs.json</c> lists their ids in order (the saves keep the NPCs in this order), and each NPC is its own file,
@@ -288,6 +310,8 @@ public sealed class NpcRoster
                 Opening = root.TryGetProperty("opening", out var opening) ? OpeningOf(opening, path) : NpcOpeningRule.Never,
                 Voice = root.TryGetProperty("voice", out var voice) ? VoiceOf(voice, path) : null,
                 FreeTalkPools = root.TryGetProperty("freeTalkPools", out var freeTalk) ? freeTalk.EnumerateObject().ToDictionary(static p => p.Name, static p => p.Value.GetString() ?? string.Empty, StringComparer.Ordinal) : new Dictionary<string, string>(StringComparer.Ordinal),
+                AcknowledgementPools = root.TryGetProperty("acknowledgementPools", out var acknowledgements) ? acknowledgements.EnumerateArray().Select(static p => p.GetString() ?? string.Empty).ToList() : [],
+                SlotReplies = root.TryGetProperty("slotReplies", out var slotReplies) ? slotReplies.EnumerateObject().ToDictionary(static p => p.Name, p => SlotReplyOf(p.Value, path), StringComparer.Ordinal) : new Dictionary<string, SlotReply>(StringComparer.Ordinal),
                 KeyWords = root.TryGetProperty("keyWords", out var keyWords) ? keyWords.EnumerateArray().Select(static w => w.GetString() ?? string.Empty).ToList() : [],
             };
             return string.IsNullOrWhiteSpace(pools) ? entry : entry with { PoolPrefix = pools };
@@ -301,6 +325,10 @@ public sealed class NpcRoster
     /// <summary>A roster of these NPCs (the tests' own).</summary>
     /// <param name="npcs">The NPCs, in order.</param>
     internal static NpcRoster Of(IReadOnlyList<NpcEntry> npcs) => new(npcs);
+
+    // { "slot", "event", "values": [ "<value>" ] }
+    private static SlotReply SlotReplyOf(JsonElement reply, string path) =>
+        new(Text(reply, "slot", path), Text(reply, "event", path), reply.GetProperty("values").EnumerateArray().Select(static v => v.GetString() ?? string.Empty).ToList());
 
     // { "event"?, "when": "always" | "first" | "never" }: a rule that raises an event must name it.
     private static NpcOpeningRule OpeningOf(JsonElement opening, string path)

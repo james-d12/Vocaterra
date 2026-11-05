@@ -613,6 +613,29 @@ public static class GameDataValidator
         {
             problems.Add($"{file}: the key word '{lemma}' is not a catalogue noun.");
         }
+
+        foreach (var pool in npc.AcknowledgementPools.Where(pool => !data.Bundle.Dialogue.Pools.ContainsKey(pool)))
+        {
+            problems.Add($"{file}: the acknowledgement pool '{pool}' is not a dialogue pool of the bundle.");
+        }
+
+        foreach (var (intent, reply) in npc.SlotReplies)
+        {
+            var pool = NpcTurnRules.PoolSaidOn(data.Bundle, npc.Id, reply.Event);
+            if (pool is null || !data.Bundle.Dialogue.Pools.TryGetValue(pool, out var found))
+            {
+                problems.Add($"{file}: the slot reply for '{intent}' names the event '{reply.Event}', which no transition of agents/{npc.Id}.json takes with a dialogue pool.");
+            }
+            else if (found.Variants.Any(variant => TemplateEngine.ReferencedSlots(variant).Any(slot => !string.Equals(slot, reply.Slot, StringComparison.Ordinal))))
+            {
+                problems.Add($"{file}: the pool '{pool}' of the slot reply for '{intent}' names a slot other than '{reply.Slot}'.");
+            }
+
+            if (reply.Values.Count == 0 || reply.Values.Any(string.IsNullOrWhiteSpace) || reply.Values.Distinct(StringComparer.Ordinal).Count() != reply.Values.Count)
+            {
+                problems.Add($"{file}: the slot reply for '{intent}' needs a list of distinct values, none empty.");
+            }
+        }
     }
 
     private static void CheckScene(GameData data, List<string> problems)
