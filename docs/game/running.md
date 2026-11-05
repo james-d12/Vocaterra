@@ -60,6 +60,12 @@ the language runs keep their baselines); `--set-need <need> <value>` sets one at
 DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --set-need thirst 30 --walk-to 176,186 --screenshot /tmp/n01.png --frames 60 --save /tmp/n01.save
 ```
 
+**Sleep and the collapse (N03).** Every night (E at the lit fire, Enter on the closing card, `--sleep`) applies the night to the needs: sleep to 100, health +20 (to 100),
+hunger -15 and thirst -20, neither below 10 (a drive already below 10 stays). After 60 s of active play with sleep at its last stage the screen fades and the player sleeps where
+they stand (sleep to 50, stamina full, the same costs, no health), wakes there, and the day and sitting move as for a night; a tip explains it once. To reach it in a script:
+`--set-need sleep 0 --wait 62` (needs on; the collapse is the sleep drive's, so hunger 0 does not cause it). The line `sleep: collapse: session 1 ends where the player fell, ...`
+is printed. A night with `--needs off` leaves the meters as they are.
+
 **Eating, drinking, sprinting (N02).** With a food selected in the hotbar, the right button eats it (a berry, an apple, bread; the water bottle is drunk and leaves the
 empty bottle); at full hunger the food is kept and a line says so. **E** with the crosshair on water within reach (the river, the lake, the well) is a drink by hand, with
 nothing held and without Spanish. **Hold Left Shift** while walking to sprint (about 1.6 times the walking speed) while stamina lasts and no stage forbids it; a gathered block

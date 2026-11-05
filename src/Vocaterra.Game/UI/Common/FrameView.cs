@@ -129,6 +129,9 @@ public sealed class FrameView
     /// <summary>The closing card's line offering the sleep for this frame (V12c: <c>Enter: sleep until morning and start session 2</c>), or <see langword="null"/>.</summary>
     public string? EndingSleep { get; set; }
 
+    /// <summary>How black the world is for this frame, 0 (clear) to 1 (black): the fade of a collapse (N03).</summary>
+    public float FadeAlpha { get; set; }
+
     /// <summary>The mouse pointer in window pixels, or <see langword="null"/> when it is outside the window.</summary>
     public Point? Mouse { get; set; }
 

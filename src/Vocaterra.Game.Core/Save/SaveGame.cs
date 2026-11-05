@@ -340,9 +340,10 @@ public static class SaveGame
     /// </summary>
     /// <param name="session">The running game, at rest, with no talk open.</param>
     /// <param name="document">The session's own save, captured now.</param>
+    /// <param name="collapse">The night is a collapse (N03): the needs take the collapse's values, not the night's, and the player stays where they are (the world is the save's, taken where they stand).</param>
     /// <exception cref="InvalidOperationException">The session is not at rest.</exception>
     /// <exception cref="ArgumentException">The save is not this session's, taken now.</exception>
-    public static void Sleep(VoxelSession session, SaveDocument document)
+    public static void Sleep(VoxelSession session, SaveDocument document, bool collapse = false)
     {
         ArgumentNullException.ThrowIfNull(session);
         ArgumentNullException.ThrowIfNull(document);
@@ -358,10 +359,11 @@ public static class SaveGame
         }
 
         session.ClearUnsaved();
-        RestoreParts(session, document, migrating: false); // N01: the needs entry passes through the night unchanged, as a load's does; the night's changes (PlayerNeeds.Sleep) are N03's
+        RestoreParts(session, document, migrating: false); // the needs come back as a load's do; the night's changes on them follow (ApplyNight)
         session.Day = document.Session + 1;
         session.Sitting = (document.Sitting ?? document.Session) + 1;
         session.LogEvent(new WorldEvent(session.CurrentTick, session.StoredTime.UnixSeconds, WorldEvents.Slept, null, string.Create(CultureInfo.InvariantCulture, $"session {document.Session} to {session.Day}"))); // the new session's first event
+        session.ApplyNight(collapse);
         session.BeginPlaySession();
     }
 
