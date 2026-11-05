@@ -245,6 +245,45 @@
         }
       }
     },
+    "planting": {
+      "type": "object",
+      "description": "N08 (design decision 14): the berry the player plants at the camp. Planted on grass or dirt inside the radius of the camp's fire ring, the cell becomes the block at once (a plain bush, recorded as picked) and the grown block after the next night, through the regrowth rule. Optional; the validator refuses an unknown item or block, a grown block with no regrowth rule, and a radius or count of 0 or less.",
+      "required": [
+        "item",
+        "block",
+        "grownBlock",
+        "radiusBlocks",
+        "maxBushes"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "item": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The item planted (berry)."
+        },
+        "block": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The block the planted cell becomes at once (bush, a plain bush)."
+        },
+        "grownBlock": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The block it grows into after a night (berry-bush); it needs a regrowth rule."
+        },
+        "radiusBlocks": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "How far from the camp's fire ring, horizontally, in blocks (8)."
+        },
+        "maxBushes": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "The most planted bushes alive at once (6)."
+        }
+      }
+    },
     "gifts": {
       "type": "array",
       "description": "N06: the gifts an NPC gives once per in-game day. The NPC's host event in host-events.json that gives the item is the gift; a night makes it available again; a gift a lesson step requires is always given. The NPC's agent takes <npc>.gift_used to say it is given today.",
