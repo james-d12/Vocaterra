@@ -306,7 +306,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                         }
 
                         var result = session.EatItem(item);
-                        Console.WriteLine($"eat: {result} ({item}), hunger {session.Needs.Value(NeedMeter.Hunger):0.#}, thirst {session.Needs.Value(NeedMeter.Thirst):0.#}");
+                        var healed = session.Data.Needs.FoodOf(ItemDefinition.Get(item).Name) is { Healing: > 0 } ? $", health {session.Needs.Value(NeedMeter.Health):0.#}" : string.Empty; // a food that heals shows the health too (N07)
+                        Console.WriteLine($"eat: {result} ({item}), hunger {session.Needs.Value(NeedMeter.Hunger):0.#}, thirst {session.Needs.Value(NeedMeter.Thirst):0.#}{healed}");
                     },
                     () => Console.WriteLine($"drink: {session.DrinkByHand()}, thirst {session.Needs.Value(NeedMeter.Thirst):0.#}"),
                     () => Console.WriteLine($"take-belongings: {session.TakeBelongings()}, chest {(session.Chest is { } chest ? $"{chest.Total} items at {chest.Cell.X},{chest.Cell.Y},{chest.Cell.Z}" : "gone")}"),
@@ -315,6 +316,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                         var parts = text.Split(' ');
                         session.SetNeed(Enum.Parse<NeedMeter>(parts[0], ignoreCase: true), double.Parse(parts[1], System.Globalization.CultureInfo.InvariantCulture));
                         Console.WriteLine($"need: {text}");
+                    },
+                    item =>
+                    {
+                        session.Simulation.GrantItems(item, 1); // a test aid (N07): --give puts one in the bag
+                        Console.WriteLine($"give: {item}, bag {session.Simulation.Inventory.Count(item)}");
                     });
                 _scenario = new ScenarioScript(session, _look, _dialogue, options.Script, name => ScriptItemNames.Resolve(session.Nouns, name), hooks, Console.WriteLine, holdsCheckAnswers: options.Playtest);
             }

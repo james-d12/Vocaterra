@@ -518,7 +518,7 @@ public sealed record LaunchOptions
             }
 
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--locale" or "--scene" or "--look" or "--walk-to" or "--interact"
-                or "--place" or "--select" or "--craft" or "--eat" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
+                or "--place" or "--select" or "--craft" or "--eat" or "--give" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
                 or "--check" or "--pick" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--sound-log"
                 or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects"))
@@ -1008,6 +1008,15 @@ public sealed record LaunchOptions
                     }
 
                     script.Add(new ScriptStep(ScriptStepKind.Eat, Value: value.Trim()));
+                    break;
+                case "--give":
+                    if (value.Trim().Length == 0)
+                    {
+                        error = "--give needs an item, like manzana.";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(ScriptStepKind.Give, Value: value.Trim()));
                     break;
                 case "--craft":
                     if (value.Trim().Length == 0)

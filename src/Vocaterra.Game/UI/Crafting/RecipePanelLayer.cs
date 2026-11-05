@@ -49,7 +49,7 @@ public sealed class RecipePanelLayer : IFrameLayer
             if (view.Voxel.StationInReach(BlockId.Table) || view.Voxel.StationInReach(BlockId.FireRing))
             {
                 var panels = RecipePanelModel.AtStation(CraftingScreen.Rows(view.Voxel, view.Session.Recipes), view.Voxel.StationInReach);
-                _model = panels.Count > 0 ? panels[0] : null;
+                _model = panels.FirstOrDefault(static p => p.CanMake) ?? (panels.Count > 0 ? panels[0] : null); // the one the player can make now, else the first
                 _atFire = _model is { } m && view.Session.Recipes.Entries[m.Index].Rule.Station == BlockId.FireRing;
             }
         }

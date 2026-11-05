@@ -350,6 +350,18 @@ public sealed class ScenarioScript
 
                 _index++;
                 break;
+            case ScriptStepKind.Give:
+                if (_resolveItem(step.Value) is { } given)
+                {
+                    _hooks.Give?.Invoke(given);
+                }
+                else
+                {
+                    _log($"give {step.Value}: no such item");
+                }
+
+                _index++;
+                break;
             case ScriptStepKind.Drink:
                 _hooks.Drink?.Invoke();
                 _index++;

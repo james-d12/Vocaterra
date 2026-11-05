@@ -72,7 +72,7 @@ nothing held and without Spanish. **Hold Left Shift** while walking to sprint (a
 and a sprint cost stamina, and standing still within 3 blocks of a lit fire (the own fire once its torch is on the rim, the guide's camp fire likewise, the forge always)
 doubles stamina's refill and health's recovery. The events `meal_eaten` (the food's noun) and `water_drunk` (`botella`, or `pozo`, `lago` or the river's noun) print like
 `need_stage`. `--needs off` keeps the actions (the food is used up, the events are raised) and leaves the meters still. Two scripted steps drive them, both test aids:
-`--eat <item>` gives the item if the bag has none and eats or drinks it as the right click does (`pan`, `fruta`, `manzana`, `agua`), `--drink` drinks by hand at the water the
+`--eat <item>` gives the item if the bag has none and eats or drinks it as the right click does (`pan`, `fruta`, `manzana`, `agua`), `--give <item>` puts one in the bag (N07, a test aid: `--give manzana` then `--craft roast-apple` at a lit fire; the item key `roast-apple` names the roast apple, `manzana` the apple; `--eat` prints the health too for a food that heals), `--drink` drinks by hand at the water the
 crosshair is on (walk to the bank, `--look` at the water and `--wait 1` first: the look takes a tick). Each prints a line, `eat: Done (Bread), hunger 65, thirst 100` or `drink: Done, thirst 40`.
 
 **The needs on screen (N05).** Health is a thin bar beside the hotbar; stamina has its own bar only while it is below its maximum, with a dashed end for what the drives cut from it. A drive at stage 1 or more shows

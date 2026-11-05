@@ -90,4 +90,7 @@ public enum ScriptStepKind
 
     /// <summary>Sets a need where the script stands (<c>--need thirst 51</c>, N04, a test aid): <see cref="ScriptStep.Value"/> is the need and the value.</summary>
     SetNeed,
+
+    /// <summary>Puts one of the item named in <see cref="ScriptStep.Value"/> in the bag (<c>--give manzana</c>, N07, a test aid like <c>--eat</c>'s: a run that crafts needs its ingredient).</summary>
+    Give,
 }
