@@ -3,7 +3,7 @@ You are implementing the game milestone **V29, the weather and «¿cómo estás?
 Do the work yourself; do not spawn subagents.
 
 ## Where to work, and pushing
-Work only in the git worktree `/home/user/Dev/Vocaterra/.claude/worktrees/v29`, already on the branch `V29-weather-wellbeing-replies` (from `feature/village-decisions` at @@BASE@@, with M74 merged). cd there first; never edit `/home/user/Dev/Vocaterra` or any other worktree; do not switch branches.
+Work only in the git worktree `/home/user/Dev/Vocaterra/.claude/worktrees/v29`, already on the branch `V29-weather-wellbeing-replies` (from `feature/village-decisions` at 048c4048, with M74 merged). cd there first; never edit `/home/user/Dev/Vocaterra` or any other worktree; do not switch branches.
 - Commit after each item that builds and passes its tests, with the prefix `V29: `. Push after every commit: `git push -u origin V29-weather-wellbeing-replies` the first time.
 - Never push `main` or `feature/village-decisions`, and do not merge. When you finish, leave the worktree on your branch, clean.
 
@@ -71,7 +71,7 @@ After every content edit run `scripts/content-loop.sh --grammar --speech` direct
 
 ## Gate (yours, before reporting)
 - `scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4`, 0 warnings.
-- `scripts/content-loop.sh --grammar --speech --tier full`, all passing (8950 passed and 3 skipped after M74; report the new count).
+- `scripts/content-loop.sh --grammar --speech --tier full`, all passing (9019 passed and 3 skipped after M75; report the new count).
 - `scripts/limited.sh dotnet format Vocaterra.sln --verify-no-changes`.
 - `scripts/limited.sh scripts/content.sh validate`; the lint at A2 clean (`scripts/content.sh lint content/game-v1 --strict --level a2 --fail-on-level --host-pools 'guide.*'`).
 - Do not commit `bin/`, `obj/` or `artifacts/`. When you finish, `git status` is clean and the branch is pushed.
