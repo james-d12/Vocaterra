@@ -355,6 +355,9 @@ public sealed partial class VoxelSession : GuideSession
                     break;
                 case SimulationEventKind.ItemCrafted:
                     LearnItem((ItemId)e.Detail);
+                    _eventAmount = e.Amount; // W01: a craft is a world event, counted as a pickup is (the output's count)
+                    LogWorld(WorldEvents.ItemCrafted, null, Nouns.ForItem((ItemId)e.Detail)?.Lemma ?? ItemDefinition.Get((ItemId)e.Detail).Name);
+                    _eventAmount = 1;
                     break;
                 case SimulationEventKind.BlockRemoved:
                     NoteGathered((BlockId)e.Detail, e.X, e.Y, e.Z); // N06: a bush picked by hand grows back after the next night
