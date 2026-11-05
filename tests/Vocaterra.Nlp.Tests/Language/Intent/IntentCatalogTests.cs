@@ -130,4 +130,17 @@ public class IntentCatalogTests
     {
         Assert.ThrowsAny<JsonException>(() => IntentCatalog.Load("{\"schemaVersion\":1,\"intents\":["));
     }
+
+    // M81: an intent with examples and no slot grammar or keyword rule is a valid catalog entry (the embedding rung reads its examples), so the loader's
+    // acceptance of the removed grammars is by design; the fuzz oracle's tolerance (ExampleOnlyIntent) relies on it.
+    [Fact]
+    public void AnIntentWithOnlyExamplesLoadsAndKeepsThemForTheEmbeddingRung()
+    {
+        var catalog = IntentCatalog.Load(Single("\"intentId\":\"describe\",\"requiredSlots\":[],\"slotGrammars\":[],\"keywordRules\":[],\"examples\":[\"es muy grande\",\"es pequeño\"]"));
+
+        var intent = Assert.Single(catalog.Intents);
+        Assert.Empty(intent.Grammars);
+        Assert.Empty(intent.KeywordRules);
+        Assert.Equal(2, intent.ExampleSpecs.Count);
+    }
 }

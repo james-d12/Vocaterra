@@ -611,8 +611,9 @@ weakened: each fix is at the source, or an independent model brought in line wit
   `region:effects` at one mutation in a run. The aimed sentence is now drawn from the grammars of the effect intents the prompt allows.
 - **O15's list of documented tolerances** gained three entries that the game's bundle exercises, each with its reason in `KnownTolerances`: a whole dialogue pool that no agent
   names is removable (`HostVoicedPool`: the game's guide voices its `guide.*` pools itself), the slot grammars of an intent that also has keyword rules are removable
-  (`RuleOnlyIntent`), and the lint expectation and waiver fields of the intent file are optional (`examples/*/prompt`, `examples/*/errors`, `lint/**`). Each is accepted only
-  where the content makes it valid, so removing the grammars of an intent without a rule, or a pool an agent names, is still rejected.
+  (`RuleOnlyIntent`, and since M81 `ExampleOnlyIntent`, below), and the lint expectation and waiver fields of the intent file are optional (`examples/*/prompt`,
+  `examples/*/errors`, `lint/**`). Each is accepted only where the content makes it valid, so removing the grammars of an intent with rules or examples is accepted, and a
+  pool an agent names is still rejected. (An intent with neither is not on the list; see "Known, deliberately not fixed" for why the loader takes it.)
 - **What the game's bundle lacks, the suite builds** (no second bundle is kept on disk): `PipelineHarness.EffectsBundle` (the bundle plus an effect table, the one the pipeline
   oracles run with; its hash is the repository bundle's because the copy keeps the manifest), `PipelineHarness.FixtureGrammars` (a name `[WORD]`, an adjective `[ADJ]`, a verb bound to a
   slot), and `ContentMutationGen.WithEffects` (a rehashed copy with the effect table, so the loader's effect checks stay under mutation). The host-turn bundle gives every agent
@@ -857,7 +858,19 @@ Found and fixed in M66 (its own run of O3 at five times the default depth):
   (`conj.tense`). A modal is now a finite verb whose readings of the indicative are all that verb's (`podemos`, `poder`'s indicative and `podar`'s subjunctive, still
   is). Regression: `ModalComplementTests.AFormThatIsAlsoAnotherVerbsIsNoModal` in `tests/Vocaterra.Nlp.Es.Tests/Analysis` (`podemos estudio` is still flagged).
 
+Found and fixed in M81 (O15, CsCheck seed `41s2qgWEC-M9`, which reproduces on its own):
+
+- **O15's tolerance was short of the embedding rung** (`KnownTolerances.AcceptedGrammarlessIntent`; `RemoveProperty intents/intents.json /intents/27/slotGrammars`, the `describe`
+  intent, which has 27 examples, no keyword rule and no required slot). The loader accepted it, and the loader is right to: the resolver's embedding rung scores an intent's
+  examples when the pipeline has an embedding model (`IntentResolver.TryEmbedding`), so an intent with examples is reachable with no grammar, and only the lint's coverage
+  check (`coverage.uncovered`, an error, 27 of them for `describe` in a run of `lint --strict`) says its examples need a grammar or a rule. The tolerance now accepts the
+  removal for an intent with examples (`ContentFieldReason.ExampleOnlyIntent`) as well as for one with rules, and nothing else. Regressions:
+  `OracleInfrastructureTests.AGrammarlessIntentIsToleratedOnlyWhenItHasRulesOrExamples` and `IntentCatalogTests.AnIntentWithOnlyExamplesLoadsAndKeepsThemForTheEmbeddingRung`.
 ## Known, deliberately not fixed
+
+- **An intent with no slot grammar, keyword rule or example loads** (`IntentCatalog.Build`; `IntentCatalogTests.OptionalMembersMayBeOmitted` pins a bare `{ "intentId" }`).
+  Nothing can match such an intent, so removing its grammars is a content change the oracle would call undocumented (`AcceptedGrammarlessIntent` returns null). No bundle
+  on disk has one (every intent of `content/game-v1` has examples), so the oracle has not met it; whether the loader should refuse it is the owner's call.
 
 Findings that are content gaps or design limits rather than defects of one stage. None changes behaviour here; the generators step around
 them explicitly (each is a skip or a restriction in the generator, counted in the diagnostics) and the oracles stay strict.
