@@ -194,6 +194,64 @@ public sealed partial class VoxelSession : GuideSession
         };
     }
 
+    private int _advances;
+
+    /// <summary>
+    /// The objective tracker (U01): one line per objective that is shown and not done, the most recently advanced first, three at most and the rest counted for <c>+n</c>.
+    /// The objectives are the first of the session's sequence that is not done (the guide, the camp, the fire) and every order the player has taken on. A lesson's <c>do</c> line
+    /// (or the replay or review line the learner asked for) comes first, unless the lesson strip shows it (<paramref name="lessonStripShown"/>): it is not shown twice. On day 1's
+    /// rest the rest line stands alone in the tracker's place, as <see cref="ObjectiveHud"/> says it. Nothing is saved: after a load the order is the session's own.
+    /// </summary>
+    /// <param name="lessonStripShown">Whether the lesson strip is on the canvas this frame (the dialogue is open at the lesson's NPC).</param>
+    public TrackerView ObjectiveTracker(bool lessonStripShown)
+    {
+        var lines = new List<TrackerLine>();
+        var lessonLine = Lessons.HudLine ?? Lessons.ReplayHud ?? Deck.PendingHud;
+        if (lessonLine is not null && !(lessonStripShown && Lessons.HudLine is not null))
+        {
+            lines.Add(Single(new ObjectivePiece(lessonLine, ObjectivePieceKind.Support)));
+        }
+
+        var active = Objectives.Select((o, i) => (Objective: o, Index: i)).Where(x => !x.Objective.Complete && Shown(x.Objective.Spec)).ToList();
+        var hasMain = active.Any(static x => !x.Objective.Spec.IsOrder);
+        if (!hasMain && lessonLine is null && RestLine() is { } rest)
+        {
+            return new TrackerView([Single(rest)], 0);
+        }
+
+        var main = active.FirstOrDefault(static x => !x.Objective.Spec.IsOrder); // the sequence's first undone objective; the later ones are not reached yet
+        var tracked = active.Where(x => x.Objective.Spec.IsOrder || x.Index == main.Index && main.Objective is not null);
+        foreach (var (objective, _) in tracked.OrderByDescending(static x => x.Objective.AdvancedAt).ThenBy(static x => x.Index))
+        {
+            lines.Add(LineOf(objective));
+        }
+
+        if (lines.Count == 0 && lessonLine is null)
+        {
+            lines.Add(Single(new ObjectivePiece(Locale.Ui("objectiveComplete"), ObjectivePieceKind.Support, Done: true)));
+        }
+
+        return new TrackerView(lines.Take(TrackerView.MaxLines).ToList(), Math.Max(0, lines.Count - TrackerView.MaxLines));
+    }
+
+    private static TrackerLine Single(ObjectivePiece piece) => new([piece], [piece]);
+
+    private TrackerLine LineOf(Objective objective)
+    {
+        if (!objective.IsChecklist)
+        {
+            return Single(new ObjectivePiece(Locale.ObjectiveHudLine(objective.Id), ObjectivePieceKind.Support));
+        }
+
+        var done = objective.Steps.Count(static s => s.Done);
+        var shortLine = new List<ObjectivePiece>
+        {
+            new(objective.Title, ObjectivePieceKind.Title),
+            new(": " + done.ToString(System.Globalization.CultureInfo.InvariantCulture) + "/" + objective.Steps.Count.ToString(System.Globalization.CultureInfo.InvariantCulture), ObjectivePieceKind.Count, Done: done == objective.Steps.Count),
+        };
+        return new TrackerLine(Locale.ObjectivePieces(objective, lemma => Words.RecordOf(lemma).Known), shortLine);
+    }
+
     /// <summary>Whether the player has met the guide (the panel opened on her, or the first step of the checklist was done).</summary>
     public bool GuideMet => _guideMet;
 
@@ -835,7 +893,13 @@ public sealed partial class VoxelSession : GuideSession
     {
         foreach (var objective in Objectives.Where(o => !o.Complete && Shown(o.Spec)))
         {
+            var before = objective.Progress;
             var done = objective.Record(world, _eventAmount);
+            if (objective.Progress != before)
+            {
+                objective.AdvancedAt = ++_advances; // the tracker lists the objective that moved last first (U01)
+            }
+
             if (objective.IsChecklist)
             {
                 _pendingSteps.AddRange(done.Select(step => (objective, step)));

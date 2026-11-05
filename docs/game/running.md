@@ -52,6 +52,8 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --quality low --
 DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --quality low --beacon none --greyscale --teleport 222,222 --look 80,-16 --screenshot /tmp/s14-greyscale.png --frames 60
 ```
 
+**Clean defaults (U01).** Ordinary play starts with no debug text: `--dev` starts the debug overlay and the dialogue's developer note on, F3 toggles both. The "Heard / Expected" line under a spoken turn is not the developer note and always stays. The first-time tip box stands under the overlay when F3 shows it. The speak hint is one: the tip `tip.speak` at the first conversation; once it was shown the dialogue footer keeps only its other keys (the speak key stays in the controls help, F1). The objective tracker (top right) is one line per objective, three at most, the one that advanced last first, the rest as "+n"; a lesson's `do` step shows in the lesson strip while the strip is up, not also in the tracker. The scripted runs pass `--dev` (all but the playtest) so their captures keep the overlay and the note.
+
 **The needs (N01).** Hunger, thirst and sleep fall in active play and push health and stamina (design section 9). `--needs off` freezes them full (the scripted runs pass it, so
 the language runs keep their baselines); `--set-need <need> <value>` sets one at launch, 0 to 100, repeatable (`hunger`, `thirst`, `sleep`, `health`, `stamina`):
 
@@ -107,7 +109,7 @@ WASD or the arrows walk, Space jumps, the mouse looks (Esc lets the mouse go, a 
 (`madera`, five for the camp) or a berry bush (`fruta`, three) to gather it, the right button places the selected item, `1`..`0` or the wheel
 pick the hotbar slot, **I** the inventory, **C** the crafting panel, **E** the inventory or, with the crosshair on the workbench (`mesa`), the
 crafting panel; the same at a lit fire ring (`fuego`, N07: a ring with a torch in its three-by-three; an unlit ring does nothing, and the sleep offer waits while the crosshair is on a lit ring). The panel lists the recipes (the torch: `antorcha` from two `madera` at the workbench; the roast apple: `manzana` from one `manzana` at a lit fire, labelled `manzana asada`); a click on a row crafts it. **J** the
-book, **F3** the debug overlay, **F5** the view over your own shoulder and back (S15: first person is where every run starts; `--third-person` starts
+book, **F3** the debug overlay and the dialogue's developer note (the grey "intent, understood, 100 %, 12 ms" line under your line), both off at the start unless the run has `--dev` (U01; not in a playtest, where F3 does nothing), **F5** the view over your own shoulder and back (S15: first person is where every run starts; `--third-person` starts
 in the shoulder view), **F6** saves. **Aim the crosshair at the guide's figure**: the hint `E: talk` shows, and **E** (or **T** to type, or **V**
 to talk: hold it, the clip goes when it is let go) opens the dialogue panel, which takes the keyboard and frees the mouse. **The panel has
 speech buttons (S7)**: `[R] Repetir`, `[S] Más despacio`, `[H] Ayuda`, `[N] No sé` and `[W] Escribir` (keys or the mouse); hold **V** or **Space** to talk;

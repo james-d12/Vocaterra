@@ -73,6 +73,8 @@
     "ui.warmupDone.other": "Warm-up done: {count} phrases reviewed.",
     "ui.reviewNowHud": "Review now: talk to {npc} to start the warm-up",
     "ui.dialogueKeyHints": "Enter: send   Tab or Esc: buttons, then hold {key:listen} or {key:listenAlt}: speak   Alt+vowel: á é í ó ú   Alt+N: ñ   Alt+/: ¿   Alt+1: ¡",
+    "ui.dialogueKeyHintsShort": "Enter: send   Tab or Esc: buttons   Alt+vowel: á é í ó ú   Alt+N: ñ   Alt+/: ¿   Alt+1: ¡",
+    "ui.dialogueButtonHintsShort": "Esc: cancel or close",
     "ui.dialogueButtonHints": "Hold {key:listen} or {key:listenAlt}: speak   Esc: cancel or close",
     "ui.dialogueSpeechOffButtonHints": "Speech off: type your answer (W or Tab)   Esc: close",
     "ui.dialogueSpeechOffKeyHints": "Speech off: type your answer   Enter: send   Tab or Esc: buttons   Alt+vowel: á é í ó ú   Alt+N: ñ   Alt+/: ¿   Alt+1: ¡",

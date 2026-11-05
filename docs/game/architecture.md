@@ -162,7 +162,7 @@ Graphics/         SceneDrawer, DrawHelpers, QualityPreset, ScreenshotWriter
   Sky/            SkyModel, SkyRenderer
 UI/
   Common/         UiCanvas, UiTransform, UiPalette, UiScale, FontProvider, FrameView, LayerStack, CountBadge, NounIcons, PixelBox
-  Hud/            HudLayers, HudLayout, HotbarLayer, ToastLayer, TipLayer, BeaconLabel, NeedsHudLayout, NeedsHudLayer, NeedIcons, ViewEffectsLayer, DeathScreenLayer (N05), VoxelLayers, VoxelDebugText
+  Hud/            HudLayers (ObjectiveLayer: the tracker, U01), HudLayout (TrackerRows, TipBlock, ObjectiveBox: the top of the HUD kept apart), HotbarLayer, ToastLayer, TipLayer, BeaconLabel, NeedsHudLayout, NeedsHudLayer, NeedIcons, ViewEffectsLayer, DeathScreenLayer (N05), VoxelLayers, VoxelDebugText
   Overlays/       OverlayLayouts, LoadingLayer, ControlsLayer, EndingLayer
   Dialogue/       DialoguePanel, DialogueLayout, DialogueBubble, DialogueBubbleLayer, ConversationFrame, ConversationLayout, ConversationCards,
                   VoxelTalkLayers, SupportLayer, SupportLayout
