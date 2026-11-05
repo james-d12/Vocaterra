@@ -378,7 +378,7 @@ there. Commit prefixes `N<nn>:`, `L01:`, `U<nn>:`, `W<nn>:`; one milestone branc
 | N04 | Health and death (9.4, 9.7): losses and recovery, death and the belongings chest (decision 10), waking at the fire; runs r25-thirst and r26-death | N03 | M | Sonnet 5.5 | done (2026-11-05, gated at `b72b9184`, 9246 passed) |
 | N05 | The HUD and the opening (9.8, 9.9): bars, icons, stage lines, sounds, view effects and their option, the tip and the death screen, the relaxed-needs option (decision 17); layout tests at every scale; the day-1 route proven safe | N04 | S/M | Sonnet 5.5 | planned |
 | N06 | Food that grows back, and fair gifts (9.6; decision 12): berry bushes regrow after a night; bread and water gifts once per in-game day | N05 | S/M | Sonnet 5.5 | done (2026-11-05, gated at 468a1b29, 9382 passed; built before N05, its Spanish lines left to N05) |
-| W01 | `item_crafted`: a craft is a world event (activities plan) | N06 | S | Haiku 5.5 | planned |
+| W01 | `item_crafted`: a craft is a world event (activities plan) | N06 | S | Haiku 5.5 | done (2026-11-05, gated at 56f88b4b, 9385 passed) |
 | N07 | Cooking at the fire (9.6): the noun `fuego`, an apple to a roast apple at any lit fire, through the crafting path and `item_crafted` | W01 | S/M | Sonnet 5.5 | planned |
 | N08 | A berry planted at the camp (decision 14, adopted provisionally) | N06 | S | Haiku 5.5 | proposed; after N07 if time allows |
 | U01 | Clean defaults (14.3): the debug text off by default; one speak hint; the objective tracker; room for the need meters | N05 | S | Sonnet 5.5 | planned |
@@ -2197,6 +2197,12 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   N05:** «Hoy no tengo más pan.» (stall, villager) and «Hoy ya no tengo agua.» (Luna) in place of the borrowed lines. The 25 scripted runs did
   not move. The orchestrator's check: bread asked twice on day 2 (given, then «El pan cuesta dos monedas.»), given again after a night; a
   bush picked, refused, picked again after a night. Report `.claude/briefs/n06-report.md`.
+- **W01, `item_crafted` (2026-11-05, Haiku 5.5; gated on `feature/adaptive_design` at `56f88b4b`, 9385 passed, 3 skipped).** A craft logs
+  `world item_crafted (<noun>)` with the recipe's output count, after `LearnItem`; `WorldEvents.All` takes it; the schemas list no event
+  names, so only their detail descriptions changed. Three runs gained exactly that line (r01-route, r10-playtest, r20-sleep, the runs that
+  craft the torch) and were re-baselined; the other 22 did not move. Tested: the torch's event, an objective step on it; a lesson `do` step
+  on it is not tested directly (it matches through the same trigger, and no shipped lesson has one). The orchestrator's check: the camp
+  route's torch craft prints the event. Report `.claude/briefs/w01-report.md`.
 
 ## 6. Definition of done (every milestone)
 
