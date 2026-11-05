@@ -54,6 +54,17 @@ public sealed class SessionLogTests
         new("hear.pedir-agua", CheckItemKind.Comprehension, "pedir-agua", CheckInput.Pick, 1, true, null, null, false, false, [], null, 812.4, null);
 
     [Fact]
+    public void TheSessionSummaryNamesTheDriveRateOnlyWhenItIsNotOne()
+    {
+        var (log, session, _) = Memory();
+        log.SessionSummary(["a"], 10);
+        log.SessionSummary(["a"], 20, 1.75);
+        var lines = Lines(session);
+        Assert.False(lines[0].TryGetProperty("needsRate", out _));
+        Assert.Equal(1.75, lines[1].GetProperty("needsRate").GetDouble());
+    }
+
+    [Fact]
     public void EveryLineIsOneObjectWithItsTypeAndTheWallTime()
     {
         var (log, session, _) = Memory();
