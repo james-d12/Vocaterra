@@ -1,7 +1,7 @@
 # Handover: the adaptation, phases B to D, on feature/adaptive_design
 
 Created: 2026-11-05T20:31Z (UTC)
-Updated: 2026-11-05T20:31Z (UTC), after U01's gate and the launches of N09 and U02 (kept current after every gate, launch and owner
+Updated: 2026-11-05T21:05Z (UTC), after N09's report and the launch of its sync with U01 (kept current after every gate, launch and owner
 decision: the owner, 2026-11-05)
 Workstream: the owner's Adaptation Design Document, phases B to E: the needs (N), lessons as classes (L01), the presentation track (U),
 then the bread pilot (W)
@@ -24,8 +24,11 @@ track) is half done; phase E (the bread pilot, W05 to W10) waits for the owner's
 ## Working tree and running work
 
 - **Two building agents run in parallel** (allowed since 2026-11-05; `scripts/limited.sh` has two slots inside one capped slice):
-  - **N09, the drive rates as a setting:** worktree `.claude/worktrees/n09`, local branch `N09-needs-rate` (pushed once before the
-    no-push rule; never again), brief [`.claude/briefs/n09-needs-rate.md`](../../.claude/briefs/n09-needs-rate.md), Sonnet 5.5.
+  - **N09, the drive rates as a setting:** built (report [`.claude/briefs/n09-report.md`](../../.claude/briefs/n09-report.md); 9486
+    passed before the sync). Its `LaunchOptions.cs` conflicts with U01's, so a **Haiku sync agent** merges `feature/adaptive_design` into
+    the local branch `N09-needs-rate` in worktree `.claude/worktrees/n09` (brief [`n09-sync.md`](../../.claude/briefs/n09-sync.md)). Then
+    the gate. If the sync agent's report is lost: check the worktree for the merge commit and a clean status, finish the merge by the
+    brief, then gate.
   - **U02, the conversation surface:** worktree `.claude/worktrees/u02`, local branch `U02-conversation-surface`, brief
     [`.claude/briefs/u02-conversation-surface.md`](../../.claude/briefs/u02-conversation-surface.md), Sonnet 5.5.
   - Their reports reach only the session that launched them. **If this session is gone:** check each worktree (`git -C <wt> status`,
