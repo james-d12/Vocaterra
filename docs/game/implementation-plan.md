@@ -2412,7 +2412,7 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     `magos relacionados compañero`, a core finding. The orchestrator replayed it on the merged branch (`CsCheck_Seed`). It is the family M73 left recorded (`2tpLGUOSqj41`): the
     pattern `([NOUN:item] [ADJ]|[WORD:qty] [NOUN:spell]) [NOUN:thing]` lets `[WORD:qty]` bind the moved adjective `relacionados`. V28
     changed no intent or lexicon file, so it is older. The owner kept that family recorded, not narrowed (D-game-22, 2026-11-01), so it can
-    fail a gate or CI now and then; `docs/handovers/2026-11-02-after-followups.md` section 7 carries it.
+    fail a gate or CI now and then; `docs/handovers/done/2026-11-02-after-followups.md` section 7 carries it.
   - **The orchestrator's checks** in the game at session 10: the start line `speech: 541 lines, 1082 files, 0 missing`; Luz `Tienes veinte panes.` «Sí, es verdad.»,
     `Tengo veinte panes.` «¡Qué bien!»; Domingo `me gusta el río` «Te entiendo. Yo hago hachas.»; León `usted tiene manzanas` «Te
     entiendo. ¿Quieres manzanas?» (off the prompt, so not «Sí, es verdad.»). Not understood, older and outside V28: `usted hace hachas muy
