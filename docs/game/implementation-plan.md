@@ -377,7 +377,7 @@ there. Commit prefixes `N<nn>:`, `L01:`, `U<nn>:`, `W<nn>:`; one milestone branc
 | N03 | Sleep and the collapse (9.5): a night's effects, the collapse and waking where the player fell, every night and collapse advances the day; the offer rule is L01's | L01, N02 | S/M | Sonnet 5.5 | done (2026-11-05, gated at `7cf2e115`, 9219 passed) |
 | N04 | Health and death (9.4, 9.7): losses and recovery, death and the belongings chest (decision 10), waking at the fire; runs r25-thirst and r26-death | N03 | M | Sonnet 5.5 | done (2026-11-05, gated at `b72b9184`, 9246 passed) |
 | N05 | The HUD and the opening (9.8, 9.9): bars, icons, stage lines, sounds, view effects and their option, the tip and the death screen, the relaxed-needs option (decision 17); layout tests at every scale; the day-1 route proven safe | N04 | S/M | Sonnet 5.5 | planned |
-| N06 | Food that grows back, and fair gifts (9.6; decision 12): berry bushes regrow after a night; bread and water gifts once per in-game day | N05 | S/M | Sonnet 5.5 | planned |
+| N06 | Food that grows back, and fair gifts (9.6; decision 12): berry bushes regrow after a night; bread and water gifts once per in-game day | N05 | S/M | Sonnet 5.5 | done (2026-11-05, gated at 468a1b29, 9382 passed; built before N05, its Spanish lines left to N05) |
 | W01 | `item_crafted`: a craft is a world event (activities plan) | N06 | S | Haiku 5.5 | planned |
 | N07 | Cooking at the fire (9.6): the noun `fuego`, an apple to a roast apple at any lit fire, through the crafting path and `item_crafted` | W01 | S/M | Sonnet 5.5 | planned |
 | N08 | A berry planted at the camp (decision 14, adopted provisionally) | N06 | S | Haiku 5.5 | proposed; after N07 if time allows |
@@ -2185,7 +2185,18 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   skipped).** `feature/village-decisions` (V29, M78, the refreshed grammar cache) merged into the adaptation; only the generated manifests and
   save fixtures and the core plan conflicted. The content loop re-hashed the bundle (`eec0472c…`), the grammar cache needed no new entry and
   the goldens and digests did not move; no test needed a fix where the two sides meet.
-
+- **N06, food that grows back and fair gifts (2026-11-05, Sonnet 5.5; gated on `feature/adaptive_design` at `468a1b29`, 9382 passed, 3
+  skipped).** Built ahead of N05 (it needed no new Spanish). `needs.json` takes optional `regrowth` (`berry-bush`, after a night) and `gifts`
+  (`shopkeeper:bread`, `villager:bread`, `guide:water-bottle`, per day), checked by `GameDataValidator.CheckRenewal`; `RunDayResets` regrows
+  each picked bush still a plain bush and clears the gifts given. A second ask the same day raises `<npc>.gift_used` and the NPC answers with
+  an existing line (stall `shop_price`, villager `villager_bye`, guide `guide_offer_no`); a sale is not limited, a gift the active lesson's
+  `do` step needs is neither refused nor counted, and with `--needs off` every gift is given and nothing is recorded. Saved as
+  `systems.bushes` and `systems.gifts`, the save version stays 6. **Design against code:** Luna is the `guide` agent and her water is the
+  one-time transfer offer, so her daily rule bites only once more ways to ask her exist; no shipped lesson has an `item_given` step at these
+  NPCs yet; a bush picked in a save made before N06 stays picked; the host's `ConversationSession` has no days and keeps the old rule. **For
+  N05:** «Hoy no tengo más pan.» (stall, villager) and «Hoy ya no tengo agua.» (Luna) in place of the borrowed lines. The 25 scripted runs did
+  not move. The orchestrator's check: bread asked twice on day 2 (given, then «El pan cuesta dos monedas.»), given again after a night; a
+  bush picked, refused, picked again after a night. Report `.claude/briefs/n06-report.md`.
 
 ## 6. Definition of done (every milestone)
 

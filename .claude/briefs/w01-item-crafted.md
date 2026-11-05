@@ -41,7 +41,7 @@ Here the dotnet process cannot reach the local LanguageTool server (curl can; do
 
 ## Gate (yours, before reporting)
 - `scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4`, 0 warnings.
-- `scripts/test.sh full` (or `scripts/content-loop.sh --speech --tier full` if you edited content), all passing: 9363 passed and 3 skipped before you; report the new count.
+- `scripts/test.sh full` (or `scripts/content-loop.sh --speech --tier full` if you edited content), all passing: 9382 passed and 3 skipped before you; report the new count.
 - `scripts/limited.sh dotnet format Vocaterra.sln --verify-no-changes`.
 - `scripts/limited.sh scripts/content.sh validate`; the lint at A2 clean (`scripts/content.sh lint content/game-v1 --strict --level a2 --fail-on-level --host-pools 'guide.*'`).
 - **The scripted runs** (`docs/game/scripted-runs.md`): `scripts/scripted-runs.sh` before your first edit and after, compared with `python3 -I scripts/compare-runs.py`, one at a time through `scripts/limited.sh`. Explain every difference; re-baseline only the runs this milestone is meant to move.
