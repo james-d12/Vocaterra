@@ -18,7 +18,7 @@ whose text changed or whose file was recorded again differently is listed again 
 | smith (Domingo) | `im_nicola`, gain 0.6 | 36 | 1.0 (0.8) | the pools `smith_*` and `guide.lesson.smith.*`, and its prompts |
 | farmer (León) | `pm_santa` | 44 | 1.0 (0.8) | the pools `farmer_*` and `guide.lesson.farmer.*`, and its prompts |
 
-**To hear:** 1278 of the 1278 files have no mark (guide 434, villager 168, farmer 150, baker 144, shopkeeper 142, fisher 130, smith 110). Two files a line: the normal speed and the slow one.
+**To hear:** 1284 of the 1284 files have no mark (guide 436, villager 170, farmer 150, baker 144, shopkeeper 144, fisher 130, smith 110). Two files a line: the normal speed and the slow one.
 
 ## Lines
 
@@ -698,6 +698,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide_find.2 | speech/guide/guide_find.2.wav | guide | 1.0 | ¡Claro! Busco. |  |
 | guide_find.3 | speech/guide/guide_find.3.slow.wav | guide | 0.8 | Un minuto, busco. |  |
 | guide_find.3 | speech/guide/guide_find.3.wav | guide | 1.0 | Un minuto, busco. |  |
+| guide_gift_used.1 | speech/guide/guide_gift_used.1.slow.wav | guide | 0.8 | Hoy ya no tengo agua. |  |
+| guide_gift_used.1 | speech/guide/guide_gift_used.1.wav | guide | 1.0 | Hoy ya no tengo agua. |  |
 | guide_greet.1 | speech/guide/guide_greet.1.slow.wav | guide | 0.8 | ¡Hola! Soy la guía. |  |
 | guide_greet.1 | speech/guide/guide_greet.1.wav | guide | 1.0 | ¡Hola! Soy la guía. |  |
 | guide_greet.2 | speech/guide/guide_greet.2.slow.wav | guide | 0.8 | ¡Hola, amigo! ¿Qué buscas? |  |
@@ -1114,6 +1116,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | shop_done.1 | speech/shopkeeper/shop_done.1.wav | shopkeeper | 1.0 | ¡Hasta luego! |  |
 | shop_done.2 | speech/shopkeeper/shop_done.2.slow.wav | shopkeeper | 0.8 | ¡Nos vemos! |  |
 | shop_done.2 | speech/shopkeeper/shop_done.2.wav | shopkeeper | 1.0 | ¡Nos vemos! |  |
+| shop_gift_used.1 | speech/shopkeeper/shop_gift_used.1.slow.wav | shopkeeper | 0.8 | Hoy no tengo más pan. |  |
+| shop_gift_used.1 | speech/shopkeeper/shop_gift_used.1.wav | shopkeeper | 1.0 | Hoy no tengo más pan. |  |
 | shop_give.1 | speech/shopkeeper/shop_give.1.slow.wav | shopkeeper | 0.8 | Toma la botella. El agua está en el río. |  |
 | shop_give.1 | speech/shopkeeper/shop_give.1.wav | shopkeeper | 1.0 | Toma la botella. El agua está en el río. |  |
 | shop_give.2 | speech/shopkeeper/shop_give.2.slow.wav | shopkeeper | 0.8 | Aquí tienes la botella. El agua está en el río. |  |
@@ -1246,6 +1250,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | villager_bye.1 | speech/villager/villager_bye.1.wav | villager | 1.0 | ¡Adiós! Hasta luego. |  |
 | villager_bye.2 | speech/villager/villager_bye.2.slow.wav | villager | 0.8 | Hasta luego. |  |
 | villager_bye.2 | speech/villager/villager_bye.2.wav | villager | 1.0 | Hasta luego. |  |
+| villager_gift_used.1 | speech/villager/villager_gift_used.1.slow.wav | villager | 0.8 | Hoy no tengo más pan. |  |
+| villager_gift_used.1 | speech/villager/villager_gift_used.1.wav | villager | 1.0 | Hoy no tengo más pan. |  |
 | villager_give.1 | speech/villager/villager_give.1.slow.wav | villager | 0.8 | Aquí tienes. |  |
 | villager_give.1 | speech/villager/villager_give.1.wav | villager | 1.0 | Aquí tienes. |  |
 | villager_give.2 | speech/villager/villager_give.2.slow.wav | villager | 0.8 | Toma. |  |

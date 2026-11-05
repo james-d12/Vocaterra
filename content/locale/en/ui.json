@@ -97,7 +97,6 @@
     "ui.controlsEffects": "Turn the screen effects of hunger, thirst, tiredness and weakness on or off. The icons and the lines stay. It is kept in the save.",
     "ui.effectsOn": "Screen effects on.",
     "ui.effectsOff": "Screen effects off.",
-    "ui.needsTitle": "How you feel",
     "ui.gameSaved": "Game saved (session {session})",
     "ui.saveLater": "Wait a moment, then press {key:save} again.",
     "ui.inventoryTitle": "Inventory",

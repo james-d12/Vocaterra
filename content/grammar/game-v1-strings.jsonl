@@ -270,6 +270,7 @@
 {"id":"dialogue:guide_find.1","text":"A ver, busco.","kind":"npc"}
 {"id":"dialogue:guide_find.2","text":"¡Claro! Busco.","kind":"npc"}
 {"id":"dialogue:guide_find.3","text":"Un minuto, busco.","kind":"npc"}
+{"id":"dialogue:guide_gift_used.1","text":"Hoy ya no tengo agua.","kind":"npc"}
 {"id":"dialogue:guide_greet.1","text":"¡Hola! Soy la guía.","kind":"npc"}
 {"id":"dialogue:guide_greet.2","text":"¡Hola, amigo! ¿Qué buscas?","kind":"npc"}
 {"id":"dialogue:guide_greet.3","text":"Buenos días. ¿En qué te ayudo?","kind":"npc"}
@@ -311,6 +312,7 @@
 {"id":"dialogue:shop_deny.2","text":"Bueno.","kind":"npc"}
 {"id":"dialogue:shop_done.1","text":"¡Hasta luego!","kind":"npc"}
 {"id":"dialogue:shop_done.2","text":"¡Nos vemos!","kind":"npc"}
+{"id":"dialogue:shop_gift_used.1","text":"Hoy no tengo más pan.","kind":"npc"}
 {"id":"dialogue:shop_give.1","text":"Toma la botella. El agua está en el río.","kind":"npc"}
 {"id":"dialogue:shop_give.2","text":"Aquí tienes la botella. El agua está en el río.","kind":"npc"}
 {"id":"dialogue:shop_give_bread.1","text":"Aquí tienes el pan.","kind":"npc"}
@@ -357,6 +359,7 @@
 {"id":"dialogue:smith_yes.1","text":"¡Sí!","kind":"npc"}
 {"id":"dialogue:villager_bye.1","text":"¡Adiós! Hasta luego.","kind":"npc"}
 {"id":"dialogue:villager_bye.2","text":"Hasta luego.","kind":"npc"}
+{"id":"dialogue:villager_gift_used.1","text":"Hoy no tengo más pan.","kind":"npc"}
 {"id":"dialogue:villager_give.1","text":"Aquí tienes.","kind":"npc"}
 {"id":"dialogue:villager_give.2","text":"Toma.","kind":"npc"}
 {"id":"dialogue:villager_greet.1","text":"¡Hola! ¿Qué buscas?","kind":"npc"}
@@ -3169,6 +3172,28 @@
 {"id":"words.json:nearFuture.timeWords[9]","text":"año que viene","kind":"npc"}
 {"id":"words.json:nearFuture.timeWords[10]","text":"próximo año","kind":"npc"}
 {"id":"words.json:nouns.river","text":"río","kind":"npc"}
+{"id":"words.json:hudLines.hud.belongings","text":"tus cosas","kind":"npc"}
+{"id":"words.json:hudLines.hud.camp","text":"Estás en tu campamento.","kind":"npc"}
+{"id":"words.json:hudLines.hud.fine","text":"bien","kind":"npc"}
+{"id":"words.json:hudLines.hud.name.health","text":"salud","kind":"npc"}
+{"id":"words.json:hudLines.hud.name.hunger","text":"hambre","kind":"npc"}
+{"id":"words.json:hudLines.hud.name.sleep","text":"sueño","kind":"npc"}
+{"id":"words.json:hudLines.hud.name.stamina","text":"fuerza","kind":"npc"}
+{"id":"words.json:hudLines.hud.name.thirst","text":"sed","kind":"npc"}
+{"id":"words.json:hudLines.need.health.1","text":"Estoy débil.","kind":"npc"}
+{"id":"words.json:hudLines.need.health.2","text":"Estoy muy débil.","kind":"npc"}
+{"id":"words.json:hudLines.need.hunger.1","text":"Tengo un poco de hambre.","kind":"npc"}
+{"id":"words.json:hudLines.need.hunger.2","text":"Tengo hambre.","kind":"npc"}
+{"id":"words.json:hudLines.need.hunger.3","text":"Tengo mucha hambre.","kind":"npc"}
+{"id":"words.json:hudLines.need.hunger.4","text":"Me muero de hambre.","kind":"npc"}
+{"id":"words.json:hudLines.need.sleep.1","text":"Tengo un poco de sueño.","kind":"npc"}
+{"id":"words.json:hudLines.need.sleep.2","text":"Tengo sueño.","kind":"npc"}
+{"id":"words.json:hudLines.need.sleep.3","text":"Tengo mucho sueño.","kind":"npc"}
+{"id":"words.json:hudLines.need.sleep.4","text":"Me muero de sueño.","kind":"npc"}
+{"id":"words.json:hudLines.need.thirst.1","text":"Tengo un poco de sed.","kind":"npc"}
+{"id":"words.json:hudLines.need.thirst.2","text":"Tengo sed.","kind":"npc"}
+{"id":"words.json:hudLines.need.thirst.3","text":"Tengo mucha sed.","kind":"npc"}
+{"id":"words.json:hudLines.need.thirst.4","text":"Me muero de sed.","kind":"npc"}
 {"id":"npcs/guide.json:label","text":"Guía","kind":"npc"}
 {"id":"npcs/guide.json:name","text":"Luna","kind":"npc"}
 {"id":"npcs/shopkeeper.json:label","text":"Tendero","kind":"npc"}

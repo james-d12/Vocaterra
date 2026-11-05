@@ -1,10 +1,8 @@
 using System.Globalization;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Needs;
-using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
-using Vocaterra.Game.Core.Voxel;
 using Xunit.Abstractions;
 
 namespace Vocaterra.Game.Core.Tests.Needs;
