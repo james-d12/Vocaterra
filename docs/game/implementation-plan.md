@@ -375,7 +375,7 @@ there. Commit prefixes `N<nn>:`, `L01:`, `U<nn>:`, `W<nn>:`; one milestone branc
 | L01 | Lessons as optional classes (5.3, 5.4; D-game-25): the introduction alone required; classes offered and chosen; sleep when the sleep drive is below 75; orders by NPC met; no lesson holds an NPC, an order or the day; r20 and r21 re-baselined, a new run with no classes | N01 | M | Sonnet 5.5 | planned |
 | N02 | Eating, drinking and sprinting (9.6): eat and drink actions, water by hand, the sprint control, the gathering cost, rest at a lit fire | N01 | S/M | Sonnet 5.5 | done (2026-11-05, gated at `3a4345f8`, 9195 passed) |
 | N03 | Sleep and the collapse (9.5): a night's effects, the collapse and waking where the player fell, every night and collapse advances the day; the offer rule is L01's | L01, N02 | S/M | Sonnet 5.5 | done (2026-11-05, gated at `7cf2e115`, 9219 passed) |
-| N04 | Health and death (9.4, 9.7): losses and recovery, death and the belongings chest (decision 10), waking at the fire; runs r25-thirst and r26-death | N03 | M | Sonnet 5.5 | planned |
+| N04 | Health and death (9.4, 9.7): losses and recovery, death and the belongings chest (decision 10), waking at the fire; runs r25-thirst and r26-death | N03 | M | Sonnet 5.5 | done (2026-11-05, gated at `b72b9184`, 9246 passed) |
 | N05 | The HUD and the opening (9.8, 9.9): bars, icons, stage lines, sounds, view effects and their option, the tip and the death screen, the relaxed-needs option (decision 17); layout tests at every scale; the day-1 route proven safe | N04 | S/M | Sonnet 5.5 | planned |
 | N06 | Food that grows back, and fair gifts (9.6; decision 12): berry bushes regrow after a night; bread and water gifts once per in-game day | N05 | S/M | Sonnet 5.5 | planned |
 | W01 | `item_crafted`: a craft is a world event (activities plan) | N06 | S | Haiku 5.5 | planned |
@@ -2172,6 +2172,15 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   the sitting; one seam, `RunDayResets`, runs the day's resets for N04 and N06. A tick-sum rounding delayed the collapse by a tick
   (`CollapseDue` tolerates 1e-6 s). The fire's offer rule is unchanged, for L01 (`SleepOffer`, `CanSleep`). Runs unchanged. The orchestrator's
   check: day 2, sleep 40 and thirst 15, `--sleep`: thirst stops at the floor of 10, sleep 100, day 3. Report `.claude/briefs/n03-report.md`.
+- **N04, health and death (2026-11-05, Sonnet 5.5; gated on `feature/adaptive_design` at `b72b9184`, 9246 passed, 3 skipped).** At zero
+  health the player wakes 2 to 5 blocks from the camp ring with health and the drives at 50 and stamina full (`player_died` with `hambre` or
+  `sed`, `player_woke (death)`); a death is not a night. The bag minus the items that stack to 1 goes into one Chest on the nearest free ground
+  (a second death merges into it), E takes back what fits (`belongings_recovered`), the next night removes it; saved as `systems.chest`, the
+  save version stays 6. **Design against code:** only the book and the axe stack to 1; the bottle stacks to 99, so it goes into the chest.
+  The no-dead-ends test floods the walkable cells from the banks and times the 30 farthest walks against the health left (240 s). New runs
+  r25-thirst and r26-death, new steps `--take-belongings` and `--need <need> <n>` (mid-script); the 22 other runs unchanged. English keys for
+  N05's Spanish: `ui.beaconBelongings` («tus cosas»), `ui.diedHunger`, `ui.diedThirst`, `ui.chestRest`. The orchestrator's check: day 3,
+  hunger 0 and health 4, a wait: `player_died (hambre)`, woke at the camp with 50s, the chest placed. Report `.claude/briefs/n04-report.md`.
 
 
 ## 6. Definition of done (every milestone)
