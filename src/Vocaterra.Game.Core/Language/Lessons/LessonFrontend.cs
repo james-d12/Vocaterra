@@ -69,11 +69,11 @@ public sealed class LessonFrontend(GuideSession session, DialogueModel dialogue,
             }
         }
 
-        foreach (var line in session.Lessons.TakeLines())
+        if (dialogue.IsOpen)
         {
-            if (dialogue.IsOpen)
+            foreach (var line in session.Lessons.TakeLines())
             {
-                dialogue.AddNpcLine(line); // a teacher's offer of a class (L01)
+                dialogue.AddNpcLine(line); // a teacher's offer of a class (L01): kept until the panel is open
             }
         }
 

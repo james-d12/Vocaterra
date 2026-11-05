@@ -730,6 +730,7 @@ public sealed partial class LessonRunner
     {
         _offerId = null;
         _offerNpc = null;
+        _offerLines.Clear();
         if (_engaged && Active is { AutoStart: false } && Current is not { Type: LessonStepType.Do })
         {
             // Esc pauses a class and frees its NPC (L01): the ordinary conversation is not taken over by a lesson the learner left. A do step is the exception: the panel is closed to

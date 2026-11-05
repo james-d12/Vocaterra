@@ -414,6 +414,26 @@ public sealed class LessonFrontendTests
     }
 
     [Fact]
+    public void ATeachersOfferLineIsAddedToThePanelOnceItIsOpenEvenWhenTheTalkOpenedFirst()
+    {
+        // L01: the session opens the talk (and makes the offer) before the panel opens, as the game and the scripted runs do; the line waits for the panel and then goes on it.
+        var session = new VoxelSession(TestGame.Data, 42, GuideSession.DefaultStartedAt, RouteScene.Build(), CreditRules.FullTyped, TestGame.Data.Lessons);
+        session.Lessons.CountAsCompleted("first-words", 1);
+        session.Day = 2;
+        session.Sitting = 2;
+        session.Simulation.TeleportTo(NpcStandOff.Choose(session.Scene.Grid, session.Scene.Npc("villager").Feet, session.Simulation.Player.FeetBlock)!.Value);
+        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data, session.Phrases, session.Locale);
+        var lesson = new LessonFrontend(session, dialogue, _ => { });
+        var opening = session.OpenTalk("villager");
+        lesson.Pump(); // a frame before the panel is open: the line is kept
+        dialogue.Open(opening, "Aldeano", session.ReviewLine);
+
+        lesson.Pump();
+
+        Assert.Contains(dialogue.Lines, static l => l.Text == "¿Una clase hoy? ¿Sí o no?");
+    }
+
+    [Fact]
     public void TheOfferComesFirstLStartsTheLessonAndTheStripThenShowsTheStep()
     {
         var (session, dialogue, lesson, _, _) = AtGuide();

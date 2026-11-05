@@ -52,6 +52,21 @@ public sealed class ClassTests
     }
 
     [Fact]
+    public void AfterASleepTheVillagerOffersTheClassAndNoGraciasDeclinesIt()
+    {
+        var session = Vocaterra.Game.Core.Tests.Save.SleepTests.EndedFirstSession();
+        SaveGame.Sleep(session, SaveGame.Capture(session, TestGame.Route()));
+        Stage.TeleportToNpc(session, "villager");
+
+        _ = session.OpenTalk("villager");
+
+        Assert.Equal("personas", session.Lessons.OfferStandingAt("villager"));
+        var turn = session.Say("No, gracias.");
+        Assert.True(turn.LessonHandled);
+        Assert.Null(session.Lessons.Active);
+    }
+
+    [Fact]
     public void NoCostsNothingTheTradePromptStaysAndTheTeacherDoesNotAskAgainThatDay()
     {
         var session = DayTwo();
