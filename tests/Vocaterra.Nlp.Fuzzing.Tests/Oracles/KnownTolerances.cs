@@ -91,17 +91,25 @@ public static class KnownTolerances
 
         /// <summary>
         /// The slot grammars of an intent that also has keyword rules: an intent may be matched by its rules alone (the game's intents have both, and the lint
-        /// reports an example only a rule covers), so the loader has no reason to refuse it. An intent without a keyword rule is never on this list: with no grammar
-        /// and no rule it can match nothing, and removing its grammars must be rejected.
+        /// reports an example only a rule covers), so the loader has no reason to refuse it.
         /// </summary>
         RuleOnlyIntent,
+
+        /// <summary>
+        /// The slot grammars of an intent with no keyword rule but with examples (M81): the embedding rung of the resolver scores the intent's examples when the
+        /// pipeline has an embedding model, so the intent is reachable without a grammar and the loader has no reason to refuse it. Whether the examples are
+        /// reached by a grammar or a rule is the lint's coverage check (<c>coverage.uncovered</c>, an error), not the loader's. An intent with neither a
+        /// keyword rule nor an example is never on this list: with no grammar, rule or example it can match nothing, and removing its grammars must be rejected.
+        /// </summary>
+        ExampleOnlyIntent,
     }
 
     /// <summary>
-    /// O15: whether removing <c>slotGrammars</c> from the intent at the path leaves a bundle that is valid by design, because the intent has keyword rules in the
-    /// original <c>intents/intents.json</c>. Returns <see cref="ContentFieldReason.RuleOnlyIntent"/> then, otherwise null.
+    /// O15: whether removing <c>slotGrammars</c> from the intent at the path leaves a bundle the loader may accept, because the intent has keyword rules
+    /// (<see cref="ContentFieldReason.RuleOnlyIntent"/>) or examples (<see cref="ContentFieldReason.ExampleOnlyIntent"/>) in the original
+    /// <c>intents/intents.json</c>. Otherwise null, and the removal must be rejected.
     /// </summary>
-    public static ContentFieldReason? AcceptedRuleOnlyIntent(string file, IReadOnlyList<string> path, System.Text.Json.Nodes.JsonNode originalIntentsFile)
+    public static ContentFieldReason? AcceptedGrammarlessIntent(string file, IReadOnlyList<string> path, System.Text.Json.Nodes.JsonNode originalIntentsFile)
     {
         ArgumentNullException.ThrowIfNull(path);
         ArgumentNullException.ThrowIfNull(originalIntentsFile);
@@ -110,7 +118,13 @@ public static class KnownTolerances
             return null;
         }
 
-        return originalIntentsFile["intents"]![index]!["keywordRules"] is System.Text.Json.Nodes.JsonArray { Count: > 0 } ? ContentFieldReason.RuleOnlyIntent : null;
+        var intent = originalIntentsFile["intents"]![index]!;
+        if (intent["keywordRules"] is System.Text.Json.Nodes.JsonArray { Count: > 0 })
+        {
+            return ContentFieldReason.RuleOnlyIntent;
+        }
+
+        return intent["examples"] is System.Text.Json.Nodes.JsonArray { Count: > 0 } ? ContentFieldReason.ExampleOnlyIntent : null;
     }
 
     /// <summary>
