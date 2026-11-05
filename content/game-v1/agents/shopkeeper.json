@@ -2,6 +2,10 @@
   "agentId": "shopkeeper",
   "initialState": "idle",
   "variantPools": [
+    { "id": "shop_yes", "count": 1 },
+    { "id": "shop_weather", "count": 1 },
+    { "id": "shop_sun", "count": 1 },
+    { "id": "shop_well", "count": 1 },
     { "id": "shop_understood", "count": 1 },
     { "id": "answer_accepted", "count": 3 },
     { "id": "not_understood", "count": 2 },
@@ -25,6 +29,10 @@
     {
       "id": "idle",
       "transitions": [
+        { "on": {"intent": "ask_wellbeing", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "shop_well", "variantPoolId": "shop_well" }] },
+        { "on": {"intent": "ask_weather", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "shop_sun", "variantPoolId": "shop_sun" }] },
+        { "on": {"intent": "state_weather", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "shop_yes", "variantPoolId": "shop_yes" }] },
+        { "onHostEvent": "shopkeeper.weather", "to": "idle", "actions": [{ "dialogueIntent": "shop_weather", "variantPoolId": "shop_weather" }] },
         { "onHostEvent": "shopkeeper.understood", "to": "idle", "actions": [{ "dialogueIntent": "shop_understood", "variantPoolId": "shop_understood" }] },
         { "onHostEvent": "shopkeeper.true", "to": "idle", "actions": [{ "dialogueIntent": "shop_true", "variantPoolId": "shop_true" }] },
         { "onHostEvent": "shopkeeper.ask", "to": "asking", "actions": [{ "dialogueIntent": "shop_need", "variantPoolId": "shop_need" }] },
@@ -50,6 +58,9 @@
     {
       "id": "asking",
       "transitions": [
+        { "on": {"intent": "ask_wellbeing", "communicated": true}, "to": "asking", "actions": [{ "dialogueIntent": "shop_well", "variantPoolId": "shop_well" }] },
+        { "on": {"intent": "ask_weather", "communicated": true}, "to": "asking", "actions": [{ "dialogueIntent": "shop_sun", "variantPoolId": "shop_sun" }] },
+        { "on": {"intent": "state_weather", "communicated": true}, "to": "asking", "actions": [{ "dialogueIntent": "shop_yes", "variantPoolId": "shop_yes" }] },
         { "onHostEvent": "shopkeeper.understood", "to": "asking", "actions": [{ "dialogueIntent": "shop_understood", "variantPoolId": "shop_understood" }] },
         { "onHostEvent": "shopkeeper.give", "to": "offering", "actions": [{ "dialogueIntent": "shop_give", "hostEvent": "stall.give_water", "variantPoolId": "shop_give" }, { "dialogueIntent": "shop_offer", "variantPoolId": "shop_offer" }] },
         { "on": {"intent": "request_item", "communicated": true}, "to": "offering", "actions": [{ "dialogueIntent": "shop_give", "hostEvent": "stall.give_water", "variantPoolId": "shop_give" }, { "dialogueIntent": "shop_offer", "variantPoolId": "shop_offer" }] },
@@ -73,6 +84,9 @@
     {
       "id": "offering",
       "transitions": [
+        { "on": {"intent": "ask_wellbeing", "communicated": true}, "to": "offering", "actions": [{ "dialogueIntent": "shop_well", "variantPoolId": "shop_well" }] },
+        { "on": {"intent": "ask_weather", "communicated": true}, "to": "offering", "actions": [{ "dialogueIntent": "shop_sun", "variantPoolId": "shop_sun" }] },
+        { "on": {"intent": "state_weather", "communicated": true}, "to": "offering", "actions": [{ "dialogueIntent": "shop_yes", "variantPoolId": "shop_yes" }] },
         { "onHostEvent": "shopkeeper.understood", "to": "offering", "actions": [{ "dialogueIntent": "shop_understood", "variantPoolId": "shop_understood" }] },
         { "onHostEvent": "shopkeeper.wont_sell", "to": "asking", "actions": [{ "dialogueIntent": "shop_wont_sell", "variantPoolId": "shop_wont_sell" }] },
         { "onHostEvent": "shopkeeper.give_bread", "to": "done", "actions": [{ "dialogueIntent": "shop_give_bread", "hostEvent": "stall.give_bread", "variantPoolId": "shop_give_bread" }] },
@@ -97,6 +111,9 @@
     {
       "id": "done",
       "transitions": [
+        { "on": {"intent": "ask_wellbeing", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "shop_well", "variantPoolId": "shop_well" }] },
+        { "on": {"intent": "ask_weather", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "shop_sun", "variantPoolId": "shop_sun" }] },
+        { "on": {"intent": "state_weather", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "shop_yes", "variantPoolId": "shop_yes" }] },
         { "onHostEvent": "shopkeeper.understood", "to": "done", "actions": [{ "dialogueIntent": "shop_understood", "variantPoolId": "shop_understood" }] },
         { "onHostEvent": "shopkeeper.ask", "to": "asking", "actions": [{ "dialogueIntent": "shop_need", "variantPoolId": "shop_need" }] },
         { "onHostEvent": "shopkeeper.give", "to": "offering", "actions": [{ "dialogueIntent": "shop_give", "hostEvent": "stall.give_water", "variantPoolId": "shop_give" }, { "dialogueIntent": "shop_offer", "variantPoolId": "shop_offer" }] },
