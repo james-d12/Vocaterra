@@ -18,7 +18,7 @@ Replay: `CsCheck_Seed=41s2qgWEC-M9 scripts/limited.sh dotnet test tests/Vocaterr
 Edit only the core (`src/Vocaterra.Nlp*`, `tests/Vocaterra.Nlp*`, `docs/nlp/` except the implementation plan and decisions). Add a regression [Fact] in the owning module's test project that pastes the failing input, and a findings entry in `tests/Vocaterra.Nlp.Fuzzing.Tests/README.md` like the others there. Do not edit `content/`. A regression check is a C# test.
 
 ## Gate (yours, before reporting)
-`scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4` (0 warnings); the seed replay above passes; `scripts/test.sh full` (9157 passed and 3 skipped before you, with models); `scripts/limited.sh dotnet format Vocaterra.sln --verify-no-changes` clean. Do not commit bin/, obj/ or artifacts/.
+`scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4` (0 warnings); the seed replay above passes; `scripts/test.sh full` (9158 passed and 3 skipped before you, with models); `scripts/limited.sh dotnet format Vocaterra.sln --verify-no-changes` clean. Do not commit bin/, obj/ or artifacts/.
 
 Commit messages end with
 Co-Authored-By: Claude Haiku 5.5 <noreply@anthropic.com>
