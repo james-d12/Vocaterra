@@ -117,6 +117,10 @@ Items/            Inventory, ItemDefinition, ScriptItemNames, InventoryScreen an
   Crafting/       Recipe, RecipeBook and their records, CraftingRules, CraftingScreen, CraftingRow, RecipePanelModel, CraftingPanel
 Dialogue/         DialogueModel and its records, the speech buttons, TextWrap, the turn flow (TurnPump, SpeechActionRunner, SupportFrontend,
                   TurnPresenter, GuideGreeting) and DialogueScreen
+                  (U02: the panel's rows, `DialogueModel.PanelRows`: the current exchange from the learner's last line, the one `CoachingLine`
+                  in place of the correction, accent and English feedback stack, `Expanded` for the older lines; the lines themselves, and so
+                  the book's history, are unchanged. The lesson heading reaches the panel's header as `FrameView.LessonHeading`; the strip has
+                  no heading row, `LessonStripLayout.HeadingRow` = 0.)
 Language/         Book/ (the book's model, pages, tables, recordings, speakers, geometry and BookScreen), Checks/ (the battery's bank, plan,
                   grader, CheckScreen, CheckBattery and ICheckLog), Learner/, Lessons/ (LessonRunner, LessonFrontend, LessonActions),
                   Phrases/ (phrase progress, the support ladder, PhraseJournalRows), Speech/ (the evaluators, MicCheck, MicCheckModel,

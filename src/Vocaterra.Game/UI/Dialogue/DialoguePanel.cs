@@ -52,6 +52,9 @@ public sealed class DialoguePanel : IFrameLayer
     /// <param name="ui">The support language.</param>
     public static string SupportPrefix(LocaleText ui) => Ui(ui).Ui("supportPrefix");
 
+    /// <summary>The width the header keeps free at its right for the status (Listening…, Thinking…, a notice), in pixels.</summary>
+    public const int HeaderStatusRoom = 110;
+
     private static readonly Color Background = new(16, 16, 24, 236);
     private static readonly Color PanelEdge = new(112, 114, 136);
 
@@ -109,6 +112,7 @@ public sealed class DialoguePanel : IFrameLayer
         DrawHelpers.Text(spriteBatch, font, dialogue.NpcName, new Vector2(textLeft, panel.Top + 8), NameColor);
         spriteBatch.Draw(pixel, new Rectangle(textLeft, panel.Top + 8 + DialogueLayout.LineHeight, textWidth, 1), new Color(255, 204, 110, 90));
         DrawStatus(spriteBatch, view, font, dialogue, panel);
+        DrawLessonHeading(spriteBatch, view, font, dialogue, textLeft, panel);
         DrawLines(spriteBatch, view, font, dialogue, textLeft, textWidth, layout.LinesTop, layout.LinesBottom);
 
         if (dialogue.Heard is { } heard)
@@ -216,6 +220,20 @@ public sealed class DialoguePanel : IFrameLayer
         DrawHelpers.Text(spriteBatch, font, text, new Vector2(x, panel.Top + 8), color);
     }
 
+    // U02: the lesson's heading in the header, between the NPC's name and the status; cut short with an ellipsis when it does not fit.
+    private static void DrawLessonHeading(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font, DialogueModel dialogue, int textLeft, Rectangle panel)
+    {
+        if (view.LessonHeading is not { } heading)
+        {
+            return;
+        }
+
+        var x = textLeft + DrawHelpers.Width(font, dialogue.NpcName) + 24;
+        var room = panel.Right - DialogueLayout.Padding - HeaderStatusRoom - x;
+        heading = TextWrap.Ellipsize(heading, room, t => DrawHelpers.Width(font, t));
+        DrawHelpers.Text(spriteBatch, font, heading, new Vector2(x, panel.Top + 8), HintColor);
+    }
+
     private static void DrawLines(
         SpriteBatch spriteBatch,
         FrameView view,
@@ -228,9 +246,10 @@ public sealed class DialoguePanel : IFrameLayer
     {
         // Wrap every line, then show the newest rows that fit. The line Repetir or Más despacio showed again is drawn on a gold plate.
         var rows = new List<(string Text, Color Color, bool Highlight)>();
-        for (var index = 0; index < dialogue.Lines.Count; index++)
+        foreach (var panelRow in dialogue.PanelRows())
         {
-            var line = dialogue.Lines[index];
+            var index = panelRow.Index;
+            var line = panelRow.Line;
             var prefix = line.Speaker switch
             {
                 DialogueSpeaker.Player => view.Session.Locale.Ui("dialogueYou"),
@@ -243,13 +262,13 @@ public sealed class DialoguePanel : IFrameLayer
             {
                 DialogueSpeaker.Player or DialogueSpeaker.PlayerSpoken => PlayerColor,
                 DialogueSpeaker.Note => NoteColor,
-                DialogueSpeaker.Correction or DialogueSpeaker.Accent => CorrectionColor,
+                DialogueSpeaker.Correction or DialogueSpeaker.Accent or DialogueSpeaker.Coaching => CorrectionColor,
                 DialogueSpeaker.World => WorldColor,
                 DialogueSpeaker.Hint => HintColor,
                 DialogueSpeaker.English => EnglishColor,
                 _ => GuideColor,
             };
-            var highlighted = index == dialogue.HighlightedLine && view.Tick < dialogue.HighlightUntilTick;
+            var highlighted = index >= 0 && index == dialogue.HighlightedLine && view.Tick < dialogue.HighlightUntilTick;
             var wrapped = TextWrap.Wrap(prefix + line.Text, width, t => DrawHelpers.Width(font, t));
             foreach (var row in wrapped)
             {
@@ -271,6 +290,11 @@ public sealed class DialoguePanel : IFrameLayer
         if (capacity <= 0)
         {
             return; // a compact panel with no room: the bubble and the lesson strip carry the line (X08)
+        }
+
+        if (dialogue.HiddenLineCount > 0 && rows.Count < capacity)
+        {
+            rows.Insert(0, (view.Session.Locale.Ui("dialogueOlder", ("n", dialogue.HiddenLineCount.ToString(System.Globalization.CultureInfo.InvariantCulture))), NoteColor, false)); // U02: the key that shows them
         }
 
         var first = Math.Max(0, rows.Count - capacity);

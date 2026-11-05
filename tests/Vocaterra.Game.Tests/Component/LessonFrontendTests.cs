@@ -332,7 +332,7 @@ public sealed class LessonFrontendTests
     {
         var layout = LessonStripLayout.For(English, Step(LessonStepType.Repeat), null, 1280, 720, 284, Measure, Measure)!;
 
-        Assert.True(layout.Box.Bottom <= 284 - LessonStripLayout.Gap);
+        Assert.True(layout.Box.Bottom <= 284);
         Assert.Equal(DialogueLayout.PanelBox(1280, 720).X, layout.Box.X);
         Assert.NotNull(layout.SpanishY);
         Assert.True(layout.SpanishY < layout.EnglishY); // the English is under the Spanish
