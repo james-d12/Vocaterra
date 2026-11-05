@@ -6477,6 +6477,7 @@
 {"id":"dialogue:guide.lesson.baker.mar.1","stages":{"render":"4e0950f0a9e0cc05"}}
 {"id":"dialogue:guide.lesson.baker.market.1","stages":{"render":"164faeb8466a8a84"}}
 {"id":"dialogue:guide.lesson.baker.model.1","stages":{"render":"a86c452bfc524267"}}
+{"id":"dialogue:guide.lesson.baker.offer.1","stages":{"render":"f61ff2da19d73401"}}
 {"id":"dialogue:guide.lesson.baker.oven.1","stages":{"render":"8900125259d449b0"}}
 {"id":"dialogue:guide.lesson.baker.pay.1","stages":{"render":"46032b685cb1b284"}}
 {"id":"dialogue:guide.lesson.baker.plan.1","stages":{"render":"3f9669fd74bf25d4"}}
@@ -6498,6 +6499,7 @@
 {"id":"dialogue:guide.lesson.farmer.like_apples.1","stages":{"render":"564e6c2751b6f586"}}
 {"id":"dialogue:guide.lesson.farmer.liked.1","stages":{"render":"79dfdf8affe8b747"}}
 {"id":"dialogue:guide.lesson.farmer.market.1","stages":{"render":"40cdc02111c9a4e4"}}
+{"id":"dialogue:guide.lesson.farmer.offer.1","stages":{"render":"f61ff2da19d73401"}}
 {"id":"dialogue:guide.lesson.farmer.water.1","stages":{"render":"1a9e254fd8db46ff"}}
 {"id":"dialogue:guide.lesson.farmer.went.1","stages":{"render":"cfb79613beae1ce1"}}
 {"id":"dialogue:guide.lesson.farmer.will_sell.1","stages":{"render":"e146b4557f58323e"}}
@@ -6512,12 +6514,14 @@
 {"id":"dialogue:guide.lesson.fisher.luz_will.1","stages":{"render":"30400b9f9079cebc"}}
 {"id":"dialogue:guide.lesson.fisher.more.1","stages":{"render":"f35d2b94998bcf53"}}
 {"id":"dialogue:guide.lesson.fisher.near.1","stages":{"render":"6f4acf2ef0c18c2a"}}
+{"id":"dialogue:guide.lesson.fisher.offer.1","stages":{"render":"f61ff2da19d73401"}}
 {"id":"dialogue:guide.lesson.fisher.plan.1","stages":{"render":"af2bc42f4a973d16"}}
 {"id":"dialogue:guide.lesson.fisher.right.1","stages":{"render":"a3339c4f9bf0180b"}}
 {"id":"dialogue:guide.lesson.fisher.sold.1","stages":{"render":"d61885c40f7280b8"}}
 {"id":"dialogue:guide.lesson.fisher.tomorrow.1","stages":{"render":"550f8de552a0862a"}}
 {"id":"dialogue:guide.lesson.fisher.well.1","stages":{"render":"3118feac2a7033bc"}}
 {"id":"dialogue:guide.lesson.fisher.went.1","stages":{"render":"b10c6719166a0384"}}
+{"id":"dialogue:guide.lesson.guide.offer.1","stages":{"render":"f61ff2da19d73401"}}
 {"id":"dialogue:guide.lesson.have.1","stages":{"render":"974d06839392d52b"}}
 {"id":"dialogue:guide.lesson.have_fruit.1","stages":{"render":"05634065e23780c5"}}
 {"id":"dialogue:guide.lesson.hello.1","stages":{"render":"ffb948556a252fec"}}
@@ -6570,6 +6574,7 @@
 {"id":"dialogue:guide.lesson.villager.morning.1","stages":{"render":"de03bf914d52de17"}}
 {"id":"dialogue:guide.lesson.villager.much.1","stages":{"render":"1aa0427ef83c981c"}}
 {"id":"dialogue:guide.lesson.villager.need.1","stages":{"render":"0e9b8dec974fe351"}}
+{"id":"dialogue:guide.lesson.villager.offer.1","stages":{"render":"3dcb75f9f55ccc19"}}
 {"id":"dialogue:guide.lesson.villager.plan.1","stages":{"render":"e3e737fc470232da"}}
 {"id":"dialogue:guide.lesson.villager.plan_we.1","stages":{"render":"77581625927642a3"}}
 {"id":"dialogue:guide.lesson.villager.river.1","stages":{"render":"03b8863434651de4"}}
@@ -6609,6 +6614,7 @@
 {"id":"dialogue:guide.review.phrase.no_gracias.1","stages":{"render":"521370ebcb2133b9"}}
 {"id":"dialogue:guide.review.phrase.pedir_agua.1","stages":{"render":"6ff24d0780505b4c"}}
 {"id":"dialogue:guide.review.phrase.si_por_favor.1","stages":{"render":"521370ebcb2133b9"}}
+{"id":"dialogue:guide.sleep.not_sleepy.1","stages":{"render":"23c498c0a4f7b066"}}
 {"id":"dialogue:guide.uncertain.1","stages":{"render":"4e5f7b6a74f1b04d"}}
 {"id":"dialogue:guide.uncertain.2","stages":{"render":"6c0d54f21e849c0b"}}
 {"id":"dialogue:guide_again.1","stages":{"render":"4628bbc0402e8218"}}
