@@ -175,7 +175,7 @@ public sealed class ObjectiveBookTests
 
         var document = SaveGame.Parse(SaveGame.Save(session, TestGame.Route()));
 
-        Assert.Equal(5, document.Version);
+        Assert.Equal(SaveGame.CurrentVersion, document.Version);
         Assert.Equal(["camp.wood", "camp.berry", "camp.torch", "camp.water", "fruit-for-mar.delivered", "oven-wood.delivered", "axe-handle.delivered", "water-for-plants.delivered"], document.Objective.Select(static o => o.Key)); // and the orders' one step each (V10 to V13)
         Assert.Equal(2, document.Objective[0].Count);
     }
@@ -207,7 +207,7 @@ public sealed class ObjectiveBookTests
         Assert.Null(loaded.CurrentObjective);
         Assert.DoesNotContain(loaded.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.SpareTorch); // the fire is lit already
         var resaved = SaveGame.Parse(SaveGame.Save(loaded, TestGame.Route()));
-        Assert.Equal(5, resaved.Version);
+        Assert.Equal(SaveGame.CurrentVersion, resaved.Version);
         Assert.Equal(["camp.wood", "camp.berry", "camp.torch", "camp.water", "fruit-for-mar.delivered", "oven-wood.delivered", "axe-handle.delivered", "water-for-plants.delivered"], resaved.Objective.Select(static o => o.Key));
     }
 

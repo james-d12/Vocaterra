@@ -1,0 +1,73 @@
+{
+  "$schema": "../../schema/needs.schema.json",
+  "schemaVersion": 1,
+  "about": "The player's needs (N01; adaptation design section 9): three drives (hunger, thirst, sleep) that fall in active play and push two conditions (health, stamina), their stages, the links between them, what food gives, and the rules of a night, a collapse and a death. Starting values, tuned in the needs check. A stage applies below its point (the last stage at its point); each stage replaces the one before it. The stage lines' keys are for the HUD (N05); their text is not here.",
+  "drives": {
+    "hunger": {
+      "detail": "hambre",
+      "secondsPerPoint": 36,
+      "effort": { "sprinting": 1.5, "gathering": 1.5 },
+      "stages": [
+        { "point": 75, "line": "need.hunger.1", "effects": {} },
+        { "point": 50, "line": "need.hunger.2", "effects": { "staminaPenalty": 15, "refillFactor": 0.85 } },
+        { "point": 25, "line": "need.hunger.3", "effects": { "staminaPenalty": 30, "refillFactor": 0.7, "blocksRecovery": true } },
+        { "point": 0, "line": "need.hunger.4", "effects": { "staminaPenalty": 45, "refillFactor": 0.5, "blocksRecovery": true, "sprintAllowed": false, "walkFactor": 0.9, "healthLoss": 1, "healthLossEverySeconds": 6 } }
+      ]
+    },
+    "thirst": {
+      "detail": "sed",
+      "secondsPerPoint": 24,
+      "effort": { "sprinting": 1.5, "gathering": 1.5 },
+      "stages": [
+        { "point": 75, "line": "need.thirst.1", "effects": {} },
+        { "point": 50, "line": "need.thirst.2", "effects": { "staminaPenalty": 20, "refillFactor": 0.8 } },
+        { "point": 25, "line": "need.thirst.3", "effects": { "staminaPenalty": 35, "refillFactor": 0.6, "blocksRecovery": true, "view": "dimEdges" } },
+        { "point": 0, "line": "need.thirst.4", "effects": { "staminaPenalty": 50, "refillFactor": 0.4, "blocksRecovery": true, "sprintAllowed": false, "walkFactor": 0.85, "healthLoss": 1, "healthLossEverySeconds": 4 } }
+      ]
+    },
+    "sleep": {
+      "detail": "sueño",
+      "secondsPerPoint": 72,
+      "effort": { "sprinting": 1.25, "gathering": 1.25 },
+      "stages": [
+        { "point": 75, "line": "need.sleep.1", "effects": {} },
+        { "point": 50, "line": "need.sleep.2", "effects": { "staminaPenalty": 10, "refillFactor": 0.8 } },
+        { "point": 25, "line": "need.sleep.3", "effects": { "staminaPenalty": 25, "refillFactor": 0.6, "blocksRecovery": true, "view": "blink" } },
+        { "point": 0, "line": "need.sleep.4", "effects": { "staminaPenalty": 40, "refillFactor": 0.5, "blocksRecovery": true, "sprintAllowed": false, "walkFactor": 0.85 } }
+      ]
+    }
+  },
+  "health": {
+    "detail": "salud",
+    "recoverySeconds": 12,
+    "warnings": [
+      { "point": 50, "line": "need.health.1", "effects": { "view": "heartPulse" } },
+      { "point": 25, "line": "need.health.2", "effects": { "sprintAllowed": false, "walkFactor": 0.9, "view": "redEdges" } }
+    ]
+  },
+  "stamina": {
+    "maximum": 100,
+    "minimumMaximum": 20,
+    "refillPerSecond": 15,
+    "refillDelaySeconds": 1,
+    "minimumRefillFactor": 0.25,
+    "sprintPerSecond": 10,
+    "gatherPerTick": 0.0278
+  },
+  "rest": { "radiusBlocks": 3, "refillFactor": 2, "recoveryFactor": 2 },
+  "night": { "sleepTo": 100, "health": 20, "hungerCost": 15, "thirstCost": 20, "floor": 10 },
+  "collapse": { "sleepTo": 50, "health": 0, "hungerCost": 15, "thirstCost": 20, "floor": 10, "delaySeconds": 60 },
+  "drinkByHand": { "thirst": 10 },
+  "foods": [
+    { "item": "berry", "hunger": 8 },
+    { "item": "apple", "hunger": 12 },
+    { "item": "bread", "hunger": 25, "healing": 5 },
+    { "item": "water-bottle", "thirst": 40, "leaves": "bottle" }
+  ],
+  "death": {
+    "wakeAt": "firering.player",
+    "wake": { "health": 50, "hunger": 50, "thirst": 50, "sleep": 50 },
+    "keepInBag": "stacksOfOne",
+    "chestLastsUntil": "night"
+  }
+}
