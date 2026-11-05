@@ -121,6 +121,6 @@ public sealed class NounCatalogTests
             Assert.Null(TestGame.Nouns.ForLemma(lemma));
         }
 
-        Assert.Equal(22, TestGame.Nouns.Nouns.Count); // the 16 of S4, since S6 botella and pan, since S20 libro (the book item), since V03 moneda, manzana and hacha
+        Assert.Equal(23, TestGame.Nouns.Nouns.Count); // N07 fuego; the 16 of S4, since S6 botella and pan, since S20 libro (the book item), since V03 moneda, manzana and hacha
     }
 }

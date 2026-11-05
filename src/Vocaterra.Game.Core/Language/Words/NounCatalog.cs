@@ -58,8 +58,11 @@ public sealed class NounCatalog
     private readonly Dictionary<ItemId, NounEntry> _byItem;
     private readonly Dictionary<BlockId, List<NounEntry>> _byBlock;
 
-    private NounCatalog(IReadOnlyList<NounEntry> nouns, IReadOnlySet<string> articles)
+    private readonly Dictionary<ItemId, string> _labels;
+
+    private NounCatalog(IReadOnlyList<NounEntry> nouns, IReadOnlySet<string> articles, Dictionary<ItemId, string> labels)
     {
+        _labels = labels;
         Articles = articles;
         _byLemma = new Dictionary<string, NounEntry>(StringComparer.Ordinal);
         _byItem = [];
@@ -129,6 +132,7 @@ public sealed class NounCatalog
 
         var nouns = new List<NounEntry>();
         var claimedItems = new HashSet<ItemId>();
+        var labels = new Dictionary<ItemId, string>();
         foreach (var item in root.GetProperty("nouns").EnumerateArray())
         {
             var lemma = item.GetProperty("lemma").GetString() ?? throw new InvalidDataException("A catalogue noun has no lemma.");
@@ -148,6 +152,17 @@ public sealed class NounCatalog
             var blocks = item.TryGetProperty("blocks", out var blockValues)
                 ? blockValues.EnumerateArray().Select(b => BlockNamed(b.GetString())).ToList()
                 : new List<BlockId>();
+            if (item.TryGetProperty("labels", out var labelValues))
+            {
+                foreach (var label in labelValues.EnumerateObject())
+                {
+                    var kind = ItemNamed(label.Name);
+                    labels[kind] = items.Contains(kind) && label.Value.GetString() is { Length: > 0 } text
+                        ? text
+                        : throw new InvalidDataException($"{RelativePath}: '{lemma}' labels '{label.Name}', which it does not name, or with no text.");
+                }
+            }
+
             nouns.Add(Describe(bundle, lemma, items, blocks, mass, sources));
         }
 
@@ -165,7 +180,7 @@ public sealed class NounCatalog
 
         // The articles are the lexicon's (its art readings: el, la, los, las, un, una, unos, unas), not a list in the code (content-plan C05).
         var articles = bundle.Lexicon.Entries.Where(static e => string.Equals(e.Pos, "art", StringComparison.Ordinal)).Select(static e => e.Form).ToHashSet(StringComparer.Ordinal);
-        return new NounCatalog(nouns, articles);
+        return new NounCatalog(nouns, articles, labels);
     }
 
     /// <summary>The catalogue entry for a lemma, or <see langword="null"/> when the lemma is not a catalogue noun.</summary>
@@ -177,6 +192,12 @@ public sealed class NounCatalog
 
     /// <summary>The catalogue entry that names an item kind, or <see langword="null"/> when no noun names it.</summary>
     public NounEntry? ForItem(ItemId item) => _byItem.TryGetValue(item, out var noun) ? noun : null;
+
+    /// <summary>
+    /// The text that labels an item (N07): the noun's lemma, or the noun's own label for the item when the file gives one (<c>manzana asada</c> for the roast apple, which <c>manzana</c>
+    /// also covers); <see langword="null"/> when no noun names the item.
+    /// </summary>
+    public string? LabelOf(ItemId item) => _labels.TryGetValue(item, out var label) ? label : ForItem(item)?.Lemma;
 
     /// <summary>The first catalogue noun that names a 3D block kind (by lemma order), or <see langword="null"/> when none does.</summary>
     public NounEntry? ForBlock(BlockId block) => _byBlock.TryGetValue(block, out var named) ? named[0] : null;

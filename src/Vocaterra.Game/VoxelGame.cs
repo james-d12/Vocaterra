@@ -736,8 +736,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         base.UnloadContent();
     }
 
-    // The crosshair is on the workbench (the mesa): E opens the crafting panel there, as C does anywhere.
-    private bool AimedAtWorkbench() => _sim.Target is { } hit && hit.Id == BlockId.Table;
+    // The crosshair is on a crafting station: the workbench (the mesa), or a lit fire (N07: a stone of a burning ring, or the ground inside it). E opens the crafting panel there, as C does
+    // anywhere, and comes before the sleep at the same fire (an unlit ring does nothing, as before).
+    private bool AimedAtWorkbench() =>
+        _sim.Target is { } hit && (hit.Id == BlockId.Table
+            || (hit.Id == BlockId.FireRing && _session.Fires.StoneBurns(hit.Block))
+            || (_session.Fires.Middles.Contains(hit.Adjacent) && _session.Fires.IsLit(hit.Adjacent)));
 
     // Keys and mouse, once per frame, for the interactive run. The device state becomes this frame's commands (LiveVoxelInput) and the look.
     private void ReadInput()

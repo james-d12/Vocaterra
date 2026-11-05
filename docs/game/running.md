@@ -104,7 +104,7 @@ dotnet run --project src/Vocaterra.Game -- --seed 42 --greyscale --look 120,-5 -
 WASD or the arrows walk, Space jumps, the mouse looks (Esc lets the mouse go, a click takes it back). **Hold the left button** on a trunk
 (`madera`, five for the camp) or a berry bush (`fruta`, three) to gather it, the right button places the selected item, `1`..`0` or the wheel
 pick the hotbar slot, **I** the inventory, **C** the crafting panel, **E** the inventory or, with the crosshair on the workbench (`mesa`), the
-crafting panel. The panel lists the recipes (the torch: `antorcha` from two `madera` at the workbench); a click on a row crafts it. **J** the
+crafting panel; the same at a lit fire ring (`fuego`, N07: a ring with a torch in its three-by-three; an unlit ring does nothing, and the sleep offer waits while the crosshair is on a lit ring). The panel lists the recipes (the torch: `antorcha` from two `madera` at the workbench; the roast apple: `manzana` from one `manzana` at a lit fire, labelled `manzana asada`); a click on a row crafts it. **J** the
 book, **F3** the debug overlay, **F5** the view over your own shoulder and back (S15: first person is where every run starts; `--third-person` starts
 in the shoulder view), **F6** saves. **Aim the crosshair at the guide's figure**: the hint `E: talk` shows, and **E** (or **T** to type, or **V**
 to talk: hold it, the clip goes when it is let go) opens the dialogue panel, which takes the keyboard and frees the mouse. **The panel has

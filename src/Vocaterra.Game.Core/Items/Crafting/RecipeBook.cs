@@ -70,6 +70,13 @@ public sealed class RecipeBook
             var outputLemma = element.GetProperty("output").GetString() ?? throw new InvalidDataException("A recipe has no output.");
             var output = nouns.ForLemma(outputLemma) ?? throw new InvalidDataException($"{RelativePath}: output '{outputLemma}' is not a catalogue noun.");
             var outputItem = ItemOf(output, RelativePath);
+            if (element.TryGetProperty("makes", out var makes) && makes.ValueKind == JsonValueKind.String)
+            {
+                // A noun that covers several items (manzana: the apple and the roast apple) says which one the recipe makes, by the item's key.
+                var made = output.Items.Cast<ItemId?>().FirstOrDefault(i => string.Equals(ItemDefinition.Get(i!.Value).Name, makes.GetString(), StringComparison.Ordinal));
+                outputItem = made ?? throw new InvalidDataException($"{RelativePath}: '{outputLemma}' does not name the item '{makes.GetString()}' that its recipe makes.");
+            }
+
             if (!seen.Add(outputLemma))
             {
                 throw new InvalidDataException($"{RelativePath}: '{outputLemma}' has more than one recipe.");

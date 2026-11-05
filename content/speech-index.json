@@ -1906,6 +1906,28 @@
       "Sha256": "031775cd2405e445e3b18f64091134b52e5badbebac5a950a7eb049bcfefb755",
       "Bytes": 44444
     },
+    "speech/cards/card.fuego.slow.wav": {
+      "Text": "el fuego",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "13030c24804ea73e3b1fdc4392a4c965c773bf79d9cbe9fce22784bb6055076a",
+      "Bytes": 55244
+    },
+    "speech/cards/card.fuego.wav": {
+      "Text": "el fuego",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "7862f24e3d327da424e4fcdc0beabd4c2389c46f98a59422bc840bb33959382e",
+      "Bytes": 44444
+    },
     "speech/cards/card.hacha.slow.wav": {
       "Text": "el hacha",
       "Speaker": "guide",
