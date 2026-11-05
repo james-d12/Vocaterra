@@ -124,6 +124,7 @@ public sealed record LaunchOptions
         + "  --assume-known <nouns>  a test aid: the comma-separated catalogue nouns count as known from the start (their blocks are in colour)\n"
         + "  --strict-save           refuse a save made from another content bundle (the playtest's frozen bundle, D-game-10); without it a --load across bundles keeps\n"
      + "                          the progress where its ids still exist and drops the rest (X01); --playtest implies it\n"
+        + "  --dev                   the debug overlay and the dialogue's developer note start on (U01); F3 toggles both; without it ordinary play starts clean\n"
         + "  --playtest              the playtest profile (S12): no debug overlay, the mic check, the session log in its own folder, the pre-check before the\n"
         + "                          world (a fresh start) or the recall check (with --load), the post-check when the camp is done and the transfer offered\n"
         + "                          (or F10 ends the run), then playtest.save in the session folder and the thank-you screen until Esc; --greyscale stays\n"
@@ -317,6 +318,12 @@ public sealed record LaunchOptions
     public bool Playtest { get; init; }
 
     /// <summary>
+    /// Whether <c>--dev</c> was given (U01): the debug overlay and the dialogue's developer note (the grey "intent, understood, 100 %, 12 ms" line) start on. Without it
+    /// both start off, in a playtest too; F3 toggles both (not in a playtest).
+    /// </summary>
+    public bool Dev { get; init; }
+
+    /// <summary>
     /// Whether a save of another content bundle is refused (<c>--strict-save</c>, or <c>--playtest</c>, X01). Off, a <c>--load</c> across bundles keeps the progress where its ids still
     /// exist and logs what was dropped. A playtest is strict because its recall check needs the bundle frozen between the sessions (D-game-10).
     /// </summary>
@@ -380,6 +387,7 @@ public sealed record LaunchOptions
         var greyscale = false;
         var micCheck = MicCheckMode.Auto;
         var playtest = false;
+        var dev = false;
         var strictSave = false;
         for (var i = 0; i < args.Count; i++)
         {
@@ -391,7 +399,7 @@ public sealed record LaunchOptions
             }
 
             if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--no-speech" or "--mute" or "--no-sounds" or "--voxel" or "--greyscale" or "--strict-save" or "--leave" or "--mic-check" or "--no-mic-check"
-                    or "--playtest" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep" or "--drink" or "--take-belongings" or "--relaxed-needs")
+                    or "--playtest" or "--dev" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep" or "--drink" or "--take-belongings" or "--relaxed-needs")
             {
                 switch (arg)
                 {
@@ -459,6 +467,9 @@ public sealed record LaunchOptions
                         break;
                     case "--greyscale":
                         greyscale = true;
+                        break;
+                    case "--dev":
+                        dev = true;
                         break;
                     case "--playtest":
                         playtest = true;
@@ -1063,6 +1074,7 @@ public sealed record LaunchOptions
         options = result with
         {
             Playtest = playtest,
+            Dev = dev,
             StrictSave = strictSave || playtest,
             ScreenshotPath = screenshot,
             Says = says,

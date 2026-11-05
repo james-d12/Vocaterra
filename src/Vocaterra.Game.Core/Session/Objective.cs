@@ -57,6 +57,12 @@ public sealed class Objective
     /// <summary>Whether every step is done.</summary>
     public bool Complete => _steps.All(static s => s.Done);
 
+    /// <summary>The sum of the steps' counts.</summary>
+    internal int Progress => _steps.Sum(static s => s.Count);
+
+    /// <summary>When the objective last advanced, as the session's running number of advances (0: not in this run); only the tracker's order reads it (U01), no save keeps it.</summary>
+    internal int AdvancedAt { get; set; }
+
     /// <summary>Whether any step has moved.</summary>
     public bool Started => _steps.Any(static s => s.Count > 0);
 

@@ -86,7 +86,7 @@ public sealed class DialoguePanel : IFrameLayer
     {
         ArgumentNullException.ThrowIfNull(dialogue);
         ArgumentNullException.ThrowIfNull(font);
-        return new DialogueLayout(viewportWidth, viewportHeight, text => DrawHelpers.Width(font, text), dialogue.Choices.Select(static c => c.Label).ToList(), dialogue.Buttons, dialogue.IsTyping, button => SpeechButtons.TextFor(button, session), HintsFor(session?.Locale ?? throw new ArgumentNullException(nameof(session)), dialogue.IsTyping, dialogue.SpeechUnavailable));
+        return new DialogueLayout(viewportWidth, viewportHeight, text => DrawHelpers.Width(font, text), dialogue.Choices.Select(static c => c.Label).ToList(), dialogue.Buttons, dialogue.IsTyping, button => SpeechButtons.TextFor(button, session), HintsFor(session?.Locale ?? throw new ArgumentNullException(nameof(session)), dialogue.IsTyping, dialogue.SpeechUnavailable, session.Tips.WasShown("speak")));
     }
 
     /// <inheritdoc />
@@ -150,8 +150,11 @@ public sealed class DialoguePanel : IFrameLayer
     /// <param name="ui">The support language.</param>
     /// <param name="typing">Whether the text box has the keys.</param>
     /// <param name="speechUnavailable">Whether the speech models are not loaded (the talk key does nothing).</param>
-    public static string HintsFor(LocaleText ui, bool typing, bool speechUnavailable) => (typing, speechUnavailable) switch
+    /// <param name="speakHintShown">Whether the speak tip has been shown (U01): the footer then stops repeating how to speak (the keys stay in the controls help, F1).</param>
+    public static string HintsFor(LocaleText ui, bool typing, bool speechUnavailable, bool speakHintShown = false) => (typing, speechUnavailable) switch
     {
+        (true, false) when speakHintShown => Ui(ui).Ui("dialogueKeyHintsShort"),
+        (false, false) when speakHintShown => Ui(ui).Ui("dialogueButtonHintsShort"),
         (true, false) => KeyHints(ui),
         (true, true) => SpeechOffKeyHints(ui),
         (false, false) => ButtonHints(ui),

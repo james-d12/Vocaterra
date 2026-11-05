@@ -129,6 +129,21 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public void ALessonsDoStepIsInTheTrackerOnlyWhenTheLessonStripDoesNotShowIt()
+    {
+        var session = SessionThreeAtVillager();
+        while (session.Lessons.Current is { } step && step.Id != "f3-walk")
+        {
+            _ = LessonDriver.DoStep(session);
+        }
+
+        var line = session.Lessons.HudLine!;
+        Assert.Equal(line, session.ObjectiveTracker(lessonStripShown: false).Lines[0].Pieces.Single().Text); // out in the world, the tracker carries the step
+        var inStrip = session.ObjectiveTracker(lessonStripShown: true); // the panel is open at the lesson's NPC: the strip says it, the tracker does not
+        Assert.DoesNotContain(inStrip.Lines, l => l.Pieces.Any(p => p.Text == line));
+    }
+
+    [Fact]
     public void TheLessonRunsFromTheVillagerToTheShopkeeperWithTypedAnswersAndEveryStepEndsDone()
     {
         var session = SessionThreeAtVillager();
