@@ -371,7 +371,7 @@ there. Commit prefixes `N<nn>:`, `L01:`, `U<nn>:`, `W<nn>:`; one milestone branc
 
 | ID | What | Depends on | Size | Model | Status |
 | --- | --- | --- | --- | --- | --- |
-| N01 | The needs model (design 9.2 to 9.4, 9.10, 9.13): five needs in `Game.Core/Needs/` (`PlayerNeeds`), their stages and links, `game/needs.json` and its schema, save version 6 with the optional systems map, the world events, `--needs off` and `--set-need`; the session told each tick whether play is active | the follow-ups | M/L | Sonnet 5.5 | planned |
+| N01 | The needs model (design 9.2 to 9.4, 9.10, 9.13): five needs in `Game.Core/Needs/` (`PlayerNeeds`), their stages and links, `game/needs.json` and its schema, save version 6 with the optional systems map, the world events, `--needs off` and `--set-need`; the session told each tick whether play is active | the follow-ups | M/L | Sonnet 5.5 | done (2026-11-05, gated at `3a63832e`, 9158 passed) |
 | L01 | Lessons as optional classes (5.3, 5.4; D-game-25): the introduction alone required; classes offered and chosen; sleep when the sleep drive is below 75; orders by NPC met; no lesson holds an NPC, an order or the day; r20 and r21 re-baselined, a new run with no classes | N01 | M | Sonnet 5.5 | planned |
 | N02 | Eating, drinking and sprinting (9.6): eat and drink actions, water by hand, the sprint control, the gathering cost, rest at a lit fire | N01 | S/M | Sonnet 5.5 | planned |
 | N03 | Sleep and the collapse (9.5): a night's effects, the collapse and waking where the player fell, every night and collapse advances the day; the offer rule is L01's | L01, N02 | S/M | Sonnet 5.5 | planned |
@@ -2142,6 +2142,18 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     `describe` at León's and the stall's prompts; `como es la manzana` and `ellas adónde van` read as `state_action` through keyword rules.
     **To the core (M69):** `cuanto son todo?` is understood but `son` is not corrected and the recast keeps «cuanto» (the unaccented
     question word). Replies match on intent only, so Luz says «¡Qué bien!» to `Tienes veinte panes.` (accepted).
+- **N01, the needs model (2026-11-05, Sonnet 5.5; gated on `feature/adaptive_design` at `3a63832e`, 9158 passed, 3 skipped).**
+  The five needs in `Vocaterra.Game.Core/Needs/` (`PlayerNeeds`, stages and effects computed, never stored), their data in `game/needs.json`
+  with a schema and `NeedsValidator`, stepped once per world tick only in active play (`PlayPauses == None`), `need_stage` raised; seven need
+  events registered; save version 6 with an optional `systems.needs` record kept out of the digest; `--needs on|off` and `--set-need`;
+  every scripted run takes `--needs off` (r01, r09, r20 and r21 differ only in the save version and size). Values chosen under D-game-23's
+  answers: gathering 0.0278 stamina a gather tick (a minute by hand is about 10 s of sprint, the axe a quarter); a night or collapse never
+  lowers a drive below 10 and leaves one already below 10; at full hunger or thirst the food or drink is kept. Stage lines are keys; their
+  Spanish (`Tengo un poco de hambre` ... `Me muero de hambre`, the same for sed and sueño, `Estoy débil`, `Estoy muy débil`) waits for N05
+  and the grammar cache. **Left:** the night does not apply `PlayerNeeds.Sleep` yet (N03, with `SleepTests`); rest only at the player's own
+  fire (N02: the forge and the other rings); sprint (N02). The orchestrator's check: `--set-need thirst 25.2 --walk-to 176,186 --wait 8`
+  raises `need_stage (sed)` and saves thirst 24.03. The agent met a ContentSchemaFuzzTests failure (seed `41s2qgWEC-M9`, O15: `describe`
+  with its `slotGrammars` removed is accepted) that reproduces on the base: planned as core M81. Report `.claude/briefs/n01-report.md`.
 
 
 ## 6. Definition of done (every milestone)
