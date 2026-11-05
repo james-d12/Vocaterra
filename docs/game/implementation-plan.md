@@ -376,7 +376,7 @@ there. Commit prefixes `N<nn>:`, `L01:`, `U<nn>:`, `W<nn>:`; one milestone branc
 | N02 | Eating, drinking and sprinting (9.6): eat and drink actions, water by hand, the sprint control, the gathering cost, rest at a lit fire | N01 | S/M | Sonnet 5.5 | done (2026-11-05, gated at `3a4345f8`, 9195 passed) |
 | N03 | Sleep and the collapse (9.5): a night's effects, the collapse and waking where the player fell, every night and collapse advances the day; the offer rule is L01's | L01, N02 | S/M | Sonnet 5.5 | done (2026-11-05, gated at `7cf2e115`, 9219 passed) |
 | N04 | Health and death (9.4, 9.7): losses and recovery, death and the belongings chest (decision 10), waking at the fire; runs r25-thirst and r26-death | N03 | M | Sonnet 5.5 | done (2026-11-05, gated at `b72b9184`, 9246 passed) |
-| N05 | The HUD and the opening (9.8, 9.9): bars, icons, stage lines, sounds, view effects and their option, the tip and the death screen, the relaxed-needs option (decision 17); layout tests at every scale; the day-1 route proven safe | N04 | S/M | Sonnet 5.5 | planned |
+| N05 | The HUD and the opening (9.8, 9.9): bars, icons, stage lines, sounds, view effects and their option, the tip and the death screen, the relaxed-needs option (decision 17); layout tests at every scale; the day-1 route proven safe | N04 | S/M | Sonnet 5.5 | done (2026-11-05, gated at 6dfa8566, 9433 passed) |
 | N06 | Food that grows back, and fair gifts (9.6; decision 12): berry bushes regrow after a night; bread and water gifts once per in-game day | N05 | S/M | Sonnet 5.5 | done (2026-11-05, gated at 468a1b29, 9382 passed; built before N05, its Spanish lines left to N05) |
 | W01 | `item_crafted`: a craft is a world event (activities plan) | N06 | S | Haiku 5.5 | done (2026-11-05, gated at 56f88b4b, 9385 passed) |
 | N07 | Cooking at the fire (9.6): the noun `fuego`, an apple to a roast apple at any lit fire, through the crafting path and `item_crafted` | W01 | S/M | Sonnet 5.5 | planned |
@@ -2203,6 +2203,18 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   craft the torch) and were re-baselined; the other 22 did not move. Tested: the torch's event, an objective step on it; a lesson `do` step
   on it is not tested directly (it matches through the same trigger, and no shipped lesson has one). The orchestrator's check: the camp
   route's torch craft prints the event. Report `.claude/briefs/w01-report.md`.
+- **N05, the HUD and the opening (2026-11-05, Sonnet 5.5, two attempts; gated on `feature/adaptive_design` at `6dfa8566`, 9433 passed, 3
+  skipped).** The first agent wrote the code and stopped before compiling (out of context); the orchestrator committed its work as WIP and a
+  second agent finished it (one missing `using`). Health and stamina bars beside the hotbar, drive icons with one to four notches, the stage
+  line once above the hotbar with a soft synthesised sound, the needs in the inventory, gentle view effects with F7 and `--view-effects`
+  to turn them off, the English tip on the first `need_stage`, a death card «Estás en tu campamento.», «tus cosas» on the chest's beacon.
+  **Relaxed needs** (design decision 17, provisional): `--relaxed-needs` and a setting, half the drive rates, a faint at zero health with no
+  chest. N06's lines «Hoy no tengo más pan.» and «Hoy ya no tengo agua.» replace the borrowed ones (six WAVs). **Day 1 is safe with room to
+  spare:** the route takes 81 s of active play at the intended pace and 204 s at 2.5 times (the novice pace), the lowest meter is thirst
+  91.4, every drive stays healthy and no recovery is needed: at N01's rates the needs barely touch day 1, a number for the needs check.
+  **Open:** `morir` («Me muero de …») is above A2 in the lists and the lint does not read the HUD lines (`hudLines`); left unwaived for the
+  owner. The HUD is hidden under `--needs off`, so the language runs did not move; r25 and r26 gained the tip. The orchestrator's check: a
+  day-2 screenshot with thirst 20 and hunger 45 shows the bar and both icons. Report `.claude/briefs/n05-report.md`.
 
 ## 6. Definition of done (every milestone)
 
