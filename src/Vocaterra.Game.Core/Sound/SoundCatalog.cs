@@ -49,6 +49,7 @@ public static class SoundCatalog
         File(SoundCue.PickUp, 0.7, 0.05, "kenney-rpg_handleSmallLeather.wav", "kenney-rpg_handleSmallLeather2.wav");
         File(SoundCue.CraftDone, 0.8, 0.0, "kenney-rpg_metalLatch.wav");
         Synth(SoundCue.BottleFill, 0.8);
+        Synth(SoundCue.NeedStage, 0.45);
         Synth(SoundCue.FireLight, 0.8);
 
         File(SoundCue.InventoryOpen, 0.7, 0.03, "kenney-rpg_beltHandle1.wav");

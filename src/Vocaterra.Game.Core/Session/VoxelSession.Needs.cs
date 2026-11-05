@@ -24,6 +24,19 @@ public sealed partial class VoxelSession
     public bool NeedsEnabled { get; set; } = true;
 
     /// <summary>
+    /// The relaxed-needs setting (N05, design decision 17): every drive falls at half its rate, and at zero health the player faints and wakes at the camp with the bag kept and no chest.
+    /// Off by default; a setting of the player (<c>--relaxed-needs</c>, kept in the save's settings), not the world's state: no meter, digest or replay holds it.
+    /// </summary>
+    public bool RelaxedNeeds
+    {
+        get => Needs.RateFactor < 1;
+        set => Needs.RateFactor = value ? RelaxedRateFactor : 1;
+    }
+
+    /// <summary>The share of its rate a drive falls at under <see cref="RelaxedNeeds"/>.</summary>
+    public const double RelaxedRateFactor = 0.5;
+
+    /// <summary>
     /// Why play is not active now (<see cref="PlayPause"/>), set by the game each frame: no conversation, lesson panel, book, inventory, crafting, station, report, menu or check
     /// battery, and no speech being recorded or processed. <see cref="PlayPause.None"/> is active play, the only time the needs move.
     /// </summary>

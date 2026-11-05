@@ -2,6 +2,7 @@ using System.Globalization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Graphics;
 using Vocaterra.Game.UI.Common;
 
@@ -37,7 +38,8 @@ public sealed class InventoryLayer : IFrameLayer
         var viewport = new Rectangle(0, 0, view.ViewportWidth, view.ViewportHeight);
         spriteBatch.Draw(pixel, viewport, new Color(6, 6, 14, 150));
 
-        var layout = new InventoryLayout(viewport.Width, viewport.Height, Core.Items.Inventory.SlotCount);
+        IReadOnlyList<NeedsListRow> needs = view.Needs is { Visible: true } hud ? hud.ListRows() : [];
+        var layout = new InventoryLayout(viewport.Width, viewport.Height, Core.Items.Inventory.SlotCount, needs.Count);
         var panel = new Rectangle(layout.Panel.X, layout.Panel.Y, layout.Panel.Width, layout.Panel.Height);
         spriteBatch.Draw(pixel, panel, new Color(18, 18, 34, 250));
         DrawHelpers.Border(spriteBatch, pixel, panel, 2, Gold);
@@ -49,7 +51,7 @@ public sealed class InventoryLayer : IFrameLayer
         var used = view.Items.Slots.Count(static s => !s.IsEmpty);
         var summary = ui.Ui("inventoryUsed", ("used", used.ToString(CultureInfo.InvariantCulture)), ("slots", Core.Items.Inventory.SlotCount.ToString(CultureInfo.InvariantCulture)));
         DrawHelpers.Text(spriteBatch, font, summary, new Vector2(panel.Right - InventoryLayout.Padding - DrawHelpers.Width(font, summary), panel.Top + 10), Known);
-        spriteBatch.Draw(pixel, new Rectangle(left, panel.Top + 36, textWidth, 1), new Color(255, 214, 64, 120));
+        spriteBatch.Draw(pixel, new Rectangle(left, panel.Top + layout.DividerY, textWidth, 1), new Color(255, 214, 64, 120));
 
         for (var slot = 0; slot < Core.Items.Inventory.SlotCount; slot++)
         {
@@ -57,7 +59,29 @@ public sealed class InventoryLayer : IFrameLayer
             DrawSlot(spriteBatch, view, font, new Rectangle(cell.X, cell.Y, cell.Width, cell.Height), view.Items.Slots[slot], layout.Compact);
         }
 
-        DrawHelpers.Text(spriteBatch, font, DrawHelpers.Fit(font, DrawHelpers.Width(font, ui.Ui("inventoryHints")) <= textWidth ? ui.Ui("inventoryHints") : ui.Ui("inventoryHintsShort"), textWidth), new Vector2(left, panel.Bottom - 26), Hints);
+        DrawHelpers.Text(spriteBatch, font, DrawHelpers.Fit(font, DrawHelpers.Width(font, ui.Ui("inventoryHints")) <= textWidth ? ui.Ui("inventoryHints") : ui.Ui("inventoryHintsShort"), textWidth), new Vector2(left, panel.Bottom - layout.HintsOffset), Hints);
+        DrawNeeds(spriteBatch, view, font, layout, needs, left, textWidth);
+    }
+
+    // The five needs under the slots (N05): the need's name in Spanish, its stage as the player's own line, and the English.
+    private static void DrawNeeds(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font, InventoryLayout layout, IReadOnlyList<NeedsListRow> needs, int left, int textWidth)
+    {
+        if (needs.Count == 0)
+        {
+            return;
+        }
+
+        var nameWidth = Math.Min(96, textWidth / 5);
+        var spanishWidth = Math.Min(230, (textWidth - nameWidth) / 2);
+        for (var i = 0; i < needs.Count; i++)
+        {
+            var row = needs[i];
+            var y = layout.NeedsTop + (i * layout.NeedsRowStep);
+            var worse = row.Stage >= 3 ? new Color(255, 150, 90) : Known;
+            DrawHelpers.Text(spriteBatch, font, DrawHelpers.Fit(font, row.Name, nameWidth - 6), new Vector2(left, y), Gold);
+            DrawHelpers.Text(spriteBatch, font, DrawHelpers.Fit(font, row.Spanish, spanishWidth - 6), new Vector2(left + nameWidth, y), row.Stage == 0 ? Hints : worse);
+            DrawHelpers.Text(spriteBatch, font, DrawHelpers.Fit(font, row.English, textWidth - nameWidth - spanishWidth), new Vector2(left + nameWidth + spanishWidth, y), Dialogue.DialoguePanel.EnglishColor);
+        }
     }
 
     private static void DrawSlot(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font, Rectangle box, ItemStack stack, bool compact)

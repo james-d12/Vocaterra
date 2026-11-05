@@ -180,13 +180,15 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     /// <param name="savedVolumes">The sound volumes a loaded save holds (S24), or <see langword="null"/>; <c>--sfx-volume</c> and <c>--ambient-volume</c> override them.</param>
     /// <param name="layout">The scene's layout, whose places the ambient beds listen to (S25), or <see langword="null"/> (a run without one has no places).</param>
     /// <param name="savedTextScale">The interface text size in percent a loaded save holds (X08), or <see langword="null"/>; <c>--text-scale</c> overrides it.</param>
-    public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene, NpcVoice voice, Func<Scene> pristine, SoundVolumes? savedVolumes = null, SceneLayout? layout = null, int? savedTextScale = null)
+    public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene, NpcVoice voice, Func<Scene> pristine, SoundVolumes? savedVolumes = null, SceneLayout? layout = null, int? savedTextScale = null, SaveSettings? savedSettings = null)
     {
         _options = options;
         _canvas = new UiCanvas(SaveSettings.SnapTextScale(options.TextScale ?? savedTextScale ?? 100), () => (GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height));
         _devices = new InputDevices(_canvas);
         _session = session;
         session.NeedsEnabled = !options.NeedsOff; // --needs off freezes the needs (N01, a test aid)
+        session.RelaxedNeeds = options.RelaxedNeeds || savedSettings?.RelaxedNeeds == true; // half the rates, a faint for a death (N05, design decision 17)
+        _needsHud = new NeedsHud(session) { EffectsOn = options.ViewEffects ?? !(savedSettings?.ViewEffectsOff ?? false) };
         foreach (var (meter, value) in options.SetNeeds)
         {
             session.SetNeed(meter, value); // --set-need (N01, a test aid)
@@ -361,7 +363,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         Window.AllowUserResizing = true;
         Window.Title = _playtest ? $"Vocaterra playtest (seed {options.Seed})" : $"Vocaterra 3D (seed {options.Seed})";
         Window.TextInput += OnTextInput;
-        _saves = new SaveService(session, pristine, () => new SaveSettings(_sound.Mixer.Volumes, _canvas.TextPercent), Console.WriteLine); // the sound volumes (S24) and the text size (X08) ride in the save's settings
+        _saves = new SaveService(session, pristine, () => new SaveSettings(_sound.Mixer.Volumes, _canvas.TextPercent, !_needsHud.EffectsOn, session.RelaxedNeeds), Console.WriteLine); // the sound volumes (S24), the text size (X08), the view effects and the relaxed needs (N05) ride in the save's settings
         _checks = new CheckBattery(
             session,
             () => _log,
@@ -396,6 +398,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             ToggleView: new DelegateCommand(ToggleView),
             Save: new DelegateCommand(SaveNow),
             CycleTextSize: new DelegateCommand(CycleTextSize),
+            ToggleViewEffects: new DelegateCommand(ToggleViewEffects),
             EndPlaytest: new DelegateCommand(() => _playtestFlow.EndKey(WorldRunning)),
             ToggleDebug: new DelegateCommand(() => _debug.Visible = !_debug.Visible),
             Listen: new DelegateCommand(() =>
@@ -619,6 +622,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         }
 
         DriveCollapse(seconds); // the collapse of an exhausted player (N03)
+        DriveNeedsHud(); // the stage lines and their sound (N05)
         _beacon.Sync();
         _greeting.Update(free: _scenario is null && WorldRunning && !_screens.FreesMouse && _session.PendingTurns == 0); // the guide greets the player who comes up to her (S17)
 
@@ -675,6 +679,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         view.SleepPrompt = FireOffersSleep && !_ending.Visible(_sim.Tick) ? SleepOffer.PromptText(_session) : null; // the fire's prompt; the card says it while it is up (V12c)
         view.EndingSleep = CardOffersSleep ? SleepOffer.CardText(_session) : null;
         view.FadeAlpha = (float)_collapseFade;
+        view.Needs = _needsHud;
+        view.DeathScreen = _deathHold > 0 ? new DeathScreenView(_session.Data.Words.HudLine("hud.camp") ?? string.Empty, _session.Locale.Text("hud.camp"), _session.DeathLine ?? string.Empty) : null;
 
         _drawer.DrawWorld(GraphicsDevice, _camera.Camera, _sim.Target?.Block, _beacon.Beacon.Target, _sim.Tick, shoulder ? _figures.Avatar() : null, shoulder ? null : _arm.Frame(eye, _drawer.Renderer.Lights));
         _drawer.DrawLayers(width, height, canvasWidth, canvasHeight);
@@ -947,12 +953,36 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
     private int _deathsSeen;
 
+    // The death screen (N05, design 9.7): the black holds for this long with «Estás en tu campamento.», its English and the cause line, then the world fades back in.
+    private const double DeathHoldSeconds = 4;
+    private double _deathHold;
+    private readonly NeedsHud _needsHud;
+
+    // The stage lines of the needs (N05): a worse stage shows its line above the hotbar once and plays its soft sound once.
+    private void DriveNeedsHud()
+    {
+        _needsHud.Update(_sim.Tick);
+        for (var sounds = _needsHud.TakeSounds(); sounds > 0; sounds--)
+        {
+            _ = _sound.Mixer.Play(SoundCue.NeedStage);
+        }
+    }
+
+    // F7 (N05): the needs' effects on the view on or off; the icons and the lines stay. Kept in the save's settings.
+    private void ToggleViewEffects()
+    {
+        _needsHud.EffectsOn = !_needsHud.EffectsOn;
+        _toasts.Show(_session.Locale.Ui(_needsHud.EffectsOn ? "effectsOn" : "effectsOff"));
+        Console.WriteLine($"view effects: {(_needsHud.EffectsOn ? "on" : "off")}");
+    }
+
     private void DriveCollapse(double seconds)
     {
         if (_session.DeathCount != _deathsSeen)
         {
             _deathsSeen = _session.DeathCount;
             _collapseFade = 1; // a death (N04): the screen is black where the player fell and fades in at their fire
+            _deathHold = DeathHoldSeconds; // N05: the black holds the short screen «Estás en tu campamento.» for a few seconds before the fade-in
             var feet = _sim.Player.FeetBlock;
             Console.WriteLine($"death: {_deathsSeen}, woke at {feet.X},{feet.Y},{feet.Z} (health {_session.Needs.Value(NeedMeter.Health):0.#}, hunger {_session.Needs.Value(NeedMeter.Hunger):0.#}, thirst {_session.Needs.Value(NeedMeter.Thirst):0.#}, sleep {_session.Needs.Value(NeedMeter.Sleep):0.#}, stamina {_session.Needs.Value(NeedMeter.Stamina):0.#}), chest {(_session.Chest is { } chest ? $"{chest.Total} items at {chest.Cell.X},{chest.Cell.Y},{chest.Cell.Z}" : "none")}");
         }
@@ -969,7 +999,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             return;
         }
 
-        if (_collapseFade > 0)
+        if (_deathHold > 0)
+        {
+            _deathHold = Math.Max(0, _deathHold - seconds); // the screen stays black while the death screen is up
+        }
+        else if (_collapseFade > 0)
         {
             _collapseFade = Math.Max(0, _collapseFade - (seconds / (CollapseFadeSeconds * 2)));
         }

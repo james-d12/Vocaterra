@@ -23,12 +23,15 @@ public static class LayerStack
         var layers = new List<IFrameLayer>
         {
             new FadeLayer(),
+            new DeathScreenLayer(),
+            new ViewEffectsLayer(),
             new CrosshairLayer(),
             new BeaconArrowLayer(),
             new TalkHintLayer(),
             new SleepPromptLayer(),
             debug,
             new HotbarLayer(),
+            new NeedsHudLayer(),
             new RecipePanelLayer(),
             new ObjectiveLayer(),
             new TipLayer(),

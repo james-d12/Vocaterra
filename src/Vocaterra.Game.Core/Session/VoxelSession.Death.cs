@@ -18,11 +18,20 @@ public sealed partial class VoxelSession
     /// <summary>The ui key of the line after a death by thirst.</summary>
     public const string DiedThirstHint = "diedThirst";
 
+    /// <summary>The ui key of the line after a faint from hunger under the relaxed-needs setting (the bag is kept, no chest).</summary>
+    public const string FaintedHungerHint = "faintedHunger";
+
+    /// <summary>The ui key of the line after a faint from thirst under the relaxed-needs setting.</summary>
+    public const string FaintedThirstHint = "faintedThirst";
+
     /// <summary>The ui key of the line when a chest keeps what the bag could not take back.</summary>
     public const string ChestRestHint = "chestRest";
 
-    /// <summary>The ui key of the label the beacon shows on the chest (the English; the Spanish «tus cosas» is N05's).</summary>
+    /// <summary>The ui key of the English of the beacon's label on the chest (the label itself is the Spanish <see cref="BelongingsHud"/>).</summary>
     public const string BelongingsLabel = "beaconBelongings";
+
+    /// <summary>The key in <c>hudLines</c> (game/words.json) of the beacon's label on the chest, «tus cosas» (N05).</summary>
+    public const string BelongingsHud = "hud.belongings";
 
     // How far (blocks across) the chest looks for free ground, and how far above and below the fall; and how far from the fire's middle the player wakes.
     private const int ChestSearchBlocks = 24;
@@ -34,6 +43,9 @@ public sealed partial class VoxelSession
 
     /// <summary>How many times the player has died in this run. The game fades the screen when it changes.</summary>
     public int DeathCount { get; private set; }
+
+    /// <summary>The cause line of the last death or faint (<c>You fainted from thirst and woke by your fire...</c>), or <see langword="null"/> before one: the death screen shows it (N05).</summary>
+    public string? DeathLine { get; private set; }
 
     /// <summary>The chest a death left standing, or <see langword="null"/>: it goes with the next night.</summary>
     public BelongingsChest? Chest => _chest;
@@ -77,15 +89,21 @@ public sealed partial class VoxelSession
         LogWorld(WorldEvents.PlayerDied, null, cause);
         DeathCount++;
 
-        LeaveBelongings(feet);
+        var relaxed = RelaxedNeeds;
+        if (!relaxed)
+        {
+            LeaveBelongings(feet); // the relaxed setting faints instead (N05): the bag is kept and no chest is left
+        }
+
         Needs.Wake();
         SettleNeedStages();
         WakeAtFire();
-        LogWorld(WorldEvents.PlayerWoke, null, "death");
-        _hints.Add(Locale.Ui(drive == Drive.Thirst ? DiedThirstHint : DiedHungerHint));
+        LogWorld(WorldEvents.PlayerWoke, null, relaxed ? "faint" : "death");
+        DeathLine = Locale.Ui(relaxed ? (drive == Drive.Thirst ? FaintedThirstHint : FaintedHungerHint) : (drive == Drive.Thirst ? DiedThirstHint : DiedHungerHint));
+        _hints.Add(DeathLine);
         if (_chest is { } chest && Pointer is null)
         {
-            var label = Locale.Ui(BelongingsLabel);
+            var label = Data.Words.HudLine(BelongingsHud) ?? Locale.Ui(BelongingsLabel); // the beacon's labels are Spanish, as the camp's and the river's are (N05)
             Pointer = new PointerMarker(label, new GuideCell(chest.Cell.X, chest.Cell.Y, chest.Cell.Z));
             LogWorld(WorldEvents.BeaconSet, null, $"{label} at {chest.Cell.X},{chest.Cell.Y},{chest.Cell.Z}");
         }
