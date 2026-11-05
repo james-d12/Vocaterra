@@ -46,6 +46,7 @@ public static class LayerStack
             new InventoryLayer(),
             new CraftingLayer(),
             new ControlsLayer(),
+            new SettingsLayer(),
             new CheckLayer(),
             new MicCheckLayer(),
             new ReportLayer(),

@@ -381,12 +381,18 @@ public sealed class SessionLog : IDisposable, ICheckLog
     /// <summary>The session's summary card (X04, R01), written when the session is complete: one line per row of the card, as the learner saw it.</summary>
     /// <param name="lines">The card's lines.</param>
     /// <param name="tick">The simulation tick the card came up at.</param>
-    public void SessionSummary(IReadOnlyList<string> lines, long tick)
+    /// <param name="needsRate">The drive rate setting (N09), named in the line when it is not 1 so a playtest's numbers say what rate they ran at.</param>
+    public void SessionSummary(IReadOnlyList<string> lines, long tick, double needsRate = 1)
     {
         ArgumentNullException.ThrowIfNull(lines);
         WriteLine(Json("session_summary", w =>
         {
             w.WriteNumber("tick", tick);
+            if (needsRate != 1)
+            {
+                w.WriteNumber("needsRate", needsRate);
+            }
+
             w.WriteStartArray("lines");
             foreach (var line in lines)
             {

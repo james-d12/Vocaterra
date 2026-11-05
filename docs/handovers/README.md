@@ -12,7 +12,9 @@ session, pauses work or hands it on, and whenever the owner asks.
 - **`done/` holds the rest.** A handover moves there (`git mv`) when a later handover for the same workstream replaces it, or when
   its work is finished: merged, or dropped by the owner. The session that writes the replacement moves the old one in the same change,
   and repairs links and literal paths to it.
-- A handover is never edited after it is written, except to repair a link after a move. Later progress goes in a new handover that
+- **The open handover of a running workstream is kept current** (owner, 2026-11-05): the orchestrator rewrites it in place, with its
+  `Updated:` line, after every gate, agent launch or stop and owner decision, so a crash or a fresh session loses nothing. A handover
+  in `done/` is never edited, except to repair a link after a move. Later progress goes in a new handover that
   links the previous one. Milestone statuses stay in the implementation plans, owner decisions in the decision registers, and bugs in
   [the QA reports](../qa-reports/README.md); a handover links them rather than copying them.
 
@@ -29,15 +31,16 @@ several of them were moved out of the orchestrator, the game plan and a research
 
 | Handover | Workstream | What it waits for |
 | --- | --- | --- |
-| [2026-11-03-2114-adaptation-design](2026-11-03-2114-adaptation-design.md) | The owner's Adaptation Design Document, revision 3: iterated with the owner on `feature/adaptation-design` (PR #30) | The owner's review of PR #30 and the decisions in the document's section 18 |
-| [2026-11-03-1133-docs-cleanup](2026-11-03-1133-docs-cleanup.md) | The documentation cleanup: layout, READMEs, names, the orchestrator | The owner's review and merge of the `docs_cleanup` pull request |
-| [2026-11-02-after-followups](2026-11-02-after-followups.md) | The owner's decisions after the village follow-ups: M74, M75, V29, the study of spoken off-prompt lines, the known fuzz family | A new branch from `origin/main`; PR #28 (`feature/village-followups`) is merged |
+| [2026-11-05-2031-adaptive-design](2026-11-05-2031-adaptive-design.md) | The adaptation on `feature/adaptive_design`: the needs, lessons as classes, the presentation track, then the bread pilot | N09 and U02 (running), then the owner's needs playtest |
 
 **Done**
 
 | Handover | Workstream | Closed |
 | --- | --- | --- |
-| [2026-11-03-1019-docs-structure](done/2026-11-03-1019-docs-structure.md) | The documentation layout, before the READMEs and names | Replaced by [2026-11-03-1133-docs-cleanup](2026-11-03-1133-docs-cleanup.md) |
+| [2026-11-03-2114-adaptation-design](done/2026-11-03-2114-adaptation-design.md) | The Adaptation Design Document, revision 3 (PR #30) | PR #30 merged; replaced by [2026-11-05-2031-adaptive-design](2026-11-05-2031-adaptive-design.md) |
+| [2026-11-03-1133-docs-cleanup](done/2026-11-03-1133-docs-cleanup.md) | The documentation cleanup | `docs_cleanup` merged into `main` |
+| [2026-11-02-after-followups](done/2026-11-02-after-followups.md) | The owner's decisions after the village follow-ups | M74, M75, V29, M78 and the study merged into `feature/adaptive_design` |
+| [2026-11-03-1019-docs-structure](done/2026-11-03-1019-docs-structure.md) | The documentation layout, before the READMEs and names | Replaced by [2026-11-03-1133-docs-cleanup](done/2026-11-03-1133-docs-cleanup.md) |
 | [2026-11-03-0952-docs-organisation](done/2026-11-03-0952-docs-organisation.md) | The first documentation review and its proposed layout | Replaced by [2026-11-03-1019-docs-structure](done/2026-11-03-1019-docs-structure.md) |
 | [2026-11-01-village-phase-b](done/2026-11-01-village-phase-b.md) | The village, phase B, its review and the follow-up queue | Replaced by 2026-11-02-after-followups; the follow-ups merged in PR #28 |
 | [2026-10-26-engine-and-language-packs](done/2026-10-26-engine-and-language-packs.md) | D14 phase A: one engine assembly and language packs | `feature/language-packs` merged into `main` |
@@ -51,6 +54,7 @@ several of them were moved out of the orchestrator, the game plan and a research
 # Handover: <readable name>
 
 Created: <YYYY-MM-DDTHH:MMZ> (UTC)
+Updated: <YYYY-MM-DDTHH:MMZ> (UTC), after <the gate, launch or decision>
 Workstream: <task or milestone series>
 Branch: <branch>; HEAD: <commit>
 Worktree: <path>

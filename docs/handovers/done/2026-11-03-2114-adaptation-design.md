@@ -41,7 +41,7 @@ The work stopped with the document committed and pushed with this handover on pu
 | 19 | The review record: findings and evidence, the Copilot review, the survival-first proposal's assessment, follow-ups |
 
 - **Decisions:** D-game-23 is decided in part and D-game-24 (player needs first) is recorded, both with the owner's words, in
-  [`docs/game/decisions.md`](../game/decisions.md).
+  [`docs/game/decisions.md`](../../game/decisions.md).
 - **The generator:** `tools/adaptation-design/`. Its `build_rev3.py` rebuilds `word/document.xml` from revision 2 (git commit
   `4b312545`). Its `rebuild.sh` reproduces the committed document byte for byte.
 - **Small edits:**
@@ -61,7 +61,7 @@ The work stopped with the document committed and pushed with this handover on pu
 
   One more is open: whether needs come before the queued language follow-ups. That is a one-line change in section 15 and D-game-23.
 - **Not authorised to build:** nothing in the document may be built until its milestones have rows in
-  [`docs/game/implementation-plan.md`](../game/implementation-plan.md) section 4 and their decisions are taken (the document's
+  [`docs/game/implementation-plan.md`](../../game/implementation-plan.md) section 4 and their decisions are taken (the document's
   section 1).
 - **The orchestrator's follow-ups** (the document's 19.5) wait for the merge:
   - revise the activities plan as 17.3 lists;

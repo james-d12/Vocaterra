@@ -715,6 +715,47 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
         output.WriteLine($"{canvas.Width}x{canvas.Height}: controls max scroll {new ControlsLayout(canvas.Width, canvas.Height, heights, 0).MaxScroll}, closing card {ending.Box.Height} px tall with {ending.SummaryShown} of 9 summary rows");
     }
 
+    [Theory]
+    [MemberData(nameof(Cases))]
+    public void TheSettingsPanelFitsTheCanvasAndItsPartsDoNotOverlapAtEveryScale(int windowWidth, int windowHeight, int scale)
+    {
+        var canvas = Canvas(windowWidth, windowHeight, scale);
+        var window = Whole(canvas);
+        var layout = new SettingsLayout(canvas.Width, canvas.Height, 3);
+        Assert.True(Inside(layout.Panel, window), $"the settings panel {layout.Panel} is outside the canvas");
+        var parts = new List<PixelBox>();
+        for (var i = 0; i < 3; i++)
+        {
+            Assert.True(Inside(layout.Row(i), layout.Panel));
+            Assert.True(Inside(layout.Label(i), layout.Row(i)) && Inside(layout.Value(i), layout.Row(i)));
+            Assert.True(layout.Label(i).Right <= layout.Value(i).X, "a label meets its value");
+            parts.Add(layout.Row(i));
+        }
+
+        Assert.True(Inside(layout.Track, layout.Row(0)) && layout.Track.X >= layout.Label(0).Right && layout.Track.Right <= layout.Value(0).X, "the slider meets the label or the value");
+        Assert.True(layout.Track.Width >= 20);
+        Assert.True(Inside(layout.Hint, layout.Panel));
+        parts.Add(layout.Hint);
+        for (var i = 0; i < parts.Count; i++)
+        {
+            for (var j = i + 1; j < parts.Count; j++)
+            {
+                var (a, b) = (parts[i], parts[j]);
+                Assert.False(a.X < b.Right && b.X < a.Right && a.Y < b.Bottom && b.Y < a.Bottom, $"{a} overlaps {b}");
+            }
+        }
+
+        // The texts fit their columns at 6.1 px a character.
+        var ui = English.Value;
+        foreach (var key in new[] { "settingsRate", "settingsEffects", "settingsRelaxed" })
+        {
+            Assert.True(Small(ui.Ui(key)) <= layout.Label(0).Width, $"{key} is wider than the label column");
+        }
+
+        Assert.True(Small("\u00D74.00") <= layout.Value(0).Width);
+        Assert.True(Small(ui.Ui("settingsHint")) <= layout.Hint.Width, "the hint is wider than the panel");
+    }
+
     // ---- The checklist, the toast and the labels.
 
     [Theory]
