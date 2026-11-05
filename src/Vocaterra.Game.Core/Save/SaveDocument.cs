@@ -341,9 +341,19 @@ public sealed record RepeatSave(string Tag, int Count);
 /// </summary>
 /// <param name="Needs">The player's needs (<see cref="Vocaterra.Game.Core.Needs.PlayerNeeds"/>), or <see langword="null"/> for full needs.</param>
 /// <param name="Chest">The belongings chest a death left standing (its cell and what is in it), or <see langword="null"/> for none. The chest block itself is in the world's block edits.</param>
+/// <param name="Bushes">The cells of the berry bushes picked by hand since the last night (N06): each is a plain bush in the world's block edits until a night grows it back; <see langword="null"/> for none.</param>
+/// <param name="Gifts">The gifts given today (N06, <c>GiftRule.Key</c>: <c>shopkeeper:bread</c>), which the next night makes available again; <see langword="null"/> for none.</param>
 public sealed record SystemsSave(
     Vocaterra.Game.Core.Needs.NeedsSave? Needs = null,
-    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] ChestSave? Chest = null);
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] ChestSave? Chest = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] BushSave[]? Bushes = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string[]? Gifts = null);
+
+/// <summary>A cell of a picked berry bush (N06, design 9.6) that a night grows back.</summary>
+/// <param name="X">The cell's X.</param>
+/// <param name="Y">The cell's Y.</param>
+/// <param name="Z">The cell's Z.</param>
+public sealed record BushSave(int X, int Y, int Z);
 
 /// <summary>The belongings chest of a death (N04, design 9.7): the cell of its block and the stacks it holds.</summary>
 /// <param name="X">The cell's X.</param>

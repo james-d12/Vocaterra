@@ -797,7 +797,7 @@ public sealed partial class NpcService
             now,
             hostStateHash,
             scene.OrderHeld,
-            effect => Miss(effect, slots, scene, facts),
+            effect => Miss(agent.Id, effect, slots, scene, facts),
             hostEvents,
             (miss, turn, before) =>
             {
@@ -810,12 +810,12 @@ public sealed partial class NpcService
     }
 
     // What the world of the turn cannot do of an action, as the host event its NPC answers (NpcHostEvents.UnknownPlace; a purchase's or a sale's miss, NpcEffect.ExchangeMiss:
-    // WontSell, NoneAsked, CantPay, WontBuy, CantSell, NoneOffered, NoRoom), or null when it can. The coins, the goods and the room are the turn's copy of the
+    // WontSell, NoneAsked, CantPay, WontBuy, CantSell, NoneOffered, NoRoom; a gift given already today, GiftUsed, N06), or null when it can. The coins, the goods and the room are the turn's copy of the
     // inventory: a scene with none carries none. The session asks the same of the bag itself before anything changes hands (VoxelSession.ApplyHostEvents).
-    private string? Miss(NpcEffect effect, IReadOnlyDictionary<string, string> slots, GuideScene scene, IGuideFacts facts) => effect.Kind switch
+    private string? Miss(string npc, NpcEffect effect, IReadOnlyDictionary<string, string> slots, GuideScene scene, IGuideFacts facts) => effect.Kind switch
     {
         NpcEffectKind.PointAtSlot when !slots.TryGetValue(effect.Slot, out var word) || _places.Resolve(word, scene.Player, facts) is null => NpcHostEvents.UnknownPlace,
-        NpcEffectKind.Sell or NpcEffectKind.Buy or NpcEffectKind.GiveItem => effect.ExchangeMiss(slots, scene.Inventory, _nouns),
+        NpcEffectKind.Sell or NpcEffectKind.Buy or NpcEffectKind.GiveItem => effect.GiftMiss(npc, slots, scene.Inventory, _nouns, scene.ClosedGifts),
         _ => null,
     };
 

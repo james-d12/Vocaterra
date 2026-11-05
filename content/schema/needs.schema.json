@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "game/needs.json",
-  "description": "The player's needs: the three drives, health and stamina, their stages and links, food, and the rules of a night, a collapse and a death. Loaded by NeedsData (Vocaterra.Game.Core). Later milestones add optional parts (the regrowth and gift rules, a roast apple, the repeated-death rules) without a break: every part they add is optional here.",
+  "description": "The player's needs: the three drives, health and stamina, their stages and links, food, and the rules of a night, a collapse and a death. Loaded by NeedsData (Vocaterra.Game.Core). The regrowth and gift rules (N06) are optional parts; later milestones add more (a roast apple, the repeated-death rules) without a break: every part they add is optional here.",
   "type": "object",
   "required": [
     "schemaVersion",
@@ -215,6 +215,64 @@
             "type": "string",
             "minLength": 1,
             "description": "The item left in the bag (the empty bottle)."
+          }
+        }
+      }
+    },
+    "regrowth": {
+      "type": "array",
+      "description": "N06: the blocks that grow back. A block the player gathered by hand is the block it became (a berry bush, a plain bush) until the next night grows it back.",
+      "items": {
+        "type": "object",
+        "required": [
+          "block",
+          "after"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "block": {
+            "type": "string",
+            "minLength": 1,
+            "description": "A block's name that the player gathers (berry-bush). The validator refuses a name that is not a block, or that cannot be gathered."
+          },
+          "after": {
+            "type": "string",
+            "enum": [
+              "night"
+            ],
+            "description": "When it grows back: after a night (a sleep or a collapse)."
+          }
+        }
+      }
+    },
+    "gifts": {
+      "type": "array",
+      "description": "N06: the gifts an NPC gives once per in-game day. The NPC's host event in host-events.json that gives the item is the gift; a night makes it available again; a gift a lesson step requires is always given. The NPC's agent takes <npc>.gift_used to say it is given today.",
+      "items": {
+        "type": "object",
+        "required": [
+          "npc",
+          "item",
+          "per"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "npc": {
+            "type": "string",
+            "minLength": 1,
+            "description": "An NPC's agent id (shopkeeper, villager, guide). The validator refuses an NPC the bundle does not have."
+          },
+          "item": {
+            "type": "string",
+            "minLength": 1,
+            "description": "An item's key (bread, water-bottle). The validator refuses an item that does not exist, or that the NPC does not give."
+          },
+          "per": {
+            "type": "string",
+            "enum": [
+              "day"
+            ],
+            "description": "How often: once per in-game day."
           }
         }
       }

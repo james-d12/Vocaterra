@@ -236,6 +236,35 @@ public sealed record NpcEffect(
     }
 
     /// <summary>
+    /// What the world cannot do of a gift for a verdict (N06): <see cref="ExchangeMiss"/>'s answer when it has one, else <see cref="NpcHostEvents.GiftUsed"/> when today's gift
+    /// of this item by <paramref name="npc"/> is given already, and <see langword="null"/> when the gift can be made. The stall's bread asked for in place of the bottle
+    /// (<see cref="Instead"/>) is the bread's gift too. Only gifts (<see cref="NpcEffectKind.GiveItem"/>) are judged here; any other effect answers as <see cref="ExchangeMiss"/>.
+    /// </summary>
+    /// <param name="npc">The agent id of the NPC that gives.</param>
+    /// <param name="slots">The verdict's slots, counted (<see cref="CountedSlots"/>).</param>
+    /// <param name="bag">The bag, or <see langword="null"/> for none.</param>
+    /// <param name="nouns">The noun catalogue.</param>
+    /// <param name="closedGifts">The keys (<see cref="Needs.GiftRule.Key"/>) of the gifts that are not to be given now, or <see langword="null"/> for none.</param>
+    public string? GiftMiss(string npc, IReadOnlyDictionary<string, string> slots, Inventory? bag, NounCatalog nouns, IReadOnlySet<string>? closedGifts)
+    {
+        ArgumentNullException.ThrowIfNull(slots);
+        ArgumentNullException.ThrowIfNull(nouns);
+        var miss = ExchangeMiss(slots, bag, nouns);
+        if (Kind != NpcEffectKind.GiveItem || closedGifts is not { Count: > 0 })
+        {
+            return miss;
+        }
+
+        if (miss is null)
+        {
+            return closedGifts.Contains(Needs.GiftRule.KeyOf(npc, ItemDefinition.Get(Item).Name)) ? NpcHostEvents.GiftUsed : null;
+        }
+
+        var instead = Instead is not null && Instead.Values.Contains(miss) && slots.TryGetValue(ItemSlot, out var word) && word is not null ? nouns.ForLemma(word) : null;
+        return instead is not null && instead.Items.Any(item => closedGifts.Contains(Needs.GiftRule.KeyOf(npc, ItemDefinition.Get(item).Name))) ? NpcHostEvents.GiftUsed : miss;
+    }
+
+    /// <summary>
     /// The number a slot of the verdict holds (the core gives a number word as its digits, <c>dos</c> as <c>2</c>): 1 when the slot is missing or holds no number; 0 for
     /// <c>cero</c> (V19, the review's R10: it was read as one, so <c>quiero cero panes</c> bought a loaf); <see cref="int.MaxValue"/> for a number too large for an
     /// <see cref="int"/> (R9: no number said overflows a count). No cap: the callers bound it (<see cref="CountFor"/>, <see cref="SaleCountFor"/>).
@@ -291,6 +320,12 @@ public static class NpcHostEvents
 
     /// <summary>The player accepted the guide's offer: she gives water.</summary>
     public const string GuideGiveWater = "guide.give_water";
+
+    /// <summary>
+    /// What an NPC answers when its gift is given already today (N06, <c>gifts</c> in <c>game/needs.json</c>): the host event <c>&lt;npc&gt;.gift_used</c>, raised to its agent as a
+    /// host turn (<see cref="Of"/>) in place of the gift, which is then not made. A lesson step that requires the gift is never answered so.
+    /// </summary>
+    public const string GiftUsed = "gift_used";
 
     /// <summary>
     /// What an NPC is asked to answer when its directions name a place the scene does not have (village-plan V02, <see cref="NpcEffectKind.PointAtSlot"/>): the host
