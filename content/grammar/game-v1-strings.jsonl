@@ -3232,6 +3232,7 @@
 {"id":"speech:card.camino","text":"el camino","kind":"npc"}
 {"id":"speech:card.casa","text":"la casa","kind":"npc"}
 {"id":"speech:card.fruta","text":"la fruta","kind":"npc"}
+{"id":"speech:card.fuego","text":"el fuego","kind":"npc"}
 {"id":"speech:card.hacha","text":"el hacha","kind":"npc"}
 {"id":"speech:card.hierba","text":"la hierba","kind":"npc"}
 {"id":"speech:card.libro","text":"el libro","kind":"npc"}

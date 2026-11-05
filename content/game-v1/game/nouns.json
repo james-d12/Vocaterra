@@ -23,7 +23,8 @@
     { "lemma": "pan", "items": ["bread"], "blocks": [] },
     { "lemma": "libro", "items": ["book"], "blocks": [] },
     { "lemma": "moneda", "items": ["coin"], "blocks": [] },
-    { "lemma": "manzana", "items": ["apple"], "blocks": [] },
+    { "lemma": "manzana", "items": ["apple", "roast-apple"], "blocks": [], "labels": { "roast-apple": "manzana asada" } },
+    { "lemma": "fuego", "items": [], "blocks": ["fire-ring"] },
     { "lemma": "hacha", "items": ["axe"], "blocks": [] }
   ]
 }

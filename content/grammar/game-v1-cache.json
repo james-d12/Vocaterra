@@ -8974,6 +8974,23 @@
       "matches": []
     },
     {
+      "key": "ebca230658b3545ddef64af4c50ec97b2acbfc0f553850bd65314495e0730542",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "el fuego",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "El"
+          ]
+        }
+      ]
+    },
+    {
       "key": "ebdce26959dddfb4eb20f60c381071c07e34fe8e875f5b05136717cdd85e6b06",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "De nada.",

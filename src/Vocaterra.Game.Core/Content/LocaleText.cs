@@ -60,7 +60,7 @@ public sealed class LocaleText
         "dialogueYou", "dialogueYouSpoken", "supportPrefix", "supportOnHelp", "talkHint", "tipHeading", "newWord", "newWordToast", "audioSlot", "beaconDistance.one",
         "beaconDistance.other", "loadingSpeech", "controlsScroll", "controlsTextSizeKeys", "controlsTextSize", "gameSaved", "saveLater", "inventoryTitle",
         "inventoryHintsShort", "inventoryHints", "inventoryUsed", "craftingTitle", "craftingHints", "craftingCanMake", "craftingUses", "craftingByHand",
-        "workbenchTitle", "workbenchReady", "workbenchMissing", "playtestEndHint", "bookTabNouns", "bookTabVerbs", "bookTabPhrases", "bookTabLessons",
+        "workbenchTitle", "fireTitle", "workbenchReady", "workbenchMissing", "playtestEndHint", "bookTabNouns", "bookTabVerbs", "bookTabPhrases", "bookTabLessons",
         "bookTabSaid", "bookTitle", "bookHints", "bookHintsShort", "bookLines", "bookKnownNouns", "bookWithoutHelp", "bookSession", "bookNoVerbs", "bookNothingSaid",
         "bookNothing", "bookChooseVerb", "bookVerbKey", "bookWhatYouSaid", "bookMoreBelow", "dueNow", "dueSeconds", "dueMinutes", "dueHours", "phraseHeard",
         "phraseHelpEnglishAndCard", "phraseHelpCardAndAudio", "phraseHelpAudioOnly", "phraseHelpNone", "phraseHeardCounts", "phraseCounts", "bookKnown",

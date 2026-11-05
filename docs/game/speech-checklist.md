@@ -18,7 +18,7 @@ whose text changed or whose file was recorded again differently is listed again 
 | smith (Domingo) | `im_nicola`, gain 0.6 | 36 | 1.0 (0.8) | the pools `smith_*` and `guide.lesson.smith.*`, and its prompts |
 | farmer (León) | `pm_santa` | 44 | 1.0 (0.8) | the pools `farmer_*` and `guide.lesson.farmer.*`, and its prompts |
 
-**To hear:** 1284 of the 1284 files have no mark (guide 436, villager 170, farmer 150, baker 144, shopkeeper 144, fisher 130, smith 110). Two files a line: the normal speed and the slow one.
+**To hear:** 1286 of the 1286 files have no mark (guide 438, villager 170, farmer 150, baker 144, shopkeeper 144, fisher 130, smith 110). Two files a line: the normal speed and the slow one.
 
 ## Lines
 
@@ -156,6 +156,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | card.casa | speech/cards/card.casa.wav | guide | 1.0 | la casa |  |
 | card.fruta | speech/cards/card.fruta.slow.wav | guide | 0.8 | la fruta |  |
 | card.fruta | speech/cards/card.fruta.wav | guide | 1.0 | la fruta |  |
+| card.fuego | speech/cards/card.fuego.slow.wav | guide | 0.8 | el fuego |  |
+| card.fuego | speech/cards/card.fuego.wav | guide | 1.0 | el fuego |  |
 | card.hacha | speech/cards/card.hacha.slow.wav | guide | 0.8 | el hacha |  |
 | card.hacha | speech/cards/card.hacha.wav | guide | 1.0 | el hacha |  |
 | card.hierba | speech/cards/card.hierba.slow.wav | guide | 0.8 | la hierba |  |

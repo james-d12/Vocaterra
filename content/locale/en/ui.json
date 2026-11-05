@@ -109,6 +109,7 @@
     "ui.craftingUses": "Uses",
     "ui.craftingByHand": "By hand",
     "ui.workbenchTitle": "Workbench",
+    "ui.fireTitle": "Fire",
     "ui.workbenchReady": "{key:talk} or {key:crafting}: make it",
     "ui.workbenchMissing": "Collect what is missing",
     "ui.playtestEndHint": "{key:endRun}: end the run (facilitator)",

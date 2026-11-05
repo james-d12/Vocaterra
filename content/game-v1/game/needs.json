@@ -63,6 +63,7 @@
   "foods": [
     { "item": "berry", "hunger": 8 },
     { "item": "apple", "hunger": 12 },
+    { "item": "roast-apple", "hunger": 20, "healing": 5 },
     { "item": "bread", "hunger": 25, "healing": 5 },
     { "item": "water-bottle", "thirst": 40, "leaves": "bottle" }
   ],

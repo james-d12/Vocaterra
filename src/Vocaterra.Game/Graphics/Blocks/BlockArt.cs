@@ -244,6 +244,8 @@ public static class BlockArt
                 return CoinIconPixel(x, y);
             case BlockCell.IconApple:
                 return AppleIconPixel(x, y);
+            case BlockCell.IconRoastApple:
+                return RoastAppleIconPixel(x, y);
             case BlockCell.IconAxe:
                 return AxeIconPixel(x, y, speckle);
             default:
@@ -412,6 +414,28 @@ public static class BlockArt
         }
 
         return y >= 11 ? Shade(186, 30, 36, 0) : Shade(222, 44, 44, 0);
+    }
+
+    private static (byte R, byte G, byte B, byte A) RoastAppleIconPixel(int x, int y)
+    {
+        // The apple's shape, cooked: the red becomes a browned amber, the leaf a dry olive, with a golden glaze for the highlight.
+        var (r, g, b, a) = AppleIconPixel(x, y);
+        if (a == 0)
+        {
+            return (r, g, b, a);
+        }
+
+        if (g > r)
+        {
+            return Shade(110, 100, 40, 0); // the leaf, dried
+        }
+
+        if (r > 240)
+        {
+            return Shade(244, 196, 96, 0); // the glaze
+        }
+
+        return r > 200 ? Shade(176, 98, 36, 0) : r > 170 ? Shade(150, 80, 30, 0) : Shade(104, 54, 24, 0);
     }
 
     private static (byte R, byte G, byte B, byte A) AxeIconPixel(int x, int y, uint speckle)

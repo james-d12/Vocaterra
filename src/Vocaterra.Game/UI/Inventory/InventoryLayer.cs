@@ -98,8 +98,7 @@ public sealed class InventoryLayer : IFrameLayer
         var icon = new Rectangle(box.Center.X - (Icon / 2), box.Top + (compact ? 3 : 4), Icon, Icon);
         view.DrawIcon(spriteBatch, stack.Item, icon);
 
-        var noun = view.Session.Nouns.ForItem(stack.Item);
-        var label = noun?.Lemma ?? ItemDefinition.Get(stack.Item).Name;
+        var label = view.Session.Nouns.LabelOf(stack.Item) ?? ItemDefinition.Get(stack.Item).Name;
         var colour = Color.Lerp(Unseen, Known, (float)saturation);
         label = DrawHelpers.Fit(font, label, box.Width - 2); // a narrow slot cuts a long name with an ellipsis (X08)
         var labelWidth = DrawHelpers.Width(font, label);

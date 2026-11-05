@@ -38,6 +38,9 @@ public enum ItemId : ushort
 
     /// <summary>The axe (<c>hacha</c>, village-plan V03), the smith's order: held, it gathers a trunk in a quarter of the ticks (<see cref="Simulation.VoxelSimulation.GatherTicksOf"/>).</summary>
     Axe = 32,
+
+    /// <summary>A roast apple (<c>manzana</c>, labelled <c>manzana asada</c>, N07): an apple cooked at a lit fire, which feeds more and heals.</summary>
+    RoastApple = 33,
 }
 
 /// <summary>
@@ -63,6 +66,7 @@ public sealed record ItemDefinition(ItemId Id, string Name, int MaxStack)
         new(ItemId.Coin, "coin", DefaultStackLimit),
         new(ItemId.Apple, "apple", DefaultStackLimit),
         new(ItemId.Axe, "axe", 1),
+        new(ItemId.RoastApple, "roast-apple", DefaultStackLimit),
     ];
 
     /// <summary>Every item kind, ordered by id.</summary>
