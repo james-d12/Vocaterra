@@ -24,7 +24,7 @@ public sealed class RepliesAndExchangesTests
         }
 
         Stage.TeleportToNpc(session, npc);
-        _ = session.OpenTalk(npc);
+        _ = session.OpenTalkForClass(npc);
         return session;
     }
 
@@ -160,17 +160,5 @@ public sealed class RepliesAndExchangesTests
 
         Assert.NotNull(turn.Feedback);
         Assert.DoesNotContain("¡Qué bien!", turn.Replies);
-    }
-
-    [Fact]
-    public void ALessonThatKeepsBackTheOrderIsTheReasonTheBakerGivesForShortCoins()
-    {
-        var session = BakeryLessonTests.AtStep("n4-wood");
-        Assert.Equal(0, session.Simulation.GrantItems(ItemId.Wood, 5));
-        _ = session.Simulation.GrantItems(ItemId.Coin, 1);
-
-        var turn = session.Say("Quiero dos panes, por favor");
-
-        Assert.Contains("Primero, la lección. Luego, las monedas.", turn.GuideLines);
     }
 }

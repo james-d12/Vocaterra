@@ -58,6 +58,7 @@ namespace Vocaterra.Game.Core.Save;
 /// next one. <see langword="null"/> in a save from before V25, whose <see cref="Session"/> is then the sitting it continues from.</param>
 /// <param name="KeyWordsTaughtBy">The ids of the NPCs whose key words were taught (V23a). <see langword="null"/> in a save from before: its <see cref="KeyWordsTaught"/> then means the shopkeeper's.</param>
 /// <param name="Systems">The systems that keep state of their own (version 6, N01): the player's needs now, the procedures later. <see langword="null"/> in a save from before version 6, which starts with full needs.</param>
+/// <param name="MetNpcs">The ids of the NPCs the player has talked to (L01): a class opens on having met its teacher, an order on having met its NPC. <see langword="null"/> in a save from before L01: from the second day on, every NPC then counts as met, as the days used to open them.</param>
 public sealed record SaveDocument(
     string Format,
     int Version,
@@ -96,7 +97,8 @@ public sealed record SaveDocument(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? SkippedTo = null,
     int? Sitting = null,
     IReadOnlyList<string>? KeyWordsTaughtBy = null,
-    SystemsSave? Systems = null);
+    SystemsSave? Systems = null,
+    IReadOnlyList<string>? MetNpcs = null);
 
 /// <summary>The size of the world's grid in chunks (X01): a save across bundles decodes the scene diff's chunk indices with it, so a world that changed size still maps by position.</summary>
 /// <param name="ChunksX">Chunks along x.</param>

@@ -621,7 +621,7 @@ public sealed class LessonRunnerTests
         Assert.Null(loaded.Lessons.Active);
         Stage.TeleportToNpc(loaded, "guide");
         _ = loaded.OpenTalk("guide");
-        Assert.Null(loaded.Lessons.OfferFor("guide"));
+        Assert.Equal("first-class", loaded.Lessons.OfferFor("guide")?.LessonId); // the introduction is done: Luna's first class is on offer, never started by itself (L01)
         Assert.False(loaded.Lessons.Engaged);
     }
 

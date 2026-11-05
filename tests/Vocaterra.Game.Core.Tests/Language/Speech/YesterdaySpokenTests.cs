@@ -57,7 +57,7 @@ public sealed class YesterdaySpokenTests(ITestOutputHelper output)
         // "Ellos fueron al río." as "fuimos al río" (V14's run). Where it listens to anything (the villager's open prompt), fueron is heard as said.
         using var session = TestGame.NewSessionWithShippedLessons();
         Stage.TeleportToNpc(session, "villager");
-        _ = session.OpenTalk("villager");
+        _ = session.OpenTalkForClass("villager");
         Assert.True(session.StartWorker().WaitUntilReady(60000));
 
         _ = session.SubmitSpeak("Luz y Mar fueron al río.");
@@ -73,7 +73,7 @@ public sealed class YesterdaySpokenTests(ITestOutputHelper output)
     {
         using var session = TestGame.NewSessionWithShippedLessons(); // session 1: the smith talks as himself
         Stage.TeleportToNpc(session, "smith");
-        _ = session.OpenTalk("smith");
+        _ = session.OpenTalkForClass("smith");
         Assert.True(session.StartWorker().WaitUntilReady(60000));
 
         _ = session.SubmitSpeak("Domingo, necesito un hacha.");

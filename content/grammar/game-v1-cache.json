@@ -913,6 +913,12 @@
       "matches": []
     },
     {
+      "key": "1a4f6cf42d0c783d3c2f75122ec55cb2045c64456f30dcafc7e1524ffbc9fdb0",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No tengo sueño.",
+      "matches": []
+    },
+    {
       "key": "1a5a294554a1ffa8bbe59648a8cd5ade1abd3894959bac19124d18b367de350f",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No te entendí. ¿Me lo dices otra vez?",
@@ -2726,6 +2732,12 @@
       "key": "49c679239c8d2c43a5136b9169b4cd581764d1799c0bbfedb368c87ce96f858b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Cuánto cuesta",
+      "matches": []
+    },
+    {
+      "key": "49eaaaf44d4bf53fc313a01914c961e30f25e032a5ae736cf7db96f1201456bd",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Una clase hoy? ¿Sí o no?",
       "matches": []
     },
     {
@@ -5677,6 +5689,12 @@
       "key": "9731d463495dc2c2b1a2b6b0b08c5f76617a58d0b493e77b5fccbdaf086e6d7e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Granjero",
+      "matches": []
+    },
+    {
+      "key": "97558be1e32cb91424169428860467e854064b29c587512588a574d45a8c184c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Quieres una clase? ¿Sí o no?",
       "matches": []
     },
     {

@@ -102,6 +102,7 @@ public abstract partial class GuideSession : IDisposable
     private IReadOnlyList<WordCard> _keyWordCards = [];
     private bool _keyWordsPending;
     private readonly SortedSet<string> _keyWordsTaught = new(StringComparer.Ordinal);
+    private readonly SortedSet<string> _met = new(StringComparer.Ordinal);
     private long _keyWordsStart;
     private NpcOpening? _delayedOpening;
     private bool _talkOpen;
@@ -144,7 +145,7 @@ public abstract partial class GuideSession : IDisposable
         var book = Data.Lessons;
         PhraseProgress = new PhraseProgress(Phrases, playSession, data.Npcs.ScaffoldPhrases.Concat(book.TaughtPhrases));
         Lessons = new LessonRunner(this, book, Locale);
-        Support = new PhraseSupport(Phrases, PhraseProgress, Bundle, data.Npcs, Locale, Lessons.CardReady); // a card waits for its lesson (V20)
+        Support = new PhraseSupport(Phrases, PhraseProgress, Bundle, data.Npcs, Locale, null); // every scaffold phrase has its card from rung 1, whether or not a class taught it (L01)
         Deck = new ReviewDeck(this);
         Tips = new TipFeed(this, Data.Tips);
         _liveFacts = liveFacts;
@@ -367,6 +368,25 @@ public abstract partial class GuideSession : IDisposable
         _keyWordsTaught.UnionWith(npcs);
     }
 
+    /// <summary>The NPCs the player has met (L01): the panel opened on them once. A class opens on having met its teacher, an order on having met its NPC.</summary>
+    public IReadOnlyList<string> MetNpcs => [.. _met];
+
+    /// <summary>Whether the player has met the NPC (L01): talked to them.</summary>
+    /// <param name="npc">The NPC's agent id.</param>
+    public bool HasMet(string npc) => _met.Contains(npc);
+
+    /// <summary>Marks an NPC as met without a talk (a session skip, a load).</summary>
+    /// <param name="npc">The NPC's agent id.</param>
+    internal void MarkMet(string npc) => _met.Add(npc);
+
+    /// <summary>Puts back the NPCs met (a load); the earlier ones are forgotten.</summary>
+    /// <param name="npcs">Their ids.</param>
+    internal void RestoreMet(IEnumerable<string> npcs)
+    {
+        _met.Clear();
+        _met.UnionWith(npcs);
+    }
+
     /// <summary>Marks the NPC's key words as taught without the cards (a session skip).</summary>
     /// <param name="npc">The NPC's id.</param>
     internal void MarkKeyWordsTaught(string npc) => _keyWordsTaught.Add(npc);
@@ -538,6 +558,7 @@ public abstract partial class GuideSession : IDisposable
         CurrentNpc = npc;
         _talkOpen = true;
         _delayedOpening = null;
+        _met.Add(npc); // L01: a class opens on having met its teacher, an order on having met its NPC
         _deckClaim = Deck.Claims(npc);
         if (string.Equals(npc, NpcService.GuideAgent, StringComparison.Ordinal))
         {
@@ -593,6 +614,15 @@ public abstract partial class GuideSession : IDisposable
     }
 
     // ---- The lessons' hooks (S16): the runner is in LessonRunner.cs; these are the parts of the session it needs.
+
+    /// <summary>
+    /// Whether a teacher may offer a class at this talk (L01): nothing else holds the talk (a review, the second try, the warm-up, a turn on the worker) and the NPC does not wait
+    /// on a yes or no of its own (the guide's transfer offer, the stall's bread), whose Sí the class would take.
+    /// </summary>
+    /// <param name="npc">The NPC's agent id.</param>
+    internal bool MayOfferClass(string npc) =>
+        PendingTurns == 0 && PhraseReview is null && Review is null && !_deckClaim && Deck.Status == DeckStatus.Idle && !Lessons.Engaged
+        && Bundle.Prompts.TryGetValue(_npcs.PromptOf(npc), out var prompt) && !prompt.AllowedIntentIds.Contains("confirm", StringComparer.Ordinal);
 
     /// <summary>Whether the panel is open on this NPC (a talk is open and the NPC is the one the lines go to).</summary>
     internal bool TalkOpenOn(string npc) => _talkOpen && string.Equals(CurrentNpc, npc, StringComparison.Ordinal);
@@ -1323,7 +1353,7 @@ public abstract partial class GuideSession : IDisposable
             Lessons.NoteRepeat(npc); // the learner asked for the line again: the lesson's record counts it (S19)
         }
 
-        var handled = Lessons.OnTurn(turn); // a lesson's repeat or answer step ends, retries or moves on with this turn (S16); it speaks for the guide (S17)
+        var handled = Lessons.OnTurn(turn) || Lessons.OnClassTurn(turn); // a lesson's repeat or answer step ends, retries or moves on with this turn (S16); it speaks for the guide (S17)
         var shown = turn; // (`last` was read before the turn ended the step: the next step's line is not what the learner asked to hear again)
         if (turn.Communicated && !turn.Unsure && (turn.HostEvents.Contains(GuideEvents.Repeat, StringComparer.Ordinal) || turn.HostEvents.Contains(GuideEvents.RepeatSlow, StringComparer.Ordinal)))
         {

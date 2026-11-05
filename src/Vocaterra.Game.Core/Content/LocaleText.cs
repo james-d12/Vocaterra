@@ -72,10 +72,10 @@ public sealed class LocaleText
         "reportSaved", "reportNotSaved", "checkTitle", "checkPre", "checkPost", "checkRecall", "checkComprehensionHint", "checkProductionPreface", "checkProductionHint",
         "checkDone", "checkItem", "checkThanks", "checkCounts", "checkThinking", "checkInLog", "checkCloseGame", "checkEnd", "checkListening", "checkAnswerHere",
         "checkNotGraded", "checkVoiceOff", "heard", "heardSomething", "heardNothing", "heardExpected", "micSay", "micTitle", "micTalkHint", "micPassed",
-        "micFailed", "micContinue", "micRetry", "micSkip", "micEscSkip", "lessonMore", "replayHud", "craftMake", "craftNeeds", "craftNeedsStation", "craftFull",
+        "micFailed", "micContinue", "micRetry", "micSkip", "micEscSkip", "lessonMore", "replayHud", "classHud", "bookAskClass", "bookLessonMeet", "bookLessonNext", "craftMake", "craftNeeds", "craftNeedsStation", "craftFull",
         "craftMissing", "needBottle", "playtestThanks", "playtestRecallThanks", "playtestSaved", "speechUnavailable", "turnNotChecked",
         "autosaved", "greyNewWord",
-        "sleepHud", "allLessonsDoneHud", "lessonNextHud", "lessonUnderwayHud", "reviewNothingDue", "sleepCard", "sleepCardDone", "sleepPrompt", "sleepPromptDone", "sleptToast", "bookLessonNext", "bookLessonOpen", "bookLessonOpensIn", "bookLessonAfter",
+        "sleepHud", "reviewNothingDue", "sleepCard", "sleepPrompt", "sleptToast", "bookLessonOpen", "bookLessonAfter",
         "bookLessonsAllDone", "foodKept", "drinkKept", "diedHunger", "diedThirst", "chestRest", "beaconBelongings",
     ];
 

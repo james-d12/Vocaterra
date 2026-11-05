@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Vocaterra.Game.Core.Content;
+using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Core.Language.Words;
@@ -93,7 +94,8 @@ public sealed class GameWords
         ObligationWords obligation,
         string greeting,
         string letters,
-        IReadOnlyDictionary<string, string> nouns)
+        IReadOnlyDictionary<string, string> nouns,
+        ClassAnswers classes)
     {
         Directions = directions;
         BlockUnit = blockUnit;
@@ -110,7 +112,11 @@ public sealed class GameWords
         Greeting = greeting;
         Letters = letters;
         _nouns = nouns;
+        Classes = classes;
     }
+
+    /// <summary>The lines a player answers a teacher's offer of a class with, and asks for one with (L01).</summary>
+    public ClassAnswers Classes { get; }
 
     /// <summary>The direction phrases of the guide's answers.</summary>
     public DirectionWords Directions { get; }
@@ -212,7 +218,8 @@ public sealed class GameWords
                 new ObligationWords(Text(obligation, "verb"), Text(obligation, "joiner")),
                 Text(root, "greeting"),
                 Text(root, "letters"),
-                nouns);
+                nouns,
+                new ClassAnswers(Texts(root.GetProperty("classAnswers"), "yes"), Texts(root.GetProperty("classAnswers"), "no"), Texts(root.GetProperty("classAnswers"), "ask")));
         }
         catch (Exception ex) when (ex is JsonException or KeyNotFoundException or InvalidOperationException)
         {

@@ -69,6 +69,14 @@ public sealed class LessonFrontend(GuideSession session, DialogueModel dialogue,
             }
         }
 
+        foreach (var line in session.Lessons.TakeLines())
+        {
+            if (dialogue.IsOpen)
+            {
+                dialogue.AddNpcLine(line); // a teacher's offer of a class (L01)
+            }
+        }
+
         foreach (var note in session.Deck.TakeNotes())
         {
             log($"warm-up: {note}");

@@ -213,49 +213,51 @@ public sealed class BookPagesTests
     }
 
     [Fact]
-    public void ALessonNotBegunSaysWhyItWaitsAndWhereItStartsAndOnlyTheOneTheObjectiveNamesIsNextInGold()
+    public void ALessonNotBegunSaysWhyItWaitsAndWhoTeachesItAndOnlyTheIntroductionIsNextInGold()
     {
         var session = TestGame.NewSessionWithShippedLessons();
 
         var (title, why) = LessonLines(session, "first-words");
-        Assert.Equal("next: talk to Luna", why.Text); // unlocked: the NPC by what it is called (game/npcs/guide.json)
+        Assert.Equal("next: talk to Luna", why.Text); // the introduction starts by itself at Luna: the NPC by what it is called (game/npcs/guide.json)
         Assert.True(why.Indent);
         Assert.Equal(BookTone.Gold, why.Tone);
         Assert.Equal(BookTone.Gold, title.Tone); // the eye finds it first
         Assert.Null(title.Aside);
+        Assert.True(title.Next);
+        Assert.Null(title.Practise); // nothing to ask for yet: a lesson that starts by itself, not met
+        Assert.Equal("meet Luna first", LessonLines(session, "first-class").Why.Text); // her first class: Luna is not met yet
 
         (title, why) = LessonLines(session, "personas");
-        Assert.Equal("opens in session 2, Aldeano", why.Text); // the villager has no name: his label
+        Assert.Equal("meet Aldeano first", why.Text); // the villager has no name: his label; the day opens nothing (L01)
         Assert.Equal(BookTone.Hint, why.Tone);
         Assert.Equal(BookTone.Unseen, title.Tone);
-        Assert.Equal("opens in session 4, Mar", LessonLines(session, "el-pueblo").Why.Text); // its session is said first: it is the later of its two locks
-        Assert.Equal("opens in session 5, Luz", LessonLines(session, "numeros-y-pan").Why.Text);
+        Assert.Equal("meet Mar first", LessonLines(session, "el-pueblo").Why.Text);
 
-        session.Day = 4; // the session has come, the lesson before it has not been done
-        session.Sitting = 4;
-        Assert.Equal("after “Ayer y mañana”", LessonLines(session, "el-pueblo").Why.Text);
-        Assert.Equal("next: talk to Aldeano", LessonLines(session, "ayer-y-manana").Why.Text); // the new lesson the objective names (the newest session's)
-        Assert.Equal("opens in session 5, Luz", LessonLines(session, "numeros-y-pan").Why.Text);
-        (title, why) = LessonLines(session, "first-words"); // unlocked as well, but not the one the objective names
-        Assert.Equal("open: talk to Luna", why.Text);
+        session.Lessons.CountAsCompleted("first-words", 1);
+        _ = session.OpenTalk("villager");
+        _ = session.OpenTalk("fisher");
+        (title, why) = LessonLines(session, "personas");
+        Assert.Equal("open: ask Aldeano for a class", why.Text);
         Assert.Equal(BookTone.Seen, why.Tone);
-        Assert.Equal(BookTone.Unseen, title.Tone);
-        Assert.Equal("open: talk to Aldeano", LessonLines(session, "personas").Why.Text);
-        Assert.Single(BookPages.Lessons(session.Locale, session.Lessons.Record, session.Phrases, null, BookPages.Waits(session.Lessons)), static l => l.Text.StartsWith("next:", StringComparison.Ordinal));
+        Assert.Equal("personas", title.Practise); // the "Ask for a class" button
+        Assert.True(title.Ask);
+        Assert.Equal("after “Ayer y mañana”", LessonLines(session, "el-pueblo").Why.Text);
+        Assert.DoesNotContain(BookPages.Lessons(session.Locale, session.Lessons.Record, session.Phrases, null, BookPages.Waits(session.Lessons)), static l => l.Text.StartsWith("next:", StringComparison.Ordinal));
     }
 
     [Fact]
-    public void InSessionEightTheBookNamesAyerEnElPuebloAsNextAtTheVillager()
+    public void InSessionEightEveryOpenClassIsOnOfferAtItsTeacherAndNoneIsNext()
     {
-        // The learner's route into session 8 (V14), as --skip-to-session 8 builds it: ¿Cómo es? completed in session 7, and Ayer en el pueblo the one the objective names.
+        // The learner's route into session 8, as --skip-to-session 8 builds it: ¿Cómo es? completed in session 7, the villager met; Ayer en el pueblo is open, not "next".
         var session = TestGame.NewSessionWithShippedLessons();
         SessionSkip.Apply(session, 8);
 
         var (title, why) = LessonLines(session, "ayer-en-el-pueblo");
-        Assert.Equal("next: talk to Aldeano", why.Text);
-        Assert.Equal(BookTone.Gold, title.Tone);
+        Assert.Equal("open: ask Aldeano for a class", why.Text);
+        Assert.Equal(BookTone.Seen, why.Tone);
         Assert.Equal("completed in session 7", LessonLines(session, "como-es").Title.Aside);
-        Assert.Single(BookPages.Lessons(session.Locale, session.Lessons.Record, session.Phrases, null, BookPages.Waits(session.Lessons)), static l => l.Text.StartsWith("next:", StringComparison.Ordinal));
+        Assert.Equal("ayer-en-el-pueblo", title.Practise);
+        Assert.DoesNotContain(BookPages.Lessons(session.Locale, session.Lessons.Record, session.Phrases, null, BookPages.Waits(session.Lessons)), static l => l.Text.StartsWith("next:", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -273,7 +275,7 @@ public sealed class BookPagesTests
         var (title, next) = LessonLines(session, "personas");
         Assert.StartsWith("in progress: ", title.Aside, StringComparison.Ordinal);
         Assert.Equal("unit 1", next.Text); // its units follow at once: no wait line
-        Assert.Equal(new LessonWait(LessonWaitKind.Session, 3, "villager"), session.Lessons.WaitOf("ayer-y-manana"));
+        Assert.Equal(new LessonWait(LessonWaitKind.Meet, 3, "villager"), session.Lessons.WaitOf("ayer-y-manana"));
     }
 
     [Fact]
@@ -317,31 +319,14 @@ public sealed class BookPagesTests
     }
 
     [Fact]
-    public void TheLessonsPageOpensScrolledToTheNextLessonAtSessionNine()
+    public void TheLessonsPageOpensAtTheTopWhenNoLessonIsNext()
     {
-        // V21b: the page runs to about 190 lines; in sessions 8 to 10 the lesson the objective names is far down, so the page opens with its title at the top.
+        // L01: only the introduction is "next" (it starts by itself); from session 9 on, no line is, and the page opens at the top.
         var session = TestGame.NewSessionWithShippedLessons();
         SessionSkip.Apply(session, 9);
         var lines = BookPages.Lessons(session.Locale, session.Lessons.Record, session.Phrases, null, BookPages.Waits(session.Lessons));
-        var next = lines.ToList().FindIndex(static l => l.Next);
-        Assert.True(next > 40, $"the next lesson is at line {next}");
-        Assert.StartsWith("next:", lines[next + 1].Text, StringComparison.Ordinal);
-
-        const int visible = 20;
-        var offset = BookScroll.OpeningOffset(lines, visible);
-        Assert.Equal(Math.Min(next, lines.Count - visible), offset);
-        Assert.InRange(next, offset, offset + visible - 1);
-
-        var model = new BookModel();
-        model.Open(new Vocaterra.Game.Core.Language.Words.WordProgress(TestGame.Nouns));
-        Assert.Equal(0, model.Offset);
-        model.Show(BookPage.Lessons, animate: false);
-        model.OpenAtNext(lines, visible);
-        model.ClampTo(lines.Count, visible);
-        Assert.Equal(offset, model.Offset);
-        model.Scroll(-3);
-        model.OpenAtNext(lines, visible); // once only: the learner's own scrolling stays
-        Assert.Equal(offset - 3, model.Offset);
+        Assert.DoesNotContain(lines, static l => l.Next);
+        Assert.Equal(0, BookScroll.OpeningOffset(lines, 20));
     }
 
     [Fact]

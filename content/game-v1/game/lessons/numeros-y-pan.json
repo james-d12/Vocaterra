@@ -4,7 +4,7 @@
   "id": "numeros-y-pan",
   "npc": "baker",
   "level": "a1",
-  "autoStart": true,
+  "autoStart": false,
   "after": "el-pueblo",
   "session": 5,
   "verbs": [

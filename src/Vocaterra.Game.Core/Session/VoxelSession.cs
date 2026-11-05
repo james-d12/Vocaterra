@@ -97,7 +97,14 @@ public sealed partial class VoxelSession : GuideSession
     /// The first objective in the HUD's order that is not done and is shown in this play session (an order of a later session is hidden, village-plan V03), or
     /// <see langword="null"/> when every one is done. It gates nothing.
     /// </summary>
-    public Objective? CurrentObjective => Objectives.FirstOrDefault(o => !o.Complete && o.Spec.ShownIn(Day));
+    public Objective? CurrentObjective => Objectives.FirstOrDefault(o => !o.Complete && Shown(o.Spec));
+
+    /// <summary>
+    /// Whether an objective is shown and counted now: an order once the player has met its NPC (L01, D-game-25; before, on a day), any other objective from its own
+    /// <see cref="ObjectiveSpec.Session"/> on.
+    /// </summary>
+    /// <param name="spec">The objective.</param>
+    public bool Shown(ObjectiveSpec spec) => spec.IsOrder ? HasMet(spec.DeliverTo!) : spec.ShownIn(Day);
 
     /// <summary>The step a save names (<c>camp.wood</c>), or <see langword="null"/> for a key the session's objectives do not have.</summary>
     /// <param name="key">The step's save key, <c>&lt;objective&gt;.&lt;step&gt;</c>.</param>
@@ -174,12 +181,7 @@ public sealed partial class VoxelSession : GuideSession
         }
 
         var current = CurrentObjective;
-        if ((current is null || current == Objectives[0] || current.Spec.IsOrder) && Lessons.NewLesson is { Objective: { } objective })
-        {
-            return [new ObjectivePiece(objective, ObjectivePieceKind.Support)]; // a new session's lesson is unlocked and not begun (S26): before the first objective is done, after the last, or over an order (V03)
-        }
-
-        if ((current is null || current.Spec.IsOrder) && RestLine(overOrder: current is not null) is { } rest)
+        if ((current is null || current.Spec.IsOrder) && RestLine() is { } rest)
         {
             return [rest]; // the session's work is done: sleep at the fire for the next session, or every lesson is done; or the lesson to go on with (V12c)
         }
@@ -264,11 +266,7 @@ public sealed partial class VoxelSession : GuideSession
     /// </summary>
     public void BeginPlaySession()
     {
-        if (Lessons.NewLesson is { } lesson)
-        {
-            PointAtNpc(lesson.Npc);
-        }
-        else if (RestDue && !AtOwnFire)
+        if (RestDue && !AtOwnFire)
         {
             PointAtFire();
         }
@@ -683,14 +681,14 @@ public sealed partial class VoxelSession : GuideSession
 
     /// <inheritdoc />
     protected override string? OrderReadyAt(string npc) =>
-        GoodsHeldOrders(npc).FirstOrDefault(o => !Lessons.HoldsOrder(o.Spec))?.Id; // the lesson that tells the order may keep it back until its plan is said (village-plan V13)
+        GoodsHeldOrders(npc).FirstOrDefault()?.Id; // no lesson holds a delivery (L01)
 
     /// <inheritdoc />
-    protected override bool OrderHeldAt(string npc) => GoodsHeldOrders(npc).Any(o => Lessons.HoldsOrder(o.Spec));
+    protected override bool OrderHeldAt(string npc) => false; // no lesson holds an order back (L01)
 
     // The shown, undone orders of an NPC whose goods the player carries.
     private IEnumerable<Objective> GoodsHeldOrders(string npc) =>
-        Objectives.Where(o => o.Spec.IsOrder && !o.Complete && o.Spec.ShownIn(Day) && string.Equals(o.Spec.DeliverTo, npc, StringComparison.Ordinal)
+        Objectives.Where(o => o.Spec.IsOrder && !o.Complete && Shown(o.Spec) && string.Equals(o.Spec.DeliverTo, npc, StringComparison.Ordinal)
             && o.Spec.Goods.All(goods => Simulation.Inventory.Count(goods.Item) >= goods.Count));
 
     /// <inheritdoc />
@@ -835,7 +833,7 @@ public sealed partial class VoxelSession : GuideSession
     // is lit, the guide is met, an order is delivered), so its effects follow its event in the log.
     private void RecordObjectives(WorldEvent world)
     {
-        foreach (var objective in Objectives.Where(o => !o.Complete && o.Spec.ShownIn(Day)))
+        foreach (var objective in Objectives.Where(o => !o.Complete && Shown(o.Spec)))
         {
             var done = objective.Record(world, _eventAmount);
             if (objective.IsChecklist)

@@ -35,7 +35,7 @@ public sealed class TomorrowLessonTests(ITestOutputHelper output)
         session.Day = 9;
         session.Sitting = 9;
         Stage.TeleportToNpc(session, "baker");
-        _ = session.OpenTalk("baker");
+        _ = session.OpenTalkForClass("baker");
         return session;
     }
 
@@ -58,7 +58,7 @@ public sealed class TomorrowLessonTests(ITestOutputHelper output)
         {
             session.EndTalk();
             Stage.TeleportToNpc(session, npc);
-            _ = session.OpenTalk(npc);
+            _ = session.OpenTalkForClass(npc);
             return null;
         }
 
@@ -75,7 +75,7 @@ public sealed class TomorrowLessonTests(ITestOutputHelper output)
     {
         var lesson = Book.Find(LessonId)!;
 
-        Assert.Equal(("baker", 9, true, "ayer-en-el-pueblo", LessonLevels.A2), (lesson.Npc, lesson.Session, lesson.AutoStart, lesson.After, lesson.Level));
+        Assert.Equal(("baker", 9, false, "ayer-en-el-pueblo", LessonLevels.A2), (lesson.Npc, lesson.Session, lesson.AutoStart, lesson.After, lesson.Level));
         Assert.StartsWith("Session 9", lesson.Objective, StringComparison.Ordinal);
         Assert.Contains("bakery", lesson.Objective, StringComparison.Ordinal); // the objective line names where to go: the baker at the bakery
         Assert.Contains("Mañana en el pueblo", lesson.Objective, StringComparison.Ordinal);
@@ -179,7 +179,7 @@ public sealed class TomorrowLessonTests(ITestOutputHelper output)
         // it there, and the same lesson at a1 fails on each fut step and each fut form it declares.
         Assert.Empty(GameDataValidator.Validate(TestGame.Data));
         Assert.Equal(
-            [LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A2, LessonLevels.A2, LessonLevels.A2, LessonLevels.A2],
+            [LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A2, LessonLevels.A2, LessonLevels.A2, LessonLevels.A2],
             Book.Lessons.Select(static l => l.Level));
 
         // The shipped book with this lesson's level changed (its reviews and its after need the lessons before it).
@@ -233,10 +233,10 @@ public sealed class TomorrowLessonTests(ITestOutputHelper output)
         var early = YesterdayLessonTests.AtStep("(after the last step)");
         early.EndTalk();
         Assert.Equal(8, early.Day);
-        Assert.NotEqual(LessonId, early.Lessons.OfferFor("baker")?.LessonId); // Ayer en el pueblo done, but it is still session 8
+        Assert.Equal(LessonId, early.Lessons.OfferFor("baker")?.LessonId); // Ayer en el pueblo done and Luz met: the class is on offer, though the day is only 8 (L01)
 
         var skipped = TestGame.NewSessionWithShippedLessons();
-        skipped.Day = 9; // session 9 reached without session 8's lesson: Mañana en el pueblo waits for it (after)
+        skipped.Day = 9; // the day opens nothing: Luz is not met, and Mañana en el pueblo waits for session 8's lesson (after)
         skipped.Sitting = 9;
         Assert.NotEqual(LessonId, skipped.Lessons.OfferFor("baker")?.LessonId);
         Assert.Equal(LessonStatus.NotStarted, skipped.Lessons.StatusOf(LessonId));
@@ -426,7 +426,7 @@ public sealed class TomorrowLessonTests(ITestOutputHelper output)
         // The baker's tendré is heard, not said; where a learner says it (the smith's open prompt takes a possession), it is tener, 1 sg, fut.
         var session = TestGame.NewSessionWithShippedLessons();
         Stage.TeleportToNpc(session, "smith");
-        _ = session.OpenTalk("smith");
+        _ = session.OpenTalkForClass("smith");
         var turn = session.Say("tendré madera");
 
         Assert.Equal("state_have", turn.Intent);

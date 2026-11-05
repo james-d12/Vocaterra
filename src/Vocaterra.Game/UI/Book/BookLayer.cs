@@ -294,7 +294,7 @@ public sealed class BookLayer : IFrameLayer
             var box = new Rectangle(right - BookPractise.ButtonWidth, top + 1, BookPractise.ButtonWidth, BookGeometry.LineHeight - 3);
             spriteBatch.Draw(pixel, box, new Color(246, 236, 210));
             DrawHelpers.Border(spriteBatch, pixel, box, 1, InkKnown);
-            var practise = BookPractise.Label(view.Session.Locale, line.Practise);
+            var practise = BookPractise.Label(view.Session.Locale, line.Practise, line.Ask);
             var labelWidth = (int)DrawHelpers.Width(font, practise);
             InkText(spriteBatch, font, practise, new Vector2(box.X + ((box.Width - labelWidth) / 2), top + 1), InkKnown);
             rightEdge = box.X - BookSpeakers.Gap;

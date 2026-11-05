@@ -53,7 +53,7 @@ public sealed class TomorrowSpokenTests(ITestOutputHelper output)
     {
         using var session = TestGame.NewSessionWithShippedLessons(); // session 1: the baker talks as herself
         Stage.TeleportToNpc(session, "baker");
-        _ = session.OpenTalk("baker");
+        _ = session.OpenTalkForClass("baker");
         Assert.True(session.StartWorker().WaitUntilReady(60000));
 
         _ = session.SubmitSpeak("Luz, mañana compraré pan.");

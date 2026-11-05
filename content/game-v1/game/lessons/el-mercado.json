@@ -4,7 +4,7 @@
   "id": "el-mercado",
   "npc": "baker",
   "level": "a2",
-  "autoStart": true,
+  "autoStart": false,
   "after": "manana-en-el-pueblo",
   "session": 10,
   "verbs": [

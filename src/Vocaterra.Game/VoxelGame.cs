@@ -419,7 +419,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             DrinkByHand: new DelegateCommand(() => _session.DrinkByHand()),
             TakeBelongings: new DelegateCommand(() => _session.TakeBelongings()));
         _globalKeys = KeyBindings.Global(commands, options.Playtest);
-        _worldKeys = KeyBindings.World(commands, () => _aimed is not null, () => _session.Tips.Current is not null, AimedAtWorkbench, () => CardOffersSleep, () => FireOffersSleep, () => _session.AimedAtWater, () => _session.AimedAtChest);
+        _worldKeys = KeyBindings.World(commands, () => _aimed is not null, () => _session.Tips.Current is not null, AimedAtWorkbench, () => CardOffersSleep, () => FireOffersSleep || FireNotTired, () => _session.AimedAtWater, () => _session.AimedAtChest);
         // The session log (S11) is opened first, so the battery's start is in it; the battery's plan is the bundle's items in the seeded order of its kind.
         (_sessionDirectory, _log, _autosave) = SessionStart.Open(options, session, _micCheck is not null, _toasts, _playtestFlow, _saves, OnAppliedTurn, Console.WriteLine);
         if (options.Check is { } battery)
@@ -490,6 +490,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
     // The player's own lit fire offers the sleep: E sleeps there, after an NPC under the crosshair and the workbench (V12c).
     private bool FireOffersSleep => SleepOffer.AtFire(_session, SleepFree && _aimed is null && !AimedAtWorkbench());
+
+    // L01: at the fire and not tired, E says the player's line «No tengo sueño.» (text only) and sleeps nothing.
+    private bool FireNotTired => SleepOffer.AtFireNotTired(_session, SleepFree && _aimed is null && !AimedAtWorkbench());
 
     // The session's closing card offers the sleep: Enter sleeps while it is up (V12c).
     private bool CardOffersSleep => SleepOffer.OnCard(_session, _ending.Visible(_sim.Tick), SleepFree);
@@ -936,6 +939,15 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             return;
         }
 
+        // L01: the player sleeps when the sleep drive is below 75 (day 1: at its ending); the scripts' aids (--sleep, the scripted sleep step) sleep regardless of the drive.
+        if (!_session.SleepWanted && how == "the player")
+        {
+            var line = SleepOffer.NotSleepyText(_session);
+            _toasts.Show(line);
+            Console.WriteLine($"sleep: not tired: {line}");
+            return;
+        }
+
         PassNight(how, collapse: false);
     }
 
@@ -1001,7 +1013,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private string SleepRefusal() =>
         !_session.SleepOffered ? "a playtest plays one session per run"
         : !_session.FireLit ? "the player's own fire is not lit"
-        : _session.Lessons.Engaged ? "a lesson step waits"
         : _dialogue.IsOpen ? "a dialogue is open"
         : "the game is not at rest";
 
