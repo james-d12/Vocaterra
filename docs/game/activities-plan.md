@@ -160,7 +160,7 @@ Each joins `WorldEvents.All`, so tips, lessons and objectives may wait for it, a
 
 | ID | What | Depends on | Size | Model | Status |
 | --- | --- | --- | --- | --- | --- |
-| W00 | Register milestones and resolve required decisions | design section 18 | | orchestrator | pending |
+| W00 | Register milestones and resolve required decisions | design section 18 | | orchestrator | done (2026-11-04: game plan section 4.9; section 18.2 adopted provisionally, D-game-23) |
 | **Stage 1: foundations** | | | | | |
 | W01 | `item_crafted`: a craft is a world event | | S | Haiku | |
 | W02 | Tools and materials: a material per block, a tool spec per item, the axe's special case replaced | | S/M | Haiku | |
