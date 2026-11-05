@@ -491,7 +491,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
 
         session.EndTalk();
         Assert.True(session.Lessons.RequestReplay(LessonId));
-        Assert.Equal("Practise again: talk to the villager to start “Ayer y mañana: yesterday and tomorrow”", session.Lessons.ReplayHud);
+        Assert.Equal("Practise again: talk to the villager to start “Ayer y mañana”", session.Lessons.ReplayHud);
         Stage.TeleportToNpc(session, "villager");
         _ = session.OpenTalkForClass("villager");
 
