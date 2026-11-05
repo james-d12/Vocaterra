@@ -178,7 +178,7 @@ public static class SaveGame
             SkippedTo: session.SkippedTo,
             Sitting: session.Sitting,
             KeyWordsTaughtBy: session.KeyWordsTaughtBy,
-            Systems: new SystemsSave(session.Needs.Capture()));
+            Systems: new SystemsSave(session.Needs.Capture(), session.CaptureChest()));
     }
 
     /// <summary>Captures a session and serializes it: the text of the save file.</summary>
@@ -407,6 +407,7 @@ public static class SaveGame
             session.Learner.Restore(learner, checksCounted: document.Version < 3); // a version 1 save has none: the learner's history starts empty (S19); a version 2 save's rows counted the checks (S19b)
         }
 
+        session.RestoreChest(document.Systems?.Chest); // N04: the chest's block is in the world's edits; here its cell and contents
         session.RestoreNeeds(document.Systems?.Needs); // N01: a save before version 6 has none, so full needs; the needs are not in the world's digest
         session.SkippedTo = document.SkippedTo; // a test run skipped to a later session stays marked (V12c)
         session.RestoreStage(); // the stage of the objective area (S17) follows from the world and the progress just put back

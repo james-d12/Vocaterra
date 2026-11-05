@@ -46,6 +46,7 @@ public sealed partial class VoxelSession
 
         Needs.Step(1, ActivityOfTick(fromX, fromZ, sprinting));
         SyncNeedStages();
+        DieIfDead(); // N04: at zero health the player is back at their fire
     }
 
     private NeedActivity ActivityOfTick(long fromX, long fromZ, bool sprinting)

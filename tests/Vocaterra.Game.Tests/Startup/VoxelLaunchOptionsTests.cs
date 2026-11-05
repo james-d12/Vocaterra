@@ -267,4 +267,18 @@ public sealed class VoxelLaunchOptionsTests
         Assert.Contains("--eat <item>", LaunchOptions.Usage, StringComparison.Ordinal);
         Assert.Contains("--drink", LaunchOptions.Usage, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void TheNeedAndTakeBelongingsStepsAreStepsOfTheScriptAndNeedTheScriptScreenshot()
+    {
+        var options = Parse("--screenshot", "a.png", "--need", "thirst", "51", "--take-belongings", "--shot", "b.png");
+
+        Assert.Equal([ScriptStepKind.SetNeed, ScriptStepKind.TakeBelongings, ScriptStepKind.Shot], options.Script.Select(static step => step.Kind).ToArray());
+        Assert.Equal("thirst 51", options.Script[0].Value);
+        Assert.Contains("--screenshot", Refuse("--take-belongings"), StringComparison.Ordinal);
+        Assert.Contains("--need", Refuse("--screenshot", "a.png", "--need", "thirst", "101"), StringComparison.Ordinal);
+        Assert.Contains("--need", Refuse("--screenshot", "a.png", "--need", "hunger"), StringComparison.Ordinal);
+        Assert.Contains("--need <need>", LaunchOptions.Usage, StringComparison.Ordinal);
+        Assert.Contains("--take-belongings", LaunchOptions.Usage, StringComparison.Ordinal);
+    }
 }

@@ -76,6 +76,8 @@ public sealed record LaunchOptions
         + "  --needs on|off          the player's needs (hunger, thirst, sleep, health, stamina) run in active play (the default, on); off freezes them full, so the language\n"
         + "                          runs keep their baselines (a test aid, N01)\n"
         + "  --eat <item>            eat or drink the item as a right click with it selected does (one is given if the bag has none; a test aid, N02): pan, fruta, manzana, agua\n"
+        + "  --need <need> <n>       a script step: set a need where the script stands (a test aid, N04; --set-need sets at launch)\n"
+        + "  --take-belongings       take back what a death left in the chest the crosshair is on, within reach, as E does (N04)\n"
         + "  --drink                 drink by hand at the water the crosshair is on, within reach, as E does (N02); walk to the bank, --look at the water and --wait 1 first\n"
         + "  --set-need <need> <n>   set a need at launch, 0 to 100 (hunger, thirst, sleep, health; stamina up to its maximum); repeatable (a test aid, N01)\n"
         + "  --beacon <point>        stand the beacon column on a named point of the scene (camp.guide, camp.player, firering, workbench, stall, signpost, village, house1, bridge, river, lake,\n"
@@ -380,7 +382,7 @@ public sealed record LaunchOptions
             }
 
             if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--no-speech" or "--mute" or "--no-sounds" or "--voxel" or "--greyscale" or "--strict-save" or "--leave" or "--mic-check" or "--no-mic-check"
-                    or "--playtest" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep" or "--drink")
+                    or "--playtest" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep" or "--drink" or "--take-belongings")
             {
                 switch (arg)
                 {
@@ -392,6 +394,9 @@ public sealed record LaunchOptions
                         break;
                     case "--drink":
                         script.Add(new ScriptStep(ScriptStepKind.Drink));
+                        break;
+                    case "--take-belongings":
+                        script.Add(new ScriptStep(ScriptStepKind.TakeBelongings));
                         break;
                     case "--tips":
                         result = result with { Tips = true };
@@ -456,6 +461,21 @@ public sealed record LaunchOptions
                         break; // --voxel: accepted for old scripts, the 3D world is the only one
                 }
 
+                continue;
+            }
+
+            if (arg == "--need")
+            {
+                // A script step (N04, a test aid): sets a need where the script stands, so one run can pass a drive's stages (--set-need is a launch value).
+                if (i + 2 >= args.Count || !Enum.TryParse<NeedMeter>(args[i + 1], ignoreCase: true, out _) || char.IsDigit(args[i + 1][0])
+                    || !double.TryParse(args[i + 2], NumberStyles.Float, CultureInfo.InvariantCulture, out var stepValue) || !double.IsFinite(stepValue) || stepValue < 0 || stepValue > 100)
+                {
+                    error = "--need needs a need (hunger, thirst, sleep, health or stamina) and a value from 0 to 100.";
+                    return false;
+                }
+
+                script.Add(new ScriptStep(ScriptStepKind.SetNeed, Value: $"{args[i + 1]} {args[i + 2]}"));
+                i += 2;
                 continue;
             }
 
@@ -986,7 +1006,7 @@ public sealed record LaunchOptions
 
         if (screenshot is null && (framesGiven || script.Count > 0 || beacon is not null || journal || inventory || crafting))
         {
-            error = "--frames, --look, --walk-to, --teleport, --interact, --place, --select, --craft, --eat, --drink, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --book-practise, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --sleep, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
+            error = "--frames, --look, --walk-to, --teleport, --interact, --place, --select, --craft, --eat, --drink, --take-belongings, --need, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --book-practise, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --sleep, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
             return false;
         }
 

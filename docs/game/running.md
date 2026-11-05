@@ -75,6 +75,12 @@ doubles stamina's refill and health's recovery. The events `meal_eaten` (the foo
 `--eat <item>` gives the item if the bag has none and eats or drinks it as the right click does (`pan`, `fruta`, `manzana`, `agua`), `--drink` drinks by hand at the water the
 crosshair is on (walk to the bank, `--look` at the water and `--wait 1` first: the look takes a tick). Each prints a line, `eat: Done (Bread), hunger 65, thirst 100` or `drink: Done, thirst 40`.
 
+**Death (N04).** At zero health in active play the screen goes black and the player wakes two to five blocks from their own fire ring at the cliff camp (`firering.player`, lit or cold) with
+health, hunger, thirst and sleep at 50 and stamina full; `player_died` (`hambre` or `sed`) and `player_woke` (`death`) print. The day and the sitting do not move. Everything in the bag
+but the items that stack to one (the book and the axe) stays in a chest on the nearest free ground where they fell (the beacon points to it); **E** on the chest takes back what fits,
+and the next night removes it. `--take-belongings` is the scripted E (walk next to the chest and `--look` at it first); it prints `take-belongings: Done, chest gone`.
+`--set-need thirst 0 --set-need health 5 --wait 25` is the quick death.
+
 ```bash
 # hunger 40, a bread: the meter goes to 65 and meal_eaten (pan) is raised; a drink by hand at the river bank after a --look at the water
 DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --set-need hunger 40 --set-need thirst 30 --eat pan --teleport 234,222 --look 270,-70 --wait 1 --drink --screenshot /tmp/n02.png --frames 30

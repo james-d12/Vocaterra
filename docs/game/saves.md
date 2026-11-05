@@ -50,6 +50,9 @@ chest state as optional fields of the entry. Stages and their effects are never 
   `PlayerNeeds.Sleep` (sleep to 100, health +20, hunger -15 and thirst -20 never below 10; with `--needs off` nothing). A **collapse** is the same night with `collapse: true`
   (`PlayerNeeds.Collapse`: sleep to 50, no health), taken where the player stands, so the world, the position and the tick are the save's. Both advance the day and the sitting
   and run the day's resets (`RunDayResets`, `DayResetCount`; a load runs none).
+- **The belongings chest (N04)** is the `chest` entry of `systems`: `{"x","y","z","stacks":[{"item","count"}]}`, the cell of the Chest block and one total per item kind, absent when
+  no chest stands. The Chest block itself is in the world's block edits (`chunks`), as any placed block; a load restores both and never removes a chest, a night does
+  (`RunDayResets`), with its contents. No version change: an older v6 save has no chest.
 - **A load raises no `need_stage` event** for what was saved: the stages are taken as they are.
 
 ## Autosave and the crash report (X05, R04)
