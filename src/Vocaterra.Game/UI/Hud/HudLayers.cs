@@ -50,7 +50,14 @@ public sealed class ObjectiveLayer : IFrameLayer
         }
 
         var width = rows.Max(row => row.Sum(p => (int)DrawHelpers.Width(font, p.Text)));
-        return (rows, HudLayout.ObjectiveBox(view.ViewportWidth, width, rows.Count, TipLayer.BlockOf(view)));
+        var corner = HudLayout.ObjectiveBox(view.ViewportWidth, width, rows.Count);
+        var placed = HudLayout.ObjectiveBox(view.ViewportWidth, width, rows.Count, TipLayer.BlockOf(view));
+        if (view.Dialogue.IsOpen && placed != corner)
+        {
+            return null; // in a conversation the tracker gives way to the tip box rather than stand over the cards and the bubble (U01)
+        }
+
+        return (rows, placed);
     }
 
     /// <summary>The bottom of the checklist this frame, or 0 when it is not drawn: the workbench panel stands under it.</summary>
