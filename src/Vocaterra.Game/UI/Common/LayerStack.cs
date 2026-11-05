@@ -22,6 +22,7 @@ public static class LayerStack
     {
         var layers = new List<IFrameLayer>
         {
+            new FadeLayer(),
             new CrosshairLayer(),
             new BeaconArrowLayer(),
             new TalkHintLayer(),

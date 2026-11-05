@@ -13,7 +13,7 @@ namespace Vocaterra.Game.Core.Tests.Save;
 /// <summary>
 /// The sleep at the player's own fire (V12c) is exactly a load: the save written after a sleep is the save written after a save and a load (<see cref="SaveGame.Load"/> with
 /// the next session) of the same state, byte for byte, and what the player sees next is the same too (the objective, the arrow, the lesson, the warm-up, the review). No field
-/// differs. The stored time does not move, the session number goes up by one, and what a save does not keep is gone.
+/// differs but the needs, which a night moves by the rule of PlayerNeeds.Sleep (N03). The stored time does not move, the session number goes up by one, and what a save does not keep is gone.
 /// </summary>
 public sealed class SleepTests
 {
@@ -26,6 +26,8 @@ public sealed class SleepTests
     {
         var loaded = SaveGame.Load(text, TestGame.Data, Pristine, credit: like.Credit);
         loaded.Day++;
+        loaded.Needs.Sleep(); // N03: a night moves the needs, which a load does not; everything else is a load's
+        loaded.SettleNeedStages();
         loaded.BeginPlaySession();
         return loaded;
     }

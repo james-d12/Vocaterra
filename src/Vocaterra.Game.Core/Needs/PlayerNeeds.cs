@@ -98,7 +98,7 @@ public sealed class PlayerNeeds
     public bool IsDead => _health <= 0;
 
     /// <summary>Whether the sleep drive has been at its last stage for the collapse's delay.</summary>
-    public bool CollapseDue => _exhaustion >= _data.CollapseDelaySeconds && StageOf(Drive.Sleep) == 4;
+    public bool CollapseDue => _exhaustion >= _data.CollapseDelaySeconds - 1e-6 && StageOf(Drive.Sleep) == 4;
 
     /// <summary>Whether the player may sprint now: no stage forbids it and stamina is left.</summary>
     public bool CanSprint => _stamina > 0 && Effects().SprintAllowed;

@@ -117,7 +117,7 @@ public sealed class NeedsSaveTests
     }
 
     [Fact]
-    public void ANightIsALoadInTheSameRunSoTheNeedsPassThroughIt()
+    public void ANightIsALoadInTheSameRunWithTheNightsChangesOnTheNeeds()
     {
         var session = SleepTests.EndedFirstSession();
         session.SetNeed(NeedMeter.Thirst, 33);
@@ -126,6 +126,9 @@ public sealed class NeedsSaveTests
 
         SaveGame.Sleep(session, SaveGame.Capture(session, Pristine()));
 
-        Assert.Equal(before, session.Needs.Capture());
+        var rule = new PlayerNeeds(TestGame.Data.Needs); // N03: the needs come back as a load's do, then the night's rule is applied
+        rule.Restore(before);
+        rule.Sleep();
+        Assert.Equal(rule.Capture(), session.Needs.Capture());
     }
 }

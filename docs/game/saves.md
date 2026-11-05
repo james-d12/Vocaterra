@@ -46,8 +46,10 @@ chest state as optional fields of the entry. Stages and their effects are never 
 - **Versions 1 to 5 load** with full needs (no `systems`).
 - **The needs are not in the world's digest.** A load and a night compare the digest, and an older save has none; the needs are checked by range instead: a value out of range
   (a drive or health outside 0 to 100, stamina over its maximum, a timer below 0) is **clamped** into it, and a value that is not a number **refuses** the save.
-- **A night is a load in the same run,** so the needs entry passes through `SaveGame.Sleep` as a load restores it. The night's own changes (`PlayerNeeds.Sleep`) are applied by
-  the sleep's wiring (N03).
+- **A night is a load in the same run** with the night's changes on the needs (N03): `SaveGame.Sleep` restores the needs as a load does, then `VoxelSession.ApplyNight` applies
+  `PlayerNeeds.Sleep` (sleep to 100, health +20, hunger -15 and thirst -20 never below 10; with `--needs off` nothing). A **collapse** is the same night with `collapse: true`
+  (`PlayerNeeds.Collapse`: sleep to 50, no health), taken where the player stands, so the world, the position and the tick are the save's. Both advance the day and the sitting
+  and run the day's resets (`RunDayResets`, `DayResetCount`; a load runs none).
 - **A load raises no `need_stage` event** for what was saved: the stages are taken as they are.
 
 ## Autosave and the crash report (X05, R04)
