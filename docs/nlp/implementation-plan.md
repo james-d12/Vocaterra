@@ -1760,7 +1760,7 @@ merge into a feature branch that is pushed, and the owner merges it into `main` 
     until V29 allows `ask_weather` there; letting outside grammars beat allowed keyword rules moved 75 identity entries and broke
     `sí, gracias`, `dónde encuentro madera` and `quiero hacer un hacha`, so it was reverted. `hace dos días compré pan` is `state_action`
     with `item=pan` (the `comprar` rule; "ago" is neither weather nor `hacer`), against the brief's "neither": correct Spanish keeps
-    its reading (for the owner's review). `¿hace frío?` is `state_weather` (a transcript has no question mark).
+    its reading (accepted by the owner, 2026-11-05; `docs/nlp/decisions.md`). `¿hace frío?` is `state_weather` (a transcript has no question mark).
   - **Bugs:** `hace dos días compré pan` took `item=día` (fixed in `AnalysisSlotFinder`); with `ask_wellbeing` out of `greet` the NPCs
     said «No te entendí» to `¿cómo estás?` (no game test caught it; `ask_wellbeing` twins of the `greet` transitions in
     `content/game-v1/agents/*.json` until V29). The fuzz suite found two of the milestone's own (a weather grammar giving `mañana hacía
