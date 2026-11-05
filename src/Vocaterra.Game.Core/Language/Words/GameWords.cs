@@ -77,6 +77,7 @@ public sealed class GameWords
 
     private readonly IReadOnlyDictionary<string, string> _pronouns;
     private readonly IReadOnlyDictionary<string, string> _nouns;
+    private readonly IReadOnlyDictionary<string, string> _hudLines;
 
     private GameWords(
         DirectionWords directions,
@@ -93,7 +94,8 @@ public sealed class GameWords
         ObligationWords obligation,
         string greeting,
         string letters,
-        IReadOnlyDictionary<string, string> nouns)
+        IReadOnlyDictionary<string, string> nouns,
+        IReadOnlyDictionary<string, string> hudLines)
     {
         Directions = directions;
         BlockUnit = blockUnit;
@@ -110,6 +112,7 @@ public sealed class GameWords
         Greeting = greeting;
         Letters = letters;
         _nouns = nouns;
+        _hudLines = hudLines;
     }
 
     /// <summary>The direction phrases of the guide's answers.</summary>
@@ -167,6 +170,22 @@ public sealed class GameWords
     /// <summary>The roles the game's logic gives a noun.</summary>
     public static IReadOnlyList<string> NounRoles { get; } = ["river"];
 
+    /// <summary>
+    /// The player's own words on the HUD (N05, <c>hudLines</c>): the stage lines of the needs (<c>need.thirst.3</c> is <c>Tengo mucha sed.</c>), the death screen's
+    /// <c>hud.camp</c>, the beacon's label on the chest <c>hud.belongings</c>, and the words of the inventory's needs list. Text only, never recorded (D-game-13).
+    /// </summary>
+    public IReadOnlyDictionary<string, string> HudLines => _hudLines;
+
+    /// <summary>The Spanish of a HUD line, or <see langword="null"/> when the file has none for the key.</summary>
+    /// <param name="key">The key (<c>need.sleep.2</c>, <c>hud.camp</c>).</param>
+    public string? HudLine(string key) => _hudLines.TryGetValue(key, out var text) ? text : null;
+
+    /// <summary>The keys of the HUD lines that are not a stage line: the death screen, the chest's label and the needs list's words.</summary>
+    public static IReadOnlyList<string> FixedHudKeys { get; } =
+    [
+        "hud.camp", "hud.belongings", "hud.fine", "hud.name.hunger", "hud.name.thirst", "hud.name.sleep", "hud.name.health", "hud.name.stamina",
+    ];
+
     /// <summary>The persons and numbers the conjugation table writes a pronoun for.</summary>
     public static IReadOnlyList<string> PronounKeys { get; } = ["1sg", "2sg", "3sg", "1pl", "3pl"];
 
@@ -212,7 +231,8 @@ public sealed class GameWords
                 new ObligationWords(Text(obligation, "verb"), Text(obligation, "joiner")),
                 Text(root, "greeting"),
                 Text(root, "letters"),
-                nouns);
+                nouns,
+                OptionalMap(root, "hudLines"));
         }
         catch (Exception ex) when (ex is JsonException or KeyNotFoundException or InvalidOperationException)
         {
@@ -235,6 +255,7 @@ public sealed class GameWords
         all.AddRange(PronounKeys.Select(key => ("pronouns." + key, _pronouns[key])));
         all.AddRange(NearFuture.TimeWords.Select((word, i) => ("nearFuture.timeWords[" + i.ToString(System.Globalization.CultureInfo.InvariantCulture) + "]", word)));
         all.AddRange(NounRoles.Select(role => ("nouns." + role, _nouns[role])));
+        all.AddRange(_hudLines.OrderBy(static pair => pair.Key, StringComparer.Ordinal).Select(static pair => ("hudLines." + pair.Key, pair.Value)));
         return all;
     }
 
@@ -245,6 +266,20 @@ public sealed class GameWords
         foreach (var key in keys)
         {
             map[key] = Text(element, key);
+        }
+
+        return map;
+    }
+
+    private static Dictionary<string, string> OptionalMap(JsonElement root, string name)
+    {
+        var map = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (root.TryGetProperty(name, out var element))
+        {
+            foreach (var property in element.EnumerateObject())
+            {
+                map[property.Name] = Text(element, property.Name);
+            }
         }
 
         return map;

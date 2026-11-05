@@ -172,7 +172,7 @@ public sealed class RenewalTests
 
         Assert.DoesNotContain("villager.give", second.HostEvents);
         Assert.Equal(1, Count(session, ItemId.Bread));
-        Assert.Contains(Lines(second), static line => line.EndsWith(Fallback, StringComparison.Ordinal)); // the villager's goodbye
+        Assert.Contains("Hoy no tengo más pan.", Lines(second)); // N05: the villager's own line
         Assert.DoesNotContain(Lines(second), static line => line is "Aquí tienes." or "Toma.");
         Assert.Equal(["villager:bread"], session.GiftsGivenToday);
     }
@@ -214,7 +214,7 @@ public sealed class RenewalTests
         var third = session.Say("quiero pan, por favor"); // bread asked for in place of the bottle (V21b) is the bread's gift too
         Assert.DoesNotContain("stall.give_bread", third.HostEvents);
         Assert.Equal(2, Count(session, ItemId.Bread));
-        Assert.Contains("El pan cuesta dos monedas.", Lines(third));
+        Assert.Contains("Hoy no tengo más pan.", Lines(third));
     }
 
     [Fact]

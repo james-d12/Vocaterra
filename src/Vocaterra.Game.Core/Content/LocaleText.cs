@@ -77,6 +77,7 @@ public sealed class LocaleText
         "autosaved", "greyNewWord",
         "sleepHud", "allLessonsDoneHud", "lessonNextHud", "lessonUnderwayHud", "reviewNothingDue", "sleepCard", "sleepCardDone", "sleepPrompt", "sleepPromptDone", "sleptToast", "bookLessonNext", "bookLessonOpen", "bookLessonOpensIn", "bookLessonAfter",
         "bookLessonsAllDone", "foodKept", "drinkKept", "diedHunger", "diedThirst", "chestRest", "beaconBelongings",
+        "faintedHunger", "faintedThirst", "controlsEffectsKeys", "controlsEffects", "effectsOn", "effectsOff",
     ];
 
     /// <summary>The most error lines one turn's feedback carries.</summary>

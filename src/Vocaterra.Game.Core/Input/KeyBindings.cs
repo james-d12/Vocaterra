@@ -23,6 +23,7 @@ public sealed class KeyBindings
         new(InputKeys.Of("save"), commands.Save),
         new(InputKeys.Of("textSize"), commands.CycleTextSize),
         new(InputKeys.Of("debug"), commands.ToggleDebug, () => !playtest),
+        ..(commands.ToggleViewEffects is { } effects ? new[] { new KeyBinding(InputKeys.Of("viewEffects"), effects) } : []),
     ]);
 
     /// <summary>The world's keys when no screen is open, in their order: the first that applies runs.</summary>

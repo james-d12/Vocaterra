@@ -8,6 +8,7 @@ using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Navigation;
+using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
@@ -15,6 +16,7 @@ using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Graphics.Blocks;
 using Vocaterra.Game.Graphics.Camera;
 using Vocaterra.Game.Graphics.Figures;
+using Vocaterra.Game.UI.Hud;
 
 namespace Vocaterra.Game.UI.Common;
 
@@ -131,6 +133,12 @@ public sealed class FrameView
 
     /// <summary>How black the world is for this frame, 0 (clear) to 1 (black): the fade of a collapse (N03).</summary>
     public float FadeAlpha { get; set; }
+
+    /// <summary>What the HUD shows of the player's needs (N05), or <see langword="null"/> when this view has none.</summary>
+    public NeedsHud? Needs { get; set; }
+
+    /// <summary>The short screen after a death or a faint (N05): «Estás en tu campamento.» with its English and the cause line, or <see langword="null"/> when it is not up.</summary>
+    public DeathScreenView? DeathScreen { get; set; }
 
     /// <summary>The mouse pointer in window pixels, or <see langword="null"/> when it is outside the window.</summary>
     public Point? Mouse { get; set; }

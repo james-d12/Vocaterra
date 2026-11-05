@@ -6636,6 +6636,28 @@
       "Sha256": "63bb5db9d113d56b8fe3d0c691931305a992c1bc7539b576d1304d13f0d1fb89",
       "Bytes": 73244
     },
+    "speech/guide/guide_gift_used.1.slow.wav": {
+      "Text": "Hoy ya no tengo agua.",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "41796c084ce62de4cee5b224a662882f37e7821fd867f49f33a3977eda224920",
+      "Bytes": 91954
+    },
+    "speech/guide/guide_gift_used.1.wav": {
+      "Text": "Hoy ya no tengo agua.",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "5c7c61bc5cbbec5cfee51c6fa1ec3d90d61c5c28566c89a1e3a4f07554774b56",
+      "Bytes": 85244
+    },
     "speech/guide/guide_greet.1.slow.wav": {
       "Text": "\u00A1Hola! Soy la gu\u00EDa.",
       "Speaker": "guide",
@@ -10486,6 +10508,28 @@
       "Sha256": "f71c37fcc04def45cf78489a2b6b7a1253ead3029b915a7c7275de9f24e58a24",
       "Bytes": 48044
     },
+    "speech/shopkeeper/shop_gift_used.1.slow.wav": {
+      "Text": "Hoy no tengo m\u00E1s pan.",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "fb8e2a935145ab41ed0f66e30299d072f0fd5bb2fee4e2b8e31a5177726f9137",
+      "Sha256": "798930cd615f8b0b60c1491a234e4a2f1e6fad1136d3dac3ad39db2a794c4801",
+      "Bytes": 94600
+    },
+    "speech/shopkeeper/shop_gift_used.1.wav": {
+      "Text": "Hoy no tengo m\u00E1s pan.",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
+      "Sha256": "32c3b917c15314b8e0a59028ffce61771381123a7fd043d51f3b08a06d3edc96",
+      "Bytes": 86444
+    },
     "speech/shopkeeper/shop_give.1.slow.wav": {
       "Text": "Toma la botella. El agua est\u00E1 en el r\u00EDo.",
       "Speaker": "shopkeeper",
@@ -13697,6 +13741,28 @@
       "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
       "Sha256": "82e14a884df3b08e5546b0687715d0af56217d5d6a79d23b1745c7ac7480322a",
       "Bytes": 58844
+    },
+    "speech/villager/villager_gift_used.1.slow.wav": {
+      "Text": "Hoy no tengo m\u00E1s pan.",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "582bff1facec664e0c88b222b72770a195e06c2d9ca39c8596ff5e65a9fc4a13",
+      "Sha256": "f06830408263ea6ac2f22dbc71b3a4a662e0eabee10306af00b92e4677842e45",
+      "Bytes": 91524
+    },
+    "speech/villager/villager_gift_used.1.wav": {
+      "Text": "Hoy no tengo m\u00E1s pan.",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
+      "Sha256": "f02bca2c88e83f34b4cfa3525aa155f69b6023c46fd60f65d47847b70ef2ce3f",
+      "Bytes": 86444
     },
     "speech/villager/villager_give.1.slow.wav": {
       "Text": "Aqu\u00ED tienes.",
