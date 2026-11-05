@@ -76,7 +76,7 @@ public sealed record LaunchOptions
         + "  --needs on|off          the player's needs (hunger, thirst, sleep, health, stamina) run in active play (the default, on); off freezes them full, so the language\n"
         + "                          runs keep their baselines (a test aid, N01)\n"
         + "  --eat <item>            eat or drink the item as a right click with it selected does (one is given if the bag has none; a test aid, N02): pan, fruta, manzana, agua\n"
-        + "  --drink                 drink by hand at the water the crosshair is on, within reach, as E does (N02); walk to the bank and --look at the water first\n"
+        + "  --drink                 drink by hand at the water the crosshair is on, within reach, as E does (N02); walk to the bank, --look at the water and --wait 1 first\n"
         + "  --set-need <need> <n>   set a need at launch, 0 to 100 (hunger, thirst, sleep, health; stamina up to its maximum); repeatable (a test aid, N01)\n"
         + "  --beacon <point>        stand the beacon column on a named point of the scene (camp.guide, camp.player, firering, workbench, stall, signpost, village, house1, bridge, river, lake,\n"
         + "                          waterfall...); the default is camp.guide (the walk down the trail), none puts no beacon up\n"

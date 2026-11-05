@@ -67,11 +67,11 @@ and a sprint cost stamina, and standing still within 3 blocks of a lit fire (the
 doubles stamina's refill and health's recovery. The events `meal_eaten` (the food's noun) and `water_drunk` (`botella`, or `pozo`, `lago` or the river's noun) print like
 `need_stage`. `--needs off` keeps the actions (the food is used up, the events are raised) and leaves the meters still. Two scripted steps drive them, both test aids:
 `--eat <item>` gives the item if the bag has none and eats or drinks it as the right click does (`pan`, `fruta`, `manzana`, `agua`), `--drink` drinks by hand at the water the
-crosshair is on (walk to the bank and `--look` at the water first). Each prints a line, `eat: Done (Bread), hunger 65, thirst 100` or `drink: Done, thirst 40`.
+crosshair is on (walk to the bank, `--look` at the water and `--wait 1` first: the look takes a tick). Each prints a line, `eat: Done (Bread), hunger 65, thirst 100` or `drink: Done, thirst 40`.
 
 ```bash
-# hunger 40, a bread: the meter goes to 65 and meal_eaten (pan) is raised; a drink by hand at the river after a --look at the water
-DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --set-need hunger 40 --set-need thirst 30 --eat pan --walk-to 234,222 --look 180,-14 --drink --screenshot /tmp/n02.png --frames 30
+# hunger 40, a bread: the meter goes to 65 and meal_eaten (pan) is raised; a drink by hand at the river bank after a --look at the water
+DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --set-need hunger 40 --set-need thirst 30 --eat pan --teleport 234,222 --look 270,-70 --wait 1 --drink --screenshot /tmp/n02.png --frames 30
 ```
 
 `--greyscale` is the playtest A/B switch (D-game-6 as amended): a block whose noun is not known yet is drawn grey, a known one in full colour, and
