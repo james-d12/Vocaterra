@@ -66,7 +66,7 @@ public class LineCorrectStatementsTests
         { "baker-open", "ustedes tienen pan", "state_have", true, [] },
         { "lesson-like-apples", "me gusta el río", "state_like", true, [] },
         { "lesson-have", "tengo dos manzanas", "state_have", true, [] },
-        { "villager-open", "ustedes trabajan mucho", "unknown", false, [] },
+        { "villager-open", "ustedes trabajan mucho", "state_action", true, [] }, // M78: a statement about the listener's activity is state_action
         { "farmer-open", "trabajo en el campo", "state_action", true, [] },
         { "villager-open", "hoy hace buen tiempo", "state_weather", true, [] },
         { "guide-open", "hoy hace buen tiempo", "state_weather", true, [] },

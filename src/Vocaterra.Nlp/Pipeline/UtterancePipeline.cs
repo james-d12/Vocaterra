@@ -100,7 +100,7 @@ public sealed partial class UtterancePipeline
         var normalized = language.Normalizer.Normalize(CleanTranscript(asr.Transcript), Normalization);
         var match = AnswerMatcher.Match(normalized, answerSet, prompt.Difficulty, language, Normalization);
         var analysis = AnswerCorrections.WithCanonicalWords(
-            _analyzer.Analyze(normalized, GrammarsFor(prompt)),
+            _analyzer.Analyze(normalized, GrammarsFor(prompt), NameFallbacks.For(prompt)),
             normalized,
             match,
             answerSet,

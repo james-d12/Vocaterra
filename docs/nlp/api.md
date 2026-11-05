@@ -77,7 +77,7 @@ ContentBundle german = ContentLoader.Load("content/my-german-bundle", options);
   `LinguisticAnalyzer(lexicon, language)` and `LinguisticAnalyzer(lexicon, morphology, language)`;
   `SlotGrammarMatcher.Match(tokens, grammar, language)`;
   `TemplateEngine(lexicon, morphology, language)`;
-  `RecastBuilder.Build(text, analysis, lexicon, language)`;
+  `RecastBuilder.Build(text, analysis, lexicon, language[, verdictErrors])` (M78: the verdict's errors the analysis lacks, the derived near miss of M75, are applied as the analysis's own, so `cuál es esto` at `lesson-what` is recast `qué es esto`);
   `SpeechRequests.Create(text, voiceId, language, dialect = null)`;
   `CefrChecker.Check(dialogue, lexicon, language, allowed, level, prompts = null)`.
   `bundle.Language` is the pack of a loaded bundle; `bundle.TemplateEngine` and `bundle.Language` are what a host needs.
@@ -115,7 +115,7 @@ All of this is additive unless it says breaking. The game compiles and passes un
   another class is a learner's slip without a grammar: `yo podo ir`, `yo esto cansado`) and `IsPredicateAdjective(lemma)` (the common adjectives whose noun homographs
   are no bare predicate: `él es alta`); see "Person and copula errors", "Irregular forms" and "Adjectives" below. M73 added `IsNeuterPronoun(word)` with the same
   default (`todo`, `eso`, `esto`, `aquello`: `¿cuántas cuesta todo?` reads `cuesta` as the verb), and M75 `IsQuestionWord(word)`, also with a default that finds
-  none (the question words in every form, with or without the accent: `cuál` for `qué` is a near miss that names `qué`; see "The words and the answer match" below). Breaking signatures: `ReadingClasses.IsDeterminerReading`, `IsClosedClassReading` and `IsSkippable`
+  none (the question words in every form, with or without the accent: `cuál` for `qué` is a near miss that names `qué`; see "The words and the answer match" below), and M78 `IsNamePosition(words, index)`, also with a default that finds none (Spanish: after `soy`, `me llamo`, `mi nombre es`, a greeting or a farewell; a word with no reading there is a name, see "Names" in pipeline.md). Breaking signatures: `ReadingClasses.IsDeterminerReading`, `IsClosedClassReading` and `IsSkippable`
   take the rules (they were internal in effect: only the analysis used them); `AccentRestoration.SpellingsFor(lexicon, analysis, rules)`;
   `SlotGrammarMatcher.Match(tokens, grammar, language[, rules])` (the 3-argument form still works and uses `AnalysisRules.For`).
 - **Constructors that take the interface** (source compatible, `MorphologyGenerator` is an `IMorphology`): `LinguisticAnalyzer(lexicon, IMorphology, language[, rules])`,

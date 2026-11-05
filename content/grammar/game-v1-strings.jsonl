@@ -2161,6 +2161,8 @@
 {"id":"intents:describe.ex24","text":"esto es grande","kind":"learner","errors":[]}
 {"id":"intents:describe.ex25","text":"el campo es grande","kind":"learner","errors":[]}
 {"id":"intents:describe.ex26","text":"el pozo es pequeño","kind":"learner","errors":[]}
+{"id":"intents:describe.ex27","text":"la tienda está en el pueblo","kind":"learner","errors":[]}
+{"id":"intents:describe.ex28","text":"usted hace hachas muy buenas","kind":"learner","errors":[]}
 {"id":"intents:dont_know.ex0","text":"no sé","kind":"learner","errors":[]}
 {"id":"intents:dont_know.ex1","text":"no lo sé","kind":"learner","errors":[]}
 {"id":"intents:dont_know.ex2","text":"yo no sé","kind":"learner","errors":[]}
@@ -2466,6 +2468,8 @@
 {"id":"intents:state_action.ex216","text":"león trabaja en el campo","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex217","text":"luz vive en la panadería","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex218","text":"mar va a trabajar en el río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex219","text":"tú pescas mucho","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex220","text":"usted trabaja mucho","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex0","text":"tienes veinte panes","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex1","text":"tú tienes veinte panes","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex2","text":"sí, tienes veinte panes","kind":"learner","errors":[]}

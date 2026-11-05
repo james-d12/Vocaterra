@@ -20,15 +20,12 @@ public class LineNotTakenTests
         { "smith-open", "hace frío", "state_weather", true, [] },
         { "farmer-open", "hace frío", "state_weather", true, [] },
         { "baker-open", "hace frío", "state_weather", true, [] },
-        { "smith-open", "ustedes trabajan mucho", "unknown", false, [] },
-        { "farmer-open", "hoy hace buen tiempo", "state_weather", true, [] },
+                { "farmer-open", "hoy hace buen tiempo", "state_weather", true, [] },
         { "baker-open", "me gusta mucho el pan", "unknown", false, [] },
         { "fisher-open", "el pozo está en el pueblo", "unknown", false, [] },
         { "fisher-open", "el río es muy bonito", "unknown", false, [] },
         { "farmer-open", "cuántas manzanas quieres", "unknown", false, [] },
-        { "smith-open", "yo trabajo mucho", "unknown", false, [] },
-        { "smith-open", "trabajas mucho", "unknown", false, [] },
-        { "smith-open", "hoy hace buen tiempo", "state_weather", true, [] },
+                { "smith-open", "hoy hace buen tiempo", "state_weather", true, [] },
         { "baker-open", "dos panes son caros", "unknown", false, [] },
         { "baker-open", "los panes son caros", "unknown", false, [] },
         { "baker-open", "tres manzanas son caras", "unknown", false, [] },
@@ -45,7 +42,26 @@ public class LineNotTakenTests
         { "smith-open", "la mano es grande", "unknown", false, [] },
         { "farmer-open", "son quince monedas", "unknown", false, [] },
         { "farmer-open", "el pan está caro", "unknown", false, [] },
+        { "smith-open", "usted hace hachas muy buenas", "unknown", false, [] }, // M78: a compliment, describe, which smith-open does not allow
     };
+
+    // M78: statements about what one does, which state_action takes where the prompt allows it (it was unknown, off every prompt: no grammar took them).
+    public static TheoryData<string, string, string, bool, string[]> ActivityRows => new()
+    {
+        { "smith-open", "ustedes trabajan mucho", "state_action", true, [] },
+        { "smith-open", "yo trabajo mucho", "state_action", true, [] },
+        { "smith-open", "trabajas mucho", "state_action", true, [] },
+        { "fisher-open", "tú pescas mucho", "state_action", true, [] },
+        { "fisher-open", "pescas mucho", "state_action", true, [] },
+        { "fisher-open", "usted pesca poco", "state_action", true, [] },
+        { "fisher-open", "tú pesca mucho", "state_action", true, ["conj.person=pescas"] },
+        { "farmer-open", "la tienda está en el pueblo", "describe", true, [] }, // M78: a location statement is describe
+    };
+
+    [Theory]
+    [MemberData(nameof(ActivityRows))]
+    public void AStatementAboutWhatOneDoesIsUnderstoodWhereThePromptTakesIt(string prompt, string line, string intent, bool communicated, string[] errors) =>
+        LineGrading.Check(prompt, line, intent, communicated, errors);
 
     [Theory]
     [MemberData(nameof(Rows))]

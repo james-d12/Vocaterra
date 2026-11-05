@@ -142,6 +142,15 @@ public interface IAnalysisRules
     bool IsQuestionWord(string word) => false;
 
     /// <summary>
+    /// True when the word at <paramref name="index"/> stands where a person's name is said, so that a word the lexicon lacks there is a name and not an unknown word
+    /// (M78): right after the verb that gives one's name (Spanish <c>soy</c>, <c>me llamo</c>, <c>mi nombre es</c>) or after a greeting or a farewell
+    /// (<c>hola</c>, <c>buenos días</c>, <c>adiós</c>). The analyzer asks it only for a word with no reading that no grammar binds. The default is no position.
+    /// </summary>
+    /// <param name="words">Every token of the line as written, in the pack's <see cref="Packs.ILexiconFolding.Key"/> form.</param>
+    /// <param name="index">The position of the word.</param>
+    bool IsNamePosition(IReadOnlyList<string> words, int index) => false;
+
+    /// <summary>
     /// True when the words around a lexicon word of another class call for the learner's slip the word may stand for (M58: <c>podo</c>, a form of <c>podar</c>, for
     /// <c>puedo</c>; <c>esto</c> for <c>estoy</c>), so that the analysis reads the word as that slip, and reports its error, without a slot grammar that names the verb
     /// (M69): only where no reading of the word as written fits the words around it (<c>yo podo ir</c>: <c>podar</c> takes no infinitive; <c>yo esto cansado</c>).
