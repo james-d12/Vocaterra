@@ -14,12 +14,13 @@ The owner's Adaptation Design Document is the specification. Its text (extracted
 - Send every heavy command's output to a log file under `/tmp/claude-1000/n05/`, and print at most 30 lines of it.
 - Keep `sed -n` ranges under about 150 lines; prefer `grep -n` first. Never read `docs/game/speech-checklist.md`, `manifest.json` or the whole of `content/PHRASES.md`.
 - Wait for a long command in the foreground. **Never leave a wait loop or a background process behind** (a `while pgrep -f …` loop matches its own command line and never ends).
-- **Disk:** about 15 GB free. While iterating, build only the projects you need; build the whole solution once at the end.
+- **Disk:** about 13 GB free once you build. While iterating, build only the projects you need; build the whole solution once at the end.
 
 ## Resources (the desktop has crashed from overload)
 - Run every `dotnet restore|build|test|format|run`, every `scripts/content.sh` call and every game run through `scripts/limited.sh` (`-m:4` builds, `-m:2` tests). `scripts/test.sh` and `scripts/content-loop.sh` run directly (content-loop refuses limited.sh, exit 3).
 - Never start two heavy commands at once: no `&`, no background builds. Use `scripts/test.sh fast` or `scripts/test.sh project <test project>` while iterating; `scripts/test.sh full` once before the report.
 - Exit code 137 means the 6 GB cap killed the command: lower the parallelism.
+- **Another agent (L01, lessons as classes) works beside you in its own worktree.** `scripts/limited.sh` runs at most two heavy commands at once machine-wide and caps them together at 8 GB; a command may wait for a slot, which is normal. A command killed with exit 137 or 143 may have met the shared cap: rerun it once, and report it if it happens twice. L01 also edits `content/game-v1` (lessons, NPC offer lines) and `content/locale/en`: keep your edits to the files your deliverables name, and do not reformat other entries.
 
 ## Environment
 - Prefix every command inline with `PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" DOTNET_NOLOGO=1`.
