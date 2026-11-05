@@ -36,12 +36,12 @@ The owner's Adaptation Design Document is the specification. Its text (extracted
 - Determinism: no `System.Random` and no wall clock in the game's logic; the host owns the stored time, the seed and the repeat counts. Assets CC0 only (D-game-5).
 - Every save version from 1 loads; a save round-trips.
 
-## The grammar cache (a known limit of this sandbox)
-Here the dotnet process cannot reach the local LanguageTool server (curl can; dotnet reports "no LanguageTool server"), so `--grammar` cannot run. Do not try to bypass the sandbox and do not edit `content/grammar/` by hand. Run the content loop without `--grammar`; its refresh step lists any string of `content/game-v1` the cache lacks, and `GrammarTests.TheCommittedCacheReplaysTheBundleOfflineWithItsWaivers` fails on such a miss. So add no new Spanish text to `content/game-v1` in this milestone unless the design cannot do without it: player-facing English goes in `content/locale/en/`, and a Spanish line the design needs is reported (its text and file) and left for a later milestone, or, if you must add it, stop before the report and say so; the milestone then waits for the owner's grammar refresh.
+## The grammar cache
+The LanguageTool check works from this sandbox (since 2026-11-05). This milestone adds Spanish (the offer lines, «No tengo sueño.»): after each content edit run `scripts/content-loop.sh --grammar --speech` (it refreshes `content/grammar/`, the hash, the save fixtures and the WAVs), read every new finding and fix the line or report why it stands; never edit `content/grammar/` by hand. The tier-full run before the report is `scripts/content-loop.sh --grammar --speech --tier full`.
 
 ## Gate (yours, before reporting)
 - `scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4`, 0 warnings.
-- `scripts/test.sh full` (or `scripts/content-loop.sh --speech --tier full` if you edited content), all passing: 9019 passed and 3 skipped before you; report the new count.
+- `scripts/test.sh full` (or `scripts/content-loop.sh --speech --tier full` if you edited content), all passing: 9382 passed and 3 skipped before you; report the new count.
 - `scripts/limited.sh dotnet format Vocaterra.sln --verify-no-changes`.
 - `scripts/limited.sh scripts/content.sh validate`; the lint at A2 clean (`scripts/content.sh lint content/game-v1 --strict --level a2 --fail-on-level --host-pools 'guide.*'`).
 - **The scripted runs** (`docs/game/scripted-runs.md`): `scripts/scripted-runs.sh` before your first edit and after, compared with `python3 -I scripts/compare-runs.py`, one at a time through `scripts/limited.sh`. Explain every difference; re-baseline only the runs this milestone is meant to move.
@@ -67,7 +67,7 @@ Before your final message, make sure no process you started is still running (`p
 ## Read first (the sections named, not whole files)
 - `CLAUDE.md`; `docs/process/code-guidelines.md`; `docs/game/architecture.md` (by `grep -n`); `docs/game/lessons.md` (its rules on when a lesson opens and on sleep); `content/README.md`.
 - `docs/game/decisions.md`: D-game-25 (`grep -n '^## D-game-25'`, all of it), D-game-15 and V12c's rule it amends (`grep -n 'V12c'`), D-game-8 and D-game-16 for what is never lost.
-- `docs/game/implementation-plan.md` section 4.9 (your row) and N01's entry in section 5 (`grep -n '^- \*\*N01'`).
+- `docs/game/implementation-plan.md` section 4.9 (your row) and the entries in section 5 of N01 to N04 and N06 (`grep -n '^- \*\*N0'`): N03 built the night and the collapse (`Session/VoxelSession.Night.cs`, `RunDayResets`) and left the fire's offer rule (`SleepOffer`, `CanSleep`) to you; N06 exempts a gift the active lesson's `do` step needs. The line numbers below are from before N01 to N06: find them by `grep -n`.
 - The design (`/tmp/claude-1000/orch/adaptation-design.txt`): 5.3 and 5.4 in full (5.4's table names every gate, with file and line), 9.5's first paragraph (sleep), 8.1's "Lessons" (the Lessons page), 18.1's D-game-25 row.
 - Code: `Session/VoxelSession.Sleep.cs` (`SessionWorkDone` about line 47, `CanSleep` about line 67), `Language/Lessons/LessonRunner.cs` (about lines 248, 264, 677, 745 to 770; `HoldsOrder`), `Session/GuideApproach.cs` about line 31, `Session/VoxelSession.cs` about line 265 (the beacon on waking), `Session/ObjectiveBook.cs` about line 66, `Session/GuideSession.cs` about line 147, `content/game-v1/game/lessons/*.json` and `game/objectives/*.json`, the Lessons page of the book (`grep -rn 'Lessons' src/Vocaterra.Game/UI/Book`).
 
