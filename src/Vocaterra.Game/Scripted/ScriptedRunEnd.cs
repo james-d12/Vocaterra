@@ -42,6 +42,7 @@ public sealed class ScriptedRunEnd
     private readonly MicCheckModel? _micCheck;
     private readonly ShotRequest _shots;
     private readonly (Action Book, Action Inventory, Action Crafting) _openAtEnd;
+    private readonly Action? _openSettings;
     private readonly Action _exit;
     private readonly Action<string> _console;
     private readonly Action<long, string>? _logRunaway;
@@ -75,7 +76,8 @@ public sealed class ScriptedRunEnd
         (Action Book, Action Inventory, Action Crafting) openAtEnd,
         Action exit,
         Action<string> console,
-        Action<long, string>? logRunaway = null)
+        Action<long, string>? logRunaway = null,
+        Action? openSettings = null)
     {
         _options = options;
         _session = session;
@@ -88,6 +90,7 @@ public sealed class ScriptedRunEnd
         _exit = exit;
         _console = console;
         _logRunaway = logRunaway;
+        _openSettings = openSettings;
     }
 
     /// <summary>The exit code of a run cut short at <see cref="RunawayTicks"/> whose picture was saved: the script did not finish, so the capture is not the one asked for (V26).</summary>
@@ -129,6 +132,11 @@ public sealed class ScriptedRunEnd
             if (_options.ShowCrafting)
             {
                 _openAtEnd.Crafting();
+            }
+
+            if (_options.ShowSettings)
+            {
+                _openSettings?.Invoke();
             }
         }
     }

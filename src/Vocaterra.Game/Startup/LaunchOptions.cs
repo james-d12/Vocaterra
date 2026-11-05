@@ -95,6 +95,8 @@ public sealed record LaunchOptions
         + "  --book-detail <lines>  scroll the book's right page down by this many lines when it opens (a scripted run, X03)\n"
         + "  --inventory             open the inventory screen once the steps are done\n"
         + "  --crafting              open the crafting panel once the steps are done\n"
+        + "  --settings              open the settings panel once the steps are done (F8)\n"
+        + "  --needs-rate <x>        the drive rate, 0.5 to 4 in steps of 0.25 (default 1, or the save's)\n"
         + "  --mic-check             show the mic check at the start (an interactive run shows it by default; a scripted run with --screenshot never does unless asked,\n"
         + "                          and then hears a synthesized \"hola\" when the machine has no microphone)\n"
         + "  --no-mic-check          never show the mic check\n"
@@ -277,6 +279,9 @@ public sealed record LaunchOptions
     /// <summary>Whether the inventory screen is opened once the script is done (<c>--inventory</c>).</summary>
     public bool ShowInventory { get; init; }
 
+    /// <summary>Whether the settings panel is opened once the script is done (<c>--settings</c>, N09: a test aid for its screenshots).</summary>
+    public bool ShowSettings { get; init; }
+
     /// <summary>Whether the crafting panel is opened once the script is done (<c>--crafting</c>).</summary>
     public bool ShowCrafting { get; init; }
 
@@ -393,7 +398,7 @@ public sealed record LaunchOptions
                 return false;
             }
 
-            if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--no-speech" or "--mute" or "--no-sounds" or "--voxel" or "--greyscale" or "--strict-save" or "--leave" or "--mic-check" or "--no-mic-check"
+            if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--settings" or "--no-speech" or "--mute" or "--no-sounds" or "--voxel" or "--greyscale" or "--strict-save" or "--leave" or "--mic-check" or "--no-mic-check"
                     or "--playtest" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep" or "--drink" or "--take-belongings" or "--relaxed-needs")
             {
                 switch (arg)
@@ -409,6 +414,9 @@ public sealed record LaunchOptions
                         break;
                     case "--take-belongings":
                         script.Add(new ScriptStep(ScriptStepKind.TakeBelongings));
+                        break;
+                    case "--settings":
+                        result = result with { ShowSettings = true };
                         break;
                     case "--relaxed-needs":
                         result = result with { RelaxedNeeds = true };
