@@ -2181,6 +2181,10 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   r25-thirst and r26-death, new steps `--take-belongings` and `--need <need> <n>` (mid-script); the 22 other runs unchanged. English keys for
   N05's Spanish: `ui.beaconBelongings` («tus cosas»), `ui.diedHunger`, `ui.diedThirst`, `ui.chestRest`. The orchestrator's check: day 3,
   hunger 0 and health 4, a wait: `player_died (hambre)`, woke at the camp with 50s, the chest placed. Report `.claude/briefs/n04-report.md`.
+- **R, the follow-ups synced into the adaptation (2026-11-05, Haiku 5.5; gated on `feature/adaptive_design` at `ce52e231`, 9358 passed, 3
+  skipped).** `feature/village-decisions` (V29, M78, the refreshed grammar cache) merged into the adaptation; only the generated manifests and
+  save fixtures and the core plan conflicted. The content loop re-hashed the bundle (`eec0472c…`), the grammar cache needed no new entry and
+  the goldens and digests did not move; no test needed a fix where the two sides meet.
 
 
 ## 6. Definition of done (every milestone)
