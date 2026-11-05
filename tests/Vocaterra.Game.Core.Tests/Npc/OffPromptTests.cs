@@ -95,10 +95,11 @@ public sealed class OffPromptTests
         Assert.Contains(TestGame.Data.Speech, l => l.LineId == prefix + "_true.1" && l.Speaker == npc);
     }
 
+    // No intent of the catalog takes this line since M78 (the core reads «la tienda está en el pueblo» as describe, so it is no longer the unknown example).
     [Fact]
     public void ALineNoIntentOfTheCatalogTakesIsStillNotUnderstood()
     {
-        var turn = Free(NewNpcs(), "farmer", "la tienda está en el pueblo");
+        var turn = Free(NewNpcs(), "farmer", "la tienda cierra mañana");
 
         Assert.Null(turn.OffPromptIntent);
         Assert.False(turn.Taken);
