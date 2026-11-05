@@ -6625,6 +6625,7 @@
 {"id":"dialogue:guide_find.1","stages":{"render":"1b56233569951fc5"}}
 {"id":"dialogue:guide_find.2","stages":{"render":"49f8a1fd6a86b028"}}
 {"id":"dialogue:guide_find.3","stages":{"render":"655ff90cc5fa0412"}}
+{"id":"dialogue:guide_gift_used.1","stages":{"render":"d5a7354e3a120d75"}}
 {"id":"dialogue:guide_greet.1","stages":{"render":"e08d8b2ee9c776e5"}}
 {"id":"dialogue:guide_greet.2","stages":{"render":"c165af1f2f3a39ba"}}
 {"id":"dialogue:guide_greet.3","stages":{"render":"62c153bafafefdc6"}}
@@ -6666,6 +6667,7 @@
 {"id":"dialogue:shop_deny.2","stages":{"render":"f0fcdeaa843cd58b"}}
 {"id":"dialogue:shop_done.1","stages":{"render":"b1f22ca7156e7092"}}
 {"id":"dialogue:shop_done.2","stages":{"render":"fcd653abf01f085d"}}
+{"id":"dialogue:shop_gift_used.1","stages":{"render":"51a7cc1b630589bf"}}
 {"id":"dialogue:shop_give.1","stages":{"render":"0a17b72ba13b6294"}}
 {"id":"dialogue:shop_give.2","stages":{"render":"16a4249f9f3e1116"}}
 {"id":"dialogue:shop_give_bread.1","stages":{"render":"94bce3f35700a67f"}}
@@ -6712,6 +6714,7 @@
 {"id":"dialogue:smith_yes.1","stages":{"render":"b075610fe2c4cccd"}}
 {"id":"dialogue:villager_bye.1","stages":{"render":"ab9fdc9e11aa15a8"}}
 {"id":"dialogue:villager_bye.2","stages":{"render":"4fa6d8aa9b3008d4"}}
+{"id":"dialogue:villager_gift_used.1","stages":{"render":"51a7cc1b630589bf"}}
 {"id":"dialogue:villager_give.1","stages":{"render":"76bcfd3b39201f1a"}}
 {"id":"dialogue:villager_give.2","stages":{"render":"6d1cc658a3e503f6"}}
 {"id":"dialogue:villager_greet.1","stages":{"render":"2d2507791a8aebf0"}}

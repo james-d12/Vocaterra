@@ -481,6 +481,24 @@
         { "lineId": "villager_true.1", "text": "Sí, es verdad." }
       ]
     },
+    "villager_gift_used": {
+      "poolId": "villager_gift_used",
+      "variants": [
+        { "lineId": "villager_gift_used.1", "text": "Hoy no tengo más pan." }
+      ]
+    },
+    "guide_gift_used": {
+      "poolId": "guide_gift_used",
+      "variants": [
+        { "lineId": "guide_gift_used.1", "text": "Hoy ya no tengo agua." }
+      ]
+    },
+    "shop_gift_used": {
+      "poolId": "shop_gift_used",
+      "variants": [
+        { "lineId": "shop_gift_used.1", "text": "Hoy no tengo más pan." }
+      ]
+    },
     "villager_bye": {
       "poolId": "villager_bye",
       "variants": [

@@ -22,6 +22,7 @@
     { "id": "shop_need", "count": 1 },
     { "id": "shop_offer", "count": 1 },
     { "id": "shop_price", "count": 1 },
+    { "id": "shop_gift_used", "count": 1 },
     { "id": "shop_thank", "count": 2 },
     { "id": "shop_wont_sell", "count": 1 }
   ],
@@ -89,7 +90,7 @@
         { "on": {"intent": "state_weather", "communicated": true}, "to": "offering", "actions": [{ "dialogueIntent": "shop_yes", "variantPoolId": "shop_yes" }] },
         { "onHostEvent": "shopkeeper.understood", "to": "offering", "actions": [{ "dialogueIntent": "shop_understood", "variantPoolId": "shop_understood" }] },
         { "onHostEvent": "shopkeeper.wont_sell", "to": "asking", "actions": [{ "dialogueIntent": "shop_wont_sell", "variantPoolId": "shop_wont_sell" }] },
-        { "onHostEvent": "shopkeeper.gift_used", "to": "done", "actions": [{ "dialogueIntent": "shop_price", "variantPoolId": "shop_price" }] },
+        { "onHostEvent": "shopkeeper.gift_used", "to": "done", "actions": [{ "dialogueIntent": "shop_gift_used", "variantPoolId": "shop_gift_used" }] },
         { "onHostEvent": "shopkeeper.give_bread", "to": "done", "actions": [{ "dialogueIntent": "shop_give_bread", "hostEvent": "stall.give_bread", "variantPoolId": "shop_give_bread" }] },
         { "onHostEvent": "shopkeeper.offer", "to": "offering", "actions": [{ "dialogueIntent": "shop_offer", "variantPoolId": "shop_offer" }] },
         { "on": {"intent": "confirm", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "shop_give_bread", "hostEvent": "stall.give_bread", "variantPoolId": "shop_give_bread" }] },

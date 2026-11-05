@@ -109,7 +109,13 @@ public sealed record WorldDims(int ChunksX, int ChunksY, int ChunksZ);
 /// <summary>The player's settings in a save (S24). Presentation only: nothing here reaches the simulation, a turn, a digest or the replay.</summary>
 /// <param name="Sound">The volume of each sound category.</param>
 /// <param name="TextScale">The size of the interface text in percent (X08): one of <see cref="TextScaleLevels"/>; a save from before has 100.</param>
-public sealed record SaveSettings(SoundVolumes Sound, int TextScale = 100)
+/// <param name="ViewEffectsOff">True when the player turned the needs' effects on the view off (N05: dim edges, a blink, red edges; the icons and the lines stay). Written only when true, so a save of the default is byte for byte what it was.</param>
+/// <param name="RelaxedNeeds">True under the relaxed-needs setting (N05, design decision 17: half the rates, a faint instead of a death). Written only when true.</param>
+public sealed record SaveSettings(
+    SoundVolumes Sound,
+    int TextScale = 100,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool ViewEffectsOff = false,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool RelaxedNeeds = false)
 {
     /// <summary>The text sizes the player can choose, in percent (X08): the normal size and two steps up.</summary>
     public static IReadOnlyList<int> TextScaleLevels { get; } = [100, 125, 150];
@@ -119,7 +125,7 @@ public sealed record SaveSettings(SoundVolumes Sound, int TextScale = 100)
     public static int SnapTextScale(int percent) => TextScaleLevels.OrderBy(level => Math.Abs(level - percent)).First();
 
     /// <summary>The same settings with the volumes limited to 0 to 1 and the text scale on a level.</summary>
-    public SaveSettings Clamped() => new(Sound.Clamped(), SnapTextScale(TextScale));
+    public SaveSettings Clamped() => new(Sound.Clamped(), SnapTextScale(TextScale), ViewEffectsOff, RelaxedNeeds);
 }
 
 /// <summary>

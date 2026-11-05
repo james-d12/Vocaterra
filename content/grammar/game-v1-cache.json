@@ -1122,6 +1122,18 @@
       "matches": []
     },
     {
+      "key": "1f30284196ecc8dd09c060f13bcb7353c9c17f51491ee195649dc43a72c91975",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tengo sueño.",
+      "matches": []
+    },
+    {
+      "key": "200236b1845b5c241864be32a6b2a12ee55db7d0737d44f49f9ecc2fc55fef65",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tengo un poco de sed.",
+      "matches": []
+    },
+    {
       "key": "20970f0d49c776dd5346774136bfd799691e9b61c9da5877839a486436f2d08d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Compré un pan",
@@ -1867,6 +1879,12 @@
       "matches": []
     },
     {
+      "key": "336b66c02dbcba3652afb37b1c2ce6a7c146630fbf7ccb87b991a697a73034ff",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "hambre",
+      "matches": []
+    },
+    {
       "key": "339dfc1a61036ba862315f9bd1d6e605159f430c469a597459cf9494ca85e1b4",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer tú y yo fuimos al río",
@@ -1888,6 +1906,12 @@
       "key": "3459d607f8de841f7631da7929415137c9706fed535634bb57a95954227e748c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde está la panadería",
+      "matches": []
+    },
+    {
+      "key": "347e80819c3dcc77aec1070de7f7761e58d30ad202fb6a33fe9891c79f587d88",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "fuerza",
       "matches": []
     },
     {
@@ -2688,6 +2712,12 @@
       "matches": []
     },
     {
+      "key": "48807fa3607898b85b5c032307815ca2ec5b6ad3cc17a26eb1efc01bb0858a55",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tengo hambre.",
+      "matches": []
+    },
+    {
       "key": "48da4caa422f989e44e78a49e0aac787096f66277a76fd95726dbea7226ed41e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Árbol",
@@ -3139,6 +3169,12 @@
       "matches": []
     },
     {
+      "key": "52a8e6e1f8c192fea13bba9e736c713e95921b3f43bd7847d112cbb949896ed5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tengo mucha hambre.",
+      "matches": []
+    },
+    {
       "key": "52ca02889695626d40a087824e919c5bf7354cc34c2fb85258eff27314b0da02",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Dónde trabajas?",
@@ -3238,6 +3274,12 @@
       "key": "56ccaf46a5d66545aabc73ff92674996b749342442e75801d2f90f8d4305f27a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Luna",
+      "matches": []
+    },
+    {
+      "key": "56cde1040069e990f03e798fa4dac2e7270b9e7c1bf7a2b36d53c56c8676b471",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hoy ya no tengo agua.",
       "matches": []
     },
     {
@@ -4004,6 +4046,12 @@
       ]
     },
     {
+      "key": "689e4ffb771d3c7ae57693d5c7962591e958d83a7ace336168a76bd99a2625f6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "salud",
+      "matches": []
+    },
+    {
       "key": "68cd710d73f6bb889ea2b04df6c20fac4b807324bbb9d29ae2eed410842ccfa0",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mis plantas necesitan agua. Si me traes agua del río, te doy tres manzanas. ¿Qué vas a hacer?",
@@ -4351,6 +4399,12 @@
       "key": "71d8722b6cfb3dcef241b8b0cd0fa9f613161cd730a586925a7334cad87461fe",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hoy domingo hizo un hacha",
+      "matches": []
+    },
+    {
+      "key": "71de8878db8c0a8cdb60b8560a67a14a60d98c1a386414cf853b0456c2135b47",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me muero de sueño.",
       "matches": []
     },
     {
@@ -4843,6 +4897,29 @@
       "matches": []
     },
     {
+      "key": "7cd1a2ed2d2fbd621b6732b280e0492191702c2933792396200c38e8dcd50ab9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Estás en tu campamento.",
+      "matches": []
+    },
+    {
+      "key": "7d65b9b480b47bbe23867db0c6f570b50e46cd4f351b12aeb51a21b33cb55401",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "tus cosas",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 3,
+          "replacements": [
+            "Tus"
+          ]
+        }
+      ]
+    },
+    {
       "key": "7d6850130cab38155ae189dd7d09570ce369f3bcab5ae88233fb40f098c1414d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ella quiere fruta",
@@ -5333,6 +5410,12 @@
       "matches": []
     },
     {
+      "key": "8cc9d9f43a3301c2e50eb03bf37f0e88430694fdb8695feb1f0cf23b8ce64301",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Estoy débil.",
+      "matches": []
+    },
+    {
       "key": "8d21e0e8b05bc985add3184452b49e9b3e1df998515d8ccc3b0e9e95c619c44d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, fui al río",
@@ -5429,9 +5512,21 @@
       "matches": []
     },
     {
+      "key": "8fcfcd92c116ff7f846ff582b79fbd90229d0bfea17280cb2fe225efeee92912",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tengo un poco de hambre.",
+      "matches": []
+    },
+    {
       "key": "90138f07f623da0c2073013bb308ba24d35b2d61a7c44894b960991ffafd98d1",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No, está cerca. La montaña está lejos.",
+      "matches": []
+    },
+    {
+      "key": "9080ebe040e0aaefac7e185afd90752b2a251d1ac7ae9f9a9e1caf1215eeb3b8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tengo sed.",
       "matches": []
     },
     {
@@ -5540,6 +5635,12 @@
       "key": "92ff4a0c9aa8947f3a1832a3265bbecf0d2e3d3dbc242eaffe670711c93146b4",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Perdón, ¿qué dices?",
+      "matches": []
+    },
+    {
+      "key": "932348c699ba7dfbde1f4df58505cdc2cd8be188c30d8d1ac8736f8d9abb60aa",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "sed",
       "matches": []
     },
     {
@@ -5803,6 +5904,12 @@
       ]
     },
     {
+      "key": "999514f577c72a1531d59cad1d4128181ac730965ce1885a3212ea967c916975",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tengo mucha sed.",
+      "matches": []
+    },
+    {
       "key": "99d5545dc0f470e1680c319a4946874c485de2e9cf0f4efc23cf94f523af7b16",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Voy a comer fruta",
@@ -5830,6 +5937,12 @@
       "key": "9a90d55d2a1d57cdb6bd3a37062c78419ff9249e920f308eb12a7c77d54ae998",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Mira! El libro está aquí.",
+      "matches": []
+    },
+    {
+      "key": "9a98e865e39d1808732277292e1f589375de21ecd2a31800179fe44cfd94dd68",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hoy no tengo más pan.",
       "matches": []
     },
     {
@@ -6364,6 +6477,12 @@
       "matches": []
     },
     {
+      "key": "a66fe5985696eb9a97c7744659bd7e863a67304c77ba9dab2617e14afe1e4c61",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tengo mucho sueño.",
+      "matches": []
+    },
+    {
       "key": "a681d1fe4eb7481da0c0a0daf3c4d8ba16935467afc8d9b93863e7678a1484d2",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Es lejos",
@@ -6481,6 +6600,12 @@
       "key": "a91377bd2026098dd3e476567566dc42b887b29ae248f810413c3d1889439f61",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Necesito agua",
+      "matches": []
+    },
+    {
+      "key": "a93f57f8b3e0f09c5acb667112b64d1a360efc2d1fe55b6197743bcf2a0f36e0",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "bien",
       "matches": []
     },
     {
@@ -6677,6 +6802,12 @@
       "key": "ae571b6eba2e19bc5c3424654adf2cedd903474d356a78524f863283ade15568",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Vamos a comer fruta",
+      "matches": []
+    },
+    {
+      "key": "af0b86645325919e8d74655a2db8abbb6f3c46bc9ef2d29fd2e7b91adf70dda5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tengo un poco de sueño.",
       "matches": []
     },
     {
@@ -7034,6 +7165,12 @@
       "key": "b9f18cd45c23107d90283eab26b25ec5ffabd433f77797c7749067277e13f0d1",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde está la tienda por favor",
+      "matches": []
+    },
+    {
+      "key": "ba13b4c3f70afb54574f24d9c4d3bfd0255f65f331eeb370bcd591b9745edc0c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Estoy muy débil.",
       "matches": []
     },
     {
@@ -8076,6 +8213,12 @@
       "matches": []
     },
     {
+      "key": "d7ec0ce9f8b641ee0870130bf19dbd3a7491f8d2cdbfbf234b583b76d4c92c94",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "sueño",
+      "matches": []
+    },
+    {
       "key": "d8259d70622cfa71e1a5ff815a2f140bbec4391b3d3a27c563893fe5c6722f77",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Repite",
@@ -8097,6 +8240,12 @@
       "key": "d8f1797ff652837e8b2a328665b2836797fae51ac47f1a2fcaae0397efb63e98",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No hay un libro cerca.",
+      "matches": []
+    },
+    {
+      "key": "d8f7528451f90653e42a1bf27e48042a93065fbf2c6612ae479624587283b7a1",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me muero de hambre.",
       "matches": []
     },
     {
@@ -9665,6 +9814,12 @@
       "key": "ffaf172dab3150e5ad04aa9354b08171b2b55f1f50f9d3cc7d4ad991f57cec34",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hay agua",
+      "matches": []
+    },
+    {
+      "key": "ffd2efc61647e8c0019a3439237d84727bb9e0311ab80486697be186d802558b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me muero de sed.",
       "matches": []
     },
     {

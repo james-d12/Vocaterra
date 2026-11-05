@@ -90,6 +90,7 @@ public static class GameDataValidator
         required.AddRange(data.Phrases.Rows.Select(static row => PhraseSheet.LocaleId(row.Id, "explain")));
         required.AddRange(data.Speech.Where(static line => line.Kind is SpeechKind.Dialogue or SpeechKind.Prompt).Select(static line => "line." + line.LineId));
         required.AddRange(InputKeys.Defaults.Values.Distinct().Select(static key => "key." + key.ToString())); // C04: {key:…} spells a command's key with these
+        required.AddRange(HudLineKeys(data)); // N05: each HUD line the target language has an English beneath, under the same id
         foreach (var id in required.Where(id => !locale.Has(id)))
         {
             problems.Add($"{file}: the string '{id}' is missing.");
@@ -193,9 +194,30 @@ public static class GameDataValidator
         }
     }
 
+    /// <summary>The keys of the HUD lines (N05): every stage line game/needs.json names, then the death screen, the chest's label and the needs list's words.</summary>
+    /// <param name="data">The content.</param>
+    public static IReadOnlyList<string> HudLineKeys(GameData data)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        var keys = new List<string>();
+        foreach (var drive in new[] { Drive.Hunger, Drive.Thirst, Drive.Sleep })
+        {
+            keys.AddRange(data.Needs.Of(drive).Stages.Select(static stage => stage.Line));
+        }
+
+        keys.AddRange(data.Needs.Health.Warnings.Select(static stage => stage.Line));
+        keys.AddRange(GameWords.FixedHudKeys);
+        return keys;
+    }
+
     private static void CheckWords(GameData data, List<string> problems)
     {
         const string File = "game/words.json";
+        foreach (var key in HudLineKeys(data).Where(key => data.Words.HudLine(key) is null))
+        {
+            problems.Add($"{File}: hudLines has no Spanish for '{key}' (a stage line of game/needs.json, or a line of the death screen and the needs list).");
+        }
+
         foreach (var role in GameWords.NounRoles.Where(role => data.Nouns.ForLemma(data.Words.Noun(role)) is null))
         {
             problems.Add($"{File}: the {role} noun '{data.Words.Noun(role)}' is not a catalogue noun.");

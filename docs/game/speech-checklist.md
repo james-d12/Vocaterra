@@ -18,7 +18,7 @@ whose text changed or whose file was recorded again differently is listed again 
 | smith (Domingo) | `im_nicola`, gain 0.6 | 36 | 1.0 (0.8) | the pools `smith_*` and `guide.lesson.smith.*`, and its prompts |
 | farmer (León) | `pm_santa` | 44 | 1.0 (0.8) | the pools `farmer_*` and `guide.lesson.farmer.*`, and its prompts |
 
-**To hear:** 1290 of the 1290 files have no mark (guide 438, villager 170, farmer 152, baker 146, shopkeeper 142, fisher 132, smith 110). Two files a line: the normal speed and the slow one.
+**To hear:** 1284 of the 1284 files have no mark (guide 436, villager 170, farmer 150, baker 144, shopkeeper 144, fisher 130, smith 110). Two files a line: the normal speed and the slow one.
 
 ## Lines
 
@@ -438,8 +438,6 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide.lesson.baker.market.1 | speech/baker/guide.lesson.baker.market.1.wav | baker | 1.0 | ¡Hoy hay mercado! ¿Cuántos panes tengo? |  |
 | guide.lesson.baker.model.1 | speech/baker/guide.lesson.baker.model.1.slow.wav | baker | 0.8 | Ayer compré fruta en la tienda. |  |
 | guide.lesson.baker.model.1 | speech/baker/guide.lesson.baker.model.1.wav | baker | 1.0 | Ayer compré fruta en la tienda. |  |
-| guide.lesson.baker.offer.1 | speech/baker/guide.lesson.baker.offer.1.slow.wav | baker | 0.8 | ¿Quieres una clase? ¿Sí o no? |  |
-| guide.lesson.baker.offer.1 | speech/baker/guide.lesson.baker.offer.1.wav | baker | 1.0 | ¿Quieres una clase? ¿Sí o no? |  |
 | guide.lesson.baker.oven.1 | speech/baker/guide.lesson.baker.oven.1.slow.wav | baker | 0.8 | Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer? |  |
 | guide.lesson.baker.oven.1 | speech/baker/guide.lesson.baker.oven.1.wav | baker | 1.0 | Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer? |  |
 | guide.lesson.baker.pay.1 | speech/baker/guide.lesson.baker.pay.1.slow.wav | baker | 0.8 | Te pago una moneda por cada bloque de madera. |  |
@@ -482,8 +480,6 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide.lesson.farmer.liked.1 | speech/farmer/guide.lesson.farmer.liked.1.wav | farmer | 1.0 | ¿Te gustó el pan de Luz? |  |
 | guide.lesson.farmer.market.1 | speech/farmer/guide.lesson.farmer.market.1.slow.wav | farmer | 0.8 | ¡Hola! Hoy hay mercado. Tengo quince manzanas. |  |
 | guide.lesson.farmer.market.1 | speech/farmer/guide.lesson.farmer.market.1.wav | farmer | 1.0 | ¡Hola! Hoy hay mercado. Tengo quince manzanas. |  |
-| guide.lesson.farmer.offer.1 | speech/farmer/guide.lesson.farmer.offer.1.slow.wav | farmer | 0.8 | ¿Quieres una clase? ¿Sí o no? |  |
-| guide.lesson.farmer.offer.1 | speech/farmer/guide.lesson.farmer.offer.1.wav | farmer | 1.0 | ¿Quieres una clase? ¿Sí o no? |  |
 | guide.lesson.farmer.water.1 | speech/farmer/guide.lesson.farmer.water.1.slow.wav | farmer | 0.8 | Mis plantas necesitan agua. Si me traes agua del río, te doy tres manzanas. ¿Qué vas a hacer? |  |
 | guide.lesson.farmer.water.1 | speech/farmer/guide.lesson.farmer.water.1.wav | farmer | 1.0 | Mis plantas necesitan agua. Si me traes agua del río, te doy tres manzanas. ¿Qué vas a hacer? |  |
 | guide.lesson.farmer.went.1 | speech/farmer/guide.lesson.farmer.went.1.slow.wav | farmer | 0.8 | ¿Fuiste al río? |  |
@@ -512,8 +508,6 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide.lesson.fisher.more.1 | speech/fisher/guide.lesson.fisher.more.1.wav | fisher | 0.9 | ¿Algo más? |  |
 | guide.lesson.fisher.near.1 | speech/fisher/guide.lesson.fisher.near.1.slow.wav | fisher | 0.72 | No, está cerca. La montaña está lejos. |  |
 | guide.lesson.fisher.near.1 | speech/fisher/guide.lesson.fisher.near.1.wav | fisher | 0.9 | No, está cerca. La montaña está lejos. |  |
-| guide.lesson.fisher.offer.1 | speech/fisher/guide.lesson.fisher.offer.1.slow.wav | fisher | 0.72 | ¿Quieres una clase? ¿Sí o no? |  |
-| guide.lesson.fisher.offer.1 | speech/fisher/guide.lesson.fisher.offer.1.wav | fisher | 0.9 | ¿Quieres una clase? ¿Sí o no? |  |
 | guide.lesson.fisher.plan.1 | speech/fisher/guide.lesson.fisher.plan.1.slow.wav | fisher | 0.72 | ¿Qué vas a hacer allí? |  |
 | guide.lesson.fisher.plan.1 | speech/fisher/guide.lesson.fisher.plan.1.wav | fisher | 0.9 | ¿Qué vas a hacer allí? |  |
 | guide.lesson.fisher.right.1 | speech/fisher/guide.lesson.fisher.right.1.slow.wav | fisher | 0.72 | Y la herrería está a la derecha. |  |
@@ -526,8 +520,6 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide.lesson.fisher.well.1 | speech/fisher/guide.lesson.fisher.well.1.wav | fisher | 0.9 | Sí, hay un pozo. |  |
 | guide.lesson.fisher.went.1 | speech/fisher/guide.lesson.fisher.went.1.slow.wav | fisher | 0.72 | ¿Fuiste a la panadería? |  |
 | guide.lesson.fisher.went.1 | speech/fisher/guide.lesson.fisher.went.1.wav | fisher | 0.9 | ¿Fuiste a la panadería? |  |
-| guide.lesson.guide.offer.1 | speech/guide/guide.lesson.guide.offer.1.slow.wav | guide | 0.8 | ¿Quieres una clase? ¿Sí o no? |  |
-| guide.lesson.guide.offer.1 | speech/guide/guide.lesson.guide.offer.1.wav | guide | 1.0 | ¿Quieres una clase? ¿Sí o no? |  |
 | guide.lesson.have.1 | speech/guide/guide.lesson.have.1.slow.wav | guide | 0.8 | ¡Muy bien! Tienes una fruta. |  |
 | guide.lesson.have.1 | speech/guide/guide.lesson.have.1.wav | guide | 1.0 | ¡Muy bien! Tienes una fruta. |  |
 | guide.lesson.have_fruit.1 | speech/guide/guide.lesson.have_fruit.1.slow.wav | guide | 0.8 | ¿Tienes una fruta? |  |
@@ -632,8 +624,6 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide.lesson.villager.much.1 | speech/villager/guide.lesson.villager.much.1.wav | villager | 1.0 | Ayer Domingo trabajó mucho. |  |
 | guide.lesson.villager.need.1 | speech/villager/guide.lesson.villager.need.1.slow.wav | villager | 0.8 | ¿Qué necesitas ahora? |  |
 | guide.lesson.villager.need.1 | speech/villager/guide.lesson.villager.need.1.wav | villager | 1.0 | ¿Qué necesitas ahora? |  |
-| guide.lesson.villager.offer.1 | speech/villager/guide.lesson.villager.offer.1.slow.wav | villager | 0.8 | ¿Una clase hoy? ¿Sí o no? |  |
-| guide.lesson.villager.offer.1 | speech/villager/guide.lesson.villager.offer.1.wav | villager | 1.0 | ¿Una clase hoy? ¿Sí o no? |  |
 | guide.lesson.villager.plan.1 | speech/villager/guide.lesson.villager.plan.1.slow.wav | villager | 0.8 | ¿Qué vas a comer mañana? |  |
 | guide.lesson.villager.plan.1 | speech/villager/guide.lesson.villager.plan.1.wav | villager | 1.0 | ¿Qué vas a comer mañana? |  |
 | guide.lesson.villager.plan_we.1 | speech/villager/guide.lesson.villager.plan_we.1.slow.wav | villager | 0.8 | ¿Qué vamos a comer? |  |
@@ -688,8 +678,6 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide.review.phrase.pedir_agua.1 | speech/guide/guide.review.phrase.pedir_agua.1.wav | guide | 1.0 | ¿Qué necesitas? |  |
 | guide.review.phrase.si_por_favor.1 | speech/guide/guide.review.phrase.si_por_favor.1.slow.wav | guide | 0.8 | ¿Quieres agua? |  |
 | guide.review.phrase.si_por_favor.1 | speech/guide/guide.review.phrase.si_por_favor.1.wav | guide | 1.0 | ¿Quieres agua? |  |
-| guide.sleep.not_sleepy.1 | speech/guide/guide.sleep.not_sleepy.1.slow.wav | guide | 0.8 | No tengo sueño. |  |
-| guide.sleep.not_sleepy.1 | speech/guide/guide.sleep.not_sleepy.1.wav | guide | 1.0 | No tengo sueño. |  |
 | guide.uncertain.1 | speech/guide/guide.uncertain.1.slow.wav | guide | 0.8 | No te entendí bien. ¿Lo dices otra vez? |  |
 | guide.uncertain.1 | speech/guide/guide.uncertain.1.wav | guide | 1.0 | No te entendí bien. ¿Lo dices otra vez? |  |
 | guide.uncertain.2 | speech/guide/guide.uncertain.2.slow.wav | guide | 0.8 | No te entendí bien. ¿Me lo dices otra vez? |  |
@@ -710,6 +698,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide_find.2 | speech/guide/guide_find.2.wav | guide | 1.0 | ¡Claro! Busco. |  |
 | guide_find.3 | speech/guide/guide_find.3.slow.wav | guide | 0.8 | Un minuto, busco. |  |
 | guide_find.3 | speech/guide/guide_find.3.wav | guide | 1.0 | Un minuto, busco. |  |
+| guide_gift_used.1 | speech/guide/guide_gift_used.1.slow.wav | guide | 0.8 | Hoy ya no tengo agua. |  |
+| guide_gift_used.1 | speech/guide/guide_gift_used.1.wav | guide | 1.0 | Hoy ya no tengo agua. |  |
 | guide_greet.1 | speech/guide/guide_greet.1.slow.wav | guide | 0.8 | ¡Hola! Soy la guía. |  |
 | guide_greet.1 | speech/guide/guide_greet.1.wav | guide | 1.0 | ¡Hola! Soy la guía. |  |
 | guide_greet.2 | speech/guide/guide_greet.2.slow.wav | guide | 0.8 | ¡Hola, amigo! ¿Qué buscas? |  |
@@ -1126,6 +1116,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | shop_done.1 | speech/shopkeeper/shop_done.1.wav | shopkeeper | 1.0 | ¡Hasta luego! |  |
 | shop_done.2 | speech/shopkeeper/shop_done.2.slow.wav | shopkeeper | 0.8 | ¡Nos vemos! |  |
 | shop_done.2 | speech/shopkeeper/shop_done.2.wav | shopkeeper | 1.0 | ¡Nos vemos! |  |
+| shop_gift_used.1 | speech/shopkeeper/shop_gift_used.1.slow.wav | shopkeeper | 0.8 | Hoy no tengo más pan. |  |
+| shop_gift_used.1 | speech/shopkeeper/shop_gift_used.1.wav | shopkeeper | 1.0 | Hoy no tengo más pan. |  |
 | shop_give.1 | speech/shopkeeper/shop_give.1.slow.wav | shopkeeper | 0.8 | Toma la botella. El agua está en el río. |  |
 | shop_give.1 | speech/shopkeeper/shop_give.1.wav | shopkeeper | 1.0 | Toma la botella. El agua está en el río. |  |
 | shop_give.2 | speech/shopkeeper/shop_give.2.slow.wav | shopkeeper | 0.8 | Aquí tienes la botella. El agua está en el río. |  |
@@ -1258,6 +1250,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | villager_bye.1 | speech/villager/villager_bye.1.wav | villager | 1.0 | ¡Adiós! Hasta luego. |  |
 | villager_bye.2 | speech/villager/villager_bye.2.slow.wav | villager | 0.8 | Hasta luego. |  |
 | villager_bye.2 | speech/villager/villager_bye.2.wav | villager | 1.0 | Hasta luego. |  |
+| villager_gift_used.1 | speech/villager/villager_gift_used.1.slow.wav | villager | 0.8 | Hoy no tengo más pan. |  |
+| villager_gift_used.1 | speech/villager/villager_gift_used.1.wav | villager | 1.0 | Hoy no tengo más pan. |  |
 | villager_give.1 | speech/villager/villager_give.1.slow.wav | villager | 0.8 | Aquí tienes. |  |
 | villager_give.1 | speech/villager/villager_give.1.wav | villager | 1.0 | Aquí tienes. |  |
 | villager_give.2 | speech/villager/villager_give.2.slow.wav | villager | 0.8 | Toma. |  |

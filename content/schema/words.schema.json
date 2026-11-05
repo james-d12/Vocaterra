@@ -261,6 +261,13 @@
         }
       },
       "description": "The plain answers to a teacher's offer of a class and the ways to ask for one (L01, D-game-25); the game reads them from the text of a turn."
+    },
+    "hudLines": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/word"
+      },
+      "description": "The player's own words on the HUD (N05): the needs' stage lines by the key game/needs.json names (need.thirst.3), the death screen (hud.camp), the beacon's label on the chest (hud.belongings) and the words of the inventory's needs list (hud.fine, hud.name.<need>). Text only, never recorded (D-game-13); each key has its English in the locale under the same id."
     }
   },
   "definitions": {

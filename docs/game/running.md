@@ -77,6 +77,13 @@ doubles stamina's refill and health's recovery. The events `meal_eaten` (the foo
 `--eat <item>` gives the item if the bag has none and eats or drinks it as the right click does (`pan`, `fruta`, `manzana`, `agua`), `--drink` drinks by hand at the water the
 crosshair is on (walk to the bank, `--look` at the water and `--wait 1` first: the look takes a tick). Each prints a line, `eat: Done (Bread), hunger 65, thirst 100` or `drink: Done, thirst 40`.
 
+**The needs on screen (N05).** Health is a thin bar beside the hotbar; stamina has its own bar only while it is below its maximum, with a dashed end for what the drives cut from it. A drive at stage 1 or more shows
+its icon (a loaf, a drop, a moon) with one to four notches and loses it on recovery. A stage change shows its line once above the hotbar, the Spanish with the English beneath («Tengo mucha sed.» / I'm very thirsty.),
+and plays a soft tone that ducks under the voices. The first stage change of the first session shows the tip. The inventory (I) lists the five needs with their stage. View effects: dim edges from thirst stage 3, a slow blink
+from sleep stage 3, red edges below 25 health; **F7** turns them off (the icons and lines stay), kept in the settings (`viewEffectsOff`); the launch flag `--view-effects on|off` sets it for a run. The HUD is hidden under `--needs off`.
+**Relaxed needs** (settings `relaxedNeeds`, off by default; launch flag `--relaxed-needs`): every drive's rate halves; at zero health the player faints and wakes at the camp with the bag kept and no chest.
+Death shows a fade, then «Estás en tu campamento.» with its English and the cause line, for 4 seconds; the chest's beacon label is «tus cosas».
+
 **Death (N04).** At zero health in active play the screen goes black and the player wakes two to five blocks from their own fire ring at the cliff camp (`firering.player`, lit or cold) with
 health, hunger, thirst and sleep at 50 and stamina full; `player_died` (`hambre` or `sed`) and `player_woke` (`death`) print. The day and the sitting do not move. Everything in the bag
 but the items that stack to one (the book and the axe) stays in a chest on the nearest free ground where they fell (the beacon points to it); **E** on the chest takes back what fits,

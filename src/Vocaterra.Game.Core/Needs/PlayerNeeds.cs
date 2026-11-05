@@ -78,6 +78,9 @@ public sealed class PlayerNeeds
     /// <summary>The data the needs run on.</summary>
     public NeedsData Data => _data;
 
+    /// <summary>The share of its rate each drive falls at: 1, or one half with the relaxed-needs setting (N05, design decision 17). A setting of the player, never saved with the meters.</summary>
+    public double RateFactor { get; set; } = 1;
+
     /// <summary>The value of a meter.</summary>
     /// <param name="meter">Which meter.</param>
     public double Value(NeedMeter meter) => meter switch
@@ -211,9 +214,10 @@ public sealed class PlayerNeeds
         var seconds = ticks / (double)NeedsData.TicksPerSecond;
         var sprinting = activity == NeedActivity.Sprinting && CanSprint;
         var gathering = activity == NeedActivity.Gathering;
-        _hunger = Fall(_hunger, _data.Of(Drive.Hunger), seconds, sprinting, gathering);
-        _thirst = Fall(_thirst, _data.Of(Drive.Thirst), seconds, sprinting, gathering);
-        _sleep = Fall(_sleep, _data.Of(Drive.Sleep), seconds, sprinting, gathering);
+        var fallSeconds = seconds * RateFactor;
+        _hunger = Fall(_hunger, _data.Of(Drive.Hunger), fallSeconds, sprinting, gathering);
+        _thirst = Fall(_thirst, _data.Of(Drive.Thirst), fallSeconds, sprinting, gathering);
+        _sleep = Fall(_sleep, _data.Of(Drive.Sleep), fallSeconds, sprinting, gathering);
 
         var effects = Effects(activity == NeedActivity.Resting);
         _health = Math.Clamp(_health + (effects.HealthChangePerSecond * seconds), 0, Full);

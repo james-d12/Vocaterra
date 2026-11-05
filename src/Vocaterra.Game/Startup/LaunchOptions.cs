@@ -75,6 +75,9 @@ public sealed record LaunchOptions
         + "  --dusk                  a lower, dimmer sun and lanterns that glow at full strength (S15)\n"
         + "  --needs on|off          the player's needs (hunger, thirst, sleep, health, stamina) run in active play (the default, on); off freezes them full, so the language\n"
         + "                          runs keep their baselines (a test aid, N01)\n"
+        + "  --relaxed-needs         the relaxed-needs setting (N05): every drive falls at half its rate, and at zero health the player faints and wakes at the camp, the bag kept and no chest.\n"
+        + "                          Off by default, kept in a save's settings\n"
+        + "  --view-effects on|off   the needs' effects on the view (dim edges, a blink, red edges; N05); the icons and the lines stay. F7 switches them in the game; kept in a save's settings\n"
         + "  --eat <item>            eat or drink the item as a right click with it selected does (one is given if the bag has none; a test aid, N02): pan, fruta, manzana, agua\n"
         + "  --need <need> <n>       a script step: set a need where the script stands (a test aid, N04; --set-need sets at launch)\n"
         + "  --take-belongings       take back what a death left in the chest the crosshair is on, within reach, as E does (N04)\n"
@@ -153,6 +156,12 @@ public sealed record LaunchOptions
 
     /// <summary>Whether <c>--needs off</c> was given: the needs are frozen full (or at the <c>--set-need</c> values) and nothing moves them (N01).</summary>
     public bool NeedsOff { get; init; }
+
+    /// <summary>Whether <c>--relaxed-needs</c> was given: the drives fall at half their rates and zero health faints instead of dying (N05, design decision 17). A save's settings may ask for it too.</summary>
+    public bool RelaxedNeeds { get; init; }
+
+    /// <summary>Whether <c>--view-effects on|off</c> was given, and which: the needs' effects on the view (N05); <see langword="null"/> leaves the saved setting (on for a new game).</summary>
+    public bool? ViewEffects { get; init; }
 
     /// <summary>The needs <c>--set-need</c> set at launch, in the order given (N01).</summary>
     public IReadOnlyList<(NeedMeter Meter, double Value)> SetNeeds { get; init; } = [];
@@ -382,7 +391,7 @@ public sealed record LaunchOptions
             }
 
             if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--no-speech" or "--mute" or "--no-sounds" or "--voxel" or "--greyscale" or "--strict-save" or "--leave" or "--mic-check" or "--no-mic-check"
-                    or "--playtest" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep" or "--drink" or "--take-belongings")
+                    or "--playtest" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep" or "--drink" or "--take-belongings" or "--relaxed-needs")
             {
                 switch (arg)
                 {
@@ -397,6 +406,9 @@ public sealed record LaunchOptions
                         break;
                     case "--take-belongings":
                         script.Add(new ScriptStep(ScriptStepKind.TakeBelongings));
+                        break;
+                    case "--relaxed-needs":
+                        result = result with { RelaxedNeeds = true };
                         break;
                     case "--tips":
                         result = result with { Tips = true };
@@ -509,7 +521,7 @@ public sealed record LaunchOptions
                 or "--place" or "--select" or "--craft" or "--eat" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
                 or "--check" or "--pick" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--sound-log"
-                or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs"))
+                or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -626,6 +638,15 @@ public sealed record LaunchOptions
                     }
 
                     result = result with { ReportDir = value };
+                    break;
+                case "--view-effects":
+                    if (value is not ("on" or "off"))
+                    {
+                        error = $"--view-effects needs on or off, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { ViewEffects = value == "on" };
                     break;
                 case "--needs":
                     if (value is not ("on" or "off"))
