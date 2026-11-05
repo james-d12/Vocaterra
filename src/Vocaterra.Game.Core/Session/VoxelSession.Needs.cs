@@ -1,6 +1,7 @@
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.Save;
 
 namespace Vocaterra.Game.Core.Session;
 
@@ -29,9 +30,32 @@ public sealed partial class VoxelSession
     /// </summary>
     public bool RelaxedNeeds
     {
-        get => Needs.RateFactor < 1;
-        set => Needs.RateFactor = value ? RelaxedRateFactor : 1;
+        get => _relaxedNeeds;
+        set
+        {
+            _relaxedNeeds = value;
+            ApplyRateFactor();
+        }
     }
+
+    private bool _relaxedNeeds;
+    private double _needsRate = SaveSettings.DefaultNeedsRate;
+
+    /// <summary>
+    /// The drive rate setting (N09): a multiplier on the fall of hunger, thirst and sleep, 0.5 to 4.0 in steps of 0.25, 1 by default; it multiplies with <see cref="RelaxedNeeds"/>.
+    /// A setting of the player like the relaxed needs: no meter, digest or replay holds it (a save keeps the meters as they are). Set values are clamped and snapped.
+    /// </summary>
+    public double NeedsRate
+    {
+        get => _needsRate;
+        set
+        {
+            _needsRate = SaveSettings.SnapNeedsRate(value);
+            ApplyRateFactor();
+        }
+    }
+
+    private void ApplyRateFactor() => Needs.RateFactor = _needsRate * (_relaxedNeeds ? RelaxedRateFactor : 1);
 
     /// <summary>The share of its rate a drive falls at under <see cref="RelaxedNeeds"/>.</summary>
     public const double RelaxedRateFactor = 0.5;

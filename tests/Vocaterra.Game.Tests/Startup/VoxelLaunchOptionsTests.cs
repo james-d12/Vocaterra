@@ -220,6 +220,28 @@ public sealed class VoxelLaunchOptionsTests
         Assert.Equal("Unknown argument '--nope'.", Refuse("--nope"));
     }
 
+    [Theory]
+    [InlineData("0.5", 0.5)]
+    [InlineData("1", 1.0)]
+    [InlineData("2.75", 2.75)]
+    [InlineData("4", 4.0)]
+    public void TheNeedsRateFlagTakesAStepOfAQuarterFromHalfToFour(string text, double expected)
+    {
+        Assert.Null(Parse().NeedsRate);
+        Assert.Equal(expected, Parse("--needs-rate", text).NeedsRate);
+    }
+
+    [Theory]
+    [InlineData("0.25")]
+    [InlineData("4.5")]
+    [InlineData("1.3")]
+    [InlineData("fast")]
+    [InlineData("NaN")]
+    public void TheNeedsRateFlagRefusesAValueOutOfRangeOrOffAStep(string text)
+    {
+        Assert.Contains("--needs-rate", Refuse("--needs-rate", text), StringComparison.Ordinal);
+    }
+
     [Fact]
     public void TheNeedsAreOnByDefaultAndNeedsOffFreezesThem()
     {

@@ -107,6 +107,21 @@ public sealed class FrameView
     /// <summary>The bug and feature report panel (S21), or <see langword="null"/> when the view has none.</summary>
     public ReportPanel? Report { get; set; }
 
+    /// <summary>Whether the settings panel (F8, N09) is open.</summary>
+    public bool SettingsOpen { get; set; }
+
+    /// <summary>The settings panel's chosen row.</summary>
+    public int SettingsSelected { get; set; }
+
+    /// <summary>The drive rate the settings panel shows.</summary>
+    public double SettingsRate { get; set; } = 1;
+
+    /// <summary>Whether the settings panel shows the view effects on.</summary>
+    public bool SettingsEffectsOn { get; set; }
+
+    /// <summary>Whether the settings panel shows the relaxed needs on.</summary>
+    public bool SettingsRelaxed { get; set; }
+
     /// <summary>Whether the controls help (F1, S16) is open.</summary>
     public bool ControlsOpen { get; set; }
 

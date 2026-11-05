@@ -160,6 +160,9 @@ public sealed record LaunchOptions
     /// <summary>Whether <c>--relaxed-needs</c> was given: the drives fall at half their rates and zero health faints instead of dying (N05, design decision 17). A save's settings may ask for it too.</summary>
     public bool RelaxedNeeds { get; init; }
 
+    /// <summary>The <c>--needs-rate</c> value (N09): the drive rate multiplier, 0.5 to 4 in steps of 0.25; <see langword="null"/> leaves the saved setting (1 for a new game).</summary>
+    public double? NeedsRate { get; init; }
+
     /// <summary>Whether <c>--view-effects on|off</c> was given, and which: the needs' effects on the view (N05); <see langword="null"/> leaves the saved setting (on for a new game).</summary>
     public bool? ViewEffects { get; init; }
 
@@ -521,7 +524,7 @@ public sealed record LaunchOptions
                 or "--place" or "--select" or "--craft" or "--eat" or "--give" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
                 or "--check" or "--pick" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--sound-log"
-                or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects"))
+                or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--needs-rate"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -638,6 +641,16 @@ public sealed record LaunchOptions
                     }
 
                     result = result with { ReportDir = value };
+                    break;
+                case "--needs-rate":
+                    if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var needsRate) || !double.IsFinite(needsRate)
+                        || needsRate < SaveSettings.MinNeedsRate || needsRate > SaveSettings.MaxNeedsRate || SaveSettings.SnapNeedsRate(needsRate) != needsRate)
+                    {
+                        error = $"--needs-rate needs a number from 0.5 to 4 in steps of 0.25, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { NeedsRate = needsRate };
                     break;
                 case "--view-effects":
                     if (value is not ("on" or "off"))
