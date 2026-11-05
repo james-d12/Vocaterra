@@ -354,6 +354,10 @@ public sealed class ScenarioScript
                 _hooks.Drink?.Invoke();
                 _index++;
                 break;
+            case ScriptStepKind.SetNeed:
+                _hooks.SetNeed?.Invoke(step.Value);
+                _index++;
+                break;
             case ScriptStepKind.TakeBelongings:
                 _hooks.TakeBelongings?.Invoke();
                 _index++;

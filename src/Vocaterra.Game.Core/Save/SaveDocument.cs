@@ -341,7 +341,9 @@ public sealed record RepeatSave(string Tag, int Count);
 /// </summary>
 /// <param name="Needs">The player's needs (<see cref="Vocaterra.Game.Core.Needs.PlayerNeeds"/>), or <see langword="null"/> for full needs.</param>
 /// <param name="Chest">The belongings chest a death left standing (its cell and what is in it), or <see langword="null"/> for none. The chest block itself is in the world's block edits.</param>
-public sealed record SystemsSave(Vocaterra.Game.Core.Needs.NeedsSave? Needs = null, ChestSave? Chest = null);
+public sealed record SystemsSave(
+    Vocaterra.Game.Core.Needs.NeedsSave? Needs = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] ChestSave? Chest = null);
 
 /// <summary>The belongings chest of a death (N04, design 9.7): the cell of its block and the stacks it holds.</summary>
 /// <param name="X">The cell's X.</param>

@@ -87,4 +87,7 @@ public enum ScriptStepKind
 
     /// <summary>E at the belongings chest the crosshair is on, within reach (<c>--take-belongings</c>, N04): the walk and the look come first. A line says when there is no chest to take from.</summary>
     TakeBelongings,
+
+    /// <summary>Sets a need where the script stands (<c>--need thirst 51</c>, N04, a test aid): <see cref="ScriptStep.Value"/> is the need and the value.</summary>
+    SetNeed,
 }

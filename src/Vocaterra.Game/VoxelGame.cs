@@ -307,7 +307,13 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                         Console.WriteLine($"eat: {result} ({item}), hunger {session.Needs.Value(NeedMeter.Hunger):0.#}, thirst {session.Needs.Value(NeedMeter.Thirst):0.#}");
                     },
                     () => Console.WriteLine($"drink: {session.DrinkByHand()}, thirst {session.Needs.Value(NeedMeter.Thirst):0.#}"),
-                    () => Console.WriteLine($"take-belongings: {session.TakeBelongings()}, chest {(session.Chest is { } chest ? $"{chest.Total} items at {chest.Cell.X},{chest.Cell.Y},{chest.Cell.Z}" : "gone")}"));
+                    () => Console.WriteLine($"take-belongings: {session.TakeBelongings()}, chest {(session.Chest is { } chest ? $"{chest.Total} items at {chest.Cell.X},{chest.Cell.Y},{chest.Cell.Z}" : "gone")}"),
+                    text =>
+                    {
+                        var parts = text.Split(' ');
+                        session.SetNeed(Enum.Parse<NeedMeter>(parts[0], ignoreCase: true), double.Parse(parts[1], System.Globalization.CultureInfo.InvariantCulture));
+                        Console.WriteLine($"need: {text}");
+                    });
                 _scenario = new ScenarioScript(session, _look, _dialogue, options.Script, name => ScriptItemNames.Resolve(session.Nouns, name), hooks, Console.WriteLine, holdsCheckAnswers: options.Playtest);
             }
         }
@@ -947,6 +953,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         {
             _deathsSeen = _session.DeathCount;
             _collapseFade = 1; // a death (N04): the screen is black where the player fell and fades in at their fire
+            var feet = _sim.Player.FeetBlock;
+            Console.WriteLine($"death: {_deathsSeen}, woke at {feet.X},{feet.Y},{feet.Z} (health {_session.Needs.Value(NeedMeter.Health):0.#}, hunger {_session.Needs.Value(NeedMeter.Hunger):0.#}, thirst {_session.Needs.Value(NeedMeter.Thirst):0.#}, sleep {_session.Needs.Value(NeedMeter.Sleep):0.#}, stamina {_session.Needs.Value(NeedMeter.Stamina):0.#}), chest {(_session.Chest is { } chest ? $"{chest.Total} items at {chest.Cell.X},{chest.Cell.Y},{chest.Cell.Z}" : "none")}");
         }
 
         if (_collapsing)

@@ -30,4 +30,5 @@ public sealed record ScenarioHooks(
     Action? Sleep = null,
     Action<ItemId>? Eat = null,
     Action? Drink = null,
-    Action? TakeBelongings = null);
+    Action? TakeBelongings = null,
+    Action<string>? SetNeed = null);
