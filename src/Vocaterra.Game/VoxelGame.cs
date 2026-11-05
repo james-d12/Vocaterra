@@ -402,7 +402,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             [_micScreen, _checks, _dialogueScreen, _controls, _settings, _bookScreen, _inventoryPanel, _craftingPanel],
             [_checks, _micScreen, _dialogueScreen, _bookScreen, _inventoryPanel, _craftingPanel, _controls, _settings]);
         var openBook = new DelegateCommand(_bookScreen.Open); // J and the book item (S20)
-        _worldInput = new WorldInput(_sim, _look, _live, openBook, new DelegateCommand(() => _session.EatSelected()), session.Data.Needs);
+        _worldInput = new WorldInput(_sim, _look, _live, openBook, new DelegateCommand(() => _session.EatSelected()), session.Data.Needs, cell => _session.PlantOn(cell));
         var commands = new GameCommands(
             ToggleView: new DelegateCommand(ToggleView),
             Save: new DelegateCommand(SaveNow),
