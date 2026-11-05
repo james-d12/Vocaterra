@@ -93,6 +93,9 @@ public static class WorldEvents
     /// <summary>An item entered the inventory by a pickup (S16: a lesson's <c>do</c> step waits for it; the detail is the item's noun, or its name when it has none).</summary>
     public const string ItemPickedUp = "item_picked_up";
 
+    /// <summary>An item was crafted (W01; the detail is the output's noun, or its name when it has none, and the amount is the count made).</summary>
+    public const string ItemCrafted = "item_crafted";
+
     /// <summary>A first-time tip was shown (S16; the detail is the tip's id).</summary>
     public const string TipShown = "tip_shown";
 
@@ -164,7 +167,7 @@ public static class WorldEvents
     public static IReadOnlyList<string> All { get; } =
     [
         TalkOpened, TalkClosed, ItemGiven, BeaconSet, BottleFilled, WaterWithoutBottle, FoundWithoutSpanish, ObjectiveStep, ObjectiveComplete, TransferOffered,
-        KeyWordsShown, PhraseReviewAsked, SupportCardShown, ItemPickedUp, TipShown, GuideMet, FireLit, SessionComplete, SpareTorch, SecondTryAsked, SecondTryAnswered,
+        KeyWordsShown, PhraseReviewAsked, SupportCardShown, ItemPickedUp, ItemCrafted, TipShown, GuideMet, FireLit, SessionComplete, SpareTorch, SecondTryAsked, SecondTryAnswered,
         TorchAtRing,
         WarmupOffered, WarmupStarted, WarmupEnded, WarmupSkipped, ReviewSkipped, ReviewAnswered,
         BeaconReached, PlaceAsked, ItemTaken, OrderDelivered,
