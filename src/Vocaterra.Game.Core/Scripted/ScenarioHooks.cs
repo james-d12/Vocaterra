@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Items;
 namespace Vocaterra.Game.Core.Scripted;
 
 /// <summary>
@@ -14,6 +15,8 @@ namespace Vocaterra.Game.Core.Scripted;
 /// <param name="BookPlay">Opens the book on the target's page and plays its recording, normal or slow (S20b, <c>--book-play</c>).</param>
 /// <param name="BookPractise">Opens the book on its Lessons page and presses "Practise again" on the lesson (S26, <c>--book-practise</c>).</param>
 /// <param name="Sleep">Closes the panels and sleeps at the player's own fire, as the player's E there does (V12c, <c>--sleep</c>).</param>
+/// <param name="Eat">Eats or drinks the item (given first if the bag has none), as a right click with it does (N02, <c>--eat</c>).</param>
+/// <param name="Drink">Drinks by hand at the water the crosshair is on (N02, <c>--drink</c>).</param>
 public sealed record ScenarioHooks(
     Action<string> OpenTalk,
     Action CloseTalk,
@@ -24,4 +27,6 @@ public sealed record ScenarioHooks(
     Func<bool>? ReportBusy = null,
     Action<string, bool>? BookPlay = null,
     Action<string>? BookPractise = null,
-    Action? Sleep = null);
+    Action? Sleep = null,
+    Action<ItemId>? Eat = null,
+    Action? Drink = null);

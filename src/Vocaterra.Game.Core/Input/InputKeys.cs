@@ -26,6 +26,7 @@ public static class InputKeys
         ["save"] = GameKey.F6,
         ["textSize"] = GameKey.F9,
         ["debug"] = GameKey.F3,
+        ["sprint"] = GameKey.LeftShift, // held: walk about 1.6 times as fast while stamina lasts (N02)
     };
 
     /// <summary>The key of a named command.</summary>

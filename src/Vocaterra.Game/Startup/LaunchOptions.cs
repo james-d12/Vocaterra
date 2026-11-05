@@ -75,6 +75,8 @@ public sealed record LaunchOptions
         + "  --dusk                  a lower, dimmer sun and lanterns that glow at full strength (S15)\n"
         + "  --needs on|off          the player's needs (hunger, thirst, sleep, health, stamina) run in active play (the default, on); off freezes them full, so the language\n"
         + "                          runs keep their baselines (a test aid, N01)\n"
+        + "  --eat <item>            eat or drink the item as a right click with it selected does (one is given if the bag has none; a test aid, N02): pan, fruta, manzana, agua\n"
+        + "  --drink                 drink by hand at the water the crosshair is on, within reach, as E does (N02); walk to the bank, --look at the water and --wait 1 first\n"
         + "  --set-need <need> <n>   set a need at launch, 0 to 100 (hunger, thirst, sleep, health; stamina up to its maximum); repeatable (a test aid, N01)\n"
         + "  --beacon <point>        stand the beacon column on a named point of the scene (camp.guide, camp.player, firering, workbench, stall, signpost, village, house1, bridge, river, lake,\n"
         + "                          waterfall...); the default is camp.guide (the walk down the trail), none puts no beacon up\n"
@@ -378,7 +380,7 @@ public sealed record LaunchOptions
             }
 
             if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--no-speech" or "--mute" or "--no-sounds" or "--voxel" or "--greyscale" or "--strict-save" or "--leave" or "--mic-check" or "--no-mic-check"
-                    or "--playtest" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep")
+                    or "--playtest" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep" or "--drink")
             {
                 switch (arg)
                 {
@@ -387,6 +389,9 @@ public sealed record LaunchOptions
                         break;
                     case "--sleep":
                         script.Add(new ScriptStep(ScriptStepKind.Sleep));
+                        break;
+                    case "--drink":
+                        script.Add(new ScriptStep(ScriptStepKind.Drink));
                         break;
                     case "--tips":
                         result = result with { Tips = true };
@@ -481,7 +486,7 @@ public sealed record LaunchOptions
             }
 
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--locale" or "--scene" or "--look" or "--walk-to" or "--interact"
-                or "--place" or "--select" or "--craft" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
+                or "--place" or "--select" or "--craft" or "--eat" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
                 or "--check" or "--pick" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--sound-log"
                 or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs"))
@@ -954,6 +959,15 @@ public sealed record LaunchOptions
 
                     script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
                     break;
+                case "--eat":
+                    if (value.Trim().Length == 0)
+                    {
+                        error = "--eat needs an item, like pan or fruta.";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(ScriptStepKind.Eat, Value: value.Trim()));
+                    break;
                 case "--craft":
                     if (value.Trim().Length == 0)
                     {
@@ -972,7 +986,7 @@ public sealed record LaunchOptions
 
         if (screenshot is null && (framesGiven || script.Count > 0 || beacon is not null || journal || inventory || crafting))
         {
-            error = "--frames, --look, --walk-to, --teleport, --interact, --place, --select, --craft, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --book-practise, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --sleep, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
+            error = "--frames, --look, --walk-to, --teleport, --interact, --place, --select, --craft, --eat, --drink, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --book-practise, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --sleep, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
             return false;
         }
 

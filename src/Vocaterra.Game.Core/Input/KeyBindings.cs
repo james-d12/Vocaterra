@@ -2,7 +2,7 @@ namespace Vocaterra.Game.Core.Input;
 
 /// <summary>
 /// The game's keys as commands (the command pattern): the global keys, each one on its own, and the world's keys, of which the first that
-/// applies runs (a key can mean several things: E talks to the NPC under the crosshair, else opens the workbench's panel there, else sleeps at the player's own lit fire,
+/// applies runs (a key can mean several things: E talks to the NPC under the crosshair, else opens the workbench's panel there, else sleeps at the player's own lit fire, else drinks by hand at water,
 /// else opens the inventory).
 /// </summary>
 public sealed class KeyBindings
@@ -32,7 +32,8 @@ public sealed class KeyBindings
     /// <param name="atWorkbench">Whether the crosshair is on the workbench.</param>
     /// <param name="cardOffersSleep">Whether the session's closing card offers the sleep (V12c): Enter sleeps, before it shows the next tip; none when <see langword="null"/>.</param>
     /// <param name="fireOffersSleep">Whether the player's own lit fire offers the sleep (V12c): E sleeps, after an NPC and the workbench; none when <see langword="null"/>.</param>
-    public static KeyBindings World(GameCommands commands, Func<bool> aimedAtNpc, Func<bool> tipShown, Func<bool> atWorkbench, Func<bool>? cardOffersSleep = null, Func<bool>? fireOffersSleep = null)
+    /// <param name="aimedAtWater">Whether the crosshair is on water within reach (N02): E drinks by hand, before the inventory; none when <see langword="null"/>.</param>
+    public static KeyBindings World(GameCommands commands, Func<bool> aimedAtNpc, Func<bool> tipShown, Func<bool> atWorkbench, Func<bool>? cardOffersSleep = null, Func<bool>? fireOffersSleep = null, Func<bool>? aimedAtWater = null)
     {
         ArgumentNullException.ThrowIfNull(commands);
         var bindings = new List<KeyBinding>
@@ -57,6 +58,11 @@ public sealed class KeyBindings
         if (commands.Sleep is { } sleepAtFire && fireOffersSleep is not null)
         {
             bindings.Add(new(InputKeys.Of("talk"), sleepAtFire, fireOffersSleep)); // at the player's own lit fire it sleeps (V12c)
+        }
+
+        if (commands.DrinkByHand is { } drink && aimedAtWater is not null)
+        {
+            bindings.Add(new(InputKeys.Of("talk"), drink, aimedAtWater)); // at water it drinks by hand (N02)
         }
 
         bindings.AddRange(

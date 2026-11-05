@@ -126,12 +126,18 @@ public sealed class PlayerBody
     /// One tick: walking at the given intent (fixed point, <see cref="Angles.One"/> = 1.0, each component within +-1.0), an optional jump,
     /// gravity, then the move on X, Z and Y with the step-up. Returns whether the body left the ground by jumping and whether it landed.
     /// </summary>
-    internal (bool Jumped, bool Landed) Step(VoxelGrid grid, int intentX, int intentZ, bool jump)
+    /// <param name="grid">The world.</param>
+    /// <param name="intentX">The walk's east component.</param>
+    /// <param name="intentZ">The walk's south component.</param>
+    /// <param name="jump">Whether the jump key is down.</param>
+    /// <param name="speedPermille">The walking speed in thousandths of <see cref="VoxelPhysics.WalkSpeed"/> (1000 walks, 1600 sprints, N02).</param>
+    internal (bool Jumped, bool Landed) Step(VoxelGrid grid, int intentX, int intentZ, bool jump, int speedPermille = 1000)
     {
+        var speed = speedPermille == 1000 ? VoxelPhysics.WalkSpeed : (int)((long)VoxelPhysics.WalkSpeed * speedPermille / 1000);
         var wasGrounded = Grounded;
         SteppedUp = false;
-        VelocityX = Angles.Multiply(intentX, VoxelPhysics.WalkSpeed);
-        VelocityZ = Angles.Multiply(intentZ, VoxelPhysics.WalkSpeed);
+        VelocityX = Angles.Multiply(intentX, speed);
+        VelocityZ = Angles.Multiply(intentZ, speed);
 
         var jumped = false;
         if (jump && wasGrounded && VelocityY <= 0)

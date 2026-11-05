@@ -65,6 +65,25 @@ public sealed class KeyBindingsTests
         Assert.Equal([expected], ran);
     }
 
+    [Theory]
+    [InlineData(true, false, false, "TalkTo")]
+    [InlineData(false, true, false, "OpenCrafting")]
+    [InlineData(false, false, true, "DrinkByHand")]
+    [InlineData(false, false, false, "OpenInventory")]
+    public void EAtWaterDrinksByHandAfterTheNpcAndTheWorkbenchAndBeforeTheInventory(bool aimed, bool atWorkbench, bool atWater, string expected)
+    {
+        var (commands, ran) = Commands();
+        Assert.True(KeyBindings.World(commands, () => aimed, static () => false, () => atWorkbench, static () => false, static () => false, () => atWater).RunFirst(Pressed(GameKey.E)));
+        Assert.Equal([expected], ran);
+    }
+
+    [Fact]
+    public void SprintIsANamedControlOnLeftShiftLikeTheOthers()
+    {
+        Assert.Equal(GameKey.LeftShift, InputKeys.Of("sprint"));
+        Assert.Equal("Left Shift", TestGame.Data.Locale.Text("key.LeftShift"));
+    }
+
     [Fact]
     public void EnterOnTheClosingCardSleepsBeforeItShowsTheNextTipAndNothingSleepsWithoutTheOffer()
     {
@@ -98,7 +117,7 @@ public sealed class KeyBindingsTests
         IGameCommand Named(string name) => new DelegateCommand(() => ran.Add(name));
         return (new GameCommands(
             Named("ToggleView"), Named("Save"), Named("CycleTextSize"), Named("EndPlaytest"), Named("ToggleDebug"), Named("Listen"), Named("TypeTo"), Named("TalkTo"),
-            Named("OpenControls"), Named("NextTip"), Named("OpenBook"), Named("OpenCrafting"), Named("OpenInventory"), Named("ReleaseMouse"), Named("Sleep")), ran);
+            Named("OpenControls"), Named("NextTip"), Named("OpenBook"), Named("OpenCrafting"), Named("OpenInventory"), Named("ReleaseMouse"), Named("Sleep"), Named("DrinkByHand")), ran);
     }
 
     private static TestInputFrame Pressed(params GameKey[] keys) => TestInputFrame.Pressing(keys);

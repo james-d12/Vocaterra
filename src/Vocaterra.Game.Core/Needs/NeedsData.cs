@@ -57,7 +57,18 @@ public sealed record HealthSpec(string Detail, double RecoverySeconds, IReadOnly
 /// <param name="MinimumRefillFactor">The product of the refill factors never falls below this.</param>
 /// <param name="SprintPerSecond">Spent a second of sprinting.</param>
 /// <param name="GatherPerTick">Spent a gather tick.</param>
-public sealed record StaminaSpec(double Maximum, double MinimumMaximum, double RefillPerSecond, double RefillDelaySeconds, double MinimumRefillFactor, double SprintPerSecond, double GatherPerTick);
+/// <param name="SprintSpeedFactor">Sprinting walks this many times as fast (N02; 1.6 when the data names none).</param>
+/// <param name="GatherSlowFactor">Gathering at zero stamina goes this fast, never 0 (N02; a half when the data names none).</param>
+public sealed record StaminaSpec(
+    double Maximum,
+    double MinimumMaximum,
+    double RefillPerSecond,
+    double RefillDelaySeconds,
+    double MinimumRefillFactor,
+    double SprintPerSecond,
+    double GatherPerTick,
+    double SprintSpeedFactor = 1.6,
+    double GatherSlowFactor = 0.5);
 
 /// <summary>Rest at a lit fire.</summary>
 /// <param name="RadiusBlocks">How near the fire, in blocks.</param>
@@ -167,7 +178,8 @@ public sealed record NeedsData(
                 new HealthSpec(Text(health, "detail"), Number(health, "recoverySeconds"), health.GetProperty("warnings").EnumerateArray().Select(StageOf).ToList()),
                 new StaminaSpec(
                     Number(stamina, "maximum"), Number(stamina, "minimumMaximum"), Number(stamina, "refillPerSecond"), Number(stamina, "refillDelaySeconds"),
-                    Number(stamina, "minimumRefillFactor"), Number(stamina, "sprintPerSecond"), Number(stamina, "gatherPerTick")),
+                    Number(stamina, "minimumRefillFactor"), Number(stamina, "sprintPerSecond"), Number(stamina, "gatherPerTick"),
+                    Optional(stamina, "sprintSpeedFactor", 1.6), Optional(stamina, "gatherSlowFactor", 0.5)),
                 new RestSpec((int)Number(rest, "radiusBlocks"), Number(rest, "refillFactor"), Number(rest, "recoveryFactor")),
                 ChangeOf(root.GetProperty("night")),
                 ChangeOf(collapse),

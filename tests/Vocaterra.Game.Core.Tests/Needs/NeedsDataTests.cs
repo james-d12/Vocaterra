@@ -35,6 +35,15 @@ public sealed class NeedsDataTests
     }
 
     [Fact]
+    public void TheSprintAndTheSlowGatherAreTheDataAndTheValidatorRefusesWhatCannotWork()
+    {
+        Assert.Equal((1.6, 0.5), (Needs.Stamina.SprintSpeedFactor, Needs.Stamina.GatherSlowFactor));
+
+        Assert.Contains(Problems(Needs with { Stamina = Needs.Stamina with { SprintSpeedFactor = 1 } }), static p => p.Contains("sprintSpeedFactor", StringComparison.Ordinal));
+        Assert.Contains(Problems(Needs with { Stamina = Needs.Stamina with { GatherSlowFactor = 0 } }), static p => p.Contains("gatherSlowFactor", StringComparison.Ordinal)); // 0 would stop gathering
+    }
+
+    [Fact]
     public void AFoodThatIsNoItemIsRefused()
     {
         var broken = Needs with { Foods = [.. Needs.Foods, new NeedFood("moon-cheese", 5, 0, 0, null)] };

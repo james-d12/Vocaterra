@@ -1,5 +1,6 @@
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Needs;
+using Vocaterra.Game.Core.Voxel;
 
 namespace Vocaterra.Game.Core.Session;
 
@@ -36,46 +37,42 @@ public sealed partial class VoxelSession
     public int NeedStage(NeedMeter meter) => NeedStages()[StageSlot(meter)];
 
     // One tick of the needs, after the simulation stepped: the activity is what the tick showed (a gather tick, the body moved, standing still at the lit fire).
-    private void StepNeeds(long fromX, long fromZ)
+    private void StepNeeds(long fromX, long fromZ, bool sprinting)
     {
         if (!NeedsEnabled || !PlayActive)
         {
             return;
         }
 
-        Needs.Step(1, ActivityOfTick(fromX, fromZ));
+        Needs.Step(1, ActivityOfTick(fromX, fromZ, sprinting));
         SyncNeedStages();
     }
 
-    private NeedActivity ActivityOfTick(long fromX, long fromZ)
+    private NeedActivity ActivityOfTick(long fromX, long fromZ, bool sprinting)
     {
-        if (Simulation.Events.Any(static e => e.Kind == SimulationEventKind.GatherProgress))
+        var player = Simulation.Player;
+        var moved = player.CenterX != fromX || player.CenterZ != fromZ;
+        if (moved && sprinting)
+        {
+            return NeedActivity.Sprinting;
+        }
+
+        // Filling the bottle at the water is no labour: only blocks gathered by hand or with the axe cost stamina.
+        if (Simulation.Events.Any(e => e.Kind == SimulationEventKind.GatherProgress && Simulation.Grid.GetBlock(e.X, e.Y, e.Z) != BlockId.Water))
         {
             return NeedActivity.Gathering;
         }
 
-        var player = Simulation.Player;
-        if (player.CenterX != fromX || player.CenterZ != fromZ)
+        if (moved)
         {
             return NeedActivity.Walking;
         }
 
-        return NearLitOwnFire(Data.Needs.Rest.RadiusBlocks) ? NeedActivity.Resting : NeedActivity.Idle;
+        return NearLitFire(Data.Needs.Rest.RadiusBlocks) ? NeedActivity.Resting : NeedActivity.Idle;
     }
 
-    // Standing within blocks across of the player's own fire ring when it is lit (the forge's post-torch is N02's).
-    private bool NearLitOwnFire(int blocks)
-    {
-        if (!FireLit || !Scene.Points.TryGetValue(PlayerFireRing, out var ring))
-        {
-            return false;
-        }
-
-        var feet = Simulation.Player.FeetBlock;
-        long dx = ring.X - feet.X;
-        long dz = ring.Z - feet.Z;
-        return (dx * dx) + (dz * dz) <= (long)blocks * blocks && Math.Abs(ring.Y - feet.Y) <= 6;
-    }
+    // Standing within blocks across of a lit fire ring: the player's own once its torch is on the rim, the guide's camp ring likewise, the forge always (FireRings).
+    private bool NearLitFire(int blocks) => Fires.NearLit(Simulation.Player.FeetBlock, blocks);
 
     /// <summary>
     /// Reads the stages of the five meters and raises <see cref="WorldEvents.NeedStage"/> for each that changed since it was last told, in the order hunger, thirst, sleep, health

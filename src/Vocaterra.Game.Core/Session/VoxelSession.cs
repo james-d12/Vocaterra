@@ -338,8 +338,9 @@ public sealed partial class VoxelSession : GuideSession
 
         var needsFromX = Simulation.Player.CenterX;
         var needsFromZ = Simulation.Player.CenterZ;
+        var sprinting = PrepareTick(commands); // N02: the walking and gathering speed of this tick
         Simulation.Step(commands);
-        StepNeeds(needsFromX, needsFromZ); // N01: the needs move only in active play
+        StepNeeds(needsFromX, needsFromZ, sprinting); // N01: the needs move only in active play
         AdvanceKeyWords();
         Tips.Step(Simulation.Tick);
         foreach (var e in Simulation.Events)

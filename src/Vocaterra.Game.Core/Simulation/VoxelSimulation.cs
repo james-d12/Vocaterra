@@ -66,6 +66,18 @@ public sealed class VoxelSimulation
     /// <summary>The events of the last step; replaced by the next step.</summary>
     public IReadOnlyList<SimulationEvent> Events => _events;
 
+    /// <summary>
+    /// How fast the player walks, in thousandths of the walking speed: 1000 walks, 1600 sprints, a stage's walk factor lowers it (N02). A host setting the session sets before every
+    /// tick, not state: it is not in the digest, and a simulation nobody sets walks at 1000.
+    /// </summary>
+    public int WalkPermille { get; set; } = 1000;
+
+    /// <summary>
+    /// How fast gathering a block goes, in thousandths: 1000 is full speed, a smaller number lets the progress grow only on the ticks that cross a whole step of it (a half: every
+    /// other tick), so gathering slows and never stops (N02, at zero stamina). A host setting like <see cref="WalkPermille"/>; filling a bottle is not slowed.
+    /// </summary>
+    public int GatherPermille { get; set; } = 1000;
+
     /// <summary>The selected hotbar slot, 0 to 9.</summary>
     public int SelectedSlot => _selectedSlot;
 
@@ -163,7 +175,7 @@ public sealed class VoxelSimulation
         }
 
         var (intentX, intentZ) = WalkIntent(commands);
-        var (jumped, landed) = Player.Step(Grid, intentX, intentZ, jump);
+        var (jumped, landed) = Player.Step(Grid, intentX, intentZ, jump, WalkPermille);
         if (jumped)
         {
             _events.Add(new SimulationEvent(SimulationEventKind.PlayerJumped, Tick));
@@ -415,6 +427,13 @@ public sealed class VoxelSimulation
         return coordinate < low ? low - coordinate : coordinate > high ? coordinate - high : 0;
     }
 
+    // Whether this tick adds a step of progress: always at full speed, else on the ticks where the running total of permille crosses a thousand (no state kept).
+    private bool GatherStepsNow()
+    {
+        var permille = Math.Clamp(GatherPermille, 1, 1000);
+        return permille >= 1000 || (Tick * permille / 1000) > ((Tick - 1) * permille / 1000);
+    }
+
     private void ResetGather()
     {
         _gatherTarget = null;
@@ -458,7 +477,11 @@ public sealed class VoxelSimulation
             _gatherProgress = 0;
         }
 
-        _gatherProgress++;
+        if (GatherStepsNow())
+        {
+            _gatherProgress++;
+        }
+
         var ticks = GatherTicksOf(id); // a trunk takes a quarter of the ticks with the axe held (V03)
         _events.Add(new SimulationEvent(SimulationEventKind.GatherProgress, Tick, cell.X, cell.Y, cell.Z, _gatherProgress, ticks));
         if (_gatherProgress < ticks)
