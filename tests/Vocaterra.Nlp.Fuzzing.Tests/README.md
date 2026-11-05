@@ -866,11 +866,14 @@ Found and fixed in M81 (O15, CsCheck seed `41s2qgWEC-M9`, which reproduces on it
   check (`coverage.uncovered`, an error, 27 of them for `describe` in a run of `lint --strict`) says its examples need a grammar or a rule. The tolerance now accepts the
   removal for an intent with examples (`ContentFieldReason.ExampleOnlyIntent`) as well as for one with rules, and nothing else. Regressions:
   `OracleInfrastructureTests.AGrammarlessIntentIsToleratedOnlyWhenItHasRulesOrExamples` and `IntentCatalogTests.AnIntentWithOnlyExamplesLoadsAndKeepsThemForTheEmbeddingRung`.
-## Known, deliberately not fixed
+Found and fixed in M82 (the owner's decision, 2026-11-05; the bare-intent case M81 left open):
 
-- **An intent with no slot grammar, keyword rule or example loads** (`IntentCatalog.Build`; `IntentCatalogTests.OptionalMembersMayBeOmitted` pins a bare `{ "intentId" }`).
-  Nothing can match such an intent, so removing its grammars is a content change the oracle would call undocumented (`AcceptedGrammarlessIntent` returns null). No bundle
-  on disk has one (every intent of `content/game-v1` has examples), so the oracle has not met it; whether the loader should refuse it is the owner's call.
+- **An intent with no slot grammar, keyword rule or example loaded** (`IntentCatalog.Build`; `IntentCatalogTests.OptionalMembersMayBeOmitted` had pinned a bare `{ "intentId" }`).
+  Nothing can match such an intent, so the loader now refuses it: a `FormatException` the bundle loader reports as `intents/intents.json: Intent '<id>' has no slotGrammars, keywordRules or examples`.
+  Removing the last of the three from an intent is therefore a rejected mutation, and `AcceptedGrammarlessIntent` still returns null for it. No bundle on disk was bare, so nothing else changed.
+  Regressions: `IntentCatalogTests.AnIntentWithNoGrammarRuleOrExampleIsRefused` and the per-member loads beside it.
+
+## Known, deliberately not fixed
 
 Findings that are content gaps or design limits rather than defects of one stage. None changes behaviour here; the generators step around
 them explicitly (each is a skip or a restriction in the generator, counted in the diagnostics) and the oracles stay strict.
