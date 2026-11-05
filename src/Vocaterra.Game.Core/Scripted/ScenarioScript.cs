@@ -354,6 +354,10 @@ public sealed class ScenarioScript
                 _hooks.Drink?.Invoke();
                 _index++;
                 break;
+            case ScriptStepKind.TakeBelongings:
+                _hooks.TakeBelongings?.Invoke();
+                _index++;
+                break;
             case ScriptStepKind.Pick:
                 _log($"pick {step.Value}: a check step; the check battery takes it before the world (ignored here)");
                 _index++;

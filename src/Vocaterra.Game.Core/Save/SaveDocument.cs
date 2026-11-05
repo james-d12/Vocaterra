@@ -337,7 +337,15 @@ public sealed record RepeatSave(string Tag, int Count);
 
 /// <summary>
 /// The game's systems that keep state of their own (save version 6, N01): a map from a system's name to its entry, so a system joins the save without another format change.
-/// <c>needs</c> is the player's needs; W06 adds <c>procedures</c>. An entry a save lacks (every save before version 6) is the system as a new game has it.
+/// <c>needs</c> is the player's needs; <c>chest</c> the belongings a death left (N04); W06 adds <c>procedures</c>. An entry a save lacks (every save before version 6) is the system as a new game has it.
 /// </summary>
 /// <param name="Needs">The player's needs (<see cref="Vocaterra.Game.Core.Needs.PlayerNeeds"/>), or <see langword="null"/> for full needs.</param>
-public sealed record SystemsSave(Vocaterra.Game.Core.Needs.NeedsSave? Needs = null);
+/// <param name="Chest">The belongings chest a death left standing (its cell and what is in it), or <see langword="null"/> for none. The chest block itself is in the world's block edits.</param>
+public sealed record SystemsSave(Vocaterra.Game.Core.Needs.NeedsSave? Needs = null, ChestSave? Chest = null);
+
+/// <summary>The belongings chest of a death (N04, design 9.7): the cell of its block and the stacks it holds.</summary>
+/// <param name="X">The cell's X.</param>
+/// <param name="Y">The cell's Y.</param>
+/// <param name="Z">The cell's Z.</param>
+/// <param name="Stacks">What is in it, one entry per item kind.</param>
+public sealed record ChestSave(int X, int Y, int Z, SlotSave[] Stacks);

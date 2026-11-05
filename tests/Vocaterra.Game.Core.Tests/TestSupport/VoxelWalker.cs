@@ -168,6 +168,37 @@ internal static class VoxelWalker
         return null;
     }
 
+    /// <summary>The cells a walker can step to from a standable cell: one block up, level or down by up to three (as <see cref="FindPath"/> takes them).</summary>
+    public static IEnumerable<BlockPos> Neighbours(VoxelGrid grid, BlockPos current)
+    {
+        foreach (var (dx, dz) in Directions)
+        {
+            for (var dy = 1; dy >= -3; dy--)
+            {
+                var next = new BlockPos(current.X + dx, current.Y + dy, current.Z + dz);
+                if (!Standable(grid, next))
+                {
+                    continue;
+                }
+
+                var clear = true;
+                for (var y = next.Y; y <= Math.Max(next.Y + 1, current.Y + 1) && clear; y++)
+                {
+                    clear = !grid.IsSolid(next.X, y, next.Z);
+                }
+
+                if (clear && (dy <= 0 || !grid.IsSolid(current.X, current.Y + 2, current.Z)))
+                {
+                    yield return next;
+                    break;
+                }
+            }
+        }
+    }
+
+    /// <summary>Whether a body can stand with its feet in the cell (dry ground under it, two free cells).</summary>
+    public static bool IsStandable(VoxelGrid grid, BlockPos feet) => Standable(grid, feet);
+
     private static bool Standable(VoxelGrid grid, BlockPos feet) =>
         grid.InBounds(feet.X, feet.Y, feet.Z)
         && !grid.IsSolid(feet.X, feet.Y, feet.Z)

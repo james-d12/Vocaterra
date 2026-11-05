@@ -54,6 +54,8 @@ public sealed class PlayerNeeds
     /// <summary>The top of a drive and of health.</summary>
     public const double Full = 100;
 
+    private const double HealthEpsilon = 1e-9;
+
     private readonly NeedsData _data;
     private double _hunger = Full;
     private double _thirst = Full;
@@ -215,6 +217,10 @@ public sealed class PlayerNeeds
 
         var effects = Effects(activity == NeedActivity.Resting);
         _health = Math.Clamp(_health + (effects.HealthChangePerSecond * seconds), 0, Full);
+        if (_health < HealthEpsilon)
+        {
+            _health = 0; // tick sums of 1/240 are not exact: a hair above zero is zero, so a death comes on the tick that spends the last point
+        }
 
         var stamina = _data.Stamina;
         if (sprinting)

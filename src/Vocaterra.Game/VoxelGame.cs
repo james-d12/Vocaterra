@@ -306,7 +306,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                         var result = session.EatItem(item);
                         Console.WriteLine($"eat: {result} ({item}), hunger {session.Needs.Value(NeedMeter.Hunger):0.#}, thirst {session.Needs.Value(NeedMeter.Thirst):0.#}");
                     },
-                    () => Console.WriteLine($"drink: {session.DrinkByHand()}, thirst {session.Needs.Value(NeedMeter.Thirst):0.#}"));
+                    () => Console.WriteLine($"drink: {session.DrinkByHand()}, thirst {session.Needs.Value(NeedMeter.Thirst):0.#}"),
+                    () => Console.WriteLine($"take-belongings: {session.TakeBelongings()}, chest {(session.Chest is { } chest ? $"{chest.Total} items at {chest.Cell.X},{chest.Cell.Y},{chest.Cell.Z}" : "gone")}"));
                 _scenario = new ScenarioScript(session, _look, _dialogue, options.Script, name => ScriptItemNames.Resolve(session.Nouns, name), hooks, Console.WriteLine, holdsCheckAnswers: options.Playtest);
             }
         }
@@ -409,9 +410,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                 _ending.Dismiss(); // Esc takes the closing card down (S17)
             }),
             Sleep: new DelegateCommand(() => SleepNow("the player")),
-            DrinkByHand: new DelegateCommand(() => _session.DrinkByHand()));
+            DrinkByHand: new DelegateCommand(() => _session.DrinkByHand()),
+            TakeBelongings: new DelegateCommand(() => _session.TakeBelongings()));
         _globalKeys = KeyBindings.Global(commands, options.Playtest);
-        _worldKeys = KeyBindings.World(commands, () => _aimed is not null, () => _session.Tips.Current is not null, AimedAtWorkbench, () => CardOffersSleep, () => FireOffersSleep, () => _session.AimedAtWater);
+        _worldKeys = KeyBindings.World(commands, () => _aimed is not null, () => _session.Tips.Current is not null, AimedAtWorkbench, () => CardOffersSleep, () => FireOffersSleep, () => _session.AimedAtWater, () => _session.AimedAtChest);
         // The session log (S11) is opened first, so the battery's start is in it; the battery's plan is the bundle's items in the seeded order of its kind.
         (_sessionDirectory, _log, _autosave) = SessionStart.Open(options, session, _micCheck is not null, _toasts, _playtestFlow, _saves, OnAppliedTurn, Console.WriteLine);
         if (options.Check is { } battery)
@@ -937,8 +939,16 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private double _collapseFade; // 0 clear, 1 black
     private bool _collapsing;
 
+    private int _deathsSeen;
+
     private void DriveCollapse(double seconds)
     {
+        if (_session.DeathCount != _deathsSeen)
+        {
+            _deathsSeen = _session.DeathCount;
+            _collapseFade = 1; // a death (N04): the screen is black where the player fell and fades in at their fire
+        }
+
         if (_collapsing)
         {
             _collapseFade = Math.Min(1, _collapseFade + (seconds / CollapseFadeSeconds));

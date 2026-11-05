@@ -33,7 +33,8 @@ public sealed class KeyBindings
     /// <param name="cardOffersSleep">Whether the session's closing card offers the sleep (V12c): Enter sleeps, before it shows the next tip; none when <see langword="null"/>.</param>
     /// <param name="fireOffersSleep">Whether the player's own lit fire offers the sleep (V12c): E sleeps, after an NPC and the workbench; none when <see langword="null"/>.</param>
     /// <param name="aimedAtWater">Whether the crosshair is on water within reach (N02): E drinks by hand, before the inventory; none when <see langword="null"/>.</param>
-    public static KeyBindings World(GameCommands commands, Func<bool> aimedAtNpc, Func<bool> tipShown, Func<bool> atWorkbench, Func<bool>? cardOffersSleep = null, Func<bool>? fireOffersSleep = null, Func<bool>? aimedAtWater = null)
+    /// <param name="aimedAtChest">Whether the crosshair is on the belongings chest within reach (N04): E takes back what the bag can hold, before the inventory; none when <see langword="null"/>.</param>
+    public static KeyBindings World(GameCommands commands, Func<bool> aimedAtNpc, Func<bool> tipShown, Func<bool> atWorkbench, Func<bool>? cardOffersSleep = null, Func<bool>? fireOffersSleep = null, Func<bool>? aimedAtWater = null, Func<bool>? aimedAtChest = null)
     {
         ArgumentNullException.ThrowIfNull(commands);
         var bindings = new List<KeyBinding>
@@ -63,6 +64,11 @@ public sealed class KeyBindings
         if (commands.DrinkByHand is { } drink && aimedAtWater is not null)
         {
             bindings.Add(new(InputKeys.Of("talk"), drink, aimedAtWater)); // at water it drinks by hand (N02)
+        }
+
+        if (commands.TakeBelongings is { } take && aimedAtChest is not null)
+        {
+            bindings.Add(new(InputKeys.Of("talk"), take, aimedAtChest)); // at the chest a death left it takes back the belongings (N04)
         }
 
         bindings.AddRange(

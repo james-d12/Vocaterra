@@ -29,4 +29,5 @@ public sealed record ScenarioHooks(
     Action<string>? BookPractise = null,
     Action? Sleep = null,
     Action<ItemId>? Eat = null,
-    Action? Drink = null);
+    Action? Drink = null,
+    Action? TakeBelongings = null);
