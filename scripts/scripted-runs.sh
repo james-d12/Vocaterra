@@ -5,6 +5,7 @@
 #
 #   scripts/scripted-runs.sh OUT [name...]     (no names: every run; run from the repository root after a build)
 #
+# Every run but the playtest passes --dev (U01), so its captures keep the overlay and the developer note they were recorded with.
 # Every run passes --needs off (N01): the player's needs are frozen full, so the runs keep their baselines (no run plays the ten minutes a need takes to show).
 # GAME_BIN overrides the game binary (another worktree's build); VOCATERRA_RUNS_WORK the work folder.
 set -uo pipefail
@@ -26,7 +27,9 @@ run() {
   if [ "${#ONLY[@]}" -gt 0 ] && [[ ! " ${ONLY[*]} " == *" $name "* ]]; then return; fi
   rm -rf "$W"; mkdir -p "$W"
   local started=$SECONDS
-  scripts/limited.sh "$BIN" --session-dir "$W/session" --needs off "$@" > "$W/stdout.txt" 2>&1
+  local dev=(--dev) # U01: the runs read the debug overlay and the dialogue's developer note, which ordinary play now starts without; a playtest stays clean
+  [ "$name" = "r10-playtest" ] && dev=()
+  scripts/limited.sh "$BIN" --session-dir "$W/session" --needs off "${dev[@]}" "$@" > "$W/stdout.txt" 2>&1
   local code=$?
   echo "$code" > "$W/exit.txt"
   rm -rf "${OUT:?}/$name"; cp -r "$W" "$OUT/$name"
