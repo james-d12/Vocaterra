@@ -111,12 +111,42 @@ public sealed record WorldDims(int ChunksX, int ChunksY, int ChunksZ);
 /// <param name="TextScale">The size of the interface text in percent (X08): one of <see cref="TextScaleLevels"/>; a save from before has 100.</param>
 /// <param name="ViewEffectsOff">True when the player turned the needs' effects on the view off (N05: dim edges, a blink, red edges; the icons and the lines stay). Written only when true, so a save of the default is byte for byte what it was.</param>
 /// <param name="RelaxedNeeds">True under the relaxed-needs setting (N05, design decision 17: half the rates, a faint instead of a death). Written only when true.</param>
+/// <param name="NeedsRate">The drive rate multiplier (N09), 0.5 to 4 in steps of 0.25; 0 (and so no field) is the default 1. Written only when not 1.</param>
 public sealed record SaveSettings(
     SoundVolumes Sound,
     int TextScale = 100,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool ViewEffectsOff = false,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool RelaxedNeeds = false)
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool RelaxedNeeds = false,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] double NeedsRate = 0)
 {
+    /// <summary>The drive rate of the default (N09); a save without the field reads 0, which stands for it.</summary>
+    public const double DefaultNeedsRate = 1.0;
+
+    /// <summary>The lowest drive rate.</summary>
+    public const double MinNeedsRate = 0.5;
+
+    /// <summary>The highest drive rate.</summary>
+    public const double MaxNeedsRate = 4.0;
+
+    /// <summary>The step of the drive rate slider.</summary>
+    public const double NeedsRateStep = 0.25;
+
+    /// <summary>The rate a value stands for: 0 (no field) is the default, anything else is clamped to 0.5 to 4 and snapped to a step of 0.25 (a hand-edited value, NaN included).</summary>
+    /// <param name="rate">The value read.</param>
+    public static double SnapNeedsRate(double rate)
+    {
+        if (rate == 0 || double.IsNaN(rate))
+        {
+            return DefaultNeedsRate;
+        }
+
+        return Math.Round(Math.Clamp(rate, MinNeedsRate, MaxNeedsRate) / NeedsRateStep) * NeedsRateStep;
+    }
+
+    /// <summary>The drive rate this setting stands for (the default when the field is absent).</summary>
+    [JsonIgnore]
+    public double EffectiveNeedsRate => SnapNeedsRate(NeedsRate);
+
     /// <summary>The text sizes the player can choose, in percent (X08): the normal size and two steps up.</summary>
     public static IReadOnlyList<int> TextScaleLevels { get; } = [100, 125, 150];
 
@@ -125,7 +155,7 @@ public sealed record SaveSettings(
     public static int SnapTextScale(int percent) => TextScaleLevels.OrderBy(level => Math.Abs(level - percent)).First();
 
     /// <summary>The same settings with the volumes limited to 0 to 1 and the text scale on a level.</summary>
-    public SaveSettings Clamped() => new(Sound.Clamped(), SnapTextScale(TextScale), ViewEffectsOff, RelaxedNeeds);
+    public SaveSettings Clamped() => new(Sound.Clamped(), SnapTextScale(TextScale), ViewEffectsOff, RelaxedNeeds, SnapNeedsRate(NeedsRate) == DefaultNeedsRate ? 0 : SnapNeedsRate(NeedsRate));
 }
 
 /// <summary>

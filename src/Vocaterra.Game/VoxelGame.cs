@@ -117,6 +117,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly SessionEndingFlow _endingFlow;
     private readonly LessonFrontend _lesson;
     private readonly ControlsHelp _controls;
+    private readonly SettingsPanel _settings;
     private bool _aimedTipOffered;
     private readonly NpcVoice _voice;
     private readonly MicCheckModel? _micCheck;
@@ -188,6 +189,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _session = session;
         session.NeedsEnabled = !options.NeedsOff; // --needs off freezes the needs (N01, a test aid)
         session.RelaxedNeeds = options.RelaxedNeeds || savedSettings?.RelaxedNeeds == true; // half the rates, a faint for a death (N05, design decision 17)
+        session.NeedsRate = options.NeedsRate ?? savedSettings?.EffectiveNeedsRate ?? SaveSettings.DefaultNeedsRate; // the drive rate (N09)
         _needsHud = new NeedsHud(session) { EffectsOn = options.ViewEffects ?? !(savedSettings?.ViewEffectsOff ?? false) };
         foreach (var (meter, value) in options.SetNeeds)
         {
@@ -276,6 +278,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             Console.WriteLine);
         _lesson.OnRecapDone = _bookScreen.ShowPhrases; // the lesson's recap ends on the journal's phrases page (S17)
         _controls = new ControlsHelp(() => ControlsLayer.MaxScrollFor(_drawer.View));
+        _settings = new SettingsPanel(() => session.NeedsRate, rate => { session.NeedsRate = rate; Console.WriteLine($"needs rate: {SettingsPanel.RateText(session.NeedsRate)}"); }, () => _needsHud.EffectsOn, on => { _needsHud.EffectsOn = on; Console.WriteLine($"view effects: {(on ? "on" : "off")}"); }, () => session.RelaxedNeeds, on => { session.RelaxedNeeds = on; Console.WriteLine($"relaxed needs: {(on ? "on" : "off")}"); }); // N09
         _inventoryPanel = new InventoryPanel(_inventory, _focus, session, () => _book.IsOpen);
         _craftingPanel = new CraftingPanel(_crafting, session, _sound, (x, y) => new CraftingLayout(_canvas.Width, _canvas.Height, session.Recipes.Entries.Count).RowAt(x, y), () => _book.IsOpen || _inventory.IsOpen || _dialogue.IsOpen);
         if (options.IsScreenshotRun)
@@ -369,7 +372,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         Window.AllowUserResizing = true;
         Window.Title = _playtest ? $"Vocaterra playtest (seed {options.Seed})" : $"Vocaterra 3D (seed {options.Seed})";
         Window.TextInput += OnTextInput;
-        _saves = new SaveService(session, pristine, () => new SaveSettings(_sound.Mixer.Volumes, _canvas.TextPercent, !_needsHud.EffectsOn, session.RelaxedNeeds), Console.WriteLine); // the sound volumes (S24), the text size (X08), the view effects and the relaxed needs (N05) ride in the save's settings
+        _saves = new SaveService(session, pristine, () => new SaveSettings(_sound.Mixer.Volumes, _canvas.TextPercent, !_needsHud.EffectsOn, session.RelaxedNeeds, session.NeedsRate == SaveSettings.DefaultNeedsRate ? 0 : session.NeedsRate), Console.WriteLine); // the sound volumes (S24), the text size (X08), the view effects and the relaxed needs (N05) ride in the save's settings
         _checks = new CheckBattery(
             session,
             () => _log,
@@ -394,10 +397,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _saves,
             new PlaytestHooks(() => _scenario?.Index ?? 0, index => _scenario?.SkipTo(index), ClosePanels, DrainForSave),
             Console.WriteLine);
-        _runEnd = new ScriptedRunEnd(options, session, _checks, _scenario, _dialogue, _micCheck, _shots, (_bookScreen.Open, _inventoryPanel.Open, _craftingPanel.Open), Exit, Console.WriteLine, (tick, message) => _log?.RunTruncated(tick, message));
+        _runEnd = new ScriptedRunEnd(options, session, _checks, _scenario, _dialogue, _micCheck, _shots, (_bookScreen.Open, _inventoryPanel.Open, _craftingPanel.Open), Exit, Console.WriteLine, (tick, message) => _log?.RunTruncated(tick, message), _settings.Open);
         _screens = new ScreenStack(
-            [_micScreen, _checks, _dialogueScreen, _controls, _bookScreen, _inventoryPanel, _craftingPanel],
-            [_checks, _micScreen, _dialogueScreen, _bookScreen, _inventoryPanel, _craftingPanel, _controls]);
+            [_micScreen, _checks, _dialogueScreen, _controls, _settings, _bookScreen, _inventoryPanel, _craftingPanel],
+            [_checks, _micScreen, _dialogueScreen, _bookScreen, _inventoryPanel, _craftingPanel, _controls, _settings]);
         var openBook = new DelegateCommand(_bookScreen.Open); // J and the book item (S20)
         _worldInput = new WorldInput(_sim, _look, _live, openBook, new DelegateCommand(() => _session.EatSelected()), session.Data.Needs);
         var commands = new GameCommands(
@@ -405,6 +408,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             Save: new DelegateCommand(SaveNow),
             CycleTextSize: new DelegateCommand(CycleTextSize),
             ToggleViewEffects: new DelegateCommand(ToggleViewEffects),
+            OpenSettings: new DelegateCommand(_settings.Open),
             EndPlaytest: new DelegateCommand(() => _playtestFlow.EndKey(WorldRunning)),
             ToggleDebug: new DelegateCommand(() => _dialogue.ShowVerdictNotes = _debug.Visible = !_debug.Visible),
             Listen: new DelegateCommand(() =>
@@ -487,7 +491,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         pauses |= _inventoryPanel.IsOpen ? PlayPause.Inventory : PlayPause.None;
         pauses |= _craftingPanel.IsOpen ? PlayPause.Crafting : PlayPause.None;
         pauses |= _report.Paused ? PlayPause.Report : PlayPause.None;
-        pauses |= _controls.IsOpen || _micScreen.IsOpen ? PlayPause.Menu : PlayPause.None;
+        pauses |= _controls.IsOpen || _settings.IsOpen || _micScreen.IsOpen ? PlayPause.Menu : PlayPause.None;
         pauses |= _checks.Screen is not null ? PlayPause.CheckBattery : PlayPause.None;
         pauses |= _listen.Listening ? PlayPause.SpeechRecording : PlayPause.None;
         pauses |= _session.PendingTurns > 0 ? PlayPause.SpeechProcessing : PlayPause.None;
@@ -675,6 +679,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         view.Fps = _stats.Fps;
         view.Aimed = _aimed;
         view.Check = _checks.Screen;
+        view.SettingsOpen = _settings.IsOpen;
+        view.SettingsSelected = _settings.Selected;
+        view.SettingsRate = _session.NeedsRate;
+        view.SettingsEffectsOn = _needsHud.EffectsOn;
+        view.SettingsRelaxed = _session.RelaxedNeeds;
         view.ControlsOpen = _controls.IsOpen;
         view.ControlsScroll = _controls.Scroll;
         view.Report = _report;

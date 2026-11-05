@@ -78,6 +78,7 @@ public sealed class LocaleText
         "sleepHud", "reviewNothingDue", "sleepCard", "sleepPrompt", "sleptToast", "bookLessonOpen", "bookLessonAfter",
         "bookLessonsAllDone", "foodKept", "drinkKept", "diedHunger", "diedThirst", "chestRest", "beaconBelongings",
         "faintedHunger", "faintedThirst", "controlsEffectsKeys", "controlsEffects", "effectsOn", "effectsOff",
+        "controlsSettingsKeys", "controlsSettings", "settingsTitle", "settingsRate", "settingsEffects", "settingsRelaxed", "settingsOn", "settingsOff", "settingsHint",
     ];
 
     /// <summary>The most error lines one turn's feedback carries.</summary>

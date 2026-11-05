@@ -95,6 +95,8 @@ public sealed record LaunchOptions
         + "  --book-detail <lines>  scroll the book's right page down by this many lines when it opens (a scripted run, X03)\n"
         + "  --inventory             open the inventory screen once the steps are done\n"
         + "  --crafting              open the crafting panel once the steps are done\n"
+        + "  --settings              open the settings panel once the steps are done (F8)\n"
+        + "  --needs-rate <x>        the drive rate, 0.5 to 4 in steps of 0.25 (default 1, or the save's)\n"
         + "  --mic-check             show the mic check at the start (an interactive run shows it by default; a scripted run with --screenshot never does unless asked,\n"
         + "                          and then hears a synthesized \"hola\" when the machine has no microphone)\n"
         + "  --no-mic-check          never show the mic check\n"
@@ -160,6 +162,9 @@ public sealed record LaunchOptions
 
     /// <summary>Whether <c>--relaxed-needs</c> was given: the drives fall at half their rates and zero health faints instead of dying (N05, design decision 17). A save's settings may ask for it too.</summary>
     public bool RelaxedNeeds { get; init; }
+
+    /// <summary>The <c>--needs-rate</c> value (N09): the drive rate multiplier, 0.5 to 4 in steps of 0.25; <see langword="null"/> leaves the saved setting (1 for a new game).</summary>
+    public double? NeedsRate { get; init; }
 
     /// <summary>Whether <c>--view-effects on|off</c> was given, and which: the needs' effects on the view (N05); <see langword="null"/> leaves the saved setting (on for a new game).</summary>
     public bool? ViewEffects { get; init; }
@@ -274,6 +279,9 @@ public sealed record LaunchOptions
 
     /// <summary>Whether the inventory screen is opened once the script is done (<c>--inventory</c>).</summary>
     public bool ShowInventory { get; init; }
+
+    /// <summary>Whether the settings panel is opened once the script is done (<c>--settings</c>, N09: a test aid for its screenshots).</summary>
+    public bool ShowSettings { get; init; }
 
     /// <summary>Whether the crafting panel is opened once the script is done (<c>--crafting</c>).</summary>
     public bool ShowCrafting { get; init; }
@@ -398,7 +406,7 @@ public sealed record LaunchOptions
                 return false;
             }
 
-            if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--no-speech" or "--mute" or "--no-sounds" or "--voxel" or "--greyscale" or "--strict-save" or "--leave" or "--mic-check" or "--no-mic-check"
+            if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--settings" or "--no-speech" or "--mute" or "--no-sounds" or "--voxel" or "--greyscale" or "--strict-save" or "--leave" or "--mic-check" or "--no-mic-check"
                     or "--playtest" or "--dev" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep" or "--drink" or "--take-belongings" or "--relaxed-needs")
             {
                 switch (arg)
@@ -414,6 +422,9 @@ public sealed record LaunchOptions
                         break;
                     case "--take-belongings":
                         script.Add(new ScriptStep(ScriptStepKind.TakeBelongings));
+                        break;
+                    case "--settings":
+                        result = result with { ShowSettings = true };
                         break;
                     case "--relaxed-needs":
                         result = result with { RelaxedNeeds = true };
@@ -532,7 +543,7 @@ public sealed record LaunchOptions
                 or "--place" or "--select" or "--craft" or "--eat" or "--give" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
                 or "--check" or "--pick" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--sound-log"
-                or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects"))
+                or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--needs-rate"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -649,6 +660,16 @@ public sealed record LaunchOptions
                     }
 
                     result = result with { ReportDir = value };
+                    break;
+                case "--needs-rate":
+                    if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var needsRate) || !double.IsFinite(needsRate)
+                        || needsRate < SaveSettings.MinNeedsRate || needsRate > SaveSettings.MaxNeedsRate || SaveSettings.SnapNeedsRate(needsRate) != needsRate)
+                    {
+                        error = $"--needs-rate needs a number from 0.5 to 4 in steps of 0.25, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { NeedsRate = needsRate };
                     break;
                 case "--view-effects":
                     if (value is not ("on" or "off"))

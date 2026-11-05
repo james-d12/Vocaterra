@@ -40,7 +40,7 @@ several of them were moved out of the orchestrator, the game plan and a research
 | [2026-11-03-2114-adaptation-design](done/2026-11-03-2114-adaptation-design.md) | The Adaptation Design Document, revision 3 (PR #30) | PR #30 merged; replaced by [2026-11-05-2031-adaptive-design](2026-11-05-2031-adaptive-design.md) |
 | [2026-11-03-1133-docs-cleanup](done/2026-11-03-1133-docs-cleanup.md) | The documentation cleanup | `docs_cleanup` merged into `main` |
 | [2026-11-02-after-followups](done/2026-11-02-after-followups.md) | The owner's decisions after the village follow-ups | M74, M75, V29, M78 and the study merged into `feature/adaptive_design` |
-| [2026-11-03-1019-docs-structure](done/2026-11-03-1019-docs-structure.md) | The documentation layout, before the READMEs and names | Replaced by [2026-11-03-1133-docs-cleanup](2026-11-03-1133-docs-cleanup.md) |
+| [2026-11-03-1019-docs-structure](done/2026-11-03-1019-docs-structure.md) | The documentation layout, before the READMEs and names | Replaced by [2026-11-03-1133-docs-cleanup](done/2026-11-03-1133-docs-cleanup.md) |
 | [2026-11-03-0952-docs-organisation](done/2026-11-03-0952-docs-organisation.md) | The first documentation review and its proposed layout | Replaced by [2026-11-03-1019-docs-structure](done/2026-11-03-1019-docs-structure.md) |
 | [2026-11-01-village-phase-b](done/2026-11-01-village-phase-b.md) | The village, phase B, its review and the follow-up queue | Replaced by 2026-11-02-after-followups; the follow-ups merged in PR #28 |
 | [2026-10-26-engine-and-language-packs](done/2026-10-26-engine-and-language-packs.md) | D14 phase A: one engine assembly and language packs | `feature/language-packs` merged into `main` |
