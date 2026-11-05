@@ -2,6 +2,7 @@ using System.Globalization;
 using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Words;
+using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Scripted;
@@ -72,6 +73,9 @@ public sealed record LaunchOptions
         + "  --tips                  draw the first-time tips in a scripted run too (an interactive run always does; S16)\n"
         + "  --third-person          start in the behind-the-shoulder view (S15; F5 switches between it and first person)\n"
         + "  --dusk                  a lower, dimmer sun and lanterns that glow at full strength (S15)\n"
+        + "  --needs on|off          the player's needs (hunger, thirst, sleep, health, stamina) run in active play (the default, on); off freezes them full, so the language\n"
+        + "                          runs keep their baselines (a test aid, N01)\n"
+        + "  --set-need <need> <n>   set a need at launch, 0 to 100 (hunger, thirst, sleep, health; stamina up to its maximum); repeatable (a test aid, N01)\n"
         + "  --beacon <point>        stand the beacon column on a named point of the scene (camp.guide, camp.player, firering, workbench, stall, signpost, village, house1, bridge, river, lake,\n"
         + "                          waterfall...); the default is camp.guide (the walk down the trail), none puts no beacon up\n"
         + "  --journal               open the journal once the steps are done\n"
@@ -142,6 +146,12 @@ public sealed record LaunchOptions
 
     /// <summary>Whether <c>--no-autosave</c> was given: the game writes no autosave (X05).</summary>
     public bool NoAutosave { get; init; }
+
+    /// <summary>Whether <c>--needs off</c> was given: the needs are frozen full (or at the <c>--set-need</c> values) and nothing moves them (N01).</summary>
+    public bool NeedsOff { get; init; }
+
+    /// <summary>The needs <c>--set-need</c> set at launch, in the order given (N01).</summary>
+    public IReadOnlyList<(NeedMeter Meter, double Value)> SetNeeds { get; init; } = [];
 
     /// <summary>The tick at which the game throws on purpose (<c>--debug-crash-after</c>, a test-only hook of X05, not in the usage), or <see langword="null"/>.</summary>
     public long? DebugCrashAfter { get; init; }
@@ -444,11 +454,37 @@ public sealed record LaunchOptions
                 continue;
             }
 
+            if (arg == "--set-need")
+            {
+                if (i + 2 >= args.Count)
+                {
+                    error = "--set-need needs a need (hunger, thirst, sleep, health or stamina) and a value.";
+                    return false;
+                }
+
+                var needName = args[++i];
+                var needText = args[++i];
+                if (!Enum.TryParse<NeedMeter>(needName, ignoreCase: true, out var meter) || !Enum.IsDefined(meter) || char.IsDigit(needName[0]))
+                {
+                    error = $"--set-need needs hunger, thirst, sleep, health or stamina, got '{needName}'.";
+                    return false;
+                }
+
+                if (!double.TryParse(needText, NumberStyles.Float, CultureInfo.InvariantCulture, out var needValue) || !double.IsFinite(needValue) || needValue < 0 || needValue > 100)
+                {
+                    error = $"--set-need {needName} needs a value from 0 to 100, got '{needText}'.";
+                    return false;
+                }
+
+                result = result with { SetNeeds = [.. result.SetNeeds, (meter, needValue)] };
+                continue;
+            }
+
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--locale" or "--scene" or "--look" or "--walk-to" or "--interact"
                 or "--place" or "--select" or "--craft" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
                 or "--check" or "--pick" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--sound-log"
-                or "--book-play" or "--book-play-slow" or "--debug-crash-after"))
+                or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -565,6 +601,15 @@ public sealed record LaunchOptions
                     }
 
                     result = result with { ReportDir = value };
+                    break;
+                case "--needs":
+                    if (value is not ("on" or "off"))
+                    {
+                        error = $"--needs needs on or off, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { NeedsOff = value == "off" };
                     break;
                 case "--debug-crash-after":
                     // A test hook (X05, not in the usage): the game throws on the game loop once the simulation reaches this tick, so the crash handler runs.

@@ -57,6 +57,7 @@ namespace Vocaterra.Game.Core.Save;
 /// <param name="Sitting">The sitting the save was taken in (V25): the play session of the phrase-credit spacing rule, which a launch, a load and a sleep each begin. A load runs in the
 /// next one. <see langword="null"/> in a save from before V25, whose <see cref="Session"/> is then the sitting it continues from.</param>
 /// <param name="KeyWordsTaughtBy">The ids of the NPCs whose key words were taught (V23a). <see langword="null"/> in a save from before: its <see cref="KeyWordsTaught"/> then means the shopkeeper's.</param>
+/// <param name="Systems">The systems that keep state of their own (version 6, N01): the player's needs now, the procedures later. <see langword="null"/> in a save from before version 6, which starts with full needs.</param>
 public sealed record SaveDocument(
     string Format,
     int Version,
@@ -94,7 +95,8 @@ public sealed record SaveDocument(
     WorldDims? World = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? SkippedTo = null,
     int? Sitting = null,
-    IReadOnlyList<string>? KeyWordsTaughtBy = null);
+    IReadOnlyList<string>? KeyWordsTaughtBy = null,
+    SystemsSave? Systems = null);
 
 /// <summary>The size of the world's grid in chunks (X01): a save across bundles decodes the scene diff's chunk indices with it, so a world that changed size still maps by position.</summary>
 /// <param name="ChunksX">Chunks along x.</param>
@@ -332,3 +334,10 @@ public sealed record SkillSave(string SkillId, double PKnown, int Attempts, int 
 /// <param name="Tag">The tag.</param>
 /// <param name="Count">The count.</param>
 public sealed record RepeatSave(string Tag, int Count);
+
+/// <summary>
+/// The game's systems that keep state of their own (save version 6, N01): a map from a system's name to its entry, so a system joins the save without another format change.
+/// <c>needs</c> is the player's needs; W06 adds <c>procedures</c>. An entry a save lacks (every save before version 6) is the system as a new game has it.
+/// </summary>
+/// <param name="Needs">The player's needs (<see cref="Vocaterra.Game.Core.Needs.PlayerNeeds"/>), or <see langword="null"/> for full needs.</param>
+public sealed record SystemsSave(Vocaterra.Game.Core.Needs.NeedsSave? Needs = null);

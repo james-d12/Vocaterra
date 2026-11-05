@@ -139,6 +139,27 @@ public static class WorldEvents
     /// <summary>A test run was skipped to a later play session (V12c, <c>--skip-to-session</c>): the sessions before it were counted as done (the detail says so).</summary>
     public const string SessionSkipped = "session_skipped";
 
+    /// <summary>The player ate a food (N01, design 9.6; raised from N02 on; the detail is the food's noun).</summary>
+    public const string MealEaten = "meal_eaten";
+
+    /// <summary>The player drank (N01; raised from N02 on; the detail is <c>botella</c> or the place).</summary>
+    public const string WaterDrunk = "water_drunk";
+
+    /// <summary>A drive's or health's stage changed, worse or better (N01; the detail is <c>hambre</c>, <c>sed</c>, <c>sueño</c> or <c>salud</c>; the stage itself is in the save).</summary>
+    public const string NeedStage = "need_stage";
+
+    /// <summary>The player collapsed from exhaustion (N01; raised from N03 on).</summary>
+    public const string PlayerCollapsed = "player_collapsed";
+
+    /// <summary>The player died (N01; raised from N04 on; the detail is <c>hambre</c> or <c>sed</c>).</summary>
+    public const string PlayerDied = "player_died";
+
+    /// <summary>The player woke after a death or a collapse (N01; raised from N03 on).</summary>
+    public const string PlayerWoke = "player_woke";
+
+    /// <summary>The player took back the belongings a death left in the chest (N01; raised from N04 on).</summary>
+    public const string BelongingsRecovered = "belongings_recovered";
+
     /// <summary>Every world event name, in the order above (the tips, the lessons and the objectives check the names they use against it).</summary>
     public static IReadOnlyList<string> All { get; } =
     [
@@ -148,5 +169,6 @@ public static class WorldEvents
         WarmupOffered, WarmupStarted, WarmupEnded, WarmupSkipped, ReviewSkipped, ReviewAnswered,
         BeaconReached, PlaceAsked, ItemTaken, OrderDelivered,
         Slept, SessionSkipped,
+        MealEaten, WaterDrunk, NeedStage, PlayerCollapsed, PlayerDied, PlayerWoke, BelongingsRecovered,
     ];
 }

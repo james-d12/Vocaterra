@@ -336,7 +336,10 @@ public sealed partial class VoxelSession : GuideSession
             _riverPointed = true; // an NPC (the guide, or the villager through the table) has sent the player to the river
         }
 
+        var needsFromX = Simulation.Player.CenterX;
+        var needsFromZ = Simulation.Player.CenterZ;
         Simulation.Step(commands);
+        StepNeeds(needsFromX, needsFromZ); // N01: the needs move only in active play
         AdvanceKeyWords();
         Tips.Step(Simulation.Tick);
         foreach (var e in Simulation.Events)

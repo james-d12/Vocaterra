@@ -107,6 +107,8 @@ Content/          GameData (every game file of the bundle, read once from its ve
                   content-plan C02), LocaleBundle and LocaleText (the learner's support language from content/locale, C03)
 Event/            the game's events (WorldEvents, GameEvent), EventPrinter (the console's event lines) and Trigger (what a tip, a lesson step
                   or an objective waits for, C06)
+Needs/            PlayerNeeds (the five meters and the exhaustion timer, stages and effects worked out from them), NeedsData (game/needs.json), NeedsValidator,
+                  the Drive, NeedMeter, NeedActivity and PlayPause kinds (N01)
 Input/            the keys without the engine (GameKey, IInputFrame, D-p2-1a), the command pattern (IGameCommand, DelegateCommand,
                   GameCommands, KeyBinding, KeyBindings, InputKeys: the commands' keys by name, which the locale's {key:…} spells),
                   InputFocus, KeyRepeater, OpenKeySwallow, TextEntry, AccentShortcuts, TextEdits, TextEditKeys, the push-to-talk
@@ -240,6 +242,27 @@ How the guide's turn meets the host's duties (see `src/Vocaterra.Game/README.md`
   them to the nearest block, the cursor block and a hint, and the front-end draws the beacon.
 - **Evaluation** never runs inside `VoxelSession.Step`. Since P5 it runs on the turn worker (next section); `GuideSession.Say` is the synchronous
   path that the tests and any headless caller still use.
+
+## Needs (N01)
+
+The player's hunger, thirst, sleep, health and stamina (adaptation design section 9, D-game-24). Engine-free, in `Vocaterra.Game.Core`:
+
+- **The data** is `content/game-v1/game/needs.json` (schema `content/schema/needs.schema.json`): per drive its seconds per point, its effort factors and its four
+  stages (their effects, the key of their line); health's recovery and warnings; stamina's costs and refill; rest at a lit fire; a night's and a collapse's changes;
+  the foods; the death rules. `GameData.Needs` holds it (`NeedsData`) and `GameDataValidator` runs `NeedsValidator` on it (every food an item, every rate positive,
+  the stages in order). The stage lines' text is the HUD's (N05); the file holds their keys only.
+- **The model** is `Needs/PlayerNeeds`: plain state for the five meters and two timers, with `Step(ticks, activity)`, `Eat`, `Drink`, `Sleep` (a night), `Collapse`, `Die`
+  and `Wake`. `StageOf`, `HealthStage` and `Effects()` (stamina's maximum and refill, the walking factor, sprint allowed, health's change, the view effects) are worked out
+  from the meters and the data on every call and never stored. No clock and no random numbers: time arrives as ticks.
+- **The wiring** is the partial `Session/VoxelSession.Needs.cs`: the session owns the `PlayerNeeds` and steps it on its world tick, once a tick, only while play is active
+  (`PlayPauses` is `PlayPause.None`). The game sets `PlayPauses` each frame from what it has open (`VoxelGame.PlayPausesNow`): the conversation and lesson panels, the
+  book, the inventory, crafting, a station, the report (F8), a menu, the check battery, and speech being recorded or processed. The world's ticks go on under most of
+  these and the stored time counts them all, so the needs count active ticks themselves. The activity of a tick is read from the simulation (a gather tick, the body
+  moved, standing still within the rest radius of the lit player fire). `need_stage` is raised when a stage changes. What the stages do to the player, eating, drinking,
+  sleep, the collapse and death are N02 to N04's.
+- **The save** (version 6): the optional `systems` map, with `systems.needs` holding the five meters and the two timers; versions 1 to 5 start with full needs. The needs
+  are not in the world's digest; a load clamps a value out of range and refuses one that is not a number.
+- **Test aids:** `--needs off` freezes the needs (every scripted run passes it), `--set-need <need> <value>` sets one at launch.
 
 ## Spoken input, the worker thread and the models folder (P5)
 

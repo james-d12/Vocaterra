@@ -6,6 +6,7 @@ using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
+using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tip;
@@ -67,6 +68,7 @@ public static class GameDataValidator
         CheckNpcs(data, problems);
         CheckHostActions(data, problems);
         CheckObjectives(data, problems);
+        problems.AddRange(NeedsValidator.Validate(data.Needs)); // N01: every food an item, every rate positive, the stages in order
         CheckLessonLevels(data, problems);
         return problems;
     }

@@ -14,6 +14,7 @@ using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Navigation;
+using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Save;
@@ -185,6 +186,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _canvas = new UiCanvas(SaveSettings.SnapTextScale(options.TextScale ?? savedTextScale ?? 100), () => (GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height));
         _devices = new InputDevices(_canvas);
         _session = session;
+        session.NeedsEnabled = !options.NeedsOff; // --needs off freezes the needs (N01, a test aid)
+        foreach (var (meter, value) in options.SetNeeds)
+        {
+            session.SetNeed(meter, value); // --set-need (N01, a test aid)
+        }
+
         session.SleepOffered = !options.Playtest; // a playtest plays one session per run: its post-check follows the ending, and no sleep is offered (V12c)
         _scene = scene;
         _voice = voice;
@@ -434,6 +441,30 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // The world is on screen: no check battery and no mic check (the playtest's triggers and its end key need that).
     private bool WorldRunning => _checks.Screen is null && _micCheck is not { IsActive: true };
 
+    // Why play is not active this frame (N01, design 9.2): the panels, the report, the check battery, the voice. The world's ticks go on under most of them, so the session is told.
+    private PlayPause PlayPausesNow()
+    {
+        var pauses = PlayPause.None;
+        if (_dialogue.IsOpen)
+        {
+            pauses |= PlayPause.Conversation;
+            if (_session.Lessons.Active is not null)
+            {
+                pauses |= PlayPause.Lesson;
+            }
+        }
+
+        pauses |= _bookScreen.IsOpen ? PlayPause.Book : PlayPause.None;
+        pauses |= _inventoryPanel.IsOpen ? PlayPause.Inventory : PlayPause.None;
+        pauses |= _craftingPanel.IsOpen ? PlayPause.Crafting : PlayPause.None;
+        pauses |= _report.Paused ? PlayPause.Report : PlayPause.None;
+        pauses |= _controls.IsOpen || _micScreen.IsOpen ? PlayPause.Menu : PlayPause.None;
+        pauses |= _checks.Screen is not null ? PlayPause.CheckBattery : PlayPause.None;
+        pauses |= _listen.Listening ? PlayPause.SpeechRecording : PlayPause.None;
+        pauses |= _session.PendingTurns > 0 ? PlayPause.SpeechProcessing : PlayPause.None;
+        return pauses;
+    }
+
     // The player is free for the sleep's offer (V12c): the world on screen, no screen, panel or report up, no voice recorded.
     private bool SleepFree => WorldRunning && _screens.Top is null && !_dialogue.IsOpen && !_listen.Listening && !_report.Paused;
 
@@ -542,6 +573,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         AutosaveDue(); // the autosave at its safe points (X05)
 
         _checks.Drive();
+        _session.PlayPauses = PlayPausesNow(); // the needs move only in active play (N01)
         var steps = _accumulator.Advance(seconds);
         if (_checks.Screen is not null)
         {

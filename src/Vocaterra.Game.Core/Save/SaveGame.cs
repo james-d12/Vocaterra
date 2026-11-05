@@ -43,9 +43,9 @@ public static class SaveGame
 
     /// <summary>
     /// The format version this code writes (version 2 adds the learner's record, S19; version 3 keeps the check answers out of its word rows, S19b; version 5 keys
-    /// the objective's steps <c>&lt;objective&gt;.&lt;step&gt;</c>, C07).
+    /// the objective's steps <c>&lt;objective&gt;.&lt;step&gt;</c>, C07; version 6 adds the optional <c>systems</c> map with the player's needs, N01).
     /// </summary>
-    public const int CurrentVersion = 5;
+    public const int CurrentVersion = 6;
 
     /// <summary>The objective the steps of a save before version 5 belong to: those saves held the camp checklist alone, keyed by the step (<c>wood</c>).</summary>
     public const string UnqualifiedObjective = "camp";
@@ -177,7 +177,8 @@ public static class SaveGame
             World: new WorldDims(session.Scene.Grid.ChunksX, session.Scene.Grid.ChunksY, session.Scene.Grid.ChunksZ),
             SkippedTo: session.SkippedTo,
             Sitting: session.Sitting,
-            KeyWordsTaughtBy: session.KeyWordsTaughtBy);
+            KeyWordsTaughtBy: session.KeyWordsTaughtBy,
+            Systems: new SystemsSave(session.Needs.Capture()));
     }
 
     /// <summary>Captures a session and serializes it: the text of the save file.</summary>
@@ -357,7 +358,7 @@ public static class SaveGame
         }
 
         session.ClearUnsaved();
-        RestoreParts(session, document, migrating: false);
+        RestoreParts(session, document, migrating: false); // N01: the needs entry passes through the night unchanged, as a load's does; the night's changes (PlayerNeeds.Sleep) are N03's
         session.Day = document.Session + 1;
         session.Sitting = (document.Sitting ?? document.Session) + 1;
         session.LogEvent(new WorldEvent(session.CurrentTick, session.StoredTime.UnixSeconds, WorldEvents.Slept, null, string.Create(CultureInfo.InvariantCulture, $"session {document.Session} to {session.Day}"))); // the new session's first event
@@ -404,6 +405,7 @@ public static class SaveGame
             session.Learner.Restore(learner, checksCounted: document.Version < 3); // a version 1 save has none: the learner's history starts empty (S19); a version 2 save's rows counted the checks (S19b)
         }
 
+        session.RestoreNeeds(document.Systems?.Needs); // N01: a save before version 6 has none, so full needs; the needs are not in the world's digest
         session.SkippedTo = document.SkippedTo; // a test run skipped to a later session stays marked (V12c)
         session.RestoreStage(); // the stage of the objective area (S17) follows from the world and the progress just put back
     }

@@ -36,6 +36,20 @@ dotnet run --project src/Vocaterra.Game -- --content /tmp/x01-bundle --mute --lo
 dotnet run --project src/Vocaterra.Game -- --content /tmp/x01-bundle --mute --load /tmp/x01.save --screenshot /tmp/x01-migrated.png --frames 30
 ```
 
+## Format version 6: the `systems` map and the needs (N01)
+
+Version 6 adds an optional `systems` map to the save: a system's name to its entry, so a system joins the save without another format change (W06 adds `procedures`).
+Its `needs` entry holds the player's five meters and two timers: `hunger`, `thirst`, `sleep` (0 to 100), `stamina` (0 to its current maximum), `health` (0 to 100),
+`exhaustionSeconds` (seconds of active play at sleep's last stage) and `effortFreeSeconds` (seconds since the last effort). Later milestones add the regrowth, gift and
+chest state as optional fields of the entry. Stages and their effects are never saved: they are worked out from the meters and the data.
+
+- **Versions 1 to 5 load** with full needs (no `systems`).
+- **The needs are not in the world's digest.** A load and a night compare the digest, and an older save has none; the needs are checked by range instead: a value out of range
+  (a drive or health outside 0 to 100, stamina over its maximum, a timer below 0) is **clamped** into it, and a value that is not a number **refuses** the save.
+- **A night is a load in the same run,** so the needs entry passes through `SaveGame.Sleep` as a load restores it. The night's own changes (`PlayerNeeds.Sleep`) are applied by
+  the sleep's wiring (N03).
+- **A load raises no `need_stage` event** for what was saved: the stages are taken as they are.
+
 ## Autosave and the crash report (X05, R04)
 
 The game saves itself at its safe points, and a crash leaves a report instead of losing the session.
