@@ -31,6 +31,8 @@ internal sealed class SpanishAnalysisRules : IAnalysisRules
 
     public bool IsInterjectionFirst(string word) => SpanishAnalysisTables.IsInterjectionFirst(word);
 
+    public bool IsNamePosition(IReadOnlyList<string> words, int index) => SpanishAnalysisTables.IsNamePosition(words, index);
+
     public bool IsNearFutureAuxiliary(string lemma) => string.Equals(lemma, "ir", StringComparison.Ordinal);
 
     public bool IsNearFutureLinker(string word) => string.Equals(word, "a", StringComparison.Ordinal);

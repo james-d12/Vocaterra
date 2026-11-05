@@ -128,6 +128,12 @@
       "matches": []
     },
     {
+      "key": "03ffebfd5e1b1338c4210077fc227e5900da7afea2a967c3d126c81c0ff6d2c9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Sí!",
+      "matches": []
+    },
+    {
       "key": "04d663b3bfb19af9a54fb3c86a53cbad139c3d312ef925750177af00e4c6231a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Qué es esto? Mira bien.",
@@ -255,6 +261,12 @@
       "key": "088c12004ebab29756882ee9b0590df96a242bf68822b1082fa8d69819b80c16",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí por favor",
+      "matches": []
+    },
+    {
+      "key": "0899c9fde86b074348189b74fd4984a8eb556316e29a5b2cb5743ebe71c114ca",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, hace libro.",
       "matches": []
     },
     {
@@ -1122,6 +1134,12 @@
       "matches": []
     },
     {
+      "key": "210d1f61f14ff1bf458290d71c12706e3705d5e0d374bef21a592bc8c5322f01",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, hace calor.",
+      "matches": []
+    },
+    {
       "key": "2112c7be03e0c0ed111ec00dd4b2caaf86627ec1f65ac0dde2775dab9d0d6889",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mañana luz hizo pan",
@@ -1501,6 +1519,12 @@
       "matches": []
     },
     {
+      "key": "2aa0cf79b3e5531ef2f1c60f229fc00efec2288755648b0efb782feb82cf58d0",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, hace mucho calor.",
+      "matches": []
+    },
+    {
       "key": "2ab767364cb805f286937b8437cbfe3e736524525e31c8a08c06b512c1efb6fb",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "el libro",
@@ -1557,6 +1581,12 @@
       "key": "2c251fb64054b697c53506df9faca60ee96860f5c7513404018d10eb6108a042",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Muy bien! Es un libro.",
+      "matches": []
+    },
+    {
+      "key": "2c3f95a5cf8c1b649c5a31a259f720ecb3b85c125035f88340e721a694b423bc",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, hace mal tiempo.",
       "matches": []
     },
     {
@@ -1861,6 +1891,12 @@
       "matches": []
     },
     {
+      "key": "353d7ab4f5f617ac829481e2e67715d37e7c33b923bc9d22774ad49bec9c9a39",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, hace viento.",
+      "matches": []
+    },
+    {
       "key": "35720891bc7da645abb0d41b9d389bebf0ee3357f6e893d3c5ad5f48c104bab9",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Un agua por favor",
@@ -2034,6 +2070,12 @@
       "key": "389b5b80c9dc73b9d43884f5dfc6eb2d05479ab7986371c2c46653a53ba6f1e4",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo necesito pan",
+      "matches": []
+    },
+    {
+      "key": "38c4445283fd1383359f25659ab7adf4b90f7faffc8208057b94a2d03be3f505",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, hace sol.",
       "matches": []
     },
     {
@@ -2301,6 +2343,12 @@
       "key": "3f67a04588f2ed8953ea921785d948af92e8e549f322c1df19d2631ec38f80ca",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Puedes decir",
+      "matches": []
+    },
+    {
+      "key": "3f7176baca996310591e66009111bd0b9bbdd5f412a598f0aa42dcc94480da7c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, hace buen tiempo.",
       "matches": []
     },
     {
@@ -3049,6 +3097,12 @@
       "matches": []
     },
     {
+      "key": "51ffee263cc228123b45a173f8b49a57a05d325b452cff857a215d441fe33ea8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tú pescas mucho",
+      "matches": []
+    },
+    {
       "key": "5230bb0ecc2dc59b79ad0b6d10b073f7562aca77e33e639958a0b1eee96b5337",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Cuánto cuesta la pan",
@@ -3468,6 +3522,12 @@
       "key": "5e9ab4c7812cc96b2900b0eaa03e03c80e1765cc5e2e9d2eea71c1dbebecf153",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí: «Tengo dos libros». ¡Muy bien!",
+      "matches": []
+    },
+    {
+      "key": "5e9c183b47c9bbf5853f907e19637ce45ee0a592bd4b17db1552f641d0c451d8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, hace frío.",
       "matches": []
     },
     {
@@ -4448,6 +4508,12 @@
       ]
     },
     {
+      "key": "759458594e4cfa69015c7b3a83abed84ff9c763fe97d4a27ff4585fb3b1c6e81",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Usted hace hachas muy buenas",
+      "matches": []
+    },
+    {
       "key": "75af87f2b40caa879a4077a8ea84a16032059945860995263edd590df879c5d8",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hay un pozo aquí",
@@ -4528,6 +4594,12 @@
       "key": "771698b3a3708e5352f4fc5fc79462f9fadd44a46df757f72c6162554d916820",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Tengo botella",
+      "matches": []
+    },
+    {
+      "key": "773f285131e645d905f6665c763cbfcc51bea192f839139b27832e7cd1f5f33e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Bien, gracias.",
       "matches": []
     },
     {
@@ -4918,6 +4990,12 @@
       "key": "8243670555506f48ef7283c84394422853837d071e3fc88f121dbc52b9b96503",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Cómo están ustedes",
+      "matches": []
+    },
+    {
+      "key": "828da1bda5dea105ac3aeb5bfcd20beb5be315ac88791620b77043e931248cab",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, hace mucho frío.",
       "matches": []
     },
     {
@@ -5581,6 +5659,12 @@
       "key": "96fe36e6e6940a1fe05e303a7aa935445fd71bfbf6e8bea41578f122cbaa9e8b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "La manzana es muy cara",
+      "matches": []
+    },
+    {
+      "key": "970becf88086250565612f75413772e1fbf41d9b9d9ae4c76d96b804f02ad852",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, hace fresco.",
       "matches": []
     },
     {
@@ -6304,6 +6388,12 @@
       "matches": []
     },
     {
+      "key": "a739d0cffb3616eaacf784ac1d38e16628199864ca797d007a906adc11df71b0",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "La tienda está en el pueblo",
+      "matches": []
+    },
+    {
       "key": "a751317cba54dc528a5462995eb88b269dea6d4d77b32790d8ec192058088ac2",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hay pan",
@@ -6349,6 +6439,12 @@
       "key": "a814c985f95a77873a643a406c11f66f0890a1f8dc524129fbbef9346e14ad4a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mañana vendo fruta",
+      "matches": []
+    },
+    {
+      "key": "a87796ddd842fba27a66d1574bce05d62221b8e629f3f4278e0d6b079224b8b1",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hoy hace sol.",
       "matches": []
     },
     {
@@ -7120,6 +7216,12 @@
       "matches": []
     },
     {
+      "key": "bfaabb9674f4e5962748a814d375abad66239ad7577f465dd3384777f7b142d5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, hace espada.",
+      "matches": []
+    },
+    {
       "key": "bfab72997185815047e139e0f227ca10e84755668e594579f3ba273e388e394e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Iré al río",
@@ -7423,6 +7525,12 @@
       "matches": []
     },
     {
+      "key": "c9591b6beb53042131318fd79a85cc74a299de30bdc8cf7c7b08a71c9017543a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, hace mucho sol.",
+      "matches": []
+    },
+    {
       "key": "c98033c10a0fd6242fd15115bb6b296b0d1fdf697bfde5399b583c193d195654",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hace calor",
@@ -7675,6 +7783,12 @@
       "key": "d022f91d788f3584b25b4c1a9689b4b39d7acdedef8c8d6b5807735e18f2a6f9",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí tengo una botella",
+      "matches": []
+    },
+    {
+      "key": "d0259d801759bc9c72213566cc73ad11dd419402ff1200fb52ba147cb4d863e6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, hace mucho viento.",
       "matches": []
     },
     {
@@ -8726,6 +8840,12 @@
       "key": "ecc34d8c47e30fe46d257f903fdccf2231768cb19eb696f0c8c7ffbd1707418e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Domingo hizo un hacha",
+      "matches": []
+    },
+    {
+      "key": "ecdca4f7bc17b66915023f48c133cedbc2b517bbefcc6197adc2b92dff4e4317",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Usted trabaja mucho",
       "matches": []
     },
     {

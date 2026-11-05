@@ -437,7 +437,9 @@
         "(sí)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? (domingo|luz|mar|león)? [VERB:trabajar] en [ART] [NOUN:place] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
         "(mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? (domingo|luz|mar|león)? [VERB:ir] a [VERB:vivir] en [ART] [NOUN:place] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
         "(sí)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? (domingo|luz|mar|león)? [VERB:vivir] en [ART] [NOUN:place] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
-        "(sí)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? (domingo|luz|mar|león)? [VERB:pescar] en [ART] [NOUN:place] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?"
+        "(sí)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? (domingo|luz|mar|león)? [VERB:pescar] en [ART] [NOUN:place] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
+        "[VERB:pescar] (mucho|poco)",
+        "[VERB:trabajar] (mucho|poco)"
       ],
       "keywordRules": [
         { "lemmas": ["ir"], "requiresSlots": [] },
@@ -677,7 +679,9 @@
         "busqué madera",
         "león trabaja en el campo",
         "luz vive en la panadería",
-        "mar va a trabajar en el río"
+        "mar va a trabajar en el río",
+        "tú pescas mucho",
+        "usted trabaja mucho"
       ]
     },
     {
@@ -972,7 +976,9 @@
         "(sí)? (luz|domingo|mar|león) [VERB:ser] (más|menos) [ADJ] que [ART]? [NOUN]",
         "(sí)? [VERB:ser] tan [ADJ] como [ART]? [NOUN]",
         "(sí)? [ART] [NOUN:object] [VERB:ser] tan [ADJ] como [ART]? [NOUN]",
-        "(sí)? (luz|domingo|mar|león) [VERB:ser] tan [ADJ] como [ART]? [NOUN]"
+        "(sí)? (luz|domingo|mar|león) [VERB:ser] tan [ADJ] como [ART]? [NOUN]",
+        "[ART] [NOUN:object] [VERB:estar] en [ART] [NOUN]",
+        "[VERB:hacer] [NOUN:object] (muy|más|menos)? [ADJ]"
       ],
       "examples": [
         {"text": "es muy caro", "errors": [], "prompt": "lesson-dear"},
@@ -1001,7 +1007,9 @@
         {"text": "el pan es grandes", "errors": ["noun.number"], "prompt": "lesson-big"},
         "esto es grande",
         "el campo es grande",
-        "el pozo es pequeño"
+        "el pozo es pequeño",
+        "la tienda está en el pueblo",
+        "usted hace hachas muy buenas"
       ]
     },
     {

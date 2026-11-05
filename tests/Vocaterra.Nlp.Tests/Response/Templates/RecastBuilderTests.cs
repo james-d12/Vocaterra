@@ -148,4 +148,29 @@ public class RecastBuilderTests
     {
         Assert.Equal(Recast("yo tiene dos espada"), Recast("yo tiene dos espada"));
     }
+
+    // M78: the verdict's errors (the near miss of an answer, which the analysis lacks) are applied beside the analysis's own.
+    [Fact]
+    public void TheVerdictsErrorsAreAppliedBesideTheAnalysisOnes()
+    {
+        var text = TestSupport.Normalize("cuál es esto");
+        var analysis = TestSupport.Analyzer.Analyze(text);
+        var nearMiss = new ErrorTag(ErrorTags.VocabWrong, new TextSpan(0, 4), "qué", "cuál");
+
+        Assert.Equal("cuál es esto", RecastBuilder.Build(text, analysis, SpanishLexicon.Empty, SpanishLanguagePack.Instance));
+        Assert.Equal("cuál es esto", RecastBuilder.Build(text, analysis, SpanishLexicon.Empty, SpanishLanguagePack.Instance, []));
+        Assert.Equal("qué es esto", RecastBuilder.Build(text, analysis, SpanishLexicon.Empty, SpanishLanguagePack.Instance, [nearMiss]));
+    }
+
+    [Fact]
+    public void AnErrorTheAnalysisAlreadyHasIsNotAppliedTwice()
+    {
+        var text = TestSupport.Normalize("yo tiene dos espada");
+        var analysis = TestSupport.Analyzer.Analyze(text);
+
+        Assert.NotEmpty(analysis.Errors);
+        Assert.Equal(
+            RecastBuilder.Build(text, analysis, SpanishLexicon.Empty, SpanishLanguagePack.Instance),
+            RecastBuilder.Build(text, analysis, SpanishLexicon.Empty, SpanishLanguagePack.Instance, analysis.Errors));
+    }
 }

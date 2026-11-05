@@ -24,6 +24,28 @@
     "event": "farmer.greet",
     "when": "always"
   },
+  "acknowledgementPools": [
+    "farmer_nice"
+  ],
+  "slotReplies": {
+    "state_weather": {
+      "slot": "weather",
+      "event": "farmer.weather",
+      "values": [
+        "mucho frío",
+        "mucho calor",
+        "mucho sol",
+        "mucho viento",
+        "frío",
+        "calor",
+        "sol",
+        "viento",
+        "fresco",
+        "buen tiempo",
+        "mal tiempo"
+      ]
+    }
+  },
   "voice": {
     "speaker": 44,
     "name": "pm_santa",

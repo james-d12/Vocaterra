@@ -21,14 +21,37 @@
     "event": "shopkeeper.ask",
     "when": "first"
   },
-  "voice": {
-    "speaker": 29,
-    "name": "em_alex",
-    "speed": 1.0
-  },
   "keyWords": [
     "agua",
     "pan"
   ],
-  "poolPrefix": "shop"
+  "poolPrefix": "shop",
+  "acknowledgementPools": [
+    "answer_accepted",
+    "shop_nice"
+  ],
+  "slotReplies": {
+    "state_weather": {
+      "slot": "weather",
+      "event": "shopkeeper.weather",
+      "values": [
+        "mucho frío",
+        "mucho calor",
+        "mucho sol",
+        "mucho viento",
+        "frío",
+        "calor",
+        "sol",
+        "viento",
+        "fresco",
+        "buen tiempo",
+        "mal tiempo"
+      ]
+    }
+  },
+  "voice": {
+    "speaker": 29,
+    "name": "em_alex",
+    "speed": 1.0
+  }
 }

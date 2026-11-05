@@ -712,7 +712,9 @@ public sealed partial class NpcService
             agent.Npc.FreeTalkPools,
             scene.PromptOverride is null,
             _bundle,
-            npc);
+            agent.Npc,
+            utterance.WorldSeed,
+            utterance.AgentState.InteractionCounter);
         var feedback = offPrompt ? null : composed.Feedback;
         var replies = offPrompt
             ? [NpcTurnRules.OffPromptReply(_bundle, offPromptPool!, utterance.WorldSeed, utterance.AgentState.InteractionCounter)]

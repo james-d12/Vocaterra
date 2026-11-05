@@ -221,8 +221,16 @@ as `vocab.unknown` even when the lexicon lacks it, so the analysis keeps its con
 an irregular verb form (`sabo`, the regularized `sé`) is no `conj.irregular` mistake, and a recast does not conjugate a lexicon verb form that is a
 name. The reading resolver gives it no word class, so it takes part in no agreement check: `tengo dos espada` with
 `tengo [NUM:qty] [WORD:thing]` reports no `noun.number`, and the name breaks the phrases and links around it, as an unknown word does. A word
-that the grammar does not bind is an ordinary word again, so an unbound name is reported as unknown. The verdict and `AnalysisResult` are
-unchanged. One limit: a name is one token of letters, so a hyphenated name such as `ana-maría` does not match.
+that the grammar does not bind is an ordinary word again, so an unbound name is reported as unknown, except in the name positions of M78.
+The verdict and `AnalysisResult` are unchanged. One limit: a name is one token of letters, so a hyphenated name such as `ana-maría` does not match.
+
+**Name positions (M78).** At a prompt that allows intents (the pipeline, and `TextGrader`; not a quiz, whose misspelt answers are the words they name, and not the
+content lint, which flags an example with a word nobody knows), a word with no reading that no grammar binds is also a name in two places: right after the words
+that introduce a name (`IAnalysisRules.IsNamePosition`; Spanish: `soy`, `llamo`, `mi nombre es`, `hola`, `buenos días`, `buenas tardes`, `buenas noches`, `buen día`,
+`adiós`, `chao`: `soy pedro`, `hola, soy pedro`, `hola pedro`, and `me llamo pedro` at a prompt that does not take `ask_name`), and as the only word of the line when it is capitalised
+(`Pedro`; a lone lower-case word, `pedro` or `xyzzy`, cannot be told from a mistyped one, and the game's tests use `xyzzy` as the unknown word, so it stays `vocab.unknown`). It is read as a `[WORD]` name is: no `vocab.unknown`, confidence 1, no reading. Every other unknown word stays unknown (`quiero pedro`, `pedro quiero pan`).
+The line's intent is not changed: `Pedro` and `soy pedro` resolve none. A name said to the listener at the end of a line, `necesito ayuda domingo`, is a word of the
+lexicon (`domingo`, the day), not an unknown one, and stays flagged by the core (the host takes the NPC's name out of the line first; accepted, M78).
 
 **Which side of an agreement pair is corrected (M29c).** In a noun phrase the generic rule is: an article, numeral or determiner adjective fixes the
 number of the noun (`dos espada` gives `noun.number` on `espada`, `las casa` on `casa`), a determiner of the wrong gender is corrected to the noun's gender

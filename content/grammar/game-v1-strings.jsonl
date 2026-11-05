@@ -17,13 +17,17 @@
 {"id":"dialogue:baker_price.1","text":"El pan cuesta dos monedas.","kind":"npc"}
 {"id":"dialogue:baker_sell.1","text":"Aquí tienes el pan. ¡Gracias!","kind":"npc"}
 {"id":"dialogue:baker_sell.2","text":"Toma tu pan. ¡Gracias!","kind":"npc"}
+{"id":"dialogue:baker_sun.1","text":"Hoy hace sol.","kind":"npc"}
 {"id":"dialogue:baker_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:baker_thank.2","text":"¡Con gusto!","kind":"npc"}
 {"id":"dialogue:baker_true.1","text":"Sí, es verdad.","kind":"npc"}
 {"id":"dialogue:baker_understood.1","text":"Te entiendo. ¿Quieres pan?","kind":"npc"}
 {"id":"dialogue:baker_wait.1","text":"Primero, la lección. Luego, las monedas.","kind":"npc"}
+{"id":"dialogue:baker_weather.1","text":"Sí, hace {weather}.","kind":"template"}
+{"id":"dialogue:baker_well.1","text":"Bien, gracias.","kind":"npc"}
 {"id":"dialogue:baker_wont_buy.1","text":"No, gracias. Solo compro madera.","kind":"npc"}
 {"id":"dialogue:baker_wont_sell.1","text":"Solo vendo pan.","kind":"npc"}
+{"id":"dialogue:baker_yes.1","text":"¡Sí!","kind":"npc"}
 {"id":"dialogue:farewell_reply.1","text":"¡Adiós, amigo! Hasta luego.","kind":"npc"}
 {"id":"dialogue:farewell_reply.2","text":"Hasta luego. ¡Buen día!","kind":"npc"}
 {"id":"dialogue:farewell_reply.3","text":"¡Nos vemos, amigo!","kind":"npc"}
@@ -45,14 +49,18 @@
 {"id":"dialogue:farmer_price.1","text":"Una manzana cuesta una moneda.","kind":"npc"}
 {"id":"dialogue:farmer_sell.1","text":"Aquí tienes. ¡Gracias!","kind":"npc"}
 {"id":"dialogue:farmer_sell.2","text":"Toma. ¡Gracias!","kind":"npc"}
+{"id":"dialogue:farmer_sun.1","text":"Hoy hace sol.","kind":"npc"}
 {"id":"dialogue:farmer_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:farmer_thank.2","text":"¡Con gusto!","kind":"npc"}
 {"id":"dialogue:farmer_total.1","text":"Quince manzanas, quince monedas.","kind":"npc"}
 {"id":"dialogue:farmer_true.1","text":"Sí, es verdad.","kind":"npc"}
 {"id":"dialogue:farmer_understood.1","text":"Te entiendo. ¿Quieres manzanas?","kind":"npc"}
 {"id":"dialogue:farmer_unit.1","text":"Una manzana, una moneda.","kind":"npc"}
+{"id":"dialogue:farmer_weather.1","text":"Sí, hace {weather}.","kind":"template"}
+{"id":"dialogue:farmer_well.1","text":"Bien, gracias.","kind":"npc"}
 {"id":"dialogue:farmer_wont_buy.1","text":"No compro eso. Compro fruta del bosque.","kind":"npc"}
 {"id":"dialogue:farmer_wont_sell.1","text":"Solo vendo manzanas.","kind":"npc"}
+{"id":"dialogue:farmer_yes.1","text":"¡Sí!","kind":"npc"}
 {"id":"dialogue:feedback.explicit_correction.1","text":"Se dice «{expected}», no «{actual}».","kind":"template"}
 {"id":"dialogue:feedback.explicit_correction.2","text":"Se dice así: «{expected}».","kind":"template"}
 {"id":"dialogue:feedback.hint.1","text":"Casi. Piensa otra vez.","kind":"npc"}
@@ -79,11 +87,15 @@
 {"id":"dialogue:fisher_nice.1","text":"¡Qué bien!","kind":"npc"}
 {"id":"dialogue:fisher_point.1","text":"Mira, está allí.","kind":"npc"}
 {"id":"dialogue:fisher_point.2","text":"Está por allí, mira.","kind":"npc"}
+{"id":"dialogue:fisher_sun.1","text":"Hoy hace sol.","kind":"npc"}
 {"id":"dialogue:fisher_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:fisher_thank.2","text":"¡Con gusto!","kind":"npc"}
 {"id":"dialogue:fisher_true.1","text":"Sí, es verdad.","kind":"npc"}
 {"id":"dialogue:fisher_understood.1","text":"Te entiendo. ¿Buscas un lugar?","kind":"npc"}
 {"id":"dialogue:fisher_unknown_place.1","text":"No sé dónde está.","kind":"npc"}
+{"id":"dialogue:fisher_weather.1","text":"Sí, hace {weather}.","kind":"template"}
+{"id":"dialogue:fisher_well.1","text":"Bien, gracias.","kind":"npc"}
+{"id":"dialogue:fisher_yes.1","text":"¡Sí!","kind":"npc"}
 {"id":"dialogue:guide.craft.lack.many.1","text":"Te faltan {lack}.","kind":"template"}
 {"id":"dialogue:guide.craft.lack.one.1","text":"Te falta {lack}.","kind":"template"}
 {"id":"dialogue:guide.craft.none.1","text":"Eso no se puede hacer.","kind":"npc"}
@@ -283,10 +295,14 @@
 {"id":"dialogue:guide_point.3","text":"¡Claro! Miro.","kind":"npc"}
 {"id":"dialogue:guide_slower.1","text":"Claro. Más despacio.","kind":"npc"}
 {"id":"dialogue:guide_slower.2","text":"¡Claro! Te lo digo más despacio.","kind":"npc"}
+{"id":"dialogue:guide_sun.1","text":"Hoy hace sol.","kind":"npc"}
 {"id":"dialogue:guide_thank.1","text":"¡Con gusto, amigo!","kind":"npc"}
 {"id":"dialogue:guide_thank.2","text":"¡De nada!","kind":"npc"}
 {"id":"dialogue:guide_thank.3","text":"¡De nada, amigo!","kind":"npc"}
 {"id":"dialogue:guide_understood.1","text":"Te entiendo. ¿Qué quieres aprender?","kind":"npc"}
+{"id":"dialogue:guide_weather.1","text":"Sí, hace {weather}.","kind":"template"}
+{"id":"dialogue:guide_well.1","text":"Bien, gracias.","kind":"npc"}
+{"id":"dialogue:guide_yes.1","text":"¡Sí!","kind":"npc"}
 {"id":"dialogue:not_understood.1","text":"No te entendí. ¿Me lo dices otra vez?","kind":"npc"}
 {"id":"dialogue:not_understood.2","text":"Perdón, ¿qué dices?","kind":"npc"}
 {"id":"dialogue:shop_bye.1","text":"¡Adiós! Hasta luego.","kind":"npc"}
@@ -306,11 +322,15 @@
 {"id":"dialogue:shop_nice.1","text":"¡Qué bien!","kind":"npc"}
 {"id":"dialogue:shop_offer.1","text":"¿Quieres pan?","kind":"npc"}
 {"id":"dialogue:shop_price.1","text":"El pan cuesta dos monedas.","kind":"npc"}
+{"id":"dialogue:shop_sun.1","text":"Hoy hace sol.","kind":"npc"}
 {"id":"dialogue:shop_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:shop_thank.2","text":"¡Con gusto!","kind":"npc"}
 {"id":"dialogue:shop_true.1","text":"Sí, es verdad.","kind":"npc"}
 {"id":"dialogue:shop_understood.1","text":"Te entiendo. ¿Quieres comprar algo?","kind":"npc"}
+{"id":"dialogue:shop_weather.1","text":"Sí, hace {weather}.","kind":"template"}
+{"id":"dialogue:shop_well.1","text":"Bien, gracias.","kind":"npc"}
 {"id":"dialogue:shop_wont_sell.1","text":"No tengo eso. Tengo agua y pan.","kind":"npc"}
+{"id":"dialogue:shop_yes.1","text":"¡Sí!","kind":"npc"}
 {"id":"dialogue:smith_buy.1","text":"¡Gracias! Aquí tienes tus monedas.","kind":"npc"}
 {"id":"dialogue:smith_bye.1","text":"¡Adiós! Hasta luego.","kind":"npc"}
 {"id":"dialogue:smith_bye.2","text":"Hasta luego.","kind":"npc"}
@@ -326,11 +346,15 @@
 {"id":"dialogue:smith_none_offered.1","text":"¿Cuántos bloques de madera me vendes?","kind":"npc"}
 {"id":"dialogue:smith_offer.1","text":"¿Quieres un hacha? Necesito dos bloques de madera y dos monedas.","kind":"npc"}
 {"id":"dialogue:smith_ok.1","text":"Está bien.","kind":"npc"}
+{"id":"dialogue:smith_sun.1","text":"Hoy hace sol.","kind":"npc"}
 {"id":"dialogue:smith_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:smith_thank.2","text":"¡Con gusto!","kind":"npc"}
 {"id":"dialogue:smith_true.1","text":"Sí, es verdad.","kind":"npc"}
 {"id":"dialogue:smith_understood.1","text":"Te entiendo. Yo hago hachas.","kind":"npc"}
+{"id":"dialogue:smith_weather.1","text":"Sí, hace {weather}.","kind":"template"}
+{"id":"dialogue:smith_well.1","text":"Bien, gracias.","kind":"npc"}
 {"id":"dialogue:smith_wont_buy.1","text":"No, gracias. Solo compro madera.","kind":"npc"}
+{"id":"dialogue:smith_yes.1","text":"¡Sí!","kind":"npc"}
 {"id":"dialogue:villager_bye.1","text":"¡Adiós! Hasta luego.","kind":"npc"}
 {"id":"dialogue:villager_bye.2","text":"Hasta luego.","kind":"npc"}
 {"id":"dialogue:villager_give.1","text":"Aquí tienes.","kind":"npc"}
@@ -341,12 +365,16 @@
 {"id":"dialogue:villager_nice.1","text":"¡Qué bien!","kind":"npc"}
 {"id":"dialogue:villager_point.1","text":"Mira, está allí.","kind":"npc"}
 {"id":"dialogue:villager_point.2","text":"Está allí, mira.","kind":"npc"}
+{"id":"dialogue:villager_sun.1","text":"Hoy hace sol.","kind":"npc"}
 {"id":"dialogue:villager_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:villager_thank.2","text":"¡Con gusto!","kind":"npc"}
 {"id":"dialogue:villager_true.1","text":"Sí, es verdad.","kind":"npc"}
 {"id":"dialogue:villager_understood.1","text":"Te entiendo. ¿Qué buscas?","kind":"npc"}
 {"id":"dialogue:villager_unknown_place.1","text":"No sé dónde está.","kind":"npc"}
+{"id":"dialogue:villager_weather.1","text":"Sí, hace {weather}.","kind":"template"}
+{"id":"dialogue:villager_well.1","text":"Bien, gracias.","kind":"npc"}
 {"id":"dialogue:villager_wont_sell.1","text":"Solo tengo pan.","kind":"npc"}
+{"id":"dialogue:villager_yes.1","text":"¡Sí!","kind":"npc"}
 {"id":"prompts:baker-open","text":"¿Qué quieres?","kind":"npc"}
 {"id":"prompts:farmer-open","text":"¡Hola! Este es mi campo.","kind":"npc"}
 {"id":"prompts:fisher-open","text":"¿Qué buscas?","kind":"npc"}
@@ -2133,6 +2161,8 @@
 {"id":"intents:describe.ex24","text":"esto es grande","kind":"learner","errors":[]}
 {"id":"intents:describe.ex25","text":"el campo es grande","kind":"learner","errors":[]}
 {"id":"intents:describe.ex26","text":"el pozo es pequeño","kind":"learner","errors":[]}
+{"id":"intents:describe.ex27","text":"la tienda está en el pueblo","kind":"learner","errors":[]}
+{"id":"intents:describe.ex28","text":"usted hace hachas muy buenas","kind":"learner","errors":[]}
 {"id":"intents:dont_know.ex0","text":"no sé","kind":"learner","errors":[]}
 {"id":"intents:dont_know.ex1","text":"no lo sé","kind":"learner","errors":[]}
 {"id":"intents:dont_know.ex2","text":"yo no sé","kind":"learner","errors":[]}
@@ -2438,6 +2468,8 @@
 {"id":"intents:state_action.ex216","text":"león trabaja en el campo","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex217","text":"luz vive en la panadería","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex218","text":"mar va a trabajar en el río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex219","text":"tú pescas mucho","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex220","text":"usted trabaja mucho","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex0","text":"tienes veinte panes","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex1","text":"tú tienes veinte panes","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex2","text":"sí, tienes veinte panes","kind":"learner","errors":[]}
@@ -3151,6 +3183,17 @@
 {"id":"npcs/smith.json:name","text":"Domingo","kind":"npc"}
 {"id":"npcs/farmer.json:label","text":"Granjero","kind":"npc"}
 {"id":"npcs/farmer.json:name","text":"León","kind":"npc"}
+{"id":"speech:baker_weather.1.buen-tiempo","text":"Sí, hace buen tiempo.","kind":"npc"}
+{"id":"speech:baker_weather.1.calor","text":"Sí, hace calor.","kind":"npc"}
+{"id":"speech:baker_weather.1.fresco","text":"Sí, hace fresco.","kind":"npc"}
+{"id":"speech:baker_weather.1.frio","text":"Sí, hace frío.","kind":"npc"}
+{"id":"speech:baker_weather.1.mal-tiempo","text":"Sí, hace mal tiempo.","kind":"npc"}
+{"id":"speech:baker_weather.1.mucho-calor","text":"Sí, hace mucho calor.","kind":"npc"}
+{"id":"speech:baker_weather.1.mucho-frio","text":"Sí, hace mucho frío.","kind":"npc"}
+{"id":"speech:baker_weather.1.mucho-sol","text":"Sí, hace mucho sol.","kind":"npc"}
+{"id":"speech:baker_weather.1.mucho-viento","text":"Sí, hace mucho viento.","kind":"npc"}
+{"id":"speech:baker_weather.1.sol","text":"Sí, hace sol.","kind":"npc"}
+{"id":"speech:baker_weather.1.viento","text":"Sí, hace viento.","kind":"npc"}
 {"id":"speech:card.agua","text":"el agua","kind":"npc"}
 {"id":"speech:card.antorcha","text":"la antorcha","kind":"npc"}
 {"id":"speech:card.arena","text":"la arena","kind":"npc"}

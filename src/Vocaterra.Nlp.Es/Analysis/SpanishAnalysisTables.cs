@@ -68,6 +68,14 @@ internal static class SpanishAnalysisTables
     // Words whose use as an interjection is the first reading to report although the lexicon also lists them as a plural noun (gracias, the plural of gracia).
     private static readonly FrozenSet<string> InterjectionFirstWords = new[] { "gracias" }.ToFrozenSet(StringComparer.Ordinal);
 
+    // The words after which a name is said (M78): the verb that gives one's name, a greeting, a farewell.
+    private static readonly FrozenSet<string> NameIntroducers = new[] { "soy", "llamo", "hola", "adiós", "adios", "chao" }.ToFrozenSet(StringComparer.Ordinal);
+
+    // The last word of a timed greeting (buenos días) and the word before it, which a name follows (buenos días pedro).
+    private static readonly FrozenSet<string> GreetingTimes = new[] { "día", "dia", "días", "dias", "tardes", "noches" }.ToFrozenSet(StringComparer.Ordinal);
+
+    private static readonly FrozenSet<string> GreetingStarts = new[] { "buen", "buenos", "buenas" }.ToFrozenSet(StringComparer.Ordinal);
+
     // The question words that take a verb right after them (dónde está, cómo está), spelled with and without the accent, folded to lower case.
     private static readonly FrozenSet<string> VerbSeekingQuestionWords = new[] { "dónde", "donde", "cómo" }.ToFrozenSet(StringComparer.Ordinal);
 
@@ -368,6 +376,28 @@ internal static class SpanishAnalysisTables
     public static bool IsInterjectionFirst(string word)
     {
         return InterjectionFirstWords.Contains(word);
+    }
+
+    /// <summary>
+    /// True when the word at <paramref name="index"/> stands where a name is said (M78): after <c>soy</c>, <c>me llamo</c> (<c>llamo</c>), <c>mi nombre es</c>, a greeting
+    /// (<c>hola</c>, <c>buenos días</c>, <c>buenas tardes</c>, <c>buenas noches</c>, <c>buen día</c>) or a farewell (<c>adiós</c>, <c>chao</c>).
+    /// </summary>
+    public static bool IsNamePosition(IReadOnlyList<string> words, int index)
+    {
+        if (index < 1)
+        {
+            return false;
+        }
+
+        var before = words[index - 1];
+        if (NameIntroducers.Contains(before))
+        {
+            return true;
+        }
+
+        var twoBefore = index >= 2 ? words[index - 2] : string.Empty;
+        return (GreetingTimes.Contains(before) && GreetingStarts.Contains(twoBefore))
+            || (before == "es" && twoBefore == "nombre");
     }
 
     /// <summary>True when the adjective lemma and the noun lemma form a fixed expression that is plural as a whole (<c>bueno</c> + <c>día</c>, <c>mucho</c> + <c>gracia</c>).</summary>

@@ -1,6 +1,7 @@
 using System.Globalization;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Taxonomy;
+using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Packs;
 using NlpLexicon = Vocaterra.Nlp.Language.Lexicon.Lexicon;
@@ -28,12 +29,29 @@ public static class RecastBuilder
     /// </summary>
     public static string Build(NormalizedText playerText, AnalysisResult analysis, NlpLexicon lexicon, ILanguagePack language)
     {
+        return Build(playerText, analysis, lexicon, language, []);
+    }
+
+    /// <summary>
+    /// The recast of <see cref="Build(NormalizedText, AnalysisResult, NlpLexicon, ILanguagePack)"/> that also applies the errors the verdict derived from the answer set,
+    /// which the analysis does not have (M78; M75: the near miss of an answer, <c>cuál es esto</c> for <c>qué es esto</c> is <c>vocab.wrong</c> over <c>cuál</c> with
+    /// <c>qué</c> expected, so the recast names the answer's word, <c>qué es esto</c>, and the praise agrees with the score). An error of <paramref name="verdictErrors"/>
+    /// with the tag and span of one of the analysis's is the same error and is ignored; the analysis's errors win an overlap.
+    /// </summary>
+    /// <param name="playerText">The normalized text of the line.</param>
+    /// <param name="analysis">The analysis of the line.</param>
+    /// <param name="lexicon">The bundle's lexicon.</param>
+    /// <param name="language">The bundle's language pack.</param>
+    /// <param name="verdictErrors">The errors of the verdict; those the analysis lacks are applied as its own are.</param>
+    public static string Build(NormalizedText playerText, AnalysisResult analysis, NlpLexicon lexicon, ILanguagePack language, IReadOnlyList<ErrorTag> verdictErrors)
+    {
         ArgumentNullException.ThrowIfNull(playerText);
         ArgumentNullException.ThrowIfNull(analysis);
         ArgumentNullException.ThrowIfNull(lexicon);
         ArgumentNullException.ThrowIfNull(language);
+        ArgumentNullException.ThrowIfNull(verdictErrors);
         var text = playerText.Text;
-        var edits = ResolveErrorEdits(text, analysis);
+        var edits = ResolveErrorEdits(text, [.. analysis.Errors, .. verdictErrors.Where(e => !analysis.Errors.Any(a => a.Tag == e.Tag && a.Span == e.Span))]);
         AddRestoredSpellings(playerText, language.Recast.RestoredSpellings(playerText, analysis, lexicon), edits);
         AddNumberEdits(playerText, analysis, language.Numbers, edits);
 
@@ -46,12 +64,12 @@ public static class RecastBuilder
         return text;
     }
 
-    private static List<Edit> ResolveErrorEdits(string text, AnalysisResult analysis)
+    private static List<Edit> ResolveErrorEdits(string text, IReadOnlyList<ErrorTag> errors)
     {
         var candidates = new List<(Edit Edit, int Order)>();
-        for (var i = 0; i < analysis.Errors.Count; i++)
+        for (var i = 0; i < errors.Count; i++)
         {
-            var error = analysis.Errors[i];
+            var error = errors[i];
             var span = error.Span;
             if (ErrorTags.IsPronunciation(error.Tag)
                 || string.IsNullOrWhiteSpace(error.Expected)

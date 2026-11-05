@@ -690,9 +690,15 @@ Moved on 2026-11-03 from `docs/game/README.md`, where V09 and V24 kept them; the
 
 **Open points after the follow-ups** (V24, 2026-11-02; checked against the follow-ups' entries and the core's, with what a later milestone fixed left out; each is marked owner, game or core).
 
-- **The voices** (owner). None of the 1 082 speech files is marked in `docs/game/speech-checklist.md`. Phase B added 222 files; the follow-ups 162 (81 lines, and V28 6 more, «Sí, es verdad.» for the baker, the smith and the fisher:
+- **The voices** (owner). None of the 1 278 speech files is marked in `docs/game/speech-checklist.md`. Phase B added 222 files; the follow-ups 162 (81 lines, and V28 6 more, «Sí, es verdad.» for the baker, the smith and the fisher:
   the villager 14, the farmer 14, the shopkeeper 14, the baker 13, the smith 13, the fisher 12, the guide 1; V27's seven «Te entiendo.» lines, one per NPC, are
-  14 of them). The shared feedback lines of V21b are in each NPC's voice (120 files), so an NPC's voice is judged on its own lines and on those.
+  14 of them). V29 added 196 (98 lines): each NPC's «¡Sí!», «Hoy hace sol.» and «Bien, gracias.» and «Sí, hace {weather}.» once for each of the 11 weather words
+  its file lists (14 lines, 28 files, per NPC). The shared feedback lines of V21b are in each NPC's voice (120 files), so an NPC's voice is judged on its own lines and on those.
+- **V29's weather and «¿cómo estás?» replies** (game). The NPCs' open prompts allow `state_weather` and `ask_weather` (and `stall-need` also `ask_wellbeing`, which it did not
+  take); the replies are fixed, `Hoy hace sol.` is the one seam if the game ever has weather (`<npc>_sun`), and the echo «Sí, hace frío.» takes only the 11 words of the
+  grammar (`slotReplies` in each NPC file): `llueve`, `nieva` and `está nublado` get «¡Sí!». A spoken weather line at a constrained prompt is still «No te entendí» (as V27's).
+  `cómo hago un hacha` at the smith stays «Te entiendo. Yo hago hachas.»: allowing `ask_craft` there makes the core read `quiero hacer un hacha` (state_want) as the craft question.
+  The grammar cache (`content/grammar/game-v1-cache.json`) lacks the 28 new strings: LanguageTool was unreachable from the sandboxed dotnet, so `scripts/content-loop.sh --grammar` is to be run once.
 - **A spoken line the prompt does not take is still «No te entendí»** (game, V27's scope). A typed line the core understands off the prompt (`Me gusta el río.`
   at the smith) gets the NPC's «Te entiendo.» and its topic; a spoken line at a constrained prompt is decoded against the answer set only (the owner's decision), so
   the core never sees the words and the NPC does not understand it. A spoken line the recognizer was unsure of keeps «No te entendí bien…» too.

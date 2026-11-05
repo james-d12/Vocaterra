@@ -18,6 +18,28 @@
     "event": "smith.greet",
     "when": "always"
   },
+  "acknowledgementPools": [
+    "smith_nice"
+  ],
+  "slotReplies": {
+    "state_weather": {
+      "slot": "weather",
+      "event": "smith.weather",
+      "values": [
+        "mucho frío",
+        "mucho calor",
+        "mucho sol",
+        "mucho viento",
+        "frío",
+        "calor",
+        "sol",
+        "viento",
+        "fresco",
+        "buen tiempo",
+        "mal tiempo"
+      ]
+    }
+  },
   "voice": {
     "speaker": 36,
     "name": "im_nicola",
