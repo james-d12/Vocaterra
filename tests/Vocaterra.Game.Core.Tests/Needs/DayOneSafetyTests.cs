@@ -1,5 +1,6 @@
 using System.Globalization;
 using Vocaterra.Game.Core.Event;
+using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Tests.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
@@ -25,6 +26,11 @@ public sealed class DayOneSafetyTests(ITestOutputHelper output)
         var (session, _, _) = CampObjectiveTests.PlayCamp();
         var water = Stage.NearestRiver(session);
         Stage.WalkToWater(session, water);
+        if (session.Simulation.Inventory.Count(ItemId.Bottle) == 0 && session.Simulation.Inventory.Count(ItemId.WaterBottle) == 0)
+        {
+            session.Simulation.GrantItems(ItemId.Bottle, 1); // the stall sells it on day 1; the route here does not shop
+        }
+
         Assert.True(Stage.Fill(session, water) > 0, "the bottle fills at the river");
         var ring = session.Scene.Point("firering");
         Assert.True(VoxelWalker.WalkTo(session, cell => Math.Abs(cell.X - ring.X) <= 3 && Math.Abs(cell.Z - ring.Z) <= 3), "the way back to the fire");

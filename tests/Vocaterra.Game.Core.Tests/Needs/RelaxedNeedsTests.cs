@@ -67,6 +67,7 @@ public sealed class RelaxedNeedsTests
         session.Simulation.Inventory.Add(ItemId.Berry, 3);
         session.SetNeed(NeedMeter.Thirst, 0);
         session.SetNeed(NeedMeter.Health, 0.25);
+        var chestsBefore = session.Scene.Grid.BlocksOfKind(BlockId.Chest).Count();
         var feetBefore = session.Simulation.Player.FeetBlock;
 
         Tick(session, 2 * Tps);
@@ -76,9 +77,9 @@ public sealed class RelaxedNeedsTests
         Assert.Equal(12, session.Simulation.Inventory.Count(ItemId.Wood));
         Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Book));
         Assert.Equal(3, session.Simulation.Inventory.Count(ItemId.Berry));
-        Assert.Empty(session.Scene.Grid.BlocksOfKind(BlockId.Chest)); // no chest block anywhere
-        Assert.Equal(50, session.Needs.Value(NeedMeter.Health), 6);
-        Assert.Equal(50, session.Needs.Value(NeedMeter.Thirst), 6);
+        Assert.Equal(chestsBefore, session.Scene.Grid.BlocksOfKind(BlockId.Chest).Count()); // no chest block added
+        Assert.Equal(50, session.Needs.Value(NeedMeter.Health), 0); // a faint tick of regrowth passes
+        Assert.Equal(50, session.Needs.Value(NeedMeter.Thirst), 0);
         Assert.Equal("faint", WorldEventsWoke(session));
         Assert.NotEqual(feetBefore, session.Simulation.Player.FeetBlock);
         Assert.Contains("woke by your fire. Your bag is with you.", session.DeathLine, StringComparison.Ordinal);
