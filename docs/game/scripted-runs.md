@@ -90,6 +90,11 @@ There is no r13: `--report-open` leaves the report panel open, and a paused worl
   Luna's first class (units u4 and u4v), and `--lesson-run first-class` runs them. r22 to r24 start no lesson at the baker (no `lesson_started`, no beacon on Luz), so the free-talk
   line `quiero dos panes, por favor` is a `supported` use (its card shows from rung 1) where it was `unaided`. r26's death sets the beacon on the player's things (N04), which the
   lesson beacon used to overwrite. r30 is new.
+- **U02 (the conversation surface, 2026-11-05):** only the pictures that show the dialogue panel with a lesson strip or older lines move; the stdout lines, the world digests, the
+  ticks and the saves are the same. The panel starts on the current exchange (older lines collapsed behind a `N earlier lines hidden (PageUp or O)` row), the lesson heading
+  (`Lesson · …`) moves from the strip into the panel's header, and the strip stands flush on the panel with no heading row or border of its own. `--expand` (a new step) shows the older lines. `compare-runs.py` finds only r30 different (`offer.png` and `declined.png`: the lesson offer's heading in the header, the strip flush on the panel); the pictures of the runs it does not
+  byte-compare (r03, r10, r17, r19 and the other tick-moved runs that show the panel) differ by the same three changes, checked by eye (r17: `1 earlier lines hidden (PageUp or O)`, then your line, her reply,
+  and `Heard: «quiero agua» · Expected: …` under them). Every stdout is unchanged.
 - **r22:** León's total in free talk is «Una manzana, una moneda.» (V21b); a session with nothing due says «Nothing to review yet» once (V23a, the toast).
 - **r23:** the free-talk line `mañana compraré pan` is a phrase use (V20 (b)), answered «¡Qué bien!» (V20), with the card-and-audio support of its turn; Luz's two
   `vendo-madera` cards are no longer shown (V20 (c)).

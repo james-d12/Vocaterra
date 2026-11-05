@@ -672,7 +672,7 @@ public sealed class DialogueModel
             return feedback?.FirstOrDefault(); // not understood
         }
 
-        if (turn.OffPromptIntent is not null && turn.Input == InputKind.Typed)
+        if (turn.OffPromptIntent is not null && turn.Input == InputKind.Typed && !turn.LessonHandled)
         {
             return _ui.Ui("coachOffPrompt");
         }

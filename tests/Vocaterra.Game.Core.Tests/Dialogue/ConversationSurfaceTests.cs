@@ -101,6 +101,14 @@ public sealed class ConversationSurfaceTests
     }
 
     [Fact]
+    public void ATurnTheLessonTookIsNeverCoachedAsOffThePrompt()
+    {
+        var (dialogue, _) = Panel();
+        Say(dialogue, Turn("sí", communicated: false, offPrompt: "agree") with { LessonHandled = true });
+        Assert.Null(dialogue.CoachingLine);
+    }
+
+    [Fact]
     public void ASlipCoachesWithTheOneRecastAndTheCorrectionAndEnglishStackIsNotShownAlongsideIt()
     {
         var (dialogue, _) = Panel();

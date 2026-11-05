@@ -268,6 +268,10 @@ public sealed class ScenarioScript
                 CloseIfOpen();
                 _index++;
                 break;
+            case ScriptStepKind.Expand:
+                _dialogue.ToggleExpanded();
+                _index++;
+                break;
             case ScriptStepKind.LessonStart:
                 if (!_dialogue.IsOpen)
                 {
