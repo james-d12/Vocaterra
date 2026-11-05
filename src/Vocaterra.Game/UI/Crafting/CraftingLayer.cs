@@ -77,9 +77,10 @@ public sealed class CraftingLayer : IFrameLayer
         var size = Math.Min(Icon, box.Height - 6);
         view.DrawIcon(spriteBatch, item, new Rectangle(box.Left + 8, box.Center.Y - (size / 2), size, size));
         var x = box.Left + 8 + Icon + 10;
+        var name = view.Session.Nouns.LabelOf(item) ?? output.Lemma; // the item's own label (manzana asada), else the noun
         var label = row.Recipe.OutputCount > 1
-            ? $"{output.Lemma} x{row.Recipe.OutputCount.ToString(CultureInfo.InvariantCulture)}"
-            : output.Lemma;
+            ? $"{name} x{row.Recipe.OutputCount.ToString(CultureInfo.InvariantCulture)}"
+            : name;
         x = DrawWord(spriteBatch, font, label, x, middle, words.SaturationOf(output.Lemma), 130);
 
         for (var i = 0; i < row.Recipe.Ingredients.Count; i++)
