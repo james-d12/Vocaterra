@@ -1,10 +1,10 @@
+using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.UI.Common;
 using Vocaterra.Game.UI.Dialogue;
 using Vocaterra.Game.UI.Hud;
-using Vocaterra.Game.Core.Dialogue;
 
 namespace Vocaterra.Game.Tests.UI.Hud;
 
