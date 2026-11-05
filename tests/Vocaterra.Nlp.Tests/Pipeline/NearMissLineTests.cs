@@ -25,6 +25,18 @@ public class NearMissLineTests
         Assert.Equal(0.4, verdict.Correctness);
     }
 
+    // M78 (M75's known-not-fixed): the recast is built from the verdict's errors too, so it names the answer's word where the analysis has no error of its own.
+    [Fact]
+    public void TheRecastOfANearMissNamesTheAnswersWord()
+    {
+        var result = Evaluate("cuál es esto", "lesson-what");
+
+        var recast = Assert.Single(result.Response.Lines, static line => line.IsRecast);
+        Assert.Contains("«Qué es esto»", recast.Text, StringComparison.Ordinal);
+        Assert.DoesNotContain("uál", recast.Text, StringComparison.Ordinal);
+        Assert.Equal("qué", Assert.Single(result.Verdict.Errors).Expected);
+    }
+
     [Theory]
     [InlineData("smith-open", "quiero hacer un hacha", "state_want")] // a word added to an answer
     [InlineData("lesson-will-go", "pasado mañana iré al río con Mar", "state_action")] // a word added to the answer mañana iré al río con Mar

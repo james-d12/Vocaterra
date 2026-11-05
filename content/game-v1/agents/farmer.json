@@ -2,6 +2,10 @@
   "agentId": "farmer",
   "initialState": "idle",
   "variantPools": [
+    { "id": "farmer_yes", "count": 1 },
+    { "id": "farmer_weather", "count": 1 },
+    { "id": "farmer_sun", "count": 1 },
+    { "id": "farmer_well", "count": 1 },
     { "id": "farmer_understood", "count": 1 },
     { "id": "answer_accepted", "count": 3 },
     { "id": "not_understood", "count": 2 },
@@ -33,6 +37,10 @@
     {
       "id": "idle",
       "transitions": [
+        { "on": {"intent": "ask_wellbeing", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_well", "variantPoolId": "farmer_well" }] },
+        { "on": {"intent": "ask_weather", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_sun", "variantPoolId": "farmer_sun" }] },
+        { "on": {"intent": "state_weather", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_yes", "variantPoolId": "farmer_yes" }] },
+        { "onHostEvent": "farmer.weather", "to": "idle", "actions": [{ "dialogueIntent": "farmer_weather", "variantPoolId": "farmer_weather" }] },
         { "onHostEvent": "farmer.understood", "to": "idle", "actions": [{ "dialogueIntent": "farmer_understood", "variantPoolId": "farmer_understood" }] },
         { "onHostEvent": "farmer.true", "to": "idle", "actions": [{ "dialogueIntent": "farmer_true", "variantPoolId": "farmer_true" }] },
         { "onHostEvent": "farmer.greet", "to": "idle", "actions": [{ "dialogueIntent": "farmer_hello", "variantPoolId": "farmer_hello" }] },
@@ -45,7 +53,6 @@
         { "onHostEvent": "farmer.none_offered", "to": "idle", "actions": [{ "dialogueIntent": "farmer_none_offered", "variantPoolId": "farmer_none_offered" }] },
         { "onHostEvent": "farmer.no_room", "to": "idle", "actions": [{ "dialogueIntent": "farmer_no_room", "variantPoolId": "farmer_no_room" }] },
         { "on": {"intent": "greet", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_greet", "variantPoolId": "farmer_greet" }] },
-        { "on": {"intent": "ask_wellbeing", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_greet", "variantPoolId": "farmer_greet" }] },
         { "on": {"intent": "ask_name", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_name", "variantPoolId": "farmer_name" }] },
         { "on": {"intent": "ask_activity", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_job", "variantPoolId": "farmer_job" }] },
         { "on": {"intent": "request_item", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_sell", "hostEvent": "farmer.sell_apples", "variantPoolId": "farmer_sell" }] },

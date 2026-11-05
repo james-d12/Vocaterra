@@ -2,6 +2,10 @@
   "agentId": "baker",
   "initialState": "idle",
   "variantPools": [
+    { "id": "baker_yes", "count": 1 },
+    { "id": "baker_weather", "count": 1 },
+    { "id": "baker_sun", "count": 1 },
+    { "id": "baker_well", "count": 1 },
     { "id": "baker_true", "count": 1 },
     { "id": "baker_understood", "count": 1 },
     { "id": "answer_accepted", "count": 3 },
@@ -29,6 +33,10 @@
     {
       "id": "idle",
       "transitions": [
+        { "on": {"intent": "ask_wellbeing", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_well", "variantPoolId": "baker_well" }] },
+        { "on": {"intent": "ask_weather", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_sun", "variantPoolId": "baker_sun" }] },
+        { "on": {"intent": "state_weather", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_yes", "variantPoolId": "baker_yes" }] },
+        { "onHostEvent": "baker.weather", "to": "idle", "actions": [{ "dialogueIntent": "baker_weather", "variantPoolId": "baker_weather" }] },
         { "onHostEvent": "baker.understood", "to": "idle", "actions": [{ "dialogueIntent": "baker_understood", "variantPoolId": "baker_understood" }] },
         { "onHostEvent": "baker.true", "to": "idle", "actions": [{ "dialogueIntent": "baker_true", "variantPoolId": "baker_true" }] },
         { "onHostEvent": "baker.greet", "to": "idle", "actions": [{ "dialogueIntent": "baker_hello", "variantPoolId": "baker_hello" }] },
@@ -42,7 +50,6 @@
         { "onHostEvent": "baker.none_offered", "to": "idle", "actions": [{ "dialogueIntent": "baker_none_offered", "variantPoolId": "baker_none_offered" }] },
         { "onHostEvent": "baker.no_room", "to": "idle", "actions": [{ "dialogueIntent": "baker_no_room", "variantPoolId": "baker_no_room" }] },
         { "on": {"intent": "greet", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_greet", "variantPoolId": "baker_greet" }] },
-        { "on": {"intent": "ask_wellbeing", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_greet", "variantPoolId": "baker_greet" }] },
         { "on": {"intent": "request_item", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_sell", "hostEvent": "baker.sell_bread", "variantPoolId": "baker_sell" }] },
         { "on": {"intent": "offer_item", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_buy", "hostEvent": "baker.buy_wood", "variantPoolId": "baker_buy" }] },
         { "on": {"intent": "ask_price", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_price", "variantPoolId": "baker_price" }] },

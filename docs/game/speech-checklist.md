@@ -18,7 +18,7 @@ whose text changed or whose file was recorded again differently is listed again 
 | smith (Domingo) | `im_nicola`, gain 0.6 | 36 | 1.0 (0.8) | the pools `smith_*` and `guide.lesson.smith.*`, and its prompts |
 | farmer (León) | `pm_santa` | 44 | 1.0 (0.8) | the pools `farmer_*` and `guide.lesson.farmer.*`, and its prompts |
 
-**To hear:** 1082 of the 1082 files have no mark (guide 406, villager 140, farmer 122, baker 116, shopkeeper 114, fisher 102, smith 82). Two files a line: the normal speed and the slow one.
+**To hear:** 1278 of the 1278 files have no mark (guide 434, villager 168, farmer 150, baker 144, shopkeeper 142, fisher 130, smith 110). Two files a line: the normal speed and the slow one.
 
 ## Lines
 
@@ -98,6 +98,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | baker_sell.1 | speech/baker/baker_sell.1.wav | baker | 1.0 | Aquí tienes el pan. ¡Gracias! |  |
 | baker_sell.2 | speech/baker/baker_sell.2.slow.wav | baker | 0.8 | Toma tu pan. ¡Gracias! |  |
 | baker_sell.2 | speech/baker/baker_sell.2.wav | baker | 1.0 | Toma tu pan. ¡Gracias! |  |
+| baker_sun.1 | speech/baker/baker_sun.1.slow.wav | baker | 0.8 | Hoy hace sol. |  |
+| baker_sun.1 | speech/baker/baker_sun.1.wav | baker | 1.0 | Hoy hace sol. |  |
 | baker_thank.1 | speech/baker/baker_thank.1.slow.wav | baker | 0.8 | De nada. |  |
 | baker_thank.1 | speech/baker/baker_thank.1.wav | baker | 1.0 | De nada. |  |
 | baker_thank.2 | speech/baker/baker_thank.2.slow.wav | baker | 0.8 | ¡Con gusto! |  |
@@ -108,10 +110,36 @@ whose text changed or whose file was recorded again differently is listed again 
 | baker_understood.1 | speech/baker/baker_understood.1.wav | baker | 1.0 | Te entiendo. ¿Quieres pan? |  |
 | baker_wait.1 | speech/baker/baker_wait.1.slow.wav | baker | 0.8 | Primero, la lección. Luego, las monedas. |  |
 | baker_wait.1 | speech/baker/baker_wait.1.wav | baker | 1.0 | Primero, la lección. Luego, las monedas. |  |
+| baker_weather.1.buen-tiempo | speech/baker/baker_weather.1.buen-tiempo.slow.wav | baker | 0.8 | Sí, hace buen tiempo. |  |
+| baker_weather.1.buen-tiempo | speech/baker/baker_weather.1.buen-tiempo.wav | baker | 1.0 | Sí, hace buen tiempo. |  |
+| baker_weather.1.calor | speech/baker/baker_weather.1.calor.slow.wav | baker | 0.8 | Sí, hace calor. |  |
+| baker_weather.1.calor | speech/baker/baker_weather.1.calor.wav | baker | 1.0 | Sí, hace calor. |  |
+| baker_weather.1.fresco | speech/baker/baker_weather.1.fresco.slow.wav | baker | 0.8 | Sí, hace fresco. |  |
+| baker_weather.1.fresco | speech/baker/baker_weather.1.fresco.wav | baker | 1.0 | Sí, hace fresco. |  |
+| baker_weather.1.frio | speech/baker/baker_weather.1.frio.slow.wav | baker | 0.8 | Sí, hace frío. |  |
+| baker_weather.1.frio | speech/baker/baker_weather.1.frio.wav | baker | 1.0 | Sí, hace frío. |  |
+| baker_weather.1.mal-tiempo | speech/baker/baker_weather.1.mal-tiempo.slow.wav | baker | 0.8 | Sí, hace mal tiempo. |  |
+| baker_weather.1.mal-tiempo | speech/baker/baker_weather.1.mal-tiempo.wav | baker | 1.0 | Sí, hace mal tiempo. |  |
+| baker_weather.1.mucho-calor | speech/baker/baker_weather.1.mucho-calor.slow.wav | baker | 0.8 | Sí, hace mucho calor. |  |
+| baker_weather.1.mucho-calor | speech/baker/baker_weather.1.mucho-calor.wav | baker | 1.0 | Sí, hace mucho calor. |  |
+| baker_weather.1.mucho-frio | speech/baker/baker_weather.1.mucho-frio.slow.wav | baker | 0.8 | Sí, hace mucho frío. |  |
+| baker_weather.1.mucho-frio | speech/baker/baker_weather.1.mucho-frio.wav | baker | 1.0 | Sí, hace mucho frío. |  |
+| baker_weather.1.mucho-sol | speech/baker/baker_weather.1.mucho-sol.slow.wav | baker | 0.8 | Sí, hace mucho sol. |  |
+| baker_weather.1.mucho-sol | speech/baker/baker_weather.1.mucho-sol.wav | baker | 1.0 | Sí, hace mucho sol. |  |
+| baker_weather.1.mucho-viento | speech/baker/baker_weather.1.mucho-viento.slow.wav | baker | 0.8 | Sí, hace mucho viento. |  |
+| baker_weather.1.mucho-viento | speech/baker/baker_weather.1.mucho-viento.wav | baker | 1.0 | Sí, hace mucho viento. |  |
+| baker_weather.1.sol | speech/baker/baker_weather.1.sol.slow.wav | baker | 0.8 | Sí, hace sol. |  |
+| baker_weather.1.sol | speech/baker/baker_weather.1.sol.wav | baker | 1.0 | Sí, hace sol. |  |
+| baker_weather.1.viento | speech/baker/baker_weather.1.viento.slow.wav | baker | 0.8 | Sí, hace viento. |  |
+| baker_weather.1.viento | speech/baker/baker_weather.1.viento.wav | baker | 1.0 | Sí, hace viento. |  |
+| baker_well.1 | speech/baker/baker_well.1.slow.wav | baker | 0.8 | Bien, gracias. |  |
+| baker_well.1 | speech/baker/baker_well.1.wav | baker | 1.0 | Bien, gracias. |  |
 | baker_wont_buy.1 | speech/baker/baker_wont_buy.1.slow.wav | baker | 0.8 | No, gracias. Solo compro madera. |  |
 | baker_wont_buy.1 | speech/baker/baker_wont_buy.1.wav | baker | 1.0 | No, gracias. Solo compro madera. |  |
 | baker_wont_sell.1 | speech/baker/baker_wont_sell.1.slow.wav | baker | 0.8 | Solo vendo pan. |  |
 | baker_wont_sell.1 | speech/baker/baker_wont_sell.1.wav | baker | 1.0 | Solo vendo pan. |  |
+| baker_yes.1 | speech/baker/baker_yes.1.slow.wav | baker | 0.8 | ¡Sí! |  |
+| baker_yes.1 | speech/baker/baker_yes.1.wav | baker | 1.0 | ¡Sí! |  |
 | card.agua | speech/cards/card.agua.slow.wav | guide | 0.8 | el agua |  |
 | card.agua | speech/cards/card.agua.wav | guide | 1.0 | el agua |  |
 | card.antorcha | speech/cards/card.antorcha.slow.wav | guide | 0.8 | la antorcha |  |
@@ -198,6 +226,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | farmer_sell.1 | speech/farmer/farmer_sell.1.wav | farmer | 1.0 | Aquí tienes. ¡Gracias! |  |
 | farmer_sell.2 | speech/farmer/farmer_sell.2.slow.wav | farmer | 0.8 | Toma. ¡Gracias! |  |
 | farmer_sell.2 | speech/farmer/farmer_sell.2.wav | farmer | 1.0 | Toma. ¡Gracias! |  |
+| farmer_sun.1 | speech/farmer/farmer_sun.1.slow.wav | farmer | 0.8 | Hoy hace sol. |  |
+| farmer_sun.1 | speech/farmer/farmer_sun.1.wav | farmer | 1.0 | Hoy hace sol. |  |
 | farmer_thank.1 | speech/farmer/farmer_thank.1.slow.wav | farmer | 0.8 | De nada. |  |
 | farmer_thank.1 | speech/farmer/farmer_thank.1.wav | farmer | 1.0 | De nada. |  |
 | farmer_thank.2 | speech/farmer/farmer_thank.2.slow.wav | farmer | 0.8 | ¡Con gusto! |  |
@@ -210,10 +240,36 @@ whose text changed or whose file was recorded again differently is listed again 
 | farmer_understood.1 | speech/farmer/farmer_understood.1.wav | farmer | 1.0 | Te entiendo. ¿Quieres manzanas? |  |
 | farmer_unit.1 | speech/farmer/farmer_unit.1.slow.wav | farmer | 0.8 | Una manzana, una moneda. |  |
 | farmer_unit.1 | speech/farmer/farmer_unit.1.wav | farmer | 1.0 | Una manzana, una moneda. |  |
+| farmer_weather.1.buen-tiempo | speech/farmer/farmer_weather.1.buen-tiempo.slow.wav | farmer | 0.8 | Sí, hace buen tiempo. |  |
+| farmer_weather.1.buen-tiempo | speech/farmer/farmer_weather.1.buen-tiempo.wav | farmer | 1.0 | Sí, hace buen tiempo. |  |
+| farmer_weather.1.calor | speech/farmer/farmer_weather.1.calor.slow.wav | farmer | 0.8 | Sí, hace calor. |  |
+| farmer_weather.1.calor | speech/farmer/farmer_weather.1.calor.wav | farmer | 1.0 | Sí, hace calor. |  |
+| farmer_weather.1.fresco | speech/farmer/farmer_weather.1.fresco.slow.wav | farmer | 0.8 | Sí, hace fresco. |  |
+| farmer_weather.1.fresco | speech/farmer/farmer_weather.1.fresco.wav | farmer | 1.0 | Sí, hace fresco. |  |
+| farmer_weather.1.frio | speech/farmer/farmer_weather.1.frio.slow.wav | farmer | 0.8 | Sí, hace frío. |  |
+| farmer_weather.1.frio | speech/farmer/farmer_weather.1.frio.wav | farmer | 1.0 | Sí, hace frío. |  |
+| farmer_weather.1.mal-tiempo | speech/farmer/farmer_weather.1.mal-tiempo.slow.wav | farmer | 0.8 | Sí, hace mal tiempo. |  |
+| farmer_weather.1.mal-tiempo | speech/farmer/farmer_weather.1.mal-tiempo.wav | farmer | 1.0 | Sí, hace mal tiempo. |  |
+| farmer_weather.1.mucho-calor | speech/farmer/farmer_weather.1.mucho-calor.slow.wav | farmer | 0.8 | Sí, hace mucho calor. |  |
+| farmer_weather.1.mucho-calor | speech/farmer/farmer_weather.1.mucho-calor.wav | farmer | 1.0 | Sí, hace mucho calor. |  |
+| farmer_weather.1.mucho-frio | speech/farmer/farmer_weather.1.mucho-frio.slow.wav | farmer | 0.8 | Sí, hace mucho frío. |  |
+| farmer_weather.1.mucho-frio | speech/farmer/farmer_weather.1.mucho-frio.wav | farmer | 1.0 | Sí, hace mucho frío. |  |
+| farmer_weather.1.mucho-sol | speech/farmer/farmer_weather.1.mucho-sol.slow.wav | farmer | 0.8 | Sí, hace mucho sol. |  |
+| farmer_weather.1.mucho-sol | speech/farmer/farmer_weather.1.mucho-sol.wav | farmer | 1.0 | Sí, hace mucho sol. |  |
+| farmer_weather.1.mucho-viento | speech/farmer/farmer_weather.1.mucho-viento.slow.wav | farmer | 0.8 | Sí, hace mucho viento. |  |
+| farmer_weather.1.mucho-viento | speech/farmer/farmer_weather.1.mucho-viento.wav | farmer | 1.0 | Sí, hace mucho viento. |  |
+| farmer_weather.1.sol | speech/farmer/farmer_weather.1.sol.slow.wav | farmer | 0.8 | Sí, hace sol. |  |
+| farmer_weather.1.sol | speech/farmer/farmer_weather.1.sol.wav | farmer | 1.0 | Sí, hace sol. |  |
+| farmer_weather.1.viento | speech/farmer/farmer_weather.1.viento.slow.wav | farmer | 0.8 | Sí, hace viento. |  |
+| farmer_weather.1.viento | speech/farmer/farmer_weather.1.viento.wav | farmer | 1.0 | Sí, hace viento. |  |
+| farmer_well.1 | speech/farmer/farmer_well.1.slow.wav | farmer | 0.8 | Bien, gracias. |  |
+| farmer_well.1 | speech/farmer/farmer_well.1.wav | farmer | 1.0 | Bien, gracias. |  |
 | farmer_wont_buy.1 | speech/farmer/farmer_wont_buy.1.slow.wav | farmer | 0.8 | No compro eso. Compro fruta del bosque. |  |
 | farmer_wont_buy.1 | speech/farmer/farmer_wont_buy.1.wav | farmer | 1.0 | No compro eso. Compro fruta del bosque. |  |
 | farmer_wont_sell.1 | speech/farmer/farmer_wont_sell.1.slow.wav | farmer | 0.8 | Solo vendo manzanas. |  |
 | farmer_wont_sell.1 | speech/farmer/farmer_wont_sell.1.wav | farmer | 1.0 | Solo vendo manzanas. |  |
+| farmer_yes.1 | speech/farmer/farmer_yes.1.slow.wav | farmer | 0.8 | ¡Sí! |  |
+| farmer_yes.1 | speech/farmer/farmer_yes.1.wav | farmer | 1.0 | ¡Sí! |  |
 | feedback.hint.1 | speech/guide/feedback.hint.1.slow.wav | guide | 0.8 | Casi. Piensa otra vez. |  |
 | feedback.hint.1 | speech/guide/feedback.hint.1.wav | guide | 1.0 | Casi. Piensa otra vez. |  |
 | feedback.hint.1.baker | speech/baker/feedback.hint.1.baker.slow.wav | baker | 0.8 | Casi. Piensa otra vez. |  |
@@ -306,6 +362,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | fisher_point.1 | speech/fisher/fisher_point.1.wav | fisher | 0.9 | Mira, está allí. |  |
 | fisher_point.2 | speech/fisher/fisher_point.2.slow.wav | fisher | 0.72 | Está por allí, mira. |  |
 | fisher_point.2 | speech/fisher/fisher_point.2.wav | fisher | 0.9 | Está por allí, mira. |  |
+| fisher_sun.1 | speech/fisher/fisher_sun.1.slow.wav | fisher | 0.72 | Hoy hace sol. |  |
+| fisher_sun.1 | speech/fisher/fisher_sun.1.wav | fisher | 0.9 | Hoy hace sol. |  |
 | fisher_thank.1 | speech/fisher/fisher_thank.1.slow.wav | fisher | 0.72 | De nada. |  |
 | fisher_thank.1 | speech/fisher/fisher_thank.1.wav | fisher | 0.9 | De nada. |  |
 | fisher_thank.2 | speech/fisher/fisher_thank.2.slow.wav | fisher | 0.72 | ¡Con gusto! |  |
@@ -316,6 +374,32 @@ whose text changed or whose file was recorded again differently is listed again 
 | fisher_understood.1 | speech/fisher/fisher_understood.1.wav | fisher | 0.9 | Te entiendo. ¿Buscas un lugar? |  |
 | fisher_unknown_place.1 | speech/fisher/fisher_unknown_place.1.slow.wav | fisher | 0.72 | No sé dónde está. |  |
 | fisher_unknown_place.1 | speech/fisher/fisher_unknown_place.1.wav | fisher | 0.9 | No sé dónde está. |  |
+| fisher_weather.1.buen-tiempo | speech/fisher/fisher_weather.1.buen-tiempo.slow.wav | fisher | 0.72 | Sí, hace buen tiempo. |  |
+| fisher_weather.1.buen-tiempo | speech/fisher/fisher_weather.1.buen-tiempo.wav | fisher | 0.9 | Sí, hace buen tiempo. |  |
+| fisher_weather.1.calor | speech/fisher/fisher_weather.1.calor.slow.wav | fisher | 0.72 | Sí, hace calor. |  |
+| fisher_weather.1.calor | speech/fisher/fisher_weather.1.calor.wav | fisher | 0.9 | Sí, hace calor. |  |
+| fisher_weather.1.fresco | speech/fisher/fisher_weather.1.fresco.slow.wav | fisher | 0.72 | Sí, hace fresco. |  |
+| fisher_weather.1.fresco | speech/fisher/fisher_weather.1.fresco.wav | fisher | 0.9 | Sí, hace fresco. |  |
+| fisher_weather.1.frio | speech/fisher/fisher_weather.1.frio.slow.wav | fisher | 0.72 | Sí, hace frío. |  |
+| fisher_weather.1.frio | speech/fisher/fisher_weather.1.frio.wav | fisher | 0.9 | Sí, hace frío. |  |
+| fisher_weather.1.mal-tiempo | speech/fisher/fisher_weather.1.mal-tiempo.slow.wav | fisher | 0.72 | Sí, hace mal tiempo. |  |
+| fisher_weather.1.mal-tiempo | speech/fisher/fisher_weather.1.mal-tiempo.wav | fisher | 0.9 | Sí, hace mal tiempo. |  |
+| fisher_weather.1.mucho-calor | speech/fisher/fisher_weather.1.mucho-calor.slow.wav | fisher | 0.72 | Sí, hace mucho calor. |  |
+| fisher_weather.1.mucho-calor | speech/fisher/fisher_weather.1.mucho-calor.wav | fisher | 0.9 | Sí, hace mucho calor. |  |
+| fisher_weather.1.mucho-frio | speech/fisher/fisher_weather.1.mucho-frio.slow.wav | fisher | 0.72 | Sí, hace mucho frío. |  |
+| fisher_weather.1.mucho-frio | speech/fisher/fisher_weather.1.mucho-frio.wav | fisher | 0.9 | Sí, hace mucho frío. |  |
+| fisher_weather.1.mucho-sol | speech/fisher/fisher_weather.1.mucho-sol.slow.wav | fisher | 0.72 | Sí, hace mucho sol. |  |
+| fisher_weather.1.mucho-sol | speech/fisher/fisher_weather.1.mucho-sol.wav | fisher | 0.9 | Sí, hace mucho sol. |  |
+| fisher_weather.1.mucho-viento | speech/fisher/fisher_weather.1.mucho-viento.slow.wav | fisher | 0.72 | Sí, hace mucho viento. |  |
+| fisher_weather.1.mucho-viento | speech/fisher/fisher_weather.1.mucho-viento.wav | fisher | 0.9 | Sí, hace mucho viento. |  |
+| fisher_weather.1.sol | speech/fisher/fisher_weather.1.sol.slow.wav | fisher | 0.72 | Sí, hace sol. |  |
+| fisher_weather.1.sol | speech/fisher/fisher_weather.1.sol.wav | fisher | 0.9 | Sí, hace sol. |  |
+| fisher_weather.1.viento | speech/fisher/fisher_weather.1.viento.slow.wav | fisher | 0.72 | Sí, hace viento. |  |
+| fisher_weather.1.viento | speech/fisher/fisher_weather.1.viento.wav | fisher | 0.9 | Sí, hace viento. |  |
+| fisher_well.1 | speech/fisher/fisher_well.1.slow.wav | fisher | 0.72 | Bien, gracias. |  |
+| fisher_well.1 | speech/fisher/fisher_well.1.wav | fisher | 0.9 | Bien, gracias. |  |
+| fisher_yes.1 | speech/fisher/fisher_yes.1.slow.wav | fisher | 0.72 | ¡Sí! |  |
+| fisher_yes.1 | speech/fisher/fisher_yes.1.wav | fisher | 0.9 | ¡Sí! |  |
 | guide.craft.none.1 | speech/guide/guide.craft.none.1.slow.wav | guide | 0.8 | Eso no se puede hacer. |  |
 | guide.craft.none.1 | speech/guide/guide.craft.none.1.wav | guide | 1.0 | Eso no se puede hacer. |  |
 | guide.craft.ready.1 | speech/guide/guide.craft.ready.1.slow.wav | guide | 0.8 | ¡Ya lo tienes todo! |  |
@@ -664,6 +748,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide_slower.1 | speech/guide/guide_slower.1.wav | guide | 1.0 | Claro. Más despacio. |  |
 | guide_slower.2 | speech/guide/guide_slower.2.slow.wav | guide | 0.8 | ¡Claro! Te lo digo más despacio. |  |
 | guide_slower.2 | speech/guide/guide_slower.2.wav | guide | 1.0 | ¡Claro! Te lo digo más despacio. |  |
+| guide_sun.1 | speech/guide/guide_sun.1.slow.wav | guide | 0.8 | Hoy hace sol. |  |
+| guide_sun.1 | speech/guide/guide_sun.1.wav | guide | 1.0 | Hoy hace sol. |  |
 | guide_thank.1 | speech/guide/guide_thank.1.slow.wav | guide | 0.8 | ¡Con gusto, amigo! |  |
 | guide_thank.1 | speech/guide/guide_thank.1.wav | guide | 1.0 | ¡Con gusto, amigo! |  |
 | guide_thank.2 | speech/guide/guide_thank.2.slow.wav | guide | 0.8 | ¡De nada! |  |
@@ -672,6 +758,32 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide_thank.3 | speech/guide/guide_thank.3.wav | guide | 1.0 | ¡De nada, amigo! |  |
 | guide_understood.1 | speech/guide/guide_understood.1.slow.wav | guide | 0.8 | Te entiendo. ¿Qué quieres aprender? |  |
 | guide_understood.1 | speech/guide/guide_understood.1.wav | guide | 1.0 | Te entiendo. ¿Qué quieres aprender? |  |
+| guide_weather.1.buen-tiempo | speech/guide/guide_weather.1.buen-tiempo.slow.wav | guide | 0.8 | Sí, hace buen tiempo. |  |
+| guide_weather.1.buen-tiempo | speech/guide/guide_weather.1.buen-tiempo.wav | guide | 1.0 | Sí, hace buen tiempo. |  |
+| guide_weather.1.calor | speech/guide/guide_weather.1.calor.slow.wav | guide | 0.8 | Sí, hace calor. |  |
+| guide_weather.1.calor | speech/guide/guide_weather.1.calor.wav | guide | 1.0 | Sí, hace calor. |  |
+| guide_weather.1.fresco | speech/guide/guide_weather.1.fresco.slow.wav | guide | 0.8 | Sí, hace fresco. |  |
+| guide_weather.1.fresco | speech/guide/guide_weather.1.fresco.wav | guide | 1.0 | Sí, hace fresco. |  |
+| guide_weather.1.frio | speech/guide/guide_weather.1.frio.slow.wav | guide | 0.8 | Sí, hace frío. |  |
+| guide_weather.1.frio | speech/guide/guide_weather.1.frio.wav | guide | 1.0 | Sí, hace frío. |  |
+| guide_weather.1.mal-tiempo | speech/guide/guide_weather.1.mal-tiempo.slow.wav | guide | 0.8 | Sí, hace mal tiempo. |  |
+| guide_weather.1.mal-tiempo | speech/guide/guide_weather.1.mal-tiempo.wav | guide | 1.0 | Sí, hace mal tiempo. |  |
+| guide_weather.1.mucho-calor | speech/guide/guide_weather.1.mucho-calor.slow.wav | guide | 0.8 | Sí, hace mucho calor. |  |
+| guide_weather.1.mucho-calor | speech/guide/guide_weather.1.mucho-calor.wav | guide | 1.0 | Sí, hace mucho calor. |  |
+| guide_weather.1.mucho-frio | speech/guide/guide_weather.1.mucho-frio.slow.wav | guide | 0.8 | Sí, hace mucho frío. |  |
+| guide_weather.1.mucho-frio | speech/guide/guide_weather.1.mucho-frio.wav | guide | 1.0 | Sí, hace mucho frío. |  |
+| guide_weather.1.mucho-sol | speech/guide/guide_weather.1.mucho-sol.slow.wav | guide | 0.8 | Sí, hace mucho sol. |  |
+| guide_weather.1.mucho-sol | speech/guide/guide_weather.1.mucho-sol.wav | guide | 1.0 | Sí, hace mucho sol. |  |
+| guide_weather.1.mucho-viento | speech/guide/guide_weather.1.mucho-viento.slow.wav | guide | 0.8 | Sí, hace mucho viento. |  |
+| guide_weather.1.mucho-viento | speech/guide/guide_weather.1.mucho-viento.wav | guide | 1.0 | Sí, hace mucho viento. |  |
+| guide_weather.1.sol | speech/guide/guide_weather.1.sol.slow.wav | guide | 0.8 | Sí, hace sol. |  |
+| guide_weather.1.sol | speech/guide/guide_weather.1.sol.wav | guide | 1.0 | Sí, hace sol. |  |
+| guide_weather.1.viento | speech/guide/guide_weather.1.viento.slow.wav | guide | 0.8 | Sí, hace viento. |  |
+| guide_weather.1.viento | speech/guide/guide_weather.1.viento.wav | guide | 1.0 | Sí, hace viento. |  |
+| guide_well.1 | speech/guide/guide_well.1.slow.wav | guide | 0.8 | Bien, gracias. |  |
+| guide_well.1 | speech/guide/guide_well.1.wav | guide | 1.0 | Bien, gracias. |  |
+| guide_yes.1 | speech/guide/guide_yes.1.slow.wav | guide | 0.8 | ¡Sí! |  |
+| guide_yes.1 | speech/guide/guide_yes.1.wav | guide | 1.0 | ¡Sí! |  |
 | not_understood.1 | speech/guide/not_understood.1.slow.wav | guide | 0.8 | No te entendí. ¿Me lo dices otra vez? |  |
 | not_understood.1 | speech/guide/not_understood.1.wav | guide | 1.0 | No te entendí. ¿Me lo dices otra vez? |  |
 | not_understood.1.baker | speech/baker/not_understood.1.baker.slow.wav | baker | 0.8 | No te entendí. ¿Me lo dices otra vez? |  |
@@ -1024,6 +1136,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | shop_offer.1 | speech/shopkeeper/shop_offer.1.wav | shopkeeper | 1.0 | ¿Quieres pan? |  |
 | shop_price.1 | speech/shopkeeper/shop_price.1.slow.wav | shopkeeper | 0.8 | El pan cuesta dos monedas. |  |
 | shop_price.1 | speech/shopkeeper/shop_price.1.wav | shopkeeper | 1.0 | El pan cuesta dos monedas. |  |
+| shop_sun.1 | speech/shopkeeper/shop_sun.1.slow.wav | shopkeeper | 0.8 | Hoy hace sol. |  |
+| shop_sun.1 | speech/shopkeeper/shop_sun.1.wav | shopkeeper | 1.0 | Hoy hace sol. |  |
 | shop_thank.1 | speech/shopkeeper/shop_thank.1.slow.wav | shopkeeper | 0.8 | De nada. |  |
 | shop_thank.1 | speech/shopkeeper/shop_thank.1.wav | shopkeeper | 1.0 | De nada. |  |
 | shop_thank.2 | speech/shopkeeper/shop_thank.2.slow.wav | shopkeeper | 0.8 | ¡Con gusto! |  |
@@ -1032,8 +1146,34 @@ whose text changed or whose file was recorded again differently is listed again 
 | shop_true.1 | speech/shopkeeper/shop_true.1.wav | shopkeeper | 1.0 | Sí, es verdad. |  |
 | shop_understood.1 | speech/shopkeeper/shop_understood.1.slow.wav | shopkeeper | 0.8 | Te entiendo. ¿Quieres comprar algo? |  |
 | shop_understood.1 | speech/shopkeeper/shop_understood.1.wav | shopkeeper | 1.0 | Te entiendo. ¿Quieres comprar algo? |  |
+| shop_weather.1.buen-tiempo | speech/shopkeeper/shop_weather.1.buen-tiempo.slow.wav | shopkeeper | 0.8 | Sí, hace buen tiempo. |  |
+| shop_weather.1.buen-tiempo | speech/shopkeeper/shop_weather.1.buen-tiempo.wav | shopkeeper | 1.0 | Sí, hace buen tiempo. |  |
+| shop_weather.1.calor | speech/shopkeeper/shop_weather.1.calor.slow.wav | shopkeeper | 0.8 | Sí, hace calor. |  |
+| shop_weather.1.calor | speech/shopkeeper/shop_weather.1.calor.wav | shopkeeper | 1.0 | Sí, hace calor. |  |
+| shop_weather.1.fresco | speech/shopkeeper/shop_weather.1.fresco.slow.wav | shopkeeper | 0.8 | Sí, hace fresco. |  |
+| shop_weather.1.fresco | speech/shopkeeper/shop_weather.1.fresco.wav | shopkeeper | 1.0 | Sí, hace fresco. |  |
+| shop_weather.1.frio | speech/shopkeeper/shop_weather.1.frio.slow.wav | shopkeeper | 0.8 | Sí, hace frío. |  |
+| shop_weather.1.frio | speech/shopkeeper/shop_weather.1.frio.wav | shopkeeper | 1.0 | Sí, hace frío. |  |
+| shop_weather.1.mal-tiempo | speech/shopkeeper/shop_weather.1.mal-tiempo.slow.wav | shopkeeper | 0.8 | Sí, hace mal tiempo. |  |
+| shop_weather.1.mal-tiempo | speech/shopkeeper/shop_weather.1.mal-tiempo.wav | shopkeeper | 1.0 | Sí, hace mal tiempo. |  |
+| shop_weather.1.mucho-calor | speech/shopkeeper/shop_weather.1.mucho-calor.slow.wav | shopkeeper | 0.8 | Sí, hace mucho calor. |  |
+| shop_weather.1.mucho-calor | speech/shopkeeper/shop_weather.1.mucho-calor.wav | shopkeeper | 1.0 | Sí, hace mucho calor. |  |
+| shop_weather.1.mucho-frio | speech/shopkeeper/shop_weather.1.mucho-frio.slow.wav | shopkeeper | 0.8 | Sí, hace mucho frío. |  |
+| shop_weather.1.mucho-frio | speech/shopkeeper/shop_weather.1.mucho-frio.wav | shopkeeper | 1.0 | Sí, hace mucho frío. |  |
+| shop_weather.1.mucho-sol | speech/shopkeeper/shop_weather.1.mucho-sol.slow.wav | shopkeeper | 0.8 | Sí, hace mucho sol. |  |
+| shop_weather.1.mucho-sol | speech/shopkeeper/shop_weather.1.mucho-sol.wav | shopkeeper | 1.0 | Sí, hace mucho sol. |  |
+| shop_weather.1.mucho-viento | speech/shopkeeper/shop_weather.1.mucho-viento.slow.wav | shopkeeper | 0.8 | Sí, hace mucho viento. |  |
+| shop_weather.1.mucho-viento | speech/shopkeeper/shop_weather.1.mucho-viento.wav | shopkeeper | 1.0 | Sí, hace mucho viento. |  |
+| shop_weather.1.sol | speech/shopkeeper/shop_weather.1.sol.slow.wav | shopkeeper | 0.8 | Sí, hace sol. |  |
+| shop_weather.1.sol | speech/shopkeeper/shop_weather.1.sol.wav | shopkeeper | 1.0 | Sí, hace sol. |  |
+| shop_weather.1.viento | speech/shopkeeper/shop_weather.1.viento.slow.wav | shopkeeper | 0.8 | Sí, hace viento. |  |
+| shop_weather.1.viento | speech/shopkeeper/shop_weather.1.viento.wav | shopkeeper | 1.0 | Sí, hace viento. |  |
+| shop_well.1 | speech/shopkeeper/shop_well.1.slow.wav | shopkeeper | 0.8 | Bien, gracias. |  |
+| shop_well.1 | speech/shopkeeper/shop_well.1.wav | shopkeeper | 1.0 | Bien, gracias. |  |
 | shop_wont_sell.1 | speech/shopkeeper/shop_wont_sell.1.slow.wav | shopkeeper | 0.8 | No tengo eso. Tengo agua y pan. |  |
 | shop_wont_sell.1 | speech/shopkeeper/shop_wont_sell.1.wav | shopkeeper | 1.0 | No tengo eso. Tengo agua y pan. |  |
+| shop_yes.1 | speech/shopkeeper/shop_yes.1.slow.wav | shopkeeper | 0.8 | ¡Sí! |  |
+| shop_yes.1 | speech/shopkeeper/shop_yes.1.wav | shopkeeper | 1.0 | ¡Sí! |  |
 | smith_buy.1 | speech/smith/smith_buy.1.slow.wav | smith | 0.8 | ¡Gracias! Aquí tienes tus monedas. |  |
 | smith_buy.1 | speech/smith/smith_buy.1.wav | smith | 1.0 | ¡Gracias! Aquí tienes tus monedas. |  |
 | smith_bye.1 | speech/smith/smith_bye.1.slow.wav | smith | 0.8 | ¡Adiós! Hasta luego. |  |
@@ -1064,6 +1204,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | smith_offer.1 | speech/smith/smith_offer.1.wav | smith | 1.0 | ¿Quieres un hacha? Necesito dos bloques de madera y dos monedas. |  |
 | smith_ok.1 | speech/smith/smith_ok.1.slow.wav | smith | 0.8 | Está bien. |  |
 | smith_ok.1 | speech/smith/smith_ok.1.wav | smith | 1.0 | Está bien. |  |
+| smith_sun.1 | speech/smith/smith_sun.1.slow.wav | smith | 0.8 | Hoy hace sol. |  |
+| smith_sun.1 | speech/smith/smith_sun.1.wav | smith | 1.0 | Hoy hace sol. |  |
 | smith_thank.1 | speech/smith/smith_thank.1.slow.wav | smith | 0.8 | De nada. |  |
 | smith_thank.1 | speech/smith/smith_thank.1.wav | smith | 1.0 | De nada. |  |
 | smith_thank.2 | speech/smith/smith_thank.2.slow.wav | smith | 0.8 | ¡Con gusto! |  |
@@ -1072,8 +1214,34 @@ whose text changed or whose file was recorded again differently is listed again 
 | smith_true.1 | speech/smith/smith_true.1.wav | smith | 1.0 | Sí, es verdad. |  |
 | smith_understood.1 | speech/smith/smith_understood.1.slow.wav | smith | 0.8 | Te entiendo. Yo hago hachas. |  |
 | smith_understood.1 | speech/smith/smith_understood.1.wav | smith | 1.0 | Te entiendo. Yo hago hachas. |  |
+| smith_weather.1.buen-tiempo | speech/smith/smith_weather.1.buen-tiempo.slow.wav | smith | 0.8 | Sí, hace buen tiempo. |  |
+| smith_weather.1.buen-tiempo | speech/smith/smith_weather.1.buen-tiempo.wav | smith | 1.0 | Sí, hace buen tiempo. |  |
+| smith_weather.1.calor | speech/smith/smith_weather.1.calor.slow.wav | smith | 0.8 | Sí, hace calor. |  |
+| smith_weather.1.calor | speech/smith/smith_weather.1.calor.wav | smith | 1.0 | Sí, hace calor. |  |
+| smith_weather.1.fresco | speech/smith/smith_weather.1.fresco.slow.wav | smith | 0.8 | Sí, hace fresco. |  |
+| smith_weather.1.fresco | speech/smith/smith_weather.1.fresco.wav | smith | 1.0 | Sí, hace fresco. |  |
+| smith_weather.1.frio | speech/smith/smith_weather.1.frio.slow.wav | smith | 0.8 | Sí, hace frío. |  |
+| smith_weather.1.frio | speech/smith/smith_weather.1.frio.wav | smith | 1.0 | Sí, hace frío. |  |
+| smith_weather.1.mal-tiempo | speech/smith/smith_weather.1.mal-tiempo.slow.wav | smith | 0.8 | Sí, hace mal tiempo. |  |
+| smith_weather.1.mal-tiempo | speech/smith/smith_weather.1.mal-tiempo.wav | smith | 1.0 | Sí, hace mal tiempo. |  |
+| smith_weather.1.mucho-calor | speech/smith/smith_weather.1.mucho-calor.slow.wav | smith | 0.8 | Sí, hace mucho calor. |  |
+| smith_weather.1.mucho-calor | speech/smith/smith_weather.1.mucho-calor.wav | smith | 1.0 | Sí, hace mucho calor. |  |
+| smith_weather.1.mucho-frio | speech/smith/smith_weather.1.mucho-frio.slow.wav | smith | 0.8 | Sí, hace mucho frío. |  |
+| smith_weather.1.mucho-frio | speech/smith/smith_weather.1.mucho-frio.wav | smith | 1.0 | Sí, hace mucho frío. |  |
+| smith_weather.1.mucho-sol | speech/smith/smith_weather.1.mucho-sol.slow.wav | smith | 0.8 | Sí, hace mucho sol. |  |
+| smith_weather.1.mucho-sol | speech/smith/smith_weather.1.mucho-sol.wav | smith | 1.0 | Sí, hace mucho sol. |  |
+| smith_weather.1.mucho-viento | speech/smith/smith_weather.1.mucho-viento.slow.wav | smith | 0.8 | Sí, hace mucho viento. |  |
+| smith_weather.1.mucho-viento | speech/smith/smith_weather.1.mucho-viento.wav | smith | 1.0 | Sí, hace mucho viento. |  |
+| smith_weather.1.sol | speech/smith/smith_weather.1.sol.slow.wav | smith | 0.8 | Sí, hace sol. |  |
+| smith_weather.1.sol | speech/smith/smith_weather.1.sol.wav | smith | 1.0 | Sí, hace sol. |  |
+| smith_weather.1.viento | speech/smith/smith_weather.1.viento.slow.wav | smith | 0.8 | Sí, hace viento. |  |
+| smith_weather.1.viento | speech/smith/smith_weather.1.viento.wav | smith | 1.0 | Sí, hace viento. |  |
+| smith_well.1 | speech/smith/smith_well.1.slow.wav | smith | 0.8 | Bien, gracias. |  |
+| smith_well.1 | speech/smith/smith_well.1.wav | smith | 1.0 | Bien, gracias. |  |
 | smith_wont_buy.1 | speech/smith/smith_wont_buy.1.slow.wav | smith | 0.8 | No, gracias. Solo compro madera. |  |
 | smith_wont_buy.1 | speech/smith/smith_wont_buy.1.wav | smith | 1.0 | No, gracias. Solo compro madera. |  |
+| smith_yes.1 | speech/smith/smith_yes.1.slow.wav | smith | 0.8 | ¡Sí! |  |
+| smith_yes.1 | speech/smith/smith_yes.1.wav | smith | 1.0 | ¡Sí! |  |
 | villager_bye.1 | speech/villager/villager_bye.1.slow.wav | villager | 0.8 | ¡Adiós! Hasta luego. |  |
 | villager_bye.1 | speech/villager/villager_bye.1.wav | villager | 1.0 | ¡Adiós! Hasta luego. |  |
 | villager_bye.2 | speech/villager/villager_bye.2.slow.wav | villager | 0.8 | Hasta luego. |  |
@@ -1094,6 +1262,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | villager_point.1 | speech/villager/villager_point.1.wav | villager | 1.0 | Mira, está allí. |  |
 | villager_point.2 | speech/villager/villager_point.2.slow.wav | villager | 0.8 | Está allí, mira. |  |
 | villager_point.2 | speech/villager/villager_point.2.wav | villager | 1.0 | Está allí, mira. |  |
+| villager_sun.1 | speech/villager/villager_sun.1.slow.wav | villager | 0.8 | Hoy hace sol. |  |
+| villager_sun.1 | speech/villager/villager_sun.1.wav | villager | 1.0 | Hoy hace sol. |  |
 | villager_thank.1 | speech/villager/villager_thank.1.slow.wav | villager | 0.8 | De nada. |  |
 | villager_thank.1 | speech/villager/villager_thank.1.wav | villager | 1.0 | De nada. |  |
 | villager_thank.2 | speech/villager/villager_thank.2.slow.wav | villager | 0.8 | ¡Con gusto! |  |
@@ -1104,5 +1274,31 @@ whose text changed or whose file was recorded again differently is listed again 
 | villager_understood.1 | speech/villager/villager_understood.1.wav | villager | 1.0 | Te entiendo. ¿Qué buscas? |  |
 | villager_unknown_place.1 | speech/villager/villager_unknown_place.1.slow.wav | villager | 0.8 | No sé dónde está. |  |
 | villager_unknown_place.1 | speech/villager/villager_unknown_place.1.wav | villager | 1.0 | No sé dónde está. |  |
+| villager_weather.1.buen-tiempo | speech/villager/villager_weather.1.buen-tiempo.slow.wav | villager | 0.8 | Sí, hace buen tiempo. |  |
+| villager_weather.1.buen-tiempo | speech/villager/villager_weather.1.buen-tiempo.wav | villager | 1.0 | Sí, hace buen tiempo. |  |
+| villager_weather.1.calor | speech/villager/villager_weather.1.calor.slow.wav | villager | 0.8 | Sí, hace calor. |  |
+| villager_weather.1.calor | speech/villager/villager_weather.1.calor.wav | villager | 1.0 | Sí, hace calor. |  |
+| villager_weather.1.fresco | speech/villager/villager_weather.1.fresco.slow.wav | villager | 0.8 | Sí, hace fresco. |  |
+| villager_weather.1.fresco | speech/villager/villager_weather.1.fresco.wav | villager | 1.0 | Sí, hace fresco. |  |
+| villager_weather.1.frio | speech/villager/villager_weather.1.frio.slow.wav | villager | 0.8 | Sí, hace frío. |  |
+| villager_weather.1.frio | speech/villager/villager_weather.1.frio.wav | villager | 1.0 | Sí, hace frío. |  |
+| villager_weather.1.mal-tiempo | speech/villager/villager_weather.1.mal-tiempo.slow.wav | villager | 0.8 | Sí, hace mal tiempo. |  |
+| villager_weather.1.mal-tiempo | speech/villager/villager_weather.1.mal-tiempo.wav | villager | 1.0 | Sí, hace mal tiempo. |  |
+| villager_weather.1.mucho-calor | speech/villager/villager_weather.1.mucho-calor.slow.wav | villager | 0.8 | Sí, hace mucho calor. |  |
+| villager_weather.1.mucho-calor | speech/villager/villager_weather.1.mucho-calor.wav | villager | 1.0 | Sí, hace mucho calor. |  |
+| villager_weather.1.mucho-frio | speech/villager/villager_weather.1.mucho-frio.slow.wav | villager | 0.8 | Sí, hace mucho frío. |  |
+| villager_weather.1.mucho-frio | speech/villager/villager_weather.1.mucho-frio.wav | villager | 1.0 | Sí, hace mucho frío. |  |
+| villager_weather.1.mucho-sol | speech/villager/villager_weather.1.mucho-sol.slow.wav | villager | 0.8 | Sí, hace mucho sol. |  |
+| villager_weather.1.mucho-sol | speech/villager/villager_weather.1.mucho-sol.wav | villager | 1.0 | Sí, hace mucho sol. |  |
+| villager_weather.1.mucho-viento | speech/villager/villager_weather.1.mucho-viento.slow.wav | villager | 0.8 | Sí, hace mucho viento. |  |
+| villager_weather.1.mucho-viento | speech/villager/villager_weather.1.mucho-viento.wav | villager | 1.0 | Sí, hace mucho viento. |  |
+| villager_weather.1.sol | speech/villager/villager_weather.1.sol.slow.wav | villager | 0.8 | Sí, hace sol. |  |
+| villager_weather.1.sol | speech/villager/villager_weather.1.sol.wav | villager | 1.0 | Sí, hace sol. |  |
+| villager_weather.1.viento | speech/villager/villager_weather.1.viento.slow.wav | villager | 0.8 | Sí, hace viento. |  |
+| villager_weather.1.viento | speech/villager/villager_weather.1.viento.wav | villager | 1.0 | Sí, hace viento. |  |
+| villager_well.1 | speech/villager/villager_well.1.slow.wav | villager | 0.8 | Bien, gracias. |  |
+| villager_well.1 | speech/villager/villager_well.1.wav | villager | 1.0 | Bien, gracias. |  |
 | villager_wont_sell.1 | speech/villager/villager_wont_sell.1.slow.wav | villager | 0.8 | Solo tengo pan. |  |
 | villager_wont_sell.1 | speech/villager/villager_wont_sell.1.wav | villager | 1.0 | Solo tengo pan. |  |
+| villager_yes.1 | speech/villager/villager_yes.1.slow.wav | villager | 0.8 | ¡Sí! |  |
+| villager_yes.1 | speech/villager/villager_yes.1.wav | villager | 1.0 | ¡Sí! |  |

@@ -1708,6 +1708,174 @@
       "variants": [
         { "lineId": "smith_no_room.1", "text": "Tu bolsa está llena." }
       ]
+    },
+    "smith_yes": {
+      "poolId": "smith_yes",
+      "variants": [
+        { "lineId": "smith_yes.1", "text": "¡Sí!" }
+      ]
+    },
+    "smith_weather": {
+      "poolId": "smith_weather",
+      "variants": [
+        { "lineId": "smith_weather.1", "text": "Sí, hace {weather}." }
+      ]
+    },
+    "smith_sun": {
+      "poolId": "smith_sun",
+      "variants": [
+        { "lineId": "smith_sun.1", "text": "Hoy hace sol." }
+      ]
+    },
+    "smith_well": {
+      "poolId": "smith_well",
+      "variants": [
+        { "lineId": "smith_well.1", "text": "Bien, gracias." }
+      ]
+    },
+    "baker_yes": {
+      "poolId": "baker_yes",
+      "variants": [
+        { "lineId": "baker_yes.1", "text": "¡Sí!" }
+      ]
+    },
+    "baker_weather": {
+      "poolId": "baker_weather",
+      "variants": [
+        { "lineId": "baker_weather.1", "text": "Sí, hace {weather}." }
+      ]
+    },
+    "baker_sun": {
+      "poolId": "baker_sun",
+      "variants": [
+        { "lineId": "baker_sun.1", "text": "Hoy hace sol." }
+      ]
+    },
+    "baker_well": {
+      "poolId": "baker_well",
+      "variants": [
+        { "lineId": "baker_well.1", "text": "Bien, gracias." }
+      ]
+    },
+    "farmer_yes": {
+      "poolId": "farmer_yes",
+      "variants": [
+        { "lineId": "farmer_yes.1", "text": "¡Sí!" }
+      ]
+    },
+    "farmer_weather": {
+      "poolId": "farmer_weather",
+      "variants": [
+        { "lineId": "farmer_weather.1", "text": "Sí, hace {weather}." }
+      ]
+    },
+    "farmer_sun": {
+      "poolId": "farmer_sun",
+      "variants": [
+        { "lineId": "farmer_sun.1", "text": "Hoy hace sol." }
+      ]
+    },
+    "farmer_well": {
+      "poolId": "farmer_well",
+      "variants": [
+        { "lineId": "farmer_well.1", "text": "Bien, gracias." }
+      ]
+    },
+    "fisher_yes": {
+      "poolId": "fisher_yes",
+      "variants": [
+        { "lineId": "fisher_yes.1", "text": "¡Sí!" }
+      ]
+    },
+    "fisher_weather": {
+      "poolId": "fisher_weather",
+      "variants": [
+        { "lineId": "fisher_weather.1", "text": "Sí, hace {weather}." }
+      ]
+    },
+    "fisher_sun": {
+      "poolId": "fisher_sun",
+      "variants": [
+        { "lineId": "fisher_sun.1", "text": "Hoy hace sol." }
+      ]
+    },
+    "fisher_well": {
+      "poolId": "fisher_well",
+      "variants": [
+        { "lineId": "fisher_well.1", "text": "Bien, gracias." }
+      ]
+    },
+    "villager_yes": {
+      "poolId": "villager_yes",
+      "variants": [
+        { "lineId": "villager_yes.1", "text": "¡Sí!" }
+      ]
+    },
+    "villager_weather": {
+      "poolId": "villager_weather",
+      "variants": [
+        { "lineId": "villager_weather.1", "text": "Sí, hace {weather}." }
+      ]
+    },
+    "villager_sun": {
+      "poolId": "villager_sun",
+      "variants": [
+        { "lineId": "villager_sun.1", "text": "Hoy hace sol." }
+      ]
+    },
+    "villager_well": {
+      "poolId": "villager_well",
+      "variants": [
+        { "lineId": "villager_well.1", "text": "Bien, gracias." }
+      ]
+    },
+    "guide_yes": {
+      "poolId": "guide_yes",
+      "variants": [
+        { "lineId": "guide_yes.1", "text": "¡Sí!" }
+      ]
+    },
+    "guide_weather": {
+      "poolId": "guide_weather",
+      "variants": [
+        { "lineId": "guide_weather.1", "text": "Sí, hace {weather}." }
+      ]
+    },
+    "guide_sun": {
+      "poolId": "guide_sun",
+      "variants": [
+        { "lineId": "guide_sun.1", "text": "Hoy hace sol." }
+      ]
+    },
+    "guide_well": {
+      "poolId": "guide_well",
+      "variants": [
+        { "lineId": "guide_well.1", "text": "Bien, gracias." }
+      ]
+    },
+    "shop_yes": {
+      "poolId": "shop_yes",
+      "variants": [
+        { "lineId": "shop_yes.1", "text": "¡Sí!" }
+      ]
+    },
+    "shop_weather": {
+      "poolId": "shop_weather",
+      "variants": [
+        { "lineId": "shop_weather.1", "text": "Sí, hace {weather}." }
+      ]
+    },
+    "shop_sun": {
+      "poolId": "shop_sun",
+      "variants": [
+        { "lineId": "shop_sun.1", "text": "Hoy hace sol." }
+      ]
+    },
+    "shop_well": {
+      "poolId": "shop_well",
+      "variants": [
+        { "lineId": "shop_well.1", "text": "Bien, gracias." }
+      ]
     }
   }
 }

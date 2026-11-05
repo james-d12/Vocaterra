@@ -27,7 +27,7 @@ public sealed class LineHostPathTests
         { "villager-open", "buenos días", "greet", true, [] },
         { "villager-open", "buenas noches", "greet", true, [] },
         { "villager-open", "buenos días senor", "greet", true, [] },
-        { "villager-open", "hola me llamo marta", "greet", false, ["vocab.unknown"] },
+        { "villager-open", "hola me llamo marta", "greet", true, [] },
         { "villager-open", "buenos días, señor", "unknown", false, [] },
         { "farmer-open", "buenos días", "greet", true, [] },
         { "baker-open", "buenas tardes", "greet", true, [] },

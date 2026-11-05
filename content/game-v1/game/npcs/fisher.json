@@ -18,6 +18,28 @@
     "event": "fisher.greet",
     "when": "always"
   },
+  "acknowledgementPools": [
+    "fisher_nice"
+  ],
+  "slotReplies": {
+    "state_weather": {
+      "slot": "weather",
+      "event": "fisher.weather",
+      "values": [
+        "mucho frío",
+        "mucho calor",
+        "mucho sol",
+        "mucho viento",
+        "frío",
+        "calor",
+        "sol",
+        "viento",
+        "fresco",
+        "buen tiempo",
+        "mal tiempo"
+      ]
+    }
+  },
   "voice": {
     "speaker": 53,
     "name": "em_santa",

@@ -151,16 +151,18 @@ public sealed class ConversationSession
             events);
         _context = answers.Context;
         _agentStates[agentId] = _context.AgentState; // as the game: the agent's state after the misses, whether or not they gave lines (V30)
+        var npc = _roster.All.FirstOrDefault(entry => string.Equals(entry.Id, agentId, StringComparison.Ordinal));
         var composed = NpcTurnRules.Compose(
             result,
             understood,
             answers.Unsaid,
             _names.Values,
             NpcTurnRules.SkipLineOfBottleGift(_bag, events),
-            _roster.All.FirstOrDefault(npc => string.Equals(npc.Id, agentId, StringComparison.Ordinal))?.FreeTalkPools,
+            npc?.FreeTalkPools,
             bundle: Bundle,
-            npc: agentId);
-        var npc = _roster.All.FirstOrDefault(entry => string.Equals(entry.Id, agentId, StringComparison.Ordinal));
+            npc: npc,
+            worldSeed: _context.WorldSeed,
+            counter: counter);
         if (!verdict.Communicated && verdict.OffPromptIntent is { } offPrompt && NpcTurnRules.OffPromptPoolOf(Bundle, agentId) is { } pool && npc is not null
             && npc.Prompts.Values.Contains(promptId, StringComparer.Ordinal))
         {

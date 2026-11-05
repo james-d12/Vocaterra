@@ -107,6 +107,25 @@ public static class SpeechLines
             }
         }
 
+        // V29: the template an NPC's slot reply says («Sí, hace {weather}.») is recorded once per value its file lists, as the line the slot makes: <lineId>.<value>.
+        foreach (var npc in npcs.All)
+        {
+            foreach (var reply in npc.SlotReplies.Values)
+            {
+                if (NpcTurnRules.PoolSaidOn(bundle, npc.Id, reply.Event) is { } poolId && bundle.Dialogue.TryGetPool(poolId, out var replyPool))
+                {
+                    foreach (var template in replyPool.Variants)
+                    {
+                        foreach (var value in reply.Values)
+                        {
+                            var text = bundle.TemplateEngine.Render(template, SlotMap.From(new Dictionary<string, string>(StringComparer.Ordinal) { [reply.Slot] = value }));
+                            lines.Add(new SpeechLine(SpeechFiles.ValueId(template.LineId, value), npc.Id, text, SpeechKind.Dialogue));
+                        }
+                    }
+                }
+            }
+        }
+
         // V21b: the lines every NPC says are recorded in each NPC's own voice too (the guide's file stays the fallback).
         var shared = SharedPools(bundle);
         foreach (var pool in bundle.Dialogue.Pools.Values.Where(pool => shared.Contains(pool.PoolId) && npcs.OwnerOfPool(pool.PoolId) is null))
@@ -179,6 +198,17 @@ public static class SpeechFiles
 {
     /// <summary>The suffix that marks the slow file: <c>&lt;lineId&gt;.slow</c> names <c>&lt;lineId&gt;.slow.wav</c>.</summary>
     public const string SlowSuffix = ".slow";
+
+    /// <summary>The id of a templated line said with one value of its slot (V29): <c>smith_weather.1</c> with <c>mucho frío</c> is <c>smith_weather.1.mucho-frio</c> (lower case, no accents, hyphens for spaces).</summary>
+    /// <param name="lineId">The template's line id.</param>
+    /// <param name="value">The slot's value.</param>
+    public static string ValueId(string lineId, string value)
+    {
+        ArgumentNullException.ThrowIfNull(lineId);
+        ArgumentNullException.ThrowIfNull(value);
+        var bare = new string(value.Normalize(System.Text.NormalizationForm.FormD).Where(static c => System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c) != System.Globalization.UnicodeCategory.NonSpacingMark).ToArray());
+        return lineId + "." + bare.ToLowerInvariant().Replace(' ', '-');
+    }
 
     /// <summary>Whether a line id is a plain file name the core's <see cref="StaticLineStore"/> reads (letters, digits, <c>.</c>, <c>_</c>, <c>-</c>).</summary>
     /// <param name="lineId">The line id.</param>

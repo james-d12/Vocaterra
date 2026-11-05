@@ -2,6 +2,10 @@
   "agentId": "smith",
   "initialState": "idle",
   "variantPools": [
+    { "id": "smith_yes", "count": 1 },
+    { "id": "smith_weather", "count": 1 },
+    { "id": "smith_sun", "count": 1 },
+    { "id": "smith_well", "count": 1 },
     { "id": "smith_true", "count": 1 },
     { "id": "smith_understood", "count": 1 },
     { "id": "answer_accepted", "count": 3 },
@@ -27,6 +31,10 @@
     {
       "id": "idle",
       "transitions": [
+        { "on": {"intent": "ask_wellbeing", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_well", "variantPoolId": "smith_well" }] },
+        { "on": {"intent": "ask_weather", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_sun", "variantPoolId": "smith_sun" }] },
+        { "on": {"intent": "state_weather", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_yes", "variantPoolId": "smith_yes" }] },
+        { "onHostEvent": "smith.weather", "to": "idle", "actions": [{ "dialogueIntent": "smith_weather", "variantPoolId": "smith_weather" }] },
         { "onHostEvent": "smith.understood", "to": "idle", "actions": [{ "dialogueIntent": "smith_understood", "variantPoolId": "smith_understood" }] },
         { "onHostEvent": "smith.true", "to": "idle", "actions": [{ "dialogueIntent": "smith_true", "variantPoolId": "smith_true" }] },
         { "onHostEvent": "smith.greet", "to": "idle", "actions": [{ "dialogueIntent": "smith_hello", "variantPoolId": "smith_hello" }] },
@@ -36,7 +44,6 @@
         { "onHostEvent": "smith.none_offered", "to": "idle", "actions": [{ "dialogueIntent": "smith_none_offered", "variantPoolId": "smith_none_offered" }] },
         { "onHostEvent": "smith.no_room", "to": "idle", "actions": [{ "dialogueIntent": "smith_no_room", "variantPoolId": "smith_no_room" }] },
         { "on": {"intent": "greet", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_greet", "variantPoolId": "smith_greet" }] },
-        { "on": {"intent": "ask_wellbeing", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_greet", "variantPoolId": "smith_greet" }] },
         { "on": {"intent": "ask_name", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_name", "variantPoolId": "smith_name" }] },
         { "on": {"intent": "ask_activity", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_job", "variantPoolId": "smith_job" }] },
         { "on": {"intent": "state_have", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_offer", "variantPoolId": "smith_offer" }] },
