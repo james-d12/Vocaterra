@@ -295,7 +295,18 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                     {
                         ClosePanels();
                         SleepNow("--sleep");
-                    });
+                    },
+                    item =>
+                    {
+                        if (session.Simulation.Inventory.Count(item) < 1)
+                        {
+                            session.Simulation.GrantItems(item, 1); // a test aid: --eat gives the food the bag lacks
+                        }
+
+                        var result = session.EatItem(item);
+                        Console.WriteLine($"eat: {result} ({item}), hunger {session.Needs.Value(NeedMeter.Hunger):0.#}, thirst {session.Needs.Value(NeedMeter.Thirst):0.#}");
+                    },
+                    () => Console.WriteLine($"drink: {session.DrinkByHand()}, thirst {session.Needs.Value(NeedMeter.Thirst):0.#}"));
                 _scenario = new ScenarioScript(session, _look, _dialogue, options.Script, name => ScriptItemNames.Resolve(session.Nouns, name), hooks, Console.WriteLine, holdsCheckAnswers: options.Playtest);
             }
         }
@@ -373,7 +384,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             [_micScreen, _checks, _dialogueScreen, _controls, _bookScreen, _inventoryPanel, _craftingPanel],
             [_checks, _micScreen, _dialogueScreen, _bookScreen, _inventoryPanel, _craftingPanel, _controls]);
         var openBook = new DelegateCommand(_bookScreen.Open); // J and the book item (S20)
-        _worldInput = new WorldInput(_sim, _look, _live, openBook);
+        _worldInput = new WorldInput(_sim, _look, _live, openBook, new DelegateCommand(() => _session.EatSelected()), session.Data.Needs);
         var commands = new GameCommands(
             ToggleView: new DelegateCommand(ToggleView),
             Save: new DelegateCommand(SaveNow),
@@ -397,9 +408,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                 _worldInput.ReleaseMouse();
                 _ending.Dismiss(); // Esc takes the closing card down (S17)
             }),
-            Sleep: new DelegateCommand(() => SleepNow("the player")));
+            Sleep: new DelegateCommand(() => SleepNow("the player")),
+            DrinkByHand: new DelegateCommand(() => _session.DrinkByHand()));
         _globalKeys = KeyBindings.Global(commands, options.Playtest);
-        _worldKeys = KeyBindings.World(commands, () => _aimed is not null, () => _session.Tips.Current is not null, AimedAtWorkbench, () => CardOffersSleep, () => FireOffersSleep);
+        _worldKeys = KeyBindings.World(commands, () => _aimed is not null, () => _session.Tips.Current is not null, AimedAtWorkbench, () => CardOffersSleep, () => FireOffersSleep, () => _session.AimedAtWater);
         // The session log (S11) is opened first, so the battery's start is in it; the battery's plan is the bundle's items in the seeded order of its kind.
         (_sessionDirectory, _log, _autosave) = SessionStart.Open(options, session, _micCheck is not null, _toasts, _playtestFlow, _saves, OnAppliedTurn, Console.WriteLine);
         if (options.Check is { } battery)
@@ -574,6 +586,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         _checks.Drive();
         _session.PlayPauses = PlayPausesNow(); // the needs move only in active play (N01)
+        _session.SprintHeld = _worldInput.SprintHeld; // sprint, if the needs allow it (N02)
         var steps = _accumulator.Advance(seconds);
         if (_checks.Screen is not null)
         {

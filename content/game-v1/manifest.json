@@ -78,7 +78,7 @@
 {"path":"evaluation/evaluation-config.json","sha256":"fc7d6d2567808648dd6615e4c2ea60556b50eba487ee381e74d5d0769003867d","bytes":1632},
 {"path":"feedback/feedback-policy.json","sha256":"63e3ac7e5a4e7c95ca2d26212ae2536622e606be07cc2117f89cdb34f4da9dcf","bytes":492},
 {"path":"game/checks.json","sha256":"86a47dd44f8131da45e23905f55007e2f35c2ec7f04d764f4de8ccd5578f52c1","bytes":24627},
-{"path":"game/controls.json","sha256":"8a97ff78d312b6a68864039d770cb952c226d2a00f78f16eefe93f127fdde9c1","bytes":975},
+{"path":"game/controls.json","sha256":"c2e01ce1c3b53fa3c6fd971f5e54f20c7cf9702eee5c9c932ae3fd18ed31800b","bytes":1040},
 {"path":"game/host-events.json","sha256":"b37e62a05f31e5e430a50bc9e817e02bac114b5dfcd012ef12d3fb6124dc6a26","bytes":3886},
 {"path":"game/lessons.json","sha256":"e6f12b8e47f6589440a1a58860e73afe027698c812025775891ecb338c3c9897","bytes":1709},
 {"path":"game/lessons/ayer-en-el-pueblo.json","sha256":"c53730bd662bfee4172891ec5b0824d89598aa603993e2a44c1dc15402f6960d","bytes":4132},
@@ -91,7 +91,7 @@
 {"path":"game/lessons/manana-en-el-pueblo.json","sha256":"9472c3e29938fe01b40fb14d35ed7f653f3d256133153893f0b48f3e4838fa3e","bytes":3617},
 {"path":"game/lessons/numeros-y-pan.json","sha256":"09be9e001f157178a136f292ed06835ec95153c1ba29827bab814acbccd15f37","bytes":4196},
 {"path":"game/lessons/personas.json","sha256":"49de470283d57eb68b5e3b2aae974e279cf8124e98dae6e6b9277d580fcf0144","bytes":4549},
-{"path":"game/needs.json","sha256":"87ff38f34ae56d2db936777848aff605f543711cbc5e9218bd41662d014b0228","bytes":3851},
+{"path":"game/needs.json","sha256":"a2c11dbde2571b9995192b91e219b3dc34961e499f856485cf254e80d161440c","bytes":3910},
 {"path":"game/nouns.json","sha256":"c2ae7e71db331c9c3da3a6df819f00d2e6e1c8b216aab6c44ce45770ab46d179","bytes":1750},
 {"path":"game/npcs.json","sha256":"e56af3363f38ce851776eb0274037ef0573113fda995423f4b2849864fb28760","bytes":620},
 {"path":"game/npcs/baker.json","sha256":"ae56c8d4cebee672712f2d440960ac46f3539a61521f8fe7cc3d7ff4b4f3bce7","bytes":491},
@@ -1205,4 +1205,4 @@
 {"path":"speech/villager/villager_unknown_place.1.wav","sha256":"926fc98c88187d508f8a0add2dc291af1e5bf62b5124ea47cf4277577b5e4215","bytes":76844},
 {"path":"speech/villager/villager_wont_sell.1.slow.wav","sha256":"83d644efef23001adfc4ff99d166ae847cf4aba734770565ac951c7f2e78f26a","bytes":88844},
 {"path":"speech/villager/villager_wont_sell.1.wav","sha256":"3265f9782c9ad6140cb0111fff9faa2deaf07a0c6ebb5b798f8df03c9d25b1b9","bytes":67244}
-],"bundleHash":"71d21461c76dd32f2ce074aab90aacb9ebed7f34efe83fae5164d88877ff6a2b"}
+],"bundleHash":"c1b80ccd16e9c87a85d3ae73654745d0d360b79c5f4ce0bc86e9c4642a5d7403"}

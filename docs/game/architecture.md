@@ -108,7 +108,7 @@ Content/          GameData (every game file of the bundle, read once from its ve
 Event/            the game's events (WorldEvents, GameEvent), EventPrinter (the console's event lines) and Trigger (what a tip, a lesson step
                   or an objective waits for, C06)
 Needs/            PlayerNeeds (the five meters and the exhaustion timer, stages and effects worked out from them), NeedsData (game/needs.json), NeedsValidator,
-                  the Drive, NeedMeter, NeedActivity and PlayPause kinds (N01)
+                  the Drive, NeedMeter, NeedActivity and PlayPause kinds (N01), FireRings (the world's fire rings found by shape and which burn) and NeedActionResult (N02)
 Input/            the keys without the engine (GameKey, IInputFrame, D-p2-1a), the command pattern (IGameCommand, DelegateCommand,
                   GameCommands, KeyBinding, KeyBindings, InputKeys: the commands' keys by name, which the locale's {key:…} spells),
                   InputFocus, KeyRepeater, OpenKeySwallow, TextEntry, AccentShortcuts, TextEdits, TextEditKeys, the push-to-talk
@@ -258,8 +258,16 @@ The player's hunger, thirst, sleep, health and stamina (adaptation design sectio
   (`PlayPauses` is `PlayPause.None`). The game sets `PlayPauses` each frame from what it has open (`VoxelGame.PlayPausesNow`): the conversation and lesson panels, the
   book, the inventory, crafting, a station, the report (F8), a menu, the check battery, and speech being recorded or processed. The world's ticks go on under most of
   these and the stored time counts them all, so the needs count active ticks themselves. The activity of a tick is read from the simulation (a gather tick, the body
-  moved, standing still within the rest radius of the lit player fire). `need_stage` is raised when a stage changes. What the stages do to the player, eating, drinking,
-  sleep, the collapse and death are N02 to N04's.
+  moved, standing still within the rest radius of a lit fire). `need_stage` is raised when a stage changes. What the stages do to the player: N02 below; sleep, the collapse
+  and death are N03 and N04's.
+- **Eating, drinking, sprinting (N02)** are the partial `Session/VoxelSession.Eat.cs`. `EatSelected`/`EatItem` use a food of `needs.json` through `PlayerNeeds.Eat` (the bottle
+  comes back empty; at full hunger or thirst the food is kept and the ui line `foodKept` or `drinkKept` is a hint), `DrinkByHand` drinks at the water under the crosshair
+  (`AimedAtWater`), and they raise `meal_eaten` (the food's noun) and `water_drunk` (`botella`, or `pozo`, `lago`, the river's noun). The game binds the right click to
+  `FoodItemUse` (`WorldInput`) and E at water to `GameCommands.DrinkByHand`, and passes the sprint key (`InputKeys` `sprint`, Left Shift) as `SprintHeld`. Before each tick
+  `PrepareTick` sets the simulation's `WalkPermille` (a stage's walk factor, times the data's `sprintSpeedFactor` while the sprint counts: held, moving, allowed by the needs and
+  stamina above 0) and `GatherPermille` (the data's `gatherSlowFactor` at zero stamina: gathering slows and never stops); neither is state or in the digest. The tick's activity
+  is Sprinting, Gathering (a gathered block; filling the bottle is no labour), Walking, Resting (still within the radius of a lit ring of `FireRings`) or Idle. With the needs
+  off the sprint is free and the speed factors are 1.
 - **The save** (version 6): the optional `systems` map, with `systems.needs` holding the five meters and the two timers; versions 1 to 5 start with full needs. The needs
   are not in the world's digest; a load clamps a value out of range and refuses one that is not a number.
 - **Test aids:** `--needs off` freezes the needs (every scripted run passes it), `--set-need <need> <value>` sets one at launch.

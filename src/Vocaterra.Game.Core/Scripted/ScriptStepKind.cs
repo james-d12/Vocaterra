@@ -75,4 +75,13 @@ public enum ScriptStepKind
     /// begins as a load of the save would begin it. Refused, with a line, when the player may not sleep (the fire not lit, a lesson step waiting, a playtest).
     /// </summary>
     Sleep,
+
+    /// <summary>
+    /// Eat or drink the item named in <see cref="ScriptStep.Value"/> (<c>--eat pan</c>, N02): one is given if the bag has none (a test aid, like <c>--set-need</c>), then it is used as a right
+    /// click with it selected uses it. The result is the game's event lines (<c>meal_eaten</c>, <c>water_drunk</c>) and the meters.
+    /// </summary>
+    Eat,
+
+    /// <summary>A drink by hand at the water the crosshair is on, within reach (<c>--drink</c>, N02): the walk and the look come first. A line says when there is no water to drink.</summary>
+    Drink,
 }

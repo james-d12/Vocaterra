@@ -224,6 +224,8 @@
     "ui.craftFull": "Inventory full",
     "ui.craftMissing": "Missing material",
     "ui.needBottle": "You need a bottle.",
+    "ui.foodKept": "You are not hungry. You keep the food.",
+    "ui.drinkKept": "You are not thirsty.",
     "ui.playtestThanks": "Thank you for playing. Your answers are in the session log.",
     "ui.playtestRecallThanks": "Thank you. Your answers are in the session log.",
     "ui.playtestSaved": "{thanks}\nSaved: {file} in the session folder {folder}.",

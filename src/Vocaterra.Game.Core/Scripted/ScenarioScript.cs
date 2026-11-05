@@ -338,6 +338,22 @@ public sealed class ScenarioScript
                 _hooks.Sleep?.Invoke(); // the next play session, as the player's E at the fire (V12c)
                 _index++;
                 break;
+            case ScriptStepKind.Eat:
+                if (_resolveItem(step.Value) is { } food)
+                {
+                    _hooks.Eat?.Invoke(food);
+                }
+                else
+                {
+                    _log($"eat {step.Value}: no such item");
+                }
+
+                _index++;
+                break;
+            case ScriptStepKind.Drink:
+                _hooks.Drink?.Invoke();
+                _index++;
+                break;
             case ScriptStepKind.Pick:
                 _log($"pick {step.Value}: a check step; the check battery takes it before the world (ignored here)");
                 _index++;

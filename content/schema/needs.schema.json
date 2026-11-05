@@ -120,6 +120,17 @@
           "type": "number",
           "minimum": 0,
           "description": "Stamina spent per gather tick (60 ticks a second); the axe needs a quarter of the ticks, so it costs a quarter."
+        },
+        "sprintSpeedFactor": {
+          "type": "number",
+          "exclusiveMinimum": 1,
+          "description": "Sprinting walks this many times as fast as walking (N02; 1.6 when absent)."
+        },
+        "gatherSlowFactor": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "description": "Gathering at zero stamina goes at this fraction of its speed, never stopping (N02; 0.5 when absent)."
         }
       }
     },

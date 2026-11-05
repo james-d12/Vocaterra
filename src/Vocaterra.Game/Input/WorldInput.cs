@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Simulation;
 
 namespace Vocaterra.Game.Input;
@@ -9,7 +10,7 @@ namespace Vocaterra.Game.Input;
 /// <summary>
 /// The world's own input while no screen holds it (S2, S15, S20): the mouse is captured for the look (Esc lets it go, a click takes it back
 /// without gathering), WASD or the arrows walk and Space jumps, 1 to 0 and the wheel pick the hotbar slot, the left button held gathers, the right
-/// button places, and the book item opens the book. The frame's commands go to <see cref="LiveVoxelInput"/>.
+/// button places (or eats a selected food), Left Shift sprints, and the book item opens the book. The frame's commands go to <see cref="LiveVoxelInput"/>.
 /// </summary>
 public sealed class WorldInput
 {
@@ -19,6 +20,8 @@ public sealed class WorldInput
     private readonly LookControl _look;
     private readonly LiveVoxelInput _live;
     private readonly IGameCommand _openBook;
+    private readonly IGameCommand? _eat;
+    private readonly NeedsData? _needs;
     private readonly MouseLook _mouseLook = new();
 
     /// <summary>Creates the world's input.</summary>
@@ -26,8 +29,12 @@ public sealed class WorldInput
     /// <param name="look">The player's look, which the mouse turns.</param>
     /// <param name="live">Where the frame's commands go.</param>
     /// <param name="openBook">Opens the book (the book item's use).</param>
-    public WorldInput(VoxelSimulation sim, LookControl look, LiveVoxelInput live, IGameCommand openBook)
+    /// <param name="eat">Eats or drinks the selected food (the food item's use, N02), or <see langword="null"/> for none.</param>
+    /// <param name="needs">The foods, which say what the right click eats.</param>
+    public WorldInput(VoxelSimulation sim, LookControl look, LiveVoxelInput live, IGameCommand openBook, IGameCommand? eat = null, NeedsData? needs = null)
     {
+        _eat = eat;
+        _needs = needs;
         _sim = sim;
         _look = look;
         _live = live;
@@ -36,6 +43,9 @@ public sealed class WorldInput
 
     /// <summary>Whether the player wants the mouse captured (Esc lets it go; a click in the world takes it back).</summary>
     public bool CaptureWanted { get; private set; } = true;
+
+    /// <summary>Whether the sprint key is held with the mouse captured and a walking key down (the frame's, N02; the session decides whether it counts).</summary>
+    public bool SprintHeld { get; private set; }
 
     /// <summary>Esc in the world: the mouse is let go.</summary>
     public void ReleaseMouse() => CaptureWanted = false;
@@ -95,11 +105,17 @@ public sealed class WorldInput
         }
 
         var (strafe, forward, jump) = captured ? Walk(input) : (0, 0, false);
+        SprintHeld = captured && (strafe != 0 || forward != 0) && input.Down(InputKeys.Of("sprint"));
         var slot = uiOpen ? null : Slot(input, _sim.SelectedSlot);
         var target = _sim.Target;
         if (active && BookItemUse.Applies(input, captured, bookOpen, _sim.SelectedStack))
         {
             _openBook.Execute(); // the book item opens the book, as J does (S20)
+        }
+
+        if (active && _eat is not null && _needs is not null && FoodItemUse.Applies(input, captured, _sim.SelectedStack, _needs))
+        {
+            _eat.Execute(); // a food item is eaten, the water bottle drunk (N02)
         }
 
         _live.SetFrame(

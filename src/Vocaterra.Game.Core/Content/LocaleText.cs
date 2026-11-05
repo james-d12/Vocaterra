@@ -76,7 +76,7 @@ public sealed class LocaleText
         "craftMissing", "needBottle", "playtestThanks", "playtestRecallThanks", "playtestSaved", "speechUnavailable", "turnNotChecked",
         "autosaved", "greyNewWord",
         "sleepHud", "allLessonsDoneHud", "lessonNextHud", "lessonUnderwayHud", "reviewNothingDue", "sleepCard", "sleepCardDone", "sleepPrompt", "sleepPromptDone", "sleptToast", "bookLessonNext", "bookLessonOpen", "bookLessonOpensIn", "bookLessonAfter",
-        "bookLessonsAllDone",
+        "bookLessonsAllDone", "foodKept", "drinkKept",
     ];
 
     /// <summary>The most error lines one turn's feedback carries.</summary>

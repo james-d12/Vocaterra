@@ -58,6 +58,11 @@ internal static class NeedsValidator
             problems.Add($"{File}: stamina's costs and delay must not be negative, and minimumRefillFactor at most 1.");
         }
 
+        if (stamina.SprintSpeedFactor <= 1 || stamina.GatherSlowFactor is <= 0 or > 1)
+        {
+            problems.Add($"{File}: stamina's sprintSpeedFactor must be above 1 and gatherSlowFactor above 0 and at most 1.");
+        }
+
         Positive(problems, "rest's refillFactor", needs.Rest.RefillFactor);
         Positive(problems, "rest's recoveryFactor", needs.Rest.RecoveryFactor);
         if (needs.Rest.RadiusBlocks < 0)
