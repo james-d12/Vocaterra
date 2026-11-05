@@ -1041,6 +1041,15 @@ public sealed record LaunchOptions
 
                     script.Add(new ScriptStep(ScriptStepKind.Eat, Value: value.Trim()));
                     break;
+                case "--plant":
+                    if (!ScenarioScript.TryParseCell(value.Trim(), out _))
+                    {
+                        error = "--plant needs the ground cell as x,y,z, like 10,4,12.";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(ScriptStepKind.Plant, Value: value.Trim()));
+                    break;
                 case "--give":
                     if (value.Trim().Length == 0)
                     {

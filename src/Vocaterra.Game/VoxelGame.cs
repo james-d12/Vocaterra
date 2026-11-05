@@ -324,6 +324,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                     {
                         session.Simulation.GrantItems(item, 1); // a test aid (N07): --give puts one in the bag
                         Console.WriteLine($"give: {item}, bag {session.Simulation.Inventory.Count(item)}");
+                    },
+                    ground =>
+                    {
+                        var result = session.PlantOn(ground); // a test aid (N08): --plant x,y,z is a right click on that ground block with the berry held
+                        Console.WriteLine($"plant: {result} at {ground.X},{ground.Y},{ground.Z}, berries {session.Simulation.Inventory.Count(ItemId.Berry)}, planted {session.PlantedAlive}");
                     });
                 _scenario = new ScenarioScript(session, _look, _dialogue, options.Script, name => ScriptItemNames.Resolve(session.Nouns, name), hooks, Console.WriteLine, holdsCheckAnswers: options.Playtest);
             }
