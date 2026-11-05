@@ -65,7 +65,8 @@ public sealed class CheckBankTests
         Assert.Equal(
             ["hear.que-necesitas", "hear.quieres-pan", "hear.pedir-agua", "hear.no-gracias", "hear.donde-esta-el-rio", "say.pedir-agua", "say.no-gracias", "say.donde-esta-el-rio"],
             bank.Where(static i => i.Lesson is null).Select(static i => i.Id));
-        Assert.Equal(16, bank.Count(static i => i.Lesson == "first-words"));
+        Assert.Equal(8, bank.Count(static i => i.Lesson == "first-words"));
+        Assert.Equal(8, bank.Count(static i => i.Lesson == "first-class")); // L01: the items of units u4 and u4v went with them
         Assert.Equal(["hear.que-quieren-ustedes", "say.ella-quiere-fruta", "say.necesitamos-agua"], bank.Where(static i => i.Lesson == "personas").Select(static i => i.Id));
         Assert.Equal(["hear.que-vas-a-comer", "hear.que-comiste-ayer", "say.voy-a-comer-pan", "say.ayer-comi-fruta"], bank.Where(static i => i.Lesson == "ayer-y-manana").Select(static i => i.Id));
         Assert.Equal(
@@ -108,7 +109,7 @@ public sealed class CheckBankTests
 
         var problems = Problems(Battery(Production.Replace("\"lesson\":null", "\"lesson\":\"no-such-lesson\"", StringComparison.Ordinal)));
 
-        Assert.Contains("game/checks.json: item 'say.x' belongs to the lesson 'no-such-lesson', which is not a lesson (first-words, personas, ayer-y-manana, el-pueblo, numeros-y-pan, gente-del-pueblo, como-es, ayer-en-el-pueblo, manana-en-el-pueblo, el-mercado).", problems);
+        Assert.Contains("game/checks.json: item 'say.x' belongs to the lesson 'no-such-lesson', which is not a lesson (first-words, first-class, personas, ayer-y-manana, el-pueblo, numeros-y-pan, gente-del-pueblo, como-es, ayer-en-el-pueblo, manana-en-el-pueblo, el-mercado).", problems);
     }
 
     [Fact]

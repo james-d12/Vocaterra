@@ -40,7 +40,7 @@ public sealed class NamePlatesTests
     public void TheSpeakerHasNoPlateBecauseTheBubbleHasHisName() => Assert.Equal([Villager], NamePlates.Select(All, Baker, Villager.Feet, "baker"));
 
     // V22's depth test is the graphics card's (the plate reads the depth buffer), so the proof is a picture: the baker's plate drawn from the square, and left out from the
-    // north of the bakery, where the bakery is between the camera and her (the beacon is on her in both, so Select picks her in both). The test runs the game window, so it needs a
+    // north of the bakery, where the bakery is between the camera and her (the beacon is on her in both, the toast of the request gone after five seconds: the Lessons page's "Ask for a class" for El mercado sends it to her, so Select picks her in both). The test runs the game window, so it needs a
     // display (DISPLAY) and the built game; without one it does nothing, as the other tests of tools that are not there (PlaytestReportTests).
     [Fact]
     public void TheBeaconsNpcBehindABuildingHasNoPlateDrawnAndInTheOpenShesGotOne()
@@ -73,7 +73,7 @@ public sealed class NamePlatesTests
         foreach (var argument in new[]
         {
             dll, "--seed", "42", "--mute", "--session-dir", Path.Combine(folder, "session-" + name), "--content", GameBundle.ResolveDirectory(),
-            "--skip-to-session", "10", "--beacon", "npc.baker", "--teleport", teleport, "--look", look, "--screenshot", png, "--frames", "20",
+            "--skip-to-session", "10", "--book-practise", "el-mercado", "--wait", "5", "--teleport", teleport, "--look", look, "--screenshot", png, "--frames", "20",
         })
         {
             start.ArgumentList.Add(argument);

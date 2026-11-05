@@ -60,6 +60,8 @@ the language runs keep their baselines); `--set-need <need> <value>` sets one at
 DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --set-need thirst 30 --walk-to 176,186 --screenshot /tmp/n01.png --frames 60 --save /tmp/n01.save
 ```
 
+**Sleeping (L01).** E at the lit fire sleeps from day 2 only while the sleep drive is below 75 (day 1: once its ending is reached); otherwise it shows «No tengo sueño.» and sleeps nothing. `--sleep` and a script's `sleep` step sleep at any drive, so a `--needs off` run (the sleep drive full) can still pass the night. No lesson, class or order holds sleep back.
+
 **Sleep and the collapse (N03).** Every night (E at the lit fire, Enter on the closing card, `--sleep`) applies the night to the needs: sleep to 100, health +20 (to 100),
 hunger -15 and thirst -20, neither below 10 (a drive already below 10 stays). After 60 s of active play with sleep at its last stage the screen fades and the player sleeps where
 they stand (sleep to 50, stamina full, the same costs, no health), wakes there, and the day and sitting move as for a night; a tip explains it once. To reach it in a script:

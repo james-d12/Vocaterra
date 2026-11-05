@@ -1,5 +1,6 @@
 using System.Globalization;
 using Vocaterra.Game.Core.Event;
+using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Tip;
 
@@ -44,56 +45,29 @@ public sealed partial class VoxelSession
     }
 
     /// <summary>
-    /// Whether this play session's work is done (V12c): in session 1 its ending (the camp done and the player's own fire lit, <see cref="SessionComplete"/>); from session 2
-    /// on, no lesson is under way and every unlocked lesson is done (the session's new lesson completed).
+    /// Whether the player wants to sleep now (L01, D-game-25, adaptation design 9.5): on day 1 once its ending is reached (the introduction, the camp and the fire,
+    /// <see cref="SessionComplete"/>); from day 2 on whenever the sleep drive is below 75 (stage 1 or worse). No lesson, objective or order holds sleep back. With the needs off
+    /// the drive stays full, so only the scripts' aids sleep (<see cref="CanSleep"/>).
     /// </summary>
-    public bool SessionWorkDone =>
-        Day <= 1 ? SessionComplete : Lessons.Active is null && !Lessons.Book.Lessons.Any(l => Lessons.IsUnlocked(l) && !Lessons.IsDone(l.Id));
-
-    /// <summary>The play session of the first lesson a later session opens that is not done, or <see langword="null"/> when no later session has one (after session 6 today).</summary>
-    public int? NextLessonSession =>
-        Lessons.Book.Lessons.Where(l => l.Session > Day && !Lessons.IsDone(l.Id)).Select(static l => (int?)l.Session).Min();
+    public bool SleepWanted => Day <= 1 ? SessionComplete : NeedsEnabled && Needs.StageOf(Drive.Sleep) >= 1;
 
     /// <summary>
-    /// Whether the objective sends the player to their fire to sleep (V12c): sleep is offered, the fire is lit, the session's work is done and a later session has a lesson.
-    /// The arrow goes to the fire when this begins away from it.
+    /// Whether the objective sends the player to their fire to sleep: day 1 only, once its ending is reached (the arrow goes to the fire when this begins away from it). From day 2 the
+    /// needs say when to sleep.
     /// </summary>
-    public bool RestDue => SleepOffered && FireLit && SessionWorkDone && NextLessonSession is not null;
+    public bool RestDue => SleepOffered && FireLit && Day <= 1 && SessionComplete;
 
     /// <summary>
-    /// Whether the player may sleep now (V12c): sleep is offered, their own fire is lit, the session is at rest (<see cref="GuideSession.CanSave"/>) and no lesson step waits
-    /// (an engaged lesson comes first: every lesson starts by itself, so one begun in this run stays engaged until it is done). The front-end adds that no panel is open.
+    /// Whether the player may sleep now: sleep is offered, their own fire is lit and the session is at rest (<see cref="GuideSession.CanSave"/>). A lesson never holds it back: a
+    /// class paused or under way pauses (L01). Whether they want to is <see cref="SleepWanted"/>; the front-end adds that no panel is open.
     /// </summary>
-    public bool CanSleep => SleepOffered && FireLit && CanSave && !Lessons.Engaged;
+    public bool CanSleep => SleepOffered && FireLit && CanSave;
 
-    // What the objective says once the play session's work is done (V12c): sleep to start the next session, or (no later session has a lesson) every lesson is done;
-    // from session 2 on, while it is not done, the lesson to go on with. Null when none of these applies. Over an open order (overOrder) the order's own line stays
-    // when there is nothing else to do: "every lesson is done" is the line of a session with nothing left.
-    private ObjectivePiece? RestLine(bool overOrder)
-    {
-        if (SessionWorkDone)
-        {
-            if (NextLessonSession is null)
-            {
-                return overOrder || Lessons.Book.Lessons.Count == 0 ? null : new ObjectivePiece(Locale.Ui("allLessonsDoneHud"), ObjectivePieceKind.Support, Done: true);
-            }
+    // What the objective says once day 1's work is done: sleep at the fire. Null otherwise (from day 2 the needs and the tracked objective speak, L01).
+    private ObjectivePiece? RestLine() =>
+        RestDue ? new ObjectivePiece(Locale.Ui("sleepHud", ("session", (Day + 1).ToString(CultureInfo.InvariantCulture))), ObjectivePieceKind.Support, Done: true) : null;
 
-            return SleepOffered && FireLit
-                ? new ObjectivePiece(Locale.Ui("sleepHud", ("session", (Day + 1).ToString(CultureInfo.InvariantCulture))), ObjectivePieceKind.Support, Done: true)
-                : null;
-        }
-
-        if (Day > 1 && Lessons.NextUp is { } next)
-        {
-            var npc = Lessons.CurrentNpc ?? next.Npc; // a lesson begun goes on at its step's NPC (a do step's own line comes first while the lesson is engaged)
-            var key = Lessons.Active is null ? "lessonNextHud" : "lessonUnderwayHud"; // a lesson begun is under way, not next (V23a)
-            return new ObjectivePiece(Locale.Ui(key, ("npc", Locale.NpcName(npc).ToLowerInvariant()), ("title", next.ShortTitle)), ObjectivePieceKind.Support);
-        }
-
-        return null;
-    }
-
-    // Once a tick: when the objective begins to send the player to sleep (a later session's lesson completed), the arrow goes to the fire, unless the player is there.
+    // Once a tick: when the objective begins to send the player to sleep, the arrow goes to the fire, unless the player is there.
     private void NoteRestDue()
     {
         var due = RestDue;

@@ -32,7 +32,7 @@ public sealed class YesterdayLessonTests(ITestOutputHelper output)
         session.Day = 8;
         session.Sitting = 8;
         Stage.TeleportToNpc(session, "villager");
-        _ = session.OpenTalk("villager");
+        _ = session.OpenTalkForClass("villager");
         return session;
     }
 
@@ -55,7 +55,7 @@ public sealed class YesterdayLessonTests(ITestOutputHelper output)
         {
             session.EndTalk();
             Stage.TeleportToNpc(session, npc);
-            _ = session.OpenTalk(npc);
+            _ = session.OpenTalkForClass(npc);
             return null;
         }
 
@@ -69,7 +69,7 @@ public sealed class YesterdayLessonTests(ITestOutputHelper output)
     {
         var lesson = Book.Find(LessonId)!;
 
-        Assert.Equal(("villager", 8, true, "como-es", LessonLevels.A2), (lesson.Npc, lesson.Session, lesson.AutoStart, lesson.After, lesson.Level));
+        Assert.Equal(("villager", 8, false, "como-es", LessonLevels.A2), (lesson.Npc, lesson.Session, lesson.AutoStart, lesson.After, lesson.Level));
         Assert.StartsWith("Session 8", lesson.Objective, StringComparison.Ordinal);
         Assert.Contains("square", lesson.Objective, StringComparison.Ordinal); // the objective line names where to go: the villager in the square
         Assert.Contains("Ayer en el pueblo", lesson.Objective, StringComparison.Ordinal);
@@ -170,7 +170,7 @@ public sealed class YesterdayLessonTests(ITestOutputHelper output)
         // every person and tener que. The validator holds it to A2, and the earlier six stay a1.
         Assert.Empty(GameDataValidator.Validate(TestGame.Data));
         Assert.Equal(
-            [LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A2, LessonLevels.A2, LessonLevels.A2, LessonLevels.A2],
+            [LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A2, LessonLevels.A2, LessonLevels.A2, LessonLevels.A2],
             Book.Lessons.Select(static l => l.Level));
         Assert.Contains("pescar", TestGame.Bundle.Cefr["a1"]);
     }
@@ -348,7 +348,7 @@ public sealed class YesterdayLessonTests(ITestOutputHelper output)
         // nothing else: the lint's confusion check of state_obligation against state_have is clean (the host's tests evaluate both on one prompt).
         var free = TestGame.NewSessionWithShippedLessons();
         Stage.TeleportToNpc(free, "smith");
-        _ = free.OpenTalk("smith");
+        _ = free.OpenTalkForClass("smith");
         var have = free.Say("Tengo madera");
         Assert.Equal(("state_have", "madera"), (have.Intent, have.Slots["item"]));
         Assert.Empty(have.Errors);

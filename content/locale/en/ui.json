@@ -267,18 +267,11 @@
     "ui.autosaved": "Saved",
     "ui.greyNewWord": "New word: {word}!",
     "ui.sleepHud": "Session complete: sleep at your fire to start session {session}",
-    "ui.allLessonsDoneHud": "Every lesson so far is done: practise any of them again in the book ({key:book}), or talk to the people of the village",
-    "ui.lessonNextHud": "Next: talk to {npc} for the lesson “{title}”",
-    "ui.lessonUnderwayHud": "The lesson “{title}” is under way: talk to {npc} to go on",
     "ui.reviewNothingDue": "Nothing to review yet: carry on",
     "ui.sleepCard": "{key:sleep}: sleep until morning and start session {session}",
-    "ui.sleepCardDone": "{key:sleep}: sleep until morning (session {session}); the lessons are all done for now",
     "ui.sleepPrompt": "{key:talk}: sleep until morning (session {session})",
-    "ui.sleepPromptDone": "{key:talk}: sleep until morning (session {session}); the lessons are all done for now",
     "ui.sleptToast": "Good morning: session {session} begins",
-    "ui.bookLessonNext": "next: talk to {npc}",
-    "ui.bookLessonOpen": "open: talk to {npc}",
-    "ui.bookLessonOpensIn": "opens in session {session}, {npc}",
+    "ui.bookLessonOpen": "open: ask {npc}",
     "ui.bookLessonAfter": "after “{title}”",
     "ui.bookLessonsAllDone": "Every lesson of the village is done, all {count}: the series ends here. Practise any of them again with its button below.",
     "npc.guide.role": "The guide",
@@ -294,6 +287,10 @@
     "objective.fruit-for-mar.hud": "Bring {npc:fisher} three fruits from the bushes at {npc:guide}'s camp",
     "objective.oven-wood.hud": "Bring {npc:baker} five wood (madera) for her oven at the bakery",
     "objective.axe-handle.hud": "Bring {npc:smith} two wood (madera) and two coins for an axe at the smithy",
-    "objective.water-for-plants.hud": "Bring {npc:farmer} a bottle of water (agua) for his plants at the field"
+    "objective.water-for-plants.hud": "Bring {npc:farmer} a bottle of water (agua) for his plants at the field",
+    "ui.bookLessonMeet": "meet {npc} first",
+    "ui.bookAskClass": "Ask for a class",
+    "ui.classHud": "Class: talk to {npc} to start “{title}”",
+    "ui.bookLessonNext": "next: talk to {npc}"
   }
 }

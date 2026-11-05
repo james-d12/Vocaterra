@@ -69,7 +69,7 @@ public sealed record LaunchOptions
         + "                          the earlier sessions' lessons completed, session 1's camp done and its fire lit, the earlier orders delivered and paid, no practice counted;\n"
         + "                          the console, the session log and the saves say so. Not with --load, --session or --playtest (V12c)\n"
         + "  --sleep                 sleep at the player's own fire now, as E there does, wherever the player stands: the next play session begins as a load of the save would\n"
-        + "                          begin it (the fire must be lit, no lesson step waiting; not in a playtest); a step (V12c)\n"
+        + "                          begin it (the fire must be lit; not in a playtest; it sleeps whatever the sleep drive says, where E needs it below 75, L01); a step (V12c)\n"
         + "  --tips                  draw the first-time tips in a scripted run too (an interactive run always does; S16)\n"
         + "  --third-person          start in the behind-the-shoulder view (S15; F5 switches between it and first person)\n"
         + "  --dusk                  a lower, dimmer sun and lanterns that glow at full strength (S15)\n"

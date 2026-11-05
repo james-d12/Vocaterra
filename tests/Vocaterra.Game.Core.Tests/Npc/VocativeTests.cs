@@ -84,7 +84,7 @@ public sealed class VocativeTests
         }
 
         Stage.TeleportToNpc(session, npc);
-        _ = session.OpenTalk(npc);
+        _ = session.OpenTalkForClass(npc);
         return session;
     }
 

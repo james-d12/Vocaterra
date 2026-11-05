@@ -486,6 +486,12 @@
     "line.shop_weather.1.viento": "Yes, it is windy.",
     "line.shop_weather.1.fresco": "Yes, it is cool.",
     "line.shop_weather.1.buen-tiempo": "Yes, the weather is nice.",
-    "line.shop_weather.1.mal-tiempo": "Yes, the weather is bad."
+    "line.shop_weather.1.mal-tiempo": "Yes, the weather is bad.",
+    "line.guide.lesson.guide.offer.1": "Do you want a class? Yes or no?",
+    "line.guide.lesson.villager.offer.1": "A class today? Yes or no?",
+    "line.guide.lesson.fisher.offer.1": "Do you want a class? Yes or no?",
+    "line.guide.lesson.baker.offer.1": "Do you want a class? Yes or no?",
+    "line.guide.lesson.farmer.offer.1": "Do you want a class? Yes or no?",
+    "line.guide.sleep.not_sleepy.1": "I'm not sleepy."
   }
 }

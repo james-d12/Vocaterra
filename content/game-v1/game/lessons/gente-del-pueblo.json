@@ -4,7 +4,7 @@
   "id": "gente-del-pueblo",
   "npc": "villager",
   "level": "a1",
-  "autoStart": true,
+  "autoStart": false,
   "after": "numeros-y-pan",
   "session": 6,
   "verbs": [

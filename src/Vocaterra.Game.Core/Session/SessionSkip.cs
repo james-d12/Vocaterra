@@ -74,6 +74,7 @@ public static class SessionSkip
             foreach (var lesson in session.Lessons.Book.Lessons.Where(l => l.Session == played))
             {
                 session.Lessons.CountAsCompleted(lesson.Id, played);
+                session.MarkMet(lesson.Npc); // L01: a class opens on having met its teacher, and the skip counts the classes before the target as done
             }
 
             if (played == 1)
@@ -83,6 +84,7 @@ public static class SessionSkip
 
             foreach (var order in session.Objectives.Where(o => o.Spec.IsOrder && o.Spec.Session == played && !o.Complete))
             {
+                session.MarkMet(order.Spec.DeliverTo!); // an order shows once its NPC is met (L01); its session only says when the skip delivers it
                 session.SkipDeliver(order);
             }
 
@@ -90,6 +92,11 @@ public static class SessionSkip
             {
                 session.SkipBuy(purchase);
             }
+        }
+
+        foreach (var lesson in session.Lessons.Book.Lessons.Where(l => l.Session <= target))
+        {
+            session.MarkMet(lesson.Npc); // the target session's own teachers count as met too, so its class is open at once (a test aid)
         }
 
         session.ForgetSkippedWords(words, carded);

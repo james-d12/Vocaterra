@@ -5,44 +5,7 @@
   "npc": "guide",
   "level": "a1",
   "autoStart": true,
-  "verbs": [
-    {
-      "lemma": "querer",
-      "person": "1",
-      "number": "sg",
-      "tense": "pres"
-    },
-    {
-      "lemma": "querer",
-      "person": "2",
-      "number": "sg",
-      "tense": "pres"
-    },
-    {
-      "lemma": "tener",
-      "person": "1",
-      "number": "sg",
-      "tense": "pres"
-    },
-    {
-      "lemma": "tener",
-      "person": "2",
-      "number": "sg",
-      "tense": "pres"
-    },
-    {
-      "lemma": "necesitar",
-      "person": "1",
-      "number": "sg",
-      "tense": "pres"
-    },
-    {
-      "lemma": "necesitar",
-      "person": "2",
-      "number": "sg",
-      "tense": "pres"
-    }
-  ],
+  "verbs": [],
   "steps": [
     {
       "id": "u1-welcome",
@@ -129,79 +92,6 @@
       "id": "u3-bottle",
       "type": "model",
       "line": "guide.lesson.it_is.4"
-    },
-    {
-      "id": "u4-intro",
-      "type": "explain"
-    },
-    {
-      "id": "u4-offer",
-      "type": "model",
-      "line": "guide.lesson.offer.1"
-    },
-    {
-      "id": "u4-yes",
-      "type": "repeat",
-      "phrase": "si-por-favor",
-      "prompt": "lesson-offer"
-    },
-    {
-      "id": "u4-take",
-      "type": "model",
-      "line": "guide.lesson.take.1"
-    },
-    {
-      "id": "u4-pick",
-      "type": "do",
-      "trigger": {
-        "event": "item_picked_up",
-        "detail": "fruta"
-      },
-      "point": "fruta"
-    },
-    {
-      "id": "u4-thanks",
-      "type": "answer",
-      "phrase": "gracias",
-      "prompt": "lesson-thanks",
-      "line": "guide.lesson.have.1"
-    },
-    {
-      "id": "u4-welcome",
-      "type": "model",
-      "line": "guide.lesson.welcome.1"
-    },
-    {
-      "id": "u4v-intro",
-      "type": "explain"
-    },
-    {
-      "id": "u4v-ask-want",
-      "type": "model",
-      "line": "guide.lesson.want.1"
-    },
-    {
-      "id": "u4v-say-want",
-      "type": "repeat",
-      "phrase": "quiero-madera",
-      "prompt": "lesson-want",
-      "person": "1sg"
-    },
-    {
-      "id": "u4v-ask-have",
-      "type": "answer",
-      "phrase": "tengo-fruta",
-      "prompt": "lesson-have",
-      "line": "guide.lesson.have_fruit.1",
-      "person": "1sg"
-    },
-    {
-      "id": "u4v-ask-need",
-      "type": "answer",
-      "phrase": "necesito-agua",
-      "prompt": "lesson-need",
-      "line": "guide.lesson.need.1",
-      "person": "1sg"
     },
     {
       "id": "u5-intro",

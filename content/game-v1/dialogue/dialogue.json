@@ -1631,6 +1631,42 @@
         { "lineId": "guide.lesson.baker.twenty.1", "text": "Dieciséis, diecisiete, dieciocho, diecinueve, veinte." }
       ]
     },
+    "guide.lesson.guide.offer": {
+      "poolId": "guide.lesson.guide.offer",
+      "variants": [
+        { "lineId": "guide.lesson.guide.offer.1", "text": "¿Quieres una clase? ¿Sí o no?" }
+      ]
+    },
+    "guide.lesson.villager.offer": {
+      "poolId": "guide.lesson.villager.offer",
+      "variants": [
+        { "lineId": "guide.lesson.villager.offer.1", "text": "¿Una clase hoy? ¿Sí o no?" }
+      ]
+    },
+    "guide.lesson.fisher.offer": {
+      "poolId": "guide.lesson.fisher.offer",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.offer.1", "text": "¿Quieres una clase? ¿Sí o no?" }
+      ]
+    },
+    "guide.lesson.baker.offer": {
+      "poolId": "guide.lesson.baker.offer",
+      "variants": [
+        { "lineId": "guide.lesson.baker.offer.1", "text": "¿Quieres una clase? ¿Sí o no?" }
+      ]
+    },
+    "guide.lesson.farmer.offer": {
+      "poolId": "guide.lesson.farmer.offer",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.offer.1", "text": "¿Quieres una clase? ¿Sí o no?" }
+      ]
+    },
+    "guide.sleep.not_sleepy": {
+      "poolId": "guide.sleep.not_sleepy",
+      "variants": [
+        { "lineId": "guide.sleep.not_sleepy.1", "text": "No tengo sueño." }
+      ]
+    },
     "guide.lesson.baker.market": {
       "poolId": "guide.lesson.baker.market",
       "variants": [

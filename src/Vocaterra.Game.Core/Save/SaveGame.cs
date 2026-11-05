@@ -178,7 +178,8 @@ public static class SaveGame
             SkippedTo: session.SkippedTo,
             Sitting: session.Sitting,
             KeyWordsTaughtBy: session.KeyWordsTaughtBy,
-            Systems: new SystemsSave(session.Needs.Capture(), session.CaptureChest(), session.CaptureBushes(), session.CaptureGifts()));
+            Systems: new SystemsSave(session.Needs.Capture(), session.CaptureChest(), session.CaptureBushes(), session.CaptureGifts()),
+            MetNpcs: session.MetNpcs);
     }
 
     /// <summary>Captures a session and serializes it: the text of the save file.</summary>
@@ -385,6 +386,7 @@ public static class SaveGame
         RestorePhrases(session, document.Phrases, migrating);
         session.RestoreObjectiveCounts(document.Objective.Select(static step => (step.Key, step.Count)));
         session.RestoreCarded(document.Carded);
+        session.RestoreMet(document.MetNpcs ?? (document.Session >= 2 ? session.Data.Npcs.Ids : [NpcService.GuideAgent])); // L01: a save from before has none
         session.RestoreKeyWordsTaught(document.KeyWordsTaughtBy ?? (document.KeyWordsTaught ? [NpcService.ShopkeeperAgent] : [])); // an older save's flag was the shopkeeper's (V23a)
         session.RiverPointedState = document.RiverPointed;
         session.RestorePointer(document.Pointer is { } pointer ? new PointerMarker(pointer.Place, pointer.Target, Point: session.PointNameAt(pointer.Target, pointer.Place)) : null); // V02: the place's name is worked out again
