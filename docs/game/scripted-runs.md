@@ -21,7 +21,7 @@ W=/tmp/vocaterra-run          # one work folder: clear it before each run, then 
 rm -rf "$W" && mkdir -p "$W"
 ```
 
-Every command below also takes `--session-dir "$W/session"`, so that the session log, the autosave and the reports land in the work folder.
+Every command below also takes `--session-dir "$W/session"` and, since N01, `--needs off` (the player's needs frozen full, so the runs keep their baselines; `scripts/scripted-runs.sh` adds both), so that the session log, the autosave and the reports land in the work folder.
 It is left out of the table for brevity.
 
 `scripts/scripted-runs.sh OUT [name...]` runs them all (or the named ones) this way and keeps each run's folder in `OUT/<name>`;

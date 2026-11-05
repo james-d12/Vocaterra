@@ -52,6 +52,14 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --quality low --
 DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --quality low --beacon none --greyscale --teleport 222,222 --look 80,-16 --screenshot /tmp/s14-greyscale.png --frames 60
 ```
 
+**The needs (N01).** Hunger, thirst and sleep fall in active play and push health and stamina (design section 9). `--needs off` freezes them full (the scripted runs pass it, so
+the language runs keep their baselines); `--set-need <need> <value>` sets one at launch, 0 to 100, repeatable (`hunger`, `thirst`, `sleep`, `health`, `stamina`):
+
+```bash
+# thirst starts at 30 and falls: a need_stage event (sed) when it crosses 25, and the save's systems.needs shows it
+DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --set-need thirst 30 --walk-to 176,186 --screenshot /tmp/n01.png --frames 60 --save /tmp/n01.save
+```
+
 `--greyscale` is the playtest A/B switch (D-game-6 as amended): a block whose noun is not known yet is drawn grey, a known one in full colour, and
 a noun that becomes known during play gets its blocks back in colour with the toast `¡Nueva palabra: el agua!`. The world is in full colour
 without the flag; the figures, the sky, the undergrowth, the snow and the UI are always in colour.

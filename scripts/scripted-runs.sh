@@ -5,6 +5,7 @@
 #
 #   scripts/scripted-runs.sh OUT [name...]     (no names: every run; run from the repository root after a build)
 #
+# Every run passes --needs off (N01): the player's needs are frozen full, so the runs keep their baselines (no run plays the ten minutes a need takes to show).
 # GAME_BIN overrides the game binary (another worktree's build); VOCATERRA_RUNS_WORK the work folder.
 set -uo pipefail
 OUT="$1"; shift
@@ -25,7 +26,7 @@ run() {
   if [ "${#ONLY[@]}" -gt 0 ] && [[ ! " ${ONLY[*]} " == *" $name "* ]]; then return; fi
   rm -rf "$W"; mkdir -p "$W"
   local started=$SECONDS
-  scripts/limited.sh "$BIN" --session-dir "$W/session" "$@" > "$W/stdout.txt" 2>&1
+  scripts/limited.sh "$BIN" --session-dir "$W/session" --needs off "$@" > "$W/stdout.txt" 2>&1
   local code=$?
   echo "$code" > "$W/exit.txt"
   rm -rf "${OUT:?}/$name"; cp -r "$W" "$OUT/$name"

@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Graphics;
@@ -217,5 +218,40 @@ public sealed class VoxelLaunchOptionsTests
     public void AnUnknownArgumentIsNamed()
     {
         Assert.Equal("Unknown argument '--nope'.", Refuse("--nope"));
+    }
+
+    [Fact]
+    public void TheNeedsAreOnByDefaultAndNeedsOffFreezesThem()
+    {
+        Assert.False(Parse().NeedsOff);
+        Assert.False(Parse("--needs", "on").NeedsOff);
+        Assert.True(Parse("--needs", "off").NeedsOff);
+        Assert.Contains("--needs", Refuse("--needs", "maybe"), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SetNeedIsRepeatableAndKeepsTheOrderGiven()
+    {
+        var options = Parse("--set-need", "thirst", "30", "--seed", "7", "--set-need", "Hunger", "12.5");
+
+        Assert.Equal([(NeedMeter.Thirst, 30.0), (NeedMeter.Hunger, 12.5)], options.SetNeeds.ToArray());
+        Assert.Empty(Parse().SetNeeds);
+    }
+
+    [Theory]
+    [InlineData("--set-need")]
+    [InlineData("--set-need", "thirst")]
+    [InlineData("--set-need", "courage", "5")]
+    [InlineData("--set-need", "thirst", "101")]
+    [InlineData("--set-need", "thirst", "-1")]
+    [InlineData("--set-need", "thirst", "many")]
+    [InlineData("--set-need", "1", "5")]
+    public void ABadSetNeedIsRefused(params string[] args) => Assert.Contains("--set-need", Refuse(args), StringComparison.Ordinal);
+
+    [Fact]
+    public void TheHelpTextListsTheNeedsFlags()
+    {
+        Assert.Contains("--needs on|off", LaunchOptions.Usage, StringComparison.Ordinal);
+        Assert.Contains("--set-need", LaunchOptions.Usage, StringComparison.Ordinal);
     }
 }
