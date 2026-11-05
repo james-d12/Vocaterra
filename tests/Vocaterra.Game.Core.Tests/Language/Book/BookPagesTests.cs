@@ -237,7 +237,7 @@ public sealed class BookPagesTests
         _ = session.OpenTalk("villager");
         _ = session.OpenTalk("fisher");
         (title, why) = LessonLines(session, "personas");
-        Assert.Equal("open: ask Aldeano for a class", why.Text);
+        Assert.Equal("open: ask Aldeano", why.Text);
         Assert.Equal(BookTone.Seen, why.Tone);
         Assert.Equal("personas", title.Practise); // the "Ask for a class" button
         Assert.True(title.Ask);
@@ -253,7 +253,7 @@ public sealed class BookPagesTests
         SessionSkip.Apply(session, 8);
 
         var (title, why) = LessonLines(session, "ayer-en-el-pueblo");
-        Assert.Equal("open: ask Aldeano for a class", why.Text);
+        Assert.Equal("open: ask Aldeano", why.Text);
         Assert.Equal(BookTone.Seen, why.Tone);
         Assert.Equal("completed in session 7", LessonLines(session, "como-es").Title.Aside);
         Assert.Equal("ayer-en-el-pueblo", title.Practise);

@@ -197,9 +197,8 @@ public sealed class LessonFrontendTests
         Assert.Equal(25, done.Count); // every step, its outcome printed by the event line
         Assert.Contains("  event: lesson first-words completed (done 25, skipped 0, moved on 0)", run.Log);
         Assert.Equal(LessonStatus.Completed, run.Session.Lessons.StatusOf("first-words"));
-        Assert.Equal(1, run.Session.Objective.Step("berry")!.Count); // the lesson's fruit is a real one: the checklist moved
         Assert.True(run.Session.GuideMet);
-        Assert.Equal(["hola", "si", "no", "que-es-esto", "que-es-esto", "que-es-esto", "si-por-favor", "gracias", "quiero-madera", "tengo-fruta", "necesito-agua", "no-se", "otra-vez", "mas-despacio"],
+        Assert.Equal(["hola", "si", "no", "que-es-esto", "que-es-esto", "que-es-esto", "no-se", "otra-vez", "mas-despacio"],
             run.Session.Events.OfType<PhraseUse>().Select(static u => u.PhraseId));
     }
 

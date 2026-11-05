@@ -341,7 +341,7 @@ public sealed partial class LessonRunner
 
     /// <summary>The English objective line for a lesson practised again (S26): where to go and which lesson, or <see langword="null"/> when none is pending.</summary>
     public string? ReplayHud => _replayId is { } id && _book.Find(id) is { } lesson && _activeId is null
-        ? _locale.Ui(IsDone(id) ? "replayHud" : "classHud", ("npc", _locale.NpcName(lesson.Npc).ToLowerInvariant()), ("title", lesson.Title))
+        ? _locale.Ui(IsDone(id) ? "replayHud" : "classHud", ("npc", _locale.NpcName(lesson.Npc).ToLowerInvariant()), ("title", lesson.ShortTitle))
         : null;
 
     /// <summary>The NPC the step in progress is said at: the step's own, or its lesson's; <see langword="null"/> when no lesson is active.</summary>

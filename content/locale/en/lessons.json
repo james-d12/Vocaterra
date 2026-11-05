@@ -4,7 +4,7 @@
   "strings": {
     "lesson.first-words.title": "Welcome: first words with {npc:guide}",
     "lesson.first-words.text": "A short introduction: hello, yes and no, what is this, and what to say when you are stuck, then the camp.",
-    "lesson.first-words.summary": "You can greet, say yes and no, ask what something is, and get unstuck: I don’t know, again, slower.",
+    "lesson.first-words.summary": "You can greet, say yes and no, ask what something is, and get unstuck: I don't know, again, slower.",
     "lesson.first-words.u1-welcome.text": "This is {npc:guide}, the guide. She teaches you Spanish one phrase at a time. Nothing here is a test. Enter goes on, H helps, K skips a step.",
     "lesson.first-words.u1-hello.text": "{npc:guide} waves and says hello.",
     "lesson.first-words.u1-hello.translation": "Hello.",

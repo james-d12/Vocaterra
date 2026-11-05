@@ -242,7 +242,7 @@
     "ui.sleepCard": "{key:sleep}: sleep until morning and start session {session}",
     "ui.sleepPrompt": "{key:talk}: sleep until morning (session {session})",
     "ui.sleptToast": "Good morning: session {session} begins",
-    "ui.bookLessonOpen": "open: ask {npc} for a class",
+    "ui.bookLessonOpen": "open: ask {npc}",
     "ui.bookLessonAfter": "after “{title}”",
     "ui.bookLessonsAllDone": "Every lesson of the village is done, all {count}: the series ends here. Practise any of them again with its button below.",
     "npc.guide.role": "The guide",

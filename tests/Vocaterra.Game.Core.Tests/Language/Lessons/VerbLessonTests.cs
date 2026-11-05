@@ -318,7 +318,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         Assert.True(session.Lessons.RequestReplay("first-class"));
 
         Assert.Equal("first-class", session.Lessons.ReplayPending);
-        var title = session.Lessons.Book.Find("first-class")!.Title;
+        var title = session.Lessons.Book.Find("first-class")!.ShortTitle;
         Assert.Equal($"Practise again: talk to the guide to start “{title}”", session.Lessons.ReplayHud);
         Assert.Equal($"Practise again: talk to the guide to start “{title}”", session.ObjectiveHud()[0].Text);
         Assert.NotNull(session.Pointer); // the beacon points at Luna
