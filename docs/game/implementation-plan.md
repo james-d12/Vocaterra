@@ -373,7 +373,7 @@ there. Commit prefixes `N<nn>:`, `L01:`, `U<nn>:`, `W<nn>:`; one milestone branc
 | --- | --- | --- | --- | --- | --- |
 | N01 | The needs model (design 9.2 to 9.4, 9.10, 9.13): five needs in `Game.Core/Needs/` (`PlayerNeeds`), their stages and links, `game/needs.json` and its schema, save version 6 with the optional systems map, the world events, `--needs off` and `--set-need`; the session told each tick whether play is active | the follow-ups | M/L | Sonnet 5.5 | done (2026-11-05, gated at `3a63832e`, 9158 passed) |
 | L01 | Lessons as optional classes (5.3, 5.4; D-game-25): the introduction alone required; classes offered and chosen; sleep when the sleep drive is below 75; orders by NPC met; no lesson holds an NPC, an order or the day; r20 and r21 re-baselined, a new run with no classes | N01 | M | Sonnet 5.5 | planned |
-| N02 | Eating, drinking and sprinting (9.6): eat and drink actions, water by hand, the sprint control, the gathering cost, rest at a lit fire | N01 | S/M | Sonnet 5.5 | planned |
+| N02 | Eating, drinking and sprinting (9.6): eat and drink actions, water by hand, the sprint control, the gathering cost, rest at a lit fire | N01 | S/M | Sonnet 5.5 | done (2026-11-05, gated at `3a4345f8`, 9195 passed) |
 | N03 | Sleep and the collapse (9.5): a night's effects, the collapse and waking where the player fell, every night and collapse advances the day; the offer rule is L01's | L01, N02 | S/M | Sonnet 5.5 | planned |
 | N04 | Health and death (9.4, 9.7): losses and recovery, death and the belongings chest (decision 10), waking at the fire; runs r25-thirst and r26-death | N03 | M | Sonnet 5.5 | planned |
 | N05 | The HUD and the opening (9.8, 9.9): bars, icons, stage lines, sounds, view effects and their option, the tip and the death screen, the relaxed-needs option (decision 17); layout tests at every scale; the day-1 route proven safe | N04 | S/M | Sonnet 5.5 | planned |
@@ -2154,6 +2154,16 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   fire (N02: the forge and the other rings); sprint (N02). The orchestrator's check: `--set-need thirst 25.2 --walk-to 176,186 --wait 8`
   raises `need_stage (sed)` and saves thirst 24.03. The agent met a ContentSchemaFuzzTests failure (seed `41s2qgWEC-M9`, O15: `describe`
   with its `slotGrammars` removed is accepted) that reproduces on the base: planned as core M81. Report `.claude/briefs/n01-report.md`.
+- **N02, eating, drinking and sprinting (2026-11-05, Sonnet 5.5; gated on `feature/adaptive_design` at `3a4345f8`, 9195 passed, 3 skipped).**
+  Right click eats the selected food (`meal_eaten` with its noun; at full hunger it is kept with a hint), the bottle comes back empty, and E at
+  water within reach drinks by hand with nothing held (`water_drunk`: `botella`, `pozo`, `lago` or `río`; the lake is a radius round its
+  point, so water near the river mouth can read `lago`). Sprint is a control (Left Shift, 1.6 times, from `needs.json`); a stage's walk factor
+  now slows walking. At zero stamina gathering takes twice as long and never stops; filling the bottle is no labour. Rest finds fire rings by
+  shape (`Needs/FireRings.cs`): a ring is lit when a torch stands in its 3x3 square, so the player's ring, the guide's camp and the forge count.
+  New scripted steps `--eat <item>` and `--drink`. No Spanish added: the hints are English keys (`ui.foodKept`, `ui.drinkKept`), their Spanish
+  («No tengo hambre.», «No tengo sed.») N05's. The 23 scripted runs are unchanged. The orchestrator's check: `--set-need hunger 40 --eat
+  manzana` gives hunger 52 and `meal_eaten (manzana)`; `--drink` at the river gives thirst 30 to 40 and `water_drunk (río)`. Report
+  `.claude/briefs/n02-report.md`.
 
 
 ## 6. Definition of done (every milestone)
