@@ -686,6 +686,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         view.DebugOverlayBottom = _debug.PanelFor(view)?.Bottom ?? 0;
         view.LessonStripBox = LessonLayer.LayoutFor(view, _lesson) is { } lessonStrip ? lessonStrip.Box : null; // the cards keep clear of it (S22)
+        var (headingStep, headingOffer) = _lesson.State();
+        view.LessonHeading = headingStep is not null ? LessonStripLayout.Heading(view.Session.Locale, headingStep) : headingOffer is not null ? LessonStripLayout.Heading(view.Session.Locale, headingOffer) : null; // the panel's header (U02)
         view.SleepPrompt = FireOffersSleep && !_ending.Visible(_sim.Tick) ? SleepOffer.PromptText(_session) : null; // the fire's prompt; the card says it while it is up (V12c)
         view.EndingSleep = CardOffersSleep ? SleepOffer.CardText(_session) : null;
         view.FadeAlpha = (float)_collapseFade;

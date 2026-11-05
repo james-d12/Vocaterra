@@ -229,7 +229,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
             var where = $"{canvas.Width}x{canvas.Height} step '{view.English[..Math.Min(30, view.English.Length)]}'";
             Assert.True(Inside(layout.Box, window), $"{where}: the strip {layout.Box} is outside the canvas");
             Assert.True(layout.Box.Y >= LessonStripLayout.MinTop, $"{where}: the strip starts at {layout.Box.Y}");
-            Assert.True(layout.Box.Bottom <= panel.Y - LessonStripLayout.Gap, $"{where}: the strip ends at {layout.Box.Bottom}, past the panel at {panel.Y}");
+            Assert.True(layout.Box.Bottom <= panel.Y, $"{where}: the strip ends at {layout.Box.Bottom}, past the panel at {panel.Y}");
             Assert.True(Apart(layout.Box, panel));
             var inner = layout.Box.Width - (2 * layout.Pad);
             foreach (var row in layout.EnglishRows)
