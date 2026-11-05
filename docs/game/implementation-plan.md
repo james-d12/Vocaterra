@@ -372,7 +372,7 @@ there. Commit prefixes `N<nn>:`, `L01:`, `U<nn>:`, `W<nn>:`; one milestone branc
 | ID | What | Depends on | Size | Model | Status |
 | --- | --- | --- | --- | --- | --- |
 | N01 | The needs model (design 9.2 to 9.4, 9.10, 9.13): five needs in `Game.Core/Needs/` (`PlayerNeeds`), their stages and links, `game/needs.json` and its schema, save version 6 with the optional systems map, the world events, `--needs off` and `--set-need`; the session told each tick whether play is active | the follow-ups | M/L | Sonnet 5.5 | done (2026-11-05, gated at `3a63832e`, 9158 passed) |
-| L01 | Lessons as optional classes (5.3, 5.4; D-game-25): the introduction alone required; classes offered and chosen; sleep when the sleep drive is below 75; orders by NPC met; no lesson holds an NPC, an order or the day; r20 and r21 re-baselined, a new run with no classes | N01 | M | Sonnet 5.5 | planned |
+| L01 | Lessons as optional classes (5.3, 5.4; D-game-25): the introduction alone required; classes offered and chosen; sleep when the sleep drive is below 75; orders by NPC met; no lesson holds an NPC, an order or the day; r20 and r21 re-baselined, a new run with no classes | N01 | M | Sonnet 5.5 | done (2026-11-05, gated at 971b1058, 9451 passed) |
 | N02 | Eating, drinking and sprinting (9.6): eat and drink actions, water by hand, the sprint control, the gathering cost, rest at a lit fire | N01 | S/M | Sonnet 5.5 | done (2026-11-05, gated at `3a4345f8`, 9195 passed) |
 | N03 | Sleep and the collapse (9.5): a night's effects, the collapse and waking where the player fell, every night and collapse advances the day; the offer rule is L01's | L01, N02 | S/M | Sonnet 5.5 | done (2026-11-05, gated at `7cf2e115`, 9219 passed) |
 | N04 | Health and death (9.4, 9.7): losses and recovery, death and the belongings chest (decision 10), waking at the fire; runs r25-thirst and r26-death | N03 | M | Sonnet 5.5 | done (2026-11-05, gated at `b72b9184`, 9246 passed) |
@@ -2215,6 +2215,26 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   **Open:** `morir` («Me muero de …») is above A2 in the lists and the lint does not read the HUD lines (`hudLines`); left unwaived for the
   owner. The HUD is hidden under `--needs off`, so the language runs did not move; r25 and r26 gained the tip. The orchestrator's check: a
   day-2 screenshot with thirst 20 and hunger 45 shows the bar and both icons. Report `.claude/briefs/n05-report.md`.
+- **L01, lessons as optional classes (2026-11-05, Sonnet 5.5, then a Haiku sync with N05; gated on `feature/adaptive_design` at
+  `971b1058`, 9451 passed, 3 skipped).** D-game-25 built. `first-words` keeps its id and units u1, u2, u3, u5 and u6 and alone starts by
+  itself; u4 and u4v are a new lesson `first-class` (`after: first-words`); an old save splits the old lesson on load. Every other lesson
+  is a class: the teacher offers it in one line («¿Quieres una clase? ¿Sí o no?»; the villager «¿Una clase hoy? ¿Sí o no?», since
+  «conmigo» is not A2), once per NPC per day; «Sí» starts it, «No» or «No, gracias» cost nothing (no NPC reply, the trade prompt kept);
+  «¿Me enseñas?» and the Lessons page's "Ask for a class" start one too. A class opens on its teacher met (saved `metNpcs`, no format bump)
+  and its `after` lesson, never the day. Esc pauses a class at a talk step and frees the NPC; at a `do` step it stays engaged (the panel
+  closes for the walk). From day 2 the fire offers sleep below 75 on the sleep drive, otherwise «No tengo sueño.» (a toast, with a WAV:
+  it is a pool line); `--sleep` and the scripted step skip the check. Orders show once their NPC is met; `HoldsOrder` is gone and the
+  oven order no longer waits for `n4-back` (Luz pays at the first talk). Cards from rung 1; the beacon follows the tracked objective; the
+  Lessons page lists each class with what it needs. New run `r30-no-classes`; r20 and r21 re-baselined. **Core gap:** «¿Me enseñas?» takes
+  no intent (the game reads its forms from `classAnswers` in `game/words.json`): a core milestone if the owner wants it understood.
+  **Design against code:** the design's Domingo (the smith) teaches nothing, so the villager offers; the «Primero, la lección»
+  order-hold lines stay in the content, unreachable. **Not checked:** 12 of the 26 scripted runs were not compared by the agent; save
+  versions 2, 3, 5 and 6 with an engaged class not tested separately. The sync with N05 needed no test fix (the pool count 309). The
+  orchestrator's check: day 2 at the villager the offer appears after the greeting (a moment later: a line typed before it is read as
+  ordinary talk); after a wait, «No, gracias.» gets no reply and «¿Dónde está el río?» is answered. The gate's summary lines showed
+  `limited.sh`'s new peak-memory line in place of the lint and licence results; `scripts/merge-gate.sh` now skips those lines (the
+  results themselves were read from the logs: lint 0 errors, 149 warnings, unused `guide.*` pools; licences passed). Report
+  `.claude/briefs/l01-report.md`.
 
 ## 6. Definition of done (every milestone)
 

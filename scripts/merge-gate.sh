@@ -74,7 +74,7 @@ format_rc=$?
 CONTENTLOG=".claude/gate-logs/content-$STAMP.log"
 "$L" bash scripts/content.sh validate > "$CONTENTLOG" 2>&1
 content_rc=$?
-tail -1 "$CONTENTLOG"
+grep -E "^lint:" "$CONTENTLOG" | tail -1
 # The prototype's content gate (S5, D-game-10 and D-game-12), since V08 with the A1/A2 rule of village-plan 3.9 (D-game-22 (b)). The bundle's
 # ceiling is A2: the strict lint at A2 with --fail-on-level fails on a lemma above A2 in a dialogue template, a prompt's text or an answer set's
 # canonical answer (the guide's host-voiced pools are rendered by the game), and cefr-check at A2 fails on any lemma it lists (the tool itself
@@ -123,10 +123,10 @@ fi
 LICENSELOG=".claude/gate-logs/license-$STAMP.log"
 "$L" bash scripts/license-scan.sh --offline > "$LICENSELOG" 2>&1
 license_rc=$?
-tail -1 "$LICENSELOG"
+grep -v "^limited.sh:" "$LICENSELOG" | tail -1
 # The content schema test's project (content-plan C01) is scanned too: it is the one game test project with a package of its own (NJsonSchema).
 { echo "=== tests/Vocaterra.Game.Core.Tests"; "$L" bash scripts/license-scan.sh --offline --target tests/Vocaterra.Game.Core.Tests/Vocaterra.Game.Core.Tests.csproj; } >> "$LICENSELOG" 2>&1 || license_rc=1
-echo "licence scan (Game.Core.Tests): $(tail -1 "$LICENSELOG")"
+echo "licence scan (Game.Core.Tests): $(grep -v "^limited.sh:" "$LICENSELOG" | tail -1)"
 
 ok=1
 [ "$build_rc" -eq 0 ] || ok=0
