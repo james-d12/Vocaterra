@@ -4,8 +4,8 @@ Do the work yourself; do not spawn subagents.
 
 ## Where to work, and pushing
 Work only in the git worktree `/home/user/Dev/Vocaterra/.claude/worktrees/n09`, already on the branch `N09-needs-rate` (from `feature/adaptive_design` at its tip when you start). cd there first; never edit `/home/user/Dev/Vocaterra` or any other worktree; do not switch branches.
-- **Commit and push often** (the owner's rule): commit after each item that builds and passes its tests, with the prefix `N09: `, and push after every commit (`git push -u origin N09-needs-rate` the first time).
-- Never push `main` or `feature/adaptive_design`, and do not merge. When you finish, leave the worktree on your branch, clean.
+- **Commit often, push never** (the owner's rules, 2026-10-30 and 2026-11-05): commit after each item that builds and passes its tests, with the prefix `N09: `. Do not push the branch: it stays local and the gate merges it from there.
+- Never push anything (not `main`, not `feature/adaptive_design`, not your branch), and do not merge. When you finish, leave the worktree on your branch, clean.
 
 ## The specification
 The owner's Adaptation Design Document is the specification. Its text (extracted from `docs/game/design/sources/Vocaterra_Adaptation_Design_Document.docx`, one paragraph or table cell per line) is at `/tmp/claude-1000/orch/adaptation-design.txt`: read the sections this brief names with `grep -n` and `sed -n` (the headings are numbered, e.g. `grep -n '^9\.[0-9]* ' …`), never the whole file. Do not edit the `.docx`. Where the design and the code disagree on a file or line, the code wins; say so in the report. The owner adopted the design's section 18.2 recommendations provisionally on 2026-11-04 (`docs/game/decisions.md`, D-game-23, "Owner's answers, 2026-11-04"); where this brief fixes a value the design leaves open, use it and list it in the report under "values chosen".
@@ -47,7 +47,7 @@ The LanguageTool check works from this sandbox (since 2026-11-05): after a conte
 - `scripts/limited.sh scripts/content.sh validate`; the lint at A2 clean (`scripts/content.sh lint content/game-v1 --strict --level a2 --fail-on-level --host-pools 'guide.*'`).
 - **The scripted runs** (`docs/game/scripted-runs.md`): `scripts/scripted-runs.sh` before your first edit and after, compared with `python3 -I scripts/compare-runs.py`, one at a time through `scripts/limited.sh`. Explain every difference; re-baseline only the runs this milestone is meant to move.
 - **CI's case:** the full suite once without models (`VOCATERRA_MODELS_DIR` an empty folder); report any wall-clock test within four times of its budget.
-- Do not commit `bin/`, `obj/` or `artifacts/`. When you finish, `git status` is clean and the branch is pushed.
+- Do not commit `bin/`, `obj/` or `artifacts/`. When you finish, `git status` is clean (the branch committed, not pushed).
 
 ## Commit
 Each message ends with:
@@ -57,7 +57,7 @@ Claude-Session: https://claude.ai/code/session_01F9jKDeFsoWE1itA1oaKnYf
 ```
 
 ## Report (one page, under 500 words)
-- The branch and the final commit SHA, pushed.
+- The branch and the final commit SHA (local).
 - Each deliverable: what you built (file and type), its tests.
 - **Values chosen** where the design left one open, and every place the design and the code disagreed.
 - The behaviour checks' lines; the scripted runs' differences; the save versions tested.

@@ -1,4 +1,4 @@
-You are implementing the game milestone **V29, the weather and «¿cómo estás?» replies**, of the Vocaterra repository (C#, .NET 10, a MonoGame first-person voxel game that teaches Spanish). The language core is the `Vocaterra.Nlp` engine and the Spanish pack `src/Vocaterra.Nlp.Es`; the game is `Vocaterra.{Game.Core,Game,Host,SpeechRender}`. **This milestone's work is in the game** (`src/Vocaterra.Game.Core`, `src/Vocaterra.Host`, their tests, and `content/game-v1`). The owner decided it on 2026-11-02 (D-game-22, items 1, 3 and 5 of `docs/handovers/2026-11-02-after-followups.md`); the core's M74 has built its half.
+You are implementing the game milestone **V29, the weather and «¿cómo estás?» replies**, of the Vocaterra repository (C#, .NET 10, a MonoGame first-person voxel game that teaches Spanish). The language core is the `Vocaterra.Nlp` engine and the Spanish pack `src/Vocaterra.Nlp.Es`; the game is `Vocaterra.{Game.Core,Game,Host,SpeechRender}`. **This milestone's work is in the game** (`src/Vocaterra.Game.Core`, `src/Vocaterra.Host`, their tests, and `content/game-v1`). The owner decided it on 2026-11-02 (D-game-22, items 1, 3 and 5 of `docs/handovers/done/2026-11-02-after-followups.md`); the core's M74 has built its half.
 
 Do the work yourself; do not spawn subagents.
 
@@ -30,7 +30,7 @@ Work only in the git worktree `/home/user/Dev/Vocaterra/.claude/worktrees/v29`, 
 
 ## Read first (the sections named, not whole files)
 - `CLAUDE.md`; `docs/process/code-guidelines.md`; `docs/game/architecture.md` (by `grep -n`); `content/README.md` (how to edit content).
-- `docs/handovers/2026-11-02-after-followups.md` sections 2, 4 and 8.
+- `docs/handovers/done/2026-11-02-after-followups.md` sections 2, 4 and 8.
 - V20's, V21's, V27's and V30's entries in `docs/game/implementation-plan.md` section 5 (`grep -n '^- \*\*V2[017]\|^- \*\*V30'`, about 25 lines each) and the brief `.claude/briefs/v27-off-prompt-replies.md` (your model).
 - `src/Vocaterra.Game.Core/Npc/NpcService.cs` about lines 600 to 740 (the turn), `src/Vocaterra.Game.Core/Npc/NpcTurnRules.cs`.
 - Never read `docs/game/speech-checklist.md`, `manifest.json` or the whole of `content/PHRASES.md` (grep the rows you need).

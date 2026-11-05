@@ -92,6 +92,9 @@ public sealed class FrameView
     /// <summary>Whether the first-time tips are drawn (S16): an interactive run shows them, a scripted run only when asked.</summary>
     public bool ShowTips { get; set; }
 
+    /// <summary>The bottom of the debug overlay this frame, or 0 when it is not drawn (U01): the tip box stands under it.</summary>
+    public int DebugOverlayBottom { get; set; }
+
     /// <summary>The lesson strip's box this frame, or <see langword="null"/> (S22): it stands above the dialogue panel, and the conversation layout keeps the cards clear of it.</summary>
     public PixelBox? LessonStripBox { get; set; }
 

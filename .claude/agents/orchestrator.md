@@ -26,7 +26,8 @@ in `docs/nlp/api.md` updates that record.
 ## Start of a session
 
 1. `git status`, `git log --oneline -8`, `git worktree list` (remove leftovers with `git worktree remove --force <path>` and
-   `git branch -D <branch>`), and the machine check below.
+   `git branch -D <branch>`, but never a worktree the open handover names as in progress: inspect it as step 4 says), and the machine
+   check below.
 2. List the open handovers (`ls docs/handovers/*.md`, everything but the README; `done/` is history) and read the one for the current
    branch and workstream; with several open, say which you pick up. Verify its branch, commits, pending changes and next steps against
    the checkout; a handover does not authorise new work by itself.
@@ -42,7 +43,8 @@ in `docs/nlp/api.md` updates that record.
    `W`), for example `V29: `.
 2. **Launch** with `subagent_type: general-purpose` and the model and effort from "Models" below. Give it its own worktree
    (`isolation: worktree`, or `git worktree add -b <branch> .claude/worktrees/<id> <feature branch>` when disk is short). The agent
-   commits and pushes its milestone branch often (owner, 2026-10-30).
+   commits its milestone branch often and never pushes it: only the feature branch goes to the remote (owner, 2026-11-05: "Local
+   branches are fine, but we dont need to push those ones to remote"; it replaces the 2026-10-30 rule of pushing every milestone branch).
 3. **Verify the report cheaply** before merging: the branch exists and is clean, `git diff --stat <merge-base>..<branch>` matches the
    report, no unexplained deletions, nothing under `.github/workflows/` unless its brief names it, no edits to either plan or decision
    register, nothing under `bin/`, `obj/` or `artifacts/`, and no game milestone edited the core (or a core milestone the game) unless its
@@ -58,8 +60,11 @@ in `docs/nlp/api.md` updates that record.
    `git push origin <feature branch>`.
 7. **Clean up:** `git worktree remove --force` and `git branch -D`. The owner deletes merged remote branches; the permission check
    refuses remote deletes.
-8. **Report to the owner:** outcome first, bugs found, numbers that change a decision, open decisions.
-9. **QA (optional):** after a front-end, content or language milestone, launch `subagent_type: qa` on the feature branch's checkout with
+8. **Update the handover** of the workstream (see "Writing a handover"): what was gated, what runs now and where, what is next; commit
+   and push it with the record or right after. Do the same after every launch and every owner decision, so a crash or a fresh session
+   loses nothing (owner, 2026-11-05).
+9. **Report to the owner:** outcome first, bugs found, numbers that change a decision, open decisions.
+10. **QA (optional):** after a front-end, content or language milestone, launch `subagent_type: qa` on the feature branch's checkout with
    one area in the prompt (`.claude/agents/qa.md`); it counts as one of the two building agents. Add one row per bug to the triage table in
    `docs/qa-reports/README.md`, log the confirmed bugs in the findings log and plan the fixes as milestones; when a milestone fixes a bug,
    set its row to `fixed` with the milestone id.
@@ -113,12 +118,16 @@ than this machine, so a timing test needs a wide margin (M60). The owner's CI re
 
 ## Writing a handover
 
-Before ending a session, pausing work, or handing it to another session, write a new handover in `docs/handovers/`, and whenever the
-owner asks for one. Write it before the final report to the owner and link it there.
+Every workstream in progress has one open handover in `docs/handovers/`, and it is **kept current** (owner, 2026-11-05: "after any
+milestone or any completion of work ... update the handover document with the details ... in case the computer crashes or we need to
+clear and start a new agent"): rewrite it in place, with its `Updated:` line, after every gate, every launch or stop of an agent, every
+owner decision and before a pause. Write a new handover (and move the old one to `done/`) when you pick up a workstream from an earlier
+session, when the owner asks, or before ending a session; link it in the final report. A fresh session starts from it ("Start of a
+session" above), so it must name every running agent with its worktree, branch and brief, and say how to resume each if its report is lost.
 
 - Name it `YYYY-MM-DD-HHMM-<slug>.md`, using the actual creation time in **UTC** (`date -u +%Y-%m-%d-%H%M`) and a short lowercase
   kebab-case slug naming the workstream. Example: `2026-11-03-1430-village-followups.md`. If the name already exists, append `-2`, `-3`;
-  never overwrite or edit an earlier handover.
+  never overwrite another session's handover; edit only the open one you keep current. A handover in `done/` is frozen.
 - **Open or done.** The top of `docs/handovers/` holds only open handovers: work with next steps still to do, at most one per workstream.
   When you write a handover for a workstream, `git mv` the one you picked up into `docs/handovers/done/` in the same change; when a
   workstream's work is finished (merged, or dropped by the owner), move its last handover there too. Search for the moved file's name and

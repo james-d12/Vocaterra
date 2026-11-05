@@ -217,7 +217,7 @@ PR #28 (D-game-22, 2026-11-02).
   folded into V21b); the last gate was V28's, at `81023b2` (8286 passed, 3 skipped).
   - The owner merges it into `main` by pull request.
   - M67b stays parked; M68 runs only if CI fails a timed test.
-- **After that merge, read `docs/handovers/2026-11-02-after-followups.md`:** the owner's decisions of 2026-11-02, every one decided except the
+- **After that merge, read `docs/handovers/done/2026-11-02-after-followups.md`:** the owner's decisions of 2026-11-02, every one decided except the
   spoken lines' study, whose recommendation goes to the owner. The work:
   - M74: the weather intents and `ask_wellbeing`;
   - M75: the near-miss rule;
@@ -230,6 +230,6 @@ PR #28 (D-game-22, 2026-11-02).
   for line files or a check script again.
   - In PR #28 too, all gated: M76 (`523f818`), M77 (IDE0005, unused usings fail the build, `7bcaefd`) and V30 (the PR #28 review's
     game fixes, `b455b1c`, 8817 passed). The review's items 8 and 14 went to M75 and V29. Every point left open after PR #28 is in
-    `docs/handovers/2026-11-02-after-followups.md` section 8.
+    `docs/handovers/done/2026-11-02-after-followups.md` section 8.
 - The owner deletes the merged remote milestone branches himself (the permission check refuses remote deletes) and listens to the
   voices later.

@@ -28,7 +28,6 @@ public sealed class DialogueModel
     private readonly GameWords _words;
     private readonly NpcRoster _npcs;
     private readonly LocaleText _ui;
-    private readonly bool _showVerdictNotes;
     private int _cancelled;
 
     /// <summary>The text of the hint line that offers typing (the watchdog, or two uncertain recognitions in a row): <c>¿Escribes?</c> (<c>game/words.json</c>).</summary>
@@ -40,6 +39,9 @@ public sealed class DialogueModel
     /// <summary>How many uncertain spoken lines in a row make the panel offer typing.</summary>
     public const int TypingOfferStreak = 2;
 
+    /// <summary>Whether each turn adds its developer note (the verdict line); <c>--dev</c> starts it on and F3 toggles it (U01). The "Heard / Expected" line is not this note and stays.</summary>
+    public bool ShowVerdictNotes { get; set; }
+
     /// <summary>Creates a closed panel.</summary>
     /// <param name="focus">Who has the keyboard; the model sets <see cref="InputFocus.TextEntryActive"/> while it is open.</param>
     /// <param name="openingLine">What the guide says the first time the panel opens (the prompt's text).</param>
@@ -47,7 +49,7 @@ public sealed class DialogueModel
     /// <param name="phrases">The phrase sheet, for the heard-versus-expected line and the labels of the offered choices; without it neither is shown.</param>
     /// <param name="english">The game's English text, for the plain-English feedback after a turn (S16); without it no feedback line is added.</param>
     /// <param name="showVerdictNotes">Whether each turn adds its verdict line (the core's summary, the confidence and the milliseconds, for example
-    /// <c>greet, understood, 100 %, 3.5 ms</c>). A playtest hides it (S18); scripted and developer runs keep it.</param>
+    /// <c>greet, understood, 100 %, 3.5 ms</c>). The game passes <c>--dev</c> (U01).</param>
     public DialogueModel(InputFocus focus, string openingLine, GameData data, PhraseSheet? phrases = null, LocaleText? english = null, bool showVerdictNotes = true)
     {
         ArgumentNullException.ThrowIfNull(focus);
@@ -62,7 +64,7 @@ public sealed class DialogueModel
         _openingLine = openingLine;
         _phrases = phrases;
         _locale = english;
-        _showVerdictNotes = showVerdictNotes;
+        ShowVerdictNotes = showVerdictNotes;
     }
 
     /// <summary>Whether the panel is open (and so has the keyboard).</summary>
@@ -522,7 +524,7 @@ public sealed class DialogueModel
             ? string.Create(CultureInfo.InvariantCulture, $"heard at {(int)Math.Round(confidence * 100, MidpointRounding.AwayFromZero)} %, ")
             : string.Empty;
         var summary = turn.Uncertain ? "not understood" : turn.Summary; // an unsure recognition has no verdict to summarize
-        if (_showVerdictNotes)
+        if (ShowVerdictNotes)
         {
             Add(DialogueSpeaker.Note, string.Create(CultureInfo.InvariantCulture, $"{heard}{summary}, {LastTurnMilliseconds:0.0} ms"));
         }

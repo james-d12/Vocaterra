@@ -22,35 +22,62 @@ public sealed class TipLayer : IFrameLayer
     private static readonly Color Back = new(10, 10, 20, 205);
     private static readonly Color Dim = UiPalette.TipDim.ToColor();
 
+    /// <summary>
+    /// The tip box, its rows, the controls hint's y and the block of both (U01), or <see langword="null"/> when no tip layer is drawn: at the top left, under the debug overlay
+    /// when F3 shows it, and what the tracker keeps clear of (<see cref="HudLayout.TipBlock"/>).
+    /// </summary>
+    /// <param name="view">The frame's view.</param>
+    /// <param name="font">The small font.</param>
+    internal static (PixelBox? Box, IReadOnlyList<string> Rows, int HintY, PixelBox Block)? PlanFor(FrameView view, FontStashSharp.SpriteFontBase font)
+    {
+        if (!view.ShowTips || view.Check is not null || view.MicCheck is { IsActive: true })
+        {
+            return null;
+        }
+
+        var ui = view.Session.Locale;
+        IReadOnlyList<string> rows = [];
+        if (view.Session.Tips.Current is { } tip)
+        {
+            rows = TextWrap.Wrap(tip.Text, HudLayout.TipTextWidth(view.ViewportWidth), t => DrawHelpers.Width(font, t));
+        }
+
+        var placed = HudLayout.TipBlock(view.ViewportWidth, view.DebugOverlayBottom, view.Session.Tips.Current is null ? null : rows.Count, (int)Math.Ceiling(DrawHelpers.Width(font, ui.Ui("controlsHint"))));
+        return (placed.Box, rows, placed.HintY, placed.Block);
+    }
+
+    /// <summary>The block of the tip box and the controls hint this frame, or <see langword="null"/> when none is drawn.</summary>
+    /// <param name="view">The frame's view.</param>
+    internal static PixelBox? BlockOf(FrameView view)
+    {
+        ArgumentNullException.ThrowIfNull(view);
+        return PlanFor(view, view.Fonts.Get(FontProvider.NativeSize))?.Block;
+    }
+
     /// <inheritdoc />
     public void Draw(SpriteBatch spriteBatch, FrameView view)
     {
-        if (!view.ShowTips || view.Check is not null || view.MicCheck is { IsActive: true })
+        var font = view.Fonts.Get(FontProvider.NativeSize);
+        if (PlanFor(view, font) is not { } plan)
         {
             return;
         }
 
-        var font = view.Fonts.Get(FontProvider.NativeSize);
         var ui = view.Session.Locale;
-        var y = Margin;
-        if (view.Session.Tips.Current is { } tip)
+        if (plan.Box is { } placed)
         {
-            var width = Math.Min(480, view.ViewportWidth / 2);
-            var rows = TextWrap.Wrap(tip.Text, width - 16, t => DrawHelpers.Width(font, t));
-            var height = 8 + 20 + (rows.Count * 20) + 20;
-            var box = new Rectangle(Margin, y, width, height);
+            var box = new Rectangle(placed.X, placed.Y, placed.Width, placed.Height);
             spriteBatch.Draw(view.Pixel, box, Back);
             DrawHelpers.Border(spriteBatch, view.Pixel, box, 1, DialoguePanel.EnglishColor);
             DrawHelpers.Text(spriteBatch, font, ui.Ui("tipHeading", ("english", ui.Ui("english"))), new Vector2(box.X + 8, box.Y + 6), Gold);
-            for (var i = 0; i < rows.Count; i++)
+            for (var i = 0; i < plan.Rows.Count; i++)
             {
-                DrawHelpers.Text(spriteBatch, font, rows[i], new Vector2(box.X + 8, box.Y + 26 + (i * 20)), DialoguePanel.EnglishColor);
+                DrawHelpers.Text(spriteBatch, font, plan.Rows[i], new Vector2(box.X + 8, box.Y + 26 + (i * 20)), DialoguePanel.EnglishColor);
             }
 
             DrawHelpers.Text(spriteBatch, font, ui.Ui("tipNext"), new Vector2(box.X + 8, box.Bottom - 22), Dim);
-            y = box.Bottom + 6;
         }
 
-        DrawHelpers.Text(spriteBatch, font, ui.Ui("controlsHint"), new Vector2(Margin, y), Dim);
+        DrawHelpers.Text(spriteBatch, font, ui.Ui("controlsHint"), new Vector2(Margin, plan.HintY), Dim);
     }
 }

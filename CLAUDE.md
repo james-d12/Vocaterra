@@ -25,7 +25,7 @@ progression, save, content) and reports bugs to `docs/qa-reports/` without fixin
 
 Facts every session needs:
 - **Docs and session state:** the index is `docs/README.md`. To resume work, read the open handovers at the top of `docs/handovers/`
-  (finished ones are in `done/`); a session that stops writes one there. Research goes to `docs/research/`, bug reports and their triage
+  (finished ones are in `done/`); the orchestrator keeps the open one current after every gate, launch and owner decision (owner, 2026-11-05), so a crash or a fresh session loses nothing. Research goes to `docs/research/`, bug reports and their triage
   table to `docs/qa-reports/`, superseded documents to `docs/archive/`; the rules are `docs/process/documentation.md`.
 - **.NET SDK is user-local:** prefix commands with `PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" DOTNET_NOLOGO=1`.
 - **Machine resources (the desktop crashed twice from overload, 2026-10-22):** at most two building agents at a time (the owner, 2026-11-05; one until then); every heavy command (dotnet
