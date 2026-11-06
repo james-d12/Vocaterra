@@ -89,21 +89,45 @@ public sealed class ConversationSurfaceTests
         Assert.Single(dialogue.PanelRows(), static r => r.Line.Speaker == DialogueSpeaker.Coaching);
     }
 
-    // U02b (QA-2026-11-06-ui-3 and ui-4): a turn the NPC did not take for its prompt is not understood, typed or spoken, off the prompt or not. The
-    // coaching and the English say so, and the English never praises it.
     [Fact]
-    public void ATurnNotUnderstoodForThePromptGetsTheNotUnderstoodLineNotPraiseOrTheOffPromptClaim()
+    public void ATypedLineOffThePromptCoachesWithTheOffPromptNoteButASpokenOneDoesNot()
     {
         var (dialogue, session) = Panel();
-        var typed = Turn("gracias", communicated: false, offPrompt: "ask_place");
-        Say(dialogue, typed);
-        var notUnderstood = session.Locale.FeedbackFor(typed)[0];
-        Assert.Equal(notUnderstood, dialogue.CoachingLine);
-        Assert.Contains(dialogue.Lines, line => line.Speaker == DialogueSpeaker.English && line.Text == notUnderstood);
-        Assert.DoesNotContain(dialogue.Lines, line => line.Text.Contains("understood you", StringComparison.Ordinal));
+        Say(dialogue, Turn("¿dónde está el río?", communicated: false, offPrompt: "ask_place"));
+        Assert.Equal(session.Locale.Ui("coachOffPrompt"), dialogue.CoachingLine);
 
         Say(dialogue, Turn("¿dónde está el río?", spoken: true, communicated: false, offPrompt: "ask_place"));
-        Assert.Equal(notUnderstood, dialogue.CoachingLine);
+        Assert.Null(dialogue.CoachingLine);
+    }
+
+    // U02b (QA-2026-11-06-ui-3): the English after a turn says what the NPC did: understood, understood off the prompt, or did not understand.
+    [Fact]
+    public void TheEnglishOfAnOffPromptTurnNeitherPraisesNorSaysNotUnderstood()
+    {
+        var (_, session) = Panel();
+        var locale = session.Locale;
+        var offPrompt = locale.FeedbackFor(Turn("gracias", communicated: false, offPrompt: "thank"))[0];
+        Assert.Contains("not what was asked", offPrompt, StringComparison.Ordinal);
+        Assert.DoesNotContain("Good", offPrompt, StringComparison.Ordinal);
+        Assert.DoesNotContain("did not understand", offPrompt, StringComparison.Ordinal);
+
+        var notUnderstood = locale.FeedbackFor(Turn("blah", communicated: false))[0];
+        Assert.Contains("did not understand", notUnderstood, StringComparison.Ordinal);
+
+        var understood = locale.FeedbackFor(Turn("quiero agua", communicated: true))[0];
+        Assert.StartsWith("Good.", understood, StringComparison.Ordinal);
+        Assert.NotEqual(offPrompt, notUnderstood);
+    }
+
+    // U02b (ui-4): a typed turn the NPC did not take gets the not-understood line, never the off-prompt claim.
+    [Fact]
+    public void ATypedTurnNotTakenGetsTheNotUnderstoodCoachingNotTheOffPromptNote()
+    {
+        var (dialogue, session) = Panel();
+        var turn = Turn("blah", communicated: false);
+        Say(dialogue, turn);
+        Assert.Equal(session.Locale.FeedbackFor(turn)[0], dialogue.CoachingLine);
+        Assert.NotEqual(session.Locale.Ui("coachOffPrompt"), dialogue.CoachingLine);
     }
 
     [Fact]

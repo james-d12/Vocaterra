@@ -696,10 +696,14 @@ public sealed class DialogueModel
             return feedback?.FirstOrDefault(); // ask again: the microphone, not your Spanish (D-game-9)
         }
 
-        if (!turn.Communicated)
+        if (!turn.Taken)
         {
-            // Not understood for the prompt (U02b): a line the NPC took off its prompt is not understood either, so the coaching does not say it was.
-            return turn.LessonHandled && turn.OffPromptIntent is not null ? null : feedback?.FirstOrDefault(); // a lesson speaks for the line it took off its prompt (S17)
+            return feedback?.FirstOrDefault(); // not understood
+        }
+
+        if (turn.OffPromptIntent is not null && turn.Input == InputKind.Typed && !turn.LessonHandled)
+        {
+            return _ui.Ui("coachOffPrompt");
         }
 
         if (turn.Feedback is not null)

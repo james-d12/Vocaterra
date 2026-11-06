@@ -42,7 +42,7 @@ public sealed class LocaleText
     /// <summary>The feedback outcome keys the locale must have a line for (<c>feedback.outcome.&lt;key&gt;</c>).</summary>
     public static IReadOnlyList<string> OutcomeKeys { get; } =
     [
-        "understood", "understood_with_mistake", "not_understood", "uncertain", "dont_know", "help", "choice", "fail_forward", "pointed",
+        "understood", "understood_with_mistake", "not_understood", "off_prompt", "uncertain", "dont_know", "help", "choice", "fail_forward", "pointed",
     ];
 
     /// <summary>The interface words the locale must have (<c>ui.&lt;key&gt;</c>).</summary>
@@ -56,7 +56,7 @@ public sealed class LocaleText
         "summaryPractiseNoSe", "summaryPractiseSlip", "summaryPractiseSupport", "summaryPractiseNone", "summaryReplay", "summaryNone", "summaryMore",
         "tensePres", "tensePret", "tenseImpf", "tenseFut", "person1", "person2", "person3", "singular", "plural", "retryAgain",
         "warmupTitle", "warmupOffer.one", "warmupOffer.other", "warmupStart", "warmupAsk", "warmupDone.one", "warmupDone.other", "reviewNowHud",
-        "dialogueKeyHints", "dialogueOlder.one", "dialogueOlder.other", "dialogueAbove.one", "dialogueAbove.other", "dialogueBelow.one", "dialogueBelow.other", "dialogueButtonHints", "dialogueKeyHintsShort", "dialogueButtonHintsShort", "dialogueSpeechOffButtonHints", "dialogueSpeechOffKeyHints", "dialogueListening", "dialogueThinking",
+        "dialogueKeyHints", "coachOffPrompt", "dialogueOlder.one", "dialogueOlder.other", "dialogueAbove.one", "dialogueAbove.other", "dialogueBelow.one", "dialogueBelow.other", "dialogueButtonHints", "dialogueKeyHintsShort", "dialogueButtonHintsShort", "dialogueSpeechOffButtonHints", "dialogueSpeechOffKeyHints", "dialogueListening", "dialogueThinking",
         "dialogueYou", "dialogueYouSpoken", "supportPrefix", "supportOnHelp", "talkHint", "tipHeading", "newWord", "newWordToast", "audioSlot", "beaconDistance.one",
         "beaconDistance.other", "loadingSpeech", "controlsScroll", "controlsTextSizeKeys", "controlsTextSize", "gameSaved", "saveLater", "inventoryTitle",
         "inventoryHintsShort", "inventoryHints", "inventoryUsed", "craftingTitle", "craftingHints", "craftingCanMake", "craftingUses", "craftingByHand",
@@ -387,9 +387,16 @@ public sealed class LocaleText
             return lines;
         }
 
-        if (!turn.Communicated) // U02b: a line the NPC took off its prompt is not understood for the prompt, so the English does not praise it
+        if (!turn.Taken)
         {
             lines.Add(Outcome("not_understood", ("npc", npc)));
+            return lines;
+        }
+
+        if (!turn.Communicated && turn.OffPromptIntent is not null && !turn.LessonHandled)
+        {
+            // U02b (ui-3): the core found an intent off the prompt and the NPC answered "Te entiendo": neither praised nor "not understood".
+            lines.Add(Outcome("off_prompt", ("npc", npc)));
             return lines;
         }
 
