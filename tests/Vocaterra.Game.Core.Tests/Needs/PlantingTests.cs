@@ -5,6 +5,7 @@ using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Save;
+using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
@@ -276,5 +277,15 @@ public sealed class PlantingTests
         Assert.Equal(NeedActionResult.Done, session.EatItem(ItemId.Berry));
         Assert.Equal(0, Berries(session));
         Assert.Single(Named(session, WorldEvents.MealEaten));
+    }
+
+    [Fact]
+    public void TheScriptedPlantStepReadsACellAsXYZAndRefusesTheRest()
+    {
+        Assert.True(ScenarioScript.TryParseCell("10,4,-12", out var cell));
+        Assert.Equal(new BlockPos(10, 4, -12), cell);
+        Assert.Null(ScenarioScript.ParseCell("10,4"));
+        Assert.Null(ScenarioScript.ParseCell("a,4,12"));
+        Assert.Null(ScenarioScript.ParseCell(string.Empty));
     }
 }
