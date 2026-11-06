@@ -324,6 +324,10 @@ public sealed class StationPanel : IScreen
         {
             _screen.Held = null; // a right act is done with; a wrong one keeps the selection, to try another target or verb
         }
+        else if (result.Response == SlipResponse.Highlight)
+        {
+            SelectHighlight(_session.Procedures.View()); // the highlight shown is the act Enter now makes
+        }
 
         Apply(result);
         if (result.Outcome != ActOutcome.Right && result.Outcome != ActOutcome.NotRunning)
@@ -350,9 +354,24 @@ public sealed class StationPanel : IScreen
             return;
         }
 
-        _ = _session.HelpInProcedure();
+        SelectHighlight(_session.HelpInProcedure());
         _screen.Notice = StationNotice.None;
         Refresh();
+    }
+
+    // Help and the highlight (design 10.10: "Help makes the required action explicit"): the highlighted thing is held and its target aimed at, so Enter makes the act shown; the
+    // learner may still choose otherwise. A highlight with no held thing or no target (the view has none) selects nothing for that part.
+    private void SelectHighlight(ProcedureView run)
+    {
+        if (run.HighlightUse is { } use)
+        {
+            _screen.Held = use;
+        }
+
+        if (run.HighlightOn is { } on)
+        {
+            _screen.Target = on;
+        }
     }
 
     // R and S: the row again, normal or slow. A listening aid, never help: the runner counts it for the telemetry.

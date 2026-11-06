@@ -216,6 +216,40 @@ public sealed class StationPanelTests
     }
 
     [Fact]
+    public void HelpSelectsTheHighlightedThingAndTargetSoEnterMakesTheShownAct()
+    {
+        var rig = new StationRig();
+        _ = rig.Panel.Open("horno");
+        var step = rig.Session.Procedures.Current!.Steps.First(s => s.Id == rig.Session.Procedures.Order[0]);
+
+        rig.Press(GameKey.H);
+        Assert.Equal(step.ActUse, rig.View.Held.Single(static c => c.Selected).Noun); // the highlighted thing is the selection
+        Assert.Equal(step.ActOn, rig.View.Targets.Single(static c => c.Selected).Noun); // and its target
+        Assert.True(Cell(rig.View, step.ActUse).Highlight);
+
+        rig.Press(GameKey.Enter); // the shown act, made by Enter
+        Assert.Equal(StationNotice.Right, rig.View.Notice);
+    }
+
+    [Fact]
+    public void TheThirdSlipsHighlightIsTheSelectionToo()
+    {
+        var rig = new StationRig();
+        _ = rig.Panel.Open("horno");
+        rig.Bake();
+        rig.NextBake(); // the rows at rung 2: the first and second slips repeat, the third highlights
+        var step = rig.Session.Procedures.Current!.Steps.First(s => s.Id == rig.Session.Procedures.Order[0]);
+        for (var slip = 0; slip < 3; slip++)
+        {
+            rig.Press(GameKey.D0);
+            rig.Press(GameKey.Enter);
+        }
+
+        Assert.Equal(step.ActOn, rig.View.Targets.Single(static c => c.Selected).Noun); // the target of the shown act
+        Assert.Equal(step.ActUse, rig.View.Held.Single(static c => c.Selected).Noun); // the thing to hold
+    }
+
+    [Fact]
     public void TheEnglishShowsOnlyAtTheFirstRungOrAfterHelp()
     {
         var rig = new StationRig();
