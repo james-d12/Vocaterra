@@ -8,6 +8,7 @@ using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Sound;
+using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Graphics;
 
 namespace Vocaterra.Game.Startup;
@@ -346,6 +347,12 @@ public sealed record LaunchOptions
 
     /// <summary>Whether the run is the scripted screenshot run.</summary>
     public bool IsScreenshotRun => ScreenshotPath is not null;
+
+    /// <summary>
+    /// The clock the turn worker times its turns with (the latency the dialogue's developer note shows). A scripted run gives none, so its
+    /// turns report zero and its pictures do not move with the machine (T8); the play gives the real monotonic clock.
+    /// </summary>
+    public Func<double>? TurnClock => IsScreenshotRun && Script.Count > 0 ? null : MonotonicClock.Milliseconds;
 
     /// <summary>The options the sound side's start-up reads (<see cref="SoundSetup"/>).</summary>
     public SoundOptions Sound => new(IsScreenshotRun, NoSounds, SfxVolume, AmbientVolume);

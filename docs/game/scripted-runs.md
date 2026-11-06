@@ -136,6 +136,13 @@ the session log's `wall_seconds`, `*_ms` and latency fields. Measured on 2026-10
   included, and r23 but for the free-talk turn's latency in `reply.png` (`2.7 ms`, `3.3 ms`). r24 (V24, three turns) captured twice on 2026-11-02: the session log, the stdout and the save match after the masks, and the three pictures
 differ only in the panel's latency label (a box of about 20 by 10 pixels, measured with a pixel difference). r24 is an order-only run in `compare-runs.py` (its `LOOSE` set), like r22 and r23.
 
+**The turn's latency in a scripted run (T8).** A turn's latency label (the dialogue's developer note, `ask_directions, understood, 100 %, 10.0 ms`)
+was the turn worker's wall time, so `r30-no-classes`' `declined.png` differed between captures of one build (a box of 6 by 8 pixels on that line).
+A scripted run now gives its turn worker no clock (`LaunchOptions.TurnClock`, null for a run with `--screenshot` and steps), so every turn's
+latency reads `0.0 ms` and the pictures do not move with the machine. Play keeps the real clock. Consequence: a capture from before T8 differs
+from one after it in that label, and only there. Captured before and after T8 (one build each, the whole set), `r30-no-classes` `declined.png` is
+the only picture that differs; the other runs compare the same.
+
 **Across a content change** every run differs, and each difference must trace to the change. Phase A of the village plan (`f3a242f` against
 `feature/village` at `1f201e4`, V09; the captures of r01 to r17) moved: in every run the closing summary's lessons (six; `personas` 22 steps and
 `ayer-y-manana` 21 with their review steps); in the exact runs the speech count (`340 lines, 680 files`), the scene line (`1958 trees`, another
