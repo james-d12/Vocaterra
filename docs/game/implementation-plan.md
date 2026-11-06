@@ -383,7 +383,7 @@ there. Commit prefixes `N<nn>:`, `L01:`, `U<nn>:`, `W<nn>:`; one milestone branc
 | N08 | A berry planted at the camp (decision 14, adopted provisionally) | N06 | S | Haiku 5.5 | in progress (the owner, 2026-11-05: "run N08 alongside U02") |
 | N09 | The drive rates as a setting (owner, 2026-11-05): a slider in the settings and `--needs-rate`, multiplying every drive's rate, for the needs playtest; a fixed value after it | N05 | S | Sonnet 5.5 | done (2026-11-05, gated at 37c7640b, 9501 passed) |
 | U01 | Clean defaults (14.3): the debug text off by default; one speak hint; the objective tracker; room for the need meters | N05 | S | Sonnet 5.5 | done (2026-11-05, gated at dd01a6e9, 9476 passed) |
-| U02 | The conversation surface (7.2): developer notes behind `--dev`/F3, older lines collapsed, the lesson strip in the header, every D-game-9 route reachable by key | U01 | M | Sonnet 5.5 | planned |
+| U02 | The conversation surface (7.2): developer notes behind `--dev`/F3, older lines collapsed, the lesson strip in the header, every D-game-9 route reachable by key | U01 | M | Sonnet 5.5 | done (2026-11-06, gated at fe986862, 9546 passed) |
 | The needs check | The owner and two or three testers play days 1 to 3 with needs on (9.12) | N01 to N07 | | the owner | waits for the owner |
 
 After U02 come W05 to W08 and W10 (activities-plan section 5; design section 10); W11, the pilot, waits for testers and the owner's
@@ -2267,6 +2267,21 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   the cap held the desktop, as designed. The sync caught a stale link in the handovers README left by the orchestrator's handover move
   (the doc-link test failed on the merged tree); fixed in the sync. The orchestrator's check: the panel at ×2.5 (screenshot), `--needs-rate
   2.3` refused. Report `.claude/briefs/n09-report.md`.
+- **U02, the conversation surface (2026-11-05, Sonnet 5.5, then a Haiku sync with N09; gated on `feature/adaptive_design` at
+  `fe986862`, 9546 passed, 3 skipped).** The dialogue panel shows the current exchange (the learner's last line, the NPC's reply with its
+  English, one coaching line); older lines collapse behind a "N earlier lines hidden" row and come back with **PageUp** (any state, the
+  text box too) or **O** (Tab stays Escribir, D-game-9). The book's "What I said" history keeps every line. One coaching line replaces the
+  stack of correction, accent and English notes: uncertain speech not understood, then off prompt (typed turns, not a lesson turn; new
+  `ui.coachOffPrompt`), then a slip (the turn's feedback, else the first error line); a plain "understood" turn shows none (the reply is
+  the outcome). The lesson heading sits in the panel's header (`Lesson · First words · step 1 of 7 · Say it`, English from the locale) and
+  the strip stands flush on the panel without its own heading; a new scripted step `--expand`. Every D-game-9 key (R, S, H, N, W, Tab,
+  choices, Enter, Esc) is tested in idle, after a turn, thinking and after the typing offer. **Design against code:** the design's heading
+  example is Spanish, the code's English; the strip's step text and buttons stay above the panel. Scripted runs: stdout unchanged in all
+  26; only r30's lesson pictures moved, as intended. The sync kept both `--expand` and N09's `--settings` in the one flag line both sides
+  edited. The orchestrator's check: three turns with the shopkeeper collapsed ("10 earlier lines hidden") and expanded (PageUp's view), and
+  «yo quiere dos pan» with the single coaching line «Sí, «yo quiero dos panes». ¡Muy bien!». **Seen:** the row reads "1 earlier lines
+  hidden" for one line (a plural to fix in a later polish), and the collapsed panel leaves its upper half empty (the rows sit at the
+  bottom). Report `.claude/briefs/u02-report.md`.
 
 ## 6. Definition of done (every milestone)
 
