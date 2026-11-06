@@ -391,6 +391,15 @@ public static class BlockAtlasLayout
     /// </summary>
     public static BlockCell Reads(BlockFace face, BlockCell word) => face is BlockFace.South or BlockFace.West ? word : BlockCell.SignBlank;
 
+    /// <summary>
+    /// Whether the cell at a column and a row of the colour block is one that is only ever drawn on the interface (W07: the station's icons from <see cref="BlockCell.IconBowl"/> on, with
+    /// the plain tile). It is left out of the mip levels (<see cref="BlockArt.MipLevel"/>): the world never samples it, and the top levels average the whole atlas, so painting it would
+    /// move the far horizon of every picture the game draws.
+    /// </summary>
+    /// <param name="column">The cell's column.</param>
+    /// <param name="row">The cell's row within the colour block (a grey copy's row minus <see cref="ColourRows"/>).</param>
+    public static bool IsUiOnly(int column, int row) => (row * Columns) + column >= (int)BlockCell.IconBowl;
+
     /// <summary>The cell that draws an item as an icon (the hotbar and the held item), or <see langword="null"/> when the item has no 3D picture.</summary>
     public static BlockCell? IconFor(ItemId item) => item switch
     {

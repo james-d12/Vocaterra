@@ -50,7 +50,8 @@ public static class BlockArt
     /// <summary>
     /// One mip level of the atlas, made by averaging the 2^level x 2^level texels of the base picture under each texel (colours weighted by alpha, so the
     /// cut-out leaves do not darken at the edges). A cell is 16 texels wide, so up to level 4 an average never reaches into the next cell: far faces
-    /// turn smooth and keep their own colours, and the picture does not shimmer.
+    /// turn smooth and keep their own colours, and the picture does not shimmer. The cells that are only ever drawn on the interface
+    /// (<see cref="BlockAtlasLayout.IsUiOnly"/>, W07) count as clear here, so that they never tint the far horizon, where the top levels average the whole atlas.
     /// </summary>
     /// <param name="level0">The base atlas (<see cref="AtlasPixels"/>).</param>
     /// <param name="level">The level, 0 for the base picture.</param>
@@ -76,7 +77,7 @@ public static class BlockArt
                     for (var sx = x * step; sx < Math.Min(BlockAtlasLayout.Width, (x + 1) * step); sx++)
                     {
                         var i = ((sy * BlockAtlasLayout.Width) + sx) * 4;
-                        var alpha = level0[i + 3];
+                        var alpha = BlockAtlasLayout.IsUiOnly(sx / BlockAtlasLayout.CellSize, (sy / BlockAtlasLayout.CellSize) % BlockAtlasLayout.ColourRows) ? (byte)0 : level0[i + 3];
                         r += level0[i] * alpha;
                         g += level0[i + 1] * alpha;
                         b += level0[i + 2] * alpha;

@@ -48,4 +48,32 @@ public sealed class StationIconTests
         var pictures = cells.Select(static c => Convert.ToHexString(BlockArt.Pixels(c))).Distinct().ToList();
         Assert.Equal(cells.Length, pictures.Count);
     }
+
+    [Fact]
+    public void TheInterfaceOnlyIconsStayOutOfTheMipLevelsSoTheFarHorizonIsAsItWas()
+    {
+        var level0 = BlockArt.AtlasPixels();
+        var cleared = (byte[])level0.Clone();
+        for (var y = 0; y < BlockAtlasLayout.Height; y++)
+        {
+            for (var x = 0; x < BlockAtlasLayout.Width; x++)
+            {
+                if (BlockAtlasLayout.IsUiOnly(x / BlockAtlasLayout.CellSize, (y / BlockAtlasLayout.CellSize) % BlockAtlasLayout.ColourRows))
+                {
+                    Array.Clear(cleared, ((y * BlockAtlasLayout.Width) + x) * 4, 4);
+                }
+            }
+        }
+
+        Assert.NotEqual(level0, cleared); // the icons are painted at level 0
+        for (var level = 1; level < BlockArt.MipLevelCount; level++)
+        {
+            Assert.Equal(BlockArt.MipLevel(cleared, level), BlockArt.MipLevel(level0, level));
+        }
+
+        static bool UiOnly(BlockCell cell) => BlockAtlasLayout.IsUiOnly((int)cell % BlockAtlasLayout.Columns, (int)cell / BlockAtlasLayout.Columns);
+        Assert.All(new[] { BlockCell.IconBowl, BlockCell.IconSpoon, BlockCell.IconOven, BlockCell.IconPlain }, cell => Assert.True(UiOnly(cell), cell.ToString()));
+        Assert.False(UiOnly(BlockCell.IconRoastApple)); // the last cell of a world item
+        Assert.False(UiOnly(BlockCell.IconCoin));
+    }
 }
