@@ -15,8 +15,8 @@ using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Prompts;
-using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Core.Taxonomy;
+using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Response.Templates;
 
 namespace Vocaterra.Game.Core.Content;
