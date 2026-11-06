@@ -71,10 +71,14 @@ in `docs/nlp/api.md` updates that record.
 
 ## Models
 
+The owner, 2026-11-06: "Sonnet, Medium, or even High can be used for medium-sized tasks and Haiku agents for small tasks." A milestone's
+size is its plan row's.
+
 | Work | Model | Effort |
 | --- | --- | --- |
-| The default: content, docs, tests, mechanical code, re-verification, most feature milestones | Haiku 5.5 | default |
-| Design-heavy work (a new scene, a state machine, a new algorithm or cross-module design in the core, the host's architecture), or after a Haiku attempt failed the gate twice or its report did not verify | Sonnet 5.5 | default |
+| Small tasks (size S): content, docs, tests, mechanical code, re-verification, small fixes | Haiku 5.5 | default |
+| Medium tasks (size S/M or M) that touch a system's logic, or after a Haiku attempt failed the gate twice or its report did not verify | Sonnet 5.5 | medium |
+| Large or design-heavy work (size M/L or L; a new scene, a state machine, a new algorithm or cross-module design in the core, the host's architecture) | Sonnet 5.5 | high |
 | Research and architecture reviews, only when the owner asks | Opus 5.5 | default |
 | A series whose decision names its model: the V series (D-game-22) | Opus 5.5 | xhigh |
 

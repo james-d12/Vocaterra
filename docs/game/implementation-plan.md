@@ -2359,7 +2359,13 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   panel's title is the word "Station", not the station's name; after help the selection stays on the empty hand while the highlight shows
   what to hold; the mastered recipe's one-click bake is built (W06) but not yet offered at the station. Report `.claude/briefs/w07-report.md`.
 - **`r30-no-classes`' `declined.png` is nondeterministic** (W05 and W07, 2026-11-06): two captures of one build differ in that image's
-  bytes. Not caused by either milestone; a scripted-runs fix is not yet planned.
+  bytes. Not caused by either milestone; T8 (the test-performance plan) fixes it.
+- **W07b, the station view's small points (2026-11-06, Haiku 5.5; gated on `feature/bread-pilot` at `1d511d76`, 9758 passed, 3 skipped,
+  with the models).** The panel's title is the station's name (`ui.station.<id>`, else the noun with its article, else the id); help and a
+  third slip's highlight also select the highlighted held thing and target; a mastered recipe's one-click bake is offered at the station
+  (design 10.15: B, or Enter on the choice; the guided bake first and selected when the goal row is due, through a new
+  `PhraseProgress.IsScaffoldDue`). No screenshot: the agent's throwaway bundle failed the content checks, so the view is checked by its tests
+  only until W10's content; W10's spot-check looks at it. Report `.claude/briefs/w07b-report.md`.
 
 ## 6. Definition of done (every milestone)
 

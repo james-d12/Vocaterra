@@ -348,6 +348,21 @@ whose intent the prompt does not take was graded `vocab.wrong` (0.4, an empty ex
    ¿Buscas un lugar?», the villager «Te entiendo. ¿Qué buscas?», the guide and the shopkeeper one line each in the same form.
 4. **`hace frío` at `smith-open`** (read as `ask_activity`, a keyword rule on `hacer` alone) is fixed in M72.
 
+**Owner's answers, 2026-11-06 (the spoken off-prompt lines, after the study `docs/research/2026-11-04-spoken-off-prompt-lines.md`,
+its section 7):** "I accept all recommendations. However, for decision 5, I'm not going to be recording any of those, so skip that for
+now. Make a note of it, but don't block it from continuing the work."
+1. **Option 1:** a second, open decode only when the constrained decode is not taken, and only in free talk (the host's switch); lesson
+   steps, reviews and the mic check stay constrained. The core's **M80** (Opus 5.5 at xhigh), then the game's **V31** (Opus 5.5 at xhigh,
+   as every V milestone, this decision; the study proposed Sonnet).
+2. **A spoken line the prompt allows but not among its answer rows** (`mañana voy a comprar pan` at `smith-open`) is understood and
+   answered as the same typed line is: spoken and typed alike.
+3. **Credit for a line heard on the open decode:** half, as a typed line (the recognizer may have smoothed a mistake away).
+4. **All seven constrained prompts free talk uses:** the four NPC open prompts, the shopkeeper's `stall-need` and `stall-offer`, the
+   guide's `guide-offer`.
+5. **No owner recordings** for now. M80 measures on the synthetic Kokoro voices only and reports the accent risk as unmeasured on real
+   speech; nothing waits on recordings. Noted for a later measurement if the owner records or testers' recordings exist (M24).
+6. **Zero false takes** («Te entiendo» to a line that meant nothing) in the test corpus is the acceptance bar.
+
 **Owner's answers, 2026-11-02 (the open points after V27):**
 1. **The small points are fixed on `feature/village-followups`,** before the pull request: the core's in M73 (Opus 5.5 at xhigh), the
    game's in V28 (Sonnet 5.5).

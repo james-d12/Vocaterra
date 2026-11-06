@@ -164,14 +164,14 @@ Each joins `WorldEvents.All`, so tips, lessons and objectives may wait for it, a
 | **Stage 1: foundations** | | | | | |
 | W01 | `item_crafted`: a craft is a world event | | S | Haiku | done (2026-11-05, gated at 56f88b4b; game plan section 5) |
 | W02 | Tools and materials: a material per block, a tool spec per item, the axe's special case replaced | | S/M | Haiku | authorised (owner, 2026-11-06), on `feature/bread-pilot` |
-| W03 | Fail-forward as data: `patience` in the NPC file; the stall's rule moved there | | S/M | Haiku | authorised (owner, 2026-11-06), on `feature/bread-pilot` |
-| W04 | Price lists: `sell` and `buy` by the item the learner names; `<npc>.dont_sell` | | M | Haiku | authorised (owner, 2026-11-06), on `feature/bread-pilot` |
+| W03 | Fail-forward as data: `patience` in the NPC file; the stall's rule moved there | | S/M | Sonnet 5.5 medium | authorised (owner, 2026-11-06), on `feature/bread-pilot` |
+| W04 | Price lists: `sell` and `buy` by the item the learner names; `<npc>.dont_sell` | | M | Sonnet 5.5 medium | authorised (owner, 2026-11-06), on `feature/bread-pilot` |
 | **Stage 2: procedures, and bread with Luz** | | | | | |
 | W05 | Procedures, stations and actions as data; the `does` rows of the phrase sheet; the validator's rules | needs playtest (lifted for W05 to W07: D-game-23, 2026-11-06) | S/M | Haiku | done (2026-11-06, gated at 28c5becf on `feature/bread-pilot`, 9614 passed; game plan section 5) |
 | W06 | The procedure runner: the ladder up the recipe's tree, credits, help, rewards, mastery, events; `systems.procedures` in save version 6 | W05, N01 | M/L | Sonnet | done (2026-11-06, gated at b1579284 on `feature/bread-pilot`, 9645 passed; game plan section 5) |
 | W07 | The station view: model, panel, layer, layout, fixture icons, scripted steps | W06 | M | Sonnet | done (2026-11-06, gated at 23d139e3 on `feature/bread-pilot`, 9737 passed; game plan section 5) |
-| W07b | W07's small points: the station's name as the panel's title; help selects what it highlights; the mastered recipe's one-click bake offered at the station (design 10.15) | W07 | S | Haiku | authorised (owner, 2026-11-06), on `feature/bread-pilot` |
-| W08 | The teacher in the loop: the `teaching` state and prompt, the three host kinds, the missing ingredient, learning a recipe by asking | W06, W07, V29, spoken-lines study | S/M | Haiku | |
+| W07b | W07's small points: the station's name as the panel's title; help selects what it highlights; the mastered recipe's one-click bake offered at the station (design 10.15) | W07 | S | Haiku | done (2026-11-06, gated at 1d511d76, 9758 passed; game plan section 5) |
+| W08 | The teacher in the loop: the `teaching` state and prompt, the three host kinds, the missing ingredient, learning a recipe by asking | W06, W07, V29, spoken-lines study | S/M | Sonnet 5.5 medium | authorised (owner, 2026-11-06: the spoken-lines answers, D-game-22), on `feature/bread-pilot` |
 | W09 | Imperative production in lessons and the book | separate decision | S | Haiku | outside pilot |
 | W10 | Session 11 "En la panadería": the lesson, the `pan` procedure, flour, Luz's teaching, the rows and recordings, the checks, run `r27-bread` | W07, W08; W04 only for multi-item vendor pricing | M | content (decision l) | |
 | W11 | Stage 2's documents and runs; the pilot measure (telemetry, the session summary, `playtest.md`); run `r28-bread-again` | W10 | S | Haiku | **owner's go or no-go** |

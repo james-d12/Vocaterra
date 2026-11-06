@@ -20,7 +20,7 @@ never plans game content, scenes or engines; the game plan never plans core inte
 The repository is developed by one **orchestrator** session that plans and delegates all implementation to subagents and only plans,
 gates, merges and pushes. To continue, act as the orchestrator defined in `.claude/agents/orchestrator.md` (or start with
 `claude --agent orchestrator`). A QA agent, `.claude/agents/qa.md`, tests one area of the game (ui, language, speech, world,
-progression, save, content) and reports bugs to `docs/qa-reports/` without fixing them; the orchestrator turns its reports into milestones. The owner prefers Haiku 5.5 for delegated work; Sonnet only for design-heavy milestones; Opus only on request. The village series
+progression, save, content) and reports bugs to `docs/qa-reports/` without fixing them; the orchestrator turns its reports into milestones. The owner's models (2026-11-06): Haiku 5.5 for small tasks; Sonnet 5.5 at medium effort for medium tasks, at high for large or design-heavy ones; Opus only on request or where a decision names it. The village series
 (`docs/game/village-plan.md`, on `feature/village`) is the owner's exception: every V milestone by Opus 5.5 at xhigh effort (D-game-22).
 
 Facts every session needs:
