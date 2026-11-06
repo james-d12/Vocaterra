@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Activities;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Words;
@@ -42,10 +43,16 @@ internal sealed class StationRig
           { "use": "mano", "on": "horno", "verbs": ["sacar", "abrir"] } ] }
         """;
 
-    public StationRig(bool playable = true, Func<bool>? otherPanelOpen = null)
+    /// <param name="locale">The locale the session reads its words from, or <see langword="null"/> for the test locale.</param>
+    public StationRig(bool playable = true, Func<bool>? otherPanelOpen = null, LocaleText? locale = null)
     {
         Audio = new FakeInstructionAudio { Playable = playable };
         var data = ProcedureRig.Data().WithActions(ActionTable.Parse(Actions));
+        if (locale is not null)
+        {
+            data = data.WithLocale(locale);
+        }
+
         Session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), CreditRules.FullTyped, TestGame.NoLessons);
         _ = Session.Simulation.Inventory.Add(ItemId.Wood, 1);
         _ = Session.Simulation.Inventory.Add(ItemId.WaterBottle, 1);

@@ -79,8 +79,9 @@ public sealed class LocaleText
         "bookLessonsAllDone", "foodKept", "drinkKept", "plantedBush", "plantFar", "plantOccupied", "plantFull", "diedHunger", "diedThirst", "chestRest", "beaconBelongings",
         "faintedHunger", "faintedThirst", "controlsEffectsKeys", "controlsEffects", "effectsOn", "effectsOff",
         "controlsSettingsKeys", "controlsSettings", "settingsTitle", "settingsRate", "settingsEffects", "settingsRelaxed", "settingsOn", "settingsOff", "settingsHint",
-        "stationTitle", "stationListen", "stationHeld", "stationPage", "stationHints", "stationNothingHeld", "stationSelection", "stationRight", "stationWrongThing", "stationWrongVerb",
+        "stationListen", "stationHeld", "stationPage", "stationHints", "stationNothingHeld", "stationSelection", "stationRight", "stationWrongThing", "stationWrongVerb",
         "stationOutOfOrder", "stationDone", "stationAgain", "stationBagFull", "stationMissing", "stationVerbs",
+        "stationBakeAtOnce", "stationGuided", "stationNotEnough",
     ];
 
     /// <summary>The most error lines one turn's feedback carries.</summary>

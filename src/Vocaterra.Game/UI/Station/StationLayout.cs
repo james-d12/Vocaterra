@@ -28,6 +28,13 @@ public readonly record struct StationLayout
     /// <summary>The height of the notice under the targets.</summary>
     public const int NoticeHeight = 20;
 
+    /// <summary>The height of the one-click offer's row (W07b, design 10.15).</summary>
+    public const int OfferHeight = 24;
+
+    // The widest of the two offer buttons.
+    private const int OfferWidth = 320;
+    private const int OfferGap = 6;
+
     private const int Gap = 6;
     private const int CellGap = 3;
     private const int MaxWidth = 960;
@@ -44,7 +51,9 @@ public readonly record struct StationLayout
     /// <param name="targetCount">The targets (the middle).</param>
     /// <param name="stepCount">The steps of the procedure (the dots).</param>
     /// <param name="verbCount">The verbs of the open choice, or 0.</param>
-    public StationLayout(int canvasWidth, int canvasHeight, int fixtureCount, int targetCount, int stepCount, int verbCount = 0)
+    /// <param name="offerShown">Whether the one-click offer's row is shown (above the held row).</param>
+    /// <param name="guidedFirst">Whether the guided bake's choice stands first in the offer's row (else the one-click bake's does).</param>
+    public StationLayout(int canvasWidth, int canvasHeight, int fixtureCount, int targetCount, int stepCount, int verbCount = 0, bool offerShown = false, bool guidedFirst = true)
     {
         Compact = canvasHeight < 560 || canvasWidth < 700;
         var pad = Compact ? 8 : 14;
@@ -62,11 +71,28 @@ public readonly record struct StationLayout
 
         var cellHeight = Compact ? 54 : 76;
         var captionHeight = Compact ? 20 : 22;
-        var heldBlock = captionHeight + cellHeight;
+        var offerBlock = offerShown ? OfferHeight + 4 : 0;
+        var heldBlock = captionHeight + cellHeight + offerBlock;
         Footer = new PixelBox(left, Panel.Bottom - pad - FooterHeight, inner, FooterHeight);
         Selection = new PixelBox(left, Footer.Y - 4 - SelectionHeight, inner, SelectionHeight);
         var heldTop = Selection.Y - 4 - heldBlock;
-        HeldCaption = new PixelBox(left, heldTop, inner, captionHeight);
+        var captionTop = heldTop + offerBlock;
+        HeldCaption = new PixelBox(left, captionTop, inner, captionHeight);
+        var offerTop = heldTop;
+        if (offerShown)
+        {
+            var buttonWidth = Math.Min(OfferWidth, (inner - OfferGap) / 2);
+            var first = new PixelBox(left, offerTop, buttonWidth, OfferHeight);
+            var second = new PixelBox(left + buttonWidth + OfferGap, offerTop, buttonWidth, OfferHeight);
+            OfferGuided = guidedFirst ? first : second;
+            OfferOneClick = guidedFirst ? second : first;
+        }
+        else
+        {
+            OfferGuided = new PixelBox(0, 0, 0, 0);
+            OfferOneClick = new PixelBox(0, 0, 0, 0);
+        }
+
         var middleHeight = Math.Max(NoticeHeight + 24, heldTop - Gap - top);
         Middle = new PixelBox(left, top, inner, middleHeight);
 
@@ -89,7 +115,7 @@ public readonly record struct StationLayout
         _targets = Enumerable.Range(0, targets).Select(i => new PixelBox(targetsX + (i * (targetWidth + 10)), targetsY, targetWidth, targetHeight)).ToArray();
 
         // The held row: the empty hand first, then the nine cells of the page.
-        var cellsTop = heldTop + captionHeight;
+        var cellsTop = captionTop + captionHeight;
         var cellWidth = Math.Clamp((inner - ((HeldColumns) * CellGap) - 10) / (HeldColumns + 1), 28, 96);
         var rowWidth = ((HeldColumns + 1) * cellWidth) + (HeldColumns * CellGap) + 10;
         var rowLeft = left + Math.Max(0, (inner - rowWidth) / 2);
@@ -160,6 +186,12 @@ public readonly record struct StationLayout
     /// <summary>The empty hand (key 0).</summary>
     public PixelBox Hand { get; }
 
+    /// <summary>The guided bake's choice of the one-click offer (empty when no offer is shown).</summary>
+    public PixelBox OfferGuided { get; }
+
+    /// <summary>The one-click bake's choice of the offer (empty when no offer is shown).</summary>
+    public PixelBox OfferOneClick { get; }
+
     /// <summary>The line naming the selection.</summary>
     public PixelBox Selection { get; }
 
@@ -223,6 +255,16 @@ public readonly record struct StationLayout
         if (Strip.Help.Contains(x, y))
         {
             return new StationHit(StationRegion.Help, 0);
+        }
+
+        if (OfferOneClick.Contains(x, y))
+        {
+            return new StationHit(StationRegion.BakeOneClick, 0);
+        }
+
+        if (OfferGuided.Contains(x, y))
+        {
+            return new StationHit(StationRegion.BakeGuided, 0);
         }
 
         if (pages > 1 && PagePrevious.Contains(x, y))
