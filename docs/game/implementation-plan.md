@@ -2316,6 +2316,15 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   collapsed (the learner's line and the reply) and expanded; four turns expanded at 1280x720 ("9 earlier lines above (Up to scroll)").
   **Seen:** at 800x600 and 150 % the coaching line, two rows when wrapped, is dropped while about one row stays empty; acceptable. Reports
   `.claude/briefs/u02b-report-1.md` and `u02b-report.md`.
+- **T7, the game tests' memory (2026-11-06, Sonnet 5.5; launched by the orchestrator after a third OOM kill; gated on
+  `feature/adaptive_design` at `56094f20`, 9586 passed, 3 skipped).** The test-performance plan's T7 section has the numbers. The cause
+  was test sessions never disposed: a session's turn worker is a thread that keeps the session, its 38 MB scene clone and a language
+  engine alive, and five test classes (`ConversationSurfaceTests`, U02's, built ten) left them running; the live heap grew about 450 MB
+  per such test. They now dispose their sessions, and `Vocaterra.Game.Core.Tests` runs three xUnit threads (`xunit.runner.json`; ten
+  still peaked at 4 to 4.5 GB with the leak fixed, three peak at 2.4 to 2.5 GB in the same wall time). Game.Core.Tests alone: 5.0 GB
+  to 2.5 GB; `scripts/test.sh full`: killed at 87 s before, passed three times after at 4.6 to 4.8 GB (the gate's run 4.8 GB); no test,
+  assertion, budget or production code changed. The remaining full-run peak is Nlp.Tests (2.8 GB) beside the fuzz suite (2.5 GB), both
+  core; a further cut would be a core milestone. Report `.claude/briefs/t7-report.md`.
 
 ## 6. Definition of done (every milestone)
 

@@ -1,8 +1,8 @@
 # Handover: the adaptation, phases B to D, on feature/adaptive_design
 
 Created: 2026-11-05T20:31Z (UTC)
-Updated: 2026-11-06T05:40Z (UTC), U02b gated; T7 (the tests' memory) launched after a third OOM kill (kept current after every
-gate, launch and owner decision: the owner, 2026-11-05)
+Updated: 2026-11-06T07:50Z (UTC), T7 gated; nothing runs; waiting for the owner (kept current after every gate, launch and
+owner decision: the owner, 2026-11-05)
 Workstream: the owner's Adaptation Design Document, phases B to E: the needs (N), lessons as classes (L01), the presentation track (U),
 then the bread pilot (W)
 Branch: `feature/adaptive_design` (pushed; the owner merges it into `main` once, at the end); HEAD: see `git log -1` (the last record
@@ -23,10 +23,7 @@ track) is half done; phase E (the bread pilot, W05 to W10) waits for the owner's
 
 ## Working tree and running work
 
-- **One building agent runs: T7, the game tests' memory** (Sonnet 5.5): worktree `.claude/worktrees/t7`, local branch `T7-test-memory`,
-  brief [`.claude/briefs/t7-test-memory.md`](../../.claude/briefs/t7-test-memory.md). Launched by the orchestrator on 2026-11-06 because
-  the OOM kills (below) began failing gates of authorised work; the owner may stop it. When it ends: gate (run `scripts/test.sh full`
-  three times on the merged tree as well), record in the test-performance plan's T7 section and the game plan's findings.
+- **Nothing runs.** No agent, no worktree but the adaptive one.
   - Their reports reach only the session that launched them. **If this session is gone:** check each worktree (`git -C <wt> status`,
     `git -C <wt> log --oneline feature/adaptive_design..`), commit any uncommitted work as a WIP snapshot on its branch, and relaunch a
     fresh agent with a "you continue a first attempt" section, as [`n05b-continue.md`](../../.claude/briefs/n05b-continue.md) did for N05.
@@ -50,6 +47,7 @@ track) is half done; phase E (the bread pilot, W05 to W10) waits for the owner's
 | N09 | The drive rate as a setting: the F8 panel's slider ×0.5 to ×4, `--needs-rate` (the owner, 2026-11-05) | `37c7640b`, 9501 |
 | N08 | A berry planted at the camp (decision 14): right click on grass within 8 blocks of the camp ring; grows at night | `209049db`, 9561 |
 | U02b | The QA fixes of U02 (ui-1 to ui-5): the expanded panel scrolls, the exchange fits at 800x600 150 %, the off-prompt English | `565554f3`, 9586 |
+| T7 | The game tests' memory: undisposed test sessions; Game.Core.Tests 5.0 to 2.5 GB, the full run 4.8 GB under its 6 GB cap | `56094f20`, 9586 |
 | U02 | The conversation surface: the current exchange, older lines behind PageUp/O, one coaching line, the lesson heading in the panel | `fe986862`, 9546 |
 
 - Plans: [game plan](../game/implementation-plan.md) section 4.9 (the table) and section 5 (one findings entry per milestone);
@@ -61,15 +59,11 @@ track) is half done; phase E (the bread pilot, W05 to W10) waits for the owner's
 
 ## Unfinished and blocked
 
-- **In progress:** T7 (above). Phases B to D are done, with U02's QA fixes (U02b).
+- **In progress:** nothing. Phases B to D are done, with U02's QA fixes (U02b) and T7.
 - **Authorised, next:** nothing building. The owner withdrew the wind-down (2026-11-05, late: "continue with the work, I'm not going
   to handover. But keep the document updated just in case") and went to sleep.
-- **T7, the game tests' memory, launched 2026-11-06 (it was proposed first)** (brief [`.claude/briefs/t7-test-memory.md`](../../.claude/briefs/t7-test-memory.md),
-  Sonnet 5.5). `Vocaterra.Game.Core.Tests` alone peaks at 5.4 GB (2.80 GB at the test-performance plan's T1); beside a second assembly
-  under `scripts/test.sh full` (one `limited.sh` command, 6 GB) the OOM killer ends the run (exit 143): twice on N08's merged tree, once
-  in N09. Gates pass or fail by how the assemblies overlap. The rule forbids raising the cap; T7 cuts the memory or schedules that
-  assembly alone. A third kill (U02b's first gate, 2026-11-06) moved it from proposed to launched. Until it lands, a gate killed with 143 is rerun
-  once and the kill recorded (cause known, not the milestone's).
+- **T7 is done** (it was proposed, then launched by the orchestrator on 2026-11-06 after a third OOM kill failed U02b's first gate):
+  gate kills with exit 143 should no longer happen; if one does, read the test log's peak line and the journal (`journalctl --user | grep oom`).
 - **Blocked on the owner:**
   - **The needs check** (design 9.12): the owner and two or three testers play days 1 to 3 with needs on. Its pass criteria are in the
     game plan's row and the design's 9.12. Its "go" starts the bread pilot W05 to W10 (activities plan section 4.7). The owner may lift
