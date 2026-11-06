@@ -436,6 +436,12 @@ feature/adaptive_design), with the bread stuff".
    carried book beside the journal, placeable open beside a station, given by Luz for the first bread (so W30 depends on W10).
    Its two open points, the same day ("both defaults are fine"): a page appears only once its recipe is taught, and it plays the `does`
    rows' normal and slow recordings.
+4. **More work while the owner's answers are pending** (owner, 2026-11-06, after W05 to W07 merged; asked what was outstanding): "Yeah,
+   start those ones now. Just start as much as possible, unless it obviously needs my review." Authorised on `feature/bread-pilot`, in
+   this order, one building agent at a time (the disk holds one milestone worktree above the 10 GB floor): **W07b** (W07's three small
+   points), **T8** (the nondeterministic `r30-no-classes` capture), **W02** (tools and materials), **W03** (fail-forward as data),
+   **W04** (price lists; its code and tests only, the bakery's real price list and Spanish lines stay W10's, so nothing needs the owner's
+   listening). Still waiting for the owner: W08 (the spoken-lines questions), decision 19, W09, W30.
 
 ## D-game-24: player needs (decided)
 

@@ -217,6 +217,14 @@ Game.Core.Tests peaked at 5.0 GB alone (2.8 GB at T1), so beside a second heavy 
 - **Left.** Nlp.Tests (2.8 GB) and the fuzz suite (2.5 GB), the core's, are now the next largest; the full run peaks near 4.7 GB when they overlap
   Game.Core.Tests. They were not touched (core).
 
+### T8: The nondeterministic `r30-no-classes` capture, authorised (owner, 2026-11-06)
+
+W05 and W07 found that two captures of `r30-no-classes` from one build differ in `declined.png`'s bytes, so `compare-runs.py` reports a
+difference no change caused. T8 finds the source (a frame-timing race, an unseeded draw, the clock, the turn worker's timing, an
+asynchronous voice or thinking indicator) and fixes it at the source, so that three captures of one build are identical; widening the
+comparison's tolerance or excluding the picture is not a fix. A C# test pins the cause if it is in code. Haiku 5.5, on
+`feature/bread-pilot`; game plan section 5 has the finding.
+
 ## Files touched
 - **New:** `scripts/test-timings.py`, `scripts/test.sh`, `tests/Shared/TestSpeed.cs`, `tests/Vocaterra.Game.Core.Tests/TestSupport/TestSpeed.cs`
 - **Production (game):** `src/Vocaterra.Game.Core/Voxel/VoxelGrid.cs`, `VoxelChunk.cs` and `World/Scene.cs` (`Clone`)
