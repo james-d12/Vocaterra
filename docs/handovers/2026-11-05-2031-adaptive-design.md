@@ -1,8 +1,8 @@
 # Handover: the adaptation, phases B to D, on feature/adaptive_design
 
 Created: 2026-11-05T20:31Z (UTC)
-Updated: 2026-11-06T00:25Z (UTC), after U02's gate (kept current after every gate, launch and owner decision: the owner,
-2026-11-05)
+Updated: 2026-11-06T01:30Z (UTC), after N08's gate: phases B to D are done; a QA pass on the conversation surface runs (kept
+current after every gate, launch and owner decision: the owner, 2026-11-05)
 Workstream: the owner's Adaptation Design Document, phases B to E: the needs (N), lessons as classes (L01), the presentation track (U),
 then the bread pilot (W)
 Branch: `feature/adaptive_design` (pushed; the owner merges it into `main` once, at the end); HEAD: see `git log -1` (the last record
@@ -23,9 +23,9 @@ track) is half done; phase E (the bread pilot, W05 to W10) waits for the owner's
 
 ## Working tree and running work
 
-- **One building agent runs:**
-  - **N08, a berry planted at the camp** (the owner said "run N08 alongside U02", 2026-11-05): worktree `.claude/worktrees/n08`, local
-    branch `N08-camp-berry`, brief [`.claude/briefs/n08-camp-berry.md`](../../.claude/briefs/n08-camp-berry.md), Haiku 5.5.
+- **One agent runs:** a QA pass (`subagent_type: qa`, area `ui`, narrowed to the conversation surface U02 and the settings panel N09)
+  on the adaptive worktree; it writes `docs/qa-reports/2026-11-06-ui.md` and builds nothing new beyond the game. When it ends: add one
+  row per bug to the triage table in `docs/qa-reports/README.md`, confirmed bugs to the game plan's findings, and propose fix milestones.
   - Their reports reach only the session that launched them. **If this session is gone:** check each worktree (`git -C <wt> status`,
     `git -C <wt> log --oneline feature/adaptive_design..`), commit any uncommitted work as a WIP snapshot on its branch, and relaunch a
     fresh agent with a "you continue a first attempt" section, as [`n05b-continue.md`](../../.claude/briefs/n05b-continue.md) did for N05.
@@ -47,6 +47,7 @@ track) is half done; phase E (the bread pilot, W05 to W10) waits for the owner's
 | N07 | Cooking at the fire (the roast apple) | `20a8da0c`, 9461 |
 | U01 | Clean defaults (`--dev`/F3, one speak hint, the tracker) | `dd01a6e9`, 9476 |
 | N09 | The drive rate as a setting: the F8 panel's slider ×0.5 to ×4, `--needs-rate` (the owner, 2026-11-05) | `37c7640b`, 9501 |
+| N08 | A berry planted at the camp (decision 14): right click on grass within 8 blocks of the camp ring; grows at night | `209049db`, 9561 |
 | U02 | The conversation surface: the current exchange, older lines behind PageUp/O, one coaching line, the lesson heading in the panel | `fe986862`, 9546 |
 
 - Plans: [game plan](../game/implementation-plan.md) section 4.9 (the table) and section 5 (one findings entry per milestone);
@@ -58,10 +59,14 @@ track) is half done; phase E (the bread pilot, W05 to W10) waits for the owner's
 
 ## Unfinished and blocked
 
-- **Authorised, in progress:** N08 (above).
-- **Authorised, next:** none beyond N08 in phases B to D. The owner withdrew the wind-down (2026-11-05, late: "continue with the work,
-  I'm not going to handover. But keep the document updated just in case") and went to sleep; after N08, the orchestrator runs one QA
-  pass (step 10) on the conversation surface, then waits for the owner's word on W05 to W07.
+- **Authorised, in progress:** the QA pass (above). Phases B to D are done.
+- **Authorised, next:** nothing building. The owner withdrew the wind-down (2026-11-05, late: "continue with the work, I'm not going
+  to handover. But keep the document updated just in case") and went to sleep.
+- **Proposed, not authorised: T7, the game tests' memory** (brief [`.claude/briefs/t7-test-memory.md`](../../.claude/briefs/t7-test-memory.md),
+  Sonnet 5.5). `Vocaterra.Game.Core.Tests` alone peaks at 5.4 GB (2.80 GB at the test-performance plan's T1); beside a second assembly
+  under `scripts/test.sh full` (one `limited.sh` command, 6 GB) the OOM killer ends the run (exit 143): twice on N08's merged tree, once
+  in N09. Gates pass or fail by how the assemblies overlap. The rule forbids raising the cap; T7 cuts the memory or schedules that
+  assembly alone. Until it lands, a gate killed with 143 is rerun once and the kill recorded (cause known, not the milestone's).
 - **Blocked on the owner:**
   - **The needs check** (design 9.12): the owner and two or three testers play days 1 to 3 with needs on. Its pass criteria are in the
     game plan's row and the design's 9.12. Its "go" starts the bread pilot W05 to W10 (activities plan section 4.7). The owner may lift
@@ -85,12 +90,12 @@ track) is half done; phase E (the bread pilot, W05 to W10) waits for the owner's
 
 ## Next steps
 
-1. When N08 reports: verify the branch (`git diff --stat <merge-base>..<branch>`, scope), check conflicts with
+1. When a milestone reports: verify the branch (`git diff --stat <merge-base>..<branch>`, scope), check conflicts with
    `git merge-tree --write-tree --name-only HEAD <branch>`; if only generated files or docs conflict, merge the base into the branch in its
    worktree, resolve, run `scripts/content-loop.sh --speech --tier none` (or `--grammar --speech --tier full` if code or content changed on
    both sides), commit; otherwise brief a Haiku sync as [`n07-sync.md`](../../.claude/briefs/n07-sync.md).
 2. Gate from the adaptive worktree: `GATE_TARGET=feature/adaptive_design scripts/merge-gate.sh "<ID>:<branch>"` (in the background, with
    `VOCATERRA_MODELS_DIR` set), spot-check in the game, record the plan row and a findings entry, save the report, commit, push
    `feature/adaptive_design`, remove the worktree and the local branch, **update this handover**.
-3. With U02 and N08 merged, phases B to D are done: write the owner a review notice (what to playtest, with N09's slider:
+3. Phases B to D are done (N08 and U02 merged 2026-11-06): give the owner the review notice (what to playtest, with N09's slider:
    the settings panel and `--needs-rate`), and wait for the needs check or the owner's word on W05 to W07.

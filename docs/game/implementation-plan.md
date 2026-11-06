@@ -380,7 +380,7 @@ there. Commit prefixes `N<nn>:`, `L01:`, `U<nn>:`, `W<nn>:`; one milestone branc
 | N06 | Food that grows back, and fair gifts (9.6; decision 12): berry bushes regrow after a night; bread and water gifts once per in-game day | N05 | S/M | Sonnet 5.5 | done (2026-11-05, gated at 468a1b29, 9382 passed; built before N05, its Spanish lines left to N05) |
 | W01 | `item_crafted`: a craft is a world event (activities plan) | N06 | S | Haiku 5.5 | done (2026-11-05, gated at 56f88b4b, 9385 passed) |
 | N07 | Cooking at the fire (9.6): the noun `fuego`, an apple to a roast apple at any lit fire, through the crafting path and `item_crafted` | W01 | S/M | Sonnet 5.5 | done (2026-11-05, gated at 20a8da0c, 9461 passed) |
-| N08 | A berry planted at the camp (decision 14, adopted provisionally) | N06 | S | Haiku 5.5 | in progress (the owner, 2026-11-05: "run N08 alongside U02") |
+| N08 | A berry planted at the camp (decision 14, adopted provisionally) | N06 | S | Haiku 5.5 | done (2026-11-06, gated at 209049db, 9561 passed) |
 | N09 | The drive rates as a setting (owner, 2026-11-05): a slider in the settings and `--needs-rate`, multiplying every drive's rate, for the needs playtest; a fixed value after it | N05 | S | Sonnet 5.5 | done (2026-11-05, gated at 37c7640b, 9501 passed) |
 | U01 | Clean defaults (14.3): the debug text off by default; one speak hint; the objective tracker; room for the need meters | N05 | S | Sonnet 5.5 | done (2026-11-05, gated at dd01a6e9, 9476 passed) |
 | U02 | The conversation surface (7.2): developer notes behind `--dev`/F3, older lines collapsed, the lesson strip in the header, every D-game-9 route reachable by key | U01 | M | Sonnet 5.5 | done (2026-11-06, gated at fe986862, 9546 passed) |
@@ -2282,6 +2282,22 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   «yo quiere dos pan» with the single coaching line «Sí, «yo quiero dos panes». ¡Muy bien!». **Seen:** the row reads "1 earlier lines
   hidden" for one line (a plural to fix in a later polish), and the collapsed panel leaves its upper half empty (the rows sit at the
   bottom). Report `.claude/briefs/u02-report.md`.
+- **N08, a berry planted at the camp (2026-11-05, Haiku 5.5; the orchestrator merged U02 into it; gated on `feature/adaptive_design`
+  at `209049db`, 9561 passed, 3 skipped).** Design decision 14 built, adopted provisionally. The rule is data: an optional `planting` in
+  `content/game-v1/game/needs.json` (item `berry`, block `bush`, grown block `berry-bush`, radius 8, at most 6 bushes), its schema, and a
+  validator check (unknown item or block, a grown block with no regrowth rule or not regrowing from the planted block, radius or count not
+  positive). A right click with the berry held on grass or dirt within 8 blocks (horizontal) of the guide camp's ring (`firering`) plants a
+  bare bush; a click in the air or on another block still eats. Too far, an occupied cell or the cap: a toast, the berry kept. The planted
+  cell is recorded as picked, so N06's regrowth bears it at night; the planted cells are saved in a new optional `systems.planted` (save
+  version stays 6; an older save loads with none). Event `bush_planted (fruta)`; a scripted `--plant x,y,z`. **Design against code:** the
+  planting radius is about the guide's camp ring, while sleep needs the player's own fire, so planting and sleeping happen at different
+  fires. Scripted runs: 25 of 26 identical; r30's `declined.png` differs by timing noise (two runs of the same binary differed too).
+  **Machine:** after the merge, the content loop's full suite was killed twice by the OOM killer: `Vocaterra.Game.Core.Tests` alone now
+  peaks at 5.4 GB (2.80 GB at the test-performance plan's T1), on the base as on N08, and beside a second assembly it exceeds the 6 GB cap
+  of one `limited.sh` command; xUnit at two threads still peaks at 4.8 GB. The gate passed when the assemblies did not overlap that way. A
+  fix is proposed as T7 (the test-performance plan), not yet authorised. The orchestrator's check: the camp route, `--give berry --plant
+  170,42,186` (planted, `bush_planted`), the player's fire lit as in r20, `--sleep` (session 2), and the same cell gathered as a
+  `berry-bush` (+1 berry). Report `.claude/briefs/n08-report.md`.
 
 ## 6. Definition of done (every milestone)
 
