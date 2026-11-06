@@ -84,6 +84,9 @@ public sealed class NpcVoice : ILinePlayer, IDisposable
     /// <param name="volume">The volume.</param>
     public void SetVolume(double volume) => _output.SetVolume(volume);
 
+    /// <summary>Whether a clip can be heard at all: the voice is not muted and a sound output is there (W07: the station shows the Spanish card when it is not).</summary>
+    public bool CanPlay => !Muted && _output.Available;
+
     /// <summary>Whether a clip is playing or waiting.</summary>
     public bool Busy => _playing || _queue.Count > 0;
 

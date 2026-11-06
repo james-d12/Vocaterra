@@ -44,6 +44,7 @@ public static class SceneBuilder
         private readonly bool[] _hard; // columns of props, points, NPCs, the spawn and the bridge: the undergrowth keeps off them (S14)
         private bool[] _trunkColumns = [];
         private readonly SortedDictionary<string, BlockPos> _points = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, IReadOnlyList<BlockPos>> _propCells = new(StringComparer.Ordinal);
         private Terrain _terrain = new(0, 0);
         private TerrainNoise _forest = new(0, ForestPassName);
         private ulong _seed;
@@ -93,7 +94,7 @@ public static class SceneBuilder
 
             var trees = PlantForest(seed);
             var plants = PlantUndergrowth(seed);
-            return new Scene(_layout.Name, seed, _grid, new SpawnPoint(spawnFeet, _layout.Spawn.Yaw, _layout.Spawn.Pitch), npcs, _points, trees, _layout.WaterLevel, plants, _layout.Labels);
+            return new Scene(_layout.Name, seed, _grid, new SpawnPoint(spawnFeet, _layout.Spawn.Yaw, _layout.Spawn.Pitch), npcs, _points, trees, _layout.WaterLevel, plants, _layout.Labels, _propCells);
         }
 
         // ---------------------------------------------------------------- the ground
@@ -789,6 +790,7 @@ public static class SceneBuilder
             var width = turned ? drawnDepth : drawnWidth;
             var depth = turned ? drawnWidth : drawnDepth;
             var h = FlatHeight(prop.X, prop.Z, width, depth, where);
+            var cells = new List<BlockPos>();
             for (var layer = 0; layer < stamp.Layers.Count; layer++)
             {
                 var rows = stamp.Layers[layer];
@@ -809,8 +811,14 @@ public static class SceneBuilder
                             _ => (r, drawnWidth - 1 - c),
                         };
                         Put(prop.X + dx, h + 1 + layer, prop.Z + dz, stamp.Legend[rows[r][c]], where);
+                        cells.Add(new BlockPos(prop.X + dx, h + 1 + layer, prop.Z + dz));
                     }
                 }
+            }
+
+            if (prop.Name is not null)
+            {
+                _propCells[prop.Name] = cells; // W07: the station lookup (E at a cell of the oven)
             }
 
             Register(prop, prop.X + (width / 2), prop.Z + (depth / 2));

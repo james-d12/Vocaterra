@@ -39,4 +39,5 @@ public sealed record GameCommands(
     IGameCommand? DrinkByHand = null,
     IGameCommand? TakeBelongings = null,
     IGameCommand? ToggleViewEffects = null,
-    IGameCommand? OpenSettings = null);
+    IGameCommand? OpenSettings = null,
+    IGameCommand? OpenStation = null);
