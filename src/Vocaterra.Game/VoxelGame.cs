@@ -467,7 +467,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _greeting = new GuideGreeting(session, npc => _dialogueScreen.Open(npc, null), Console.WriteLine);
 
         CrashSource = new CrashSource(_sessionDirectory, options.ReportDir, session, _dialogue, _report, _autosave, _saves);
-        _session.StartWorker(MonotonicClock.Milliseconds, options.NeedsSpeech);
+        _session.StartWorker(options.TurnClock, options.NeedsSpeech);
     }
 
     // Closes the dialogue, the book, the inventory and the crafting panel, whichever is open (the playtest's post-check takes the screen, S12).

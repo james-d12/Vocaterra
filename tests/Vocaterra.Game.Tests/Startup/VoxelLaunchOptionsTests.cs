@@ -303,4 +303,17 @@ public sealed class VoxelLaunchOptionsTests
         Assert.Contains("--need <need>", LaunchOptions.Usage, StringComparison.Ordinal);
         Assert.Contains("--take-belongings", LaunchOptions.Usage, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void AScriptedRunTimesItsTurnsWithNoClockSoItsLatencyLabelsDoNotMove()
+    {
+        // T8: r30's declined.png moved with the turn's wall time (the dialogue note's "10.0 ms"); a scripted run has no clock, so its turns report zero.
+        var scripted = Parse("--screenshot", "a.png", "--wait", "1");
+        Assert.True(scripted.IsScreenshotRun && scripted.Script.Count > 0);
+        Assert.Null(scripted.TurnClock);
+
+        var play = Parse("--seed", "7");
+        Assert.NotNull(play.TurnClock);
+        Assert.True(play.TurnClock!() >= 0);
+    }
 }
