@@ -1,7 +1,7 @@
 # Handover: the adaptation, phases B to D, on feature/adaptive_design
 
 Created: 2026-11-05T20:31Z (UTC)
-Updated: 2026-11-06T07:50Z (UTC), T7 gated; nothing runs; waiting for the owner (kept current after every gate, launch and
+Updated: 2026-11-06T07:22Z (UTC), T7 gated; nothing runs (the watch ended); waiting for the owner (kept current after every gate, launch and
 owner decision: the owner, 2026-11-05)
 Workstream: the owner's Adaptation Design Document, phases B to E: the needs (N), lessons as classes (L01), the presentation track (U),
 then the bread pilot (W)
@@ -27,7 +27,7 @@ track) is half done; phase E (the bread pilot, W05 to W10) waits for the owner's
   - Their reports reach only the session that launched them. **If this session is gone:** check each worktree (`git -C <wt> status`,
     `git -C <wt> log --oneline feature/adaptive_design..`), commit any uncommitted work as a WIP snapshot on its branch, and relaunch a
     fresh agent with a "you continue a first attempt" section, as [`n05b-continue.md`](../../.claude/briefs/n05b-continue.md) did for N05.
-- A background memory and load watch may be running from this session (a shell loop; it ends by itself within 6 hours).
+- The background memory and load watch ended after 6 hours with no alarm (2026-11-06); nothing else runs.
 - The adaptive worktree is clean apart from this handover's own change; nothing uncommitted elsewhere.
 - **Branches:** milestone branches stay local and are never pushed (the owner, 2026-11-05); only `feature/adaptive_design` is pushed. The
   remote still holds older milestone branches, all merged; the owner deletes them (the permission check refuses remote deletes).
