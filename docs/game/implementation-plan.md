@@ -2326,6 +2326,16 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   to 2.5 GB; `scripts/test.sh full`: killed at 87 s before, passed three times after at 4.6 to 4.8 GB (the gate's run 4.8 GB); no test,
   assertion, budget or production code changed. The remaining full-run peak is Nlp.Tests (2.8 GB) beside the fuzz suite (2.5 GB), both
   core; a further cut would be a core milestone. Report `.claude/briefs/t7-report.md`.
+- **W05, procedures, stations and actions as data (2026-11-06, Haiku 5.5; gated on `feature/bread-pilot` at `28c5becf`, 9614 passed,
+  3 skipped, with the models).** Four schemas (`procedure`, `procedures`, `stations`, `actions`), three empty bundle files, the loaders
+  `Activities/ProcedureBook`, `StationBook`, `ActionTable` in `GameData`, the phrase sheet's `does` kind (documented, read, no rows yet) and
+  the validator's activity rules. Values chosen where the design is open or disagrees with the code (D-game-23's provisional 18.2 values
+  stand): a step may name a `use` (the design's `sacar` pair is `mano`/`horno`, which its step cannot express); `anyOrder` is a group name;
+  `what` is an item noun or a fixture, `where`/`from`/`with` are fixtures; the design's `flour` is refused until W10 adds the item, and
+  `mano` must become a catalogue noun in W10. The tú imperative comes from the lexicon (mood `imp`, person 2, `sg`): no core gap. The agent
+  stopped twice with work uncommitted while its own background runs went on, and was resumed by message; the scripted runs moved only
+  `r30-no-classes`' `declined.png`, which also differed between two captures of the same build (nondeterministic, not this change).
+  Report `.claude/briefs/w05-report.md`.
 
 ## 6. Definition of done (every milestone)
 
