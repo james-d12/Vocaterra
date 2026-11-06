@@ -105,6 +105,7 @@
         { "onHostEvent": "baker.nothing_missing", "to": "teaching", "actions": [{ "dialogueIntent": "baker_has_all", "variantPoolId": "baker_has_all" }] },
         { "onHostEvent": "baker.gift_used", "to": "teaching", "actions": [{ "dialogueIntent": "baker_gift_used", "variantPoolId": "baker_gift_used" }] },
         { "onHostEvent": "baker.no_room", "to": "teaching", "actions": [{ "dialogueIntent": "baker_no_room", "variantPoolId": "baker_no_room" }] },
+        { "onHostEvent": "baker.teach_start", "to": "teaching", "actions": [{ "dialogueIntent": "baker_nice", "variantPoolId": "baker_nice" }] },
         { "onHostEvent": "baker.teach_end", "to": "idle", "actions": [{ "dialogueIntent": "baker_nice", "variantPoolId": "baker_nice" }] },
         { "onHostEvent": "baker.delivered", "to": "idle", "actions": [{ "dialogueIntent": "baker_delivered", "hostEvent": "baker.pay", "variantPoolId": "baker_delivered" }] },
         { "on": {"communicated": false}, "to": "teaching", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }

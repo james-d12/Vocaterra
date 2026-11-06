@@ -1,6 +1,6 @@
 {"schemaVersion":1,"bundleId":"game-v1","contentVersion":"1.0.0","supportLanguage":"en","files":[
 {"path":"ATTRIBUTION.md","sha256":"2850ffe4b92c6228299d243d49d4f0c8af660a454ed1911f7abe8567eb4104b3","bytes":7924},
-{"path":"agents/baker.json","sha256":"276f5361d2169296dd3adcc7bfd54f22125393539d7505acc7e47cfb81fdeb3b","bytes":10624},
+{"path":"agents/baker.json","sha256":"768912914df6f8b9636ae5f746c936252c0cbdce0208cc6fb1ccea6b16406db2","bytes":10770},
 {"path":"agents/farmer.json","sha256":"d8bdf4c2004d3196b030d55d417ca0ef9437ece282087b9b56845f0f007f9fb1","bytes":6623},
 {"path":"agents/fisher.json","sha256":"e5941de56de1746780f4a3f92959158b5289beb300c34df29d6c7f7489fa1f75","bytes":7214},
 {"path":"agents/guide.json","sha256":"fc085ce8e734372fc09e295e00aa7dd104555a3f29edcfeb387e1cb49b8edfec","bytes":16892},
@@ -1444,4 +1444,4 @@
 {"path":"speech/villager/villager_wont_sell.1.wav","sha256":"3265f9782c9ad6140cb0111fff9faa2deaf07a0c6ebb5b798f8df03c9d25b1b9","bytes":67244},
 {"path":"speech/villager/villager_yes.1.slow.wav","sha256":"c89db269d94d9525b8b6e1294b6edfef8682dfd5fb5522ac7d2de7539b546c42","bytes":38444},
 {"path":"speech/villager/villager_yes.1.wav","sha256":"b7de709cd242f8181619ba356c6a8223d9a489231b934e1ee81f522f1d0442a3","bytes":30044}
-],"bundleHash":"472b3d3cf5b93065a0e147aa936df6215418b45c4cdf86684463353a197e51f6"}
+],"bundleHash":"0eebdd4417a08269c1f2210962cf7e6e9f598ada21f8a816a0c765b1603709f1"}

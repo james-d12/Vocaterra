@@ -460,6 +460,21 @@ public sealed class TeacherLoopTests
     }
 
     [Fact]
+    public void AStationOpenedAfterALoadPutsATeacherLeftTeachingBackToListening()
+    {
+        var rig = new Rig();
+        Assert.True(rig.Open());
+        var document = SaveGame.Capture(rig.Session, Pristine());
+        var loaded = SaveGame.Load(SaveGame.Serialize(document), ProcedureRig.Data(), Pristine, credit: CreditRules.FullTyped, bumpSession: false);
+        Assert.Equal("teaching", loaded.Conversation.StateOf("baker")); // saved while she listened at the station
+        Assert.Equal(StartOutcome.Resumed, loaded.StartProcedure("pan", "horno", true));
+        Assert.Equal("baker", loaded.TeachingNpc);
+        Assert.Equal("teaching", loaded.Conversation.StateOf("baker"));
+        loaded.LeaveStation();
+        Assert.Equal("idle", loaded.Conversation.StateOf("baker"));
+    }
+
+    [Fact]
     public void TheStationsTalkReachesTheTeacherAndLeavesTheStationOpen()
     {
         var rig = new Rig();
