@@ -276,6 +276,18 @@ public enum BlockCell
 
     /// <summary>The icon of a roast apple (the item, N07): the apple, browned and cooked, with a golden highlight.</summary>
     IconRoastApple,
+
+    /// <summary>The icon of the bowl (a station fixture, W07): a round earthenware bowl with a pale rim.</summary>
+    IconBowl,
+
+    /// <summary>The icon of the spoon (a station fixture, W07): a wooden spoon lying along the diagonal.</summary>
+    IconSpoon,
+
+    /// <summary>The icon of the oven (a station fixture, W07): a cobble vault with a fire in its arched mouth and a chimney.</summary>
+    IconOven,
+
+    /// <summary>The plain tile any icon key without art of its own is drawn as (W07): a grey rounded square.</summary>
+    IconPlain,
 }
 
 /// <summary>
@@ -394,6 +406,19 @@ public static class BlockAtlasLayout
         ItemId.Axe => BlockCell.IconAxe,
         ItemId.RoastApple => BlockCell.IconRoastApple,
         _ => null,
+    };
+
+    /// <summary>
+    /// The cell that draws an icon by its key (W07: a station fixture's <c>icon</c> in <c>stations.json</c>, or a made thing's noun). A key with no art of its own draws the plain tile, so a
+    /// fixture added to the content never shows as a hole.
+    /// </summary>
+    /// <param name="key">The icon key (<c>bowl</c>, <c>spoon</c>, <c>oven</c>, or any other).</param>
+    public static BlockCell IconForKey(string key) => key switch
+    {
+        "bowl" => BlockCell.IconBowl,
+        "spoon" => BlockCell.IconSpoon,
+        "oven" => BlockCell.IconOven,
+        _ => ItemDefinition.All.FirstOrDefault(d => string.Equals(d.Name, key, StringComparison.Ordinal)) is { } item && IconFor(item.Id) is { } cell ? cell : BlockCell.IconPlain,
     };
 
     /// <summary>The cell's rectangle in pixels of the atlas texture (x, y, width, height).</summary>
