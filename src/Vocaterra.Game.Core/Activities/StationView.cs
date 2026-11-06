@@ -79,7 +79,29 @@ public enum StationNotice
 
     /// <summary>Something the bake used is gone from the bag: its step is open again.</summary>
     Missing,
+
+    /// <summary>The one-click bake lacks an ingredient: nothing was used.</summary>
+    NotEnough,
 }
+
+/// <summary>Which of the two ways to bake is chosen: the guided one (the steps) or the one-click bake (design 10.15).</summary>
+public enum BakeChoice
+{
+    /// <summary>The guided bake: the steps, as ever.</summary>
+    Guided,
+
+    /// <summary>The one-click bake of a mastered procedure.</summary>
+    OneClick,
+}
+
+/// <summary>
+/// The one-click bake of a mastered procedure, offered beside the guided bake (design 10.15): the two choices stand in the order given by <paramref name="GuidedFirst"/>, and one is selected.
+/// </summary>
+/// <param name="ProcedureId">The mastered procedure.</param>
+/// <param name="Label">What it makes, with its article (<c>el pan</c>).</param>
+/// <param name="GuidedFirst">Whether the guided bake comes first (the goal row is due again); otherwise the one-click bake does.</param>
+/// <param name="OneClickSelected">Whether the one-click bake is selected: by default when the guided bake is not first, else only once picked.</param>
+public sealed record BakeOffer(string ProcedureId, string Label, bool GuidedFirst, bool OneClickSelected);
 
 /// <summary>
 /// What the station overlay shows, as plain values (W07; the layer draws it, the layout places it, a test reads it): the instruction strip, the fixtures on the left, the
@@ -103,6 +125,7 @@ public enum StationNotice
 /// <param name="Made">How many of the item the finished bake gave (0 before).</param>
 /// <param name="Missing">The nouns of the ingredients gone at the end of the bake.</param>
 /// <param name="MadeLabel">The label of the item the finished bake gave (<c>el pan</c>), or <see langword="null"/> before.</param>
+/// <param name="Offer">The one-click bake's offer, or <see langword="null"/> before the procedure is mastered.</param>
 public sealed record StationView(
     string StationId,
     string Title,
@@ -121,4 +144,5 @@ public sealed record StationView(
     StationNotice Notice,
     int Made,
     IReadOnlyList<string> Missing,
-    string? MadeLabel = null);
+    string? MadeLabel = null,
+    BakeOffer? Offer = null);

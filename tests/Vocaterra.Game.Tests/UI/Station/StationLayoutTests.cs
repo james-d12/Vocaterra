@@ -50,10 +50,10 @@ public sealed class StationLayoutTests(ITestOutputHelper output)
         }
     }
 
-    private static StationLayout LayoutOf(int windowWidth, int windowHeight, int scale, int fixtures = 3, int targets = 3, int steps = 6, int verbs = 0)
+    private static StationLayout LayoutOf(int windowWidth, int windowHeight, int scale, int fixtures = 3, int targets = 3, int steps = 6, int verbs = 0, bool offer = false, bool guidedFirst = true)
     {
         var canvas = UiScale.Canvas(scale, windowWidth, windowHeight);
-        return new StationLayout(canvas.Width, canvas.Height, fixtures, targets, steps, verbs);
+        return new StationLayout(canvas.Width, canvas.Height, fixtures, targets, steps, verbs, offer, guidedFirst);
     }
 
     [Theory]
@@ -81,6 +81,24 @@ public sealed class StationLayoutTests(ITestOutputHelper output)
         {
             var layout = LayoutOf(windowWidth, windowHeight, scale, targets: targets);
             NoneOverlap($"{windowWidth}x{windowHeight}@{scale} with {targets} targets", Pieces(layout));
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(Cases))]
+    public void WithTheOneClickOfferShownEveryPieceIsInsideThePanelAndApartAtEveryScale(int windowWidth, int windowHeight, int scale)
+    {
+        foreach (var guidedFirst in new[] { true, false })
+        {
+            foreach (var targets in new[] { 1, 3, 4 })
+            {
+                var layout = LayoutOf(windowWidth, windowHeight, scale, targets: targets, offer: true, guidedFirst: guidedFirst);
+                var pieces = Pieces(layout).Append(("offer guided", layout.OfferGuided)).Append(("offer one-click", layout.OfferOneClick)).ToArray();
+                NoneOverlap($"{windowWidth}x{windowHeight}@{scale} offer with {targets} targets, guided first {guidedFirst}", pieces);
+                Assert.All(pieces, piece => Assert.True(Inside(piece.Item2, layout.Panel), $"{piece.Item1} {piece.Item2} is outside the panel {layout.Panel}"));
+                Assert.Equal(guidedFirst, layout.OfferGuided.X < layout.OfferOneClick.X);
+                Assert.True(layout.OfferGuided.Bottom <= layout.HeldCaption.Y && layout.OfferOneClick.Bottom <= layout.HeldCaption.Y, "the offer stands above the held row");
+            }
         }
     }
 
@@ -181,6 +199,17 @@ public sealed class StationLayoutTests(ITestOutputHelper output)
         Assert.Equal(new StationHit(StationRegion.PagePrevious, 0), At(layout.PagePrevious));
         Assert.Null(At(layout.PageNext, pages: 1)); // one page: no controls
         Assert.Null(layout.HitAt(2, 2, 9, 2)); // the corner of the canvas
+    }
+
+    [Fact]
+    public void TheOfferChoicesAreHitWhereTheyAreDrawn()
+    {
+        var layout = new StationLayout(1280, 720, 3, 2, 3, offerShown: true, guidedFirst: false);
+        var oneClick = layout.OfferOneClick;
+        var guided = layout.OfferGuided;
+        Assert.Equal(new StationHit(StationRegion.BakeOneClick, 0), layout.HitAt(oneClick.X + 2, oneClick.Y + 2, 2, 1));
+        Assert.Equal(new StationHit(StationRegion.BakeGuided, 0), layout.HitAt(guided.X + 2, guided.Y + 2, 2, 1));
+        Assert.Null(new StationLayout(1280, 720, 3, 2, 3).HitAt(oneClick.X + 2, oneClick.Y + 2, 2, 1)); // no offer, no hit
     }
 
     [Fact]

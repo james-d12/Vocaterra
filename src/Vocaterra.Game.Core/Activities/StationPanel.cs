@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Input;
+using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Screens;
 using Vocaterra.Game.Core.Session;
 
@@ -33,6 +34,12 @@ public enum StationRegion
 
     /// <summary>A verb of the open choice.</summary>
     Verb,
+
+    /// <summary>The guided bake's choice of the one-click offer (it is picked, nothing is made).</summary>
+    BakeGuided,
+
+    /// <summary>The one-click bake of the offer (made at once).</summary>
+    BakeOneClick,
 }
 
 /// <summary>A click's target on the overlay.</summary>
@@ -54,7 +61,7 @@ public enum StationTalk
 /// The station overlay (W07, design 10.8) over a procedure at a station: the keys are 1 to 9 and 0 to hold, Page Up and Page Down to page, Tab and Shift+Tab to move between targets,
 /// Enter to use the selection, H, R and S for help, repeat and slower, V or Space and W to talk to the teacher (a hook for W08: <see cref="OnTalk"/>), and Esc to leave with the bake
 /// saved. Every act goes to <see cref="GuideSession.ActInProcedure"/> with how the instruction was presented (decision 19): heard when its audio played, read when its Spanish was on
-/// screen. The panel is the pattern of <see cref="Items.Crafting.CraftingPanel"/>: the state is <see cref="StationScreen"/>, the look is the game's.
+/// screen. B makes a mastered recipe's one-click bake at once (design 10.15), and a pick of the offer's guided or one-click choice selects it. The panel is the pattern of <see cref="Items.Crafting.CraftingPanel"/>: the state is <see cref="StationScreen"/>, the look is the game's.
 /// </summary>
 public sealed class StationPanel : IScreen
 {
@@ -198,6 +205,10 @@ public sealed class StationPanel : IScreen
         {
             Replay(slow: true);
         }
+        else if (input.Pressed(GameKey.B))
+        {
+            BakeAtOnce();
+        }
         else if (input.Pressed(GameKey.V) || input.Pressed(GameKey.Space))
         {
             OnTalk?.Invoke(StationTalk.Speak);
@@ -222,17 +233,26 @@ public sealed class StationPanel : IScreen
         {
             case StationRegion.Held when hit.Index < view.Held.Count:
                 _screen.Held = view.Held[hit.Index].Noun;
+                _screen.Picked = BakeChoice.Guided;
                 break;
             case StationRegion.Hand:
                 _screen.Held = StationScreen.HandNoun;
+                _screen.Picked = BakeChoice.Guided;
                 break;
             case StationRegion.Target when hit.Index < view.Targets.Count:
                 _screen.Target = view.Targets[hit.Index].Noun;
+                _screen.Picked = BakeChoice.Guided;
                 if (_screen.Held is not null)
                 {
                     Use();
                 }
 
+                break;
+            case StationRegion.BakeOneClick:
+                BakeAtOnce();
+                break;
+            case StationRegion.BakeGuided:
+                _screen.Picked = BakeChoice.Guided;
                 break;
             case StationRegion.Repeat:
                 Replay(slow: false);
@@ -259,11 +279,19 @@ public sealed class StationPanel : IScreen
 
     /// <summary>Selects what is held by its noun (the scripted <c>--act</c> and tests), as a digit does.</summary>
     /// <param name="noun">The noun, or the hand's.</param>
-    public void Hold(string noun) => _screen.Held = noun;
+    public void Hold(string noun)
+    {
+        _screen.Held = noun;
+        _screen.Picked = BakeChoice.Guided;
+    }
 
     /// <summary>Selects the target by its noun.</summary>
     /// <param name="noun">The fixture's noun.</param>
-    public void Aim(string noun) => _screen.Target = noun;
+    public void Aim(string noun)
+    {
+        _screen.Target = noun;
+        _screen.Picked = BakeChoice.Guided;
+    }
 
     /// <summary>
     /// Uses the selection (Enter): with a pair of one verb the act is made; with a pair of several verbs the choice opens; with nothing selected, nothing happens. In the state
@@ -278,14 +306,27 @@ public sealed class StationPanel : IScreen
                 Apply(_session.CollectProcedure());
                 return;
             case ProcedureState.Done:
+                if (view.Offer is { OneClickSelected: true } && _screen.Picked == BakeChoice.OneClick)
+                {
+                    BakeAtOnce();
+                    return;
+                }
+
                 Again(view);
                 return;
             case ProcedureState.InRun:
+                if (view.Offer is { OneClickSelected: true })
+                {
+                    BakeAtOnce();
+                    return;
+                }
+
                 break;
             default:
                 return;
         }
 
+        _screen.Picked = BakeChoice.Guided;
         if (_screen.Held is not { } use || _screen.Target is not { } on)
         {
             return;
@@ -317,6 +358,7 @@ public sealed class StationPanel : IScreen
         var named = verb.Length > 0 ? verb : verbs.Count == 1 ? verbs[0] : string.Empty;
         var presented = (_screen.HeardRow ? InstructionPresentation.Heard : InstructionPresentation.None) | (view.Strip.ShowsText ? InstructionPresentation.Read : InstructionPresentation.None);
         _screen.Verbs = null;
+        _screen.Picked = BakeChoice.Guided;
         _screen.Held = use; // the act is made with these selected, as a click on them would (a wrong act keeps them; a scripted act shows them)
         _screen.Target = on;
         var result = _session.ActInProcedure(use, on, named, presented);
@@ -363,6 +405,7 @@ public sealed class StationPanel : IScreen
     // learner may still choose otherwise. A highlight with no held thing or no target (the view has none) selects nothing for that part.
     private void SelectHighlight(ProcedureView run)
     {
+        _screen.Picked = BakeChoice.Guided;
         if (run.HighlightUse is { } use)
         {
             _screen.Held = use;
@@ -396,6 +439,7 @@ public sealed class StationPanel : IScreen
 
     private void SelectDigit(int digit)
     {
+        _screen.Picked = BakeChoice.Guided;
         if (digit == 0)
         {
             _screen.Held = StationScreen.HandNoun;
@@ -426,6 +470,7 @@ public sealed class StationPanel : IScreen
 
         var at = Math.Max(0, view.Targets.ToList().FindIndex(static t => t.Selected));
         _screen.Target = view.Targets[((at + step) % view.Targets.Count + view.Targets.Count) % view.Targets.Count].Noun;
+        _screen.Picked = BakeChoice.Guided;
     }
 
     private void HandleVerbKeys(IInputFrame input, VerbChoice choice)
@@ -477,6 +522,37 @@ public sealed class StationPanel : IScreen
                 _ => result.Missing.Count > 0 ? StationNotice.Missing : StationNotice.Right,
             },
         };
+        Refresh();
+    }
+
+    // The one-click bake (design 10.15) through GuideSession.BakeMastered: all or nothing, logged as item_crafted. The run stays where it is; the guided bake stays on offer.
+    private void BakeAtOnce()
+    {
+        var view = View();
+        if (view.Offer is not { } offer || view.State == ProcedureState.ReadyToCollect)
+        {
+            return;
+        }
+
+        _screen.Picked = BakeChoice.OneClick;
+        _screen.Verbs = null;
+        switch (_session.BakeMastered(offer.ProcedureId))
+        {
+            case CraftResult.Done:
+                _screen.Made = _session.Data.Procedures.Find(offer.ProcedureId)?.Makes.Count ?? 0;
+                _screen.Missing = [];
+                _screen.Notice = StationNotice.Done;
+                break;
+            case CraftResult.InventoryFull:
+                _screen.Notice = StationNotice.BagFull;
+                break;
+            case CraftResult.MissingIngredients:
+                _screen.Notice = StationNotice.NotEnough;
+                break;
+            default:
+                break;
+        }
+
         Refresh();
     }
 

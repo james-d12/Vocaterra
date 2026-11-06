@@ -36,7 +36,7 @@ public sealed class StationLayer : IFrameLayer
         }
 
         var model = panel.View();
-        var layout = new StationLayout(view.ViewportWidth, view.ViewportHeight, model.Fixtures.Count, model.Targets.Count, model.Strip.Dots.Count, model.Verbs?.Verbs.Count ?? 0);
+        var layout = new StationLayout(view.ViewportWidth, view.ViewportHeight, model.Fixtures.Count, model.Targets.Count, model.Strip.Dots.Count, model.Verbs?.Verbs.Count ?? 0, model.Offer is not null, model.Offer?.GuidedFirst ?? true);
         var pixel = view.Pixel;
         var font = view.Fonts.Get(FontProvider.NativeSize);
         var ui = view.Session.Locale;
@@ -59,6 +59,7 @@ public sealed class StationLayer : IFrameLayer
         }
 
         DrawNotice(spriteBatch, view, font, model, layout);
+        DrawOffer(spriteBatch, view, font, model, layout);
         DrawHeldRow(spriteBatch, view, font, model, layout);
         DrawSelection(spriteBatch, view, font, model, layout);
         var hints = TextWrap.Wrap(ui.Ui("stationHints"), layout.Footer.Width, text => DrawHelpers.Width(font, text));
@@ -162,6 +163,27 @@ public sealed class StationLayer : IFrameLayer
         DrawHelpers.Text(spriteBatch, font, glyph, new Vector2(box.X + ((box.Width - (int)DrawHelpers.Width(font, glyph)) / 2), box.Y + 1), enabled ? Known : Muted);
     }
 
+    // The one-click offer (design 10.15): the guided bake and the one-click bake, in the order the view gives, the selected one lit.
+    private static void DrawOffer(SpriteBatch spriteBatch, FrameView view, SpriteFontBase font, StationView model, StationLayout layout)
+    {
+        if (model.Offer is not { } offer)
+        {
+            return;
+        }
+
+        var ui = view.Session.Locale;
+        DrawChoice(spriteBatch, view, font, layout.OfferGuided, ui.Ui("stationGuided"), !offer.OneClickSelected);
+        DrawChoice(spriteBatch, view, font, layout.OfferOneClick, ui.Ui("stationBakeAtOnce", ("item", offer.Label)), offer.OneClickSelected);
+    }
+
+    private static void DrawChoice(SpriteBatch spriteBatch, FrameView view, SpriteFontBase font, PixelBox box, string text, bool chosen)
+    {
+        var hovered = view.Mouse is { } mouse && box.Contains(mouse.X, mouse.Y);
+        spriteBatch.Draw(view.Pixel, Rect(box), chosen ? CellSelected : Cell);
+        DrawHelpers.Border(spriteBatch, view.Pixel, Rect(box), chosen || hovered ? 2 : 1, chosen ? Color.White : new Color(70, 70, 90));
+        DrawHelpers.Text(spriteBatch, font, DrawHelpers.Fit(font, text, box.Width - 12), new Vector2(box.X + 6, box.Y + 4), Known);
+    }
+
     private static void DrawSelection(SpriteBatch spriteBatch, FrameView view, SpriteFontBase font, StationView model, StationLayout layout)
     {
         var ui = view.Session.Locale;
@@ -183,6 +205,7 @@ public sealed class StationLayer : IFrameLayer
             StationNotice.Done => (ui.Ui("stationDone", ("count", model.Made.ToString(CultureInfo.InvariantCulture)), ("item", model.MadeLabel ?? "-")) + "  " + ui.Ui("stationAgain"), Right),
             StationNotice.BagFull => (ui.Ui("stationBagFull"), Wrong),
             StationNotice.Missing => (ui.Ui("stationMissing", ("nouns", string.Join(", ", model.Missing))), Wrong),
+            StationNotice.NotEnough => (ui.Ui("stationNotEnough"), Wrong),
             _ => null,
         };
         if (line is { } shown)

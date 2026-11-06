@@ -52,6 +52,9 @@ public sealed class StationScreen
     /// <summary>The nouns of the ingredients gone at the end of the bake.</summary>
     public IReadOnlyList<string> Missing { get; internal set; } = [];
 
+    /// <summary>The way to bake the learner picked (a pick of a held thing or a target is the guided one), or <see langword="null"/> for the default.</summary>
+    internal BakeChoice? Picked { get; set; }
+
     /// <summary>The row whose audio was last started (a row is spoken once when it appears), or <see langword="null"/>.</summary>
     internal string? SpokenRow { get; set; }
 
@@ -98,6 +101,7 @@ public sealed class StationScreen
         Missing = [];
         SpokenRow = null;
         HeardRow = false;
+        Picked = null;
     }
 
     /// <summary>The nouns of a view not yet counted as read in this bake; they are counted by this call.</summary>
@@ -217,7 +221,7 @@ public sealed class StationScreen
         var station = Station(session);
         if (procedure is null || station is null)
         {
-            return new StationView(StationId, TitleOf(session, StationId), ProcedureId, ProcedureState.NotStarted, InstructionStrip.Empty, [], [], [], Cell(session, StationCellKind.Hand, HandNoun, HandIcon, null, 0, false, false, 0), 0, 1, null, null, null, StationNotice.None, 0, []);
+            return new StationView(StationId, TitleOf(session, StationId), ProcedureId, ProcedureState.NotStarted, InstructionStrip.Empty, [], [], [], Cell(session, StationCellKind.Hand, HandNoun, HandIcon, null, 0, false, false, 0), 0, 1, null, null, null, StationNotice.None, 0, [], null, null);
         }
 
         var run = session.Procedures.View();
@@ -261,7 +265,23 @@ public sealed class StationScreen
             Notice,
             Made,
             Missing,
-            Made > 0 && ItemDefinition.All.FirstOrDefault(d => string.Equals(d.Name, procedure.Makes.Item, StringComparison.Ordinal)) is { } made ? session.Nouns.ForItem(made.Id)?.WithDefinite : null);
+            Made > 0 && ItemDefinition.All.FirstOrDefault(d => string.Equals(d.Name, procedure.Makes.Item, StringComparison.Ordinal)) is { } made ? session.Nouns.ForItem(made.Id)?.WithDefinite : null,
+            OfferOf(session, procedure, run.State));
+    }
+
+    // The one-click bake of a mastered procedure (design 10.15): offered while the run is not waiting to be collected; the guided bake comes first, and is selected by default,
+    // when the goal row is due again.
+    private BakeOffer? OfferOf(GuideSession session, ProcedureDefinition procedure, ProcedureState state)
+    {
+        if (state == ProcedureState.ReadyToCollect || !session.Procedures.Progress.IsMastered(procedure.Id) || ProcedureRunner.Items(procedure) is null)
+        {
+            return null;
+        }
+
+        var made = ItemDefinition.All.FirstOrDefault(d => string.Equals(d.Name, procedure.Makes.Item, StringComparison.Ordinal));
+        var label = made is null ? procedure.Makes.Item : session.Nouns.ForItem(made.Id)?.WithDefinite ?? procedure.Makes.Item;
+        var guidedFirst = session.PhraseProgress.IsScaffoldDue(procedure.Goal.Row, session.StoredTime.UnixSeconds, session.Credit);
+        return new BakeOffer(procedure.Id, label, guidedFirst, Picked == BakeChoice.OneClick || (Picked is null && !guidedFirst));
     }
 
     // The fixtures the steps act on; a fixture no step names at all is a target too (it may be shown and chosen, and a wrong act on it is a wrong act).

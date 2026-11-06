@@ -431,6 +431,20 @@ public sealed class PhraseProgress
     }
 
     /// <summary>
+    /// Whether a row's review is due at <paramref name="now"/> by <see cref="DuePhrases"/>'s rule for the row (a credited use, a level above none, a scaffold, and its gap
+    /// passed), without its exclusion of the instruction rows: a procedure's goal row is an instruction row, and the station asks for it (W07b, design 10.15).
+    /// </summary>
+    /// <param name="id">The row.</param>
+    /// <param name="now">The stored time in Unix seconds.</param>
+    /// <param name="rules">The credit rules (the gaps).</param>
+    public bool IsScaffoldDue(string id, long now, CreditRules rules)
+    {
+        ArgumentNullException.ThrowIfNull(rules);
+        var record = RecordOf(id);
+        return record.CreditedUses > 0 && record.Level != SupportLevel.None && HasScaffold(id) && SecondsUntilCredit(record, now, Session, rules) <= 0;
+    }
+
+    /// <summary>
     /// The phrases due for the guide's review at <paramref name="now"/>: a phrase with a scaffold to fade (<see cref="HasScaffold"/>), a
     /// credited use, a level above <see cref="SupportLevel.None"/> (the help is not yet gone) and its gap passed or the play session changed. The most
     /// overdue comes first, then the sheet's order.
