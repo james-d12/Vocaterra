@@ -404,6 +404,22 @@ public sealed class ScenarioScript
                 _hooks.Drink?.Invoke();
                 _index++;
                 break;
+            case ScriptStepKind.Station:
+                if (_hooks.Station?.Invoke(step.Value) != true)
+                {
+                    _log($"station {step.Value}: there is no such station with a procedure to open");
+                }
+
+                _index++;
+                break;
+            case ScriptStepKind.Act:
+                _hooks.Act?.Invoke(step.Value);
+                _index++;
+                break;
+            case ScriptStepKind.ProcHelp:
+                _hooks.ProcHelp?.Invoke();
+                _index++;
+                break;
             case ScriptStepKind.SetNeed:
                 _hooks.SetNeed?.Invoke(step.Value);
                 _index++;

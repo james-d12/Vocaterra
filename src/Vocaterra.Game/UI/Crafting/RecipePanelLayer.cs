@@ -35,7 +35,7 @@ public sealed class RecipePanelLayer : IFrameLayer
     /// <inheritdoc />
     public void Draw(SpriteBatch spriteBatch, FrameView view)
     {
-        if (view.Voxel is null || view.Dialogue.IsOpen || view.Book.IsOpen || view.Inventory.IsOpen || view.Crafting.IsOpen || view.ControlsOpen || view.SettingsOpen || view.Check is not null)
+        if (view.Voxel is null || view.Dialogue.IsOpen || view.Book.IsOpen || view.Inventory.IsOpen || view.Crafting.IsOpen || view.Station is { IsOpen: true } || view.ControlsOpen || view.SettingsOpen || view.Check is not null)
         {
             return;
         }

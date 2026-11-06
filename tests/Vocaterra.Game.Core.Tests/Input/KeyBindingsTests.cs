@@ -84,6 +84,28 @@ public sealed class KeyBindingsTests
         Assert.Equal("Left Shift", TestGame.Data.Locale.Text("key.LeftShift"));
     }
 
+    [Theory]
+    [InlineData(true, true, true, "TalkTo")]
+    [InlineData(false, true, true, "OpenStation")]
+    [InlineData(false, true, false, "OpenStation")]
+    [InlineData(false, false, true, "OpenCrafting")]
+    [InlineData(false, false, false, "OpenInventory")]
+    public void ETalksToTheNpcThenOpensAStationThenTheWorkbenchThenTheInventory(bool aimedAtNpc, bool atStation, bool atWorkbench, string expected)
+    {
+        var (commands, ran) = Commands();
+        commands = commands with { OpenStation = new DelegateCommand(() => ran.Add("OpenStation")) }; // W07: the entry priority of design 10.8
+        Assert.True(KeyBindings.World(commands, () => aimedAtNpc, static () => false, () => atWorkbench, atStation: () => atStation).RunFirst(Pressed(GameKey.E)));
+        Assert.Equal([expected], ran);
+    }
+
+    [Fact]
+    public void AGameWithNoStationCommandKeepsTheOldPriority()
+    {
+        var (commands, ran) = Commands();
+        Assert.True(KeyBindings.World(commands, static () => false, static () => false, static () => true, atStation: static () => true).RunFirst(Pressed(GameKey.E)));
+        Assert.Equal(["OpenCrafting"], ran);
+    }
+
     [Fact]
     public void EnterOnTheClosingCardSleepsBeforeItShowsTheNextTipAndNothingSleepsWithoutTheOffer()
     {

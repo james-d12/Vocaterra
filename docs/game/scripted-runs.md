@@ -101,6 +101,21 @@ There is no r13: `--report-open` leaves the report panel open, and a paused worl
 - **Nothing else moved:** the ticks, the world digests, the scene (`1958 trees`, `9b952982f5e1bc44`), every other picture and every other line of the logs.
 The runs that moved only in `day` and the speech count are order-only or exact as before.
 
+## The station steps (W07)
+
+Three script steps drive the station overlay (`docs/game/activities-plan.md` 4.3, design 10.8). They need a bundle with a station and a procedure; `content/game-v1` has none until W10, so
+no run of the table uses them and no baseline moves. They are written after `--screenshot` like every step, and the overlay stays open for what follows, the `--shot` and the final
+screenshot included.
+
+| Step | What it does | Prints |
+|---|---|---|
+| `--station <id>` | Opens the station (`horno`) and starts the first procedure done there (or goes on with the run in progress), as E at the prop does with the crosshair on it; the learner is not with the teacher (W08). Nothing opens when the station is unknown or has no procedure: a line says so. | `station horno: InRun, notice None, step 0/3, rung 1, row pon-la-harina, text shown, english shown, highlight none` |
+| `--act <use>,<on>[,<verb>]` | An act, as Enter does with the thing held and the target chosen: the noun held (`mano` is the empty hand), the fixture and, for a pair of several verbs (`sacar`, `abrir`), the verb; without a verb the pair's only verb is taken. A right act, a slip and its response (the highlight, the row repeated, the row played slowly) are the panel's own. | the same line, with `notice Right`, `WrongThing`, `WrongVerb`, `OutOfOrder`, `Done` or `BagFull` |
+| `--proc-help` | Help, as H does: the English and the highlight at once, and the row steps up a rung. | the same line |
+
+With `--mute` (or no sound device) the Spanish card shows at the audio-only rung and the act is recorded as read, not heard (design decision 19; `text shown` in the line). The line is a
+check on the run's output; the pictures are the check on the drawing (look at the PNG: the first rung has the English, the highlight appears only after a slip or a help).
+
 ## Comparing two captures
 
 Mask before comparing: every number followed by `ms` (the draw and frame timings, the turns' latency), the wall-clock times and dates, and

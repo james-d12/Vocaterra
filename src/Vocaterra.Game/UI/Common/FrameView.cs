@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Vocaterra.Game.Core.Activities;
 using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Items.Crafting;
@@ -67,6 +68,9 @@ public sealed class FrameView
 
     /// <summary>The crafting panel's state (C, or E at the workbench).</summary>
     public required CraftingScreen Crafting { get; init; }
+
+    /// <summary>The station overlay (W07, E at the oven), or <see langword="null"/> when this view has none.</summary>
+    public StationPanel? Station { get; init; }
 
     /// <summary>The first-person camera of this frame.</summary>
     public required FirstPersonCamera Camera3D { get; init; }

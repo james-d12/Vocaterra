@@ -2,7 +2,7 @@ namespace Vocaterra.Game.Core.Input;
 
 /// <summary>
 /// The game's keys as commands (the command pattern): the global keys, each one on its own, and the world's keys, of which the first that
-/// applies runs (a key can mean several things: E talks to the NPC under the crosshair, else opens the workbench's panel there, else sleeps at the player's own lit fire, else drinks by hand at water,
+/// applies runs (a key can mean several things: E talks to the NPC under the crosshair, else opens a station's overlay at its prop (the oven, W07), else opens the workbench's panel there, else sleeps at the player's own lit fire, else drinks by hand at water,
 /// else opens the inventory).
 /// </summary>
 public sealed class KeyBindings
@@ -35,7 +35,8 @@ public sealed class KeyBindings
     /// <param name="fireOffersSleep">Whether the player's own lit fire offers the sleep (V12c): E sleeps, after an NPC and the workbench; none when <see langword="null"/>.</param>
     /// <param name="aimedAtWater">Whether the crosshair is on water within reach (N02): E drinks by hand, before the inventory; none when <see langword="null"/>.</param>
     /// <param name="aimedAtChest">Whether the crosshair is on the belongings chest within reach (N04): E takes back what the bag can hold, before the inventory; none when <see langword="null"/>.</param>
-    public static KeyBindings World(GameCommands commands, Func<bool> aimedAtNpc, Func<bool> tipShown, Func<bool> atWorkbench, Func<bool>? cardOffersSleep = null, Func<bool>? fireOffersSleep = null, Func<bool>? aimedAtWater = null, Func<bool>? aimedAtChest = null)
+    /// <param name="atStation">Whether the crosshair is on a cell of a station's prop within reach (W07, the oven): E opens the station, after an NPC and before the workbench; none when <see langword="null"/>.</param>
+    public static KeyBindings World(GameCommands commands, Func<bool> aimedAtNpc, Func<bool> tipShown, Func<bool> atWorkbench, Func<bool>? cardOffersSleep = null, Func<bool>? fireOffersSleep = null, Func<bool>? aimedAtWater = null, Func<bool>? aimedAtChest = null, Func<bool>? atStation = null)
     {
         ArgumentNullException.ThrowIfNull(commands);
         var bindings = new List<KeyBinding>
@@ -60,8 +61,13 @@ public sealed class KeyBindings
             new(InputKeys.Of("nextTip"), commands.NextTip, tipShown),
             new(InputKeys.Of("book"), commands.OpenBook),
             new(InputKeys.Of("crafting"), commands.OpenCrafting),
-            new(InputKeys.Of("talk"), commands.OpenCrafting, atWorkbench), // the same key as talking: at the workbench it opens the recipes
         ]);
+        if (commands.OpenStation is { } station && atStation is not null)
+        {
+            bindings.Add(new(InputKeys.Of("talk"), station, atStation)); // W07: at a station's prop it opens the station, after an NPC and before the workbench
+        }
+
+        bindings.Add(new(InputKeys.Of("talk"), commands.OpenCrafting, atWorkbench)); // the same key as talking: at the workbench it opens the recipes
         if (commands.Sleep is { } sleepAtFire && fireOffersSleep is not null)
         {
             bindings.Add(new(InputKeys.Of("talk"), sleepAtFire, fireOffersSleep)); // at the player's own lit fire it sleeps (V12c)

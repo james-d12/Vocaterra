@@ -115,6 +115,11 @@ Input/            the keys without the engine (GameKey, IInputFrame, D-p2-1a), t
                   (PushToTalkSpeechCapture, ListenSession, ListenTarget), BookItemUse
 Items/            Inventory, ItemDefinition, ScriptItemNames, InventoryScreen and its panel (InventoryPanel)
   Crafting/       Recipe, RecipeBook and their records, CraftingRules, CraftingScreen, CraftingRow, RecipePanelModel, CraftingPanel
+Activities/       the procedures at a station (W05 to W07): StationBook, ProcedureBook, ActionTable, ProcedureRunner (the run), and the station overlay: StationScreen (state and
+                  the view it makes), StationView and StationCell (plain values: the strip, the fixtures, the targets, the page of what can be held, the selection, the verb
+                  choice), InstructionStrip (the strip as a model of its own, built from a ProcedureView; W30's recipe-book page shows the same one), StationPanel (the IScreen: the
+                  keys of design 10.8, every act to GuideSession.ActInProcedure with how the row was presented, the audio through IInstructionAudio, the OnTalk hook of W08),
+                  StationProps (E at a cell of a station's prop: Scene.PropCells, the cells each named stamp placed)
 Dialogue/         DialogueModel and its records, the speech buttons, TextWrap, the turn flow (TurnPump, SpeechActionRunner, SupportFrontend,
                   TurnPresenter, GuideGreeting) and DialogueScreen
                   (U02: the panel's rows, `DialogueModel.PanelRows`: the current exchange from the learner's last line, the one `CoachingLine`
@@ -173,6 +178,7 @@ UI/
   Book/           BookLayer, ConjugationLayout
   Checks/         CheckLayer, CheckCardLayout, MicCheckLayer, MicCheckLayout
   Crafting/       CraftingLayer, CraftingLayout, RecipePanelLayer
+  Station/        StationLayer, StationLayout, InstructionStripLayer, InstructionStripLayout (the strip's boxes and text lines, for a box the caller gives)
   Inventory/      InventoryLayer, InventoryLayout
   Lesson/         LessonLayer, LessonStripLayout
   Report/         ReportLayer, ReportLayout, ReportScreen (it reads the frame's pixels)

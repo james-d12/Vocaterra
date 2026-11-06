@@ -99,4 +99,12 @@ public enum ScriptStepKind
 
     /// <summary>Plants a berry at the camp on the ground block whose cell is in <see cref="ScriptStep.Value"/> (<c>--plant 10,4,12</c>, N08): the held berry goes on the grass or dirt, as a right click on it does.</summary>
     Plant,
+    /// <summary>Opens the station named in <see cref="ScriptStep.Value"/> and starts its first procedure (<c>--station horno</c>, W07): the overlay stays open for what follows, as the panel's E does at the oven. A line says when the station is unknown.</summary>
+    Station,
+
+    /// <summary>An act at the open station (<c>--act harina,bol[,poner]</c>, W07): <see cref="ScriptStep.Value"/> is the noun held, the target and, when the pair has several verbs, the verb.</summary>
+    Act,
+
+    /// <summary>Help at the open station (<c>--proc-help</c>, W07): the English and the highlight, and the row steps up a rung, as H does.</summary>
+    ProcHelp,
 }

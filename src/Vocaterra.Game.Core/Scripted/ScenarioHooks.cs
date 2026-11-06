@@ -18,6 +18,9 @@ namespace Vocaterra.Game.Core.Scripted;
 /// <param name="Sleep">Closes the panels and sleeps at the player's own fire, as the player's E there does (V12c, <c>--sleep</c>).</param>
 /// <param name="Eat">Eats or drinks the item (given first if the bag has none), as a right click with it does (N02, <c>--eat</c>).</param>
 /// <param name="Drink">Drinks by hand at the water the crosshair is on (N02, <c>--drink</c>).</param>
+/// <param name="Station">Opens the station by its id and starts its procedure; returns whether it opened (W07, <c>--station</c>).</param>
+/// <param name="Act">An act at the open station, <c>use,on[,verb]</c> (W07, <c>--act</c>).</param>
+/// <param name="ProcHelp">Help at the open station (W07, <c>--proc-help</c>).</param>
 public sealed record ScenarioHooks(
     Action<string> OpenTalk,
     Action CloseTalk,
@@ -34,4 +37,7 @@ public sealed record ScenarioHooks(
     Action? TakeBelongings = null,
     Action<string>? SetNeed = null,
     Action<ItemId>? Give = null,
-    Action<BlockPos>? Plant = null);
+    Action<BlockPos>? Plant = null,
+    Func<string, bool>? Station = null,
+    Action<string>? Act = null,
+    Action? ProcHelp = null);

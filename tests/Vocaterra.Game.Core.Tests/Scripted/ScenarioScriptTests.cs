@@ -25,7 +25,7 @@ public sealed class ScenarioScriptTests
         private readonly List<VoxelCommand> _commands = [];
         private readonly TurnPump _pump;
 
-        public Harness(IReadOnlyList<ScriptStep> steps)
+        public Harness(IReadOnlyList<ScriptStep> steps, Func<ScenarioHooks, ScenarioHooks>? extend = null)
         {
             Session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns, CreditRules.FullTyped);
             Session.StartWorker(loadSpeech: false).WaitUntilReady(30000);
@@ -34,6 +34,7 @@ public sealed class ScenarioScriptTests
             Dialogue = new DialogueModel(new InputFocus(), Session.OpeningLine, Session.Data);
             _pump = new TurnPump(Session, Dialogue, () => Session.AimedCell);
             var hooks = new ScenarioHooks(OpenTalk, CloseTalk, path => Shots.Add($"{path}@{Session.Simulation.Tick}"), () => false);
+            hooks = extend?.Invoke(hooks) ?? hooks;
             Script = new ScenarioScript(Session, Look, Dialogue, steps, name => name == "antorcha" ? ItemId.Torch : name == "madera" ? ItemId.Wood : null, hooks, Log.Add);
         }
 
@@ -218,6 +219,28 @@ public sealed class ScenarioScriptTests
         Assert.Contains(run.Log, static l => l.StartsWith("walk-to 176,148: arrived", StringComparison.Ordinal));
         Assert.True(run.Log.Count(static l => l.StartsWith("walk-to ", StringComparison.Ordinal)) >= 2, "the walk to the guide came after the walk to 176,148");
         Assert.Equal("greet", run.Dialogue.LastTurn!.Intent);
+    }
+
+    [Fact]
+    public void TheStationStepsOpenTheStationActAndAskForHelpInOrder()
+    {
+        var calls = new List<string>();
+        using var run = new Harness(
+            [new ScriptStep(ScriptStepKind.Station, Value: "horno"), new ScriptStep(ScriptStepKind.Act, Value: "harina,bol,poner"), new ScriptStep(ScriptStepKind.ProcHelp), new ScriptStep(ScriptStepKind.Station, Value: "nada")],
+            hooks => hooks with
+            {
+                Station = id =>
+                {
+                    calls.Add("station " + id);
+                    return id == "horno";
+                },
+                Act = value => calls.Add("act " + value),
+                ProcHelp = () => calls.Add("help"),
+            });
+        run.Go();
+        Assert.Equal(["station horno", "act harina,bol,poner", "help", "station nada"], calls);
+        Assert.Contains("station nada: there is no such station with a procedure to open", run.Log);
+        Assert.DoesNotContain(run.Log, static l => l.StartsWith("station horno", StringComparison.Ordinal));
     }
 
     [Fact]
