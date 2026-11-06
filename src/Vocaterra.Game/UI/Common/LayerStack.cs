@@ -8,6 +8,7 @@ using Vocaterra.Game.UI.Inventory;
 using Vocaterra.Game.UI.Lesson;
 using Vocaterra.Game.UI.Overlays;
 using Vocaterra.Game.UI.Report;
+using Vocaterra.Game.UI.Station;
 
 namespace Vocaterra.Game.UI.Common;
 
@@ -45,6 +46,7 @@ public static class LayerStack
             new BookLayer(),
             new InventoryLayer(),
             new CraftingLayer(),
+            new StationLayer(),
             new ControlsLayer(),
             new SettingsLayer(),
             new CheckLayer(),

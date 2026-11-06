@@ -317,8 +317,12 @@ public sealed class StationPanel : IScreen
         var named = verb.Length > 0 ? verb : verbs.Count == 1 ? verbs[0] : string.Empty;
         var presented = (_screen.HeardRow ? InstructionPresentation.Heard : InstructionPresentation.None) | (view.Strip.ShowsText ? InstructionPresentation.Read : InstructionPresentation.None);
         _screen.Verbs = null;
-        _screen.Held = null;
         var result = _session.ActInProcedure(use, on, named, presented);
+        if (result.Outcome == ActOutcome.Right)
+        {
+            _screen.Held = null; // a right act is done with; a wrong one keeps the selection, to try another target or verb
+        }
+
         Apply(result);
         if (result.Outcome != ActOutcome.Right && result.Outcome != ActOutcome.NotRunning)
         {

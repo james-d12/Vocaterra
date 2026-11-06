@@ -259,7 +259,8 @@ public sealed class StationScreen
             Verbs,
             Notice,
             Made,
-            Missing);
+            Missing,
+            Made > 0 && ItemDefinition.All.FirstOrDefault(d => string.Equals(d.Name, procedure.Makes.Item, StringComparison.Ordinal)) is { } made ? session.Nouns.ForItem(made.Id)?.WithDefinite : null);
     }
 
     // The fixtures the steps act on; a fixture no step names at all is a target too (it may be shown and chosen, and a wrong act on it is a wrong act).

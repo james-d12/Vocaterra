@@ -101,6 +101,7 @@ public enum StationNotice
 /// <param name="Notice">What the last act was.</param>
 /// <param name="Made">How many of the item the finished bake gave (0 before).</param>
 /// <param name="Missing">The nouns of the ingredients gone at the end of the bake.</param>
+/// <param name="MadeLabel">The label of the item the finished bake gave (<c>el pan</c>), or <see langword="null"/> before.</param>
 public sealed record StationView(
     string StationId,
     string ProcedureId,
@@ -117,4 +118,5 @@ public sealed record StationView(
     VerbChoice? Verbs,
     StationNotice Notice,
     int Made,
-    IReadOnlyList<string> Missing);
+    IReadOnlyList<string> Missing,
+    string? MadeLabel = null);

@@ -82,6 +82,9 @@ public sealed record LaunchOptions
         + "  --need <need> <n>       a script step: set a need where the script stands (a test aid, N04; --set-need sets at launch)\n"
         + "  --take-belongings       take back what a death left in the chest the crosshair is on, within reach, as E does (N04)\n"
         + "  --plant x,y,z           plant the held berry on the grass or dirt block at that cell as a right click on it does (N08; a berry bush at the camp, within 8 blocks of its fire)\n"
+        + "  --station <id>          open the station (horno) and start its first procedure, as E at its prop does (W07); the overlay stays open for the steps after it and the screenshot\n"
+        + "  --act <use>,<on>[,<verb>] an act at the open station: the noun held, the target and, for a pair of several verbs, the verb (harina,bol  mano,horno,sacar; W07)\n"
+        + "  --proc-help             help at the open station, as H does: the English, the highlight, the row up a rung (W07)\n"
         + "  --drink                 drink by hand at the water the crosshair is on, within reach, as E does (N02); walk to the bank, --look at the water and --wait 1 first\n"
         + "  --set-need <need> <n>   set a need at launch, 0 to 100 (hunger, thirst, sleep, health; stamina up to its maximum); repeatable (a test aid, N01)\n"
         + "  --beacon <point>        stand the beacon column on a named point of the scene (camp.guide, camp.player, firering, workbench, stall, signpost, village, house1, bridge, river, lake,\n"
@@ -408,7 +411,7 @@ public sealed record LaunchOptions
             }
 
             if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--settings" or "--no-speech" or "--mute" or "--no-sounds" or "--voxel" or "--greyscale" or "--strict-save" or "--leave" or "--expand" or "--mic-check" or "--no-mic-check"
-                    or "--playtest" or "--dev" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep" or "--drink" or "--take-belongings" or "--relaxed-needs")
+                    or "--playtest" or "--dev" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep" or "--drink" or "--take-belongings" or "--relaxed-needs" or "--proc-help")
             {
                 switch (arg)
                 {
@@ -420,6 +423,9 @@ public sealed record LaunchOptions
                         break;
                     case "--sleep":
                         script.Add(new ScriptStep(ScriptStepKind.Sleep));
+                        break;
+                    case "--proc-help":
+                        script.Add(new ScriptStep(ScriptStepKind.ProcHelp)); // W07: H at the open station
                         break;
                     case "--drink":
                         script.Add(new ScriptStep(ScriptStepKind.Drink));
@@ -547,7 +553,7 @@ public sealed record LaunchOptions
                 or "--place" or "--select" or "--craft" or "--eat" or "--give" or "--plant" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
                 or "--check" or "--pick" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--sound-log"
-                or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--needs-rate"))
+                or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--needs-rate" or "--station" or "--act"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -1063,6 +1069,24 @@ public sealed record LaunchOptions
 
                     script.Add(new ScriptStep(ScriptStepKind.Give, Value: value.Trim()));
                     break;
+                case "--station":
+                    if (value.Trim().Length == 0)
+                    {
+                        error = "--station needs a station id, like horno.";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(ScriptStepKind.Station, Value: value.Trim()));
+                    break;
+                case "--act":
+                    if (value.Split(',', StringSplitOptions.TrimEntries) is not { Length: 2 or 3 } actParts || actParts.Any(static p => p.Length == 0))
+                    {
+                        error = "--act needs the noun held, the target and, for a pair of several verbs, the verb: harina,bol or mano,horno,sacar.";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(ScriptStepKind.Act, Value: string.Join(',', actParts)));
+                    break;
                 case "--craft":
                     if (value.Trim().Length == 0)
                     {
@@ -1081,7 +1105,7 @@ public sealed record LaunchOptions
 
         if (screenshot is null && (framesGiven || script.Count > 0 || beacon is not null || journal || inventory || crafting))
         {
-            error = "--frames, --look, --walk-to, --teleport, --interact, --place, --select, --craft, --eat, --drink, --take-belongings, --need, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --book-practise, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --sleep, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
+            error = "--frames, --look, --walk-to, --teleport, --interact, --place, --select, --craft, --station, --act, --proc-help, --eat, --drink, --take-belongings, --need, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --book-practise, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --sleep, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
             return false;
         }
 
