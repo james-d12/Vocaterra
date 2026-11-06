@@ -167,9 +167,9 @@ Each joins `WorldEvents.All`, so tips, lessons and objectives may wait for it, a
 | W03 | Fail-forward as data: `patience` in the NPC file; the stall's rule moved there | | S/M | Haiku | |
 | W04 | Price lists: `sell` and `buy` by the item the learner names; `<npc>.dont_sell` | | M | Haiku | |
 | **Stage 2: procedures, and bread with Luz** | | | | | |
-| W05 | Procedures, stations and actions as data; the `does` rows of the phrase sheet; the validator's rules | needs playtest | S/M | Haiku | |
-| W06 | The procedure runner: the ladder up the recipe's tree, credits, help, rewards, mastery, events; `systems.procedures` in save version 6 | W05, N01 | M/L | Sonnet | |
-| W07 | The station view: model, panel, layer, layout, fixture icons, scripted steps | W06 | M | Sonnet | |
+| W05 | Procedures, stations and actions as data; the `does` rows of the phrase sheet; the validator's rules | needs playtest (lifted for W05 to W07: D-game-23, 2026-11-06) | S/M | Haiku | authorised, on `feature/bread-pilot` |
+| W06 | The procedure runner: the ladder up the recipe's tree, credits, help, rewards, mastery, events; `systems.procedures` in save version 6 | W05, N01 | M/L | Sonnet | authorised, on `feature/bread-pilot` |
+| W07 | The station view: model, panel, layer, layout, fixture icons, scripted steps | W06 | M | Sonnet | authorised, on `feature/bread-pilot` |
 | W08 | The teacher in the loop: the `teaching` state and prompt, the three host kinds, the missing ingredient, learning a recipe by asking | W06, W07, V29, spoken-lines study | S/M | Haiku | |
 | W09 | Imperative production in lessons and the book | separate decision | S | Haiku | outside pilot |
 | W10 | Session 11 "En la panadería": the lesson, the `pan` procedure, flour, Luz's teaching, the rows and recordings, the checks, run `r27-bread` | W07, W08; W04 only for multi-item vendor pricing | M | content (decision l) | |

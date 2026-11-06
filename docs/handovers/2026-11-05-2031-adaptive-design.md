@@ -1,8 +1,8 @@
 # Handover: the adaptation, phases B to D, on feature/adaptive_design
 
 Created: 2026-11-05T20:31Z (UTC)
-Updated: 2026-11-06T07:22Z (UTC), T7 gated; nothing runs (the watch ended); waiting for the owner (kept current after every gate, launch and
-owner decision: the owner, 2026-11-05)
+Updated: 2026-11-06T09:28Z (UTC), the bread work W05 to W07 moved to its own branch and handover; this workstream waits for the
+needs check (kept current after every gate, launch and owner decision: the owner, 2026-11-05)
 Workstream: the owner's Adaptation Design Document, phases B to E: the needs (N), lessons as classes (L01), the presentation track (U),
 then the bread pilot (W)
 Branch: `feature/adaptive_design` (pushed; the owner merges it into `main` once, at the end); HEAD: see `git log -1` (the last record
@@ -94,5 +94,8 @@ track) is half done; phase E (the bread pilot, W05 to W10) waits for the owner's
 2. Gate from the adaptive worktree: `GATE_TARGET=feature/adaptive_design scripts/merge-gate.sh "<ID>:<branch>"` (in the background, with
    `VOCATERRA_MODELS_DIR` set), spot-check in the game, record the plan row and a findings entry, save the report, commit, push
    `feature/adaptive_design`, remove the worktree and the local branch, **update this handover**.
-3. Phases B to D are done (N08 and U02 merged 2026-11-06): give the owner the review notice (what to playtest, with N09's slider:
+3. **The bread work is its own workstream since 2026-11-06:** W05 to W07 on `feature/bread-pilot`, handover
+   [2026-11-06-0928-bread-pilot](2026-11-06-0928-bread-pilot.md) (D-game-23, owner's answers of 2026-11-06). This workstream takes the
+   needs check's findings and fixes; `feature/bread-pilot` merges them in and is gated back here at the end.
+4. Phases B to D are done (N08 and U02 merged 2026-11-06): give the owner the review notice (what to playtest, with N09's slider:
    the settings panel and `--needs-rate`), and wait for the needs check or the owner's word on W05 to W07.

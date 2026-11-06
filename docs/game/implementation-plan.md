@@ -388,7 +388,8 @@ there. Commit prefixes `N<nn>:`, `L01:`, `U<nn>:`, `W<nn>:`; one milestone branc
 | The needs check | The owner and two or three testers play days 1 to 3 with needs on (9.12) | N01 to N07 | | the owner | waits for the owner |
 
 After U02 come W05 to W08 and W10 (activities-plan section 5; design section 10); W11, the pilot, waits for testers and the owner's
-listening (decision 2).
+listening (decision 2). Since 2026-11-06 W05 to W07 are built on `feature/bread-pilot` while the owner runs the needs check
+(D-game-23, owner's answers of 2026-11-06).
 
 ## 5. Findings log
 

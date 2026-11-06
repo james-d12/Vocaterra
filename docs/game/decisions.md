@@ -418,6 +418,16 @@ relaxed needs option).
    states), the milestone takes the smallest choice that keeps the no-dead-end rule and saves every persistent state, and lists it in
    its findings entry for the owner.
 
+**Owner's answers, 2026-11-06** (after phases B to D merged): "I do the playtest, while a new agent works on a new branch (based off
+feature/adaptive_design), with the bread stuff".
+1. **The needs check no longer gates W05 to W07.** They are built on `feature/bread-pilot`, branched from `feature/adaptive_design`
+   at the commit that records this answer, by a fresh orchestrator session, while the owner plays days 1 to 3 on
+   `feature/adaptive_design`. W08 still waits for the spoken-lines study's six questions, and W10 for W08; W02 to W04 are not part of
+   this answer.
+2. **The branches** (orchestrator's default; the owner may change it): milestone branches are gated into `feature/bread-pilot`, which is
+   pushed. Fixes from the needs check land on `feature/adaptive_design`, and `feature/bread-pilot` merges them in when it needs them.
+   When the pilot's milestones are done, `feature/bread-pilot` is gated into `feature/adaptive_design`, so `main` still takes one merge.
+
 ## D-game-24: player needs (decided)
 
 **Owner, 2026-11-03,** on reading the adaptation design: "does this design doc talk about hunger, thirst, health and stamina? those basic

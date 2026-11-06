@@ -31,7 +31,8 @@ several of them were moved out of the orchestrator, the game plan and a research
 
 | Handover | Workstream | What it waits for |
 | --- | --- | --- |
-| [2026-11-05-2031-adaptive-design](2026-11-05-2031-adaptive-design.md) | The adaptation on `feature/adaptive_design`: the needs, lessons as classes, the presentation track, then the bread pilot | N09 and U02 (running), then the owner's needs playtest |
+| [2026-11-05-2031-adaptive-design](2026-11-05-2031-adaptive-design.md) | The adaptation on `feature/adaptive_design`: the needs, lessons as classes, the presentation track, then the bread pilot | The owner's needs check, and fixes from it |
+| [2026-11-06-0928-bread-pilot](2026-11-06-0928-bread-pilot.md) | The bread pilot's machinery, W05 to W07, on `feature/bread-pilot` | A fresh orchestrator session to start W05 |
 
 **Done**
 
