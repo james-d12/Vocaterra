@@ -1,8 +1,8 @@
 # Handover: the adaptation, phases B to D, on feature/adaptive_design
 
 Created: 2026-11-05T20:31Z (UTC)
-Updated: 2026-11-06T01:30Z (UTC), after N08's gate: phases B to D are done; a QA pass on the conversation surface runs (kept
-current after every gate, launch and owner decision: the owner, 2026-11-05)
+Updated: 2026-11-06T02:10Z (UTC), the QA pass found five bugs in U02; U02b fixes them (kept current after every gate, launch
+and owner decision: the owner, 2026-11-05)
 Workstream: the owner's Adaptation Design Document, phases B to E: the needs (N), lessons as classes (L01), the presentation track (U),
 then the bread pilot (W)
 Branch: `feature/adaptive_design` (pushed; the owner merges it into `main` once, at the end); HEAD: see `git log -1` (the last record
@@ -23,9 +23,10 @@ track) is half done; phase E (the bread pilot, W05 to W10) waits for the owner's
 
 ## Working tree and running work
 
-- **One agent runs:** a QA pass (`subagent_type: qa`, area `ui`, narrowed to the conversation surface U02 and the settings panel N09)
-  on the adaptive worktree; it writes `docs/qa-reports/2026-11-06-ui.md` and builds nothing new beyond the game. When it ends: add one
-  row per bug to the triage table in `docs/qa-reports/README.md`, confirmed bugs to the game plan's findings, and propose fix milestones.
+- **One building agent runs: U02b, the conversation surface's QA fixes** (QA-2026-11-06-ui-1 to ui-5, triage table in
+  [`docs/qa-reports/README.md`](../qa-reports/README.md), report [`docs/qa-reports/2026-11-06-ui.md`](../qa-reports/2026-11-06-ui.md)):
+  worktree `.claude/worktrees/u02b`, local branch `U02b-qa-fixes`, brief [`.claude/briefs/u02b-qa-fixes.md`](../../.claude/briefs/u02b-qa-fixes.md),
+  Haiku 5.5. When it ends: gate, check the QA's commands in the game, record, set the triage rows to `fixed (U02b)`.
   - Their reports reach only the session that launched them. **If this session is gone:** check each worktree (`git -C <wt> status`,
     `git -C <wt> log --oneline feature/adaptive_design..`), commit any uncommitted work as a WIP snapshot on its branch, and relaunch a
     fresh agent with a "you continue a first attempt" section, as [`n05b-continue.md`](../../.claude/briefs/n05b-continue.md) did for N05.
@@ -59,7 +60,7 @@ track) is half done; phase E (the bread pilot, W05 to W10) waits for the owner's
 
 ## Unfinished and blocked
 
-- **Authorised, in progress:** the QA pass (above). Phases B to D are done.
+- **Authorised, in progress:** U02b (above), the QA step's fixes of U02. Phases B to D are otherwise done.
 - **Authorised, next:** nothing building. The owner withdrew the wind-down (2026-11-05, late: "continue with the work, I'm not going
   to handover. But keep the document updated just in case") and went to sleep.
 - **Proposed, not authorised: T7, the game tests' memory** (brief [`.claude/briefs/t7-test-memory.md`](../../.claude/briefs/t7-test-memory.md),

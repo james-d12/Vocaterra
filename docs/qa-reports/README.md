@@ -37,6 +37,11 @@ triage table below. Confirmed bugs also go into the findings logs ([game plan se
 | R4 | [2026-11-01-review-feature-village](2026-11-01-review-feature-village.md) | should fix, game | The listener's name after a greeting other than `hola` | fixed (V19) |
 | R5, R6 | [2026-11-01-review-feature-village](2026-11-01-review-feature-village.md) | should fix, core | An amount before a singular `ser`; `es cerca del mediodía` | fixed (M64) |
 | R7 to R10 | [2026-11-01-review-feature-village](2026-11-01-review-feature-village.md) | should fix, game | The market's misses: no item, full bag, the cap of 5, zero | fixed (V19) |
+| QA-2026-11-06-ui-1 | [2026-11-06-ui](2026-11-06-ui.md) | major, game | The expanded dialogue panel cuts the oldest lines with no hint (only the newest rows that fit) | confirmed; to fix in U02b |
+| QA-2026-11-06-ui-2 | [2026-11-06-ui](2026-11-06-ui.md) | major, game | At 800x600 and 150 % text the collapsed panel shows only the coaching line, not the learner's line or the reply | confirmed (screenshot); to fix in U02b |
+| QA-2026-11-06-ui-3 | [2026-11-06-ui](2026-11-06-ui.md) | major, game (core unverified) | A turn not understood shows the English "Good. The shopkeeper understood you." | confirmed (screenshot); U02b finds the cause, a core cause becomes a core milestone |
+| QA-2026-11-06-ui-4 | [2026-11-06-ui](2026-11-06-ui.md) | minor, game | A typed turn not understood gets the off-prompt coaching line ("The NPC understood, but…") | confirmed (screenshot); to fix in U02b |
+| QA-2026-11-06-ui-5 | [2026-11-06-ui](2026-11-06-ui.md) | minor, game | At 800x600 and 150 % text the lesson heading is cut before the step total and kind | to fix in U02b |
 
 ## Layout of a QA pass report
 
