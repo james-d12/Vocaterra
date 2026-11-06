@@ -434,6 +434,8 @@ feature/adaptive_design), with the bread stuff".
    The owner's shape, the same day: "it should be a book the player has on them, but can you placed down for longer cooking sessions. So
    like we have a journal, the player can also get a recipe book. Perhaps as a reward for making the first item with luz". A second
    carried book beside the journal, placeable open beside a station, given by Luz for the first bread (so W30 depends on W10).
+   Its two open points, the same day ("both defaults are fine"): a page appears only once its recipe is taught, and it plays the `does`
+   rows' normal and slow recordings.
 
 ## D-game-24: player needs (decided)
 

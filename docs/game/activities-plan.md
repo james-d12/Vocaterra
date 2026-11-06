@@ -427,8 +427,8 @@ reads and follows them with the bench's own actions; the book never performs a s
 - *Built on.* W07's instruction strip as a model the page can host (W07's brief keeps it separate from the panel for this); the journal's
   code (`BookModel`, `BookPages`, `BookTabs`, `BookScreen`) for the page geometry, the tabs and the speech controls; W12 (items as data)
   if it has landed, otherwise the next free item id.
-- *Still open for its brief:* whether a recipe not yet taught can be read (a page that unlocks when taught is the default); whether the
-  page's lines play Luz's recordings (the default: yes, the normal and slow recordings of the `does` rows, as the journal plays its rows).
+- *Decided* (owner, 2026-11-06: "both defaults are fine"): a recipe's page appears only once it is taught; the page plays the normal and
+  slow recordings of its `does` rows, as the journal plays its rows.
 
 ### Core milestones this series may need
 
