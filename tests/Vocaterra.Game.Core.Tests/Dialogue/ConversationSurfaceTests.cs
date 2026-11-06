@@ -17,8 +17,19 @@ using Vocaterra.Nlp.Core.Verdicts;
 namespace Vocaterra.Game.Core.Tests.Dialogue;
 
 /// <summary>U02, the conversation surface: the one coaching line, the collapsed older lines and their key, the heard line, the lesson heading in the header, and every D-game-9 route by key in each panel state.</summary>
-public sealed class ConversationSurfaceTests
+public sealed class ConversationSurfaceTests : IDisposable
 {
+    // The sessions of Screen(): each started a turn worker (a thread that holds the session, its scene and a language engine), which only Dispose stops.
+    private readonly List<VoxelSession> _sessions = [];
+
+    public void Dispose()
+    {
+        foreach (var session in _sessions)
+        {
+            session.Dispose();
+        }
+    }
+
     private static GuideTurn Turn(string line, bool spoken = false, bool communicated = true, bool uncertain = false, string? feedback = null, string? offPrompt = null) => new(
         line,
         "request_item",
@@ -280,9 +291,10 @@ public sealed class ConversationSurfaceTests
 
     // ---- Every D-game-9 route by key, in each panel state.
 
-    private static (DialogueScreen Screen, DialogueModel Dialogue, VoxelSession Session) Screen()
+    private (DialogueScreen Screen, DialogueModel Dialogue, VoxelSession Session) Screen()
     {
         var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
+        _sessions.Add(session);
         var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data, session.Phrases, session.Locale);
         var voice = new NpcVoice(Path.GetTempPath(), new SpeechIndex([]), new SilentOutput(), muted: true, _ => { });
         var sound = new SoundFrontend(new SoundMixer(new NullSoundOutput(), new SoundVolumes(), new PresentationRng(1)), new SoundEventMapper());

@@ -45,7 +45,7 @@ public sealed class CheckProgressTests
     [Fact]
     public void ACheckAnswerThroughTheWorkerIsGradedAndChangesNothingElse()
     {
-        var session = TestGame.NewSession(credit: CreditRules.Default);
+        using var session = TestGame.NewSession(credit: CreditRules.Default);
         session.OpenTalk("shopkeeper");
         var worker = session.StartWorker(loadSpeech: false);
         Assert.True(worker.WaitUntilReady(30000), "The worker did not load.");
@@ -66,7 +66,7 @@ public sealed class CheckProgressTests
     [Fact]
     public void ACheckAnswerThatIsNotAGameTurnLeavesTheTurnHistoryAlone()
     {
-        var session = TestGame.NewSession(credit: CreditRules.Default);
+        using var session = TestGame.NewSession(credit: CreditRules.Default);
         var worker = session.StartWorker(loadSpeech: false);
         Assert.True(worker.WaitUntilReady(30000), "The worker did not load.");
         var item = RouteScene.DataOf(TestGame.Bundle).Checks.Single(static i => i.Id == "say.donde-esta-el-rio");
@@ -84,7 +84,7 @@ public sealed class CheckProgressTests
     [Fact]
     public void ASpokenCheckNeedsTheRecognizerAndSaysSoWithoutAGrade()
     {
-        var session = TestGame.NewSession(credit: CreditRules.Default);
+        using var session = TestGame.NewSession(credit: CreditRules.Default);
         var worker = session.StartWorker(loadSpeech: false);
         Assert.True(worker.WaitUntilReady(30000), "The worker did not load.");
         var item = RouteScene.DataOf(TestGame.Bundle).Checks.Single(static i => i.Id == "say.pedir-agua");
