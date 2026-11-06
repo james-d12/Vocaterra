@@ -407,13 +407,16 @@ public sealed record LaunchOptions
                 return false;
             }
 
-            if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--settings" or "--no-speech" or "--mute" or "--no-sounds" or "--voxel" or "--greyscale" or "--strict-save" or "--leave" or "--mic-check" or "--no-mic-check"
+            if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--settings" or "--no-speech" or "--mute" or "--no-sounds" or "--voxel" or "--greyscale" or "--strict-save" or "--leave" or "--expand" or "--mic-check" or "--no-mic-check"
                     or "--playtest" or "--dev" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep" or "--drink" or "--take-belongings" or "--relaxed-needs")
             {
                 switch (arg)
                 {
                     case "--leave":
                         script.Add(new ScriptStep(ScriptStepKind.Leave));
+                        break;
+                    case "--expand":
+                        script.Add(new ScriptStep(ScriptStepKind.Expand)); // U02: the older lines show (the expand key)
                         break;
                     case "--sleep":
                         script.Add(new ScriptStep(ScriptStepKind.Sleep));

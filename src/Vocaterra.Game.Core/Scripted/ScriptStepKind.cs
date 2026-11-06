@@ -21,6 +21,9 @@ public enum ScriptStepKind
     /// <summary>Close the dialogue.</summary>
     Leave,
 
+    /// <summary>Show or hide the dialogue's older lines, as the expand key does (U02).</summary>
+    Expand,
+
     /// <summary>Save the screen to the file in <see cref="ScriptStep.Value"/> and go on.</summary>
     Shot,
 

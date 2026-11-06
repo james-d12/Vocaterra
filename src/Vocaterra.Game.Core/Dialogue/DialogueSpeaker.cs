@@ -29,4 +29,7 @@ public enum DialogueSpeaker
 
     /// <summary>The plain-English feedback after a turn (S16, D-game-13): what happened and what to do, drawn in its own colour and marked as English. Never spoken.</summary>
     English,
+
+    /// <summary>The one coaching line after a turn (U02), made by the panel's rows and never stored among the lines.</summary>
+    Coaching,
 }

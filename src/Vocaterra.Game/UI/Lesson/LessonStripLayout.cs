@@ -52,6 +52,9 @@ public sealed class LessonStripLayout
     /// <summary>The highest y the strip may have (X08): on a short canvas it gives up its hint and rows of English to stay under it.</summary>
     public const int MinTop = 4;
 
+    /// <summary>The height of the heading row inside the strip: none since U02, which carries the heading in the dialogue panel's header (<see cref="Heading(LocaleText, LessonView)"/>).</summary>
+    public const int HeadingRow = 0;
+
     private LessonStripLayout(PixelBox box, int pad, int headingY, int? spanishY, IReadOnlyList<string> spanishRows, int englishY, IReadOnlyList<string> englishRows, int englishPage, int englishPages, int hintY, IReadOnlyList<string> hintRows, IReadOnlyList<(LessonAction Action, PixelBox Box, string Text)> buttons)
     {
         Box = box;
@@ -174,7 +177,7 @@ public sealed class LessonStripLayout
         List<int> rowOf;
         int rowCount;
         int pages;
-        int HeightOf() => pad + LineHeight + (spanishRows.Count * SpanishHeight) + (Math.Min(perPage, englishAll.Count) * LineHeight) + (hint.Count * LineHeight) + rowGap + (rowCount * buttonHeight) + ((rowCount - 1) * rowGap) + pad;
+        int HeightOf() => pad + HeadingRow + (spanishRows.Count * SpanishHeight) + (Math.Min(perPage, englishAll.Count) * LineHeight) + (hint.Count * LineHeight) + rowGap + (rowCount * buttonHeight) + ((rowCount - 1) * rowGap) + pad;
         while (true)
         {
             pages = (englishAll.Count + perPage - 1) / perPage;
@@ -207,10 +210,10 @@ public sealed class LessonStripLayout
         var page = pages <= 1 ? 0 : ((englishPage % pages) + pages) % pages;
         var english = englishAll.Skip(page * perPage).Take(perPage).ToList();
         var height = HeightOf();
-        var y = Math.Max(MinTop, limitTop - Gap - height);
+        var y = Math.Max(MinTop, limitTop - height);
         var box = new PixelBox(panel.X, y, width, height);
         var headingY = y + pad - 4;
-        var cursor = headingY + LineHeight;
+        var cursor = headingY + HeadingRow;
         int? spanishY = null;
         if (showsSpanish)
         {
@@ -323,8 +326,8 @@ public sealed class LessonStripLayout
 
         var widths = labels.Select(l => Math.Min((int)Math.Ceiling(measure(l.Text)) + (ButtonPadding * 2), inner)).ToList();
         var rowOf = Rows(widths, inner, out var rowCount);
-        var height = pad + LineHeight + (rows.Count * LineHeight) + rowGap + (rowCount * buttonHeight) + ((rowCount - 1) * rowGap) + pad;
-        var y = Math.Max(MinTop, limitTop - Gap - height);
+        var height = pad + HeadingRow + (rows.Count * LineHeight) + rowGap + (rowCount * buttonHeight) + ((rowCount - 1) * rowGap) + pad;
+        var y = Math.Max(MinTop, limitTop - height);
         var box = new PixelBox(panel.X, y, panel.Width, height);
         var headingY = y + pad - 4;
         var buttonsTop = box.Bottom - pad - (rowCount * buttonHeight) - ((rowCount - 1) * rowGap);
@@ -341,7 +344,7 @@ public sealed class LessonStripLayout
             x += widths[i] + Gap;
         }
 
-        return new LessonStripLayout(box, pad, headingY, null, [], headingY + LineHeight, rows, 0, 1, box.Bottom, [], buttons);
+        return new LessonStripLayout(box, pad, headingY, null, [], headingY + HeadingRow, rows, 0, 1, box.Bottom, [], buttons);
     }
 
     /// <summary>The heading of a strip for a lesson step: <c>Lesson · A first hello · step 1 of 2 · Say it</c>.</summary>

@@ -48,6 +48,31 @@ public static class TextWrap
         return lines;
     }
 
+    /// <summary>The text cut to fit <paramref name="maxWidth"/>, ending in an ellipsis when it was cut (the lesson heading in the panel's header, U02); empty when not even the ellipsis fits.</summary>
+    /// <param name="text">The text.</param>
+    /// <param name="maxWidth">The width available.</param>
+    /// <param name="measure">The width of a string.</param>
+    public static string Ellipsize(string text, float maxWidth, Func<string, float> measure)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        ArgumentNullException.ThrowIfNull(measure);
+        if (measure(text) <= maxWidth)
+        {
+            return text;
+        }
+
+        for (var length = text.Length - 1; length > 0; length--)
+        {
+            var cut = text[..length].TrimEnd() + "…";
+            if (measure(cut) <= maxWidth)
+            {
+                return cut;
+            }
+        }
+
+        return string.Empty;
+    }
+
     /// <summary>
     /// The part of a one-line text that fits <paramref name="maxWidth"/> and keeps the caret in view, with the caret's place in it: the
     /// text is cut at the start so that everything before the caret fits, then at the end so that the rest fits.

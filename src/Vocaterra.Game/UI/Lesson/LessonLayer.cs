@@ -69,16 +69,12 @@ public sealed class LessonLayer : IFrameLayer
             return;
         }
 
-        var (step, offer) = _lesson.State();
-        var ui = view.Session.Locale;
+        var (step, _) = _lesson.State();
         var small = view.Fonts.Get(FontProvider.NativeSize);
         var large = view.Fonts.Get(LargeSize);
         var box = new Rectangle(layout.Box.X, layout.Box.Y, layout.Box.Width, layout.Box.Height);
-        spriteBatch.Draw(view.Pixel, box, Back);
-        DrawHelpers.Border(spriteBatch, view.Pixel, box, 2, DialoguePanel.EnglishColor);
+        spriteBatch.Draw(view.Pixel, box, Back); // U02: no box of its own; the strip is the top of the panel, whose header carries the heading
         var left = box.X + layout.Pad;
-        var heading = step is not null ? LessonStripLayout.Heading(ui, step) : LessonStripLayout.Heading(ui, offer!);
-        DrawHelpers.Text(spriteBatch, small, heading, new Vector2(left, layout.HeadingY), Gold);
         if (layout.SpanishY is { } spanishY)
         {
             for (var i = 0; i < layout.SpanishRows.Count; i++)
