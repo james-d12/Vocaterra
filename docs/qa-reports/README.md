@@ -39,8 +39,8 @@ triage table below. Confirmed bugs also go into the findings logs ([game plan se
 | R7 to R10 | [2026-11-01-review-feature-village](2026-11-01-review-feature-village.md) | should fix, game | The market's misses: no item, full bag, the cap of 5, zero | fixed (V19) |
 | QA-2026-11-06-ui-1 | [2026-11-06-ui](2026-11-06-ui.md) | major, game | The expanded dialogue panel cuts the oldest lines with no hint (only the newest rows that fit) | confirmed; to fix in U02b |
 | QA-2026-11-06-ui-2 | [2026-11-06-ui](2026-11-06-ui.md) | major, game | At 800x600 and 150 % text the collapsed panel shows only the coaching line, not the learner's line or the reply | confirmed (screenshot); to fix in U02b |
-| QA-2026-11-06-ui-3 | [2026-11-06-ui](2026-11-06-ui.md) | major, game (core unverified) | A turn not understood shows the English "Good. The shopkeeper understood you." | confirmed (screenshot); U02b finds the cause, a core cause becomes a core milestone |
-| QA-2026-11-06-ui-4 | [2026-11-06-ui](2026-11-06-ui.md) | minor, game | A typed turn not understood gets the off-prompt coaching line ("The NPC understood, but…") | confirmed (screenshot); to fix in U02b |
+| QA-2026-11-06-ui-3 | [2026-11-06-ui](2026-11-06-ui.md) | major, game (core unverified) | A turn not understood shows the English "Good. The shopkeeper understood you." | partly: «gracias» is an off-prompt line the NPC took (`OffPromptIntent`, never `Communicated`), so "Good… understood" overstates it; the English becomes the off-prompt wording (U02b) |
+| QA-2026-11-06-ui-4 | [2026-11-06-ui](2026-11-06-ui.md) | minor, game | A typed turn not understood gets the off-prompt coaching line ("The NPC understood, but…") | not a bug: the turn is off the prompt and the NPC took it («Te entiendo…»); U02's coaching is right and stays |
 | QA-2026-11-06-ui-5 | [2026-11-06-ui](2026-11-06-ui.md) | minor, game | At 800x600 and 150 % text the lesson heading is cut before the step total and kind | to fix in U02b |
 
 ## Layout of a QA pass report

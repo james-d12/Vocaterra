@@ -1,8 +1,8 @@
 # Handover: the adaptation, phases B to D, on feature/adaptive_design
 
 Created: 2026-11-05T20:31Z (UTC)
-Updated: 2026-11-06T02:10Z (UTC), the QA pass found five bugs in U02; U02b fixes them (kept current after every gate, launch
-and owner decision: the owner, 2026-11-05)
+Updated: 2026-11-06T02:40Z (UTC), U02b's Haiku attempt stopped short; a Sonnet continuation runs (kept current after every gate,
+launch and owner decision: the owner, 2026-11-05)
 Workstream: the owner's Adaptation Design Document, phases B to E: the needs (N), lessons as classes (L01), the presentation track (U),
 then the bread pilot (W)
 Branch: `feature/adaptive_design` (pushed; the owner merges it into `main` once, at the end); HEAD: see `git log -1` (the last record
@@ -26,7 +26,10 @@ track) is half done; phase E (the bread pilot, W05 to W10) waits for the owner's
 - **One building agent runs: U02b, the conversation surface's QA fixes** (QA-2026-11-06-ui-1 to ui-5, triage table in
   [`docs/qa-reports/README.md`](../qa-reports/README.md), report [`docs/qa-reports/2026-11-06-ui.md`](../qa-reports/2026-11-06-ui.md)):
   worktree `.claude/worktrees/u02b`, local branch `U02b-qa-fixes`, brief [`.claude/briefs/u02b-qa-fixes.md`](../../.claude/briefs/u02b-qa-fixes.md),
-  Haiku 5.5. When it ends: gate, check the QA's commands in the game, record, set the triage rows to `fixed (U02b)`.
+  first a Haiku attempt (committed at `a2860c96`, report `.claude/briefs/u02b-report-1.md`; it stopped short and turned ui-3/ui-4 the
+  wrong way), now a Sonnet continuation (brief [`.claude/briefs/u02b-continue.md`](../../.claude/briefs/u02b-continue.md)). A temporary
+  worktree `/tmp/claude-1000/u02b/basewt` (detached, for the scripted-run baseline) is the continuation's to remove; if this session is
+  gone, remove it with `git worktree remove --force`. When it ends: gate, check the QA's commands in the game, record, set the triage rows.
   - Their reports reach only the session that launched them. **If this session is gone:** check each worktree (`git -C <wt> status`,
     `git -C <wt> log --oneline feature/adaptive_design..`), commit any uncommitted work as a WIP snapshot on its branch, and relaunch a
     fresh agent with a "you continue a first attempt" section, as [`n05b-continue.md`](../../.claude/briefs/n05b-continue.md) did for N05.
