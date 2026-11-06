@@ -2359,13 +2359,20 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   panel's title is the word "Station", not the station's name; after help the selection stays on the empty hand while the highlight shows
   what to hold; the mastered recipe's one-click bake is built (W06) but not yet offered at the station. Report `.claude/briefs/w07-report.md`.
 - **`r30-no-classes`' `declined.png` is nondeterministic** (W05 and W07, 2026-11-06): two captures of one build differ in that image's
-  bytes. Not caused by either milestone; T8 (the test-performance plan) fixes it.
+  bytes. Not caused by either milestone; fixed by T8 (below).
 - **W07b, the station view's small points (2026-11-06, Haiku 5.5; gated on `feature/bread-pilot` at `1d511d76`, 9758 passed, 3 skipped,
   with the models).** The panel's title is the station's name (`ui.station.<id>`, else the noun with its article, else the id); help and a
   third slip's highlight also select the highlighted held thing and target; a mastered recipe's one-click bake is offered at the station
   (design 10.15: B, or Enter on the choice; the guided bake first and selected when the goal row is due, through a new
   `PhraseProgress.IsScaffoldDue`). No screenshot: the agent's throwaway bundle failed the content checks, so the view is checked by its tests
   only until W10's content; W10's spot-check looks at it. Report `.claude/briefs/w07b-report.md`.
+- **T8, the stable `r30-no-classes` capture (2026-11-06, Haiku 5.5; gated on `feature/bread-pilot` at `937f4a44`, 9759 passed, 3 skipped,
+  with the models).** The differing box (x 384 to 428, y 556 to 565 of `declined.png`) was the turn latency on the `--dev` note
+  (`DialogueModel` prints `LastTurnMilliseconds`, the worker's wall time). Fixed at the source: `LaunchOptions.TurnClock` gives a scripted
+  run no clock, so its turns time at 0.0 ms; play keeps `MonotonicClock`. Pinned by a test in `VoxelLaunchOptionsTests`. Three captures of
+  the fixed build are identical; the whole set before and after: 25 runs same, r30 moves only in that box. Left: `CheckBattery`'s
+  `check: picked … ms` and `SessionLog` timings still read the clock; no current run shows them, but a future scripted run with checks
+  could move (fix the same way if it does). Report `.claude/briefs/t8-report.md`.
 
 ## 6. Definition of done (every milestone)
 
