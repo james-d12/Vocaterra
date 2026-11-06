@@ -24,6 +24,7 @@
   <!-- The version 1 save of S18 (the learner's record of S19 loads it with an empty history); the test finds it in this folder. -->
   <ItemGroup>
     <None Include="Fixtures/**" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!-- Headless, with the language core's packages (they come through Vocaterra.Game): guide turns with the scripted recognizer on a fixed

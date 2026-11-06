@@ -200,7 +200,7 @@ public sealed class SessionLogTests
     public void ATurnLineCarriesTheInputVerdictLatencyAndPhraseClassification()
     {
         var (log, session, replay) = Memory();
-        var game = NewSession();
+        using var game = NewSession();
         game.OpenTalk("shopkeeper");
         var worker = game.StartWorker(loadSpeech: false);
         Assert.True(worker.WaitUntilReady(30000), "The worker did not load.");
