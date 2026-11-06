@@ -2347,6 +2347,19 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   mastery counts distinct play sessions; chunk and goal rows start at rung 2 (18.2 decision 3); a full bag leaves `ReadyToCollect` with
   nothing consumed; the one-click bake has no bonus; a rung-4 act earns nothing. Left to W07: the per-noun read count of 10.10. Report
   `.claude/briefs/w06-report.md`.
+- **W07, the station view (2026-11-06, Sonnet 5.5; gated on `feature/bread-pilot` at `23d139e3`, 9737 passed, 3 skipped, with the
+  models).** Core `Activities/StationScreen`, `StationPanel`, the view records and `InstructionStrip` (a model of its own, drawn by
+  `InstructionStripLayer`, for W30's recipe book); Game `UI/Station/` layers and layouts; E at a station's prop (priority NPC, station,
+  workbench; `Scene.PropCells`); rows through `NpcVoice` with the slow file; muted or unrecorded rows show the Spanish card and record the act
+  as `Read`; the bowl, spoon and oven icons with a plain fallback tile; `--station`, `--act`, `--proc-help`. W08's hook is
+  `StationPanel.OnTalk`. The orchestrator looked at the screenshots, made from a throwaway bundle copy with a test procedure on the
+  `oven` prop: the first rung, a slip's highlight, help's highlight and a finished bake, all as 10.8 and 10.10 say. **Bug found and fixed:**
+  the new atlas cells moved eleven scripted runs' far horizon, because the top mip levels average the whole atlas; interface-only cells are
+  now left out of the mips (`IsUiOnly`, tested), and every run matches its baseline again. Small points for W10's content review: the
+  panel's title is the word "Station", not the station's name; after help the selection stays on the empty hand while the highlight shows
+  what to hold; the mastered recipe's one-click bake is built (W06) but not yet offered at the station. Report `.claude/briefs/w07-report.md`.
+- **`r30-no-classes`' `declined.png` is nondeterministic** (W05 and W07, 2026-11-06): two captures of one build differ in that image's
+  bytes. Not caused by either milestone; a scripted-runs fix is not yet planned.
 
 ## 6. Definition of done (every milestone)
 
