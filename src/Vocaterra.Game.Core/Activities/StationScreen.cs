@@ -217,7 +217,7 @@ public sealed class StationScreen
         var station = Station(session);
         if (procedure is null || station is null)
         {
-            return new StationView(StationId, ProcedureId, ProcedureState.NotStarted, InstructionStrip.Empty, [], [], [], Cell(session, StationCellKind.Hand, HandNoun, HandIcon, null, 0, false, false, 0), 0, 1, null, null, null, StationNotice.None, 0, []);
+            return new StationView(StationId, TitleOf(session, StationId), ProcedureId, ProcedureState.NotStarted, InstructionStrip.Empty, [], [], [], Cell(session, StationCellKind.Hand, HandNoun, HandIcon, null, 0, false, false, 0), 0, 1, null, null, null, StationNotice.None, 0, []);
         }
 
         var run = session.Procedures.View();
@@ -245,6 +245,7 @@ public sealed class StationScreen
             .Select(f => Cell(session, StationCellKind.Target, f.Noun, f.Icon, null, 0, Lit(f.Noun, run.HighlightOn), string.Equals(f.Noun, Target, StringComparison.Ordinal), null)).ToList();
         return new StationView(
             station.Id,
+            TitleOf(session, station.Id),
             procedure.Id,
             run.State,
             strip,
@@ -267,6 +268,12 @@ public sealed class StationScreen
     private static List<string> TargetNouns(StationDefinition station, ProcedureDefinition procedure) =>
         station.Fixtures.Where(f => procedure.Steps.Any(s => string.Equals(s.ActOn, f.Noun, StringComparison.Ordinal))
             || !procedure.Steps.Any(s => string.Equals(s.ActUse, f.Noun, StringComparison.Ordinal))).Select(static f => f.Noun).ToList();
+
+    /// <summary>The station's name for the panel's title (design 10.16): its locale label when the locale has one, else its noun with the article when its id is a catalogue noun, else its id.</summary>
+    /// <param name="session">The session (its locale and nouns).</param>
+    /// <param name="stationId">The station's id.</param>
+    internal static string TitleOf(GuideSession session, string stationId) =>
+        session.Locale.Find("ui.station." + stationId) ?? session.Nouns.ForLemma(stationId)?.WithDefinite ?? stationId;
 
     private static string LabelOf(GuideSession session, string noun, IReadOnlyList<HeldThing> all) =>
         Label(session, noun, string.Equals(noun, HandNoun, StringComparison.Ordinal) ? 0 : all.FirstOrDefault(t => string.Equals(t.Noun, noun, StringComparison.Ordinal))?.Count ?? 0);

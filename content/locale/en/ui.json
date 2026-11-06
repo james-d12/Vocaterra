@@ -113,7 +113,6 @@
     "ui.settingsOn": "on",
     "ui.settingsOff": "off",
     "ui.settingsHint": "Up/Down: choose. Left/Right or -/+: change. Esc: close.",
-    "ui.stationTitle": "Station",
     "ui.stationListen": "Listen to the instruction.",
     "ui.stationHeld": "What you can hold",
     "ui.stationPage": "Page {page}/{pages}",

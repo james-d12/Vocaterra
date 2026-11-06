@@ -86,6 +86,7 @@ public enum StationNotice
 /// targets in the middle, the page of what can be held along the bottom with the empty hand, the selection and the verb choice.
 /// </summary>
 /// <param name="StationId">The station.</param>
+/// <param name="Title">The station's name for the panel's title: its locale label (<c>ui.station.&lt;id&gt;</c>), else its noun with the article, else its id.</param>
 /// <param name="ProcedureId">The procedure being done.</param>
 /// <param name="State">The run's state.</param>
 /// <param name="Strip">The instruction strip.</param>
@@ -104,6 +105,7 @@ public enum StationNotice
 /// <param name="MadeLabel">The label of the item the finished bake gave (<c>el pan</c>), or <see langword="null"/> before.</param>
 public sealed record StationView(
     string StationId,
+    string Title,
     string ProcedureId,
     ProcedureState State,
     InstructionStrip Strip,

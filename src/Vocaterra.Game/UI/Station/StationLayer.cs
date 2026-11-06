@@ -45,7 +45,7 @@ public sealed class StationLayer : IFrameLayer
         spriteBatch.Draw(pixel, panelBox, new Color(18, 18, 34, 246));
         DrawHelpers.Border(spriteBatch, pixel, panelBox, 2, Gold);
 
-        DrawHelpers.Text(spriteBatch, font, ui.Ui("stationTitle"), new Vector2(layout.Title.X, layout.Title.Y + 2), Gold);
+        DrawHelpers.Text(spriteBatch, font, model.Title, new Vector2(layout.Title.X, layout.Title.Y + 2), Gold);
         _strip.Draw(spriteBatch, view, model.Strip, layout.Strip);
 
         for (var i = 0; i < layout.FixtureCount; i++)
