@@ -21,7 +21,7 @@ The repository is developed by one **orchestrator** session that plans and deleg
 gates, merges and pushes. To continue, act as the orchestrator defined in `.claude/agents/orchestrator.md` (or start with
 `claude --agent orchestrator`). A QA agent, `.claude/agents/qa.md`, tests one area of the game (ui, language, speech, world,
 progression, save, content) and reports bugs to `docs/qa-reports/` without fixing them; the orchestrator turns its reports into milestones. The owner's models (2026-11-06): Haiku 5.5 for small tasks; Sonnet 5.5 at medium effort for medium tasks, at high for large or design-heavy ones; Opus only on request or where a decision names it. The village series
-(`docs/game/village-plan.md`, on `feature/village`) is the owner's exception: every V milestone by Opus 5.5 at xhigh effort (D-game-22).
+(`docs/game/village-plan.md`) follows the same size rule since 2026-11-06 (D-game-22; it was Opus 5.5 at xhigh for every V milestone before).
 
 Facts every session needs:
 - **Docs and session state:** the index is `docs/README.md`. To resume work, read the open handovers at the top of `docs/handovers/`

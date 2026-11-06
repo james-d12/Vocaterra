@@ -352,8 +352,7 @@ whose intent the prompt does not take was graded `vocab.wrong` (0.4, an empty ex
 its section 7):** "I accept all recommendations. However, for decision 5, I'm not going to be recording any of those, so skip that for
 now. Make a note of it, but don't block it from continuing the work."
 1. **Option 1:** a second, open decode only when the constrained decode is not taken, and only in free talk (the host's switch); lesson
-   steps, reviews and the mic check stay constrained. The core's **M80** (Opus 5.5 at xhigh), then the game's **V31** (Opus 5.5 at xhigh,
-   as every V milestone, this decision; the study proposed Sonnet).
+   steps, reviews and the mic check stay constrained. The core's **M80**, then the game's **V31** (their models: the next answers).
 2. **A spoken line the prompt allows but not among its answer rows** (`mañana voy a comprar pan` at `smith-open`) is understood and
    answered as the same typed line is: spoken and typed alike.
 3. **Credit for a line heard on the open decode:** half, as a typed line (the recognizer may have smoothed a mistake away).
@@ -362,6 +361,11 @@ now. Make a note of it, but don't block it from continuing the work."
 5. **No owner recordings** for now. M80 measures on the synthetic Kokoro voices only and reports the accent risk as unmeasured on real
    speech; nothing waits on recordings. Noted for a later measurement if the owner records or testers' recordings exist (M24).
 6. **Zero false takes** («Te entiendo» to a line that meant nothing) in the test corpus is the acceptance bar.
+
+**Owner's answers, 2026-11-06 (the models of M80 and V31):** "The two quick questions, go with the recommendations is fine." **M80 by Sonnet
+5.5 at high effort** (not Opus at xhigh as the study proposed); **V31 by Sonnet 5.5 at medium effort**, and the V series follows the owner's
+size rule from now on (Haiku for small, Sonnet medium for medium, Sonnet high for large or design-heavy), replacing this decision's "every V
+milestone by Opus 5.5 at xhigh" (2026-10-30) for milestones not yet launched.
 
 **Owner's answers, 2026-11-02 (the open points after V27):**
 1. **The small points are fixed on `feature/village-followups`,** before the pull request: the core's in M73 (Opus 5.5 at xhigh), the

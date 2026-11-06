@@ -80,7 +80,7 @@ size is its plan row's.
 | Medium tasks (size S/M or M) that touch a system's logic, or after a Haiku attempt failed the gate twice or its report did not verify | Sonnet 5.5 | medium |
 | Large or design-heavy work (size M/L or L; a new scene, a state machine, a new algorithm or cross-module design in the core, the host's architecture) | Sonnet 5.5 | high |
 | Research and architecture reviews, only when the owner asks | Opus 5.5 | default |
-| A series whose decision names its model: the V series (D-game-22) | Opus 5.5 | xhigh |
+| A series whose decision names its model (none since 2026-11-06: the V series follows the size rule, D-game-22) | as named | as named |
 
 Never set an effort level the owner or a decision has not asked for, and never raise a model or effort for length. One agent per
 milestone, at most two building agents at a time.
