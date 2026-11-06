@@ -291,6 +291,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             new NpcInstructionAudio(voice, new BookSpeaker(voice, _sound.Mixer), _recordings),
             StationHitAt,
             () => _book.IsOpen || _inventory.IsOpen || _crafting.IsOpen || _dialogue.IsOpen);
+        _stationPanel.Talk = new TeacherTalk(session, _listen, CursorCell); // W08: V, Space and W at the station talk to the teacher at her teaching prompt
+        _pump.Talk = _stationPanel.Talk; // her turns are the station's, not the dialogue panel's
+        session.StationRequested += OpenStationFromOffer;
         if (options.IsScreenshotRun)
         {
             _clock = new FixedFrameClock(VoxelSimulation.TicksPerSecond);
@@ -346,7 +349,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                     {
                         _stationPanel.Help(); // --proc-help: H at the station
                         Console.WriteLine(StationLine("proc-help"));
-                    });
+                    },
+                    StationSayFromScript);
                 _scenario = new ScenarioScript(session, _look, _dialogue, options.Script, name => ScriptItemNames.Resolve(session.Nouns, name), hooks, Console.WriteLine, holdsCheckAnswers: options.Playtest);
             }
         }
@@ -619,6 +623,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         if (!_report.Paused)
         {
             _turns.Apply();
+            _stationPanel.PumpCue(); // the instruction the teacher was asked to play again comes after her own line (W08)
         }
 
         _log?.Pump(_session); // the replay records and the events of this frame (S11)
@@ -801,8 +806,27 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     {
         if (_sim.Target is { } hit && StationProps.At(_session.Scene, _session.Data.Stations, hit.Block) is { } station)
         {
-            _ = _stationPanel.Open(station.Id);
+            _ = _stationPanel.Open(station.Id, teacherPresent: true); // the teacher listens from the station (design 10.8, W08)
         }
+    }
+
+    // The accepted offer to bake (W08, start_procedure): the dialogue closes (the teacher's line is spoken after this, by the turn's presenter) and the station opens, with the teacher.
+    private void OpenStationFromOffer(string stationId, string procedureId)
+    {
+        if (_dialogue.IsOpen)
+        {
+            _dialogueScreen.Close();
+        }
+
+        Console.WriteLine(_stationPanel.Open(stationId, teacherPresent: true) ? StationLine($"offer accepted, station {stationId} ({procedureId})") : $"offer accepted: station {stationId} did not open");
+    }
+
+    // --station-say <line>: a typed line to the teacher from the open station (W08).
+    private bool StationSayFromScript(string line)
+    {
+        var sent = _station.IsOpen && _stationPanel.Talk is { } talk && talk.Say(line);
+        Console.WriteLine($"station-say \"{line}\": {(sent ? "sent to the teacher" : "not sent")}");
+        return sent;
     }
 
     // What the canvas's point is on the station overlay; the layout is the one the layer draws.
@@ -812,10 +836,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         return new StationLayout(_canvas.Width, _canvas.Height, view.Fixtures.Count, view.Targets.Count, view.Strip.Dots.Count, view.Verbs?.Verbs.Count ?? 0).HitAt(x, y, view.Held.Count, view.PageCount);
     }
 
-    // --station <id>: opens the station and starts its first procedure, as E at the oven does (teacher not with the learner: W08).
+    // --station <id>: opens the station and starts its first procedure, as E at the oven does (the teacher listens, W08).
     private bool OpenStationFromScript(string id)
     {
-        var opened = _stationPanel.Open(id);
+        var opened = _stationPanel.Open(id, teacherPresent: true);
         Console.WriteLine(opened ? StationLine("station " + id) : $"station {id}: not opened");
         return opened;
     }
@@ -974,6 +998,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         if (_checks.TakesText)
         {
             _checks.Type(args.Character, InputDevices.AltHeld()); // the check's text box (S11)
+            return;
+        }
+
+        if (_station.IsOpen && _stationPanel.Talk is { IsTyping: true } talk)
+        {
+            talk.Type(args.Character, InputDevices.AltHeld()); // the station's text box (W08)
             return;
         }
 

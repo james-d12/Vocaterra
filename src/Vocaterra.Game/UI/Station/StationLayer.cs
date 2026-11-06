@@ -58,7 +58,15 @@ public sealed class StationLayer : IFrameLayer
             DrawTall(spriteBatch, view, font, model.Targets[i], layout.Target(i), layout.Compact ? 28 : 44);
         }
 
-        DrawNotice(spriteBatch, view, font, model, layout);
+        if (model.Talk is { } talk)
+        {
+            DrawTalk(spriteBatch, view, font, talk, layout); // the teacher's line, or the learner's text box, takes the notice's line (W08)
+        }
+        else
+        {
+            DrawNotice(spriteBatch, view, font, model, layout);
+        }
+
         DrawOffer(spriteBatch, view, font, model, layout);
         DrawHeldRow(spriteBatch, view, font, model, layout);
         DrawSelection(spriteBatch, view, font, model, layout);
@@ -191,6 +199,21 @@ public sealed class StationLayer : IFrameLayer
             ? ui.Ui("stationNothingHeld")
             : ui.Ui("stationSelection", ("held", model.HeldLabel), ("target", model.TargetLabel ?? "-"));
         DrawHelpers.Text(spriteBatch, font, DrawHelpers.Fit(font, text, layout.Selection.Width), new Vector2(layout.Selection.X, layout.Selection.Y + 1), model.HeldLabel is null ? Muted : Known);
+    }
+
+    // The line of the talk to the teacher (W08): the text box, the recording, the thinking, the teacher's answer, or why the talk could not start.
+    private static void DrawTalk(SpriteBatch spriteBatch, FrameView view, SpriteFontBase font, StationTalkView talk, StationLayout layout)
+    {
+        var ui = view.Session.Locale;
+        var (text, colour) = talk.State switch
+        {
+            StationTalkState.Typing => (ui.Ui("stationTalkType", ("teacher", talk.Teacher), ("text", talk.Text)), Known),
+            StationTalkState.Listening => (ui.Ui("stationTalkListening"), Gold),
+            StationTalkState.Thinking => (ui.Ui("stationTalkThinking", ("teacher", talk.Teacher)), Muted),
+            StationTalkState.Problem => (talk.Text, Wrong),
+            _ => (ui.Ui("stationTalkAnswer", ("teacher", talk.Teacher), ("text", talk.Text)), Known),
+        };
+        DrawHelpers.Text(spriteBatch, font, DrawHelpers.Fit(font, text, layout.Notice.Width), new Vector2(layout.Notice.X, layout.Notice.Y), colour);
     }
 
     private static void DrawNotice(SpriteBatch spriteBatch, FrameView view, SpriteFontBase font, StationView model, StationLayout layout)

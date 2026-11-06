@@ -44,6 +44,27 @@ public enum NpcEffectKind
     /// none offered (<c>vendo cero bloques de madera</c>, V19) <c>&lt;npc&gt;.none_offered</c>, and no room in the bag for the coins (V19) <c>&lt;npc&gt;.no_room</c>.
     /// </summary>
     Buy,
+
+    /// <summary>The learner asked the teacher at a station to play the instruction again (W08, <c>procedure_repeat</c>): the runner counts it and the station plays the row.</summary>
+    ProcedureRepeat,
+
+    /// <summary>The learner asked the teacher at a station for the slow recording (W08, <c>procedure_slower</c>).</summary>
+    ProcedureSlower,
+
+    /// <summary>The learner asked the teacher at a station for help (W08, <c>procedure_help</c>): what the H key does.</summary>
+    ProcedureHelp,
+
+    /// <summary>
+    /// The teacher gives the ingredients the run still lacks (W08, <c>give_missing</c>, design decision 20): always for the first bake, and then once per in-game day. Otherwise nothing
+    /// is given and the teacher says why (<see cref="NpcHostEvents.NothingMissing"/>, <see cref="NpcHostEvents.GiftUsed"/>, <see cref="NpcHostEvents.NoRoom"/>).
+    /// </summary>
+    GiveMissing,
+
+    /// <summary>The teacher teaches a procedure (W08, <c>teach_recipe</c>): it joins the procedures the learner knows. With no <see cref="NpcEffect.Procedure"/> it is the one the NPC teaches.</summary>
+    TeachRecipe,
+
+    /// <summary>The learner accepted the offer to bake (W08, <c>start_procedure</c>): the station opens for the procedure the NPC teaches, and the teacher enters teaching. Nothing happens when the NPC teaches none.</summary>
+    StartProcedure,
 }
 
 /// <summary>
@@ -58,6 +79,7 @@ public enum NpcEffectKind
 /// <param name="Slot">For <see cref="NpcEffectKind.PointAtSlot"/>: the slot of the verdict that names the place (<c>place</c>).</param>
 /// <param name="Price">For <see cref="NpcEffectKind.Sell"/> and <see cref="NpcEffectKind.Buy"/>: the price of one item, in coins.</param>
 /// <param name="Instead">For a gift with <paramref name="Asked"/> (V21b): the catalogue nouns the NPC gives something else for, by the suffix of the host event it answers instead (the stall's <c>pan</c>: <c>give_bread</c>, so a request for bread gets the bread and no refusal).</param>
+/// <param name="Procedure">For <see cref="NpcEffectKind.TeachRecipe"/> and <see cref="NpcEffectKind.StartProcedure"/> (W08): the procedure's id, or empty for the one the NPC teaches (so a bundle with no procedure can map the event and nothing happens).</param>
 /// <param name="Asked">For <see cref="NpcEffectKind.GiveItem"/> (V21): the catalogue nouns whose request the NPC answers with the gift (the stall's <c>agua</c> and <c>botella</c>, the villager's <c>pan</c>); a request for another noun is a miss, <c>&lt;npc&gt;.wont_sell</c>. <see langword="null"/>: the gift is not conditioned on the request.</param>
 public sealed record NpcEffect(
     NpcEffectKind Kind,
@@ -69,7 +91,8 @@ public sealed record NpcEffect(
     string Slot = "",
     int Price = 0,
     IReadOnlyList<string>? Asked = null,
-    IReadOnlyDictionary<string, string>? Instead = null)
+    IReadOnlyDictionary<string, string>? Instead = null,
+    string Procedure = "")
 {
     /// <summary>The verdict's slot of a number the learner said (<c>quiero dos panes</c>: <c>2</c>), the core's <c>[NUM:qty]</c>.</summary>
     public const string QuantitySlot = "qty";
@@ -368,6 +391,27 @@ public static class NpcHostEvents
     /// raised as the opening of the talk; its thanks are the NPC's own line and its reward is that line's host event (a <c>give_item</c>).
     /// </summary>
     public const string Delivered = "delivered";
+
+    /// <summary>What an NPC is asked to answer when the learner asks it for the ingredients and the run lacks none (W08, <see cref="NpcEffectKind.GiveMissing"/>): <c>&lt;npc&gt;.nothing_missing</c>.</summary>
+    public const string NothingMissing = "nothing_missing";
+
+    /// <summary>The host turn that puts a teacher in its <c>teaching</c> state when a procedure with it as teacher starts at a station (W08, design 10.14): <c>&lt;npc&gt;.teach_start</c>.</summary>
+    public const string TeachStart = "teach_start";
+
+    /// <summary>The host turn that takes a teacher out of its <c>teaching</c> state when the procedure ends or the learner leaves the station (W08): <c>&lt;npc&gt;.teach_end</c>.</summary>
+    public const string TeachEnd = "teach_end";
+
+    /// <summary>The host event of a teacher's offer to bake when the talk opens (W08, design 10.14): <c>&lt;npc&gt;.offer_bake</c>.</summary>
+    public const string OfferBake = "offer_bake";
+
+    /// <summary>The host event of a teacher's offer to bake as the answer to «¿cómo hago pan?» (W08): <c>&lt;npc&gt;.offer_craft</c>; its action teaches the recipe.</summary>
+    public const string OfferCraft = "offer_craft";
+
+    /// <summary>The state of an NPC's agent file in which it waits for a yes or a no to its offer to bake (W08).</summary>
+    public const string OfferingState = "offering_bake";
+
+    /// <summary>The state of an NPC's agent file in which it listens at the teaching prompt (W08).</summary>
+    public const string TeachingState = "teaching";
 
     /// <summary>The host event <paramref name="what"/> of an NPC: <c>villager.unknown_place</c>.</summary>
     /// <param name="npc">The NPC's agent id.</param>

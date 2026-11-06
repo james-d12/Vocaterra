@@ -420,6 +420,16 @@ public sealed class ScenarioScript
                 _hooks.ProcHelp?.Invoke();
                 _index++;
                 break;
+            case ScriptStepKind.StationSay:
+                _line = step.Value;
+                if (_hooks.StationSay?.Invoke(step.Value) != true)
+                {
+                    _log($"station-say {step.Value}: no station is open with a teacher listening, or no turn worker is running");
+                }
+
+                _index++;
+                _phase = Phase.Waiting; // the teacher's turn is on the worker: the script waits for it, as for a line said in a talk
+                break;
             case ScriptStepKind.SetNeed:
                 _hooks.SetNeed?.Invoke(step.Value);
                 _index++;

@@ -724,6 +724,7 @@ public sealed partial class VoxelSession : GuideSession
                     Buy(npc, effect, effect.SaleCountFor(slots, Simulation.Inventory.Count(effect.Item)), how);
                     break;
                 default:
+                    ApplyTeacherEffect(npc, effect, how); // W08: the teacher's kinds (VoxelSession.Teaching.cs)
                     break;
             }
         }

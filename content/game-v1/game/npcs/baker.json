@@ -14,7 +14,9 @@
     ]
   },
   "prompts": {
-    "idle": "baker-open"
+    "idle": "baker-open",
+    "offering_bake": "baker-offer",
+    "teaching": "baker-proc"
   },
   "opening": {
     "event": "baker.greet",

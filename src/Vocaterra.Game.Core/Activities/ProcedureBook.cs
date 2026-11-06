@@ -120,6 +120,10 @@ public sealed class ProcedureBook
     /// <param name="station">The station's id.</param>
     public IReadOnlyList<ProcedureDefinition> AtStation(string station) => _procedures.Where(p => string.Equals(p.Station, station, StringComparison.Ordinal)).ToList();
 
+    /// <summary>The procedure an NPC teaches (W08: the first whose teacher it is), or <see langword="null"/> when it teaches none.</summary>
+    /// <param name="npc">The NPC's id.</param>
+    public ProcedureDefinition? TaughtBy(string npc) => _procedures.FirstOrDefault(p => string.Equals(p.Teacher, npc, StringComparison.Ordinal));
+
     /// <summary>
     /// Reads the procedures from the bundle's verified host files: the index lists the ids, each file is read from the bytes the load hashed.
     /// </summary>

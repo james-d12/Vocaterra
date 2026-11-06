@@ -49,5 +49,6 @@ public sealed partial class VoxelSession
         DayResetCount++;
         RemoveChestAtNight();
         RenewAtNight();
+        ClearGrants(); // W08: a teacher gives the ingredients again
     }
 }

@@ -65,7 +65,7 @@ public sealed class ProcedureProgress
     private readonly List<string> _known = [];
     private readonly Dictionary<string, ActEvidence> _evidence = new(StringComparer.Ordinal);
 
-    /// <summary>The procedures the learner has started, in the order they were started.</summary>
+    /// <summary>The procedures the learner knows: the ones started (W06) and the ones a teacher taught (W08, <c>teach_recipe</c>), in that order. The recipe book (W30) lists them.</summary>
     public IReadOnlyList<string> Known => _known;
 
     /// <summary>Every record, ordered by id.</summary>
@@ -102,6 +102,20 @@ public sealed class ProcedureProgress
         }
 
         return record.Runs;
+    }
+
+    /// <summary>The teacher teaches the procedure (W08, <c>teach_recipe</c>): it joins the known list without a run being started.</summary>
+    /// <param name="id">The procedure's id.</param>
+    /// <returns><see langword="true"/> when it was not known before.</returns>
+    internal bool NoteTaught(string id)
+    {
+        if (_known.Contains(id, StringComparer.Ordinal))
+        {
+            return false;
+        }
+
+        _known.Add(id);
+        return true;
     }
 
     /// <summary>Counts a finished run: the steps right first time, and the sitting when it was finished without help.</summary>

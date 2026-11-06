@@ -178,6 +178,12 @@ public static class WorldEvents
     /// <summary>A procedure became mastered (W06; the detail is the procedure's id): the one-click bake is on offer.</summary>
     public const string ProcedureMastered = "procedure_mastered";
 
+    /// <summary>A teacher gave the ingredients a run lacked (W08, <c>give_missing</c>; the detail is the procedure's id).</summary>
+    public const string IngredientsGiven = "ingredients_given";
+
+    /// <summary>A teacher taught the learner a procedure (W08, <c>teach_recipe</c>; the detail is the procedure's id).</summary>
+    public const string RecipeTaught = "recipe_taught";
+
     /// <summary>Every world event name, in the order above (the tips, the lessons and the objectives check the names they use against it).</summary>
     public static IReadOnlyList<string> All { get; } =
     [
@@ -189,5 +195,6 @@ public static class WorldEvents
         Slept, SessionSkipped,
         MealEaten, WaterDrunk, NeedStage, PlayerCollapsed, PlayerDied, PlayerWoke, BelongingsRecovered, BushPlanted,
         ProcedureStarted, ProcedureStep, ProcedureDone, ProcedureMastered,
+        IngredientsGiven, RecipeTaught,
     ];
 }

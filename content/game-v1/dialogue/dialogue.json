@@ -1007,6 +1007,48 @@
         { "lineId": "baker_thank.2", "text": "¡Con gusto!" }
       ]
     },
+    "baker_offer_bake": {
+      "poolId": "baker_offer_bake",
+      "variants": [
+        { "lineId": "baker_offer_bake.1", "text": "¿Quieres hacer pan?" }
+      ]
+    },
+    "baker_teach_go": {
+      "poolId": "baker_teach_go",
+      "variants": [
+        { "lineId": "baker_teach_go.1", "text": "¡Vamos!" }
+      ]
+    },
+    "baker_listen": {
+      "poolId": "baker_listen",
+      "variants": [
+        { "lineId": "baker_listen.1", "text": "Escucha." }
+      ]
+    },
+    "baker_helping": {
+      "poolId": "baker_helping",
+      "variants": [
+        { "lineId": "baker_helping.1", "text": "Te ayudo." }
+      ]
+    },
+    "baker_give_missing": {
+      "poolId": "baker_give_missing",
+      "variants": [
+        { "lineId": "baker_give_missing.1", "text": "Toma. Aquí tienes." }
+      ]
+    },
+    "baker_has_all": {
+      "poolId": "baker_has_all",
+      "variants": [
+        { "lineId": "baker_has_all.1", "text": "Ya tienes todo." }
+      ]
+    },
+    "baker_gift_used": {
+      "poolId": "baker_gift_used",
+      "variants": [
+        { "lineId": "baker_gift_used.1", "text": "Hoy no tengo más." }
+      ]
+    },
     "baker_understood": {
       "poolId": "baker_understood",
       "variants": [

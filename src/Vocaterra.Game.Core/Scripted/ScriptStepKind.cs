@@ -105,6 +105,9 @@ public enum ScriptStepKind
     /// <summary>An act at the open station (<c>--act harina,bol[,poner]</c>, W07): <see cref="ScriptStep.Value"/> is the noun held, the target and, when the pair has several verbs, the verb.</summary>
     Act,
 
+    /// <summary>A typed line to the teacher from the open station (<c>--station-say "Otra vez, por favor."</c>, W08): it goes to the teacher at its teaching prompt, the answer shows on the station's talk line and the run waits for it.</summary>
+    StationSay,
+
     /// <summary>Help at the open station (<c>--proc-help</c>, W07): the English and the highlight, and the row steps up a rung, as H does.</summary>
     ProcHelp,
 }

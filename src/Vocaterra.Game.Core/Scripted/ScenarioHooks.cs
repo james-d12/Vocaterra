@@ -21,6 +21,7 @@ namespace Vocaterra.Game.Core.Scripted;
 /// <param name="Station">Opens the station by its id and starts its procedure; returns whether it opened (W07, <c>--station</c>).</param>
 /// <param name="Act">An act at the open station, <c>use,on[,verb]</c> (W07, <c>--act</c>).</param>
 /// <param name="ProcHelp">Help at the open station (W07, <c>--proc-help</c>).</param>
+/// <param name="StationSay">A typed line to the teacher from the open station; returns whether it was sent (W08, <c>--station-say</c>).</param>
 public sealed record ScenarioHooks(
     Action<string> OpenTalk,
     Action CloseTalk,
@@ -40,4 +41,5 @@ public sealed record ScenarioHooks(
     Action<BlockPos>? Plant = null,
     Func<string, bool>? Station = null,
     Action<string>? Act = null,
-    Action? ProcHelp = null);
+    Action? ProcHelp = null,
+    Func<string, bool>? StationSay = null);
