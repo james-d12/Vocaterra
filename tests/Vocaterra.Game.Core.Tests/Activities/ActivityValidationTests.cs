@@ -141,6 +141,20 @@ public sealed class ActivityValidationTests
     }
 
     [Fact]
+    public void TheLexiconRuleReadsEachVerbByItsInfinitive()
+    {
+        // sacar is looked up as its infinitive: its tu imperative (saca) is found from the entry, so the actions pass; the A1 level check's
+        // lemma 'saca' is the other rule's and never reaches this one.
+        Assert.Empty(Problems(Procedure(), actions: Actions));
+        var unknown = Problems(Procedure(), actions: Actions.Replace("\"sacar\", \"abrir\"", "\"sacar\", \"abrir\", \"xyzzy\"", StringComparison.Ordinal));
+        Assert.Contains(unknown, p => p.Contains("the verb 'xyzzy' is not in the lexicon", StringComparison.Ordinal));
+        // A verb whose entries have no tu imperative: madera is a noun in the lexicon, with no imperative of any person.
+        var noImperative = Problems(Procedure(), actions: Actions.Replace("\"poner\"", "\"madera\"", StringComparison.Ordinal));
+        Assert.Contains(noImperative, p => p.Contains("the verb 'madera' has no tú imperative", StringComparison.Ordinal));
+        Assert.DoesNotContain(noImperative, p => p.Contains("the verb 'sacar'", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void AProcedureNamesItsStationTeacherAndItems()
     {
         Expect(Procedure(station: "molino"), "the station 'molino' is not one of the stations");
