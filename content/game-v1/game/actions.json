@@ -1,0 +1,6 @@
+{
+  "$schema": "../../schema/actions.schema.json",
+  "schemaVersion": 1,
+  "about": "The actions of the stations (W05): the verbs a step may use for each pair of a use and a fixture. Empty until the bread procedure (W10).",
+  "actions": []
+}

@@ -1,0 +1,97 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/procedures/<id>.json",
+  "description": "One procedure (W05, design 10.7): a short job done at a station, step by step, with the items it makes and uses, the chunks it is grouped in and its goal. Every step and chunk and the goal name a does row of the phrase sheet (content/PHRASES.md), whose line the NPC says. Every name of an item is an item of game/nouns.json (the item kinds); every noun of a step is a catalogue noun. Loaded by ProcedureBook (Vocaterra.Game.Core).",
+  "type": "object",
+  "required": ["schemaVersion", "id", "station", "teacher", "level", "makes", "uses", "steps", "chunks", "goal"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "enum": [1] },
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "The procedure's id: its file's name (pan)." },
+    "station": { "type": "string", "minLength": 1, "description": "The station it is done at (game/stations.json)." },
+    "teacher": { "type": "string", "minLength": 1, "description": "The NPC who teaches it (game/npcs.json); the lines of its does rows are that NPC's." },
+    "level": { "enum": ["a1", "a2"], "description": "The level the procedure's Spanish keeps to (the CEFR lists up to it)." },
+    "makes": {
+      "type": "object",
+      "required": ["item", "count"],
+      "additionalProperties": false,
+      "properties": {
+        "item": { "$ref": "nouns.schema.json#/definitions/item" },
+        "count": { "type": "integer", "minimum": 1 },
+        "bonus": {
+          "type": "object",
+          "required": ["firstTimeSteps", "count"],
+          "additionalProperties": false,
+          "description": "One more of the item when at least firstTimeSteps steps were right the first time.",
+          "properties": {
+            "firstTimeSteps": { "type": "integer", "minimum": 1 },
+            "count": { "type": "integer", "minimum": 1 }
+          }
+        }
+      }
+    },
+    "uses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["item", "count"],
+        "additionalProperties": false,
+        "properties": {
+          "item": { "$ref": "nouns.schema.json#/definitions/item" },
+          "count": { "type": "integer", "minimum": 1 },
+          "leaves": { "$ref": "nouns.schema.json#/definitions/item", "description": "The item the container is left as when it is used up (water-bottle leaves bottle)." }
+        }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/step" }
+    },
+    "chunks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "row", "steps"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+          "row": { "type": "string", "minLength": 1, "description": "The does row the chunk's instruction is (haz-la-masa)." },
+          "steps": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 }, "description": "The step ids, contiguous, in order." }
+        }
+      }
+    },
+    "goal": {
+      "type": "object",
+      "required": ["row"],
+      "additionalProperties": false,
+      "properties": {
+        "row": { "type": "string", "minLength": 1, "description": "The does row of the whole procedure (haz-pan)." }
+      }
+    }
+  },
+  "definitions": {
+    "step": {
+      "type": "object",
+      "required": ["id", "row", "do", "what"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+        "row": { "type": "string", "minLength": 1, "description": "The does row the step's instruction is (pon-la-harina)." },
+        "do": { "type": "string", "pattern": "^[a-zñáéíóúü]+$", "description": "The verb lemma the learner says (poner)." },
+        "what": { "type": "string", "minLength": 1, "description": "The noun acted on: a held item (harina) or a fixture (bol)." },
+        "use": { "type": "string", "minLength": 1, "description": "The noun the learner acts with, when it is not what (mano for sacar). Default: what, for where and from; with, for with." },
+        "where": { "type": "string", "minLength": 1, "description": "The fixture the thing goes to (bol, horno)." },
+        "from": { "type": "string", "minLength": 1, "description": "The fixture the thing comes from (horno)." },
+        "with": { "type": "string", "minLength": 1, "description": "The fixture or tool the act is done with (cuchara)." },
+        "anyOrder": { "type": "string", "minLength": 1, "description": "The group the step belongs to: steps with the same group may come in either order (the runner draws it per bake). Design 10.7 gives it the group's fixture." }
+      },
+      "oneOf": [
+        { "required": ["where"] },
+        { "required": ["from"] },
+        { "required": ["with"] }
+      ]
+    }
+  }
+}

@@ -41,6 +41,10 @@ Everything the game says, shows and builds its world from, outside the code. The
   | `game/host-events.json` | `host-events.schema.json` (what each NPC host event does: give items, point the beacon at a noun, a place or the place the learner names; schema 2, V02) | `HostEventTable` |
   | `game/needs.json` | `needs.schema.json` (the player's needs, N01: the three drives' rates, effort factors and four stages with their effects, health's recovery and warnings, stamina's costs and refill, rest at a fire, a night and a collapse, the foods, the death rules; the stage lines' keys, not their text) | `NeedsData` |
   | `game/scene.json` | `scene.schema.json` (the file is JSON with `//` comments) | `SceneLayout` |
+  | `game/procedures.json` | `procedures.schema.json` (the procedures' ids, in order; W05) | `ProcedureBook` |
+  | `game/procedures/<id>.json` | `procedure.schema.json` (one procedure each: its station, teacher, level, what it makes and uses, its steps, chunks and goal; W05) | `ProcedureBook` |
+  | `game/stations.json` | `stations.schema.json` (each station: its scene prop, its NPC and its fixtures; W05) | `StationBook` |
+  | `game/actions.json` | `actions.schema.json` (for each use and fixture, the verbs a step may use; W05) | `ActionTable` |
 
 ## The support language: `locale/`
 

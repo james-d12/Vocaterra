@@ -1,0 +1,6 @@
+{
+  "$schema": "../../schema/stations.schema.json",
+  "schemaVersion": 1,
+  "about": "The stations of the game (W05): the places a procedure is done at. Empty until the bakery's oven (W10).",
+  "stations": []
+}

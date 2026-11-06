@@ -14,7 +14,7 @@ namespace Vocaterra.Game.Core.Language.Phrases;
 /// <c>content/PHRASES.md</c>, which stays the source of truth; a test holds the two together row by row).
 /// </summary>
 /// <param name="Id">The row's id (<c>pedir-agua</c>), the key the phrase tracking uses (<c>phrase.&lt;id&gt;</c>).</param>
-/// <param name="Says">Who says the phrase: <c>says</c> (the learner), <c>hears</c> (an NPC) or <c>both</c>.</param>
+/// <param name="Says">Who says the phrase: <c>says</c> (the learner), <c>hears</c> (an NPC), <c>both</c>, or <c>does</c> (an instruction an NPC gives while a procedure is done, W05).</param>
 /// <param name="Spanish">The phrase as taught, with its accents and inverted marks.</param>
 /// <param name="English">The intended meaning, in the support language (<c>phrase.&lt;id&gt;.meaning</c> in the locale).</param>
 /// <param name="Intent">For a learner row, the bundle intent every variant resolves to; <see langword="null"/> for a <c>hears</c> row.</param>
@@ -38,6 +38,9 @@ public sealed record PhraseRow(
 {
     /// <summary>Whether the learner says the phrase (<c>says</c> or <c>both</c>).</summary>
     public bool IsLearnerPhrase => string.Equals(Says, "says", StringComparison.Ordinal) || string.Equals(Says, "both", StringComparison.Ordinal);
+
+    /// <summary>Whether the row is an instruction an NPC gives while a procedure is done (<c>does</c>, W05): no intent, no prompt, no learner error.</summary>
+    public bool IsInstruction => string.Equals(Says, "does", StringComparison.Ordinal);
 
     /// <summary>The phrase of the support card, the part before the first <c> = </c>: what the panel shows as the expected phrase.</summary>
     public string CardPhrase

@@ -9,6 +9,12 @@ Each row says who says the phrase (the learner, the NPC, or both), what it means
 mistake with the error code the core gives it, where it happens, what the support card shows, which NPC dialogue lines speak it (for the
 pre-rendered speech of S9) and who has reviewed it. Nothing outside this list is taught or tracked as a phrase.
 
+**The `does` kind (W05).** A row whose `says` is `does` is an instruction an NPC gives while a procedure is done (`game/procedures/<id>.json`:
+each step, chunk and goal names one): «Pon la harina en el bol.», «Haz pan.». It has no intent, no prompt, no accepted variant and no learner
+error: its `intent`, `prompt`, `accepted variants` and `learner error` columns say `-`. Its `NPC and situation` names the teaching NPC and the
+station step it is for; its `audio line ids` name the NPC's recorded lines that say it (the speech index, as a lesson's lines are checked). Its
+support card is the locale's as for any row. No `does` row is in the sheet yet: W10 adds the bread procedure's nine.
+
 **The Spanish variety.** Latin American neutral (core ADR 0005, `docs/nlp/adr/0005-*`): textbook A1, the informal address `tú` for the
 NPCs (`¿Quieres...?`, `¿Qué necesitas?`), no vosotros, no Spain-only words (`vale` is neither spoken, taught nor accepted).
 `me da agua` (the usted form, common at counters) and `me das agua` (the tú form) are both accepted; the card teaches `Quiero agua, por favor.`.

@@ -50,7 +50,7 @@ public sealed class PhraseSheetTests
         foreach (var row in Rows)
         {
             Assert.Matches("^[a-z]+(-[a-z]+)*$", row.Id);
-            Assert.Contains(row.Says, new[] { "says", "hears", "both" });
+            Assert.Contains(row.Says, new[] { "says", "hears", "both", "does" });
             Assert.False(string.IsNullOrWhiteSpace(row.English), $"{row.Id} has no English.");
             Assert.False(string.IsNullOrWhiteSpace(row.Card), $"{row.Id} has no support card.");
             Assert.False(string.IsNullOrWhiteSpace(row.Situation), $"{row.Id} has no NPC and situation.");
@@ -135,6 +135,21 @@ public sealed class PhraseSheetTests
                 $"{row.Id}: '{row.Spanish}' is neither the text of prompt {row.Prompt} nor of a line in {string.Join(", ", row.AudioLineIds)}.");
             Assert.True(row.AudioLineIds.Count > 0, $"{row.Id} is heard but names no audio line.");
             Assert.True(lineTexts.Any(t => Plain(t) == Plain(row.Spanish)), $"{row.Id}: no audio line says exactly '{row.Spanish}'.");
+        }
+    }
+
+    [Fact]
+    public void EveryInstructionIsALineOfItsNpcWithNoIntentPromptVariantOrLearnerError()
+    {
+        // W05: a does row is an instruction an NPC gives while a procedure is done. It has no intent, no prompt, no variant and no learner error (the
+        // columns say -), and its audio lines say it. The sheet has none yet (W10 adds them); the rule holds for each one that is added.
+        foreach (var row in Rows.Where(static r => r.Says == "does"))
+        {
+            Assert.True(row.Intent is null && row.Prompt is null, $"{row.Id}: a does row names an intent or a prompt.");
+            Assert.Empty(row.Variants);
+            Assert.Null(row.ErrorText);
+            Assert.True(row.AudioLineIds.Count > 0, $"{row.Id} is an instruction and names no audio line.");
+            Assert.True(row.AudioLineIds.Select(LineText).Any(t => Plain(t) == Plain(row.Spanish)), $"{row.Id}: no audio line says exactly '{row.Spanish}'.");
         }
     }
 

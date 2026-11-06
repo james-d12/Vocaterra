@@ -1,0 +1,6 @@
+{
+  "$schema": "../../schema/procedures.schema.json",
+  "schemaVersion": 1,
+  "about": "The procedures of the game (W05): the index of game/procedures/<id>.json. Empty until the bread procedure (W10).",
+  "procedures": []
+}
