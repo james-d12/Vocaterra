@@ -431,6 +431,9 @@ feature/adaptive_design), with the bread stuff".
    and 2 when you create potions you use the book as the receipe book essentially and its an interactive thing. Perhaps add this as
    future milestone". Planned as **W30**, proposed and not authorised (`docs/game/activities-plan.md` section 5 and "Proposed: the recipe
    book"); W07 keeps its instruction strip a separate model so the book can host it later. W05 to W07 are otherwise unchanged.
+   The owner's shape, the same day: "it should be a book the player has on them, but can you placed down for longer cooking sessions. So
+   like we have a journal, the player can also get a recipe book. Perhaps as a reward for making the first item with luz". A second
+   carried book beside the journal, placeable open beside a station, given by Luz for the first bread (so W30 depends on W10).
 
 ## D-game-24: player needs (decided)
 

@@ -189,7 +189,7 @@ Each joins `WorldEvents.All`, so tips, lessons and objectives may wait for it, a
 | **Stage 5: held for the pilot's data** | | | | | |
 | W22 to W29 | Land and plots; frontier claims; storage; trust and "¿Lo de siempre?"; gear for places and the tailor; the healer and foraging; tenants and building to a description; fishing with Mar | section 6 | L | | held |
 | **Proposed (owner, 2026-11-06)** | | | | | |
-| W30 | The recipe book: an interactive book at the station, as Kingdom Come: Deliverance's alchemy book, that holds the known procedures' written steps and is followed while cooking | W07; W08 for recipes learned by asking | M | Sonnet | proposed, not authorised |
+| W30 | The recipe book: a second book the player carries beside the journal, given by Luz for the first bread, that holds the known procedures' written steps and can be set down open beside a station while cooking (as Kingdom Come: Deliverance's alchemy book) | W07, W10; W08 for recipes learned by asking | M | Sonnet | proposed, not authorised |
 
 **Order.** Complete language follow-ups, N01–N07 and the needs playtest first; W01 runs before N07. U01 and U02 precede the pilot
 if accepted. The pilot path is W05, W06, W07, W08, W10 and W11. W02 and W03 are outside this path; W04 is conditional on the vendor
@@ -418,11 +418,17 @@ reads and follows them with the bench's own actions; the book never performs a s
   while the learner acts; the page marks the current step and the steps done. The written page is a reading route to the same
   instructions Luz speaks, so it follows the support ladder (design 10.10, 10.11): English only at the first rung or after help, the
   chunk's or goal's row once folded, and reading the page is never production credit.
-- *Built on.* W07's instruction strip as a model the page can host (W07's brief keeps it separate from the panel for this); the game's
-  existing book (`Language/Book/`: `BookModel`, `BookPages`, `BookTabs`, `BookScreen`) for the page geometry, the tabs and the speech
-  controls.
-- *Open for its brief* (the owner's): a tab of the existing book or a separate book object on the station's table; whether the page may be
-  read away from the station; whether an unknown recipe can be read before it is taught; whether the page's lines play Luz's recordings.
+- *The owner's shape* (2026-11-06, answering the orchestrator's questions): "it should be a book the player has on them, but can you
+  placed down for longer cooking sessions. So like we have a journal, the player can also get a recipe book. Perhaps as a reward for
+  making the first item with luz". So: a new item, the recipe book, separate from the journal (the existing `book` item and its
+  `Language/Book/` screen); carried in the inventory and opened from it anywhere; placeable in the world, where it lies open and its page
+  shows beside the station view (W07) for a long cooking session, and is picked up again; given by Luz as the reward for the learner's
+  first completed procedure with her (W10's first bread, through W06's `procedure_done`), so it holds at least the bread from the start.
+- *Built on.* W07's instruction strip as a model the page can host (W07's brief keeps it separate from the panel for this); the journal's
+  code (`BookModel`, `BookPages`, `BookTabs`, `BookScreen`) for the page geometry, the tabs and the speech controls; W12 (items as data)
+  if it has landed, otherwise the next free item id.
+- *Still open for its brief:* whether a recipe not yet taught can be read (a page that unlocks when taught is the default); whether the
+  page's lines play Luz's recordings (the default: yes, the normal and slow recordings of the `does` rows, as the journal plays its rows).
 
 ### Core milestones this series may need
 
