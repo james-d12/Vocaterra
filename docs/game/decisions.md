@@ -427,6 +427,10 @@ feature/adaptive_design), with the bread stuff".
 2. **The branches** (orchestrator's default; the owner may change it): milestone branches are gated into `feature/bread-pilot`, which is
    pushed. Fixes from the needs check land on `feature/adaptive_design`, and `feature/bread-pilot` merges them in when it needs them.
    When the pilot's milestones are done, `feature/bread-pilot` is gated into `feature/adaptive_design`, so `main` still takes one merge.
+3. **A recipe book for cooking** (owner, later the same day): "for the cooking, ideally i would like a book interface. For example in KCD 1
+   and 2 when you create potions you use the book as the receipe book essentially and its an interactive thing. Perhaps add this as
+   future milestone". Planned as **W30**, proposed and not authorised (`docs/game/activities-plan.md` section 5 and "Proposed: the recipe
+   book"); W07 keeps its instruction strip a separate model so the book can host it later. W05 to W07 are otherwise unchanged.
 
 ## D-game-24: player needs (decided)
 

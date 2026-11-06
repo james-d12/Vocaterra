@@ -188,6 +188,8 @@ Each joins `WorldEvents.All`, so tips, lessons and objectives may wait for it, a
 | W21 | Stage 4's documents and runs | W17 to W20 | S | Haiku | |
 | **Stage 5: held for the pilot's data** | | | | | |
 | W22 to W29 | Land and plots; frontier claims; storage; trust and "¿Lo de siempre?"; gear for places and the tailor; the healer and foraging; tenants and building to a description; fishing with Mar | section 6 | L | | held |
+| **Proposed (owner, 2026-11-06)** | | | | | |
+| W30 | The recipe book: an interactive book at the station, as Kingdom Come: Deliverance's alchemy book, that holds the known procedures' written steps and is followed while cooking | W07; W08 for recipes learned by asking | M | Sonnet | proposed, not authorised |
 
 **Order.** Complete language follow-ups, N01–N07 and the needs playtest first; W01 runs before N07. U01 and U02 precede the pilot
 if accepted. The pilot path is W05, W06, W07, W08, W10 and W11. W02 and W03 are outside this path; W04 is conditional on the vendor
@@ -404,6 +406,23 @@ Designed in the review (section 2.2); each needs its own brief after the pilot.
   healer after a voice trial.
 - **W28 Tenants and building to a description.** A tenant describes a room; the learner builds it; the check names what is missing.
 - **W29 Fishing with Mar.** A procedure (bait, cast, wait, pull), `pez` and `pescado`, and cooking the catch.
+
+### Proposed: the recipe book (owner, 2026-11-06)
+
+**W30: the recipe book (M, Sonnet; proposed, not authorised).** The owner, 2026-11-06: "for the cooking, ideally i would like a book
+interface. For example in KCD 1 and 2 when you create potions you use the book as the receipe book essentially and its an interactive
+thing". In Kingdom Come: Deliverance the recipe book lies open beside the alchemy bench, its page lists the steps in prose, and the player
+reads and follows them with the bench's own actions; the book never performs a step.
+- *The idea here.* Each procedure the learner knows (W08's `teach_recipe`, or a recipe given in a lesson) gets a page: its title, what it
+  uses and makes, and its steps as the written Spanish of its `does` rows. The book opens beside the station view (W07) and stays open
+  while the learner acts; the page marks the current step and the steps done. The written page is a reading route to the same
+  instructions Luz speaks, so it follows the support ladder (design 10.10, 10.11): English only at the first rung or after help, the
+  chunk's or goal's row once folded, and reading the page is never production credit.
+- *Built on.* W07's instruction strip as a model the page can host (W07's brief keeps it separate from the panel for this); the game's
+  existing book (`Language/Book/`: `BookModel`, `BookPages`, `BookTabs`, `BookScreen`) for the page geometry, the tabs and the speech
+  controls.
+- *Open for its brief* (the owner's): a tab of the existing book or a separate book object on the station's table; whether the page may be
+  read away from the station; whether an unknown recipe can be read before it is taught; whether the page's lines play Luz's recordings.
 
 ### Core milestones this series may need
 
