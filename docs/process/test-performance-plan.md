@@ -34,6 +34,12 @@ beside everything else (188 s). On the branch the lanes are Host, Game, Fuzzing 
 Nlp.Tests (86 s); the assemblies hold about 148 s of work, so an even split would end near 75 s, and the order in which `dotnet test` starts
 them is the remaining lever on the run as a whole (T6).
 
+**T7 (2026-11-06), the memory of the game tests.** Peak of each test command's cgroup (`limited.sh`), models on. Before (565554f3 and later): Game.Core.Tests 5.0
+GB alone (Failed 2 in that run, see T7), Game.Tests 1.6, Host.Tests 0.3, Nlp.Tests 2.8, Es.Tests 1.3, Golden.Tests 0.4, Fuzzing.Tests 2.5; `scripts/test.sh full`
+was killed by the 6 GB cap (exit 143) at 87 s. After: Game.Core.Tests 2.4 to 2.5 GB alone (two runs, 73 to 81 s, 2384 passed), and `scripts/test.sh full`
+passed three times in a row with peaks of 4.6, 4.7 and 4.8 GB and wall times (build included) of 274, 255 and 238 s; the counts are the same as before (9586
+passed, 3 skipped). Without models (CI's case) the full run passed once, 5.2 GB, 234 s, 28 + 17 model tests skipped; the full run overlaps Nlp.Tests, the fuzz suite and Game.Core.Tests, so its peak moves between 4.6 and 5.2 GB.
+
 ## Context
 
 `dotnet test Vocaterra.sln` runs seven test projects with about 3,360 test methods, 5,450 tests with the theory rows. R16 (2026-10-28) moved
@@ -191,6 +197,25 @@ lowered an oracle's depth or changed a golden.
 - **CI:** a fast job beside the full one, or the test projects as a matrix. Both are edits of `.github/workflows/ci.yml`; the token has
   the workflow scope (2026-10-31).
 - **xUnit v3 / Microsoft.Testing.Platform:** test-host start-up is about a second per assembly here, so a move is not justified by speed.
+
+### T7: The game tests' memory, done (2026-11-06)
+Game.Core.Tests peaked at 5.0 GB alone (2.8 GB at T1), so beside a second heavy assembly in `dotnet test -m:2` the 6 GB cap killed the run.
+- **What held the memory.** Not a cache and not the number of seeds (the tests use one seed: 42): the sessions that start a turn worker. `StartWorker`
+  runs a thread that holds the session, its scene (a 38 MB clone) and a language engine until the session is disposed. `ConversationSurfaceTests`
+  built ten such sessions and never disposed them, and four more tests did the same (`SecondTryTests`, `CheckProgressTests`, Game.Tests'
+  `SpokenFrontendTests` and `SessionLogTests`). A probe that forced a collection every 0.6 s and logged the running tests showed the live heap going from 250
+  MB to 1.9 GB within two seconds, in steps of about 450 MB, one per `ConversationSurfaceTests` case, and staying there to the end of the run; with the
+  sessions disposed the live heap never passed 0.8 GB. Garbage did the rest: the 2384 tests allocate 79 GB between them (about 38 MB each, the scene
+  clone), and the collector lets the heap grow to 75 percent of the cgroup's cap (4.5 GB) before it collects hard, so the peak followed the leak.
+- **What changed.** The five test classes dispose their sessions (`using var`; `ConversationSurfaceTests` is `IDisposable` and disposes the sessions its
+  `Screen()` made), and `tests/Vocaterra.Game.Core.Tests/xunit.runner.json` caps the assembly at three test threads (copied to the output by the
+  project): with the leak gone and ten threads the peak was still 4.0 to 4.5 GB, with three it is 2.4 to 2.5 GB and the wall time is the same (the long
+  classes bound it). No test, assertion or budget changed; no production code.
+- **Tried and left.** A GC heap hard limit (`DOTNET_GCHeapHardLimit`) lowers the peak but turns a live set above the limit into `OutOfMemoryException`s
+  (3 GB failed three tests at four threads); `GCConserveMemory`, `GCgen0MaxBudget` and non-concurrent GC did not help. The change to `scripts/test.sh`
+  (Game.Core.Tests alone, then the rest) was not needed.
+- **Left.** Nlp.Tests (2.8 GB) and the fuzz suite (2.5 GB), the core's, are now the next largest; the full run peaks near 4.7 GB when they overlap
+  Game.Core.Tests. They were not touched (core).
 
 ## Files touched
 - **New:** `scripts/test-timings.py`, `scripts/test.sh`, `tests/Shared/TestSpeed.cs`, `tests/Vocaterra.Game.Core.Tests/TestSupport/TestSpeed.cs`
