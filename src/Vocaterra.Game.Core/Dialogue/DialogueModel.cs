@@ -115,8 +115,36 @@ public sealed class DialogueModel
     /// </summary>
     public bool Expanded { get; private set; }
 
-    /// <summary>Shows or hides the older lines (U02).</summary>
-    public void ToggleExpanded() => Expanded = !Expanded;
+    /// <summary>Shows or hides the older lines (U02). Opening the page starts at the newest lines.</summary>
+    public void ToggleExpanded()
+    {
+        Expanded = !Expanded;
+        ScrollBack = 0;
+    }
+
+    /// <summary>
+    /// How many blocks the expanded page is scrolled back from its newest lines (U02b): 0 shows the newest, and the arrow keys change it (<see cref="ScrollOlder"/>,
+    /// <see cref="ScrollNewer"/>). The panel clamps it to what fits.
+    /// </summary>
+    public int ScrollBack { get; private set; }
+
+    /// <summary>Scrolls the expanded page one row towards its older lines (U02b); nothing when the page is not shown.</summary>
+    public void ScrollOlder()
+    {
+        if (Expanded)
+        {
+            ScrollBack = Math.Min(ScrollBack + 1, Math.Max(0, PanelRows().Count - 1));
+        }
+    }
+
+    /// <summary>Scrolls the expanded page one row towards its newest lines (U02b); nothing when the page is not shown.</summary>
+    public void ScrollNewer()
+    {
+        if (Expanded)
+        {
+            ScrollBack = Math.Max(0, ScrollBack - 1);
+        }
+    }
 
     /// <summary>
     /// The one coaching line after the last turn (U02), or <see langword="null"/>: the microphone's trouble for an uncertain recognition ("ask again"), the NPC not
@@ -595,6 +623,7 @@ public sealed class DialogueModel
     private void Show(GuideTurn turn, double milliseconds)
     {
         LastTurn = turn;
+        ScrollBack = 0;
         CoachingLine = CoachingFor(turn);
         LastTurnMilliseconds = milliseconds;
         TurnCount++;
@@ -658,7 +687,7 @@ public sealed class DialogueModel
         }
     }
 
-    // The one coaching line of a turn (U02): the first case that applies, from the feedback text (LocaleText.FeedbackFor) or the turn's recast.
+    // The one coaching line of a turn (U02, U02b): the first case that applies, from the feedback text (LocaleText.FeedbackFor) or the turn's recast.
     private string? CoachingFor(GuideTurn turn)
     {
         var feedback = _locale?.FeedbackFor(turn);
@@ -667,14 +696,10 @@ public sealed class DialogueModel
             return feedback?.FirstOrDefault(); // ask again: the microphone, not your Spanish (D-game-9)
         }
 
-        if (!turn.Taken)
+        if (!turn.Communicated)
         {
-            return feedback?.FirstOrDefault(); // not understood
-        }
-
-        if (turn.OffPromptIntent is not null && turn.Input == InputKind.Typed && !turn.LessonHandled)
-        {
-            return _ui.Ui("coachOffPrompt");
+            // Not understood for the prompt (U02b): a line the NPC took off its prompt is not understood either, so the coaching does not say it was.
+            return turn.LessonHandled && turn.OffPromptIntent is not null ? null : feedback?.FirstOrDefault(); // a lesson speaks for the line it took off its prompt (S17)
         }
 
         if (turn.Feedback is not null)

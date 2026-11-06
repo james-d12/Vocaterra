@@ -99,7 +99,7 @@ public sealed class FrameView
     public PixelBox? LessonStripBox { get; set; }
 
     /// <summary>The heading of the lesson step or offer in play (<c>Lesson · First words · step 1 of 7 · Say it</c>), or <see langword="null"/> (U02): the dialogue panel's header shows it.</summary>
-    public string? LessonHeading { get; set; }
+    public LessonHeading? LessonHeading { get; set; }
 
     /// <summary>Whether <c>--greyscale</c> is on (S22): the book draws the icon of a noun that is not known yet in grey, as the world draws its block.</summary>
     public bool Greyscale { get; init; }

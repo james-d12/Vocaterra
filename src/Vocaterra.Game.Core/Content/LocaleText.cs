@@ -56,7 +56,7 @@ public sealed class LocaleText
         "summaryPractiseNoSe", "summaryPractiseSlip", "summaryPractiseSupport", "summaryPractiseNone", "summaryReplay", "summaryNone", "summaryMore",
         "tensePres", "tensePret", "tenseImpf", "tenseFut", "person1", "person2", "person3", "singular", "plural", "retryAgain",
         "warmupTitle", "warmupOffer.one", "warmupOffer.other", "warmupStart", "warmupAsk", "warmupDone.one", "warmupDone.other", "reviewNowHud",
-        "dialogueKeyHints", "coachOffPrompt", "dialogueOlder", "dialogueButtonHints", "dialogueKeyHintsShort", "dialogueButtonHintsShort", "dialogueSpeechOffButtonHints", "dialogueSpeechOffKeyHints", "dialogueListening", "dialogueThinking",
+        "dialogueKeyHints", "dialogueOlder.one", "dialogueOlder.other", "dialogueAbove.one", "dialogueAbove.other", "dialogueBelow.one", "dialogueBelow.other", "dialogueButtonHints", "dialogueKeyHintsShort", "dialogueButtonHintsShort", "dialogueSpeechOffButtonHints", "dialogueSpeechOffKeyHints", "dialogueListening", "dialogueThinking",
         "dialogueYou", "dialogueYouSpoken", "supportPrefix", "supportOnHelp", "talkHint", "tipHeading", "newWord", "newWordToast", "audioSlot", "beaconDistance.one",
         "beaconDistance.other", "loadingSpeech", "controlsScroll", "controlsTextSizeKeys", "controlsTextSize", "gameSaved", "saveLater", "inventoryTitle",
         "inventoryHintsShort", "inventoryHints", "inventoryUsed", "craftingTitle", "craftingHints", "craftingCanMake", "craftingUses", "craftingByHand",
@@ -387,7 +387,7 @@ public sealed class LocaleText
             return lines;
         }
 
-        if (!turn.Taken)
+        if (!turn.Communicated) // U02b: a line the NPC took off its prompt is not understood for the prompt, so the English does not praise it
         {
             lines.Add(Outcome("not_understood", ("npc", npc)));
             return lines;

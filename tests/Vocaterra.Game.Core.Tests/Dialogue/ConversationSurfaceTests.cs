@@ -89,15 +89,64 @@ public sealed class ConversationSurfaceTests
         Assert.Single(dialogue.PanelRows(), static r => r.Line.Speaker == DialogueSpeaker.Coaching);
     }
 
+    // U02b (QA-2026-11-06-ui-3 and ui-4): a turn the NPC did not take for its prompt is not understood, typed or spoken, off the prompt or not. The
+    // coaching and the English say so, and the English never praises it.
     [Fact]
-    public void ATypedLineOffThePromptCoachesWithTheOffPromptNoteButASpokenOneDoesNot()
+    public void ATurnNotUnderstoodForThePromptGetsTheNotUnderstoodLineNotPraiseOrTheOffPromptClaim()
     {
         var (dialogue, session) = Panel();
-        Say(dialogue, Turn("¿dónde está el río?", communicated: false, offPrompt: "ask_place"));
-        Assert.Equal(session.Locale.Ui("coachOffPrompt"), dialogue.CoachingLine);
+        var typed = Turn("gracias", communicated: false, offPrompt: "ask_place");
+        Say(dialogue, typed);
+        var notUnderstood = session.Locale.FeedbackFor(typed)[0];
+        Assert.Equal(notUnderstood, dialogue.CoachingLine);
+        Assert.Contains(dialogue.Lines, line => line.Speaker == DialogueSpeaker.English && line.Text == notUnderstood);
+        Assert.DoesNotContain(dialogue.Lines, line => line.Text.Contains("understood you", StringComparison.Ordinal));
 
         Say(dialogue, Turn("¿dónde está el río?", spoken: true, communicated: false, offPrompt: "ask_place"));
+        Assert.Equal(notUnderstood, dialogue.CoachingLine);
+    }
+
+    [Fact]
+    public void AnUnderstoodLineKeepsItsCoachingAndItsPraise()
+    {
+        var (dialogue, session) = Panel();
+        var understood = Turn("quiero agua", communicated: true);
+        Say(dialogue, understood);
+        Assert.Contains(dialogue.Lines, line => line.Speaker == DialogueSpeaker.English && line.Text == session.Locale.FeedbackFor(understood)[0]);
         Assert.Null(dialogue.CoachingLine);
+    }
+
+    // U02b (QA-2026-11-06-ui-1): the expanded page scrolls back to its oldest lines and forward to its newest, and never past either end.
+    [Fact]
+    public void TheExpandedPageScrollsBackToItsOldestLinesAndForwardAgainWithinItsEnds()
+    {
+        var (dialogue, _) = Panel();
+        for (var i = 0; i < 4; i++)
+        {
+            Say(dialogue, Turn("gracias"));
+        }
+
+        dialogue.ScrollOlder();
+        Assert.Equal(0, dialogue.ScrollBack);
+        dialogue.ToggleExpanded();
+        Assert.Equal(0, dialogue.ScrollBack);
+        dialogue.ScrollOlder();
+        Assert.Equal(1, dialogue.ScrollBack);
+        for (var i = 0; i < 200; i++)
+        {
+            dialogue.ScrollOlder();
+        }
+
+        Assert.Equal(dialogue.PanelRows().Count - 1, dialogue.ScrollBack);
+        for (var i = 0; i < 200; i++)
+        {
+            dialogue.ScrollNewer();
+        }
+
+        Assert.Equal(0, dialogue.ScrollBack);
+        dialogue.ScrollOlder();
+        dialogue.ToggleExpanded();
+        Assert.Equal(0, dialogue.ScrollBack);
     }
 
     [Fact]

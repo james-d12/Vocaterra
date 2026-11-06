@@ -350,14 +350,20 @@ public sealed class LessonStripLayout
     /// <summary>The heading of a strip for a lesson step: <c>Lesson · A first hello · step 1 of 2 · Say it</c>.</summary>
     /// <param name="ui">The game's English text.</param>
     /// <param name="view">The lesson step in progress.</param>
-    public static string Heading(LocaleText ui, LessonView view)
+    public static string Heading(LocaleText ui, LessonView view) => HeadingParts(ui, view).Full;
+
+    /// <summary>The heading of a lesson step as its parts (U02b), so the panel's header can shorten the title first and keep the step and its kind.</summary>
+    /// <param name="ui">The game's English text.</param>
+    /// <param name="view">The lesson step in progress.</param>
+    public static LessonHeading HeadingParts(LocaleText ui, LessonView view)
     {
         ArgumentNullException.ThrowIfNull(ui);
         ArgumentNullException.ThrowIfNull(view);
         var step = ui.Ui("stepOf", ("n", view.StepNumber.ToString(System.Globalization.CultureInfo.InvariantCulture)), ("total", view.StepCount.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+        var tail = $"{step} · {view.Heading}";
         return string.Equals(view.LessonId, ReviewDeck.StripId, StringComparison.Ordinal)
-            ? $"{view.Title} · {step} · {view.Heading}" // the warm-up is not a lesson (X06)
-            : $"{ui.Ui("lesson")} · {view.Title} · {step} · {view.Heading}";
+            ? new LessonHeading(string.Empty, view.Title, tail) // the warm-up is not a lesson (X06)
+            : new LessonHeading(ui.Ui("lesson"), view.Title, tail);
     }
 
     /// <summary>The heading of the strip of a lesson on offer: <c>Lesson · A first hello</c>.</summary>
@@ -367,6 +373,16 @@ public sealed class LessonStripLayout
     {
         ArgumentNullException.ThrowIfNull(ui);
         ArgumentNullException.ThrowIfNull(offer);
-        return offer.Warmup ? offer.Title : $"{ui.Ui("lesson")} · {offer.Title}";
+        return HeadingParts(ui, offer).Full;
+    }
+
+    /// <summary>The heading of a lesson on offer as its parts (U02b): the lesson word and the title, no step yet.</summary>
+    /// <param name="ui">The game's English text.</param>
+    /// <param name="offer">The offer.</param>
+    public static LessonHeading HeadingParts(LocaleText ui, LessonOffer offer)
+    {
+        ArgumentNullException.ThrowIfNull(ui);
+        ArgumentNullException.ThrowIfNull(offer);
+        return new LessonHeading(offer.Warmup ? string.Empty : ui.Ui("lesson"), offer.Title, string.Empty);
     }
 }
