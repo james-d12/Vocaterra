@@ -46,9 +46,10 @@
           "enum": [
             "says",
             "hears",
-            "both"
+            "both",
+            "does"
           ],
-          "description": "Who says it: the learner (says), an NPC (hears) or both."
+          "description": "Who says it: the learner (says), an NPC (hears), both, or does: an instruction an NPC gives while a procedure is done (W05; no intent, no prompt, no learner error)."
         },
         "spanish": {
           "type": "string",
@@ -60,7 +61,7 @@
             "string",
             "null"
           ],
-          "description": "The core intent the phrase expresses, or null for a phrase only heard."
+          "description": "The core intent the phrase expresses, or null for a phrase only heard or instructed (does)."
         },
         "prompt": {
           "type": "string",

@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/stations.json",
+  "description": "The stations (W05): the places a procedure is done at, each with the scene prop it stands on, the NPC who teaches there and its fixtures (the things on the station that a step names: a bowl, a spoon, the oven). A fixture is a noun and an icon, nothing else: it is not an inventory item. Loaded by StationBook (Vocaterra.Game.Core).",
+  "type": "object",
+  "required": ["schemaVersion", "stations"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "enum": [1] },
+    "about": { "type": "string" },
+    "stations": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/station" }
+    }
+  },
+  "definitions": {
+    "station": {
+      "type": "object",
+      "required": ["id", "prop", "npc", "fixtures"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "The station's id; a procedure names it in its station." },
+        "prop": { "type": "string", "minLength": 1, "description": "The scene prop the station stands on (its name in game/scene.json: oven)." },
+        "npc": { "type": "string", "minLength": 1, "description": "The NPC who teaches the procedures done here (game/npcs.json)." },
+        "fixtures": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "required": ["noun", "icon"],
+            "additionalProperties": false,
+            "properties": {
+              "noun": { "type": "string", "minLength": 1, "description": "A catalogue noun of game/nouns.json (bol, cuchara, horno)." },
+              "icon": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "The icon's key (bowl, spoon, oven)." }
+            }
+          }
+        }
+      }
+    }
+  }
+}
