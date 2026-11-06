@@ -45,9 +45,9 @@ using Vocaterra.Game.UI.Crafting;
 using Vocaterra.Game.UI.Dialogue;
 using Vocaterra.Game.UI.Hud;
 using Vocaterra.Game.UI.Lesson;
-using Vocaterra.Game.UI.Station;
 using Vocaterra.Game.UI.Overlays;
 using Vocaterra.Game.UI.Report;
+using Vocaterra.Game.UI.Station;
 
 namespace Vocaterra.Game;
 
@@ -838,7 +838,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private string StationLine(string what)
     {
         var view = _stationPanel.View();
-        return $"{what}: {view.State}, notice {view.Notice}, step {view.Strip.Dots.Count(static d => d.State == StripDotState.Done)}/{view.Strip.Dots.Count}, rung {view.Strip.Rung}, row {view.Strip.Row ?? "-"}, text {(view.Strip.ShowsText ? "shown" : "hidden")}, english {(view.Strip.ShowsEnglish ? "shown" : "hidden")}, highlight {string.Join('+', view.Held.Concat(view.Targets).Where(static c => c.Highlight).Select(static c => c.Noun)) switch { "" => "none", var h => h }}";
+        return $"{what}: {view.State}, notice {view.Notice}, step {view.Strip.Dots.Count(static d => d.State == StripDotState.Done)}/{view.Strip.Dots.Count}, rung {view.Strip.Rung}, row {view.Strip.Row ?? "-"}, text {(view.Strip.ShowsText ? "shown" : "hidden")}, english {(view.Strip.ShowsEnglish ? "shown" : "hidden")}, highlight {string.Join('+', view.Held.Concat(view.Targets).Append(view.Hand).Where(static c => c.Highlight).Select(static c => c.Noun)) switch { "" => "none", var h => h }}";
     }
 
     // Keys and mouse, once per frame, for the interactive run. The device state becomes this frame's commands (LiveVoxelInput) and the look.

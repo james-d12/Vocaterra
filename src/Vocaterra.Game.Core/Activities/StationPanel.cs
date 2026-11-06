@@ -317,6 +317,8 @@ public sealed class StationPanel : IScreen
         var named = verb.Length > 0 ? verb : verbs.Count == 1 ? verbs[0] : string.Empty;
         var presented = (_screen.HeardRow ? InstructionPresentation.Heard : InstructionPresentation.None) | (view.Strip.ShowsText ? InstructionPresentation.Read : InstructionPresentation.None);
         _screen.Verbs = null;
+        _screen.Held = use; // the act is made with these selected, as a click on them would (a wrong act keeps them; a scripted act shows them)
+        _screen.Target = on;
         var result = _session.ActInProcedure(use, on, named, presented);
         if (result.Outcome == ActOutcome.Right)
         {
