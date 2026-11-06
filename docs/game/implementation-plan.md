@@ -384,7 +384,7 @@ there. Commit prefixes `N<nn>:`, `L01:`, `U<nn>:`, `W<nn>:`; one milestone branc
 | N09 | The drive rates as a setting (owner, 2026-11-05): a slider in the settings and `--needs-rate`, multiplying every drive's rate, for the needs playtest; a fixed value after it | N05 | S | Sonnet 5.5 | done (2026-11-05, gated at 37c7640b, 9501 passed) |
 | U01 | Clean defaults (14.3): the debug text off by default; one speak hint; the objective tracker; room for the need meters | N05 | S | Sonnet 5.5 | done (2026-11-05, gated at dd01a6e9, 9476 passed) |
 | U02 | The conversation surface (7.2): developer notes behind `--dev`/F3, older lines collapsed, the lesson strip in the header, every D-game-9 route reachable by key | U01 | M | Sonnet 5.5 | done (2026-11-06, gated at fe986862, 9546 passed) |
-| U02b | The conversation surface's QA fixes (`docs/qa-reports/2026-11-06-ui.md`, ui-1 to ui-5): the expanded panel scrolls to every older line, the current exchange fits at 800x600 and 150 %, the not-understood turn's English and coaching line, the lesson heading's shortening, the hidden-lines plural | U02 | S | Haiku 5.5, then Sonnet 5.5 | in progress (2026-11-06, the QA step after U02; the Haiku attempt stopped short and misread ui-3/ui-4, a Sonnet continuation finishes it) |
+| U02b | The conversation surface's QA fixes (`docs/qa-reports/2026-11-06-ui.md`, ui-1 to ui-5): the expanded panel scrolls to every older line, the current exchange fits at 800x600 and 150 %, the not-understood turn's English and coaching line, the lesson heading's shortening, the hidden-lines plural | U02 | S | Haiku 5.5, then Sonnet 5.5 | done (2026-11-06, gated at 565554f3, 9586 passed) |
 | The needs check | The owner and two or three testers play days 1 to 3 with needs on (9.12) | N01 to N07 | | the owner | waits for the owner |
 
 After U02 come W05 to W08 and W10 (activities-plan section 5; design section 10); W11, the pilot, waits for testers and the owner's
@@ -2299,6 +2299,23 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   fix is proposed as T7 (the test-performance plan), not yet authorised. The orchestrator's check: the camp route, `--give berry --plant
   170,42,186` (planted, `bush_planted`), the player's fire lit as in r20, `--sleep` (session 2), and the same cell gathered as a
   `berry-bush` (+1 berry). Report `.claude/briefs/n08-report.md`.
+- **U02b, the conversation surface's QA fixes (2026-11-06, Haiku 5.5, then a Sonnet continuation; gated on `feature/adaptive_design` at
+  `565554f3`, 9586 passed, 3 skipped).** The QA pass `docs/qa-reports/2026-11-06-ui.md` (triage in `docs/qa-reports/README.md`). Which rows
+  show is now Core logic (`PanelFit.cs`: `PanelFitter.Fit`, the blocks in order of keep: the learner's line and the reply's Spanish, then
+  the coaching line, then the reply's English, then the hidden-lines row; a `--dev` note goes first); the panel only draws. Expanded, Up and
+  Down scroll (not while typing; PageUp and O still toggle; Tab stays Escribir) with "N earlier lines above" / "N later lines below"
+  rows; the counts take singular and plural strings ("1 earlier line hidden"). The lesson heading shortens its title first
+  (`LessonHeading.FitTo`), so "step n of m · kind" stays. **ui-3 and ui-4 corrected:** «gracias» at the shopkeeper's prompt is an
+  off-prompt line the NPC took (`OffPromptIntent`, never `Communicated`), not a line it failed to understand, so U02's off-prompt coaching
+  was right (ui-4 not a bug); its English said "Good… understood you" and now says "{npc} understood, but that is not what was asked."
+  (`feedback.outcome.off_prompt`). The Haiku attempt read the verdict the other way (it made the coaching say "did not understand" beside
+  the NPC's «Te entiendo») and stopped before its checks; a Sonnet continuation corrected it, finished the checks and found the `--dev`
+  note pushing out the learner's line at 800x600. Scripted runs: 26 of 27 equal; r30's dev note differs by its wall-clock figure only.
+  **Machine:** the first gate was killed by the OOM killer (exit 143, the known T7 cause); the rerun passed; the continuation saw two
+  `OutOfMemoryException`s in Game.Core.Tests while the baseline ran beside it. The orchestrator's check: 800x600 at 150 %, three turns,
+  collapsed (the learner's line and the reply) and expanded; four turns expanded at 1280x720 ("9 earlier lines above (Up to scroll)").
+  **Seen:** at 800x600 and 150 % the coaching line, two rows when wrapped, is dropped while about one row stays empty; acceptable. Reports
+  `.claude/briefs/u02b-report-1.md` and `u02b-report.md`.
 
 ## 6. Definition of done (every milestone)
 
