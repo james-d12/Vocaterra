@@ -100,6 +100,79 @@ public sealed class ConversationSurfaceTests
         Assert.Null(dialogue.CoachingLine);
     }
 
+    // U02b (QA-2026-11-06-ui-3): the English after a turn says what the NPC did: understood, understood off the prompt, or did not understand.
+    [Fact]
+    public void TheEnglishOfAnOffPromptTurnNeitherPraisesNorSaysNotUnderstood()
+    {
+        var (_, session) = Panel();
+        var locale = session.Locale;
+        var offPrompt = locale.FeedbackFor(Turn("gracias", communicated: false, offPrompt: "thank"))[0];
+        Assert.Contains("not what was asked", offPrompt, StringComparison.Ordinal);
+        Assert.DoesNotContain("Good", offPrompt, StringComparison.Ordinal);
+        Assert.DoesNotContain("did not understand", offPrompt, StringComparison.Ordinal);
+
+        var notUnderstood = locale.FeedbackFor(Turn("blah", communicated: false))[0];
+        Assert.Contains("did not understand", notUnderstood, StringComparison.Ordinal);
+
+        var understood = locale.FeedbackFor(Turn("quiero agua", communicated: true))[0];
+        Assert.StartsWith("Good.", understood, StringComparison.Ordinal);
+        Assert.NotEqual(offPrompt, notUnderstood);
+    }
+
+    // U02b (ui-4): a typed turn the NPC did not take gets the not-understood line, never the off-prompt claim.
+    [Fact]
+    public void ATypedTurnNotTakenGetsTheNotUnderstoodCoachingNotTheOffPromptNote()
+    {
+        var (dialogue, session) = Panel();
+        var turn = Turn("blah", communicated: false);
+        Say(dialogue, turn);
+        Assert.Equal(session.Locale.FeedbackFor(turn)[0], dialogue.CoachingLine);
+        Assert.NotEqual(session.Locale.Ui("coachOffPrompt"), dialogue.CoachingLine);
+    }
+
+    [Fact]
+    public void AnUnderstoodLineKeepsItsCoachingAndItsPraise()
+    {
+        var (dialogue, session) = Panel();
+        var understood = Turn("quiero agua", communicated: true);
+        Say(dialogue, understood);
+        Assert.Contains(dialogue.Lines, line => line.Speaker == DialogueSpeaker.English && line.Text == session.Locale.FeedbackFor(understood)[0]);
+        Assert.Null(dialogue.CoachingLine);
+    }
+
+    // U02b (QA-2026-11-06-ui-1): the expanded page scrolls back to its oldest lines and forward to its newest, and never past either end.
+    [Fact]
+    public void TheExpandedPageScrollsBackToItsOldestLinesAndForwardAgainWithinItsEnds()
+    {
+        var (dialogue, _) = Panel();
+        for (var i = 0; i < 4; i++)
+        {
+            Say(dialogue, Turn("gracias"));
+        }
+
+        dialogue.ScrollOlder();
+        Assert.Equal(0, dialogue.ScrollBack);
+        dialogue.ToggleExpanded();
+        Assert.Equal(0, dialogue.ScrollBack);
+        dialogue.ScrollOlder();
+        Assert.Equal(1, dialogue.ScrollBack);
+        for (var i = 0; i < 200; i++)
+        {
+            dialogue.ScrollOlder();
+        }
+
+        Assert.Equal(dialogue.PanelRows().Count - 1, dialogue.ScrollBack);
+        for (var i = 0; i < 200; i++)
+        {
+            dialogue.ScrollNewer();
+        }
+
+        Assert.Equal(0, dialogue.ScrollBack);
+        dialogue.ScrollOlder();
+        dialogue.ToggleExpanded();
+        Assert.Equal(0, dialogue.ScrollBack);
+    }
+
     [Fact]
     public void ATurnTheLessonTookIsNeverCoachedAsOffThePrompt()
     {

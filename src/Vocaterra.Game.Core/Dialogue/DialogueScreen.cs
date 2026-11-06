@@ -172,6 +172,21 @@ public sealed class DialogueScreen : IScreen
             return;
         }
 
+        // U02b: while the page shows, Up and Down scroll it back to the older lines and forward to the newest (the arrow keys are not used here otherwise).
+        if (_dialogue.Expanded && !_dialogue.IsTyping && (input.Pressed(GameKey.Up) || input.Pressed(GameKey.Down)))
+        {
+            if (input.Pressed(GameKey.Up))
+            {
+                _dialogue.ScrollOlder();
+            }
+            else
+            {
+                _dialogue.ScrollNewer();
+            }
+
+            return;
+        }
+
         if (_dialogue.IsTyping)
         {
             if (input.Pressed(GameKey.Tab))
