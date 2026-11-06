@@ -14,8 +14,11 @@ public readonly record struct PanelBlock(int Index, DialogueSpeaker Speaker, int
 /// </summary>
 public sealed record PanelFit(int First, int End, bool ShowEarlier, int EarlierLines, bool ShowNewer, int NewerLines, IReadOnlyList<bool> ShowEnglish)
 {
+    /// <summary>The blocks between <see cref="First"/> and <see cref="End"/> left out for want of room (the developer note of a turn goes before the learner's line does); null when none.</summary>
+    public IReadOnlyList<bool>? Skipped { get; init; }
+
     /// <summary>Whether the block at <paramref name="block"/> is shown.</summary>
-    public bool Shows(int block) => block >= First && block < End;
+    public bool Shows(int block) => block >= First && block < End && (Skipped is null || !Skipped[block]);
 }
 
 /// <summary>
@@ -95,16 +98,36 @@ public static class PanelFitter
         var lineEnd = coachingIndex;
         var spokenUsed = 0;
         var firstLine = lineEnd;
-        while (firstLine > 0 && spokenUsed + blocks[firstLine - 1].Rows <= budget)
+        var skipped = new bool[count];
+        while (firstLine > 0)
         {
+            var candidate = blocks[firstLine - 1];
+            if (candidate.Speaker == DialogueSpeaker.Note)
+            {
+                firstLine--; // a developer note costs room only once the lines are placed (below)
+                skipped[firstLine] = true;
+                continue;
+            }
+
+            if (spokenUsed + candidate.Rows > budget)
+            {
+                break;
+            }
+
             firstLine--;
-            spokenUsed += blocks[firstLine].Rows;
+            spokenUsed += candidate.Rows;
+        }
+
+        while (firstLine < lineEnd && skipped[firstLine])
+        {
+            firstLine++; // the window starts at a line, not at a note
         }
 
         if (firstLine == lineEnd && lineEnd > 0)
         {
             firstLine = lineEnd - 1; // a line taller than the room is shown (the panel clips its top), never nothing
             spokenUsed = blocks[firstLine].Rows;
+            skipped[firstLine] = false;
         }
 
         var shownEnd = lineEnd;
@@ -117,15 +140,27 @@ public static class PanelFitter
         var rowsUsed = spokenUsed;
         for (var i = shownEnd - 1; i >= firstLine; i--)
         {
-            if (blocks[i].EnglishRows > 0 && rowsUsed + blocks[i].EnglishRows <= budget)
+            if (!skipped[i] && blocks[i].EnglishRows > 0 && rowsUsed + blocks[i].EnglishRows <= budget)
             {
                 english[i] = true;
                 rowsUsed += blocks[i].EnglishRows;
             }
         }
 
+        for (var i = lineEnd - 1; i >= firstLine; i--)
+        {
+            if (skipped[i])
+            {
+                if (rowsUsed + blocks[i].Rows <= budget)
+                {
+                    skipped[i] = false;
+                    rowsUsed += blocks[i].Rows;
+                }
+            }
+        }
+
         var earlierLines = EarlierCount(firstLine);
         var showEarlier = earlierLines > 0 && rowsUsed + 1 <= budget;
-        return new PanelFit(firstLine, shownEnd, showEarlier, earlierLines, false, 0, english);
+        return new PanelFit(firstLine, shownEnd, showEarlier, earlierLines, false, 0, english) { Skipped = skipped };
     }
 }

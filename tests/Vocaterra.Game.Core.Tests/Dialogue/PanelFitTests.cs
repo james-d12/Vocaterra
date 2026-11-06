@@ -105,4 +105,24 @@ public sealed class PanelFitTests
         Assert.True(fit.ShowEarlier);
         Assert.Equal(2, fit.EarlierLines);
     }
+
+    // U02b: the developer note between the learner's line and the reply goes before the learner's line does (800x600 at 150 %, run with --dev).
+    [Fact]
+    public void ADeveloperNoteIsDroppedBeforeTheLearnersLineAndKeptWhenThereIsRoom()
+    {
+        var blocks = new List<PanelBlock>
+        {
+            Line(5, rows: 1, speaker: DialogueSpeaker.Player),
+            Line(6, rows: 1, speaker: DialogueSpeaker.Note),
+            Line(7, rows: 1),
+        };
+
+        var tight = PanelFitter.Fit(blocks, capacity: 2, expanded: false, scrollBack: 0, hiddenBefore: 0);
+        Assert.True(tight.Shows(0));
+        Assert.False(tight.Shows(1));
+        Assert.True(tight.Shows(2));
+
+        var roomy = PanelFitter.Fit(blocks, capacity: 3, expanded: false, scrollBack: 0, hiddenBefore: 0);
+        Assert.True(roomy.Shows(0) && roomy.Shows(1) && roomy.Shows(2));
+    }
 }

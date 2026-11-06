@@ -306,6 +306,11 @@ public sealed class DialoguePanel : IFrameLayer
 
         for (var i = fit.First; i < fit.End; i++)
         {
+            if (!fit.Shows(i))
+            {
+                continue;
+            }
+
             rows.AddRange(spanishRows[i]);
             if (fit.ShowEnglish[i])
             {
