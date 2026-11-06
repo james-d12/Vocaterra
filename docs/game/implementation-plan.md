@@ -2336,6 +2336,17 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   stopped twice with work uncommitted while its own background runs went on, and was resumed by message; the scripted runs moved only
   `r30-no-classes`' `declined.png`, which also differed between two captures of the same build (nondeterministic, not this change).
   Report `.claude/briefs/w05-report.md`.
+- **W06, the procedure runner (2026-11-06, Sonnet 5.5; gated on `feature/bread-pilot` at `b1579284`, 9645 passed, 3 skipped, with the
+  models).** `Activities/ProcedureRunner` (start, act, collect, repeat, slower, help, leave, abandon, the view, drained events, capture and
+  restore) and `ProcedureProgress`; `PhraseProgress.RecordAct`, with `does` rows kept out of the review deck; the four `procedure_*` world
+  events; `systems.procedures` in save version 6 (absent when empty; versions 1 to 6 tested); `GuideSession.Activities.cs` with the mastered
+  recipe's one-click bake through `CraftingRules`. **Design decision 19 is provisional and the owner's** (orchestrator's value, brief of
+  2026-11-06): an act records whether its instruction was heard and read, apart; rung moves, folding and mastery treat both alike
+  (`InstructionEvidencePolicy`; `RequirePresentation` is the alternative). Other values chosen: `anyOrder` steps follow the drawn order
+  strictly (the instruction names one, so a group-mate first is out of order); the order is `WorldRng.For(seed, "proc." + id, bake)`;
+  mastery counts distinct play sessions; chunk and goal rows start at rung 2 (18.2 decision 3); a full bag leaves `ReadyToCollect` with
+  nothing consumed; the one-click bake has no bonus; a rung-4 act earns nothing. Left to W07: the per-noun read count of 10.10. Report
+  `.claude/briefs/w06-report.md`.
 
 ## 6. Definition of done (every milestone)
 
