@@ -166,6 +166,18 @@ public static class WorldEvents
     /// <summary>The player planted a berry at the camp (N08, design decision 14; the detail is the item's noun, <c>fruta</c>): the cell becomes a plain bush that the night grows.</summary>
     public const string BushPlanted = "bush_planted";
 
+    /// <summary>A procedure run began (W06; the detail is the procedure's id). A resumed run raises none.</summary>
+    public const string ProcedureStarted = "procedure_started";
+
+    /// <summary>A right act of a procedure's step was made (W06; the detail is the step's id).</summary>
+    public const string ProcedureStep = "procedure_step";
+
+    /// <summary>A procedure's exchange was made: the run is done (W06; the detail is the procedure's id).</summary>
+    public const string ProcedureDone = "procedure_done";
+
+    /// <summary>A procedure became mastered (W06; the detail is the procedure's id): the one-click bake is on offer.</summary>
+    public const string ProcedureMastered = "procedure_mastered";
+
     /// <summary>Every world event name, in the order above (the tips, the lessons and the objectives check the names they use against it).</summary>
     public static IReadOnlyList<string> All { get; } =
     [
@@ -176,5 +188,6 @@ public static class WorldEvents
         BeaconReached, PlaceAsked, ItemTaken, OrderDelivered,
         Slept, SessionSkipped,
         MealEaten, WaterDrunk, NeedStage, PlayerCollapsed, PlayerDied, PlayerWoke, BelongingsRecovered, BushPlanted,
+        ProcedureStarted, ProcedureStep, ProcedureDone, ProcedureMastered,
     ];
 }

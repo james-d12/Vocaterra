@@ -178,7 +178,7 @@ public static class SaveGame
             SkippedTo: session.SkippedTo,
             Sitting: session.Sitting,
             KeyWordsTaughtBy: session.KeyWordsTaughtBy,
-            Systems: new SystemsSave(session.Needs.Capture(), session.CaptureChest(), session.CaptureBushes(), session.CaptureGifts(), session.CapturePlanted()),
+            Systems: new SystemsSave(session.Needs.Capture(), session.CaptureChest(), session.CaptureBushes(), session.CaptureGifts(), session.CapturePlanted(), session.CaptureProcedures()),
             MetNpcs: session.MetNpcs);
     }
 
@@ -412,6 +412,7 @@ public static class SaveGame
         session.RestoreChest(document.Systems?.Chest); // N04: the chest's block is in the world's edits; here its cell and contents
         session.RestoreRenewal(document.Systems?.Bushes, document.Systems?.Gifts); // N06: the picked bushes' blocks are in the world's edits; here the cells that grow back, and the gifts given today
         session.RestorePlanted(document.Systems?.Planted); // N08: the planted bushes that stand, for the camp's cap
+        session.RestoreProcedures(document.Systems?.Procedures); // W06: a save without an entry has none
         session.RestoreNeeds(document.Systems?.Needs); // N01: a save before version 6 has none, so full needs; the needs are not in the world's digest
         session.SkippedTo = document.SkippedTo; // a test run skipped to a later session stays marked (V12c)
         session.RestoreStage(); // the stage of the objective area (S17) follows from the world and the progress just put back

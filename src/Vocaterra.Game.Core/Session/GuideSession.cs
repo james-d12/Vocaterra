@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Activities;
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
@@ -143,7 +144,8 @@ public abstract partial class GuideSession : IDisposable
         Locale = data.Locale;
         Glosses = data.Glosses;
         var book = Data.Lessons;
-        PhraseProgress = new PhraseProgress(Phrases, playSession, data.Npcs.ScaffoldPhrases.Concat(book.TaughtPhrases));
+        PhraseProgress = new PhraseProgress(Phrases, playSession, data.Npcs.ScaffoldPhrases.Concat(book.TaughtPhrases).Concat(data.Procedures.Procedures.SelectMany(static p => p.Rows))); // W06: every instruction row of a procedure is a scaffold
+        Procedures = new ProcedureRunner(data.Procedures, data.Stations, Nouns, PhraseProgress, Credit, worldSeed);
         Lessons = new LessonRunner(this, book, Locale);
         Support = new PhraseSupport(Phrases, PhraseProgress, Bundle, data.Npcs, Locale, null); // every scaffold phrase has its card from rung 1, whether or not a class taught it (L01)
         Deck = new ReviewDeck(this);
