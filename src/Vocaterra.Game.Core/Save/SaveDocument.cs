@@ -382,12 +382,14 @@ public sealed record RepeatSave(string Tag, int Count);
 /// <param name="Bushes">The cells of the berry bushes picked by hand since the last night (N06): each is a plain bush in the world's block edits until a night grows it back; <see langword="null"/> for none.</param>
 /// <param name="Gifts">The gifts given today (N06, <c>GiftRule.Key</c>: <c>shopkeeper:bread</c>), which the next night makes available again; <see langword="null"/> for none.</param>
 /// <param name="Planted">The berry bushes planted at the camp that stand (N08): each is also in <paramref name="Bushes"/> until a night grows it; <see langword="null"/> for none.</param>
+/// <param name="Procedures">The procedures (W06): what the learner knows, their records and the run in progress; <see langword="null"/> in a save made before W06 or with none, which starts with none.</param>
 public sealed record SystemsSave(
     Vocaterra.Game.Core.Needs.NeedsSave? Needs = null,
     [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] ChestSave? Chest = null,
     [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] BushSave[]? Bushes = null,
     [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string[]? Gifts = null,
-    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] BushSave[]? Planted = null);
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] BushSave[]? Planted = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] ProceduresSave? Procedures = null);
 
 /// <summary>A cell of a picked berry bush (N06, design 9.6) that a night grows back.</summary>
 /// <param name="X">The cell's X.</param>
@@ -401,3 +403,63 @@ public sealed record BushSave(int X, int Y, int Z);
 /// <param name="Z">The cell's Z.</param>
 /// <param name="Stacks">What is in it, one entry per item kind.</param>
 public sealed record ChestSave(int X, int Y, int Z, SlotSave[] Stacks);
+
+/// <summary>The procedures of a save (W06, <c>systems.procedures</c>, design 10.13): the records, the evidence of acts, and the run in progress.</summary>
+/// <param name="Version">The entry's version (1).</param>
+/// <param name="Known">The procedures the learner has started.</param>
+/// <param name="Progress">The records, one per procedure started.</param>
+/// <param name="Evidence">The right acts per instruction row, heard and read apart.</param>
+/// <param name="Run">The run in progress, or <see langword="null"/>.</param>
+public sealed record ProceduresSave(
+    int Version,
+    string[] Known,
+    ProcedureProgressSave[] Progress,
+    ActEvidenceSave[] Evidence,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] ProcedureRunSave? Run = null);
+
+/// <summary>One procedure's record in a save.</summary>
+/// <param name="Id">The procedure.</param>
+/// <param name="Runs">Runs started.</param>
+/// <param name="Completed">Runs finished.</param>
+/// <param name="CleanSittings">The play sessions in which it was finished without help.</param>
+/// <param name="FirstTimeSteps">Steps right the first time, over all runs.</param>
+/// <param name="Mastered">Whether it is mastered.</param>
+public sealed record ProcedureProgressSave(string Id, int Runs, int Completed, int[] CleanSittings, int FirstTimeSteps, bool Mastered);
+
+/// <summary>The right acts on one instruction row in a save, by how it was presented.</summary>
+/// <param name="Row">The row.</param>
+/// <param name="Heard">Acts with the audio played.</param>
+/// <param name="Read">Acts with the text shown.</param>
+public sealed record ActEvidenceSave(string Row, int Heard, int Read);
+
+/// <summary>The run in progress (design 10.13): the drawn order, the steps done, the slips, the steps helped and what is shown or folded.</summary>
+/// <param name="Procedure">The procedure.</param>
+/// <param name="Station">The station.</param>
+/// <param name="State">The state: <c>InRun</c>, <c>ReadyToCollect</c> or <c>Done</c>.</param>
+/// <param name="Teacher">Whether the teacher is present.</param>
+/// <param name="Bake">The run's number (the draw's index).</param>
+/// <param name="Order">The steps in the drawn order.</param>
+/// <param name="Done">The steps done.</param>
+/// <param name="Slips">The wrong acts per step.</param>
+/// <param name="Helped">The steps done or shown with help.</param>
+/// <param name="Shown">The rows whose instruction was shown this run.</param>
+/// <param name="Folded">The chunks (and <c>goal</c>) shown folded this run.</param>
+/// <param name="Unfolded">The chunks (and <c>goal</c>) help unfolded this run.</param>
+public sealed record ProcedureRunSave(
+    string Procedure,
+    string Station,
+    string State,
+    bool Teacher,
+    int Bake,
+    string[] Order,
+    string[] Done,
+    SlipSave[] Slips,
+    string[] Helped,
+    string[] Shown,
+    string[] Folded,
+    string[] Unfolded);
+
+/// <summary>The wrong acts on one step.</summary>
+/// <param name="Step">The step's id.</param>
+/// <param name="Count">How many.</param>
+public sealed record SlipSave(string Step, int Count);
