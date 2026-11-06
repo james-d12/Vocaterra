@@ -75,6 +75,13 @@
     { "npc": "villager", "item": "bread", "per": "day" },
     { "npc": "guide", "item": "water-bottle", "per": "day" }
   ],
+  "planting": {
+    "item": "berry",
+    "block": "bush",
+    "grownBlock": "berry-bush",
+    "radiusBlocks": 8,
+    "maxBushes": 6
+  },
   "death": {
     "wakeAt": "firering.player",
     "wake": { "health": 50, "hunger": 50, "thirst": 50, "sleep": 50 },

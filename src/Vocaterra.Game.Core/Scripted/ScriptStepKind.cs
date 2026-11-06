@@ -96,4 +96,7 @@ public enum ScriptStepKind
 
     /// <summary>Puts one of the item named in <see cref="ScriptStep.Value"/> in the bag (<c>--give manzana</c>, N07, a test aid like <c>--eat</c>'s: a run that crafts needs its ingredient).</summary>
     Give,
+
+    /// <summary>Plants a berry at the camp on the ground block whose cell is in <see cref="ScriptStep.Value"/> (<c>--plant 10,4,12</c>, N08): the held berry goes on the grass or dirt, as a right click on it does.</summary>
+    Plant,
 }

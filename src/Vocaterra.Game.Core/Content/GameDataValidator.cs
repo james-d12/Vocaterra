@@ -72,6 +72,7 @@ public static class GameDataValidator
         CheckObjectives(data, problems);
         problems.AddRange(NeedsValidator.Validate(data.Needs)); // N01: every food an item, every rate positive, the stages in order
         CheckRenewal(data, problems);
+        CheckPlanting(data, problems);
         CheckLessonLevels(data, problems);
         return problems;
     }
@@ -349,6 +350,51 @@ public static class GameDataValidator
 
     // N06: the regrowth and the gift rules of game/needs.json name things that exist. A regrowing block is a block the player gathers; a gift is an item an NPC of the
     // bundle gives (a host event of game/host-events.json), once, and its agent has a state that takes <npc>.gift_used to say today's is given.
+    // The camp's planting (N08, optional in needs.json): the item is an item, the block a block the regrowth grows from (the grown one has a rule), the radius and the count above 0.
+    private static void CheckPlanting(GameData data, List<string> problems)
+    {
+        const string File = NeedsData.RelativePath;
+        if (data.Needs.Planting is not { } planting)
+        {
+            return;
+        }
+
+        if (ItemDefinition.All.All(d => !string.Equals(d.Name, planting.Item, StringComparison.Ordinal)))
+        {
+            problems.Add($"{File}: the planting names '{planting.Item}', which is not an item.");
+        }
+
+        var block = BlockDefinition.FromName(planting.Block);
+        var grown = BlockDefinition.FromName(planting.GrownBlock);
+        if (block is null)
+        {
+            problems.Add($"{File}: the planting names '{planting.Block}', which is not a block.");
+        }
+
+        if (grown is null)
+        {
+            problems.Add($"{File}: the planting grows into '{planting.GrownBlock}', which is not a block.");
+        }
+        else if (!data.Needs.Regrowth.Any(r => string.Equals(r.Block, grown.Name, StringComparison.Ordinal)))
+        {
+            problems.Add($"{File}: the planting grows into '{planting.GrownBlock}', which has no regrowth rule, so it would never grow.");
+        }
+        else if (block is not null && block.Id != grown.BecomesWhenGathered)
+        {
+            problems.Add($"{File}: the planting makes '{planting.Block}', but '{planting.GrownBlock}' regrows from '{BlockDefinition.Get(grown.BecomesWhenGathered).Name}'.");
+        }
+
+        if (planting.RadiusBlocks <= 0)
+        {
+            problems.Add($"{File}: the planting radius is {planting.RadiusBlocks}; it must be above 0.");
+        }
+
+        if (planting.MaxBushes <= 0)
+        {
+            problems.Add($"{File}: the planting allows {planting.MaxBushes} bushes; it must be above 0.");
+        }
+    }
+
     private static void CheckRenewal(GameData data, List<string> problems)
     {
         const string File = NeedsData.RelativePath;

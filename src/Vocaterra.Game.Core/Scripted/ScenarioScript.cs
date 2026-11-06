@@ -21,6 +21,28 @@ namespace Vocaterra.Game.Core.Scripted;
 /// <remarks>The script is a state machine over ticks: nothing reads the clock or draws a random number.</remarks>
 public sealed class ScenarioScript
 {
+    /// <summary>A cell written <c>x,y,z</c> (<c>10,4,12</c>), or <see langword="null"/> when the text is not three whole numbers (N08's <c>--plant</c>).</summary>
+    public static BlockPos? ParseCell(string text) => TryParseCell(text, out var cell) ? cell : null;
+
+    /// <summary>Reads a cell written <c>x,y,z</c>; false when the text is not three whole numbers.</summary>
+    /// <param name="text">The text.</param>
+    /// <param name="cell">The cell, when it is read.</param>
+    public static bool TryParseCell(string text, out BlockPos cell)
+    {
+        cell = default;
+        var parts = (text ?? string.Empty).Split(',');
+        if (parts.Length != 3
+            || !int.TryParse(parts[0].Trim(), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var x)
+            || !int.TryParse(parts[1].Trim(), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var y)
+            || !int.TryParse(parts[2].Trim(), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var z))
+        {
+            return false;
+        }
+
+        cell = new BlockPos(x, y, z);
+        return true;
+    }
+
     /// <summary>The ticks the script waits after arriving before it opens the panel (the view settles).</summary>
     public const int SettleTicks = 20;
 
@@ -350,6 +372,18 @@ public sealed class ScenarioScript
                 else
                 {
                     _log($"eat {step.Value}: no such item");
+                }
+
+                _index++;
+                break;
+            case ScriptStepKind.Plant:
+                if (ParseCell(step.Value) is { } ground)
+                {
+                    _hooks.Plant?.Invoke(ground);
+                }
+                else
+                {
+                    _log($"plant {step.Value}: the cell is x,y,z");
                 }
 
                 _index++;

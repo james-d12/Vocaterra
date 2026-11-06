@@ -76,7 +76,7 @@ public sealed class LocaleText
         "craftMissing", "needBottle", "playtestThanks", "playtestRecallThanks", "playtestSaved", "speechUnavailable", "turnNotChecked",
         "autosaved", "greyNewWord",
         "sleepHud", "reviewNothingDue", "sleepCard", "sleepPrompt", "sleptToast", "bookLessonOpen", "bookLessonAfter",
-        "bookLessonsAllDone", "foodKept", "drinkKept", "diedHunger", "diedThirst", "chestRest", "beaconBelongings",
+        "bookLessonsAllDone", "foodKept", "drinkKept", "plantedBush", "plantFar", "plantOccupied", "plantFull", "diedHunger", "diedThirst", "chestRest", "beaconBelongings",
         "faintedHunger", "faintedThirst", "controlsEffectsKeys", "controlsEffects", "effectsOn", "effectsOff",
         "controlsSettingsKeys", "controlsSettings", "settingsTitle", "settingsRate", "settingsEffects", "settingsRelaxed", "settingsOn", "settingsOff", "settingsHint",
     ];

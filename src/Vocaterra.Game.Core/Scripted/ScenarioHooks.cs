@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Voxel;
 namespace Vocaterra.Game.Core.Scripted;
 
 /// <summary>
@@ -32,4 +33,5 @@ public sealed record ScenarioHooks(
     Action? Drink = null,
     Action? TakeBelongings = null,
     Action<string>? SetNeed = null,
-    Action<ItemId>? Give = null);
+    Action<ItemId>? Give = null,
+    Action<BlockPos>? Plant = null);

@@ -107,6 +107,17 @@ public sealed record DeathSpec(string WakeAt, double Health, double Hunger, doub
 /// <param name="After">When it grows back: <c>night</c> (a sleep or a collapse, <c>RunDayResets</c>).</param>
 public sealed record RegrowRule(string Block, string After);
 
+/// <summary>
+/// The berry the player plants at the camp (N08, design decision 14): planted on grass or dirt inside the radius of the camp's fire ring, it becomes <paramref name="Block"/> at once
+/// and <paramref name="GrownBlock"/> after the next night (through <see cref="RegrowRule"/>, so it is picked and grown back like any berry bush).
+/// </summary>
+/// <param name="Item">The item planted (<c>berry</c>).</param>
+/// <param name="Block">The block the planted cell becomes at once (<c>bush</c>, the plain bush a picked berry bush is).</param>
+/// <param name="GrownBlock">The block it grows into after a night (<c>berry-bush</c>): it must have a regrowth rule.</param>
+/// <param name="RadiusBlocks">How far from the camp's fire ring, horizontally, a bush may be planted (blocks).</param>
+/// <param name="MaxBushes">The most planted bushes alive at once.</param>
+public sealed record PlantingRule(string Item, string Block, string GrownBlock, int RadiusBlocks, int MaxBushes);
+
 /// <summary>A gift an NPC gives once a day (N06, design 9.6). A gift a lesson step requires is always given.</summary>
 /// <param name="Npc">The NPC's agent id (<c>shopkeeper</c>, <c>villager</c>, <c>guide</c>).</param>
 /// <param name="Item">The item's key (<c>bread</c>): the NPC's host event that gives it is the gift.</param>
@@ -139,6 +150,7 @@ public sealed record GiftRule(string Npc, string Item, string Per)
 /// <param name="Death">The death rules.</param>
 /// <param name="Regrowth">The blocks that grow back after a night (N06); none when the file has no <c>regrowth</c>.</param>
 /// <param name="Gifts">The gifts given once a day (N06); none when the file has no <c>gifts</c>.</param>
+/// <param name="Planting">The berry planted at the camp (N08), or <see langword="null"/> when the file has no <c>planting</c>.</param>
 public sealed record NeedsData(
     IReadOnlyList<DriveSpec> Drives,
     HealthSpec Health,
@@ -151,7 +163,8 @@ public sealed record NeedsData(
     IReadOnlyList<NeedFood> Foods,
     DeathSpec Death,
     IReadOnlyList<RegrowRule> Regrowth,
-    IReadOnlyList<GiftRule> Gifts)
+    IReadOnlyList<GiftRule> Gifts,
+    PlantingRule? Planting = null)
 {
     /// <summary>The file's path inside the bundle folder.</summary>
     public const string RelativePath = "game/needs.json";
@@ -223,7 +236,10 @@ public sealed record NeedsData(
                 root.GetProperty("foods").EnumerateArray().Select(FoodOf).ToList(),
                 new DeathSpec(Text(death, "wakeAt"), Number(wake, "health"), Number(wake, "hunger"), Number(wake, "thirst"), Number(wake, "sleep"), Text(death, "keepInBag"), Text(death, "chestLastsUntil")),
                 root.TryGetProperty("regrowth", out var regrowth) ? regrowth.EnumerateArray().Select(static r => new RegrowRule(Text(r, "block"), Text(r, "after"))).ToList() : [],
-                root.TryGetProperty("gifts", out var gifts) ? gifts.EnumerateArray().Select(static g => new GiftRule(Text(g, "npc"), Text(g, "item"), Text(g, "per"))).ToList() : []);
+                root.TryGetProperty("gifts", out var gifts) ? gifts.EnumerateArray().Select(static g => new GiftRule(Text(g, "npc"), Text(g, "item"), Text(g, "per"))).ToList() : [],
+                root.TryGetProperty("planting", out var planting)
+                    ? new PlantingRule(Text(planting, "item"), Text(planting, "block"), Text(planting, "grownBlock"), (int)Number(planting, "radiusBlocks"), (int)Number(planting, "maxBushes"))
+                    : null);
         }
         catch (Exception ex) when (ex is JsonException or KeyNotFoundException or InvalidOperationException or FormatException)
         {

@@ -92,7 +92,7 @@
 {"path":"game/lessons/manana-en-el-pueblo.json","sha256":"1d8f4035ef962ff9d1acf72d91fe9d9d520b6a35cdf132a5694bde6930660e9a","bytes":3618},
 {"path":"game/lessons/numeros-y-pan.json","sha256":"7ea3b0aeb640d6435cb8cccb8ad6cbce6b31f544505a2dacfec1e6657d04f3c8","bytes":4197},
 {"path":"game/lessons/personas.json","sha256":"b38f55df3fbd3f6a149b8ccfe32e4dd2a265cca13b8fd19f760e988be0f2e72a","bytes":4550},
-{"path":"game/needs.json","sha256":"67dd97aaf8738f2642ab21507218f0851836d27b0a1176dda6de4efd8572e855","bytes":4235},
+{"path":"game/needs.json","sha256":"b2d0dcd60cb1eff5da83ee7a943c06392e1e92dc838ca5dae61e6dde2b133b78","bytes":4372},
 {"path":"game/nouns.json","sha256":"a8c9aaa708be98bc2af49b57021214130f1041803e1933b4c99e155e7ea56538","bytes":1875},
 {"path":"game/npcs.json","sha256":"e56af3363f38ce851776eb0274037ef0573113fda995423f4b2849864fb28760","bytes":620},
 {"path":"game/npcs/baker.json","sha256":"e2b8528c023e67ae9999d57465ca0934ee668deb9e3bf6ac5c915b22668847c1","bytes":897},
@@ -1422,4 +1422,4 @@
 {"path":"speech/villager/villager_wont_sell.1.wav","sha256":"3265f9782c9ad6140cb0111fff9faa2deaf07a0c6ebb5b798f8df03c9d25b1b9","bytes":67244},
 {"path":"speech/villager/villager_yes.1.slow.wav","sha256":"c89db269d94d9525b8b6e1294b6edfef8682dfd5fb5522ac7d2de7539b546c42","bytes":38444},
 {"path":"speech/villager/villager_yes.1.wav","sha256":"b7de709cd242f8181619ba356c6a8223d9a489231b934e1ee81f522f1d0442a3","bytes":30044}
-],"bundleHash":"bb6b16772c010b910035e75f5aeae686b9a720c2f94ad08743232ee0de3e690f"}
+],"bundleHash":"3afeea4c74a962e3c94ca0577771c28e5fa58a8e3b40277c1daa4a1c8c6ee92a"}

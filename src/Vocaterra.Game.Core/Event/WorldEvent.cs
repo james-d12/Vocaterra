@@ -163,6 +163,9 @@ public static class WorldEvents
     /// <summary>The player took back the belongings a death left in the chest (N01; raised from N04 on).</summary>
     public const string BelongingsRecovered = "belongings_recovered";
 
+    /// <summary>The player planted a berry at the camp (N08, design decision 14; the detail is the item's noun, <c>fruta</c>): the cell becomes a plain bush that the night grows.</summary>
+    public const string BushPlanted = "bush_planted";
+
     /// <summary>Every world event name, in the order above (the tips, the lessons and the objectives check the names they use against it).</summary>
     public static IReadOnlyList<string> All { get; } =
     [
@@ -172,6 +175,6 @@ public static class WorldEvents
         WarmupOffered, WarmupStarted, WarmupEnded, WarmupSkipped, ReviewSkipped, ReviewAnswered,
         BeaconReached, PlaceAsked, ItemTaken, OrderDelivered,
         Slept, SessionSkipped,
-        MealEaten, WaterDrunk, NeedStage, PlayerCollapsed, PlayerDied, PlayerWoke, BelongingsRecovered,
+        MealEaten, WaterDrunk, NeedStage, PlayerCollapsed, PlayerDied, PlayerWoke, BelongingsRecovered, BushPlanted,
     ];
 }
