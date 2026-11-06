@@ -95,7 +95,7 @@ track) is half done; phase E (the bread pilot, W05 to W10) waits for the owner's
    `VOCATERRA_MODELS_DIR` set), spot-check in the game, record the plan row and a findings entry, save the report, commit, push
    `feature/adaptive_design`, remove the worktree and the local branch, **update this handover**.
 3. **The bread work is its own workstream since 2026-11-06:** W05 to W07 on `feature/bread-pilot`, handover
-   [2026-11-06-0928-bread-pilot](2026-11-06-0928-bread-pilot.md) (D-game-23, owner's answers of 2026-11-06). This workstream takes the
+   [2026-11-06-2035-bread-pilot](2026-11-06-2035-bread-pilot.md) (D-game-23, owner's answers of 2026-11-06). This workstream takes the
    needs check's findings and fixes; `feature/bread-pilot` merges them in and is gated back here at the end.
 4. Phases B to D are done (N08 and U02 merged 2026-11-06): give the owner the review notice (what to playtest, with N09's slider:
    the settings panel and `--needs-rate`), and wait for the needs check or the owner's word on W05 to W07.

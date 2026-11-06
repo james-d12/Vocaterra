@@ -32,12 +32,13 @@ several of them were moved out of the orchestrator, the game plan and a research
 | Handover | Workstream | What it waits for |
 | --- | --- | --- |
 | [2026-11-05-2031-adaptive-design](2026-11-05-2031-adaptive-design.md) | The adaptation on `feature/adaptive_design`: the needs, lessons as classes, the presentation track, then the bread pilot | The owner's needs check, and fixes from it |
-| [2026-11-06-0928-bread-pilot](2026-11-06-0928-bread-pilot.md) | The bread pilot's machinery, W05 to W07, on `feature/bread-pilot` | A fresh orchestrator session to start W05 |
+| [2026-11-06-2035-bread-pilot](2026-11-06-2035-bread-pilot.md) | The bread pilot on `feature/bread-pilot`: W05 to W07b and T8 merged, W08 stopped partway | A fresh orchestrator session to finish and gate W08, then W10 |
 
 **Done**
 
 | Handover | Workstream | Closed |
 | --- | --- | --- |
+| [2026-11-06-0928-bread-pilot](done/2026-11-06-0928-bread-pilot.md) | The bread pilot's machinery, W05 to W07, on `feature/bread-pilot` | Session ended 2026-11-06; replaced by [2026-11-06-2035-bread-pilot](2026-11-06-2035-bread-pilot.md) |
 | [2026-11-03-2114-adaptation-design](done/2026-11-03-2114-adaptation-design.md) | The Adaptation Design Document, revision 3 (PR #30) | PR #30 merged; replaced by [2026-11-05-2031-adaptive-design](2026-11-05-2031-adaptive-design.md) |
 | [2026-11-03-1133-docs-cleanup](done/2026-11-03-1133-docs-cleanup.md) | The documentation cleanup | `docs_cleanup` merged into `main` |
 | [2026-11-02-after-followups](done/2026-11-02-after-followups.md) | The owner's decisions after the village follow-ups | M74, M75, V29, M78 and the study merged into `feature/adaptive_design` |
