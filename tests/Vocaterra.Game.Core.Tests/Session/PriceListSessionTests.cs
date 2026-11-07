@@ -5,8 +5,8 @@ using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
-using Vocaterra.Nlp.Pipeline;
 using Vocaterra.Game.Core.Tests.TestSupport;
+using Vocaterra.Nlp.Pipeline;
 
 namespace Vocaterra.Game.Core.Tests.Session;
 
