@@ -45,3 +45,14 @@ Scripted runs: speech 691 lines/1382 files; lessons (12); Lessons page 212 lines
 of the day («quiero dos panes, por favor» unknown, «Te entiendo. ¿Quieres pan?»; r22 buys no bread)**. r27-bread PNGs in
 /tmp/claude-1000/w10/r27/ (offer, first, early, oven, done: 2 loaves after two slips). `--lesson-run en-la-panaderia` hangs (r27 uses the
 offer). Left undone: Luz's repeat after «Todavía no.»; the offer's fall-through.
+
+---
+W10 fixes (second agent, 2026-11-07, Sonnet 5.5 medium): 84ff8730 (Luz's offer) and 272a7059 (--lesson-run). Suite 9852 passed, 3
+skipped; lint 0, grammar 0/0, goldens unmoved, format clean.
+1. baker-offer allowed only confirm, deny, ask_help, dont_know. Now it also allows baker-open's intents; offering_bake has idle's 13
+   transitions (to idle; the offer counted for the day). Removed the error example «no, mucho gracias» (deny at stall-offer) from
+   intents.json: with thank allowed it tied and the lint's confusion error cannot be waived; «mucho gracias» stays a thank example.
+   Tests in TeacherLoopTests (4-line Theory, Sí still starts). r22-r24 vs pre-W10: lines understood again (r22 buys bread); left by design:
+   the offer opens the talk; credit unaided instead of supported (no card at the offer); r23 loses four support_card_shown.
+2. --lesson-run hung at k3-oven (do step waiting for procedure_done; no driver for the station). ScenarioScript's Do case now logs a
+   clear stop and ends the script. Test in LessonFrontendTests. Not run in the real CLI.
