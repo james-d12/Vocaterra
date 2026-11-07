@@ -334,12 +334,18 @@ utterances.
 the stages as an empty line or as the nearest answer phrase, and the typed-line rules never see the words said. With the option on, `Analyze` decodes the clip a
 second time, freely (`RecognitionRequest.Open(MaxAlternatives)`), when all four hold: the option is on; the prompt is `Constrained`; the first recognition's
 `Mode` is `Constrained`; and the first reading is not taken (not `Communicated` and no `OffPromptIntent`). The free recognition goes through the same stages (one
-private method serves both passes; the phoneme posteriors are computed once, on the first pass, and reused), and **it wins only when it is taken**; otherwise the
-first reading stands and is byte-identical to the option off. The core adds no confidence gate of its own: the host's rule for an uncertain line reads the chosen
+private method serves both passes; the phoneme posteriors are computed once, on the first pass, and reused), and **it wins only when it is taken and its weakest
+word is not weak**; otherwise the first reading stands and is byte-identical to the option off. The floor is `PipelineOptions.OpenPassWordFloor` (`double`, default
+`0.5` = `PipelineOptions.DefaultOpenPassWordFloor`; the owner, 2026-11-07): the free reading is taken only when the lowest `AsrWord.Confidence` of its recognition is
+at least the floor (exactly the floor is enough). A free recognition with no words (an empty one, or a recognizer that gives no word confidences, as the scripted ones
+often do) has no weakest word and is not taken, except at a floor of `0`, which switches the check off (the behaviour before the floor). The floor holds the free pass
+only: the first, constrained pass is never held to it, and it does nothing while the option is off. A value outside 0 to 1 (or NaN) makes the `UtterancePipeline`
+constructor throw `ArgumentOutOfRangeException`. Beyond that the core adds no gate: the host's rule for an uncertain line (a mean confidence, say) reads the chosen
 `Asr`.
 
 ```csharp
 var pipeline = new UtterancePipeline(services, new PipelineOptions { OpenRecognitionFallback = true });   // free talk only; lesson steps keep the default
+// OpenPassWordFloor = 0.5 by default: a free reading with a word under 0.5 is not taken
 UtteranceAnalysis analysis = pipeline.Analyze(clip, prompt);
 bool heardFreely = analysis.Asr.Mode == RecognitionMode.Open;      // a line the constrained decode did not take, read from the free decode
 AsrResult? other = analysis.OtherPass;                              // the recognition that was not chosen; null when only one decode ran
@@ -351,7 +357,9 @@ AsrResult? other = analysis.OtherPass;                              // the recog
 speech with the small Vosk model and one best hypothesis (`OpenFallbackMeasurementTests`, a model-gated test that prints its report): the constrained decode takes
 a median 24 ms (95th percentile 50 ms), the free decode a median 190 ms (95th percentile 268 ms; 336 to 349 ms for clips over 3 s). Nothing is measured on real
 learner speech: the accent risk is unmeasured. The recognizer must be able to serve a second, open request on the same clip: the Vosk adapter makes its own native
-recognizer per call, and the scripted and replay recognizers need no change. Credit for a line heard freely is the host's to decide.
+recognizer per call, and the scripted and replay recognizers need no change. The floor (above) was set from that run: without it, two spoken lines no intent should take
+(`ese libro es muy interesante` heard as `el libro es muy interesante`, `el` at 0.45) were taken as `describe` and two lines were taken as the wrong intent (`si usted
+hace años muy buenas`, `años` at 0.26); at 0.5 the measurement has zero false takes and loses one understood line of 108 (a word at 0.46 in a long line; 0.6 would lose six). Credit for a line heard freely is the host's to decide.
 
 ## 4. Build a conversation context (D0)
 

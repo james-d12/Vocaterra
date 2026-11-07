@@ -634,7 +634,7 @@ The envelope has no field for the second decode, and its format did not change. 
 - **The free recognition was chosen** (the constrained one was not taken and the free one was). It is recorded with `mode` `Open`. On replay the recorded recognition
   is served for the first request; its mode is `Open`, so the trigger (which needs a `Constrained` first recognition) never fires, and the verdict is the one recorded.
   A replay through a pipeline with the option off gives the same result, because the stages read the recorded recognition the same way.
-- **The constrained recognition was kept.** It is recorded with `mode` `Constrained`. A replay through a pipeline with the option on serves the same recognition
+- **The constrained recognition was kept** (the free one was not taken, or had a word under `OpenPassWordFloor`). It is recorded with `mode` `Constrained`. A replay through a pipeline with the option on serves the same recognition
   again for the second (open) request; it is not taken either, so the first reading is kept and the verdict is the same. The unchosen free recognition
   (`UtteranceAnalysis.OtherPass`) is not recorded.
 
