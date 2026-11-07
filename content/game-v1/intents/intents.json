@@ -180,7 +180,15 @@
         {"text": "tres manzanas rojas, por favor", "errors": [], "prompt": "farmer-open"},
         {"text": "quiero una manzana roja", "errors": [], "prompt": "farmer-open"},
         {"text": "quiero tres manzanas rojos", "errors": ["gender.agree"], "prompt": "farmer-open"},
-        {"text": "quiero tres manzana rojas", "errors": ["noun.number"], "prompt": "farmer-open"}
+        {"text": "quiero tres manzana rojas", "errors": ["noun.number"], "prompt": "farmer-open"},
+        {"text": "quiero harina", "errors": [], "prompt": "stall-need"},
+        {"text": "quiero la harina", "errors": [], "prompt": "stall-need"},
+        {"text": "necesito harina", "errors": [], "prompt": "stall-need"},
+        {"text": "quiero harina, por favor", "errors": [], "prompt": "stall-need"},
+        {"text": "harina, por favor", "errors": [], "prompt": "stall-need"},
+        {"text": "me das harina", "errors": [], "prompt": "stall-need"},
+        {"text": "me da harina", "errors": [], "prompt": "stall-need"},
+        {"text": "quiero el harina", "errors": ["gender.agree"], "prompt": "stall-need"}
       ]
     },
     {
@@ -681,7 +689,21 @@
         "luz vive en la panadería",
         "mar va a trabajar en el río",
         "tú pescas mucho",
-        "usted trabaja mucho"
+        "usted trabaja mucho",
+        {"text": "voy a hacer pan", "errors": [], "prompt": "lesson-bake-plan"},
+        {"text": "yo voy a hacer pan", "errors": [], "prompt": "lesson-bake-plan"},
+        {"text": "voy a hacer el pan", "errors": [], "prompt": "lesson-bake-plan"},
+        {"text": "hoy voy a hacer pan", "errors": [], "prompt": "lesson-bake-plan"},
+        {"text": "voy a hacer pan hoy", "errors": [], "prompt": "lesson-bake-plan"},
+        {"text": "mañana voy a hacer pan", "errors": [], "prompt": "lesson-bake-plan"},
+        {"text": "voy a hago pan", "errors": ["conj.tense"], "prompt": "lesson-bake-plan"},
+        {"text": "ayer hago pan", "errors": ["conj.tense"], "prompt": "lesson-made-bread"},
+        {"text": "hice pan", "errors": [], "prompt": "lesson-made-bread"},
+        {"text": "yo hice pan", "errors": [], "prompt": "lesson-made-bread"},
+        {"text": "hice el pan", "errors": [], "prompt": "lesson-made-bread"},
+        {"text": "hoy hice pan", "errors": [], "prompt": "lesson-made-bread"},
+        {"text": "ayer hice pan", "errors": [], "prompt": "lesson-made-bread"},
+        {"text": "hice pan hoy", "errors": [], "prompt": "lesson-made-bread"}
       ]
     },
     {
@@ -1106,7 +1128,14 @@
         {"text": "vendo fruta", "errors": [], "prompt": "farmer-open"},
         {"text": "quiero vender fruta", "errors": [], "prompt": "farmer-open"},
         "le vendo madera",
-        "tengo fruta para usted"
+        "tengo fruta para usted",
+        {"text": "vendo pan", "errors": [], "prompt": "stall-need"},
+        {"text": "yo vendo pan", "errors": [], "prompt": "stall-need"},
+        {"text": "te vendo pan", "errors": [], "prompt": "stall-need"},
+        {"text": "le vendo pan", "errors": [], "prompt": "stall-need"},
+        {"text": "vendo un pan", "errors": [], "prompt": "stall-need"},
+        {"text": "vendo dos panes", "errors": [], "prompt": "stall-need"},
+        {"text": "vendo la pan", "errors": ["gender.agree"], "prompt": "stall-need"}
       ]
     },
     {

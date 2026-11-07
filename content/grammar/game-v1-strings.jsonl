@@ -2333,6 +2333,13 @@
 {"id":"intents:offer_item.ex17","text":"quiero vender fruta","kind":"learner","errors":[]}
 {"id":"intents:offer_item.ex18","text":"le vendo madera","kind":"learner","errors":[]}
 {"id":"intents:offer_item.ex19","text":"tengo fruta para usted","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex20","text":"vendo pan","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex21","text":"yo vendo pan","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex22","text":"te vendo pan","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex23","text":"le vendo pan","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex24","text":"vendo un pan","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex25","text":"vendo dos panes","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex26","text":"vendo la pan","kind":"learner","errors":["gender.agree"]}
 {"id":"intents:request_item.ex0","text":"quiero el pan de luz","kind":"learner","errors":[]}
 {"id":"intents:request_item.ex1","text":"quiero dos panes de luz","kind":"learner","errors":[]}
 {"id":"intents:request_item.ex2","text":"quiero agua, por favor","kind":"learner","errors":[]}
@@ -2370,6 +2377,14 @@
 {"id":"intents:request_item.ex34","text":"quiero una manzana roja","kind":"learner","errors":[]}
 {"id":"intents:request_item.ex35","text":"quiero tres manzanas rojos","kind":"learner","errors":["gender.agree"]}
 {"id":"intents:request_item.ex36","text":"quiero tres manzana rojas","kind":"learner","errors":["noun.number"]}
+{"id":"intents:request_item.ex37","text":"quiero harina","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex38","text":"quiero la harina","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex39","text":"necesito harina","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex40","text":"quiero harina, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex41","text":"harina, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex42","text":"me das harina","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex43","text":"me da harina","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex44","text":"quiero el harina","kind":"learner","errors":["gender.agree"]}
 {"id":"intents:state_action.ex0","text":"mañana venderé fruta","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex1","text":"venderé fruta","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex2","text":"yo venderé fruta","kind":"learner","errors":[]}
@@ -2591,6 +2606,20 @@
 {"id":"intents:state_action.ex218","text":"mar va a trabajar en el río","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex219","text":"tú pescas mucho","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex220","text":"usted trabaja mucho","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex221","text":"voy a hacer pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex222","text":"yo voy a hacer pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex223","text":"voy a hacer el pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex224","text":"hoy voy a hacer pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex225","text":"voy a hacer pan hoy","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex226","text":"mañana voy a hacer pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex227","text":"voy a hago pan","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex228","text":"ayer hago pan","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex229","text":"hice pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex230","text":"yo hice pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex231","text":"hice el pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex232","text":"hoy hice pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex233","text":"ayer hice pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex234","text":"hice pan hoy","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex0","text":"tienes veinte panes","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex1","text":"tú tienes veinte panes","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex2","text":"sí, tienes veinte panes","kind":"learner","errors":[]}
