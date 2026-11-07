@@ -228,6 +228,13 @@ comparison's tolerance or excluding the picture is not a fix. A C# test pins the
 **Done:** the cause was the turn latency on the `--dev` note; a scripted run now gives the turn worker no clock
 (`LaunchOptions.TurnClock`), so three captures are identical. Details in game plan section 5.
 
+### T9: The jittering `r27-bread` capture (authorised by the owner, 2026-11-07)
+
+W02 and W03 found that `r27-bread`'s first capture is taken at tick 2460 on some builds and 2461 on others (W04 and V31 saw no
+jitter). T9 finds the source and fixes it there, as T8 did, so that three captures of one build, and of two builds of the same
+sources, are identical; widening the comparison is not a fix. A C# test pins the cause if it is in code. Haiku 5.5, on
+`feature/bread-pilot`.
+
 ## Files touched
 - **New:** `scripts/test-timings.py`, `scripts/test.sh`, `tests/Shared/TestSpeed.cs`, `tests/Vocaterra.Game.Core.Tests/TestSupport/TestSpeed.cs`
 - **Production (game):** `src/Vocaterra.Game.Core/Voxel/VoxelGrid.cs`, `VoxelChunk.cs` and `World/Scene.cs` (`Clone`)

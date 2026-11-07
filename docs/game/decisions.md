@@ -473,6 +473,12 @@ feature/adaptive_design), with the bread stuff".
    points), **T8** (the nondeterministic `r30-no-classes` capture), **W02** (tools and materials), **W03** (fail-forward as data),
    **W04** (price lists; its code and tests only, the bakery's real price list and Spanish lines stay W10's, so nothing needs the owner's
    listening). Still waiting for the owner: W08 (the spoken-lines questions), decision 19, W09, W30.
+5. **Four fixes before PR #40 merges** (owner, 2026-11-07, after the queue was done and the orchestrator listed what it found): "do all
+   four on this branch". On `feature/bread-pilot`, models by the size rule: the core's **M83** (the O7 fuzz seed: «ayuda por favor por
+   favor» read as `request_item`) and **M84** (a free-talk line the constrained decode forces onto a wrong row with confidence gets the
+   open decode too, measured on M80's corpus with the zero-false-take bar; a game follow-up **V32** only if the game's turn needs it);
+   **W04b** (the stall's first price list: water, bread and flour by name, «No vendo eso.» for the rest, replacing W10's fixed flour sale);
+   **T9** (`r27-bread`'s first capture alternating between ticks 2460 and 2461).
 
 ## D-game-24: player needs (decided)
 
