@@ -264,6 +264,10 @@ water itself move. The order lets H04 and H05 run side by side, then H06; H08 an
 **Verification at the series' end** (`docs/process/` cadence: full tests and scripted runs at the milestone that closes the series): the full
 suite, the merge gate on `feature/water`, and a scripted run that walks into the lake, dives, surfaces, swims to the bank and hops out, and
 dams the river with planks; screenshots at each step for the owner.
+The owner asked (2026-11-07) for a screenshot tour at the end, after H09 so moving water looks as it will: the player under water (just
+under the surface, deep, looking up at the surface, with the bubble meter running down), water while it moves (a pour spreading, at a few
+moments; the river with its current; the waterfall), a dam built across the river, and the lake from the shore. Short GIF-like series
+(several frames a second apart) where it moves.
 
 ## 6. The owner's decisions (2026-11-07)
 
