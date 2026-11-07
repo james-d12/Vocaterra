@@ -110,4 +110,34 @@ public sealed class VoxelSaveStateTests
         Assert.Throws<ArgumentOutOfRangeException>(() => sim.Restore(state with { Tick = -1 }));
         Assert.Throws<ArgumentException>(() => sim.Restore(state with { Slots = state.Slots.Take(3).ToArray() }));
     }
+
+    [Fact]
+    public void TheAirIsSavedWithTheStateAndTheRunContinuesTheSameWay()
+    {
+        var sim = VoxelSimulation.Create(Route());
+        sim.Breath.Restore(400);
+        var state = sim.CaptureState();
+        var restored = VoxelSimulation.Create(Route());
+        restored.Restore(state);
+
+        Assert.Equal(400, state.Air);
+        Assert.Equal(400, restored.Breath.Air);
+        Assert.Equal(sim.ComputeStateDigest(), restored.ComputeStateDigest());
+
+        VoxelTestSupport.Run(sim, 60);
+        VoxelTestSupport.Run(restored, 60);
+        Assert.Equal(sim.Breath.Air, restored.Breath.Air);
+        Assert.Equal(sim.ComputeStateDigest(), restored.ComputeStateDigest());
+    }
+
+    [Fact]
+    public void AStateWithoutAirIsAFullBreathAndTheDigestOfADryRunIsUnchangedByIt()
+    {
+        var sim = VoxelSimulation.Create(Route());
+        var state = sim.CaptureState();
+
+        Assert.Equal(Vocaterra.Game.Core.Water.Breath.MaxAir, state.Air);
+        sim.Breath.Restore(10);
+        Assert.NotEqual(VoxelSimulation.Create(Route()).ComputeStateDigest(), sim.ComputeStateDigest());
+    }
 }

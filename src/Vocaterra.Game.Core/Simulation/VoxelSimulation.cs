@@ -17,7 +17,7 @@ namespace Vocaterra.Game.Core.Simulation;
 /// <see cref="Events"/> and writes only commands. Nothing here reads the clock or draws random numbers (the scene builder already used the
 /// seed), so the same scene and the same command lists give the same state on every machine. The simulation edits the scene's grid in place.
 /// </summary>
-public sealed class VoxelSimulation
+public sealed partial class VoxelSimulation
 {
     /// <summary>The ticks per second of game time (60).</summary>
     public const int TicksPerSecond = VoxelPhysics.TicksPerSecond;
@@ -111,7 +111,7 @@ public sealed class VoxelSimulation
     /// Advances one tick. Walking and jumping are levels (send the held ones every tick); <see cref="VoxelCommandKind.Interact"/> is held;
     /// the other commands are presses. A command kind the simulation does not know is ignored. Commands are applied in a fixed order
     /// whatever their order in the list: the hotbar selection and the facing (the last of each wins), then gathering (the last interact of
-    /// the tick), then placing and crafting (each in list order), then the walk (all move commands add up) with the jump and the physics.
+    /// the tick), then placing and crafting (each in list order), then the walk (all move commands add up) with the jump and the physics, then the breath.
     /// </summary>
     public void Step(IReadOnlyList<VoxelCommand> commands)
     {
@@ -173,6 +173,8 @@ public sealed class VoxelSimulation
         {
             _events.Add(new SimulationEvent(SimulationEventKind.PlayerLanded, Tick));
         }
+
+        StepWater();
     }
 
     /// <summary>
@@ -288,7 +290,7 @@ public sealed class VoxelSimulation
             slots[i] = Inventory.Slots[i];
         }
 
-        return new VoxelSimulationState(Tick, _selectedSlot, _gatherTarget, _gatherBlock, _gatherProgress, _noBottleHint, Player.State(), slots);
+        return new VoxelSimulationState(Tick, _selectedSlot, _gatherTarget, _gatherBlock, _gatherProgress, _noBottleHint, Player.State(), slots, _breath.Air);
     }
 
     /// <summary>
@@ -318,6 +320,7 @@ public sealed class VoxelSimulation
         _gatherProgress = state.GatherProgress;
         _noBottleHint = state.NoBottleHint;
         Player.Restore(state.Player);
+        _breath.Restore(state.Air);
         for (var i = 0; i < Inventory.SlotCount; i++)
         {
             Inventory.SetSlot(i, state.Slots[i]);
@@ -362,6 +365,13 @@ public sealed class VoxelSimulation
         }
 
         hash.AppendData(rest);
+        if (!_breath.IsFull)
+        {
+            Span<byte> air = stackalloc byte[4];
+            BinaryPrimitives.WriteInt32LittleEndian(air, _breath.Air); // a full breath adds nothing, so the digests of dry runs are as they were
+            hash.AppendData(air);
+        }
+
         return Convert.ToHexString(hash.GetHashAndReset()).ToLowerInvariant();
     }
 
