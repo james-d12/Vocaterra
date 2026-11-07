@@ -25,3 +25,4 @@ stall-need, stall-offer, guide-offer) decodes a missed line a second time, freel
 typed line is, credited as typed (half), and marked by the `heard_open` voice event and the session log. Lesson steps, reviews and the mic
 check decode once. The playtest counts `heard_open`." Village plan section 5: close the open point on spoken off-prompt lines.
 Left: accent risk unmeasured; the constrained decode can force a wrong row confidently (never reaches the open decode).
+Scripted runs (full set, after the orchestrator's request): all 27 identical to 99598b64 (12 byte for byte, 15 order-only); r27-bread no jitter.
