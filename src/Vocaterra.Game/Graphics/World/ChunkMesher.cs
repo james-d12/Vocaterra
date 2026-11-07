@@ -781,6 +781,11 @@ public static class ChunkMesher
             var clarity = Math.Min(3, land + (depth <= 1 ? 1 : 0));
             var alpha = (byte)(depth > 2 ? 250 - (land * 26) : depth == 2 ? 240 - (land * 34) : 215 - (clarity * 30));
             var (p, q) = WaterTileLayout.Along(cx * 0.5f, cz * 0.5f, flow.X, flow.Z);
+            if (!flow.IsHorizontal)
+            {
+                (p, q) = WaterTileLayout.Vary(BlockArtNature.Mix((uint)x, (uint)y, (uint)z + 0x77), p, q); // still water: a different turn in each block
+            }
+
             var (u, w) = WaterTileLayout.Uv(tile, grey, p, q);
             v[k] = new MeshVertex(x + corners[k * 3], y + heights[k], z + corners[(k * 3) + 2], MeshVertex.Pack(255, 255, 255, alpha), u, w);
         }

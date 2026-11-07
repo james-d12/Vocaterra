@@ -27,10 +27,17 @@ public sealed class WaterTileLayoutTests
         var (u0, v0) = WaterTileLayout.Uv(WaterTile.DeepFlow, false, 0f, 0f);
         var (u1, v1) = WaterTileLayout.Uv(WaterTile.DeepFlow, false, 1f, 1f);
 
-        Assert.Equal(((1 * WaterTileLayout.Pitch) + 1f) / WaterTileLayout.Width, u0, Epsilon);
-        Assert.Equal(((1 * WaterTileLayout.Pitch) + 1f + WaterTileLayout.Cell) / WaterTileLayout.Width, u1, Epsilon);
-        Assert.Equal(1f / WaterTileLayout.Height, v0, Epsilon);
-        Assert.Equal((1f + WaterTileLayout.Cell) / WaterTileLayout.Height, v1, Epsilon);
+        Assert.Equal(((1 * WaterTileLayout.Pitch) + WaterTileLayout.Gutter) / (float)WaterTileLayout.Width, u0, Epsilon);
+        Assert.Equal(((1 * WaterTileLayout.Pitch) + WaterTileLayout.Gutter + WaterTileLayout.Cell) / (float)WaterTileLayout.Width, u1, Epsilon);
+        Assert.Equal(WaterTileLayout.Gutter / (float)WaterTileLayout.Height, v0, Epsilon);
+        Assert.Equal((WaterTileLayout.Gutter + WaterTileLayout.Cell) / (float)WaterTileLayout.Height, v1, Epsilon);
+    }
+
+    [Fact]
+    public void Given_ThePitch_When_MipLevelsAreCounted_Then_ATexelOfTheLastUsableLevelIsOneWholeTile()
+    {
+        Assert.Equal(WaterTileLayout.Pitch, 1 << WaterTileLayout.MaxMipLevel);
+        Assert.True(WaterTileLayout.Gutter * 2 + WaterTileLayout.Cell == WaterTileLayout.Pitch);
     }
 
     [Fact]
@@ -40,6 +47,25 @@ public sealed class WaterTileLayoutTests
         Assert.Equal(WaterTile.DeepFlow, WaterTileLayout.For(true, true));
         Assert.Equal(WaterTile.ShallowStill, WaterTileLayout.For(false, false));
         Assert.Equal(WaterTile.ShallowFlow, WaterTileLayout.For(false, true));
+    }
+
+    [Fact]
+    public void Given_EveryHash_When_APictureIsTurned_Then_TheCornersStayTheCorners()
+    {
+        for (uint hash = 0; hash < 8; hash++)
+        {
+            var corners = new[] { (0f, 0f), (1f, 0f), (0f, 1f), (1f, 1f) }.Select(c => WaterTileLayout.Vary(hash, c.Item1, c.Item2)).Order().ToList();
+
+            Assert.Equal([(0f, 0f), (0f, 1f), (1f, 0f), (1f, 1f)], corners);
+        }
+    }
+
+    [Fact]
+    public void Given_EightHashes_When_APointIsTurned_Then_ThereAreFourDifferentPlacesAtLeast()
+    {
+        var places = Enumerable.Range(0, 8).Select(static h => WaterTileLayout.Vary((uint)h, 0.2f, 0.7f)).Distinct().Count();
+
+        Assert.True(places >= 4);
     }
 
     [Fact]

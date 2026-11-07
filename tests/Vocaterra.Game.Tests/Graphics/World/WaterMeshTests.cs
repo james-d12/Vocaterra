@@ -179,17 +179,30 @@ public sealed class WaterMeshTests
     }
 
     [Fact]
-    public void Given_StillWater_When_Meshed_Then_TheStillPictureIsLaidUnturned()
+    public void Given_StillWater_When_Meshed_Then_ItShowsTheWholeStillPictureWhicheverWayRound()
     {
         var blocks = Floor().Water(5, 5, 5);
 
         var top = Up(Mesh(blocks), 5, 5);
 
         Assert.All(top, static v => Assert.Equal(WaterTile.ShallowStill, WaterTileLayout.TileAt(v.U, v.V).Tile));
-        var northWest = top.Single(static v => v.X == 5f && v.Z == 5f);
-        var southEast = top.Single(static v => v.X == 6f && v.Z == 6f);
-        Assert.True(southEast.U > northWest.U);
-        Assert.True(southEast.V > northWest.V);
+        var corners = new[] { (0f, 0f), (1f, 0f), (0f, 1f), (1f, 1f) }.Select(static c => WaterTileLayout.Uv(WaterTile.ShallowStill, false, c.Item1, c.Item2)).Order().ToList();
+        Assert.Equal(corners, top.Select(static v => (v.U, v.V)).Order().ToList());
+    }
+
+    [Fact]
+    public void Given_StillWaterInSeveralBlocks_When_Meshed_Then_NotEveryBlockLiesTheSameWay()
+    {
+        var blocks = Floor();
+        for (var x = 1; x <= 8; x++)
+        {
+            blocks.Water(x, 5, 5).Fill(x, 5, 4, x, 5, 4, BlockId.Stone).Fill(x, 5, 6, x, 5, 6, BlockId.Stone);
+        }
+
+        var meshes = Mesh(blocks);
+
+        var northWest = Enumerable.Range(1, 8).Select(x => Up(meshes, x, 5).Single(v => v.X == x && v.Z == 5f)).Select(static v => (v.U, v.V)).Distinct().Count();
+        Assert.True(northWest >= 3, $"{northWest} different turns among eight blocks");
     }
 
     [Fact]

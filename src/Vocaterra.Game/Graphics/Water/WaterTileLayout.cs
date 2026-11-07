@@ -21,8 +21,8 @@ public enum WaterTile
 
 /// <summary>
 /// Where the pictures lie in one frame of the water strip and how a point of a block face maps to a texture coordinate (water-plan 4.8). A frame is one
-/// texture of five tiles side by side (<see cref="WaterTile"/>) and a second row of the same tiles in grey (the greyscale A/B). A tile is 16 pixels with a
-/// one-pixel gutter on every side holding the tile's own opposite edge, so a bilinear sample at the tile's edge blends with the picture's other side exactly
+/// texture of five tiles side by side (<see cref="WaterTile"/>) and a second row of the same tiles in grey (the greyscale A/B). A tile is 16 pixels with an
+/// eight-pixel gutter on every side holding the tile's own opposite edge, so a bilinear sample at the tile's edge blends with the picture's other side exactly
 /// as if the tile repeated: the pictures are drawn to repeat, and a block can show any window of one (rotated to the current) without bleeding into its
 /// neighbour. Pure arithmetic, no device, so the mesher and the tests share it.
 /// </summary>
@@ -31,8 +31,14 @@ public static class WaterTileLayout
     /// <summary>The pixels of a tile's picture.</summary>
     public const int Cell = 16;
 
-    /// <summary>The pixels of gutter on each side of a tile.</summary>
-    public const int Gutter = 1;
+    /// <summary>
+    /// The pixels of gutter on each side of a tile: eight, so the strip's mip levels down to 32 by 32 (one whole tile and its gutter, the sixth level) never
+    /// average one tile's picture with its neighbour's.
+    /// </summary>
+    public const int Gutter = 8;
+
+    /// <summary>The last mip level of the strip that can be used (<see cref="Pitch"/> is 2 to the power of this).</summary>
+    public const int MaxMipLevel = 5;
 
     /// <summary>The pixels from one tile to the next.</summary>
     public const int Pitch = Cell + (2 * Gutter);
@@ -70,6 +76,29 @@ public static class WaterTileLayout
 
     /// <summary>The tile and colour a texture coordinate falls in (the inverse of <see cref="Uv"/>, for the tests).</summary>
     public static (WaterTile Tile, bool Grey) TileAt(float u, float v) => ((WaterTile)Math.Clamp((int)(u * Width / Pitch), 0, Columns - 1), v * Height / Pitch >= 1f);
+
+    /// <summary>
+    /// Turns a still tile's picture a different way in each block, so its sparkles do not line up in a lattice one to a block: by three bits of
+    /// <paramref name="hash"/>, mirrored left to right, mirrored top to bottom, and turned a quarter (swapping across and down). The picture is the same
+    /// kind of thing whichever way it lies, so every variant is a true window of it.
+    /// </summary>
+    /// <param name="hash">A number that is the same for the same block (a hash of its position).</param>
+    /// <param name="p">The fraction across the picture.</param>
+    /// <param name="q">The fraction down the picture.</param>
+    public static (float P, float Q) Vary(uint hash, float p, float q)
+    {
+        if ((hash & 1) != 0)
+        {
+            p = 1f - p;
+        }
+
+        if ((hash & 2) != 0)
+        {
+            q = 1f - q;
+        }
+
+        return (hash & 4) != 0 ? (q, p) : (p, q);
+    }
 
     /// <summary>
     /// Where a point of a block's surface lies in a tile's picture so that the picture's horizontal runs along the current. <paramref name="offsetX"/> and

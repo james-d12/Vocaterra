@@ -58,6 +58,36 @@ public static class WaterArt
         return data;
     }
 
+    /// <summary>
+    /// The next mip level of an RGBA picture: each pixel is the average of the 2 by 2 block of the larger one (a side of one pixel stays one). Because the
+    /// strip's tiles are laid out on a grid of powers of two with a wrapped gutter (<see cref="WaterTileLayout"/>), the levels down to
+    /// <see cref="WaterTileLayout.MaxMipLevel"/> keep each tile's own colours.
+    /// </summary>
+    /// <param name="rgba">The larger level, RGBA bytes row by row.</param>
+    /// <param name="width">Its width in pixels.</param>
+    /// <param name="height">Its height in pixels.</param>
+    public static byte[] HalfSize(byte[] rgba, int width, int height)
+    {
+        ArgumentNullException.ThrowIfNull(rgba);
+        int w = Math.Max(1, width / 2), h = Math.Max(1, height / 2);
+        var half = new byte[w * h * 4];
+        for (var y = 0; y < h; y++)
+        {
+            for (var x = 0; x < w; x++)
+            {
+                var x1 = Math.Min(width - 1, (x * 2) + 1);
+                var y1 = Math.Min(height - 1, (y * 2) + 1);
+                for (var c = 0; c < 4; c++)
+                {
+                    var sum = rgba[((y * 2 * width) + (x * 2)) * 4 + c] + rgba[((y * 2 * width) + x1) * 4 + c] + rgba[((y1 * width) + (x * 2)) * 4 + c] + rgba[((y1 * width) + x1) * 4 + c];
+                    half[(((y * w) + x) * 4) + c] = (byte)((sum + 2) / 4);
+                }
+            }
+        }
+
+        return half;
+    }
+
     /// <summary>One pixel of a tile at a frame: the colour and the alpha.</summary>
     public static (int R, int G, int B, int A) Pixel(WaterTile tile, int x, int y, int frame) => tile switch
     {
@@ -85,7 +115,7 @@ public static class WaterArt
 
         var alpha = p.Alpha;
         var spark = BlockArtNature.Mix(salt + 7, (uint)x, (uint)y);
-        if (spark % 29 == 0)
+        if (spark % 43 == 0)
         {
             // A glint lasts four frames, rising and fading.
             var age = (((frame - (int)((spark >> 8) % WaterFrames.Count)) % WaterFrames.Count) + WaterFrames.Count) % WaterFrames.Count;

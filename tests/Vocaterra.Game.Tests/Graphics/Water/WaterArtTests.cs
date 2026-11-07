@@ -103,10 +103,12 @@ public sealed class WaterArtTests
         foreach (var tile in Enum.GetValues<WaterTile>())
         {
             var left = (int)tile * WaterTileLayout.Pitch;
-            for (var y = 1; y <= Cell; y++)
+            var first = left + WaterTileLayout.Gutter; // the picture's first column
+            for (var y = WaterTileLayout.Gutter; y < WaterTileLayout.Gutter + Cell; y++)
             {
-                Assert.Equal(At(left + Cell, y), At(left, y)); // the left gutter is the picture's last column
-                Assert.Equal(At(left + 1, y), At(left + Cell + 1, y)); // the right gutter is its first
+                Assert.Equal(At(first + Cell - 1, y), At(first - 1, y)); // the gutter on the left is the picture's last column
+                Assert.Equal(At(first, y), At(first + Cell, y)); // the gutter on the right is its first
+                Assert.Equal(At(first + Cell - WaterTileLayout.Gutter, y), At(left, y)); // and so on to its outer edge
             }
         }
     }

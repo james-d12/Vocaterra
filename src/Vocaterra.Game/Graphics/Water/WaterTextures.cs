@@ -9,8 +9,17 @@ namespace Vocaterra.Game.Graphics.Water;
 /// </summary>
 public sealed class WaterTextures : IDisposable
 {
-    /// <summary>The sampler of the frames: bilinear, clamped (the tiles carry their own gutter, so a turned window never reads a neighbour).</summary>
-    public static readonly SamplerState Sampler = SamplerState.LinearClamp;
+    /// <summary>
+    /// The sampler of the frames: trilinear, so far water is smooth instead of a moire of ripples, down to the level where a texel is one whole tile (the tiles carry
+    /// their own gutter, so a turned window never reads a neighbour), clamped.
+    /// </summary>
+    public static readonly SamplerState Sampler = new()
+    {
+        Filter = TextureFilter.Linear,
+        AddressU = TextureAddressMode.Clamp,
+        AddressV = TextureAddressMode.Clamp,
+        MaxMipLevel = WaterTileLayout.MaxMipLevel,
+    };
 
     private readonly Texture2D[] _frames;
 
@@ -20,8 +29,19 @@ public sealed class WaterTextures : IDisposable
         _frames = new Texture2D[WaterFrames.Count];
         for (var i = 0; i < _frames.Length; i++)
         {
-            var texture = new Texture2D(device, WaterTileLayout.Width, WaterTileLayout.Height, false, SurfaceFormat.Color);
-            texture.SetData(WaterArt.Frame(i));
+            var texture = new Texture2D(device, WaterTileLayout.Width, WaterTileLayout.Height, true, SurfaceFormat.Color);
+            var pixels = WaterArt.Frame(i);
+            int width = WaterTileLayout.Width, height = WaterTileLayout.Height;
+            for (var level = 0; level < texture.LevelCount; level++)
+            {
+                texture.SetData(level, null, pixels, 0, pixels.Length);
+                if (level + 1 < texture.LevelCount)
+                {
+                    pixels = WaterArt.HalfSize(pixels, width, height);
+                    (width, height) = (Math.Max(1, width / 2), Math.Max(1, height / 2));
+                }
+            }
+
             _frames[i] = texture;
         }
     }
