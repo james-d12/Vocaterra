@@ -2413,6 +2413,17 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   «Vendo pan.» answer correctly; «¿me enseñas a hacer pan?» and «quiero hacer pan» stay unknown at `baker-open` in the CLI (W08's core gap;
   the game reads «¿Cómo hago pan?» off-prompt as `ask_craft`, tested). Reports `.claude/briefs/w10-report-a.md` (both phases and the fixes).
 
+- **W02, tools and materials (2026-11-07, Haiku 5.5; gated at `2bd4728e` on `feature/bread-pilot`, 9855 passed, 3 skipped).** A
+  `Material` per block (`Voxel/BlockDefinition.cs`: none, wood, plant, stone, soil, water; an optional last record parameter, not positional
+  as the paragraph had it) and `ToolSpec(Material Class, int Speed, int Yield = 1)` on items, the axe `(Wood, 4)`; `GatherTicksOf` divides a
+  gatherable block's ticks by the held tool's speed when the classes match (at least one tick), and `AxeSpeedUp` is gone. Trunks are wood
+  and the berry bush plant; the agent also gave the other blocks a material (stone, soil, water, the wooden props and the plants), which
+  changes nothing because only trunks (60 ticks) and the berry bush (45) are gatherable. `Yield` is recorded and unused. Tests: 60 by hand
+  and 15 with the axe, the axe on a berry bush or on stone changes nothing, the progress event the HUD reads carries the same total.
+  Scripted runs unchanged (26 of 27 identical outright; `r27-bread`'s first baseline capture was one tick late, 2461 for 2460, and every
+  later capture, including a rebuilt baseline, gave 2460: an unexplained one-off of the run, not of W02). **Found:** the fuzz oracle O7
+  fails on CsCheck seed `8eu5g1sTe_A8` on the branch before W02 (a core issue, the core plan's §5b). Report `.claude/briefs/w02-report.md`.
+
 ## 6. Definition of done (every milestone)
 
 1. `dotnet build Vocaterra.sln -warnaserror` with 0 warnings and `dotnet test Vocaterra.sln` green, with the test count in the report.

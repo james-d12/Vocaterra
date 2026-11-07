@@ -163,7 +163,7 @@ Each joins `WorldEvents.All`, so tips, lessons and objectives may wait for it, a
 | W00 | Register milestones and resolve required decisions | design section 18 | | orchestrator | done (2026-11-04: game plan section 4.9; section 18.2 adopted provisionally, D-game-23) |
 | **Stage 1: foundations** | | | | | |
 | W01 | `item_crafted`: a craft is a world event | | S | Haiku | done (2026-11-05, gated at 56f88b4b; game plan section 5) |
-| W02 | Tools and materials: a material per block, a tool spec per item, the axe's special case replaced | | S/M | Haiku | authorised (owner, 2026-11-06), on `feature/bread-pilot` |
+| W02 | Tools and materials: a material per block, a tool spec per item, the axe's special case replaced | | S/M | Haiku | done (2026-11-07, gated at `2bd4728e` on `feature/bread-pilot`, 9855 passed; game plan section 5) |
 | W03 | Fail-forward as data: `patience` in the NPC file; the stall's rule moved there | | S/M | Sonnet 5.5 medium | authorised (owner, 2026-11-06), on `feature/bread-pilot` |
 | W04 | Price lists: `sell` and `buy` by the item the learner names; `<npc>.dont_sell` | | M | Sonnet 5.5 medium | authorised (owner, 2026-11-06), on `feature/bread-pilot` |
 | **Stage 2: procedures, and bread with Luz** | | | | | |
