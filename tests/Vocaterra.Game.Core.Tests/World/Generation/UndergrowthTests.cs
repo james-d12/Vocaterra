@@ -408,7 +408,7 @@ public sealed class UndergrowthTests(ITestOutputHelper output)
         var lowest = int.MaxValue;
         foreach (var kind in Trunks)
         {
-            foreach (var p in grid.BlocksOfKind(kind))
+            foreach (var p in grid.EachOfKind(kind))
             {
                 var ground = Ground(grid, p.X, p.Z);
                 if (grid.GetBlock(p.X, p.Y - 1, p.Z) == kind)
@@ -457,7 +457,7 @@ public sealed class UndergrowthTests(ITestOutputHelper output)
         var scene = BuildRoute(Seed);
         var grid = scene.Grid;
         var away = RouteDraft.Trees.BirchAway;
-        foreach (var p in grid.BlocksOfKind(BlockId.BirchTrunk))
+        foreach (var p in grid.EachOfKind(BlockId.BirchTrunk))
         {
             foreach (var site in RouteDraft.Sites.Where(static s => s.Radius > 0))
             {
@@ -484,7 +484,7 @@ public sealed class UndergrowthTests(ITestOutputHelper output)
         var oakWidths = new List<int>();
         var spruceHeights = new List<int>();
         var rounds = 0;
-        foreach (var p in grid.BlocksOfKind(BlockId.Trunk).Where(p => grid.GetBlock(p.X, p.Y - 1, p.Z) != BlockId.Trunk).Take(300))
+        foreach (var p in grid.EachOfKind(BlockId.Trunk).Where(p => grid.GetBlock(p.X, p.Y - 1, p.Z) != BlockId.Trunk).Take(300))
         {
             var top = p.Y;
             while (grid.GetBlock(p.X, top + 1, p.Z) == BlockId.Trunk)
@@ -515,7 +515,7 @@ public sealed class UndergrowthTests(ITestOutputHelper output)
             }
         }
 
-        foreach (var p in grid.BlocksOfKind(BlockId.SpruceTrunk).Where(p => grid.GetBlock(p.X, p.Y - 1, p.Z) != BlockId.SpruceTrunk).Take(300))
+        foreach (var p in grid.EachOfKind(BlockId.SpruceTrunk).Where(p => grid.GetBlock(p.X, p.Y - 1, p.Z) != BlockId.SpruceTrunk).Take(300))
         {
             var top = p.Y;
             while (grid.GetBlock(p.X, top + 1, p.Z) == BlockId.SpruceTrunk)
@@ -546,7 +546,7 @@ public sealed class UndergrowthTests(ITestOutputHelper output)
         var farArea = 0;
         foreach (var kind in Trunks)
         {
-            foreach (var p in grid.BlocksOfKind(kind).Where(p => grid.GetBlock(p.X, p.Y - 1, p.Z) != kind))
+            foreach (var p in grid.EachOfKind(kind).Where(p => grid.GetBlock(p.X, p.Y - 1, p.Z) != kind))
             {
                 var d = Math.Sqrt(((p.X - village.X) * (p.X - village.X)) + ((p.Z - village.Z) * (p.Z - village.Z)));
                 if (d < spec.ClearingList[0].Radius)
@@ -577,7 +577,7 @@ public sealed class UndergrowthTests(ITestOutputHelper output)
 
         int Distance(int x, int z) => water.Min(w => Math.Max(Math.Abs(w.Item1 - x), Math.Abs(w.Item2 - z)));
         int onBank = 0, inForest = 0;
-        foreach (var p in grid.BlocksOfKind(BlockId.Trunk).Where(p => grid.GetBlock(p.X, p.Y - 1, p.Z) != BlockId.Trunk && p.Z is > 150 and < 280))
+        foreach (var p in grid.EachOfKind(BlockId.Trunk).Where(p => grid.GetBlock(p.X, p.Y - 1, p.Z) != BlockId.Trunk && p.Z is > 150 and < 280))
         {
             var d = Distance(p.X, p.Z);
             if (d <= spec.ShoreClear)
@@ -609,7 +609,7 @@ public sealed class UndergrowthTests(ITestOutputHelper output)
         var inside = 0;
         foreach (var kind in Trunks)
         {
-            foreach (var p in grid.BlocksOfKind(kind))
+            foreach (var p in grid.EachOfKind(kind))
             {
                 var dx = p.X - site.X;
                 var dz = p.Z - site.Z;
@@ -681,7 +681,7 @@ public sealed class UndergrowthTests(ITestOutputHelper output)
         var mossy = grid.BlocksOfKind(BlockId.MossyStone);
         Assert.True(mossy.Count > 1000);
         Assert.True(mossy.Max(static p => p.Y) < RouteDraft.Terrain.RockLine, "mossy stone stays below the rock line");
-        var bareHigh = grid.BlocksOfKind(BlockId.Stone).Count(p => p.Y > RouteDraft.Terrain.RockLine + 10);
+        var bareHigh = grid.EachOfKind(BlockId.Stone).Count(p => p.Y > RouteDraft.Terrain.RockLine + 10);
         Assert.True(bareHigh > 10000);
         Assert.DoesNotContain(mossy, p => p.Y > RouteDraft.Terrain.RockLine + 10);
     }
