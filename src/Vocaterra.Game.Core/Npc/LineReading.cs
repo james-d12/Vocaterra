@@ -2,6 +2,7 @@ using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
+using Vocaterra.Nlp.Pipeline;
 
 namespace Vocaterra.Game.Core.Npc;
 
@@ -41,7 +42,25 @@ public static class LineReading
     /// <param name="prompt">The prompt the line is said at.</param>
     /// <param name="read">Reads one recognition at the prompt.</param>
     /// <param name="verdictOf">The verdict of a reading.</param>
-    public static T Read<T>(T heard, Func<T, AsrResult> recognitionOf, string? listener, PromptSpec prompt, Func<AsrResult, T> read, Func<T, Verdict> verdictOf)
+    public static T Read<T>(T heard, Func<T, AsrResult> recognitionOf, string? listener, PromptSpec prompt, Func<AsrResult, T> read, Func<T, Verdict> verdictOf) =>
+        Read(heard, null, recognitionOf, listener, prompt, read, verdictOf);
+
+    /// <summary>
+    /// A recognition as the game reads it, with the second decode of free talk (V31): when the reading of the first recognition (with the vocative and the greeting tried)
+    /// is not taken, the recognition not chosen, <paramref name="other"/> (<c>UtteranceAnalysis.OtherPass</c>, core M80), is read the same way, and its reading is kept when
+    /// it is taken. The core's pass took the whole free line or not, with the listener's name in it; here the name is out of the line, so the weakest word of what is read
+    /// must meet the core's floor (<see cref="PipelineOptions.DefaultOpenPassWordFloor"/>) for a free recognition: no second, lower bar. A recognition the core chose
+    /// already is not looked at twice.
+    /// </summary>
+    /// <typeparam name="T">What one reading gives: the analysis of phase 1.</typeparam>
+    /// <param name="heard">The reading of the line as the recognizer heard it (the chosen recognition).</param>
+    /// <param name="other">The recognition the core did not choose, or <see langword="null"/> when one decode ran.</param>
+    /// <param name="recognitionOf">The recognition a reading was made from.</param>
+    /// <param name="listener">The listener's name, or <see langword="null"/>.</param>
+    /// <param name="prompt">The prompt the line is said at.</param>
+    /// <param name="read">Reads one recognition at the prompt.</param>
+    /// <param name="verdictOf">The verdict of a reading.</param>
+    public static T Read<T>(T heard, AsrResult? other, Func<T, AsrResult> recognitionOf, string? listener, PromptSpec prompt, Func<AsrResult, T> read, Func<T, Verdict> verdictOf)
     {
         ArgumentNullException.ThrowIfNull(heard);
         ArgumentNullException.ThrowIfNull(recognitionOf);
@@ -49,8 +68,24 @@ public static class LineReading
         ArgumentNullException.ThrowIfNull(read);
         ArgumentNullException.ThrowIfNull(verdictOf);
         var whole = Vocative.Without(recognitionOf(heard), listener) is { } bare ? read(bare) : heard;
-        return ByTheRest(whole, Greeting.Rest(recognitionOf(whole)), prompt, read, verdictOf);
+        var chosen = ByTheRest(whole, Greeting.Rest(recognitionOf(whole)), prompt, read, verdictOf);
+        if (other is null || Taken(verdictOf(chosen)))
+        {
+            return chosen;
+        }
+
+        var otherWhole = Vocative.Without(other, listener) is { } otherBare ? read(otherBare) : read(other);
+        var again = ByTheRest(otherWhole, Greeting.Rest(recognitionOf(otherWhole)), prompt, read, verdictOf);
+        return Taken(verdictOf(again)) && MeetsFloor(recognitionOf(again)) ? again : chosen;
     }
+
+    // A reading the NPC takes: understood, or understood off the prompt (the core's OffPromptIntent, M72).
+    private static bool Taken(Verdict verdict) => verdict.Communicated || verdict.OffPromptIntent is not null;
+
+    // The core's floor for a free recognition (M80): its weakest word is at least PipelineOptions.DefaultOpenPassWordFloor; no words, not taken.
+    private static bool MeetsFloor(AsrResult recognition) =>
+        recognition.Mode != RecognitionMode.Open
+        || (recognition.Words.Count > 0 && recognition.Words.Min(static w => w.Confidence) >= PipelineOptions.DefaultOpenPassWordFloor);
 
     /// <summary>
     /// The phrase row a learner's line is, read as the NPC reads it (village-plan V20): the line as said, else without the listener's name (<c>Luz, mañana compraré pan</c>),

@@ -8,6 +8,7 @@ using Vocaterra.Nlp.Asr;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Determinism;
+using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Learning;
@@ -620,6 +621,7 @@ public sealed partial class NpcService
         // (hola, quiero dos panes) is answered by the rest, which the core reads as a line of its own (V15, Greeting). Both are LineReading's, as on the host (V19).
         UtteranceAnalysis analysis;
         string said;
+        var heardOpen = false;
         if (clip is null)
         {
             said = typed!;
@@ -628,9 +630,10 @@ public sealed partial class NpcService
         else
         {
             var spoken = _spoken ?? throw new InvalidOperationException("No speech is attached to the NPCs.");
-            var heard = spoken.Analyze(clip, prompt);
-            said = heard.Asr.Transcript;
-            analysis = LineReading.Read(heard, static a => a.Asr, agent.Npc.Name, prompt, recognition => spoken.AnalyzeRecognized(recognition, clip, prompt), static a => a.Verdict);
+            var heard = spoken.Analyze(clip, prompt, scene.PromptOverride is null && !scene.Review); // V31: the open decode only in free talk, at the seven prompts
+            analysis = LineReading.Read(heard, heard.OtherPass, static a => a.Asr, agent.Npc.Name, prompt, recognition => spoken.AnalyzeRecognized(recognition, clip, prompt), static a => a.Verdict);
+            heardOpen = prompt.Mode == RecognitionMode.Constrained && analysis.Asr.Mode == RecognitionMode.Open;
+            said = heardOpen && heard.Asr.Mode != RecognitionMode.Open ? heard.OtherPass!.Transcript : heard.Asr.Transcript;
         }
 
         var line = CleanTranscript(said);
@@ -640,7 +643,7 @@ public sealed partial class NpcService
         {
             // The core would understand the line but the recognizer was not sure of its words (D-game-9): ask again and let nothing happen. The
             // turn is not completed, so the conversation, the learner, the repeat counts and the world stay as they were.
-            return Unsure(agent, npc, promptId, line, sure, utterance, hostStateHash);
+            return Unsure(agent, npc, promptId, line, sure, utterance, hostStateHash) with { HeardOpen = heardOpen };
         }
 
         // V27: in free talk a line the prompt does not take but the core understands (M72) gets the NPC's one off-prompt line and nothing else: it is no failed attempt. A
@@ -810,6 +813,7 @@ public sealed partial class NpcService
         {
             AccentNotes = AccentNotesOf(result),
             OffPromptIntent = offPrompt ? verdict.OffPromptIntent!.Value.Value : null,
+            HeardOpen = heardOpen,
         };
     }
 

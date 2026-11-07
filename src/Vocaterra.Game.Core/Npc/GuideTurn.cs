@@ -208,6 +208,15 @@ public sealed record GuideTurn(
     /// </summary>
     public string? OffPromptIntent { get; init; }
 
+    /// <summary>
+    /// Whether a spoken line was read from the core's second, open decode (V31, M80): the constrained decode at a free-talk prompt did not take it, the free decode did.
+    /// The recognizer may have smoothed a mistake away, so the line is credited as a typed one is (<see cref="CreditKind"/>); the session log and a voice event mark it.
+    /// </summary>
+    public bool HeardOpen { get; init; }
+
+    /// <summary>The kind of input the credit of this turn is counted as (V31, the owner's answer 3): the input itself, except a line heard on the open decode, which counts as typed (half).</summary>
+    public InputKind CreditKind => HeardOpen ? InputKind.Typed : Input;
+
     /// <summary>Whether the NPC took the line: the core communicated it, or it is one the NPC understood off its prompt (V27). The book credits what it takes.</summary>
     public bool Taken => Communicated || OffPromptIntent is not null;
 

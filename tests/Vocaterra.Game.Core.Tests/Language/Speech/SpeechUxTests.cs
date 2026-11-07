@@ -229,7 +229,7 @@ public sealed class SpeechUxTests
     public void TheVoiceEventsHaveStableWireNamesAndTheMicCheckHasNoNpc()
     {
         Assert.Equal(
-            ["uncertain", "cancel", "timeout", "mic_check_passed", "mic_check_failed", "mic_check_skipped", "replay", "slower", "hint", "no_se", "typed_fallback", "choice"],
+            ["uncertain", "cancel", "timeout", "mic_check_passed", "mic_check_failed", "mic_check_skipped", "replay", "slower", "hint", "no_se", "typed_fallback", "choice", "heard_open"],
             Enum.GetValues<VoiceEventKind>().Select(VoiceEventNames.Of));
 
         var session = TestGame.NewSession();

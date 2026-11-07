@@ -364,6 +364,16 @@ public sealed class SessionLog : IDisposable, ICheckLog
             w.WriteBoolean("uncertain", turn.Uncertain);
             w.WriteBoolean("choice", turn.Choice);
             w.WriteBoolean("fail_forward", turn.FailForward);
+            if (turn.HeardOpen)
+            {
+                w.WriteBoolean("heard_open", true); // V31: read from the open decode, credited as typed
+            }
+
+            if (outcome.Timings.Decodes > 1)
+            {
+                w.WriteNumber("decodes", outcome.Timings.Decodes);
+            }
+
             w.WriteStartArray("host_events");
             foreach (var hostEvent in turn.HostEvents)
             {

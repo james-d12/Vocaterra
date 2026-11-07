@@ -304,6 +304,17 @@ the same `NpcService` turn, and each turn records how it arrived (`GuideTurn.Inp
   `UtterancePipeline.Trace` with Vosk, whose `PipelineTrace.Asr` is kept; the second is `TypedUtteranceEvaluator.EvaluateRecognized`, the core's
   scripted recognizer over that `AsrResult` with the real clip (so the replay record names the audio), so both verdicts see the same transcript,
   hypotheses and confidence and the clip is decoded once.
+- **Free talk adds a second, open decode (V31, core M80).** `SpokenUtteranceEvaluator` holds two pipelines. The second has
+  `OpenRecognitionFallback` on and is used only for a turn that is free talk (`GuideScene.PromptOverride` null and not `Review`) at one of
+  `SpokenUtteranceEvaluator.FreeTalkPrompts` (baker-open, smith-open, farmer-open, fisher-open, stall-need, stall-offer, guide-offer; the villager's and the
+  guide's open prompts decode once anyway). When the constrained decode's reading is not taken, the core decodes the clip again freely and keeps that
+  reading if it is taken and its weakest word is at least the core's floor (`OpenPassWordFloor`, 0.5; the game adds no floor of its own). `LineReading` then
+  reads `UtteranceAnalysis.OtherPass` the way it reads the first recognition (the vocative out, the greeting's rest) when the chosen reading is not taken, and
+  holds a free recognition it re-reads to the same floor. A line so heard is understood and answered as the typed line is («Te entiendo…» off the prompt), is
+  `GuideTurn.HeardOpen`, and is credited as typed (`GuideTurn.CreditKind`, half; the phrase use carries it) though `Input` stays `Spoken`. Lesson steps (a
+  `PromptOverride`), reviews, the mic check and the check battery decode once, as before. `TimedRecognizer` sums the decodes of a turn
+  (`SpeechEngine.BeginTurn`, `RecognizeCount`); `TurnTimings.Decodes` shows the count, the session log's turn record has `heard_open` and (above one)
+  `decodes`, and a `VoiceEvent` of kind `HeardOpen` marks the line. A scripted (clockless) run keeps its timings at 0.0 ms.
 - **Vosk runs single-best.** With the pipeline's default of five n-best hypotheses `AsrResult.Confidence` is a softmax over near-identical
   hypotheses and measured 0.34 to 0.66 for clean, correct speech, under the verdict's communicated threshold of 0.6 (CR-022). The spoken
   pipeline asks for one hypothesis (`SpokenUtteranceEvaluator.SingleBest`), the result's confidence is then 1.0, and the turn line shows the mean

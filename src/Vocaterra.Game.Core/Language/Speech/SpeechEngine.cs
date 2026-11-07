@@ -49,8 +49,14 @@ public sealed class SpeechEngine : IDisposable
     /// <summary>The recognizer, wrapped so that it records how long its last decode took (when a clock was given). Call it from one thread.</summary>
     public IWordRecognizer Recognizer => _recognizer;
 
-    /// <summary>How long the last decode took, in milliseconds (zero without a clock or before the first decode).</summary>
-    public double LastRecognizeMilliseconds => _recognizer.LastMilliseconds;
+    /// <summary>How long the decodes of the turn took together, in milliseconds (V31: a free-talk line the first decode did not take is decoded twice); zero without a clock or before the first decode.</summary>
+    public double LastRecognizeMilliseconds => _recognizer.Milliseconds;
+
+    /// <summary>How many times the recognizer decoded since <see cref="BeginTurn"/> (V31): one for a turn, two for a free-talk line heard on the open decode.</summary>
+    public int RecognizeCount => _recognizer.Count;
+
+    /// <summary>Starts a turn's account of the decodes: the time and the count begin at zero.</summary>
+    public void BeginTurn() => _recognizer.Reset();
 
     /// <summary>Whether the Kokoro model is in the models folder (a missing model only disables <see cref="Synthesize"/>).</summary>
     public bool CanSpeak => Directory.Exists(_store.ModelDirectory(KokoroModelId));
@@ -242,18 +248,27 @@ public sealed class SpeechEngine : IDisposable
         _kokoro?.Dispose();
     }
 
-    /// <summary>Records how long the last decode took; everything else is the inner recognizer.</summary>
+    /// <summary>Records how long the decodes of a turn took, summed, and how many there were; everything else is the inner recognizer.</summary>
     private sealed class TimedRecognizer(VoskWordRecognizer inner, Func<double>? clock) : IWordRecognizer, IDisposable
     {
         public string ModelHash => inner.ModelHash;
 
-        public double LastMilliseconds { get; private set; }
+        public double Milliseconds { get; private set; }
+
+        public int Count { get; private set; }
+
+        public void Reset()
+        {
+            Milliseconds = 0;
+            Count = 0;
+        }
 
         public AsrResult Recognize(PcmClip clip, RecognitionRequest request)
         {
             var start = clock?.Invoke() ?? 0;
             var result = inner.Recognize(clip, request);
-            LastMilliseconds = clock is null ? 0 : clock() - start;
+            Milliseconds += clock is null ? 0 : clock() - start;
+            Count++;
             return result;
         }
 

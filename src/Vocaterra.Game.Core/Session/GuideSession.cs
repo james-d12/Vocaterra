@@ -922,7 +922,7 @@ public abstract partial class GuideSession : IDisposable
             Pointer = new PointerMarker(pointer.Place, pointer.Target);
         }
 
-        LastWordTurn = Words.RecordTurn(turn, turn.Input, Credit, StoredTime.UnixSeconds);
+        LastWordTurn = Words.RecordTurn(turn, turn.CreditKind, Credit, StoredTime.UnixSeconds);
         RecordTurnLine(turn, StoredTime.UnixSeconds); // the learner's history (S19): the synchronous path records its lines like the worker's
         var afterwards = AfterTurn(turn, Tick, StoredTime.UnixSeconds, phraseReview, support);
         if (answeredReview is not null)
@@ -1142,7 +1142,7 @@ public abstract partial class GuideSession : IDisposable
                 Pointer = new PointerMarker(pointer.Place, pointer.Target);
             }
 
-            words = Words.RecordTurn(turn, turn.Input, Credit, outcome.Request.Now.UnixSeconds);
+            words = Words.RecordTurn(turn, turn.CreditKind, Credit, outcome.Request.Now.UnixSeconds);
             LastWordTurn = words;
             RecordTurnLine(turn, outcome.Request.Now.UnixSeconds);
             var shown = AfterTurn(turn, outcome.Request.Tick, outcome.Request.Now.UnixSeconds, outcome.Request.PhraseReview, outcome.Request.Support);
@@ -1291,6 +1291,12 @@ public abstract partial class GuideSession : IDisposable
             _lastRepair[npc] = turn.RepairKind; // a line held back as unsure changed nothing: the offer of choices, if any, still stands
         }
 
+        if (turn.HeardOpen)
+        {
+            // V31: the line was read from the open decode; the playtest counts these. Credited as typed (GuideTurn.CreditKind).
+            Log(new VoiceEvent(tick, time, VoiceEventKind.HeardOpen, npc, turn.Line));
+        }
+
         if (turn.Uncertain)
         {
             // D-game-9: an uncertain recognition is the microphone's trouble, not the language's: a voice event, no phrase use, no error.
@@ -1307,7 +1313,7 @@ public abstract partial class GuideSession : IDisposable
             var detail = PhraseSheet.DetailOf(turn.Slots);
             var correct = turn.Errors.Count == 0;
             IReadOnlyList<string>? inPlay = kind == PhraseUseKind.DontKnow ? (phraseReview is not null ? [phraseReview.PhraseId] : support.InPlay) : null;
-            Log(new PhraseUse(tick, time, phrase, kind, npc, turn.Prompt, turn.Line, detail, turn.Input, correct, PhraseProgress.LevelOf(phrase), inPlay));
+            Log(new PhraseUse(tick, time, phrase, kind, npc, turn.Prompt, turn.Line, detail, turn.CreditKind, correct, PhraseProgress.LevelOf(phrase), inPlay));
             recovered = retryAnswer && correct && string.Equals(phrase, phraseReview?.PhraseId, StringComparison.Ordinal) && kind is PhraseUseKind.Unaided or PhraseUseKind.Supported;
             if (kind == PhraseUseKind.DontKnow)
             {

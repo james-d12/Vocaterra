@@ -83,7 +83,7 @@ public sealed class TurnPresenter
     private void Print(GuideTurn turn, double milliseconds)
     {
         var detail = turn.Input == InputKind.Spoken
-            ? $"heard \"{turn.Line}\" (confidence {(int)Math.Round((turn.Confidence ?? 0) * 100)} %){(turn.Uncertain ? ", UNCERTAIN" : string.Empty)} -> {turn.Summary}, {milliseconds:0} ms"
+            ? $"heard \"{turn.Line}\" (confidence {(int)Math.Round((turn.Confidence ?? 0) * 100)} %){(turn.Uncertain ? ", UNCERTAIN" : string.Empty)}{(turn.HeardOpen ? ", heard open" : string.Empty)} -> {turn.Summary}, {milliseconds:0} ms"
             : $"\"{turn.Line}\" -> {turn.Summary}, {milliseconds:0.0} ms";
         _console($"turn {_dialogue.TurnCount} ({turn.Npc}, {turn.Prompt}): {(turn.Input == InputKind.Spoken ? "spoken " : string.Empty)}{detail}, state {turn.AgentState}{(turn.HostEvents.Count > 0 ? $", host events {string.Join(" ", turn.HostEvents)}" : string.Empty)}{(turn.FailForward ? ", FAIL-FORWARD" : string.Empty)}");
         foreach (var line in turn.GuideLines)
