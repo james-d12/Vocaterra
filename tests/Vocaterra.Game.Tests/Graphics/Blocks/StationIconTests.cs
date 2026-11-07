@@ -44,7 +44,7 @@ public sealed class StationIconTests
     public void TheNewCellsFitTheAtlasAndDifferFromEachOther()
     {
         Assert.True(BlockAtlasLayout.CellCount <= BlockAtlasLayout.Columns * BlockAtlasLayout.ColourRows);
-        var cells = new[] { BlockCell.IconBowl, BlockCell.IconSpoon, BlockCell.IconOven, BlockCell.IconPlain };
+        var cells = new[] { BlockCell.IconBowl, BlockCell.IconSpoon, BlockCell.IconOven, BlockCell.IconPlain, BlockCell.IconFlour };
         var pictures = cells.Select(static c => Convert.ToHexString(BlockArt.Pixels(c))).Distinct().ToList();
         Assert.Equal(cells.Length, pictures.Count);
     }

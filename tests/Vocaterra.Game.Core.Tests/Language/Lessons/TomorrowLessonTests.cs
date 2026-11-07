@@ -179,7 +179,7 @@ public sealed class TomorrowLessonTests(ITestOutputHelper output)
         // it there, and the same lesson at a1 fails on each fut step and each fut form it declares.
         Assert.Empty(GameDataValidator.Validate(TestGame.Data));
         Assert.Equal(
-            [LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A2, LessonLevels.A2, LessonLevels.A2, LessonLevels.A2],
+            [LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A2, LessonLevels.A2, LessonLevels.A2, LessonLevels.A2, LessonLevels.A2],
             Book.Lessons.Select(static l => l.Level));
 
         // The shipped book with this lesson's level changed (its reviews and its after need the lessons before it).

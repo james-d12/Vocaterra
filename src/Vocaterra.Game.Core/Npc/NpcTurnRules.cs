@@ -78,6 +78,22 @@ public static class NpcTurnRules
                 turn = typed.Advance(NpcHostEvents.Of(agentId, miss), before);
             }
 
+            // W10: the answer a miss sends to (the stall's flour sold instead of the bottle) may itself be an exchange the world cannot make (no coin, a full bag): its miss is answered, not its success line.
+            if (turn is not null)
+            {
+                foreach (var next in turn.Agent.Actions.Where(static a => a.HostEvent is not null))
+                {
+                    if (missOf(hostEvents.Of(agentId, next.HostEvent!)) is { } again && !string.Equals(again, miss, StringComparison.Ordinal)
+                        && typed.Advance(NpcHostEvents.Of(agentId, again), before) is { } second)
+                    {
+                        miss = again;
+                        turn = second;
+                    }
+
+                    break;
+                }
+            }
+
             var refusedGift = hostEvents.Of(agentId, hostEvent).Kind == NpcEffectKind.GiveItem;
             if (turn is null)
             {

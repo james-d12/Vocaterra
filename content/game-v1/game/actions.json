@@ -1,6 +1,13 @@
 {
   "$schema": "../../schema/actions.schema.json",
   "schemaVersion": 1,
-  "about": "The actions of the stations (W05): the verbs a step may use for each pair of a use and a fixture. Empty until the bread procedure (W10).",
-  "actions": []
+  "about": "The actions of the stations (W05): the verbs a step may use for each pair of a use and a fixture. W10: the six pairs of the bread. Only the hand on the oven has two verbs (sacar, or abrir for the wrong one); every other pair has the one verb that does the job.",
+  "actions": [
+    { "use": "harina", "on": "bol", "verbs": ["poner"] },
+    { "use": "agua", "on": "bol", "verbs": ["echar"] },
+    { "use": "cuchara", "on": "bol", "verbs": ["mezclar"] },
+    { "use": "madera", "on": "horno", "verbs": ["poner"] },
+    { "use": "masa", "on": "horno", "verbs": ["poner"] },
+    { "use": "mano", "on": "horno", "verbs": ["sacar", "abrir"] }
+  ]
 }

@@ -34,12 +34,15 @@ public static class SessionSkip
     /// <param name="Price">The price of one, in coins.</param>
     public sealed record Purchase(string Npc, ItemId Item, int Count, int Price);
 
-    /// <summary>The last play session that has a lesson: the highest session the skip goes to (10, the market, since V15).</summary>
+    /// <summary>The last play session the skip goes to: 10, the market (V15). The bakery class of session 11 (W10) is optional and needs the bread the bake makes, so it is reached by playing.</summary>
+    public const int MarketSession = 10;
+
+    /// <summary>The last play session that has a lesson and that the skip goes to (<see cref="MarketSession"/> at most).</summary>
     /// <param name="lessons">The game's lessons.</param>
     public static int LastSession(LessonBook lessons)
     {
         ArgumentNullException.ThrowIfNull(lessons);
-        return lessons.Lessons.Max(static l => l.Session);
+        return Math.Min(MarketSession, lessons.Lessons.Max(static l => l.Session));
     }
 
     /// <summary>What the console and the session log say of a skipped run: <c>skipped to play session 4 (sessions 1 to 3 counted as done; test aid)</c>.</summary>

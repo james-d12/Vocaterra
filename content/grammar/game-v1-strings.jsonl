@@ -125,6 +125,8 @@
 {"id":"dialogue:guide.identify.found.3","text":"Aquí hay {target:article(indef)}.","kind":"template"}
 {"id":"dialogue:guide.identify.none.1","text":"No sé qué es.","kind":"npc"}
 {"id":"dialogue:guide.identify.none.2","text":"Busca una cosa y pregunta otra vez.","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.bake.1","text":"Hoy vamos a hacer pan. ¿Me ayudas?","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.bake_plan.1","text":"¿Qué vas a hacer hoy?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.bought.1","text":"¿Qué compraste?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.coins.1","text":"¿Cuántas monedas tienes?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.fifteen.1","text":"Once, doce, trece, catorce, quince.","kind":"npc"}
@@ -132,13 +134,24 @@
 {"id":"dialogue:guide.lesson.baker.fresh.1","text":"¡Qué bien! Mañana tendré pan fresco.","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.how_many.1","text":"¿Cuántos panes quieres?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.loaves.1","text":"Tengo diez panes.","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.made.1","text":"¿Qué hiciste?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.mar.1","text":"¿Y qué hizo Mar ayer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.market.1","text":"¡Hoy hay mercado! ¿Cuántos panes tengo?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.model.1","text":"Ayer compré fruta en la tienda.","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.not_yet.1","text":"Todavía no.","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.offer.1","text":"¿Quieres una clase? ¿Sí o no?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.oven.1","text":"Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.pay.1","text":"Te pago una moneda por cada bloque de madera.","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.plan.1","text":"¡Hola! ¿Qué vas a hacer hoy?","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.proc_agua.1","text":"Echa el agua en el bol.","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.proc_chunk_horno.1","text":"Haz el pan en el horno.","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.proc_chunk_masa.1","text":"Haz la masa.","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.proc_goal.1","text":"Haz pan.","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.proc_harina.1","text":"Pon la harina en el bol.","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.proc_madera.1","text":"Pon la madera en el horno.","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.proc_masa.1","text":"Pon la masa en el horno.","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.proc_mezcla.1","text":"Mezcla con la cuchara.","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.proc_sacar.1","text":"Saca el pan del horno.","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.sell.1","text":"Necesito madera para el horno. ¿Qué quieres hacer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.ten.1","text":"Seis, siete, ocho, nueve, diez.","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.tomorrow.1","text":"¿Qué harás mañana?","kind":"npc"}
@@ -319,8 +332,11 @@
 {"id":"dialogue:guide_yes.1","text":"¡Sí!","kind":"npc"}
 {"id":"dialogue:not_understood.1","text":"No te entendí. ¿Me lo dices otra vez?","kind":"npc"}
 {"id":"dialogue:not_understood.2","text":"Perdón, ¿qué dices?","kind":"npc"}
+{"id":"dialogue:shop_buy.1","text":"¡Gracias! Aquí tienes.","kind":"npc"}
 {"id":"dialogue:shop_bye.1","text":"¡Adiós! Hasta luego.","kind":"npc"}
 {"id":"dialogue:shop_bye.2","text":"Hasta luego.","kind":"npc"}
+{"id":"dialogue:shop_cant_pay.1","text":"La harina cuesta una moneda.","kind":"npc"}
+{"id":"dialogue:shop_cant_sell.1","text":"No tienes pan.","kind":"npc"}
 {"id":"dialogue:shop_deny.1","text":"Está bien.","kind":"npc"}
 {"id":"dialogue:shop_deny.2","text":"Bueno.","kind":"npc"}
 {"id":"dialogue:shop_done.1","text":"¡Hasta luego!","kind":"npc"}
@@ -330,13 +346,17 @@
 {"id":"dialogue:shop_give.2","text":"Aquí tienes la botella. El agua está en el río.","kind":"npc"}
 {"id":"dialogue:shop_give_bread.1","text":"Aquí tienes el pan.","kind":"npc"}
 {"id":"dialogue:shop_give_bread.2","text":"Toma el pan.","kind":"npc"}
-{"id":"dialogue:shop_hay.1","text":"Hay agua y pan.","kind":"npc"}
+{"id":"dialogue:shop_hay.1","text":"Hay agua, pan y harina.","kind":"npc"}
 {"id":"dialogue:shop_help_ask.1","text":"Puedes decir: «Quiero agua, por favor».","kind":"npc"}
 {"id":"dialogue:shop_help_offer.1","text":"Puedes decir: «Sí, por favor» o «No, gracias».","kind":"npc"}
 {"id":"dialogue:shop_need.1","text":"¿Qué necesitas?","kind":"npc"}
 {"id":"dialogue:shop_nice.1","text":"¡Qué bien!","kind":"npc"}
+{"id":"dialogue:shop_no_room.1","text":"Tu bolsa está llena.","kind":"npc"}
+{"id":"dialogue:shop_none_asked.1","text":"Hay harina. ¿Cuánta quieres?","kind":"npc"}
+{"id":"dialogue:shop_none_offered.1","text":"¿Cuántos panes me vendes?","kind":"npc"}
 {"id":"dialogue:shop_offer.1","text":"¿Quieres pan?","kind":"npc"}
 {"id":"dialogue:shop_price.1","text":"El pan cuesta dos monedas.","kind":"npc"}
+{"id":"dialogue:shop_sell_flour.1","text":"Aquí tienes la harina.","kind":"npc"}
 {"id":"dialogue:shop_sun.1","text":"Hoy hace sol.","kind":"npc"}
 {"id":"dialogue:shop_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:shop_thank.2","text":"¡Con gusto!","kind":"npc"}
@@ -344,7 +364,8 @@
 {"id":"dialogue:shop_understood.1","text":"Te entiendo. ¿Quieres comprar algo?","kind":"npc"}
 {"id":"dialogue:shop_weather.1","text":"Sí, hace {weather}.","kind":"template"}
 {"id":"dialogue:shop_well.1","text":"Bien, gracias.","kind":"npc"}
-{"id":"dialogue:shop_wont_sell.1","text":"No tengo eso. Tengo agua y pan.","kind":"npc"}
+{"id":"dialogue:shop_wont_buy.1","text":"No, gracias. Solo compro pan.","kind":"npc"}
+{"id":"dialogue:shop_wont_sell.1","text":"No tengo eso. Tengo agua, pan y harina.","kind":"npc"}
 {"id":"dialogue:shop_yes.1","text":"¡Sí!","kind":"npc"}
 {"id":"dialogue:smith_buy.1","text":"¡Gracias! Aquí tienes tus monedas.","kind":"npc"}
 {"id":"dialogue:smith_bye.1","text":"¡Adiós! Hasta luego.","kind":"npc"}
@@ -401,6 +422,7 @@
 {"id":"prompts:guide-review","text":"¿Qué es esto?","kind":"npc"}
 {"id":"prompts:lesson-apple","text":"¿Cómo es la manzana?","kind":"npc"}
 {"id":"prompts:lesson-ate","text":"¿Qué comiste ayer?","kind":"npc"}
+{"id":"prompts:lesson-bake-plan","text":"¿Qué vas a hacer hoy?","kind":"npc"}
 {"id":"prompts:lesson-big","text":"Mira este pan. ¿Cómo es?","kind":"npc"}
 {"id":"prompts:lesson-bottle","text":"¿Tiene usted una botella?","kind":"npc"}
 {"id":"prompts:lesson-bought","text":"¿Qué compraste?","kind":"npc"}
@@ -422,6 +444,7 @@
 {"id":"prompts:lesson-luz-made","text":"¿Qué hizo Luz ayer?","kind":"npc"}
 {"id":"prompts:lesson-luz-will","text":"¿Qué hará Luz mañana?","kind":"npc"}
 {"id":"prompts:lesson-made","text":"¿Qué hizo Domingo?","kind":"npc"}
+{"id":"prompts:lesson-made-bread","text":"¿Qué hiciste?","kind":"npc"}
 {"id":"prompts:lesson-mar-fished","text":"¿Y qué hizo Mar?","kind":"npc"}
 {"id":"prompts:lesson-market","text":"¡Hola! ¿Qué compraste en el mercado?","kind":"npc"}
 {"id":"prompts:lesson-must-go","text":"Mar fue al río y te busca. ¿Adónde tienes que ir?","kind":"npc"}
@@ -532,6 +555,21 @@
 {"id":"answer-sets/lesson-ate:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/lesson-ate:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/lesson-ate:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-bake-plan:plan","text":"voy a hacer pan","kind":"learner"}
+{"id":"answer-sets/lesson-bake-plan:plan.alias1","text":"yo voy a hacer pan","kind":"learner"}
+{"id":"answer-sets/lesson-bake-plan:plan.alias2","text":"voy a hacer el pan","kind":"learner"}
+{"id":"answer-sets/lesson-bake-plan:plan.alias3","text":"hoy voy a hacer pan","kind":"learner"}
+{"id":"answer-sets/lesson-bake-plan:plan.alias4","text":"voy a hacer pan hoy","kind":"learner"}
+{"id":"answer-sets/lesson-bake-plan:plan.alias5","text":"mañana voy a hacer pan","kind":"learner"}
+{"id":"answer-sets/lesson-bake-plan:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-bake-plan:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-bake-plan:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-bake-plan:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-bake-plan:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-bake-plan:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-bake-plan:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-bake-plan:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-bake-plan:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-big:big","text":"es grande","kind":"learner"}
 {"id":"answer-sets/lesson-big:big.alias1","text":"el pan es grande","kind":"learner"}
 {"id":"answer-sets/lesson-big:big.alias2","text":"sí es grande","kind":"learner"}
@@ -865,6 +903,21 @@
 {"id":"answer-sets/lesson-made:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/lesson-made:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/lesson-made:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-made-bread:made","text":"hice pan","kind":"learner"}
+{"id":"answer-sets/lesson-made-bread:made.alias1","text":"yo hice pan","kind":"learner"}
+{"id":"answer-sets/lesson-made-bread:made.alias2","text":"hice el pan","kind":"learner"}
+{"id":"answer-sets/lesson-made-bread:made.alias3","text":"hoy hice pan","kind":"learner"}
+{"id":"answer-sets/lesson-made-bread:made.alias4","text":"ayer hice pan","kind":"learner"}
+{"id":"answer-sets/lesson-made-bread:made.alias5","text":"hice pan hoy","kind":"learner"}
+{"id":"answer-sets/lesson-made-bread:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-made-bread:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-made-bread:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-made-bread:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-made-bread:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-made-bread:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-made-bread:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-made-bread:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-made-bread:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-mar-fished:river","text":"mar pescó en el río","kind":"learner"}
 {"id":"answer-sets/lesson-mar-fished:river.alias1","text":"pescó en el río","kind":"learner"}
 {"id":"answer-sets/lesson-mar-fished:river.alias2","text":"él pescó en el río","kind":"learner"}
@@ -1855,6 +1908,19 @@
 {"id":"answer-sets/supplies:fruit.alias8","text":"me da fruta por favor","kind":"learner"}
 {"id":"answer-sets/supplies:fruit.alias9","text":"me das fruta","kind":"learner"}
 {"id":"answer-sets/supplies:fruit.alias10","text":"me das fruta por favor","kind":"learner"}
+{"id":"answer-sets/supplies:flour","text":"quiero harina por favor","kind":"learner"}
+{"id":"answer-sets/supplies:flour.alias1","text":"quiero harina","kind":"learner"}
+{"id":"answer-sets/supplies:flour.alias2","text":"quiero la harina","kind":"learner"}
+{"id":"answer-sets/supplies:flour.alias3","text":"necesito harina","kind":"learner"}
+{"id":"answer-sets/supplies:flour.alias4","text":"harina por favor","kind":"learner"}
+{"id":"answer-sets/supplies:flour.alias5","text":"me da harina","kind":"learner"}
+{"id":"answer-sets/supplies:flour.alias6","text":"me das harina","kind":"learner"}
+{"id":"answer-sets/supplies:sell-bread","text":"vendo pan","kind":"learner"}
+{"id":"answer-sets/supplies:sell-bread.alias1","text":"yo vendo pan","kind":"learner"}
+{"id":"answer-sets/supplies:sell-bread.alias2","text":"te vendo pan","kind":"learner"}
+{"id":"answer-sets/supplies:sell-bread.alias3","text":"le vendo pan","kind":"learner"}
+{"id":"answer-sets/supplies:sell-bread.alias4","text":"vendo un pan","kind":"learner"}
+{"id":"answer-sets/supplies:sell-bread.alias5","text":"vendo dos panes","kind":"learner"}
 {"id":"answer-sets/supplies:help","text":"ayuda","kind":"learner"}
 {"id":"answer-sets/supplies:help.alias1","text":"ayuda por favor","kind":"learner"}
 {"id":"answer-sets/supplies:help.alias2","text":"necesito ayuda","kind":"learner"}
@@ -2183,12 +2249,11 @@
 {"id":"intents:deny.ex1","text":"no","kind":"learner","errors":[]}
 {"id":"intents:deny.ex2","text":"no, muchas gracias","kind":"learner","errors":[]}
 {"id":"intents:deny.ex3","text":"gracias, no","kind":"learner","errors":[]}
-{"id":"intents:deny.ex4","text":"no, mucho gracias","kind":"learner","errors":["gender.agree","noun.number"]}
-{"id":"intents:deny.ex5","text":"no es agua","kind":"learner","errors":[]}
-{"id":"intents:deny.ex6","text":"no, es madera","kind":"learner","errors":[]}
-{"id":"intents:deny.ex7","text":"no, es un madera","kind":"learner","errors":["gender.agree"]}
-{"id":"intents:deny.ex8","text":"ahora no","kind":"learner","errors":[]}
-{"id":"intents:deny.ex9","text":"no quiero","kind":"learner","errors":[]}
+{"id":"intents:deny.ex4","text":"no es agua","kind":"learner","errors":[]}
+{"id":"intents:deny.ex5","text":"no, es madera","kind":"learner","errors":[]}
+{"id":"intents:deny.ex6","text":"no, es un madera","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:deny.ex7","text":"ahora no","kind":"learner","errors":[]}
+{"id":"intents:deny.ex8","text":"no quiero","kind":"learner","errors":[]}
 {"id":"intents:describe.ex0","text":"es muy caro","kind":"learner","errors":[]}
 {"id":"intents:describe.ex1","text":"es caro","kind":"learner","errors":[]}
 {"id":"intents:describe.ex2","text":"sí, es muy caro","kind":"learner","errors":[]}
@@ -2267,6 +2332,13 @@
 {"id":"intents:offer_item.ex17","text":"quiero vender fruta","kind":"learner","errors":[]}
 {"id":"intents:offer_item.ex18","text":"le vendo madera","kind":"learner","errors":[]}
 {"id":"intents:offer_item.ex19","text":"tengo fruta para usted","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex20","text":"vendo pan","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex21","text":"yo vendo pan","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex22","text":"te vendo pan","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex23","text":"le vendo pan","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex24","text":"vendo un pan","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex25","text":"vendo dos panes","kind":"learner","errors":[]}
+{"id":"intents:offer_item.ex26","text":"vendo la pan","kind":"learner","errors":["gender.agree"]}
 {"id":"intents:request_item.ex0","text":"quiero el pan de luz","kind":"learner","errors":[]}
 {"id":"intents:request_item.ex1","text":"quiero dos panes de luz","kind":"learner","errors":[]}
 {"id":"intents:request_item.ex2","text":"quiero agua, por favor","kind":"learner","errors":[]}
@@ -2304,6 +2376,14 @@
 {"id":"intents:request_item.ex34","text":"quiero una manzana roja","kind":"learner","errors":[]}
 {"id":"intents:request_item.ex35","text":"quiero tres manzanas rojos","kind":"learner","errors":["gender.agree"]}
 {"id":"intents:request_item.ex36","text":"quiero tres manzana rojas","kind":"learner","errors":["noun.number"]}
+{"id":"intents:request_item.ex37","text":"quiero harina","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex38","text":"quiero la harina","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex39","text":"necesito harina","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex40","text":"quiero harina, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex41","text":"harina, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex42","text":"me das harina","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex43","text":"me da harina","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex44","text":"quiero el harina","kind":"learner","errors":["gender.agree"]}
 {"id":"intents:state_action.ex0","text":"mañana venderé fruta","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex1","text":"venderé fruta","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex2","text":"yo venderé fruta","kind":"learner","errors":[]}
@@ -2525,6 +2605,20 @@
 {"id":"intents:state_action.ex218","text":"mar va a trabajar en el río","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex219","text":"tú pescas mucho","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex220","text":"usted trabaja mucho","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex221","text":"voy a hacer pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex222","text":"yo voy a hacer pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex223","text":"voy a hacer el pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex224","text":"hoy voy a hacer pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex225","text":"voy a hacer pan hoy","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex226","text":"mañana voy a hacer pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex227","text":"voy a hago pan","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex228","text":"ayer hago pan","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex229","text":"hice pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex230","text":"yo hice pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex231","text":"hice el pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex232","text":"hoy hice pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex233","text":"ayer hice pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex234","text":"hice pan hoy","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex0","text":"tienes veinte panes","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex1","text":"tú tienes veinte panes","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex2","text":"sí, tienes veinte panes","kind":"learner","errors":[]}
@@ -3142,6 +3236,49 @@
 {"id":"PHRASES.md:te-compro-fruta.text","text":"Aquí se paga con monedas. Pero yo te compro fruta.","kind":"npc"}
 {"id":"PHRASES.md:que-venderas-manana.text","text":"¿Y qué venderás mañana?","kind":"npc"}
 {"id":"PHRASES.md:que-compraste-en-el-mercado.text","text":"¡Hola! ¿Qué compraste en el mercado?","kind":"npc"}
+{"id":"PHRASES.md:pon-la-harina.text","text":"Pon la harina en el bol.","kind":"npc"}
+{"id":"PHRASES.md:echa-el-agua.text","text":"Echa el agua en el bol.","kind":"npc"}
+{"id":"PHRASES.md:mezcla.text","text":"Mezcla con la cuchara.","kind":"npc"}
+{"id":"PHRASES.md:pon-la-madera.text","text":"Pon la madera en el horno.","kind":"npc"}
+{"id":"PHRASES.md:pon-la-masa.text","text":"Pon la masa en el horno.","kind":"npc"}
+{"id":"PHRASES.md:saca-el-pan.text","text":"Saca el pan del horno.","kind":"npc"}
+{"id":"PHRASES.md:haz-la-masa.text","text":"Haz la masa.","kind":"npc"}
+{"id":"PHRASES.md:haz-el-pan-horno.text","text":"Haz el pan en el horno.","kind":"npc"}
+{"id":"PHRASES.md:haz-pan.text","text":"Haz pan.","kind":"npc"}
+{"id":"PHRASES.md:voy-a-hacer-pan.text","text":"Voy a hacer pan.","kind":"learner"}
+{"id":"PHRASES.md:voy-a-hacer-pan.variant1","text":"yo voy a hacer pan","kind":"learner"}
+{"id":"PHRASES.md:voy-a-hacer-pan.variant2","text":"voy a hacer el pan","kind":"learner"}
+{"id":"PHRASES.md:voy-a-hacer-pan.variant3","text":"hoy voy a hacer pan","kind":"learner"}
+{"id":"PHRASES.md:voy-a-hacer-pan.variant4","text":"voy a hacer pan hoy","kind":"learner"}
+{"id":"PHRASES.md:voy-a-hacer-pan.variant5","text":"mañana voy a hacer pan","kind":"learner"}
+{"id":"PHRASES.md:voy-a-hacer-pan.error","text":"voy a hago pan","kind":"learner","errors":["conj.tense"]}
+{"id":"PHRASES.md:hice-pan.text","text":"Hice pan.","kind":"learner"}
+{"id":"PHRASES.md:hice-pan.variant1","text":"yo hice pan","kind":"learner"}
+{"id":"PHRASES.md:hice-pan.variant2","text":"hice el pan","kind":"learner"}
+{"id":"PHRASES.md:hice-pan.variant3","text":"hoy hice pan","kind":"learner"}
+{"id":"PHRASES.md:hice-pan.variant4","text":"ayer hice pan","kind":"learner"}
+{"id":"PHRASES.md:hice-pan.variant5","text":"hice pan hoy","kind":"learner"}
+{"id":"PHRASES.md:hice-pan.error","text":"ayer hago pan","kind":"learner","errors":["conj.tense"]}
+{"id":"PHRASES.md:quiero-harina.text","text":"Quiero harina.","kind":"learner"}
+{"id":"PHRASES.md:quiero-harina.variant1","text":"quiero la harina","kind":"learner"}
+{"id":"PHRASES.md:quiero-harina.variant2","text":"necesito harina","kind":"learner"}
+{"id":"PHRASES.md:quiero-harina.variant3","text":"quiero harina, por favor","kind":"learner"}
+{"id":"PHRASES.md:quiero-harina.variant4","text":"harina, por favor","kind":"learner"}
+{"id":"PHRASES.md:quiero-harina.variant5","text":"me das harina","kind":"learner"}
+{"id":"PHRASES.md:quiero-harina.variant6","text":"me da harina","kind":"learner"}
+{"id":"PHRASES.md:quiero-harina.error","text":"quiero el harina","kind":"learner","errors":["gender.agree"]}
+{"id":"PHRASES.md:vendo-pan.text","text":"Vendo pan.","kind":"learner"}
+{"id":"PHRASES.md:vendo-pan.variant1","text":"yo vendo pan","kind":"learner"}
+{"id":"PHRASES.md:vendo-pan.variant2","text":"te vendo pan","kind":"learner"}
+{"id":"PHRASES.md:vendo-pan.variant3","text":"le vendo pan","kind":"learner"}
+{"id":"PHRASES.md:vendo-pan.variant4","text":"vendo un pan","kind":"learner"}
+{"id":"PHRASES.md:vendo-pan.variant5","text":"vendo dos panes","kind":"learner"}
+{"id":"PHRASES.md:vendo-pan.error","text":"vendo la pan","kind":"learner","errors":["gender.agree"]}
+{"id":"PHRASES.md:hoy-vamos-a-hacer-pan.text","text":"Hoy vamos a hacer pan. ¿Me ayudas?","kind":"npc"}
+{"id":"PHRASES.md:que-hiciste.text","text":"¿Qué hiciste?","kind":"npc"}
+{"id":"PHRASES.md:todavia-no.text","text":"Todavía no.","kind":"npc"}
+{"id":"PHRASES.md:toma-aqui-tienes.text","text":"Toma. Aquí tienes.","kind":"npc"}
+{"id":"PHRASES.md:quieres-hacer-pan.text","text":"¿Quieres hacer pan?","kind":"npc"}
 {"id":"checks.json:hear.que-necesitas","text":"¿Qué necesitas?","kind":"npc"}
 {"id":"checks.json:hear.quieres-pan","text":"¿Quieres pan?","kind":"npc"}
 {"id":"checks.json:hear.pedir-agua","text":"Quiero agua, por favor.","kind":"npc"}
@@ -3185,6 +3322,10 @@
 {"id":"checks.json:hear.once-a-quince","text":"Once, doce, trece, catorce, quince.","kind":"npc"}
 {"id":"checks.json:hear.tengo-quince-manzanas","text":"¡Hola! Hoy hay mercado. Tengo quince manzanas.","kind":"npc"}
 {"id":"checks.json:hear.que-venderas-manana","text":"¿Y qué venderás mañana?","kind":"npc"}
+{"id":"checks.json:hear.mezcla","text":"Mezcla con la cuchara.","kind":"npc"}
+{"id":"checks.json:hear.saca-el-pan","text":"Saca el pan del horno.","kind":"npc"}
+{"id":"checks.json:hear.hoy-vamos-a-hacer-pan","text":"Hoy vamos a hacer pan. ¿Me ayudas?","kind":"npc"}
+{"id":"checks.json:hear.que-hiciste","text":"¿Qué hiciste?","kind":"npc"}
 {"id":"words.json:directions.ahead","text":"adelante","kind":"npc"}
 {"id":"words.json:directions.behind","text":"detrás","kind":"npc"}
 {"id":"words.json:directions.left","text":"a la izquierda","kind":"npc"}
@@ -3274,16 +3415,22 @@
 {"id":"speech:card.agua","text":"el agua","kind":"npc"}
 {"id":"speech:card.antorcha","text":"la antorcha","kind":"npc"}
 {"id":"speech:card.arena","text":"la arena","kind":"npc"}
+{"id":"speech:card.bol","text":"el bol","kind":"npc"}
 {"id":"speech:card.botella","text":"la botella","kind":"npc"}
 {"id":"speech:card.camino","text":"el camino","kind":"npc"}
 {"id":"speech:card.casa","text":"la casa","kind":"npc"}
+{"id":"speech:card.cuchara","text":"la cuchara","kind":"npc"}
 {"id":"speech:card.fruta","text":"la fruta","kind":"npc"}
 {"id":"speech:card.fuego","text":"el fuego","kind":"npc"}
 {"id":"speech:card.hacha","text":"el hacha","kind":"npc"}
+{"id":"speech:card.harina","text":"la harina","kind":"npc"}
 {"id":"speech:card.hierba","text":"la hierba","kind":"npc"}
+{"id":"speech:card.horno","text":"el horno","kind":"npc"}
 {"id":"speech:card.libro","text":"el libro","kind":"npc"}
 {"id":"speech:card.madera","text":"la madera","kind":"npc"}
+{"id":"speech:card.mano","text":"la mano","kind":"npc"}
 {"id":"speech:card.manzana","text":"la manzana","kind":"npc"}
+{"id":"speech:card.masa","text":"la masa","kind":"npc"}
 {"id":"speech:card.mesa","text":"la mesa","kind":"npc"}
 {"id":"speech:card.moneda","text":"la moneda","kind":"npc"}
 {"id":"speech:card.pan","text":"el pan","kind":"npc"}

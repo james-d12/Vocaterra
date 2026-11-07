@@ -29,6 +29,9 @@ internal static class TestGame
     /// <summary>The game's content of the bundle (every game file, loaded and checked once).</summary>
     public static GameData Data => RouteScene.DataOf(Bundle);
 
+    /// <summary>The shipped game with the bread procedure (W10); <see cref="Data"/> is the same without it, for the tests that predate it.</summary>
+    public static GameData BreadData => RouteScene.BreadDataOf(Bundle);
+
     /// <summary>The phrase sheet of the bundle.</summary>
     public static PhraseSheet Phrases => Data.Phrases;
 

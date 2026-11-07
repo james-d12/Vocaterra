@@ -102,7 +102,7 @@ public sealed class MarketLessonTests(ITestOutputHelper output)
         Assert.Contains("El mercado", lesson.Objective, StringComparison.Ordinal);
         Assert.Equal("El mercado", lesson.ShortTitle);
         Assert.Equal(["baker", "farmer", "shopkeeper"], lesson.Steps.Select(lesson.NpcOf).Distinct());
-        Assert.Same(lesson, Book.Lessons[^1]); // the series' last lesson
+        Assert.Same(lesson, Book.Lessons[^2]); // the last of the village; W10's optional class follows it
         Assert.Equal(10, SessionSkip.LastSession(Book));
 
         // Nine phrases the learner says and two review steps (sessions 9 and 8 at the start, sessions 5 and 7 at the stall at the end).
@@ -321,7 +321,8 @@ public sealed class MarketLessonTests(ITestOutputHelper output)
         // --skip-to-session 10: a new game where a learner who did sessions 1 to 9 stands, with no coins (V14, V17). The objective names the bakery and the beacon is on Luz.
         var session = TestGame.NewSessionWithShippedLessons();
         SessionSkip.Apply(session, 10);
-        Assert.Equal(LessonId, session.Lessons.OpenClass()?.Id); // open at Luz, not forced on the objective or the beacon (L01)
+        Assert.True(session.Lessons.IsUnlocked(session.Lessons.Book.Find(LessonId)!)); // open at Luz, not forced on the objective or the beacon (L01)
+        Assert.Equal(LessonStatus.NotStarted, session.Lessons.StatusOf(LessonId));
         Assert.NotEqual("baker", session.Pointer?.Point);
         Assert.Equal(0, session.Simulation.Inventory.Count(ItemId.Coin));
         Stage.TeleportToNpc(session, "baker");
@@ -408,12 +409,13 @@ public sealed class MarketLessonTests(ITestOutputHelper output)
         Assert.Equal(new ConjugationCell("puedo", CellState.Used, 1), At(BookPages.VerbTable(session, "poder")!, "pres", "1", "sg"));
         Assert.Equal("pago", At(BookPages.VerbTable(session, "pagar")!, "pres", "1", "sg").Text);
 
+        session.Lessons.CountAsCompleted("en-la-panaderia", 11); // W10: the optional bakery class, counted as done too, so that every lesson is
         // Every lesson is done: the page says so first, and no lesson says next: to a lesson that does not exist.
         var lines = BookPages.Lessons(session.Locale, session.Lessons.Record, session.Phrases, null, BookPages.Waits(session.Lessons));
-        Assert.Equal("Every lesson of the village is done, all 11: the series ends here. Practise any of them again with its button below.", lines[0].Text);
+        Assert.Equal("Every lesson of the village is done, all 12: the series ends here. Practise any of them again with its button below.", lines[0].Text);
         Assert.Equal(BookTone.Gold, lines[0].Tone);
         Assert.DoesNotContain(lines, static l => l.Text.StartsWith("next:", StringComparison.Ordinal) || l.Text.StartsWith("open:", StringComparison.Ordinal));
-        Assert.Equal(11, session.Lessons.Record.Count(static r => r.Status == LessonStatus.Completed));
+        Assert.Equal(12, session.Lessons.Record.Count(static r => r.Status == LessonStatus.Completed));
     }
 
     private static ConjugationCell At(ConjugationTable table, string tense, string person, string number)

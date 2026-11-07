@@ -110,8 +110,8 @@ public sealed class ActivityValidationTests
     [Fact]
     public void TheShippedBundleHasNoActivityProblems()
     {
-        Assert.Empty(GameDataValidator.ActivityProblems(TestGame.Data));
-        Assert.Empty(GameDataValidator.Validate(TestGame.Data));
+        Assert.Empty(GameDataValidator.ActivityProblems(TestGame.BreadData));
+        Assert.Empty(GameDataValidator.Validate(TestGame.BreadData));
     }
 
     [Fact]
@@ -129,7 +129,7 @@ public sealed class ActivityValidationTests
     [Fact]
     public void AStationsFixtureIsACatalogueNoun()
     {
-        Expect(Procedure(), "the fixture 'bol', which is not a catalogue noun", stations: Stations.Replace("\"mesa\"", "\"bol\"", StringComparison.Ordinal));
+        Expect(Procedure(), "the fixture 'queso', which is not a catalogue noun", stations: Stations.Replace("\"mesa\"", "\"queso\"", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -159,8 +159,8 @@ public sealed class ActivityValidationTests
     {
         Expect(Procedure(station: "molino"), "the station 'molino' is not one of the stations");
         Expect(Procedure(teacher: "nobody"), "the teacher 'nobody' is not one of the NPCs");
-        Expect(Procedure(makes: "flour"), "makes the item 'flour', which is not an item");
-        Expect(Procedure(uses: "{ \"item\": \"flour\", \"count\": 1 }"), "uses the item 'flour', which is not an item");
+        Expect(Procedure(makes: "cheese"), "makes the item 'cheese', which is not an item");
+        Expect(Procedure(uses: "{ \"item\": \"cheese\", \"count\": 1 }"), "uses the item 'cheese', which is not an item");
         Expect(Procedure(uses: "{ \"item\": \"water-bottle\", \"count\": 1, \"leaves\": \"jar\" }"), "leaves the item 'jar', which is not an item");
     }
 
@@ -174,14 +174,14 @@ public sealed class ActivityValidationTests
     [Fact]
     public void EachStepsNounIsACatalogueNounAndItsTargetsAreFixturesOfTheStation()
     {
-        Expect(Procedure(steps: DefaultSteps.Replace("\"what\": \"madera\"", "\"what\": \"bol\"", StringComparison.Ordinal)),
-            "acts on 'bol' (what), which is not a catalogue noun");
+        Expect(Procedure(steps: DefaultSteps.Replace("\"what\": \"madera\"", "\"what\": \"queso\"", StringComparison.Ordinal)),
+            "acts on 'queso' (what), which is not a catalogue noun");
         Expect(Procedure(steps: DefaultSteps.Replace("\"where\": \"mesa\"", "\"where\": \"agua\"", StringComparison.Ordinal)),
             "where 'agua' is not a fixture of the station 'horno'");
         Expect(Procedure(steps: DefaultSteps.Replace("\"from\": \"puerta\"", "\"from\": \"madera\"", StringComparison.Ordinal)),
             "from 'madera' is not a fixture of the station 'horno'");
-        Expect(Procedure(steps: DefaultSteps.Replace("\"what\": \"madera\", \"where\": \"mesa\"", "\"what\": \"madera\", \"where\": \"mesa\", \"use\": \"bol\"", StringComparison.Ordinal)),
-            "acts with 'bol', which is not a catalogue noun");
+        Expect(Procedure(steps: DefaultSteps.Replace("\"what\": \"madera\", \"where\": \"mesa\"", "\"what\": \"madera\", \"where\": \"mesa\", \"use\": \"queso\"", StringComparison.Ordinal)),
+            "acts with 'queso', which is not a catalogue noun");
     }
 
     [Fact]

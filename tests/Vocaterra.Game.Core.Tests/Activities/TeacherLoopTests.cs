@@ -349,6 +349,47 @@ public sealed class TeacherLoopTests
         return session;
     }
 
+    [Theory]
+    [InlineData("Quiero dos panes, por favor.")]
+    [InlineData("Mañana compraré pan.")]
+    [InlineData("¿Cuánto cuesta el pan?")]
+    [InlineData("Hola.")]
+    public void AtTheOfferALineHerOpenPromptUnderstandsIsAnsweredAsAtTheOpenPrompt(string line)
+    {
+        var atOpen = NewSession();
+        _ = atOpen.OpenTalk("baker"); // the offer first, so the day's offer is made in both
+        _ = atOpen.Say("No, gracias.");
+        atOpen.EndTalk();
+        _ = atOpen.OpenTalk("baker");
+        Assert.Equal("baker-open", atOpen.Conversation.PromptOf("baker"));
+        var expected = atOpen.Say(line);
+
+        var atOffer = NewSession();
+        _ = atOffer.OpenTalk("baker");
+        Assert.Equal("baker-offer", atOffer.Conversation.PromptOf("baker"));
+        var actual = atOffer.Say(line);
+
+        Assert.True(expected.Communicated);
+        Assert.Equal(expected.Communicated, actual.Communicated);
+        Assert.Equal(expected.Intent, actual.Intent);
+        Assert.Equal(expected.GuideLines, actual.GuideLines);
+        Assert.Equal(expected.HostEvents, actual.HostEvents);
+        Assert.Equal("idle", actual.AgentState);
+        Assert.Empty(atOffer.Procedures.Progress.Known);
+        atOffer.EndTalk();
+        Assert.False(atOffer.OpenTalk("baker").Lines.SequenceEqual(["¿Quieres hacer pan?"])); // the offer is not made again today
+    }
+
+    [Fact]
+    public void AtTheOfferSiStartsTheBakeAsBefore()
+    {
+        var session = NewSession();
+        _ = session.OpenTalk("baker");
+        var yes = session.Say("Sí.");
+        Assert.Equal("confirm", yes.Intent);
+        Assert.Contains("baker.start_bake", yes.HostEvents);
+    }
+
     [Fact]
     public void TheOfferOpensTheTalkOnceADayUntilTheLearnerHasBaked()
     {

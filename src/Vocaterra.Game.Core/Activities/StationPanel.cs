@@ -592,8 +592,16 @@ public sealed class StationPanel : IScreen
                 _ => result.Missing.Count > 0 ? StationNotice.Missing : StationNotice.Right,
             },
         };
+        if (result.Outcome == ActOutcome.OutOfOrder)
+        {
+            _ = _audio.Play(OutOfOrderRow, false); // W10: the teacher's «Todavía no.» (a hears row of the sheet, her own recording); the instruction can be heard again with R
+        }
+
         Refresh();
     }
+
+    /// <summary>The phrase row of the teacher's answer to a step tried out of order (design 10.9): «Todavía no.».</summary>
+    public const string OutOfOrderRow = "todavia-no";
 
     // The one-click bake (design 10.15) through GuideSession.BakeMastered: all or nothing, logged as item_crafted. The run stays where it is; the guided bake stays on offer.
     private void BakeAtOnce()

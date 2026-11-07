@@ -39,7 +39,7 @@ public sealed class RepliesAndExchangesTests
 
         Assert.Equal(0, session.Simulation.Inventory.Count(ItemId.Bottle));
         Assert.Empty(turn.Replies);
-        Assert.Equal(["No tengo eso. Tengo agua y pan."], turn.FollowUp!);
+        Assert.Equal(["No tengo eso. Tengo agua, pan y harina."], turn.FollowUp!);
 
         _ = session.Say("quiero agua, por favor");
         Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Bottle));

@@ -18,7 +18,7 @@ public sealed class StationTitleTests
     {
         var rig = new StationRig();
         Assert.True(rig.Panel.Open("horno"));
-        Assert.Equal("horno", rig.View.Title); // the id: this test catalogue has no noun for the oven
+        Assert.Equal("el horno", rig.View.Title); // the oven's noun with its article (W10 added horno to the catalogue)
         Assert.NotEqual("Station", rig.View.Title);
     }
 

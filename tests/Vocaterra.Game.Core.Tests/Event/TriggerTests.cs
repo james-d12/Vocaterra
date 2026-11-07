@@ -72,7 +72,7 @@ public sealed class TriggerTests
         // V15: El mercado's wood (a pickup's noun) and its purchase of apples (a gift's detail).
         var filters = TestGame.Data.Lessons.Lessons.SelectMany(static l => l.Steps).Where(static s => s.Type == LessonStepType.Do && s.Detail is not null).ToList();
 
-        Assert.Equal(12, filters.Count);
+        Assert.Equal(13, filters.Count); // W10: the class's bake (procedure_done, pan)
         Assert.Equal(new Trigger(WorldEvents.ItemPickedUp, Detail: "fruta"), filters[0].Trigger);
         Assert.NotNull(TestGame.Nouns.ForLemma(filters[0].Detail!));
         Assert.Equal([new Trigger(WorldEvents.BeaconReached, Detail: "bakery"), new Trigger(WorldEvents.BeaconReached, Detail: "smithy")], filters.Skip(1).Take(2).Select(static s => s.Trigger));
@@ -82,7 +82,8 @@ public sealed class TriggerTests
             filters.Skip(3).Take(3).Select(static s => s.Trigger));
         Assert.Equal([new Trigger(WorldEvents.ItemPickedUp, Detail: "madera"), new Trigger(WorldEvents.OrderDelivered, "smith", "axe-handle")], filters.Skip(6).Take(2).Select(static s => s.Trigger));
         Assert.Equal([new Trigger(WorldEvents.BeaconReached, Detail: "npc.fisher"), new Trigger(WorldEvents.OrderDelivered, "farmer", "water-for-plants")], filters.Skip(8).Take(2).Select(static s => s.Trigger));
-        Assert.Equal([new Trigger(WorldEvents.ItemPickedUp, Detail: "madera"), new Trigger(WorldEvents.ItemGiven, "farmer", "manzana, request")], filters.Skip(10).Select(static s => s.Trigger));
+        Assert.Equal([new Trigger(WorldEvents.ItemPickedUp, Detail: "madera"), new Trigger(WorldEvents.ItemGiven, "farmer", "manzana, request")], filters.Skip(10).Take(2).Select(static s => s.Trigger));
+        Assert.Equal([new Trigger(WorldEvents.ProcedureDone, "baker", "pan")], filters.Skip(12).Select(static s => s.Trigger)); // W10: the bakery class waits for the bake
         Assert.Equal("npc.fisher", filters[8].PointPlace);
         Assert.NotNull(TestGame.Nouns.ForLemma(filters[3].Detail!));
     }
