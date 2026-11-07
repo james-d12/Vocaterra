@@ -26,6 +26,10 @@ public sealed class SkyRenderer : IDisposable
     private readonly List<CloudBox> _boxes = [];
     private VertexPositionColor[] _clouds = new VertexPositionColor[6 * 5 * 128];
     private readonly bool _dusk;
+    private readonly VertexPositionColor[] _haze = new VertexPositionColor[4];
+    private readonly short[] _hazeIndices = [0, 1, 2, 0, 2, 3];
+    private Color _hazeColour = Color.Transparent;
+    private float _hazeAmount;
 
     /// <summary>Creates the sky; with <paramref name="dusk"/> (S15, <c>--dusk</c>) it is an amber and rose evening sky with a low orange sun.</summary>
     public SkyRenderer(GraphicsDevice device, bool dusk = false)
@@ -57,10 +61,28 @@ public sealed class SkyRenderer : IDisposable
     /// <summary>The number of vertices the last frame's clouds used (0 when clouds are off).</summary>
     public int CloudVertices { get; private set; }
 
+    /// <summary>
+    /// Sets how far the sky is lost in the water's colour (H05): <paramref name="amount"/> 0 leaves the sky as it is, 1 draws none of it (the caller's clear
+    /// colour is the water's), and in between a sheet of <paramref name="colour"/> at that opacity is laid over the sky.
+    /// </summary>
+    /// <param name="colour">The water's colour.</param>
+    /// <param name="amount">How far under water, 0 to 1.</param>
+    public void SetHaze(Color colour, float amount)
+    {
+        _hazeColour = colour;
+        _hazeAmount = Math.Clamp(amount, 0f, 1f);
+    }
+
     /// <summary>Draws the dome, the sun and (when <paramref name="clouds"/>) the clouds. The caller has cleared the target.</summary>
     public void Draw(FirstPersonCamera camera, long tick, bool clouds)
     {
         ArgumentNullException.ThrowIfNull(camera);
+        if (_hazeAmount >= 1f)
+        {
+            CloudVertices = 0;
+            return; // fully under water: the sky is not visible, the target is already the water's colour
+        }
+
         _device.DepthStencilState = DepthStencilState.None;
         _device.RasterizerState = RasterizerState.CullNone;
         _device.BlendState = BlendState.NonPremultiplied;
@@ -79,6 +101,11 @@ public sealed class SkyRenderer : IDisposable
         if (clouds)
         {
             DrawClouds(camera, projection, tick);
+        }
+
+        if (_hazeAmount > 0f)
+        {
+            DrawHaze();
         }
 
         _device.BlendState = BlendState.Opaque;
@@ -123,6 +150,21 @@ public sealed class SkyRenderer : IDisposable
         }
 
         return (vertices.ToArray(), indices.ToArray());
+    }
+
+    // A sheet over the whole view in the water's colour, at the haze's opacity: the sky fades into the murk as the view goes under.
+    private void DrawHaze()
+    {
+        var colour = new Color(_hazeColour.R, _hazeColour.G, _hazeColour.B, (byte)MathF.Round(_hazeAmount * 255f));
+        _haze[0] = new VertexPositionColor(new Vector3(-1f, -1f, 0f), colour);
+        _haze[1] = new VertexPositionColor(new Vector3(1f, -1f, 0f), colour);
+        _haze[2] = new VertexPositionColor(new Vector3(1f, 1f, 0f), colour);
+        _haze[3] = new VertexPositionColor(new Vector3(-1f, 1f, 0f), colour);
+        _effect.World = Matrix.Identity;
+        _effect.View = Matrix.Identity;
+        _effect.Projection = Matrix.Identity;
+        _effect.CurrentTechnique.Passes[0].Apply();
+        _device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, _haze, 0, 4, _hazeIndices, 0, 2);
     }
 
     // The sun: a bright square with two wider, fainter squares behind it (a blocky glow).
