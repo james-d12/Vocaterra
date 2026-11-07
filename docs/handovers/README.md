@@ -30,6 +30,7 @@ several of them were moved out of the orchestrator, the game plan and a research
 | Handover | Workstream | What it waits for |
 | --- | --- | --- |
 | [2026-11-03-2114-adaptation-design](2026-11-03-2114-adaptation-design.md) | The owner's Adaptation Design Document, revision 3: iterated with the owner on `feature/adaptation-design` (PR #30) | The owner's review of PR #30 and the decisions in the document's section 18 |
+| [2026-11-07-1504-water](2026-11-07-1504-water.md) | The H series (water) on `feature/water` | H01's report, then the gate |
 | [2026-11-03-1133-docs-cleanup](2026-11-03-1133-docs-cleanup.md) | The documentation cleanup: layout, READMEs, names, the orchestrator | The owner's review and merge of the `docs_cleanup` pull request |
 | [2026-11-02-after-followups](2026-11-02-after-followups.md) | The owner's decisions after the village follow-ups: M74, M75, V29, the study of spoken off-prompt lines, the known fuzz family | A new branch from `origin/main`; PR #28 (`feature/village-followups`) is merged |
 
