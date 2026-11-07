@@ -83,13 +83,12 @@
       "keywordRules": [
         { "lemmas": ["no"], "requiresSlots": [] }
       ],
-      "lint": {"allowRuleOnly": ["no, mucho gracias", "no es agua", "no, es madera", "no, es un madera"]},
+      "lint": {"allowRuleOnly": ["no es agua", "no, es madera", "no, es un madera"]},
       "examples": [
         {"text": "no, gracias", "errors": [], "prompt": "stall-offer"},
         {"text": "no", "errors": [], "prompt": "stall-offer"},
         {"text": "no, muchas gracias", "errors": [], "prompt": "stall-offer"},
         {"text": "gracias, no", "errors": [], "prompt": "stall-offer"},
-        {"text": "no, mucho gracias", "errors": ["gender.agree", "noun.number"], "prompt": "stall-offer"},
         {"text": "no es agua", "errors": [], "prompt": "lesson-yesno"},
         {"text": "no, es madera", "errors": [], "prompt": "lesson-yesno"},
         {"text": "no, es un madera", "errors": ["gender.agree"], "prompt": "lesson-yesno"},

@@ -374,7 +374,7 @@
     "mode": "Constrained",
     "difficulty": "Beginner",
     "answerSetId": "yes-no",
-    "allowedIntentIds": ["confirm", "deny", "ask_help", "dont_know"],
+    "allowedIntentIds": ["confirm", "deny", "ask_help", "dont_know", "request_item", "offer_item", "ask_price", "ask_total", "ask_availability", "state_action", "state_have", "greet", "ask_wellbeing", "thank", "farewell", "ask_how", "state_weather", "ask_weather"],
     "agentId": "baker",
     "slotGrammarIds": [],
     "text": "¿Quieres hacer pan?"

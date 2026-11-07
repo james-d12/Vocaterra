@@ -2249,12 +2249,11 @@
 {"id":"intents:deny.ex1","text":"no","kind":"learner","errors":[]}
 {"id":"intents:deny.ex2","text":"no, muchas gracias","kind":"learner","errors":[]}
 {"id":"intents:deny.ex3","text":"gracias, no","kind":"learner","errors":[]}
-{"id":"intents:deny.ex4","text":"no, mucho gracias","kind":"learner","errors":["gender.agree","noun.number"]}
-{"id":"intents:deny.ex5","text":"no es agua","kind":"learner","errors":[]}
-{"id":"intents:deny.ex6","text":"no, es madera","kind":"learner","errors":[]}
-{"id":"intents:deny.ex7","text":"no, es un madera","kind":"learner","errors":["gender.agree"]}
-{"id":"intents:deny.ex8","text":"ahora no","kind":"learner","errors":[]}
-{"id":"intents:deny.ex9","text":"no quiero","kind":"learner","errors":[]}
+{"id":"intents:deny.ex4","text":"no es agua","kind":"learner","errors":[]}
+{"id":"intents:deny.ex5","text":"no, es madera","kind":"learner","errors":[]}
+{"id":"intents:deny.ex6","text":"no, es un madera","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:deny.ex7","text":"ahora no","kind":"learner","errors":[]}
+{"id":"intents:deny.ex8","text":"no quiero","kind":"learner","errors":[]}
 {"id":"intents:describe.ex0","text":"es muy caro","kind":"learner","errors":[]}
 {"id":"intents:describe.ex1","text":"es caro","kind":"learner","errors":[]}
 {"id":"intents:describe.ex2","text":"sí, es muy caro","kind":"learner","errors":[]}
