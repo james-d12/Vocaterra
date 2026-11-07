@@ -7,10 +7,9 @@ namespace Vocaterra.Game.Core.Tests.Voxel;
 /// <summary>The water-at-rest invariant (water-plan 4.7): waking every water cell of the shipped scene changes nothing, and does so inside the flow budget.</summary>
 public sealed class WaterAtRestTests
 {
-    private const string SkipReason = "H07: the shipped scene's water moves when woken; awaiting the owner's per-cell decisions (water-plan section 8)";
     private const int StepCap = 200;
 
-    [Fact(Skip = SkipReason)]
+    [Fact]
     public void Given_TheBuiltScene_When_EveryWaterCellIsWokenAndTheFlowRunsToStandstill_Then_NoBlockOrLevelChanged()
     {
         var sim = VoxelSimulation.Create(VoxelTestSupport.BuildRoute(42));
@@ -25,7 +24,7 @@ public sealed class WaterAtRestTests
         Assert.Equal(0, sim.Flow.Queue.Count);
     }
 
-    [Fact(Skip = SkipReason)]
+    [Fact]
     public void Given_TheBuiltScene_When_EveryWaterCellIsWoken_Then_NoStepGoesPastTheBudgetAndTheWorstStepIsReported()
     {
         var sim = VoxelSimulation.Create(VoxelTestSupport.BuildRoute(42));

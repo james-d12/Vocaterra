@@ -168,6 +168,8 @@ public static class SceneBuilder
                     }
                 }
             }
+
+            WaterAtRest.Apply(_grid, _terrain);
         }
 
         // Whether the column, or one next to it, holds water (the bed and the bank are sand).

@@ -19,6 +19,7 @@ public sealed class BuiltSceneAtRestTests
         var scene = VoxelTestSupport.BuildRoute(42);
         var sim = VoxelSimulation.Create(scene);
         var built = sim.Grid.ComputeDigestHex();
+        var withLevels = sim.Grid.Chunks.Where(static chunk => chunk.HasWaterLevels).Select(static chunk => chunk.Coord).ToList(); // the falls and the rapids (H07a)
         var edits = sim.Grid.EditCount;
 
         VoxelTestSupport.Run(sim, 60 * 30);
@@ -26,6 +27,6 @@ public sealed class BuiltSceneAtRestTests
         Assert.Equal(built, sim.Grid.ComputeDigestHex());
         Assert.Equal(edits, sim.Grid.EditCount);
         Assert.Equal(0, sim.Flow.Queue.Count);
-        Assert.All(sim.Grid.Chunks, static chunk => Assert.False(chunk.HasWaterLevels));
+        Assert.Equal(withLevels, sim.Grid.Chunks.Where(static chunk => chunk.HasWaterLevels).Select(static chunk => chunk.Coord).ToList());
     }
 }
