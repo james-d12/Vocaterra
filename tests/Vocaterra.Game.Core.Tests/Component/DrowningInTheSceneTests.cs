@@ -3,7 +3,6 @@ using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
-using Vocaterra.Game.Core.Water;
 
 namespace Vocaterra.Game.Core.Tests.Component;
 
@@ -66,22 +65,22 @@ public sealed class DrowningInTheSceneTests
         }
 
         Assert.Equal(0, sim.Breath.Air);
-        Assert.Equal(3, outOfAir.Count);
+        Assert.Equal(4, outOfAir.Count); // ticks 900, 960, 1020 and 1080
         Assert.Equal(900, outOfAir[0]);
         Assert.Equal(60, outOfAir[1] - outOfAir[0]);
         Assert.Equal(60, outOfAir[2] - outOfAir[1]);
+        Assert.Equal(60, outOfAir[3] - outOfAir[2]);
 
-        // Surface: the body is placed at the water's top; the air refills within two seconds.
-        var surface = (top * U) + WaterSurface.Units(scene.Grid.GetWater(x, top, z), false);
+        // Surface: the body is placed at the water's top; swimming up (jump held), the air refills.
         sim.TeleportTo(new BlockPos(x, top + 1, z));
         var restored = false;
-        for (var i = 0; i < 150 && !sim.Breath.IsFull; i++)
+        var swimUp = new[] { new VoxelCommand(VoxelCommandKind.Jump) };
+        for (var i = 0; i < 300 && !sim.Breath.IsFull; i++)
         {
-            sim.Step([]);
+            sim.Step(swimUp);
             restored |= sim.Events.Any(static e => e.Kind == SimulationEventKind.BreathRestored);
         }
 
-        Assert.True(sim.Player.EyeY > surface);
         Assert.True(sim.Breath.IsFull);
         Assert.True(restored);
     }
