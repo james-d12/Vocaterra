@@ -169,13 +169,8 @@ public sealed partial class NpcService
     /// <summary>The skill id prefix of a phrase's learner skill (S8): <c>phrase.pedir-agua</c>.</summary>
     public const string PhraseSkillPrefix = "phrase.";
 
-    /// <summary>The failed lines in a row at the stall after which the shopkeeper hands the bottle over anyway (four is also where the core's repair ladder gives up).</summary>
-    private const int StallPatience = 4;
-
-    /// <summary>The lines after a request for help at the stall after which the shopkeeper hands the bottle over anyway (the model answer was heard once).</summary>
-    private const int StallPatienceAfterHelp = 2;
-
     private readonly ContentBundle _bundle;
+    private readonly Dictionary<string, NpcPatienceRule> _patience;
     private readonly TypedUtteranceEvaluator _typed;
     private readonly IGuideFacts _worldFacts;
     private readonly NounCatalog _nouns;
@@ -249,6 +244,7 @@ public sealed partial class NpcService
         _names = [.. data.Npcs.All.Select(static npc => npc.Name).OfType<string>()];
         _words = data.Words;
         _hostEvents = data.HostEvents;
+        _patience = data.Npcs.All.Where(static npc => npc.Patience is not null).ToDictionary(static npc => npc.Id, static npc => npc.Patience!, StringComparer.Ordinal);
         _places = places ?? ScenePlaces.None;
         AgentIds = data.Npcs.Ids;
         foreach (var npc in data.Npcs.All)
@@ -769,10 +765,10 @@ public sealed partial class NpcService
 
         var failForward = false;
 
-        // The stall's fail-forward stays code, by id (content-plan 3.6): the bottle after four misses is a rule about this exchange, not data.
-        if (!offPrompt && string.Equals(npc, ShopkeeperAgent, StringComparison.Ordinal) && string.Equals(promptId, StallNeedPrompt, StringComparison.Ordinal))
+        // W03: the fail-forward is the NPC's own rule (patience in its file), counted at the prompt it names.
+        if (!offPrompt && _patience.TryGetValue(npc, out var patience) && string.Equals(promptId, patience.Prompt, StringComparison.Ordinal))
         {
-            failForward = ShopkeeperPatience(agent, verdict, result, now, hostStateHash, hostEvents, followUp);
+            failForward = FailForward(patience, agent, verdict, result, now, hostStateHash, hostEvents, followUp);
         }
 
         var step = offPrompt ? null : result.Repair; // V27: no repair line of any kind after an off-prompt reply
@@ -867,9 +863,11 @@ public sealed partial class NpcService
         _ => null,
     };
 
-    // The stall's fail-forward (rule 8). After a line at the stall that did not ask for anything (the repair ladder's next step, a help request, a
-    // thanks), count it; when the exchange has run out of road the shopkeeper hands the bottle over with the core's own line, as a host turn.
-    private bool ShopkeeperPatience(
+    // The fail-forward (rule 8; the stall's, W03 made it data). After a line at the rule's prompt that did not ask for anything (the repair ladder's next
+    // step, a help request, a thanks), count it; when the exchange has run out of road the NPC raises the rule's event to its agent (the shopkeeper hands the
+    // bottle over with the core's own line), as a host turn.
+    private bool FailForward(
+        NpcPatienceRule rule,
         Agent agent,
         Verdict verdict,
         PipelineResult result,
@@ -878,7 +876,7 @@ public sealed partial class NpcService
         List<string> hostEvents,
         List<string> followUp)
     {
-        if (agent.BottleGiven)
+        if (rule.Once && agent.BottleGiven)
         {
             return false;
         }
@@ -890,15 +888,15 @@ public sealed partial class NpcService
         }
 
         var spent = result.Repair?.Kind == RepairKind.GiveUp
-            || agent.Unproductive >= StallPatience
-            || (agent.Helped && agent.Unproductive >= StallPatienceAfterHelp);
+            || agent.Unproductive >= rule.Misses
+            || (agent.Helped && agent.Unproductive >= rule.AfterHelp);
         if (!spent)
         {
             return false;
         }
 
         var before = agent.Context;
-        var turn = _typed.Advance(NpcHostEvents.ShopkeeperGive, before);
+        var turn = _typed.Advance(rule.Event, before);
         if (turn is null)
         {
             return false;
@@ -907,7 +905,10 @@ public sealed partial class NpcService
         Record(new ReplayEntry(null, HostTurnEnvelope.From(turn, before)));
         agent.Context = before.Next(turn, now) with { HostStateHash = hostStateHash };
         var events = HostEventsOf(turn.Agent.Actions);
-        Note(agent, NpcHostEvents.ShopkeeperGive, events);
+        Note(agent, rule.Event, events);
+        agent.BottleGiven |= rule.Once; // the bottle is the stall's "given"; any once-only rule remembers it fired
+        agent.Unproductive = 0; // the counts start again (the shopkeeper's Note did so already)
+        agent.Helped = false;
         followUp.AddRange(turn.Response.Lines.Select(static l => l.Text));
         hostEvents.AddRange(events);
         return true;

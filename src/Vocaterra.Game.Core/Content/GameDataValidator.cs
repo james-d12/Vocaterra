@@ -760,6 +760,28 @@ public static class GameDataValidator
             problems.Add($"{file}: the opening event '{opening}' is taken by no state of agents/{npc.Id}.json (onHostEvent), so the talk would open with the prompt's text.");
         }
 
+        if (npc.Patience is { } patience)
+        {
+            if (patience.Misses < 1 || patience.AfterHelp < 1)
+            {
+                problems.Add(string.Create(CultureInfo.InvariantCulture, $"{file}: the patience's misses ({patience.Misses}) and afterHelp ({patience.AfterHelp}) must both be 1 or more."));
+            }
+            else if (patience.AfterHelp > patience.Misses)
+            {
+                problems.Add(string.Create(CultureInfo.InvariantCulture, $"{file}: the patience's afterHelp ({patience.AfterHelp}) is more than its misses ({patience.Misses}); help can only shorten the wait."));
+            }
+
+            if (takes is not null && !takes.Contains(patience.Event))
+            {
+                problems.Add($"{file}: the patience's event '{patience.Event}' is taken by no state of agents/{npc.Id}.json (onHostEvent), so the NPC could not fail forward.");
+            }
+
+            if (!npc.Prompts.Values.Append(npc.ReviewPrompt).Contains(patience.Prompt, StringComparer.Ordinal))
+            {
+                problems.Add($"{file}: the patience applies at '{patience.Prompt}', which is not one of the NPC's prompts.");
+            }
+        }
+
         if (npc.Voice is not { } voice)
         {
             problems.Add($"{file}: the NPC has no voice (voice: the Kokoro speaker and name its lines are recorded with).");
