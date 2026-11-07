@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.Water.Currents;
 
 namespace Vocaterra.Game.Core.World;
 
@@ -23,8 +24,10 @@ public sealed class Scene
         int treeCount,
         int waterLevel,
         int plantCount = 0,
-        IReadOnlyDictionary<string, string>? labels = null)
+        IReadOnlyDictionary<string, string>? labels = null,
+        RiverCurrents? currents = null)
     {
+        Currents = currents ?? RiverCurrents.None;
         Labels = labels ?? new Dictionary<string, string>(StringComparer.Ordinal);
         Name = name;
         Seed = seed;
@@ -49,6 +52,7 @@ public sealed class Scene
         TreeCount = source.TreeCount;
         WaterLevel = source.WaterLevel;
         PlantCount = source.PlantCount;
+        Currents = source.Currents;
     }
 
     /// <summary>The layout's name.</summary>
@@ -81,6 +85,9 @@ public sealed class Scene
 
     /// <summary>How many undergrowth blocks (tall grass, ferns, reeds, flowers) the scene builder planted (S14).</summary>
     public int PlantCount { get; }
+
+    /// <summary>The river's current (water-plan 4.6): built with the scene from the layout, shared by clones, never saved.</summary>
+    public RiverCurrents Currents { get; }
 
     /// <summary>The y of the water surface block.</summary>
     public int WaterLevel { get; }

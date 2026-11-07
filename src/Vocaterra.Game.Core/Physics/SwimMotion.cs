@@ -1,3 +1,6 @@
+using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.Water.Currents;
+
 namespace Vocaterra.Game.Core.Physics;
 
 /// <summary>
@@ -35,6 +38,27 @@ internal static class SwimMotion
 
     /// <summary>The highest ledge a hop out can reach, in blocks above the feet (a one-block bank seen from a swimmer at the surface is about 2.0 above the feet; a two-block bank is 3.0).</summary>
     public const double HopReachBlocks = 2.25;
+
+    /// <summary>The drift of a river's water (<see cref="RiverCurrents"/>) on a body at its feet or swimming, in blocks per second (water-plan 4.6).</summary>
+    public const double RiverPushBlocksPerSecond = 0.6;
+
+    /// <summary>
+    /// The drift of flowing water (a cell with a level gradient or falling water, <see cref="FlowVector"/>), in blocks per second: 1.0, a little under the swim
+    /// speed (2.6) so a swimmer can still make way against a stream, and faster than the river so that a poured stream is felt to run harder than the river.
+    /// </summary>
+    public const double FlowPushBlocksPerSecond = 1.0;
+
+    /// <summary>The downward pull of falling water on a swimmer, in blocks per second (it can still be swum against with jump held).</summary>
+    public const double FallPushBlocksPerSecond = 1.5;
+
+    /// <summary>The river's drift in units per tick (about 41).</summary>
+    public const int RiverPush = (int)(RiverPushBlocksPerSecond * U / VoxelPhysics.TicksPerSecond);
+
+    /// <summary>The flowing water's drift in units per tick (about 68).</summary>
+    public const int FlowPush = (int)(FlowPushBlocksPerSecond * U / VoxelPhysics.TicksPerSecond);
+
+    /// <summary>The falling water's downward pull in units per tick squared, taken off the vertical speed each tick (it settles at the sink speed).</summary>
+    public const int FallPull = (int)(FallPushBlocksPerSecond * U / VoxelPhysics.TicksPerSecond / 10);
 
     /// <summary>The gravity while swimming, units per tick squared (about 2.6 blocks per second squared).</summary>
     public const int SwimGravity = VoxelPhysics.Gravity * GravityPermille / 1000;
@@ -78,4 +102,26 @@ internal static class SwimMotion
 
     /// <summary>Whether a ledge <paramref name="rise"/> units above the feet is within a hop's reach.</summary>
     public static bool InHopReach(int rise) => rise > 0 && rise <= HopReach;
+
+    /// <summary>
+    /// The drift the water puts on a body with its feet in the cell it is in: the horizontal push in units per tick on x and z, and the downward pull of falling
+    /// water. Flowing water (<see cref="FlowVector"/>) pushes at <see cref="FlowPush"/>; still water in a river column (<paramref name="currents"/>) at
+    /// <see cref="RiverPush"/>; any other water not at all.
+    /// </summary>
+    public static (int X, int Z, int Pull) Push(VoxelGrid grid, RiverCurrents? currents, int cellX, int cellY, int cellZ)
+    {
+        var flow = FlowVector.At(grid, cellX, cellY, cellZ);
+        if (flow.IsHorizontal || flow.Y < 0)
+        {
+            return (flow.X * FlowPush / FlowVector.One, flow.Z * FlowPush / FlowVector.One, flow.Y < 0 ? FallPull : 0);
+        }
+
+        if (currents is not null && grid.GetBlock(cellX, cellY, cellZ) == BlockId.Water && grid.GetWater(cellX, cellY, cellZ).IsSource)
+        {
+            var river = currents.At(cellX, cellZ);
+            return (river.X * RiverPush / FlowVector.One, river.Z * RiverPush / FlowVector.One, 0);
+        }
+
+        return (0, 0, 0);
+    }
 }
