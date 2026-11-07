@@ -102,7 +102,7 @@ public sealed class MarketLessonTests(ITestOutputHelper output)
         Assert.Contains("El mercado", lesson.Objective, StringComparison.Ordinal);
         Assert.Equal("El mercado", lesson.ShortTitle);
         Assert.Equal(["baker", "farmer", "shopkeeper"], lesson.Steps.Select(lesson.NpcOf).Distinct());
-        Assert.Same(lesson, Book.Lessons[^1]); // the series' last lesson
+        Assert.Same(lesson, Book.Lessons[^2]); // the last of the village; W10's optional class follows it
         Assert.Equal(10, SessionSkip.LastSession(Book));
 
         // Nine phrases the learner says and two review steps (sessions 9 and 8 at the start, sessions 5 and 7 at the stall at the end).

@@ -63,7 +63,7 @@ public sealed class PhraseSheetLookupTests
         Assert.Equal("pedir-agua", sheet.Expected("stall-need", "request_item", true, "quiero agua")!.Id);
 
         // Not understood: the prompt's only learner phrase (help and "no sé" are not what the prompt waits for).
-        Assert.Equal("pedir-agua", sheet.Expected("stall-need", "unknown", false, "agua agua mesa")!.Id);
+        Assert.Equal("pedir-agua", sheet.Expected("stall-need", "unknown", false, "quiero agua mesa")!.Id);
         Assert.Equal("pedir-agua", sheet.Expected("stall-need", "ask_help", true, "ayuda")!.Id);
         Assert.Equal("pedir-agua", sheet.Expected("stall-need", "dont_know", true, "no sé")!.Id);
     }

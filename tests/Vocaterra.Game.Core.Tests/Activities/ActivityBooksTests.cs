@@ -142,13 +142,16 @@ public sealed class ActivityBooksTests
     }
 
     [Fact]
-    public void TheBundleHasNoProcedureStationOrActionYet()
+    public void TheBundleHasTheBreadProcedureItsStationAndItsSixActions()
     {
-        // W05 adds the books and the empty files: the bundle loads unchanged (the bread procedure's content is W10's).
-        var data = TestGame.Data;
+        // W05 added the books and the empty files; W10's bread fills them (the tests that predate it read TestGame.Data, the bundle without its procedure).
+        var data = TestGame.BreadData;
 
-        Assert.Empty(data.Procedures.Procedures);
-        Assert.Empty(data.Stations.Stations);
-        Assert.Empty(data.Actions.Rules);
+        Assert.Equal(["pan"], data.Procedures.Procedures.Select(static p => p.Id));
+        Assert.Equal(["horno"], data.Stations.Stations.Select(static s => s.Id));
+        Assert.Equal(["bol", "cuchara", "horno"], data.Stations.Find("horno")!.Fixtures.Select(static f => f.Noun));
+        Assert.Equal(6, data.Actions.Rules.Count);
+        Assert.Equal(["sacar", "abrir"], data.Actions.VerbsFor("mano", "horno"));
+        Assert.Empty(TestGame.Data.Procedures.Procedures);
     }
 }

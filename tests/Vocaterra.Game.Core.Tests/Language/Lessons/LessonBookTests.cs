@@ -30,11 +30,11 @@ public sealed class LessonBookTests
         "{ \"schemaVersion\": 1, \"lessons\": [ { " + head + ", \"steps\": [ " + steps + " ] } ] }";
 
     [Fact]
-    public void TheShippedLessonsAreTheGuidesIntroductionHerFirstClassAndNineMoreInSessionsTwoToTen()
+    public void TheShippedLessonsAreTheGuidesIntroductionHerFirstClassAndTenMoreInSessionsTwoToEleven()
     {
         var book = RouteScene.DataOf(TestGame.Bundle).Lessons;
 
-        Assert.Equal(["first-words", "first-class", "personas", "ayer-y-manana", "el-pueblo", "numeros-y-pan", "gente-del-pueblo", "como-es", "ayer-en-el-pueblo", "manana-en-el-pueblo", "el-mercado"], book.Lessons.Select(static l => l.Id));
+        Assert.Equal(["first-words", "first-class", "personas", "ayer-y-manana", "el-pueblo", "numeros-y-pan", "gente-del-pueblo", "como-es", "ayer-en-el-pueblo", "manana-en-el-pueblo", "el-mercado", "en-la-panaderia"], book.Lessons.Select(static l => l.Id));
         var lesson = book.Find("first-words")!;
         Assert.Equal(("first-words", "guide", true, 1), (lesson.Id, lesson.Npc, lesson.AutoStart, lesson.Session)); // it starts by itself when the player first talks to her
         Assert.Null(book.Find("sample"));

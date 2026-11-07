@@ -72,7 +72,7 @@ public sealed class TriggerTests
         // V15: El mercado's wood (a pickup's noun) and its purchase of apples (a gift's detail).
         var filters = TestGame.Data.Lessons.Lessons.SelectMany(static l => l.Steps).Where(static s => s.Type == LessonStepType.Do && s.Detail is not null).ToList();
 
-        Assert.Equal(12, filters.Count);
+        Assert.Equal(13, filters.Count); // W10: the class's bake (procedure_done, pan)
         Assert.Equal(new Trigger(WorldEvents.ItemPickedUp, Detail: "fruta"), filters[0].Trigger);
         Assert.NotNull(TestGame.Nouns.ForLemma(filters[0].Detail!));
         Assert.Equal([new Trigger(WorldEvents.BeaconReached, Detail: "bakery"), new Trigger(WorldEvents.BeaconReached, Detail: "smithy")], filters.Skip(1).Take(2).Select(static s => s.Trigger));

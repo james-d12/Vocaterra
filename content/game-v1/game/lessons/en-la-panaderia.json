@@ -19,12 +19,6 @@
       "person": "1",
       "number": "sg",
       "tense": "pret"
-    },
-    {
-      "lemma": "vender",
-      "person": "1",
-      "number": "sg",
-      "tense": "pres"
     }
   ],
   "steps": [
@@ -120,13 +114,11 @@
     },
     {
       "id": "k5-sell",
-      "type": "do",
+      "type": "answer",
       "npc": "shopkeeper",
-      "trigger": {
-        "event": "item_taken",
-        "npc": "shopkeeper",
-        "detail": "pan, request"
-      }
+      "phrase": "vendo-pan",
+      "prompt": "stall-need",
+      "line": "shop_need.1"
     },
     {
       "id": "k6-review",

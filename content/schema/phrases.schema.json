@@ -64,9 +64,8 @@
           "description": "The core intent the phrase expresses, or null for a phrase only heard or instructed (does)."
         },
         "prompt": {
-          "type": "string",
-          "minLength": 1,
-          "description": "The bundle prompt the phrase belongs to."
+          "type": ["string", "null"],
+          "description": "The bundle prompt the phrase belongs to; null for an instruction (does), which no prompt asks for."
         },
         "variants": {
           "type": "array",

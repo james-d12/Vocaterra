@@ -4,7 +4,7 @@
 {"path":"agents/farmer.json","sha256":"d8bdf4c2004d3196b030d55d417ca0ef9437ece282087b9b56845f0f007f9fb1","bytes":6623},
 {"path":"agents/fisher.json","sha256":"e5941de56de1746780f4a3f92959158b5289beb300c34df29d6c7f7489fa1f75","bytes":7214},
 {"path":"agents/guide.json","sha256":"fc085ce8e734372fc09e295e00aa7dd104555a3f29edcfeb387e1cb49b8edfec","bytes":16892},
-{"path":"agents/shopkeeper.json","sha256":"4d401ca9221d855f4432803f43080ee289823923467892fdd43bf557d56fb7ba","bytes":15752},
+{"path":"agents/shopkeeper.json","sha256":"fdc6db5b2d2b2f3bb912d443bf763a9b1722343904ee5aeee30c7b5517063647","bytes":16402},
 {"path":"agents/smith.json","sha256":"7f90c4050019f72d77f2d1a529d953949a7ea24e8a543b28f0e534c4f199401b","bytes":5201},
 {"path":"agents/villager.json","sha256":"1e76e2db781f62bf3733aa02311cdb55701fd147d2861a6df0d98990c595e5cb","bytes":8370},
 {"path":"answer-sets/baker-proc.json","sha256":"afca8919b29dd973b7019513eebf3894ed9774aa04a850993f1888fe2b8b3dc1","bytes":1547},
@@ -90,7 +90,7 @@
 {"path":"game/lessons/como-es.json","sha256":"b7c4e5b6bd9c46f6de25725d93631fdbb98ba8c31be70a10facfcd94b41ec7e5","bytes":4124},
 {"path":"game/lessons/el-mercado.json","sha256":"856dd93f93f3529fcb8c5b18a3aebe9baa67aacec91955c188f12b3eebde1672","bytes":4880},
 {"path":"game/lessons/el-pueblo.json","sha256":"68e4f54154d3cf9d71c7ecf618c00ca339c1c6cf220e579faf3be898510f756a","bytes":3949},
-{"path":"game/lessons/en-la-panaderia.json","sha256":"c1d0d7f4e9cfa9ce4a45ba46d2abe2dd70fb3315696bafaefc626b72a5307fa8","bytes":3102},
+{"path":"game/lessons/en-la-panaderia.json","sha256":"f779235e6126c80e2d00be3874e993f8556c0aa196a4e1705ccf8b58ff7f31bb","bytes":2970},
 {"path":"game/lessons/first-class.json","sha256":"1f1870c0b1c057becf234b011a2082c7482e36b999e312da3bc5989889b3bce8","bytes":2333},
 {"path":"game/lessons/first-words.json","sha256":"3a884e4e3e9d6ed4ba0f0d561a281dba85e2b2669a45a6b9e18dbba76c7bfdf4","bytes":2768},
 {"path":"game/lessons/gente-del-pueblo.json","sha256":"563ab3da95d81d9e9d7e1f07e5e99b03732fc439ae8692bf5a0be110decbcd07","bytes":5809},
@@ -1514,4 +1514,4 @@
 {"path":"speech/villager/villager_wont_sell.1.wav","sha256":"3265f9782c9ad6140cb0111fff9faa2deaf07a0c6ebb5b798f8df03c9d25b1b9","bytes":67244},
 {"path":"speech/villager/villager_yes.1.slow.wav","sha256":"c89db269d94d9525b8b6e1294b6edfef8682dfd5fb5522ac7d2de7539b546c42","bytes":38444},
 {"path":"speech/villager/villager_yes.1.wav","sha256":"b7de709cd242f8181619ba356c6a8223d9a489231b934e1ee81f522f1d0442a3","bytes":30044}
-],"bundleHash":"beb24461109e4a1ae021c2be152628e3e5a255ce3a9018f08b1cf232ec22b7d8"}
+],"bundleHash":"c6607bbb4771370c2c851eed0843ad24a217fb0ba7b876f4ddc220dd75293b71"}

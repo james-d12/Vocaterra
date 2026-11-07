@@ -33,7 +33,7 @@ public sealed class ActivitySchemaTests
         var schema = await JsonSchema.FromFileAsync(Schema("procedure.schema.json"));
 
         Assert.Empty(schema.Validate(Pan));
-        Assert.NotEmpty(schema.Validate(Pan.Replace("\"item\": \"wood\"", "\"item\": \"flour\"", StringComparison.Ordinal))); // flour is not an item
+        Assert.NotEmpty(schema.Validate(Pan.Replace("\"item\": \"wood\"", "\"item\": \"cheese\"", StringComparison.Ordinal))); // cheese is not an item
         Assert.NotEmpty(schema.Validate(Pan.Replace("\"where\": \"bol\", \"anyOrder\"", "\"where\": \"bol\", \"from\": \"horno\", \"anyOrder\"", StringComparison.Ordinal))); // two targets
         Assert.NotEmpty(schema.Validate(Pan.Replace("\"where\": \"bol\", \"anyOrder\"", "\"anyOrder\"", StringComparison.Ordinal))); // no target
         Assert.NotEmpty(schema.Validate(Pan.Replace("\"level\": \"a2\"", "\"level\": \"b1\"", StringComparison.Ordinal)));

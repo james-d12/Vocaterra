@@ -881,10 +881,11 @@
     "lesson.en-la-panaderia.k5-flour.translation": "What do you need?",
     "lesson.en-la-panaderia.k5-flour.help": "Say: Quiero harina. It means I want flour.",
     "lesson.en-la-panaderia.k5-flour.retry": "Not quite. Say: Quiero harina.",
-    "lesson.en-la-panaderia.k5-sell.text": "Now sell him a loaf. Say: “Vendo pan” (I am selling bread). He pays a coin for each loaf.",
-    "lesson.en-la-panaderia.k5-sell.help": "Say: Vendo pan. You need bread in your bag; a bake gives you two or three.",
-    "lesson.en-la-panaderia.k5-sell.hud": "Sell bread to the shopkeeper: “Vendo pan”",
+    "lesson.en-la-panaderia.k5-sell.text": "Now sell him a loaf. He asks what you need again; say what you are doing: “Vendo pan” (I am selling bread). He pays a coin for each loaf.",
+    "lesson.en-la-panaderia.k5-sell.help": "Say: Vendo pan. It means I am selling bread. You need bread in your bag; a bake gives you two or three.",
     "lesson.en-la-panaderia.k6-review.text": "He asks something you have answered before. Answer him.",
-    "lesson.en-la-panaderia.k7-recap.text": "You can now follow a recipe by its commands (pon, echa, mezcla, saca), say what you are going to make and what you made, ask for flour and sell bread. Bake whenever you like: bread feeds you, and a loaf sells for a coin."
+    "lesson.en-la-panaderia.k7-recap.text": "You can now follow a recipe by its commands (pon, echa, mezcla, saca), say what you are going to make and what you made, ask for flour and sell bread. Bake whenever you like: bread feeds you, and a loaf sells for a coin.",
+    "lesson.en-la-panaderia.k5-sell.translation": "What do you need?",
+    "lesson.en-la-panaderia.k5-sell.retry": "Not quite. Say: Vendo pan."
   }
 }

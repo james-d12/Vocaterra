@@ -235,7 +235,7 @@ public sealed class SessionSkipTests
     [Fact]
     public void OnlyANewGameIsSkippedAndOnlyToASessionThatHasALesson()
     {
-        Assert.Equal(10, SessionSkip.LastSession(TestGame.Data.Lessons)); // V15: the market is the series' last lesson
+        Assert.Equal(10, SessionSkip.LastSession(TestGame.Data.Lessons)); // V15: the market is the last the skip goes to (W10's bakery class, session 11, is reached by playing)
         Assert.Throws<ArgumentOutOfRangeException>(() => SkippedTo(1));
         Assert.Throws<ArgumentOutOfRangeException>(() => SkippedTo(11));
 

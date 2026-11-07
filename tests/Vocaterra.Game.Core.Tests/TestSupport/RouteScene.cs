@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
+using Vocaterra.Game.Core.Activities;
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Words;
@@ -31,6 +32,7 @@ internal static class RouteScene
     private static readonly ConditionalWeakTable<ContentBundle, LessonBook> EmptyBooks = new();
 
     private static readonly ConditionalWeakTable<ContentBundle, GameData> Loaded = new();
+    private static readonly ConditionalWeakTable<ContentBundle, GameData> LoadedWithBread = new();
 
     private static readonly Lazy<LocaleText> LoadedLocale =
         new(() => LocaleBundle.Load(LocaleBundle.DirectoryBeside(GameBundle.ResolveDirectory())).Text(LocaleBundle.DefaultCode));
@@ -68,8 +70,24 @@ internal static class RouteScene
         {
             if (!Loaded.TryGetValue(bundle, out var data))
             {
-                data = GameData.Load(bundle, LocaleOf(bundle));
+                // The tests that predate the bread (W10) see the shipped game without its procedure, so Luz makes no offer to bake and her talk opens as it did; BreadDataOf has it.
+                data = BreadDataOf(bundle).WithProcedures(ProcedureBook.Empty);
                 Loaded.Add(bundle, data);
+            }
+
+            return data;
+        }
+    }
+
+    /// <summary>The game's content of a loaded bundle with the bread procedure, its station and its actions (W10), loaded once per bundle.</summary>
+    public static GameData BreadDataOf(ContentBundle bundle)
+    {
+        lock (LoadedWithBread)
+        {
+            if (!LoadedWithBread.TryGetValue(bundle, out var data))
+            {
+                data = GameData.Load(bundle, LocaleOf(bundle));
+                LoadedWithBread.Add(bundle, data);
             }
 
             return data;
