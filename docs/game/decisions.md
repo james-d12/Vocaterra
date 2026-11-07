@@ -526,6 +526,11 @@ needs option); D-game-25 answered the chosen starting session).
 2. **«Me muero de hambre / sed / sueño» stays**, though `morir` is above A2 in the lists: "it applies to the game about death, so we kind
    of need that in the game". The HUD's stage lines are text the player reads, not lines the lint holds to the ceiling.
 
+**Owner's answer, 2026-11-07 (the needs check):** "I've checked the needs, and they are too easy i think. however in a future piece of
+work im going to add a settings page that allows all of this to be configurable." The owner played days 1 to 3 with needs on: the needs
+are too easy at the current rates. No fixed value is chosen now and no tuning milestone is planned; a later piece of work, the owner's,
+adds a settings page that makes the needs configurable (beyond N09's `--needs-rate` slider). The needs check no longer blocks anything.
+
 ## D-game-25: lessons optional (decided)
 
 **Owner, 2026-11-04,** on reviewing the adaptation design: "One important thing we need to move the game away from, is centering it
