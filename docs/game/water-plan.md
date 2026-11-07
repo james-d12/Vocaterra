@@ -4,7 +4,7 @@ A plan written on 2026-11-07 at the owner's request, from a read of `main` at `4
 Nothing was built or run. Its goal is **water that behaves like water**: it flows and settles, it has currents, the player can swim in it,
 a bubble meter runs down under the surface, and the view under the surface is tinted, fogged and softly blurred.
 
-**Status:** planned, not started; the owner's four answers are in section 6 (2026-11-07). Branch `feature/water`, cut from `main` at `4c93aa6c` (worktree `.claude/worktrees/water`). Commit prefix
+**Status:** H01 done (2026-11-07); H02 and H03 next. The owner's four answers are in section 6, progress in section 8. Branch `feature/water`, cut from `main` at `4c93aa6c` (worktree `.claude/worktrees/water`). Commit prefix
 `H<nn>:`. As with every feature branch, nothing is pushed to `main`; the owner merges by pull request.
 
 ## 1. The request
@@ -124,7 +124,7 @@ A Minecraft-like swim, in the body's fixed-point units, deterministic per tick:
 - **Landing in water** cancels the fall speed (it matters once bread-pilot's needs or a fall rule look at landings).
 - **Currents** add their push (section 4.6) to the velocity while `Feet` or `Body`.
 - `SwimMotion` holds the numbers and the velocity rules. It's a component the body composes, so the walk code isn't touched beyond the
-  branch in section 3. Footsteps get their missing producer: `FootState.InWater = immersion.Feet`.
+  branch in section 3. (Footsteps already read water at the feet, `Footsteps.StateOf`; a first survey said otherwise.)
 
 ### 4.4 Breath (`Water/Breath.cs`)
 
@@ -244,7 +244,7 @@ design-heavy ones. At most two building agents at a time. Every milestone: `dotn
 | Id | Milestone | Size | Model | Depends on | Touches bread-pilot files? |
 |---|---|---|---|---|---|
 | H01 | **Water cell and immersion:** `WaterLevel`, the lazy level layer in `VoxelChunk`, `GetWater`/`SetWater`, `IBlockChangeListener` on `VoxelGrid`, `Immersion.Of`. Digests unchanged for a built scene (test). | M | Sonnet, medium | none | No |
-| H02 | **Swimming:** `SwimMotion`, `PlayerBody.Swim.cs`, the branch in `Step`, wading, jump-held swim up, surface bob, hop out, landing in water. `FootState.InWater` producer. | M | Sonnet, medium | H01 | `PlayerBody.cs` (one branch) |
+| H02 | **Swimming:** `SwimMotion`, `PlayerBody.Swim.cs`, the branch in `Step`, wading, jump-held swim up, surface bob, hop out, landing in water. | M | Sonnet, medium | H01 | `PlayerBody.cs` (one branch) |
 | H03 | **Breath and drowning:** `Breath`, its events, `DrowningDamage` against the `IPlayerHealth` port (tested with a fake), the save in `VoxelSimulationState`, `VoxelSession.Water.cs`. | M | Sonnet, medium | H01 | `VoxelSimulation.cs` (one call) |
 | H04 | **Bubble meter:** `BreathHudLayout`, `BreathHudLayer`, `BubbleIcon`, `FrameView.Breath`. | S | Haiku | H03 | `LayerStack.cs`, `FrameView.cs`, `VoxelGame.cs` (a line each) |
 | H05 | **The view under water:** `UnderwaterView`, fog blend and clear colour in `SceneDrawer`, `UnderwaterTintLayer`, `UnderwaterPass` (the render target and the blur), the `UnderwaterBlur` setting (saved, and `--underwater-blur` at launch), screenshots above and below the lake surface at each blur level. | M/L | Sonnet, high | H01 | `LayerStack.cs`, `SaveDocument.cs`, `LaunchOptions.cs` (a line each) |
@@ -283,3 +283,10 @@ next number first.
 - No custom shader (`.fx`): everything uses `BasicEffect`, `SpriteBatch` and render targets, so the build needs no Wine.
 - No NPC swimming: NPCs keep their walk planner, which already refuses water cells (`Navigation/WalkPlanner.cs:166`). Flowing water is
   still `BlockId.Water`, so a flooded path is avoided with no change (a case for H06's tests, not a feature).
+
+## 8. Progress
+
+| Id | Status | Gate | Notes |
+|---|---|---|---|
+| H01 | done, 2026-11-07 | merged at `68457dc6`, 8869 passed, 0 failed | `WaterLevel` (byte: distance in bits 0-2, falling bit 3), `WaterSurface` (source 14/16; flowing 12, 10, 8, 7, 5, 3, 2 for distance 1..7; falling or water above 16/16), the lazy level layer in `VoxelChunk` (digest unchanged without levels, pinned by a test), `VoxelGrid.GetWater`/`SetWater`, `IBlockChangeListener` and `BlockChange` (internal, raised by `SetBlock` and `SetWater` only), `Immersion.Of`. Finding for H06: `Save/VoxelGridDiff.cs:29` compares blocks only, so a level-only change isn't saved yet. |
+
