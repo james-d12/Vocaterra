@@ -1814,6 +1814,13 @@ merge into a feature branch that is pushed, and the owner merges it into `main` 
   count as absent; the bundle loader names `intents/intents.json`). `OptionalMembersMayBeOmitted` pins a grammar-only intent; new tests for a
   rules-only and an examples-only intent and a theory for the refused ones (bare, `requiredSlots` only, all empty); one fixture of
   `IntentExampleTests` took an example. The fuzz tolerance is unchanged and O15 passes. `docs/nlp/changing-the-core.md` states the rule.
+- **An O7 failure found by W02 (2026-11-07, not planned yet).** On `feature/bread-pilot` at `54e6625c` (before W02, and the same on W02),
+  CsCheck seed `8eu5g1sTe_A8` fails `IntentResolverFuzzTests`: «ayuda por favor por favor» at a prompt allowing `ask_activity`,
+  `request_item` and `farewell` (not `ask_help`); the analyzer matched `request_item`'s `[ART]? [NUM:qty]? [NOUN:item] [ADJ]? por favor`, which
+  `ask_help`'s `ayuda (por favor)?` outranks, yet the resolution is Grammar `request_item`. Either the resolver should not take a grammar an
+  outranking one beat, or `ayuda` should not read as an item noun there; the oracle stands. The seed is random per run, so a gate can hit it.
+  Proposed as M83 for the owner. Log saved at `/tmp/claude-1000/orch/fuzz-8eu5g1sTe_A8.log` (not committed); report
+  `.claude/briefs/w02-report.md`.
 
 ## 6. Definition of done (every milestone)
 
