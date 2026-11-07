@@ -17,7 +17,21 @@ public class OpenFallbackTests
 
     private static AsrResult Constrained(string transcript) => TestSupport.Asr(transcript, RecognitionMode.Constrained);
 
-    private static AsrResult Open(string transcript) => TestSupport.Asr(transcript, RecognitionMode.Open);
+    // A free recognition with a confidence for every word (the scripted recognizers of other tests carry none); the default floor is 0.5, so 0.9 clears it.
+    private static AsrResult Open(string transcript, params double[] confidences)
+    {
+        var tokens = transcript.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var words = tokens.Select((text, i) => new AsrWord(text, i * 0.4, (i * 0.4) + 0.3, i < confidences.Length ? confidences[i] : 0.9)).ToList();
+        return new AsrResult(transcript, [new AsrHypothesis(transcript, 1.0)], words, 1.0, "scripted-test", RecognitionMode.Open);
+    }
+
+    private static UtteranceAnalysis AnalyzeWith(AsrResult open, PipelineOptions? options)
+    {
+        var recognizer = new ScriptedWordRecognizer(Constrained(string.Empty), open);
+        var services = TestSupport.Services(open.Transcript, RecognitionMode.Constrained);
+        services = services.WithRecognizers(recognizer, services.PhonemeRecognizer);
+        return new UtterancePipeline(services, options).Analyze(TestSupport.Clip(), TestSupport.Bundle.Prompts["smith-open"]);
+    }
 
     private static (UtterancePipeline Pipeline, ScriptedWordRecognizer Recognizer) Build(string constrained, string open, PipelineOptions? options, bool phonemes = false)
     {
@@ -240,6 +254,99 @@ public class OpenFallbackTests
         var prompt = TestSupport.Bundle.Prompts["smith-open"];
 
         Assert.Equal(CanonicalJson.Serialize(off.Trace(TestSupport.Clip(), prompt, context)), CanonicalJson.Serialize(on.Trace(TestSupport.Clip(), prompt, context)));
+    }
+
+    [Fact]
+    public void TheFloorDefaultsToHalfAndIsValidated()
+    {
+        Assert.Equal(0.5, PipelineOptions.Default.OpenPassWordFloor);
+        Assert.Equal(PipelineOptions.DefaultOpenPassWordFloor, new PipelineOptions().OpenPassWordFloor);
+        foreach (var floor in new[] { -0.01, 1.01, double.NaN, double.PositiveInfinity })
+        {
+            Assert.Throws<ArgumentOutOfRangeException>(() => Build("x", "y", new PipelineOptions { OpenPassWordFloor = floor }));
+        }
+
+        foreach (var floor in new[] { 0.0, 0.5, 1.0 })
+        {
+            Assert.NotNull(Build("x", "y", new PipelineOptions { OpenPassWordFloor = floor }).Pipeline);
+        }
+    }
+
+    [Fact]
+    public void AFreeReadingWithAWordUnderTheFloorIsNotTaken()
+    {
+        var weak = Open("me gusta el río", 0.9, 0.49, 0.9, 0.9);
+        var kept = AnalyzeWith(weak, On);
+
+        Assert.Equal(RecognitionMode.Constrained, kept.Asr.Mode);
+        Assert.Null(kept.Verdict.OffPromptIntent);
+        Assert.False(kept.Verdict.Communicated);
+        Assert.Equal(weak, kept.OtherPass);
+        Assert.Equal(AnalyzeWith(weak, null).Verdict, kept.Verdict);
+    }
+
+    [Fact]
+    public void AFreeReadingWhoseWeakestWordIsExactlyTheFloorIsTaken()
+    {
+        var analysis = AnalyzeWith(Open("me gusta el río", 0.9, 0.5, 0.9, 0.9), On);
+
+        Assert.Equal(RecognitionMode.Open, analysis.Asr.Mode);
+        Assert.Equal(new IntentId("state_like"), analysis.Verdict.OffPromptIntent);
+    }
+
+    [Fact]
+    public void ARaisedOrLoweredFloorMovesTheLine()
+    {
+        var heard = Open("me gusta el río", 0.9, 0.7, 0.9, 0.9);
+
+        Assert.Equal(RecognitionMode.Open, AnalyzeWith(heard, On with { OpenPassWordFloor = 0.7 }).Asr.Mode);
+        Assert.Equal(RecognitionMode.Constrained, AnalyzeWith(heard, On with { OpenPassWordFloor = 0.71 }).Asr.Mode);
+        Assert.Equal(RecognitionMode.Open, AnalyzeWith(Open("me gusta el río", 0.9, 0.1, 0.9, 0.9), On with { OpenPassWordFloor = 0.1 }).Asr.Mode);
+    }
+
+    [Fact]
+    public void AFloorOfZeroTakesTheFreeReadingAsBeforeTheFloorEvenWithoutWordConfidences()
+    {
+        var noWords = TestSupport.Asr("me gusta el río", RecognitionMode.Open);
+        var off = On with { OpenPassWordFloor = 0.0 };
+
+        Assert.Equal(RecognitionMode.Open, AnalyzeWith(Open("me gusta el río", 0.0, 0.0, 0.0, 0.0), off).Asr.Mode);
+        Assert.Equal(RecognitionMode.Open, AnalyzeWith(noWords, off).Asr.Mode);
+    }
+
+    [Fact]
+    public void AFreeRecognitionWithoutWordConfidencesIsNotTakenUnderTheDefaultFloor()
+    {
+        var kept = AnalyzeWith(TestSupport.Asr("me gusta el río", RecognitionMode.Open), On);
+
+        Assert.Equal(RecognitionMode.Constrained, kept.Asr.Mode);
+        Assert.Null(kept.Verdict.OffPromptIntent);
+    }
+
+    [Fact]
+    public void TheFloorNeverTouchesTheFirstPass()
+    {
+        // A constrained reading that is taken stands whatever its word confidences, with the floor at its highest; the recognizer is asked once.
+        var weakFirst = new AsrResult("hola", [new AsrHypothesis("hola", 1.0)], [new AsrWord("hola", 0.0, 0.3, 0.05)], 1.0, "scripted-test", RecognitionMode.Constrained);
+        var recognizer = new ScriptedWordRecognizer(weakFirst, Open("me gusta el río"));
+        var services = TestSupport.Services("hola", RecognitionMode.Constrained);
+        services = services.WithRecognizers(recognizer, services.PhonemeRecognizer);
+        var strict = new PipelineOptions { OpenRecognitionFallback = true, OpenPassWordFloor = 1.0 };
+
+        var analysis = new UtterancePipeline(services, strict).Analyze(TestSupport.Clip(), TestSupport.Bundle.Prompts["smith-open"]);
+
+        Assert.True(analysis.Verdict.Communicated);
+        Assert.Equal(1, recognizer.CallCount);
+        Assert.Equal(RecognitionMode.Constrained, analysis.Asr.Mode);
+    }
+
+    [Fact]
+    public void TheFloorDoesNothingWithTheFallbackOff()
+    {
+        var weak = Open("me gusta el río", 0.9, 0.1, 0.9, 0.9);
+
+        Assert.Equal(CanonicalJson.Serialize(AnalyzeWith(weak, null).Verdict), CanonicalJson.Serialize(AnalyzeWith(weak, new PipelineOptions { OpenPassWordFloor = 1.0 }).Verdict));
+        Assert.Null(AnalyzeWith(weak, new PipelineOptions { OpenPassWordFloor = 1.0 }).OtherPass);
     }
 
     [Fact]
