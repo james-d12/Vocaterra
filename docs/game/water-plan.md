@@ -4,7 +4,7 @@ A plan written on 2026-11-07 at the owner's request, from a read of `main` at `4
 Nothing was built or run. Its goal is **water that behaves like water**: it flows and settles, it has currents, the player can swim in it,
 a bubble meter runs down under the surface, and the view under the surface is tinted, fogged and softly blurred.
 
-**Status:** H01 done (2026-11-07); H02 and H03 next. The owner's four answers are in section 6, progress in section 8. Branch `feature/water`, cut from `main` at `4c93aa6c` (worktree `.claude/worktrees/water`). Commit prefix
+**Status:** H01 done (2026-11-07); H02 and H05 running (chosen first because they're the ones the owner sees), then H03 and H04. The owner's four answers are in section 6, progress in section 8. Branch `feature/water`, cut from `main` at `4c93aa6c` (worktree `.claude/worktrees/water`). Commit prefix
 `H<nn>:`. As with every feature branch, nothing is pushed to `main`; the owner merges by pull request.
 
 ## 1. The request
@@ -76,11 +76,11 @@ lines.**
 | `Physics/PlayerBody.cs` | `Step(..., int speedPermille = 1000)` scales the walk | `partial` on the class; one branch at the top of `Step` hands over to `PlayerBody.Swim.cs` when the body is immersed | Keep bread-pilot's signature and pass `speedPermille` to the swim step (H11) |
 | `Simulation/VoxelSimulation.cs` | Tool speeds, `WalkPermille`, fires | `partial` on the class; one call to `StepWater()` (in the new `VoxelSimulation.Water.cs`) in `Step`'s fixed order; `IsEmptyOrDecor` also accepts a water cell so a block can be placed into water | Keep both; the call order is written in `Step`'s comment |
 | `Session/VoxelSession.cs` | Needs, objectives | Nothing: the new partial `VoxelSession.Water.cs` holds the composition | No conflict expected |
-| `UI/Common/LayerStack.cs` | Inserts fade, death, view effects, needs | Inserts `UnderwaterTintLayer` and `BreathHudLayer` | Tint sits under bread-pilot's `ViewEffectsLayer`; bubbles go just above `NeedsHudLayer` |
+| `UI/Common/LayerStack.cs` | Inserts fade, death, view effects, needs | Inserts `BreathHudLayer` (H04; the tint is drawn by the underwater pass, not a layer) | Bubbles go just above `NeedsHudLayer` |
 | `UI/Common/FrameView.cs` | Many new members | Appends `Breath` and `Underwater` | Keep both |
 | `VoxelGame.cs` | 316 lines (needs, death, settings) | At most the two lines that copy breath and underwater into `FrameView`; the render target is inside `SceneDrawer` | Keep both |
 | `Save/SaveGame.cs` | `CurrentVersion` 5 → 6 (W12 plans 7) | One bump for the water levels | Take the higher number plus one (no save migration: the game is unreleased) |
-| `Save/SaveDocument.cs` | `SaveSettings` gains `ViewEffectsOff`, `RelaxedNeeds`, `NeedsRate` | `SaveSettings` gains `UnderwaterBlur` (one trailing parameter, H05) | Keep all the parameters |
+| `Save/SaveDocument.cs` | `SaveSettings` gains `ViewEffectsOff`, `RelaxedNeeds`, `NeedsRate` | `SaveSettings` gains `UnderwaterBlur` (one trailing parameter, H11, after the merge) | Done on the merged branch: no conflict |
 | `Startup/LaunchOptions.cs` | New launch options | `--underwater-blur <off\|low\|medium\|high>` (H05) | Keep both |
 | `Sound/SoundCue.cs` (H10 only) | Appends `NeedStage` | Appends `WaterSplash`, `UnderwaterBubbles` | Keep both; the cue isn't persisted, so renumbering is harmless |
 
@@ -203,23 +203,25 @@ that leaves water hanging over a gap fails it (the fix is in the layout, never a
   the flow vector, so the ripples run downstream and the waterfall's sheet falls. Still water gets a slow, gentle shimmer.
 - The alpha mesh carries only water today, so it switches texture as a whole and needs no new mesh kind.
 
-### 4.9 The view under water (`Water/UnderwaterView.cs`, `Graphics/Water/UnderwaterPass.cs`, `UI/Hud/UnderwaterTintLayer.cs`)
+### 4.9 The view under water (`Water/UnderwaterView.cs`, `Graphics/Water/UnderwaterPass.cs`)
 
 - **`UnderwaterView`** (Core, pure): `Amount` from 0 to 1, easing in over about 0.15 s when `Eye` turns true and out over 0.3 s, plus the
   ambient colour of the water. The tests are a few lines of ticks.
 - **Fog** (the main cue, and free): while `Amount > 0`, `SceneDrawer` blends the renderer's fog towards a blue-green with an end of about 14
   blocks and a start at 0, and clears to the same colour, so the far lake bed fades into murk.
-- **Tint:** `UnderwaterTintLayer` lays a full-screen blue-green rectangle at about 25 % × `Amount`. It's a separate layer, below
-  bread-pilot's `ViewEffectsLayer`.
+- **Tint:** a full-screen blue-green rectangle at about 25 % × `Amount`, drawn by `UnderwaterPass` as the last step of the world view
+  (changed at H05's launch: as a HUD layer it would have touched `LayerStack`, `FrameView` and `VoxelGame`, all rewritten by bread-pilot).
+  So it's under every HUD layer, bread-pilot's `ViewEffectsLayer` included.
 - **Blur, mild, with no custom shader:** while `Amount > 0` only, `UnderwaterPass` renders the world into a `RenderTarget2D` and makes a
   half-resolution copy with linear filtering. It then composites the full image at 60 % and the up-scaled half-size copy at 40 %, offset by
   half a pixel in four directions. That softens edges without smearing. Above water the pass is skipped, so it costs nothing on land. The
   strength is set by the `UnderwaterBlur` setting below.
 - **The blur is configurable** (owner, 2026-11-07): `UnderwaterBlur` is `Off`, `Low` (the default: the 40 % blend above), `Medium` (60 %,
   a quarter-size copy) or `High` (80 %). It's a value object in Core that maps a level to the pass's numbers, so the pass holds no setting
-  logic. It's saved with the other settings (`SaveSettings.UnderwaterBlur`) and set at launch with `--underwater-blur`, so scripted runs can
-  screenshot each level. The settings screen exists only on bread-pilot, so its row ("Underwater blur: off / low / medium / high") is added
-  in H11. Then bread-pilot's `ViewEffectsOff` (the accessibility switch) also forces the blur off. The fog and the tint are never switched
+  logic. Until H11 it's set at launch with `--underwater-blur`, so scripted runs can screenshot each level. The settings screen exists only
+  on bread-pilot, so its row ("Underwater blur: off / low / medium / high") and saving the choice (`SaveSettings.UnderwaterBlur`, written
+  in `VoxelGame`) both come in H11. Saving earlier would have touched `SaveDocument` and `VoxelGame` for a value nobody can change in the
+  game yet. Then bread-pilot's `ViewEffectsOff` (the accessibility switch) also forces the blur off. The fog and the tint are never switched
   off, because they tell the player where they are.
 
 ### 4.10 The bubble meter (`UI/Hud/BreathHudLayer.cs`, `BreathHudLayout.cs`, `BubbleIcon.cs`)
@@ -247,14 +249,14 @@ design-heavy ones. At most two building agents at a time. Every milestone: `dotn
 | H02 | **Swimming:** `SwimMotion`, `PlayerBody.Swim.cs`, the branch in `Step`, wading, jump-held swim up, surface bob, hop out, landing in water. | M | Sonnet, medium | H01 | `PlayerBody.cs` (one branch) |
 | H03 | **Breath and drowning:** `Breath`, its events, `DrowningDamage` against the `IPlayerHealth` port (tested with a fake), the save in `VoxelSimulationState`, `VoxelSession.Water.cs`. | M | Sonnet, medium | H01 | `VoxelSimulation.cs` (one call) |
 | H04 | **Bubble meter:** `BreathHudLayout`, `BreathHudLayer`, `BubbleIcon`, `FrameView.Breath`. | S | Haiku | H03 | `LayerStack.cs`, `FrameView.cs`, `VoxelGame.cs` (a line each) |
-| H05 | **The view under water:** `UnderwaterView`, fog blend and clear colour in `SceneDrawer`, `UnderwaterTintLayer`, `UnderwaterPass` (the render target and the blur), the `UnderwaterBlur` setting (saved, and `--underwater-blur` at launch), screenshots above and below the lake surface at each blur level. | M/L | Sonnet, high | H01 | `LayerStack.cs`, `SaveDocument.cs`, `LaunchOptions.cs` (a line each) |
+| H05 | **The view under water:** `WaterVolume`, `UnderwaterView`, fog blend and clear colour in `SceneDrawer`, `UnderwaterPass` (the render target, the blur and the tint), the `UnderwaterBlur` setting (`--underwater-blur` at launch), screenshots above and below the lake surface at each blur level. | M/L | Sonnet, high | H01 | `LaunchOptions.cs` (one block) |
 | (merge point) | Optional: reconcile with bread-pilot here (section 3). | | | | |
 | H06 | **Flow simulation:** `FlowRules`, `FlowQueue`, `FlowSimulation` with its budget, waking on grid changes, placing into water, the scripted `pour` step, save levels (`WaterRun`) and the queue, format bump. | L | Sonnet, high | H01 | `VoxelSimulation.cs` (`IsEmptyOrDecor`), `SaveGame.cs` (version) |
 | H07 | **Water at rest:** the invariant test of section 4.7 on the shipped scene, and a timing check that waking all water stays inside the budget. Stops and reports if a cell moves. | S | Haiku | H06 | No |
 | H08 | **Flow vectors and currents:** `FlowVector`, `RiverCurrents` from `RiverSpec`, the push in `SwimMotion`, the downstream rule documented in `content/README.md`. | M | Sonnet, medium | H02, H06 | No |
 | H09 | **Rendering flowing water:** corner heights from levels in `ChunkMesher`, `WaterTextures` (16 animated frames, outside the atlas), UVs along the flow vector, frame binding in the translucent pass; mesher tests and screenshots of the river, the waterfall and a poured source. | L | Sonnet, high | H06, H08 | No |
 | H10 | **Water sounds (optional):** splash, bubbles, muffled ambient beds. | S | Haiku | H03, H05 | `SoundCue.cs` (appended) |
-| H11 | **Reconcile with bread-pilot** (when the two branches meet): `speedPermille` into the swim step; `NeedsHealth`, the `IPlayerHealth` adapter over `PlayerNeeds`, so drowning damages and kills, with the `player_drowned` death hint; bubbles stacked above `NeedsHudLayout`; the blur row in the settings screen and `ViewEffectsOff` forcing it off; one save version after bread-pilot's; the plan's "wadable" line updated; the owner's decisions of section 6 entered in `docs/game/decisions.md` under the next free D-game number. | M | Sonnet, medium | H01 to H09 and the bread-pilot merge | Yes, by design |
+| H11 | **Reconcile with bread-pilot** (when the two branches meet): `speedPermille` into the swim step; `NeedsHealth`, the `IPlayerHealth` adapter over `PlayerNeeds`, so drowning damages and kills, with the `player_drowned` death hint; bubbles stacked above `NeedsHudLayout`; the blur row in the settings screen, saved in `SaveSettings`, and `ViewEffectsOff` forcing it off; one save version after bread-pilot's; the plan's "wadable" line updated; the owner's decisions of section 6 entered in `docs/game/decisions.md` under the next free D-game number. | M | Sonnet, medium | H01 to H09 and the bread-pilot merge | Yes, by design |
 
 The first five milestones give the player the underwater experience (swim, breath, bubbles, the view) on its own. The next four make the
 water itself move. The order lets H04 and H05 run side by side, then H06; H08 and H09 follow H06.
@@ -289,4 +291,5 @@ next number first.
 | Id | Status | Gate | Notes |
 |---|---|---|---|
 | H01 | done, 2026-11-07 | merged at `68457dc6`, 8869 passed, 0 failed | `WaterLevel` (byte: distance in bits 0-2, falling bit 3), `WaterSurface` (source 14/16; flowing 12, 10, 8, 7, 5, 3, 2 for distance 1..7; falling or water above 16/16), the lazy level layer in `VoxelChunk` (digest unchanged without levels, pinned by a test), `VoxelGrid.GetWater`/`SetWater`, `IBlockChangeListener` and `BlockChange` (internal, raised by `SetBlock` and `SetWater` only), `Immersion.Of`. Finding for H06: `Save/VoxelGridDiff.cs:29` compares blocks only, so a level-only change isn't saved yet. |
-
+| H02 | running (Sonnet 5.5, medium), worktree `.claude/worktrees/h02`, branch `H02-swimming` from `b9ef971c` | | |
+| H05 | running (Sonnet 5.5, high), worktree `.claude/worktrees/h05`, branch `H05-underwater-view` from `b9ef971c` | | Screenshots to the scratchpad for the owner |
