@@ -38,6 +38,11 @@
     {
       "id": "idle",
       "transitions": [
+        { "on": {"intent": "offer_item", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "shop_buy", "hostEvent": "stall.buy_bread", "variantPoolId": "shop_buy" }] },
+        { "onHostEvent": "shopkeeper.wont_buy", "to": "idle", "actions": [{ "dialogueIntent": "shop_wont_buy", "variantPoolId": "shop_wont_buy" }] },
+        { "onHostEvent": "shopkeeper.cant_sell", "to": "idle", "actions": [{ "dialogueIntent": "shop_cant_sell", "variantPoolId": "shop_cant_sell" }] },
+        { "onHostEvent": "shopkeeper.none_offered", "to": "idle", "actions": [{ "dialogueIntent": "shop_none_offered", "variantPoolId": "shop_none_offered" }] },
+        { "onHostEvent": "shopkeeper.no_room", "to": "idle", "actions": [{ "dialogueIntent": "shop_no_room", "variantPoolId": "shop_no_room" }] },
         { "on": {"intent": "ask_wellbeing", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "shop_well", "variantPoolId": "shop_well" }] },
         { "on": {"intent": "ask_weather", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "shop_sun", "variantPoolId": "shop_sun" }] },
         { "on": {"intent": "state_weather", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "shop_yes", "variantPoolId": "shop_yes" }] },
@@ -133,6 +138,11 @@
     {
       "id": "done",
       "transitions": [
+        { "on": {"intent": "offer_item", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "shop_buy", "hostEvent": "stall.buy_bread", "variantPoolId": "shop_buy" }] },
+        { "onHostEvent": "shopkeeper.wont_buy", "to": "done", "actions": [{ "dialogueIntent": "shop_wont_buy", "variantPoolId": "shop_wont_buy" }] },
+        { "onHostEvent": "shopkeeper.cant_sell", "to": "done", "actions": [{ "dialogueIntent": "shop_cant_sell", "variantPoolId": "shop_cant_sell" }] },
+        { "onHostEvent": "shopkeeper.none_offered", "to": "done", "actions": [{ "dialogueIntent": "shop_none_offered", "variantPoolId": "shop_none_offered" }] },
+        { "onHostEvent": "shopkeeper.no_room", "to": "done", "actions": [{ "dialogueIntent": "shop_no_room", "variantPoolId": "shop_no_room" }] },
         { "on": {"intent": "ask_wellbeing", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "shop_well", "variantPoolId": "shop_well" }] },
         { "on": {"intent": "ask_weather", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "shop_sun", "variantPoolId": "shop_sun" }] },
         { "on": {"intent": "state_weather", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "shop_yes", "variantPoolId": "shop_yes" }] },

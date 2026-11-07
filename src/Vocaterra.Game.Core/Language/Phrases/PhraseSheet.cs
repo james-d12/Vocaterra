@@ -445,8 +445,11 @@ public sealed class PhraseSheet
             }
         }
 
-        return best;
+        return bestScore < NothingCloseBelow ? rows[0] : best; // W10: a word that is close to none of a prompt's rows (ayuda) is the prompt's first row, as the summary says
     }
+
+    // Below this share of matching characters no row is close (W10: the stall's prompt gained rows, and «ayuda» was nearer «Vendo pan.» than the water it waits for).
+    private const double NothingCloseBelow = 0.4;
 
     private static int Distance(string a, string b)
     {

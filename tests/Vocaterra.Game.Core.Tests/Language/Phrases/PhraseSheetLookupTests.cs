@@ -25,7 +25,7 @@ public sealed class PhraseSheetLookupTests
     }
 
     [Fact]
-    public void TheBundleHoldsTheHundredAndFiftyFivePhrasesOfTheSheetInOrder()
+    public void TheBundleHoldsTheHundredAndSeventyThreePhrasesOfTheSheetInOrder()
     {
         var sheet = Sheet;
 
@@ -47,7 +47,8 @@ public sealed class PhraseSheetLookupTests
                 "fuimos-al-rio", "que-comieron", "ellos-comieron-pan", "adonde-tienes-que-ir", "tengo-que-ir", "le-vendi-pescado", "que-compro-luz", "luz-compro-pescado",
                 "que-haras-manana", "manana-comprare-pan", "tendre-pan", "luz-necesita-madera", "buscare-madera", "mar-pescara", "ire-al-rio", "el-dia-de-manana", "que-hara-luz", "luz-hara-pan",
                 "tienes-veinte-panes", "quiero-vender-madera", "vendo-madera", "cuanto-es-todo", "es-muy-caro", "mas-barato-que", "puedo-pagar-con-fruta", "manana-vendere-fruta", "compre-tres-manzanas",
-                "once-a-quince", "dieciseis-a-veinte", "cuantos-panes-tengo", "te-pago-una-moneda", "tengo-quince-manzanas", "quince-monedas", "es-caro-o-barato", "que-es-mas-barato", "te-compro-fruta", "que-venderas-manana", "que-compraste-en-el-mercado"],
+                "once-a-quince", "dieciseis-a-veinte", "cuantos-panes-tengo", "te-pago-una-moneda", "tengo-quince-manzanas", "quince-monedas", "es-caro-o-barato", "que-es-mas-barato", "te-compro-fruta", "que-venderas-manana", "que-compraste-en-el-mercado",
+        "pon-la-harina", "echa-el-agua", "mezcla", "pon-la-madera", "pon-la-masa", "saca-el-pan", "haz-la-masa", "haz-el-pan-horno", "haz-pan", "voy-a-hacer-pan", "hice-pan", "quiero-harina", "vendo-pan", "hoy-vamos-a-hacer-pan", "que-hiciste", "todavia-no", "toma-aqui-tienes", "quieres-hacer-pan"],
             sheet.Rows.Select(static r => r.Id));
         Assert.Equal("Quiero agua, por favor.", sheet.Find("pedir-agua")!.CardPhrase);
         Assert.Equal("¿Dónde está el río?", sheet.Find("donde-esta-el-rio")!.CardPhrase);

@@ -149,7 +149,7 @@ public sealed class GreetingTests
     [Fact]
     public void ARestThePromptDoesNotTakeLeavesTheGreeting()
     {
-        // The stall's question takes requests, prices and availability, not a sale: "hola, vendo madera" there stays the greeting it was.
+        // The stall's question takes requests, prices, availability and (W10) a sale of bread: "hola, vendo madera" there is a sale it refuses, not a greeting.
         var data = TestGame.Data;
         var noLessons = LessonBook.Parse("{ \"schemaVersion\": 1, \"lessons\": [] }", data.Phrases, data.Speech, data.Bundle.Prompts, data.Locale, data.Npcs.Ids);
         var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons) { Day = 10 };
@@ -158,6 +158,6 @@ public sealed class GreetingTests
 
         var turn = session.Say("hola, vendo madera");
 
-        Assert.NotEqual("offer_item", turn.Intent);
+        Assert.Equal("offer_item", turn.Intent);
     }
 }
