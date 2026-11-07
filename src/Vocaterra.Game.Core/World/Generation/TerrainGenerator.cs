@@ -34,6 +34,7 @@ internal static class TerrainGenerator
         private int[] _riverAlong = [];
         private int[] _riverSeg = [];
         private Polyline? _river;
+        private const int LakeShore = 1300;
         private int[] _riverSurface = [];
         private readonly List<PathRaster> _paths = [];
 
@@ -269,6 +270,10 @@ internal static class TerrainGenerator
                 var z = line.Z16[k] >> 4;
                 surface = Math.Min(surface, (_nat16[(z * _w) + x] >> 4) - 2);
                 _riverSurface[k] = Math.Max(surface, _layout.WaterLevel);
+                if (InLakeReach(x, z))
+                {
+                    _riverSurface[k] = _layout.WaterLevel; // in the lake the river is the lake: one level, so nothing stands as a ridge on the water
+                }
             }
 
             var hw = river.HalfWidth;
@@ -293,7 +298,7 @@ internal static class TerrainGenerator
                         var bed16 = ((surf - 1) * 16) - (int)((long)(depth - 1) * 16 * ((hw16 * hw16) - ((long)d * d)) / ((long)hw16 * hw16));
                         _h16[i] = Math.Min(_h16[i], bed16);
                         _terrain.WaterTop[i] = surf;
-                        _terrain.Flags[i] |= Terrain.ShoreFlag;
+                        _terrain.Flags[i] |= Terrain.ShoreFlag | Terrain.RiverWaterFlag;
                     }
                     else
                     {
@@ -315,6 +320,21 @@ internal static class TerrainGenerator
             }
 
             return 0;
+        }
+
+        // Whether the column is inside the lake's shore zone (the ellipse widened by the shore slope and the wander of the shoreline).
+        private bool InLakeReach(int x, int z)
+        {
+            if (_layout.Lake is not { } lake)
+            {
+                return false;
+            }
+
+            var site = _layout.Site(lake.Site)!;
+            var ex = (long)(x - site.X) * IntMath.One / lake.RadiusX;
+            var ez = (long)(z - site.Z) * IntMath.One / lake.RadiusZ;
+            var reach = IntMath.One + LakeShore + 700;
+            return (ex * ex) + (ez * ez) < (long)reach * reach;
         }
 
         private void CarvePool(WaterfallSpec fall, Polyline line, int surface)
@@ -363,7 +383,7 @@ internal static class TerrainGenerator
 
             var site = _layout.Site(lake.Site)!;
             var level = _layout.WaterLevel;
-            var shore = 1300; // the shore slope's width in the ellipse's own units (4 096 is the lake's edge)
+            var shore = LakeShore; // the shore slope's width in the ellipse's own units (4 096 is the lake's edge)
             var reachX = (lake.RadiusX * (IntMath.One + shore + 700) / IntMath.One) + 2;
             var reachZ = (lake.RadiusZ * (IntMath.One + shore + 700) / IntMath.One) + 2;
             for (var z = Math.Max(0, site.Z - reachZ); z <= Math.Min(_d - 1, site.Z + reachZ); z++)
@@ -566,6 +586,7 @@ internal static class TerrainGenerator
                 _terrain.Height[i] = Math.Min(_terrain.Height[i], poolSurface - 1);
                 _terrain.WaterTop[i] = fall.Top;
                 _terrain.Flags[i] |= Terrain.RouteFlag | Terrain.ShoreFlag;
+                _terrain.Falls.Add(new FallingColumn(x, site.Z, poolSurface, fall.Top));
                 for (var z = site.Z - 4; z < site.Z; z++)
                 {
                     var j = (z * _w) + x;
@@ -573,6 +594,15 @@ internal static class TerrainGenerator
                     _terrain.WaterTop[j] = fall.Top;
                     _terrain.Flags[j] |= Terrain.RouteFlag | Terrain.ShoreFlag;
                 }
+            }
+
+            // The sheet falls in a slot: the columns either side of it, in the row of the lip, are rock up to the lip's height. The pond's water beside the
+            // sheet's top has then nowhere to spill, and the sheet is as wide as it is built (at rest, water-plan 4.7).
+            foreach (var x in new[] { site.X - half - 1, site.X + (fall.Width - 1 - half) + 1 })
+            {
+                var i = (site.Z * _w) + x;
+                _terrain.Height[i] = Math.Max(_terrain.Height[i], fall.Top);
+                _terrain.WaterTop[i] = -1; // bare rock: no route flag, so the steep ground beside it keeps it stone and not shore sand
             }
 
             // The pond is a little wider than the falling sheet, so the edge of the cliff is not a notch.

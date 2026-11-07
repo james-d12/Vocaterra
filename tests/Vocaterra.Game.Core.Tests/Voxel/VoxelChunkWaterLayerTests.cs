@@ -149,8 +149,11 @@ public sealed class VoxelChunkWaterLayerTests
     }
 
     [Fact]
-    public void Given_TheBuiltRouteScene_When_Inspected_Then_NoChunkHoldsALevel()
+    public void Given_TheBuiltRouteScene_When_Inspected_Then_OnlyTheChunksOfTheFallsAndTheRapidsHoldALevel()
     {
-        Assert.DoesNotContain(VoxelTestSupport.BuildRoute(1).Grid.Chunks, chunk => chunk.HasWaterLevels);
+        var chunks = VoxelTestSupport.BuildRoute(1).Grid.Chunks;
+
+        Assert.Contains(chunks, chunk => chunk.HasWaterLevels);
+        Assert.True(chunks.Count(chunk => chunk.HasWaterLevels) < chunks.Count / 10, "falling water is local: most chunks hold only sources");
     }
 }
