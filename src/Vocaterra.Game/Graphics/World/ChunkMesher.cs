@@ -704,11 +704,15 @@ public static class ChunkMesher
             colours[k] = MeshVertex.Pack(255, 255, 255, alpha);
         }
 
-        buffer.AddQuad(
-            new MeshVertex(x, y + top, z + 1, colours[0], u0, v1),
-            new MeshVertex(x + 1, y + top, z + 1, colours[1], u1, v1),
-            new MeshVertex(x + 1, y + top, z, colours[2], u1, v0),
-            new MeshVertex(x, y + top, z, colours[3], u0, v0));
+        var a = new MeshVertex(x, y + top, z + 1, colours[0], u0, v1);
+        var b = new MeshVertex(x + 1, y + top, z + 1, colours[1], u1, v1);
+        var c = new MeshVertex(x + 1, y + top, z, colours[2], u1, v0);
+        var d = new MeshVertex(x, y + top, z, colours[3], u0, v0);
+        buffer.AddQuad(a, b, c, d);
+
+        // H05: the same surface seen from below. The water pass culls back faces, so without this quad the top face is invisible from under
+        // the water and the world above (leaves, undergrowth, far terrain) shows through it as white speckles.
+        buffer.AddQuad(d, c, b, a);
     }
 
     // Undergrowth: two quads crossing on the diagonals of the cell, a little off centre, a little different in height from plant to plant (a stable

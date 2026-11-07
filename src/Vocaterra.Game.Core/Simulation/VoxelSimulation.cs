@@ -94,8 +94,11 @@ public sealed class VoxelSimulation
     /// <summary>The recipes the player can craft; set by the host with <see cref="SetRecipes"/>.</summary>
     public IReadOnlyList<Recipe> Recipes => _recipes;
 
-    /// <summary>What the player's eye is looking at within the reach (a block, the face and the cell in front of it), or <see langword="null"/>.</summary>
-    public BlockRayHit? Target => BlockRay.Cast(Grid, Player);
+    /// <summary>What the player's eye is looking at within the reach (a block, the face and the cell in front of it), or <see langword="null"/>. Water is looked through (H05).</summary>
+    public BlockRayHit? Target => BlockRay.Cast(Grid, Player, throughWater: true);
+
+    /// <summary>H05: <see cref="Target"/> for the interact button, where water counts as a hit (a bottle is filled from the water cell in front).</summary>
+    public BlockRayHit? InteractTarget => BlockRay.Cast(Grid, Player);
 
     /// <summary>Starts a simulation on a scene, with the player standing at its spawn.</summary>
     public static VoxelSimulation Create(Scene scene)
