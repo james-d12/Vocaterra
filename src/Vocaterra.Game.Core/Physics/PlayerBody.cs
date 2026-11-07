@@ -1,6 +1,7 @@
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.Water;
 
 namespace Vocaterra.Game.Core.Physics;
 
@@ -10,7 +11,7 @@ namespace Vocaterra.Game.Core.Physics;
 /// <see cref="Angles"/>). A front-end reads it; <see cref="VoxelSimulation"/> steps it. All arithmetic is integer, so replays are
 /// bit-identical.
 /// </summary>
-public sealed class PlayerBody
+public sealed partial class PlayerBody
 {
     private const int U = VoxelPhysics.UnitsPerBlock;
     private const int W = VoxelPhysics.PlayerWidth;
@@ -128,6 +129,9 @@ public sealed class PlayerBody
     /// </summary>
     internal (bool Jumped, bool Landed) Step(VoxelGrid grid, int intentX, int intentZ, bool jump)
     {
+        var wet = Immersion.Of(grid, this);
+        if (wet.Feet) { return StepInWater(grid, intentX, intentZ, jump, wet); }
+
         var wasGrounded = Grounded;
         SteppedUp = false;
         VelocityX = Angles.Multiply(intentX, VoxelPhysics.WalkSpeed);
@@ -142,6 +146,13 @@ public sealed class PlayerBody
 
         VelocityY = Math.Max(VelocityY - VoxelPhysics.Gravity, -VoxelPhysics.MaxFallSpeed);
 
+        MoveWithStepUp(grid, wasGrounded);
+        return (jumped, Grounded && !wasGrounded);
+    }
+
+    /// <summary>The move of one tick on X, Z and then Y with the one-block step-up (only for a body that was grounded and is not rising); sets the new position, the stopped velocities and <see cref="Grounded"/>.</summary>
+    private void MoveWithStepUp(VoxelGrid grid, bool wasGrounded)
+    {
         var x = MinX;
         var y = MinY;
         var z = MinZ;
@@ -190,7 +201,6 @@ public sealed class PlayerBody
         MinY = y;
         MinZ = z;
         Grounded = !VoxelCollider.IsFree(grid, x, y - 1, z);
-        return (jumped, Grounded && !wasGrounded);
     }
 }
 
