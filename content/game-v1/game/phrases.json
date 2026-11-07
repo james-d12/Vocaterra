@@ -173,7 +173,7 @@
     {"id": "vendo-pan", "says": "says", "spanish": "Vendo pan.", "intent": "offer_item", "prompt": "stall-need", "variants": ["yo vendo pan", "te vendo pan", "le vendo pan", "vendo un pan", "vendo dos panes"], "audioLineIds": []},
     {"id": "hoy-vamos-a-hacer-pan", "says": "hears", "spanish": "Hoy vamos a hacer pan. ¿Me ayudas?", "intent": null, "prompt": "lesson-bake-plan", "variants": [], "audioLineIds": ["guide.lesson.baker.bake.1"]},
     {"id": "que-hiciste", "says": "hears", "spanish": "¿Qué hiciste?", "intent": null, "prompt": "lesson-made-bread", "variants": [], "audioLineIds": ["guide.lesson.baker.made.1"]},
-    {"id": "primero", "says": "hears", "spanish": "Primero.", "intent": null, "prompt": "baker-proc", "variants": [], "audioLineIds": ["guide.lesson.baker.first.1"]},
+    {"id": "todavia-no", "says": "hears", "spanish": "Todavía no.", "intent": null, "prompt": "baker-proc", "variants": [], "audioLineIds": ["guide.lesson.baker.not_yet.1"]},
     {"id": "toma-aqui-tienes", "says": "hears", "spanish": "Toma. Aquí tienes.", "intent": null, "prompt": "baker-proc", "variants": [], "audioLineIds": ["baker_give_missing.1"]},
     {"id": "quieres-hacer-pan", "says": "hears", "spanish": "¿Quieres hacer pan?", "intent": null, "prompt": "baker-offer", "variants": [], "audioLineIds": ["baker_offer_bake.1"]}
   ]

@@ -9,6 +9,23 @@
       "matches": []
     },
     {
+      "key": "007984611dde74c95aa709787cae2974c822e674a0791289078b2121bf4e68a3",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "el bol",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "El"
+          ]
+        }
+      ]
+    },
+    {
       "key": "007b00d269a457f11879b3c45be9f3779f4eb07310e71272775a67e05192e1c0",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Tengo una botella.",
@@ -777,12 +794,6 @@
       "matches": []
     },
     {
-      "key": "16907d3d11cef7fde3600d22d87ceca3571df68a49d6a1dba977fc4778053ef2",
-      "settings": "language=es;level=picky;motherTongue=en",
-      "text": "Primero.",
-      "matches": []
-    },
-    {
       "key": "16af61cf7a13b82409af103e60bb35c1f4eab69d3238154561b8b33aab192034",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Luz vive en la panadería",
@@ -882,6 +893,12 @@
       "key": "18655180d4fc8fd416bf4f1fa9f06731319b1562d2c1c6e1a9484e1cfb1e69ed",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Hola! ¿Qué vas a hacer hoy?",
+      "matches": []
+    },
+    {
+      "key": "18c40a59b293ed3fb9300f83e6a915a6c287bee6522559a6c1dc0396556ec7c3",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Gracias! Aquí tienes.",
       "matches": []
     },
     {
@@ -1086,12 +1103,6 @@
       "matches": []
     },
     {
-      "key": "1cd9af1860696adb42acfed83a9490bf88a737dbf30df47527020eca104b9efa",
-      "settings": "language=es;level=picky;motherTongue=en",
-      "text": "No tengo eso. Tengo agua y pan.",
-      "matches": []
-    },
-    {
       "key": "1d0df8e9f9e67feee03c627a2bcfa0699276b64855ab399e189e7fd49af54657",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Qué harás mañana?",
@@ -1185,6 +1196,12 @@
       "key": "200236b1845b5c241864be32a6b2a12ee55db7d0737d44f49f9ecc2fc55fef65",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Tengo un poco de sed.",
+      "matches": []
+    },
+    {
+      "key": "2087b4c27c459c2858764f8d1145a43a431db471d15180a453393635f3e860f0",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No tengo eso. Tengo agua, pan y harina.",
       "matches": []
     },
     {
@@ -1316,12 +1333,6 @@
       "key": "24a74c10434b62438e7c3395e32dd2aa7fd9ee1bcc7547b6517e9a1bd9fe7f3a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Quién es grande",
-      "matches": []
-    },
-    {
-      "key": "24a92154e784a46995222c2546ca3fbe645c85ef90ac45a43d5cfe29b5e00663",
-      "settings": "language=es;level=picky;motherTongue=en",
-      "text": "Hay agua y pan.",
       "matches": []
     },
     {
@@ -2658,6 +2669,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Busco el río",
       "matches": []
+    },
+    {
+      "key": "45057d3bd87e320b8787861e87fdac3817be5b5f56af96b83cffefc14df7147b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la cuchara",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
     },
     {
       "key": "4539e23f642451b8a151e5f482caaa28a874dbea9214193dba0c59f24a569a90",
@@ -4694,6 +4722,23 @@
       "matches": []
     },
     {
+      "key": "748190cb9f78125a782fd14fa1d5631a36d93e2560a6b9f3327db8c4c86c14d5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la masa",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
+    },
+    {
       "key": "74be8261e1cbc9d1dbc84569dc0f8c922a1ed812ac3dd1b8a1ed016525c5b7a4",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer comí fruta.",
@@ -5363,6 +5408,23 @@
       ]
     },
     {
+      "key": "840167842d93fe6cf09c8559a50b21529781cb4ed68117b51c00e0d5cdda6a03",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "el horno",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "El"
+          ]
+        }
+      ]
+    },
+    {
       "key": "8430c19cd0b9d61fa4ebce58a179f31b437bfd3883f9bdf7989c15b856543c51",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Es una piedra",
@@ -5449,12 +5511,6 @@
       "key": "866d3de21c7e3fbdcc388bef9832892f3fce39a4bc8dfdb09b6d269fa5c0f7db",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Compré pan",
-      "matches": []
-    },
-    {
-      "key": "86a390ad7f8bcf8ec2a712fb629be6f2d981d4c7574ada026a33ba42d8d4a159",
-      "settings": "language=es;level=picky;motherTongue=en",
-      "text": "Necesitas una moneda.",
       "matches": []
     },
     {
@@ -5938,6 +5994,12 @@
       "matches": []
     },
     {
+      "key": "9576cbc70fdbbb9875ca91e8b1147cec197d76f61b26865cf618bede722c2176",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Todavía no.",
+      "matches": []
+    },
+    {
       "key": "95ee6455b8349f1184815222cbd5265bde34737911935855042583902aecd1de",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "El pan es grandes",
@@ -6142,6 +6204,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Voy a comer fruta",
       "matches": []
+    },
+    {
+      "key": "99f60e2b0a6888e7e9ab07f51294a9e8f1deec0847dcb93379782960de120689",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la mano",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
     },
     {
       "key": "9a13383bbdf259cb7f72db6f82ea5df1b7cf8ef2aeec1b0b129956312caca1ff",
@@ -7042,6 +7121,12 @@
       "key": "ae571b6eba2e19bc5c3424654adf2cedd903474d356a78524f863283ade15568",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Vamos a comer fruta",
+      "matches": []
+    },
+    {
+      "key": "ae6c42f0462c6053736746195599d605810993b0a08a99344d49be4661efea13",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay agua, pan y harina.",
       "matches": []
     },
     {
@@ -7968,6 +8053,23 @@
       "matches": []
     },
     {
+      "key": "c8dd53e4a634ee42d538e531e5c461a95fdc3d2dab57c0dfa208cb05a75864e1",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la harina",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
+    },
+    {
       "key": "c8f28e7e26de6d928d47319f7a78b93a66649d5f42eb45cfc122371dfe31c664",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo voy a comer pan",
@@ -8435,6 +8537,12 @@
           ]
         }
       ]
+    },
+    {
+      "key": "d401b4431aa2b63d1e0cd2b90ae1427bb6737f5ff71e4578b0cd68298549bc2e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "La harina cuesta una moneda.",
+      "matches": []
     },
     {
       "key": "d4b0b767e5b84b68d6c431ba7f7f981fdd5febbdfae364fb7a366a7fa4571fe7",

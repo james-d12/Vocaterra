@@ -18,7 +18,7 @@ whose text changed or whose file was recorded again differently is listed again 
 | smith (Domingo) | `im_nicola`, gain 0.6 | 36 | 1.0 (0.8) | the pools `smith_*` and `guide.lesson.smith.*`, and its prompts |
 | farmer (León) | `pm_santa` | 44 | 1.0 (0.8) | the pools `farmer_*` and `guide.lesson.farmer.*`, and its prompts |
 
-**To hear:** 1316 of the 1316 files have no mark (guide 442, villager 172, baker 164, farmer 152, shopkeeper 144, fisher 132, smith 110). Two files a line: the normal speed and the slow one.
+**To hear:** 1382 of the 1382 files have no mark (guide 462, baker 194, villager 172, shopkeeper 160, farmer 152, fisher 132, smith 110). Two files a line: the normal speed and the slow one.
 
 ## Lines
 
@@ -162,26 +162,38 @@ whose text changed or whose file was recorded again differently is listed again 
 | card.arbol | speech/cards/card.arbol.wav | guide | 1.0 | el árbol |  |
 | card.arena | speech/cards/card.arena.slow.wav | guide | 0.8 | la arena |  |
 | card.arena | speech/cards/card.arena.wav | guide | 1.0 | la arena |  |
+| card.bol | speech/cards/card.bol.slow.wav | guide | 0.8 | el bol |  |
+| card.bol | speech/cards/card.bol.wav | guide | 1.0 | el bol |  |
 | card.botella | speech/cards/card.botella.slow.wav | guide | 0.8 | la botella |  |
 | card.botella | speech/cards/card.botella.wav | guide | 1.0 | la botella |  |
 | card.camino | speech/cards/card.camino.slow.wav | guide | 0.8 | el camino |  |
 | card.camino | speech/cards/card.camino.wav | guide | 1.0 | el camino |  |
 | card.casa | speech/cards/card.casa.slow.wav | guide | 0.8 | la casa |  |
 | card.casa | speech/cards/card.casa.wav | guide | 1.0 | la casa |  |
+| card.cuchara | speech/cards/card.cuchara.slow.wav | guide | 0.8 | la cuchara |  |
+| card.cuchara | speech/cards/card.cuchara.wav | guide | 1.0 | la cuchara |  |
 | card.fruta | speech/cards/card.fruta.slow.wav | guide | 0.8 | la fruta |  |
 | card.fruta | speech/cards/card.fruta.wav | guide | 1.0 | la fruta |  |
 | card.fuego | speech/cards/card.fuego.slow.wav | guide | 0.8 | el fuego |  |
 | card.fuego | speech/cards/card.fuego.wav | guide | 1.0 | el fuego |  |
 | card.hacha | speech/cards/card.hacha.slow.wav | guide | 0.8 | el hacha |  |
 | card.hacha | speech/cards/card.hacha.wav | guide | 1.0 | el hacha |  |
+| card.harina | speech/cards/card.harina.slow.wav | guide | 0.8 | la harina |  |
+| card.harina | speech/cards/card.harina.wav | guide | 1.0 | la harina |  |
 | card.hierba | speech/cards/card.hierba.slow.wav | guide | 0.8 | la hierba |  |
 | card.hierba | speech/cards/card.hierba.wav | guide | 1.0 | la hierba |  |
+| card.horno | speech/cards/card.horno.slow.wav | guide | 0.8 | el horno |  |
+| card.horno | speech/cards/card.horno.wav | guide | 1.0 | el horno |  |
 | card.libro | speech/cards/card.libro.slow.wav | guide | 0.8 | el libro |  |
 | card.libro | speech/cards/card.libro.wav | guide | 1.0 | el libro |  |
 | card.madera | speech/cards/card.madera.slow.wav | guide | 0.8 | la madera |  |
 | card.madera | speech/cards/card.madera.wav | guide | 1.0 | la madera |  |
+| card.mano | speech/cards/card.mano.slow.wav | guide | 0.8 | la mano |  |
+| card.mano | speech/cards/card.mano.wav | guide | 1.0 | la mano |  |
 | card.manzana | speech/cards/card.manzana.slow.wav | guide | 0.8 | la manzana |  |
 | card.manzana | speech/cards/card.manzana.wav | guide | 1.0 | la manzana |  |
+| card.masa | speech/cards/card.masa.slow.wav | guide | 0.8 | la masa |  |
+| card.masa | speech/cards/card.masa.wav | guide | 1.0 | la masa |  |
 | card.mesa | speech/cards/card.mesa.slow.wav | guide | 0.8 | la mesa |  |
 | card.mesa | speech/cards/card.mesa.wav | guide | 1.0 | la mesa |  |
 | card.moneda | speech/cards/card.moneda.slow.wav | guide | 0.8 | la moneda |  |
@@ -434,6 +446,10 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide.identify.none.1 | speech/guide/guide.identify.none.1.wav | guide | 1.0 | No sé qué es. |  |
 | guide.identify.none.2 | speech/guide/guide.identify.none.2.slow.wav | guide | 0.8 | Busca una cosa y pregunta otra vez. |  |
 | guide.identify.none.2 | speech/guide/guide.identify.none.2.wav | guide | 1.0 | Busca una cosa y pregunta otra vez. |  |
+| guide.lesson.baker.bake.1 | speech/baker/guide.lesson.baker.bake.1.slow.wav | baker | 0.8 | Hoy vamos a hacer pan. ¿Me ayudas? |  |
+| guide.lesson.baker.bake.1 | speech/baker/guide.lesson.baker.bake.1.wav | baker | 1.0 | Hoy vamos a hacer pan. ¿Me ayudas? |  |
+| guide.lesson.baker.bake_plan.1 | speech/baker/guide.lesson.baker.bake_plan.1.slow.wav | baker | 0.8 | ¿Qué vas a hacer hoy? |  |
+| guide.lesson.baker.bake_plan.1 | speech/baker/guide.lesson.baker.bake_plan.1.wav | baker | 1.0 | ¿Qué vas a hacer hoy? |  |
 | guide.lesson.baker.bought.1 | speech/baker/guide.lesson.baker.bought.1.slow.wav | baker | 0.8 | ¿Qué compraste? |  |
 | guide.lesson.baker.bought.1 | speech/baker/guide.lesson.baker.bought.1.wav | baker | 1.0 | ¿Qué compraste? |  |
 | guide.lesson.baker.coins.1 | speech/baker/guide.lesson.baker.coins.1.slow.wav | baker | 0.8 | ¿Cuántas monedas tienes? |  |
@@ -448,12 +464,16 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide.lesson.baker.how_many.1 | speech/baker/guide.lesson.baker.how_many.1.wav | baker | 1.0 | ¿Cuántos panes quieres? |  |
 | guide.lesson.baker.loaves.1 | speech/baker/guide.lesson.baker.loaves.1.slow.wav | baker | 0.8 | Tengo diez panes. |  |
 | guide.lesson.baker.loaves.1 | speech/baker/guide.lesson.baker.loaves.1.wav | baker | 1.0 | Tengo diez panes. |  |
+| guide.lesson.baker.made.1 | speech/baker/guide.lesson.baker.made.1.slow.wav | baker | 0.8 | ¿Qué hiciste? |  |
+| guide.lesson.baker.made.1 | speech/baker/guide.lesson.baker.made.1.wav | baker | 1.0 | ¿Qué hiciste? |  |
 | guide.lesson.baker.mar.1 | speech/baker/guide.lesson.baker.mar.1.slow.wav | baker | 0.8 | ¿Y qué hizo Mar ayer? |  |
 | guide.lesson.baker.mar.1 | speech/baker/guide.lesson.baker.mar.1.wav | baker | 1.0 | ¿Y qué hizo Mar ayer? |  |
 | guide.lesson.baker.market.1 | speech/baker/guide.lesson.baker.market.1.slow.wav | baker | 0.8 | ¡Hoy hay mercado! ¿Cuántos panes tengo? |  |
 | guide.lesson.baker.market.1 | speech/baker/guide.lesson.baker.market.1.wav | baker | 1.0 | ¡Hoy hay mercado! ¿Cuántos panes tengo? |  |
 | guide.lesson.baker.model.1 | speech/baker/guide.lesson.baker.model.1.slow.wav | baker | 0.8 | Ayer compré fruta en la tienda. |  |
 | guide.lesson.baker.model.1 | speech/baker/guide.lesson.baker.model.1.wav | baker | 1.0 | Ayer compré fruta en la tienda. |  |
+| guide.lesson.baker.not_yet.1 | speech/baker/guide.lesson.baker.not_yet.1.slow.wav | baker | 0.8 | Todavía no. |  |
+| guide.lesson.baker.not_yet.1 | speech/baker/guide.lesson.baker.not_yet.1.wav | baker | 1.0 | Todavía no. |  |
 | guide.lesson.baker.offer.1 | speech/baker/guide.lesson.baker.offer.1.slow.wav | baker | 0.8 | ¿Quieres una clase? ¿Sí o no? |  |
 | guide.lesson.baker.offer.1 | speech/baker/guide.lesson.baker.offer.1.wav | baker | 1.0 | ¿Quieres una clase? ¿Sí o no? |  |
 | guide.lesson.baker.oven.1 | speech/baker/guide.lesson.baker.oven.1.slow.wav | baker | 0.8 | Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer? |  |
@@ -462,6 +482,24 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide.lesson.baker.pay.1 | speech/baker/guide.lesson.baker.pay.1.wav | baker | 1.0 | Te pago una moneda por cada bloque de madera. |  |
 | guide.lesson.baker.plan.1 | speech/baker/guide.lesson.baker.plan.1.slow.wav | baker | 0.8 | ¡Hola! ¿Qué vas a hacer hoy? |  |
 | guide.lesson.baker.plan.1 | speech/baker/guide.lesson.baker.plan.1.wav | baker | 1.0 | ¡Hola! ¿Qué vas a hacer hoy? |  |
+| guide.lesson.baker.proc_agua.1 | speech/baker/guide.lesson.baker.proc_agua.1.slow.wav | baker | 0.8 | Echa el agua en el bol. |  |
+| guide.lesson.baker.proc_agua.1 | speech/baker/guide.lesson.baker.proc_agua.1.wav | baker | 1.0 | Echa el agua en el bol. |  |
+| guide.lesson.baker.proc_chunk_horno.1 | speech/baker/guide.lesson.baker.proc_chunk_horno.1.slow.wav | baker | 0.8 | Haz el pan en el horno. |  |
+| guide.lesson.baker.proc_chunk_horno.1 | speech/baker/guide.lesson.baker.proc_chunk_horno.1.wav | baker | 1.0 | Haz el pan en el horno. |  |
+| guide.lesson.baker.proc_chunk_masa.1 | speech/baker/guide.lesson.baker.proc_chunk_masa.1.slow.wav | baker | 0.8 | Haz la masa. |  |
+| guide.lesson.baker.proc_chunk_masa.1 | speech/baker/guide.lesson.baker.proc_chunk_masa.1.wav | baker | 1.0 | Haz la masa. |  |
+| guide.lesson.baker.proc_goal.1 | speech/baker/guide.lesson.baker.proc_goal.1.slow.wav | baker | 0.8 | Haz pan. |  |
+| guide.lesson.baker.proc_goal.1 | speech/baker/guide.lesson.baker.proc_goal.1.wav | baker | 1.0 | Haz pan. |  |
+| guide.lesson.baker.proc_harina.1 | speech/baker/guide.lesson.baker.proc_harina.1.slow.wav | baker | 0.8 | Pon la harina en el bol. |  |
+| guide.lesson.baker.proc_harina.1 | speech/baker/guide.lesson.baker.proc_harina.1.wav | baker | 1.0 | Pon la harina en el bol. |  |
+| guide.lesson.baker.proc_madera.1 | speech/baker/guide.lesson.baker.proc_madera.1.slow.wav | baker | 0.8 | Pon la madera en el horno. |  |
+| guide.lesson.baker.proc_madera.1 | speech/baker/guide.lesson.baker.proc_madera.1.wav | baker | 1.0 | Pon la madera en el horno. |  |
+| guide.lesson.baker.proc_masa.1 | speech/baker/guide.lesson.baker.proc_masa.1.slow.wav | baker | 0.8 | Pon la masa en el horno. |  |
+| guide.lesson.baker.proc_masa.1 | speech/baker/guide.lesson.baker.proc_masa.1.wav | baker | 1.0 | Pon la masa en el horno. |  |
+| guide.lesson.baker.proc_mezcla.1 | speech/baker/guide.lesson.baker.proc_mezcla.1.slow.wav | baker | 0.8 | Mezcla con la cuchara. |  |
+| guide.lesson.baker.proc_mezcla.1 | speech/baker/guide.lesson.baker.proc_mezcla.1.wav | baker | 1.0 | Mezcla con la cuchara. |  |
+| guide.lesson.baker.proc_sacar.1 | speech/baker/guide.lesson.baker.proc_sacar.1.slow.wav | baker | 0.8 | Saca el pan del horno. |  |
+| guide.lesson.baker.proc_sacar.1 | speech/baker/guide.lesson.baker.proc_sacar.1.wav | baker | 1.0 | Saca el pan del horno. |  |
 | guide.lesson.baker.sell.1 | speech/baker/guide.lesson.baker.sell.1.slow.wav | baker | 0.8 | Necesito madera para el horno. ¿Qué quieres hacer? |  |
 | guide.lesson.baker.sell.1 | speech/baker/guide.lesson.baker.sell.1.wav | baker | 1.0 | Necesito madera para el horno. ¿Qué quieres hacer? |  |
 | guide.lesson.baker.ten.1 | speech/baker/guide.lesson.baker.ten.1.slow.wav | baker | 0.8 | Seis, siete, ocho, nueve, diez. |  |
@@ -894,6 +932,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | phrase.hay-pan | speech/guide/phrase.hay-pan.wav | guide | 1.0 | ¿Hay pan? |  |
 | phrase.hay-un-pozo | speech/guide/phrase.hay-un-pozo.slow.wav | guide | 0.8 | ¿Hay un pozo en el pueblo? |  |
 | phrase.hay-un-pozo | speech/guide/phrase.hay-un-pozo.wav | guide | 1.0 | ¿Hay un pozo en el pueblo? |  |
+| phrase.hice-pan | speech/guide/phrase.hice-pan.slow.wav | guide | 0.8 | Hice pan. |  |
+| phrase.hice-pan | speech/guide/phrase.hice-pan.wav | guide | 1.0 | Hice pan. |  |
 | phrase.hizo-un-hacha | speech/guide/phrase.hizo-un-hacha.slow.wav | guide | 0.8 | Domingo hizo un hacha. |  |
 | phrase.hizo-un-hacha | speech/guide/phrase.hizo-un-hacha.wav | guide | 1.0 | Domingo hizo un hacha. |  |
 | phrase.hola | speech/guide/phrase.hola.slow.wav | guide | 0.8 | Hola. |  |
@@ -950,6 +990,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | phrase.queremos-pan | speech/guide/phrase.queremos-pan.wav | guide | 1.0 | Queremos pan. |  |
 | phrase.quiero-dos-panes | speech/guide/phrase.quiero-dos-panes.slow.wav | guide | 0.8 | Quiero dos panes, por favor. |  |
 | phrase.quiero-dos-panes | speech/guide/phrase.quiero-dos-panes.wav | guide | 1.0 | Quiero dos panes, por favor. |  |
+| phrase.quiero-harina | speech/guide/phrase.quiero-harina.slow.wav | guide | 0.8 | Quiero harina. |  |
+| phrase.quiero-harina | speech/guide/phrase.quiero-harina.wav | guide | 1.0 | Quiero harina. |  |
 | phrase.quiero-madera | speech/guide/phrase.quiero-madera.slow.wav | guide | 0.8 | Quiero madera. |  |
 | phrase.quiero-madera | speech/guide/phrase.quiero-madera.wav | guide | 1.0 | Quiero madera. |  |
 | phrase.quiero-tres-manzanas-rojas | speech/guide/phrase.quiero-tres-manzanas-rojas.slow.wav | guide | 0.8 | Quiero tres manzanas rojas. |  |
@@ -978,6 +1020,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | phrase.vamos-a-comer-fruta | speech/guide/phrase.vamos-a-comer-fruta.wav | guide | 1.0 | Vamos a comer fruta. |  |
 | phrase.vendo-madera | speech/guide/phrase.vendo-madera.slow.wav | guide | 0.8 | Vendo madera. |  |
 | phrase.vendo-madera | speech/guide/phrase.vendo-madera.wav | guide | 1.0 | Vendo madera. |  |
+| phrase.vendo-pan | speech/guide/phrase.vendo-pan.slow.wav | guide | 0.8 | Vendo pan. |  |
+| phrase.vendo-pan | speech/guide/phrase.vendo-pan.wav | guide | 1.0 | Vendo pan. |  |
 | phrase.vivo-en-el-campamento | speech/guide/phrase.vivo-en-el-campamento.slow.wav | guide | 0.8 | Vivo en el campamento. |  |
 | phrase.vivo-en-el-campamento | speech/guide/phrase.vivo-en-el-campamento.wav | guide | 1.0 | Vivo en el campamento. |  |
 | phrase.voy-a-buscar-agua | speech/guide/phrase.voy-a-buscar-agua.slow.wav | guide | 0.8 | Voy a buscar agua. |  |
@@ -988,6 +1032,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | phrase.voy-a-comer-pan | speech/guide/phrase.voy-a-comer-pan.wav | guide | 1.0 | Voy a comer pan. |  |
 | phrase.voy-a-comprar-pan | speech/guide/phrase.voy-a-comprar-pan.slow.wav | guide | 0.8 | Voy a comprar pan. |  |
 | phrase.voy-a-comprar-pan | speech/guide/phrase.voy-a-comprar-pan.wav | guide | 1.0 | Voy a comprar pan. |  |
+| phrase.voy-a-hacer-pan | speech/guide/phrase.voy-a-hacer-pan.slow.wav | guide | 0.8 | Voy a hacer pan. |  |
+| phrase.voy-a-hacer-pan | speech/guide/phrase.voy-a-hacer-pan.wav | guide | 1.0 | Voy a hacer pan. |  |
 | phrase.voy-a-ir-al-rio | speech/guide/phrase.voy-a-ir-al-rio.slow.wav | guide | 0.8 | Mañana voy a ir al río. |  |
 | phrase.voy-a-ir-al-rio | speech/guide/phrase.voy-a-ir-al-rio.wav | guide | 1.0 | Mañana voy a ir al río. |  |
 | phrase.voy-a-la-panaderia | speech/guide/phrase.voy-a-la-panaderia.slow.wav | guide | 0.8 | Voy a la panadería. |  |
@@ -1012,6 +1058,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | prompt.lesson-apple | speech/farmer/prompt.lesson-apple.wav | farmer | 1.0 | ¿Cómo es la manzana? |  |
 | prompt.lesson-ate | speech/shopkeeper/prompt.lesson-ate.slow.wav | shopkeeper | 0.8 | ¿Qué comiste ayer? |  |
 | prompt.lesson-ate | speech/shopkeeper/prompt.lesson-ate.wav | shopkeeper | 1.0 | ¿Qué comiste ayer? |  |
+| prompt.lesson-bake-plan | speech/baker/prompt.lesson-bake-plan.slow.wav | baker | 0.8 | ¿Qué vas a hacer hoy? |  |
+| prompt.lesson-bake-plan | speech/baker/prompt.lesson-bake-plan.wav | baker | 1.0 | ¿Qué vas a hacer hoy? |  |
 | prompt.lesson-big | speech/shopkeeper/prompt.lesson-big.slow.wav | shopkeeper | 0.8 | Mira este pan. ¿Cómo es? |  |
 | prompt.lesson-big | speech/shopkeeper/prompt.lesson-big.wav | shopkeeper | 1.0 | Mira este pan. ¿Cómo es? |  |
 | prompt.lesson-bottle | speech/shopkeeper/prompt.lesson-bottle.slow.wav | shopkeeper | 0.8 | ¿Tiene usted una botella? |  |
@@ -1054,6 +1102,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | prompt.lesson-luz-will | speech/fisher/prompt.lesson-luz-will.wav | fisher | 0.9 | ¿Qué hará Luz mañana? |  |
 | prompt.lesson-made | speech/villager/prompt.lesson-made.slow.wav | villager | 0.8 | ¿Qué hizo Domingo? |  |
 | prompt.lesson-made | speech/villager/prompt.lesson-made.wav | villager | 1.0 | ¿Qué hizo Domingo? |  |
+| prompt.lesson-made-bread | speech/baker/prompt.lesson-made-bread.slow.wav | baker | 0.8 | ¿Qué hiciste? |  |
+| prompt.lesson-made-bread | speech/baker/prompt.lesson-made-bread.wav | baker | 1.0 | ¿Qué hiciste? |  |
 | prompt.lesson-mar-fished | speech/villager/prompt.lesson-mar-fished.slow.wav | villager | 0.8 | ¿Y qué hizo Mar? |  |
 | prompt.lesson-mar-fished | speech/villager/prompt.lesson-mar-fished.wav | villager | 1.0 | ¿Y qué hizo Mar? |  |
 | prompt.lesson-market | speech/shopkeeper/prompt.lesson-market.slow.wav | shopkeeper | 0.8 | ¡Hola! ¿Qué compraste en el mercado? |  |
@@ -1136,10 +1186,16 @@ whose text changed or whose file was recorded again differently is listed again 
 | prompt.stall-offer | speech/shopkeeper/prompt.stall-offer.wav | shopkeeper | 1.0 | ¿Quieres pan? |  |
 | prompt.villager-open | speech/villager/prompt.villager-open.slow.wav | villager | 0.8 | Hola. |  |
 | prompt.villager-open | speech/villager/prompt.villager-open.wav | villager | 1.0 | Hola. |  |
+| shop_buy.1 | speech/shopkeeper/shop_buy.1.slow.wav | shopkeeper | 0.8 | ¡Gracias! Aquí tienes. |  |
+| shop_buy.1 | speech/shopkeeper/shop_buy.1.wav | shopkeeper | 1.0 | ¡Gracias! Aquí tienes. |  |
 | shop_bye.1 | speech/shopkeeper/shop_bye.1.slow.wav | shopkeeper | 0.8 | ¡Adiós! Hasta luego. |  |
 | shop_bye.1 | speech/shopkeeper/shop_bye.1.wav | shopkeeper | 1.0 | ¡Adiós! Hasta luego. |  |
 | shop_bye.2 | speech/shopkeeper/shop_bye.2.slow.wav | shopkeeper | 0.8 | Hasta luego. |  |
 | shop_bye.2 | speech/shopkeeper/shop_bye.2.wav | shopkeeper | 1.0 | Hasta luego. |  |
+| shop_cant_pay.1 | speech/shopkeeper/shop_cant_pay.1.slow.wav | shopkeeper | 0.8 | La harina cuesta una moneda. |  |
+| shop_cant_pay.1 | speech/shopkeeper/shop_cant_pay.1.wav | shopkeeper | 1.0 | La harina cuesta una moneda. |  |
+| shop_cant_sell.1 | speech/shopkeeper/shop_cant_sell.1.slow.wav | shopkeeper | 0.8 | No tienes pan. |  |
+| shop_cant_sell.1 | speech/shopkeeper/shop_cant_sell.1.wav | shopkeeper | 1.0 | No tienes pan. |  |
 | shop_deny.1 | speech/shopkeeper/shop_deny.1.slow.wav | shopkeeper | 0.8 | Está bien. |  |
 | shop_deny.1 | speech/shopkeeper/shop_deny.1.wav | shopkeeper | 1.0 | Está bien. |  |
 | shop_deny.2 | speech/shopkeeper/shop_deny.2.slow.wav | shopkeeper | 0.8 | Bueno. |  |
@@ -1158,8 +1214,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | shop_give_bread.1 | speech/shopkeeper/shop_give_bread.1.wav | shopkeeper | 1.0 | Aquí tienes el pan. |  |
 | shop_give_bread.2 | speech/shopkeeper/shop_give_bread.2.slow.wav | shopkeeper | 0.8 | Toma el pan. |  |
 | shop_give_bread.2 | speech/shopkeeper/shop_give_bread.2.wav | shopkeeper | 1.0 | Toma el pan. |  |
-| shop_hay.1 | speech/shopkeeper/shop_hay.1.slow.wav | shopkeeper | 0.8 | Hay agua y pan. |  |
-| shop_hay.1 | speech/shopkeeper/shop_hay.1.wav | shopkeeper | 1.0 | Hay agua y pan. |  |
+| shop_hay.1 | speech/shopkeeper/shop_hay.1.slow.wav | shopkeeper | 0.8 | Hay agua, pan y harina. |  |
+| shop_hay.1 | speech/shopkeeper/shop_hay.1.wav | shopkeeper | 1.0 | Hay agua, pan y harina. |  |
 | shop_help_ask.1 | speech/shopkeeper/shop_help_ask.1.slow.wav | shopkeeper | 0.8 | Puedes decir: «Quiero agua, por favor». |  |
 | shop_help_ask.1 | speech/shopkeeper/shop_help_ask.1.wav | shopkeeper | 1.0 | Puedes decir: «Quiero agua, por favor». |  |
 | shop_help_offer.1 | speech/shopkeeper/shop_help_offer.1.slow.wav | shopkeeper | 0.8 | Puedes decir: «Sí, por favor» o «No, gracias». |  |
@@ -1168,10 +1224,18 @@ whose text changed or whose file was recorded again differently is listed again 
 | shop_need.1 | speech/shopkeeper/shop_need.1.wav | shopkeeper | 1.0 | ¿Qué necesitas? |  |
 | shop_nice.1 | speech/shopkeeper/shop_nice.1.slow.wav | shopkeeper | 0.8 | ¡Qué bien! |  |
 | shop_nice.1 | speech/shopkeeper/shop_nice.1.wav | shopkeeper | 1.0 | ¡Qué bien! |  |
+| shop_no_room.1 | speech/shopkeeper/shop_no_room.1.slow.wav | shopkeeper | 0.8 | Tu bolsa está llena. |  |
+| shop_no_room.1 | speech/shopkeeper/shop_no_room.1.wav | shopkeeper | 1.0 | Tu bolsa está llena. |  |
+| shop_none_asked.1 | speech/shopkeeper/shop_none_asked.1.slow.wav | shopkeeper | 0.8 | Hay harina. ¿Cuánta quieres? |  |
+| shop_none_asked.1 | speech/shopkeeper/shop_none_asked.1.wav | shopkeeper | 1.0 | Hay harina. ¿Cuánta quieres? |  |
+| shop_none_offered.1 | speech/shopkeeper/shop_none_offered.1.slow.wav | shopkeeper | 0.8 | ¿Cuántos panes me vendes? |  |
+| shop_none_offered.1 | speech/shopkeeper/shop_none_offered.1.wav | shopkeeper | 1.0 | ¿Cuántos panes me vendes? |  |
 | shop_offer.1 | speech/shopkeeper/shop_offer.1.slow.wav | shopkeeper | 0.8 | ¿Quieres pan? |  |
 | shop_offer.1 | speech/shopkeeper/shop_offer.1.wav | shopkeeper | 1.0 | ¿Quieres pan? |  |
 | shop_price.1 | speech/shopkeeper/shop_price.1.slow.wav | shopkeeper | 0.8 | El pan cuesta dos monedas. |  |
 | shop_price.1 | speech/shopkeeper/shop_price.1.wav | shopkeeper | 1.0 | El pan cuesta dos monedas. |  |
+| shop_sell_flour.1 | speech/shopkeeper/shop_sell_flour.1.slow.wav | shopkeeper | 0.8 | Aquí tienes la harina. |  |
+| shop_sell_flour.1 | speech/shopkeeper/shop_sell_flour.1.wav | shopkeeper | 1.0 | Aquí tienes la harina. |  |
 | shop_sun.1 | speech/shopkeeper/shop_sun.1.slow.wav | shopkeeper | 0.8 | Hoy hace sol. |  |
 | shop_sun.1 | speech/shopkeeper/shop_sun.1.wav | shopkeeper | 1.0 | Hoy hace sol. |  |
 | shop_thank.1 | speech/shopkeeper/shop_thank.1.slow.wav | shopkeeper | 0.8 | De nada. |  |
@@ -1206,8 +1270,10 @@ whose text changed or whose file was recorded again differently is listed again 
 | shop_weather.1.viento | speech/shopkeeper/shop_weather.1.viento.wav | shopkeeper | 1.0 | Sí, hace viento. |  |
 | shop_well.1 | speech/shopkeeper/shop_well.1.slow.wav | shopkeeper | 0.8 | Bien, gracias. |  |
 | shop_well.1 | speech/shopkeeper/shop_well.1.wav | shopkeeper | 1.0 | Bien, gracias. |  |
-| shop_wont_sell.1 | speech/shopkeeper/shop_wont_sell.1.slow.wav | shopkeeper | 0.8 | No tengo eso. Tengo agua y pan. |  |
-| shop_wont_sell.1 | speech/shopkeeper/shop_wont_sell.1.wav | shopkeeper | 1.0 | No tengo eso. Tengo agua y pan. |  |
+| shop_wont_buy.1 | speech/shopkeeper/shop_wont_buy.1.slow.wav | shopkeeper | 0.8 | No, gracias. Solo compro pan. |  |
+| shop_wont_buy.1 | speech/shopkeeper/shop_wont_buy.1.wav | shopkeeper | 1.0 | No, gracias. Solo compro pan. |  |
+| shop_wont_sell.1 | speech/shopkeeper/shop_wont_sell.1.slow.wav | shopkeeper | 0.8 | No tengo eso. Tengo agua, pan y harina. |  |
+| shop_wont_sell.1 | speech/shopkeeper/shop_wont_sell.1.wav | shopkeeper | 1.0 | No tengo eso. Tengo agua, pan y harina. |  |
 | shop_yes.1 | speech/shopkeeper/shop_yes.1.slow.wav | shopkeeper | 0.8 | ¡Sí! |  |
 | shop_yes.1 | speech/shopkeeper/shop_yes.1.wav | shopkeeper | 1.0 | ¡Sí! |  |
 | smith_buy.1 | speech/smith/smith_buy.1.slow.wav | smith | 0.8 | ¡Gracias! Aquí tienes tus monedas. |  |

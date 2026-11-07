@@ -122,7 +122,7 @@
     "ui.stationRight": "Good.",
     "ui.stationWrongThing": "Not that one.",
     "ui.stationWrongVerb": "The right thing, but not that verb.",
-    "ui.stationOutOfOrder": "Not yet: that comes later.",
+    "ui.stationOutOfOrder": "“Todavía no.” Not yet: that comes later.",
     "ui.stationDone": "Done: {count} x {item}.",
     "ui.stationAgain": "Enter: do it again.",
     "ui.stationBagFull": "Your bag is full. Make room, then press Enter.",

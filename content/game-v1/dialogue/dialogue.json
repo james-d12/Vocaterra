@@ -985,7 +985,7 @@
     "shop_wont_sell": {
       "poolId": "shop_wont_sell",
       "variants": [
-        { "lineId": "shop_wont_sell.1", "text": "No tengo eso. Tengo agua y pan." }
+        { "lineId": "shop_wont_sell.1", "text": "No tengo eso. Tengo agua, pan y harina." }
       ]
     },
     "villager_wont_sell": {
@@ -1149,7 +1149,7 @@
     "shop_hay": {
       "poolId": "shop_hay",
       "variants": [
-        { "lineId": "shop_hay.1", "text": "Hay agua y pan." }
+        { "lineId": "shop_hay.1", "text": "Hay agua, pan y harina." }
       ]
     },
     "guide.lesson.shop.bread": {
@@ -2027,10 +2027,10 @@
         { "lineId": "guide.lesson.baker.proc_goal.1", "text": "Haz pan." }
       ]
     },
-    "guide.lesson.baker.first": {
-      "poolId": "guide.lesson.baker.first",
+    "guide.lesson.baker.not_yet": {
+      "poolId": "guide.lesson.baker.not_yet",
       "variants": [
-        { "lineId": "guide.lesson.baker.first.1", "text": "Primero." }
+        { "lineId": "guide.lesson.baker.not_yet.1", "text": "Todavía no." }
       ]
     },
     "guide.lesson.baker.bake": {
@@ -2060,7 +2060,7 @@
     "shop_buy": {
       "poolId": "shop_buy",
       "variants": [
-        { "lineId": "shop_buy.1", "text": "¡Gracias! Aquí tienes tus monedas." }
+        { "lineId": "shop_buy.1", "text": "¡Gracias! Aquí tienes." }
       ]
     },
     "shop_wont_buy": {
@@ -2078,7 +2078,7 @@
     "shop_cant_pay": {
       "poolId": "shop_cant_pay",
       "variants": [
-        { "lineId": "shop_cant_pay.1", "text": "Necesitas una moneda." }
+        { "lineId": "shop_cant_pay.1", "text": "La harina cuesta una moneda." }
       ]
     },
     "shop_none_asked": {

@@ -257,6 +257,8 @@ public static class BlockArt
                 return OvenIconPixel(x, y, speckle);
             case BlockCell.IconPlain:
                 return PlainIconPixel(x, y);
+            case BlockCell.IconFlour:
+                return FlourIconPixel(x, y, speckle);
             default:
                 return Clear;
         }
@@ -596,6 +598,30 @@ public static class BlockArt
         }
 
         return y <= 9 ? Shade(214, 148, 66, 0) : Shade(190, 122, 52, 0);
+    }
+
+    private static (byte R, byte G, byte B, byte A) FlourIconPixel(int x, int y, uint speckle)
+    {
+        // A cloth sack of flour: a round cream body, a tied neck with a short frill on top, a darker twine knot.
+        if (y is >= 1 and <= 3 && x is >= 5 and <= 10)
+        {
+            return y == 3 && x is >= 6 and <= 9 ? Shade(150, 112, 64, 0) : y == 1 ? Clear : Shade(226, 214, 188, speckle % 2);
+        }
+
+        var dx = (x - 7.5) / 6.0;
+        var dy = (y - 9.5) / 5.5;
+        var r2 = (dx * dx) + (dy * dy);
+        if (y < 4 || r2 > 1.0)
+        {
+            return Clear;
+        }
+
+        if (r2 > 0.75)
+        {
+            return Shade(196, 180, 148, 0); // the shaded edge of the cloth
+        }
+
+        return (x + y) % 5 == 0 ? Shade(236, 228, 208, speckle % 2) : Shade(246, 242, 228, speckle % 2); // the flour, pale and a little dusty
     }
 
     private static (byte R, byte G, byte B, byte A) Shade(int r, int g, int b, uint noise)

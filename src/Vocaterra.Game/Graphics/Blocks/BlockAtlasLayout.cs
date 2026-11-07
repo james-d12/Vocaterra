@@ -288,6 +288,9 @@ public enum BlockCell
 
     /// <summary>The plain tile any icon key without art of its own is drawn as (W07): a grey rounded square.</summary>
     IconPlain,
+
+    /// <summary>The icon of flour (the item, W10): a cloth sack tied at the neck. Placed after the interface-only cells so the world's mip levels do not move.</summary>
+    IconFlour,
 }
 
 /// <summary>
@@ -414,6 +417,7 @@ public static class BlockAtlasLayout
         ItemId.Apple => BlockCell.IconApple,
         ItemId.Axe => BlockCell.IconAxe,
         ItemId.RoastApple => BlockCell.IconRoastApple,
+        ItemId.Flour => BlockCell.IconFlour,
         _ => null,
     };
 

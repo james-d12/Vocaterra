@@ -130,7 +130,6 @@
 {"id":"dialogue:guide.lesson.baker.bought.1","text":"¿Qué compraste?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.coins.1","text":"¿Cuántas monedas tienes?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.fifteen.1","text":"Once, doce, trece, catorce, quince.","kind":"npc"}
-{"id":"dialogue:guide.lesson.baker.first.1","text":"Primero.","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.five.1","text":"Uno, dos, tres, cuatro, cinco.","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.fresh.1","text":"¡Qué bien! Mañana tendré pan fresco.","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.how_many.1","text":"¿Cuántos panes quieres?","kind":"npc"}
@@ -139,6 +138,7 @@
 {"id":"dialogue:guide.lesson.baker.mar.1","text":"¿Y qué hizo Mar ayer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.market.1","text":"¡Hoy hay mercado! ¿Cuántos panes tengo?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.model.1","text":"Ayer compré fruta en la tienda.","kind":"npc"}
+{"id":"dialogue:guide.lesson.baker.not_yet.1","text":"Todavía no.","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.offer.1","text":"¿Quieres una clase? ¿Sí o no?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.oven.1","text":"Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.pay.1","text":"Te pago una moneda por cada bloque de madera.","kind":"npc"}
@@ -332,10 +332,10 @@
 {"id":"dialogue:guide_yes.1","text":"¡Sí!","kind":"npc"}
 {"id":"dialogue:not_understood.1","text":"No te entendí. ¿Me lo dices otra vez?","kind":"npc"}
 {"id":"dialogue:not_understood.2","text":"Perdón, ¿qué dices?","kind":"npc"}
-{"id":"dialogue:shop_buy.1","text":"¡Gracias! Aquí tienes tus monedas.","kind":"npc"}
+{"id":"dialogue:shop_buy.1","text":"¡Gracias! Aquí tienes.","kind":"npc"}
 {"id":"dialogue:shop_bye.1","text":"¡Adiós! Hasta luego.","kind":"npc"}
 {"id":"dialogue:shop_bye.2","text":"Hasta luego.","kind":"npc"}
-{"id":"dialogue:shop_cant_pay.1","text":"Necesitas una moneda.","kind":"npc"}
+{"id":"dialogue:shop_cant_pay.1","text":"La harina cuesta una moneda.","kind":"npc"}
 {"id":"dialogue:shop_cant_sell.1","text":"No tienes pan.","kind":"npc"}
 {"id":"dialogue:shop_deny.1","text":"Está bien.","kind":"npc"}
 {"id":"dialogue:shop_deny.2","text":"Bueno.","kind":"npc"}
@@ -346,7 +346,7 @@
 {"id":"dialogue:shop_give.2","text":"Aquí tienes la botella. El agua está en el río.","kind":"npc"}
 {"id":"dialogue:shop_give_bread.1","text":"Aquí tienes el pan.","kind":"npc"}
 {"id":"dialogue:shop_give_bread.2","text":"Toma el pan.","kind":"npc"}
-{"id":"dialogue:shop_hay.1","text":"Hay agua y pan.","kind":"npc"}
+{"id":"dialogue:shop_hay.1","text":"Hay agua, pan y harina.","kind":"npc"}
 {"id":"dialogue:shop_help_ask.1","text":"Puedes decir: «Quiero agua, por favor».","kind":"npc"}
 {"id":"dialogue:shop_help_offer.1","text":"Puedes decir: «Sí, por favor» o «No, gracias».","kind":"npc"}
 {"id":"dialogue:shop_need.1","text":"¿Qué necesitas?","kind":"npc"}
@@ -365,7 +365,7 @@
 {"id":"dialogue:shop_weather.1","text":"Sí, hace {weather}.","kind":"template"}
 {"id":"dialogue:shop_well.1","text":"Bien, gracias.","kind":"npc"}
 {"id":"dialogue:shop_wont_buy.1","text":"No, gracias. Solo compro pan.","kind":"npc"}
-{"id":"dialogue:shop_wont_sell.1","text":"No tengo eso. Tengo agua y pan.","kind":"npc"}
+{"id":"dialogue:shop_wont_sell.1","text":"No tengo eso. Tengo agua, pan y harina.","kind":"npc"}
 {"id":"dialogue:shop_yes.1","text":"¡Sí!","kind":"npc"}
 {"id":"dialogue:smith_buy.1","text":"¡Gracias! Aquí tienes tus monedas.","kind":"npc"}
 {"id":"dialogue:smith_bye.1","text":"¡Adiós! Hasta luego.","kind":"npc"}
@@ -3277,7 +3277,7 @@
 {"id":"PHRASES.md:vendo-pan.error","text":"vendo la pan","kind":"learner","errors":["gender.agree"]}
 {"id":"PHRASES.md:hoy-vamos-a-hacer-pan.text","text":"Hoy vamos a hacer pan. ¿Me ayudas?","kind":"npc"}
 {"id":"PHRASES.md:que-hiciste.text","text":"¿Qué hiciste?","kind":"npc"}
-{"id":"PHRASES.md:primero.text","text":"Primero.","kind":"npc"}
+{"id":"PHRASES.md:todavia-no.text","text":"Todavía no.","kind":"npc"}
 {"id":"PHRASES.md:toma-aqui-tienes.text","text":"Toma. Aquí tienes.","kind":"npc"}
 {"id":"PHRASES.md:quieres-hacer-pan.text","text":"¿Quieres hacer pan?","kind":"npc"}
 {"id":"checks.json:hear.que-necesitas","text":"¿Qué necesitas?","kind":"npc"}
@@ -3416,16 +3416,22 @@
 {"id":"speech:card.agua","text":"el agua","kind":"npc"}
 {"id":"speech:card.antorcha","text":"la antorcha","kind":"npc"}
 {"id":"speech:card.arena","text":"la arena","kind":"npc"}
+{"id":"speech:card.bol","text":"el bol","kind":"npc"}
 {"id":"speech:card.botella","text":"la botella","kind":"npc"}
 {"id":"speech:card.camino","text":"el camino","kind":"npc"}
 {"id":"speech:card.casa","text":"la casa","kind":"npc"}
+{"id":"speech:card.cuchara","text":"la cuchara","kind":"npc"}
 {"id":"speech:card.fruta","text":"la fruta","kind":"npc"}
 {"id":"speech:card.fuego","text":"el fuego","kind":"npc"}
 {"id":"speech:card.hacha","text":"el hacha","kind":"npc"}
+{"id":"speech:card.harina","text":"la harina","kind":"npc"}
 {"id":"speech:card.hierba","text":"la hierba","kind":"npc"}
+{"id":"speech:card.horno","text":"el horno","kind":"npc"}
 {"id":"speech:card.libro","text":"el libro","kind":"npc"}
 {"id":"speech:card.madera","text":"la madera","kind":"npc"}
+{"id":"speech:card.mano","text":"la mano","kind":"npc"}
 {"id":"speech:card.manzana","text":"la manzana","kind":"npc"}
+{"id":"speech:card.masa","text":"la masa","kind":"npc"}
 {"id":"speech:card.mesa","text":"la mesa","kind":"npc"}
 {"id":"speech:card.moneda","text":"la moneda","kind":"npc"}
 {"id":"speech:card.pan","text":"el pan","kind":"npc"}
