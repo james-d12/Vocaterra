@@ -146,6 +146,115 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
         }
     }
 
+    // M80: the open-recognition fallback. The scripted recognizer answers a constrained request with one case's transcript and an open request with another's, so the
+    // two decodes disagree. A first reading that is taken gets exactly the verdict (and recording) of the option off, after one decode; otherwise the clip is decoded
+    // once more, and the result is the one a pipeline would give for the free recognition read as the first (when taken), or else the option-off result.
+    [Fact]
+    public void OpenFallback_LeavesATakenFirstReadingAlone_AndOtherwiseKeepsTheTakenOneOfTwoReadings()
+    {
+        var diagnostics = new FuzzDiagnostics();
+        var iterations = FuzzOptions.Iterations(FuzzOptions.PipelineVar, FuzzOptions.PipelineDefault);
+        var gen = Gen.Select(PipelineGen.Case(Harness), PipelineGen.Case(Harness), static (a, b) => (a, b));
+
+        gen.Sample(
+            ((PipelineCase First, PipelineCase Second) input) =>
+            {
+                var c = input.First with { HostTurn = false, TwoPhase = false };
+                var freeTranscript = input.Second.Transcript;
+                var prompt = Harness.Prompt(c.PromptId);
+                var clip = PipelineHarness.Clip();
+                var context = BaseContext(c);
+
+                var constrainedAsr = Asr(c.Transcript, RecognitionMode.Constrained);
+                var freeAsr = Asr(freeTranscript, RecognitionMode.Open);
+                var bothOff = Fallback(c, prompt, new ScriptedWordRecognizer(constrainedAsr, freeAsr), false);
+                var bothOn = Fallback(c, prompt, new ScriptedWordRecognizer(constrainedAsr, freeAsr), true);
+                PipelineTrace off;
+                UtteranceAnalysis analysis;
+                PipelineTrace on;
+                try
+                {
+                    off = bothOff.Pipeline.Trace(clip, prompt, context);
+                    analysis = bothOn.Pipeline.Analyze(clip, prompt);
+                    on = bothOn.Pipeline.CompleteTrace(analysis, context);
+                }
+                catch (Exception ex)
+                {
+                    throw Determinism.Fail(Oracle, $"The pipeline threw {ex.GetType().Name}: {ex.Message}", c);
+                }
+
+                var calls = bothOn.Recognizer.CallCount;
+                if (bothOff.Recognizer.CallCount != 1)
+                {
+                    throw Determinism.Fail(Oracle, $"With the option off the recognizer was called {bothOff.Recognizer.CallCount} times.", c);
+                }
+
+                if (prompt.Mode != RecognitionMode.Constrained || off.Result.Verdict.Communicated || off.Result.Verdict.OffPromptIntent is not null)
+                {
+                    diagnostics.Count(prompt.Mode == RecognitionMode.Constrained ? "fallback:first-taken" : "fallback:open-prompt");
+                    if (calls != 1 || analysis.OtherPass is not null)
+                    {
+                        throw Determinism.Fail(Oracle, $"A first reading that is taken (or an open prompt) must decode once; the recognizer was called {calls} times.", c);
+                    }
+
+                    Determinism.AssertSame(Oracle, "A taken first reading with the option on against off", c, () => (off.Result, off.Asr, off.Posteriors), () => (on.Result, on.Asr, on.Posteriors));
+                    return;
+                }
+
+                if (calls != 2 || bothOn.Recognizer.Requests[1].Mode != RecognitionMode.Open || analysis.OtherPass is null)
+                {
+                    throw Determinism.Fail(Oracle, $"A first reading that is not taken must be followed by one open decode; {calls} calls.", c);
+                }
+
+                // What the free recognition gives when it is read first (the option off, one decode of it).
+                var asFirst = Fallback(c, prompt, new ScriptedWordRecognizer(freeAsr), false).Pipeline.Trace(clip, prompt, context);
+                var secondTaken = asFirst.Result.Verdict.Communicated || asFirst.Result.Verdict.OffPromptIntent is not null;
+                if (secondTaken)
+                {
+                    diagnostics.Count("fallback:second-chosen");
+                    if (on.Asr.Mode != RecognitionMode.Open || analysis.OtherPass.Mode != RecognitionMode.Constrained)
+                    {
+                        throw Determinism.Fail(Oracle, "A free reading that is taken must be the recognition of the analysis, with the constrained one as the other pass.", c);
+                    }
+
+                    Determinism.AssertSame(Oracle, "A taken free reading against the same recognition read first", c, () => (asFirst.Result, asFirst.Asr), () => (on.Result, on.Asr));
+                }
+                else
+                {
+                    diagnostics.Count("fallback:second-rejected");
+                    if (analysis.OtherPass.Mode != RecognitionMode.Open)
+                    {
+                        throw Determinism.Fail(Oracle, "A free reading that is not taken must be reported as the other pass.", c);
+                    }
+
+                    Determinism.AssertSame(Oracle, "A free reading that is not taken against the option off", c, () => (off.Result, off.Asr, off.Posteriors), () => (on.Result, on.Asr, on.Posteriors));
+                }
+            },
+            writeLine: output.WriteLine,
+            iter: iterations,
+            threads: 1);
+
+        output.WriteLine("Open fallback diagnostics:\n" + diagnostics.Report());
+        var minimum = Math.Max(1, Math.Min(5, iterations / 60));
+        foreach (var key in new[] { "fallback:first-taken", "fallback:open-prompt", "fallback:second-chosen", "fallback:second-rejected" })
+        {
+            Assert.True(diagnostics.Get(key) >= minimum, $"The generator no longer reaches {key}.\n{diagnostics.Report()}");
+        }
+    }
+
+    private static AsrResult Asr(string transcript, RecognitionMode mode)
+    {
+        return new AsrResult(transcript, [new AsrHypothesis(transcript, 1.0)], [], 1.0, "scripted-fuzz", mode);
+    }
+
+    // A pipeline over the case's services (its phoneme recognizer and options) with the word recognizer replaced by the scripted one.
+    private static (UtterancePipeline Pipeline, ScriptedWordRecognizer Recognizer) Fallback(PipelineCase c, PromptSpec prompt, ScriptedWordRecognizer recognizer, bool fallback)
+    {
+        var services = Harness.NewServices(c.Transcript, prompt.Mode, c.Phonemes, c.Embeddings);
+        var options = new PipelineOptions { PronunciationMode = c.PronunciationMode, RunRecognizersConcurrently = c.Concurrent, OpenRecognitionFallback = fallback };
+        return (new UtterancePipeline(services.WithRecognizers(recognizer, services.PhonemeRecognizer), options), recognizer);
+    }
+
     // ---- Running ----------------------------------------------------------------------------------------------------------------
 
     private static (UtterancePipeline Pipeline, PromptSpec Prompt, ConversationContext Context, PcmClip Clip) Prepare(PipelineCase c)

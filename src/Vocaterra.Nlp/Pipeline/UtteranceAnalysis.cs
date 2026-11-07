@@ -29,7 +29,8 @@ public sealed class UtteranceAnalysis
         MatchResult match,
         AnswerSet answerSet,
         Verdict verdict,
-        IReadOnlyList<AccentNote>? notes = null)
+        IReadOnlyList<AccentNote>? notes = null,
+        AsrResult? otherPass = null)
     {
         ClipHash = clipHash;
         Prompt = prompt;
@@ -41,6 +42,7 @@ public sealed class UtteranceAnalysis
         AnswerSet = answerSet;
         Verdict = verdict;
         Notes = notes;
+        OtherPass = otherPass;
     }
 
     /// <summary>The hash of the clip that was recognized (copied into the replay record).</summary>
@@ -49,8 +51,17 @@ public sealed class UtteranceAnalysis
     /// <summary>The prompt the utterance answered.</summary>
     public PromptSpec Prompt { get; }
 
-    /// <summary>The word recognizer's output; phase 2 and the replay log reuse it, so recognition runs once.</summary>
+    /// <summary>
+    /// The word recognizer's output; phase 2 and the replay log reuse it, so recognition runs once. With <see cref="PipelineOptions.OpenRecognitionFallback"/>
+    /// it is the recognition the verdict was made from: <see cref="AsrResult.Mode"/> <see cref="Core.Prompts.RecognitionMode.Open"/> at a constrained prompt marks a line heard freely (M80).
+    /// </summary>
     public AsrResult Asr { get; }
+
+    /// <summary>
+    /// The recognition that was not chosen, when the second pass of <see cref="PipelineOptions.OpenRecognitionFallback"/> ran: the constrained one when the free
+    /// reading was taken, the free one when it was not; null when only one decode ran (M80).
+    /// </summary>
+    public AsrResult? OtherPass { get; }
 
     /// <summary>The phoneme recognizer's output, or null when pronunciation scoring did not run.</summary>
     public PhonePosteriors? Posteriors { get; }
@@ -66,6 +77,11 @@ public sealed class UtteranceAnalysis
 
     /// <summary>The verbs written without the accent that marks their tense or person, read as the accented form (M70): the same value <see cref="PipelineResult.Notes"/> will carry; null when there is none.</summary>
     public IReadOnlyList<AccentNote>? Notes { get; }
+
+    internal UtteranceAnalysis WithOtherPass(AsrResult otherPass)
+    {
+        return new UtteranceAnalysis(ClipHash, Prompt, Asr, Posteriors, Normalized, Analysis, Match, AnswerSet, Verdict, Notes, otherPass);
+    }
 
     internal NormalizedText Normalized { get; }
 

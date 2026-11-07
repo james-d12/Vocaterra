@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using Vocaterra.Nlp.Core.Audio;
+using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
 
 namespace Vocaterra.Nlp.Asr;
@@ -10,6 +11,10 @@ public sealed class ScriptedWordRecognizer : IWordRecognizer
     private readonly AsrResult? _default;
     private readonly ImmutableSortedDictionary<string, AsrResult> _byClipHash;
     private readonly object _gate = new();
+    private readonly AsrResult? _constrained;
+    private readonly AsrResult? _open;
+    private readonly bool _byMode;
+    private readonly List<RecognitionRequest> _requests = [];
     private int _callCount;
     private RecognitionRequest? _lastRequest;
 
@@ -27,8 +32,20 @@ public sealed class ScriptedWordRecognizer : IWordRecognizer
         _byClipHash = byClipHash.ToImmutableSortedDictionary(StringComparer.Ordinal);
     }
 
+    /// <summary>
+    /// Returns <paramref name="constrained"/> to a constrained request and <paramref name="open"/> to an open one, for every clip (M80: a pipeline with
+    /// <c>OpenRecognitionFallback</c> asks twice, and the two answers differ). A null result for a mode makes a request of that mode throw.
+    /// </summary>
+    public ScriptedWordRecognizer(AsrResult? constrained, AsrResult? open)
+        : this(null, ImmutableSortedDictionary<string, AsrResult>.Empty.WithComparers(StringComparer.Ordinal))
+    {
+        _constrained = constrained;
+        _open = open;
+        _byMode = true;
+    }
+
     /// <summary>The model hash of the fallback result, or <c>scripted</c> when there is none.</summary>
-    public string ModelHash => _default?.ModelHash ?? "scripted";
+    public string ModelHash => _default?.ModelHash ?? _constrained?.ModelHash ?? _open?.ModelHash ?? "scripted";
 
     /// <summary>How many times <see cref="Recognize"/> was called.</summary>
     public int CallCount
@@ -54,6 +71,18 @@ public sealed class ScriptedWordRecognizer : IWordRecognizer
         }
     }
 
+    /// <summary>Every request received, in order (a copy).</summary>
+    public IReadOnlyList<RecognitionRequest> Requests
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return [.. _requests];
+            }
+        }
+    }
+
     /// <inheritdoc />
     public AsrResult Recognize(PcmClip clip, RecognitionRequest request)
     {
@@ -63,6 +92,13 @@ public sealed class ScriptedWordRecognizer : IWordRecognizer
         {
             _callCount++;
             _lastRequest = request;
+            _requests.Add(request);
+        }
+
+        if (_byMode)
+        {
+            var byMode = request.Mode == RecognitionMode.Constrained ? _constrained : _open;
+            return byMode ?? throw new InvalidOperationException($"No scripted result for a {request.Mode} request.");
         }
 
         if (_byClipHash.TryGetValue(clip.ClipHash, out var mapped))
