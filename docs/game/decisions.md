@@ -367,6 +367,12 @@ now. Make a note of it, but don't block it from continuing the work."
 size rule from now on (Haiku for small, Sonnet medium for medium, Sonnet high for large or design-heavy), replacing this decision's "every V
 milestone by Opus 5.5 at xhigh" (2026-10-30) for milestones not yet launched.
 
+**Owner's answer, 2026-11-07 (M80's two false takes):** "add the 0.5 weakest-word floor in M80". M80's measurement found two false
+takes against answer 6's zero bar («ese libro es muy interesante», voice `ef_dora` at 1.0, heard «el libro…» with `el` at 0.45 and read as
+`describe`, as the typed line is). The free pass's reading is taken only when its weakest word's confidence is at least **0.5**; the floor is
+the core's (M80), not the game's. Measured on the Kokoro corpus, it stops both false takes and 2 of the 6 wrong takes and loses 1 of 108
+understood lines. The zero bar stands.
+
 **Owner's answers, 2026-11-02 (the open points after V27):**
 1. **The small points are fixed on `feature/village-followups`,** before the pull request: the core's in M73 (Opus 5.5 at xhigh), the
    game's in V28 (Sonnet 5.5).
