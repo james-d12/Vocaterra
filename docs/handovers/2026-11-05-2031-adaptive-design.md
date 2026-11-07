@@ -1,7 +1,7 @@
 # Handover: the adaptation, phases B to D, on feature/adaptive_design
 
 Created: 2026-11-05T20:31Z (UTC)
-Updated: 2026-11-06T09:28Z (UTC), the bread work W05 to W07 moved to its own branch and handover; this workstream waits for the
+Updated: 2026-11-07T11:45Z (UTC), the owner answered the needs check (too easy; a settings page later)
 needs check (kept current after every gate, launch and owner decision: the owner, 2026-11-05)
 Workstream: the owner's Adaptation Design Document, phases B to E: the needs (N), lessons as classes (L01), the presentation track (U),
 then the bread pilot (W)
@@ -65,6 +65,8 @@ track) is half done; phase E (the bread pilot, W05 to W10) waits for the owner's
 - **T7 is done** (it was proposed, then launched by the orchestrator on 2026-11-06 after a third OOM kill failed U02b's first gate):
   gate kills with exit 143 should no longer happen; if one does, read the test log's peak line and the journal (`journalctl --user | grep oom`).
 - **Blocked on the owner:**
+  - **Answered 2026-11-07:** the owner played the needs check and finds the needs too easy; he will add a settings page that makes
+    them configurable later (`docs/game/decisions.md`, before D-game-25). No tuning milestone; the item below is kept for history.
   - **The needs check** (design 9.12): the owner and two or three testers play days 1 to 3 with needs on. Its pass criteria are in the
     game plan's row and the design's 9.12. Its "go" starts the bread pilot W05 to W10 (activities plan section 4.7). The owner may lift
     that gate for W05 to W07 (machinery that does not depend on the needs' tuning); W08 also waits for the spoken-lines answers.
