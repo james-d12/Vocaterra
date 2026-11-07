@@ -224,6 +224,20 @@ public sealed class LessonFrontendTests
     }
 
     [Fact]
+    public void ALessonRunStopsWithAMessageAtADoStepThatWaitsForAProcedureAtAStation()
+    {
+        // W10: En la panadería's oven step waits for procedure_done; the run does not drive stations, and used to walk to the oven and use it for ever.
+        using var run = new Harness([new(ScriptStepKind.LessonRun, Value: "en-la-panaderia")], TestGame.BreadData.Lessons);
+        run.Session.Day = 5;
+        run.Session.Sitting = 5;
+
+        run.Go(120000);
+
+        Assert.Single(run.Log, static l => l.StartsWith("lesson-run: the step 'k3-oven' waits for a procedure at a station", StringComparison.Ordinal));
+        Assert.NotEqual(LessonStatus.Completed, run.Session.Lessons.StatusOf("en-la-panaderia"));
+    }
+
+    [Fact]
     public void ALessonRunStepSkipsADoStepItHasNothingToWalkToAndGoesOn()
     {
         // village-plan V11: Números y pan waits for an order and a purchase the run does not make. The run skips each such step with the panel still open; a skip after

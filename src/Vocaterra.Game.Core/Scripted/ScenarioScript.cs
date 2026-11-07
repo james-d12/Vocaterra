@@ -516,6 +516,16 @@ public sealed class ScenarioScript
                     return true;
                 }
 
+                if (string.Equals(step.Event, WorldEvents.ProcedureDone, StringComparison.Ordinal))
+                {
+                    // W10: a do step that waits for a procedure is done at a station (the oven), which this run does not drive: it would walk to the station and
+                    // use it for ever. Say so and end the script (the stations are driven by the --station steps, as r27-bread does).
+                    _log($"lesson-run: the step '{step.Id}' waits for a procedure at a station, which --lesson-run does not drive (use --station steps, as r27-bread does); the run stops here");
+                    _index = _steps.Count;
+                    _phase = Phase.Idle;
+                    return true;
+                }
+
                 if (_session.Pointer is { } target)
                 {
                     CloseIfOpen();
