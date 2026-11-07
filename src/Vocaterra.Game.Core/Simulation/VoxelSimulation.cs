@@ -167,7 +167,7 @@ public sealed partial class VoxelSimulation
         }
 
         var (intentX, intentZ) = WalkIntent(commands);
-        var (jumped, landed) = Player.Step(Grid, intentX, intentZ, jump);
+        var (jumped, landed) = Player.Step(Grid, intentX, intentZ, jump, Scene.Currents);
         if (jumped)
         {
             _events.Add(new SimulationEvent(SimulationEventKind.PlayerJumped, Tick));

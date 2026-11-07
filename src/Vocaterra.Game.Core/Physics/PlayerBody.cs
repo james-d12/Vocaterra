@@ -2,6 +2,7 @@ using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.Water;
+using Vocaterra.Game.Core.Water.Currents;
 
 namespace Vocaterra.Game.Core.Physics;
 
@@ -125,12 +126,12 @@ public sealed partial class PlayerBody
 
     /// <summary>
     /// One tick: walking at the given intent (fixed point, <see cref="Angles.One"/> = 1.0, each component within +-1.0), an optional jump,
-    /// gravity, then the move on X, Z and Y with the step-up. Returns whether the body left the ground by jumping and whether it landed.
+    /// gravity, then the move on X, Z and Y with the step-up. In water the optional <paramref name="currents"/> (the scene's river) adds its drift. Returns whether the body left the ground by jumping and whether it landed.
     /// </summary>
-    internal (bool Jumped, bool Landed) Step(VoxelGrid grid, int intentX, int intentZ, bool jump)
+    internal (bool Jumped, bool Landed) Step(VoxelGrid grid, int intentX, int intentZ, bool jump, RiverCurrents? currents = null)
     {
         var wet = Immersion.Of(grid, this);
-        if (wet.Feet) { return StepInWater(grid, intentX, intentZ, jump, wet); }
+        if (wet.Feet) { return StepInWater(grid, intentX, intentZ, jump, wet, currents); }
 
         var wasGrounded = Grounded;
         SteppedUp = false;

@@ -1,6 +1,7 @@
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.Water;
+using Vocaterra.Game.Core.Water.Currents;
 
 namespace Vocaterra.Game.Core.Physics;
 
@@ -11,7 +12,7 @@ public sealed partial class PlayerBody
     /// jump and step-up. Swimming (water at the waist or higher): the slow horizontal speed, the drag, jump held to swim up, and a hop out
     /// onto a bank when a wall blocks the way. Swimming never reports a jump or a landing.
     /// </summary>
-    private (bool Jumped, bool Landed) StepInWater(VoxelGrid grid, int intentX, int intentZ, bool jump, Immersion immersion)
+    private (bool Jumped, bool Landed) StepInWater(VoxelGrid grid, int intentX, int intentZ, bool jump, Immersion immersion, RiverCurrents? currents)
     {
         var wasGrounded = Grounded;
         SteppedUp = false;
@@ -19,6 +20,9 @@ public sealed partial class PlayerBody
         var speed = SwimMotion.HorizontalSpeed(swimming);
         VelocityX = Angles.Multiply(intentX, speed);
         VelocityZ = Angles.Multiply(intentZ, speed);
+        var (pushX, pushZ, pull) = SwimMotion.Push(grid, currents, VoxelCollider.FloorDiv(CenterX, VoxelPhysics.UnitsPerBlock), VoxelCollider.FloorDiv(MinY, VoxelPhysics.UnitsPerBlock), VoxelCollider.FloorDiv(CenterZ, VoxelPhysics.UnitsPerBlock));
+        VelocityX += pushX;
+        VelocityZ += pushZ;
 
         var jumped = false;
         if (swimming)
@@ -28,6 +32,8 @@ public sealed partial class PlayerBody
             {
                 VelocityY = SwimMotion.HopSpeed(VelocityY);
             }
+
+            VelocityY = Math.Max(VelocityY - pull, -SwimMotion.SinkSpeed);
         }
         else
         {
