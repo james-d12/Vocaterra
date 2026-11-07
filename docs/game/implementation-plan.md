@@ -2373,6 +2373,22 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   the fixed build are identical; the whole set before and after: 25 runs same, r30 moves only in that box. Left: `CheckBattery`'s
   `check: picked … ms` and `SessionLog` timings still read the clock; no current run shows them, but a future scripted run with checks
   could move (fix the same way if it does). Report `.claude/briefs/t8-report.md`.
+- **W08, the teacher in the loop (2026-11-06 to 07, Sonnet 5.5 medium, two agents: the first stopped when the session ended; gated on
+  `feature/bread-pilot` at `5091891e`, 9794 passed, 3 skipped, with the models).** Six host kinds (`procedure_repeat`, `procedure_slower`,
+  `procedure_help`, `give_missing`, `teach_recipe`, and `start_procedure`, added beyond the plan so the accepted offer opens the station);
+  `<npc>.teach_start` and `teach_end` as host turns (new `NpcService.HostTurn`); the station's talk (V, Space and W reach the teacher with the
+  station open; scripted step `--station-say`); Luz's `offering_bake` and `teaching` states, prompts `baker-offer` and `baker-proc`, the
+  answer set `baker-proc`, seven new Spanish lines with 18 recordings; `host-events` schema version stays 2 (the bump to 3 is W04's).
+  **Decision 20's values, provisional, for the owner:** a grant only while a run is in progress; it gives what the recipe uses and the bag
+  lacks, all or nothing; open for the first bake, otherwise once per in-game night (the first bake's grants do not count); no room gives
+  `baker_no_room`, nothing missing «Ya tienes todo.», already granted «Hoy no tengo más.»; the offer is made once per day until the player
+  has baked, and also whenever asked (`ask_craft`); W10's seam is `GuideSession.GrantRequiredByLesson`. The offer is silent while the bundle
+  has no procedure (tested; 26 scripted runs unchanged but for the speech count). **The new lines** («¿Quieres hacer pan?», «¡Vamos!»,
+  «Escucha.», «Te ayudo.», «Toma. Aquí tienes.», «Ya tienes todo.», «Hoy no tengo más.») were reviewed by the orchestrator: idiomatic, `tú`
+  throughout, A2; the design's «…conmigo?» was cut because it fails the A2 lint. **Core gaps, not patched** (core milestones if the owner
+  wants them): «¿me enseñas a hacer pan?» is unknown at `baker-open`; «¿Tienes harina?» is not `ask_availability` (only «hay X» is); and,
+  found in the spot-check, two intents in one line («Gracias, adiós.», «Gracias. Adiós.») are unknown at every prompt while each alone
+  resolves. Reports `.claude/briefs/w08-report.md` and `w08-report-2.md`; screenshots of the station's talk were taken on a throwaway bundle.
 
 ## 6. Definition of done (every milestone)
 
