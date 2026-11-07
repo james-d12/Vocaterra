@@ -47,6 +47,9 @@ public enum VoiceEventKind
 
     /// <summary>A choice offered by the repair ladder was picked (the turn that follows is marked as a choice).</summary>
     Choice,
+
+    /// <summary>A spoken line in free talk was read from the core's second, open decode (V31): the constrained decode did not take it. Credited as a typed line; the detail is what was heard.</summary>
+    HeardOpen,
 }
 
 /// <summary>The wire names of the voice events for the console and the session log.</summary>
@@ -67,6 +70,7 @@ public static class VoiceEventNames
         VoiceEventKind.NoSe => "no_se",
         VoiceEventKind.TypeFallback => "typed_fallback",
         VoiceEventKind.Choice => "choice",
+        VoiceEventKind.HeardOpen => "heard_open",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown voice-event kind."),
     };
 }

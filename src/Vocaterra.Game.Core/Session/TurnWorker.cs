@@ -123,7 +123,8 @@ public sealed record MicCheckResult(string Heard, bool Passed, double Level);
 /// <param name="RecognizeMilliseconds">Vosk's decode of the clip (zero for a typed line).</param>
 /// <param name="TotalMilliseconds">The whole turn on the worker: synthesis, recognition and both evaluations.</param>
 /// <param name="Cached">Whether a synthesized line came from the cache.</param>
-public sealed record TurnTimings(double SynthesizeMilliseconds, double RecognizeMilliseconds, double TotalMilliseconds, bool Cached);
+/// <param name="Decodes">How many times the recognizer decoded the clip (V31): zero for a typed line, one for a spoken turn, two for a free-talk line the constrained decode did not take.</param>
+public sealed record TurnTimings(double SynthesizeMilliseconds, double RecognizeMilliseconds, double TotalMilliseconds, bool Cached, int Decodes = 0);
 
 /// <summary>What the worker made of one request.</summary>
 /// <param name="Request">The request.</param>
@@ -435,10 +436,11 @@ public sealed class TurnWorker : IDisposable
                     break;
             }
 
+            engine.BeginTurn();
             if (request.Source is TurnSource.Hear or TurnSource.HearSpeak)
             {
                 var heard = MicCheck.Run(engine.Recognizer, clip, _guide.Words.Greeting);
-                return new TurnOutcome(request, null, null, new TurnTimings(synthMs, engine.LastRecognizeMilliseconds, Now() - begin, cached), MicCheck: heard);
+                return new TurnOutcome(request, null, null, new TurnTimings(synthMs, engine.LastRecognizeMilliseconds, Now() - begin, cached, engine.RecognizeCount), MicCheck: heard);
             }
 
             if (clip is null)
@@ -449,7 +451,7 @@ public sealed class TurnWorker : IDisposable
             checkpoint = _guide.Checkpoint(request.Npc);
             var recorded = _guide.RecordCount;
             turn = _guide.SaySpoken(request.Npc, clip, request.Scene, request.Now, request.HostStateHash);
-            return new TurnOutcome(request, turn, null, new TurnTimings(synthMs, engine.LastRecognizeMilliseconds, Now() - begin, cached), ReplayIndex: ReplayIndexSince(recorded));
+            return new TurnOutcome(request, turn, null, new TurnTimings(synthMs, engine.LastRecognizeMilliseconds, Now() - begin, cached, engine.RecognizeCount), ReplayIndex: ReplayIndexSince(recorded));
         }
         catch (Exception ex) when (ex is IOException or InvalidDataException or InvalidOperationException or UnauthorizedAccessException or ArgumentException or KeyNotFoundException or DllNotFoundException or TypeInitializationException)
         {
@@ -509,8 +511,9 @@ public sealed class TurnWorker : IDisposable
                 return Failed(request, begin, "I didn't hear anything.");
             }
 
+            engine.BeginTurn();
             var spokenGrade = _checks.GradeSpoken(_spoken, item, clip, now, digest);
-            return new TurnOutcome(request, null, null, new TurnTimings(synthMs, engine.LastRecognizeMilliseconds, Now() - begin, cached), Grade: spokenGrade);
+            return new TurnOutcome(request, null, null, new TurnTimings(synthMs, engine.LastRecognizeMilliseconds, Now() - begin, cached, engine.RecognizeCount), Grade: spokenGrade);
         }
         catch (Exception ex) when (ex is IOException or InvalidDataException or InvalidOperationException or UnauthorizedAccessException or ArgumentException or KeyNotFoundException or DllNotFoundException or TypeInitializationException)
         {
