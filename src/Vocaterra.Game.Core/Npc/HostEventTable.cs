@@ -65,8 +65,8 @@ public sealed class HostEventTable
                     "point_at_place" => NpcEffect.PointAtPlaceNamed(Text(action, "place")),
                     "point_at_slot" => NpcEffect.PointAtSlotNamed(Text(action, "slot")),
                     "take_item" => Counted(NpcEffect.Take(ItemNamed(Text(action, "item"))), action, npc, name),
-                    "sell" => NpcEffect.SellAt(ItemNamed(Text(action, "item")), Price(action, npc, name)),
-                    "buy" => NpcEffect.BuyAt(ItemNamed(Text(action, "item")), Price(action, npc, name)),
+                    "sell" => action.TryGetProperty("prices", out _) || action.TryGetProperty("slot", out _) ? NpcEffect.SellList(PriceList(action, npc, name)) : NpcEffect.SellAt(ItemNamed(Text(action, "item")), Price(action, npc, name)),
+                    "buy" => action.TryGetProperty("prices", out _) || action.TryGetProperty("slot", out _) ? NpcEffect.BuyList(PriceList(action, npc, name)) : NpcEffect.BuyAt(ItemNamed(Text(action, "item")), Price(action, npc, name)),
                     "procedure_repeat" => new NpcEffect(NpcEffectKind.ProcedureRepeat),
                     "procedure_slower" => new NpcEffect(NpcEffectKind.ProcedureSlower),
                     "procedure_help" => new NpcEffect(NpcEffectKind.ProcedureHelp),
@@ -156,6 +156,26 @@ public sealed class HostEventTable
         action.TryGetProperty("price", out var price) && price.ValueKind == JsonValueKind.Number && price.TryGetInt32(out var coins) && coins >= 1
             ? coins
             : throw new InvalidDataException($"{RelativePath}: the price of {npc}'s '{name}' must be a number of coins from 1.");
+
+    // The price list of a sale or a purchase by name (W04): "slot": "item" (the only slot a sale reads) and "prices", a map of catalogue noun to a number of coins from 1, and
+    // neither "item" nor "price". Whether each noun is in the catalogue is the validator's.
+    private static IReadOnlyDictionary<string, int> PriceList(JsonElement action, string npc, string name)
+    {
+        if (action.TryGetProperty("item", out _) || action.TryGetProperty("price", out _))
+        {
+            throw new InvalidDataException($"{RelativePath}: {npc}'s '{name}' has either 'item' and 'price' or 'slot' and 'prices', not both.");
+        }
+
+        if (!string.Equals(Text(action, "slot"), NpcEffect.ItemSlot, StringComparison.Ordinal))
+        {
+            throw new InvalidDataException($"{RelativePath}: the slot of {npc}'s '{name}' must be \"{NpcEffect.ItemSlot}\".");
+        }
+
+        var prices = action.TryGetProperty("prices", out var list) && list.ValueKind == JsonValueKind.Object ? list.EnumerateObject().ToList() : [];
+        return prices.Count > 0 && prices.All(static p => p.Value.ValueKind == JsonValueKind.Number && p.Value.TryGetInt32(out var coins) && coins >= 1)
+            ? prices.ToDictionary(static p => p.Name, static p => p.Value.GetInt32(), StringComparer.Ordinal)
+            : throw new InvalidDataException($"{RelativePath}: the prices of {npc}'s '{name}' must map at least one noun to a number of coins from 1.");
+    }
 
     private static ItemId ItemNamed(string name) =>
         ItemDefinition.All.FirstOrDefault(d => string.Equals(d.Name, name, StringComparison.Ordinal))?.Id

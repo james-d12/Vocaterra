@@ -80,6 +80,7 @@ public enum NpcEffectKind
 /// <param name="Price">For <see cref="NpcEffectKind.Sell"/> and <see cref="NpcEffectKind.Buy"/>: the price of one item, in coins.</param>
 /// <param name="Instead">For a gift with <paramref name="Asked"/> (V21b): the catalogue nouns the NPC gives something else for, by the suffix of the host event it answers instead (the stall's <c>pan</c>: <c>give_bread</c>, so a request for bread gets the bread and no refusal).</param>
 /// <param name="Procedure">For <see cref="NpcEffectKind.TeachRecipe"/> and <see cref="NpcEffectKind.StartProcedure"/> (W08): the procedure's id, or empty for the one the NPC teaches (so a bundle with no procedure can map the event and nothing happens).</param>
+/// <param name="Prices">For <see cref="NpcEffectKind.Sell"/> and <see cref="NpcEffectKind.Buy"/> (W04, a price list): the price of one item in coins, by the catalogue noun the learner names in the <see cref="ItemSlot"/> slot (<c>pan</c>: 2, <c>harina</c>: 1); then <see cref="Item"/> and <see cref="Price"/> are unused and <see cref="For"/> gives the fixed effect of the item named. <see langword="null"/>: the one item and price of the entry.</param>
 /// <param name="Asked">For <see cref="NpcEffectKind.GiveItem"/> (V21): the catalogue nouns whose request the NPC answers with the gift (the stall's <c>agua</c> and <c>botella</c>, the villager's <c>pan</c>); a request for another noun is a miss, <c>&lt;npc&gt;.wont_sell</c>. <see langword="null"/>: the gift is not conditioned on the request.</param>
 public sealed record NpcEffect(
     NpcEffectKind Kind,
@@ -92,7 +93,8 @@ public sealed record NpcEffect(
     int Price = 0,
     IReadOnlyList<string>? Asked = null,
     IReadOnlyDictionary<string, string>? Instead = null,
-    string Procedure = "")
+    string Procedure = "",
+    IReadOnlyDictionary<string, int>? Prices = null)
 {
     /// <summary>The verdict's slot of a number the learner said (<c>quiero dos panes</c>: <c>2</c>), the core's <c>[NUM:qty]</c>.</summary>
     public const string QuantitySlot = "qty";
@@ -130,6 +132,36 @@ public sealed record NpcEffect(
 
     /// <summary>The effect that buys <paramref name="item"/> from the learner at <paramref name="price"/> coins each (village-plan V15).</summary>
     public static NpcEffect BuyAt(ItemId item, int price) => new(NpcEffectKind.Buy, item, Price: price);
+
+    /// <summary>The effect that sells whatever <paramref name="prices"/> lists, by the noun the learner names (W04): each noun at its own price in coins.</summary>
+    public static NpcEffect SellList(IReadOnlyDictionary<string, int> prices) => new(NpcEffectKind.Sell, Prices: prices);
+
+    /// <summary>The effect that buys whatever <paramref name="prices"/> lists, by the noun the learner names (W04): each noun at its own price in coins.</summary>
+    public static NpcEffect BuyList(IReadOnlyDictionary<string, int> prices) => new(NpcEffectKind.Buy, Prices: prices);
+
+    /// <summary>
+    /// The fixed effect a price list comes to for a noun (W04): the item the noun names (its first) at the noun's price, or <see langword="null"/> when this effect has no price
+    /// list, the noun is not on it or names no item.
+    /// </summary>
+    /// <param name="noun">The catalogue noun the learner named.</param>
+    public NpcEffect? Priced(NounEntry noun)
+    {
+        ArgumentNullException.ThrowIfNull(noun);
+        return Prices is not null && Prices.TryGetValue(noun.Lemma, out var price) && noun.Items.Count > 0 ? this with { Item = noun.Items[0], Price = price, Prices = null } : null;
+    }
+
+    /// <summary>
+    /// The effect to carry out for a verdict (W04): this one when it has no price list, else the fixed effect of the noun the item slot names (<see cref="Priced"/>), or this
+    /// one when the line names none on the list (then <see cref="ExchangeMiss"/> answers <c>wont_sell</c> or <c>wont_buy</c> and nothing is carried out).
+    /// </summary>
+    /// <param name="slots">The verdict's slots.</param>
+    /// <param name="nouns">The noun catalogue.</param>
+    public NpcEffect For(IReadOnlyDictionary<string, string> slots, NounCatalog nouns)
+    {
+        ArgumentNullException.ThrowIfNull(slots);
+        ArgumentNullException.ThrowIfNull(nouns);
+        return Prices is null ? this : slots.TryGetValue(ItemSlot, out var word) && nouns.ForLemma(word) is { } noun && Priced(noun) is { } fixedEffect ? fixedEffect : this;
+    }
 
     /// <summary>
     /// The verdict's slots as the host's effects read them (V15b): an indefinite article before the item (<c>vendo un bloque de madera</c>, <c>vendo una fruta</c>) counts
@@ -222,6 +254,13 @@ public sealed record NpcEffect(
         ArgumentNullException.ThrowIfNull(slots);
         ArgumentNullException.ThrowIfNull(nouns);
         bag ??= new Inventory();
+        if (Prices is not null)
+        {
+            // W04: a price list sells or buys what the line names when it is listed; any other item, and a line that names none, is the same refusal as another item at a fixed entry
+            var listed = For(slots, nouns);
+            return ReferenceEquals(listed, this) ? (Kind == NpcEffectKind.Sell ? NpcHostEvents.WontSell : NpcHostEvents.WontBuy) : listed.ExchangeMiss(slots, bag, nouns);
+        }
+
         if (Kind == NpcEffectKind.GiveItem && Asked is not null)
         {
             if (ItemSaidIn(slots, nouns))

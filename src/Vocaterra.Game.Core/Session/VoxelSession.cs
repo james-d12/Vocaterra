@@ -693,7 +693,7 @@ public sealed partial class VoxelSession : GuideSession
     {
         foreach (var hostEvent in hostEvents)
         {
-            var effect = Data.HostEvents.Of(npc, hostEvent);
+            var effect = Data.HostEvents.Of(npc, hostEvent).For(slots, Nouns); // W04: a price list comes to the item the line names
             switch (effect.Kind)
             {
                 case NpcEffectKind.GiveItem when GiftClosed(npc, effect.Item): // N06: a gift given today is not made again (the worker answered gift_used)
