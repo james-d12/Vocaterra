@@ -33,6 +33,9 @@ public sealed record NpcEntry(string Id, string Label, string? Name, string Figu
     /// <summary>How the NPC opens a talk (<see cref="NpcOpeningRule.Never"/> when the file says nothing).</summary>
     public NpcOpeningRule Opening { get; init; } = NpcOpeningRule.Never;
 
+    /// <summary>The NPC's fail-forward rule (<c>patience</c> in the file, W03), or <see langword="null"/> for an NPC that never fails forward.</summary>
+    public NpcPatienceRule? Patience { get; init; }
+
     /// <summary>The voice its lines are recorded with, or <see langword="null"/> when the file gives none (a validation error).</summary>
     public NpcVoiceSpec? Voice { get; init; }
 
@@ -308,6 +311,7 @@ public sealed class NpcRoster
                 Prompts = prompts,
                 ReviewPrompt = review,
                 Opening = root.TryGetProperty("opening", out var opening) ? OpeningOf(opening, path) : NpcOpeningRule.Never,
+                Patience = root.TryGetProperty("patience", out var patience) ? PatienceOf(patience, path) : null,
                 Voice = root.TryGetProperty("voice", out var voice) ? VoiceOf(voice, path) : null,
                 FreeTalkPools = root.TryGetProperty("freeTalkPools", out var freeTalk) ? freeTalk.EnumerateObject().ToDictionary(static p => p.Name, static p => p.Value.GetString() ?? string.Empty, StringComparer.Ordinal) : new Dictionary<string, string>(StringComparer.Ordinal),
                 AcknowledgementPools = root.TryGetProperty("acknowledgementPools", out var acknowledgements) ? acknowledgements.EnumerateArray().Select(static p => p.GetString() ?? string.Empty).ToList() : [],
@@ -347,6 +351,15 @@ public sealed class NpcRoster
 
         return new NpcOpeningRule(Text(opening, "event", path), when);
     }
+
+    // { "misses", "afterHelp", "event", "prompt", "once"? }: the numbers are checked by the validator, which reports them with the rest of the file.
+    private static NpcPatienceRule PatienceOf(JsonElement patience, string path) =>
+        new(
+            patience.GetProperty("misses").GetInt32(),
+            patience.GetProperty("afterHelp").GetInt32(),
+            Text(patience, "event", path),
+            Text(patience, "prompt", path),
+            patience.TryGetProperty("once", out var once) && once.GetBoolean());
 
     // { "speaker": <Kokoro id>, "name": "<voice>", "speed"?: 1.0, "gain"?: 1.0 }: the name may be missing here (the validator says so); the speaker, the speed
     // and the gain (V11) are numbers.

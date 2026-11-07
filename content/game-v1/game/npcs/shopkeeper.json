@@ -21,6 +21,13 @@
     "event": "shopkeeper.ask",
     "when": "first"
   },
+  "patience": {
+    "misses": 4,
+    "afterHelp": 2,
+    "event": "shopkeeper.give",
+    "prompt": "stall-need",
+    "once": true
+  },
   "keyWords": [
     "agua",
     "pan"

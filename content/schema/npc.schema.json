@@ -70,6 +70,43 @@
       },
       "description": "V21b: pools the NPC says only while a lesson step is answered, by the pool it says in free talk instead (farmer_total: farmer_unit). The agent's transition says both pools; the game keeps the one that fits the moment."
     },
+    "patience": {
+      "type": "object",
+      "required": [
+        "misses",
+        "afterHelp",
+        "event",
+        "prompt"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "misses": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "W03: the lines in a row at the prompt that asked for nothing, after which the NPC raises the event anyway (the stall: 4, where the core's repair ladder also gives up)."
+        },
+        "afterHelp": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "The same count once the learner asked for help; at most misses (the stall: 2)."
+        },
+        "event": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The host event the game raises to the agent (shopkeeper.give); a state of agents/<id>.json takes it with onHostEvent."
+        },
+        "prompt": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The prompt the rule applies at (stall-need): a line at another prompt, or off the prompt, is not counted."
+        },
+        "once": {
+          "type": "boolean",
+          "description": "True: the rule fires one time only (the NPC remembers it did; the stall hands the bottle over once). False or missing: the counts start again after each firing."
+        }
+      },
+      "description": "W03: the NPC's fail-forward, so a misunderstanding never dead-ends. Missing: the NPC never fails forward."
+    },
     "opening": {
       "type": "object",
       "required": [
