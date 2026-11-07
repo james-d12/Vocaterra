@@ -132,7 +132,8 @@ public static class SessionSkip
             var sale = data.HostEvents.Mapped()
                 .Where(mapped => string.Equals(mapped.Npc, npc, StringComparison.Ordinal))
                 .Select(mapped => data.HostEvents.Of(npc, mapped.HostEvent))
-                .FirstOrDefault(effect => effect.Kind == NpcEffectKind.Sell && noun.Items.Contains(effect.Item));
+                .Select(effect => effect.Kind == NpcEffectKind.Sell ? effect.Priced(noun) ?? (effect.Prices is null ? effect : null) : null) // W04: a price list sells the noun at its own price
+                .FirstOrDefault(effect => effect is not null && noun.Items.Contains(effect.Item));
             if (sale is not null)
             {
                 purchases.Add(new Purchase(npc, sale.Item, RequestedCount(lesson, i, npc, noun, data), sale.Price));

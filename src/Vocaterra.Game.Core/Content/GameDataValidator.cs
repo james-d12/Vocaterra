@@ -488,6 +488,18 @@ public static class GameDataValidator
                 problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' names '{noun}', which is not a catalogue noun.");
             }
 
+            foreach (var noun in (effect.Prices?.Keys ?? []).Order(StringComparer.Ordinal)) // W04: a price list names catalogue nouns that name an item
+            {
+                if (data.Nouns.ForLemma(noun) is not { } listed)
+                {
+                    problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' prices '{noun}', which is not a catalogue noun.");
+                }
+                else if (listed.Items.Count == 0)
+                {
+                    problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' prices '{noun}', which names no item.");
+                }
+            }
+
             if (effect.Kind == NpcEffectKind.PointAtPlace && !places.Contains(effect.Place))
             {
                 problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' points at the place '{effect.Place}', which is not a point of the scene.");
