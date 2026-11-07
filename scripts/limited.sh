@@ -53,15 +53,25 @@ for _ in $(seq 1 60); do
   sleep 10
 done
 
+oom_rc=0
 if systemd-run --user --scope --quiet true >/dev/null 2>&1; then
-  systemd-run --user --scope --quiet --collect \
+  # A named scope, no --collect: the unit stays (failed) after an oom-kill, so its Result can be read. The command's own exit code is not
+  # enough: dotnet test exits 0 when the kernel kills a test host (H08a, 2026-11-07), so the scope's oom_kill count is read too.
+  unit="vocaterra-limited-$$-$(date +%s)"
+  systemd-run --user --scope --quiet --unit="$unit" \
     -p MemoryMax="$MEM_MAX" -p MemorySwapMax=0 -p CPUQuota="$CPU_QUOTA" \
     nice -n 10 "$@"
   rc=$?
+  result="$(systemctl --user show -p Result --value "$unit.scope" 2>/dev/null || true)"
+  [ "$result" = "oom-kill" ] && oom_rc=1
+  systemctl --user reset-failed "$unit.scope" >/dev/null 2>&1 || true
 else
   echo "limited.sh: systemd user scope unavailable; running with nice and the lock only (no memory cap)" >&2
   nice -n 10 "$@"
   rc=$?
 fi
-[ "$rc" -eq 137 ] && echo "limited.sh: the command was killed at the ${MEM_MAX} memory cap; lower -m or test parallelism" >&2
+if [ "$rc" -eq 137 ] || [ "$oom_rc" -eq 1 ]; then
+  echo "limited.sh: the command (or a process in it) was killed at the ${MEM_MAX} memory cap (command exit code ${rc}); lower -m or test parallelism" >&2
+  exit 137
+fi
 exit "$rc"

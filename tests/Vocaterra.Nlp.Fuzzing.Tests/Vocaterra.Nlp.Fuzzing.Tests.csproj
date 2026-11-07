@@ -40,4 +40,10 @@
     <None Include="Fixtures/StreamDigest/*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <!-- xUnit runs at most 4 test classes at once (H08a): one thread per core made the test hosts peak at 2 to 5 GB each, and two beside each other hit
+       the 6 GB cap of scripts/limited.sh. -->
+  <ItemGroup>
+    <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
