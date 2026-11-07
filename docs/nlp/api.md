@@ -347,9 +347,10 @@ AsrResult? other = analysis.OtherPass;                              // the recog
 
 `UtteranceAnalysis.Asr` is the chosen recognition (`Mode` `Open` at a constrained prompt marks a line heard freely), and the new `UtteranceAnalysis.OtherPass`
 (`AsrResult?`) is the other one when the second pass ran. A spoken line the prompt allows but whose words are not among its rows (`mañana voy a comprar pan` at
-`smith-open`) is understood as the typed line is; a spoken off-prompt line carries `OffPromptIntent`. The cost is one more decode (a measured figure is in
-`docs/research/2026-11-07-open-fallback-measurement.md`... see the milestone report) only for a line that was not taken; a taken first reading, an open
-prompt and the option off decode once. The recognizer must be able to serve a second, open request on the same clip: the Vosk adapter makes its own native
+`smith-open`) is understood as the typed line is; a spoken off-prompt line carries `OffPromptIntent`. The cost is one more decode, only for a line that was not taken; a taken first reading, an open prompt and the option off decode once. Measured on Kokoro
+speech with the small Vosk model and one best hypothesis (`OpenFallbackMeasurementTests`, a model-gated test that prints its report): the constrained decode takes
+a median 24 ms (95th percentile 50 ms), the free decode a median 190 ms (95th percentile 268 ms; 336 to 349 ms for clips over 3 s). Nothing is measured on real
+learner speech: the accent risk is unmeasured. The recognizer must be able to serve a second, open request on the same clip: the Vosk adapter makes its own native
 recognizer per call, and the scripted and replay recognizers need no change. Credit for a line heard freely is the host's to decide.
 
 ## 4. Build a conversation context (D0)
