@@ -43,9 +43,9 @@ public static class SaveGame
 
     /// <summary>
     /// The format version this code writes (version 2 adds the learner's record, S19; version 3 keeps the check answers out of its word rows, S19b; version 5 keys
-    /// the objective's steps <c>&lt;objective&gt;.&lt;step&gt;</c>, C07).
+    /// the objective's steps <c>&lt;objective&gt;.&lt;step&gt;</c>, C07; version 6 adds the water that is not source in the scene diff, the cells waiting to flow and the player's air, water-plan H06).
     /// </summary>
-    public const int CurrentVersion = 5;
+    public const int CurrentVersion = 6;
 
     /// <summary>The objective the steps of a save before version 5 belong to: those saves held the camp checklist alone, keyed by the step (<c>wood</c>).</summary>
     public const string UnqualifiedObjective = "camp";
@@ -177,7 +177,9 @@ public static class SaveGame
             World: new WorldDims(session.Scene.Grid.ChunksX, session.Scene.Grid.ChunksY, session.Scene.Grid.ChunksZ),
             SkippedTo: session.SkippedTo,
             Sitting: session.Sitting,
-            KeyWordsTaughtBy: session.KeyWordsTaughtBy);
+            KeyWordsTaughtBy: session.KeyWordsTaughtBy,
+            Air: state.Air == Vocaterra.Game.Core.Water.Breath.MaxAir ? null : state.Air,
+            Flow: state.Flow is { Count: > 0 } ? state.Flow : null);
     }
 
     /// <summary>Captures a session and serializes it: the text of the save file.</summary>
@@ -376,7 +378,9 @@ public static class SaveGame
             document.Gather.Progress,
             document.NoBottleHint,
             document.Player,
-            slots));
+            slots,
+            document.Air ?? Vocaterra.Game.Core.Water.Breath.MaxAir,
+            document.Flow));
         session.RestoreSkippedSeconds(document.SkippedSeconds);
         session.Words.Restore(document.Words.Select(RecordOf));
         RestorePhrases(session, document.Phrases, migrating);

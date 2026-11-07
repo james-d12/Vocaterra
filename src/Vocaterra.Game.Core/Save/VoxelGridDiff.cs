@@ -9,7 +9,7 @@ namespace Vocaterra.Game.Core.Save;
 public static class VoxelGridDiff
 {
     /// <summary>
-    /// The chunks of <paramref name="edited"/> whose blocks differ from <paramref name="fresh"/>, in chunk order, each as runs of its blocks.
+    /// The chunks of <paramref name="edited"/> whose blocks or water levels differ from <paramref name="fresh"/>, in chunk order, each as runs of its blocks and of its water levels.
     /// Both grids must have the same size.
     /// </summary>
     /// <exception cref="ArgumentException">The two grids have different sizes.</exception>
@@ -26,9 +26,9 @@ public static class VoxelGridDiff
         for (var i = 0; i < edited.Chunks.Count; i++)
         {
             var chunk = edited.Chunks[i];
-            if (!chunk.Blocks.SequenceEqual(fresh.Chunks[i].Blocks))
+            if (!chunk.Blocks.SequenceEqual(fresh.Chunks[i].Blocks) || !chunk.WaterLevels.SequenceEqual(fresh.Chunks[i].WaterLevels))
             {
-                edits.Add(new ChunkEdit(i, Runs(chunk.Blocks)));
+                edits.Add(new ChunkEdit(i, Runs(chunk.Blocks), WaterRuns(chunk.WaterLevels)));
             }
         }
 
@@ -37,7 +37,8 @@ public static class VoxelGridDiff
 
     /// <summary>
     /// Writes the chunks of a diff over <paramref name="target"/> (a freshly built grid of the same scene). Refuses a diff that does not fit the grid:
-    /// a chunk index out of range, a run of an unknown block, runs that do not add up to one chunk, or a chunk listed twice.
+    /// a chunk index out of range, a run of an unknown block, runs that do not add up to one chunk, a water run that covers a cell that is not water or holds
+    /// no valid level, or a chunk listed twice.
     /// </summary>
     /// <exception cref="ArgumentException">The diff does not fit the grid.</exception>
     public static void Apply(VoxelGrid target, IReadOnlyList<ChunkEdit> edits)
@@ -78,6 +79,8 @@ public static class VoxelGridDiff
             {
                 throw new ArgumentException($"Chunk {edit.Chunk} has {position} blocks, not {VoxelChunk.Volume}.", nameof(edits));
             }
+
+            ApplyWater(target, origin, edit);
         }
     }
 
@@ -95,6 +98,66 @@ public static class VoxelGridDiff
     {
         ArgumentNullException.ThrowIfNull(target);
         _ = target.SetBlock(x, y, z, block);
+    }
+
+    // Sets the levels of a chunk's water runs once its blocks are in place.
+    private static void ApplyWater(VoxelGrid target, VoxelChunkCoord origin, ChunkEdit edit)
+    {
+        var covered = 0;
+        foreach (var run in edit.Water ?? [])
+        {
+            if (run.Start < covered || run.Length < 1 || run.Level is < 1 or > byte.MaxValue || run.Start + run.Length > VoxelChunk.Volume)
+            {
+                throw new ArgumentException($"Chunk {edit.Chunk} has a bad water run.", nameof(edit));
+            }
+
+            var level = WaterLevel.FromEncoded((byte)run.Level); // refuses an encoding that is not a level
+            for (var position = run.Start; position < run.Start + run.Length; position++)
+            {
+                var x = (origin.X << VoxelChunk.Shift) + (position & (VoxelChunk.Size - 1));
+                var z = (origin.Z << VoxelChunk.Shift) + ((position >> VoxelChunk.Shift) & (VoxelChunk.Size - 1));
+                var y = (origin.Y << VoxelChunk.Shift) + (position >> (2 * VoxelChunk.Shift));
+                if (target.GetBlock(x, y, z) != BlockId.Water)
+                {
+                    throw new ArgumentException($"Chunk {edit.Chunk} has a water level on a cell that is not water.", nameof(edit));
+                }
+
+                _ = target.SetWater(x, y, z, level);
+            }
+
+            covered = run.Start + run.Length;
+        }
+    }
+
+    // The cells holding a level other than source, as runs of equal levels; null when there are none.
+    private static List<WaterRun>? WaterRuns(ReadOnlySpan<byte> levels)
+    {
+        if (levels.IsEmpty)
+        {
+            return null;
+        }
+
+        var runs = new List<WaterRun>();
+        var i = 0;
+        while (i < levels.Length)
+        {
+            if (levels[i] == 0)
+            {
+                i++;
+                continue;
+            }
+
+            var start = i;
+            var level = levels[i];
+            while (i < levels.Length && levels[i] == level)
+            {
+                i++;
+            }
+
+            runs.Add(new WaterRun(start, i - start, level));
+        }
+
+        return runs;
     }
 
     private static List<BlockRun> Runs(ReadOnlySpan<BlockId> blocks)

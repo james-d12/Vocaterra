@@ -46,6 +46,7 @@ public sealed partial class VoxelSimulation
         Inventory = new Inventory();
         var spawn = scene.Spawn.Feet;
         Player = new PlayerBody(scene.Grid, (spawn.X * U) + (U / 2), spawn.Y * U, (spawn.Z * U) + (U / 2), scene.Spawn.Yaw);
+        StartFlow();
     }
 
     /// <summary>The scene (grid, spawn, NPCs, named points).</summary>
@@ -114,7 +115,7 @@ public sealed partial class VoxelSimulation
     /// Advances one tick. Walking and jumping are levels (send the held ones every tick); <see cref="VoxelCommandKind.Interact"/> is held;
     /// the other commands are presses. A command kind the simulation does not know is ignored. Commands are applied in a fixed order
     /// whatever their order in the list: the hotbar selection and the facing (the last of each wins), then gathering (the last interact of
-    /// the tick), then placing and crafting (each in list order), then the walk (all move commands add up) with the jump and the physics, then the breath.
+    /// the tick), then placing and crafting (each in list order), then the walk (all move commands add up) with the jump and the physics, then the water (the flow step on every 15th tick, then the breath).
     /// </summary>
     public void Step(IReadOnlyList<VoxelCommand> commands)
     {
@@ -293,7 +294,7 @@ public sealed partial class VoxelSimulation
             slots[i] = Inventory.Slots[i];
         }
 
-        return new VoxelSimulationState(Tick, _selectedSlot, _gatherTarget, _gatherBlock, _gatherProgress, _noBottleHint, Player.State(), slots, _breath.Air);
+        return new VoxelSimulationState(Tick, _selectedSlot, _gatherTarget, _gatherBlock, _gatherProgress, _noBottleHint, Player.State(), slots, _breath.Air, _flow.Queue.Snapshot());
     }
 
     /// <summary>
@@ -324,6 +325,7 @@ public sealed partial class VoxelSimulation
         _noBottleHint = state.NoBottleHint;
         Player.Restore(state.Player);
         _breath.Restore(state.Air);
+        _flow.Queue.Restore(state.Flow ?? []);
         for (var i = 0; i < Inventory.SlotCount; i++)
         {
             Inventory.SetSlot(i, state.Slots[i]);
@@ -374,6 +376,8 @@ public sealed partial class VoxelSimulation
             BinaryPrimitives.WriteInt32LittleEndian(air, _breath.Air); // a full breath adds nothing, so the digests of dry runs are as they were
             hash.AppendData(air);
         }
+
+        AppendFlowDigest(hash); // a run with no water waiting adds nothing
 
         return Convert.ToHexString(hash.GetHashAndReset()).ToLowerInvariant();
     }
@@ -554,15 +558,16 @@ public sealed partial class VoxelSimulation
         _events.Add(new SimulationEvent(SimulationEventKind.BlockPlaced, Tick, cell.X, cell.Y, cell.Z, (int)placed, (int)item));
     }
 
-    // Air, or undergrowth (a placed block takes the place of the grass).
-    private static bool IsEmptyOrDecor(BlockId id) => id == BlockId.Air || BlockDefinition.IsDecor(id);
+    // Air, undergrowth (a placed block takes the place of the grass) or water (a placed block displaces it, H06: planks dam a stream).
+    private static bool IsEmptyOrDecor(BlockId id) => id == BlockId.Air || BlockDefinition.IsDecor(id) || id == BlockId.Water;
 
     private bool HasNeighbour(BlockPos cell)
     {
         foreach (var face in Enum.GetValues<BlockFace>())
         {
             var next = cell.Offset(face);
-            if (!IsEmptyOrDecor(Grid.GetBlock(next.X, next.Y, next.Z)))
+            var around = Grid.GetBlock(next.X, next.Y, next.Z);
+            if (around != BlockId.Air && !BlockDefinition.IsDecor(around)) // water still counts as something to build against
             {
                 return true;
             }

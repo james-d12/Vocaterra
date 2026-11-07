@@ -34,6 +34,9 @@ public sealed record VoxelStep(VoxelStepKind Kind, double Yaw = 0, double Pitch 
     /// <summary>Craft the recipe that makes the item (its Spanish noun or the item's key).</summary>
     public static VoxelStep Craft(string item) => new(VoxelStepKind.Craft, Item: item);
 
+    /// <summary>A step that pours a water source into a cell (a debug step).</summary>
+    public static VoxelStep Pour(int x, int y, int z) => new(VoxelStepKind.Pour, X: x, Y: y, Z: z);
+
     /// <summary>Reads <c>x,z</c> (two non-negative integers).</summary>
     public static bool TryParseColumn(string value, out int x, out int z)
     {
