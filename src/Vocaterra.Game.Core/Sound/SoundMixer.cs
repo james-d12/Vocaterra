@@ -23,7 +23,8 @@ public readonly record struct BedInput(string Bed, double Weight, double Pan = 0
 /// <param name="Bed">The bed's id.</param>
 /// <param name="Level">The level, 0 to 1.</param>
 /// <param name="Pan">The pan, -1 (left) to 1 (right).</param>
-public readonly record struct BedLevel(string Bed, double Level, double Pan = 0);
+/// <param name="Muffle">The share of the bed that plays muffled (its pre-filtered copy), 0 to 1: under water (H10). The rest plays dry.</param>
+public readonly record struct BedLevel(string Bed, double Level, double Pan = 0, double Muffle = 0);
 
 /// <summary>
 /// Where the sounds go (S24). The MonoGame implementation plays them through the engine; <see cref="NullSoundOutput"/> plays nothing and needs no device, and the
@@ -202,6 +203,9 @@ public sealed class SoundMixer : ITalkSounds
     /// <summary>The duck now: 1 with no voice, <see cref="DuckLevel"/> under one, eased between.</summary>
     public double Duck => _duck;
 
+    /// <summary>How far under water the view is, 0 to 1 (H10): the beds go quieter and duller by it (<see cref="UnderwaterSound"/>).</summary>
+    public double Underwater { get; private set; }
+
     /// <summary>How many times the cue was let through.</summary>
     /// <param name="cue">The cue.</param>
     public int PlayedCount(SoundCue cue) => _played.TryGetValue(cue, out var count) ? count : 0;
@@ -240,6 +244,10 @@ public sealed class SoundMixer : ITalkSounds
         _voiceActive = active;
         Mark(active ? "voice-begin" : "voice-end");
     }
+
+    /// <summary>Sets how far under water the view is (H10). The beds' levels and muffling follow it from the next <see cref="Advance"/>.</summary>
+    /// <param name="amount">The view's amount, 0 (above the surface) to 1 (fully under); out of range is clamped, NaN is 0.</param>
+    public void SetUnderwater(double amount) => Underwater = double.IsNaN(amount) ? 0 : Math.Clamp(amount, 0, 1);
 
     /// <summary>Moves the duck and the beds' cross-fade on by a frame, and sends the beds' levels to the output.</summary>
     /// <param name="seconds">The frame's seconds.</param>
@@ -455,7 +463,8 @@ public sealed class SoundMixer : ITalkSounds
         }
 
         _bedsPushed = _levels.Count > 0;
-        var gain = Gain(SoundCategory.Ambient);
-        _output.SetBeds(_levels.Select(pair => new BedLevel(pair.Key, pair.Value * gain * AmbientBeds.Gain(pair.Key), _pans.TryGetValue(pair.Key, out var pan) ? pan : 0)).ToList());
+        var gain = Gain(SoundCategory.Ambient) * UnderwaterSound.Gain(Underwater);
+        var muffle = UnderwaterSound.Muffle(Underwater);
+        _output.SetBeds(_levels.Select(pair => new BedLevel(pair.Key, pair.Value * gain * AmbientBeds.Gain(pair.Key), _pans.TryGetValue(pair.Key, out var pan) ? pan : 0, muffle)).ToList());
     }
 }

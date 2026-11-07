@@ -21,7 +21,7 @@ public static class SoundSynth
     public static bool IsSynthesized(SoundCue cue) => cue is SoundCue.PushToTalkStart or SoundCue.PushToTalkStop or SoundCue.StepDone or SoundCue.UnitDone
         or SoundCue.LessonDone or SoundCue.AnswerUnderstood or SoundCue.AnswerNeutral or SoundCue.WordLearnt or SoundCue.ObjectiveDone or SoundCue.SessionDone
         or SoundCue.BottleFill or SoundCue.FireLight or SoundCue.FootDirt or SoundCue.FootGravel or SoundCue.FootSand or SoundCue.FootWater
-        or SoundCue.BirdChirp or SoundCue.FireCrackle;
+        or SoundCue.BirdChirp or SoundCue.FireCrackle or SoundCue.WaterSplash or SoundCue.UnderwaterBubbles;
 
     /// <summary>The length in seconds of the push-to-talk start beep (the recording discards this much of its start, so the beep never reaches the recognizer).</summary>
     public const double StartBeepSeconds = 0.09;
@@ -41,6 +41,8 @@ public static class SoundSynth
             SoundCue.FootWater => SoundTextures.Splash(rng),
             SoundCue.BirdChirp => SoundTextures.Chirp(take),
             SoundCue.FireCrackle => SoundTextures.Crackle(rng),
+            SoundCue.WaterSplash => SoundTextures.Plunge(rng),
+            SoundCue.UnderwaterBubbles => SoundTextures.Bubble(rng, take),
             SoundCue.PushToTalkStart => Beep(880, StartBeepSeconds, 0.6),
             SoundCue.PushToTalkStop => Beep(587.33, 0.09, 0.6),
             SoundCue.StepDone => Bell(659.25, 0.5),
