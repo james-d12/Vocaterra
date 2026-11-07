@@ -74,6 +74,12 @@
       "matches": []
     },
     {
+      "key": "01ce8560316cee766b808ed3cb237cbf050ffd6aae4b42ea867cb32957f0da4c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Vendo pan.",
+      "matches": []
+    },
+    {
       "key": "01daf50437f587134a8405350b42366b2740bfc67b198fe47af9820df895a710",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde está mi campamento por favor",
@@ -131,6 +137,12 @@
       "key": "03ffebfd5e1b1338c4210077fc227e5900da7afea2a967c3d126c81c0ff6d2c9",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Sí!",
+      "matches": []
+    },
+    {
+      "key": "0419f06e878b03ea3901d8f15a237357df89d64e509858fd6643dd106a0a8b87",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer hago pan",
       "matches": []
     },
     {
@@ -323,6 +335,12 @@
       "matches": []
     },
     {
+      "key": "0a6f81a2383379f5b7d14ccfc813d560676b52cf81bcc8cd03b2ddb171851768",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero harina",
+      "matches": []
+    },
+    {
       "key": "0a8c5de4c1dbd73ba4eb8e2242de01a3e023599e6fc60f77544cd2b556aaa9bf",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Cuánto cuesta todo",
@@ -338,6 +356,12 @@
       "key": "0abc5248e9254a3912530a99585d7cc78b6c357738714e7bb0755d66188d528b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer fuiste al río.",
+      "matches": []
+    },
+    {
+      "key": "0ad4a47704e1f1b44da1e944764214867a94ffa7f7112caf0e634201ca712f89",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Harina por favor",
       "matches": []
     },
     {
@@ -368,6 +392,12 @@
       "key": "0c001c5adc998567dc4416a0028086f882c08f57f4f969ce3f55fad17026920f",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Voy a la tienda",
+      "matches": []
+    },
+    {
+      "key": "0c127a08a186614070a50629b1fa30c14f9e752485586358326a5289cba9203b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Le vendo pan",
       "matches": []
     },
     {
@@ -404,6 +434,12 @@
       "key": "0d3289a1605b8d89dec0c72b8103ee41fb6fcb434cd7fcd15da169e8b8570a49",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Una manzana cuesta una moneda, y un pan, dos. ¿Qué es más barato?",
+      "matches": []
+    },
+    {
+      "key": "0d3f6245d240595dea45d896c18690203f56dabdb4c8bcad85b8b9436a923c18",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Pon la harina en el bol.",
       "matches": []
     },
     {
@@ -741,6 +777,12 @@
       "matches": []
     },
     {
+      "key": "16907d3d11cef7fde3600d22d87ceca3571df68a49d6a1dba977fc4778053ef2",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Primero.",
+      "matches": []
+    },
+    {
       "key": "16af61cf7a13b82409af103e60bb35c1f4eab69d3238154561b8b33aab192034",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Luz vive en la panadería",
@@ -1035,6 +1077,12 @@
       "key": "1c5497019da467a4d3f144d1beb861d2e54098c0d1effd29a5770b7df3c03932",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Me da agua por favor",
+      "matches": []
+    },
+    {
+      "key": "1c9208e9a11cd1921d46f8e1e43710aae4f05aaca830cfd76d2c5bdb98ebee96",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo voy a hacer pan",
       "matches": []
     },
     {
@@ -1334,6 +1382,12 @@
       "key": "2621cd5b535014eb76a97c0cf89570d9be4d9543944c9ac7ec31432e8b71fa24",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde queda el pueblo",
+      "matches": []
+    },
+    {
+      "key": "26e1f4bffa8be420ce10a29aa55bc42c55085e58e504ef4df410624921730453",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a hacer el pan",
       "matches": []
     },
     {
@@ -1888,6 +1942,12 @@
       "key": "336b66c02dbcba3652afb37b1c2ce6a7c146630fbf7ccb87b991a697a73034ff",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "hambre",
+      "matches": []
+    },
+    {
+      "key": "339047ef1eac6c8ba647e25a596b5137ad3d4de4012373d327a2d098834d7baa",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo hice pan",
       "matches": []
     },
     {
@@ -2927,6 +2987,12 @@
       "matches": []
     },
     {
+      "key": "4cb0a3c2a15cb2a59ea83ab0d6ccd0da8f0ddc823c7386d09f93477e8eaad5c7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a hacer pan",
+      "matches": []
+    },
+    {
       "key": "4d1c107120fb90fd7ad44168b7992d5f87a3087ca18d191f12a27b967a15d8e4",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Iré al río mañana",
@@ -3115,6 +3181,12 @@
       ]
     },
     {
+      "key": "510f43c75048779c513b71c43c87a6d88c597a3b88344f0bc6b5ec99a4928f36",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hice el pan",
+      "matches": []
+    },
+    {
       "key": "5118ae460341bb11a124253efc0127217e90e59c759e4ecc34dda654c84035eb",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Comí pan",
@@ -3160,6 +3232,24 @@
           "issueType": "inconsistency",
           "message": "Error de concordancia.",
           "offset": 14,
+          "length": 6,
+          "replacements": [
+            "el pan",
+            "los panes"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "52494a3ca9e4a79422ec1622f27bd43dab9e9f110119a37ec0c7252530661d72",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Vendo la pan",
+      "matches": [
+        {
+          "rule": "AGREEMENT_DET_NOUN",
+          "issueType": "inconsistency",
+          "message": "Error de concordancia.",
+          "offset": 6,
           "length": 6,
           "replacements": [
             "el pan",
@@ -3324,6 +3414,12 @@
       ]
     },
     {
+      "key": "57654891ec5278f1c6e140e59ea12a424956ba7af40fe2f5164baa032a9781a6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Qué hiciste?",
+      "matches": []
+    },
+    {
       "key": "577cf48c664091ae66a69abb2805f008af5abe9202c6b132fe48ec8422befdd1",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Está lejos",
@@ -3357,6 +3453,12 @@
           ]
         }
       ]
+    },
+    {
+      "key": "585a3c605f0cbc25660209f4f7127e2ecdd7d9060ff02e5d0a2fc1d94ec4a62e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí tienes la harina.",
+      "matches": []
     },
     {
       "key": "588b3fd87ce5950b6e8cc5ced6c2aa81ad902f894ba4c0c4e205e62dbf4a9a06",
@@ -3704,6 +3806,24 @@
       "matches": []
     },
     {
+      "key": "61382053d942404128efcd538e9e21f95cbe80f32ba17a3cb026f1cca961c89a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero el harina",
+      "matches": [
+        {
+          "rule": "AGREEMENT_DET_NOUN",
+          "issueType": "inconsistency",
+          "message": "Error de concordancia.",
+          "offset": 7,
+          "length": 9,
+          "replacements": [
+            "la harina",
+            "las harinas"
+          ]
+        }
+      ]
+    },
+    {
       "key": "61834aa789116f33783a26df19eb9825575e1a15d3619dfae9d29d2e520494c1",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Busco la panadería",
@@ -3899,6 +4019,12 @@
       "key": "651cdfc58fd9e60190a4e33bc2686b0492202f6bf4cec5a3a263c841b9e2d338",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Toma.",
+      "matches": []
+    },
+    {
+      "key": "65473a52abf02f212e1f5c18577b8b43aeaa7c26a40a891f33ef3c9733138f53",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Qué vas a hacer hoy?",
       "matches": []
     },
     {
@@ -4169,6 +4295,12 @@
       "matches": []
     },
     {
+      "key": "6ad77f680608218f5fe93999ac76007bf5937dd1deb9a3d8b309d5db4069a6f5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hoy hice pan",
+      "matches": []
+    },
+    {
       "key": "6b4ca4452ef29270250b9420e97962b03b28263f454433bd5b59907370310d71",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, «yo tengo dos espadas». ¡Muy bien!",
@@ -4335,6 +4467,12 @@
       "matches": []
     },
     {
+      "key": "701002d75497898996c037a37b8ea54ceab148a7d239a26a01ef1bfe4d11e1c2",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mezcla con la cuchara.",
+      "matches": []
+    },
+    {
       "key": "70691c35cfec90abe5dd0b93b3f8092674991fb1b13f31a15ecd2326fd41a19a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "La espada está espada, a dos espadas.",
@@ -4435,6 +4573,12 @@
           ]
         }
       ]
+    },
+    {
+      "key": "722c37374a78270fe3eb27420f6fa0cecfad465c05c6c28160beda01fa8c3aef",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Vendo dos panes",
+      "matches": []
     },
     {
       "key": "7237391dde54f647f7c18bcaab5056a21fa9377664c4bd0af9ceda8f7fd2cc8f",
@@ -4562,6 +4706,12 @@
       "matches": []
     },
     {
+      "key": "74d0bef96c9d24cb4edebdfe0a52c4a68256ec706f5365652c3cebd9a4fb21cc",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Harina, por favor",
+      "matches": []
+    },
+    {
       "key": "74d3d92432b41d8ab16dcf2fbd197cf99bf05b4e488bbc51f3a355d8a871b1fa",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hoy compré tres manzanas",
@@ -4601,6 +4751,12 @@
       "key": "76074b8bc49528730c7ebc9c438461b5505a03fcdab2cb19a87c46d068d0cb74",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Y qué venderás mañana?",
+      "matches": []
+    },
+    {
+      "key": "7620bc28d25ecb7134f5006bbbf495fbb3217e22234349594575d32546f07e6a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer hice pan",
       "matches": []
     },
     {
@@ -4672,6 +4828,12 @@
       "key": "771698b3a3708e5352f4fc5fc79462f9fadd44a46df757f72c6162554d916820",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Tengo botella",
+      "matches": []
+    },
+    {
+      "key": "77356ba78c7168387e4c47e4bae16b40d3a98aab9f058837856a3f3ee95de8f1",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me das harina",
       "matches": []
     },
     {
@@ -4885,6 +5047,12 @@
       ]
     },
     {
+      "key": "7bba0dad39dc0ff4f5bd295fb8944610bc7e6b366bcf489e85b6d97008c19562",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Haz la masa.",
+      "matches": []
+    },
+    {
       "key": "7bd3854f81ebfeacdec9066a2406e5756faa925aeefe7b5f11888c48be48e21c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Quiero tres manzanas",
@@ -4894,6 +5062,18 @@
       "key": "7c130d0ae58ac99f74527b1bcd8dd22a25a5377612c80e06e20b3da7d7a36c55",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Piedra",
+      "matches": []
+    },
+    {
+      "key": "7c158ad62df349b2a9fd5d45d060cb1ca100da6d51aa88bdd685bef6a4006ebe",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Saca el pan del horno.",
+      "matches": []
+    },
+    {
+      "key": "7c4d92dbc85030130d7c9661710632e74e918ea570e3ba0a3e5e4c4a52766d19",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero harina.",
       "matches": []
     },
     {
@@ -5272,6 +5452,12 @@
       "matches": []
     },
     {
+      "key": "86a390ad7f8bcf8ec2a712fb629be6f2d981d4c7574ada026a33ba42d8d4a159",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Necesitas una moneda.",
+      "matches": []
+    },
+    {
       "key": "873cdee57cade9c9257b21986c500977b6d22e9001b63289f109c925c12c0d08",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "El libro está libro, a un libro.",
@@ -5434,6 +5620,12 @@
       "matches": []
     },
     {
+      "key": "8cec7895bcb1f456eae682ac920a11ec4e24f329f8823de47ad00ba22978aa65",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mañana voy a hacer pan",
+      "matches": []
+    },
+    {
       "key": "8d21e0e8b05bc985add3184452b49e9b3e1df998515d8ccc3b0e9e95c619c44d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, fui al río",
@@ -5468,6 +5660,12 @@
       "key": "8e301217d648c1588136591880b6d79ea4df31b301de81afcb55145505445730",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Tú y yo somos amigos.",
+      "matches": []
+    },
+    {
+      "key": "8e3d111721b492506864d9c843e24ce0bb7198d1f4ef820a40e5d86306d963de",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hice pan.",
       "matches": []
     },
     {
@@ -5539,6 +5737,12 @@
       "key": "90138f07f623da0c2073013bb308ba24d35b2d61a7c44894b960991ffafd98d1",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No, está cerca. La montaña está lejos.",
+      "matches": []
+    },
+    {
+      "key": "9066633bce13d5459cd3e4aabc124eb8c3cfd258ab93ad013ac79c767156b571",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hoy vamos a hacer pan. ¿Me ayudas?",
       "matches": []
     },
     {
@@ -5772,6 +5976,12 @@
       "key": "964fa12e360d88bb1af8e33c9fab575b20efa49afb0d3931be765f681139a5ee",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Quiero agua",
+      "matches": []
+    },
+    {
+      "key": "9663cc7aeaddfda5a3422471b786548caf2422274d0fb32e5f11773ff20df112",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo vendo pan",
       "matches": []
     },
     {
@@ -6711,6 +6921,12 @@
       "matches": []
     },
     {
+      "key": "ac6c8187e9bfea9574d26a11a60418fdfa681de000216c1244533f3d172b46cd",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a hacer pan hoy",
+      "matches": []
+    },
+    {
       "key": "ac8f1778dfbc2f9f4be60912556793e3c29f5466960b4deaf0743dccf36efd79",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Te entiendo. ¿Quieres manzanas?",
@@ -6850,6 +7066,12 @@
       "key": "af8c18f97f05018fbb0a4d0c589a8c7f74a47bb24d143240ade17e2e76fe0ac9",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde está la panadería por favor",
+      "matches": []
+    },
+    {
+      "key": "af989e273a86ff905deacdb39dd740f8972f018a5c29dc601cf46c3670c7e93e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hice pan",
       "matches": []
     },
     {
@@ -7037,6 +7259,12 @@
       "matches": []
     },
     {
+      "key": "b3c75db214b29ca765058c5d80b3d72b91b93a49f1703d8d5629be8e34a46cde",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te vendo pan",
+      "matches": []
+    },
+    {
       "key": "b46b973fdb08c43dc96661226e16fff0442f65533cf471930adbdaf8c6faed21",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Cómo es la manzana?",
@@ -7076,6 +7304,12 @@
       "key": "b67a9d9f56e90987523000086bdd35a3bd33be0094f91e2435ecd2b46836d1c9",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Nosotros tenemos agua",
+      "matches": []
+    },
+    {
+      "key": "b68db00d1090f861e27764c62e4ff5e8667311e63b62fb9c505e2d6a79c9aea3",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay harina. ¿Cuánta quieres?",
       "matches": []
     },
     {
@@ -7234,6 +7468,12 @@
       "matches": []
     },
     {
+      "key": "bb23686f117fce1dbba0fbcfdff5a9de2c7db232d91abbc9cea68b8935a13d37",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Pon la madera en el horno.",
+      "matches": []
+    },
+    {
       "key": "bbddef125aafc435a824d098754bdaeb05797e95f8c4b9529468a8f8a1d64ae9",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "León trabaja en el campo",
@@ -7243,6 +7483,12 @@
       "key": "bbee301375e4fae7c61f1874aea8250c84836cc8c787e9d8bbebe1f6687b85f9",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Solo tengo pan.",
+      "matches": []
+    },
+    {
+      "key": "bbee8458e18686723f23021b16e0a177f2bb45455c2cebe079ddf4ce957dcb28",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero harina, por favor",
       "matches": []
     },
     {
@@ -7497,9 +7743,21 @@
       "matches": []
     },
     {
+      "key": "c2eb5c7d15182685f093a7e6ca29e521b6e0512100af61a9d5367efc638b8536",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Cuántos panes me vendes?",
+      "matches": []
+    },
+    {
       "key": "c30c605a7cb5cf4b3e1444a48955f09840ea55bf2fb64499945544b05d81c0b0",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Está lejos la herrería",
+      "matches": []
+    },
+    {
+      "key": "c311f8bc1eca31a09a1935bda1bac2e72c7b2c846c23de5c5a94380677289322",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me da harina",
       "matches": []
     },
     {
@@ -7529,6 +7787,12 @@
       "key": "c3c80a7bcd0e34ac6ba2b257131247f67b51eab324496ae0674bfdd8e1261c43",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde queda la torre",
+      "matches": []
+    },
+    {
+      "key": "c3eb7df530762dc2aebc543edecaea9014ff187aeb403453061c6d27ae12aa48",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Echa el agua en el bol.",
       "matches": []
     },
     {
@@ -7835,6 +8099,18 @@
       "matches": []
     },
     {
+      "key": "cc19621acb1e76af125f8ebe408d7ceb39f9702ba0e3e06cc598e12f5b44a69b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a hacer pan.",
+      "matches": []
+    },
+    {
+      "key": "cc48744c748b5bc4bed379513a22527dd9f21457957ce026ffbb1753240f68ae",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Vendo pan",
+      "matches": []
+    },
+    {
       "key": "cc743829803400710dbdbbbc83ccbd2195e2002cffe0b6008114b19ef7f76334",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Aldeano",
@@ -7951,6 +8227,12 @@
       "key": "cfce433aec657559a7e1db2ec7c9c2357f411b17bfa3faa637ae7d2df0256d3f",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Quiero encontrar tierra",
+      "matches": []
+    },
+    {
+      "key": "cfd211fbb1f3b9cb59a08eb70177ece5f6954e710bd2d0bc2656dfd6d94d8bf8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Haz pan.",
       "matches": []
     },
     {
@@ -8081,6 +8363,12 @@
       "key": "d27bbb7d3a0b291c9e2ecd710c18b4605bdea11bfdac18be35cfb315177a0856",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Vivo en el campamento.",
+      "matches": []
+    },
+    {
+      "key": "d2907489bad18d230d113718aea6ff781bd32364f277baa2caf85d9065bbdd88",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Pon la masa en el horno.",
       "matches": []
     },
     {
@@ -8386,6 +8674,12 @@
       "matches": []
     },
     {
+      "key": "da862dbb14b4119bd965eb5c39be1eebfe5badfda531835c614ef8567a75f0d5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Haz el pan en el horno.",
+      "matches": []
+    },
+    {
       "key": "da9ba05bb98be0ca6e6de492297a2133ed5dedb80faee829e85de05687f97c71",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "semana que viene",
@@ -8600,6 +8894,12 @@
       "matches": []
     },
     {
+      "key": "e07c23957c085121805ca2c1bf017d18b3f17d35c8698f90f1be8912b7c811f1",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero harina por favor",
+      "matches": []
+    },
+    {
       "key": "e0a4b89c184a6049a28021ad310d831b0d8b9d0e2c33ada463e279d239576e5e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Puedes repetir, por favor",
@@ -8633,6 +8933,12 @@
           ]
         }
       ]
+    },
+    {
+      "key": "e12148669acdc01d9f7d8b5f506887137fb89639bd9be7477322cb9053567d23",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Necesito harina",
+      "matches": []
     },
     {
       "key": "e147ef3af5d09aa1ece94c7787d17246138dfb008b8330b30864c95b5dd00483",
@@ -8728,6 +9034,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hoy llueve mucho",
       "matches": []
+    },
+    {
+      "key": "e310b4065f746e28cdd12ac079a0a7aea503e5cce4cb3d9b8bbfdc53f4e251fc",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a hago pan",
+      "matches": [
+        {
+          "rule": "PREP_VERB",
+          "issueType": "grammar",
+          "message": "Construcción incorrecta.",
+          "offset": 4,
+          "length": 6,
+          "replacements": [
+            "a hacer"
+          ]
+        }
+      ]
     },
     {
       "key": "e31d91ca0b8c2f28db1e171432843ecfb1a8e2726b17fd5171f42a7dc38f5dce",
@@ -8938,6 +9261,12 @@
       "matches": []
     },
     {
+      "key": "e9279ec699aabf4deb3eea8afc8e0417302fe2c1f6df1de16e0b3c89de8c22bf",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hoy voy a hacer pan",
+      "matches": []
+    },
+    {
       "key": "e960a72b5dc139e05967e78918743e8894157d49721a30e0be0e0de1e8be90f8",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mañana voy a comprar pan",
@@ -9084,6 +9413,12 @@
       "key": "ece1b6855ed122cf4c35a9dec101dea716fe2e661941431f1e875ef59cfa0e2c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hola luna",
+      "matches": []
+    },
+    {
+      "key": "ed230d3e84e589451668ecfb82d138c465183ba46ffad8e600296d12d294430e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero la harina",
       "matches": []
     },
     {
@@ -9464,6 +9799,12 @@
       ]
     },
     {
+      "key": "f4a60c5049b052b17965bc2b2e57d6c8b19dbdeccec29694c8c3c5b4b85d0200",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Vendo un pan",
+      "matches": []
+    },
+    {
       "key": "f4bdec46325d06398a644f9d3d9e1bfc5afa455b6536218a043d34c8a3cb75b2",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Va a hacer un hacha",
@@ -9612,6 +9953,12 @@
       "matches": []
     },
     {
+      "key": "f8738aa04c65028d36670a8e28093a66e2e23ed56ac61a624097da1d1a14af43",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No, gracias. Solo compro pan.",
+      "matches": []
+    },
+    {
       "key": "f8ba80f9477df99aaf45f1c35201d22ca6181d8d70ad1ca082bac4f1d211ebab",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí me gustó",
@@ -9624,9 +9971,21 @@
       "matches": []
     },
     {
+      "key": "f919f1eef439495be26a431a1e2f4c730af5f8c188fe4acc11713ad6c9b7f446",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hice pan hoy",
+      "matches": []
+    },
+    {
       "key": "f91f61941959aa695cddfcd695c60bf7c5b63428404636e4448581c098cab47c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Usa la espada.",
+      "matches": []
+    },
+    {
+      "key": "f94ae4db3dc6cd22c67ecd74af151c2666f3c5fab262b87c9438972c22c44b81",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No tienes pan.",
       "matches": []
     },
     {

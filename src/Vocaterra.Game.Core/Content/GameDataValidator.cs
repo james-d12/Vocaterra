@@ -962,9 +962,9 @@ public static class GameDataValidator
         {
             problems.Add($"{where} acts on '{step.What}' (what), which is not a catalogue noun (game/nouns.json).");
         }
-        else if (what.Items.Count == 0 && !IsFixture(station, step.What))
+        else if (what.Items.Count == 0 && !IsFixture(station, step.What) && !IsMadeThing(procedure, step))
         {
-            problems.Add($"{where}: what '{step.What}' names no item and is no fixture of the station '{procedure.Station}'.");
+            problems.Add($"{where}: what '{step.What}' names no item, is no fixture of the station '{procedure.Station}' and is not a thing an earlier step makes.");
         }
 
         var targets = new (string Field, string? Noun)[] { ("where", step.Where), ("from", step.From), ("with", step.With) };
@@ -1088,4 +1088,8 @@ public static class GameDataValidator
     }
 
     private static bool IsFixture(StationDefinition? station, string noun) => station is not null && station.HasFixture(noun);
+
+    // A thing the steps make (W10, the dough): a catalogue noun with no item that the step acts with itself, after an earlier step that works with a tool (the mixing makes it).
+    private static bool IsMadeThing(ProcedureDefinition procedure, ProcedureStep step) =>
+        string.Equals(step.ActUse, step.What, StringComparison.Ordinal) && procedure.Steps.TakeWhile(s => !string.Equals(s.Id, step.Id, StringComparison.Ordinal)).Any(static s => s.With is not null);
 }

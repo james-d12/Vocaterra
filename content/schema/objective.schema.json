@@ -46,7 +46,8 @@
         "coin",
         "apple",
         "axe",
-        "roast-apple"
+        "roast-apple",
+        "flour"
       ],
       "description": "An item by the name the save gives it (ItemDefinition)."
     }

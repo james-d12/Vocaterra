@@ -202,7 +202,7 @@
     // The village grows (VILLAGE_PLAN V04, inside the levelled disc of radius 24). The bakery in the north-west quarter, next to the stall whose bread it
     // bakes: a timber house with its door to the south, the oven against its east wall, a crate of loaves by the door, a lamp, and a paved strip down to the square.
     {"type": "house", "site": "village", "dx": -13, "dz": -16, "width": 6, "depth": 5, "height": 3, "facing": "south", "name": "bakery", "label": "panadería"},
-    {"type": "stamp", "stamp": "oven", "site": "village", "dx": -7, "dz": -15, "facing": "north", "name": "oven"},
+    {"type": "stamp", "stamp": "oven", "site": "village", "dx": -7, "dz": -15, "facing": "north", "name": "oven", "label": "horno"},
     {"type": "stamp", "stamp": "crate_loaves", "site": "village", "dx": -11, "dz": -11, "facing": "north", "name": "crate.loaves"},
     {"type": "lamp", "site": "village", "dx": -13, "dz": -11, "name": "lamp.bakery"},
     {"type": "paving", "site": "village", "dx": -10, "dz": -11, "width": 1, "depth": 5, "block": "path"},

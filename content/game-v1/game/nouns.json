@@ -25,6 +25,12 @@
     { "lemma": "moneda", "items": ["coin"], "blocks": [] },
     { "lemma": "manzana", "items": ["apple", "roast-apple"], "blocks": [], "labels": { "roast-apple": "manzana asada" } },
     { "lemma": "fuego", "items": [], "blocks": ["fire-ring"] },
-    { "lemma": "hacha", "items": ["axe"], "blocks": [] }
+    { "lemma": "hacha", "items": ["axe"], "blocks": [] },
+    {"lemma": "harina", "items": ["flour"], "blocks": [], "mass": true},
+    {"lemma": "bol", "items": [], "blocks": []},
+    {"lemma": "cuchara", "items": [], "blocks": []},
+    {"lemma": "masa", "items": [], "blocks": [], "mass": true},
+    {"lemma": "horno", "items": [], "blocks": []},
+    {"lemma": "mano", "items": [], "blocks": []}
   ]
 }

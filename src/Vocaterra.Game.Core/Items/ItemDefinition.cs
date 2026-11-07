@@ -41,6 +41,9 @@ public enum ItemId : ushort
 
     /// <summary>A roast apple (<c>manzana</c>, labelled <c>manzana asada</c>, N07): an apple cooked at a lit fire, which feeds more and heals.</summary>
     RoastApple = 33,
+
+    /// <summary>Flour (<c>harina</c>, W10): the bread's first ingredient, sold at the stall for a coin.</summary>
+    Flour = 34,
 }
 
 /// <summary>
@@ -67,6 +70,7 @@ public sealed record ItemDefinition(ItemId Id, string Name, int MaxStack)
         new(ItemId.Apple, "apple", DefaultStackLimit),
         new(ItemId.Axe, "axe", 1),
         new(ItemId.RoastApple, "roast-apple", DefaultStackLimit),
+        new(ItemId.Flour, "flour", DefaultStackLimit),
     ];
 
     /// <summary>Every item kind, ordered by id.</summary>

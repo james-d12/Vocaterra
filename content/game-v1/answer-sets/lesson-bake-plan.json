@@ -1,0 +1,23 @@
+{
+  "answerSetId": "lesson-bake-plan",
+  "answers": [
+    {
+      "answerId": "plan",
+      "canonical": "voy a hacer pan",
+      "aliases": ["yo voy a hacer pan", "voy a hacer el pan", "hoy voy a hacer pan", "voy a hacer pan hoy", "mañana voy a hacer pan"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": ["no lo sé", "yo no sé", "no entiendo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    }
+  ]
+}

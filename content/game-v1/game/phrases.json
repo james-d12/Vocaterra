@@ -157,6 +157,24 @@
     {"id": "que-es-mas-barato", "says": "hears", "spanish": "Una manzana cuesta una moneda, y un pan, dos. ¿Qué es más barato?", "intent": null, "prompt": "lesson-cheaper", "variants": [], "audioLineIds": ["guide.lesson.farmer.cheaper.1"]},
     {"id": "te-compro-fruta", "says": "hears", "spanish": "Aquí se paga con monedas. Pero yo te compro fruta.", "intent": null, "prompt": "farmer-open", "variants": [], "audioLineIds": ["farmer_pay.1"]},
     {"id": "que-venderas-manana", "says": "hears", "spanish": "¿Y qué venderás mañana?", "intent": null, "prompt": "lesson-will-sell", "variants": [], "audioLineIds": ["guide.lesson.farmer.will_sell.1"]},
-    {"id": "que-compraste-en-el-mercado", "says": "hears", "spanish": "¡Hola! ¿Qué compraste en el mercado?", "intent": null, "prompt": "lesson-market", "variants": [], "audioLineIds": ["guide.lesson.shop.market.1"]}
+    {"id": "que-compraste-en-el-mercado", "says": "hears", "spanish": "¡Hola! ¿Qué compraste en el mercado?", "intent": null, "prompt": "lesson-market", "variants": [], "audioLineIds": ["guide.lesson.shop.market.1"]},
+    {"id": "pon-la-harina", "says": "does", "spanish": "Pon la harina en el bol.", "intent": null, "prompt": null, "variants": [], "audioLineIds": ["guide.lesson.baker.proc_harina.1"]},
+    {"id": "echa-el-agua", "says": "does", "spanish": "Echa el agua en el bol.", "intent": null, "prompt": null, "variants": [], "audioLineIds": ["guide.lesson.baker.proc_agua.1"]},
+    {"id": "mezcla", "says": "does", "spanish": "Mezcla con la cuchara.", "intent": null, "prompt": null, "variants": [], "audioLineIds": ["guide.lesson.baker.proc_mezcla.1"]},
+    {"id": "pon-la-madera", "says": "does", "spanish": "Pon la madera en el horno.", "intent": null, "prompt": null, "variants": [], "audioLineIds": ["guide.lesson.baker.proc_madera.1"]},
+    {"id": "pon-la-masa", "says": "does", "spanish": "Pon la masa en el horno.", "intent": null, "prompt": null, "variants": [], "audioLineIds": ["guide.lesson.baker.proc_masa.1"]},
+    {"id": "saca-el-pan", "says": "does", "spanish": "Saca el pan del horno.", "intent": null, "prompt": null, "variants": [], "audioLineIds": ["guide.lesson.baker.proc_sacar.1"]},
+    {"id": "haz-la-masa", "says": "does", "spanish": "Haz la masa.", "intent": null, "prompt": null, "variants": [], "audioLineIds": ["guide.lesson.baker.proc_chunk_masa.1"]},
+    {"id": "haz-el-pan-horno", "says": "does", "spanish": "Haz el pan en el horno.", "intent": null, "prompt": null, "variants": [], "audioLineIds": ["guide.lesson.baker.proc_chunk_horno.1"]},
+    {"id": "haz-pan", "says": "does", "spanish": "Haz pan.", "intent": null, "prompt": null, "variants": [], "audioLineIds": ["guide.lesson.baker.proc_goal.1"]},
+    {"id": "voy-a-hacer-pan", "says": "says", "spanish": "Voy a hacer pan.", "intent": "state_action", "prompt": "lesson-bake-plan", "variants": ["yo voy a hacer pan", "voy a hacer el pan", "hoy voy a hacer pan", "voy a hacer pan hoy", "mañana voy a hacer pan"], "audioLineIds": []},
+    {"id": "hice-pan", "says": "says", "spanish": "Hice pan.", "intent": "state_action", "prompt": "lesson-made-bread", "variants": ["yo hice pan", "hice el pan", "hoy hice pan", "ayer hice pan", "hice pan hoy"], "audioLineIds": []},
+    {"id": "quiero-harina", "says": "says", "spanish": "Quiero harina.", "intent": "request_item", "prompt": "stall-need", "variants": ["quiero la harina", "necesito harina", "quiero harina, por favor", "harina, por favor", "me das harina", "me da harina"], "audioLineIds": []},
+    {"id": "vendo-pan", "says": "says", "spanish": "Vendo pan.", "intent": "offer_item", "prompt": "stall-need", "variants": ["yo vendo pan", "te vendo pan", "le vendo pan", "vendo un pan", "vendo dos panes"], "audioLineIds": []},
+    {"id": "hoy-vamos-a-hacer-pan", "says": "hears", "spanish": "Hoy vamos a hacer pan. ¿Me ayudas?", "intent": null, "prompt": "lesson-bake-plan", "variants": [], "audioLineIds": ["guide.lesson.baker.bake.1"]},
+    {"id": "que-hiciste", "says": "hears", "spanish": "¿Qué hiciste?", "intent": null, "prompt": "lesson-made-bread", "variants": [], "audioLineIds": ["guide.lesson.baker.made.1"]},
+    {"id": "primero", "says": "hears", "spanish": "Primero.", "intent": null, "prompt": "baker-proc", "variants": [], "audioLineIds": ["guide.lesson.baker.first.1"]},
+    {"id": "toma-aqui-tienes", "says": "hears", "spanish": "Toma. Aquí tienes.", "intent": null, "prompt": "baker-proc", "variants": [], "audioLineIds": ["baker_give_missing.1"]},
+    {"id": "quieres-hacer-pan", "says": "hears", "spanish": "¿Quieres hacer pan?", "intent": null, "prompt": "baker-offer", "variants": [], "audioLineIds": ["baker_offer_bake.1"]}
   ]
 }

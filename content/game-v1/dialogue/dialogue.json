@@ -1972,6 +1972,132 @@
       "variants": [
         { "lineId": "shop_well.1", "text": "Bien, gracias." }
       ]
+    },
+    "guide.lesson.baker.proc_harina": {
+      "poolId": "guide.lesson.baker.proc_harina",
+      "variants": [
+        { "lineId": "guide.lesson.baker.proc_harina.1", "text": "Pon la harina en el bol." }
+      ]
+    },
+    "guide.lesson.baker.proc_agua": {
+      "poolId": "guide.lesson.baker.proc_agua",
+      "variants": [
+        { "lineId": "guide.lesson.baker.proc_agua.1", "text": "Echa el agua en el bol." }
+      ]
+    },
+    "guide.lesson.baker.proc_mezcla": {
+      "poolId": "guide.lesson.baker.proc_mezcla",
+      "variants": [
+        { "lineId": "guide.lesson.baker.proc_mezcla.1", "text": "Mezcla con la cuchara." }
+      ]
+    },
+    "guide.lesson.baker.proc_madera": {
+      "poolId": "guide.lesson.baker.proc_madera",
+      "variants": [
+        { "lineId": "guide.lesson.baker.proc_madera.1", "text": "Pon la madera en el horno." }
+      ]
+    },
+    "guide.lesson.baker.proc_masa": {
+      "poolId": "guide.lesson.baker.proc_masa",
+      "variants": [
+        { "lineId": "guide.lesson.baker.proc_masa.1", "text": "Pon la masa en el horno." }
+      ]
+    },
+    "guide.lesson.baker.proc_sacar": {
+      "poolId": "guide.lesson.baker.proc_sacar",
+      "variants": [
+        { "lineId": "guide.lesson.baker.proc_sacar.1", "text": "Saca el pan del horno." }
+      ]
+    },
+    "guide.lesson.baker.proc_chunk_masa": {
+      "poolId": "guide.lesson.baker.proc_chunk_masa",
+      "variants": [
+        { "lineId": "guide.lesson.baker.proc_chunk_masa.1", "text": "Haz la masa." }
+      ]
+    },
+    "guide.lesson.baker.proc_chunk_horno": {
+      "poolId": "guide.lesson.baker.proc_chunk_horno",
+      "variants": [
+        { "lineId": "guide.lesson.baker.proc_chunk_horno.1", "text": "Haz el pan en el horno." }
+      ]
+    },
+    "guide.lesson.baker.proc_goal": {
+      "poolId": "guide.lesson.baker.proc_goal",
+      "variants": [
+        { "lineId": "guide.lesson.baker.proc_goal.1", "text": "Haz pan." }
+      ]
+    },
+    "guide.lesson.baker.first": {
+      "poolId": "guide.lesson.baker.first",
+      "variants": [
+        { "lineId": "guide.lesson.baker.first.1", "text": "Primero." }
+      ]
+    },
+    "guide.lesson.baker.bake": {
+      "poolId": "guide.lesson.baker.bake",
+      "variants": [
+        { "lineId": "guide.lesson.baker.bake.1", "text": "Hoy vamos a hacer pan. ¿Me ayudas?" }
+      ]
+    },
+    "guide.lesson.baker.bake_plan": {
+      "poolId": "guide.lesson.baker.bake_plan",
+      "variants": [
+        { "lineId": "guide.lesson.baker.bake_plan.1", "text": "¿Qué vas a hacer hoy?" }
+      ]
+    },
+    "guide.lesson.baker.made": {
+      "poolId": "guide.lesson.baker.made",
+      "variants": [
+        { "lineId": "guide.lesson.baker.made.1", "text": "¿Qué hiciste?" }
+      ]
+    },
+    "shop_sell_flour": {
+      "poolId": "shop_sell_flour",
+      "variants": [
+        { "lineId": "shop_sell_flour.1", "text": "Aquí tienes la harina." }
+      ]
+    },
+    "shop_buy": {
+      "poolId": "shop_buy",
+      "variants": [
+        { "lineId": "shop_buy.1", "text": "¡Gracias! Aquí tienes tus monedas." }
+      ]
+    },
+    "shop_wont_buy": {
+      "poolId": "shop_wont_buy",
+      "variants": [
+        { "lineId": "shop_wont_buy.1", "text": "No, gracias. Solo compro pan." }
+      ]
+    },
+    "shop_cant_sell": {
+      "poolId": "shop_cant_sell",
+      "variants": [
+        { "lineId": "shop_cant_sell.1", "text": "No tienes pan." }
+      ]
+    },
+    "shop_cant_pay": {
+      "poolId": "shop_cant_pay",
+      "variants": [
+        { "lineId": "shop_cant_pay.1", "text": "Necesitas una moneda." }
+      ]
+    },
+    "shop_none_asked": {
+      "poolId": "shop_none_asked",
+      "variants": [
+        { "lineId": "shop_none_asked.1", "text": "Hay harina. ¿Cuánta quieres?" }
+      ]
+    },
+    "shop_none_offered": {
+      "poolId": "shop_none_offered",
+      "variants": [
+        { "lineId": "shop_none_offered.1", "text": "¿Cuántos panes me vendes?" }
+      ]
+    },
+    "shop_no_room": {
+      "poolId": "shop_no_room",
+      "variants": [
+        { "lineId": "shop_no_room.1", "text": "Tu bolsa está llena." }
+      ]
     }
   }
 }

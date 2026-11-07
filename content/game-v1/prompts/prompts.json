@@ -34,7 +34,7 @@
     "mode": "Constrained",
     "difficulty": "Beginner",
     "answerSetId": "supplies",
-    "allowedIntentIds": ["request_item", "ask_price", "ask_availability", "state_have", "state_action", "describe", "ask_help", "dont_know", "ask_how", "state_weather", "ask_weather", "ask_wellbeing"],
+    "allowedIntentIds": ["request_item", "offer_item", "ask_price", "ask_availability", "state_have", "state_action", "describe", "ask_help", "dont_know", "ask_how", "state_weather", "ask_weather", "ask_wellbeing"],
     "agentId": "shopkeeper",
     "slotGrammarIds": [],
     "text": "¿Qué necesitas?"
@@ -718,5 +718,25 @@
     "agentId": "shopkeeper",
     "slotGrammarIds": [],
     "text": "¡Hola! ¿Qué compraste en el mercado?"
+  },
+  {
+    "promptId": "lesson-bake-plan",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-bake-plan",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "baker",
+    "slotGrammarIds": [],
+    "text": "¿Qué vas a hacer hoy?"
+  },
+  {
+    "promptId": "lesson-made-bread",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-made-bread",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "baker",
+    "slotGrammarIds": [],
+    "text": "¿Qué hiciste?"
   }
 ]

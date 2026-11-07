@@ -971,6 +971,78 @@
       "lesson": "el-mercado",
       "prompt": "lesson-will-sell",
       "intent": "state_action"
+    },
+    {
+      "id": "hear.mezcla",
+      "kind": "comprehension",
+      "phrase": "mezcla",
+      "lesson": "en-la-panaderia",
+      "line": "guide.lesson.baker.proc_mezcla.1",
+      "spanish": "Mezcla con la cuchara.",
+      "options": [{}, {}, {}],
+      "correct": 0
+    },
+    {
+      "id": "hear.saca-el-pan",
+      "kind": "comprehension",
+      "phrase": "saca-el-pan",
+      "lesson": "en-la-panaderia",
+      "line": "guide.lesson.baker.proc_sacar.1",
+      "spanish": "Saca el pan del horno.",
+      "options": [{}, {}, {}],
+      "correct": 0
+    },
+    {
+      "id": "hear.hoy-vamos-a-hacer-pan",
+      "kind": "comprehension",
+      "phrase": "hoy-vamos-a-hacer-pan",
+      "lesson": "en-la-panaderia",
+      "line": "guide.lesson.baker.bake.1",
+      "spanish": "Hoy vamos a hacer pan. ¿Me ayudas?",
+      "options": [{}, {}, {}],
+      "correct": 0
+    },
+    {
+      "id": "hear.que-hiciste",
+      "kind": "comprehension",
+      "phrase": "que-hiciste",
+      "lesson": "en-la-panaderia",
+      "line": "guide.lesson.baker.made.1",
+      "spanish": "¿Qué hiciste?",
+      "options": [{}, {}, {}],
+      "correct": 0
+    },
+    {
+      "id": "say.voy-a-hacer-pan",
+      "kind": "production",
+      "phrase": "voy-a-hacer-pan",
+      "lesson": "en-la-panaderia",
+      "prompt": "lesson-bake-plan",
+      "intent": "state_action"
+    },
+    {
+      "id": "say.hice-pan",
+      "kind": "production",
+      "phrase": "hice-pan",
+      "lesson": "en-la-panaderia",
+      "prompt": "lesson-made-bread",
+      "intent": "state_action"
+    },
+    {
+      "id": "say.quiero-harina",
+      "kind": "production",
+      "phrase": "quiero-harina",
+      "lesson": "en-la-panaderia",
+      "prompt": "stall-need",
+      "intent": "request_item"
+    },
+    {
+      "id": "say.vendo-pan",
+      "kind": "production",
+      "phrase": "vendo-pan",
+      "lesson": "en-la-panaderia",
+      "prompt": "stall-need",
+      "intent": "offer_item"
     }
   ]
 }

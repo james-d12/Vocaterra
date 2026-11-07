@@ -25,6 +25,12 @@
     {"form":"letrero","lemma":"letrero","pos":"noun","features":{"number":"sg","gender":"m"}},
     {"form":"letreros","lemma":"letrero","pos":"noun","features":{"number":"pl","gender":"m"}},
     {"form":"granjero","lemma":"granjero","pos":"noun","features":{"number":"sg","gender":"m"}},
-    {"form":"granjeros","lemma":"granjero","pos":"noun","features":{"number":"pl","gender":"m"}}
+    {"form":"granjeros","lemma":"granjero","pos":"noun","features":{"number":"pl","gender":"m"}},
+    {"form":"harina","lemma":"harina","pos":"noun","features":{"number":"sg","gender":"f"}},
+    {"form":"harinas","lemma":"harina","pos":"noun","features":{"number":"pl","gender":"f"}},
+    {"form":"bol","lemma":"bol","pos":"noun","features":{"number":"sg","gender":"m"}},
+    {"form":"boles","lemma":"bol","pos":"noun","features":{"number":"pl","gender":"m"}},
+    {"form":"cuchara","lemma":"cuchara","pos":"noun","features":{"number":"sg","gender":"f"}},
+    {"form":"cucharas","lemma":"cuchara","pos":"noun","features":{"number":"pl","gender":"f"}}
   ]
 }
