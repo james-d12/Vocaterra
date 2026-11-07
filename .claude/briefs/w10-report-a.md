@@ -32,3 +32,16 @@ lessons; validator GameDataValidator.IsMadeThing added for `masa`; k5-sell credi
 
 Known gaps for Phase B: AnswerMisses checks only give_water's misses (instead target's misses to chain); shop_hay / shop_wont_sell still
 deny flour; «Primero.» not wired (UI string only); flour icon placement vs the scripted runs' horizon.
+
+---
+W10 Phase B report (2026-11-07). Final commit ffad49b7; identity golden re-recorded in cb3912e8 (21 new lines, 131 pipeline hashes).
+Suite 9847 passed, 3 skipped (first full run killed at the fuzz suite, exit 143; passed on retry). Lint 0, grammar 0/0, build, format,
+validate clean. Corrections applied: «Todavía no.» (pool guide.lesson.baker.not_yet, played on an out-of-order act), shop_buy
+«¡Gracias! Aquí tienes.», shop_cant_pay «La harina cuesta una moneda.» (flour only), shop_hay «Hay agua, pan y harina.», shop_wont_sell
+«No tengo eso. Tengo agua, pan y harina.» (re-recorded). AnswerMisses chains the instead target's misses. PhraseSheet.Closest answers the
+prompt's first row when nothing is close. SessionSkip stops at 10. The class's selling step is an answer step. TestGame.Data is the bundle
+without the procedure; TestGame.BreadData has it. Flour icon after the UI-only atlas cells (no world mip moved).
+Scripted runs: speech 691 lines/1382 files; lessons (12); Lessons page 212 lines; **r22-r24: Luz's offer swallows the first free-talk line
+of the day («quiero dos panes, por favor» unknown, «Te entiendo. ¿Quieres pan?»; r22 buys no bread)**. r27-bread PNGs in
+/tmp/claude-1000/w10/r27/ (offer, first, early, oven, done: 2 loaves after two slips). `--lesson-run en-la-panaderia` hangs (r27 uses the
+offer). Left undone: Luz's repeat after «Todavía no.»; the offer's fall-through.
