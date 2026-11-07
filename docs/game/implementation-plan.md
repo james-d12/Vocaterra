@@ -2424,6 +2424,20 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   later capture, including a rebuilt baseline, gave 2460: an unexplained one-off of the run, not of W02). **Found:** the fuzz oracle O7
   fails on CsCheck seed `8eu5g1sTe_A8` on the branch before W02 (a core issue, the core plan's §5b). Report `.claude/briefs/w02-report.md`.
 
+- **W03, fail-forward as data (2026-11-07, Sonnet 5.5 medium; gated at `bc12153e` on `feature/bread-pilot`, 9901 passed, 3 skipped).**
+  The stall's patience rule is data: `NpcPatienceRule(Misses, AfterHelp, Event, Prompt, Once)`, loaded by `NpcRoster` from an optional
+  `patience` in the NPC file (`npc.schema.json` stays at schema 2: the object is optional), and the shopkeeper's values in
+  `shopkeeper.json` (4, 2, `shopkeeper.give`, `stall-need`, once). `NpcService.FailForward` applies any NPC's rule at its prompt (not
+  off-prompt); `StallPatience`, `StallPatienceAfterHelp` and the shopkeeper-only branch are gone; `once` maps onto the saved
+  `BottleGiven`, so saves load unchanged. The validator: positive numbers, `afterHelp` at most `misses`, the event taken by a state of the
+  NPC's agent (`onHostEvent`; the paragraph's "exists in `host-events.json`" did not fit, since `shopkeeper.give` is the agent's input and
+  `stall.give_water` the world event its reply makes), the prompt one of the NPC's. The stall's tests pass unedited; `NpcPatienceTests`
+  covers a custom rule, help, another prompt, once, no rule and the save. Bundle re-hashed (`save-v1.json`, `save-v4.json`); no golden moved.
+  Scripted runs unchanged except **`r27-bread`'s first capture, which alternates between tick 2460 and 2461 from build to build** (seen by
+  W02 and W03; a determinism leak in that run to plan as a T milestone). The agent's suite failed only
+  `GeneratedLexiconTests.LoadingTheBundleIsFastEnough` (9 s against 3 s while M80's gate ran beside it; 1 s alone). Report
+  `.claude/briefs/w03-report.md`.
+
 ## 6. Definition of done (every milestone)
 
 1. `dotnet build Vocaterra.sln -warnaserror` with 0 warnings and `dotnet test Vocaterra.sln` green, with the test count in the report.
