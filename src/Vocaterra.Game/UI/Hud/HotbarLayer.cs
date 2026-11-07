@@ -15,8 +15,8 @@ public sealed class HotbarLayer : IFrameLayer
     /// <summary>The width and height of one slot in pixels.</summary>
     public const int SlotSize = 48;
 
-    private const int Gap = 4;
-    private const int Bottom = 12;
+    public const int Gap = 4;
+    public const int Bottom = 12;
     private static readonly Color Gold = new(255, 214, 64);
     private static readonly Color Frame = new(88, 92, 108);
     private static readonly Color Selected = new(250, 244, 220);

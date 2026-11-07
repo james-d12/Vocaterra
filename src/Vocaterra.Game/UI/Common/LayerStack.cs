@@ -28,6 +28,7 @@ public static class LayerStack
             new SleepPromptLayer(),
             debug,
             new HotbarLayer(),
+            new BreathHudLayer(),
             new RecipePanelLayer(),
             new ObjectiveLayer(),
             new TipLayer(),
