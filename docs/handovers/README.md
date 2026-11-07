@@ -32,7 +32,7 @@ several of them were moved out of the orchestrator, the game plan and a research
 | Handover | Workstream | What it waits for |
 | --- | --- | --- |
 | [2026-11-05-2031-adaptive-design](2026-11-05-2031-adaptive-design.md) | The adaptation on `feature/adaptive_design`: the needs, lessons as classes, the presentation track, then the bread pilot | The owner's needs check, and fixes from it |
-| [2026-11-06-2322-bread-pilot](2026-11-06-2322-bread-pilot.md) | The bread pilot on `feature/bread-pilot`: W05 to W08 and T8 merged | W10, then M80 and V31 |
+| [2026-11-06-2322-bread-pilot](2026-11-06-2322-bread-pilot.md) | The bread pilot on `feature/bread-pilot`: W05 to W10 and T8 merged | M80, then V31, W02 to W04 |
 
 **Done**
 

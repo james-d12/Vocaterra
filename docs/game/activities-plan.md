@@ -173,7 +173,7 @@ Each joins `WorldEvents.All`, so tips, lessons and objectives may wait for it, a
 | W07b | W07's small points: the station's name as the panel's title; help selects what it highlights; the mastered recipe's one-click bake offered at the station (design 10.15) | W07 | S | Haiku | done (2026-11-06, gated at 1d511d76, 9758 passed; game plan section 5) |
 | W08 | The teacher in the loop: the `teaching` state and prompt, the three host kinds, the missing ingredient, learning a recipe by asking | W06, W07, V29, spoken-lines study | S/M | Sonnet 5.5 medium | done (2026-11-07, gated at 5091891e on `feature/bread-pilot`, 9794 passed; game plan section 5) |
 | W09 | Imperative production in lessons and the book | separate decision | S | Haiku | outside pilot |
-| W10 | Session 11 "En la panadería": the lesson, the `pan` procedure, flour, Luz's teaching, the rows and recordings, the checks, run `r27-bread` | W07, W08; W04 only for multi-item vendor pricing | M | content (decision l) | |
+| W10 | Session 11 "En la panadería": the lesson, the `pan` procedure, flour, Luz's teaching, the rows and recordings, the checks, run `r27-bread` | W07, W08; W04 only for multi-item vendor pricing | M | content (decision l) | done (2026-11-07, gated at 366a6038 on `feature/bread-pilot`, 9852 passed; game plan section 5) |
 | W11 | Stage 2's documents and runs; the pilot measure (telemetry, the session summary, `playtest.md`); run `r28-bread-again` | W10 | S | Haiku | **owner's go or no-go** |
 | **Stage 3: crafting, repair and meals** | | | | | |
 | W12 | Items as data (C09 revisited): `game/items.json`, icons by key with a fallback, save version 7 (names and wear) | W02 | M | Sonnet | |

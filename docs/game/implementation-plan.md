@@ -2389,6 +2389,29 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   wants them): «¿me enseñas a hacer pan?» is unknown at `baker-open`; «¿Tienes harina?» is not `ask_availability` (only «hay X» is); and,
   found in the spot-check, two intents in one line («Gracias, adiós.», «Gracias. Adiós.») are unknown at every prompt while each alone
   resolves. Reports `.claude/briefs/w08-report.md` and `w08-report-2.md`; screenshots of the station's talk were taken on a throwaway bundle.
+- **W10, session 11 "En la panadería" (2026-11-07, Sonnet 5.5 medium in two phases with the orchestrator's review of the Spanish
+  between them, then a second agent for two bugs; gated on `feature/bread-pilot` at `366a6038`, 9852 passed, 3 skipped, with the
+  models).** The `pan` procedure (six actions, chunks `la-masa` and `el-horno`, the goal), the `horno` station (fixtures `bol`, `cuchara`,
+  `horno`), 9 `does`, 4 `says` and 5 `hears` rows, flour (item 34, `IconFlour` after the interface-only atlas cells so no world mip moved),
+  the stall's fixed `stall.sell_flour` and `stall.buy_bread` at one coin with `instead` sending `harina` to the sale, the optional lesson
+  `en-la-panaderia` (a2, after `ayer-y-manana`, 14 steps, its do step opening the grant through W08's `GrantRequiredByLesson`), 8 checks,
+  70 recordings, run `r27-bread`. **bol** over tazón (a cognate, the design's rows). **The review** changed «Primero.» to «Todavía no.»
+  (now played as Luz's line on an out-of-order act), `shop_buy` to «¡Gracias! Aquí tienes.», `shop_cant_pay` to «La harina cuesta una
+  moneda.», and **reworded two lines of sessions 1 to 10**: `shop_hay` «Hay agua, pan y harina.» and `shop_wont_sell` «No tengo eso. Tengo
+  agua, pan y harina.» (flour is sold from the first day). **Code:** `NpcTurnRules.AnswerMisses` chains the misses of an `instead` target
+  (flour with no coin or a full bag is answered, not sold); `GameDataValidator.IsMadeThing` (the dough a step makes); `PhraseSheet.Closest`
+  answers the prompt's first row when nothing is close; `SessionSkip` stops at session 10 (skipping to 11 would need the market's coins);
+  `phrases.schema.json` allows `prompt: null` for `does` rows. **Two bugs found in its report and fixed before the gate:** W08's offer, live
+  now that the bundle has a procedure, swallowed the first line of the day («quiero dos panes, por favor» unknown, no bread bought in r22);
+  `baker-offer` now takes `baker-open`'s intents and answers them as `idle` does, and the offer counts as declined. `--lesson-run
+  en-la-panaderia` hung at the do step (nothing drives the station); it now stops with a message (`ScenarioScript`), and `r27-bread` uses
+  `--skip-to-session 10` and the offer. **Side effects for the owner:** the error example «no, mucho gracias» (deny at `stall-offer`) was
+  removed, because with `thank` allowed at the offer it tied and the lint's confusion error cannot be waived; a line answered at the offer
+  is credited `unaided` (no support card there) where it was `supported`. **Left:** Luz does not repeat the instruction after «Todavía
+  no.» (R does); the recordings are generated, not owner-listened (the pilot's listening gate, W11). The spot-check: the bread run's
+  captures show the station at rung 1 with Luz's grant and the done bake (two loaves after two slips); at `stall-need` «¿Hay harina?» and
+  «Vendo pan.» answer correctly; «¿me enseñas a hacer pan?» and «quiero hacer pan» stay unknown at `baker-open` in the CLI (W08's core gap;
+  the game reads «¿Cómo hago pan?» off-prompt as `ask_craft`, tested). Reports `.claude/briefs/w10-report-a.md` (both phases and the fixes).
 
 ## 6. Definition of done (every milestone)
 
