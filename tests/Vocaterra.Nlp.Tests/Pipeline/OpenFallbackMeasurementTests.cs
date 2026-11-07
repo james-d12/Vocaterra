@@ -82,9 +82,12 @@ public sealed class OpenFallbackMeasurementTests(ITestOutputHelper output)
         var options = new PipelineOptions { RunRecognizersConcurrently = false, MaxAlternatives = 1 };
         var services = new PipelineServices(recognizer, null, null, null, bundle);
         var off = new UtterancePipeline(services, options);
+        // The shipped floor (0.5 on the weakest word of the free pass), and the same pipeline with the floor switched off, to report what the floor removes.
         var on = new UtterancePipeline(services, options with { OpenRecognitionFallback = true });
+        var unfloored = new UtterancePipeline(services, options with { OpenRecognitionFallback = true, OpenPassWordFloor = 0.0 });
 
         var results = new List<Measured>(cases.Count);
+        var withoutFloor = new List<Measured>(cases.Count);
         foreach (var c in cases)
         {
             var clip = clips[c.ClipKey];
@@ -122,13 +125,22 @@ public sealed class OpenFallbackMeasurementTests(ITestOutputHelper output)
                 }
             }
 
+            // The floor only ever withholds a free reading: the same pipeline without it chooses the free reading wherever this one does, with the same verdict.
+            var loose = unfloored.Analyze(clip, prompt);
+            withoutFloor.Add(Measure(c, clip, typed, without, loose, recognizer.CaseRequests));
+            if (with.Asr.Mode == RecognitionMode.Open)
+            {
+                Assert.Equal(CanonicalJson.Serialize(loose.Verdict), CanonicalJson.Serialize(with.Verdict));
+                Assert.True(with.Asr.Words.Count > 0 && with.Asr.Words.Min(static w => w.Confidence) >= PipelineOptions.DefaultOpenPassWordFloor, $"{c}: a free reading was chosen with a word under the floor");
+            }
+
             if (c.Kind == Kind.Row)
             {
                 Assert.True(!firstTaken || CanonicalJson.Serialize(without.Verdict) == CanonicalJson.Serialize(with.Verdict), $"{c}: an answer row changed its verdict");
             }
         }
 
-        Report(results, recognizer);
+        Report(results, withoutFloor, recognizer);
 
         foreach (var kind in new[] { Kind.Row, Kind.OffPrompt, Kind.AllowedOutsideRows, Kind.NoIntent })
         {
@@ -339,11 +351,11 @@ public sealed class OpenFallbackMeasurementTests(ITestOutputHelper output)
             MinConfidence(with.Asr));
     }
 
-    private void Report(List<Measured> results, MeasuringRecognizer recognizer)
+    private void Report(List<Measured> results, List<Measured> withoutFloor, MeasuringRecognizer recognizer)
     {
         var text = new StringBuilder();
         text.AppendLine("The open-recognition fallback, Kokoro voices only (accent risk on real speech: unmeasured).");
-        text.AppendLine("kind | n | first not taken | free pass chosen | understood (right meaning, mean >= 0.55) | wrong take | false take");
+        text.AppendLine("kind | n | first not taken | free pass chosen | understood (right meaning, mean >= 0.55) | wrong take | false take (with the floor)");
         foreach (var kind in Enum.GetValues<Kind>())
         {
             var set = results.Where(r => r.Case.Kind == kind).ToList();
@@ -354,12 +366,38 @@ public sealed class OpenFallbackMeasurementTests(ITestOutputHelper output)
         text.AppendLine($"Off-prompt lines: trigger reach (first pass not taken) {Share(off.Count(static r => !r.FirstTaken), off.Count)}; understood after the free pass {Share(off.Count(static r => r.Understood), off.Count)} of all, {Share(off.Count(static r => r.Understood), off.Count(static r => !r.FirstTaken))} of those reached.");
         var allowed = results.Where(static r => r.Case.Kind == Kind.AllowedOutsideRows).ToList();
         text.AppendLine($"Allowed-outside-rows lines: first pass not taken {Share(allowed.Count(static r => !r.FirstTaken), allowed.Count)}; understood after the free pass {Share(allowed.Count(static r => r.Understood), allowed.Count)} of all.");
-        // For information: what a floor on the weakest word of a free reading would do (the mean floor of 0.55 is the game's UncertaintyRule; the core adds none).
-        var free = results.Where(static r => r.ChosenOpen && r.FinalTaken && r.FinalMean >= ConfidenceFloor).ToList();
-        text.AppendLine("A floor on the weakest word of a free reading that is taken at a mean of 0.55 or more: floor | understood kept | wrong takes kept | false takes kept");
+        // For information: what other floors on the weakest word of a free reading would do, from the run without the shipped floor (the mean of 0.55 is the game's UncertaintyRule).
+        var free = withoutFloor.Where(static r => r.ChosenOpen && r.FinalTaken && r.FinalMean >= ConfidenceFloor).ToList();
+        text.AppendLine("A floor on the weakest word of a free reading that is taken at a mean of 0.55 or more (the run with no floor): floor | understood kept | wrong takes kept | false takes kept");
         foreach (var floor in new[] { 0.0, 0.3, 0.4, 0.5, 0.6, 0.7 })
         {
             text.AppendLine($"{floor:0.0} | {free.Count(r => r.Understood && r.FinalMin >= floor)}/{free.Count(static r => r.Understood)} | {free.Count(r => r.WrongTake && r.FinalMin >= floor)}/{free.Count(static r => r.WrongTake)} | {free.Count(r => r.FalseTake && r.FinalMin >= floor)}/{free.Count(static r => r.FalseTake)}");
+        }
+
+        // What the shipped floor (0.5) removed, from the run without it: understood lines lost, wrong and false takes stopped.
+        var lost = withoutFloor.Zip(results).Where(static p => p.First.Understood && !p.Second.Understood).Select(static p => p.First).ToList();
+        var wrongStopped = withoutFloor.Zip(results).Where(static p => p.First.WrongTake && !p.Second.WrongTake).Select(static p => p.First).ToList();
+        var falseStopped = withoutFloor.Zip(results).Where(static p => p.First.FalseTake && !p.Second.FalseTake).Select(static p => p.First).ToList();
+        text.AppendLine($"The floor {PipelineOptions.DefaultOpenPassWordFloor:0.0} removed: understood lines lost {lost.Count} of {withoutFloor.Count(static r => r.Understood)}; wrong takes stopped {wrongStopped.Count} of {withoutFloor.Count(static r => r.WrongTake)}; false takes stopped {falseStopped.Count} of {withoutFloor.Count(static r => r.FalseTake)}.");
+        text.AppendLine("by voice: voice | understood lost | wrong takes stopped | false takes stopped");
+        foreach (var group in withoutFloor.Where(static r => r.Case.Kind != Kind.Noise).GroupBy(static r => r.Case.Voice).OrderBy(static g => g.Key, StringComparer.Ordinal))
+        {
+            text.AppendLine($"{group.Key} | {lost.Count(r => r.Case.Voice == group.Key)} | {wrongStopped.Count(r => r.Case.Voice == group.Key)} | {falseStopped.Count(r => r.Case.Voice == group.Key)}");
+        }
+
+        foreach (var r in lost)
+        {
+            text.AppendLine("understood line lost to the floor: " + r.Describe());
+        }
+
+        foreach (var r in wrongStopped)
+        {
+            text.AppendLine("wrong take stopped by the floor: " + r.Describe());
+        }
+
+        foreach (var r in falseStopped)
+        {
+            text.AppendLine("false take stopped by the floor: " + r.Describe());
         }
 
         var forcedWeak = results.Count(static r => r.FirstTaken && r.FirstMean < ConfidenceFloor && r.Case.Kind != Kind.Noise);
