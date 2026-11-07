@@ -18,3 +18,8 @@ Design vs code: test in Nlp.Tests (no game SpeechEngine); resamples without the 
 
 Orchestrator (2026-11-07): typed «ese/el libro es muy interesante» at fisher-open is unknown in the CLI, so the free pass taking it
 contradicts "spoken and typed alike"; the agent was sent back to find the cause before the owner is asked.
+
+Follow-up (4e7ca7f9): not a bug. The CLI also prints `off-prompt: describe` for typed «el libro es muy interesante»; typed and the free
+pass agree (new test OpenFallbackTests.TheFreePassReadsAHeardLineAsTheSameTextTypedIsRead, 7 texts x 7 prompts). The false take is Vosk
+hearing «ese» as «el» (0.45). The wrong takes match typed «si usted hace hachas…» (off-prompt confirm). Measurement unchanged. Test count
+9881 passed + 1 failed (the measurement) by the agent's arithmetic; full suite not rerun.
