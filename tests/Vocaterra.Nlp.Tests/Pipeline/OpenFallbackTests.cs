@@ -85,6 +85,41 @@ public class OpenFallbackTests
         Assert.Equal(typed.Verdict.Intent, with.Verdict.Intent);
     }
 
+    // The owner's answer 2: a spoken line is understood as the typed line is. The free pass reads the same text with the same prompt and stages, so whatever it
+    // takes, the typed line takes alike (the intent, the slots, the errors and the off-prompt intent), and a line the typed reading does not take stays untaken.
+    // (The CLI's JSON verdict shows the unknown intent of an off-prompt line; its «off-prompt:» line and the verdict's offPromptIntent carry what it means.)
+    [Theory]
+    [InlineData("el libro es muy interesante")]
+    [InlineData("ese libro es muy interesante")]
+    [InlineData("si usted hace hachas muy buenas")]
+    [InlineData("me gusta el río")]
+    [InlineData("mañana voy a comprar pan")]
+    [InlineData("el gato duerme")]
+    [InlineData("hoy llueve mucho")]
+    public void TheFreePassReadsAHeardLineAsTheSameTextTypedIsRead(string text)
+    {
+        foreach (var promptId in new[] { "fisher-open", "baker-open", "smith-open", "farmer-open", "stall-need", "stall-offer", "guide-offer" })
+        {
+            var prompt = TestSupport.Bundle.Prompts[promptId];
+            var typed = TestSupport.Pipeline(text, RecognitionMode.Open).Analyze(TestSupport.Clip(), prompt).Verdict;
+            var spoken = Analyze(promptId, string.Empty, text, On, out _);
+            var taken = typed.Communicated || typed.OffPromptIntent is not null;
+            var heard = spoken.Verdict;
+
+            Assert.Equal(taken, heard.Communicated || heard.OffPromptIntent is not null);
+            Assert.Equal(taken, spoken.Asr.Mode == RecognitionMode.Open);
+            if (taken)
+            {
+                Assert.Equal(typed.Intent, heard.Intent);
+                Assert.Equal(typed.Slots, heard.Slots);
+                Assert.Equal(typed.Communicated, heard.Communicated);
+                Assert.Equal(typed.OffPromptIntent, heard.OffPromptIntent);
+                Assert.Equal(typed.Errors, heard.Errors);
+                Assert.Equal(typed.Correctness, heard.Correctness);
+            }
+        }
+    }
+
     [Fact]
     public void AFreeReadingThatIsNotTakenKeepsTheFirstVerdict()
     {
