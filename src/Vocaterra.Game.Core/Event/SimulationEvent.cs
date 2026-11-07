@@ -41,6 +41,12 @@ public enum SimulationEventKind
 
     /// <summary>(3D, S6) The player worked on water with no bottle: the position is the water block. Raised once per hold; the front-end shows a short hint (nothing is blocked).</summary>
     WaterWithoutBottle = 10,
+
+    /// <summary>(Water, H03) The player's air is at zero under water: raised the tick it ran out and every second while it stays out. <see cref="SimulationEvent.Detail"/> is 0.</summary>
+    OutOfAir = 11,
+
+    /// <summary>(Water, H03) The air became full again after the player came up.</summary>
+    BreathRestored = 12,
 }
 
 /// <summary>An event a tick produced, for sounds, particles and the guide. </summary>

@@ -15,6 +15,7 @@ namespace Vocaterra.Game.Core.Simulation;
 /// <param name="NoBottleHint">The water cell the "no bottle" event was last raised for, or <see langword="null"/>.</param>
 /// <param name="Player">The body.</param>
 /// <param name="Slots">The inventory's slots, in order (<see cref="Inventory.SlotCount"/> of them).</param>
+/// <param name="Air">The player's air in ticks (water-plan H03); optional, full when missing, so older saves load.</param>
 public sealed record VoxelSimulationState(
     long Tick,
     int SelectedSlot,
@@ -23,5 +24,6 @@ public sealed record VoxelSimulationState(
     int GatherProgress,
     BlockPos? NoBottleHint,
     PlayerBodyState Player,
-    IReadOnlyList<ItemStack> Slots);
+    IReadOnlyList<ItemStack> Slots,
+    int Air = Water.Breath.MaxAir);
 

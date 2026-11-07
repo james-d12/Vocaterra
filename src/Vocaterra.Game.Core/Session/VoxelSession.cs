@@ -337,6 +337,7 @@ public sealed partial class VoxelSession : GuideSession
         }
 
         Simulation.Step(commands);
+        StepWaterEvents();
         AdvanceKeyWords();
         Tips.Step(Simulation.Tick);
         foreach (var e in Simulation.Events)
