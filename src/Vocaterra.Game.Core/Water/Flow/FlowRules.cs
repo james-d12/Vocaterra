@@ -14,7 +14,7 @@ namespace Vocaterra.Game.Core.Water.Flow;
 /// spreads every way.</item>
 /// <item>Flowing water with no neighbour feeding it <b>drains</b> away. Sources never change, and nothing here makes one: two sources make no third.</item>
 /// </list>
-/// A cell can take water when it is air or undergrowth (<see cref="BlockDefinition.IsDecor"/>), or is flowing water already; every other block, and the edge of
+/// A cell can take water when it is air or one of the sown undergrowth plants (<see cref="BlockDefinition.IsUndergrowth"/>), or is flowing water already; every other block, and the edge of
 /// the world, stops it. That is the whole of it: no coordinate and no named place appears here, so a dam is any block put in the way. Whether a cell can take
 /// water, can go down, or counts as a drop depends on blocks and sources only, never on flowing water, so a change made by the flow itself never alters where
 /// the water prefers to go (the simulation relies on it when it decides whom to wake).
@@ -178,7 +178,7 @@ public static class FlowRules
             return grid.GetWater(x, y, z).IsSource ? Kind.Source : Kind.Flowing;
         }
 
-        return block == BlockId.Air || BlockDefinition.IsDecor(block) ? Kind.Open : Kind.Blocked;
+        return block == BlockId.Air || BlockDefinition.IsUndergrowth(block) ? Kind.Open : Kind.Blocked;
     }
 
     /// <summary>Whether the cell is air or undergrowth, or flowing water: somewhere water can run to.</summary>

@@ -256,6 +256,35 @@ public sealed class FlowRulesTests
         Assert.Equal(new FlowCell(BlockId.TallGrass, WaterLevel.Source), Next(world, 11, Ground, 10));
     }
 
+    [Theory]
+    [InlineData(BlockId.Reeds)]
+    [InlineData(BlockId.Fern)]
+    [InlineData(BlockId.YellowFlower)]
+    [InlineData(BlockId.WhiteFlower)]
+    public void Given_ASownPlantNextToASource_When_ItIsRead_Then_WaterWashesItAway(BlockId plant)
+    {
+        var world = new FlowWorld();
+        world.Source(10, Ground, 10);
+        world.Put(11, Ground, 10, plant);
+
+        Assert.Equal(Flowing(1), Next(world, 11, Ground, 10));
+    }
+
+    [Theory]
+    [InlineData(BlockId.Loaves)]
+    [InlineData(BlockId.Apples)]
+    [InlineData(BlockId.Bottles)]
+    [InlineData(BlockId.Wheat)]
+    public void Given_AStallGoodOrWheatNextToASource_When_ItIsRead_Then_WaterStopsAndItStays(BlockId good)
+    {
+        var world = new FlowWorld();
+        world.Source(10, Ground, 10);
+        world.Put(11, Ground, 10, good);
+
+        Assert.Equal(new FlowCell(good, WaterLevel.Source), Next(world, 11, Ground, 10));
+        Assert.False(FlowRules.CanTakeWater(world.Grid, 11, Ground, 10));
+    }
+
     [Fact]
     public void Given_WaterAtTheEdgeOfTheWorld_When_ItIsRead_Then_NothingFlowsOutOfIt()
     {
