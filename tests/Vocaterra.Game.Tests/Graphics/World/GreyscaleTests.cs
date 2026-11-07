@@ -3,6 +3,7 @@ using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Graphics.Blocks;
+using Vocaterra.Game.Graphics.Water;
 using Vocaterra.Game.Graphics.World;
 using Vocaterra.Game.Startup;
 using Vocaterra.Game.UI.Common;
@@ -156,8 +157,8 @@ public sealed class GreyscaleTests
         var water = new MapBlocks().Set(3, 3, 3, BlockId.Water);
         var alphaGrey = Mesh(water, ChunkMesher.KindBit(BlockId.Water)).Alpha;
         Assert.True(alphaGrey.FaceCount > 0);
-        Assert.True(AllVertices(alphaGrey, IsGreyVertex));
-        Assert.True(AllVertices(Mesh(water).Alpha, v => !IsGreyVertex(v)));
+        Assert.True(AllVertices(alphaGrey, static v => WaterTileLayout.TileAt(v.U, v.V).Grey)); // the water's own strip has a grey row (H09)
+        Assert.True(AllVertices(Mesh(water).Alpha, static v => !WaterTileLayout.TileAt(v.U, v.V).Grey));
     }
 
     [Fact]
@@ -168,7 +169,7 @@ public sealed class GreyscaleTests
         {
             var meshes = Mesh(new MapBlocks().Set(4, 4, 4, definition.Id).Set(5, 4, 4, definition.Id).Set(4, 5, 4, definition.Id));
             Assert.True(AllVertices(meshes.Opaque, v => !IsGreyVertex(v)), $"{definition.Id} is grey by default");
-            Assert.True(AllVertices(meshes.Alpha, v => !IsGreyVertex(v)), $"{definition.Id} is grey by default");
+            Assert.True(AllVertices(meshes.Alpha, static v => !WaterTileLayout.TileAt(v.U, v.V).Grey), $"{definition.Id} is grey by default");
         }
 
         var scene = RouteScene.Build();
@@ -177,7 +178,7 @@ public sealed class GreyscaleTests
         {
             var meshes = ChunkMesher.Build(source, chunk.Coord.X, chunk.Coord.Y, chunk.Coord.Z);
             Assert.True(AllVertices(meshes.Opaque, v => !IsGreyVertex(v)));
-            Assert.True(AllVertices(meshes.Alpha, v => !IsGreyVertex(v)));
+            Assert.True(AllVertices(meshes.Alpha, static v => !WaterTileLayout.TileAt(v.U, v.V).Grey));
         }
     }
 
