@@ -2438,6 +2438,28 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   `GeneratedLexiconTests.LoadingTheBundleIsFastEnough` (9 s against 3 s while M80's gate ran beside it; 1 s alone). Report
   `.claude/briefs/w03-report.md`.
 
+- **W04, price lists (2026-11-07, Sonnet 5.5 medium; gated with V31 at `796585af` on `feature/bread-pilot`, 9938 passed, 3 skipped).**
+  A `sell` or `buy` in `host-events.json` may carry `"slot": "item"` and `"prices"` (catalogue noun to coins) instead of one `item` and
+  `price` (schema stays 2; `oneOf` the two forms). `NpcEffect.Prices`, `For(slots, nouns)` and `Priced(noun)` turn a verdict into the fixed
+  effect; `ExchangeMiss` judges a priced entry first: an unlisted item, a noun naming no item or no item gives the existing `<npc>.wont_sell`
+  (the paragraph's `dont_sell`; no duplicate added) or `wont_buy`; a listed item keeps the other misses' order. `VoxelSession.ApplyHostEvents`
+  resolves through `For`; the exchange stays atomic (`CanExchange`); `SessionSkip`'s purchase finder reads priced sells. The validator: each
+  listed key is a catalogue noun naming an item; the slot is only checked to be `item` (no prompt-to-slot map exists). Tests on a test bundle
+  (two items, `qty`, `cant_pay`, `wont_sell`, `no_room`, a priced buy); existing sells and buys unedited. No bundle data: **live use needs a
+  content milestone** (a priced entry, agent states with lines such as «No vendo …»; the success line cannot name the item without a
+  templated slot). Scripted runs unchanged. Report `.claude/briefs/w04-report.md`.
+- **V31, spoken lines heard on the open decode (2026-11-07, Sonnet 5.5 medium; gated with W04 at `796585af`, 9938 passed, 3 skipped).**
+  `SpokenUtteranceEvaluator` holds a second pipeline with M80's fallback on (the core's 0.5 floor), used only in free talk
+  (`PromptOverride is null` and not a review) at the seven constrained prompts (`villager-open` and `guide-open` are open prompts and decode
+  once). `LineReading` re-reads `OtherPass` for the vocative and greeting. A line heard open is credited as typed (`GuideTurn.HeardOpen`,
+  `CreditKind`); the turn's decodes are summed (`TurnTimings.Decodes`); `heard_open` is a voice event and a session-log field. 14 tests
+  (`OpenDecodeTests`, scripted and Kokoro); `ConstrainedRecognitionTests` unchanged. **Heard (Kokoro, `ef_dora`):** «me gusta el río» and
+  «tengo dos manzanas» get «Te entiendo»; «mañana voy a comprar pan» at the smith is understood as typed; **a limit:** the constrained decode
+  can force a confident wrong row (baker «el río es grande» heard «es gracias», `thank`; shopkeeper «me gusta el río» heard «me cuesta el
+  río», `ask_price`), which never reaches the open decode; «mi hermano vive en Madrid» and «la luna brilla» are not heard. The accent risk
+  is unmeasured. All 27 scripted runs identical (the agent first ran four; sent back for the full set). D-game-9 note added. Report
+  `.claude/briefs/v31-report.md`.
+
 ## 6. Definition of done (every milestone)
 
 1. `dotnet build Vocaterra.sln -warnaserror` with 0 warnings and `dotnet test Vocaterra.sln` green, with the test count in the report.

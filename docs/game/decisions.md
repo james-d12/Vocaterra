@@ -121,6 +121,12 @@ threshold) asks for a retry with help and is logged as a voice event, never as a
 thinking states; cancel and a timeout; a persistent "oí / esperaba" line; replay and slower audio; typed and button fallback; "no sé" always
 available and never shamed.
 
+**V31 (2026-11-07):** free talk at the seven constrained prompts (`baker-open`, `smith-open`, `farmer-open`, `fisher-open`, `stall-need`,
+`stall-offer`, `guide-offer`) decodes a missed spoken line a second time, freely (the core's M80, with the 0.5 weakest-word floor). A line
+heard so is answered as the same typed line is, credited as typed (half), and marked by the `heard_open` voice event and the session log.
+Lesson steps, reviews and the mic check decode once. The playtest counts `heard_open`. (D-game-22, the owner's answers of 2026-11-06 and
+2026-11-07.)
+
 ## D-game-10: learning measurement (decided, from the brief)
 
 A hand-authored phrase sheet (`content/PHRASES.md`) is the source of truth. Each phrase is tracked through shown-card, supported, unaided,
