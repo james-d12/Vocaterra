@@ -74,6 +74,12 @@ public sealed class VoxelChunk
     /// <summary>Whether any water cell of the chunk holds a level other than source. A chunk the scene builds never does, and then it carries no level layer at all.</summary>
     public bool HasWaterLevels => _flowing > 0;
 
+    /// <summary>
+    /// The encoded water level of every cell in storage order (<see cref="WaterLevel.Encoded"/>; 0 for source and for cells that are not water), or an empty span while the
+    /// chunk holds no level other than source (<see cref="HasWaterLevels"/>). A save compares and writes it.
+    /// </summary>
+    public ReadOnlySpan<byte> WaterLevels => _flowing > 0 && _water is not null ? _water : default;
+
     /// <summary>The block at the chunk-local position.</summary>
     public BlockId this[int localX, int localY, int localZ] => _blocks[Index(localX, localY, localZ)];
 
