@@ -579,6 +579,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         _runEnd.AfterUpdate(); // a scripted run counts its settled frames and opens the panels asked for at its end
 
+        _sound.Mixer.SetUnderwater(_drawer.UnderwaterAmount); // the beds go quieter and duller under water (H10)
         _soundFrame.Update(seconds);
 
         _beacon.ClearIfReached(_sim);

@@ -181,6 +181,14 @@ public enum SoundCue
 
     /// <summary>A crackle of the fire, scheduled over the fire bed; its level follows the fire's weight.</summary>
     FireCrackle,
+
+    // ---- water (H10, sfx): appended, so the values of the cues above never change ----
+
+    /// <summary>The player went into water fast (a fall or a jump in): a splash. A wade in makes none (<see cref="WaterEntry"/>).</summary>
+    WaterSplash,
+
+    /// <summary>A bubble rising while the breath runs down under water: one for each bubble the meter loses (<see cref="BreathBubbles"/>).</summary>
+    UnderwaterBubbles,
 }
 
 /// <summary>The category and the wire name of each cue.</summary>
@@ -198,6 +206,7 @@ public static class SoundCues
             or SoundCue.PlaceBlock or SoundCue.PickUp or SoundCue.CraftDone or SoundCue.BottleFill or SoundCue.FireLight => SoundCategory.Sfx,
         SoundCue.FootGrass or SoundCue.FootDirt or SoundCue.FootGravel or SoundCue.FootStone or SoundCue.FootWood or SoundCue.FootSand or SoundCue.FootSnow
             or SoundCue.FootWater or SoundCue.Jump or SoundCue.Land => SoundCategory.Sfx,
+        SoundCue.WaterSplash or SoundCue.UnderwaterBubbles => SoundCategory.Sfx,
         SoundCue.BirdChirp or SoundCue.FireCrackle => SoundCategory.Ambient,
         _ => SoundCategory.Ui,
     };

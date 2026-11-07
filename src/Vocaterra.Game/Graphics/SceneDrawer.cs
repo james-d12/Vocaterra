@@ -97,6 +97,9 @@ public sealed class SceneDrawer : IDisposable
         _layers = layers;
     }
 
+    /// <summary>How far under water the view is, 0 to 1 (<c>UnderwaterView.Amount</c>): the sound side muffles the beds by it (H10).</summary>
+    public double UnderwaterAmount => _underwater.Amount;
+
     /// <summary>
     /// Draws the world: the grey set follows the learner's words, the chunks are meshed (a scripted run builds every mesh it needs before its
     /// picture; a live one spends its budget a frame, more while the world is still loading in), and the world, the target block, the beacon and

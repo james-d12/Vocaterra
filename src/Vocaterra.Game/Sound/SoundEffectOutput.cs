@@ -17,7 +17,9 @@ public sealed class SoundEffectOutput : ISoundOutput
     private readonly Action<string> _log;
     private readonly Dictionary<(SoundCue Cue, int Take), SoundEffect> _effects = [];
     private readonly Dictionary<string, SoundEffect> _loops = [];
+    private readonly Dictionary<string, SoundEffect> _muffled = [];
     private readonly Dictionary<string, SoundEffectInstance> _beds = [];
+    private readonly Dictionary<string, SoundEffectInstance> _mutedBeds = [];
     private readonly List<SoundEffectInstance> _live = [];
     private bool _loaded;
     private bool _unavailable;
@@ -68,7 +70,7 @@ public sealed class SoundEffectOutput : ISoundOutput
         }
 
         _live.Clear();
-        foreach (var bed in _beds.Values)
+        foreach (var bed in _beds.Values.Concat(_mutedBeds.Values))
         {
             bed.Volume = 0; // the microphone rule: the beds go silent too (they keep playing, so they resume without a click)
         }
@@ -85,32 +87,29 @@ public sealed class SoundEffectOutput : ISoundOutput
 
         try
         {
-            foreach (var bed in _beds.Keys.ToList())
+            foreach (var bed in _beds.Keys.Concat(_mutedBeds.Keys).Distinct().ToList())
             {
                 if (!levels.Any(level => level.Bed == bed))
                 {
-                    _beds[bed].Volume = 0;
+                    SilenceBed(bed);
                 }
             }
 
             foreach (var level in levels)
             {
-                if (!_loops.TryGetValue(level.Bed, out var loop))
+                if (!_loops.TryGetValue(level.Bed, out var loop) || !_muffled.TryGetValue(level.Bed, out var muffled))
                 {
                     continue; // a scheduled bed (birds, fire) has no loop: its sounds are one-shots
                 }
 
-                if (!_beds.TryGetValue(level.Bed, out var instance))
-                {
-                    instance = loop.CreateInstance();
-                    instance.IsLooped = true;
-                    instance.Volume = 0;
-                    instance.Play();
-                    _beds[level.Bed] = instance;
-                }
-
-                instance.Volume = (float)Math.Clamp(level.Level, 0, 1);
-                instance.Pan = (float)Math.Clamp(level.Pan, -1, 1);
+                // The bed plays as two loops in step: the dry one and the muffled one (under water, H10), in shares of its level.
+                var share = Math.Clamp(level.Muffle, 0, 1);
+                var volume = Math.Clamp(level.Level, 0, 1);
+                var dry = LoopInstance(_beds, level.Bed, loop);
+                var dull = LoopInstance(_mutedBeds, level.Bed, muffled);
+                dry.Volume = (float)(volume * (1 - share));
+                dull.Volume = (float)(volume * share);
+                dry.Pan = dull.Pan = (float)Math.Clamp(level.Pan, -1, 1);
             }
         }
         catch (Exception ex) when (ex is not OutOfMemoryException)
@@ -123,24 +122,26 @@ public sealed class SoundEffectOutput : ISoundOutput
     public void Dispose()
     {
         StopAll();
-        foreach (var bed in _beds.Values)
+        foreach (var bed in _beds.Values.Concat(_mutedBeds.Values))
         {
             bed.Dispose();
         }
 
         _beds.Clear();
+        _mutedBeds.Clear();
         foreach (var effect in _effects.Values.Distinct())
         {
             effect.Dispose();
         }
 
         _effects.Clear();
-        foreach (var loop in _loops.Values.Distinct())
+        foreach (var loop in _loops.Values.Concat(_muffled.Values).Distinct())
         {
             loop.Dispose();
         }
 
         _loops.Clear();
+        _muffled.Clear();
     }
 
     private bool EnsureLoaded()
@@ -173,7 +174,9 @@ public sealed class SoundEffectOutput : ISoundOutput
 
             foreach (var bed in AmbientLoops.Looping)
             {
-                _loops[bed] = Make(SoundSynth.SampleRate, AmbientLoops.Render(bed));
+                var loop = AmbientLoops.Render(bed);
+                _loops[bed] = Make(SoundSynth.SampleRate, loop);
+                _muffled[bed] = Make(SoundSynth.SampleRate, UnderwaterSound.LowPass(loop)); // the pre-filtered copy, for under water (H10)
             }
 
             _loaded = true;
@@ -196,6 +199,33 @@ public sealed class SoundEffectOutput : ISoundOutput
         }
 
         return new SoundEffect(bytes, sampleRate, AudioChannels.Mono);
+    }
+
+    private static SoundEffectInstance LoopInstance(Dictionary<string, SoundEffectInstance> beds, string bed, SoundEffect loop)
+    {
+        if (!beds.TryGetValue(bed, out var instance))
+        {
+            instance = loop.CreateInstance();
+            instance.IsLooped = true;
+            instance.Volume = 0;
+            instance.Play();
+            beds[bed] = instance;
+        }
+
+        return instance;
+    }
+
+    private void SilenceBed(string bed)
+    {
+        if (_beds.TryGetValue(bed, out var dry))
+        {
+            dry.Volume = 0;
+        }
+
+        if (_mutedBeds.TryGetValue(bed, out var dull))
+        {
+            dull.Volume = 0;
+        }
     }
 
     private void Prune()
