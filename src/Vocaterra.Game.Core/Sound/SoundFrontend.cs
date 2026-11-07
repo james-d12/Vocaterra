@@ -3,6 +3,7 @@ using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.Water;
 
 namespace Vocaterra.Game.Core.Sound;
 
@@ -66,6 +67,8 @@ public sealed class SoundFrontend
 {
     private readonly List<SoundCue> _frame = [];
     private readonly Footsteps _steps = new();
+    private readonly WaterEntry _entry = new();
+    private readonly BreathBubbles _bubbles = new();
     private readonly AmbientSound? _ambient;
     private PanelState _panels;
     private int _eventCursor;
@@ -138,8 +141,29 @@ public sealed class SoundFrontend
         ArgumentNullException.ThrowIfNull(player);
         var jumped = events.Any(static e => e.Kind == SimulationEventKind.PlayerJumped);
         var landed = events.Any(static e => e.Kind == SimulationEventKind.PlayerLanded);
-        _frame.AddRange(_steps.Observe(Footsteps.StateOf(player, blockAt), jumped, landed));
+        var feet = Footsteps.StateOf(player, blockAt);
+        var steps = _steps.Observe(feet, jumped, landed).ToList();
+        if (_entry.Observe(feet))
+        {
+            // A fast entry is a splash of its own: the feet's splash of the same tick is not played on top of it (H10).
+            _ = steps.RemoveAll(static c => c == SoundCue.FootWater);
+            _frame.Add(SoundCue.WaterSplash);
+        }
+
+        _frame.AddRange(steps);
         _ambient?.Observe(tick, new Listener(player.CenterX / (double)VoxelPhysics.UnitsPerBlock, player.MinY / (double)VoxelPhysics.UnitsPerBlock, player.CenterZ / (double)VoxelPhysics.UnitsPerBlock, player.Yaw), fireLit);
+    }
+
+    /// <summary>Once per tick (H10): a bubble for each bubble the breath loses under water (<see cref="BreathBubbles"/>).</summary>
+    /// <param name="breath">The player's breath.</param>
+    /// <param name="eyeUnder">Whether the eye is under the surface.</param>
+    public void ObserveBreath(Breath breath, bool eyeUnder)
+    {
+        ArgumentNullException.ThrowIfNull(breath);
+        if (_bubbles.Observe(breath, eyeUnder))
+        {
+            _frame.Add(SoundCue.UnderwaterBubbles);
+        }
     }
 
     /// <summary>Queues the cues of the session's game events that came since the last call.</summary>

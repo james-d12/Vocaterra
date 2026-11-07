@@ -160,6 +160,8 @@ public sealed class VoxelScript
                 return InteractTick(step, commands);
             case VoxelStepKind.Craft:
                 return CraftTick(step, commands);
+            case VoxelStepKind.Pour:
+                return PourNow(step);
             default:
                 return PlaceTick(step, commands);
         }
@@ -205,6 +207,16 @@ public sealed class VoxelScript
         }
 
         _log($"craft: {step.Item} made ({step.Item} {_craftBefore} -> {_sim.Inventory.Count(item)})");
+        return true;
+    }
+
+    // A water source appears in the cell and flows from there (a host action of the simulation, like the teleport).
+    private bool PourNow(VoxelStep step)
+    {
+        var before = BlockDefinition.Get(_sim.Grid.GetBlock(step.X, step.Y, step.Z)).Name;
+        _log(_sim.PourWater(new BlockPos(step.X, step.Y, step.Z))
+            ? $"pour {step.X},{step.Y},{step.Z}: a water source where there was {before}"
+            : $"pour {step.X},{step.Y},{step.Z}: refused ({before} is there, or the cell is outside the world)");
         return true;
     }
 

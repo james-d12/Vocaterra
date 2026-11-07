@@ -123,7 +123,8 @@ public sealed class BlockRayTests
         var sim = Sim((32, 11, 30, BlockId.BerryBush));
         Assert.Equal(BlockId.BerryBush, sim.Target?.Id);
         var water = Sim((32, 11, 30, BlockId.Water));
-        Assert.Equal(BlockId.Water, water.Target?.Id);
+        Assert.Null(water.Target); // H05: the targeting ray looks through water
+        Assert.Equal(BlockId.Water, water.InteractTarget?.Id); // the interact ray (a bottle) still stops at it
     }
 
     [Fact]
@@ -200,5 +201,59 @@ public sealed class BlockRayTests
         double dy = ((block.Y + 0.5) * Units) - oy;
         double dz = ((block.Z + 0.5) * Units) - oz;
         return Math.Sqrt((dx * dx) + (dy * dy) + (dz * dz));
+    }
+
+    // H05: the targeting ray looks through water (the outline, the debug text and a placement), from above the surface and from below it.
+    [Fact]
+    public void GivenWaterBetweenTheEyeAndAStoneBlock_WhenCastThroughWater_ThenTheStoneIsHit()
+    {
+        var sim = Sim((34, 11, 32, BlockId.Water), (35, 11, 32, BlockId.Water), (36, 11, 32, BlockId.Stone));
+        sim.Step([VoxelCommand.Look(1024, 0)]);
+        var hit = sim.Target;
+        Assert.NotNull(hit);
+        Assert.Equal(new BlockPos(36, 11, 32), hit.Value.Block);
+        Assert.Equal(BlockId.Stone, hit.Value.Id);
+        Assert.Equal(new BlockPos(35, 11, 32), hit.Value.Adjacent); // the placement cell is the water cell in front of the face (a dam)
+    }
+
+    [Fact]
+    public void GivenTheEyeInsideWater_WhenCastThroughWater_ThenTheWaterCellOfTheEyeIsNotTheTarget()
+    {
+        var sim = FlatSim(g =>
+        {
+            for (var x = 30; x <= 40; x++)
+            {
+                for (var y = 11; y <= 13; y++)
+                {
+                    for (var z = 30; z <= 34; z++)
+                    {
+                        g.SetBlock(x, y, z, BlockId.Water);
+                    }
+                }
+            }
+        });
+        sim.Step([VoxelCommand.Look(1024, 0)]);
+        Assert.Null(sim.Target); // water all the way, nothing solid within the reach
+        Assert.Equal(BlockId.Water, sim.InteractTarget!.Value.Id); // the interact ray still stops at water (a bottle is filled from it)
+    }
+
+    [Fact]
+    public void GivenOnlyWater_WhenCastWithoutThroughWater_ThenTheWaterIsHit()
+    {
+        var sim = Sim((34, 11, 32, BlockId.Water));
+        sim.Step([VoxelCommand.Look(1024, 0)]);
+        Assert.Equal(BlockId.Water, BlockRay.Cast(sim.Grid, sim.Player)!.Value.Id);
+        Assert.Null(BlockRay.Cast(sim.Grid, sim.Player, throughWater: true));
+    }
+
+    [Fact]
+    public void GivenTheEyeUnderWaterLookingUp_WhenCastThroughWater_ThenTheBlockAboveTheSurfaceIsHit()
+    {
+        var sim = Sim((32, 12, 32, BlockId.Water), (32, 13, 32, BlockId.Water), (32, 14, 32, BlockId.Stone));
+        sim.Step([VoxelCommand.Look(0, 1024)]);
+        var hit = sim.Target;
+        Assert.NotNull(hit);
+        Assert.Equal(BlockId.Stone, hit.Value.Id);
+        Assert.Equal(BlockFace.Down, hit.Value.Face);
     }
 }

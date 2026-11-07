@@ -226,7 +226,7 @@ public sealed class WorldFactsTests
         (long Distance, BlockPos Cell)? best = null;
         foreach (var kind in kinds)
         {
-            foreach (var p in grid.BlocksOfKind(kind))
+            foreach (var p in grid.EachOfKind(kind))
             {
                 var dx = ((long)p.X * Unit) + (Unit / 2) - from.CentreX;
                 var dz = ((long)p.Z * Unit) + (Unit / 2) - from.CentreZ;

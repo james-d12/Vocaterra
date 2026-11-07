@@ -330,6 +330,14 @@ the owner-approved plan of 2026-10-23 (the flatten, then one bundle).
   - speech models downloaded and cached in CI, so the model-gated tests run;
   - CI on pushes to `feature/experiment` too;
   - ideally the checks shared with `scripts/merge-gate.sh` (one checks script).
+- **The scripted runs as integration tests in CI or the gate** (owner, 2026-11-07, for later): the runs of
+  [scripted-runs.md](scripted-runs.md) prove that parts of the game work end to end, but today they are only run by hand before and after a
+  front-end change and compared with `scripts/compare-runs.py`; neither CI nor `scripts/merge-gate.sh` runs them. To plan: a headless
+  display in CI (Xvfb with Mesa's software GL for MonoGame DesktopGL); a pass/fail rule (the game exits 0, writes its screenshots and saves,
+  logs no exception; then perhaps a comparison against a committed baseline with the existing masks); the speech models for the runs that
+  need them (r11-mic, r17-speak, the same need as the cached models above); the cost per run (a few minutes for the whole set), and
+  whether the gate takes a small smoke subset while CI takes them all. Water runs (swimming with the bubble meter; a pour and a dam) were
+  proposed on 2026-11-07 and set aside until then.
 - Not chosen: a "no pending rows" gate and a Claude review in CI.
 
 ### 4.7 Content as data and the L1 locale layer (the C series; owner, 2026-10-29, D-game-21)

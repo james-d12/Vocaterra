@@ -174,6 +174,12 @@ specified for later in `docs/game/content-plan.md` section 3.8 (C10); it is not 
   reading of it with a gender.
 - **A place the beacon names.** Give the site, the point or the named prop a `label` in `game/scene.json` (`"label": "río"`); a place with no label shows
   its own name. The label is also the word an NPC's directions answer to (below), so a place the learner may ask for needs one.
+- **A river and its current.** The `river.path` in `game/scene.json` is listed from **upstream to downstream** (the first waypoint at the waterfall's pool, the last in
+  the lake). The player in the river is carried along its stretches by `RiverCurrents` (water-plan H08), worked out when the scene is built, from the layout, and never
+  saved. Each stretch between two neighbouring points of the river's curve runs from its end with the **higher water surface** to the lower; where both ends are level
+  (the usual case: the surface steps down in whole blocks), it runs in path order. So a river added to the layout flows with no code change, as long as its path is
+  listed from the high end to the low end. Only the river's columns have a current: the lake and the pool at the waterfall's foot are still. The drift is about
+  0.6 blocks a second; water that flows by the flow rules (a poured source, a break in a dam) pushes at 1.0 and falling water pulls down.
 - **What a host event does** (`game/host-events.json`, schema 2 since village-plan V02; `take_item` and `sell` since V03). Each entry names the NPC, the
   host event its agent raises and an `action`; an event the file does not map changes nothing:
   - `give_item` (`item`, by the name the save gives it, and optionally `count`: a number, or `"qty"`, the number the learner said, `quiero dos panes`, at most

@@ -59,6 +59,7 @@ Documents beside the code or data they describe stay there: `content/README.md`,
 | [scenario-plan](game/scenario-plan.md) | The S series, the prototype scenario (done) |
 | [content-plan](game/content-plan.md) | The C series, content as data (closed 2026-10-29; C09 and C10 wait for the owner) |
 | [village-plan](game/village-plan.md) | The V series, the village and its lessons |
+| [water-plan](game/water-plan.md) | The H series, flowing water, swimming, breath and the view under water (planned 2026-11-07, on `feature/water`) |
 | [activities-plan](game/activities-plan.md) | The W series, activities and the core systems (planned 2026-11-01; D-game-23 in part and D-game-24 decided 2026-11-03; implementation scope in the adaptation design, section 17.3) |
 | [playtest](game/playtest.md) | The facilitator's script for playtests |
 | [scripted-runs](game/scripted-runs.md) | The scripted runs, the front-end's regression set |

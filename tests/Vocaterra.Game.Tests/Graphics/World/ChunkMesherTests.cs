@@ -1,6 +1,8 @@
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.Water.Currents;
 using Vocaterra.Game.Graphics.Blocks;
+using Vocaterra.Game.Graphics.Water;
 using Vocaterra.Game.Graphics.World;
 
 namespace Vocaterra.Game.Tests.Graphics.World;
@@ -9,6 +11,17 @@ namespace Vocaterra.Game.Tests.Graphics.World;
 internal sealed class MapBlocks : IBlockSource
 {
     private readonly Dictionary<(int, int, int), BlockId> _blocks = [];
+    private readonly Dictionary<(int, int, int), WaterLevel> _levels = [];
+    private readonly Dictionary<(int, int, int), FlowVector> _flows = [];
+
+    /// <summary>A water cell of a level (a source where none is given).</summary>
+    public MapBlocks Water(int x, int y, int z, WaterLevel level = default, FlowVector flow = default)
+    {
+        Set(x, y, z, BlockId.Water);
+        _levels[(x, y, z)] = level;
+        _flows[(x, y, z)] = flow;
+        return this;
+    }
 
     public MapBlocks Set(int x, int y, int z, BlockId id)
     {
@@ -33,6 +46,10 @@ internal sealed class MapBlocks : IBlockSource
     }
 
     public BlockId Get(int x, int y, int z) => _blocks.TryGetValue((x, y, z), out var id) ? id : BlockId.Air;
+
+    public WaterLevel GetWater(int x, int y, int z) => _levels.TryGetValue((x, y, z), out var level) ? level : WaterLevel.Source;
+
+    public FlowVector FlowAt(int x, int y, int z) => _flows.TryGetValue((x, y, z), out var flow) ? flow : FlowVector.Zero;
 }
 
 public sealed class ChunkMesherTests
@@ -110,22 +127,58 @@ public sealed class ChunkMesherTests
     {
         var meshes = Mesh(new MapBlocks().Set(5, 5, 5, BlockId.Stone).Set(6, 5, 5, BlockId.Water));
         Assert.Equal(6, meshes.Opaque.FaceCount); // stone: all six, the east one is seen through the water
-        Assert.Equal(5, meshes.Alpha.FaceCount); // water: the face towards the stone is culled
+        Assert.Equal(6, meshes.Alpha.FaceCount); // water: the face towards the stone is culled; the surface has a face for each side (H05)
     }
 
     [Fact]
     public void WaterAgainstWaterShowsNoFaceBetweenThemAndLowersTheSurface()
     {
         var side = Mesh(new MapBlocks().Set(5, 5, 5, BlockId.Water).Set(6, 5, 5, BlockId.Water));
-        Assert.Equal(10, side.Alpha.FaceCount);
+        Assert.Equal(12, side.Alpha.FaceCount);
         Assert.Equal(0, side.Opaque.FaceCount);
 
         var stacked = Mesh(new MapBlocks().Set(5, 5, 5, BlockId.Water).Set(5, 6, 5, BlockId.Water));
-        Assert.Equal(10, stacked.Alpha.FaceCount);
+        Assert.Equal(11, stacked.Alpha.FaceCount);
 
+        // A source with open air on all sides slopes away to its edge (the corners average the cells round them, H09); one among sources keeps 14/16.
         var single = Mesh(new MapBlocks().Set(5, 5, 5, BlockId.Water));
         var top = single.Alpha.Vertices.ToArray().Max(static v => v.Y);
-        Assert.InRange(top, 5.8, 5.95); // the surface stands a little below the top of the cell
+        Assert.InRange(top, 5.6, 5.95);
+        var pool = Mesh(new MapBlocks().Fill(4, 5, 4, 6, 5, 6, BlockId.Water));
+        Assert.Equal(5 + (14f / 16f), pool.Alpha.Vertices.ToArray().Where(static v => v.X is 5f && v.Z is 5f).Max(static v => v.Y), 4);
+    }
+
+    [Fact]
+    public void TheWaterSurfaceIsDrawnFromBelowAsWellAsFromAbove()
+    {
+        // The water pass culls back faces; with only an upward face the surface is invisible from under the water and the world above shows
+        // through it as white speckles (H05).
+        var vertices = Mesh(new MapBlocks().Set(5, 5, 5, BlockId.Water)).Alpha.Vertices.ToArray();
+        var top = vertices.Max(static v => v.Y);
+        var up = 0;
+        var down = 0;
+        for (var q = 0; q + 3 < vertices.Length; q += 4)
+        {
+            var (a, b, c) = (vertices[q], vertices[q + 1], vertices[q + 2]);
+            if (a.Y != top || b.Y != top || c.Y != top)
+            {
+                continue; // not a face lying in the surface plane
+            }
+
+            // The y of the normal of the triangle (a, b, c), counter-clockwise seen from the front.
+            var ny = ((b.Z - a.Z) * (c.X - a.X)) - ((b.X - a.X) * (c.Z - a.Z));
+            if (ny > 0)
+            {
+                up++;
+            }
+            else if (ny < 0)
+            {
+                down++;
+            }
+        }
+
+        Assert.Equal(1, up);
+        Assert.Equal(1, down);
     }
 
     [Fact]
@@ -324,14 +377,12 @@ public sealed class ChunkMesherTests
         var chunk = VoxelChunkCoord.FromBlock(river.X, river.Y, river.Z);
         var meshes = ChunkMesher.Build(source, chunk.X, chunk.Y, chunk.Z);
         Assert.True(meshes.Alpha.FaceCount > 0);
-        Assert.All(Enumerable.Range(0, meshes.Alpha.VertexCount), i => Assert.Contains(CellOf(meshes.Alpha.Vertices[i]), new[] { BlockCell.Water, BlockCell.WaterShallow, BlockCell.Waterfall }));
-    }
-
-    private static BlockCell CellOf(MeshVertex vertex)
-    {
-        var column = (int)(vertex.U * BlockAtlasLayout.Width / BlockAtlasLayout.CellSize);
-        var row = (int)(vertex.V * BlockAtlasLayout.Height / BlockAtlasLayout.CellSize);
-        return (BlockCell)((row * BlockAtlasLayout.Columns) + column);
+        Assert.All(Enumerable.Range(0, meshes.Alpha.VertexCount), i =>
+        {
+            var (tile, grey) = WaterTileLayout.TileAt(meshes.Alpha.Vertices[i].U, meshes.Alpha.Vertices[i].V);
+            Assert.False(grey);
+            Assert.True(Enum.IsDefined(tile));
+        });
     }
 
     [Fact]

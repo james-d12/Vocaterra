@@ -123,6 +123,70 @@ public static class SoundTextures
         return buffer;
     }
 
+    /// <summary>
+    /// A splash of a fast entry into water (H10): a louder hiss that dies away over about half a second, a short low thud of the body, and the bubbles it throws up.
+    /// Louder and longer than the feet's <see cref="Splash"/>.
+    /// </summary>
+    public static float[] Plunge(PresentationRng rng)
+    {
+        var buffer = SoundSynth.Silence(0.9);
+        var low = 0.0;
+        var alpha = 1 - Math.Exp(-2 * Math.PI * 1100 / Rate);
+        for (var i = 0; i < buffer.Length; i++)
+        {
+            var t = i / (double)Rate;
+            low += alpha * (Noise(rng) - low);
+            buffer[i] = (float)(low * Math.Exp(-t * 5.5) * Math.Min(1.0, t / 0.003) * 0.9);
+        }
+
+        var thudCount = (int)(0.12 * Rate);
+        for (var i = 0; i < thudCount; i++)
+        {
+            var t = i / (double)Rate;
+            buffer[i] += (float)(Math.Sin(2 * Math.PI * 70 * t) * Math.Exp(-t * 30) * 0.5);
+        }
+
+        for (var b = 0; b < 8; b++)
+        {
+            var start = rng.NextBetween(0.05, 0.6);
+            var frequency = rng.NextBetween(300, 800);
+            var first = (int)(start * Rate);
+            var count = (int)(0.04 * Rate);
+            for (var i = 0; i < count && first + i < buffer.Length; i++)
+            {
+                var t = i / (double)Rate;
+                var envelope = Math.Sin(Math.PI * i / count);
+                buffer[first + i] += (float)(Math.Sin(2 * Math.PI * (frequency + (t * 1400)) * t) * envelope * 0.3);
+            }
+        }
+
+        return buffer;
+    }
+
+    /// <summary>
+    /// One soft bubble under water (H10): a small round tone that rises as it leaves, about a tenth of a second. Each take has its own pitch, so a run of
+    /// bubbles does not repeat itself.
+    /// </summary>
+    /// <param name="rng">The generator (the pitch's small variation).</param>
+    /// <param name="take">The take: its pitch steps up with it.</param>
+    public static float[] Bubble(PresentationRng rng, int take)
+    {
+        var buffer = SoundSynth.Silence(0.16);
+        var baseFrequency = 420 + (take * 110) + rng.NextBetween(0, 40);
+        var count = (int)(0.12 * Rate);
+        var phase = 0.0;
+        for (var i = 0; i < count; i++)
+        {
+            var tau = i / (double)count;
+            var frequency = baseFrequency * (1 + (0.9 * tau));
+            phase += 2 * Math.PI * frequency / Rate;
+            var envelope = Math.Sin(Math.PI * tau) * Math.Sin(Math.PI * tau);
+            buffer[i] += (float)(Math.Sin(phase) * envelope * 0.5);
+        }
+
+        return buffer;
+    }
+
     /// <summary>A bird's chirp: a short whistle that sweeps up and down, one to three notes; each take has its own pitch and its own notes.</summary>
     public static float[] Chirp(int take)
     {

@@ -579,6 +579,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         _runEnd.AfterUpdate(); // a scripted run counts its settled frames and opens the panels asked for at its end
 
+        _sound.Mixer.SetUnderwater(_drawer.UnderwaterAmount); // the beds go quieter and duller under water (H10)
         _soundFrame.Update(seconds);
 
         _beacon.ClearIfReached(_sim);
@@ -620,6 +621,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         view.LessonStripBox = LessonLayer.LayoutFor(view, _lesson) is { } lessonStrip ? lessonStrip.Box : null; // the cards keep clear of it (S22)
         view.SleepPrompt = FireOffersSleep && !_ending.Visible(_sim.Tick) ? SleepOffer.PromptText(_session) : null; // the fire's prompt; the card says it while it is up (V12c)
         view.EndingSleep = CardOffersSleep ? SleepOffer.CardText(_session) : null;
+        view.Breath = BreathReading.Of(_sim); // the bubble meter (H04)
 
         _drawer.DrawWorld(GraphicsDevice, _camera.Camera, _sim.Target?.Block, _beacon.Beacon.Target, _sim.Tick, shoulder ? _figures.Avatar() : null, shoulder ? null : _arm.Frame(eye, _drawer.Renderer.Lights));
         _drawer.DrawLayers(width, height, canvasWidth, canvasHeight);

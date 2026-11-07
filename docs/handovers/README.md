@@ -30,6 +30,7 @@ several of them were moved out of the orchestrator, the game plan and a research
 | Handover | Workstream | What it waits for |
 | --- | --- | --- |
 | [2026-11-03-2114-adaptation-design](2026-11-03-2114-adaptation-design.md) | The owner's Adaptation Design Document, revision 3: iterated with the owner on `feature/adaptation-design` (PR #30) | The owner's review of PR #30 and the decisions in the document's section 18 |
+| [2026-11-07-1846-water](2026-11-07-1846-water.md) | The H series (water) on `feature/water` | H02's and H05's reports, then the gates |
 | [2026-11-03-1133-docs-cleanup](2026-11-03-1133-docs-cleanup.md) | The documentation cleanup: layout, READMEs, names, the orchestrator | The owner's review and merge of the `docs_cleanup` pull request |
 | [2026-11-02-after-followups](2026-11-02-after-followups.md) | The owner's decisions after the village follow-ups: M74, M75, V29, the study of spoken off-prompt lines, the known fuzz family | A new branch from `origin/main`; PR #28 (`feature/village-followups`) is merged |
 
@@ -37,6 +38,7 @@ several of them were moved out of the orchestrator, the game plan and a research
 
 | Handover | Workstream | Closed |
 | --- | --- | --- |
+| [2026-11-07-1504-water](done/2026-11-07-1504-water.md) | The H series (water), H01 running | Replaced by [2026-11-07-1846-water](2026-11-07-1846-water.md) |
 | [2026-11-03-1019-docs-structure](done/2026-11-03-1019-docs-structure.md) | The documentation layout, before the READMEs and names | Replaced by [2026-11-03-1133-docs-cleanup](2026-11-03-1133-docs-cleanup.md) |
 | [2026-11-03-0952-docs-organisation](done/2026-11-03-0952-docs-organisation.md) | The first documentation review and its proposed layout | Replaced by [2026-11-03-1019-docs-structure](done/2026-11-03-1019-docs-structure.md) |
 | [2026-11-01-village-phase-b](done/2026-11-01-village-phase-b.md) | The village, phase B, its review and the follow-up queue | Replaced by 2026-11-02-after-followups; the follow-ups merged in PR #28 |

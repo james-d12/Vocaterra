@@ -7,6 +7,7 @@ using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.Water.Flow;
 using Vocaterra.Nlp.Language.Intent;
 
 namespace Vocaterra.Game.Core.Save;
@@ -57,6 +58,8 @@ namespace Vocaterra.Game.Core.Save;
 /// <param name="Sitting">The sitting the save was taken in (V25): the play session of the phrase-credit spacing rule, which a launch, a load and a sleep each begin. A load runs in the
 /// next one. <see langword="null"/> in a save from before V25, whose <see cref="Session"/> is then the sitting it continues from.</param>
 /// <param name="KeyWordsTaughtBy">The ids of the NPCs whose key words were taught (V23a). <see langword="null"/> in a save from before: its <see cref="KeyWordsTaught"/> then means the shopkeeper's.</param>
+/// <param name="Air">The player's air in ticks (version 6, water-plan H03 and H06); <see langword="null"/>, and left out of the file, while the breath is full.</param>
+/// <param name="Flow">The cells waiting for a flow update, in queue order (version 6, water-plan H06); <see langword="null"/>, and left out of the file, while none wait.</param>
 public sealed record SaveDocument(
     string Format,
     int Version,
@@ -94,7 +97,9 @@ public sealed record SaveDocument(
     WorldDims? World = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? SkippedTo = null,
     int? Sitting = null,
-    IReadOnlyList<string>? KeyWordsTaughtBy = null);
+    IReadOnlyList<string>? KeyWordsTaughtBy = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? Air = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<FlowEntry>? Flow = null);
 
 /// <summary>The size of the world's grid in chunks (X01): a save across bundles decodes the scene diff's chunk indices with it, so a world that changed size still maps by position.</summary>
 /// <param name="ChunksX">Chunks along x.</param>

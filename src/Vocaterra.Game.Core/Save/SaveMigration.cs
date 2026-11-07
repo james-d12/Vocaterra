@@ -130,7 +130,7 @@ public static class SaveMigration
                 VoxelGridDiff.SetCell(grid, cell.X, cell.Y, cell.Z, cell.Block);
                 applied++;
             }
-            else if (IsPlaceable(cell.Block) && IsEmptyOrDecor(now))
+            else if (IsPlaceable(cell.Block) && (IsEmptyOrDecor(now) || now == BlockId.Water)) // a block placed into water displaces it (H06)
             {
                 placed.Add(cell);
             }
