@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.Water;
 using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Graphics.Blocks;
 using Vocaterra.Game.Graphics.Camera;
@@ -123,6 +124,8 @@ public sealed class VoxelRenderer : IDisposable
         Preset = preset;
         _dusk = dusk;
         ClearColour = dusk ? DuskSky : Sky;
+        var fogEnd0 = FogEndFor(preset.ViewDistance);
+        DryFog = new FogParameters(ClearColour.R / 255f, ClearColour.G / 255f, ClearColour.B / 255f, fogEnd0 * FogStartFraction, fogEnd0);
         _source = new GridBlockSource(grid);
         _tracker = new ChunkVersionTracker(grid);
         _view = new ChunkViewSet(grid, preset.ViewDistance);
@@ -204,8 +207,41 @@ public sealed class VoxelRenderer : IDisposable
         return found;
     }
 
-    /// <summary>The colour the target is cleared to and the fog's colour: the haze of the day, or of the evening with <c>--dusk</c>.</summary>
-    public Color ClearColour { get; }
+    /// <summary>The colour the target is cleared to and the fog's colour: the haze of the day, or of the evening with <c>--dusk</c>; the water's while the view is under water.</summary>
+    public Color ClearColour { get; private set; }
+
+    /// <summary>The fog above water (the haze's colour, start and end for the preset): what <see cref="SetUnderwater"/> blends from.</summary>
+    public FogParameters DryFog { get; }
+
+    private float _underwaterAmount;
+
+    /// <summary>
+    /// Sets how far under water the view is (H05): the fog, the clear colour and the sky blend from the dry ones to the water's by <paramref name="amount"/>
+    /// (<see cref="UnderwaterFog.Blend"/>). At 0 everything is exactly as above water. The renderer only applies the numbers; the rule is in Core.
+    /// </summary>
+    /// <param name="amount">How far under water, 0 to 1.</param>
+    public void SetUnderwater(float amount)
+    {
+        if (amount == _underwaterAmount)
+        {
+            return;
+        }
+
+        _underwaterAmount = amount;
+        var fog = UnderwaterFog.Blend(DryFog, amount);
+        var colour = new Vector3(fog.Red, fog.Green, fog.Blue);
+        ClearColour = amount <= 0f ? (_dusk ? DuskSky : Sky) : new Color(colour);
+        ApplyFog(_effect, colour, fog);
+        ApplyFog(_solid, colour, fog);
+        _sky.SetHaze(ClearColour, amount);
+    }
+
+    private static void ApplyFog(IEffectFog effect, Vector3 colour, FogParameters fog)
+    {
+        effect.FogColor = colour;
+        effect.FogStart = fog.Start;
+        effect.FogEnd = fog.End;
+    }
 
     /// <summary>The quality preset the renderer was made with.</summary>
     public QualityPreset Preset { get; }

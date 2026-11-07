@@ -110,22 +110,55 @@ public sealed class ChunkMesherTests
     {
         var meshes = Mesh(new MapBlocks().Set(5, 5, 5, BlockId.Stone).Set(6, 5, 5, BlockId.Water));
         Assert.Equal(6, meshes.Opaque.FaceCount); // stone: all six, the east one is seen through the water
-        Assert.Equal(5, meshes.Alpha.FaceCount); // water: the face towards the stone is culled
+        Assert.Equal(6, meshes.Alpha.FaceCount); // water: the face towards the stone is culled; the surface has a face for each side (H05)
     }
 
     [Fact]
     public void WaterAgainstWaterShowsNoFaceBetweenThemAndLowersTheSurface()
     {
         var side = Mesh(new MapBlocks().Set(5, 5, 5, BlockId.Water).Set(6, 5, 5, BlockId.Water));
-        Assert.Equal(10, side.Alpha.FaceCount);
+        Assert.Equal(12, side.Alpha.FaceCount);
         Assert.Equal(0, side.Opaque.FaceCount);
 
         var stacked = Mesh(new MapBlocks().Set(5, 5, 5, BlockId.Water).Set(5, 6, 5, BlockId.Water));
-        Assert.Equal(10, stacked.Alpha.FaceCount);
+        Assert.Equal(11, stacked.Alpha.FaceCount);
 
         var single = Mesh(new MapBlocks().Set(5, 5, 5, BlockId.Water));
         var top = single.Alpha.Vertices.ToArray().Max(static v => v.Y);
         Assert.InRange(top, 5.8, 5.95); // the surface stands a little below the top of the cell
+    }
+
+    [Fact]
+    public void TheWaterSurfaceIsDrawnFromBelowAsWellAsFromAbove()
+    {
+        // The water pass culls back faces; with only an upward face the surface is invisible from under the water and the world above shows
+        // through it as white speckles (H05).
+        var vertices = Mesh(new MapBlocks().Set(5, 5, 5, BlockId.Water)).Alpha.Vertices.ToArray();
+        var top = vertices.Max(static v => v.Y);
+        var up = 0;
+        var down = 0;
+        for (var q = 0; q + 3 < vertices.Length; q += 4)
+        {
+            var (a, b, c) = (vertices[q], vertices[q + 1], vertices[q + 2]);
+            if (a.Y != top || b.Y != top || c.Y != top)
+            {
+                continue; // not a face lying in the surface plane
+            }
+
+            // The y of the normal of the triangle (a, b, c), counter-clockwise seen from the front.
+            var ny = ((b.Z - a.Z) * (c.X - a.X)) - ((b.X - a.X) * (c.Z - a.Z));
+            if (ny > 0)
+            {
+                up++;
+            }
+            else if (ny < 0)
+            {
+                down++;
+            }
+        }
+
+        Assert.Equal(1, up);
+        Assert.Equal(1, down);
     }
 
     [Fact]

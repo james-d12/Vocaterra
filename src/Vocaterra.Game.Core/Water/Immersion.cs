@@ -27,7 +27,7 @@ public readonly record struct Immersion(bool Feet, bool Body, bool Eye)
         var cx = VoxelCollider.FloorDiv(body.CenterX, U);
         var cz = VoxelCollider.FloorDiv(body.CenterZ, U);
 
-        var feetTop = SurfaceTop(grid, cx, VoxelCollider.FloorDiv(body.MinY, U), cz);
+        var feetTop = WaterVolume.SurfaceTop(grid, cx, VoxelCollider.FloorDiv(body.MinY, U), cz);
         var feet = feetTop is { } top && top > body.MinY;
 
         // The highest water surface reached by contiguous water from the feet cell upwards, in the centre column.
@@ -35,7 +35,7 @@ public readonly record struct Immersion(bool Feet, bool Body, bool Eye)
         var waistY = body.MinY + (VoxelPhysics.PlayerHeight / 2);
         var cy = VoxelCollider.FloorDiv(body.MinY, U);
         var reach = int.MinValue;
-        while (SurfaceTop(grid, cx, cy, cz) is { } surface)
+        while (WaterVolume.SurfaceTop(grid, cx, cy, cz) is { } surface)
         {
             reach = surface;
             if (surface < (cy + 1) * U)
@@ -51,22 +51,6 @@ public readonly record struct Immersion(bool Feet, bool Body, bool Eye)
             bodyWet = true;
         }
 
-        var eyeCy = VoxelCollider.FloorDiv(body.EyeY, U);
-        var eyeTop = SurfaceTop(grid, VoxelCollider.FloorDiv(body.EyeX, U), eyeCy, VoxelCollider.FloorDiv(body.EyeZ, U));
-        var eye = eyeTop is { } eyeSurface && body.EyeY < eyeSurface;
-
-        return new Immersion(feet, bodyWet, eye);
-    }
-
-    /// <summary>The world height (in units) of the water's top in the cell, or null when the cell is not water (or lies outside the grid).</summary>
-    private static int? SurfaceTop(VoxelGrid grid, int x, int y, int z)
-    {
-        if (grid.GetBlock(x, y, z) != BlockId.Water)
-        {
-            return null;
-        }
-
-        var aboveIsWater = grid.GetBlock(x, y + 1, z) == BlockId.Water;
-        return (y * U) + WaterSurface.Units(grid.GetWater(x, y, z), aboveIsWater);
+        return new Immersion(feet, bodyWet, WaterVolume.Contains(grid, body.EyeX, body.EyeY, body.EyeZ));
     }
 }

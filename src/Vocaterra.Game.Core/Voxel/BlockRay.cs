@@ -8,7 +8,9 @@ namespace Vocaterra.Game.Core.Voxel;
 /// arithmetic. It returns the first block that is not air within the reach: solid blocks, and also the walk-through ones a player can
 /// interact with (a berry bush, a torch, a door, the surface of water). The block the origin is inside is skipped. Undergrowth
 /// (<see cref="BlockDefinition.Decor"/>: tall grass, ferns, reeds, flowers, S14) is skipped like air, so it never hides a berry bush or a trunk
-/// behind it and never becomes the target of a gather or a placement.
+/// behind it and never becomes the target of a gather or a placement. With <c>throughWater</c> (H05) water is skipped too, from above the
+/// surface and from below it: the outline, the debug text and a placement then act on the first block behind the water, and the placement
+/// cell (<see cref="BlockRayHit.Adjacent"/>) may itself be a water cell (a dam). Filling a bottle still uses the ray that stops at water.
 /// </summary>
 public static class BlockRay
 {
@@ -18,10 +20,10 @@ public static class BlockRay
     public const int DefaultReachInBlocks = VoxelPhysics.ReachInBlocks;
 
     /// <summary>Casts a ray from the player's eye along the player's facing, with the default reach.</summary>
-    public static BlockRayHit? Cast(VoxelGrid grid, PlayerBody body, int reachInBlocks = DefaultReachInBlocks)
+    public static BlockRayHit? Cast(VoxelGrid grid, PlayerBody body, int reachInBlocks = DefaultReachInBlocks, bool throughWater = false)
     {
         ArgumentNullException.ThrowIfNull(body);
-        return Cast(grid, body.EyeX, body.EyeY, body.EyeZ, body.Yaw, body.Pitch, reachInBlocks);
+        return Cast(grid, body.EyeX, body.EyeY, body.EyeZ, body.Yaw, body.Pitch, reachInBlocks, throughWater);
     }
 
     /// <summary>
@@ -29,17 +31,17 @@ public static class BlockRay
     /// (<paramref name="yaw"/>, <paramref name="pitch"/>, see <see cref="Angles"/>) for at most <paramref name="reachInBlocks"/> blocks.
     /// </summary>
     /// <returns>The first block that is not air, or <see langword="null"/> when there is none within the reach (or the ray leaves the grid first).</returns>
-    public static BlockRayHit? Cast(VoxelGrid grid, int originX, int originY, int originZ, int yaw, int pitch, int reachInBlocks = DefaultReachInBlocks)
+    public static BlockRayHit? Cast(VoxelGrid grid, int originX, int originY, int originZ, int yaw, int pitch, int reachInBlocks = DefaultReachInBlocks, bool throughWater = false)
     {
         var (dx, dy, dz) = Angles.Direction(yaw, pitch);
-        return Cast(grid, originX, originY, originZ, dx, dy, dz, (long)reachInBlocks * U);
+        return Cast(grid, originX, originY, originZ, dx, dy, dz, (long)reachInBlocks * U, throughWater);
     }
 
     /// <summary>
     /// Casts a ray along the fixed-point unit direction (<paramref name="dx"/>, <paramref name="dy"/>, <paramref name="dz"/>), where
     /// <see cref="Angles.One"/> is 1.0, for at most <paramref name="reachUnits"/> units.
     /// </summary>
-    public static BlockRayHit? Cast(VoxelGrid grid, int originX, int originY, int originZ, int dx, int dy, int dz, long reachUnits)
+    public static BlockRayHit? Cast(VoxelGrid grid, int originX, int originY, int originZ, int dx, int dy, int dz, long reachUnits, bool throughWater = false)
     {
         ArgumentNullException.ThrowIfNull(grid);
         if (dx == 0 && dy == 0 && dz == 0)
@@ -113,7 +115,7 @@ public static class BlockRay
             }
 
             var id = grid.GetBlock(cx, cy, cz);
-            if (id == BlockId.Air || BlockDefinition.IsDecor(id))
+            if (id == BlockId.Air || BlockDefinition.IsDecor(id) || (throughWater && id == BlockId.Water))
             {
                 continue; // air, and undergrowth (S14): the crosshair looks through the grass at what stands behind it
             }
