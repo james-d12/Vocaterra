@@ -236,6 +236,8 @@ public sealed class IntentResolver
         var tokens = analysis.Tokens.Count;
         if (allowed is not null)
         {
+            // The trailing polite phrase every grammar allows binds to literal words too (M83), which the grammar's own bounds do not count.
+            var polite = _language.GrammarDefaults.TrailingPoliteWords.Count;
             var any = false;
             foreach (var intent in _catalog.Intents)
             {
@@ -243,7 +245,7 @@ public sealed class IntentResolver
                 {
                     foreach (var grammar in intent.Grammars)
                     {
-                        any |= allowed.Score.CanBeBeatenBy(grammar, tokens) && Math.Min(grammar.MaxNamedTokens, tokens) > allowed.Score.Named;
+                        any |= allowed.Score.CanBeBeatenBy(grammar, tokens, polite) && Math.Min(grammar.MaxNamedTokens + polite, tokens) > allowed.Score.Named;
                     }
                 }
             }
@@ -272,7 +274,7 @@ public sealed class IntentResolver
     // The grammar's reading when it beats the best so far (or there is none), otherwise null; the grammar is not matched when it cannot beat it.
     private static GrammarReading? Better(GrammarReading? best, IntentDefinition intent, SlotGrammar grammar, TokenFacts facts)
     {
-        if (best is not null && (string.Equals(grammar.Id, best.Match!.Grammar.Id, StringComparison.Ordinal) || !best.Score.CanBeBeatenBy(grammar, facts.Tokens.Count)))
+        if (best is not null && (string.Equals(grammar.Id, best.Match!.Grammar.Id, StringComparison.Ordinal) || !best.Score.CanBeBeatenBy(grammar, facts.Tokens.Count, facts.Language.GrammarDefaults.TrailingPoliteWords.Count)))
         {
             return null;
         }
@@ -287,11 +289,12 @@ public sealed class IntentResolver
         public static MatchScore Of(SlotGrammarMatch match) => new(match.ExplicitTokenCount, match.LiteralTokenCount, match.NamedTokenCount);
 
         // False when no match of the grammar over that many tokens can beat a match of this score: it cannot consume more tokens with explicit elements, nor as
-        // many with more of them bound to literal words.
-        public bool CanBeBeatenBy(SlotGrammar grammar, int tokens)
+        // many with more of them bound to literal words. The grammar's bound on literal words does not count the trailing polite phrase (M83: the matcher binds its
+        // words to literals too, so an optional (por favor)? that matches the phrase before it leaves the phrase to the line's end), hence the polite words.
+        public bool CanBeBeatenBy(SlotGrammar grammar, int tokens, int politeWords)
         {
             var explicitTokens = Math.Min(grammar.MaxTokens, tokens);
-            return explicitTokens > Explicit || (explicitTokens == Explicit && Math.Min(grammar.MaxLiteralTokens, tokens) > Literal);
+            return explicitTokens > Explicit || (explicitTokens == Explicit && Math.Min(grammar.MaxLiteralTokens + politeWords, tokens) > Literal);
         }
     }
 

@@ -20,6 +20,8 @@ public class IntentResolverCatalogReadingTests
             "keywordRules": [ { "lemmas": ["qué", "hacer"] }, { "lemmas": ["comprar"], "requiresSlots": ["item"], "slotFromNoun": "item" } ] },
           { "intentId": "offer", "slotGrammars": ["vendo [NOUN:item]"] },
           { "intentId": "request", "slotGrammars": ["[VERB:necesitar] [NOUN:item] (por favor)?"] },
+          { "intentId": "polite", "slotGrammars": ["[NOUN:item] por favor"] },
+          { "intentId": "help", "slotGrammars": ["ayuda (por favor)?"] },
           { "intentId": "weather", "slotGrammars": ["(hoy)? [VERB:hacer] (calor|sol|buen tiempo):weather", "qué tiempo [VERB:hacer]"] } ] }
         """;
 
@@ -146,5 +148,40 @@ public class IntentResolverCatalogReadingTests
 
         Assert.Contains("weather", weather.DeclaredSlots.Select(static s => s.Name));
         Assert.Equal("(hoy)? [VERB:hacer] (calor|sol|buen tiempo):weather", SlotGrammar.Parse(weather.Grammars[0].Pattern).Pattern);
+    }
+
+    [Theory]
+    [InlineData("ayuda por favor por favor")]
+    [InlineData("ayuda, por favor, por favor")]
+    public void TheTrailingPolitePhraseCountsAsLiteralWordsWhenAGrammarOutsideThePromptIsWeighed(string text)
+    {
+        // M83 (fuzz seed 8eu5g1sTe_A8): [NOUN:item] por favor reads ayuda as the item, then por favor, and the phrase every grammar allows. ayuda (por favor)? consumes
+        // as many tokens, and binds all five to literal words (the phrase too), so it beats the allowed grammar and names more of the words. The bound that decides
+        // whether to match it at all must count the polite phrase, or the allowed grammar keeps a line the other one outranks.
+        Assert.Equal(OffPrompt("help"), Resolve(text, "polite"));
+        Assert.Equal(new IntentId("help"), Resolve(text, "polite", "help").Intent);
+        Assert.Equal(new IntentId("help"), Resolve(text).Intent);
+    }
+
+    [Fact]
+    public void ALineTheOutsideGrammarDoesNotOutrankStaysWithTheAllowedOne()
+    {
+        Assert.Equal(new IntentId("polite"), Resolve("pan por favor", "polite").Intent);
+    }
+
+    [Fact]
+    public void TheFuzzSeed8eu5g1sTe_A8ReadsAsAskHelpOffThePrompt()
+    {
+        // O7's CsCheck seed 8eu5g1sTe_A8, pasted: request_item's [ART]? [NUM:qty]? [NOUN:item] [ADJ]? por favor matches (ayuda as the item), ask_help's ayuda (por favor)?
+        // outranks it, and the prompt does not allow ask_help.
+        var bundle = Vocaterra.Nlp.Pipeline.Tests.TestSupport.Bundle;
+        var allowed = new[] { "ask_activity", "no_such_intent", "request_item", "farewell" };
+        var normalized = bundle.Language.Normalizer.Normalize("ayuda por favor por favor", IntentFixtures.KeepArticles);
+        var prompt = new PromptSpec("p1", RecognitionMode.Constrained, Difficulty.Beginner, "answers", allowed, null, []);
+        var grammars = bundle.Intents.Intents.Where(i => allowed.Contains(i.Id.Value)).SelectMany(static i => i.Grammars).ToArray();
+        var analysis = new LinguisticAnalyzer(bundle.Lexicon, bundle.LanguageMorphology, bundle.Language, bundle.AnalysisRules).Analyze(normalized, grammars);
+
+        Assert.Equal("[ART]? [NUM:qty]? [NOUN:item] [ADJ]? por favor", analysis.MatchedGrammarId);
+        Assert.Equal(OffPrompt("ask_help"), new IntentResolver(bundle.Intents, bundle.Language, null, null, bundle.AnalysisRules).Resolve(normalized, analysis, prompt));
     }
 }

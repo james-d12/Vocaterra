@@ -873,6 +873,15 @@ Found and fixed in M82 (the owner's decision, 2026-11-05; the bare-intent case M
   Removing the last of the three from an intent is therefore a rejected mutation, and `AcceptedGrammarlessIntent` still returns null for it. No bundle on disk was bare, so nothing else changed.
   Regressions: `IntentCatalogTests.AnIntentWithNoGrammarRuleOrExampleIsRefused` and the per-member loads beside it.
 
+Found and fixed in M83 (the owner, 2026-11-07, D-game-23 item 5; found by W02):
+
+- **The resolver kept a grammar that an outranking grammar outside the prompt beat when the line ended in a polite phrase** (`IntentResolver.OutsideGrammar`, O7, CsCheck seed `8eu5g1sTe_A8`). «ayuda por favor por favor» at a prompt allowing `request_item` and not `ask_help`:
+  `request_item`'s `[ART]? [NUM:qty]? [NOUN:item] [ADJ]? por favor` matches (`ayuda` the item; three tokens explicit, four bound to literals with the trailing phrase) and `ask_help`'s `ayuda (por favor)?`
+  beats it (three explicit, five literal, five named), as the oracle says. The matcher binds the trailing polite phrase's words to literals, but a grammar's `MaxLiteralTokens` and `MaxNamedTokens`
+  (the bounds the resolver prunes with before it matches an outside grammar) count only the pattern's own elements, so `ayuda (por favor)?` was judged unable to beat four literals (bound 3) and never matched.
+  The oracle was right and the analyzer was not at fault. The resolver now adds the language's trailing polite words to both bounds. Regressions:
+  `IntentResolverCatalogReadingTests.TheFuzzSeed8eu5g1sTe_A8ReadsAsAskHelpOffThePrompt` (the seed's input) and `TheTrailingPolitePhraseCountsAsLiteralWordsWhenAGrammarOutsideThePromptIsWeighed`.
+
 ## Known, deliberately not fixed
 
 Findings that are content gaps or design limits rather than defects of one stage. None changes behaviour here; the generators step around
