@@ -218,6 +218,54 @@
       "Bytes": 114850,
       "Gain": 0.32
     },
+    "speech/baker/baker_gift_used.1.slow.wav": {
+      "Text": "Hoy no tengo m\u00E1s.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "d2bc83a6a507ee607930ed3d681269ed400a8812c65898f772123fb88bce4a26",
+      "Bytes": 85572,
+      "Gain": 0.32
+    },
+    "speech/baker/baker_gift_used.1.wav": {
+      "Text": "Hoy no tengo m\u00E1s.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "951e29cea9df9ec4c8478704d7de0462ecb88651af8c6c85702b46a374d7ec7a",
+      "Bytes": 67198,
+      "Gain": 0.32
+    },
+    "speech/baker/baker_give_missing.1.slow.wav": {
+      "Text": "Toma. Aqu\u00ED tienes.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "38b0f46e59ac03e6d3859c434114ed534a6a49bdb4594a1a3ceaad4b604c0127",
+      "Bytes": 111292,
+      "Gain": 0.32
+    },
+    "speech/baker/baker_give_missing.1.wav": {
+      "Text": "Toma. Aqu\u00ED tienes.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "3d951dd79ad77c0ccb3a8446f0d3cb142276a44e97b0dab2e7a0a2657f163f5f",
+      "Bytes": 93422,
+      "Gain": 0.32
+    },
     "speech/baker/baker_greet.1.slow.wav": {
       "Text": "\u00BFQu\u00E9 quieres?",
       "Speaker": "baker",
@@ -240,6 +288,30 @@
       "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
       "Sha256": "1cbde44970b6825f06028e0b282198507e30c1909f7d7684ec8234600ab3119b",
       "Bytes": 48482,
+      "Gain": 0.32
+    },
+    "speech/baker/baker_has_all.1.slow.wav": {
+      "Text": "Ya tienes todo.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "9638a5c6a20b09d58fa6911862fb7d41b66300d014d5947572c49adcd233c6aa",
+      "Bytes": 83794,
+      "Gain": 0.32
+    },
+    "speech/baker/baker_has_all.1.wav": {
+      "Text": "Ya tienes todo.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "4554c7874c60b94d2ce86a51d3c76a514b94b2a7bee7f865a78fecf802f9e52b",
+      "Bytes": 64454,
       "Gain": 0.32
     },
     "speech/baker/baker_hay.1.slow.wav": {
@@ -314,6 +386,54 @@
       "Bytes": 119188,
       "Gain": 0.32
     },
+    "speech/baker/baker_helping.1.slow.wav": {
+      "Text": "Te ayudo.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "2498b9500495fad527410cd4a8fe3e003b1b7fc70478857d8d786714b3e2f5cd",
+      "Bytes": 71792,
+      "Gain": 0.32
+    },
+    "speech/baker/baker_helping.1.wav": {
+      "Text": "Te ayudo.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "875f14eb3784b62e9bfecad0471ec1d99e6dc0b1eaaca612775f6a028690ee63",
+      "Bytes": 54396,
+      "Gain": 0.32
+    },
+    "speech/baker/baker_listen.1.slow.wav": {
+      "Text": "Escucha.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "85f7c25d71e6634827d120a8ce876c957f0710124c9323015175413bc70ba605",
+      "Bytes": 61022,
+      "Gain": 0.32
+    },
+    "speech/baker/baker_listen.1.wav": {
+      "Text": "Escucha.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "f4e7ab51f992ba8b1ce161a09bb84c46fdc0a4ecdce022457b38187fa5fb37ce",
+      "Bytes": 47904,
+      "Gain": 0.32
+    },
     "speech/baker/baker_nice.1.slow.wav": {
       "Text": "\u00A1Qu\u00E9 bien!",
       "Speaker": "baker",
@@ -384,6 +504,30 @@
       "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
       "Sha256": "77c8b202431bcf47aaf3c30641f5888d4364f970736f757f6dc0c7a75c63be16",
       "Bytes": 106224,
+      "Gain": 0.32
+    },
+    "speech/baker/baker_offer_bake.1.slow.wav": {
+      "Text": "\u00BFQuieres hacer pan?",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "0dc3e3606e5b72d1ee3a79372c3f875445c230c0d4308d2d81f984d1e70894a8",
+      "Bytes": 88264,
+      "Gain": 0.32
+    },
+    "speech/baker/baker_offer_bake.1.wav": {
+      "Text": "\u00BFQuieres hacer pan?",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "4b8eae75c4a5118049b80e1a6cdc9d5b99c013f216a598e3721034ca42ab6847",
+      "Bytes": 65262,
       "Gain": 0.32
     },
     "speech/baker/baker_price.1.slow.wav": {
@@ -480,6 +624,30 @@
       "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
       "Sha256": "82fc6e68ac679ebf34b4fed782707b1b94501fe87a22214e1f2c28bd164251b4",
       "Bytes": 58124,
+      "Gain": 0.32
+    },
+    "speech/baker/baker_teach_go.1.slow.wav": {
+      "Text": "\u00A1Vamos!",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "1e8621ce75c979cb9cc4eee6105a706546e0297e4f4eb2204781f1756937fcad",
+      "Bytes": 48464,
+      "Gain": 0.32
+    },
+    "speech/baker/baker_teach_go.1.wav": {
+      "Text": "\u00A1Vamos!",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "d484bf34baf724f925947ce667b135eb40e7b70e8e853e9ea377465a39a93138",
+      "Bytes": 45412,
       "Gain": 0.32
     },
     "speech/baker/baker_thank.1.slow.wav": {
@@ -1586,6 +1754,30 @@
       "Bytes": 68860,
       "Gain": 0.32
     },
+    "speech/baker/prompt.baker-offer.slow.wav": {
+      "Text": "\u00BFQuieres hacer pan?",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "0dc3e3606e5b72d1ee3a79372c3f875445c230c0d4308d2d81f984d1e70894a8",
+      "Bytes": 88264,
+      "Gain": 0.32
+    },
+    "speech/baker/prompt.baker-offer.wav": {
+      "Text": "\u00BFQuieres hacer pan?",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "4b8eae75c4a5118049b80e1a6cdc9d5b99c013f216a598e3721034ca42ab6847",
+      "Bytes": 65262,
+      "Gain": 0.32
+    },
     "speech/baker/prompt.baker-open.slow.wav": {
       "Text": "\u00BFQu\u00E9 quieres?",
       "Speaker": "baker",
@@ -1608,6 +1800,30 @@
       "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
       "Sha256": "1cbde44970b6825f06028e0b282198507e30c1909f7d7684ec8234600ab3119b",
       "Bytes": 48482,
+      "Gain": 0.32
+    },
+    "speech/baker/prompt.baker-proc.slow.wav": {
+      "Text": "\u00BFQu\u00E9 quieres?",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "6c37552a311397c6401de22465a428cc02c22601559946e94d916d72bda9f29f",
+      "Bytes": 61454,
+      "Gain": 0.32
+    },
+    "speech/baker/prompt.baker-proc.wav": {
+      "Text": "\u00BFQu\u00E9 quieres?",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "e9caa1e45123d16fc1cd484fc8d88194dbb2db09aec83bf46288d432bc699c48",
+      "Bytes": 48488,
       "Gain": 0.32
     },
     "speech/baker/prompt.lesson-bought.slow.wav": {

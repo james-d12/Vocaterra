@@ -126,6 +126,7 @@ public sealed record BakeOffer(string ProcedureId, string Label, bool GuidedFirs
 /// <param name="Missing">The nouns of the ingredients gone at the end of the bake.</param>
 /// <param name="MadeLabel">The label of the item the finished bake gave (<c>el pan</c>), or <see langword="null"/> before.</param>
 /// <param name="Offer">The one-click bake's offer, or <see langword="null"/> before the procedure is mastered.</param>
+/// <param name="Talk">What the learner's talk to the teacher shows (W08), or <see langword="null"/> when nobody listens or nothing is to be shown.</param>
 public sealed record StationView(
     string StationId,
     string Title,
@@ -145,4 +146,30 @@ public sealed record StationView(
     int Made,
     IReadOnlyList<string> Missing,
     string? MadeLabel = null,
-    BakeOffer? Offer = null);
+    BakeOffer? Offer = null,
+    StationTalkView? Talk = null);
+
+/// <summary>What the line of the station's talk to the teacher shows (W08): the learner's text box, the recording, the thinking, or the teacher's answer.</summary>
+/// <param name="Teacher">The teacher's name (<c>Luz</c>).</param>
+/// <param name="State">What the line is.</param>
+/// <param name="Text">The text box's contents, the learner's heard line, or the teacher's answer, by state; empty for the others.</param>
+public sealed record StationTalkView(string Teacher, StationTalkState State, string Text);
+
+/// <summary>What the talk line of the station is showing now (W08).</summary>
+public enum StationTalkState
+{
+    /// <summary>The learner is typing a line: <see cref="StationTalkView.Text"/> is the text box.</summary>
+    Typing,
+
+    /// <summary>The microphone is recording.</summary>
+    Listening,
+
+    /// <summary>A turn is on the worker: the teacher is thinking.</summary>
+    Thinking,
+
+    /// <summary>The teacher answered: <see cref="StationTalkView.Text"/> is her line.</summary>
+    Answer,
+
+    /// <summary>The talk could not start (no microphone, no speech model): <see cref="StationTalkView.Text"/> says why.</summary>
+    Problem,
+}

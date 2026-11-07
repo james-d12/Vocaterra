@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "game/host-events.json",
-  "description": "What each NPC host event does in the world (C08; schema 2 since VILLAGE_PLAN V02: a count on give_item, point_at_place and point_at_slot; V03: take_item and sell; V15: buy). Loaded by HostEventTable (Vocaterra.Game.Core).",
+  "description": "What each NPC host event does in the world (C08; schema 2 since VILLAGE_PLAN V02: a count on give_item, point_at_place and point_at_slot; V03: take_item and sell; V15: buy; W08: the teacher's kinds procedure_repeat, procedure_slower, procedure_help, give_missing, teach_recipe and start_procedure). Loaded by HostEventTable (Vocaterra.Game.Core).",
   "type": "object",
   "required": [
     "schemaVersion",
@@ -245,6 +245,45 @@
                   }
                 },
                 "description": "The NPC buys the item from the learner (V15, the sale turned round): as many as the learner said (the verdict's qty, at most what the bag holds) or, with no number, every one the bag holds, for the price each in coins. A bag with none raises <npc>.cant_sell to the agent as a host turn, a line that offers another item (or a catalogue noun of no item) <npc>.wont_buy, an offer of none <npc>.none_offered, and a bag with no room for the coins <npc>.no_room (V19); then nothing changes hands."
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "procedure_repeat",
+                      "procedure_slower",
+                      "procedure_help",
+                      "give_missing"
+                    ]
+                  }
+                },
+                "description": "A teacher's answer at a station (W08, design 10.14), with no more to say: procedure_repeat plays the instruction again, procedure_slower plays it slowly, procedure_help is the H key, and give_missing gives the ingredients the run still lacks (always for the first bake, then once per in-game day; the agent answers <npc>.nothing_missing, <npc>.gift_used or <npc>.no_room when nothing is given)."
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "teach_recipe",
+                      "start_procedure"
+                    ]
+                  },
+                  "procedure": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "The procedure's id; left out, the procedure the NPC teaches (so a bundle with none maps the event and nothing happens)."
+                  }
+                },
+                "description": "teach_recipe adds the procedure to the procedures the learner knows (W08); start_procedure opens the station for it and puts the teacher in its teaching state (the accepted offer to bake)."
               }
             ]
           }

@@ -410,12 +410,16 @@ public sealed record ChestSave(int X, int Y, int Z, SlotSave[] Stacks);
 /// <param name="Progress">The records, one per procedure started.</param>
 /// <param name="Evidence">The right acts per instruction row, heard and read apart.</param>
 /// <param name="Run">The run in progress, or <see langword="null"/>.</param>
+/// <param name="OfferedToday">The NPCs whose offer to bake was made since the last night (W08, design 10.14: once per in-game day); <see langword="null"/> for none.</param>
+/// <param name="GrantedToday">The procedures whose ingredients a teacher gave since the last night (W08, design decision 20: once per in-game day after the first bake); <see langword="null"/> for none, and in a save made before W08.</param>
 public sealed record ProceduresSave(
     int Version,
     string[] Known,
     ProcedureProgressSave[] Progress,
     ActEvidenceSave[] Evidence,
-    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] ProcedureRunSave? Run = null);
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] ProcedureRunSave? Run = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string[]? GrantedToday = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string[]? OfferedToday = null);
 
 /// <summary>One procedure's record in a save.</summary>
 /// <param name="Id">The procedure.</param>

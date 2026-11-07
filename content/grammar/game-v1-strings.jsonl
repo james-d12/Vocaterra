@@ -7,17 +7,24 @@
 {"id":"dialogue:baker_cant_pay.1","text":"Necesitas más monedas.","kind":"npc"}
 {"id":"dialogue:baker_cant_sell.1","text":"No tienes madera.","kind":"npc"}
 {"id":"dialogue:baker_delivered.1","text":"¡Gracias! Toma cuatro monedas.","kind":"npc"}
+{"id":"dialogue:baker_gift_used.1","text":"Hoy no tengo más.","kind":"npc"}
+{"id":"dialogue:baker_give_missing.1","text":"Toma. Aquí tienes.","kind":"npc"}
 {"id":"dialogue:baker_greet.1","text":"¿Qué quieres?","kind":"npc"}
+{"id":"dialogue:baker_has_all.1","text":"Ya tienes todo.","kind":"npc"}
 {"id":"dialogue:baker_hay.1","text":"Aquí hay pan. ¿Cuántos panes quieres?","kind":"npc"}
 {"id":"dialogue:baker_hello.1","text":"¡Hola!","kind":"npc"}
 {"id":"dialogue:baker_help.1","text":"Puedes decir: «Quiero dos panes, por favor».","kind":"npc"}
+{"id":"dialogue:baker_helping.1","text":"Te ayudo.","kind":"npc"}
+{"id":"dialogue:baker_listen.1","text":"Escucha.","kind":"npc"}
 {"id":"dialogue:baker_nice.1","text":"¡Qué bien!","kind":"npc"}
 {"id":"dialogue:baker_no_room.1","text":"Tu bolsa está llena.","kind":"npc"}
 {"id":"dialogue:baker_none_offered.1","text":"¿Cuántos bloques de madera me vendes?","kind":"npc"}
+{"id":"dialogue:baker_offer_bake.1","text":"¿Quieres hacer pan?","kind":"npc"}
 {"id":"dialogue:baker_price.1","text":"El pan cuesta dos monedas.","kind":"npc"}
 {"id":"dialogue:baker_sell.1","text":"Aquí tienes el pan. ¡Gracias!","kind":"npc"}
 {"id":"dialogue:baker_sell.2","text":"Toma tu pan. ¡Gracias!","kind":"npc"}
 {"id":"dialogue:baker_sun.1","text":"Hoy hace sol.","kind":"npc"}
+{"id":"dialogue:baker_teach_go.1","text":"¡Vamos!","kind":"npc"}
 {"id":"dialogue:baker_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:baker_thank.2","text":"¡Con gusto!","kind":"npc"}
 {"id":"dialogue:baker_true.1","text":"Sí, es verdad.","kind":"npc"}
@@ -384,7 +391,9 @@
 {"id":"dialogue:villager_well.1","text":"Bien, gracias.","kind":"npc"}
 {"id":"dialogue:villager_wont_sell.1","text":"Solo tengo pan.","kind":"npc"}
 {"id":"dialogue:villager_yes.1","text":"¡Sí!","kind":"npc"}
+{"id":"prompts:baker-offer","text":"¿Quieres hacer pan?","kind":"npc"}
 {"id":"prompts:baker-open","text":"¿Qué quieres?","kind":"npc"}
+{"id":"prompts:baker-proc","text":"¿Qué quieres?","kind":"npc"}
 {"id":"prompts:farmer-open","text":"¡Hola! Este es mi campo.","kind":"npc"}
 {"id":"prompts:fisher-open","text":"¿Qué buscas?","kind":"npc"}
 {"id":"prompts:guide-offer","text":"¿Quieres agua?","kind":"npc"}
@@ -454,6 +463,43 @@
 {"id":"prompts:stall-need","text":"¿Qué necesitas?","kind":"npc"}
 {"id":"prompts:stall-offer","text":"¿Quieres pan?","kind":"npc"}
 {"id":"prompts:villager-open","text":"Hola.","kind":"npc"}
+{"id":"answer-sets/baker-proc:again","text":"otra vez por favor","kind":"learner"}
+{"id":"answer-sets/baker-proc:again.alias1","text":"otra vez","kind":"learner"}
+{"id":"answer-sets/baker-proc:again.alias2","text":"repite por favor","kind":"learner"}
+{"id":"answer-sets/baker-proc:again.alias3","text":"repite","kind":"learner"}
+{"id":"answer-sets/baker-proc:again.alias4","text":"puedes repetir","kind":"learner"}
+{"id":"answer-sets/baker-proc:again.alias5","text":"puedes repetir por favor","kind":"learner"}
+{"id":"answer-sets/baker-proc:slower","text":"más despacio por favor","kind":"learner"}
+{"id":"answer-sets/baker-proc:slower.alias1","text":"más despacio","kind":"learner"}
+{"id":"answer-sets/baker-proc:slower.alias2","text":"habla más despacio","kind":"learner"}
+{"id":"answer-sets/baker-proc:slower.alias3","text":"habla más despacio por favor","kind":"learner"}
+{"id":"answer-sets/baker-proc:slower.alias4","text":"despacio por favor","kind":"learner"}
+{"id":"answer-sets/baker-proc:slower.alias5","text":"despacio","kind":"learner"}
+{"id":"answer-sets/baker-proc:slower.alias6","text":"más lento","kind":"learner"}
+{"id":"answer-sets/baker-proc:slower.alias7","text":"más lento por favor","kind":"learner"}
+{"id":"answer-sets/baker-proc:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/baker-proc:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/baker-proc:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/baker-proc:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/baker-proc:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/baker-proc:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/baker-proc:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/baker-proc:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/baker-proc:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/baker-proc:want-wood","text":"quiero madera","kind":"learner"}
+{"id":"answer-sets/baker-proc:want-wood.alias1","text":"quiero madera por favor","kind":"learner"}
+{"id":"answer-sets/baker-proc:want-wood.alias2","text":"necesito madera","kind":"learner"}
+{"id":"answer-sets/baker-proc:want-wood.alias3","text":"madera por favor","kind":"learner"}
+{"id":"answer-sets/baker-proc:want-water","text":"quiero agua","kind":"learner"}
+{"id":"answer-sets/baker-proc:want-water.alias1","text":"quiero agua por favor","kind":"learner"}
+{"id":"answer-sets/baker-proc:want-water.alias2","text":"necesito agua","kind":"learner"}
+{"id":"answer-sets/baker-proc:want-water.alias3","text":"agua por favor","kind":"learner"}
+{"id":"answer-sets/baker-proc:is-there-wood","text":"hay madera","kind":"learner"}
+{"id":"answer-sets/baker-proc:is-there-wood.alias1","text":"hay madera aquí","kind":"learner"}
+{"id":"answer-sets/baker-proc:is-there-water","text":"hay agua","kind":"learner"}
+{"id":"answer-sets/baker-proc:is-there-water.alias1","text":"hay agua aquí","kind":"learner"}
+{"id":"answer-sets/baker-proc:thanks","text":"gracias","kind":"learner"}
+{"id":"answer-sets/baker-proc:thanks.alias1","text":"muchas gracias","kind":"learner"}
 {"id":"answer-sets/lesson-apple:apple","text":"la manzana es roja","kind":"learner"}
 {"id":"answer-sets/lesson-apple:apple.alias1","text":"es roja","kind":"learner"}
 {"id":"answer-sets/lesson-apple:apple.alias2","text":"sí es roja","kind":"learner"}

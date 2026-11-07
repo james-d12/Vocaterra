@@ -493,6 +493,19 @@ public static class GameDataValidator
                 problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' points at the place '{effect.Place}', which is not a point of the scene.");
             }
 
+            if (effect.Kind == NpcEffectKind.GiveMissing && data.Bundle.Agents.ContainsKey(npc))
+            {
+                foreach (var miss in new[] { NpcHostEvents.NothingMissing, NpcHostEvents.GiftUsed, NpcHostEvents.NoRoom }.Where(miss => !TakenBySomeState(data, npc, NpcHostEvents.Of(npc, miss))))
+                {
+                    problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' gives the ingredients a run lacks, and no state of agents/{npc}.json takes '{NpcHostEvents.Of(npc, miss)}' to say why it gave none.");
+                }
+            }
+
+            if (effect is { Kind: NpcEffectKind.TeachRecipe or NpcEffectKind.StartProcedure, Procedure.Length: > 0 } && data.Procedures.Find(effect.Procedure) is null)
+            {
+                problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' names the procedure '{effect.Procedure}', which is not one of the procedures.");
+            }
+
             if (effect.Kind == NpcEffectKind.PointAtSlot && data.Bundle.Agents.ContainsKey(npc) && !TakenBySomeState(data, npc, NpcHostEvents.Of(npc, NpcHostEvents.UnknownPlace)))
             {
                 problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' points at the place the learner names, and no state of agents/{npc}.json takes '{NpcHostEvents.Of(npc, NpcHostEvents.UnknownPlace)}' to say it does not know one.");
@@ -888,6 +901,13 @@ public static class GameDataValidator
         if (!data.Npcs.Ids.Contains(procedure.Teacher, StringComparer.Ordinal))
         {
             problems.Add($"{file}: the teacher '{procedure.Teacher}' is not one of the NPCs.");
+        }
+        else if (data.Bundle.Agents.ContainsKey(procedure.Teacher))
+        {
+            foreach (var what in new[] { NpcHostEvents.TeachStart, NpcHostEvents.TeachEnd }.Where(what => !TakenBySomeState(data, procedure.Teacher, NpcHostEvents.Of(procedure.Teacher, what))))
+            {
+                problems.Add($"{file}: the teacher '{procedure.Teacher}' is listening at the station, and no state of agents/{procedure.Teacher}.json takes '{NpcHostEvents.Of(procedure.Teacher, what)}' (design 10.14).");
+            }
         }
 
         if (!data.Bundle.Cefr.ContainsKey(procedure.Level))

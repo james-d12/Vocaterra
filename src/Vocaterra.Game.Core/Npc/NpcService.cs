@@ -385,11 +385,12 @@ public sealed partial class NpcService
     /// <param name="objectiveComplete">Whether the camp objective is complete (the guide then makes her transfer offer, once).</param>
     /// <param name="now">The stored time.</param>
     /// <param name="hostStateHash">The simulation's state digest.</param>
+    /// <param name="offer">The host event of a teacher's offer to bake (W08, <c>&lt;npc&gt;.offer_bake</c>), or <see langword="null"/>: when the NPC is in its initial state and its agent takes the event, the talk opens with the offer instead of the NPC's greeting.</param>
     /// <param name="delivered">
     /// The host event of an order the player has brought the goods of (village-plan V03, <c>&lt;npc&gt;.delivered</c>), or <see langword="null"/>: when the NPC's state
     /// takes it, it is the opening instead of the NPC's own (<see cref="NpcOpening.Delivered"/>); when it does not, the talk opens as usual.
     /// </param>
-    public NpcOpening Open(string npc, bool objectiveComplete, StoredTimestamp now, string hostStateHash, string? delivered = null)
+    public NpcOpening Open(string npc, bool objectiveComplete, StoredTimestamp now, string hostStateHash, string? delivered = null, string? offer = null)
     {
         ArgumentNullException.ThrowIfNull(hostStateHash);
         var agent = AgentOf(npc);
@@ -407,7 +408,7 @@ public sealed partial class NpcService
             }
         }
 
-        var hostEvent = OpeningEvent(agent, objectiveComplete);
+        var hostEvent = offer is not null && string.Equals(agent.Context.AgentState.StateId, agent.InitialState, StringComparison.Ordinal) ? offer : OpeningEvent(agent, objectiveComplete);
         if (hostEvent is not null)
         {
             var before = agent.Context with { Now = now, HostStateHash = hostStateHash };
@@ -431,6 +432,37 @@ public sealed partial class NpcService
         var prompt = PromptFor(agent, false);
         return new NpcOpening(npc, prompt, [_bundle.Prompts[prompt].Text ?? string.Empty], false, [], false);
     }
+
+    /// <summary>
+    /// A host turn the game raises on an NPC that is in the middle of no talk (W08: <c>&lt;npc&gt;.teach_start</c> and <c>teach_end</c>): the agent takes the event through <c>pipeline.Advance</c>
+    /// when its state has a transition for it, and the turn is a core record. Call it between turns, never while a turn is on the worker.
+    /// </summary>
+    /// <param name="npc">The NPC's agent id.</param>
+    /// <param name="hostEvent">The host event (<see cref="NpcHostEvents.Of"/>).</param>
+    /// <param name="now">The stored time.</param>
+    /// <param name="hostStateHash">The simulation's state digest.</param>
+    /// <returns>The turn's lines and host events, or <see langword="null"/> when the agent has no transition for the event (nothing changed).</returns>
+    public NpcOpening? HostTurn(string npc, string hostEvent, StoredTimestamp now, string hostStateHash)
+    {
+        ArgumentNullException.ThrowIfNull(hostEvent);
+        ArgumentNullException.ThrowIfNull(hostStateHash);
+        var agent = AgentOf(npc);
+        var before = agent.Context with { Now = now, HostStateHash = hostStateHash };
+        if (_typed.Advance(hostEvent, before) is not { } turn)
+        {
+            return null;
+        }
+
+        Record(new ReplayEntry(null, HostTurnEnvelope.From(turn, before)));
+        agent.Context = before.Next(turn, now) with { HostStateHash = hostStateHash };
+        var events = HostEventsOf(turn.Agent.Actions);
+        Note(agent, hostEvent, events);
+        return new NpcOpening(npc, PromptFor(agent, false), turn.Response.Lines.Select(static l => l.Text).ToList(), true, events, false);
+    }
+
+    /// <summary>The id of the state an NPC's agent is in now (W08: the session ends a <c>teaching</c> state a load left standing).</summary>
+    /// <param name="npc">The NPC's agent id.</param>
+    public string StateOf(string npc) => AgentOf(npc).Context.AgentState.StateId;
 
     /// <summary>
     /// Evaluates one typed line to the guide and returns the turn. The conversation moves on whatever the verdict: an unclear line also counts, as
@@ -720,6 +752,21 @@ public sealed partial class NpcService
             ? [NpcTurnRules.OffPromptReply(_bundle, offPromptPool!, utterance.WorldSeed, utterance.AgentState.InteractionCounter)]
             : composed.Replies.ToList();
 
+        // W08: "¿cómo hago pan?" asked of a teacher who could offer the bake (scene.Offer) is answered by the offer, not by the one off-prompt line: the agent takes the offer as a host turn.
+        if (offPrompt && scene.Offer is { } offerEvent && string.Equals(verdict.OffPromptIntent!.Value.Value, "ask_craft", StringComparison.Ordinal))
+        {
+            var beforeOffer = agent.Context;
+            if (_typed.Advance(offerEvent, beforeOffer) is { } offered)
+            {
+                Record(new ReplayEntry(null, HostTurnEnvelope.From(offered, beforeOffer)));
+                agent.Context = beforeOffer.Next(offered, now) with { HostStateHash = hostStateHash };
+                var offeredEvents = HostEventsOf(offered.Agent.Actions);
+                Note(agent, offerEvent, offeredEvents);
+                hostEvents.AddRange(offeredEvents);
+                replies = offered.Response.Lines.Select(static l => l.Text).ToList();
+            }
+        }
+
         var failForward = false;
 
         // The stall's fail-forward stays code, by id (content-plan 3.6): the bottle after four misses is a rule about this exchange, not data.
@@ -816,6 +863,7 @@ public sealed partial class NpcService
     {
         NpcEffectKind.PointAtSlot when !slots.TryGetValue(effect.Slot, out var word) || _places.Resolve(word, scene.Player, facts) is null => NpcHostEvents.UnknownPlace,
         NpcEffectKind.Sell or NpcEffectKind.Buy or NpcEffectKind.GiveItem => effect.GiftMiss(npc, slots, scene.Inventory, _nouns, scene.ClosedGifts),
+        NpcEffectKind.GiveMissing => scene.Grant is { } grant ? grant.Miss : NpcHostEvents.NothingMissing, // W08: nothing to give with no run
         _ => null,
     };
 

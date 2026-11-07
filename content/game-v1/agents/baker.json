@@ -27,7 +27,14 @@
     { "id": "baker_help", "count": 1 },
     { "id": "baker_price", "count": 1 },
     { "id": "baker_sell", "count": 2 },
-    { "id": "baker_thank", "count": 2 }
+    { "id": "baker_thank", "count": 2 },
+    { "id": "baker_offer_bake", "count": 1 },
+    { "id": "baker_teach_go", "count": 1 },
+    { "id": "baker_listen", "count": 1 },
+    { "id": "baker_helping", "count": 1 },
+    { "id": "baker_give_missing", "count": 1 },
+    { "id": "baker_has_all", "count": 1 },
+    { "id": "baker_gift_used", "count": 1 }
   ],
   "states": [
     {
@@ -49,6 +56,9 @@
         { "onHostEvent": "baker.none_asked", "to": "idle", "actions": [{ "dialogueIntent": "baker_hay", "variantPoolId": "baker_hay" }] },
         { "onHostEvent": "baker.none_offered", "to": "idle", "actions": [{ "dialogueIntent": "baker_none_offered", "variantPoolId": "baker_none_offered" }] },
         { "onHostEvent": "baker.no_room", "to": "idle", "actions": [{ "dialogueIntent": "baker_no_room", "variantPoolId": "baker_no_room" }] },
+        { "onHostEvent": "baker.offer_bake", "to": "offering_bake", "actions": [{ "dialogueIntent": "baker_offer_bake", "variantPoolId": "baker_offer_bake" }] },
+        { "onHostEvent": "baker.offer_craft", "to": "offering_bake", "actions": [{ "dialogueIntent": "baker_offer_bake", "hostEvent": "baker.teach_recipe", "variantPoolId": "baker_offer_bake" }] },
+        { "onHostEvent": "baker.teach_start", "to": "teaching", "actions": [{ "dialogueIntent": "baker_nice", "variantPoolId": "baker_nice" }] },
         { "on": {"intent": "greet", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_greet", "variantPoolId": "baker_greet" }] },
         { "on": {"intent": "request_item", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_sell", "hostEvent": "baker.sell_bread", "variantPoolId": "baker_sell" }] },
         { "on": {"intent": "offer_item", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_buy", "hostEvent": "baker.buy_wood", "variantPoolId": "baker_buy" }] },
@@ -62,6 +72,43 @@
         { "on": {"intent": "thank", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_thank", "variantPoolId": "baker_thank" }] },
         { "on": {"intent": "farewell", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_bye", "variantPoolId": "baker_bye" }] },
         { "on": {"communicated": false}, "to": "idle", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
+      ],
+      "fallback": {
+        "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }]
+      }
+    },
+    {
+      "id": "offering_bake",
+      "transitions": [
+        { "on": {"intent": "confirm", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_teach_go", "hostEvent": "baker.start_bake", "variantPoolId": "baker_teach_go" }] },
+        { "on": {"intent": "deny", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_greet", "variantPoolId": "baker_greet" }] },
+        { "on": {"intent": "ask_help", "communicated": true}, "to": "offering_bake", "actions": [{ "dialogueIntent": "baker_offer_bake", "variantPoolId": "baker_offer_bake" }] },
+        { "on": {"intent": "dont_know", "communicated": true}, "to": "offering_bake", "actions": [{ "dialogueIntent": "baker_offer_bake", "variantPoolId": "baker_offer_bake" }] },
+        { "onHostEvent": "baker.teach_start", "to": "teaching", "actions": [{ "dialogueIntent": "baker_nice", "variantPoolId": "baker_nice" }] },
+        { "onHostEvent": "baker.delivered", "to": "idle", "actions": [{ "dialogueIntent": "baker_delivered", "hostEvent": "baker.pay", "variantPoolId": "baker_delivered" }] },
+        { "on": {"communicated": false}, "to": "offering_bake", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
+      ],
+      "fallback": {
+        "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }]
+      }
+    },
+    {
+      "id": "teaching",
+      "transitions": [
+        { "on": {"intent": "ask_repeat", "communicated": true}, "to": "teaching", "actions": [{ "dialogueIntent": "baker_listen", "hostEvent": "baker.proc_repeat", "variantPoolId": "baker_listen" }] },
+        { "on": {"intent": "ask_slower", "communicated": true}, "to": "teaching", "actions": [{ "dialogueIntent": "baker_listen", "hostEvent": "baker.proc_slower", "variantPoolId": "baker_listen" }] },
+        { "on": {"intent": "ask_help", "communicated": true}, "to": "teaching", "actions": [{ "dialogueIntent": "baker_helping", "hostEvent": "baker.proc_help", "variantPoolId": "baker_helping" }] },
+        { "on": {"intent": "dont_know", "communicated": true}, "to": "teaching", "actions": [{ "dialogueIntent": "baker_helping", "hostEvent": "baker.proc_help", "variantPoolId": "baker_helping" }] },
+        { "on": {"intent": "ask_availability", "communicated": true}, "to": "teaching", "actions": [{ "dialogueIntent": "baker_give_missing", "hostEvent": "baker.give_missing", "variantPoolId": "baker_give_missing" }] },
+        { "on": {"intent": "request_item", "communicated": true}, "to": "teaching", "actions": [{ "dialogueIntent": "baker_give_missing", "hostEvent": "baker.give_missing", "variantPoolId": "baker_give_missing" }] },
+        { "on": {"intent": "thank", "communicated": true}, "to": "teaching", "actions": [{ "dialogueIntent": "baker_thank", "variantPoolId": "baker_thank" }] },
+        { "onHostEvent": "baker.nothing_missing", "to": "teaching", "actions": [{ "dialogueIntent": "baker_has_all", "variantPoolId": "baker_has_all" }] },
+        { "onHostEvent": "baker.gift_used", "to": "teaching", "actions": [{ "dialogueIntent": "baker_gift_used", "variantPoolId": "baker_gift_used" }] },
+        { "onHostEvent": "baker.no_room", "to": "teaching", "actions": [{ "dialogueIntent": "baker_no_room", "variantPoolId": "baker_no_room" }] },
+        { "onHostEvent": "baker.teach_start", "to": "teaching", "actions": [{ "dialogueIntent": "baker_nice", "variantPoolId": "baker_nice" }] },
+        { "onHostEvent": "baker.teach_end", "to": "idle", "actions": [{ "dialogueIntent": "baker_nice", "variantPoolId": "baker_nice" }] },
+        { "onHostEvent": "baker.delivered", "to": "idle", "actions": [{ "dialogueIntent": "baker_delivered", "hostEvent": "baker.pay", "variantPoolId": "baker_delivered" }] },
+        { "on": {"communicated": false}, "to": "teaching", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
       ],
       "fallback": {
         "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }]

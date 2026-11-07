@@ -806,8 +806,15 @@ public abstract partial class GuideSession : IDisposable
         }
         else
         {
+            CompleteTeachEnd(npc); // a teacher a load left in its teaching state comes out of it before the talk (W08)
             order = OrderReadyAt(npc); // the player walked up with an order's goods (village-plan V03): nothing is gated behind speech, the NPC thanks them at once
-            opening = _npcs.Open(npc, ObjectiveComplete, StoredTime, StateDigest(), order is null ? null : NpcHostEvents.Of(npc, NpcHostEvents.Delivered));
+            var offer = order is null ? BakeOfferOf(npc, asked: false) : null; // W08: the teacher's offer to bake opens the talk, once a day until the learner has baked
+            opening = _npcs.Open(npc, ObjectiveComplete, StoredTime, StateDigest(), order is null ? null : NpcHostEvents.Of(npc, NpcHostEvents.Delivered), offer);
+            if (offer is not null)
+            {
+                NoteOffer(npc);
+            }
+
             if (string.Equals(npc, NpcService.GuideAgent, StringComparison.Ordinal) && !opening.HostTurn
                 && !string.Equals(_npcs.GuideState.StateId, "offering", StringComparison.Ordinal))
             {
@@ -896,7 +903,7 @@ public abstract partial class GuideSession : IDisposable
         var phraseReview = PhraseReview;
         var support = Support.Snapshot();
         var scene = review is null
-            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: LiveInventory, PromptOverride: phraseReview?.Prompt ?? Lessons.ActivePrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc), ClosedGifts: ClosedGifts)
+            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: LiveInventory, PromptOverride: phraseReview?.Prompt ?? Lessons.ActivePrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc), ClosedGifts: ClosedGifts, Grant: TeachingNpc is null ? null : PlanGrant(), Offer: BakeOfferOf(CurrentNpc, asked: true))
             : new GuideScene(Viewpoint, review.Target, Pointer is not null, Review: true, Inventory: LiveInventory);
         var turn = _npcs.Say(CurrentNpc, line, scene, StoredTime, StateDigest());
         PhraseReview? answeredReview = null;
@@ -1108,6 +1115,7 @@ public abstract partial class GuideSession : IDisposable
         }
 
         FlushSkills();
+        CompleteTeachEnd();
         return applied;
     }
 
@@ -1340,6 +1348,11 @@ public abstract partial class GuideSession : IDisposable
             ApplyHostEvents(npc, turn.HostEvents, turn.FailForward ? "fail_forward" : "request", NpcEffect.CountedSlots(turn.Slots, turn.Line));
         }
 
+        if (!turn.Unsure && string.Equals(turn.AgentState, NpcHostEvents.OfferingState, StringComparison.Ordinal))
+        {
+            NoteOffer(npc); // W08: the answer to «¿cómo hago pan?» was the offer
+        }
+
         if (!turn.Unsure && turn.Input == InputKind.Spoken)
         {
             _spokenTurns++;
@@ -1545,7 +1558,7 @@ public abstract partial class GuideSession : IDisposable
         var facts = SnapshotFacts();
         var inventory = LiveInventory.Copy();
         return review is null
-            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: inventory, Facts: facts, PromptOverride: PhraseReview?.Prompt ?? Lessons.ActivePrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc), ClosedGifts: ClosedGifts)
+            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: inventory, Facts: facts, PromptOverride: PhraseReview?.Prompt ?? Lessons.ActivePrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc), ClosedGifts: ClosedGifts, Grant: TeachingNpc is null ? null : PlanGrant(), Offer: BakeOfferOf(CurrentNpc, asked: true))
             : new GuideScene(Viewpoint, review.Target, Pointer is not null, Review: true, Inventory: inventory, Facts: facts);
     }
 }

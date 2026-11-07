@@ -87,6 +87,7 @@ public sealed class StationPanel : IScreen
         _audio = audio;
         _hitAt = hitAt;
         _otherPanelOpen = otherPanelOpen;
+        _session.ProcedureCued += OnCue;
     }
 
     /// <inheritdoc />
@@ -103,8 +104,17 @@ public sealed class StationPanel : IScreen
     /// </summary>
     public Action<StationTalk>? OnTalk { get; set; }
 
+    /// <summary>
+    /// The talk to the teacher (W08): its text box, its recording and the teacher's last answer. <see langword="null"/> where there is no teacher to talk to (the panel then does nothing
+    /// with V, Space and W but call <see cref="OnTalk"/>).
+    /// </summary>
+    public TeacherTalk? Talk { get; set; }
+
+    /// <summary>The repeats of the text box's editing keys (one set, as the dialogue's).</summary>
+    public TextEditKeys TextEdits { get; } = new();
+
     /// <summary>What the overlay shows now (the layer reads it every frame; it changes nothing but a selection that no longer exists).</summary>
-    public StationView View() => _screen.View(_session, _session.Simulation.Inventory, _audio);
+    public StationView View() => _screen.View(_session, _session.Simulation.Inventory, _audio) with { Talk = Talk?.View() };
 
     /// <summary>
     /// Opens the station with the first procedure done there and starts it (or goes on with the run in progress). Nothing opens when another panel is open, when the station is
@@ -148,7 +158,8 @@ public sealed class StationPanel : IScreen
             return;
         }
 
-        _session.Procedures.Leave();
+        Talk?.Reset();
+        _session.LeaveStation(); // the run stays, nothing is taken, and the teacher stops listening
         _screen.Close();
     }
 
@@ -156,6 +167,13 @@ public sealed class StationPanel : IScreen
     public void HandleInput(IInputFrame input)
     {
         ArgumentNullException.ThrowIfNull(input);
+        Talk?.Frame(input);
+        if (Talk is { IsTyping: true } typing)
+        {
+            typing.HandleTyping(input, TextEdits.Step(input)); // the letters are the text box's: no key of the station acts while it is open
+            return;
+        }
+
         if (_screen.Verbs is { } choice)
         {
             HandleVerbKeys(input, choice);
@@ -164,6 +182,12 @@ public sealed class StationPanel : IScreen
 
         if (input.Pressed(GameKey.Escape))
         {
+            if (Talk is { Listening: true })
+            {
+                Talk.Cancel(); // Esc undoes the newest thing first: a recording, then the station
+                return;
+            }
+
             Close();
             return;
         }
@@ -211,10 +235,12 @@ public sealed class StationPanel : IScreen
         }
         else if (input.Pressed(GameKey.V) || input.Pressed(GameKey.Space))
         {
+            _ = Talk?.Speak(input.Pressed(GameKey.V) ? GameKey.V : GameKey.Space);
             OnTalk?.Invoke(StationTalk.Speak);
         }
         else if (input.Pressed(GameKey.W))
         {
+            _ = Talk?.BeginTyping();
             OnTalk?.Invoke(StationTalk.Type);
         }
     }
@@ -353,6 +379,7 @@ public sealed class StationPanel : IScreen
         ArgumentNullException.ThrowIfNull(use);
         ArgumentNullException.ThrowIfNull(on);
         ArgumentNullException.ThrowIfNull(verb);
+        Talk?.ClearAnswer();
         var view = View();
         var verbs = _session.Data.Actions.VerbsFor(use, on);
         var named = verb.Length > 0 ? verb : verbs.Count == 1 ? verbs[0] : string.Empty;
@@ -396,6 +423,7 @@ public sealed class StationPanel : IScreen
             return;
         }
 
+        Talk?.ClearAnswer();
         SelectHighlight(_session.HelpInProcedure());
         _screen.Notice = StationNotice.None;
         Refresh();
@@ -417,9 +445,51 @@ public sealed class StationPanel : IScreen
         }
     }
 
+    // What the teacher's answer asked of the station (W08): the help is shown now; the row is played once the teacher's line has been said (PumpCue), since a clip replaces what plays.
+    private void OnCue(ProcedureCue cue)
+    {
+        if (!_screen.IsOpen)
+        {
+            return;
+        }
+
+        switch (cue)
+        {
+            case ProcedureCue.Help:
+                SelectHighlight(_session.Procedures.View());
+                _screen.Notice = StationNotice.None;
+                Refresh();
+                break;
+            default:
+                _pendingSlow = cue == ProcedureCue.Slower;
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Plays the row a teacher's answer asked for (the instruction again, or slowly), if there is one: the front-end calls it once a frame after the turns were applied and their
+    /// lines spoken, so that the instruction is the last thing heard.
+    /// </summary>
+    public void PumpCue()
+    {
+        if (_pendingSlow is not { } slow)
+        {
+            return;
+        }
+
+        _pendingSlow = null;
+        if (_screen.IsOpen && _session.Procedures.State == ProcedureState.InRun)
+        {
+            PlayCurrent(slow);
+        }
+    }
+
+    private bool? _pendingSlow;
+
     // R and S: the row again, normal or slow. A listening aid, never help: the runner counts it for the telemetry.
     private void Replay(bool slow)
     {
+        Talk?.ClearAnswer();
         if (_session.Procedures.State != ProcedureState.InRun)
         {
             return;

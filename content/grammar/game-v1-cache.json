@@ -454,6 +454,12 @@
       ]
     },
     {
+      "key": "0eb50b327635e3b5fa149385409034b11c880af62be1c18c8a6fe2b2a227776a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay madera aquí",
+      "matches": []
+    },
+    {
       "key": "0ed283f0ca312e01f79e27d5b64dca81bc218b2c6ec0454fd9c6fb3e61ad295f",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo puedo pagar con fruta",
@@ -4323,6 +4329,12 @@
       ]
     },
     {
+      "key": "6fb8bbeb3933c11c45dc5759904855e2be4ed3af4576e575ba04358f44f1d860",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Quieres hacer pan?",
+      "matches": []
+    },
+    {
       "key": "70691c35cfec90abe5dd0b93b3f8092674991fb1b13f31a15ecd2326fd41a19a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "La espada está espada, a dos espadas.",
@@ -4776,6 +4788,12 @@
       "key": "78fa5ad7aae65e1e3facf74503c0609282efd8bd75b1605c5e431618df93afa6",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, tienes veinte panes",
+      "matches": []
+    },
+    {
+      "key": "79a64d3437f32210a5e86c7553510abe9dfcd29e9cb3f5baa52c651135433b3f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Escucha.",
       "matches": []
     },
     {
@@ -6687,6 +6705,12 @@
       "matches": []
     },
     {
+      "key": "abf34e0842568620d7af4e8146c35c93c6d471a8b63a310277d2f01a9fc1913d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hoy no tengo más.",
+      "matches": []
+    },
+    {
       "key": "ac8f1778dfbc2f9f4be60912556793e3c29f5466960b4deaf0743dccf36efd79",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Te entiendo. ¿Quieres manzanas?",
@@ -7040,6 +7064,12 @@
       "key": "b666e949d812c8b09567c7271fb9647b74055e2118b3f3a605e388befbbe8a78",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Cómo está usted",
+      "matches": []
+    },
+    {
+      "key": "b67a9be9d0254f7b0a7e6683b824fa4b2047cb2430be324a56146c8f2b95649d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Toma. Aquí tienes.",
       "matches": []
     },
     {
@@ -7692,6 +7722,12 @@
       "matches": []
     },
     {
+      "key": "c983a38c52d42f8d8e8521ec7030281de21f64eead232df189b05c27186d5a32",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ya tienes todo.",
+      "matches": []
+    },
+    {
       "key": "c9b62ab391a4bf2c6fbaf2126d82aa82c87ee2adf9f00b609618d6b3723a1f75",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "El libro sale de los libros.",
@@ -7731,6 +7767,12 @@
       "key": "cae43b425137ac1eb9ef1daf580e5a1e38770e764f935b93a812b9229c97f57b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Once, doce, trece, catorce, quince.",
+      "matches": []
+    },
+    {
+      "key": "caed0bb33778fc3e76bc0e9481dc1366ea9916b5be988c07d93dea7c7190b6ef",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Vamos!",
       "matches": []
     },
     {
@@ -8204,6 +8246,12 @@
       "key": "d73a1f7cc40d50167c8548b96b505376c85f6f8faaac2874cacffaf17a822519",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Luz y yo fuimos al río",
+      "matches": []
+    },
+    {
+      "key": "d74a8e15aad1fedca6e30bd0d4acdb3718749f2d4ead4ea2572efc59365ba28e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay madera",
       "matches": []
     },
     {
@@ -9122,6 +9170,12 @@
       "matches": []
     },
     {
+      "key": "eebfadd8a9a44db2ac83f9bb22366c16c6c8b82c11c65570e79e4c2dcf0b501e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te ayudo.",
+      "matches": []
+    },
+    {
       "key": "eefa32114cf5a48c1a932aafd5384468c2fc99a3703877a7c832d4329f8cea4c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Cómo estás usted",
@@ -9235,6 +9289,12 @@
       "key": "f1256a7a0d7dca5a319b5b3a08c5d9d0e2c982dc05294955985b64b48c3aaca0",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Tengo una fruta.",
+      "matches": []
+    },
+    {
+      "key": "f13787caea0c21ce856d3ef5f20c5f0a1e83a848fd73c080beefa36108d38be8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Madera por favor",
       "matches": []
     },
     {

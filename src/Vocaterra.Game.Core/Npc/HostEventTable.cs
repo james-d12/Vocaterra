@@ -21,7 +21,7 @@ public sealed class HostEventTable
     public const int SchemaVersion = 2;
 
     /// <summary>The kinds of action the file may name.</summary>
-    public static IReadOnlyList<string> Kinds { get; } = ["give_item", "point_at_noun", "point_at_place", "point_at_slot", "take_item", "sell", "buy"];
+    public static IReadOnlyList<string> Kinds { get; } = ["give_item", "point_at_noun", "point_at_place", "point_at_slot", "take_item", "sell", "buy", "procedure_repeat", "procedure_slower", "procedure_help", "give_missing", "teach_recipe", "start_procedure"];
 
     private readonly Dictionary<(string Npc, string HostEvent), NpcEffect> _table;
 
@@ -35,7 +35,7 @@ public sealed class HostEventTable
     /// <summary>
     /// Builds the table from the file's text: <c>{ "schemaVersion": 2, "events": [ { "npc", "event", "action": { "kind": "give_item", "item", "count"? } | { "kind":
     /// "point_at_noun", "noun" } | { "kind": "point_at_place", "place" } | { "kind": "point_at_slot", "slot" } | { "kind": "take_item", "item", "count"? } | { "kind":
-    /// "sell", "item", "price" } | { "kind": "buy", "item", "price" } } ] }</c> (<c>buy</c> since village-plan V15: the NPC pays for what the learner sells). An item is named as the save names it (<c>water-bottle</c>); a count is a number from 1 or <c>"qty"</c>, the number the
+    /// "sell", "item", "price" } | { "kind": "buy", "item", "price" } | { "kind": "procedure_repeat" | "procedure_slower" | "procedure_help" | "give_missing" } | { "kind": "teach_recipe" | "start_procedure", "procedure"? } } ] }</c> (<c>buy</c> since village-plan V15: the NPC pays for what the learner sells; the six procedure kinds since W08). An item is named as the save names it (<c>water-bottle</c>); a count is a number from 1 or <c>"qty"</c>, the number the
     /// learner said (<see cref="NpcEffect.Quantity"/>), and one when it is left out; a price is a number of coins from 1.
     /// </summary>
     /// <param name="json">The contents of <c>game/host-events.json</c>.</param>
@@ -67,6 +67,12 @@ public sealed class HostEventTable
                     "take_item" => Counted(NpcEffect.Take(ItemNamed(Text(action, "item"))), action, npc, name),
                     "sell" => NpcEffect.SellAt(ItemNamed(Text(action, "item")), Price(action, npc, name)),
                     "buy" => NpcEffect.BuyAt(ItemNamed(Text(action, "item")), Price(action, npc, name)),
+                    "procedure_repeat" => new NpcEffect(NpcEffectKind.ProcedureRepeat),
+                    "procedure_slower" => new NpcEffect(NpcEffectKind.ProcedureSlower),
+                    "procedure_help" => new NpcEffect(NpcEffectKind.ProcedureHelp),
+                    "give_missing" => new NpcEffect(NpcEffectKind.GiveMissing),
+                    "teach_recipe" => new NpcEffect(NpcEffectKind.TeachRecipe, Procedure: OptionalText(action, "procedure")),
+                    "start_procedure" => new NpcEffect(NpcEffectKind.StartProcedure, Procedure: OptionalText(action, "procedure")),
                     var kind => throw new InvalidDataException($"{RelativePath}: the action '{kind}' of {npc}'s '{name}' is not one of {string.Join(", ", Kinds)}."),
                 };
                 if (!table.TryAdd((npc, name), effect))
@@ -154,6 +160,10 @@ public sealed class HostEventTable
     private static ItemId ItemNamed(string name) =>
         ItemDefinition.All.FirstOrDefault(d => string.Equals(d.Name, name, StringComparison.Ordinal))?.Id
         ?? throw new InvalidDataException($"{RelativePath} names an unknown item '{name}'.");
+
+    // A text that may be left out (empty then): the procedure of teach_recipe and start_procedure, which is the NPC's own when it is not named (W08).
+    private static string OptionalText(JsonElement element, string name) =>
+        element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(value.GetString()) ? value.GetString()! : string.Empty;
 
     private static string Text(JsonElement element, string name) =>
         element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(value.GetString())

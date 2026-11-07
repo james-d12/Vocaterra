@@ -122,8 +122,10 @@ public enum NameCheck
 /// <param name="OrderHeld">Whether the NPC talked to has an order whose goods the player carries and that a lesson keeps back (V21): a purchase the coins do not cover is then answered <c>cant_pay_wait</c>.</param>
 /// <param name="Credited">The phrases of the lessons the learner has begun or done when the line was submitted (village-plan V20, <c>LessonRunner.Credits</c>): a line in free talk that is
 /// one of them is that phrase for the learner model, at any NPC; <see langword="null"/> for none.</param>
+/// <param name="Offer">The host event of a teacher's offer to bake (W08, <c>baker.offer_craft</c>) when the teacher could make it now, or <see langword="null"/>: an off-prompt <c>ask_craft</c> is then answered by the offer instead of the NPC's one off-prompt line.</param>
+/// <param name="Grant">What the teacher could give of the run's ingredients now (W08, <see cref="TeachingGrant"/>), or <see langword="null"/> with no run at a station.</param>
 /// <param name="ClosedGifts">The gifts that are not to be given now (N06, <c>GiftRule.Key</c>: <c>shopkeeper:bread</c>), those given already today that no lesson step requires; <see langword="null"/> for none. An NPC asked for one answers <c>&lt;npc&gt;.gift_used</c>.</param>
-public sealed record GuideScene(GuideViewpoint Player, GuideCell? Cursor = null, bool PointerActive = false, bool Review = false, Inventory? Inventory = null, IGuideFacts? Facts = null, string? PromptOverride = null, IReadOnlySet<string>? Credited = null, bool OrderHeld = false, IReadOnlySet<string>? ClosedGifts = null);
+public sealed record GuideScene(GuideViewpoint Player, GuideCell? Cursor = null, bool PointerActive = false, bool Review = false, Inventory? Inventory = null, IGuideFacts? Facts = null, string? PromptOverride = null, IReadOnlySet<string>? Credited = null, bool OrderHeld = false, IReadOnlySet<string>? ClosedGifts = null, TeachingGrant? Grant = null, string? Offer = null);
 
 /// <summary>
 /// The outcome of one typed turn with the guide: the core's verdict in plain values, the lines to show (the correction first, then the
@@ -291,4 +293,17 @@ public static class GuideEvents
 
     /// <summary>The player asked the guide to say her last line again more slowly ("Más despacio, por favor", S17): the line is shown again and the slow recording plays.</summary>
     public const string RepeatSlow = "guide.repeat_slow";
+}
+
+/// <summary>
+/// What a teacher could give of a run's ingredients at the moment of a turn (W08, design decision 20), as plain values the worker can read: the ingredients the bag lacks, whether
+/// the grant is open (the first bake always, otherwise once per in-game day) and whether the bag has room for them.
+/// </summary>
+/// <param name="Missing">The ingredients the run uses and the bag lacks, with the counts that are lacking (empty when nothing is missing).</param>
+/// <param name="Open">Whether the grant may be made now.</param>
+/// <param name="Fits">Whether every missing ingredient fits in the bag.</param>
+public sealed record TeachingGrant(IReadOnlyList<(ItemId Item, int Count)> Missing, bool Open, bool Fits)
+{
+    /// <summary>The host event the teacher answers when nothing can be given, or <see langword="null"/> when the grant can be made.</summary>
+    public string? Miss => Missing.Count == 0 ? NpcHostEvents.NothingMissing : !Open ? NpcHostEvents.GiftUsed : !Fits ? NpcHostEvents.NoRoom : null;
 }
