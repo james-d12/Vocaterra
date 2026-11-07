@@ -216,6 +216,53 @@ public class BenchTests
     }
 
     [Fact]
+    public void OpenFallbackAddsAnOpenResultForEveryConstrainedEntryOnly()
+    {
+        var recognizer = new ScriptedWordRecognizer(TestSupport.Asr("hola"));
+        var entries = new[] { Entry("hola", "lesson-hello"), Entry("hola", "guide-open") };
+
+        var plain = BenchRunner.Run(entries, TestSupport.Bundle, _ => recognizer, _ => TestSupport.Clip());
+        var with = BenchRunner.Run(entries, TestSupport.Bundle, _ => recognizer, _ => TestSupport.Clip(), openFallback: true);
+
+        Assert.Equal(2, plain.Entries.Count);
+        Assert.Equal([RecognitionMode.Constrained, RecognitionMode.Open, RecognitionMode.Open], with.Entries.Select(static e => e.Mode).ToArray());
+        Assert.All(with.Entries, static e => Assert.Equal(BenchRunner.StatusOk, e.Status));
+        Assert.Equal(RecognitionMode.Open, recognizer.LastRequest!.Mode);
+    }
+
+    [Fact]
+    public void TimedRecognizeReturnsTheRecognitionAndANonNegativeTime()
+    {
+        var recognizer = new ScriptedWordRecognizer(TestSupport.Asr("hola"));
+
+        var (result, milliseconds) = BenchRunner.TimedRecognize(recognizer, TestSupport.Clip(), RecognitionRequest.Open());
+
+        Assert.Equal("hola", result.Transcript);
+        Assert.True(milliseconds >= 0.0);
+    }
+
+    [Fact]
+    public void TheCommandLineAcceptsTheOpenFallbackFlagsAndStillNeedsNoModelsForAnEmptyManifest()
+    {
+        var manifest = Path.Combine(Path.GetTempPath(), "vocaterra-bench-" + Guid.NewGuid().ToString("N") + ".jsonl");
+        File.WriteAllText(manifest, string.Empty);
+        try
+        {
+            using var output = new StringWriter();
+            using var error = new StringWriter();
+
+            var code = BenchProgram.Run(["--manifest", manifest, "--content", TestSupport.BundleDir, "--open-fallback", "--open-vosk"], output, error);
+
+            Assert.Equal(BenchProgram.ExitOk, code);
+            Assert.Equal(string.Empty, error.ToString());
+        }
+        finally
+        {
+            File.Delete(manifest);
+        }
+    }
+
+    [Fact]
     public void LatencyIsMeasuredAndNonNegative()
     {
         var report = Run([Entry("hola"), Entry("hola")], "hola");
