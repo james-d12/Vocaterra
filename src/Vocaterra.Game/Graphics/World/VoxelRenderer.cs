@@ -4,11 +4,13 @@ using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.Water;
+using Vocaterra.Game.Core.Water.Currents;
 using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Graphics.Blocks;
 using Vocaterra.Game.Graphics.Camera;
 using Vocaterra.Game.Graphics.Figures;
 using Vocaterra.Game.Graphics.Sky;
+using Vocaterra.Game.Graphics.Water;
 
 namespace Vocaterra.Game.Graphics.World;
 
@@ -86,6 +88,7 @@ public sealed class VoxelRenderer : IDisposable
 
     private readonly GraphicsDevice _device;
     private readonly BlockAtlas _atlas;
+    private readonly WaterTextures _water;
     private readonly VoxelGrid _grid;
     private readonly BasicEffect _effect;
     private readonly AlphaTestEffect _solid;
@@ -115,18 +118,19 @@ public sealed class VoxelRenderer : IDisposable
     private int _pending;
 
     /// <summary>Creates the renderer for a grid and a quality preset. Nothing is meshed yet: the first <see cref="Remesh"/> builds what the eye can see.</summary>
-    public VoxelRenderer(GraphicsDevice device, BlockAtlas atlas, VoxelGrid grid, QualityPreset preset, bool dusk = false)
+    public VoxelRenderer(GraphicsDevice device, BlockAtlas atlas, WaterTextures water, VoxelGrid grid, QualityPreset preset, bool dusk = false, RiverCurrents? currents = null)
     {
         ArgumentNullException.ThrowIfNull(preset);
         _device = device;
         _atlas = atlas;
+        _water = water;
         _grid = grid;
         Preset = preset;
         _dusk = dusk;
         ClearColour = dusk ? DuskSky : Sky;
         var fogEnd0 = FogEndFor(preset.ViewDistance);
         DryFog = new FogParameters(ClearColour.R / 255f, ClearColour.G / 255f, ClearColour.B / 255f, fogEnd0 * FogStartFraction, fogEnd0);
-        _source = new GridBlockSource(grid);
+        _source = new GridBlockSource(grid, currents);
         _tracker = new ChunkVersionTracker(grid);
         _view = new ChunkViewSet(grid, preset.ViewDistance);
         var fogEnd = FogEndFor(preset.ViewDistance);
@@ -469,8 +473,11 @@ public sealed class VoxelRenderer : IDisposable
         }
 
         // The translucent pass: the water chunks from the farthest to the nearest (a sort by chunk, as the files say), reading depth but not writing it.
+        // The water has its own animated textures (H09): the frame for this tick, bilinear, in place of the block atlas for this pass only.
         _device.BlendState = BlendState.NonPremultiplied;
         _device.DepthStencilState = DepthStencilState.DepthRead;
+        _device.SamplerStates[0] = WaterTextures.Sampler;
+        _effect.Texture = _water.FrameAt(tick);
         _effect.CurrentTechnique.Passes[0].Apply();
         _visible.Sort((a, b) => Vector3.DistanceSquared(b.Centre, eye).CompareTo(Vector3.DistanceSquared(a.Centre, eye)));
         _device.Indices = _indices;
@@ -478,6 +485,9 @@ public sealed class VoxelRenderer : IDisposable
         {
             DrawChunk(chunk.Alpha, chunk.AlphaQuads);
         }
+
+        _device.SamplerStates[0] = AtlasSampler;
+        _effect.Texture = _atlas.Texture;
 
         if (beacon is { } target)
         {

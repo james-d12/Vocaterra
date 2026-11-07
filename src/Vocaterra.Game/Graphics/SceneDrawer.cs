@@ -33,6 +33,7 @@ public sealed class SceneDrawer : IDisposable
     private SpriteBatch? _spriteBatch;
     private Texture2D? _pixel;
     private BlockAtlas? _blockAtlas;
+    private WaterTextures? _waterTextures;
     private VoxelRenderer? _renderer;
     private GreyscaleWorld? _colours;
     private IReadOnlyList<IFrameLayer> _layers = [];
@@ -80,7 +81,8 @@ public sealed class SceneDrawer : IDisposable
         _blockAtlas = new BlockAtlas(device);
         var started = MonotonicClock.Milliseconds();
         Preset = _options.QualityPreset;
-        _renderer = new VoxelRenderer(device, _blockAtlas, _session.Simulation.Grid, Preset, _options.Dusk);
+        _waterTextures = new WaterTextures(device);
+        _renderer = new VoxelRenderer(device, _blockAtlas, _waterTextures, _session.Simulation.Grid, Preset, _options.Dusk, _session.Scene.Currents);
         _renderer.SetFigures(_figures);
         _colours = new GreyscaleWorld(_options.Greyscale, _session.Nouns, _session.Words, _toasts, _renderer.SetGreyKinds, _session.Locale, _options.AssumeKnown);
         _console($"voxel: quality {Preset.Name}, view distance {Preset.ViewDistance} blocks, fog from {VoxelRenderer.FogEndFor(Preset.ViewDistance) * VoxelRenderer.FogStartFraction:0} to {VoxelRenderer.FogEndFor(Preset.ViewDistance):0}, mesh budget {Preset.MeshBudgetMilliseconds:0} ms a frame (renderer ready in {MonotonicClock.Milliseconds() - started:0} ms)");
@@ -145,6 +147,7 @@ public sealed class SceneDrawer : IDisposable
     {
         _underwaterPass?.Dispose();
         _renderer?.Dispose();
+        _waterTextures?.Dispose();
         _blockAtlas?.Dispose();
         _pixel?.Dispose();
         _spriteBatch?.Dispose();

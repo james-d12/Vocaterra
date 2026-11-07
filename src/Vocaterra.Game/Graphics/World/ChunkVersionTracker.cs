@@ -144,11 +144,14 @@ public sealed class ChunkVersionTracker
         return _signatures[(index * 6) + (int)face];
     }
 
-    // FNV-1a over the 256 block ids of one outer layer of the chunk, seeded so that an all-air layer is not zero.
+    // FNV-1a over the 256 block ids of one outer layer of the chunk and, when the chunk holds flowing water, the 256 water levels, seeded so that an all-air layer is
+    // not zero. The levels are in it because a water surface takes its corners' heights from the cells beside it: a level that changes on the edge of a chunk changes
+    // how the chunk across the edge is drawn.
     private static ulong Sign(VoxelChunk chunk, BlockFace face)
     {
         const int N = VoxelChunk.Size;
         var blocks = chunk.Blocks;
+        var levels = chunk.WaterLevels;
         var hash = 14695981039346656037UL;
         for (var a = 0; a < N; a++)
         {
@@ -164,6 +167,11 @@ public sealed class ChunkVersionTracker
                     _ => (((a * N) + (N - 1)) * N) + b,
                 };
                 hash = (hash ^ (ushort)blocks[index]) * 1099511628211UL;
+                if (!levels.IsEmpty && levels[index] != 0)
+                {
+                    // Only the cells that hold a level count, with their place in the layer, so a layer with none signs exactly as it did before the chunk held any.
+                    hash = (hash ^ (ulong)(((((a * N) + b) + 1) << 8) | levels[index])) * 1099511628211UL;
+                }
             }
         }
 

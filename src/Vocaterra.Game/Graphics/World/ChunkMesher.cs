@@ -1,6 +1,9 @@
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.Water;
+using Vocaterra.Game.Core.Water.Currents;
 using Vocaterra.Game.Graphics.Blocks;
+using Vocaterra.Game.Graphics.Water;
 
 namespace Vocaterra.Game.Graphics.World;
 
@@ -9,6 +12,12 @@ public interface IBlockSource
 {
     /// <summary>The block at the position.</summary>
     BlockId Get(int x, int y, int z);
+
+    /// <summary>The level of the water at the position (read only where <see cref="Get"/> says water); a source unless the source holds levels.</summary>
+    WaterLevel GetWater(int x, int y, int z) => WaterLevel.Source;
+
+    /// <summary>The way the water at the position runs (the surface's ripples follow it); zero for water that does not move.</summary>
+    FlowVector FlowAt(int x, int y, int z) => FlowVector.Zero;
 }
 
 /// <summary>
@@ -16,10 +25,26 @@ public interface IBlockSource
 /// world is not meshed; the other three sides read as air, so the edge of the world shows its layers.
 /// </summary>
 /// <param name="Grid">The grid to read.</param>
-public sealed record GridBlockSource(VoxelGrid Grid) : IBlockSource
+/// <param name="Currents">The river's currents (still-looking source water in a river runs downstream), or <see langword="null"/> for none.</param>
+public sealed record GridBlockSource(VoxelGrid Grid, RiverCurrents? Currents = null) : IBlockSource
 {
     /// <inheritdoc />
     public BlockId Get(int x, int y, int z) => y < 0 ? BlockId.Stone : Grid.GetBlock(x, y, z);
+
+    /// <inheritdoc />
+    public WaterLevel GetWater(int x, int y, int z) => Grid.GetWater(x, y, z);
+
+    /// <inheritdoc />
+    public FlowVector FlowAt(int x, int y, int z)
+    {
+        var flow = FlowVector.At(Grid, x, y, z);
+        if (flow.IsHorizontal || Currents is null || Grid.GetBlock(x, y, z) != BlockId.Water || !Grid.GetWater(x, y, z).IsSource)
+        {
+            return flow;
+        }
+
+        return Currents.At(x, z);
+    }
 }
 
 /// <summary>How the renderer draws a block kind: a full cube, a liquid, or a small shape of its own.</summary>
@@ -81,7 +106,6 @@ public readonly record struct MeshOptions(bool AmbientOcclusion = true, int Plan
 /// </summary>
 public static class ChunkMesher
 {
-    private const float WaterSurface = 14f / 16f;
     private const int Size = VoxelChunk.Size;
 
     // The border of blocks read round the chunk (the neighbours a vertex's occlusion looks at).
@@ -287,6 +311,7 @@ public static class ChunkMesher
     private sealed class Neighbourhood
     {
         private readonly BlockId[] _blocks = new BlockId[Edge * Edge * Edge];
+        private readonly byte[] _levels = new byte[Edge * Edge * Edge]; // the encoded water level of the water cells (0, a source, elsewhere)
 
         public Neighbourhood(IBlockSource source, int x0, int y0, int z0)
         {
@@ -297,7 +322,14 @@ public static class ChunkMesher
                 {
                     for (var x = -1; x <= Size; x++)
                     {
-                        _blocks[i++] = source.Get(x0 + x, y0 + y, z0 + z);
+                        var id = source.Get(x0 + x, y0 + y, z0 + z);
+                        _blocks[i] = id;
+                        if (id == BlockId.Water)
+                        {
+                            _levels[i] = source.GetWater(x0 + x, y0 + y, z0 + z).Encoded;
+                        }
+
+                        i++;
                     }
                 }
             }
@@ -305,6 +337,9 @@ public static class ChunkMesher
 
         // The block at a position relative to the chunk's corner, from -1 to 16 on every axis.
         public BlockId Get(int x, int y, int z) => _blocks[((((y + 1) * Edge) + (z + 1)) * Edge) + x + 1];
+
+        // The level of the water cell at a position relative to the chunk's corner.
+        public WaterLevel Level(int x, int y, int z) => WaterLevel.FromEncoded(_levels[((((y + 1) * Edge) + (z + 1)) * Edge) + x + 1]);
     }
 
     /// <summary>
@@ -652,8 +687,11 @@ public static class ChunkMesher
     private static void AddLiquid(MeshBuffer buffer, Neighbourhood near, IBlockSource source, BlockId id, int lx, int ly, int lz, int x, int y, int z, bool grey)
     {
         var aboveIsWater = near.Get(lx, ly + 1, lz) == BlockId.Water;
-        var top = aboveIsWater ? 1f : WaterSurface;
+        var level = near.Level(lx, ly, lz);
         var depth = WaterDepth(near, source, lx, ly, lz, x, y, z);
+        var deep = depth > 1;
+        Span<float> heights = stackalloc float[4]; // the surface at the four corners, in the order of the up face's corners
+        var haveHeights = false;
         foreach (var face in Faces)
         {
             var (dx, dy, dz) = face.Normal();
@@ -663,31 +701,72 @@ public static class ChunkMesher
                 continue;
             }
 
+            if (!haveHeights)
+            {
+                SurfaceHeights(near, lx, ly, lz, heights);
+                haveHeights = true;
+            }
+
             if (face == BlockFace.Up)
             {
-                AddWaterSurface(buffer, near, lx, ly, lz, x, y, z, top, depth, grey);
+                var flow = source.FlowAt(x, y, z);
+                AddWaterSurface(buffer, near, lx, ly, lz, x, y, z, heights, depth, flow, grey);
+                continue;
+            }
+
+            if (face == BlockFace.Down)
+            {
+                AddWaterBottom(buffer, x, y, z, deep, grey);
                 continue;
             }
 
             // The side of a column of water that falls: the waterfall's sheet, with its own streaky picture.
-            var falling = face != BlockFace.Down && aboveIsWater && neighbour == BlockId.Air;
-            var cell = falling ? BlockCell.Waterfall : depth > 1 ? BlockCell.Water : BlockCell.WaterShallow;
-            var box = new Box(x, y, z, x + 1, y + top, z + 1);
-            AddFace(buffer, face, box, (x, y, z), cell, (255, 255, 255, falling ? (byte)255 : (byte)235), Turn.None, grey, unshaded: falling);
+            var falling = (aboveIsWater || level.Falling) && neighbour == BlockId.Air;
+            AddWaterSide(buffer, face, x, y, z, heights, falling ? WaterTile.Falling : WaterTileLayout.For(deep, false), falling, grey);
         }
     }
 
-    // The water's top face: the picture by depth (pale and clear over the shallow bed, deeper blue over deep water) and the transparency of each corner,
-    // clearer where a solid block touches it, so the bed shows through and the shore reads lighter.
-    private static void AddWaterSurface(MeshBuffer buffer, Neighbourhood near, int lx, int ly, int lz, int x, int y, int z, float top, int depth, bool grey)
+    // The height of the water's top at the four corners of the cell, in blocks above its floor (water-plan 4.8): each corner averages the four cells that meet there.
+    // The order is that of the up face's corners: south-west, south-east, north-east, north-west.
+    private static void SurfaceHeights(Neighbourhood near, int lx, int ly, int lz, Span<float> heights)
     {
-        var cell = depth > 1 ? BlockCell.Water : BlockCell.WaterShallow;
-        var (u0, v0, u1, v1) = BlockAtlasLayout.Uv(cell, grey);
-        var corners = FaceCorners[2];
-        Span<uint> colours = stackalloc uint[4];
         for (var k = 0; k < 4; k++)
         {
-            int cx = corners[(k * 3)] == 1 ? 1 : -1, cz = corners[(k * 3) + 2] == 1 ? 1 : -1;
+            int cx = FaceCorners[2][k * 3], cz = FaceCorners[2][(k * 3) + 2];
+            var h = WaterCorners.Height(
+                CornerOf(near, lx + cx - 1, ly, lz + cz - 1),
+                CornerOf(near, lx + cx, ly, lz + cz - 1),
+                CornerOf(near, lx + cx - 1, ly, lz + cz),
+                CornerOf(near, lx + cx, ly, lz + cz));
+            heights[k] = h / (float)WaterCorners.PerBlock;
+        }
+    }
+
+    private static CornerCell CornerOf(Neighbourhood near, int x, int y, int z)
+    {
+        var block = near.Get(x, y, z);
+        var above = near.Get(x, y + 1, z) == BlockId.Water;
+        if (block == BlockId.Water)
+        {
+            return CornerCell.Water(near.Level(x, y, z), above);
+        }
+
+        return new CornerCell(IsCubeKind(block) ? CornerKind.Solid : CornerKind.Open, default, above);
+    }
+
+    // The index in the up face's corner order of the corner at (cx, cz), each 0 or 1.
+    private static int CornerIndex(int cx, int cz) => cz == 1 ? cx : 3 - cx;
+
+    // The water's top face: the picture by depth (pale and clear over the shallow bed, deeper blue over deep water), turned so its ripples run downstream, and the
+    // transparency of each corner, clearer where a solid block touches it, so the bed shows through and the shore reads lighter.
+    private static void AddWaterSurface(MeshBuffer buffer, Neighbourhood near, int lx, int ly, int lz, int x, int y, int z, ReadOnlySpan<float> heights, int depth, FlowVector flow, bool grey)
+    {
+        var tile = WaterTileLayout.For(depth > 1, flow.IsHorizontal);
+        var corners = FaceCorners[2];
+        Span<MeshVertex> v = stackalloc MeshVertex[4];
+        for (var k = 0; k < 4; k++)
+        {
+            int cx = corners[k * 3] == 1 ? 1 : -1, cz = corners[(k * 3) + 2] == 1 ? 1 : -1;
             var land = 0;
             for (var j = 0; j < 3; j++)
             {
@@ -701,19 +780,62 @@ public static class ChunkMesher
 
             var clarity = Math.Min(3, land + (depth <= 1 ? 1 : 0));
             var alpha = (byte)(depth > 2 ? 250 - (land * 26) : depth == 2 ? 240 - (land * 34) : 215 - (clarity * 30));
-            colours[k] = MeshVertex.Pack(255, 255, 255, alpha);
+            var (p, q) = WaterTileLayout.Along(cx * 0.5f, cz * 0.5f, flow.X, flow.Z);
+            var (u, w) = WaterTileLayout.Uv(tile, grey, p, q);
+            v[k] = new MeshVertex(x + corners[k * 3], y + heights[k], z + corners[(k * 3) + 2], MeshVertex.Pack(255, 255, 255, alpha), u, w);
         }
 
-        var a = new MeshVertex(x, y + top, z + 1, colours[0], u0, v1);
-        var b = new MeshVertex(x + 1, y + top, z + 1, colours[1], u1, v1);
-        var c = new MeshVertex(x + 1, y + top, z, colours[2], u1, v0);
-        var d = new MeshVertex(x, y + top, z, colours[3], u0, v0);
-        buffer.AddQuad(a, b, c, d);
+        buffer.AddQuad(v[0], v[1], v[2], v[3]);
 
-        // H05: the same surface seen from below. The water pass culls back faces, so without this quad the top face is invisible from under
-        // the water and the world above (leaves, undergrowth, far terrain) shows through it as white speckles.
-        buffer.AddQuad(d, c, b, a);
+        // H05: the same surface seen from below, on the same four corners (H09: they move together). The water pass culls back faces, so without this quad the top
+        // face is invisible from under the water and the world above (leaves, undergrowth, far terrain) shows through it as white speckles. It starts at the third
+        // corner so both quads split along the same diagonal.
+        buffer.AddQuad(v[2], v[1], v[0], v[3]);
     }
+
+    // The underside of a water cell that has air (or a plant) below it: flat, at the floor of the cell.
+    private static void AddWaterBottom(MeshBuffer buffer, int x, int y, int z, bool deep, bool grey)
+    {
+        var tile = WaterTileLayout.For(deep, false);
+        var corners = FaceCorners[3];
+        var (r, g, b) = FaceTint(BlockFace.Down);
+        var colour = MeshVertex.Pack((byte)(255 * r), (byte)(255 * g), (byte)(255 * b), 235);
+        MeshVertex V(int k)
+        {
+            var (u, w) = WaterTileLayout.Uv(tile, grey, corners[k * 3], corners[(k * 3) + 2]);
+            return new MeshVertex(x + corners[k * 3], y, z + corners[(k * 3) + 2], colour, u, w);
+        }
+
+        buffer.AddQuad(V(0), V(1), V(2), V(3));
+    }
+
+    // A side of a water cell that borders air: the bottom edge is the floor of the cell, the top edge follows the surface's corners so the sides close the
+    // surface at any slope. The picture hangs from the cell's top, so it is continuous down a column; the sheet of a waterfall takes no shading.
+    private static void AddWaterSide(MeshBuffer buffer, BlockFace face, int x, int y, int z, ReadOnlySpan<float> heights, WaterTile tile, bool sheet, bool grey)
+    {
+        var corners = FaceCorners[Array.IndexOf(Faces, face)];
+        var topRight = heights[CornerIndex(corners[6], corners[8])];
+        var topLeft = heights[CornerIndex(corners[9], corners[11])];
+        uint colour;
+        if (sheet)
+        {
+            colour = MeshVertex.Pack(255, 255, 255, 255);
+        }
+        else
+        {
+            var (r, g, b) = FaceTint(face);
+            colour = MeshVertex.Pack((byte)(255 * r), (byte)(255 * g), (byte)(255 * b), 235);
+        }
+
+        MeshVertex V(int k, float height, float p, float down)
+        {
+            var (u, w) = WaterTileLayout.Uv(tile, grey, p, down);
+            return new MeshVertex(x + corners[k * 3], y + height, z + corners[(k * 3) + 2], colour, u, w);
+        }
+
+        buffer.AddQuad(V(0, 0f, 0f, 1f), V(1, 0f, 1f, 1f), V(2, topRight, 1f, 1f - topRight), V(3, topLeft, 0f, 1f - topLeft));
+    }
+
 
     // Undergrowth: two quads crossing on the diagonals of the cell, a little off centre, a little different in height from plant to plant (a stable
     // pick from the position), brighter at the tip than at the root. Drawn with no back-face culling, so one quad of each pair is enough.

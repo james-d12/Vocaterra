@@ -4,6 +4,7 @@ using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Graphics.Blocks;
 using Vocaterra.Game.Graphics.Sky;
+using Vocaterra.Game.Graphics.Water;
 using Vocaterra.Game.Graphics.World;
 using Vocaterra.Game.Startup;
 using Vocaterra.Game.Tests.Graphics.World;
@@ -26,6 +27,9 @@ public sealed class LookTests
         var row = (int)(vertex.V * BlockAtlasLayout.Height / BlockAtlasLayout.CellSize);
         return (BlockCell)((row * BlockAtlasLayout.Columns) + column);
     }
+
+    // The water has its own strip of pictures, not the atlas (H09): which tile a water vertex's texture coordinate falls in.
+    private static WaterTile WaterTileOf(MeshVertex vertex) => WaterTileLayout.TileAt(vertex.U, vertex.V).Tile;
 
     private static (double X, double Y, double Z) Normal(ReadOnlySpan<MeshVertex> v, int quad)
     {
@@ -517,8 +521,8 @@ public sealed class LookTests
     {
         var shallow = new MapBlocks().Fill(0, 1, 0, 4, 1, 4, BlockId.Sand).Set(2, 2, 2, BlockId.Water);
         var deep = new MapBlocks().Fill(0, 0, 0, 4, 0, 4, BlockId.Sand).Fill(2, 1, 2, 2, 3, 2, BlockId.Water);
-        Assert.Equal(BlockCell.WaterShallow, CellOf(Mesh(shallow).Alpha.Vertices.ToArray().OrderByDescending(static v => v.Y).First()));
-        Assert.Equal(BlockCell.Water, CellOf(Mesh(deep).Alpha.Vertices.ToArray().OrderByDescending(static v => v.Y).First()));
+        Assert.Equal(WaterTile.ShallowStill, WaterTileOf(Mesh(shallow).Alpha.Vertices.ToArray().OrderByDescending(static v => v.Y).First()));
+        Assert.Equal(WaterTile.DeepStill, WaterTileOf(Mesh(deep).Alpha.Vertices.ToArray().OrderByDescending(static v => v.Y).First()));
     }
 
     [Fact]
@@ -543,7 +547,7 @@ public sealed class LookTests
             }
 
             sides++;
-            if (CellOf(alpha.Vertices[quad * 4]) == BlockCell.Waterfall)
+            if (WaterTileOf(alpha.Vertices[quad * 4]) == WaterTile.Falling)
             {
                 waterfall++;
             }
@@ -555,7 +559,7 @@ public sealed class LookTests
         // The falling water takes no shading: its foam stays white on every side, in the shade of the cliff too.
         for (var quad = 0; quad < alpha.FaceCount; quad++)
         {
-            if (CellOf(alpha.Vertices[quad * 4]) == BlockCell.Waterfall)
+            if (WaterTileOf(alpha.Vertices[quad * 4]) == WaterTile.Falling)
             {
                 Assert.Equal((255, 255, 255, 255), Channels(alpha.Vertices[quad * 4].Color));
             }
@@ -575,7 +579,7 @@ public sealed class LookTests
             var meshes = ChunkMesher.Build(source, coord.X, coord.Y, coord.Z);
             for (var i = 0; i < meshes.Alpha.VertexCount; i++)
             {
-                if (CellOf(meshes.Alpha.Vertices[i]) == BlockCell.Waterfall)
+                if (WaterTileOf(meshes.Alpha.Vertices[i]) == WaterTile.Falling)
                 {
                     found++;
                 }
