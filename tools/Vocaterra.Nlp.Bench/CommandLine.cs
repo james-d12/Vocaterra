@@ -16,6 +16,7 @@ public sealed class UsageException : Exception
 internal sealed class CommandLine
 {
     private readonly Dictionary<string, List<string>> _options = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _flags = new(StringComparer.Ordinal);
 
     private CommandLine(List<string> positionals)
     {
@@ -24,7 +25,7 @@ internal sealed class CommandLine
 
     public IReadOnlyList<string> Positionals { get; }
 
-    public static CommandLine Parse(string[] args, int start, IReadOnlyList<string> valueOptions)
+    public static CommandLine Parse(string[] args, int start, IReadOnlyList<string> valueOptions, IReadOnlyList<string>? flags = null)
     {
         var positionals = new List<string>();
         var line = new CommandLine(positionals);
@@ -34,6 +35,12 @@ internal sealed class CommandLine
             if (!arg.StartsWith("--", StringComparison.Ordinal))
             {
                 positionals.Add(arg);
+                continue;
+            }
+
+            if (flags is not null && flags.Contains(arg, StringComparer.Ordinal))
+            {
+                line._flags.Add(arg);
                 continue;
             }
 
@@ -57,6 +64,11 @@ internal sealed class CommandLine
         }
 
         return line;
+    }
+
+    public bool Flag(string name)
+    {
+        return _flags.Contains(name);
     }
 
     public string? Value(string name)

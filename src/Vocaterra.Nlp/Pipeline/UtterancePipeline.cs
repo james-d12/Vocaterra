@@ -52,6 +52,11 @@ public sealed partial class UtterancePipeline
         ArgumentNullException.ThrowIfNull(services);
         _services = services;
         _options = options ?? PipelineOptions.Default;
+        if (double.IsNaN(_options.OpenPassWordFloor) || _options.OpenPassWordFloor < 0.0 || _options.OpenPassWordFloor > 1.0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), _options.OpenPassWordFloor, "OpenPassWordFloor must be between 0 and 1.");
+        }
+
         var content = services.Content;
         _analyzer = new LinguisticAnalyzer(content.Lexicon, content.LanguageMorphology, content.Language, content.AnalysisRules);
         _resolver = new IntentResolver(content.Intents, content.Language, services.Embeddings, null, content.AnalysisRules);
@@ -95,7 +100,23 @@ public sealed partial class UtterancePipeline
         var answerSet = AnswerSetFor(prompt);
         var request = BuildRequest(prompt, answerSet);
         var (asr, posteriors) = Recognize(clip, request);
+        var first = Read(clip, prompt, answerSet, asr, posteriors, null);
+        if (!ShouldTryOpenPass(prompt, asr, first.Verdict))
+        {
+            return first;
+        }
 
+        // M80: the constrained decode forced the sound onto an answer phrase (or dropped it as [unk]) and the line was not taken; decode the clip once more,
+        // freely, and read that through the same stages. The second reading wins only when it is taken and its weakest word reaches the floor, otherwise the first stays as it is. The phoneme
+        // posteriors are those of the one phoneme pass: they depend on the clip alone.
+        var open = _services.WordRecognizer.Recognize(clip, RecognitionRequest.Open(_options.MaxAlternatives));
+        var second = Read(clip, prompt, answerSet, open, posteriors, asr);
+        return IsTaken(second.Verdict) && ClearsWordFloor(open) ? second : first.WithOtherPass(open);
+    }
+
+    // The stages after recognition: normalization, answer matching, linguistic analysis, intent resolution, pronunciation scoring and verdict assembly.
+    private UtteranceAnalysis Read(PcmClip clip, PromptSpec prompt, AnswerSet answerSet, AsrResult asr, PhonePosteriors? posteriors, AsrResult? otherPass)
+    {
         var language = _services.Content.Language;
         var normalized = language.Normalizer.Normalize(CleanTranscript(asr.Transcript), Normalization);
         var match = AnswerMatcher.Match(normalized, answerSet, prompt.Difficulty, language, Normalization);
@@ -125,7 +146,35 @@ public sealed partial class UtterancePipeline
             content.Language.ErrorTags,
             NearMissOf(normalized, match, answerSet, prompt)));
         var notes = AccentNotes.Merge(analysis.Notes, AccentNotes.FromAnswer(normalized, analysis, match, answerSet, content.Lexicon, language, Normalization));
-        return new UtteranceAnalysis(clip.ClipHash, prompt, asr, posteriors, normalized, analysis, match, answerSet, verdict, notes);
+        return new UtteranceAnalysis(clip.ClipHash, prompt, asr, posteriors, normalized, analysis, match, answerSet, verdict, notes, otherPass);
+    }
+
+    // The second pass runs only when the host turned it on, the prompt is constrained, the first recognition really was constrained (a recorded free
+    // recognition replays as it was chosen) and the first reading was not taken.
+    private bool ShouldTryOpenPass(PromptSpec prompt, AsrResult firstAsr, Verdict firstVerdict)
+    {
+        return _options.OpenRecognitionFallback
+            && prompt.Mode == RecognitionMode.Constrained
+            && firstAsr.Mode == RecognitionMode.Constrained
+            && !IsTaken(firstVerdict);
+    }
+
+    // The free pass's floor: the weakest word of the recognition must reach it. No words means no weakest word, which fails any floor above 0.
+    private bool ClearsWordFloor(AsrResult open)
+    {
+        var floor = _options.OpenPassWordFloor;
+        if (floor <= 0.0)
+        {
+            return true;
+        }
+
+        return open.Words.Count > 0 && open.Words.Min(static word => word.Confidence) >= floor;
+    }
+
+    // A reading is taken when the line was understood, or it was not but its meaning is known (M72's off-prompt intent).
+    private static bool IsTaken(Verdict verdict)
+    {
+        return verdict.Communicated || verdict.OffPromptIntent is not null;
     }
 
     /// <summary>

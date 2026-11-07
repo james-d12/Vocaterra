@@ -288,6 +288,9 @@ using Vocaterra.Nlp.Response.Speech;
 IWordRecognizer words = new ScriptedWordRecognizer(
     new AsrResult("yo tiene dos espada", [new AsrHypothesis("yo tiene dos espada", 1.0)], [], 1.0, "scripted-transcript", RecognitionMode.Open));
 
+// M80: a test of the open-recognition fallback scripts one result per mode: new ScriptedWordRecognizer(constrainedResult, openResult)
+// (a null result makes a request of that mode throw); Requests lists every request received, in order.
+
 IPhonemeRecognizer? phonemes = null;                        // optional: without it pronunciation is not scored
 IEmbeddingModel? embeddings = new FakeEmbeddingModel();     // D0 stand-in for the embedding rung
 ISpeechSynthesizer? synthesizer = new SilentSynthesizer();  // D0 stand-in: no audio is produced
@@ -323,6 +326,40 @@ var pipeline = new UtterancePipeline(services);             // PipelineOptions i
 
 `UtterancePipeline` runs the stages in a fixed order; the same input gives the same bytes of output. One pipeline serves many
 utterances.
+
+### The open-recognition fallback for free talk (M80)
+
+`PipelineOptions.OpenRecognitionFallback` (`bool`, default `false`) is the host's switch for free talk (the owner, D-game-22, 2026-11-06, option 1 of
+`docs/research/2026-11-04-spoken-off-prompt-lines.md`). A constrained prompt hands the recognizer only the answer phrases, so a spoken line outside them reaches
+the stages as an empty line or as the nearest answer phrase, and the typed-line rules never see the words said. With the option on, `Analyze` decodes the clip a
+second time, freely (`RecognitionRequest.Open(MaxAlternatives)`), when all four hold: the option is on; the prompt is `Constrained`; the first recognition's
+`Mode` is `Constrained`; and the first reading is not taken (not `Communicated` and no `OffPromptIntent`). The free recognition goes through the same stages (one
+private method serves both passes; the phoneme posteriors are computed once, on the first pass, and reused), and **it wins only when it is taken and its weakest
+word is not weak**; otherwise the first reading stands and is byte-identical to the option off. The floor is `PipelineOptions.OpenPassWordFloor` (`double`, default
+`0.5` = `PipelineOptions.DefaultOpenPassWordFloor`; the owner, 2026-11-07): the free reading is taken only when the lowest `AsrWord.Confidence` of its recognition is
+at least the floor (exactly the floor is enough). A free recognition with no words (an empty one, or a recognizer that gives no word confidences, as the scripted ones
+often do) has no weakest word and is not taken, except at a floor of `0`, which switches the check off (the behaviour before the floor). The floor holds the free pass
+only: the first, constrained pass is never held to it, and it does nothing while the option is off. A value outside 0 to 1 (or NaN) makes the `UtterancePipeline`
+constructor throw `ArgumentOutOfRangeException`. Beyond that the core adds no gate: the host's rule for an uncertain line (a mean confidence, say) reads the chosen
+`Asr`.
+
+```csharp
+var pipeline = new UtterancePipeline(services, new PipelineOptions { OpenRecognitionFallback = true });   // free talk only; lesson steps keep the default
+// OpenPassWordFloor = 0.5 by default: a free reading with a word under 0.5 is not taken
+UtteranceAnalysis analysis = pipeline.Analyze(clip, prompt);
+bool heardFreely = analysis.Asr.Mode == RecognitionMode.Open;      // a line the constrained decode did not take, read from the free decode
+AsrResult? other = analysis.OtherPass;                              // the recognition that was not chosen; null when only one decode ran
+```
+
+`UtteranceAnalysis.Asr` is the chosen recognition (`Mode` `Open` at a constrained prompt marks a line heard freely), and the new `UtteranceAnalysis.OtherPass`
+(`AsrResult?`) is the other one when the second pass ran. A spoken line the prompt allows but whose words are not among its rows (`mañana voy a comprar pan` at
+`smith-open`) is understood as the typed line is; a spoken off-prompt line carries `OffPromptIntent`. The cost is one more decode, only for a line that was not taken; a taken first reading, an open prompt and the option off decode once. Measured on Kokoro
+speech with the small Vosk model and one best hypothesis (`OpenFallbackMeasurementTests`, a model-gated test that prints its report): the constrained decode takes
+a median 24 ms (95th percentile 50 ms), the free decode a median 190 ms (95th percentile 268 ms; 336 to 349 ms for clips over 3 s). Nothing is measured on real
+learner speech: the accent risk is unmeasured. The recognizer must be able to serve a second, open request on the same clip: the Vosk adapter makes its own native
+recognizer per call, and the scripted and replay recognizers need no change. The floor (above) was set from that run: without it, two spoken lines no intent should take
+(`ese libro es muy interesante` heard as `el libro es muy interesante`, `el` at 0.45) were taken as `describe` and two lines were taken as the wrong intent (`si usted
+hace años muy buenas`, `años` at 0.26); at 0.5 the measurement has zero false takes and loses one understood line of 108 (a word at 0.46 in a long line; 0.6 would lose six). Credit for a line heard freely is the host's to decide.
 
 ## 4. Build a conversation context (D0)
 
@@ -928,8 +965,9 @@ PipelineResult result = pipeline.Complete(analysis, context, near, extraSkills: 
 ```
 
 - **What phase 1 hands over.** `UtteranceAnalysis` exposes `Verdict`, `Words`, `Answer` (the values the final `PipelineResult` will carry),
-  `Asr` and `Posteriors` (the recognizer outputs), `ClipHash` and `Prompt`. Everything else phase 2 needs is kept internally. The recognizers run
-  once, in `Analyze`; completing the analysis never calls them again (a speech host recognizes once).
+  `Asr` and `Posteriors` (the recognizer outputs), `OtherPass` (M80, the recognition not chosen when the open-recognition fallback ran a second decode),
+  `ClipHash` and `Prompt`. Everything else phase 2 needs is kept internally. The recognizers run in `Analyze` (the word recognizer twice with the fallback,
+  when its first reading is not taken); completing the analysis never calls them again (a speech host recognizes once).
 - **Three ways to give the host facts.** `Complete(analysis, context)` takes them from the context (`HostSlots`, `ExtraSkills`);
   `Complete(analysis, context, hostSlots, extraSkills)` replaces them with the arguments, through `context.WithHost(...)`, which recomputes
   `HostStateHash` as `Create` does, so the replay record covers the facts; `CompleteTrace` is `Complete` that returns the `PipelineTrace` a replay log needs
@@ -1107,7 +1145,7 @@ The guarantee stops at the injected adapters, which the pipeline does not make t
 
 | Adapter | Constructed | Concurrent calls on one instance | Shared across pipelines or threads |
 | --- | --- | --- | --- |
-| `ScriptedWordRecognizer` (test double) | in code | serialized by a lock | yes |
+| `ScriptedWordRecognizer` (test double; M80: also one result per mode, and `Requests`) | in code | serialized by a lock | yes |
 | `VoskWordRecognizer` | loads the model in the constructor (and a runtime copy on disk) | no lock: each `Recognize` makes its own native recognizer on a shared model, which the code does not guarantee; `Dispose` is not synchronized with `Recognize` | one instance per thread; do not dispose while another thread may recognize |
 | `SherpaOnnxOfflineRecognizer` | loads the model in the constructor | `Recognize` and `Dispose` take one lock: calls queue, `Dispose` is safe | yes, with calls serialized |
 | `Wav2Vec2PhonemeRecognizer`, `OnnxEmbeddingModel` | ONNX session in the constructor | no lock; the code gives no guarantee (ONNX Runtime documents concurrent `Run` as supported, which this code does not test) | one instance per thread, or serialize the calls |
@@ -1118,6 +1156,10 @@ The guarantee stops at the injected adapters, which the pipeline does not make t
 The rule for a host that runs evaluation and speech on different threads: one pipeline (or one set of services) per process is fine; give
 each Vosk, ONNX recognizer and each cached synthesis key one thread of its own, or serialize their calls, and do not dispose a recognizer
 while another thread can call it.
+
+**The open-recognition fallback (M80).** The second decode runs on the calling thread, after the first recognition (and the phoneme recognizer, if any) has
+finished, so a word recognizer is never called by two threads at once and the one-recognizer-per-thread rule of the table holds unchanged. The Vosk adapter
+makes a native recognizer per call on the one loaded model, so the second decode needs no second model load.
 
 **Two-phase evaluation and host turns.** `Analyze`, `Complete`, `CompleteTrace` and `Advance` follow the same rule as `Evaluate`: they keep no state
 in the pipeline. An `UtteranceAnalysis` is immutable (its members are get-only and the pipeline never mutates what it holds), so it may be handed
