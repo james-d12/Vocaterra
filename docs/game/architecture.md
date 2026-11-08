@@ -278,7 +278,7 @@ The player's hunger, thirst, sleep, health and stamina (adaptation design sectio
   stamina above 0) and `GatherPermille` (the data's `gatherSlowFactor` at zero stamina: gathering slows and never stops); neither is state or in the digest. The tick's activity
   is Sprinting, Gathering (a gathered block; filling the bottle is no labour), Walking, Resting (still within the radius of a lit ring of `FireRings`) or Idle. With the needs
   off the sprint is free and the speed factors are 1.
-- **The save** (version 6): the optional `systems` map, with `systems.needs` holding the five meters and the two timers; versions 1 to 5 start with full needs. The needs
+- **The save** (version 7, the needs' and the water's fields together): the optional `systems` map, with `systems.needs` holding the five meters and the two timers; versions 1 to 5 start with full needs. Water adds the player's `air` and the `flow` of the scene diff; the underwater blur is an optional field of the settings. The needs
   are not in the world's digest; a load clamps a value out of range and refuses one that is not a number.
 - **Test aids:** `--needs off` freezes the needs (every scripted run passes it), `--set-need <need> <value>` sets one at launch.
 

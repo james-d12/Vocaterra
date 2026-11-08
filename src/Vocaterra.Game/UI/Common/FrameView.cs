@@ -132,6 +132,9 @@ public sealed class FrameView
     /// <summary>Whether the settings panel shows the relaxed needs on.</summary>
     public bool SettingsRelaxed { get; set; }
 
+    /// <summary>The underwater blur level the settings screen shows (water-plan H11).</summary>
+    public Core.Water.UnderwaterBlur SettingsBlur { get; set; } = Core.Water.UnderwaterBlurSettings.Default;
+
     /// <summary>Whether the controls help (F1, S16) is open.</summary>
     public bool ControlsOpen { get; set; }
 

@@ -22,6 +22,40 @@ public static class BreathHudLayout
     /// <summary>The bubbles the meter has in a row (one per tenth of the air).</summary>
     public const int Count = Breath.MaxBubbles;
 
+    /// <summary>
+    /// How far the bubble row must be lifted to stand clear of the needs HUD (H11): the bubbles sit just above the hotbar's right half, and a box of the needs HUD that
+    /// reaches the same columns and the same height (the stage line, which is centred over the hotbar; the block, where a canvas puts it above the hotbar's left end and is
+    /// wide enough to reach the bubbles) pushes them up to stand <see cref="Lift"/> above it. Zero where nothing is in the way.
+    /// </summary>
+    /// <param name="canvasWidth">The canvas's width.</param>
+    /// <param name="canvasHeight">The canvas's height.</param>
+    /// <param name="needs">Where the needs HUD stands, or <see langword="null"/> when it is not drawn.</param>
+    public static int RaiseAbove(int canvasWidth, int canvasHeight, NeedsHudBoxes? needs)
+    {
+        if (needs is null)
+        {
+            return 0;
+        }
+
+        var row = Bubbles(canvasWidth, canvasHeight);
+        var left = row[0].X;
+        var right = row[^1].Right;
+        var top = row[0].Y;
+        var bottom = row[0].Bottom;
+        var raise = 0;
+        foreach (var box in new[] { needs.Block, needs.Line })
+        {
+            if (box is not { } b || b.Right <= left || b.X >= right || b.Bottom <= top || b.Y >= bottom)
+            {
+                continue;
+            }
+
+            raise = Math.Max(raise, bottom - b.Y + Lift);
+        }
+
+        return raise;
+    }
+
     /// <summary>The ten bubble boxes, left to right, on a canvas of the given size.</summary>
     /// <param name="canvasWidth">The canvas's width.</param>
     /// <param name="canvasHeight">The canvas's height.</param>

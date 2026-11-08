@@ -114,7 +114,7 @@ public sealed class NeedsRateTests
     {
         var rate = 3.75;
         bool effects = true, relaxed = false;
-        var panel = new SettingsPanel(() => rate, r => rate = r, () => effects, e => effects = e, () => relaxed, r => relaxed = r);
+        var panel = new SettingsPanel(() => rate, r => rate = r, () => effects, e => effects = e, () => relaxed, r => relaxed = r, () => Vocaterra.Game.Core.Water.UnderwaterBlur.Low, _ => { });
         panel.Open();
         panel.HandleInput(TestInputFrame.Pressing(GameKey.Right));
         Assert.Equal(4.0, rate);
@@ -137,6 +137,8 @@ public sealed class NeedsRateTests
         panel.HandleInput(TestInputFrame.Pressing(GameKey.Down));
         panel.HandleInput(TestInputFrame.Pressing(GameKey.Space));
         Assert.True(relaxed);
+        panel.HandleInput(TestInputFrame.Pressing(GameKey.Down));
+        Assert.Equal(3, panel.Selected);
         panel.HandleInput(TestInputFrame.Pressing(GameKey.Down));
         Assert.Equal(0, panel.Selected);
         panel.HandleInput(TestInputFrame.Pressing(GameKey.F8));

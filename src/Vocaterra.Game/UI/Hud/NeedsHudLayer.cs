@@ -26,6 +26,16 @@ public sealed class NeedsHudLayer : IFrameLayer
     private static readonly Color Ink = new(250, 246, 232);
     private static readonly Color LineBack = new(10, 10, 20, 215);
 
+    /// <summary>Where the needs HUD stands for this frame (the bubble meter stacks above it, H11).</summary>
+    /// <param name="view">The frame.</param>
+    /// <param name="hud">The needs HUD state.</param>
+    /// <param name="font">The small font the stage line is measured in.</param>
+    internal static NeedsHudBoxes PlaceFor(FrameView view, Core.Needs.NeedsHud hud, FontStashSharp.SpriteFontBase font)
+    {
+        var announcement = hud.Announcement;
+        return NeedsHudLayout.Place(view.ViewportWidth, view.ViewportHeight, hud.Icons.Count, hud.StaminaVisible, announcement?.Spanish, announcement?.English, text => DrawHelpers.Width(font, text));
+    }
+
     /// <inheritdoc />
     public void Draw(SpriteBatch spriteBatch, FrameView view)
     {
@@ -38,7 +48,7 @@ public sealed class NeedsHudLayer : IFrameLayer
         var pixel = view.Pixel;
         var icons = hud.Icons;
         var announcement = hud.Announcement;
-        var boxes = NeedsHudLayout.Place(view.ViewportWidth, view.ViewportHeight, icons.Count, hud.StaminaVisible, announcement?.Spanish, announcement?.English, text => DrawHelpers.Width(font, text));
+        var boxes = PlaceFor(view, hud, font);
 
         for (var i = 0; i < icons.Count; i++)
         {

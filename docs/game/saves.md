@@ -36,9 +36,15 @@ dotnet run --project src/Vocaterra.Game -- --content /tmp/x01-bundle --mute --lo
 dotnet run --project src/Vocaterra.Game -- --content /tmp/x01-bundle --mute --load /tmp/x01.save --screenshot /tmp/x01-migrated.png --frames 30
 ```
 
-## Format version 6: the `systems` map and the needs (N01)
+## Format version 7: the `systems` map, the needs (N01) and the water
 
-Version 6 adds an optional `systems` map to the save: a system's name to its entry, so a system joins the save without another format change (W06 adds `procedures`).
+The current version is 7. Two branches each wrote a different version 6 (the needs and the `systems` map on one, the water on the other); they met in the water merge
+(PR #45) and the merged format is version 7, which holds both sides' fields. A save of either old version-6 shape is not read: the game is unreleased, so there is no
+migration between them. Water's fields are optional like the others: `air` (the player's breath, in ticks) in the simulation state, and `flow` (the water that is not a source
+in the scene diff and the cells waiting to flow, H06). The underwater blur setting (H11) is the optional `underwaterBlur` of the save's `settings` (the level as its number: 0 off,
+2 medium, 3 high; no field is the default, low), so it needed no further version. Drowning (H11) leaves no state of its own: the damage is in the `health` meter.
+
+Version 6 (in the merged format) adds an optional `systems` map to the save: a system's name to its entry, so a system joins the save without another format change (W06 adds `procedures`).
 Its `needs` entry holds the player's five meters and two timers: `hunger`, `thirst`, `sleep` (0 to 100), `stamina` (0 to its current maximum), `health` (0 to 100),
 `exhaustionSeconds` (seconds of active play at sleep's last stage) and `effortFreeSeconds` (seconds since the last effort). Later milestones add the regrowth, gift and
 chest state as optional fields of the entry. Stages and their effects are never saved: they are worked out from the meters and the data.
@@ -52,7 +58,7 @@ chest state as optional fields of the entry. Stages and their effects are never 
   and run the day's resets (`RunDayResets`, `DayResetCount`; a load runs none).
 - **The belongings chest (N04)** is the `chest` entry of `systems`: `{"x","y","z","stacks":[{"item","count"}]}`, the cell of the Chest block and one total per item kind, absent when
   no chest stands. The Chest block itself is in the world's block edits (`chunks`), as any placed block; a load restores both and never removes a chest, a night does
-  (`RunDayResets`), with its contents. No version change: an older v6 save has no chest.
+  (`RunDayResets`), with its contents. No version change: an older save has no chest.
 - **The NPCs met and the split first lesson (L01)** need no format change (the version stays 6): `metNpcs` is an optional list of the NPC ids the player has talked to (a class opens on
   having met its teacher, an order on having met its NPC); a save without it takes every NPC as met from day 2 on and only the guide before. A lesson is never saved engaged: a load
   restores the active class paused. A save of the old `first-words` (37 steps) holds the introduction and Luna's first class in one entry; the load splits it (`LessonRunner.SplitIntroduction`):

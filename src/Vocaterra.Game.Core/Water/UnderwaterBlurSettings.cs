@@ -17,6 +17,11 @@ public readonly record struct UnderwaterBlurSettings(int Downscale, float Weight
     /// <summary>The level used when none is given.</summary>
     public const UnderwaterBlur Default = UnderwaterBlur.Low;
 
+    /// <summary>The level in force: the player's choice, or off while the view effects are switched off (the accessibility switch; the fog and the tint stay).</summary>
+    /// <param name="chosen">The setting.</param>
+    /// <param name="effectsOn">Whether the view effects are on.</param>
+    public static UnderwaterBlur Effective(UnderwaterBlur chosen, bool effectsOn) => effectsOn ? chosen : UnderwaterBlur.Off;
+
     /// <summary>Whether the pass blurs at all (needs a render target) or only tints.</summary>
     public bool Enabled => Weight > 0f;
 

@@ -1,8 +1,7 @@
 namespace Vocaterra.Game.Core.Water;
 
 /// <summary>
-/// The null object for <see cref="IPlayerHealth"/> on this branch: it records nothing and the player is never dead. <c>feature/bread-pilot</c>'s
-/// health replaces it in H11.
+/// The null object for <see cref="IPlayerHealth"/> for tests with no needs: it records nothing and the player is never dead. The session uses <see cref="NeedsHealth"/>.
 /// </summary>
 public sealed class NoPlayerHealth : IPlayerHealth
 {

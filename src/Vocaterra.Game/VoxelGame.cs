@@ -26,6 +26,7 @@ using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.Water;
 using Vocaterra.Game.Core.World;
 using Vocaterra.Game.Core.World.Layout;
 using Vocaterra.Game.Diagnostics;
@@ -194,6 +195,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         session.NeedsEnabled = !options.NeedsOff; // --needs off freezes the needs (N01, a test aid)
         session.RelaxedNeeds = options.RelaxedNeeds || savedSettings?.RelaxedNeeds == true; // half the rates, a faint for a death (N05, design decision 17)
         session.NeedsRate = options.NeedsRate ?? savedSettings?.EffectiveNeedsRate ?? SaveSettings.DefaultNeedsRate; // the drive rate (N09)
+        _underwaterBlur = options.UnderwaterBlur ?? savedSettings?.EffectiveUnderwaterBlur ?? UnderwaterBlurSettings.Default; // H11: a launch option overrides the saved setting for a run
         _needsHud = new NeedsHud(session) { EffectsOn = options.ViewEffects ?? !(savedSettings?.ViewEffectsOff ?? false) };
         foreach (var (meter, value) in options.SetNeeds)
         {
@@ -229,7 +231,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _camera = new PlayerCamera(_sim, _look, _viewMode, _isSolid);
         _figures = new FigureDirector(scene, _sim, _look, _dialogue, session.Data.Npcs);
         _arm = new ArmPresenter(_sim, _isSolid, options.Dusk);
-        _drawer = new SceneDrawer(options, session, _toasts, _figures.Figures, Console.WriteLine);
+        _drawer = new SceneDrawer(options, session, _toasts, _figures.Figures, Console.WriteLine) { BlurLevel = () => UnderwaterBlurSettings.Effective(_underwaterBlur, _needsHud.EffectsOn) }; // the accessibility switch forces the blur off (H11)
         _reportScreen = new ReportScreen(
             _report,
             session,
@@ -282,7 +284,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             Console.WriteLine);
         _lesson.OnRecapDone = _bookScreen.ShowPhrases; // the lesson's recap ends on the journal's phrases page (S17)
         _controls = new ControlsHelp(() => ControlsLayer.MaxScrollFor(_drawer.View));
-        _settings = new SettingsPanel(() => session.NeedsRate, rate => { session.NeedsRate = rate; Console.WriteLine($"needs rate: {SettingsPanel.RateText(session.NeedsRate)}"); }, () => _needsHud.EffectsOn, on => { _needsHud.EffectsOn = on; Console.WriteLine($"view effects: {(on ? "on" : "off")}"); }, () => session.RelaxedNeeds, on => { session.RelaxedNeeds = on; Console.WriteLine($"relaxed needs: {(on ? "on" : "off")}"); }); // N09
+        _settings = new SettingsPanel(() => session.NeedsRate, rate => { session.NeedsRate = rate; Console.WriteLine($"needs rate: {SettingsPanel.RateText(session.NeedsRate)}"); }, () => _needsHud.EffectsOn, on => { _needsHud.EffectsOn = on; Console.WriteLine($"view effects: {(on ? "on" : "off")}"); }, () => session.RelaxedNeeds, on => { session.RelaxedNeeds = on; Console.WriteLine($"relaxed needs: {(on ? "on" : "off")}"); }, () => _underwaterBlur, level => { _underwaterBlur = level; Console.WriteLine($"underwater blur: {level.ToString().ToLowerInvariant()}"); }); // N09, H11
         _inventoryPanel = new InventoryPanel(_inventory, _focus, session, () => _book.IsOpen);
         _craftingPanel = new CraftingPanel(_crafting, session, _sound, (x, y) => new CraftingLayout(_canvas.Width, _canvas.Height, session.Recipes.Entries.Count).RowAt(x, y), () => _book.IsOpen || _inventory.IsOpen || _dialogue.IsOpen);
         _stationPanel = new StationPanel(
@@ -398,7 +400,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         Window.AllowUserResizing = true;
         Window.Title = _playtest ? $"Vocaterra playtest (seed {options.Seed})" : $"Vocaterra 3D (seed {options.Seed})";
         Window.TextInput += OnTextInput;
-        _saves = new SaveService(session, pristine, () => new SaveSettings(_sound.Mixer.Volumes, _canvas.TextPercent, !_needsHud.EffectsOn, session.RelaxedNeeds, session.NeedsRate == SaveSettings.DefaultNeedsRate ? 0 : session.NeedsRate), Console.WriteLine); // the sound volumes (S24), the text size (X08), the view effects and the relaxed needs (N05) ride in the save's settings
+        _saves = new SaveService(session, pristine, () => new SaveSettings(_sound.Mixer.Volumes, _canvas.TextPercent, !_needsHud.EffectsOn, session.RelaxedNeeds, session.NeedsRate == SaveSettings.DefaultNeedsRate ? 0 : session.NeedsRate, _underwaterBlur == UnderwaterBlurSettings.Default ? null : _underwaterBlur), Console.WriteLine); // the sound volumes (S24), the text size (X08), the view effects and the relaxed needs (N05) ride in the save's settings
         _checks = new CheckBattery(
             session,
             () => _log,
@@ -729,6 +731,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         view.SettingsRate = _session.NeedsRate;
         view.SettingsEffectsOn = _needsHud.EffectsOn;
         view.SettingsRelaxed = _session.RelaxedNeeds;
+        view.SettingsBlur = _underwaterBlur;
         view.ControlsOpen = _controls.IsOpen;
         view.ControlsScroll = _controls.Scroll;
         view.Report = _report;
@@ -1114,6 +1117,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private const double DeathHoldSeconds = 4;
     private double _deathHold;
     private readonly NeedsHud _needsHud;
+    private UnderwaterBlur _underwaterBlur;
 
     // The stage lines of the needs (N05): a worse stage shows its line above the hotbar once and plays its soft sound once.
     private void DriveNeedsHud()

@@ -21,7 +21,13 @@ public sealed class BreathHudLayer : IFrameLayer
             return;
         }
 
-        var boxes = BreathHudLayout.Bubbles(view.ViewportWidth, view.ViewportHeight);
+        NeedsHudBoxes? needs = null;
+        if (view.Needs is { Visible: true } hud && view.Check is null && view.MicCheck is not { IsActive: true })
+        {
+            needs = NeedsHudLayer.PlaceFor(view, hud, view.Fonts.Get(FontProvider.NativeSize));
+        }
+
+        var boxes = BreathHudLayout.Bubbles(view.ViewportWidth, view.ViewportHeight, BreathHudLayout.RaiseAbove(view.ViewportWidth, view.ViewportHeight, needs));
         for (var i = 0; i < boxes.Count; i++)
         {
             var box = boxes[i];

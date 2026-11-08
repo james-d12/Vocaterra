@@ -99,6 +99,11 @@ public sealed class PlayerNeeds
     /// <summary>Seconds since the last effort.</summary>
     public double EffortFreeSeconds => _effortFree;
 
+    /// <summary>
+    /// True while something other than a drive is hurting the player and health must not recover (water-plan H11: no air). Set by the session each tick; never saved.
+    /// </summary>
+    public bool RecoveryHeld { get; set; }
+
     /// <summary>Whether health has run out (the player dies; <see cref="Wake"/> brings them back).</summary>
     public bool IsDead => _health <= 0;
 
@@ -193,7 +198,7 @@ public sealed class PlayerNeeds
         var stamina = _data.Stamina;
         var maximum = Math.Max(stamina.MinimumMaximum, stamina.Maximum - penalty);
         refill = Math.Max(stamina.MinimumRefillFactor, refill);
-        var recovery = blocked || loss > 0 ? 0 : (1 / _data.Health.RecoverySeconds) * (resting ? _data.Rest.RecoveryFactor : 1);
+        var recovery = blocked || loss > 0 || RecoveryHeld ? 0 : (1 / _data.Health.RecoverySeconds) * (resting ? _data.Rest.RecoveryFactor : 1);
         return new NeedEffects(maximum, refill, stamina.RefillPerSecond * refill * (resting ? _data.Rest.RefillFactor : 1), walk, sprint, loss, blocked, recovery, views);
     }
 
@@ -289,6 +294,18 @@ public sealed class PlayerNeeds
 
     /// <summary>A collapse from exhaustion: sleep to 50, no health, the same costs, stamina filled. It changes the meters once and resets the exhaustion timer.</summary>
     public void Collapse() => ApplyChange(_data.Collapse);
+
+    /// <summary>Takes health away at once (drowning, water-plan H11), never below zero. A dead player takes nothing.</summary>
+    /// <param name="amount">The health lost (a positive number).</param>
+    public void Hurt(double amount)
+    {
+        if (IsDead || !(amount > 0))
+        {
+            return;
+        }
+
+        _health = Math.Max(0, _health - amount);
+    }
 
     /// <summary>Health runs out: the player is dead until <see cref="Wake"/>.</summary>
     public void Die() => _health = 0;

@@ -51,6 +51,7 @@ public sealed class SceneDrawer : IDisposable
     public SceneDrawer(LaunchOptions options, VoxelSession session, ToastQueue toasts, IReadOnlyList<NpcFigure> figures, Action<string> console)
     {
         _options = options;
+        BlurLevel = () => options.UnderwaterBlur ?? UnderwaterBlurSettings.Default;
         _session = session;
         _toasts = toasts;
         _figures = figures;
@@ -97,6 +98,9 @@ public sealed class SceneDrawer : IDisposable
         _layers = layers;
     }
 
+    /// <summary>The blur level in force now (the setting, or off with the view effects off); the launch option's level until the game says otherwise.</summary>
+    public Func<UnderwaterBlur> BlurLevel { get; set; }
+
     /// <summary>How far under water the view is, 0 to 1 (<c>UnderwaterView.Amount</c>): the sound side muffles the beds by it (H10).</summary>
     public double UnderwaterAmount => _underwater.Amount;
 
@@ -113,7 +117,7 @@ public sealed class SceneDrawer : IDisposable
         AdvanceUnderwater(camera);
         var amount = (float)_underwater.Amount;
         renderer.SetUnderwater(amount);
-        _underwaterPass!.Begin(amount, _options.UnderwaterBlur);
+        _underwaterPass!.Begin(amount, BlurLevel());
         device.Clear(renderer.ClearColour);
         renderer.DrawWorld(camera, target, beacon, tick, avatar, arm, () => NpcLabelLayer.Draw(device, _spriteBatch!, View, camera));
         _underwaterPass.End(amount, _underwater.TintOpacity);
