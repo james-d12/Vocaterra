@@ -238,13 +238,18 @@ sources, are identical; widening the comparison is not a fix. A C# test pins the
 **Done:** the turn worker's outcome reached the next frame's collect or the one after at random; a scripted run now waits for its
 turns at the end of each frame (`TurnWorker.WaitForOutcomes`), so twenty runs gave tick 2460. Details in game plan section 5.
 
-### T10: Game.Core's managed heap since the water merge (authorised by the owner, 2026-11-08)
+### T10: Game.Core's managed heap since the water merge, done (2026-11-08, gated at `386815a6`)
 
 Water's H08a (`e71af2a2`) capped the Game.Core test host's managed heap at 3 GB (`System.GC.HeapHardLimit` in
 `tests/Vocaterra.Game.Core.Tests/runtimeconfig.template.json`), sized for water's tests. With the bread pilot's tests merged in
 (`bc881c58`), a full run throws `OutOfMemoryException` now and then (`GuideTurnTests.TheCursorTileIsNamedWhenTheGuideIsAskedWhatThisIs`
 in T9's own run and in M84's gate, 2 of 3 runs). T10 finds what holds the memory and cuts it at the source, as H08a's lazy scans did; the
 cap stays (the owner, D-game-23 item 6) and the xUnit threads stay at 3. Sonnet 5.5 medium, on `feature/bread-pilot`.
+
+**Done:** two test leaks held whole worlds: `TestSupport/RouteScene` cached a built scene (about 110 MB) per seed for the run (about
+1.1 GB for ten seeds; now seed 42 and the last two others), and `TeacherLoopTests`' rig never stopped its turn worker (about 30 MB a test;
+now disposed). Live heap peak 563 MB (was 1.67 GB), unforced 1.07 GB of the 3 GB cap (was 2.96 GB), the test host 2.1 GB (was 3.9 GB);
+the gate's suite peak 4.5 GB (was 6.0). `RouteSceneCacheTests` pins the cache. Report `.claude/briefs/t10-report.md`.
 
 ## Files touched
 - **New:** `scripts/test-timings.py`, `scripts/test.sh`, `tests/Shared/TestSpeed.cs`, `tests/Vocaterra.Game.Core.Tests/TestSupport/TestSpeed.cs`

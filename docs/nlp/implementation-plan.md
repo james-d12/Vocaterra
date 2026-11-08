@@ -266,7 +266,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M81 | The loader takes an intent with its `slotGrammars` removed (O15, ContentSchemaFuzzTests, seed `41s2qgWEC-M9`: `describe`, intent 27, has no `keywordRules`, and the mutation is accepted; found by N01's agent on 2026-11-05 and reproduced on `feature/adaptive_design` at 558ed095): fix the cause (an intent no grammar and no rule can produce is a content error) or make the tolerance exact, with a regression test and a fuzz README finding | none | S | Haiku 5.5 | done (2026-11-05, gated on `feature/adaptive_design`, 9160 passed) |
 | M82 | The loader refuses an intent with no `slotGrammars`, no `keywordRules` and no `examples` (the owner, 2026-11-05, on M81's finding: no bundle has one, so enforce it): a `ContentValidationException` naming the file and the intent; `OptionalMembersMayBeOmitted` gives its intent one member; the fuzz README's M81 entry moves to fixed | M81 | S | Haiku 5.5 | done (2026-11-05, gated at `80492cf9`, 9363 passed) |
 | M83 | The O7 fuzz seed `8eu5g1sTe_A8` (found by W02, §5b; the owner, 2026-11-07, D-game-23 item 5): «ayuda por favor por favor» at a prompt without `ask_help` resolves as Grammar `request_item` although `ask_help`'s grammar outranks the match; fix the resolver or the analyzer at the cause, with the seed's case as a regression test; the oracle stands | | S | Sonnet 5.5 medium | done (2026-11-08, merged at `45499631`, gated with the water merge at `bc881c58` on `feature/bread-pilot`, 10328 passed, 3 skipped; §5b) |
-| M84 | Free talk's forced rows (found by V31; the owner, 2026-11-07, D-game-23 item 5): with `OpenRecognitionFallback` on, a constrained reading that was taken but looks forced (most of the clip's speech unused, or a clip much longer than its row, or weak words) also gets the open decode, and a confident, different free reading wins; measured on M80's Kokoro corpus plus V31's forced lines («el río es grande» heard «es gracias»), zero false takes the bar, the cost per turn reported | M80 | M | Sonnet 5.5 high | authorised (2026-11-07), on `feature/bread-pilot` |
+| M84 | Free talk's forced rows (found by V31; the owner, 2026-11-07, D-game-23 item 5): with `OpenRecognitionFallback` on, a constrained reading that was taken but looks forced (most of the clip's speech unused, or a clip much longer than its row, or weak words) also gets the open decode, and a confident, different free reading wins; measured on M80's Kokoro corpus plus V31's forced lines («el río es grande» heard «es gracias»), zero false takes the bar, the cost per turn reported | M80 | M | Sonnet 5.5 high | done (2026-11-08, gated with T10 at `386815a6` on `feature/bread-pilot`, 10363 passed, 3 skipped; §5b) |
 
 ### Delegation waves
 
@@ -1845,6 +1845,19 @@ merge into a feature branch that is pushed, and the owner merges it into `main` 
   and five more runs. Three tests in `IntentResolverCatalogReadingTests`; a "Bugs found and fixed" entry in the fuzz README. Its first
   gate was cut off by the machine's reboot (2026-11-07); `LintTests.TheBundleLintTakesUnderFiveSeconds` took 5.55 s beside T9's build in
   the agent's own run (3 s alone). Report `.claude/briefs/m83-report.md`.
+- **M84, free talk's forced rows (2026-11-08, Sonnet 5.5 high; gated with T10 at `386815a6` on `feature/bread-pilot`, 10363 passed,
+  3 skipped).** Measured on 2541 evaluations (843 clips, 8 voices): of 1501 taken constrained readings, 852 correct rows, 241 other lines
+  read as typed, 408 forced. The answer match separates them best (correct rows: Exact 804, Alias 11, Fuzzy 37, None 0; forced: Exact 0,
+  Alias 45, Fuzzy 65, None 298); the words' coverage of the voiced audio next (correct 0.76 to 1.00, forced median 0.54); `[unk]` and
+  speech per letter do not. Coverage alone misses V31's shopkeeper case («me cuesta el río», coverage 1.00). **The trigger**, used only
+  with `OpenRecognitionFallback`: `PipelineOptions.OpenPassOnLooseMatch` (default true: a taken reading matched `None` or `Fuzzy`) and
+  `OpenPassMinCoverage` (default 0.6, [0, 1], 0 off) also run the open decode; the free reading wins only when taken, over
+  `OpenPassWordFloor`, with a different intent (`Pipeline/ForcedReading.cs`, `EnergyVad.SpeechFrames`). **Bars:** 0 of 852 correct rows
+  and 0 of 241 other correct lines replaced, 0 false takes; 297 of 408 forced lines rescued (every V31 line); 1 wrong take (M80's
+  «usted hace hachas…» as `confirm`). Extra open decodes on 45 % of taken readings in this off-prompt-heavy corpus, 4 % on correct rows;
+  median 199 ms, p95 365 ms. O14 checks the trigger and the different-intent rule (mutation-checked). V32 is not needed (`OtherPass` and
+  `Asr.Mode` unchanged; a replaced row shows as `heard_open`); the game's `architecture.md` and the D-game-9 note still say the second
+  decode runs only for a missed line. Its first gate failed on the water merge's Game.Core heap (T10). Report `.claude/briefs/m84-report.md`.
 
 ## 6. Definition of done (every milestone)
 
