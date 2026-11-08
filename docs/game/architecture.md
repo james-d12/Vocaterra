@@ -126,7 +126,7 @@ Dialogue/         DialogueModel and its records, the speech buttons, TextWrap, t
                   in place of the correction, accent and English feedback stack, `Expanded` for the older lines; the lines themselves, and so
                   the book's history, are unchanged. The lesson heading reaches the panel's header as `FrameView.LessonHeading` (beside the NPC's name, which is the panel's title at 32 px, 16 px when compact: `DialogueLayout.Header`, U05); the strip has
                   no heading row, `LessonStripLayout.HeadingRow` = 0.)
-Language/         Book/ (the book's model, pages, tables, recordings, speakers, geometry and BookScreen), Checks/ (the battery's bank, plan,
+Language/         Book/ (the book's model, pages, tables, recordings, speakers, geometry and BookScreen; U07: a page is `BookLine`s of a `BookLineKind` (Section, Entry, Meta, Gap, Tiles, Detail), the list drops the details, which are the right page's block, and the layer reports the right page's speaker buttons to `BookModel.RightButtons` for the mouse), Checks/ (the battery's bank, plan,
                   grader, CheckScreen, CheckBattery and ICheckLog), Learner/, Lessons/ (LessonRunner, LessonFrontend, LessonActions),
                   Phrases/ (phrase progress, the support ladder, PhraseJournalRows), Speech/ (the evaluators, MicCheck, MicCheckModel,
                   MicCheckScreen), Words/ (the noun catalogue, word progress, JournalRows, VerbReading, GreyscaleWorld)
@@ -175,7 +175,7 @@ UI/
   Overlays/       OverlayLayouts, LoadingLayer, ControlsLayer, EndingLayer
   Dialogue/       DialoguePanel, DialogueLayout, DialogueBubble, DialogueBubbleLayer, ConversationFrame, ConversationLayout, ConversationCards,
                   VoxelTalkLayers, SupportLayer, SupportLayout
-  Book/           BookLayer, ConjugationLayout
+  Book/           BookLayer (the page by line kind, the right page by detail role, U07), ConjugationLayout
   Checks/         CheckLayer, CheckCardLayout, MicCheckLayer, MicCheckLayout
   Crafting/       CraftingLayer, CraftingLayout, RecipePanelLayer
   Station/        StationLayer, StationLayout, InstructionStripLayer, InstructionStripLayout (the strip's boxes and text lines, for a box the caller gives)

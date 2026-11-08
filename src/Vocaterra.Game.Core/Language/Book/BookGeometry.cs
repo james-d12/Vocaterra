@@ -69,8 +69,8 @@ public sealed record BookGeometry(int ViewportWidth, int ViewportHeight)
     /// <summary>The spine between the pages.</summary>
     public BookRect Spine => new(Paper.X + PageWidth, Paper.Y, SpineWidth, Paper.Height);
 
-    /// <summary>The title's line, under the ribbons.</summary>
-    public int TitleTop => Paper.Y + 38;
+    /// <summary>The top of the left page's title (U07: the page's name at 32 px in the ribbon's colour, under the ribbons) and of the right page's summary.</summary>
+    public int TitleTop => Paper.Y + 36;
 
     /// <summary>The top of the ribbons' labels.</summary>
     public int TabsTop => Panel.Y + 12;
@@ -78,11 +78,11 @@ public sealed record BookGeometry(int ViewportWidth, int ViewportHeight)
     /// <summary>The first ribbon's left edge.</summary>
     public int TabsLeft => Paper.X + 20;
 
-    /// <summary>The rule under the title.</summary>
-    public int RuleTop => Paper.Y + 60;
+    /// <summary>The rule under the title (U07: two pixels in the page's accent on the left page, one in the paper's rule colour on the right).</summary>
+    public int RuleTop => Paper.Y + 72;
 
-    /// <summary>The top of the content.</summary>
-    public int ContentTop => Paper.Y + 68;
+    /// <summary>The top of the content (U07: 80 px under the paper's top, 12 lower than before: the 32 px title costs a row).</summary>
+    public int ContentTop => Paper.Y + 80;
 
     /// <summary>The left edge of the list (the text of a line starts here, before its indent).</summary>
     public int ContentLeft => LeftPage.X + Padding;
