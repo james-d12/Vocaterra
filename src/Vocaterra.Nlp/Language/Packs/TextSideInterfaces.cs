@@ -86,6 +86,17 @@ public interface IRecastPolicy
     IReadOnlyDictionary<int, string> RestoredSpellings(NormalizedText text, AnalysisResult analysis, Lexicon.Lexicon lexicon);
 }
 
+/// <summary>
+/// The words a pack uses for the orthography notes of the pipeline (M87): the short line a host shows beside its reply for an accent the learner left out
+/// (<see cref="AccentNote"/>). A host may word a note in its own words, in the learner's language, from the note's members; this is the pack's own wording.
+/// </summary>
+public interface IOrthographyNotes
+{
+    /// <summary>The line for the note (Spanish: <c>«compré», con tilde: es pasado</c>).</summary>
+    /// <param name="note">The note.</param>
+    string Describe(AccentNote note);
+}
+
 /// <summary>Cleans rendered text.</summary>
 public interface IPunctuation
 {

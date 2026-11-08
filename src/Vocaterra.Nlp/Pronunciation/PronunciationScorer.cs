@@ -1,6 +1,7 @@
 using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
+using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Phonology;
 
 namespace Vocaterra.Nlp.Pronunciation;
@@ -22,11 +23,14 @@ public sealed class PronunciationScorer
     private readonly GopScorer gop;
 
     /// <summary>Creates a scorer; thresholds and calibration default to their shipped values.</summary>
-    public PronunciationScorer(PronunciationThresholds? thresholds = null, GopCalibration? calibration = null)
+    /// <param name="thresholds">The thresholds, or null for the default.</param>
+    /// <param name="calibration">The calibration, or null for the default.</param>
+    /// <param name="errorTags">The error tag set whose rank orders tags at the same place (a pack's <c>ErrorTags</c>, M87); null means <see cref="ErrorTagSet.V1"/>.</param>
+    public PronunciationScorer(PronunciationThresholds? thresholds = null, GopCalibration? calibration = null, ErrorTagSet? errorTags = null)
     {
         var resolved = thresholds ?? PronunciationThresholds.Default;
-        greedy = new GreedyPhoneScorer(resolved);
-        gop = new GopScorer(resolved, calibration);
+        greedy = new GreedyPhoneScorer(resolved, errorTags);
+        gop = new GopScorer(resolved, calibration, errorTags);
     }
 
     /// <summary>

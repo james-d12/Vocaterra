@@ -1,5 +1,6 @@
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
+using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Phonology;
 
@@ -14,7 +15,8 @@ internal static class ResultAssembler
         Difficulty difficulty,
         PronunciationThresholds thresholds,
         double confidence,
-        string modelHash)
+        string modelHash,
+        ErrorTagSet errorTags)
     {
         var phones = new PhoneScore[evidence.Phones.Count];
         var scores = new double[phones.Length];
@@ -26,7 +28,7 @@ internal static class ResultAssembler
             phones[i] = new PhoneScore(ScoreMath.SpanOfPhone(evidence.Variant, i), observation.Expected, observation.Actual, score);
         }
 
-        var errors = PredictedErrorMatcher.Match(evidence, predictedErrors, difficulty, thresholds);
+        var errors = PredictedErrorMatcher.Match(evidence, predictedErrors, difficulty, thresholds, errorTags);
         return new PronunciationResult(
             Array.AsReadOnly(phones),
             errors,
