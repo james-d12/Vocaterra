@@ -590,9 +590,10 @@ bread pilot met on `feature/bread-pilot`):
    pool: each one-block drop a short falling-water step. (c) The river mouth: the river's surface clamped to the lake's level inside the
    lake (H07a).
 
-**Open, from H11:** the sand bank at (212, 262) stands 2 blocks above a 1-block-deep shelf, too shallow to swim, so no player can climb
-out there (a wading jump rises about 1.3 blocks; the hop-out needs swimming). Whether to reshape the bank or let the hop-out work from
-wading is the owner's (`.claude/briefs/h11-report.md`, item 5).
+**The cliff at the lake, from H11 (owner, 2026-11-08: "Fix the lake bank"):** the sand bank at (212, 262) stood 2 blocks above a
+1-block-deep shelf, too shallow to swim, so no player could climb out there (a wading jump rises about 1.3 blocks; the hop-out needs
+swimming; `.claude/briefs/h11-report.md`, item 5). The bank is fixed in the world, not in the swim rules: every water edge a player can
+reach is left by walking, a step or the hop-out. H12 builds it (`docs/game/water-plan.md`).
 
 ## Already decided
 
