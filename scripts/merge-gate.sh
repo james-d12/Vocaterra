@@ -65,6 +65,16 @@ test_rc=$?
 SUMMARY="$(grep -E "^(Passed|Failed)!" "$TESTLOG" | sed -E 's/,//g')"
 echo "$SUMMARY" | awk 'NF {f+=$4; p+=$6; s+=$8} END {print "tests: passed="p" failed="f" skipped="s}'
 grep -E "^\s+Failed |\[FAIL\]" "$TESTLOG" | head -20
+# Every test assembly that starts must report a result (H08a: a test host killed for memory printed nothing and dotnet test still exited 0).
+runs="$(grep -c "Test run for " "$TESTLOG")"
+results="$(grep -cE "^(Passed|Failed)!" "$TESTLOG")"
+if [ "$runs" -ne "$results" ]; then
+  echo "tests: INCOMPLETE, $runs test runs started but $results results; no result for:"
+  grep "Test run for " "$TESTLOG" | sed -E 's/^Test run for //; s/ \(.*$//' | while read -r asm; do
+    grep -qE "^(Passed|Failed)!.* - $(basename "$asm") " "$TESTLOG" || echo "  $asm"
+  done
+  test_rc=1
+fi
 
 FORMATLOG=".claude/gate-logs/format-$STAMP.log"
 "$L" dotnet format Vocaterra.sln --verify-no-changes --no-restore > "$FORMATLOG" 2>&1

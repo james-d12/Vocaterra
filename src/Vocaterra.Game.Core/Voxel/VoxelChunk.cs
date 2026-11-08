@@ -22,6 +22,8 @@ public sealed class VoxelChunk
     private readonly BlockId[] _blocks = new BlockId[Volume];
     private byte[]? _digest;
     private int _nonAir;
+    private byte[]? _water;
+    private int _flowing;
     private ulong _kinds;
     private bool _kindsValid;
 
@@ -69,11 +71,22 @@ public sealed class VoxelChunk
         }
     }
 
+    /// <summary>Whether any water cell of the chunk holds a level other than source. A chunk the scene builds never does, and then it carries no level layer at all.</summary>
+    public bool HasWaterLevels => _flowing > 0;
+
+    /// <summary>
+    /// The encoded water level of every cell in storage order (<see cref="WaterLevel.Encoded"/>; 0 for source and for cells that are not water), or an empty span while the
+    /// chunk holds no level other than source (<see cref="HasWaterLevels"/>). A save compares and writes it.
+    /// </summary>
+    public ReadOnlySpan<byte> WaterLevels => _flowing > 0 && _water is not null ? _water : default;
+
     /// <summary>The block at the chunk-local position.</summary>
     public BlockId this[int localX, int localY, int localZ] => _blocks[Index(localX, localY, localZ)];
 
     /// <summary>
-    /// The SHA-256 of the chunk: its 4 096 block ids, each a 16-bit little-endian integer, in storage order. Cached until the next edit.
+    /// The SHA-256 of the chunk: its 4 096 block ids, each a 16-bit little-endian integer, in storage order. When the chunk holds a water
+    /// level other than source (<see cref="HasWaterLevels"/>), its 4 096 level bytes follow in the same order; otherwise the digest is exactly
+    /// what it was before levels existed. Cached until the next edit.
     /// </summary>
     public byte[] ComputeDigest()
     {
@@ -82,7 +95,13 @@ public sealed class VoxelChunk
             return cached;
         }
 
-        var buffer = new byte[Volume * sizeof(ushort)];
+        var blockBytes = Volume * sizeof(ushort);
+        var buffer = new byte[HasWaterLevels ? blockBytes + Volume : blockBytes];
+        if (_flowing > 0 && _water is { } levels)
+        {
+            levels.CopyTo(buffer.AsSpan(blockBytes));
+        }
+
         for (var i = 0; i < Volume; i++)
         {
             BinaryPrimitives.WriteUInt16LittleEndian(buffer.AsSpan(i * sizeof(ushort)), (ushort)_blocks[i]);
@@ -95,6 +114,10 @@ public sealed class VoxelChunk
     /// <summary>The chunk digest as 64 lowercase hex characters.</summary>
     public string ComputeDigestHex() => Convert.ToHexString(ComputeDigest()).ToLowerInvariant();
 
+    /// <summary>The water level at the chunk-local position: <see cref="WaterLevel.Source"/> when the chunk has no level layer or the cell holds none. Meaningful for water cells only.</summary>
+    public WaterLevel GetWater(int localX, int localY, int localZ) =>
+        _water is null ? WaterLevel.Source : WaterLevel.FromEncoded(_water[Index(localX, localY, localZ)]);
+
     /// <summary>
     /// A copy with its own blocks and the same version and counts. The cached digest is shared: an edit replaces it and never writes into it.
     /// </summary>
@@ -104,6 +127,8 @@ public sealed class VoxelChunk
         _blocks.CopyTo(copy._blocks, 0);
         copy._digest = _digest;
         copy._nonAir = _nonAir;
+        copy._water = (byte[]?)_water?.Clone();
+        copy._flowing = _flowing;
         copy._kinds = _kinds;
         copy._kindsValid = _kindsValid;
         copy.Version = Version;
@@ -128,8 +153,31 @@ public sealed class VoxelChunk
         }
 
         _blocks[index] = block;
+        if (block != BlockId.Water)
+        {
+            ClearLevel(index);
+        }
+
         _digest = null;
         _kindsValid = false;
+        Version++;
+        return true;
+    }
+
+    /// <summary>Sets the level of the water cell at the chunk-local position (the caller has checked it is water); allocates the layer on the first non-source level. Returns whether the level changed.</summary>
+    internal bool SetWater(int localX, int localY, int localZ, WaterLevel level)
+    {
+        var index = Index(localX, localY, localZ);
+        var old = _water?[index] ?? 0;
+        if (old == level.Encoded)
+        {
+            return false;
+        }
+
+        _water ??= new byte[Volume];
+        _water[index] = level.Encoded;
+        _flowing += (level.Encoded != 0 ? 1 : 0) - (old != 0 ? 1 : 0);
+        _digest = null;
         Version++;
         return true;
     }
@@ -144,6 +192,13 @@ public sealed class VoxelChunk
             var old = _blocks[index];
             if (old == block)
             {
+                // Filling water over water writes source: a non-source level there is reset.
+                if (block == BlockId.Water && _water is not null && _water[index] != 0)
+                {
+                    ClearLevel(index);
+                    changed++;
+                }
+
                 continue;
             }
 
@@ -157,6 +212,7 @@ public sealed class VoxelChunk
             }
 
             _blocks[index] = block;
+            ClearLevel(index);
             changed++;
         }
 
@@ -168,6 +224,15 @@ public sealed class VoxelChunk
         }
 
         return changed;
+    }
+
+    private void ClearLevel(int index)
+    {
+        if (_water is not null && _water[index] != 0)
+        {
+            _water[index] = 0;
+            _flowing--;
+        }
     }
 
     private static int Index(int localX, int localY, int localZ) => (((localY << Shift) + localZ) << Shift) + localX;

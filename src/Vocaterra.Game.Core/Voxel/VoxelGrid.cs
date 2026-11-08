@@ -14,6 +14,7 @@ public sealed class VoxelGrid
     private readonly VoxelChunk[] _chunks;
     private byte[]? _digest;
     private long _digestEdits = -1;
+    private readonly List<IBlockChangeListener> _listeners = [];
 
     internal VoxelGrid(int sizeX, int sizeY, int sizeZ)
     {
@@ -79,13 +80,20 @@ public sealed class VoxelGrid
     public int ChunksZ { get; }
 
     /// <summary>
-    /// The number of block edits that changed a block since the grid was created (a write of the block already there does not count). The
+    /// The number of block edits that changed a block or a water level since the grid was created (a write of the block already there does not count). The
     /// world digest is cached against it.
     /// </summary>
     public long EditCount { get; private set; }
 
     /// <summary>Every chunk in digest order: layer by layer (Y), then row by row (Z), then column (X): index = (cy * ChunksZ + cz) * ChunksX + cx.</summary>
     public IReadOnlyList<VoxelChunk> Chunks => _chunks;
+
+    /// <summary>
+    /// The water level at the position. A water cell with no stored level is <see cref="WaterLevel.Source"/>. Outside the grid, or where the
+    /// block is not water, there is no level to read and the result is <see cref="WaterLevel.Source"/> too: check <see cref="GetBlock"/> first.
+    /// </summary>
+    public WaterLevel GetWater(int x, int y, int z) =>
+        InBounds(x, y, z) ? ChunkAt(x, y, z).GetWater(x & (VoxelChunk.Size - 1), y & (VoxelChunk.Size - 1), z & (VoxelChunk.Size - 1)) : WaterLevel.Source;
 
     /// <summary>Whether the block position lies inside the grid.</summary>
     public bool InBounds(int x, int y, int z) => (uint)x < (uint)SizeX && (uint)y < (uint)SizeY && (uint)z < (uint)SizeZ;
@@ -236,13 +244,70 @@ public sealed class VoxelGrid
             throw new ArgumentOutOfRangeException(nameof(x), $"Block ({x}, {y}, {z}) lies outside the grid.");
         }
 
-        var changed = ChunkAt(x, y, z).Set(x & (VoxelChunk.Size - 1), y & (VoxelChunk.Size - 1), z & (VoxelChunk.Size - 1), block);
+        var chunk = ChunkAt(x, y, z);
+        var (lx, ly, lz) = (x & (VoxelChunk.Size - 1), y & (VoxelChunk.Size - 1), z & (VoxelChunk.Size - 1));
+        var oldBlock = chunk[lx, ly, lz];
+        var oldLevel = chunk.GetWater(lx, ly, lz);
+        var changed = chunk.Set(lx, ly, lz, block);
         if (changed)
         {
             EditCount++;
+            Raise(new BlockChange(new BlockPos(x, y, z), oldBlock, block, oldLevel, chunk.GetWater(lx, ly, lz)));
         }
 
         return changed;
+    }
+
+    /// <summary>
+    /// Writes the level of a water cell; returns whether it changed. Counts as an edit and re-meshes the chunk, like a block edit.
+    /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException">The position lies outside the grid.</exception>
+    /// <exception cref="InvalidOperationException">The block at the position is not water.</exception>
+    internal bool SetWater(int x, int y, int z, WaterLevel level)
+    {
+        if (!InBounds(x, y, z))
+        {
+            throw new ArgumentOutOfRangeException(nameof(x), $"Block ({x}, {y}, {z}) lies outside the grid.");
+        }
+
+        var chunk = ChunkAt(x, y, z);
+        var (lx, ly, lz) = (x & (VoxelChunk.Size - 1), y & (VoxelChunk.Size - 1), z & (VoxelChunk.Size - 1));
+        if (chunk[lx, ly, lz] != BlockId.Water)
+        {
+            throw new InvalidOperationException($"Block ({x}, {y}, {z}) is not water, so it has no level.");
+        }
+
+        var oldLevel = chunk.GetWater(lx, ly, lz);
+        if (!chunk.SetWater(lx, ly, lz, level))
+        {
+            return false;
+        }
+
+        EditCount++;
+        Raise(new BlockChange(new BlockPos(x, y, z), BlockId.Water, BlockId.Water, oldLevel, level));
+        return true;
+    }
+
+    /// <summary>Registers a listener for block and level changes (<see cref="SetBlock"/>, <see cref="SetWater"/>; never <see cref="FillColumn"/>). Adding one already registered does nothing.</summary>
+    internal void AddListener(IBlockChangeListener listener)
+    {
+        ArgumentNullException.ThrowIfNull(listener);
+        if (!_listeners.Contains(listener))
+        {
+            _listeners.Add(listener);
+        }
+    }
+
+    /// <summary>Unregisters a listener; returns whether it was registered.</summary>
+    internal bool RemoveListener(IBlockChangeListener listener) => _listeners.Remove(listener);
+
+    private void Raise(BlockChange change)
+    {
+        // Iterate a snapshot: a listener may add or remove listeners, or edit the grid, while it is told.
+        foreach (var listener in _listeners.ToArray())
+        {
+            listener.OnBlockChanged(change);
+        }
     }
 
     private VoxelChunk ChunkAt(int x, int y, int z) => _chunks[ChunkIndex(x >> VoxelChunk.Shift, y >> VoxelChunk.Shift, z >> VoxelChunk.Shift)];

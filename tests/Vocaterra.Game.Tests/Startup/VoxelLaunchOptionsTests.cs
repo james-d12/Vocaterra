@@ -215,6 +215,16 @@ public sealed class VoxelLaunchOptionsTests
     }
 
     [Fact]
+    public void ThePourStepIsOneOfTheScriptsStepsInTheOrderGiven()
+    {
+        var options = Parse("--screenshot", "x.png", "--pour", "20,11,30", "--wait", "3", "--look", "10,5");
+        Assert.Equal([VoxelStepKind.Pour, VoxelStepKind.Look], options.VoxelSteps.Select(static s => s.Kind));
+        Assert.Equal((20, 11, 30), (options.VoxelSteps[0].X, options.VoxelSteps[0].Y, options.VoxelSteps[0].Z));
+        Assert.Contains("--pour needs a block", Refuse("--screenshot", "x.png", "--pour", "20,11"), StringComparison.Ordinal);
+        Assert.Contains("need --screenshot", Refuse("--pour", "1,2,3"), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void AnUnknownArgumentIsNamed()
     {
         Assert.Equal("Unknown argument '--nope'.", Refuse("--nope"));

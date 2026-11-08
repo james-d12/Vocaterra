@@ -29,7 +29,7 @@ public sealed partial class VoxelSession
     public FireRings Fires => _fires ??= new FireRings(Scene.Grid);
 
     /// <summary>Whether the crosshair is on water within reach: E then drinks by hand, with nothing held and without Spanish.</summary>
-    public bool AimedAtWater => Simulation.Target is { Id: BlockId.Water };
+    public bool AimedAtWater => Simulation.InteractTarget is { Id: BlockId.Water };
 
     /// <summary>
     /// Eats or drinks the selected hotbar item (the right click): a food in <c>needs.json</c> is used up and its hunger, thirst and healing added, capped; the water bottle comes
@@ -86,7 +86,7 @@ public sealed partial class VoxelSession
     /// </summary>
     public NeedActionResult DrinkByHand()
     {
-        if (Simulation.Target is not { Id: BlockId.Water } hit || Needs.IsDead)
+        if (Simulation.InteractTarget is not { Id: BlockId.Water } hit || Needs.IsDead)
         {
             return NeedActionResult.Nothing;
         }

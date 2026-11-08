@@ -149,7 +149,7 @@ public sealed partial class VoxelSession
         SettleNeedStages();
     }
 
-    // A save's needs back in (save version 6), or full needs when it has none (an older save). The load raises no event.
+    // A save's needs back in (save version 7), or full needs when it has none (an older save). The load raises no event.
     internal void RestoreNeeds(NeedsSave? save)
     {
         Needs.Restore(save ?? new PlayerNeeds(Data.Needs).Capture());

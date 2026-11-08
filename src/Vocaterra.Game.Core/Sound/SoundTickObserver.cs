@@ -1,5 +1,6 @@
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
+using Vocaterra.Game.Core.Water;
 
 namespace Vocaterra.Game.Core.Sound;
 
@@ -12,6 +13,7 @@ public sealed class SoundTickObserver(SoundFrontend sound, VoxelSession session)
         var sim = session.Simulation;
         sound.ObserveSimulation(sim.Events, (x, y, z) => sim.Grid.GetBlock(x, y, z));
         sound.ObserveWorld(sim.Tick, sim.Events, sim.Player, (x, y, z) => sim.Grid.GetBlock(x, y, z), session.FireLit); // the footsteps and the beds (S25)
+        sound.ObserveBreath(sim.Breath, Immersion.Of(sim.Grid, sim.Player).Eye); // the bubbles of the breath (H10)
         sound.Scripted.Tick(); // the cues of the frame play together, so an answer's chime and a step's chime fold into one
     }
 }

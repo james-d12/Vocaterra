@@ -93,6 +93,10 @@ public static class SoundCatalog
         Synth(SoundCue.FootWater, 0.55, takes: 3);
         Synth(SoundCue.BirdChirp, 0.3, takes: 4);
         Synth(SoundCue.FireCrackle, 0.45, takes: 4);
+
+        // Water (H10): made in code, like the splash of the feet above.
+        Synth(SoundCue.WaterSplash, 0.7, takes: 3);
+        Synth(SoundCue.UnderwaterBubbles, 0.4, takes: 4);
         return table;
     }
 }

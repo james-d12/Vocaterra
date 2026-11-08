@@ -33,6 +33,7 @@ several of them were moved out of the orchestrator, the game plan and a research
 | --- | --- | --- |
 | [2026-11-05-2031-adaptive-design](2026-11-05-2031-adaptive-design.md) | The adaptation on `feature/adaptive_design`: the needs, lessons as classes, the presentation track, then the bread pilot | The owner's needs check, and fixes from it |
 | [2026-11-07-1345-bread-pilot](2026-11-07-1345-bread-pilot.md) | The bread pilot on `feature/bread-pilot`: W05 to W10, T8, W02 to W04, M80 and V31 merged | The owner's review of PR #40 |
+| [2026-11-07-1846-water](2026-11-07-1846-water.md) | The H series (water) on `feature/water` | H02's and H05's reports, then the gates |
 
 **Done**
 
@@ -45,6 +46,7 @@ several of them were moved out of the orchestrator, the game plan and a research
 | [2026-11-03-1133-docs-cleanup](done/2026-11-03-1133-docs-cleanup.md) | The documentation cleanup | `docs_cleanup` merged into `main` |
 | [2026-11-02-after-followups](done/2026-11-02-after-followups.md) | The owner's decisions after the village follow-ups | M74, M75, V29, M78 and the study merged into `feature/adaptive_design` |
 | [2026-11-03-1019-docs-structure](done/2026-11-03-1019-docs-structure.md) | The documentation layout, before the READMEs and names | Replaced by [2026-11-03-1133-docs-cleanup](done/2026-11-03-1133-docs-cleanup.md) |
+| [2026-11-07-1504-water](done/2026-11-07-1504-water.md) | The H series (water), H01 running | Replaced by [2026-11-07-1846-water](2026-11-07-1846-water.md) |
 | [2026-11-03-0952-docs-organisation](done/2026-11-03-0952-docs-organisation.md) | The first documentation review and its proposed layout | Replaced by [2026-11-03-1019-docs-structure](done/2026-11-03-1019-docs-structure.md) |
 | [2026-11-01-village-phase-b](done/2026-11-01-village-phase-b.md) | The village, phase B, its review and the follow-up queue | Replaced by 2026-11-02-after-followups; the follow-ups merged in PR #28 |
 | [2026-10-26-engine-and-language-packs](done/2026-10-26-engine-and-language-packs.md) | D14 phase A: one engine assembly and language packs | `feature/language-packs` merged into `main` |

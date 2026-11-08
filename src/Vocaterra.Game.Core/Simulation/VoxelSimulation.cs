@@ -18,7 +18,7 @@ namespace Vocaterra.Game.Core.Simulation;
 /// <see cref="Events"/> and writes only commands. Nothing here reads the clock or draws random numbers (the scene builder already used the
 /// seed), so the same scene and the same command lists give the same state on every machine. The simulation edits the scene's grid in place.
 /// </summary>
-public sealed class VoxelSimulation
+public sealed partial class VoxelSimulation
 {
     /// <summary>The ticks per second of game time (60).</summary>
     public const int TicksPerSecond = VoxelPhysics.TicksPerSecond;
@@ -44,6 +44,7 @@ public sealed class VoxelSimulation
         Inventory = new Inventory();
         var spawn = scene.Spawn.Feet;
         Player = new PlayerBody(scene.Grid, (spawn.X * U) + (U / 2), spawn.Y * U, (spawn.Z * U) + (U / 2), scene.Spawn.Yaw);
+        StartFlow();
     }
 
     /// <summary>The scene (grid, spawn, NPCs, named points).</summary>
@@ -109,8 +110,11 @@ public sealed class VoxelSimulation
     /// <summary>The recipes the player can craft; set by the host with <see cref="SetRecipes"/>.</summary>
     public IReadOnlyList<Recipe> Recipes => _recipes;
 
-    /// <summary>What the player's eye is looking at within the reach (a block, the face and the cell in front of it), or <see langword="null"/>.</summary>
-    public BlockRayHit? Target => BlockRay.Cast(Grid, Player);
+    /// <summary>What the player's eye is looking at within the reach (a block, the face and the cell in front of it), or <see langword="null"/>. Water is looked through (H05).</summary>
+    public BlockRayHit? Target => BlockRay.Cast(Grid, Player, throughWater: true);
+
+    /// <summary>H05: <see cref="Target"/> for the interact button, where water counts as a hit (a bottle is filled from the water cell in front).</summary>
+    public BlockRayHit? InteractTarget => BlockRay.Cast(Grid, Player);
 
     /// <summary>Starts a simulation on a scene, with the player standing at its spawn.</summary>
     public static VoxelSimulation Create(Scene scene)
@@ -126,7 +130,7 @@ public sealed class VoxelSimulation
     /// Advances one tick. Walking and jumping are levels (send the held ones every tick); <see cref="VoxelCommandKind.Interact"/> is held;
     /// the other commands are presses. A command kind the simulation does not know is ignored. Commands are applied in a fixed order
     /// whatever their order in the list: the hotbar selection and the facing (the last of each wins), then gathering (the last interact of
-    /// the tick), then placing and crafting (each in list order), then the walk (all move commands add up) with the jump and the physics.
+    /// the tick), then placing and crafting (each in list order), then the walk (all move commands add up) with the jump and the physics, then the water (the flow step on every 15th tick, then the breath).
     /// </summary>
     public void Step(IReadOnlyList<VoxelCommand> commands)
     {
@@ -178,7 +182,7 @@ public sealed class VoxelSimulation
         }
 
         var (intentX, intentZ) = WalkIntent(commands);
-        var (jumped, landed) = Player.Step(Grid, intentX, intentZ, jump, WalkPermille);
+        var (jumped, landed) = Player.Step(Grid, intentX, intentZ, jump, Scene.Currents, WalkPermille);
         if (jumped)
         {
             _events.Add(new SimulationEvent(SimulationEventKind.PlayerJumped, Tick));
@@ -188,6 +192,8 @@ public sealed class VoxelSimulation
         {
             _events.Add(new SimulationEvent(SimulationEventKind.PlayerLanded, Tick));
         }
+
+        StepWater();
     }
 
     /// <summary>
@@ -306,7 +312,7 @@ public sealed class VoxelSimulation
             slots[i] = Inventory.Slots[i];
         }
 
-        return new VoxelSimulationState(Tick, _selectedSlot, _gatherTarget, _gatherBlock, _gatherProgress, _noBottleHint, Player.State(), slots);
+        return new VoxelSimulationState(Tick, _selectedSlot, _gatherTarget, _gatherBlock, _gatherProgress, _noBottleHint, Player.State(), slots, _breath.Air, _flow.Queue.Snapshot());
     }
 
     /// <summary>
@@ -336,6 +342,8 @@ public sealed class VoxelSimulation
         _gatherProgress = state.GatherProgress;
         _noBottleHint = state.NoBottleHint;
         Player.Restore(state.Player);
+        _breath.Restore(state.Air);
+        _flow.Queue.Restore(state.Flow ?? []);
         for (var i = 0; i < Inventory.SlotCount; i++)
         {
             Inventory.SetSlot(i, state.Slots[i]);
@@ -380,6 +388,15 @@ public sealed class VoxelSimulation
         }
 
         hash.AppendData(rest);
+        if (!_breath.IsFull)
+        {
+            Span<byte> air = stackalloc byte[4];
+            BinaryPrimitives.WriteInt32LittleEndian(air, _breath.Air); // a full breath adds nothing, so the digests of dry runs are as they were
+            hash.AppendData(air);
+        }
+
+        AppendFlowDigest(hash); // a run with no water waiting adds nothing
+
         return Convert.ToHexString(hash.GetHashAndReset()).ToLowerInvariant();
     }
 
@@ -572,15 +589,16 @@ public sealed class VoxelSimulation
         _events.Add(new SimulationEvent(SimulationEventKind.BlockPlaced, Tick, cell.X, cell.Y, cell.Z, (int)placed, (int)item));
     }
 
-    // Air, or undergrowth (a placed block takes the place of the grass).
-    private static bool IsEmptyOrDecor(BlockId id) => id == BlockId.Air || BlockDefinition.IsDecor(id);
+    // Air, undergrowth (a placed block takes the place of the grass) or water (a placed block displaces it, H06: planks dam a stream).
+    private static bool IsEmptyOrDecor(BlockId id) => id == BlockId.Air || BlockDefinition.IsDecor(id) || id == BlockId.Water;
 
     private bool HasNeighbour(BlockPos cell)
     {
         foreach (var face in Enum.GetValues<BlockFace>())
         {
             var next = cell.Offset(face);
-            if (!IsEmptyOrDecor(Grid.GetBlock(next.X, next.Y, next.Z)))
+            var around = Grid.GetBlock(next.X, next.Y, next.Z);
+            if (around != BlockId.Air && !BlockDefinition.IsDecor(around)) // water still counts as something to build against
             {
                 return true;
             }

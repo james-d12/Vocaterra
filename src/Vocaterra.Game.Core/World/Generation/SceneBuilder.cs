@@ -1,5 +1,6 @@
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.Water.Currents;
 using Vocaterra.Game.Core.World.Layout;
 
 namespace Vocaterra.Game.Core.World.Generation;
@@ -94,7 +95,7 @@ public static class SceneBuilder
 
             var trees = PlantForest(seed);
             var plants = PlantUndergrowth(seed);
-            return new Scene(_layout.Name, seed, _grid, new SpawnPoint(spawnFeet, _layout.Spawn.Yaw, _layout.Spawn.Pitch), npcs, _points, trees, _layout.WaterLevel, plants, _layout.Labels, _propCells);
+            return new Scene(_layout.Name, seed, _grid, new SpawnPoint(spawnFeet, _layout.Spawn.Yaw, _layout.Spawn.Pitch), npcs, _points, trees, _layout.WaterLevel, plants, _layout.Labels, _propCells, RiverCurrents.Build(_layout.River, _grid));
         }
 
         // ---------------------------------------------------------------- the ground
@@ -168,6 +169,8 @@ public static class SceneBuilder
                     }
                 }
             }
+
+            WaterAtRest.Apply(_grid, _terrain);
         }
 
         // Whether the column, or one next to it, holds water (the bed and the bank are sand).

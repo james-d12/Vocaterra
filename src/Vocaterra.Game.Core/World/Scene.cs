@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.Water.Currents;
 
 namespace Vocaterra.Game.Core.World;
 
@@ -24,8 +25,10 @@ public sealed class Scene
         int waterLevel,
         int plantCount = 0,
         IReadOnlyDictionary<string, string>? labels = null,
-        IReadOnlyDictionary<string, IReadOnlyList<BlockPos>>? propCells = null)
+        IReadOnlyDictionary<string, IReadOnlyList<BlockPos>>? propCells = null,
+        RiverCurrents? currents = null)
     {
+        Currents = currents ?? RiverCurrents.None;
         Labels = labels ?? new Dictionary<string, string>(StringComparer.Ordinal);
         PropCells = propCells ?? new Dictionary<string, IReadOnlyList<BlockPos>>(StringComparer.Ordinal);
         _propOf = PropCells.SelectMany(static p => p.Value.Select(cell => (cell, p.Key))).GroupBy(static t => t.cell).ToDictionary(static g => g.Key, static g => g.First().Key);
@@ -54,6 +57,7 @@ public sealed class Scene
         TreeCount = source.TreeCount;
         WaterLevel = source.WaterLevel;
         PlantCount = source.PlantCount;
+        Currents = source.Currents;
     }
 
     private readonly Dictionary<BlockPos, string> _propOf;
@@ -98,6 +102,9 @@ public sealed class Scene
 
     /// <summary>How many undergrowth blocks (tall grass, ferns, reeds, flowers) the scene builder planted (S14).</summary>
     public int PlantCount { get; }
+
+    /// <summary>The river's current (water-plan 4.6): built with the scene from the layout, shared by clones, never saved.</summary>
+    public RiverCurrents Currents { get; }
 
     /// <summary>The y of the water surface block.</summary>
     public int WaterLevel { get; }

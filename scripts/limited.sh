@@ -17,6 +17,8 @@
 #        take more than 8G, leaving about 3 GiB for the desktop.
 #      Over a cap the kernel kills the command inside its scope or the slice; the desktop is untouched. Exit code 137 (or 143) means "hit
 #      a memory cap": lower -m or test parallelism, or wait for the other slot's command and run again.
+#      The scope is named and its Result is read afterwards (H08a): an oom-kill of any process in it (a test host that dotnet test survives) gives exit 137
+#      even when the command itself exited 0.
 #   4. Reports the command's peak memory on stderr when it ends, so the caps can be tuned from real numbers.
 #   5. No lingering servers: MSBuild node reuse, the MSBuild server and the shared Roslyn compiler server are off, so nothing outlives
 #      the command.
@@ -90,20 +92,28 @@ if [ -r "/sys/fs/cgroup$cg/memory.peak" ]; then
 fi
 exit $rc'
 
+oom_rc=0
 if systemd-run --user --scope --quiet true >/dev/null 2>&1; then
   systemctl --user set-property --runtime "$SLICE" \
     MemoryMax="$TOTAL_MEM_MAX" MemorySwapMax=0 CPUQuota="$TOTAL_CPU_QUOTA" >/dev/null 2>&1 \
     || echo "limited.sh: could not set the ${SLICE} totals; each command keeps its own caps" >&2
-  VOCATERRA_SLOT="$slot" systemd-run --user --scope --quiet --collect --slice="$SLICE" \
+  # A named scope, no --collect: the unit stays (failed) after an oom-kill, so its Result can be read. The command's own exit code is not
+  # enough: dotnet test exits 0 when the kernel kills a test host (H08a, 2026-11-07), so the scope's Result is read too.
+  unit="vocaterra-limited-$$-$(date +%s)"
+  VOCATERRA_SLOT="$slot" systemd-run --user --scope --quiet --unit="$unit" --slice="$SLICE" \
     -p MemoryMax="$MEM_MAX" -p MemorySwapMax=0 -p CPUQuota="$CPU_QUOTA" \
     nice -n 10 bash -c "$inner" limited "$@"
   rc=$?
+  result="$(systemctl --user show -p Result --value "$unit.scope" 2>/dev/null || true)"
+  [ "$result" = "oom-kill" ] && oom_rc=1
+  systemctl --user reset-failed "$unit.scope" >/dev/null 2>&1 || true
 else
   echo "limited.sh: systemd user scope unavailable; running with nice and the slot lock only (no memory cap)" >&2
   nice -n 10 "$@"
   rc=$?
 fi
-case "$rc" in
-  137|143) echo "limited.sh: the command was killed (exit $rc), most likely at a memory cap (${MEM_MAX} for one command, ${TOTAL_MEM_MAX} for all); lower -m or test parallelism, or run again when the other slot is free" >&2 ;;
-esac
+if [ "$rc" -eq 137 ] || [ "$rc" -eq 143 ] || [ "$oom_rc" -eq 1 ]; then
+  echo "limited.sh: the command (or a process in it) was killed (exit $rc, oom-kill seen: $oom_rc), most likely at a memory cap (${MEM_MAX} for one command, ${TOTAL_MEM_MAX} for all); lower -m or test parallelism, or run again when the other slot is free" >&2
+  [ "$oom_rc" -eq 1 ] && exit 137
+fi
 exit "$rc"

@@ -33,6 +33,7 @@ public static class LayerStack
             debug,
             new HotbarLayer(),
             new NeedsHudLayer(),
+            new BreathHudLayer(),
             new RecipePanelLayer(),
             new ObjectiveLayer(),
             new TipLayer(),

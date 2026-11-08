@@ -43,9 +43,10 @@ public static class SaveGame
 
     /// <summary>
     /// The format version this code writes (version 2 adds the learner's record, S19; version 3 keeps the check answers out of its word rows, S19b; version 5 keys
-    /// the objective's steps <c>&lt;objective&gt;.&lt;step&gt;</c>, C07; version 6 adds the optional <c>systems</c> map with the player's needs, N01).
+    /// the objective's steps <c>&lt;objective&gt;.&lt;step&gt;</c>, C07; version 7 adds the optional <c>systems</c> map with the player's needs (N01), the NPCs met (L01), and the water that is not
+    /// source in the scene diff, the cells waiting to flow and the player's air (water-plan H06). The two branches each wrote a different version 6 before they met; a save of either of those is not read).
     /// </summary>
-    public const int CurrentVersion = 6;
+    public const int CurrentVersion = 7;
 
     /// <summary>The objective the steps of a save before version 5 belong to: those saves held the camp checklist alone, keyed by the step (<c>wood</c>).</summary>
     public const string UnqualifiedObjective = "camp";
@@ -179,7 +180,9 @@ public static class SaveGame
             Sitting: session.Sitting,
             KeyWordsTaughtBy: session.KeyWordsTaughtBy,
             Systems: new SystemsSave(session.Needs.Capture(), session.CaptureChest(), session.CaptureBushes(), session.CaptureGifts(), session.CapturePlanted(), session.CaptureProcedures()),
-            MetNpcs: session.MetNpcs);
+            MetNpcs: session.MetNpcs,
+            Air: state.Air == Vocaterra.Game.Core.Water.Breath.MaxAir ? null : state.Air,
+            Flow: state.Flow is { Count: > 0 } ? state.Flow : null);
     }
 
     /// <summary>Captures a session and serializes it: the text of the save file.</summary>
@@ -380,7 +383,9 @@ public static class SaveGame
             document.Gather.Progress,
             document.NoBottleHint,
             document.Player,
-            slots));
+            slots,
+            document.Air ?? Vocaterra.Game.Core.Water.Breath.MaxAir,
+            document.Flow));
         session.RestoreSkippedSeconds(document.SkippedSeconds);
         session.Words.Restore(document.Words.Select(RecordOf));
         RestorePhrases(session, document.Phrases, migrating);
@@ -413,7 +418,7 @@ public static class SaveGame
         session.RestoreRenewal(document.Systems?.Bushes, document.Systems?.Gifts); // N06: the picked bushes' blocks are in the world's edits; here the cells that grow back, and the gifts given today
         session.RestorePlanted(document.Systems?.Planted); // N08: the planted bushes that stand, for the camp's cap
         session.RestoreProcedures(document.Systems?.Procedures); // W06: a save without an entry has none
-        session.RestoreNeeds(document.Systems?.Needs); // N01: a save before version 6 has none, so full needs; the needs are not in the world's digest
+        session.RestoreNeeds(document.Systems?.Needs); // N01: a save before version 7 has none, so full needs; the needs are not in the world's digest
         session.SkippedTo = document.SkippedTo; // a test run skipped to a later session stays marked (V12c)
         session.RestoreStage(); // the stage of the objective area (S17) follows from the world and the progress just put back
     }

@@ -3,11 +3,14 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.Water;
+using Vocaterra.Game.Core.Water.Currents;
 using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Graphics.Blocks;
 using Vocaterra.Game.Graphics.Camera;
 using Vocaterra.Game.Graphics.Figures;
 using Vocaterra.Game.Graphics.Sky;
+using Vocaterra.Game.Graphics.Water;
 
 namespace Vocaterra.Game.Graphics.World;
 
@@ -85,6 +88,7 @@ public sealed class VoxelRenderer : IDisposable
 
     private readonly GraphicsDevice _device;
     private readonly BlockAtlas _atlas;
+    private readonly WaterTextures _water;
     private readonly VoxelGrid _grid;
     private readonly BasicEffect _effect;
     private readonly AlphaTestEffect _solid;
@@ -114,16 +118,19 @@ public sealed class VoxelRenderer : IDisposable
     private int _pending;
 
     /// <summary>Creates the renderer for a grid and a quality preset. Nothing is meshed yet: the first <see cref="Remesh"/> builds what the eye can see.</summary>
-    public VoxelRenderer(GraphicsDevice device, BlockAtlas atlas, VoxelGrid grid, QualityPreset preset, bool dusk = false)
+    public VoxelRenderer(GraphicsDevice device, BlockAtlas atlas, WaterTextures water, VoxelGrid grid, QualityPreset preset, bool dusk = false, RiverCurrents? currents = null)
     {
         ArgumentNullException.ThrowIfNull(preset);
         _device = device;
         _atlas = atlas;
+        _water = water;
         _grid = grid;
         Preset = preset;
         _dusk = dusk;
         ClearColour = dusk ? DuskSky : Sky;
-        _source = new GridBlockSource(grid);
+        var fogEnd0 = FogEndFor(preset.ViewDistance);
+        DryFog = new FogParameters(ClearColour.R / 255f, ClearColour.G / 255f, ClearColour.B / 255f, fogEnd0 * FogStartFraction, fogEnd0);
+        _source = new GridBlockSource(grid, currents);
         _tracker = new ChunkVersionTracker(grid);
         _view = new ChunkViewSet(grid, preset.ViewDistance);
         var fogEnd = FogEndFor(preset.ViewDistance);
@@ -204,8 +211,41 @@ public sealed class VoxelRenderer : IDisposable
         return found;
     }
 
-    /// <summary>The colour the target is cleared to and the fog's colour: the haze of the day, or of the evening with <c>--dusk</c>.</summary>
-    public Color ClearColour { get; }
+    /// <summary>The colour the target is cleared to and the fog's colour: the haze of the day, or of the evening with <c>--dusk</c>; the water's while the view is under water.</summary>
+    public Color ClearColour { get; private set; }
+
+    /// <summary>The fog above water (the haze's colour, start and end for the preset): what <see cref="SetUnderwater"/> blends from.</summary>
+    public FogParameters DryFog { get; }
+
+    private float _underwaterAmount;
+
+    /// <summary>
+    /// Sets how far under water the view is (H05): the fog, the clear colour and the sky blend from the dry ones to the water's by <paramref name="amount"/>
+    /// (<see cref="UnderwaterFog.Blend"/>). At 0 everything is exactly as above water. The renderer only applies the numbers; the rule is in Core.
+    /// </summary>
+    /// <param name="amount">How far under water, 0 to 1.</param>
+    public void SetUnderwater(float amount)
+    {
+        if (amount == _underwaterAmount)
+        {
+            return;
+        }
+
+        _underwaterAmount = amount;
+        var fog = UnderwaterFog.Blend(DryFog, amount);
+        var colour = new Vector3(fog.Red, fog.Green, fog.Blue);
+        ClearColour = amount <= 0f ? (_dusk ? DuskSky : Sky) : new Color(colour);
+        ApplyFog(_effect, colour, fog);
+        ApplyFog(_solid, colour, fog);
+        _sky.SetHaze(ClearColour, amount);
+    }
+
+    private static void ApplyFog(IEffectFog effect, Vector3 colour, FogParameters fog)
+    {
+        effect.FogColor = colour;
+        effect.FogStart = fog.Start;
+        effect.FogEnd = fog.End;
+    }
 
     /// <summary>The quality preset the renderer was made with.</summary>
     public QualityPreset Preset { get; }
@@ -433,8 +473,11 @@ public sealed class VoxelRenderer : IDisposable
         }
 
         // The translucent pass: the water chunks from the farthest to the nearest (a sort by chunk, as the files say), reading depth but not writing it.
+        // The water has its own animated textures (H09): the frame for this tick, bilinear, in place of the block atlas for this pass only.
         _device.BlendState = BlendState.NonPremultiplied;
         _device.DepthStencilState = DepthStencilState.DepthRead;
+        _device.SamplerStates[0] = WaterTextures.Sampler;
+        _effect.Texture = _water.FrameAt(tick);
         _effect.CurrentTechnique.Passes[0].Apply();
         _visible.Sort((a, b) => Vector3.DistanceSquared(b.Centre, eye).CompareTo(Vector3.DistanceSquared(a.Centre, eye)));
         _device.Indices = _indices;
@@ -442,6 +485,9 @@ public sealed class VoxelRenderer : IDisposable
         {
             DrawChunk(chunk.Alpha, chunk.AlphaQuads);
         }
+
+        _device.SamplerStates[0] = AtlasSampler;
+        _effect.Texture = _atlas.Texture;
 
         if (beacon is { } target)
         {
