@@ -118,13 +118,21 @@ public sealed record WorldDims(int ChunksX, int ChunksY, int ChunksZ);
 /// <param name="RelaxedNeeds">True under the relaxed-needs setting (N05, design decision 17: half the rates, a faint instead of a death). Written only when true.</param>
 /// <param name="NeedsRate">The drive rate multiplier (N09), 0.5 to 4 in steps of 0.25; 0 (and so no field) is the default 1. Written only when not 1.</param>
 /// <param name="UnderwaterBlur">How much the view softens under water (water-plan H11): a <see cref="Water.UnderwaterBlur"/> as its number; no field is the default (low). Written only when the player chose another level. Optional, so it needs no save version.</param>
+/// <param name="Quality">The graphics quality (the menu): a <see cref="Menu.QualityLevel"/> as its number; no field is the default (high). Written only when the player chose another level.</param>
+/// <param name="MouseSensitivity">The mouse sensitivity in percent of the normal turn (the menu), 25 to 300; 0 (and so no field) is the default 100. Written only when not 100.</param>
+/// <param name="InvertY">True when moving the mouse up looks down (the menu). Written only when true.</param>
+/// <param name="FieldOfView">The vertical field of view in degrees (the menu), 60 to 110; 0 (and so no field) is the default 70. Written only when not 70.</param>
 public sealed record SaveSettings(
     SoundVolumes Sound,
     int TextScale = 100,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool ViewEffectsOff = false,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool RelaxedNeeds = false,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] double NeedsRate = 0,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Water.UnderwaterBlur? UnderwaterBlur = null)
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Water.UnderwaterBlur? UnderwaterBlur = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Menu.QualityLevel? Quality = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] int MouseSensitivity = 0,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool InvertY = false,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] int FieldOfView = 0)
 {
     /// <summary>The drive rate of the default (N09); a save without the field reads 0, which stands for it.</summary>
     public const double DefaultNeedsRate = 1.0;
@@ -159,6 +167,18 @@ public sealed record SaveSettings(
     public Water.UnderwaterBlur EffectiveUnderwaterBlur =>
         UnderwaterBlur is { } level && Enum.IsDefined(level) ? level : Water.UnderwaterBlurSettings.Default;
 
+    /// <summary>The graphics quality this setting stands for: the saved level when it is a known one, otherwise the default (high).</summary>
+    [JsonIgnore]
+    public Menu.QualityLevel EffectiveQuality => Quality is { } level && Enum.IsDefined(level) ? level : Menu.QualityLevel.High;
+
+    /// <summary>The mouse sensitivity in percent this setting stands for (the default 100 when the field is absent).</summary>
+    [JsonIgnore]
+    public int EffectiveMouseSensitivity => MouseSensitivity == 0 ? Menu.PlayerSettings.Spec(Menu.SettingId.MouseSensitivity).Default : Menu.PlayerSettings.Spec(Menu.SettingId.MouseSensitivity).Snap(MouseSensitivity);
+
+    /// <summary>The field of view in degrees this setting stands for (the default 70 when the field is absent).</summary>
+    [JsonIgnore]
+    public int EffectiveFieldOfView => FieldOfView == 0 ? Menu.PlayerSettings.Spec(Menu.SettingId.FieldOfView).Default : Menu.PlayerSettings.Spec(Menu.SettingId.FieldOfView).Snap(FieldOfView);
+
     /// <summary>The text sizes the player can choose, in percent (X08): the normal size and two steps up.</summary>
     public static IReadOnlyList<int> TextScaleLevels { get; } = [100, 125, 150];
 
@@ -166,8 +186,18 @@ public sealed record SaveSettings(
     /// <param name="percent">The value read.</param>
     public static int SnapTextScale(int percent) => TextScaleLevels.OrderBy(level => Math.Abs(level - percent)).First();
 
-    /// <summary>The same settings with the volumes limited to 0 to 1 and the text scale on a level.</summary>
-    public SaveSettings Clamped() => new(Sound.Clamped(), SnapTextScale(TextScale), ViewEffectsOff, RelaxedNeeds, SnapNeedsRate(NeedsRate) == DefaultNeedsRate ? 0 : SnapNeedsRate(NeedsRate), EffectiveUnderwaterBlur == Water.UnderwaterBlurSettings.Default ? null : EffectiveUnderwaterBlur);
+    /// <summary>The same settings with the volumes limited to 0 to 1, the text scale on a level, and every other value in its range (a default value is left out, as the file leaves it).</summary>
+    public SaveSettings Clamped() => new(
+        Sound.Clamped(),
+        SnapTextScale(TextScale),
+        ViewEffectsOff,
+        RelaxedNeeds,
+        SnapNeedsRate(NeedsRate) == DefaultNeedsRate ? 0 : SnapNeedsRate(NeedsRate),
+        EffectiveUnderwaterBlur == Water.UnderwaterBlurSettings.Default ? null : EffectiveUnderwaterBlur,
+        EffectiveQuality == Menu.QualityLevel.High ? null : EffectiveQuality,
+        EffectiveMouseSensitivity == Menu.PlayerSettings.Spec(Menu.SettingId.MouseSensitivity).Default ? 0 : EffectiveMouseSensitivity,
+        InvertY,
+        EffectiveFieldOfView == Menu.PlayerSettings.Spec(Menu.SettingId.FieldOfView).Default ? 0 : EffectiveFieldOfView);
 }
 
 /// <summary>
