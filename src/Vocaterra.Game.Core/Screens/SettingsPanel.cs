@@ -1,5 +1,6 @@
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Save;
+using Vocaterra.Game.Core.Water;
 
 namespace Vocaterra.Game.Core.Screens;
 
@@ -9,8 +10,8 @@ namespace Vocaterra.Game.Core.Screens;
 /// </summary>
 public sealed class SettingsPanel : IScreen
 {
-    /// <summary>The number of rows: the rate, the view effects, the relaxed needs.</summary>
-    public const int RowCount = 3;
+    /// <summary>The number of rows: the rate, the view effects, the relaxed needs, the underwater blur.</summary>
+    public const int RowCount = 4;
 
     private readonly Func<double> _rate;
     private readonly Action<double> _setRate;
@@ -18,6 +19,8 @@ public sealed class SettingsPanel : IScreen
     private readonly Action<bool> _setEffects;
     private readonly Func<bool> _relaxed;
     private readonly Action<bool> _setRelaxed;
+    private readonly Func<UnderwaterBlur> _blur;
+    private readonly Action<UnderwaterBlur> _setBlur;
 
     /// <summary>Creates the panel over the settings it changes.</summary>
     /// <param name="rate">Reads the drive rate.</param>
@@ -26,8 +29,12 @@ public sealed class SettingsPanel : IScreen
     /// <param name="setEffects">Sets the view effects.</param>
     /// <param name="relaxed">Reads whether the needs are relaxed.</param>
     /// <param name="setRelaxed">Sets the relaxed needs.</param>
-    public SettingsPanel(Func<double> rate, Action<double> setRate, Func<bool> effects, Action<bool> setEffects, Func<bool> relaxed, Action<bool> setRelaxed)
+    /// <param name="blur">Reads the underwater blur level.</param>
+    /// <param name="setBlur">Sets the underwater blur level.</param>
+    public SettingsPanel(Func<double> rate, Action<double> setRate, Func<bool> effects, Action<bool> setEffects, Func<bool> relaxed, Action<bool> setRelaxed, Func<UnderwaterBlur> blur, Action<UnderwaterBlur> setBlur)
     {
+        _blur = blur;
+        _setBlur = setBlur;
         _rate = rate;
         _setRate = setRate;
         _effects = effects;
@@ -45,7 +52,7 @@ public sealed class SettingsPanel : IScreen
     /// <inheritdoc />
     public bool FreesMouse => true;
 
-    /// <summary>The chosen row: 0 the rate, 1 the view effects, 2 the relaxed needs.</summary>
+    /// <summary>The chosen row: 0 the rate, 1 the view effects, 2 the relaxed needs, 3 the underwater blur.</summary>
     public int Selected { get; private set; }
 
     /// <summary>The drive rate now.</summary>
@@ -56,6 +63,14 @@ public sealed class SettingsPanel : IScreen
 
     /// <summary>Whether the needs are relaxed.</summary>
     public bool Relaxed => _relaxed();
+
+    /// <summary>The underwater blur level now.</summary>
+    public UnderwaterBlur Blur => _blur();
+
+    /// <summary>The level after another step: off, low, medium, high, round.</summary>
+    /// <param name="level">The level now.</param>
+    /// <param name="step">1 for the next, -1 for the previous.</param>
+    public static UnderwaterBlur Cycle(UnderwaterBlur level, int step) => (UnderwaterBlur)(((int)level + step + 4) % 4);
 
     /// <summary>Opens the panel on its first row.</summary>
     public void Open()
@@ -99,6 +114,9 @@ public sealed class SettingsPanel : IScreen
                 break;
             case 2 when flip || step != 0:
                 _setRelaxed(!_relaxed());
+                break;
+            case 3 when flip || step != 0:
+                _setBlur(Cycle(_blur(), step == 0 ? 1 : step));
                 break;
         }
     }

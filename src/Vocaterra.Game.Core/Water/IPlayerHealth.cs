@@ -1,8 +1,8 @@
 namespace Vocaterra.Game.Core.Water;
 
 /// <summary>
-/// The port through which the water rules hurt the player (water-plan H03). The real health (the needs of <c>feature/bread-pilot</c>) is joined to it
-/// in H11; until then <see cref="NoPlayerHealth"/> stands in.
+/// The port through which the water rules hurt the player (water-plan H03). The real health (the needs of <c>feature/bread-pilot</c>) is joined to it by <see cref="NeedsHealth"/>
+/// (H11); <see cref="NoPlayerHealth"/> stands in for tests that have no needs.
 /// </summary>
 public interface IPlayerHealth
 {

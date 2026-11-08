@@ -18,6 +18,15 @@ public sealed partial class VoxelSession
     /// <summary>The ui key of the line after a death by thirst.</summary>
     public const string DiedThirstHint = "diedThirst";
 
+    /// <summary>The ui key of the line after a death by drowning (water-plan H11).</summary>
+    public const string DiedDrownedHint = "diedDrowned";
+
+    /// <summary>The ui key of the line after a faint from drowning under the relaxed-needs setting.</summary>
+    public const string FaintedDrownedHint = "faintedDrowned";
+
+    /// <summary>The detail of <see cref="WorldEvents.PlayerDied"/> for a death by drowning (the cause the water rules raise).</summary>
+    public const string DrownedCause = "player_drowned";
+
     /// <summary>The ui key of the line after a faint from hunger under the relaxed-needs setting (the bag is kept, no chest).</summary>
     public const string FaintedHungerHint = "faintedHunger";
 
@@ -84,7 +93,8 @@ public sealed partial class VoxelSession
         }
 
         var drive = Needs.DeathCause ?? (Needs.Value(NeedMeter.Thirst) <= Needs.Value(NeedMeter.Hunger) ? Drive.Thirst : Drive.Hunger);
-        var cause = Data.Needs.Of(drive).Detail;
+        var drowned = Simulation.Breath.IsEmpty; // the last breath is gone: the water took the last health (water-plan 4.4)
+        var cause = drowned ? DrownedCause : Data.Needs.Of(drive).Detail;
         var feet = Simulation.Player.FeetBlock;
         LogWorld(WorldEvents.PlayerDied, null, cause);
         DeathCount++;
@@ -99,7 +109,8 @@ public sealed partial class VoxelSession
         SettleNeedStages();
         WakeAtFire();
         LogWorld(WorldEvents.PlayerWoke, null, relaxed ? "faint" : "death");
-        DeathLine = Locale.Ui(relaxed ? (drive == Drive.Thirst ? FaintedThirstHint : FaintedHungerHint) : (drive == Drive.Thirst ? DiedThirstHint : DiedHungerHint));
+        DeathLine = Locale.Ui(drowned ? (relaxed ? FaintedDrownedHint : DiedDrownedHint)
+            : relaxed ? (drive == Drive.Thirst ? FaintedThirstHint : FaintedHungerHint) : (drive == Drive.Thirst ? DiedThirstHint : DiedHungerHint));
         _hints.Add(DeathLine);
         if (_chest is { } chest && Pointer is null)
         {

@@ -7,11 +7,11 @@ namespace Vocaterra.Game.Tests.Startup;
 public sealed class UnderwaterBlurLaunchOptionsTests
 {
     [Fact]
-    public void Given_NoOption_When_Parsed_Then_TheBlurIsLow()
+    public void Given_NoOption_When_Parsed_Then_TheSavedSettingDecides()
     {
         Assert.True(LaunchOptions.TryParse(["--screenshot", "x.png"], out var options, out _));
 
-        Assert.Equal(UnderwaterBlur.Low, options.UnderwaterBlur);
+        Assert.Null(options.UnderwaterBlur); // the saved setting (low by default) decides, H11
     }
 
     [Theory]

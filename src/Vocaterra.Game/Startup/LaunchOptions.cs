@@ -301,8 +301,8 @@ public sealed record LaunchOptions
     /// <summary>The graphics quality (<c>--quality</c>); <see cref="QualityLevel.High"/> by default.</summary>
     public QualityLevel Quality { get; init; } = QualityLevel.High;
 
-    /// <summary>How much the view softens under water (<c>--underwater-blur</c>, H05); <see cref="UnderwaterBlurSettings.Default"/> (low) by default.</summary>
-    public UnderwaterBlur UnderwaterBlur { get; init; } = UnderwaterBlurSettings.Default;
+    /// <summary>How much the view softens under water (<c>--underwater-blur</c>, H05); the saved setting (low by default) when not given.</summary>
+    public UnderwaterBlur? UnderwaterBlur { get; init; }
 
     /// <summary>The view distance in blocks given by <c>--view-distance</c>, or <see langword="null"/> for the quality's own.</summary>
     public int? ViewDistance { get; init; }

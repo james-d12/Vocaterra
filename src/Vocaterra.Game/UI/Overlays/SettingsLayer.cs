@@ -31,8 +31,9 @@ public sealed class SettingsLayer : IFrameLayer
         spriteBatch.Draw(view.Pixel, box, Back);
         DrawHelpers.Border(spriteBatch, view.Pixel, box, 2, DialoguePanel.EnglishColor);
         DrawHelpers.Text(spriteBatch, font, ui.Ui("settingsTitle"), new Vector2(box.X + 16, box.Y + 12), Gold);
-        string[] labels = [ui.Ui("settingsRate"), ui.Ui("settingsEffects"), ui.Ui("settingsRelaxed")];
-        string[] values = [SettingsPanel.RateText(view.SettingsRate), ui.Ui(view.SettingsEffectsOn ? "settingsOn" : "settingsOff"), ui.Ui(view.SettingsRelaxed ? "settingsOn" : "settingsOff")];
+        string[] labels = [ui.Ui("settingsRate"), ui.Ui("settingsEffects"), ui.Ui("settingsRelaxed"), ui.Ui("settingsBlur")];
+        string[] values = [SettingsPanel.RateText(view.SettingsRate), ui.Ui(view.SettingsEffectsOn ? "settingsOn" : "settingsOff"), ui.Ui(view.SettingsRelaxed ? "settingsOn" : "settingsOff"),
+            ui.Ui(view.SettingsBlur switch { Core.Water.UnderwaterBlur.Low => "blurLow", Core.Water.UnderwaterBlur.Medium => "blurMedium", Core.Water.UnderwaterBlur.High => "blurHigh", _ => "settingsOff" })];
         for (var i = 0; i < SettingsPanel.RowCount; i++)
         {
             var selected = i == view.SettingsSelected;

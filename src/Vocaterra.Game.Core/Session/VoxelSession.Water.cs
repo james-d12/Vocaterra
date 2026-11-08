@@ -5,13 +5,16 @@ namespace Vocaterra.Game.Core.Session;
 
 public sealed partial class VoxelSession
 {
-    private readonly DrowningDamage _drowning = new(new NoPlayerHealth());
+    private DrowningDamage? _drowning;
 
-    /// <summary>The health the water hurts. A <see cref="NoPlayerHealth"/> until the real health is joined (water-plan H11).</summary>
+    // The drowning rule over the needs' health. It hurts only while the needs run in active play (off, like hunger and thirst, nothing takes health).
+    private DrowningDamage Drowning => _drowning ??= new DrowningDamage(new NeedsHealth(Needs, () => NeedsEnabled && PlayActive));
+
+    /// <summary>The health the water hurts: <see cref="NeedsHealth"/> over the player's needs, unless a test puts another in.</summary>
     internal IPlayerHealth PlayerHealth
     {
-        get => _drowning.Health;
-        set => _drowning.Health = value ?? throw new ArgumentNullException(nameof(value));
+        get => Drowning.Health;
+        set => Drowning.Health = value ?? throw new ArgumentNullException(nameof(value));
     }
 
     /// <summary>Feeds the tick's out-of-air events to the drowning rule.</summary>
@@ -21,8 +24,14 @@ public sealed partial class VoxelSession
         {
             if (e.Kind == SimulationEventKind.OutOfAir)
             {
-                _drowning.Apply(BreathEvents.OutOfAir);
+                Drowning.Apply(BreathEvents.OutOfAir);
             }
+        }
+
+        if (NeedsEnabled && PlayActive)
+        {
+            SyncNeedStages();
+            DieIfDead(); // drowning takes health after the needs' tick: the death flow is the needs' own
         }
     }
 }

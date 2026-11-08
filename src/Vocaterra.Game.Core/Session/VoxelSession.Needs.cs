@@ -81,6 +81,7 @@ public sealed partial class VoxelSession
             return;
         }
 
+        Needs.RecoveryHeld = Simulation.Breath.IsEmpty; // no air: health does not recover (water-plan 4.4)
         Needs.Step(1, ActivityOfTick(fromX, fromZ, sprinting));
         SyncNeedStages();
         DieIfDead(); // N04: at zero health the player is back at their fire

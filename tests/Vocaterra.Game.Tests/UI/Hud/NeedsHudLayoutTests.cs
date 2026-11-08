@@ -107,6 +107,53 @@ public sealed class NeedsHudLayoutTests(ITestOutputHelper output)
         output.WriteLine($"{width}x{height}: block {worst.Block} ({(worst.Beside ? "beside the hotbar" : "above its left end")}), line {worst.Line}");
     }
 
+    [Theory]
+    [MemberData(nameof(Cases))]
+    public void TheBubblesStandClearOfTheNeedsHudAtEveryScaleAndMoveOnlyWhereTheyWouldOverlap(int windowWidth, int windowHeight, int scale)
+    {
+        var (width, height) = UiScale.Canvas(scale, windowWidth, windowHeight);
+        var hotbar = HotbarLayer.BoxFor(width, height);
+        var tracker = TrackerArea(width);
+        var (spanish, english) = LongestLine();
+        var moved = 0;
+
+        foreach (var icons in new[] { 0, 1, 2, 3 })
+        {
+            foreach (var stamina in new[] { false, true })
+            {
+                foreach (var withLine in new[] { false, true })
+                {
+                    var needs = NeedsHudLayout.Place(width, height, icons, stamina, withLine ? spanish : null, withLine ? english : null, Small);
+                    var raise = BreathHudLayout.RaiseAbove(width, height, needs);
+                    var bubbles = BreathHudLayout.Bubbles(width, height, raise);
+                    var row = new PixelBox(bubbles[0].X, bubbles[0].Y, bubbles[^1].Right - bubbles[0].X, BreathHudLayout.BubbleSize);
+                    var label = $"{width}x{height} icons {icons} stamina {stamina} line {withLine} raise {raise}";
+                    Assert.True(Apart(row, needs.Block), $"{label}: the bubbles overlap the needs block {needs.Block}");
+                    if (needs.Line is { } line)
+                    {
+                        Assert.True(Apart(row, line), $"{label}: the bubbles overlap the stage line {line}");
+                    }
+
+                    Assert.True(Apart(row, hotbar), $"{label}: the bubbles overlap the hotbar");
+                    Assert.True(Apart(row, tracker), $"{label}: the bubbles overlap the objective tracker");
+                    Assert.True(Inside(row, new PixelBox(0, 0, width, height)), $"{label}: the bubbles leave the canvas");
+                    if (raise > 0)
+                    {
+                        moved++;
+                        Assert.True(raise >= BreathHudLayout.Lift, label);
+                    }
+                    else
+                    {
+                        Assert.Equal(BreathHudLayout.Bubbles(width, height)[0].Y, bubbles[0].Y);
+                    }
+                }
+            }
+        }
+
+        output.WriteLine($"{width}x{height}: the bubbles are lifted in {moved} of 16 cases");
+        Assert.Equal(0, BreathHudLayout.RaiseAbove(width, height, null));
+    }
+
     [Fact]
     public void TheBlockStandsBesideTheHotbarWhereThereIsRoomAndAboveItsLeftEndWhereThereIsNot()
     {
