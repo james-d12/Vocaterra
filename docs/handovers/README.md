@@ -32,13 +32,13 @@ several of them were moved out of the orchestrator, the game plan and a research
 | Handover | Workstream | What it waits for |
 | --- | --- | --- |
 | [2026-11-05-2031-adaptive-design](2026-11-05-2031-adaptive-design.md) | The adaptation on `feature/adaptive_design`: the needs, lessons as classes, the presentation track, then the bread pilot | The owner's needs check, and fixes from it |
-| [2026-11-07-1345-bread-pilot](2026-11-07-1345-bread-pilot.md) | The bread pilot on `feature/bread-pilot`: W05 to W10, T8, W02 to W04, M80 and V31 merged | The owner's review of PR #40 |
-| [2026-11-07-1846-water](2026-11-07-1846-water.md) | The H series (water) on `feature/water` | H02's and H05's reports, then the gates |
+| [2026-11-07-1345-bread-pilot](2026-11-07-1345-bread-pilot.md) | The bread pilot on `feature/bread-pilot`: W05 to W10, T8, W02 to W04, M80, V31, main (water) and the fixes M83, T9, M84, T10, W04b, H11 merged | The owner's review of PR #40 |
 
 **Done**
 
 | Handover | Workstream | Closed |
 | --- | --- | --- |
+| [2026-11-07-1846-water](done/2026-11-07-1846-water.md) | The H series (water) on `feature/water`, then H11 on `feature/bread-pilot` | `feature/water` merged into `main` (PR #45); H11 gated on `feature/bread-pilot` 2026-11-08 |
 | [2026-11-06-2322-bread-pilot](done/2026-11-06-2322-bread-pilot.md) | The bread pilot, W08 and W10 merged, then W02, W03, M80 and the queue | Queue complete 2026-11-07; replaced by [2026-11-07-1345-bread-pilot](2026-11-07-1345-bread-pilot.md) |
 | [2026-11-06-2035-bread-pilot](done/2026-11-06-2035-bread-pilot.md) | The bread pilot, W05 to W07b and T8 merged, W08 stopped partway | Session ended 2026-11-06; replaced by [2026-11-06-2322-bread-pilot](done/2026-11-06-2322-bread-pilot.md) |
 | [2026-11-06-0928-bread-pilot](done/2026-11-06-0928-bread-pilot.md) | The bread pilot's machinery, W05 to W07, on `feature/bread-pilot` | Session ended 2026-11-06; replaced by [2026-11-06-2035-bread-pilot](done/2026-11-06-2035-bread-pilot.md) |
@@ -46,7 +46,7 @@ several of them were moved out of the orchestrator, the game plan and a research
 | [2026-11-03-1133-docs-cleanup](done/2026-11-03-1133-docs-cleanup.md) | The documentation cleanup | `docs_cleanup` merged into `main` |
 | [2026-11-02-after-followups](done/2026-11-02-after-followups.md) | The owner's decisions after the village follow-ups | M74, M75, V29, M78 and the study merged into `feature/adaptive_design` |
 | [2026-11-03-1019-docs-structure](done/2026-11-03-1019-docs-structure.md) | The documentation layout, before the READMEs and names | Replaced by [2026-11-03-1133-docs-cleanup](done/2026-11-03-1133-docs-cleanup.md) |
-| [2026-11-07-1504-water](done/2026-11-07-1504-water.md) | The H series (water), H01 running | Replaced by [2026-11-07-1846-water](2026-11-07-1846-water.md) |
+| [2026-11-07-1504-water](done/2026-11-07-1504-water.md) | The H series (water), H01 running | Replaced by [2026-11-07-1846-water](done/2026-11-07-1846-water.md) |
 | [2026-11-03-0952-docs-organisation](done/2026-11-03-0952-docs-organisation.md) | The first documentation review and its proposed layout | Replaced by [2026-11-03-1019-docs-structure](done/2026-11-03-1019-docs-structure.md) |
 | [2026-11-01-village-phase-b](done/2026-11-01-village-phase-b.md) | The village, phase B, its review and the follow-up queue | Replaced by 2026-11-02-after-followups; the follow-ups merged in PR #28 |
 | [2026-10-26-engine-and-language-packs](done/2026-10-26-engine-and-language-packs.md) | D14 phase A: one engine assembly and language packs | `feature/language-packs` merged into `main` |

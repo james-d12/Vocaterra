@@ -709,7 +709,7 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   (17,11,17), guide (25,11,21), shopkeeper (62,9,58), villager (66,9,64), river z about 80 to 85 with a bridge at x 66); S3 moves it into the
   bundle. Seed-42 golden `dc14aa93…`; build 5.5 ms. Tests 3,678 passed (93 new; physics property over 24 seeded worlds x 2,500 ticks).
   Open for later rows: `ItemId.Berry` (25) sits in `ItemDefinition.VoxelOnly`, not in the noun catalogue (S3/S4 name it); water is wadable
-  (no swimming; the bridge is not enforced); `Interact` checks reach but not line of sight (the front-end picks with `BlockRay`).
+  (no swimming, superseded by the water series, `docs/game/water-plan.md`; the bridge is not enforced); `Interact` checks reach but not line of sight (the front-end picks with `BlockRay`).
   Disk: each worktree build is about 4.4 GB; a leftover 3 GB P4 build copy in `/tmp/claude-1000/p4` was deleted.
 - **S5, the phrase sheet and the stall (2026-10-22, Sonnet 5.5; review Opus 5.5).** `content/PHRASES.md`: 11 rows (the brief's phrases plus
   hola, gracias, adiós, no sé, ayuda), each with intent, prompt, accepted variants, a learner error with the code the pipeline gives, NPC and
@@ -2497,6 +2497,16 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   villager's own line for its bread gift); «quiero comida» now gets that line too. No Spanish changed; no recordings; scripted runs all the
   same. **Core gaps (for a later core milestone):** «¿Tienes manzanas?» and «¿Tienes una espada?» read as `state_have` at `stall-need`
   (answered «Sí, es verdad.»); «quiero algo de beber» and «quiero una botella de agua» are `unknown`. Report `.claude/briefs/w04b-report.md`.
+- **H11, the water series reconciled with the bread pilot (2026-11-08, Sonnet 5.5 medium; gated at `d1562c75` on
+  `feature/bread-pilot`, 10393 passed, 3 skipped, suite peak 4.0 GB).** Drowning goes through the needs: `NeedsHealth` (the `IPlayerHealth`
+  adapter) takes 10 health per `OutOfAir`, health does not recover at 0 air, and death runs the bread pilot's flow with the
+  `player_drowned` hint («You ran out of air. Swim up to breathe next time.», `content/locale`); with needs off or paused, no damage. The
+  bubble meter rises above the needs stage line where they overlap (only in "beside" mode). The underwater blur is a settings row saved as
+  the optional `SaveSettings.UnderwaterBlur` (save version stays 7), overridden by `--underwater-blur`, forced off by `ViewEffectsOff`.
+  `saves.md` and `architecture.md` now say version 7. **Not a walker bug:** `--walk-to 212,262` stops short because that sand bank stands
+  2 blocks above a shelf too shallow to swim; no body can climb out there (a climbable bank works); the cliff is open in D-game-26. Seen:
+  "your things wait where you fell" shows with an empty bag too, as for every death. Scripted runs all 27 the same. The owner's water
+  decisions are D-game-26. Report `.claude/briefs/h11-report.md`.
 
 ## 6. Definition of done (every milestone)
 

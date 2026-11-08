@@ -570,6 +570,30 @@ is now a short introduction plus a class). It answers the design's decision 16 (
 specification is the adaptation design's sections 5.3 and 5.4, with 9.5 (sleep) and section 10 (bread); L01 builds it, after N01 and
 before N03. `docs/game/lessons.md` describes today's behaviour and changes with L01.
 
+## D-game-26: water (decided, 2026-11-07)
+
+**Owner, 2026-11-07,** on the water series (`docs/game/water-plan.md`, section 6; entered at H11, 2026-11-08, once the series and the
+bread pilot met on `feature/bread-pilot`):
+1. **Running out of air:** the player takes damage until they surface or die: 10 health a second out of air, through the bread pilot's
+   death flow, with the `player_drowned` hint (water plan 4.4). No interim fallback; live since H11 (`NeedsHealth`). With needs off, no
+   damage, as for hunger and thirst.
+2. **Water that would move when woken (H07):** report each cell with screenshots and fix the layout or keep the cells as built, cell by
+   cell; no special cases in the flow rules.
+3. **Placing blocks into water:** yes (dams, water plan 4.5). The bucket stays after W12.
+4. **The underwater blur:** configurable, `Off` / `Low` (default) / `Medium` / `High` (water plan 4.9); since H11 a settings row saved in
+   `SaveSettings.UnderwaterBlur`, `--underwater-blur` overriding it for a run, `ViewEffectsOff` forcing it off.
+5. **What water washes away:** water behaves basically like Minecraft, kept simple. It replaces only the five sown plants
+   (`BlockDefinition.IsUndergrowth`: tall grass, fern, reeds, the two flowers); the market stall's goods, wheat and every other decor
+   block stop it like a solid block (H06a).
+6. **Water at rest, H07's clusters** (report `docs/research/2026-11-07-water-at-rest-h07.md`): fix the layout in all three. (a) The
+   waterfall: one row of sources at the top over falling water down to the pool's surface layer. (b) The river's staircase below the
+   pool: each one-block drop a short falling-water step. (c) The river mouth: the river's surface clamped to the lake's level inside the
+   lake (H07a).
+
+**Open, from H11:** the sand bank at (212, 262) stands 2 blocks above a 1-block-deep shelf, too shallow to swim, so no player can climb
+out there (a wading jump rises about 1.3 blocks; the hop-out needs swimming). Whether to reshape the bank or let the hop-out work from
+wading is the owner's (`.claude/briefs/h11-report.md`, item 5).
+
 ## Already decided
 
 - **The core by project reference** (D-game-7; until 2026-10-21 "packages only" from a submodule's local feed). The game never copies core
