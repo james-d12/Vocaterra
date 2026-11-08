@@ -187,7 +187,7 @@ public static class BenchRunner
     /// file is missing); <paramref name="modeOverride"/> forces one recognition mode for all entries instead of each prompt's own. With
     /// <paramref name="openFallback"/> (M80) every entry run in constrained mode is also decoded openly, timed on its own, and that decode is added as a second
     /// result of the entry in mode <see cref="RecognitionMode.Open"/>: the second pass of <c>PipelineOptions.OpenRecognitionFallback</c>, for every entry
-    /// (the pipeline runs it only when the first reading is not taken).
+    /// (the pipeline runs it only when the first reading is not taken or looks forced, M84).
     /// </summary>
     public static BenchReport Run(
         IReadOnlyList<ManifestEntry> entries,

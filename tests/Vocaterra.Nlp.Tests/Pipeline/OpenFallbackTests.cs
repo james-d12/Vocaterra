@@ -327,7 +327,7 @@ public class OpenFallbackTests
     public void TheFloorNeverTouchesTheFirstPass()
     {
         // A constrained reading that is taken stands whatever its word confidences, with the floor at its highest; the recognizer is asked once.
-        var weakFirst = new AsrResult("hola", [new AsrHypothesis("hola", 1.0)], [new AsrWord("hola", 0.0, 0.3, 0.05)], 1.0, "scripted-test", RecognitionMode.Constrained);
+        var weakFirst = new AsrResult("hola", [new AsrHypothesis("hola", 1.0)], [new AsrWord("hola", 0.0, 1.0, 0.05)], 1.0, "scripted-test", RecognitionMode.Constrained);
         var recognizer = new ScriptedWordRecognizer(weakFirst, Open("me gusta el río"));
         var services = TestSupport.Services("hola", RecognitionMode.Constrained);
         services = services.WithRecognizers(recognizer, services.PhonemeRecognizer);

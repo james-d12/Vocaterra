@@ -131,13 +131,16 @@ ones) returns an `AsrResult`: transcript, n-best list, word timings, confidence,
 present it runs on a second task at the same time and returns `PhonePosteriors`. Both results are consumed in a fixed order, so
 the scheduling cannot change the output (`PipelineOptions.RunRecognizersConcurrently` can turn the concurrency off).
 
-**The open-recognition fallback (M80).** `PipelineOptions.OpenRecognitionFallback` (off by default; the host turns it on for free talk) adds a second request
-to stage 0: when the prompt is `Constrained`, the first recognition's mode is `Constrained`, and the first reading (stages 2 to 7 on that recognition) is not taken
-(not `Communicated` and no `OffPromptIntent`), the pipeline asks the word recognizer once more with `RecognitionRequest.Open(MaxAlternatives)` and reads that recognition
-through the same stages 2 to 7 (one private method serves both passes; the phoneme posteriors of stage 1 are computed once and reused). The second reading wins
-only if it is taken and the weakest word of that recognition has a confidence of at least `PipelineOptions.OpenPassWordFloor` (default 0.5; a recognition with no
-words fails any floor above 0, and a floor of 0 switches the check off; the first pass is never held to it), otherwise the first stands unchanged. `UtteranceAnalysis.Asr` is the chosen recognition (`Mode` `Open` marks a line heard freely) and
-`UtteranceAnalysis.OtherPass` the other. A first reading that is taken, an `Open` prompt and the option off decode once.
+**The open-recognition fallback (M80, forced rows M84).** `PipelineOptions.OpenRecognitionFallback` (off by default; the host turns it on for free talk) adds a second request
+to stage 0: when the prompt is `Constrained`, the first recognition's mode is `Constrained`, and the first reading (stages 2 to 7 on that recognition) is either not taken
+(not `Communicated` and no `OffPromptIntent`; M80) or taken but looks forced (M84), the pipeline asks the word recognizer once more with
+`RecognitionRequest.Open(MaxAlternatives)` and reads that recognition through the same stages 2 to 7 (one private method serves both passes; the phoneme posteriors of
+stage 1 are computed once and reused). A taken reading looks forced when its answer match is `None` or `Fuzzy` (`PipelineOptions.OpenPassOnLooseMatch`, default on) or when
+the recognized words cover less than `PipelineOptions.OpenPassMinCoverage` (default 0.6) of the clip's voiced audio (`ForcedReading`; frames of 20 ms at or above -40 dBFS,
+`[unk]` left out). The second reading wins only if it is taken, the weakest word of that recognition has a confidence of at least `PipelineOptions.OpenPassWordFloor` (default 0.5; a recognition with no
+words fails any floor above 0, and a floor of 0 switches the check off; the first pass is never held to it) and, when the first reading was taken, its intent differs from the first
+reading's; otherwise the first stands unchanged. `UtteranceAnalysis.Asr` is the chosen recognition (`Mode` `Open` marks a line heard freely) and
+`UtteranceAnalysis.OtherPass` the other. An answer row heard whole (an `Exact` or `Alias` match that the words cover), an `Open` prompt and the option off decode once.
 
 For the example: `{"transcript":"yo quiere dos espada", "nBest":[{"text":"yo quiere dos espada","score":1}], "words":[], "confidence":1, "modelHash":"scripted-transcript", "mode":"Open"}`.
 

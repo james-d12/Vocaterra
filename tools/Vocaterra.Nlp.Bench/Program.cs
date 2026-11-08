@@ -38,7 +38,7 @@ public static class Program
           --audio-dir  where the clips are looked up (default: the manifest's directory)
           --models     the models directory; only needed when the manifest has entries
           --open-fallback  after every constrained decode also run the open decode the pipeline's OpenRecognitionFallback (M80) would run, timed on its own,
-                           and report it as an extra row in mode Open (the upper bound: the pipeline decodes again only when the first reading is not taken)
+                           and report it as an extra row in mode Open (the upper bound: the pipeline decodes again only when the first reading is not taken or looks forced)
           --open-vosk      decode open mode with Vosk even when Parakeet is present (the free decode the game would use), so both passes run on one model
         """;
 
