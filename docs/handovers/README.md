@@ -31,7 +31,7 @@ several of them were moved out of the orchestrator, the game plan and a research
 
 | Handover | Workstream | What it waits for |
 | --- | --- | --- |
-| [2026-11-08-1930-german](2026-11-08-1930-german.md) | German as a second target language (D-game-27) on `feature/german` | M87's and M36's reports, then the gates |
+| [2026-11-08-2019-german](2026-11-08-2019-german.md) | German as a second target language (D-game-27) on `feature/german` | T01's report; M36 paused for machine load |
 | [2026-11-05-2031-adaptive-design](2026-11-05-2031-adaptive-design.md) | The adaptation on `feature/adaptive_design`: the needs, lessons as classes, the presentation track, then the bread pilot | The owner's needs check, and fixes from it |
 | [2026-11-07-1345-bread-pilot](2026-11-07-1345-bread-pilot.md) | The bread pilot on `feature/bread-pilot`: W05 to W10, T8, W02 to W04, M80, V31, main (water) and the fixes M83, T9, M84, T10, W04b, H11 merged | The owner's review of PR #40 |
 
