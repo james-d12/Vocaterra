@@ -274,6 +274,27 @@ public static class FigureMesher
         }
     }
 
+    /// <summary>
+    /// Appends one face of a box in blocks, unposed, with one colour and one texture rectangle (the voxels of an extruded item, <see cref="ItemModels"/>, give each face
+    /// the single texel of their pixel).
+    /// </summary>
+    /// <param name="buffer">The mesh to append to.</param>
+    /// <param name="face">The face of the box.</param>
+    /// <param name="box">The box in blocks.</param>
+    /// <param name="colour">The packed colour (<see cref="MeshVertex.Pack"/>).</param>
+    /// <param name="uv">The texture rectangle (u0, v0, u1, v1).</param>
+    public static void AddFace(MeshBuffer buffer, BlockFace face, in Box box, uint colour, (float U0, float V0, float U1, float V1) uv)
+    {
+        ArgumentNullException.ThrowIfNull(buffer);
+        Span<float> k = stackalloc float[12];
+        Corners(face, box, k);
+        buffer.AddQuad(
+            new MeshVertex(k[0], k[1], k[2], colour, uv.U0, uv.V1),
+            new MeshVertex(k[3], k[4], k[5], colour, uv.U1, uv.V1),
+            new MeshVertex(k[6], k[7], k[8], colour, uv.U1, uv.V0),
+            new MeshVertex(k[9], k[10], k[11], colour, uv.U0, uv.V0));
+    }
+
     private static MeshVertex Vertex(FigureGroup group, in FigurePose pose, float x, float y, float z, float fx, float fy, float fz, float sin, float cos, uint colour, float u, float v)
     {
         var (px, py, pz) = Pose(group, pose, x, y, z, true);
