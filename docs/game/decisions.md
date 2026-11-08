@@ -479,6 +479,12 @@ feature/adaptive_design), with the bread stuff".
    open decode too, measured on M80's corpus with the zero-false-take bar; a game follow-up **V32** only if the game's turn needs it);
    **W04b** (the stall's first price list: water, bread and flour by name, «No vendo eso.» for the rest, replacing W10's fixed flour sale);
    **T9** (`r27-bread`'s first capture alternating between ticks 2460 and 2461).
+6. **After the water merge** (owner, 2026-11-08, PR #45 merged into `main` and merged into `feature/bread-pilot` at `bc881c58`): the
+   Game.Core tests' `OutOfMemoryException` under water's 3 GB managed-heap cap is fixed **at the source** (**T10**; the cap stays);
+   **W04b keeps water and bread free** at the stall (the price list covers what is sold: flour and any new goods; «No vendo eso.» for
+   anything unlisted; sessions 1 to 10 unchanged), which narrows item 5's "water, bread and flour"; **H11** (the water plan's
+   reconciliation: drowning through the needs, `player_drowned`, the blur setting, plus the merge's `--walk-to` bank stop and the save
+   version 6 left in the docs) is planned on this branch after T10 and W04b; Game.Core's xUnit threads **stay at 3**.
 
 ## D-game-24: player needs (decided)
 
