@@ -41,6 +41,13 @@ public sealed class UiCanvas
     /// <summary>The canvas for a window of <paramref name="width"/> by <paramref name="height"/>.</summary>
     public (int Width, int Height) For(int width, int height) => UiScale.Canvas(TextPercent, width, height);
 
+    /// <summary>Steps the text size to the next level (100, 125, 150 percent, then 100 again) and returns it.</summary>
+    public int Next()
+    {
+        TextPercent = UiScale.Next(TextPercent);
+        return TextPercent;
+    }
+
     /// <summary>Takes a text size (the menu's setting).</summary>
     /// <param name="textPercent">The interface text size in percent (one of the save's levels).</param>
     public void Set(int textPercent) => TextPercent = textPercent;

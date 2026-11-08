@@ -399,6 +399,16 @@ After U02 come W05 to W08 and W10 (activities-plan section 5; design section 10)
 listening (decision 2). Since 2026-11-06 W05 to W07 are built on `feature/bread-pilot` while the owner runs the needs check
 (D-game-23, owner's answers of 2026-11-06).
 
+### 4.10 The menu and the settings (issue #34; owner, 2026-11-08)
+
+Branch `feature/menu`, commit prefix `Menu:`. The owner's issue asked for Esc to open a menu with Resume, Settings (ambient and voice volume, graphics quality, font size),
+Controls (a display of the configured keys) and Exit (saves, then closes), and added: configure as much as makes sense so testing is easier. The decisions are listed in
+the findings (the Menu entry of section 5).
+
+| ID | What | Depends on | Size | Model | Status |
+| --- | --- | --- | --- | --- | --- |
+| Menu | The menu: `Game.Core/Menu/` (`MenuScreen`, `PlayerSettings`, `MenuRows`, `ControlsListing`), `Game.Core/Input/ControlTable` (every control and its keys in one table that the bindings, the panels and the controls page read), `UI/Menu/` (`MenuLayer`, `MenuLayout`, `MenuMetrics`); the settings in `SaveSettings` (quality, mouse sensitivity, invert Y, field of view added), applied at run time (the mixer, the canvas, the renderer's preset, the camera, the look); the testing section; Esc opens the menu, F1 its controls page; `--menu`, `--settings`, `--controls`, `--menu-scroll`; the old F8 settings panel and F1 help retired | N09, X08, H11 | L | Sonnet 5.5 | built on `feature/menu`; waits for the orchestrator's gate and the owner's review |
+
 ## 5. Findings log
 
 Facts that shape the plan. Each one names its source; the core's own findings stay in the core's plan.
@@ -2516,6 +2526,35 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   the scene digest is `b699324f…`, save fixtures' state digests re-recorded. `WaterEdgesAreExitableTests` holds the world at 0 edges
   (exempt: bridge floors, the river staircase's two steps). Scripted runs: 13 differ, all from the world (digests, a teleport landing 1
   lower, r27's walk 38 turns instead of 36 at the same tick); new run `r31-lake`. Report `.claude/briefs/h12-report.md`.
+
+- **Menu (issue #34, 2026-11-08, Sonnet 5.5, `feature/menu`).** What was decided, and why.
+  - *Esc.* Esc used to let the mouse go. It now opens the menu (which frees the mouse the way every panel does); in a panel it still closes the panel (each panel handles
+    Esc itself), with the session's closing card up the first Esc takes the card down and the next opens the menu, and the playtest's thank-you screen still closes the game.
+    The menu is the first screen in the `ScreenStack`, so it wins over anything open at the same time; the needs pause (`PlayPause.Menu`, D-game-24) as before. The click on
+    Resume does not gather (`WorldInput.HoldClickUntilRelease`). F1 opens the Controls page directly; F1 or Esc closes it from there.
+  - *One table of controls.* `ControlTable` holds every control (the 56 of the menu's list) with its keys and mouse control; `InputKeys.Defaults`, `KeyBindings`, the dialogue
+    panel, the lesson strip, the book, the station, the inventory and crafting panels read their keys from it, and `ControlsListing` makes the controls page from it
+    (the descriptions are `ui.control.<id>`, the key names `key.<GameKey>`, both checked by the locale check). The old F8 settings panel (N09; F8 was the report key, so it
+    was reachable by `--settings` only) and the old F1 help (`game/controls.json`) are retired. **`game/controls.json`, `TipBook.LoadControls`, `GameData.Controls`, `ControlHelp` and the locale's `control.<id>.keys/.text`
+    strings are now read by no screen**; they were left in place because removing the file changes game-v1's hash (a re-hash, a re-record of the goldens and the save fixture). Retire them in a content milestone.
+  - *Settings and where they live.* All settings are `PlayerSettings` (one table of ranges, steps and defaults, clamped on every set) and ride in the save's settings, so the
+    existing path (`SaveService`, autosave, F6, Exit) keeps them: the four volumes (`SoundVolumes`), `textScale`, `quality` (new), `underwaterBlur`, `viewEffectsOff`,
+    `mouseSensitivity` (new), `invertY` (new), `fieldOfView` (new), `needsRate`, `relaxedNeeds`. A default is not written, so no save version changed and an older save
+    reads the new fields as defaults (the game is unreleased: no migration code was written either way). A launch flag wins over the saved value for the run
+    (`PlayerSettings.Resolve`); `--quality` is now optional (null = the save's, else high). The text size defaults to 150, the largest, as the issue asked; a scripted
+    `--screenshot` run keeps 100 so the recorded pictures hold. **Consequence for the owner to know:** a settings change is saved only when the game is saved
+    (F6, the autosave, Exit) and a new game without `--load` starts from the defaults again; there is no settings file outside the save (the issue said to use the save path).
+  - *Not offered, and why.* Window size, speech and microphone (`--size`, `--no-speech`, `--mic-check`) are read when the game starts; the Settings page says so in its last
+    section instead of leaving them out silently. The view distance flag (`--view-distance`) is a test override: it stays over the menu's quality for the run.
+  - *The Testing section.* Always shown in an ordinary run, hidden in a `--playtest` (its tools would change what the playtest measures: the needs, the sounds, the overlay).
+    I chose always-shown over a `--dev` gate because the owner's point is that testing is easier from the menu, and every row is a thin wrapper over a flag or key that
+    exists and is off by default; it is under its own heading with a note, and none of it is saved, so it cannot leak into a player's next session. Rows: debug overlay and
+    developer notes (F3, `--dev`), needs running (`--needs on|off`), refill all needs (`--set-need`), all sounds but voices off (`--no-sounds`; switching them back on needs a
+    run that started with a sound device, since `--no-sounds` and scripted runs open the null output), voices off (`--mute`), camera over the shoulder (F5, `--third-person`),
+    save now (F6). The time of day and pausing the meters (beyond "needs running") are not exposed: no runtime switch for them exists, and the issue forbade new systems.
+  - *Run-time quality.* `VoxelRenderer.SetPreset` changes the view distance, fog, undergrowth, shading and clouds in a running game by letting every mesh go and rebuilding
+    the view nearest first; `FirstPersonCamera.FieldOfView` is now a property (the sky follows it); mouse sensitivity and Invert Y are applied in `WorldInput`.
+  - *Tests.* Core: `MenuScreenTests`, `PlayerSettingsTests`, `ControlsListingTests`, `ControlTableTests`; Game: `MenuMetricsTests`, the menu in `UiScaleLayoutTests` at every window size and scale, the launch flags in `VoxelLaunchOptionsTests`.
 
 ## 6. Definition of done (every milestone)
 

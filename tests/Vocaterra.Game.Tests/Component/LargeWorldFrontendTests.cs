@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Menu;
 using Vocaterra.Game.Core.Navigation;
 using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Simulation;

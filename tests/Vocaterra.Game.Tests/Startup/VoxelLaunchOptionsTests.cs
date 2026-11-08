@@ -1,7 +1,7 @@
+using Vocaterra.Game.Core.Menu;
 using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Scripted;
-using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Startup;
 
 namespace Vocaterra.Game.Tests.Startup;
@@ -188,16 +188,29 @@ public sealed class VoxelLaunchOptionsTests
     }
 
     [Fact]
+    public void TheMenuFlagsOpenTheMenuOnAPageOnceTheStepsAreDone()
+    {
+        Assert.Null(Parse("--screenshot", "x.png").ShowMenu);
+        Assert.Equal(MenuPage.Main, Parse("--menu").ShowMenu);
+        Assert.Equal(MenuPage.Settings, Parse("--settings").ShowMenu);
+        Assert.Equal(MenuPage.Controls, Parse("--controls").ShowMenu);
+        Assert.Equal(7, Parse("--settings", "--menu-scroll", "7").MenuScroll);
+        Assert.Contains("--menu-scroll needs a number", Refuse("--menu-scroll", "many"), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void TheQualityAndTheViewDistanceAreRead()
     {
-        Assert.Equal(QualityLevel.High, Parse("--screenshot", "x.png").Quality); // the default is for a real graphics card
+        Assert.Null(Parse("--screenshot", "x.png").Quality); // not given: the saved setting, high for a new game (the menu issue)
         Assert.Null(Parse("--screenshot", "x.png").ViewDistance);
-        Assert.Equal(224, Parse("--quality", "low").QualityPreset.ViewDistance);
-        Assert.Equal(304, Parse("--quality", "medium").QualityPreset.ViewDistance);
-        Assert.Equal(400, Parse("--quality", "high").QualityPreset.ViewDistance);
+        Assert.Equal(224, Parse("--quality", "low").PresetFor(QualityLevel.Low).ViewDistance);
+        Assert.Equal(QualityLevel.Medium, Parse("--quality", "medium").Quality);
+        Assert.Equal(304, Parse("--quality", "medium").PresetFor(QualityLevel.Medium).ViewDistance);
+        Assert.Equal(400, Parse("--quality", "high").PresetFor(QualityLevel.High).ViewDistance);
         var distance = Parse("--quality", "low", "--view-distance", "96");
-        Assert.Equal(96, distance.QualityPreset.ViewDistance);
-        Assert.Equal(QualityLevel.Low, distance.QualityPreset.Level);
+        Assert.Equal(96, distance.PresetFor(QualityLevel.Low).ViewDistance);
+        Assert.Equal(96, distance.PresetFor(QualityLevel.High).ViewDistance); // the distance flag holds when the menu changes the level
+        Assert.Equal(QualityLevel.Low, distance.PresetFor(QualityLevel.Low).Level);
         Assert.Contains("--quality needs low, medium or high", Refuse("--quality", "ultra"), StringComparison.Ordinal);
         Assert.Contains("--view-distance needs a number of blocks, at least 48", Refuse("--view-distance", "10"), StringComparison.Ordinal);
         Assert.Contains("--view-distance needs a number", Refuse("--view-distance", "far"), StringComparison.Ordinal);

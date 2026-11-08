@@ -47,7 +47,7 @@ public readonly record struct MenuLayout
         var limit = viewportHeight - (2 * Margin);
         var width = page switch
         {
-            MenuPage.Main => Math.Min(380, viewportWidth - 32),
+            MenuPage.Main => Math.Min(440, viewportWidth - 32),
             MenuPage.Settings => Math.Min(680, viewportWidth - 32),
             _ => Math.Min(780, viewportWidth - 32),
         };

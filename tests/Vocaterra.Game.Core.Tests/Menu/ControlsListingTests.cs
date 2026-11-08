@@ -16,10 +16,12 @@ public sealed class ControlsListingTests
         foreach (var entry in ControlTable.All)
         {
             var description = TestGame.Locale.Ui("control." + entry.Id);
-            var row = Assert.Single(rows, r => !r.IsHeading && r.Text == description && r.Keys == ControlsListing.KeysText(entry, TestGame.Locale.Ui, TestGame.Locale.KeyName));
-            Assert.NotEmpty(row.Keys);
+            var keys = ControlsListing.KeysText(entry, TestGame.Locale.Ui, TestGame.Locale.KeyName);
+            Assert.NotEmpty(keys);
+            Assert.Contains(rows, r => !r.IsHeading && r.Text == description && r.Keys == keys);
         }
 
+        Assert.Equal(ControlTable.All.Count, rows.Count(static r => !r.IsHeading)); // nothing is listed that the table lacks
         Assert.Equal(Enum.GetValues<ControlGroup>().Length, rows.Count(static r => r.IsHeading));
     }
 
