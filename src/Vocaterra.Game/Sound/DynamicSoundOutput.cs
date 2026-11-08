@@ -19,7 +19,16 @@ public sealed class DynamicSoundOutput : IAudioOutput
     public bool Available => !_unavailable;
 
     /// <inheritdoc />
-    public bool IsPlaying => _instance?.State == SoundState.Playing;
+    public bool IsPlaying => _instance is { } instance && ClipPlaying(instance.State, instance.PendingBufferCount);
+
+    /// <summary>
+    /// Whether a clip is still sounding (#24, #36): a <see cref="DynamicSoundEffectInstance"/> stays <see cref="SoundState.Playing"/> after its one buffer has played out
+    /// (it waits, silent, for more), so the end of the clip is the end of its pending buffers, which the frame's <c>FrameworkDispatcher.Update</c> counts down. Reading the
+    /// state alone kept the voice "busy" for ever: a queued line never started, and the next utterance dropped it.
+    /// </summary>
+    /// <param name="state">The instance's state.</param>
+    /// <param name="pendingBuffers">The buffers it has not finished playing.</param>
+    public static bool ClipPlaying(SoundState state, int pendingBuffers) => state == SoundState.Playing && pendingBuffers > 0;
 
     /// <inheritdoc />
     public bool Start(AudioBuffer clip)

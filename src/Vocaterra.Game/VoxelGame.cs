@@ -629,7 +629,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         }
 
         _log?.Pump(_session); // the replay records and the events of this frame (S11)
-        _ = _support.Pump(later => _voice.Say(later.Npc, later.Lines)); // the shopkeeper's question after the key words is spoken first
+        _ = _support.Pump(SayAfterKeyWords); // the shopkeeper's question follows the key words he says (#36)
         _lesson.Pump(); // a lesson step's line goes on the panel (S16)
         _endingFlow.Update(); // the session's ending (S17): the guide's closing line, the card and the summary
 
@@ -1037,6 +1037,15 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
     // The tile for "¿qué es esto?": the block under the crosshair (the scripted run has the same crosshair).
     private GuideCell? CursorCell() => _session.AimedCell;
+
+    // The opening that waited for the key-word cards (the shopkeeper's «¿Qué necesitas?»): queued after the words he is saying, never over them (#36).
+    private void SayAfterKeyWords(NpcOpening opening)
+    {
+        foreach (var line in opening.Lines)
+        {
+            _voice.Append(opening.Npc, line, slow: false);
+        }
+    }
 
     // Once per frame: the recording collects its samples and ends at its length cap (ListenSession); the mic check's meter falls back while
     // nothing is recorded.

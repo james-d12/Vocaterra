@@ -168,6 +168,47 @@ public sealed class NpcVoiceTests
         Assert.Single(output.Clips);
     }
 
+    [Fact]
+    public void AnNpcThatWasNotSureWhatItHeardSaysSoInItsOwnVoice()
+    {
+        // #22: the baker's «No te entendí bien. ¿Me lo dices otra vez?» (the host's guide.uncertain pool) played Luna's recording; it is the baker's own now.
+        var logs = new List<string>();
+        var voice = Voice(new FakeOutput(), logs, muted: false);
+
+        voice.Say("baker", ["No te entendí bien. ¿Me lo dices otra vez?"]);
+        voice.Say(NpcService.ShopkeeperAgent, ["No te entendí bien. ¿Lo dices otra vez?"]);
+        voice.Say(SpeechSpeakers.Guide, ["No te entendí bien. ¿Lo dices otra vez?"]);
+
+        Assert.Equal(["guide.uncertain.2.baker", "guide.uncertain.1.shopkeeper", "guide.uncertain.1"], Played(logs));
+        Assert.Equal((0, 0), (voice.FellBack, voice.Missing));
+    }
+
+    [Fact]
+    public void TheShopkeepersKeyWordsPlayInHisVoiceOneAfterTheOtherAndHisQuestionFollows()
+    {
+        // #36: the key-word cards («el agua», «el pan») are queued as he opens the talk and his question after them (VoxelGame appends the opening that waited for the
+        // cards): each clip starts when the one before has ended, in his voice, none dropped.
+        var output = new FakeOutput();
+        var logs = new List<string>();
+        var voice = Voice(output, logs, muted: false);
+
+        voice.Append(NpcService.ShopkeeperAgent, "el agua", slow: false);
+        voice.Append(NpcService.ShopkeeperAgent, "el pan", slow: false);
+        voice.Append(NpcService.ShopkeeperAgent, "¿Qué necesitas?", slow: false);
+        voice.Update();
+        Assert.Equal(["card.agua.shopkeeper"], Played(logs)); // the first still plays: nothing replaces it
+
+        for (var i = 0; i < 3; i++)
+        {
+            output.Finish();
+            voice.Update();
+        }
+
+        Assert.Equal(["card.agua.shopkeeper", "card.pan.shopkeeper", "shop_need.1"], Played(logs));
+        Assert.Equal(0, output.Stops);
+        Assert.False(voice.Busy);
+    }
+
     /// <summary>The ids the voice started, read from its log (the missing and no-device lines are not clips).</summary>
     private static string[] Played(List<string> logs) =>
         logs.Where(static line => line.StartsWith("voice: ", StringComparison.Ordinal) && !line.StartsWith("voice: missing", StringComparison.Ordinal)

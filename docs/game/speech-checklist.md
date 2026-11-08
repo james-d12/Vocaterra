@@ -18,7 +18,7 @@ whose text changed or whose file was recorded again differently is listed again 
 | smith (Domingo) | `im_nicola`, gain 0.6 | 36 | 1.0 (0.8) | the pools `smith_*` and `guide.lesson.smith.*`, and its prompts |
 | farmer (León) | `pm_santa` | 44 | 1.0 (0.8) | the pools `farmer_*` and `guide.lesson.farmer.*`, and its prompts |
 
-**To hear:** 1382 of the 1382 files have no mark (guide 462, baker 194, villager 172, shopkeeper 160, farmer 152, fisher 132, smith 110). Two files a line: the normal speed and the slow one.
+**To hear:** 1410 of the 1410 files have no mark (guide 462, baker 198, villager 176, shopkeeper 168, farmer 156, fisher 136, smith 114). Two files a line: the normal speed and the slow one.
 
 ## Lines
 
@@ -156,6 +156,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | baker_yes.1 | speech/baker/baker_yes.1.wav | baker | 1.0 | ¡Sí! |  |
 | card.agua | speech/cards/card.agua.slow.wav | guide | 0.8 | el agua |  |
 | card.agua | speech/cards/card.agua.wav | guide | 1.0 | el agua |  |
+| card.agua.shopkeeper | speech/shopkeeper/card.agua.shopkeeper.slow.wav | shopkeeper | 0.8 | el agua |  |
+| card.agua.shopkeeper | speech/shopkeeper/card.agua.shopkeeper.wav | shopkeeper | 1.0 | el agua |  |
 | card.antorcha | speech/cards/card.antorcha.slow.wav | guide | 0.8 | la antorcha |  |
 | card.antorcha | speech/cards/card.antorcha.wav | guide | 1.0 | la antorcha |  |
 | card.arbol | speech/cards/card.arbol.slow.wav | guide | 0.8 | el árbol |  |
@@ -200,6 +202,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | card.moneda | speech/cards/card.moneda.wav | guide | 1.0 | la moneda |  |
 | card.pan | speech/cards/card.pan.slow.wav | guide | 0.8 | el pan |  |
 | card.pan | speech/cards/card.pan.wav | guide | 1.0 | el pan |  |
+| card.pan.shopkeeper | speech/shopkeeper/card.pan.shopkeeper.slow.wav | shopkeeper | 0.8 | el pan |  |
+| card.pan.shopkeeper | speech/shopkeeper/card.pan.shopkeeper.wav | shopkeeper | 1.0 | el pan |  |
 | card.piedra | speech/cards/card.piedra.slow.wav | guide | 0.8 | la piedra |  |
 | card.piedra | speech/cards/card.piedra.wav | guide | 1.0 | la piedra |  |
 | card.puente | speech/cards/card.puente.slow.wav | guide | 0.8 | el puente |  |
@@ -746,8 +750,32 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide.sleep.not_sleepy.1 | speech/guide/guide.sleep.not_sleepy.1.wav | guide | 1.0 | No tengo sueño. |  |
 | guide.uncertain.1 | speech/guide/guide.uncertain.1.slow.wav | guide | 0.8 | No te entendí bien. ¿Lo dices otra vez? |  |
 | guide.uncertain.1 | speech/guide/guide.uncertain.1.wav | guide | 1.0 | No te entendí bien. ¿Lo dices otra vez? |  |
+| guide.uncertain.1.baker | speech/baker/guide.uncertain.1.baker.slow.wav | baker | 0.8 | No te entendí bien. ¿Lo dices otra vez? |  |
+| guide.uncertain.1.baker | speech/baker/guide.uncertain.1.baker.wav | baker | 1.0 | No te entendí bien. ¿Lo dices otra vez? |  |
+| guide.uncertain.1.farmer | speech/farmer/guide.uncertain.1.farmer.slow.wav | farmer | 0.8 | No te entendí bien. ¿Lo dices otra vez? |  |
+| guide.uncertain.1.farmer | speech/farmer/guide.uncertain.1.farmer.wav | farmer | 1.0 | No te entendí bien. ¿Lo dices otra vez? |  |
+| guide.uncertain.1.fisher | speech/fisher/guide.uncertain.1.fisher.slow.wav | fisher | 0.72 | No te entendí bien. ¿Lo dices otra vez? |  |
+| guide.uncertain.1.fisher | speech/fisher/guide.uncertain.1.fisher.wav | fisher | 0.9 | No te entendí bien. ¿Lo dices otra vez? |  |
+| guide.uncertain.1.shopkeeper | speech/shopkeeper/guide.uncertain.1.shopkeeper.slow.wav | shopkeeper | 0.8 | No te entendí bien. ¿Lo dices otra vez? |  |
+| guide.uncertain.1.shopkeeper | speech/shopkeeper/guide.uncertain.1.shopkeeper.wav | shopkeeper | 1.0 | No te entendí bien. ¿Lo dices otra vez? |  |
+| guide.uncertain.1.smith | speech/smith/guide.uncertain.1.smith.slow.wav | smith | 0.8 | No te entendí bien. ¿Lo dices otra vez? |  |
+| guide.uncertain.1.smith | speech/smith/guide.uncertain.1.smith.wav | smith | 1.0 | No te entendí bien. ¿Lo dices otra vez? |  |
+| guide.uncertain.1.villager | speech/villager/guide.uncertain.1.villager.slow.wav | villager | 0.8 | No te entendí bien. ¿Lo dices otra vez? |  |
+| guide.uncertain.1.villager | speech/villager/guide.uncertain.1.villager.wav | villager | 1.0 | No te entendí bien. ¿Lo dices otra vez? |  |
 | guide.uncertain.2 | speech/guide/guide.uncertain.2.slow.wav | guide | 0.8 | No te entendí bien. ¿Me lo dices otra vez? |  |
 | guide.uncertain.2 | speech/guide/guide.uncertain.2.wav | guide | 1.0 | No te entendí bien. ¿Me lo dices otra vez? |  |
+| guide.uncertain.2.baker | speech/baker/guide.uncertain.2.baker.slow.wav | baker | 0.8 | No te entendí bien. ¿Me lo dices otra vez? |  |
+| guide.uncertain.2.baker | speech/baker/guide.uncertain.2.baker.wav | baker | 1.0 | No te entendí bien. ¿Me lo dices otra vez? |  |
+| guide.uncertain.2.farmer | speech/farmer/guide.uncertain.2.farmer.slow.wav | farmer | 0.8 | No te entendí bien. ¿Me lo dices otra vez? |  |
+| guide.uncertain.2.farmer | speech/farmer/guide.uncertain.2.farmer.wav | farmer | 1.0 | No te entendí bien. ¿Me lo dices otra vez? |  |
+| guide.uncertain.2.fisher | speech/fisher/guide.uncertain.2.fisher.slow.wav | fisher | 0.72 | No te entendí bien. ¿Me lo dices otra vez? |  |
+| guide.uncertain.2.fisher | speech/fisher/guide.uncertain.2.fisher.wav | fisher | 0.9 | No te entendí bien. ¿Me lo dices otra vez? |  |
+| guide.uncertain.2.shopkeeper | speech/shopkeeper/guide.uncertain.2.shopkeeper.slow.wav | shopkeeper | 0.8 | No te entendí bien. ¿Me lo dices otra vez? |  |
+| guide.uncertain.2.shopkeeper | speech/shopkeeper/guide.uncertain.2.shopkeeper.wav | shopkeeper | 1.0 | No te entendí bien. ¿Me lo dices otra vez? |  |
+| guide.uncertain.2.smith | speech/smith/guide.uncertain.2.smith.slow.wav | smith | 0.8 | No te entendí bien. ¿Me lo dices otra vez? |  |
+| guide.uncertain.2.smith | speech/smith/guide.uncertain.2.smith.wav | smith | 1.0 | No te entendí bien. ¿Me lo dices otra vez? |  |
+| guide.uncertain.2.villager | speech/villager/guide.uncertain.2.villager.slow.wav | villager | 0.8 | No te entendí bien. ¿Me lo dices otra vez? |  |
+| guide.uncertain.2.villager | speech/villager/guide.uncertain.2.villager.wav | villager | 1.0 | No te entendí bien. ¿Me lo dices otra vez? |  |
 | guide_again.1 | speech/guide/guide_again.1.slow.wav | guide | 0.8 | Claro. Otra vez. |  |
 | guide_again.1 | speech/guide/guide_again.1.wav | guide | 1.0 | Claro. Otra vez. |  |
 | guide_again.2 | speech/guide/guide_again.2.slow.wav | guide | 0.8 | ¡Claro! Te lo digo otra vez. |  |
