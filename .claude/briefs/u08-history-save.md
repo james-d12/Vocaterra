@@ -11,7 +11,7 @@ Work only in the git worktree `/home/james/Dev/Vocaterra/.claude/worktrees/u08`,
 ## The rules, environment, resources and gate
 Read `/home/james/Dev/Vocaterra/.claude/worktrees/u08/.claude/briefs/w07-station-view.md`, the sections **Output and context**, **Resources**, **Environment**, **Rules** and **Gate**: they apply to you unchanged, with these differences:
 - Your logs and session folders go under `/tmp/claude-1000/u08/`.
-- The count before you is U06's gate (take your first full run's count as the baseline if it differs and say so).
+- The count before you is U06's gate, **10419 passed and 3 skipped**.
 - **Another agent (U07, the book) builds and tests at the same time as you, and other sessions use this machine too (the owner, 2026-11-08): keep your CPU and memory use low.** `scripts/limited.sh` queues your heavy commands; a wait of minutes is normal. Never bypass it, never raise a cap or a slot count. On top of the W07 rules:
   - While iterating, build only the projects you touch (`scripts/limited.sh dotnet build tests/Vocaterra.Game.Core.Tests -m:2`) and test with `scripts/test.sh project <test project>` or a `--filter`; never `scripts/test.sh fast` after every small step. One `scripts/test.sh full` at the end, before the report.
   - **Game runs:** one game process at a time, never two. While iterating, run only a scripted run that saves and loads (find one in `docs/game/scripted-runs.md`) or a short run of your own. The whole set once as the baseline before your first edit and once before the report, each in the foreground, one at a time.

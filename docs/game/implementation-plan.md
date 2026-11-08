@@ -411,9 +411,9 @@ the panel or the book will change; re-record them and say which in the report.
 | ID | What | Depends on | Size | Model | Status |
 | --- | --- | --- | --- | --- | --- |
 | U05 | The NPC's name as the panel's title (#6): the name at 32 px, the lesson heading moved off its line, the "Guía: " prefix dropped from the NPC's lines; 16 px in the compact panel | | S | Sonnet 5.5 medium | done (2026-11-08, gated at `1f56f6b9`, 10402 passed) |
-| U06 | The panel scrolls (#5, step 1): the mouse wheel opens and scrolls the older lines, a scrollbar while lines are out of view, one page per NPC | U05 | S/M | Sonnet 5.5 medium | in progress (2026-11-08, branch `U06-panel-scroll`, brief `.claude/briefs/u06-panel-scroll.md`) |
-| U07 | The book's hierarchy (#7): line kinds, a type and ink scale, one row per entry with the details on the right page, each page's layout; a mockup for the owner first | | M/L | Sonnet 5.5 high | mockup in progress (2026-11-08, brief `.claude/briefs/u07-book-mockup.md`; the build waits for the owner's review) |
-| U08 | The conversation history kept in the save (#5, step 2): each NPC's lines saved, capped per NPC, shown again after a restart | U06 | M | Sonnet 5.5 medium | planned |
+| U06 | The panel scrolls (#5, step 1): the mouse wheel opens and scrolls the older lines, a scrollbar while lines are out of view, one page per NPC | U05 | S/M | Sonnet 5.5 medium | done (2026-11-08, gated at `dfbb778f`, 10419 passed) |
+| U07 | The book's hierarchy (#7): line kinds, a type and ink scale, one row per entry with the details on the right page, each page's layout; a mockup for the owner first | | M/L | Sonnet 5.5 high | in progress (2026-11-08; mockup approved, D-game-27; branch `U07-book-hierarchy`, brief `.claude/briefs/u07-book-hierarchy.md`, spec `.claude/briefs/u07-book-spec.md`) |
+| U08 | The conversation history kept in the save (#5, step 2): each NPC's lines saved, capped per NPC, shown again after a restart | U06 | M | Sonnet 5.5 medium | in progress (2026-11-08, branch `U08-history-save`, brief `.claude/briefs/u08-history-save.md`) |
 
 **One branch and one pull request** (owner, 2026-11-08): U05 to U08 all land on `feature/ui-issues` and in PR #47, which closes #5, #6 and #7.
 
@@ -2610,6 +2610,15 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   `Name:` prefix (the learner's and the English keep theirs). Nothing depended on the prefix. 800 x 600 keeps 6 rows of conversation. Scripted
   runs: stdout and digests identical in all 28; pictures differ only in `r27-bread` (`offer.png`) and `r30-no-classes` (`offer.png`,
   `declined.png`, `paid.png`), the header. The orchestrator fixed one spliced sentence in `running.md`. 7 tests in `PanelTitleTests`.
+
+- **U06, the conversation panel scrolls (2026-11-08, Sonnet 5.5 medium; gated at `dfbb778f` on `feature/ui-issues`, 10419 passed, 3
+  skipped; GitHub issue #5, step 1).** `DialogueScreen` reads the wheel (120 units a notch, in every state, typing included): up expands
+  and scrolls older, down scrolls newer and at the newest collapses. `PanelScrollbar.For` (Core) gives the thumb from the fit;
+  `DialoguePanel` draws a 4 px bar that shows even when `PanelFitter` drops the hidden-lines rows. `DialogueModel` keeps a page per NPC
+  (`Pages`, `MaxLines` 200 a page): a talk with another NPC no longer clears the last one's lines, and coming back shows them (the
+  opening is not re-added to a page that has lines). Hint strings name the wheel (`content/locale`, manifest refreshed). The hotbar needed
+  no change: `WorldInput.Read` gets `uiOpen` from `ScreenStack.FreesMouse`. New scripted step `--scroll N`. Scripted runs: stdout and
+  digests identical; only `r30-no-classes` `declined.png` differs, the picture W05 found unstable between captures of one build.
 
 ## 6. Definition of done (every milestone)
 
