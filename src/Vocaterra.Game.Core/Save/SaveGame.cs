@@ -124,9 +124,10 @@ public static class SaveGame
     /// <param name="session">The running game.</param>
     /// <param name="pristine">The scene as it was built for the session's seed (a new build, never the session's own scene).</param>
     /// <param name="settings">The player's settings to keep in the save (S24: the sound volumes), or <see langword="null"/> for none.</param>
+    /// <param name="dialoguePages">The NPCs' conversation pages (U08, <see cref="DialoguePageSave.Capture"/>), or <see langword="null"/> for none.</param>
     /// <exception cref="InvalidOperationException">The session is not at rest.</exception>
     /// <exception cref="ArgumentException">The pristine scene is not this session's scene.</exception>
-    public static SaveDocument Capture(VoxelSession session, Scene pristine, SaveSettings? settings = null)
+    public static SaveDocument Capture(VoxelSession session, Scene pristine, SaveSettings? settings = null, IReadOnlyList<DialoguePageSave>? dialoguePages = null)
     {
         ArgumentNullException.ThrowIfNull(session);
         ArgumentNullException.ThrowIfNull(pristine);
@@ -182,7 +183,8 @@ public static class SaveGame
             Systems: new SystemsSave(session.Needs.Capture(), session.CaptureChest(), session.CaptureBushes(), session.CaptureGifts(), session.CapturePlanted(), session.CaptureProcedures()),
             MetNpcs: session.MetNpcs,
             Air: state.Air == Vocaterra.Game.Core.Water.Breath.MaxAir ? null : state.Air,
-            Flow: state.Flow is { Count: > 0 } ? state.Flow : null);
+            Flow: state.Flow is { Count: > 0 } ? state.Flow : null,
+            DialoguePages: dialoguePages is { Count: > 0 } ? dialoguePages : null);
     }
 
     /// <summary>Captures a session and serializes it: the text of the save file.</summary>

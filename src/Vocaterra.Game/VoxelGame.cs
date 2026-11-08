@@ -186,7 +186,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     /// <param name="savedVolumes">The sound volumes a loaded save holds (S24), or <see langword="null"/>; <c>--sfx-volume</c> and <c>--ambient-volume</c> override them.</param>
     /// <param name="layout">The scene's layout, whose places the ambient beds listen to (S25), or <see langword="null"/> (a run without one has no places).</param>
     /// <param name="savedTextScale">The interface text size in percent a loaded save holds (X08), or <see langword="null"/>; <c>--text-scale</c> overrides it.</param>
-    public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene, NpcVoice voice, Func<Scene> pristine, SoundVolumes? savedVolumes = null, SceneLayout? layout = null, int? savedTextScale = null, SaveSettings? savedSettings = null)
+    public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene, NpcVoice voice, Func<Scene> pristine, SoundVolumes? savedVolumes = null, SceneLayout? layout = null, int? savedTextScale = null, SaveSettings? savedSettings = null, IReadOnlyList<DialoguePageSave>? savedDialogue = null)
     {
         _options = options;
         _canvas = new UiCanvas(SaveSettings.SnapTextScale(options.TextScale ?? savedTextScale ?? 100), () => (GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height));
@@ -212,6 +212,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _recordings = new BookRecordings(SpeechLines.Enumerate(session.Bundle, session.Nouns, session.Phrases, session.Data.Npcs).Select(static l => l.LineId).Where(voice.HasRecording), session.Phrases);
         _bookControls = new BookSpeechControls(_book, new BookSpeaker(voice, _sound.Mixer), session, _recordings);
         _dialogue = new DialogueModel(_focus, session.OpeningLine, session.Data, session.Phrases, session.Locale, showVerdictNotes: options.Dev);
+        _dialogue.RestorePages(savedDialogue); // U08: the panel scrolls back over the earlier sessions
         _soundFrame = new SoundFrame(_sound, voice, session, () => new PanelState(_inventory.IsOpen, _crafting.IsOpen, _book.IsOpen, (int)_book.Page, _dialogue.IsOpen));
         var microphone = options.UsesMicrophone ? MicrophoneCapture.TryOpen() : null;
         _listen = new ListenSession(new PushToTalkSpeechCapture(microphone) { Sounds = _sound.Mixer });
@@ -400,7 +401,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         Window.AllowUserResizing = true;
         Window.Title = _playtest ? $"Vocaterra playtest (seed {options.Seed})" : $"Vocaterra 3D (seed {options.Seed})";
         Window.TextInput += OnTextInput;
-        _saves = new SaveService(session, pristine, () => new SaveSettings(_sound.Mixer.Volumes, _canvas.TextPercent, !_needsHud.EffectsOn, session.RelaxedNeeds, session.NeedsRate == SaveSettings.DefaultNeedsRate ? 0 : session.NeedsRate, _underwaterBlur == UnderwaterBlurSettings.Default ? null : _underwaterBlur), Console.WriteLine); // the sound volumes (S24), the text size (X08), the view effects and the relaxed needs (N05) ride in the save's settings
+        _saves = new SaveService(session, pristine, () => new SaveSettings(_sound.Mixer.Volumes, _canvas.TextPercent, !_needsHud.EffectsOn, session.RelaxedNeeds, session.NeedsRate == SaveSettings.DefaultNeedsRate ? 0 : session.NeedsRate, _underwaterBlur == UnderwaterBlurSettings.Default ? null : _underwaterBlur), Console.WriteLine, _dialogue); // the sound volumes (S24), the text size (X08), the view effects and the relaxed needs (N05) ride in the save's settings
         _checks = new CheckBattery(
             session,
             () => _log,
