@@ -263,7 +263,9 @@ public sealed record NpcEffect(
 
         if (Kind == NpcEffectKind.GiveItem && Asked is not null)
         {
-            if (ItemSaidIn(slots, nouns))
+            // W04b: a word the catalogue does not know (an espada) is an item the NPC has not got, as a catalogue noun it does not give is; only a line that names no item at all is given the gift
+            var unknown = slots.TryGetValue(ItemSlot, out var said) && !string.IsNullOrEmpty(said) && nouns.ForLemma(said) is null;
+            if (!unknown && ItemSaidIn(slots, nouns))
             {
                 return null;
             }
