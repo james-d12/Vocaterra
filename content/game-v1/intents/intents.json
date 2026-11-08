@@ -1175,7 +1175,7 @@
       "requiredSlots": ["item"],
       "slotGrammars": [
         "(sí)? aquí (tienes|tiene) [ART]? [NUM:qty]? (bloque de|bloques de)? [NOUN:item] [ADJ]? (y [ART]? [NUM]? [NOUN])?",
-        "(sí)? aquí (está|están) [ART]? [NUM:qty]? (bloque de|bloques de)? [NOUN:item] [ADJ]? (y [ART]? [NUM]? [NOUN])?",
+        "(sí)? aquí [VERB:estar] [ART]? [NUM:qty]? (bloque de|bloques de)? [NOUN:item] [ADJ]?",
         "(sí)? (te|le)? doy [ART]? [NUM:qty]? (bloque de|bloques de)? [NOUN:item] [ADJ]? (y [ART]? [NUM]? [NOUN])?",
         "(sí)? toma [ART]? [NUM:qty]? (bloque de|bloques de)? [NOUN:item] [ADJ]? (y [ART]? [NUM]? [NOUN])?"
       ],
