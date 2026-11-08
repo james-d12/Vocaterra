@@ -55,6 +55,7 @@
         { "on": {"intent": "dont_know", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_help", "variantPoolId": "smith_help" }] },
         { "on": {"intent": "thank", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_thank", "variantPoolId": "smith_thank" }] },
         { "on": {"intent": "farewell", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_bye", "variantPoolId": "smith_bye" }] },
+        { "on": {"intent": "state_wellbeing", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_nice", "variantPoolId": "smith_nice" }] },
         { "on": {"communicated": false}, "to": "idle", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
       ],
       "fallback": {

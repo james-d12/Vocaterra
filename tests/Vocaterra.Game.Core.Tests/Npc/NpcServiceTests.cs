@@ -256,7 +256,7 @@ public sealed class NpcServiceTests
     {
         var session = AtStall(out _);
 
-        var turn = session.Say("blah");
+        var turn = session.Say("blorp"); // not "blah": since #37 the stall hears hola, and "blah" is its near miss, as at the fisher before
 
         Assert.False(turn.Communicated);
         Assert.Equal("asking", turn.AgentState);
