@@ -412,7 +412,7 @@ the panel or the book will change; re-record them and say which in the report.
 | --- | --- | --- | --- | --- | --- |
 | U05 | The NPC's name as the panel's title (#6): the name at 32 px, the lesson heading moved off its line, the "Guía: " prefix dropped from the NPC's lines; 16 px in the compact panel | | S | Sonnet 5.5 medium | done (2026-11-08, gated at `1f56f6b9`, 10402 passed) |
 | U06 | The panel scrolls (#5, step 1): the mouse wheel opens and scrolls the older lines, a scrollbar while lines are out of view, one page per NPC | U05 | S/M | Sonnet 5.5 medium | done (2026-11-08, gated at `dfbb778f`, 10419 passed) |
-| U07 | The book's hierarchy (#7): line kinds, a type and ink scale, one row per entry with the details on the right page, each page's layout; a mockup for the owner first | | M/L | Sonnet 5.5 high | in progress (2026-11-08; mockup approved, D-game-27; branch `U07-book-hierarchy`, brief `.claude/briefs/u07-book-hierarchy.md`, spec `.claude/briefs/u07-book-spec.md`) |
+| U07 | The book's hierarchy (#7): line kinds, a type and ink scale, one row per entry with the details on the right page, each page's layout; a mockup for the owner first | | M/L | Sonnet 5.5 high | done (2026-11-08, gated at `da52f055`, 10453 passed; the owner's answers D-game-28) |
 | U08 | The conversation history kept in the save (#5, step 2): each NPC's lines saved, capped per NPC, shown again after a restart | U06 | M | Sonnet 5.5 medium | done (2026-11-08, merged at `f87776bb`; its gate failed on a core fuzz seed found before U08, fixed by core M91; gated with M91 at `6275653f`, 10431 passed) |
 
 **One branch and one pull request** (owner, 2026-11-08): U05 to U08 all land on `feature/ui-issues` and in PR #47, which closes #5, #6 and #7.
@@ -465,7 +465,7 @@ the panel or the book will change; re-record them and say which in the report.
 
 **U07, the book's hierarchy (#7).**
 
-- **First a mockup** of the five pages for the owner (a picture or an artifact), before the build; the owner's answers are D-game-27
+- **First a mockup** of the five pages for the owner (a picture or an artifact), before the build; the owner's answers are D-game-28
   (2026-11-08).
 - **Line kinds:** `BookLineKind` (Section, Entry, Meta, Gap) on `BookLine` in `Game.Core`, set by `BookPages`; the layer picks font, ink and
   spacing from the kind, not from tone and indent. A Section takes two grid rows, so the row-based scroll and hit tests stay.
@@ -2629,6 +2629,19 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   grew by 619 bytes. 7 tests in `DialoguePagesSaveTests`. Scripted runs: only `r20-sleep`, `r27-bread`, `r30-no-classes` differ, by the
   new field in `game.save` and the save's byte counts in the log lines. **Its gate failed** on core fuzz O4, seed `3m67O5Rpuya2`; the
   same seed failed on the code before U08, so the finding went to core M91 and U08 was pushed after M91's gate.
+- **U07, the book's hierarchy (2026-11-08, Sonnet 5.5 high; gated at `da52f055` on `feature/ui-issues`, 10453 passed, 3 skipped;
+  GitHub issue #7; the mockup "Book Hierarchy Mockup" and D-game-28).** `BookLineKind` (Section, Entry, Meta, Gap, Tiles, Detail) with
+  `BookDetailRole`, `BookMark`, `BookStat` and `BookRightButton` in Core; `BookPages` builds every page in sections with one entry row each
+  and the counts, forms, units, phrases and feedback as `Detail` lines for the right page (`ListFor` drops them, `BlockOf` reads them).
+  `UiPalette`: `InkMeta` replaces `InkHint`; `BandMuted` and the three outcome marks, all in `TextPairs`. `BookGeometry`: title 36, rule 72,
+  content 80 (28 rows at 1200 x 720, 22 at 800 x 600, one fewer each). `BookLayer` draws by kind: the 32 px title in the ribbon's colour,
+  bands, tiles, the accent edge of the selection, the double strike only where D-game-28 allows. The right page's speaker buttons are
+  reported by the layer each frame (`BookModel.RightButtons`) and hit-tested in Core; selection and Enter count entries, so Lessons and What
+  I said rows are selectable (`ClickVerb` became `ClickRow`). 44 strings in `content/locale/en/ui.json`. Departures from the spec: the
+  table header stays 34 px; a lesson's wait text is its row's aside; at 150 % text in a small window a row with a button keeps 40 px for its
+  title (as before). Seen: a phrase's "with help" count can be fractional ("0.5", `PhraseProgress.Uses`, half credit; the old counts row
+  showed the same). Scripted runs: stdout and digests identical; pictures differ only where the book shows (r04, r05, r16, r20, r21, r23,
+  r30). The decision was first written as D-game-27 and renumbered: `feature/german` and `feature/hand-in-speech` took D-game-27 the same day.
 
 ## 6. Definition of done (every milestone)
 

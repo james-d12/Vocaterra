@@ -17,7 +17,7 @@ namespace Vocaterra.Game.UI.Book;
 /// The left page lists (the lines <see cref="BookPages"/> builds from the learner's record, scrolled with the wheel, Page Up and Page Down, a speaker button at the
 /// right of a row that has a recording, S20b); the right page shows the selected item: on the Verbs page its conjugation table (<see cref="ConjugationTable"/>),
 /// elsewhere the item's own lines, written out in full. It covers the screen while it is open and takes the keyboard (the player does not walk).
-/// The hierarchy (U07, D-game-27): only two sizes, 16 and 32 px. The left page's title (32 px, the ribbon's colour, a 2 px rule under it) names the page; the list draws
+/// The hierarchy (U07, D-game-28): only two sizes, 16 and 32 px. The left page's title (32 px, the ribbon's colour, a 2 px rule under it) names the page; the list draws
 /// by line kind (<see cref="BookLineKind"/>): section bands in the page's accent, entry rows in the ink of their tone, a row of grey tiles for the nouns not met, and the
 /// selection with an accent edge. The right page writes the selected entry's block: its title at 32 px, labels with a rule, numbers at 32 px over their captions. The "strong"
 /// weight (the text drawn twice, one pixel apart) is for known entries, the right page's labels and the next lesson's line only, never running text.
@@ -343,7 +343,7 @@ public sealed class BookLayer : IFrameLayer
         _ => InkMeta,
     };
 
-    // Whether the entry's text is drawn in the strong weight (D-game-27): known entries (not a line the learner said), the next lesson and the line that offers the review.
+    // Whether the entry's text is drawn in the strong weight (D-game-28): known entries (not a line the learner said), the next lesson and the line that offers the review.
     private static bool IsStrong(BookLine line) =>
         (line.Tone == BookTone.Known && line.Mark is null or BookMark.Done) || line.Next || (line.Tone == BookTone.Gold && string.Equals(line.Practise, BookPractise.ReviewNow, StringComparison.Ordinal));
 
@@ -921,7 +921,7 @@ public sealed class BookLayer : IFrameLayer
     }
 
     // Text on paper: dark ink with no shadow (the panels' shadowed text is for dark backgrounds). The strong weight is the text drawn twice, one pixel apart: the pixel font's
-    // only bolder weight (D-game-27: for known entries, the right page's labels and the next lesson only).
+    // only bolder weight (D-game-28: for known entries, the right page's labels and the next lesson only).
     private static void InkText(SpriteBatch spriteBatch, SpriteFontBase font, string text, Vector2 position, Color colour, bool strong = false)
     {
         spriteBatch.DrawString(font, text, position, colour);

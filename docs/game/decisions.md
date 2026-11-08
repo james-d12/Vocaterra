@@ -596,7 +596,9 @@ swimming; `.claude/briefs/h11-report.md`, item 5). The bank is fixed in the worl
 reach is left by walking, a step or the hop-out. Built by H12 (2026-11-08, `docs/game/water-plan.md`): 582 such edges, every shore's rim, now a step
 over the shallow bed; the swim rules unchanged.
 
-## D-game-27: the book's hierarchy (decided, 2026-11-08)
+## D-game-28: the book's hierarchy (decided, 2026-11-08)
+
+*Numbered D-game-28 because `feature/german` and `feature/hand-in-speech` each took D-game-27 the same day; first recorded here as D-game-27, renumbered before the pull request.*
 
 **Owner, 2026-11-08,** on the U07 mockup (GitHub issue #7; the artifact "Book Hierarchy Mockup", spec `.claude/briefs/u07-book-spec-draft.md`;
 plan section 4.10): "Go with the recommendations." The three questions and the answers:

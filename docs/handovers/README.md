@@ -31,7 +31,7 @@ several of them were moved out of the orchestrator, the game plan and a research
 
 | Handover | Workstream | What it waits for |
 | --- | --- | --- |
-| [2026-11-08-2233-ui-issues](2026-11-08-2233-ui-issues.md) | The UI issues #5, #6 and #7 (U05 to U08) on `feature/ui-issues`, PR #47 | U07 and U08 to finish and be gated; then the owner's review of PR #47 |
+| [2026-11-08-2233-ui-issues](2026-11-08-2233-ui-issues.md) | The UI issues #5, #6 and #7 (U05 to U08) on `feature/ui-issues`, PR #47 | The owner's review of PR #47 |
 | [2026-11-05-2031-adaptive-design](2026-11-05-2031-adaptive-design.md) | The adaptation on `feature/adaptive_design`: the needs, lessons as classes, the presentation track, then the bread pilot | The owner's needs check, and fixes from it |
 | [2026-11-07-1345-bread-pilot](2026-11-07-1345-bread-pilot.md) | The bread pilot on `feature/bread-pilot`: W05 to W10, T8, W02 to W04, M80, V31, main (water) and the fixes M83, T9, M84, T10, W04b, H11 merged | The owner's review of PR #40 |
 
