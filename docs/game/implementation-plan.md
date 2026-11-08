@@ -413,7 +413,7 @@ refuses older saves with a clear message and re-records `tests/Vocaterra.Game.Co
 
 | ID | What | Depends on | Size | Model | Status |
 | --- | --- | --- | --- | --- | --- |
-| T01 | The pack through the bundle (G1, G2, G3, G7): a game-owned `GameLanguages` registry passed as `ContentLoadOptions.LanguagePacks`, the manifest picks the pack; `bundle.LanguageMorphology` and M87's pack members instead of `SpanishMorphology()` (including `BookLayer.cs:468`), `SpanishNumbers`, `SpanishTextNormalizer`, `SpanishAccentNotes`; the tag list from `bundle.Language.ErrorTags`. Gate: no `Spanish*` identifier and no `Vocaterra.Nlp.Es` reference in the game projects outside `GameLanguages` (a C# architecture test) | core M87 | M | Sonnet 5.5 | proposed |
+| T01 | The pack through the bundle (G1, G2, G3, G7): a game-owned `GameLanguages` registry passed as `ContentLoadOptions.LanguagePacks`, the manifest picks the pack; `bundle.LanguageMorphology` and M87's pack members instead of `SpanishMorphology()` (including `BookLayer.cs:468`), `SpanishNumbers`, `SpanishTextNormalizer`, `SpanishAccentNotes`; the tag list from `bundle.Language.ErrorTags`. Gate: no `Spanish*` identifier and no `Vocaterra.Nlp.Es` reference in the game projects outside `GameLanguages` (a C# architecture test) | core M87 | M | Sonnet 5.5 | done (2026-11-08, gated at `f1ffa49a`, 10412 passed, 1 failed: a broken link in the orchestrator's moved handover, repaired after; section 5) |
 | T02 | Words out of code (G4, G5): the last Spanish literals (`Vocative`, `RecastNames`, `NpcTurnRules`, `GuideSession`, `VoxelSession`, `BookVerbLabels`, `CheckLayer`, `PhraseIds`) into `game/words.json` or the pack; the typing map (`AccentShortcuts`) and its hint as per-language data | T01 | S | Haiku 5.5 | proposed |
 | T03 | Neutral world ids (G11): recipes, objectives and host event details keyed by neutral ids (`torch`, `wood`, `table`), `game/nouns.json` mapping each id to the target-language lemma | T02 | S/M | Sonnet 5.5 | proposed |
 | T04 | Saves and the speech table (G6, G8): a required `language` in the save, `saves/<language>/` profiles, the save version raised; ASR model id, TTS engine and voices per language from data, `SpeechRules` thresholds per model; gender `n` allowed in `LearnerWords` | T03 | M | Sonnet 5.5 | proposed |
@@ -2544,6 +2544,17 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   the scene digest is `b699324f…`, save fixtures' state digests re-recorded. `WaterEdgesAreExitableTests` holds the world at 0 edges
   (exempt: bridge floors, the river staircase's two steps). Scripted runs: 13 differ, all from the world (digests, a teleport landing 1
   lower, r27's walk 38 turns instead of 36 at the same tick); new run `r31-lake`. Report `.claude/briefs/h12-report.md`.
+
+- **T01, the pack through the bundle (2026-11-08, Sonnet 5.5 medium; gated at `f1ffa49a` on `feature/german`).** `GameLanguages`
+  (`Game.Core/Session/GameLanguages.cs`) is the one registry of the packs the game supports and the only game file that names
+  `Vocaterra.Nlp.Es`; `GameBundle` and the host load through it, and the host no longer references the Spanish pack. Every M87 mapping is
+  through the bundle: `LanguageMorphology` (the Book's `ConjugationTable` rows from `Paradigm.Persons`, columns from `Paradigm.Tenses` plus
+  the two periphrases `ir-a` and `tener-que`, still game logic), `Language.Numbers`, `NounCatalog.Normalizer` (the bundle's),
+  `Language.Orthography` (`VerdictReport.Write` gained an `IOrthographyNotes` parameter), `Language.ErrorTags`
+  (`LocaleText.MissingErrorTags` takes an `ErrorTagSet`); the unused `GuideNearest.BlocksInWords` removed. **Rule from now:**
+  `LanguageNeutralityTests` fails on any `Vocaterra.Nlp.Es` namespace or core `Spanish*` type in game code outside `GameLanguages`, and on
+  a Spanish-pack reference from `Vocaterra.Game` or `Vocaterra.Host`. The 28 scripted runs are unchanged. Agent: 10413 passed. The gate's
+  one failure was `MarkdownLinkTests` on the orchestrator's handover moved into `done/` (two `../` links), repaired in the next commit.
 
 ## 6. Definition of done (every milestone)
 
