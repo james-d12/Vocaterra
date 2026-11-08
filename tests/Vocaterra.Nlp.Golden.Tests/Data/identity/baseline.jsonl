@@ -106,7 +106,7 @@
 {"id":"m26b-0003","stages":{"normalize":"97ae47b2bd7d1843","analyze":"7f87e458c993f3ff","match":"8aa2275b6eb86ece","grade":"83af74654319eca5","pipeline":"d08af73d0b0a7df6","recast":"869d1707bcb1d48b","g2p":"9c0063abe422e02f"}}
 {"id":"m26b-0004","stages":{"normalize":"ee6080f26168218a","analyze":"6c8720289e20d769","match":"2cae7fbfaf9b78c5","grade":"c5bf0d16ace7e5ec","pipeline":"19a8cde96a9cd724","recast":"b56f3e4133ed0ef4","g2p":"f44848b9a632b8ae"}}
 {"id":"m26b-0005","stages":{"normalize":"3a3f1fac7abab389","analyze":"5cda7166f4d42285","match":"609d3121aea74d52","grade":"967a82d154034b0b","pipeline":"4d70bdcabe9a1b81","recast":"ce18b6140f499b05","g2p":"44a2bb4160bb02d3"}}
-{"id":"m26b-0006","stages":{"normalize":"478de045bd9ab812","analyze":"e471f47cbf7c9b01","match":"4fa750f0bc0a6454","grade":"440f6a1e597fe08e","pipeline":"0344fa9815c059cc","recast":"727d1fba2757a4bc","g2p":"c77c1110672fdedc"}}
+{"id":"m26b-0006","stages":{"normalize":"478de045bd9ab812","analyze":"e471f47cbf7c9b01","match":"4fa750f0bc0a6454","grade":"8c278a7255332034","pipeline":"352d87a23bd224a0","recast":"727d1fba2757a4bc","g2p":"c77c1110672fdedc"}}
 {"id":"m26b-0007","stages":{"normalize":"406562ce313d2aeb","analyze":"e0482282a84497ae","match":"38472739ea0659a9","grade":"440f6a1e597fe08e","pipeline":"8a282a0bfdf98703","recast":"e7a5ddbb4c529e96","g2p":"22fc9b16bcc339bb"}}
 {"id":"m26b-0008","stages":{"normalize":"21ea0c022ec399a4","analyze":"2c816f4d34da4186","match":"45dfdc08ff30c57a","grade":"440f6a1e597fe08e","pipeline":"0e6d55cd377102cc","recast":"8c2feea7297b9e83","g2p":"bcdf115441ecd463"}}
 {"id":"m26b-0009","stages":{"normalize":"88526ec36e761c50","analyze":"14a15104ccbaec91","match":"48bef443b5c8d99e","grade":"f396ba299f065bf7","pipeline":"4645f85f97af2dc1","recast":"ea37356fbdccf2f9","g2p":"49b63d201cffaea1"}}
@@ -2575,7 +2575,7 @@
 {"id":"fuzz-correct-1226","stages":{"normalize":"04648c33d9d6dffc","analyze":"fa7209f196502f80","match":"b10a067211224e0c","grade":"a977e6f1a40765ad","pipeline":"935f1f5c4647b8b9","recast":"ef8ec74a98b50584","g2p":"22e5a6ae6eaa4092"}}
 {"id":"fuzz-correct-1227","stages":{"normalize":"7323c0267ca89eb9","analyze":"9f065e3888d5248d","match":"8aa2275b6eb86ece","grade":"be042939f5a999da","pipeline":"43c89b9c058fb254","recast":"a298751cc63637ce","g2p":"4b6ec91b2cf05b0b"}}
 {"id":"fuzz-correct-1228","stages":{"normalize":"8800dbc4d6d328df","analyze":"353bd872ff8fd1a5","match":"543cefd20bbed651","grade":"440f6a1e597fe08e","pipeline":"cfa70046ae0e9128","recast":"faebab5fa2e55b25","g2p":"4f8975584a390905"}}
-{"id":"fuzz-correct-1229","stages":{"normalize":"8a0cc1a2ed5d67f4","analyze":"51a37a051cc8a065","match":"2c01817ab5afc264","grade":"440f6a1e597fe08e","pipeline":"a65dc3b41afe5393","recast":"e939afbe4f0baba1","g2p":"5b9a519fe6de29da"}}
+{"id":"fuzz-correct-1229","stages":{"normalize":"8a0cc1a2ed5d67f4","analyze":"51a37a051cc8a065","match":"2c01817ab5afc264","grade":"8c278a7255332034","pipeline":"ebde29d7ee46b7ee","recast":"e939afbe4f0baba1","g2p":"5b9a519fe6de29da"}}
 {"id":"fuzz-correct-1230","stages":{"normalize":"b3201457c0e3df11","analyze":"347aa70f2aa5ea5f","match":"48590cea73ff8a1f","grade":"440f6a1e597fe08e","pipeline":"e1c25305449c8a48","recast":"130a3320163130c9","g2p":"a3697fbd83b86595"}}
 {"id":"fuzz-correct-1231","stages":{"normalize":"f998f18ef31b5a4c","analyze":"4168b540cb0cd768","match":"48bef443b5c8d99e","grade":"e9a18ba21ee1048f","pipeline":"479a3927b3762b3a","recast":"b4c6faedba2bff83","g2p":"13757b1daa893938"}}
 {"id":"fuzz-correct-1232","stages":{"normalize":"7f98a6ccce095d86","analyze":"7908afd6dd4cb6ad","match":"3a207b99a7fe868b","grade":"f2c507d95f3a22dc","pipeline":"381c144664681a20","recast":"b2548fa8fbdd0545","g2p":"2966896ec20682fe"}}
@@ -6370,6 +6370,8 @@
 {"id":"dialogue:baker_none_offered.1","stages":{"render":"d8b773a96530268a"}}
 {"id":"dialogue:baker_offer_bake.1","stages":{"render":"91ac4f865b1c83fe"}}
 {"id":"dialogue:baker_price.1","stages":{"render":"bba7ea0cd2b25a11"}}
+{"id":"dialogue:baker_receive.1","stages":{"render":"01c82626b162007c"}}
+{"id":"dialogue:baker_receive_help.1","stages":{"render":"da75aef628a264fd"}}
 {"id":"dialogue:baker_sell.1","stages":{"render":"ac6dbd6eb0f26fcf"}}
 {"id":"dialogue:baker_sell.2","stages":{"render":"c64cc322d01c8dc0"}}
 {"id":"dialogue:baker_sun.1","stages":{"render":"a931165fb9761165"}}
@@ -6403,6 +6405,8 @@
 {"id":"dialogue:farmer_none_offered.1","stages":{"render":"000894f71bdb78ab"}}
 {"id":"dialogue:farmer_pay.1","stages":{"render":"8ddad20e72818c82"}}
 {"id":"dialogue:farmer_price.1","stages":{"render":"6b4b5ca250311a9c"}}
+{"id":"dialogue:farmer_receive.1","stages":{"render":"01c82626b162007c"}}
+{"id":"dialogue:farmer_receive_help.1","stages":{"render":"a7ec06be8845f925"}}
 {"id":"dialogue:farmer_sell.1","stages":{"render":"8bac32291ec51509"}}
 {"id":"dialogue:farmer_sell.2","stages":{"render":"c6abd2847fb56044"}}
 {"id":"dialogue:farmer_sun.1","stages":{"render":"a931165fb9761165"}}
@@ -6443,6 +6447,8 @@
 {"id":"dialogue:fisher_nice.1","stages":{"render":"4ade6819164f7ba9"}}
 {"id":"dialogue:fisher_point.1","stages":{"render":"054731669e121257"}}
 {"id":"dialogue:fisher_point.2","stages":{"render":"916681fbb8b263a7"}}
+{"id":"dialogue:fisher_receive.1","stages":{"render":"01c82626b162007c"}}
+{"id":"dialogue:fisher_receive_help.1","stages":{"render":"75c8b7f2ec69ac17"}}
 {"id":"dialogue:fisher_sun.1","stages":{"render":"a931165fb9761165"}}
 {"id":"dialogue:fisher_thank.1","stages":{"render":"267bead7d57632ce"}}
 {"id":"dialogue:fisher_thank.2","stages":{"render":"e8cdb0bd91a51c89"}}
@@ -6731,6 +6737,8 @@
 {"id":"dialogue:smith_none_offered.1","stages":{"render":"d8b773a96530268a"}}
 {"id":"dialogue:smith_offer.1","stages":{"render":"182fe26a7b978365"}}
 {"id":"dialogue:smith_ok.1","stages":{"render":"d94adc0aee5eca7b"}}
+{"id":"dialogue:smith_receive.1","stages":{"render":"01c82626b162007c"}}
+{"id":"dialogue:smith_receive_help.1","stages":{"render":"d22c8096382e6e96"}}
 {"id":"dialogue:smith_sun.1","stages":{"render":"a931165fb9761165"}}
 {"id":"dialogue:smith_thank.1","stages":{"render":"267bead7d57632ce"}}
 {"id":"dialogue:smith_thank.2","stages":{"render":"e8cdb0bd91a51c89"}}
