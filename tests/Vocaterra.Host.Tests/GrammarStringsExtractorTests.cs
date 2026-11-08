@@ -27,6 +27,8 @@ public sealed class GrammarStringsExtractorTests
         ["hola"] = ["noun.number"],
         ["gracias"] = ["gender.agree", "noun.number"],
         ["adios"] = ["conj.person"],
+        ["que-tal"] = ["conj.person"],
+        ["muy-bien"] = ["conj.person"],
         ["no-se"] = ["conj.irregular"],
         ["ayuda"] = ["conj.person"],
         ["si"] = ["gender.agree"],

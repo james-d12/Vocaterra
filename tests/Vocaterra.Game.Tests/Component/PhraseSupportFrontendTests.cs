@@ -54,7 +54,7 @@ public sealed class PhraseSupportFrontendTests
 
         var rows = PhraseJournalRows.Build(progress, 1000 + 1200, CreditRules.Default, RouteScene.Shipped.Locale);
 
-        Assert.Equal(173, rows.Count);
+        Assert.Equal(175, rows.Count);
         Assert.Equal(progress.Sheet.Rows.Select(static r => r.Id).Order(StringComparer.Ordinal), rows.Select(static r => r.Id).Order(StringComparer.Ordinal));
         Assert.Equal(["que-necesitas", "pedir-agua", "donde-esta-el-rio", "hola"], rows.Take(4).Select(static r => r.Id)); // the phrases met come first, each group in the sheet's order (S17)
         var water = rows.Single(static r => r.Id == "pedir-agua");
@@ -178,8 +178,9 @@ public sealed class PhraseSupportFrontendTests
         dialogue.Open(session.OpenTalk("villager"), "Aldeano");
         _ = frontend.Pump();
 
-        Assert.Equal([("villager", "Puedes preguntar: «¿Dónde está el río?».", false)], player.Played);
-        Assert.Empty(session.Support.Cards);
+        // PR #48: the villager's prompt also practises the small talk, whose cards (and their model answers) are still up.
+        Assert.Equal([("villager", "Puedes preguntar: «¿Dónde está el río?».", false), ("villager", "¿Qué tal?", false), ("villager", "Muy bien.", false)], player.Played);
+        Assert.DoesNotContain(session.Support.Cards, static c => c.PhraseId == "donde-esta-el-rio");
         Assert.NotEmpty(session.Support.AudioOnly); // the audio-only chip is up: no card, an audio-only phrase
         player.Played.Clear();
         Assert.True(actions.Perform(SpeechAction.Repeat));

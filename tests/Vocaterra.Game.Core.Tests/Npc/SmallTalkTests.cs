@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
@@ -125,6 +126,28 @@ public sealed class SmallTalkTests
             var actions = result.Decision.Agent?.Actions ?? [];
             Assert.True(actions.Count > 0, $"{where} got no answer.");
             Assert.DoesNotContain(actions, static a => a.DialogueIntent == "not_understood");
+        }
+    }
+
+    [Theory]
+    [InlineData("¿qué tal?", "que-tal")]
+    [InlineData("¿cómo estás?", "que-tal")]
+    [InlineData("muy bien", "muy-bien")]
+    [InlineData("bien, gracias", "muy-bien")]
+    public void TheSmallTalkPhrasesAreCreditedAtEveryNpc(string line, string phrase)
+    {
+        // PR #48: ¿qué tal? and muy bien are rows of the phrase sheet; said to any NPC they are a use of the row (the villager's prompt practises them, the others
+        // credit them by their intent, PhraseIds.For), whatever the prompt's grammar holds.
+        foreach (var npc in TestGame.Data.Npcs.All.Select(static n => n.Id))
+        {
+            using var session = TestGame.NewSession();
+            Stage.TeleportToNpc(session, npc);
+            _ = session.OpenTalk(npc);
+
+            var turn = session.Say(line);
+
+            Assert.True(turn.Communicated, $"'{line}' to the {npc} was not understood.");
+            Assert.True(session.Events.OfType<PhraseUse>().Any(u => u.PhraseId == phrase), $"'{line}' to the {npc} credited no '{phrase}'.");
         }
     }
 

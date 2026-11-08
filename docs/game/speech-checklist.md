@@ -18,7 +18,7 @@ whose text changed or whose file was recorded again differently is listed again 
 | smith (Domingo) | `im_nicola`, gain 0.6 | 36 | 1.0 (0.8) | the pools `smith_*` and `guide.lesson.smith.*`, and its prompts |
 | farmer (León) | `pm_santa` | 44 | 1.0 (0.8) | the pools `farmer_*` and `guide.lesson.farmer.*`, and its prompts |
 
-**To hear:** 1410 of the 1410 files have no mark (guide 462, baker 198, villager 176, shopkeeper 168, farmer 156, fisher 136, smith 114). Two files a line: the normal speed and the slow one.
+**To hear:** 1416 of the 1416 files have no mark (guide 468, baker 198, villager 176, shopkeeper 168, farmer 156, fisher 136, smith 114). Two files a line: the normal speed and the slow one.
 
 ## Lines
 
@@ -740,6 +740,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide.review.ask.3 | speech/guide/guide.review.ask.3.wav | guide | 1.0 | ¿Qué es esto? Mira bien. |  |
 | guide.review.phrase.donde_esta_el_rio.1 | speech/guide/guide.review.phrase.donde_esta_el_rio.1.slow.wav | guide | 0.8 | ¿Qué buscas? |  |
 | guide.review.phrase.donde_esta_el_rio.1 | speech/guide/guide.review.phrase.donde_esta_el_rio.1.wav | guide | 1.0 | ¿Qué buscas? |  |
+| guide.review.phrase.muy_bien.1 | speech/guide/guide.review.phrase.muy_bien.1.slow.wav | guide | 0.8 | ¿Qué tal? |  |
+| guide.review.phrase.muy_bien.1 | speech/guide/guide.review.phrase.muy_bien.1.wav | guide | 1.0 | ¿Qué tal? |  |
 | guide.review.phrase.no_gracias.1 | speech/guide/guide.review.phrase.no_gracias.1.slow.wav | guide | 0.8 | ¿Quieres agua? |  |
 | guide.review.phrase.no_gracias.1 | speech/guide/guide.review.phrase.no_gracias.1.wav | guide | 1.0 | ¿Quieres agua? |  |
 | guide.review.phrase.pedir_agua.1 | speech/guide/guide.review.phrase.pedir_agua.1.slow.wav | guide | 0.8 | ¿Qué necesitas? |  |
@@ -992,6 +994,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | phrase.me-gustan-las-manzanas | speech/guide/phrase.me-gustan-las-manzanas.wav | guide | 1.0 | Sí, me gustan las manzanas. |  |
 | phrase.me-gusto-el-pan | speech/guide/phrase.me-gusto-el-pan.slow.wav | guide | 0.8 | Sí, me gustó el pan de Luz. |  |
 | phrase.me-gusto-el-pan | speech/guide/phrase.me-gusto-el-pan.wav | guide | 1.0 | Sí, me gustó el pan de Luz. |  |
+| phrase.muy-bien | speech/guide/phrase.muy-bien.slow.wav | guide | 0.8 | Muy bien. |  |
+| phrase.muy-bien | speech/guide/phrase.muy-bien.wav | guide | 1.0 | Muy bien. |  |
 | phrase.necesitamos-agua | speech/guide/phrase.necesitamos-agua.slow.wav | guide | 0.8 | Necesitamos agua. |  |
 | phrase.necesitamos-agua | speech/guide/phrase.necesitamos-agua.wav | guide | 1.0 | Necesitamos agua. |  |
 | phrase.necesito-agua | speech/guide/phrase.necesito-agua.slow.wav | guide | 0.8 | Necesito agua. |  |
@@ -1014,6 +1018,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | phrase.que-es-esto | speech/guide/phrase.que-es-esto.wav | guide | 1.0 | ¿Qué es esto? |  |
 | phrase.que-haces | speech/guide/phrase.que-haces.slow.wav | guide | 0.8 | ¿Qué haces? |  |
 | phrase.que-haces | speech/guide/phrase.que-haces.wav | guide | 1.0 | ¿Qué haces? |  |
+| phrase.que-tal | speech/guide/phrase.que-tal.slow.wav | guide | 0.8 | ¿Qué tal? |  |
+| phrase.que-tal | speech/guide/phrase.que-tal.wav | guide | 1.0 | ¿Qué tal? |  |
 | phrase.queremos-pan | speech/guide/phrase.queremos-pan.slow.wav | guide | 0.8 | Queremos pan. |  |
 | phrase.queremos-pan | speech/guide/phrase.queremos-pan.wav | guide | 1.0 | Queremos pan. |  |
 | phrase.quiero-dos-panes | speech/guide/phrase.quiero-dos-panes.slow.wav | guide | 0.8 | Quiero dos panes, por favor. |  |
@@ -1428,8 +1434,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | villager_weather.1.sol | speech/villager/villager_weather.1.sol.wav | villager | 1.0 | Sí, hace sol. |  |
 | villager_weather.1.viento | speech/villager/villager_weather.1.viento.slow.wav | villager | 0.8 | Sí, hace viento. |  |
 | villager_weather.1.viento | speech/villager/villager_weather.1.viento.wav | villager | 1.0 | Sí, hace viento. |  |
-| villager_well.1 | speech/villager/villager_well.1.slow.wav | villager | 0.8 | Bien, gracias. |  |
-| villager_well.1 | speech/villager/villager_well.1.wav | villager | 1.0 | Bien, gracias. |  |
+| villager_well.1 | speech/villager/villager_well.1.slow.wav | villager | 0.8 | Bien, gracias. ¿Y tú? |  |
+| villager_well.1 | speech/villager/villager_well.1.wav | villager | 1.0 | Bien, gracias. ¿Y tú? |  |
 | villager_wont_sell.1 | speech/villager/villager_wont_sell.1.slow.wav | villager | 0.8 | Solo tengo pan. |  |
 | villager_wont_sell.1 | speech/villager/villager_wont_sell.1.wav | villager | 1.0 | Solo tengo pan. |  |
 | villager_yes.1 | speech/villager/villager_yes.1.slow.wav | villager | 0.8 | ¡Sí! |  |
