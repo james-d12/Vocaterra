@@ -69,13 +69,15 @@ public sealed class EnergyVad
     /// <summary>Samples per frame (<c>SampleRate * FrameMs / 1000</c>, truncated).</summary>
     public int FrameSamples { get; }
 
-    /// <summary>Trims silence around speech and reports the speech frame range; an input without speech yields an empty result with <see cref="VadResult.HasSpeech"/> false.</summary>
-    public VadResult Trim(short[] samples)
+    /// <summary>
+    /// The speech decision of every frame (the last frame may be shorter), made exactly as <see cref="Trim(short[])"/> makes it, without the hangover: the frame
+    /// <c>i</c> covers the samples from <c>i * FrameSamples</c>. M84 reads the share of the voiced frames that the recognized words cover from it.
+    /// </summary>
+    internal bool[] SpeechFrames(short[] samples)
     {
         ArgumentNullException.ThrowIfNull(samples);
         var frameCount = (samples.Length + FrameSamples - 1) / FrameSamples;
-        var first = -1;
-        var last = -1;
+        var speech = new bool[frameCount];
         for (var frame = 0; frame < frameCount; frame++)
         {
             var start = frame * FrameSamples;
@@ -86,17 +88,20 @@ public sealed class EnergyVad
                 energy += (long)samples[i] * samples[i];
             }
 
-            if ((double)energy >= _meanSquareThreshold * length)
-            {
-                if (first < 0)
-                {
-                    first = frame;
-                }
-
-                last = frame;
-            }
+            speech[frame] = (double)energy >= _meanSquareThreshold * length;
         }
 
+        return speech;
+    }
+
+    /// <summary>Trims silence around speech and reports the speech frame range; an input without speech yields an empty result with <see cref="VadResult.HasSpeech"/> false.</summary>
+    public VadResult Trim(short[] samples)
+    {
+        ArgumentNullException.ThrowIfNull(samples);
+        var speech = SpeechFrames(samples);
+        var frameCount = speech.Length;
+        var first = Array.IndexOf(speech, true);
+        var last = Array.LastIndexOf(speech, true);
         if (first < 0)
         {
             return new VadResult([], false, 0, 0, frameCount);

@@ -41,7 +41,7 @@ public sealed class VoskAndKokoroFactAttribute : FactAttribute
 /// part of the repository); only the first run speaks every line.
 /// </summary>
 [Collection(NativeRuntimeCollection.Name)]
-public sealed class OpenFallbackMeasurementTests(ITestOutputHelper output)
+public sealed partial class OpenFallbackMeasurementTests(ITestOutputHelper output)
 {
     private const double ConfidenceFloor = 0.55;
 
@@ -54,6 +54,7 @@ public sealed class OpenFallbackMeasurementTests(ITestOutputHelper output)
         "me gusta el río", "tengo dos manzanas", "el río es grande", "hoy hace calor", "hoy llueve mucho", "¿cómo estás?", "usted hace hachas muy buenas", "dónde está la panadería",
         "mañana voy a comprar pan", "tengo un hacha", "gracias por todo", "hola buenos días", "quiero dos panes por favor", "voy al río con mi hermano",
         "la tienda está en el pueblo", "el gato duerme", "el perro come queso", "la luna brilla", "ayer llovió mucho", "mi hermano vive en Madrid", "dos más dos son cuatro", "ese libro es muy interesante",
+        "el pan es muy bueno", "el cielo es azul", "la casa es grande", "me gusta la música", "mi madre cocina bien", "hoy hace sol",
         "mañana voy a comprar pan en la panadería del pueblo con mi hermano y con mi madre", "ayer mi hermano y yo caminamos por el río hasta la casa del herrero",
     ];
 
