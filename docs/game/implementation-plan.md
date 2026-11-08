@@ -2480,6 +2480,15 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   works; drowning does not hurt yet (H11). **Open:** `--walk-to 212,262` back to the bank stopped 0.8 blocks short after 14400 ticks with
   375 jump cues, not compared with a water-only build; `docs/game/saves.md`, `architecture.md` and the water plan still say version 6.
   Both go to H11. Report `.claude/briefs/water-merge-report.md`.
+- **T9, the jittering `r27-bread` capture (2026-11-08, Haiku 5.5; gated at `ed1aa937` on `feature/bread-pilot`, 10329 passed, 3
+  skipped).** The moving value was the autosave tick (2460 or 2461, about 1 base run in 9), and every later capture shifted with it. A
+  script's `Say` step waits for `PendingTurns == 0`, checked after each frame's collect; the worker's outcome (milliseconds) landed before
+  or after the next frame's collect (about 32 ms) at random. The cause is inferred from the timings: no instrumented run caught the late
+  collect. Fix: `TurnWorker.WaitForOutcomes(timeout)` waits on a monitor pulsed per outcome; `VoxelGame.Update` calls it at the end of a
+  frame in scripted screenshot runs only (60 s cap), play and the playtest unchanged, no clock read. Test in `TurnWorkerTests`. Proof:
+  twenty runs of the fixed builds, ten beside three busy loops, all 2460; the full set, all 27 the same. **Watch:** the agent's own full
+  run once threw `OutOfMemoryException` in `GuideTurnTests.TheCursorTileIsNamedWhenTheGuideIsAskedWhatThisIs` (the assembly passed on
+  rerun; the gate did not see it; the suite peaks at 5.6 to 6.0 GB of the 6 GB cap). Report `.claude/briefs/t9-report.md`.
 
 ## 6. Definition of done (every milestone)
 
