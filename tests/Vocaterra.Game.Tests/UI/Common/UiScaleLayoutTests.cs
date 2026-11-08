@@ -926,6 +926,37 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public void TheBooksNewInksBandsAndMarksAreMeasuredOnThePaperAndTheSelectionAtTheirSpecifiedRatios()
+    {
+        // U07: InkMeta (it replaces InkHint) 5.25 to 1 on the paper and 4.87 on the selection; the muted band 5.41 with white text; the outcome marks 3 to 1 on both; the bands and
+        // the page titles in each ribbon's colour read with white and on the paper.
+        var names = UiPalette.TextPairs.Select(static p => p.Name).ToList();
+        foreach (var name in new[] { "book ink meta", "book ink meta on selection", "book ink on selection", "book ink seen on selection", "book band muted", "book mark good", "book mark slip", "book mark miss", "book mark good on selection", "book mark slip on selection", "book mark miss on selection" })
+        {
+            Assert.Contains(name, names);
+        }
+
+        for (var i = 0; i < UiPalette.Ribbons.Count; i++)
+        {
+            Assert.Contains($"book band {i}", names);
+            Assert.Contains($"book title {i}", names);
+            Assert.True(UiPalette.RibbonLabel.ContrastWith(UiPalette.Ribbons[i]) >= 6.0, $"white on band {i}");
+            Assert.True(UiPalette.Ribbons[i].ContrastWith(UiPalette.Paper.Colour) >= 4.5, $"title {i} on the paper");
+        }
+
+        Assert.True(UiPalette.InkMeta.ContrastWith(UiPalette.Paper.Colour) >= 5.2);
+        Assert.True(UiPalette.InkMeta.ContrastWith(UiPalette.PaperSelect.Colour) >= 4.8);
+        Assert.True(UiPalette.RibbonLabel.ContrastWith(UiPalette.BandMuted) >= 5.4);
+        foreach (var mark in new[] { UiPalette.MarkGood, UiPalette.MarkSlip, UiPalette.MarkMiss })
+        {
+            Assert.True(mark.ContrastWith(UiPalette.Paper.Colour) >= 3.0, $"{mark} on the paper");
+            Assert.True(mark.ContrastWith(UiPalette.PaperSelect.Colour) >= 3.0, $"{mark} on the selection");
+        }
+
+        Assert.NotEqual(UiPalette.InkMeta, UiPalette.InkUnseen); // the hue tells the meta ink from the not-met ink
+    }
+
+    [Fact]
     public void TheContrastRatioIsTheWcagFormula()
     {
         Assert.Equal(21.0, new Rgb(255, 255, 255).ContrastWith(new Rgb(0, 0, 0)), 3);

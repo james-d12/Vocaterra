@@ -885,18 +885,19 @@ public sealed class BookLayer : IFrameLayer
         }
     }
 
-    // Breaks a text at its spaces into lines no wider than a width (a word wider than the width stays whole on its own line; the caller cuts it).
+    // Breaks a text at its spaces into lines no wider than a width (a word wider than the width stays whole on its own line; the caller cuts it). A run of spaces inside a line
+    // stays (the columns of "forms" and of the units' steps are three spaces apart); at a break it is dropped.
     private static List<string> Wrap(SpriteFontBase font, string text, int width)
     {
         var result = new List<string>();
         var current = string.Empty;
-        foreach (var word in text.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+        foreach (System.Text.RegularExpressions.Match match in System.Text.RegularExpressions.Regex.Matches(text, @" *\S+"))
         {
-            var candidate = current.Length == 0 ? word : current + " " + word;
+            var candidate = current.Length == 0 ? match.Value.TrimStart(' ') : current + match.Value;
             if (current.Length > 0 && DrawHelpers.Width(font, candidate) > width)
             {
                 result.Add(current);
-                current = word;
+                current = match.Value.TrimStart(' ');
             }
             else
             {
