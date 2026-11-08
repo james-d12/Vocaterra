@@ -332,10 +332,11 @@ utterances.
 `PipelineOptions.OpenRecognitionFallback` (`bool`, default `false`) is the host's switch for free talk (the owner, D-game-22, 2026-11-06, option 1 of
 `docs/research/2026-11-04-spoken-off-prompt-lines.md`). A constrained prompt hands the recognizer only the answer phrases, so a spoken line outside them reaches
 the stages as an empty line or as the nearest answer phrase, and the typed-line rules never see the words said. With the option on, `Analyze` decodes the clip a
-second time, freely (`RecognitionRequest.Open(MaxAlternatives)`), when all four hold: the option is on; the prompt is `Constrained`; the first recognition's
-`Mode` is `Constrained`; and the first reading is not taken (not `Communicated` and no `OffPromptIntent`). The free recognition goes through the same stages (one
-private method serves both passes; the phoneme posteriors are computed once, on the first pass, and reused), and **it wins only when it is taken and its weakest
-word is not weak**; otherwise the first reading stands and is byte-identical to the option off. The floor is `PipelineOptions.OpenPassWordFloor` (`double`, default
+second time, freely (`RecognitionRequest.Open(MaxAlternatives)`), when the option is on, the prompt is `Constrained`, the first recognition's `Mode` is
+`Constrained`, and either the first reading is not taken (not `Communicated` and no `OffPromptIntent`; M80) or it is taken but **looks forced** (M84, below). The free
+recognition goes through the same stages (one private method serves both passes; the phoneme posteriors are computed once, on the first pass, and reused), and **it
+wins only when it is taken and its weakest word is not weak**, and, when the first reading was taken, **only when its intent is another one**; otherwise the first reading
+stands and is byte-identical to the option off. The floor is `PipelineOptions.OpenPassWordFloor` (`double`, default
 `0.5` = `PipelineOptions.DefaultOpenPassWordFloor`; the owner, 2026-11-07): the free reading is taken only when the lowest `AsrWord.Confidence` of its recognition is
 at least the floor (exactly the floor is enough). A free recognition with no words (an empty one, or a recognizer that gives no word confidences, as the scripted ones
 often do) has no weakest word and is not taken, except at a floor of `0`, which switches the check off (the behaviour before the floor). The floor holds the free pass
@@ -343,23 +344,53 @@ only: the first, constrained pass is never held to it, and it does nothing while
 constructor throw `ArgumentOutOfRangeException`. Beyond that the core adds no gate: the host's rule for an uncertain line (a mean confidence, say) reads the chosen
 `Asr`.
 
+**Forced rows (M84).** The constrained decode can force a different line onto an answer row, or onto the words of one, **with confidence**, so the reading is taken and
+the free decode of M80 never ran (V31, Kokoro `ef_dora`: `el río es grande` heard `es gracias`, read as `thank` at the baker; `me gusta el río` heard `me cuesta el río`,
+read as `ask_price` at the shopkeeper). With the fallback on, a taken constrained reading gets the free decode too when it looks forced, by either of two facts of the reading,
+each an option of `PipelineOptions` (used only while the fallback is on):
+
+- `OpenPassOnLooseMatch` (`bool`, default `true`): the reading's answer match (`UtteranceAnalysis.Answer.Type`) is `None` (taken only through the intent catalog, as an
+  off-prompt or allowed line) or `Fuzzy` (a near miss of a row). A row heard whole (`Exact`) or as a listed alias is trusted.
+- `OpenPassMinCoverage` (`double`, default `0.6` = `PipelineOptions.DefaultOpenPassMinCoverage`; between 0 and 1, otherwise the `UtterancePipeline` constructor throws
+  `ArgumentOutOfRangeException`; 0 switches the check off): the recognized words (`[unk]` left out) cover less than this share of the clip's voiced audio. Voiced audio is
+  the clip's frames of 20 ms at or above -40 dBFS (`EnergyVad`'s decision, in integer arithmetic) and a frame is covered when its middle lies inside a word's start and end
+  time. It catches a long clip forced onto a short row (`el río es grande` heard `es gracias`). A clip with no voiced frame, or a recognition without a timed word (the
+  scripted ones), has no coverage and is not checked, and a replay, which has an empty clip, does not fire it.
+
+The free reading then **wins only when it is taken, clears `OpenPassWordFloor` and has a different intent** from the first reading (the intent it was understood as,
+or its `OffPromptIntent`); otherwise the constrained reading stands, byte-identical to the option off, and the free recognition is `UtteranceAnalysis.OtherPass`. So a
+correctly heard row whose trigger fires (a fuzzy match, say) keeps its reading whenever the free decode hears the same intent. The exposure is unchanged: `Asr` is the
+chosen recognition (`Mode` `Open` marks a line heard freely, now also a forced row replaced by it) and `OtherPass` the one not chosen. Both options off
+(`OpenPassOnLooseMatch = false`, `OpenPassMinCoverage = 0`) is exactly M80. With the fallback off nothing in this paragraph applies.
+
 ```csharp
 var pipeline = new UtterancePipeline(services, new PipelineOptions { OpenRecognitionFallback = true });   // free talk only; lesson steps keep the default
 // OpenPassWordFloor = 0.5 by default: a free reading with a word under 0.5 is not taken
 UtteranceAnalysis analysis = pipeline.Analyze(clip, prompt);
-bool heardFreely = analysis.Asr.Mode == RecognitionMode.Open;      // a line the constrained decode did not take, read from the free decode
+bool heardFreely = analysis.Asr.Mode == RecognitionMode.Open;      // a line the constrained decode did not take (or took as a forced row), read from the free decode
 AsrResult? other = analysis.OtherPass;                              // the recognition that was not chosen; null when only one decode ran
 ```
 
 `UtteranceAnalysis.Asr` is the chosen recognition (`Mode` `Open` at a constrained prompt marks a line heard freely), and the new `UtteranceAnalysis.OtherPass`
 (`AsrResult?`) is the other one when the second pass ran. A spoken line the prompt allows but whose words are not among its rows (`mañana voy a comprar pan` at
-`smith-open`) is understood as the typed line is; a spoken off-prompt line carries `OffPromptIntent`. The cost is one more decode, only for a line that was not taken; a taken first reading, an open prompt and the option off decode once. Measured on Kokoro
+`smith-open`) is understood as the typed line is; a spoken off-prompt line carries `OffPromptIntent`. The cost is one more decode, for a line that was not taken (M80) and for a taken reading that looks forced (M84, above); an answer row heard whole, an open prompt and the option off decode once. Measured on Kokoro
 speech with the small Vosk model and one best hypothesis (`OpenFallbackMeasurementTests`, a model-gated test that prints its report): the constrained decode takes
 a median 24 ms (95th percentile 50 ms), the free decode a median 190 ms (95th percentile 268 ms; 336 to 349 ms for clips over 3 s). Nothing is measured on real
 learner speech: the accent risk is unmeasured. The recognizer must be able to serve a second, open request on the same clip: the Vosk adapter makes its own native
 recognizer per call, and the scripted and replay recognizers need no change. The floor (above) was set from that run: without it, two spoken lines no intent should take
 (`ese libro es muy interesante` heard as `el libro es muy interesante`, `el` at 0.45) were taken as `describe` and two lines were taken as the wrong intent (`si usted
 hace años muy buenas`, `años` at 0.26); at 0.5 the measurement has zero false takes and loses one understood line of 108 (a word at 0.46 in a long line; 0.6 would lose six). Credit for a line heard freely is the host's to decide.
+
+M84 measured the trigger on Kokoro speech too (`OpenFallbackMeasurementTests`, the model-gated test of the forced rows: 2 541 evaluations over 843 clips, every line and every
+answer row of the seven free-talk prompts in the eight voice variants of M80; accent risk on real speech unmeasured). Of 1 501 taken constrained readings, 852 were answer
+rows heard and read correctly (answer match `Exact` 804, `Alias` 11, `Fuzzy` 37; the words cover 0.76 to 1.00 of the voiced audio, median 1.00), 241 other lines read as
+typed (`None` 213), and 408 forced lines (`None` 298, `Fuzzy` 65, `Alias` 45, never `Exact`; coverage median 0.54, 0.06 to 1.00). Weakest word confidence, the speech per
+letter and the dropped `[unk]` separate the classes far less (weakest word: correct rows median 1.00, 0.36 at the lowest; forced lines median 0.71, 0.22 at the lowest).
+The defaults fired on 37 of 852 correct rows (4%), replaced none of them and none of the 241 other correctly read lines, rescued 297 of the 408 forced lines (the free
+reading hears what the typed line is), made one other wrong take (`usted hace hachas muy buenas` heard with a leading `si`, as in M80) and no false take; the 111 that
+remain are lines no intent takes (the free reading is not taken) or heard under the floor. All of V31's lines are rescued (`el río es grande` at the baker and the
+shopkeeper, `me gusta el río` at the shopkeeper). The extra free decode took a median 199 ms (95th percentile 365 ms) on the 680 taken readings that fired (45% of the
+taken readings of this corpus, which is mostly off-prompt lines; an answer row fires in 4%), against 24 ms for a constrained decode.
 
 ## 4. Build a conversation context (D0)
 
@@ -967,7 +998,7 @@ PipelineResult result = pipeline.Complete(analysis, context, near, extraSkills: 
 - **What phase 1 hands over.** `UtteranceAnalysis` exposes `Verdict`, `Words`, `Answer` (the values the final `PipelineResult` will carry),
   `Asr` and `Posteriors` (the recognizer outputs), `OtherPass` (M80, the recognition not chosen when the open-recognition fallback ran a second decode),
   `ClipHash` and `Prompt`. Everything else phase 2 needs is kept internally. The recognizers run in `Analyze` (the word recognizer twice with the fallback,
-  when its first reading is not taken); completing the analysis never calls them again (a speech host recognizes once).
+  when its first reading is not taken or looks forced); completing the analysis never calls them again (a speech host recognizes once).
 - **Three ways to give the host facts.** `Complete(analysis, context)` takes them from the context (`HostSlots`, `ExtraSkills`);
   `Complete(analysis, context, hostSlots, extraSkills)` replaces them with the arguments, through `context.WithHost(...)`, which recomputes
   `HostStateHash` as `Create` does, so the replay record covers the facts; `CompleteTrace` is `Complete` that returns the `PipelineTrace` a replay log needs

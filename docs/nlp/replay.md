@@ -628,15 +628,17 @@ state or the event is no longer handled) is reported as `/result`. The CLI `repl
   line as not an envelope); use one log file per kind, or read with `ReadEntries`.
 - A line is a host turn when it is a JSON object whose `kind` is `"hostTurn"`; every other line is read as before.
 
-## The open-recognition fallback and replay (M80)
+## The open-recognition fallback and replay (M80, M84)
 
 The envelope has no field for the second decode, and its format did not change. With `OpenRecognitionFallback` on, `asr` is the recognition that was chosen:
-- **The free recognition was chosen** (the constrained one was not taken and the free one was). It is recorded with `mode` `Open`. On replay the recorded recognition
-  is served for the first request; its mode is `Open`, so the trigger (which needs a `Constrained` first recognition) never fires, and the verdict is the one recorded.
-  A replay through a pipeline with the option off gives the same result, because the stages read the recorded recognition the same way.
-- **The constrained recognition was kept** (the free one was not taken, or had a word under `OpenPassWordFloor`). It is recorded with `mode` `Constrained`. A replay through a pipeline with the option on serves the same recognition
-  again for the second (open) request; it is not taken either, so the first reading is kept and the verdict is the same. The unchosen free recognition
-  (`UtteranceAnalysis.OtherPass`) is not recorded.
+- **The free recognition was chosen** (the constrained reading was not taken, or was taken but looked forced; the free one was taken, cleared the floor and, against a taken
+  reading, had another intent). It is recorded with `mode` `Open`. On replay the recorded recognition is served for the first request; its mode is `Open`, so the
+  trigger (which needs a `Constrained` first recognition) never fires, and the verdict is the one recorded. A replay through a pipeline with the option off gives the same
+  result, because the stages read the recorded recognition the same way.
+- **The constrained recognition was kept** (the free one was not taken, had a word under `OpenPassWordFloor` or the same intent). It is recorded with `mode` `Constrained`.
+  A replay through a pipeline with the option on may fire the trigger again (a loose answer match fires it from the recognition alone; the coverage trigger needs the
+  clip's audio, which a replay does not have, so it does not fire) and serves the same recognition again for the second (open) request; that reading has the same intent
+  as the first, so the first reading is kept and the verdict is the same. The unchosen free recognition (`UtteranceAnalysis.OtherPass`) is not recorded.
 
 A replay never needs the model for either case, and old logs replay as before.
 
