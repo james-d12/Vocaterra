@@ -29,6 +29,7 @@ several of them were moved out of the orchestrator, the game plan and a research
 
 **Open**
 
+- [2026-11-08-2233-ui-issues](2026-11-08-2233-ui-issues.md): the UI issues #5, #6, #7 (U05 to U08) on `feature/ui-issues`, PR #47
 | Handover | Workstream | What it waits for |
 | --- | --- | --- |
 | [2026-11-05-2031-adaptive-design](2026-11-05-2031-adaptive-design.md) | The adaptation on `feature/adaptive_design`: the needs, lessons as classes, the presentation track, then the bread pilot | The owner's needs check, and fixes from it |
