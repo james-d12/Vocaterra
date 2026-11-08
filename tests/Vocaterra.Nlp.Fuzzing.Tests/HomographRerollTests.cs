@@ -176,4 +176,58 @@ public sealed class HomographRerollTests
 
         Assert.True(realised > 3000, $"Only {realised} of 4000 draws were realised.");
     }
+
+    // (5) M91, the merge gate's O4 seed 3m67O5Rpuya2: vosotras podáis rastrear opero, podar before an infinitive. The ConjPerson mutation lands on podo, which the analyzer
+    // reads as poder's slip before an infinitive (M69), so the mutation is another sentence than the one it was built from. The realiser no longer draws podar there.
+    private const string PodarPattern = "[VERB:podar:item] [VERB:rastrear]? [VERB:operar:qty]";
+
+    private static readonly string[] PodarForms = ["podo", "podas", "poda", "podamos", "podáis", "podan", "podes", "pode", "podé", "podés"];
+
+    [Fact]
+    public void TheCaseOfSeed3m67O5Rpuya2_NoLongerDrawsPodarBeforeAnInfinitive()
+    {
+        var mutation = MutationGen.Build(Harness, new MutationCase(MutationKind.ConjPerson, 1735878));
+        if (mutation is null)
+        {
+            return;
+        }
+
+        Assert.NotEqual("vosotras podáis rastrear opero", mutation.Source.NormalizedText);
+    }
+
+    // Why: podo before an infinitive is poder's slip, a single word with a person error and the missed stem change, whatever the person before it; podo before an object is podar's.
+    [Theory]
+    [InlineData("vosotras podo rastrear opero", "conj.person;conj.irregular")]
+    [InlineData("vosotras podáis rastrear opero", "")]
+    [InlineData("vosotras podo la espada", "conj.person")]
+    public void ThePodoFormBeforeAnInfinitiveIsPoderAndOneBeforeAnObjectIsPodar(string sentence, string tags)
+    {
+        var analysis = Harness.Analyzer.Analyze(PipelineHarness.Normalize(sentence), [SlotGrammarType.Parse(PodarPattern)]);
+        Assert.Equal(tags, string.Join(';', analysis.Errors.Select(static e => e.Tag)));
+    }
+
+    // The failing pattern has no draw left (podar is always followed by an infinitive in it); this one draws podar before an infinitive or an object, and keeps the second.
+    [Fact]
+    public void ThePodarPatternNoLongerRealisesAFormOfPodarBeforeAnInfinitive()
+    {
+        var pattern = GrammarPattern.Parse("[VERB:podar] ([VERB:rastrear]|[ART] [NOUN:item])");
+        var realised = 0;
+        for (var seed = 1UL; seed <= 1000; seed++)
+        {
+            var sentence = SentenceGen.Realize(Harness, new SentenceRecipe("catalog", pattern, seed));
+            if (sentence is null)
+            {
+                continue;
+            }
+
+            realised++;
+            var words = sentence.NormalizedText.Split(' ');
+            for (var i = 0; i + 1 < words.Length; i++)
+            {
+                Assert.False(Array.IndexOf(PodarForms, words[i]) >= 0 && words[i + 1] == "rastrear", $"seed {seed}: '{sentence.NormalizedText}'");
+            }
+        }
+
+        Assert.True(realised > 100, $"Only {realised} of 1000 draws were realised.");
+    }
 }
