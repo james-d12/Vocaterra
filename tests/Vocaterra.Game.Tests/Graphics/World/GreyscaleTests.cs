@@ -326,6 +326,54 @@ public sealed class GreyscaleTests
     }
 
     [Fact]
+    public void TheMenuCanSwitchTheGreyscaleOnAndOffDuringTheRunWithoutAToastForWhatWasKnownBefore()
+    {
+        var words = new WordProgress(TestGame.Nouns);
+        var toasts = new ToastQueue();
+        var calls = new List<ulong>();
+        var world = new GreyscaleWorld(false, TestGame.Nouns, words, toasts, calls.Add, RouteScene.Shipped.Locale);
+        world.Refresh();
+        Assert.Empty(calls);
+
+        words.Restore([new WordRecord("agua", CreditUnits: WordProgress.UnitsToKnow, CorrectTurns: WordProgress.UsesToKnow)]); // learned while the view was in colour
+        world.Enabled = true;
+        world.Refresh();
+        Assert.Single(calls);
+        Assert.NotEqual(0UL, calls[0]);
+        Assert.False(ChunkMesher.IsGrey(BlockId.Water, calls[0])); // agua is known
+        Assert.Null(toasts.Current(0)); // no toast for a word that was already known when the view came on
+
+        world.Enabled = false;
+        world.Refresh();
+        Assert.Equal(2, calls.Count);
+        Assert.Equal(0UL, calls[1]); // the renderer is told that nothing is grey
+        Assert.Equal(0UL, world.GreyKinds);
+        world.Refresh();
+        Assert.Equal(2, calls.Count); // and once only
+    }
+
+    [Fact]
+    public void AssumeAllKnownColoursTheWholeWorldInTheViewAndLeavesTheLearnersWordsAlone()
+    {
+        var words = new WordProgress(TestGame.Nouns);
+        var before = words.Records.Values.ToList();
+        var calls = new List<ulong>();
+        var world = new GreyscaleWorld(true, TestGame.Nouns, words, new ToastQueue(), calls.Add, RouteScene.Shipped.Locale);
+        world.Refresh();
+        Assert.NotEqual(0UL, calls[0]);
+
+        world.AssumeAllKnown = true;
+        world.Refresh();
+        Assert.Equal(0UL, calls[^1]); // nothing is grey
+        Assert.Empty(words.KnownLemmas); // but nothing is known: the model, and so a save, are as they were
+        Assert.Equal(before, words.Records.Values.ToList());
+
+        world.AssumeAllKnown = false;
+        world.Refresh();
+        Assert.Equal(calls[0], calls[^1]); // the grey set is back
+    }
+
+    [Fact]
     public void AssumeKnownKeepsOtherRecordsAndSkipsWhatIsNoNoun()
     {
         var words = new WordProgress(TestGame.Nouns);

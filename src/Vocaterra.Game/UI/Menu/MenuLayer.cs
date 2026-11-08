@@ -81,6 +81,12 @@ public sealed class MenuLayer : IFrameLayer
                 continue;
             }
 
+            if (row.Kind == MenuRowKind.Subheading)
+            {
+                DrawHelpers.Text(spriteBatch, font, ui.Ui(row.LabelKey), new Vector2(area.X + 16, textY), Color.White);
+                continue;
+            }
+
             if (row.Kind == MenuRowKind.Note)
             {
                 DrawHelpers.Text(spriteBatch, font, DrawHelpers.Fit(font, ui.Ui(row.LabelKey), area.Width - 16), new Vector2(area.X + 8, textY), Dim);

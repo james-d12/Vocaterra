@@ -280,6 +280,29 @@ public sealed class VoxelRenderer : IDisposable
         _underwaterAmount = float.NaN; // the next SetUnderwater applies the fog of the new distance
     }
 
+    /// <summary>
+    /// Changes between day and dusk lighting while the game runs (the menu's Dusk lighting row): the sky, the fog and the clear colour take the other palette and every mesh is built
+    /// again (the evening light and the lanterns' glow are in the vertices). Nothing happens when the lighting is the one in force.
+    /// </summary>
+    /// <param name="dusk">Whether it is dusk.</param>
+    public void SetDusk(bool dusk)
+    {
+        if (dusk == _dusk)
+        {
+            return;
+        }
+
+        _dusk = dusk;
+        ClearColour = dusk ? DuskSky : Sky;
+        DryFog = new FogParameters(ClearColour.R / 255f, ClearColour.G / 255f, ClearColour.B / 255f, DryFog.Start, DryFog.End);
+        _sky.SetDusk(dusk);
+        _meshOptions = new MeshOptions(Preset.AmbientOcclusion, Preset.PlantKeepPercent, Lights, dusk);
+        ReleaseAllMeshes();
+        _wanted = [];
+        _checkedEdits = -1;
+        _underwaterAmount = float.NaN; // the next SetUnderwater applies the fog colour
+    }
+
     // Lets every mesh go and forgets the versions the tracker holds, so the next Remesh builds the view again, nearest first.
     private void ReleaseAllMeshes()
     {

@@ -35,6 +35,25 @@ public sealed class AutosaveController
         _milliseconds = milliseconds;
     }
 
+    /// <summary>Whether the autosave writes (<c>--no-autosave</c> starts it off; the menu's Autosave row switches it). When off, <see cref="Run"/> and <see cref="WriteNow"/> do nothing.</summary>
+    public bool Enabled { get; private set; } = true;
+
+    /// <summary>
+    /// Switches the autosave on or off. Turning it on starts the policy again from the tick and the events given, so it does not write at once for everything that happened while it was off.
+    /// </summary>
+    /// <param name="on">Whether it writes.</param>
+    /// <param name="tick">The simulation tick now.</param>
+    /// <param name="eventsSeen">How many events the session holds now.</param>
+    public void SetEnabled(bool on, long tick, int eventsSeen)
+    {
+        if (on && !Enabled)
+        {
+            _policy = new AutosavePolicy(tick, eventsSeen);
+        }
+
+        Enabled = on;
+    }
+
     /// <summary>The autosave file.</summary>
     public string Path { get; }
 
@@ -47,6 +66,11 @@ public sealed class AutosaveController
     /// </summary>
     public void Run(long tick, IReadOnlyList<GameEvent> events, bool atRest)
     {
+        if (!Enabled)
+        {
+            return;
+        }
+
         var decision = _policy.Decide(tick, events, atRest);
         if (!decision.Save)
         {
@@ -66,6 +90,11 @@ public sealed class AutosaveController
     public void WriteNow(long tick, int eventsSeen, string reason)
     {
         ArgumentException.ThrowIfNullOrEmpty(reason);
+        if (!Enabled)
+        {
+            return;
+        }
+
         _policy = new AutosavePolicy(tick, eventsSeen);
         Write(reason, toast: false);
     }

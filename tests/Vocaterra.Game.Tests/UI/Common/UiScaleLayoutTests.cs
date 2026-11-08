@@ -740,6 +740,79 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
         Assert.True(Small(ui.Ui("menuHint")) <= main.Panel.Width - 32, "the menu hint is wider than the panel");
     }
 
+    [Theory]
+    [MemberData(nameof(Cases))]
+    public void TheWholeSettingsPageWithItsTestingSectionKeepsEveryLabelNoteAndValueInsideItsRowAtEveryScale(int windowWidth, int windowHeight, int scale)
+    {
+        var canvas = Canvas(windowWidth, windowHeight, scale);
+        var ui = English.Value;
+        var points = RouteScene.Build().Points.Keys.Append("waterfall.top.lookout").Order(StringComparer.Ordinal).ToList();
+        var hooks = new TestingHooks
+        {
+            DebugOverlay = () => false,
+            SetDebugOverlay = static _ => { },
+            NeedsRunning = static () => true,
+            SetNeedsRunning = static _ => { },
+            NeedValue = static _ => 100,
+            SetNeed = static (_, _) => { },
+            RefillNeeds = static () => { },
+            SoundsOff = static () => false,
+            SetSoundsOff = static _ => { },
+            VoicesMuted = static () => false,
+            SetVoicesMuted = static _ => { },
+            ShoulderView = static () => false,
+            SetShoulderView = static _ => { },
+            Dusk = static () => false,
+            SetDusk = static _ => { },
+            Greyscale = static () => false,
+            SetGreyscale = static _ => { },
+            AssumeAllKnown = static () => false,
+            SetAssumeAllKnown = static _ => { },
+            TipsShown = static () => true,
+            SetTipsShown = static _ => { },
+            Places = points,
+            BeaconPlace = static () => null,
+            SetBeacon = static _ => { },
+            TeleportTo = static _ => { },
+            FullTypedCredit = static () => false,
+            SetFullTypedCredit = static _ => { },
+            AutosaveOn = static () => true,
+            SetAutosaveOn = static _ => { },
+            SaveNow = static () => { },
+        };
+        var rows = MenuRows.Settings(new PlayerSettings(), hooks);
+        var layout = new MenuLayout(canvas.Width, canvas.Height, MenuPage.Settings);
+        var row = layout.Row(0);
+        Assert.True(rows.Count > layout.Capacity, "the page is meant to scroll");
+        var maxScroll = rows.Count - layout.Capacity;
+        Assert.True(maxScroll >= 1 && (maxScroll + layout.Capacity) == rows.Count, "the last row can be scrolled to");
+
+        // The characters of the real font are about 6.1 px wide; a label or note that fits there is not cut with an ellipsis.
+        static double Width(string text) => text.Length * 6.1;
+        foreach (var item in rows)
+        {
+            switch (item.Kind)
+            {
+                case MenuRowKind.Heading or MenuRowKind.Subheading:
+                    break;
+                case MenuRowKind.Note:
+                    Assert.True(Width(ui.Ui(item.LabelKey)) <= row.Width - 16, $"the note '{item.LabelKey}' is cut at {canvas.Width}x{canvas.Height}");
+                    break;
+                default:
+                    Assert.True(Width(ui.Ui(item.LabelKey)) <= MenuLayout.LabelWidth(row), $"the label '{item.LabelKey}' is cut at {canvas.Width}x{canvas.Height}");
+                    if (item.Kind is MenuRowKind.Choice or MenuRowKind.Toggle)
+                    {
+                        var longest = item.ChoiceKeys.Count > 0
+                            ? item.ChoiceKeys.Select(key => ui.Ui(key)).Max(static v => v.Length)
+                            : points.Max(static p => p.Length);
+                        Assert.True(Width("< " + new string('x', longest) + " >") <= MenuLayout.ControlWidth(row), $"the values of '{item.LabelKey}' are cut at {canvas.Width}x{canvas.Height}");
+                    }
+
+                    break;
+            }
+        }
+    }
+
     // ---- The checklist, the toast and the labels.
 
     [Theory]

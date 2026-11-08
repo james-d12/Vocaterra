@@ -164,7 +164,19 @@ public abstract partial class GuideSession : IDisposable
     public ContentBundle Bundle { get; }
 
     /// <summary>The credit a correct use earns per kind of input, and the gaps between credited uses (D-game-6).</summary>
-    public CreditRules Credit { get; }
+    public CreditRules Credit { get; private set; }
+
+    /// <summary>
+    /// Changes the credit rules for the turns and acts that follow (the menu's typed-credit test setting, <c>--typed-credit</c> at run time). The records already made are kept:
+    /// only the credit a later use earns changes. The rules are not part of a save.
+    /// </summary>
+    /// <param name="credit">The new rules.</param>
+    public void SetCredit(CreditRules credit)
+    {
+        ArgumentNullException.ThrowIfNull(credit);
+        Credit = credit;
+        Procedures.SetCredit(credit);
+    }
 
     /// <summary>The worker that evaluates submitted turns, or <see langword="null"/> before <see cref="StartWorker"/>.</summary>
     public TurnWorker? Worker => _worker;

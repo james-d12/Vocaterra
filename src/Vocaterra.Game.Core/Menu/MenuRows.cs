@@ -1,3 +1,5 @@
+using Vocaterra.Game.Core.Needs;
+
 namespace Vocaterra.Game.Core.Menu;
 
 /// <summary>
@@ -39,17 +41,7 @@ public static class MenuRows
         {
             rows.Add(MenuRow.Heading("headingTesting"));
             rows.Add(MenuRow.Note("testingNote"));
-            if (testing.DebugOverlay is { } overlay && testing.SetDebugOverlay is { } setOverlay)
-            {
-                rows.Add(MenuRow.Switch("debugOverlay", "testDebug", overlay, setOverlay));
-            }
-
-            rows.Add(MenuRow.Switch("needsRunning", "testNeedsRun", testing.NeedsRunning, testing.SetNeedsRunning));
-            rows.Add(MenuRow.Button("refillNeeds", "testRefill", testing.RefillNeeds));
-            rows.Add(MenuRow.Switch("soundsOff", "testSoundsOff", testing.SoundsOff, testing.SetSoundsOff));
-            rows.Add(MenuRow.Switch("voicesMuted", "testVoicesMuted", testing.VoicesMuted, testing.SetVoicesMuted));
-            rows.Add(MenuRow.Switch("shoulderView", "testShoulder", testing.ShoulderView, testing.SetShoulderView));
-            rows.Add(MenuRow.Button("saveNow", "testSave", testing.SaveNow));
+            AddTesting(rows, testing);
         }
 
         rows.Add(MenuRow.Heading("headingRestart"));
@@ -57,5 +49,100 @@ public static class MenuRows
         rows.Add(MenuRow.Note("restartNote2"));
         rows.Add(MenuRow.Note("restartNote3"));
         return rows;
+    }
+
+    private static void AddTesting(List<MenuRow> rows, TestingHooks testing)
+    {
+        // The needs.
+        rows.Add(MenuRow.Subheading("subNeeds"));
+        rows.Add(MenuRow.Switch("needsRunning", "testNeedsRun", testing.NeedsRunning, testing.SetNeedsRunning));
+        if (testing.NeedValue is { } needValue && testing.SetNeed is { } setNeed)
+        {
+            (NeedMeter Meter, string Label)[] needs =
+            [
+                (NeedMeter.Hunger, "testNeedHunger"),
+                (NeedMeter.Thirst, "testNeedThirst"),
+                (NeedMeter.Sleep, "testNeedSleep"),
+                (NeedMeter.Health, "testNeedHealth"),
+                (NeedMeter.Stamina, "testNeedStamina"),
+            ];
+            foreach (var (meter, label) in needs)
+            {
+                rows.Add(MenuRow.Slider("need." + meter, label, 0, 100, 5, () => needValue(meter), value => setNeed(meter, value)));
+            }
+        }
+
+        rows.Add(MenuRow.Button("refillNeeds", "testRefill", testing.RefillNeeds));
+
+        // The world and the view.
+        rows.Add(MenuRow.Subheading("subView"));
+        if (testing.DebugOverlay is { } overlay && testing.SetDebugOverlay is { } setOverlay)
+        {
+            rows.Add(MenuRow.Switch("debugOverlay", "testDebug", overlay, setOverlay));
+        }
+
+        rows.Add(MenuRow.Switch("shoulderView", "testShoulder", testing.ShoulderView, testing.SetShoulderView));
+        AddSwitch(rows, "dusk", "testDusk", testing.Dusk, testing.SetDusk);
+        AddSwitch(rows, "greyscale", "testGreyscale", testing.Greyscale, testing.SetGreyscale);
+        AddSwitch(rows, "assumeAllKnown", "testAssumeKnown", testing.AssumeAllKnown, testing.SetAssumeAllKnown);
+        AddSwitch(rows, "tips", "testTips", testing.TipsShown, testing.SetTipsShown);
+        var places = testing.Places ?? [];
+        if (places.Count > 0 && testing.BeaconPlace is { } beaconPlace && testing.SetBeacon is { } setBeacon)
+        {
+            rows.Add(MenuRow.Picker(
+                "beacon",
+                "testBeacon",
+                places,
+                "settingsOff",
+                () => beaconPlace() is { } name ? Math.Max(0, IndexOf(places, name) + 1) : 0,
+                value => setBeacon(value <= 0 ? null : places[value - 1])));
+        }
+
+        // The teleport: a place chosen here (not kept anywhere), then the button.
+        if (places.Count > 0 && testing.TeleportTo is { } teleport)
+        {
+            var chosen = 0;
+            rows.Add(MenuRow.Subheading("subTeleport"));
+            rows.Add(MenuRow.Picker("teleportPlace", "testPlace", places, null, () => chosen, value => chosen = Math.Clamp(value, 0, places.Count - 1)));
+            rows.Add(MenuRow.Button("teleportGo", "testGo", () => teleport(places[chosen])));
+        }
+
+        // The sound.
+        rows.Add(MenuRow.Subheading("subSound"));
+        rows.Add(MenuRow.Switch("soundsOff", "testSoundsOff", testing.SoundsOff, testing.SetSoundsOff));
+        rows.Add(MenuRow.Switch("voicesMuted", "testVoicesMuted", testing.VoicesMuted, testing.SetVoicesMuted));
+
+        // The scoring rule.
+        if (testing.FullTypedCredit is { } credit && testing.SetFullTypedCredit is { } setCredit)
+        {
+            rows.Add(MenuRow.Subheading("subScoring"));
+            rows.Add(MenuRow.Switch("typedCredit", "testCredit", credit, setCredit, "testCreditHalf", "testCreditFull"));
+        }
+
+        // The files.
+        rows.Add(MenuRow.Subheading("subFiles"));
+        AddSwitch(rows, "autosave", "testAutosave", testing.AutosaveOn, testing.SetAutosaveOn);
+        rows.Add(MenuRow.Button("saveNow", "testSave", testing.SaveNow));
+    }
+
+    private static void AddSwitch(List<MenuRow> rows, string id, string labelKey, Func<bool>? get, Action<bool>? set)
+    {
+        if (get is not null && set is not null)
+        {
+            rows.Add(MenuRow.Switch(id, labelKey, get, set));
+        }
+    }
+
+    private static int IndexOf(IReadOnlyList<string> names, string name)
+    {
+        for (var i = 0; i < names.Count; i++)
+        {
+            if (string.Equals(names[i], name, StringComparison.Ordinal))
+            {
+                return i;
+            }
+        }
+
+        return -1;
     }
 }

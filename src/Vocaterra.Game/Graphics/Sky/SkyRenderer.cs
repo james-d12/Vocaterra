@@ -19,13 +19,13 @@ public sealed class SkyRenderer : IDisposable
 
     private readonly GraphicsDevice _device;
     private readonly BasicEffect _effect;
-    private readonly VertexPositionColor[] _dome;
-    private readonly short[] _domeIndices;
+    private VertexPositionColor[] _dome;
+    private short[] _domeIndices;
     private readonly VertexPositionColor[] _sun = new VertexPositionColor[4 * 3];
     private readonly short[] _sunIndices;
     private readonly List<CloudBox> _boxes = [];
     private VertexPositionColor[] _clouds = new VertexPositionColor[6 * 5 * 128];
-    private readonly bool _dusk;
+    private bool _dusk;
     private readonly VertexPositionColor[] _haze = new VertexPositionColor[4];
     private readonly short[] _hazeIndices = [0, 1, 2, 0, 2, 3];
     private Color _hazeColour = Color.Transparent;
@@ -109,6 +109,19 @@ public sealed class SkyRenderer : IDisposable
         }
 
         _device.BlendState = BlendState.Opaque;
+    }
+
+    /// <summary>Changes between the day sky and the evening sky while the game runs (the menu's Dusk lighting row): the dome is built again in the other palette.</summary>
+    /// <param name="dusk">Whether the sky is the evening one.</param>
+    public void SetDusk(bool dusk)
+    {
+        if (dusk == _dusk)
+        {
+            return;
+        }
+
+        _dusk = dusk;
+        (_dome, _domeIndices) = BuildDome(dusk);
     }
 
     /// <inheritdoc />

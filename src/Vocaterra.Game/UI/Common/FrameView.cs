@@ -105,8 +105,8 @@ public sealed class FrameView
     /// <summary>The heading of the lesson step or offer in play (<c>Lesson · First words · step 1 of 7 · Say it</c>), or <see langword="null"/> (U02): the dialogue panel's header shows it.</summary>
     public LessonHeading? LessonHeading { get; set; }
 
-    /// <summary>Whether <c>--greyscale</c> is on (S22): the book draws the icon of a noun that is not known yet in grey, as the world draws its block.</summary>
-    public bool Greyscale { get; init; }
+    /// <summary>Whether the greyscale view is on (<c>--greyscale</c>, S22; the menu's Greyscale row, and off while every noun counts as known): the book draws the icon of a noun that is not known yet in grey, as the world draws its block.</summary>
+    public bool Greyscale { get; set; }
 
     /// <summary>Whether the run is the playtest profile (S22): the facilitator's label has a reserved place and the bubble keeps below it.</summary>
     public bool Playtest { get; init; }

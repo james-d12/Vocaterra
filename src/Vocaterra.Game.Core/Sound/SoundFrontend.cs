@@ -92,6 +92,16 @@ public sealed class SoundFrontend
     /// <summary>The event-to-cue mapping.</summary>
     public SoundEventMapper Mapper { get; }
 
+    /// <summary>Switches the ambient beds to dusk (the insects) or back to day (the birds), as <c>--dusk</c> starts them; does nothing without ambient beds.</summary>
+    /// <param name="on">Whether it is dusk.</param>
+    public void SetDusk(bool on)
+    {
+        if (_ambient is not null)
+        {
+            _ambient.Dusk = on;
+        }
+    }
+
     /// <summary>The scripted recording window (a scripted spoken line, the scripted mic check).</summary>
     public ScriptedRecording Scripted { get; }
 

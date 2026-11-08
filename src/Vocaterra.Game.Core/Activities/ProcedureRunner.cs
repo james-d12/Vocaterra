@@ -150,7 +150,7 @@ public sealed class ProcedureRunner
     private readonly StationBook _stations;
     private readonly NounCatalog _nouns;
     private readonly PhraseProgress _phrases;
-    private readonly CreditRules _credit;
+    private CreditRules _credit;
     private readonly ulong _seed;
     private readonly List<ProcedureEvent> _events = [];
     private Run? _run;
@@ -173,6 +173,10 @@ public sealed class ProcedureRunner
         _seed = seed;
         Policy = policy ?? InstructionEvidencePolicy.Default;
     }
+
+    /// <summary>Changes the credit rules for the acts that follow (the menu's typed-credit test setting); the records already made are kept.</summary>
+    /// <param name="credit">The new rules.</param>
+    public void SetCredit(CreditRules credit) => _credit = credit ?? throw new ArgumentNullException(nameof(credit));
 
     /// <summary>Decision 19's policy.</summary>
     public InstructionEvidencePolicy Policy { get; }

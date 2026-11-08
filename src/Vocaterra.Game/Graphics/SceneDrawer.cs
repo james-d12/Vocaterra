@@ -75,6 +75,13 @@ public sealed class SceneDrawer : IDisposable
         _renderer?.SetPreset(Preset);
     }
 
+    /// <summary>Changes between day and dusk lighting during the run (the menu); before <see cref="Load"/> there is no renderer and the launch option stands.</summary>
+    /// <param name="dusk">Whether it is dusk.</param>
+    public void SetDusk(bool dusk) => _renderer?.SetDusk(dusk);
+
+    /// <summary>The colours of the world (the greyscale view and what counts as known in it), after <see cref="Load"/>; <see langword="null"/> before.</summary>
+    public GreyscaleWorld? Colours => _colours;
+
     /// <summary>The renderer, after <see cref="Load"/>.</summary>
     public VoxelRenderer Renderer => _renderer ?? throw new InvalidOperationException("The scene is not loaded.");
 

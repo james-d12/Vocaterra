@@ -37,7 +37,19 @@ public sealed class MenuScreenTests
         var testing = new TestingState();
         var exits = 0;
         var hooks = withTesting
-            ? new TestingHooks(null, null, () => testing.Needs, on => testing.Needs = on, () => testing.Refills++, () => testing.Sounds, on => testing.Sounds = on, () => false, _ => { }, () => false, _ => { }, () => { })
+            ? new TestingHooks
+            {
+                NeedsRunning = () => testing.Needs,
+                SetNeedsRunning = on => testing.Needs = on,
+                RefillNeeds = () => testing.Refills++,
+                SoundsOff = () => testing.Sounds,
+                SetSoundsOff = on => testing.Sounds = on,
+                VoicesMuted = () => false,
+                SetVoicesMuted = _ => { },
+                ShoulderView = () => false,
+                SetShoulderView = _ => { },
+                SaveNow = () => { },
+            }
             : null;
         var metrics = new Metrics();
         return new Rig(new MenuScreen(MenuRows.Settings(settings, hooks), metrics, () => exits++), settings, metrics, testing, () => exits);
