@@ -574,7 +574,14 @@ public abstract partial class GuideSession : IDisposable
         }
 
         var opening = OpenNow(npc, logOpened: true);
-        Lessons.OnTalkOpened(npc); // a lesson attached to this NPC takes up where it stopped, or starts by itself when its file says so (S16)
+        if (HandOverOpen)
+        {
+            _classAfterHandOver = true; // issue #42: no class starts, resumes or is offered while the NPC waits for the goods; it follows the hand-over in this talk
+        }
+        else
+        {
+            Lessons.OnTalkOpened(npc); // a lesson attached to this NPC takes up where it stopped, or starts by itself when its file says so (S16)
+        }
         OfferSecondTry(npc);
         Deck.OnTalkOpened(npc); // the warm-up offer of a new session, or the review asked for from the book (X06)
         _deckClaim = false;
@@ -896,6 +903,7 @@ public abstract partial class GuideSession : IDisposable
         _keyWordCards = [];
         _delayedOpening = null;
         _handOver = null; // the next talk asks again
+        _classAfterHandOver = false;
         Support.Clear();
         CurrentNpc = NpcService.GuideAgent;
     }

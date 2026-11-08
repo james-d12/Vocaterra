@@ -368,7 +368,7 @@ public sealed class VillageLessonTests(ITestOutputHelper output)
         Stage.TeleportToNpc(session, "fisher");
 
         var opening = session.OpenTalk("fisher"); // Mar asks what the learner has, and the fruit is handed over in Spanish (D-game-27)
-        Assert.Equal(["¡Hola! ¿Qué tienes?"], opening.Lines);
+        Assert.Equal(["¡Hola! ¿Qué tienes para mí?"], opening.Lines);
         Assert.Equal(4, session.Simulation.Inventory.Count(ItemId.Berry)); // nothing is taken before the line
 
         var turn = session.HandOverGoods()!; // «Aquí tienes tres frutas.»

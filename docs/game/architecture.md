@@ -233,7 +233,8 @@ order. An order with `handOver` (D-game-27, issue #42) is not taken at the openi
 agent asks for the goods and waits in its `receiving` state, whose prompt (`<npc>-receive`) takes `hand_over`; the session then judges the learner's lines there
 (`HandOverAfter`: a line whose item, or any noun, is one of the order's `handOver` nouns delivers it; «no sé» or `HandOverMisses` missed lines deliver it anyway)
 and raises `<npc>.delivered` as a host turn, with the same goods, reward and `order_delivered`. A delivery decided while another turn is on the worker waits for it
-(`CompleteHandOver`) and its thanks come as an opening. The session's ending (S17) waits only for the objectives with no session that are not orders, so an order never holds back or brings back the closing
+(`CompleteHandOver`) and its thanks come as an opening. A class at that NPC is held back at the opening (`OpenTalk`) and comes after the hand-over
+(`ReleaseClass`), and while the NPC waits its prompt, card and help buttons take precedence over a lesson step's. The session's ending (S17) waits only for the objectives with no session that are not orders, so an order never holds back or brings back the closing
 moment. The three items of the economy (`ItemId.Coin`, `Apple`, `Axe`, V03) are ordinary items: the axe, held, makes a trunk take a quarter of its gather
 ticks (`VoxelSimulation.GatherTicksOf`, which the HUD's bar reads too).
 

@@ -603,7 +603,7 @@ Issue #42: "when handing in quest items (e.g. handing over 5 wood to the baker),
 current order. Until now an order was delivered the moment the talk opened with its goods in the bag (village-plan V03, rule 6: walking
 up is enough). The owner's answers (2026-11-08):
 
-1. **Say it, with fail-forward.** The NPC asks for the goods when the talk opens (`¡Hola! ¿Qué tienes?`, `<npc>.order_ready` into the
+1. **Say it, with fail-forward.** The NPC asks for the goods when the talk opens (`¡Hola! ¿Qué tienes para mí?`, `<npc>.order_ready` into the
    agent's `receiving` state) and the learner says what they hand over (`Aquí tienes cinco bloques de madera.`). Rule 8 (D-game-8,
    D-game-9) is kept: help models the line, «no sé» says the model and the goods go, two missed lines hand them over anyway (a
    `fail_forward` phrase use), and an unsure recognition is never a miss. Not a strict gate, and not the stall's second-visit fallback.
@@ -611,6 +611,12 @@ up is enough). The owner's answers (2026-11-08):
    number. A wrong count gets the core's feedback and still passes. For an order of two goods (Domingo's wood and coins) either one counts.
 3. **All four orders** (`fruit-for-mar`, `oven-wood`, `axe-handle`, `water-for-plants`) take it, through `handOver` in their files
    (`content/schema/objective.schema.json`); an order without it is still delivered by walking up.
+4. **No class while the NPC waits for the goods** (the owner's follow-up, 2026-11-08): a class at the NPC is not offered, started or
+   resumed at the opening of a talk that asks for the goods; it follows the hand-over in the same talk, so the NPC's question and a lesson
+   step never share the panel.
+5. **«mí» and «ti» are A1** (the owner, 2026-11-08): the hand-written `cefr/a1.txt` lacked the pronouns after a preposition, so the lint
+   had refused `¿Qué tienes para mí?`; they joined the list and the NPC asks it. The same day the core began to grade `la agua` (`el`),
+   which the owner asked for (`docs/nlp/implementation-plan.md` 5b).
 
 How it is built: the intent `hand_over` (`aquí tienes`, `aquí está(n)`, `te doy`, `toma`, then the goods), the prompts `<npc>-receive`
 and the answer set `order-receive`, a `receiving` state in each order NPC's agent, five phrase rows (`content/PHRASES.md`, "Handing over

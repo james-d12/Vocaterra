@@ -23,7 +23,7 @@ public sealed class OrdersAndSalesTests
 
     private const string Thanks = "¡Gracias! Toma cuatro monedas.";
 
-    private const string Asks = "¡Hola! ¿Qué tienes?";
+    private const string Asks = "¡Hola! ¿Qué tienes para mí?";
 
     private const string HelpLine = "Puedes decir: «Aquí tienes cinco bloques de madera».";
 

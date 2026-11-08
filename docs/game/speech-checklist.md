@@ -106,8 +106,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | baker_offer_bake.1 | speech/baker/baker_offer_bake.1.wav | baker | 1.0 | ¿Quieres hacer pan? |  |
 | baker_price.1 | speech/baker/baker_price.1.slow.wav | baker | 0.8 | El pan cuesta dos monedas. |  |
 | baker_price.1 | speech/baker/baker_price.1.wav | baker | 1.0 | El pan cuesta dos monedas. |  |
-| baker_receive.1 | speech/baker/baker_receive.1.slow.wav | baker | 0.8 | ¡Hola! ¿Qué tienes? |  |
-| baker_receive.1 | speech/baker/baker_receive.1.wav | baker | 1.0 | ¡Hola! ¿Qué tienes? |  |
+| baker_receive.1 | speech/baker/baker_receive.1.slow.wav | baker | 0.8 | ¡Hola! ¿Qué tienes para mí? |  |
+| baker_receive.1 | speech/baker/baker_receive.1.wav | baker | 1.0 | ¡Hola! ¿Qué tienes para mí? |  |
 | baker_receive_help.1 | speech/baker/baker_receive_help.1.slow.wav | baker | 0.8 | Puedes decir: «Aquí tienes cinco bloques de madera». |  |
 | baker_receive_help.1 | speech/baker/baker_receive_help.1.wav | baker | 1.0 | Puedes decir: «Aquí tienes cinco bloques de madera». |  |
 | baker_sell.1 | speech/baker/baker_sell.1.slow.wav | baker | 0.8 | Aquí tienes el pan. ¡Gracias! |  |
@@ -254,8 +254,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | farmer_pay.1 | speech/farmer/farmer_pay.1.wav | farmer | 1.0 | Aquí se paga con monedas. Pero yo te compro fruta. |  |
 | farmer_price.1 | speech/farmer/farmer_price.1.slow.wav | farmer | 0.8 | Una manzana cuesta una moneda. |  |
 | farmer_price.1 | speech/farmer/farmer_price.1.wav | farmer | 1.0 | Una manzana cuesta una moneda. |  |
-| farmer_receive.1 | speech/farmer/farmer_receive.1.slow.wav | farmer | 0.8 | ¡Hola! ¿Qué tienes? |  |
-| farmer_receive.1 | speech/farmer/farmer_receive.1.wav | farmer | 1.0 | ¡Hola! ¿Qué tienes? |  |
+| farmer_receive.1 | speech/farmer/farmer_receive.1.slow.wav | farmer | 0.8 | ¡Hola! ¿Qué tienes para mí? |  |
+| farmer_receive.1 | speech/farmer/farmer_receive.1.wav | farmer | 1.0 | ¡Hola! ¿Qué tienes para mí? |  |
 | farmer_receive_help.1 | speech/farmer/farmer_receive_help.1.slow.wav | farmer | 0.8 | Puedes decir: «Aquí tienes el agua». |  |
 | farmer_receive_help.1 | speech/farmer/farmer_receive_help.1.wav | farmer | 1.0 | Puedes decir: «Aquí tienes el agua». |  |
 | farmer_sell.1 | speech/farmer/farmer_sell.1.slow.wav | farmer | 0.8 | Aquí tienes. ¡Gracias! |  |
@@ -398,8 +398,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | fisher_point.1 | speech/fisher/fisher_point.1.wav | fisher | 0.9 | Mira, está allí. |  |
 | fisher_point.2 | speech/fisher/fisher_point.2.slow.wav | fisher | 0.72 | Está por allí, mira. |  |
 | fisher_point.2 | speech/fisher/fisher_point.2.wav | fisher | 0.9 | Está por allí, mira. |  |
-| fisher_receive.1 | speech/fisher/fisher_receive.1.slow.wav | fisher | 0.72 | ¡Hola! ¿Qué tienes? |  |
-| fisher_receive.1 | speech/fisher/fisher_receive.1.wav | fisher | 0.9 | ¡Hola! ¿Qué tienes? |  |
+| fisher_receive.1 | speech/fisher/fisher_receive.1.slow.wav | fisher | 0.72 | ¡Hola! ¿Qué tienes para mí? |  |
+| fisher_receive.1 | speech/fisher/fisher_receive.1.wav | fisher | 0.9 | ¡Hola! ¿Qué tienes para mí? |  |
 | fisher_receive_help.1 | speech/fisher/fisher_receive_help.1.slow.wav | fisher | 0.72 | Puedes decir: «Aquí tienes tres frutas». |  |
 | fisher_receive_help.1 | speech/fisher/fisher_receive_help.1.wav | fisher | 0.9 | Puedes decir: «Aquí tienes tres frutas». |  |
 | fisher_sun.1 | speech/fisher/fisher_sun.1.slow.wav | fisher | 0.72 | Hoy hace sol. |  |
@@ -1064,16 +1064,16 @@ whose text changed or whose file was recorded again differently is listed again 
 | prompt.baker-open | speech/baker/prompt.baker-open.wav | baker | 1.0 | ¿Qué quieres? |  |
 | prompt.baker-proc | speech/baker/prompt.baker-proc.slow.wav | baker | 0.8 | ¿Qué quieres? |  |
 | prompt.baker-proc | speech/baker/prompt.baker-proc.wav | baker | 1.0 | ¿Qué quieres? |  |
-| prompt.baker-receive | speech/baker/prompt.baker-receive.slow.wav | baker | 0.8 | ¡Hola! ¿Qué tienes? |  |
-| prompt.baker-receive | speech/baker/prompt.baker-receive.wav | baker | 1.0 | ¡Hola! ¿Qué tienes? |  |
+| prompt.baker-receive | speech/baker/prompt.baker-receive.slow.wav | baker | 0.8 | ¡Hola! ¿Qué tienes para mí? |  |
+| prompt.baker-receive | speech/baker/prompt.baker-receive.wav | baker | 1.0 | ¡Hola! ¿Qué tienes para mí? |  |
 | prompt.farmer-open | speech/farmer/prompt.farmer-open.slow.wav | farmer | 0.8 | ¡Hola! Este es mi campo. |  |
 | prompt.farmer-open | speech/farmer/prompt.farmer-open.wav | farmer | 1.0 | ¡Hola! Este es mi campo. |  |
-| prompt.farmer-receive | speech/farmer/prompt.farmer-receive.slow.wav | farmer | 0.8 | ¡Hola! ¿Qué tienes? |  |
-| prompt.farmer-receive | speech/farmer/prompt.farmer-receive.wav | farmer | 1.0 | ¡Hola! ¿Qué tienes? |  |
+| prompt.farmer-receive | speech/farmer/prompt.farmer-receive.slow.wav | farmer | 0.8 | ¡Hola! ¿Qué tienes para mí? |  |
+| prompt.farmer-receive | speech/farmer/prompt.farmer-receive.wav | farmer | 1.0 | ¡Hola! ¿Qué tienes para mí? |  |
 | prompt.fisher-open | speech/fisher/prompt.fisher-open.slow.wav | fisher | 0.72 | ¿Qué buscas? |  |
 | prompt.fisher-open | speech/fisher/prompt.fisher-open.wav | fisher | 0.9 | ¿Qué buscas? |  |
-| prompt.fisher-receive | speech/fisher/prompt.fisher-receive.slow.wav | fisher | 0.72 | ¡Hola! ¿Qué tienes? |  |
-| prompt.fisher-receive | speech/fisher/prompt.fisher-receive.wav | fisher | 0.9 | ¡Hola! ¿Qué tienes? |  |
+| prompt.fisher-receive | speech/fisher/prompt.fisher-receive.slow.wav | fisher | 0.72 | ¡Hola! ¿Qué tienes para mí? |  |
+| prompt.fisher-receive | speech/fisher/prompt.fisher-receive.wav | fisher | 0.9 | ¡Hola! ¿Qué tienes para mí? |  |
 | prompt.guide-offer | speech/guide/prompt.guide-offer.slow.wav | guide | 0.8 | ¿Quieres agua? |  |
 | prompt.guide-offer | speech/guide/prompt.guide-offer.wav | guide | 1.0 | ¿Quieres agua? |  |
 | prompt.guide-open | speech/guide/prompt.guide-open.slow.wav | guide | 0.8 | ¡Hola! Soy la guía. ¿En qué te ayudo? |  |
@@ -1206,8 +1206,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | prompt.lesson-yesno | speech/guide/prompt.lesson-yesno.wav | guide | 1.0 | ¿Es madera? |  |
 | prompt.smith-open | speech/smith/prompt.smith-open.slow.wav | smith | 0.8 | ¡Hola! Esta es mi herrería. |  |
 | prompt.smith-open | speech/smith/prompt.smith-open.wav | smith | 1.0 | ¡Hola! Esta es mi herrería. |  |
-| prompt.smith-receive | speech/smith/prompt.smith-receive.slow.wav | smith | 0.8 | ¡Hola! ¿Qué tienes? |  |
-| prompt.smith-receive | speech/smith/prompt.smith-receive.wav | smith | 1.0 | ¡Hola! ¿Qué tienes? |  |
+| prompt.smith-receive | speech/smith/prompt.smith-receive.slow.wav | smith | 0.8 | ¡Hola! ¿Qué tienes para mí? |  |
+| prompt.smith-receive | speech/smith/prompt.smith-receive.wav | smith | 1.0 | ¡Hola! ¿Qué tienes para mí? |  |
 | prompt.stall-need | speech/shopkeeper/prompt.stall-need.slow.wav | shopkeeper | 0.8 | ¿Qué necesitas? |  |
 | prompt.stall-need | speech/shopkeeper/prompt.stall-need.wav | shopkeeper | 1.0 | ¿Qué necesitas? |  |
 | prompt.stall-offer | speech/shopkeeper/prompt.stall-offer.slow.wav | shopkeeper | 0.8 | ¿Quieres pan? |  |
@@ -1334,8 +1334,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | smith_offer.1 | speech/smith/smith_offer.1.wav | smith | 1.0 | ¿Quieres un hacha? Necesito dos bloques de madera y dos monedas. |  |
 | smith_ok.1 | speech/smith/smith_ok.1.slow.wav | smith | 0.8 | Está bien. |  |
 | smith_ok.1 | speech/smith/smith_ok.1.wav | smith | 1.0 | Está bien. |  |
-| smith_receive.1 | speech/smith/smith_receive.1.slow.wav | smith | 0.8 | ¡Hola! ¿Qué tienes? |  |
-| smith_receive.1 | speech/smith/smith_receive.1.wav | smith | 1.0 | ¡Hola! ¿Qué tienes? |  |
+| smith_receive.1 | speech/smith/smith_receive.1.slow.wav | smith | 0.8 | ¡Hola! ¿Qué tienes para mí? |  |
+| smith_receive.1 | speech/smith/smith_receive.1.wav | smith | 1.0 | ¡Hola! ¿Qué tienes para mí? |  |
 | smith_receive_help.1 | speech/smith/smith_receive_help.1.slow.wav | smith | 0.8 | Puedes decir: «Aquí tienes la madera y las monedas». |  |
 | smith_receive_help.1 | speech/smith/smith_receive_help.1.wav | smith | 1.0 | Puedes decir: «Aquí tienes la madera y las monedas». |  |
 | smith_sun.1 | speech/smith/smith_sun.1.slow.wav | smith | 0.8 | Hoy hace sol. |  |

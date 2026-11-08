@@ -2102,7 +2102,7 @@
     "baker_receive": {
       "poolId": "baker_receive",
       "variants": [
-        { "lineId": "baker_receive.1", "text": "¡Hola! ¿Qué tienes?" }
+        { "lineId": "baker_receive.1", "text": "¡Hola! ¿Qué tienes para mí?" }
       ]
     },
     "baker_receive_help": {
@@ -2114,7 +2114,7 @@
     "fisher_receive": {
       "poolId": "fisher_receive",
       "variants": [
-        { "lineId": "fisher_receive.1", "text": "¡Hola! ¿Qué tienes?" }
+        { "lineId": "fisher_receive.1", "text": "¡Hola! ¿Qué tienes para mí?" }
       ]
     },
     "fisher_receive_help": {
@@ -2126,7 +2126,7 @@
     "smith_receive": {
       "poolId": "smith_receive",
       "variants": [
-        { "lineId": "smith_receive.1", "text": "¡Hola! ¿Qué tienes?" }
+        { "lineId": "smith_receive.1", "text": "¡Hola! ¿Qué tienes para mí?" }
       ]
     },
     "smith_receive_help": {
@@ -2138,7 +2138,7 @@
     "farmer_receive": {
       "poolId": "farmer_receive",
       "variants": [
-        { "lineId": "farmer_receive.1", "text": "¡Hola! ¿Qué tienes?" }
+        { "lineId": "farmer_receive.1", "text": "¡Hola! ¿Qué tienes para mí?" }
       ]
     },
     "farmer_receive_help": {

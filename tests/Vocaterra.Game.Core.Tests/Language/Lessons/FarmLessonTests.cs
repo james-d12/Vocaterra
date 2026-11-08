@@ -339,7 +339,7 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
         session.Sitting = 7;
         _ = session.Simulation.GrantItems(ItemId.WaterBottle, 1);
         Stage.TeleportToNpc(session, "farmer");
-        Assert.Equal(["¡Hola! ¿Qué tienes?"], session.OpenTalk("farmer").Lines);
+        Assert.Equal(["¡Hola! ¿Qué tienes para mí?"], session.OpenTalk("farmer").Lines);
         Assert.Equal(["¡Gracias! Toma tres manzanas."], session.HandOverGoods()!.FollowUp);
         Assert.Equal((0, 3), (session.Simulation.Inventory.Count(ItemId.WaterBottle), session.Simulation.Inventory.Count(ItemId.Apple)));
 
@@ -541,7 +541,7 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
         Stage.TeleportToNpc(session, "farmer");
 
         var opening = session.OpenTalk("farmer"); // León asks what the learner has, and the water is handed over in Spanish (D-game-27)
-        Assert.Equal(["¡Hola! ¿Qué tienes?"], opening.Lines);
+        Assert.Equal(["¡Hola! ¿Qué tienes para mí?"], opening.Lines);
 
         var turn = session.Say("Aquí tienes la botella."); // the bottle names the goods as well as the water
 

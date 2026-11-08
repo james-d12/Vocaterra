@@ -9268,6 +9268,12 @@
       "matches": []
     },
     {
+      "key": "dff10562c8e6044f55adf0d1776c011d2458f3b08d66c6625eb3fbbc429a7aae",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Hola! ¿Qué tienes para mí?",
+      "matches": []
+    },
+    {
       "key": "dff8734c73d3c2f1af220624b24f9e3cdc98f3954dafd78a09facd4989cf04f4",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer luz compra pescado",

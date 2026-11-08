@@ -747,7 +747,7 @@
     "allowedIntentIds": ["hand_over", "ask_help", "dont_know"],
     "agentId": "baker",
     "slotGrammarIds": [],
-    "text": "¡Hola! ¿Qué tienes?"
+    "text": "¡Hola! ¿Qué tienes para mí?"
   },
   {
     "promptId": "fisher-receive",
@@ -757,7 +757,7 @@
     "allowedIntentIds": ["hand_over", "ask_help", "dont_know"],
     "agentId": "fisher",
     "slotGrammarIds": [],
-    "text": "¡Hola! ¿Qué tienes?"
+    "text": "¡Hola! ¿Qué tienes para mí?"
   },
   {
     "promptId": "smith-receive",
@@ -767,7 +767,7 @@
     "allowedIntentIds": ["hand_over", "ask_help", "dont_know"],
     "agentId": "smith",
     "slotGrammarIds": [],
-    "text": "¡Hola! ¿Qué tienes?"
+    "text": "¡Hola! ¿Qué tienes para mí?"
   },
   {
     "promptId": "farmer-receive",
@@ -777,6 +777,6 @@
     "allowedIntentIds": ["hand_over", "ask_help", "dont_know"],
     "agentId": "farmer",
     "slotGrammarIds": [],
-    "text": "¡Hola! ¿Qué tienes?"
+    "text": "¡Hola! ¿Qué tienes para mí?"
   }
 ]

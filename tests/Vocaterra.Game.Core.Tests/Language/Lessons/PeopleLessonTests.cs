@@ -492,7 +492,7 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
         Stage.TeleportToNpc(session, "smith");
 
         var opening = session.OpenTalk("smith"); // Domingo asks what the learner has, and the goods are handed over in Spanish (D-game-27)
-        Assert.Equal(["¡Hola! ¿Qué tienes?"], opening.Lines);
+        Assert.Equal(["¡Hola! ¿Qué tienes para mí?"], opening.Lines);
 
         var turn = session.HandOverGoods()!; // «Aquí tienes la madera y las monedas.»
 

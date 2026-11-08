@@ -387,7 +387,7 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
         Stage.TeleportToNpc(session, "baker");
 
         var opening = session.OpenTalk("baker"); // Luz asks what the learner has, and the wood is handed over in Spanish (D-game-27)
-        Assert.Equal(["¡Hola! ¿Qué tienes?"], opening.Lines);
+        Assert.Equal(["¡Hola! ¿Qué tienes para mí?"], opening.Lines);
         Assert.Equal(6, session.Simulation.Inventory.Count(ItemId.Wood)); // nothing is taken before the line
 
         var turn = session.HandOverGoods()!; // «Aquí tienes cinco bloques de madera.»
@@ -398,6 +398,31 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
         Assert.Contains(session.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.OrderDelivered && e.Npc == "baker" && e.Detail == "oven-wood");
         Assert.True(session.Objectives.Single(static o => o.Id == "oven-wood").Complete);
         Assert.Equal(1, session.ObjectiveStep("oven-wood.delivered")!.Count);
+    }
+
+    [Fact]
+    public void TheClassWaitsWhileLuzAsksForTheWoodAndIsOfferedRightAfterTheHandOver()
+    {
+        // D-game-27 (issue #42): no class is offered, started or resumed while the NPC waits for the goods, so her question and a lesson step never share the panel;
+        // the class follows the hand-over in the same talk.
+        var session = VillageLessonTests.AtStep("(after the last step)");
+        session.EndTalk();
+        session.Day = 5;
+        session.Sitting = 5;
+        Assert.Equal(0, session.Simulation.GrantItems(ItemId.Wood, 5));
+        Stage.TeleportToNpc(session, "baker");
+
+        _ = session.OpenTalk("baker");
+
+        Assert.True(session.HandOverOpen);
+        Assert.Null(session.Lessons.OfferStandingAt("baker"));
+        Assert.False(session.Lessons.Engaged);
+
+        _ = session.HandOverGoods();
+
+        Assert.False(session.HandOverOpen);
+        Assert.True(session.Objectives.Single(static o => o.Id == "oven-wood").Complete);
+        Assert.Equal(LessonId, session.Lessons.OfferStandingAt("baker"));
     }
 
     [Fact]

@@ -21,9 +21,13 @@ public abstract partial class GuideSession
     // A hand-over decided while another turn was still on the worker: it is done once that turn is in (Collect), and its thanks follow as an opening.
     private (HandOverWait Wait, bool FailForward)? _handOverDue;
 
+    // The talk opened on an NPC waiting for the goods, so its class was held back (OpenTalk): it is offered, resumed or started once the goods are handed over.
+    private bool _classAfterHandOver;
+
     /// <summary>
     /// Whether the NPC the panel is open on waits for the learner to hand an order over (issue #42): nothing else takes the talk meanwhile. A lesson engaged at the NPC
-    /// waits too: the next line is evaluated at the NPC's receiving prompt, not the step's, the card is the hand-over's, and Ayuda and No sé go to the NPC.
+    /// waits too: the next line is evaluated at the NPC's receiving prompt, not the step's, the card is the hand-over's, and Ayuda and No sé go to the NPC. A class
+    /// at the NPC is not offered, started or resumed at the opening of such a talk: it follows the hand-over.
     /// </summary>
     public bool HandOverOpen => _handOver is not null;
 
@@ -133,6 +137,7 @@ public abstract partial class GuideSession
         if (!string.Equals(OrderReadyAt(wait.Npc), wait.Order, StringComparison.Ordinal))
         {
             EndStaleHandOver(wait.Npc); // the goods left the bag while the NPC waited (eaten, dropped): it asks no more
+            ReleaseClass(wait.Npc);
             return null;
         }
 
@@ -155,7 +160,18 @@ public abstract partial class GuideSession
             _lastLine[wait.Npc] = thanks.Lines[^1];
         }
 
+        ReleaseClass(wait.Npc);
         return thanks;
+    }
+
+    // The class held back at the opening (OpenTalk) comes now, after the thanks, in the same talk: offered, resumed or started as at an opening.
+    private void ReleaseClass(string npc)
+    {
+        if (_classAfterHandOver && TalkOpenOn(npc))
+        {
+            _classAfterHandOver = false;
+            Lessons.OnTalkOpened(npc);
+        }
     }
 
     // A hand-over that waited for a turn on the worker (Deliver), once no turn is left: its thanks are the opening the panel shows next (TakeOpening).
