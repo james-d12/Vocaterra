@@ -267,7 +267,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M82 | The loader refuses an intent with no `slotGrammars`, no `keywordRules` and no `examples` (the owner, 2026-11-05, on M81's finding: no bundle has one, so enforce it): a `ContentValidationException` naming the file and the intent; `OptionalMembersMayBeOmitted` gives its intent one member; the fuzz README's M81 entry moves to fixed | M81 | S | Haiku 5.5 | done (2026-11-05, gated at `80492cf9`, 9363 passed) |
 | M83 | The O7 fuzz seed `8eu5g1sTe_A8` (found by W02, §5b; the owner, 2026-11-07, D-game-23 item 5): «ayuda por favor por favor» at a prompt without `ask_help` resolves as Grammar `request_item` although `ask_help`'s grammar outranks the match; fix the resolver or the analyzer at the cause, with the seed's case as a regression test; the oracle stands | | S | Sonnet 5.5 medium | done (2026-11-08, merged at `45499631`, gated with the water merge at `bc881c58` on `feature/bread-pilot`, 10328 passed, 3 skipped; §5b) |
 | M84 | Free talk's forced rows (found by V31; the owner, 2026-11-07, D-game-23 item 5): with `OpenRecognitionFallback` on, a constrained reading that was taken but looks forced (most of the clip's speech unused, or a clip much longer than its row, or weak words) also gets the open decode, and a confident, different free reading wins; measured on M80's Kokoro corpus plus V31's forced lines («el río es grande» heard «es gracias»), zero false takes the bar, the cost per turn reported | M80 | M | Sonnet 5.5 high | done (2026-11-08, gated with T10 at `386815a6` on `feature/bread-pilot`, 10363 passed, 3 skipped; §5b) |
-| M85 | The lint's speed again (CI on PR #40, 2026-11-08; the owner: "fix the failing tests"): `LintTests.TheBundleLintTakesUnderFiveSeconds` took 5.54 s on the GitHub runner (about four times slower than the desktop). M60 brought the lint to 398 ms (Debug); find what made it slower since (the bundle's growth, M74/M75's grammar rung, M80 to M84) and fix it at the source as M60 did, output byte-identical; the 5 s budget stays | M60 | S/M | Sonnet 5.5 medium | in progress (2026-11-08) |
+| M85 | The lint's speed again (CI on PR #40, 2026-11-08; the owner: "fix the failing tests"): `LintTests.TheBundleLintTakesUnderFiveSeconds` took 5.54 s on the GitHub runner (about four times slower than the desktop). M60 brought the lint to 398 ms (Debug); find what made it slower since (the bundle's growth, M74/M75's grammar rung, M80 to M84) and fix it at the source as M60 did, output byte-identical; the 5 s budget stays | M60 | S/M | Sonnet 5.5 medium | done (2026-11-08, gated at `a1066151` on `feature/bread-pilot`, 10394 passed, 3 skipped; §5b) |
 
 ### Delegation waves
 
@@ -1859,6 +1859,19 @@ merge into a feature branch that is pushed, and the owner merges it into `main` 
   median 199 ms, p95 365 ms. O14 checks the trigger and the different-intent rule (mutation-checked). V32 is not needed (`OtherPass` and
   `Asr.Mode` unchanged; a replaced row shows as `heard_open`); the game's `architecture.md` and the D-game-9 note still say the second
   decode runs only for a missed line. Its first gate failed on the water merge's Game.Core heap (T10). Report `.claude/briefs/m84-report.md`.
+- **M85, the lint's speed again (2026-11-08, Sonnet 5.5 medium; gated at `a1066151` on `feature/bread-pilot`, 10394 passed, 3
+  skipped).** CI on PR #40 failed `LintTests.TheBundleLintTakesUnderFiveSeconds` (5.54 s on the runner). Here the lint took 2.4 to 2.6 s
+  (Debug, steady; 3.0 to 3.2 s cold), against M60's 398 ms: the confusion check resolves 20,448 (example, rival) pairs (33 intents, about
+  640 examples), and since M74, M75 and M83 every `Resolve` scans the whole catalog (136 grammars) in `OutsideGrammar`, about 2.2 million
+  `Better` calls a run with about 2,500 matches; each grammar's match was recomputed for every pair. Also `CheckPair` matched with the
+  pack's default `AnalysisRules` while the resolver uses the bundle's, so `TokenFacts`' one-entry cache alternated. Fixed at the source:
+  `TokenFacts.Matched` keeps one match per grammar per analysis; `IntentResolver.PlausibleGrammars` lists the grammars that pass `CanMatch`
+  once per analysis (catalog order kept, so ties break as before) and the grammar rung visits only those (this is the production
+  resolver, not only the lint; the pipeline was not timed); `LintConfusion` builds facts once per rules set. Now about 0.7 s steady and
+  1.2 s cold; output byte-identical (`Format()` and `ToJson()` at a1, a2, the gate's options and no level); the 5 s budget unchanged.
+  **Rule:** a catalog-wide rung must reuse the per-analysis `TokenFacts`, never rebuild them per prompt. **Watch point:** `CheckPair`
+  matches with `AnalysisRules.For(language)`, not the bundle's rules, left to keep the output identical. Report
+  `.claude/briefs/m85-report.md`.
 
 ## 6. Definition of done (every milestone)
 
