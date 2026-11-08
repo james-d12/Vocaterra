@@ -268,6 +268,29 @@ public sealed class TurnWorker : IDisposable
         }
     }
 
+    /// <summary>
+    /// Waits until every submitted turn has its outcome ready, so the next <see cref="TryTake"/> calls find them all (or the timeout passes). A
+    /// scripted run calls it at the end of each frame: a turn submitted in a frame is then collected in the next frame, and the script's tick
+    /// no longer depends on whether the worker finished before that frame's collect (T9).
+    /// </summary>
+    /// <param name="timeoutMilliseconds">How long to wait at most.</param>
+    /// <returns>Whether every submitted turn is ready (true at once when none is pending).</returns>
+    public bool WaitForOutcomes(int timeoutMilliseconds)
+    {
+        lock (_gate)
+        {
+            while (Pending > _outcomes.Count)
+            {
+                if (!Monitor.Wait(_gate, timeoutMilliseconds)) // each wake is an outcome coming in, so the wait restarts only while the worker makes progress
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
+
     /// <summary>Takes the oldest finished outcome, or returns <see langword="false"/> when none is finished. Outcomes come in submission order.</summary>
     public bool TryTake(out TurnOutcome? outcome)
     {
@@ -303,7 +326,12 @@ public sealed class TurnWorker : IDisposable
             engine = LoadModels();
             foreach (var request in _queue.GetConsumingEnumerable())
             {
-                _outcomes.Enqueue(Finish(request, engine));
+                var outcome = Finish(request, engine);
+                _outcomes.Enqueue(outcome);
+                lock (_gate)
+                {
+                    Monitor.PulseAll(_gate); // a caller in WaitForOutcomes sees this one
+                }
             }
         }
         finally
