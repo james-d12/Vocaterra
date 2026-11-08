@@ -18,7 +18,7 @@ public sealed class InputDevices
     /// <summary>Creates the devices of a window whose interface is laid out on <paramref name="canvas"/>.</summary>
     public InputDevices(UiCanvas canvas) => _canvas = canvas;
 
-    /// <summary>Whether Alt is held now: an accent is Alt plus a vowel (<c>AccentShortcuts</c>), in every text box.</summary>
+    /// <summary>Whether Alt is held now: an accent is Alt plus a vowel (<c>TypingMap</c>), in every text box.</summary>
     public static bool AltHeld()
     {
         var keys = Keyboard.GetState();

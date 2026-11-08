@@ -19,7 +19,7 @@
     "nearFuture",
     "obligation",
     "greeting",
-    "letters",
+    "typing",
     "nouns",
     "classAnswers"
   ],
@@ -209,10 +209,6 @@
       "$ref": "#/definitions/word",
       "description": "The greeting the mic check asks for (hola)."
     },
-    "letters": {
-      "$ref": "#/definitions/word",
-      "description": "The letters the typing help lists."
-    },
     "nouns": {
       "type": "object",
       "required": [
@@ -268,6 +264,39 @@
         "$ref": "#/definitions/word"
       },
       "description": "The player's own words on the HUD (N05): the needs' stage lines by the key game/needs.json names (need.thirst.3), the death screen (hud.camp), the beacon's label on the chest (hud.belongings) and the words of the inventory's needs list (hud.fine, hud.name.<need>). Text only, never recorded (D-game-13); each key has its English in the locale under the same id."
+    },
+    "typing": {
+      "type": "array",
+      "minItems": 1,
+      "description": "The Alt-key map of the typing help (G5): with Alt held, the key types the character; with Shift and a shifted key, the shifted character. Letters are the capitals with Shift; a German map gives ä, ö, ü, ß.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "key",
+          "alt"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1,
+            "description": "The key, as it types without modifiers."
+          },
+          "shifted": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1,
+            "description": "What the key types with Shift, when it is not the capital (the question mark on the / key)."
+          },
+          "alt": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1,
+            "description": "What Alt and the key type."
+          }
+        }
+      }
     }
   },
   "definitions": {
