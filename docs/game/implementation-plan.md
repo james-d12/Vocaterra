@@ -410,7 +410,7 @@ the panel or the book will change; re-record them and say which in the report.
 
 | ID | What | Depends on | Size | Model | Status |
 | --- | --- | --- | --- | --- | --- |
-| U05 | The NPC's name as the panel's title (#6): the name at 32 px, the lesson heading moved off its line, the "Guía: " prefix dropped from the NPC's lines; 16 px in the compact panel | | S | Sonnet 5.5 medium | planned |
+| U05 | The NPC's name as the panel's title (#6): the name at 32 px, the lesson heading moved off its line, the "Guía: " prefix dropped from the NPC's lines; 16 px in the compact panel | | S | Sonnet 5.5 medium | in progress (2026-11-08, branch `U05-npc-title`, brief `.claude/briefs/u05-npc-title.md`) |
 | U06 | The panel scrolls (#5, step 1): the mouse wheel opens and scrolls the older lines, a scrollbar while lines are out of view, one page per NPC | U05 | S/M | Sonnet 5.5 medium | planned |
 | U07 | The book's hierarchy (#7): line kinds, a type and ink scale, one row per entry with the details on the right page, each page's layout; a mockup for the owner first | | M/L | Sonnet 5.5 high | planned |
 | U08 | The conversation history kept in the save (#5, step 2): each NPC's lines saved, capped per NPC, shown again after a restart | U06 | M | Sonnet 5.5 medium | planned |
