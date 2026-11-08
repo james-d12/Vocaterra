@@ -191,6 +191,64 @@ public sealed class PlayerBodyTests
     }
 
     [Fact]
+    public void AFenceIsNotSteppedOntoOrJumpedOver()
+    {
+        // Issue #33: a one-block fence counts as two blocks high for a body, so walking into it never steps up and a jump does not clear it.
+        var sim = FlatSim(g =>
+        {
+            for (var z = 0; z < 64; z++)
+            {
+                g.SetBlock(36, GroundTop + 1, z, BlockId.Fence);
+            }
+        });
+        var stepped = false;
+        for (var tick = 0; tick < 300; tick++)
+        {
+            sim.Step([VoxelCommand.Move(1, 0)]);
+            stepped |= sim.Player.SteppedUp;
+        }
+
+        Assert.False(stepped);
+        Assert.Equal(36 * Units, sim.Player.MaxX);
+        Assert.Equal(GroundFeet, sim.Player.FeetY);
+        Run(sim, 300, VoxelCommand.Move(1, 0), VoxelCommand.Jump);
+        Run(sim, 120); // let a hop in progress come down
+        Assert.Equal(36 * Units, sim.Player.MaxX);
+        Assert.Equal(GroundFeet, sim.Player.FeetY);
+    }
+
+    [Fact]
+    public void WalkingAlongABridgeRailSlidesBesideItWithoutClimbing()
+    {
+        // The bridge of issue #33: a deck one block above the ground with a fence along its edge; a walk along the deck that leans into the rail
+        // slides beside it and never climbs onto it.
+        var sim = FlatSim(g =>
+        {
+            for (var x = 0; x < 64; x++)
+            {
+                for (var z = 28; z <= 36; z++)
+                {
+                    g.SetBlock(x, GroundTop + 1, z, BlockId.Planks);
+                }
+
+                g.SetBlock(x, GroundTop + 2, 36, BlockId.Fence);
+            }
+        });
+        sim.TeleportTo(new BlockPos(10, GroundTop + 2, 32));
+        var stepped = false;
+        for (var tick = 0; tick < 400; tick++)
+        {
+            sim.Step([VoxelCommand.Move(1, 1)]);
+            stepped |= sim.Player.SteppedUp;
+        }
+
+        Assert.False(stepped);
+        Assert.Equal(36 * Units, sim.Player.MaxZ);
+        Assert.Equal(GroundFeet + Units, sim.Player.FeetY);
+        Assert.True(sim.Player.MinX > 20 * Units, "the body slid along the rail");
+    }
+
+    [Fact]
     public void AStepIsNotTakenWithoutHeadRoom()
     {
         var sim = FlatSim(g =>

@@ -238,7 +238,7 @@ public sealed class VoxelScript
                 continue;
             }
 
-            if (grid.IsSolid(step.X, y + 1, step.Z) || grid.IsSolid(step.X, y + 2, step.Z))
+            if (grid.BlocksBody(step.X, y + 1, step.Z) || grid.BlocksBody(step.X, y + 2, step.Z))
             {
                 break;
             }
