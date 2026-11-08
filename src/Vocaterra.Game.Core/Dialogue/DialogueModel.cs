@@ -341,6 +341,36 @@ public sealed class DialogueModel
         }
     }
 
+    /// <summary>
+    /// Puts the NPCs' pages of a save back (U08), replacing every page: a name of a speaker this build does not know is skipped, and a page keeps its newest
+    /// <see cref="MaxLines"/> lines. A <see langword="null"/> save leaves the pages empty. The first talk with an NPC after this still opens as a new session's
+    /// greeting (what was opened is not saved).
+    /// </summary>
+    /// <param name="pages">The saved pages, or <see langword="null"/> for a save without them.</param>
+    public void RestorePages(IReadOnlyList<Save.DialoguePageSave>? pages)
+    {
+        _pages.Clear();
+        _lines = [];
+        foreach (var saved in pages ?? [])
+        {
+            var page = new List<DialogueLine>();
+            foreach (var line in saved.Lines)
+            {
+                if (Save.DialoguePageSave.SpeakerOf(line.Speaker) is { } speaker)
+                {
+                    page.Add(new DialogueLine(speaker, line.Text));
+                }
+            }
+
+            if (page.Count > MaxLines)
+            {
+                page.RemoveRange(0, page.Count - MaxLines);
+            }
+
+            _pages[saved.Npc] = page;
+        }
+    }
+
     // A talk with another NPC than the last one switches to that NPC's page; what belongs to the last exchange resets.
     private void SwitchTo(string npc, string displayName)
     {
