@@ -277,18 +277,14 @@ public sealed class TurnWorker : IDisposable
     /// <returns>Whether every submitted turn is ready (true at once when none is pending).</returns>
     public bool WaitForOutcomes(int timeoutMilliseconds)
     {
-        var deadline = Environment.TickCount64 + timeoutMilliseconds;
         lock (_gate)
         {
             while (Pending > _outcomes.Count)
             {
-                var left = deadline - Environment.TickCount64;
-                if (left <= 0)
+                if (!Monitor.Wait(_gate, timeoutMilliseconds)) // each wake is an outcome coming in, so the wait restarts only while the worker makes progress
                 {
                     return false;
                 }
-
-                _ = Monitor.Wait(_gate, (int)left);
             }
 
             return true;
