@@ -1197,7 +1197,14 @@
         {"text": "aquí tienes el agua", "errors": [], "prompt": "farmer-receive"},
         {"text": "aquí tienes la botella", "errors": [], "prompt": "farmer-receive"},
         {"text": "toma el agua", "errors": [], "prompt": "farmer-receive"},
-        {"text": "aquí tienes el botella", "errors": ["gender.agree"], "prompt": "farmer-receive"}
+        {"text": "aquí tienes el botella", "errors": ["gender.agree"], "prompt": "farmer-receive"},
+        {"text": "toma las frutas", "errors": [], "prompt": "fisher-receive"},
+        {"text": "te doy las frutas", "errors": [], "prompt": "fisher-receive"},
+        {"text": "aquí tienes la madera", "errors": [], "prompt": "smith-receive"},
+        {"text": "toma la madera y las monedas", "errors": [], "prompt": "smith-receive"},
+        {"text": "aquí tienes el madera y las monedas", "errors": ["gender.agree"], "prompt": "smith-receive"},
+        {"text": "aquí está el agua", "errors": [], "prompt": "farmer-receive"},
+        {"text": "te doy el agua", "errors": [], "prompt": "farmer-receive"}
       ]
     }
   ]

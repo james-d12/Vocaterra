@@ -137,7 +137,7 @@ public sealed class RepliesAndExchangesTests
         var turn = session.Say("buscaré madeda"); // M70 reads «buscé» as the preterite slip, so an unknown word stands for a line the step does not understand
 
         Assert.Null(turn.Feedback);
-        Assert.Contains(turn.Replies.Concat(turn.FollowUp ?? []), static l => l.StartsWith("No te entendí", StringComparison.Ordinal));
+        Assert.Contains(turn.Replies.Concat(turn.FollowUp ?? []), static l => l.StartsWith("No te entendí", StringComparison.Ordinal) || l.StartsWith("Perdón, ¿qué dices?", StringComparison.Ordinal)); // either line of not_understood
     }
 
     [Fact]

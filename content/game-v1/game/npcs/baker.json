@@ -27,6 +27,7 @@
     "when": "always"
   },
   "acknowledgementPools": [
+    "answer_accepted",
     "baker_nice"
   ],
   "slotReplies": {

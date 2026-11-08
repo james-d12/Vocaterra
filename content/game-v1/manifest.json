@@ -101,12 +101,12 @@
 {"path":"game/needs.json","sha256":"b2d0dcd60cb1eff5da83ee7a943c06392e1e92dc838ca5dae61e6dde2b133b78","bytes":4372},
 {"path":"game/nouns.json","sha256":"4a01cdb2fc6c7d7b3838f957ba865b9909966bc578a2e153f9738bb4114f7c3a","bytes":2215},
 {"path":"game/npcs.json","sha256":"e56af3363f38ce851776eb0274037ef0573113fda995423f4b2849864fb28760","bytes":620},
-{"path":"game/npcs/baker.json","sha256":"d921b344caed3adae05a0e5f1b6791267901bd6d2085774d0fba345627c350e4","bytes":1061},
-{"path":"game/npcs/farmer.json","sha256":"6f0b60a9341014fa0d7ef4aea1699a358d2ea0129ea67b07ec5e4f021c9a5a99","bytes":1089},
-{"path":"game/npcs/fisher.json","sha256":"78ba9952c4335d9efce309ea98a062f9d168502e8aad6e5fe96fab0997b66dc1","bytes":962},
+{"path":"game/npcs/baker.json","sha256":"d0bb7919e8987bd7db64fb93cbbe53fd855b08a92fa533a186397f7389121bb9","bytes":1084},
+{"path":"game/npcs/farmer.json","sha256":"9a9ad4b62c0f58a1e45a7d08fd9048ba33b8ec24846acde6aebb996a3d46f50e","bytes":1112},
+{"path":"game/npcs/fisher.json","sha256":"1bc42887a1a4b39de71a369637360386a273986509494f51a97c4e2fe953f3d9","bytes":985},
 {"path":"game/npcs/guide.json","sha256":"5f170576caa61df97c5cdea40c46597e30c942617e936bd8869966810d968ee7","bytes":798},
 {"path":"game/npcs/shopkeeper.json","sha256":"8ab84dc989a8e25dd2c066dd2d6c5e5e2fe2702d7c09c6f1d83aba5ebb7dd592","bytes":1134},
-{"path":"game/npcs/smith.json","sha256":"0d41b464c6d817473869cfb3b145e834dc914a564b04a29c479c42285537b25e","bytes":964},
+{"path":"game/npcs/smith.json","sha256":"dd7f6935fe199ff0691c4029719a7c3e094d8a5ad5631d551ad6e8a9395af22b","bytes":987},
 {"path":"game/npcs/villager.json","sha256":"f07f1092063101c662d282deea2a094bf8e0e47cc3b0e17cbfc3969a69ac16a3","bytes":845},
 {"path":"game/objectives/axe-handle.json","sha256":"57fc3faf783f28613f6d1c087a694bcf31185e3950594f144a34e6fe0e8cf0ad","bytes":1213},
 {"path":"game/objectives/camp.json","sha256":"9d7c288525549385473a8e2781c6cd4936aad5a8501bec3eaf95b70cffb6b18a","bytes":873},
@@ -124,7 +124,7 @@
 {"path":"game/stations.json","sha256":"e30b4083f65e278ca24d40d597b3f827f3a36992dd59357317c772ab3a086b43","bytes":536},
 {"path":"game/tips.json","sha256":"4af271e0f305d3fb3e4277b4245ebd643be985ebd5d2997ef33e1222225d7f69","bytes":1413},
 {"path":"game/words.json","sha256":"c691ebf3e92072c5f38576a2f0423da9ec0369cb49046af44a2bb55b41d1abe0","bytes":3720},
-{"path":"intents/intents.json","sha256":"9b74d549f5c9067ebf2ec82c5c1ba8be133499665e43a31ee8c5310a3ae23ed7","bytes":77617},
+{"path":"intents/intents.json","sha256":"f94322efeeeac1ed8f4e8ebdffadc1cc948814bbfcb472081aa83d466a3b28d2","bytes":78227},
 {"path":"lexicon/game.json","sha256":"16c4dcbc4f190f6dc7ca68aa4b42a435f8517f71699668f439a37a7f17243eb7","bytes":5802},
 {"path":"lexicon/seed.json","sha256":"c6d3c0348339015ab9693cfcb9089935fddd997f5cf2d1d64237e4ae8ed11eb0","bytes":119541},
 {"path":"lexicon/supplement.json","sha256":"610a886600d178598e6867085ad647d0b6cbbd9408b0acb5f00d308bd23a305e","bytes":1134},
@@ -1547,4 +1547,4 @@
 {"path":"speech/villager/villager_wont_sell.1.wav","sha256":"3265f9782c9ad6140cb0111fff9faa2deaf07a0c6ebb5b798f8df03c9d25b1b9","bytes":67244},
 {"path":"speech/villager/villager_yes.1.slow.wav","sha256":"c89db269d94d9525b8b6e1294b6edfef8682dfd5fb5522ac7d2de7539b546c42","bytes":38444},
 {"path":"speech/villager/villager_yes.1.wav","sha256":"b7de709cd242f8181619ba356c6a8223d9a489231b934e1ee81f522f1d0442a3","bytes":30044}
-],"bundleHash":"447c7f6fa91408860e5626a35a61c8b5dd13ce5a92c2b96e7eec6adb8c1350c6"}
+],"bundleHash":"564fa64464452db15858aba025fad5ca97ef8b5d3942dc830112d120cf1589e1"}

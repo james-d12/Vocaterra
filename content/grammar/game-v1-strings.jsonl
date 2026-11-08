@@ -2365,6 +2365,12 @@
 {"id":"intents:hand_over.ex15","text":"aquí tienes la botella","kind":"learner","errors":[]}
 {"id":"intents:hand_over.ex16","text":"toma el agua","kind":"learner","errors":[]}
 {"id":"intents:hand_over.ex17","text":"aquí tienes el botella","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:hand_over.ex18","text":"toma las frutas","kind":"learner","errors":[]}
+{"id":"intents:hand_over.ex19","text":"te doy las frutas","kind":"learner","errors":[]}
+{"id":"intents:hand_over.ex20","text":"toma la madera y las monedas","kind":"learner","errors":[]}
+{"id":"intents:hand_over.ex21","text":"aquí tienes el madera y las monedas","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:hand_over.ex22","text":"aquí está el agua","kind":"learner","errors":[]}
+{"id":"intents:hand_over.ex23","text":"te doy el agua","kind":"learner","errors":[]}
 {"id":"intents:name_object.ex0","text":"es un árbol","kind":"learner","errors":[]}
 {"id":"intents:name_object.ex1","text":"es una piedra","kind":"learner","errors":[]}
 {"id":"intents:name_object.ex2","text":"eso es un árbol","kind":"learner","errors":[]}

@@ -23,6 +23,7 @@
     "when": "always"
   },
   "acknowledgementPools": [
+    "answer_accepted",
     "smith_nice"
   ],
   "slotReplies": {

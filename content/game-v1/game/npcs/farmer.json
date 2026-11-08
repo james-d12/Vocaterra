@@ -29,6 +29,7 @@
     "when": "always"
   },
   "acknowledgementPools": [
+    "answer_accepted",
     "farmer_nice"
   ],
   "slotReplies": {
