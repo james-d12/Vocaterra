@@ -26,8 +26,8 @@
       "event": "stall.sell_flour",
       "action": {
         "kind": "sell",
-        "item": "flour",
-        "price": 1
+        "slot": "item",
+        "prices": { "harina": 1 }
       }
     },
     {

@@ -158,6 +158,46 @@ public sealed class BreadPilotTests
     }
 
     [Fact]
+    public void FlourIsSoldByTheNameTheLearnerSaysAndTooFewCoinsBuyNone()
+    {
+        var session = At("shopkeeper", (ItemId.Coin, 2));
+
+        var turn = session.Say("quiero tres harinas");
+
+        Assert.Equal((0, 2), (Held(session, ItemId.Flour), Held(session, ItemId.Coin)));
+        Assert.Contains("La harina cuesta una moneda.", turn.Replies.Concat(turn.FollowUp ?? []));
+        _ = session.Say("quiero dos harinas");
+        Assert.Equal((2, 0), (Held(session, ItemId.Flour), Held(session, ItemId.Coin)));
+    }
+
+    [Theory]
+    [InlineData("quiero una espada")]
+    [InlineData("quiero manzanas")]
+    [InlineData("quiero madera")]
+    public void AnItemTheStallNeitherGivesNorPricesIsAnsweredWontSellAndNothingChangesHands(string line)
+    {
+        var session = At("shopkeeper", (ItemId.Coin, 3));
+
+        var turn = session.Say(line);
+
+        var lines = turn.Replies.Concat(turn.FollowUp ?? []).ToList();
+        Assert.Contains("No tengo eso. Tengo agua, pan y harina.", lines);
+        Assert.Equal((3, 0, 0, 0), (Held(session, ItemId.Coin), Held(session, ItemId.Flour), Held(session, ItemId.Bread), Held(session, ItemId.Bottle)));
+    }
+
+    [Fact]
+    public void WaterAndBreadStayFreeAtTheStall()
+    {
+        var water = At("shopkeeper");
+        _ = water.Say("quiero agua");
+        Assert.Equal((1, 0), (Held(water, ItemId.Bottle), Held(water, ItemId.Coin)));
+
+        var bread = At("shopkeeper");
+        _ = bread.Say("quiero pan");
+        Assert.Equal((1, 0, 0), (Held(bread, ItemId.Bread), Held(bread, ItemId.Coin), Held(bread, ItemId.Bottle)));
+    }
+
+    [Fact]
     public void TheStallBuysBreadForOneCoinEachAndNothingElse()
     {
         var session = At("shopkeeper", (ItemId.Bread, 2));
