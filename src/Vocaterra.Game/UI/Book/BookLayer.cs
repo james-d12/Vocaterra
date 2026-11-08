@@ -37,6 +37,9 @@ public sealed class BookLayer : IFrameLayer
     // The narrowest a row's right-hand note may be and still be read (X03); narrower, the note is left off.
     private const int MinNoteWidth = 90;
 
+    // The narrowest an entry's aside may be and still be drawn (U07); narrower, it is left off.
+    private const int MinAsideWidth = 45;
+
     // The cover, the paper and the ink (all drawn in code).
     private static readonly Color CoverDark = new(70, 38, 28);
     private static readonly Color Cover = new(104, 58, 40);
@@ -431,9 +434,13 @@ public sealed class BookLayer : IFrameLayer
         InkText(spriteBatch, font, text, new Vector2(x, top + 2), ToneColour(line.Tone), IsStrong(line));
         if (line.Aside is { } aside)
         {
+            // The aside takes what the text and the buttons leave; under a readable room (about five letters) it is left off rather than drawn as an ellipsis alone.
             var asideX = x + (int)DrawHelpers.Width(font, text) + Gutter;
-            var asideText = Fit(font, aside, Math.Max(20, rightEdge - asideX - reserved - Gutter));
-            InkText(spriteBatch, font, asideText, new Vector2(asideX, top + 2), metaInk);
+            var asideRoom = rightEdge - asideX - reserved - Gutter;
+            if (asideRoom >= MinAsideWidth)
+            {
+                InkText(spriteBatch, font, Fit(font, aside, asideRoom), new Vector2(asideX, top + 2), metaInk);
+            }
         }
     }
 
