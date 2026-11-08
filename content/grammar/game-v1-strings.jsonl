@@ -524,11 +524,6 @@
 {"id":"answer-sets/baker-proc:thanks","text":"gracias","kind":"learner"}
 {"id":"answer-sets/baker-proc:thanks.alias1","text":"muchas gracias","kind":"learner"}
 {"id":"answer-sets/baker-proc:hello","text":"hola","kind":"learner"}
-{"id":"answer-sets/baker-proc:hello.alias1","text":"buenos días","kind":"learner"}
-{"id":"answer-sets/baker-proc:hello.alias2","text":"buenas tardes","kind":"learner"}
-{"id":"answer-sets/baker-proc:hello.alias3","text":"buenas noches","kind":"learner"}
-{"id":"answer-sets/baker-proc:hello.alias4","text":"buen día","kind":"learner"}
-{"id":"answer-sets/baker-proc:hello.alias5","text":"buenas","kind":"learner"}
 {"id":"answer-sets/baker-proc:bye","text":"adiós","kind":"learner"}
 {"id":"answer-sets/baker-proc:bye.alias1","text":"hasta luego","kind":"learner"}
 {"id":"answer-sets/baker-proc:bye.alias2","text":"nos vemos","kind":"learner"}
@@ -538,15 +533,6 @@
 {"id":"answer-sets/baker-proc:wellbeing.alias2","text":"cómo está usted","kind":"learner"}
 {"id":"answer-sets/baker-proc:wellbeing.alias3","text":"hola, ¿qué tal?","kind":"learner"}
 {"id":"answer-sets/baker-proc:wellbeing.alias4","text":"hola, ¿cómo estás?","kind":"learner"}
-{"id":"answer-sets/baker-proc:wellbeing.alias5","text":"bien y tú","kind":"learner"}
-{"id":"answer-sets/baker-proc:wellbeing.alias6","text":"muy bien y tú","kind":"learner"}
-{"id":"answer-sets/baker-proc:wellbeing.alias7","text":"bien gracias y tú","kind":"learner"}
-{"id":"answer-sets/baker-proc:fine","text":"muy bien","kind":"learner"}
-{"id":"answer-sets/baker-proc:fine.alias1","text":"bien","kind":"learner"}
-{"id":"answer-sets/baker-proc:fine.alias2","text":"bien gracias","kind":"learner"}
-{"id":"answer-sets/baker-proc:fine.alias3","text":"muy bien gracias","kind":"learner"}
-{"id":"answer-sets/baker-proc:fine.alias4","text":"estoy bien","kind":"learner"}
-{"id":"answer-sets/baker-proc:fine.alias5","text":"estoy muy bien","kind":"learner"}
 {"id":"answer-sets/lesson-apple:apple","text":"la manzana es roja","kind":"learner"}
 {"id":"answer-sets/lesson-apple:apple.alias1","text":"es roja","kind":"learner"}
 {"id":"answer-sets/lesson-apple:apple.alias2","text":"sí es roja","kind":"learner"}
@@ -1653,8 +1639,6 @@
 {"id":"answer-sets/people-farmer:hello.alias1","text":"buenos días","kind":"learner"}
 {"id":"answer-sets/people-farmer:hello.alias2","text":"buenas tardes","kind":"learner"}
 {"id":"answer-sets/people-farmer:hello.alias3","text":"buen día","kind":"learner"}
-{"id":"answer-sets/people-farmer:hello.alias4","text":"buenas noches","kind":"learner"}
-{"id":"answer-sets/people-farmer:hello.alias5","text":"buenas","kind":"learner"}
 {"id":"answer-sets/people-farmer:thanks","text":"gracias","kind":"learner"}
 {"id":"answer-sets/people-farmer:thanks.alias1","text":"muchas gracias","kind":"learner"}
 {"id":"answer-sets/people-farmer:bye","text":"adiós","kind":"learner"}
@@ -1709,15 +1693,6 @@
 {"id":"answer-sets/people-farmer:wellbeing.alias2","text":"cómo está usted","kind":"learner"}
 {"id":"answer-sets/people-farmer:wellbeing.alias3","text":"hola, ¿qué tal?","kind":"learner"}
 {"id":"answer-sets/people-farmer:wellbeing.alias4","text":"hola, ¿cómo estás?","kind":"learner"}
-{"id":"answer-sets/people-farmer:wellbeing.alias5","text":"bien y tú","kind":"learner"}
-{"id":"answer-sets/people-farmer:wellbeing.alias6","text":"muy bien y tú","kind":"learner"}
-{"id":"answer-sets/people-farmer:wellbeing.alias7","text":"bien gracias y tú","kind":"learner"}
-{"id":"answer-sets/people-farmer:fine","text":"muy bien","kind":"learner"}
-{"id":"answer-sets/people-farmer:fine.alias1","text":"bien","kind":"learner"}
-{"id":"answer-sets/people-farmer:fine.alias2","text":"bien gracias","kind":"learner"}
-{"id":"answer-sets/people-farmer:fine.alias3","text":"muy bien gracias","kind":"learner"}
-{"id":"answer-sets/people-farmer:fine.alias4","text":"estoy bien","kind":"learner"}
-{"id":"answer-sets/people-farmer:fine.alias5","text":"estoy muy bien","kind":"learner"}
 {"id":"answer-sets/people-smith:name","text":"cómo te llamas","kind":"learner"}
 {"id":"answer-sets/people-smith:name.alias1","text":"cómo te llamas tú","kind":"learner"}
 {"id":"answer-sets/people-smith:name.alias2","text":"cómo se llama usted","kind":"learner"}
@@ -1747,8 +1722,6 @@
 {"id":"answer-sets/people-smith:hello.alias1","text":"buenos días","kind":"learner"}
 {"id":"answer-sets/people-smith:hello.alias2","text":"buenas tardes","kind":"learner"}
 {"id":"answer-sets/people-smith:hello.alias3","text":"buen día","kind":"learner"}
-{"id":"answer-sets/people-smith:hello.alias4","text":"buenas noches","kind":"learner"}
-{"id":"answer-sets/people-smith:hello.alias5","text":"buenas","kind":"learner"}
 {"id":"answer-sets/people-smith:thanks","text":"gracias","kind":"learner"}
 {"id":"answer-sets/people-smith:thanks.alias1","text":"muchas gracias","kind":"learner"}
 {"id":"answer-sets/people-smith:bye","text":"adiós","kind":"learner"}
@@ -1803,15 +1776,6 @@
 {"id":"answer-sets/people-smith:wellbeing.alias2","text":"cómo está usted","kind":"learner"}
 {"id":"answer-sets/people-smith:wellbeing.alias3","text":"hola, ¿qué tal?","kind":"learner"}
 {"id":"answer-sets/people-smith:wellbeing.alias4","text":"hola, ¿cómo estás?","kind":"learner"}
-{"id":"answer-sets/people-smith:wellbeing.alias5","text":"bien y tú","kind":"learner"}
-{"id":"answer-sets/people-smith:wellbeing.alias6","text":"muy bien y tú","kind":"learner"}
-{"id":"answer-sets/people-smith:wellbeing.alias7","text":"bien gracias y tú","kind":"learner"}
-{"id":"answer-sets/people-smith:fine","text":"muy bien","kind":"learner"}
-{"id":"answer-sets/people-smith:fine.alias1","text":"bien","kind":"learner"}
-{"id":"answer-sets/people-smith:fine.alias2","text":"bien gracias","kind":"learner"}
-{"id":"answer-sets/people-smith:fine.alias3","text":"muy bien gracias","kind":"learner"}
-{"id":"answer-sets/people-smith:fine.alias4","text":"estoy bien","kind":"learner"}
-{"id":"answer-sets/people-smith:fine.alias5","text":"estoy muy bien","kind":"learner"}
 {"id":"answer-sets/places-basic:tree","text":"árbol","kind":"learner"}
 {"id":"answer-sets/places-basic:tree.alias1","text":"el árbol","kind":"learner"}
 {"id":"answer-sets/places-basic:tree.alias2","text":"un árbol","kind":"learner"}
@@ -1892,8 +1856,6 @@
 {"id":"answer-sets/places-village:hello.alias1","text":"buenos días","kind":"learner"}
 {"id":"answer-sets/places-village:hello.alias2","text":"buenas tardes","kind":"learner"}
 {"id":"answer-sets/places-village:hello.alias3","text":"buen día","kind":"learner"}
-{"id":"answer-sets/places-village:hello.alias4","text":"buenas noches","kind":"learner"}
-{"id":"answer-sets/places-village:hello.alias5","text":"buenas","kind":"learner"}
 {"id":"answer-sets/places-village:thanks","text":"gracias","kind":"learner"}
 {"id":"answer-sets/places-village:thanks.alias1","text":"muchas gracias","kind":"learner"}
 {"id":"answer-sets/places-village:bye","text":"adiós","kind":"learner"}
@@ -1938,15 +1900,6 @@
 {"id":"answer-sets/places-village:wellbeing.alias2","text":"cómo está usted","kind":"learner"}
 {"id":"answer-sets/places-village:wellbeing.alias3","text":"hola, ¿qué tal?","kind":"learner"}
 {"id":"answer-sets/places-village:wellbeing.alias4","text":"hola, ¿cómo estás?","kind":"learner"}
-{"id":"answer-sets/places-village:wellbeing.alias5","text":"bien y tú","kind":"learner"}
-{"id":"answer-sets/places-village:wellbeing.alias6","text":"muy bien y tú","kind":"learner"}
-{"id":"answer-sets/places-village:wellbeing.alias7","text":"bien gracias y tú","kind":"learner"}
-{"id":"answer-sets/places-village:fine","text":"muy bien","kind":"learner"}
-{"id":"answer-sets/places-village:fine.alias1","text":"bien","kind":"learner"}
-{"id":"answer-sets/places-village:fine.alias2","text":"bien gracias","kind":"learner"}
-{"id":"answer-sets/places-village:fine.alias3","text":"muy bien gracias","kind":"learner"}
-{"id":"answer-sets/places-village:fine.alias4","text":"estoy bien","kind":"learner"}
-{"id":"answer-sets/places-village:fine.alias5","text":"estoy muy bien","kind":"learner"}
 {"id":"answer-sets/supplies:water","text":"quiero agua por favor","kind":"learner"}
 {"id":"answer-sets/supplies:water.alias1","text":"un agua por favor","kind":"learner"}
 {"id":"answer-sets/supplies:water.alias2","text":"quiero un agua","kind":"learner"}
@@ -2058,11 +2011,6 @@
 {"id":"answer-sets/supplies:compre-tres-manzanas.alias2","text":"hoy compré tres manzanas","kind":"learner"}
 {"id":"answer-sets/supplies:compre-tres-manzanas.alias3","text":"compré manzanas","kind":"learner"}
 {"id":"answer-sets/supplies:hello","text":"hola","kind":"learner"}
-{"id":"answer-sets/supplies:hello.alias1","text":"buenos días","kind":"learner"}
-{"id":"answer-sets/supplies:hello.alias2","text":"buenas tardes","kind":"learner"}
-{"id":"answer-sets/supplies:hello.alias3","text":"buenas noches","kind":"learner"}
-{"id":"answer-sets/supplies:hello.alias4","text":"buen día","kind":"learner"}
-{"id":"answer-sets/supplies:hello.alias5","text":"buenas","kind":"learner"}
 {"id":"answer-sets/supplies:thanks","text":"gracias","kind":"learner"}
 {"id":"answer-sets/supplies:thanks.alias1","text":"muchas gracias","kind":"learner"}
 {"id":"answer-sets/supplies:bye","text":"adiós","kind":"learner"}
@@ -2074,15 +2022,6 @@
 {"id":"answer-sets/supplies:wellbeing.alias2","text":"cómo está usted","kind":"learner"}
 {"id":"answer-sets/supplies:wellbeing.alias3","text":"hola, ¿qué tal?","kind":"learner"}
 {"id":"answer-sets/supplies:wellbeing.alias4","text":"hola, ¿cómo estás?","kind":"learner"}
-{"id":"answer-sets/supplies:wellbeing.alias5","text":"bien y tú","kind":"learner"}
-{"id":"answer-sets/supplies:wellbeing.alias6","text":"muy bien y tú","kind":"learner"}
-{"id":"answer-sets/supplies:wellbeing.alias7","text":"bien gracias y tú","kind":"learner"}
-{"id":"answer-sets/supplies:fine","text":"muy bien","kind":"learner"}
-{"id":"answer-sets/supplies:fine.alias1","text":"bien","kind":"learner"}
-{"id":"answer-sets/supplies:fine.alias2","text":"bien gracias","kind":"learner"}
-{"id":"answer-sets/supplies:fine.alias3","text":"muy bien gracias","kind":"learner"}
-{"id":"answer-sets/supplies:fine.alias4","text":"estoy bien","kind":"learner"}
-{"id":"answer-sets/supplies:fine.alias5","text":"estoy muy bien","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:bread","text":"quiero dos panes por favor","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:bread.alias1","text":"quiero dos panes","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:bread.alias2","text":"dos panes por favor","kind":"learner"}
@@ -2136,8 +2075,6 @@
 {"id":"answer-sets/supplies-bakery:hello.alias1","text":"buenos días","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:hello.alias2","text":"buenas tardes","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:hello.alias3","text":"buen día","kind":"learner"}
-{"id":"answer-sets/supplies-bakery:hello.alias4","text":"buenas noches","kind":"learner"}
-{"id":"answer-sets/supplies-bakery:hello.alias5","text":"buenas","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:thanks","text":"gracias","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:thanks.alias1","text":"muchas gracias","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:bye","text":"adiós","kind":"learner"}
@@ -2177,15 +2114,6 @@
 {"id":"answer-sets/supplies-bakery:wellbeing.alias2","text":"cómo está usted","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:wellbeing.alias3","text":"hola, ¿qué tal?","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:wellbeing.alias4","text":"hola, ¿cómo estás?","kind":"learner"}
-{"id":"answer-sets/supplies-bakery:wellbeing.alias5","text":"bien y tú","kind":"learner"}
-{"id":"answer-sets/supplies-bakery:wellbeing.alias6","text":"muy bien y tú","kind":"learner"}
-{"id":"answer-sets/supplies-bakery:wellbeing.alias7","text":"bien gracias y tú","kind":"learner"}
-{"id":"answer-sets/supplies-bakery:fine","text":"muy bien","kind":"learner"}
-{"id":"answer-sets/supplies-bakery:fine.alias1","text":"bien","kind":"learner"}
-{"id":"answer-sets/supplies-bakery:fine.alias2","text":"bien gracias","kind":"learner"}
-{"id":"answer-sets/supplies-bakery:fine.alias3","text":"muy bien gracias","kind":"learner"}
-{"id":"answer-sets/supplies-bakery:fine.alias4","text":"estoy bien","kind":"learner"}
-{"id":"answer-sets/supplies-bakery:fine.alias5","text":"estoy muy bien","kind":"learner"}
 {"id":"answer-sets/yes-no:yes","text":"sí por favor","kind":"learner"}
 {"id":"answer-sets/yes-no:yes.alias1","text":"sí","kind":"learner"}
 {"id":"answer-sets/yes-no:yes.alias2","text":"si","kind":"learner"}
@@ -2211,11 +2139,6 @@
 {"id":"answer-sets/yes-no:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/yes-no:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/yes-no:hello","text":"hola","kind":"learner"}
-{"id":"answer-sets/yes-no:hello.alias1","text":"buenos días","kind":"learner"}
-{"id":"answer-sets/yes-no:hello.alias2","text":"buenas tardes","kind":"learner"}
-{"id":"answer-sets/yes-no:hello.alias3","text":"buenas noches","kind":"learner"}
-{"id":"answer-sets/yes-no:hello.alias4","text":"buen día","kind":"learner"}
-{"id":"answer-sets/yes-no:hello.alias5","text":"buenas","kind":"learner"}
 {"id":"answer-sets/yes-no:thanks","text":"gracias","kind":"learner"}
 {"id":"answer-sets/yes-no:thanks.alias1","text":"muchas gracias","kind":"learner"}
 {"id":"answer-sets/yes-no:bye","text":"adiós","kind":"learner"}
@@ -2227,15 +2150,6 @@
 {"id":"answer-sets/yes-no:wellbeing.alias2","text":"cómo está usted","kind":"learner"}
 {"id":"answer-sets/yes-no:wellbeing.alias3","text":"hola, ¿qué tal?","kind":"learner"}
 {"id":"answer-sets/yes-no:wellbeing.alias4","text":"hola, ¿cómo estás?","kind":"learner"}
-{"id":"answer-sets/yes-no:wellbeing.alias5","text":"bien y tú","kind":"learner"}
-{"id":"answer-sets/yes-no:wellbeing.alias6","text":"muy bien y tú","kind":"learner"}
-{"id":"answer-sets/yes-no:wellbeing.alias7","text":"bien gracias y tú","kind":"learner"}
-{"id":"answer-sets/yes-no:fine","text":"muy bien","kind":"learner"}
-{"id":"answer-sets/yes-no:fine.alias1","text":"bien","kind":"learner"}
-{"id":"answer-sets/yes-no:fine.alias2","text":"bien gracias","kind":"learner"}
-{"id":"answer-sets/yes-no:fine.alias3","text":"muy bien gracias","kind":"learner"}
-{"id":"answer-sets/yes-no:fine.alias4","text":"estoy bien","kind":"learner"}
-{"id":"answer-sets/yes-no:fine.alias5","text":"estoy muy bien","kind":"learner"}
 {"id":"intents:ask_activity.ex0","text":"qué haces","kind":"learner","errors":[]}
 {"id":"intents:ask_activity.ex1","text":"qué haces tú","kind":"learner","errors":[]}
 {"id":"intents:ask_activity.ex2","text":"qué hace usted","kind":"learner","errors":[]}

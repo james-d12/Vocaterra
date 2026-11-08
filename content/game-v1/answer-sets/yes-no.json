@@ -28,7 +28,7 @@
     {
       "answerId": "hello",
       "canonical": "hola",
-      "aliases": ["buenos días", "buenas tardes", "buenas noches", "buen día", "buenas"],
+      "aliases": [],
       "dialects": ["es-MX", "es-CO", "es-AR"]
     },
     {
@@ -46,13 +46,7 @@
     {
       "answerId": "wellbeing",
       "canonical": "qué tal",
-      "aliases": ["cómo estás", "cómo está usted", "hola, ¿qué tal?", "hola, ¿cómo estás?", "bien y tú", "muy bien y tú", "bien gracias y tú"],
-      "dialects": ["es-MX", "es-CO", "es-AR"]
-    },
-    {
-      "answerId": "fine",
-      "canonical": "muy bien",
-      "aliases": ["bien", "bien gracias", "muy bien gracias", "estoy bien", "estoy muy bien"],
+      "aliases": ["cómo estás", "cómo está usted", "hola, ¿qué tal?", "hola, ¿cómo estás?"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
     }
   ]
