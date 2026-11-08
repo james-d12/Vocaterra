@@ -2602,7 +2602,6 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   the scene digest is `b699324f…`, save fixtures' state digests re-recorded. `WaterEdgesAreExitableTests` holds the world at 0 edges
   (exempt: bridge floors, the river staircase's two steps). Scripted runs: 13 differ, all from the world (digests, a teleport landing 1
   lower, r27's walk 38 turns instead of 36 at the same tick); new run `r31-lake`. Report `.claude/briefs/h12-report.md`.
-
 - **U05, the NPC's name as the panel's title (2026-11-08, Sonnet 5.5 medium; gated at `1f56f6b9` on `feature/ui-issues`, 10402 passed, 3
   skipped; GitHub issue #6).** `DialogueLayout.Header` (46 px, 34 compact; `HeaderHeightFor`) places the lines; `DialoguePanel` draws the name
   at 32 px (16 px compact) with the rule under it, the lesson heading beside it in the muted colour, and `LinePrefix` gives the NPC's lines no
