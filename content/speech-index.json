@@ -7306,6 +7306,28 @@
       "Sha256": "6a25a508556d0cfc03cddda3a6902dc0e672980b6c3ab8e1ebba210aac080cc6",
       "Bytes": 52844
     },
+    "speech/guide/guide.review.phrase.muy_bien.1.slow.wav": {
+      "Text": "\u00BFQu\u00E9 tal?",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "0c49efd4cea61979bc9da0f07e9d723b2b74af4864c1f4e46cb94f4f81bc7d6b",
+      "Bytes": 50444
+    },
+    "speech/guide/guide.review.phrase.muy_bien.1.wav": {
+      "Text": "\u00BFQu\u00E9 tal?",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "8dddc96d876e2bdceecc21cba4ab378ac76d458b402f043a92fc788a8146bd22",
+      "Bytes": 42044
+    },
     "speech/guide/guide.review.phrase.no_gracias.1.slow.wav": {
       "Text": "\u00BFQuieres agua?",
       "Speaker": "guide",
@@ -9550,6 +9572,28 @@
       "Sha256": "b8e724f516ba89ca72ae7375975e04054c80ad74fa886e09848c4c554bb8444e",
       "Bytes": 91244
     },
+    "speech/guide/phrase.muy-bien.slow.wav": {
+      "Text": "Muy bien.",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "073d9a82dba22017555ff844df9950e93f7e5f2d96fabc39a25bd8f20ea9cd5d",
+      "Bytes": 60044
+    },
+    "speech/guide/phrase.muy-bien.wav": {
+      "Text": "Muy bien.",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "5660fd151b5077ca42991b25a87ce8c403a839dd3dfecf2b652a274ec191a024",
+      "Bytes": 48044
+    },
     "speech/guide/phrase.necesitamos-agua.slow.wav": {
       "Text": "Necesitamos agua.",
       "Speaker": "guide",
@@ -9791,6 +9835,28 @@
       "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
       "Sha256": "c716a72e958b0fea655a0117d0bdfbaf5a418427620ee7a0889a488e0e111760",
       "Bytes": 48044
+    },
+    "speech/guide/phrase.que-tal.slow.wav": {
+      "Text": "\u00BFQu\u00E9 tal?",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "0c49efd4cea61979bc9da0f07e9d723b2b74af4864c1f4e46cb94f4f81bc7d6b",
+      "Bytes": 50444
+    },
+    "speech/guide/phrase.que-tal.wav": {
+      "Text": "\u00BFQu\u00E9 tal?",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "8dddc96d876e2bdceecc21cba4ab378ac76d458b402f043a92fc788a8146bd22",
+      "Bytes": 42044
     },
     "speech/guide/phrase.queremos-pan.slow.wav": {
       "Text": "Queremos pan.",
@@ -15759,26 +15825,26 @@
       "Bytes": 69644
     },
     "speech/villager/villager_well.1.slow.wav": {
-      "Text": "Bien, gracias.",
+      "Text": "Bien, gracias. \u00BFY t\u00FA?",
       "Speaker": "villager",
       "SpeakerId": 53,
       "Voice": "em_santa",
       "Speed": 0.8,
       "Rate": 24000,
       "ModelHash": "582bff1facec664e0c88b222b72770a195e06c2d9ca39c8596ff5e65a9fc4a13",
-      "Sha256": "7f4364d3597c076343966b4b5421619f5cdf805b5a98c7e11e3d02a4d5b19a8d",
-      "Bytes": 66418
+      "Sha256": "4f81b8f90fc6e667119120f04a34d14faac7e3ec1b7a22bb958ca196963ea0c4",
+      "Bytes": 88558
     },
     "speech/villager/villager_well.1.wav": {
-      "Text": "Bien, gracias.",
+      "Text": "Bien, gracias. \u00BFY t\u00FA?",
       "Speaker": "villager",
       "SpeakerId": 53,
       "Voice": "em_santa",
       "Speed": 1,
       "Rate": 24000,
       "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
-      "Sha256": "dd96d203cf01ed5a6dc7fb817eff6af054c248f380b2d427debf34d0522c4252",
-      "Bytes": 66044
+      "Sha256": "779cc87d5573d293760d9a204d2e1a7140cd9d9b1258775cbf0c3c7d2343ced3",
+      "Bytes": 76116
     },
     "speech/villager/villager_wont_sell.1.slow.wav": {
       "Text": "Solo tengo pan.",

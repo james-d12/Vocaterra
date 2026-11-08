@@ -282,6 +282,7 @@
 {"id":"dialogue:guide.review.ask.2","text":"A ver, ¿qué es esto?","kind":"npc"}
 {"id":"dialogue:guide.review.ask.3","text":"¿Qué es esto? Mira bien.","kind":"npc"}
 {"id":"dialogue:guide.review.phrase.donde_esta_el_rio.1","text":"¿Qué buscas?","kind":"npc"}
+{"id":"dialogue:guide.review.phrase.muy_bien.1","text":"¿Qué tal?","kind":"npc"}
 {"id":"dialogue:guide.review.phrase.no_gracias.1","text":"¿Quieres agua?","kind":"npc"}
 {"id":"dialogue:guide.review.phrase.pedir_agua.1","text":"¿Qué necesitas?","kind":"npc"}
 {"id":"dialogue:guide.review.phrase.si_por_favor.1","text":"¿Quieres agua?","kind":"npc"}
@@ -409,7 +410,7 @@
 {"id":"dialogue:villager_understood.1","text":"Te entiendo. ¿Qué buscas?","kind":"npc"}
 {"id":"dialogue:villager_unknown_place.1","text":"No sé dónde está.","kind":"npc"}
 {"id":"dialogue:villager_weather.1","text":"Sí, hace {weather}.","kind":"template"}
-{"id":"dialogue:villager_well.1","text":"Bien, gracias.","kind":"npc"}
+{"id":"dialogue:villager_well.1","text":"Bien, gracias. ¿Y tú?","kind":"npc"}
 {"id":"dialogue:villager_wont_sell.1","text":"Solo tengo pan.","kind":"npc"}
 {"id":"dialogue:villager_yes.1","text":"¡Sí!","kind":"npc"}
 {"id":"prompts:baker-offer","text":"¿Quieres hacer pan?","kind":"npc"}
@@ -2793,6 +2794,8 @@
 {"id":"intents:state_wellbeing.ex2","text":"muy bien, gracias","kind":"learner","errors":[]}
 {"id":"intents:state_wellbeing.ex3","text":"estoy bien","kind":"learner","errors":[]}
 {"id":"intents:state_wellbeing.ex4","text":"estoy muy bien, gracias","kind":"learner","errors":[]}
+{"id":"intents:state_wellbeing.ex5","text":"yo estoy bien","kind":"learner","errors":[]}
+{"id":"intents:state_wellbeing.ex6","text":"yo está muy bien","kind":"learner","errors":["conj.person"]}
 {"id":"intents:thank.ex0","text":"gracias","kind":"learner","errors":[]}
 {"id":"intents:thank.ex1","text":"muchas gracias","kind":"learner","errors":[]}
 {"id":"intents:thank.ex2","text":"mucho gracias","kind":"learner","errors":["gender.agree","noun.number"]}
@@ -2842,6 +2845,18 @@
 {"id":"PHRASES.md:adios.variant2","text":"nos vemos","kind":"learner"}
 {"id":"PHRASES.md:adios.variant3","text":"hasta mañana","kind":"learner"}
 {"id":"PHRASES.md:adios.error","text":"yo nos vemos","kind":"learner","errors":["conj.person"]}
+{"id":"PHRASES.md:que-tal.text","text":"¿Qué tal?","kind":"learner"}
+{"id":"PHRASES.md:que-tal.variant1","text":"¿cómo estás?","kind":"learner"}
+{"id":"PHRASES.md:que-tal.variant2","text":"¿cómo está usted?","kind":"learner"}
+{"id":"PHRASES.md:que-tal.variant3","text":"hola, ¿qué tal?","kind":"learner"}
+{"id":"PHRASES.md:que-tal.variant4","text":"hola, ¿cómo estás?","kind":"learner"}
+{"id":"PHRASES.md:que-tal.error","text":"cómo estás usted","kind":"learner","errors":["conj.person"]}
+{"id":"PHRASES.md:muy-bien.text","text":"Muy bien.","kind":"learner"}
+{"id":"PHRASES.md:muy-bien.variant1","text":"bien, gracias","kind":"learner"}
+{"id":"PHRASES.md:muy-bien.variant2","text":"muy bien, gracias","kind":"learner"}
+{"id":"PHRASES.md:muy-bien.variant3","text":"estoy bien","kind":"learner"}
+{"id":"PHRASES.md:muy-bien.variant4","text":"estoy muy bien, gracias","kind":"learner"}
+{"id":"PHRASES.md:muy-bien.error","text":"yo está muy bien","kind":"learner","errors":["conj.person"]}
 {"id":"PHRASES.md:no-se.text","text":"No sé.","kind":"learner"}
 {"id":"PHRASES.md:no-se.variant1","text":"no lo sé","kind":"learner"}
 {"id":"PHRASES.md:no-se.variant2","text":"yo no sé","kind":"learner"}

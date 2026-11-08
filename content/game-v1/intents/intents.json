@@ -52,7 +52,8 @@
       "intentId": "state_wellbeing",
       "requiredSlots": [],
       "slotGrammars": [
-        "(estoy)? (muy)? bien (gracias|muchas gracias)?"
+        "(estoy)? (muy)? bien (gracias|muchas gracias)?",
+        "[PRON] [VERB:estar] (muy)? bien (gracias|muchas gracias)?"
       ],
       "keywordRules": [],
       "examples": [
@@ -60,7 +61,9 @@
         {"text": "bien, gracias", "errors": [], "prompt": "stall-need"},
         {"text": "muy bien, gracias", "errors": [], "prompt": "baker-open"},
         {"text": "estoy bien", "errors": [], "prompt": "smith-open"},
-        {"text": "estoy muy bien, gracias", "errors": [], "prompt": "farmer-open"}
+        {"text": "estoy muy bien, gracias", "errors": [], "prompt": "farmer-open"},
+        {"text": "yo estoy bien", "errors": [], "prompt": "villager-open"},
+        {"text": "yo está muy bien", "errors": ["conj.person"], "prompt": "villager-open"}
       ]
     },
     {

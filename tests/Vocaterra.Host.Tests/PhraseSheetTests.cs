@@ -15,7 +15,7 @@ public sealed class PhraseSheetTests
     private static readonly string[] ExpectedIds =
     [
         "que-necesitas", "pedir-agua", "quieres-pan", "si-por-favor", "no-gracias", "donde-esta-el-rio",
-        "hola", "gracias", "adios", "no-se", "ayuda",
+        "hola", "gracias", "adios", "que-tal", "muy-bien", "no-se", "ayuda",
         "me-llamo", "es-madera", "si", "no", "que-es-esto", "quieres-fruta", "de-nada", "otra-vez", "mas-despacio", "necesitas-madera",
         "que-quieres", "quiero-madera", "tienes-fruta", "tengo-fruta", "necesito-agua",
         "que-quiere-luna", "ella-quiere-fruta", "necesitamos-agua", "que-necesita-usted", "necesito-pan", "tengo-botella", "que-quieren-ustedes", "queremos-pan",
@@ -45,7 +45,7 @@ public sealed class PhraseSheetTests
     private static IEnumerable<PhraseRow> HeardRows => Rows.Where(static r => r.Says is "hears" or "both");
 
     [Fact]
-    public void TheSheetHoldsExactlyTheHundredAndSeventyThreePhrasesInOrder()
+    public void TheSheetHoldsExactlyTheHundredAndSeventyFivePhrasesInOrder()
     {
         Assert.Equal(ExpectedIds, Rows.Select(static r => r.Id));
         foreach (var row in Rows)

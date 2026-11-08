@@ -70,6 +70,14 @@ public interface IGuideFacts
     /// <param name="body">A block of the body (the river's point).</param>
     GuideNearest? NearestOfNounJoinedTo(GuideViewpoint from, string lemma, GuideCell body);
 
+    /// <summary>
+    /// The way from a viewpoint to a given block: its distance and its direction, as <see cref="NearestOfNoun"/> gives them for the block it finds. The guide says
+    /// it for a place the scene names (#43 follow-up: the stall's point for <c>tienda</c>, <see cref="Navigation.ScenePlaces.Resolve"/>), which is no noun's nearest block.
+    /// </summary>
+    /// <param name="from">Where the player is.</param>
+    /// <param name="cell">The block.</param>
+    GuideNearest Toward(GuideViewpoint from, GuideCell cell);
+
     /// <summary>The catalogue nouns that name the thing at a cell (the water names <c>agua</c> and <c>río</c>), in lemma order; empty for air.</summary>
     /// <param name="cell">The tile or block.</param>
     IReadOnlyList<string> NounsAt(GuideCell cell);

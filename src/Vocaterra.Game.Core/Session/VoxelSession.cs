@@ -854,8 +854,7 @@ public sealed partial class VoxelSession : GuideSession
             return;
         }
 
-        // The arrival names the place when the arrow stands on its point; the nearest block of the river or of a noun is named by the word, as a save would name it.
-        Pointer = new PointerMarker(found.Label, found.Cell, Point: Places.Point(found.Name) == found.Cell.ToBlock() ? found.Name : null);
+        Pointer = new PointerMarker(found.Label, found.Cell, Point: Places.PointNameOf(found));
         if (string.Equals(found.Label, Data.Words.Noun("river"), StringComparison.Ordinal))
         {
             _riverPointed = true;

@@ -12,6 +12,8 @@
     {"id": "hola", "says": "both", "spanish": "Hola.", "intent": "greet", "prompt": "villager-open", "variants": ["buen día", "buenos días", "buenas tardes", "buenas noches", "hola, Luna"], "audioLineIds": ["villager_hello.1", "guide.lesson.hello.1"], "reviewLine": "guide.lesson.hello.1"},
     {"id": "gracias", "says": "says", "spanish": "Gracias.", "intent": "thank", "prompt": "villager-open", "variants": ["muchas gracias"], "audioLineIds": [], "reviewLine": "guide.lesson.have.1"},
     {"id": "adios", "says": "says", "spanish": "Adiós.", "intent": "farewell", "prompt": "villager-open", "variants": ["hasta luego", "nos vemos", "hasta mañana"], "audioLineIds": ["shop_bye.1", "villager_bye.1"]},
+    {"id": "que-tal", "says": "says", "spanish": "¿Qué tal?", "intent": "ask_wellbeing", "prompt": "villager-open", "variants": ["¿cómo estás?", "¿cómo está usted?", "hola, ¿qué tal?", "hola, ¿cómo estás?"], "audioLineIds": [], "reviewLine": "guide.lesson.hello.1"},
+    {"id": "muy-bien", "says": "says", "spanish": "Muy bien.", "intent": "state_wellbeing", "prompt": "villager-open", "variants": ["bien, gracias", "muy bien, gracias", "estoy bien", "estoy muy bien, gracias"], "audioLineIds": []},
     {"id": "no-se", "says": "says", "spanish": "No sé.", "intent": "dont_know", "prompt": "villager-open", "variants": ["no lo sé", "yo no sé"], "audioLineIds": []},
     {"id": "ayuda", "says": "says", "spanish": "Ayuda.", "intent": "ask_help", "prompt": "villager-open", "variants": ["¿me ayudas?", "ayuda, por favor", "¿me puedes ayudar?", "necesito ayuda"], "audioLineIds": []},
     {"id": "me-llamo", "says": "hears", "spanish": "Me llamo Luna.", "intent": null, "prompt": "lesson-name", "variants": [], "audioLineIds": ["guide.lesson.name.1"]},
