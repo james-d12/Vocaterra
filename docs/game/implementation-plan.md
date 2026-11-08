@@ -2489,6 +2489,14 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   twenty runs of the fixed builds, ten beside three busy loops, all 2460; the full set, all 27 the same. **Watch:** the agent's own full
   run once threw `OutOfMemoryException` in `GuideTurnTests.TheCursorTileIsNamedWhenTheGuideIsAskedWhatThisIs` (the assembly passed on
   rerun; the gate did not see it; the suite peaks at 5.6 to 6.0 GB of the 6 GB cap). Report `.claude/briefs/t9-report.md`.
+- **W04b, the stall's price list (2026-11-08, Sonnet 5.5 medium; gated at `4ad3a5c0` on `feature/bread-pilot`, 10368 passed, 3
+  skipped).** `stall.sell_flour` is a priced `sell` (`"slot": "item"`, `"prices": { "harina": 1 }`); water and bread stay free (the owner,
+  D-game-23 item 6). W10's `instead` entry `harina` → `sell_flour` stays: it is the only route from `stall.give_water` to the sale. **A
+  bug fixed:** a gift with `asked` gave its item to a request naming a word the noun catalogue does not know («Quiero una espada.» got the
+  bottle); `NpcEffect.ExchangeMiss` now answers it with `<npc>.wont_sell` (the stall's «No tengo eso. Tengo agua, pan y harina.», and the
+  villager's own line for its bread gift); «quiero comida» now gets that line too. No Spanish changed; no recordings; scripted runs all the
+  same. **Core gaps (for a later core milestone):** «¿Tienes manzanas?» and «¿Tienes una espada?» read as `state_have` at `stall-need`
+  (answered «Sí, es verdad.»); «quiero algo de beber» and «quiero una botella de agua» are `unknown`. Report `.claude/briefs/w04b-report.md`.
 
 ## 6. Definition of done (every milestone)
 
