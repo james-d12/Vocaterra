@@ -7,7 +7,7 @@ using Vocaterra.Game.Core.World;
 
 namespace Vocaterra.Game.Core.Tests.Needs;
 
-/// <summary>Save version 6 (N01): the <c>systems.needs</c> entry, full needs for every older save, the needs kept out of the world's digest, and a night passing them through.</summary>
+/// <summary>Save version 7 (N01; version 6 until the water series met the needs): the <c>systems.needs</c> entry, full needs for every older save, the needs kept out of the world's digest, and a night passing them through.</summary>
 public sealed class NeedsSaveTests
 {
     private static Scene Pristine(ulong seed = TestGame.Seed) => TestGame.Route(seed);
@@ -26,14 +26,14 @@ public sealed class NeedsSaveTests
     }
 
     [Fact]
-    public void TheSaveIsVersion6AndCarriesTheNeedsUnderSystems()
+    public void TheSaveIsVersion7AndCarriesTheNeedsUnderSystems()
     {
         var session = Played();
 
         var document = SaveGame.Capture(session, Pristine());
 
-        Assert.Equal(6, SaveGame.CurrentVersion);
-        Assert.Equal(6, document.Version);
+        Assert.Equal(7, SaveGame.CurrentVersion);
+        Assert.Equal(7, document.Version);
         Assert.Equal(session.Needs.Capture(), document.Systems?.Needs);
         Assert.Contains("\"systems\":{\"needs\":{", SaveGame.Serialize(document), StringComparison.Ordinal);
     }
