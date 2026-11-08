@@ -13,5 +13,5 @@ public sealed class SessionSkipNumberTests
     [InlineData("Voy a la panadería a comprar dos manzanas.", "pan", null)] // panadería is no pan
     [InlineData("Compré pan.", "pan", null)] // no number goes with it
     public void TheNumberIsTheOneBeforeTheItemAsAWholeWord(string spanish, string lemma, int? expected) =>
-        Assert.Equal(expected, SessionSkip.NumberIn(spanish, TestGame.Nouns.ForLemma(lemma)!));
+        Assert.Equal(expected, SessionSkip.NumberIn(spanish, TestGame.Nouns.ForLemma(lemma)!, TestGame.Bundle.Language.Numbers));
 }

@@ -141,7 +141,7 @@ public sealed class LocaleTextTests
     {
         var english = English;
 
-        Assert.Empty(english.MissingErrorTags());
+        Assert.Empty(english.MissingErrorTags(TestGame.Bundle.Language.ErrorTags));
         foreach (var tag in ErrorTags.All)
         {
             Assert.True(english.HasErrorLine(tag), tag);

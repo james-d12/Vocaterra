@@ -9,7 +9,6 @@
   <!-- The language core, referenced by its one project (src/Vocaterra.Nlp). The host uses only the core's public API (docs/nlp/api.md). -->
   <ItemGroup>
     <ProjectReference Include="../Vocaterra.Nlp/Vocaterra.Nlp.csproj" />
-    <ProjectReference Include="../Vocaterra.Nlp.Es/Vocaterra.Nlp.Es.csproj" />
   </ItemGroup>
 
   <!-- The typed-line call sequence is shared with the guide: Vocaterra.Game.Core (the game's engine-free logic; its world and screens go unused by the host). -->

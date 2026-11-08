@@ -5,7 +5,7 @@ using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
-using Vocaterra.Nlp.Es.Normalization;
+using Vocaterra.Nlp.Language.Packs;
 
 namespace Vocaterra.Game.Core.Session;
 
@@ -160,7 +160,7 @@ public static class SessionSkip
             var tokens = row.Spanish.ToLowerInvariant().Split([' ', ',', '.', '¿', '?', '¡', '!'], StringSplitOptions.RemoveEmptyEntries);
             for (var t = 0; t < tokens.Length; t++)
             {
-                if (SpanishNumbers.TryParsePrefix(tokens, t, out var number) > 0 && number > 0)
+                if (data.Bundle.Language.Numbers.TryParsePrefix(tokens, t, out var number) > 0 && number > 0)
                 {
                     return number;
                 }
@@ -171,7 +171,7 @@ public static class SessionSkip
 
         for (var i = before + 1; i < lesson.Steps.Count; i++)
         {
-            if (lesson.Steps[i].Phrase is { } phrase && data.Phrases.Find(phrase) is { } row && NumberIn(row.Spanish, noun) is { } number)
+            if (lesson.Steps[i].Phrase is { } phrase && data.Phrases.Find(phrase) is { } row && NumberIn(row.Spanish, noun, data.Bundle.Language.Numbers) is { } number)
             {
                 return number;
             }
@@ -182,7 +182,7 @@ public static class SessionSkip
 
     // The number that goes with the item in a phrase's Spanish (V30): the item as a whole word, its singular or its plural, and the number written just before it ("tres manzanas" in
     // "Compré tres manzanas y dos panes" is 3 for the apple, "dos panes" is 2 for the bread); null when the phrase does not name the item with a number.
-    internal static int? NumberIn(string spanish, NounEntry noun)
+    internal static int? NumberIn(string spanish, NounEntry noun, INumberWords numbers)
     {
         var tokens = spanish.ToLowerInvariant().Split([' ', ',', '.', '¿', '?', '¡', '!'], StringSplitOptions.RemoveEmptyEntries);
         for (var t = 0; t < tokens.Length; t++)
@@ -194,7 +194,7 @@ public static class SessionSkip
 
             for (var start = Math.Max(0, t - 4); start < t; start++) // the longest run first: "treinta y dos" is 32, not 2
             {
-                if (SpanishNumbers.TryParsePrefix(tokens, start, out var number) == t - start && number > 0)
+                if (numbers.TryParsePrefix(tokens, start, out var number) == t - start && number > 0)
                 {
                     return number;
                 }

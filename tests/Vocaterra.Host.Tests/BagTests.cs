@@ -14,7 +14,7 @@ public sealed class BagTests
         var result = session.Evaluate(line, prompt, Now);
         exchange = session.LastExchange;
         using var writer = new StringWriter();
-        VerdictReport.Write(writer, prompt, line, result, exchange);
+        VerdictReport.Write(writer, prompt, line, result, GameContent.Bundle.Language.Orthography, exchange);
         return writer.ToString();
     }
 

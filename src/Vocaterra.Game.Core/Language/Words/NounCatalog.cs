@@ -4,8 +4,8 @@ using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Nlp.Content;
-using Vocaterra.Nlp.Es;
 using Vocaterra.Nlp.Language.Morphology;
+using Vocaterra.Nlp.Language.Packs;
 
 namespace Vocaterra.Game.Core.Language.Words;
 
@@ -60,9 +60,10 @@ public sealed class NounCatalog
 
     private readonly Dictionary<ItemId, string> _labels;
 
-    private NounCatalog(IReadOnlyList<NounEntry> nouns, IReadOnlySet<string> articles, Dictionary<ItemId, string> labels)
+    private NounCatalog(IReadOnlyList<NounEntry> nouns, IReadOnlySet<string> articles, Dictionary<ItemId, string> labels, ITextNormalizer normalizer)
     {
         _labels = labels;
+        Normalizer = normalizer;
         Articles = articles;
         _byLemma = new Dictionary<string, NounEntry>(StringComparer.Ordinal);
         _byItem = [];
@@ -92,6 +93,9 @@ public sealed class NounCatalog
 
         Nouns = nouns.OrderBy(static n => n.Lemma, StringComparer.Ordinal).ToList();
     }
+
+    /// <summary>The bundle's text normalizer (its language pack's), which the word record reads a form's words with.</summary>
+    public ITextNormalizer Normalizer { get; }
 
     /// <summary>The catalogue's nouns, ordinal by lemma.</summary>
     public IReadOnlyList<NounEntry> Nouns { get; }
@@ -180,7 +184,7 @@ public sealed class NounCatalog
 
         // The articles are the lexicon's (its art readings: el, la, los, las, un, una, unos, unas), not a list in the code (content-plan C05).
         var articles = bundle.Lexicon.Entries.Where(static e => string.Equals(e.Pos, "art", StringComparison.Ordinal)).Select(static e => e.Form).ToHashSet(StringComparer.Ordinal);
-        return new NounCatalog(nouns, articles, labels);
+        return new NounCatalog(nouns, articles, labels, bundle.Language.Normalizer);
     }
 
     /// <summary>The catalogue entry for a lemma, or <see langword="null"/> when the lemma is not a catalogue noun.</summary>
@@ -245,7 +249,7 @@ public sealed class NounCatalog
             .Select(static e => e.ToFeatures())
             .FirstOrDefault(static f => f.Pos == "noun" && f.Gender is not null)?.Gender
             ?? throw new InvalidDataException($"{RelativePath}: '{lemma}' has no noun reading with a gender in the lexicon.");
-        var morphology = bundle.SpanishMorphology();
+        var morphology = bundle.LanguageMorphology;
         return new NounEntry(
             lemma,
             gender,
