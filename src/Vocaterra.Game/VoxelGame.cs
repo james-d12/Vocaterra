@@ -689,9 +689,18 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _soundFrame.Update(seconds);
 
         _beacon.ClearIfReached(_sim);
+        if (_options.IsScreenshotRun && _session.Worker is { } scriptedWorker)
+        {
+            // A scripted run takes each turn on the frame after it is submitted (T9): the worker is waited for here, so whether it finished before the
+            // next frame's collect (a matter of milliseconds against a frame of about 30) cannot move the tick the script goes on at.
+            _ = scriptedWorker.WaitForOutcomes(ScriptedTurnWaitMilliseconds);
+        }
 
         base.Update(gameTime);
     }
+
+    // A scripted run waits this long for the worker at the end of a frame at most (a stuck worker must not hang a run); a turn never takes this long.
+    private const int ScriptedTurnWaitMilliseconds = 60_000;
 
     /// <inheritdoc />
     protected override void Draw(GameTime gameTime)
