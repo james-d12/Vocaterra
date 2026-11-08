@@ -17,16 +17,16 @@ public sealed class TalkKeyAndEnglishTests
     [Fact]
     public void TheButtonsStateNamesTheTalkKeyWhenSpeechIsOn()
     {
-        Assert.Equal("Hold V or Space: speak   Esc: cancel or close", DialoguePanel.HintsFor(RouteScene.Shipped.Locale, typing: false, speechUnavailable: false));
-        Assert.Equal(DialoguePanel.ButtonHints(RouteScene.Shipped.Locale), DialoguePanel.HintsFor(RouteScene.Shipped.Locale, false, false));
+        Assert.Equal("Hold V or Space: speak   Esc: cancel or close", DialoguePanel.HintsFor(RouteScene.Shipped.Locale, RouteScene.Shipped.Words.Typing, typing: false, speechUnavailable: false));
+        Assert.Equal(DialoguePanel.ButtonHints(RouteScene.Shipped.Locale), DialoguePanel.HintsFor(RouteScene.Shipped.Locale, RouteScene.Shipped.Words.Typing, false, false));
     }
 
     [Fact]
     public void TheTypingStateNamesTheTalkKeyWhenSpeechIsOn()
     {
         // V types a letter in the text box, so the typing hint gives the way back to the talk key rather than a hold that would do nothing.
-        var hints = DialoguePanel.HintsFor(RouteScene.Shipped.Locale, typing: true, speechUnavailable: false);
-        Assert.Equal(DialoguePanel.KeyHints(RouteScene.Shipped.Locale), hints);
+        var hints = DialoguePanel.HintsFor(RouteScene.Shipped.Locale, RouteScene.Shipped.Words.Typing, typing: true, speechUnavailable: false);
+        Assert.Equal(DialoguePanel.KeyHints(RouteScene.Shipped.Locale, RouteScene.Shipped.Words.Typing), hints);
         Assert.Contains("hold V or Space: speak", hints, StringComparison.Ordinal);
         Assert.Contains("Enter: send", hints, StringComparison.Ordinal);
     }
@@ -34,16 +34,16 @@ public sealed class TalkKeyAndEnglishTests
     [Fact]
     public void WithSpeechOffBothStatesSayToTypeTheAnswerInEnglish()
     {
-        Assert.Equal(DialoguePanel.SpeechOffButtonHints(RouteScene.Shipped.Locale), DialoguePanel.HintsFor(RouteScene.Shipped.Locale, typing: false, speechUnavailable: true));
-        Assert.StartsWith("Speech off: type your answer", DialoguePanel.HintsFor(RouteScene.Shipped.Locale, false, true), StringComparison.Ordinal);
-        Assert.StartsWith("Speech off: type your answer", DialoguePanel.HintsFor(RouteScene.Shipped.Locale, true, true), StringComparison.Ordinal);
-        Assert.DoesNotContain("hold V", DialoguePanel.HintsFor(RouteScene.Shipped.Locale, false, true), StringComparison.Ordinal);
+        Assert.Equal(DialoguePanel.SpeechOffButtonHints(RouteScene.Shipped.Locale), DialoguePanel.HintsFor(RouteScene.Shipped.Locale, RouteScene.Shipped.Words.Typing, typing: false, speechUnavailable: true));
+        Assert.StartsWith("Speech off: type your answer", DialoguePanel.HintsFor(RouteScene.Shipped.Locale, RouteScene.Shipped.Words.Typing, false, true), StringComparison.Ordinal);
+        Assert.StartsWith("Speech off: type your answer", DialoguePanel.HintsFor(RouteScene.Shipped.Locale, RouteScene.Shipped.Words.Typing, true, true), StringComparison.Ordinal);
+        Assert.DoesNotContain("hold V", DialoguePanel.HintsFor(RouteScene.Shipped.Locale, RouteScene.Shipped.Words.Typing, false, true), StringComparison.Ordinal);
     }
 
     [Fact]
     public void TheDialogueHintsHaveNoSpanish()
     {
-        foreach (var hint in new[] { DialoguePanel.KeyHints(RouteScene.Shipped.Locale), DialoguePanel.ButtonHints(RouteScene.Shipped.Locale), DialoguePanel.SpeechOffButtonHints(RouteScene.Shipped.Locale), DialoguePanel.SpeechOffKeyHints(RouteScene.Shipped.Locale) })
+        foreach (var hint in new[] { DialoguePanel.KeyHints(RouteScene.Shipped.Locale, RouteScene.Shipped.Words.Typing), DialoguePanel.ButtonHints(RouteScene.Shipped.Locale), DialoguePanel.SpeechOffButtonHints(RouteScene.Shipped.Locale), DialoguePanel.SpeechOffKeyHints(RouteScene.Shipped.Locale, RouteScene.Shipped.Words.Typing) })
         {
             Assert.DoesNotMatch("Mantén|Espacio|hablar|cancelar|cerrar|enviar|botones", hint);
         }

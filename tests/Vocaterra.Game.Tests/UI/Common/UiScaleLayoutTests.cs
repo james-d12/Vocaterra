@@ -129,7 +129,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
         {
             foreach (var choices in new[] { Array.Empty<string>(), ["agua por favor", "ayuda", "ayuda por favor"] })
             {
-                foreach (var hints in new[] { DialoguePanel.KeyHints(RouteScene.Shipped.Locale), DialoguePanel.SpeechOffKeyHints(RouteScene.Shipped.Locale), DialoguePanel.ButtonHints(RouteScene.Shipped.Locale), DialoguePanel.SpeechOffButtonHints(RouteScene.Shipped.Locale) })
+                foreach (var hints in new[] { DialoguePanel.KeyHints(RouteScene.Shipped.Locale, RouteScene.Shipped.Words.Typing), DialoguePanel.SpeechOffKeyHints(RouteScene.Shipped.Locale, RouteScene.Shipped.Words.Typing), DialoguePanel.ButtonHints(RouteScene.Shipped.Locale), DialoguePanel.SpeechOffButtonHints(RouteScene.Shipped.Locale) })
                 {
                     var layout = new DialogueLayout(canvas.Width, canvas.Height, Small, choices, SpeechButtons.For(RouteScene.Shipped.Words.Buttons), typing, static b => $"{b.Text} ({English.Value.ButtonSupport(SpeechButtons.KeyOf(b.Action)!)})", hints);
                     var where = $"{windowWidth}x{windowHeight} at {scale}%, typing {typing}, {choices.Length} choices";
@@ -563,7 +563,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
     {
         var canvas = Canvas(windowWidth, windowHeight, scale);
         var window = Whole(canvas);
-        var layout = new ReportLayout(canvas.Width, canvas.Height, Small, ReportLayer.HintsFirst(RouteScene.Shipped.Locale), ReportLayer.HintsSecond(RouteScene.Shipped.Locale));
+        var layout = new ReportLayout(canvas.Width, canvas.Height, Small, ReportLayer.HintsFirst(RouteScene.Shipped.Locale), ReportLayer.HintsSecond(RouteScene.Shipped.Locale, RouteScene.Shipped.Words.Typing));
         Assert.True(Inside(layout.Panel, window), $"the panel {layout.Panel} is outside the canvas {canvas}");
         var pieces = new List<(string Name, PixelBox Box)>
         {

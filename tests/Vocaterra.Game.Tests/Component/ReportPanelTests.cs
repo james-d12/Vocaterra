@@ -1,7 +1,7 @@
-using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Simulation;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Startup;
 using Vocaterra.Game.UI.Report;
 
@@ -101,12 +101,12 @@ public sealed class ReportPanelTests
     public void AltAndAVowelTypesTheAccentedLetter()
     {
         var panel = Shown();
-        panel.Type('a', alt: true);
-        panel.Type('E', alt: true);
-        panel.Type('n', alt: true);
-        panel.Type('/', alt: true);
-        panel.Type('1', alt: true);
-        panel.Type('a', alt: false);
+        panel.Type('a', alt: true, RouteScene.Shipped.Words.Typing);
+        panel.Type('E', alt: true, RouteScene.Shipped.Words.Typing);
+        panel.Type('n', alt: true, RouteScene.Shipped.Words.Typing);
+        panel.Type('/', alt: true, RouteScene.Shipped.Words.Typing);
+        panel.Type('1', alt: true, RouteScene.Shipped.Words.Typing);
+        panel.Type('a', alt: false, RouteScene.Shipped.Words.Typing);
         Assert.Equal("áÉñ¿¡a", panel.Entry.Text);
     }
 
@@ -193,9 +193,10 @@ public sealed class ReportPanelTests
     [Fact]
     public void AccentsAreTypedOnlyWithAlt()
     {
-        Assert.Equal('é', AccentShortcuts.ForTyped('e', alt: true));
-        Assert.Equal('e', AccentShortcuts.ForTyped('e', alt: false));
-        Assert.Equal('x', AccentShortcuts.ForTyped('x', alt: true));
+        var typing = RouteScene.Shipped.Words.Typing;
+        Assert.Equal('é', typing.ForTyped('e', alt: true));
+        Assert.Equal('e', typing.ForTyped('e', alt: false));
+        Assert.Equal('x', typing.ForTyped('x', alt: true));
     }
 
     [Fact]
