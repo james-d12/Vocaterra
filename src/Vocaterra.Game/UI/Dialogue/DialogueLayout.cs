@@ -48,6 +48,16 @@ public readonly record struct DialogueLayout
     /// <summary>The shortest a compact panel is.</summary>
     public const int CompactMinHeight = 190;
 
+    /// <summary>The height of the header band (the NPC's name and the rule under it) of a normal panel: the name is drawn at twice the native size (U05).</summary>
+    public const int HeaderHeight = 46;
+
+    /// <summary>The height of the header band of a compact panel, where the name stays at the native size so the few rows are kept.</summary>
+    public const int CompactHeaderHeight = 34;
+
+    /// <summary>The header band's height for a canvas of this height.</summary>
+    /// <param name="viewportHeight">The canvas's height.</param>
+    public static int HeaderHeightFor(int viewportHeight) => IsCompact(viewportHeight) ? CompactHeaderHeight : HeaderHeight;
+
     /// <summary>Whether a canvas of this height gets the compact panel.</summary>
     /// <param name="viewportHeight">The canvas's height.</param>
     public static bool IsCompact(int viewportHeight) => viewportHeight < CompactBelow;
@@ -87,6 +97,7 @@ public readonly record struct DialogueLayout
         ArgumentNullException.ThrowIfNull(buttons);
         Panel = PanelBox(viewportWidth, viewportHeight);
         var compact = IsCompact(viewportHeight);
+        Header = HeaderHeightFor(viewportHeight);
         var left = Panel.X + Padding;
         InnerWidth = Panel.Width - (Padding * 2);
         Buttons = [];
@@ -161,7 +172,7 @@ public readonly record struct DialogueLayout
 
             Choices = choices;
             HeardY = top - 4 - LineHeight;
-            LinesTop = Panel.Y + 8 + LineHeight + 6;
+            LinesTop = Panel.Y + Header;
             LinesBottom = Math.Max(LinesTop, HeardY - 4);
 
             // A compact panel that is left with less than one line of conversation gives the key hints up (the buttons carry the keys), and the log
@@ -190,6 +201,12 @@ public readonly record struct DialogueLayout
 
     /// <summary>The width inside the padding.</summary>
     public int InnerWidth { get; }
+
+    /// <summary>The height of this panel's header band: the lines start this far under the panel's top.</summary>
+    public int Header { get; }
+
+    /// <summary>Whether the panel is compact, so the name keeps the native size.</summary>
+    public bool Compact => Header == CompactHeaderHeight;
 
     /// <summary>The top of the conversation's lines.</summary>
     public int LinesTop { get; }
