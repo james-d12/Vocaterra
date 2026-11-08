@@ -7,6 +7,7 @@ using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.Water.Flow;
 using Vocaterra.Nlp.Language.Intent;
 
 namespace Vocaterra.Game.Core.Save;
@@ -57,8 +58,10 @@ namespace Vocaterra.Game.Core.Save;
 /// <param name="Sitting">The sitting the save was taken in (V25): the play session of the phrase-credit spacing rule, which a launch, a load and a sleep each begin. A load runs in the
 /// next one. <see langword="null"/> in a save from before V25, whose <see cref="Session"/> is then the sitting it continues from.</param>
 /// <param name="KeyWordsTaughtBy">The ids of the NPCs whose key words were taught (V23a). <see langword="null"/> in a save from before: its <see cref="KeyWordsTaught"/> then means the shopkeeper's.</param>
-/// <param name="Systems">The systems that keep state of their own (version 6, N01): the player's needs now, the procedures later. <see langword="null"/> in a save from before version 6, which starts with full needs.</param>
+/// <param name="Systems">The systems that keep state of their own (version 7, N01): the player's needs now, the procedures later. <see langword="null"/> in a save from before version 7, which starts with full needs.</param>
 /// <param name="MetNpcs">The ids of the NPCs the player has talked to (L01): a class opens on having met its teacher, an order on having met its NPC. <see langword="null"/> in a save from before L01: from the second day on, every NPC then counts as met, as the days used to open them.</param>
+/// <param name="Air">The player's air in ticks (version 7, water-plan H03 and H06); <see langword="null"/>, and left out of the file, while the breath is full.</param>
+/// <param name="Flow">The cells waiting for a flow update, in queue order (version 7, water-plan H06); <see langword="null"/>, and left out of the file, while none wait.</param>
 public sealed record SaveDocument(
     string Format,
     int Version,
@@ -98,7 +101,9 @@ public sealed record SaveDocument(
     int? Sitting = null,
     IReadOnlyList<string>? KeyWordsTaughtBy = null,
     SystemsSave? Systems = null,
-    IReadOnlyList<string>? MetNpcs = null);
+    IReadOnlyList<string>? MetNpcs = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? Air = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<FlowEntry>? Flow = null);
 
 /// <summary>The size of the world's grid in chunks (X01): a save across bundles decodes the scene diff's chunk indices with it, so a world that changed size still maps by position.</summary>
 /// <param name="ChunksX">Chunks along x.</param>
@@ -374,8 +379,8 @@ public sealed record SkillSave(string SkillId, double PKnown, int Attempts, int 
 public sealed record RepeatSave(string Tag, int Count);
 
 /// <summary>
-/// The game's systems that keep state of their own (save version 6, N01): a map from a system's name to its entry, so a system joins the save without another format change.
-/// <c>needs</c> is the player's needs; <c>chest</c> the belongings a death left (N04); W06 adds <c>procedures</c>. An entry a save lacks (every save before version 6) is the system as a new game has it.
+/// The game's systems that keep state of their own (save version 7, N01): a map from a system's name to its entry, so a system joins the save without another format change.
+/// <c>needs</c> is the player's needs; <c>chest</c> the belongings a death left (N04); W06 adds <c>procedures</c>. An entry a save lacks (every save before version 7) is the system as a new game has it.
 /// </summary>
 /// <param name="Needs">The player's needs (<see cref="Vocaterra.Game.Core.Needs.PlayerNeeds"/>), or <see langword="null"/> for full needs.</param>
 /// <param name="Chest">The belongings chest a death left standing (its cell and what is in it), or <see langword="null"/> for none. The chest block itself is in the world's block edits.</param>

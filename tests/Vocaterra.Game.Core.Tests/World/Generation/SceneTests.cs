@@ -18,7 +18,7 @@ public sealed class SceneTests(ITestOutputHelper output)
     private const ulong Seed = 42;
 
     /// <summary>The world digest of the bundle's route at seed 42 (its timing test is <see cref="SceneBuildTimeTests"/>).</summary>
-    internal const string GoldenDigest = "0f652f77d2c135a4db698edfc3aec5d5fff6b3980eeddc7d41200abc69536777"; // village-plan V04: the village grows; V10: the well's rim one block high
+    internal const string GoldenDigest = "3eba51d3ed19aadabe04cd2ddf65c1bbd04134910cde38e60870bd7853815cea"; // village-plan V04: the village grows; V10: the well's rim one block high; H07a: the falls, the rapids and the river mouth built at rest
 
     private const int Units = VoxelTestSupport.Units;
 

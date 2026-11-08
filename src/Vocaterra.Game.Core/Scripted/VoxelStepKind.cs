@@ -25,4 +25,7 @@ public enum VoxelStepKind
 
     /// <summary>Craft the recipe that makes an item, with the station in reach (<c>--craft madera</c>, <c>--craft antorcha</c>).</summary>
     Craft,
+
+    /// <summary>Put a water source in a cell, which then flows (<c>--pour x,y,z</c>, a debug step for scripted runs and screenshots, water-plan H06).</summary>
+    Pour,
 }

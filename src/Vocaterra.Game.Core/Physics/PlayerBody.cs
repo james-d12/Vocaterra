@@ -1,6 +1,8 @@
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.Water;
+using Vocaterra.Game.Core.Water.Currents;
 
 namespace Vocaterra.Game.Core.Physics;
 
@@ -10,7 +12,7 @@ namespace Vocaterra.Game.Core.Physics;
 /// <see cref="Angles"/>). A front-end reads it; <see cref="VoxelSimulation"/> steps it. All arithmetic is integer, so replays are
 /// bit-identical.
 /// </summary>
-public sealed class PlayerBody
+public sealed partial class PlayerBody
 {
     private const int U = VoxelPhysics.UnitsPerBlock;
     private const int W = VoxelPhysics.PlayerWidth;
@@ -124,16 +126,20 @@ public sealed class PlayerBody
 
     /// <summary>
     /// One tick: walking at the given intent (fixed point, <see cref="Angles.One"/> = 1.0, each component within +-1.0), an optional jump,
-    /// gravity, then the move on X, Z and Y with the step-up. Returns whether the body left the ground by jumping and whether it landed.
+    /// gravity, then the move on X, Z and Y with the step-up. In water the optional <paramref name="currents"/> (the scene's river) adds its drift. Returns whether the body left the ground by jumping and whether it landed.
     /// </summary>
     /// <param name="grid">The world.</param>
     /// <param name="intentX">The walk's east component.</param>
     /// <param name="intentZ">The walk's south component.</param>
     /// <param name="jump">Whether the jump key is down.</param>
-    /// <param name="speedPermille">The walking speed in thousandths of <see cref="VoxelPhysics.WalkSpeed"/> (1000 walks, 1600 sprints, N02).</param>
-    internal (bool Jumped, bool Landed) Step(VoxelGrid grid, int intentX, int intentZ, bool jump, int speedPermille = 1000)
+    /// <param name="currents">The scene's river current, which pushes a body in water; <see langword="null"/> for none.</param>
+    /// <param name="speedPermille">The walking speed in thousandths of <see cref="VoxelPhysics.WalkSpeed"/> (1000 walks, 1600 sprints, N02); in water it scales the wading or swimming speed the same way.</param>
+    internal (bool Jumped, bool Landed) Step(VoxelGrid grid, int intentX, int intentZ, bool jump, RiverCurrents? currents = null, int speedPermille = 1000)
     {
-        var speed = speedPermille == 1000 ? VoxelPhysics.WalkSpeed : (int)((long)VoxelPhysics.WalkSpeed * speedPermille / 1000);
+        var wet = Immersion.Of(grid, this);
+        if (wet.Feet) { return StepInWater(grid, intentX, intentZ, jump, wet, currents, speedPermille); }
+
+        var speed = Scaled(VoxelPhysics.WalkSpeed, speedPermille);
         var wasGrounded = Grounded;
         SteppedUp = false;
         VelocityX = Angles.Multiply(intentX, speed);
@@ -148,6 +154,16 @@ public sealed class PlayerBody
 
         VelocityY = Math.Max(VelocityY - VoxelPhysics.Gravity, -VoxelPhysics.MaxFallSpeed);
 
+        MoveWithStepUp(grid, wasGrounded);
+        return (jumped, Grounded && !wasGrounded);
+    }
+
+    // A speed scaled by the host's permille (1000 leaves it as it is, bit for bit).
+    private static int Scaled(int speed, int speedPermille) => speedPermille == 1000 ? speed : (int)((long)speed * speedPermille / 1000);
+
+    /// <summary>The move of one tick on X, Z and then Y with the one-block step-up (only for a body that was grounded and is not rising); sets the new position, the stopped velocities and <see cref="Grounded"/>.</summary>
+    private void MoveWithStepUp(VoxelGrid grid, bool wasGrounded)
+    {
         var x = MinX;
         var y = MinY;
         var z = MinZ;
@@ -196,7 +212,6 @@ public sealed class PlayerBody
         MinY = y;
         MinZ = z;
         Grounded = !VoxelCollider.IsFree(grid, x, y - 1, z);
-        return (jumped, Grounded && !wasGrounded);
     }
 }
 

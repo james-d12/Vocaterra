@@ -28,7 +28,7 @@ public sealed record NeedEffects(
     public double HealthChangePerSecond => HealthRecoveryPerSecond - HealthLossPerSecond;
 }
 
-/// <summary>The needs as a save keeps them (<c>systems.needs</c>, save version 6): the five meters and the two timers.</summary>
+/// <summary>The needs as a save keeps them (<c>systems.needs</c>, save version 7): the five meters and the two timers.</summary>
 /// <param name="Hunger">0 to 100.</param>
 /// <param name="Thirst">0 to 100.</param>
 /// <param name="Sleep">0 to 100.</param>

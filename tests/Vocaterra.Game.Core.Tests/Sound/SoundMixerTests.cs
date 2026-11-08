@@ -291,4 +291,52 @@ public sealed class SoundMixerTests
         Assert.All(Enumerable.Range(0, 1000), _ => Assert.InRange(d.NextDouble(), 0.0, 0.9999999999));
         Assert.All(Enumerable.Range(0, 1000), _ => Assert.InRange(d.NextInt(7), 0, 6));
     }
+
+    [Fact]
+    public void Given_TheViewUnderWater_When_TheBedsPlay_Then_TheyAreQuieterAndMuffledByTheAmount()
+    {
+        var (mixer, output, _) = Make();
+        mixer.SetBeds([new BedInput(AmbientBeds.Wind, 1.0)]);
+        Run(mixer, SoundMixer.BedFadeSeconds + 0.1);
+        var wind = AmbientBeds.Gain(AmbientBeds.Wind);
+
+        Assert.Equal(wind, output.Beds.Single(b => b.Bed == AmbientBeds.Wind).Level, 6);
+        Assert.Equal(0, output.Beds.Single(b => b.Bed == AmbientBeds.Wind).Muffle, 6); // above the water: no change
+
+        mixer.SetUnderwater(0.5);
+        Run(mixer, 0.05);
+        var half = output.Beds.Single(b => b.Bed == AmbientBeds.Wind);
+        Assert.Equal(wind * 0.75, half.Level, 6);
+        Assert.Equal(0.5, half.Muffle, 6);
+
+        mixer.SetUnderwater(1);
+        Run(mixer, 0.05);
+        var full = output.Beds.Single(b => b.Bed == AmbientBeds.Wind);
+        Assert.Equal(wind * UnderwaterSound.FullUnderwaterGain, full.Level, 6);
+        Assert.Equal(1.0, full.Muffle, 6);
+    }
+
+    [Fact]
+    public void Given_TheViewUnderWaterAndAVoiceLine_When_TheBedsPlay_Then_TheDuckAndTheUnderwaterGainBothApply()
+    {
+        var (mixer, output, _) = Make();
+        mixer.SetBeds([new BedInput(AmbientBeds.Wind, 1.0)]);
+        mixer.SetUnderwater(1);
+        mixer.SetVoice(true);
+        Run(mixer, SoundMixer.DuckAttackSeconds + SoundMixer.BedFadeSeconds + 0.1);
+
+        var level = output.Beds.Single(b => b.Bed == AmbientBeds.Wind).Level;
+        Assert.Equal(AmbientBeds.Gain(AmbientBeds.Wind) * SoundMixer.DuckLevel * UnderwaterSound.FullUnderwaterGain, level, 6);
+    }
+
+    [Fact]
+    public void Given_AnAmountOutOfRange_When_Set_Then_ItIsClampedAndNotANumberIsNone()
+    {
+        var (mixer, _, _) = Make();
+
+        mixer.SetUnderwater(3);
+        Assert.Equal(1.0, mixer.Underwater);
+        mixer.SetUnderwater(double.NaN);
+        Assert.Equal(0.0, mixer.Underwater);
+    }
 }

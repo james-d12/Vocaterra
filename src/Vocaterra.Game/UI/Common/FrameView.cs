@@ -174,6 +174,9 @@ public sealed class FrameView
     /// <summary>The look for this frame in angle steps: yaw 0 north, pitch positive up.</summary>
     public (double Yaw, double Pitch) Look { get; set; }
 
+    /// <summary>The player's breath for the bubble meter (H04): the air left and whether the eye is under water.</summary>
+    public BreathReading Breath { get; set; } = BreathReading.Full;
+
     /// <summary>The inventory the hotbar and the inventory screen show.</summary>
     public Core.Items.Inventory Items => Voxel.Inventory;
 

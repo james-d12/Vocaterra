@@ -685,6 +685,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         _runEnd.AfterUpdate(); // a scripted run counts its settled frames and opens the panels asked for at its end
 
+        _sound.Mixer.SetUnderwater(_drawer.UnderwaterAmount); // the beds go quieter and duller under water (H10)
         _soundFrame.Update(seconds);
 
         _beacon.ClearIfReached(_sim);
@@ -737,6 +738,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         view.FadeAlpha = (float)_collapseFade;
         view.Needs = _needsHud;
         view.DeathScreen = _deathHold > 0 ? new DeathScreenView(_session.Data.Words.HudLine("hud.camp") ?? string.Empty, _session.Locale.Text("hud.camp"), _session.DeathLine ?? string.Empty) : null;
+        view.Breath = BreathReading.Of(_sim); // the bubble meter (H04)
 
         _drawer.DrawWorld(GraphicsDevice, _camera.Camera, _sim.Target?.Block, _beacon.Beacon.Target, _sim.Tick, shoulder ? _figures.Avatar() : null, shoulder ? null : _arm.Frame(eye, _drawer.Renderer.Lights));
         _drawer.DrawLayers(width, height, canvasWidth, canvasHeight);
