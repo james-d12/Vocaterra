@@ -22,6 +22,7 @@ public static class MenuRows
             MenuRow.Of(settings, SettingId.UiVolume),
             MenuRow.Heading("headingGraphics"),
             MenuRow.Of(settings, SettingId.Quality),
+            MenuRow.Of(settings, SettingId.ViewDistance),
             MenuRow.Of(settings, SettingId.FieldOfView),
             MenuRow.Of(settings, SettingId.Blur),
             MenuRow.Of(settings, SettingId.ViewEffects),
@@ -53,6 +54,8 @@ public static class MenuRows
 
         rows.Add(MenuRow.Heading("headingRestart"));
         rows.Add(MenuRow.Note("restartNote"));
+        rows.Add(MenuRow.Note("restartNote2"));
+        rows.Add(MenuRow.Note("restartNote3"));
         return rows;
     }
 }

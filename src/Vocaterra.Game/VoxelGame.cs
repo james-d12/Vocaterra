@@ -192,7 +192,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     {
         _options = options;
         // The player's settings (the menu issue): the save's, or a new game's defaults (high quality, the text at its largest), then the command line's over them for this run.
-        _settings = PlayerSettings.Resolve(savedSettings, new LaunchSettings(options.IsScreenshotRun, options.SfxVolume, options.AmbientVolume, options.TextScale, options.Quality, options.UnderwaterBlur, options.ViewEffects, options.NeedsRate, options.RelaxedNeeds));
+        _settings = PlayerSettings.Resolve(savedSettings, new LaunchSettings(options.IsScreenshotRun, options.SfxVolume, options.AmbientVolume, options.TextScale, options.Quality, options.UnderwaterBlur, options.ViewEffects, options.NeedsRate, options.RelaxedNeeds, options.ViewDistance, options.FieldOfView, options.MouseSensitivity, options.InvertY, options.VoiceVolume, options.UiVolume));
         _canvas = new UiCanvas(_settings.TextPercent, () => (GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height));
         _devices = new InputDevices(_canvas);
         _session = session;
@@ -235,7 +235,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _figures = new FigureDirector(scene, _sim, _look, _dialogue, session.Data.Npcs);
         _arm = new ArmPresenter(_sim, _isSolid, options.Dusk);
         _drawer = new SceneDrawer(options, session, _toasts, _figures.Figures, Console.WriteLine) { BlurLevel = () => UnderwaterBlurSettings.Effective(_settings.Blur, _needsHud.EffectsOn) }; // the accessibility switch forces the blur off (H11)
-        _drawer.ApplyQuality(_settings.Quality); // the preset the renderer starts with; the menu changes it during the run
+        _drawer.ApplyQuality(_settings.Quality, _settings.ViewDistance); // the preset the renderer starts with; the menu changes it during the run
         _reportScreen = new ReportScreen(
             _report,
             session,
@@ -983,8 +983,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                 _sound.Mixer.SetVolumes(_settings.Volumes);
                 Console.WriteLine($"volume {id}: {_settings.Get(id)} percent");
                 break;
-            case SettingId.Quality:
-                _drawer.ApplyQuality(_settings.Quality);
+            case SettingId.Quality or SettingId.ViewDistance:
+                _drawer.ApplyQuality(_settings.Quality, _settings.ViewDistance);
                 Console.WriteLine($"graphics quality: {_drawer.Preset.Name}, view distance {_drawer.Preset.ViewDistance} blocks");
                 break;
             case SettingId.TextSize:

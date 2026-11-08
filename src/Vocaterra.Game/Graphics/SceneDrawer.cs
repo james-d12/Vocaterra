@@ -63,13 +63,15 @@ public sealed class SceneDrawer : IDisposable
     public QualityPreset Preset { get; private set; } = QualityPreset.For(QualityLevel.High);
 
     /// <summary>
-    /// Takes a graphics quality (the run's start, then the menu's setting): the preset of the level, with the view distance <c>--view-distance</c> gave. Before <see cref="Load"/>
-    /// it only chooses the preset the renderer starts with; after it the renderer follows at once (its meshes are built again).
+    /// Takes a graphics quality and a draw distance (the run's start, then the menu's settings): the preset of the level, drawn as far as <paramref name="viewDistance"/> says when the
+    /// player chose one (Auto, <see langword="null"/>, is the level's own distance). Before <see cref="Load"/> it only chooses the preset the renderer starts with; after it the
+    /// renderer follows at once (its meshes are built again), and nothing is rebuilt when the preset is the one in force.
     /// </summary>
     /// <param name="level">The level.</param>
-    public void ApplyQuality(QualityLevel level)
+    /// <param name="viewDistance">The draw distance in blocks, or <see langword="null"/> for the level's own.</param>
+    public void ApplyQuality(QualityLevel level, int? viewDistance = null)
     {
-        Preset = _options.PresetFor(level);
+        Preset = viewDistance is { } blocks ? QualityPreset.For(level).WithViewDistance(blocks) : QualityPreset.For(level);
         _renderer?.SetPreset(Preset);
     }
 

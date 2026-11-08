@@ -2,6 +2,7 @@ using Vocaterra.Game.Core.Menu;
 using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Scripted;
+using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Startup;
 
 namespace Vocaterra.Game.Tests.Startup;
@@ -203,17 +204,43 @@ public sealed class VoxelLaunchOptionsTests
     {
         Assert.Null(Parse("--screenshot", "x.png").Quality); // not given: the saved setting, high for a new game (the menu issue)
         Assert.Null(Parse("--screenshot", "x.png").ViewDistance);
-        Assert.Equal(224, Parse("--quality", "low").PresetFor(QualityLevel.Low).ViewDistance);
+        Assert.Equal(224, QualityPreset.For(Parse("--quality", "low").Quality!.Value).ViewDistance);
         Assert.Equal(QualityLevel.Medium, Parse("--quality", "medium").Quality);
-        Assert.Equal(304, Parse("--quality", "medium").PresetFor(QualityLevel.Medium).ViewDistance);
-        Assert.Equal(400, Parse("--quality", "high").PresetFor(QualityLevel.High).ViewDistance);
+        Assert.Equal(304, QualityPreset.For(Parse("--quality", "medium").Quality!.Value).ViewDistance);
+        Assert.Equal(400, QualityPreset.For(Parse("--quality", "high").Quality!.Value).ViewDistance);
         var distance = Parse("--quality", "low", "--view-distance", "96");
-        Assert.Equal(96, distance.PresetFor(QualityLevel.Low).ViewDistance);
-        Assert.Equal(96, distance.PresetFor(QualityLevel.High).ViewDistance); // the distance flag holds when the menu changes the level
-        Assert.Equal(QualityLevel.Low, distance.PresetFor(QualityLevel.Low).Level);
+        Assert.Equal(96, distance.ViewDistance);
+        Assert.Equal(96, QualityPreset.For(QualityLevel.High).WithViewDistance(96).ViewDistance); // a chosen distance holds when the level changes
+        Assert.Equal(QualityLevel.Low, distance.Quality);
         Assert.Contains("--quality needs low, medium or high", Refuse("--quality", "ultra"), StringComparison.Ordinal);
         Assert.Contains("--view-distance needs a number of blocks, at least 48", Refuse("--view-distance", "10"), StringComparison.Ordinal);
         Assert.Contains("--view-distance needs a number", Refuse("--view-distance", "far"), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TheFieldOfViewMouseAndInvertFlagsTakeTheMenusRangesAndRefuseTheRest()
+    {
+        var options = Parse("--fov", "95", "--mouse-sensitivity", "250", "--invert-y", "on");
+        Assert.Equal(95, options.FieldOfView);
+        Assert.Equal(250, options.MouseSensitivity);
+        Assert.True(options.InvertY);
+        Assert.False(Parse("--invert-y", "off").InvertY);
+
+        var none = Parse("--screenshot", "x.png");
+        Assert.Null(none.FieldOfView);
+        Assert.Null(none.MouseSensitivity);
+        Assert.Null(none.InvertY);
+
+        Assert.Contains("--fov needs a whole number of degrees from 60 to 110 in steps of 5", Refuse("--fov", "57"), StringComparison.Ordinal);
+        Assert.Contains("--fov needs", Refuse("--fov", "120"), StringComparison.Ordinal);
+        Assert.Contains("--mouse-sensitivity needs a whole number of percent from 25 to 300", Refuse("--mouse-sensitivity", "10"), StringComparison.Ordinal);
+        Assert.Contains("--mouse-sensitivity needs", Refuse("--mouse-sensitivity", "fast"), StringComparison.Ordinal);
+        Assert.Contains("--invert-y needs on or off", Refuse("--invert-y", "yes"), StringComparison.Ordinal);
+        Assert.Contains("--invert-y needs a value", Refuse("--invert-y"), StringComparison.Ordinal);
+        foreach (var flag in new[] { "--fov", "--mouse-sensitivity", "--invert-y", "--view-distance" })
+        {
+            Assert.Contains(flag, LaunchOptions.Usage, StringComparison.Ordinal);
+        }
     }
 
     [Fact]

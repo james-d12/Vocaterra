@@ -128,11 +128,16 @@ public sealed record LaunchOptions
         + "  --mute                  the NPCs' pre-rendered voices are off (the panel still shows every line)\n"
         + "  --sfx-volume <0..1>     the volume of the effects (gathering, placing, picking up, crafting, the fire); default 0.8, or the save's (S24)\n"
         + "  --ambient-volume <0..1> the volume of the ambient beds; default 0.6, or the save's (S24)\n"
+        + "  --voice-volume <0..1>   the volume of the NPCs' voices; default 1, or the save's (the menu)\n"
+        + "  --ui-volume <0..1>      the volume of the interface and progress sounds; default 0.8, or the save's (the menu)\n"
         + "  --no-sounds             every sound but the NPCs' voices is off: effects, interface and progress sounds, beeps and ambient (S24)\n"
         + "  --sound-log <file>      write every cue played, with its tick and category, to this file; a scripted run plays nothing aloud (S24)\n"
         + "  --quality <low|medium|high>  the graphics quality (S13): how far the world is drawn (low 224 blocks, medium 304, high 400, the default or the save's); the fog closes in at that distance\n"
         + "  --underwater-blur <off|low|medium|high>  how much the view softens under water (H05; default low)\n"
-        + "  --view-distance <blocks>     draw this far instead of the quality's distance (at least 48)\n"
+        + "  --view-distance <blocks>     draw this far instead of the quality's distance (48 to 576 in steps of 16, the menu's Draw distance; or the save's; default Auto)\n"
+        + "  --fov <degrees>         the vertical field of view, 60 to 110 in steps of 5 (default 70, or the save's; the menu's Field of view)\n"
+        + "  --mouse-sensitivity <percent>  the mouse sensitivity, 25 to 300 in steps of 5 (default 100, or the save's; the menu's Mouse sensitivity)\n"
+        + "  --invert-y on|off       moving the mouse up looks down (default off, or the save's; the menu's Invert mouse Y)\n"
         + "  --pour <x,y,z>          put a water source in this cell, which then flows (a debug step for screenshots, H06); a step\n"
         + "  --teleport <x,z>        put the player at this block column, standing on the ground (a debug step for screenshots); a step\n"
         + "  --greyscale             the playtest A/B switch (D-game-6): blocks whose noun is not known yet are grey, known ones in colour; default full colour\n"
@@ -251,6 +256,12 @@ public sealed record LaunchOptions
     /// <summary>The ambient beds' volume asked for with <c>--ambient-volume</c> (0 to 1), or <see langword="null"/> to take the save's or the default (S24).</summary>
     public double? AmbientVolume { get; init; }
 
+    /// <summary>The volume of the NPCs' voices (<c>--voice-volume</c>), 0 to 1, or <see langword="null"/>.</summary>
+    public double? VoiceVolume { get; init; }
+
+    /// <summary>The volume of the interface and progress sounds (<c>--ui-volume</c>), 0 to 1, or <see langword="null"/>.</summary>
+    public double? UiVolume { get; init; }
+
     /// <summary>Whether <c>--no-sounds</c> was given: every sound but the NPCs' voices is off (S24).</summary>
     public bool NoSounds { get; init; }
 
@@ -311,12 +322,17 @@ public sealed record LaunchOptions
     /// <summary>How much the view softens under water (<c>--underwater-blur</c>, H05); the saved setting (low by default) when not given.</summary>
     public UnderwaterBlur? UnderwaterBlur { get; init; }
 
-    /// <summary>The view distance in blocks given by <c>--view-distance</c>, or <see langword="null"/> for the quality's own.</summary>
-    public int? ViewDistance { get; init; }
+    /// <summary>The vertical field of view in degrees given by <c>--fov</c>, or <see langword="null"/> for the save's.</summary>
+    public int? FieldOfView { get; init; }
 
-    /// <summary>The preset of a quality level, with the view distance <c>--view-distance</c> gave over it.</summary>
-    /// <param name="level">The level.</param>
-    public QualityPreset PresetFor(QualityLevel level) => ViewDistance is { } blocks ? QualityPreset.For(level).WithViewDistance(blocks) : QualityPreset.For(level);
+    /// <summary>The mouse sensitivity in percent given by <c>--mouse-sensitivity</c>, or <see langword="null"/> for the save's.</summary>
+    public int? MouseSensitivity { get; init; }
+
+    /// <summary><c>--invert-y</c>: whether moving the mouse up looks down, or <see langword="null"/> for the save's.</summary>
+    public bool? InvertY { get; init; }
+
+    /// <summary>The view distance in blocks given by <c>--view-distance</c>, or <see langword="null"/> for the save's (else the quality's own); the run's draw distance is the menu setting <see cref="SettingId.ViewDistance"/>.</summary>
+    public int? ViewDistance { get; init; }
 
     /// <summary>Whether <c>--greyscale</c> was given: blocks whose noun is not known are drawn grey (the playtest A/B, D-game-6).</summary>
     public bool Greyscale { get; init; }
@@ -370,7 +386,7 @@ public sealed record LaunchOptions
     public Func<double>? TurnClock => IsScreenshotRun && Script.Count > 0 ? null : MonotonicClock.Milliseconds;
 
     /// <summary>The options the sound side's start-up reads (<see cref="SoundSetup"/>).</summary>
-    public SoundOptions Sound => new(IsScreenshotRun, NoSounds, SfxVolume, AmbientVolume);
+    public SoundOptions Sound => new(IsScreenshotRun, NoSounds, SfxVolume, AmbientVolume, VoiceVolume, UiVolume);
 
     /// <summary>Whether the script has a spoken step (<c>--speak</c> or <c>--wav</c>): it needs Vosk, and Kokoro for <c>--speak</c>.</summary>
     public bool HasSpokenSteps => Script.Any(static step => step.Kind is ScriptStepKind.Speak or ScriptStepKind.Wav);
@@ -580,7 +596,7 @@ public sealed record LaunchOptions
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--locale" or "--scene" or "--look" or "--walk-to" or "--interact"
                 or "--place" or "--pour" or "--select" or "--craft" or "--eat" or "--give" or "--plant" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
                 or "--check" or "--pick" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
-                or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--sound-log"
+                or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--voice-volume" or "--ui-volume" or "--sound-log" or "--fov" or "--mouse-sensitivity" or "--invert-y"
                 or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--needs-rate" or "--station" or "--station-say" or "--act"))
             {
                 error = $"Unknown argument '{arg}'.";
@@ -673,13 +689,42 @@ public sealed record LaunchOptions
                     break;
                 case "--sfx-volume":
                 case "--ambient-volume":
+                case "--voice-volume":
+                case "--ui-volume":
                     if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var volume) || double.IsNaN(volume) || volume < 0 || volume > 1)
                     {
                         error = $"{arg} needs a number from 0 to 1, got '{value}'.";
                         return false;
                     }
 
-                    result = arg == "--sfx-volume" ? result with { SfxVolume = volume } : result with { AmbientVolume = volume };
+                    result = arg switch
+                    {
+                        "--sfx-volume" => result with { SfxVolume = volume },
+                        "--ambient-volume" => result with { AmbientVolume = volume },
+                        "--voice-volume" => result with { VoiceVolume = volume },
+                        _ => result with { UiVolume = volume },
+                    };
+                    break;
+                case "--fov":
+                case "--mouse-sensitivity":
+                    var (settingId, unit) = arg == "--fov" ? (SettingId.FieldOfView, "degrees") : (SettingId.MouseSensitivity, "percent");
+                    var spec = PlayerSettings.Spec(settingId);
+                    if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var number) || number < spec.Min || number > spec.Max || spec.Snap(number) != number)
+                    {
+                        error = $"{arg} needs a whole number of {unit} from {spec.Min} to {spec.Max} in steps of {spec.Step}, got '{value}'.";
+                        return false;
+                    }
+
+                    result = arg == "--fov" ? result with { FieldOfView = number } : result with { MouseSensitivity = number };
+                    break;
+                case "--invert-y":
+                    if (value is not ("on" or "off"))
+                    {
+                        error = $"--invert-y needs on or off, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { InvertY = value == "on" };
                     break;
                 case "--sound-log":
                     if (value.Length == 0)

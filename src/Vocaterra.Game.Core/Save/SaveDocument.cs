@@ -122,6 +122,7 @@ public sealed record WorldDims(int ChunksX, int ChunksY, int ChunksZ);
 /// <param name="MouseSensitivity">The mouse sensitivity in percent of the normal turn (the menu), 25 to 300; 0 (and so no field) is the default 100. Written only when not 100.</param>
 /// <param name="InvertY">True when moving the mouse up looks down (the menu). Written only when true.</param>
 /// <param name="FieldOfView">The vertical field of view in degrees (the menu), 60 to 110; 0 (and so no field) is the default 70. Written only when not 70.</param>
+/// <param name="ViewDistance">How far the world is drawn in blocks (the menu), 48 to 576 in steps of 16; 0 (and so no field) is Auto, the distance of the graphics quality. Written only when not Auto.</param>
 public sealed record SaveSettings(
     SoundVolumes Sound,
     int TextScale = 100,
@@ -132,7 +133,8 @@ public sealed record SaveSettings(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Menu.QualityLevel? Quality = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] int MouseSensitivity = 0,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool InvertY = false,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] int FieldOfView = 0)
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] int FieldOfView = 0,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] int ViewDistance = 0)
 {
     /// <summary>The drive rate of the default (N09); a save without the field reads 0, which stands for it.</summary>
     public const double DefaultNeedsRate = 1.0;
@@ -179,6 +181,18 @@ public sealed record SaveSettings(
     [JsonIgnore]
     public int EffectiveFieldOfView => FieldOfView == 0 ? Menu.PlayerSettings.Spec(Menu.SettingId.FieldOfView).Default : Menu.PlayerSettings.Spec(Menu.SettingId.FieldOfView).Snap(FieldOfView);
 
+    /// <summary>The draw distance in blocks this setting stands for: 0 for Auto (the quality's own), otherwise the saved distance within the menu's range and steps.</summary>
+    [JsonIgnore]
+    public int EffectiveViewDistance
+    {
+        get
+        {
+            var spec = Menu.PlayerSettings.Spec(Menu.SettingId.ViewDistance);
+            var snapped = spec.Snap(ViewDistance);
+            return snapped <= spec.Min ? 0 : snapped;
+        }
+    }
+
     /// <summary>The text sizes the player can choose, in percent (X08): the normal size and two steps up.</summary>
     public static IReadOnlyList<int> TextScaleLevels { get; } = [100, 125, 150];
 
@@ -197,7 +211,8 @@ public sealed record SaveSettings(
         EffectiveQuality == Menu.QualityLevel.High ? null : EffectiveQuality,
         EffectiveMouseSensitivity == Menu.PlayerSettings.Spec(Menu.SettingId.MouseSensitivity).Default ? 0 : EffectiveMouseSensitivity,
         InvertY,
-        EffectiveFieldOfView == Menu.PlayerSettings.Spec(Menu.SettingId.FieldOfView).Default ? 0 : EffectiveFieldOfView);
+        EffectiveFieldOfView == Menu.PlayerSettings.Spec(Menu.SettingId.FieldOfView).Default ? 0 : EffectiveFieldOfView,
+        EffectiveViewDistance);
 }
 
 /// <summary>

@@ -18,6 +18,9 @@ public enum SettingId
     /// <summary>The graphics quality: 0 low, 1 medium, 2 high.</summary>
     Quality,
 
+    /// <summary>How far the world is drawn, in blocks: the lowest value is Auto (the quality's own distance), then 48 up in steps of 16.</summary>
+    ViewDistance,
+
     /// <summary>The interface text size: the index of 100, 125 or 150 percent.</summary>
     TextSize,
 

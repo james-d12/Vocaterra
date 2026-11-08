@@ -9,8 +9,10 @@ public sealed class MenuRow
     private readonly Func<int>? _get;
     private readonly Action<int>? _set;
     private readonly Action? _run;
+    private readonly string? _minKey;
+    private readonly IReadOnlyList<string>? _names;
 
-    private MenuRow(string id, MenuRowKind kind, string labelKey, int min, int max, int step, string suffix, IReadOnlyList<string>? choiceKeys, Func<int>? get, Action<int>? set, Action? run)
+    private MenuRow(string id, MenuRowKind kind, string labelKey, int min, int max, int step, string suffix, IReadOnlyList<string>? choiceKeys, Func<int>? get, Action<int>? set, Action? run, string? minKey = null, IReadOnlyList<string>? names = null)
     {
         Id = id;
         Kind = kind;
@@ -23,6 +25,8 @@ public sealed class MenuRow
         _get = get;
         _set = set;
         _run = run;
+        _minKey = minKey;
+        _names = names;
     }
 
     /// <summary>The row's name (the setting's, or a testing row's).</summary>
@@ -50,7 +54,7 @@ public sealed class MenuRow
     public IReadOnlyList<string> ChoiceKeys { get; }
 
     /// <summary>Whether the cursor can stop on the row.</summary>
-    public bool Selectable => Kind is not (MenuRowKind.Heading or MenuRowKind.Note);
+    public bool Selectable => Kind is not (MenuRowKind.Heading or MenuRowKind.Subheading or MenuRowKind.Note);
 
     /// <summary>The value now (0 for a row that has none).</summary>
     public int Value => _get?.Invoke() ?? 0;
@@ -58,6 +62,10 @@ public sealed class MenuRow
     /// <summary>A heading.</summary>
     /// <param name="labelKey">The locale's key of its text.</param>
     public static MenuRow Heading(string labelKey) => new("heading." + labelKey, MenuRowKind.Heading, labelKey, 0, 0, 0, string.Empty, null, null, null, null);
+
+    /// <summary>A smaller heading over a group of rows inside a section (not selectable).</summary>
+    /// <param name="labelKey">The locale's key of its text.</param>
+    public static MenuRow Subheading(string labelKey) => new("subheading." + labelKey, MenuRowKind.Subheading, labelKey, 0, 0, 0, string.Empty, null, null, null, null);
 
     /// <summary>A line of text.</summary>
     /// <param name="labelKey">The locale's key of its text.</param>
@@ -71,7 +79,7 @@ public sealed class MenuRow
         ArgumentNullException.ThrowIfNull(settings);
         var spec = PlayerSettings.Spec(id);
         var kind = spec.Kind switch { SettingKind.Slider => MenuRowKind.Slider, SettingKind.Choice => MenuRowKind.Choice, _ => MenuRowKind.Toggle };
-        return new(id.ToString(), kind, spec.LabelKey, spec.Min, spec.Max, spec.Step, spec.Suffix, spec.ChoiceKeys, () => settings.Get(id), value => settings.Set(id, value), null);
+        return new(id.ToString(), kind, spec.LabelKey, spec.Min, spec.Max, spec.Step, spec.Suffix, spec.ChoiceKeys, () => settings.Get(id), value => settings.Set(id, value), null, spec.MinKey);
     }
 
     /// <summary>A toggle over something the front-end holds.</summary>
@@ -79,11 +87,49 @@ public sealed class MenuRow
     /// <param name="labelKey">The locale's key of its label.</param>
     /// <param name="get">Whether it is on.</param>
     /// <param name="set">Sets it.</param>
-    public static MenuRow Switch(string id, string labelKey, Func<bool> get, Action<bool> set)
+    /// <param name="offKey">The locale's key of the text for off (default <c>settingsOff</c>).</param>
+    /// <param name="onKey">The locale's key of the text for on (default <c>settingsOn</c>).</param>
+    public static MenuRow Switch(string id, string labelKey, Func<bool> get, Action<bool> set, string offKey = "settingsOff", string onKey = "settingsOn")
     {
         ArgumentNullException.ThrowIfNull(get);
         ArgumentNullException.ThrowIfNull(set);
-        return new(id, MenuRowKind.Toggle, labelKey, 0, 1, 1, string.Empty, ["settingsOff", "settingsOn"], () => get() ? 1 : 0, value => set(value == 1), null);
+        return new(id, MenuRowKind.Toggle, labelKey, 0, 1, 1, string.Empty, [offKey, onKey], () => get() ? 1 : 0, value => set(value == 1), null);
+    }
+
+    /// <summary>A slider over a number the front-end holds (a need's value): the value is snapped to the steps before it is set.</summary>
+    /// <param name="id">The row's name.</param>
+    /// <param name="labelKey">The locale's key of its label.</param>
+    /// <param name="min">The lowest value.</param>
+    /// <param name="max">The highest value.</param>
+    /// <param name="step">The distance one press of Left or Right moves it.</param>
+    /// <param name="get">The value now.</param>
+    /// <param name="set">Sets it.</param>
+    /// <param name="suffix">What follows the number.</param>
+    public static MenuRow Slider(string id, string labelKey, int min, int max, int step, Func<int> get, Action<int> set, string suffix = "")
+    {
+        ArgumentNullException.ThrowIfNull(get);
+        ArgumentNullException.ThrowIfNull(set);
+        var spec = new SettingSpec(default, SettingKind.Slider, min, max, step, min, labelKey, suffix);
+        return new(id, MenuRowKind.Slider, labelKey, min, max, step, suffix, null, get, value => set(spec.Snap(value)), null);
+    }
+
+    /// <summary>
+    /// A choice among names the front-end holds (the scene's points): value 0 is the first name, or, with <paramref name="noneKey"/>, "none" (its locale text) and the names follow
+    /// from 1. Left and Right cycle round.
+    /// </summary>
+    /// <param name="id">The row's name.</param>
+    /// <param name="labelKey">The locale's key of its label.</param>
+    /// <param name="names">The names, shown as they are.</param>
+    /// <param name="noneKey">The locale's key of the text for no choice, or <see langword="null"/> for a row that always names one.</param>
+    /// <param name="get">The value now.</param>
+    /// <param name="set">Sets it.</param>
+    public static MenuRow Picker(string id, string labelKey, IReadOnlyList<string> names, string? noneKey, Func<int> get, Action<int> set)
+    {
+        ArgumentNullException.ThrowIfNull(names);
+        ArgumentNullException.ThrowIfNull(get);
+        ArgumentNullException.ThrowIfNull(set);
+        var max = noneKey is null ? names.Count - 1 : names.Count;
+        return new(id, MenuRowKind.Choice, labelKey, 0, Math.Max(0, max), 1, string.Empty, null, get, set, null, noneKey, names);
     }
 
     /// <summary>A button.</summary>
@@ -150,6 +196,17 @@ public sealed class MenuRow
     /// <summary>How far along its track a slider's value is, 0 to 1.</summary>
     public double Fraction => Max == Min ? 0 : (Value - Min) / (double)(Max - Min);
 
+    private string NameOf(Func<string, string> ui)
+    {
+        var offset = _minKey is null ? 0 : 1;
+        if (_minKey is not null && Value <= 0)
+        {
+            return ui(_minKey);
+        }
+
+        return _names!.Count == 0 ? string.Empty : _names[Math.Clamp(Value - offset, 0, _names.Count - 1)];
+    }
+
     /// <summary>The text of the value: a slider's number with its suffix, a choice's or toggle's name in the locale; empty for a button, a heading or a note.</summary>
     /// <param name="ui">The locale's interface words by key.</param>
     public string ValueText(Func<string, string> ui)
@@ -157,7 +214,9 @@ public sealed class MenuRow
         ArgumentNullException.ThrowIfNull(ui);
         return Kind switch
         {
+            MenuRowKind.Slider when _minKey is not null && Value <= Min => ui(_minKey),
             MenuRowKind.Slider => Value.ToString(System.Globalization.CultureInfo.InvariantCulture) + Suffix,
+            MenuRowKind.Choice when _names is not null => NameOf(ui),
             MenuRowKind.Choice or MenuRowKind.Toggle => ui(ChoiceKeys[Math.Clamp(Value - Min, 0, ChoiceKeys.Count - 1)]),
             _ => string.Empty,
         };

@@ -36,6 +36,10 @@ public sealed class PlayerSettingsTests
     [InlineData(SettingId.FieldOfView, 200, 110)]
     [InlineData(SettingId.NeedsRate, 10, 50)]
     [InlineData(SettingId.InvertY, 5, 1)]
+    [InlineData(SettingId.ViewDistance, 0, 32)]
+    [InlineData(SettingId.ViewDistance, 47, 48)]
+    [InlineData(SettingId.ViewDistance, 100, 96)]
+    [InlineData(SettingId.ViewDistance, 9000, 576)]
     public void Given_AValueOutOfRange_When_Set_Then_ItIsLimitedAndSnappedToItsSteps(SettingId id, int asked, int expected)
     {
         var settings = new PlayerSettings();
@@ -65,6 +69,7 @@ public sealed class PlayerSettingsTests
         settings.Set(SettingId.SfxVolume, 45);
         settings.Set(SettingId.UiVolume, 5);
         settings.Set(SettingId.Quality, (int)QualityLevel.Medium);
+        settings.Set(SettingId.ViewDistance, 320);
         settings.Set(SettingId.TextSize, 1);
         settings.Set(SettingId.Blur, (int)UnderwaterBlur.High);
         settings.Set(SettingId.ViewEffects, 0);
@@ -89,8 +94,56 @@ public sealed class PlayerSettingsTests
         Assert.Null(saved.UnderwaterBlur);
         Assert.Equal(0, saved.MouseSensitivity);
         Assert.Equal(0, saved.FieldOfView);
+        Assert.Equal(0, saved.ViewDistance);
         Assert.False(saved.InvertY);
         Assert.Equal(150, saved.TextScale);
+    }
+
+    [Fact]
+    public void Given_TheDrawDistance_When_ItIsAutoOrChosen_Then_TheSaveHoldsZeroOrTheBlocks()
+    {
+        var settings = new PlayerSettings();
+        Assert.Null(settings.ViewDistance); // Auto: the quality's own distance
+        Assert.Equal(32, settings.Get(SettingId.ViewDistance));
+
+        settings.Set(SettingId.ViewDistance, 48);
+        Assert.Equal(48, settings.ViewDistance);
+        Assert.Equal(48, settings.ToSave().ViewDistance);
+
+        settings.Set(SettingId.ViewDistance, 0);
+        Assert.Null(settings.ViewDistance);
+        Assert.Equal(0, settings.ToSave().ViewDistance);
+        Assert.Null(PlayerSettings.Resolve(settings.ToSave()).ViewDistance);
+        Assert.Equal(512, PlayerSettings.Resolve(new SaveSettings(SoundVolumes.Default, 100, ViewDistance: 512)).ViewDistance);
+        Assert.Null(PlayerSettings.Resolve(new SaveSettings(SoundVolumes.Default, 100, ViewDistance: 12)).ViewDistance); // below the lowest: Auto
+    }
+
+    [Fact]
+    public void Given_TheDrawDistanceRow_When_ShownAndMoved_Then_AutoIsWrittenInWordsAndTheEndsStop()
+    {
+        var settings = new PlayerSettings();
+        var row = MenuRow.Of(settings, SettingId.ViewDistance);
+        Assert.Equal("Auto", row.ValueText(key => key == "settingsAuto" ? "Auto" : key));
+        row.Change(1);
+        Assert.Equal(48, settings.ViewDistance);
+        Assert.Equal("48", row.ValueText(key => key));
+        row.Change(-1);
+        row.Change(-1);
+        Assert.Null(settings.ViewDistance);
+        row.SetFraction(1);
+        Assert.Equal(576, settings.ViewDistance);
+    }
+
+    [Fact]
+    public void Given_TheDrawDistanceAndTheQuality_When_Either_Changes_Then_TheyAreSeparateSettings()
+    {
+        var settings = new PlayerSettings();
+        settings.Set(SettingId.ViewDistance, 160);
+        settings.Set(SettingId.Quality, (int)QualityLevel.Low);
+        Assert.Equal(160, settings.ViewDistance);
+        settings.Set(SettingId.ViewDistance, 0);
+        Assert.Equal(QualityLevel.Low, settings.Quality);
+        Assert.Null(settings.ViewDistance);
     }
 
     [Fact]
@@ -116,6 +169,30 @@ public sealed class PlayerSettingsTests
         Assert.Equal(UnderwaterBlur.Off, settings.Blur);
         Assert.Equal(2.0, settings.NeedsRate);
         Assert.Equal(80, settings.Get(SettingId.UiVolume)); // not given: the save's
+    }
+
+    [Fact]
+    public void Given_TheNewLaunchOptions_When_ResolvedOverTheSave_Then_EachWinsAndTheRestKeepTheSave()
+    {
+        var saved = new SaveSettings(new SoundVolumes(0.3, 0.8, 0.4, 0.6), 100, MouseSensitivity: 200, InvertY: true, FieldOfView: 90, ViewDistance: 160);
+        var launch = new LaunchSettings(VoiceVolume: 0.1, UiVolume: 1, ViewDistance: 100, FieldOfView: 60, MouseSensitivity: 25, InvertY: false);
+        var settings = PlayerSettings.Resolve(saved, launch);
+        Assert.Equal(10, settings.Get(SettingId.VoiceVolume));
+        Assert.Equal(100, settings.Get(SettingId.UiVolume));
+        Assert.Equal(96, settings.ViewDistance); // kept to the menu's steps
+        Assert.Equal(60, settings.FieldOfView);
+        Assert.Equal(0.25, settings.MouseSensitivity);
+        Assert.False(settings.InvertY);
+
+        var kept = PlayerSettings.Resolve(saved, new LaunchSettings());
+        Assert.Equal(30, kept.Get(SettingId.VoiceVolume));
+        Assert.Equal(160, kept.ViewDistance);
+        Assert.Equal(90, kept.FieldOfView);
+        Assert.Equal(2.0, kept.MouseSensitivity);
+        Assert.True(kept.InvertY);
+
+        Assert.True(PlayerSettings.Resolve(null, new LaunchSettings(InvertY: true)).InvertY);
+        Assert.Null(PlayerSettings.Resolve(null).ViewDistance);
     }
 
     [Fact]

@@ -10,7 +10,8 @@ namespace Vocaterra.Game.Core.Menu;
 /// <param name="LabelKey">The locale's <c>ui.&lt;key&gt;</c> that names the row.</param>
 /// <param name="Suffix">What follows a slider's number (<c>%</c>), or empty.</param>
 /// <param name="ChoiceKeys">For a choice, the locale's <c>ui.&lt;key&gt;</c> of each value from <see cref="Min"/> up (a toggle uses on and off).</param>
-public sealed record SettingSpec(SettingId Id, SettingKind Kind, int Min, int Max, int Step, int Default, string LabelKey, string Suffix = "", IReadOnlyList<string>? ChoiceKeys = null)
+/// <param name="MinKey">For a slider whose lowest value stands for "automatic" (the draw distance), the locale's <c>ui.&lt;key&gt;</c> shown in place of that number; otherwise <see langword="null"/>.</param>
+public sealed record SettingSpec(SettingId Id, SettingKind Kind, int Min, int Max, int Step, int Default, string LabelKey, string Suffix = "", IReadOnlyList<string>? ChoiceKeys = null, string? MinKey = null)
 {
     /// <summary>The value nearest to <paramref name="value"/> on this setting's steps, within its range.</summary>
     /// <param name="value">The value asked for.</param>

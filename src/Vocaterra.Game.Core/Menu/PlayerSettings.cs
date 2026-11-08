@@ -5,7 +5,7 @@ namespace Vocaterra.Game.Core.Menu;
 
 /// <summary>
 /// The player's settings as the game holds them while it runs (the menu issue): the four volumes, the graphics quality, the text size, the underwater blur, the needs' view effects,
-/// the mouse sensitivity and Invert Y, the field of view, the drive rate and the relaxed needs. The menu changes them through <see cref="Set"/>, which limits a value to its range and
+/// the mouse sensitivity and Invert Y, the field of view, the draw distance, the drive rate and the relaxed needs. The menu changes them through <see cref="Set"/>, which limits a value to its range and
 /// its steps (<see cref="Spec"/>), and <see cref="Changed"/> tells the front-end to apply the one that moved (the mixer, the canvas, the camera). They are kept in the save's settings
 /// (<see cref="ToSave"/>, <see cref="FromSave"/>); a launch option wins over the save for the run (<see cref="LaunchSettings"/>). Nothing here reaches the simulation but the drive rate
 /// and the relaxed needs, which the session already has as its settings (N05, N09).
@@ -21,6 +21,7 @@ public sealed class PlayerSettings
         new(SettingId.SfxVolume, SettingKind.Slider, 0, 100, 5, 80, "settingsSfx", "%"),
         new(SettingId.UiVolume, SettingKind.Slider, 0, 100, 5, 80, "settingsUiSounds", "%"),
         new(SettingId.Quality, SettingKind.Choice, 0, 2, 1, (int)QualityLevel.High, "settingsQuality", ChoiceKeys: ["qualityLow", "qualityMedium", "qualityHigh"]),
+        new(SettingId.ViewDistance, SettingKind.Slider, 32, 576, 16, 32, "settingsViewDistance", MinKey: "settingsAuto"),
         new(SettingId.TextSize, SettingKind.Choice, 0, 2, 1, 2, "settingsTextSize", ChoiceKeys: ["textSize100", "textSize125", "textSize150"]),
         new(SettingId.Blur, SettingKind.Choice, 0, 3, 1, (int)UnderwaterBlurSettings.Default, "settingsBlur", ChoiceKeys: ["settingsOff", "blurLow", "blurMedium", "blurHigh"]),
         new(SettingId.ViewEffects, SettingKind.Toggle, 0, 1, 1, 1, "settingsEffects", ChoiceKeys: OnOff),
@@ -64,6 +65,9 @@ public sealed class PlayerSettings
 
     /// <summary>The graphics quality.</summary>
     public QualityLevel Quality => (QualityLevel)Get(SettingId.Quality);
+
+    /// <summary>How far the world is drawn in blocks, or <see langword="null"/> for Auto (the graphics quality's own distance).</summary>
+    public int? ViewDistance => Get(SettingId.ViewDistance) <= Spec(SettingId.ViewDistance).Min ? null : Get(SettingId.ViewDistance);
 
     /// <summary>The interface text size in percent.</summary>
     public int TextPercent => TextPercents[Get(SettingId.TextSize)];
@@ -128,6 +132,7 @@ public sealed class PlayerSettings
             settings._values[(int)SettingId.SfxVolume] = Spec(SettingId.SfxVolume).Snap((int)Math.Round(clean.Sound.Sfx * 100));
             settings._values[(int)SettingId.UiVolume] = Spec(SettingId.UiVolume).Snap((int)Math.Round(clean.Sound.Ui * 100));
             settings._values[(int)SettingId.Quality] = (int)clean.EffectiveQuality;
+            settings._values[(int)SettingId.ViewDistance] = clean.EffectiveViewDistance == 0 ? Spec(SettingId.ViewDistance).Min : clean.EffectiveViewDistance;
             settings._values[(int)SettingId.TextSize] = TextPercents.ToList().IndexOf(clean.TextScale);
             settings._values[(int)SettingId.Blur] = (int)clean.EffectiveUnderwaterBlur;
             settings._values[(int)SettingId.ViewEffects] = clean.ViewEffectsOff ? 0 : 1;
@@ -148,6 +153,16 @@ public sealed class PlayerSettings
             settings._values[(int)SettingId.AmbientVolume] = Spec(SettingId.AmbientVolume).Snap(PercentOf(ambient));
         }
 
+        if (launch.VoiceVolume is { } voice)
+        {
+            settings._values[(int)SettingId.VoiceVolume] = Spec(SettingId.VoiceVolume).Snap(PercentOf(voice));
+        }
+
+        if (launch.UiVolume is { } ui)
+        {
+            settings._values[(int)SettingId.UiVolume] = Spec(SettingId.UiVolume).Snap(PercentOf(ui));
+        }
+
         if (launch.TextPercent is { } text)
         {
             settings._values[(int)SettingId.TextSize] = TextPercents.ToList().IndexOf(SaveSettings.SnapTextScale(text));
@@ -156,6 +171,26 @@ public sealed class PlayerSettings
         if (launch.Quality is { } quality)
         {
             settings._values[(int)SettingId.Quality] = (int)quality;
+        }
+
+        if (launch.ViewDistance is { } distance)
+        {
+            settings._values[(int)SettingId.ViewDistance] = Spec(SettingId.ViewDistance).Snap(distance);
+        }
+
+        if (launch.FieldOfView is { } fov)
+        {
+            settings._values[(int)SettingId.FieldOfView] = Spec(SettingId.FieldOfView).Snap(fov);
+        }
+
+        if (launch.MouseSensitivity is { } sensitivity)
+        {
+            settings._values[(int)SettingId.MouseSensitivity] = Spec(SettingId.MouseSensitivity).Snap(sensitivity);
+        }
+
+        if (launch.InvertY is { } invert)
+        {
+            settings._values[(int)SettingId.InvertY] = invert ? 1 : 0;
         }
 
         if (launch.Blur is { } blur && Enum.IsDefined(blur))
@@ -192,7 +227,8 @@ public sealed class PlayerSettings
         Quality: Quality,
         MouseSensitivity: Get(SettingId.MouseSensitivity),
         InvertY: InvertY,
-        FieldOfView: Get(SettingId.FieldOfView)).Clamped();
+        FieldOfView: Get(SettingId.FieldOfView),
+        ViewDistance: ViewDistance ?? 0).Clamped();
 
     /// <summary>The drive rate as the menu and the console write it (<c>×1.25</c>).</summary>
     /// <param name="rate">The rate.</param>

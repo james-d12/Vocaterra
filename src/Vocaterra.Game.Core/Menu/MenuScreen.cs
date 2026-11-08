@@ -361,7 +361,7 @@ public sealed class MenuScreen : IScreen
     private void KeepVisible()
     {
         var capacity = Math.Max(1, _metrics.SettingsCapacity);
-        var top = SettingsSelected > 0 && _rows[SettingsSelected - 1].Kind == MenuRowKind.Heading ? SettingsSelected - 1 : SettingsSelected;
+        var top = SettingsSelected > 0 && _rows[SettingsSelected - 1].Kind is MenuRowKind.Heading or MenuRowKind.Subheading ? SettingsSelected - 1 : SettingsSelected;
         if (top < SettingsScroll)
         {
             SettingsScroll = top;

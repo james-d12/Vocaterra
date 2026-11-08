@@ -10,11 +10,11 @@ public static class MenuText
         {
             "menuTitle", "menuResume", "menuSettings", "menuControls", "menuExit", "menuBack", "menuHint",
             "headingSound", "headingGraphics", "headingInterface", "headingMouse", "headingNeeds", "headingTesting", "headingRestart",
-            "testingNote", "restartNote", "controlsRange", "controlsOr",
+            "testingNote", "restartNote", "restartNote2", "restartNote3", "controlsRange", "controlsOr",
             "testDebug", "testNeedsRun", "testRefill", "testSoundsOff", "testVoicesMuted", "testShoulder", "testSave",
             "settingsOn", "settingsOff",
         },
-        .. PlayerSettings.All.SelectMany(static spec => spec.ChoiceKeys is null ? [spec.LabelKey] : spec.ChoiceKeys.Prepend(spec.LabelKey)),
+        .. PlayerSettings.All.SelectMany(static spec => (spec.ChoiceKeys ?? []).Prepend(spec.LabelKey).Concat(spec.MinKey is null ? [] : [spec.MinKey])),
         .. ControlsListing.UiKeys,
     ];
 }

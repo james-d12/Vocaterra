@@ -251,8 +251,9 @@ public sealed class VoxelRenderer : IDisposable
     public QualityPreset Preset { get; private set; }
 
     /// <summary>
-    /// Changes the quality preset while the game runs (the menu): the view distance, the fog, the undergrowth and the corner shading follow. Every mesh is let go, so the
-    /// next <see cref="Remesh"/> builds the view again with the new options (nearest first); the sky takes the cloud setting at its next draw.
+    /// Changes the quality preset while the game runs (the menu): the view distance, the fog, the undergrowth and the corner shading follow. When the undergrowth or the corner
+    /// shading change, every mesh is let go, so the next <see cref="Remesh"/> builds the view again with the new options (nearest first); a new distance alone keeps the meshes
+    /// (the chunks past the new distance go in the next <see cref="Remesh"/>, the new ones come in nearest first). The sky takes the cloud setting at its next draw.
     /// </summary>
     /// <param name="preset">The new preset.</param>
     public void SetPreset(QualityPreset preset)
@@ -263,11 +264,25 @@ public sealed class VoxelRenderer : IDisposable
             return;
         }
 
+        var remesh = preset.AmbientOcclusion != Preset.AmbientOcclusion || preset.PlantKeepPercent != Preset.PlantKeepPercent;
         Preset = preset;
         var fogEnd = FogEndFor(preset.ViewDistance);
         DryFog = new FogParameters(DryFog.Red, DryFog.Green, DryFog.Blue, fogEnd * FogStartFraction, fogEnd);
         _view = new ChunkViewSet(_grid, preset.ViewDistance);
         _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent, Lights, _dusk);
+        if (remesh)
+        {
+            ReleaseAllMeshes(); // the corners and the undergrowth are in the meshes: build them again
+        }
+
+        _wanted = [];
+        _checkedEdits = -1;
+        _underwaterAmount = float.NaN; // the next SetUnderwater applies the fog of the new distance
+    }
+
+    // Lets every mesh go and forgets the versions the tracker holds, so the next Remesh builds the view again, nearest first.
+    private void ReleaseAllMeshes()
+    {
         foreach (var index in _resident.ToList())
         {
             _chunks[index].Release();
@@ -278,10 +293,6 @@ public sealed class VoxelRenderer : IDisposable
         {
             _tracker.Discard(chunk.Coord);
         }
-
-        _wanted = [];
-        _checkedEdits = -1;
-        _underwaterAmount = float.NaN; // the next SetUnderwater applies the fog of the new distance
     }
 
     /// <summary>Where the fog is complete for a view distance: a little inside it, so the last chunks fade out before they are cut off.</summary>

@@ -6,6 +6,9 @@ public enum MenuRowKind
     /// <summary>A heading over the rows below it (not selectable).</summary>
     Heading,
 
+    /// <summary>A smaller heading over a group of rows inside a section (not selectable).</summary>
+    Subheading,
+
     /// <summary>A line of text (not selectable).</summary>
     Note,
 
