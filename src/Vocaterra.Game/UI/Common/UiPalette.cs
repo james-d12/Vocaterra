@@ -106,8 +106,23 @@ public static class UiPalette
     /// <summary>The ink of the paper book for a row not met yet (it was 138, 122, 102, 3.3 to 1 on the paper).</summary>
     public static Rgb InkUnseen { get; } = new(108, 92, 72);
 
-    /// <summary>The ink of the paper book's hints and notes.</summary>
-    public static Rgb InkHint { get; } = new(104, 90, 74);
+    /// <summary>
+    /// The ink of the paper book's meta text (U07, it replaces <c>InkHint</c>): counts, asides, notes, labels' counts. A cool grey, 5.25 to 1 on the paper and 4.87 to 1 on the selection:
+    /// no lightness is left between it and <see cref="InkUnseen"/> under 4.5 to 1 on the selection, so the hue tells them apart.
+    /// </summary>
+    public static Rgb InkMeta { get; } = new(96, 90, 98);
+
+    /// <summary>The band of a section that stands for what is not met yet, with white text (5.41 to 1): the other sections' bands are the page's ribbon colour.</summary>
+    public static Rgb BandMuted { get; } = new(118, 104, 84);
+
+    /// <summary>The green of a line the core understood (U07's outcome mark, 3 to 1 on the paper, a mark and not text).</summary>
+    public static Rgb MarkGood { get; } = new(44, 102, 62);
+
+    /// <summary>The amber of a line understood with a small mistake (the outcome mark).</summary>
+    public static Rgb MarkSlip { get; } = new(136, 88, 20);
+
+    /// <summary>The red of a line not understood (the outcome mark).</summary>
+    public static Rgb MarkMiss { get; } = new(150, 46, 46);
 
     /// <summary>The ink of the paper book for a row met but not learned.</summary>
     public static Rgb InkSeen { get; } = new(78, 64, 52);
@@ -166,11 +181,26 @@ public static class UiPalette
             new("book ink known", InkKnown, Paper),
             new("book ink seen", InkSeen, Paper),
             new("book ink unseen", InkUnseen, Paper),
-            new("book ink hint", InkHint, Paper),
+            new("book ink meta", InkMeta, Paper),
             new("book ink known on selection", InkKnown, PaperSelect),
-            new("book ink hint on selection", InkHint, PaperSelect),
+            new("book ink meta on selection", InkMeta, PaperSelect),
             new("book ink unseen on selection", InkUnseen, PaperSelect),
+            new("book ink on selection", Ink, PaperSelect),
+            new("book ink seen on selection", InkSeen, PaperSelect),
+            new("book band muted", RibbonLabel, new PaintedSurface(BandMuted, 255)),
+            new("book mark good", MarkGood, Paper, Large: true),
+            new("book mark slip", MarkSlip, Paper, Large: true),
+            new("book mark miss", MarkMiss, Paper, Large: true),
+            new("book mark good on selection", MarkGood, PaperSelect, Large: true),
+            new("book mark slip on selection", MarkSlip, PaperSelect, Large: true),
+            new("book mark miss on selection", MarkMiss, PaperSelect, Large: true),
         };
+        for (var i = 0; i < Ribbons.Count; i++)
+        {
+            pairs.Add(new TextPair($"book band {i}", RibbonLabel, new PaintedSurface(Ribbons[i], 255))); // the section bands wear the ribbon's colour, white text
+            pairs.Add(new TextPair($"book title {i}", Ribbons[i], Paper)); // the page's title at 32 px and the right page's labels, in the ribbon's colour on the paper
+        }
+
         return pairs;
     }
 }
