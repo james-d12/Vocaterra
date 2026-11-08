@@ -146,7 +146,7 @@ specified for later in `docs/game/content-plan.md` section 3.8 (C10); it is not 
   where it should come, a provenance item, and its text to
   `locale/en/lessons.json` (`lesson.<id>.title`, `.text`, and each step's `lesson.<id>.<step>.text`, ...). Its phrases must be rows of
   `game/phrases.json`, its lines recorded speech lines, and its `do` events world events (`WorldEvents`). A `do` step may point the beacon when it begins, at
-  a catalogue noun's nearest block (`point`) or at a named place of the scene (`pointPlace`, V02; one of the two); a walk to a place waits for its arrival:
+  a word (`point`: the labelled place of the scene that shows it, nearest first, else the catalogue noun's nearest block, #43) or at a named place of the scene (`pointPlace`, V02; one of the two); a walk to a place waits for its arrival:
   `{ "type": "do", "pointPlace": "stall", "trigger": { "event": "beacon_reached", "detail": "stall" } }`.
 - **A lesson's level.** Every lesson declares the level it keeps to, `"level": "a1"` or `"a2"` (schema 2, village-plan 3.9 and V08; sessions 1
   to 6 are `a1`). The bundle's ceiling is A2 (the gate's lint), and the game's validator (`--validate-content`, in `refresh` and the gate)
@@ -231,7 +231,8 @@ specified for later in `docs/game/content-plan.md` section 3.8 (C10); it is not 
   it and its steps count nothing). A checklist has a `title` (target language) and steps that name a catalogue `noun`; its gloss is
   `objective.<id>.title` in `locale/en/ui.json`, and each step's label is the noun's lemma for a mass noun or a target of 1, otherwise its plural (a
   `label` overrides it). Another objective is shown by one line, `objective.<id>.hud`. Each step counts the world events its `trigger` matches, up to
-  its `target`. What the data cannot say is a named hook the code implements: `onComplete` (`guide-met`, `spare-torch`, `point-own-camp`) and a step's
+  its `target`; a step whose trigger is a pickup of a noun (`item_picked_up` with a `detail`) counts the noun's items in the bag instead, so
+  crafting, eating, giving or dropping them takes it back until the objective is done (#32). What the data cannot say is a named hook the code implements: `onComplete` (`guide-met`, `spare-torch`, `point-own-camp`) and a step's
   `restore` (`lesson-begun`, `scan-fire-ring`), which works the step out again from a loaded world, so the save does not keep it. `alsoDoneBy` lists
   objectives whose progress completes this one. The validator refuses an unknown hook. A save keys a step `<objective>.<step>`, so renaming one
   drops its count from older saves. The session's ending (S17's closing moment) waits for the objectives with no `session` that are not orders.

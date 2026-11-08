@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Vocaterra.Game.Core.Event;
+using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Save;
@@ -120,6 +121,8 @@ public sealed class SessionLogTests
     public void TheEndOfASessionBegunByASleepCountsOnlyItsOwnEvents()
     {
         var game = RouteScene.NewSessionWithShippedLessons(TestGame.Bundle, TestGame.Nouns, CreditRules.Default);
+        _ = game.Simulation.GrantItems(ItemId.Wood, 5); // the camp counts the wood and the fruit in the bag (#32)
+        _ = game.Simulation.GrantItems(ItemId.Berry, 3);
         foreach (var (name, detail, times) in new[] { (WorldEvents.ItemPickedUp, "madera", 5), (WorldEvents.ItemPickedUp, "fruta", 3), (WorldEvents.TorchAtRing, "firering", 1), (WorldEvents.BottleFilled, (string?)null, 1) })
         {
             for (var i = 0; i < times; i++)
