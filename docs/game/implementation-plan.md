@@ -411,9 +411,11 @@ the panel or the book will change; re-record them and say which in the report.
 | ID | What | Depends on | Size | Model | Status |
 | --- | --- | --- | --- | --- | --- |
 | U05 | The NPC's name as the panel's title (#6): the name at 32 px, the lesson heading moved off its line, the "Guía: " prefix dropped from the NPC's lines; 16 px in the compact panel | | S | Sonnet 5.5 medium | done (2026-11-08, gated at `1f56f6b9`, 10402 passed) |
-| U06 | The panel scrolls (#5, step 1): the mouse wheel opens and scrolls the older lines, a scrollbar while lines are out of view, one page per NPC | U05 | S/M | Sonnet 5.5 medium | planned |
-| U07 | The book's hierarchy (#7): line kinds, a type and ink scale, one row per entry with the details on the right page, each page's layout; a mockup for the owner first | | M/L | Sonnet 5.5 high | planned |
+| U06 | The panel scrolls (#5, step 1): the mouse wheel opens and scrolls the older lines, a scrollbar while lines are out of view, one page per NPC | U05 | S/M | Sonnet 5.5 medium | in progress (2026-11-08, branch `U06-panel-scroll`, brief `.claude/briefs/u06-panel-scroll.md`) |
+| U07 | The book's hierarchy (#7): line kinds, a type and ink scale, one row per entry with the details on the right page, each page's layout; a mockup for the owner first | | M/L | Sonnet 5.5 high | mockup in progress (2026-11-08, brief `.claude/briefs/u07-book-mockup.md`; the build waits for the owner's review) |
 | U08 | The conversation history kept in the save (#5, step 2): each NPC's lines saved, capped per NPC, shown again after a restart | U06 | M | Sonnet 5.5 medium | planned |
+
+**One branch and one pull request** (owner, 2026-11-08): U05 to U08 all land on `feature/ui-issues` and in PR #47, which closes #5, #6 and #7.
 
 **Order:** U05, U06, then U07 (its mockup can start at once, it touches other files), then U08.
 
