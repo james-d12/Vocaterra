@@ -213,6 +213,27 @@ public class SlotGrammarTests
     }
 
     [Fact]
+    public void AGrammarIsSearchedOnceOverTheFactsOfOneAnalysisWhateverTheNumberOfAsks()
+    {
+        // M85: the resolver reads one analysis under many prompts (the lint's confusion check, once per pair of intents), each time over the whole catalog; the match
+        // of a grammar over the facts is the same each time, so it is worked out once and the same object is given back.
+        var bundle = Vocaterra.Nlp.Pipeline.Tests.TestSupport.Bundle;
+        var analyzer = new Vocaterra.Nlp.Language.Analysis.LinguisticAnalyzer(bundle.Lexicon, bundle.LanguageMorphology, bundle.Language, bundle.AnalysisRules);
+        var tokens = analyzer.Analyze(bundle.Language.Normalizer.Normalize("yo quiero dos espadas"), []).Tokens;
+        var facts = TokenFacts.Of(tokens, bundle.Language, bundle.AnalysisRules);
+        var matched = 0;
+        foreach (var grammar in bundle.Intents.Grammars)
+        {
+            var first = SlotGrammarMatcher.Match(facts, grammar);
+            Assert.Same(first, SlotGrammarMatcher.Match(facts, grammar));
+            Assert.Equal(SlotGrammarMatcher.SearchOnly(facts, grammar)?.ExplicitTokenCount, first?.ExplicitTokenCount);
+            matched += first is null ? 0 : 1;
+        }
+
+        Assert.True(matched > 0, "No grammar of the bundle matched the line; the check proves nothing.");
+    }
+
+    [Fact]
     public void VerbTokenMatchesAnyFormOfTheLemma()
     {
         const string pattern = "[VERB:comprar:action] [ART]? [NOUN:item]";

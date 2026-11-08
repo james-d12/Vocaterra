@@ -69,6 +69,10 @@ public sealed class IntentResolver
     private readonly IntentResolverOptions _options;
     private readonly Lazy<Dictionary<string, double[][]>> _exampleVectors;
 
+    // The catalog's grammars that can match the tokens of one analysis (TokenFacts.CanMatch), in catalog order, worked out once per analysis: a grammar that cannot match
+    // never takes a line, so the grammar rung visits only these. The entries go with their facts.
+    private readonly System.Runtime.CompilerServices.ConditionalWeakTable<TokenFacts, (IntentDefinition Intent, SlotGrammar Grammar)[]> _plausible = new();
+
     /// <summary>
     /// Creates a resolver for the language of the pack (the bundle's <c>Language</c>): examples are normalized and the slot grammars matched with it. Without
     /// an embedding model the third rung is skipped. Example vectors are computed on first use.
@@ -161,6 +165,29 @@ public sealed class IntentResolver
         return map;
     }
 
+    private (IntentDefinition Intent, SlotGrammar Grammar)[] PlausibleGrammars(TokenFacts facts)
+    {
+        if (!_plausible.TryGetValue(facts, out var found))
+        {
+            var list = new List<(IntentDefinition, SlotGrammar)>();
+            foreach (var intent in _catalog.Intents)
+            {
+                foreach (var grammar in intent.Grammars)
+                {
+                    if (facts.CanMatch(grammar))
+                    {
+                        list.Add((intent, grammar));
+                    }
+                }
+            }
+
+            found = [.. list];
+            _plausible.AddOrUpdate(facts, found);
+        }
+
+        return found;
+    }
+
     private List<IntentDefinition> Candidates(PromptSpec prompt)
     {
         var allowed = prompt.AllowedIntentIds;
@@ -210,9 +237,9 @@ public sealed class IntentResolver
             }
         }
 
-        foreach (var intent in candidates)
+        foreach (var (intent, grammar) in PlausibleGrammars(facts))
         {
-            foreach (var grammar in intent.Grammars)
+            if (candidates.Contains(intent))
             {
                 best = Better(best, intent, grammar, facts) ?? best;
             }
@@ -239,14 +266,12 @@ public sealed class IntentResolver
             // The trailing polite phrase every grammar allows binds to literal words too (M83), which the grammar's own bounds do not count.
             var polite = _language.GrammarDefaults.TrailingPoliteWords.Count;
             var any = false;
-            foreach (var intent in _catalog.Intents)
+            // A grammar that cannot match the tokens can never replace the allowed reading, so only those that can are looked at.
+            foreach (var (intent, grammar) in PlausibleGrammars(facts))
             {
                 if (!candidates.Contains(intent))
                 {
-                    foreach (var grammar in intent.Grammars)
-                    {
-                        any |= allowed.Score.CanBeBeatenBy(grammar, tokens, polite) && Math.Min(grammar.MaxNamedTokens + polite, tokens) > allowed.Score.Named;
-                    }
+                    any |= allowed.Score.CanBeBeatenBy(grammar, tokens, polite) && Math.Min(grammar.MaxNamedTokens + polite, tokens) > allowed.Score.Named;
                 }
             }
 
@@ -257,14 +282,11 @@ public sealed class IntentResolver
         }
 
         var best = allowed;
-        foreach (var intent in _catalog.Intents)
+        foreach (var (intent, grammar) in PlausibleGrammars(facts))
         {
             if (!candidates.Contains(intent))
             {
-                foreach (var grammar in intent.Grammars)
-                {
-                    best = Better(best, intent, grammar, facts) ?? best;
-                }
+                best = Better(best, intent, grammar, facts) ?? best;
             }
         }
 

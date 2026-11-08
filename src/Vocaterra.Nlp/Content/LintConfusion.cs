@@ -16,14 +16,15 @@ internal static class LintConfusion
             foreach (var example in owner.ExampleSpecs)
             {
                 var tokens = context.Evaluate(example.Text, context.Only(owner.Id.Value)).Analysis.Tokens;
-                foreach (var other in intents)
-                {
-                    if (ReferenceEquals(owner, other))
-                    {
-                        continue;
-                    }
 
-                    CheckPair(context, owner, other, example.Text, tokens, pairErrors);
+                // Two passes over the rivals, not one: the matcher keeps the facts of the last token list it was asked about under one set of analysis rules, and the
+                // matches below use the pack's default rules while the resolver uses the bundle's, so alternating them worked the facts of the same tokens out twice
+                // per pair (M85).
+                var rivals = intents.Where(other => !ReferenceEquals(owner, other)).ToList();
+                var matches = rivals.Select(other => BestMatch(context, other, tokens)).ToList();
+                for (var i = 0; i < rivals.Count; i++)
+                {
+                    CheckPair(context, owner, rivals[i], example.Text, matches[i], pairErrors);
                 }
             }
         }
@@ -31,13 +32,7 @@ internal static class LintConfusion
         CheckPrompts(context, pairErrors);
     }
 
-    private static void CheckPair(
-        LintContext context,
-        IntentDefinition owner,
-        IntentDefinition other,
-        string text,
-        IReadOnlyList<AnalyzedToken> tokens,
-        HashSet<(string Owner, string Taken)> pairErrors)
+    private static SlotGrammarMatch? BestMatch(LintContext context, IntentDefinition other, IReadOnlyList<AnalyzedToken> tokens)
     {
         SlotGrammarMatch? best = null;
         foreach (var grammar in other.Grammars)
@@ -49,6 +44,17 @@ internal static class LintConfusion
             }
         }
 
+        return best;
+    }
+
+    private static void CheckPair(
+        LintContext context,
+        IntentDefinition owner,
+        IntentDefinition other,
+        string text,
+        SlotGrammarMatch? best,
+        HashSet<(string Owner, string Taken)> pairErrors)
+    {
         var resolved = context.Evaluate(text, context.Only(owner.Id.Value, other.Id.Value)).Resolution;
         var resolvesToOwner = string.Equals(resolved.Intent.Value, owner.Id.Value, StringComparison.Ordinal);
         // An example that nothing resolves is reported once, by the coverage check; here only a rival intent matters.

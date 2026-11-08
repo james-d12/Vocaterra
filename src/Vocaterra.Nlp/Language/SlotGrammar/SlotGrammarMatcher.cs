@@ -102,7 +102,7 @@ public static class SlotGrammarMatcher
     }
 
     /// <summary>The same match over tokens whose facts are known (M74): a caller that matches many grammars over one analysis computes them once.</summary>
-    internal static SlotGrammarMatch? Match(TokenFacts facts, SlotGrammar grammar) => facts.CanMatch(grammar) ? SearchOnly(facts, grammar) : null;
+    internal static SlotGrammarMatch? Match(TokenFacts facts, SlotGrammar grammar) => facts.Matched(grammar);
 
     /// <summary>The search for the best parse alone, without the check of <see cref="TokenFacts.CanMatch"/> first (a test compares the two).</summary>
     internal static SlotGrammarMatch? SearchOnly(TokenFacts facts, SlotGrammar grammar)
@@ -427,6 +427,24 @@ internal sealed class TokenFacts
         var facts = new TokenFacts(tokens, language, rules, new TypedMatching(language.Folding, rules));
         Known.AddOrUpdate(tokens, facts);
         return facts;
+    }
+
+    // The matches worked out over these tokens, by grammar object: the resolver asks about the same grammars again for every prompt it reads one analysis under.
+    private readonly Dictionary<SlotGrammar, SlotGrammarMatch?> _matched = new(ReferenceEqualityComparer.Instance);
+
+    /// <summary>The best match of the grammar over the tokens, or null; worked out once per grammar (the search is a function of the facts and the grammar).</summary>
+    public SlotGrammarMatch? Matched(SlotGrammar grammar)
+    {
+        lock (_matched)
+        {
+            if (!_matched.TryGetValue(grammar, out var match))
+            {
+                match = CanMatch(grammar) ? SlotGrammarMatcher.SearchOnly(this, grammar) : null;
+                _matched.Add(grammar, match);
+            }
+
+            return match;
+        }
     }
 
     /// <summary>False when the grammar cannot match the tokens (see the summary); true does not mean it does.</summary>
