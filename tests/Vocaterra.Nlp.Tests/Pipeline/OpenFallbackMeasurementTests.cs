@@ -38,7 +38,7 @@ public sealed class VoskAndKokoroFactAttribute : FactAttribute
 /// the pipeline with <see cref="PipelineOptions.OpenRecognitionFallback"/> on and off decodes them with Vosk, and the test asserts the invariants and prints
 /// what the second pass reaches, what it understands, what it takes that it should not, and what it costs. The audio is rendered the way the other model-gated
 /// corpora are (Kokoro behind <see cref="CachedSynthesizer"/> over a folder of WAV files under the user's cache, <c>~/.cache/vocaterra/tts</c>; nothing of it is
-/// part of the repository); only the first run speaks every line.
+/// part of the repository); only the first run speaks every line. This test is M80's (the pipeline with the M84 trigger off); the other part of the class is M84's.
 /// </summary>
 [Collection(NativeRuntimeCollection.Name)]
 public sealed partial class OpenFallbackMeasurementTests(ITestOutputHelper output)
@@ -54,7 +54,6 @@ public sealed partial class OpenFallbackMeasurementTests(ITestOutputHelper outpu
         "me gusta el río", "tengo dos manzanas", "el río es grande", "hoy hace calor", "hoy llueve mucho", "¿cómo estás?", "usted hace hachas muy buenas", "dónde está la panadería",
         "mañana voy a comprar pan", "tengo un hacha", "gracias por todo", "hola buenos días", "quiero dos panes por favor", "voy al río con mi hermano",
         "la tienda está en el pueblo", "el gato duerme", "el perro come queso", "la luna brilla", "ayer llovió mucho", "mi hermano vive en Madrid", "dos más dos son cuatro", "ese libro es muy interesante",
-        "el pan es muy bueno", "el cielo es azul", "la casa es grande", "me gusta la música", "mi madre cocina bien", "hoy hace sol",
         "mañana voy a comprar pan en la panadería del pueblo con mi hermano y con mi madre", "ayer mi hermano y yo caminamos por el río hasta la casa del herrero",
     ];
 
@@ -84,8 +83,8 @@ public sealed partial class OpenFallbackMeasurementTests(ITestOutputHelper outpu
         var services = new PipelineServices(recognizer, null, null, null, bundle);
         var off = new UtterancePipeline(services, options);
         // The shipped floor (0.5 on the weakest word of the free pass), and the same pipeline with the floor switched off, to report what the floor removes.
-        var on = new UtterancePipeline(services, options with { OpenRecognitionFallback = true });
-        var unfloored = new UtterancePipeline(services, options with { OpenRecognitionFallback = true, OpenPassWordFloor = 0.0 });
+        var on = new UtterancePipeline(services, options with { OpenRecognitionFallback = true, OpenPassOnLooseMatch = false, OpenPassMinCoverage = 0.0 });
+        var unfloored = new UtterancePipeline(services, options with { OpenRecognitionFallback = true, OpenPassWordFloor = 0.0, OpenPassOnLooseMatch = false, OpenPassMinCoverage = 0.0 });
 
         var results = new List<Measured>(cases.Count);
         var withoutFloor = new List<Measured>(cases.Count);
@@ -452,6 +451,9 @@ public sealed partial class OpenFallbackMeasurementTests(ITestOutputHelper outpu
 
         public List<(RecognitionMode Mode, double Seconds, double Milliseconds)> Decodes { get; } = [];
 
+        // The time of the free decode of each clip (by hash), as measured the one time it was decoded.
+        public Dictionary<string, double> OpenMilliseconds { get; } = new(StringComparer.Ordinal);
+
         public IReadOnlyList<RecognitionRequest> CaseRequests => _caseRequests;
 
         public void StartCase()
@@ -471,6 +473,11 @@ public sealed partial class OpenFallbackMeasurementTests(ITestOutputHelper outpu
 
             var (result, milliseconds) = BenchRunner.TimedRecognize(inner, clip, request);
             Decodes.Add((request.Mode, clip.Samples.Length / (double)clip.SampleRate, milliseconds));
+            if (request.Mode == RecognitionMode.Open)
+            {
+                OpenMilliseconds[clip.ClipHash] = milliseconds;
+            }
+
             _memo[key] = result;
             return result;
         }
