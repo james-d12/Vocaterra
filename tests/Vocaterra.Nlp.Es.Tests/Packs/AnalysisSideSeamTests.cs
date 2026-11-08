@@ -65,6 +65,8 @@ public class AnalysisSideSeamTests
 
         public LexiconProfile LexiconProfile => Profile ?? Spanish.LexiconProfile;
 
+        public IOrthographyNotes Orthography => Spanish.Orthography;
+
         public ErrorTagSet ErrorTags => Tags ?? Spanish.ErrorTags;
 
         public IMorphology CreateMorphology(Lex lexicon) => Morphology is null ? Spanish.CreateMorphology(lexicon) : Morphology(lexicon);
