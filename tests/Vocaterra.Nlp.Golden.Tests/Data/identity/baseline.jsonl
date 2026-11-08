@@ -6370,7 +6370,7 @@
 {"id":"dialogue:baker_none_offered.1","stages":{"render":"d8b773a96530268a"}}
 {"id":"dialogue:baker_offer_bake.1","stages":{"render":"91ac4f865b1c83fe"}}
 {"id":"dialogue:baker_price.1","stages":{"render":"bba7ea0cd2b25a11"}}
-{"id":"dialogue:baker_receive.1","stages":{"render":"01c82626b162007c"}}
+{"id":"dialogue:baker_receive.1","stages":{"render":"2b08c8ca371333f4"}}
 {"id":"dialogue:baker_receive_help.1","stages":{"render":"da75aef628a264fd"}}
 {"id":"dialogue:baker_sell.1","stages":{"render":"ac6dbd6eb0f26fcf"}}
 {"id":"dialogue:baker_sell.2","stages":{"render":"c64cc322d01c8dc0"}}
@@ -6405,7 +6405,7 @@
 {"id":"dialogue:farmer_none_offered.1","stages":{"render":"000894f71bdb78ab"}}
 {"id":"dialogue:farmer_pay.1","stages":{"render":"8ddad20e72818c82"}}
 {"id":"dialogue:farmer_price.1","stages":{"render":"6b4b5ca250311a9c"}}
-{"id":"dialogue:farmer_receive.1","stages":{"render":"01c82626b162007c"}}
+{"id":"dialogue:farmer_receive.1","stages":{"render":"2b08c8ca371333f4"}}
 {"id":"dialogue:farmer_receive_help.1","stages":{"render":"a7ec06be8845f925"}}
 {"id":"dialogue:farmer_sell.1","stages":{"render":"8bac32291ec51509"}}
 {"id":"dialogue:farmer_sell.2","stages":{"render":"c6abd2847fb56044"}}
@@ -6447,7 +6447,7 @@
 {"id":"dialogue:fisher_nice.1","stages":{"render":"4ade6819164f7ba9"}}
 {"id":"dialogue:fisher_point.1","stages":{"render":"054731669e121257"}}
 {"id":"dialogue:fisher_point.2","stages":{"render":"916681fbb8b263a7"}}
-{"id":"dialogue:fisher_receive.1","stages":{"render":"01c82626b162007c"}}
+{"id":"dialogue:fisher_receive.1","stages":{"render":"2b08c8ca371333f4"}}
 {"id":"dialogue:fisher_receive_help.1","stages":{"render":"75c8b7f2ec69ac17"}}
 {"id":"dialogue:fisher_sun.1","stages":{"render":"a931165fb9761165"}}
 {"id":"dialogue:fisher_thank.1","stages":{"render":"267bead7d57632ce"}}
@@ -6737,7 +6737,7 @@
 {"id":"dialogue:smith_none_offered.1","stages":{"render":"d8b773a96530268a"}}
 {"id":"dialogue:smith_offer.1","stages":{"render":"182fe26a7b978365"}}
 {"id":"dialogue:smith_ok.1","stages":{"render":"d94adc0aee5eca7b"}}
-{"id":"dialogue:smith_receive.1","stages":{"render":"01c82626b162007c"}}
+{"id":"dialogue:smith_receive.1","stages":{"render":"2b08c8ca371333f4"}}
 {"id":"dialogue:smith_receive_help.1","stages":{"render":"d22c8096382e6e96"}}
 {"id":"dialogue:smith_sun.1","stages":{"render":"a931165fb9761165"}}
 {"id":"dialogue:smith_thank.1","stages":{"render":"267bead7d57632ce"}}
