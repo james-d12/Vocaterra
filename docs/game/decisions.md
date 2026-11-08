@@ -593,7 +593,8 @@ bread pilot met on `feature/bread-pilot`):
 **The cliff at the lake, from H11 (owner, 2026-11-08: "Fix the lake bank"):** the sand bank at (212, 262) stood 2 blocks above a
 1-block-deep shelf, too shallow to swim, so no player could climb out there (a wading jump rises about 1.3 blocks; the hop-out needs
 swimming; `.claude/briefs/h11-report.md`, item 5). The bank is fixed in the world, not in the swim rules: every water edge a player can
-reach is left by walking, a step or the hop-out. H12 builds it (`docs/game/water-plan.md`).
+reach is left by walking, a step or the hop-out. Built by H12 (2026-11-08, `docs/game/water-plan.md`): 582 such edges, every shore's rim, now a step
+over the shallow bed; the swim rules unchanged.
 
 ## Already decided
 

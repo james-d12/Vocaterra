@@ -2507,6 +2507,15 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   2 blocks above a shelf too shallow to swim; no body can climb out there (a climbable bank works); the cliff is open in D-game-26. Seen:
   "your things wait where you fell" shows with an empty bag too, as for every death. Scripted runs all 27 the same. The owner's water
   decisions are D-game-26. Report `.claude/briefs/h11-report.md`.
+- **H12, the lake bank (2026-11-08, Sonnet 5.5 medium; gated at `95249425` on `feature/bread-pilot`, 10395 passed, 3 skipped, with
+  M85).** The owner: "Fix the lake bank" (D-game-26). Not one bank: every shore had a rim of one-block-deep water, too shallow to swim,
+  under a bank 2 blocks over the bed, so a player could leave no water body but by a path. A scan with the body's own numbers found 582
+  such edges (the whole lake rim, about 275 river columns, the waterfall pool's rim, the bridge landings; no pond). `TerrainGenerator`:
+  `BankHeight` starts each bank at the water's level; `BankBesideWater` brings each dry column beside shallow water to at most 1 over its
+  bed (paths and faces over 4 kept, water never spills). Water cells, spawn, NPCs, props and paths identical; 3514 columns (2.4%) moved;
+  the scene digest is `b699324f…`, save fixtures' state digests re-recorded. `WaterEdgesAreExitableTests` holds the world at 0 edges
+  (exempt: bridge floors, the river staircase's two steps). Scripted runs: 13 differ, all from the world (digests, a teleport landing 1
+  lower, r27's walk 38 turns instead of 36 at the same tick); new run `r31-lake`. Report `.claude/briefs/h12-report.md`.
 
 ## 6. Definition of done (every milestone)
 
