@@ -120,7 +120,7 @@
 {"id":"m26b-0017","stages":{"normalize":"f065896f772bdddf","analyze":"381017ad1b3c12d4","match":"4fa750f0bc0a6454","grade":"b6c211c58c0d78b5","pipeline":"f7954feed5a5abad","recast":"aa43df31f6a132d7","g2p":"943251d009eb1de0"}}
 {"id":"m26b-0018","stages":{"normalize":"9b14f897a41e10ad","analyze":"142ea492eeb07b89","match":"6b81134d9cd307bf","grade":"440f6a1e597fe08e","pipeline":"2c4e59807dee1f8b","recast":"1b3669a159120c5c","g2p":"ff19c64ebc59e05a"}}
 {"id":"m26b-0019","stages":{"normalize":"96205dd5e4fd34cc","analyze":"c5c7aecd00d8767b","match":"8aa2275b6eb86ece","grade":"b6c211c58c0d78b5","pipeline":"63d8f6a3bbd37b52","recast":"76284d686fb949c9","g2p":"4fceb67d13382082"}}
-{"id":"m26b-0020","stages":{"normalize":"c247a01966f6e59c","analyze":"4c2d8e57c354d0be","match":"b10a067211224e0c","grade":"3709259698da7234","pipeline":"1c65958378f0a0bc","recast":"92a7d44823fefae1","g2p":"5c24ad875745dbdf"}}
+{"id":"m26b-0020","stages":{"normalize":"c247a01966f6e59c","analyze":"4c2d8e57c354d0be","match":"b10a067211224e0c","grade":"3709259698da7234","pipeline":"58c6dd361d251087","recast":"92a7d44823fefae1","g2p":"5c24ad875745dbdf"}}
 {"id":"m26b-0021","stages":{"normalize":"e24d62006f01a740","analyze":"e8dab65852b8dfbd","match":"c12c7b262876e9af","grade":"967a82d154034b0b","pipeline":"551e64a44ad81794","recast":"48860cb65edee4a2","g2p":"f1ac319a2de2e29c"}}
 {"id":"m26b-0022","stages":{"normalize":"0da25b051eb3f4f1","analyze":"472be8468055ffc8","match":"b10a067211224e0c","grade":"b95306d4439e079f","pipeline":"668b2db8ad0674e8","recast":"6e963fda6467bc25","g2p":"7fb8332156053c0c"}}
 {"id":"m26b-0023","stages":{"normalize":"a5e508600f464bad","analyze":"76a1f3c1edac3e2c","match":"d50fdb4b83afeb2d","grade":"b95306d4439e079f","pipeline":"42c9f9b24f308126","recast":"2d00f8e8ca35ab45","g2p":"623231a04b0b256f"}}
@@ -463,7 +463,7 @@
 {"id":"g2p-golden-0008","stages":{"normalize":"738f47febeb6189e","analyze":"fb60e967a70c5387","match":"d50fdb4b83afeb2d","grade":"440f6a1e597fe08e","pipeline":"4703b4d4e4433153","recast":"f9ddc4424a28b860","g2p":"afab8c906359eee7"}}
 {"id":"g2p-golden-0009","stages":{"normalize":"ac0c0e1ff9cd67a5","analyze":"09850c048e39de2f","match":"45dfdc08ff30c57a","grade":"a1643bdf102aedc1","pipeline":"4ca3e2361f971db2","recast":"c1d22457306a364e","g2p":"1688d4683a3bbf91"}}
 {"id":"g2p-golden-0010","stages":{"normalize":"1dc8abd755e4d47f","analyze":"483bbcc9b2ceb327","match":"543cefd20bbed651","grade":"440f6a1e597fe08e","pipeline":"a7ce90a7f6072da1","recast":"914221d788b0780d","g2p":"199b6349f781faad"}}
-{"id":"g2p-golden-0011","stages":{"normalize":"b80afe5776be5e2b","analyze":"032cdf5376a47cd9","match":"b10a067211224e0c","grade":"3709259698da7234","pipeline":"5e5cb6289dfb7913","recast":"5507d5690aa1126b","g2p":"3902ebafd1769329"}}
+{"id":"g2p-golden-0011","stages":{"normalize":"b80afe5776be5e2b","analyze":"032cdf5376a47cd9","match":"b10a067211224e0c","grade":"3709259698da7234","pipeline":"862522f71773a2cf","recast":"5507d5690aa1126b","g2p":"3902ebafd1769329"}}
 {"id":"g2p-golden-0012","stages":{"normalize":"683926947c767775","analyze":"7516b9c3b9e4828f","match":"8aa2275b6eb86ece","grade":"88f70b48dfc3b0ae","pipeline":"7a3e5281233b4889","recast":"409fbe6a306cc2a7","g2p":"65c0e42170173794"}}
 {"id":"g2p-golden-0013","stages":{"normalize":"8c5ea0b28a218005","analyze":"0022d3405059c844","match":"45dfdc08ff30c57a","grade":"88f70b48dfc3b0ae","pipeline":"2d1c98ad3df06588","recast":"0d0e1521d4712874","g2p":"42ea8dff0b125713"}}
 {"id":"g2p-golden-0014","stages":{"normalize":"e8b6a98cf9a87179","analyze":"4cc54a0d1a2edefd","match":"b10a067211224e0c","grade":"d9c21afe788ab7ce","pipeline":"756236559501dde8","recast":"9de1622d7c1c44a0","g2p":"16ac59a227a22592"}}
@@ -1249,7 +1249,7 @@
 {"id":"g2p-golden-0794","stages":{"normalize":"a2345c143f1dc551","analyze":"b2e5bf772543d9a9","match":"48bef443b5c8d99e","grade":"6400478b3c866abb","pipeline":"f044cef4fa3dd201","recast":"26e245f92f7a35d4","g2p":"4d0d90e7028b5524"}}
 {"id":"g2p-golden-0795","stages":{"normalize":"dc80e610da432f58","analyze":"f85e893f5d0d1f0a","match":"609d3121aea74d52","grade":"a66b97724663b10c","pipeline":"470d8bbf8ba85010","recast":"6810fc94d42b1e1e","g2p":"c57dbb22e4cbdaf4"}}
 {"id":"g2p-golden-0796","stages":{"normalize":"b670cd4e9b84a649","analyze":"08b3c9d4d0a01ba5","match":"609d3121aea74d52","grade":"440f6a1e597fe08e","pipeline":"ac54c125baf75593","recast":"9db8eab501917283","g2p":"eb357f0cb876d942"}}
-{"id":"g2p-golden-0797","stages":{"normalize":"7d321576e9918f09","analyze":"9fe81c69c939254c","match":"d50fdb4b83afeb2d","grade":"3709259698da7234","pipeline":"dcc16f0a38224582","recast":"3565e861b4016049","g2p":"29a54ca7b57d3304"}}
+{"id":"g2p-golden-0797","stages":{"normalize":"7d321576e9918f09","analyze":"9fe81c69c939254c","match":"d50fdb4b83afeb2d","grade":"3709259698da7234","pipeline":"1ea5ca976b37c816","recast":"3565e861b4016049","g2p":"29a54ca7b57d3304"}}
 {"id":"g2p-golden-0798","stages":{"normalize":"cb68ac04a773d3eb","analyze":"530d16eeb2dd3380","match":"2c01817ab5afc264","grade":"95426508aff90cee","pipeline":"7a6fee7f42db20b7","recast":"e20b5e4e45f8b261","g2p":"04577fe4ed3a9fe6"}}
 {"id":"g2p-golden-0799","stages":{"normalize":"2e406f30bbcff698","analyze":"9bbc99cbc4fd8837","match":"48bef443b5c8d99e","grade":"95426508aff90cee","pipeline":"a9bcbe80b45e2d0a","recast":"58133f8a0e600653","g2p":"bdc056c2a890e775"}}
 {"id":"g2p-golden-0800","stages":{"normalize":"66f96087b740bc6f","analyze":"a6acecd74a763345","match":"6b81134d9cd307bf","grade":"d9c21afe788ab7ce","pipeline":"66e8d355dbcdb169","recast":"cd0e7da9f7bd2e69","g2p":"d27b8d88b951e465"}}
@@ -6631,6 +6631,7 @@
 {"id":"dialogue:guide.review.ask.2","stages":{"render":"c1329fa96bcd2e27"}}
 {"id":"dialogue:guide.review.ask.3","stages":{"render":"16564807625dffd6"}}
 {"id":"dialogue:guide.review.phrase.donde_esta_el_rio.1","stages":{"render":"cdeef36869890fc0"}}
+{"id":"dialogue:guide.review.phrase.muy_bien.1","stages":{"render":"e730a1d8339fa29a"}}
 {"id":"dialogue:guide.review.phrase.no_gracias.1","stages":{"render":"521370ebcb2133b9"}}
 {"id":"dialogue:guide.review.phrase.pedir_agua.1","stages":{"render":"6ff24d0780505b4c"}}
 {"id":"dialogue:guide.review.phrase.si_por_favor.1","stages":{"render":"521370ebcb2133b9"}}
@@ -6758,6 +6759,6 @@
 {"id":"dialogue:villager_understood.1","stages":{"render":"db486e3c87136975"}}
 {"id":"dialogue:villager_unknown_place.1","stages":{"render":"44ce05c222d5ccbb"}}
 {"id":"dialogue:villager_weather.1","stages":{"render":"8707b5db12465ff9"}}
-{"id":"dialogue:villager_well.1","stages":{"render":"897d500155bb0852"}}
+{"id":"dialogue:villager_well.1","stages":{"render":"6003e56069a66ecd"}}
 {"id":"dialogue:villager_wont_sell.1","stages":{"render":"48b9a6c119d55ca0"}}
 {"id":"dialogue:villager_yes.1","stages":{"render":"b075610fe2c4cccd"}}
