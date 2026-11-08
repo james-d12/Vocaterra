@@ -71,6 +71,7 @@
         { "on": {"intent": "state_action", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_nice", "variantPoolId": "baker_nice" }] },
         { "on": {"intent": "thank", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_thank", "variantPoolId": "baker_thank" }] },
         { "on": {"intent": "farewell", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_bye", "variantPoolId": "baker_bye" }] },
+        { "on": {"intent": "state_wellbeing", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_nice", "variantPoolId": "baker_nice" }] },
         { "on": {"communicated": false}, "to": "idle", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
       ],
       "fallback": {
@@ -99,6 +100,7 @@
         { "on": {"intent": "farewell", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "baker_bye", "variantPoolId": "baker_bye" }] },
         { "onHostEvent": "baker.teach_start", "to": "teaching", "actions": [{ "dialogueIntent": "baker_nice", "variantPoolId": "baker_nice" }] },
         { "onHostEvent": "baker.delivered", "to": "idle", "actions": [{ "dialogueIntent": "baker_delivered", "hostEvent": "baker.pay", "variantPoolId": "baker_delivered" }] },
+        { "on": {"intent": "state_wellbeing", "communicated": true}, "to": "offering_bake", "actions": [{ "dialogueIntent": "baker_nice", "variantPoolId": "baker_nice" }] },
         { "on": {"communicated": false}, "to": "offering_bake", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
       ],
       "fallback": {
@@ -121,6 +123,10 @@
         { "onHostEvent": "baker.teach_start", "to": "teaching", "actions": [{ "dialogueIntent": "baker_nice", "variantPoolId": "baker_nice" }] },
         { "onHostEvent": "baker.teach_end", "to": "idle", "actions": [{ "dialogueIntent": "baker_nice", "variantPoolId": "baker_nice" }] },
         { "onHostEvent": "baker.delivered", "to": "idle", "actions": [{ "dialogueIntent": "baker_delivered", "hostEvent": "baker.pay", "variantPoolId": "baker_delivered" }] },
+        { "on": {"intent": "greet", "communicated": true}, "to": "teaching", "actions": [{ "dialogueIntent": "baker_hello", "variantPoolId": "baker_hello" }] },
+        { "on": {"intent": "ask_wellbeing", "communicated": true}, "to": "teaching", "actions": [{ "dialogueIntent": "baker_well", "variantPoolId": "baker_well" }] },
+        { "on": {"intent": "state_wellbeing", "communicated": true}, "to": "teaching", "actions": [{ "dialogueIntent": "baker_nice", "variantPoolId": "baker_nice" }] },
+        { "on": {"intent": "farewell", "communicated": true}, "to": "teaching", "actions": [{ "dialogueIntent": "baker_bye", "variantPoolId": "baker_bye" }] },
         { "on": {"communicated": false}, "to": "teaching", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
       ],
       "fallback": {

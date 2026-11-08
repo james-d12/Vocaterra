@@ -152,7 +152,7 @@ public sealed class LessonBookTests
     [InlineData("{ \"id\": \"s\", \"type\": \"dance\", \"english\": \"x\" }", "dance")]
     [InlineData("{ \"id\": \"s\", \"type\": \"repeat\", \"phrase\": \"no-such\", \"english\": \"x\" }", "not in the phrase sheet")]
     [InlineData("{ \"id\": \"s\", \"type\": \"repeat\", \"phrase\": \"que-necesitas\", \"english\": \"x\" }", "does not say")]
-    [InlineData("{ \"id\": \"s\", \"type\": \"repeat\", \"phrase\": \"hola\", \"prompt\": \"stall-need\", \"english\": \"x\" }", "does not allow the intent")]
+    [InlineData("{ \"id\": \"s\", \"type\": \"repeat\", \"phrase\": \"hola\", \"prompt\": \"lesson-usted\", \"english\": \"x\" }", "does not allow the intent")]
     [InlineData("{ \"id\": \"s\", \"type\": \"repeat\", \"phrase\": \"hola\", \"prompt\": \"nowhere\", \"english\": \"x\" }", "the bundle does not have")]
     [InlineData("{ \"id\": \"s\", \"type\": \"model\", \"line\": \"nowhere.1\", \"translation\": \"x\", \"english\": \"x\" }", "no pre-rendered speech line")]
     [InlineData("{ \"id\": \"s\", \"type\": \"model\", \"line\": \"phrase.hola\", \"english\": \"x\" }", "translation")]

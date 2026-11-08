@@ -94,7 +94,7 @@
     {
       "answerId": "hello",
       "canonical": "hola",
-      "aliases": ["buenos días", "buenas tardes", "buen día"],
+      "aliases": ["buenos días", "buenas tardes", "buen día", "buenas noches", "buenas"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
     },
     {
@@ -149,6 +149,18 @@
       "answerId": "luz-hara-pan",
       "canonical": "luz hará pan",
       "aliases": ["mañana Luz hará pan", "hará pan", "ella hará pan", "luz hará pan mañana"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "wellbeing",
+      "canonical": "qué tal",
+      "aliases": ["cómo estás", "cómo está usted", "hola, ¿qué tal?", "hola, ¿cómo estás?", "bien y tú", "muy bien y tú", "bien gracias y tú"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "fine",
+      "canonical": "muy bien",
+      "aliases": ["bien", "bien gracias", "muy bien gracias", "estoy bien", "estoy muy bien"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
     }
   ]

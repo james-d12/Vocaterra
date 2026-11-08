@@ -24,6 +24,36 @@
       "canonical": "no sé",
       "aliases": ["no lo sé", "yo no sé", "no entiendo"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "hello",
+      "canonical": "hola",
+      "aliases": ["buenos días", "buenas tardes", "buenas noches", "buen día", "buenas"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "thanks",
+      "canonical": "gracias",
+      "aliases": ["muchas gracias"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "bye",
+      "canonical": "adiós",
+      "aliases": ["hasta luego", "nos vemos", "hasta mañana"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "wellbeing",
+      "canonical": "qué tal",
+      "aliases": ["cómo estás", "cómo está usted", "hola, ¿qué tal?", "hola, ¿cómo estás?", "bien y tú", "muy bien y tú", "bien gracias y tú"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "fine",
+      "canonical": "muy bien",
+      "aliases": ["bien", "bien gracias", "muy bien gracias", "estoy bien", "estoy muy bien"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
     }
   ]
 }
