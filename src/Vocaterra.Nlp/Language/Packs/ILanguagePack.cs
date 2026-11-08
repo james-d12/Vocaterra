@@ -50,6 +50,9 @@ public interface ILanguagePack
     /// <summary>The spelling policy of recasts (accent restoration). A narrow text-side member added in M33; the rest of the recast is neutral.</summary>
     IRecastPolicy Recast { get; }
 
+    /// <summary>The wording of the pipeline's orthography notes (M87). Spanish: <c>SpanishAccentNotes</c>.</summary>
+    IOrthographyNotes Orthography { get; }
+
     /// <summary>
     /// The words the content validator renders every dialogue template with (a noun, a verb, a spelling and the reserved feedback samples), so a template
     /// is checked in the language it is written in (M35). Spanish: the values the validator always used.
