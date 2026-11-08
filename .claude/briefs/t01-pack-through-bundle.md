@@ -12,7 +12,7 @@ on this machine and it is short of memory:** every heavy command goes through `s
 
 ## The rules, environment, resources and gate
 Read `/home/james/Dev/Vocaterra/.claude/worktrees/t01/.claude/briefs/w07-station-view.md`, the sections **Output and context**,
-**Resources**, **Environment**, **Rules** and **Gate**: they apply to you, with `/tmp/claude-1000/t01/` for your logs, @@COUNT@@ as the
+**Resources**, **Environment**, **Rules** and **Gate**: they apply to you, with `/tmp/claude-1000/t01/` for your logs, **10411 passed, 3 skipped** (the open-fallback fuzz reach check is flaky, M89: rerun it alone if it alone fails) as the
 count before you, and these changes. **What this milestone edits:** `src/Vocaterra.Game.Core`, `src/Vocaterra.Game`, `src/Vocaterra.Host`,
 `tools/Vocaterra.SpeechRender` (only if it names a Spanish class), their tests and their `.csproj` files, and `docs/game/` (not the plans
 or the decisions). Never `content/`, the core, `.claude/` or `.github/workflows/`. "Every save version from 1 still loads" stays true
