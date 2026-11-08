@@ -63,7 +63,7 @@ public sealed class DialoguePanel : IFrameLayer
     private static readonly Color Frame = new(255, 214, 64);
     private static readonly Color PlayerColor = new(150, 205, 255);
     private const int ScrollbarWidth = 4;
-    private static readonly Color ScrollTrack = new(112, 114, 136, 70);
+    private static readonly Color ScrollTrack = new(44, 46, 64);
     private static readonly Color NoteColor = UiPalette.Muted.ToColor();
     private static readonly Color CorrectionColor = new(255, 190, 110);
     private static readonly Color GuideColor = new(255, 242, 180);
