@@ -8,6 +8,7 @@ using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
+using Vocaterra.Game.Core.Screens;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
@@ -453,6 +454,61 @@ public sealed class ConversationSurfaceTests : IDisposable
         screen.HandleInput(Pressed(GameKey.PageUp));
         Assert.True(dialogue.Expanded);
         Assert.True(dialogue.IsTyping); // the key leaves what was being typed alone
+    }
+
+    // ---- U06: the wheel, in each state.
+
+    private static TestInputFrame Wheel(int units) => new() { Wheel = units };
+
+    [Fact]
+    public void TheWheelExpandsThePanelThenScrollsOlderAndNewerAndFoldsItBackAtTheNewestLine()
+    {
+        var (screen, dialogue, _) = Screen();
+        for (var i = 0; i < 3; i++)
+        {
+            Say(dialogue, Turn("gracias"));
+        }
+
+        screen.HandleInput(Wheel(120)); // a notch up on the collapsed panel: as PageUp
+        Assert.True(dialogue.Expanded);
+        Assert.Equal(0, dialogue.ScrollBack);
+        screen.HandleInput(Wheel(120));
+        screen.HandleInput(Wheel(120));
+        Assert.Equal(2, dialogue.ScrollBack); // one block a notch
+        screen.HandleInput(Wheel(-120));
+        Assert.Equal(1, dialogue.ScrollBack);
+        screen.HandleInput(Wheel(-120));
+        Assert.Equal(0, dialogue.ScrollBack);
+        Assert.True(dialogue.Expanded);
+        screen.HandleInput(Wheel(-120)); // down at the newest line: back to the current exchange
+        Assert.False(dialogue.Expanded);
+        screen.HandleInput(Wheel(-120)); // and nothing more on the collapsed panel
+        Assert.False(dialogue.Expanded);
+    }
+
+    [Fact]
+    public void TheWheelWorksWhileTypingAndTypesNothing()
+    {
+        var (screen, dialogue, _) = Screen();
+        screen.HandleInput(Pressed(GameKey.W));
+        Assert.True(dialogue.IsTyping);
+        screen.HandleInput(Wheel(120));
+        Assert.True(dialogue.Expanded);
+        Assert.True(dialogue.IsTyping);
+        Assert.Equal(string.Empty, dialogue.Entry.Text);
+    }
+
+    [Fact]
+    public void TheWorldsHotbarDoesNotSeeTheWheelWhileThePanelIsOpen()
+    {
+        // VoxelGame reads the hotbar's wheel only when no screen frees the mouse (WorldInput.Read: uiOpen ? null : Slot(...)); the open dialogue is such a screen.
+        var (screen, _, _) = Screen();
+        var stack = new ScreenStack([screen], [screen]);
+        Assert.True(screen.IsOpen);
+        Assert.True(stack.FreesMouse);
+        Assert.True(stack.HandleInput(Wheel(120))); // the screen takes the frame: the world's keys do not run
+        screen.Close();
+        Assert.False(stack.FreesMouse);
     }
 
     private sealed class SilentOutput : IAudioOutput

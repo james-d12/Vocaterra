@@ -165,6 +165,38 @@ public sealed class DialogueScreen : IScreen
             return;
         }
 
+        // U06: the wheel scrolls the panel in every state, typing included (it types nothing): a notch up shows the older lines and goes back through them, a notch down
+        // comes forward, and one more at the newest line folds the page back to the current exchange. The world's hotbar does not see it while a screen is open.
+        if (input.Wheel != 0)
+        {
+            var notches = Math.Max(1, (int)Math.Round(Math.Abs(input.Wheel) / 120.0));
+            for (var i = 0; i < notches; i++)
+            {
+                if (input.Wheel > 0)
+                {
+                    if (_dialogue.Expanded)
+                    {
+                        _dialogue.ScrollOlder();
+                    }
+                    else
+                    {
+                        _dialogue.ToggleExpanded();
+                    }
+                }
+                else if (_dialogue.Expanded)
+                {
+                    if (_dialogue.ScrollBack == 0)
+                    {
+                        _dialogue.ToggleExpanded();
+                    }
+                    else
+                    {
+                        _dialogue.ScrollNewer();
+                    }
+                }
+            }
+        }
+
         // U02: PageUp shows or hides the older lines in every state (Tab is the Escribir key, D-game-9, and the letters are typing keys); O does the same off the text box.
         if (input.Pressed(GameKey.PageUp) || (!_dialogue.IsTyping && input.Pressed(GameKey.O)))
         {
