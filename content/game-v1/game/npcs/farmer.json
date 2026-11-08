@@ -12,13 +12,17 @@
       "quiero-tres-manzanas-rojas",
       "cuanto-es-todo",
       "puedo-pagar-con-fruta"
+    ],
+    "farmer-receive": [
+      "aqui-tienes-el-agua"
     ]
   },
   "freeTalkPools": {
     "farmer_total": "farmer_unit"
   },
   "prompts": {
-    "idle": "farmer-open"
+    "idle": "farmer-open",
+    "receiving": "farmer-receive"
   },
   "opening": {
     "event": "farmer.greet",

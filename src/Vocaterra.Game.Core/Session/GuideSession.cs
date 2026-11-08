@@ -586,7 +586,7 @@ public abstract partial class GuideSession : IDisposable
     // the lesson's prompt (see RetryQueue). A phrase taken here is never queued again in this session.
     private void OfferSecondTry(string npc)
     {
-        if (PhraseReview is not null || Review is not null || PendingTurns > 0 || Lessons.Engaged
+        if (PhraseReview is not null || Review is not null || PendingTurns > 0 || Lessons.Engaged || HandOverOpen
             || !Retries.Pending.Any(item => string.Equals(item.Npc, npc, StringComparison.Ordinal)))
         {
             return;
@@ -623,7 +623,7 @@ public abstract partial class GuideSession : IDisposable
     /// </summary>
     /// <param name="npc">The NPC's agent id.</param>
     internal bool MayOfferClass(string npc) =>
-        PendingTurns == 0 && PhraseReview is null && Review is null && !_deckClaim && Deck.Status == DeckStatus.Idle && !Lessons.Engaged
+        PendingTurns == 0 && PhraseReview is null && Review is null && !_deckClaim && Deck.Status == DeckStatus.Idle && !Lessons.Engaged && !HandOverOpen
         && Bundle.Prompts.TryGetValue(_npcs.PromptOf(npc), out var prompt) && !prompt.AllowedIntentIds.Contains("confirm", StringComparer.Ordinal);
 
     /// <summary>Whether the panel is open on this NPC (a talk is open and the NPC is the one the lines go to).</summary>
@@ -807,15 +807,26 @@ public abstract partial class GuideSession : IDisposable
         else
         {
             CompleteTeachEnd(npc); // a teacher a load left in its teaching state comes out of it before the talk (W08)
-            order = OrderReadyAt(npc); // the player walked up with an order's goods (village-plan V03): nothing is gated behind speech, the NPC thanks them at once
-            var offer = order is null ? BakeOfferOf(npc, asked: false) : null; // W08: the teacher's offer to bake opens the talk, once a day until the learner has baked
-            opening = _npcs.Open(npc, ObjectiveComplete, StoredTime, StateDigest(), order is null ? null : NpcHostEvents.Of(npc, NpcHostEvents.Delivered), offer);
-            if (offer is not null)
+            order = OrderReadyAt(npc); // the player walked up with an order's goods (village-plan V03): the NPC thanks them at once, or asks for them (issue #42)
+            var asked = order is null ? null : BeginHandOver(npc, order); // issue #42: the learner says what they hand over; «no sé» or two misses hand it over anyway
+            if (asked is not null)
             {
-                NoteOffer(npc);
+                order = null;
+                opening = asked;
+            }
+            else
+            {
+                EndStaleHandOver(npc);
+                var offer = order is null ? BakeOfferOf(npc, asked: false) : null; // W08: the teacher's offer to bake opens the talk, once a day until the learner has baked
+                opening = _npcs.Open(npc, ObjectiveComplete, StoredTime, StateDigest(), order is null ? null : NpcHostEvents.Of(npc, NpcHostEvents.Delivered), offer);
+                if (offer is not null)
+                {
+                    NoteOffer(npc);
+                }
             }
 
-            if (string.Equals(npc, NpcService.GuideAgent, StringComparison.Ordinal) && !opening.HostTurn
+            // The question for the goods (issue #42) is said even while a lesson holds the talk, as the walk-up's thanks were: the answer is the learner's next line.
+            if (asked is null && string.Equals(npc, NpcService.GuideAgent, StringComparison.Ordinal) && !opening.HostTurn
                 && !string.Equals(_npcs.GuideState.StateId, "offering", StringComparison.Ordinal))
             {
                 if (Lessons.OwnsConversation(npc))
@@ -827,7 +838,7 @@ public abstract partial class GuideSession : IDisposable
                     _ = BeginTalk();
                 }
             }
-            else if (!string.Equals(npc, NpcService.GuideAgent, StringComparison.Ordinal) && Lessons.OwnsConversation(npc) && !opening.Delivered)
+            else if (asked is null && !string.Equals(npc, NpcService.GuideAgent, StringComparison.Ordinal) && Lessons.OwnsConversation(npc) && !opening.Delivered)
             {
                 opening = opening with { Lines = [] }; // the villager's or the shopkeeper's lesson speaks first (S26): the host turn's state change stays, its line is not said
             }
@@ -884,6 +895,7 @@ public abstract partial class GuideSession : IDisposable
         _keyWordsPending = false;
         _keyWordCards = [];
         _delayedOpening = null;
+        _handOver = null; // the next talk asks again
         Support.Clear();
         CurrentNpc = NpcService.GuideAgent;
     }
@@ -903,7 +915,7 @@ public abstract partial class GuideSession : IDisposable
         var phraseReview = PhraseReview;
         var support = Support.Snapshot();
         var scene = review is null
-            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: LiveInventory, PromptOverride: phraseReview?.Prompt ?? Lessons.ActivePrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc), ClosedGifts: ClosedGifts, Grant: TeachingNpc is null ? null : PlanGrant(), Offer: BakeOfferOf(CurrentNpc, asked: true))
+            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: LiveInventory, PromptOverride: phraseReview?.Prompt ?? LessonPrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc), ClosedGifts: ClosedGifts, Grant: TeachingNpc is null ? null : PlanGrant(), Offer: BakeOfferOf(CurrentNpc, asked: true))
             : new GuideScene(Viewpoint, review.Target, Pointer is not null, Review: true, Inventory: LiveInventory);
         var turn = _npcs.Say(CurrentNpc, line, scene, StoredTime, StateDigest());
         PhraseReview? answeredReview = null;
@@ -1116,6 +1128,7 @@ public abstract partial class GuideSession : IDisposable
 
         FlushSkills();
         CompleteTeachEnd();
+        CompleteHandOver();
         return applied;
     }
 
@@ -1303,8 +1316,11 @@ public abstract partial class GuideSession : IDisposable
             Log(new VoiceEvent(tick, time, VoiceEventKind.Uncertain, npc, turn.Line));
         }
 
+        // A line said at the receiving prompt of an NPC that waits for an order's goods (issue #42) is the hand-over's, never a lesson step's answer.
+        var handOverTurn = IsHandOverTurn(turn);
+
         // A lesson step that will count the answer as a miss for the person or the tense of its verb (S26, S27) does not credit the phrase: the learner did not say it.
-        var formMiss = Lessons.IsFormMiss(turn);
+        var formMiss = !handOverTurn && Lessons.IsFormMiss(turn);
         var retryAnswer = phraseReview is not null && ReferenceEquals(phraseReview, _retry) && turn.Communicated && !IsHelpRequest(turn);
         var recovered = false;
         if (turn.Taken && !formMiss && PhraseOf(turn, support) is { } phrase)
@@ -1374,7 +1390,7 @@ public abstract partial class GuideSession : IDisposable
             Lessons.NoteRepeat(npc); // the learner asked for the line again: the lesson's record counts it (S19)
         }
 
-        var handled = Lessons.OnTurn(turn) || Lessons.OnClassTurn(turn); // a lesson's repeat or answer step ends, retries or moves on with this turn (S16); it speaks for the guide (S17)
+        var handled = !handOverTurn && (Lessons.OnTurn(turn) || Lessons.OnClassTurn(turn)); // a lesson's repeat or answer step ends, retries or moves on with this turn (S16); it speaks for the guide (S17)
         var shown = turn; // (`last` was read before the turn ended the step: the next step's line is not what the learner asked to hear again)
         if (turn.Communicated && !turn.Unsure && (turn.HostEvents.Contains(GuideEvents.Repeat, StringComparer.Ordinal) || turn.HostEvents.Contains(GuideEvents.RepeatSlow, StringComparer.Ordinal)))
         {
@@ -1401,9 +1417,12 @@ public abstract partial class GuideSession : IDisposable
             }
         }
 
+        var waited = HandOverOpen;
+        shown = HandOverAfter(turn, shown); // issue #42: the line that hands an order over, or a miss at the NPC's receiving prompt
         if (_talkOpen && string.Equals(Support.Npc, npc, StringComparison.Ordinal) && !turn.Unsure)
         {
-            RefreshSupport(npc, _npcs.PromptAfter(npc, turn.AgentState)); // the prompt may have moved on (the bread offer), and a level may have changed
+            // The prompt may have moved on (the bread offer, a hand-over done), and a level may have changed.
+            RefreshSupport(npc, waited && !HandOverOpen && PendingTurns == 0 ? _npcs.PromptOf(npc) : _npcs.PromptAfter(npc, turn.AgentState));
         }
 
         return shown;
@@ -1442,7 +1461,7 @@ public abstract partial class GuideSession : IDisposable
     // phrase skill step (LearnerModel.StepSkills), deferred while a turn is on the worker.
     private void RefreshSupport(string npc, string prompt)
     {
-        var inLesson = Lessons.Engaged && string.Equals(npc, Lessons.CurrentNpc, StringComparison.Ordinal);
+        var inLesson = !HandOverOpen && Lessons.Engaged && string.Equals(npc, Lessons.CurrentNpc, StringComparison.Ordinal); // a hand-over waiting (issue #42) has the card
         if (inLesson && Lessons.Focus is null && !string.Equals(npc, NpcService.GuideAgent, StringComparison.Ordinal))
         {
             // A lesson step of the villager's or the shopkeeper's that asks for no phrase (S26): the stall's and the villager's own phrase cards stay down, as the guide's do (her
@@ -1564,7 +1583,7 @@ public abstract partial class GuideSession : IDisposable
         var facts = SnapshotFacts();
         var inventory = LiveInventory.Copy();
         return review is null
-            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: inventory, Facts: facts, PromptOverride: PhraseReview?.Prompt ?? Lessons.ActivePrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc), ClosedGifts: ClosedGifts, Grant: TeachingNpc is null ? null : PlanGrant(), Offer: BakeOfferOf(CurrentNpc, asked: true))
+            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: inventory, Facts: facts, PromptOverride: PhraseReview?.Prompt ?? LessonPrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc), ClosedGifts: ClosedGifts, Grant: TeachingNpc is null ? null : PlanGrant(), Offer: BakeOfferOf(CurrentNpc, asked: true))
             : new GuideScene(Viewpoint, review.Target, Pointer is not null, Review: true, Inventory: inventory, Facts: facts);
     }
 }

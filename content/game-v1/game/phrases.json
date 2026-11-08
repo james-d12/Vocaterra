@@ -175,6 +175,11 @@
     {"id": "que-hiciste", "says": "hears", "spanish": "¿Qué hiciste?", "intent": null, "prompt": "lesson-made-bread", "variants": [], "audioLineIds": ["guide.lesson.baker.made.1"]},
     {"id": "todavia-no", "says": "hears", "spanish": "Todavía no.", "intent": null, "prompt": "baker-proc", "variants": [], "audioLineIds": ["guide.lesson.baker.not_yet.1"]},
     {"id": "toma-aqui-tienes", "says": "hears", "spanish": "Toma. Aquí tienes.", "intent": null, "prompt": "baker-proc", "variants": [], "audioLineIds": ["baker_give_missing.1"]},
-    {"id": "quieres-hacer-pan", "says": "hears", "spanish": "¿Quieres hacer pan?", "intent": null, "prompt": "baker-offer", "variants": [], "audioLineIds": ["baker_offer_bake.1"]}
+    {"id": "quieres-hacer-pan", "says": "hears", "spanish": "¿Quieres hacer pan?", "intent": null, "prompt": "baker-offer", "variants": [], "audioLineIds": ["baker_offer_bake.1"]},
+    {"id": "que-tienes", "says": "hears", "spanish": "¡Hola! ¿Qué tienes?", "intent": null, "prompt": "baker-receive", "variants": [], "audioLineIds": ["baker_receive.1", "fisher_receive.1", "smith_receive.1", "farmer_receive.1"]},
+    {"id": "aqui-tienes-tres-frutas", "says": "says", "spanish": "Aquí tienes tres frutas.", "intent": "hand_over", "prompt": "fisher-receive", "variants": ["aquí tienes las frutas", "aquí están las frutas", "toma las frutas", "te doy las frutas"], "audioLineIds": ["fisher_receive_help.1"]},
+    {"id": "aqui-tienes-cinco-bloques", "says": "says", "spanish": "Aquí tienes cinco bloques de madera.", "intent": "hand_over", "prompt": "baker-receive", "variants": ["aquí tienes la madera", "aquí está la madera", "toma la madera", "te doy la madera"], "audioLineIds": ["baker_receive_help.1"]},
+    {"id": "aqui-tienes-la-madera-y-las-monedas", "says": "says", "spanish": "Aquí tienes la madera y las monedas.", "intent": "hand_over", "prompt": "smith-receive", "variants": ["aquí tienes dos bloques de madera y dos monedas", "aquí tienes la madera", "aquí tienes las monedas", "toma la madera y las monedas"], "audioLineIds": ["smith_receive_help.1"]},
+    {"id": "aqui-tienes-el-agua", "says": "says", "spanish": "Aquí tienes el agua.", "intent": "hand_over", "prompt": "farmer-receive", "variants": ["aquí tienes la botella", "aquí está el agua", "toma el agua", "te doy el agua"], "audioLineIds": ["farmer_receive_help.1"]}
   ]
 }

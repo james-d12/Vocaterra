@@ -2098,6 +2098,54 @@
       "variants": [
         { "lineId": "shop_no_room.1", "text": "Tu bolsa está llena." }
       ]
+    },
+    "baker_receive": {
+      "poolId": "baker_receive",
+      "variants": [
+        { "lineId": "baker_receive.1", "text": "¡Hola! ¿Qué tienes?" }
+      ]
+    },
+    "baker_receive_help": {
+      "poolId": "baker_receive_help",
+      "variants": [
+        { "lineId": "baker_receive_help.1", "text": "Puedes decir: «Aquí tienes cinco bloques de madera»." }
+      ]
+    },
+    "fisher_receive": {
+      "poolId": "fisher_receive",
+      "variants": [
+        { "lineId": "fisher_receive.1", "text": "¡Hola! ¿Qué tienes?" }
+      ]
+    },
+    "fisher_receive_help": {
+      "poolId": "fisher_receive_help",
+      "variants": [
+        { "lineId": "fisher_receive_help.1", "text": "Puedes decir: «Aquí tienes tres frutas»." }
+      ]
+    },
+    "smith_receive": {
+      "poolId": "smith_receive",
+      "variants": [
+        { "lineId": "smith_receive.1", "text": "¡Hola! ¿Qué tienes?" }
+      ]
+    },
+    "smith_receive_help": {
+      "poolId": "smith_receive_help",
+      "variants": [
+        { "lineId": "smith_receive_help.1", "text": "Puedes decir: «Aquí tienes la madera y las monedas»." }
+      ]
+    },
+    "farmer_receive": {
+      "poolId": "farmer_receive",
+      "variants": [
+        { "lineId": "farmer_receive.1", "text": "¡Hola! ¿Qué tienes?" }
+      ]
+    },
+    "farmer_receive_help": {
+      "poolId": "farmer_receive_help",
+      "variants": [
+        { "lineId": "farmer_receive_help.1", "text": "Puedes decir: «Aquí tienes el agua»." }
+      ]
     }
   }
 }

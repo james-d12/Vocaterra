@@ -358,7 +358,7 @@ public sealed class VillageLessonTests(ITestOutputHelper output)
         var early = TestGame.NewSessionWithShippedLessons();
         _ = early.Simulation.GrantItems(ItemId.Berry, 3);
         Stage.TeleportToNpc(early, "fisher");
-        Assert.True(early.OpenTalkForClass("fisher").Delivered); // L01: an order opens once its NPC is met, whatever the day: the first talk takes the fruit
+        _ = early.OpenTalkForClass("fisher"); // L01: an order opens once its NPC is met, whatever the day: the first talk takes the fruit, handed over in Spanish (D-game-27)
         Assert.Equal(0, early.Simulation.Inventory.Count(ItemId.Berry));
 
         var session = TestGame.NewSessionWithShippedLessons();
@@ -367,10 +367,13 @@ public sealed class VillageLessonTests(ITestOutputHelper output)
         _ = session.Simulation.GrantItems(ItemId.Berry, 4);
         Stage.TeleportToNpc(session, "fisher");
 
-        var opening = session.OpenTalkForClass("fisher"); // walking up with the fruit is enough (D-game-8, D-game-9)
+        var opening = session.OpenTalk("fisher"); // Mar asks what the learner has, and the fruit is handed over in Spanish (D-game-27)
+        Assert.Equal(["¡Hola! ¿Qué tienes?"], opening.Lines);
+        Assert.Equal(4, session.Simulation.Inventory.Count(ItemId.Berry)); // nothing is taken before the line
 
-        Assert.True(opening.Delivered);
-        Assert.Equal(["¡Gracias! Toma dos monedas."], opening.Lines);
+        var turn = session.HandOverGoods()!; // «Aquí tienes tres frutas.»
+
+        Assert.Equal(["¡Gracias! Toma dos monedas."], turn.FollowUp);
         Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Berry));
         Assert.Equal(2, session.Simulation.Inventory.Count(ItemId.Coin));
         Assert.Contains(session.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.OrderDelivered && e.Npc == "fisher" && e.Detail == "fruit-for-mar");

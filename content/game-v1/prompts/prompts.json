@@ -738,5 +738,45 @@
     "agentId": "baker",
     "slotGrammarIds": [],
     "text": "¿Qué hiciste?"
+  },
+  {
+    "promptId": "baker-receive",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "order-receive",
+    "allowedIntentIds": ["hand_over", "ask_help", "dont_know"],
+    "agentId": "baker",
+    "slotGrammarIds": [],
+    "text": "¡Hola! ¿Qué tienes?"
+  },
+  {
+    "promptId": "fisher-receive",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "order-receive",
+    "allowedIntentIds": ["hand_over", "ask_help", "dont_know"],
+    "agentId": "fisher",
+    "slotGrammarIds": [],
+    "text": "¡Hola! ¿Qué tienes?"
+  },
+  {
+    "promptId": "smith-receive",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "order-receive",
+    "allowedIntentIds": ["hand_over", "ask_help", "dont_know"],
+    "agentId": "smith",
+    "slotGrammarIds": [],
+    "text": "¡Hola! ¿Qué tienes?"
+  },
+  {
+    "promptId": "farmer-receive",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "order-receive",
+    "allowedIntentIds": ["hand_over", "ask_help", "dont_know"],
+    "agentId": "farmer",
+    "slotGrammarIds": [],
+    "text": "¡Hola! ¿Qué tienes?"
   }
 ]

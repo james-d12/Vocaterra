@@ -35,6 +35,10 @@ public sealed record OrderGoods(ItemId Item, int Count);
 /// under way before the step, or is about to start at the talk, walking up with the goods does not deliver them (<see cref="Language.Lessons.LessonRunner"/>), so the plan
 /// is said first even by a learner who carries them already.
 /// </param>
+/// <param name="HandOverNouns">
+/// For an order the learner hands over in Spanish (issue #42, <c>handOver</c>): the catalogue nouns that name its goods. The talk then opens with the NPC asking for them
+/// (<c>&lt;npc&gt;.order_ready</c>) and a <c>hand_over</c> line naming one of them delivers them; <see langword="null"/> when walking up with the goods is enough.
+/// </param>
 public sealed record ObjectiveSpec(
     string Id,
     string? Title,
@@ -44,13 +48,17 @@ public sealed record ObjectiveSpec(
     int? Session = null,
     string? DeliverTo = null,
     IReadOnlyList<OrderGoods>? Deliver = null,
-    string? Lesson = null)
+    string? Lesson = null,
+    IReadOnlyList<string>? HandOverNouns = null)
 {
     /// <summary>Whether the HUD shows the objective as a checklist of its steps (it has a title).</summary>
     public bool IsChecklist => Title is not null;
 
     /// <summary>Whether the objective is an order: goods brought to an NPC (<see cref="DeliverTo"/>).</summary>
     public bool IsOrder => DeliverTo is not null;
+
+    /// <summary>Whether the order is handed over in Spanish (issue #42): it names the nouns of its goods.</summary>
+    public bool SaidHandOver => HandOverNouns is { Count: > 0 };
 
     /// <summary>The goods of an order; empty for any other objective.</summary>
     public IReadOnlyList<OrderGoods> Goods => Deliver ?? [];
@@ -200,6 +208,12 @@ public sealed class ObjectiveBook
             }
 
             var lesson = root.TryGetProperty("lesson", out _) ? Text(root, "lesson", path) : null;
+            IReadOnlyList<string>? handOver = root.TryGetProperty("handOver", out var handOverElement) ? Strings(handOverElement, "nouns") : null;
+            if (handOver is { Count: 0 } || (handOver is not null && deliverTo is null))
+            {
+                throw new InvalidDataException($"{path}: handOver belongs to an order and names at least one noun.");
+            }
+
             if (deliverTo is not null)
             {
                 if (title is not null || root.TryGetProperty("steps", out _))
@@ -208,7 +222,7 @@ public sealed class ObjectiveBook
                 }
 
                 var delivery = new ObjectiveStepSpec(DeliveredStep, string.Empty, DeliveredStep, 1, new Trigger(WorldEvents.OrderDelivered, deliverTo, id), null);
-                return new ObjectiveSpec(id, null, [delivery], Strings(root, "alsoDoneBy"), Strings(root, "onComplete"), session, deliverTo, goods, lesson);
+                return new ObjectiveSpec(id, null, [delivery], Strings(root, "alsoDoneBy"), Strings(root, "onComplete"), session, deliverTo, goods, lesson, handOver);
             }
 
             if (lesson is not null)

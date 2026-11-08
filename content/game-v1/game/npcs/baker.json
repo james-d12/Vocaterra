@@ -11,12 +11,16 @@
       "cuanto-cuesta",
       "hay-pan",
       "vendo-madera"
+    ],
+    "baker-receive": [
+      "aqui-tienes-cinco-bloques"
     ]
   },
   "prompts": {
     "idle": "baker-open",
     "offering_bake": "baker-offer",
-    "teaching": "baker-proc"
+    "teaching": "baker-proc",
+    "receiving": "baker-receive"
   },
   "opening": {
     "event": "baker.greet",

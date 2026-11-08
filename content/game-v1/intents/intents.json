@@ -1169,6 +1169,36 @@
         {"text": "podo pagar con fruta", "errors": ["conj.irregular"], "prompt": "farmer-open"},
         "puedo pagar con monedas"
       ]
+    },
+    {
+      "intentId": "hand_over",
+      "requiredSlots": ["item"],
+      "slotGrammars": [
+        "(sí)? aquí (tienes|tiene) [ART]? [NUM:qty]? (bloque de|bloques de)? [NOUN:item] [ADJ]? (y [ART]? [NUM]? [NOUN])?",
+        "(sí)? aquí (está|están) [ART]? [NUM:qty]? (bloque de|bloques de)? [NOUN:item] [ADJ]? (y [ART]? [NUM]? [NOUN])?",
+        "(sí)? (te|le)? doy [ART]? [NUM:qty]? (bloque de|bloques de)? [NOUN:item] [ADJ]? (y [ART]? [NUM]? [NOUN])?",
+        "(sí)? toma [ART]? [NUM:qty]? (bloque de|bloques de)? [NOUN:item] [ADJ]? (y [ART]? [NUM]? [NOUN])?"
+      ],
+      "examples": [
+        {"text": "aquí tienes la madera", "errors": [], "prompt": "baker-receive"},
+        {"text": "aquí tienes cinco bloques de madera", "errors": [], "prompt": "baker-receive"},
+        {"text": "sí, aquí tienes la madera", "errors": [], "prompt": "baker-receive"},
+        {"text": "aquí está la madera", "errors": [], "prompt": "baker-receive"},
+        {"text": "te doy la madera", "errors": [], "prompt": "baker-receive"},
+        {"text": "toma la madera", "errors": [], "prompt": "baker-receive"},
+        {"text": "aquí tienes el madera", "errors": ["gender.agree"], "prompt": "baker-receive"},
+        {"text": "aquí tienes tres frutas", "errors": [], "prompt": "fisher-receive"},
+        {"text": "aquí tienes las frutas", "errors": [], "prompt": "fisher-receive"},
+        {"text": "aquí están las frutas", "errors": [], "prompt": "fisher-receive"},
+        {"text": "aquí tienes tres fruta", "errors": ["noun.number"], "prompt": "fisher-receive"},
+        {"text": "aquí tienes la madera y las monedas", "errors": [], "prompt": "smith-receive"},
+        {"text": "aquí tienes dos bloques de madera y dos monedas", "errors": [], "prompt": "smith-receive"},
+        {"text": "aquí tienes las monedas", "errors": [], "prompt": "smith-receive"},
+        {"text": "aquí tienes el agua", "errors": [], "prompt": "farmer-receive"},
+        {"text": "aquí tienes la botella", "errors": [], "prompt": "farmer-receive"},
+        {"text": "toma el agua", "errors": [], "prompt": "farmer-receive"},
+        {"text": "aquí tienes el botella", "errors": ["gender.agree"], "prompt": "farmer-receive"}
+      ]
     }
   ]
 }

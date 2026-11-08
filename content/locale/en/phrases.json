@@ -520,6 +520,21 @@
     "phrase.toma-aqui-tienes.explain": "Toma is tomar for tú, take; aquí tienes is what you say when you hand something over.",
     "phrase.quieres-hacer-pan.meaning": "Do you want to make bread?",
     "phrase.quieres-hacer-pan.card": "¿Quieres hacer pan? = Do you want to make bread? · quieres = you want · hacer = to make",
-    "phrase.quieres-hacer-pan.explain": "Quieres and an infinitive offers something: do you want to...?"
+    "phrase.quieres-hacer-pan.explain": "Quieres and an infinitive offers something: do you want to...?",
+    "phrase.que-tienes.card": "¡Hola! ¿Qué tienes? = Hello! What do you have? · tienes = you have (tener)",
+    "phrase.que-tienes.explain": "The NPC sees you carry what they asked for and asks for it. Answer with what you give: «Aquí tienes…».",
+    "phrase.que-tienes.meaning": "Hello! What do you have?",
+    "phrase.aqui-tienes-tres-frutas.card": "Aquí tienes tres frutas. = Here are three fruits. · aquí tienes = here you are",
+    "phrase.aqui-tienes-tres-frutas.explain": "Hand Mar the fruit: aquí tienes (here you are), then what you give. «Aquí tienes las frutas» is enough.",
+    "phrase.aqui-tienes-tres-frutas.meaning": "Here are three fruits.",
+    "phrase.aqui-tienes-cinco-bloques.card": "Aquí tienes cinco bloques de madera. = Here are five blocks of wood. · aquí tienes = here you are · bloques de madera = blocks of wood",
+    "phrase.aqui-tienes-cinco-bloques.explain": "Hand Luz the wood: aquí tienes (here you are), then what you give. «Aquí tienes la madera» is enough.",
+    "phrase.aqui-tienes-cinco-bloques.meaning": "Here are five blocks of wood.",
+    "phrase.aqui-tienes-la-madera-y-las-monedas.card": "Aquí tienes la madera y las monedas. = Here are the wood and the coins. · y = and",
+    "phrase.aqui-tienes-la-madera-y-las-monedas.explain": "Hand Domingo the goods: aquí tienes, then what you give, joined with y (and). Naming one of them is enough.",
+    "phrase.aqui-tienes-la-madera-y-las-monedas.meaning": "Here are the wood and the coins.",
+    "phrase.aqui-tienes-el-agua.card": "Aquí tienes el agua. = Here is the water. · el agua = the water",
+    "phrase.aqui-tienes-el-agua.explain": "Hand León the water: aquí tienes, then what you give. Agua is feminine but takes el: el agua.",
+    "phrase.aqui-tienes-el-agua.meaning": "Here is the water."
   }
 }

@@ -9,10 +9,14 @@
     "fisher-open": [
       "donde-esta-la-panaderia",
       "donde-esta-la-herreria"
+    ],
+    "fisher-receive": [
+      "aqui-tienes-tres-frutas"
     ]
   },
   "prompts": {
-    "idle": "fisher-open"
+    "idle": "fisher-open",
+    "receiving": "fisher-receive"
   },
   "opening": {
     "event": "fisher.greet",
