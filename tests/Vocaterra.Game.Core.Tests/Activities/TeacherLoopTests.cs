@@ -22,7 +22,7 @@ public sealed class TeacherLoopTests
     private static Scene Pristine(ulong seed = TestGame.Seed) => TestGame.Route(seed);
 
     // The station over the test procedure, with the worker running (typed turns only) and the talk wired as the game wires it.
-    private sealed class Rig
+    private sealed class Rig : IDisposable
     {
         public Rig()
         {
@@ -32,6 +32,9 @@ public sealed class TeacherLoopTests
             Station.Panel.Talk = Talk;
             Assert.True(Session.StartWorker(loadSpeech: false).WaitUntilReady(30000), "The worker did not load.");
         }
+
+        // The worker's thread holds the session (and its scene copy, about 110 MB) until it is stopped: a rig left running kept every test's world for the whole run (T10).
+        public void Dispose() => Session.Dispose();
 
         public StationRig Station { get; }
 
@@ -74,7 +77,7 @@ public sealed class TeacherLoopTests
     [Fact]
     public void TheTeacherEntersTeachingWhenTheStationOpensAndLeavesItWhenItCloses()
     {
-        var rig = new Rig();
+        using var rig = new Rig();
         Assert.Equal("idle", rig.TeacherState);
         Assert.Null(rig.Session.TeachingNpc);
         Assert.True(rig.Open());
@@ -96,7 +99,7 @@ public sealed class TeacherLoopTests
     [Fact]
     public void TheTeacherEndsTeachingWhenTheBakeIsDone()
     {
-        var rig = new Rig();
+        using var rig = new Rig();
         Assert.True(rig.Open());
         foreach (var id in rig.Session.Procedures.Order.ToList())
         {
@@ -111,7 +114,7 @@ public sealed class TeacherLoopTests
     [Fact]
     public void ALineAtTheStationWithoutTheTeacherGoesNowhere()
     {
-        var rig = new Rig();
+        using var rig = new Rig();
         Assert.True(rig.Station.Panel.Open("horno")); // the default: the teacher is not with the learner
         Assert.Null(rig.Session.TeachingNpc);
         Assert.False(rig.Talk.Say("Otra vez, por favor."));
@@ -121,7 +124,7 @@ public sealed class TeacherLoopTests
     [Fact]
     public void OtraVezReachesTheRunnerAndPlaysTheRowAgain()
     {
-        var rig = new Rig();
+        using var rig = new Rig();
         Assert.True(rig.Open());
         var row = rig.Station.View.Strip.Row!;
         var turn = Assert.Single(rig.Say("Otra vez, por favor."));
@@ -139,7 +142,7 @@ public sealed class TeacherLoopTests
     [Fact]
     public void MasDespacioReachesTheRunnerAndPlaysTheSlowRecording()
     {
-        var rig = new Rig();
+        using var rig = new Rig();
         Assert.True(rig.Open());
         var row = rig.Station.View.Strip.Row!;
         var turn = Assert.Single(rig.Say("Más despacio, por favor."));
@@ -155,7 +158,7 @@ public sealed class TeacherLoopTests
     [InlineData("No sé.", "dont_know")]
     public void AyudaAndNoSeAreTheHKey(string line, string intent)
     {
-        var rig = new Rig();
+        using var rig = new Rig();
         Assert.True(rig.Open());
         Assert.False(rig.Session.Procedures.View().ShowEnglish && rig.Session.Procedures.View().HighlightUse is not null && false);
         var before = rig.Session.Procedures.View().Rung;
@@ -175,7 +178,7 @@ public sealed class TeacherLoopTests
     [Fact]
     public void ThanksIsLucesLineAndChangesNothing()
     {
-        var rig = new Rig();
+        using var rig = new Rig();
         Assert.True(rig.Open());
         var turn = Assert.Single(rig.Say("Gracias."));
         Assert.Equal("thank", turn.Intent);
@@ -188,7 +191,7 @@ public sealed class TeacherLoopTests
     [Fact]
     public void ALineOutsideTheAnswerSetKeepsHerListening()
     {
-        var rig = new Rig();
+        using var rig = new Rig();
         Assert.True(rig.Open());
         var turn = Assert.Single(rig.Say("El cielo es azul."));
         Assert.False(turn.Communicated);
@@ -199,7 +202,7 @@ public sealed class TeacherLoopTests
     [Fact]
     public void TheFirstBakeIsAlwaysSuppliedAndARepeatedRequestGivesNothingMore()
     {
-        var rig = new Rig();
+        using var rig = new Rig();
         Assert.True(rig.Open());
         rig.Drop(ItemId.Wood);
         Assert.Equal(0, rig.Held(ItemId.Wood));
@@ -225,7 +228,7 @@ public sealed class TeacherLoopTests
     [Fact]
     public void AfterTheFirstBakeTheIngredientsAreGivenOncePerDayAndTheDayIsSaved()
     {
-        var rig = new Rig();
+        using var rig = new Rig();
         Assert.True(rig.Open());
         rig.Station.Bake(); // the first bake: done
         rig.Station.NextBake();
@@ -269,7 +272,7 @@ public sealed class TeacherLoopTests
     [Fact]
     public void ANoRoomBagIsAnsweredWithTheBagLineAndGivesNothing()
     {
-        var rig = new Rig();
+        using var rig = new Rig();
         Assert.True(rig.Open());
         rig.Drop(ItemId.Wood);
         var bag = rig.Session.Simulation.Inventory;
@@ -488,7 +491,7 @@ public sealed class TeacherLoopTests
     [Fact]
     public void ATeacherALoadLeftTeachingComesOutOfItBeforeTheNextTalk()
     {
-        var rig = new Rig();
+        using var rig = new Rig();
         Assert.True(rig.Open());
         Assert.Equal("teaching", rig.TeacherState);
         var document = SaveGame.Capture(rig.Session, Pristine());
@@ -503,7 +506,7 @@ public sealed class TeacherLoopTests
     [Fact]
     public void AStationOpenedAfterALoadPutsATeacherLeftTeachingBackToListening()
     {
-        var rig = new Rig();
+        using var rig = new Rig();
         Assert.True(rig.Open());
         var document = SaveGame.Capture(rig.Session, Pristine());
         var loaded = SaveGame.Load(SaveGame.Serialize(document), ProcedureRig.Data(), Pristine, credit: CreditRules.FullTyped, bumpSession: false);
@@ -518,7 +521,7 @@ public sealed class TeacherLoopTests
     [Fact]
     public void TheStationsTalkReachesTheTeacherAndLeavesTheStationOpen()
     {
-        var rig = new Rig();
+        using var rig = new Rig();
         Assert.True(rig.Open());
         Assert.True(rig.Talk.Say("Otra vez, por favor."));
         Assert.True(rig.Talk.Thinking);
@@ -549,7 +552,7 @@ public sealed class TeacherLoopTests
     [Fact]
     public void WTypesALineAndEnterSendsItWhileTheStationsKeysWaitForTheTextBox()
     {
-        var rig = new Rig();
+        using var rig = new Rig();
         Assert.True(rig.Open());
         rig.Station.Press(GameKey.W);
         Assert.True(rig.Talk.IsTyping);
@@ -588,7 +591,7 @@ public sealed class TeacherLoopTests
     [Fact]
     public void ThePanelsOnTalkHookStillTellsTheFrontEndWhatWasPressed()
     {
-        var rig = new Rig();
+        using var rig = new Rig();
         Assert.True(rig.Open());
         var pressed = new List<StationTalk>();
         rig.Station.Panel.OnTalk = pressed.Add;

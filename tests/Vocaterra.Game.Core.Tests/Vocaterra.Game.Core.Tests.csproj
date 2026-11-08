@@ -23,7 +23,7 @@
 
   <!-- The version 1 save of S18 (the learner's record of S19 loads it with an empty history); the test finds it in this folder. -->
   <!-- xUnit runs at most 3 test classes at once (T7 chose 3, H08a 4; the merge keeps the lower, so the memory stays under both): with one thread per core the test host peaked at 5.1 GB and, beside the fuzz suite, hit the
-       6 GB cap of scripts/limited.sh; with 4 it peaked at about 2.9 GB in the same 55 s. runtimeconfig.template.json caps the managed heap (2.25 GB) so it stays bounded. -->
+       6 GB cap of scripts/limited.sh; with 4 it peaked at about 2.9 GB in the same 55 s. runtimeconfig.template.json caps the managed heap (3 GB) so it stays bounded. -->
   <ItemGroup>
     <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
