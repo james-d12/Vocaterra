@@ -7,8 +7,8 @@ namespace Vocaterra.Game.Core.Tests.Scripted;
 
 /// <summary>
 /// The scripted walker in the shipped lake (water-plan H11): it swims out and hops back onto a bank a swimmer can climb, and a walk that ends in the water lets the body
-/// sink. The bank at 212,262 is two blocks above the lake's one-block-deep shelf, so no body can leave there (a wade jumps 1.3 blocks, the hop-out needs water at the waist):
-/// the walker gives up there, as a player would be stuck.
+/// sink. The bank at 212,262 stood two blocks above the lake's one-block-deep shelf, so no body could leave there (a wade jumps 1.3 blocks, the hop-out needs water at the
+/// waist); H12 reshaped the banks (<c>TerrainGenerator.BankHeight</c>) and the walker now leaves the lake there.
 /// </summary>
 public sealed class WalkerLeavesTheLakeTests
 {
@@ -52,11 +52,12 @@ public sealed class WalkerLeavesTheLakeTests
     }
 
     [Fact]
-    public void Given_ACliffTwoBlocksOverTheShallows_When_TheWalkerReturnsToIt_Then_NoBodyCanClimbItAndTheWalkerGivesUp()
+    public void Given_TheBankAt212_262_When_TheWalkerSwimsOutAndReturnsToIt_Then_ItWalksOutOfTheLake()
     {
         var (sim, log) = Go(VoxelStep.Teleport(212, 262), VoxelStep.WalkTo(212, 288), VoxelStep.WalkTo(212, 262));
 
-        Assert.Contains(log, static l => l.StartsWith("walk-to 212,262: gave up", StringComparison.Ordinal));
-        Assert.True(sim.Player.FeetBlock.Y < 34, "the body is below the bank");
+        Assert.DoesNotContain(log, static l => l.Contains("gave up", StringComparison.Ordinal));
+        Assert.Contains(log, static l => l.StartsWith("walk-to 212,262: arrived", StringComparison.Ordinal));
+        Assert.False(Immersion.Of(sim.Grid, sim.Player).Feet, "the body is out of the water");
     }
 }
