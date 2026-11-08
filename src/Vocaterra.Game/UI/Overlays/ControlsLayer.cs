@@ -64,7 +64,9 @@ public sealed class ControlsLayer : IFrameLayer
         var width = Math.Min(820, view.ViewportWidth - 32);
         var keysWidth = KeysWidth(width);
         var textWidth = width - keysWidth - 32;
-        var controls = view.Session.Data.Controls.Select(c => (Keys: c.Keys, Text: c.Text)).Append((Keys: view.Session.Locale.Ui("controlsTextSizeKeys"), Text: view.Session.Locale.Ui("controlsTextSize"))).ToList(); // the text size is the game's own key (X08)
+        var controls = view.Session.Data.Controls.Select(c => (Keys: c.Keys, Text: c.Text)).Append((Keys: view.Session.Locale.Ui("controlsTextSizeKeys"), Text: view.Session.Locale.Ui("controlsTextSize")))
+            .Append((Keys: view.Session.Locale.Ui("controlsEffectsKeys"), Text: view.Session.Locale.Ui("controlsEffects")))
+            .Append((Keys: view.Session.Locale.Ui("controlsSettingsKeys"), Text: view.Session.Locale.Ui("controlsSettings"))).ToList(); // the text size is the game's own key (X08)
         var rows = controls
             .Select(c => (Keys: TextWrap.Wrap(c.Keys, keysWidth - 8, t => DrawHelpers.Width(font, t)), Text: TextWrap.Wrap(c.Text, textWidth, t => DrawHelpers.Width(font, t))))
             .ToList();

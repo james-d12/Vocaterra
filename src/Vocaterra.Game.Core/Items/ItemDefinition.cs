@@ -1,3 +1,5 @@
+using Vocaterra.Game.Core.Voxel;
+
 namespace Vocaterra.Game.Core.Items;
 
 /// <summary>
@@ -38,15 +40,31 @@ public enum ItemId : ushort
 
     /// <summary>The axe (<c>hacha</c>, village-plan V03), the smith's order: held, it gathers a trunk in a quarter of the ticks (<see cref="Simulation.VoxelSimulation.GatherTicksOf"/>).</summary>
     Axe = 32,
+
+    /// <summary>A roast apple (<c>manzana</c>, labelled <c>manzana asada</c>, N07): an apple cooked at a lit fire, which feeds more and heals.</summary>
+    RoastApple = 33,
+
+    /// <summary>Flour (<c>harina</c>, W10): the bread's first ingredient, sold at the stall for a coin.</summary>
+    Flour = 34,
 }
 
 /// <summary>
-/// What the simulation knows about one item kind: its stable key and its stack limit. The stack limit lives here and nowhere else.
+/// What a tool does when it is held (W02): it gathers the blocks of its <see cref="Class"/> <paramref name="Speed"/> times as fast, and yields
+/// <paramref name="Yield"/> of each gather (recorded for later tools; the gather still gives the block's own drop count).
+/// </summary>
+/// <param name="Class">The material of the blocks the tool works on.</param>
+/// <param name="Speed">How many times faster: a block takes its gather ticks divided by this (at least one tick). Hands are speed 1.</param>
+/// <param name="Yield">How many of a gather's drop the tool gives; 1 for every tool so far.</param>
+public sealed record ToolSpec(Material Class, int Speed, int Yield = 1);
+
+/// <summary>
+/// What the simulation knows about one item kind: its stable key, its stack limit and, for a tool, its <see cref="ToolSpec"/>. The stack limit lives here and nowhere else.
 /// </summary>
 /// <param name="Id">The item kind.</param>
 /// <param name="Name">A stable lowercase English key; the bundle's noun catalogue names items by it.</param>
 /// <param name="MaxStack">How many of this item one inventory slot holds.</param>
-public sealed record ItemDefinition(ItemId Id, string Name, int MaxStack)
+/// <param name="Tool">The tool's spec, or <see langword="null"/> when the item is not a tool.</param>
+public sealed record ItemDefinition(ItemId Id, string Name, int MaxStack, ToolSpec? Tool = null)
 {
     /// <summary>The stack limit of a material or a placeable block.</summary>
     public const int DefaultStackLimit = 99;
@@ -62,7 +80,9 @@ public sealed record ItemDefinition(ItemId Id, string Name, int MaxStack)
         new(ItemId.Book, "book", 1),
         new(ItemId.Coin, "coin", DefaultStackLimit),
         new(ItemId.Apple, "apple", DefaultStackLimit),
-        new(ItemId.Axe, "axe", 1),
+        new(ItemId.Axe, "axe", 1, new ToolSpec(Material.Wood, 4)),
+        new(ItemId.RoastApple, "roast-apple", DefaultStackLimit),
+        new(ItemId.Flour, "flour", DefaultStackLimit),
     ];
 
     /// <summary>Every item kind, ordered by id.</summary>

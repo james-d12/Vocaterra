@@ -8,6 +8,7 @@ using Vocaterra.Game.UI.Inventory;
 using Vocaterra.Game.UI.Lesson;
 using Vocaterra.Game.UI.Overlays;
 using Vocaterra.Game.UI.Report;
+using Vocaterra.Game.UI.Station;
 
 namespace Vocaterra.Game.UI.Common;
 
@@ -22,12 +23,16 @@ public static class LayerStack
     {
         var layers = new List<IFrameLayer>
         {
+            new FadeLayer(),
+            new DeathScreenLayer(),
+            new ViewEffectsLayer(),
             new CrosshairLayer(),
             new BeaconArrowLayer(),
             new TalkHintLayer(),
             new SleepPromptLayer(),
             debug,
             new HotbarLayer(),
+            new NeedsHudLayer(),
             new BreathHudLayer(),
             new RecipePanelLayer(),
             new ObjectiveLayer(),
@@ -42,7 +47,9 @@ public static class LayerStack
             new BookLayer(),
             new InventoryLayer(),
             new CraftingLayer(),
+            new StationLayer(),
             new ControlsLayer(),
+            new SettingsLayer(),
             new CheckLayer(),
             new MicCheckLayer(),
             new ReportLayer(),

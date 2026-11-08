@@ -59,7 +59,7 @@ public sealed record ReplayEnvelope(ReplayRecord Record, AsrResult Asr, PhonePos
 | `record.versions.contentHash` | string | The content bundle hash (`content/game-v1/manifest.json`, `bundleHash`). |
 | `record.versions.modelHashes` | map | One entry per model that took part, sorted: `asr`, `phoneme`, `embedding`, `tts`. A scripted recognizer reports its own label (`scripted-transcript`). |
 | `record.verdict` | object | The `Verdict`: intent, slots, communicated, correctness, errors, pronunciation, confidence, resolvedBy, versions. |
-| `asr` | object | What the word recognizer returned: transcript, n-best list, word timings, confidence, model hash, recognition mode. During a replay it is served back by a `ReplayWordRecognizer` keyed by the clip hash. |
+| `asr` | object | What the word recognizer returned: transcript, n-best list, word timings, confidence, model hash, recognition mode. During a replay it is served back by a `ReplayWordRecognizer` keyed by the clip hash, whatever the request asks for. With `PipelineOptions.OpenRecognitionFallback` (M80) it is the recognition the verdict was made from: a line heard on the free second decode is recorded with `mode` `Open` at a constrained prompt. |
 | `posteriors` | object or null | What the phoneme recognizer returned (`vocabulary`, `logProbs`, `frameCount`, `frameSeconds`), or `null` when pronunciation scoring did not run. Served back by a `RecordedPhonemeRecognizer`. |
 | `context` | object | The `ConversationContext` the utterance was evaluated in: world seed, stored time (`now.unixSeconds`), agent id and state (its `interactionCounter` selects the random stream), the learner model before the utterance, the repeat counts per error tag before the utterance (the pipeline adds this utterance's tags itself), and the host state hash. Two members appear only when the host set them: `hostSlots` (the host facts for the reply and feedback templates, a sorted string map; CR-003) and `extraSkills` (the host-named skills of the learner update, a sorted list; CR-005). An envelope without them is byte-identical to one written before they existed, and the replayer reads them back from the envelope like every other context member. |
 | `result` | object | The full `PipelineResult`: `verdict`, `decision` (agent step, updated learner, FSRS rating, feedback plan), `response` (the lines the agent says), `effects`, `repair`, `replay` (the same record as `record`), `words` (each token with its role and the reading the resolver chose; CR-002) and `answer` (the answer match; CR-004). `words` and `answer` are derived, not recorded: they are recomputed on replay and compared. |
@@ -627,6 +627,20 @@ state or the event is no longer handled) is reported as `/result`. The CLI `repl
   A host that records host turns and reads the log with an older build of the core gets an error (the older reader does not know `kind` and rejects the
   line as not an envelope); use one log file per kind, or read with `ReadEntries`.
 - A line is a host turn when it is a JSON object whose `kind` is `"hostTurn"`; every other line is read as before.
+
+## The open-recognition fallback and replay (M80, M84)
+
+The envelope has no field for the second decode, and its format did not change. With `OpenRecognitionFallback` on, `asr` is the recognition that was chosen:
+- **The free recognition was chosen** (the constrained reading was not taken, or was taken but looked forced; the free one was taken, cleared the floor and, against a taken
+  reading, had another intent). It is recorded with `mode` `Open`. On replay the recorded recognition is served for the first request; its mode is `Open`, so the
+  trigger (which needs a `Constrained` first recognition) never fires, and the verdict is the one recorded. A replay through a pipeline with the option off gives the same
+  result, because the stages read the recorded recognition the same way.
+- **The constrained recognition was kept** (the free one was not taken, had a word under `OpenPassWordFloor` or the same intent). It is recorded with `mode` `Constrained`.
+  A replay through a pipeline with the option on may fire the trigger again (a loose answer match fires it from the recognition alone; the coverage trigger needs the
+  clip's audio, which a replay does not have, so it does not fire) and serves the same recognition again for the second (open) request; that reading has the same intent
+  as the first, so the first reading is kept and the verdict is the same. The unchosen free recognition (`UtteranceAnalysis.OtherPass`) is not recorded.
+
+A replay never needs the model for either case, and old logs replay as before.
 
 ## What is and is not stored
 

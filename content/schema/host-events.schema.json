@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "game/host-events.json",
-  "description": "What each NPC host event does in the world (C08; schema 2 since VILLAGE_PLAN V02: a count on give_item, point_at_place and point_at_slot; V03: take_item and sell; V15: buy). Loaded by HostEventTable (Vocaterra.Game.Core).",
+  "description": "What each NPC host event does in the world (C08; schema 2 since VILLAGE_PLAN V02: a count on give_item, point_at_place and point_at_slot; V03: take_item and sell; V15: buy; W08: the teacher's kinds procedure_repeat, procedure_slower, procedure_help, give_missing, teach_recipe and start_procedure). Loaded by HostEventTable (Vocaterra.Game.Core).",
   "type": "object",
   "required": [
     "schemaVersion",
@@ -20,7 +20,9 @@
         "book",
         "coin",
         "apple",
-        "axe"
+        "axe",
+        "roast-apple",
+        "flour"
       ],
       "description": "An item by the name the save gives it (ItemDefinition)."
     },
@@ -198,9 +200,21 @@
               {
                 "type": "object",
                 "required": [
-                  "kind",
-                  "item",
-                  "price"
+                  "kind"
+                ],
+                "oneOf": [
+                  {
+                    "required": [
+                      "item",
+                      "price"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "slot",
+                      "prices"
+                    ]
+                  }
                 ],
                 "additionalProperties": false,
                 "properties": {
@@ -216,6 +230,21 @@
                     "type": "integer",
                     "minimum": 1,
                     "description": "Coins for one item."
+                  },
+                  "slot": {
+                    "enum": [
+                      "item"
+                    ],
+                    "description": "W04: with prices, instead of item and price. The verdict's slot that names the item (the only one a sale reads)."
+                  },
+                  "prices": {
+                    "type": "object",
+                    "minProperties": 1,
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "description": "W04: the price list, catalogue noun to coins for one item (pan: 2, harina: 1). An item not on it raises <npc>.wont_sell and nothing changes hands. Never together with item and price."
                   }
                 },
                 "description": "The NPC sells as many of the item as the learner asked for (the verdict's qty, one when none; no cap since V19, the coins and the bag are the bound) for that many times the price in coins. Otherwise nothing changes hands and a host turn is raised to the agent: another item (or a catalogue noun of no item) <npc>.wont_sell, none asked for <npc>.none_asked, too few coins <npc>.cant_pay (V03), no room in the bag for the items <npc>.no_room (V19)."
@@ -223,9 +252,21 @@
               {
                 "type": "object",
                 "required": [
-                  "kind",
-                  "item",
-                  "price"
+                  "kind"
+                ],
+                "oneOf": [
+                  {
+                    "required": [
+                      "item",
+                      "price"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "slot",
+                      "prices"
+                    ]
+                  }
                 ],
                 "additionalProperties": false,
                 "properties": {
@@ -241,9 +282,63 @@
                     "type": "integer",
                     "minimum": 1,
                     "description": "Coins for one item."
+                  },
+                  "slot": {
+                    "enum": [
+                      "item"
+                    ],
+                    "description": "W04: with prices, instead of item and price. The verdict's slot that names the item (the only one a sale reads)."
+                  },
+                  "prices": {
+                    "type": "object",
+                    "minProperties": 1,
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "description": "W04: the price list, catalogue noun to coins for one item (pan: 2, harina: 1). An item not on it raises <npc>.wont_buy and nothing changes hands. Never together with item and price."
                   }
                 },
                 "description": "The NPC buys the item from the learner (V15, the sale turned round): as many as the learner said (the verdict's qty, at most what the bag holds) or, with no number, every one the bag holds, for the price each in coins. A bag with none raises <npc>.cant_sell to the agent as a host turn, a line that offers another item (or a catalogue noun of no item) <npc>.wont_buy, an offer of none <npc>.none_offered, and a bag with no room for the coins <npc>.no_room (V19); then nothing changes hands."
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "procedure_repeat",
+                      "procedure_slower",
+                      "procedure_help",
+                      "give_missing"
+                    ]
+                  }
+                },
+                "description": "A teacher's answer at a station (W08, design 10.14), with no more to say: procedure_repeat plays the instruction again, procedure_slower plays it slowly, procedure_help is the H key, and give_missing gives the ingredients the run still lacks (always for the first bake, then once per in-game day; the agent answers <npc>.nothing_missing, <npc>.gift_used or <npc>.no_room when nothing is given)."
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "teach_recipe",
+                      "start_procedure"
+                    ]
+                  },
+                  "procedure": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "The procedure's id; left out, the procedure the NPC teaches (so a bundle with none maps the event and nothing happens)."
+                  }
+                },
+                "description": "teach_recipe adds the procedure to the procedures the learner knows (W08); start_procedure opens the station for it and puts the teacher in its teaching state (the accepted offer to bake)."
               }
             ]
           }

@@ -21,6 +21,9 @@ public enum ScriptStepKind
     /// <summary>Close the dialogue.</summary>
     Leave,
 
+    /// <summary>Show or hide the dialogue's older lines, as the expand key does (U02).</summary>
+    Expand,
+
     /// <summary>Save the screen to the file in <see cref="ScriptStep.Value"/> and go on.</summary>
     Shot,
 
@@ -75,4 +78,36 @@ public enum ScriptStepKind
     /// begins as a load of the save would begin it. Refused, with a line, when the player may not sleep (the fire not lit, a lesson step waiting, a playtest).
     /// </summary>
     Sleep,
+
+    /// <summary>
+    /// Eat or drink the item named in <see cref="ScriptStep.Value"/> (<c>--eat pan</c>, N02): one is given if the bag has none (a test aid, like <c>--set-need</c>), then it is used as a right
+    /// click with it selected uses it. The result is the game's event lines (<c>meal_eaten</c>, <c>water_drunk</c>) and the meters.
+    /// </summary>
+    Eat,
+
+    /// <summary>A drink by hand at the water the crosshair is on, within reach (<c>--drink</c>, N02): the walk and the look come first. A line says when there is no water to drink.</summary>
+    Drink,
+
+    /// <summary>E at the belongings chest the crosshair is on, within reach (<c>--take-belongings</c>, N04): the walk and the look come first. A line says when there is no chest to take from.</summary>
+    TakeBelongings,
+
+    /// <summary>Sets a need where the script stands (<c>--need thirst 51</c>, N04, a test aid): <see cref="ScriptStep.Value"/> is the need and the value.</summary>
+    SetNeed,
+
+    /// <summary>Puts one of the item named in <see cref="ScriptStep.Value"/> in the bag (<c>--give manzana</c>, N07, a test aid like <c>--eat</c>'s: a run that crafts needs its ingredient).</summary>
+    Give,
+
+    /// <summary>Plants a berry at the camp on the ground block whose cell is in <see cref="ScriptStep.Value"/> (<c>--plant 10,4,12</c>, N08): the held berry goes on the grass or dirt, as a right click on it does.</summary>
+    Plant,
+    /// <summary>Opens the station named in <see cref="ScriptStep.Value"/> and starts its first procedure (<c>--station horno</c>, W07): the overlay stays open for what follows, as the panel's E does at the oven. A line says when the station is unknown.</summary>
+    Station,
+
+    /// <summary>An act at the open station (<c>--act harina,bol[,poner]</c>, W07): <see cref="ScriptStep.Value"/> is the noun held, the target and, when the pair has several verbs, the verb.</summary>
+    Act,
+
+    /// <summary>A typed line to the teacher from the open station (<c>--station-say "Otra vez, por favor."</c>, W08): it goes to the teacher at its teaching prompt, the answer shows on the station's talk line and the run waits for it.</summary>
+    StationSay,
+
+    /// <summary>Help at the open station (<c>--proc-help</c>, W07): the English and the highlight, and the row steps up a rung, as H does.</summary>
+    ProcHelp,
 }

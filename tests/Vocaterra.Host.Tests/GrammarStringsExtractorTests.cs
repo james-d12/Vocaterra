@@ -95,6 +95,10 @@ public sealed class GrammarStringsExtractorTests
         ["puedo-pagar-con-fruta"] = ["conj.irregular"],
         ["manana-vendere-fruta"] = ["conj.tense"],
         ["compre-tres-manzanas"] = ["noun.number"],
+        ["voy-a-hacer-pan"] = ["conj.tense"],
+        ["hice-pan"] = ["conj.tense"],
+        ["quiero-harina"] = ["gender.agree"],
+        ["vendo-pan"] = ["gender.agree"],
     };
 
     [Fact]

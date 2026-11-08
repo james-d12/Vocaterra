@@ -2,6 +2,7 @@ using System.Globalization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Vocaterra.Game.Core.Activities;
 using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Input;
@@ -14,6 +15,7 @@ using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Navigation;
+using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Save;
@@ -24,6 +26,7 @@ using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.Water;
 using Vocaterra.Game.Core.World;
 using Vocaterra.Game.Core.World.Layout;
 using Vocaterra.Game.Diagnostics;
@@ -45,6 +48,7 @@ using Vocaterra.Game.UI.Hud;
 using Vocaterra.Game.UI.Lesson;
 using Vocaterra.Game.UI.Overlays;
 using Vocaterra.Game.UI.Report;
+using Vocaterra.Game.UI.Station;
 
 namespace Vocaterra.Game;
 
@@ -116,6 +120,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly SessionEndingFlow _endingFlow;
     private readonly LessonFrontend _lesson;
     private readonly ControlsHelp _controls;
+    private readonly SettingsPanel _settings;
     private bool _aimedTipOffered;
     private readonly NpcVoice _voice;
     private readonly MicCheckModel? _micCheck;
@@ -140,6 +145,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly CraftingScreen _crafting = new();
     private readonly InventoryPanel _inventoryPanel;
     private readonly CraftingPanel _craftingPanel;
+    private readonly StationScreen _station = new();
+    private readonly StationPanel _stationPanel;
     private int _loadingFrames;
     private readonly ShotRequest _shots = new();
     private readonly ScriptedRunEnd _runEnd;
@@ -179,12 +186,22 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     /// <param name="savedVolumes">The sound volumes a loaded save holds (S24), or <see langword="null"/>; <c>--sfx-volume</c> and <c>--ambient-volume</c> override them.</param>
     /// <param name="layout">The scene's layout, whose places the ambient beds listen to (S25), or <see langword="null"/> (a run without one has no places).</param>
     /// <param name="savedTextScale">The interface text size in percent a loaded save holds (X08), or <see langword="null"/>; <c>--text-scale</c> overrides it.</param>
-    public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene, NpcVoice voice, Func<Scene> pristine, SoundVolumes? savedVolumes = null, SceneLayout? layout = null, int? savedTextScale = null)
+    public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene, NpcVoice voice, Func<Scene> pristine, SoundVolumes? savedVolumes = null, SceneLayout? layout = null, int? savedTextScale = null, SaveSettings? savedSettings = null)
     {
         _options = options;
         _canvas = new UiCanvas(SaveSettings.SnapTextScale(options.TextScale ?? savedTextScale ?? 100), () => (GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height));
         _devices = new InputDevices(_canvas);
         _session = session;
+        session.NeedsEnabled = !options.NeedsOff; // --needs off freezes the needs (N01, a test aid)
+        session.RelaxedNeeds = options.RelaxedNeeds || savedSettings?.RelaxedNeeds == true; // half the rates, a faint for a death (N05, design decision 17)
+        session.NeedsRate = options.NeedsRate ?? savedSettings?.EffectiveNeedsRate ?? SaveSettings.DefaultNeedsRate; // the drive rate (N09)
+        _underwaterBlur = options.UnderwaterBlur ?? savedSettings?.EffectiveUnderwaterBlur ?? UnderwaterBlurSettings.Default; // H11: a launch option overrides the saved setting for a run
+        _needsHud = new NeedsHud(session) { EffectsOn = options.ViewEffects ?? !(savedSettings?.ViewEffectsOff ?? false) };
+        foreach (var (meter, value) in options.SetNeeds)
+        {
+            session.SetNeed(meter, value); // --set-need (N01, a test aid)
+        }
+
         session.SleepOffered = !options.Playtest; // a playtest plays one session per run: its post-check follows the ending, and no sleep is offered (V12c)
         _scene = scene;
         _voice = voice;
@@ -194,7 +211,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         // The book's speaker buttons (S20b): a row plays the recording the speech folder has for it (the files are read once, here).
         _recordings = new BookRecordings(SpeechLines.Enumerate(session.Bundle, session.Nouns, session.Phrases, session.Data.Npcs).Select(static l => l.LineId).Where(voice.HasRecording), session.Phrases);
         _bookControls = new BookSpeechControls(_book, new BookSpeaker(voice, _sound.Mixer), session, _recordings);
-        _dialogue = new DialogueModel(_focus, session.OpeningLine, session.Data, session.Phrases, session.Locale, showVerdictNotes: !options.Playtest);
+        _dialogue = new DialogueModel(_focus, session.OpeningLine, session.Data, session.Phrases, session.Locale, showVerdictNotes: options.Dev);
         _soundFrame = new SoundFrame(_sound, voice, session, () => new PanelState(_inventory.IsOpen, _crafting.IsOpen, _book.IsOpen, (int)_book.Page, _dialogue.IsOpen));
         var microphone = options.UsesMicrophone ? MicrophoneCapture.TryOpen() : null;
         _listen = new ListenSession(new PushToTalkSpeechCapture(microphone) { Sounds = _sound.Mixer });
@@ -209,12 +226,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _ending.MarkSeen(session); // a game loaded after its ending does not play it again
         _micCheck = options.ShowsMicCheck ? new MicCheckModel(session.LogMicCheck, session.Locale, session.Data.Words.Greeting) : null;
         _playtest = options.Playtest;
-        _debug.Visible = !_playtest; // the playtest has no debug overlay (F3 is off there too)
+        _debug.Visible = options.Dev; // U01: clean by default; --dev (or F3, not in a playtest) shows the overlay and the developer note
         _look.Set(scene.Spawn.Yaw, scene.Spawn.Pitch);
         _camera = new PlayerCamera(_sim, _look, _viewMode, _isSolid);
         _figures = new FigureDirector(scene, _sim, _look, _dialogue, session.Data.Npcs);
         _arm = new ArmPresenter(_sim, _isSolid, options.Dusk);
-        _drawer = new SceneDrawer(options, session, _toasts, _figures.Figures, Console.WriteLine);
+        _drawer = new SceneDrawer(options, session, _toasts, _figures.Figures, Console.WriteLine) { BlurLevel = () => UnderwaterBlurSettings.Effective(_underwaterBlur, _needsHud.EffectsOn) }; // the accessibility switch forces the blur off (H11)
         _reportScreen = new ReportScreen(
             _report,
             session,
@@ -267,8 +284,18 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             Console.WriteLine);
         _lesson.OnRecapDone = _bookScreen.ShowPhrases; // the lesson's recap ends on the journal's phrases page (S17)
         _controls = new ControlsHelp(() => ControlsLayer.MaxScrollFor(_drawer.View));
+        _settings = new SettingsPanel(() => session.NeedsRate, rate => { session.NeedsRate = rate; Console.WriteLine($"needs rate: {SettingsPanel.RateText(session.NeedsRate)}"); }, () => _needsHud.EffectsOn, on => { _needsHud.EffectsOn = on; Console.WriteLine($"view effects: {(on ? "on" : "off")}"); }, () => session.RelaxedNeeds, on => { session.RelaxedNeeds = on; Console.WriteLine($"relaxed needs: {(on ? "on" : "off")}"); }, () => _underwaterBlur, level => { _underwaterBlur = level; Console.WriteLine($"underwater blur: {level.ToString().ToLowerInvariant()}"); }); // N09, H11
         _inventoryPanel = new InventoryPanel(_inventory, _focus, session, () => _book.IsOpen);
         _craftingPanel = new CraftingPanel(_crafting, session, _sound, (x, y) => new CraftingLayout(_canvas.Width, _canvas.Height, session.Recipes.Entries.Count).RowAt(x, y), () => _book.IsOpen || _inventory.IsOpen || _dialogue.IsOpen);
+        _stationPanel = new StationPanel(
+            _station,
+            session,
+            new NpcInstructionAudio(voice, new BookSpeaker(voice, _sound.Mixer), _recordings),
+            StationHitAt,
+            () => _book.IsOpen || _inventory.IsOpen || _crafting.IsOpen || _dialogue.IsOpen);
+        _stationPanel.Talk = new TeacherTalk(session, _listen, CursorCell); // W08: V, Space and W at the station talk to the teacher at her teaching prompt
+        _pump.Talk = _stationPanel.Talk; // her turns are the station's, not the dialogue panel's
+        session.StationRequested += OpenStationFromOffer;
         if (options.IsScreenshotRun)
         {
             _clock = new FixedFrameClock(VoxelSimulation.TicksPerSecond);
@@ -288,7 +315,44 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                     {
                         ClosePanels();
                         SleepNow("--sleep");
-                    });
+                    },
+                    item =>
+                    {
+                        if (session.Simulation.Inventory.Count(item) < 1)
+                        {
+                            session.Simulation.GrantItems(item, 1); // a test aid: --eat gives the food the bag lacks
+                        }
+
+                        var result = session.EatItem(item);
+                        var healed = session.Data.Needs.FoodOf(ItemDefinition.Get(item).Name) is { Healing: > 0 } ? $", health {session.Needs.Value(NeedMeter.Health):0.#}" : string.Empty; // a food that heals shows the health too (N07)
+                        Console.WriteLine($"eat: {result} ({item}), hunger {session.Needs.Value(NeedMeter.Hunger):0.#}, thirst {session.Needs.Value(NeedMeter.Thirst):0.#}{healed}");
+                    },
+                    () => Console.WriteLine($"drink: {session.DrinkByHand()}, thirst {session.Needs.Value(NeedMeter.Thirst):0.#}"),
+                    () => Console.WriteLine($"take-belongings: {session.TakeBelongings()}, chest {(session.Chest is { } chest ? $"{chest.Total} items at {chest.Cell.X},{chest.Cell.Y},{chest.Cell.Z}" : "gone")}"),
+                    text =>
+                    {
+                        var parts = text.Split(' ');
+                        session.SetNeed(Enum.Parse<NeedMeter>(parts[0], ignoreCase: true), double.Parse(parts[1], System.Globalization.CultureInfo.InvariantCulture));
+                        Console.WriteLine($"need: {text}");
+                    },
+                    item =>
+                    {
+                        session.Simulation.GrantItems(item, 1); // a test aid (N07): --give puts one in the bag
+                        Console.WriteLine($"give: {item}, bag {session.Simulation.Inventory.Count(item)}");
+                    },
+                    ground =>
+                    {
+                        var result = session.PlantOn(ground); // a test aid (N08): --plant x,y,z is a right click on that ground block with the berry held
+                        Console.WriteLine($"plant: {result} at {ground.X},{ground.Y},{ground.Z}, berries {session.Simulation.Inventory.Count(ItemId.Berry)}, planted {session.PlantedAlive}");
+                    },
+                    OpenStationFromScript,
+                    ActAtStationFromScript,
+                    () =>
+                    {
+                        _stationPanel.Help(); // --proc-help: H at the station
+                        Console.WriteLine(StationLine("proc-help"));
+                    },
+                    StationSayFromScript);
                 _scenario = new ScenarioScript(session, _look, _dialogue, options.Script, name => ScriptItemNames.Resolve(session.Nouns, name), hooks, Console.WriteLine, holdsCheckAnswers: options.Playtest);
             }
         }
@@ -336,7 +400,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         Window.AllowUserResizing = true;
         Window.Title = _playtest ? $"Vocaterra playtest (seed {options.Seed})" : $"Vocaterra 3D (seed {options.Seed})";
         Window.TextInput += OnTextInput;
-        _saves = new SaveService(session, pristine, () => new SaveSettings(_sound.Mixer.Volumes, _canvas.TextPercent), Console.WriteLine); // the sound volumes (S24) and the text size (X08) ride in the save's settings
+        _saves = new SaveService(session, pristine, () => new SaveSettings(_sound.Mixer.Volumes, _canvas.TextPercent, !_needsHud.EffectsOn, session.RelaxedNeeds, session.NeedsRate == SaveSettings.DefaultNeedsRate ? 0 : session.NeedsRate, _underwaterBlur == UnderwaterBlurSettings.Default ? null : _underwaterBlur), Console.WriteLine); // the sound volumes (S24), the text size (X08), the view effects and the relaxed needs (N05) ride in the save's settings
         _checks = new CheckBattery(
             session,
             () => _log,
@@ -361,18 +425,20 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _saves,
             new PlaytestHooks(() => _scenario?.Index ?? 0, index => _scenario?.SkipTo(index), ClosePanels, DrainForSave),
             Console.WriteLine);
-        _runEnd = new ScriptedRunEnd(options, session, _checks, _scenario, _dialogue, _micCheck, _shots, (_bookScreen.Open, _inventoryPanel.Open, _craftingPanel.Open), Exit, Console.WriteLine, (tick, message) => _log?.RunTruncated(tick, message));
+        _runEnd = new ScriptedRunEnd(options, session, _checks, _scenario, _dialogue, _micCheck, _shots, (_bookScreen.Open, _inventoryPanel.Open, _craftingPanel.Open), Exit, Console.WriteLine, (tick, message) => _log?.RunTruncated(tick, message), _settings.Open);
         _screens = new ScreenStack(
-            [_micScreen, _checks, _dialogueScreen, _controls, _bookScreen, _inventoryPanel, _craftingPanel],
-            [_checks, _micScreen, _dialogueScreen, _bookScreen, _inventoryPanel, _craftingPanel, _controls]);
+            [_micScreen, _checks, _dialogueScreen, _controls, _settings, _bookScreen, _inventoryPanel, _craftingPanel, _stationPanel],
+            [_checks, _micScreen, _dialogueScreen, _bookScreen, _inventoryPanel, _craftingPanel, _stationPanel, _controls, _settings]);
         var openBook = new DelegateCommand(_bookScreen.Open); // J and the book item (S20)
-        _worldInput = new WorldInput(_sim, _look, _live, openBook);
+        _worldInput = new WorldInput(_sim, _look, _live, openBook, new DelegateCommand(() => _session.EatSelected()), session.Data.Needs, cell => _session.PlantOn(cell));
         var commands = new GameCommands(
             ToggleView: new DelegateCommand(ToggleView),
             Save: new DelegateCommand(SaveNow),
             CycleTextSize: new DelegateCommand(CycleTextSize),
+            ToggleViewEffects: new DelegateCommand(ToggleViewEffects),
+            OpenSettings: new DelegateCommand(_settings.Open),
             EndPlaytest: new DelegateCommand(() => _playtestFlow.EndKey(WorldRunning)),
-            ToggleDebug: new DelegateCommand(() => _debug.Visible = !_debug.Visible),
+            ToggleDebug: new DelegateCommand(() => _dialogue.ShowVerdictNotes = _debug.Visible = !_debug.Visible),
             Listen: new DelegateCommand(() =>
             {
                 _dialogueScreen.Open(_aimed!.Name, null);
@@ -384,15 +450,18 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             NextTip: new DelegateCommand(() => _session.Tips.Dismiss()),
             OpenBook: openBook,
             OpenCrafting: new DelegateCommand(_craftingPanel.Open),
+            OpenStation: new DelegateCommand(OpenStationAimed),
             OpenInventory: new DelegateCommand(_inventoryPanel.Open),
             ReleaseMouse: new DelegateCommand(() =>
             {
                 _worldInput.ReleaseMouse();
                 _ending.Dismiss(); // Esc takes the closing card down (S17)
             }),
-            Sleep: new DelegateCommand(() => SleepNow("the player")));
+            Sleep: new DelegateCommand(() => SleepNow("the player")),
+            DrinkByHand: new DelegateCommand(() => _session.DrinkByHand()),
+            TakeBelongings: new DelegateCommand(() => _session.TakeBelongings()));
         _globalKeys = KeyBindings.Global(commands, options.Playtest);
-        _worldKeys = KeyBindings.World(commands, () => _aimed is not null, () => _session.Tips.Current is not null, AimedAtWorkbench, () => CardOffersSleep, () => FireOffersSleep);
+        _worldKeys = KeyBindings.World(commands, () => _aimed is not null, () => _session.Tips.Current is not null, AimedAtWorkbench, () => CardOffersSleep, () => FireOffersSleep || FireNotTired, () => _session.AimedAtWater, () => _session.AimedAtChest, AimedAtStation);
         // The session log (S11) is opened first, so the battery's start is in it; the battery's plan is the bundle's items in the seeded order of its kind.
         (_sessionDirectory, _log, _autosave) = SessionStart.Open(options, session, _micCheck is not null, _toasts, _playtestFlow, _saves, OnAppliedTurn, Console.WriteLine);
         if (options.Check is { } battery)
@@ -404,7 +473,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _greeting = new GuideGreeting(session, npc => _dialogueScreen.Open(npc, null), Console.WriteLine);
 
         CrashSource = new CrashSource(_sessionDirectory, options.ReportDir, session, _dialogue, _report, _autosave, _saves);
-        _session.StartWorker(MonotonicClock.Milliseconds, options.NeedsSpeech);
+        _session.StartWorker(options.TurnClock, options.NeedsSpeech);
     }
 
     // Closes the dialogue, the book, the inventory and the crafting panel, whichever is open (the playtest's post-check takes the screen, S12).
@@ -429,16 +498,49 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         {
             _craftingPanel.Close();
         }
+
+        if (_station.IsOpen)
+        {
+            _stationPanel.Close();
+        }
     }
 
     // The world is on screen: no check battery and no mic check (the playtest's triggers and its end key need that).
     private bool WorldRunning => _checks.Screen is null && _micCheck is not { IsActive: true };
+
+    // Why play is not active this frame (N01, design 9.2): the panels, the report, the check battery, the voice. The world's ticks go on under most of them, so the session is told.
+    private PlayPause PlayPausesNow()
+    {
+        var pauses = PlayPause.None;
+        if (_dialogue.IsOpen)
+        {
+            pauses |= PlayPause.Conversation;
+            if (_session.Lessons.Active is not null)
+            {
+                pauses |= PlayPause.Lesson;
+            }
+        }
+
+        pauses |= _bookScreen.IsOpen ? PlayPause.Book : PlayPause.None;
+        pauses |= _inventoryPanel.IsOpen ? PlayPause.Inventory : PlayPause.None;
+        pauses |= _craftingPanel.IsOpen ? PlayPause.Crafting : PlayPause.None;
+        pauses |= _stationPanel.IsOpen ? PlayPause.Station : PlayPause.None;
+        pauses |= _report.Paused ? PlayPause.Report : PlayPause.None;
+        pauses |= _controls.IsOpen || _settings.IsOpen || _micScreen.IsOpen ? PlayPause.Menu : PlayPause.None;
+        pauses |= _checks.Screen is not null ? PlayPause.CheckBattery : PlayPause.None;
+        pauses |= _listen.Listening ? PlayPause.SpeechRecording : PlayPause.None;
+        pauses |= _session.PendingTurns > 0 ? PlayPause.SpeechProcessing : PlayPause.None;
+        return pauses;
+    }
 
     // The player is free for the sleep's offer (V12c): the world on screen, no screen, panel or report up, no voice recorded.
     private bool SleepFree => WorldRunning && _screens.Top is null && !_dialogue.IsOpen && !_listen.Listening && !_report.Paused;
 
     // The player's own lit fire offers the sleep: E sleeps there, after an NPC under the crosshair and the workbench (V12c).
     private bool FireOffersSleep => SleepOffer.AtFire(_session, SleepFree && _aimed is null && !AimedAtWorkbench());
+
+    // L01: at the fire and not tired, E says the player's line «No tengo sueño.» (text only) and sleeps nothing.
+    private bool FireNotTired => SleepOffer.AtFireNotTired(_session, SleepFree && _aimed is null && !AimedAtWorkbench());
 
     // The session's closing card offers the sleep: Enter sleeps while it is up (V12c).
     private bool CardOffersSleep => SleepOffer.OnCard(_session, _ending.Visible(_sim.Tick), SleepFree);
@@ -476,6 +578,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         Toasts = _toasts,
         Inventory = _inventory,
         Crafting = _crafting,
+        Station = _stationPanel,
         Voxel = _sim,
         Camera3D = _camera.Camera,
         Beacon = _beacon.Beacon,
@@ -522,6 +625,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         if (!_report.Paused)
         {
             _turns.Apply();
+            _stationPanel.PumpCue(); // the instruction the teacher was asked to play again comes after her own line (W08)
         }
 
         _log?.Pump(_session); // the replay records and the events of this frame (S11)
@@ -542,6 +646,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         AutosaveDue(); // the autosave at its safe points (X05)
 
         _checks.Drive();
+        _session.PlayPauses = PlayPausesNow(); // the needs move only in active play (N01)
+        _session.SprintHeld = _worldInput.SprintHeld; // sprint, if the needs allow it (N02)
         var steps = _accumulator.Advance(seconds);
         if (_checks.Screen is not null)
         {
@@ -565,6 +671,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _pump.Submit();
         }
 
+        DriveCollapse(seconds); // the collapse of an exhausted player (N03)
+        DriveNeedsHud(); // the stage lines and their sound (N05)
         _beacon.Sync();
         _greeting.Update(free: _scenario is null && WorldRunning && !_screens.FreesMouse && _session.PendingTurns == 0); // the guide greets the player who comes up to her (S17)
 
@@ -583,9 +691,18 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _soundFrame.Update(seconds);
 
         _beacon.ClearIfReached(_sim);
+        if (_options.IsScreenshotRun && _session.Worker is { } scriptedWorker)
+        {
+            // A scripted run takes each turn on the frame after it is submitted (T9): the worker is waited for here, so whether it finished before the
+            // next frame's collect (a matter of milliseconds against a frame of about 30) cannot move the tick the script goes on at.
+            _ = scriptedWorker.WaitForOutcomes(ScriptedTurnWaitMilliseconds);
+        }
 
         base.Update(gameTime);
     }
+
+    // A scripted run waits this long for the worker at the end of a frame at most (a stuck worker must not hang a run); a turn never takes this long.
+    private const int ScriptedTurnWaitMilliseconds = 60_000;
 
     /// <inheritdoc />
     protected override void Draw(GameTime gameTime)
@@ -609,6 +726,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         view.Fps = _stats.Fps;
         view.Aimed = _aimed;
         view.Check = _checks.Screen;
+        view.SettingsOpen = _settings.IsOpen;
+        view.SettingsSelected = _settings.Selected;
+        view.SettingsRate = _session.NeedsRate;
+        view.SettingsEffectsOn = _needsHud.EffectsOn;
+        view.SettingsRelaxed = _session.RelaxedNeeds;
+        view.SettingsBlur = _underwaterBlur;
         view.ControlsOpen = _controls.IsOpen;
         view.ControlsScroll = _controls.Scroll;
         view.Report = _report;
@@ -618,9 +741,15 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         var mouse = Mouse.GetState();
         view.Mouse = !_options.IsScreenshotRun && GraphicsDevice.Viewport.Bounds.Contains(mouse.Position) ? _canvas.ToCanvas(mouse.Position) : null;
 
+        view.DebugOverlayBottom = _debug.PanelFor(view)?.Bottom ?? 0;
         view.LessonStripBox = LessonLayer.LayoutFor(view, _lesson) is { } lessonStrip ? lessonStrip.Box : null; // the cards keep clear of it (S22)
+        var (headingStep, headingOffer) = _lesson.State();
+        view.LessonHeading = headingStep is not null ? LessonStripLayout.HeadingParts(view.Session.Locale, headingStep) : headingOffer is not null ? LessonStripLayout.HeadingParts(view.Session.Locale, headingOffer) : null; // the panel's header (U02)
         view.SleepPrompt = FireOffersSleep && !_ending.Visible(_sim.Tick) ? SleepOffer.PromptText(_session) : null; // the fire's prompt; the card says it while it is up (V12c)
         view.EndingSleep = CardOffersSleep ? SleepOffer.CardText(_session) : null;
+        view.FadeAlpha = (float)_collapseFade;
+        view.Needs = _needsHud;
+        view.DeathScreen = _deathHold > 0 ? new DeathScreenView(_session.Data.Words.HudLine("hud.camp") ?? string.Empty, _session.Locale.Text("hud.camp"), _session.DeathLine ?? string.Empty) : null;
         view.Breath = BreathReading.Of(_sim); // the bubble meter (H04)
 
         _drawer.DrawWorld(GraphicsDevice, _camera.Camera, _sim.Target?.Block, _beacon.Beacon.Target, _sim.Tick, shoulder ? _figures.Avatar() : null, shoulder ? null : _arm.Frame(eye, _drawer.Renderer.Lights));
@@ -677,8 +806,78 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         base.UnloadContent();
     }
 
-    // The crosshair is on the workbench (the mesa): E opens the crafting panel there, as C does anywhere.
-    private bool AimedAtWorkbench() => _sim.Target is { } hit && hit.Id == BlockId.Table;
+    // The crosshair is on a crafting station: the workbench (the mesa), or a lit fire (N07: a stone of a burning ring, or the ground inside it). E opens the crafting panel there, as C does
+    // anywhere, and comes before the sleep at the same fire (an unlit ring does nothing, as before).
+    private bool AimedAtWorkbench() =>
+        _sim.Target is { } hit && (hit.Id == BlockId.Table
+            || (hit.Id == BlockId.FireRing && _session.Fires.StoneBurns(hit.Block))
+            || (_session.Fires.Middles.Contains(hit.Adjacent) && _session.Fires.IsLit(hit.Adjacent)));
+
+    // The crosshair is on a cell of a station's prop within reach (the oven), and the station has a procedure to do: E opens the station, after an NPC and before the workbench (W07, design 10.8).
+    private bool AimedAtStation() => _sim.Target is { } hit && StationProps.At(_session.Scene, _session.Data.Stations, hit.Block) is { } station && _session.Data.Procedures.AtStation(station.Id).Count > 0;
+
+    private void OpenStationAimed()
+    {
+        if (_sim.Target is { } hit && StationProps.At(_session.Scene, _session.Data.Stations, hit.Block) is { } station)
+        {
+            _ = _stationPanel.Open(station.Id, teacherPresent: true); // the teacher listens from the station (design 10.8, W08)
+        }
+    }
+
+    // The accepted offer to bake (W08, start_procedure): the dialogue closes (the teacher's line is spoken after this, by the turn's presenter) and the station opens, with the teacher.
+    private void OpenStationFromOffer(string stationId, string procedureId)
+    {
+        if (_dialogue.IsOpen)
+        {
+            _dialogueScreen.Close();
+        }
+
+        Console.WriteLine(_stationPanel.Open(stationId, teacherPresent: true) ? StationLine($"offer accepted, station {stationId} ({procedureId})") : $"offer accepted: station {stationId} did not open");
+    }
+
+    // --station-say <line>: a typed line to the teacher from the open station (W08).
+    private bool StationSayFromScript(string line)
+    {
+        var sent = _station.IsOpen && _stationPanel.Talk is { } talk && talk.Say(line);
+        Console.WriteLine($"station-say \"{line}\": {(sent ? "sent to the teacher" : "not sent")}");
+        return sent;
+    }
+
+    // What the canvas's point is on the station overlay; the layout is the one the layer draws.
+    private StationHit? StationHitAt(int x, int y)
+    {
+        var view = _stationPanel.View();
+        return new StationLayout(_canvas.Width, _canvas.Height, view.Fixtures.Count, view.Targets.Count, view.Strip.Dots.Count, view.Verbs?.Verbs.Count ?? 0).HitAt(x, y, view.Held.Count, view.PageCount);
+    }
+
+    // --station <id>: opens the station and starts its first procedure, as E at the oven does (the teacher listens, W08).
+    private bool OpenStationFromScript(string id)
+    {
+        var opened = _stationPanel.Open(id, teacherPresent: true);
+        Console.WriteLine(opened ? StationLine("station " + id) : $"station {id}: not opened");
+        return opened;
+    }
+
+    // --act use,on[,verb]: an act at the open station.
+    private void ActAtStationFromScript(string value)
+    {
+        var parts = value.Split(',', StringSplitOptions.TrimEntries);
+        if (!_station.IsOpen || parts.Length < 2)
+        {
+            Console.WriteLine($"act {value}: no station is open, or the act is not use,on[,verb]");
+            return;
+        }
+
+        _stationPanel.Act(parts[0], parts[1], parts.Length > 2 ? parts[2] : string.Empty);
+        Console.WriteLine(StationLine("act " + value));
+    }
+
+    // One line for the run's output: what the station shows after a scripted step.
+    private string StationLine(string what)
+    {
+        var view = _stationPanel.View();
+        return $"{what}: {view.State}, notice {view.Notice}, step {view.Strip.Dots.Count(static d => d.State == StripDotState.Done)}/{view.Strip.Dots.Count}, rung {view.Strip.Rung}, row {view.Strip.Row ?? "-"}, text {(view.Strip.ShowsText ? "shown" : "hidden")}, english {(view.Strip.ShowsEnglish ? "shown" : "hidden")}, highlight {string.Join('+', view.Held.Concat(view.Targets).Append(view.Hand).Where(static c => c.Highlight).Select(static c => c.Noun)) switch { "" => "none", var h => h }}";
+    }
 
     // Keys and mouse, once per frame, for the interactive run. The device state becomes this frame's commands (LiveVoxelInput) and the look.
     private void ReadInput()
@@ -731,6 +930,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         if (IsActive && _crafting.IsOpen && input.LeftClicked)
         {
             _craftingPanel.Click(input); // a row asks for one craft in the next tick
+        }
+
+        if (IsActive && _station.IsOpen && input.LeftClicked)
+        {
+            _stationPanel.Click(input); // a cell, a target, a button or a verb of the station
         }
 
         if (IsActive && input.LeftClicked)
@@ -811,6 +1015,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             return;
         }
 
+        if (_station.IsOpen && _stationPanel.Talk is { IsTyping: true } talk)
+        {
+            talk.Type(args.Character, InputDevices.AltHeld()); // the station's text box (W08)
+            return;
+        }
+
         _dialogueScreen.Type(args.Character, InputDevices.AltHeld());
     }
 
@@ -883,11 +1093,95 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             return;
         }
 
+        // L01: the player sleeps when the sleep drive is below 75 (day 1: at its ending); the scripts' aids (--sleep, the scripted sleep step) sleep regardless of the drive.
+        if (!_session.SleepWanted && how == "the player")
+        {
+            var line = SleepOffer.NotSleepyText(_session);
+            _toasts.Show(line);
+            Console.WriteLine($"sleep: not tired: {line}");
+            return;
+        }
+
+        PassNight(how, collapse: false);
+    }
+
+    // The collapse (N03, design 9.5): 60 s of active play at the sleep drive's last stage, and the screen fades out (CollapseFadeSeconds), the player sleeps where they stand
+    // (the night of SaveGame.Sleep, with the collapse's values) and the screen fades back in on the morning.
+    private const double CollapseFadeSeconds = 1.5;
+    private double _collapseFade; // 0 clear, 1 black
+    private bool _collapsing;
+
+    private int _deathsSeen;
+
+    // The death screen (N05, design 9.7): the black holds for this long with «Estás en tu campamento.», its English and the cause line, then the world fades back in.
+    private const double DeathHoldSeconds = 4;
+    private double _deathHold;
+    private readonly NeedsHud _needsHud;
+    private UnderwaterBlur _underwaterBlur;
+
+    // The stage lines of the needs (N05): a worse stage shows its line above the hotbar once and plays its soft sound once.
+    private void DriveNeedsHud()
+    {
+        _needsHud.Update(_sim.Tick);
+        for (var sounds = _needsHud.TakeSounds(); sounds > 0; sounds--)
+        {
+            _ = _sound.Mixer.Play(SoundCue.NeedStage);
+        }
+    }
+
+    // F7 (N05): the needs' effects on the view on or off; the icons and the lines stay. Kept in the save's settings.
+    private void ToggleViewEffects()
+    {
+        _needsHud.EffectsOn = !_needsHud.EffectsOn;
+        _toasts.Show(_session.Locale.Ui(_needsHud.EffectsOn ? "effectsOn" : "effectsOff"));
+        Console.WriteLine($"view effects: {(_needsHud.EffectsOn ? "on" : "off")}");
+    }
+
+    private void DriveCollapse(double seconds)
+    {
+        if (_session.DeathCount != _deathsSeen)
+        {
+            _deathsSeen = _session.DeathCount;
+            _collapseFade = 1; // a death (N04): the screen is black where the player fell and fades in at their fire
+            _deathHold = DeathHoldSeconds; // N05: the black holds the short screen «Estás en tu campamento.» for a few seconds before the fade-in
+            var feet = _sim.Player.FeetBlock;
+            Console.WriteLine($"death: {_deathsSeen}, woke at {feet.X},{feet.Y},{feet.Z} (health {_session.Needs.Value(NeedMeter.Health):0.#}, hunger {_session.Needs.Value(NeedMeter.Hunger):0.#}, thirst {_session.Needs.Value(NeedMeter.Thirst):0.#}, sleep {_session.Needs.Value(NeedMeter.Sleep):0.#}, stamina {_session.Needs.Value(NeedMeter.Stamina):0.#}), chest {(_session.Chest is { } chest ? $"{chest.Total} items at {chest.Cell.X},{chest.Cell.Y},{chest.Cell.Z}" : "none")}");
+        }
+
+        if (_collapsing)
+        {
+            _collapseFade = Math.Min(1, _collapseFade + (seconds / CollapseFadeSeconds));
+            if (_collapseFade >= 1 && _session.CanSave && !_dialogue.IsOpen)
+            {
+                _collapsing = false;
+                PassNight("collapse", collapse: true);
+            }
+
+            return;
+        }
+
+        if (_deathHold > 0)
+        {
+            _deathHold = Math.Max(0, _deathHold - seconds); // the screen stays black while the death screen is up
+        }
+        else if (_collapseFade > 0)
+        {
+            _collapseFade = Math.Max(0, _collapseFade - (seconds / (CollapseFadeSeconds * 2)));
+        }
+
+        if (_session.SleepOffered && _session.CollapseDue && SleepFree)
+        {
+            _collapsing = true;
+        }
+    }
+
+    private void PassNight(string how, bool collapse)
+    {
         var before = _session.Day;
         _autosave?.WriteNow(_sim.Tick, _session.Events.Count, "sleep");
         var document = _saves.Capture();
         _log.End(_session, _sim.Tick); // the session that ends
-        SaveGame.Sleep(_session, document);
+        SaveGame.Sleep(_session, document, collapse);
         SessionStart.Begin(_log, _options, _session, micCheck: false, check: false); // the session that begins
         _autosave?.Restart(_sim.Tick, _session.Events.Count);
         _ending.Dismiss();
@@ -895,14 +1189,13 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _beacon.Restart();
         _toasts.Clear(); // the old session's toasts are not the new one's: it opens with the morning
         _toasts.Show(SleepOffer.MorningText(_session));
-        Console.WriteLine($"sleep: {how}: session {before} ends at the fire, session {_session.Day} begins (tick {_sim.Tick}, stored time {_session.StoredTime.UnixSeconds}, world digest {document.StateDigest[..16]})");
+        Console.WriteLine($"sleep: {how}: session {before} ends {(collapse ? "where the player fell" : "at the fire")}, session {_session.Day} begins (tick {_sim.Tick}, stored time {_session.StoredTime.UnixSeconds}, world digest {document.StateDigest[..16]})");
     }
 
     // Why the player may not sleep now, for the console.
     private string SleepRefusal() =>
         !_session.SleepOffered ? "a playtest plays one session per run"
         : !_session.FireLit ? "the player's own fire is not lit"
-        : _session.Lessons.Engaged ? "a lesson step waits"
         : _dialogue.IsOpen ? "a dialogue is open"
         : "the game is not at rest";
 

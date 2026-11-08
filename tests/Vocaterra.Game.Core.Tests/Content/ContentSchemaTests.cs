@@ -212,8 +212,8 @@ public sealed class ContentSchemaTests
         Assert.Equal(ItemDefinition.All.Select(static d => d.Name), Names(objective["item"]!)); // V03: and an order asks for them by the same names
     }
 
-    // Schemas written before the files that use them (none at present).
-    private static readonly HashSet<string> Pending = new(StringComparer.Ordinal);
+    // Schemas written before the files that use them: procedure.schema.json is the shape of game/procedures/<id>.json, which W10 adds (W05 has none).
+    private static readonly HashSet<string> Pending = new(StringComparer.Ordinal) { "procedure.schema.json" };
 
     private static string SchemaFolder => Repo.Path("content", "schema") + Path.DirectorySeparatorChar;
 

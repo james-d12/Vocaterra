@@ -52,6 +52,9 @@ public sealed class DialoguePanel : IFrameLayer
     /// <param name="ui">The support language.</param>
     public static string SupportPrefix(LocaleText ui) => Ui(ui).Ui("supportPrefix");
 
+    /// <summary>The width the header keeps free at its right for the status (Listening…, Thinking…, a notice), in pixels.</summary>
+    public const int HeaderStatusRoom = 110;
+
     private static readonly Color Background = new(16, 16, 24, 236);
     private static readonly Color PanelEdge = new(112, 114, 136);
 
@@ -86,7 +89,7 @@ public sealed class DialoguePanel : IFrameLayer
     {
         ArgumentNullException.ThrowIfNull(dialogue);
         ArgumentNullException.ThrowIfNull(font);
-        return new DialogueLayout(viewportWidth, viewportHeight, text => DrawHelpers.Width(font, text), dialogue.Choices.Select(static c => c.Label).ToList(), dialogue.Buttons, dialogue.IsTyping, button => SpeechButtons.TextFor(button, session), HintsFor(session?.Locale ?? throw new ArgumentNullException(nameof(session)), dialogue.IsTyping, dialogue.SpeechUnavailable));
+        return new DialogueLayout(viewportWidth, viewportHeight, text => DrawHelpers.Width(font, text), dialogue.Choices.Select(static c => c.Label).ToList(), dialogue.Buttons, dialogue.IsTyping, button => SpeechButtons.TextFor(button, session), HintsFor(session?.Locale ?? throw new ArgumentNullException(nameof(session)), dialogue.IsTyping, dialogue.SpeechUnavailable, session.Tips.WasShown("speak")));
     }
 
     /// <inheritdoc />
@@ -109,6 +112,7 @@ public sealed class DialoguePanel : IFrameLayer
         DrawHelpers.Text(spriteBatch, font, dialogue.NpcName, new Vector2(textLeft, panel.Top + 8), NameColor);
         spriteBatch.Draw(pixel, new Rectangle(textLeft, panel.Top + 8 + DialogueLayout.LineHeight, textWidth, 1), new Color(255, 204, 110, 90));
         DrawStatus(spriteBatch, view, font, dialogue, panel);
+        DrawLessonHeading(spriteBatch, view, font, dialogue, textLeft, panel);
         DrawLines(spriteBatch, view, font, dialogue, textLeft, textWidth, layout.LinesTop, layout.LinesBottom);
 
         if (dialogue.Heard is { } heard)
@@ -150,8 +154,11 @@ public sealed class DialoguePanel : IFrameLayer
     /// <param name="ui">The support language.</param>
     /// <param name="typing">Whether the text box has the keys.</param>
     /// <param name="speechUnavailable">Whether the speech models are not loaded (the talk key does nothing).</param>
-    public static string HintsFor(LocaleText ui, bool typing, bool speechUnavailable) => (typing, speechUnavailable) switch
+    /// <param name="speakHintShown">Whether the speak tip has been shown (U01): the footer then stops repeating how to speak (the keys stay in the controls help, F1).</param>
+    public static string HintsFor(LocaleText ui, bool typing, bool speechUnavailable, bool speakHintShown = false) => (typing, speechUnavailable) switch
     {
+        (true, false) when speakHintShown => Ui(ui).Ui("dialogueKeyHintsShort"),
+        (false, false) when speakHintShown => Ui(ui).Ui("dialogueButtonHintsShort"),
         (true, false) => KeyHints(ui),
         (true, true) => SpeechOffKeyHints(ui),
         (false, false) => ButtonHints(ui),
@@ -213,6 +220,22 @@ public sealed class DialoguePanel : IFrameLayer
         DrawHelpers.Text(spriteBatch, font, text, new Vector2(x, panel.Top + 8), color);
     }
 
+    // U02: the lesson's heading in the header, between the NPC's name and the status; the title is shortened first so the step and its kind stay (U02b).
+    private static void DrawLessonHeading(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font, DialogueModel dialogue, int textLeft, Rectangle panel)
+    {
+        if (view.LessonHeading is not { } heading)
+        {
+            return;
+        }
+
+        var x = textLeft + DrawHelpers.Width(font, dialogue.NpcName) + 24;
+        var room = panel.Right - DialogueLayout.Padding - HeaderStatusRoom - x;
+        DrawHelpers.Text(spriteBatch, font, heading.FitTo(room, t => DrawHelpers.Width(font, t)), new Vector2(x, panel.Top + 8), HintColor);
+    }
+
+    // One wrapped row of the log: its text, its colour and whether it is the line a repeat or slow reply showed again (drawn on a gold plate).
+    private readonly record struct PanelText(string Text, Color Color, bool Highlight);
+
     private static void DrawLines(
         SpriteBatch spriteBatch,
         FrameView view,
@@ -223,11 +246,14 @@ public sealed class DialoguePanel : IFrameLayer
         int top,
         int bottom)
     {
-        // Wrap every line, then show the newest rows that fit. The line Repetir or Más despacio showed again is drawn on a gold plate.
-        var rows = new List<(string Text, Color Color, bool Highlight)>();
-        for (var index = 0; index < dialogue.Lines.Count; index++)
+        // Wrap every row, then fit the blocks to the room (U02b, PanelFitter): the page scrolls, the collapsed exchange keeps the learner's line and the NPC's Spanish.
+        var blocks = new List<PanelBlock>();
+        var spanishRows = new List<List<PanelText>>();
+        var englishRows = new List<List<PanelText>>();
+        foreach (var panelRow in dialogue.PanelRows())
         {
-            var line = dialogue.Lines[index];
+            var index = panelRow.Index;
+            var line = panelRow.Line;
             var prefix = line.Speaker switch
             {
                 DialogueSpeaker.Player => view.Session.Locale.Ui("dialogueYou"),
@@ -240,28 +266,29 @@ public sealed class DialoguePanel : IFrameLayer
             {
                 DialogueSpeaker.Player or DialogueSpeaker.PlayerSpoken => PlayerColor,
                 DialogueSpeaker.Note => NoteColor,
-                DialogueSpeaker.Correction or DialogueSpeaker.Accent => CorrectionColor,
+                DialogueSpeaker.Correction or DialogueSpeaker.Accent or DialogueSpeaker.Coaching => CorrectionColor,
                 DialogueSpeaker.World => WorldColor,
                 DialogueSpeaker.Hint => HintColor,
                 DialogueSpeaker.English => EnglishColor,
                 _ => GuideColor,
             };
-            var highlighted = index == dialogue.HighlightedLine && view.Tick < dialogue.HighlightUntilTick;
-            var wrapped = TextWrap.Wrap(prefix + line.Text, width, t => DrawHelpers.Width(font, t));
-            foreach (var row in wrapped)
-            {
-                rows.Add((row, highlighted ? Color.White : color, highlighted));
-            }
+            var highlighted = index >= 0 && index == dialogue.HighlightedLine && view.Tick < dialogue.HighlightUntilTick;
+            var spanish = TextWrap.Wrap(prefix + line.Text, width, t => DrawHelpers.Width(font, t))
+                .Select(row => new PanelText(row, highlighted ? Color.White : color, highlighted))
+                .ToList();
 
             // The English under an NPC's Spanish line (S16, D-game-13): in its own colour and marked as English, while the phrase in play is at the
             // English rung or the help key was pressed, and always for a line no phrase is practising.
-            if (line.Speaker == DialogueSpeaker.Guide && view.Session.SupportForNpcLine(dialogue.Npc, line.Text) is { } english)
+            var english = new List<PanelText>();
+            if (line.Speaker == DialogueSpeaker.Guide && view.Session.SupportForNpcLine(dialogue.Npc, line.Text) is { } support)
             {
-                foreach (var row in TextWrap.Wrap(SupportPrefix(view.Session.Locale) + english, width, t => DrawHelpers.Width(font, t)))
-                {
-                    rows.Add((row, EnglishColor, false));
-                }
+                english.AddRange(TextWrap.Wrap(SupportPrefix(view.Session.Locale) + support, width, t => DrawHelpers.Width(font, t))
+                    .Select(row => new PanelText(row, EnglishColor, false)));
             }
+
+            blocks.Add(new PanelBlock(index, line.Speaker, spanish.Count, english.Count));
+            spanishRows.Add(spanish);
+            englishRows.Add(english);
         }
 
         var capacity = (bottom - top) / DialogueLayout.LineHeight;
@@ -270,9 +297,35 @@ public sealed class DialoguePanel : IFrameLayer
             return; // a compact panel with no room: the bubble and the lesson strip carry the line (X08)
         }
 
-        var first = Math.Max(0, rows.Count - capacity);
-        var y = bottom - ((rows.Count - first) * DialogueLayout.LineHeight);
-        for (var i = first; i < rows.Count; i++)
+        var fit = PanelFitter.Fit(blocks, capacity, dialogue.Expanded, dialogue.ScrollBack, dialogue.HiddenLineCount);
+        var rows = new List<PanelText>();
+        if (fit.ShowEarlier)
+        {
+            rows.Add(new PanelText(view.Session.Locale.Plural(dialogue.Expanded ? "ui.dialogueAbove" : "ui.dialogueOlder", fit.EarlierLines), NoteColor, false));
+        }
+
+        for (var i = fit.First; i < fit.End; i++)
+        {
+            if (!fit.Shows(i))
+            {
+                continue;
+            }
+
+            rows.AddRange(spanishRows[i]);
+            if (fit.ShowEnglish[i])
+            {
+                rows.AddRange(englishRows[i]);
+            }
+        }
+
+        if (fit.ShowNewer)
+        {
+            rows.Add(new PanelText(view.Session.Locale.Plural("ui.dialogueBelow", fit.NewerLines), NoteColor, false));
+        }
+
+        var shown = Math.Max(0, rows.Count - capacity); // a single line taller than the room loses its top rows
+        var y = bottom - ((rows.Count - shown) * DialogueLayout.LineHeight);
+        for (var i = shown; i < rows.Count; i++)
         {
             if (rows[i].Highlight)
             {

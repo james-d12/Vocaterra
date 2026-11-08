@@ -45,7 +45,7 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
         }
 
         Stage.TeleportToNpc(session, "farmer");
-        _ = session.OpenTalk("farmer");
+        _ = session.OpenTalkForClass("farmer");
         return session;
     }
 
@@ -80,7 +80,7 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
         {
             session.EndTalk();
             Stage.TeleportToNpc(session, npc);
-            _ = session.OpenTalk(npc);
+            _ = session.OpenTalkForClass(npc);
             return null;
         }
 
@@ -94,7 +94,7 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
     {
         var lesson = Book.Find(LessonId)!;
 
-        Assert.Equal(("farmer", 7, true, "gente-del-pueblo", LessonLevels.A2), (lesson.Npc, lesson.Session, lesson.AutoStart, lesson.After, lesson.Level));
+        Assert.Equal(("farmer", 7, false, "gente-del-pueblo", LessonLevels.A2), (lesson.Npc, lesson.Session, lesson.AutoStart, lesson.After, lesson.Level));
         Assert.StartsWith("Session 7", lesson.Objective, StringComparison.Ordinal);
         Assert.Contains("field", lesson.Objective, StringComparison.Ordinal); // the objective line names where to go: the farmer at the field
         Assert.Contains("León", lesson.Objective, StringComparison.Ordinal);
@@ -203,7 +203,7 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
         // The order's line says plantas and traes (planta and traer are A2 in the bundle's lists): the lesson is held to A2, and no lesson word is above it. The earlier
         // six stay a1.
         Assert.Empty(GameDataValidator.Validate(TestGame.Data));
-        Assert.Equal([LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A2], Book.Lessons.Take(7).Select(static l => l.Level));
+        Assert.Equal([LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A1, LessonLevels.A2], Book.Lessons.Take(8).Select(static l => l.Level));
         Assert.True(TestGame.Bundle.Cefr["a2"].Contains("traer") && !TestGame.Bundle.Cefr["a1"].Contains("traer"));
         Assert.True(TestGame.Bundle.Cefr["a2"].Contains("planta") && !TestGame.Bundle.Cefr["a1"].Contains("planta"));
         Assert.Contains(Book.Find(LessonId)!.Steps, static s => s.Line is { } line && line.Text.Contains("traes", StringComparison.Ordinal));
@@ -311,39 +311,22 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void ALearnerWhoArrivesWithTheWaterSaysThePlanAndGoesToTheRiverBeforeTheFarmerTakesIt()
+    public void ALearnerWhoArrivesWithTheWaterIsPaidAtTheFirstTalkAndTheClassTakenLateGoesOn()
     {
-        // The bottle filled at the river in session 1 is still full (nothing in the game empties one), so most learners walk up to León with the water. The order names its
-        // lesson: the first talk, which starts the lesson, does not deliver it, nor does any talk before the step that waits for the delivery.
+        // The bottle filled at the river in session 1 is still full (nothing in the game empties one), so most learners walk up to León with the water. No lesson holds a delivery
+        // (L01): the first talk takes it and gives the apples; the class, taken late, finds the order done and goes on.
         var session = SessionSevenAtFarmer(water: 1);
         Assert.Equal(LessonId, session.Lessons.Active!.Id);
-        Assert.False(session.Objectives.Single(static o => o.Id == "water-for-plants").Complete);
-        Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.WaterBottle));
-        Assert.DoesNotContain(session.Events.OfType<WorldEvent>(), static e => e.Name is WorldEvents.ItemTaken or WorldEvents.OrderDelivered && e.Npc == "farmer");
+        Assert.True(session.Objectives.Single(static o => o.Id == "water-for-plants").Complete);
+        Assert.Equal((0, 3), (session.Simulation.Inventory.Count(ItemId.WaterBottle), session.Simulation.Inventory.Count(ItemId.Apple)));
+        Assert.Contains(session.Events.OfType<WorldEvent>(), static e => e.Name is WorldEvents.OrderDelivered && e.Npc == "farmer");
 
-        // Through the plan and the stall: still held, though the learner talked to León and carries the water all along.
-        while (session.Lessons.Current is { Id: not "c5-river" } step)
+        while (session.Lessons.Current is { Id: not "c5-thanks" } step)
         {
             Walk(session, step);
-            Assert.False(session.Objectives.Single(static o => o.Id == "water-for-plants").Complete, step.Id);
         }
 
-        // Back at the field without going to the river: the walk to the river is the step in progress, so León does not take the water yet.
-        session.EndTalk();
-        Stage.TeleportToNpc(session, "farmer");
-        Assert.False(session.OpenTalk("farmer").Delivered);
-        Assert.Equal("c5-river", session.Lessons.Current!.Id);
-
-        // At the river, then back: now he takes it, and the plan came first.
-        Walk(session, session.Lessons.Current!);
-        Assert.Equal("c5-back", session.Lessons.Current!.Id);
-        Walk(session, session.Lessons.Current!);
         Assert.Equal("c5-thanks", session.Lessons.Current!.Id);
-        Assert.Equal((0, 3), (session.Simulation.Inventory.Count(ItemId.WaterBottle), session.Simulation.Inventory.Count(ItemId.Apple)));
-        var events = session.Events.ToList();
-        var plan = events.FindIndex(static e => e is LessonEvent { Kind: LessonEventKind.StepDone, StepId: "c3-plan" });
-        var delivered = events.FindIndex(static e => e is WorldEvent { Name: WorldEvents.OrderDelivered, Detail: "water-for-plants" });
-        Assert.InRange(plan, 0, delivered - 1); // the plan, then the water
     }
 
     [Fact]
@@ -356,7 +339,7 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
         session.Sitting = 7;
         _ = session.Simulation.GrantItems(ItemId.WaterBottle, 1);
         Stage.TeleportToNpc(session, "farmer");
-        var opening = session.OpenTalk("farmer");
+        var opening = session.OpenTalkForClass("farmer");
         Assert.True(opening.Delivered);
         Assert.Equal(["¡Gracias! Toma tres manzanas."], opening.Lines);
         Assert.Equal((0, 3), (session.Simulation.Inventory.Count(ItemId.WaterBottle), session.Simulation.Inventory.Count(ItemId.Apple)));
@@ -366,8 +349,8 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
         early.Sitting = 6;
         _ = early.Simulation.GrantItems(ItemId.WaterBottle, 1);
         Stage.TeleportToNpc(early, "farmer");
-        Assert.False(early.OpenTalk("farmer").Delivered); // before its session the order is not open: the water stays
-        Assert.Equal(1, early.Simulation.Inventory.Count(ItemId.WaterBottle));
+        Assert.True(early.OpenTalkForClass("farmer").Delivered); // L01: the order opens once León is met, whatever the day
+        Assert.Equal(0, early.Simulation.Inventory.Count(ItemId.WaterBottle));
     }
 
     // ---- The tense and person checks
@@ -524,7 +507,7 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
     {
         var session = TestGame.NewSessionWithShippedLessons(); // session 1: ¿Cómo es? is not unlocked, so he talks as himself
         Stage.TeleportToNpc(session, "farmer");
-        Assert.Equal(["¡Hola!"], session.OpenTalk("farmer").Lines);
+        Assert.Equal(["¡Hola!"], session.OpenTalkForClass("farmer").Lines);
         Assert.Equal(["Una manzana cuesta una moneda."], session.Say("¿Cuánto cuesta?").GuideLines);
 
         _ = session.Simulation.GrantItems(ItemId.Coin, 2);
@@ -558,7 +541,7 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
         _ = session.Simulation.GrantItems(ItemId.WaterBottle, 2);
         Stage.TeleportToNpc(session, "farmer");
 
-        var opening = session.OpenTalk("farmer"); // walking up with the water is enough (D-game-8, D-game-9)
+        var opening = session.OpenTalkForClass("farmer"); // walking up with the water is enough (D-game-8, D-game-9)
 
         Assert.True(opening.Delivered);
         Assert.Equal(["¡Gracias! Toma tres manzanas."], opening.Lines);
@@ -569,7 +552,7 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
 
         // Once is enough: the next talk is an ordinary one.
         session.EndTalk();
-        Assert.False(session.OpenTalk("farmer").Delivered);
+        Assert.False(session.OpenTalkForClass("farmer").Delivered);
         Assert.Equal(3, session.Simulation.Inventory.Count(ItemId.Apple));
     }
 

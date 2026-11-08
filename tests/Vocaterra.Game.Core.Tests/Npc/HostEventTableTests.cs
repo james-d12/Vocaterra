@@ -100,8 +100,8 @@ public sealed class HostEventTableTests
         events.Add(Event("villager", "villager.go", new JsonObject { ["kind"] = "point_at_place", ["place"] = "mill" }));
         events.Add(Event("villager", "villager.show", new JsonObject { ["kind"] = "point_at_place", ["place"] = "signpost" }));
         events.Add(Event("shopkeeper", "stall.point", new JsonObject { ["kind"] = "point_at_slot", ["slot"] = "place" }));
-        events.Add(Event("shopkeeper", "stall.sell", new JsonObject { ["kind"] = "sell", ["item"] = "bread", ["price"] = 2 }));
-        events.Add(Event("shopkeeper", "stall.buy", new JsonObject { ["kind"] = "buy", ["item"] = "wood", ["price"] = 1 }));
+        events.Add(Event("fisher", "fisher.sell", new JsonObject { ["kind"] = "sell", ["item"] = "bread", ["price"] = 2 }));
+        events.Add(Event("fisher", "fisher.buy", new JsonObject { ["kind"] = "buy", ["item"] = "wood", ["price"] = 1 }));
 
         var problems = GameDataValidator.Validate(TestGame.Data.WithHostEvents(HostEventTable.Parse(root.ToJsonString())));
 
@@ -109,11 +109,11 @@ public sealed class HostEventTableTests
         Assert.Contains(
             "game/host-events.json: shopkeeper's 'stall.point' points at the place the learner names, and no state of agents/shopkeeper.json takes 'shopkeeper.unknown_place' to say it does not know one.",
             problems);
-        Assert.Contains("game/host-events.json: shopkeeper's 'stall.sell' sells, and no state of agents/shopkeeper.json takes 'shopkeeper.cant_pay' to say the coins are too few.", problems);
-        Assert.Contains("game/host-events.json: shopkeeper's 'stall.sell' sells, and no state of agents/shopkeeper.json takes 'shopkeeper.none_asked' to answer a request for none.", problems); // V19
-        Assert.Contains("game/host-events.json: shopkeeper's 'stall.sell' sells, and no state of agents/shopkeeper.json takes 'shopkeeper.no_room' to say the bag is full.", problems);
-        Assert.Contains("game/host-events.json: shopkeeper's 'stall.buy' buys, and no state of agents/shopkeeper.json takes 'shopkeeper.none_offered' to answer an offer of none.", problems);
-        Assert.Contains("game/host-events.json: shopkeeper's 'stall.buy' buys, and no state of agents/shopkeeper.json takes 'shopkeeper.no_room' to say the bag is full.", problems);
+        Assert.Contains("game/host-events.json: fisher's 'fisher.sell' sells, and no state of agents/fisher.json takes 'fisher.cant_pay' to say the coins are too few.", problems);
+        Assert.Contains("game/host-events.json: fisher's 'fisher.sell' sells, and no state of agents/fisher.json takes 'fisher.none_asked' to answer a request for none.", problems); // V19
+        Assert.Contains("game/host-events.json: fisher's 'fisher.sell' sells, and no state of agents/fisher.json takes 'fisher.no_room' to say the bag is full.", problems);
+        Assert.Contains("game/host-events.json: fisher's 'fisher.buy' buys, and no state of agents/fisher.json takes 'fisher.none_offered' to answer an offer of none.", problems);
+        Assert.Contains("game/host-events.json: fisher's 'fisher.buy' buys, and no state of agents/fisher.json takes 'fisher.no_room' to say the bag is full.", problems);
         Assert.DoesNotContain(problems, static p => p.Contains("'villager.show'", StringComparison.Ordinal)); // a named prop is a point of the scene
         Assert.DoesNotContain(problems, static p => p.Contains("'villager.point'", StringComparison.Ordinal)); // the villager can say he does not know a place
 

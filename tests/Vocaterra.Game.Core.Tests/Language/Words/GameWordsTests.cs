@@ -61,7 +61,7 @@ public sealed class GameWordsTests
         Assert.Equal("panadería", scene.Labels["bakery"]); // village-plan V04: the bakery, the smithy, the well, the tower and the field
         Assert.Equal("pescador", scene.Labels["npc.fisher"]); // V10: where the fisher stands, which El pueblo's walk back points at
         Assert.Equal(("herrero", "granjero"), (scene.Labels["npc.smith"], scene.Labels["npc.farmer"])); // V12: where the smith and the farmer stand, Gente del pueblo's walks
-        Assert.Equal(25, scene.Labels.Count);
+        Assert.Equal(26, scene.Labels.Count); // W10 labelled the oven
     }
 
     [Fact]

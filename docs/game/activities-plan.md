@@ -160,19 +160,21 @@ Each joins `WorldEvents.All`, so tips, lessons and objectives may wait for it, a
 
 | ID | What | Depends on | Size | Model | Status |
 | --- | --- | --- | --- | --- | --- |
-| W00 | Register milestones and resolve required decisions | design section 18 | | orchestrator | pending |
+| W00 | Register milestones and resolve required decisions | design section 18 | | orchestrator | done (2026-11-04: game plan section 4.9; section 18.2 adopted provisionally, D-game-23) |
 | **Stage 1: foundations** | | | | | |
-| W01 | `item_crafted`: a craft is a world event | | S | Haiku | |
-| W02 | Tools and materials: a material per block, a tool spec per item, the axe's special case replaced | | S/M | Haiku | |
-| W03 | Fail-forward as data: `patience` in the NPC file; the stall's rule moved there | | S/M | Haiku | |
-| W04 | Price lists: `sell` and `buy` by the item the learner names; `<npc>.dont_sell` | | M | Haiku | |
+| W01 | `item_crafted`: a craft is a world event | | S | Haiku | done (2026-11-05, gated at 56f88b4b; game plan section 5) |
+| W02 | Tools and materials: a material per block, a tool spec per item, the axe's special case replaced | | S/M | Haiku | done (2026-11-07, gated at `2bd4728e` on `feature/bread-pilot`, 9855 passed; game plan section 5) |
+| W03 | Fail-forward as data: `patience` in the NPC file; the stall's rule moved there | | S/M | Sonnet 5.5 medium | done (2026-11-07, gated at `bc12153e` on `feature/bread-pilot`, 9901 passed; game plan section 5) |
+| W04 | Price lists: `sell` and `buy` by the item the learner names; `<npc>.dont_sell` | | M | Sonnet 5.5 medium | done (2026-11-07, gated at `fe80787d` on `feature/bread-pilot`, 9938 passed with V31; game plan section 5) |
+| W04b | The stall's price list (the owner, 2026-11-07, D-game-23 item 5): flour (and any new goods) sold by the name the learner says, water and bread still free (owner, 2026-11-08, D-game-23 item 6), «No vendo eso.» for anything else, replacing W10's fixed flour sale and `instead`; a content milestone (content loop, recordings, scripted runs that change at the stall explained) | W04 | S/M | Sonnet 5.5 medium | done (2026-11-08, gated at `4ad3a5c0` on `feature/bread-pilot`, 10368 passed, 3 skipped) |
 | **Stage 2: procedures, and bread with Luz** | | | | | |
-| W05 | Procedures, stations and actions as data; the `does` rows of the phrase sheet; the validator's rules | needs playtest | S/M | Haiku | |
-| W06 | The procedure runner: the ladder up the recipe's tree, credits, help, rewards, mastery, events; `systems.procedures` in save version 6 | W05, N01 | M/L | Sonnet | |
-| W07 | The station view: model, panel, layer, layout, fixture icons, scripted steps | W06 | M | Sonnet | |
-| W08 | The teacher in the loop: the `teaching` state and prompt, the three host kinds, the missing ingredient, learning a recipe by asking | W06, W07, V29, spoken-lines study | S/M | Haiku | |
+| W05 | Procedures, stations and actions as data; the `does` rows of the phrase sheet; the validator's rules | needs playtest (lifted for W05 to W07: D-game-23, 2026-11-06) | S/M | Haiku | done (2026-11-06, gated at 28c5becf on `feature/bread-pilot`, 9614 passed; game plan section 5) |
+| W06 | The procedure runner: the ladder up the recipe's tree, credits, help, rewards, mastery, events; `systems.procedures` in save version 6 | W05, N01 | M/L | Sonnet | done (2026-11-06, gated at b1579284 on `feature/bread-pilot`, 9645 passed; game plan section 5) |
+| W07 | The station view: model, panel, layer, layout, fixture icons, scripted steps | W06 | M | Sonnet | done (2026-11-06, gated at 23d139e3 on `feature/bread-pilot`, 9737 passed; game plan section 5) |
+| W07b | W07's small points: the station's name as the panel's title; help selects what it highlights; the mastered recipe's one-click bake offered at the station (design 10.15) | W07 | S | Haiku | done (2026-11-06, gated at 1d511d76, 9758 passed; game plan section 5) |
+| W08 | The teacher in the loop: the `teaching` state and prompt, the three host kinds, the missing ingredient, learning a recipe by asking | W06, W07, V29, spoken-lines study | S/M | Sonnet 5.5 medium | done (2026-11-07, gated at 5091891e on `feature/bread-pilot`, 9794 passed; game plan section 5) |
 | W09 | Imperative production in lessons and the book | separate decision | S | Haiku | outside pilot |
-| W10 | Session 11 "En la panadería": the lesson, the `pan` procedure, flour, Luz's teaching, the rows and recordings, the checks, run `r27-bread` | W07, W08; W04 only for multi-item vendor pricing | M | content (decision l) | |
+| W10 | Session 11 "En la panadería": the lesson, the `pan` procedure, flour, Luz's teaching, the rows and recordings, the checks, run `r27-bread` | W07, W08; W04 only for multi-item vendor pricing | M | content (decision l) | done (2026-11-07, gated at 366a6038 on `feature/bread-pilot`, 9852 passed; game plan section 5) |
 | W11 | Stage 2's documents and runs; the pilot measure (telemetry, the session summary, `playtest.md`); run `r28-bread-again` | W10 | S | Haiku | **owner's go or no-go** |
 | **Stage 3: crafting, repair and meals** | | | | | |
 | W12 | Items as data (C09 revisited): `game/items.json`, icons by key with a fallback, save version 7 (names and wear) | W02 | M | Sonnet | |
@@ -188,6 +190,8 @@ Each joins `WorldEvents.All`, so tips, lessons and objectives may wait for it, a
 | W21 | Stage 4's documents and runs | W17 to W20 | S | Haiku | |
 | **Stage 5: held for the pilot's data** | | | | | |
 | W22 to W29 | Land and plots; frontier claims; storage; trust and "¿Lo de siempre?"; gear for places and the tailor; the healer and foraging; tenants and building to a description; fishing with Mar | section 6 | L | | held |
+| **Proposed (owner, 2026-11-06)** | | | | | |
+| W30 | The recipe book: a second book the player carries beside the journal, given by Luz for the first bread, that holds the known procedures' written steps and can be set down open beside a station while cooking (as Kingdom Come: Deliverance's alchemy book) | W07, W10; W08 for recipes learned by asking | M | Sonnet | proposed, not authorised |
 
 **Order.** Complete language follow-ups, N01–N07 and the needs playtest first; W01 runs before N07. U01 and U02 precede the pilot
 if accepted. The pilot path is W05, W06, W07, W08, W10 and W11. W02 and W03 are outside this path; W04 is conditional on the vendor
@@ -404,6 +408,29 @@ Designed in the review (section 2.2); each needs its own brief after the pilot.
   healer after a voice trial.
 - **W28 Tenants and building to a description.** A tenant describes a room; the learner builds it; the check names what is missing.
 - **W29 Fishing with Mar.** A procedure (bait, cast, wait, pull), `pez` and `pescado`, and cooking the catch.
+
+### Proposed: the recipe book (owner, 2026-11-06)
+
+**W30: the recipe book (M, Sonnet; proposed, not authorised).** The owner, 2026-11-06: "for the cooking, ideally i would like a book
+interface. For example in KCD 1 and 2 when you create potions you use the book as the receipe book essentially and its an interactive
+thing". In Kingdom Come: Deliverance the recipe book lies open beside the alchemy bench, its page lists the steps in prose, and the player
+reads and follows them with the bench's own actions; the book never performs a step.
+- *The idea here.* Each procedure the learner knows (W08's `teach_recipe`, or a recipe given in a lesson) gets a page: its title, what it
+  uses and makes, and its steps as the written Spanish of its `does` rows. The book opens beside the station view (W07) and stays open
+  while the learner acts; the page marks the current step and the steps done. The written page is a reading route to the same
+  instructions Luz speaks, so it follows the support ladder (design 10.10, 10.11): English only at the first rung or after help, the
+  chunk's or goal's row once folded, and reading the page is never production credit.
+- *The owner's shape* (2026-11-06, answering the orchestrator's questions): "it should be a book the player has on them, but can you
+  placed down for longer cooking sessions. So like we have a journal, the player can also get a recipe book. Perhaps as a reward for
+  making the first item with luz". So: a new item, the recipe book, separate from the journal (the existing `book` item and its
+  `Language/Book/` screen); carried in the inventory and opened from it anywhere; placeable in the world, where it lies open and its page
+  shows beside the station view (W07) for a long cooking session, and is picked up again; given by Luz as the reward for the learner's
+  first completed procedure with her (W10's first bread, through W06's `procedure_done`), so it holds at least the bread from the start.
+- *Built on.* W07's instruction strip as a model the page can host (W07's brief keeps it separate from the panel for this); the journal's
+  code (`BookModel`, `BookPages`, `BookTabs`, `BookScreen`) for the page geometry, the tabs and the speech controls; W12 (items as data)
+  if it has landed, otherwise the next free item id.
+- *Decided* (owner, 2026-11-06: "both defaults are fine"): a recipe's page appears only once it is taught; the page plays the normal and
+  slow recordings of its `does` rows, as the journal plays its rows.
 
 ### Core milestones this series may need
 

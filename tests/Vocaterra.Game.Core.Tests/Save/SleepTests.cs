@@ -13,7 +13,7 @@ namespace Vocaterra.Game.Core.Tests.Save;
 /// <summary>
 /// The sleep at the player's own fire (V12c) is exactly a load: the save written after a sleep is the save written after a save and a load (<see cref="SaveGame.Load"/> with
 /// the next session) of the same state, byte for byte, and what the player sees next is the same too (the objective, the arrow, the lesson, the warm-up, the review). No field
-/// differs. The stored time does not move, the session number goes up by one, and what a save does not keep is gone.
+/// differs but the needs, which a night moves by the rule of PlayerNeeds.Sleep (N03). The stored time does not move, the session number goes up by one, and what a save does not keep is gone.
 /// </summary>
 public sealed class SleepTests
 {
@@ -26,6 +26,8 @@ public sealed class SleepTests
     {
         var loaded = SaveGame.Load(text, TestGame.Data, Pristine, credit: like.Credit);
         loaded.Day++;
+        loaded.Needs.Sleep(); // N03: a night moves the needs, which a load does not; everything else is a load's
+        loaded.SettleNeedStages();
         loaded.BeginPlaySession();
         return loaded;
     }
@@ -58,7 +60,7 @@ public sealed class SleepTests
         Assert.Equal(loaded.Lessons.Engaged, slept.Lessons.Engaged);
         Assert.Equal(loaded.Lessons.Active?.Id, slept.Lessons.Active?.Id);
         Assert.Equal(loaded.Lessons.StepNumber, slept.Lessons.StepNumber);
-        Assert.Equal(loaded.Lessons.NewLesson?.Id, slept.Lessons.NewLesson?.Id);
+        Assert.Equal(loaded.Lessons.OpenClass()?.Id, slept.Lessons.OpenClass()?.Id);
         Assert.Equal(loaded.Deck.Status, slept.Deck.Status);
         Assert.Equal(loaded.Deck.OfferedThisSession, slept.Deck.OfferedThisSession);
         Assert.Equal(loaded.Review, slept.Review);
@@ -100,10 +102,11 @@ public sealed class SleepTests
         var loaded = LoadOf(SaveOf(session), session);
         Sleep(session);
 
+        loaded.RenewAtNight(); // the night's one change a load does not make (N06): the three bushes the camp picked grow back
         SameAsALoad(loaded, session);
         Assert.Equal(2, session.Day);
-        Assert.Equal("personas", session.Lessons.NewLesson?.Id);
-        Assert.Equal("villager", session.Pointer?.Point); // the new session's lesson is pointed at (S26)
+        Assert.True(session.Lessons.IsUnlocked(session.Lessons.Book.Find("personas")!)); // the villager was met on day 1: his class is open, whatever the day (L01)
+        Assert.NotEqual("villager", session.Pointer?.Point); // and the beacon does not send the player to a class's teacher
     }
 
     [Fact]
@@ -131,18 +134,19 @@ public sealed class SleepTests
     }
 
     [Fact]
-    public void ALessonUnderWayStaysAtItsStepAndWaitsForItsNpcAsAfterALoad()
+    public void AClassUnderWayStaysAtItsStepPausedAndWaitsForItsNpcAsAfterALoad()
     {
         var session = EndedFirstSession();
         session.Day = 2;
         session.Sitting = 2;
-        session.OpenTalk("villager"); // Personas starts by itself
+        session.OpenTalk("villager");
+        Assert.True(session.Lessons.Start("personas")); // the player says Sí to the villager's offer
         Assert.True(session.Lessons.Engaged);
         Assert.Equal("personas", session.Lessons.Active?.Id);
         var step = session.Lessons.StepNumber;
         session.EndTalk();
-        Assert.True(session.Lessons.Engaged); // a lesson that starts by itself stays engaged when its panel closes: its step waits
-        Assert.False(session.CanSleep); // so the fire offers no sleep yet
+        Assert.False(session.Lessons.Engaged); // Esc pauses a class and frees its NPC (L01)
+        Assert.True(session.CanSleep); // a paused class holds nothing back
 
         var loaded = LoadOf(SaveOf(session), session);
         Sleep(session); // the game would not offer it; the sleep itself is still a load
@@ -152,7 +156,7 @@ public sealed class SleepTests
         Assert.Equal(step, session.Lessons.StepNumber);
         Assert.False(session.Lessons.Engaged); // it takes up again when the learner talks to the villager
         Assert.True(session.CanSleep);
-        Assert.Equal("The lesson “Personas” is under way: talk to the villager to go on", string.Concat(session.ObjectiveHud().Select(static p => p.Text)));
+        Assert.Equal("personas", session.Lessons.OfferFor("villager")?.LessonId); // paused: offered again at its teacher
     }
 
     [Fact]

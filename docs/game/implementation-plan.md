@@ -368,6 +368,37 @@ proposals, the farmer León, provisional voices heard afterwards, phase B held; 
 day added V12c (the next session in the game), and the CI run on PR #20 the core's M60 (the lint's speed). **Phase B started on 2026-10-31**
 on the owner's word: all of it on `feature/village`, reviewed by the owner at the end. V13 (session 7) was done on 2026-10-31; after the bottlenecks study the owner added V18 and moved the core's M56, M59 (before V14) and M58 (before V15) into the series. **Phase B was done on 2026-11-01** (V08, V13 to V18, V15b and V09 again, with the core's M56 to M62 and M62b; sessions 7 to 10 at A2, ten lessons; 7259 tests passing, bundle `36b2b8ad…`); the owner reviews the branch and PR #20. **The review** (2026-11-01, `docs/qa-reports/2026-11-01-review-feature-village.md`) found ten points; on the owner's word all were fixed before the merge: the core's as M64, the game's as V19 (7420 tests passing, bundle `0f8faea0…`). The milestones' statuses are in the plan's section 4. The findings of each milestone go into section 5.
 
+### 4.9 The adaptation: needs, lessons as classes, presentation and the bread pilot (N, L, U and W series; D-game-23 to D-game-25)
+
+The owner's Adaptation Design Document (`docs/game/design/sources/Vocaterra_Adaptation_Design_Document.docx`) is the specification:
+section 9 the needs (N), 5.3 and 5.4 lessons as classes (L01), 7.2 and 14.3 the presentation (U01, U02), 10 the bread procedure (W), 15
+the sequence and 18 the decisions. The owner said on 2026-11-04 "implement this design" (D-game-23, the answers of 2026-11-04): phases
+B to E on `feature/adaptive_design`, branched from `feature/village-decisions` (the follow-ups), with section 18.2's recommendations
+adopted provisionally for the owner's confirmation. The W rows are in `docs/game/activities-plan.md` section 5; their status is kept
+there. Commit prefixes `N<nn>:`, `L01:`, `U<nn>:`, `W<nn>:`; one milestone branch each, gated into `feature/adaptive_design`.
+
+| ID | What | Depends on | Size | Model | Status |
+| --- | --- | --- | --- | --- | --- |
+| N01 | The needs model (design 9.2 to 9.4, 9.10, 9.13): five needs in `Game.Core/Needs/` (`PlayerNeeds`), their stages and links, `game/needs.json` and its schema, save version 6 with the optional systems map, the world events, `--needs off` and `--set-need`; the session told each tick whether play is active | the follow-ups | M/L | Sonnet 5.5 | done (2026-11-05, gated at `3a63832e`, 9158 passed) |
+| L01 | Lessons as optional classes (5.3, 5.4; D-game-25): the introduction alone required; classes offered and chosen; sleep when the sleep drive is below 75; orders by NPC met; no lesson holds an NPC, an order or the day; r20 and r21 re-baselined, a new run with no classes | N01 | M | Sonnet 5.5 | done (2026-11-05, gated at 971b1058, 9451 passed) |
+| N02 | Eating, drinking and sprinting (9.6): eat and drink actions, water by hand, the sprint control, the gathering cost, rest at a lit fire | N01 | S/M | Sonnet 5.5 | done (2026-11-05, gated at `3a4345f8`, 9195 passed) |
+| N03 | Sleep and the collapse (9.5): a night's effects, the collapse and waking where the player fell, every night and collapse advances the day; the offer rule is L01's | L01, N02 | S/M | Sonnet 5.5 | done (2026-11-05, gated at `7cf2e115`, 9219 passed) |
+| N04 | Health and death (9.4, 9.7): losses and recovery, death and the belongings chest (decision 10), waking at the fire; runs r25-thirst and r26-death | N03 | M | Sonnet 5.5 | done (2026-11-05, gated at `b72b9184`, 9246 passed) |
+| N05 | The HUD and the opening (9.8, 9.9): bars, icons, stage lines, sounds, view effects and their option, the tip and the death screen, the relaxed-needs option (decision 17); layout tests at every scale; the day-1 route proven safe | N04 | S/M | Sonnet 5.5 | done (2026-11-05, gated at 6dfa8566, 9433 passed) |
+| N06 | Food that grows back, and fair gifts (9.6; decision 12): berry bushes regrow after a night; bread and water gifts once per in-game day | N05 | S/M | Sonnet 5.5 | done (2026-11-05, gated at 468a1b29, 9382 passed; built before N05, its Spanish lines left to N05) |
+| W01 | `item_crafted`: a craft is a world event (activities plan) | N06 | S | Haiku 5.5 | done (2026-11-05, gated at 56f88b4b, 9385 passed) |
+| N07 | Cooking at the fire (9.6): the noun `fuego`, an apple to a roast apple at any lit fire, through the crafting path and `item_crafted` | W01 | S/M | Sonnet 5.5 | done (2026-11-05, gated at 20a8da0c, 9461 passed) |
+| N08 | A berry planted at the camp (decision 14, adopted provisionally) | N06 | S | Haiku 5.5 | done (2026-11-06, gated at 209049db, 9561 passed) |
+| N09 | The drive rates as a setting (owner, 2026-11-05): a slider in the settings and `--needs-rate`, multiplying every drive's rate, for the needs playtest; a fixed value after it | N05 | S | Sonnet 5.5 | done (2026-11-05, gated at 37c7640b, 9501 passed) |
+| U01 | Clean defaults (14.3): the debug text off by default; one speak hint; the objective tracker; room for the need meters | N05 | S | Sonnet 5.5 | done (2026-11-05, gated at dd01a6e9, 9476 passed) |
+| U02 | The conversation surface (7.2): developer notes behind `--dev`/F3, older lines collapsed, the lesson strip in the header, every D-game-9 route reachable by key | U01 | M | Sonnet 5.5 | done (2026-11-06, gated at fe986862, 9546 passed) |
+| U02b | The conversation surface's QA fixes (`docs/qa-reports/2026-11-06-ui.md`, ui-1 to ui-5): the expanded panel scrolls to every older line, the current exchange fits at 800x600 and 150 %, the not-understood turn's English and coaching line, the lesson heading's shortening, the hidden-lines plural | U02 | S | Haiku 5.5, then Sonnet 5.5 | done (2026-11-06, gated at 565554f3, 9586 passed) |
+| The needs check | The owner and two or three testers play days 1 to 3 with needs on (9.12) | N01 to N07 | | the owner | waits for the owner |
+
+After U02 come W05 to W08 and W10 (activities-plan section 5; design section 10); W11, the pilot, waits for testers and the owner's
+listening (decision 2). Since 2026-11-06 W05 to W07 are built on `feature/bread-pilot` while the owner runs the needs check
+(D-game-23, owner's answers of 2026-11-06).
+
 ## 5. Findings log
 
 Facts that shape the plan. Each one names its source; the core's own findings stay in the core's plan.
@@ -678,7 +709,7 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   (17,11,17), guide (25,11,21), shopkeeper (62,9,58), villager (66,9,64), river z about 80 to 85 with a bridge at x 66); S3 moves it into the
   bundle. Seed-42 golden `dc14aa93…`; build 5.5 ms. Tests 3,678 passed (93 new; physics property over 24 seeded worlds x 2,500 ticks).
   Open for later rows: `ItemId.Berry` (25) sits in `ItemDefinition.VoxelOnly`, not in the noun catalogue (S3/S4 name it); water is wadable
-  (no swimming; the bridge is not enforced); `Interact` checks reach but not line of sight (the front-end picks with `BlockRay`).
+  (no swimming, superseded by the water series, `docs/game/water-plan.md`; the bridge is not enforced); `Interact` checks reach but not line of sight (the front-end picks with `BlockRay`).
   Disk: each worktree build is about 4.4 GB; a leftover 3 GB P4 build copy in `/tmp/claude-1000/p4` was deleted.
 - **S5, the phrase sheet and the stall (2026-10-22, Sonnet 5.5; review Opus 5.5).** `content/PHRASES.md`: 11 rows (the brief's phrases plus
   hola, gracias, adiós, no sé, ayuda), each with intent, prompt, accepted variants, a learner error with the code the pipeline gives, NPC and
@@ -2122,7 +2153,369 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     `describe` at León's and the stall's prompts; `como es la manzana` and `ellas adónde van` read as `state_action` through keyword rules.
     **To the core (M69):** `cuanto son todo?` is understood but `son` is not corrected and the recast keeps «cuanto» (the unaccented
     question word). Replies match on intent only, so Luz says «¡Qué bien!» to `Tienes veinte panes.` (accepted).
+- **N01, the needs model (2026-11-05, Sonnet 5.5; gated on `feature/adaptive_design` at `3a63832e`, 9158 passed, 3 skipped).**
+  The five needs in `Vocaterra.Game.Core/Needs/` (`PlayerNeeds`, stages and effects computed, never stored), their data in `game/needs.json`
+  with a schema and `NeedsValidator`, stepped once per world tick only in active play (`PlayPauses == None`), `need_stage` raised; seven need
+  events registered; save version 6 with an optional `systems.needs` record kept out of the digest; `--needs on|off` and `--set-need`;
+  every scripted run takes `--needs off` (r01, r09, r20 and r21 differ only in the save version and size). Values chosen under D-game-23's
+  answers: gathering 0.0278 stamina a gather tick (a minute by hand is about 10 s of sprint, the axe a quarter); a night or collapse never
+  lowers a drive below 10 and leaves one already below 10; at full hunger or thirst the food or drink is kept. Stage lines are keys; their
+  Spanish (`Tengo un poco de hambre` ... `Me muero de hambre`, the same for sed and sueño, `Estoy débil`, `Estoy muy débil`) waits for N05
+  and the grammar cache. **Left:** the night does not apply `PlayerNeeds.Sleep` yet (N03, with `SleepTests`); rest only at the player's own
+  fire (N02: the forge and the other rings); sprint (N02). The orchestrator's check: `--set-need thirst 25.2 --walk-to 176,186 --wait 8`
+  raises `need_stage (sed)` and saves thirst 24.03. The agent met a ContentSchemaFuzzTests failure (seed `41s2qgWEC-M9`, O15: `describe`
+  with its `slotGrammars` removed is accepted) that reproduces on the base: planned as core M81. Report `.claude/briefs/n01-report.md`.
+- **N02, eating, drinking and sprinting (2026-11-05, Sonnet 5.5; gated on `feature/adaptive_design` at `3a4345f8`, 9195 passed, 3 skipped).**
+  Right click eats the selected food (`meal_eaten` with its noun; at full hunger it is kept with a hint), the bottle comes back empty, and E at
+  water within reach drinks by hand with nothing held (`water_drunk`: `botella`, `pozo`, `lago` or `río`; the lake is a radius round its
+  point, so water near the river mouth can read `lago`). Sprint is a control (Left Shift, 1.6 times, from `needs.json`); a stage's walk factor
+  now slows walking. At zero stamina gathering takes twice as long and never stops; filling the bottle is no labour. Rest finds fire rings by
+  shape (`Needs/FireRings.cs`): a ring is lit when a torch stands in its 3x3 square, so the player's ring, the guide's camp and the forge count.
+  New scripted steps `--eat <item>` and `--drink`. No Spanish added: the hints are English keys (`ui.foodKept`, `ui.drinkKept`), their Spanish
+  («No tengo hambre.», «No tengo sed.») N05's. The 23 scripted runs are unchanged. The orchestrator's check: `--set-need hunger 40 --eat
+  manzana` gives hunger 52 and `meal_eaten (manzana)`; `--drink` at the river gives thirst 30 to 40 and `water_drunk (río)`. Report
+  `.claude/briefs/n02-report.md`.
+- **N03, sleep and the collapse (2026-11-05, Sonnet 5.5; gated on `feature/adaptive_design` at `7cf2e115`, 9219 passed, 3 skipped).** Every
+  night path (E at the fire, Enter on the card, `--sleep`) applies the night to the needs (`VoxelSession.Night.cs`; `SleepTests` keeps "a sleep
+  equals a load" for all but the needs). After 60 active seconds at the sleep drive's last stage the player collapses where they stand (a fade,
+  the collapse night, waking in place; `player_collapsed`, `player_woke`, a first-time tip in English); it is the sleep drive's alone, as
+  N01's `CollapseDue` and 9.5 read (scripted: `--set-need sleep 0 --wait 62`). Nights and collapses advance the day and the sitting, a load only
+  the sitting; one seam, `RunDayResets`, runs the day's resets for N04 and N06. A tick-sum rounding delayed the collapse by a tick
+  (`CollapseDue` tolerates 1e-6 s). The fire's offer rule is unchanged, for L01 (`SleepOffer`, `CanSleep`). Runs unchanged. The orchestrator's
+  check: day 2, sleep 40 and thirst 15, `--sleep`: thirst stops at the floor of 10, sleep 100, day 3. Report `.claude/briefs/n03-report.md`.
+- **N04, health and death (2026-11-05, Sonnet 5.5; gated on `feature/adaptive_design` at `b72b9184`, 9246 passed, 3 skipped).** At zero
+  health the player wakes 2 to 5 blocks from the camp ring with health and the drives at 50 and stamina full (`player_died` with `hambre` or
+  `sed`, `player_woke (death)`); a death is not a night. The bag minus the items that stack to 1 goes into one Chest on the nearest free ground
+  (a second death merges into it), E takes back what fits (`belongings_recovered`), the next night removes it; saved as `systems.chest`, the
+  save version stays 6. **Design against code:** only the book and the axe stack to 1; the bottle stacks to 99, so it goes into the chest.
+  The no-dead-ends test floods the walkable cells from the banks and times the 30 farthest walks against the health left (240 s). New runs
+  r25-thirst and r26-death, new steps `--take-belongings` and `--need <need> <n>` (mid-script); the 22 other runs unchanged. English keys for
+  N05's Spanish: `ui.beaconBelongings` («tus cosas»), `ui.diedHunger`, `ui.diedThirst`, `ui.chestRest`. The orchestrator's check: day 3,
+  hunger 0 and health 4, a wait: `player_died (hambre)`, woke at the camp with 50s, the chest placed. Report `.claude/briefs/n04-report.md`.
+- **R, the follow-ups synced into the adaptation (2026-11-05, Haiku 5.5; gated on `feature/adaptive_design` at `ce52e231`, 9358 passed, 3
+  skipped).** `feature/village-decisions` (V29, M78, the refreshed grammar cache) merged into the adaptation; only the generated manifests and
+  save fixtures and the core plan conflicted. The content loop re-hashed the bundle (`eec0472c…`), the grammar cache needed no new entry and
+  the goldens and digests did not move; no test needed a fix where the two sides meet.
+- **N06, food that grows back and fair gifts (2026-11-05, Sonnet 5.5; gated on `feature/adaptive_design` at `468a1b29`, 9382 passed, 3
+  skipped).** Built ahead of N05 (it needed no new Spanish). `needs.json` takes optional `regrowth` (`berry-bush`, after a night) and `gifts`
+  (`shopkeeper:bread`, `villager:bread`, `guide:water-bottle`, per day), checked by `GameDataValidator.CheckRenewal`; `RunDayResets` regrows
+  each picked bush still a plain bush and clears the gifts given. A second ask the same day raises `<npc>.gift_used` and the NPC answers with
+  an existing line (stall `shop_price`, villager `villager_bye`, guide `guide_offer_no`); a sale is not limited, a gift the active lesson's
+  `do` step needs is neither refused nor counted, and with `--needs off` every gift is given and nothing is recorded. Saved as
+  `systems.bushes` and `systems.gifts`, the save version stays 6. **Design against code:** Luna is the `guide` agent and her water is the
+  one-time transfer offer, so her daily rule bites only once more ways to ask her exist; no shipped lesson has an `item_given` step at these
+  NPCs yet; a bush picked in a save made before N06 stays picked; the host's `ConversationSession` has no days and keeps the old rule. **For
+  N05:** «Hoy no tengo más pan.» (stall, villager) and «Hoy ya no tengo agua.» (Luna) in place of the borrowed lines. The 25 scripted runs did
+  not move. The orchestrator's check: bread asked twice on day 2 (given, then «El pan cuesta dos monedas.»), given again after a night; a
+  bush picked, refused, picked again after a night. Report `.claude/briefs/n06-report.md`.
+- **W01, `item_crafted` (2026-11-05, Haiku 5.5; gated on `feature/adaptive_design` at `56f88b4b`, 9385 passed, 3 skipped).** A craft logs
+  `world item_crafted (<noun>)` with the recipe's output count, after `LearnItem`; `WorldEvents.All` takes it; the schemas list no event
+  names, so only their detail descriptions changed. Three runs gained exactly that line (r01-route, r10-playtest, r20-sleep, the runs that
+  craft the torch) and were re-baselined; the other 22 did not move. Tested: the torch's event, an objective step on it; a lesson `do` step
+  on it is not tested directly (it matches through the same trigger, and no shipped lesson has one). The orchestrator's check: the camp
+  route's torch craft prints the event. Report `.claude/briefs/w01-report.md`.
+- **N05, the HUD and the opening (2026-11-05, Sonnet 5.5, two attempts; gated on `feature/adaptive_design` at `6dfa8566`, 9433 passed, 3
+  skipped).** The first agent wrote the code and stopped before compiling (out of context); the orchestrator committed its work as WIP and a
+  second agent finished it (one missing `using`). Health and stamina bars beside the hotbar, drive icons with one to four notches, the stage
+  line once above the hotbar with a soft synthesised sound, the needs in the inventory, gentle view effects with F7 and `--view-effects`
+  to turn them off, the English tip on the first `need_stage`, a death card «Estás en tu campamento.», «tus cosas» on the chest's beacon.
+  **Relaxed needs** (design decision 17, provisional): `--relaxed-needs` and a setting, half the drive rates, a faint at zero health with no
+  chest. N06's lines «Hoy no tengo más pan.» and «Hoy ya no tengo agua.» replace the borrowed ones (six WAVs). **Day 1 is safe with room to
+  spare:** the route takes 81 s of active play at the intended pace and 204 s at 2.5 times (the novice pace), the lowest meter is thirst
+  91.4, every drive stays healthy and no recovery is needed: at N01's rates the needs barely touch day 1, a number for the needs check.
+  **Open:** `morir` («Me muero de …») is above A2 in the lists and the lint does not read the HUD lines (`hudLines`); left unwaived for the
+  owner. The HUD is hidden under `--needs off`, so the language runs did not move; r25 and r26 gained the tip. The orchestrator's check: a
+  day-2 screenshot with thirst 20 and hunger 45 shows the bar and both icons. Report `.claude/briefs/n05-report.md`.
+- **L01, lessons as optional classes (2026-11-05, Sonnet 5.5, then a Haiku sync with N05; gated on `feature/adaptive_design` at
+  `971b1058`, 9451 passed, 3 skipped).** D-game-25 built. `first-words` keeps its id and units u1, u2, u3, u5 and u6 and alone starts by
+  itself; u4 and u4v are a new lesson `first-class` (`after: first-words`); an old save splits the old lesson on load. Every other lesson
+  is a class: the teacher offers it in one line («¿Quieres una clase? ¿Sí o no?»; the villager «¿Una clase hoy? ¿Sí o no?», since
+  «conmigo» is not A2), once per NPC per day; «Sí» starts it, «No» or «No, gracias» cost nothing (no NPC reply, the trade prompt kept);
+  «¿Me enseñas?» and the Lessons page's "Ask for a class" start one too. A class opens on its teacher met (saved `metNpcs`, no format bump)
+  and its `after` lesson, never the day. Esc pauses a class at a talk step and frees the NPC; at a `do` step it stays engaged (the panel
+  closes for the walk). From day 2 the fire offers sleep below 75 on the sleep drive, otherwise «No tengo sueño.» (a toast, with a WAV:
+  it is a pool line); `--sleep` and the scripted step skip the check. Orders show once their NPC is met; `HoldsOrder` is gone and the
+  oven order no longer waits for `n4-back` (Luz pays at the first talk). Cards from rung 1; the beacon follows the tracked objective; the
+  Lessons page lists each class with what it needs. New run `r30-no-classes`; r20 and r21 re-baselined. **Core gap:** «¿Me enseñas?» takes
+  no intent (the game reads its forms from `classAnswers` in `game/words.json`): a core milestone if the owner wants it understood.
+  **Design against code:** the design's Domingo (the smith) teaches nothing, so the villager offers; the «Primero, la lección»
+  order-hold lines stay in the content, unreachable. **Not checked:** 12 of the 26 scripted runs were not compared by the agent; save
+  versions 2, 3, 5 and 6 with an engaged class not tested separately. The sync with N05 needed no test fix (the pool count 309). The
+  orchestrator's check: day 2 at the villager the offer appears after the greeting (a moment later: a line typed before it is read as
+  ordinary talk); after a wait, «No, gracias.» gets no reply and «¿Dónde está el río?» is answered. The gate's summary lines showed
+  `limited.sh`'s new peak-memory line in place of the lint and licence results; `scripts/merge-gate.sh` now skips those lines (the
+  results themselves were read from the logs: lint 0 errors, 149 warnings, unused `guide.*` pools; licences passed). Report
+  `.claude/briefs/l01-report.md`.
+- **N07, cooking at the fire (2026-11-05, Sonnet 5.5, then a Haiku sync with L01; gated on `feature/adaptive_design` at `20a8da0c`,
+  9461 passed, 3 skipped).** A lit fire ring is the station `fuego` (a catalogue noun): with the crosshair on its stones or the ground
+  inside, E opens the crafting panel ("Fire"), as at the workbench; an unlit ring does nothing. The roast apple is item 33 (`roast-apple`),
+  listed under `manzana` with the label «manzana asada» (a new optional noun field `labels`); its recipe needs a new optional `makes`, since
+  a noun's first item is the raw apple. Hunger +20, healing 5; raw food keeps its values. The craft logs `item_crafted (manzana)`. A test aid
+  `--give <item>`; `--eat` prints health for a food that heals. **Design against code:** E needs the crosshair on the ring, though the
+  panel's hint shows within 6 blocks; on a lit ring crafting comes before the sleep offer. Scripted runs: the speech count (the `fuego`
+  card), a recipe row in r08, the Fire panel in runs that end at the camp with apples; no re-baseline. The orchestrator's check: the camp
+  route, a torch by the ring, `--give manzana --craft roast-apple`, `item_crafted (manzana)`, eaten from hunger 40 to 58.8. Report
+  `.claude/briefs/n07-report.md`.
+- **U01, clean defaults (2026-11-05, Sonnet 5.5; the orchestrator merged N07 into it; gated on `feature/adaptive_design` at `dd01a6e9`,
+  9476 passed, 3 skipped).** Ordinary play starts clean: the debug overlay and the dialogue's developer note are off unless `--dev`; F3
+  toggles both (still off in `--playtest`, as before); the "Heard / Expected" line stays. The tip box sits under the overlay when F3 is on.
+  The dialogue footer drops "hold V: speak" once the speak tip has shown, and the first lesson's English no longer repeats it. The objective
+  tracker shows one line per objective, three at most, the last advanced first, the rest "+n"; a lesson `do` step stays out of it while the
+  lesson strip is up; it moves under the tip block when they would touch and hides in a conversation; its recency order is not saved.
+  `scripts/scripted-runs.sh` passes `--dev` to every run but `r10-playtest`, so no capture moved. **Timing under load:** with two agents
+  building, the no-models suite failed `GeneratedLexiconTests.LoadingTheBundleIsFastEnough` once (9 s against its 3 s budget; it passes
+  alone and passed in the gate): a wall-clock test that two parallel agents can starve, to watch. The orchestrator's check: a day-4 world
+  with thirst 40 shows no debug text, a one-line tracker, the drop icon and the health bar. Report `.claude/briefs/u01-report.md`.
+- **N09, the drive rates as a setting (2026-11-05, Sonnet 5.5, then a Haiku sync with U01; gated on `feature/adaptive_design` at
+  `37c7640b`, 9501 passed, 3 skipped).** The owner's answer of 2026-11-05 built: a settings panel on **F8** (keyboard only, a menu pause)
+  with the drive rate as a slider (×0.5 to ×4 in steps of 0.25, default ×1), the view effects and relaxed needs; `--needs-rate <x>` for runs
+  (an off-step value is refused); `SaveSettings.NeedsRate` written only when not 1. The rate multiplies hunger, thirst and sleep only, and
+  with relaxed needs (×0.5); stamina, health, food and the collapse delay are unchanged; no meter, digest or replay holds it. The session
+  summary and the console name the rate when it is not ×1, so a playtest's numbers say what rate they ran at. Measured: 60 s of play at ×3
+  drops each drive exactly three times as much as at ×1. A helper property was being serialised and would have changed default saves; now
+  ignored. **Machine:** one of the agent's full runs was killed at the shared 8 GB cap of two slots (exit 143) and passed on the rerun:
+  the cap held the desktop, as designed. The sync caught a stale link in the handovers README left by the orchestrator's handover move
+  (the doc-link test failed on the merged tree); fixed in the sync. The orchestrator's check: the panel at ×2.5 (screenshot), `--needs-rate
+  2.3` refused. Report `.claude/briefs/n09-report.md`.
+- **U02, the conversation surface (2026-11-05, Sonnet 5.5, then a Haiku sync with N09; gated on `feature/adaptive_design` at
+  `fe986862`, 9546 passed, 3 skipped).** The dialogue panel shows the current exchange (the learner's last line, the NPC's reply with its
+  English, one coaching line); older lines collapse behind a "N earlier lines hidden" row and come back with **PageUp** (any state, the
+  text box too) or **O** (Tab stays Escribir, D-game-9). The book's "What I said" history keeps every line. One coaching line replaces the
+  stack of correction, accent and English notes: uncertain speech not understood, then off prompt (typed turns, not a lesson turn; new
+  `ui.coachOffPrompt`), then a slip (the turn's feedback, else the first error line); a plain "understood" turn shows none (the reply is
+  the outcome). The lesson heading sits in the panel's header (`Lesson · First words · step 1 of 7 · Say it`, English from the locale) and
+  the strip stands flush on the panel without its own heading; a new scripted step `--expand`. Every D-game-9 key (R, S, H, N, W, Tab,
+  choices, Enter, Esc) is tested in idle, after a turn, thinking and after the typing offer. **Design against code:** the design's heading
+  example is Spanish, the code's English; the strip's step text and buttons stay above the panel. Scripted runs: stdout unchanged in all
+  26; only r30's lesson pictures moved, as intended. The sync kept both `--expand` and N09's `--settings` in the one flag line both sides
+  edited. The orchestrator's check: three turns with the shopkeeper collapsed ("10 earlier lines hidden") and expanded (PageUp's view), and
+  «yo quiere dos pan» with the single coaching line «Sí, «yo quiero dos panes». ¡Muy bien!». **Seen:** the row reads "1 earlier lines
+  hidden" for one line (a plural to fix in a later polish), and the collapsed panel leaves its upper half empty (the rows sit at the
+  bottom). Report `.claude/briefs/u02-report.md`.
+- **N08, a berry planted at the camp (2026-11-05, Haiku 5.5; the orchestrator merged U02 into it; gated on `feature/adaptive_design`
+  at `209049db`, 9561 passed, 3 skipped).** Design decision 14 built, adopted provisionally. The rule is data: an optional `planting` in
+  `content/game-v1/game/needs.json` (item `berry`, block `bush`, grown block `berry-bush`, radius 8, at most 6 bushes), its schema, and a
+  validator check (unknown item or block, a grown block with no regrowth rule or not regrowing from the planted block, radius or count not
+  positive). A right click with the berry held on grass or dirt within 8 blocks (horizontal) of the guide camp's ring (`firering`) plants a
+  bare bush; a click in the air or on another block still eats. Too far, an occupied cell or the cap: a toast, the berry kept. The planted
+  cell is recorded as picked, so N06's regrowth bears it at night; the planted cells are saved in a new optional `systems.planted` (save
+  version stays 6; an older save loads with none). Event `bush_planted (fruta)`; a scripted `--plant x,y,z`. **Design against code:** the
+  planting radius is about the guide's camp ring, while sleep needs the player's own fire, so planting and sleeping happen at different
+  fires. Scripted runs: 25 of 26 identical; r30's `declined.png` differs by timing noise (two runs of the same binary differed too).
+  **Machine:** after the merge, the content loop's full suite was killed twice by the OOM killer: `Vocaterra.Game.Core.Tests` alone now
+  peaks at 5.4 GB (2.80 GB at the test-performance plan's T1), on the base as on N08, and beside a second assembly it exceeds the 6 GB cap
+  of one `limited.sh` command; xUnit at two threads still peaks at 4.8 GB. The gate passed when the assemblies did not overlap that way. A
+  fix is proposed as T7 (the test-performance plan), not yet authorised. The orchestrator's check: the camp route, `--give berry --plant
+  170,42,186` (planted, `bush_planted`), the player's fire lit as in r20, `--sleep` (session 2), and the same cell gathered as a
+  `berry-bush` (+1 berry). Report `.claude/briefs/n08-report.md`.
+- **U02b, the conversation surface's QA fixes (2026-11-06, Haiku 5.5, then a Sonnet continuation; gated on `feature/adaptive_design` at
+  `565554f3`, 9586 passed, 3 skipped).** The QA pass `docs/qa-reports/2026-11-06-ui.md` (triage in `docs/qa-reports/README.md`). Which rows
+  show is now Core logic (`PanelFit.cs`: `PanelFitter.Fit`, the blocks in order of keep: the learner's line and the reply's Spanish, then
+  the coaching line, then the reply's English, then the hidden-lines row; a `--dev` note goes first); the panel only draws. Expanded, Up and
+  Down scroll (not while typing; PageUp and O still toggle; Tab stays Escribir) with "N earlier lines above" / "N later lines below"
+  rows; the counts take singular and plural strings ("1 earlier line hidden"). The lesson heading shortens its title first
+  (`LessonHeading.FitTo`), so "step n of m · kind" stays. **ui-3 and ui-4 corrected:** «gracias» at the shopkeeper's prompt is an
+  off-prompt line the NPC took (`OffPromptIntent`, never `Communicated`), not a line it failed to understand, so U02's off-prompt coaching
+  was right (ui-4 not a bug); its English said "Good… understood you" and now says "{npc} understood, but that is not what was asked."
+  (`feedback.outcome.off_prompt`). The Haiku attempt read the verdict the other way (it made the coaching say "did not understand" beside
+  the NPC's «Te entiendo») and stopped before its checks; a Sonnet continuation corrected it, finished the checks and found the `--dev`
+  note pushing out the learner's line at 800x600. Scripted runs: 26 of 27 equal; r30's dev note differs by its wall-clock figure only.
+  **Machine:** the first gate was killed by the OOM killer (exit 143, the known T7 cause); the rerun passed; the continuation saw two
+  `OutOfMemoryException`s in Game.Core.Tests while the baseline ran beside it. The orchestrator's check: 800x600 at 150 %, three turns,
+  collapsed (the learner's line and the reply) and expanded; four turns expanded at 1280x720 ("9 earlier lines above (Up to scroll)").
+  **Seen:** at 800x600 and 150 % the coaching line, two rows when wrapped, is dropped while about one row stays empty; acceptable. Reports
+  `.claude/briefs/u02b-report-1.md` and `u02b-report.md`.
+- **T7, the game tests' memory (2026-11-06, Sonnet 5.5; launched by the orchestrator after a third OOM kill; gated on
+  `feature/adaptive_design` at `56094f20`, 9586 passed, 3 skipped).** The test-performance plan's T7 section has the numbers. The cause
+  was test sessions never disposed: a session's turn worker is a thread that keeps the session, its 38 MB scene clone and a language
+  engine alive, and five test classes (`ConversationSurfaceTests`, U02's, built ten) left them running; the live heap grew about 450 MB
+  per such test. They now dispose their sessions, and `Vocaterra.Game.Core.Tests` runs three xUnit threads (`xunit.runner.json`; ten
+  still peaked at 4 to 4.5 GB with the leak fixed, three peak at 2.4 to 2.5 GB in the same wall time). Game.Core.Tests alone: 5.0 GB
+  to 2.5 GB; `scripts/test.sh full`: killed at 87 s before, passed three times after at 4.6 to 4.8 GB (the gate's run 4.8 GB); no test,
+  assertion, budget or production code changed. The remaining full-run peak is Nlp.Tests (2.8 GB) beside the fuzz suite (2.5 GB), both
+  core; a further cut would be a core milestone. Report `.claude/briefs/t7-report.md`.
+- **W05, procedures, stations and actions as data (2026-11-06, Haiku 5.5; gated on `feature/bread-pilot` at `28c5becf`, 9614 passed,
+  3 skipped, with the models).** Four schemas (`procedure`, `procedures`, `stations`, `actions`), three empty bundle files, the loaders
+  `Activities/ProcedureBook`, `StationBook`, `ActionTable` in `GameData`, the phrase sheet's `does` kind (documented, read, no rows yet) and
+  the validator's activity rules. Values chosen where the design is open or disagrees with the code (D-game-23's provisional 18.2 values
+  stand): a step may name a `use` (the design's `sacar` pair is `mano`/`horno`, which its step cannot express); `anyOrder` is a group name;
+  `what` is an item noun or a fixture, `where`/`from`/`with` are fixtures; the design's `flour` is refused until W10 adds the item, and
+  `mano` must become a catalogue noun in W10. The tú imperative comes from the lexicon (mood `imp`, person 2, `sg`): no core gap. The agent
+  stopped twice with work uncommitted while its own background runs went on, and was resumed by message; the scripted runs moved only
+  `r30-no-classes`' `declined.png`, which also differed between two captures of the same build (nondeterministic, not this change).
+  Report `.claude/briefs/w05-report.md`.
+- **W06, the procedure runner (2026-11-06, Sonnet 5.5; gated on `feature/bread-pilot` at `b1579284`, 9645 passed, 3 skipped, with the
+  models).** `Activities/ProcedureRunner` (start, act, collect, repeat, slower, help, leave, abandon, the view, drained events, capture and
+  restore) and `ProcedureProgress`; `PhraseProgress.RecordAct`, with `does` rows kept out of the review deck; the four `procedure_*` world
+  events; `systems.procedures` in save version 6 (absent when empty; versions 1 to 6 tested); `GuideSession.Activities.cs` with the mastered
+  recipe's one-click bake through `CraftingRules`. **Design decision 19 is provisional and the owner's** (orchestrator's value, brief of
+  2026-11-06): an act records whether its instruction was heard and read, apart; rung moves, folding and mastery treat both alike
+  (`InstructionEvidencePolicy`; `RequirePresentation` is the alternative). Other values chosen: `anyOrder` steps follow the drawn order
+  strictly (the instruction names one, so a group-mate first is out of order); the order is `WorldRng.For(seed, "proc." + id, bake)`;
+  mastery counts distinct play sessions; chunk and goal rows start at rung 2 (18.2 decision 3); a full bag leaves `ReadyToCollect` with
+  nothing consumed; the one-click bake has no bonus; a rung-4 act earns nothing. Left to W07: the per-noun read count of 10.10. Report
+  `.claude/briefs/w06-report.md`.
+- **W07, the station view (2026-11-06, Sonnet 5.5; gated on `feature/bread-pilot` at `23d139e3`, 9737 passed, 3 skipped, with the
+  models).** Core `Activities/StationScreen`, `StationPanel`, the view records and `InstructionStrip` (a model of its own, drawn by
+  `InstructionStripLayer`, for W30's recipe book); Game `UI/Station/` layers and layouts; E at a station's prop (priority NPC, station,
+  workbench; `Scene.PropCells`); rows through `NpcVoice` with the slow file; muted or unrecorded rows show the Spanish card and record the act
+  as `Read`; the bowl, spoon and oven icons with a plain fallback tile; `--station`, `--act`, `--proc-help`. W08's hook is
+  `StationPanel.OnTalk`. The orchestrator looked at the screenshots, made from a throwaway bundle copy with a test procedure on the
+  `oven` prop: the first rung, a slip's highlight, help's highlight and a finished bake, all as 10.8 and 10.10 say. **Bug found and fixed:**
+  the new atlas cells moved eleven scripted runs' far horizon, because the top mip levels average the whole atlas; interface-only cells are
+  now left out of the mips (`IsUiOnly`, tested), and every run matches its baseline again. Small points for W10's content review: the
+  panel's title is the word "Station", not the station's name; after help the selection stays on the empty hand while the highlight shows
+  what to hold; the mastered recipe's one-click bake is built (W06) but not yet offered at the station. Report `.claude/briefs/w07-report.md`.
+- **`r30-no-classes`' `declined.png` is nondeterministic** (W05 and W07, 2026-11-06): two captures of one build differ in that image's
+  bytes. Not caused by either milestone; fixed by T8 (below).
+- **W07b, the station view's small points (2026-11-06, Haiku 5.5; gated on `feature/bread-pilot` at `1d511d76`, 9758 passed, 3 skipped,
+  with the models).** The panel's title is the station's name (`ui.station.<id>`, else the noun with its article, else the id); help and a
+  third slip's highlight also select the highlighted held thing and target; a mastered recipe's one-click bake is offered at the station
+  (design 10.15: B, or Enter on the choice; the guided bake first and selected when the goal row is due, through a new
+  `PhraseProgress.IsScaffoldDue`). No screenshot: the agent's throwaway bundle failed the content checks, so the view is checked by its tests
+  only until W10's content; W10's spot-check looks at it. Report `.claude/briefs/w07b-report.md`.
+- **T8, the stable `r30-no-classes` capture (2026-11-06, Haiku 5.5; gated on `feature/bread-pilot` at `937f4a44`, 9759 passed, 3 skipped,
+  with the models).** The differing box (x 384 to 428, y 556 to 565 of `declined.png`) was the turn latency on the `--dev` note
+  (`DialogueModel` prints `LastTurnMilliseconds`, the worker's wall time). Fixed at the source: `LaunchOptions.TurnClock` gives a scripted
+  run no clock, so its turns time at 0.0 ms; play keeps `MonotonicClock`. Pinned by a test in `VoxelLaunchOptionsTests`. Three captures of
+  the fixed build are identical; the whole set before and after: 25 runs same, r30 moves only in that box. Left: `CheckBattery`'s
+  `check: picked … ms` and `SessionLog` timings still read the clock; no current run shows them, but a future scripted run with checks
+  could move (fix the same way if it does). Report `.claude/briefs/t8-report.md`.
+- **W08, the teacher in the loop (2026-11-06 to 07, Sonnet 5.5 medium, two agents: the first stopped when the session ended; gated on
+  `feature/bread-pilot` at `5091891e`, 9794 passed, 3 skipped, with the models).** Six host kinds (`procedure_repeat`, `procedure_slower`,
+  `procedure_help`, `give_missing`, `teach_recipe`, and `start_procedure`, added beyond the plan so the accepted offer opens the station);
+  `<npc>.teach_start` and `teach_end` as host turns (new `NpcService.HostTurn`); the station's talk (V, Space and W reach the teacher with the
+  station open; scripted step `--station-say`); Luz's `offering_bake` and `teaching` states, prompts `baker-offer` and `baker-proc`, the
+  answer set `baker-proc`, seven new Spanish lines with 18 recordings; `host-events` schema version stays 2 (the bump to 3 is W04's).
+  **Decision 20's values, provisional, for the owner:** a grant only while a run is in progress; it gives what the recipe uses and the bag
+  lacks, all or nothing; open for the first bake, otherwise once per in-game night (the first bake's grants do not count); no room gives
+  `baker_no_room`, nothing missing «Ya tienes todo.», already granted «Hoy no tengo más.»; the offer is made once per day until the player
+  has baked, and also whenever asked (`ask_craft`); W10's seam is `GuideSession.GrantRequiredByLesson`. The offer is silent while the bundle
+  has no procedure (tested; 26 scripted runs unchanged but for the speech count). **The new lines** («¿Quieres hacer pan?», «¡Vamos!»,
+  «Escucha.», «Te ayudo.», «Toma. Aquí tienes.», «Ya tienes todo.», «Hoy no tengo más.») were reviewed by the orchestrator: idiomatic, `tú`
+  throughout, A2; the design's «…conmigo?» was cut because it fails the A2 lint. **Core gaps, not patched** (core milestones if the owner
+  wants them): «¿me enseñas a hacer pan?» is unknown at `baker-open`; «¿Tienes harina?» is not `ask_availability` (only «hay X» is); and,
+  found in the spot-check, two intents in one line («Gracias, adiós.», «Gracias. Adiós.») are unknown at every prompt while each alone
+  resolves. Reports `.claude/briefs/w08-report.md` and `w08-report-2.md`; screenshots of the station's talk were taken on a throwaway bundle.
+- **W10, session 11 "En la panadería" (2026-11-07, Sonnet 5.5 medium in two phases with the orchestrator's review of the Spanish
+  between them, then a second agent for two bugs; gated on `feature/bread-pilot` at `366a6038`, 9852 passed, 3 skipped, with the
+  models).** The `pan` procedure (six actions, chunks `la-masa` and `el-horno`, the goal), the `horno` station (fixtures `bol`, `cuchara`,
+  `horno`), 9 `does`, 4 `says` and 5 `hears` rows, flour (item 34, `IconFlour` after the interface-only atlas cells so no world mip moved),
+  the stall's fixed `stall.sell_flour` and `stall.buy_bread` at one coin with `instead` sending `harina` to the sale, the optional lesson
+  `en-la-panaderia` (a2, after `ayer-y-manana`, 14 steps, its do step opening the grant through W08's `GrantRequiredByLesson`), 8 checks,
+  70 recordings, run `r27-bread`. **bol** over tazón (a cognate, the design's rows). **The review** changed «Primero.» to «Todavía no.»
+  (now played as Luz's line on an out-of-order act), `shop_buy` to «¡Gracias! Aquí tienes.», `shop_cant_pay` to «La harina cuesta una
+  moneda.», and **reworded two lines of sessions 1 to 10**: `shop_hay` «Hay agua, pan y harina.» and `shop_wont_sell` «No tengo eso. Tengo
+  agua, pan y harina.» (flour is sold from the first day). **Code:** `NpcTurnRules.AnswerMisses` chains the misses of an `instead` target
+  (flour with no coin or a full bag is answered, not sold); `GameDataValidator.IsMadeThing` (the dough a step makes); `PhraseSheet.Closest`
+  answers the prompt's first row when nothing is close; `SessionSkip` stops at session 10 (skipping to 11 would need the market's coins);
+  `phrases.schema.json` allows `prompt: null` for `does` rows. **Two bugs found in its report and fixed before the gate:** W08's offer, live
+  now that the bundle has a procedure, swallowed the first line of the day («quiero dos panes, por favor» unknown, no bread bought in r22);
+  `baker-offer` now takes `baker-open`'s intents and answers them as `idle` does, and the offer counts as declined. `--lesson-run
+  en-la-panaderia` hung at the do step (nothing drives the station); it now stops with a message (`ScenarioScript`), and `r27-bread` uses
+  `--skip-to-session 10` and the offer. **Side effects for the owner:** the error example «no, mucho gracias» (deny at `stall-offer`) was
+  removed, because with `thank` allowed at the offer it tied and the lint's confusion error cannot be waived; a line answered at the offer
+  is credited `unaided` (no support card there) where it was `supported`. **Left:** Luz does not repeat the instruction after «Todavía
+  no.» (R does); the recordings are generated, not owner-listened (the pilot's listening gate, W11). The spot-check: the bread run's
+  captures show the station at rung 1 with Luz's grant and the done bake (two loaves after two slips); at `stall-need` «¿Hay harina?» and
+  «Vendo pan.» answer correctly; «¿me enseñas a hacer pan?» and «quiero hacer pan» stay unknown at `baker-open` in the CLI (W08's core gap;
+  the game reads «¿Cómo hago pan?» off-prompt as `ask_craft`, tested). Reports `.claude/briefs/w10-report-a.md` (both phases and the fixes).
 
+- **W02, tools and materials (2026-11-07, Haiku 5.5; gated at `2bd4728e` on `feature/bread-pilot`, 9855 passed, 3 skipped).** A
+  `Material` per block (`Voxel/BlockDefinition.cs`: none, wood, plant, stone, soil, water; an optional last record parameter, not positional
+  as the paragraph had it) and `ToolSpec(Material Class, int Speed, int Yield = 1)` on items, the axe `(Wood, 4)`; `GatherTicksOf` divides a
+  gatherable block's ticks by the held tool's speed when the classes match (at least one tick), and `AxeSpeedUp` is gone. Trunks are wood
+  and the berry bush plant; the agent also gave the other blocks a material (stone, soil, water, the wooden props and the plants), which
+  changes nothing because only trunks (60 ticks) and the berry bush (45) are gatherable. `Yield` is recorded and unused. Tests: 60 by hand
+  and 15 with the axe, the axe on a berry bush or on stone changes nothing, the progress event the HUD reads carries the same total.
+  Scripted runs unchanged (26 of 27 identical outright; `r27-bread`'s first baseline capture was one tick late, 2461 for 2460, and every
+  later capture, including a rebuilt baseline, gave 2460: an unexplained one-off of the run, not of W02). **Found:** the fuzz oracle O7
+  fails on CsCheck seed `8eu5g1sTe_A8` on the branch before W02 (a core issue, the core plan's §5b). Report `.claude/briefs/w02-report.md`.
+
+- **W03, fail-forward as data (2026-11-07, Sonnet 5.5 medium; gated at `bc12153e` on `feature/bread-pilot`, 9901 passed, 3 skipped).**
+  The stall's patience rule is data: `NpcPatienceRule(Misses, AfterHelp, Event, Prompt, Once)`, loaded by `NpcRoster` from an optional
+  `patience` in the NPC file (`npc.schema.json` stays at schema 2: the object is optional), and the shopkeeper's values in
+  `shopkeeper.json` (4, 2, `shopkeeper.give`, `stall-need`, once). `NpcService.FailForward` applies any NPC's rule at its prompt (not
+  off-prompt); `StallPatience`, `StallPatienceAfterHelp` and the shopkeeper-only branch are gone; `once` maps onto the saved
+  `BottleGiven`, so saves load unchanged. The validator: positive numbers, `afterHelp` at most `misses`, the event taken by a state of the
+  NPC's agent (`onHostEvent`; the paragraph's "exists in `host-events.json`" did not fit, since `shopkeeper.give` is the agent's input and
+  `stall.give_water` the world event its reply makes), the prompt one of the NPC's. The stall's tests pass unedited; `NpcPatienceTests`
+  covers a custom rule, help, another prompt, once, no rule and the save. Bundle re-hashed (`save-v1.json`, `save-v4.json`); no golden moved.
+  Scripted runs unchanged except **`r27-bread`'s first capture, which alternates between tick 2460 and 2461 from build to build** (seen by
+  W02 and W03; a determinism leak in that run to plan as a T milestone). The agent's suite failed only
+  `GeneratedLexiconTests.LoadingTheBundleIsFastEnough` (9 s against 3 s while M80's gate ran beside it; 1 s alone). Report
+  `.claude/briefs/w03-report.md`.
+
+- **W04, price lists (2026-11-07, Sonnet 5.5 medium; gated with V31 at `796585af` on `feature/bread-pilot`, 9938 passed, 3 skipped).**
+  A `sell` or `buy` in `host-events.json` may carry `"slot": "item"` and `"prices"` (catalogue noun to coins) instead of one `item` and
+  `price` (schema stays 2; `oneOf` the two forms). `NpcEffect.Prices`, `For(slots, nouns)` and `Priced(noun)` turn a verdict into the fixed
+  effect; `ExchangeMiss` judges a priced entry first: an unlisted item, a noun naming no item or no item gives the existing `<npc>.wont_sell`
+  (the paragraph's `dont_sell`; no duplicate added) or `wont_buy`; a listed item keeps the other misses' order. `VoxelSession.ApplyHostEvents`
+  resolves through `For`; the exchange stays atomic (`CanExchange`); `SessionSkip`'s purchase finder reads priced sells. The validator: each
+  listed key is a catalogue noun naming an item; the slot is only checked to be `item` (no prompt-to-slot map exists). Tests on a test bundle
+  (two items, `qty`, `cant_pay`, `wont_sell`, `no_room`, a priced buy); existing sells and buys unedited. No bundle data: **live use needs a
+  content milestone** (a priced entry, agent states with lines such as «No vendo …»; the success line cannot name the item without a
+  templated slot). Scripted runs unchanged. Report `.claude/briefs/w04-report.md`.
+- **V31, spoken lines heard on the open decode (2026-11-07, Sonnet 5.5 medium; gated with W04 at `796585af`, 9938 passed, 3 skipped).**
+  `SpokenUtteranceEvaluator` holds a second pipeline with M80's fallback on (the core's 0.5 floor), used only in free talk
+  (`PromptOverride is null` and not a review) at the seven constrained prompts (`villager-open` and `guide-open` are open prompts and decode
+  once). `LineReading` re-reads `OtherPass` for the vocative and greeting. A line heard open is credited as typed (`GuideTurn.HeardOpen`,
+  `CreditKind`); the turn's decodes are summed (`TurnTimings.Decodes`); `heard_open` is a voice event and a session-log field. 14 tests
+  (`OpenDecodeTests`, scripted and Kokoro); `ConstrainedRecognitionTests` unchanged. **Heard (Kokoro, `ef_dora`):** «me gusta el río» and
+  «tengo dos manzanas» get «Te entiendo»; «mañana voy a comprar pan» at the smith is understood as typed; **a limit:** the constrained decode
+  can force a confident wrong row (baker «el río es grande» heard «es gracias», `thank`; shopkeeper «me gusta el río» heard «me cuesta el
+  río», `ask_price`), which never reaches the open decode; «mi hermano vive en Madrid» and «la luna brilla» are not heard. The accent risk
+  is unmeasured. All 27 scripted runs identical (the agent first ran four; sent back for the full set). D-game-9 note added. Report
+  `.claude/briefs/v31-report.md`.
+- **Main merged in: PR #45, the water series (2026-11-08, Sonnet 5.5 high; gated at `bc881c58` on `feature/bread-pilot`, 10328
+  passed, 3 skipped, peak 6.0 GB).** The owner merged `feature/water` into `main` (2026-11-07) and asked for it on this branch. 19
+  conflicts, resolved as `docs/game/water-plan.md` section 3 writes: `PlayerBody.Step(..., RiverCurrents? currents = null, int
+  speedPermille = 1000)` passes the walk speed to the swim step; the session steps needs and water events; `LayerStack` puts the bubbles
+  just above the needs HUD; `SoundCue` keeps `NeedStage`, `WaterSplash`, `UnderwaterBubbles`; `limited.sh` keeps the two-slot slice and
+  H08a's OOM detection; **save version 7** holds both sides' version-6 fields (`Systems`, `MetNpcs`, `Air`, `Flow`), no migration between
+  the two version-6 shapes. `xunit.runner.json` stays at 3 threads (ours) over water's 4. Breaks the merge exposed: drinking by hand aimed
+  with `Simulation.Target`, which looks through water since H05 (now `InteractTarget`); the hotbar's `Gap` and `Bottom` stay public for
+  the bubble meter. Scripted runs: every difference is water's (digests, the save version, the waterfall, the animated water, the target
+  through water); `r27-bread`'s tick 2460 both times. The lake run (wade, swim, dive, breath, bubbles beside the needs bars, hop out)
+  works; drowning does not hurt yet (H11). **Open:** `--walk-to 212,262` back to the bank stopped 0.8 blocks short after 14400 ticks with
+  375 jump cues, not compared with a water-only build; `docs/game/saves.md`, `architecture.md` and the water plan still say version 6.
+  Both go to H11. Report `.claude/briefs/water-merge-report.md`.
+- **T9, the jittering `r27-bread` capture (2026-11-08, Haiku 5.5; gated at `ed1aa937` on `feature/bread-pilot`, 10329 passed, 3
+  skipped).** The moving value was the autosave tick (2460 or 2461, about 1 base run in 9), and every later capture shifted with it. A
+  script's `Say` step waits for `PendingTurns == 0`, checked after each frame's collect; the worker's outcome (milliseconds) landed before
+  or after the next frame's collect (about 32 ms) at random. The cause is inferred from the timings: no instrumented run caught the late
+  collect. Fix: `TurnWorker.WaitForOutcomes(timeout)` waits on a monitor pulsed per outcome; `VoxelGame.Update` calls it at the end of a
+  frame in scripted screenshot runs only (60 s cap), play and the playtest unchanged, no clock read. Test in `TurnWorkerTests`. Proof:
+  twenty runs of the fixed builds, ten beside three busy loops, all 2460; the full set, all 27 the same. **Watch:** the agent's own full
+  run once threw `OutOfMemoryException` in `GuideTurnTests.TheCursorTileIsNamedWhenTheGuideIsAskedWhatThisIs` (the assembly passed on
+  rerun; the gate did not see it; the suite peaks at 5.6 to 6.0 GB of the 6 GB cap). Report `.claude/briefs/t9-report.md`.
+- **W04b, the stall's price list (2026-11-08, Sonnet 5.5 medium; gated at `4ad3a5c0` on `feature/bread-pilot`, 10368 passed, 3
+  skipped).** `stall.sell_flour` is a priced `sell` (`"slot": "item"`, `"prices": { "harina": 1 }`); water and bread stay free (the owner,
+  D-game-23 item 6). W10's `instead` entry `harina` → `sell_flour` stays: it is the only route from `stall.give_water` to the sale. **A
+  bug fixed:** a gift with `asked` gave its item to a request naming a word the noun catalogue does not know («Quiero una espada.» got the
+  bottle); `NpcEffect.ExchangeMiss` now answers it with `<npc>.wont_sell` (the stall's «No tengo eso. Tengo agua, pan y harina.», and the
+  villager's own line for its bread gift); «quiero comida» now gets that line too. No Spanish changed; no recordings; scripted runs all the
+  same. **Core gaps (for a later core milestone):** «¿Tienes manzanas?» and «¿Tienes una espada?» read as `state_have` at `stall-need`
+  (answered «Sí, es verdad.»); «quiero algo de beber» and «quiero una botella de agua» are `unknown`. Report `.claude/briefs/w04b-report.md`.
+- **H11, the water series reconciled with the bread pilot (2026-11-08, Sonnet 5.5 medium; gated at `d1562c75` on
+  `feature/bread-pilot`, 10393 passed, 3 skipped, suite peak 4.0 GB).** Drowning goes through the needs: `NeedsHealth` (the `IPlayerHealth`
+  adapter) takes 10 health per `OutOfAir`, health does not recover at 0 air, and death runs the bread pilot's flow with the
+  `player_drowned` hint («You ran out of air. Swim up to breathe next time.», `content/locale`); with needs off or paused, no damage. The
+  bubble meter rises above the needs stage line where they overlap (only in "beside" mode). The underwater blur is a settings row saved as
+  the optional `SaveSettings.UnderwaterBlur` (save version stays 7), overridden by `--underwater-blur`, forced off by `ViewEffectsOff`.
+  `saves.md` and `architecture.md` now say version 7. **Not a walker bug:** `--walk-to 212,262` stops short because that sand bank stands
+  2 blocks above a shelf too shallow to swim; no body can climb out there (a climbable bank works); the cliff is open in D-game-26. Seen:
+  "your things wait where you fell" shows with an empty bag too, as for every death. Scripted runs all 27 the same. The owner's water
+  decisions are D-game-26. Report `.claude/briefs/h11-report.md`.
+- **H12, the lake bank (2026-11-08, Sonnet 5.5 medium; gated at `95249425` on `feature/bread-pilot`, 10395 passed, 3 skipped, with
+  M85).** The owner: "Fix the lake bank" (D-game-26). Not one bank: every shore had a rim of one-block-deep water, too shallow to swim,
+  under a bank 2 blocks over the bed, so a player could leave no water body but by a path. A scan with the body's own numbers found 582
+  such edges (the whole lake rim, about 275 river columns, the waterfall pool's rim, the bridge landings; no pond). `TerrainGenerator`:
+  `BankHeight` starts each bank at the water's level; `BankBesideWater` brings each dry column beside shallow water to at most 1 over its
+  bed (paths and faces over 4 kept, water never spills). Water cells, spawn, NPCs, props and paths identical; 3514 columns (2.4%) moved;
+  the scene digest is `b699324f…`, save fixtures' state digests re-recorded. `WaterEdgesAreExitableTests` holds the world at 0 edges
+  (exempt: bridge floors, the river staircase's two steps). Scripted runs: 13 differ, all from the world (digests, a teleport landing 1
+  lower, r27's walk 38 turns instead of 36 at the same tick); new run `r31-lake`. Report `.claude/briefs/h12-report.md`.
 
 ## 6. Definition of done (every milestone)
 
@@ -2279,7 +2672,7 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     `magos relacionados compañero`, a core finding. The orchestrator replayed it on the merged branch (`CsCheck_Seed`). It is the family M73 left recorded (`2tpLGUOSqj41`): the
     pattern `([NOUN:item] [ADJ]|[WORD:qty] [NOUN:spell]) [NOUN:thing]` lets `[WORD:qty]` bind the moved adjective `relacionados`. V28
     changed no intent or lexicon file, so it is older. The owner kept that family recorded, not narrowed (D-game-22, 2026-11-01), so it can
-    fail a gate or CI now and then; `docs/handovers/2026-11-02-after-followups.md` section 7 carries it.
+    fail a gate or CI now and then; `docs/handovers/done/2026-11-02-after-followups.md` section 7 carries it.
   - **The orchestrator's checks** in the game at session 10: the start line `speech: 541 lines, 1082 files, 0 missing`; Luz `Tienes veinte panes.` «Sí, es verdad.»,
     `Tengo veinte panes.` «¡Qué bien!»; Domingo `me gusta el río` «Te entiendo. Yo hago hachas.»; León `usted tiene manzanas` «Te
     entiendo. ¿Quieres manzanas?» (off the prompt, so not «Sí, es verdad.»). Not understood, older and outside V28: `usted hace hachas muy

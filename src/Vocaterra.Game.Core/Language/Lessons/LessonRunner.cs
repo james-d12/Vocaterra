@@ -92,6 +92,7 @@ public sealed record LessonUnitRow(string StepId, StepOutcome Outcome);
 /// <param name="Phrases">The phrases the lesson teaches, in order.</param>
 /// <param name="Summary">The lesson's English summary for a completed lesson (what the learner can say now), or <see langword="null"/>.</param>
 /// <param name="StepIds">The lesson's step ids in order (the book groups them into units), or <see langword="null"/> for a version 1 load.</param>
+/// <param name="Class">Whether the lesson is a class (L01): every lesson but the introduction, which starts by itself.</param>
 public sealed record LessonRecordRow(
     string LessonId,
     string Title,
@@ -106,7 +107,8 @@ public sealed record LessonRecordRow(
     int RepeatUses,
     IReadOnlyList<string> Phrases,
     string? Summary = null,
-    IReadOnlyList<string>? StepIds = null);
+    IReadOnlyList<string>? StepIds = null,
+    bool Class = false);
 
 /// <summary>
 /// Runs the lessons of <c>game/lessons.json</c> (S16): a data-driven sequence of steps attached to an NPC. One lesson runs at a time; each step has a skip and a
@@ -134,7 +136,7 @@ public sealed record LessonRecordRow(
 /// learner left.
 /// </para>
 /// </remarks>
-public sealed class LessonRunner
+public sealed partial class LessonRunner
 {
     private sealed class State
     {
@@ -220,7 +222,8 @@ public sealed class LessonRunner
             state.RepeatUses,
             lesson.TaughtPhrases,
             lesson.Summary,
-            lesson.Steps.Select(static step => step.Id).ToArray());
+            lesson.Steps.Select(static step => step.Id).ToArray(),
+            !lesson.AutoStart);
     }).ToArray();
 
     /// <summary>The lesson that has begun and not finished, or <see langword="null"/>.</summary>
@@ -243,29 +246,20 @@ public sealed class LessonRunner
     /// <param name="lessonId">The lesson's id.</param>
     public bool IsDone(string lessonId) => _states.TryGetValue(lessonId, out var state) && (state.Done || state.Status == LessonStatus.Completed);
 
-    /// <summary>Whether the play session has reached the session a lesson unlocks in, and the lesson it comes after is done (S26).</summary>
+    /// <summary>
+    /// Whether a lesson can be taken (L01, D-game-25): the player has met its teacher, and the lesson it comes after is done where the grammar needs it (the preterite before the
+    /// retelling). Never the day: a lesson's <c>session</c> only orders the Lessons page. The introduction (the one lesson that starts by itself) needs no meeting.
+    /// </summary>
     /// <param name="lesson">The lesson.</param>
     public bool IsUnlocked(LessonDefinition lesson)
     {
         ArgumentNullException.ThrowIfNull(lesson);
-        return _session.Day >= lesson.Session && (lesson.After is null || IsDone(lesson.After));
+        return (lesson.AutoStart || _session.HasMet(lesson.Npc)) && (lesson.After is null || IsDone(lesson.After));
     }
 
     /// <summary>Whether the learner has begun a lesson or done it (village-plan V20): free talk credits the phrases it teaches (<see cref="Credits"/>).</summary>
     /// <param name="lessonId">The lesson's id.</param>
     public bool IsBegun(string lessonId) => StatusOf(lessonId) != LessonStatus.NotStarted || IsDone(lessonId);
-
-    /// <summary>
-    /// Whether an NPC may show its support card for a phrase (village-plan V20, handover 9.3 D (c)): a lesson that teaches the phrase is the current one (unlocked:
-    /// its play session has come and the lesson before it is done), begun or done. A phrase no lesson teaches (the stall's <c>pedir-agua</c>) always may. Luz showed
-    /// <c>Vendo madera.</c>, which session 10's lesson teaches, from her first talk in session 5, and León his A2 lines to an A1 learner.
-    /// </summary>
-    /// <param name="phraseId">The phrase sheet's id.</param>
-    public bool CardReady(string phraseId)
-    {
-        var teachers = _book.TeachersOf(phraseId);
-        return teachers.Count == 0 || teachers.Any(lesson => IsUnlocked(lesson) || IsBegun(lesson.Id));
-    }
 
     /// <summary>
     /// Whether free talk credits a phrase said at any NPC (village-plan V20, handover 9.3 D (b)): a lesson the learner has begun or done teaches it. Before, free talk
@@ -278,9 +272,8 @@ public sealed class LessonRunner
     public IReadOnlySet<string> CreditedPhrases => _book.Lessons.Where(lesson => IsBegun(lesson.Id)).SelectMany(static lesson => lesson.TaughtPhrases).ToHashSet(StringComparer.Ordinal);
 
     /// <summary>
-    /// Why a lesson that is not begun waits (V12c, the book's Lessons page): it is the unlocked lesson the objective sends the learner to (<see cref="LessonWaitKind.Next"/>: the
-    /// new session's, or with no lesson under way the one to go on with), another unlocked one, its play session has not come, or the lesson it comes after is not done (its
-    /// session is said first when both hold, since it is the later of the two). <see langword="null"/> for a lesson begun or done, or an unknown one.
+    /// Why a lesson that is not begun waits (L01, the book's Lessons page): its teacher is not met yet (<see cref="LessonWaitKind.Meet"/>), the lesson it comes after is not
+    /// done (<see cref="LessonWaitKind.After"/>), or the class is on offer (<see cref="LessonWaitKind.Open"/>). <see langword="null"/> for a lesson begun or done, or an unknown one.
     /// </summary>
     /// <param name="lessonId">The lesson's id.</param>
     public LessonWait? WaitOf(string lessonId)
@@ -291,9 +284,14 @@ public sealed class LessonRunner
             return null;
         }
 
-        if (_session.Day < lesson.Session)
+        if (lesson.AutoStart)
         {
-            return new LessonWait(LessonWaitKind.Session, lesson.Session, lesson.Npc);
+            return new LessonWait(LessonWaitKind.Next, lesson.Session, lesson.Npc);
+        }
+
+        if (!_session.HasMet(lesson.Npc))
+        {
+            return new LessonWait(LessonWaitKind.Meet, lesson.Session, lesson.Npc);
         }
 
         if (lesson.After is { } after && !IsDone(after))
@@ -301,37 +299,32 @@ public sealed class LessonRunner
             return new LessonWait(LessonWaitKind.After, lesson.Session, lesson.Npc, after);
         }
 
-        var next = NewLesson ?? (_activeId is null ? NextUp : null);
-        return new LessonWait(string.Equals(next?.Id, lesson.Id, StringComparison.Ordinal) ? LessonWaitKind.Next : LessonWaitKind.Open, lesson.Session, lesson.Npc);
+        return new LessonWait(LessonWaitKind.Open, lesson.Session, lesson.Npc);
     }
-
-    /// <summary>
-    /// The lesson the learner goes on with or starts next (V12c, the objective line when nothing else is asked): the active lesson, else the unlocked lesson that is not
-    /// done, the newest session first (as an NPC offers them); <see langword="null"/> when every unlocked lesson is done.
-    /// </summary>
-    public LessonDefinition? NextUp => Active ?? _book.Lessons.Where(l => !IsDone(l.Id) && IsUnlocked(l)).OrderByDescending(static l => l.Session).FirstOrDefault();
 
     /// <summary>The id of the lesson the learner asked to practise again from the book, which starts when they talk to its NPC; <see langword="null"/> when none.</summary>
     public string? ReplayPending => _replayId;
 
     /// <summary>
-    /// The lesson of a later session that is unlocked and not begun (S26): the session's new lesson, whose <see cref="LessonDefinition.Objective"/> the objective area shows,
-    /// or <see langword="null"/> when there is none. Lessons of session 1 are not new lessons: the opening sends the player to the guide.
-    /// </summary>
-    public LessonDefinition? NewLesson =>
-        _activeId is not null ? null : _book.Lessons.Where(l => l.Session > 1 && l.Objective is not null && _states[l.Id].Status == LessonStatus.NotStarted && IsUnlocked(l)).OrderByDescending(static l => l.Session).FirstOrDefault();
-
-    /// <summary>
-    /// Asks to practise a completed lesson again (the book's "Practise again", S26). The lesson starts when the learner talks to its NPC, from its first step; its progress
-    /// stays "done" meanwhile. Refused (<see langword="false"/>) for a lesson that was never completed, an unknown lesson, or while another lesson is under way.
+    /// Asks for a class (the book's "Ask for a class", L01) or to practise a completed lesson again ("Practise again", S26). The lesson starts when the learner talks to its NPC,
+    /// from its first step (a paused one where it stopped); a done lesson's progress stays "done" meanwhile. Refused (<see langword="false"/>) for an unknown lesson, one that is not
+    /// open yet (its teacher not met, its earlier lesson not done), or while another lesson is under way.
     /// </summary>
     /// <param name="lessonId">The lesson's id.</param>
     public bool RequestReplay(string lessonId)
     {
         ArgumentNullException.ThrowIfNull(lessonId);
-        if (_book.Find(lessonId) is not { } lesson || !IsDone(lessonId) || (_activeId is not null && !string.Equals(_activeId, lessonId, StringComparison.Ordinal)))
+        if (_book.Find(lessonId) is not { } lesson || (!IsDone(lessonId) && !IsUnlocked(lesson)) || (_activeId is not null && !string.Equals(_activeId, lessonId, StringComparison.Ordinal)))
         {
             return false;
+        }
+
+        if (string.Equals(_activeId, lessonId, StringComparison.Ordinal) && !IsDone(lessonId))
+        {
+            _replayId = lesson.Id; // a paused class: the learner asks for it again, and it resumes at its teacher
+            _session.LessonReplayAsked(CurrentNpcOf(lesson));
+            _version++;
+            return true;
         }
 
         if (string.Equals(_activeId, lessonId, StringComparison.Ordinal))
@@ -348,7 +341,7 @@ public sealed class LessonRunner
 
     /// <summary>The English objective line for a lesson practised again (S26): where to go and which lesson, or <see langword="null"/> when none is pending.</summary>
     public string? ReplayHud => _replayId is { } id && _book.Find(id) is { } lesson && _activeId is null
-        ? _locale.Ui("replayHud", ("npc", _locale.NpcName(lesson.Npc).ToLowerInvariant()), ("title", lesson.Title))
+        ? _locale.Ui(IsDone(id) ? "replayHud" : "classHud", ("npc", _locale.NpcName(lesson.Npc).ToLowerInvariant()), ("title", lesson.ShortTitle))
         : null;
 
     /// <summary>The NPC the step in progress is said at: the step's own, or its lesson's; <see langword="null"/> when no lesson is active.</summary>
@@ -391,7 +384,7 @@ public sealed class LessonRunner
     }
 
     // The lesson that can start at an NPC now (S26): the one the learner asked to practise again, else the lesson attached to it that is not completed, whose session has
-    // come and whose earlier lesson is done, the newest session first (S27).
+    // come and whose earlier lesson is done, the first of the series first (L01).
     private LessonDefinition? Available(string npc)
     {
         if (_activeId is not null)
@@ -404,11 +397,10 @@ public sealed class LessonRunner
             return again;
         }
 
-        // The newest session's lesson first (S27): a learner who reaches session 3 without having done session 2's lesson is offered session 3's, and the older one stays on offer after it.
-        // Every lesson is written to stand on its own (it teaches the forms it uses).
+        // The first class of the series that is not done (L01): the session only orders the series, it never closes a class. A teacher with several open offers them in that order.
         return _book.Lessons
             .Where(l => string.Equals(l.Npc, npc, StringComparison.Ordinal) && StatusOf(l.Id) != LessonStatus.Completed && IsUnlocked(l))
-            .OrderByDescending(static l => l.Session)
+            .OrderBy(static l => l.Session)
             .FirstOrDefault();
     }
 
@@ -679,50 +671,11 @@ public sealed class LessonRunner
         ArgumentNullException.ThrowIfNull(npc);
         if (_activeId is not null)
         {
-            return _book.Find(_activeId) is { } active && (_engaged || active.AutoStart)
+            return _book.Find(_activeId) is { } active && (_engaged || active.AutoStart || string.Equals(_replayId, active.Id, StringComparison.Ordinal))
                 && (string.Equals(CurrentNpcOf(active), npc, StringComparison.Ordinal) || Current is { At: { } at } && string.Equals(at, npc, StringComparison.Ordinal)); // or the NPC a do step walks the learner to (S26)
         }
 
         return Available(npc) is { } next && (next.AutoStart || string.Equals(_replayId, next.Id, StringComparison.Ordinal));
-    }
-
-    /// <summary>
-    /// Whether a lesson keeps an order back (village-plan V13): an order that names the lesson that tells it (<see cref="ObjectiveSpec.Lesson"/>) is not delivered on walking up
-    /// while that lesson is under way before its step that waits for the delivery, or is about to start at this talk (an <c>autoStart</c> lesson available at the order's NPC,
-    /// or one asked to be practised again). So the plan comes first even for a learner who carries the goods already (the water filled at the river in session 1, at the
-    /// farmer in session 7). Once the lesson reaches that step, ends, or does not start at that NPC, walking up with the goods is enough again (D-game-8, D-game-9); every
-    /// step can be skipped, so the order never waits behind speech.
-    /// </summary>
-    /// <param name="order">The order.</param>
-    internal bool HoldsOrder(ObjectiveSpec order)
-    {
-        ArgumentNullException.ThrowIfNull(order);
-        if (order is not { Lesson: { } id, DeliverTo: { } npc } || _book.Find(id) is not { } lesson || DeliveryStep(lesson, order.Id) is not (>= 0 and var at))
-        {
-            return false;
-        }
-
-        if (string.Equals(_activeId, lesson.Id, StringComparison.Ordinal))
-        {
-            return _states[lesson.Id].Step < at;
-        }
-
-        return _activeId is null && Available(npc) is { } next && string.Equals(next.Id, lesson.Id, StringComparison.Ordinal)
-            && (next.AutoStart || string.Equals(_replayId, next.Id, StringComparison.Ordinal));
-    }
-
-    // The index of the lesson's do step that waits for the order's delivery (order_delivered with the order's id), or -1.
-    private static int DeliveryStep(LessonDefinition lesson, string order)
-    {
-        for (var i = 0; i < lesson.Steps.Count; i++)
-        {
-            if (lesson.Steps[i] is { Type: LessonStepType.Do, Trigger: { Event: WorldEvents.OrderDelivered, Detail: { } detail } } && string.Equals(detail, order, StringComparison.Ordinal))
-            {
-                return i;
-            }
-        }
-
-        return -1;
     }
 
     // ---- What the session tells the runner.
@@ -746,8 +699,9 @@ public sealed class LessonRunner
     {
         if (Active is { } lesson && string.Equals(CurrentNpcOf(lesson), npc, StringComparison.Ordinal))
         {
-            if (lesson.AutoStart && !_engaged)
+            if (!_engaged && (lesson.AutoStart || string.Equals(_replayId, lesson.Id, StringComparison.Ordinal)))
             {
+                _replayId = null; // a paused class resumes: the learner asked for it (L01)
                 _engaged = true;
                 Enter(lesson, _states[lesson.Id]);
             }
@@ -755,21 +709,33 @@ public sealed class LessonRunner
             {
                 _session.RefreshLessonSupport();
             }
+            else
+            {
+                MakeOffer(npc); // a paused class is offered again (L01)
+            }
 
             return;
         }
 
         if (_activeId is null && Available(npc) is { } next && (next.AutoStart || string.Equals(_replayId, next.Id, StringComparison.Ordinal)))
         {
-            _ = Start(next.Id); // a lesson that starts by itself, or one the learner asked to practise again (S26)
+            _ = Start(next.Id); // the introduction, which starts by itself, or a class the learner asked for or to practise again (S26, L01)
+            return;
         }
+
+        MakeOffer(npc); // L01: a class open at this teacher is offered in one line, with Sí or No
     }
 
     internal void OnTalkClosed()
     {
-        if (_engaged && Active is { AutoStart: false })
+        _offerId = null;
+        _offerNpc = null;
+        _offerLines.Clear();
+        if (_engaged && Active is { AutoStart: false } && Current is not { Type: LessonStepType.Do })
         {
-            _engaged = false; // paused: the NPC's ordinary conversation is not taken over by a lesson the learner left
+            // Esc pauses a class and frees its NPC (L01): the ordinary conversation is not taken over by a lesson the learner left. A do step is the exception: the panel is closed to
+            // walk to the bush or the stall, so the class stays engaged until the world event it waits for; it holds back nothing meanwhile.
+            _engaged = false;
             _version++;
         }
     }
@@ -961,6 +927,7 @@ public sealed class LessonRunner
 
     internal void Restore(LessonsSave save)
     {
+        save = SplitIntroduction(save);
         var active = 0;
         foreach (var progress in save.Lessons)
         {
@@ -998,9 +965,9 @@ public sealed class LessonRunner
             throw new ArgumentException($"The active lesson '{id}' is not an unfinished lesson of the game's.", nameof(save));
         }
 
-        if (save.Replay is { } replay && (_book.Find(replay) is null || !IsDone(replay) || save.Active is not null))
+        if (save.Replay is { } replay && (_book.Find(replay) is null || (save.Active is not null && !string.Equals(save.Active, replay, StringComparison.Ordinal)) || (!IsDone(replay) && !string.Equals(save.Active, replay, StringComparison.Ordinal) && !IsUnlocked(_book.Find(replay)!))))
         {
-            throw new ArgumentException($"The lesson '{replay}' is waiting to be practised again, but it is not a done lesson of the game's, or another lesson is active.", nameof(save));
+            throw new ArgumentException($"The lesson '{replay}' is asked for, but it is not a lesson of the game's that can be taken, or another lesson is active.", nameof(save));
         }
 
         _activeId = save.Active;

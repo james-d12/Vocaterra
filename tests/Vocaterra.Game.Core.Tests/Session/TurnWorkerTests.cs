@@ -195,4 +195,23 @@ public sealed class TurnWorkerTests
 
         Assert.Empty(snapshot.NounsAt(new GuideCell(-1, -1, -1)));
     }
+
+
+    [Fact]
+    public void WaitForOutcomesReturnsWhenEverySubmittedTurnIsReadyForTheNextCollect()
+    {
+        using var session = StartedSession();
+        var worker = session.Worker!;
+        Assert.True(worker.WaitForOutcomes(30000)); // none pending: at once
+
+        var cursor = TestGame.NearestBlock(session, BlockId.Trunk);
+        _ = session.SubmitTyped("es un árbol", cursor);
+        Assert.True(worker.WaitForOutcomes(30000));
+
+        // The worker finished inside the wait, so the collect takes the turn at once: no frame of a scripted run is spent waiting for it (T9).
+        var applied = session.Collect();
+        Assert.Single(applied);
+        Assert.NotNull(applied[0].Turn);
+        Assert.Equal(0, session.PendingTurns);
+    }
 }

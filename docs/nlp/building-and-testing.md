@@ -93,5 +93,9 @@ transcript keep the mistake the learner made?) and latency:
 dotnet run --project tools/Vocaterra.Nlp.Bench -- --manifest tests/golden/manifest.jsonl --content content/game-v1 --models models
 ```
 
+`--open-fallback` (M80) also runs the open decode of `PipelineOptions.OpenRecognitionFallback` after every constrained one, timed on its own and reported as an
+extra row in mode `Open` (for every entry; the pipeline decodes again only when the first reading is not taken or looks forced, M84), and `--open-vosk` decodes open mode with Vosk
+even when Parakeet is present, so that both passes run on the model the game loads. The bench is the only place a clock is read. The model-gated `OpenFallbackMeasurementTests` runs with the default free-pass floor (`OpenPassWordFloor` 0.5), must show zero false takes, and prints what the floor removed (understood lines lost, wrong and false takes stopped, by voice) by running the same pipeline with the floor at 0. That test runs the pipeline with the M84 trigger off (M80 as it was); the forced-row part of the class (`OpenFallbackMeasurementTests.ForcedRows.cs`, about two minutes with the clips cached) runs the defaults over every line at every free-talk prompt and every answer row in all eight voice variants, prints the signals of correctly heard rows against forced lines by voice, and fails on a correct row replaced by the free reading, a false take, or fewer than 100 forced lines rescued.
+
 The three committed entries are synthetic, so the clips are reported as `missing-clip` on a plain checkout. The recording protocol,
 consent rules and manifest schema are in [tests/golden/README.md](../../tests/golden/README.md).

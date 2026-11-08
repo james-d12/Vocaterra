@@ -74,13 +74,52 @@ public class IntentCatalogTests
     [Fact]
     public void OptionalMembersMayBeOmitted()
     {
-        var catalog = IntentCatalog.Load(Single("\"intentId\":\"bare\""));
+        // M82: the intent needs one of slotGrammars, keywordRules or examples; the other two members may be omitted.
+        var catalog = IntentCatalog.Load(Single("\"intentId\":\"grammar_only\",\"slotGrammars\":[\"hola\"]"));
+
+        var intent = Assert.Single(catalog.Intents);
+        Assert.Empty(intent.RequiredSlots);
+        Assert.Single(intent.Grammars);
+        Assert.Empty(intent.KeywordRules);
+        Assert.Empty(intent.Examples);
+    }
+
+    [Fact]
+    public void AnIntentWithOnlyKeywordRulesLoads()
+    {
+        var catalog = IntentCatalog.Load(Single("\"intentId\":\"rule_only\",\"keywordRules\":[{\"lemmas\":[\"comprar\"]}]"));
+
+        var intent = Assert.Single(catalog.Intents);
+        Assert.Empty(intent.RequiredSlots);
+        Assert.Empty(intent.Grammars);
+        Assert.Single(intent.KeywordRules);
+        Assert.Empty(intent.Examples);
+    }
+
+    [Fact]
+    public void AnIntentWithOnlyExamplesLoads()
+    {
+        var catalog = IntentCatalog.Load(Single("\"intentId\":\"example_only\",\"examples\":[\"hola\"]"));
 
         var intent = Assert.Single(catalog.Intents);
         Assert.Empty(intent.RequiredSlots);
         Assert.Empty(intent.Grammars);
         Assert.Empty(intent.KeywordRules);
-        Assert.Empty(intent.Examples);
+        Assert.Equal(["hola"], intent.Examples);
+    }
+
+    [Theory]
+    [InlineData("\"intentId\":\"bare\"")]
+    [InlineData("\"intentId\":\"bare\",\"requiredSlots\":[\"item\"]")]
+    [InlineData("\"intentId\":\"bare\",\"slotGrammars\":[],\"keywordRules\":[],\"examples\":[]")]
+    public void AnIntentWithNoGrammarRuleOrExampleIsRefused(string members)
+    {
+        var error = Assert.Throws<FormatException>(() => IntentCatalog.Load(Single(members)));
+
+        Assert.Contains("Intent 'bare'", error.Message, StringComparison.Ordinal);
+        Assert.Contains("slotGrammars", error.Message, StringComparison.Ordinal);
+        Assert.Contains("keywordRules", error.Message, StringComparison.Ordinal);
+        Assert.Contains("examples", error.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -129,5 +168,18 @@ public class IntentCatalogTests
     public void MalformedJsonIsRejected()
     {
         Assert.ThrowsAny<JsonException>(() => IntentCatalog.Load("{\"schemaVersion\":1,\"intents\":["));
+    }
+
+    // M81: an intent with examples and no slot grammar or keyword rule is a valid catalog entry (the embedding rung reads its examples), so the loader's
+    // acceptance of the removed grammars is by design; the fuzz oracle's tolerance (ExampleOnlyIntent) relies on it.
+    [Fact]
+    public void AnIntentWithOnlyExamplesLoadsAndKeepsThemForTheEmbeddingRung()
+    {
+        var catalog = IntentCatalog.Load(Single("\"intentId\":\"describe\",\"requiredSlots\":[],\"slotGrammars\":[],\"keywordRules\":[],\"examples\":[\"es muy grande\",\"es pequeño\"]"));
+
+        var intent = Assert.Single(catalog.Intents);
+        Assert.Empty(intent.Grammars);
+        Assert.Empty(intent.KeywordRules);
+        Assert.Equal(2, intent.ExampleSpecs.Count);
     }
 }

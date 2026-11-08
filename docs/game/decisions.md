@@ -27,8 +27,8 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-19 | Verbs in the lessons | decided (owner, 2026-10-22): verbs early but gradual, across sessions (yo/tú in session 1, the other persons in session 2, ir a + infinitive and a few past forms in session 3), lessons replayable from the book; conjugation tables in the book | nothing |
 | D-game-20 | One licence for the whole repository | decided (owner, 2026-10-23): Apache-2.0 for the game as well as the core; one `LICENSE` and `NOTICE` at the root (R01) | nothing |
 | D-game-21 | Content as data and the L1 locale layer (the C series, `docs/game/content-plan.md`) | decided (owner, 2026-10-27 to 2026-10-29): English moves into a locale bundle `content/locale/` outside game-v1's hash (`en` only); content stays JSON with JSON Schema; objectives, NPCs and target-language words become data; the series runs after R16 phase 2, on `feature/content` | nothing |
-| D-game-22 | The village and the lessons (the V series, `docs/game/village-plan.md`) | decided for phase A (owner, 2026-10-30): phase A now (sessions 4 to 6), phase B held (started 2026-10-31 on the owner's word); the plan's proposals for (b), (c), (e), (f), (h) and (i); the farmer is León; voices provisional (the plan's first candidates) and recorded, the owner listens afterwards; all work by Opus 5.5 at xhigh effort; 2026-10-31: V18 and the core's M56, M59 (before V14), M58 and M62 (before V15) join phase B; 2026-11-01, the follow-ups: models mixed (Opus for M65 to M67, M69 and V20, Sonnet for V21 to V23 and M68, Haiku for V24), M65's narrowings (a) to (c), name plates of the faced NPC depth-tested; 2026-11-02: V24's bugs first (V26), the off-prompt lines (M72, V27), the small points (M73, V28) and the speech folder by speaker; after the pull request: weather and `¿cómo estás?` intents (M74, V29), the near-miss rule (M75), a study of spoken off-prompt lines (`docs/handovers/2026-11-02-after-followups.md`) | the V series |
-| D-game-23 | Activities and the adaptation (the W series, `docs/game/activities-plan.md`; the owner's Adaptation Design Document, `docs/game/design/sources/Vocaterra_Adaptation_Design_Document.docx`) | open, decided in part (owner, 2026-11-03): the queued follow-ups first, then player needs (D-game-24), then the W series; an overlay station; the stall buys bread for one coin; the pilot's instructions heard only, no imperative taught; the rest proposed (activities-plan section 12, the design document's section 18) | the W series |
+| D-game-22 | The village and the lessons (the V series, `docs/game/village-plan.md`) | decided for phase A (owner, 2026-10-30): phase A now (sessions 4 to 6), phase B held (started 2026-10-31 on the owner's word); the plan's proposals for (b), (c), (e), (f), (h) and (i); the farmer is León; voices provisional (the plan's first candidates) and recorded, the owner listens afterwards; all work by Opus 5.5 at xhigh effort; 2026-10-31: V18 and the core's M56, M59 (before V14), M58 and M62 (before V15) join phase B; 2026-11-01, the follow-ups: models mixed (Opus for M65 to M67, M69 and V20, Sonnet for V21 to V23 and M68, Haiku for V24), M65's narrowings (a) to (c), name plates of the faced NPC depth-tested; 2026-11-02: V24's bugs first (V26), the off-prompt lines (M72, V27), the small points (M73, V28) and the speech folder by speaker; after the pull request: weather and `¿cómo estás?` intents (M74, V29), the near-miss rule (M75), a study of spoken off-prompt lines (`docs/handovers/done/2026-11-02-after-followups.md`) | the V series |
+| D-game-23 | Activities and the adaptation (the W series, `docs/game/activities-plan.md`; the owner's Adaptation Design Document, `docs/game/design/sources/Vocaterra_Adaptation_Design_Document.docx`) | open, decided in part (owner, 2026-11-03; 2026-11-04: the design built on `feature/adaptive_design`, section 18.2's recommendations adopted provisionally, for the owner's confirmation): the queued follow-ups first, then player needs (D-game-24), then the W series; an overlay station; the stall buys bread for one coin; the pilot's instructions heard only, no imperative taught; the rest proposed (activities-plan section 12, the design document's section 18) | the W series |
 | D-game-24 | Player needs: hunger, thirst, sleep, health and stamina (the adaptation design's section 9; the N series, proposed ids) | decided (owner, 2026-11-03): five needs, hunger, thirst and sleep in stages whose effects grow worse, pushing health and stamina; built after the queued follow-ups and before every other system, from session 1; real death with a cost; the meters pause in conversations, lessons, the book and every panel; stamina spent by gathering and a new sprint; amends D-game-8's guardrail and replaces D-game-23 (b) | the N and W series |
 | D-game-25 | Lessons optional: classes the player takes on, not the game's goal (the adaptation design's sections 5.3 and 5.4; L01) | decided (owner, 2026-11-04): a short required introduction with Luna, every other lesson an offered class; sleep whenever tired (the sleep drive below 75), every sleep a night, no nap; orders open once their NPC is met; Luz shows the player how to bake on request, session 11 an optional class; amends V12c and D-game-15, answers the design's decision 16 | L01, N03, W08, W10, W11 |
 
@@ -120,6 +120,12 @@ ASR is used for intent in a constrained phrase set. An uncertain recognition (no
 threshold) asks for a retry with help and is logged as a voice event, never as a language failure. A one-time mic check; visible recording and
 thinking states; cancel and a timeout; a persistent "oí / esperaba" line; replay and slower audio; typed and button fallback; "no sé" always
 available and never shamed.
+
+**V31 (2026-11-07):** free talk at the seven constrained prompts (`baker-open`, `smith-open`, `farmer-open`, `fisher-open`, `stall-need`,
+`stall-offer`, `guide-offer`) decodes a missed spoken line a second time, freely (the core's M80, with the 0.5 weakest-word floor). A line
+heard so is answered as the same typed line is, credited as typed (half), and marked by the `heard_open` voice event and the session log.
+Lesson steps, reviews and the mic check decode once. The playtest counts `heard_open`. (D-game-22, the owner's answers of 2026-11-06 and
+2026-11-07.)
 
 ## D-game-10: learning measurement (decided, from the brief)
 
@@ -348,13 +354,38 @@ whose intent the prompt does not take was graded `vocab.wrong` (0.4, an empty ex
    ¿Buscas un lugar?», the villager «Te entiendo. ¿Qué buscas?», the guide and the shopkeeper one line each in the same form.
 4. **`hace frío` at `smith-open`** (read as `ask_activity`, a keyword rule on `hacer` alone) is fixed in M72.
 
+**Owner's answers, 2026-11-06 (the spoken off-prompt lines, after the study `docs/research/2026-11-04-spoken-off-prompt-lines.md`,
+its section 7):** "I accept all recommendations. However, for decision 5, I'm not going to be recording any of those, so skip that for
+now. Make a note of it, but don't block it from continuing the work."
+1. **Option 1:** a second, open decode only when the constrained decode is not taken, and only in free talk (the host's switch); lesson
+   steps, reviews and the mic check stay constrained. The core's **M80**, then the game's **V31** (their models: the next answers).
+2. **A spoken line the prompt allows but not among its answer rows** (`mañana voy a comprar pan` at `smith-open`) is understood and
+   answered as the same typed line is: spoken and typed alike.
+3. **Credit for a line heard on the open decode:** half, as a typed line (the recognizer may have smoothed a mistake away).
+4. **All seven constrained prompts free talk uses:** the four NPC open prompts, the shopkeeper's `stall-need` and `stall-offer`, the
+   guide's `guide-offer`.
+5. **No owner recordings** for now. M80 measures on the synthetic Kokoro voices only and reports the accent risk as unmeasured on real
+   speech; nothing waits on recordings. Noted for a later measurement if the owner records or testers' recordings exist (M24).
+6. **Zero false takes** («Te entiendo» to a line that meant nothing) in the test corpus is the acceptance bar.
+
+**Owner's answers, 2026-11-06 (the models of M80 and V31):** "The two quick questions, go with the recommendations is fine." **M80 by Sonnet
+5.5 at high effort** (not Opus at xhigh as the study proposed); **V31 by Sonnet 5.5 at medium effort**, and the V series follows the owner's
+size rule from now on (Haiku for small, Sonnet medium for medium, Sonnet high for large or design-heavy), replacing this decision's "every V
+milestone by Opus 5.5 at xhigh" (2026-10-30) for milestones not yet launched.
+
+**Owner's answer, 2026-11-07 (M80's two false takes):** "add the 0.5 weakest-word floor in M80". M80's measurement found two false
+takes against answer 6's zero bar («ese libro es muy interesante», voice `ef_dora` at 1.0, heard «el libro…» with `el` at 0.45 and read as
+`describe`, as the typed line is). The free pass's reading is taken only when its weakest word's confidence is at least **0.5**; the floor is
+the core's (M80), not the game's. Measured on the Kokoro corpus, it stops both false takes and 2 of the 6 wrong takes and loses 1 of 108
+understood lines. The zero bar stands.
+
 **Owner's answers, 2026-11-02 (the open points after V27):**
 1. **The small points are fixed on `feature/village-followups`,** before the pull request: the core's in M73 (Opus 5.5 at xhigh), the
    game's in V28 (Sonnet 5.5).
 2. **The speech folder goes into subfolders by speaker** (`speech/<speaker>/`, the cards in `speech/cards/`), in V28: it held more than
    1,000 files in one folder.
 
-**Owner's answers, 2026-11-02 (the open decisions after M73; built after the pull request merges, `docs/handovers/2026-11-02-after-followups.md`):**
+**Owner's answers, 2026-11-02 (the open decisions after M73; built after the pull request merges, `docs/handovers/done/2026-11-02-after-followups.md`):**
 1. **Weather lines get their own intents** (a statement and a question; `hace frío` is unknown today, `¿qué tiempo hace?` is
    `ask_activity`, `hace calor` is `state_action`): the core's M74. Each NPC answers a statement by echoing its weather word («Sí, hace
    frío.») and the question with «Hoy hace sol.» (V29).
@@ -391,7 +422,7 @@ meals and farming. The current document lists open decisions in section 18, incl
 
 **Owner's answers, 2026-11-03** (during the review of the adaptation design):
 1. **The order (replaces (j)):** the queued follow-ups first (M74, M75, V29, M78 and the study of spoken off-prompt lines,
-   `docs/handovers/2026-11-02-after-followups.md`), then the W series; player needs (D-game-24) were later put between them. V29
+   `docs/handovers/done/2026-11-02-after-followups.md`), then the W series; player needs (D-game-24) were later put between them. V29
    declares the NPCs' reply pools in their files before W03, W04 and W08 change those files.
 2. **The station view ((o)):** an overlay panel over the live world for the pilot; an in-world kitchen only after it.
 3. **What bread is for (new, (r)):** the stall buys bread for one coin, a fixed `buy` at the shopkeeper.
@@ -404,6 +435,56 @@ lines, the fold rule, act evidence as an amendment to D-game-10, the recipe's ch
 presentation track (U01 to U04), combat left out, the cost of death, Spanish for needs, the pyramid's middle layers, and five points from
 the owner's survival-first proposal (conditions, a first bush at the camp, expansion inside the valley, a chosen starting session and a
 relaxed needs option).
+
+**Owner's answers, 2026-11-04** (before an overnight run; the owner away until the morning): "implement this design" on a new branch,
+`feature/adaptive_design`, with Sonnet as the workhorse, Haiku for light work and Opus sparingly.
+1. **The order:** the queued follow-ups first, on their own branch (`feature/village-decisions`: M74, M75, V29, M78, the spoken-lines
+   study), then a review notice to the owner, then the adaptation's phases B to E (N01 to N07 with L01, U01 and U02, then W01 and W05 to
+   W10) on `feature/adaptive_design`, branched from the follow-ups. W11 (the pilot) waits for testers and the owner's listening.
+2. **Section 18.2's recommendations are adopted as written, provisionally** ("adopt recommendations"): decisions 1 to 20 of the design
+   document as its section 18.2 states them, including the rest of activities-plan section 12 (decision 8). **The owner confirms or
+   changes each at the review;** a milestone built on one names it in its findings entry. Where a recommendation leaves a value open
+   (decision 18's edge cases: the gathering stamina cost, the floors of a night and a collapse, eating at full hunger for healing,
+   repeated deaths, an occupied chest site, returning before the chest expires; decision 19's muted play; decision 20's replenishment
+   states), the milestone takes the smallest choice that keeps the no-dead-end rule and saves every persistent state, and lists it in
+   its findings entry for the owner.
+
+**Owner's answers, 2026-11-06** (after phases B to D merged): "I do the playtest, while a new agent works on a new branch (based off
+feature/adaptive_design), with the bread stuff".
+1. **The needs check no longer gates W05 to W07.** They are built on `feature/bread-pilot`, branched from `feature/adaptive_design`
+   at the commit that records this answer, by a fresh orchestrator session, while the owner plays days 1 to 3 on
+   `feature/adaptive_design`. W08 still waits for the spoken-lines study's six questions, and W10 for W08; W02 to W04 are not part of
+   this answer.
+2. **The branches** (orchestrator's default; the owner may change it): milestone branches are gated into `feature/bread-pilot`, which is
+   pushed. Fixes from the needs check land on `feature/adaptive_design`, and `feature/bread-pilot` merges them in when it needs them.
+   When the pilot's milestones are done, `feature/bread-pilot` is gated into `feature/adaptive_design`, so `main` still takes one merge.
+3. **A recipe book for cooking** (owner, later the same day): "for the cooking, ideally i would like a book interface. For example in KCD 1
+   and 2 when you create potions you use the book as the receipe book essentially and its an interactive thing. Perhaps add this as
+   future milestone". Planned as **W30**, proposed and not authorised (`docs/game/activities-plan.md` section 5 and "Proposed: the recipe
+   book"); W07 keeps its instruction strip a separate model so the book can host it later. W05 to W07 are otherwise unchanged.
+   The owner's shape, the same day: "it should be a book the player has on them, but can you placed down for longer cooking sessions. So
+   like we have a journal, the player can also get a recipe book. Perhaps as a reward for making the first item with luz". A second
+   carried book beside the journal, placeable open beside a station, given by Luz for the first bread (so W30 depends on W10).
+   Its two open points, the same day ("both defaults are fine"): a page appears only once its recipe is taught, and it plays the `does`
+   rows' normal and slow recordings.
+4. **More work while the owner's answers are pending** (owner, 2026-11-06, after W05 to W07 merged; asked what was outstanding): "Yeah,
+   start those ones now. Just start as much as possible, unless it obviously needs my review." Authorised on `feature/bread-pilot`, in
+   this order, one building agent at a time (the disk holds one milestone worktree above the 10 GB floor): **W07b** (W07's three small
+   points), **T8** (the nondeterministic `r30-no-classes` capture), **W02** (tools and materials), **W03** (fail-forward as data),
+   **W04** (price lists; its code and tests only, the bakery's real price list and Spanish lines stay W10's, so nothing needs the owner's
+   listening). Still waiting for the owner: W08 (the spoken-lines questions), decision 19, W09, W30.
+5. **Four fixes before PR #40 merges** (owner, 2026-11-07, after the queue was done and the orchestrator listed what it found): "do all
+   four on this branch". On `feature/bread-pilot`, models by the size rule: the core's **M83** (the O7 fuzz seed: «ayuda por favor por
+   favor» read as `request_item`) and **M84** (a free-talk line the constrained decode forces onto a wrong row with confidence gets the
+   open decode too, measured on M80's corpus with the zero-false-take bar; a game follow-up **V32** only if the game's turn needs it);
+   **W04b** (the stall's first price list: water, bread and flour by name, «No vendo eso.» for the rest, replacing W10's fixed flour sale);
+   **T9** (`r27-bread`'s first capture alternating between ticks 2460 and 2461).
+6. **After the water merge** (owner, 2026-11-08, PR #45 merged into `main` and merged into `feature/bread-pilot` at `bc881c58`): the
+   Game.Core tests' `OutOfMemoryException` under water's 3 GB managed-heap cap is fixed **at the source** (**T10**; the cap stays);
+   **W04b keeps water and bread free** at the stall (the price list covers what is sold: flour and any new goods; «No vendo eso.» for
+   anything unlisted; sessions 1 to 10 unchanged), which narrows item 5's "water, bread and flour"; **H11** (the water plan's
+   reconciliation: drowning through the needs, `player_drowned`, the blur setting, plus the merge's `--walk-to` bank stop and the save
+   version 6 left in the docs) is planned on this branch after T10 and W04b; Game.Core's xUnit threads **stay at 3**.
 
 ## D-game-24: player needs (decided)
 
@@ -456,6 +537,18 @@ Five points wait for the owner: the
 design's section 18, decisions 13 to 17 (conditions, a first bush at the camp, expansion, a chosen starting session and a relaxed
 needs option); D-game-25 answered the chosen starting session).
 
+**Owner's answers, 2026-11-05** (on N05's findings):
+1. **The drive rates are a setting for now:** "make this a configurable slider in the settings for now so it can be easily adjusted for
+   playtesting. Perhaps in the final test we just put up a fixed value." N05 found that day 1 barely touches the needs at N01's rates
+   (thirst 91 at the lowest at a novice's pace). Built by N09; the fixed value is chosen after the needs check.
+2. **«Me muero de hambre / sed / sueño» stays**, though `morir` is above A2 in the lists: "it applies to the game about death, so we kind
+   of need that in the game". The HUD's stage lines are text the player reads, not lines the lint holds to the ceiling.
+
+**Owner's answer, 2026-11-07 (the needs check):** "I've checked the needs, and they are too easy i think. however in a future piece of
+work im going to add a settings page that allows all of this to be configurable." The owner played days 1 to 3 with needs on: the needs
+are too easy at the current rates. No fixed value is chosen now and no tuning milestone is planned; a later piece of work, the owner's,
+adds a settings page that makes the needs configurable (beyond N09's `--needs-rate` slider). The needs check no longer blocks anything.
+
 ## D-game-25: lessons optional (decided)
 
 **Owner, 2026-11-04,** on reviewing the adaptation design: "One important thing we need to move the game away from, is centering it
@@ -476,6 +569,32 @@ should work, the owner chose the recommended answer each time:
 is now a short introduction plus a class). It answers the design's decision 16 (a chosen starting session is no longer needed). The
 specification is the adaptation design's sections 5.3 and 5.4, with 9.5 (sleep) and section 10 (bread); L01 builds it, after N01 and
 before N03. `docs/game/lessons.md` describes today's behaviour and changes with L01.
+
+## D-game-26: water (decided, 2026-11-07)
+
+**Owner, 2026-11-07,** on the water series (`docs/game/water-plan.md`, section 6; entered at H11, 2026-11-08, once the series and the
+bread pilot met on `feature/bread-pilot`):
+1. **Running out of air:** the player takes damage until they surface or die: 10 health a second out of air, through the bread pilot's
+   death flow, with the `player_drowned` hint (water plan 4.4). No interim fallback; live since H11 (`NeedsHealth`). With needs off, no
+   damage, as for hunger and thirst.
+2. **Water that would move when woken (H07):** report each cell with screenshots and fix the layout or keep the cells as built, cell by
+   cell; no special cases in the flow rules.
+3. **Placing blocks into water:** yes (dams, water plan 4.5). The bucket stays after W12.
+4. **The underwater blur:** configurable, `Off` / `Low` (default) / `Medium` / `High` (water plan 4.9); since H11 a settings row saved in
+   `SaveSettings.UnderwaterBlur`, `--underwater-blur` overriding it for a run, `ViewEffectsOff` forcing it off.
+5. **What water washes away:** water behaves basically like Minecraft, kept simple. It replaces only the five sown plants
+   (`BlockDefinition.IsUndergrowth`: tall grass, fern, reeds, the two flowers); the market stall's goods, wheat and every other decor
+   block stop it like a solid block (H06a).
+6. **Water at rest, H07's clusters** (report `docs/research/2026-11-07-water-at-rest-h07.md`): fix the layout in all three. (a) The
+   waterfall: one row of sources at the top over falling water down to the pool's surface layer. (b) The river's staircase below the
+   pool: each one-block drop a short falling-water step. (c) The river mouth: the river's surface clamped to the lake's level inside the
+   lake (H07a).
+
+**The cliff at the lake, from H11 (owner, 2026-11-08: "Fix the lake bank"):** the sand bank at (212, 262) stood 2 blocks above a
+1-block-deep shelf, too shallow to swim, so no player could climb out there (a wading jump rises about 1.3 blocks; the hop-out needs
+swimming; `.claude/briefs/h11-report.md`, item 5). The bank is fixed in the world, not in the swim rules: every water edge a player can
+reach is left by walking, a step or the hop-out. Built by H12 (2026-11-08, `docs/game/water-plan.md`): 582 such edges, every shore's rim, now a step
+over the shallow bed; the swim rules unchanged.
 
 ## Already decided
 

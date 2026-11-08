@@ -165,6 +165,28 @@ public sealed class DialogueScreen : IScreen
             return;
         }
 
+        // U02: PageUp shows or hides the older lines in every state (Tab is the Escribir key, D-game-9, and the letters are typing keys); O does the same off the text box.
+        if (input.Pressed(GameKey.PageUp) || (!_dialogue.IsTyping && input.Pressed(GameKey.O)))
+        {
+            _dialogue.ToggleExpanded();
+            return;
+        }
+
+        // U02b: while the page shows, Up and Down scroll it back to the older lines and forward to the newest (the arrow keys are not used here otherwise).
+        if (_dialogue.Expanded && !_dialogue.IsTyping && (input.Pressed(GameKey.Up) || input.Pressed(GameKey.Down)))
+        {
+            if (input.Pressed(GameKey.Up))
+            {
+                _dialogue.ScrollOlder();
+            }
+            else
+            {
+                _dialogue.ScrollNewer();
+            }
+
+            return;
+        }
+
         if (_dialogue.IsTyping)
         {
             if (input.Pressed(GameKey.Tab))

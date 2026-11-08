@@ -306,16 +306,18 @@ public sealed class SaveMigrationTests
     [InlineData(3)]
     [InlineData(4)]
     [InlineData(5)]
+    [InlineData(6)]
     public void EveryReadableVersionLoadsAcrossBundles(int version)
     {
         var document = CampDocument();
         var steps = CampSteps(document).Select(static o => o with { Key = o.Key["camp.".Length..] }).ToArray(); // before version 5 the keys were the checklist's alone (C07), and it was the only one
         var older = version switch
         {
-            1 => document with { Version = 1, Lessons = null, Tips = null, Learner = null, BookGranted = false, Settings = null, World = null, Objective = steps },
-            2 => document with { Version = 2, Settings = null, World = null, BookGranted = false, Objective = steps },
+            1 => document with { Version = 1, Lessons = null, Tips = null, Learner = null, BookGranted = false, Settings = null, World = null, Objective = steps, Systems = null },
+            2 => document with { Version = 2, Settings = null, World = null, BookGranted = false, Objective = steps, Systems = null },
             3 => document with { Version = 3, Settings = null, World = null, Objective = steps },
-            4 => document with { Version = 4, Objective = steps },
+            4 => document with { Version = 4, Objective = steps, Systems = null },
+            5 => document with { Version = 5, Systems = null },
             _ => document,
         };
         older = FromOtherBundle(older) with { Words = [.. document.Words, document.Words[0] with { Lemma = "gone-noun" }] };

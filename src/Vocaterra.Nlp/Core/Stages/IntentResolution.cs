@@ -28,7 +28,8 @@ public enum IntentRung
 /// <param name="OffPromptIntent">
 /// M72: when the allowed intents gave <see cref="IntentId.Unknown"/> at a prompt that lists allowed intents, the intent the line has over the whole catalog
 /// (the grammar and keyword rungs only, no embedding), which the prompt does not allow: <c>me gusta el río</c> at a prompt that does not take
-/// <c>state_like</c>. Null otherwise, and left out of the canonical JSON while null.
+/// <c>state_like</c>; since M74 also when a grammar of an intent the prompt does not allow takes the line from the best allowed grammar (<c>hace calor</c> at a
+/// prompt whose <c>[VERB:hacer] [NOUN:item]</c> would read it, off the prompt as <c>state_weather</c>). Null otherwise, and left out of the canonical JSON while null.
 /// </param>
 public sealed record IntentResolution(
     IntentId Intent,

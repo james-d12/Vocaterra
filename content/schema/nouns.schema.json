@@ -20,13 +20,14 @@
         "lemma": { "type": "string", "minLength": 1, "description": "The noun's lemma; the lexicon must have a noun reading of it with a gender." },
         "items": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/definitions/item" }, "description": "The item kinds the noun names; each item kind belongs to one noun." },
         "blocks": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/definitions/block" }, "description": "The block kinds the noun names." },
+        "labels": { "type": "object", "additionalProperties": { "type": "string", "minLength": 1 }, "description": "The text that labels one of the noun's items when it is not the lemma (roast-apple: manzana asada)." },
         "mass": { "type": "boolean", "description": "A mass noun: the checklist shows the lemma, never the plural." },
         "sources": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "The catalogue nouns this one is gathered from (madera from árbol)." }
       }
     },
     "item": {
       "description": "An item kind, by its stable name (ItemDefinition).",
-      "enum": ["wood", "torch", "berry", "bottle", "water-bottle", "bread", "book", "coin", "apple", "axe"]
+      "enum": ["wood", "torch", "berry", "bottle", "water-bottle", "bread", "book", "coin", "apple", "axe", "roast-apple", "flour"]
     },
     "block": {
       "description": "A block kind, by its stable name (BlockDefinition).",

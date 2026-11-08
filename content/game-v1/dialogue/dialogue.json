@@ -481,6 +481,24 @@
         { "lineId": "villager_true.1", "text": "Sí, es verdad." }
       ]
     },
+    "villager_gift_used": {
+      "poolId": "villager_gift_used",
+      "variants": [
+        { "lineId": "villager_gift_used.1", "text": "Hoy no tengo más pan." }
+      ]
+    },
+    "guide_gift_used": {
+      "poolId": "guide_gift_used",
+      "variants": [
+        { "lineId": "guide_gift_used.1", "text": "Hoy ya no tengo agua." }
+      ]
+    },
+    "shop_gift_used": {
+      "poolId": "shop_gift_used",
+      "variants": [
+        { "lineId": "shop_gift_used.1", "text": "Hoy no tengo más pan." }
+      ]
+    },
     "villager_bye": {
       "poolId": "villager_bye",
       "variants": [
@@ -967,7 +985,7 @@
     "shop_wont_sell": {
       "poolId": "shop_wont_sell",
       "variants": [
-        { "lineId": "shop_wont_sell.1", "text": "No tengo eso. Tengo agua y pan." }
+        { "lineId": "shop_wont_sell.1", "text": "No tengo eso. Tengo agua, pan y harina." }
       ]
     },
     "villager_wont_sell": {
@@ -987,6 +1005,48 @@
       "variants": [
         { "lineId": "baker_thank.1", "text": "De nada." },
         { "lineId": "baker_thank.2", "text": "¡Con gusto!" }
+      ]
+    },
+    "baker_offer_bake": {
+      "poolId": "baker_offer_bake",
+      "variants": [
+        { "lineId": "baker_offer_bake.1", "text": "¿Quieres hacer pan?" }
+      ]
+    },
+    "baker_teach_go": {
+      "poolId": "baker_teach_go",
+      "variants": [
+        { "lineId": "baker_teach_go.1", "text": "¡Vamos!" }
+      ]
+    },
+    "baker_listen": {
+      "poolId": "baker_listen",
+      "variants": [
+        { "lineId": "baker_listen.1", "text": "Escucha." }
+      ]
+    },
+    "baker_helping": {
+      "poolId": "baker_helping",
+      "variants": [
+        { "lineId": "baker_helping.1", "text": "Te ayudo." }
+      ]
+    },
+    "baker_give_missing": {
+      "poolId": "baker_give_missing",
+      "variants": [
+        { "lineId": "baker_give_missing.1", "text": "Toma. Aquí tienes." }
+      ]
+    },
+    "baker_has_all": {
+      "poolId": "baker_has_all",
+      "variants": [
+        { "lineId": "baker_has_all.1", "text": "Ya tienes todo." }
+      ]
+    },
+    "baker_gift_used": {
+      "poolId": "baker_gift_used",
+      "variants": [
+        { "lineId": "baker_gift_used.1", "text": "Hoy no tengo más." }
       ]
     },
     "baker_understood": {
@@ -1089,7 +1149,7 @@
     "shop_hay": {
       "poolId": "shop_hay",
       "variants": [
-        { "lineId": "shop_hay.1", "text": "Hay agua y pan." }
+        { "lineId": "shop_hay.1", "text": "Hay agua, pan y harina." }
       ]
     },
     "guide.lesson.shop.bread": {
@@ -1613,6 +1673,42 @@
         { "lineId": "guide.lesson.baker.twenty.1", "text": "Dieciséis, diecisiete, dieciocho, diecinueve, veinte." }
       ]
     },
+    "guide.lesson.guide.offer": {
+      "poolId": "guide.lesson.guide.offer",
+      "variants": [
+        { "lineId": "guide.lesson.guide.offer.1", "text": "¿Quieres una clase? ¿Sí o no?" }
+      ]
+    },
+    "guide.lesson.villager.offer": {
+      "poolId": "guide.lesson.villager.offer",
+      "variants": [
+        { "lineId": "guide.lesson.villager.offer.1", "text": "¿Una clase hoy? ¿Sí o no?" }
+      ]
+    },
+    "guide.lesson.fisher.offer": {
+      "poolId": "guide.lesson.fisher.offer",
+      "variants": [
+        { "lineId": "guide.lesson.fisher.offer.1", "text": "¿Quieres una clase? ¿Sí o no?" }
+      ]
+    },
+    "guide.lesson.baker.offer": {
+      "poolId": "guide.lesson.baker.offer",
+      "variants": [
+        { "lineId": "guide.lesson.baker.offer.1", "text": "¿Quieres una clase? ¿Sí o no?" }
+      ]
+    },
+    "guide.lesson.farmer.offer": {
+      "poolId": "guide.lesson.farmer.offer",
+      "variants": [
+        { "lineId": "guide.lesson.farmer.offer.1", "text": "¿Quieres una clase? ¿Sí o no?" }
+      ]
+    },
+    "guide.sleep.not_sleepy": {
+      "poolId": "guide.sleep.not_sleepy",
+      "variants": [
+        { "lineId": "guide.sleep.not_sleepy.1", "text": "No tengo sueño." }
+      ]
+    },
     "guide.lesson.baker.market": {
       "poolId": "guide.lesson.baker.market",
       "variants": [
@@ -1707,6 +1803,300 @@
       "poolId": "smith_no_room",
       "variants": [
         { "lineId": "smith_no_room.1", "text": "Tu bolsa está llena." }
+      ]
+    },
+    "smith_yes": {
+      "poolId": "smith_yes",
+      "variants": [
+        { "lineId": "smith_yes.1", "text": "¡Sí!" }
+      ]
+    },
+    "smith_weather": {
+      "poolId": "smith_weather",
+      "variants": [
+        { "lineId": "smith_weather.1", "text": "Sí, hace {weather}." }
+      ]
+    },
+    "smith_sun": {
+      "poolId": "smith_sun",
+      "variants": [
+        { "lineId": "smith_sun.1", "text": "Hoy hace sol." }
+      ]
+    },
+    "smith_well": {
+      "poolId": "smith_well",
+      "variants": [
+        { "lineId": "smith_well.1", "text": "Bien, gracias." }
+      ]
+    },
+    "baker_yes": {
+      "poolId": "baker_yes",
+      "variants": [
+        { "lineId": "baker_yes.1", "text": "¡Sí!" }
+      ]
+    },
+    "baker_weather": {
+      "poolId": "baker_weather",
+      "variants": [
+        { "lineId": "baker_weather.1", "text": "Sí, hace {weather}." }
+      ]
+    },
+    "baker_sun": {
+      "poolId": "baker_sun",
+      "variants": [
+        { "lineId": "baker_sun.1", "text": "Hoy hace sol." }
+      ]
+    },
+    "baker_well": {
+      "poolId": "baker_well",
+      "variants": [
+        { "lineId": "baker_well.1", "text": "Bien, gracias." }
+      ]
+    },
+    "farmer_yes": {
+      "poolId": "farmer_yes",
+      "variants": [
+        { "lineId": "farmer_yes.1", "text": "¡Sí!" }
+      ]
+    },
+    "farmer_weather": {
+      "poolId": "farmer_weather",
+      "variants": [
+        { "lineId": "farmer_weather.1", "text": "Sí, hace {weather}." }
+      ]
+    },
+    "farmer_sun": {
+      "poolId": "farmer_sun",
+      "variants": [
+        { "lineId": "farmer_sun.1", "text": "Hoy hace sol." }
+      ]
+    },
+    "farmer_well": {
+      "poolId": "farmer_well",
+      "variants": [
+        { "lineId": "farmer_well.1", "text": "Bien, gracias." }
+      ]
+    },
+    "fisher_yes": {
+      "poolId": "fisher_yes",
+      "variants": [
+        { "lineId": "fisher_yes.1", "text": "¡Sí!" }
+      ]
+    },
+    "fisher_weather": {
+      "poolId": "fisher_weather",
+      "variants": [
+        { "lineId": "fisher_weather.1", "text": "Sí, hace {weather}." }
+      ]
+    },
+    "fisher_sun": {
+      "poolId": "fisher_sun",
+      "variants": [
+        { "lineId": "fisher_sun.1", "text": "Hoy hace sol." }
+      ]
+    },
+    "fisher_well": {
+      "poolId": "fisher_well",
+      "variants": [
+        { "lineId": "fisher_well.1", "text": "Bien, gracias." }
+      ]
+    },
+    "villager_yes": {
+      "poolId": "villager_yes",
+      "variants": [
+        { "lineId": "villager_yes.1", "text": "¡Sí!" }
+      ]
+    },
+    "villager_weather": {
+      "poolId": "villager_weather",
+      "variants": [
+        { "lineId": "villager_weather.1", "text": "Sí, hace {weather}." }
+      ]
+    },
+    "villager_sun": {
+      "poolId": "villager_sun",
+      "variants": [
+        { "lineId": "villager_sun.1", "text": "Hoy hace sol." }
+      ]
+    },
+    "villager_well": {
+      "poolId": "villager_well",
+      "variants": [
+        { "lineId": "villager_well.1", "text": "Bien, gracias." }
+      ]
+    },
+    "guide_yes": {
+      "poolId": "guide_yes",
+      "variants": [
+        { "lineId": "guide_yes.1", "text": "¡Sí!" }
+      ]
+    },
+    "guide_weather": {
+      "poolId": "guide_weather",
+      "variants": [
+        { "lineId": "guide_weather.1", "text": "Sí, hace {weather}." }
+      ]
+    },
+    "guide_sun": {
+      "poolId": "guide_sun",
+      "variants": [
+        { "lineId": "guide_sun.1", "text": "Hoy hace sol." }
+      ]
+    },
+    "guide_well": {
+      "poolId": "guide_well",
+      "variants": [
+        { "lineId": "guide_well.1", "text": "Bien, gracias." }
+      ]
+    },
+    "shop_yes": {
+      "poolId": "shop_yes",
+      "variants": [
+        { "lineId": "shop_yes.1", "text": "¡Sí!" }
+      ]
+    },
+    "shop_weather": {
+      "poolId": "shop_weather",
+      "variants": [
+        { "lineId": "shop_weather.1", "text": "Sí, hace {weather}." }
+      ]
+    },
+    "shop_sun": {
+      "poolId": "shop_sun",
+      "variants": [
+        { "lineId": "shop_sun.1", "text": "Hoy hace sol." }
+      ]
+    },
+    "shop_well": {
+      "poolId": "shop_well",
+      "variants": [
+        { "lineId": "shop_well.1", "text": "Bien, gracias." }
+      ]
+    },
+    "guide.lesson.baker.proc_harina": {
+      "poolId": "guide.lesson.baker.proc_harina",
+      "variants": [
+        { "lineId": "guide.lesson.baker.proc_harina.1", "text": "Pon la harina en el bol." }
+      ]
+    },
+    "guide.lesson.baker.proc_agua": {
+      "poolId": "guide.lesson.baker.proc_agua",
+      "variants": [
+        { "lineId": "guide.lesson.baker.proc_agua.1", "text": "Echa el agua en el bol." }
+      ]
+    },
+    "guide.lesson.baker.proc_mezcla": {
+      "poolId": "guide.lesson.baker.proc_mezcla",
+      "variants": [
+        { "lineId": "guide.lesson.baker.proc_mezcla.1", "text": "Mezcla con la cuchara." }
+      ]
+    },
+    "guide.lesson.baker.proc_madera": {
+      "poolId": "guide.lesson.baker.proc_madera",
+      "variants": [
+        { "lineId": "guide.lesson.baker.proc_madera.1", "text": "Pon la madera en el horno." }
+      ]
+    },
+    "guide.lesson.baker.proc_masa": {
+      "poolId": "guide.lesson.baker.proc_masa",
+      "variants": [
+        { "lineId": "guide.lesson.baker.proc_masa.1", "text": "Pon la masa en el horno." }
+      ]
+    },
+    "guide.lesson.baker.proc_sacar": {
+      "poolId": "guide.lesson.baker.proc_sacar",
+      "variants": [
+        { "lineId": "guide.lesson.baker.proc_sacar.1", "text": "Saca el pan del horno." }
+      ]
+    },
+    "guide.lesson.baker.proc_chunk_masa": {
+      "poolId": "guide.lesson.baker.proc_chunk_masa",
+      "variants": [
+        { "lineId": "guide.lesson.baker.proc_chunk_masa.1", "text": "Haz la masa." }
+      ]
+    },
+    "guide.lesson.baker.proc_chunk_horno": {
+      "poolId": "guide.lesson.baker.proc_chunk_horno",
+      "variants": [
+        { "lineId": "guide.lesson.baker.proc_chunk_horno.1", "text": "Haz el pan en el horno." }
+      ]
+    },
+    "guide.lesson.baker.proc_goal": {
+      "poolId": "guide.lesson.baker.proc_goal",
+      "variants": [
+        { "lineId": "guide.lesson.baker.proc_goal.1", "text": "Haz pan." }
+      ]
+    },
+    "guide.lesson.baker.not_yet": {
+      "poolId": "guide.lesson.baker.not_yet",
+      "variants": [
+        { "lineId": "guide.lesson.baker.not_yet.1", "text": "Todavía no." }
+      ]
+    },
+    "guide.lesson.baker.bake": {
+      "poolId": "guide.lesson.baker.bake",
+      "variants": [
+        { "lineId": "guide.lesson.baker.bake.1", "text": "Hoy vamos a hacer pan. ¿Me ayudas?" }
+      ]
+    },
+    "guide.lesson.baker.bake_plan": {
+      "poolId": "guide.lesson.baker.bake_plan",
+      "variants": [
+        { "lineId": "guide.lesson.baker.bake_plan.1", "text": "¿Qué vas a hacer hoy?" }
+      ]
+    },
+    "guide.lesson.baker.made": {
+      "poolId": "guide.lesson.baker.made",
+      "variants": [
+        { "lineId": "guide.lesson.baker.made.1", "text": "¿Qué hiciste?" }
+      ]
+    },
+    "shop_sell_flour": {
+      "poolId": "shop_sell_flour",
+      "variants": [
+        { "lineId": "shop_sell_flour.1", "text": "Aquí tienes la harina." }
+      ]
+    },
+    "shop_buy": {
+      "poolId": "shop_buy",
+      "variants": [
+        { "lineId": "shop_buy.1", "text": "¡Gracias! Aquí tienes." }
+      ]
+    },
+    "shop_wont_buy": {
+      "poolId": "shop_wont_buy",
+      "variants": [
+        { "lineId": "shop_wont_buy.1", "text": "No, gracias. Solo compro pan." }
+      ]
+    },
+    "shop_cant_sell": {
+      "poolId": "shop_cant_sell",
+      "variants": [
+        { "lineId": "shop_cant_sell.1", "text": "No tienes pan." }
+      ]
+    },
+    "shop_cant_pay": {
+      "poolId": "shop_cant_pay",
+      "variants": [
+        { "lineId": "shop_cant_pay.1", "text": "La harina cuesta una moneda." }
+      ]
+    },
+    "shop_none_asked": {
+      "poolId": "shop_none_asked",
+      "variants": [
+        { "lineId": "shop_none_asked.1", "text": "Hay harina. ¿Cuánta quieres?" }
+      ]
+    },
+    "shop_none_offered": {
+      "poolId": "shop_none_offered",
+      "variants": [
+        { "lineId": "shop_none_offered.1", "text": "¿Cuántos panes me vendes?" }
+      ]
+    },
+    "shop_no_room": {
+      "poolId": "shop_no_room",
+      "variants": [
+        { "lineId": "shop_no_room.1", "text": "Tu bolsa está llena." }
       ]
     }
   }

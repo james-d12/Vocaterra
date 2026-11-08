@@ -107,14 +107,25 @@ Content/          GameData (every game file of the bundle, read once from its ve
                   content-plan C02), LocaleBundle and LocaleText (the learner's support language from content/locale, C03)
 Event/            the game's events (WorldEvents, GameEvent), EventPrinter (the console's event lines) and Trigger (what a tip, a lesson step
                   or an objective waits for, C06)
+Needs/            PlayerNeeds (the five meters and the exhaustion timer, stages and effects worked out from them), NeedsData (game/needs.json), NeedsValidator,
+                  the Drive, NeedMeter, NeedActivity and PlayPause kinds (N01), FireRings (the world's fire rings found by shape and which burn) and NeedActionResult (N02)
 Input/            the keys without the engine (GameKey, IInputFrame, D-p2-1a), the command pattern (IGameCommand, DelegateCommand,
                   GameCommands, KeyBinding, KeyBindings, InputKeys: the commands' keys by name, which the locale's {key:…} spells),
                   InputFocus, KeyRepeater, OpenKeySwallow, TextEntry, AccentShortcuts, TextEdits, TextEditKeys, the push-to-talk
                   (PushToTalkSpeechCapture, ListenSession, ListenTarget), BookItemUse
 Items/            Inventory, ItemDefinition, ScriptItemNames, InventoryScreen and its panel (InventoryPanel)
   Crafting/       Recipe, RecipeBook and their records, CraftingRules, CraftingScreen, CraftingRow, RecipePanelModel, CraftingPanel
+Activities/       the procedures at a station (W05 to W07): StationBook, ProcedureBook, ActionTable, ProcedureRunner (the run), and the station overlay: StationScreen (state and
+                  the view it makes), StationView and StationCell (plain values: the strip, the fixtures, the targets, the page of what can be held, the selection, the verb
+                  choice), InstructionStrip (the strip as a model of its own, built from a ProcedureView; W30's recipe-book page shows the same one), StationPanel (the IScreen: the
+                  keys of design 10.8, every act to GuideSession.ActInProcedure with how the row was presented, the audio through IInstructionAudio, the OnTalk hook; TeacherTalk (W08: the learner's text box, recording and the teacher's answer on the station's talk line) and ProcedureCue (what her answer asks of the station)),
+                  StationProps (E at a cell of a station's prop: Scene.PropCells, the cells each named stamp placed)
 Dialogue/         DialogueModel and its records, the speech buttons, TextWrap, the turn flow (TurnPump, SpeechActionRunner, SupportFrontend,
                   TurnPresenter, GuideGreeting) and DialogueScreen
+                  (U02: the panel's rows, `DialogueModel.PanelRows`: the current exchange from the learner's last line, the one `CoachingLine`
+                  in place of the correction, accent and English feedback stack, `Expanded` for the older lines; the lines themselves, and so
+                  the book's history, are unchanged. The lesson heading reaches the panel's header as `FrameView.LessonHeading`; the strip has
+                  no heading row, `LessonStripLayout.HeadingRow` = 0.)
 Language/         Book/ (the book's model, pages, tables, recordings, speakers, geometry and BookScreen), Checks/ (the battery's bank, plan,
                   grader, CheckScreen, CheckBattery and ICheckLog), Learner/, Lessons/ (LessonRunner, LessonFrontend, LessonActions),
                   Phrases/ (phrase progress, the support ladder, PhraseJournalRows), Speech/ (the evaluators, MicCheck, MicCheckModel,
@@ -160,13 +171,14 @@ Graphics/         SceneDrawer, DrawHelpers, QualityPreset, ScreenshotWriter
   Sky/            SkyModel, SkyRenderer
 UI/
   Common/         UiCanvas, UiTransform, UiPalette, UiScale, FontProvider, FrameView, LayerStack, CountBadge, NounIcons, PixelBox
-  Hud/            HudLayers, HudLayout, HotbarLayer, ToastLayer, TipLayer, BeaconLabel, VoxelLayers, VoxelDebugText
+  Hud/            HudLayers (ObjectiveLayer: the tracker, U01), HudLayout (TrackerRows, TipBlock, ObjectiveBox: the top of the HUD kept apart), HotbarLayer, ToastLayer, TipLayer, BeaconLabel, NeedsHudLayout, NeedsHudLayer, NeedIcons, ViewEffectsLayer, DeathScreenLayer (N05), VoxelLayers, VoxelDebugText
   Overlays/       OverlayLayouts, LoadingLayer, ControlsLayer, EndingLayer
   Dialogue/       DialoguePanel, DialogueLayout, DialogueBubble, DialogueBubbleLayer, ConversationFrame, ConversationLayout, ConversationCards,
                   VoxelTalkLayers, SupportLayer, SupportLayout
   Book/           BookLayer, ConjugationLayout
   Checks/         CheckLayer, CheckCardLayout, MicCheckLayer, MicCheckLayout
   Crafting/       CraftingLayer, CraftingLayout, RecipePanelLayer
+  Station/        StationLayer, StationLayout, InstructionStripLayer, InstructionStripLayout (the strip's boxes and text lines, for a box the caller gives)
   Inventory/      InventoryLayer, InventoryLayout
   Lesson/         LessonLayer, LessonStripLayout
   Report/         ReportLayer, ReportLayout, ReportScreen (it reads the frame's pixels)
@@ -241,6 +253,36 @@ How the guide's turn meets the host's duties (see `src/Vocaterra.Game/README.md`
 - **Evaluation** never runs inside `VoxelSession.Step`. Since P5 it runs on the turn worker (next section); `GuideSession.Say` is the synchronous
   path that the tests and any headless caller still use.
 
+## Needs (N01)
+
+The player's hunger, thirst, sleep, health and stamina (adaptation design section 9, D-game-24). Engine-free, in `Vocaterra.Game.Core`:
+
+- **The data** is `content/game-v1/game/needs.json` (schema `content/schema/needs.schema.json`): per drive its seconds per point, its effort factors and its four
+  stages (their effects, the key of their line); health's recovery and warnings; stamina's costs and refill; rest at a lit fire; a night's and a collapse's changes;
+  the foods; the death rules. `GameData.Needs` holds it (`NeedsData`) and `GameDataValidator` runs `NeedsValidator` on it (every food an item, every rate positive,
+  the stages in order). The stage lines' text is the HUD's (N05); the file holds their keys only.
+- **The model** is `Needs/PlayerNeeds`: plain state for the five meters and two timers, with `Step(ticks, activity)`, `Eat`, `Drink`, `Sleep` (a night), `Collapse`, `Die`
+  and `Wake`. `StageOf`, `HealthStage` and `Effects()` (stamina's maximum and refill, the walking factor, sprint allowed, health's change, the view effects) are worked out
+  from the meters and the data on every call and never stored. No clock and no random numbers: time arrives as ticks.
+- **The wiring** is the partial `Session/VoxelSession.Needs.cs`: the session owns the `PlayerNeeds` and steps it on its world tick, once a tick, only while play is active
+  (`PlayPauses` is `PlayPause.None`). The game sets `PlayPauses` each frame from what it has open (`VoxelGame.PlayPausesNow`): the conversation and lesson panels, the
+  book, the inventory, crafting, a station, the report (F8), a menu, the check battery, and speech being recorded or processed. The world's ticks go on under most of
+  these and the stored time counts them all, so the needs count active ticks themselves. The activity of a tick is read from the simulation (a gather tick, the body
+  moved, standing still within the rest radius of a lit fire). `need_stage` is raised when a stage changes. What the stages do to the player: N02 below; sleep, the collapse
+  and death are N03 and N04's.
+- **Eating, drinking, sprinting (N02)** are the partial `Session/VoxelSession.Eat.cs`. `EatSelected`/`EatItem` use a food of `needs.json` through `PlayerNeeds.Eat` (the bottle
+  comes back empty; at full hunger or thirst the food is kept and the ui line `foodKept` or `drinkKept` is a hint), `DrinkByHand` drinks at the water under the crosshair
+  (`AimedAtWater`), and they raise `meal_eaten` (the food's noun) and `water_drunk` (`botella`, or `pozo`, `lago`, the river's noun). The game binds the right click to
+  `FoodItemUse` (`WorldInput`) and E at water to `GameCommands.DrinkByHand`, and passes the sprint key (`InputKeys` `sprint`, Left Shift) as `SprintHeld`. Before each tick
+  `PrepareTick` sets the simulation's `WalkPermille` (a stage's walk factor, times the data's `sprintSpeedFactor` while the sprint counts: held, moving, allowed by the needs and
+  stamina above 0) and `GatherPermille` (the data's `gatherSlowFactor` at zero stamina: gathering slows and never stops); neither is state or in the digest. The tick's activity
+  is Sprinting, Gathering (a gathered block; filling the bottle is no labour), Walking, Resting (still within the radius of a lit ring of `FireRings`) or Idle. With the needs
+  off the sprint is free and the speed factors are 1.
+- **The save** (version 7, the needs' and the water's fields together): the optional `systems` map, with `systems.needs` holding the five meters and the two timers; versions 1 to 5 start with full needs. Water adds the player's `air` and the `flow` of the scene diff; the underwater blur is an optional field of the settings. The needs
+  are not in the world's digest; a load clamps a value out of range and refuses one that is not a number.
+- **Drowning (water-plan H11):** `Breath` reports `OutOfAir` once a second at zero air; `DrowningDamage` takes 10 health through `IPlayerHealth`, which `NeedsHealth` joins to `PlayerNeeds.Hurt`. While the air is gone `PlayerNeeds.RecoveryHeld` stops health's recovery. The session runs the death flow after the damage (`DieIfDead`): the death names `player_drowned` (the `diedDrowned` / `faintedDrowned` line). With the needs off (or while play is paused) the adapter takes nothing, as hunger and thirst take nothing then. The underwater blur level (`Off`, `Low`, `Medium`, `High`) is a setting (row 4 of the F8 panel, `SaveSettings.UnderwaterBlur`, `--underwater-blur` for a run) and is forced off with the view effects. The bubble row (`BreathHudLayout.RaiseAbove`) lifts above the stage line or the needs block where they would overlap.
+- **Test aids:** `--needs off` freezes the needs (every scripted run passes it), `--set-need <need> <value>` sets one at launch.
+
 ## Spoken input, the worker thread and the models folder (P5)
 
 A turn is either typed (the line is the transcript, the core's scripted recognizer) or spoken (a 16 kHz clip decoded by Vosk). Both go through
@@ -263,6 +305,17 @@ the same `NpcService` turn, and each turn records how it arrived (`GuideTurn.Inp
   `UtterancePipeline.Trace` with Vosk, whose `PipelineTrace.Asr` is kept; the second is `TypedUtteranceEvaluator.EvaluateRecognized`, the core's
   scripted recognizer over that `AsrResult` with the real clip (so the replay record names the audio), so both verdicts see the same transcript,
   hypotheses and confidence and the clip is decoded once.
+- **Free talk adds a second, open decode (V31, core M80).** `SpokenUtteranceEvaluator` holds two pipelines. The second has
+  `OpenRecognitionFallback` on and is used only for a turn that is free talk (`GuideScene.PromptOverride` null and not `Review`) at one of
+  `SpokenUtteranceEvaluator.FreeTalkPrompts` (baker-open, smith-open, farmer-open, fisher-open, stall-need, stall-offer, guide-offer; the villager's and the
+  guide's open prompts decode once anyway). When the constrained decode's reading is not taken, the core decodes the clip again freely and keeps that
+  reading if it is taken and its weakest word is at least the core's floor (`OpenPassWordFloor`, 0.5; the game adds no floor of its own). `LineReading` then
+  reads `UtteranceAnalysis.OtherPass` the way it reads the first recognition (the vocative out, the greeting's rest) when the chosen reading is not taken, and
+  holds a free recognition it re-reads to the same floor. A line so heard is understood and answered as the typed line is («Te entiendo…» off the prompt), is
+  `GuideTurn.HeardOpen`, and is credited as typed (`GuideTurn.CreditKind`, half; the phrase use carries it) though `Input` stays `Spoken`. Lesson steps (a
+  `PromptOverride`), reviews, the mic check and the check battery decode once, as before. `TimedRecognizer` sums the decodes of a turn
+  (`SpeechEngine.BeginTurn`, `RecognizeCount`); `TurnTimings.Decodes` shows the count, the session log's turn record has `heard_open` and (above one)
+  `decodes`, and a `VoiceEvent` of kind `HeardOpen` marks the line. A scripted (clockless) run keeps its timings at 0.0 ms.
 - **Vosk runs single-best.** With the pipeline's default of five n-best hypotheses `AsrResult.Confidence` is a softmax over near-identical
   hypotheses and measured 0.34 to 0.66 for clean, correct speech, under the verdict's communicated threshold of 0.6 (CR-022). The spoken
   pipeline asks for one hypothesis (`SpokenUtteranceEvaluator.SingleBest`), the result's confidence is then 1.0, and the turn line shows the mean

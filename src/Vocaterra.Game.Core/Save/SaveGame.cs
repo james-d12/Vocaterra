@@ -43,9 +43,10 @@ public static class SaveGame
 
     /// <summary>
     /// The format version this code writes (version 2 adds the learner's record, S19; version 3 keeps the check answers out of its word rows, S19b; version 5 keys
-    /// the objective's steps <c>&lt;objective&gt;.&lt;step&gt;</c>, C07; version 6 adds the water that is not source in the scene diff, the cells waiting to flow and the player's air, water-plan H06).
+    /// the objective's steps <c>&lt;objective&gt;.&lt;step&gt;</c>, C07; version 7 adds the optional <c>systems</c> map with the player's needs (N01), the NPCs met (L01), and the water that is not
+    /// source in the scene diff, the cells waiting to flow and the player's air (water-plan H06). The two branches each wrote a different version 6 before they met; a save of either of those is not read).
     /// </summary>
-    public const int CurrentVersion = 6;
+    public const int CurrentVersion = 7;
 
     /// <summary>The objective the steps of a save before version 5 belong to: those saves held the camp checklist alone, keyed by the step (<c>wood</c>).</summary>
     public const string UnqualifiedObjective = "camp";
@@ -178,6 +179,8 @@ public static class SaveGame
             SkippedTo: session.SkippedTo,
             Sitting: session.Sitting,
             KeyWordsTaughtBy: session.KeyWordsTaughtBy,
+            Systems: new SystemsSave(session.Needs.Capture(), session.CaptureChest(), session.CaptureBushes(), session.CaptureGifts(), session.CapturePlanted(), session.CaptureProcedures()),
+            MetNpcs: session.MetNpcs,
             Air: state.Air == Vocaterra.Game.Core.Water.Breath.MaxAir ? null : state.Air,
             Flow: state.Flow is { Count: > 0 } ? state.Flow : null);
     }
@@ -341,9 +344,10 @@ public static class SaveGame
     /// </summary>
     /// <param name="session">The running game, at rest, with no talk open.</param>
     /// <param name="document">The session's own save, captured now.</param>
+    /// <param name="collapse">The night is a collapse (N03): the needs take the collapse's values, not the night's, and the player stays where they are (the world is the save's, taken where they stand).</param>
     /// <exception cref="InvalidOperationException">The session is not at rest.</exception>
     /// <exception cref="ArgumentException">The save is not this session's, taken now.</exception>
-    public static void Sleep(VoxelSession session, SaveDocument document)
+    public static void Sleep(VoxelSession session, SaveDocument document, bool collapse = false)
     {
         ArgumentNullException.ThrowIfNull(session);
         ArgumentNullException.ThrowIfNull(document);
@@ -359,10 +363,11 @@ public static class SaveGame
         }
 
         session.ClearUnsaved();
-        RestoreParts(session, document, migrating: false);
+        RestoreParts(session, document, migrating: false); // the needs come back as a load's do; the night's changes on them follow (ApplyNight)
         session.Day = document.Session + 1;
         session.Sitting = (document.Sitting ?? document.Session) + 1;
         session.LogEvent(new WorldEvent(session.CurrentTick, session.StoredTime.UnixSeconds, WorldEvents.Slept, null, string.Create(CultureInfo.InvariantCulture, $"session {document.Session} to {session.Day}"))); // the new session's first event
+        session.ApplyNight(collapse);
         session.BeginPlaySession();
     }
 
@@ -386,6 +391,7 @@ public static class SaveGame
         RestorePhrases(session, document.Phrases, migrating);
         session.RestoreObjectiveCounts(document.Objective.Select(static step => (step.Key, step.Count)));
         session.RestoreCarded(document.Carded);
+        session.RestoreMet(document.MetNpcs ?? (document.Session >= 2 ? session.Data.Npcs.Ids : [NpcService.GuideAgent])); // L01: a save from before has none
         session.RestoreKeyWordsTaught(document.KeyWordsTaughtBy ?? (document.KeyWordsTaught ? [NpcService.ShopkeeperAgent] : [])); // an older save's flag was the shopkeeper's (V23a)
         session.RiverPointedState = document.RiverPointed;
         session.RestorePointer(document.Pointer is { } pointer ? new PointerMarker(pointer.Place, pointer.Target, Point: session.PointNameAt(pointer.Target, pointer.Place)) : null); // V02: the place's name is worked out again
@@ -408,6 +414,11 @@ public static class SaveGame
             session.Learner.Restore(learner, checksCounted: document.Version < 3); // a version 1 save has none: the learner's history starts empty (S19); a version 2 save's rows counted the checks (S19b)
         }
 
+        session.RestoreChest(document.Systems?.Chest); // N04: the chest's block is in the world's edits; here its cell and contents
+        session.RestoreRenewal(document.Systems?.Bushes, document.Systems?.Gifts); // N06: the picked bushes' blocks are in the world's edits; here the cells that grow back, and the gifts given today
+        session.RestorePlanted(document.Systems?.Planted); // N08: the planted bushes that stand, for the camp's cap
+        session.RestoreProcedures(document.Systems?.Procedures); // W06: a save without an entry has none
+        session.RestoreNeeds(document.Systems?.Needs); // N01: a save before version 7 has none, so full needs; the needs are not in the world's digest
         session.SkippedTo = document.SkippedTo; // a test run skipped to a later session stays marked (V12c)
         session.RestoreStage(); // the stage of the objective area (S17) follows from the world and the progress just put back
     }

@@ -30,7 +30,7 @@ public sealed class ObjectiveLayer : IFrameLayer
     private static readonly Color DoneEnglish = UiPalette.DoneEnglish.ToColor();
     private static readonly Color Back = new(10, 10, 20, 190);
 
-    // The checklist's rows and box for a frame, or null when there is no checklist.
+    // The tracker's rows and box for a frame, or null when there is no tracker (U01).
     private static (List<List<ObjectivePiece>> Rows, PixelBox Box)? PlanFor(FrameView view, FontStashSharp.SpriteFontBase font)
     {
         if (view.Objective is not { } objective)
@@ -39,12 +39,25 @@ public sealed class ObjectiveLayer : IFrameLayer
         }
 
         var session = view.Session;
-        var pieces = session is VoxelSession voxel
-            ? voxel.ObjectiveHud() // the current objective's line, or the checklist (S17, C07)
-            : session.Locale.ObjectivePieces(objective, lemma => session.Words.RecordOf(lemma).Known);
-        var rows = HudLayout.ObjectiveRows(pieces, p => DrawHelpers.Width(font, p.Text), static p => p.Kind == ObjectivePieceKind.Word, (float)(view.ViewportWidth * WidthShare), view.ViewportWidth - (2 * Margin) - 16);
+        var tracker = session is VoxelSession voxel
+            ? voxel.ObjectiveTracker(view.LessonStripBox is not null) // one line per objective, three at most (U01); a lesson's do step is in the strip when it is up
+            : new TrackerView([new TrackerLine(session.Locale.ObjectivePieces(objective, lemma => session.Words.RecordOf(lemma).Known), [])], 0);
+        var maxWidth = view.ViewportWidth - (2 * Margin) - 16;
+        var rows = HudLayout.TrackerRows(tracker, p => DrawHelpers.Width(font, p.Text), (float)(view.ViewportWidth * WidthShare), maxWidth);
+        if (rows.Count == 0)
+        {
+            return null; // the one line there was is in the lesson strip
+        }
+
         var width = rows.Max(row => row.Sum(p => (int)DrawHelpers.Width(font, p.Text)));
-        return (rows, HudLayout.ObjectiveBox(view.ViewportWidth, width, rows.Count));
+        var corner = HudLayout.ObjectiveBox(view.ViewportWidth, width, rows.Count);
+        var placed = HudLayout.ObjectiveBox(view.ViewportWidth, width, rows.Count, TipLayer.BlockOf(view));
+        if (view.Dialogue.IsOpen && placed != corner)
+        {
+            return null; // in a conversation the tracker gives way to the tip box rather than stand over the cards and the bubble (U01)
+        }
+
+        return (rows, placed);
     }
 
     /// <summary>The bottom of the checklist this frame, or 0 when it is not drawn: the workbench panel stands under it.</summary>

@@ -12,6 +12,9 @@ public interface IItemIcons
     /// <summary>Draws the icon of <paramref name="item"/> in <paramref name="destination"/> at a saturation (0 grey to 1 full colour).</summary>
     void DrawIcon(SpriteBatch spriteBatch, ItemId item, Rectangle destination, double saturation);
 
+    /// <summary>Draws an icon by its key (W07: a station fixture's, <c>bowl</c>, <c>spoon</c>, <c>oven</c>, or an item's name); a key with no art draws the plain tile.</summary>
+    void DrawKey(SpriteBatch spriteBatch, string key, Rectangle destination, double saturation);
+
     /// <summary>Draws a side of a block as an icon (S22: the book's nouns that name a block and no item, <c>árbol</c> or <c>río</c>), grey at saturation 0.</summary>
     void DrawBlock(SpriteBatch spriteBatch, BlockId block, Rectangle destination, double saturation);
 }
@@ -51,6 +54,10 @@ public sealed class BlockAtlas : IItemIcons, IDisposable
         // --greyscale, for a noun not known yet, S22) passes 0 and gets the cell's grey copy.
         DrawCell(spriteBatch, BlockAtlasLayout.IconFor(item) ?? BlockCell.White, destination, saturation);
     }
+
+    /// <inheritdoc />
+    public void DrawKey(SpriteBatch spriteBatch, string key, Rectangle destination, double saturation) =>
+        DrawCell(spriteBatch, BlockAtlasLayout.IconForKey(key), destination, saturation);
 
     /// <inheritdoc />
     public void DrawBlock(SpriteBatch spriteBatch, BlockId block, Rectangle destination, double saturation) =>

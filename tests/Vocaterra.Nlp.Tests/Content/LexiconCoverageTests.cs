@@ -42,7 +42,8 @@ public class LexiconCoverageTests
     // The literal words and verb lemmas of a canonical grammar pattern: "[PRON]? [VERB:ofrecer:verb] (bola|lanza) de [NOUN:spell]".
     private static IEnumerable<(string Kind, string Word)> GrammarWords(string pattern)
     {
-        foreach (var raw in pattern.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+        // M74: a group's slot name after its closing parenthesis, (frío|calor):weather, is no word.
+        foreach (var raw in System.Text.RegularExpressions.Regex.Replace(pattern, @"\):[A-Za-z_][A-Za-z0-9_]*", ")").Split(' ', StringSplitOptions.RemoveEmptyEntries))
         {
             foreach (var alternative in raw.Trim('(', ')', '?').Split('|', StringSplitOptions.RemoveEmptyEntries))
             {

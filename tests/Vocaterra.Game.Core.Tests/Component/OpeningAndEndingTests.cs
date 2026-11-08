@@ -96,6 +96,9 @@ public sealed class OpeningAndEndingTests
         var session = TestGame.NewSessionWithShippedLessons();
         Stage.TeleportToNpc(session, "guide");
         _ = session.OpenTalk("guide");
+        _ = LessonDriver.CompleteAll(session); // the introduction, then Luna's first class (L01), whose fruit step this is
+        session.EndTalk();
+        _ = session.OpenTalkForClass("guide");
         while (session.Lessons.Current is { Id: not "u4-pick" })
         {
             _ = LessonDriver.DoStep(session);

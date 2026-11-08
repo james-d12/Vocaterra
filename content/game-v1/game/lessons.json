@@ -4,6 +4,7 @@
   "about": "The guide's lessons (S16, S17): data the lesson runner walks the learner through, attached to an NPC. Step types: explain, model, listen, repeat, answer, do, recap (see LessonBook for the fields of each; a do step may name a noun to point the beacon at). Every step has a skip and a help path; a failed or uncertain turn moves on after the step's attempts (fail-forward, D-game-9). Lines are pre-rendered speech ids (speech/<id>.wav); phrases are rows of content/PHRASES.md; a repeat or answer step's prompt must allow the phrase's intent. S17 retired the two-step sample: this is the guide's first lesson, six short units (about eight minutes), and it starts by itself when the player first talks to her. The English thins from a phrase's second use. S26 (verbs): a lesson may carry session (the play session it unlocks in; its objective line is the locale's) and verbs (the forms it teaches: lemma, person, number, tense); a step may carry npc (the lesson moves from the villager to the shopkeeper); a do step may wait for talk_opened at an npc. Since C06 this file is the index of the lessons, in order; each lesson is its own file, game/lessons/<id>.json, and a do step waits for a trigger (a world event with an npc or an exact detail). The lessons' text (titles, the steps' words, translations, hints and options) is the locale's (content/locale/<code>/lessons.json, lesson.<id>.*) since C03.",
   "lessons": [
     "first-words",
+    "first-class",
     "personas",
     "ayer-y-manana",
     "el-pueblo",
@@ -12,6 +13,7 @@
     "como-es",
     "ayer-en-el-pueblo",
     "manana-en-el-pueblo",
-    "el-mercado"
+    "el-mercado",
+    "en-la-panaderia"
   ]
 }

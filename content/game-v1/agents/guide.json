@@ -2,6 +2,10 @@
   "agentId": "guide",
   "initialState": "idle",
   "variantPools": [
+    { "id": "guide_yes", "count": 1 },
+    { "id": "guide_weather", "count": 1 },
+    { "id": "guide_sun", "count": 1 },
+    { "id": "guide_well", "count": 1 },
     { "id": "guide_understood", "count": 1 },
     { "id": "answer_accepted", "count": 3 },
     { "id": "guide_again", "count": 2 },
@@ -17,6 +21,7 @@
     { "id": "guide_offer", "count": 1 },
     { "id": "guide_offer_help", "count": 1 },
     { "id": "guide_offer_no", "count": 2 },
+    { "id": "guide_gift_used", "count": 1 },
     { "id": "guide_offer_yes", "count": 2 },
     { "id": "guide_point", "count": 3 },
     { "id": "guide_thank", "count": 3 },
@@ -26,6 +31,10 @@
     {
       "id": "idle",
       "transitions": [
+        { "on": {"intent": "ask_wellbeing", "communicated": true}, "to": "talking", "actions": [{ "dialogueIntent": "guide_well", "hostEvent": "agent.greet", "variantPoolId": "guide_well" }] },
+        { "on": {"intent": "ask_weather", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "guide_sun", "variantPoolId": "guide_sun" }] },
+        { "on": {"intent": "state_weather", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "guide_yes", "variantPoolId": "guide_yes" }] },
+        { "onHostEvent": "guide.weather", "to": "idle", "actions": [{ "dialogueIntent": "guide_weather", "variantPoolId": "guide_weather" }] },
         { "onHostEvent": "guide.understood", "to": "idle", "actions": [{ "dialogueIntent": "guide_understood", "variantPoolId": "guide_understood" }] },
         {"on": {"intent": "request_item", "communicated": true}, "to": "idle", "actions": [{"dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted"}]},
         {"on": {"intent": "confirm", "communicated": true}, "to": "idle", "actions": [{"dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted"}]},
@@ -55,6 +64,9 @@
     {
       "id": "talking",
       "transitions": [
+        { "on": {"intent": "ask_wellbeing", "communicated": true}, "to": "talking", "actions": [{ "dialogueIntent": "guide_well", "hostEvent": "agent.greet", "variantPoolId": "guide_well" }] },
+        { "on": {"intent": "ask_weather", "communicated": true}, "to": "talking", "actions": [{ "dialogueIntent": "guide_sun", "variantPoolId": "guide_sun" }] },
+        { "on": {"intent": "state_weather", "communicated": true}, "to": "talking", "actions": [{ "dialogueIntent": "guide_yes", "variantPoolId": "guide_yes" }] },
         { "onHostEvent": "guide.understood", "to": "talking", "actions": [{ "dialogueIntent": "guide_understood", "variantPoolId": "guide_understood" }] },
         {"on": {"intent": "request_item", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted"}]},
         {"on": {"intent": "confirm", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted"}]},
@@ -84,6 +96,9 @@
     {
       "id": "pointing",
       "transitions": [
+        { "on": {"intent": "ask_wellbeing", "communicated": true}, "to": "talking", "actions": [{ "dialogueIntent": "guide_well", "hostEvent": "agent.greet", "variantPoolId": "guide_well" }] },
+        { "on": {"intent": "ask_weather", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "guide_sun", "variantPoolId": "guide_sun" }] },
+        { "on": {"intent": "state_weather", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "guide_yes", "variantPoolId": "guide_yes" }] },
         { "onHostEvent": "guide.understood", "to": "pointing", "actions": [{ "dialogueIntent": "guide_understood", "variantPoolId": "guide_understood" }] },
         {"on": {"intent": "request_item", "communicated": true}, "to": "pointing", "actions": [{"dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted"}]},
         {"on": {"intent": "confirm", "communicated": true}, "to": "pointing", "actions": [{"dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted"}]},
@@ -113,9 +128,13 @@
     {
       "id": "offering",
       "transitions": [
+        { "on": {"intent": "ask_wellbeing", "communicated": true}, "to": "offering", "actions": [{ "dialogueIntent": "guide_well", "variantPoolId": "guide_well" }] },
+        { "on": {"intent": "ask_weather", "communicated": true}, "to": "offering", "actions": [{ "dialogueIntent": "guide_sun", "variantPoolId": "guide_sun" }] },
+        { "on": {"intent": "state_weather", "communicated": true}, "to": "offering", "actions": [{ "dialogueIntent": "guide_yes", "variantPoolId": "guide_yes" }] },
         { "onHostEvent": "guide.understood", "to": "offering", "actions": [{ "dialogueIntent": "guide_understood", "variantPoolId": "guide_understood" }] },
         {"on": {"intent": "request_item", "communicated": true}, "to": "offering", "actions": [{"dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted"}]},
         {"on": {"intent": "confirm", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_offer_yes", "hostEvent": "guide.give_water", "variantPoolId": "guide_offer_yes"}]},
+        {"onHostEvent": "guide.gift_used", "to": "talking", "actions": [{"dialogueIntent": "guide_gift_used", "variantPoolId": "guide_gift_used"}]},
         {"on": {"intent": "deny", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_offer_no", "variantPoolId": "guide_offer_no"}]},
         {"on": {"intent": "ask_help", "communicated": true}, "to": "offering", "actions": [{"dialogueIntent": "guide_offer_help", "variantPoolId": "guide_offer_help"}]},
         {"on": {"intent": "dont_know", "communicated": true}, "to": "offering", "actions": [{"dialogueIntent": "guide_offer_help", "variantPoolId": "guide_offer_help"}]},

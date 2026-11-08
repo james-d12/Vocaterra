@@ -61,7 +61,7 @@ public sealed class GatheringAndPlacingTests
         var sim = WithBlock(trunk);
         sim.Inventory.SetSlot(0, new ItemStack(ItemId.Axe, 1));
         sim.Step([VoxelCommand.SelectSlot(0)]);
-        Assert.Equal(BlockDefinition.TrunkGatherTicks / VoxelSimulation.AxeSpeedUp, sim.GatherTicksOf(trunk));
+        Assert.Equal(15, sim.GatherTicksOf(trunk)); // the axe's (Wood, 4): 60 by hand, 15 with the axe (W02)
 
         Run(sim, 14, InteractAhead);
         Assert.Equal(0, sim.Inventory.Count(ItemId.Wood));
@@ -87,6 +87,39 @@ public sealed class GatheringAndPlacingTests
         Assert.Equal(BlockDefinition.BerryBushGatherTicks, sim.GatherTicksOf(BlockId.BerryBush));
         Run(sim, BlockDefinition.BerryBushGatherTicks - 1, InteractAhead);
         Assert.Equal(0, sim.Inventory.Count(ItemId.Berry));
+    }
+
+    [Fact]
+    public void HandsGatherPlantsAtTheirOwnPace()
+    {
+        // W02: hands are speed 1, so a berry bush takes its own 45 ticks, and the progress event carries the same total the HUD bar reads.
+        var sim = WithBlock(BlockId.BerryBush);
+        Assert.Equal(BlockDefinition.BerryBushGatherTicks, sim.GatherTicksOf(BlockId.BerryBush));
+        sim.Step([InteractAhead]);
+        Assert.Equal(BlockDefinition.BerryBushGatherTicks, sim.Events.Single().Amount);
+    }
+
+    [Fact]
+    public void ToolsAndMaterialsAreDeclaredPerBlockAndPerItem()
+    {
+        Assert.Equal(Material.Wood, BlockDefinition.Get(BlockId.Trunk).Material);
+        Assert.Equal(Material.Wood, BlockDefinition.Get(BlockId.SpruceTrunk).Material);
+        Assert.Equal(Material.Wood, BlockDefinition.Get(BlockId.BirchTrunk).Material);
+        Assert.Equal(Material.Plant, BlockDefinition.Get(BlockId.BerryBush).Material);
+        Assert.Equal(Material.None, BlockDefinition.Get(BlockId.Air).Material);
+        Assert.Equal(new ToolSpec(Material.Wood, 4), ItemDefinition.Get(ItemId.Axe).Tool);
+        Assert.Null(ItemDefinition.Get(ItemId.Wood).Tool);
+    }
+
+    [Fact]
+    public void AToolOfAnotherMaterialChangesNothingOnAPlantOrAStone()
+    {
+        // W02: the axe works on wood only; a stone block (no gather ticks by hand) and the berry bush keep their own ticks with it held.
+        var sim = WithBlock(BlockId.BerryBush);
+        sim.Inventory.SetSlot(0, new ItemStack(ItemId.Axe, 1));
+        sim.Step([VoxelCommand.SelectSlot(0)]);
+        Assert.Equal(BlockDefinition.BerryBushGatherTicks, sim.GatherTicksOf(BlockId.BerryBush));
+        Assert.Equal(0, sim.GatherTicksOf(BlockId.Stone));
     }
 
     [Fact]

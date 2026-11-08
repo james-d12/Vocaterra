@@ -3,6 +3,30 @@ using Vocaterra.Game.Core.Items;
 namespace Vocaterra.Game.Core.Voxel;
 
 /// <summary>
+/// What a block is made of, for tools (W02): a tool speeds up gathering only the blocks of its own material. <see cref="None"/> is what no tool works on.
+/// </summary>
+public enum Material : byte
+{
+    /// <summary>Not a material a tool works on (props, buildings of mixed parts, snow, the blocks a player cannot gather).</summary>
+    None = 0,
+
+    /// <summary>Wood: trunks, planks and the timber and wooden fittings.</summary>
+    Wood = 1,
+
+    /// <summary>Plants: leaves, bushes, the berry bush, undergrowth and wheat.</summary>
+    Plant = 2,
+
+    /// <summary>Stone and cobble.</summary>
+    Stone = 3,
+
+    /// <summary>Earth: grass, dirt, sand, the path and the farmland.</summary>
+    Soil = 4,
+
+    /// <summary>Water.</summary>
+    Water = 5,
+}
+
+/// <summary>
 /// What the simulation knows about one block kind: whether bodies collide with it, how it should be treated by a renderer (transparent,
 /// liquid), and how a player gathers it by hand. Spanish nouns are not here: game words live in the content bundle.
 /// </summary>
@@ -16,6 +40,7 @@ namespace Vocaterra.Game.Core.Voxel;
 /// <param name="DropCount">How many of <paramref name="Drop"/> one gather gives.</param>
 /// <param name="BecomesWhenGathered">The block that is left in the cell after a gather: <see cref="BlockId.Air"/> for a trunk, a plain bush for a berry bush.</param>
 /// <param name="Decor">Whether the block is undergrowth (S14): not solid, never gathered, and invisible to the block ray, so the crosshair looks through it at whatever stands behind it; a block may be placed into its cell.</param>
+/// <param name="Material">What the block is made of (W02): the tools whose <see cref="ItemDefinition.Tool"/> names it gather it faster.</param>
 public sealed record BlockDefinition(
     BlockId Id,
     string Name,
@@ -26,7 +51,8 @@ public sealed record BlockDefinition(
     ItemId? Drop,
     int DropCount,
     BlockId BecomesWhenGathered,
-    bool Decor = false)
+    bool Decor = false,
+    Material Material = Material.None)
 {
     /// <summary>The ticks a trunk takes to gather by hand (one second).</summary>
     public const int TrunkGatherTicks = 60;
@@ -37,56 +63,56 @@ public sealed record BlockDefinition(
     private static readonly BlockDefinition[] Table =
     [
         new(BlockId.Air, "air", false, true, false, 0, null, 0, BlockId.Air),
-        new(BlockId.Grass, "grass", true, false, false, 0, null, 0, BlockId.Air),
-        new(BlockId.Dirt, "dirt", true, false, false, 0, null, 0, BlockId.Air),
-        new(BlockId.Stone, "stone", true, false, false, 0, null, 0, BlockId.Air),
-        new(BlockId.Sand, "sand", true, false, false, 0, null, 0, BlockId.Air),
-        new(BlockId.Trunk, "trunk", true, false, false, TrunkGatherTicks, ItemId.Wood, 1, BlockId.Air),
-        new(BlockId.Leaves, "leaves", true, true, false, 0, null, 0, BlockId.Air),
-        new(BlockId.Bush, "bush", false, true, false, 0, null, 0, BlockId.Air),
-        new(BlockId.BerryBush, "berry-bush", false, true, false, BerryBushGatherTicks, ItemId.Berry, 1, BlockId.Bush),
-        new(BlockId.Water, "water", false, true, true, 0, null, 0, BlockId.Air),
-        new(BlockId.Path, "path", true, false, false, 0, null, 0, BlockId.Air),
-        new(BlockId.Planks, "planks", true, false, false, 0, null, 0, BlockId.Air),
-        new(BlockId.Door, "door", false, false, false, 0, null, 0, BlockId.Air),
-        new(BlockId.Table, "table", true, false, false, 0, null, 0, BlockId.Air),
+        new(BlockId.Grass, "grass", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Soil),
+        new(BlockId.Dirt, "dirt", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Soil),
+        new(BlockId.Stone, "stone", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Stone),
+        new(BlockId.Sand, "sand", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Soil),
+        new(BlockId.Trunk, "trunk", true, false, false, TrunkGatherTicks, ItemId.Wood, 1, BlockId.Air, Material: Material.Wood),
+        new(BlockId.Leaves, "leaves", true, true, false, 0, null, 0, BlockId.Air, Material: Material.Plant),
+        new(BlockId.Bush, "bush", false, true, false, 0, null, 0, BlockId.Air, Material: Material.Plant),
+        new(BlockId.BerryBush, "berry-bush", false, true, false, BerryBushGatherTicks, ItemId.Berry, 1, BlockId.Bush, Material: Material.Plant),
+        new(BlockId.Water, "water", false, true, true, 0, null, 0, BlockId.Air, Material: Material.Water),
+        new(BlockId.Path, "path", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Soil),
+        new(BlockId.Planks, "planks", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
+        new(BlockId.Door, "door", false, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
+        new(BlockId.Table, "table", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
         new(BlockId.Torch, "torch", false, true, false, 0, null, 0, BlockId.Air),
-        new(BlockId.Stall, "stall", true, false, false, 0, null, 0, BlockId.Air),
-        new(BlockId.Roof, "roof", true, false, false, 0, null, 0, BlockId.Air),
-        new(BlockId.Fence, "fence", true, true, false, 0, null, 0, BlockId.Air),
+        new(BlockId.Stall, "stall", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
+        new(BlockId.Roof, "roof", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
+        new(BlockId.Fence, "fence", true, true, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
         new(BlockId.Wall, "wall", true, false, false, 0, null, 0, BlockId.Air),
-        new(BlockId.FireRing, "fire-ring", true, false, false, 0, null, 0, BlockId.Air),
-        new(BlockId.Sign, "sign", true, false, false, 0, null, 0, BlockId.Air),
-        new(BlockId.Bridge, "bridge", true, false, false, 0, null, 0, BlockId.Air),
+        new(BlockId.FireRing, "fire-ring", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Stone),
+        new(BlockId.Sign, "sign", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
+        new(BlockId.Bridge, "bridge", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
         new(BlockId.Snow, "snow", true, false, false, 0, null, 0, BlockId.Air),
-        new(BlockId.SpruceTrunk, "spruce-trunk", true, false, false, TrunkGatherTicks, ItemId.Wood, 1, BlockId.Air),
-        new(BlockId.BirchTrunk, "birch-trunk", true, false, false, TrunkGatherTicks, ItemId.Wood, 1, BlockId.Air),
-        new(BlockId.SpruceLeaves, "spruce-leaves", true, true, false, 0, null, 0, BlockId.Air),
-        new(BlockId.BirchLeaves, "birch-leaves", true, true, false, 0, null, 0, BlockId.Air),
-        new(BlockId.TallGrass, "tall-grass", false, true, false, 0, null, 0, BlockId.Air, Decor: true),
-        new(BlockId.Fern, "fern", false, true, false, 0, null, 0, BlockId.Air, Decor: true),
-        new(BlockId.Reeds, "reeds", false, true, false, 0, null, 0, BlockId.Air, Decor: true),
-        new(BlockId.YellowFlower, "yellow-flower", false, true, false, 0, null, 0, BlockId.Air, Decor: true),
-        new(BlockId.WhiteFlower, "white-flower", false, true, false, 0, null, 0, BlockId.Air, Decor: true),
-        new(BlockId.MossyStone, "mossy-stone", true, false, false, 0, null, 0, BlockId.Air),
-        new(BlockId.Cobble, "cobble", true, false, false, 0, null, 0, BlockId.Air),
-        new(BlockId.Timber, "timber", true, false, false, 0, null, 0, BlockId.Air),
+        new(BlockId.SpruceTrunk, "spruce-trunk", true, false, false, TrunkGatherTicks, ItemId.Wood, 1, BlockId.Air, Material: Material.Wood),
+        new(BlockId.BirchTrunk, "birch-trunk", true, false, false, TrunkGatherTicks, ItemId.Wood, 1, BlockId.Air, Material: Material.Wood),
+        new(BlockId.SpruceLeaves, "spruce-leaves", true, true, false, 0, null, 0, BlockId.Air, Material: Material.Plant),
+        new(BlockId.BirchLeaves, "birch-leaves", true, true, false, 0, null, 0, BlockId.Air, Material: Material.Plant),
+        new(BlockId.TallGrass, "tall-grass", false, true, false, 0, null, 0, BlockId.Air, Decor: true, Material: Material.Plant),
+        new(BlockId.Fern, "fern", false, true, false, 0, null, 0, BlockId.Air, Decor: true, Material: Material.Plant),
+        new(BlockId.Reeds, "reeds", false, true, false, 0, null, 0, BlockId.Air, Decor: true, Material: Material.Plant),
+        new(BlockId.YellowFlower, "yellow-flower", false, true, false, 0, null, 0, BlockId.Air, Decor: true, Material: Material.Plant),
+        new(BlockId.WhiteFlower, "white-flower", false, true, false, 0, null, 0, BlockId.Air, Decor: true, Material: Material.Plant),
+        new(BlockId.MossyStone, "mossy-stone", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Stone),
+        new(BlockId.Cobble, "cobble", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Stone),
+        new(BlockId.Timber, "timber", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
         new(BlockId.Lantern, "lantern", false, true, false, 0, null, 0, BlockId.Air),
-        new(BlockId.Crate, "crate", true, false, false, 0, null, 0, BlockId.Air),
+        new(BlockId.Crate, "crate", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
         new(BlockId.AwningRed, "awning-red", true, false, false, 0, null, 0, BlockId.Air),
         new(BlockId.AwningWhite, "awning-white", true, false, false, 0, null, 0, BlockId.Air),
         new(BlockId.Canvas, "canvas", true, false, false, 0, null, 0, BlockId.Air),
-        new(BlockId.Chest, "chest", true, false, false, 0, null, 0, BlockId.Air),
-        new(BlockId.Farmland, "farmland", true, false, false, 0, null, 0, BlockId.Air),
-        new(BlockId.Wheat, "wheat", false, true, false, 0, null, 0, BlockId.Air, Decor: true),
+        new(BlockId.Chest, "chest", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
+        new(BlockId.Farmland, "farmland", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Soil),
+        new(BlockId.Wheat, "wheat", false, true, false, 0, null, 0, BlockId.Air, Decor: true, Material: Material.Plant),
         new(BlockId.Loaves, "loaves", false, true, false, 0, null, 0, BlockId.Air, Decor: true),
         new(BlockId.Apples, "apples", false, true, false, 0, null, 0, BlockId.Air, Decor: true),
         new(BlockId.Bottles, "bottles", false, true, false, 0, null, 0, BlockId.Air, Decor: true),
-        new(BlockId.SignTiendaA, "sign-tienda-a", true, false, false, 0, null, 0, BlockId.Air),
-        new(BlockId.SignTiendaB, "sign-tienda-b", true, false, false, 0, null, 0, BlockId.Air),
-        new(BlockId.SignRio, "sign-rio", true, false, false, 0, null, 0, BlockId.Air),
-        new(BlockId.SignMontanaA, "sign-montana-a", true, false, false, 0, null, 0, BlockId.Air),
-        new(BlockId.SignMontanaB, "sign-montana-b", true, false, false, 0, null, 0, BlockId.Air),
+        new(BlockId.SignTiendaA, "sign-tienda-a", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
+        new(BlockId.SignTiendaB, "sign-tienda-b", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
+        new(BlockId.SignRio, "sign-rio", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
+        new(BlockId.SignMontanaA, "sign-montana-a", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
+        new(BlockId.SignMontanaB, "sign-montana-b", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
         new(BlockId.PostTorch, "post-torch", false, true, false, 0, null, 0, BlockId.Air),
     ];
 

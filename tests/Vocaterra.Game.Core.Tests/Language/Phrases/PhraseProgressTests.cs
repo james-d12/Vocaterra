@@ -35,7 +35,7 @@ public sealed class PhraseProgressTests
     {
         var progress = New();
 
-        Assert.Equal(155, progress.Records.Count);
+        Assert.Equal(173, progress.Records.Count);
         Assert.Equal(progress.Sheet.Rows.Select(static r => r.Id), progress.Records.Select(static r => r.Id));
         Assert.Equal(
             ["como-te-llamas", "cuanto-cuesta", "cuanto-es-todo", "donde-esta-el-rio", "donde-esta-la-herreria", "donde-esta-la-panaderia", "hay-pan", "no-gracias", "pedir-agua", "puedo-pagar-con-fruta", "que-haces", "quiero-dos-panes", "quiero-tres-manzanas-rojas", "si-por-favor", "vendo-madera"],

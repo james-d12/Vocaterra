@@ -238,7 +238,7 @@ public sealed class ContentSchemaFuzzTests(ITestOutputHelper output)
         // Dropping or retyping a field the loader does not require may leave a loadable bundle, but only on the documented list of fields.
         var reason = KnownTolerances.AcceptedContentField(mutation.File, mutation.Path)
             ?? (mutation.Kind == ContentMutationKind.RemoveProperty ? KnownTolerances.AcceptedHostVoicedPool(mutation.File, mutation.Path, Harness.Bundle.Agents.Values) : null)
-            ?? (mutation.Kind == ContentMutationKind.RemoveProperty ? KnownTolerances.AcceptedRuleOnlyIntent(mutation.File, mutation.Path, catalog.OriginalJson("intents/intents.json")) : null);
+            ?? (mutation.Kind == ContentMutationKind.RemoveProperty ? KnownTolerances.AcceptedGrammarlessIntent(mutation.File, mutation.Path, catalog.OriginalJson("intents/intents.json")) : null);
         if (reason is null)
         {
             throw Determinism.Fail(Oracle, $"The loader accepted a {mutation.Kind} mutation of {mutation.File} /{string.Join('/', mutation.Path)}, which is not a documented optional field (KnownTolerances).", mutation);

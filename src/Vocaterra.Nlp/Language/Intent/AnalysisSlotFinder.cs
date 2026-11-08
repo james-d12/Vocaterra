@@ -2,6 +2,7 @@ using Vocaterra.Nlp.Core.Stages;
 
 namespace Vocaterra.Nlp.Language.Intent;
 
+using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Packs;
 
@@ -9,13 +10,16 @@ using Vocaterra.Nlp.Language.Packs;
 internal static class AnalysisSlotFinder
 {
     /// <summary>
-    /// Returns the lemma of the first token with a noun reading, skipping excluded token indexes and the words of the language's trailing polite
-    /// phrase (the <c>favor</c> of a <c>por favor</c>); null when there is none.
+    /// Returns the lemma of the first token with a noun reading, skipping excluded token indexes, the words of the language's trailing polite
+    /// phrase (the <c>favor</c> of a <c>por favor</c>) and the noun of a phrase of elapsed time (M74: the <c>días</c> of <c>hace dos días</c>, whose
+    /// <c>hace</c> the analysis read as the preposition); null when there is none.
     /// </summary>
-    public static string? FirstNoun(AnalysisResult analysis, IReadOnlySet<int>? excluded, ILanguagePack language)
+    public static string? FirstNoun(AnalysisResult analysis, IReadOnlySet<int>? excluded, ILanguagePack language, IAnalysisRules rules)
     {
         ArgumentNullException.ThrowIfNull(language);
+        ArgumentNullException.ThrowIfNull(rules);
         var tokens = analysis.Tokens;
+        var elapsed = ElapsedTimeNouns(analysis, rules);
         for (var i = 0; i < tokens.Count; i++)
         {
             if (excluded is not null && excluded.Contains(i))
@@ -23,7 +27,7 @@ internal static class AnalysisSlotFinder
                 continue;
             }
 
-            if (IsPolitePhraseEnd(tokens, i, language))
+            if (IsPolitePhraseEnd(tokens, i, language) || elapsed.Contains(i))
             {
                 continue;
             }
@@ -55,6 +59,44 @@ internal static class AnalysisSlotFinder
         }
 
         return null;
+    }
+
+    // The positions of the nouns of a phrase of elapsed time: after a word the analysis resolved as the preposition of elapsed time (hace, M59), the first noun of a
+    // stretch of time that only numbers and words that can be numerals, articles or adjectives come before (hace dos días, hace un rato, hace mucho tiempo).
+    private static HashSet<int> ElapsedTimeNouns(AnalysisResult analysis, IAnalysisRules rules)
+    {
+        var found = new HashSet<int>();
+        var tokens = analysis.Tokens;
+        if (analysis.Words is not { } words || words.Count != tokens.Count)
+        {
+            return found;
+        }
+
+        for (var i = 0; i < tokens.Count; i++)
+        {
+            if (words[i].Reading is not { Pos: LexiconSchema.Preposition } reading || !rules.IsElapsedTimePreposition(reading.Lemma))
+            {
+                continue;
+            }
+
+            for (var k = i + 1; k < tokens.Count; k++)
+            {
+                var next = tokens[k].Readings;
+                if (next.Any(r => r.Pos == LexiconSchema.Noun && rules.IsElapsedTimeNoun(r.Lemma)))
+                {
+                    found.Add(k);
+                    break;
+                }
+
+                var isDigits = tokens[k].Token.Text.Length > 0 && tokens[k].Token.Text.All(char.IsAsciiDigit);
+                if (!isDigits && !next.Any(static r => r.Pos is LexiconSchema.Numeral or LexiconSchema.Article or LexiconSchema.Adjective))
+                {
+                    break;
+                }
+            }
+        }
+
+        return found;
     }
 
     // True when the words ending at the index are the language's trailing polite phrase (its last word is the token at the index).

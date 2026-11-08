@@ -116,11 +116,11 @@ public sealed class NounCatalogTests
     public void TheCatalogueHoldsOnlyTheNounsOfThe3DWorld()
     {
         // The 2D nouns (the ores, the tools, the furniture and the flowers) are gone with the 2D slice (S4); the axe came back as the smith's (V03).
-        foreach (var lemma in new[] { "carbón", "hierro", "silla", "horno", "flor", "seta" })
+        foreach (var lemma in new[] { "carbón", "hierro", "silla", "flor", "seta" })
         {
             Assert.Null(TestGame.Nouns.ForLemma(lemma));
         }
 
-        Assert.Equal(22, TestGame.Nouns.Nouns.Count); // the 16 of S4, since S6 botella and pan, since S20 libro (the book item), since V03 moneda, manzana and hacha
+        Assert.Equal(29, TestGame.Nouns.Nouns.Count); // W10 harina, bol, cuchara, masa, horno and mano (the bread, a fixture or a made thing each); N07 fuego; the 16 of S4, since S6 botella and pan, since S20 libro (the book item), since V03 moneda, manzana and hacha
     }
 }

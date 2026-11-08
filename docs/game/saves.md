@@ -36,6 +36,43 @@ dotnet run --project src/Vocaterra.Game -- --content /tmp/x01-bundle --mute --lo
 dotnet run --project src/Vocaterra.Game -- --content /tmp/x01-bundle --mute --load /tmp/x01.save --screenshot /tmp/x01-migrated.png --frames 30
 ```
 
+## Format version 7: the `systems` map, the needs (N01) and the water
+
+The current version is 7. Two branches each wrote a different version 6 (the needs and the `systems` map on one, the water on the other); they met in the water merge
+(PR #45) and the merged format is version 7, which holds both sides' fields. A save of either old version-6 shape is not read: the game is unreleased, so there is no
+migration between them. Water's fields are optional like the others: `air` (the player's breath, in ticks) in the simulation state, and `flow` (the water that is not a source
+in the scene diff and the cells waiting to flow, H06). The underwater blur setting (H11) is the optional `underwaterBlur` of the save's `settings` (the level as its number: 0 off,
+2 medium, 3 high; no field is the default, low), so it needed no further version. Drowning (H11) leaves no state of its own: the damage is in the `health` meter.
+
+Version 6 (in the merged format) adds an optional `systems` map to the save: a system's name to its entry, so a system joins the save without another format change (W06 adds `procedures`).
+Its `needs` entry holds the player's five meters and two timers: `hunger`, `thirst`, `sleep` (0 to 100), `stamina` (0 to its current maximum), `health` (0 to 100),
+`exhaustionSeconds` (seconds of active play at sleep's last stage) and `effortFreeSeconds` (seconds since the last effort). Later milestones add the regrowth, gift and
+chest state as optional fields of the entry. Stages and their effects are never saved: they are worked out from the meters and the data.
+
+- **Versions 1 to 5 load** with full needs (no `systems`).
+- **The needs are not in the world's digest.** A load and a night compare the digest, and an older save has none; the needs are checked by range instead: a value out of range
+  (a drive or health outside 0 to 100, stamina over its maximum, a timer below 0) is **clamped** into it, and a value that is not a number **refuses** the save.
+- **A night is a load in the same run** with the night's changes on the needs (N03): `SaveGame.Sleep` restores the needs as a load does, then `VoxelSession.ApplyNight` applies
+  `PlayerNeeds.Sleep` (sleep to 100, health +20, hunger -15 and thirst -20 never below 10; with `--needs off` nothing). A **collapse** is the same night with `collapse: true`
+  (`PlayerNeeds.Collapse`: sleep to 50, no health), taken where the player stands, so the world, the position and the tick are the save's. Both advance the day and the sitting
+  and run the day's resets (`RunDayResets`, `DayResetCount`; a load runs none).
+- **The belongings chest (N04)** is the `chest` entry of `systems`: `{"x","y","z","stacks":[{"item","count"}]}`, the cell of the Chest block and one total per item kind, absent when
+  no chest stands. The Chest block itself is in the world's block edits (`chunks`), as any placed block; a load restores both and never removes a chest, a night does
+  (`RunDayResets`), with its contents. No version change: an older save has no chest.
+- **The NPCs met and the split first lesson (L01)** need no format change (the version stays 6): `metNpcs` is an optional list of the NPC ids the player has talked to (a class opens on
+  having met its teacher, an order on having met its NPC); a save without it takes every NPC as met from day 2 on and only the guide before. A lesson is never saved engaged: a load
+  restores the active class paused. A save of the old `first-words` (37 steps) holds the introduction and Luna's first class in one entry; the load splits it (`LessonRunner.SplitIntroduction`):
+  the introduction keeps its id and its first 16 steps, then the steps that follow u4 and u4v, and `first-class` is completed when the old lesson was past them, not begun otherwise.
+- **Picked bushes and the day's gifts (N06)** are the `bushes` and `gifts` entries of `systems`, both absent when empty. `bushes` is `[{"x","y","z"}]`, the cells of the berry bushes
+  picked by hand since the last night (the rule is `regrowth` in `game/needs.json`); each is a plain bush in the world's block edits until a night (`RunDayResets`, `RenewAtNight`) sets it
+  back to a berry bush. A regrown bush is the generated block again, so the world's digest is the unpicked world's: the digest follows the blocks, as for any placed or removed block, and
+  a cell the player built on meanwhile is let go. `gifts` is the keys (`shopkeeper:bread`, `villager:bread`, `guide:water-bottle`; `gifts` in `game/needs.json`) given since the last night.
+  A gift a lesson step requires (a `do` step on `item_given` at that NPC) is never closed and never counted. With `--needs off` nothing is recorded, nothing grows back and every gift is
+  given. The NPC whose gift is used answers its `<npc>.gift_used` with a line of its existing pools (the stall `shop_price`, the villager `villager_bye`, the guide `guide_offer_no`).
+- **Planted bushes (N08)** are the `planted` entry of `systems`, absent when none stands: `[{"x","y","z"}]`, the cells of the bushes the player planted at the camp (`planting` in `game/needs.json`) that still stand. Each is also in `bushes` until a night grows it back, so the picked list needs no change; the cap of planted bushes counts this list. A save from before N08 has none and loads with none; the save version stays 6.
+  No version change; a save before N06 has neither entry (a bush picked in it stays picked).
+- **A load raises no `need_stage` event** for what was saved: the stages are taken as they are.
+
 ## Autosave and the crash report (X05, R04)
 
 The game saves itself at its safe points, and a crash leaves a report instead of losing the session.

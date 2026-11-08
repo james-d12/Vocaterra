@@ -50,7 +50,8 @@ public static class BlockArt
     /// <summary>
     /// One mip level of the atlas, made by averaging the 2^level x 2^level texels of the base picture under each texel (colours weighted by alpha, so the
     /// cut-out leaves do not darken at the edges). A cell is 16 texels wide, so up to level 4 an average never reaches into the next cell: far faces
-    /// turn smooth and keep their own colours, and the picture does not shimmer.
+    /// turn smooth and keep their own colours, and the picture does not shimmer. The cells that are only ever drawn on the interface
+    /// (<see cref="BlockAtlasLayout.IsUiOnly"/>, W07) count as clear here, so that they never tint the far horizon, where the top levels average the whole atlas.
     /// </summary>
     /// <param name="level0">The base atlas (<see cref="AtlasPixels"/>).</param>
     /// <param name="level">The level, 0 for the base picture.</param>
@@ -76,7 +77,7 @@ public static class BlockArt
                     for (var sx = x * step; sx < Math.Min(BlockAtlasLayout.Width, (x + 1) * step); sx++)
                     {
                         var i = ((sy * BlockAtlasLayout.Width) + sx) * 4;
-                        var alpha = level0[i + 3];
+                        var alpha = BlockAtlasLayout.IsUiOnly(sx / BlockAtlasLayout.CellSize, (sy / BlockAtlasLayout.CellSize) % BlockAtlasLayout.ColourRows) ? (byte)0 : level0[i + 3];
                         r += level0[i] * alpha;
                         g += level0[i + 1] * alpha;
                         b += level0[i + 2] * alpha;
@@ -244,8 +245,20 @@ public static class BlockArt
                 return CoinIconPixel(x, y);
             case BlockCell.IconApple:
                 return AppleIconPixel(x, y);
+            case BlockCell.IconRoastApple:
+                return RoastAppleIconPixel(x, y);
             case BlockCell.IconAxe:
                 return AxeIconPixel(x, y, speckle);
+            case BlockCell.IconBowl:
+                return BowlIconPixel(x, y, speckle);
+            case BlockCell.IconSpoon:
+                return SpoonIconPixel(x, y, speckle);
+            case BlockCell.IconOven:
+                return OvenIconPixel(x, y, speckle);
+            case BlockCell.IconPlain:
+                return PlainIconPixel(x, y);
+            case BlockCell.IconFlour:
+                return FlourIconPixel(x, y, speckle);
             default:
                 return Clear;
         }
@@ -414,6 +427,28 @@ public static class BlockArt
         return y >= 11 ? Shade(186, 30, 36, 0) : Shade(222, 44, 44, 0);
     }
 
+    private static (byte R, byte G, byte B, byte A) RoastAppleIconPixel(int x, int y)
+    {
+        // The apple's shape, cooked: the red becomes a browned amber, the leaf a dry olive, with a golden glaze for the highlight.
+        var (r, g, b, a) = AppleIconPixel(x, y);
+        if (a == 0)
+        {
+            return (r, g, b, a);
+        }
+
+        if (g > r)
+        {
+            return Shade(110, 100, 40, 0); // the leaf, dried
+        }
+
+        if (r > 240)
+        {
+            return Shade(244, 196, 96, 0); // the glaze
+        }
+
+        return r > 200 ? Shade(176, 98, 36, 0) : r > 170 ? Shade(150, 80, 30, 0) : Shade(104, 54, 24, 0);
+    }
+
     private static (byte R, byte G, byte B, byte A) AxeIconPixel(int x, int y, uint speckle)
     {
         // The axe: a wooden haft standing up the middle and a steel head across its top, the blade fanning out to the left with a bright edge and a short poll on the
@@ -446,6 +481,100 @@ public static class BlockArt
         return Clear;
     }
 
+    private static (byte R, byte G, byte B, byte A) BowlIconPixel(int x, int y, uint speckle)
+    {
+        // An earthenware bowl seen from the side: a pale rim across the top, a terracotta body that narrows to a small foot, and a darker band under the rim.
+        if (y == 5 && x is >= 1 and <= 14)
+        {
+            return Shade(238, 214, 170, 0); // the rim
+        }
+
+        if (y == 6 && x is >= 2 and <= 13)
+        {
+            return Shade(150, 82, 52, 0); // the shadow inside, under the rim
+        }
+
+        var half = y switch
+        {
+            7 => 6,
+            8 => 6,
+            9 => 5,
+            10 => 5,
+            11 => 4,
+            12 => 3,
+            _ => -1,
+        };
+        if (half >= 0 && x >= 8 - half && x <= 7 + half)
+        {
+            return x <= 8 - half + 1 ? Shade(214, 128, 86, speckle) : x >= 7 + half - 1 ? Shade(150, 82, 52, speckle) : Shade(190, 108, 70, speckle);
+        }
+
+        if (y == 13 && x is >= 5 and <= 10)
+        {
+            return Shade(120, 64, 40, 0); // the foot
+        }
+
+        return Clear;
+    }
+
+    private static (byte R, byte G, byte B, byte A) SpoonIconPixel(int x, int y, uint speckle)
+    {
+        // A wooden spoon along the diagonal: the bowl of it an oval at the upper left, the handle a thin line running to the lower right.
+        var dx = x - 4.5;
+        var dy = y - 4.5;
+        if ((dx * dx / 9.0) + (dy * dy / 6.0) <= 1.0)
+        {
+            return (dx * dx) + (dy * dy) < 3.5 ? Shade(150, 100, 52, speckle) : Shade(204, 154, 90, speckle); // the hollow darker, the rim lighter
+        }
+
+        var along = x - y;
+        if (along is >= -1 and <= 0 && x is >= 7 and <= 14)
+        {
+            return along == -1 ? Shade(176, 122, 64, speckle) : Shade(124, 82, 40, speckle);
+        }
+
+        return Clear;
+    }
+
+    private static (byte R, byte G, byte B, byte A) OvenIconPixel(int x, int y, uint speckle)
+    {
+        // A cobble oven: a chimney at the upper right, a vault of grey stone with courses, and an arched mouth whose bottom rows glow with fire.
+        if (x is >= 11 and <= 13 && y is >= 0 and <= 3)
+        {
+            return y == 0 ? Shade(96, 100, 112, 0) : Shade(130, 134, 146, speckle);
+        }
+
+        if (y is >= 3 and <= 14 && x is >= 1 and <= 14)
+        {
+            var mouth = x is >= 5 and <= 10 && (y >= 8 || (y == 7 && x is >= 6 and <= 9));
+            if (mouth)
+            {
+                return y >= 12 ? Shade(255, 200, 60, 0) : y >= 10 ? Shade(240, 120, 30, 0) : Shade(40, 30, 30, 0);
+            }
+
+            if ((y + (x > 7 ? 1 : 0)) % 3 == 0)
+            {
+                return Shade(92, 96, 108, 0); // the joints between the courses
+            }
+
+            return Shade(146, 150, 162, speckle);
+        }
+
+        return Clear;
+    }
+
+    private static (byte R, byte G, byte B, byte A) PlainIconPixel(int x, int y)
+    {
+        // The tile of an icon key with no art: a grey rounded square with a lighter edge.
+        var corner = (x is 1 or 14) && (y is 1 or 14);
+        if (x is < 1 or > 14 || y is < 1 or > 14 || corner)
+        {
+            return Clear;
+        }
+
+        return x is 1 or 14 || y is 1 or 14 ? Shade(170, 174, 190, 0) : Shade(104, 108, 124, 0);
+    }
+
     private static (byte R, byte G, byte B, byte A) BreadIconPixel(int x, int y)
     {
         // A golden loaf, wider than tall, with three slashes across the top.
@@ -469,6 +598,30 @@ public static class BlockArt
         }
 
         return y <= 9 ? Shade(214, 148, 66, 0) : Shade(190, 122, 52, 0);
+    }
+
+    private static (byte R, byte G, byte B, byte A) FlourIconPixel(int x, int y, uint speckle)
+    {
+        // A cloth sack of flour: a round cream body, a tied neck with a short frill on top, a darker twine knot.
+        if (y is >= 1 and <= 3 && x is >= 5 and <= 10)
+        {
+            return y == 3 && x is >= 6 and <= 9 ? Shade(150, 112, 64, 0) : y == 1 ? Clear : Shade(226, 214, 188, speckle % 2);
+        }
+
+        var dx = (x - 7.5) / 6.0;
+        var dy = (y - 9.5) / 5.5;
+        var r2 = (dx * dx) + (dy * dy);
+        if (y < 4 || r2 > 1.0)
+        {
+            return Clear;
+        }
+
+        if (r2 > 0.75)
+        {
+            return Shade(196, 180, 148, 0); // the shaded edge of the cloth
+        }
+
+        return (x + y) % 5 == 0 ? Shade(236, 228, 208, speckle % 2) : Shade(246, 242, 228, speckle % 2); // the flour, pale and a little dusty
     }
 
     private static (byte R, byte G, byte B, byte A) Shade(int r, int g, int b, uint noise)

@@ -10,6 +10,8 @@
     "tip.pickup": "What you collect appears in the bar at the bottom. Press {key:inventory} to see everything you carry.",
     "tip.npc": "Press {key:talk} to talk to someone. The English under the Spanish is there to help you.",
     "tip.speak": "Hold {key:listen} (or {key:listenAlt}) to speak, or press W to type. Press H for help any time. Nothing here is a test: if you are not sure, press N for “I don't know”.",
-    "tip.objective": "The list at the top right shows what the camp needs. The English next to each word goes away once you know the word."
+    "tip.objective": "The list at the top right shows what the camp needs. The English next to each word goes away once you know the word.",
+    "tip.needs": "Hunger, thirst and sleep go down as you walk and work. Eat berries or bread, drink water from the river or your bottle, and sleep at your camp when you are tired.",
+    "tip.collapse": "You were too tired to go on, so you fell asleep where you stood. A day has passed. Sleep at your fire before you are worn out to wake up rested."
   }
 }

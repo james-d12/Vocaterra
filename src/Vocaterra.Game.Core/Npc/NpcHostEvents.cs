@@ -44,6 +44,27 @@ public enum NpcEffectKind
     /// none offered (<c>vendo cero bloques de madera</c>, V19) <c>&lt;npc&gt;.none_offered</c>, and no room in the bag for the coins (V19) <c>&lt;npc&gt;.no_room</c>.
     /// </summary>
     Buy,
+
+    /// <summary>The learner asked the teacher at a station to play the instruction again (W08, <c>procedure_repeat</c>): the runner counts it and the station plays the row.</summary>
+    ProcedureRepeat,
+
+    /// <summary>The learner asked the teacher at a station for the slow recording (W08, <c>procedure_slower</c>).</summary>
+    ProcedureSlower,
+
+    /// <summary>The learner asked the teacher at a station for help (W08, <c>procedure_help</c>): what the H key does.</summary>
+    ProcedureHelp,
+
+    /// <summary>
+    /// The teacher gives the ingredients the run still lacks (W08, <c>give_missing</c>, design decision 20): always for the first bake, and then once per in-game day. Otherwise nothing
+    /// is given and the teacher says why (<see cref="NpcHostEvents.NothingMissing"/>, <see cref="NpcHostEvents.GiftUsed"/>, <see cref="NpcHostEvents.NoRoom"/>).
+    /// </summary>
+    GiveMissing,
+
+    /// <summary>The teacher teaches a procedure (W08, <c>teach_recipe</c>): it joins the procedures the learner knows. With no <see cref="NpcEffect.Procedure"/> it is the one the NPC teaches.</summary>
+    TeachRecipe,
+
+    /// <summary>The learner accepted the offer to bake (W08, <c>start_procedure</c>): the station opens for the procedure the NPC teaches, and the teacher enters teaching. Nothing happens when the NPC teaches none.</summary>
+    StartProcedure,
 }
 
 /// <summary>
@@ -58,6 +79,8 @@ public enum NpcEffectKind
 /// <param name="Slot">For <see cref="NpcEffectKind.PointAtSlot"/>: the slot of the verdict that names the place (<c>place</c>).</param>
 /// <param name="Price">For <see cref="NpcEffectKind.Sell"/> and <see cref="NpcEffectKind.Buy"/>: the price of one item, in coins.</param>
 /// <param name="Instead">For a gift with <paramref name="Asked"/> (V21b): the catalogue nouns the NPC gives something else for, by the suffix of the host event it answers instead (the stall's <c>pan</c>: <c>give_bread</c>, so a request for bread gets the bread and no refusal).</param>
+/// <param name="Procedure">For <see cref="NpcEffectKind.TeachRecipe"/> and <see cref="NpcEffectKind.StartProcedure"/> (W08): the procedure's id, or empty for the one the NPC teaches (so a bundle with no procedure can map the event and nothing happens).</param>
+/// <param name="Prices">For <see cref="NpcEffectKind.Sell"/> and <see cref="NpcEffectKind.Buy"/> (W04, a price list): the price of one item in coins, by the catalogue noun the learner names in the <see cref="ItemSlot"/> slot (<c>pan</c>: 2, <c>harina</c>: 1); then <see cref="Item"/> and <see cref="Price"/> are unused and <see cref="For"/> gives the fixed effect of the item named. <see langword="null"/>: the one item and price of the entry.</param>
 /// <param name="Asked">For <see cref="NpcEffectKind.GiveItem"/> (V21): the catalogue nouns whose request the NPC answers with the gift (the stall's <c>agua</c> and <c>botella</c>, the villager's <c>pan</c>); a request for another noun is a miss, <c>&lt;npc&gt;.wont_sell</c>. <see langword="null"/>: the gift is not conditioned on the request.</param>
 public sealed record NpcEffect(
     NpcEffectKind Kind,
@@ -69,7 +92,9 @@ public sealed record NpcEffect(
     string Slot = "",
     int Price = 0,
     IReadOnlyList<string>? Asked = null,
-    IReadOnlyDictionary<string, string>? Instead = null)
+    IReadOnlyDictionary<string, string>? Instead = null,
+    string Procedure = "",
+    IReadOnlyDictionary<string, int>? Prices = null)
 {
     /// <summary>The verdict's slot of a number the learner said (<c>quiero dos panes</c>: <c>2</c>), the core's <c>[NUM:qty]</c>.</summary>
     public const string QuantitySlot = "qty";
@@ -107,6 +132,36 @@ public sealed record NpcEffect(
 
     /// <summary>The effect that buys <paramref name="item"/> from the learner at <paramref name="price"/> coins each (village-plan V15).</summary>
     public static NpcEffect BuyAt(ItemId item, int price) => new(NpcEffectKind.Buy, item, Price: price);
+
+    /// <summary>The effect that sells whatever <paramref name="prices"/> lists, by the noun the learner names (W04): each noun at its own price in coins.</summary>
+    public static NpcEffect SellList(IReadOnlyDictionary<string, int> prices) => new(NpcEffectKind.Sell, Prices: prices);
+
+    /// <summary>The effect that buys whatever <paramref name="prices"/> lists, by the noun the learner names (W04): each noun at its own price in coins.</summary>
+    public static NpcEffect BuyList(IReadOnlyDictionary<string, int> prices) => new(NpcEffectKind.Buy, Prices: prices);
+
+    /// <summary>
+    /// The fixed effect a price list comes to for a noun (W04): the item the noun names (its first) at the noun's price, or <see langword="null"/> when this effect has no price
+    /// list, the noun is not on it or names no item.
+    /// </summary>
+    /// <param name="noun">The catalogue noun the learner named.</param>
+    public NpcEffect? Priced(NounEntry noun)
+    {
+        ArgumentNullException.ThrowIfNull(noun);
+        return Prices is not null && Prices.TryGetValue(noun.Lemma, out var price) && noun.Items.Count > 0 ? this with { Item = noun.Items[0], Price = price, Prices = null } : null;
+    }
+
+    /// <summary>
+    /// The effect to carry out for a verdict (W04): this one when it has no price list, else the fixed effect of the noun the item slot names (<see cref="Priced"/>), or this
+    /// one when the line names none on the list (then <see cref="ExchangeMiss"/> answers <c>wont_sell</c> or <c>wont_buy</c> and nothing is carried out).
+    /// </summary>
+    /// <param name="slots">The verdict's slots.</param>
+    /// <param name="nouns">The noun catalogue.</param>
+    public NpcEffect For(IReadOnlyDictionary<string, string> slots, NounCatalog nouns)
+    {
+        ArgumentNullException.ThrowIfNull(slots);
+        ArgumentNullException.ThrowIfNull(nouns);
+        return Prices is null ? this : slots.TryGetValue(ItemSlot, out var word) && nouns.ForLemma(word) is { } noun && Priced(noun) is { } fixedEffect ? fixedEffect : this;
+    }
 
     /// <summary>
     /// The verdict's slots as the host's effects read them (V15b): an indefinite article before the item (<c>vendo un bloque de madera</c>, <c>vendo una fruta</c>) counts
@@ -199,9 +254,18 @@ public sealed record NpcEffect(
         ArgumentNullException.ThrowIfNull(slots);
         ArgumentNullException.ThrowIfNull(nouns);
         bag ??= new Inventory();
+        if (Prices is not null)
+        {
+            // W04: a price list sells or buys what the line names when it is listed; any other item, and a line that names none, is the same refusal as another item at a fixed entry
+            var listed = For(slots, nouns);
+            return ReferenceEquals(listed, this) ? (Kind == NpcEffectKind.Sell ? NpcHostEvents.WontSell : NpcHostEvents.WontBuy) : listed.ExchangeMiss(slots, bag, nouns);
+        }
+
         if (Kind == NpcEffectKind.GiveItem && Asked is not null)
         {
-            if (ItemSaidIn(slots, nouns))
+            // W04b: a word the catalogue does not know (an espada) is an item the NPC has not got, as a catalogue noun it does not give is; only a line that names no item at all is given the gift
+            var unknown = slots.TryGetValue(ItemSlot, out var said) && !string.IsNullOrEmpty(said) && nouns.ForLemma(said) is null;
+            if (!unknown && ItemSaidIn(slots, nouns))
             {
                 return null;
             }
@@ -233,6 +297,35 @@ public sealed record NpcEffect(
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// What the world cannot do of a gift for a verdict (N06): <see cref="ExchangeMiss"/>'s answer when it has one, else <see cref="NpcHostEvents.GiftUsed"/> when today's gift
+    /// of this item by <paramref name="npc"/> is given already, and <see langword="null"/> when the gift can be made. The stall's bread asked for in place of the bottle
+    /// (<see cref="Instead"/>) is the bread's gift too. Only gifts (<see cref="NpcEffectKind.GiveItem"/>) are judged here; any other effect answers as <see cref="ExchangeMiss"/>.
+    /// </summary>
+    /// <param name="npc">The agent id of the NPC that gives.</param>
+    /// <param name="slots">The verdict's slots, counted (<see cref="CountedSlots"/>).</param>
+    /// <param name="bag">The bag, or <see langword="null"/> for none.</param>
+    /// <param name="nouns">The noun catalogue.</param>
+    /// <param name="closedGifts">The keys (<see cref="Needs.GiftRule.Key"/>) of the gifts that are not to be given now, or <see langword="null"/> for none.</param>
+    public string? GiftMiss(string npc, IReadOnlyDictionary<string, string> slots, Inventory? bag, NounCatalog nouns, IReadOnlySet<string>? closedGifts)
+    {
+        ArgumentNullException.ThrowIfNull(slots);
+        ArgumentNullException.ThrowIfNull(nouns);
+        var miss = ExchangeMiss(slots, bag, nouns);
+        if (Kind != NpcEffectKind.GiveItem || closedGifts is not { Count: > 0 })
+        {
+            return miss;
+        }
+
+        if (miss is null)
+        {
+            return closedGifts.Contains(Needs.GiftRule.KeyOf(npc, ItemDefinition.Get(Item).Name)) ? NpcHostEvents.GiftUsed : null;
+        }
+
+        var instead = Instead is not null && Instead.Values.Contains(miss) && slots.TryGetValue(ItemSlot, out var word) && word is not null ? nouns.ForLemma(word) : null;
+        return instead is not null && instead.Items.Any(item => closedGifts.Contains(Needs.GiftRule.KeyOf(npc, ItemDefinition.Get(item).Name))) ? NpcHostEvents.GiftUsed : miss;
     }
 
     /// <summary>
@@ -293,6 +386,12 @@ public static class NpcHostEvents
     public const string GuideGiveWater = "guide.give_water";
 
     /// <summary>
+    /// What an NPC answers when its gift is given already today (N06, <c>gifts</c> in <c>game/needs.json</c>): the host event <c>&lt;npc&gt;.gift_used</c>, raised to its agent as a
+    /// host turn (<see cref="Of"/>) in place of the gift, which is then not made. A lesson step that requires the gift is never answered so.
+    /// </summary>
+    public const string GiftUsed = "gift_used";
+
+    /// <summary>
     /// What an NPC is asked to answer when its directions name a place the scene does not have (village-plan V02, <see cref="NpcEffectKind.PointAtSlot"/>): the host
     /// event <c>&lt;npc&gt;.unknown_place</c>, raised to its agent as a host turn (<see cref="Of"/>).
     /// </summary>
@@ -333,6 +432,27 @@ public static class NpcHostEvents
     /// raised as the opening of the talk; its thanks are the NPC's own line and its reward is that line's host event (a <c>give_item</c>).
     /// </summary>
     public const string Delivered = "delivered";
+
+    /// <summary>What an NPC is asked to answer when the learner asks it for the ingredients and the run lacks none (W08, <see cref="NpcEffectKind.GiveMissing"/>): <c>&lt;npc&gt;.nothing_missing</c>.</summary>
+    public const string NothingMissing = "nothing_missing";
+
+    /// <summary>The host turn that puts a teacher in its <c>teaching</c> state when a procedure with it as teacher starts at a station (W08, design 10.14): <c>&lt;npc&gt;.teach_start</c>.</summary>
+    public const string TeachStart = "teach_start";
+
+    /// <summary>The host turn that takes a teacher out of its <c>teaching</c> state when the procedure ends or the learner leaves the station (W08): <c>&lt;npc&gt;.teach_end</c>.</summary>
+    public const string TeachEnd = "teach_end";
+
+    /// <summary>The host event of a teacher's offer to bake when the talk opens (W08, design 10.14): <c>&lt;npc&gt;.offer_bake</c>.</summary>
+    public const string OfferBake = "offer_bake";
+
+    /// <summary>The host event of a teacher's offer to bake as the answer to «¿cómo hago pan?» (W08): <c>&lt;npc&gt;.offer_craft</c>; its action teaches the recipe.</summary>
+    public const string OfferCraft = "offer_craft";
+
+    /// <summary>The state of an NPC's agent file in which it waits for a yes or a no to its offer to bake (W08).</summary>
+    public const string OfferingState = "offering_bake";
+
+    /// <summary>The state of an NPC's agent file in which it listens at the teaching prompt (W08).</summary>
+    public const string TeachingState = "teaching";
 
     /// <summary>The host event <paramref name="what"/> of an NPC: <c>villager.unknown_place</c>.</summary>
     /// <param name="npc">The NPC's agent id.</param>

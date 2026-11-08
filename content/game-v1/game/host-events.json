@@ -1,7 +1,7 @@
 {
   "$schema": "../../schema/host-events.schema.json",
   "schemaVersion": 2,
-  "about": "What each NPC host event does in the world (S6; C08: it was a table in the code; schema 2, VILLAGE_PLAN V02). The core's agents raise the events; an event not listed changes nothing. action is give_item (an item by its stable name, and a count: a number, or qty for the number the learner said, capped at 5), point_at_noun (the beacon goes to the nearest block of a catalogue noun), point_at_place (to a named place of the scene) point_at_slot (to the place a slot of the learner's line names, through the scene's labels: villager.point answers \"¿dónde está el río?\" and any other place; a place the scene does not have is answered by <npc>.unknown_place), take_item, sell (a purchase: the learner pays the price for each item asked for, no cap; another item is answered by <npc>.wont_sell, none asked for by <npc>.none_asked, too few coins by <npc>.cant_pay, a full bag by <npc>.no_room) or buy (VILLAGE_PLAN V15, the sale turned round: the NPC pays the price for each item the learner sells; none in the bag is answered by <npc>.cant_sell, another item by <npc>.wont_buy, none offered by <npc>.none_offered, a full bag by <npc>.no_room).",
+  "about": "What each NPC host event does in the world (S6; C08: it was a table in the code; schema 2, VILLAGE_PLAN V02). The core's agents raise the events; an event not listed changes nothing. action is give_item (an item by its stable name, and a count: a number, or qty for the number the learner said, capped at 5), point_at_noun (the beacon goes to the nearest block of a catalogue noun), point_at_place (to a named place of the scene) point_at_slot (to the place a slot of the learner's line names, through the scene's labels: villager.point answers \"¿dónde está el río?\" and any other place; a place the scene does not have is answered by <npc>.unknown_place), take_item, sell (a purchase: the learner pays the price for each item asked for, no cap; another item is answered by <npc>.wont_sell, none asked for by <npc>.none_asked, too few coins by <npc>.cant_pay, a full bag by <npc>.no_room) or buy (VILLAGE_PLAN V15, the sale turned round: the NPC pays the price for each item the learner sells; none in the bag is answered by <npc>.cant_sell, another item by <npc>.wont_buy, none offered by <npc>.none_offered, a full bag by <npc>.no_room). W08, the teacher at a station: procedure_repeat, procedure_slower and procedure_help do what the Repetir, Más despacio and Ayuda buttons do; give_missing gives the ingredients the run lacks (always for the first bake, then once per in-game day; the agent answers <npc>.nothing_missing, <npc>.gift_used or <npc>.no_room when nothing is given); teach_recipe adds a procedure to the learner's known list and start_procedure opens the station for one (both: the procedure the NPC teaches when none is named, and nothing when it teaches none).",
   "events": [
     {
       "npc": "shopkeeper",
@@ -10,7 +10,7 @@
         "kind": "give_item",
         "item": "bottle",
         "asked": ["agua", "botella"],
-        "instead": { "pan": "give_bread" }
+        "instead": { "pan": "give_bread", "harina": "sell_flour" }
       }
     },
     {
@@ -19,6 +19,24 @@
       "action": {
         "kind": "give_item",
         "item": "bread"
+      }
+    },
+    {
+      "npc": "shopkeeper",
+      "event": "stall.sell_flour",
+      "action": {
+        "kind": "sell",
+        "slot": "item",
+        "prices": { "harina": 1 }
+      }
+    },
+    {
+      "npc": "shopkeeper",
+      "event": "stall.buy_bread",
+      "action": {
+        "kind": "buy",
+        "item": "bread",
+        "price": 1
       }
     },
     {
@@ -141,6 +159,12 @@
         "kind": "give_item",
         "item": "water-bottle"
       }
-    }
+    },
+    { "npc": "baker", "event": "baker.proc_repeat", "action": { "kind": "procedure_repeat" } },
+    { "npc": "baker", "event": "baker.proc_slower", "action": { "kind": "procedure_slower" } },
+    { "npc": "baker", "event": "baker.proc_help", "action": { "kind": "procedure_help" } },
+    { "npc": "baker", "event": "baker.give_missing", "action": { "kind": "give_missing" } },
+    { "npc": "baker", "event": "baker.teach_recipe", "action": { "kind": "teach_recipe" } },
+    { "npc": "baker", "event": "baker.start_bake", "action": { "kind": "start_procedure" } }
   ]
 }

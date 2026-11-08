@@ -20,6 +20,18 @@
       "dialects": ["es-MX", "es-CO", "es-AR"]
     },
     {
+      "answerId": "flour",
+      "canonical": "quiero harina por favor",
+      "aliases": ["quiero harina", "quiero la harina", "necesito harina", "harina por favor", "me da harina", "me das harina"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "sell-bread",
+      "canonical": "vendo pan",
+      "aliases": ["yo vendo pan", "te vendo pan", "le vendo pan", "vendo un pan", "vendo dos panes"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
       "answerId": "help",
       "canonical": "ayuda",
       "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar"],

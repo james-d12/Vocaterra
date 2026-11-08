@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Graphics;
@@ -227,5 +228,102 @@ public sealed class VoxelLaunchOptionsTests
     public void AnUnknownArgumentIsNamed()
     {
         Assert.Equal("Unknown argument '--nope'.", Refuse("--nope"));
+    }
+
+    [Theory]
+    [InlineData("0.5", 0.5)]
+    [InlineData("1", 1.0)]
+    [InlineData("2.75", 2.75)]
+    [InlineData("4", 4.0)]
+    public void TheNeedsRateFlagTakesAStepOfAQuarterFromHalfToFour(string text, double expected)
+    {
+        Assert.Null(Parse().NeedsRate);
+        Assert.Equal(expected, Parse("--needs-rate", text).NeedsRate);
+    }
+
+    [Theory]
+    [InlineData("0.25")]
+    [InlineData("4.5")]
+    [InlineData("1.3")]
+    [InlineData("fast")]
+    [InlineData("NaN")]
+    public void TheNeedsRateFlagRefusesAValueOutOfRangeOrOffAStep(string text)
+    {
+        Assert.Contains("--needs-rate", Refuse("--needs-rate", text), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TheNeedsAreOnByDefaultAndNeedsOffFreezesThem()
+    {
+        Assert.False(Parse().NeedsOff);
+        Assert.False(Parse("--needs", "on").NeedsOff);
+        Assert.True(Parse("--needs", "off").NeedsOff);
+        Assert.Contains("--needs", Refuse("--needs", "maybe"), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SetNeedIsRepeatableAndKeepsTheOrderGiven()
+    {
+        var options = Parse("--set-need", "thirst", "30", "--seed", "7", "--set-need", "Hunger", "12.5");
+
+        Assert.Equal([(NeedMeter.Thirst, 30.0), (NeedMeter.Hunger, 12.5)], options.SetNeeds.ToArray());
+        Assert.Empty(Parse().SetNeeds);
+    }
+
+    [Theory]
+    [InlineData("--set-need")]
+    [InlineData("--set-need", "thirst")]
+    [InlineData("--set-need", "courage", "5")]
+    [InlineData("--set-need", "thirst", "101")]
+    [InlineData("--set-need", "thirst", "-1")]
+    [InlineData("--set-need", "thirst", "many")]
+    [InlineData("--set-need", "1", "5")]
+    public void ABadSetNeedIsRefused(params string[] args) => Assert.Contains("--set-need", Refuse(args), StringComparison.Ordinal);
+
+    [Fact]
+    public void TheHelpTextListsTheNeedsFlags()
+    {
+        Assert.Contains("--needs on|off", LaunchOptions.Usage, StringComparison.Ordinal);
+        Assert.Contains("--set-need", LaunchOptions.Usage, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TheEatAndDrinkStepsAreStepsOfTheScriptAndNeedTheScriptScreenshot()
+    {
+        var options = Parse("--screenshot", "a.png", "--set-need", "hunger", "40", "--eat", "pan", "--drink", "--shot", "b.png");
+
+        Assert.Equal([ScriptStepKind.Eat, ScriptStepKind.Drink, ScriptStepKind.Shot], options.Script.Select(static step => step.Kind).ToArray());
+        Assert.Equal("pan", options.Script[0].Value);
+        Assert.Contains("--screenshot", Refuse("--drink"), StringComparison.Ordinal);
+        Assert.Contains("--eat", Refuse("--screenshot", "a.png", "--eat", " "), StringComparison.Ordinal);
+        Assert.Contains("--eat <item>", LaunchOptions.Usage, StringComparison.Ordinal);
+        Assert.Contains("--drink", LaunchOptions.Usage, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TheNeedAndTakeBelongingsStepsAreStepsOfTheScriptAndNeedTheScriptScreenshot()
+    {
+        var options = Parse("--screenshot", "a.png", "--need", "thirst", "51", "--take-belongings", "--shot", "b.png");
+
+        Assert.Equal([ScriptStepKind.SetNeed, ScriptStepKind.TakeBelongings, ScriptStepKind.Shot], options.Script.Select(static step => step.Kind).ToArray());
+        Assert.Equal("thirst 51", options.Script[0].Value);
+        Assert.Contains("--screenshot", Refuse("--take-belongings"), StringComparison.Ordinal);
+        Assert.Contains("--need", Refuse("--screenshot", "a.png", "--need", "thirst", "101"), StringComparison.Ordinal);
+        Assert.Contains("--need", Refuse("--screenshot", "a.png", "--need", "hunger"), StringComparison.Ordinal);
+        Assert.Contains("--need <need>", LaunchOptions.Usage, StringComparison.Ordinal);
+        Assert.Contains("--take-belongings", LaunchOptions.Usage, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AScriptedRunTimesItsTurnsWithNoClockSoItsLatencyLabelsDoNotMove()
+    {
+        // T8: r30's declined.png moved with the turn's wall time (the dialogue note's "10.0 ms"); a scripted run has no clock, so its turns report zero.
+        var scripted = Parse("--screenshot", "a.png", "--wait", "1");
+        Assert.True(scripted.IsScreenshotRun && scripted.Script.Count > 0);
+        Assert.Null(scripted.TurnClock);
+
+        var play = Parse("--seed", "7");
+        Assert.NotNull(play.TurnClock);
+        Assert.True(play.TurnClock!() >= 0);
     }
 }

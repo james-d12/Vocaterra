@@ -1,0 +1,545 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/needs.json",
+  "description": "The player's needs: the three drives, health and stamina, their stages and links, food, and the rules of a night, a collapse and a death. Loaded by NeedsData (Vocaterra.Game.Core). The regrowth and gift rules (N06) are optional parts; later milestones add more (a roast apple, the repeated-death rules) without a break: every part they add is optional here.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "drives",
+    "health",
+    "stamina",
+    "rest",
+    "night",
+    "collapse",
+    "drinkByHand",
+    "foods",
+    "death"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "enum": [
+        1
+      ]
+    },
+    "about": {
+      "type": "string"
+    },
+    "drives": {
+      "type": "object",
+      "required": [
+        "hunger",
+        "thirst",
+        "sleep"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "hunger": {
+          "$ref": "#/definitions/drive"
+        },
+        "thirst": {
+          "$ref": "#/definitions/drive"
+        },
+        "sleep": {
+          "$ref": "#/definitions/drive"
+        }
+      }
+    },
+    "health": {
+      "type": "object",
+      "required": [
+        "detail",
+        "recoverySeconds",
+        "warnings"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "detail": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The need_stage event's detail for health."
+        },
+        "recoverySeconds": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Seconds of active play for 1 health to come back while no drive is at stage 3 or 4."
+        },
+        "warnings": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/stage"
+          },
+          "description": "Health's warning stages, in order, each below its point."
+        }
+      }
+    },
+    "stamina": {
+      "type": "object",
+      "required": [
+        "maximum",
+        "minimumMaximum",
+        "refillPerSecond",
+        "refillDelaySeconds",
+        "minimumRefillFactor",
+        "sprintPerSecond",
+        "gatherPerTick"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "maximum": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "minimumMaximum": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "refillPerSecond": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "refillDelaySeconds": {
+          "type": "number",
+          "minimum": 0
+        },
+        "minimumRefillFactor": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "description": "The refill factor never falls below this (a quarter)."
+        },
+        "sprintPerSecond": {
+          "type": "number",
+          "minimum": 0
+        },
+        "gatherPerTick": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Stamina spent per gather tick (60 ticks a second); the axe needs a quarter of the ticks, so it costs a quarter."
+        },
+        "sprintSpeedFactor": {
+          "type": "number",
+          "exclusiveMinimum": 1,
+          "description": "Sprinting walks this many times as fast as walking (N02; 1.6 when absent)."
+        },
+        "gatherSlowFactor": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "description": "Gathering at zero stamina goes at this fraction of its speed, never stopping (N02; 0.5 when absent)."
+        }
+      }
+    },
+    "rest": {
+      "type": "object",
+      "required": [
+        "radiusBlocks",
+        "refillFactor",
+        "recoveryFactor"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "radiusBlocks": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "refillFactor": {
+          "type": "number",
+          "minimum": 1
+        },
+        "recoveryFactor": {
+          "type": "number",
+          "minimum": 1
+        }
+      }
+    },
+    "night": {
+      "$ref": "#/definitions/sleepChange"
+    },
+    "collapse": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/sleepChange"
+        },
+        {
+          "required": [
+            "delaySeconds"
+          ]
+        }
+      ]
+    },
+    "drinkByHand": {
+      "type": "object",
+      "required": [
+        "thirst"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "thirst": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "foods": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "item"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "item": {
+            "type": "string",
+            "minLength": 1,
+            "description": "An item's key (berry, apple, bread, water-bottle)."
+          },
+          "hunger": {
+            "type": "number",
+            "minimum": 0
+          },
+          "thirst": {
+            "type": "number",
+            "minimum": 0
+          },
+          "healing": {
+            "type": "number",
+            "minimum": 0
+          },
+          "leaves": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The item left in the bag (the empty bottle)."
+          }
+        }
+      }
+    },
+    "regrowth": {
+      "type": "array",
+      "description": "N06: the blocks that grow back. A block the player gathered by hand is the block it became (a berry bush, a plain bush) until the next night grows it back.",
+      "items": {
+        "type": "object",
+        "required": [
+          "block",
+          "after"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "block": {
+            "type": "string",
+            "minLength": 1,
+            "description": "A block's name that the player gathers (berry-bush). The validator refuses a name that is not a block, or that cannot be gathered."
+          },
+          "after": {
+            "type": "string",
+            "enum": [
+              "night"
+            ],
+            "description": "When it grows back: after a night (a sleep or a collapse)."
+          }
+        }
+      }
+    },
+    "planting": {
+      "type": "object",
+      "description": "N08 (design decision 14): the berry the player plants at the camp. Planted on grass or dirt inside the radius of the camp's fire ring, the cell becomes the block at once (a plain bush, recorded as picked) and the grown block after the next night, through the regrowth rule. Optional; the validator refuses an unknown item or block, a grown block with no regrowth rule, and a radius or count of 0 or less.",
+      "required": [
+        "item",
+        "block",
+        "grownBlock",
+        "radiusBlocks",
+        "maxBushes"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "item": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The item planted (berry)."
+        },
+        "block": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The block the planted cell becomes at once (bush, a plain bush)."
+        },
+        "grownBlock": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The block it grows into after a night (berry-bush); it needs a regrowth rule."
+        },
+        "radiusBlocks": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "How far from the camp's fire ring, horizontally, in blocks (8)."
+        },
+        "maxBushes": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "The most planted bushes alive at once (6)."
+        }
+      }
+    },
+    "gifts": {
+      "type": "array",
+      "description": "N06: the gifts an NPC gives once per in-game day. The NPC's host event in host-events.json that gives the item is the gift; a night makes it available again; a gift a lesson step requires is always given. The NPC's agent takes <npc>.gift_used to say it is given today.",
+      "items": {
+        "type": "object",
+        "required": [
+          "npc",
+          "item",
+          "per"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "npc": {
+            "type": "string",
+            "minLength": 1,
+            "description": "An NPC's agent id (shopkeeper, villager, guide). The validator refuses an NPC the bundle does not have."
+          },
+          "item": {
+            "type": "string",
+            "minLength": 1,
+            "description": "An item's key (bread, water-bottle). The validator refuses an item that does not exist, or that the NPC does not give."
+          },
+          "per": {
+            "type": "string",
+            "enum": [
+              "day"
+            ],
+            "description": "How often: once per in-game day."
+          }
+        }
+      }
+    },
+    "death": {
+      "type": "object",
+      "required": [
+        "wakeAt",
+        "wake",
+        "keepInBag",
+        "chestLastsUntil"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "wakeAt": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The scene point the player wakes at."
+        },
+        "wake": {
+          "type": "object",
+          "required": [
+            "health",
+            "hunger",
+            "thirst",
+            "sleep"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "health": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "hunger": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "thirst": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "sleep": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            }
+          }
+        },
+        "keepInBag": {
+          "enum": [
+            "stacksOfOne"
+          ],
+          "description": "What stays in the bag: the items that stack to 1. The rest is left in a chest."
+        },
+        "chestLastsUntil": {
+          "enum": [
+            "night"
+          ],
+          "description": "When the chest goes."
+        }
+      }
+    }
+  },
+  "definitions": {
+    "drive": {
+      "type": "object",
+      "required": [
+        "detail",
+        "secondsPerPoint",
+        "effort",
+        "stages"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "detail": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The need_stage event's detail (hambre, sed, sueño)."
+        },
+        "secondsPerPoint": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Seconds of active play for the meter to fall by 1."
+        },
+        "effort": {
+          "type": "object",
+          "required": [
+            "sprinting",
+            "gathering"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "sprinting": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "gathering": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "description": "The factor the meter falls faster by while sprinting or gathering."
+        },
+        "stages": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "$ref": "#/definitions/stage"
+          },
+          "description": "Stages 1 to 4, in order: stages 1 to 3 apply below their point, stage 4 at its point (0)."
+        }
+      }
+    },
+    "stage": {
+      "type": "object",
+      "required": [
+        "point",
+        "line",
+        "effects"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "point": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "line": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The key of the stage's line (its text is the HUD's, N05)."
+        },
+        "effects": {
+          "$ref": "#/definitions/effects"
+        }
+      }
+    },
+    "effects": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "What a stage does; each stage replaces the previous stage's effects. An absent field is the neutral value.",
+      "properties": {
+        "staminaPenalty": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Taken off stamina's maximum; the penalties of the three drives add."
+        },
+        "refillFactor": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "description": "Stamina's refill factor; the three drives' factors multiply."
+        },
+        "walkFactor": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "description": "The walking speed factor; the slowest in force applies (never multiplied)."
+        },
+        "sprintAllowed": {
+          "type": "boolean"
+        },
+        "healthLoss": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Health lost every healthLossEverySeconds; the losses of the drives add."
+        },
+        "healthLossEverySeconds": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "blocksRecovery": {
+          "type": "boolean",
+          "description": "Health does not recover while a drive has this on."
+        },
+        "view": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The name of a view effect (dimEdges, blink, heartPulse, redEdges), drawn by the HUD (N05)."
+        }
+      }
+    },
+    "sleepChange": {
+      "type": "object",
+      "required": [
+        "sleepTo",
+        "health",
+        "hungerCost",
+        "thirstCost",
+        "floor"
+      ],
+      "properties": {
+        "sleepTo": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "health": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Health added, up to 100."
+        },
+        "hungerCost": {
+          "type": "number",
+          "minimum": 0
+        },
+        "thirstCost": {
+          "type": "number",
+          "minimum": 0
+        },
+        "floor": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "A drive is never lowered below this; a drive already below it is left where it is."
+        },
+        "delaySeconds": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "A collapse only: seconds of active play at the sleep drive's last stage before it."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

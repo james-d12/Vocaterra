@@ -5,6 +5,8 @@
 #
 #   scripts/scripted-runs.sh OUT [name...]     (no names: every run; run from the repository root after a build)
 #
+# Every run but the playtest passes --dev (U01), so its captures keep the overlay and the developer note they were recorded with.
+# Every run passes --needs off (N01): the player's needs are frozen full, so the runs keep their baselines (no run plays the ten minutes a need takes to show).
 # GAME_BIN overrides the game binary (another worktree's build); VOCATERRA_RUNS_WORK the work folder.
 set -uo pipefail
 OUT="$1"; shift
@@ -25,7 +27,9 @@ run() {
   if [ "${#ONLY[@]}" -gt 0 ] && [[ ! " ${ONLY[*]} " == *" $name "* ]]; then return; fi
   rm -rf "$W"; mkdir -p "$W"
   local started=$SECONDS
-  scripts/limited.sh "$BIN" --session-dir "$W/session" "$@" > "$W/stdout.txt" 2>&1
+  local dev=(--dev) # U01: the runs read the debug overlay and the dialogue's developer note, which ordinary play now starts without; a playtest stays clean
+  [ "$name" = "r10-playtest" ] && dev=()
+  scripts/limited.sh "$BIN" --session-dir "$W/session" --needs off "${dev[@]}" "$@" > "$W/stdout.txt" 2>&1
   local code=$?
   echo "$code" > "$W/exit.txt"
   rm -rf "${OUT:?}/$name"; cp -r "$W" "$OUT/$name"
@@ -55,3 +59,8 @@ run r21-skip --seed 42 --mute --skip-to-session 4 --wait 1 --shot "$W/beacon.png
 run r22-market --seed 42 --mute --skip-to-session 10 --teleport 309,216 --interact 311,38,214 --interact 311,39,214 --interact 311,40,214 --interact 311,38,218 --shot "$W/before.png" --talk smith --say "vendo madera" --leave --shot "$W/sold.png" --talk baker --say "quiero dos panes, por favor" --leave --shot "$W/bought.png" --talk farmer --say "¿cuánto es todo?" --shot "$W/total.png" --leave --inventory --screenshot "$W/shot.png" --frames 30 --save "$W/game.save"
 run r23-future --seed 42 --mute --skip-to-session 9 --lesson-run manana-en-el-pueblo --talk baker --say "mañana compraré pan" --shot "$W/reply.png" --leave --book-verb comprar --screenshot "$W/shot.png" --frames 30
 run r24-followups --seed 42 --mute --skip-to-session 10 --talk baker --say "mañana compraré pan" --shot "$W/future.png" --leave --talk shopkeeper --say "quiero madera" --shot "$W/stall.png" --leave --talk baker --say "ayer compre pan" --shot "$W/accent.png" --leave --screenshot "$W/shot.png" --frames 30 --save "$W/game.save"
+run r25-thirst --seed 42 --mute --needs on --need thirst 75.5 --wait 15 --need thirst 50.5 --wait 15 --need thirst 25.5 --wait 15 --need thirst 0.5 --wait 15 --teleport 234,222 --look 270,-70 --wait 1 --drink --eat agua --screenshot "$W/shot.png" --frames 30
+run r26-death --seed 42 --mute --needs on --skip-to-session 10 --need sleep 0 --wait 62 --need thirst 0 --need health 5 --wait 22 --walk-to 155,112 --look 180,-20 --wait 1 --take-belongings --screenshot "$W/shot.png" --frames 30 --save "$W/game.save"
+run r27-bread --seed 42 --mute --skip-to-session 10 --talk baker --shot "$W/offer.png" --say "Sí, por favor." --station-say "Quiero madera." --shot "$W/first.png" --act mano,horno,sacar --shot "$W/early.png" --act harina,bol --act agua,bol --shot "$W/bowl.png" --act harina,horno --shot "$W/wrong.png" --act cuchara,bol,mezclar --act madera,horno --act masa,horno --shot "$W/oven.png" --act mano,horno,sacar --shot "$W/done.png" --leave --inventory --screenshot "$W/shot.png" --frames 30 --save "$W/game.save"
+run r30-no-classes --seed 42 --mute --lesson-run first-words "${CAMP[@]}" --teleport 283,211 --talk shopkeeper --wait 3 --leave --talk shopkeeper --leave --teleport 234,222 --interact 233,34,222 --teleport 153,109 --look 330,-12 --place antorcha@153,74,105 --wait 1 --shot "$W/ending.png" --sleep --talk villager --shot "$W/offer.png" --say "No, gracias." --say "¿dónde está el río?" --shot "$W/declined.png" --leave --talk shopkeeper --say "quiero agua, por favor" --leave --sleep --teleport 309,216 --interact 311,38,214 --interact 311,39,214 --interact 311,40,214 --interact 311,38,218 --interact 311,39,218 --talk baker --shot "$W/paid.png" --say "quiero dos panes, por favor" --leave --inventory --book-page lessons --screenshot "$W/shot.png" --frames 30 --save "$W/game.save"
+run r31-lake --seed 42 --mute --teleport 212,256 --look 180,-10 --walk-to 212,284 --walk-to 212,268 --look 0,0 --shot "$W/water.png" --walk-to 212,262 --look 180,-14 --shot "$W/land.png" --look 0,-8 --shot "$W/land-north.png" --screenshot "$W/shot.png" --frames 30

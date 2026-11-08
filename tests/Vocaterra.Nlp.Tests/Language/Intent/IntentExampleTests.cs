@@ -70,7 +70,7 @@ public class IntentExampleTests
     [Fact]
     public void LintWaiversAreSortedDistinctAndExposed()
     {
-        var intent = IntentCatalog.Load(Single("\"intentId\":\"a\",\"lint\":{\"allowOverlap\":[\"thank\",\"ask\",\"thank\"]}")).Intents[0];
+        var intent = IntentCatalog.Load(Single("\"intentId\":\"a\",\"examples\":[\"hola\"],\"lint\":{\"allowOverlap\":[\"thank\",\"ask\",\"thank\"]}")).Intents[0];
 
         Assert.Equal(["ask", "thank"], intent.Lint.AllowOverlap);
         Assert.Null(intent.Lint.AllowRuleOnly);

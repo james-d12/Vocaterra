@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Vocaterra.Game.Core.Activities;
 using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Items.Crafting;
@@ -8,6 +9,7 @@ using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Navigation;
+using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
@@ -67,6 +69,9 @@ public sealed class FrameView
     /// <summary>The crafting panel's state (C, or E at the workbench).</summary>
     public required CraftingScreen Crafting { get; init; }
 
+    /// <summary>The station overlay (W07, E at the oven), or <see langword="null"/> when this view has none.</summary>
+    public StationPanel? Station { get; init; }
+
     /// <summary>The first-person camera of this frame.</summary>
     public required FirstPersonCamera Camera3D { get; init; }
 
@@ -91,8 +96,14 @@ public sealed class FrameView
     /// <summary>Whether the first-time tips are drawn (S16): an interactive run shows them, a scripted run only when asked.</summary>
     public bool ShowTips { get; set; }
 
+    /// <summary>The bottom of the debug overlay this frame, or 0 when it is not drawn (U01): the tip box stands under it.</summary>
+    public int DebugOverlayBottom { get; set; }
+
     /// <summary>The lesson strip's box this frame, or <see langword="null"/> (S22): it stands above the dialogue panel, and the conversation layout keeps the cards clear of it.</summary>
     public PixelBox? LessonStripBox { get; set; }
+
+    /// <summary>The heading of the lesson step or offer in play (<c>Lesson · First words · step 1 of 7 · Say it</c>), or <see langword="null"/> (U02): the dialogue panel's header shows it.</summary>
+    public LessonHeading? LessonHeading { get; set; }
 
     /// <summary>Whether <c>--greyscale</c> is on (S22): the book draws the icon of a noun that is not known yet in grey, as the world draws its block.</summary>
     public bool Greyscale { get; init; }
@@ -105,6 +116,24 @@ public sealed class FrameView
 
     /// <summary>The bug and feature report panel (S21), or <see langword="null"/> when the view has none.</summary>
     public ReportPanel? Report { get; set; }
+
+    /// <summary>Whether the settings panel (F8, N09) is open.</summary>
+    public bool SettingsOpen { get; set; }
+
+    /// <summary>The settings panel's chosen row.</summary>
+    public int SettingsSelected { get; set; }
+
+    /// <summary>The drive rate the settings panel shows.</summary>
+    public double SettingsRate { get; set; } = 1;
+
+    /// <summary>Whether the settings panel shows the view effects on.</summary>
+    public bool SettingsEffectsOn { get; set; }
+
+    /// <summary>Whether the settings panel shows the relaxed needs on.</summary>
+    public bool SettingsRelaxed { get; set; }
+
+    /// <summary>The underwater blur level the settings screen shows (water-plan H11).</summary>
+    public Core.Water.UnderwaterBlur SettingsBlur { get; set; } = Core.Water.UnderwaterBlurSettings.Default;
 
     /// <summary>Whether the controls help (F1, S16) is open.</summary>
     public bool ControlsOpen { get; set; }
@@ -129,6 +158,15 @@ public sealed class FrameView
 
     /// <summary>The closing card's line offering the sleep for this frame (V12c: <c>Enter: sleep until morning and start session 2</c>), or <see langword="null"/>.</summary>
     public string? EndingSleep { get; set; }
+
+    /// <summary>How black the world is for this frame, 0 (clear) to 1 (black): the fade of a collapse (N03).</summary>
+    public float FadeAlpha { get; set; }
+
+    /// <summary>What the HUD shows of the player's needs (N05), or <see langword="null"/> when this view has none.</summary>
+    public NeedsHud? Needs { get; set; }
+
+    /// <summary>The short screen after a death or a faint (N05): «Estás en tu campamento.» with its English and the cause line, or <see langword="null"/> when it is not up.</summary>
+    public DeathScreenView? DeathScreen { get; set; }
 
     /// <summary>The mouse pointer in window pixels, or <see langword="null"/> when it is outside the window.</summary>
     public Point? Mouse { get; set; }

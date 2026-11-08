@@ -107,6 +107,30 @@ public sealed class OracleInfrastructureTests
         Assert.False(KnownTolerances.NamesPath(exception, "intents/intents.json"));
     }
 
+    // M81: the loader accepts the describe intent without its slot grammars (fuzz seed 41s2qgWEC-M9). The intent has examples and no rule, so the embedding rung
+    // reads it; the lint's coverage check is what rejects it. Only an intent with neither a rule nor an example is refused on this tolerance.
+    [Fact]
+    public void AGrammarlessIntentIsToleratedOnlyWhenItHasRulesOrExamples()
+    {
+        const string original = """
+            { "intents": [
+              { "intentId": "describe", "requiredSlots": [],
+                "slotGrammars": ["(sí)? [VERB:ser] (muy|más|menos)? [ADJ]"], "keywordRules": [],
+                "examples": ["es muy grande", "es pequeño"] },
+              { "intentId": "ask_help", "requiredSlots": [], "slotGrammars": ["ayuda"],
+                "keywordRules": [{ "lemmas": ["ayudar"], "requiresSlots": [] }], "examples": ["ayúdame"] },
+              { "intentId": "nothing", "requiredSlots": [], "slotGrammars": ["hola"], "keywordRules": [], "examples": [] }
+            ] }
+            """;
+        var intents = System.Text.Json.Nodes.JsonNode.Parse(original)!;
+        static IReadOnlyList<string> At(int index) => ["intents", index.ToString(System.Globalization.CultureInfo.InvariantCulture), "slotGrammars"];
+
+        Assert.Equal(KnownTolerances.ContentFieldReason.ExampleOnlyIntent, KnownTolerances.AcceptedGrammarlessIntent("intents/intents.json", At(0), intents));
+        Assert.Equal(KnownTolerances.ContentFieldReason.RuleOnlyIntent, KnownTolerances.AcceptedGrammarlessIntent("intents/intents.json", At(1), intents));
+        Assert.Null(KnownTolerances.AcceptedGrammarlessIntent("intents/intents.json", At(2), intents));
+        Assert.Null(KnownTolerances.AcceptedGrammarlessIntent("intents/intents.json", ["intents", "0", "requiredSlots"], intents));
+    }
+
     [Fact]
     public void TheContentFieldToleranceListCoversOptionalFieldsOnly()
     {

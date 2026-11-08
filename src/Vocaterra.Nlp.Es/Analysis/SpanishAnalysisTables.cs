@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using Vocaterra.Nlp.Es.Normalization;
 
 namespace Vocaterra.Nlp.Es.Analysis;
 
@@ -66,6 +67,14 @@ internal static class SpanishAnalysisTables
 
     // Words whose use as an interjection is the first reading to report although the lexicon also lists them as a plural noun (gracias, the plural of gracia).
     private static readonly FrozenSet<string> InterjectionFirstWords = new[] { "gracias" }.ToFrozenSet(StringComparer.Ordinal);
+
+    // The words after which a name is said (M78): the verb that gives one's name, a greeting, a farewell.
+    private static readonly FrozenSet<string> NameIntroducers = new[] { "soy", "llamo", "hola", "adiós", "adios", "chao" }.ToFrozenSet(StringComparer.Ordinal);
+
+    // The last word of a timed greeting (buenos días) and the word before it, which a name follows (buenos días pedro).
+    private static readonly FrozenSet<string> GreetingTimes = new[] { "día", "dia", "días", "dias", "tardes", "noches" }.ToFrozenSet(StringComparer.Ordinal);
+
+    private static readonly FrozenSet<string> GreetingStarts = new[] { "buen", "buenos", "buenas" }.ToFrozenSet(StringComparer.Ordinal);
 
     // The question words that take a verb right after them (dónde está, cómo está), spelled with and without the accent, folded to lower case.
     private static readonly FrozenSet<string> VerbSeekingQuestionWords = new[] { "dónde", "donde", "cómo" }.ToFrozenSet(StringComparer.Ordinal);
@@ -162,6 +171,14 @@ internal static class SpanishAnalysisTables
     // M66 (M63). The question words that may stand between a subject pronoun and its verb (ellas dónde están, tú qué quieres), written with their accent: without it
     // (que, donde, como) they may open a relative clause (ella que quiere pan) or be another word.
     private static readonly FrozenSet<string> QuestionWordsAfterSubject = new[] { "qué", "dónde", "adónde", "cuándo", "cómo" }.ToFrozenSet(StringComparer.Ordinal);
+
+    // M75. The question words in every form, written without their accents: a line that has one where the nearest answer phrase has another (cuál es esto for qué es
+    // esto) is a near miss that names the answer's word. A word is looked up with its accents taken away, because a learner who types without accents (or puts one
+    // on another letter) still means the question word.
+    private static readonly FrozenSet<string> QuestionWords = new[]
+    {
+        "que", "cual", "cuales", "quien", "quienes", "donde", "adonde", "cuando", "como", "cuanto", "cuanta", "cuantos", "cuantas",
+    }.ToFrozenSet(StringComparer.Ordinal);
 
     // M56. Nouns that measure a stretch of time, beside the time nouns: a noun phrase of one of them after a verb is how long or when (están la tarde en casa), not its subject.
     private static readonly FrozenSet<string> DurationNouns = new[]
@@ -361,6 +378,28 @@ internal static class SpanishAnalysisTables
         return InterjectionFirstWords.Contains(word);
     }
 
+    /// <summary>
+    /// True when the word at <paramref name="index"/> stands where a name is said (M78): after <c>soy</c>, <c>me llamo</c> (<c>llamo</c>), <c>mi nombre es</c>, a greeting
+    /// (<c>hola</c>, <c>buenos días</c>, <c>buenas tardes</c>, <c>buenas noches</c>, <c>buen día</c>) or a farewell (<c>adiós</c>, <c>chao</c>).
+    /// </summary>
+    public static bool IsNamePosition(IReadOnlyList<string> words, int index)
+    {
+        if (index < 1)
+        {
+            return false;
+        }
+
+        var before = words[index - 1];
+        if (NameIntroducers.Contains(before))
+        {
+            return true;
+        }
+
+        var twoBefore = index >= 2 ? words[index - 2] : string.Empty;
+        return (GreetingTimes.Contains(before) && GreetingStarts.Contains(twoBefore))
+            || (before == "es" && twoBefore == "nombre");
+    }
+
     /// <summary>True when the adjective lemma and the noun lemma form a fixed expression that is plural as a whole (<c>bueno</c> + <c>día</c>, <c>mucho</c> + <c>gracia</c>).</summary>
     public static bool IsFixedPluralExpression(string adjectiveLemma, string nounLemma)
     {
@@ -479,6 +518,12 @@ internal static class SpanishAnalysisTables
     public static bool IsQuestionWordAfterSubject(string word)
     {
         return QuestionWordsAfterSubject.Contains(word);
+    }
+
+    /// <summary>True for a question word in any of its forms, written with its accent or without it (<c>cuál</c>, <c>cuántas</c>, <c>donde</c>; M75).</summary>
+    public static bool IsQuestionWord(string word)
+    {
+        return QuestionWords.Contains(Accents.Strip(word));
     }
 
     /// <summary>True for a noun that says when or for how long (the time nouns, the seasons, <c>tarde</c>, <c>rato</c>...): a noun phrase of one after a verb is no subject.</summary>

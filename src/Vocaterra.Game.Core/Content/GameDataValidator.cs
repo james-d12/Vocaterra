@@ -1,17 +1,22 @@
 using System.Globalization;
+using Vocaterra.Game.Core.Activities;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Input;
+using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
+using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tip;
+using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Taxonomy;
+using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Response.Templates;
 
 namespace Vocaterra.Game.Core.Content;
@@ -48,6 +53,11 @@ namespace Vocaterra.Game.Core.Content;
 /// <c>cefr/a2.txt</c>), and its phrases' variants none above the bundle's ceiling (<see cref="LessonLevels.Ceiling"/>), lemmatized by the core's
 /// <see cref="CefrChecker"/> as the content lint does; and the tenses its verbs and steps name are its level's (<see cref="LessonLevels.TensesAt"/>: no
 /// <c>fut</c> in an <c>a1</c> lesson).</item>
+/// <item>the procedures (W05, design 10.7): each procedure's station is a station, its teacher an NPC, its makes, uses and leaves items; each station's prop is a
+/// prop of the scene, its NPC an NPC and its fixtures catalogue nouns; each action's verb is a lexicon lemma with a tú imperative; each step's noun is a catalogue
+/// noun, its <c>where</c>, <c>from</c> and <c>with</c> are fixtures of the station, and its verb is listed in the action table for its pair; each step's, chunk's
+/// and goal's row is a does row whose audio lines are recorded; the chunks name the procedure's steps, contiguous and in no two chunks; and the procedure's
+/// Spanish keeps to its level.</item>
 /// </list>
 /// <para>Plain values, ordinal comparisons; the order of the problems is the order of the files above.</para>
 /// </remarks>
@@ -67,7 +77,11 @@ public static class GameDataValidator
         CheckNpcs(data, problems);
         CheckHostActions(data, problems);
         CheckObjectives(data, problems);
+        problems.AddRange(NeedsValidator.Validate(data.Needs)); // N01: every food an item, every rate positive, the stages in order
+        CheckRenewal(data, problems);
+        CheckPlanting(data, problems);
         CheckLessonLevels(data, problems);
+        CheckActivities(data, problems);
         return problems;
     }
 
@@ -85,6 +99,7 @@ public static class GameDataValidator
         required.AddRange(data.Phrases.Rows.Select(static row => PhraseSheet.LocaleId(row.Id, "explain")));
         required.AddRange(data.Speech.Where(static line => line.Kind is SpeechKind.Dialogue or SpeechKind.Prompt).Select(static line => "line." + line.LineId));
         required.AddRange(InputKeys.Defaults.Values.Distinct().Select(static key => "key." + key.ToString())); // C04: {key:…} spells a command's key with these
+        required.AddRange(HudLineKeys(data)); // N05: each HUD line the target language has an English beneath, under the same id
         foreach (var id in required.Where(id => !locale.Has(id)))
         {
             problems.Add($"{file}: the string '{id}' is missing.");
@@ -188,9 +203,30 @@ public static class GameDataValidator
         }
     }
 
+    /// <summary>The keys of the HUD lines (N05): every stage line game/needs.json names, then the death screen, the chest's label and the needs list's words.</summary>
+    /// <param name="data">The content.</param>
+    public static IReadOnlyList<string> HudLineKeys(GameData data)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        var keys = new List<string>();
+        foreach (var drive in new[] { Drive.Hunger, Drive.Thirst, Drive.Sleep })
+        {
+            keys.AddRange(data.Needs.Of(drive).Stages.Select(static stage => stage.Line));
+        }
+
+        keys.AddRange(data.Needs.Health.Warnings.Select(static stage => stage.Line));
+        keys.AddRange(GameWords.FixedHudKeys);
+        return keys;
+    }
+
     private static void CheckWords(GameData data, List<string> problems)
     {
         const string File = "game/words.json";
+        foreach (var key in HudLineKeys(data).Where(key => data.Words.HudLine(key) is null))
+        {
+            problems.Add($"{File}: hudLines has no Spanish for '{key}' (a stage line of game/needs.json, or a line of the death screen and the needs list).");
+        }
+
         foreach (var role in GameWords.NounRoles.Where(role => data.Nouns.ForLemma(data.Words.Noun(role)) is null))
         {
             problems.Add($"{File}: the {role} noun '{data.Words.Noun(role)}' is not a catalogue noun.");
@@ -320,6 +356,119 @@ public static class GameDataValidator
         }
     }
 
+    // N06: the regrowth and the gift rules of game/needs.json name things that exist. A regrowing block is a block the player gathers; a gift is an item an NPC of the
+    // bundle gives (a host event of game/host-events.json), once, and its agent has a state that takes <npc>.gift_used to say today's is given.
+    // The camp's planting (N08, optional in needs.json): the item is an item, the block a block the regrowth grows from (the grown one has a rule), the radius and the count above 0.
+    private static void CheckPlanting(GameData data, List<string> problems)
+    {
+        const string File = NeedsData.RelativePath;
+        if (data.Needs.Planting is not { } planting)
+        {
+            return;
+        }
+
+        if (ItemDefinition.All.All(d => !string.Equals(d.Name, planting.Item, StringComparison.Ordinal)))
+        {
+            problems.Add($"{File}: the planting names '{planting.Item}', which is not an item.");
+        }
+
+        var block = BlockDefinition.FromName(planting.Block);
+        var grown = BlockDefinition.FromName(planting.GrownBlock);
+        if (block is null)
+        {
+            problems.Add($"{File}: the planting names '{planting.Block}', which is not a block.");
+        }
+
+        if (grown is null)
+        {
+            problems.Add($"{File}: the planting grows into '{planting.GrownBlock}', which is not a block.");
+        }
+        else if (!data.Needs.Regrowth.Any(r => string.Equals(r.Block, grown.Name, StringComparison.Ordinal)))
+        {
+            problems.Add($"{File}: the planting grows into '{planting.GrownBlock}', which has no regrowth rule, so it would never grow.");
+        }
+        else if (block is not null && block.Id != grown.BecomesWhenGathered)
+        {
+            problems.Add($"{File}: the planting makes '{planting.Block}', but '{planting.GrownBlock}' regrows from '{BlockDefinition.Get(grown.BecomesWhenGathered).Name}'.");
+        }
+
+        if (planting.RadiusBlocks <= 0)
+        {
+            problems.Add($"{File}: the planting radius is {planting.RadiusBlocks}; it must be above 0.");
+        }
+
+        if (planting.MaxBushes <= 0)
+        {
+            problems.Add($"{File}: the planting allows {planting.MaxBushes} bushes; it must be above 0.");
+        }
+    }
+
+    private static void CheckRenewal(GameData data, List<string> problems)
+    {
+        const string File = NeedsData.RelativePath;
+        var seenBlocks = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var rule in data.Needs.Regrowth)
+        {
+            var block = BlockDefinition.FromName(rule.Block);
+            if (block is null)
+            {
+                problems.Add($"{File}: the regrowth names '{rule.Block}', which is not a block.");
+            }
+            else if (!block.Gatherable)
+            {
+                problems.Add($"{File}: the regrowth names '{rule.Block}', which the player cannot gather, so it never needs to grow back.");
+            }
+
+            if (!string.Equals(rule.After, NeedsData.AfterNight, StringComparison.Ordinal))
+            {
+                problems.Add($"{File}: the regrowth of '{rule.Block}' is after '{rule.After}'; only '{NeedsData.AfterNight}' is known.");
+            }
+
+            if (!seenBlocks.Add(rule.Block))
+            {
+                problems.Add($"{File}: the regrowth of '{rule.Block}' is listed twice.");
+            }
+        }
+
+        var items = ItemDefinition.All.Select(static d => d.Name).ToHashSet(StringComparer.Ordinal);
+        var seenGifts = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var gift in data.Needs.Gifts)
+        {
+            if (!items.Contains(gift.Item))
+            {
+                problems.Add($"{File}: the gift of '{gift.Item}' by {gift.Npc} names an item that does not exist (one of {string.Join(", ", items.Order(StringComparer.Ordinal))}).");
+            }
+
+            if (!data.Bundle.Agents.ContainsKey(gift.Npc))
+            {
+                problems.Add($"{File}: the gift of '{gift.Item}' is by '{gift.Npc}', which is not an NPC of the bundle (agents/).");
+                continue;
+            }
+
+            if (!string.Equals(gift.Per, NeedsData.PerDay, StringComparison.Ordinal))
+            {
+                problems.Add($"{File}: the gift of '{gift.Item}' by {gift.Npc} is per '{gift.Per}'; only '{NeedsData.PerDay}' is known.");
+            }
+
+            if (!seenGifts.Add(gift.Key))
+            {
+                problems.Add($"{File}: the gift {gift.Key} is listed twice.");
+            }
+
+            var gives = data.HostEvents.Mapped().Any(m => string.Equals(m.Npc, gift.Npc, StringComparison.Ordinal)
+                && data.HostEvents.Of(m.Npc, m.HostEvent) is { Kind: NpcEffectKind.GiveItem } effect && string.Equals(ItemDefinition.Get(effect.Item).Name, gift.Item, StringComparison.Ordinal));
+            if (!gives)
+            {
+                problems.Add($"{File}: {gift.Npc} gives no '{gift.Item}' in {HostEventTable.RelativePath}, so there is no gift to limit.");
+            }
+
+            if (!TakenBySomeState(data, gift.Npc, NpcHostEvents.Of(gift.Npc, NpcHostEvents.GiftUsed)))
+            {
+                problems.Add($"{File}: the gift {gift.Key} is once a day, and no state of agents/{gift.Npc}.json takes '{NpcHostEvents.Of(gift.Npc, NpcHostEvents.GiftUsed)}' to say it is given.");
+            }
+        }
+    }
+
     private static void CheckHostActions(GameData data, List<string> problems)
     {
         var places = data.Scene.PointNames.ToHashSet(StringComparer.Ordinal);
@@ -339,9 +488,34 @@ public static class GameDataValidator
                 problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' names '{noun}', which is not a catalogue noun.");
             }
 
+            foreach (var noun in (effect.Prices?.Keys ?? []).Order(StringComparer.Ordinal)) // W04: a price list names catalogue nouns that name an item
+            {
+                if (data.Nouns.ForLemma(noun) is not { } listed)
+                {
+                    problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' prices '{noun}', which is not a catalogue noun.");
+                }
+                else if (listed.Items.Count == 0)
+                {
+                    problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' prices '{noun}', which names no item.");
+                }
+            }
+
             if (effect.Kind == NpcEffectKind.PointAtPlace && !places.Contains(effect.Place))
             {
                 problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' points at the place '{effect.Place}', which is not a point of the scene.");
+            }
+
+            if (effect.Kind == NpcEffectKind.GiveMissing && data.Bundle.Agents.ContainsKey(npc))
+            {
+                foreach (var miss in new[] { NpcHostEvents.NothingMissing, NpcHostEvents.GiftUsed, NpcHostEvents.NoRoom }.Where(miss => !TakenBySomeState(data, npc, NpcHostEvents.Of(npc, miss))))
+                {
+                    problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' gives the ingredients a run lacks, and no state of agents/{npc}.json takes '{NpcHostEvents.Of(npc, miss)}' to say why it gave none.");
+                }
+            }
+
+            if (effect is { Kind: NpcEffectKind.TeachRecipe or NpcEffectKind.StartProcedure, Procedure.Length: > 0 } && data.Procedures.Find(effect.Procedure) is null)
+            {
+                problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' names the procedure '{effect.Procedure}', which is not one of the procedures.");
             }
 
             if (effect.Kind == NpcEffectKind.PointAtSlot && data.Bundle.Agents.ContainsKey(npc) && !TakenBySomeState(data, npc, NpcHostEvents.Of(npc, NpcHostEvents.UnknownPlace)))
@@ -598,6 +772,28 @@ public static class GameDataValidator
             problems.Add($"{file}: the opening event '{opening}' is taken by no state of agents/{npc.Id}.json (onHostEvent), so the talk would open with the prompt's text.");
         }
 
+        if (npc.Patience is { } patience)
+        {
+            if (patience.Misses < 1 || patience.AfterHelp < 1)
+            {
+                problems.Add(string.Create(CultureInfo.InvariantCulture, $"{file}: the patience's misses ({patience.Misses}) and afterHelp ({patience.AfterHelp}) must both be 1 or more."));
+            }
+            else if (patience.AfterHelp > patience.Misses)
+            {
+                problems.Add(string.Create(CultureInfo.InvariantCulture, $"{file}: the patience's afterHelp ({patience.AfterHelp}) is more than its misses ({patience.Misses}); help can only shorten the wait."));
+            }
+
+            if (takes is not null && !takes.Contains(patience.Event))
+            {
+                problems.Add($"{file}: the patience's event '{patience.Event}' is taken by no state of agents/{npc.Id}.json (onHostEvent), so the NPC could not fail forward.");
+            }
+
+            if (!npc.Prompts.Values.Append(npc.ReviewPrompt).Contains(patience.Prompt, StringComparer.Ordinal))
+            {
+                problems.Add($"{file}: the patience applies at '{patience.Prompt}', which is not one of the NPC's prompts.");
+            }
+        }
+
         if (npc.Voice is not { } voice)
         {
             problems.Add($"{file}: the NPC has no voice (voice: the Kokoro speaker and name its lines are recorded with).");
@@ -610,6 +806,29 @@ public static class GameDataValidator
         foreach (var lemma in npc.KeyWords.Where(lemma => data.Nouns.ForLemma(lemma) is null))
         {
             problems.Add($"{file}: the key word '{lemma}' is not a catalogue noun.");
+        }
+
+        foreach (var pool in npc.AcknowledgementPools.Where(pool => !data.Bundle.Dialogue.Pools.ContainsKey(pool)))
+        {
+            problems.Add($"{file}: the acknowledgement pool '{pool}' is not a dialogue pool of the bundle.");
+        }
+
+        foreach (var (intent, reply) in npc.SlotReplies)
+        {
+            var pool = NpcTurnRules.PoolSaidOn(data.Bundle, npc.Id, reply.Event);
+            if (pool is null || !data.Bundle.Dialogue.Pools.TryGetValue(pool, out var found))
+            {
+                problems.Add($"{file}: the slot reply for '{intent}' names the event '{reply.Event}', which no transition of agents/{npc.Id}.json takes with a dialogue pool.");
+            }
+            else if (found.Variants.Any(variant => TemplateEngine.ReferencedSlots(variant).Any(slot => !string.Equals(slot, reply.Slot, StringComparison.Ordinal))))
+            {
+                problems.Add($"{file}: the pool '{pool}' of the slot reply for '{intent}' names a slot other than '{reply.Slot}'.");
+            }
+
+            if (reply.Values.Count == 0 || reply.Values.Any(string.IsNullOrWhiteSpace) || reply.Values.Distinct(StringComparer.Ordinal).Count() != reply.Values.Count)
+            {
+                problems.Add($"{file}: the slot reply for '{intent}' needs a list of distinct values, none empty.");
+            }
         }
     }
 
@@ -643,4 +862,268 @@ public static class GameDataValidator
             }
         }
     }
+
+    // W05 (design 10.7, 10.16): the procedures, their stations and their actions. Each problem names the file and the field at fault.
+    private const string StationsFile = "game/stations.json";
+    private const string ActionsFile = "game/actions.json";
+
+    /// <summary>The problems of the procedures, stations and actions alone (W05; the validator's tests build a procedure and read only its problems).</summary>
+    /// <param name="data">The content.</param>
+    internal static IReadOnlyList<string> ActivityProblems(GameData data)
+    {
+        var problems = new List<string>();
+        CheckActivities(data, problems);
+        return problems;
+    }
+
+    private static void CheckActivities(GameData data, List<string> problems)
+    {
+        CheckStations(data, problems);
+        CheckActions(data, problems);
+        foreach (var procedure in data.Procedures.Procedures)
+        {
+            CheckProcedure(data, procedure, problems);
+        }
+    }
+
+    private static void CheckStations(GameData data, List<string> problems)
+    {
+        foreach (var station in data.Stations.Stations)
+        {
+            if (!data.Npcs.Ids.Contains(station.Npc, StringComparer.Ordinal))
+            {
+                problems.Add($"{StationsFile}: the station '{station.Id}' names the NPC '{station.Npc}', which is not one of the NPCs ({string.Join(", ", data.Npcs.Ids)}).");
+            }
+
+            if (!data.Scene.Props.Any(prop => string.Equals(prop.Name, station.Prop, StringComparison.Ordinal)))
+            {
+                problems.Add($"{StationsFile}: the station '{station.Id}' stands on the prop '{station.Prop}', and the scene (game/scene.json) has no prop of that name.");
+            }
+
+            foreach (var fixture in station.Fixtures.Where(fixture => data.Nouns.ForLemma(fixture.Noun) is null))
+            {
+                problems.Add($"{StationsFile}: the station '{station.Id}' has the fixture '{fixture.Noun}', which is not a catalogue noun (game/nouns.json).");
+            }
+        }
+    }
+
+    private static void CheckActions(GameData data, List<string> problems)
+    {
+        foreach (var verb in data.Actions.Verbs)
+        {
+            var forms = data.Bundle.Lexicon.EntriesForLemma(verb);
+            if (forms.Count == 0)
+            {
+                problems.Add($"{ActionsFile}: the verb '{verb}' is not in the lexicon.");
+            }
+            else if (!forms.Any(static form => form.Features.Mood == LexiconSchema.Imperative && form.Features.Person == "2" && form.Features.Number == "sg"))
+            {
+                problems.Add($"{ActionsFile}: the verb '{verb}' has no tú imperative in the lexicon (no form with mood imp, person 2, number sg).");
+            }
+        }
+    }
+
+    private static void CheckProcedure(GameData data, ProcedureDefinition procedure, List<string> problems)
+    {
+        var file = ProcedureBook.Folder + procedure.Id + ".json";
+        var station = data.Stations.Find(procedure.Station);
+        if (station is null)
+        {
+            problems.Add($"{file}: the station '{procedure.Station}' is not one of the stations ({string.Join(", ", data.Stations.Stations.Select(static s => s.Id))}).");
+        }
+
+        if (!data.Npcs.Ids.Contains(procedure.Teacher, StringComparer.Ordinal))
+        {
+            problems.Add($"{file}: the teacher '{procedure.Teacher}' is not one of the NPCs.");
+        }
+        else if (data.Bundle.Agents.ContainsKey(procedure.Teacher))
+        {
+            foreach (var what in new[] { NpcHostEvents.TeachStart, NpcHostEvents.TeachEnd }.Where(what => !TakenBySomeState(data, procedure.Teacher, NpcHostEvents.Of(procedure.Teacher, what))))
+            {
+                problems.Add($"{file}: the teacher '{procedure.Teacher}' is listening at the station, and no state of agents/{procedure.Teacher}.json takes '{NpcHostEvents.Of(procedure.Teacher, what)}' (design 10.14).");
+            }
+        }
+
+        if (!data.Bundle.Cefr.ContainsKey(procedure.Level))
+        {
+            problems.Add($"{file}: the procedure is {procedure.Level}, and the bundle has no list of that level (cefr/{procedure.Level}.txt).");
+        }
+
+        var items = ItemDefinition.All.Select(static d => d.Name).ToHashSet(StringComparer.Ordinal);
+        if (!items.Contains(procedure.Makes.Item))
+        {
+            problems.Add($"{file}: makes the item '{procedure.Makes.Item}', which is not an item.");
+        }
+
+        if (procedure.Makes.Bonus is { } bonus && bonus.FirstTimeSteps > procedure.Steps.Count)
+        {
+            problems.Add($"{file}: makes.bonus needs {bonus.FirstTimeSteps} steps right first time, and the procedure has {procedure.Steps.Count} steps.");
+        }
+
+        foreach (var use in procedure.Uses)
+        {
+            if (!items.Contains(use.Item))
+            {
+                problems.Add($"{file}: uses the item '{use.Item}', which is not an item.");
+            }
+
+            if (use.Leaves is { } leaves && !items.Contains(leaves))
+            {
+                problems.Add($"{file}: uses '{use.Item}' and leaves the item '{leaves}', which is not an item.");
+            }
+        }
+
+        foreach (var id in procedure.Steps.GroupBy(static s => s.Id, StringComparer.Ordinal).Where(static g => g.Count() > 1).Select(static g => g.Key))
+        {
+            problems.Add($"{file}: the step id '{id}' is used twice.");
+        }
+
+        foreach (var step in procedure.Steps)
+        {
+            CheckStep(data, procedure, station, step, file, problems);
+        }
+
+        CheckChunks(data, procedure, file, problems);
+        CheckDoesRow(data, file, "goal", procedure.Goal.Row, problems);
+        CheckProcedureLevel(data, procedure, file, problems);
+    }
+
+    private static void CheckStep(GameData data, ProcedureDefinition procedure, StationDefinition? station, ProcedureStep step, string file, List<string> problems)
+    {
+        var where = $"{file}: the step '{step.Id}'";
+        CheckDoesRow(data, file, $"step '{step.Id}'", step.Row, problems);
+        if (data.Nouns.ForLemma(step.What) is not { } what)
+        {
+            problems.Add($"{where} acts on '{step.What}' (what), which is not a catalogue noun (game/nouns.json).");
+        }
+        else if (what.Items.Count == 0 && !IsFixture(station, step.What) && !IsMadeThing(procedure, step))
+        {
+            problems.Add($"{where}: what '{step.What}' names no item, is no fixture of the station '{procedure.Station}' and is not a thing an earlier step makes.");
+        }
+
+        var targets = new (string Field, string? Noun)[] { ("where", step.Where), ("from", step.From), ("with", step.With) };
+        foreach (var (field, noun) in targets)
+        {
+            if (noun is not null && !IsFixture(station, noun))
+            {
+                problems.Add($"{where}: {field} '{noun}' is not a fixture of the station '{procedure.Station}'.");
+            }
+        }
+
+        if (data.Nouns.ForLemma(step.ActUse) is null)
+        {
+            problems.Add($"{where} acts with '{step.ActUse}', which is not a catalogue noun (game/nouns.json).");
+        }
+
+        var verbs = data.Actions.VerbsFor(step.ActUse, step.ActOn);
+        if (!verbs.Contains(step.Verb, StringComparer.Ordinal))
+        {
+            var listed = verbs.Count == 0 ? "no verb for that pair" : "only " + string.Join(", ", verbs) + " for it";
+            problems.Add($"{where} does '{step.Verb}' with '{step.ActUse}' on '{step.ActOn}', and {ActionsFile} lists {listed}.");
+        }
+    }
+
+    private static void CheckChunks(GameData data, ProcedureDefinition procedure, string file, List<string> problems)
+    {
+        var stepIds = procedure.Steps.Select(static s => s.Id).ToList();
+        var chunkIds = new HashSet<string>(StringComparer.Ordinal);
+        var inChunk = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var chunk in procedure.Chunks)
+        {
+            if (!chunkIds.Add(chunk.Id))
+            {
+                problems.Add($"{file}: the chunk '{chunk.Id}' is used twice.");
+            }
+
+            CheckDoesRow(data, file, $"chunk '{chunk.Id}'", chunk.Row, problems);
+            if (chunk.Steps.Count == 0)
+            {
+                problems.Add($"{file}: the chunk '{chunk.Id}' has no steps.");
+                continue;
+            }
+
+            var positions = chunk.Steps.Select(id => stepIds.IndexOf(id)).ToList();
+            var unknown = chunk.Steps.Where((_, i) => positions[i] < 0).ToList();
+            foreach (var id in unknown)
+            {
+                problems.Add($"{file}: the chunk '{chunk.Id}' names the step '{id}', which the procedure does not have.");
+            }
+
+            if (unknown.Count > 0)
+            {
+                continue;
+            }
+
+            if (Enumerable.Range(1, positions.Count - 1).Any(i => positions[i] != positions[i - 1] + 1))
+            {
+                problems.Add($"{file}: the chunk '{chunk.Id}' does not hold contiguous steps (its steps are {string.Join(", ", chunk.Steps)}).");
+            }
+
+            foreach (var id in chunk.Steps.Where(id => !inChunk.Add(id)))
+            {
+                problems.Add($"{file}: the step '{id}' belongs to two chunks.");
+            }
+        }
+    }
+
+    // A does row (PHRASES.md, the kind of an instruction an NPC gives): a row of the sheet, of kind does, whose audio lines are in the speech index.
+    private static void CheckDoesRow(GameData data, string file, string what, string row, List<string> problems)
+    {
+        var phrase = data.Phrases.Find(row);
+        if (phrase is null)
+        {
+            problems.Add($"{file}: the {what} names the row '{row}', which is not a row of the phrase sheet (content/PHRASES.md).");
+            return;
+        }
+
+        if (!string.Equals(phrase.Says, "does", StringComparison.Ordinal))
+        {
+            problems.Add($"{file}: the {what} names the row '{row}', which is a '{phrase.Says}' row, not a does row.");
+            return;
+        }
+
+        if (phrase.AudioLineIds.Count == 0)
+        {
+            problems.Add($"{file}: the {what} names the does row '{row}', which names no audio line.");
+        }
+
+        foreach (var line in phrase.AudioLineIds.Where(line => !data.Speech.Any(speech => string.Equals(speech.LineId, line, StringComparison.Ordinal))))
+        {
+            problems.Add($"{file}: the {what} names the does row '{row}', whose audio line '{line}' is not in the speech index (not recorded in the bundle).");
+        }
+    }
+
+    // The Spanish of a procedure's does rows (the steps', the chunks' and the goal's) keeps to its level, lemma by lemma, as a lesson's does (V08).
+    private static void CheckProcedureLevel(GameData data, ProcedureDefinition procedure, string file, List<string> problems)
+    {
+        if (!data.Bundle.Cefr.ContainsKey(procedure.Level))
+        {
+            return;
+        }
+
+        var rows = procedure.Rows.Select(row => data.Phrases.Find(row)).OfType<PhraseRow>().Where(static row => string.Equals(row.Says, "does", StringComparison.Ordinal)).ToList();
+        if (rows.Count == 0)
+        {
+            return;
+        }
+
+        var templates = rows.Select(static (row, index) => new DialogueTemplate(index.ToString(CultureInfo.InvariantCulture), row.Spanish)).ToList();
+        var catalog = new DialogueCatalog([new(procedure.Id, new VariantPool(procedure.Id, templates))]);
+        var report = CefrChecker.Check(catalog, data.Bundle.Lexicon, data.Bundle.Language, CefrChecker.AllowedLemmas(data.Bundle.Cefr, procedure.Level), procedure.Level, null);
+        var lists = data.Bundle.Cefr.Keys.Where(key => string.CompareOrdinal(key, procedure.Level) <= 0).Order(StringComparer.Ordinal).Select(static key => $"cefr/{key}.txt");
+        foreach (var missing in report.Missing)
+        {
+            foreach (var index in missing.LineIds.Select(static id => int.Parse(id, CultureInfo.InvariantCulture)))
+            {
+                var row = rows[index];
+                problems.Add($"{file}: the {procedure.Level} procedure says “{row.Spanish}” ({row.Id}), and '{missing.Lemma}'{(missing.InLexicon ? string.Empty : " (not in the lexicon)")} is above {procedure.Level.ToUpperInvariant()} (not in {string.Join(", ", lists)}).");
+            }
+        }
+    }
+
+    private static bool IsFixture(StationDefinition? station, string noun) => station is not null && station.HasFixture(noun);
+
+    // A thing the steps make (W10, the dough): a catalogue noun with no item that the step acts with itself, after an earlier step that works with a tool (the mixing makes it).
+    private static bool IsMadeThing(ProcedureDefinition procedure, ProcedureStep step) =>
+        string.Equals(step.ActUse, step.What, StringComparison.Ordinal) && procedure.Steps.TakeWhile(s => !string.Equals(s.Id, step.Id, StringComparison.Ordinal)).Any(static s => s.With is not null);
 }

@@ -15,8 +15,9 @@ namespace Vocaterra.Nlp.Fuzzing.Tests;
 /// <summary>
 /// O10: verdict assembly follows its documented rules for any stage results. Correctness is one minus the weights of the surviving errors,
 /// confidence is the minimum of the stage confidences, the communicated flag follows the two documented rules through the margin, errors are
-/// unique per tag and span and sorted, the derived vocab.wrong follows its rule (M67, M72), the off-prompt intent is carried only for a line the prompt did not
-/// take (M72), the order of unordered inputs does not matter, and the verdict survives a canonical JSON round trip.
+/// unique per tag and span and sorted, the derived vocab.wrong follows its rule (M67, M72, M75: a near miss names its word, the answer's word as its expected
+/// text), the off-prompt intent is carried only for a line the prompt did not take (M72), the order of unordered inputs does not matter, and the verdict survives
+/// a canonical JSON round trip.
 /// </summary>
 public sealed class VerdictAssemblyFuzzTests(ITestOutputHelper output)
 {
@@ -49,7 +50,7 @@ public sealed class VerdictAssemblyFuzzTests(ITestOutputHelper output)
                 }
 
                 var settings = inputs.Config.For(inputs.Prompt.Difficulty);
-                CheckErrors(verdict, inputs);
+                CheckErrors(verdict, inputs, diagnostics);
                 CheckSlots(verdict, inputs);
                 CheckCorrectness(verdict, inputs, settings);
                 CheckConfidence(verdict, inputs);
@@ -100,9 +101,12 @@ public sealed class VerdictAssemblyFuzzTests(ITestOutputHelper output)
         output.WriteLine("Verdict diagnostics:\n" + diagnostics.Report());
         Assert.True(diagnostics.Get("communicated:yes") > 0 && diagnostics.Get("communicated:no") > 0, "Both outcomes of the communicated rule must be reached.\n" + diagnostics.Report());
         Assert.True(diagnostics.Get("offPrompt:set") > 0, "A verdict with an off-prompt intent must be reached (M72).\n" + diagnostics.Report());
+        Assert.True(
+            diagnostics.Get("derived:near-miss") > 0 && diagnostics.Get("derived:first-content-word") > 0 && diagnostics.Get("derived:near-miss-not-tagged") > 0,
+            "A derived vocab.wrong of each kind, and a near miss the rule does not tag, must be reached (M75).\n" + diagnostics.Report());
     }
 
-    private static void CheckErrors(Verdict verdict, VerdictInputs inputs)
+    private static void CheckErrors(Verdict verdict, VerdictInputs inputs, FuzzDiagnostics diagnostics)
     {
         var keys = new HashSet<(string, int, int)>();
         ErrorTag? previous = null;
@@ -133,6 +137,23 @@ public sealed class VerdictAssemblyFuzzTests(ITestOutputHelper output)
         if (!keys.SetEquals(expected))
         {
             throw Determinism.Fail(Oracle, $"The verdict errors {Show(keys)} differ from the stage errors plus the derived vocab.wrong {Show(expected)}.", inputs);
+        }
+
+        // M75: the derived error names its word. Where no stage error has its tag and span, the verdict carries it as the model gives it: a near miss's word with the
+        // answer's word as the expected text; else the first content word with the set's single answer, or no word at a quiz of several answers.
+        if (derived is not null && !supplied.Contains((derived.Tag, derived.Span.Start, derived.Span.Length)))
+        {
+            var carried = verdict.Errors.Single(e => e.Tag == derived.Tag && e.Span == derived.Span);
+            if (!carried.Equals(derived))
+            {
+                throw Determinism.Fail(Oracle, $"The derived vocab.wrong is '{carried.Expected}'/'{carried.Actual}' at {carried.Span}; the rule gives '{derived.Expected}'/'{derived.Actual}'.", inputs);
+            }
+        }
+
+        diagnostics.Count(derived is null ? "derived:none" : DerivedKind(inputs, derived));
+        if (inputs.NearMiss is not null && (derived is null || derived.Span != inputs.NearMiss.Span))
+        {
+            diagnostics.Count("derived:near-miss-not-tagged");
         }
 
         // Among errors that share a tag and span the smallest (expected, actual) wins, whatever the input order.
@@ -178,21 +199,30 @@ public sealed class VerdictAssemblyFuzzTests(ITestOutputHelper output)
         return "[" + string.Join("; ", keys.OrderBy(static k => k.Start).ThenBy(static k => k.Tag, StringComparer.Ordinal).Select(static k => $"{k.Tag}@{k.Start}+{k.Length}")) + "]";
     }
 
-    // The derived error exists when nothing matched, the prompt is constrained, the line is a miss the tag can explain, and the first content token is a
-    // word the lexicon knows. A miss it can explain (M67, M72): the line resolved no intent at a prompt that names its word (an answer set of one canonical
-    // answer, or a quiz: a prompt that allows no intent), or it resolved no intent or an intent that no slot grammar gave and its distance to the nearest
-    // answer is within the fuzzy budget for the line's own length (a near miss). A line that resolved no intent far from every one of several answers, or
-    // with the answers unknown, is a correct line the prompt does not take and has none (M72). Its expected text is the answer set's single canonical
-    // answer, or empty when the set has no single answer (VerdictGen supplies none, the set's answers, or one).
+    // The derived error exists when nothing matched, the prompt is constrained and the line is a miss the tag can explain by naming a word (M67, M72, M75):
+    // (1) a near miss of an answer: the line resolved no intent or an intent that no slot grammar gave, and the inputs hold its near miss (the one word by which it
+    // misses the nearest answer phrase, a slip pair), a word the lexicon knows; the tag is on that word, with the answer's word as its expected text. M67's rule
+    // (the distance to the nearest answer within the fuzzy budget for the line's own length) is gone: it read the matcher's distance 0 at a set with no answers as
+    // a near miss of every line. (2) Else, a line that resolved no intent at a prompt that names its word (an answer set of one canonical answer, or a quiz: a
+    // prompt that allows no intent): the tag is on the first content token when the lexicon knows it, with the set's single canonical answer as its expected
+    // text, or none when the set has no single answer (VerdictGen supplies none, the set's answers, or one). A line that resolved no intent far from every one of
+    // several answers, or with the answers unknown, is a correct line the prompt does not take and has none (M72). The heard word of a number is the learner's
+    // (M70): a token in digits that the learner said in words reports its words.
     private static ErrorTag? DerivedVocabWrong(VerdictInputs inputs)
     {
-        var length = inputs.Analysis.Tokens.Sum(static t => t.Token.Text.Length) + Math.Max(inputs.Analysis.Tokens.Count - 1, 0);
-        var budget = length / inputs.Prompt.Difficulty switch { Difficulty.Intermediate => 5, Difficulty.Advanced => 6, _ => 4 };
-        var nearMiss = length > 0 && inputs.Match.Distance <= budget;
+        if (inputs.Match.Type != MatchType.None || inputs.Prompt.Mode != RecognitionMode.Constrained)
+        {
+            return null;
+        }
+
         var unknown = inputs.Intent.Intent.IsUnknown;
+        if ((unknown || inputs.Intent.Rung != IntentRung.Grammar) && inputs.NearMiss is { } nearMiss && inputs.KnownLexiconWords.Contains(nearMiss.Actual))
+        {
+            return Heard(new ErrorTag(ErrorTags.VocabWrong, nearMiss.Span, nearMiss.Expected, nearMiss.Actual), inputs);
+        }
+
         var namesTheWord = inputs.CanonicalAnswers?.Count == 1 || inputs.Prompt.AllowedIntentIds.Count == 0;
-        var miss = (unknown && namesTheWord) || ((unknown || inputs.Intent.Rung != IntentRung.Grammar) && nearMiss);
-        if (inputs.Match.Type != MatchType.None || inputs.Prompt.Mode != RecognitionMode.Constrained || !miss)
+        if (!unknown || !namesTheWord)
         {
             return null;
         }
@@ -214,8 +244,23 @@ public sealed class VerdictAssemblyFuzzTests(ITestOutputHelper output)
         }
 
         return first is not null && inputs.KnownLexiconWords.Contains(first.Text)
-            ? new ErrorTag(ErrorTags.VocabWrong, first.Span, inputs.CanonicalAnswers is { Count: 1 } answers ? answers[0] : string.Empty, first.Text)
+            ? Heard(new ErrorTag(ErrorTags.VocabWrong, first.Span, inputs.CanonicalAnswers is { Count: 1 } answers ? answers[0] : string.Empty, first.Text), inputs)
             : null;
+    }
+
+    // M70: an error on a token written in digits that the learner said in words reports the learner's words (dos, not 2).
+    private static ErrorTag Heard(ErrorTag error, VerdictInputs inputs)
+    {
+        static bool Digits(string text) => text.Length > 0 && text.All(char.IsAsciiDigit);
+        var token = inputs.Analysis.Tokens.Select(static t => t.Token).FirstOrDefault(t => t.Span == error.Span && t.Text == error.Actual);
+        return token is not null && Digits(token.Text) && !Digits(token.Original) ? error with { Actual = token.Original.ToLowerInvariant() } : error;
+    }
+
+    private static string DerivedKind(VerdictInputs inputs, ErrorTag derived)
+    {
+        return inputs.NearMiss is { } nearMiss && nearMiss.Span == derived.Span && nearMiss.Expected == derived.Expected
+            ? "derived:near-miss"
+            : "derived:first-content-word";
     }
 
     private static void CheckSlots(Verdict verdict, VerdictInputs inputs)

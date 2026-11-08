@@ -7,6 +7,7 @@ using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Evaluation;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
+using Vocaterra.Nlp.Language.Matching;
 using MatchType = Vocaterra.Nlp.Core.Stages.MatchType;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests.Generation;
@@ -100,7 +101,39 @@ public static class VerdictGen
             intent = intent with { OffPromptIntent = harness.Bundle.Intents.Intents[rng.NextInt(harness.Bundle.Intents.Intents.Count)].Id };
         }
 
-        return new VerdictInputs(prompt, asr, match, analysis, intent, pronunciation, required, knownWords, config, versions, canonical);
+        // M75, drawn last for the same reason: the line's near miss of the answer set, which the derived vocab.wrong names (null, the finder's own, or one drawn).
+        var nearMiss = NearMiss(harness, rng, normalized, analysis, prompt);
+
+        return new VerdictInputs(prompt, asr, match, analysis, intent, pronunciation, required, knownWords, config, versions, canonical, null, nearMiss);
+    }
+
+    // One time in three none; one in three what the finder gives the line at the prompt's answer set (none for most random lines, as for most real ones); one in
+    // three a near miss drawn on one of the line's words, a word the lexicon knows or not, naming a random lexicon word for any slip pair. The assembler only reads
+    // its span, its words and nothing else, so a drawn one need not be one the finder could give.
+    private static AnswerNearMiss? NearMiss(PipelineHarness harness, SeededRng rng, NormalizedText normalized, AnalysisResult analysis, PromptSpec prompt)
+    {
+        var roll = rng.NextInt(3);
+        if (roll == 0)
+        {
+            return null;
+        }
+
+        var hasSet = harness.Bundle.AnswerSets.TryGetValue(prompt.AnswerSetId, out var set);
+        if (roll == 1)
+        {
+            return hasSet
+                ? AnswerNearMisses.Find(normalized, set!, prompt.Difficulty, harness.Bundle.Language, harness.Lexicon, harness.Bundle.AnalysisRules, PipelineHarness.Normalization)
+                : null;
+        }
+
+        if (analysis.Tokens.Count == 0)
+        {
+            return null;
+        }
+
+        var token = analysis.Tokens[rng.NextInt(analysis.Tokens.Count)].Token;
+        var answerId = hasSet && set!.Answers.Count > 0 ? rng.Pick(set.Answers).AnswerId : "fuzz-answer";
+        return new AnswerNearMiss(answerId, RandomText(harness, rng), token.Span, token.Text, RandomWord(rng), (SlipPair)rng.NextInt(5));
     }
 
     private static IReadOnlyList<string>? CanonicalAnswers(PipelineHarness harness, SeededRng rng, PromptSpec prompt)

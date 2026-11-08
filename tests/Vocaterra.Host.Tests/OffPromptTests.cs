@@ -43,10 +43,11 @@ public sealed class OffPromptTests
         Assert.Equal([reply], Lines(Report(line, prompt), "  agent: "));
     }
 
+    // No intent of the catalog takes this line since M78 (the core reads «la tienda está en el pueblo» as describe, so it is no longer the unknown example).
     [Fact]
     public void ALineNoIntentOfTheCatalogTakesKeepsTheRepairAndPrintsNoOffPromptLine()
     {
-        var report = Report("la tienda está en el pueblo", "farmer-open");
+        var report = Report("la tienda cierra mañana", "farmer-open");
 
         Assert.Empty(Lines(report, "  off-prompt: "));
         Assert.NotEmpty(Lines(report, "  repair: "));

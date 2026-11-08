@@ -19,7 +19,18 @@ public sealed class ShippedLessonTests(ITestOutputHelper output)
     {
         var session = TestGame.NewSessionWithShippedLessons();
         Stage.TeleportToNpc(session, "guide");
-        _ = session.OpenTalk("guide");
+        _ = session.OpenTalkForClass("guide");
+        return session;
+    }
+
+    // The introduction done, then Luna's first class taken (the player says Sí to her offer).
+    private static VoxelSession AtFirstClass()
+    {
+        var session = AtGuide();
+        _ = LessonDriver.CompleteAll(session);
+        session.EndTalk();
+        _ = session.OpenTalkForClass("guide");
+        Assert.Equal("first-class", session.Lessons.Active?.Id);
         return session;
     }
 
@@ -43,7 +54,7 @@ public sealed class ShippedLessonTests(ITestOutputHelper output)
         var session = TestGame.NewSessionWithShippedLessons();
         Stage.TeleportToNpc(session, "guide");
 
-        var opening = session.OpenTalk("guide");
+        var opening = session.OpenTalkForClass("guide");
 
         Assert.Empty(opening.Lines); // no "¿En qué te ayudo?" before the first step
         Assert.True(session.Lessons.Engaged);
@@ -66,15 +77,16 @@ public sealed class ShippedLessonTests(ITestOutputHelper output)
             output.WriteLine($"{step.Id,-14} {step.Type,-8} {step.Sent,-26} {step.Outcome,-8} {string.Join(" / ", step.Shown)}");
         }
 
-        Assert.Equal(37, steps.Count);
+        Assert.Equal(25, steps.Count); // the introduction: u4 and u4v became Luna's first class (L01)
         Assert.All(steps, static s => Assert.Equal(StepOutcome.Done, s.Outcome));
         var units = steps.Select(static s => s.Id[..2]).Distinct().ToList();
-        Assert.Equal(["u1", "u2", "u3", "u4", "u5", "u6"], units);
+        Assert.Equal(["u1", "u2", "u3", "u5", "u6"], units);
         Assert.Equal(["u1-welcome", "u1-hello", "u1-say-hola", "u1-name"], steps.Take(4).Select(static s => s.Id));
         Assert.Equal("u6-recap", steps[^1].Id);
         Assert.Equal(LessonStatus.Completed, session.Lessons.StatusOf("first-words"));
         Assert.Null(session.Lessons.Active);
-        Assert.Null(session.Lessons.OfferFor("guide"));
+        Assert.Equal("first-class", session.Lessons.OfferFor("guide")?.LessonId); // Luna's first class is offered, never started by itself
+        Assert.False(session.Lessons.Engaged);
         Assert.Null(session.Lessons.HudLine);
     }
 
@@ -87,7 +99,7 @@ public sealed class ShippedLessonTests(ITestOutputHelper output)
 
         // A turn the lesson took shows nothing of the guide's chatter ("¿Qué buscas?", "A ver qué es.", "¡Muy bien!"): the lesson's next step is what she says.
         var turns = steps.Where(static s => s.Turn is not null && s.Id is not ("u5-again" or "u5-slow")).ToList();
-        Assert.True(turns.Count >= 9);
+        Assert.True(turns.Count >= 7);
         Assert.All(turns, s =>
         {
             Assert.True(s.Turn!.LessonHandled, s.Id);
@@ -136,7 +148,7 @@ public sealed class ShippedLessonTests(ITestOutputHelper output)
     {
         var session = TestGame.NewSession(); // no lesson: her ordinary conversation
         Stage.TeleportToNpc(session, "guide");
-        _ = session.OpenTalk("guide");
+        _ = session.OpenTalkForClass("guide");
         var first = session.Say("¿dónde está el árbol?");
         var lastLine = first.GuideLines[^1];
 
@@ -177,9 +189,9 @@ public sealed class ShippedLessonTests(ITestOutputHelper output)
     [Fact]
     public void TheLessonLeavesItsPhrasesOnTheSupportLadderWithTheEnglishOffTheCardAfterTheFirstCorrectUse()
     {
-        var session = AtGuide();
+        var session = AtFirstClass();
 
-        _ = LessonDriver.CompleteAll(session);
+        _ = LessonDriver.CompleteAll(session, "first-class");
 
         foreach (var id in new[] { "hola", "si", "que-es-esto", "si-por-favor", "otra-vez", "mas-despacio" })
         {
@@ -251,7 +263,7 @@ public sealed class ShippedLessonTests(ITestOutputHelper output)
     [Fact]
     public void TheFruitStepWaitsForTheLearnerToPickAFruitAndPointsTheBeaconAtABush()
     {
-        var session = AtGuide();
+        var session = AtFirstClass();
         while (session.Lessons.Current is { } step && step.Id != "u4-pick")
         {
             _ = LessonDriver.DoStep(session);
@@ -260,8 +272,9 @@ public sealed class ShippedLessonTests(ITestOutputHelper output)
         Assert.Equal("u4-pick", session.Lessons.Current!.Id);
         Assert.Equal("fruta", session.Pointer!.Place); // the beacon is on the nearest berry bush
         Assert.Contains("berry bush", session.Lessons.HudLine, StringComparison.Ordinal);
-        session.EndTalk(); // the player closes the panel to walk to the bush: an auto-start lesson stays engaged
+        session.EndTalk(); // the player closes the panel to walk to the bush: a class at a do step stays engaged until the pickup (L01), and holds back nothing
         Assert.True(session.Lessons.Engaged);
+        Assert.True(session.CanSave);
 
         // A pickup of something else does not end the step; a fruit does.
         session.LogEvent(new WorldEvent(session.CurrentTick, session.StoredTime.UnixSeconds, WorldEvents.ItemPickedUp, null, "madera"));
@@ -283,8 +296,7 @@ public sealed class ShippedLessonTests(ITestOutputHelper output)
         var view = session.Lessons.View!;
 
         Assert.Equal(LessonStepType.Recap, view.Type);
-        Assert.Equal(12, view.RecapLines.Count);
-        Assert.Contains("Quiero madera. = I want wood.", view.RecapLines);
+        Assert.Equal(7, view.RecapLines.Count);
         Assert.Contains("Hola. = Hello.", view.RecapLines);
         Assert.Contains("Más despacio, por favor. = More slowly, please.", view.RecapLines);
         Assert.Contains("¿Qué es esto? = What is this?", view.RecapLines);

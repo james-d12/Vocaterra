@@ -10,9 +10,7 @@ using Vocaterra.Nlp.Fuzzing.Tests.Generation;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
-using Vocaterra.Nlp.Language.Matching;
 using Xunit.Abstractions;
-using MatchType = Vocaterra.Nlp.Core.Stages.MatchType;
 using SlotGrammarType = Vocaterra.Nlp.Language.SlotGrammar.SlotGrammar;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests;
@@ -26,6 +24,9 @@ namespace Vocaterra.Nlp.Fuzzing.Tests;
 public sealed class CorrectSentenceFuzzTests(ITestOutputHelper output)
 {
     private const string Oracle = "O3";
+
+    // The intents of M74: the weather's statement and question, and ¿cómo estás?.
+    private static readonly HashSet<string> M74Intents = new(["state_weather", "ask_weather", "ask_wellbeing"], StringComparer.Ordinal);
 
     // Below this many iterations the shares of the homographs are too noisy to assert, and an accent is too rarely dropped.
     private const int MinimumIterationsForCoverage = 1000;
@@ -110,6 +111,7 @@ public sealed class CorrectSentenceFuzzTests(ITestOutputHelper output)
         if (iterations >= MinimumIterationsForCoverage)
         {
             Assert.True(diagnostics.Get("verdict-leg:off-prompt") > 0, $"No correct sentence graded off its prompt carried an off-prompt intent.\n{diagnostics.Report()}");
+            Assert.True(diagnostics.Get("verdict-leg:m74-intent-off-prompt") > 0, $"No sentence of the weather or of ¿cómo estás? was graded off its prompt.\n{diagnostics.Report()}");
         }
 
         // Every grammar word must be in the lexicon: a catalog grammar with an unknown literal (the old `cuál` gap) would be skipped here, and the
@@ -243,10 +245,10 @@ public sealed class CorrectSentenceFuzzTests(ITestOutputHelper output)
     /// gives it with every intent allowed; the prompt, drawn from the recipe's seed, allows none of them. What a sentence contains is what the analyzer finds in its
     /// words alone, with no grammar of any prompt: for a correct sentence nothing but <c>vocab.unknown</c> on a name only a <c>[WORD]</c> of a grammar reads (no
     /// lexicon has it). Errors are compared by tag and span. A pronunciation tag is not grammar and is left out on both sides, as in O3's first check (the grader
-    /// scores no pronunciation, so none arises). The derived <c>vocab.wrong</c> of a near miss of an answer, which M72 keeps (the owner's rule), is the one
-    /// exception, admitted only where an independent model of that rule holds and counted (<c>verdict-leg:near-miss-of-an-answer</c>): <c>rápido por favor</c> at
-    /// <c>lesson-had</c> is 4 edits from the alias <c>ayuda por favor</c>, within the budget of 4 for its 16 characters. Before M72 the derived
-    /// <c>vocab.wrong</c> fell on such a sentence at every prompt whose answers it missed.
+    /// scores no pronunciation, so none arises). Since M75 there is no exception (a widening): M72 had to admit the derived <c>vocab.wrong</c> of M67's near miss
+    /// (within the fuzzy budget for the line's own length), about one sentence in 2,000 (<c>rápido por favor</c> at <c>lesson-had</c>, 4 edits from the alias
+    /// <c>ayuda por favor</c>), and M75's near miss, one word of a slip pair from the nearest answer phrase, names a word only where the sentence missed it. Before
+    /// M72 the derived <c>vocab.wrong</c> fell on such a sentence at every prompt whose answers it missed.
     /// </summary>
     private static void CheckAtAPromptThatDoesNotTakeIt(
         SentenceRecipe recipe,
@@ -262,6 +264,8 @@ public sealed class CorrectSentenceFuzzTests(ITestOutputHelper output)
         {
             intents.UnionWith(grammar.IntentIds);
         }
+
+        var owners = new HashSet<string>(intents, StringComparer.Ordinal);
 
         var everyIntent = Harness.NewResolver(embeddings: false).Resolve(normalized, analysis, AgentPrompts.Value[0] with { AllowedIntentIds = [] });
         if (!everyIntent.Intent.IsUnknown)
@@ -284,16 +288,6 @@ public sealed class CorrectSentenceFuzzTests(ITestOutputHelper output)
             .ToHashSet();
         var added = verdict.Errors.Where(e => !ErrorTags.IsPronunciation(e.Tag) && !contained.Contains((e.Tag, e.Span))).ToArray();
 
-        // The one error a correct sentence may get that its words do not carry: the derived vocab.wrong of a near miss of an answer, which M72 keeps by the owner's
-        // rule (cuál es esto for qué es esto). It is admitted only where the model of that rule holds, computed here from the answer matcher: nothing matched, no slot
-        // grammar understood the line, and the nearest answer phrase is within the fuzzy budget taken for the line's own length. It is counted, never hidden.
-        if (added.Length == 1 && added[0].Tag == ErrorTags.VocabWrong && IsANearMissOfAnAnswer(normalized, prompt, verdict))
-        {
-            diagnostics.Count("verdict-leg:near-miss-of-an-answer");
-            diagnostics.Count("verdict-leg:near-miss-of-an-answer:" + prompt.PromptId);
-            added = [];
-        }
-
         if (added.Length > 0)
         {
             throw Determinism.Fail(
@@ -303,22 +297,28 @@ public sealed class CorrectSentenceFuzzTests(ITestOutputHelper output)
                 context);
         }
 
+        // M74 (a widening for the new intents): a sentence of the weather or of ¿cómo estás?, graded where none of its intents is allowed, is never taken by another
+        // intent's grammar (hace calor by a [VERB:hacer] [NOUN:item] of state_action, cómo estás by greet): unless an answer of the prompt matched it or an allowed
+        // keyword rule took it (qué tiempo hace by ask_activity's qué with hacer, until a host allows ask_weather there), it is unknown and understood off the prompt
+        // as one of its own intents.
+        if (owners.Overlaps(M74Intents) && verdict.ResolvedBy is not (ResolvedBy.Exact or ResolvedBy.Alias or ResolvedBy.Fuzzy or ResolvedBy.Rules))
+        {
+            diagnostics.Count("verdict-leg:m74-intent-off-prompt");
+            if (!verdict.Intent.IsUnknown || verdict.OffPromptIntent is not { } offPrompt || !intents.Contains(offPrompt.Value))
+            {
+                throw Determinism.Fail(
+                    Oracle,
+                    $"A sentence of [{string.Join(", ", owners.Order(StringComparer.Ordinal))}] graded at {prompt.PromptId} is {verdict.Intent} (off the prompt {verdict.OffPromptIntent?.Value ?? "none"}), not understood off the prompt as its own intent.",
+                    context);
+            }
+        }
+
         diagnostics.Count("verdict-leg:graded");
         diagnostics.Count(verdict.Intent.IsUnknown ? (verdict.OffPromptIntent is null ? "verdict-leg:not-understood" : "verdict-leg:off-prompt") : "verdict-leg:taken-by-another-intent");
         if (contained.Count > 0)
         {
             diagnostics.Count("verdict-leg:contains-an-error-alone");
         }
-    }
-
-    // M67's near miss, modelled from the answer matcher: no answer matched, the line was not resolved by a slot grammar, and the distance to the nearest answer phrase
-    // is within floor(length / 4, 5 or 6) for Beginner, Intermediate and Advanced, the length being the line's words joined by single spaces.
-    private static bool IsANearMissOfAnAnswer(NormalizedText normalized, PromptSpec prompt, Verdict verdict)
-    {
-        var match = AnswerMatcher.Match(normalized, Harness.Bundle.AnswerSets[prompt.AnswerSetId], prompt.Difficulty, Harness.Bundle.Language, PipelineHarness.Normalization);
-        var length = string.Join(' ', normalized.Text.Split(' ', StringSplitOptions.RemoveEmptyEntries)).Length;
-        var budget = length / prompt.Difficulty switch { Difficulty.Intermediate => 5, Difficulty.Advanced => 6, _ => 4 };
-        return match.Type == MatchType.None && verdict.ResolvedBy != ResolvedBy.Grammar && length > 0 && match.Distance <= budget;
     }
 
     /// <summary>
@@ -571,7 +571,8 @@ public sealed class CorrectSentenceFuzzTests(ITestOutputHelper output)
                 }
             }
 
-            return actual.Values.All(candidates.Contains);
+            // A group's slot (M74) holds several words of the sentence.
+            return actual.Values.All(value => candidates.Contains(value) || value.Split(' ').All(candidates.Contains));
         }
 
         return actual.Count == expected.Count && expected.All(pair => actual.TryGetValue(pair.Key, out var value) && value == pair.Value);

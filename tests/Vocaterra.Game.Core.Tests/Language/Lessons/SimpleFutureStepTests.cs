@@ -33,7 +33,7 @@ public sealed class SimpleFutureStepTests
     {
         var session = TestGame.NewSession(lessons: TestGame.Lessons(Lesson(tense)));
         Stage.TeleportToNpc(session, "guide");
-        _ = session.OpenTalk("guide");
+        _ = session.OpenTalkForClass("guide");
         Assert.True(session.Lessons.Start("t"));
         return session;
     }

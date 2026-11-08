@@ -19,6 +19,7 @@ public sealed class RecipePanelLayer : IFrameLayer
 
     private long _tick = -1;
     private RecipePanelModel? _model;
+    private bool _atFire;
 
     private const int Slot = 60;
     private const int Gap = 8;
@@ -34,20 +35,22 @@ public sealed class RecipePanelLayer : IFrameLayer
     /// <inheritdoc />
     public void Draw(SpriteBatch spriteBatch, FrameView view)
     {
-        if (view.Voxel is null || view.Dialogue.IsOpen || view.Book.IsOpen || view.Inventory.IsOpen || view.Crafting.IsOpen || view.ControlsOpen || view.Check is not null)
+        if (view.Voxel is null || view.Dialogue.IsOpen || view.Book.IsOpen || view.Inventory.IsOpen || view.Crafting.IsOpen || view.Station is { IsOpen: true } || view.ControlsOpen || view.SettingsOpen || view.Check is not null)
         {
             return;
         }
 
-        // The model is made once a tick, and only at the workbench (the only station): away from it the layer costs one look round the player a tick.
+        // The model is made once a tick, and only at a station (the workbench, or a lit fire, N07): away from it the layer costs one look round the player a tick.
         if (view.Voxel.Tick != _tick)
         {
             _tick = view.Voxel.Tick;
             _model = null;
-            if (view.Voxel.StationInReach(BlockId.Table))
+            _atFire = false;
+            if (view.Voxel.StationInReach(BlockId.Table) || view.Voxel.StationInReach(BlockId.FireRing))
             {
                 var panels = RecipePanelModel.AtStation(CraftingScreen.Rows(view.Voxel, view.Session.Recipes), view.Voxel.StationInReach);
-                _model = panels.Count > 0 ? panels[0] : null;
+                _model = panels.FirstOrDefault(static p => p.CanMake) ?? (panels.Count > 0 ? panels[0] : null); // the one the player can make now, else the first
+                _atFire = _model is { } m && view.Session.Recipes.Entries[m.Index].Rule.Station == BlockId.FireRing;
             }
         }
 
@@ -65,7 +68,7 @@ public sealed class RecipePanelLayer : IFrameLayer
         var panel = new Rectangle(placed.X, placed.Y, placed.Width, placed.Height);
         DrawHelpers.RoundedPanel(spriteBatch, pixel, panel, 8, Back, Edge, 2);
         var ui = view.Session.Locale;
-        DrawHelpers.Text(spriteBatch, font, ui.Ui("workbenchTitle"), new Vector2(panel.X + 16, panel.Y + 8), Warm);
+        DrawHelpers.Text(spriteBatch, font, ui.Ui(_atFire ? "fireTitle" : "workbenchTitle"), new Vector2(panel.X + 16, panel.Y + 8), Warm);
 
         // The product: its icon in a framed slot, with the number one craft makes.
         var outputBox = new Rectangle(panel.X + ((panel.Width - Slot) / 2), panel.Y + 34, Slot, Slot);

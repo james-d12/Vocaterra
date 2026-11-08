@@ -4,6 +4,7 @@ using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Mathematics;
+using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
@@ -24,9 +25,6 @@ public sealed partial class VoxelSimulation
 
     /// <summary>The ticks a player holds <see cref="VoxelCommandKind.Interact"/> on water with a bottle to fill it (half a second).</summary>
     public const int BottleFillTicks = 30;
-
-    /// <summary>How many times faster a trunk is cut while the axe is held (village-plan 3.4, V03): it takes a quarter of the ticks.</summary>
-    public const int AxeSpeedUp = 4;
 
     /// <summary>The fixed-point factor that keeps a diagonal walk as fast as a straight one: 1 / sqrt(2) in units of 1/65 536.</summary>
     private const int DiagonalScale = 46341;
@@ -67,6 +65,18 @@ public sealed partial class VoxelSimulation
     /// <summary>The events of the last step; replaced by the next step.</summary>
     public IReadOnlyList<SimulationEvent> Events => _events;
 
+    /// <summary>
+    /// How fast the player walks, in thousandths of the walking speed: 1000 walks, 1600 sprints, a stage's walk factor lowers it (N02). A host setting the session sets before every
+    /// tick, not state: it is not in the digest, and a simulation nobody sets walks at 1000.
+    /// </summary>
+    public int WalkPermille { get; set; } = 1000;
+
+    /// <summary>
+    /// How fast gathering a block goes, in thousandths: 1000 is full speed, a smaller number lets the progress grow only on the ticks that cross a whole step of it (a half: every
+    /// other tick), so gathering slows and never stops (N02, at zero stamina). A host setting like <see cref="WalkPermille"/>; filling a bottle is not slowed.
+    /// </summary>
+    public int GatherPermille { get; set; } = 1000;
+
     /// <summary>The selected hotbar slot, 0 to 9.</summary>
     public int SelectedSlot => _selectedSlot;
 
@@ -80,16 +90,21 @@ public sealed partial class VoxelSimulation
     public int GatherProgress => _gatherProgress;
 
     /// <summary>
-    /// The ticks of holding it takes to gather a block now: the block's own gather ticks, and a quarter of them for a trunk (a block that drops wood) while the selected
-    /// hotbar slot holds the axe (village-plan V03). The gathering, its progress events and the front-end's bar all read this number.
+    /// The ticks of holding it takes to gather a block now: the block's own gather ticks, divided by the selected hotbar slot's tool speed when that
+    /// tool works on the block's material (W02; the axe cuts a trunk four times as fast, village-plan V03). Hands are speed 1. The gathering, its progress
+    /// events and the front-end's bar all read this number.
     /// </summary>
     /// <param name="block">The block kind.</param>
     public int GatherTicksOf(BlockId block)
     {
         var definition = BlockDefinition.Get(block);
-        return definition.Drop == ItemId.Wood && SelectedStack is { IsEmpty: false, Item: ItemId.Axe }
-            ? Math.Max(1, definition.GatherTicks / AxeSpeedUp)
-            : definition.GatherTicks;
+        if (definition.Gatherable && definition.Material != Material.None
+            && SelectedStack is { IsEmpty: false } held && ItemDefinition.Get(held.Item).Tool is { } tool && tool.Class == definition.Material)
+        {
+            return Math.Max(1, definition.GatherTicks / tool.Speed);
+        }
+
+        return definition.GatherTicks;
     }
 
     /// <summary>The recipes the player can craft; set by the host with <see cref="SetRecipes"/>.</summary>
@@ -167,7 +182,7 @@ public sealed partial class VoxelSimulation
         }
 
         var (intentX, intentZ) = WalkIntent(commands);
-        var (jumped, landed) = Player.Step(Grid, intentX, intentZ, jump, Scene.Currents);
+        var (jumped, landed) = Player.Step(Grid, intentX, intentZ, jump, Scene.Currents, WalkPermille);
         if (jumped)
         {
             _events.Add(new SimulationEvent(SimulationEventKind.PlayerJumped, Tick));
@@ -237,7 +252,7 @@ public sealed partial class VoxelSimulation
             {
                 for (var x = bx - radius; x <= bx + radius; x++)
                 {
-                    if (Grid.GetBlock(x, y, z) != station)
+                    if (Grid.GetBlock(x, y, z) != station || (station == BlockId.FireRing && !Fires.StoneBurns(new BlockPos(x, y, z))))
                     {
                         continue;
                     }
@@ -255,6 +270,9 @@ public sealed partial class VoxelSimulation
 
         return false;
     }
+
+    /// <summary>The fire rings of the world (N07): a fire-ring stone is a station (<c>fuego</c>) only while its ring burns.</summary>
+    private FireRings Fires => _fires ??= new FireRings(Grid);
 
     /// <summary>What crafting the recipe at <paramref name="recipeIndex"/> would do now (nothing is changed).</summary>
     public CraftResult CanCraft(int recipeIndex)
@@ -382,6 +400,8 @@ public sealed partial class VoxelSimulation
         return Convert.ToHexString(hash.GetHashAndReset()).ToLowerInvariant();
     }
 
+    private FireRings? _fires;
+
     private bool RecipeStationInReach(Recipe recipe) =>
         recipe.Station is { } station && StationInReach(station);
 
@@ -432,6 +452,13 @@ public sealed partial class VoxelSimulation
         return coordinate < low ? low - coordinate : coordinate > high ? coordinate - high : 0;
     }
 
+    // Whether this tick adds a step of progress: always at full speed, else on the ticks where the running total of permille crosses a thousand (no state kept).
+    private bool GatherStepsNow()
+    {
+        var permille = Math.Clamp(GatherPermille, 1, 1000);
+        return permille >= 1000 || (Tick * permille / 1000) > ((Tick - 1) * permille / 1000);
+    }
+
     private void ResetGather()
     {
         _gatherTarget = null;
@@ -475,8 +502,12 @@ public sealed partial class VoxelSimulation
             _gatherProgress = 0;
         }
 
-        _gatherProgress++;
-        var ticks = GatherTicksOf(id); // a trunk takes a quarter of the ticks with the axe held (V03)
+        if (GatherStepsNow())
+        {
+            _gatherProgress++;
+        }
+
+        var ticks = GatherTicksOf(id); // the held tool's speed on its own material (W02; the axe on a trunk, V03)
         _events.Add(new SimulationEvent(SimulationEventKind.GatherProgress, Tick, cell.X, cell.Y, cell.Z, _gatherProgress, ticks));
         if (_gatherProgress < ticks)
         {

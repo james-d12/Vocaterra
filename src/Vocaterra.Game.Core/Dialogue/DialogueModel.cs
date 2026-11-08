@@ -28,7 +28,6 @@ public sealed class DialogueModel
     private readonly GameWords _words;
     private readonly NpcRoster _npcs;
     private readonly LocaleText _ui;
-    private readonly bool _showVerdictNotes;
     private int _cancelled;
 
     /// <summary>The text of the hint line that offers typing (the watchdog, or two uncertain recognitions in a row): <c>¿Escribes?</c> (<c>game/words.json</c>).</summary>
@@ -40,6 +39,9 @@ public sealed class DialogueModel
     /// <summary>How many uncertain spoken lines in a row make the panel offer typing.</summary>
     public const int TypingOfferStreak = 2;
 
+    /// <summary>Whether each turn adds its developer note (the verdict line); <c>--dev</c> starts it on and F3 toggles it (U01). The "Heard / Expected" line is not this note and stays.</summary>
+    public bool ShowVerdictNotes { get; set; }
+
     /// <summary>Creates a closed panel.</summary>
     /// <param name="focus">Who has the keyboard; the model sets <see cref="InputFocus.TextEntryActive"/> while it is open.</param>
     /// <param name="openingLine">What the guide says the first time the panel opens (the prompt's text).</param>
@@ -47,7 +49,7 @@ public sealed class DialogueModel
     /// <param name="phrases">The phrase sheet, for the heard-versus-expected line and the labels of the offered choices; without it neither is shown.</param>
     /// <param name="english">The game's English text, for the plain-English feedback after a turn (S16); without it no feedback line is added.</param>
     /// <param name="showVerdictNotes">Whether each turn adds its verdict line (the core's summary, the confidence and the milliseconds, for example
-    /// <c>greet, understood, 100 %, 3.5 ms</c>). A playtest hides it (S18); scripted and developer runs keep it.</param>
+    /// <c>greet, understood, 100 %, 3.5 ms</c>). The game passes <c>--dev</c> (U01).</param>
     public DialogueModel(InputFocus focus, string openingLine, GameData data, PhraseSheet? phrases = null, LocaleText? english = null, bool showVerdictNotes = true)
     {
         ArgumentNullException.ThrowIfNull(focus);
@@ -62,7 +64,7 @@ public sealed class DialogueModel
         _openingLine = openingLine;
         _phrases = phrases;
         _locale = english;
-        _showVerdictNotes = showVerdictNotes;
+        ShowVerdictNotes = showVerdictNotes;
     }
 
     /// <summary>Whether the panel is open (and so has the keyboard).</summary>
@@ -106,6 +108,112 @@ public sealed class DialogueModel
 
     /// <summary>The heard line as the panel shows it, in the support language (<see cref="HeardLine.Text"/>), or <see langword="null"/>.</summary>
     public string? HeardText => Heard?.Text(_ui);
+
+    /// <summary>
+    /// Whether the older lines show (U02): the panel starts each opening on the current exchange only, and the expand key (<see cref="ToggleExpanded"/>) shows the rest
+    /// of the page (<see cref="MaxLines"/> lines). The book's "What I said" keeps the whole history either way.
+    /// </summary>
+    public bool Expanded { get; private set; }
+
+    /// <summary>Shows or hides the older lines (U02). Opening the page starts at the newest lines.</summary>
+    public void ToggleExpanded()
+    {
+        Expanded = !Expanded;
+        ScrollBack = 0;
+    }
+
+    /// <summary>
+    /// How many blocks the expanded page is scrolled back from its newest lines (U02b): 0 shows the newest, and the arrow keys change it (<see cref="ScrollOlder"/>,
+    /// <see cref="ScrollNewer"/>). The panel clamps it to what fits.
+    /// </summary>
+    public int ScrollBack { get; private set; }
+
+    /// <summary>Scrolls the expanded page one row towards its older lines (U02b); nothing when the page is not shown.</summary>
+    public void ScrollOlder()
+    {
+        if (Expanded)
+        {
+            ScrollBack = Math.Min(ScrollBack + 1, Math.Max(0, PanelRows().Count - 1));
+        }
+    }
+
+    /// <summary>Scrolls the expanded page one row towards its newest lines (U02b); nothing when the page is not shown.</summary>
+    public void ScrollNewer()
+    {
+        if (Expanded)
+        {
+            ScrollBack = Math.Max(0, ScrollBack - 1);
+        }
+    }
+
+    /// <summary>
+    /// The one coaching line after the last turn (U02), or <see langword="null"/>: the microphone's trouble for an uncertain recognition ("ask again"), the NPC not
+    /// understanding, the off-prompt note for a typed line the NPC took off its prompt, or the one recast of a slip (the turn's feedback text). Never two; it stays
+    /// until the next turn.
+    /// </summary>
+    public string? CoachingLine { get; private set; }
+
+    /// <summary>
+    /// The index in <see cref="Lines"/> where the current exchange starts: the learner's last line (the lines before it, the prompt it answered included, are the older
+    /// lines), or 0 while the learner has said nothing yet.
+    /// </summary>
+    public int ExchangeStart
+    {
+        get
+        {
+            for (var i = _lines.Count - 1; i >= 0; i--)
+            {
+                if (_lines[i].Speaker is DialogueSpeaker.Player or DialogueSpeaker.PlayerSpoken)
+                {
+                    return i;
+                }
+            }
+
+            return 0;
+        }
+    }
+
+    /// <summary>How many lines the collapsed panel leaves out (0 when expanded).</summary>
+    public int HiddenLineCount => Expanded ? 0 : ExchangeStart;
+
+    /// <summary>
+    /// The rows the panel shows (U02). Expanded: every line, as they are. Collapsed: the current exchange, that is the learner's last line, the NPC's lines after it and
+    /// the one <see cref="CoachingLine"/> in place of the correction, accent and plain-English feedback stack (those stay in <see cref="Lines"/>); the developer's verdict note
+    /// only when <see cref="ShowVerdictNotes"/>. <see cref="PanelRow.Index"/> is the line's index in <see cref="Lines"/>, or -1 for the coaching line.
+    /// </summary>
+    public IReadOnlyList<PanelRow> PanelRows()
+    {
+        var rows = new List<PanelRow>();
+        if (Expanded)
+        {
+            for (var i = 0; i < _lines.Count; i++)
+            {
+                rows.Add(new PanelRow(i, _lines[i]));
+            }
+
+            return rows;
+        }
+
+        var start = ExchangeStart;
+        var spoke = start < _lines.Count && _lines[start].Speaker is DialogueSpeaker.Player or DialogueSpeaker.PlayerSpoken;
+        for (var i = start; i < _lines.Count; i++)
+        {
+            var line = _lines[i];
+            if (spoke && line.Speaker is DialogueSpeaker.Correction or DialogueSpeaker.Accent or DialogueSpeaker.English || (line.Speaker == DialogueSpeaker.Note && !ShowVerdictNotes))
+            {
+                continue;
+            }
+
+            rows.Add(new PanelRow(i, line));
+        }
+
+        if (CoachingLine is { } coaching)
+        {
+            rows.Add(new PanelRow(-1, new DialogueLine(DialogueSpeaker.Coaching, coaching)));
+        }
+
+        return rows;
+    }
 
     /// <summary>The choices the repair ladder offered with the last turn, as buttons; empty when none.</summary>
     public IReadOnlyList<ChoiceOption> Choices { get; private set; } = [];
@@ -238,8 +346,10 @@ public sealed class DialogueModel
             Choices = [];
             HighlightedLine = -1;
             UncertainStreak = 0;
+            CoachingLine = null;
         }
 
+        Expanded = false; // each opening starts on the current exchange only (U02)
         Npc = npc;
         NpcName = displayName;
     }
@@ -513,6 +623,8 @@ public sealed class DialogueModel
     private void Show(GuideTurn turn, double milliseconds)
     {
         LastTurn = turn;
+        ScrollBack = 0;
+        CoachingLine = CoachingFor(turn);
         LastTurnMilliseconds = milliseconds;
         TurnCount++;
         Heard = _phrases is null ? null : HeardLine.For(turn, _phrases);
@@ -522,7 +634,7 @@ public sealed class DialogueModel
             ? string.Create(CultureInfo.InvariantCulture, $"heard at {(int)Math.Round(confidence * 100, MidpointRounding.AwayFromZero)} %, ")
             : string.Empty;
         var summary = turn.Uncertain ? "not understood" : turn.Summary; // an unsure recognition has no verdict to summarize
-        if (_showVerdictNotes)
+        if (ShowVerdictNotes)
         {
             Add(DialogueSpeaker.Note, string.Create(CultureInfo.InvariantCulture, $"{heard}{summary}, {LastTurnMilliseconds:0.0} ms"));
         }
@@ -573,6 +685,33 @@ public sealed class DialogueModel
         {
             OfferTyping();
         }
+    }
+
+    // The one coaching line of a turn (U02, U02b): the first case that applies, from the feedback text (LocaleText.FeedbackFor) or the turn's recast.
+    private string? CoachingFor(GuideTurn turn)
+    {
+        var feedback = _locale?.FeedbackFor(turn);
+        if (turn.Uncertain && turn.Input == InputKind.Spoken)
+        {
+            return feedback?.FirstOrDefault(); // ask again: the microphone, not your Spanish (D-game-9)
+        }
+
+        if (!turn.Taken)
+        {
+            return feedback?.FirstOrDefault(); // not understood
+        }
+
+        if (turn.OffPromptIntent is not null && turn.Input == InputKind.Typed && !turn.LessonHandled)
+        {
+            return _ui.Ui("coachOffPrompt");
+        }
+
+        if (turn.Feedback is not null)
+        {
+            return turn.Feedback; // a slip: the NPC's one recast
+        }
+
+        return turn.Errors.Count > 0 && feedback is { Count: > 1 } ? feedback[1] : null;
     }
 
     private void Add(DialogueSpeaker speaker, string text)

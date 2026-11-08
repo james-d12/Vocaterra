@@ -273,6 +273,24 @@ public enum BlockCell
 
     /// <summary>The icon of the axe (the item): a steel head on a wooden haft.</summary>
     IconAxe,
+
+    /// <summary>The icon of a roast apple (the item, N07): the apple, browned and cooked, with a golden highlight.</summary>
+    IconRoastApple,
+
+    /// <summary>The icon of the bowl (a station fixture, W07): a round earthenware bowl with a pale rim.</summary>
+    IconBowl,
+
+    /// <summary>The icon of the spoon (a station fixture, W07): a wooden spoon lying along the diagonal.</summary>
+    IconSpoon,
+
+    /// <summary>The icon of the oven (a station fixture, W07): a cobble vault with a fire in its arched mouth and a chimney.</summary>
+    IconOven,
+
+    /// <summary>The plain tile any icon key without art of its own is drawn as (W07): a grey rounded square.</summary>
+    IconPlain,
+
+    /// <summary>The icon of flour (the item, W10): a cloth sack tied at the neck. Placed after the interface-only cells so the world's mip levels do not move.</summary>
+    IconFlour,
 }
 
 /// <summary>
@@ -376,6 +394,15 @@ public static class BlockAtlasLayout
     /// </summary>
     public static BlockCell Reads(BlockFace face, BlockCell word) => face is BlockFace.South or BlockFace.West ? word : BlockCell.SignBlank;
 
+    /// <summary>
+    /// Whether the cell at a column and a row of the colour block is one that is only ever drawn on the interface (W07: the station's icons from <see cref="BlockCell.IconBowl"/> on, with
+    /// the plain tile). It is left out of the mip levels (<see cref="BlockArt.MipLevel"/>): the world never samples it, and the top levels average the whole atlas, so painting it would
+    /// move the far horizon of every picture the game draws.
+    /// </summary>
+    /// <param name="column">The cell's column.</param>
+    /// <param name="row">The cell's row within the colour block (a grey copy's row minus <see cref="ColourRows"/>).</param>
+    public static bool IsUiOnly(int column, int row) => (row * Columns) + column >= (int)BlockCell.IconBowl;
+
     /// <summary>The cell that draws an item as an icon (the hotbar and the held item), or <see langword="null"/> when the item has no 3D picture.</summary>
     public static BlockCell? IconFor(ItemId item) => item switch
     {
@@ -389,7 +416,22 @@ public static class BlockAtlasLayout
         ItemId.Coin => BlockCell.IconCoin,
         ItemId.Apple => BlockCell.IconApple,
         ItemId.Axe => BlockCell.IconAxe,
+        ItemId.RoastApple => BlockCell.IconRoastApple,
+        ItemId.Flour => BlockCell.IconFlour,
         _ => null,
+    };
+
+    /// <summary>
+    /// The cell that draws an icon by its key (W07: a station fixture's <c>icon</c> in <c>stations.json</c>, or a made thing's noun). A key with no art of its own draws the plain tile, so a
+    /// fixture added to the content never shows as a hole.
+    /// </summary>
+    /// <param name="key">The icon key (<c>bowl</c>, <c>spoon</c>, <c>oven</c>, or any other).</param>
+    public static BlockCell IconForKey(string key) => key switch
+    {
+        "bowl" => BlockCell.IconBowl,
+        "spoon" => BlockCell.IconSpoon,
+        "oven" => BlockCell.IconOven,
+        _ => ItemDefinition.All.FirstOrDefault(d => string.Equals(d.Name, key, StringComparison.Ordinal)) is { } item && IconFor(item.Id) is { } cell ? cell : BlockCell.IconPlain,
     };
 
     /// <summary>The cell's rectangle in pixels of the atlas texture (x, y, width, height).</summary>

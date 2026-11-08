@@ -30,18 +30,18 @@ of the slowest chain, not the sum (about 70 s of test time in all). The slowest 
 | --- | --- | --- | --- | --- |
 | O1 | Normalizer never crashes (also on lone surrogates), is idempotent, spans and originals are well-formed; `Accents.Strip` and `SpanishPhoneticKey.Compute` are total | `NormalizerFuzzTests` | 3 000 | `VOCATERRA_FUZZ_ITERATIONS` |
 | O2 | Analyzer never crashes, is deterministic (also on a fresh instance), output is well-formed | `AnalyzerFuzzTests` | 3 000 | `VOCATERRA_FUZZ_ITERATIONS` |
-| O3 | Correct sentences analyze clean, match their grammar, yield their slot values; every catalog grammar is realised (one the sample left out from fixed recipes, M71); graded at an agent's constrained prompt that does not take them, they get no error they do not contain (M72) | `CorrectSentenceFuzzTests` | 2 000 | `VOCATERRA_FUZZ_ITERATIONS_GRAMMAR` |
+| O3 | Correct sentences analyze clean, match their grammar, yield their slot values; every catalog grammar is realised (one the sample left out from fixed recipes, M71); graded at an agent's constrained prompt that does not take them, they get no error they do not contain (M72; with no exception since M75), and one of the weather or of `¿cómo estás?` is understood off the prompt as its own intent (M74) | `CorrectSentenceFuzzTests` | 2 000 | `VOCATERRA_FUZZ_ITERATIONS_GRAMMAR` |
 | O4 | One mutation yields exactly the named tag, with the original form as correction | `MutationTagFuzzTests` | 2 000 | `VOCATERRA_FUZZ_ITERATIONS_GRAMMAR` |
 | O5 | The recast closes the loop: it restores the corrected sentence and re-analyzes clean | `RecastLoopFuzzTests` | 2 000 | `VOCATERRA_FUZZ_ITERATIONS_GRAMMAR` |
-| O6 | Answer matching agrees with an independent model of its documented rules, plus metamorphic relations | `AnswerMatchFuzzTests` | 3 000 | `VOCATERRA_FUZZ_ITERATIONS` |
-| O7 | Intent resolver: allowed intents respected, ladder order respected, unresolved is margin 0 and confidence 0; the off-prompt intent is a disallowed intent the resolver gives with every intent allowed, null on a known intent (M72) | `IntentResolverFuzzTests` | 2 000 | `VOCATERRA_FUZZ_ITERATIONS_GRAMMAR` |
+| O6 | Answer matching agrees with an independent model of its documented rules, plus metamorphic relations; the near miss of a line (one word of a slip pair from the nearest answer phrase) agrees with an independent model of its rule (M75) | `AnswerMatchFuzzTests` | 3 000 | `VOCATERRA_FUZZ_ITERATIONS` |
+| O7 | Intent resolver: allowed intents respected, ladder order respected, unresolved is margin 0 and confidence 0; the off-prompt intent is a disallowed intent the resolver gives with every intent allowed, null on a known intent (M72); the grammar rung reads the whole catalog first (M74) | `IntentResolverFuzzTests` | 2 000 | `VOCATERRA_FUZZ_ITERATIONS_GRAMMAR` |
 | O8 | G2P: phones in the inventory, syllables partition each word and own the phones, one stressed syllable per word, deterministic, IPA string splits back, dialects differ only at dialect sites, predicted errors are one edit away | `G2pFuzzTests` | 3 000 | `VOCATERRA_FUZZ_ITERATIONS` |
 | O9 | Pronunciation scoring: perfect posteriors score 1 and tag nothing, one injected predicted error gives exactly that tag at that grapheme span, scores and confidence in [0, 1], deterministic, CTC segments ordered and disjoint | `PronunciationFuzzTests` | 1 000 (two facts) | `VOCATERRA_FUZZ_ITERATIONS_SIGNAL` |
-| O10 | Verdict assembly follows its documented rules (the derived `vocab.wrong` and the off-prompt intent, M72); order of unordered inputs does not matter; JSON round trip | `VerdictAssemblyFuzzTests` | 3 000 | `VOCATERRA_FUZZ_ITERATIONS` |
+| O10 | Verdict assembly follows its documented rules (the derived `vocab.wrong` and the off-prompt intent, M72; the derived `vocab.wrong` of a near miss names its word, M75); order of unordered inputs does not matter; JSON round trip | `VerdictAssemblyFuzzTests` | 3 000 | `VOCATERRA_FUZZ_ITERATIONS` |
 | O11 | Decision layer: agent step agrees with the documented rules, lands in a declared state, draws variants in range, same seed same path, defective definitions rejected with `InvalidDataException`; BKT follows its formula; FSRS stays positive, schedules ahead and orders the ratings; feedback plans follow the rule precedence; the repeat counts after one verdict (`RepeatCounts.Next`) are exactly the verdict's tags plus `not_communicated`, each one more than before (1 when new, saturating at `int.MaxValue`), and do not depend on the order of the input | `DecisionFuzzTests` | 3 000 (seven facts) | `VOCATERRA_FUZZ_ITERATIONS` |
 | O12 | Every template renders clean text; only the missing-slot `TemplateException`; stable seeded selection; planner | `TemplateFuzzTests` | 2 000 (three facts) | `VOCATERRA_FUZZ_ITERATIONS_GRAMMAR` |
 | O13 | Audio front-end: `WavFile.Read` throws only `InvalidDataException` / `NotSupportedException` on damaged bytes; a valid clip reads back exactly and survives write and read; `Process` agrees with the stages composed by hand (downmix, resampled length, gain, VAD slice, hash) | `AudioFrontEndFuzzTests` | 1 000 (two facts) | `VOCATERRA_FUZZ_ITERATIONS_SIGNAL` |
-| O14 | Pipeline end to end: never throws, deterministic on fresh instances (and under the other recognizer scheduling), verdict and decision agree with the stages called by hand, the envelope round-trips and replays clean, changing one recorded output gives exactly that replay diff; about half the cases also run as `Analyze` on one pipeline and `Complete` (host facts given to phase 2) on another and must equal `Evaluate` with the recognizer called once (M28a, CR-017); about a third first take a host-initiated turn (`Advance`, in a copy of the bundle whose agents handle `fuzz.ask` in every state), which must equal the machine step with the counter advanced, leave learner and counts alone, replay clean and be skipped by `Read`/`ReadEnvelopes` (M28a, CR-015) | `PipelineFuzzTests` | 300 (two facts) | `VOCATERRA_FUZZ_ITERATIONS_PIPELINE` |
+| O14 | Pipeline end to end: never throws, deterministic on fresh instances (and under the other recognizer scheduling), verdict and decision agree with the stages called by hand, the envelope round-trips and replays clean, changing one recorded output gives exactly that replay diff; about half the cases also run as `Analyze` on one pipeline and `Complete` (host facts given to phase 2) on another and must equal `Evaluate` with the recognizer called once (M28a, CR-017); about a third first take a host-initiated turn (`Advance`, in a copy of the bundle whose agents handle `fuzz.ask` in every state), which must equal the machine step with the counter advanced, leave learner and counts alone, replay clean and be skipped by `Read`/`ReadEnvelopes` (M28a, CR-015); a third fact (M80) scripts the recognizer by mode over two generated cases (one transcript for the constrained request, the other for the open one): with `OpenRecognitionFallback` on, a first reading that is taken and does not look forced (M84: its answer match is not `None` or `Fuzzy` while `OpenPassOnLooseMatch` is generated on, and the constrained words, timed over a generated part of the one-second tone, cover at least the generated `OpenPassMinCoverage` of it, counted by hand in the oracle) and every open prompt decodes once and gives exactly the option-off result, otherwise the clip is decoded once more and the result is the free recognition read first when that is taken, its weakest word reaches the generated `OpenPassWordFloor` (0, 0.5, 0.8 or 1; the words carry generated confidences) and, for a first reading that was taken, its intent is another one, else the option-off result; no taken free reading ever has a word under the floor, and none replaces a reading of the same intent (a third of the cases hear the same words twice, so that path is reached; the diagnostics must reach `forced-replaced`, `forced-same-intent`, `forced-rejected`, `sparse-coverage` and `loose-match`) | `PipelineFuzzTests` | 300 (two facts) | `VOCATERRA_FUZZ_ITERATIONS_PIPELINE` |
 | O15 | A mutated copy of `content/game-v1` makes the loader throw `ContentValidationException` and nothing else, naming the damaged file; a byte flip changes the bundle hash; the unmutated bundle loads; (M32) a manifest `language` is hashed only when present, an unregistered one is refused, and a random tag resolves only when well-formed and Spanish | `ContentSchemaFuzzTests` | 500 | `VOCATERRA_FUZZ_ITERATIONS_CONTENT` |
 | O16 | Everything that flows through `CanonicalJson` round-trips byte for byte (M32: including the manifest's `language` and `supportLanguage`, present or null) | `SerializationRoundTripFuzzTests` | 3 000 stage records, 1 000 catalogs, 300 replay envelopes | `VOCATERRA_FUZZ_ITERATIONS`, `VOCATERRA_FUZZ_ITERATIONS_PIPELINE` |
 
@@ -235,6 +235,37 @@ code comments and here, with the reason:
     length) and is counted as `verdict-leg:near-miss-of-an-answer`. The third run found it (seed `3omMnHLFpnr3`: `rápido por favor`, correct, at `lesson-had`, 4
     edits from the alias `ayuda por favor` within a budget of 4); about one graded sentence in 2 000 is such a near miss, reported as a finding on M67's
     heuristic. The test asserts that the leg grades sentences and, at the default depth, that some carry an off-prompt intent.
+  - *O3 and O7, the weather and `¿cómo estás?` (M74, 2026-11-04; widenings and a documented rule change, no oracle narrowed).* (a) O7 follows the resolver's
+    new order (the grammar rung reads the whole catalog before the prompt narrows it): where the analyzer's grammar is beaten in the rung's order by a grammar of
+    an intent the prompt does not allow that also names more of the words (literal words and `[VERB:lemma]`s), the line must be unknown with that intent off
+    the prompt (counted as `catalog-reading:taken-off-the-prompt`), and otherwise it is the grammar's intent as before; it is widened by a check that no
+    disallowed grammar outranks the grammar an intent was resolved by. (b) O3's verdict leg asserts that a sentence of `state_weather`, `ask_weather` or
+    `ask_wellbeing` graded at a prompt that takes none of its intents is never taken by another intent's grammar: it is unknown and understood off the prompt as
+    one of its own intents unless an answer matched it or an allowed keyword rule took it (`¿qué tiempo hace?` at `smith-open`, `ask_activity`'s `qué` with
+    `hacer`, until the game allows `ask_weather` there) (`verdict-leg:m74-intent-off-prompt`, reached at the default depth). (c) The pattern tree, the realiser and O3's slot check know the group's slot of the DSL
+    (`(frío|calor|buen tiempo):weather`): its value is the chosen alternative's words, literals as written in the grammar. (d) The matcher refuses before its
+    search a grammar the line cannot match (token count, a required word, lemma, class or name missing); `SlotGrammarTests` checks over the bundle that it never
+    refuses one the search matches. (e) A generator fix, found by the merge gate's O3 seed `8vYtnrmXN4e2` and older than M74 (the same recipe realises the same
+    sentence on `45305998`; M74's new grammars only moved the sample stream onto it): `cuánto [VERB:ser] [ART]? [NUM:qty]? [NOUN:item]?` gave `cuánto sois
+    cómoda`, with `cómoda` (the chest of drawers) drawn as the noun right after the copula, where the reading resolver's M69 rule reads the adjective `cómodo`
+    (`IAnalysisRules.IsPredicateAdjective`) and agrees it with `sois` (`noun.number` `cómodas`), as a reader does; seeds 1 to 4000 of the recipe also gave `cuánto
+    eres claras`. Such a noun right after a finite copula is re-rolled (`skip:noun-reads-as-predicate-adjective`, `HomographRerollTests`), broader than the
+    resolver, which also weighs the subject: leaving out a correct sentence is never wrong. The analyzer and the oracle are unchanged.
+  - *O3, O6 and O10, the near-miss rule (M75, 2026-11-04; the owner's rule of 2026-11-02, D-game-22: "a near miss must name its word"; a widening and a
+    documented rule change, no oracle narrowed).* (a) O10's model of the derived `vocab.wrong` follows the new rule: a line no slot grammar understood (an unknown
+    intent, or a keyword rule or the embedding rung) gets it from its near miss (`VerdictInputs.NearMiss`, the one word by which it misses the nearest answer phrase,
+    a slip pair) when the lexicon knows that word, on that word and with the answer's word as its expected text; otherwise only an unknown intent at a prompt that
+    names its word gets it, on the first content word, as before. M67's distance rule is gone. O10 also checks the derived error's expected and heard words where no
+    stage error shares its tag and span (a number said in words is heard in words, M70), and that a near-miss tag, a first-content-word tag and a near miss the rule
+    does not tag are each reached. `VerdictGen` draws the near miss last (so no earlier draw moves): none, the finder's own for the line, or one drawn on a word of
+    the line. (b) O6 gained a fact: `AnswerNearMisses.Find` agrees with an independent model of its rule (the phrases at the matcher's smallest distance in the
+    matcher's order; the first with the line's number of words and exactly one word differing, accents ignored, those two words within the answer word's own fuzzy
+    budget, both question words of a list written in the test, or both with a lexicon reading as an article, a preposition or a pronoun), and names a word of the line
+    and a non-empty word of the answer, on lines made from the sets' phrases (unchanged, one word changed for a lexicon word or a word of its closed class, a letter
+    edited, a word added or dropped) and free text; every slip pair and a line with none are reached. (c) O3's verdict leg is strict again: M72 admitted the derived
+    `vocab.wrong` of M67's near miss where the test's model of that rule held (about one graded sentence in 2 000, `rápido por favor` at `lesson-had`), and M75's
+    near miss is no exception. At five times the default depth (10 000 recipes, 9 596 graded at a prompt that does not take them) no correct sentence got an
+    error it does not contain. The pipeline oracle's verdicts by hand (O14, both languages) pass the near miss as the pipeline does.
 - **O8.** The dialect sites are `θ s z h ʎ ʝ ʃ ʒ` (the plan lists `θ s ʎ ʝ h`; the shipped dialects also produce the voiced `z` and the rioplatense `ʃ ʒ`).
   `Tokenize(ToIpaString())` is exact except for the pair `t` + `ʃ`, whose concatenation is the affricate token `tʃ` (the inventory documents that
   sequences are lists for this reason); a result with that pair skips the split.
@@ -580,8 +611,9 @@ weakened: each fix is at the source, or an independent model brought in line wit
   `region:effects` at one mutation in a run. The aimed sentence is now drawn from the grammars of the effect intents the prompt allows.
 - **O15's list of documented tolerances** gained three entries that the game's bundle exercises, each with its reason in `KnownTolerances`: a whole dialogue pool that no agent
   names is removable (`HostVoicedPool`: the game's guide voices its `guide.*` pools itself), the slot grammars of an intent that also has keyword rules are removable
-  (`RuleOnlyIntent`), and the lint expectation and waiver fields of the intent file are optional (`examples/*/prompt`, `examples/*/errors`, `lint/**`). Each is accepted only
-  where the content makes it valid, so removing the grammars of an intent without a rule, or a pool an agent names, is still rejected.
+  (`RuleOnlyIntent`, and since M81 `ExampleOnlyIntent`, below), and the lint expectation and waiver fields of the intent file are optional (`examples/*/prompt`,
+  `examples/*/errors`, `lint/**`). Each is accepted only where the content makes it valid, so removing the grammars of an intent with rules or examples is accepted, and a
+  pool an agent names is still rejected. (An intent with neither is not on the list; see "Known, deliberately not fixed" for why the loader takes it.)
 - **What the game's bundle lacks, the suite builds** (no second bundle is kept on disk): `PipelineHarness.EffectsBundle` (the bundle plus an effect table, the one the pipeline
   oracles run with; its hash is the repository bundle's because the copy keeps the manifest), `PipelineHarness.FixtureGrammars` (a name `[WORD]`, an adjective `[ADJ]`, a verb bound to a
   slot), and `ContentMutationGen.WithEffects` (a rehashed copy with the effect table, so the loader's effect checks stay under mutation). The host-turn bundle gives every agent
@@ -825,6 +857,30 @@ Found and fixed in M66 (its own run of O3 at five times the default depth):
   podamos estudio unas`, with `podar` drawn (`podamos`, we prune), and M66's new rule read `podamos` as `poder`'s subjunctive and `estudio` as the slip for `estudiar`
   (`conj.tense`). A modal is now a finite verb whose readings of the indicative are all that verb's (`podemos`, `poder`'s indicative and `podar`'s subjunctive, still
   is). Regression: `ModalComplementTests.AFormThatIsAlsoAnotherVerbsIsNoModal` in `tests/Vocaterra.Nlp.Es.Tests/Analysis` (`podemos estudio` is still flagged).
+
+Found and fixed in M81 (O15, CsCheck seed `41s2qgWEC-M9`, which reproduces on its own):
+
+- **O15's tolerance was short of the embedding rung** (`KnownTolerances.AcceptedGrammarlessIntent`; `RemoveProperty intents/intents.json /intents/27/slotGrammars`, the `describe`
+  intent, which has 27 examples, no keyword rule and no required slot). The loader accepted it, and the loader is right to: the resolver's embedding rung scores an intent's
+  examples when the pipeline has an embedding model (`IntentResolver.TryEmbedding`), so an intent with examples is reachable with no grammar, and only the lint's coverage
+  check (`coverage.uncovered`, an error, 27 of them for `describe` in a run of `lint --strict`) says its examples need a grammar or a rule. The tolerance now accepts the
+  removal for an intent with examples (`ContentFieldReason.ExampleOnlyIntent`) as well as for one with rules, and nothing else. Regressions:
+  `OracleInfrastructureTests.AGrammarlessIntentIsToleratedOnlyWhenItHasRulesOrExamples` and `IntentCatalogTests.AnIntentWithOnlyExamplesLoadsAndKeepsThemForTheEmbeddingRung`.
+Found and fixed in M82 (the owner's decision, 2026-11-05; the bare-intent case M81 left open):
+
+- **An intent with no slot grammar, keyword rule or example loaded** (`IntentCatalog.Build`; `IntentCatalogTests.OptionalMembersMayBeOmitted` had pinned a bare `{ "intentId" }`).
+  Nothing can match such an intent, so the loader now refuses it: a `FormatException` the bundle loader reports as `intents/intents.json: Intent '<id>' has no slotGrammars, keywordRules or examples`.
+  Removing the last of the three from an intent is therefore a rejected mutation, and `AcceptedGrammarlessIntent` still returns null for it. No bundle on disk was bare, so nothing else changed.
+  Regressions: `IntentCatalogTests.AnIntentWithNoGrammarRuleOrExampleIsRefused` and the per-member loads beside it.
+
+Found and fixed in M83 (the owner, 2026-11-07, D-game-23 item 5; found by W02):
+
+- **The resolver kept a grammar that an outranking grammar outside the prompt beat when the line ended in a polite phrase** (`IntentResolver.OutsideGrammar`, O7, CsCheck seed `8eu5g1sTe_A8`). «ayuda por favor por favor» at a prompt allowing `request_item` and not `ask_help`:
+  `request_item`'s `[ART]? [NUM:qty]? [NOUN:item] [ADJ]? por favor` matches (`ayuda` the item; three tokens explicit, four bound to literals with the trailing phrase) and `ask_help`'s `ayuda (por favor)?`
+  beats it (three explicit, five literal, five named), as the oracle says. The matcher binds the trailing polite phrase's words to literals, but a grammar's `MaxLiteralTokens` and `MaxNamedTokens`
+  (the bounds the resolver prunes with before it matches an outside grammar) count only the pattern's own elements, so `ayuda (por favor)?` was judged unable to beat four literals (bound 3) and never matched.
+  The oracle was right and the analyzer was not at fault. The resolver now adds the language's trailing polite words to both bounds. Regressions:
+  `IntentResolverCatalogReadingTests.TheFuzzSeed8eu5g1sTe_A8ReadsAsAskHelpOffThePrompt` (the seed's input) and `TheTrailingPolitePhraseCountsAsLiteralWordsWhenAGrammarOutsideThePromptIsWeighed`.
 
 ## Known, deliberately not fixed
 

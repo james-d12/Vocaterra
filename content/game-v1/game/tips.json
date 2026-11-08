@@ -60,6 +60,18 @@
       "trigger": {
         "event": "objective_step"
       }
+    },
+    {
+      "id": "needs",
+      "trigger": {
+        "event": "need_stage"
+      }
+    },
+    {
+      "id": "collapse",
+      "trigger": {
+        "event": "player_collapsed"
+      }
     }
   ]
 }

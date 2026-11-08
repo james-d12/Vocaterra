@@ -120,6 +120,19 @@ public sealed record PhraseRecord(
     public bool Seen => CardShown > 0 || Supported > 0 || Unaided > 0 || ChoiceOnly > 0 || DontKnow > 0 || Transfer > 0 || FailForward > 0 || Slips > 0 || Heard > 0;
 }
 
+/// <summary>How a right act of a procedure's step was made (design 10.10): it decides what the instruction row is credited.</summary>
+public enum ActQuality
+{
+    /// <summary>The first attempt of the step, with no help: the only act that earns comprehension credit.</summary>
+    FirstTime,
+
+    /// <summary>A right act after a wrong one (a slip): no comprehension credit, no step down; at the English rung it still moves the row on.</summary>
+    AfterSlip,
+
+    /// <summary>A right act with help (the Ayuda key, or the highlight a third slip brings): no credit, no move.</summary>
+    Helped,
+}
+
 /// <summary>What one phrase use did to the support level of one phrase.</summary>
 public enum PhraseStep
 {
@@ -304,6 +317,108 @@ public sealed class PhraseProgress
         return results;
     }
 
+    /// <summary>
+    /// Records a right act of a procedure's step on the instruction row that was shown (W06, design 10.10, the dedicated path of <c>does</c> rows). It never adds
+    /// supported, unaided, transfer or noun credit; only instruction spacing. At <see cref="SupportLevel.EnglishAndCard"/> a right act without help moves the row to
+    /// <see cref="SupportLevel.CardAndAudio"/> at once, without comprehension credit, and starts the gap clock. At <see cref="SupportLevel.CardAndAudio"/> and
+    /// <see cref="SupportLevel.AudioOnly"/> a <see cref="ActQuality.FirstTime"/> act is comprehension (<see cref="PhraseRecord.Answered"/> grows) and adds one use of
+    /// instruction-spacing units: the row steps down when its gap has passed (the same gaps as a phrase use), otherwise the act is <see cref="PhraseStep.TooEarly"/>.
+    /// Any other act is logged only.
+    /// </summary>
+    /// <param name="id">The instruction row.</param>
+    /// <param name="quality">How the act was made.</param>
+    /// <param name="time">The stored time in Unix seconds.</param>
+    /// <param name="rules">The credit rules (the gaps).</param>
+    public PhraseUseResult RecordAct(string id, ActQuality quality, long time, CreditRules rules)
+    {
+        ArgumentNullException.ThrowIfNull(id);
+        ArgumentNullException.ThrowIfNull(rules);
+        if (!_index.ContainsKey(id))
+        {
+            return new PhraseUseResult(id, PhraseStep.Logged, SupportLevel.None);
+        }
+
+        Update(id, record => record with { LastUseAt = time, LastUseSession = Session });
+        var before = RecordOf(id);
+        if (!HasScaffold(id) || before.Level == SupportLevel.None)
+        {
+            return new PhraseUseResult(id, PhraseStep.Logged, before.Level);
+        }
+
+        if (before.Level == SupportLevel.EnglishAndCard)
+        {
+            if (quality == ActQuality.Helped)
+            {
+                return new PhraseUseResult(id, PhraseStep.Logged, before.Level);
+            }
+
+            Update(id, record => record with
+            {
+                Level = SupportLevel.CardAndAudio,
+                StepUnits = 0,
+                CreditedUses = record.CreditedUses + 1,
+                LastCreditedAt = time,
+                LastCreditedSession = Session,
+            });
+            return new PhraseUseResult(id, PhraseStep.SteppedDown, SupportLevel.CardAndAudio);
+        }
+
+        if (quality != ActQuality.FirstTime)
+        {
+            return new PhraseUseResult(id, PhraseStep.Logged, before.Level);
+        }
+
+        Update(id, record => record with { Answered = record.Answered + 1 });
+        var remaining = SecondsUntilCredit(before, time, Session, rules);
+        if (remaining > 0)
+        {
+            return new PhraseUseResult(id, PhraseStep.TooEarly, before.Level, remaining);
+        }
+
+        var level = before.Level + 1; // one use of instruction units (WordProgress.UnitsPerUse) is a whole step
+        Update(id, record => record with
+        {
+            Level = level,
+            StepUnits = 0,
+            CreditedUses = record.CreditedUses + 1,
+            LastCreditedAt = time,
+            LastCreditedSession = Session,
+        });
+        return new PhraseUseResult(id, PhraseStep.SteppedDown, level);
+    }
+
+    /// <summary>
+    /// Records help asked on an instruction row (W06, design 10.10): <see cref="PhraseRecord.DontKnow"/> grows and the row steps up one rung, as "no sé" does for a phrase.
+    /// </summary>
+    /// <param name="id">The instruction row.</param>
+    /// <param name="time">The stored time in Unix seconds.</param>
+    public PhraseUseResult RecordHelp(string id, long time)
+    {
+        ArgumentNullException.ThrowIfNull(id);
+        if (!_index.ContainsKey(id))
+        {
+            return new PhraseUseResult(id, PhraseStep.Logged, SupportLevel.None);
+        }
+
+        Update(id, record => record with { DontKnow = record.DontKnow + 1, LastUseAt = time, LastUseSession = Session });
+        return StepUp(id);
+    }
+
+    /// <summary>
+    /// Starts an instruction row that has not been seen at <paramref name="level"/> instead of the first rung (a chunk or goal row starts at the Spanish card, design 10.11).
+    /// A row already seen keeps its level.
+    /// </summary>
+    /// <param name="id">The instruction row.</param>
+    /// <param name="level">The level it starts at.</param>
+    public void StartAt(string id, SupportLevel level)
+    {
+        ArgumentNullException.ThrowIfNull(id);
+        if (HasScaffold(id) && RecordOf(id) is { Seen: false } record && record.Level == SupportLevel.EnglishAndCard)
+        {
+            Update(id, r => r with { Level = level });
+        }
+    }
+
     /// <summary>The stored seconds a correct use of a phrase must still wait before it counts toward a step (0: now; <see langword="null"/> when it has no credited use yet).</summary>
     /// <param name="id">The phrase.</param>
     /// <param name="now">The stored time in Unix seconds.</param>
@@ -313,6 +428,20 @@ public sealed class PhraseProgress
         ArgumentNullException.ThrowIfNull(rules);
         var record = RecordOf(id);
         return record.CreditedUses == 0 ? null : record.Level == SupportLevel.EnglishAndCard ? 0 : SecondsUntilCredit(record, now, Session, rules);
+    }
+
+    /// <summary>
+    /// Whether a row's review is due at <paramref name="now"/> by <see cref="DuePhrases"/>'s rule for the row (a credited use, a level above none, a scaffold, and its gap
+    /// passed), without its exclusion of the instruction rows: a procedure's goal row is an instruction row, and the station asks for it (W07b, design 10.15).
+    /// </summary>
+    /// <param name="id">The row.</param>
+    /// <param name="now">The stored time in Unix seconds.</param>
+    /// <param name="rules">The credit rules (the gaps).</param>
+    public bool IsScaffoldDue(string id, long now, CreditRules rules)
+    {
+        ArgumentNullException.ThrowIfNull(rules);
+        var record = RecordOf(id);
+        return record.CreditedUses > 0 && record.Level != SupportLevel.None && HasScaffold(id) && SecondsUntilCredit(record, now, Session, rules) <= 0;
     }
 
     /// <summary>
@@ -329,7 +458,7 @@ public sealed class PhraseProgress
         for (var i = 0; i < _records.Length; i++)
         {
             var record = _records[i];
-            if (record.CreditedUses == 0 || record.Level == SupportLevel.None || !HasScaffold(record.Id) || SecondsUntilCredit(record, now, Session, rules) > 0)
+            if (record.CreditedUses == 0 || record.Level == SupportLevel.None || !HasScaffold(record.Id) || _sheet.Find(record.Id) is { IsInstruction: true } || SecondsUntilCredit(record, now, Session, rules) > 0)
             {
                 continue;
             }

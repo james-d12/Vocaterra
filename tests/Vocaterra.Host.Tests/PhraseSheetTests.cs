@@ -33,6 +33,7 @@ public sealed class PhraseSheetTests
         "que-haras-manana", "manana-comprare-pan", "tendre-pan", "luz-necesita-madera", "buscare-madera", "mar-pescara", "ire-al-rio", "el-dia-de-manana", "que-hara-luz", "luz-hara-pan",
         "tienes-veinte-panes", "quiero-vender-madera", "vendo-madera", "cuanto-es-todo", "es-muy-caro", "mas-barato-que", "puedo-pagar-con-fruta", "manana-vendere-fruta", "compre-tres-manzanas",
         "once-a-quince", "dieciseis-a-veinte", "cuantos-panes-tengo", "te-pago-una-moneda", "tengo-quince-manzanas", "quince-monedas", "es-caro-o-barato", "que-es-mas-barato", "te-compro-fruta", "que-venderas-manana", "que-compraste-en-el-mercado",
+        "pon-la-harina", "echa-el-agua", "mezcla", "pon-la-madera", "pon-la-masa", "saca-el-pan", "haz-la-masa", "haz-el-pan-horno", "haz-pan", "voy-a-hacer-pan", "hice-pan", "quiero-harina", "vendo-pan", "hoy-vamos-a-hacer-pan", "que-hiciste", "todavia-no", "toma-aqui-tienes", "quieres-hacer-pan",
     ];
 
     private static readonly Lazy<IReadOnlyList<PhraseRow>> LoadedRows = new(ReadRows);
@@ -44,13 +45,13 @@ public sealed class PhraseSheetTests
     private static IEnumerable<PhraseRow> HeardRows => Rows.Where(static r => r.Says is "hears" or "both");
 
     [Fact]
-    public void TheSheetHoldsExactlyTheHundredAndFiftyFivePhrasesInOrder()
+    public void TheSheetHoldsExactlyTheHundredAndSeventyThreePhrasesInOrder()
     {
         Assert.Equal(ExpectedIds, Rows.Select(static r => r.Id));
         foreach (var row in Rows)
         {
             Assert.Matches("^[a-z]+(-[a-z]+)*$", row.Id);
-            Assert.Contains(row.Says, new[] { "says", "hears", "both" });
+            Assert.Contains(row.Says, new[] { "says", "hears", "both", "does" });
             Assert.False(string.IsNullOrWhiteSpace(row.English), $"{row.Id} has no English.");
             Assert.False(string.IsNullOrWhiteSpace(row.Card), $"{row.Id} has no support card.");
             Assert.False(string.IsNullOrWhiteSpace(row.Situation), $"{row.Id} has no NPC and situation.");
@@ -135,6 +136,21 @@ public sealed class PhraseSheetTests
                 $"{row.Id}: '{row.Spanish}' is neither the text of prompt {row.Prompt} nor of a line in {string.Join(", ", row.AudioLineIds)}.");
             Assert.True(row.AudioLineIds.Count > 0, $"{row.Id} is heard but names no audio line.");
             Assert.True(lineTexts.Any(t => Plain(t) == Plain(row.Spanish)), $"{row.Id}: no audio line says exactly '{row.Spanish}'.");
+        }
+    }
+
+    [Fact]
+    public void EveryInstructionIsALineOfItsNpcWithNoIntentPromptVariantOrLearnerError()
+    {
+        // W05: a does row is an instruction an NPC gives while a procedure is done. It has no intent, no prompt, no variant and no learner error (the
+        // columns say -), and its audio lines say it. W10 added the bread's nine; the rule holds for each one.
+        foreach (var row in Rows.Where(static r => r.Says == "does"))
+        {
+            Assert.True(row.Intent == "-" && row.Prompt == "-", $"{row.Id}: a does row names an intent or a prompt.");
+            Assert.Empty(row.Variants);
+            Assert.Null(row.ErrorText);
+            Assert.True(row.AudioLineIds.Count > 0, $"{row.Id} is an instruction and names no audio line.");
+            Assert.True(row.AudioLineIds.Select(LineText).Any(t => Plain(t) == Plain(row.Spanish)), $"{row.Id}: no audio line says exactly '{row.Spanish}'.");
         }
     }
 

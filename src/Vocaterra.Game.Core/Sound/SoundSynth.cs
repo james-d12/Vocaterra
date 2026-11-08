@@ -21,7 +21,8 @@ public static class SoundSynth
     public static bool IsSynthesized(SoundCue cue) => cue is SoundCue.PushToTalkStart or SoundCue.PushToTalkStop or SoundCue.StepDone or SoundCue.UnitDone
         or SoundCue.LessonDone or SoundCue.AnswerUnderstood or SoundCue.AnswerNeutral or SoundCue.WordLearnt or SoundCue.ObjectiveDone or SoundCue.SessionDone
         or SoundCue.BottleFill or SoundCue.FireLight or SoundCue.FootDirt or SoundCue.FootGravel or SoundCue.FootSand or SoundCue.FootWater
-        or SoundCue.BirdChirp or SoundCue.FireCrackle or SoundCue.WaterSplash or SoundCue.UnderwaterBubbles;
+        or SoundCue.BirdChirp or SoundCue.FireCrackle or SoundCue.NeedStage
+        or SoundCue.WaterSplash or SoundCue.UnderwaterBubbles;
 
     /// <summary>The length in seconds of the push-to-talk start beep (the recording discards this much of its start, so the beep never reaches the recognizer).</summary>
     public const double StartBeepSeconds = 0.09;
@@ -53,6 +54,7 @@ public static class SoundSynth
             SoundCue.WordLearnt => Sparkle(rng),
             SoundCue.ObjectiveDone => Notes([(523.25, 0.0), (659.25, 0.0), (783.99, 0.0)], 1.0, 0.45),
             SoundCue.SessionDone => Notes([(261.63, 0.0), (392.0, 0.24), (523.25, 0.48), (659.25, 0.72), (783.99, 0.96)], 2.4, 0.5),
+            SoundCue.NeedStage => Soft(293.66, 0.45), // N05: a soft, low tone, no rise and no fall: a stage line is a note to the player, never an alarm
             SoundCue.BottleFill => Bubbles(rng),
             SoundCue.FireLight => Whoosh(rng),
             _ => throw new ArgumentException($"The cue {cue} is a file of the catalogue, not a synthesized sound.", nameof(cue)),

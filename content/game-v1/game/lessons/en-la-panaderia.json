@@ -1,0 +1,146 @@
+{
+  "$schema": "../../../schema/lesson.schema.json",
+  "schemaVersion": 2,
+  "id": "en-la-panaderia",
+  "npc": "baker",
+  "level": "a2",
+  "autoStart": false,
+  "after": "ayer-y-manana",
+  "session": 11,
+  "verbs": [
+    {
+      "lemma": "hacer",
+      "person": "1",
+      "number": "sg",
+      "tense": "ir-a"
+    },
+    {
+      "lemma": "hacer",
+      "person": "1",
+      "number": "sg",
+      "tense": "pret"
+    }
+  ],
+  "steps": [
+    {
+      "id": "k0-review",
+      "type": "review",
+      "candidates": [
+        {
+          "phrase": "quiero-dos-panes",
+          "line": "baker_greet.1"
+        },
+        {
+          "phrase": "vendo-madera",
+          "line": "baker_greet.1"
+        }
+      ]
+    },
+    {
+      "id": "k0-intro",
+      "type": "explain"
+    },
+    {
+      "id": "k1-plan",
+      "type": "model",
+      "line": "guide.lesson.baker.bake.1"
+    },
+    {
+      "id": "k1-answer",
+      "type": "answer",
+      "phrase": "voy-a-hacer-pan",
+      "prompt": "lesson-bake-plan",
+      "line": "guide.lesson.baker.bake_plan.1",
+      "person": "1sg",
+      "tense": "ir-a"
+    },
+    {
+      "id": "k2-mezcla",
+      "type": "listen",
+      "line": "guide.lesson.baker.proc_mezcla.1",
+      "correct": 0
+    },
+    {
+      "id": "k2-saca",
+      "type": "listen",
+      "line": "guide.lesson.baker.proc_sacar.1",
+      "correct": 0
+    },
+    {
+      "id": "k3-oven",
+      "type": "do",
+      "pointPlace": "oven",
+      "trigger": {
+        "event": "procedure_done",
+        "npc": "baker",
+        "detail": "pan"
+      }
+    },
+    {
+      "id": "k3-back",
+      "type": "do",
+      "pointPlace": "npc.baker",
+      "trigger": {
+        "event": "talk_opened",
+        "npc": "baker"
+      }
+    },
+    {
+      "id": "k4-report",
+      "type": "answer",
+      "phrase": "hice-pan",
+      "prompt": "lesson-made-bread",
+      "line": "guide.lesson.baker.made.1",
+      "person": "1sg",
+      "tense": "pret"
+    },
+    {
+      "id": "k5-walk",
+      "type": "do",
+      "npc": "shopkeeper",
+      "pointPlace": "stall",
+      "trigger": {
+        "event": "talk_opened",
+        "npc": "shopkeeper"
+      }
+    },
+    {
+      "id": "k5-flour",
+      "type": "answer",
+      "npc": "shopkeeper",
+      "phrase": "quiero-harina",
+      "prompt": "stall-need",
+      "line": "shop_need.1"
+    },
+    {
+      "id": "k5-sell",
+      "type": "answer",
+      "npc": "shopkeeper",
+      "phrase": "vendo-pan",
+      "prompt": "stall-need",
+      "line": "shop_need.1"
+    },
+    {
+      "id": "k6-review",
+      "type": "review",
+      "npc": "shopkeeper",
+      "candidates": [
+        {
+          "phrase": "hay-pan",
+          "prompt": "stall-need",
+          "line": "shop_need.1"
+        },
+        {
+          "phrase": "compre-tres-manzanas",
+          "prompt": "lesson-market",
+          "line": "guide.lesson.shop.market.1"
+        }
+      ]
+    },
+    {
+      "id": "k7-recap",
+      "type": "recap",
+      "npc": "shopkeeper"
+    }
+  ]
+}

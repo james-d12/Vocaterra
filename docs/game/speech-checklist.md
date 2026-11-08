@@ -18,7 +18,7 @@ whose text changed or whose file was recorded again differently is listed again 
 | smith (Domingo) | `im_nicola`, gain 0.6 | 36 | 1.0 (0.8) | the pools `smith_*` and `guide.lesson.smith.*`, and its prompts |
 | farmer (León) | `pm_santa` | 44 | 1.0 (0.8) | the pools `farmer_*` and `guide.lesson.farmer.*`, and its prompts |
 
-**To hear:** 1082 of the 1082 files have no mark (guide 406, villager 140, farmer 122, baker 116, shopkeeper 114, fisher 102, smith 82). Two files a line: the normal speed and the slow one.
+**To hear:** 1382 of the 1382 files have no mark (guide 462, baker 194, villager 172, shopkeeper 160, farmer 152, fisher 132, smith 110). Two files a line: the normal speed and the slow one.
 
 ## Lines
 
@@ -78,26 +78,42 @@ whose text changed or whose file was recorded again differently is listed again 
 | baker_cant_sell.1 | speech/baker/baker_cant_sell.1.wav | baker | 1.0 | No tienes madera. |  |
 | baker_delivered.1 | speech/baker/baker_delivered.1.slow.wav | baker | 0.8 | ¡Gracias! Toma cuatro monedas. |  |
 | baker_delivered.1 | speech/baker/baker_delivered.1.wav | baker | 1.0 | ¡Gracias! Toma cuatro monedas. |  |
+| baker_gift_used.1 | speech/baker/baker_gift_used.1.slow.wav | baker | 0.8 | Hoy no tengo más. |  |
+| baker_gift_used.1 | speech/baker/baker_gift_used.1.wav | baker | 1.0 | Hoy no tengo más. |  |
+| baker_give_missing.1 | speech/baker/baker_give_missing.1.slow.wav | baker | 0.8 | Toma. Aquí tienes. |  |
+| baker_give_missing.1 | speech/baker/baker_give_missing.1.wav | baker | 1.0 | Toma. Aquí tienes. |  |
 | baker_greet.1 | speech/baker/baker_greet.1.slow.wav | baker | 0.8 | ¿Qué quieres? |  |
 | baker_greet.1 | speech/baker/baker_greet.1.wav | baker | 1.0 | ¿Qué quieres? |  |
+| baker_has_all.1 | speech/baker/baker_has_all.1.slow.wav | baker | 0.8 | Ya tienes todo. |  |
+| baker_has_all.1 | speech/baker/baker_has_all.1.wav | baker | 1.0 | Ya tienes todo. |  |
 | baker_hay.1 | speech/baker/baker_hay.1.slow.wav | baker | 0.8 | Aquí hay pan. ¿Cuántos panes quieres? |  |
 | baker_hay.1 | speech/baker/baker_hay.1.wav | baker | 1.0 | Aquí hay pan. ¿Cuántos panes quieres? |  |
 | baker_hello.1 | speech/baker/baker_hello.1.slow.wav | baker | 0.8 | ¡Hola! |  |
 | baker_hello.1 | speech/baker/baker_hello.1.wav | baker | 1.0 | ¡Hola! |  |
 | baker_help.1 | speech/baker/baker_help.1.slow.wav | baker | 0.8 | Puedes decir: «Quiero dos panes, por favor». |  |
 | baker_help.1 | speech/baker/baker_help.1.wav | baker | 1.0 | Puedes decir: «Quiero dos panes, por favor». |  |
+| baker_helping.1 | speech/baker/baker_helping.1.slow.wav | baker | 0.8 | Te ayudo. |  |
+| baker_helping.1 | speech/baker/baker_helping.1.wav | baker | 1.0 | Te ayudo. |  |
+| baker_listen.1 | speech/baker/baker_listen.1.slow.wav | baker | 0.8 | Escucha. |  |
+| baker_listen.1 | speech/baker/baker_listen.1.wav | baker | 1.0 | Escucha. |  |
 | baker_nice.1 | speech/baker/baker_nice.1.slow.wav | baker | 0.8 | ¡Qué bien! |  |
 | baker_nice.1 | speech/baker/baker_nice.1.wav | baker | 1.0 | ¡Qué bien! |  |
 | baker_no_room.1 | speech/baker/baker_no_room.1.slow.wav | baker | 0.8 | Tu bolsa está llena. |  |
 | baker_no_room.1 | speech/baker/baker_no_room.1.wav | baker | 1.0 | Tu bolsa está llena. |  |
 | baker_none_offered.1 | speech/baker/baker_none_offered.1.slow.wav | baker | 0.8 | ¿Cuántos bloques de madera me vendes? |  |
 | baker_none_offered.1 | speech/baker/baker_none_offered.1.wav | baker | 1.0 | ¿Cuántos bloques de madera me vendes? |  |
+| baker_offer_bake.1 | speech/baker/baker_offer_bake.1.slow.wav | baker | 0.8 | ¿Quieres hacer pan? |  |
+| baker_offer_bake.1 | speech/baker/baker_offer_bake.1.wav | baker | 1.0 | ¿Quieres hacer pan? |  |
 | baker_price.1 | speech/baker/baker_price.1.slow.wav | baker | 0.8 | El pan cuesta dos monedas. |  |
 | baker_price.1 | speech/baker/baker_price.1.wav | baker | 1.0 | El pan cuesta dos monedas. |  |
 | baker_sell.1 | speech/baker/baker_sell.1.slow.wav | baker | 0.8 | Aquí tienes el pan. ¡Gracias! |  |
 | baker_sell.1 | speech/baker/baker_sell.1.wav | baker | 1.0 | Aquí tienes el pan. ¡Gracias! |  |
 | baker_sell.2 | speech/baker/baker_sell.2.slow.wav | baker | 0.8 | Toma tu pan. ¡Gracias! |  |
 | baker_sell.2 | speech/baker/baker_sell.2.wav | baker | 1.0 | Toma tu pan. ¡Gracias! |  |
+| baker_sun.1 | speech/baker/baker_sun.1.slow.wav | baker | 0.8 | Hoy hace sol. |  |
+| baker_sun.1 | speech/baker/baker_sun.1.wav | baker | 1.0 | Hoy hace sol. |  |
+| baker_teach_go.1 | speech/baker/baker_teach_go.1.slow.wav | baker | 0.8 | ¡Vamos! |  |
+| baker_teach_go.1 | speech/baker/baker_teach_go.1.wav | baker | 1.0 | ¡Vamos! |  |
 | baker_thank.1 | speech/baker/baker_thank.1.slow.wav | baker | 0.8 | De nada. |  |
 | baker_thank.1 | speech/baker/baker_thank.1.wav | baker | 1.0 | De nada. |  |
 | baker_thank.2 | speech/baker/baker_thank.2.slow.wav | baker | 0.8 | ¡Con gusto! |  |
@@ -108,10 +124,36 @@ whose text changed or whose file was recorded again differently is listed again 
 | baker_understood.1 | speech/baker/baker_understood.1.wav | baker | 1.0 | Te entiendo. ¿Quieres pan? |  |
 | baker_wait.1 | speech/baker/baker_wait.1.slow.wav | baker | 0.8 | Primero, la lección. Luego, las monedas. |  |
 | baker_wait.1 | speech/baker/baker_wait.1.wav | baker | 1.0 | Primero, la lección. Luego, las monedas. |  |
+| baker_weather.1.buen-tiempo | speech/baker/baker_weather.1.buen-tiempo.slow.wav | baker | 0.8 | Sí, hace buen tiempo. |  |
+| baker_weather.1.buen-tiempo | speech/baker/baker_weather.1.buen-tiempo.wav | baker | 1.0 | Sí, hace buen tiempo. |  |
+| baker_weather.1.calor | speech/baker/baker_weather.1.calor.slow.wav | baker | 0.8 | Sí, hace calor. |  |
+| baker_weather.1.calor | speech/baker/baker_weather.1.calor.wav | baker | 1.0 | Sí, hace calor. |  |
+| baker_weather.1.fresco | speech/baker/baker_weather.1.fresco.slow.wav | baker | 0.8 | Sí, hace fresco. |  |
+| baker_weather.1.fresco | speech/baker/baker_weather.1.fresco.wav | baker | 1.0 | Sí, hace fresco. |  |
+| baker_weather.1.frio | speech/baker/baker_weather.1.frio.slow.wav | baker | 0.8 | Sí, hace frío. |  |
+| baker_weather.1.frio | speech/baker/baker_weather.1.frio.wav | baker | 1.0 | Sí, hace frío. |  |
+| baker_weather.1.mal-tiempo | speech/baker/baker_weather.1.mal-tiempo.slow.wav | baker | 0.8 | Sí, hace mal tiempo. |  |
+| baker_weather.1.mal-tiempo | speech/baker/baker_weather.1.mal-tiempo.wav | baker | 1.0 | Sí, hace mal tiempo. |  |
+| baker_weather.1.mucho-calor | speech/baker/baker_weather.1.mucho-calor.slow.wav | baker | 0.8 | Sí, hace mucho calor. |  |
+| baker_weather.1.mucho-calor | speech/baker/baker_weather.1.mucho-calor.wav | baker | 1.0 | Sí, hace mucho calor. |  |
+| baker_weather.1.mucho-frio | speech/baker/baker_weather.1.mucho-frio.slow.wav | baker | 0.8 | Sí, hace mucho frío. |  |
+| baker_weather.1.mucho-frio | speech/baker/baker_weather.1.mucho-frio.wav | baker | 1.0 | Sí, hace mucho frío. |  |
+| baker_weather.1.mucho-sol | speech/baker/baker_weather.1.mucho-sol.slow.wav | baker | 0.8 | Sí, hace mucho sol. |  |
+| baker_weather.1.mucho-sol | speech/baker/baker_weather.1.mucho-sol.wav | baker | 1.0 | Sí, hace mucho sol. |  |
+| baker_weather.1.mucho-viento | speech/baker/baker_weather.1.mucho-viento.slow.wav | baker | 0.8 | Sí, hace mucho viento. |  |
+| baker_weather.1.mucho-viento | speech/baker/baker_weather.1.mucho-viento.wav | baker | 1.0 | Sí, hace mucho viento. |  |
+| baker_weather.1.sol | speech/baker/baker_weather.1.sol.slow.wav | baker | 0.8 | Sí, hace sol. |  |
+| baker_weather.1.sol | speech/baker/baker_weather.1.sol.wav | baker | 1.0 | Sí, hace sol. |  |
+| baker_weather.1.viento | speech/baker/baker_weather.1.viento.slow.wav | baker | 0.8 | Sí, hace viento. |  |
+| baker_weather.1.viento | speech/baker/baker_weather.1.viento.wav | baker | 1.0 | Sí, hace viento. |  |
+| baker_well.1 | speech/baker/baker_well.1.slow.wav | baker | 0.8 | Bien, gracias. |  |
+| baker_well.1 | speech/baker/baker_well.1.wav | baker | 1.0 | Bien, gracias. |  |
 | baker_wont_buy.1 | speech/baker/baker_wont_buy.1.slow.wav | baker | 0.8 | No, gracias. Solo compro madera. |  |
 | baker_wont_buy.1 | speech/baker/baker_wont_buy.1.wav | baker | 1.0 | No, gracias. Solo compro madera. |  |
 | baker_wont_sell.1 | speech/baker/baker_wont_sell.1.slow.wav | baker | 0.8 | Solo vendo pan. |  |
 | baker_wont_sell.1 | speech/baker/baker_wont_sell.1.wav | baker | 1.0 | Solo vendo pan. |  |
+| baker_yes.1 | speech/baker/baker_yes.1.slow.wav | baker | 0.8 | ¡Sí! |  |
+| baker_yes.1 | speech/baker/baker_yes.1.wav | baker | 1.0 | ¡Sí! |  |
 | card.agua | speech/cards/card.agua.slow.wav | guide | 0.8 | el agua |  |
 | card.agua | speech/cards/card.agua.wav | guide | 1.0 | el agua |  |
 | card.antorcha | speech/cards/card.antorcha.slow.wav | guide | 0.8 | la antorcha |  |
@@ -120,24 +162,38 @@ whose text changed or whose file was recorded again differently is listed again 
 | card.arbol | speech/cards/card.arbol.wav | guide | 1.0 | el árbol |  |
 | card.arena | speech/cards/card.arena.slow.wav | guide | 0.8 | la arena |  |
 | card.arena | speech/cards/card.arena.wav | guide | 1.0 | la arena |  |
+| card.bol | speech/cards/card.bol.slow.wav | guide | 0.8 | el bol |  |
+| card.bol | speech/cards/card.bol.wav | guide | 1.0 | el bol |  |
 | card.botella | speech/cards/card.botella.slow.wav | guide | 0.8 | la botella |  |
 | card.botella | speech/cards/card.botella.wav | guide | 1.0 | la botella |  |
 | card.camino | speech/cards/card.camino.slow.wav | guide | 0.8 | el camino |  |
 | card.camino | speech/cards/card.camino.wav | guide | 1.0 | el camino |  |
 | card.casa | speech/cards/card.casa.slow.wav | guide | 0.8 | la casa |  |
 | card.casa | speech/cards/card.casa.wav | guide | 1.0 | la casa |  |
+| card.cuchara | speech/cards/card.cuchara.slow.wav | guide | 0.8 | la cuchara |  |
+| card.cuchara | speech/cards/card.cuchara.wav | guide | 1.0 | la cuchara |  |
 | card.fruta | speech/cards/card.fruta.slow.wav | guide | 0.8 | la fruta |  |
 | card.fruta | speech/cards/card.fruta.wav | guide | 1.0 | la fruta |  |
+| card.fuego | speech/cards/card.fuego.slow.wav | guide | 0.8 | el fuego |  |
+| card.fuego | speech/cards/card.fuego.wav | guide | 1.0 | el fuego |  |
 | card.hacha | speech/cards/card.hacha.slow.wav | guide | 0.8 | el hacha |  |
 | card.hacha | speech/cards/card.hacha.wav | guide | 1.0 | el hacha |  |
+| card.harina | speech/cards/card.harina.slow.wav | guide | 0.8 | la harina |  |
+| card.harina | speech/cards/card.harina.wav | guide | 1.0 | la harina |  |
 | card.hierba | speech/cards/card.hierba.slow.wav | guide | 0.8 | la hierba |  |
 | card.hierba | speech/cards/card.hierba.wav | guide | 1.0 | la hierba |  |
+| card.horno | speech/cards/card.horno.slow.wav | guide | 0.8 | el horno |  |
+| card.horno | speech/cards/card.horno.wav | guide | 1.0 | el horno |  |
 | card.libro | speech/cards/card.libro.slow.wav | guide | 0.8 | el libro |  |
 | card.libro | speech/cards/card.libro.wav | guide | 1.0 | el libro |  |
 | card.madera | speech/cards/card.madera.slow.wav | guide | 0.8 | la madera |  |
 | card.madera | speech/cards/card.madera.wav | guide | 1.0 | la madera |  |
+| card.mano | speech/cards/card.mano.slow.wav | guide | 0.8 | la mano |  |
+| card.mano | speech/cards/card.mano.wav | guide | 1.0 | la mano |  |
 | card.manzana | speech/cards/card.manzana.slow.wav | guide | 0.8 | la manzana |  |
 | card.manzana | speech/cards/card.manzana.wav | guide | 1.0 | la manzana |  |
+| card.masa | speech/cards/card.masa.slow.wav | guide | 0.8 | la masa |  |
+| card.masa | speech/cards/card.masa.wav | guide | 1.0 | la masa |  |
 | card.mesa | speech/cards/card.mesa.slow.wav | guide | 0.8 | la mesa |  |
 | card.mesa | speech/cards/card.mesa.wav | guide | 1.0 | la mesa |  |
 | card.moneda | speech/cards/card.moneda.slow.wav | guide | 0.8 | la moneda |  |
@@ -198,6 +254,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | farmer_sell.1 | speech/farmer/farmer_sell.1.wav | farmer | 1.0 | Aquí tienes. ¡Gracias! |  |
 | farmer_sell.2 | speech/farmer/farmer_sell.2.slow.wav | farmer | 0.8 | Toma. ¡Gracias! |  |
 | farmer_sell.2 | speech/farmer/farmer_sell.2.wav | farmer | 1.0 | Toma. ¡Gracias! |  |
+| farmer_sun.1 | speech/farmer/farmer_sun.1.slow.wav | farmer | 0.8 | Hoy hace sol. |  |
+| farmer_sun.1 | speech/farmer/farmer_sun.1.wav | farmer | 1.0 | Hoy hace sol. |  |
 | farmer_thank.1 | speech/farmer/farmer_thank.1.slow.wav | farmer | 0.8 | De nada. |  |
 | farmer_thank.1 | speech/farmer/farmer_thank.1.wav | farmer | 1.0 | De nada. |  |
 | farmer_thank.2 | speech/farmer/farmer_thank.2.slow.wav | farmer | 0.8 | ¡Con gusto! |  |
@@ -210,10 +268,36 @@ whose text changed or whose file was recorded again differently is listed again 
 | farmer_understood.1 | speech/farmer/farmer_understood.1.wav | farmer | 1.0 | Te entiendo. ¿Quieres manzanas? |  |
 | farmer_unit.1 | speech/farmer/farmer_unit.1.slow.wav | farmer | 0.8 | Una manzana, una moneda. |  |
 | farmer_unit.1 | speech/farmer/farmer_unit.1.wav | farmer | 1.0 | Una manzana, una moneda. |  |
+| farmer_weather.1.buen-tiempo | speech/farmer/farmer_weather.1.buen-tiempo.slow.wav | farmer | 0.8 | Sí, hace buen tiempo. |  |
+| farmer_weather.1.buen-tiempo | speech/farmer/farmer_weather.1.buen-tiempo.wav | farmer | 1.0 | Sí, hace buen tiempo. |  |
+| farmer_weather.1.calor | speech/farmer/farmer_weather.1.calor.slow.wav | farmer | 0.8 | Sí, hace calor. |  |
+| farmer_weather.1.calor | speech/farmer/farmer_weather.1.calor.wav | farmer | 1.0 | Sí, hace calor. |  |
+| farmer_weather.1.fresco | speech/farmer/farmer_weather.1.fresco.slow.wav | farmer | 0.8 | Sí, hace fresco. |  |
+| farmer_weather.1.fresco | speech/farmer/farmer_weather.1.fresco.wav | farmer | 1.0 | Sí, hace fresco. |  |
+| farmer_weather.1.frio | speech/farmer/farmer_weather.1.frio.slow.wav | farmer | 0.8 | Sí, hace frío. |  |
+| farmer_weather.1.frio | speech/farmer/farmer_weather.1.frio.wav | farmer | 1.0 | Sí, hace frío. |  |
+| farmer_weather.1.mal-tiempo | speech/farmer/farmer_weather.1.mal-tiempo.slow.wav | farmer | 0.8 | Sí, hace mal tiempo. |  |
+| farmer_weather.1.mal-tiempo | speech/farmer/farmer_weather.1.mal-tiempo.wav | farmer | 1.0 | Sí, hace mal tiempo. |  |
+| farmer_weather.1.mucho-calor | speech/farmer/farmer_weather.1.mucho-calor.slow.wav | farmer | 0.8 | Sí, hace mucho calor. |  |
+| farmer_weather.1.mucho-calor | speech/farmer/farmer_weather.1.mucho-calor.wav | farmer | 1.0 | Sí, hace mucho calor. |  |
+| farmer_weather.1.mucho-frio | speech/farmer/farmer_weather.1.mucho-frio.slow.wav | farmer | 0.8 | Sí, hace mucho frío. |  |
+| farmer_weather.1.mucho-frio | speech/farmer/farmer_weather.1.mucho-frio.wav | farmer | 1.0 | Sí, hace mucho frío. |  |
+| farmer_weather.1.mucho-sol | speech/farmer/farmer_weather.1.mucho-sol.slow.wav | farmer | 0.8 | Sí, hace mucho sol. |  |
+| farmer_weather.1.mucho-sol | speech/farmer/farmer_weather.1.mucho-sol.wav | farmer | 1.0 | Sí, hace mucho sol. |  |
+| farmer_weather.1.mucho-viento | speech/farmer/farmer_weather.1.mucho-viento.slow.wav | farmer | 0.8 | Sí, hace mucho viento. |  |
+| farmer_weather.1.mucho-viento | speech/farmer/farmer_weather.1.mucho-viento.wav | farmer | 1.0 | Sí, hace mucho viento. |  |
+| farmer_weather.1.sol | speech/farmer/farmer_weather.1.sol.slow.wav | farmer | 0.8 | Sí, hace sol. |  |
+| farmer_weather.1.sol | speech/farmer/farmer_weather.1.sol.wav | farmer | 1.0 | Sí, hace sol. |  |
+| farmer_weather.1.viento | speech/farmer/farmer_weather.1.viento.slow.wav | farmer | 0.8 | Sí, hace viento. |  |
+| farmer_weather.1.viento | speech/farmer/farmer_weather.1.viento.wav | farmer | 1.0 | Sí, hace viento. |  |
+| farmer_well.1 | speech/farmer/farmer_well.1.slow.wav | farmer | 0.8 | Bien, gracias. |  |
+| farmer_well.1 | speech/farmer/farmer_well.1.wav | farmer | 1.0 | Bien, gracias. |  |
 | farmer_wont_buy.1 | speech/farmer/farmer_wont_buy.1.slow.wav | farmer | 0.8 | No compro eso. Compro fruta del bosque. |  |
 | farmer_wont_buy.1 | speech/farmer/farmer_wont_buy.1.wav | farmer | 1.0 | No compro eso. Compro fruta del bosque. |  |
 | farmer_wont_sell.1 | speech/farmer/farmer_wont_sell.1.slow.wav | farmer | 0.8 | Solo vendo manzanas. |  |
 | farmer_wont_sell.1 | speech/farmer/farmer_wont_sell.1.wav | farmer | 1.0 | Solo vendo manzanas. |  |
+| farmer_yes.1 | speech/farmer/farmer_yes.1.slow.wav | farmer | 0.8 | ¡Sí! |  |
+| farmer_yes.1 | speech/farmer/farmer_yes.1.wav | farmer | 1.0 | ¡Sí! |  |
 | feedback.hint.1 | speech/guide/feedback.hint.1.slow.wav | guide | 0.8 | Casi. Piensa otra vez. |  |
 | feedback.hint.1 | speech/guide/feedback.hint.1.wav | guide | 1.0 | Casi. Piensa otra vez. |  |
 | feedback.hint.1.baker | speech/baker/feedback.hint.1.baker.slow.wav | baker | 0.8 | Casi. Piensa otra vez. |  |
@@ -306,6 +390,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | fisher_point.1 | speech/fisher/fisher_point.1.wav | fisher | 0.9 | Mira, está allí. |  |
 | fisher_point.2 | speech/fisher/fisher_point.2.slow.wav | fisher | 0.72 | Está por allí, mira. |  |
 | fisher_point.2 | speech/fisher/fisher_point.2.wav | fisher | 0.9 | Está por allí, mira. |  |
+| fisher_sun.1 | speech/fisher/fisher_sun.1.slow.wav | fisher | 0.72 | Hoy hace sol. |  |
+| fisher_sun.1 | speech/fisher/fisher_sun.1.wav | fisher | 0.9 | Hoy hace sol. |  |
 | fisher_thank.1 | speech/fisher/fisher_thank.1.slow.wav | fisher | 0.72 | De nada. |  |
 | fisher_thank.1 | speech/fisher/fisher_thank.1.wav | fisher | 0.9 | De nada. |  |
 | fisher_thank.2 | speech/fisher/fisher_thank.2.slow.wav | fisher | 0.72 | ¡Con gusto! |  |
@@ -316,6 +402,32 @@ whose text changed or whose file was recorded again differently is listed again 
 | fisher_understood.1 | speech/fisher/fisher_understood.1.wav | fisher | 0.9 | Te entiendo. ¿Buscas un lugar? |  |
 | fisher_unknown_place.1 | speech/fisher/fisher_unknown_place.1.slow.wav | fisher | 0.72 | No sé dónde está. |  |
 | fisher_unknown_place.1 | speech/fisher/fisher_unknown_place.1.wav | fisher | 0.9 | No sé dónde está. |  |
+| fisher_weather.1.buen-tiempo | speech/fisher/fisher_weather.1.buen-tiempo.slow.wav | fisher | 0.72 | Sí, hace buen tiempo. |  |
+| fisher_weather.1.buen-tiempo | speech/fisher/fisher_weather.1.buen-tiempo.wav | fisher | 0.9 | Sí, hace buen tiempo. |  |
+| fisher_weather.1.calor | speech/fisher/fisher_weather.1.calor.slow.wav | fisher | 0.72 | Sí, hace calor. |  |
+| fisher_weather.1.calor | speech/fisher/fisher_weather.1.calor.wav | fisher | 0.9 | Sí, hace calor. |  |
+| fisher_weather.1.fresco | speech/fisher/fisher_weather.1.fresco.slow.wav | fisher | 0.72 | Sí, hace fresco. |  |
+| fisher_weather.1.fresco | speech/fisher/fisher_weather.1.fresco.wav | fisher | 0.9 | Sí, hace fresco. |  |
+| fisher_weather.1.frio | speech/fisher/fisher_weather.1.frio.slow.wav | fisher | 0.72 | Sí, hace frío. |  |
+| fisher_weather.1.frio | speech/fisher/fisher_weather.1.frio.wav | fisher | 0.9 | Sí, hace frío. |  |
+| fisher_weather.1.mal-tiempo | speech/fisher/fisher_weather.1.mal-tiempo.slow.wav | fisher | 0.72 | Sí, hace mal tiempo. |  |
+| fisher_weather.1.mal-tiempo | speech/fisher/fisher_weather.1.mal-tiempo.wav | fisher | 0.9 | Sí, hace mal tiempo. |  |
+| fisher_weather.1.mucho-calor | speech/fisher/fisher_weather.1.mucho-calor.slow.wav | fisher | 0.72 | Sí, hace mucho calor. |  |
+| fisher_weather.1.mucho-calor | speech/fisher/fisher_weather.1.mucho-calor.wav | fisher | 0.9 | Sí, hace mucho calor. |  |
+| fisher_weather.1.mucho-frio | speech/fisher/fisher_weather.1.mucho-frio.slow.wav | fisher | 0.72 | Sí, hace mucho frío. |  |
+| fisher_weather.1.mucho-frio | speech/fisher/fisher_weather.1.mucho-frio.wav | fisher | 0.9 | Sí, hace mucho frío. |  |
+| fisher_weather.1.mucho-sol | speech/fisher/fisher_weather.1.mucho-sol.slow.wav | fisher | 0.72 | Sí, hace mucho sol. |  |
+| fisher_weather.1.mucho-sol | speech/fisher/fisher_weather.1.mucho-sol.wav | fisher | 0.9 | Sí, hace mucho sol. |  |
+| fisher_weather.1.mucho-viento | speech/fisher/fisher_weather.1.mucho-viento.slow.wav | fisher | 0.72 | Sí, hace mucho viento. |  |
+| fisher_weather.1.mucho-viento | speech/fisher/fisher_weather.1.mucho-viento.wav | fisher | 0.9 | Sí, hace mucho viento. |  |
+| fisher_weather.1.sol | speech/fisher/fisher_weather.1.sol.slow.wav | fisher | 0.72 | Sí, hace sol. |  |
+| fisher_weather.1.sol | speech/fisher/fisher_weather.1.sol.wav | fisher | 0.9 | Sí, hace sol. |  |
+| fisher_weather.1.viento | speech/fisher/fisher_weather.1.viento.slow.wav | fisher | 0.72 | Sí, hace viento. |  |
+| fisher_weather.1.viento | speech/fisher/fisher_weather.1.viento.wav | fisher | 0.9 | Sí, hace viento. |  |
+| fisher_well.1 | speech/fisher/fisher_well.1.slow.wav | fisher | 0.72 | Bien, gracias. |  |
+| fisher_well.1 | speech/fisher/fisher_well.1.wav | fisher | 0.9 | Bien, gracias. |  |
+| fisher_yes.1 | speech/fisher/fisher_yes.1.slow.wav | fisher | 0.72 | ¡Sí! |  |
+| fisher_yes.1 | speech/fisher/fisher_yes.1.wav | fisher | 0.9 | ¡Sí! |  |
 | guide.craft.none.1 | speech/guide/guide.craft.none.1.slow.wav | guide | 0.8 | Eso no se puede hacer. |  |
 | guide.craft.none.1 | speech/guide/guide.craft.none.1.wav | guide | 1.0 | Eso no se puede hacer. |  |
 | guide.craft.ready.1 | speech/guide/guide.craft.ready.1.slow.wav | guide | 0.8 | ¡Ya lo tienes todo! |  |
@@ -334,6 +446,10 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide.identify.none.1 | speech/guide/guide.identify.none.1.wav | guide | 1.0 | No sé qué es. |  |
 | guide.identify.none.2 | speech/guide/guide.identify.none.2.slow.wav | guide | 0.8 | Busca una cosa y pregunta otra vez. |  |
 | guide.identify.none.2 | speech/guide/guide.identify.none.2.wav | guide | 1.0 | Busca una cosa y pregunta otra vez. |  |
+| guide.lesson.baker.bake.1 | speech/baker/guide.lesson.baker.bake.1.slow.wav | baker | 0.8 | Hoy vamos a hacer pan. ¿Me ayudas? |  |
+| guide.lesson.baker.bake.1 | speech/baker/guide.lesson.baker.bake.1.wav | baker | 1.0 | Hoy vamos a hacer pan. ¿Me ayudas? |  |
+| guide.lesson.baker.bake_plan.1 | speech/baker/guide.lesson.baker.bake_plan.1.slow.wav | baker | 0.8 | ¿Qué vas a hacer hoy? |  |
+| guide.lesson.baker.bake_plan.1 | speech/baker/guide.lesson.baker.bake_plan.1.wav | baker | 1.0 | ¿Qué vas a hacer hoy? |  |
 | guide.lesson.baker.bought.1 | speech/baker/guide.lesson.baker.bought.1.slow.wav | baker | 0.8 | ¿Qué compraste? |  |
 | guide.lesson.baker.bought.1 | speech/baker/guide.lesson.baker.bought.1.wav | baker | 1.0 | ¿Qué compraste? |  |
 | guide.lesson.baker.coins.1 | speech/baker/guide.lesson.baker.coins.1.slow.wav | baker | 0.8 | ¿Cuántas monedas tienes? |  |
@@ -348,18 +464,42 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide.lesson.baker.how_many.1 | speech/baker/guide.lesson.baker.how_many.1.wav | baker | 1.0 | ¿Cuántos panes quieres? |  |
 | guide.lesson.baker.loaves.1 | speech/baker/guide.lesson.baker.loaves.1.slow.wav | baker | 0.8 | Tengo diez panes. |  |
 | guide.lesson.baker.loaves.1 | speech/baker/guide.lesson.baker.loaves.1.wav | baker | 1.0 | Tengo diez panes. |  |
+| guide.lesson.baker.made.1 | speech/baker/guide.lesson.baker.made.1.slow.wav | baker | 0.8 | ¿Qué hiciste? |  |
+| guide.lesson.baker.made.1 | speech/baker/guide.lesson.baker.made.1.wav | baker | 1.0 | ¿Qué hiciste? |  |
 | guide.lesson.baker.mar.1 | speech/baker/guide.lesson.baker.mar.1.slow.wav | baker | 0.8 | ¿Y qué hizo Mar ayer? |  |
 | guide.lesson.baker.mar.1 | speech/baker/guide.lesson.baker.mar.1.wav | baker | 1.0 | ¿Y qué hizo Mar ayer? |  |
 | guide.lesson.baker.market.1 | speech/baker/guide.lesson.baker.market.1.slow.wav | baker | 0.8 | ¡Hoy hay mercado! ¿Cuántos panes tengo? |  |
 | guide.lesson.baker.market.1 | speech/baker/guide.lesson.baker.market.1.wav | baker | 1.0 | ¡Hoy hay mercado! ¿Cuántos panes tengo? |  |
 | guide.lesson.baker.model.1 | speech/baker/guide.lesson.baker.model.1.slow.wav | baker | 0.8 | Ayer compré fruta en la tienda. |  |
 | guide.lesson.baker.model.1 | speech/baker/guide.lesson.baker.model.1.wav | baker | 1.0 | Ayer compré fruta en la tienda. |  |
+| guide.lesson.baker.not_yet.1 | speech/baker/guide.lesson.baker.not_yet.1.slow.wav | baker | 0.8 | Todavía no. |  |
+| guide.lesson.baker.not_yet.1 | speech/baker/guide.lesson.baker.not_yet.1.wav | baker | 1.0 | Todavía no. |  |
+| guide.lesson.baker.offer.1 | speech/baker/guide.lesson.baker.offer.1.slow.wav | baker | 0.8 | ¿Quieres una clase? ¿Sí o no? |  |
+| guide.lesson.baker.offer.1 | speech/baker/guide.lesson.baker.offer.1.wav | baker | 1.0 | ¿Quieres una clase? ¿Sí o no? |  |
 | guide.lesson.baker.oven.1 | speech/baker/guide.lesson.baker.oven.1.slow.wav | baker | 0.8 | Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer? |  |
 | guide.lesson.baker.oven.1 | speech/baker/guide.lesson.baker.oven.1.wav | baker | 1.0 | Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer? |  |
 | guide.lesson.baker.pay.1 | speech/baker/guide.lesson.baker.pay.1.slow.wav | baker | 0.8 | Te pago una moneda por cada bloque de madera. |  |
 | guide.lesson.baker.pay.1 | speech/baker/guide.lesson.baker.pay.1.wav | baker | 1.0 | Te pago una moneda por cada bloque de madera. |  |
 | guide.lesson.baker.plan.1 | speech/baker/guide.lesson.baker.plan.1.slow.wav | baker | 0.8 | ¡Hola! ¿Qué vas a hacer hoy? |  |
 | guide.lesson.baker.plan.1 | speech/baker/guide.lesson.baker.plan.1.wav | baker | 1.0 | ¡Hola! ¿Qué vas a hacer hoy? |  |
+| guide.lesson.baker.proc_agua.1 | speech/baker/guide.lesson.baker.proc_agua.1.slow.wav | baker | 0.8 | Echa el agua en el bol. |  |
+| guide.lesson.baker.proc_agua.1 | speech/baker/guide.lesson.baker.proc_agua.1.wav | baker | 1.0 | Echa el agua en el bol. |  |
+| guide.lesson.baker.proc_chunk_horno.1 | speech/baker/guide.lesson.baker.proc_chunk_horno.1.slow.wav | baker | 0.8 | Haz el pan en el horno. |  |
+| guide.lesson.baker.proc_chunk_horno.1 | speech/baker/guide.lesson.baker.proc_chunk_horno.1.wav | baker | 1.0 | Haz el pan en el horno. |  |
+| guide.lesson.baker.proc_chunk_masa.1 | speech/baker/guide.lesson.baker.proc_chunk_masa.1.slow.wav | baker | 0.8 | Haz la masa. |  |
+| guide.lesson.baker.proc_chunk_masa.1 | speech/baker/guide.lesson.baker.proc_chunk_masa.1.wav | baker | 1.0 | Haz la masa. |  |
+| guide.lesson.baker.proc_goal.1 | speech/baker/guide.lesson.baker.proc_goal.1.slow.wav | baker | 0.8 | Haz pan. |  |
+| guide.lesson.baker.proc_goal.1 | speech/baker/guide.lesson.baker.proc_goal.1.wav | baker | 1.0 | Haz pan. |  |
+| guide.lesson.baker.proc_harina.1 | speech/baker/guide.lesson.baker.proc_harina.1.slow.wav | baker | 0.8 | Pon la harina en el bol. |  |
+| guide.lesson.baker.proc_harina.1 | speech/baker/guide.lesson.baker.proc_harina.1.wav | baker | 1.0 | Pon la harina en el bol. |  |
+| guide.lesson.baker.proc_madera.1 | speech/baker/guide.lesson.baker.proc_madera.1.slow.wav | baker | 0.8 | Pon la madera en el horno. |  |
+| guide.lesson.baker.proc_madera.1 | speech/baker/guide.lesson.baker.proc_madera.1.wav | baker | 1.0 | Pon la madera en el horno. |  |
+| guide.lesson.baker.proc_masa.1 | speech/baker/guide.lesson.baker.proc_masa.1.slow.wav | baker | 0.8 | Pon la masa en el horno. |  |
+| guide.lesson.baker.proc_masa.1 | speech/baker/guide.lesson.baker.proc_masa.1.wav | baker | 1.0 | Pon la masa en el horno. |  |
+| guide.lesson.baker.proc_mezcla.1 | speech/baker/guide.lesson.baker.proc_mezcla.1.slow.wav | baker | 0.8 | Mezcla con la cuchara. |  |
+| guide.lesson.baker.proc_mezcla.1 | speech/baker/guide.lesson.baker.proc_mezcla.1.wav | baker | 1.0 | Mezcla con la cuchara. |  |
+| guide.lesson.baker.proc_sacar.1 | speech/baker/guide.lesson.baker.proc_sacar.1.slow.wav | baker | 0.8 | Saca el pan del horno. |  |
+| guide.lesson.baker.proc_sacar.1 | speech/baker/guide.lesson.baker.proc_sacar.1.wav | baker | 1.0 | Saca el pan del horno. |  |
 | guide.lesson.baker.sell.1 | speech/baker/guide.lesson.baker.sell.1.slow.wav | baker | 0.8 | Necesito madera para el horno. ¿Qué quieres hacer? |  |
 | guide.lesson.baker.sell.1 | speech/baker/guide.lesson.baker.sell.1.wav | baker | 1.0 | Necesito madera para el horno. ¿Qué quieres hacer? |  |
 | guide.lesson.baker.ten.1 | speech/baker/guide.lesson.baker.ten.1.slow.wav | baker | 0.8 | Seis, siete, ocho, nueve, diez. |  |
@@ -396,6 +536,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide.lesson.farmer.liked.1 | speech/farmer/guide.lesson.farmer.liked.1.wav | farmer | 1.0 | ¿Te gustó el pan de Luz? |  |
 | guide.lesson.farmer.market.1 | speech/farmer/guide.lesson.farmer.market.1.slow.wav | farmer | 0.8 | ¡Hola! Hoy hay mercado. Tengo quince manzanas. |  |
 | guide.lesson.farmer.market.1 | speech/farmer/guide.lesson.farmer.market.1.wav | farmer | 1.0 | ¡Hola! Hoy hay mercado. Tengo quince manzanas. |  |
+| guide.lesson.farmer.offer.1 | speech/farmer/guide.lesson.farmer.offer.1.slow.wav | farmer | 0.8 | ¿Quieres una clase? ¿Sí o no? |  |
+| guide.lesson.farmer.offer.1 | speech/farmer/guide.lesson.farmer.offer.1.wav | farmer | 1.0 | ¿Quieres una clase? ¿Sí o no? |  |
 | guide.lesson.farmer.water.1 | speech/farmer/guide.lesson.farmer.water.1.slow.wav | farmer | 0.8 | Mis plantas necesitan agua. Si me traes agua del río, te doy tres manzanas. ¿Qué vas a hacer? |  |
 | guide.lesson.farmer.water.1 | speech/farmer/guide.lesson.farmer.water.1.wav | farmer | 1.0 | Mis plantas necesitan agua. Si me traes agua del río, te doy tres manzanas. ¿Qué vas a hacer? |  |
 | guide.lesson.farmer.went.1 | speech/farmer/guide.lesson.farmer.went.1.slow.wav | farmer | 0.8 | ¿Fuiste al río? |  |
@@ -424,6 +566,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide.lesson.fisher.more.1 | speech/fisher/guide.lesson.fisher.more.1.wav | fisher | 0.9 | ¿Algo más? |  |
 | guide.lesson.fisher.near.1 | speech/fisher/guide.lesson.fisher.near.1.slow.wav | fisher | 0.72 | No, está cerca. La montaña está lejos. |  |
 | guide.lesson.fisher.near.1 | speech/fisher/guide.lesson.fisher.near.1.wav | fisher | 0.9 | No, está cerca. La montaña está lejos. |  |
+| guide.lesson.fisher.offer.1 | speech/fisher/guide.lesson.fisher.offer.1.slow.wav | fisher | 0.72 | ¿Quieres una clase? ¿Sí o no? |  |
+| guide.lesson.fisher.offer.1 | speech/fisher/guide.lesson.fisher.offer.1.wav | fisher | 0.9 | ¿Quieres una clase? ¿Sí o no? |  |
 | guide.lesson.fisher.plan.1 | speech/fisher/guide.lesson.fisher.plan.1.slow.wav | fisher | 0.72 | ¿Qué vas a hacer allí? |  |
 | guide.lesson.fisher.plan.1 | speech/fisher/guide.lesson.fisher.plan.1.wav | fisher | 0.9 | ¿Qué vas a hacer allí? |  |
 | guide.lesson.fisher.right.1 | speech/fisher/guide.lesson.fisher.right.1.slow.wav | fisher | 0.72 | Y la herrería está a la derecha. |  |
@@ -436,6 +580,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide.lesson.fisher.well.1 | speech/fisher/guide.lesson.fisher.well.1.wav | fisher | 0.9 | Sí, hay un pozo. |  |
 | guide.lesson.fisher.went.1 | speech/fisher/guide.lesson.fisher.went.1.slow.wav | fisher | 0.72 | ¿Fuiste a la panadería? |  |
 | guide.lesson.fisher.went.1 | speech/fisher/guide.lesson.fisher.went.1.wav | fisher | 0.9 | ¿Fuiste a la panadería? |  |
+| guide.lesson.guide.offer.1 | speech/guide/guide.lesson.guide.offer.1.slow.wav | guide | 0.8 | ¿Quieres una clase? ¿Sí o no? |  |
+| guide.lesson.guide.offer.1 | speech/guide/guide.lesson.guide.offer.1.wav | guide | 1.0 | ¿Quieres una clase? ¿Sí o no? |  |
 | guide.lesson.have.1 | speech/guide/guide.lesson.have.1.slow.wav | guide | 0.8 | ¡Muy bien! Tienes una fruta. |  |
 | guide.lesson.have.1 | speech/guide/guide.lesson.have.1.wav | guide | 1.0 | ¡Muy bien! Tienes una fruta. |  |
 | guide.lesson.have_fruit.1 | speech/guide/guide.lesson.have_fruit.1.slow.wav | guide | 0.8 | ¿Tienes una fruta? |  |
@@ -540,6 +686,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide.lesson.villager.much.1 | speech/villager/guide.lesson.villager.much.1.wav | villager | 1.0 | Ayer Domingo trabajó mucho. |  |
 | guide.lesson.villager.need.1 | speech/villager/guide.lesson.villager.need.1.slow.wav | villager | 0.8 | ¿Qué necesitas ahora? |  |
 | guide.lesson.villager.need.1 | speech/villager/guide.lesson.villager.need.1.wav | villager | 1.0 | ¿Qué necesitas ahora? |  |
+| guide.lesson.villager.offer.1 | speech/villager/guide.lesson.villager.offer.1.slow.wav | villager | 0.8 | ¿Una clase hoy? ¿Sí o no? |  |
+| guide.lesson.villager.offer.1 | speech/villager/guide.lesson.villager.offer.1.wav | villager | 1.0 | ¿Una clase hoy? ¿Sí o no? |  |
 | guide.lesson.villager.plan.1 | speech/villager/guide.lesson.villager.plan.1.slow.wav | villager | 0.8 | ¿Qué vas a comer mañana? |  |
 | guide.lesson.villager.plan.1 | speech/villager/guide.lesson.villager.plan.1.wav | villager | 1.0 | ¿Qué vas a comer mañana? |  |
 | guide.lesson.villager.plan_we.1 | speech/villager/guide.lesson.villager.plan_we.1.slow.wav | villager | 0.8 | ¿Qué vamos a comer? |  |
@@ -594,6 +742,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide.review.phrase.pedir_agua.1 | speech/guide/guide.review.phrase.pedir_agua.1.wav | guide | 1.0 | ¿Qué necesitas? |  |
 | guide.review.phrase.si_por_favor.1 | speech/guide/guide.review.phrase.si_por_favor.1.slow.wav | guide | 0.8 | ¿Quieres agua? |  |
 | guide.review.phrase.si_por_favor.1 | speech/guide/guide.review.phrase.si_por_favor.1.wav | guide | 1.0 | ¿Quieres agua? |  |
+| guide.sleep.not_sleepy.1 | speech/guide/guide.sleep.not_sleepy.1.slow.wav | guide | 0.8 | No tengo sueño. |  |
+| guide.sleep.not_sleepy.1 | speech/guide/guide.sleep.not_sleepy.1.wav | guide | 1.0 | No tengo sueño. |  |
 | guide.uncertain.1 | speech/guide/guide.uncertain.1.slow.wav | guide | 0.8 | No te entendí bien. ¿Lo dices otra vez? |  |
 | guide.uncertain.1 | speech/guide/guide.uncertain.1.wav | guide | 1.0 | No te entendí bien. ¿Lo dices otra vez? |  |
 | guide.uncertain.2 | speech/guide/guide.uncertain.2.slow.wav | guide | 0.8 | No te entendí bien. ¿Me lo dices otra vez? |  |
@@ -614,6 +764,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide_find.2 | speech/guide/guide_find.2.wav | guide | 1.0 | ¡Claro! Busco. |  |
 | guide_find.3 | speech/guide/guide_find.3.slow.wav | guide | 0.8 | Un minuto, busco. |  |
 | guide_find.3 | speech/guide/guide_find.3.wav | guide | 1.0 | Un minuto, busco. |  |
+| guide_gift_used.1 | speech/guide/guide_gift_used.1.slow.wav | guide | 0.8 | Hoy ya no tengo agua. |  |
+| guide_gift_used.1 | speech/guide/guide_gift_used.1.wav | guide | 1.0 | Hoy ya no tengo agua. |  |
 | guide_greet.1 | speech/guide/guide_greet.1.slow.wav | guide | 0.8 | ¡Hola! Soy la guía. |  |
 | guide_greet.1 | speech/guide/guide_greet.1.wav | guide | 1.0 | ¡Hola! Soy la guía. |  |
 | guide_greet.2 | speech/guide/guide_greet.2.slow.wav | guide | 0.8 | ¡Hola, amigo! ¿Qué buscas? |  |
@@ -664,6 +816,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide_slower.1 | speech/guide/guide_slower.1.wav | guide | 1.0 | Claro. Más despacio. |  |
 | guide_slower.2 | speech/guide/guide_slower.2.slow.wav | guide | 0.8 | ¡Claro! Te lo digo más despacio. |  |
 | guide_slower.2 | speech/guide/guide_slower.2.wav | guide | 1.0 | ¡Claro! Te lo digo más despacio. |  |
+| guide_sun.1 | speech/guide/guide_sun.1.slow.wav | guide | 0.8 | Hoy hace sol. |  |
+| guide_sun.1 | speech/guide/guide_sun.1.wav | guide | 1.0 | Hoy hace sol. |  |
 | guide_thank.1 | speech/guide/guide_thank.1.slow.wav | guide | 0.8 | ¡Con gusto, amigo! |  |
 | guide_thank.1 | speech/guide/guide_thank.1.wav | guide | 1.0 | ¡Con gusto, amigo! |  |
 | guide_thank.2 | speech/guide/guide_thank.2.slow.wav | guide | 0.8 | ¡De nada! |  |
@@ -672,6 +826,32 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide_thank.3 | speech/guide/guide_thank.3.wav | guide | 1.0 | ¡De nada, amigo! |  |
 | guide_understood.1 | speech/guide/guide_understood.1.slow.wav | guide | 0.8 | Te entiendo. ¿Qué quieres aprender? |  |
 | guide_understood.1 | speech/guide/guide_understood.1.wav | guide | 1.0 | Te entiendo. ¿Qué quieres aprender? |  |
+| guide_weather.1.buen-tiempo | speech/guide/guide_weather.1.buen-tiempo.slow.wav | guide | 0.8 | Sí, hace buen tiempo. |  |
+| guide_weather.1.buen-tiempo | speech/guide/guide_weather.1.buen-tiempo.wav | guide | 1.0 | Sí, hace buen tiempo. |  |
+| guide_weather.1.calor | speech/guide/guide_weather.1.calor.slow.wav | guide | 0.8 | Sí, hace calor. |  |
+| guide_weather.1.calor | speech/guide/guide_weather.1.calor.wav | guide | 1.0 | Sí, hace calor. |  |
+| guide_weather.1.fresco | speech/guide/guide_weather.1.fresco.slow.wav | guide | 0.8 | Sí, hace fresco. |  |
+| guide_weather.1.fresco | speech/guide/guide_weather.1.fresco.wav | guide | 1.0 | Sí, hace fresco. |  |
+| guide_weather.1.frio | speech/guide/guide_weather.1.frio.slow.wav | guide | 0.8 | Sí, hace frío. |  |
+| guide_weather.1.frio | speech/guide/guide_weather.1.frio.wav | guide | 1.0 | Sí, hace frío. |  |
+| guide_weather.1.mal-tiempo | speech/guide/guide_weather.1.mal-tiempo.slow.wav | guide | 0.8 | Sí, hace mal tiempo. |  |
+| guide_weather.1.mal-tiempo | speech/guide/guide_weather.1.mal-tiempo.wav | guide | 1.0 | Sí, hace mal tiempo. |  |
+| guide_weather.1.mucho-calor | speech/guide/guide_weather.1.mucho-calor.slow.wav | guide | 0.8 | Sí, hace mucho calor. |  |
+| guide_weather.1.mucho-calor | speech/guide/guide_weather.1.mucho-calor.wav | guide | 1.0 | Sí, hace mucho calor. |  |
+| guide_weather.1.mucho-frio | speech/guide/guide_weather.1.mucho-frio.slow.wav | guide | 0.8 | Sí, hace mucho frío. |  |
+| guide_weather.1.mucho-frio | speech/guide/guide_weather.1.mucho-frio.wav | guide | 1.0 | Sí, hace mucho frío. |  |
+| guide_weather.1.mucho-sol | speech/guide/guide_weather.1.mucho-sol.slow.wav | guide | 0.8 | Sí, hace mucho sol. |  |
+| guide_weather.1.mucho-sol | speech/guide/guide_weather.1.mucho-sol.wav | guide | 1.0 | Sí, hace mucho sol. |  |
+| guide_weather.1.mucho-viento | speech/guide/guide_weather.1.mucho-viento.slow.wav | guide | 0.8 | Sí, hace mucho viento. |  |
+| guide_weather.1.mucho-viento | speech/guide/guide_weather.1.mucho-viento.wav | guide | 1.0 | Sí, hace mucho viento. |  |
+| guide_weather.1.sol | speech/guide/guide_weather.1.sol.slow.wav | guide | 0.8 | Sí, hace sol. |  |
+| guide_weather.1.sol | speech/guide/guide_weather.1.sol.wav | guide | 1.0 | Sí, hace sol. |  |
+| guide_weather.1.viento | speech/guide/guide_weather.1.viento.slow.wav | guide | 0.8 | Sí, hace viento. |  |
+| guide_weather.1.viento | speech/guide/guide_weather.1.viento.wav | guide | 1.0 | Sí, hace viento. |  |
+| guide_well.1 | speech/guide/guide_well.1.slow.wav | guide | 0.8 | Bien, gracias. |  |
+| guide_well.1 | speech/guide/guide_well.1.wav | guide | 1.0 | Bien, gracias. |  |
+| guide_yes.1 | speech/guide/guide_yes.1.slow.wav | guide | 0.8 | ¡Sí! |  |
+| guide_yes.1 | speech/guide/guide_yes.1.wav | guide | 1.0 | ¡Sí! |  |
 | not_understood.1 | speech/guide/not_understood.1.slow.wav | guide | 0.8 | No te entendí. ¿Me lo dices otra vez? |  |
 | not_understood.1 | speech/guide/not_understood.1.wav | guide | 1.0 | No te entendí. ¿Me lo dices otra vez? |  |
 | not_understood.1.baker | speech/baker/not_understood.1.baker.slow.wav | baker | 0.8 | No te entendí. ¿Me lo dices otra vez? |  |
@@ -752,6 +932,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | phrase.hay-pan | speech/guide/phrase.hay-pan.wav | guide | 1.0 | ¿Hay pan? |  |
 | phrase.hay-un-pozo | speech/guide/phrase.hay-un-pozo.slow.wav | guide | 0.8 | ¿Hay un pozo en el pueblo? |  |
 | phrase.hay-un-pozo | speech/guide/phrase.hay-un-pozo.wav | guide | 1.0 | ¿Hay un pozo en el pueblo? |  |
+| phrase.hice-pan | speech/guide/phrase.hice-pan.slow.wav | guide | 0.8 | Hice pan. |  |
+| phrase.hice-pan | speech/guide/phrase.hice-pan.wav | guide | 1.0 | Hice pan. |  |
 | phrase.hizo-un-hacha | speech/guide/phrase.hizo-un-hacha.slow.wav | guide | 0.8 | Domingo hizo un hacha. |  |
 | phrase.hizo-un-hacha | speech/guide/phrase.hizo-un-hacha.wav | guide | 1.0 | Domingo hizo un hacha. |  |
 | phrase.hola | speech/guide/phrase.hola.slow.wav | guide | 0.8 | Hola. |  |
@@ -808,6 +990,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | phrase.queremos-pan | speech/guide/phrase.queremos-pan.wav | guide | 1.0 | Queremos pan. |  |
 | phrase.quiero-dos-panes | speech/guide/phrase.quiero-dos-panes.slow.wav | guide | 0.8 | Quiero dos panes, por favor. |  |
 | phrase.quiero-dos-panes | speech/guide/phrase.quiero-dos-panes.wav | guide | 1.0 | Quiero dos panes, por favor. |  |
+| phrase.quiero-harina | speech/guide/phrase.quiero-harina.slow.wav | guide | 0.8 | Quiero harina. |  |
+| phrase.quiero-harina | speech/guide/phrase.quiero-harina.wav | guide | 1.0 | Quiero harina. |  |
 | phrase.quiero-madera | speech/guide/phrase.quiero-madera.slow.wav | guide | 0.8 | Quiero madera. |  |
 | phrase.quiero-madera | speech/guide/phrase.quiero-madera.wav | guide | 1.0 | Quiero madera. |  |
 | phrase.quiero-tres-manzanas-rojas | speech/guide/phrase.quiero-tres-manzanas-rojas.slow.wav | guide | 0.8 | Quiero tres manzanas rojas. |  |
@@ -836,6 +1020,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | phrase.vamos-a-comer-fruta | speech/guide/phrase.vamos-a-comer-fruta.wav | guide | 1.0 | Vamos a comer fruta. |  |
 | phrase.vendo-madera | speech/guide/phrase.vendo-madera.slow.wav | guide | 0.8 | Vendo madera. |  |
 | phrase.vendo-madera | speech/guide/phrase.vendo-madera.wav | guide | 1.0 | Vendo madera. |  |
+| phrase.vendo-pan | speech/guide/phrase.vendo-pan.slow.wav | guide | 0.8 | Vendo pan. |  |
+| phrase.vendo-pan | speech/guide/phrase.vendo-pan.wav | guide | 1.0 | Vendo pan. |  |
 | phrase.vivo-en-el-campamento | speech/guide/phrase.vivo-en-el-campamento.slow.wav | guide | 0.8 | Vivo en el campamento. |  |
 | phrase.vivo-en-el-campamento | speech/guide/phrase.vivo-en-el-campamento.wav | guide | 1.0 | Vivo en el campamento. |  |
 | phrase.voy-a-buscar-agua | speech/guide/phrase.voy-a-buscar-agua.slow.wav | guide | 0.8 | Voy a buscar agua. |  |
@@ -846,12 +1032,18 @@ whose text changed or whose file was recorded again differently is listed again 
 | phrase.voy-a-comer-pan | speech/guide/phrase.voy-a-comer-pan.wav | guide | 1.0 | Voy a comer pan. |  |
 | phrase.voy-a-comprar-pan | speech/guide/phrase.voy-a-comprar-pan.slow.wav | guide | 0.8 | Voy a comprar pan. |  |
 | phrase.voy-a-comprar-pan | speech/guide/phrase.voy-a-comprar-pan.wav | guide | 1.0 | Voy a comprar pan. |  |
+| phrase.voy-a-hacer-pan | speech/guide/phrase.voy-a-hacer-pan.slow.wav | guide | 0.8 | Voy a hacer pan. |  |
+| phrase.voy-a-hacer-pan | speech/guide/phrase.voy-a-hacer-pan.wav | guide | 1.0 | Voy a hacer pan. |  |
 | phrase.voy-a-ir-al-rio | speech/guide/phrase.voy-a-ir-al-rio.slow.wav | guide | 0.8 | Mañana voy a ir al río. |  |
 | phrase.voy-a-ir-al-rio | speech/guide/phrase.voy-a-ir-al-rio.wav | guide | 1.0 | Mañana voy a ir al río. |  |
 | phrase.voy-a-la-panaderia | speech/guide/phrase.voy-a-la-panaderia.slow.wav | guide | 0.8 | Voy a la panadería. |  |
 | phrase.voy-a-la-panaderia | speech/guide/phrase.voy-a-la-panaderia.wav | guide | 1.0 | Voy a la panadería. |  |
+| prompt.baker-offer | speech/baker/prompt.baker-offer.slow.wav | baker | 0.8 | ¿Quieres hacer pan? |  |
+| prompt.baker-offer | speech/baker/prompt.baker-offer.wav | baker | 1.0 | ¿Quieres hacer pan? |  |
 | prompt.baker-open | speech/baker/prompt.baker-open.slow.wav | baker | 0.8 | ¿Qué quieres? |  |
 | prompt.baker-open | speech/baker/prompt.baker-open.wav | baker | 1.0 | ¿Qué quieres? |  |
+| prompt.baker-proc | speech/baker/prompt.baker-proc.slow.wav | baker | 0.8 | ¿Qué quieres? |  |
+| prompt.baker-proc | speech/baker/prompt.baker-proc.wav | baker | 1.0 | ¿Qué quieres? |  |
 | prompt.farmer-open | speech/farmer/prompt.farmer-open.slow.wav | farmer | 0.8 | ¡Hola! Este es mi campo. |  |
 | prompt.farmer-open | speech/farmer/prompt.farmer-open.wav | farmer | 1.0 | ¡Hola! Este es mi campo. |  |
 | prompt.fisher-open | speech/fisher/prompt.fisher-open.slow.wav | fisher | 0.72 | ¿Qué buscas? |  |
@@ -866,6 +1058,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | prompt.lesson-apple | speech/farmer/prompt.lesson-apple.wav | farmer | 1.0 | ¿Cómo es la manzana? |  |
 | prompt.lesson-ate | speech/shopkeeper/prompt.lesson-ate.slow.wav | shopkeeper | 0.8 | ¿Qué comiste ayer? |  |
 | prompt.lesson-ate | speech/shopkeeper/prompt.lesson-ate.wav | shopkeeper | 1.0 | ¿Qué comiste ayer? |  |
+| prompt.lesson-bake-plan | speech/baker/prompt.lesson-bake-plan.slow.wav | baker | 0.8 | ¿Qué vas a hacer hoy? |  |
+| prompt.lesson-bake-plan | speech/baker/prompt.lesson-bake-plan.wav | baker | 1.0 | ¿Qué vas a hacer hoy? |  |
 | prompt.lesson-big | speech/shopkeeper/prompt.lesson-big.slow.wav | shopkeeper | 0.8 | Mira este pan. ¿Cómo es? |  |
 | prompt.lesson-big | speech/shopkeeper/prompt.lesson-big.wav | shopkeeper | 1.0 | Mira este pan. ¿Cómo es? |  |
 | prompt.lesson-bottle | speech/shopkeeper/prompt.lesson-bottle.slow.wav | shopkeeper | 0.8 | ¿Tiene usted una botella? |  |
@@ -908,6 +1102,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | prompt.lesson-luz-will | speech/fisher/prompt.lesson-luz-will.wav | fisher | 0.9 | ¿Qué hará Luz mañana? |  |
 | prompt.lesson-made | speech/villager/prompt.lesson-made.slow.wav | villager | 0.8 | ¿Qué hizo Domingo? |  |
 | prompt.lesson-made | speech/villager/prompt.lesson-made.wav | villager | 1.0 | ¿Qué hizo Domingo? |  |
+| prompt.lesson-made-bread | speech/baker/prompt.lesson-made-bread.slow.wav | baker | 0.8 | ¿Qué hiciste? |  |
+| prompt.lesson-made-bread | speech/baker/prompt.lesson-made-bread.wav | baker | 1.0 | ¿Qué hiciste? |  |
 | prompt.lesson-mar-fished | speech/villager/prompt.lesson-mar-fished.slow.wav | villager | 0.8 | ¿Y qué hizo Mar? |  |
 | prompt.lesson-mar-fished | speech/villager/prompt.lesson-mar-fished.wav | villager | 1.0 | ¿Y qué hizo Mar? |  |
 | prompt.lesson-market | speech/shopkeeper/prompt.lesson-market.slow.wav | shopkeeper | 0.8 | ¡Hola! ¿Qué compraste en el mercado? |  |
@@ -990,10 +1186,16 @@ whose text changed or whose file was recorded again differently is listed again 
 | prompt.stall-offer | speech/shopkeeper/prompt.stall-offer.wav | shopkeeper | 1.0 | ¿Quieres pan? |  |
 | prompt.villager-open | speech/villager/prompt.villager-open.slow.wav | villager | 0.8 | Hola. |  |
 | prompt.villager-open | speech/villager/prompt.villager-open.wav | villager | 1.0 | Hola. |  |
+| shop_buy.1 | speech/shopkeeper/shop_buy.1.slow.wav | shopkeeper | 0.8 | ¡Gracias! Aquí tienes. |  |
+| shop_buy.1 | speech/shopkeeper/shop_buy.1.wav | shopkeeper | 1.0 | ¡Gracias! Aquí tienes. |  |
 | shop_bye.1 | speech/shopkeeper/shop_bye.1.slow.wav | shopkeeper | 0.8 | ¡Adiós! Hasta luego. |  |
 | shop_bye.1 | speech/shopkeeper/shop_bye.1.wav | shopkeeper | 1.0 | ¡Adiós! Hasta luego. |  |
 | shop_bye.2 | speech/shopkeeper/shop_bye.2.slow.wav | shopkeeper | 0.8 | Hasta luego. |  |
 | shop_bye.2 | speech/shopkeeper/shop_bye.2.wav | shopkeeper | 1.0 | Hasta luego. |  |
+| shop_cant_pay.1 | speech/shopkeeper/shop_cant_pay.1.slow.wav | shopkeeper | 0.8 | La harina cuesta una moneda. |  |
+| shop_cant_pay.1 | speech/shopkeeper/shop_cant_pay.1.wav | shopkeeper | 1.0 | La harina cuesta una moneda. |  |
+| shop_cant_sell.1 | speech/shopkeeper/shop_cant_sell.1.slow.wav | shopkeeper | 0.8 | No tienes pan. |  |
+| shop_cant_sell.1 | speech/shopkeeper/shop_cant_sell.1.wav | shopkeeper | 1.0 | No tienes pan. |  |
 | shop_deny.1 | speech/shopkeeper/shop_deny.1.slow.wav | shopkeeper | 0.8 | Está bien. |  |
 | shop_deny.1 | speech/shopkeeper/shop_deny.1.wav | shopkeeper | 1.0 | Está bien. |  |
 | shop_deny.2 | speech/shopkeeper/shop_deny.2.slow.wav | shopkeeper | 0.8 | Bueno. |  |
@@ -1002,6 +1204,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | shop_done.1 | speech/shopkeeper/shop_done.1.wav | shopkeeper | 1.0 | ¡Hasta luego! |  |
 | shop_done.2 | speech/shopkeeper/shop_done.2.slow.wav | shopkeeper | 0.8 | ¡Nos vemos! |  |
 | shop_done.2 | speech/shopkeeper/shop_done.2.wav | shopkeeper | 1.0 | ¡Nos vemos! |  |
+| shop_gift_used.1 | speech/shopkeeper/shop_gift_used.1.slow.wav | shopkeeper | 0.8 | Hoy no tengo más pan. |  |
+| shop_gift_used.1 | speech/shopkeeper/shop_gift_used.1.wav | shopkeeper | 1.0 | Hoy no tengo más pan. |  |
 | shop_give.1 | speech/shopkeeper/shop_give.1.slow.wav | shopkeeper | 0.8 | Toma la botella. El agua está en el río. |  |
 | shop_give.1 | speech/shopkeeper/shop_give.1.wav | shopkeeper | 1.0 | Toma la botella. El agua está en el río. |  |
 | shop_give.2 | speech/shopkeeper/shop_give.2.slow.wav | shopkeeper | 0.8 | Aquí tienes la botella. El agua está en el río. |  |
@@ -1010,8 +1214,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | shop_give_bread.1 | speech/shopkeeper/shop_give_bread.1.wav | shopkeeper | 1.0 | Aquí tienes el pan. |  |
 | shop_give_bread.2 | speech/shopkeeper/shop_give_bread.2.slow.wav | shopkeeper | 0.8 | Toma el pan. |  |
 | shop_give_bread.2 | speech/shopkeeper/shop_give_bread.2.wav | shopkeeper | 1.0 | Toma el pan. |  |
-| shop_hay.1 | speech/shopkeeper/shop_hay.1.slow.wav | shopkeeper | 0.8 | Hay agua y pan. |  |
-| shop_hay.1 | speech/shopkeeper/shop_hay.1.wav | shopkeeper | 1.0 | Hay agua y pan. |  |
+| shop_hay.1 | speech/shopkeeper/shop_hay.1.slow.wav | shopkeeper | 0.8 | Hay agua, pan y harina. |  |
+| shop_hay.1 | speech/shopkeeper/shop_hay.1.wav | shopkeeper | 1.0 | Hay agua, pan y harina. |  |
 | shop_help_ask.1 | speech/shopkeeper/shop_help_ask.1.slow.wav | shopkeeper | 0.8 | Puedes decir: «Quiero agua, por favor». |  |
 | shop_help_ask.1 | speech/shopkeeper/shop_help_ask.1.wav | shopkeeper | 1.0 | Puedes decir: «Quiero agua, por favor». |  |
 | shop_help_offer.1 | speech/shopkeeper/shop_help_offer.1.slow.wav | shopkeeper | 0.8 | Puedes decir: «Sí, por favor» o «No, gracias». |  |
@@ -1020,10 +1224,20 @@ whose text changed or whose file was recorded again differently is listed again 
 | shop_need.1 | speech/shopkeeper/shop_need.1.wav | shopkeeper | 1.0 | ¿Qué necesitas? |  |
 | shop_nice.1 | speech/shopkeeper/shop_nice.1.slow.wav | shopkeeper | 0.8 | ¡Qué bien! |  |
 | shop_nice.1 | speech/shopkeeper/shop_nice.1.wav | shopkeeper | 1.0 | ¡Qué bien! |  |
+| shop_no_room.1 | speech/shopkeeper/shop_no_room.1.slow.wav | shopkeeper | 0.8 | Tu bolsa está llena. |  |
+| shop_no_room.1 | speech/shopkeeper/shop_no_room.1.wav | shopkeeper | 1.0 | Tu bolsa está llena. |  |
+| shop_none_asked.1 | speech/shopkeeper/shop_none_asked.1.slow.wav | shopkeeper | 0.8 | Hay harina. ¿Cuánta quieres? |  |
+| shop_none_asked.1 | speech/shopkeeper/shop_none_asked.1.wav | shopkeeper | 1.0 | Hay harina. ¿Cuánta quieres? |  |
+| shop_none_offered.1 | speech/shopkeeper/shop_none_offered.1.slow.wav | shopkeeper | 0.8 | ¿Cuántos panes me vendes? |  |
+| shop_none_offered.1 | speech/shopkeeper/shop_none_offered.1.wav | shopkeeper | 1.0 | ¿Cuántos panes me vendes? |  |
 | shop_offer.1 | speech/shopkeeper/shop_offer.1.slow.wav | shopkeeper | 0.8 | ¿Quieres pan? |  |
 | shop_offer.1 | speech/shopkeeper/shop_offer.1.wav | shopkeeper | 1.0 | ¿Quieres pan? |  |
 | shop_price.1 | speech/shopkeeper/shop_price.1.slow.wav | shopkeeper | 0.8 | El pan cuesta dos monedas. |  |
 | shop_price.1 | speech/shopkeeper/shop_price.1.wav | shopkeeper | 1.0 | El pan cuesta dos monedas. |  |
+| shop_sell_flour.1 | speech/shopkeeper/shop_sell_flour.1.slow.wav | shopkeeper | 0.8 | Aquí tienes la harina. |  |
+| shop_sell_flour.1 | speech/shopkeeper/shop_sell_flour.1.wav | shopkeeper | 1.0 | Aquí tienes la harina. |  |
+| shop_sun.1 | speech/shopkeeper/shop_sun.1.slow.wav | shopkeeper | 0.8 | Hoy hace sol. |  |
+| shop_sun.1 | speech/shopkeeper/shop_sun.1.wav | shopkeeper | 1.0 | Hoy hace sol. |  |
 | shop_thank.1 | speech/shopkeeper/shop_thank.1.slow.wav | shopkeeper | 0.8 | De nada. |  |
 | shop_thank.1 | speech/shopkeeper/shop_thank.1.wav | shopkeeper | 1.0 | De nada. |  |
 | shop_thank.2 | speech/shopkeeper/shop_thank.2.slow.wav | shopkeeper | 0.8 | ¡Con gusto! |  |
@@ -1032,8 +1246,36 @@ whose text changed or whose file was recorded again differently is listed again 
 | shop_true.1 | speech/shopkeeper/shop_true.1.wav | shopkeeper | 1.0 | Sí, es verdad. |  |
 | shop_understood.1 | speech/shopkeeper/shop_understood.1.slow.wav | shopkeeper | 0.8 | Te entiendo. ¿Quieres comprar algo? |  |
 | shop_understood.1 | speech/shopkeeper/shop_understood.1.wav | shopkeeper | 1.0 | Te entiendo. ¿Quieres comprar algo? |  |
-| shop_wont_sell.1 | speech/shopkeeper/shop_wont_sell.1.slow.wav | shopkeeper | 0.8 | No tengo eso. Tengo agua y pan. |  |
-| shop_wont_sell.1 | speech/shopkeeper/shop_wont_sell.1.wav | shopkeeper | 1.0 | No tengo eso. Tengo agua y pan. |  |
+| shop_weather.1.buen-tiempo | speech/shopkeeper/shop_weather.1.buen-tiempo.slow.wav | shopkeeper | 0.8 | Sí, hace buen tiempo. |  |
+| shop_weather.1.buen-tiempo | speech/shopkeeper/shop_weather.1.buen-tiempo.wav | shopkeeper | 1.0 | Sí, hace buen tiempo. |  |
+| shop_weather.1.calor | speech/shopkeeper/shop_weather.1.calor.slow.wav | shopkeeper | 0.8 | Sí, hace calor. |  |
+| shop_weather.1.calor | speech/shopkeeper/shop_weather.1.calor.wav | shopkeeper | 1.0 | Sí, hace calor. |  |
+| shop_weather.1.fresco | speech/shopkeeper/shop_weather.1.fresco.slow.wav | shopkeeper | 0.8 | Sí, hace fresco. |  |
+| shop_weather.1.fresco | speech/shopkeeper/shop_weather.1.fresco.wav | shopkeeper | 1.0 | Sí, hace fresco. |  |
+| shop_weather.1.frio | speech/shopkeeper/shop_weather.1.frio.slow.wav | shopkeeper | 0.8 | Sí, hace frío. |  |
+| shop_weather.1.frio | speech/shopkeeper/shop_weather.1.frio.wav | shopkeeper | 1.0 | Sí, hace frío. |  |
+| shop_weather.1.mal-tiempo | speech/shopkeeper/shop_weather.1.mal-tiempo.slow.wav | shopkeeper | 0.8 | Sí, hace mal tiempo. |  |
+| shop_weather.1.mal-tiempo | speech/shopkeeper/shop_weather.1.mal-tiempo.wav | shopkeeper | 1.0 | Sí, hace mal tiempo. |  |
+| shop_weather.1.mucho-calor | speech/shopkeeper/shop_weather.1.mucho-calor.slow.wav | shopkeeper | 0.8 | Sí, hace mucho calor. |  |
+| shop_weather.1.mucho-calor | speech/shopkeeper/shop_weather.1.mucho-calor.wav | shopkeeper | 1.0 | Sí, hace mucho calor. |  |
+| shop_weather.1.mucho-frio | speech/shopkeeper/shop_weather.1.mucho-frio.slow.wav | shopkeeper | 0.8 | Sí, hace mucho frío. |  |
+| shop_weather.1.mucho-frio | speech/shopkeeper/shop_weather.1.mucho-frio.wav | shopkeeper | 1.0 | Sí, hace mucho frío. |  |
+| shop_weather.1.mucho-sol | speech/shopkeeper/shop_weather.1.mucho-sol.slow.wav | shopkeeper | 0.8 | Sí, hace mucho sol. |  |
+| shop_weather.1.mucho-sol | speech/shopkeeper/shop_weather.1.mucho-sol.wav | shopkeeper | 1.0 | Sí, hace mucho sol. |  |
+| shop_weather.1.mucho-viento | speech/shopkeeper/shop_weather.1.mucho-viento.slow.wav | shopkeeper | 0.8 | Sí, hace mucho viento. |  |
+| shop_weather.1.mucho-viento | speech/shopkeeper/shop_weather.1.mucho-viento.wav | shopkeeper | 1.0 | Sí, hace mucho viento. |  |
+| shop_weather.1.sol | speech/shopkeeper/shop_weather.1.sol.slow.wav | shopkeeper | 0.8 | Sí, hace sol. |  |
+| shop_weather.1.sol | speech/shopkeeper/shop_weather.1.sol.wav | shopkeeper | 1.0 | Sí, hace sol. |  |
+| shop_weather.1.viento | speech/shopkeeper/shop_weather.1.viento.slow.wav | shopkeeper | 0.8 | Sí, hace viento. |  |
+| shop_weather.1.viento | speech/shopkeeper/shop_weather.1.viento.wav | shopkeeper | 1.0 | Sí, hace viento. |  |
+| shop_well.1 | speech/shopkeeper/shop_well.1.slow.wav | shopkeeper | 0.8 | Bien, gracias. |  |
+| shop_well.1 | speech/shopkeeper/shop_well.1.wav | shopkeeper | 1.0 | Bien, gracias. |  |
+| shop_wont_buy.1 | speech/shopkeeper/shop_wont_buy.1.slow.wav | shopkeeper | 0.8 | No, gracias. Solo compro pan. |  |
+| shop_wont_buy.1 | speech/shopkeeper/shop_wont_buy.1.wav | shopkeeper | 1.0 | No, gracias. Solo compro pan. |  |
+| shop_wont_sell.1 | speech/shopkeeper/shop_wont_sell.1.slow.wav | shopkeeper | 0.8 | No tengo eso. Tengo agua, pan y harina. |  |
+| shop_wont_sell.1 | speech/shopkeeper/shop_wont_sell.1.wav | shopkeeper | 1.0 | No tengo eso. Tengo agua, pan y harina. |  |
+| shop_yes.1 | speech/shopkeeper/shop_yes.1.slow.wav | shopkeeper | 0.8 | ¡Sí! |  |
+| shop_yes.1 | speech/shopkeeper/shop_yes.1.wav | shopkeeper | 1.0 | ¡Sí! |  |
 | smith_buy.1 | speech/smith/smith_buy.1.slow.wav | smith | 0.8 | ¡Gracias! Aquí tienes tus monedas. |  |
 | smith_buy.1 | speech/smith/smith_buy.1.wav | smith | 1.0 | ¡Gracias! Aquí tienes tus monedas. |  |
 | smith_bye.1 | speech/smith/smith_bye.1.slow.wav | smith | 0.8 | ¡Adiós! Hasta luego. |  |
@@ -1064,6 +1306,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | smith_offer.1 | speech/smith/smith_offer.1.wav | smith | 1.0 | ¿Quieres un hacha? Necesito dos bloques de madera y dos monedas. |  |
 | smith_ok.1 | speech/smith/smith_ok.1.slow.wav | smith | 0.8 | Está bien. |  |
 | smith_ok.1 | speech/smith/smith_ok.1.wav | smith | 1.0 | Está bien. |  |
+| smith_sun.1 | speech/smith/smith_sun.1.slow.wav | smith | 0.8 | Hoy hace sol. |  |
+| smith_sun.1 | speech/smith/smith_sun.1.wav | smith | 1.0 | Hoy hace sol. |  |
 | smith_thank.1 | speech/smith/smith_thank.1.slow.wav | smith | 0.8 | De nada. |  |
 | smith_thank.1 | speech/smith/smith_thank.1.wav | smith | 1.0 | De nada. |  |
 | smith_thank.2 | speech/smith/smith_thank.2.slow.wav | smith | 0.8 | ¡Con gusto! |  |
@@ -1072,12 +1316,40 @@ whose text changed or whose file was recorded again differently is listed again 
 | smith_true.1 | speech/smith/smith_true.1.wav | smith | 1.0 | Sí, es verdad. |  |
 | smith_understood.1 | speech/smith/smith_understood.1.slow.wav | smith | 0.8 | Te entiendo. Yo hago hachas. |  |
 | smith_understood.1 | speech/smith/smith_understood.1.wav | smith | 1.0 | Te entiendo. Yo hago hachas. |  |
+| smith_weather.1.buen-tiempo | speech/smith/smith_weather.1.buen-tiempo.slow.wav | smith | 0.8 | Sí, hace buen tiempo. |  |
+| smith_weather.1.buen-tiempo | speech/smith/smith_weather.1.buen-tiempo.wav | smith | 1.0 | Sí, hace buen tiempo. |  |
+| smith_weather.1.calor | speech/smith/smith_weather.1.calor.slow.wav | smith | 0.8 | Sí, hace calor. |  |
+| smith_weather.1.calor | speech/smith/smith_weather.1.calor.wav | smith | 1.0 | Sí, hace calor. |  |
+| smith_weather.1.fresco | speech/smith/smith_weather.1.fresco.slow.wav | smith | 0.8 | Sí, hace fresco. |  |
+| smith_weather.1.fresco | speech/smith/smith_weather.1.fresco.wav | smith | 1.0 | Sí, hace fresco. |  |
+| smith_weather.1.frio | speech/smith/smith_weather.1.frio.slow.wav | smith | 0.8 | Sí, hace frío. |  |
+| smith_weather.1.frio | speech/smith/smith_weather.1.frio.wav | smith | 1.0 | Sí, hace frío. |  |
+| smith_weather.1.mal-tiempo | speech/smith/smith_weather.1.mal-tiempo.slow.wav | smith | 0.8 | Sí, hace mal tiempo. |  |
+| smith_weather.1.mal-tiempo | speech/smith/smith_weather.1.mal-tiempo.wav | smith | 1.0 | Sí, hace mal tiempo. |  |
+| smith_weather.1.mucho-calor | speech/smith/smith_weather.1.mucho-calor.slow.wav | smith | 0.8 | Sí, hace mucho calor. |  |
+| smith_weather.1.mucho-calor | speech/smith/smith_weather.1.mucho-calor.wav | smith | 1.0 | Sí, hace mucho calor. |  |
+| smith_weather.1.mucho-frio | speech/smith/smith_weather.1.mucho-frio.slow.wav | smith | 0.8 | Sí, hace mucho frío. |  |
+| smith_weather.1.mucho-frio | speech/smith/smith_weather.1.mucho-frio.wav | smith | 1.0 | Sí, hace mucho frío. |  |
+| smith_weather.1.mucho-sol | speech/smith/smith_weather.1.mucho-sol.slow.wav | smith | 0.8 | Sí, hace mucho sol. |  |
+| smith_weather.1.mucho-sol | speech/smith/smith_weather.1.mucho-sol.wav | smith | 1.0 | Sí, hace mucho sol. |  |
+| smith_weather.1.mucho-viento | speech/smith/smith_weather.1.mucho-viento.slow.wav | smith | 0.8 | Sí, hace mucho viento. |  |
+| smith_weather.1.mucho-viento | speech/smith/smith_weather.1.mucho-viento.wav | smith | 1.0 | Sí, hace mucho viento. |  |
+| smith_weather.1.sol | speech/smith/smith_weather.1.sol.slow.wav | smith | 0.8 | Sí, hace sol. |  |
+| smith_weather.1.sol | speech/smith/smith_weather.1.sol.wav | smith | 1.0 | Sí, hace sol. |  |
+| smith_weather.1.viento | speech/smith/smith_weather.1.viento.slow.wav | smith | 0.8 | Sí, hace viento. |  |
+| smith_weather.1.viento | speech/smith/smith_weather.1.viento.wav | smith | 1.0 | Sí, hace viento. |  |
+| smith_well.1 | speech/smith/smith_well.1.slow.wav | smith | 0.8 | Bien, gracias. |  |
+| smith_well.1 | speech/smith/smith_well.1.wav | smith | 1.0 | Bien, gracias. |  |
 | smith_wont_buy.1 | speech/smith/smith_wont_buy.1.slow.wav | smith | 0.8 | No, gracias. Solo compro madera. |  |
 | smith_wont_buy.1 | speech/smith/smith_wont_buy.1.wav | smith | 1.0 | No, gracias. Solo compro madera. |  |
+| smith_yes.1 | speech/smith/smith_yes.1.slow.wav | smith | 0.8 | ¡Sí! |  |
+| smith_yes.1 | speech/smith/smith_yes.1.wav | smith | 1.0 | ¡Sí! |  |
 | villager_bye.1 | speech/villager/villager_bye.1.slow.wav | villager | 0.8 | ¡Adiós! Hasta luego. |  |
 | villager_bye.1 | speech/villager/villager_bye.1.wav | villager | 1.0 | ¡Adiós! Hasta luego. |  |
 | villager_bye.2 | speech/villager/villager_bye.2.slow.wav | villager | 0.8 | Hasta luego. |  |
 | villager_bye.2 | speech/villager/villager_bye.2.wav | villager | 1.0 | Hasta luego. |  |
+| villager_gift_used.1 | speech/villager/villager_gift_used.1.slow.wav | villager | 0.8 | Hoy no tengo más pan. |  |
+| villager_gift_used.1 | speech/villager/villager_gift_used.1.wav | villager | 1.0 | Hoy no tengo más pan. |  |
 | villager_give.1 | speech/villager/villager_give.1.slow.wav | villager | 0.8 | Aquí tienes. |  |
 | villager_give.1 | speech/villager/villager_give.1.wav | villager | 1.0 | Aquí tienes. |  |
 | villager_give.2 | speech/villager/villager_give.2.slow.wav | villager | 0.8 | Toma. |  |
@@ -1094,6 +1366,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | villager_point.1 | speech/villager/villager_point.1.wav | villager | 1.0 | Mira, está allí. |  |
 | villager_point.2 | speech/villager/villager_point.2.slow.wav | villager | 0.8 | Está allí, mira. |  |
 | villager_point.2 | speech/villager/villager_point.2.wav | villager | 1.0 | Está allí, mira. |  |
+| villager_sun.1 | speech/villager/villager_sun.1.slow.wav | villager | 0.8 | Hoy hace sol. |  |
+| villager_sun.1 | speech/villager/villager_sun.1.wav | villager | 1.0 | Hoy hace sol. |  |
 | villager_thank.1 | speech/villager/villager_thank.1.slow.wav | villager | 0.8 | De nada. |  |
 | villager_thank.1 | speech/villager/villager_thank.1.wav | villager | 1.0 | De nada. |  |
 | villager_thank.2 | speech/villager/villager_thank.2.slow.wav | villager | 0.8 | ¡Con gusto! |  |
@@ -1104,5 +1378,31 @@ whose text changed or whose file was recorded again differently is listed again 
 | villager_understood.1 | speech/villager/villager_understood.1.wav | villager | 1.0 | Te entiendo. ¿Qué buscas? |  |
 | villager_unknown_place.1 | speech/villager/villager_unknown_place.1.slow.wav | villager | 0.8 | No sé dónde está. |  |
 | villager_unknown_place.1 | speech/villager/villager_unknown_place.1.wav | villager | 1.0 | No sé dónde está. |  |
+| villager_weather.1.buen-tiempo | speech/villager/villager_weather.1.buen-tiempo.slow.wav | villager | 0.8 | Sí, hace buen tiempo. |  |
+| villager_weather.1.buen-tiempo | speech/villager/villager_weather.1.buen-tiempo.wav | villager | 1.0 | Sí, hace buen tiempo. |  |
+| villager_weather.1.calor | speech/villager/villager_weather.1.calor.slow.wav | villager | 0.8 | Sí, hace calor. |  |
+| villager_weather.1.calor | speech/villager/villager_weather.1.calor.wav | villager | 1.0 | Sí, hace calor. |  |
+| villager_weather.1.fresco | speech/villager/villager_weather.1.fresco.slow.wav | villager | 0.8 | Sí, hace fresco. |  |
+| villager_weather.1.fresco | speech/villager/villager_weather.1.fresco.wav | villager | 1.0 | Sí, hace fresco. |  |
+| villager_weather.1.frio | speech/villager/villager_weather.1.frio.slow.wav | villager | 0.8 | Sí, hace frío. |  |
+| villager_weather.1.frio | speech/villager/villager_weather.1.frio.wav | villager | 1.0 | Sí, hace frío. |  |
+| villager_weather.1.mal-tiempo | speech/villager/villager_weather.1.mal-tiempo.slow.wav | villager | 0.8 | Sí, hace mal tiempo. |  |
+| villager_weather.1.mal-tiempo | speech/villager/villager_weather.1.mal-tiempo.wav | villager | 1.0 | Sí, hace mal tiempo. |  |
+| villager_weather.1.mucho-calor | speech/villager/villager_weather.1.mucho-calor.slow.wav | villager | 0.8 | Sí, hace mucho calor. |  |
+| villager_weather.1.mucho-calor | speech/villager/villager_weather.1.mucho-calor.wav | villager | 1.0 | Sí, hace mucho calor. |  |
+| villager_weather.1.mucho-frio | speech/villager/villager_weather.1.mucho-frio.slow.wav | villager | 0.8 | Sí, hace mucho frío. |  |
+| villager_weather.1.mucho-frio | speech/villager/villager_weather.1.mucho-frio.wav | villager | 1.0 | Sí, hace mucho frío. |  |
+| villager_weather.1.mucho-sol | speech/villager/villager_weather.1.mucho-sol.slow.wav | villager | 0.8 | Sí, hace mucho sol. |  |
+| villager_weather.1.mucho-sol | speech/villager/villager_weather.1.mucho-sol.wav | villager | 1.0 | Sí, hace mucho sol. |  |
+| villager_weather.1.mucho-viento | speech/villager/villager_weather.1.mucho-viento.slow.wav | villager | 0.8 | Sí, hace mucho viento. |  |
+| villager_weather.1.mucho-viento | speech/villager/villager_weather.1.mucho-viento.wav | villager | 1.0 | Sí, hace mucho viento. |  |
+| villager_weather.1.sol | speech/villager/villager_weather.1.sol.slow.wav | villager | 0.8 | Sí, hace sol. |  |
+| villager_weather.1.sol | speech/villager/villager_weather.1.sol.wav | villager | 1.0 | Sí, hace sol. |  |
+| villager_weather.1.viento | speech/villager/villager_weather.1.viento.slow.wav | villager | 0.8 | Sí, hace viento. |  |
+| villager_weather.1.viento | speech/villager/villager_weather.1.viento.wav | villager | 1.0 | Sí, hace viento. |  |
+| villager_well.1 | speech/villager/villager_well.1.slow.wav | villager | 0.8 | Bien, gracias. |  |
+| villager_well.1 | speech/villager/villager_well.1.wav | villager | 1.0 | Bien, gracias. |  |
 | villager_wont_sell.1 | speech/villager/villager_wont_sell.1.slow.wav | villager | 0.8 | Solo tengo pan. |  |
 | villager_wont_sell.1 | speech/villager/villager_wont_sell.1.wav | villager | 1.0 | Solo tengo pan. |  |
+| villager_yes.1 | speech/villager/villager_yes.1.slow.wav | villager | 0.8 | ¡Sí! |  |
+| villager_yes.1 | speech/villager/villager_yes.1.wav | villager | 1.0 | ¡Sí! |  |

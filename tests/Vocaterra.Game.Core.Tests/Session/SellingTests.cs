@@ -57,7 +57,7 @@ public sealed class SellingTests
             Assert.Contains("offer_item", data.Bundle.Prompts[prompt].AllowedIntentIds);
         }
 
-        Assert.DoesNotContain("offer_item", data.Bundle.Prompts["stall-need"].AllowedIntentIds); // the stall buys nothing: its exchange is session 1's
+        Assert.Contains("offer_item", data.Bundle.Prompts["stall-need"].AllowedIntentIds); // W10: the stall buys bread (a coin a loaf) and nothing else
     }
 
     [Theory]

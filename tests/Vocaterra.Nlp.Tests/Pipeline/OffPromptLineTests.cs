@@ -19,7 +19,8 @@ public class OffPromptLineTests
 
     // The orchestrator's table of 2026-11-02 and its kind: before M72 each constrained row was vocab.wrong (expected '') at 0.4, and none said what it meant.
     [Theory]
-    [InlineData("la tienda está en el pueblo", "farmer-open", null)]
+    [InlineData("usted hace hachas muy buenas", "smith-open", "describe")] // M78: a compliment is describe
+    [InlineData("la tienda está en el pueblo", "baker-open", "describe")] // M78: a location statement is describe
     [InlineData("tengo un hacha", "farmer-open", "state_have")]
     [InlineData("tengo dos manzanas", "fisher-open", "state_have")]
     [InlineData("me gusta el río", "smith-open", "state_like")]
@@ -48,6 +49,8 @@ public class OffPromptLineTests
     [InlineData("dónde está la panadería", "fisher-open", "ask_directions")]
     [InlineData("el pan es bonito", "farmer-open", "describe")]
     [InlineData("quiero dos panes por favor", "baker-open", "request_item")]
+    [InlineData("la tienda está en el pueblo", "farmer-open", "describe")] // M78: it was unknown at every prompt, and the NPC said «No te entendí»
+    [InlineData("tú pescas mucho", "fisher-open", "state_action")] // M78: a statement about the listener's activity
     public void TheSameKindOfLineAtAPromptThatTakesItIsUnderstood(string transcript, string promptId, string intent)
     {
         var verdict = Evaluate(transcript, promptId).Verdict;
@@ -61,10 +64,10 @@ public class OffPromptLineTests
     [Fact]
     public void ANearMissOfAnAnswerKeepsItsTag()
     {
-        // cuál es esto for qué es esto (M67): a keyword rule understood it, three edits from the answer, within the budget for its own length.
+        // cuál es esto for qué es esto (M67): a keyword rule understood it, and it misses the answer by one question word for another (M75), which the tag names.
         var verdict = Evaluate("cuál es esto", "lesson-what").Verdict;
 
-        Assert.Equal(ErrorTags.VocabWrong, Assert.Single(verdict.Errors).Tag);
+        Assert.Equal(new ErrorTag(ErrorTags.VocabWrong, new TextSpan(0, 4), "qué", "cuál"), Assert.Single(verdict.Errors));
         Assert.Null(verdict.OffPromptIntent);
     }
 

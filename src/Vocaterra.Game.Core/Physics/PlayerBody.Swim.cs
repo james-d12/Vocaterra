@@ -12,12 +12,12 @@ public sealed partial class PlayerBody
     /// jump and step-up. Swimming (water at the waist or higher): the slow horizontal speed, the drag, jump held to swim up, and a hop out
     /// onto a bank when a wall blocks the way. Swimming never reports a jump or a landing.
     /// </summary>
-    private (bool Jumped, bool Landed) StepInWater(VoxelGrid grid, int intentX, int intentZ, bool jump, Immersion immersion, RiverCurrents? currents)
+    private (bool Jumped, bool Landed) StepInWater(VoxelGrid grid, int intentX, int intentZ, bool jump, Immersion immersion, RiverCurrents? currents, int speedPermille)
     {
         var wasGrounded = Grounded;
         SteppedUp = false;
         var swimming = immersion.Body;
-        var speed = SwimMotion.HorizontalSpeed(swimming);
+        var speed = Scaled(SwimMotion.HorizontalSpeed(swimming), speedPermille); // N02's walk factor and sprint apply to the water walk too
         VelocityX = Angles.Multiply(intentX, speed);
         VelocityZ = Angles.Multiply(intentZ, speed);
         var (pushX, pushZ, pull) = SwimMotion.Push(grid, currents, VoxelCollider.FloorDiv(CenterX, VoxelPhysics.UnitsPerBlock), VoxelCollider.FloorDiv(MinY, VoxelPhysics.UnitsPerBlock), VoxelCollider.FloorDiv(CenterZ, VoxelPhysics.UnitsPerBlock));

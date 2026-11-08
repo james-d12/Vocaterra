@@ -493,6 +493,56 @@ public class AnalysisSideSeamTests
         Assert.Same(AnalysisRules.For(Spanish), AnalysisRules.For(Spanish));
     }
 
+    // M75: the question words of a near miss (cuál es esto for qué es esto), in every form, with their accent or without it; a pack that leaves the member out has none.
+    [Theory]
+    [InlineData("qué", true)]
+    [InlineData("cuál", true)]
+    [InlineData("cuáles", true)]
+    [InlineData("quiénes", true)]
+    [InlineData("adónde", true)]
+    [InlineData("cuántas", true)]
+    [InlineData("donde", true)]
+    [InlineData("cuantás", true)] // the accent on another letter
+    [InlineData("esto", false)]
+    [InlineData("porque", false)]
+    [InlineData("es", false)]
+    public void TheSpanishQuestionWordsAreKnownWithOrWithoutTheirAccent(string word, bool questionWord)
+    {
+        var rules = Spanish.CreateAnalysisRules(SpanishLexicon.Seed, Spanish.CreateMorphology(SpanishLexicon.Seed));
+
+        Assert.Equal(questionWord, rules.IsQuestionWord(word));
+        IAnalysisRules withoutTheMember = new NoSubjectRules(rules);
+        Assert.False(withoutTheMember.IsQuestionWord(word));
+    }
+
+    // M78: where a name is said (after soy, llamo, a greeting or a farewell); a pack that leaves the member out has no position.
+    [Theory]
+    [InlineData("soy pedro", 1, true)]
+    [InlineData("me llamo pedro", 2, true)]
+    [InlineData("mi nombre es pedro", 3, true)]
+    [InlineData("hola pedro", 1, true)]
+    [InlineData("hola soy pedro", 2, true)]
+    [InlineData("buenos días pedro", 2, true)]
+    [InlineData("buenas tardes pedro", 2, true)]
+    [InlineData("buenas noches pedro", 2, true)]
+    [InlineData("buen día pedro", 2, true)]
+    [InlineData("adiós pedro", 1, true)]
+    [InlineData("pedro", 0, false)]
+    [InlineData("quiero pedro", 1, false)]
+    [InlineData("hola quiero pedro", 2, false)]
+    [InlineData("hace dos días pedro", 3, false)]
+    [InlineData("el pan es pedro", 3, false)]
+    [InlineData("pedro soy", 0, false)]
+    public void TheSpanishNamePositionsFollowTheWordsThatIntroduceAName(string line, int index, bool position)
+    {
+        var rules = Spanish.CreateAnalysisRules(SpanishLexicon.Seed, Spanish.CreateMorphology(SpanishLexicon.Seed));
+        var words = line.Split(' ');
+
+        Assert.Equal(position, rules.IsNamePosition(words, index));
+        IAnalysisRules withoutTheMember = new NoSubjectRules(rules);
+        Assert.False(withoutTheMember.IsNamePosition(words, index));
+    }
+
     // ---- IMorphology and ContentBundle.SpanishMorphology() ------------------------------------------------------------------------------------
 
     [Fact]

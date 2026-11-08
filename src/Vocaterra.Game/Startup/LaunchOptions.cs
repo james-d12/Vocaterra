@@ -2,12 +2,14 @@ using System.Globalization;
 using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Words;
+using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.Water;
+using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Graphics;
 
 namespace Vocaterra.Game.Startup;
@@ -69,10 +71,25 @@ public sealed record LaunchOptions
         + "                          the earlier sessions' lessons completed, session 1's camp done and its fire lit, the earlier orders delivered and paid, no practice counted;\n"
         + "                          the console, the session log and the saves say so. Not with --load, --session or --playtest (V12c)\n"
         + "  --sleep                 sleep at the player's own fire now, as E there does, wherever the player stands: the next play session begins as a load of the save would\n"
-        + "                          begin it (the fire must be lit, no lesson step waiting; not in a playtest); a step (V12c)\n"
+        + "                          begin it (the fire must be lit; not in a playtest; it sleeps whatever the sleep drive says, where E needs it below 75, L01); a step (V12c)\n"
         + "  --tips                  draw the first-time tips in a scripted run too (an interactive run always does; S16)\n"
         + "  --third-person          start in the behind-the-shoulder view (S15; F5 switches between it and first person)\n"
         + "  --dusk                  a lower, dimmer sun and lanterns that glow at full strength (S15)\n"
+        + "  --needs on|off          the player's needs (hunger, thirst, sleep, health, stamina) run in active play (the default, on); off freezes them full, so the language\n"
+        + "                          runs keep their baselines (a test aid, N01)\n"
+        + "  --relaxed-needs         the relaxed-needs setting (N05): every drive falls at half its rate, and at zero health the player faints and wakes at the camp, the bag kept and no chest.\n"
+        + "                          Off by default, kept in a save's settings\n"
+        + "  --view-effects on|off   the needs' effects on the view (dim edges, a blink, red edges; N05); the icons and the lines stay. F7 switches them in the game; kept in a save's settings\n"
+        + "  --eat <item>            eat or drink the item as a right click with it selected does (one is given if the bag has none; a test aid, N02): pan, fruta, manzana, agua\n"
+        + "  --need <need> <n>       a script step: set a need where the script stands (a test aid, N04; --set-need sets at launch)\n"
+        + "  --take-belongings       take back what a death left in the chest the crosshair is on, within reach, as E does (N04)\n"
+        + "  --plant x,y,z           plant the held berry on the grass or dirt block at that cell as a right click on it does (N08; a berry bush at the camp, within 8 blocks of its fire)\n"
+        + "  --station <id>          open the station (horno) and start its first procedure, as E at its prop does (W07); the overlay stays open for the steps after it and the screenshot\n"
+        + "  --act <use>,<on>[,<verb>] an act at the open station: the noun held, the target and, for a pair of several verbs, the verb (harina,bol  mano,horno,sacar; W07)\n"
+        + "  --station-say <line>    a typed line to the teacher from the open station, at her teaching prompt: \"Otra vez, por favor.\", \"Más despacio, por favor.\", \"Ayuda.\", \"Quiero madera.\" (W08)\n"
+        + "  --proc-help             help at the open station, as H does: the English, the highlight, the row up a rung (W07)\n"
+        + "  --drink                 drink by hand at the water the crosshair is on, within reach, as E does (N02); walk to the bank, --look at the water and --wait 1 first\n"
+        + "  --set-need <need> <n>   set a need at launch, 0 to 100 (hunger, thirst, sleep, health; stamina up to its maximum); repeatable (a test aid, N01)\n"
         + "  --beacon <point>        stand the beacon column on a named point of the scene (camp.guide, camp.player, firering, workbench, stall, signpost, village, house1, bridge, river, lake,\n"
         + "                          waterfall...); the default is camp.guide (the walk down the trail), none puts no beacon up\n"
         + "  --journal               open the journal once the steps are done\n"
@@ -85,6 +102,8 @@ public sealed record LaunchOptions
         + "  --book-detail <lines>  scroll the book's right page down by this many lines when it opens (a scripted run, X03)\n"
         + "  --inventory             open the inventory screen once the steps are done\n"
         + "  --crafting              open the crafting panel once the steps are done\n"
+        + "  --settings              open the settings panel once the steps are done (F8)\n"
+        + "  --needs-rate <x>        the drive rate, 0.5 to 4 in steps of 0.25 (default 1, or the save's)\n"
         + "  --mic-check             show the mic check at the start (an interactive run shows it by default; a scripted run with --screenshot never does unless asked,\n"
         + "                          and then hears a synthesized \"hola\" when the machine has no microphone)\n"
         + "  --no-mic-check          never show the mic check\n"
@@ -116,6 +135,7 @@ public sealed record LaunchOptions
         + "  --assume-known <nouns>  a test aid: the comma-separated catalogue nouns count as known from the start (their blocks are in colour)\n"
         + "  --strict-save           refuse a save made from another content bundle (the playtest's frozen bundle, D-game-10); without it a --load across bundles keeps\n"
      + "                          the progress where its ids still exist and drops the rest (X01); --playtest implies it\n"
+        + "  --dev                   the debug overlay and the dialogue's developer note start on (U01); F3 toggles both; without it ordinary play starts clean\n"
         + "  --playtest              the playtest profile (S12): no debug overlay, the mic check, the session log in its own folder, the pre-check before the\n"
         + "                          world (a fresh start) or the recall check (with --load), the post-check when the camp is done and the transfer offered\n"
         + "                          (or F10 ends the run), then playtest.save in the session folder and the thank-you screen until Esc; --greyscale stays\n"
@@ -145,6 +165,21 @@ public sealed record LaunchOptions
 
     /// <summary>Whether <c>--no-autosave</c> was given: the game writes no autosave (X05).</summary>
     public bool NoAutosave { get; init; }
+
+    /// <summary>Whether <c>--needs off</c> was given: the needs are frozen full (or at the <c>--set-need</c> values) and nothing moves them (N01).</summary>
+    public bool NeedsOff { get; init; }
+
+    /// <summary>Whether <c>--relaxed-needs</c> was given: the drives fall at half their rates and zero health faints instead of dying (N05, design decision 17). A save's settings may ask for it too.</summary>
+    public bool RelaxedNeeds { get; init; }
+
+    /// <summary>The <c>--needs-rate</c> value (N09): the drive rate multiplier, 0.5 to 4 in steps of 0.25; <see langword="null"/> leaves the saved setting (1 for a new game).</summary>
+    public double? NeedsRate { get; init; }
+
+    /// <summary>Whether <c>--view-effects on|off</c> was given, and which: the needs' effects on the view (N05); <see langword="null"/> leaves the saved setting (on for a new game).</summary>
+    public bool? ViewEffects { get; init; }
+
+    /// <summary>The needs <c>--set-need</c> set at launch, in the order given (N01).</summary>
+    public IReadOnlyList<(NeedMeter Meter, double Value)> SetNeeds { get; init; } = [];
 
     /// <summary>The tick at which the game throws on purpose (<c>--debug-crash-after</c>, a test-only hook of X05, not in the usage), or <see langword="null"/>.</summary>
     public long? DebugCrashAfter { get; init; }
@@ -254,6 +289,9 @@ public sealed record LaunchOptions
     /// <summary>Whether the inventory screen is opened once the script is done (<c>--inventory</c>).</summary>
     public bool ShowInventory { get; init; }
 
+    /// <summary>Whether the settings panel is opened once the script is done (<c>--settings</c>, N09: a test aid for its screenshots).</summary>
+    public bool ShowSettings { get; init; }
+
     /// <summary>Whether the crafting panel is opened once the script is done (<c>--crafting</c>).</summary>
     public bool ShowCrafting { get; init; }
 
@@ -263,8 +301,8 @@ public sealed record LaunchOptions
     /// <summary>The graphics quality (<c>--quality</c>); <see cref="QualityLevel.High"/> by default.</summary>
     public QualityLevel Quality { get; init; } = QualityLevel.High;
 
-    /// <summary>How much the view softens under water (<c>--underwater-blur</c>, H05); <see cref="UnderwaterBlurSettings.Default"/> (low) by default.</summary>
-    public UnderwaterBlur UnderwaterBlur { get; init; } = UnderwaterBlurSettings.Default;
+    /// <summary>How much the view softens under water (<c>--underwater-blur</c>, H05); the saved setting (low by default) when not given.</summary>
+    public UnderwaterBlur? UnderwaterBlur { get; init; }
 
     /// <summary>The view distance in blocks given by <c>--view-distance</c>, or <see langword="null"/> for the quality's own.</summary>
     public int? ViewDistance { get; init; }
@@ -300,6 +338,12 @@ public sealed record LaunchOptions
     public bool Playtest { get; init; }
 
     /// <summary>
+    /// Whether <c>--dev</c> was given (U01): the debug overlay and the dialogue's developer note (the grey "intent, understood, 100 %, 12 ms" line) start on. Without it
+    /// both start off, in a playtest too; F3 toggles both (not in a playtest).
+    /// </summary>
+    public bool Dev { get; init; }
+
+    /// <summary>
     /// Whether a save of another content bundle is refused (<c>--strict-save</c>, or <c>--playtest</c>, X01). Off, a <c>--load</c> across bundles keeps the progress where its ids still
     /// exist and logs what was dropped. A playtest is strict because its recall check needs the bundle frozen between the sessions (D-game-10).
     /// </summary>
@@ -310,6 +354,12 @@ public sealed record LaunchOptions
 
     /// <summary>Whether the run is the scripted screenshot run.</summary>
     public bool IsScreenshotRun => ScreenshotPath is not null;
+
+    /// <summary>
+    /// The clock the turn worker times its turns with (the latency the dialogue's developer note shows). A scripted run gives none, so its
+    /// turns report zero and its pictures do not move with the machine (T8); the play gives the real monotonic clock.
+    /// </summary>
+    public Func<double>? TurnClock => IsScreenshotRun && Script.Count > 0 ? null : MonotonicClock.Milliseconds;
 
     /// <summary>The options the sound side's start-up reads (<see cref="SoundSetup"/>).</summary>
     public SoundOptions Sound => new(IsScreenshotRun, NoSounds, SfxVolume, AmbientVolume);
@@ -363,6 +413,7 @@ public sealed record LaunchOptions
         var greyscale = false;
         var micCheck = MicCheckMode.Auto;
         var playtest = false;
+        var dev = false;
         var strictSave = false;
         for (var i = 0; i < args.Count; i++)
         {
@@ -373,16 +424,34 @@ public sealed record LaunchOptions
                 return false;
             }
 
-            if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--no-speech" or "--mute" or "--no-sounds" or "--voxel" or "--greyscale" or "--strict-save" or "--leave" or "--mic-check" or "--no-mic-check"
-                    or "--playtest" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep")
+            if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--settings" or "--no-speech" or "--mute" or "--no-sounds" or "--voxel" or "--greyscale" or "--strict-save" or "--leave" or "--expand" or "--mic-check" or "--no-mic-check"
+                    or "--playtest" or "--dev" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep" or "--drink" or "--take-belongings" or "--relaxed-needs" or "--proc-help")
             {
                 switch (arg)
                 {
                     case "--leave":
                         script.Add(new ScriptStep(ScriptStepKind.Leave));
                         break;
+                    case "--expand":
+                        script.Add(new ScriptStep(ScriptStepKind.Expand)); // U02: the older lines show (the expand key)
+                        break;
                     case "--sleep":
                         script.Add(new ScriptStep(ScriptStepKind.Sleep));
+                        break;
+                    case "--proc-help":
+                        script.Add(new ScriptStep(ScriptStepKind.ProcHelp)); // W07: H at the open station
+                        break;
+                    case "--drink":
+                        script.Add(new ScriptStep(ScriptStepKind.Drink));
+                        break;
+                    case "--take-belongings":
+                        script.Add(new ScriptStep(ScriptStepKind.TakeBelongings));
+                        break;
+                    case "--settings":
+                        result = result with { ShowSettings = true };
+                        break;
+                    case "--relaxed-needs":
+                        result = result with { RelaxedNeeds = true };
                         break;
                     case "--tips":
                         result = result with { Tips = true };
@@ -434,6 +503,9 @@ public sealed record LaunchOptions
                     case "--greyscale":
                         greyscale = true;
                         break;
+                    case "--dev":
+                        dev = true;
+                        break;
                     case "--playtest":
                         playtest = true;
                         break;
@@ -450,11 +522,52 @@ public sealed record LaunchOptions
                 continue;
             }
 
+            if (arg == "--need")
+            {
+                // A script step (N04, a test aid): sets a need where the script stands, so one run can pass a drive's stages (--set-need is a launch value).
+                if (i + 2 >= args.Count || !Enum.TryParse<NeedMeter>(args[i + 1], ignoreCase: true, out _) || char.IsDigit(args[i + 1][0])
+                    || !double.TryParse(args[i + 2], NumberStyles.Float, CultureInfo.InvariantCulture, out var stepValue) || !double.IsFinite(stepValue) || stepValue < 0 || stepValue > 100)
+                {
+                    error = "--need needs a need (hunger, thirst, sleep, health or stamina) and a value from 0 to 100.";
+                    return false;
+                }
+
+                script.Add(new ScriptStep(ScriptStepKind.SetNeed, Value: $"{args[i + 1]} {args[i + 2]}"));
+                i += 2;
+                continue;
+            }
+
+            if (arg == "--set-need")
+            {
+                if (i + 2 >= args.Count)
+                {
+                    error = "--set-need needs a need (hunger, thirst, sleep, health or stamina) and a value.";
+                    return false;
+                }
+
+                var needName = args[++i];
+                var needText = args[++i];
+                if (!Enum.TryParse<NeedMeter>(needName, ignoreCase: true, out var meter) || !Enum.IsDefined(meter) || char.IsDigit(needName[0]))
+                {
+                    error = $"--set-need needs hunger, thirst, sleep, health or stamina, got '{needName}'.";
+                    return false;
+                }
+
+                if (!double.TryParse(needText, NumberStyles.Float, CultureInfo.InvariantCulture, out var needValue) || !double.IsFinite(needValue) || needValue < 0 || needValue > 100)
+                {
+                    error = $"--set-need {needName} needs a value from 0 to 100, got '{needText}'.";
+                    return false;
+                }
+
+                result = result with { SetNeeds = [.. result.SetNeeds, (meter, needValue)] };
+                continue;
+            }
+
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--locale" or "--scene" or "--look" or "--walk-to" or "--interact"
-                or "--place" or "--pour" or "--select" or "--craft" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
+                or "--place" or "--pour" or "--select" or "--craft" or "--eat" or "--give" or "--plant" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
                 or "--check" or "--pick" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--sound-log"
-                or "--book-play" or "--book-play-slow" or "--debug-crash-after"))
+                or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--needs-rate" or "--station" or "--station-say" or "--act"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -571,6 +684,34 @@ public sealed record LaunchOptions
                     }
 
                     result = result with { ReportDir = value };
+                    break;
+                case "--needs-rate":
+                    if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var needsRate) || !double.IsFinite(needsRate)
+                        || needsRate < SaveSettings.MinNeedsRate || needsRate > SaveSettings.MaxNeedsRate || SaveSettings.SnapNeedsRate(needsRate) != needsRate)
+                    {
+                        error = $"--needs-rate needs a number from 0.5 to 4 in steps of 0.25, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { NeedsRate = needsRate };
+                    break;
+                case "--view-effects":
+                    if (value is not ("on" or "off"))
+                    {
+                        error = $"--view-effects needs on or off, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { ViewEffects = value == "on" };
+                    break;
+                case "--needs":
+                    if (value is not ("on" or "off"))
+                    {
+                        error = $"--needs needs on or off, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { NeedsOff = value == "off" };
                     break;
                 case "--debug-crash-after":
                     // A test hook (X05, not in the usage): the game throws on the game loop once the simulation reaches this tick, so the crash handler runs.
@@ -935,6 +1076,60 @@ public sealed record LaunchOptions
 
                     script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
                     break;
+                case "--eat":
+                    if (value.Trim().Length == 0)
+                    {
+                        error = "--eat needs an item, like pan or fruta.";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(ScriptStepKind.Eat, Value: value.Trim()));
+                    break;
+                case "--plant":
+                    if (!ScenarioScript.TryParseCell(value.Trim(), out _))
+                    {
+                        error = "--plant needs the ground cell as x,y,z, like 10,4,12.";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(ScriptStepKind.Plant, Value: value.Trim()));
+                    break;
+                case "--give":
+                    if (value.Trim().Length == 0)
+                    {
+                        error = "--give needs an item, like manzana.";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(ScriptStepKind.Give, Value: value.Trim()));
+                    break;
+                case "--station":
+                    if (value.Trim().Length == 0)
+                    {
+                        error = "--station needs a station id, like horno.";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(ScriptStepKind.Station, Value: value.Trim()));
+                    break;
+                case "--station-say":
+                    if (value.Trim().Length == 0)
+                    {
+                        error = "--station-say needs a line, like \"Otra vez, por favor.\".";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(ScriptStepKind.StationSay, Value: value.Trim())); // W08: a typed line to the teacher at the station
+                    break;
+                case "--act":
+                    if (value.Split(',', StringSplitOptions.TrimEntries) is not { Length: 2 or 3 } actParts || actParts.Any(static p => p.Length == 0))
+                    {
+                        error = "--act needs the noun held, the target and, for a pair of several verbs, the verb: harina,bol or mano,horno,sacar.";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(ScriptStepKind.Act, Value: string.Join(',', actParts)));
+                    break;
                 case "--craft":
                     if (value.Trim().Length == 0)
                     {
@@ -953,7 +1148,7 @@ public sealed record LaunchOptions
 
         if (screenshot is null && (framesGiven || script.Count > 0 || beacon is not null || journal || inventory || crafting))
         {
-            error = "--frames, --look, --walk-to, --teleport, --interact, --place, --pour, --select, --craft, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --book-practise, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --sleep, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
+            error = "--frames, --look, --walk-to, --teleport, --interact, --place, --pour, --select, --craft, --station, --station-say, --act, --proc-help, --eat, --drink, --take-belongings, --need, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --book-practise, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --sleep, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
             return false;
         }
 
@@ -989,6 +1184,7 @@ public sealed record LaunchOptions
         options = result with
         {
             Playtest = playtest,
+            Dev = dev,
             StrictSave = strictSave || playtest,
             ScreenshotPath = screenshot,
             Says = says,

@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/actions.json",
+  "description": "The actions (W05, design 10.7): for each pair of a held item (use) and a station fixture (on), the verbs a step may use with them. A pair lists two verbs only when they are different acts with different results (sacar, abrir); synonyms are one act with one verb. Every verb is a lexicon lemma with a tu imperative. Loaded by ActionTable (Vocaterra.Game.Core).",
+  "type": "object",
+  "required": ["schemaVersion", "actions"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "enum": [1] },
+    "about": { "type": "string" },
+    "actions": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/action" }
+    }
+  },
+  "definitions": {
+    "action": {
+      "type": "object",
+      "required": ["use", "on", "verbs"],
+      "additionalProperties": false,
+      "properties": {
+        "use": { "type": "string", "minLength": 1, "description": "The noun the learner uses: an item held (harina), a hand (mano) or a tool (cuchara)." },
+        "on": { "type": "string", "minLength": 1, "description": "The station fixture the act is done on (bol, horno)." },
+        "verbs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-zñáéíóúü]+$", "description": "A verb lemma (poner)." }
+        }
+      }
+    }
+  }
+}

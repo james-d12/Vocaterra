@@ -16,6 +16,7 @@ using Vocaterra.Nlp.Pronunciation;
 using Vocaterra.Nlp.Response.Effects;
 using Vocaterra.Nlp.Response.Speech;
 using Vocaterra.Nlp.Response.Templates;
+using MatchType = Vocaterra.Nlp.Core.Stages.MatchType;
 
 namespace Vocaterra.Nlp.Pipeline;
 
@@ -51,6 +52,16 @@ public sealed partial class UtterancePipeline
         ArgumentNullException.ThrowIfNull(services);
         _services = services;
         _options = options ?? PipelineOptions.Default;
+        if (double.IsNaN(_options.OpenPassWordFloor) || _options.OpenPassWordFloor < 0.0 || _options.OpenPassWordFloor > 1.0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), _options.OpenPassWordFloor, "OpenPassWordFloor must be between 0 and 1.");
+        }
+
+        if (double.IsNaN(_options.OpenPassMinCoverage) || _options.OpenPassMinCoverage < 0.0 || _options.OpenPassMinCoverage > 1.0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), _options.OpenPassMinCoverage, "OpenPassMinCoverage must be between 0 and 1.");
+        }
+
         var content = services.Content;
         _analyzer = new LinguisticAnalyzer(content.Lexicon, content.LanguageMorphology, content.Language, content.AnalysisRules);
         _resolver = new IntentResolver(content.Intents, content.Language, services.Embeddings, null, content.AnalysisRules);
@@ -94,12 +105,31 @@ public sealed partial class UtterancePipeline
         var answerSet = AnswerSetFor(prompt);
         var request = BuildRequest(prompt, answerSet);
         var (asr, posteriors) = Recognize(clip, request);
+        var first = Read(clip, prompt, answerSet, asr, posteriors, null);
+        var firstTaken = IsTaken(first.Verdict);
+        if (!ShouldTryOpenPass(clip, prompt, first, firstTaken))
+        {
+            return first;
+        }
 
+        // M80: the constrained decode forced the sound onto an answer phrase (or dropped it as [unk]) and the line was not taken; decode the clip once more,
+        // freely, and read that through the same stages. The second reading wins only when it is taken and its weakest word reaches the floor, otherwise the first stays as it is. The phoneme
+        // posteriors are those of the one phoneme pass: they depend on the clip alone.
+        // M84: a taken first reading that looks forced (ForcedReading) is checked the same way, and the free reading wins only when its intent is another one.
+        var open = _services.WordRecognizer.Recognize(clip, RecognitionRequest.Open(_options.MaxAlternatives));
+        var second = Read(clip, prompt, answerSet, open, posteriors, asr);
+        var wins = IsTaken(second.Verdict) && ClearsWordFloor(open) && (!firstTaken || TakenIntent(second.Verdict) != TakenIntent(first.Verdict));
+        return wins ? second : first.WithOtherPass(open);
+    }
+
+    // The stages after recognition: normalization, answer matching, linguistic analysis, intent resolution, pronunciation scoring and verdict assembly.
+    private UtteranceAnalysis Read(PcmClip clip, PromptSpec prompt, AnswerSet answerSet, AsrResult asr, PhonePosteriors? posteriors, AsrResult? otherPass)
+    {
         var language = _services.Content.Language;
         var normalized = language.Normalizer.Normalize(CleanTranscript(asr.Transcript), Normalization);
         var match = AnswerMatcher.Match(normalized, answerSet, prompt.Difficulty, language, Normalization);
         var analysis = AnswerCorrections.WithCanonicalWords(
-            _analyzer.Analyze(normalized, GrammarsFor(prompt)),
+            _analyzer.Analyze(normalized, GrammarsFor(prompt), NameFallbacks.For(prompt)),
             normalized,
             match,
             answerSet,
@@ -121,9 +151,44 @@ public sealed partial class UtterancePipeline
             content.EvaluationConfig,
             _services.Versions,
             CanonicalAnswersOf(answerSet),
-            content.Language.ErrorTags));
+            content.Language.ErrorTags,
+            NearMissOf(normalized, match, answerSet, prompt)));
         var notes = AccentNotes.Merge(analysis.Notes, AccentNotes.FromAnswer(normalized, analysis, match, answerSet, content.Lexicon, language, Normalization));
-        return new UtteranceAnalysis(clip.ClipHash, prompt, asr, posteriors, normalized, analysis, match, answerSet, verdict, notes);
+        return new UtteranceAnalysis(clip.ClipHash, prompt, asr, posteriors, normalized, analysis, match, answerSet, verdict, notes, otherPass);
+    }
+
+    // The second pass runs only when the host turned it on, the prompt is constrained and the first recognition really was constrained (a recorded free
+    // recognition replays as it was chosen), and the first reading either was not taken (M80) or was taken but looks forced (M84).
+    private bool ShouldTryOpenPass(PcmClip clip, PromptSpec prompt, UtteranceAnalysis first, bool firstTaken)
+    {
+        return _options.OpenRecognitionFallback
+            && prompt.Mode == RecognitionMode.Constrained
+            && first.Asr.Mode == RecognitionMode.Constrained
+            && (!firstTaken || ForcedReading.LooksForced(clip, first, _options));
+    }
+
+    // The free pass's floor: the weakest word of the recognition must reach it. No words means no weakest word, which fails any floor above 0.
+    private bool ClearsWordFloor(AsrResult open)
+    {
+        var floor = _options.OpenPassWordFloor;
+        if (floor <= 0.0)
+        {
+            return true;
+        }
+
+        return open.Words.Count > 0 && open.Words.Min(static word => word.Confidence) >= floor;
+    }
+
+    // The meaning a taken reading gives the line: the intent it was understood as, or the off-prompt intent M72 read from it.
+    private static IntentId TakenIntent(Verdict verdict)
+    {
+        return verdict.Communicated ? verdict.Intent : verdict.OffPromptIntent ?? IntentId.Unknown;
+    }
+
+    // A reading is taken when the line was understood, or it was not but its meaning is known (M72's off-prompt intent).
+    private static bool IsTaken(Verdict verdict)
+    {
+        return verdict.Communicated || verdict.OffPromptIntent is not null;
     }
 
     /// <summary>
@@ -214,6 +279,19 @@ public sealed partial class UtterancePipeline
     private static IReadOnlyList<string> CanonicalAnswersOf(AnswerSet answerSet)
     {
         return [.. answerSet.Answers.Select(static answer => answer.Canonical)];
+    }
+
+    // M75: the one word by which a line that matched no answer of a constrained prompt misses the nearest answer phrase, which a derived vocab.wrong names. The
+    // verdict uses it nowhere else, so it is looked for only there.
+    private AnswerNearMiss? NearMissOf(NormalizedText normalized, MatchResult match, AnswerSet answerSet, PromptSpec prompt)
+    {
+        if (match.Type != MatchType.None || prompt.Mode != RecognitionMode.Constrained)
+        {
+            return null;
+        }
+
+        var content = _services.Content;
+        return AnswerNearMisses.Find(normalized, answerSet, prompt.Difficulty, content.Language, content.Lexicon, content.AnalysisRules, Normalization);
     }
 
     private AnswerSet AnswerSetFor(PromptSpec prompt)

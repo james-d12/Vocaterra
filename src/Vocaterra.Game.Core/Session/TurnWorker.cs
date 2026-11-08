@@ -123,7 +123,8 @@ public sealed record MicCheckResult(string Heard, bool Passed, double Level);
 /// <param name="RecognizeMilliseconds">Vosk's decode of the clip (zero for a typed line).</param>
 /// <param name="TotalMilliseconds">The whole turn on the worker: synthesis, recognition and both evaluations.</param>
 /// <param name="Cached">Whether a synthesized line came from the cache.</param>
-public sealed record TurnTimings(double SynthesizeMilliseconds, double RecognizeMilliseconds, double TotalMilliseconds, bool Cached);
+/// <param name="Decodes">How many times the recognizer decoded the clip (V31): zero for a typed line, one for a spoken turn, two for a free-talk line the constrained decode did not take.</param>
+public sealed record TurnTimings(double SynthesizeMilliseconds, double RecognizeMilliseconds, double TotalMilliseconds, bool Cached, int Decodes = 0);
 
 /// <summary>What the worker made of one request.</summary>
 /// <param name="Request">The request.</param>
@@ -267,6 +268,29 @@ public sealed class TurnWorker : IDisposable
         }
     }
 
+    /// <summary>
+    /// Waits until every submitted turn has its outcome ready, so the next <see cref="TryTake"/> calls find them all (or the timeout passes). A
+    /// scripted run calls it at the end of each frame: a turn submitted in a frame is then collected in the next frame, and the script's tick
+    /// no longer depends on whether the worker finished before that frame's collect (T9).
+    /// </summary>
+    /// <param name="timeoutMilliseconds">How long to wait at most.</param>
+    /// <returns>Whether every submitted turn is ready (true at once when none is pending).</returns>
+    public bool WaitForOutcomes(int timeoutMilliseconds)
+    {
+        lock (_gate)
+        {
+            while (Pending > _outcomes.Count)
+            {
+                if (!Monitor.Wait(_gate, timeoutMilliseconds)) // each wake is an outcome coming in, so the wait restarts only while the worker makes progress
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
+
     /// <summary>Takes the oldest finished outcome, or returns <see langword="false"/> when none is finished. Outcomes come in submission order.</summary>
     public bool TryTake(out TurnOutcome? outcome)
     {
@@ -302,7 +326,12 @@ public sealed class TurnWorker : IDisposable
             engine = LoadModels();
             foreach (var request in _queue.GetConsumingEnumerable())
             {
-                _outcomes.Enqueue(Finish(request, engine));
+                var outcome = Finish(request, engine);
+                _outcomes.Enqueue(outcome);
+                lock (_gate)
+                {
+                    Monitor.PulseAll(_gate); // a caller in WaitForOutcomes sees this one
+                }
             }
         }
         finally
@@ -435,10 +464,11 @@ public sealed class TurnWorker : IDisposable
                     break;
             }
 
+            engine.BeginTurn();
             if (request.Source is TurnSource.Hear or TurnSource.HearSpeak)
             {
                 var heard = MicCheck.Run(engine.Recognizer, clip, _guide.Words.Greeting);
-                return new TurnOutcome(request, null, null, new TurnTimings(synthMs, engine.LastRecognizeMilliseconds, Now() - begin, cached), MicCheck: heard);
+                return new TurnOutcome(request, null, null, new TurnTimings(synthMs, engine.LastRecognizeMilliseconds, Now() - begin, cached, engine.RecognizeCount), MicCheck: heard);
             }
 
             if (clip is null)
@@ -449,7 +479,7 @@ public sealed class TurnWorker : IDisposable
             checkpoint = _guide.Checkpoint(request.Npc);
             var recorded = _guide.RecordCount;
             turn = _guide.SaySpoken(request.Npc, clip, request.Scene, request.Now, request.HostStateHash);
-            return new TurnOutcome(request, turn, null, new TurnTimings(synthMs, engine.LastRecognizeMilliseconds, Now() - begin, cached), ReplayIndex: ReplayIndexSince(recorded));
+            return new TurnOutcome(request, turn, null, new TurnTimings(synthMs, engine.LastRecognizeMilliseconds, Now() - begin, cached, engine.RecognizeCount), ReplayIndex: ReplayIndexSince(recorded));
         }
         catch (Exception ex) when (ex is IOException or InvalidDataException or InvalidOperationException or UnauthorizedAccessException or ArgumentException or KeyNotFoundException or DllNotFoundException or TypeInitializationException)
         {
@@ -509,8 +539,9 @@ public sealed class TurnWorker : IDisposable
                 return Failed(request, begin, "I didn't hear anything.");
             }
 
+            engine.BeginTurn();
             var spokenGrade = _checks.GradeSpoken(_spoken, item, clip, now, digest);
-            return new TurnOutcome(request, null, null, new TurnTimings(synthMs, engine.LastRecognizeMilliseconds, Now() - begin, cached), Grade: spokenGrade);
+            return new TurnOutcome(request, null, null, new TurnTimings(synthMs, engine.LastRecognizeMilliseconds, Now() - begin, cached, engine.RecognizeCount), Grade: spokenGrade);
         }
         catch (Exception ex) when (ex is IOException or InvalidDataException or InvalidOperationException or UnauthorizedAccessException or ArgumentException or KeyNotFoundException or DllNotFoundException or TypeInitializationException)
         {

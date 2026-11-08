@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Activities;
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
@@ -102,6 +103,7 @@ public abstract partial class GuideSession : IDisposable
     private IReadOnlyList<WordCard> _keyWordCards = [];
     private bool _keyWordsPending;
     private readonly SortedSet<string> _keyWordsTaught = new(StringComparer.Ordinal);
+    private readonly SortedSet<string> _met = new(StringComparer.Ordinal);
     private long _keyWordsStart;
     private NpcOpening? _delayedOpening;
     private bool _talkOpen;
@@ -142,9 +144,10 @@ public abstract partial class GuideSession : IDisposable
         Locale = data.Locale;
         Glosses = data.Glosses;
         var book = Data.Lessons;
-        PhraseProgress = new PhraseProgress(Phrases, playSession, data.Npcs.ScaffoldPhrases.Concat(book.TaughtPhrases));
+        PhraseProgress = new PhraseProgress(Phrases, playSession, data.Npcs.ScaffoldPhrases.Concat(book.TaughtPhrases).Concat(data.Procedures.Procedures.SelectMany(static p => p.Rows))); // W06: every instruction row of a procedure is a scaffold
+        Procedures = new ProcedureRunner(data.Procedures, data.Stations, Nouns, PhraseProgress, Credit, worldSeed);
         Lessons = new LessonRunner(this, book, Locale);
-        Support = new PhraseSupport(Phrases, PhraseProgress, Bundle, data.Npcs, Locale, Lessons.CardReady); // a card waits for its lesson (V20)
+        Support = new PhraseSupport(Phrases, PhraseProgress, Bundle, data.Npcs, Locale, null); // every scaffold phrase has its card from rung 1, whether or not a class taught it (L01)
         Deck = new ReviewDeck(this);
         Tips = new TipFeed(this, Data.Tips);
         _liveFacts = liveFacts;
@@ -367,6 +370,25 @@ public abstract partial class GuideSession : IDisposable
         _keyWordsTaught.UnionWith(npcs);
     }
 
+    /// <summary>The NPCs the player has met (L01): the panel opened on them once. A class opens on having met its teacher, an order on having met its NPC.</summary>
+    public IReadOnlyList<string> MetNpcs => [.. _met];
+
+    /// <summary>Whether the player has met the NPC (L01): talked to them.</summary>
+    /// <param name="npc">The NPC's agent id.</param>
+    public bool HasMet(string npc) => _met.Contains(npc);
+
+    /// <summary>Marks an NPC as met without a talk (a session skip, a load).</summary>
+    /// <param name="npc">The NPC's agent id.</param>
+    internal void MarkMet(string npc) => _met.Add(npc);
+
+    /// <summary>Puts back the NPCs met (a load); the earlier ones are forgotten.</summary>
+    /// <param name="npcs">Their ids.</param>
+    internal void RestoreMet(IEnumerable<string> npcs)
+    {
+        _met.Clear();
+        _met.UnionWith(npcs);
+    }
+
     /// <summary>Marks the NPC's key words as taught without the cards (a session skip).</summary>
     /// <param name="npc">The NPC's id.</param>
     internal void MarkKeyWordsTaught(string npc) => _keyWordsTaught.Add(npc);
@@ -538,6 +560,7 @@ public abstract partial class GuideSession : IDisposable
         CurrentNpc = npc;
         _talkOpen = true;
         _delayedOpening = null;
+        _met.Add(npc); // L01: a class opens on having met its teacher, an order on having met its NPC
         _deckClaim = Deck.Claims(npc);
         if (string.Equals(npc, NpcService.GuideAgent, StringComparison.Ordinal))
         {
@@ -593,6 +616,15 @@ public abstract partial class GuideSession : IDisposable
     }
 
     // ---- The lessons' hooks (S16): the runner is in LessonRunner.cs; these are the parts of the session it needs.
+
+    /// <summary>
+    /// Whether a teacher may offer a class at this talk (L01): nothing else holds the talk (a review, the second try, the warm-up, a turn on the worker) and the NPC does not wait
+    /// on a yes or no of its own (the guide's transfer offer, the stall's bread), whose Sí the class would take.
+    /// </summary>
+    /// <param name="npc">The NPC's agent id.</param>
+    internal bool MayOfferClass(string npc) =>
+        PendingTurns == 0 && PhraseReview is null && Review is null && !_deckClaim && Deck.Status == DeckStatus.Idle && !Lessons.Engaged
+        && Bundle.Prompts.TryGetValue(_npcs.PromptOf(npc), out var prompt) && !prompt.AllowedIntentIds.Contains("confirm", StringComparer.Ordinal);
 
     /// <summary>Whether the panel is open on this NPC (a talk is open and the NPC is the one the lines go to).</summary>
     internal bool TalkOpenOn(string npc) => _talkOpen && string.Equals(CurrentNpc, npc, StringComparison.Ordinal);
@@ -774,8 +806,15 @@ public abstract partial class GuideSession : IDisposable
         }
         else
         {
+            CompleteTeachEnd(npc); // a teacher a load left in its teaching state comes out of it before the talk (W08)
             order = OrderReadyAt(npc); // the player walked up with an order's goods (village-plan V03): nothing is gated behind speech, the NPC thanks them at once
-            opening = _npcs.Open(npc, ObjectiveComplete, StoredTime, StateDigest(), order is null ? null : NpcHostEvents.Of(npc, NpcHostEvents.Delivered));
+            var offer = order is null ? BakeOfferOf(npc, asked: false) : null; // W08: the teacher's offer to bake opens the talk, once a day until the learner has baked
+            opening = _npcs.Open(npc, ObjectiveComplete, StoredTime, StateDigest(), order is null ? null : NpcHostEvents.Of(npc, NpcHostEvents.Delivered), offer);
+            if (offer is not null)
+            {
+                NoteOffer(npc);
+            }
+
             if (string.Equals(npc, NpcService.GuideAgent, StringComparison.Ordinal) && !opening.HostTurn
                 && !string.Equals(_npcs.GuideState.StateId, "offering", StringComparison.Ordinal))
             {
@@ -864,7 +903,7 @@ public abstract partial class GuideSession : IDisposable
         var phraseReview = PhraseReview;
         var support = Support.Snapshot();
         var scene = review is null
-            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: LiveInventory, PromptOverride: phraseReview?.Prompt ?? Lessons.ActivePrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc))
+            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: LiveInventory, PromptOverride: phraseReview?.Prompt ?? Lessons.ActivePrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc), ClosedGifts: ClosedGifts, Grant: TeachingNpc is null ? null : PlanGrant(), Offer: BakeOfferOf(CurrentNpc, asked: true))
             : new GuideScene(Viewpoint, review.Target, Pointer is not null, Review: true, Inventory: LiveInventory);
         var turn = _npcs.Say(CurrentNpc, line, scene, StoredTime, StateDigest());
         PhraseReview? answeredReview = null;
@@ -883,7 +922,7 @@ public abstract partial class GuideSession : IDisposable
             Pointer = new PointerMarker(pointer.Place, pointer.Target);
         }
 
-        LastWordTurn = Words.RecordTurn(turn, turn.Input, Credit, StoredTime.UnixSeconds);
+        LastWordTurn = Words.RecordTurn(turn, turn.CreditKind, Credit, StoredTime.UnixSeconds);
         RecordTurnLine(turn, StoredTime.UnixSeconds); // the learner's history (S19): the synchronous path records its lines like the worker's
         var afterwards = AfterTurn(turn, Tick, StoredTime.UnixSeconds, phraseReview, support);
         if (answeredReview is not null)
@@ -1076,6 +1115,7 @@ public abstract partial class GuideSession : IDisposable
         }
 
         FlushSkills();
+        CompleteTeachEnd();
         return applied;
     }
 
@@ -1102,7 +1142,7 @@ public abstract partial class GuideSession : IDisposable
                 Pointer = new PointerMarker(pointer.Place, pointer.Target);
             }
 
-            words = Words.RecordTurn(turn, turn.Input, Credit, outcome.Request.Now.UnixSeconds);
+            words = Words.RecordTurn(turn, turn.CreditKind, Credit, outcome.Request.Now.UnixSeconds);
             LastWordTurn = words;
             RecordTurnLine(turn, outcome.Request.Now.UnixSeconds);
             var shown = AfterTurn(turn, outcome.Request.Tick, outcome.Request.Now.UnixSeconds, outcome.Request.PhraseReview, outcome.Request.Support);
@@ -1220,6 +1260,12 @@ public abstract partial class GuideSession : IDisposable
     /// <param name="npc">The NPC.</param>
     protected virtual bool OrderHeldAt(string npc) => false;
 
+    /// <summary>
+    /// The gifts the NPCs are not to give now (N06, <c>GiftRule.Key</c>): those given already today that no lesson step requires, or <see langword="null"/> for none. An NPC asked
+    /// for one answers <c>&lt;npc&gt;.gift_used</c>. The 3D scene has the days; the base game has none.
+    /// </summary>
+    protected virtual IReadOnlySet<string>? ClosedGifts => null;
+
     /// <summary>The NPC thanked the player for an order (its opening was <c>&lt;npc&gt;.delivered</c>): the goods leave the inventory. The 3D scene does it.</summary>
     /// <param name="npc">The NPC.</param>
     /// <param name="order">The order's objective id (<see cref="OrderReadyAt"/>).</param>
@@ -1245,6 +1291,12 @@ public abstract partial class GuideSession : IDisposable
             _lastRepair[npc] = turn.RepairKind; // a line held back as unsure changed nothing: the offer of choices, if any, still stands
         }
 
+        if (turn.HeardOpen)
+        {
+            // V31: the line was read from the open decode; the playtest counts these. Credited as typed (GuideTurn.CreditKind).
+            Log(new VoiceEvent(tick, time, VoiceEventKind.HeardOpen, npc, turn.Line));
+        }
+
         if (turn.Uncertain)
         {
             // D-game-9: an uncertain recognition is the microphone's trouble, not the language's: a voice event, no phrase use, no error.
@@ -1261,7 +1313,7 @@ public abstract partial class GuideSession : IDisposable
             var detail = PhraseSheet.DetailOf(turn.Slots);
             var correct = turn.Errors.Count == 0;
             IReadOnlyList<string>? inPlay = kind == PhraseUseKind.DontKnow ? (phraseReview is not null ? [phraseReview.PhraseId] : support.InPlay) : null;
-            Log(new PhraseUse(tick, time, phrase, kind, npc, turn.Prompt, turn.Line, detail, turn.Input, correct, PhraseProgress.LevelOf(phrase), inPlay));
+            Log(new PhraseUse(tick, time, phrase, kind, npc, turn.Prompt, turn.Line, detail, turn.CreditKind, correct, PhraseProgress.LevelOf(phrase), inPlay));
             recovered = retryAnswer && correct && string.Equals(phrase, phraseReview?.PhraseId, StringComparison.Ordinal) && kind is PhraseUseKind.Unaided or PhraseUseKind.Supported;
             if (kind == PhraseUseKind.DontKnow)
             {
@@ -1302,6 +1354,11 @@ public abstract partial class GuideSession : IDisposable
             ApplyHostEvents(npc, turn.HostEvents, turn.FailForward ? "fail_forward" : "request", NpcEffect.CountedSlots(turn.Slots, turn.Line));
         }
 
+        if (!turn.Unsure && string.Equals(turn.AgentState, NpcHostEvents.OfferingState, StringComparison.Ordinal))
+        {
+            NoteOffer(npc); // W08: the answer to «¿cómo hago pan?» was the offer
+        }
+
         if (!turn.Unsure && turn.Input == InputKind.Spoken)
         {
             _spokenTurns++;
@@ -1317,7 +1374,7 @@ public abstract partial class GuideSession : IDisposable
             Lessons.NoteRepeat(npc); // the learner asked for the line again: the lesson's record counts it (S19)
         }
 
-        var handled = Lessons.OnTurn(turn); // a lesson's repeat or answer step ends, retries or moves on with this turn (S16); it speaks for the guide (S17)
+        var handled = Lessons.OnTurn(turn) || Lessons.OnClassTurn(turn); // a lesson's repeat or answer step ends, retries or moves on with this turn (S16); it speaks for the guide (S17)
         var shown = turn; // (`last` was read before the turn ended the step: the next step's line is not what the learner asked to hear again)
         if (turn.Communicated && !turn.Unsure && (turn.HostEvents.Contains(GuideEvents.Repeat, StringComparer.Ordinal) || turn.HostEvents.Contains(GuideEvents.RepeatSlow, StringComparer.Ordinal)))
         {
@@ -1507,7 +1564,7 @@ public abstract partial class GuideSession : IDisposable
         var facts = SnapshotFacts();
         var inventory = LiveInventory.Copy();
         return review is null
-            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: inventory, Facts: facts, PromptOverride: PhraseReview?.Prompt ?? Lessons.ActivePrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc))
+            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: inventory, Facts: facts, PromptOverride: PhraseReview?.Prompt ?? Lessons.ActivePrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc), ClosedGifts: ClosedGifts, Grant: TeachingNpc is null ? null : PlanGrant(), Offer: BakeOfferOf(CurrentNpc, asked: true))
             : new GuideScene(Viewpoint, review.Target, Pointer is not null, Review: true, Inventory: inventory, Facts: facts);
     }
 }

@@ -217,6 +217,26 @@
     "check.say.cuanto-es-todo.situation": "A farmer has fifteen apples at the market. Ask how much they all cost together.",
     "check.say.mas-barato-que.situation": "An apple costs one coin and a loaf costs two. Say that the apple is cheaper than the bread.",
     "check.say.puedo-pagar-con-fruta.situation": "You have no coins, only fruit. Ask a farmer if you can pay with fruit.",
-    "check.say.manana-vendere-fruta.situation": "A farmer asks what you will sell tomorrow: fruit. Say it with the future in one word."
+    "check.say.manana-vendere-fruta.situation": "A farmer asks what you will sell tomorrow: fruit. Say it with the future in one word.",
+    "check.hear.mezcla.question": "A baker gives you an instruction at her oven. What does she say?",
+    "check.hear.mezcla.option.1": "Mix with the spoon.",
+    "check.hear.mezcla.option.2": "Put the flour in the bowl.",
+    "check.hear.mezcla.option.3": "Take the bread out of the oven.",
+    "check.hear.saca-el-pan.question": "A baker gives you another instruction at her oven. What does she say?",
+    "check.hear.saca-el-pan.option.1": "Take the bread out of the oven.",
+    "check.hear.saca-el-pan.option.2": "Put the dough in the oven.",
+    "check.hear.saca-el-pan.option.3": "Mix with the spoon.",
+    "check.hear.hoy-vamos-a-hacer-pan.question": "A baker plans her day. What does she say?",
+    "check.hear.hoy-vamos-a-hacer-pan.option.1": "Today we are going to make bread. Will you help me?",
+    "check.hear.hoy-vamos-a-hacer-pan.option.2": "Yesterday we made bread. Did you like it?",
+    "check.hear.hoy-vamos-a-hacer-pan.option.3": "Today I am selling bread. How many do you want?",
+    "check.hear.que-hiciste.question": "A baker asks you something about your bread. What does she ask?",
+    "check.hear.que-hiciste.option.1": "What did you do?",
+    "check.hear.que-hiciste.option.2": "What are you going to do?",
+    "check.hear.que-hiciste.option.3": "What do you want?",
+    "check.say.voy-a-hacer-pan.situation": "A baker asks what you are going to do today. Tell her you are going to make bread.",
+    "check.say.hice-pan.situation": "You baked bread at the oven. The baker asks what you did. Tell her you made bread.",
+    "check.say.quiero-harina.situation": "You are at the stall and the shopkeeper asks what you need. You need flour for your bread.",
+    "check.say.vendo-pan.situation": "You have bread, and the shopkeeper at the stall buys bread. Tell him you are selling bread."
   }
 }

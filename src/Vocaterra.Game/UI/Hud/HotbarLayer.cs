@@ -15,8 +15,21 @@ public sealed class HotbarLayer : IFrameLayer
     /// <summary>The width and height of one slot in pixels.</summary>
     public const int SlotSize = 48;
 
+    /// <summary>The gap between two slots in pixels (the bubble meter lines up with the hotbar's edge).</summary>
     public const int Gap = 4;
+
+    /// <summary>The distance from the canvas's bottom to the slots in pixels.</summary>
     public const int Bottom = 12;
+
+    /// <summary>The hotbar's box on a canvas: ten slots in a strip, centred, <see cref="Bottom"/> up from the canvas's bottom (the needs' HUD and the layout tests place their parts against it).</summary>
+    /// <param name="canvasWidth">The canvas's width.</param>
+    /// <param name="canvasHeight">The canvas's height.</param>
+    public static PixelBox BoxFor(int canvasWidth, int canvasHeight)
+    {
+        var width = (Core.Items.Inventory.HotbarSize * SlotSize) + ((Core.Items.Inventory.HotbarSize - 1) * Gap);
+        return new PixelBox((canvasWidth - width) / 2, canvasHeight - SlotSize - Bottom, width, SlotSize);
+    }
+
     private static readonly Color Gold = new(255, 214, 64);
     private static readonly Color Frame = new(88, 92, 108);
     private static readonly Color Selected = new(250, 244, 220);

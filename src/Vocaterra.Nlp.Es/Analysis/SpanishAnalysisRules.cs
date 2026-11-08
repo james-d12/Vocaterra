@@ -31,6 +31,8 @@ internal sealed class SpanishAnalysisRules : IAnalysisRules
 
     public bool IsInterjectionFirst(string word) => SpanishAnalysisTables.IsInterjectionFirst(word);
 
+    public bool IsNamePosition(IReadOnlyList<string> words, int index) => SpanishAnalysisTables.IsNamePosition(words, index);
+
     public bool IsNearFutureAuxiliary(string lemma) => string.Equals(lemma, "ir", StringComparison.Ordinal);
 
     public bool IsNearFutureLinker(string word) => string.Equals(word, "a", StringComparison.Ordinal);
@@ -57,6 +59,8 @@ internal sealed class SpanishAnalysisRules : IAnalysisRules
     public bool IsPredicateAdjective(string lemma) => SpanishAnalysisTables.IsPredicateAdjective(lemma);
 
     public bool IsNeuterPronoun(string word) => SpanishAnalysisTables.IsNeuterPronoun(word);
+
+    public bool IsQuestionWord(string word) => SpanishAnalysisTables.IsQuestionWord(word);
 
     public bool CallsForSlip(IReadOnlyList<AnalyzedToken> tokens, int index, IReadOnlyList<LexicalFeatures> slip) =>
         SpanishSlipContext.CallsForSlip(tokens, index, slip);

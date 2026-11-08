@@ -70,6 +70,43 @@
       },
       "description": "V21b: pools the NPC says only while a lesson step is answered, by the pool it says in free talk instead (farmer_total: farmer_unit). The agent's transition says both pools; the game keeps the one that fits the moment."
     },
+    "patience": {
+      "type": "object",
+      "required": [
+        "misses",
+        "afterHelp",
+        "event",
+        "prompt"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "misses": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "W03: the lines in a row at the prompt that asked for nothing, after which the NPC raises the event anyway (the stall: 4, where the core's repair ladder also gives up)."
+        },
+        "afterHelp": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "The same count once the learner asked for help; at most misses (the stall: 2)."
+        },
+        "event": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The host event the game raises to the agent (shopkeeper.give); a state of agents/<id>.json takes it with onHostEvent."
+        },
+        "prompt": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The prompt the rule applies at (stall-need): a line at another prompt, or off the prompt, is not counted."
+        },
+        "once": {
+          "type": "boolean",
+          "description": "True: the rule fires one time only (the NPC remembers it did; the stall hands the bottle over once). False or missing: the counts start again after each firing."
+        }
+      },
+      "description": "W03: the NPC's fail-forward, so a misunderstanding never dead-ends. Missing: the NPC never fails forward."
+    },
     "opening": {
       "type": "object",
       "required": [
@@ -135,6 +172,50 @@
         "pattern": "\\S"
       },
       "description": "The key words (catalogue nouns) whose cards the NPC shows alone before its first question (the shopkeeper's agua and pan); moved here from game/words.json."
+    },
+    "acknowledgementPools": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "description": "V29: the dialogue pools of the NPC's bare acknowledgements (answer_accepted, smith_nice). A recast is not said beside one (V21); the one the NPC owns gives way to its <poolPrefix>_true («Sí, es verdad.») when the line was about the listener (V28)."
+    },
+    "slotReplies": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "slot",
+          "event",
+          "values"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "slot": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The verdict's slot the reply says back (weather)."
+          },
+          "event": {
+            "type": "string",
+            "minLength": 1,
+            "description": "A host event the game never fires, whose transition in agents/<id>.json names the template pool (smith.weather): the pool takes the slot ({weather})."
+          },
+          "values": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "The slot values the template can take; the speech renderer records one WAV of the template per value. Another value, or none, keeps the plain reply of the intent's transition."
+          }
+        }
+      },
+      "description": "V29: by intent (state_weather), the reply that says a word of the learner's line back (Sí, hace frío.) in place of the intent's plain reply (¡Sí!)."
     },
     "poolPrefix": {
       "type": "string",

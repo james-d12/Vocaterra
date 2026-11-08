@@ -164,7 +164,7 @@ public static class GrammarStringsExtractor
     {
         foreach (var row in ReadPhraseRows(sheetPath))
         {
-            var kind = row.Says == "hears" ? Npc : Learner;
+            var kind = row.Says is "hears" or "does" ? Npc : Learner; // a does row is an NPC's instruction (W05)
             lines.Add(Line("PHRASES.md:" + row.Id + ".text", row.Spanish, kind));
             for (var i = 0; i < row.Variants.Count; i++)
             {

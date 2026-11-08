@@ -174,6 +174,13 @@ public sealed class IntentCatalog
         var grammars = BuildGrammars(entry.SlotGrammars, id, folding);
         var rules = BuildRules(entry.KeywordRules, id, folding);
         var examples = BuildExamples(entry.Examples, id);
+        // M82: no grammar, rule or example can produce an intent that has none of them, so the loader refuses it rather than let it sit in the catalog.
+        if (grammars.Count == 0 && rules.Count == 0 && examples.Count == 0)
+        {
+            throw new FormatException(
+                $"Intent '{id}' has no slotGrammars, keywordRules or examples, so nothing can produce it; add at least one slot grammar, keyword rule or example.");
+        }
+
         return new IntentDefinition(new IntentId(id), required, grammars, rules, examples, DeclareSlots(required, grammars, rules), BuildLint(entry.Lint, id));
     }
 
@@ -378,6 +385,8 @@ public sealed class IntentCatalog
                     CollectGrammarSlots([optional.Inner], kinds);
                     break;
                 case GroupNode group:
+                    // M74: a group's slot holds words, filled like a name by the embedding rung from the first noun.
+                    AddKind(kinds, group.Slot, SlotKind.Noun);
                     foreach (var alternative in group.Alternatives)
                     {
                         CollectGrammarSlots(alternative, kinds);

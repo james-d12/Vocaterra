@@ -34,12 +34,15 @@ public static class SessionSkip
     /// <param name="Price">The price of one, in coins.</param>
     public sealed record Purchase(string Npc, ItemId Item, int Count, int Price);
 
-    /// <summary>The last play session that has a lesson: the highest session the skip goes to (10, the market, since V15).</summary>
+    /// <summary>The last play session the skip goes to: 10, the market (V15). The bakery class of session 11 (W10) is optional and needs the bread the bake makes, so it is reached by playing.</summary>
+    public const int MarketSession = 10;
+
+    /// <summary>The last play session that has a lesson and that the skip goes to (<see cref="MarketSession"/> at most).</summary>
     /// <param name="lessons">The game's lessons.</param>
     public static int LastSession(LessonBook lessons)
     {
         ArgumentNullException.ThrowIfNull(lessons);
-        return lessons.Lessons.Max(static l => l.Session);
+        return Math.Min(MarketSession, lessons.Lessons.Max(static l => l.Session));
     }
 
     /// <summary>What the console and the session log say of a skipped run: <c>skipped to play session 4 (sessions 1 to 3 counted as done; test aid)</c>.</summary>
@@ -74,6 +77,7 @@ public static class SessionSkip
             foreach (var lesson in session.Lessons.Book.Lessons.Where(l => l.Session == played))
             {
                 session.Lessons.CountAsCompleted(lesson.Id, played);
+                session.MarkMet(lesson.Npc); // L01: a class opens on having met its teacher, and the skip counts the classes before the target as done
             }
 
             if (played == 1)
@@ -83,6 +87,7 @@ public static class SessionSkip
 
             foreach (var order in session.Objectives.Where(o => o.Spec.IsOrder && o.Spec.Session == played && !o.Complete))
             {
+                session.MarkMet(order.Spec.DeliverTo!); // an order shows once its NPC is met (L01); its session only says when the skip delivers it
                 session.SkipDeliver(order);
             }
 
@@ -90,6 +95,11 @@ public static class SessionSkip
             {
                 session.SkipBuy(purchase);
             }
+        }
+
+        foreach (var lesson in session.Lessons.Book.Lessons.Where(l => l.Session <= target))
+        {
+            session.MarkMet(lesson.Npc); // the target session's own teachers count as met too, so its class is open at once (a test aid)
         }
 
         session.ForgetSkippedWords(words, carded);
@@ -122,7 +132,8 @@ public static class SessionSkip
             var sale = data.HostEvents.Mapped()
                 .Where(mapped => string.Equals(mapped.Npc, npc, StringComparison.Ordinal))
                 .Select(mapped => data.HostEvents.Of(npc, mapped.HostEvent))
-                .FirstOrDefault(effect => effect.Kind == NpcEffectKind.Sell && noun.Items.Contains(effect.Item));
+                .Select(effect => effect.Kind == NpcEffectKind.Sell ? effect.Priced(noun) ?? (effect.Prices is null ? effect : null) : null) // W04: a price list sells the noun at its own price
+                .FirstOrDefault(effect => effect is not null && noun.Items.Contains(effect.Item));
             if (sale is not null)
             {
                 purchases.Add(new Purchase(npc, sale.Item, RequestedCount(lesson, i, npc, noun, data), sale.Price));

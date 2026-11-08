@@ -131,6 +131,17 @@ ones) returns an `AsrResult`: transcript, n-best list, word timings, confidence,
 present it runs on a second task at the same time and returns `PhonePosteriors`. Both results are consumed in a fixed order, so
 the scheduling cannot change the output (`PipelineOptions.RunRecognizersConcurrently` can turn the concurrency off).
 
+**The open-recognition fallback (M80, forced rows M84).** `PipelineOptions.OpenRecognitionFallback` (off by default; the host turns it on for free talk) adds a second request
+to stage 0: when the prompt is `Constrained`, the first recognition's mode is `Constrained`, and the first reading (stages 2 to 7 on that recognition) is either not taken
+(not `Communicated` and no `OffPromptIntent`; M80) or taken but looks forced (M84), the pipeline asks the word recognizer once more with
+`RecognitionRequest.Open(MaxAlternatives)` and reads that recognition through the same stages 2 to 7 (one private method serves both passes; the phoneme posteriors of
+stage 1 are computed once and reused). A taken reading looks forced when its answer match is `None` or `Fuzzy` (`PipelineOptions.OpenPassOnLooseMatch`, default on) or when
+the recognized words cover less than `PipelineOptions.OpenPassMinCoverage` (default 0.6) of the clip's voiced audio (`ForcedReading`; frames of 20 ms at or above -40 dBFS,
+`[unk]` left out). The second reading wins only if it is taken, the weakest word of that recognition has a confidence of at least `PipelineOptions.OpenPassWordFloor` (default 0.5; a recognition with no
+words fails any floor above 0, and a floor of 0 switches the check off; the first pass is never held to it) and, when the first reading was taken, its intent differs from the first
+reading's; otherwise the first stands unchanged. `UtteranceAnalysis.Asr` is the chosen recognition (`Mode` `Open` marks a line heard freely) and
+`UtteranceAnalysis.OtherPass` the other. An answer row heard whole (an `Exact` or `Alias` match that the words cover), an `Open` prompt and the option off decode once.
+
 For the example: `{"transcript":"yo quiere dos espada", "nBest":[{"text":"yo quiere dos espada","score":1}], "words":[], "confidence":1, "modelHash":"scripted-transcript", "mode":"Open"}`.
 
 ### 2. Normalization (D0)
@@ -221,8 +232,16 @@ as `vocab.unknown` even when the lexicon lacks it, so the analysis keeps its con
 an irregular verb form (`sabo`, the regularized `sé`) is no `conj.irregular` mistake, and a recast does not conjugate a lexicon verb form that is a
 name. The reading resolver gives it no word class, so it takes part in no agreement check: `tengo dos espada` with
 `tengo [NUM:qty] [WORD:thing]` reports no `noun.number`, and the name breaks the phrases and links around it, as an unknown word does. A word
-that the grammar does not bind is an ordinary word again, so an unbound name is reported as unknown. The verdict and `AnalysisResult` are
-unchanged. One limit: a name is one token of letters, so a hyphenated name such as `ana-maría` does not match.
+that the grammar does not bind is an ordinary word again, so an unbound name is reported as unknown, except in the name positions of M78.
+The verdict and `AnalysisResult` are unchanged. One limit: a name is one token of letters, so a hyphenated name such as `ana-maría` does not match.
+
+**Name positions (M78).** At a prompt that allows intents (the pipeline, and `TextGrader`; not a quiz, whose misspelt answers are the words they name, and not the
+content lint, which flags an example with a word nobody knows), a word with no reading that no grammar binds is also a name in two places: right after the words
+that introduce a name (`IAnalysisRules.IsNamePosition`; Spanish: `soy`, `llamo`, `mi nombre es`, `hola`, `buenos días`, `buenas tardes`, `buenas noches`, `buen día`,
+`adiós`, `chao`: `soy pedro`, `hola, soy pedro`, `hola pedro`, and `me llamo pedro` at a prompt that does not take `ask_name`), and as the only word of the line when it is capitalised
+(`Pedro`; a lone lower-case word, `pedro` or `xyzzy`, cannot be told from a mistyped one, and the game's tests use `xyzzy` as the unknown word, so it stays `vocab.unknown`). It is read as a `[WORD]` name is: no `vocab.unknown`, confidence 1, no reading. Every other unknown word stays unknown (`quiero pedro`, `pedro quiero pan`).
+The line's intent is not changed: `Pedro` and `soy pedro` resolve none. A name said to the listener at the end of a line, `necesito ayuda domingo`, is a word of the
+lexicon (`domingo`, the day), not an unknown one, and stays flagged by the core (the host takes the NPC's name out of the line first; accepted, M78).
 
 **Which side of an agreement pair is corrected (M29c).** In a noun phrase the generic rule is: an article, numeral or determiner adjective fixes the
 number of the noun (`dos espada` gives `noun.number` on `espada`, `las casa` on `casa`), a determiner of the wrong gender is corrected to the noun's gender
@@ -323,6 +342,16 @@ for an answer; its answer match is its resolution, and no intent grammar may cla
 For the example the grammar rung resolves it: `{"intent":"request_item","slots":{"item":"espada","qty":"2"},"rung":"Grammar","margin":1,"confidence":1}`.
 The catalog says `request_item` needs the slot `item`, filled; `qty` is an optional element of its grammar.
 
+**The grammar rung reads the whole catalog (M74).** Before the prompt narrows the candidates, the resolver also matches the grammars of the intents the prompt
+does not allow. One of them takes the line from the best allowed grammar when it beats it in the rung's order and names more of the line's words (a literal word
+or a `[VERB:lemma]`): `hace calor` is `state_weather`'s `hace (…|calor|…):weather`, not the `[NOUN:item]` of a lesson's `[VERB:hacer] [NOUN:item]`. The line is
+then unknown at that prompt, with the intent as its off-prompt intent (M72), and it is that intent wherever the prompt allows it. Beating the allowed grammar
+without naming more words is not enough: `necesito pan, por favor` stays `state_want` at a lesson (`(por favor)?` of `request_item` reads the same words as the
+polite phrase every grammar allows), and `vendo fruta` stays `state_action` (`vendo` names the verb `[VERB:vender]` names). A line no allowed grammar matches goes
+down the ladder as before, the allowed keyword rules first: `¿qué tiempo hace?` at `smith-open` is still `ask_activity`'s rule of `qué` with `hacer` until the
+prompt allows `ask_weather` (letting the catalog's grammars pre-empt the allowed rules also took `sí, gracias` from `thank` at a thanks lesson). With every intent
+allowed the line is read over the whole catalog whatever grammars the analyzer was given.
+
 A leading adverb defeats the grammars: they allow a leading subject pronoun only, so `ayer tengo dos frutas` matches no grammar. The
 `state_have` intent therefore has a keyword rule for `tener` that requires `item`. Such an utterance
 resolves on the `Rules` rung (`resolvedBy: Rules`), and the analysis still reports the tense (`conj.tense`, `tengo` to `tuve`). An intent without a keyword rule,
@@ -351,12 +380,26 @@ evaluation configuration and the version stamp:
   counts as communicated: the host rewards being understood. A fuzzy match at the edge of its budget has the confidence of its
   distance, so it is communicated like any other near miss (see [Near misses](#near-misses)).
 - **errors**: analysis errors, pronunciation errors and the derived `vocab.wrong`, de-duplicated by (tag, span) and sorted by
-  span start, then tag order in the taxonomy, then expected text. The derived `vocab.wrong` (a word the lexicon knows but the answer
-  set does not contain) has as `expected` the answer set's canonical answer when the set has exactly one answer, and an empty
-  `expected` otherwise; its `actual` is the word. It explains a miss, so since M67 it is derived only when the line resolved no intent,
-  or resolved one by a keyword rule (not a slot grammar) and is a near miss of an answer (within the fuzzy budget taken for the line's own
-  length: `cuál es esto` for `qué es esto`); a line a slot grammar understood never gets it. A `vocab.unknown` of a fuzzy answer match
-  already carries the answer's word at its place. An error on a number reports the learner's word for it (M70: `dos`, not `2`).
+  span start, then tag order in the taxonomy, then expected text. The derived `vocab.wrong` (a word the lexicon knows where the answer
+  set wanted another) explains a miss by naming a word, at a constrained prompt whose answer set the line did not match, in one of two
+  cases (M67, M72, M75):
+  - **A near miss** (M75; the owner, 2026-11-02, D-game-22: "a near miss must name its word"): the line resolved no intent, or resolved
+    one by a keyword rule or the embedding rung (not a slot grammar), and it misses the answer phrase nearest it (the matcher's distance;
+    a canonical phrase or an alias) by one word of a slip pair: the two have the same number of words, exactly one differs (accents
+    ignored), and the two words are close in spelling (within the answer word's own fuzzy budget, measured as the matcher measures a
+    phrase) or both question words, articles, prepositions or pronouns (`AnswerNearMisses`, `IAnalysisRules.IsQuestionWord`). The tag
+    is on that word, with the answer's word as `expected`, so it is never empty: `cuál es esto` at `lesson-what` gives `cuál`, expected
+    `qué`. M67's rule (the distance within the fuzzy budget taken for the line's own length) also tagged correct Spanish, which the agent
+    praised while it scored 0.4: `quiero hacer un hacha` at `smith-open` (an added word), `pasado mañana iré al río con Mar` and
+    `rápido por favor` (content words far apart) have no error since M75. A set with no answers has no near miss (the matcher reports
+    distance 0 there, which M67's rule read as a near miss of every line).
+  - **A prompt that names its word** (M72): a line that resolved no intent at a prompt whose answer set has exactly one answer, or at a
+    quiz (no intent allowed): the tag is on the first content word, with the set's canonical answer as `expected` when it has exactly
+    one answer, and an empty `expected` at a quiz of several answers.
+
+  A line a slot grammar understood never gets it, nor does a correct line that is simply not among a prompt's several answers. Its
+  `actual` is the word. A `vocab.unknown` of a fuzzy answer match already carries the answer's word at its place. An error on a number
+  reports the learner's word for it (M70: `dos`, not `2`).
 - **correctness**: 1 minus the sum of the error weights for the prompt's difficulty (`content/game-v1/evaluation/evaluation-config.json`),
   clamped to [0, 1], rounded to 9 decimals. For the beginner difficulty `conj.person` costs 0.25 and `noun.number` 0.15, so
   1 - 0.25 - 0.15 = 0.6.

@@ -2,6 +2,10 @@
   "agentId": "fisher",
   "initialState": "idle",
   "variantPools": [
+    { "id": "fisher_yes", "count": 1 },
+    { "id": "fisher_weather", "count": 1 },
+    { "id": "fisher_sun", "count": 1 },
+    { "id": "fisher_well", "count": 1 },
     { "id": "fisher_true", "count": 1 },
     { "id": "fisher_understood", "count": 1 },
     { "id": "answer_accepted", "count": 3 },
@@ -22,6 +26,10 @@
     {
       "id": "idle",
       "transitions": [
+        { "on": {"intent": "ask_wellbeing", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "fisher_well", "variantPoolId": "fisher_well" }] },
+        { "on": {"intent": "ask_weather", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "fisher_sun", "variantPoolId": "fisher_sun" }] },
+        { "on": {"intent": "state_weather", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "fisher_yes", "variantPoolId": "fisher_yes" }] },
+        { "onHostEvent": "fisher.weather", "to": "idle", "actions": [{ "dialogueIntent": "fisher_weather", "variantPoolId": "fisher_weather" }] },
         { "onHostEvent": "fisher.understood", "to": "idle", "actions": [{ "dialogueIntent": "fisher_understood", "variantPoolId": "fisher_understood" }] },
         { "onHostEvent": "fisher.true", "to": "idle", "actions": [{ "dialogueIntent": "fisher_true", "variantPoolId": "fisher_true" }] },
         { "onHostEvent": "fisher.greet", "to": "idle", "actions": [{ "dialogueIntent": "fisher_hello", "variantPoolId": "fisher_hello" }] },
@@ -45,6 +53,9 @@
     {
       "id": "pointing",
       "transitions": [
+        { "on": {"intent": "ask_wellbeing", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "fisher_well", "variantPoolId": "fisher_well" }] },
+        { "on": {"intent": "ask_weather", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "fisher_sun", "variantPoolId": "fisher_sun" }] },
+        { "on": {"intent": "state_weather", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "fisher_yes", "variantPoolId": "fisher_yes" }] },
         { "onHostEvent": "fisher.understood", "to": "pointing", "actions": [{ "dialogueIntent": "fisher_understood", "variantPoolId": "fisher_understood" }] },
         { "onHostEvent": "fisher.greet", "to": "pointing", "actions": [{ "dialogueIntent": "fisher_hello", "variantPoolId": "fisher_hello" }] },
         { "onHostEvent": "fisher.delivered", "to": "pointing", "actions": [{ "dialogueIntent": "fisher_delivered", "hostEvent": "fisher.pay", "variantPoolId": "fisher_delivered" }] },

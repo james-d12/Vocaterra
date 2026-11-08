@@ -60,7 +60,7 @@ public sealed class LearnerRecordTests
     public void ATypedTurnLandsInTheHistoryWithItsSourceSessionAndStoredTime()
     {
         using var session = TestGame.NewSession(credit: CreditRules.Default);
-        session.OpenTalk("shopkeeper");
+        session.OpenTalkForClass("shopkeeper");
         var worker = session.StartWorker(loadSpeech: false);
         Assert.True(worker.WaitUntilReady(30000), "The worker did not load.");
 
@@ -87,7 +87,7 @@ public sealed class LearnerRecordTests
     public void ASpokenTurnLandsInTheHistoryAsVoice()
     {
         using var session = TestGame.NewSession(credit: CreditRules.Default);
-        session.OpenTalk("shopkeeper");
+        session.OpenTalkForClass("shopkeeper");
         Assert.True(session.StartWorker().WaitUntilReady(60000));
 
         _ = session.SubmitSpeak("quiero dos aguas");
@@ -103,7 +103,7 @@ public sealed class LearnerRecordTests
     public void ASynchronousTurnRecordsItsLineLikeTheWorkerDoes()
     {
         var session = TestGame.NewSession(credit: CreditRules.Default);
-        session.OpenTalk("shopkeeper");
+        session.OpenTalkForClass("shopkeeper");
 
         _ = session.Say("quiero dos aguas");
 
@@ -116,7 +116,7 @@ public sealed class LearnerRecordTests
     public void QuieroDosAguasGivesTheNounAguaAndTheVerbQuerer()
     {
         var session = TestGame.NewSession(credit: CreditRules.Default);
-        session.OpenTalk("shopkeeper");
+        session.OpenTalkForClass("shopkeeper");
 
         _ = session.Say("quiero dos aguas");
 
@@ -145,7 +145,7 @@ public sealed class LearnerRecordTests
     public void ALineTheOfferDoesNotTakeButTheStallUnderstoodCountsItsWordsAsCorrectUses()
     {
         var session = TestGame.NewSession(credit: CreditRules.Default);
-        session.OpenTalk("shopkeeper");
+        session.OpenTalkForClass("shopkeeper");
 
         _ = session.Say("quiero dos aguas"); // understood at the stall's need: "quiero" and "aguas" are right
         var turn = session.Say("quiero agua, por favor"); // at the offer: M72 gives it no derived vocab.wrong; V27: the stall understood it off its prompt, so the book counts it
@@ -235,14 +235,14 @@ public sealed class LearnerRecordTests
     public void ReplayingTheHistoryGivesTheSameWordRecord()
     {
         var session = TestGame.NewSession(credit: CreditRules.Default);
-        session.OpenTalk("shopkeeper");
+        session.OpenTalkForClass("shopkeeper");
         foreach (var line in new[] { "quiero dos aguas", "quiero agua, por favor", "quiero dos aguas, por favor" })
         {
             _ = session.Say(line);
         }
 
         session.EndTalk();
-        session.OpenTalk("guide");
+        session.OpenTalkForClass("guide");
         _ = session.Say("¿dónde está el río?");
         _ = session.Say("el árbol es grande");
 
@@ -276,7 +276,7 @@ public sealed class LearnerRecordTests
     public void ACheckAnswerIsALineTooButNotAWordOfTheRecord()
     {
         using var session = TestGame.NewSession(credit: CreditRules.Default);
-        session.OpenTalk("shopkeeper");
+        session.OpenTalkForClass("shopkeeper");
         Assert.True(session.StartWorker(loadSpeech: false).WaitUntilReady(30000), "The worker did not load.");
         var item = RouteScene.DataOf(TestGame.Bundle).Checks.Single(static i => i.Id == "say.pedir-agua");
 
@@ -402,7 +402,7 @@ public sealed class LearnerRecordTests
         Assert.Equal(1, loaded.Day); // the day as saved (V25)
         var lesson = Assert.Single(loaded.Lessons.Record, static r => r.LessonId == "first-words");
         Assert.Equal(LessonStatus.Completed, lesson.Status);
-        Assert.Equal(34, lesson.Units.Count); // the lesson as the version 1 save recorded it (before the verb unit of S26)
+        Assert.Equal(25, lesson.Units.Count); // the introduction as the version 1 save recorded it, without the steps that became Luna's first class (L01)
         Assert.All(lesson.Units, static u => Assert.Equal(StepOutcome.Done, u.Outcome));
         Assert.Null(lesson.CompletedSession); // the version 1 save does not say the session it was completed in
         Assert.Equal(0, lesson.Turns);
@@ -443,13 +443,13 @@ public sealed class LearnerRecordTests
         var resumed = SaveGame.Load(text, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped);
         Assert.Equal(Show(session.Lessons.Record), Show(resumed.Lessons.Record));
         Stage.TeleportToNpc(resumed, "guide");
-        _ = resumed.OpenTalk("guide");
+        _ = resumed.OpenTalkForClass("guide");
         var rest = LessonDriver.CompleteAll(resumed);
 
         var whole = resumed.Lessons.Record.Single(static r => r.LessonId == "first-words");
         Assert.Equal(LessonStatus.Completed, whole.Status);
         Assert.Equal(1, whole.CompletedSession); // the day, which a load keeps (V25)
-        Assert.Equal(37, whole.Units.Count);
+        Assert.Equal(25, whole.Units.Count); // the introduction (L01)
         Assert.Equal(unit.Count(static s => s.Sent is not null) + rest.Count(static s => s.Sent is not null), whole.Turns);
         Assert.Equal(1, whole.HelpUses);
     }
@@ -465,7 +465,7 @@ public sealed class LearnerRecordTests
         Assert.Equal(LessonStatus.Completed, row.Status);
         Assert.Equal(1, row.CompletedSession);
         Assert.Equal(steps.Count, row.Units.Count);
-        Assert.Equal(6, steps.Select(static s => s.Id[..2]).Distinct().Count());
+        Assert.Equal(5, steps.Select(static s => s.Id[..2]).Distinct().Count()); // u4 is Luna's first class (L01)
         Assert.Equal(steps.Count(static s => s.Sent is not null), row.Turns);
         Assert.Equal(0, row.HelpUses); // the lesson never needed its help path
         Assert.Equal(1, row.DontKnowUses); // "No sé" is the answer of u5-quiz
@@ -496,7 +496,7 @@ public sealed class LearnerRecordTests
         Assert.Equal(session.Lessons.Book.Lessons.Select(static l => l.Id), session.Lessons.Record.Select(static r => r.LessonId));
         var row = session.Lessons.Record.Single(static r => r.LessonId == "first-words");
         Assert.Equal(LessonStatus.NotStarted, row.Status);
-        Assert.Equal(37, row.StepCount);
+        Assert.Equal(25, row.StepCount);
         Assert.Empty(row.Units);
         Assert.Equal(session.Lessons.Book.Lessons.Single(static l => l.Id == "first-words").TaughtPhrases, row.Phrases);
     }
@@ -505,7 +505,7 @@ public sealed class LearnerRecordTests
     {
         var session = TestGame.NewSessionWithShippedLessons();
         Stage.TeleportToNpc(session, "guide");
-        _ = session.OpenTalk("guide");
+        _ = session.OpenTalkForClass("guide");
         return session;
     }
 

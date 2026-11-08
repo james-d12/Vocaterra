@@ -25,7 +25,10 @@ public static class InputKeys
         ["view"] = GameKey.F5,
         ["save"] = GameKey.F6,
         ["textSize"] = GameKey.F9,
+        ["viewEffects"] = GameKey.F7, // N05: the needs' effects on the view (dim edges, a blink, red edges) on or off
+        ["settings"] = GameKey.F8, // N09: the settings panel (the drive rate, the view effects, the relaxed needs)
         ["debug"] = GameKey.F3,
+        ["sprint"] = GameKey.LeftShift, // held: walk about 1.6 times as fast while stamina lasts (N02)
     };
 
     /// <summary>The key of a named command.</summary>

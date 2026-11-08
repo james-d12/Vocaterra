@@ -29,7 +29,7 @@
         "detail": {
           "type": "string",
           "minLength": 1,
-          "description": "The detail the event must have, exactly (item_picked_up: the noun; torch_at_ring: the ring's name)."
+          "description": "The detail the event must have, exactly (item_picked_up and item_crafted: the noun; torch_at_ring: the ring's name)."
         }
       },
       "description": "What the step or tip waits for (CONTENT_PLAN C06)."
@@ -45,7 +45,9 @@
         "book",
         "coin",
         "apple",
-        "axe"
+        "axe",
+        "roast-apple",
+        "flour"
       ],
       "description": "An item by the name the save gives it (ItemDefinition)."
     }

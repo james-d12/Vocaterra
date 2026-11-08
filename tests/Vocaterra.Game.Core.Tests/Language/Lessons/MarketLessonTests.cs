@@ -38,7 +38,7 @@ public sealed class MarketLessonTests(ITestOutputHelper output)
         session.Day = 10;
         session.Sitting = 10;
         Stage.TeleportToNpc(session, "baker");
-        _ = session.OpenTalk("baker");
+        _ = session.OpenTalkForClass("baker");
         return session;
     }
 
@@ -66,7 +66,7 @@ public sealed class MarketLessonTests(ITestOutputHelper output)
         {
             session.EndTalk();
             Stage.TeleportToNpc(session, npc);
-            _ = session.OpenTalk(npc);
+            _ = session.OpenTalkForClass(npc);
             return null;
         }
 
@@ -96,13 +96,13 @@ public sealed class MarketLessonTests(ITestOutputHelper output)
     {
         var lesson = Book.Find(LessonId)!;
 
-        Assert.Equal(("baker", 10, true, "manana-en-el-pueblo", LessonLevels.A2), (lesson.Npc, lesson.Session, lesson.AutoStart, lesson.After, lesson.Level));
+        Assert.Equal(("baker", 10, false, "manana-en-el-pueblo", LessonLevels.A2), (lesson.Npc, lesson.Session, lesson.AutoStart, lesson.After, lesson.Level));
         Assert.StartsWith("Session 10", lesson.Objective, StringComparison.Ordinal);
         Assert.Contains("bakery", lesson.Objective, StringComparison.Ordinal);
         Assert.Contains("El mercado", lesson.Objective, StringComparison.Ordinal);
         Assert.Equal("El mercado", lesson.ShortTitle);
         Assert.Equal(["baker", "farmer", "shopkeeper"], lesson.Steps.Select(lesson.NpcOf).Distinct());
-        Assert.Same(lesson, Book.Lessons[^1]); // the series' last lesson
+        Assert.Same(lesson, Book.Lessons[^2]); // the last of the village; W10's optional class follows it
         Assert.Equal(10, SessionSkip.LastSession(Book));
 
         // Nine phrases the learner says and two review steps (sessions 9 and 8 at the start, sessions 5 and 7 at the stall at the end).
@@ -236,10 +236,10 @@ public sealed class MarketLessonTests(ITestOutputHelper output)
         var early = TomorrowLessonTests.AtStep("(after the last step)");
         early.EndTalk();
         Assert.Equal(9, early.Day);
-        Assert.NotEqual(LessonId, early.Lessons.OfferFor("baker")?.LessonId); // Mañana en el pueblo done, but it is still session 9
+        Assert.Equal(LessonId, early.Lessons.OfferFor("baker")?.LessonId); // Mañana en el pueblo done and Luz met: the class is on offer, though the day is only 9 (L01)
 
         var skipped = TestGame.NewSessionWithShippedLessons();
-        skipped.Day = 10; // session 10 reached without session 9's lesson: El mercado waits for it (after)
+        skipped.Day = 10; // the day opens nothing: Luz is not met, and El mercado waits for session 9's lesson (after)
         skipped.Sitting = 10;
         Assert.NotEqual(LessonId, skipped.Lessons.OfferFor("baker")?.LessonId);
 
@@ -321,18 +321,18 @@ public sealed class MarketLessonTests(ITestOutputHelper output)
         // --skip-to-session 10: a new game where a learner who did sessions 1 to 9 stands, with no coins (V14, V17). The objective names the bakery and the beacon is on Luz.
         var session = TestGame.NewSessionWithShippedLessons();
         SessionSkip.Apply(session, 10);
-        Assert.Equal((LessonId, "baker"), (session.Lessons.NewLesson?.Id, session.Pointer?.Point));
-        Assert.Equal(Book.Find(LessonId)!.Objective, string.Concat(session.ObjectiveHud().Select(static p => p.Text)));
+        Assert.True(session.Lessons.IsUnlocked(session.Lessons.Book.Find(LessonId)!)); // open at Luz, not forced on the objective or the beacon (L01)
+        Assert.Equal(LessonStatus.NotStarted, session.Lessons.StatusOf(LessonId));
+        Assert.NotEqual("baker", session.Pointer?.Point);
         Assert.Equal(0, session.Simulation.Inventory.Count(ItemId.Coin));
         Stage.TeleportToNpc(session, "baker");
-        _ = session.OpenTalk("baker");
+        _ = session.OpenTalkForClass("baker");
         Assert.Equal(LessonId, session.Lessons.Active!.Id);
 
         _ = Through(session, "(after the last step)");
 
         Assert.Equal(LessonStatus.Completed, session.Lessons.StatusOf(LessonId));
         Assert.Equal((0, 6), (session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(ItemId.Apple)));
-        Assert.Null(session.NextLessonSession); // no later session has a lesson: the series is done
     }
 
     // ---- The tenses at their steps (V16's machinery, used as it is)
@@ -397,7 +397,7 @@ public sealed class MarketLessonTests(ITestOutputHelper output)
         var session = TestGame.NewSessionWithShippedLessons();
         SessionSkip.Apply(session, 10);
         Stage.TeleportToNpc(session, "baker");
-        _ = session.OpenTalk("baker");
+        _ = session.OpenTalkForClass("baker");
         _ = Through(session, "(after the last step)");
         Assert.Equal(LessonStatus.Completed, session.Lessons.StatusOf(LessonId));
 
@@ -409,12 +409,13 @@ public sealed class MarketLessonTests(ITestOutputHelper output)
         Assert.Equal(new ConjugationCell("puedo", CellState.Used, 1), At(BookPages.VerbTable(session, "poder")!, "pres", "1", "sg"));
         Assert.Equal("pago", At(BookPages.VerbTable(session, "pagar")!, "pres", "1", "sg").Text);
 
+        session.Lessons.CountAsCompleted("en-la-panaderia", 11); // W10: the optional bakery class, counted as done too, so that every lesson is
         // Every lesson is done: the page says so first, and no lesson says next: to a lesson that does not exist.
         var lines = BookPages.Lessons(session.Locale, session.Lessons.Record, session.Phrases, null, BookPages.Waits(session.Lessons));
-        Assert.Equal("Every lesson of the village is done, all 10: the series ends here. Practise any of them again with its button below.", lines[0].Text);
+        Assert.Equal("Every lesson of the village is done, all 12: the series ends here. Practise any of them again with its button below.", lines[0].Text);
         Assert.Equal(BookTone.Gold, lines[0].Tone);
         Assert.DoesNotContain(lines, static l => l.Text.StartsWith("next:", StringComparison.Ordinal) || l.Text.StartsWith("open:", StringComparison.Ordinal));
-        Assert.Equal(10, session.Lessons.Record.Count(static r => r.Status == LessonStatus.Completed));
+        Assert.Equal(12, session.Lessons.Record.Count(static r => r.Status == LessonStatus.Completed));
     }
 
     private static ConjugationCell At(ConjugationTable table, string tense, string person, string number)

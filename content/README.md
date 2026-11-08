@@ -38,8 +38,13 @@ Everything the game says, shows and builds its world from, outside the code. The
   | `game/objectives/<id>.json` | `objective.schema.json` (one objective each, C07: its steps and their triggers, its hooks; V03: the play session it starts in, and the orders) | `ObjectiveBook` |
   | `game/npcs.json` | `npcs.schema.json` (the NPCs' ids, in order; the saves keep this order) | `NpcRoster` |
   | `game/npcs/<id>.json` | `npc.schema.json` (one NPC each, C08: its label, name, figure and the phrases its prompts practise; schema 2, V01: the prompt of each state, the opening, the voice, the key words, the pool prefix) | `NpcRoster` |
-  | `game/host-events.json` | `host-events.schema.json` (what each NPC host event does: give items, point the beacon at a noun, a place or the place the learner names; schema 2, V02) | `HostEventTable` |
+  | `game/host-events.json` | `host-events.schema.json` (what each NPC host event does: give items, point the beacon at a noun, a place or the place the learner names; schema 2, V02; W08: the teacher's kinds `procedure_repeat`, `procedure_slower`, `procedure_help`, `give_missing`, `teach_recipe`, `start_procedure`) | `HostEventTable` |
+  | `game/needs.json` | `needs.schema.json` (the player's needs, N01: the three drives' rates, effort factors and four stages with their effects, health's recovery and warnings, stamina's costs and refill, rest at a fire, a night and a collapse, the foods, the death rules; the stage lines' keys, not their text) | `NeedsData` |
   | `game/scene.json` | `scene.schema.json` (the file is JSON with `//` comments) | `SceneLayout` |
+  | `game/procedures.json` | `procedures.schema.json` (the procedures' ids, in order; W05) | `ProcedureBook` |
+  | `game/procedures/<id>.json` | `procedure.schema.json` (one procedure each: its station, teacher, level, what it makes and uses, its steps, chunks and goal; W05) | `ProcedureBook` |
+  | `game/stations.json` | `stations.schema.json` (each station: its scene prop, its NPC and its fixtures; W05) | `StationBook` |
+  | `game/actions.json` | `actions.schema.json` (for each use and fixture, the verbs a step may use; W05) | `ActionTable` |
 
 ## The support language: `locale/`
 
@@ -327,3 +332,9 @@ key word that is no catalogue noun, a pool prefix another NPC has, and a prompt 
 focus there that names none of them (V12b). `--talk fisher` then walks up to it in a scripted run. Behaviour the data
 cannot say stays code, by id: the shopkeeper's fail-forward (the bottle after four misses, and on a later visit) and the guide's review, transfer
 offer and world lines (`docs/game/content-plan.md` section 3.6).
+
+## Stations and items that share a noun (N07)
+
+A recipe's `station` is a catalogue noun that names a block (`mesa` the table, `fuego` the fire-ring stones; the fire counts only while its ring burns). When the output noun names several items
+(`manzana`: the apple and the roast apple), the recipe's `makes` gives the item's key (`roast-apple`), and the noun's `labels` gives the text that labels it (`manzana asada`). A new item key joins the enums
+of the schemas that list items (`nouns`, `host-events`, `objective`) and, if it is food, `foods` in `game/needs.json`.

@@ -65,6 +65,47 @@ public sealed class KeyBindingsTests
         Assert.Equal([expected], ran);
     }
 
+    [Theory]
+    [InlineData(true, false, false, "TalkTo")]
+    [InlineData(false, true, false, "OpenCrafting")]
+    [InlineData(false, false, true, "DrinkByHand")]
+    [InlineData(false, false, false, "OpenInventory")]
+    public void EAtWaterDrinksByHandAfterTheNpcAndTheWorkbenchAndBeforeTheInventory(bool aimed, bool atWorkbench, bool atWater, string expected)
+    {
+        var (commands, ran) = Commands();
+        Assert.True(KeyBindings.World(commands, () => aimed, static () => false, () => atWorkbench, static () => false, static () => false, () => atWater).RunFirst(Pressed(GameKey.E)));
+        Assert.Equal([expected], ran);
+    }
+
+    [Fact]
+    public void SprintIsANamedControlOnLeftShiftLikeTheOthers()
+    {
+        Assert.Equal(GameKey.LeftShift, InputKeys.Of("sprint"));
+        Assert.Equal("Left Shift", TestGame.Data.Locale.Text("key.LeftShift"));
+    }
+
+    [Theory]
+    [InlineData(true, true, true, "TalkTo")]
+    [InlineData(false, true, true, "OpenStation")]
+    [InlineData(false, true, false, "OpenStation")]
+    [InlineData(false, false, true, "OpenCrafting")]
+    [InlineData(false, false, false, "OpenInventory")]
+    public void ETalksToTheNpcThenOpensAStationThenTheWorkbenchThenTheInventory(bool aimedAtNpc, bool atStation, bool atWorkbench, string expected)
+    {
+        var (commands, ran) = Commands();
+        commands = commands with { OpenStation = new DelegateCommand(() => ran.Add("OpenStation")) }; // W07: the entry priority of design 10.8
+        Assert.True(KeyBindings.World(commands, () => aimedAtNpc, static () => false, () => atWorkbench, atStation: () => atStation).RunFirst(Pressed(GameKey.E)));
+        Assert.Equal([expected], ran);
+    }
+
+    [Fact]
+    public void AGameWithNoStationCommandKeepsTheOldPriority()
+    {
+        var (commands, ran) = Commands();
+        Assert.True(KeyBindings.World(commands, static () => false, static () => false, static () => true, atStation: static () => true).RunFirst(Pressed(GameKey.E)));
+        Assert.Equal(["OpenCrafting"], ran);
+    }
+
     [Fact]
     public void EnterOnTheClosingCardSleepsBeforeItShowsTheNextTipAndNothingSleepsWithoutTheOffer()
     {
@@ -98,7 +139,7 @@ public sealed class KeyBindingsTests
         IGameCommand Named(string name) => new DelegateCommand(() => ran.Add(name));
         return (new GameCommands(
             Named("ToggleView"), Named("Save"), Named("CycleTextSize"), Named("EndPlaytest"), Named("ToggleDebug"), Named("Listen"), Named("TypeTo"), Named("TalkTo"),
-            Named("OpenControls"), Named("NextTip"), Named("OpenBook"), Named("OpenCrafting"), Named("OpenInventory"), Named("ReleaseMouse"), Named("Sleep")), ran);
+            Named("OpenControls"), Named("NextTip"), Named("OpenBook"), Named("OpenCrafting"), Named("OpenInventory"), Named("ReleaseMouse"), Named("Sleep"), Named("DrinkByHand")), ran);
     }
 
     private static TestInputFrame Pressed(params GameKey[] keys) => TestInputFrame.Pressing(keys);

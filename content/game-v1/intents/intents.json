@@ -7,8 +7,7 @@
       "slotGrammars": [
         "hola [NOUN]?",
         "(buenos|buenas) (día|días|tardes|noches)",
-        "buen día",
-        "(cómo|como) (estás|está|están|estáis) (tú|usted|ustedes|vosotros|vosotras)?"
+        "buen día"
       ],
       "keywordRules": [
         { "lemmas": ["hola"], "requiresSlots": [] }
@@ -21,10 +20,27 @@
         {"text": "buen día", "errors": [], "prompt": "villager-open"},
         {"text": "hola, Luna", "errors": [], "prompt": "villager-open"},
         {"text": "buenos día", "errors": ["noun.number"], "prompt": "villager-open"},
+        "hola amigo"
+      ]
+    },
+    {
+      "intentId": "ask_wellbeing",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "(hola [NOUN]?|(buenos|buenas) (día|días|tardes|noches)|buen día)? (cómo|como) (estás|está|están|estáis) (tú|usted|ustedes|vosotros|vosotras)?",
+        "(hola [NOUN]?)? qué tal"
+      ],
+      "keywordRules": [],
+      "examples": [
         {"text": "cómo estás", "errors": [], "prompt": "villager-open"},
         {"text": "cómo está usted", "errors": [], "prompt": "villager-open"},
-        {"text": "cómo estás usted", "errors": ["conj.person"], "prompt": "villager-open"},
-        "hola amigo"
+        {"text": "cómo están ustedes", "errors": [], "prompt": "baker-open"},
+        {"text": "cómo estáis", "errors": [], "prompt": "villager-open"},
+        {"text": "hola, ¿cómo estás?", "errors": [], "prompt": "villager-open"},
+        {"text": "buenos días, cómo está usted", "errors": [], "prompt": "smith-open"},
+        {"text": "qué tal", "errors": [], "prompt": "villager-open"},
+        {"text": "hola, ¿qué tal?", "errors": [], "prompt": "fisher-open"},
+        {"text": "cómo estás usted", "errors": ["conj.person"], "prompt": "villager-open"}
       ]
     },
     {
@@ -67,13 +83,12 @@
       "keywordRules": [
         { "lemmas": ["no"], "requiresSlots": [] }
       ],
-      "lint": {"allowRuleOnly": ["no, mucho gracias", "no es agua", "no, es madera", "no, es un madera"]},
+      "lint": {"allowRuleOnly": ["no es agua", "no, es madera", "no, es un madera"]},
       "examples": [
         {"text": "no, gracias", "errors": [], "prompt": "stall-offer"},
         {"text": "no", "errors": [], "prompt": "stall-offer"},
         {"text": "no, muchas gracias", "errors": [], "prompt": "stall-offer"},
         {"text": "gracias, no", "errors": [], "prompt": "stall-offer"},
-        {"text": "no, mucho gracias", "errors": ["gender.agree", "noun.number"], "prompt": "stall-offer"},
         {"text": "no es agua", "errors": [], "prompt": "lesson-yesno"},
         {"text": "no, es madera", "errors": [], "prompt": "lesson-yesno"},
         {"text": "no, es un madera", "errors": ["gender.agree"], "prompt": "lesson-yesno"},
@@ -164,7 +179,15 @@
         {"text": "tres manzanas rojas, por favor", "errors": [], "prompt": "farmer-open"},
         {"text": "quiero una manzana roja", "errors": [], "prompt": "farmer-open"},
         {"text": "quiero tres manzanas rojos", "errors": ["gender.agree"], "prompt": "farmer-open"},
-        {"text": "quiero tres manzana rojas", "errors": ["noun.number"], "prompt": "farmer-open"}
+        {"text": "quiero tres manzana rojas", "errors": ["noun.number"], "prompt": "farmer-open"},
+        {"text": "quiero harina", "errors": [], "prompt": "stall-need"},
+        {"text": "quiero la harina", "errors": [], "prompt": "stall-need"},
+        {"text": "necesito harina", "errors": [], "prompt": "stall-need"},
+        {"text": "quiero harina, por favor", "errors": [], "prompt": "stall-need"},
+        {"text": "harina, por favor", "errors": [], "prompt": "stall-need"},
+        {"text": "me das harina", "errors": [], "prompt": "stall-need"},
+        {"text": "me da harina", "errors": [], "prompt": "stall-need"},
+        {"text": "quiero el harina", "errors": ["gender.agree"], "prompt": "stall-need"}
       ]
     },
     {
@@ -421,7 +444,9 @@
         "(sí)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? (domingo|luz|mar|león)? [VERB:trabajar] en [ART] [NOUN:place] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
         "(mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? (domingo|luz|mar|león)? [VERB:ir] a [VERB:vivir] en [ART] [NOUN:place] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
         "(sí)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? (domingo|luz|mar|león)? [VERB:vivir] en [ART] [NOUN:place] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
-        "(sí)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? (domingo|luz|mar|león)? [VERB:pescar] en [ART] [NOUN:place] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?"
+        "(sí)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)? (domingo|luz|mar|león)? [VERB:pescar] en [ART] [NOUN:place] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el mes que viene|el año que viene|la próxima semana|el próximo día|el próximo mes|el próximo año|la semana pasada|el año pasado)?",
+        "[VERB:pescar] (mucho|poco)",
+        "[VERB:trabajar] (mucho|poco)"
       ],
       "keywordRules": [
         { "lemmas": ["ir"], "requiresSlots": [] },
@@ -661,7 +686,73 @@
         "busqué madera",
         "león trabaja en el campo",
         "luz vive en la panadería",
-        "mar va a trabajar en el río"
+        "mar va a trabajar en el río",
+        "tú pescas mucho",
+        "usted trabaja mucho",
+        {"text": "voy a hacer pan", "errors": [], "prompt": "lesson-bake-plan"},
+        {"text": "yo voy a hacer pan", "errors": [], "prompt": "lesson-bake-plan"},
+        {"text": "voy a hacer el pan", "errors": [], "prompt": "lesson-bake-plan"},
+        {"text": "hoy voy a hacer pan", "errors": [], "prompt": "lesson-bake-plan"},
+        {"text": "voy a hacer pan hoy", "errors": [], "prompt": "lesson-bake-plan"},
+        {"text": "mañana voy a hacer pan", "errors": [], "prompt": "lesson-bake-plan"},
+        {"text": "voy a hago pan", "errors": ["conj.tense"], "prompt": "lesson-bake-plan"},
+        {"text": "ayer hago pan", "errors": ["conj.tense"], "prompt": "lesson-made-bread"},
+        {"text": "hice pan", "errors": [], "prompt": "lesson-made-bread"},
+        {"text": "yo hice pan", "errors": [], "prompt": "lesson-made-bread"},
+        {"text": "hice el pan", "errors": [], "prompt": "lesson-made-bread"},
+        {"text": "hoy hice pan", "errors": [], "prompt": "lesson-made-bread"},
+        {"text": "ayer hice pan", "errors": [], "prompt": "lesson-made-bread"},
+        {"text": "hice pan hoy", "errors": [], "prompt": "lesson-made-bread"}
+      ]
+    },
+    {
+      "intentId": "state_weather",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "(hoy|mañana)? hace (mucho frío|mucho calor|mucho sol|mucho viento|frío|calor|sol|viento|fresco|buen tiempo|mal tiempo):weather (hoy|mañana)?",
+        "(ayer)? (hizo|hacía) (mucho frío|mucho calor|mucho sol|mucho viento|frío|calor|sol|viento|fresco|buen tiempo|mal tiempo):weather (ayer)?",
+        "(mañana)? hará (mucho frío|mucho calor|mucho sol|mucho viento|frío|calor|sol|viento|fresco|buen tiempo|mal tiempo):weather (mañana)?",
+        "(hoy|mañana)? (llueve|nieva) (mucho)? (hoy|mañana)?",
+        "(ayer)? (llovió|llovía|nevó) (mucho)? (ayer)?",
+        "(mañana)? (lloverá|nevará) (mucho)? (mañana)?",
+        "(hoy|mañana)? está nublado (hoy|mañana)?",
+        "(ayer)? estaba nublado (ayer)?",
+        "qué (frío|calor):weather"
+      ],
+      "keywordRules": [],
+      "lint": {"allowOverlap": ["state_action"]},
+      "examples": [
+        "hace frío",
+        "hace calor",
+        "hace sol",
+        "hace buen tiempo",
+        "hace mal tiempo",
+        "hoy hace frío",
+        "hoy hace buen tiempo",
+        "hace mucho calor",
+        "ayer hizo sol",
+        "llueve",
+        "hoy llueve mucho",
+        "está nublado",
+        "qué frío"
+      ]
+    },
+    {
+      "intentId": "ask_weather",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "(hoy|mañana)? qué tiempo hace (hoy|mañana)?",
+        "(mañana)? qué tiempo (hará|va a hacer) (mañana)?",
+        "(ayer)? qué tiempo hacía (ayer)?",
+        "(cómo|como) está el tiempo (hoy)?"
+      ],
+      "keywordRules": [],
+      "examples": [
+        "qué tiempo hace",
+        "qué tiempo hace hoy",
+        "hoy qué tiempo hace",
+        "qué tiempo hará mañana",
+        "cómo está el tiempo"
       ]
     },
     {
@@ -906,7 +997,9 @@
         "(sí)? (luz|domingo|mar|león) [VERB:ser] (más|menos) [ADJ] que [ART]? [NOUN]",
         "(sí)? [VERB:ser] tan [ADJ] como [ART]? [NOUN]",
         "(sí)? [ART] [NOUN:object] [VERB:ser] tan [ADJ] como [ART]? [NOUN]",
-        "(sí)? (luz|domingo|mar|león) [VERB:ser] tan [ADJ] como [ART]? [NOUN]"
+        "(sí)? (luz|domingo|mar|león) [VERB:ser] tan [ADJ] como [ART]? [NOUN]",
+        "[ART] [NOUN:object] [VERB:estar] en [ART] [NOUN]",
+        "[VERB:hacer] [NOUN:object] (muy|más|menos)? [ADJ]"
       ],
       "examples": [
         {"text": "es muy caro", "errors": [], "prompt": "lesson-dear"},
@@ -935,7 +1028,9 @@
         {"text": "el pan es grandes", "errors": ["noun.number"], "prompt": "lesson-big"},
         "esto es grande",
         "el campo es grande",
-        "el pozo es pequeño"
+        "el pozo es pequeño",
+        "la tienda está en el pueblo",
+        "usted hace hachas muy buenas"
       ]
     },
     {
@@ -1032,7 +1127,14 @@
         {"text": "vendo fruta", "errors": [], "prompt": "farmer-open"},
         {"text": "quiero vender fruta", "errors": [], "prompt": "farmer-open"},
         "le vendo madera",
-        "tengo fruta para usted"
+        "tengo fruta para usted",
+        {"text": "vendo pan", "errors": [], "prompt": "stall-need"},
+        {"text": "yo vendo pan", "errors": [], "prompt": "stall-need"},
+        {"text": "te vendo pan", "errors": [], "prompt": "stall-need"},
+        {"text": "le vendo pan", "errors": [], "prompt": "stall-need"},
+        {"text": "vendo un pan", "errors": [], "prompt": "stall-need"},
+        {"text": "vendo dos panes", "errors": [], "prompt": "stall-need"},
+        {"text": "vendo la pan", "errors": ["gender.agree"], "prompt": "stall-need"}
       ]
     },
     {

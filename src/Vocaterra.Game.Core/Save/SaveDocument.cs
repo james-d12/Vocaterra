@@ -58,8 +58,10 @@ namespace Vocaterra.Game.Core.Save;
 /// <param name="Sitting">The sitting the save was taken in (V25): the play session of the phrase-credit spacing rule, which a launch, a load and a sleep each begin. A load runs in the
 /// next one. <see langword="null"/> in a save from before V25, whose <see cref="Session"/> is then the sitting it continues from.</param>
 /// <param name="KeyWordsTaughtBy">The ids of the NPCs whose key words were taught (V23a). <see langword="null"/> in a save from before: its <see cref="KeyWordsTaught"/> then means the shopkeeper's.</param>
-/// <param name="Air">The player's air in ticks (version 6, water-plan H03 and H06); <see langword="null"/>, and left out of the file, while the breath is full.</param>
-/// <param name="Flow">The cells waiting for a flow update, in queue order (version 6, water-plan H06); <see langword="null"/>, and left out of the file, while none wait.</param>
+/// <param name="Systems">The systems that keep state of their own (version 7, N01): the player's needs now, the procedures later. <see langword="null"/> in a save from before version 7, which starts with full needs.</param>
+/// <param name="MetNpcs">The ids of the NPCs the player has talked to (L01): a class opens on having met its teacher, an order on having met its NPC. <see langword="null"/> in a save from before L01: from the second day on, every NPC then counts as met, as the days used to open them.</param>
+/// <param name="Air">The player's air in ticks (version 7, water-plan H03 and H06); <see langword="null"/>, and left out of the file, while the breath is full.</param>
+/// <param name="Flow">The cells waiting for a flow update, in queue order (version 7, water-plan H06); <see langword="null"/>, and left out of the file, while none wait.</param>
 public sealed record SaveDocument(
     string Format,
     int Version,
@@ -98,6 +100,8 @@ public sealed record SaveDocument(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? SkippedTo = null,
     int? Sitting = null,
     IReadOnlyList<string>? KeyWordsTaughtBy = null,
+    SystemsSave? Systems = null,
+    IReadOnlyList<string>? MetNpcs = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? Air = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<FlowEntry>? Flow = null);
 
@@ -110,8 +114,51 @@ public sealed record WorldDims(int ChunksX, int ChunksY, int ChunksZ);
 /// <summary>The player's settings in a save (S24). Presentation only: nothing here reaches the simulation, a turn, a digest or the replay.</summary>
 /// <param name="Sound">The volume of each sound category.</param>
 /// <param name="TextScale">The size of the interface text in percent (X08): one of <see cref="TextScaleLevels"/>; a save from before has 100.</param>
-public sealed record SaveSettings(SoundVolumes Sound, int TextScale = 100)
+/// <param name="ViewEffectsOff">True when the player turned the needs' effects on the view off (N05: dim edges, a blink, red edges; the icons and the lines stay). Written only when true, so a save of the default is byte for byte what it was.</param>
+/// <param name="RelaxedNeeds">True under the relaxed-needs setting (N05, design decision 17: half the rates, a faint instead of a death). Written only when true.</param>
+/// <param name="NeedsRate">The drive rate multiplier (N09), 0.5 to 4 in steps of 0.25; 0 (and so no field) is the default 1. Written only when not 1.</param>
+/// <param name="UnderwaterBlur">How much the view softens under water (water-plan H11): a <see cref="Water.UnderwaterBlur"/> as its number; no field is the default (low). Written only when the player chose another level. Optional, so it needs no save version.</param>
+public sealed record SaveSettings(
+    SoundVolumes Sound,
+    int TextScale = 100,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool ViewEffectsOff = false,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool RelaxedNeeds = false,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] double NeedsRate = 0,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Water.UnderwaterBlur? UnderwaterBlur = null)
 {
+    /// <summary>The drive rate of the default (N09); a save without the field reads 0, which stands for it.</summary>
+    public const double DefaultNeedsRate = 1.0;
+
+    /// <summary>The lowest drive rate.</summary>
+    public const double MinNeedsRate = 0.5;
+
+    /// <summary>The highest drive rate.</summary>
+    public const double MaxNeedsRate = 4.0;
+
+    /// <summary>The step of the drive rate slider.</summary>
+    public const double NeedsRateStep = 0.25;
+
+    /// <summary>The rate a value stands for: 0 (no field) is the default, anything else is clamped to 0.5 to 4 and snapped to a step of 0.25 (a hand-edited value, NaN included).</summary>
+    /// <param name="rate">The value read.</param>
+    public static double SnapNeedsRate(double rate)
+    {
+        if (rate == 0 || double.IsNaN(rate))
+        {
+            return DefaultNeedsRate;
+        }
+
+        return Math.Round(Math.Clamp(rate, MinNeedsRate, MaxNeedsRate) / NeedsRateStep) * NeedsRateStep;
+    }
+
+    /// <summary>The drive rate this setting stands for (the default when the field is absent).</summary>
+    [JsonIgnore]
+    public double EffectiveNeedsRate => SnapNeedsRate(NeedsRate);
+
+    /// <summary>The blur level this setting stands for: the saved level when it is a known one, otherwise the default (low).</summary>
+    [JsonIgnore]
+    public Water.UnderwaterBlur EffectiveUnderwaterBlur =>
+        UnderwaterBlur is { } level && Enum.IsDefined(level) ? level : Water.UnderwaterBlurSettings.Default;
+
     /// <summary>The text sizes the player can choose, in percent (X08): the normal size and two steps up.</summary>
     public static IReadOnlyList<int> TextScaleLevels { get; } = [100, 125, 150];
 
@@ -120,7 +167,7 @@ public sealed record SaveSettings(SoundVolumes Sound, int TextScale = 100)
     public static int SnapTextScale(int percent) => TextScaleLevels.OrderBy(level => Math.Abs(level - percent)).First();
 
     /// <summary>The same settings with the volumes limited to 0 to 1 and the text scale on a level.</summary>
-    public SaveSettings Clamped() => new(Sound.Clamped(), SnapTextScale(TextScale));
+    public SaveSettings Clamped() => new(Sound.Clamped(), SnapTextScale(TextScale), ViewEffectsOff, RelaxedNeeds, SnapNeedsRate(NeedsRate) == DefaultNeedsRate ? 0 : SnapNeedsRate(NeedsRate), EffectiveUnderwaterBlur == Water.UnderwaterBlurSettings.Default ? null : EffectiveUnderwaterBlur);
 }
 
 /// <summary>
@@ -337,3 +384,98 @@ public sealed record SkillSave(string SkillId, double PKnown, int Attempts, int 
 /// <param name="Tag">The tag.</param>
 /// <param name="Count">The count.</param>
 public sealed record RepeatSave(string Tag, int Count);
+
+/// <summary>
+/// The game's systems that keep state of their own (save version 7, N01): a map from a system's name to its entry, so a system joins the save without another format change.
+/// <c>needs</c> is the player's needs; <c>chest</c> the belongings a death left (N04); W06 adds <c>procedures</c>. An entry a save lacks (every save before version 7) is the system as a new game has it.
+/// </summary>
+/// <param name="Needs">The player's needs (<see cref="Vocaterra.Game.Core.Needs.PlayerNeeds"/>), or <see langword="null"/> for full needs.</param>
+/// <param name="Chest">The belongings chest a death left standing (its cell and what is in it), or <see langword="null"/> for none. The chest block itself is in the world's block edits.</param>
+/// <param name="Bushes">The cells of the berry bushes picked by hand since the last night (N06): each is a plain bush in the world's block edits until a night grows it back; <see langword="null"/> for none.</param>
+/// <param name="Gifts">The gifts given today (N06, <c>GiftRule.Key</c>: <c>shopkeeper:bread</c>), which the next night makes available again; <see langword="null"/> for none.</param>
+/// <param name="Planted">The berry bushes planted at the camp that stand (N08): each is also in <paramref name="Bushes"/> until a night grows it; <see langword="null"/> for none.</param>
+/// <param name="Procedures">The procedures (W06): what the learner knows, their records and the run in progress; <see langword="null"/> in a save made before W06 or with none, which starts with none.</param>
+public sealed record SystemsSave(
+    Vocaterra.Game.Core.Needs.NeedsSave? Needs = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] ChestSave? Chest = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] BushSave[]? Bushes = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string[]? Gifts = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] BushSave[]? Planted = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] ProceduresSave? Procedures = null);
+
+/// <summary>A cell of a picked berry bush (N06, design 9.6) that a night grows back.</summary>
+/// <param name="X">The cell's X.</param>
+/// <param name="Y">The cell's Y.</param>
+/// <param name="Z">The cell's Z.</param>
+public sealed record BushSave(int X, int Y, int Z);
+
+/// <summary>The belongings chest of a death (N04, design 9.7): the cell of its block and the stacks it holds.</summary>
+/// <param name="X">The cell's X.</param>
+/// <param name="Y">The cell's Y.</param>
+/// <param name="Z">The cell's Z.</param>
+/// <param name="Stacks">What is in it, one entry per item kind.</param>
+public sealed record ChestSave(int X, int Y, int Z, SlotSave[] Stacks);
+
+/// <summary>The procedures of a save (W06, <c>systems.procedures</c>, design 10.13): the records, the evidence of acts, and the run in progress.</summary>
+/// <param name="Version">The entry's version (1).</param>
+/// <param name="Known">The procedures the learner has started.</param>
+/// <param name="Progress">The records, one per procedure started.</param>
+/// <param name="Evidence">The right acts per instruction row, heard and read apart.</param>
+/// <param name="Run">The run in progress, or <see langword="null"/>.</param>
+/// <param name="OfferedToday">The NPCs whose offer to bake was made since the last night (W08, design 10.14: once per in-game day); <see langword="null"/> for none.</param>
+/// <param name="GrantedToday">The procedures whose ingredients a teacher gave since the last night (W08, design decision 20: once per in-game day after the first bake); <see langword="null"/> for none, and in a save made before W08.</param>
+public sealed record ProceduresSave(
+    int Version,
+    string[] Known,
+    ProcedureProgressSave[] Progress,
+    ActEvidenceSave[] Evidence,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] ProcedureRunSave? Run = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string[]? GrantedToday = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string[]? OfferedToday = null);
+
+/// <summary>One procedure's record in a save.</summary>
+/// <param name="Id">The procedure.</param>
+/// <param name="Runs">Runs started.</param>
+/// <param name="Completed">Runs finished.</param>
+/// <param name="CleanSittings">The play sessions in which it was finished without help.</param>
+/// <param name="FirstTimeSteps">Steps right the first time, over all runs.</param>
+/// <param name="Mastered">Whether it is mastered.</param>
+public sealed record ProcedureProgressSave(string Id, int Runs, int Completed, int[] CleanSittings, int FirstTimeSteps, bool Mastered);
+
+/// <summary>The right acts on one instruction row in a save, by how it was presented.</summary>
+/// <param name="Row">The row.</param>
+/// <param name="Heard">Acts with the audio played.</param>
+/// <param name="Read">Acts with the text shown.</param>
+public sealed record ActEvidenceSave(string Row, int Heard, int Read);
+
+/// <summary>The run in progress (design 10.13): the drawn order, the steps done, the slips, the steps helped and what is shown or folded.</summary>
+/// <param name="Procedure">The procedure.</param>
+/// <param name="Station">The station.</param>
+/// <param name="State">The state: <c>InRun</c>, <c>ReadyToCollect</c> or <c>Done</c>.</param>
+/// <param name="Teacher">Whether the teacher is present.</param>
+/// <param name="Bake">The run's number (the draw's index).</param>
+/// <param name="Order">The steps in the drawn order.</param>
+/// <param name="Done">The steps done.</param>
+/// <param name="Slips">The wrong acts per step.</param>
+/// <param name="Helped">The steps done or shown with help.</param>
+/// <param name="Shown">The rows whose instruction was shown this run.</param>
+/// <param name="Folded">The chunks (and <c>goal</c>) shown folded this run.</param>
+/// <param name="Unfolded">The chunks (and <c>goal</c>) help unfolded this run.</param>
+public sealed record ProcedureRunSave(
+    string Procedure,
+    string Station,
+    string State,
+    bool Teacher,
+    int Bake,
+    string[] Order,
+    string[] Done,
+    SlipSave[] Slips,
+    string[] Helped,
+    string[] Shown,
+    string[] Folded,
+    string[] Unfolded);
+
+/// <summary>The wrong acts on one step.</summary>
+/// <param name="Step">The step's id.</param>
+/// <param name="Count">How many.</param>
+public sealed record SlipSave(string Step, int Count);

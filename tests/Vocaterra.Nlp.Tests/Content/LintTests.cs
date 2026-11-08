@@ -150,6 +150,7 @@ public class LintTests
     public void TheBundleIsFullyReachableAndReservedPoolsAreNeverReported()
     {
         Assert.Empty(Of(Sample, "reach.pool"));
+        // M74 read the weather intents off the prompt (an info each); the game's V29 allows them at the NPCs' open prompts, so every intent is reachable.
         Assert.Empty(Of(Sample, "reach.intent"));
         Assert.Empty(Of(Sample, "reach.answer-set"));
         Assert.Empty(Of(Sample, "reach.agent"));
@@ -324,9 +325,10 @@ public class LintTests
     [Fact]
     public void AnExampleThePromptGivesToTheOtherIntentIsAnError()
     {
-        // fx_rule is covered by a keyword rule only, so the grammar rung hands "gracias" to fx_sp when a prompt allows both.
+        // fx_rule is covered by a keyword rule only, so the grammar rung hands "bola" to fx_sp when a prompt allows both. M74: the word is one no grammar of the
+        // bundle names, since a grammar the prompt does not allow takes a word it names from one that reads only its class (gracias is thank's).
         using var fixture = new LintFixture()
-            .Intent("{\"intentId\":\"fx_rule\",\"keywordRules\":[{\"lemmas\":[\"gracias\"]}],\"examples\":[\"gracias\"]}")
+            .Intent("{\"intentId\":\"fx_rule\",\"keywordRules\":[{\"lemmas\":[\"bola\"]}],\"examples\":[\"bola\"]}")
             .Intent(Spell.Replace("%LINT%", string.Empty))
             .Prompt("fx-both", "fx_rule", "fx_sp");
 
@@ -486,14 +488,18 @@ public class LintTests
     }
 
     [Fact]
-    public void AnIntentNoPromptAllowsIsAWarning()
+    public void AnIntentNoPromptAllowsIsAWarningUnlessItIsReadOffThePrompt()
     {
-        using var fixture = new LintFixture().Intent(BuyIntent);
+        // M74: an intent with a grammar or a keyword rule is read off the prompt at every prompt that lists its intents (M72), so it is an info; one with examples
+        // alone is reached by nothing.
+        using var fixture = new LintFixture()
+            .Intent(BuyIntent)
+            .Intent("{\"intentId\":\"fx_examples\",\"examples\":[\"compro una espada\"]}");
 
         var report = fixture.Lint();
 
-        Assert.Single(Of(report, "reach.intent", "fx_buy"));
-        Assert.Single(Of(report, "reach.intent"));
+        Assert.Equal(LintSeverity.Info, Assert.Single(Of(report, "reach.intent", "fx_buy")).Severity);
+        Assert.Equal(LintSeverity.Warning, Assert.Single(Of(report, "reach.intent", "fx_examples")).Severity);
     }
 
     [Fact]
@@ -624,7 +630,7 @@ public class LintTests
     [Fact]
     public void AnExampleMayNameThePromptItIsGradedAgainst()
     {
-        // The constrained prompt expects an answer-set phrase, so a near miss of one gets vocab.wrong there (cuál es esto for qué es esto, M67); the same
+        // The constrained prompt expects an answer-set phrase, so a near miss of one gets vocab.wrong there (cuál es esto for qué es esto, M67 and M75); the same
         // text passes against the open prompt. A sentence the constrained prompt does not take, far from its answers, gets no error there (M72: hola, quiero dos
         // espadas at the stall, which takes no greeting, was vocab.wrong before), and a sentence it understands gets none either (M67).
         using var fixture = new LintFixture()

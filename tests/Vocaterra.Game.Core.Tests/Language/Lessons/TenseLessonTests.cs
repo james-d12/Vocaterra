@@ -2,11 +2,9 @@ using System.Globalization;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Words;
-using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
-using Vocaterra.Game.Core.Tip;
 using Vocaterra.Nlp.Es;
 using Xunit.Abstractions;
 
@@ -29,7 +27,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
         session.Day = 3;
         session.Sitting = 3;
         Stage.TeleportToNpc(session, "villager");
-        _ = session.OpenTalk("villager");
+        _ = session.OpenTalkForClass("villager");
         return session;
     }
 
@@ -37,7 +35,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
     private static void CompletePersonasSilently(VoxelSession session)
     {
         Stage.TeleportToNpc(session, "villager");
-        _ = session.OpenTalk("villager");
+        _ = session.OpenTalkForClass("villager");
         Assert.Equal("personas", session.Lessons.Current is null ? null : session.Lessons.Active!.Id);
         while (session.Lessons.StatusOf("personas") == LessonStatus.InProgress)
         {
@@ -45,7 +43,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
             {
                 session.EndTalk();
                 Stage.TeleportToNpc(session, "shopkeeper");
-                _ = session.OpenTalk("shopkeeper");
+                _ = session.OpenTalkForClass("shopkeeper");
                 continue;
             }
 
@@ -64,7 +62,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
             {
                 session.EndTalk();
                 Stage.TeleportToNpc(session, "shopkeeper");
-                _ = session.OpenTalk("shopkeeper");
+                _ = session.OpenTalkForClass("shopkeeper");
                 continue;
             }
 
@@ -84,7 +82,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
     {
         var lesson = Book.Find(LessonId)!;
 
-        Assert.Equal(("villager", 3, true), (lesson.Npc, lesson.Session, lesson.AutoStart));
+        Assert.Equal(("villager", 3, false), (lesson.Npc, lesson.Session, lesson.AutoStart));
         Assert.Contains("Ayer y mañana", lesson.Objective, StringComparison.Ordinal); // the objective names it
         Assert.StartsWith("Session 3", lesson.Objective, StringComparison.Ordinal);
         Assert.Equal(["villager", "shopkeeper"], lesson.Steps.Select(lesson.NpcOf).Distinct());
@@ -131,56 +129,18 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void SessionThreeUnlocksTheLessonFirstAndTheObjectiveNamesItWhileSessionTwosLessonStaysOnOffer()
+    public void ALessonsDoStepIsInTheTrackerOnlyWhenTheLessonStripDoesNotShowIt()
     {
-        var session = TestGame.NewSessionWithShippedLessons();
-        session.Day = 3;
-        session.Sitting = 3;
-
-        Assert.Equal(LessonId, session.Lessons.OfferFor("villager")!.LessonId); // the newest session's lesson first, even when session 2's is not done
-        Assert.Equal(LessonId, session.Lessons.NewLesson!.Id);
-        Assert.Equal(LessonId, session.Lessons.NewLesson!.Id);
-        var piece = Assert.Single(session.ObjectiveHud());
-        Assert.Equal("Session 3: go to the village and talk to the villager to start the lesson “Ayer y mañana”", piece.Text);
-        Assert.Equal(ObjectivePieceKind.Support, piece.Kind);
-        session.BeginPlaySession();
-        var villager = session.Scene.Npc("villager").Feet;
-        Assert.Equal(new GuideCell(villager.X, villager.Y, villager.Z), session.Pointer!.Target);
-
-        Stage.TeleportToNpc(session, "villager");
-        _ = session.OpenTalk("villager");
-        Assert.Equal("f0-intro", session.Lessons.Current!.Id);
-        var walked = false;
-        while (session.Lessons.StatusOf(LessonId) == LessonStatus.InProgress)
+        var session = SessionThreeAtVillager();
+        while (session.Lessons.Current is { } step && step.Id != "f3-walk")
         {
-            if (session.Lessons.Current is { Id: "f3-walk" } && !walked)
-            {
-                walked = true;
-                session.EndTalk();
-                Stage.TeleportToNpc(session, "shopkeeper");
-                _ = session.OpenTalk("shopkeeper");
-                continue;
-            }
-
             _ = LessonDriver.DoStep(session);
         }
 
-        session.EndTalk();
-        Assert.Equal("personas", session.Lessons.OfferFor("villager")!.LessonId); // and then session 2's lesson, still not done
-        Assert.Equal("personas", session.Lessons.NewLesson!.Id);
-    }
-
-    [Fact]
-    public void TheLessonIsNotOfferedBeforeSessionThree()
-    {
-        var session = TestGame.NewSessionWithShippedLessons();
-        session.Day = 2;
-        session.Sitting = 2;
-        CompletePersonasSilently(session);
-
-        Assert.Null(session.Lessons.OfferFor("villager"));
-        Assert.Null(session.Lessons.NewLesson);
-        Assert.Equal(LessonStatus.NotStarted, session.Lessons.StatusOf(LessonId));
+        var line = session.Lessons.HudLine!;
+        Assert.Equal(line, session.ObjectiveTracker(lessonStripShown: false).Lines[0].Pieces.Single().Text); // out in the world, the tracker carries the step
+        var inStrip = session.ObjectiveTracker(lessonStripShown: true); // the panel is open at the lesson's NPC: the strip says it, the tracker does not
+        Assert.DoesNotContain(inStrip.Lines, l => l.Pieces.Any(p => p.Text == line));
     }
 
     [Fact]
@@ -199,7 +159,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
         Assert.Equal("Walk to the stall and talk to the shopkeeper", session.Lessons.HudLine);
         session.EndTalk();
         Stage.TeleportToNpc(session, "shopkeeper");
-        var opening = session.OpenTalk("shopkeeper");
+        var opening = session.OpenTalkForClass("shopkeeper");
         Assert.Empty(opening.Lines); // the shopkeeper's lesson speaks first
         Assert.Equal("y0-intro", session.Lessons.Current!.Id);
 
@@ -363,7 +323,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
             """;
         var session = TestGame.NewSession(lessons: TestGame.Lessons(Plain));
         Stage.TeleportToNpc(session, "guide");
-        _ = session.OpenTalk("guide");
+        _ = session.OpenTalkForClass("guide");
         Assert.True(session.Lessons.Start("t"));
 
         _ = session.Say("como pan"); // no tense declared: the intent is all that counts
@@ -419,8 +379,9 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
     public void AWrongPersonMissIsNotCreditedAsAUseOfThePhrase()
     {
         var session = TestGame.NewSessionWithShippedLessons();
+        session.Lessons.CountAsCompleted("first-words", 1); // the verb unit is Luna's first class (L01)
         Stage.TeleportToNpc(session, "guide");
-        _ = session.OpenTalk("guide");
+        _ = session.OpenTalkForClass("guide");
         while (session.Lessons.Current is { } step && step.Id != "u4v-say-want")
         {
             _ = LessonDriver.DoStep(session);
@@ -474,7 +435,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
     {
         var session = TestGame.NewSessionWithShippedLessons();
         Stage.TeleportToNpc(session, "shopkeeper");
-        _ = session.OpenTalk("shopkeeper");
+        _ = session.OpenTalkForClass("shopkeeper");
 
         _ = session.Say("quiero agua, por favor");
 
@@ -537,7 +498,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
         var session = AtStep("f3-walk");
         session.EndTalk();
         Stage.TeleportToNpc(session, "shopkeeper");
-        _ = session.OpenTalk("shopkeeper");
+        _ = session.OpenTalkForClass("shopkeeper");
         while (session.Lessons.StatusOf(LessonId) == LessonStatus.InProgress)
         {
             _ = LessonDriver.DoStep(session);
@@ -545,9 +506,9 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
 
         session.EndTalk();
         Assert.True(session.Lessons.RequestReplay(LessonId));
-        Assert.Equal("Practise again: talk to the villager to start “Ayer y mañana: yesterday and tomorrow”", session.Lessons.ReplayHud);
+        Assert.Equal("Practise again: talk to the villager to start “Ayer y mañana”", session.Lessons.ReplayHud);
         Stage.TeleportToNpc(session, "villager");
-        _ = session.OpenTalk("villager");
+        _ = session.OpenTalkForClass("villager");
 
         Assert.Equal("f0-intro", session.Lessons.Current!.Id);
         Assert.Equal("villager", session.Lessons.CurrentNpc);
@@ -569,11 +530,11 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
         var loaded = SaveGame.Load(text, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped);
 
         Assert.Equal(3, loaded.Day);
-        Assert.Equal(LessonId, loaded.Lessons.NewLesson!.Id);
+        Assert.Equal(LessonId, loaded.Lessons.OpenClass()!.Id);
         Assert.NotNull(loaded.Pointer); // the beacon points at the villager
 
         Stage.TeleportToNpc(loaded, "villager");
-        _ = loaded.OpenTalk("villager");
+        _ = loaded.OpenTalkForClass("villager");
         for (var i = 0; i < 6; i++)
         {
             _ = LessonDriver.DoStep(loaded);

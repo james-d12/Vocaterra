@@ -14,11 +14,35 @@
     ]
   },
   "prompts": {
-    "idle": "baker-open"
+    "idle": "baker-open",
+    "offering_bake": "baker-offer",
+    "teaching": "baker-proc"
   },
   "opening": {
     "event": "baker.greet",
     "when": "always"
+  },
+  "acknowledgementPools": [
+    "baker_nice"
+  ],
+  "slotReplies": {
+    "state_weather": {
+      "slot": "weather",
+      "event": "baker.weather",
+      "values": [
+        "mucho frío",
+        "mucho calor",
+        "mucho sol",
+        "mucho viento",
+        "frío",
+        "calor",
+        "sol",
+        "viento",
+        "fresco",
+        "buen tiempo",
+        "mal tiempo"
+      ]
+    }
   },
   "voice": {
     "speaker": 35,

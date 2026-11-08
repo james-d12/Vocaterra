@@ -26,7 +26,8 @@ in `docs/nlp/api.md` updates that record.
 ## Start of a session
 
 1. `git status`, `git log --oneline -8`, `git worktree list` (remove leftovers with `git worktree remove --force <path>` and
-   `git branch -D <branch>`), and the machine check below.
+   `git branch -D <branch>`, but never a worktree the open handover names as in progress: inspect it as step 4 says), and the machine
+   check below.
 2. List the open handovers (`ls docs/handovers/*.md`, everything but the README; `done/` is history) and read the one for the current
    branch and workstream; with several open, say which you pick up. Verify its branch, commits, pending changes and next steps against
    the checkout; a handover does not authorise new work by itself.
@@ -42,7 +43,8 @@ in `docs/nlp/api.md` updates that record.
    `W`), for example `V29: `.
 2. **Launch** with `subagent_type: general-purpose` and the model and effort from "Models" below. Give it its own worktree
    (`isolation: worktree`, or `git worktree add -b <branch> .claude/worktrees/<id> <feature branch>` when disk is short). The agent
-   commits and pushes its milestone branch often (owner, 2026-10-30).
+   commits its milestone branch often and never pushes it: only the feature branch goes to the remote (owner, 2026-11-05: "Local
+   branches are fine, but we dont need to push those ones to remote"; it replaces the 2026-10-30 rule of pushing every milestone branch).
 3. **Verify the report cheaply** before merging: the branch exists and is clean, `git diff --stat <merge-base>..<branch>` matches the
    report, no unexplained deletions, nothing under `.github/workflows/` unless its brief names it, no edits to either plan or decision
    register, nothing under `bin/`, `obj/` or `artifacts/`, and no game milestone edited the core (or a core milestone the game) unless its
@@ -58,35 +60,46 @@ in `docs/nlp/api.md` updates that record.
    `git push origin <feature branch>`.
 7. **Clean up:** `git worktree remove --force` and `git branch -D`. The owner deletes merged remote branches; the permission check
    refuses remote deletes.
-8. **Report to the owner:** outcome first, bugs found, numbers that change a decision, open decisions.
-9. **QA (optional):** after a front-end, content or language milestone, launch `subagent_type: qa` on the feature branch's checkout with
-   one area in the prompt (`.claude/agents/qa.md`); it counts as the one agent at a time. Add one row per bug to the triage table in
+8. **Update the handover** of the workstream (see "Writing a handover"): what was gated, what runs now and where, what is next; commit
+   and push it with the record or right after. Do the same after every launch and every owner decision, so a crash or a fresh session
+   loses nothing (owner, 2026-11-05).
+9. **Report to the owner:** outcome first, bugs found, numbers that change a decision, open decisions.
+10. **QA (optional):** after a front-end, content or language milestone, launch `subagent_type: qa` on the feature branch's checkout with
+   one area in the prompt (`.claude/agents/qa.md`); it counts as one of the two building agents. Add one row per bug to the triage table in
    `docs/qa-reports/README.md`, log the confirmed bugs in the findings log and plan the fixes as milestones; when a milestone fixes a bug,
    set its row to `fixed` with the milestone id.
 
 ## Models
 
+The owner, 2026-11-06: "Sonnet, Medium, or even High can be used for medium-sized tasks and Haiku agents for small tasks." A milestone's
+size is its plan row's.
+
 | Work | Model | Effort |
 | --- | --- | --- |
-| The default: content, docs, tests, mechanical code, re-verification, most feature milestones | Haiku 5.5 | default |
-| Design-heavy work (a new scene, a state machine, a new algorithm or cross-module design in the core, the host's architecture), or after a Haiku attempt failed the gate twice or its report did not verify | Sonnet 5.5 | default |
+| Small tasks (size S): content, docs, tests, mechanical code, re-verification, small fixes | Haiku 5.5 | default |
+| Medium tasks (size S/M or M) that touch a system's logic, or after a Haiku attempt failed the gate twice or its report did not verify | Sonnet 5.5 | medium |
+| Large or design-heavy work (size M/L or L; a new scene, a state machine, a new algorithm or cross-module design in the core, the host's architecture) | Sonnet 5.5 | high |
 | Research and architecture reviews, only when the owner asks | Opus 5.5 | default |
-| A series whose decision names its model: the V series (D-game-22) | Opus 5.5 | xhigh |
+| A series whose decision names its model (none since 2026-11-06: the V series follows the size rule, D-game-22) | as named | as named |
 
 Never set an effort level the owner or a decision has not asked for, and never raise a model or effort for length. One agent per
-milestone, one agent at a time.
+milestone, at most two building agents at a time.
 
-## Machine resources (owner, 2026-10-22: never max out the computer)
+## Machine resources (owner, 2026-10-22: never max out the computer; 2026-11-05: up to two agents within the machine's limits)
 
-The desktop crashed twice on 2026-10-22 when two agents built and tested at once (16 cores, 11 GiB of RAM, 2 GiB of swap).
+The desktop crashed twice on 2026-10-22 when two agents built and tested at once with no limits (16 cores, 11 GiB of RAM, 2 GiB of
+swap). On 2026-11-05 the owner allowed two agents at once, "so long as it's within the maximum CPU and memory usage of the machine".
 
-- **One agent at a time.** Do not launch a second agent while one is running, even on disjoint directories. The only exception is an
-  agent that runs no build, test or `dotnet run` at all (pure reading or writing docs), and then at most two in total.
+- **At most two building agents at a time**, on milestones whose dependencies are met and whose code does not overlap (both may edit
+  `content/game-v1`: the second to merge re-runs the content loop on its merge). An agent that runs no build, test or `dotnet run` at all
+  (pure reading or writing docs) may run beside them, at most three in total. Each agent's worktree takes about 3.5 GB once built: check
+  the disk before launching the second.
 - **Every heavy command goes through `scripts/limited.sh`**: `dotnet restore|build|test|format|run`, `scripts/content.sh`,
-  `scripts/prerender-speech.sh`, the licence scan, screenshot runs. It holds one machine-wide lock, waits until at least 3 GB is free and
-  the load is under the core count, then runs the command capped at 6 GB of RAM, no swap and 10 of 16 cores, with MSBuild node reuse and
-  the compiler servers off. A command over the cap is killed inside its scope (exit 137); the fix is lower parallelism, never a higher cap
-  without the owner. Builds use `-m:4`, tests `-m:2`. `scripts/test.sh` and `scripts/content-loop.sh` call it themselves; it is
+  `scripts/prerender-speech.sh`, the licence scan, screenshot runs. It has two machine-wide slots (a third command waits), waits until
+  at least 3 GB is free and the load is under the core count, then runs the command capped at 6 GB of RAM, no swap and 10 of 16 cores, in
+  one slice that caps all of them together at 8 GB and 14 cores, with MSBuild node reuse and the compiler servers off; it prints each
+  command's peak memory. A command over a cap is killed inside its scope (exit 137 or 143); the fix is lower parallelism or a rerun when
+  the other slot is free, never a higher cap without the owner. `VOCATERRA_HEAVY_SLOTS=1` restores one at a time. Builds use `-m:4`, tests `-m:2`. `scripts/test.sh` and `scripts/content-loop.sh` call it themselves; it is
   re-entrant (M67).
 - **Test tiers** (`docs/process/test-performance-plan.md`): `scripts/test.sh fast` for every step, `scripts/test.sh full` at a milestone
   and in the gate (the gate and CI always run the full suite). A test that takes more than a few seconds alone, needs a model or starts a
@@ -109,16 +122,22 @@ than this machine, so a timing test needs a wide margin (M60). The owner's CI re
 
 ## Writing a handover
 
-Before ending a session, pausing work, or handing it to another session, write a new handover in `docs/handovers/`, and whenever the
-owner asks for one. Write it before the final report to the owner and link it there.
+Every workstream in progress has one open handover in `docs/handovers/`, and it is **kept current** (owner, 2026-11-05: "after any
+milestone or any completion of work ... update the handover document with the details ... in case the computer crashes or we need to
+clear and start a new agent"): rewrite it in place, with its `Updated:` line, after every gate, every launch or stop of an agent, every
+owner decision and before a pause. Write a new handover (and move the old one to `done/`) when you pick up a workstream from an earlier
+session, when the owner asks, or before ending a session; link it in the final report. A fresh session starts from it ("Start of a
+session" above), so it must name every running agent with its worktree, branch and brief, and say how to resume each if its report is lost.
 
 - Name it `YYYY-MM-DD-HHMM-<slug>.md`, using the actual creation time in **UTC** (`date -u +%Y-%m-%d-%H%M`) and a short lowercase
   kebab-case slug naming the workstream. Example: `2026-11-03-1430-village-followups.md`. If the name already exists, append `-2`, `-3`;
-  never overwrite or edit an earlier handover.
+  never overwrite another session's handover; edit only the open one you keep current. A handover in `done/` is frozen.
 - **Open or done.** The top of `docs/handovers/` holds only open handovers: work with next steps still to do, at most one per workstream.
   When you write a handover for a workstream, `git mv` the one you picked up into `docs/handovers/done/` in the same change; when a
   workstream's work is finished (merged, or dropped by the owner), move its last handover there too. Search for the moved file's name and
-  repair links and literal paths to it.
+  repair links and literal paths to it, then run the doc-link test before pushing (`scripts/test.sh project tests/Vocaterra.Nlp.Tests`
+  with `--filter MarkdownLinkTests`, or `scripts/limited.sh dotnet test tests/Vocaterra.Nlp.Tests -m:2 --filter MarkdownLinkTests`): a move
+  on 2026-11-05 left one stale link that a later sync caught.
 - Follow the template in [docs/handovers/README.md](../../docs/handovers/README.md) and update its index (open first, then done).
   Include the branch, HEAD commit, worktree, uncommitted work, completed and unfinished work, checks actually run and their results,
   blockers and owner decisions, and the ordered next steps. Name any surviving agents or processes and how to resume or stop them.

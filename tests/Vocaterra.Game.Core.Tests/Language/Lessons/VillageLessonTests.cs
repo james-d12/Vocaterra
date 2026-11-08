@@ -26,7 +26,7 @@ public sealed class VillageLessonTests(ITestOutputHelper output)
         session.Day = 3;
         session.Sitting = 3;
         Stage.TeleportToNpc(session, "villager");
-        _ = session.OpenTalk("villager");
+        _ = session.OpenTalkForClass("villager");
         Assert.Equal("ayer-y-manana", session.Lessons.Active!.Id);
         while (session.Lessons.StatusOf("ayer-y-manana") == LessonStatus.InProgress)
         {
@@ -34,7 +34,7 @@ public sealed class VillageLessonTests(ITestOutputHelper output)
             {
                 session.EndTalk();
                 Stage.TeleportToNpc(session, "shopkeeper");
-                _ = session.OpenTalk("shopkeeper");
+                _ = session.OpenTalkForClass("shopkeeper");
                 continue;
             }
 
@@ -45,7 +45,7 @@ public sealed class VillageLessonTests(ITestOutputHelper output)
         session.Day = 4;
         session.Sitting = 4;
         Stage.TeleportToNpc(session, "fisher");
-        _ = session.OpenTalk("fisher");
+        _ = session.OpenTalkForClass("fisher");
         return session;
     }
 
@@ -68,7 +68,7 @@ public sealed class VillageLessonTests(ITestOutputHelper output)
         {
             session.EndTalk();
             Stage.TeleportToNpc(session, npc);
-            _ = session.OpenTalk(npc);
+            _ = session.OpenTalkForClass(npc);
             return null;
         }
 
@@ -82,7 +82,7 @@ public sealed class VillageLessonTests(ITestOutputHelper output)
     {
         var lesson = Book.Find(LessonId)!;
 
-        Assert.Equal(("fisher", 4, true, "ayer-y-manana"), (lesson.Npc, lesson.Session, lesson.AutoStart, lesson.After));
+        Assert.Equal(("fisher", 4, false, "ayer-y-manana"), (lesson.Npc, lesson.Session, lesson.AutoStart, lesson.After));
         Assert.StartsWith("Session 4", lesson.Objective, StringComparison.Ordinal);
         Assert.Contains("bridge", lesson.Objective, StringComparison.Ordinal); // the objective line sends the player down the road to the bridge
         Assert.Contains("El pueblo", lesson.Objective, StringComparison.Ordinal);
@@ -333,7 +333,7 @@ public sealed class VillageLessonTests(ITestOutputHelper output)
         var session = TestGame.NewSessionWithShippedLessons(); // session 1: El pueblo is not unlocked, so he talks as himself
         Stage.TeleportToNpc(session, "fisher");
 
-        Assert.Equal(["¡Hola!"], session.OpenTalk("fisher").Lines); // he greets at every talk
+        Assert.Equal(["¡Hola!"], session.OpenTalkForClass("fisher").Lines); // he greets at every talk
         var far = session.Say("¿Está lejos?");
         Assert.Equal(["¿Lejos? ¿Qué buscas?"], far.GuideLines); // nothing was asked for yet
 
@@ -353,13 +353,13 @@ public sealed class VillageLessonTests(ITestOutputHelper output)
     // ---- The order
 
     [Fact]
-    public void TheOrderOfFruitCountsFromSessionFourAndBringingThreeFruitsPaysTwoCoins()
+    public void TheOrderOfFruitOpensOnMeetingMarAndBringingThreeFruitsPaysTwoCoins()
     {
         var early = TestGame.NewSessionWithShippedLessons();
         _ = early.Simulation.GrantItems(ItemId.Berry, 3);
         Stage.TeleportToNpc(early, "fisher");
-        Assert.False(early.OpenTalk("fisher").Delivered); // before its session the order is not open: the fruit stays
-        Assert.Equal(3, early.Simulation.Inventory.Count(ItemId.Berry));
+        Assert.True(early.OpenTalkForClass("fisher").Delivered); // L01: an order opens once its NPC is met, whatever the day: the first talk takes the fruit
+        Assert.Equal(0, early.Simulation.Inventory.Count(ItemId.Berry));
 
         var session = TestGame.NewSessionWithShippedLessons();
         session.Day = 4;
@@ -367,7 +367,7 @@ public sealed class VillageLessonTests(ITestOutputHelper output)
         _ = session.Simulation.GrantItems(ItemId.Berry, 4);
         Stage.TeleportToNpc(session, "fisher");
 
-        var opening = session.OpenTalk("fisher"); // walking up with the fruit is enough (D-game-8, D-game-9)
+        var opening = session.OpenTalkForClass("fisher"); // walking up with the fruit is enough (D-game-8, D-game-9)
 
         Assert.True(opening.Delivered);
         Assert.Equal(["¡Gracias! Toma dos monedas."], opening.Lines);
@@ -397,13 +397,13 @@ public sealed class VillageLessonTests(ITestOutputHelper output)
     {
         var session = TestGame.NewSessionWithShippedLessons();
         Stage.TeleportToNpc(session, "villager");
-        _ = session.OpenTalk("villager");
+        _ = session.OpenTalkForClass("villager");
         Assert.True(session.Say("hola").Communicated); // hola said in session 1, at the villager
         session.EndTalk();
         session.Day = 2; // a new play session: hola is due
         session.Sitting = 2;
 
-        _ = session.OpenTalk("villager");
+        _ = session.OpenTalkForClass("villager");
 
         var step = session.Lessons.Current!;
         Assert.Equal(("p0-hello", LessonStepType.Review, "hola", "Hola."), (step.Id, step.Type, step.Phrase, step.Line!.Text));

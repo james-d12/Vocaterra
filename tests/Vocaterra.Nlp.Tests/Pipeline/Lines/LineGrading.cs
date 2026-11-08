@@ -18,6 +18,17 @@ internal static class LineGrading
         Assert.Equal(Describe(prompt, line, intent, communicated, errors), Describe(prompt, line, verdict.Intent.Value, verdict.Communicated, ErrorsOf(verdict)));
     }
 
+    /// <summary>The same check, with the intent the line has off the prompt (M72; <c>none</c> when there is none) beside the others (M74).</summary>
+    public static void Check(string prompt, string line, string intent, bool communicated, string[] errors, string offPrompt)
+    {
+        var spec = TestSupport.Bundle.Prompts[prompt];
+        var verdict = TestSupport.Pipeline(line, spec.Mode).Evaluate(TestSupport.Clip(), spec, TestSupport.Context(agentId: spec.AgentId ?? "player")).Verdict;
+
+        Assert.Equal(
+            Describe(prompt, line, intent, communicated, errors) + " off-prompt=" + offPrompt,
+            Describe(prompt, line, verdict.Intent.Value, verdict.Communicated, ErrorsOf(verdict)) + " off-prompt=" + (verdict.OffPromptIntent?.Value ?? "none"));
+    }
+
     private static string Describe(string prompt, string line, string intent, bool communicated, string[] errors) =>
         $"{prompt} | {line} => {intent} communicated={communicated} errors=[{string.Join(' ', errors)}]";
 }

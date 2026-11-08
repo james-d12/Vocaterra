@@ -32,14 +32,19 @@ public static class Program
         Vocaterra.Nlp.Bench - ASR benchmark over the golden manifest
 
         Usage:
-          --manifest <manifest.jsonl> --content <dir> [--models <dir>] [--mode constrained|open] [--audio-dir <dir>]
+          --manifest <manifest.jsonl> --content <dir> [--models <dir>] [--mode constrained|open] [--audio-dir <dir>] [--open-fallback] [--open-vosk]
 
           --mode       force one recognition mode for every entry (default: each prompt's own mode)
           --audio-dir  where the clips are looked up (default: the manifest's directory)
           --models     the models directory; only needed when the manifest has entries
+          --open-fallback  after every constrained decode also run the open decode the pipeline's OpenRecognitionFallback (M80) would run, timed on its own,
+                           and report it as an extra row in mode Open (the upper bound: the pipeline decodes again only when the first reading is not taken or looks forced)
+          --open-vosk      decode open mode with Vosk even when Parakeet is present (the free decode the game would use), so both passes run on one model
         """;
 
     private static readonly string[] ValueOptions = ["--manifest", "--content", "--models", "--mode", "--audio-dir"];
+
+    private static readonly string[] Flags = ["--open-fallback", "--open-vosk"];
 
     /// <summary>Process entry point.</summary>
     public static int Main(string[] args)
@@ -67,7 +72,7 @@ public static class Program
 
         try
         {
-            var line = CommandLine.Parse(args, 0, ValueOptions);
+            var line = CommandLine.Parse(args, 0, ValueOptions, Flags);
             var manifestPath = line.Required("--manifest");
             var contentDir = line.Required("--content");
             var mode = ParseMode(line.Value("--mode"));
@@ -80,8 +85,8 @@ public static class Program
             }
 
             var content = SpanishContent.Load(contentDir);
-            using var models = new ModelSet(line.Value("--models"), content.LanguageId);
-            var report = BenchRunner.Run(entries, content, models.For, entry => LoadClip(audioDir, entry), mode);
+            using var models = new ModelSet(line.Value("--models"), content.LanguageId, line.Flag("--open-vosk"));
+            var report = BenchRunner.Run(entries, content, models.For, entry => LoadClip(audioDir, entry), mode, line.Flag("--open-fallback"));
             ReportWriter.Write(report, output);
             return ExitOk;
         }
@@ -117,7 +122,7 @@ public static class Program
     }
 
     /// <summary>Opens the recognizers on demand, so a manifest without entries needs no model.</summary>
-    private sealed class ModelSet(string? modelsDir, string language) : IDisposable
+    private sealed class ModelSet(string? modelsDir, string language, bool openWithVosk = false) : IDisposable
     {
         private const string VoskId = "vosk-model-small-es-0.42";
         private const string ParakeetId = "sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8";
@@ -141,7 +146,7 @@ public static class Program
 
             var manifestPath = Path.Combine(modelsDir, ModelStore.ManifestFileName);
             var store = new ModelStore(modelsDir, File.Exists(manifestPath) ? ModelManifest.Load(manifestPath) : ModelManifest.Empty);
-            var id = mode == RecognitionMode.Open && Directory.Exists(store.ModelDirectory(ParakeetId)) ? ParakeetId : VoskId;
+            var id = mode == RecognitionMode.Open && !openWithVosk && Directory.Exists(store.ModelDirectory(ParakeetId)) ? ParakeetId : VoskId;
             if (!string.Equals(ModelLanguages[id], language, StringComparison.Ordinal))
             {
                 throw new InvalidOperationException($"The speech model '{id}' is for language '{ModelLanguages[id]}', and the bundle is in '{language}'.");

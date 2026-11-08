@@ -51,7 +51,7 @@ public sealed class TaughtInFreeTalkTests(ITestOutputHelper output)
             }
         }
 
-        Assert.Equal(27, phaseB); // phase B's said rows, sessions 7 to 10 (V09's measure)
+        Assert.Equal(31, phaseB); // phase B's said rows, sessions 7 to 10 (V09's measure)
         Assert.True(failures.Count == 0, string.Join(Environment.NewLine, failures));
     }
 

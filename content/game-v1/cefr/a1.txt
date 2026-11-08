@@ -400,3 +400,15 @@ botella
 fuego
 # despacio: slowly, "más despacio, por favor", the slow-repeat button's word (S3); an old world word, moved into the block (V21b).
 despacio
+# harina: flour, the bread's first ingredient, sold at the stall for a coin (W10, decision 6); in neither of the core's lists.
+harina
+# bol: the bowl, the fixture the flour, the water and the spoon go to at the bakery's oven (W10, 10.4: bol, not tazón: one short word, a cognate of the English); in neither of the core's lists.
+bol
+# cuchara: the spoon, the fixture that mixes the dough in the bowl (W10); in neither of the core's lists.
+cuchara
+# masa: the dough, the thing the mixing makes and the oven takes (W10); in neither of the core's lists.
+masa
+# echar: to pour, Luz's command for the water (Echa el agua en el bol, W10); in neither of the core's lists.
+echar
+# mezclar: to mix, Luz's command for the spoon (Mezcla con la cuchara, W10); in neither of the core's lists.
+mezclar

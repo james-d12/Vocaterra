@@ -25,10 +25,13 @@ public sealed class Scene
         int waterLevel,
         int plantCount = 0,
         IReadOnlyDictionary<string, string>? labels = null,
+        IReadOnlyDictionary<string, IReadOnlyList<BlockPos>>? propCells = null,
         RiverCurrents? currents = null)
     {
         Currents = currents ?? RiverCurrents.None;
         Labels = labels ?? new Dictionary<string, string>(StringComparer.Ordinal);
+        PropCells = propCells ?? new Dictionary<string, IReadOnlyList<BlockPos>>(StringComparer.Ordinal);
+        _propOf = PropCells.SelectMany(static p => p.Value.Select(cell => (cell, p.Key))).GroupBy(static t => t.cell).ToDictionary(static g => g.Key, static g => g.First().Key);
         Name = name;
         Seed = seed;
         Grid = grid;
@@ -49,11 +52,15 @@ public sealed class Scene
         Npcs = source.Npcs;
         Points = source.Points;
         Labels = source.Labels;
+        PropCells = source.PropCells;
+        _propOf = source._propOf;
         TreeCount = source.TreeCount;
         WaterLevel = source.WaterLevel;
         PlantCount = source.PlantCount;
         Currents = source.Currents;
     }
+
+    private readonly Dictionary<BlockPos, string> _propOf;
 
     /// <summary>The layout's name.</summary>
     public string Name { get; }
@@ -75,6 +82,16 @@ public sealed class Scene
 
     /// <summary>The beacon's words for the named places, from the layout (<see cref="Layout.SceneLayout.Labels"/>).</summary>
     public IReadOnlyDictionary<string, string> Labels { get; }
+
+    /// <summary>
+    /// The cells a named stamp placed (W07: the oven is the stamp named <c>oven</c>), by the prop's name, in the order the stamp was drawn. A prop with no name has no entry.
+    /// A cell the player later mines stays listed: the lookup is asked only of a block the crosshair is on.
+    /// </summary>
+    public IReadOnlyDictionary<string, IReadOnlyList<BlockPos>> PropCells { get; }
+
+    /// <summary>The name of the stamp that placed a cell, or <see langword="null"/> when the cell is no named stamp's.</summary>
+    /// <param name="cell">The cell.</param>
+    public string? PropAt(BlockPos cell) => _propOf.TryGetValue(cell, out var name) ? name : null;
 
     /// <summary>The word the beacon shows for a named place: its label (<c>river</c> shows <c>río</c>), or the place's own name when it has none.</summary>
     /// <param name="pointName">The place.</param>

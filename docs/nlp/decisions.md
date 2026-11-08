@@ -149,3 +149,5 @@ language agnostic kind of, so we have the current spanish implementation on top 
 - 2026-10-21: D1 and D4 deferred; D3 Apache-2.0; D5 git submodule; D12 moved to the Vocaterra repository; the core repository documents only the language core (M19e isolation audit).
 - 2026-10-21 (later): the core and the game merged into one repository (game D-game-7); this folder is `nlp/`. D5's submodule route is superseded for the game; the ids here are unchanged.
 - 2026-10-21: D2 accepted for private builds; the GPL-free sherpa-onnx pin blocks distribution (scheduled with M24).
+- 2026-11-05: an intent needs at least one of `slotGrammars`, `keywordRules` or `examples`; the loader refuses one with none (the owner, on M81's finding; built by M82).
+- 2026-11-05: `hace dos días compré pan` ("ago" with a past action) stays `state_action` with `item=pan`, as M74 left it: a correct statement keeps its reading and gets the NPC's reply to a statement (the owner, on M74's review point).

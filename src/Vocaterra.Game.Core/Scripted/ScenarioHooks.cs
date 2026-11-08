@@ -1,3 +1,5 @@
+using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Voxel;
 namespace Vocaterra.Game.Core.Scripted;
 
 /// <summary>
@@ -14,6 +16,12 @@ namespace Vocaterra.Game.Core.Scripted;
 /// <param name="BookPlay">Opens the book on the target's page and plays its recording, normal or slow (S20b, <c>--book-play</c>).</param>
 /// <param name="BookPractise">Opens the book on its Lessons page and presses "Practise again" on the lesson (S26, <c>--book-practise</c>).</param>
 /// <param name="Sleep">Closes the panels and sleeps at the player's own fire, as the player's E there does (V12c, <c>--sleep</c>).</param>
+/// <param name="Eat">Eats or drinks the item (given first if the bag has none), as a right click with it does (N02, <c>--eat</c>).</param>
+/// <param name="Drink">Drinks by hand at the water the crosshair is on (N02, <c>--drink</c>).</param>
+/// <param name="Station">Opens the station by its id and starts its procedure; returns whether it opened (W07, <c>--station</c>).</param>
+/// <param name="Act">An act at the open station, <c>use,on[,verb]</c> (W07, <c>--act</c>).</param>
+/// <param name="ProcHelp">Help at the open station (W07, <c>--proc-help</c>).</param>
+/// <param name="StationSay">A typed line to the teacher from the open station; returns whether it was sent (W08, <c>--station-say</c>).</param>
 public sealed record ScenarioHooks(
     Action<string> OpenTalk,
     Action CloseTalk,
@@ -24,4 +32,14 @@ public sealed record ScenarioHooks(
     Func<bool>? ReportBusy = null,
     Action<string, bool>? BookPlay = null,
     Action<string>? BookPractise = null,
-    Action? Sleep = null);
+    Action? Sleep = null,
+    Action<ItemId>? Eat = null,
+    Action? Drink = null,
+    Action? TakeBelongings = null,
+    Action<string>? SetNeed = null,
+    Action<ItemId>? Give = null,
+    Action<BlockPos>? Plant = null,
+    Func<string, bool>? Station = null,
+    Action<string>? Act = null,
+    Action? ProcHelp = null,
+    Func<string, bool>? StationSay = null);

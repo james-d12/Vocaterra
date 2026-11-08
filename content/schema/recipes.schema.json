@@ -18,6 +18,7 @@
       "additionalProperties": false,
       "properties": {
         "output": { "type": "string", "minLength": 1, "description": "The noun made; it must name an item. One recipe per output." },
+        "makes": { "type": "string", "minLength": 1, "description": "The item the recipe makes, by its key, when the output noun names several items (manzana names the apple and the roast apple); it must be one of the noun's items. Default: the noun's first item." },
         "count": { "type": "integer", "minimum": 1, "description": "How many one craft makes." },
         "ingredients": {
           "type": "array",

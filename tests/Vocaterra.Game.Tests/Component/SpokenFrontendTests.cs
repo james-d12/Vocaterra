@@ -153,7 +153,7 @@ public sealed class SpokenFrontendTests
     [Fact]
     public void ThePanelShowsThinkingWhileATurnIsOutAndItsLinesArriveInOrderWhenTheyComeBack()
     {
-        var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
+        using var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
         session.StartWorker(loadSpeech: false).WaitUntilReady(30000);
         var focus = new InputFocus();
         var dialogue = new DialogueModel(focus, session.OpeningLine, session.Data);
@@ -187,7 +187,7 @@ public sealed class SpokenFrontendTests
     [Fact]
     public void AFailedSpokenRequestShowsItsProblemAsAHintAndClearsThePendingState()
     {
-        var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
+        using var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
         session.StartWorker(loadSpeech: false).WaitUntilReady(30000);
         var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data);
         var pump = new TurnPump(session, dialogue, () => null);

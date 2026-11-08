@@ -1,4 +1,6 @@
 using Vocaterra.Game.Core.Dialogue;
+using Vocaterra.Game.Core.Session;
+using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.UI.Common;
 using Vocaterra.Game.UI.Dialogue;
 
@@ -92,6 +94,36 @@ public static class HudLayout
         return rows;
     }
 
+    /// <summary>
+    /// The tracker's rows (U01): one row per objective line, a line too wide for a row in its shorter form, and the count of objectives left out (<c>+1</c>) after the last row's text. A
+    /// tracker with one line and nothing left out keeps the checklist's wrapping (<see cref="ObjectiveRows{T}"/>: the camp's steps go on to further rows).
+    /// </summary>
+    /// <param name="tracker">The tracker's content.</param>
+    /// <param name="width">The width of a piece.</param>
+    /// <param name="oneRowMax">The width a single line may take on one row.</param>
+    /// <param name="maxWidth">The widest any row may be.</param>
+    public static List<List<ObjectivePiece>> TrackerRows(TrackerView tracker, Func<ObjectivePiece, float> width, float oneRowMax, float maxWidth)
+    {
+        ArgumentNullException.ThrowIfNull(tracker);
+        ArgumentNullException.ThrowIfNull(width);
+        List<List<ObjectivePiece>> rows;
+        if (tracker.Lines.Count == 1 && tracker.More == 0)
+        {
+            rows = ObjectiveRows(tracker.Lines[0].Pieces, width, static p => p.Kind == ObjectivePieceKind.Word, oneRowMax, maxWidth);
+        }
+        else
+        {
+            rows = tracker.Lines.Select(line => (line.Pieces.Sum(width) <= Math.Min(maxWidth, oneRowMax) ? line.Pieces : line.Short).ToList()).ToList();
+        }
+
+        if (tracker.More > 0 && rows.Count > 0)
+        {
+            rows[^1] = [.. rows[^1], new ObjectivePiece(" " + tracker.MoreText, ObjectivePieceKind.Plain)];
+        }
+
+        return rows;
+    }
+
     /// <summary>The distance from the canvas's bottom to the top of the hotbar: the hotbar's slots are 48 tall with a 12 px margin.</summary>
     public const int HotbarTop = 60;
 
@@ -125,6 +157,58 @@ public static class HudLayout
     {
         var width = Math.Min(widest + 16, canvasWidth - (2 * Margin));
         return new PixelBox(canvasWidth - Margin - width, Margin, width, 8 + (rows * RowHeight));
+    }
+
+    /// <summary>The tip box, its controls hint and both as one block (U01): plain numbers, so a test places them at every canvas.</summary>
+    /// <param name="Box">The tip's own box, or <see langword="null"/> when no tip is up.</param>
+    /// <param name="HintY">The y of the "F1: controls" line under it.</param>
+    /// <param name="Block">The tip box and the hint line together.</param>
+    public readonly record struct TipPlacement(PixelBox? Box, int HintY, PixelBox Block);
+
+    /// <summary>
+    /// Where the tip box and the controls hint stand: at the top left, under the debug overlay when it is drawn (<paramref name="overlayBottom"/> above 0).
+    /// </summary>
+    /// <param name="canvasWidth">The canvas's width.</param>
+    /// <param name="overlayBottom">The bottom of the debug overlay, or 0 when it is not drawn.</param>
+    /// <param name="tipRows">The wrapped rows of the tip's text, or <see langword="null"/> when no tip is up.</param>
+    /// <param name="hintWidth">The width of the controls hint.</param>
+    public static TipPlacement TipBlock(int canvasWidth, int overlayBottom, int? tipRows, int hintWidth)
+    {
+        const int left = 12;
+        var y = overlayBottom > 0 ? Math.Max(Margin, overlayBottom + 6) : Margin;
+        PixelBox? box = null;
+        var width = hintWidth;
+        var top = y;
+        if (tipRows is { } rows)
+        {
+            width = Math.Min(480, canvasWidth / 2);
+            box = new PixelBox(left, y, width, 8 + 20 + (rows * 20) + 20);
+            y = box.Value.Bottom + 6;
+        }
+
+        return new TipPlacement(box, y, new PixelBox(left, top, width, y + 20 - top));
+    }
+
+    /// <summary>The width a tip's text may take: the tip box less its padding.</summary>
+    /// <param name="canvasWidth">The canvas's width.</param>
+    public static int TipTextWidth(int canvasWidth) => Math.Min(480, canvasWidth / 2) - 16;
+
+    /// <summary>
+    /// The tracker's box clear of the tip block (U01): at the top right as <see cref="ObjectiveBox(int, int, int)"/> has it, and, when the tip box would touch it (a narrow canvas), under the tip block.
+    /// </summary>
+    /// <param name="canvasWidth">The canvas's width.</param>
+    /// <param name="widest">The width of the widest row of text.</param>
+    /// <param name="rows">The number of rows.</param>
+    /// <param name="tip">The tip box with its controls hint, or <see langword="null"/> when none is drawn.</param>
+    public static PixelBox ObjectiveBox(int canvasWidth, int widest, int rows, PixelBox? tip)
+    {
+        var box = ObjectiveBox(canvasWidth, widest, rows);
+        if (tip is { } block && block.X < box.Right + Margin && box.X < block.Right + Margin && box.Y < block.Bottom + Margin)
+        {
+            box = box with { Y = block.Bottom + 6 };
+        }
+
+        return box;
     }
 
     /// <summary>

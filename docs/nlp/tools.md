@@ -2,7 +2,7 @@
 
 An inventory of everything external that the language core builds on, runs, downloads or plans to use: runtimes, NuGet packages, native binaries, machine-learning models, data sources and developer tooling, with versions, licenses and sources. It is a hand-checked snapshot of the language core (`nlp/`, in the Vocaterra repository) at commit `a642066` (2026-10-22, the M50 base); regenerate the numbers when a dependency changes. It replaces the snapshot of 2026-10-20 (commit `4a91cad`), which was taken when the core was a repository of its own.
 
-**How this was compiled.** From the repository root's `global.json` and `Directory.Packages.props`, the root `Directory.Build.props`, every `*.csproj`, the output of `scripts/license-scan.sh --offline` (run on 2026-10-22 after `dotnet restore`: 28 packages, 28 pass; see the note on the counts below), the cached `.nuspec` files and native binaries of the restored packages, `models/manifest.json`, `scripts/*.sh`, `.github/workflows-pending/ci.yml`, `content/game-v1/ATTRIBUTION.md` and `provenance.json`, `docs/archive/nlp/history/high-level-docs.md`, `implementation-plan.md` and `docs/nlp/fuzzing-plan.md`.
+**How this was compiled.** From the repository root's `global.json` and `Directory.Packages.props`, the root `Directory.Build.props`, every `*.csproj`, the output of `scripts/license-scan.sh --offline` (run on 2026-10-22 after `dotnet restore`: 28 packages, 28 pass; see the note on the counts below), the cached `.nuspec` files and native binaries of the restored packages, `models/manifest.json`, `scripts/*.sh`, `.github/workflows/ci.yml`, `content/game-v1/ATTRIBUTION.md` and `provenance.json`, `docs/archive/nlp/history/high-level-docs.md`, `implementation-plan.md` and `docs/nlp/fuzzing-plan.md`.
 
 **Counts.** The licence scan at the M50 base reports 28 packages, one more than the 27 of the earlier snapshot. Every one of the 28 is named in this file, but the package-by-package tables (sections 2, 3 and 9) were not re-audited for that difference, so their counts still read as they were at `4a91cad`. The scan is the authority for the total.
 
@@ -34,7 +34,7 @@ An inventory of everything external that the language core builds on, runs, down
 | Globalization / ICU | `InvariantGlobalization` is **false**, so .NET uses the operating system's ICU for Unicode normalization (NFC, NFKC). On Linux the `libicu` shared library must be installed (the authoring machine has ICU 74). Pinning an app-local ICU is an open item for an ADR | `Directory.Build.props`; [`implementation-plan.md`](implementation-plan.md) section 3.5 | ICU license for the system version: **unverified** (Unicode License family); not shipped by the repository |
 | Base class library features used | `System.Text.Json` (canonical JSON, content files, `Utf8JsonReader` for the lexicon), `System.Security.Cryptography` SHA-256 (hashing), `System.Text.RegularExpressions` (kaikki importer), `string.Normalize` (NFC / NFKC) | `src/Vocaterra.Nlp/Core` (`CanonicalJson`, `DeterministicHash`), `src/Vocaterra.Nlp/Language`, `src/Vocaterra.Nlp/Phonology`, `src/Vocaterra.Nlp/Content`, `tools/Vocaterra.Nlp.ContentBuilder` | part of the runtime, MIT |
 | Source languages | C#, plus bash and embedded python3 in `scripts/`, YAML for CI, JSON / JSONL for content | - | - |
-| OS / CPU targets | `ubuntu-latest`, `ubuntu-24.04-arm`, `windows-latest`, `macos-latest` (CI matrix, currently parked, see section 7) | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) | - |
+| OS / CPU targets | `ubuntu-latest`, `ubuntu-24.04-arm`, `windows-latest`, `macos-latest` (the CI matrix was cut to one `ubuntu-latest` runner; the other three are not run, see section 7) | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) | - |
 | Minimum hardware | 8 GB RAM, 4-core x86-64, no GPU; CPU-only inference, 1 intra-op and 1 inter-op thread for ONNX Runtime sessions | `implementation-plan.md` section 1; `OnnxEmbeddingModel`, `Wav2Vec2PhonemeRecognizer`, `KokoroSynthesizer` | - |
 
 ## 2. NuGet packages: direct
@@ -150,10 +150,9 @@ The hand-authored content has no third-party text in it, and it is licensed Apac
 | NuGet | bundled in the SDK | package restore from nuget.org; license scan reads `~/.nuget/packages` or `NUGET_PACKAGES` | `scripts/license-scan.sh` | Apache-2.0 / MIT |
 | NuGet registration API | `https://api.nuget.org/v3/registration5-gz-semver2/{id}/{version}.json` | online license lookup when a nuspec names no license (skipped with `--offline`) | `scripts/license-scan.sh` | service |
 | `git` | 2.43.0 | version control; LF normalization via [`.gitattributes`](../../.gitattributes) (`* text=auto eol=lf`, `*.wav` and `*.onnx` binary); worktrees for parallel agents | repository | GPL-2.0 |
-| `gh` (GitHub CLI) | 2.102.0 | `gh auth refresh -h github.com -s workflow` to activate the parked workflow | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) | MIT |
+| `gh` (GitHub CLI) | 2.102.0 | pull requests and the workflow runs (`gh pr create`, `gh run list`) | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) | MIT |
 | `bash` | not recorded | `scripts/fetch-models.sh`, `scripts/fetch-lexicon-sources.sh`, `scripts/license-scan.sh` (`set -euo pipefail`) | [`scripts/`](../../scripts/README.md) | GPL-3.0-or-later |
 | `python3` | 3.12.3, standard library only, run as `python3 -I` | parses `models/manifest.json` in the fetch script and writes `lexicon-sources/sources.json` in the lexicon fetch script; evaluates SPDX expressions, reads nuspecs and calls the NuGet API in the license scan (`json`, `re`, `gzip`, `urllib`, `xml.etree`, `datetime`, `os`, `time`) | both scripts | PSF-2.0 |
-| `python3` with `yaml` (YAML syntax check of `ci.yml`) | **unverified**: named in the task brief, not referenced anywhere in the repository | validating the parked workflow file | - | - |
 | `curl` | 8.5.0 | model and lexicon-source downloads (`--fail --retry 3 --continue-at -`) | `scripts/fetch-models.sh`, `scripts/fetch-lexicon-sources.sh` | curl license (MIT-style) |
 | `sha256sum` or `shasum -a 256` | coreutils 9.4 | archive and file hashes | `scripts/fetch-models.sh`, `scripts/fetch-lexicon-sources.sh` | GPL-3.0-or-later (coreutils) |
 | `unzip`, `tar` with bzip2 | UnZip 6.00, GNU tar 1.35 | extracting `.zip` and `.tar.bz2` model archives | `scripts/fetch-models.sh` | Info-ZIP / GPL-3.0-or-later |
@@ -164,16 +163,17 @@ The hand-authored content has no third-party text in it, and it is licensed Apac
 | LanguageTool | 6.6 (`tools/manifest.json`) | grammar check of the authored content (M30, `lint`); a separate local server on localhost, no n-gram data installed | `scripts/fetch-tools.sh` and `scripts/languagetool.sh` (repository root) | LGPL-2.1 (declared in the manifest; D10) |
 | draw.io (diagrams.net) | file format only | the hand-written overview diagram | [`docs/nlp/diagrams/system-overview.drawio`](diagrams/system-overview.drawio) | Apache-2.0 |
 
-**GitHub Actions** (workflow parked in `.github/workflows-pending/` because the push token lacks the `workflow` scope, so nothing runs in CI today). Licenses of the actions: MIT per their upstream repositories, **unverified**.
+**GitHub Actions** (`.github/workflows/ci.yml`, live since the token gained the `workflow` scope on 2026-10-31; two jobs run in parallel on pushes to `main`, on pull requests and by hand). Licenses of the actions: MIT per their upstream repositories, **unverified**.
 
 | Action / runner | Version | Used in job | Purpose |
 | --- | --- | --- | --- |
-| [`actions/checkout`](https://github.com/actions/checkout) | `v4` | all 4 jobs | fetch the repository |
-| [`actions/setup-dotnet`](https://github.com/actions/setup-dotnet) | `v4` (reads `global.json`) | all 4 jobs | install the pinned SDK |
-| [`actions/upload-artifact`](https://github.com/actions/upload-artifact) | `v4` | build-and-test, golden, models | upload `.trx` test results |
-| [`actions/cache`](https://github.com/actions/cache) | `v4` | models | cache the Vosk model, keyed by `hashFiles('models/manifest.json')` |
-| Runners | `ubuntu-latest`, `ubuntu-24.04-arm`, `windows-latest`, `macos-latest` | build-and-test matrix | cross-platform determinism; golden and license jobs run on `ubuntu-latest` |
-| Repository variable | `VOCATERRA_RUN_MODEL_TESTS == 'true'` | models job | opt-in model-backed tests |
+| [`actions/checkout`](https://github.com/actions/checkout) | `v5` | `build-and-test`, `languagetool` | fetch the repository |
+| [`actions/setup-dotnet`](https://github.com/actions/setup-dotnet) | `v5` (reads `global.json`) | both jobs | install the pinned SDK |
+| [`actions/cache`](https://github.com/actions/cache) | `v4` | both jobs | the NuGet package cache; `languagetool` also caches the server and its JRE |
+| [`actions/upload-artifact`](https://github.com/actions/upload-artifact) | `v4` | both jobs, on failure | upload `.trx` test results and the grammar logs |
+| Runner | `ubuntu-latest` | both jobs | the only runner; `VOCATERRA_MODELS_DIR` is unset there, so the model-gated tests skip |
+
+`build-and-test` restores, builds with `-warnaserror`, runs `dotnet test Vocaterra.sln` and replays the cached grammar check offline (`content grammar ... --offline --strict`); `languagetool` runs the live grammar check against a local server.
 
 **Network endpoints the repository's scripts contact:** `alphacephei.com` (Vosk model zip), `github.com` release downloads from `k2-fsa/sherpa-onnx` (Parakeet, Kokoro), `api.nuget.org` and the NuGet feed (restore, license lookup). The development-time LanguageTool archive comes from `languagetool.org` and the Temurin JRE from `github.com/adoptium` (both by `scripts/fetch-tools.sh`; the servers themselves run on localhost). `huggingface.co` (wav2vec2, multilingual-e5-small) is referenced but no script downloads from it yet.
 
@@ -204,7 +204,7 @@ with `--strict`.
 | `hazard.lexicon-gap` | error | A grammar literal, a `[VERB:lemma]` lemma or a keyword-rule lemma the lexicon does not know |
 | `hazard.homograph` | info | A `[VERB:x]` lemma some of whose forms are also noun forms (`cuesta`). Info, because inside the grammar the typed element binds the verb reading; the noun reading only matters outside it |
 | `reach.pool` | warning | A dialogue pool no agent action uses and the pipeline does not reach by itself (reserved: `not_understood`, `answer_accepted`, `feedback.<kind>[.<tag>]`), or used only by agents no prompt names; a `feedback.` pool whose kind is not a feedback kind |
-| `reach.intent` / `reach.answer-set` / `reach.agent` | warning | An intent no prompt allows, an answer set or an agent no prompt names |
+| `reach.intent` / `reach.answer-set` / `reach.agent` | warning | An intent no prompt allows, an answer set or an agent no prompt names. Since M74 an intent no prompt allows that has a grammar or a keyword rule is an info: it is read off the prompt at every prompt that lists its intents (M72's off-prompt intent) |
 | `reach.state` | warning | An agent state that cannot be reached from the initial state |
 | `cefr.dialogue` / `cefr.prompt` / `cefr.answer` | warning, error with `--fail-on-level` | A lemma of dialogue templates, prompt text or answer-set canonicals (aliases are not held to the level) not in the CEFR list of `--level` or below |
 | `expect.mismatch` | error | An example with `errors` whose verdict's tag set differs |
@@ -221,7 +221,8 @@ and are not graded. The lint grades the text with `TextGrader`, which is the tex
 normalization, answer matching against the prompt's answer set, analysis with the prompt's grammars, intent resolution, verdict assembly, without
 pronunciation. The prompt is the example's `prompt` when given (it must allow the intent), otherwise the first **open-mode** prompt (ordinal id) that
 allows the intent, or the first of any mode when none is open: an open prompt grades a sentence, while a constrained prompt expects one of its
-answer set's phrases and would add `vocab.wrong` to a sentence its intents do not understand (M67: not to one a slot grammar understands). The tags can depend on the prompt's difficulty and answer set, which is why an example may name its
+answer set's phrases and adds `vocab.wrong` to a sentence that misses one of them by one word of a slip pair, naming the answer's word (M75: `cuál es esto`
+at `lesson-what` names `qué`; M67: never to one a slot grammar understands). The tags can depend on the prompt's difficulty and answer set, which is why an example may name its
 prompt.
 
 **Waivers.** Per intent, `"lint": { "allowOverlap": [...], "allowRuleOnly": [...], "allowHomograph": [...] }`. A waived finding is still printed (as
@@ -287,7 +288,7 @@ neither serializes byte for byte as before.
 ## 10. Findings to follow up
 
 1. The HLD says the shipped stack stays permissive if espeak-ng and Piper are kept out of the binary. The Apache-2.0 sherpa-onnx native library already embeds espeak-ng (section 4), so the claim needs an ADR before release.
-2. The Vosk package has no `linux-arm64` or `win-arm64` binary, while the parked CI matrix includes `ubuntu-24.04-arm`. Vosk-backed tests are model-gated, but how `Vocaterra.Nlp.Asr` behaves on those platforms is **unverified**.
+2. The Vosk package has no `linux-arm64` or `win-arm64` binary, while the CI matrix once included `ubuntu-24.04-arm` (now cut). Vosk-backed tests are model-gated, but how `Vocaterra.Nlp.Asr` behaves on those platforms is **unverified**.
 3. `Microsoft.ML.OnnxRuntime` and every sherpa-onnx runtime pack ship a native file with the same name (`libonnxruntime.so`, `onnxruntime.dll`, `libonnxruntime.dylib`) but different builds (27,026,609 bytes versus 29,345,384 on `linux-x64`). Which copy a built application ends up with was not checked (**unverified**).
 4. Restoring `org.k2fsa.sherpa.onnx` also restores the Android runtime packs although no Android target exists, and Vosk's `win-x64` folder carries three MinGW runtime DLLs whose licenses are not covered by the package's SPDX expression.
 5. `models/manifest.json` and `models/README.md` describe `multilingual-e5-small` as needing an ONNX export, but upstream already publishes `onnx/model.onnx`; the manifest's provisional file list also names a file (`sentencepiece.bpe.model`) that `OnnxEmbeddingModel` does not read.

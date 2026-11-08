@@ -9,6 +9,7 @@ using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Matching;
 using Vocaterra.Nlp.Language.Normalization;
 using Vocaterra.Nlp.Language.SlotGrammar;
+using MatchType = Vocaterra.Nlp.Core.Stages.MatchType;
 
 namespace Vocaterra.Nlp.Content;
 
@@ -38,7 +39,7 @@ public sealed class TextGrader
 
     /// <summary>
     /// Creates a grader whose linguistic analysis is <paramref name="analyze"/>, which must give what the bundle's analyzer gives for the text with the prompt's grammars
-    /// (<see cref="PromptGrammars"/>); the content lint passes the analyses it has made already. Null analyzes each text afresh.
+    /// (<see cref="PromptGrammars"/>) and the pipeline's name reading (M78; the content lint reads no name where no grammar binds it, so an example with a word nobody knows is flagged); the content lint passes the analyses it has made already. Null analyzes each text afresh.
     /// </summary>
     internal TextGrader(ContentBundle bundle, Func<NormalizedText, PromptSpec, AnalysisResult>? analyze)
     {
@@ -47,7 +48,7 @@ public sealed class TextGrader
         if (analyze is null)
         {
             var analyzer = new LinguisticAnalyzer(bundle.Lexicon, bundle.LanguageMorphology, bundle.Language, bundle.AnalysisRules);
-            analyze = (normalized, prompt) => analyzer.Analyze(normalized, PromptGrammars.For(bundle.Intents, prompt));
+            analyze = (normalized, prompt) => analyzer.Analyze(normalized, PromptGrammars.For(bundle.Intents, prompt), NameFallbacks.For(prompt));
         }
 
         _analyze = analyze;
@@ -94,7 +95,10 @@ public sealed class TextGrader
             _bundle.EvaluationConfig,
             _versions,
             [.. answerSet.Answers.Select(static answer => answer.Canonical)],
-            _bundle.Language.ErrorTags));
+            _bundle.Language.ErrorTags,
+            match.Type == MatchType.None && prompt.Mode == RecognitionMode.Constrained
+                ? AnswerNearMisses.Find(normalized, answerSet, prompt.Difficulty, language, _bundle.Lexicon, _bundle.AnalysisRules, Normalization)
+                : null));
     }
 
     private static string CleanTranscript(string transcript)

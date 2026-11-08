@@ -169,15 +169,33 @@ public static class BenchRunner
     private const int Decimals = 4;
 
     /// <summary>
+    /// Runs one recognition and returns it with its wall-clock time in milliseconds. This is the only place a clock is read; the pipeline never reads one.
+    /// </summary>
+    public static (AsrResult Result, double Milliseconds) TimedRecognize(IWordRecognizer recognizer, PcmClip clip, RecognitionRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(recognizer);
+        ArgumentNullException.ThrowIfNull(clip);
+        ArgumentNullException.ThrowIfNull(request);
+        var stopwatch = Stopwatch.StartNew();
+        var asr = recognizer.Recognize(clip, request);
+        stopwatch.Stop();
+        return (asr, Math.Round(stopwatch.Elapsed.TotalMilliseconds, 3));
+    }
+
+    /// <summary>
     /// Benchmarks every entry. <paramref name="recognizerFor"/> supplies the recognizer for a mode and <paramref name="clipFor"/> the audio (null when the
-    /// file is missing); <paramref name="modeOverride"/> forces one recognition mode for all entries instead of each prompt's own.
+    /// file is missing); <paramref name="modeOverride"/> forces one recognition mode for all entries instead of each prompt's own. With
+    /// <paramref name="openFallback"/> (M80) every entry run in constrained mode is also decoded openly, timed on its own, and that decode is added as a second
+    /// result of the entry in mode <see cref="RecognitionMode.Open"/>: the second pass of <c>PipelineOptions.OpenRecognitionFallback</c>, for every entry
+    /// (the pipeline runs it only when the first reading is not taken or looks forced, M84).
     /// </summary>
     public static BenchReport Run(
         IReadOnlyList<ManifestEntry> entries,
         ContentBundle content,
         Func<RecognitionMode, IWordRecognizer> recognizerFor,
         Func<ManifestEntry, PcmClip?> clipFor,
-        RecognitionMode? modeOverride = null)
+        RecognitionMode? modeOverride = null,
+        bool openFallback = false)
     {
         ArgumentNullException.ThrowIfNull(entries);
         ArgumentNullException.ThrowIfNull(content);
@@ -186,7 +204,12 @@ public static class BenchRunner
         var results = new List<EntryResult>(entries.Count);
         foreach (var entry in entries)
         {
-            results.Add(RunEntry(entry, content, recognizerFor, clipFor, modeOverride));
+            var result = RunEntry(entry, content, recognizerFor, clipFor, modeOverride);
+            results.Add(result);
+            if (openFallback && string.Equals(result.Status, StatusOk, StringComparison.Ordinal) && result.Mode == RecognitionMode.Constrained)
+            {
+                results.Add(RunEntry(entry, content, recognizerFor, clipFor, RecognitionMode.Open));
+            }
         }
 
         return new BenchReport(results, Summarize(results));
@@ -216,9 +239,7 @@ public static class BenchRunner
         var request = mode == RecognitionMode.Constrained
             ? RecognitionRequest.Constrained(GrammarBuilder.BuildList(answerSet.GrammarPhrases(content.Language)))
             : RecognitionRequest.Open();
-        var stopwatch = Stopwatch.StartNew();
-        var asr = recognizer.Recognize(clip, request);
-        stopwatch.Stop();
+        var (asr, milliseconds) = TimedRecognize(recognizer, clip, request);
 
         var reference = BenchMetrics.Tokens(entry.ExpectedTranscript, content.Language);
         var hypothesis = BenchMetrics.Tokens(asr.Transcript, content.Language);
@@ -235,7 +256,7 @@ public static class BenchRunner
             Math.Round(BenchMetrics.Wer(edits, reference.Count), Decimals),
             errorCount,
             BenchMetrics.ErrorsKept(entry.ExpectedErrors, hypothesis, content.Language),
-            Math.Round(stopwatch.Elapsed.TotalMilliseconds, 3));
+            milliseconds);
     }
 
     private static EntryResult Skipped(ManifestEntry entry, RecognitionMode mode, string status, int errorCount)

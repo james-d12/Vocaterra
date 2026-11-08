@@ -245,4 +245,10 @@ public enum GameKey
 
     /// <summary>The right Alt.</summary>
     RightAlt,
+
+    /// <summary>The minus key of the main row (N09: the settings slider).</summary>
+    OemMinus,
+
+    /// <summary>The plus (equals) key of the main row (N09: the settings slider).</summary>
+    OemPlus,
 }

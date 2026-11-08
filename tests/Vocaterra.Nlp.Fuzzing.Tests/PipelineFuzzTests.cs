@@ -19,6 +19,7 @@ using Vocaterra.Nlp.Language.Matching;
 using Vocaterra.Nlp.Pipeline;
 using Vocaterra.Nlp.Pronunciation;
 using Xunit.Abstractions;
+using MatchType = Vocaterra.Nlp.Core.Stages.MatchType;
 using SlotGrammarType = Vocaterra.Nlp.Language.SlotGrammar.SlotGrammar;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests;
@@ -144,6 +145,201 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
         {
             Assert.True(diagnostics.Get($"region:{region}") >= 1, $"No mutation reached the {region} part of the envelope.\n{diagnostics.Report()}");
         }
+    }
+
+    // M80: the open-recognition fallback; M84: its second trigger. The scripted recognizer answers a constrained request with one case's transcript and an open request
+    // with another's, so the two decodes disagree. The constrained words are timed over the first part of the one-second tone, so the share of speech they cover is known.
+    // A first reading that is taken and does not look forced (no loose answer match with OpenPassOnLooseMatch, a coverage at or over OpenPassMinCoverage) gets exactly
+    // the verdict (and recording) of the option off, after one decode. A first reading that is taken and looks forced, or one that is not taken, is decoded once more, and
+    // the result is the one a pipeline would give for the free recognition read first when it is taken, its weakest word reaches OpenPassWordFloor and, for a reading that
+    // was taken, its intent is another one; else the option-off result.
+    [Fact]
+    public void OpenFallback_LeavesATrustedFirstReadingAlone_AndOtherwiseKeepsTheBetterOfTwoReadings()
+    {
+        var diagnostics = new FuzzDiagnostics();
+        var iterations = FuzzOptions.Iterations(FuzzOptions.PipelineVar, FuzzOptions.PipelineDefault);
+        var confidences = Gen.Double[0.0, 1.0].Array[0, 8];
+        var floors = Gen.OneOfConst(PipelineOptions.DefaultOpenPassWordFloor, PipelineOptions.DefaultOpenPassWordFloor, 0.0, 0.8, 1.0);
+        var spans = Gen.OneOfConst(0.1, 0.3, 0.6, 0.9, 1.0);
+        var coverages = Gen.OneOfConst(PipelineOptions.DefaultOpenPassMinCoverage, PipelineOptions.DefaultOpenPassMinCoverage, 0.0, 0.8, 1.0);
+        var gen = Gen.Select(PipelineGen.Case(Harness), PipelineGen.Case(Harness), confidences, floors, spans, coverages, Gen.Bool, Gen.Int[0, 3], static (a, b, w, f, span, coverage, loose, same) => (a, b, w, f, span, coverage, loose, same == 0));
+
+        gen.Sample(
+            ((PipelineCase First, PipelineCase Second, double[] Confidences, double Floor, double Span, double MinCoverage, bool Loose, bool SameText) input) =>
+            {
+                var c = input.First with { HostTurn = false, TwoPhase = false };
+                var freeTranscript = input.SameText ? c.Transcript : input.Second.Transcript; // the same words heard twice give the same intent
+                var floor = input.Floor;
+                var prompt = Harness.Prompt(c.PromptId);
+                var clip = PipelineHarness.Clip();
+                var context = BaseContext(c);
+
+                var constrainedAsr = Timed(c.Transcript, RecognitionMode.Constrained, input.Span);
+                var freeAsr = Asr(freeTranscript, RecognitionMode.Open, input.Confidences);
+                var bothOff = Fallback(c, prompt, new ScriptedWordRecognizer(constrainedAsr, freeAsr), false, floor);
+                var bothOn = Fallback(c, prompt, new ScriptedWordRecognizer(constrainedAsr, freeAsr), true, floor, input.Loose, input.MinCoverage);
+                PipelineTrace off;
+                UtteranceAnalysis offAnalysis;
+                UtteranceAnalysis analysis;
+                PipelineTrace on;
+                try
+                {
+                    offAnalysis = bothOff.Pipeline.Analyze(clip, prompt);
+                    off = bothOff.Pipeline.Trace(clip, prompt, context);
+                    analysis = bothOn.Pipeline.Analyze(clip, prompt);
+                    on = bothOn.Pipeline.CompleteTrace(analysis, context);
+                }
+                catch (Exception ex)
+                {
+                    throw Determinism.Fail(Oracle, $"The pipeline threw {ex.GetType().Name}: {ex.Message}", c);
+                }
+
+                var calls = bothOn.Recognizer.CallCount;
+                if (bothOff.Recognizer.CallCount != 2)
+                {
+                    throw Determinism.Fail(Oracle, $"With the option off the recognizer was called {bothOff.Recognizer.CallCount} times for two analyses.", c);
+                }
+
+                var firstTaken = off.Result.Verdict.Communicated || off.Result.Verdict.OffPromptIntent is not null;
+                var constrainedPrompt = prompt.Mode == RecognitionMode.Constrained;
+                // M84, worked out here from the option-off analysis and the generated timings (the one-second tone is voiced throughout): a loose answer match, or words that
+                // cover less of the second than the option says.
+                var loose = input.Loose && offAnalysis.Answer.Type is MatchType.None or MatchType.Fuzzy;
+                var covered = CoverageOfTone(constrainedAsr);
+                var sparse = input.MinCoverage > 0.0 && covered is { } share && share < input.MinCoverage;
+                var forced = constrainedPrompt && firstTaken && (loose || sparse);
+                if (constrainedPrompt && firstTaken && !forced || !constrainedPrompt)
+                {
+                    diagnostics.Count(constrainedPrompt ? "fallback:first-trusted" : "fallback:open-prompt");
+                    if (calls != 1 || analysis.OtherPass is not null)
+                    {
+                        throw Determinism.Fail(Oracle, $"A first reading that is taken and not forced-looking (or an open prompt) must decode once; the recognizer was called {calls} times.", c);
+                    }
+
+                    Determinism.AssertSame(Oracle, "A trusted first reading with the option on against off", c, () => (off.Result, off.Asr, off.Posteriors), () => (on.Result, on.Asr, on.Posteriors));
+                    return;
+                }
+
+                if (calls != 2 || bothOn.Recognizer.Requests[1].Mode != RecognitionMode.Open || analysis.OtherPass is null)
+                {
+                    throw Determinism.Fail(Oracle, $"A first reading that is not taken or looks forced must be followed by one open decode; {calls} calls.", c);
+                }
+
+                // What the free recognition gives when it is read first (the option off, one decode of it).
+                var asFirst = Fallback(c, prompt, new ScriptedWordRecognizer(freeAsr), false, floor).Pipeline.Trace(clip, prompt, context);
+                var readTaken = asFirst.Result.Verdict.Communicated || asFirst.Result.Verdict.OffPromptIntent is not null;
+                var floorCleared = floor <= 0.0 || (freeAsr.Words.Count > 0 && freeAsr.Words.Min(static w => w.Confidence) >= floor);
+                var otherIntent = !firstTaken || TakenIntent(asFirst.Result.Verdict) != TakenIntent(off.Result.Verdict);
+                if (readTaken && !floorCleared)
+                {
+                    diagnostics.Count("fallback:second-under-floor");
+                }
+
+                if (on.Asr.Mode == RecognitionMode.Open && floor > 0.0 && (on.Asr.Words.Count == 0 || on.Asr.Words.Any(w => w.Confidence < floor)))
+                {
+                    throw Determinism.Fail(Oracle, $"A free reading was taken with a word under the floor {floor} (or none at all).", c);
+                }
+
+                if (firstTaken && on.Asr.Mode == RecognitionMode.Open && TakenIntent(on.Result.Verdict) == TakenIntent(off.Result.Verdict))
+                {
+                    throw Determinism.Fail(Oracle, "A free reading replaced a taken reading of the same intent.", c);
+                }
+
+                if (readTaken && floorCleared && otherIntent)
+                {
+                    diagnostics.Count(firstTaken ? "fallback:forced-replaced" : "fallback:second-chosen");
+                    if (on.Asr.Mode != RecognitionMode.Open || analysis.OtherPass.Mode != RecognitionMode.Constrained)
+                    {
+                        throw Determinism.Fail(Oracle, "A free reading that is taken must be the recognition of the analysis, with the constrained one as the other pass.", c);
+                    }
+
+                    Determinism.AssertSame(Oracle, "A taken free reading against the same recognition read first", c, () => (asFirst.Result, asFirst.Asr), () => (on.Result, on.Asr));
+                }
+                else
+                {
+                    diagnostics.Count(firstTaken ? (readTaken && floorCleared ? "fallback:forced-same-intent" : "fallback:forced-rejected") : "fallback:second-rejected");
+                    if (analysis.OtherPass.Mode != RecognitionMode.Open)
+                    {
+                        throw Determinism.Fail(Oracle, "A free reading that is not taken must be reported as the other pass.", c);
+                    }
+
+                    Determinism.AssertSame(Oracle, "A free reading that does not win against the option off", c, () => (off.Result, off.Asr, off.Posteriors), () => (on.Result, on.Asr, on.Posteriors));
+                }
+
+                if (sparse && !loose)
+                {
+                    diagnostics.Count("fallback:sparse-coverage");
+                }
+
+                if (loose)
+                {
+                    diagnostics.Count("fallback:loose-match");
+                }
+            },
+            writeLine: output.WriteLine,
+            iter: iterations,
+            threads: 1);
+
+        output.WriteLine("Open fallback diagnostics:\n" + diagnostics.Report());
+        var minimum = Math.Max(1, Math.Min(5, iterations / 60));
+        foreach (var key in new[]
+        {
+            "fallback:first-trusted", "fallback:open-prompt", "fallback:second-chosen", "fallback:second-rejected", "fallback:second-under-floor",
+            "fallback:forced-replaced", "fallback:forced-same-intent", "fallback:forced-rejected", "fallback:sparse-coverage", "fallback:loose-match",
+        })
+        {
+            Assert.True(diagnostics.Get(key) >= minimum, $"The generator no longer reaches {key}.\n{diagnostics.Report()}");
+        }
+    }
+
+    // The meaning a taken reading gives the line: the intent it was understood as, or the off-prompt intent.
+    private static string TakenIntent(Verdict verdict) => verdict.Communicated ? verdict.Intent.Value : verdict.OffPromptIntent?.Value ?? "-";
+
+    // The transcript's words spread evenly over the first <span> seconds of the one-second tone, each fully confident.
+    private static AsrResult Timed(string transcript, RecognitionMode mode, double span)
+    {
+        var tokens = transcript.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var width = tokens.Length == 0 ? 0.0 : span / tokens.Length;
+        IReadOnlyList<AsrWord> words = [.. tokens.Select((text, i) => new AsrWord(text, i * width, (i + 1) * width, 1.0))];
+        return new AsrResult(transcript, [new AsrHypothesis(transcript, 1.0)], words, 1.0, "scripted-fuzz", mode);
+    }
+
+    // The share of the tone's 50 frames of 20 ms (voiced throughout) whose middle lies inside a word that is not [unk]; null for no such word. M84's definition, counted here by hand.
+    private static double? CoverageOfTone(AsrResult asr)
+    {
+        var words = asr.Words.Where(static w => w.Text != "[unk]").ToList();
+        if (words.Count == 0)
+        {
+            return null;
+        }
+
+        var covered = Enumerable.Range(0, 50).Count(frame => words.Any(w => ((frame * 0.02) + 0.01) >= w.StartSeconds && ((frame * 0.02) + 0.01) <= w.EndSeconds));
+        return covered / 50.0;
+    }
+
+    private static AsrResult Asr(string transcript, RecognitionMode mode, double[]? confidences = null)
+    {
+        // The words carry the given confidences in turn (none when the list is empty or absent); the other oracles read the transcript only.
+        var tokens = transcript.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        IReadOnlyList<AsrWord> words = confidences is { Length: > 0 }
+            ? [.. tokens.Select((text, i) => new AsrWord(text, i * 0.4, (i * 0.4) + 0.3, confidences[i % confidences.Length]))]
+            : [];
+        return new AsrResult(transcript, [new AsrHypothesis(transcript, 1.0)], words, 1.0, "scripted-fuzz", mode);
+    }
+
+    // A pipeline over the case's services (its phoneme recognizer and options) with the word recognizer replaced by the scripted one.
+    private static (UtterancePipeline Pipeline, ScriptedWordRecognizer Recognizer) Fallback(
+        PipelineCase c,
+        PromptSpec prompt,
+        ScriptedWordRecognizer recognizer,
+        bool fallback,
+        double floor = PipelineOptions.DefaultOpenPassWordFloor,
+        bool loose = true,
+        double minCoverage = PipelineOptions.DefaultOpenPassMinCoverage)
+    {
+        var services = Harness.NewServices(c.Transcript, prompt.Mode, c.Phonemes, c.Embeddings);
+        var options = new PipelineOptions { PronunciationMode = c.PronunciationMode, RunRecognizersConcurrently = c.Concurrent, OpenRecognitionFallback = fallback, OpenPassWordFloor = floor, OpenPassOnLooseMatch = loose, OpenPassMinCoverage = minCoverage };
+        return (new UtterancePipeline(services.WithRecognizers(recognizer, services.PhonemeRecognizer), options), recognizer);
     }
 
     // ---- Running ----------------------------------------------------------------------------------------------------------------
@@ -389,7 +585,7 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
         var normalized = SpanishTextNormalizer.Normalize(asr.Transcript.Replace(GrammarBuilder.UnknownToken, " ", StringComparison.Ordinal), PipelineHarness.Normalization);
         var match = AnswerMatcher.Match(normalized, answerSet, prompt.Difficulty, SpanishLanguagePack.Instance, PipelineHarness.Normalization);
         var analysis = AnswerCorrections.WithCanonicalWords(
-            new LinguisticAnalyzer(bundle.Lexicon, bundle.SpanishMorphology(), SpanishLanguagePack.Instance).Analyze(normalized, GrammarsFor(bundle, prompt)),
+            new LinguisticAnalyzer(bundle.Lexicon, bundle.SpanishMorphology(), SpanishLanguagePack.Instance).Analyze(normalized, GrammarsFor(bundle, prompt), NameFallbacks.For(prompt)),
             normalized,
             match,
             answerSet, SpanishLanguagePack.Instance,
@@ -425,7 +621,10 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
             [.. known],
             bundle.EvaluationConfig,
             services.Versions,
-            [.. answerSet.Answers.Select(static answer => answer.Canonical)]));
+            [.. answerSet.Answers.Select(static answer => answer.Canonical)],
+            NearMiss: match.Type == Vocaterra.Nlp.Core.Stages.MatchType.None && prompt.Mode == RecognitionMode.Constrained
+                ? AnswerNearMisses.Find(normalized, answerSet, prompt.Difficulty, SpanishLanguagePack.Instance, bundle.Lexicon, bundle.AnalysisRules, PipelineHarness.Normalization)
+                : null));
 
         Determinism.AssertSame(Oracle, "The verdict (pipeline against the stages called by hand)", c, () => trace.Result.Verdict, () => byHand);
     }

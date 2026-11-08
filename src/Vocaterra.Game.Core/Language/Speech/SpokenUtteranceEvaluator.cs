@@ -32,8 +32,22 @@ public sealed class SpokenUtteranceEvaluator
 
     private static readonly PipelineOptions Options = new() { RunRecognizersConcurrently = false, MaxAlternatives = SingleBest };
 
+    // V31: free talk adds the core's open decode (M80) for a line the constrained decode did not take; the floor is the core's default (0.5).
+    private static readonly PipelineOptions FreeTalkOptions = new() { RunRecognizersConcurrently = false, MaxAlternatives = SingleBest, OpenRecognitionFallback = true };
+
+    /// <summary>
+    /// The seven constrained prompts free talk waits on (the owner, 2026-11-06, answer 4): the four NPC open prompts (the baker's, the smith's, the farmer's, the fisher's; the villager's and the guide's are open already), the shopkeeper's two and the
+    /// guide's offer. Only a line said at one of them in free talk is decoded a second time, freely, when the constrained decode does not take it; every other prompt (lesson steps,
+    /// reviews, the mic check, the baker's) decodes once.
+    /// </summary>
+    public static IReadOnlySet<string> FreeTalkPrompts { get; } = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "baker-open", "smith-open", "farmer-open", "fisher-open", "stall-need", "stall-offer", "guide-offer",
+    };
+
     private readonly ContentBundle _bundle;
     private readonly UtterancePipeline _pipeline;
+    private readonly UtterancePipeline _freeTalk;
 
     /// <summary>Creates an evaluator over a loaded bundle and a word recognizer.</summary>
     /// <param name="bundle">The content bundle.</param>
@@ -45,6 +59,7 @@ public sealed class SpokenUtteranceEvaluator
         _bundle = bundle;
         var services = new PipelineServices(recognizer, null, new FakeEmbeddingModel(), new SilentSynthesizer(), bundle);
         _pipeline = new UtterancePipeline(services, Options);
+        _freeTalk = new UtterancePipeline(services, FreeTalkOptions);
     }
 
     /// <summary>
@@ -63,11 +78,21 @@ public sealed class SpokenUtteranceEvaluator
     /// Phase 1 of a spoken line (CR-017): the clip is recognized, once, and read. Complete the analysis with <see cref="CompleteTrace"/>; the
     /// recognizer is not called again.
     /// </summary>
-    public UtteranceAnalysis Analyze(PcmClip clip, PromptSpec prompt)
+    public UtteranceAnalysis Analyze(PcmClip clip, PromptSpec prompt) => Analyze(clip, prompt, false);
+
+    /// <summary>
+    /// Phase 1 of a spoken line (CR-017), with free talk told (V31): at one of the <see cref="FreeTalkPrompts"/> in free talk (<paramref name="freeTalk"/>) a line the
+    /// constrained decode does not take is decoded a second time, freely, and read from that (core M80); <see cref="UtteranceAnalysis.OtherPass"/> keeps the
+    /// recognition not chosen. Anywhere else the clip is decoded once, as before.
+    /// </summary>
+    /// <param name="clip">The clip.</param>
+    /// <param name="prompt">The prompt.</param>
+    /// <param name="freeTalk">Whether the turn is free talk (no lesson step, no review).</param>
+    public UtteranceAnalysis Analyze(PcmClip clip, PromptSpec prompt, bool freeTalk)
     {
         ArgumentNullException.ThrowIfNull(clip);
         ArgumentNullException.ThrowIfNull(prompt);
-        return _pipeline.Analyze(clip, prompt);
+        return (freeTalk && FreeTalkPrompts.Contains(prompt.PromptId) ? _freeTalk : _pipeline).Analyze(clip, prompt);
     }
 
     /// <summary>

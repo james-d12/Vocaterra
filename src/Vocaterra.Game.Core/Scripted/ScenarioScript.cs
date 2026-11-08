@@ -21,6 +21,28 @@ namespace Vocaterra.Game.Core.Scripted;
 /// <remarks>The script is a state machine over ticks: nothing reads the clock or draws a random number.</remarks>
 public sealed class ScenarioScript
 {
+    /// <summary>A cell written <c>x,y,z</c> (<c>10,4,12</c>), or <see langword="null"/> when the text is not three whole numbers (N08's <c>--plant</c>).</summary>
+    public static BlockPos? ParseCell(string text) => TryParseCell(text, out var cell) ? cell : null;
+
+    /// <summary>Reads a cell written <c>x,y,z</c>; false when the text is not three whole numbers.</summary>
+    /// <param name="text">The text.</param>
+    /// <param name="cell">The cell, when it is read.</param>
+    public static bool TryParseCell(string text, out BlockPos cell)
+    {
+        cell = default;
+        var parts = (text ?? string.Empty).Split(',');
+        if (parts.Length != 3
+            || !int.TryParse(parts[0].Trim(), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var x)
+            || !int.TryParse(parts[1].Trim(), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var y)
+            || !int.TryParse(parts[2].Trim(), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var z))
+        {
+            return false;
+        }
+
+        cell = new BlockPos(x, y, z);
+        return true;
+    }
+
     /// <summary>The ticks the script waits after arriving before it opens the panel (the view settles).</summary>
     public const int SettleTicks = 20;
 
@@ -268,6 +290,10 @@ public sealed class ScenarioScript
                 CloseIfOpen();
                 _index++;
                 break;
+            case ScriptStepKind.Expand:
+                _dialogue.ToggleExpanded();
+                _index++;
+                break;
             case ScriptStepKind.LessonStart:
                 if (!_dialogue.IsOpen)
                 {
@@ -336,6 +362,80 @@ public sealed class ScenarioScript
             case ScriptStepKind.Sleep:
                 CloseIfOpen();
                 _hooks.Sleep?.Invoke(); // the next play session, as the player's E at the fire (V12c)
+                _index++;
+                break;
+            case ScriptStepKind.Eat:
+                if (_resolveItem(step.Value) is { } food)
+                {
+                    _hooks.Eat?.Invoke(food);
+                }
+                else
+                {
+                    _log($"eat {step.Value}: no such item");
+                }
+
+                _index++;
+                break;
+            case ScriptStepKind.Plant:
+                if (ParseCell(step.Value) is { } ground)
+                {
+                    _hooks.Plant?.Invoke(ground);
+                }
+                else
+                {
+                    _log($"plant {step.Value}: the cell is x,y,z");
+                }
+
+                _index++;
+                break;
+            case ScriptStepKind.Give:
+                if (_resolveItem(step.Value) is { } given)
+                {
+                    _hooks.Give?.Invoke(given);
+                }
+                else
+                {
+                    _log($"give {step.Value}: no such item");
+                }
+
+                _index++;
+                break;
+            case ScriptStepKind.Drink:
+                _hooks.Drink?.Invoke();
+                _index++;
+                break;
+            case ScriptStepKind.Station:
+                if (_hooks.Station?.Invoke(step.Value) != true)
+                {
+                    _log($"station {step.Value}: there is no such station with a procedure to open");
+                }
+
+                _index++;
+                break;
+            case ScriptStepKind.Act:
+                _hooks.Act?.Invoke(step.Value);
+                _index++;
+                break;
+            case ScriptStepKind.ProcHelp:
+                _hooks.ProcHelp?.Invoke();
+                _index++;
+                break;
+            case ScriptStepKind.StationSay:
+                _line = step.Value;
+                if (_hooks.StationSay?.Invoke(step.Value) != true)
+                {
+                    _log($"station-say {step.Value}: no station is open with a teacher listening, or no turn worker is running");
+                }
+
+                _index++;
+                _phase = Phase.Waiting; // the teacher's turn is on the worker: the script waits for it, as for a line said in a talk
+                break;
+            case ScriptStepKind.SetNeed:
+                _hooks.SetNeed?.Invoke(step.Value);
+                _index++;
+                break;
+            case ScriptStepKind.TakeBelongings:
+                _hooks.TakeBelongings?.Invoke();
                 _index++;
                 break;
             case ScriptStepKind.Pick:
@@ -413,6 +513,16 @@ public sealed class ScenarioScript
                 {
                     CloseIfOpen();
                     _phase = Phase.Idle; // the step waits for the panel to open on another NPC (S26): the run walks up to that NPC next (LessonRun), not to the beacon
+                    return true;
+                }
+
+                if (string.Equals(step.Event, WorldEvents.ProcedureDone, StringComparison.Ordinal))
+                {
+                    // W10: a do step that waits for a procedure is done at a station (the oven), which this run does not drive: it would walk to the station and
+                    // use it for ever. Say so and end the script (the stations are driven by the --station steps, as r27-bread does).
+                    _log($"lesson-run: the step '{step.Id}' waits for a procedure at a station, which --lesson-run does not drive (use --station steps, as r27-bread does); the run stops here");
+                    _index = _steps.Count;
+                    _phase = Phase.Idle;
                     return true;
                 }
 

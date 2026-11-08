@@ -25,7 +25,7 @@ public sealed class VillageFocusTests
             : new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), CreditRules.FullTyped, TestGame.NoLessons);
         _ = session.Simulation.GrantItems(ItemId.Coin, 10); // the baker sells: a request she can fill
         Stage.TeleportToNpc(session, npc);
-        _ = session.OpenTalk(npc);
+        _ = session.OpenTalkForClass(npc);
         return session;
     }
 

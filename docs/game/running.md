@@ -52,6 +52,55 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --quality low --
 DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --quality low --beacon none --greyscale --teleport 222,222 --look 80,-16 --screenshot /tmp/s14-greyscale.png --frames 60
 ```
 
+**Clean defaults (U01).** Ordinary play starts with no debug text: `--dev` starts the debug overlay and the dialogue's developer note on, F3 toggles both. The "Heard / Expected" line under a spoken turn is not the developer note and always stays. The first-time tip box stands under the overlay when F3 shows it. The speak hint is one: the tip `tip.speak` at the first conversation; once it was shown the dialogue footer keeps only its other keys (the speak key stays in the controls help, F1). The objective tracker (top right) is one line per objective, three at most, the one that advanced last first, the rest as "+n"; a lesson's `do` step shows in the lesson strip while the strip is up, not also in the tracker. The scripted runs pass `--dev` (all but the playtest) so their captures keep the overlay and the note.
+
+**The needs (N01).** Hunger, thirst and sleep fall in active play and push health and stamina (design section 9). `--needs off` freezes them full (the scripted runs pass it, so
+the language runs keep their baselines); `--set-need <need> <value>` sets one at launch, 0 to 100, repeatable (`hunger`, `thirst`, `sleep`, `health`, `stamina`):
+
+```bash
+# thirst starts at 30 and falls: a need_stage event (sed) when it crosses 25, and the save's systems.needs shows it
+DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --set-need thirst 30 --walk-to 176,186 --screenshot /tmp/n01.png --frames 60 --save /tmp/n01.save
+```
+
+**Sleeping (L01).** E at the lit fire sleeps from day 2 only while the sleep drive is below 75 (day 1: once its ending is reached); otherwise it shows «No tengo sueño.» and sleeps nothing. `--sleep` and a script's `sleep` step sleep at any drive, so a `--needs off` run (the sleep drive full) can still pass the night. No lesson, class or order holds sleep back.
+
+**Sleep and the collapse (N03).** Every night (E at the lit fire, Enter on the closing card, `--sleep`) applies the night to the needs: sleep to 100, health +20 (to 100),
+hunger -15 and thirst -20, neither below 10 (a drive already below 10 stays). After 60 s of active play with sleep at its last stage the screen fades and the player sleeps where
+they stand (sleep to 50, stamina full, the same costs, no health), wakes there, and the day and sitting move as for a night; a tip explains it once. To reach it in a script:
+`--set-need sleep 0 --wait 62` (needs on; the collapse is the sleep drive's, so hunger 0 does not cause it). The line `sleep: collapse: session 1 ends where the player fell, ...`
+is printed. A night with `--needs off` leaves the meters as they are.
+
+**Eating, drinking, sprinting (N02).** With a food selected in the hotbar, the right button eats it (a berry, an apple, bread; the water bottle is drunk and leaves the
+empty bottle); at full hunger the food is kept and a line says so. **E** with the crosshair on water within reach (the river, the lake, the well) is a drink by hand, with
+nothing held and without Spanish. **Hold Left Shift** while walking to sprint (about 1.6 times the walking speed) while stamina lasts and no stage forbids it; a gathered block
+and a sprint cost stamina, and standing still within 3 blocks of a lit fire (the own fire once its torch is on the rim, the guide's camp fire likewise, the forge always)
+doubles stamina's refill and health's recovery. The events `meal_eaten` (the food's noun) and `water_drunk` (`botella`, or `pozo`, `lago` or the river's noun) print like
+`need_stage`. `--needs off` keeps the actions (the food is used up, the events are raised) and leaves the meters still. Two scripted steps drive them, both test aids:
+`--eat <item>` gives the item if the bag has none and eats or drinks it as the right click does (`pan`, `fruta`, `manzana`, `agua`), `--give <item>` puts one in the bag (N07, a test aid: `--give manzana` then `--craft roast-apple` at a lit fire; the item key `roast-apple` names the roast apple, `manzana` the apple; `--eat` prints the health too for a food that heals), `--plant x,y,z` plants the held berry on the grass or dirt block at that cell as a right click on it does (N08; the line says what happened, and it is refused outside the camp's radius, on something, or at six planted bushes), `--drink` drinks by hand at the water the
+crosshair is on (walk to the bank, `--look` at the water and `--wait 1` first: the look takes a tick). Each prints a line, `eat: Done (Bread), hunger 65, thirst 100` or `drink: Done, thirst 40`.
+
+**The station (W07).** E with the crosshair on a cell of a station's prop (the oven; `stations.json` names the prop, the scene records the cells of each named stamp) opens the station overlay, after an NPC under the crosshair and before the workbench: the instruction strip across the top (the row in Spanish, its English at the first rung or after help, a dot per step, Repetir, Más despacio and Ayuda), the fixtures on the left, the targets in the middle, what can be held along the bottom. Keys: 1 to 9 hold the cell of the page, 0 the empty hand, Page Up and Page Down turn the page, Tab and Shift+Tab choose the target, Enter uses the selection (a pair with several verbs asks which), H help, R repeat, S slower, B bakes a mastered recipe at once (the offer beside the guided bake, also a button; W07b), V or Space (held) and W talk to the teacher (W08): the line goes to her at her teaching prompt, wherever she stands; she plays the instruction again or slowly, helps, gives the ingredients the run lacks (the first bake always, then once per in-game day) or says "De nada"; her answer shows on the line above the keys and plays in her voice, and the station stays open; Esc leaves with the bake saved. The offer, "¿Quieres hacer pan?", opens a talk with her until the learner has baked (once per in-game day); Sí opens the station. The panel's title is the station's name (its `ui.station.<id>` label, else its noun with the article). The world keeps running, the player does not walk or look, the need meters stand still. `--station <id>`, `--act <use>,<on>[,<verb>]`, `--proc-help` and `--station-say "<line>"` drive it from a script (`docs/game/scripted-runs.md`).
+
+**The needs on screen (N05).** Health is a thin bar beside the hotbar; stamina has its own bar only while it is below its maximum, with a dashed end for what the drives cut from it. A drive at stage 1 or more shows
+its icon (a loaf, a drop, a moon) with one to four notches and loses it on recovery. A stage change shows its line once above the hotbar, the Spanish with the English beneath («Tengo mucha sed.» / I'm very thirsty.),
+and plays a soft tone that ducks under the voices. The first stage change of the first session shows the tip. The inventory (I) lists the five needs with their stage. View effects: dim edges from thirst stage 3, a slow blink
+from sleep stage 3, red edges below 25 health; **F7** turns them off (the icons and lines stay), kept in the settings (`viewEffectsOff`); the launch flag `--view-effects on|off` sets it for a run. The HUD is hidden under `--needs off`.
+**Relaxed needs** (settings `relaxedNeeds`, off by default; launch flag `--relaxed-needs`): every drive's rate halves; at zero health the player faints and wakes at the camp with the bag kept and no chest.
+**The settings panel and the drive rate (N09).** **F8** opens a small panel (English): the drive rate as a slider, and the view effects and the relaxed needs as toggles, each applied at once; Up and Down choose a row, Left and Right (or - and +) move the slider by a step or flip a toggle, Enter or Space flips a toggle, Esc or F8 closes. The needs are paused while it is open. The rate (settings `needsRate`, default 1, written only when not 1) multiplies hunger, thirst and sleep falls, from 0.5 to 4 in steps of 0.25, and multiplies with relaxed needs; stamina, health's recovery, food values and the collapse delay do not change. Launch flag `--needs-rate <x>` sets it for a run (a value outside 0.5 to 4 or off a step is refused). It is a setting, not world state: no meter, digest or replay holds it. When it is not 1, the session log's `session_summary` line carries `needsRate` and the console summary prints "drive rate ×x" (so a playtest's numbers say the rate). The needs playtest uses the slider to choose a fixed rate afterwards (D-game-24).
+
+Death shows a fade, then «Estás en tu campamento.» with its English and the cause line, for 4 seconds; the chest's beacon label is «tus cosas».
+
+**Death (N04).** At zero health in active play the screen goes black and the player wakes two to five blocks from their own fire ring at the cliff camp (`firering.player`, lit or cold) with
+health, hunger, thirst and sleep at 50 and stamina full; `player_died` (`hambre` or `sed`) and `player_woke` (`death`) print. The day and the sitting do not move. Everything in the bag
+but the items that stack to one (the book and the axe) stays in a chest on the nearest free ground where they fell (the beacon points to it); **E** on the chest takes back what fits,
+and the next night removes it. `--take-belongings` is the scripted E (walk next to the chest and `--look` at it first); it prints `take-belongings: Done, chest gone`.
+`--set-need thirst 0 --set-need health 5 --wait 25` is the quick death.
+
+```bash
+# hunger 40, a bread: the meter goes to 65 and meal_eaten (pan) is raised; a drink by hand at the river bank after a --look at the water
+DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --set-need hunger 40 --set-need thirst 30 --eat pan --teleport 234,222 --look 270,-70 --wait 1 --drink --screenshot /tmp/n02.png --frames 30
+```
+
 `--greyscale` is the playtest A/B switch (D-game-6 as amended): a block whose noun is not known yet is drawn grey, a known one in full colour, and
 a noun that becomes known during play gets its blocks back in colour with the toast `¡Nueva palabra: el agua!`. The world is in full colour
 without the flag; the figures, the sky, the undergrowth, the snow and the UI are always in colour.
@@ -63,13 +112,14 @@ dotnet run --project src/Vocaterra.Game -- --seed 42 --greyscale --look 120,-5 -
 WASD or the arrows walk, Space jumps, the mouse looks (Esc lets the mouse go, a click takes it back). **Hold the left button** on a trunk
 (`madera`, five for the camp) or a berry bush (`fruta`, three) to gather it, the right button places the selected item, `1`..`0` or the wheel
 pick the hotbar slot, **I** the inventory, **C** the crafting panel, **E** the inventory or, with the crosshair on the workbench (`mesa`), the
-crafting panel. The panel lists the recipes (the torch: `antorcha` from two `madera` at the workbench); a click on a row crafts it. **J** the
-book, **F3** the debug overlay, **F5** the view over your own shoulder and back (S15: first person is where every run starts; `--third-person` starts
+crafting panel; the same at a lit fire ring (`fuego`, N07: a ring with a torch in its three-by-three; an unlit ring does nothing, and the sleep offer waits while the crosshair is on a lit ring). The panel lists the recipes (the torch: `antorcha` from two `madera` at the workbench; the roast apple: `manzana` from one `manzana` at a lit fire, labelled `manzana asada`); a click on a row crafts it. **J** the
+book, **F3** the debug overlay and the dialogue's developer note (the grey "intent, understood, 100 %, 12 ms" line under your line), both off at the start unless the run has `--dev` (U01; not in a playtest, where F3 does nothing), **F5** the view over your own shoulder and back (S15: first person is where every run starts; `--third-person` starts
 in the shoulder view), **F6** saves. **Aim the crosshair at the guide's figure**: the hint `E: talk` shows, and **E** (or **T** to type, or **V**
 to talk: hold it, the clip goes when it is let go) opens the dialogue panel, which takes the keyboard and frees the mouse. **The panel has
 speech buttons (S7)**: `[R] Repetir`, `[S] Más despacio`, `[H] Ayuda`, `[N] No sé` and `[W] Escribir` (keys or the mouse); hold **V** or **Space** to talk;
 `Escribir` (W or Tab) opens the text box, where Enter sends and Tab or Esc go back to the buttons; Esc cancels a turn that is "Thinking…", then closes the
 panel. After a spoken turn the line `Heard: «…» · Expected: «…»` stays under the conversation; when the NPC offers choices they are buttons too (keys 1 to 3).
+**The conversation surface (U02).** The panel shows the current exchange: your last line, the NPC's lines after it with their English at the phrase's rung, and one coaching line (the microphone's trouble for an unsure recognition, "not understood", the one recast of a slip; a line the NPC did not take for its prompt, typed or spoken, is "not understood"). The older lines are collapsed (the panel says how many); **PageUp** (or **O** off the text box) shows them and hides them again, in every state; while the page shows, **Up** and **Down** scroll it back to the oldest lines and forward to the newest, and a row says how many lines are out of view above or below (U02b); Tab is the Escribir key, so it is not the expand key. The book's "What I said" keeps the whole history. While a lesson step or offer is up, its heading (`Lesson · First words · step 1 of 7 · Say it`, the title shortened first at a narrow window, U02b) is in the panel's header and the step's text and buttons stand flush on the panel, with no box of their own. Every button has its key in every state (idle, recording, thinking, after the timeout offers typing, after a turn): R, S, H, N, W or Tab, 1 to 3, Enter on a focused Escribir, Esc to cancel.
 A mic check (`Say "hola"`, a level meter, what was heard) opens an interactive run (`--no-mic-check` skips it, `--mic-check` forces it). Her answers point the beacon at the named noun's nearest block (the arrow at the screen edge when it is off
 screen); "¿qué es esto?" names the block under the crosshair. **The shopkeeper and the villager are talked to the same way** (S6), and so are the fisher, the baker, the smith and the farmer (village-plan V10 to V12): aim at any figure, `E: talk`; the panel's title is the NPC's name. Outside a lesson each shows the cards of the phrases its prompt practises (its `focus`, V12b): the fisher `¿Dónde está la panadería?` and `¿Dónde está la herrería?`, the baker `Quiero dos panes, por favor.`, `¿Cuánto cuesta?` and `¿Hay pan?` (the third collapses to a strip at 1280 x 720), the smith and the farmer `¿Cómo te llamas?` and `¿Qué haces?`; a turn is credited to the phrase it used there (`phrase quiero-dos-panes supported at baker`).
 
@@ -119,7 +169,7 @@ dotnet run --project src/Vocaterra.Host -- --transcript "quiero agua, por favor"
 The steps `--look yaw,pitch` (degrees, yaw 0 north and 90 east), `--walk-to x,z`, `--interact x,y,z`, `--place item@x,y,z`, `--select n` and
 `--craft item` run in the order given, and so do the talk steps (S6): `--talk <npc>` (an id of `game/npcs.json`: `guide`, `shopkeeper`, `villager`,
 `fisher`, `baker`, `smith` or `farmer`; walk up to the figure, stop about two blocks away facing it, open the panel), `--say <line>` (type and send a line to the NPC the panel is open on and wait for the reply; with no
-panel open it first talks to the guide, as in S3), `--leave` (close the panel; walking on or talking to someone else closes it too) and `--shot
+panel open it first talks to the guide, as in S3), `--expand` (show or hide the older lines, U02), `--leave` (close the panel; walking on or talking to someone else closes it too) and `--shot
 <png>` (save the screen at that point and go on); `--beacon <point>` stands the beacon column on a named point of the scene. Details are in `src/Vocaterra.Game/README.md`.
 Spoken input (push-to-talk) works in the interactive game. The scripted spoken path (S7): `--speak "<line>"` synthesizes the line with Kokoro and
 says it to the NPC the panel is open on as if spoken (Vosk hears it, in the core's Constrained mode at the stall's and the guide's offer prompts), `--wav

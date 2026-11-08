@@ -10,7 +10,7 @@ one `Vocaterra.sln`; R01, 2026-10-23). The halves are told apart by project name
   Licence Apache-2.0 (`LICENSE`, `NOTICE`).
 - **The game**: `Vocaterra.Game.Core` (the engine-free systems), `Vocaterra.Game` (MonoGame), `Vocaterra.Host` and `tools/Vocaterra.SpeechRender` (with their tests, `content/game-v1`,
   `assets/` and `docs/game/`). Its plan is
-  `docs/game/implementation-plan.md` (section 4 status, section 5 findings), its decisions `docs/game/decisions.md` (D-game-1 to D-game-24).
+  `docs/game/implementation-plan.md` (section 4 status, section 5 findings), its decisions `docs/game/decisions.md` (D-game-1 to D-game-26).
   Licence Apache-2.0 like the core (one `LICENSE` and `NOTICE` at the root; the game was MIT until R01).
 
 The two were separate repositories until 2026-10-21 (game D-game-7); both sets of ids (M-numbers,
@@ -20,17 +20,17 @@ never plans game content, scenes or engines; the game plan never plans core inte
 The repository is developed by one **orchestrator** session that plans and delegates all implementation to subagents and only plans,
 gates, merges and pushes. To continue, act as the orchestrator defined in `.claude/agents/orchestrator.md` (or start with
 `claude --agent orchestrator`). A QA agent, `.claude/agents/qa.md`, tests one area of the game (ui, language, speech, world,
-progression, save, content) and reports bugs to `docs/qa-reports/` without fixing them; the orchestrator turns its reports into milestones. The owner prefers Haiku 5.5 for delegated work; Sonnet only for design-heavy milestones; Opus only on request. The village series
-(`docs/game/village-plan.md`, on `feature/village`) is the owner's exception: every V milestone by Opus 5.5 at xhigh effort (D-game-22).
+progression, save, content) and reports bugs to `docs/qa-reports/` without fixing them; the orchestrator turns its reports into milestones. The owner's models (2026-11-06): Haiku 5.5 for small tasks; Sonnet 5.5 at medium effort for medium tasks, at high for large or design-heavy ones; Opus only on request or where a decision names it. The village series
+(`docs/game/village-plan.md`) follows the same size rule since 2026-11-06 (D-game-22; it was Opus 5.5 at xhigh for every V milestone before).
 
 Facts every session needs:
 - **Docs and session state:** the index is `docs/README.md`. To resume work, read the open handovers at the top of `docs/handovers/`
-  (finished ones are in `done/`); a session that stops writes one there. Research goes to `docs/research/`, bug reports and their triage
+  (finished ones are in `done/`); the orchestrator keeps the open one current after every gate, launch and owner decision (owner, 2026-11-05), so a crash or a fresh session loses nothing. Research goes to `docs/research/`, bug reports and their triage
   table to `docs/qa-reports/`, superseded documents to `docs/archive/`; the rules are `docs/process/documentation.md`.
 - **.NET SDK is user-local:** prefix commands with `PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" DOTNET_NOLOGO=1`.
-- **Machine resources (the desktop crashed twice from overload, 2026-10-22):** one agent at a time; every heavy command (dotnet
-  restore/build/test/format/run, `scripts/content.sh`, prerender, screenshots) runs through `scripts/limited.sh`, which serialises them
-  machine-wide and caps each at 6 GB of RAM, no swap and 10 of 16 cores. Builds use `-m:4`, tests `-m:2`. Details in the orchestrator's
+- **Machine resources (the desktop crashed twice from overload, 2026-10-22):** at most two building agents at a time (the owner, 2026-11-05; one until then); every heavy command (dotnet
+  restore/build/test/format/run, `scripts/content.sh`, prerender, screenshots) runs through `scripts/limited.sh`, which runs at most two at
+  once machine-wide, caps each at 6 GB of RAM, no swap and 10 of 16 cores, and all of them together at 8 GB and 14 cores. Builds use `-m:4`, tests `-m:2`. Details in the orchestrator's
   "Machine resources" section.
 - **Build, test, format (from the root):** `dotnet build Vocaterra.sln -warnaserror`, `dotnet test Vocaterra.sln`,
   `dotnet format Vocaterra.sln --verify-no-changes`. `Vocaterra.Nlp.slnf` builds the core alone (its pack and licence scan use it).

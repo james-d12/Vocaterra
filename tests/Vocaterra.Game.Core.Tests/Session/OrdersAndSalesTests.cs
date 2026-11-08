@@ -55,7 +55,7 @@ public sealed class OrdersAndSalesTests
     {
         var session = NewSession();
         _ = session.Simulation.GrantItems(ItemId.Coin, 20);
-        Assert.Equal([Hello], session.OpenTalk("baker").Lines);
+        Assert.Equal([Hello], session.OpenTalkForClass("baker").Lines);
 
         var turn = session.Say(line);
 
@@ -74,7 +74,7 @@ public sealed class OrdersAndSalesTests
     {
         var session = NewSession();
         _ = session.Simulation.GrantItems(ItemId.Coin, 3);
-        _ = session.OpenTalk("baker");
+        _ = session.OpenTalkForClass("baker");
         var records = session.Conversation.RecordCount;
 
         var turn = session.Say("quiero dos panes, por favor"); // four coins
@@ -94,23 +94,25 @@ public sealed class OrdersAndSalesTests
     }
 
     [Fact]
-    public void AnOrderIsHiddenAndCountsNothingBeforeItsSession()
+    public void AnOrderIsHiddenAndCountsNothingUntilItsNpcIsMetWhateverTheDay()
     {
         var data = WithOrderFirst(Baker);
         var early = NewSession(playSession: 4, data);
         _ = early.Simulation.GrantItems(ItemId.Wood, 5);
 
-        Assert.Equal("meet-guide", early.CurrentObjective!.Id); // the order and the gated objective come first in this HUD's order, and are hidden before session 5
+        Assert.Equal("meet-guide", early.CurrentObjective!.Id); // the order and the gated objective come first in this HUD's order, and are hidden until Luz is met (L01)
         Assert.Equal(early.Locale.ObjectiveHudLine("meet-guide"), early.ObjectiveHud().Single().Text);
-        var opening = early.OpenTalk("baker");
-        Assert.False(opening.Delivered); // the goods are there, the order is not yet
-        Assert.Equal([Hello], opening.Lines);
-        Assert.Equal(5, early.Simulation.Inventory.Count(ItemId.Wood));
         early.HostEvent(WorldEvents.ItemPickedUp, "madera");
         Assert.Equal(0, early.ObjectiveStep("gated.wood")!.Count); // a gated objective counts nothing before its session
         Assert.Equal(1, early.ObjectiveStep("camp.wood")!.Count);
 
+        var opening = early.OpenTalk("baker"); // met: the order shows, and the goods the player carries are taken at once, on a day before its old session
+        Assert.True(opening.Delivered);
+        Assert.Equal(0, early.Simulation.Inventory.Count(ItemId.Wood));
+
         var due = NewSession(playSession: 5, data);
+        Assert.Equal("gated", due.CurrentObjective!.Id); // nor does the day show it: this gated objective is not an order
+        _ = due.OpenTalk("baker");
         Assert.Equal("oven-wood", due.CurrentObjective!.Id);
         Assert.Equal("Bring Luz five wood (madera) for her oven at the bakery", due.ObjectiveHud().Single().Text);
         due.HostEvent(WorldEvents.ItemPickedUp, "madera");
@@ -124,7 +126,7 @@ public sealed class OrdersAndSalesTests
         _ = session.Simulation.GrantItems(ItemId.Wood, 6);
         var records = session.Conversation.RecordCount;
 
-        var opening = session.OpenTalk("baker"); // walking up with the goods is enough: no line is asked for
+        var opening = session.OpenTalkForClass("baker"); // walking up with the goods is enough: no line is asked for
 
         Assert.True(opening.Delivered);
         Assert.Equal([Thanks], opening.Lines);
@@ -140,7 +142,7 @@ public sealed class OrdersAndSalesTests
 
         // Delivered once: the next talk opens as usual and takes nothing.
         session.EndTalk();
-        Assert.Equal([Hello], session.OpenTalk("baker").Lines);
+        Assert.Equal([Hello], session.OpenTalkForClass("baker").Lines);
         Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Wood));
     }
 
@@ -150,7 +152,7 @@ public sealed class OrdersAndSalesTests
         var session = NewSession(playSession: 5);
         _ = session.Simulation.GrantItems(ItemId.Wood, 4);
 
-        var opening = session.OpenTalk("baker");
+        var opening = session.OpenTalkForClass("baker");
 
         Assert.False(opening.Delivered);
         Assert.Equal([Hello], opening.Lines);
@@ -164,7 +166,7 @@ public sealed class OrdersAndSalesTests
         // No save field is new (V03): the inventory keeps items by name, and the order's one step is keyed oven-wood.delivered like any other step.
         var session = NewSession(playSession: 5, shippedLessons: true); // Números y pan waits for El pueblo, so the baker talks as herself
         _ = session.Simulation.GrantItems(ItemId.Wood, 5);
-        _ = session.OpenTalk("baker");
+        _ = session.OpenTalkForClass("baker");
         session.EndTalk();
         _ = session.Simulation.GrantItems(ItemId.Apple, 3);
         _ = session.Simulation.GrantItems(ItemId.Axe, 1);

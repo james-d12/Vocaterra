@@ -39,7 +39,7 @@ public sealed class CrosshairLayer : IFrameLayer
         if (sim.GatherTarget is { } target && sim.GatherProgress > 0)
         {
             var block = sim.Grid.GetBlock(target.X, target.Y, target.Z);
-            var needed = block == BlockId.Water ? VoxelSimulation.BottleFillTicks : Math.Max(1, sim.GatherTicksOf(block)); // the fill of a bottle builds the same bar; the axe shortens a trunk's (V03)
+            var needed = block == BlockId.Water ? VoxelSimulation.BottleFillTicks : Math.Max(1, sim.GatherTicksOf(block)); // the fill of a bottle builds the same bar; a held tool shortens the gather of its own material (W02)
             var fraction = Math.Clamp(sim.GatherProgress / (double)needed, 0.0, 1.0);
             var bar = new Rectangle(cx - 30, cy + 26, 60, 8);
             spriteBatch.Draw(pixel, bar, new Color(0, 0, 0, 170));
@@ -269,20 +269,32 @@ public sealed class VoxelDebugOverlay : IFrameLayer
     /// <summary>The narrowest canvas the overlay is drawn on (X08): below it the overlay would run under the checklist.</summary>
     public const int MinCanvasWidth = 900;
 
-    /// <summary>Whether the overlay is shown.</summary>
-    public bool Visible { get; set; } = true;
+    /// <summary>The number of lines of text the overlay has.</summary>
+    public const int LineCount = 3;
+
+    /// <summary>Whether the overlay is shown (off at the start unless <c>--dev</c>, U01).</summary>
+    public bool Visible { get; set; }
+
+    /// <summary>The overlay's panel as drawn on a canvas, or <see langword="null"/> when it is not drawn (off, a narrow or short canvas): the tip box stands under it. The width is that of the widest line.</summary>
+    /// <param name="view">The frame's view.</param>
+    /// <param name="width">The width of the widest line of text (0 where only the height matters).</param>
+    public PixelBox? PanelFor(FrameView view, int width = 0)
+    {
+        ArgumentNullException.ThrowIfNull(view);
+        if (!Visible || view.Voxel is null || view.ViewportWidth < MinCanvasWidth || (view.Dialogue.IsOpen && DialogueLayout.IsCompact(view.ViewportHeight)))
+        {
+            return null;
+        }
+
+        return new PixelBox(Margin / 2, Margin / 2, width + Margin, (LineCount * LineHeight) + Margin);
+    }
 
     /// <inheritdoc />
     public void Draw(SpriteBatch spriteBatch, FrameView view)
     {
-        if (!Visible || view.Voxel is not { } sim)
+        if (view.Voxel is not { } sim || PanelFor(view) is null)
         {
-            return;
-        }
-
-        if (view.ViewportWidth < MinCanvasWidth || (view.Dialogue.IsOpen && DialogueLayout.IsCompact(view.ViewportHeight)))
-        {
-            return; // on a narrow or short canvas the developer's overlay gives way to the interface and the conversation (X08)
+            return; // off, or on a narrow or short canvas the developer's overlay gives way to the interface and the conversation (X08)
         }
 
         var lines = VoxelDebugText.Lines(view.Fps, sim, view.Seed, view.Look.Yaw, view.Look.Pitch, view.Session.Day);
@@ -293,7 +305,7 @@ public sealed class VoxelDebugOverlay : IFrameLayer
             width = Math.Max(width, (int)font.MeasureString(line).X);
         }
 
-        var panel = new Rectangle(Margin / 2, Margin / 2, width + Margin, (lines.Count * LineHeight) + Margin);
+        var panel = new Rectangle(Margin / 2, Margin / 2, width + Margin, (LineCount * LineHeight) + Margin);
         spriteBatch.Draw(view.Pixel, panel, new Color(0, 0, 0, 150));
         for (var i = 0; i < lines.Count; i++)
         {

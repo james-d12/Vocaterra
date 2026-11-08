@@ -20,11 +20,16 @@ public sealed class SessionEndingFlow(SessionEnding ending, VoxelSession session
         }
 
         voice.Say(SpeechSpeakers.Guide, [ending.Spanish]);
-        log.SessionSummary(ending.Summary, session.Simulation.Tick); // the session's summary card, in the log (X04, R01)
+        log.SessionSummary(ending.Summary, session.Simulation.Tick, session.NeedsRate); // the session's summary card, in the log (X04, R01)
         console($"session complete: {ending.Spanish} ({ending.English}); {session.Objective.Summary}");
         foreach (var line in ending.Summary)
         {
             console($"  {line}");
+        }
+
+        if (session.NeedsRate != 1)
+        {
+            console($"  drive rate {Vocaterra.Game.Core.Screens.SettingsPanel.RateText(session.NeedsRate)}"); // N09: the playtest's numbers say the rate they ran at
         }
     }
 }

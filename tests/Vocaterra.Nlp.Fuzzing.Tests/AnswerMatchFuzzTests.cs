@@ -14,6 +14,8 @@ namespace Vocaterra.Nlp.Fuzzing.Tests;
 /// O6: answer matching, checked three ways. Every input is compared with an independent model of the documented rules (exact on a canonical
 /// phrase, then on an alias, then the smaller of the spelling and phonetic edit distance against the per-difficulty budget); canonical and alias
 /// phrases must match exactly however they are cased, accented or punctuated; and sound-alike spellings must match with the pronunciation flag.
+/// Since M75 the near miss of a line (<see cref="AnswerNearMisses"/>, the one word by which it misses the nearest answer phrase, a slip pair) is compared with
+/// an independent model of its rule too, on lines made from the sets' phrases with one word changed, added or dropped, and on free text.
 /// </summary>
 public sealed class AnswerMatchFuzzTests(ITestOutputHelper output)
 {
@@ -38,6 +40,19 @@ public sealed class AnswerMatchFuzzTests(ITestOutputHelper output)
 
     private static readonly IReadOnlyList<(string SetId, AnswerSet Set, List<Candidate> Candidates)> Models =
         [.. Sets.Select(static set => (set.AnswerSetId, set, BuildCandidates(set)))];
+
+    // The Spanish question words in every form, without their accents (the rule counts a question word typed with or without its accent).
+    private static readonly HashSet<string> QuestionWords = new(StringComparer.Ordinal)
+    {
+        "que", "cual", "cuales", "quien", "quienes", "donde", "adonde", "cuando", "como", "cuanto", "cuanta", "cuantos", "cuantas",
+    };
+
+    // The words of each closed class the line generator draws from: the question words, and the lexicon's articles, prepositions and pronouns (one word each).
+    private static readonly Lazy<IReadOnlyList<(string Class, IReadOnlyList<string> Words)>> ClosedClassWords = new(static () =>
+    [
+        ("question", ["qué", "cuál", "quién", "dónde", "cuándo", "cómo", "cuánto", "cuántas", "cual", "donde"]),
+        .. new[] { "art", "prep", "pron" }.Select(pos => (pos, (IReadOnlyList<string>)[.. Harness.Lexicon.Entries.Where(e => e.Pos == pos && !e.Form.Contains(' ')).Select(static e => e.Form).Distinct().Order(StringComparer.Ordinal)])),
+    ]);
 
     [Fact]
     public void Match_AgreesWithTheDocumentedModel_AndTheMetamorphicRelations()
@@ -86,6 +101,206 @@ public sealed class AnswerMatchFuzzTests(ITestOutputHelper output)
         output.WriteLine("Answer matching diagnostics:\n" + diagnostics.Report());
         Assert.True(diagnostics.Get("phrase:exact") > 0 && diagnostics.Get("phrase:alias") > 0, "No canonical and alias phrases were exercised.\n" + diagnostics.Report());
         Assert.True(diagnostics.Get("sound-alike:fuzzy") > 0, "No sound-alike phrase reached the fuzzy stage.\n" + diagnostics.Report());
+    }
+
+    /// <summary>
+    /// M75: <see cref="AnswerNearMisses.Find"/> agrees with an independent model of its documented rule for any line: the phrases at the smallest distance (the
+    /// matcher's), in the matcher's order, the first with as many words as the line and exactly one differing word (accents ignored) whose two words are a slip
+    /// pair: within the answer word's own budget (the smaller of the spelling and phonetic distance), both question words (a list written here), or both with a
+    /// lexicon reading as an article, a preposition or a pronoun. The near miss names a word of the line and a word of the answer, never an empty one.
+    /// </summary>
+    [Fact]
+    public void NearMiss_AgreesWithTheDocumentedModel()
+    {
+        var phrases = Models.SelectMany(static m => m.Candidates.Select(c => (m.SetId, c.Raw))).ToArray();
+        var gen = Gen.Select(
+            Gen.Int[0, 5],
+            Gen.OneOfConst(phrases),
+            Gen.Enum<Difficulty>(),
+            Gen.ULong,
+            Gen.OneOfConst([.. Harness.Words.AllForms]),
+            SpanishTextGen.Text(Harness.Words),
+            static (kind, phrase, difficulty, seed, word, text) => new NearMissCase(kind, phrase.SetId, phrase.Raw, difficulty, seed, word, text));
+        var iterations = FuzzOptions.Iterations(FuzzOptions.GeneralVar, FuzzOptions.GeneralDefault);
+        var diagnostics = new FuzzDiagnostics();
+
+        gen.Sample(
+            (NearMissCase input) =>
+            {
+                var (_, set, candidates) = Models.First(m => m.SetId == input.SetId);
+                var line = NearMissLine(input, new Vocaterra.Nlp.Core.Determinism.SeededRng(input.Seed));
+                var normalized = SpanishTextNormalizer.Normalize(line, PipelineHarness.Normalization);
+                var context = new { input.SetId, input.Raw, line, input.Difficulty, input.Kind };
+                AnswerNearMiss? actual;
+                try
+                {
+                    actual = AnswerNearMisses.Find(normalized, set, input.Difficulty, SpanishLanguagePack.Instance, Harness.Lexicon, Harness.Bundle.AnalysisRules, PipelineHarness.Normalization);
+                }
+                catch (Exception ex)
+                {
+                    throw Determinism.Fail(Oracle, $"AnswerNearMisses.Find threw {ex.GetType().Name}: {ex.Message}", context);
+                }
+
+                var expected = NearMissModel(normalized, candidates, input.Difficulty);
+                if (!Equals(expected, actual))
+                {
+                    throw Determinism.Fail(Oracle, $"The near miss is {Describe(actual)} but the documented rule gives {Describe(expected)}.", context);
+                }
+
+                if (actual is not null
+                    && (actual.Expected.Length == 0 || !normalized.Tokens.Any(t => t.Span == actual.Span && t.Text == actual.Actual)))
+                {
+                    throw Determinism.Fail(Oracle, $"The near miss {Describe(actual)} does not name a word of the line and a word of the answer.", context);
+                }
+
+                diagnostics.Count(actual is null ? "near-miss:none" : "near-miss:" + actual.Pair);
+                diagnostics.Count("near-miss-line:" + input.Kind);
+            },
+            writeLine: output.WriteLine,
+            iter: iterations,
+            threads: 1);
+
+        output.WriteLine("Near miss diagnostics:\n" + diagnostics.Report());
+        foreach (var pair in Enum.GetValues<SlipPair>())
+        {
+            Assert.True(diagnostics.Get("near-miss:" + pair) > 0, $"No near miss of the slip pair {pair} was reached.\n" + diagnostics.Report());
+        }
+
+        Assert.True(diagnostics.Get("near-miss:none") > 0, "No line without a near miss was reached.\n" + diagnostics.Report());
+    }
+
+    // A line made from a phrase of a set: 0 the phrase, 1 one word changed for a lexicon word, 2 one word changed for a word of the same closed class as a word of
+    // the phrase where it has one (a question word, an article, a preposition, a pronoun), 3 one word with a letter edited, 4 a word added or dropped, 5 free text.
+    private static string NearMissLine(NearMissCase input, Vocaterra.Nlp.Core.Determinism.SeededRng rng)
+    {
+        var words = SpanishTextNormalizer.Normalize(input.Raw, PipelineHarness.Normalization).Tokens.Select(static t => t.Original.ToLowerInvariant()).ToList();
+        if (input.Kind == 5 || words.Count == 0)
+        {
+            return input.Text;
+        }
+
+        var at = rng.NextInt(words.Count);
+        switch (input.Kind)
+        {
+            case 1:
+                words[at] = input.Word;
+                break;
+            case 2:
+                var classes = ClosedClassWords.Value.Where(c => c.Words.Contains(words[at])).ToList();
+                var pool = classes.Count > 0 ? rng.Pick(classes).Words : rng.Pick(ClosedClassWords.Value).Words;
+                words[at] = rng.Pick(pool);
+                break;
+            case 3:
+                words[at] = OneLetterEdited(words[at], rng);
+                break;
+            case 4:
+                if (words.Count > 1 && rng.NextInt(2) == 0)
+                {
+                    words.RemoveAt(at);
+                }
+                else
+                {
+                    words.Insert(at, input.Word);
+                }
+
+                break;
+            default:
+                break;
+        }
+
+        return string.Join(' ', words);
+    }
+
+    private static string OneLetterEdited(string word, Vocaterra.Nlp.Core.Determinism.SeededRng rng)
+    {
+        const string letters = "abcdeilmnoprstuáéñ";
+        var i = rng.NextInt(word.Length + 1);
+        return rng.NextInt(4) switch
+        {
+            0 when word.Length > 1 && i < word.Length => word.Remove(i, 1),
+            1 when i + 1 < word.Length => string.Concat(word.AsSpan(0, i), word[i + 1].ToString(), word[i].ToString(), word.AsSpan(i + 2)),
+            2 when i < word.Length => string.Concat(word.AsSpan(0, i), letters[rng.NextInt(letters.Length)].ToString(), word.AsSpan(i + 1)),
+            _ => word.Insert(i, letters[rng.NextInt(letters.Length)].ToString()),
+        };
+    }
+
+    // The near miss, written independently of AnswerNearMisses (M75): among the candidates at the smallest of the spelling and phonetic distance from the line (the
+    // matcher's distance), in the matcher's order, the first whose normalized phrase has the line's number of words and differs from it, accents ignored, in
+    // exactly one word, those two words being a slip pair. The expected word is the phrase's, a number in digits said in its words.
+    private static AnswerNearMiss? NearMissModel(NormalizedText line, List<Candidate> candidates, Difficulty difficulty)
+    {
+        var input = Accents.Strip(line.Text);
+        if (input.Length == 0 || line.Tokens.Count == 0 || candidates.Count == 0)
+        {
+            return null;
+        }
+
+        var inputKey = SpanishPhoneticKey.Compute(input);
+        var distances = candidates.Select(c => Math.Min(DamerauLevenshtein.Distance(input, c.Phrase), DamerauLevenshtein.Distance(inputKey, SpanishPhoneticKey.Compute(c.Phrase)))).ToArray();
+        var smallest = distances.Min();
+        for (var i = 0; i < candidates.Count; i++)
+        {
+            if (distances[i] != smallest)
+            {
+                continue;
+            }
+
+            var phrase = SpanishTextNormalizer.Normalize(candidates[i].Raw, PipelineHarness.Normalization);
+            if (phrase.Tokens.Count != line.Tokens.Count)
+            {
+                continue;
+            }
+
+            var differing = Enumerable.Range(0, line.Tokens.Count).Where(k => Accents.Strip(line.Tokens[k].Text) != Accents.Strip(phrase.Tokens[k].Text)).ToList();
+            if (differing.Count != 1)
+            {
+                continue;
+            }
+
+            var word = line.Tokens[differing[0]];
+            var answerWord = phrase.Tokens[differing[0]];
+            if (SlipPairModel(word.Text, answerWord.Text, difficulty) is not { } pair)
+            {
+                continue;
+            }
+
+            var expected = answerWord.Text.All(char.IsAsciiDigit) ? answerWord.Original.Normalize(System.Text.NormalizationForm.FormC).ToLowerInvariant() : answerWord.Text;
+            return new AnswerNearMiss(candidates[i].AnswerId, phrase.Text, word.Span, word.Text, expected, pair);
+        }
+
+        return null;
+    }
+
+    private static SlipPair? SlipPairModel(string word, string answerWord, Difficulty difficulty)
+    {
+        var a = Accents.Strip(word);
+        var b = Accents.Strip(answerWord);
+        var distance = Math.Min(DamerauLevenshtein.Distance(a, b), DamerauLevenshtein.Distance(SpanishPhoneticKey.Compute(a), SpanishPhoneticKey.Compute(b)));
+        var divisor = difficulty switch { Difficulty.Intermediate => 5, Difficulty.Advanced => 6, _ => 4 };
+        if (distance <= b.Length / divisor)
+        {
+            return SlipPair.Spelling;
+        }
+
+        if (QuestionWords.Contains(Accents.Strip(word)) && QuestionWords.Contains(Accents.Strip(answerWord)))
+        {
+            return SlipPair.QuestionWord;
+        }
+
+        foreach (var (pos, pair) in new[] { ("art", SlipPair.Article), ("prep", SlipPair.Preposition), ("pron", SlipPair.Pronoun) })
+        {
+            if (Harness.Lexicon.Lookup(word).Any(r => r.Pos == pos) && Harness.Lexicon.Lookup(answerWord).Any(r => r.Pos == pos))
+            {
+                return pair;
+            }
+        }
+
+        return null;
+    }
+
+    private static string Describe(AnswerNearMiss? nearMiss)
+    {
+        return nearMiss is null ? "none" : $"{nearMiss.Pair} '{nearMiss.Actual}'@{nearMiss.Span.Start}+{nearMiss.Span.Length} for '{nearMiss.Expected}' of '{nearMiss.Phrase}' ({nearMiss.AnswerId})";
     }
 
     private static void CheckPhrase(MatchCase input, AnswerSet set, List<Candidate> candidates, FuzzDiagnostics diagnostics)
@@ -318,6 +533,9 @@ public sealed class AnswerMatchFuzzTests(ITestOutputHelper output)
     }
 
     private sealed record Candidate(string AnswerId, string Raw, string Phrase, bool IsAlias);
+
+    /// <summary>One generated near-miss input (M75): how the line is made, the phrase and set it draws on, the difficulty, a seed, a lexicon word and a free text.</summary>
+    private sealed record NearMissCase(int Kind, string SetId, string Raw, Difficulty Difficulty, ulong Seed, string Word, string Text);
 
     /// <summary>One generated input: which check to run, the phrase and set it draws on, the difficulty and the seeds and texts for the other checks.</summary>
     private sealed record MatchCase(int Kind, string SetId, string Raw, bool IsAlias, string AnswerId, Difficulty Difficulty, TextNoise Noise, ulong Seed, string Word, string Text);

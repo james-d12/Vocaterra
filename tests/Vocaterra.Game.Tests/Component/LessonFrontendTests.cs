@@ -194,13 +194,11 @@ public sealed class LessonFrontendTests
         run.Go(60000);
 
         var done = run.Log.Where(static l => l.StartsWith("  event: lesson first-words step ", StringComparison.Ordinal) && (l.EndsWith(" done", StringComparison.Ordinal) || l.Contains(" done (", StringComparison.Ordinal))).ToList();
-        Assert.Equal(37, done.Count); // every step, its outcome printed by the event line
-        Assert.Contains("  event: lesson first-words step 21 do (u4-pick) done (fruta)", run.Log); // the fruit was picked up at the bush
-        Assert.Contains("  event: lesson first-words completed (done 37, skipped 0, moved on 0)", run.Log);
+        Assert.Equal(25, done.Count); // every step, its outcome printed by the event line
+        Assert.Contains("  event: lesson first-words completed (done 25, skipped 0, moved on 0)", run.Log);
         Assert.Equal(LessonStatus.Completed, run.Session.Lessons.StatusOf("first-words"));
-        Assert.Equal(1, run.Session.Objective.Step("berry")!.Count); // the lesson's fruit is a real one: the checklist moved
         Assert.True(run.Session.GuideMet);
-        Assert.Equal(["hola", "si", "no", "que-es-esto", "que-es-esto", "que-es-esto", "si-por-favor", "gracias", "quiero-madera", "tengo-fruta", "necesito-agua", "no-se", "otra-vez", "mas-despacio"],
+        Assert.Equal(["hola", "si", "no", "que-es-esto", "que-es-esto", "que-es-esto", "no-se", "otra-vez", "mas-despacio"],
             run.Session.Events.OfType<PhraseUse>().Select(static u => u.PhraseId));
     }
 
@@ -223,6 +221,20 @@ public sealed class LessonFrontendTests
         Assert.Equal("villager", opened[0]);
         Assert.Contains("shopkeeper", opened); // the run walked from the villager to the stall
         Assert.Equal(0, run.Session.Simulation.Inventory.Count(ItemId.Bottle)); // the stall handed nothing over: the statements are no requests
+    }
+
+    [Fact]
+    public void ALessonRunStopsWithAMessageAtADoStepThatWaitsForAProcedureAtAStation()
+    {
+        // W10: En la panadería's oven step waits for procedure_done; the run does not drive stations, and used to walk to the oven and use it for ever.
+        using var run = new Harness([new(ScriptStepKind.LessonRun, Value: "en-la-panaderia")], TestGame.BreadData.Lessons);
+        run.Session.Day = 5;
+        run.Session.Sitting = 5;
+
+        run.Go(120000);
+
+        Assert.Single(run.Log, static l => l.StartsWith("lesson-run: the step 'k3-oven' waits for a procedure at a station", StringComparison.Ordinal));
+        Assert.NotEqual(LessonStatus.Completed, run.Session.Lessons.StatusOf("en-la-panaderia"));
     }
 
     [Fact]
@@ -334,7 +346,7 @@ public sealed class LessonFrontendTests
     {
         var layout = LessonStripLayout.For(English, Step(LessonStepType.Repeat), null, 1280, 720, 284, Measure, Measure)!;
 
-        Assert.True(layout.Box.Bottom <= 284 - LessonStripLayout.Gap);
+        Assert.True(layout.Box.Bottom <= 284);
         Assert.Equal(DialogueLayout.PanelBox(1280, 720).X, layout.Box.X);
         Assert.NotNull(layout.SpanishY);
         Assert.True(layout.SpanishY < layout.EnglishY); // the English is under the Spanish
@@ -413,6 +425,26 @@ public sealed class LessonFrontendTests
         var lesson = new LessonFrontend(session, dialogue, _ => { });
         dialogue.Open(session.OpenTalk("guide"), "Guía", session.ReviewLine);
         return (session, dialogue, lesson, player, actions);
+    }
+
+    [Fact]
+    public void ATeachersOfferLineIsAddedToThePanelOnceItIsOpenEvenWhenTheTalkOpenedFirst()
+    {
+        // L01: the session opens the talk (and makes the offer) before the panel opens, as the game and the scripted runs do; the line waits for the panel and then goes on it.
+        var session = new VoxelSession(TestGame.Data, 42, GuideSession.DefaultStartedAt, RouteScene.Build(), CreditRules.FullTyped, TestGame.Data.Lessons);
+        session.Lessons.CountAsCompleted("first-words", 1);
+        session.Day = 2;
+        session.Sitting = 2;
+        session.Simulation.TeleportTo(NpcStandOff.Choose(session.Scene.Grid, session.Scene.Npc("villager").Feet, session.Simulation.Player.FeetBlock)!.Value);
+        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data, session.Phrases, session.Locale);
+        var lesson = new LessonFrontend(session, dialogue, _ => { });
+        var opening = session.OpenTalk("villager");
+        lesson.Pump(); // a frame before the panel is open: the line is kept
+        dialogue.Open(opening, "Aldeano", session.ReviewLine);
+
+        lesson.Pump();
+
+        Assert.Contains(dialogue.Lines, static l => l.Text == "¿Una clase hoy? ¿Sí o no?");
     }
 
     [Fact]

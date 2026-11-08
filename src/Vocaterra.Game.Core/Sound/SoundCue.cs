@@ -182,6 +182,11 @@ public enum SoundCue
     /// <summary>A crackle of the fire, scheduled over the fire bed; its level follows the fire's weight.</summary>
     FireCrackle,
 
+    // ---- the needs (sfx, N05): appended ----
+
+    /// <summary>A need's stage changed and its line is on screen (N05): one low, soft tone, a sound effect so it ducks under the voices.</summary>
+    NeedStage,
+
     // ---- water (H10, sfx): appended, so the values of the cues above never change ----
 
     /// <summary>The player went into water fast (a fall or a jump in): a splash. A wade in makes none (<see cref="WaterEntry"/>).</summary>
@@ -203,7 +208,7 @@ public static class SoundCues
     {
         SoundCue.GatherWood or SoundCue.GatherStone or SoundCue.GatherLeaf or SoundCue.GatherSoft
             or SoundCue.BreakWood or SoundCue.BreakStone or SoundCue.BreakLeaf or SoundCue.BreakSoft
-            or SoundCue.PlaceBlock or SoundCue.PickUp or SoundCue.CraftDone or SoundCue.BottleFill or SoundCue.FireLight => SoundCategory.Sfx,
+            or SoundCue.PlaceBlock or SoundCue.PickUp or SoundCue.CraftDone or SoundCue.BottleFill or SoundCue.FireLight or SoundCue.NeedStage => SoundCategory.Sfx,
         SoundCue.FootGrass or SoundCue.FootDirt or SoundCue.FootGravel or SoundCue.FootStone or SoundCue.FootWood or SoundCue.FootSand or SoundCue.FootSnow
             or SoundCue.FootWater or SoundCue.Jump or SoundCue.Land => SoundCategory.Sfx,
         SoundCue.WaterSplash or SoundCue.UnderwaterBubbles => SoundCategory.Sfx,

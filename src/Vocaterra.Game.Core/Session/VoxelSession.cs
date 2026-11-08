@@ -97,7 +97,14 @@ public sealed partial class VoxelSession : GuideSession
     /// The first objective in the HUD's order that is not done and is shown in this play session (an order of a later session is hidden, village-plan V03), or
     /// <see langword="null"/> when every one is done. It gates nothing.
     /// </summary>
-    public Objective? CurrentObjective => Objectives.FirstOrDefault(o => !o.Complete && o.Spec.ShownIn(Day));
+    public Objective? CurrentObjective => Objectives.FirstOrDefault(o => !o.Complete && Shown(o.Spec));
+
+    /// <summary>
+    /// Whether an objective is shown and counted now: an order once the player has met its NPC (L01, D-game-25; before, on a day), any other objective from its own
+    /// <see cref="ObjectiveSpec.Session"/> on.
+    /// </summary>
+    /// <param name="spec">The objective.</param>
+    public bool Shown(ObjectiveSpec spec) => spec.IsOrder ? HasMet(spec.DeliverTo!) : spec.ShownIn(Day);
 
     /// <summary>The step a save names (<c>camp.wood</c>), or <see langword="null"/> for a key the session's objectives do not have.</summary>
     /// <param name="key">The step's save key, <c>&lt;objective&gt;.&lt;step&gt;</c>.</param>
@@ -174,12 +181,7 @@ public sealed partial class VoxelSession : GuideSession
         }
 
         var current = CurrentObjective;
-        if ((current is null || current == Objectives[0] || current.Spec.IsOrder) && Lessons.NewLesson is { Objective: { } objective })
-        {
-            return [new ObjectivePiece(objective, ObjectivePieceKind.Support)]; // a new session's lesson is unlocked and not begun (S26): before the first objective is done, after the last, or over an order (V03)
-        }
-
-        if ((current is null || current.Spec.IsOrder) && RestLine(overOrder: current is not null) is { } rest)
+        if ((current is null || current.Spec.IsOrder) && RestLine() is { } rest)
         {
             return [rest]; // the session's work is done: sleep at the fire for the next session, or every lesson is done; or the lesson to go on with (V12c)
         }
@@ -190,6 +192,64 @@ public sealed partial class VoxelSession : GuideSession
             { IsChecklist: true } => Locale.ObjectivePieces(current, lemma => Words.RecordOf(lemma).Known),
             _ => [new ObjectivePiece(Locale.ObjectiveHudLine(current.Id), ObjectivePieceKind.Support)],
         };
+    }
+
+    private int _advances;
+
+    /// <summary>
+    /// The objective tracker (U01): one line per objective that is shown and not done, the most recently advanced first, three at most and the rest counted for <c>+n</c>.
+    /// The objectives are the first of the session's sequence that is not done (the guide, the camp, the fire) and every order the player has taken on. A lesson's <c>do</c> line
+    /// (or the replay or review line the learner asked for) comes first, unless the lesson strip shows it (<paramref name="lessonStripShown"/>): it is not shown twice. On day 1's
+    /// rest the rest line stands alone in the tracker's place, as <see cref="ObjectiveHud"/> says it. Nothing is saved: after a load the order is the session's own.
+    /// </summary>
+    /// <param name="lessonStripShown">Whether the lesson strip is on the canvas this frame (the dialogue is open at the lesson's NPC).</param>
+    public TrackerView ObjectiveTracker(bool lessonStripShown)
+    {
+        var lines = new List<TrackerLine>();
+        var lessonLine = Lessons.HudLine ?? Lessons.ReplayHud ?? Deck.PendingHud;
+        if (lessonLine is not null && !(lessonStripShown && Lessons.HudLine is not null))
+        {
+            lines.Add(Single(new ObjectivePiece(lessonLine, ObjectivePieceKind.Support)));
+        }
+
+        var active = Objectives.Select((o, i) => (Objective: o, Index: i)).Where(x => !x.Objective.Complete && Shown(x.Objective.Spec)).ToList();
+        var hasMain = active.Any(static x => !x.Objective.Spec.IsOrder);
+        if (!hasMain && lessonLine is null && RestLine() is { } rest)
+        {
+            return new TrackerView([Single(rest)], 0);
+        }
+
+        var main = active.FirstOrDefault(static x => !x.Objective.Spec.IsOrder); // the sequence's first undone objective; the later ones are not reached yet
+        var tracked = active.Where(x => x.Objective.Spec.IsOrder || x.Index == main.Index && main.Objective is not null);
+        foreach (var (objective, _) in tracked.OrderByDescending(static x => x.Objective.AdvancedAt).ThenBy(static x => x.Index))
+        {
+            lines.Add(LineOf(objective));
+        }
+
+        if (lines.Count == 0 && lessonLine is null)
+        {
+            lines.Add(Single(new ObjectivePiece(Locale.Ui("objectiveComplete"), ObjectivePieceKind.Support, Done: true)));
+        }
+
+        return new TrackerView(lines.Take(TrackerView.MaxLines).ToList(), Math.Max(0, lines.Count - TrackerView.MaxLines));
+    }
+
+    private static TrackerLine Single(ObjectivePiece piece) => new([piece], [piece]);
+
+    private TrackerLine LineOf(Objective objective)
+    {
+        if (!objective.IsChecklist)
+        {
+            return Single(new ObjectivePiece(Locale.ObjectiveHudLine(objective.Id), ObjectivePieceKind.Support));
+        }
+
+        var done = objective.Steps.Count(static s => s.Done);
+        var shortLine = new List<ObjectivePiece>
+        {
+            new(objective.Title, ObjectivePieceKind.Title),
+            new(": " + done.ToString(System.Globalization.CultureInfo.InvariantCulture) + "/" + objective.Steps.Count.ToString(System.Globalization.CultureInfo.InvariantCulture), ObjectivePieceKind.Count, Done: done == objective.Steps.Count),
+        };
+        return new TrackerLine(Locale.ObjectivePieces(objective, lemma => Words.RecordOf(lemma).Known), shortLine);
     }
 
     /// <summary>Whether the player has met the guide (the panel opened on her, or the first step of the checklist was done).</summary>
@@ -264,11 +324,7 @@ public sealed partial class VoxelSession : GuideSession
     /// </summary>
     public void BeginPlaySession()
     {
-        if (Lessons.NewLesson is { } lesson)
-        {
-            PointAtNpc(lesson.Npc);
-        }
-        else if (RestDue && !AtOwnFire)
+        if (RestDue && !AtOwnFire)
         {
             PointAtFire();
         }
@@ -336,7 +392,11 @@ public sealed partial class VoxelSession : GuideSession
             _riverPointed = true; // an NPC (the guide, or the villager through the table) has sent the player to the river
         }
 
+        var needsFromX = Simulation.Player.CenterX;
+        var needsFromZ = Simulation.Player.CenterZ;
+        var sprinting = PrepareTick(commands); // N02: the walking and gathering speed of this tick
         Simulation.Step(commands);
+        StepNeeds(needsFromX, needsFromZ, sprinting); // N01: the needs move only in active play
         StepWaterEvents();
         AdvanceKeyWords();
         Tips.Step(Simulation.Tick);
@@ -352,6 +412,12 @@ public sealed partial class VoxelSession : GuideSession
                     break;
                 case SimulationEventKind.ItemCrafted:
                     LearnItem((ItemId)e.Detail);
+                    _eventAmount = e.Amount; // W01: a craft is a world event, counted as a pickup is (the output's count)
+                    LogWorld(WorldEvents.ItemCrafted, null, Nouns.ForItem((ItemId)e.Detail)?.Lemma ?? ItemDefinition.Get((ItemId)e.Detail).Name);
+                    _eventAmount = 1;
+                    break;
+                case SimulationEventKind.BlockRemoved:
+                    NoteGathered((BlockId)e.Detail, e.X, e.Y, e.Z); // N06: a bush picked by hand grows back after the next night
                     break;
                 case SimulationEventKind.BlockPlaced:
                     if ((BlockId)e.Detail == BlockId.Torch)
@@ -628,11 +694,17 @@ public sealed partial class VoxelSession : GuideSession
     {
         foreach (var hostEvent in hostEvents)
         {
-            var effect = Data.HostEvents.Of(npc, hostEvent);
+            var effect = Data.HostEvents.Of(npc, hostEvent).For(slots, Nouns); // W04: a price list comes to the item the line names
             switch (effect.Kind)
             {
+                case NpcEffectKind.GiveItem when GiftClosed(npc, effect.Item): // N06: a gift given today is not made again (the worker answered gift_used)
+                    break;
                 case NpcEffectKind.GiveItem:
-                    Give(npc, effect.Item, effect.CountFor(slots), how);
+                    if (Give(npc, effect.Item, effect.CountFor(slots), how))
+                    {
+                        CountGift(npc, effect.Item);
+                    }
+
                     break;
                 case NpcEffectKind.PointAtNoun:
                     PointAt(npc, effect.Noun);
@@ -653,6 +725,7 @@ public sealed partial class VoxelSession : GuideSession
                     Buy(npc, effect, effect.SaleCountFor(slots, Simulation.Inventory.Count(effect.Item)), how);
                     break;
                 default:
+                    ApplyTeacherEffect(npc, effect, how); // W08: the teacher's kinds (VoxelSession.Teaching.cs)
                     break;
             }
         }
@@ -668,14 +741,14 @@ public sealed partial class VoxelSession : GuideSession
 
     /// <inheritdoc />
     protected override string? OrderReadyAt(string npc) =>
-        GoodsHeldOrders(npc).FirstOrDefault(o => !Lessons.HoldsOrder(o.Spec))?.Id; // the lesson that tells the order may keep it back until its plan is said (village-plan V13)
+        GoodsHeldOrders(npc).FirstOrDefault()?.Id; // no lesson holds a delivery (L01)
 
     /// <inheritdoc />
-    protected override bool OrderHeldAt(string npc) => GoodsHeldOrders(npc).Any(o => Lessons.HoldsOrder(o.Spec));
+    protected override bool OrderHeldAt(string npc) => false; // no lesson holds an order back (L01)
 
     // The shown, undone orders of an NPC whose goods the player carries.
     private IEnumerable<Objective> GoodsHeldOrders(string npc) =>
-        Objectives.Where(o => o.Spec.IsOrder && !o.Complete && o.Spec.ShownIn(Day) && string.Equals(o.Spec.DeliverTo, npc, StringComparison.Ordinal)
+        Objectives.Where(o => o.Spec.IsOrder && !o.Complete && Shown(o.Spec) && string.Equals(o.Spec.DeliverTo, npc, StringComparison.Ordinal)
             && o.Spec.Goods.All(goods => Simulation.Inventory.Count(goods.Item) >= goods.Count));
 
     /// <inheritdoc />
@@ -696,11 +769,11 @@ public sealed partial class VoxelSession : GuideSession
 
     // An NPC puts items in the inventory, all of them or none (a pickup the player did not make: the word card shows the first time). The bottle is handed over
     // once, whatever the count. None (a gift by the number said, cero) gives nothing.
-    private void Give(string npc, ItemId item, int count, string how)
+    private bool Give(string npc, ItemId item, int count, string how)
     {
         if (count <= 0 || !CanGive(item, count))
         {
-            return; // a bottle held already, or the inventory is full: nothing is lost, the NPC keeps them
+            return false; // a bottle held already, or the inventory is full: nothing is lost, the NPC keeps them
         }
 
         _ = Simulation.GrantItems(item, count);
@@ -708,6 +781,7 @@ public sealed partial class VoxelSession : GuideSession
         _eventAmount = count; // an objective counting what was given counts every item, as a pickup's
         LogWorld(WorldEvents.ItemGiven, npc, $"{Nouns.ForItem(item)?.Lemma ?? ItemDefinition.Get(item).Name}, {how}");
         _eventAmount = 1;
+        return true;
     }
 
     // An NPC takes items (village-plan V03: take_item, the goods of an order), all of them or none: a player who has fewer keeps what they have. None takes nothing.
@@ -734,7 +808,7 @@ public sealed partial class VoxelSession : GuideSession
         }
 
         Take(npc, ItemId.Coin, cost, how);
-        Give(npc, item, count, how);
+        _ = Give(npc, item, count, how);
         return true;
     }
 
@@ -748,7 +822,7 @@ public sealed partial class VoxelSession : GuideSession
         }
 
         Take(npc, sale.Item, count, how);
-        Give(npc, ItemId.Coin, sale.PriceOf(count), how);
+        _ = Give(npc, ItemId.Coin, sale.PriceOf(count), how);
     }
 
     // The beacon goes to a named place of the scene (village-plan V02): a host event's point_at_place, or a lesson's do step with a pointPlace. It shows the place's label.
@@ -819,9 +893,15 @@ public sealed partial class VoxelSession : GuideSession
     // is lit, the guide is met, an order is delivered), so its effects follow its event in the log.
     private void RecordObjectives(WorldEvent world)
     {
-        foreach (var objective in Objectives.Where(o => !o.Complete && o.Spec.ShownIn(Day)))
+        foreach (var objective in Objectives.Where(o => !o.Complete && Shown(o.Spec)))
         {
+            var before = objective.Progress;
             var done = objective.Record(world, _eventAmount);
+            if (objective.Progress != before)
+            {
+                objective.AdvancedAt = ++_advances; // the tracker lists the objective that moved last first (U01)
+            }
+
             if (objective.IsChecklist)
             {
                 _pendingSteps.AddRange(done.Select(step => (objective, step)));

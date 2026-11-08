@@ -18,7 +18,7 @@ public sealed class LessonPhrasesInFreeTalkTests
         var session = TestGame.NewSessionWithShippedLessons();
         SessionSkip.Apply(session, day);
         Stage.TeleportToNpc(session, npc);
-        _ = session.OpenTalk(npc);
+        _ = session.OpenTalkForClass(npc);
         Assert.False(session.Lessons.Engaged, $"{npc} opened a lesson in session {day}, not free talk");
         return session;
     }
@@ -29,7 +29,7 @@ public sealed class LessonPhrasesInFreeTalkTests
         var session = TestGame.NewSessionWithShippedLessons();
         SessionSkip.Apply(session, 10);
         Stage.TeleportToNpc(session, "baker");
-        _ = session.OpenTalk("baker");
+        _ = session.OpenTalkForClass("baker");
         for (var i = 0; session.Lessons.Engaged && i < 50; i++)
         {
             _ = session.Lessons.Skip();
@@ -116,17 +116,19 @@ public sealed class LessonPhrasesInFreeTalkTests
         Assert.Equal(["pedir-agua"], Uses(session, "quiero agua").Select(static u => u.PhraseId));
     }
 
+    private static readonly string[] AllFarmerCards = ["como-te-llamas", "que-haces", "quiero-tres-manzanas-rojas", "cuanto-es-todo", "puedo-pagar-con-fruta"];
+
     public static TheoryData<int, string[]> FarmerCards => new()
     {
-        { 5, [] }, // his lessons are later ones
-        { 6, ["como-te-llamas", "que-haces"] }, // gente-del-pueblo is the session's lesson
-        { 8, ["como-te-llamas", "que-haces", "quiero-tres-manzanas-rojas"] }, // como-es done
-        { 10, ["como-te-llamas", "que-haces", "quiero-tres-manzanas-rojas", "cuanto-es-todo", "puedo-pagar-con-fruta"] }, // the market's
+        { 5, AllFarmerCards }, // every scaffold phrase has its card from rung 1, whether or not a class taught it (L01)
+        { 6, AllFarmerCards },
+        { 8, AllFarmerCards },
+        { 10, AllFarmerCards },
     };
 
     [Theory]
     [MemberData(nameof(FarmerCards))]
-    public void AnNpcShowsACardOnceItsLessonIsTheCurrentOneOrDone(int day, string[] cards)
+    public void AnNpcShowsEveryCardOfItsFocusFromTheFirstTalkWhateverTheDay(int day, string[] cards)
     {
         var session = TalkingTo("farmer", day);
 
@@ -134,12 +136,10 @@ public sealed class LessonPhrasesInFreeTalkTests
     }
 
     [Fact]
-    public void LuzShowsNoCardOfTheMarketBeforeItsSession()
+    public void LuzShowsTheCardOfTheMarketToo()
     {
-        var session = TalkingTo("baker", 6); // her own lesson done, the market's four sessions away
+        var session = TalkingTo("baker", 6); // the market class is four sessions away, and its phrase has its card all the same (L01)
 
-        Assert.Equal(["quiero-dos-panes", "cuanto-cuesta", "hay-pan"], session.Support.Cards.Select(static c => c.PhraseId));
-        session.Support.Reveal(); // Ayuda shows the cards in play, and the market's is none of them
-        Assert.DoesNotContain("vendo-madera", session.Support.Cards.Select(static c => c.PhraseId));
+        Assert.Equal(["quiero-dos-panes", "cuanto-cuesta", "hay-pan", "vendo-madera"], session.Support.Cards.Select(static c => c.PhraseId));
     }
 }

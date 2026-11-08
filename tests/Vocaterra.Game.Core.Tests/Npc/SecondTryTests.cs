@@ -184,7 +184,7 @@ public sealed class SecondTryTests
     [Fact]
     public void ANoSeInACheckIsGradedAndNeverRetried()
     {
-        var session = TestGame.NewSession(credit: CreditRules.Default);
+        using var session = TestGame.NewSession(credit: CreditRules.Default);
         session.OpenTalk("villager");
         var worker = session.StartWorker(loadSpeech: false);
         Assert.True(worker.WaitUntilReady(30000), "The worker did not load.");

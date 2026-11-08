@@ -77,7 +77,7 @@ ContentBundle german = ContentLoader.Load("content/my-german-bundle", options);
   `LinguisticAnalyzer(lexicon, language)` and `LinguisticAnalyzer(lexicon, morphology, language)`;
   `SlotGrammarMatcher.Match(tokens, grammar, language)`;
   `TemplateEngine(lexicon, morphology, language)`;
-  `RecastBuilder.Build(text, analysis, lexicon, language)`;
+  `RecastBuilder.Build(text, analysis, lexicon, language[, verdictErrors])` (M78: the verdict's errors the analysis lacks, the derived near miss of M75, are applied as the analysis's own, so `cuál es esto` at `lesson-what` is recast `qué es esto`);
   `SpeechRequests.Create(text, voiceId, language, dialect = null)`;
   `CefrChecker.Check(dialogue, lexicon, language, allowed, level, prompts = null)`.
   `bundle.Language` is the pack of a loaded bundle; `bundle.TemplateEngine` and `bundle.Language` are what a host needs.
@@ -114,7 +114,8 @@ All of this is additive unless it says breaking. The game compiles and passes un
   more with a default that finds none: `IsLocationAdverb(lemma)` (`lejos`, `cerca`: `son cerca` is the copula), `CallsForSlip(tokens, index, slip)` (where a word of
   another class is a learner's slip without a grammar: `yo podo ir`, `yo esto cansado`) and `IsPredicateAdjective(lemma)` (the common adjectives whose noun homographs
   are no bare predicate: `él es alta`); see "Person and copula errors", "Irregular forms" and "Adjectives" below. M73 added `IsNeuterPronoun(word)` with the same
-  default (`todo`, `eso`, `esto`, `aquello`: `¿cuántas cuesta todo?` reads `cuesta` as the verb). Breaking signatures: `ReadingClasses.IsDeterminerReading`, `IsClosedClassReading` and `IsSkippable`
+  default (`todo`, `eso`, `esto`, `aquello`: `¿cuántas cuesta todo?` reads `cuesta` as the verb), and M75 `IsQuestionWord(word)`, also with a default that finds
+  none (the question words in every form, with or without the accent: `cuál` for `qué` is a near miss that names `qué`; see "The words and the answer match" below), and M78 `IsNamePosition(words, index)`, also with a default that finds none (Spanish: after `soy`, `me llamo`, `mi nombre es`, a greeting or a farewell; a word with no reading there is a name, see "Names" in pipeline.md). Breaking signatures: `ReadingClasses.IsDeterminerReading`, `IsClosedClassReading` and `IsSkippable`
   take the rules (they were internal in effect: only the analysis used them); `AccentRestoration.SpellingsFor(lexicon, analysis, rules)`;
   `SlotGrammarMatcher.Match(tokens, grammar, language[, rules])` (the 3-argument form still works and uses `AnalysisRules.For`).
 - **Constructors that take the interface** (source compatible, `MorphologyGenerator` is an `IMorphology`): `LinguisticAnalyzer(lexicon, IMorphology, language[, rules])`,
@@ -287,6 +288,9 @@ using Vocaterra.Nlp.Response.Speech;
 IWordRecognizer words = new ScriptedWordRecognizer(
     new AsrResult("yo tiene dos espada", [new AsrHypothesis("yo tiene dos espada", 1.0)], [], 1.0, "scripted-transcript", RecognitionMode.Open));
 
+// M80: a test of the open-recognition fallback scripts one result per mode: new ScriptedWordRecognizer(constrainedResult, openResult)
+// (a null result makes a request of that mode throw); Requests lists every request received, in order.
+
 IPhonemeRecognizer? phonemes = null;                        // optional: without it pronunciation is not scored
 IEmbeddingModel? embeddings = new FakeEmbeddingModel();     // D0 stand-in for the embedding rung
 ISpeechSynthesizer? synthesizer = new SilentSynthesizer();  // D0 stand-in: no audio is produced
@@ -322,6 +326,71 @@ var pipeline = new UtterancePipeline(services);             // PipelineOptions i
 
 `UtterancePipeline` runs the stages in a fixed order; the same input gives the same bytes of output. One pipeline serves many
 utterances.
+
+### The open-recognition fallback for free talk (M80)
+
+`PipelineOptions.OpenRecognitionFallback` (`bool`, default `false`) is the host's switch for free talk (the owner, D-game-22, 2026-11-06, option 1 of
+`docs/research/2026-11-04-spoken-off-prompt-lines.md`). A constrained prompt hands the recognizer only the answer phrases, so a spoken line outside them reaches
+the stages as an empty line or as the nearest answer phrase, and the typed-line rules never see the words said. With the option on, `Analyze` decodes the clip a
+second time, freely (`RecognitionRequest.Open(MaxAlternatives)`), when the option is on, the prompt is `Constrained`, the first recognition's `Mode` is
+`Constrained`, and either the first reading is not taken (not `Communicated` and no `OffPromptIntent`; M80) or it is taken but **looks forced** (M84, below). The free
+recognition goes through the same stages (one private method serves both passes; the phoneme posteriors are computed once, on the first pass, and reused), and **it
+wins only when it is taken and its weakest word is not weak**, and, when the first reading was taken, **only when its intent is another one**; otherwise the first reading
+stands and is byte-identical to the option off. The floor is `PipelineOptions.OpenPassWordFloor` (`double`, default
+`0.5` = `PipelineOptions.DefaultOpenPassWordFloor`; the owner, 2026-11-07): the free reading is taken only when the lowest `AsrWord.Confidence` of its recognition is
+at least the floor (exactly the floor is enough). A free recognition with no words (an empty one, or a recognizer that gives no word confidences, as the scripted ones
+often do) has no weakest word and is not taken, except at a floor of `0`, which switches the check off (the behaviour before the floor). The floor holds the free pass
+only: the first, constrained pass is never held to it, and it does nothing while the option is off. A value outside 0 to 1 (or NaN) makes the `UtterancePipeline`
+constructor throw `ArgumentOutOfRangeException`. Beyond that the core adds no gate: the host's rule for an uncertain line (a mean confidence, say) reads the chosen
+`Asr`.
+
+**Forced rows (M84).** The constrained decode can force a different line onto an answer row, or onto the words of one, **with confidence**, so the reading is taken and
+the free decode of M80 never ran (V31, Kokoro `ef_dora`: `el río es grande` heard `es gracias`, read as `thank` at the baker; `me gusta el río` heard `me cuesta el río`,
+read as `ask_price` at the shopkeeper). With the fallback on, a taken constrained reading gets the free decode too when it looks forced, by either of two facts of the reading,
+each an option of `PipelineOptions` (used only while the fallback is on):
+
+- `OpenPassOnLooseMatch` (`bool`, default `true`): the reading's answer match (`UtteranceAnalysis.Answer.Type`) is `None` (taken only through the intent catalog, as an
+  off-prompt or allowed line) or `Fuzzy` (a near miss of a row). A row heard whole (`Exact`) or as a listed alias is trusted.
+- `OpenPassMinCoverage` (`double`, default `0.6` = `PipelineOptions.DefaultOpenPassMinCoverage`; between 0 and 1, otherwise the `UtterancePipeline` constructor throws
+  `ArgumentOutOfRangeException`; 0 switches the check off): the recognized words (`[unk]` left out) cover less than this share of the clip's voiced audio. Voiced audio is
+  the clip's frames of 20 ms at or above -40 dBFS (`EnergyVad`'s decision, in integer arithmetic) and a frame is covered when its middle lies inside a word's start and end
+  time. It catches a long clip forced onto a short row (`el río es grande` heard `es gracias`). A clip with no voiced frame, or a recognition without a timed word (the
+  scripted ones), has no coverage and is not checked, and a replay, which has an empty clip, does not fire it.
+
+The free reading then **wins only when it is taken, clears `OpenPassWordFloor` and has a different intent** from the first reading (the intent it was understood as,
+or its `OffPromptIntent`); otherwise the constrained reading stands, byte-identical to the option off, and the free recognition is `UtteranceAnalysis.OtherPass`. So a
+correctly heard row whose trigger fires (a fuzzy match, say) keeps its reading whenever the free decode hears the same intent. The exposure is unchanged: `Asr` is the
+chosen recognition (`Mode` `Open` marks a line heard freely, now also a forced row replaced by it) and `OtherPass` the one not chosen. Both options off
+(`OpenPassOnLooseMatch = false`, `OpenPassMinCoverage = 0`) is exactly M80. With the fallback off nothing in this paragraph applies.
+
+```csharp
+var pipeline = new UtterancePipeline(services, new PipelineOptions { OpenRecognitionFallback = true });   // free talk only; lesson steps keep the default
+// OpenPassWordFloor = 0.5 by default: a free reading with a word under 0.5 is not taken
+UtteranceAnalysis analysis = pipeline.Analyze(clip, prompt);
+bool heardFreely = analysis.Asr.Mode == RecognitionMode.Open;      // a line the constrained decode did not take (or took as a forced row), read from the free decode
+AsrResult? other = analysis.OtherPass;                              // the recognition that was not chosen; null when only one decode ran
+```
+
+`UtteranceAnalysis.Asr` is the chosen recognition (`Mode` `Open` at a constrained prompt marks a line heard freely), and the new `UtteranceAnalysis.OtherPass`
+(`AsrResult?`) is the other one when the second pass ran. A spoken line the prompt allows but whose words are not among its rows (`mañana voy a comprar pan` at
+`smith-open`) is understood as the typed line is; a spoken off-prompt line carries `OffPromptIntent`. The cost is one more decode, for a line that was not taken (M80) and for a taken reading that looks forced (M84, above); an answer row heard whole, an open prompt and the option off decode once. Measured on Kokoro
+speech with the small Vosk model and one best hypothesis (`OpenFallbackMeasurementTests`, a model-gated test that prints its report): the constrained decode takes
+a median 24 ms (95th percentile 50 ms), the free decode a median 190 ms (95th percentile 268 ms; 336 to 349 ms for clips over 3 s). Nothing is measured on real
+learner speech: the accent risk is unmeasured. The recognizer must be able to serve a second, open request on the same clip: the Vosk adapter makes its own native
+recognizer per call, and the scripted and replay recognizers need no change. The floor (above) was set from that run: without it, two spoken lines no intent should take
+(`ese libro es muy interesante` heard as `el libro es muy interesante`, `el` at 0.45) were taken as `describe` and two lines were taken as the wrong intent (`si usted
+hace años muy buenas`, `años` at 0.26); at 0.5 the measurement has zero false takes and loses one understood line of 108 (a word at 0.46 in a long line; 0.6 would lose six). Credit for a line heard freely is the host's to decide.
+
+M84 measured the trigger on Kokoro speech too (`OpenFallbackMeasurementTests`, the model-gated test of the forced rows: 2 541 evaluations over 843 clips, every line and every
+answer row of the seven free-talk prompts in the eight voice variants of M80; accent risk on real speech unmeasured). Of 1 501 taken constrained readings, 852 were answer
+rows heard and read correctly (answer match `Exact` 804, `Alias` 11, `Fuzzy` 37; the words cover 0.76 to 1.00 of the voiced audio, median 1.00), 241 other lines read as
+typed (`None` 213), and 408 forced lines (`None` 298, `Fuzzy` 65, `Alias` 45, never `Exact`; coverage median 0.54, 0.06 to 1.00). Weakest word confidence, the speech per
+letter and the dropped `[unk]` separate the classes far less (weakest word: correct rows median 1.00, 0.36 at the lowest; forced lines median 0.71, 0.22 at the lowest).
+The defaults fired on 37 of 852 correct rows (4%), replaced none of them and none of the 241 other correctly read lines, rescued 297 of the 408 forced lines (the free
+reading hears what the typed line is), made one other wrong take (`usted hace hachas muy buenas` heard with a leading `si`, as in M80) and no false take; the 111 that
+remain are lines no intent takes (the free reading is not taken) or heard under the floor. All of V31's lines are rescued (`el río es grande` at the baker and the
+shopkeeper, `me gusta el río` at the shopkeeper). The extra free decode took a median 199 ms (95th percentile 365 ms) on the 680 taken readings that fired (45% of the
+taken readings of this corpus, which is mostly off-prompt lines; an answer row fires in 4%), against 24 ms for a constrained decode.
 
 ## 4. Build a conversation context (D0)
 
@@ -435,18 +504,34 @@ chose, so `esta` is `estar` after `donde`, and its `Original` stays `esta`.
 `None`), `Distance` (the edit distance, or the phonetic distance when that is smaller, so `ezpada` for `espada` is 0), `LikelyPronunciation`
 (the spelling differs but the phonetic key matches) and `Confidence`.
 
-**What a constrained prompt's answer set adds to the verdict (M67, M72).** At a constrained prompt whose answer set the line does not match, the verdict
-derives a `vocab.wrong` on the first content word (a word the lexicon knows; `expected` is the canonical answer when the set has one answer, else empty) to
-explain the miss. It is derived only for a miss it can explain: a line that resolved no intent at a prompt that names the word (an answer set of one answer,
-or a quiz, which allows no intent and asks only for a word), or a line that resolved no intent or that a keyword rule (not a slot grammar) understood and that
-is a near miss of an answer, its distance to the nearest answer phrase within the fuzzy budget taken for the line's own length (`cuál es esto` at `lesson-what`,
-3 edits from its answer `qué es esto`, a budget of 3 for 12 characters; the matcher took 2, for the phrase). A line a
-slot grammar understood never gets it, nor does one a keyword rule understood far from every answer: before M67 `hola luz quiero dos panes` at
+**What a constrained prompt's answer set adds to the verdict (M67, M72, M75).** At a constrained prompt whose answer set the line does not match, the
+verdict derives a `vocab.wrong` to explain the miss, only where it can name a word:
+
+- **A near miss of an answer** (M75; the owner, 2026-11-02, D-game-22: "a near miss must name its word"): the line resolved no intent, or a keyword rule
+  or the embedding rung (not a slot grammar) understood it, and it misses the answer phrase nearest it (a canonical phrase or an alias, at the matcher's
+  distance) by one word of a slip pair: the same number of words, exactly one differing (accents ignored), the two words close in spelling (within the
+  answer word's own fuzzy budget) or both question words, articles, prepositions or pronouns. The tag is on that word, a word the lexicon knows, and its
+  `expected` is the answer's word, never empty: `cuál es esto` at `lesson-what` gives `vocab.wrong` on `cuál` (span 0+4), expected `qué`. Before M75 (M67's
+  rule: the distance within the fuzzy budget taken for the line's own length) the tag sat on the first content word (`es`) with an empty expected word, and
+  it fell on correct Spanish that the agent praised: `quiero hacer un hacha` at `smith-open` (an added word), `pasado mañana iré al río con Mar` at
+  `lesson-will-go` and `rápido por favor` at `lesson-had` (content words far apart) have no error since M75. A set with no answers has no near miss.
+- **A prompt that names its word** (M72): a line that resolved no intent at a prompt whose answer set has exactly one answer, or at a quiz, which allows no
+  intent and asks only for a word: the tag is on the first content word (a word the lexicon knows), with the canonical answer as `expected` when the set has
+  one answer, else empty.
+
+A line a slot grammar understood never gets it, nor does one a keyword rule understood that is no near miss: before M67 `hola luz quiero dos panes` at
 `baker-open`, `buscaré madera para luz` at `smith-open` and `me llamo domingo` at `smith-open` were scored 0.4 for it. Since M72 (the owner, D-game-22,
 2026-11-02) a correct line that is simply not among the several answers of a prompt (no intent the prompt takes, no near miss) gets no error either and stays
 `communicated=false`: before M72 `la tienda está en el pueblo` at `farmer-open`, `tengo dos manzanas` at `fisher-open` and `me gusta el río` at `smith-open`
 were scored 0.4 for a `vocab.wrong` with an empty expected word. Such a line carries the intent it has elsewhere in the catalog, `Verdict.OffPromptIntent`
 (below), so a host can answer it. At a lesson step, a line that answers another question is still not communicated: the step's prompt does not take it.
+
+**The near miss itself (M75, public additions).** `AnswerNearMisses.Find(text, set, difficulty, language, lexicon, rules, options = null)`
+(`Vocaterra.Nlp.Language.Matching`) returns the line's `AnswerNearMiss` (`Vocaterra.Nlp.Core.Stages`: `AnswerId`, `Phrase`, the normalized answer phrase,
+`Span`, `Actual`, the line's word, `Expected`, the answer's word, and `Pair`, a `SlipPair`: `Spelling`, `QuestionWord`, `Article`, `Preposition` or
+`Pronoun`), or null. It does not look at whether the line matched; the pipeline and `TextGrader` ask only for a constrained prompt with no match and pass the
+result to `VerdictInputs.NearMiss` (a new optional trailing parameter, null by default), which `VerdictAssembler` reads only there. A host that assembles a
+verdict by hand passes it the same way. The verdict, its JSON and the replay record have no new member: the near miss shows only as the derived error.
 
 ```csharp
 foreach (ResolvedWord word in result.Words!)
@@ -494,6 +579,37 @@ if (result.Verdict.OffPromptIntent is { } offPrompt)
     Console.WriteLine($"understood as {offPrompt.Value}, which this prompt does not take");
 }
 ```
+
+### The weather and `¿cómo estás?` (M74)
+
+The owner's items 1 and 3 of 2026-11-02 (D-game-22): three intents of `content/game-v1`'s catalog, and an order of the resolver's grammar rung that keeps the
+weather out of the intents that read `hacer`.
+
+| Intent | Lines | Slot |
+|---|---|---|
+| `state_weather` | `hace frío`, `hace calor`, `hace sol`, `hace viento`, `hace fresco`, `hace buen tiempo`, `hace mal tiempo` (also `hacía`, `hizo`, `hará`, `mucho frío`), `hoy hace …`, `llueve`, `nieva`, `está nublado`, `¡qué frío!` | `weather`: the words after `hace` (`frío`, `buen tiempo`, `mucho calor`), or after `qué`; none for `llueve`, `nieva`, `está nublado` |
+| `ask_weather` | `¿qué tiempo hace?` (`hoy`, `mañana`, `hará`, `va a hacer`), `¿cómo está el tiempo?` | none |
+| `ask_wellbeing` | `¿cómo estás?`, `¿cómo está usted?`, `¿cómo están ustedes?`, `¿cómo estáis?`, `¿qué tal?`, each also after `hola` or `buenos días` | none |
+
+- **`ask_wellbeing` is taken out of `greet`**, so a host can tell the question from `hola`; it is allowed wherever `greet` is, and the bundle's agents answer
+  it as they answer a greeting until the game gives them their own reply. `hola, ¿cómo estás?` is `ask_wellbeing` (its grammar takes the greeting before the
+  question; the reply «Bien, gracias.» greets too); `hola` alone stays `greet`. `cómo estás usted` keeps its `conj.person` (`está`).
+- **A yes-no question is its statement:** `¿hace frío?` is `state_weather`, as `hace frío` is, because no transcript carries the question mark (the reply «Sí,
+  hace frío.» answers both).
+- **No prompt allows the weather intents yet** (the game's next step). Until then a weather line is unknown at every prompt, with `state_weather` or
+  `ask_weather` as its off-prompt intent; the content lint reports `reach.intent` for them as an info.
+- **The grammar rung reads the whole catalog** ([pipeline.md](pipeline.md#5-intent-resolution-d0-plus-an-optional-d1-rung)): a grammar of an intent the
+  prompt does not allow takes the line from the best allowed grammar when it beats it in the rung's order and names more of the line's words
+  (`SlotGrammarMatch.NamedTokenCount`: literal words and `[VERB:lemma]` elements). `hace calor` at a lesson that takes only `state_action` is unknown with
+  `state_weather` off the prompt, not the `[NOUN:item]` of `[VERB:hacer] [NOUN:item]`; `hago pan`, `¿qué haces?` and the craft questions keep their intents. A
+  line no allowed grammar matches goes down the ladder as before: `¿qué tiempo hace?` at `smith-open` and `farmer-open` is `ask_activity`'s keyword rule of `qué`
+  with `hacer` until the game allows `ask_weather` there (then its grammar comes first); at `villager-open` it is unknown with `ask_weather` off the prompt.
+- **`hace dos días compré pan`** is neither the weather nor `hacer`: `hace` is the preposition of elapsed time there (M59), so no weather grammar takes it, and
+  the keyword rule of `comprar` makes it the past action it says (`state_action`, as `compré pan` is), with `item=pan`: the noun of a phrase of elapsed time is
+  no longer a rule's item (it was `día`).
+- **The slot grammar DSL** gains a slot on a group: `(frío|calor|buen tiempo):weather` fills `weather` with the words of the alternative that matched, each
+  literal as the grammar writes it (`frío` for a learner's `frio`), any other element's token as written, joined by single spaces; nothing when the group
+  consumed nothing. The name follows the `)` before any `?`: `(a|b):slot?`. `SlotGrammarMatch.LiteralTokenCount` and `NamedTokenCount` are public (additive).
 
 ### Verbs written without the accent of their tense: `result.Notes` (M70)
 
@@ -880,8 +996,9 @@ PipelineResult result = pipeline.Complete(analysis, context, near, extraSkills: 
 ```
 
 - **What phase 1 hands over.** `UtteranceAnalysis` exposes `Verdict`, `Words`, `Answer` (the values the final `PipelineResult` will carry),
-  `Asr` and `Posteriors` (the recognizer outputs), `ClipHash` and `Prompt`. Everything else phase 2 needs is kept internally. The recognizers run
-  once, in `Analyze`; completing the analysis never calls them again (a speech host recognizes once).
+  `Asr` and `Posteriors` (the recognizer outputs), `OtherPass` (M80, the recognition not chosen when the open-recognition fallback ran a second decode),
+  `ClipHash` and `Prompt`. Everything else phase 2 needs is kept internally. The recognizers run in `Analyze` (the word recognizer twice with the fallback,
+  when its first reading is not taken or looks forced); completing the analysis never calls them again (a speech host recognizes once).
 - **Three ways to give the host facts.** `Complete(analysis, context)` takes them from the context (`HostSlots`, `ExtraSkills`);
   `Complete(analysis, context, hostSlots, extraSkills)` replaces them with the arguments, through `context.WithHost(...)`, which recomputes
   `HostStateHash` as `Create` does, so the replay record covers the facts; `CompleteTrace` is `Complete` that returns the `PipelineTrace` a replay log needs
@@ -1059,7 +1176,7 @@ The guarantee stops at the injected adapters, which the pipeline does not make t
 
 | Adapter | Constructed | Concurrent calls on one instance | Shared across pipelines or threads |
 | --- | --- | --- | --- |
-| `ScriptedWordRecognizer` (test double) | in code | serialized by a lock | yes |
+| `ScriptedWordRecognizer` (test double; M80: also one result per mode, and `Requests`) | in code | serialized by a lock | yes |
 | `VoskWordRecognizer` | loads the model in the constructor (and a runtime copy on disk) | no lock: each `Recognize` makes its own native recognizer on a shared model, which the code does not guarantee; `Dispose` is not synchronized with `Recognize` | one instance per thread; do not dispose while another thread may recognize |
 | `SherpaOnnxOfflineRecognizer` | loads the model in the constructor | `Recognize` and `Dispose` take one lock: calls queue, `Dispose` is safe | yes, with calls serialized |
 | `Wav2Vec2PhonemeRecognizer`, `OnnxEmbeddingModel` | ONNX session in the constructor | no lock; the code gives no guarantee (ONNX Runtime documents concurrent `Run` as supported, which this code does not test) | one instance per thread, or serialize the calls |
@@ -1070,6 +1187,10 @@ The guarantee stops at the injected adapters, which the pipeline does not make t
 The rule for a host that runs evaluation and speech on different threads: one pipeline (or one set of services) per process is fine; give
 each Vosk, ONNX recognizer and each cached synthesis key one thread of its own, or serialize their calls, and do not dispose a recognizer
 while another thread can call it.
+
+**The open-recognition fallback (M80).** The second decode runs on the calling thread, after the first recognition (and the phoneme recognizer, if any) has
+finished, so a word recognizer is never called by two threads at once and the one-recognizer-per-thread rule of the table holds unchanged. The Vosk adapter
+makes a native recognizer per call on the one loaded model, so the second decode needs no second model load.
 
 **Two-phase evaluation and host turns.** `Analyze`, `Complete`, `CompleteTrace` and `Advance` follow the same rule as `Evaluate`: they keep no state
 in the pipeline. An `UtteranceAnalysis` is immutable (its members are get-only and the pipeline never mutates what it holds), so it may be handed

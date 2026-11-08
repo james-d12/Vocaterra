@@ -119,4 +119,61 @@ public sealed class HomographRerollTests
         Assert.Empty(analysis.Errors);
         Assert.Empty(analysis.Slots);
     }
+
+    // (4) M74, the merge gate's O3 seed 8vYtnrmXN4e2 (older than M74: the same recipe gave the same sentence on 45305998): cuánto sois cómoda, with cómoda (the chest
+    // of drawers) drawn as the noun after the copula, which the analyzer reads as the adjective cómodo (M69's rule), and a reader too. The recipe no longer realises it.
+    private const string HowMuchPattern = "cuánto [VERB:ser] [ART]? [NUM:qty]? [NOUN:item]?";
+
+    [Fact]
+    public void TheCaseOfSeed8vYtnrmXN4e2_NoLongerDrawsANounThatReadsAsThePredicateAdjective()
+    {
+        var pattern = GrammarPattern.Parse(HowMuchPattern);
+        var sentence = SentenceGen.Realize(Harness, new SentenceRecipe("catalog", pattern, 1529467400985696UL));
+        if (sentence is null)
+        {
+            return;
+        }
+
+        Assert.NotEqual("cuánto sois cómoda", sentence.NormalizedText);
+        Assert.Empty(Harness.Analyzer.Analyze(PipelineHarness.Normalize(sentence.Text), [SlotGrammarType.Parse(pattern.Render())]).Errors);
+    }
+
+    // Why the realiser may not build it: right after the copula the analyzer reads the word as the predicate adjective, with or without the grammar that binds it as
+    // a noun, and agrees it with the copula; where it agrees there is no error.
+    [Theory]
+    [InlineData("cuánto sois cómoda", HowMuchPattern, "noun.number")]
+    [InlineData("cuánto sois cómoda", "", "noun.number")]
+    [InlineData("cuánto eres claras", HowMuchPattern, "noun.number")]
+    [InlineData("cuánto sois cómodas", HowMuchPattern, "")]
+    [InlineData("cuánto es la cómoda", HowMuchPattern, "")]
+    public void ANounThatIsAlsoACommonAdjectiveRightAfterACopulaIsReadAsThePredicate(string sentence, string pattern, string tags)
+    {
+        var grammars = pattern.Length == 0 ? new List<SlotGrammarType>() : [SlotGrammarType.Parse(pattern)];
+        var analysis = Harness.Analyzer.Analyze(PipelineHarness.Normalize(sentence), grammars);
+        Assert.Equal(tags, string.Join(';', analysis.Errors.Select(static e => e.Tag)));
+    }
+
+    // Over many draws of the pattern, no realised sentence puts such a noun right after the copula, and each one analyzes clean under its grammar (before the fix,
+    // seeds 1 to 4000 gave cuánto eres claras).
+    [Fact]
+    public void TheHowMuchPatternNoLongerRealisesAPredicateAdjectiveHomographAfterTheCopula()
+    {
+        var pattern = GrammarPattern.Parse(HowMuchPattern);
+        var grammar = SlotGrammarType.Parse(pattern.Render());
+        var realised = 0;
+        for (var seed = 1UL; seed <= 4000; seed++)
+        {
+            var sentence = SentenceGen.Realize(Harness, new SentenceRecipe("catalog", pattern, seed));
+            if (sentence is null)
+            {
+                continue;
+            }
+
+            realised++;
+            var errors = Harness.Analyzer.Analyze(PipelineHarness.Normalize(sentence.Text), [grammar]).Errors.Where(static e => !e.Tag.StartsWith("pron.", StringComparison.Ordinal));
+            Assert.True(!errors.Any(), $"seed {seed}: '{sentence.NormalizedText}' gave {string.Join(", ", errors.Select(static e => e.Tag + " " + e.Expected))}");
+        }
+
+        Assert.True(realised > 3000, $"Only {realised} of 4000 draws were realised.");
+    }
 }

@@ -42,7 +42,7 @@ public sealed class LocaleText
     /// <summary>The feedback outcome keys the locale must have a line for (<c>feedback.outcome.&lt;key&gt;</c>).</summary>
     public static IReadOnlyList<string> OutcomeKeys { get; } =
     [
-        "understood", "understood_with_mistake", "not_understood", "uncertain", "dont_know", "help", "choice", "fail_forward", "pointed",
+        "understood", "understood_with_mistake", "not_understood", "off_prompt", "uncertain", "dont_know", "help", "choice", "fail_forward", "pointed",
     ];
 
     /// <summary>The interface words the locale must have (<c>ui.&lt;key&gt;</c>).</summary>
@@ -56,11 +56,11 @@ public sealed class LocaleText
         "summaryPractiseNoSe", "summaryPractiseSlip", "summaryPractiseSupport", "summaryPractiseNone", "summaryReplay", "summaryNone", "summaryMore",
         "tensePres", "tensePret", "tenseImpf", "tenseFut", "person1", "person2", "person3", "singular", "plural", "retryAgain",
         "warmupTitle", "warmupOffer.one", "warmupOffer.other", "warmupStart", "warmupAsk", "warmupDone.one", "warmupDone.other", "reviewNowHud",
-        "dialogueKeyHints", "dialogueButtonHints", "dialogueSpeechOffButtonHints", "dialogueSpeechOffKeyHints", "dialogueListening", "dialogueThinking",
+        "dialogueKeyHints", "coachOffPrompt", "dialogueOlder.one", "dialogueOlder.other", "dialogueAbove.one", "dialogueAbove.other", "dialogueBelow.one", "dialogueBelow.other", "dialogueButtonHints", "dialogueKeyHintsShort", "dialogueButtonHintsShort", "dialogueSpeechOffButtonHints", "dialogueSpeechOffKeyHints", "dialogueListening", "dialogueThinking",
         "dialogueYou", "dialogueYouSpoken", "supportPrefix", "supportOnHelp", "talkHint", "tipHeading", "newWord", "newWordToast", "audioSlot", "beaconDistance.one",
         "beaconDistance.other", "loadingSpeech", "controlsScroll", "controlsTextSizeKeys", "controlsTextSize", "gameSaved", "saveLater", "inventoryTitle",
         "inventoryHintsShort", "inventoryHints", "inventoryUsed", "craftingTitle", "craftingHints", "craftingCanMake", "craftingUses", "craftingByHand",
-        "workbenchTitle", "workbenchReady", "workbenchMissing", "playtestEndHint", "bookTabNouns", "bookTabVerbs", "bookTabPhrases", "bookTabLessons",
+        "workbenchTitle", "fireTitle", "workbenchReady", "workbenchMissing", "playtestEndHint", "bookTabNouns", "bookTabVerbs", "bookTabPhrases", "bookTabLessons",
         "bookTabSaid", "bookTitle", "bookHints", "bookHintsShort", "bookLines", "bookKnownNouns", "bookWithoutHelp", "bookSession", "bookNoVerbs", "bookNothingSaid",
         "bookNothing", "bookChooseVerb", "bookVerbKey", "bookWhatYouSaid", "bookMoreBelow", "dueNow", "dueSeconds", "dueMinutes", "dueHours", "phraseHeard",
         "phraseHelpEnglishAndCard", "phraseHelpCardAndAudio", "phraseHelpAudioOnly", "phraseHelpNone", "phraseHeardCounts", "phraseCounts", "bookKnown",
@@ -72,11 +72,16 @@ public sealed class LocaleText
         "reportSaved", "reportNotSaved", "checkTitle", "checkPre", "checkPost", "checkRecall", "checkComprehensionHint", "checkProductionPreface", "checkProductionHint",
         "checkDone", "checkItem", "checkThanks", "checkCounts", "checkThinking", "checkInLog", "checkCloseGame", "checkEnd", "checkListening", "checkAnswerHere",
         "checkNotGraded", "checkVoiceOff", "heard", "heardSomething", "heardNothing", "heardExpected", "micSay", "micTitle", "micTalkHint", "micPassed",
-        "micFailed", "micContinue", "micRetry", "micSkip", "micEscSkip", "lessonMore", "replayHud", "craftMake", "craftNeeds", "craftNeedsStation", "craftFull",
+        "micFailed", "micContinue", "micRetry", "micSkip", "micEscSkip", "lessonMore", "replayHud", "classHud", "bookAskClass", "bookLessonMeet", "bookLessonNext", "craftMake", "craftNeeds", "craftNeedsStation", "craftFull",
         "craftMissing", "needBottle", "playtestThanks", "playtestRecallThanks", "playtestSaved", "speechUnavailable", "turnNotChecked",
         "autosaved", "greyNewWord",
-        "sleepHud", "allLessonsDoneHud", "lessonNextHud", "lessonUnderwayHud", "reviewNothingDue", "sleepCard", "sleepCardDone", "sleepPrompt", "sleepPromptDone", "sleptToast", "bookLessonNext", "bookLessonOpen", "bookLessonOpensIn", "bookLessonAfter",
-        "bookLessonsAllDone",
+        "sleepHud", "reviewNothingDue", "sleepCard", "sleepPrompt", "sleptToast", "bookLessonOpen", "bookLessonAfter",
+        "bookLessonsAllDone", "foodKept", "drinkKept", "plantedBush", "plantFar", "plantOccupied", "plantFull", "diedHunger", "diedThirst", "chestRest", "beaconBelongings",
+        "faintedHunger", "faintedThirst", "diedDrowned", "faintedDrowned", "controlsEffectsKeys", "controlsEffects", "effectsOn", "effectsOff",
+        "controlsSettingsKeys", "controlsSettings", "settingsTitle", "settingsRate", "settingsEffects", "settingsRelaxed", "settingsBlur", "blurLow", "blurMedium", "blurHigh", "settingsOn", "settingsOff", "settingsHint",
+        "stationListen", "stationHeld", "stationPage", "stationHints", "stationNothingHeld", "stationSelection", "stationRight", "stationWrongThing", "stationWrongVerb",
+        "stationOutOfOrder", "stationDone", "stationAgain", "stationBagFull", "stationMissing", "stationVerbs",
+        "stationBakeAtOnce", "stationGuided", "stationNotEnough", "stationTalkType", "stationTalkListening", "stationTalkThinking", "stationTalkAnswer",
     ];
 
     /// <summary>The most error lines one turn's feedback carries.</summary>
@@ -388,6 +393,13 @@ public sealed class LocaleText
         if (!turn.Taken)
         {
             lines.Add(Outcome("not_understood", ("npc", npc)));
+            return lines;
+        }
+
+        if (!turn.Communicated && turn.OffPromptIntent is not null && !turn.LessonHandled)
+        {
+            // U02b (ui-3): the core found an intent off the prompt and the NPC answered "Te entiendo": neither praised nor "not understood".
+            lines.Add(Outcome("off_prompt", ("npc", npc)));
             return lines;
         }
 

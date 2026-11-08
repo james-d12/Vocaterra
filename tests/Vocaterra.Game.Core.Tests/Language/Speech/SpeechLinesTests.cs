@@ -67,9 +67,9 @@ public sealed class SpeechLinesTests
 
         var pools = TestGame.Bundle.Dialogue.Pools.Keys.Order(StringComparer.Ordinal).ToList();
 
-        Assert.Equal(272, pools.Count); // V28 added «Sí, es verdad.» for the baker, the smith and the fisher; V27 added the NPCs' off-prompt pools, one each; V21b added farmer_unit; V02 added villager_unknown_place; V10 the fisher's 21 and the villager's signpost line; V11 the baker's 20 and the stall's 3; V12 the smith's 10, the farmer's 7 and the villager's 10; V13 the farmer's 15 and the stall's 2; V14 the villager's 8, the smith's 2 and the fisher's 3; V17 the baker's 2, the smith's 2 and the fisher's 2; V15 the baker's 10, the farmer's 10, the smith's 3 and the stall's 1; V19 the baker's, the farmer's and the smith's no_room and none_offered; V20 the free-talk replies, the villager's 2, the stall's 2, the fisher's, the baker's, the smith's 2 and the farmer's 2; V21 the stall's and the villager's wont_sell and the baker's wait
+        Assert.Equal(337, pools.Count); // W10 added Luz's thirteen (the nine instructions, «Todavía no.», two lesson questions and the plan line) and the stall's eight (flour sold, bread bought, the misses; the stall's first seven wait for the bread and the flour); W08 added the baker's seven (the offer to bake, her «¡Vamos!», «Escucha.», «Te ayudo.», the ingredients, «Ya tienes todo.», «Hoy no tengo más.»); N05 added the three gift_used pools (the stall, the villager, the guide); L01 added five class-offer pools (guide.lesson.<npc>.offer) and the player's «No tengo sueño.» (guide.sleep.not_sleepy); // V29 added four pools to each of the seven NPCs (_yes, _weather, _sun, _well); V28 added «Sí, es verdad.» for the baker, the smith and the fisher; V27 added the NPCs' off-prompt pools, one each; V21b added farmer_unit; V02 added villager_unknown_place; V10 the fisher's 21 and the villager's signpost line; V11 the baker's 20 and the stall's 3; V12 the smith's 10, the farmer's 7 and the villager's 10; V13 the farmer's 15 and the stall's 2; V14 the villager's 8, the smith's 2 and the fisher's 3; V17 the baker's 2, the smith's 2 and the fisher's 2; V15 the baker's 10, the farmer's 10, the smith's 3 and the stall's 1; V19 the baker's, the farmer's and the smith's no_room and none_offered; V20 the free-talk replies, the villager's 2, the stall's 2, the fisher's, the baker's, the smith's 2 and the farmer's 2; V21 the stall's and the villager's wont_sell and the baker's wait
         Assert.All(pools, pool => Assert.Equal((pool, Before(pool)), (pool, SpeechSpeakers.OfPool(pool, TestGame.Data.Npcs))));
-        Assert.Equal([("baker", 38), ("farmer", 38), ("fisher", 29), ("guide", 71), ("shopkeeper", 30), ("smith", 23), ("villager", 43)], pools.GroupBy(pool => SpeechSpeakers.OfPool(pool, TestGame.Data.Npcs)).Select(static g => (g.Key, g.Count())).OrderBy(static g => g.Key, StringComparer.Ordinal));
+        Assert.Equal([("baker", 63), ("farmer", 43), ("fisher", 34), ("guide", 78), ("shopkeeper", 43), ("smith", 27), ("villager", 49)], pools.GroupBy(pool => SpeechSpeakers.OfPool(pool, TestGame.Data.Npcs)).Select(static g => (g.Key, g.Count())).OrderBy(static g => g.Key, StringComparer.Ordinal));
     }
 
     [Fact]
@@ -104,7 +104,7 @@ public sealed class SpeechLinesTests
         Assert.Equal(
             TestGame.Nouns.Nouns.Select(static n => SpeechFiles.CardId(n.Lemma)).Order(StringComparer.Ordinal),
             cards.Keys.Order(StringComparer.Ordinal));
-        Assert.Equal(22, cards.Count); // V03 added moneda, manzana and hacha
+        Assert.Equal(29, cards.Count); // W10 harina, bol, cuchara, masa, horno, mano; V03 added moneda, manzana and hacha, N07 fuego
         Assert.Equal("el hacha", cards["card.hacha"]); // a feminine noun with a stressed a takes el
         Assert.Equal("el río", cards["card.rio"]);
         Assert.Equal("el árbol", cards["card.arbol"]);

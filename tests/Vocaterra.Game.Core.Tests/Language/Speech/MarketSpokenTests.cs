@@ -64,7 +64,7 @@ public sealed class MarketSpokenTests(ITestOutputHelper output)
         // At the villager's open prompt (open recognition, no answer set to steer it), each number said in a quantity: the recognizer hears the number word.
         using var session = TestGame.NewSessionWithShippedLessons();
         Stage.TeleportToNpc(session, "villager");
-        _ = session.OpenTalk("villager");
+        _ = session.OpenTalkForClass("villager");
         Assert.True(session.StartWorker().WaitUntilReady(60000));
 
         var missed = new List<string>();
@@ -91,7 +91,7 @@ public sealed class MarketSpokenTests(ITestOutputHelper output)
         using var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons) { Day = 10 };
         _ = session.Simulation.GrantItems(ItemId.Coin, 4);
         Stage.TeleportToNpc(session, "baker");
-        _ = session.OpenTalk("baker");
+        _ = session.OpenTalkForClass("baker");
         Assert.True(session.StartWorker().WaitUntilReady(60000));
 
         _ = session.SubmitSpeak("Hola Luz, quiero dos panes.");
@@ -112,7 +112,7 @@ public sealed class MarketSpokenTests(ITestOutputHelper output)
         using var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons) { Day = 10 };
         _ = session.Simulation.GrantItems(ItemId.Coin, 4);
         Stage.TeleportToNpc(session, "baker");
-        _ = session.OpenTalk("baker");
+        _ = session.OpenTalkForClass("baker");
         Assert.True(session.StartWorker().WaitUntilReady(60000));
 
         _ = session.SubmitSpeak("Buenos días, Luz, quiero dos panes.");
@@ -133,7 +133,7 @@ public sealed class MarketSpokenTests(ITestOutputHelper output)
         using var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons) { Day = 10 };
         _ = session.Simulation.GrantItems(ItemId.Wood, 4); // four: five would deliver the oven order as the talk opens
         Stage.TeleportToNpc(session, "baker");
-        _ = session.OpenTalk("baker");
+        _ = session.OpenTalkForClass("baker");
         Assert.True(session.StartWorker().WaitUntilReady(60000));
 
         _ = session.SubmitSpeak("Buenas tardes, ¿cuánto cuesta el pan?");

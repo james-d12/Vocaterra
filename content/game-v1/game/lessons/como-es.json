@@ -4,7 +4,7 @@
   "id": "como-es",
   "npc": "farmer",
   "level": "a2",
-  "autoStart": true,
+  "autoStart": false,
   "after": "gente-del-pueblo",
   "session": 7,
   "verbs": [

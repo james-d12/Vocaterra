@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
+using Vocaterra.Game.Core.Activities;
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Words;
@@ -24,13 +25,18 @@ internal static class RouteScene
 
     private static readonly Lazy<SceneLayout> ClearingLayout = new(() => SceneLayout.Load(Repo.Path("tests", "Vocaterra.Game.Tests", "Fixtures", "clearing-route.json")));
 
-    // The built scenes, never handed out: only their clones are.
+    // The built scenes, never handed out: only their clones are. The default seed's scene of each layout stays for the whole run; any other seed's scene is
+    // kept only while it is among the last few asked for (T10: a scene is about 110 MB, and the ten seeds the tests ask for held 1.1 GB of the 3 GB heap for the rest of the run).
+    private const ulong KeptSeed = 42;
+    private const int RecentKept = 2;
     private static readonly ConcurrentDictionary<(Lazy<SceneLayout> Layout, ulong Seed), Lazy<Scene>> Built = new();
+    private static readonly List<((Lazy<SceneLayout> Layout, ulong Seed) Key, Lazy<Scene> Scene)> Recent = [];
 
     // The book without lessons of each bundle (it is read-only, so the sessions share it).
     private static readonly ConditionalWeakTable<ContentBundle, LessonBook> EmptyBooks = new();
 
     private static readonly ConditionalWeakTable<ContentBundle, GameData> Loaded = new();
+    private static readonly ConditionalWeakTable<ContentBundle, GameData> LoadedWithBread = new();
 
     private static readonly Lazy<LocaleText> LoadedLocale =
         new(() => LocaleBundle.Load(LocaleBundle.DirectoryBeside(GameBundle.ResolveDirectory())).Text(LocaleBundle.DefaultCode));
@@ -68,8 +74,24 @@ internal static class RouteScene
         {
             if (!Loaded.TryGetValue(bundle, out var data))
             {
-                data = GameData.Load(bundle, LocaleOf(bundle));
+                // The tests that predate the bread (W10) see the shipped game without its procedure, so Luz makes no offer to bake and her talk opens as it did; BreadDataOf has it.
+                data = BreadDataOf(bundle).WithProcedures(ProcedureBook.Empty);
                 Loaded.Add(bundle, data);
+            }
+
+            return data;
+        }
+    }
+
+    /// <summary>The game's content of a loaded bundle with the bread procedure, its station and its actions (W10), loaded once per bundle.</summary>
+    public static GameData BreadDataOf(ContentBundle bundle)
+    {
+        lock (LoadedWithBread)
+        {
+            if (!LoadedWithBread.TryGetValue(bundle, out var data))
+            {
+                data = GameData.Load(bundle, LocaleOf(bundle));
+                LoadedWithBread.Add(bundle, data);
             }
 
             return data;
@@ -108,8 +130,50 @@ internal static class RouteScene
     /// <summary>The sample lesson as a book.</summary>
     public static LessonBook Sample(ContentBundle bundle, NounCatalog nouns) => Lessons(SampleLesson, bundle);
 
-    private static Scene CloneOf(Lazy<SceneLayout> layout, ulong seed) =>
-        Built.GetOrAdd((layout, seed), static key => new Lazy<Scene>(() => Warmed(SceneBuilder.Build(key.Layout.Value, key.Seed)))).Value.Clone();
+    /// <summary>How many scenes of other seeds than the default the cache holds now (at most the last few).</summary>
+    internal static int CachedOtherSeeds
+    {
+        get
+        {
+            lock (Recent)
+            {
+                return Recent.Count;
+            }
+        }
+    }
+
+    private static Scene CloneOf(Lazy<SceneLayout> layout, ulong seed)
+    {
+        var key = (layout, seed);
+        static Lazy<Scene> Make((Lazy<SceneLayout> Layout, ulong Seed) key) => new(() => Warmed(SceneBuilder.Build(key.Layout.Value, key.Seed)));
+        if (seed == KeptSeed)
+        {
+            return Built.GetOrAdd(key, Make).Value.Clone();
+        }
+
+        Lazy<Scene> entry;
+        lock (Recent)
+        {
+            var at = Recent.FindIndex(r => r.Key == key);
+            if (at >= 0)
+            {
+                entry = Recent[at].Scene;
+                Recent.RemoveAt(at);
+            }
+            else
+            {
+                entry = Make(key);
+            }
+
+            Recent.Add((key, entry));
+            if (Recent.Count > RecentKept)
+            {
+                Recent.RemoveAt(0);
+            }
+        }
+
+        return entry.Value.Clone();
+    }
 
     // The world digest, the chunk digests and the chunks' kind masks are worked out once, on the built scene: a clone copies them, so a test that hashes or
     // searches the world does not redo it over the 4 608 chunks (an edit drops the edited chunk's own, as in any grid).

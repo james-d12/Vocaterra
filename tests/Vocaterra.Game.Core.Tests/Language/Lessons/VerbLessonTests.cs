@@ -3,11 +3,9 @@ using System.Text;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Words;
-using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
-using Vocaterra.Game.Core.Tip;
 using Vocaterra.Nlp.Es;
 using Xunit.Abstractions;
 
@@ -23,8 +21,10 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
     private static VoxelSession AtGuide()
     {
         var session = TestGame.NewSessionWithShippedLessons();
+        session.Lessons.CountAsCompleted("first-words", 1); // the introduction is done; the verb unit is Luna's first class (L01)
         Stage.TeleportToNpc(session, "guide");
-        _ = session.OpenTalk("guide");
+        _ = session.OpenTalkForClass("guide");
+        Assert.Equal("first-class", session.Lessons.Active?.Id);
         return session;
     }
 
@@ -34,7 +34,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         session.Day = 2;
         session.Sitting = 2;
         Stage.TeleportToNpc(session, "villager");
-        _ = session.OpenTalk("villager");
+        _ = session.OpenTalkForClass("villager");
         return session;
     }
 
@@ -45,7 +45,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
     [Fact]
     public void TheVerbUnitComesAfterPleaseAndThankYouAndBeforeGettingUnstuck()
     {
-        var steps = Book.Find("first-words")!.Steps;
+        var steps = Book.Find("first-class")!.Steps;
         var ids = steps.Select(static s => s.Id).ToList();
         var first = ids.IndexOf("u4v-intro");
 
@@ -53,7 +53,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         Assert.Equal(
             [("u4v-intro", LessonStepType.Explain), ("u4v-ask-want", LessonStepType.Model), ("u4v-say-want", LessonStepType.Repeat), ("u4v-ask-have", LessonStepType.Answer), ("u4v-ask-need", LessonStepType.Answer)],
             steps.Skip(first).Take(5).Select(static s => (s.Id, s.Type)));
-        Assert.Equal("u5-intro", ids[first + 5]);
+        Assert.Equal(first + 5, ids.Count); // the class ends with the verb unit: getting unstuck stayed in the introduction (L01)
         Assert.DoesNotContain(steps, static s => s.Id == "u3-table"); // cut to keep the lesson under ten minutes
         Assert.Contains("the ending is -o", steps[first].English, StringComparison.Ordinal); // the English names the pattern once...
         Assert.True(steps.Single(static s => s.Id == "u4v-ask-need").English.Length < steps.Single(static s => s.Id == "u4v-say-want").English.Length); // ...and thins
@@ -101,7 +101,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         Assert.True(turn.Communicated);
         Assert.Contains(turn.Errors, static e => e.Tag == "conj.person");
         Assert.Equal("u4v-ask-have", session.Lessons.Current!.Id); // a slip is the phrase tracking's business: the lesson goes on
-        Assert.Equal(StepOutcome.Done, session.Lessons.OutcomesOf("first-words")[^1].Outcome);
+        Assert.Equal(StepOutcome.Done, session.Lessons.OutcomesOf("first-class")[^1].Outcome);
     }
 
     [Fact]
@@ -125,7 +125,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
     {
         var personas = Book.Find("personas")!;
 
-        Assert.Equal(("villager", 2, true), (personas.Npc, personas.Session, personas.AutoStart));
+        Assert.Equal(("villager", 2, false), (personas.Npc, personas.Session, personas.AutoStart));
         Assert.Contains("Personas", personas.Objective, StringComparison.Ordinal); // the objective names it
         Assert.Equal(["villager", "shopkeeper"], personas.Steps.Select(personas.NpcOf).Distinct());
         Assert.Equal(["quiero-madera", "ella-quiere-fruta", "necesitamos-agua", "necesito-pan", "tengo-botella", "queremos-pan"], personas.TaughtPhrases); // the first is the reminder of session 1
@@ -168,11 +168,11 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         session.EndTalk();
         Assert.True(session.Lessons.Engaged);
         Stage.TeleportToNpc(session, "guide");
-        _ = session.OpenTalk("guide");
+        _ = session.OpenTalkForClass("guide");
         Assert.Equal("p2-walk", session.Lessons.Current!.Id); // another NPC's panel does not end the step
         session.EndTalk();
         Stage.TeleportToNpc(session, "shopkeeper");
-        var opening = session.OpenTalk("shopkeeper");
+        var opening = session.OpenTalkForClass("shopkeeper");
         Assert.Empty(opening.Lines); // the shopkeeper's lesson speaks first
         Assert.Equal("p3-intro", session.Lessons.Current!.Id);
         Assert.Equal("shopkeeper", session.Lessons.CurrentNpc);
@@ -202,7 +202,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
             Assert.True(d.Turn.LessonHandled, d.Id);
         });
         Assert.Equal(["villager", "villager", "villager", "shopkeeper", "shopkeeper", "shopkeeper"], turns.Select(static d => d.Turn!.Npc));
-        Assert.Null(session.Lessons.OfferFor("villager"));
+        Assert.Equal("ayer-y-manana", session.Lessons.OfferFor("villager")?.LessonId); // personas is done: the villager's next class of the series is on offer (L01)
     }
 
     [Fact]
@@ -226,7 +226,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
 
         session.EndTalk();
         Stage.TeleportToNpc(session, "shopkeeper");
-        _ = session.OpenTalk("shopkeeper");
+        _ = session.OpenTalkForClass("shopkeeper");
         Assert.Empty(session.Support.Cards); // not the stall's "Quiero agua, por favor."
         Assert.Equal("p3-intro", session.Lessons.Current!.Id);
     }
@@ -250,63 +250,43 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
     // ---- Sessions
 
     [Fact]
-    public void ALessonOfASecondSessionIsNotOfferedInTheFirst()
+    public void AClassIsOpenOnceItsTeacherIsMetWhateverTheDay()
     {
         var session = TestGame.NewSessionWithShippedLessons();
         Stage.TeleportToNpc(session, "villager");
 
         Assert.Equal(1, session.Day);
-        Assert.Null(session.Lessons.OfferFor("villager"));
-        Assert.Null(session.Lessons.NewLesson);
+        Assert.Null(session.Lessons.OfferFor("villager")); // not met: nothing is open (L01)
+        Assert.Null(session.Lessons.OpenClass());
         var opening = session.OpenTalk("villager");
         Assert.NotEmpty(opening.Lines); // the villager's own "Hola." (the river errand of session 1)
-        Assert.Null(session.Lessons.Active);
+        Assert.Null(session.Lessons.Active); // a class never starts by itself
         Assert.Equal(LessonStatus.NotStarted, session.Lessons.StatusOf("personas"));
+        Assert.Equal("personas", session.Lessons.OfferFor("villager")?.LessonId); // met: the first class of the series is on offer, on day 1 as on any day
+        Assert.Equal("guide.lesson.villager.offer.1", session.Support.TakeCues().Last().LineId);
+        Assert.Equal(["¿Una clase hoy? ¿Sí o no?"], session.Lessons.TakeLines());
     }
 
     [Fact]
-    public void SessionTwoUnlocksPersonasAndTheObjectiveNamesIt()
+    public void TheObjectiveNeverNamesAClassAndTheBeaconDoesNotPointAtItsTeacher()
     {
         var session = TestGame.NewSessionWithShippedLessons();
         session.Day = 2;
         session.Sitting = 2;
-
-        var offer = session.Lessons.OfferFor("villager");
-        Assert.Equal("personas", offer!.LessonId);
-        Assert.Equal("personas", session.Lessons.NewLesson!.Id);
-        var piece = Assert.Single(session.ObjectiveHud());
-        Assert.Equal("Session 2: go to the village and talk to the villager to start the lesson “Personas”", piece.Text);
-        Assert.Equal(ObjectivePieceKind.Support, piece.Kind);
-    }
-
-    [Fact]
-    public void WhenSessionTwoOpensTheBeaconPointsAtTheVillager()
-    {
-        var session = TestGame.NewSessionWithShippedLessons();
-        session.Day = 2;
-        session.Sitting = 2;
-
+        _ = session.OpenTalk("villager");
+        session.EndTalk();
         session.BeginPlaySession();
 
-        var villager = session.Scene.Npc("villager").Feet;
-        Assert.Equal(new GuideCell(villager.X, villager.Y, villager.Z), session.Pointer!.Target);
-        Assert.Contains(session.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.BeaconSet && e.Npc == "villager");
-    }
-
-    [Fact]
-    public void ALessonOfALaterSessionIsNoNewLessonOnceItHasBegun()
-    {
-        var session = SessionTwoAtVillager();
-
-        Assert.Null(session.Lessons.NewLesson);
-        Assert.NotEqual("Session 2: go to the village and talk to the villager to start the lesson “Personas”", session.ObjectiveHud()[0].Text);
+        Assert.Equal("personas", session.Lessons.OfferFor("villager")!.LessonId);
+        Assert.DoesNotContain("Personas", session.ObjectiveHud()[0].Text, StringComparison.Ordinal);
+        Assert.NotEqual("villager", session.Pointer?.Point);
     }
 
     [Fact]
     public void ALoadIntoTheNextSessionUnlocksItsLessonAndTheSaveHoldsTheSession()
     {
         var session = AtGuide();
-        _ = LessonDriver.CompleteAll(session);
+        _ = LessonDriver.CompleteAll(session, "first-class");
         session.EndTalk();
         session.Day = 2; // the sleep at the fire (V25: a load keeps the day, only a sleep moves it)
         session.Sitting = 2;
@@ -319,9 +299,10 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         Assert.Equal(SaveGame.CurrentVersion, document.Version);
         Assert.Equal(2, document.Session);
         Assert.Equal(2, loaded.Day);
-        Assert.Equal("personas", loaded.Lessons.NewLesson!.Id);
-        Assert.NotNull(loaded.Pointer); // the beacon points at the villager
-        Assert.Equal(LessonStatus.Completed, loaded.Lessons.StatusOf("first-words"));
+        Assert.False(loaded.Lessons.IsUnlocked(loaded.Lessons.Book.Find("personas")!)); // the villager is not met yet: the day opens nothing
+        _ = loaded.OpenTalk("villager");
+        Assert.Equal("personas", loaded.Lessons.OfferFor("villager")!.LessonId); // the first class of the series
+        Assert.Equal(LessonStatus.Completed, loaded.Lessons.StatusOf("first-class"));
     }
 
     // ---- Replay
@@ -330,33 +311,34 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
     public void ACompletedLessonCanBePractisedAgainAndStartsAtItsNpc()
     {
         var session = AtGuide();
-        _ = LessonDriver.CompleteAll(session);
+        _ = LessonDriver.CompleteAll(session, "first-class");
         session.EndTalk();
         Assert.Null(session.Lessons.OfferFor("guide"));
 
-        Assert.True(session.Lessons.RequestReplay("first-words"));
+        Assert.True(session.Lessons.RequestReplay("first-class"));
 
-        Assert.Equal("first-words", session.Lessons.ReplayPending);
-        Assert.Equal("Practise again: talk to the guide to start “First words with Luna”", session.Lessons.ReplayHud);
-        Assert.Equal("Practise again: talk to the guide to start “First words with Luna”", session.ObjectiveHud()[0].Text);
+        Assert.Equal("first-class", session.Lessons.ReplayPending);
+        var title = session.Lessons.Book.Find("first-class")!.ShortTitle;
+        Assert.Equal($"Practise again: talk to the guide to start “{title}”", session.Lessons.ReplayHud);
+        Assert.Equal($"Practise again: talk to the guide to start “{title}”", session.ObjectiveHud()[0].Text);
         Assert.NotNull(session.Pointer); // the beacon points at Luna
-        Assert.Equal("first-words", session.Lessons.OfferFor("guide")!.LessonId);
+        Assert.Equal("first-class", session.Lessons.OfferFor("guide")!.LessonId);
         Assert.Contains(session.Events.OfType<LessonEvent>(), static e => e.Kind == LessonEventKind.ReplayRequested);
 
         Stage.TeleportToNpc(session, "guide");
-        var opening = session.OpenTalk("guide");
+        var opening = session.OpenTalkForClass("guide");
 
         Assert.Empty(opening.Lines); // the lesson speaks first
         Assert.True(session.Lessons.Engaged);
-        Assert.Equal("u1-welcome", session.Lessons.Current!.Id); // from its first step
+        Assert.Equal("u4-intro", session.Lessons.Current!.Id); // from its first step
         Assert.Null(session.Lessons.ReplayPending);
-        Assert.True(session.Lessons.IsDone("first-words")); // still done while it runs again
+        Assert.True(session.Lessons.IsDone("first-class")); // still done while it runs again
         Assert.Null(session.Lessons.ReplayHud);
 
-        var again = LessonDriver.CompleteAll(session);
+        var again = LessonDriver.CompleteAll(session, "first-class");
 
-        Assert.Equal(37, again.Count);
-        Assert.Equal(LessonStatus.Completed, session.Lessons.StatusOf("first-words"));
+        Assert.Equal(12, again.Count);
+        Assert.Equal(LessonStatus.Completed, session.Lessons.StatusOf("first-class"));
     }
 
     [Fact]
@@ -364,10 +346,11 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
     {
         var session = AtGuide();
 
-        Assert.False(session.Lessons.RequestReplay("first-words")); // under way, not completed
-        Assert.False(session.Lessons.RequestReplay("personas")); // never begun
+        Assert.False(session.Lessons.RequestReplay("personas")); // another class is under way
         Assert.False(session.Lessons.RequestReplay("no-such-lesson"));
         Assert.Null(session.Lessons.ReplayPending);
+        Assert.True(session.Lessons.RequestReplay("first-class")); // the class under way: asking for it again resumes it at its teacher (L01)
+        Assert.Equal("first-class", session.Lessons.ReplayPending);
     }
 
     [Fact]
@@ -381,7 +364,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
 
         session.EndTalk();
         Stage.TeleportToNpc(session, "shopkeeper");
-        _ = session.OpenTalk("shopkeeper");
+        _ = session.OpenTalkForClass("shopkeeper");
         while (session.Lessons.StatusOf("personas") == LessonStatus.InProgress)
         {
             _ = LessonDriver.DoStep(session);
@@ -390,7 +373,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         session.EndTalk();
         Assert.True(session.Lessons.RequestReplay("personas"));
         Stage.TeleportToNpc(session, "villager");
-        _ = session.OpenTalk("villager");
+        _ = session.OpenTalkForClass("villager");
 
         Assert.Equal("p1-intro", session.Lessons.Current!.Id);
         Assert.Equal("villager", session.Lessons.CurrentNpc);
@@ -400,20 +383,20 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
     public void AReplayUnderWayAndAReplayAskedForSurviveASaveAndALoad()
     {
         var session = AtGuide();
-        _ = LessonDriver.CompleteAll(session);
+        _ = LessonDriver.CompleteAll(session, "first-class");
         session.EndTalk();
-        Assert.True(session.Lessons.RequestReplay("first-words"));
+        Assert.True(session.Lessons.RequestReplay("first-class"));
         var asked = SaveGame.Save(session, TestGame.Route());
 
         var restored = SaveGame.Load(asked, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: false);
 
-        Assert.Equal("first-words", restored.Lessons.ReplayPending);
-        Assert.True(restored.Lessons.IsDone("first-words"));
+        Assert.Equal("first-class", restored.Lessons.ReplayPending);
+        Assert.True(restored.Lessons.IsDone("first-class"));
         Assert.Equal(asked, SaveGame.Save(restored, TestGame.Route()));
 
         // and half way through the replay: the lesson is in progress and still done
         Stage.TeleportToNpc(restored, "guide");
-        _ = restored.OpenTalk("guide");
+        _ = restored.OpenTalkForClass("guide");
         for (var i = 0; i < 5; i++)
         {
             _ = LessonDriver.DoStep(restored);
@@ -423,18 +406,18 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         var half = SaveGame.Save(restored, TestGame.Route());
         var again = SaveGame.Load(half, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: false);
 
-        Assert.Equal(LessonStatus.InProgress, again.Lessons.StatusOf("first-words"));
-        Assert.True(again.Lessons.IsDone("first-words"));
+        Assert.Equal(LessonStatus.InProgress, again.Lessons.StatusOf("first-class"));
+        Assert.True(again.Lessons.IsDone("first-class"));
         Assert.Null(again.Lessons.ReplayPending);
         Assert.Equal(half, SaveGame.Save(again, TestGame.Route()));
-        Assert.Equal(5, again.Lessons.OutcomesOf("first-words").Count);
+        Assert.Equal(5, again.Lessons.OutcomesOf("first-class").Count);
     }
 
     [Fact]
     public void ASaveBeforeTheReplayWasKeptReadsACompletedLessonAsDone()
     {
         var session = AtGuide();
-        _ = LessonDriver.CompleteAll(session);
+        _ = LessonDriver.CompleteAll(session, "first-class");
         session.EndTalk();
         var document = SaveGame.Parse(SaveGame.Save(session, TestGame.Route()));
         var old = document with
@@ -449,7 +432,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
 
         var loaded = SaveGame.Load(SaveGame.Serialize(old), TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: false);
 
-        Assert.True(loaded.Lessons.IsDone("first-words"));
+        Assert.True(loaded.Lessons.IsDone("first-class"));
         Assert.False(loaded.Lessons.IsDone("personas"));
     }
 
@@ -458,7 +441,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
     [Fact]
     public void FirstWordsDeclaresYoAndTuOfQuererTenerAndNecesitar()
     {
-        var forms = Book.Find("first-words")!.TaughtVerbs;
+        var forms = Book.Find("first-class")!.TaughtVerbs;
 
         Assert.Equal(
             ["querer 1 sg pres", "querer 2 sg pres", "tener 1 sg pres", "tener 2 sg pres", "necesitar 1 sg pres", "necesitar 2 sg pres"],
@@ -501,7 +484,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
 
         Assert.All(book.Lessons, static l => Assert.Equal(l.TaughtVerbs.Count, l.TaughtVerbs.Distinct().Count()));
         Assert.Equal(book.Lessons.Sum(static l => l.TaughtVerbs.Count), book.Lessons.SelectMany(static l => l.TaughtVerbs).Distinct().Count()); // each form belongs to one lesson
-        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], book.Lessons.Select(static l => l.Session));
+        Assert.Equal([1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], book.Lessons.Select(static l => l.Session));
     }
 
     [Fact]
@@ -532,7 +515,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
             {
                 session.EndTalk();
                 Stage.TeleportToNpc(session, "shopkeeper");
-                _ = session.OpenTalk("shopkeeper");
+                _ = session.OpenTalkForClass("shopkeeper");
                 continue;
             }
 
@@ -605,7 +588,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         _ = session.Say("quieres madera");
         _ = session.Say("quieres fruta");
         Assert.Equal("u4v-ask-have", session.Lessons.Current!.Id); // the second miss moves on (attempts, D-game-9)
-        Assert.Equal(StepOutcome.MovedOn, session.Lessons.OutcomesOf("first-words")[^1].Outcome);
+        Assert.Equal(StepOutcome.MovedOn, session.Lessons.OutcomesOf("first-class")[^1].Outcome);
 
         const string Plain = """
             { "schemaVersion": 1, "lessons": [ { "id": "t", "npc": "guide", "level": "a1", "title": "T", "english": "E", "steps": [
@@ -614,7 +597,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
             """;
         var other = TestGame.NewSession(lessons: TestGame.Lessons(Plain));
         Stage.TeleportToNpc(other, "guide");
-        _ = other.OpenTalk("guide");
+        _ = other.OpenTalkForClass("guide");
         Assert.True(other.Lessons.Start("t"));
 
         _ = other.Say("quieres madera"); // no person declared: as before, the intent is all that counts

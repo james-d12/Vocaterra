@@ -268,9 +268,9 @@ public static class BookPages
             {
                 LessonStatus.Completed => (BookTone.Known, lesson.CompletedSession is { } session ? ui.Ui("bookLessonCompletedIn", ("session", N(session))) : ui.Ui("bookLessonCompleted")),
                 LessonStatus.InProgress => (BookTone.Learning, ui.Ui("bookLessonInProgress", ("done", N(doneUnits)), ("units", N(units.Count)))),
-                _ => (wait is { Kind: LessonWaitKind.Next } ? BookTone.Gold : BookTone.Unseen, wait is null ? ui.Ui("bookLessonNotStarted") : null),
+                _ => (wait is { Kind: LessonWaitKind.Next } ? BookTone.Gold : wait is { Kind: LessonWaitKind.Open } ? BookTone.Seen : BookTone.Unseen, wait is null ? ui.Ui("bookLessonNotStarted") : null),
             };
-            lines.Add(new BookLine(tone, lesson.Title, Aside: state, Practise: lesson.Status == LessonStatus.Completed ? lesson.LessonId : null, Next: wait is { Kind: LessonWaitKind.Next }));
+            lines.Add(new BookLine(tone, lesson.Title, Aside: state, Practise: lesson.Status == LessonStatus.Completed || wait is { Kind: LessonWaitKind.Open } || (lesson.Class && lesson.Status == LessonStatus.InProgress) ? lesson.LessonId : null, Next: wait is { Kind: LessonWaitKind.Next }, Ask: lesson.Status != LessonStatus.Completed));
             if (wait is not null)
             {
                 lines.Add(new BookLine(wait.Kind switch { LessonWaitKind.Next => BookTone.Gold, LessonWaitKind.Open => BookTone.Seen, _ => BookTone.Hint }, WaitText(ui, wait, lessons), Indent: true));
@@ -324,7 +324,7 @@ public static class BookPages
     {
         LessonWaitKind.Next => ui.Ui("bookLessonNext", ("npc", ui.Called(wait.Npc))),
         LessonWaitKind.Open => ui.Ui("bookLessonOpen", ("npc", ui.Called(wait.Npc))),
-        LessonWaitKind.Session => ui.Ui("bookLessonOpensIn", ("session", N(wait.Session)), ("npc", ui.Called(wait.Npc))),
+        LessonWaitKind.Meet => ui.Ui("bookLessonMeet", ("npc", ui.Called(wait.Npc))),
         _ => ui.Ui("bookLessonAfter", ("title", LessonDefinition.ShortOf(lessons.FirstOrDefault(l => string.Equals(l.LessonId, wait.After, StringComparison.Ordinal))?.Title ?? wait.After ?? string.Empty))),
     };
 

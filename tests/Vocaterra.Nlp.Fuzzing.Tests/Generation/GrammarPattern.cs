@@ -27,7 +27,8 @@ public sealed record OptionalPattern(PatternNode Inner) : PatternNode;
 
 /// <summary>A parenthesized choice between sequences.</summary>
 /// <param name="Alternatives">The alternatives; each is a non-empty sequence.</param>
-public sealed record GroupPattern(IReadOnlyList<IReadOnlyList<PatternNode>> Alternatives) : PatternNode;
+/// <param name="Slot">The slot the group fills with the words of the chosen alternative (M74, <c>(frío|buen tiempo):weather</c>), or null.</param>
+public sealed record GroupPattern(IReadOnlyList<IReadOnlyList<PatternNode>> Alternatives, string? Slot = null) : PatternNode;
 
 /// <summary>
 /// A slot grammar pattern as a small syntax tree that can be rendered to the DSL text, parsed back from canonical pattern text, and walked
@@ -148,6 +149,8 @@ public sealed record GrammarPattern(IReadOnlyList<PatternNode> Nodes)
                     Collect([optional.Inner], flexible: true, literalClasses, found);
                     break;
                 case GroupPattern group:
+                    // M74: a group with a slot name fills it with the words of the alternative that matched, which no other element competes for in the catalog's
+                    // grammars; its words are collected as any group's.
                     foreach (var alternative in group.Alternatives)
                     {
                         Collect(alternative, flexible: true, literalClasses, found);
@@ -220,6 +223,11 @@ public sealed record GrammarPattern(IReadOnlyList<PatternNode> Nodes)
                 }
 
                 builder.Append(')');
+                if (group.Slot is not null)
+                {
+                    builder.Append(':').Append(group.Slot);
+                }
+
                 break;
             default:
                 throw new InvalidOperationException($"Unexpected pattern node {node.GetType().Name}.");
@@ -276,7 +284,20 @@ public sealed record GrammarPattern(IReadOnlyList<PatternNode> Nodes)
                     break;
                 }
 
-                node = new GroupPattern(alternatives);
+                // M74: a slot name right after the closing parenthesis.
+                string? slot = null;
+                if (_index < text.Length && text[_index] == ':')
+                {
+                    var start = ++_index;
+                    while (_index < text.Length && (char.IsAsciiLetterOrDigit(text[_index]) || text[_index] == '_'))
+                    {
+                        _index++;
+                    }
+
+                    slot = text[start.._index];
+                }
+
+                node = new GroupPattern(alternatives, slot);
             }
             else if (c == '[')
             {

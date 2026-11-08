@@ -16,8 +16,9 @@ public static class BookPractise
     /// <summary>The label on the button.</summary>
     /// <param name="ui">The support language (<c>ui.bookPractise</c> and <c>ui.bookReviewNow</c>, C04).</param>
     /// <param name="target">What the button asks for: a lesson's id, or <see cref="ReviewNow"/>.</param>
-    public static string Label(Content.LocaleText ui, string? target = null) =>
-        (ui ?? throw new ArgumentNullException(nameof(ui))).Ui(string.Equals(target, ReviewNow, StringComparison.Ordinal) ? "bookReviewNow" : "bookPractise");
+    /// <param name="ask">Whether the button asks for a class (L01, <c>ui.bookAskClass</c>) rather than to practise a finished lesson again.</param>
+    public static string Label(Content.LocaleText ui, string? target = null, bool ask = false) =>
+        (ui ?? throw new ArgumentNullException(nameof(ui))).Ui(string.Equals(target, ReviewNow, StringComparison.Ordinal) ? "bookReviewNow" : ask ? "bookAskClass" : "bookPractise");
 
     /// <summary>The button of a heading whose text starts at <paramref name="rowTop"/>: at the content's right edge.</summary>
     /// <param name="geometry">The book's geometry.</param>
