@@ -5,7 +5,7 @@ work yourself; do not spawn subagents. Commit prefix `M87: `.
 
 ## Where to work, and committing
 Work only in the git worktree `/home/james/Dev/Vocaterra/.claude/worktrees/m87`, already on the branch `M87-pack-surface` (from
-`feature/german` at `d54ba19c`; it has no build yet). cd there first; never edit `/home/james/Dev/Vocaterra` or another worktree (`german`,
+`feature/german` at its tip; it has no build yet). cd there first; never edit `/home/james/Dev/Vocaterra` or another worktree (`german`,
 `bugfixes`, `water` are not yours; another session may build beside you). Commit after each step that builds and passes its tests; never
 end your turn with uncommitted work. Do not push; never push or merge `feature/*` or `main`. Run everything in the foreground and finish in
 one turn (no background commands, monitors or wait loops).
