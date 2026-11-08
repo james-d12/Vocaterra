@@ -614,9 +614,17 @@ section 8:
    core's Phase C.
 5. **Branch:** `feature/german`, cut from `origin/main` after PR #40 (the bread pilot) merged; `main` is merged in as other PRs land.
 
-Still open, to be asked before the milestone that needs them: the variety (report decision 4; de-DE content and voice with Austrian and
-Swiss spellings accepted is the recommendation; D14 already set per-NPC du/Sie) before T06, and the voice route (decision 6) after the
-spikes R1 and R2, before T08.
+**Owner, 2026-11-08, later:** "For the calls, just go with whatever you recommend." So:
+6. **Variety and register** (report decision 4): de-DE content and voice; Austrian and Swiss spellings accepted when grading (Swiss `ss`
+   for `ß`, `Jänner`, `grüezi` and the like are not errors). Register per NPC as D14 set it: `du` for Luna and the children, `Sie` for the
+   shopkeeper and strangers, `Sie` introduced at the shop.
+7. **Voice route** (decision 6): prerendered lines either way. Piper `thorsten` or `kerstin` (MIT model, CC0 data) if spike R1 shows it
+   runs on sherpa-onnx without espeak-ng-data; otherwise a German Kokoro export if R2 finds its licence and provenance clean; otherwise
+   Piper under D2's private-build terms until the GPL-free path exists. The spikes' outcome is recorded here before T08.
+8. **The Spanish lexicon source pin** (found by M36, 2026-11-08: kaikki's Spanish file changed upstream, so a fresh fetch fails its
+   pin): re-pin to the current file (core M90); the committed Spanish lexicon is not regenerated, and its sidecar keeps the dump it was
+   built from.
+9. **The flaky open-fallback reach check:** fix it (core M89).
 
 ## Already decided
 
