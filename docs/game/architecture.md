@@ -121,7 +121,7 @@ Activities/       the procedures at a station (W05 to W07): StationBook, Procedu
                   keys of design 10.8, every act to GuideSession.ActInProcedure with how the row was presented, the audio through IInstructionAudio, the OnTalk hook; TeacherTalk (W08: the learner's text box, recording and the teacher's answer on the station's talk line) and ProcedureCue (what her answer asks of the station)),
                   StationProps (E at a cell of a station's prop: Scene.PropCells, the cells each named stamp placed)
 Dialogue/         DialogueModel and its records, the speech buttons, TextWrap, the turn flow (TurnPump, SpeechActionRunner, SupportFrontend,
-                  TurnPresenter, GuideGreeting) and DialogueScreen
+                  TurnPresenter, GuideGreeting) and DialogueScreen (U06: the wheel scrolls the panel, `PanelScrollbar` computes the bar, `DialogueModel.Pages` keeps one page per NPC id)
                   (U02: the panel's rows, `DialogueModel.PanelRows`: the current exchange from the learner's last line, the one `CoachingLine`
                   in place of the correction, accent and English feedback stack, `Expanded` for the older lines; the lines themselves, and so
                   the book's history, are unchanged. The lesson heading reaches the panel's header as `FrameView.LessonHeading` (beside the NPC's name, which is the panel's title at 32 px, 16 px when compact: `DialogueLayout.Header`, U05); the strip has

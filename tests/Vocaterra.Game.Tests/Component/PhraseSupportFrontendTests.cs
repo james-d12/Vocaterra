@@ -391,6 +391,9 @@ public sealed class PhraseSupportFrontendTests
         Assert.False(Parse("--screenshot", "a.png", "--journal").JournalPhrases);
         Assert.False(LaunchOptions.TryParse(["--screenshot", "a.png", "--wait", "0"], out _, out var error));
         Assert.Contains("--wait", error, StringComparison.Ordinal);
+        Assert.False(LaunchOptions.TryParse(["--screenshot", "a.png", "--scroll", "0"], out _, out var scrollError)); // U06
+        Assert.Contains("--scroll", scrollError, StringComparison.Ordinal);
+        Assert.True(LaunchOptions.TryParse(["--screenshot", "a.png", "--scroll", "-2"], out _, out _));
         Assert.False(LaunchOptions.TryParse(["--screenshot", "a.png", "--skip", "soon"], out _, out _));
     }
 

@@ -62,6 +62,8 @@ public sealed class DialoguePanel : IFrameLayer
     public static readonly Color NameColor = new(255, 204, 110);
     private static readonly Color Frame = new(255, 214, 64);
     private static readonly Color PlayerColor = new(150, 205, 255);
+    private const int ScrollbarWidth = 4;
+    private static readonly Color ScrollTrack = new(44, 46, 64);
     private static readonly Color NoteColor = UiPalette.Muted.ToColor();
     private static readonly Color CorrectionColor = new(255, 190, 110);
     private static readonly Color GuideColor = new(255, 242, 180);
@@ -317,6 +319,14 @@ public sealed class DialoguePanel : IFrameLayer
         }
 
         var fit = PanelFitter.Fit(blocks, capacity, dialogue.Expanded, dialogue.ScrollBack, dialogue.HiddenLineCount);
+        if (PanelScrollbar.For(blocks, fit, dialogue.HiddenLineCount, bottom - top) is { } bar)
+        {
+            // U06: a thin bar in the panel's right padding, in the muted colours; it shows even when the fit dropped the "earlier" and "below" rows.
+            var x = left + width + 4;
+            spriteBatch.Draw(view.Pixel, new Rectangle(x, top, ScrollbarWidth, bottom - top), ScrollTrack);
+            spriteBatch.Draw(view.Pixel, new Rectangle(x, top + bar.ThumbTop, ScrollbarWidth, bar.ThumbHeight), NoteColor);
+        }
+
         var rows = new List<PanelText>();
         if (fit.ShowEarlier)
         {
