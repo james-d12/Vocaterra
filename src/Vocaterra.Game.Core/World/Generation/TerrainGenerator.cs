@@ -303,7 +303,7 @@ internal static class TerrainGenerator
                     else
                     {
                         var weight = IntMath.Ramp(d - hw16, 0, river.Bank * 16);
-                        var bank16 = IntMath.Lerp((surf + 1) * 16, Math.Max(_nat16[i], (surf + 1) * 16), weight);
+                        var bank16 = BankHeight(surf, _nat16[i], weight);
                         _h16[i] = Math.Min(_h16[i], bank16);
                         if (weight < IntMath.One)
                         {
@@ -321,6 +321,12 @@ internal static class TerrainGenerator
 
             return 0;
         }
+
+        // The height of a bank column (sixteenths) beside water whose surface layer is <water> (H12). The bank starts at the water's own level and eases up to the natural ground
+        // (the weight squared), so the column at the water's edge stands one block over the shallow bed at most: a body wading in the rim, where the water is too shallow to
+        // swim, steps out. A bank that started a block higher stood two over that bed, a wall nobody could climb, along every shore of the lake, the river and the pool.
+        private static int BankHeight(int water, int nat16, int weight) =>
+            IntMath.Lerp(water * 16, Math.Max(nat16, (water + 1) * 16), (int)((long)weight * weight / IntMath.One));
 
         // Whether the column is inside the lake's shore zone (the ellipse widened by the shore slope and the wander of the shoreline).
         private bool InLakeReach(int x, int z)
@@ -361,7 +367,7 @@ internal static class TerrainGenerator
                     {
                         var d = (int)IntMath.ISqrt((long)d2 * 256);
                         var weight = IntMath.Ramp(d - (r * 16), 0, 4 * 16);
-                        var bank16 = IntMath.Lerp((surface + 1) * 16, Math.Max(_nat16[i], (surface + 1) * 16), weight);
+                        var bank16 = BankHeight(surface, _nat16[i], weight);
                         _h16[i] = Math.Min(_h16[i], bank16);
                         if (weight < IntMath.One)
                         {
@@ -405,7 +411,7 @@ internal static class TerrainGenerator
                     else if (r < IntMath.One + shore)
                     {
                         var weight = IntMath.Ramp((int)r - IntMath.One, 0, shore);
-                        var bank16 = IntMath.Lerp((level + 1) * 16, Math.Max(_nat16[i], (level + 1) * 16), weight);
+                        var bank16 = BankHeight(level, _nat16[i], weight);
                         _h16[i] = Math.Min(_h16[i], bank16);
                         if (weight < IntMath.One)
                         {
@@ -569,9 +575,67 @@ internal static class TerrainGenerator
                 }
             }
 
+            BankBesideWater();
             if (_layout.Waterfall is { } fall)
             {
                 MakeWaterfall(fall, poolSurface);
+            }
+        }
+
+        // H12: the dry columns beside water stand level with it and no more than a step over a bed too shallow to swim. The bank's own shape (BankHeight) keeps the shore close
+        // to that, but a path's shoulder or a site's landing is cut into the ground after it and can leave the column beside a one-block-deep rim two or more blocks over the
+        // bed, a wall a body wading there cannot climb; and where the river's surface steps down, the bank of one segment can stand under the water of the next. So each dry
+        // column beside water is brought into [the highest water top beside it (the water stays in), one block over the bed of the shallow water beside it], the first wins
+        // where they meet. The surface of a path does not move. The cut reads the heights as they were, so it does not cascade.
+        private const int MostBankCut = 4;
+
+        private void BankBesideWater()
+        {
+            var before = (int[])_terrain.Height.Clone();
+            for (var z = 0; z < _d; z++)
+            {
+                for (var x = 0; x < _w; x++)
+                {
+                    var j = (z * _w) + x;
+                    if (_terrain.WaterTop[j] > before[j] || (_terrain.Flags[j] & Terrain.PathFlag) != 0)
+                    {
+                        continue; // water, or the surface of a path
+                    }
+
+                    var floor = int.MinValue;
+                    var ceiling = int.MaxValue;
+                    Beside(before, x + 1, z, ref floor, ref ceiling);
+                    Beside(before, x - 1, z, ref floor, ref ceiling);
+                    Beside(before, x, z + 1, ref floor, ref ceiling);
+                    Beside(before, x, z - 1, ref floor, ref ceiling);
+                    if (floor != int.MinValue)
+                    {
+                        // A face taller than a shoulder or a landing is a cliff or a plateau's edge, not a bank: it keeps its height (the scan of the tests reads a wall that high as a rock face)
+                        var cut = before[j] - ceiling > MostBankCut ? before[j] : Math.Min(before[j], ceiling);
+                        _terrain.Height[j] = Math.Max(floor, cut);
+                    }
+                }
+            }
+        }
+
+        private void Beside(int[] before, int x, int z, ref int floor, ref int ceiling)
+        {
+            if ((uint)x >= (uint)_w || (uint)z >= (uint)_d)
+            {
+                return;
+            }
+
+            var i = (z * _w) + x;
+            var top = _terrain.WaterTop[i];
+            if (top <= before[i])
+            {
+                return;
+            }
+
+            floor = Math.Max(floor, top);
+            if (top - before[i] < 2)
+            {
+                ceiling = Math.Min(ceiling, before[i] + 1); // too shallow to swim: a step over the bed
             }
         }
 

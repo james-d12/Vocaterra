@@ -279,7 +279,7 @@ public sealed class TerrainTests
             var surface = Enumerable.Range(0, grid.SizeY).Last(y => grid.GetBlock(x, y, z) == BlockId.Water);
             surfaces.Add(surface);
             Assert.True(surface >= 30, "never under the world's water level");
-            Assert.True(Ground(grid, x, z + 3) >= surface + 1 && Ground(grid, x, z - 3) >= surface + 1, "the banks stand above the water");
+            Assert.True(Ground(grid, x, z + 3) >= surface && Ground(grid, x, z - 3) >= surface, "the banks stand level with the water or above (H12: a step over the shallow bed)");
             Assert.Equal(BlockId.Sand, grid.GetBlock(x, surface - 3, z));
         }
 
