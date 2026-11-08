@@ -46,7 +46,7 @@ public sealed class GameAndHostRepliesTests
         var session = new ConversationSession(GameContent.Bundle);
         var result = session.Evaluate(line, prompt, Now);
         using var writer = new StringWriter();
-        VerdictReport.Write(writer, prompt, line, result, session.LastExchange);
+        VerdictReport.Write(writer, prompt, line, result, GameContent.Bundle.Language.Orthography, session.LastExchange);
 
         Assert.Contains("  agent: " + reply, writer.ToString().Split('\n').Select(static l => l.TrimEnd('\r')));
     }

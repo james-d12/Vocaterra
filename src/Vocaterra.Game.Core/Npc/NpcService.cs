@@ -12,7 +12,6 @@ using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Learning;
-using Vocaterra.Nlp.Es.Text;
 using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Pipeline;
 
@@ -828,8 +827,8 @@ public sealed partial class NpcService
         };
     }
 
-    // The core's notes on verbs typed without the accent of their tense (M70), worded by the Spanish pack: «compré», con tilde: es pasado.
-    internal static IReadOnlyList<string> AccentNotesOf(PipelineResult result) => [.. (result.Notes ?? []).Select(SpanishAccentNotes.Describe)];
+    // The core's notes on verbs typed without the accent of their tense (M70), worded by the language pack: «compré», con tilde: es pasado.
+    internal IReadOnlyList<string> AccentNotesOf(PipelineResult result) => [.. (result.Notes ?? []).Select(_bundle.Language.Orthography.Describe)];
 
     // The host events of a turn that the world of the turn cannot carry out, judged on the turn's own copy of the world, as the guide's answers are (village-plan
     // V02: directions to a place the scene does not have; V03: a purchase the coins the player carried do not cover; V15, V19: another item, none, no room). Each is

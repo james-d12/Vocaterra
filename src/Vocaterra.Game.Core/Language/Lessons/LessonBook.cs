@@ -229,7 +229,7 @@ public sealed record TaughtVerbForm(string Lemma, string Person, string Number, 
     /// <param name="nearFuture">The near future's verb and joiner (<c>ir</c>, <c>a</c>; <c>game/words.json</c>, C05).</param>
     /// <returns>The form's text, or <see langword="null"/> when the core cannot generate it.</returns>
     /// <param name="obligation">The obligation's verb and joiner (<c>tener</c>, <c>que</c>), for a <see cref="Obligation"/> form; <see langword="null"/> for any other tense.</param>
-    public string? Text(Vocaterra.Nlp.Es.Morphology.MorphologyGenerator morphology, NearFutureWords nearFuture, ObligationWords? obligation = null)
+    public string? Text(Vocaterra.Nlp.Language.Morphology.IMorphology morphology, NearFutureWords nearFuture, ObligationWords? obligation = null)
     {
         ArgumentNullException.ThrowIfNull(morphology);
         ArgumentNullException.ThrowIfNull(nearFuture);

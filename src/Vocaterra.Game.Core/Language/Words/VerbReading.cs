@@ -1,5 +1,5 @@
 using System.Globalization;
-using Vocaterra.Nlp.Es.Morphology;
+using Vocaterra.Nlp.Language.Morphology;
 
 namespace Vocaterra.Game.Core.Language.Words;
 
@@ -34,7 +34,7 @@ public static class VerbReading
     /// <param name="mood">The core's mood, or <see langword="null"/>.</param>
     /// <param name="morphology">The bundle's morphology.</param>
     public static (string? Person, string? Number, string? Tense, string? Mood) Normalize(
-        string lemma, string text, string? person, string? number, string? tense, string? mood, MorphologyGenerator morphology)
+        string lemma, string text, string? person, string? number, string? tense, string? mood, IMorphology morphology)
     {
         ArgumentNullException.ThrowIfNull(lemma);
         ArgumentNullException.ThrowIfNull(text);

@@ -12,7 +12,7 @@ public sealed class OffPromptTests
         var session = new ConversationSession(GameContent.Bundle);
         var result = session.Evaluate(line, prompt, Now);
         using var writer = new StringWriter();
-        VerdictReport.Write(writer, prompt, line, result, session.LastExchange);
+        VerdictReport.Write(writer, prompt, line, result, GameContent.Bundle.Language.Orthography, session.LastExchange);
         return writer.ToString();
     }
 

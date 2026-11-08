@@ -12,7 +12,6 @@ using Vocaterra.Game.Core.World.Layout;
 using Vocaterra.Host;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Determinism;
-using Vocaterra.Nlp.Es;
 
 const int ExitOk = 0;
 const int ExitInvalidContent = 1;
@@ -53,7 +52,7 @@ if (contentDirectory == HostOptions.DefaultContentDirectory && !Directory.Exists
 
 try
 {
-    bundle = SpanishContent.Load(contentDirectory);
+    bundle = GameLanguages.Load(contentDirectory);
 }
 catch (Exception ex) when (ex is ContentValidationException or IOException or UnauthorizedAccessException or JsonException)
 {
@@ -130,7 +129,7 @@ if (options.Transcript is { } transcript && options.PromptId is { } oneShotPromp
         return ExitUsage;
     }
 
-    VerdictReport.Write(Console.Out, oneShotPrompt, transcript, session.Evaluate(transcript, oneShotPrompt, oneShotTime), session.LastExchange, names.Values);
+    VerdictReport.Write(Console.Out, oneShotPrompt, transcript, session.Evaluate(transcript, oneShotPrompt, oneShotTime), bundle.Language.Orthography, session.LastExchange, names.Values);
     return ExitOk;
 }
 
@@ -193,7 +192,7 @@ static int RunLoop(ConversationSession session, string promptId, IEnumerable<str
             continue;
         }
 
-        VerdictReport.Write(Console.Out, promptId, text, session.Evaluate(text, promptId, Now()), session.LastExchange, names);
+        VerdictReport.Write(Console.Out, promptId, text, session.Evaluate(text, promptId, Now()), bundle.Language.Orthography, session.LastExchange, names);
         Console.WriteLine();
     }
 }
