@@ -330,10 +330,14 @@ public sealed class TemplateEngine
         }
 
         var argument = words.Args[0];
-        var gender = argument is "m" or "f"
-            ? argument
-            : _functions.GenderOf(_functions.InflectNoun(GetSlot(slots, argument, placeholder).Trim(), Singular));
-        return _language.Numbers.Agree(spelled, gender);
+        if (argument is "m" or "f")
+        {
+            return _language.Numbers.Agree(spelled, argument);
+        }
+
+        // The number names the slot of its noun, which the templates put right after it ({qty:words(item)} {item}): the noun may change its form (un hacha, issue #42).
+        var noun = _functions.InflectNoun(GetSlot(slots, argument, placeholder).Trim(), Singular);
+        return _language.Numbers.Agree(spelled, _functions.GenderOf(noun), noun);
     }
 
     private string RenderNoun(PlaceholderPart placeholder, TemplateFilter? plural, TemplateFilter? article, string value, SlotMap slots)

@@ -5569,6 +5569,23 @@
       "matches": []
     },
     {
+      "key": "83b743227231f863db845b1c1bf2d4135295f256e403776047a6b31925b34e2d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí tienes la agua",
+      "matches": [
+        {
+          "rule": "DET_FEM_NOM_FEM",
+          "issueType": "inconsistency",
+          "message": "En este caso se usa el artículo determinado masculino.",
+          "offset": 12,
+          "length": 7,
+          "replacements": [
+            "el agua"
+          ]
+        }
+      ]
+    },
+    {
       "key": "83ebea45557cfc4d770d9c2ceaa5b06ec5ec239fb450ea54c6442f03960027a4",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ella hice pan",

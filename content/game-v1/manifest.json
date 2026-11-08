@@ -124,7 +124,7 @@
 {"path":"game/stations.json","sha256":"e30b4083f65e278ca24d40d597b3f827f3a36992dd59357317c772ab3a086b43","bytes":536},
 {"path":"game/tips.json","sha256":"4af271e0f305d3fb3e4277b4245ebd643be985ebd5d2997ef33e1222225d7f69","bytes":1413},
 {"path":"game/words.json","sha256":"c691ebf3e92072c5f38576a2f0423da9ec0369cb49046af44a2bb55b41d1abe0","bytes":3720},
-{"path":"intents/intents.json","sha256":"144ff9ffa983c162c60d8c42374614ae2814dc47dab5c4faca51f78937774b61","bytes":78199},
+{"path":"intents/intents.json","sha256":"9607549160b4d1c2dfccdd98c23ad0312422b314f7d467c3e89c602dd5fd326b","bytes":78297},
 {"path":"lexicon/game.json","sha256":"16c4dcbc4f190f6dc7ca68aa4b42a435f8517f71699668f439a37a7f17243eb7","bytes":5802},
 {"path":"lexicon/seed.json","sha256":"c6d3c0348339015ab9693cfcb9089935fddd997f5cf2d1d64237e4ae8ed11eb0","bytes":119541},
 {"path":"lexicon/supplement.json","sha256":"610a886600d178598e6867085ad647d0b6cbbd9408b0acb5f00d308bd23a305e","bytes":1134},
@@ -1547,4 +1547,4 @@
 {"path":"speech/villager/villager_wont_sell.1.wav","sha256":"3265f9782c9ad6140cb0111fff9faa2deaf07a0c6ebb5b798f8df03c9d25b1b9","bytes":67244},
 {"path":"speech/villager/villager_yes.1.slow.wav","sha256":"c89db269d94d9525b8b6e1294b6edfef8682dfd5fb5522ac7d2de7539b546c42","bytes":38444},
 {"path":"speech/villager/villager_yes.1.wav","sha256":"b7de709cd242f8181619ba356c6a8223d9a489231b934e1ee81f522f1d0442a3","bytes":30044}
-],"bundleHash":"12e75cda30f2b5edccd7b6f4c4f9c0e9699b4cf08b832f53541b306b3bb25cc6"}
+],"bundleHash":"e566609c31915803578b7da70f22cbfbae3de3ba39ec7139ddd35321566d25ac"}
