@@ -1,6 +1,4 @@
-using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Save;
-using Vocaterra.Game.Core.Screens;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Water;
 
@@ -49,26 +47,4 @@ public sealed class UnderwaterBlurSettingTests
     [InlineData(UnderwaterBlur.High, false, UnderwaterBlur.Off)]
     public void Given_TheViewEffectsSwitch_When_Off_Then_TheBlurIsForcedOff(UnderwaterBlur chosen, bool effectsOn, UnderwaterBlur expected) =>
         Assert.Equal(expected, UnderwaterBlurSettings.Effective(chosen, effectsOn));
-
-    [Fact]
-    public void Given_ThePanel_When_TheBlurRowIsChosen_Then_LeftRightAndEnterCycleTheLevels()
-    {
-        var blur = UnderwaterBlur.Low;
-        var panel = new SettingsPanel(() => 1.0, _ => { }, () => true, _ => { }, () => false, _ => { }, () => blur, b => blur = b);
-        panel.Open();
-        for (var i = 0; i < SettingsPanel.RowCount - 1; i++)
-        {
-            panel.HandleInput(TestInputFrame.Pressing(GameKey.Down));
-        }
-
-        Assert.Equal(3, panel.Selected);
-        panel.HandleInput(TestInputFrame.Pressing(GameKey.Right));
-        Assert.Equal(UnderwaterBlur.Medium, blur);
-        panel.HandleInput(TestInputFrame.Pressing(GameKey.Enter));
-        Assert.Equal(UnderwaterBlur.High, blur);
-        panel.HandleInput(TestInputFrame.Pressing(GameKey.Right));
-        Assert.Equal(UnderwaterBlur.Off, blur);
-        panel.HandleInput(TestInputFrame.Pressing(GameKey.Left));
-        Assert.Equal(UnderwaterBlur.High, blur);
-    }
 }

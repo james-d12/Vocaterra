@@ -90,7 +90,7 @@ public static class GameDataValidator
         var locale = data.Locale;
         var file = $"locale {locale.Code}";
         var required = new List<string>();
-        required.AddRange(LocaleText.UiKeys.Select(static key => "ui." + key));
+        required.AddRange(LocaleText.UiKeys.Distinct().Select(static key => "ui." + key));
         required.AddRange(LocaleText.OutcomeKeys.Select(static key => "feedback.outcome." + key));
         required.Add("feedback.unknownError");
         required.AddRange(data.Objectives.Objectives.Select(static o => "objective." + o.Id + (o.IsChecklist ? ".title" : ".hud")));
@@ -98,7 +98,7 @@ public static class GameDataValidator
         required.AddRange(data.Objectives.Objectives.Where(static o => o.IsChecklist).SelectMany(static o => o.Steps).Select(static step => "noun." + step.Noun));
         required.AddRange(data.Phrases.Rows.Select(static row => PhraseSheet.LocaleId(row.Id, "explain")));
         required.AddRange(data.Speech.Where(static line => line.Kind is SpeechKind.Dialogue or SpeechKind.Prompt).Select(static line => "line." + line.LineId));
-        required.AddRange(InputKeys.Defaults.Values.Distinct().Select(static key => "key." + key.ToString())); // C04: {key:…} spells a command's key with these
+        required.AddRange(InputKeys.Defaults.Values.Concat(ControlTable.All.SelectMany(static entry => entry.Keys)).Distinct().Select(static key => "key." + key.ToString())); // C04: {key:…} spells a command's key with these
         required.AddRange(HudLineKeys(data)); // N05: each HUD line the target language has an English beneath, under the same id
         foreach (var id in required.Where(id => !locale.Has(id)))
         {
