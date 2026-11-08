@@ -39,14 +39,19 @@ public sealed class SmallTalkTests
         { "bien, gracias", "state_wellbeing" },
     };
 
-    // The lines a recognizer can hear: it writes the accents, so a line typed without them (como estas) is left out.
+    // The lines every constrained prompt's recognizer grammar holds. Left out: a line typed without its accents (como estas: the recognizer writes them), and the lines
+    // whose words pulled other answers onto them in the constrained decode (the gate's Kokoro measurements: «el pan es muy bueno» heard as «muy buenos», «usted hace
+    // hachas muy buenas» read as «usted es muy buenas»): buenas tardes and the answers to ¿cómo estás? (muy bien, bien, gracias, bien, ¿y tú?). Those are understood
+    // when typed, and by voice through the free decode the pipeline runs when the constrained reading is not taken.
+    private static readonly HashSet<string> NotInTheGrammar = new(StringComparer.Ordinal) { "como estas", "buenas tardes", "bien, ¿y tú?", "muy bien", "bien, gracias" };
+
     public static TheoryData<string, string> SpokenLines()
     {
         var spoken = new TheoryData<string, string>();
         foreach (var row in Lines)
         {
             var (line, intent) = ((string)row[0], (string)row[1]);
-            if (line != "como estas")
+            if (!NotInTheGrammar.Contains(line))
             {
                 spoken.Add(line, intent);
             }
