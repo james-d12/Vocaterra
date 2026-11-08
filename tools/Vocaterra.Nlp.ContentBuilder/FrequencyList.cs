@@ -102,14 +102,14 @@ internal sealed class LemmaBucket(string lemma)
     public long Frequency { get; set; }
 
     /// <summary>Recomputes the frequency and the head-word flag from the entries that are left.</summary>
-    public void Recount(FrequencyList frequency)
+    public void Recount(FrequencyList frequency, Func<string, string>? key = null)
     {
         CountedForms.Clear();
         Frequency = 0;
         HeadWordInList = false;
         foreach (var entry in Entries)
         {
-            if (frequency.TryGetCount(entry.Form, out var count))
+            if (frequency.TryGetCount(key is null ? entry.Form : key(entry.Form), out var count))
             {
                 if (CountedForms.Add(entry.Form))
                 {

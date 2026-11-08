@@ -37,7 +37,7 @@ public sealed record FrequencyFilterReport(
 /// <summary>The outcome of one import: the lexicon entries plus counts for the report.</summary>
 /// <param name="Entries">The lexicon entries, validated, de-duplicated and ordinal-sorted.</param>
 /// <param name="LinesRead">Non-blank input lines read.</param>
-/// <param name="SpanishEntries">Lines whose <c>lang_code</c> is <c>es</c>.</param>
+/// <param name="SpanishEntries">Lines whose <c>lang_code</c> is the imported language's (<c>es</c> by default; the name is the sidecar's since M21 and stays so).</param>
 /// <param name="ImportedEntries">Spanish entries that produced at least one lexicon entry.</param>
 /// <param name="SkippedByReason">Spanish entries that produced nothing, counted by reason (ordinal key order).</param>
 /// <param name="Filter">What the frequency filter did, or null when no frequency list was given.</param>
@@ -52,6 +52,9 @@ public sealed record KaikkiImportResult(
     /// <summary>Number of Spanish entries that produced nothing.</summary>
     public int SkippedEntries => SkippedByReason.Values.Sum();
 
+    /// <summary>The English name of the language that was imported (<see cref="KaikkiLanguageProfile.Name"/>); <see cref="SpanishEntries"/> counts that language's entries.</summary>
+    public string LanguageName { get; init; } = "Spanish";
+
     /// <summary>Noun lemmas dropped after the read because the lemma is the plural of another noun (see <c>KaikkiImporter</c>).</summary>
     public int PluralLookalikeLemmas { get; init; }
 
@@ -59,7 +62,7 @@ public sealed record KaikkiImportResult(
     public string Summary()
     {
         var builder = new StringBuilder();
-        builder.Append(CultureInfo.InvariantCulture, $"read {LinesRead} lines, {SpanishEntries} Spanish entries: ")
+        builder.Append(CultureInfo.InvariantCulture, $"read {LinesRead} lines, {SpanishEntries} {LanguageName} entries: ")
             .Append(CultureInfo.InvariantCulture, $"{ImportedEntries} imported into {Entries.Count} lexicon entries, {SkippedEntries} skipped\n");
         foreach (var pair in SkippedByReason)
         {
@@ -102,6 +105,9 @@ public sealed record KaikkiImportOptions
     /// an article, a pronoun, a numeral, a preposition, a conjunction or an adverb would turn common sentences into false mistakes.
     /// </summary>
     public HandAuthoredLemmas? HandAuthored { get; init; }
+
+    /// <summary>The language profile: which <c>lang_code</c> to read, how its entries map to lexicon entries and which closed vocabularies they are validated against (Spanish when not set).</summary>
+    public KaikkiLanguageProfile Language { get; init; } = KaikkiLanguageProfile.Spanish;
 
     /// <summary>The frequency list that ranks the lemmas; without one every lemma is kept and no ranking is done.</summary>
     public FrequencyList? Frequency { get; init; }
@@ -289,6 +295,7 @@ public static partial class KaikkiImporter
         }
 
         var maxEntries = options.MaxEntries;
+        var language = options.Language;
         var entries = new List<LexiconEntry>();
         var buckets = options.Frequency is null ? null : new Dictionary<string, LemmaBucket>(StringComparer.Ordinal);
         var made = new List<LexiconEntry>();
@@ -314,14 +321,14 @@ public static partial class KaikkiImporter
             lines++;
             using var document = Parse(line, lineNumber);
             var root = document.RootElement;
-            if (!string.Equals(GetString(root, "lang_code"), "es", StringComparison.Ordinal))
+            if (!string.Equals(GetString(root, "lang_code"), language.LanguageCode, StringComparison.Ordinal))
             {
                 continue;
             }
 
             spanish++;
             made.Clear();
-            var reason = ImportEntry(root, made, options.HandAuthored);
+            var reason = language.ImportEntry(root, made, options.HandAuthored);
             if (made.Count == 0)
             {
                 skipped[reason ?? "no usable data"] = skipped.GetValueOrDefault(reason ?? "no usable data") + 1;
@@ -335,11 +342,11 @@ public static partial class KaikkiImporter
             }
             else
             {
-                AddToBucket(buckets, made, options.Frequency!);
+                AddToBucket(buckets, made, options.Frequency!, language);
             }
         }
 
-        var lookalikes = PluralLookalikes(buckets is null ? entries : buckets.Values.SelectMany(static bucket => bucket.Entries));
+        var lookalikes = language.PluralLookalikes(buckets is null ? entries : buckets.Values.SelectMany(static bucket => bucket.Entries));
         FrequencyFilterReport? report = null;
         if (buckets is not null)
         {
@@ -347,7 +354,7 @@ public static partial class KaikkiImporter
             {
                 if (bucket.Entries.RemoveAll(entry => entry.Pos == LexiconSchema.Noun && lookalikes.Contains(entry.Lemma)) > 0)
                 {
-                    bucket.Recount(options.Frequency!);
+                    bucket.Recount(options.Frequency!, language.FrequencyKey);
                 }
             }
 
@@ -358,8 +365,8 @@ public static partial class KaikkiImporter
             entries.RemoveAll(entry => entry.Pos == LexiconSchema.Noun && lookalikes.Contains(entry.Lemma));
         }
 
-        var lexicon = SpanishLexicon.FromEntries(entries);
-        return new KaikkiImportResult(lexicon.Entries, lines, spanish, imported, skipped, report) { PluralLookalikeLemmas = lookalikes.Count };
+        var lexicon = language.BuildLexicon(entries);
+        return new KaikkiImportResult(lexicon.Entries, lines, spanish, imported, skipped, report) { PluralLookalikeLemmas = lookalikes.Count, LanguageName = language.Name };
     }
 
     /// <summary>Formats entries as a lexicon JSON document (one entry per line, features without nulls, schema version 1, <c>generated_by</c> wiktionary-import).</summary>
@@ -381,12 +388,17 @@ public static partial class KaikkiImporter
 
     private static string EntryJson(LexiconEntry entry)
     {
-        var features = new List<string>(5);
+        var features = new List<string>(10);
         AddFeature(features, "person", entry.Features.Person);
         AddFeature(features, "number", entry.Features.Number);
         AddFeature(features, "tense", entry.Features.Tense);
         AddFeature(features, "mood", entry.Features.Mood);
         AddFeature(features, "gender", entry.Features.Gender);
+        AddFeature(features, "case", entry.Features.Case);
+        AddFeature(features, "verbForm", entry.Features.VerbForm);
+        AddFeature(features, "declension", entry.Features.Declension);
+        AddFeature(features, "particle", entry.Features.Particle);
+        AddFeature(features, "register", entry.Features.Register);
         return "{\"form\":" + CanonicalJson.Serialize(entry.Form)
             + ",\"lemma\":" + CanonicalJson.Serialize(entry.Lemma)
             + ",\"pos\":" + CanonicalJson.Serialize(entry.Pos)
@@ -424,7 +436,7 @@ public static partial class KaikkiImporter
     // Wiktionary files some plural forms as nouns of their own: the suit "corazones" (hearts) and "diamantes" (diamonds) next to the plurals of corazón and
     // diamante, and the plural-only "pantalones" next to the plural of pantalón. As a second lemma, the plural form would also read as a singular noun, and
     // "1 diamantes" would no longer be a number mistake. The forms themselves stay: they are in the table of the real lemma.
-    private static HashSet<string> PluralLookalikes(IEnumerable<LexiconEntry> entries)
+    internal static HashSet<string> SpanishPluralLookalikes(IEnumerable<LexiconEntry> entries)
     {
         var pluralsOfOtherLemmas = new HashSet<string>(StringComparer.Ordinal);
         var nounHeads = new HashSet<string>(StringComparer.Ordinal);
@@ -450,7 +462,7 @@ public static partial class KaikkiImporter
         return nounHeads;
     }
 
-    private static string? ImportEntry(JsonElement root, List<LexiconEntry> entries, HandAuthoredLemmas? handAuthored)
+    internal static string? ImportSpanishEntry(JsonElement root, List<LexiconEntry> entries, HandAuthoredLemmas? handAuthored)
     {
         var word = GetString(root, "word");
         var rawPos = GetString(root, "pos");
@@ -717,7 +729,7 @@ public static partial class KaikkiImporter
         return !tags.Overlaps(IgnoredFormTags);
     }
 
-    private static IEnumerable<(string Text, JsonElement Element)> Forms(JsonElement root)
+    internal static IEnumerable<(string Text, JsonElement Element)> Forms(JsonElement root)
     {
         if (!root.TryGetProperty("forms", out var forms) || forms.ValueKind != JsonValueKind.Array)
         {
@@ -733,7 +745,7 @@ public static partial class KaikkiImporter
         }
     }
 
-    private static ImmutableHashSet<string> Tags(JsonElement element)
+    internal static ImmutableHashSet<string> Tags(JsonElement element)
     {
         var tags = ImmutableHashSet.CreateBuilder<string>(StringComparer.Ordinal);
         if (element.TryGetProperty("tags", out var array) && array.ValueKind == JsonValueKind.Array)
@@ -752,7 +764,7 @@ public static partial class KaikkiImporter
 
     // Wiktionary's pages for inflected forms use the head template {{head|es|noun form}} (or "verb form", "adjective form"), even when the page also has
     // a sense of its own, such as the plural huevos that also means "guts". Those words are listed by their lemma's forms table.
-    private static bool IsInflectedFormPage(JsonElement root)
+    internal static bool IsInflectedFormPage(JsonElement root)
     {
         if (!root.TryGetProperty("head_templates", out var templates) || templates.ValueKind != JsonValueKind.Array)
         {
@@ -774,7 +786,7 @@ public static partial class KaikkiImporter
     }
 
     // True when the entry has senses and every one of them lists a category whose name ends with the suffix ("Latin letter names", "Greek letter names").
-    private static bool AllSensesInCategory(JsonElement root, string suffix)
+    internal static bool AllSensesInCategory(JsonElement root, string suffix)
     {
         if (!root.TryGetProperty("senses", out var senses) || senses.ValueKind != JsonValueKind.Array || senses.GetArrayLength() == 0)
         {
@@ -810,7 +822,7 @@ public static partial class KaikkiImporter
     }
 
     // True when the entry has senses and every one of them has at least one of the tags.
-    private static bool AllSensesTagged(JsonElement root, ImmutableHashSet<string> tags)
+    internal static bool AllSensesTagged(JsonElement root, ImmutableHashSet<string> tags)
     {
         if (!root.TryGetProperty("senses", out var senses) || senses.ValueKind != JsonValueKind.Array || senses.GetArrayLength() == 0)
         {
@@ -829,7 +841,7 @@ public static partial class KaikkiImporter
     }
 
     // True when the entry has senses and every one of them carries a non-empty list under the property ("form_of", "alt_of").
-    private static bool AllSenses(JsonElement root, string property)
+    internal static bool AllSenses(JsonElement root, string property)
     {
         if (!root.TryGetProperty("senses", out var senses) || senses.ValueKind != JsonValueKind.Array || senses.GetArrayLength() == 0)
         {
@@ -851,7 +863,7 @@ public static partial class KaikkiImporter
     }
 
     // All entries made from one input line share the lemma; the bucket sums the list counts of the distinct forms found so far.
-    private static void AddToBucket(Dictionary<string, LemmaBucket> buckets, List<LexiconEntry> made, FrequencyList frequency)
+    private static void AddToBucket(Dictionary<string, LemmaBucket> buckets, List<LexiconEntry> made, FrequencyList frequency, KaikkiLanguageProfile language)
     {
         var lemma = made[0].Lemma;
         if (!buckets.TryGetValue(lemma, out var bucket))
@@ -863,7 +875,7 @@ public static partial class KaikkiImporter
         foreach (var entry in made)
         {
             bucket.Entries.Add(entry);
-            if (frequency.TryGetCount(entry.Form, out var count))
+            if (frequency.TryGetCount(language.FrequencyKey(entry.Form), out var count))
             {
                 if (bucket.CountedForms.Add(entry.Form))
                 {
@@ -875,7 +887,7 @@ public static partial class KaikkiImporter
         }
     }
 
-    private static string? GetString(JsonElement element, string name)
+    internal static string? GetString(JsonElement element, string name)
     {
         return element.ValueKind == JsonValueKind.Object
             && element.TryGetProperty(name, out var value)

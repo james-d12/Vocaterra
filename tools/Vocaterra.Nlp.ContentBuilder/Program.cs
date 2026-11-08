@@ -58,7 +58,7 @@ public static class Program
                                                              answers in online mode (skipped, not passed); online runs keep the cache's other
                                                              entries unless --prune drops those this run did not use; docs/nlp/api.md has the JSONL format
           import-lexicon <kaikki.jsonl> <out.json> [--max N] [--frequency <es_50k.txt> [--top N]] [--hand-authored <dir|a.json,b.json>]
-                                                             [--sidecar <out.source.json> [--sources <sources.json>]]
+                                                             [--sidecar <out.source.json> [--sources <sources.json>]] [--language es|de]
                                                              convert wiktextract Spanish JSONL into a lexicon file; with a frequency
                                                              list and --top, keep the N most frequent lemmas (lemma frequency = summed
                                                              counts of its forms in the list); --hand-authored names lexicon files (or a
@@ -118,7 +118,7 @@ public static class Program
                     output,
                     error,
                     httpHandler),
-                "import-lexicon" => ImportLexicon(new ArgumentList(args, 1, ["--max", "--frequency", "--top", "--sidecar", "--sources", "--hand-authored"]), output, error),
+                "import-lexicon" => ImportLexicon(new ArgumentList(args, 1, ["--max", "--frequency", "--top", "--sidecar", "--sources", "--hand-authored", "--language"]), output, error),
                 "lexicon-report" => LexiconReportCommand(new ArgumentList(args, 1, []), output, error),
                 _ => throw new UsageException($"Unknown command '{command}'."),
             };
@@ -344,7 +344,13 @@ public static class Program
 
         var frequency = frequencyPath is null ? null : FrequencyList.ReadFile(frequencyPath);
         var handAuthored = arguments.Option("--hand-authored") is { } rawHand ? HandAuthoredLemmas.Read(rawHand) : null;
-        var options = new KaikkiImportOptions { MaxEntries = max, Frequency = frequency, Top = top, HandAuthored = handAuthored };
+        var language = arguments.Option("--language") switch
+        {
+            null or "es" => KaikkiLanguageProfile.Spanish,
+            "de" => KaikkiLanguageProfile.German,
+            var other => throw new UsageException($"--language '{other}' is not supported (es or de)."),
+        };
+        var options = new KaikkiImportOptions { MaxEntries = max, Frequency = frequency, Top = top, HandAuthored = handAuthored, Language = language };
         var result = KaikkiImporter.ImportFile(input, options);
 
         // The sidecar is built before anything is written, so a source file that differs from sources.json leaves no half-finished pair behind.
