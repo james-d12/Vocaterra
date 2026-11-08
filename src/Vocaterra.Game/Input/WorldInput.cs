@@ -10,7 +10,7 @@ using Vocaterra.Game.Core.Voxel;
 namespace Vocaterra.Game.Input;
 
 /// <summary>
-/// The world's own input while no screen holds it (S2, S15, S20): the mouse is captured for the look (Esc lets it go, a click takes it back
+/// The world's own input while no screen holds it (S2, S15, S20): the mouse is captured for the look (Esc opens the menu, which lets it go; a click takes it back
 /// without gathering), WASD or the arrows walk and Space jumps, 1 to 0 and the wheel pick the hotbar slot, the left button held gathers, the right
 /// button places (or eats a selected food), Left Shift sprints, and the book item opens the book. The frame's commands go to <see cref="LiveVoxelInput"/>.
 /// </summary>
@@ -26,6 +26,7 @@ public sealed class WorldInput
     private readonly NeedsData? _needs;
     private readonly Func<BlockPos, VoxelSession.PlantResult>? _plant;
     private readonly MouseLook _mouseLook = new();
+    private bool _holdClick;
 
     /// <summary>Creates the world's input.</summary>
     /// <param name="sim">The simulation: the hotbar's selection, the target block and the selected stack.</param>
@@ -46,14 +47,20 @@ public sealed class WorldInput
         _openBook = openBook;
     }
 
-    /// <summary>Whether the player wants the mouse captured (Esc lets it go; a click in the world takes it back).</summary>
+    /// <summary>Whether the player wants the mouse captured (a click in the world takes it back).</summary>
     public bool CaptureWanted { get; private set; } = true;
 
     /// <summary>Whether the sprint key is held with the mouse captured and a walking key down (the frame's, N02; the session decides whether it counts).</summary>
     public bool SprintHeld { get; private set; }
 
-    /// <summary>Esc in the world: the mouse is let go.</summary>
-    public void ReleaseMouse() => CaptureWanted = false;
+    /// <summary>How much one pixel of mouse movement turns the view, as a multiple of the normal turn (the menu's mouse sensitivity).</summary>
+    public double MouseSensitivity { get; set; } = 1.0;
+
+    /// <summary>Whether moving the mouse up looks down (the menu's Invert Y).</summary>
+    public bool InvertY { get; set; }
+
+    /// <summary>The left button is held down from a click that closed a panel (the menu's Resume): it gathers nothing until it has been let go.</summary>
+    public void HoldClickUntilRelease() => _holdClick = true;
 
     /// <summary>A frame that a panel took: the mouse is free.</summary>
     public void FreeMouse(GameWindow window) => _mouseLook.SetCaptured(false, window);
@@ -95,6 +102,12 @@ public sealed class WorldInput
     public bool Read(InputSnapshot input, bool active, bool uiOpen, bool bookOpen, GameWindow window)
     {
         var swallowClick = false;
+        if (_holdClick)
+        {
+            _holdClick = input.LeftDown; // the click that closed the menu does not gather
+            swallowClick = _holdClick;
+        }
+
         if (active && !uiOpen && !CaptureWanted && input.LeftClicked)
         {
             CaptureWanted = true; // a click takes the mouse back; it does not gather
@@ -106,7 +119,7 @@ public sealed class WorldInput
         if (captured)
         {
             var (dx, dy) = _mouseLook.Read(window);
-            _look.Turn(dx, dy);
+            _look.Turn(dx, InvertY ? -dy : dy, MouseSensitivity);
         }
 
         var (strafe, forward, jump) = captured ? Walk(input) : (0, 0, false);

@@ -117,29 +117,11 @@ public sealed class FrameView
     /// <summary>The bug and feature report panel (S21), or <see langword="null"/> when the view has none.</summary>
     public ReportPanel? Report { get; set; }
 
-    /// <summary>Whether the settings panel (F8, N09) is open.</summary>
-    public bool SettingsOpen { get; set; }
+    /// <summary>The menu (Esc), or <see langword="null"/> when this view has none: its state is what the layer draws.</summary>
+    public Core.Menu.MenuScreen? Menu { get; set; }
 
-    /// <summary>The settings panel's chosen row.</summary>
-    public int SettingsSelected { get; set; }
-
-    /// <summary>The drive rate the settings panel shows.</summary>
-    public double SettingsRate { get; set; } = 1;
-
-    /// <summary>Whether the settings panel shows the view effects on.</summary>
-    public bool SettingsEffectsOn { get; set; }
-
-    /// <summary>Whether the settings panel shows the relaxed needs on.</summary>
-    public bool SettingsRelaxed { get; set; }
-
-    /// <summary>The underwater blur level the settings screen shows (water-plan H11).</summary>
-    public Core.Water.UnderwaterBlur SettingsBlur { get; set; } = Core.Water.UnderwaterBlurSettings.Default;
-
-    /// <summary>Whether the controls help (F1, S16) is open.</summary>
-    public bool ControlsOpen { get; set; }
-
-    /// <summary>The first control the help is scrolled to (X08), when the controls do not all fit the canvas.</summary>
-    public int ControlsScroll { get; set; }
+    /// <summary>The controls page's wrapped lines, kept between frames.</summary>
+    public Vocaterra.Game.UI.Menu.ControlsPageCache? ControlLines { get; set; }
 
     /// <summary>The word cards waiting to be shown (the first pickup of each noun).</summary>
     public WordCardQueue Cards { get; init; } = new();

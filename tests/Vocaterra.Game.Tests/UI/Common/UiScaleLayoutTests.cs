@@ -4,6 +4,7 @@ using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Speech;
+using Vocaterra.Game.Core.Menu;
 using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Tests.TestSupport;
@@ -16,6 +17,7 @@ using Vocaterra.Game.UI.Dialogue;
 using Vocaterra.Game.UI.Hud;
 using Vocaterra.Game.UI.Inventory;
 using Vocaterra.Game.UI.Lesson;
+using Vocaterra.Game.UI.Menu;
 using Vocaterra.Game.UI.Overlays;
 using Vocaterra.Game.UI.Report;
 using Xunit.Abstractions;
@@ -673,31 +675,10 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
 
     [Theory]
     [MemberData(nameof(Cases))]
-    public void TheControlsHelpAndTheClosingCardFitTheCanvasOrScrollOrCutAtEveryScale(int windowWidth, int windowHeight, int scale)
+    public void TheClosingCardFitsTheCanvasOrCutsAtEveryScale(int windowWidth, int windowHeight, int scale)
     {
         var canvas = Canvas(windowWidth, windowHeight, scale);
         var window = Whole(canvas);
-
-        // The controls: 21 rows of one to three lines each.
-        var heights = Enumerable.Range(0, 21).Select(static i => (((i % 3) + 1) * 20) + 6).ToList();
-        for (var scroll = 0; scroll <= heights.Count; scroll++)
-        {
-            var layout = new ControlsLayout(canvas.Width, canvas.Height, heights, scroll);
-            Assert.True(Inside(layout.Panel, window), $"the controls panel {layout.Panel} is outside the canvas");
-            Assert.True(layout.Count >= 1);
-            var used = heights.Skip(layout.First).Take(layout.Count).Sum();
-            Assert.True(ControlsLayout.HeaderHeight + used + ControlsLayout.FooterHeight <= layout.Panel.Height, "the rows shown do not fit the panel");
-            if (layout.MaxScroll == 0)
-            {
-                Assert.Equal(heights.Count, layout.Count);
-            }
-            else
-            {
-                Assert.True(layout.Scrolls);
-                var last = new ControlsLayout(canvas.Width, canvas.Height, heights, layout.MaxScroll);
-                Assert.Equal(heights.Count, last.First + last.Count); // scrolled to the end, the last control is shown
-            }
-        }
 
         // The closing card: the summary gives up its last rows until the card fits; the line offering the sleep (V12c) is a row over the keys and stays.
         var ending = new EndingLayout(canvas.Width, canvas.Height, 2, 2, 9);
@@ -712,48 +693,51 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
         Assert.True(offering.SummaryShown <= ending.SummaryShown);
         Assert.True(Small(English.Value.Ui("sleepCard", ("session", "2"))) <= offering.Box.Width - (2 * EndingLayout.Side), "the sleep's line is wider than the card");
 
-        output.WriteLine($"{canvas.Width}x{canvas.Height}: controls max scroll {new ControlsLayout(canvas.Width, canvas.Height, heights, 0).MaxScroll}, closing card {ending.Box.Height} px tall with {ending.SummaryShown} of 9 summary rows");
+        output.WriteLine($"{canvas.Width}x{canvas.Height}: closing card {ending.Box.Height} px tall with {ending.SummaryShown} of 9 summary rows");
     }
 
     [Theory]
     [MemberData(nameof(Cases))]
-    public void TheSettingsPanelFitsTheCanvasAndItsPartsDoNotOverlapAtEveryScale(int windowWidth, int windowHeight, int scale)
+    public void TheMenuPagesFitTheCanvasAndTheirPartsDoNotOverlapAtEveryScale(int windowWidth, int windowHeight, int scale)
     {
         var canvas = Canvas(windowWidth, windowHeight, scale);
         var window = Whole(canvas);
-        var layout = new SettingsLayout(canvas.Width, canvas.Height, 3);
-        Assert.True(Inside(layout.Panel, window), $"the settings panel {layout.Panel} is outside the canvas");
-        var parts = new List<PixelBox>();
-        for (var i = 0; i < 3; i++)
-        {
-            Assert.True(Inside(layout.Row(i), layout.Panel));
-            Assert.True(Inside(layout.Label(i), layout.Row(i)) && Inside(layout.Value(i), layout.Row(i)));
-            Assert.True(layout.Label(i).Right <= layout.Value(i).X, "a label meets its value");
-            parts.Add(layout.Row(i));
-        }
+        var ui = English.Value;
 
-        Assert.True(Inside(layout.Track, layout.Row(0)) && layout.Track.X >= layout.Label(0).Right && layout.Track.Right <= layout.Value(0).X, "the slider meets the label or the value");
-        Assert.True(layout.Track.Width >= 20);
-        Assert.True(Inside(layout.Hint, layout.Panel));
-        parts.Add(layout.Hint);
-        for (var i = 0; i < parts.Count; i++)
+        var main = new MenuLayout(canvas.Width, canvas.Height, MenuPage.Main);
+        Assert.True(Inside(main.Panel, window), $"the menu panel {main.Panel} is outside the canvas");
+        for (var i = 0; i < 4; i++)
         {
-            for (var j = i + 1; j < parts.Count; j++)
+            Assert.True(Inside(main.Button(i), main.Panel), $"button {i} leaves the panel");
+            if (i > 0)
             {
-                var (a, b) = (parts[i], parts[j]);
-                Assert.False(a.X < b.Right && b.X < a.Right && a.Y < b.Bottom && b.Y < a.Bottom, $"{a} overlaps {b}");
+                Assert.True(main.Button(i).Y >= main.Button(i - 1).Bottom, $"button {i} meets the one above");
             }
         }
 
-        // The texts fit their columns at 6.1 px a character.
-        var ui = English.Value;
-        foreach (var key in new[] { "settingsRate", "settingsEffects", "settingsRelaxed" })
+        foreach (var page in new[] { MenuPage.Settings, MenuPage.Controls })
         {
-            Assert.True(Small(ui.Ui(key)) <= layout.Label(0).Width, $"{key} is wider than the label column");
+            var layout = new MenuLayout(canvas.Width, canvas.Height, page);
+            Assert.True(Inside(layout.Panel, window), $"the {page} panel {layout.Panel} is outside the canvas");
+            Assert.True(Inside(layout.Back, layout.Panel), "the Back button leaves the panel");
+            Assert.True(layout.Capacity >= 1 && layout.LineCapacity >= 1);
+            var last = layout.Row(layout.Capacity - 1);
+            Assert.True(last.Bottom <= layout.Back.Y + 4 && Inside(last, layout.Panel), "the rows run into the footer");
+            Assert.True(layout.ListTop + (layout.LineCapacity * MenuLayout.LineHeight) <= layout.Back.Y + 4, "the controls lines run into the footer");
         }
 
-        Assert.True(Small("\u00D74.00") <= layout.Value(0).Width);
-        Assert.True(Small(ui.Ui("settingsHint")) <= layout.Hint.Width, "the hint is wider than the panel");
+        var settings = new MenuLayout(canvas.Width, canvas.Height, MenuPage.Settings);
+        var row = settings.Row(0);
+        var track = MenuLayout.Track(row);
+        Assert.True(Inside(track, row) && track.X >= row.X + 8 + MenuLayout.LabelWidth(row), "the slider meets the label");
+        Assert.True(track.Right + MenuLayout.NumberWidth <= row.Right, "the slider's number is outside the row");
+        Assert.True(track.Width >= 20);
+
+        // The hints fit the panel's foot beside the Back button at 6.1 px a character.
+        var room = settings.Panel.Width - 32 - 116;
+        Assert.True(Small(ui.Ui("settingsHint")) <= room, "the settings hint is wider than the panel");
+        Assert.True(Small(ui.Ui("controlsClose") + "   " + ui.Ui("controlsScroll")) <= room, "the controls hint is wider than the panel");
+        Assert.True(Small(ui.Ui("menuHint")) <= main.Panel.Width - 32, "the menu hint is wider than the panel");
     }
 
     // ---- The checklist, the toast and the labels.

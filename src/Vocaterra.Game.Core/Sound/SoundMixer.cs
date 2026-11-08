@@ -192,7 +192,7 @@ public sealed class SoundMixer : ITalkSounds
     public PresentationRng Rng => _rng;
 
     /// <summary>Whether every sound but the voices is off (<c>--no-sounds</c>).</summary>
-    public bool SoundsOff { get; }
+    public bool SoundsOff { get; set; }
 
     /// <summary>Whether a recording is on (push-to-talk or the mic check): sfx, ambient and ui are silent.</summary>
     public bool Recording { get; private set; }

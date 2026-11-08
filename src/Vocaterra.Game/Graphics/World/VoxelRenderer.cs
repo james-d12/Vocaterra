@@ -93,10 +93,10 @@ public sealed class VoxelRenderer : IDisposable
     private readonly BasicEffect _effect;
     private readonly AlphaTestEffect _solid;
     private readonly SkyRenderer _sky;
-    private readonly MeshOptions _meshOptions;
+    private MeshOptions _meshOptions;
     private readonly GridBlockSource _source;
     private readonly ChunkVersionTracker _tracker;
-    private readonly ChunkViewSet _view;
+    private ChunkViewSet _view;
     private readonly IndexBuffer _indices;
     private readonly ChunkGpu[] _chunks;
     private readonly short[] _scratchIndices = new short[4096 * 6];
@@ -215,7 +215,7 @@ public sealed class VoxelRenderer : IDisposable
     public Color ClearColour { get; private set; }
 
     /// <summary>The fog above water (the haze's colour, start and end for the preset): what <see cref="SetUnderwater"/> blends from.</summary>
-    public FogParameters DryFog { get; }
+    public FogParameters DryFog { get; private set; }
 
     private float _underwaterAmount;
 
@@ -247,8 +247,42 @@ public sealed class VoxelRenderer : IDisposable
         effect.FogEnd = fog.End;
     }
 
-    /// <summary>The quality preset the renderer was made with.</summary>
-    public QualityPreset Preset { get; }
+    /// <summary>The quality preset in force: the one the renderer was made with, or the last <see cref="SetPreset"/> gave.</summary>
+    public QualityPreset Preset { get; private set; }
+
+    /// <summary>
+    /// Changes the quality preset while the game runs (the menu): the view distance, the fog, the undergrowth and the corner shading follow. Every mesh is let go, so the
+    /// next <see cref="Remesh"/> builds the view again with the new options (nearest first); the sky takes the cloud setting at its next draw.
+    /// </summary>
+    /// <param name="preset">The new preset.</param>
+    public void SetPreset(QualityPreset preset)
+    {
+        ArgumentNullException.ThrowIfNull(preset);
+        if (preset == Preset)
+        {
+            return;
+        }
+
+        Preset = preset;
+        var fogEnd = FogEndFor(preset.ViewDistance);
+        DryFog = new FogParameters(DryFog.Red, DryFog.Green, DryFog.Blue, fogEnd * FogStartFraction, fogEnd);
+        _view = new ChunkViewSet(_grid, preset.ViewDistance);
+        _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent, Lights, _dusk);
+        foreach (var index in _resident.ToList())
+        {
+            _chunks[index].Release();
+        }
+
+        _resident.Clear();
+        foreach (var chunk in _grid.Chunks)
+        {
+            _tracker.Discard(chunk.Coord);
+        }
+
+        _wanted = [];
+        _checkedEdits = -1;
+        _underwaterAmount = float.NaN; // the next SetUnderwater applies the fog of the new distance
+    }
 
     /// <summary>Where the fog is complete for a view distance: a little inside it, so the last chunks fade out before they are cut off.</summary>
     public static float FogEndFor(int viewDistance) => viewDistance * 0.94f;

@@ -72,6 +72,20 @@ public sealed class MenuScreen : IScreen
     /// <summary>Opens the menu on the settings page (<c>--settings</c>); Esc then closes it.</summary>
     public void OpenSettings() => Show(MenuPage.Settings, direct: true);
 
+    /// <summary>Scrolls the page shown down by <paramref name="rows"/> rows, within what it allows (a scripted run's way to show the lower rows).</summary>
+    /// <param name="rows">The rows.</param>
+    public void ScrollTo(int rows)
+    {
+        if (Page == MenuPage.Settings)
+        {
+            SettingsScroll = Math.Clamp(rows, 0, MaxSettingsScroll());
+        }
+        else if (Page == MenuPage.Controls)
+        {
+            ControlsScroll = Math.Clamp(rows, 0, _metrics.ControlsMaxScroll);
+        }
+    }
+
     /// <summary>Closes the menu.</summary>
     public void Close()
     {
@@ -222,8 +236,7 @@ public sealed class MenuScreen : IScreen
     private void KeysOnControls(IInputFrame input)
     {
         var step = Move(input) + (input.Pressed(GameKey.PageDown) ? 5 : 0) - (input.Pressed(GameKey.PageUp) ? 5 : 0);
-        var wheel = -(int)Math.Round(input.Wheel / 120.0) * 3;
-        ControlsScroll = Math.Clamp(ControlsScroll + step + wheel, 0, _metrics.ControlsMaxScroll);
+        ControlsScroll = Math.Clamp(ControlsScroll + step, 0, _metrics.ControlsMaxScroll); // the wheel is the mouse handler's
     }
 
     private void HandleMouse(IInputFrame input)

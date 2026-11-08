@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Core.Language.Words;
+using Vocaterra.Game.Core.Menu;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Tip;
@@ -58,8 +59,19 @@ public sealed class SceneDrawer : IDisposable
         _console = console;
     }
 
-    /// <summary>The quality preset (high until <see cref="Load"/> takes the run's).</summary>
+    /// <summary>The quality preset in force (high until <see cref="ApplyQuality"/> gives another).</summary>
     public QualityPreset Preset { get; private set; } = QualityPreset.For(QualityLevel.High);
+
+    /// <summary>
+    /// Takes a graphics quality (the run's start, then the menu's setting): the preset of the level, with the view distance <c>--view-distance</c> gave. Before <see cref="Load"/>
+    /// it only chooses the preset the renderer starts with; after it the renderer follows at once (its meshes are built again).
+    /// </summary>
+    /// <param name="level">The level.</param>
+    public void ApplyQuality(QualityLevel level)
+    {
+        Preset = _options.PresetFor(level);
+        _renderer?.SetPreset(Preset);
+    }
 
     /// <summary>The renderer, after <see cref="Load"/>.</summary>
     public VoxelRenderer Renderer => _renderer ?? throw new InvalidOperationException("The scene is not loaded.");
@@ -81,7 +93,6 @@ public sealed class SceneDrawer : IDisposable
         _pixel.SetData([Color.White]);
         _blockAtlas = new BlockAtlas(device);
         var started = MonotonicClock.Milliseconds();
-        Preset = _options.QualityPreset;
         _waterTextures = new WaterTextures(device);
         _renderer = new VoxelRenderer(device, _blockAtlas, _waterTextures, _session.Simulation.Grid, Preset, _options.Dusk, _session.Scene.Currents);
         _renderer.SetFigures(_figures);

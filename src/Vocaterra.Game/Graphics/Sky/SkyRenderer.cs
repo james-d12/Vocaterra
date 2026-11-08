@@ -87,7 +87,7 @@ public sealed class SkyRenderer : IDisposable
         _device.RasterizerState = RasterizerState.CullNone;
         _device.BlendState = BlendState.NonPremultiplied;
         var aspect = _device.Viewport.AspectRatio;
-        var projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(FirstPersonCamera.FieldOfViewDegrees), aspect, 1f, SkyFarPlane);
+        var projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(camera.FieldOfView), aspect, 1f, SkyFarPlane);
 
         // The dome and the sun are centred on the eye: a view with no move.
         _effect.World = Matrix.Identity;

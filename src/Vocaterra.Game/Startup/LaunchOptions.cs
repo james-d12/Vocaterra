@@ -2,6 +2,7 @@ using System.Globalization;
 using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Words;
+using Vocaterra.Game.Core.Menu;
 using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Save;
@@ -97,12 +98,15 @@ public sealed record LaunchOptions
         + "  --book                  open the book (J) once the steps are done: the same as --journal\n"
         + "  --book-page <page>      open the book on nouns, verbs, phrases, lessons or said (What I said) once the steps are done\n"
         + "  --size <W>x<H>          the window's size (default 1280x720; 800x600 is the smallest the book is made for)\n"
-        + "  --text-scale <n>        the size of the interface text in percent: 100, 125 or 150 (default: the save's, else 100; F9 steps through them; X08)\n"
+        + "  --text-scale <n>        the size of the interface text in percent: 100, 125 or 150 (default: the save's, else 150, the largest; 100 in a scripted run; F9 steps through them; X08)\n"
         + "  --book-verb <verb>     open the book on the verbs page with this verb's conjugation table on the right page (S28)\n"
         + "  --book-detail <lines>  scroll the book's right page down by this many lines when it opens (a scripted run, X03)\n"
         + "  --inventory             open the inventory screen once the steps are done\n"
         + "  --crafting              open the crafting panel once the steps are done\n"
-        + "  --settings              open the settings panel once the steps are done (F8)\n"
+        + "  --menu                  open the menu (Esc) once the steps are done\n"
+        + "  --settings              open the menu on its settings page once the steps are done\n"
+        + "  --controls              open the menu on its controls page once the steps are done (F1)\n"
+        + "  --menu-scroll <n>       scroll the settings or controls page down by this many rows when it opens (a scripted run)\n"
         + "  --needs-rate <x>        the drive rate, 0.5 to 4 in steps of 0.25 (default 1, or the save's)\n"
         + "  --mic-check             show the mic check at the start (an interactive run shows it by default; a scripted run with --screenshot never does unless asked,\n"
         + "                          and then hears a synthesized \"hola\" when the machine has no microphone)\n"
@@ -126,7 +130,7 @@ public sealed record LaunchOptions
         + "  --ambient-volume <0..1> the volume of the ambient beds; default 0.6, or the save's (S24)\n"
         + "  --no-sounds             every sound but the NPCs' voices is off: effects, interface and progress sounds, beeps and ambient (S24)\n"
         + "  --sound-log <file>      write every cue played, with its tick and category, to this file; a scripted run plays nothing aloud (S24)\n"
-        + "  --quality <low|medium|high>  the graphics quality (S13): how far the world is drawn (low 224 blocks, medium 304, high 400, the default); the fog closes in at that distance\n"
+        + "  --quality <low|medium|high>  the graphics quality (S13): how far the world is drawn (low 224 blocks, medium 304, high 400, the default or the save's); the fog closes in at that distance\n"
         + "  --underwater-blur <off|low|medium|high>  how much the view softens under water (H05; default low)\n"
         + "  --view-distance <blocks>     draw this far instead of the quality's distance (at least 48)\n"
         + "  --pour <x,y,z>          put a water source in this cell, which then flows (a debug step for screenshots, H06); a step\n"
@@ -289,8 +293,11 @@ public sealed record LaunchOptions
     /// <summary>Whether the inventory screen is opened once the script is done (<c>--inventory</c>).</summary>
     public bool ShowInventory { get; init; }
 
-    /// <summary>Whether the settings panel is opened once the script is done (<c>--settings</c>, N09: a test aid for its screenshots).</summary>
-    public bool ShowSettings { get; init; }
+    /// <summary>The menu page opened once the script is done (<c>--menu</c>, <c>--settings</c>, <c>--controls</c>: a test aid for its screenshots), or <see langword="null"/>.</summary>
+    public MenuPage? ShowMenu { get; init; }
+
+    /// <summary>The rows the menu's settings or controls page is scrolled down when it opens (<c>--menu-scroll</c>).</summary>
+    public int MenuScroll { get; init; }
 
     /// <summary>Whether the crafting panel is opened once the script is done (<c>--crafting</c>).</summary>
     public bool ShowCrafting { get; init; }
@@ -298,8 +305,8 @@ public sealed record LaunchOptions
     /// <summary>The named point of the scene the beacon starts on (<c>--beacon</c>), or <see langword="null"/>.</summary>
     public string? Beacon { get; init; }
 
-    /// <summary>The graphics quality (<c>--quality</c>); <see cref="QualityLevel.High"/> by default.</summary>
-    public QualityLevel Quality { get; init; } = QualityLevel.High;
+    /// <summary>The graphics quality <c>--quality</c> gave, or <see langword="null"/> to take the saved setting (high for a new game); the menu changes it during the run.</summary>
+    public QualityLevel? Quality { get; init; }
 
     /// <summary>How much the view softens under water (<c>--underwater-blur</c>, H05); the saved setting (low by default) when not given.</summary>
     public UnderwaterBlur? UnderwaterBlur { get; init; }
@@ -307,8 +314,9 @@ public sealed record LaunchOptions
     /// <summary>The view distance in blocks given by <c>--view-distance</c>, or <see langword="null"/> for the quality's own.</summary>
     public int? ViewDistance { get; init; }
 
-    /// <summary>The preset the run uses: the quality's, with the view distance <c>--view-distance</c> gave.</summary>
-    public QualityPreset QualityPreset => ViewDistance is { } blocks ? QualityPreset.For(Quality).WithViewDistance(blocks) : QualityPreset.For(Quality);
+    /// <summary>The preset of a quality level, with the view distance <c>--view-distance</c> gave over it.</summary>
+    /// <param name="level">The level.</param>
+    public QualityPreset PresetFor(QualityLevel level) => ViewDistance is { } blocks ? QualityPreset.For(level).WithViewDistance(blocks) : QualityPreset.For(level);
 
     /// <summary>Whether <c>--greyscale</c> was given: blocks whose noun is not known are drawn grey (the playtest A/B, D-game-6).</summary>
     public bool Greyscale { get; init; }
@@ -424,7 +432,7 @@ public sealed record LaunchOptions
                 return false;
             }
 
-            if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--settings" or "--no-speech" or "--mute" or "--no-sounds" or "--voxel" or "--greyscale" or "--strict-save" or "--leave" or "--expand" or "--mic-check" or "--no-mic-check"
+            if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--settings" or "--menu" or "--controls" or "--no-speech" or "--mute" or "--no-sounds" or "--voxel" or "--greyscale" or "--strict-save" or "--leave" or "--expand" or "--mic-check" or "--no-mic-check"
                     or "--playtest" or "--dev" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep" or "--drink" or "--take-belongings" or "--relaxed-needs" or "--proc-help")
             {
                 switch (arg)
@@ -448,7 +456,13 @@ public sealed record LaunchOptions
                         script.Add(new ScriptStep(ScriptStepKind.TakeBelongings));
                         break;
                     case "--settings":
-                        result = result with { ShowSettings = true };
+                        result = result with { ShowMenu = MenuPage.Settings };
+                        break;
+                    case "--menu":
+                        result = result with { ShowMenu = MenuPage.Main };
+                        break;
+                    case "--controls":
+                        result = result with { ShowMenu = MenuPage.Controls };
                         break;
                     case "--relaxed-needs":
                         result = result with { RelaxedNeeds = true };
@@ -565,7 +579,7 @@ public sealed record LaunchOptions
 
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--locale" or "--scene" or "--look" or "--walk-to" or "--interact"
                 or "--place" or "--pour" or "--select" or "--craft" or "--eat" or "--give" or "--plant" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
-                or "--check" or "--pick" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale"
+                or "--check" or "--pick" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--sound-log"
                 or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--needs-rate" or "--station" or "--station-say" or "--act"))
             {
@@ -948,6 +962,15 @@ public sealed record LaunchOptions
                     }
 
                     textScale = scalePercent;
+                    break;
+                case "--menu-scroll":
+                    if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var menuScroll))
+                    {
+                        error = $"--menu-scroll needs a number of rows, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { MenuScroll = menuScroll };
                     break;
                 case "--book-detail":
                     if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var detailLines) || detailLines < 1)
