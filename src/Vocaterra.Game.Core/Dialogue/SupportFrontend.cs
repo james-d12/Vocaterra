@@ -22,7 +22,7 @@ public sealed class SupportFrontend(GuideSession session, DialogueModel dialogue
     /// key-word cards have stood alone long enough, puts the shopkeeper's opening on the panel. Returns the opening that was added, or
     /// <see langword="null"/>.
     /// </summary>
-    /// <param name="onOpening">Called with that opening before the sounds are queued (the game says its lines, which replaces what plays), or <see langword="null"/>.</param>
+    /// <param name="onOpening">Called with that opening before the sounds are queued (the game queues its lines after the key words that play, #36), or <see langword="null"/>.</param>
     public NpcOpening? Pump(Action<NpcOpening>? onOpening = null)
     {
         var opening = session.TakeOpening();

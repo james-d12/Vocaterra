@@ -233,7 +233,7 @@ public sealed class PhraseSupportFrontendTests
         }
 
         session.FinishKeyWords();
-        _ = frontend.Pump(o => voice.Say(o.Npc, o.Lines));
+        _ = frontend.Pump(o => o.Lines.ToList().ForEach(line => voice.Append(o.Npc, line, slow: false))); // queued after the key words, as VoxelGame does (#36)
         for (var i = 0; i < 4; i++)
         {
             output.Finish();
@@ -241,7 +241,7 @@ public sealed class PhraseSupportFrontendTests
         }
 
         var played = logs.Where(static l => l.StartsWith("voice: ", StringComparison.Ordinal)).Select(static l => l["voice: ".Length..]).ToList();
-        Assert.Equal(["card.agua", "card.pan", "shop_need.1", "shop_help_ask.1"], played); // the two key words, the question, then the model answer of the card
+        Assert.Equal(["card.agua.shopkeeper", "card.pan.shopkeeper", "shop_need.1", "shop_help_ask.1"], played); // the two key words in his voice (#36), the question, then the model answer of the card
         Assert.Equal((0, 0), (voice.Missing, voice.TextOnly));
     }
 

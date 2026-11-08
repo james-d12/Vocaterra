@@ -52,8 +52,9 @@ public enum SpeechKind
     Phrase,
 
     /// <summary>
-    /// A line every NPC says (V21b: «¡Muy bien!», «No te entendí», the core's hints), recorded once more in the voice of each NPC: the line id is the shared line's, then
-    /// <c>.&lt;npc&gt;</c> (<c>answer_accepted.1.baker</c>). The game plays the speaking NPC's file and the guide's when a file is missing.
+    /// A line every NPC says (V21b: «¡Muy bien!», «No te entendí», the core's hints; #22: the unsure-recognition «No te entendí bien.»), recorded once more in the voice of
+    /// each NPC: the line id is the shared line's, then <c>.&lt;npc&gt;</c> (<c>answer_accepted.1.baker</c>). The key words an NPC teaches are copies of their word cards
+    /// (#36: <c>card.agua.shopkeeper</c>). The game plays the speaking NPC's file and the guide's when a file is missing.
     /// </summary>
     NpcCopy,
 }
@@ -139,6 +140,19 @@ public static class SpeechLines
             }
         }
 
+        // #36: the key words an NPC teaches before its first question (the shopkeeper's «el agua», «el pan») are said by that NPC, so its voice records them too:
+        // card.<lemma>.<npc> in its folder, an NPC copy of the word card (the guide's card file stays the fallback).
+        foreach (var npc in npcs.All.Where(static n => !string.Equals(n.Id, SpeechSpeakers.Guide, StringComparison.Ordinal)))
+        {
+            foreach (var lemma in npc.KeyWords.Distinct(StringComparer.Ordinal))
+            {
+                if (nouns.ForLemma(lemma) is { } noun)
+                {
+                    lines.Add(new SpeechLine(SpeechFiles.CardId(noun.Lemma) + "." + npc.Id, npc.Id, noun.WithDefinite, SpeechKind.NpcCopy));
+                }
+            }
+        }
+
         foreach (var prompt in bundle.Prompts.Values)
         {
             if (!string.IsNullOrWhiteSpace(prompt.Text))
@@ -179,7 +193,8 @@ public static class SpeechLines
         return lines;
     }
 
-    // The pools more than one agent says (answer_accepted, not_understood) and the core's feedback pools: said by whoever speaks, so the guide's voice would be wrong.
+    // The pools more than one agent says (answer_accepted, not_understood), the core's feedback pools and the host's unsure-recognition pool: said by whoever speaks,
+    // so the guide's voice would be wrong.
     private static HashSet<string> SharedPools(ContentBundle bundle)
     {
         var shared = bundle.Agents.Values
@@ -189,6 +204,11 @@ public static class SpeechLines
             .Select(static group => group.Key)
             .ToHashSet(StringComparer.Ordinal);
         shared.UnionWith(bundle.Dialogue.Pools.Keys.Where(static id => id.StartsWith("feedback.", StringComparison.Ordinal)));
+        if (bundle.Dialogue.Pools.ContainsKey(NpcService.UncertainPool))
+        {
+            shared.Add(NpcService.UncertainPool); // the host's «No te entendí bien.» when the recognizer was not sure: whoever the learner talks to says it (#22)
+        }
+
         return shared;
     }
 }

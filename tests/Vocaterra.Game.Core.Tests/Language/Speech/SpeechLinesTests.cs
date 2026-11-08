@@ -76,10 +76,11 @@ public sealed class SpeechLinesTests
     public void TheLinesEveryNpcSaysAreRecordedInEachNpcsOwnVoiceAndTheSpeakerWinsTheLookup()
     {
         // V21b: «¡Muy bien!» (answer_accepted), «No te entendí» (not_understood) and the core's hints played in Luna's voice for every NPC.
-        var shared = new[] { "answer_accepted.1", "answer_accepted.2", "answer_accepted.3", "not_understood.1", "not_understood.2", "feedback.hint.1", "feedback.hint.2", "feedback.hint.gender.agree.1", "feedback.slow_repeat.1", "feedback.slow_repeat.2" };
+        // #22: the host's «No te entendí bien.» (guide.uncertain) when the recognizer was not sure, too.
+        var shared = new[] { "answer_accepted.1", "answer_accepted.2", "answer_accepted.3", "not_understood.1", "not_understood.2", "feedback.hint.1", "feedback.hint.2", "feedback.hint.gender.agree.1", "feedback.slow_repeat.1", "feedback.slow_repeat.2", "guide.uncertain.1", "guide.uncertain.2" };
         var npcs = TestGame.Data.Npcs.All.Select(static n => n.Id).Where(static id => id != SpeechSpeakers.Guide).Order(StringComparer.Ordinal).ToList();
         Assert.Equal(6, npcs.Count);
-        var copies = Lines.Where(static l => l.Kind == SpeechKind.NpcCopy).ToList();
+        var copies = Lines.Where(static l => l.Kind == SpeechKind.NpcCopy && !l.LineId.StartsWith("card.", StringComparison.Ordinal)).ToList();
         Assert.Equal(npcs.Count * shared.Length, copies.Count);
         foreach (var id in shared)
         {
@@ -94,6 +95,27 @@ public sealed class SpeechLinesTests
         Assert.Equal("answer_accepted.1.baker", index.Find("baker", "¡Muy bien!")!.LineId);
         Assert.Equal("answer_accepted.1", index.Find(SpeechSpeakers.Guide, "¡Muy bien!")!.LineId);
         Assert.Equal("not_understood.1.shopkeeper", index.Find("shopkeeper", Line("not_understood.1").Text)!.LineId);
+        Assert.Equal("guide.uncertain.2.baker", index.Find("baker", "No te entendí bien. ¿Me lo dices otra vez?")!.LineId); // #22: the baker's own voice
+        Assert.Equal("guide.uncertain.2", index.Find(SpeechSpeakers.Guide, "No te entendí bien. ¿Me lo dices otra vez?")!.LineId);
+    }
+
+    [Fact]
+    public void TheKeyWordsAnNpcTeachesAreRecordedInItsOwnVoice()
+    {
+        // #36: the shopkeeper's key words («el agua», «el pan») are said before his question, by him: copies of their word cards in his folder, and the lookup finds
+        // his copy for him and the guide's card for her.
+        var keyWords = Lines.Where(static l => l.Kind == SpeechKind.NpcCopy && l.LineId.StartsWith("card.", StringComparison.Ordinal)).ToList();
+        var expected = TestGame.Data.Npcs.All.Where(static n => n.Id != SpeechSpeakers.Guide)
+            .SelectMany(static n => n.KeyWords.Select(lemma => (SpeechFiles.CardId(lemma) + "." + n.Id, n.Id, TestGame.Nouns.ForLemma(lemma)!.WithDefinite)))
+            .Order().ToList();
+        Assert.Equal(expected, keyWords.Select(static l => (l.LineId, l.Speaker, l.Text)).Order().ToList());
+        Assert.Contains(("card.agua.shopkeeper", NpcService.ShopkeeperAgent, "el agua"), expected);
+        Assert.Equal("shopkeeper/card.agua.shopkeeper.wav", SpeechFiles.RelativePath(Line("card.agua.shopkeeper"), slow: false));
+
+        var index = new SpeechIndex(Lines);
+        Assert.Equal("card.agua.shopkeeper", index.Find(NpcService.ShopkeeperAgent, "el agua")!.LineId);
+        Assert.Equal("card.pan.shopkeeper", index.Find(NpcService.ShopkeeperAgent, "el pan")!.LineId);
+        Assert.Equal("card.agua", index.Find(SpeechSpeakers.Guide, "el agua")!.LineId);
     }
 
     [Fact]
