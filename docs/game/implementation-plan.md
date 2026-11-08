@@ -413,7 +413,7 @@ the panel or the book will change; re-record them and say which in the report.
 | U05 | The NPC's name as the panel's title (#6): the name at 32 px, the lesson heading moved off its line, the "Guía: " prefix dropped from the NPC's lines; 16 px in the compact panel | | S | Sonnet 5.5 medium | done (2026-11-08, gated at `1f56f6b9`, 10402 passed) |
 | U06 | The panel scrolls (#5, step 1): the mouse wheel opens and scrolls the older lines, a scrollbar while lines are out of view, one page per NPC | U05 | S/M | Sonnet 5.5 medium | done (2026-11-08, gated at `dfbb778f`, 10419 passed) |
 | U07 | The book's hierarchy (#7): line kinds, a type and ink scale, one row per entry with the details on the right page, each page's layout; a mockup for the owner first | | M/L | Sonnet 5.5 high | in progress (2026-11-08; mockup approved, D-game-27; branch `U07-book-hierarchy`, brief `.claude/briefs/u07-book-hierarchy.md`, spec `.claude/briefs/u07-book-spec.md`) |
-| U08 | The conversation history kept in the save (#5, step 2): each NPC's lines saved, capped per NPC, shown again after a restart | U06 | M | Sonnet 5.5 medium | in progress (2026-11-08, branch `U08-history-save`, brief `.claude/briefs/u08-history-save.md`) |
+| U08 | The conversation history kept in the save (#5, step 2): each NPC's lines saved, capped per NPC, shown again after a restart | U06 | M | Sonnet 5.5 medium | done (2026-11-08, merged at `f87776bb`; its gate failed on a core fuzz seed found before U08, fixed by core M91; gated with M91 at `6275653f`, 10431 passed) |
 
 **One branch and one pull request** (owner, 2026-11-08): U05 to U08 all land on `feature/ui-issues` and in PR #47, which closes #5, #6 and #7.
 
@@ -2619,6 +2619,16 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   opening is not re-added to a page that has lines). Hint strings name the wheel (`content/locale`, manifest refreshed). The hotbar needed
   no change: `WorldInput.Read` gets `uiOpen` from `ScreenStack.FreesMouse`. New scripted step `--scroll N`. Scripted runs: stdout and
   digests identical; only `r30-no-classes` `declined.png` differs, the picture W05 found unstable between captures of one build.
+- **U08, the conversation history kept in the save (2026-11-08, Sonnet 5.5 medium; merged at `f87776bb` on `feature/ui-issues`, gated with
+  core M91 at `6275653f`, 10431 passed, 3 skipped; GitHub issue #5, step 2).** No SQLite: `SaveDocument.DialoguePages` (optional, save
+  version stays 7, no fixture re-recorded) holds each NPC's page (`DialoguePageSave`: the NPC id and its lines, the speaker kind as a pinned
+  stable name; the coaching line not stored; `MaxLines` 200 a page). `SaveService` captures the pages on every save (F6, autosave, the end
+  of a run, the crash save, the night); `Program.cs` hands a loaded save's pages to `VoxelGame`, which calls `DialogueModel.RestorePages`
+  (unknown speaker names skipped). The first talk with an NPC after a load appends its opening to the restored page as the new session's
+  greeting (what was opened is not saved). A check run: the earlier session's lines show above the new greeting after a load; the save
+  grew by 619 bytes. 7 tests in `DialoguePagesSaveTests`. Scripted runs: only `r20-sleep`, `r27-bread`, `r30-no-classes` differ, by the
+  new field in `game.save` and the save's byte counts in the log lines. **Its gate failed** on core fuzz O4, seed `3m67O5Rpuya2`; the
+  same seed failed on the code before U08, so the finding went to core M91 and U08 was pushed after M91's gate.
 
 ## 6. Definition of done (every milestone)
 
