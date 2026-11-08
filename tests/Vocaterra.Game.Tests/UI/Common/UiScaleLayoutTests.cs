@@ -787,8 +787,8 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
         var maxScroll = rows.Count - layout.Capacity;
         Assert.True(maxScroll >= 1 && (maxScroll + layout.Capacity) == rows.Count, "the last row can be scrolled to");
 
-        // The characters of the real font are about 6.1 px wide; a label or note that fits there is not cut with an ellipsis.
-        static double Width(string text) => text.Length * 6.1;
+        // The menu's font runs to about 7.3 px a character on the canvas (measured on an 800 x 600 window at 150 percent); a label or note that fits at 7.4 is not cut with an ellipsis.
+        static double Width(string text) => text.Length * 7.4;
         foreach (var item in rows)
         {
             switch (item.Kind)
