@@ -191,7 +191,7 @@ public sealed class ReportScreen
         }
 
         if (outcome == ReportOutcome.None && input.LeftClicked
-            && ReportLayer.LayoutFor(_canvas.Width, _canvas.Height, _font(), _session.Locale).ButtonAt(input.MouseState.X, input.MouseState.Y) is { } button)
+            && ReportLayer.LayoutFor(_canvas.Width, _canvas.Height, _font(), _session.Locale, _session.Data.Words.Typing).ButtonAt(input.MouseState.X, input.MouseState.Y) is { } button)
         {
             outcome = Panel.Click(button);
         }
@@ -207,12 +207,12 @@ public sealed class ReportScreen
         }
     }
 
-    /// <summary>A letter of the text box: every printable character, with the accents of Alt (the control characters are keys).</summary>
+    /// <summary>A letter of the text box: every printable character, with the Alt keys of the language (the control characters are keys).</summary>
     public void Type(char character, bool alt)
     {
         if (!char.IsControl(character))
         {
-            Panel.Type(character, alt);
+            Panel.Type(character, alt, _session.Data.Words.Typing);
         }
     }
 

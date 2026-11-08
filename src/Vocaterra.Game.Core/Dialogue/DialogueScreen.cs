@@ -293,7 +293,7 @@ public sealed class DialogueScreen : IScreen
             return;
         }
 
-        _ = _dialogue.Entry.Insert(AccentShortcuts.ForTyped(character, alt)); // Alt plus a vowel is the accented letter (S21 wired the hints' keys)
+        _ = _dialogue.Entry.Insert(_session.Data.Words.Typing.ForTyped(character, alt)); // Alt plus a vowel is the accented letter (S21 wired the hints' keys)
     }
 
     /// <summary>The microphone: the key went down. The worker must have the recognizer, the machine a microphone; otherwise the panel says why.</summary>

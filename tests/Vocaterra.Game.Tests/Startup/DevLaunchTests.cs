@@ -35,11 +35,11 @@ public sealed class DevLaunchTests
     public void TheFooterStopsRepeatingHowToSpeakOnceTheSpeakTipWasShownAndKeepsTheOtherKeys()
     {
         var ui = RouteScene.Shipped.Locale;
-        Assert.Contains("speak", DialoguePanel.HintsFor(ui, typing: false, speechUnavailable: false), StringComparison.Ordinal);
-        var quiet = DialoguePanel.HintsFor(ui, typing: false, speechUnavailable: false, speakHintShown: true);
+        Assert.Contains("speak", DialoguePanel.HintsFor(ui, RouteScene.Shipped.Words.Typing, typing: false, speechUnavailable: false), StringComparison.Ordinal);
+        var quiet = DialoguePanel.HintsFor(ui, RouteScene.Shipped.Words.Typing, typing: false, speechUnavailable: false, speakHintShown: true);
         Assert.DoesNotContain("speak", quiet, StringComparison.Ordinal);
         Assert.Contains("Esc", quiet, StringComparison.Ordinal);
-        var typing = DialoguePanel.HintsFor(ui, typing: true, speechUnavailable: false, speakHintShown: true);
+        var typing = DialoguePanel.HintsFor(ui, RouteScene.Shipped.Words.Typing, typing: true, speechUnavailable: false, speakHintShown: true);
         Assert.DoesNotContain("speak", typing, StringComparison.Ordinal);
         Assert.Contains("Enter: send", typing, StringComparison.Ordinal);
     }

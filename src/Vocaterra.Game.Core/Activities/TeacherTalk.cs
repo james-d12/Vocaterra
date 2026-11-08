@@ -168,7 +168,7 @@ public sealed class TeacherTalk
             return;
         }
 
-        _ = Entry.Insert(AccentShortcuts.ForTyped(character, alt));
+        _ = Entry.Insert(_session.Data.Words.Typing.ForTyped(character, alt));
     }
 
     /// <summary>Types a whole line and sends it (a scripted run's <c>--station-say</c>, and the tests).</summary>

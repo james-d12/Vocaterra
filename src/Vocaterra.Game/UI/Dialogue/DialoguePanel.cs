@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Dialogue;
+using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Graphics;
 using Vocaterra.Game.UI.Common;
@@ -22,7 +23,7 @@ public sealed class DialoguePanel : IFrameLayer
     /// talk key works from the buttons, and Tab or Esc returns there.
     /// </summary>
     /// <param name="ui">The support language (<c>ui.dialogueKeyHints</c>, C04).</param>
-    public static string KeyHints(LocaleText ui) => Ui(ui).Ui("dialogueKeyHints");
+    public static string KeyHints(LocaleText ui, TypingMap typing) => Ui(ui).Ui("dialogueKeyHints", ("typing", typing.Hint()));
 
     /// <summary>The key hints while the speech buttons are shown (S17b): the talk key is named in both states.</summary>
     /// <param name="ui">The support language.</param>
@@ -34,7 +35,7 @@ public sealed class DialoguePanel : IFrameLayer
 
     /// <summary>The key hints when speech is unavailable, while typing (S17b).</summary>
     /// <param name="ui">The support language.</param>
-    public static string SpeechOffKeyHints(LocaleText ui) => Ui(ui).Ui("dialogueSpeechOffKeyHints");
+    public static string SpeechOffKeyHints(LocaleText ui, TypingMap typing) => Ui(ui).Ui("dialogueSpeechOffKeyHints", ("typing", typing.Hint()));
 
     /// <summary>The status while the push-to-talk key is held and the microphone records.</summary>
     /// <param name="ui">The support language.</param>
@@ -89,7 +90,7 @@ public sealed class DialoguePanel : IFrameLayer
     {
         ArgumentNullException.ThrowIfNull(dialogue);
         ArgumentNullException.ThrowIfNull(font);
-        return new DialogueLayout(viewportWidth, viewportHeight, text => DrawHelpers.Width(font, text), dialogue.Choices.Select(static c => c.Label).ToList(), dialogue.Buttons, dialogue.IsTyping, button => SpeechButtons.TextFor(button, session), HintsFor(session?.Locale ?? throw new ArgumentNullException(nameof(session)), dialogue.IsTyping, dialogue.SpeechUnavailable, session.Tips.WasShown("speak")));
+        return new DialogueLayout(viewportWidth, viewportHeight, text => DrawHelpers.Width(font, text), dialogue.Choices.Select(static c => c.Label).ToList(), dialogue.Buttons, dialogue.IsTyping, button => SpeechButtons.TextFor(button, session), HintsFor(session?.Locale ?? throw new ArgumentNullException(nameof(session)), session.Data.Words.Typing, dialogue.IsTyping, dialogue.SpeechUnavailable, session.Tips.WasShown("speak")));
     }
 
     /// <inheritdoc />
@@ -152,15 +153,16 @@ public sealed class DialoguePanel : IFrameLayer
     /// The key hints line (S17b): it names the talk key in both states, and says that speech is off, with the typed answer, when the models are not loaded.
     /// </summary>
     /// <param name="ui">The support language.</param>
+    /// <param name="map">The language's typing map (the Alt keys the hints list).</param>
     /// <param name="typing">Whether the text box has the keys.</param>
     /// <param name="speechUnavailable">Whether the speech models are not loaded (the talk key does nothing).</param>
     /// <param name="speakHintShown">Whether the speak tip has been shown (U01): the footer then stops repeating how to speak (the keys stay in the controls help, F1).</param>
-    public static string HintsFor(LocaleText ui, bool typing, bool speechUnavailable, bool speakHintShown = false) => (typing, speechUnavailable) switch
+    public static string HintsFor(LocaleText ui, TypingMap map, bool typing, bool speechUnavailable, bool speakHintShown = false) => (typing, speechUnavailable) switch
     {
-        (true, false) when speakHintShown => Ui(ui).Ui("dialogueKeyHintsShort"),
+        (true, false) when speakHintShown => Ui(ui).Ui("dialogueKeyHintsShort", ("typing", map.Hint())),
         (false, false) when speakHintShown => Ui(ui).Ui("dialogueButtonHintsShort"),
-        (true, false) => KeyHints(ui),
-        (true, true) => SpeechOffKeyHints(ui),
+        (true, false) => KeyHints(ui, map),
+        (true, true) => SpeechOffKeyHints(ui, map),
         (false, false) => ButtonHints(ui),
         _ => SpeechOffButtonHints(ui),
     };
