@@ -2467,6 +2467,19 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   río», `ask_price`), which never reaches the open decode; «mi hermano vive en Madrid» and «la luna brilla» are not heard. The accent risk
   is unmeasured. All 27 scripted runs identical (the agent first ran four; sent back for the full set). D-game-9 note added. Report
   `.claude/briefs/v31-report.md`.
+- **Main merged in: PR #45, the water series (2026-11-08, Sonnet 5.5 high; gated at `bc881c58` on `feature/bread-pilot`, 10328
+  passed, 3 skipped, peak 6.0 GB).** The owner merged `feature/water` into `main` (2026-11-07) and asked for it on this branch. 19
+  conflicts, resolved as `docs/game/water-plan.md` section 3 writes: `PlayerBody.Step(..., RiverCurrents? currents = null, int
+  speedPermille = 1000)` passes the walk speed to the swim step; the session steps needs and water events; `LayerStack` puts the bubbles
+  just above the needs HUD; `SoundCue` keeps `NeedStage`, `WaterSplash`, `UnderwaterBubbles`; `limited.sh` keeps the two-slot slice and
+  H08a's OOM detection; **save version 7** holds both sides' version-6 fields (`Systems`, `MetNpcs`, `Air`, `Flow`), no migration between
+  the two version-6 shapes. `xunit.runner.json` stays at 3 threads (ours) over water's 4. Breaks the merge exposed: drinking by hand aimed
+  with `Simulation.Target`, which looks through water since H05 (now `InteractTarget`); the hotbar's `Gap` and `Bottom` stay public for
+  the bubble meter. Scripted runs: every difference is water's (digests, the save version, the waterfall, the animated water, the target
+  through water); `r27-bread`'s tick 2460 both times. The lake run (wade, swim, dive, breath, bubbles beside the needs bars, hop out)
+  works; drowning does not hurt yet (H11). **Open:** `--walk-to 212,262` back to the bank stopped 0.8 blocks short after 14400 ticks with
+  375 jump cues, not compared with a water-only build; `docs/game/saves.md`, `architecture.md` and the water plan still say version 6.
+  Both go to H11. Report `.claude/briefs/water-merge-report.md`.
 
 ## 6. Definition of done (every milestone)
 

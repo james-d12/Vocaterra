@@ -265,7 +265,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M80 | The open-recognition fallback for free talk (the owner, D-game-22, 2026-11-06, the spoken-lines study's option 1; V31 waits on it): `PipelineOptions.OpenRecognitionFallback`, a second open decode only when the constrained one is not taken, the taken pass wins, replay-exact; measured on the seven free-talk prompts with Kokoro voices only (no owner recordings, answer 5), zero false takes the bar (`docs/research/2026-11-04-spoken-off-prompt-lines.md` section 5) | M72 | M | Sonnet 5.5 high | done (2026-11-07, gated at `d939ceb7` on `feature/bread-pilot`, 9893 passed, 3 skipped; with the owner's 0.5 weakest-word floor, §5b) |
 | M81 | The loader takes an intent with its `slotGrammars` removed (O15, ContentSchemaFuzzTests, seed `41s2qgWEC-M9`: `describe`, intent 27, has no `keywordRules`, and the mutation is accepted; found by N01's agent on 2026-11-05 and reproduced on `feature/adaptive_design` at 558ed095): fix the cause (an intent no grammar and no rule can produce is a content error) or make the tolerance exact, with a regression test and a fuzz README finding | none | S | Haiku 5.5 | done (2026-11-05, gated on `feature/adaptive_design`, 9160 passed) |
 | M82 | The loader refuses an intent with no `slotGrammars`, no `keywordRules` and no `examples` (the owner, 2026-11-05, on M81's finding: no bundle has one, so enforce it): a `ContentValidationException` naming the file and the intent; `OptionalMembersMayBeOmitted` gives its intent one member; the fuzz README's M81 entry moves to fixed | M81 | S | Haiku 5.5 | done (2026-11-05, gated at `80492cf9`, 9363 passed) |
-| M83 | The O7 fuzz seed `8eu5g1sTe_A8` (found by W02, §5b; the owner, 2026-11-07, D-game-23 item 5): «ayuda por favor por favor» at a prompt without `ask_help` resolves as Grammar `request_item` although `ask_help`'s grammar outranks the match; fix the resolver or the analyzer at the cause, with the seed's case as a regression test; the oracle stands | | S | Sonnet 5.5 medium | authorised (2026-11-07), on `feature/bread-pilot` |
+| M83 | The O7 fuzz seed `8eu5g1sTe_A8` (found by W02, §5b; the owner, 2026-11-07, D-game-23 item 5): «ayuda por favor por favor» at a prompt without `ask_help` resolves as Grammar `request_item` although `ask_help`'s grammar outranks the match; fix the resolver or the analyzer at the cause, with the seed's case as a regression test; the oracle stands | | S | Sonnet 5.5 medium | done (2026-11-08, merged at `45499631`, gated with the water merge at `bc881c58` on `feature/bread-pilot`, 10328 passed, 3 skipped; §5b) |
 | M84 | Free talk's forced rows (found by V31; the owner, 2026-11-07, D-game-23 item 5): with `OpenRecognitionFallback` on, a constrained reading that was taken but looks forced (most of the clip's speech unused, or a clip much longer than its row, or weak words) also gets the open decode, and a confident, different free reading wins; measured on M80's Kokoro corpus plus V31's forced lines («el río es grande» heard «es gracias»), zero false takes the bar, the cost per turn reported | M80 | M | Sonnet 5.5 high | authorised (2026-11-07), on `feature/bread-pilot` |
 
 ### Delegation waves
@@ -1836,6 +1836,15 @@ merge into a feature branch that is pushed, and the owner merges it into `main` 
   lines lost to the floor; free decode median 237 ms (p95 342). The accent risk on real speech is unmeasured (no owner recordings).
   The first gate run was killed at the shared 8 GB cap while W03's suite ran beside it (exit 143); rerun alone, it passed. Reports
   `.claude/briefs/m80-report.md` and `m80-report-2.md`. V31 uses it.
+- **M83, the O7 seed (2026-11-07, Sonnet 5.5 medium; merged at `45499631`, gated with the water merge at `bc881c58` on
+  `feature/bread-pilot`, 10328 passed, 3 skipped).** The cause was none of the brief's guesses: the matcher binds the trailing polite
+  phrase's words to literal nodes, so they count as literal and named tokens, but `SlotGrammar.MaxLiteralTokens` and `MaxNamedTokens`
+  counted only the pattern's own elements; `IntentResolver.OutsideGrammar` and `MatchScore.CanBeBeatenBy` used those bounds to skip an
+  outside grammar and judged `ask_help` (literal 5 with the phrase) unable to beat `request_item`'s 4. The fix, in `IntentResolver.cs`
+  only: both bounds add `GrammarDefaults.TrailingPoliteWords.Count`. No public type changed; the oracle is unchanged and passes the seed
+  and five more runs. Three tests in `IntentResolverCatalogReadingTests`; a "Bugs found and fixed" entry in the fuzz README. Its first
+  gate was cut off by the machine's reboot (2026-11-07); `LintTests.TheBundleLintTakesUnderFiveSeconds` took 5.55 s beside T9's build in
+  the agent's own run (3 s alone). Report `.claude/briefs/m83-report.md`.
 
 ## 6. Definition of done (every milestone)
 
