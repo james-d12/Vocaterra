@@ -130,6 +130,34 @@ public sealed class Objective
     /// <returns>The steps this call completed (empty when none).</returns>
     public IReadOnlyList<ObjectiveStep> Record(string worldEvent, string? detail = null, int amount = 1) => Record(new WorldEvent(0, 0, worldEvent, null, detail), amount);
 
+    /// <summary>
+    /// Sets each step that counts held items (<see cref="ObjectiveStepSpec.HeldNoun"/>, issue #32) to how many of its noun's items the bag holds now: the camp asks for five
+    /// wood on the player, so wood crafted into a torch takes the step back. The session calls it only while the objective is not complete; once it is, the steps stand.
+    /// </summary>
+    /// <param name="held">How many items of a noun the bag holds, by the noun's lemma.</param>
+    /// <returns>The steps this call completed (empty when none).</returns>
+    public IReadOnlyList<ObjectiveStep> Hold(Func<string, int> held)
+    {
+        ArgumentNullException.ThrowIfNull(held);
+        var completed = new List<ObjectiveStep>();
+        for (var i = 0; i < _steps.Length; i++)
+        {
+            if (Spec.Steps[i].HeldNoun is not { } noun)
+            {
+                continue;
+            }
+
+            var before = _steps[i];
+            _steps[i] = before with { Count = Math.Max(0, held(noun)) };
+            if (!before.Done && _steps[i].Done)
+            {
+                completed.Add(_steps[i]);
+            }
+        }
+
+        return completed;
+    }
+
     // Completes every step (an objective another one's progress completes, alsoDoneBy).
     internal void Finish()
     {

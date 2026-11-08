@@ -8,7 +8,7 @@ using Vocaterra.Game.Core.Voxel;
 namespace Vocaterra.Game.Core.Tests.Session;
 
 /// <summary>
-/// The camp objective played headless from the spawn on the bundle's route: five wood, three berries, the torch crafted at the workbench and
+/// The camp objective played headless from the spawn on the bundle's route: seven wood (five kept, two for the torch, #32), three berries, the torch crafted at the workbench and
 /// placed at the fire ring. The checklist reads <c>madera 5/5 · frutas 3/3 · antorcha 1/1 · agua 0/1</c>; the water step waits for its host event.
 /// </summary>
 public sealed class CampObjectiveTests
@@ -27,9 +27,10 @@ public sealed class CampObjectiveTests
         var camp = scene.Point("camp.guide");
         Assert.True(VoxelWalker.WalkTo(session, cell => Distance(cell, new BlockPos(camp.X, camp.Y + 1, camp.Z)) <= 3.0), "no way down to the guide's camp");
 
-        // Five trunks: each gathered block is one wood, the trunk's own cell turns to air. Walk next to the nearest ones, one tree at a time.
+        // Seven trunks: each gathered block is one wood, the trunk's own cell turns to air. Walk next to the nearest ones, one tree at a time. The camp asks for five
+        // wood in the bag (#32) and the torch takes two, so seven leave five.
         var gathered = 0;
-        while (gathered < 5)
+        while (gathered < 7)
         {
             var trunk = FindTrunk(grid, session.Simulation.Player.FeetBlock, out var stand);
             Assert.True(trunk is not null && stand is not null, "a tree is near the spawn");
@@ -91,7 +92,7 @@ public sealed class CampObjectiveTests
 
         Assert.Equal(ThreeOfFour, session.Objective.Summary);
         Assert.False(session.Objective.Complete);
-        Assert.Equal(3, session.Simulation.Inventory.Count(ItemId.Wood));
+        Assert.Equal(5, session.Simulation.Inventory.Count(ItemId.Wood));
         Assert.Equal(3, session.Simulation.Inventory.Count(ItemId.Berry));
         Assert.Equal(0, session.Simulation.Inventory.Count(ItemId.Torch));
     }
