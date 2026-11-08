@@ -5,7 +5,7 @@ Source: `mockup.html` beside this file (pixel-exact spreads, ink table with rati
 ## Sizes and inks
 - Only 16 and 32 px. 32 px: the left page's title (page accent) and the right page's item title and stat numbers (`Ink`). The 19 px row grid stays.
 - Inks in `UiPalette` and `TextPairs` (on Paper; on the selection too if the row can be selected): `Ink` 44,32,26 (12.39/11.48); `InkSeen` 78,64,52 (7.81/7.24); **`InkMeta` 96,90,98, new, replaces `InkHint`** (5.25/4.87); `InkUnseen` 108,92,72 (5.04/4.68); `InkKnown` 116,70,6, marks only (6.28/5.82). Accents: the existing `Ribbons` (4.77 to 6.18 on Paper; white on each 6.08 to 7.88). New `BandMuted` 118,104,84 (white 5.41). Marks, 3:1: 44,102,62 / 136,88,20 / 150,46,46.
-- Optional, owner to confirm: "strong" weight, text drawn twice 1 px apart, for known entries, the next lesson, labels.
+- **Decided (D-game-27):** the "strong" weight, text drawn twice 1 px apart, only for known entries, the right page's section labels and the next lesson's line; never running text. A lesson's phrases move to the right page with their speaker buttons (right-page hit tests). Phrases grouped by help.
 
 ## Line kinds (`BookLineKind` on `BookLine`, set by `BookPages`; the layer picks size, ink and spacing from kind and `BookTone`)
 - `Section`: 1 row, band in the page's accent (`BandMuted` for Not met yet), white label, count at right; follows a `Gap` (none at the page top); not selectable.
@@ -39,5 +39,5 @@ Tabs, ribbons, page turn, wheel and key scroll, Shift+Up/Down, "Review now", "Pr
 3. New kinds `Tiles`, `Detail` (plan: four): icon row for unmet nouns; `Detail` carries "moves to the right page".
 4. Meta is a cool grey, not a lighter brown: no lightness is left between meta and unseen under 4.5 on the selection, so hue separates them.
 5. Title replaces "Your book - X": costs one row.
-6. Lessons' phrases leave the list, speakers on the right page: new hit tests; keys still reach recordings from Phrases. Owner to confirm.
+6. Lessons' phrases leave the list, speakers on the right page: new hit tests; keys still reach recordings from Phrases. Decided (D-game-27).
 7. Additions: double strike, selection edge, pips key.

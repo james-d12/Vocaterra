@@ -596,6 +596,17 @@ swimming; `.claude/briefs/h11-report.md`, item 5). The bank is fixed in the worl
 reach is left by walking, a step or the hop-out. Built by H12 (2026-11-08, `docs/game/water-plan.md`): 582 such edges, every shore's rim, now a step
 over the shallow bed; the swim rules unchanged.
 
+## D-game-27: the book's hierarchy (decided, 2026-11-08)
+
+**Owner, 2026-11-08,** on the U07 mockup (GitHub issue #7; the artifact "Book Hierarchy Mockup", spec `.claude/briefs/u07-book-spec-draft.md`;
+plan section 4.10): "Go with the recommendations." The three questions and the answers:
+1. **Double strike** (the pixel font's only bolder weight: the text drawn twice, 1 px apart): **on, in a few places only**: known entries,
+   the right page's section labels ("What you did", "Units", "Phrases", "Feedback") and the next lesson's line. Never running text.
+2. **A lesson's phrases move to the right page** with their speaker buttons; the left list keeps one row per lesson. The right page gets
+   the speaker buttons' hit tests; the keys still reach every recording from the Phrases page.
+3. **The Phrases page is grouped by help** (Without help, With help, Not met yet), not by lesson: a phrase row carries no lesson, and the
+   Lessons page's right page already lists each lesson's phrases.
+
 ## Already decided
 
 - **The core by project reference** (D-game-7; until 2026-10-21 "packages only" from a submodule's local feed). The game never copies core

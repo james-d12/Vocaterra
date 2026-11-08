@@ -465,8 +465,8 @@ the panel or the book will change; re-record them and say which in the report.
 
 **U07, the book's hierarchy (#7).**
 
-- **First a mockup** of the five pages for the owner (a picture or an artifact), before the build; the owner's answer goes into the
-  design `.docx` (the owner's rule for design work).
+- **First a mockup** of the five pages for the owner (a picture or an artifact), before the build; the owner's answers are D-game-27
+  (2026-11-08).
 - **Line kinds:** `BookLineKind` (Section, Entry, Meta, Gap) on `BookLine` in `Game.Core`, set by `BookPages`; the layer picks font, ink and
   spacing from the kind, not from tone and indent. A Section takes two grid rows, so the row-based scroll and hit tests stay.
 - **Scale and ink:** the page title at 32 px with the page's ribbon colour as accent; entries in the darkest ink; meta clearly lighter and
