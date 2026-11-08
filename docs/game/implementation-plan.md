@@ -410,7 +410,7 @@ the panel or the book will change; re-record them and say which in the report.
 
 | ID | What | Depends on | Size | Model | Status |
 | --- | --- | --- | --- | --- | --- |
-| U05 | The NPC's name as the panel's title (#6): the name at 32 px, the lesson heading moved off its line, the "Guía: " prefix dropped from the NPC's lines; 16 px in the compact panel | | S | Sonnet 5.5 medium | in progress (2026-11-08, branch `U05-npc-title`, brief `.claude/briefs/u05-npc-title.md`) |
+| U05 | The NPC's name as the panel's title (#6): the name at 32 px, the lesson heading moved off its line, the "Guía: " prefix dropped from the NPC's lines; 16 px in the compact panel | | S | Sonnet 5.5 medium | done (2026-11-08, gated at `1f56f6b9`, 10402 passed) |
 | U06 | The panel scrolls (#5, step 1): the mouse wheel opens and scrolls the older lines, a scrollbar while lines are out of view, one page per NPC | U05 | S/M | Sonnet 5.5 medium | planned |
 | U07 | The book's hierarchy (#7): line kinds, a type and ink scale, one row per entry with the details on the right page, each page's layout; a mockup for the owner first | | M/L | Sonnet 5.5 high | planned |
 | U08 | The conversation history kept in the save (#5, step 2): each NPC's lines saved, capped per NPC, shown again after a restart | U06 | M | Sonnet 5.5 medium | planned |
@@ -2602,6 +2602,13 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   the scene digest is `b699324f…`, save fixtures' state digests re-recorded. `WaterEdgesAreExitableTests` holds the world at 0 edges
   (exempt: bridge floors, the river staircase's two steps). Scripted runs: 13 differ, all from the world (digests, a teleport landing 1
   lower, r27's walk 38 turns instead of 36 at the same tick); new run `r31-lake`. Report `.claude/briefs/h12-report.md`.
+
+- **U05, the NPC's name as the panel's title (2026-11-08, Sonnet 5.5 medium; gated at `1f56f6b9` on `feature/ui-issues`, 10402 passed, 3
+  skipped; GitHub issue #6).** `DialogueLayout.Header` (46 px, 34 compact; `HeaderHeightFor`) places the lines; `DialoguePanel` draws the name
+  at 32 px (16 px compact) with the rule under it, the lesson heading beside it in the muted colour, and `LinePrefix` gives the NPC's lines no
+  `Name:` prefix (the learner's and the English keep theirs). Nothing depended on the prefix. 800 x 600 keeps 6 rows of conversation. Scripted
+  runs: stdout and digests identical in all 28; pictures differ only in `r27-bread` (`offer.png`) and `r30-no-classes` (`offer.png`,
+  `declined.png`, `paid.png`), the header. The orchestrator fixed one spliced sentence in `running.md`. 7 tests in `PanelTitleTests`.
 
 ## 6. Definition of done (every milestone)
 
