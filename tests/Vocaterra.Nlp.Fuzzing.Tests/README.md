@@ -895,6 +895,15 @@ Found and fixed in M92 (found by M36's merge gate, 2026-11-09):
   `Generate` now keeps one silent-h variant per phone sequence, the earliest letter in the text (the variants of other tags are untouched), so one heard phone is blamed on at most one letter, deterministically.
   The oracle is unchanged: the fuzz's injected error is drawn from the same variants. Regressions: `SilentHAcrossWordsTests` (Es tests; both modes, the seed's phrase, «ah», «humana», «la hora», «ah ahora»).
 
+Found and fixed in M95 (found by M38's merge gate, 2026-11-09; older than M88, it fails the same way at `8a98162c`):
+
+- **The resolver let a grammar that beats the allowed one but names no more of the words hide one that does** (`IntentResolver.OutsideGrammar`, O7, CsCheck seed `6-6oGJLVh3o1`).
+  "yo vendo partos por favor" at `lesson-luz-will` (allowed `ask_help`, `state_action`, `dont_know`): `offer_item`'s grammar outranks `state_action`'s (three explicit tokens against two, four words named
+  against three, the polite phrase counted), so the line is off the prompt. The resolver took the best outside grammar in the rung's order, `request_item`'s `[PRON]? [ART]? [NUM:qty]? [NOUN:item] ... por favor`
+  (four explicit tokens, two words named), found that it named no more than the allowed reading and gave the line back to `state_action`, never looking at `offer_item`. The polite phrase only made `request_item` match.
+  The oracle was right. The resolver now keeps the best of the outside grammars that beat the allowed reading and also name more of the words. Regressions:
+  `IntentResolverPoliteLadderTests` (the seed's line, the same line without the phrase, the phrase leading, an allowed grammar that outranks, the phrase on another intent).
+
 ## Known, deliberately not fixed
 
 Findings that are content gaps or design limits rather than defects of one stage. None changes behaviour here; the generators step around
