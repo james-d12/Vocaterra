@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
-# Downloads the two data sets the lexicon import reads into ${VOCATERRA_LEXICON_SOURCES_DIR:-<repo>/lexicon-sources}/ (git-ignored), checks
+# Downloads the four data sets the lexicon imports read into ${VOCATERRA_LEXICON_SOURCES_DIR:-<repo>/lexicon-sources}/ (git-ignored), checks
 # their SHA-256 and byte size against the values pinned below, and records them with the retrieval date in sources.json next to them.
 #
 #   kaikki-es          the kaikki.org Spanish extract of English Wiktionary (wiktextract JSONL), CC BY-SA 4.0
 #   frequency-es-50k   hermitdave/FrequencyWords, content/2018/es/es_50k.txt (OpenSubtitles 2018), CC BY-SA 4.0
+#   kaikki-de          the kaikki.org German extract of English Wiktionary (wiktextract JSONL), CC BY-SA 4.0 (M36)
+#   frequency-de-50k   hermitdave/FrequencyWords, content/2018/de/de_50k.txt (OpenSubtitles 2018), CC BY-SA 4.0 (M36)
 #
 # Usage: scripts/fetch-lexicon-sources.sh [--check]
 #   --check   verify the files that are present against the pins and sources.json; download nothing; exit 1 when one is missing or differs
@@ -22,10 +24,15 @@ dest="${VOCATERRA_LEXICON_SOURCES_DIR:-${SLG_LEXICON_SOURCES_DIR:-$repo_root/lex
 # ---- Pins -------------------------------------------------------------------------------------------------------------------------------
 # id|file name|url|sha256|bytes|licence
 # The FrequencyWords URL names a commit, so it is immutable; the kaikki.org URL is not, which is why the hash is the pin.
-# kaikki.org last modified 2026-10-03 (enwiktionary dump of 2026-09-02, wiktextract 1a05e46 and e3d6d4e, per the page footer).
+# kaikki.org Spanish and German: last modified 2026-10-30 (extracted 2026-10-30 from the enwiktionary dump of 2026-10-01, wiktextract 19f9a30 and
+# 6f96ddf, per the page footer), retrieved 2026-11-08. M90 re-pinned kaikki-es to this file (it was 1054565723 bytes, 7b23a5dc..., extracted from
+# the dump of 2026-09-02); content/game-v1/lexicon/ was built from the earlier pin and is not regenerated (docs/nlp/lexicon.md). The German
+# extract is marked deprecated on kaikki.org ("will be removed in the near future"); if it disappears, the pinned hash identifies what to keep.
 pins=(
-  "kaikki-es|kaikki.org-dictionary-Spanish.jsonl|https://kaikki.org/dictionary/Spanish/kaikki.org-dictionary-Spanish.jsonl|7b23a5dc004a47b63edc2e79a34b246bbf59d1a3067a1843a5c554c0e252b97c|1054565723|CC-BY-SA-4.0 (Wiktionary text; older revisions CC-BY-SA-3.0) and GFDL"
+  "kaikki-es|kaikki.org-dictionary-Spanish.jsonl|https://kaikki.org/dictionary/Spanish/kaikki.org-dictionary-Spanish.jsonl|336903d1290968d77bd361c620d7d799ad7a7a9bc6ad353ec35954f2e15fbe6f|1119672965|CC-BY-SA-4.0 (Wiktionary text; older revisions CC-BY-SA-3.0) and GFDL"
   "frequency-es-50k|es_50k.txt|https://raw.githubusercontent.com/hermitdave/FrequencyWords/525f9b560de45753a5ea01069454e72e9aa541c6/content/2018/es/es_50k.txt|dcff3ad4316192f4dc4ff7d26e637c6ff314ef1ca0f3f720c5649018a71056c0|658626|CC-BY-SA-4.0 (content), MIT (code)"
+  "kaikki-de|kaikki.org-dictionary-German.jsonl|https://kaikki.org/dictionary/German/kaikki.org-dictionary-German.jsonl|4fb15662a125085e1eb6b533a210b45edcdffa7b8e72e07634f46e1485e4e715|1095258648|CC-BY-SA-4.0 (Wiktionary text; older revisions CC-BY-SA-3.0) and GFDL"
+  "frequency-de-50k|de_50k.txt|https://raw.githubusercontent.com/hermitdave/FrequencyWords/525f9b560de45753a5ea01069454e72e9aa541c6/content/2018/de/de_50k.txt|d9e50546fd7e8b6fe6542a2b33c51d1331092b2a3916ec09f80d97856068705b|662497|CC-BY-SA-4.0 (content), MIT (code)"
 )
 
 warn() { printf 'warning: %s\n' "$*" >&2; }

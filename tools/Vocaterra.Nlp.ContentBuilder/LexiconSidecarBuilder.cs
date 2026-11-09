@@ -135,7 +135,7 @@ public static class LexiconSidecarBuilder
             LexiconSourceInfo.SortedCounts(LemmasByPos(result.Entries)));
         return new LexiconSourceInfo(
             LexiconSourceInfo.CurrentSchemaVersion,
-            KaikkiImporter.ImporterVersion,
+            options.Language.ImporterVersion,
             generatedFile,
             result.Entries.Count,
             result.Entries.Select(static entry => entry.Lemma).Distinct(StringComparer.Ordinal).Count(),

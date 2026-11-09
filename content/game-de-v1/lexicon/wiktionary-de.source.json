@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "importerVersion": "de-1.0.0",
+  "generatedFile": "wiktionary-de.json",
+  "outputEntries": 108533,
+  "outputLemmas": 7707,
+  "sources": [
+    {
+      "id": "frequency-de-50k",
+      "file": "de_50k.txt",
+      "url": "https://raw.githubusercontent.com/hermitdave/FrequencyWords/525f9b560de45753a5ea01069454e72e9aa541c6/content/2018/de/de_50k.txt",
+      "sha256": "d9e50546fd7e8b6fe6542a2b33c51d1331092b2a3916ec09f80d97856068705b",
+      "bytes": 662497,
+      "lines": 50000,
+      "retrievedOn": "2026-11-08",
+      "license": "CC-BY-SA-4.0 (content), MIT (code)"
+    },
+    {
+      "id": "kaikki-de",
+      "file": "kaikki.org-dictionary-German.jsonl",
+      "url": "https://kaikki.org/dictionary/German/kaikki.org-dictionary-German.jsonl",
+      "sha256": "4fb15662a125085e1eb6b533a210b45edcdffa7b8e72e07634f46e1485e4e715",
+      "bytes": 1095258648,
+      "lines": 371793,
+      "retrievedOn": "2026-11-08",
+      "license": "CC-BY-SA-4.0 (Wiktionary text; older revisions CC-BY-SA-3.0) and GFDL"
+    }
+  ],
+  "parameters": {
+    "top": 8000,
+    "maxEntries": null,
+    "frequencySourceId": "frequency-de-50k",
+    "handAuthoredFiles": null
+  },
+  "report": {
+    "kaikkiLinesRead": 371793,
+    "spanishEntries": 371793,
+    "importedEntries": 82026,
+    "skippedEntries": 289767,
+    "skippedByReason": {
+      "alternative form or abbreviation of another entry": 7061,
+      "every sense is obsolete, archaic, dated, nonstandard, a neologism or a misspelling": 1605,
+      "head word has characters other than letters": 689,
+      "inflected form of another entry (the lemma entry lists it)": 262932,
+      "multi-word or affix head word": 2718,
+      "numeral (lemma is a digit string in the lexicon schema)": 434,
+      "separable verb whose prefix is not in the profile's particle list": 397,
+      "unsupported part of speech 'character'": 62,
+      "unsupported part of speech 'circumfix'": 5,
+      "unsupported part of speech 'circumpos'": 2,
+      "unsupported part of speech 'contraction'": 101,
+      "unsupported part of speech 'infix'": 1,
+      "unsupported part of speech 'interfix'": 10,
+      "unsupported part of speech 'name'": 11988,
+      "unsupported part of speech 'phrase'": 562,
+      "unsupported part of speech 'prefix'": 333,
+      "unsupported part of speech 'prep_phrase'": 183,
+      "unsupported part of speech 'proverb'": 274,
+      "unsupported part of speech 'punct'": 7,
+      "unsupported part of speech 'suffix'": 353,
+      "unsupported part of speech 'symbol'": 37,
+      "verb head word is not an infinitive (reflexive and multi-word verbs are skipped)": 13
+    },
+    "frequencyWords": 50000,
+    "pluralLookalikeLemmas": 0,
+    "lemmasConsidered": 79622,
+    "lemmasWithFrequency": 23127,
+    "lemmasKept": 8000,
+    "lemmasDroppedNoFrequency": 56495,
+    "lemmasDroppedUnattestedHeadWord": 3282,
+    "lemmasDroppedBelowCutoff": 11845,
+    "cutoffFrequency": 1058,
+    "entriesByPartOfSpeech": {
+      "adj": 20389,
+      "adv": 514,
+      "art": 21,
+      "conj": 52,
+      "interj": 108,
+      "noun": 40116,
+      "prep": 58,
+      "pron": 151,
+      "verb": 47124
+    },
+    "lemmasByPartOfSpeech": {
+      "adj": 1012,
+      "adv": 514,
+      "art": 2,
+      "conj": 52,
+      "interj": 108,
+      "noun": 4094,
+      "prep": 58,
+      "pron": 142,
+      "verb": 2399
+    }
+  }
+}
