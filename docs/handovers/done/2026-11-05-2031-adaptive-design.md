@@ -9,8 +9,8 @@ Branch: `feature/adaptive_design` (pushed; the owner merges it into `main` once,
 commit is named in "Completed" below)
 Worktree: `/home/user/Dev/Vocaterra/.claude/worktrees/adaptive` (the main checkout `/home/user/Dev/Vocaterra` sits on the old
 `feature/village-decisions` and is not used)
-Previous handovers: [2026-11-03-2114-adaptation-design](done/2026-11-03-2114-adaptation-design.md) (the design's revision 3, PR #30,
-merged) and [2026-11-02-after-followups](done/2026-11-02-after-followups.md) (the follow-ups M74, M75, V29, M78 and the spoken-lines
+Previous handovers: [2026-11-03-2114-adaptation-design](2026-11-03-2114-adaptation-design.md) (the design's revision 3, PR #30,
+merged) and [2026-11-02-after-followups](2026-11-02-after-followups.md) (the follow-ups M74, M75, V29, M78 and the spoken-lines
 study, all merged into this branch)
 
 ## Outcome
@@ -26,7 +26,7 @@ track) is half done; phase E (the bread pilot, W05 to W10) waits for the owner's
 - **Nothing runs.** No agent, no worktree but the adaptive one.
   - Their reports reach only the session that launched them. **If this session is gone:** check each worktree (`git -C <wt> status`,
     `git -C <wt> log --oneline feature/adaptive_design..`), commit any uncommitted work as a WIP snapshot on its branch, and relaunch a
-    fresh agent with a "you continue a first attempt" section, as [`n05b-continue.md`](../../.claude/briefs/n05b-continue.md) did for N05.
+    fresh agent with a "you continue a first attempt" section, as [`n05b-continue.md`](../../../.claude/briefs/n05b-continue.md) did for N05.
 - The background memory and load watch ended after 6 hours with no alarm (2026-11-06); nothing else runs.
 - The adaptive worktree is clean apart from this handover's own change; nothing uncommitted elsewhere.
 - **Branches:** milestone branches stay local and are never pushed (the owner, 2026-11-05); only `feature/adaptive_design` is pushed. The
@@ -50,8 +50,8 @@ track) is half done; phase E (the bread pilot, W05 to W10) waits for the owner's
 | T7 | The game tests' memory: undisposed test sessions; Game.Core.Tests 5.0 to 2.5 GB, the full run 4.8 GB under its 6 GB cap | `56094f20`, 9586 |
 | U02 | The conversation surface: the current exchange, older lines behind PageUp/O, one coaching line, the lesson heading in the panel | `fe986862`, 9546 |
 
-- Plans: [game plan](../game/implementation-plan.md) section 4.9 (the table) and section 5 (one findings entry per milestone);
-  [core plan](../nlp/implementation-plan.md) §5 and §5b; [activities plan](../game/activities-plan.md) section 4.7.
+- Plans: [game plan](../../game/implementation-plan.md) section 4.9 (the table) and section 5 (one findings entry per milestone);
+  [core plan](../../nlp/implementation-plan.md) §5 and §5b; [activities plan](../../game/activities-plan.md) section 4.7.
 - Reports: `.claude/briefs/<id>-report.md` for each milestone above.
 - Process changes today: `scripts/limited.sh` runs two heavy commands at once (8 GB and 14 cores together, 6 GB and 10 cores each, the
   peak memory printed); `scripts/merge-gate.sh` skips those peak lines in its summaries; milestone branches are not pushed; this handover
@@ -70,7 +70,7 @@ track) is half done; phase E (the bread pilot, W05 to W10) waits for the owner's
   - **The needs check** (design 9.12): the owner and two or three testers play days 1 to 3 with needs on. Its pass criteria are in the
     game plan's row and the design's 9.12. Its "go" starts the bread pilot W05 to W10 (activities plan section 4.7). The owner may lift
     that gate for W05 to W07 (machinery that does not depend on the needs' tuning); W08 also waits for the spoken-lines answers.
-  - **The spoken-lines study's six questions** ([docs/research/2026-11-04-spoken-off-prompt-lines.md](../research/2026-11-04-spoken-off-prompt-lines.md)
+  - **The spoken-lines study's six questions** ([docs/research/2026-11-04-spoken-off-prompt-lines.md](../../research/2026-11-04-spoken-off-prompt-lines.md)
     section 7): they decide M80 (core) and V31 (game), and W08 depends on the study.
   - **Section 18.2's recommendations** were adopted provisionally; the owner confirms or changes each at the review. The provisional
     values each milestone chose are in its findings entry.
@@ -92,7 +92,7 @@ track) is half done; phase E (the bread pilot, W05 to W10) waits for the owner's
 1. When a milestone reports: verify the branch (`git diff --stat <merge-base>..<branch>`, scope), check conflicts with
    `git merge-tree --write-tree --name-only HEAD <branch>`; if only generated files or docs conflict, merge the base into the branch in its
    worktree, resolve, run `scripts/content-loop.sh --speech --tier none` (or `--grammar --speech --tier full` if code or content changed on
-   both sides), commit; otherwise brief a Haiku sync as [`n07-sync.md`](../../.claude/briefs/n07-sync.md).
+   both sides), commit; otherwise brief a Haiku sync as [`n07-sync.md`](../../../.claude/briefs/n07-sync.md).
 2. Gate from the adaptive worktree: `GATE_TARGET=feature/adaptive_design scripts/merge-gate.sh "<ID>:<branch>"` (in the background, with
    `VOCATERRA_MODELS_DIR` set), spot-check in the game, record the plan row and a findings entry, save the report, commit, push
    `feature/adaptive_design`, remove the worktree and the local branch, **update this handover**.

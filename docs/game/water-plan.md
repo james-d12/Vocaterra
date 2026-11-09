@@ -4,7 +4,7 @@ A plan written on 2026-11-07 at the owner's request, from a read of `main` at `4
 Nothing was built or run. Its goal is **water that behaves like water**: it flows and settles, it has currents, the player can swim in it,
 a bubble meter runs down under the surface, and the view under the surface is tinted, fogged and softly blurred.
 
-**Status:** H01 done (2026-11-07); H02 and H05 running (chosen first because they're the ones the owner sees), then H03 and H04. The owner's four answers are in section 6, progress in section 8. Branch `feature/water`, cut from `main` at `4c93aa6c` (worktree `.claude/worktrees/water`). Commit prefix
+**Status (2026-11-09):** the series is done and in `main`: H01 to H10 by PR #45, H11 and H12 by PR #40. The owner's answers are in section 6 and D-game-26, progress and the open points in section 8. It was built on `feature/water`, cut from `main` at `4c93aa6c`. Commit prefix
 `H<nn>:`. As with every feature branch, nothing is pushed to `main`; the owner merges by pull request.
 
 ## 1. The request

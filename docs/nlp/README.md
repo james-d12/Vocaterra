@@ -66,7 +66,7 @@ The full rules, with where each is enforced, are in [ADR 0002](adr/0002-determin
 | [tools.md](tools.md) | The third-party tools, libraries, models and data sources, with their licences |
 | [known-gaps.md](known-gaps.md) | What the core does not do yet |
 | [fuzzing-plan.md](fuzzing-plan.md), [the fuzz suite's README](../../tests/Vocaterra.Nlp.Fuzzing.Tests/README.md) | The fuzz design, its oracles and iteration budgets; the bugs it found and the known findings |
-| [implementation-plan.md](implementation-plan.md), [decisions.md](decisions.md) | The milestones (§5) and the findings log (§5b); the owner's decisions |
+| [implementation-plan.md](implementation-plan.md), [findings.md](findings.md), [decisions.md](decisions.md) | The milestones (§5); the findings log (§5b); the owner's decisions |
 | [adr/](adr/) | The architecture decision records, 0001 to 0012 |
 | [diagrams/README.md](diagrams/README.md) | The system diagram in draw.io, and how to open it |
 | [models/README.md](../../models/README.md), [tests/golden/README.md](../../tests/golden/README.md), [scripts/README.md](../../scripts/README.md) | The model manifest, the recording protocol, the helper scripts |

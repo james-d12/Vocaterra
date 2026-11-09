@@ -6,6 +6,8 @@
 
 > **Note (M52, 2026-10-26):** the layering bullet below (the stage libraries and what each depends on) is superseded by [ADR 0012](0012-one-engine-assembly-and-language-packs.md). The stages are folders of one engine assembly, `Vocaterra.Nlp`; the layering is the same and is enforced by `LayeringTests`, not by the compiler. The text below is unchanged.
 
+> **Note (2026-10-21):** the game chose MonoGame for its prototype (game decision D-game-1); the core stays engine-agnostic as decided here.
+
 - Status: accepted
 - Date: 2026-10-20
 - Deciders: repository owner and the implementation plan (`implementation-plan.md` section 1, "Engine")
