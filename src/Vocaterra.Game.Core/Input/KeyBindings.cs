@@ -50,14 +50,8 @@ public sealed class KeyBindings
             bindings.Add(new(InputKeys.Of("sleep"), sleep, cardOffersSleep)); // Enter on the closing card: the next session
         }
 
-        if (commands.OpenSettings is { } settings)
-        {
-            bindings.Add(new(InputKeys.Of("settings"), settings));
-        }
-
         bindings.AddRange(
         [
-            new(InputKeys.Of("controls"), commands.OpenControls),
             new(InputKeys.Of("nextTip"), commands.NextTip, tipShown),
             new(InputKeys.Of("book"), commands.OpenBook),
             new(InputKeys.Of("crafting"), commands.OpenCrafting),
@@ -87,7 +81,7 @@ public sealed class KeyBindings
         [
             new(InputKeys.Of("inventory"), commands.OpenInventory),
             new(InputKeys.Of("talk"), commands.OpenInventory), // and anywhere else the inventory
-            new(InputKeys.Of("releaseMouse"), commands.ReleaseMouse),
+            new(InputKeys.Of("menu"), commands.OpenMenu),
         ]);
         return new KeyBindings(bindings);
     }

@@ -246,7 +246,7 @@ English is on-screen text only; only Spanish is spoken. All of it is game conten
   typed half uses make one step; "no sé", Ayuda, a choice and a fail-forward step up one rung, never above 1. The help key (`PhraseSupport.Reveal`) shows the card
   and the English at every rung (`PhraseSupport.EnglishUp`). The phrases with a scaffold are the four of `PhraseIds.HasScaffold` plus every phrase a lesson
   teaches (`PhraseProgress` takes them as `scaffolds`; `HasScaffold(id)` is the instance question).
-- **`game/english.json`** (`EnglishText`): `ui` words, `npcNames`, `controls` (the F1 panel), `tips` (first-time tips: `when` is `start`, `aimed_npc` or a world
+- **`game/english.json`** (`EnglishText`): `ui` words, `npcNames`, `controls` (the controls help), `tips` (first-time tips: `when` is `start`, `aimed_npc` or a world
   event name), `objective` and `nouns` (the bilingual camp line: `Campamento (camp): madera (wood) 0/5 · ...`, each English word dropped once its noun is
   known, the title's once all are), `phrases` (a short English explanation per phrase, on the card at rung 1), `lines` (the English under each NPC line, by its
   Spanish text without case, accents or punctuation; a templated world line has none) and `feedback` (plain English after a turn keyed by outcome and by the

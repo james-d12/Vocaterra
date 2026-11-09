@@ -11,7 +11,7 @@ namespace Vocaterra.Game.Graphics.Camera;
 /// </summary>
 public sealed class FirstPersonCamera
 {
-    /// <summary>The vertical field of view in degrees.</summary>
+    /// <summary>The vertical field of view in degrees of a new game (the menu's field of view setting changes it for a run).</summary>
     public const float FieldOfViewDegrees = 70f;
 
     /// <summary>The near plane in blocks (small, so a block against the eye is not cut).</summary>
@@ -19,6 +19,9 @@ public sealed class FirstPersonCamera
 
     /// <summary>The default far plane in blocks; a run sets it from its view distance (<see cref="VoxelRenderer.FarPlaneFor"/>).</summary>
     public const float FarPlane = 220f;
+
+    /// <summary>The vertical field of view in degrees now (the menu's setting; <see cref="FieldOfViewDegrees"/> until it is changed).</summary>
+    public float FieldOfView { get; set; } = FieldOfViewDegrees;
 
     /// <summary>The eye position in blocks (east, up, south).</summary>
     public Vector3 Eye { get; private set; }
@@ -70,9 +73,9 @@ public sealed class FirstPersonCamera
         Up = ToVector(basis.Up);
         View = Matrix.CreateLookAt(eye, eye + Forward, Up);
         var aspect = width / (float)Math.Max(1, height);
-        Projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(FieldOfViewDegrees), aspect, NearPlane, farPlane);
+        Projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(FieldOfView), aspect, NearPlane, farPlane);
         Frustum = new BoundingFrustum(View * Projection);
-        Screen = new ScreenProjection(eye.X, eye.Y, eye.Z, yawSteps, pitchSteps, FieldOfViewDegrees, Math.Max(1, screenWidth ?? width), Math.Max(1, screenHeight ?? height));
+        Screen = new ScreenProjection(eye.X, eye.Y, eye.Z, yawSteps, pitchSteps, FieldOfView, Math.Max(1, screenWidth ?? width), Math.Max(1, screenHeight ?? height));
     }
 
     private static Vector3 ToVector((double X, double Y, double Z) v) => new((float)v.X, (float)v.Y, (float)v.Z);

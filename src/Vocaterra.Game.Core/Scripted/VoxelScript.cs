@@ -220,35 +220,23 @@ public sealed class VoxelScript
         return true;
     }
 
-    // The player's feet go to the ground of a column: the highest block that is not a tree and has two free cells over it.
+    // The player's feet go to the ground of a column (GroundFinder, also the menu's teleport).
     private bool TeleportNow(VoxelStep step)
     {
-        var grid = _sim.Grid;
-        if (!grid.InBounds(step.X, 0, step.Z))
+        if (!_sim.Grid.InBounds(step.X, 0, step.Z))
         {
             _log($"teleport {step.X},{step.Z}: outside the world");
             return true;
         }
 
-        for (var y = grid.SizeY - 3; y >= 1; y--)
+        if (GroundFinder.StandingAt(_sim.Grid, step.X, step.Z) is not { } feet)
         {
-            var block = grid.GetBlock(step.X, y, step.Z);
-            if (block is BlockId.Air or BlockId.Water || BlockDefinition.IsLeaves(block) || BlockDefinition.IsTrunk(block) || !grid.IsSolid(step.X, y, step.Z))
-            {
-                continue;
-            }
-
-            if (grid.IsSolid(step.X, y + 1, step.Z) || grid.IsSolid(step.X, y + 2, step.Z))
-            {
-                break;
-            }
-
-            _sim.TeleportTo(new BlockPos(step.X, y + 1, step.Z));
-            _log($"teleport {step.X},{step.Z}: standing at {step.X},{y + 1},{step.Z}");
+            _log($"teleport {step.X},{step.Z}: no ground to stand on there");
             return true;
         }
 
-        _log($"teleport {step.X},{step.Z}: no ground to stand on there");
+        _sim.TeleportTo(feet);
+        _log($"teleport {step.X},{step.Z}: standing at {feet.X},{feet.Y},{feet.Z}");
         return true;
     }
 

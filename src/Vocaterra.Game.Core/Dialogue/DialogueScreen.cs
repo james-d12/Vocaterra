@@ -19,18 +19,22 @@ namespace Vocaterra.Game.Core.Dialogue;
 /// </summary>
 public sealed class DialogueScreen : IScreen
 {
+    // The panel's and the lesson strip's keys come from the one control table (ControlTable); the keypad's digits answer as the top row's do.
     private static readonly (GameKey Key, PanelKey Panel)[] PanelKeys =
     [
-        (GameKey.R, PanelKey.R), (GameKey.S, PanelKey.S), (GameKey.H, PanelKey.H), (GameKey.N, PanelKey.N), (GameKey.W, PanelKey.W), (GameKey.Tab, PanelKey.Tab),
-        (GameKey.D1, PanelKey.D1), (GameKey.D2, PanelKey.D2), (GameKey.D3, PanelKey.D3), (GameKey.NumPad1, PanelKey.D1), (GameKey.NumPad2, PanelKey.D2), (GameKey.NumPad3, PanelKey.D3),
+        (ControlTable.Key("repeat"), PanelKey.R), (ControlTable.Key("slower"), PanelKey.S), (ControlTable.Key("help"), PanelKey.H), (ControlTable.Key("dontKnow"), PanelKey.N),
+        (ControlTable.Key("typeLine", 0), PanelKey.W), (ControlTable.Key("typeLine", 1), PanelKey.Tab),
+        .. WithPad([(ControlTable.Key("choose", 0), PanelKey.D1), (ControlTable.Key("choose", 1), PanelKey.D2), (ControlTable.Key("choose", 2), PanelKey.D3)]),
     ];
 
     private static readonly (GameKey Key, LessonKey Lesson)[] LessonKeys =
     [
-        (GameKey.Enter, LessonKey.Enter), (GameKey.K, LessonKey.K), (GameKey.L, LessonKey.L), (GameKey.M, LessonKey.M),
-        (GameKey.D1, LessonKey.D1), (GameKey.D2, LessonKey.D2), (GameKey.D3, LessonKey.D3), (GameKey.D4, LessonKey.D4),
-        (GameKey.NumPad1, LessonKey.D1), (GameKey.NumPad2, LessonKey.D2), (GameKey.NumPad3, LessonKey.D3), (GameKey.NumPad4, LessonKey.D4),
+        (ControlTable.Key("lessonContinue"), LessonKey.Enter), (ControlTable.Key("lessonSkip"), LessonKey.K), (ControlTable.Key("lessonStart"), LessonKey.L), (ControlTable.Key("lessonMore"), LessonKey.M),
+        .. WithPad([(ControlTable.Key("lessonPick", 0), LessonKey.D1), (ControlTable.Key("lessonPick", 1), LessonKey.D2), (ControlTable.Key("lessonPick", 2), LessonKey.D3), (ControlTable.Key("lessonPick", 3), LessonKey.D4)]),
     ];
+
+    private static (GameKey Key, T Action)[] WithPad<T>((GameKey Key, T Action)[] digits) =>
+        [.. digits, .. digits.Select(static d => (ControlTable.PadOf(d.Key), d.Action))];
 
     private readonly DialogueModel _dialogue;
     private readonly VoxelSession _session;
@@ -198,7 +202,7 @@ public sealed class DialogueScreen : IScreen
         }
 
         // U02: PageUp shows or hides the older lines in every state (Tab is the Escribir key, D-game-9, and the letters are typing keys); O does the same off the text box.
-        if (input.Pressed(GameKey.PageUp) || (!_dialogue.IsTyping && input.Pressed(GameKey.O)))
+        if (input.Pressed(ControlTable.Key("history", 0)) || (!_dialogue.IsTyping && input.Pressed(ControlTable.Key("history", 1))))
         {
             _dialogue.ToggleExpanded();
             return;

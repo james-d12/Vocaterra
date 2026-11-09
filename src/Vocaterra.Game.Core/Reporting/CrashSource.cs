@@ -82,7 +82,7 @@ public sealed class CrashSource : ICrashSource
         Row("Dialogue open", () => _dialogue.IsOpen ? "yes" : "no");
         Row("Open panel", () => _report.OpenPanel);
         Row("Turns on the worker", () => _session.PendingTurns.ToString(CultureInfo.InvariantCulture));
-        Row("Last autosave tick", () => _autosave is null ? "off" : _autosave.LastSavedTick.ToString(CultureInfo.InvariantCulture));
+        Row("Last autosave tick", () => _autosave is not { Enabled: true } ? "off" : _autosave.LastSavedTick.ToString(CultureInfo.InvariantCulture));
         return new CrashGameState(session, tick, rows, notes.Count == 0 ? null : string.Join("; ", notes) + ".");
     }
 

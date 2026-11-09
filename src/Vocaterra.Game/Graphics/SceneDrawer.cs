@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Core.Language.Words;
+using Vocaterra.Game.Core.Menu;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Tip;
@@ -58,8 +59,28 @@ public sealed class SceneDrawer : IDisposable
         _console = console;
     }
 
-    /// <summary>The quality preset (high until <see cref="Load"/> takes the run's).</summary>
+    /// <summary>The quality preset in force (high until <see cref="ApplyQuality"/> gives another).</summary>
     public QualityPreset Preset { get; private set; } = QualityPreset.For(QualityLevel.High);
+
+    /// <summary>
+    /// Takes a graphics quality and a draw distance (the run's start, then the menu's settings): the preset of the level, drawn as far as <paramref name="viewDistance"/> says when the
+    /// player chose one (Auto, <see langword="null"/>, is the level's own distance). Before <see cref="Load"/> it only chooses the preset the renderer starts with; after it the
+    /// renderer follows at once (its meshes are built again), and nothing is rebuilt when the preset is the one in force.
+    /// </summary>
+    /// <param name="level">The level.</param>
+    /// <param name="viewDistance">The draw distance in blocks, or <see langword="null"/> for the level's own.</param>
+    public void ApplyQuality(QualityLevel level, int? viewDistance = null)
+    {
+        Preset = viewDistance is { } blocks ? QualityPreset.For(level).WithViewDistance(blocks) : QualityPreset.For(level);
+        _renderer?.SetPreset(Preset);
+    }
+
+    /// <summary>Changes between day and dusk lighting during the run (the menu); before <see cref="Load"/> there is no renderer and the launch option stands.</summary>
+    /// <param name="dusk">Whether it is dusk.</param>
+    public void SetDusk(bool dusk) => _renderer?.SetDusk(dusk);
+
+    /// <summary>The colours of the world (the greyscale view and what counts as known in it), after <see cref="Load"/>; <see langword="null"/> before.</summary>
+    public GreyscaleWorld? Colours => _colours;
 
     /// <summary>The renderer, after <see cref="Load"/>.</summary>
     public VoxelRenderer Renderer => _renderer ?? throw new InvalidOperationException("The scene is not loaded.");
@@ -81,7 +102,6 @@ public sealed class SceneDrawer : IDisposable
         _pixel.SetData([Color.White]);
         _blockAtlas = new BlockAtlas(device);
         var started = MonotonicClock.Milliseconds();
-        Preset = _options.QualityPreset;
         _waterTextures = new WaterTextures(device);
         _renderer = new VoxelRenderer(device, _blockAtlas, _waterTextures, _session.Simulation.Grid, Preset, _options.Dusk, _session.Scene.Currents);
         _renderer.SetFigures(_figures);

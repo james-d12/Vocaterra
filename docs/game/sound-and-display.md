@@ -71,7 +71,7 @@ dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --sound-log /tmp/rou
 ## UI scale and readable text (X08, R09)
 
 The interface text has three sizes: 100, 125 and 150 percent (`SaveSettings.TextScaleLevels`). `--text-scale <n>` sets it for a run, **F9** steps through them in play
-(F9 had no other binding, and no text box reads it), and the choice is kept in the save's settings (`textScale`; a save from before has 100). 100 is the size the layouts
+(F9 had no other binding, and no text box reads it; the menu's Font size is the same setting), and the choice is kept in the save's settings (`textScale`; a save from before has 100, a new game 150 since the menu). 100 is the size the layouts
 were made at; 150 is the largest because an 800 x 600 window at 150 percent is a 533 x 400 canvas, the smallest the layouts are proven on (a smaller window uses a lower
 scale, `UiScale.Effective`).
 
@@ -85,6 +85,6 @@ an icon. What each layout does when the canvas is short:
 - **Check card:** compact rows; a heading of more than two rows takes the small font; a typed answer scrolls inside its box.
 - **Book:** the ribbons narrow, a row's note gives up its last column, a conjugation table stacks its tenses in blocks, the key hints shorten.
 - **Checklist, toast, workbench panel:** the checklist wraps by step (up to three rows) and gives way to the strip; a toast wraps; the workbench stands under the checklist.
-- **Report, mic check, inventory, crafting, F1 controls, closing card:** the report shows fewer text rows and wraps its hints; the inventory uses 44 x 56 slots; the crafting station column is left out when there is no room; the controls help scrolls (Up, Down, wheel); the closing card cuts the summary with an ellipsis.
+- **Report, mic check, inventory, crafting, the menu (Esc: the main page, the settings, the controls), closing card:** the report shows fewer text rows and wraps its hints; the inventory uses 44 x 56 slots; the crafting station column is left out when there is no room; the menu's settings page (its Graphics, Testing and the other groups) shows as many rows as fit and scrolls, and a label or note that is wider than its row is cut, so `UiScaleLayoutTests` measures every row of the full page at each size, and its controls page wraps and scrolls (Up, Down, wheel); the closing card cuts the summary with an ellipsis.
 
 Contrast: the dim lines and the paper book's inks are in `UiPalette`, and `UiScaleLayoutTests` measures every pair (WCAG 2.x, 4.5 to 1 for body text, on the panel and where a bright sky shows through a translucent panel).

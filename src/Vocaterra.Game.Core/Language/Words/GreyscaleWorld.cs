@@ -12,12 +12,12 @@ namespace Vocaterra.Game.Core.Language.Words;
 public sealed class GreyscaleWorld
 {
     private readonly LocaleText _ui;
-    private readonly bool _enabled;
+    private bool _enabled;
     private readonly NounCatalog _nouns;
     private readonly WordProgress _words;
     private readonly ToastQueue _toasts;
     private readonly Action<ulong> _setGreyKinds;
-    private readonly HashSet<string> _known;
+    private HashSet<string> _known;
 
     /// <summary>
     /// Starts the colours of the world. The nouns in <paramref name="assumeKnown"/> are counted as known first (see
@@ -50,8 +50,29 @@ public sealed class GreyscaleWorld
         _known = words.KnownLemmas.ToHashSet(StringComparer.Ordinal);
     }
 
-    /// <summary>Whether the greyscale A/B is on (<c>--greyscale</c>).</summary>
-    public bool Enabled => _enabled;
+    /// <summary>
+    /// Whether the greyscale A/B is on (<c>--greyscale</c>; the menu's Greyscale row switches it during the run). Turning it on takes the words known now as the ones that raise no
+    /// toast; turning it off hands the renderer an empty grey set at the next <see cref="Refresh"/>.
+    /// </summary>
+    public bool Enabled
+    {
+        get => _enabled;
+        set
+        {
+            if (value && !_enabled)
+            {
+                _known = _words.KnownLemmas.ToHashSet(StringComparer.Ordinal);
+            }
+
+            _enabled = value;
+        }
+    }
+
+    /// <summary>
+    /// A view-only test setting (the menu): every block is drawn in colour as if all the nouns were known. The learner's progress is not read or changed by it, so nothing of it reaches a
+    /// save (unlike the launch option <c>--assume-known</c>, which credits the nouns it names).
+    /// </summary>
+    public bool AssumeAllKnown { get; set; }
 
     /// <summary>The grey set last handed to the renderer (one bit per block kind); 0 while the switch is off.</summary>
     public ulong GreyKinds { get; private set; }
@@ -64,10 +85,16 @@ public sealed class GreyscaleWorld
     {
         if (!_enabled)
         {
+            if (GreyKinds != 0)
+            {
+                GreyKinds = 0;
+                _setGreyKinds(0);
+            }
+
             return;
         }
 
-        var grey = WordColours.GreyKinds(_nouns, _words);
+        var grey = AssumeAllKnown ? 0UL : WordColours.GreyKinds(_nouns, _words);
         if (grey != GreyKinds)
         {
             GreyKinds = grey;

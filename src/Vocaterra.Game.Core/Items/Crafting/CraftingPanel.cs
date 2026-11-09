@@ -60,7 +60,7 @@ public sealed class CraftingPanel : IScreen
     /// <summary>The panel's keys while it is open: Esc or C closes it.</summary>
     public void HandleInput(IInputFrame input)
     {
-        if (input.Pressed(GameKey.Escape) || input.Pressed(GameKey.C))
+        if (input.Pressed(GameKey.Escape) || input.Pressed(InputKeys.Of("crafting")))
         {
             Close();
         }

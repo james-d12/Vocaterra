@@ -61,7 +61,7 @@ public sealed class InventoryPanel : IScreen
     /// <summary>The panel's keys while it is open: Esc, I or E closes it.</summary>
     public void HandleInput(IInputFrame input)
     {
-        if (input.Pressed(GameKey.Escape) || input.Pressed(GameKey.I) || input.Pressed(GameKey.E))
+        if (input.Pressed(GameKey.Escape) || input.Pressed(InputKeys.Of("inventory")) || input.Pressed(InputKeys.Of("talk")))
         {
             Close();
         }

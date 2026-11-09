@@ -46,7 +46,7 @@
     "control.sleep.text": "Sleep until morning and start the next session, once this session's work is done.",
     "control.report.keys": "F8",
     "control.report.text": "Report a bug or ask for a feature. A Markdown file and a screenshot go to the session folder. Ctrl+Enter saves, Esc cancels.",
-    "control.escape.keys": "{key:releaseMouse}",
-    "control.escape.text": "Cancel, or close what is open."
+    "control.escape.keys": "{key:menu}",
+    "control.escape.text": "Open the menu, or close what is open."
   }
 }

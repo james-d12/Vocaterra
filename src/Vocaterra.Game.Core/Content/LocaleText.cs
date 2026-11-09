@@ -58,7 +58,7 @@ public sealed class LocaleText
         "warmupTitle", "warmupOffer.one", "warmupOffer.other", "warmupStart", "warmupAsk", "warmupDone.one", "warmupDone.other", "reviewNowHud",
         "dialogueKeyHints", "coachOffPrompt", "dialogueOlder.one", "dialogueOlder.other", "dialogueAbove.one", "dialogueAbove.other", "dialogueBelow.one", "dialogueBelow.other", "dialogueButtonHints", "dialogueKeyHintsShort", "dialogueButtonHintsShort", "dialogueSpeechOffButtonHints", "dialogueSpeechOffKeyHints", "dialogueListening", "dialogueThinking",
         "dialogueYou", "dialogueYouSpoken", "supportPrefix", "supportOnHelp", "talkHint", "tipHeading", "newWord", "newWordToast", "audioSlot", "beaconDistance.one",
-        "beaconDistance.other", "loadingSpeech", "controlsScroll", "controlsTextSizeKeys", "controlsTextSize", "gameSaved", "saveLater", "inventoryTitle",
+        "beaconDistance.other", "loadingSpeech", "controlsScroll", "gameSaved", "saveLater", "inventoryTitle",
         "inventoryHintsShort", "inventoryHints", "inventoryUsed", "craftingTitle", "craftingHints", "craftingCanMake", "craftingUses", "craftingByHand",
         "workbenchTitle", "fireTitle", "workbenchReady", "workbenchMissing", "playtestEndHint", "bookTabNouns", "bookTabVerbs", "bookTabPhrases", "bookTabLessons",
         "bookTabSaid", "bookTitle", "bookHints", "bookHintsShort", "bookLines", "bookKnownNouns", "bookWithoutHelp", "bookSession", "bookNoVerbs", "bookNothingSaid",
@@ -77,11 +77,12 @@ public sealed class LocaleText
         "autosaved", "greyNewWord",
         "sleepHud", "reviewNothingDue", "sleepCard", "sleepPrompt", "sleptToast", "bookLessonOpen", "bookLessonAfter",
         "bookLessonsAllDone", "foodKept", "drinkKept", "plantedBush", "plantFar", "plantOccupied", "plantFull", "diedHunger", "diedThirst", "chestRest", "beaconBelongings",
-        "faintedHunger", "faintedThirst", "diedDrowned", "faintedDrowned", "controlsEffectsKeys", "controlsEffects", "effectsOn", "effectsOff",
-        "controlsSettingsKeys", "controlsSettings", "settingsTitle", "settingsRate", "settingsEffects", "settingsRelaxed", "settingsBlur", "blurLow", "blurMedium", "blurHigh", "settingsOn", "settingsOff", "settingsHint",
+        "faintedHunger", "faintedThirst", "diedDrowned", "faintedDrowned", "effectsOn", "effectsOff",
+        "settingsTitle", "settingsRate", "settingsEffects", "settingsRelaxed", "settingsBlur", "blurLow", "blurMedium", "blurHigh", "settingsOn", "settingsOff", "settingsHint",
         "stationListen", "stationHeld", "stationPage", "stationHints", "stationNothingHeld", "stationSelection", "stationRight", "stationWrongThing", "stationWrongVerb",
         "stationOutOfOrder", "stationDone", "stationAgain", "stationBagFull", "stationMissing", "stationVerbs",
         "stationBakeAtOnce", "stationGuided", "stationNotEnough", "stationTalkType", "stationTalkListening", "stationTalkThinking", "stationTalkAnswer",
+        .. Menu.MenuText.UiKeys,
     ];
 
     /// <summary>The most error lines one turn's feedback carries.</summary>
