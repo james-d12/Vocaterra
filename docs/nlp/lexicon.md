@@ -24,12 +24,18 @@ is `content/game-v1/ATTRIBUTION.md`. [ADR 0008](adr/0008-lexicon-sources-and-fre
 
 | Source | URL | Size, SHA-256 | Retrieved |
 | --- | --- | --- | --- |
-| kaikki.org Spanish extract of English Wiktionary (wiktextract JSONL, post-processed; 811 049 lines, all Spanish) | `https://kaikki.org/dictionary/Spanish/kaikki.org-dictionary-Spanish.jsonl` | 1 054 565 723 bytes, `7b23a5dc004a47b63edc2e79a34b246bbf59d1a3067a1843a5c554c0e252b97c` | 2026-10-20 (the site's file of 2026-10-03, from the enwiktionary dump of 2026-09-02, wiktextract commits `1a05e46` and `e3d6d4e`) |
-| hermitdave/FrequencyWords, OpenSubtitles 2018 counts (50 000 lines) | `https://raw.githubusercontent.com/hermitdave/FrequencyWords/525f9b560de45753a5ea01069454e72e9aa541c6/content/2018/es/es_50k.txt` | 658 626 bytes, `dcff3ad4316192f4dc4ff7d26e637c6ff314ef1ca0f3f720c5649018a71056c0` | 2026-10-20 |
+| kaikki.org Spanish extract of English Wiktionary (wiktextract JSONL, post-processed), **current pin (M90)** | `https://kaikki.org/dictionary/Spanish/kaikki.org-dictionary-Spanish.jsonl` | 1 119 672 965 bytes, `336903d1290968d77bd361c620d7d799ad7a7a9bc6ad353ec35954f2e15fbe6f` | 2026-11-08 (the site's file of 2026-10-30, extracted from the enwiktionary dump of 2026-10-01, wiktextract commits `19f9a30` and `6f96ddf`) |
+| kaikki.org Spanish extract, **earlier pin, the one `content/game-v1/lexicon/` was built from** (wiktextract JSONL, post-processed; 811 049 lines, all Spanish) | `https://kaikki.org/dictionary/Spanish/kaikki.org-dictionary-Spanish.jsonl` | 1 054 565 723 bytes, `7b23a5dc004a47b63edc2e79a34b246bbf59d1a3067a1843a5c554c0e252b97c` | 2026-10-20 (the site's file of 2026-10-03, from the enwiktionary dump of 2026-09-02, wiktextract commits `1a05e46` and `e3d6d4e`) || hermitdave/FrequencyWords, OpenSubtitles 2018 counts (50 000 lines) | `https://raw.githubusercontent.com/hermitdave/FrequencyWords/525f9b560de45753a5ea01069454e72e9aa541c6/content/2018/es/es_50k.txt` | 658 626 bytes, `dcff3ad4316192f4dc4ff7d26e637c6ff314ef1ca0f3f720c5649018a71056c0` | 2026-10-20 |
 
 Neither file is committed. `lexicon-sources/` is git-ignored, like `models/`. The kaikki.org URL is not versioned (the publisher replaces the file
 with every extraction, and marks this post-processed download as deprecated), so the SHA-256 is the pin. The frequency URL names a commit and
 cannot change.
+
+**M90 (2026-11-09): the Spanish pin moved.** kaikki.org replaced its Spanish file (1 054 565 723 to 1 119 672 965 bytes), so `fetch-lexicon-sources.sh` refused the
+new one; the script now pins the new file (first row above). The committed `content/game-v1/lexicon/wiktionary-es.json` and its sidecar were built from the
+**earlier** pin and keep its dump in the sidecar; they were not regenerated. A regeneration from the new pin is a separate, deliberate step (read the report,
+review the diff, re-run the whole suite, re-hash the bundle). The importer itself gives the same bytes on both runs of one source file (M36 proves it for
+Spanish: the importer before and after the language profile, on the new file).
 
 ## Fetch and regenerate
 
