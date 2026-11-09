@@ -12,7 +12,7 @@ every heavy command goes through `scripts/limited.sh`; if it waits for a slot, l
 
 ## The rules, environment, resources and gate
 Read `/home/james/Dev/Vocaterra/.claude/worktrees/m88/.claude/briefs/w07-station-view.md`, the sections **Output and context**,
-**Resources**, **Environment** and **Gate**: they apply to you, with `/tmp/claude-1000/m88/` for your logs, @@COUNT@@ as the count before
+**Resources**, **Environment** and **Gate**: they apply to you, with `/tmp/claude-1000/m88/` for your logs, **10535 passed, 3 skipped** as the count before
 you, and these changes: skip the scripted runs (no game file changes); add `bash scripts/license-scan.sh --offline` (PASSED) and the core
 demo (`docs/process/milestone-briefs.md`, "Repository facts": exactly `conj.person` and `noun.number`, through a wrapper script outside
 the repository because the sandbox refuses the word `eval`). Build the core first (`Vocaterra.Nlp.slnf`); the whole solution for the final
