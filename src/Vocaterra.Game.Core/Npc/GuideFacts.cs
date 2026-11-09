@@ -1,5 +1,4 @@
 using Vocaterra.Game.Core.Voxel;
-using Vocaterra.Nlp.Es.Normalization;
 
 namespace Vocaterra.Game.Core.Npc;
 
@@ -43,11 +42,7 @@ public readonly record struct GuideViewpoint(GuideCell Cell, long CentreX = 0, l
 /// <param name="Blocks">The distance in blocks, rounded.</param>
 /// <param name="Direction">The direction as a Spanish phrase (<c>a la derecha</c>, <c>adelante, a la izquierda</c>); empty when it is here.</param>
 /// <param name="Distance2">The squared distance the nearest choice used (tiles: the squared straight-line distance; blocks: the squared horizontal distance in units).</param>
-public sealed record GuideNearest(GuideCell Cell, int Blocks, string Direction, long Distance2)
-{
-    /// <summary>The distance in blocks spelled in Spanish, for example <c>ocho</c>.</summary>
-    public string BlocksInWords => SpanishNumbers.ToWords(Blocks);
-}
+public sealed record GuideNearest(GuideCell Cell, int Blocks, string Direction, long Distance2);
 
 /// <summary>
 /// What the guide can say about the world: the nearest place of a noun, and the noun of the thing at a cell. The 3D scene implements it with

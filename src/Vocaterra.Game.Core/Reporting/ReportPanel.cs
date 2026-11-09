@@ -1,5 +1,3 @@
-using Vocaterra.Game.Core.Input;
-
 namespace Vocaterra.Game.Core.Reporting;
 
 /// <summary>
@@ -155,15 +153,16 @@ public sealed class ReportPanel
     }
 
     /// <summary>
-    /// A typed character (the window's text event). With Alt held, a letter that has an accent gives the accented letter (<see cref="AccentShortcuts"/>).
+    /// A typed character (the window's text event). With Alt held, a key of the game's typing map gives its character (<see cref="Input.TypingMap"/>).
     /// </summary>
     /// <param name="c">The character the platform typed.</param>
     /// <param name="alt">Whether Alt is held.</param>
-    public void Type(char c, bool alt)
+    /// <param name="typing">The language's typing map (<c>game/words.json</c>).</param>
+    public void Type(char c, bool alt, Input.TypingMap typing)
     {
         if (IsOpen)
         {
-            Edit(() => Entry.Insert(AccentShortcuts.ForTyped(c, alt)));
+            Edit(() => Entry.Insert(typing.ForTyped(c, alt)));
         }
     }
 

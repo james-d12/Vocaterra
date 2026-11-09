@@ -2,7 +2,7 @@ using System.Globalization;
 using Vocaterra.Game.Core.Language.Learner;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Words;
-using Vocaterra.Nlp.Es.Morphology;
+using Vocaterra.Nlp.Language.Morphology;
 
 namespace Vocaterra.Game.Core.Language.Book;
 
@@ -17,16 +17,6 @@ namespace Vocaterra.Game.Core.Language.Book;
 /// <param name="Rows">The five rows.</param>
 public sealed record ConjugationTable(string Lemma, string? Gloss, IReadOnlyList<ConjugationColumn> Columns, IReadOnlyList<ConjugationRow> Rows)
 {
-    /// <summary>The persons of the rows, in order: person and number (their labels are the target language's pronouns, <see cref="GameWords.Pronoun"/>).</summary>
-    public static IReadOnlyList<(string Person, string Number)> Persons { get; } =
-    [
-        ("1", "sg"),
-        ("2", "sg"),
-        ("3", "sg"),
-        ("1", "pl"),
-        ("3", "pl"),
-    ];
-
     /// <summary>
     /// The columns a table can have, in order: present, past, future (ir a) and the simple future (V16). Time runs left to right, and the two futures stand in the order
     /// the lessons teach them (<c>ir a</c> in session 3, the simple future in session 9), so the column a learner meets later is added at the right.
@@ -53,7 +43,7 @@ public sealed record ConjugationTable(string Lemma, string? Gloss, IReadOnlyList
     /// <param name="morphology">The bundle's morphology (every form comes from here).</param>
     /// <param name="gloss">The verb's English, or <see langword="null"/>.</param>
     /// <param name="words">The target-language words: the rows' pronouns and the near future's verb and joiner (<c>game/words.json</c>).</param>
-    public static ConjugationTable Build(WordRow verb, IReadOnlyList<InputEntry> history, IReadOnlyList<TaughtVerbForm> taught, MorphologyGenerator morphology, VerbGloss? gloss, GameWords words)
+    public static ConjugationTable Build(WordRow verb, IReadOnlyList<InputEntry> history, IReadOnlyList<TaughtVerbForm> taught, IMorphology morphology, VerbGloss? gloss, GameWords words)
     {
         ArgumentNullException.ThrowIfNull(verb);
         ArgumentNullException.ThrowIfNull(history);
@@ -64,11 +54,14 @@ public sealed record ConjugationTable(string Lemma, string? Gloss, IReadOnlyList
         var nearFutureUses = PeriphrasisUses(history, lemma, morphology, words.NearFuture.Verb, words.NearFuture.Joiner);
         var obligationUses = PeriphrasisUses(history, lemma, morphology, words.Obligation.Verb, words.Obligation.Joiner);
 
+        var persons = morphology.Paradigm.Persons;
+        var generated = morphology.Paradigm.Tenses;
+        var allColumns = AllColumns.Where(column => column.Tense is TaughtVerbForm.NearFuture or TaughtVerbForm.Obligation || generated.Contains(column.Tense)).ToList();
         var cellsByTense = new Dictionary<string, List<ConjugationCell>>(StringComparer.Ordinal);
-        foreach (var column in AllColumns)
+        foreach (var column in allColumns)
         {
             var cells = new List<ConjugationCell>();
-            foreach (var (person, number) in Persons)
+            foreach (var (person, number) in persons)
             {
                 var form = new TaughtVerbForm(lemma, person, number, column.Tense);
                 var text = form.Text(morphology, words.NearFuture, words.Obligation);
@@ -86,16 +79,16 @@ public sealed record ConjugationTable(string Lemma, string? Gloss, IReadOnlyList
         }
 
         // A column is there once a lesson has taught a form of its tense, or the learner has used one. A verb with neither (only its infinitive was said) still gets the present.
-        var visible = AllColumns.Where(column => cellsByTense[column.Tense].Any(static c => c.State != CellState.Locked)).ToList();
+        var visible = allColumns.Where(column => cellsByTense[column.Tense].Any(static c => c.State != CellState.Locked)).ToList();
         if (visible.Count == 0)
         {
-            visible.Add(AllColumns[0]);
+            visible.Add(allColumns[0]);
         }
 
         var rows = new List<ConjugationRow>();
-        for (var i = 0; i < Persons.Count; i++)
+        for (var i = 0; i < persons.Count; i++)
         {
-            var (person, number) = Persons[i];
+            var (person, number) = persons[i];
             rows.Add(new ConjugationRow(words.Pronoun(person, number) ?? person + number, person, number, visible.Select(column => cellsByTense[column.Tense][i]).ToList()));
         }
 
@@ -106,12 +99,12 @@ public sealed record ConjugationTable(string Lemma, string? Gloss, IReadOnlyList
         string.Equals(a.Lemma, b.Lemma, StringComparison.Ordinal) && string.Equals(a.Person, b.Person, StringComparison.Ordinal)
         && string.Equals(a.Number, b.Number, StringComparison.Ordinal) && string.Equals(a.Tense, b.Tense, StringComparison.Ordinal);
 
-    private static int WordRecordUses(WordRow verb, string person, string number, string tense, MorphologyGenerator morphology) =>
+    private static int WordRecordUses(WordRow verb, string person, string number, string tense, IMorphology morphology) =>
         verb.Forms.Where(form => Matches(verb.Lemma, form, person, number, tense, morphology)).Sum(static form => form.Times);
 
     // A form is in a cell when its reading (VerbReading: an imperative whose text is the indicative present of the verb counts as that present) is that person,
     // number and tense in the indicative. So "está" is estar's 3 sg present, and "vamos" is ir's 1 pl present, as the labels read them.
-    private static bool Matches(string lemma, FormRow form, string person, string number, string tense, MorphologyGenerator morphology)
+    private static bool Matches(string lemma, FormRow form, string person, string number, string tense, IMorphology morphology)
     {
         var (readPerson, readNumber, readTense, readMood) = VerbReading.Normalize(lemma, form.Form, form.Person, form.Number, form.Tense, form.Mood, morphology);
         return readPerson == person && readNumber == number && readTense == tense && (readMood is null or "ind");
@@ -122,11 +115,11 @@ public sealed record ConjugationTable(string Lemma, string? Gloss, IReadOnlyList
     /// is read from the history's words in order, over the lines the word record counts (not held, not a button, not a check answer). <c>vamos a comer</c> counts
     /// for <c>comer</c>, 1 pl, whatever the core made of <c>vamos</c>.
     /// </summary>
-    private static Dictionary<(string Person, string Number), int> PeriphrasisUses(IReadOnlyList<InputEntry> history, string lemma, MorphologyGenerator morphology, string auxiliary, string joiner)
+    private static Dictionary<(string Person, string Number), int> PeriphrasisUses(IReadOnlyList<InputEntry> history, string lemma, IMorphology morphology, string auxiliary, string joiner)
     {
         var uses = new Dictionary<(string, string), int>();
         var irForms = new Dictionary<string, (string Person, string Number)>(StringComparer.Ordinal);
-        foreach (var (person, number) in Persons)
+        foreach (var (person, number) in morphology.Paradigm.Persons)
         {
             if (morphology.Conjugate(auxiliary, person, number, "pres") is { } ir)
             {

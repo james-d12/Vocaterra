@@ -23,8 +23,24 @@ public sealed class MorphologyGenerator : IMorphology
         "mejor", "peor", "mayor", "menor", "superior", "inferior", "exterior", "interior", "anterior", "posterior", "ulterior",
     ];
 
+    private static readonly ParadigmLayout SpanishParadigm = new(
+        [
+            new("1", "sg"),
+            new("2", "sg"),
+            new("3", "sg"),
+            new("1", "pl"),
+            new("3", "pl"),
+        ],
+        ["pres", "pret", "fut"]);
+
     private readonly Lexicon _lexicon;
     private readonly Lazy<Dictionary<string, RegularizedForm>> _regularized;
+
+    /// <summary>
+    /// The table the game shows (M87, from S28): five rows, with no <c>vosotros</c> row (the third person plural stands for <c>ustedes</c> and <c>ellos</c>), and the
+    /// present, the preterite and the simple future as the generated tenses.
+    /// </summary>
+    public ParadigmLayout Paradigm => SpanishParadigm;
 
     /// <summary>Creates a generator that prefers forms from the given lexicon and falls back to spelling rules.</summary>
     public MorphologyGenerator(Lexicon lexicon)

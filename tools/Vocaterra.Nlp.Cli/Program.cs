@@ -12,7 +12,7 @@ using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Learning;
 using Vocaterra.Nlp.Es;
-using Vocaterra.Nlp.Es.Text;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Pipeline;
 using Vocaterra.Nlp.Pronunciation;
 
@@ -169,7 +169,7 @@ public static class Program
 
         var pipeline = new UtterancePipeline(new PipelineServices(words, phonemes, null, null, bundle));
         var trace = pipeline.Trace(clip, prompt, context);
-        Print(trace.Result, output);
+        Print(trace.Result, bundle.Language.Orthography, output);
 
         if (line.Value("--replay-out") is { } replayPath)
         {
@@ -222,7 +222,7 @@ public static class Program
         return ExitOk;
     }
 
-    private static void Print(PipelineResult result, TextWriter output)
+    private static void Print(PipelineResult result, IOrthographyNotes orthography, TextWriter output)
     {
         output.WriteLine(CanonicalJson.Serialize(result.Verdict));
         foreach (var line in result.Response.Lines)
@@ -233,7 +233,7 @@ public static class Program
         // M70: a verb written without the accent that marks its tense or person, read as the accented form at no cost.
         foreach (var note in result.Notes ?? [])
         {
-            output.WriteLine($"note: {SpanishAccentNotes.Describe(note)}");
+            output.WriteLine($"note: {orthography.Describe(note)}");
         }
 
         // M72: a line the prompt did not take carries the intent the catalog gives it; the host answers it, the core does not.
