@@ -1,3 +1,4 @@
+using Vocaterra.Nlp.De.Morphology;
 using Vocaterra.Nlp.De.Normalization;
 using Vocaterra.Nlp.De.Text;
 
@@ -6,7 +7,7 @@ namespace Vocaterra.Nlp.De;
 /// <summary>
 /// The German pack (de-DE, Austrian and Swiss spellings accepted; D-game-27 item 6), the second <see cref="ILanguagePack"/>. M37 is the text layer: the
 /// normalizer, the umlaut and ß folding, the number words, the phonetic key, the punctuation, the repair lines and the recast policy are written. The members
-/// that need the German grammar are placeholders until their milestones: <see cref="CreateMorphology"/> (M38), <see cref="CreateAnalysisRules"/> (M39) and
+/// that need the German grammar are placeholders until their milestones: <see cref="CreateAnalysisRules"/> (M39) and
 /// <see cref="CreateTemplateFunctions"/> (M40) throw <see cref="NotSupportedException"/>, and <see cref="G2p"/> is null (no pronunciation scoring, no phone-fed speech
 /// until M43 and its G2P decision). Register it with <see cref="GermanContent.WithGerman"/> or <c>LanguagePacks.Default.With(GermanLanguagePack.Instance)</c>.
 /// </summary>
@@ -110,8 +111,7 @@ public sealed class GermanLanguagePack : ILanguagePack
     public ErrorTagSet ErrorTags => Tags;
 
     /// <inheritdoc />
-    /// <exception cref="NotSupportedException">Always, until M38 writes the German morphology.</exception>
-    public IMorphology CreateMorphology(Lexicon lexicon) => throw GermanPlaceholders.NotYet("morphology", "M38");
+    public IMorphology CreateMorphology(Lexicon lexicon) => new GermanMorphology(lexicon);
 
     /// <inheritdoc />
     /// <exception cref="NotSupportedException">Always, until M39 writes the German analysis rules.</exception>
