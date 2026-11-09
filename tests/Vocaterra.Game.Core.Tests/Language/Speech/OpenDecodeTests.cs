@@ -233,6 +233,31 @@ public sealed class OpenDecodeTests(ITestOutputHelper output)
         Assert.True(phrase is null || phrase.Input == InputKind.Typed);
     }
 
+    [Theory]
+    [InlineData("muy bien", "state_wellbeing", "muy-bien")]
+    [InlineData("bien gracias", "state_wellbeing", "muy-bien")]
+    public void SmallTalkLeftOutOfTheStallsGrammarIsHeardOnTheOpenDecodeAndCreditsItsPhrase(string line, string intent, string phrase)
+    {
+        // PR #48: «muy bien» is a phrase of the sheet but in no constrained grammar (#49: it pulled other answers onto it). At the stall's constrained prompt the
+        // first decode hears nothing of it; the open decode hears it, the stall understands it, and the phrase is credited as a typed use.
+        var stall = TestGame.Bundle.Prompts["stall-need"];
+        Assert.Equal(RecognitionMode.Constrained, stall.Mode);
+        Assert.DoesNotContain(line, TestGame.Bundle.AnswerSets[stall.AnswerSetId].GrammarPhrases(TestGame.Bundle.Language));
+
+        var recognizer = new ByMode(line, 0.9);
+        using var session = AtNpc("shopkeeper", recognizer);
+        var scene = new GuideScene(TestGame.ViewpointOf(session));
+        var turn = Speak(session, "shopkeeper", scene);
+        _ = Apply(session, turn, "shopkeeper", scene);
+
+        Assert.Equal((1, 1), (recognizer.Constrained, recognizer.Open));
+        Assert.True(turn.HeardOpen);
+        Assert.True(turn.Communicated);
+        Assert.Equal(intent, turn.Intent);
+        var use = Assert.Single(session.Events.OfType<PhraseUse>(), u => u.PhraseId == phrase);
+        Assert.Equal(InputKind.Typed, use.Input);
+    }
+
     [Fact]
     public void ALineHeardOnTheOpenDecodeIsMarkedByAVoiceEventAndTheTurnTimingsShowTheDecodes()
     {

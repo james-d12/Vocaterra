@@ -190,6 +190,12 @@
         { "lineId": "guide.review.phrase.no_gracias.1", "text": "¿Quieres agua?" }
       ]
     },
+    "guide.review.phrase.muy_bien": {
+      "poolId": "guide.review.phrase.muy_bien",
+      "variants": [
+        { "lineId": "guide.review.phrase.muy_bien.1", "text": "¿Qué tal?" }
+      ]
+    },
     "guide_understood": {
       "poolId": "guide_understood",
       "variants": [
@@ -1922,7 +1928,7 @@
     "villager_well": {
       "poolId": "villager_well",
       "variants": [
-        { "lineId": "villager_well.1", "text": "Bien, gracias." }
+        { "lineId": "villager_well.1", "text": "Bien, gracias. ¿Y tú?" }
       ]
     },
     "guide_yes": {

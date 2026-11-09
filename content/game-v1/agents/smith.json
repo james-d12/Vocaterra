@@ -58,6 +58,7 @@
         { "on": {"intent": "dont_know", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_help", "variantPoolId": "smith_help" }] },
         { "on": {"intent": "thank", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_thank", "variantPoolId": "smith_thank" }] },
         { "on": {"intent": "farewell", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_bye", "variantPoolId": "smith_bye" }] },
+        { "on": {"intent": "state_wellbeing", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_nice", "variantPoolId": "smith_nice" }] },
         { "on": {"communicated": false}, "to": "idle", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
       ],
       "fallback": {
@@ -73,6 +74,11 @@
         { "onHostEvent": "smith.order_ready", "to": "receiving", "actions": [{ "dialogueIntent": "smith_receive", "variantPoolId": "smith_receive" }] },
         { "onHostEvent": "smith.order_gone", "to": "idle", "actions": [{ "dialogueIntent": "smith_hello", "variantPoolId": "smith_hello" }] },
         { "onHostEvent": "smith.delivered", "to": "idle", "actions": [{ "dialogueIntent": "smith_delivered", "hostEvent": "smith.give_axe", "variantPoolId": "smith_delivered" }] },
+        { "on": {"intent": "greet", "communicated": true}, "to": "receiving", "actions": [{ "dialogueIntent": "smith_hello", "variantPoolId": "smith_hello" }] },
+        { "on": {"intent": "ask_wellbeing", "communicated": true}, "to": "receiving", "actions": [{ "dialogueIntent": "smith_well", "variantPoolId": "smith_well" }] },
+        { "on": {"intent": "state_wellbeing", "communicated": true}, "to": "receiving", "actions": [{ "dialogueIntent": "smith_nice", "variantPoolId": "smith_nice" }] },
+        { "on": {"intent": "thank", "communicated": true}, "to": "receiving", "actions": [{ "dialogueIntent": "smith_thank", "variantPoolId": "smith_thank" }] },
+        { "on": {"intent": "farewell", "communicated": true}, "to": "receiving", "actions": [{ "dialogueIntent": "smith_bye", "variantPoolId": "smith_bye" }] },
         { "on": {"communicated": false}, "to": "receiving", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
       ],
       "fallback": {

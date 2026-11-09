@@ -55,6 +55,7 @@
         {"on": {"intent": "thank", "communicated": true}, "to": "idle", "actions": [{"dialogueIntent": "guide_thank", "variantPoolId": "guide_thank"}]},
         {"on": {"intent": "ask_repeat", "communicated": true}, "to": "idle", "actions": [{"dialogueIntent": "guide_again", "hostEvent": "guide.repeat", "variantPoolId": "guide_again"}]},
         {"on": {"intent": "ask_slower", "communicated": true}, "to": "idle", "actions": [{"dialogueIntent": "guide_slower", "hostEvent": "guide.repeat_slow", "variantPoolId": "guide_slower"}]},
+        { "on": {"intent": "state_wellbeing", "communicated": true}, "to": "talking", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
         {"on": {"communicated": false}, "to": "idle", "actions": [{"dialogueIntent": "not_understood", "variantPoolId": "not_understood"}]}
       ],
       "fallback": {
@@ -87,6 +88,7 @@
         {"on": {"intent": "thank", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_thank", "variantPoolId": "guide_thank"}]},
         {"on": {"intent": "ask_repeat", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_again", "hostEvent": "guide.repeat", "variantPoolId": "guide_again"}]},
         {"on": {"intent": "ask_slower", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_slower", "hostEvent": "guide.repeat_slow", "variantPoolId": "guide_slower"}]},
+        { "on": {"intent": "state_wellbeing", "communicated": true}, "to": "talking", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
         {"on": {"communicated": false}, "to": "talking", "actions": [{"dialogueIntent": "not_understood", "variantPoolId": "not_understood"}]}
       ],
       "fallback": {
@@ -119,6 +121,7 @@
         {"on": {"intent": "thank", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_thank", "variantPoolId": "guide_thank"}]},
         {"on": {"intent": "ask_repeat", "communicated": true}, "to": "pointing", "actions": [{"dialogueIntent": "guide_again", "hostEvent": "guide.repeat", "variantPoolId": "guide_again"}]},
         {"on": {"intent": "ask_slower", "communicated": true}, "to": "pointing", "actions": [{"dialogueIntent": "guide_slower", "hostEvent": "guide.repeat_slow", "variantPoolId": "guide_slower"}]},
+        { "on": {"intent": "state_wellbeing", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
         {"on": {"communicated": false}, "to": "pointing", "actions": [{"dialogueIntent": "not_understood", "variantPoolId": "not_understood"}]}
       ],
       "fallback": {
@@ -140,6 +143,10 @@
         {"on": {"intent": "dont_know", "communicated": true}, "to": "offering", "actions": [{"dialogueIntent": "guide_offer_help", "variantPoolId": "guide_offer_help"}]},
         {"on": {"intent": "ask_repeat", "communicated": true}, "to": "offering", "actions": [{"dialogueIntent": "guide_again", "hostEvent": "guide.repeat", "variantPoolId": "guide_again"}]},
         {"on": {"intent": "ask_slower", "communicated": true}, "to": "offering", "actions": [{"dialogueIntent": "guide_slower", "hostEvent": "guide.repeat_slow", "variantPoolId": "guide_slower"}]},
+        { "on": {"intent": "greet", "communicated": true}, "to": "offering", "actions": [{ "dialogueIntent": "guide_offer", "variantPoolId": "guide_offer" }] },
+        { "on": {"intent": "state_wellbeing", "communicated": true}, "to": "offering", "actions": [{ "dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted" }] },
+        { "on": {"intent": "thank", "communicated": true}, "to": "offering", "actions": [{ "dialogueIntent": "guide_thank", "variantPoolId": "guide_thank" }] },
+        { "on": {"intent": "farewell", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farewell_reply", "hostEvent": "agent.farewell", "variantPoolId": "farewell_reply" }] },
         {"on": {"communicated": false}, "to": "offering", "actions": [{"dialogueIntent": "not_understood", "variantPoolId": "not_understood"}]}
       ],
       "fallback": {

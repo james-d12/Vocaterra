@@ -119,11 +119,11 @@ public sealed class SupportLadderTests
 
             Assert.Equal(rung, session.PhraseProgress.LevelOf("donde-esta-el-rio"));
             _ = session.OpenTalk("villager");
-            Assert.Equal(rung is SupportLevel.EnglishAndCard, session.Support.Cards.Any(static c => c.EnglishShown));
+            Assert.Equal(rung is SupportLevel.EnglishAndCard, session.Support.Cards.Any(static c => c is { PhraseId: "donde-esta-el-rio", EnglishShown: true })); // the small talk's cards (PR #48) are at their own rungs
 
             _ = session.Say("ayuda");
 
-            var card = Assert.Single(session.Support.Cards);
+            var card = Assert.Single(session.Support.Cards, static c => c.PhraseId == "donde-esta-el-rio");
             Assert.True(card.EnglishShown, $"Ayuda shows the English at {rung}");
             Assert.Equal("Where is the river?", card.Meaning);
         }

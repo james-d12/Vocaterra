@@ -2066,6 +2066,54 @@
       "Bytes": 125808,
       "Gain": 0.32
     },
+    "speech/baker/guide.uncertain.1.baker.slow.wav": {
+      "Text": "No te entend\u00ED bien. \u00BFLo dices otra vez?",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "7200a4199b9df521c4174c13c1f75d0553eaea695e35f17dcc6dc7e67a1962d3",
+      "Bytes": 187870,
+      "Gain": 0.32
+    },
+    "speech/baker/guide.uncertain.1.baker.wav": {
+      "Text": "No te entend\u00ED bien. \u00BFLo dices otra vez?",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "591ea800b99245b2c68e2c8fbb409d50a0e6b73d46f6e2165b50eb4650a030b2",
+      "Bytes": 143662,
+      "Gain": 0.32
+    },
+    "speech/baker/guide.uncertain.2.baker.slow.wav": {
+      "Text": "No te entend\u00ED bien. \u00BFMe lo dices otra vez?",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "b39dad8fdeab9494dcc05122478017b045baab67cbba785b5ad2db189ccecb2d",
+      "Bytes": 194242,
+      "Gain": 0.32
+    },
+    "speech/baker/guide.uncertain.2.baker.wav": {
+      "Text": "No te entend\u00ED bien. \u00BFMe lo dices otra vez?",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "4444e2197d8ac09e011c9ac9f854c9636efbf8862f0992e42c9c24aa65480d5b",
+      "Bytes": 149188,
+      "Gain": 0.32
+    },
     "speech/baker/not_understood.1.baker.slow.wav": {
       "Text": "No te entend\u00ED. \u00BFMe lo dices otra vez?",
       "Speaker": "baker",
@@ -4492,6 +4540,50 @@
       "Sha256": "ffc6c5595dd2bcf073b32ae232d69b8bcac1464d8866b3455212f990c66243e5",
       "Bytes": 80072
     },
+    "speech/farmer/guide.uncertain.1.farmer.slow.wav": {
+      "Text": "No te entend\u00ED bien. \u00BFLo dices otra vez?",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "99324140e895378c24c51a36d4c9f56ae9491ae112c393bff07f5f85b9656cf5",
+      "Sha256": "ef04ef246ce6bdd30a5ba8a2092f95ea57de1aa0bd55d59ba246b092a2fed078",
+      "Bytes": 175930
+    },
+    "speech/farmer/guide.uncertain.1.farmer.wav": {
+      "Text": "No te entend\u00ED bien. \u00BFLo dices otra vez?",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9b21535b15c9c2b30c726fc985eb38a563c9bf9e48aad254c6809beae3fab923",
+      "Sha256": "db715d0b7391db145e2a12f719967935d40d19cbf3917ac6a6bff3b4a9403be4",
+      "Bytes": 164854
+    },
+    "speech/farmer/guide.uncertain.2.farmer.slow.wav": {
+      "Text": "No te entend\u00ED bien. \u00BFMe lo dices otra vez?",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "99324140e895378c24c51a36d4c9f56ae9491ae112c393bff07f5f85b9656cf5",
+      "Sha256": "539df1e7bc0076c77c943e9ed980cd080ba3eacc369f64c3f0ca01b94ae634d8",
+      "Bytes": 186826
+    },
+    "speech/farmer/guide.uncertain.2.farmer.wav": {
+      "Text": "No te entend\u00ED bien. \u00BFMe lo dices otra vez?",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9b21535b15c9c2b30c726fc985eb38a563c9bf9e48aad254c6809beae3fab923",
+      "Sha256": "53a5881178fc21e09d8f7ae3f5352592d87def8ede63ab733af2d968c3cbc3f1",
+      "Bytes": 161692
+    },
     "speech/farmer/not_understood.1.farmer.slow.wav": {
       "Text": "No te entend\u00ED. \u00BFMe lo dices otra vez?",
       "Speaker": "farmer",
@@ -6032,6 +6124,50 @@
       "Sha256": "9703c0e3c2658241487556ed5d89e970bf13ba06effcdd749ae19dabcda1961f",
       "Bytes": 87644
     },
+    "speech/fisher/guide.uncertain.1.fisher.slow.wav": {
+      "Text": "No te entend\u00ED bien. \u00BFLo dices otra vez?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "280faa52cde2be70b896ca1fd1cc0bb3ea26995d604be79012d7dc67da9d6c7c",
+      "Bytes": 185574
+    },
+    "speech/fisher/guide.uncertain.1.fisher.wav": {
+      "Text": "No te entend\u00ED bien. \u00BFLo dices otra vez?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "7b3c99f16ced667fa1c73e021b1a797bbe645b2a30ac612a489229d535f520c5",
+      "Bytes": 149978
+    },
+    "speech/fisher/guide.uncertain.2.fisher.slow.wav": {
+      "Text": "No te entend\u00ED bien. \u00BFMe lo dices otra vez?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "1d66778fa753a1a568039b96d4f93f5b7ac008e2333704a35992c8228aa06b03",
+      "Bytes": 195042
+    },
+    "speech/fisher/guide.uncertain.2.fisher.wav": {
+      "Text": "No te entend\u00ED bien. \u00BFMe lo dices otra vez?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "7d1a13aced8cbfa1305e89acc65177ddcedb88589eba614cf788ca03cf32ed8a",
+      "Bytes": 155786
+    },
     "speech/fisher/not_understood.1.fisher.slow.wav": {
       "Text": "No te entend\u00ED. \u00BFMe lo dices otra vez?",
       "Speaker": "fisher",
@@ -7373,6 +7509,28 @@
       "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
       "Sha256": "6a25a508556d0cfc03cddda3a6902dc0e672980b6c3ab8e1ebba210aac080cc6",
       "Bytes": 52844
+    },
+    "speech/guide/guide.review.phrase.muy_bien.1.slow.wav": {
+      "Text": "\u00BFQu\u00E9 tal?",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "0c49efd4cea61979bc9da0f07e9d723b2b74af4864c1f4e46cb94f4f81bc7d6b",
+      "Bytes": 50444
+    },
+    "speech/guide/guide.review.phrase.muy_bien.1.wav": {
+      "Text": "\u00BFQu\u00E9 tal?",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "8dddc96d876e2bdceecc21cba4ab378ac76d458b402f043a92fc788a8146bd22",
+      "Bytes": 42044
     },
     "speech/guide/guide.review.phrase.no_gracias.1.slow.wav": {
       "Text": "\u00BFQuieres agua?",
@@ -9706,6 +9864,28 @@
       "Sha256": "b8e724f516ba89ca72ae7375975e04054c80ad74fa886e09848c4c554bb8444e",
       "Bytes": 91244
     },
+    "speech/guide/phrase.muy-bien.slow.wav": {
+      "Text": "Muy bien.",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "073d9a82dba22017555ff844df9950e93f7e5f2d96fabc39a25bd8f20ea9cd5d",
+      "Bytes": 60044
+    },
+    "speech/guide/phrase.muy-bien.wav": {
+      "Text": "Muy bien.",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "5660fd151b5077ca42991b25a87ce8c403a839dd3dfecf2b652a274ec191a024",
+      "Bytes": 48044
+    },
     "speech/guide/phrase.necesitamos-agua.slow.wav": {
       "Text": "Necesitamos agua.",
       "Speaker": "guide",
@@ -9947,6 +10127,28 @@
       "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
       "Sha256": "c716a72e958b0fea655a0117d0bdfbaf5a418427620ee7a0889a488e0e111760",
       "Bytes": 48044
+    },
+    "speech/guide/phrase.que-tal.slow.wav": {
+      "Text": "\u00BFQu\u00E9 tal?",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "0c49efd4cea61979bc9da0f07e9d723b2b74af4864c1f4e46cb94f4f81bc7d6b",
+      "Bytes": 50444
+    },
+    "speech/guide/phrase.que-tal.wav": {
+      "Text": "\u00BFQu\u00E9 tal?",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "8dddc96d876e2bdceecc21cba4ab378ac76d458b402f043a92fc788a8146bd22",
+      "Bytes": 42044
     },
     "speech/guide/phrase.queremos-pan.slow.wav": {
       "Text": "Queremos pan.",
@@ -10894,6 +11096,50 @@
       "Sha256": "c9ec5b61947c376feb65ab511a1079ee3e9938a909d6729d2f5f9114e7390e1b",
       "Bytes": 46844
     },
+    "speech/shopkeeper/card.agua.shopkeeper.slow.wav": {
+      "Text": "el agua",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "fb8e2a935145ab41ed0f66e30299d072f0fd5bb2fee4e2b8e31a5177726f9137",
+      "Sha256": "441b089e52259b8ae58644f0b8b41f5b30f6442cbf0643db7d7839f0f4bd562c",
+      "Bytes": 54044
+    },
+    "speech/shopkeeper/card.agua.shopkeeper.wav": {
+      "Text": "el agua",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
+      "Sha256": "2aca54eb4c238806d9e53dfdd1cfef4ebb47c7bd4e21d6546c5e2f3ad83f5055",
+      "Bytes": 42044
+    },
+    "speech/shopkeeper/card.pan.shopkeeper.slow.wav": {
+      "Text": "el pan",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "fb8e2a935145ab41ed0f66e30299d072f0fd5bb2fee4e2b8e31a5177726f9137",
+      "Sha256": "81e85dfcdc6d84986bd18710ff20c73a501f9d69d2ad4d482eb4ea557f1218ed",
+      "Bytes": 49244
+    },
+    "speech/shopkeeper/card.pan.shopkeeper.wav": {
+      "Text": "el pan",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
+      "Sha256": "7341784c7a89e5276331a4ea4bc2679c5e7763ed2dd6df59dfff1082c3dba22a",
+      "Bytes": 38444
+    },
     "speech/shopkeeper/feedback.hint.1.shopkeeper.slow.wav": {
       "Text": "Casi. Piensa otra vez.",
       "Speaker": "shopkeeper",
@@ -11311,6 +11557,50 @@
       "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
       "Sha256": "a011fba3acddd0a72ed8947cb047400e363c80ea96d9b26bf4565049aca05c76",
       "Bytes": 75644
+    },
+    "speech/shopkeeper/guide.uncertain.1.shopkeeper.slow.wav": {
+      "Text": "No te entend\u00ED bien. \u00BFLo dices otra vez?",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "fb8e2a935145ab41ed0f66e30299d072f0fd5bb2fee4e2b8e31a5177726f9137",
+      "Sha256": "fa5f0b6ca013c461ac116c1b1bf1b175d89ac3f06ed2f0261079c94f88068a14",
+      "Bytes": 179652
+    },
+    "speech/shopkeeper/guide.uncertain.1.shopkeeper.wav": {
+      "Text": "No te entend\u00ED bien. \u00BFLo dices otra vez?",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
+      "Sha256": "e3e341fed35cddcddb694cb7ae70b0daaa903e1af658af1a6c0433680f6df746",
+      "Bytes": 158444
+    },
+    "speech/shopkeeper/guide.uncertain.2.shopkeeper.slow.wav": {
+      "Text": "No te entend\u00ED bien. \u00BFMe lo dices otra vez?",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "fb8e2a935145ab41ed0f66e30299d072f0fd5bb2fee4e2b8e31a5177726f9137",
+      "Sha256": "876a1e18c2feef72908db85bee7dcda94273942f0c1d675f6a49d46a5e09e253",
+      "Bytes": 179584
+    },
+    "speech/shopkeeper/guide.uncertain.2.shopkeeper.wav": {
+      "Text": "No te entend\u00ED bien. \u00BFMe lo dices otra vez?",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
+      "Sha256": "f823a43a4a1f3edc044a393352b2623e70fd1d0a94d075c6f4e6baec1dd58d4a",
+      "Bytes": 164444
     },
     "speech/shopkeeper/not_understood.1.shopkeeper.slow.wav": {
       "Text": "No te entend\u00ED. \u00BFMe lo dices otra vez?",
@@ -12898,6 +13188,54 @@
       "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
       "Sha256": "1f2b80d643af45b0db7a8e7eb288b2705c32e47b4b949dc16672e6444e760800",
       "Bytes": 180962,
+      "Gain": 0.6
+    },
+    "speech/smith/guide.uncertain.1.smith.slow.wav": {
+      "Text": "No te entend\u00ED bien. \u00BFLo dices otra vez?",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "74ccefe450428c0d43b4a93003662c032b03f1b394c0c577da5163eb3bee5afe",
+      "Sha256": "2e31c9bbb412b1f5a8abd6b7ac6af42df3ba4d5f41c99d900ea66cd9941081fe",
+      "Bytes": 184270,
+      "Gain": 0.6
+    },
+    "speech/smith/guide.uncertain.1.smith.wav": {
+      "Text": "No te entend\u00ED bien. \u00BFLo dices otra vez?",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
+      "Sha256": "844903b222917f1b7498fec5a0857f4286df5001d35ea2f413cb0ef7c3f6232c",
+      "Bytes": 147590,
+      "Gain": 0.6
+    },
+    "speech/smith/guide.uncertain.2.smith.slow.wav": {
+      "Text": "No te entend\u00ED bien. \u00BFMe lo dices otra vez?",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "74ccefe450428c0d43b4a93003662c032b03f1b394c0c577da5163eb3bee5afe",
+      "Sha256": "75ab0dc255c33eb24f1471656659fe58456efe62586a313a24b5e7ace2ed11c7",
+      "Bytes": 194408,
+      "Gain": 0.6
+    },
+    "speech/smith/guide.uncertain.2.smith.wav": {
+      "Text": "No te entend\u00ED bien. \u00BFMe lo dices otra vez?",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
+      "Sha256": "aad639da5f6c4a20e6415194262751635064e87ecd4d32dad68b188aa9946de0",
+      "Bytes": 152602,
       "Gain": 0.6
     },
     "speech/smith/not_understood.1.smith.slow.wav": {
@@ -14860,6 +15198,50 @@
       "Sha256": "c7763e33c46544e4f415a8a9f7690f933d0b8fc7a9193adf10e777d1e91744bf",
       "Bytes": 74774
     },
+    "speech/villager/guide.uncertain.1.villager.slow.wav": {
+      "Text": "No te entend\u00ED bien. \u00BFLo dices otra vez?",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "582bff1facec664e0c88b222b72770a195e06c2d9ca39c8596ff5e65a9fc4a13",
+      "Sha256": "c0bf9ef0f74efa5818f13d29c3b44a4f8eb92b9cf2a41040ebfba5d86e500be7",
+      "Bytes": 169554
+    },
+    "speech/villager/guide.uncertain.1.villager.wav": {
+      "Text": "No te entend\u00ED bien. \u00BFLo dices otra vez?",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
+      "Sha256": "48a4e5d127e5f2ab38b7eb457014d9ecd43bfc6741517956de039bdfa46ca6ac",
+      "Bytes": 151692
+    },
+    "speech/villager/guide.uncertain.2.villager.slow.wav": {
+      "Text": "No te entend\u00ED bien. \u00BFMe lo dices otra vez?",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "582bff1facec664e0c88b222b72770a195e06c2d9ca39c8596ff5e65a9fc4a13",
+      "Sha256": "02c6e9e0f9c3aaa57b582c77af9f82a709ad56f673e268f90b099ff157642c68",
+      "Bytes": 170702
+    },
+    "speech/villager/guide.uncertain.2.villager.wav": {
+      "Text": "No te entend\u00ED bien. \u00BFMe lo dices otra vez?",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
+      "Sha256": "e0eb9131e702b90515446817565dcb746819c53d71588d0cad29ebef7276d821",
+      "Bytes": 157692
+    },
     "speech/villager/not_understood.1.villager.slow.wav": {
       "Text": "No te entend\u00ED. \u00BFMe lo dices otra vez?",
       "Speaker": "villager",
@@ -15807,26 +16189,26 @@
       "Bytes": 69644
     },
     "speech/villager/villager_well.1.slow.wav": {
-      "Text": "Bien, gracias.",
+      "Text": "Bien, gracias. \u00BFY t\u00FA?",
       "Speaker": "villager",
       "SpeakerId": 53,
       "Voice": "em_santa",
       "Speed": 0.8,
       "Rate": 24000,
       "ModelHash": "582bff1facec664e0c88b222b72770a195e06c2d9ca39c8596ff5e65a9fc4a13",
-      "Sha256": "7f4364d3597c076343966b4b5421619f5cdf805b5a98c7e11e3d02a4d5b19a8d",
-      "Bytes": 66418
+      "Sha256": "4f81b8f90fc6e667119120f04a34d14faac7e3ec1b7a22bb958ca196963ea0c4",
+      "Bytes": 88558
     },
     "speech/villager/villager_well.1.wav": {
-      "Text": "Bien, gracias.",
+      "Text": "Bien, gracias. \u00BFY t\u00FA?",
       "Speaker": "villager",
       "SpeakerId": 53,
       "Voice": "em_santa",
       "Speed": 1,
       "Rate": 24000,
       "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
-      "Sha256": "dd96d203cf01ed5a6dc7fb817eff6af054c248f380b2d427debf34d0522c4252",
-      "Bytes": 66044
+      "Sha256": "779cc87d5573d293760d9a204d2e1a7140cd9d9b1258775cbf0c3c7d2343ced3",
+      "Bytes": 76116
     },
     "speech/villager/villager_wont_sell.1.slow.wav": {
       "Text": "Solo tengo pan.",

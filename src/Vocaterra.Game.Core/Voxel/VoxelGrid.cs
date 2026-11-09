@@ -105,6 +105,15 @@ public sealed class VoxelGrid
     /// <summary>Whether bodies collide at the position. Everything outside the grid counts as solid (walls, floor and ceiling), so a body cannot leave it.</summary>
     public bool IsSolid(int x, int y, int z) => !InBounds(x, y, z) || BlockDefinition.IsSolid(GetBlock(x, y, z));
 
+    /// <summary>
+    /// Whether a body's box collides with the cell: a solid block, or the space just above a tall block (<see cref="BlockDefinition.Tall"/>, a fence),
+    /// which collides as two blocks high so that no step-up or jump takes a body onto it (issue #33). The block ray and placement read <see cref="IsSolid"/>.
+    /// </summary>
+    public bool BlocksBody(int x, int y, int z) => IsSolid(x, y, z) || BlockDefinition.IsTall(GetBlock(x, y - 1, z));
+
+    /// <summary>Whether a body can stand on the block at the position: it is solid and not tall (nothing stands on a fence).</summary>
+    public bool CanStandOn(int x, int y, int z) => IsSolid(x, y, z) && !BlockDefinition.IsTall(GetBlock(x, y, z));
+
     /// <summary>The chunk at the given chunk coordinates.</summary>
     /// <exception cref="ArgumentOutOfRangeException">The coordinates lie outside the chunk grid.</exception>
     public VoxelChunk GetChunk(VoxelChunkCoord coord)

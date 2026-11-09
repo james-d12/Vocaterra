@@ -120,7 +120,7 @@ public static class WalkPlanner
 
     /// <summary>
     /// The feet cell a body can step to from (<c>fromX</c>, <c>fromY</c>, <c>fromZ</c>) at the neighbouring column (x, z): up one, level, or down by up to three, or -1 when none can be
-    /// stood in. A cell can be stood in when the feet and the head are free, the block under it is solid, and neither it nor the block under is water.
+    /// stood in. A cell can be stood in when the feet and the head are free (<see cref="VoxelGrid.BlocksBody"/>), the block under it can be stood on (not a fence), and neither it nor the block under is water.
     /// </summary>
     public static int StepTo(VoxelGrid grid, int fromX, int fromY, int fromZ, int x, int z)
     {
@@ -128,7 +128,7 @@ public static class WalkPlanner
         for (var dy = 1; dy >= -MaxDrop; dy--)
         {
             var y = fromY + dy;
-            if (dy == 1 && grid.IsSolid(fromX, fromY + 2, fromZ))
+            if (dy == 1 && grid.BlocksBody(fromX, fromY + 2, fromZ))
             {
                 continue; // no head room to step up
             }
@@ -141,7 +141,7 @@ public static class WalkPlanner
                     var clear = true;
                     for (var above = y + 1; above <= fromY + 1 && clear; above++)
                     {
-                        clear = !grid.IsSolid(x, above, z);
+                        clear = !grid.BlocksBody(x, above, z);
                     }
 
                     if (!clear)
@@ -160,9 +160,9 @@ public static class WalkPlanner
     /// <summary>Whether a body can stand with its feet in the cell.</summary>
     public static bool Standable(VoxelGrid grid, int x, int y, int z) =>
         grid.InBounds(x, y, z)
-        && !grid.IsSolid(x, y, z)
-        && !grid.IsSolid(x, y + 1, z)
-        && grid.IsSolid(x, y - 1, z)
+        && !grid.BlocksBody(x, y, z)
+        && !grid.BlocksBody(x, y + 1, z)
+        && grid.CanStandOn(x, y - 1, z)
         && grid.GetBlock(x, y, z) != BlockId.Water
         && grid.GetBlock(x, y - 1, z) != BlockId.Water;
 
@@ -182,7 +182,7 @@ public static class WalkPlanner
         var sides = 0;
         foreach (var (dx, dz) in Moves.AsSpan(0, 4))
         {
-            if (grid.IsSolid(x + dx, y, z + dz) || grid.IsSolid(x + dx, y + 1, z + dz))
+            if (grid.BlocksBody(x + dx, y, z + dz) || grid.BlocksBody(x + dx, y + 1, z + dz))
             {
                 sides++;
             }

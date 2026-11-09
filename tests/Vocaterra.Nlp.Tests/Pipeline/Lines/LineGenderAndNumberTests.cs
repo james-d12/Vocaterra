@@ -31,7 +31,7 @@ public class LineGenderAndNumberTests
         { "villager-open", "esta casa es de madera", "unknown", false, [] },
         { "villager-open", "la tienda es grande", "unknown", false, [] },
         { "villager-open", "estoy cansado", "unknown", false, [] },
-        { "villager-open", "yo estoy bien", "unknown", false, [] },
+        { "villager-open", "yo estoy bien", "state_wellbeing", true, [] }, // #35: the answer to ¿cómo estás?
         { "villager-open", "esto es pan", "unknown", false, [] },
         { "villager-open", "esto de aquí es pan", "unknown", false, [] },
         { "villager-open", "él es alta", "unknown", false, ["gender.agree=alto"] },

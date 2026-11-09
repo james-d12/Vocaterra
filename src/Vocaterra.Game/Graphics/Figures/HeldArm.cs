@@ -5,7 +5,7 @@ using Vocaterra.Game.Graphics.World;
 
 namespace Vocaterra.Game.Graphics.Figures;
 
-/// <summary>What the first-person hand holds: nothing, a log, a torch, a bottle or a flat picture of a small item.</summary>
+/// <summary>What the first-person hand holds: nothing, a log, a torch, a bottle or a small item modelled from its icon.</summary>
 public enum HeldKind
 {
     /// <summary>Nothing: the bare arm.</summary>
@@ -17,10 +17,10 @@ public enum HeldKind
     /// <summary>A torch with its flame.</summary>
     Torch,
 
-    /// <summary>A glass bottle, empty or full of water.</summary>
+    /// <summary>A glass bottle, empty or full of water (its icon extruded into voxels, <see cref="ItemModels"/>).</summary>
     Bottle,
 
-    /// <summary>A small flat item drawn from its icon (a berry, bread, a coin, an apple, the axe).</summary>
+    /// <summary>A small item modelled from its icon, extruded into voxels (<see cref="ItemModels"/>, issue #44): a berry, bread, a coin, an apple, the axe, the book.</summary>
     Sprite,
 }
 
@@ -44,20 +44,15 @@ public static class HeldItems
             return HeldChoice.Nothing;
         }
 
+        // The log and the torch are built of blocks; the bottles and every other item are their icon extruded into voxels, so an item added later is never missing
+        // from the hand (issue #44: the book showed nothing).
         return item switch
         {
             ItemId.Wood => new HeldChoice(HeldKind.Log, BlockCell.TrunkSide),
             ItemId.Torch => new HeldChoice(HeldKind.Torch, BlockCell.TorchStick),
             ItemId.Bottle => new HeldChoice(HeldKind.Bottle, BlockCell.IconBottle),
             ItemId.WaterBottle => new HeldChoice(HeldKind.Bottle, BlockCell.IconWaterBottle),
-            ItemId.Berry => new HeldChoice(HeldKind.Sprite, BlockCell.IconBerry),
-            ItemId.Bread => new HeldChoice(HeldKind.Sprite, BlockCell.IconBread),
-            ItemId.Coin => new HeldChoice(HeldKind.Sprite, BlockCell.IconCoin),
-            ItemId.Apple => new HeldChoice(HeldKind.Sprite, BlockCell.IconApple),
-            ItemId.Axe => new HeldChoice(HeldKind.Sprite, BlockCell.IconAxe),
-            ItemId.RoastApple => new HeldChoice(HeldKind.Sprite, BlockCell.IconRoastApple),
-            ItemId.Flour => new HeldChoice(HeldKind.Sprite, BlockCell.IconFlour),
-            _ => HeldChoice.Nothing,
+            _ => BlockAtlasLayout.IconFor(item) is { } icon ? new HeldChoice(HeldKind.Sprite, icon) : HeldChoice.Nothing,
         };
     }
 
@@ -192,6 +187,9 @@ public static class ArmMeshes
     /// <summary>The length of the hand in blocks.</summary>
     public const float HandLength = 0.3f;
 
+    /// <summary>The size of one pixel of a held item's icon in blocks (a 16-pixel icon is about 0.3 of a block across).</summary>
+    public const float ItemPixel = 0.019f;
+
     /// <summary>The arm: the sleeve with a cuff, then the hand.</summary>
     public static MeshBuffer Arm()
     {
@@ -244,8 +242,8 @@ public static class ArmMeshes
                 break;
             case HeldKind.Bottle:
             case HeldKind.Sprite:
-                // A flat picture standing in the hand, facing the eye, a little thick so it has an edge.
-                FigureMesher.AddBlock(body, new Box(-0.14f, 0.03f, z - 0.012f, 0.14f, 0.31f, z + 0.012f), held.Cell, white);
+                // The icon extruded into voxels, one pixel thick, standing on the hand and facing the eye (issue #44: it was a flat card with the whole picture on its edges).
+                ItemModels.AppendExtruded(body, held.Cell, ItemPixel, 0.03f, z);
                 break;
             default:
                 break;

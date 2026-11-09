@@ -129,6 +129,13 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public void TheWalkToTheStallPointsTheBeaconAtTheStall()
+    {
+        var session = AtStep("f3-walk"); // issue #43: tienda names the stall, not the nearest roof
+        Assert.Equal(("stall", "tienda"), (session.Pointer!.Point, session.Pointer.Place));
+    }
+
+    [Fact]
     public void ALessonsDoStepIsInTheTrackerOnlyWhenTheLessonStripDoesNotShowIt()
     {
         var session = SessionThreeAtVillager();
@@ -531,7 +538,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
 
         Assert.Equal(3, loaded.Day);
         Assert.Equal(LessonId, loaded.Lessons.OpenClass()!.Id);
-        Assert.NotNull(loaded.Pointer); // the beacon points at the villager
+        Assert.Null(loaded.Pointer); // no beacon to a class's teacher (L01), and Personas' walk to the stall ended at the stall (#43: it pointed at a far roof before)
 
         Stage.TeleportToNpc(loaded, "villager");
         _ = loaded.OpenTalkForClass("villager");

@@ -59,6 +59,17 @@ public sealed class ScenePlaces
     /// <param name="name">The scene's name (<c>stall</c>).</param>
     public BlockPos? Point(string name) => _points.TryGetValue(name, out var point) ? point : null;
 
+    /// <summary>
+    /// The scene's name of a place found when the beacon stands on its point (<c>stall</c>), which its arrival is logged with; <see langword="null"/> for the nearest block of
+    /// the river or of a noun, which the arrival names by the word, as a save would name it.
+    /// </summary>
+    /// <param name="found">A place <see cref="Resolve"/> found.</param>
+    public string? PointNameOf(FoundPlace found)
+    {
+        ArgumentNullException.ThrowIfNull(found);
+        return Point(found.Name) == found.Cell.ToBlock() ? found.Name : null;
+    }
+
     /// <summary>The word a named place shows: its label, or its own name when it has none.</summary>
     /// <param name="name">The scene's name.</param>
     public string LabelOf(string name) => _labels.TryGetValue(name, out var label) ? label : name;

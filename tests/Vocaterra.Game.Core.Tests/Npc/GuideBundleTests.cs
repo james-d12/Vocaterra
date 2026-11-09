@@ -15,8 +15,8 @@ namespace Vocaterra.Game.Core.Tests.Npc;
 /// <summary>The guide's part of <c>content/game-v1</c>: its agent, intents, prompt and pools load, are consistent and say what the game relies on.</summary>
 public sealed class GuideBundleTests
 {
-    // M74: ask_wellbeing (¿cómo estás?, taken out of greet) is allowed wherever greet is; V29: so are the weather intents at the open prompt.
-    private static readonly string[] GuideIntents = ["ask_directions", "ask_craft", "ask_find", "ask_what", "state_want", "state_have", "ask_help", "dont_know", "name_object", "greet", "ask_wellbeing", "thank", "farewell", "ask_repeat", "ask_slower", "state_weather", "ask_weather"];
+    // M74: ask_wellbeing (¿cómo estás?, taken out of greet) is allowed wherever greet is; V29: so are the weather intents at the open prompt; #35: and state_wellbeing (muy bien).
+    private static readonly string[] GuideIntents = ["ask_directions", "ask_craft", "ask_find", "ask_what", "state_want", "state_have", "ask_help", "dont_know", "name_object", "greet", "ask_wellbeing", "thank", "farewell", "ask_repeat", "ask_slower", "state_weather", "ask_weather", "state_wellbeing"];
 
     [Fact]
     public void TheGuidePromptAndAgentLoad()

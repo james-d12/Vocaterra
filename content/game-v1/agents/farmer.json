@@ -70,6 +70,7 @@
         { "on": {"intent": "dont_know", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_help", "variantPoolId": "farmer_help" }] },
         { "on": {"intent": "thank", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_thank", "variantPoolId": "farmer_thank" }] },
         { "on": {"intent": "farewell", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_bye", "variantPoolId": "farmer_bye" }] },
+        { "on": {"intent": "state_wellbeing", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "farmer_nice", "variantPoolId": "farmer_nice" }] },
         { "on": {"communicated": false}, "to": "idle", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
       ],
       "fallback": {
@@ -85,6 +86,11 @@
         { "onHostEvent": "farmer.order_ready", "to": "receiving", "actions": [{ "dialogueIntent": "farmer_receive", "variantPoolId": "farmer_receive" }] },
         { "onHostEvent": "farmer.order_gone", "to": "idle", "actions": [{ "dialogueIntent": "farmer_hello", "variantPoolId": "farmer_hello" }] },
         { "onHostEvent": "farmer.delivered", "to": "idle", "actions": [{ "dialogueIntent": "farmer_delivered", "hostEvent": "farmer.give_apples", "variantPoolId": "farmer_delivered" }] },
+        { "on": {"intent": "greet", "communicated": true}, "to": "receiving", "actions": [{ "dialogueIntent": "farmer_hello", "variantPoolId": "farmer_hello" }] },
+        { "on": {"intent": "ask_wellbeing", "communicated": true}, "to": "receiving", "actions": [{ "dialogueIntent": "farmer_well", "variantPoolId": "farmer_well" }] },
+        { "on": {"intent": "state_wellbeing", "communicated": true}, "to": "receiving", "actions": [{ "dialogueIntent": "farmer_nice", "variantPoolId": "farmer_nice" }] },
+        { "on": {"intent": "thank", "communicated": true}, "to": "receiving", "actions": [{ "dialogueIntent": "farmer_thank", "variantPoolId": "farmer_thank" }] },
+        { "on": {"intent": "farewell", "communicated": true}, "to": "receiving", "actions": [{ "dialogueIntent": "farmer_bye", "variantPoolId": "farmer_bye" }] },
         { "on": {"communicated": false}, "to": "receiving", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
       ],
       "fallback": {

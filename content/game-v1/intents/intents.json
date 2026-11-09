@@ -7,7 +7,8 @@
       "slotGrammars": [
         "hola [NOUN]?",
         "(buenos|buenas) (día|días|tardes|noches)",
-        "buen día"
+        "buen día",
+        "buenas"
       ],
       "keywordRules": [
         { "lemmas": ["hola"], "requiresSlots": [] }
@@ -28,7 +29,8 @@
       "requiredSlots": [],
       "slotGrammars": [
         "(hola [NOUN]?|(buenos|buenas) (día|días|tardes|noches)|buen día)? (cómo|como) (estás|está|están|estáis) (tú|usted|ustedes|vosotros|vosotras)?",
-        "(hola [NOUN]?)? qué tal"
+        "(hola [NOUN]?|(buenos|buenas) (día|días|tardes|noches)|buen día)? qué tal",
+        "(muy)? bien (gracias)? y (tú|usted)"
       ],
       "keywordRules": [],
       "examples": [
@@ -40,7 +42,28 @@
         {"text": "buenos días, cómo está usted", "errors": [], "prompt": "smith-open"},
         {"text": "qué tal", "errors": [], "prompt": "villager-open"},
         {"text": "hola, ¿qué tal?", "errors": [], "prompt": "fisher-open"},
+        {"text": "buenas tardes, ¿qué tal?", "errors": [], "prompt": "stall-need"},
+        {"text": "bien, ¿y tú?", "errors": [], "prompt": "stall-need"},
+        {"text": "muy bien, gracias, ¿y usted?", "errors": [], "prompt": "baker-open"},
         {"text": "cómo estás usted", "errors": ["conj.person"], "prompt": "villager-open"}
+      ]
+    },
+    {
+      "intentId": "state_wellbeing",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "(estoy)? (muy)? bien (gracias|muchas gracias)?",
+        "[PRON] [VERB:estar] (muy)? bien (gracias|muchas gracias)?"
+      ],
+      "keywordRules": [],
+      "examples": [
+        {"text": "muy bien", "errors": [], "prompt": "villager-open"},
+        {"text": "bien, gracias", "errors": [], "prompt": "stall-need"},
+        {"text": "muy bien, gracias", "errors": [], "prompt": "baker-open"},
+        {"text": "estoy bien", "errors": [], "prompt": "smith-open"},
+        {"text": "estoy muy bien, gracias", "errors": [], "prompt": "farmer-open"},
+        {"text": "yo estoy bien", "errors": [], "prompt": "villager-open"},
+        {"text": "yo está muy bien", "errors": ["conj.person"], "prompt": "villager-open"}
       ]
     },
     {
@@ -54,7 +77,8 @@
         "por favor (sí|claro)"
       ],
       "keywordRules": [
-        { "lemmas": ["sí"], "requiresSlots": [] }
+        { "lemmas": ["sí"], "requiresSlots": [] },
+        { "lemmas": ["sí", "gracias"], "requiresSlots": [] }
       ],
       "lint": {"allowRuleOnly": ["sí, por favo", "sí, es madera", "sí, es un madera"]},
       "examples": [
@@ -81,7 +105,8 @@
         "no [VERB:querer]"
       ],
       "keywordRules": [
-        { "lemmas": ["no"], "requiresSlots": [] }
+        { "lemmas": ["no"], "requiresSlots": [] },
+        { "lemmas": ["no", "gracias"], "requiresSlots": [] }
       ],
       "lint": {"allowRuleOnly": ["no es agua", "no, es madera", "no, es un madera"]},
       "examples": [
