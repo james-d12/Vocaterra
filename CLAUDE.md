@@ -10,7 +10,7 @@ one `Vocaterra.sln`; R01, 2026-10-23). The halves are told apart by project name
   Licence Apache-2.0 (`LICENSE`, `NOTICE`).
 - **The game**: `Vocaterra.Game.Core` (the engine-free systems), `Vocaterra.Game` (MonoGame), `Vocaterra.Host` and `tools/Vocaterra.SpeechRender` (with their tests, `content/game-v1`,
   `assets/` and `docs/game/`). Its plan is
-  `docs/game/implementation-plan.md` (section 4 status; its findings log, "section 5", is `docs/game/findings.md`), its decisions `docs/game/decisions.md` (D-game-1 to D-game-28; D-game-27 is taken on `feature/german`).
+  `docs/game/implementation-plan.md` (section 4 status; its findings log, "section 5", is `docs/game/findings.md`), its decisions `docs/game/decisions.md` (D-game-1 to D-game-28).
   Licence Apache-2.0 like the core (one `LICENSE` and `NOTICE` at the root; the game was MIT until R01).
 
 The two were separate repositories until 2026-10-21 (game D-game-7); both sets of ids (M-numbers,

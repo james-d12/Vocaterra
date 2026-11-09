@@ -57,9 +57,9 @@ Record consent in the observer notes (yes or no, the time, the code). A tester w
 
     scripts/playtest-build.sh <a new folder outside the repository>
 
-The script validates the bundle, publishes the game self-contained (no .NET install for the tester), copies the bundle with its 1 382 speech
+The script validates the bundle, publishes the game self-contained (no .NET install for the tester), copies the bundle with its 1 414 speech
 WAVs (300 at S18; 680 after phase A of the village plan, which brought the four new NPCs' lines and the lessons of sessions 4 to 6; 902 after phase B, which brought
-the lessons of sessions 7 to 10; 1 062 after the follow-ups, the feedback lines in each NPC's voice and the free talk's replies; 1 382 on 2026-11-09, the count in `speech-checklist.md`), copies the pinned Vosk model from the shared models folder (`VOCATERRA_MODELS_DIR`, default `~/.local/share/vocaterra/models`; fetch it with
+the lessons of sessions 7 to 10; 1 062 after the follow-ups, the feedback lines in each NPC's voice and the free talk's replies; 1 414 on 2026-11-09, the count in `speech-checklist.md`), copies the pinned Vosk model from the shared models folder (`VOCATERRA_MODELS_DIR`, default `~/.local/share/vocaterra/models`; fetch it with
 `scripts/fetch-models.sh` first) and its manifest, copies the tester's README and the launcher, then checks the folder: no sherpa-onnx or
 ONNX Runtime native library, no espeak-ng, no sherpa model file, the Vosk model matching its pinned SHA-256 sums, and every speech WAV the
 bundle manifest lists. The build must end with `all checks passed`. Keep its output with the build folder.
@@ -294,7 +294,7 @@ Before any tester (the owner, once, end to end):
 3. Run the recall on the session's `playtest.save`: `./playtest.sh --load <folder>/playtest.save`. Check that the thank-you says "Thank you".
 4. Run `scripts/playtest-report.sh` on the two folders and read every line; then collect the owner's own F8 report with
    `scripts/playtest-report.sh --copy <collection folder> <folder>` and check its "Build commit" line.
-5. **Listen to every speech WAV** (1 382 on 2026-11-09; no row is marked yet) and mark each row of `docs/game/speech-checklist.md` `ok`, `cut-off` or
+5. **Listen to every speech WAV** (1 414 on 2026-11-09; no row is marked yet) and mark each row of `docs/game/speech-checklist.md` `ok`, `cut-off` or
    `mismatch` (D-game-12, step 4). The four village voices are provisional (D-game-22 (d)): the voice trial that compared them was deleted on 2026-11-03
    and is in git history (`git log -- docs/game/voice-trial`); the
    checklist's preface says how a rejected voice is recorded again. A tester in the first session hears those NPCs only if they talk to them.
@@ -344,7 +344,7 @@ Not planned: written at V09 after phase B of the village plan and checked at V24
   smaller fixed core than `coreSessions: 3`, decided before the bundle is frozen.
 - **The time.** A lesson takes about 6 to 10 minutes (the milestones' estimates: session 7 and 8 about 7 to 9, session 9 about 6 to 7, session 10 about 9 to
   10), plus the walks and the free talk: about 40 minutes for the four, before any check.
-- **The voices.** None of the speech files (1 382 on 2026-11-09) has been heard (section 12, step 5). Phase B's 222 are 70 the farmer's, 54 the guide's (the lessons' models
+- **The voices.** None of the speech files (1 414 on 2026-11-09) has been heard (section 12, step 5). Phase B's 222 are 70 the farmer's, 54 the guide's (the lessons' models
   and cards), 30 the baker's, 22 each the smith's and the villager's, 14 the fisher's and 10 the shopkeeper's; the follow-ups' 148 (74 lines) are the
   villager's 26 files, the farmer's 26, the shopkeeper's 26, the baker's 24, the smith's 24 and the fisher's 22: the NPCs' free-talk replies and the
   feedback lines (`answer_accepted`, `not_understood`, `feedback.hint`, `hint.gender.agree`, `slow_repeat`) in each NPC's voice (V20, V21b).

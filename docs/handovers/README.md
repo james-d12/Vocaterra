@@ -32,7 +32,7 @@ several of them were moved out of the orchestrator, the game plan and a research
 | Handover | Workstream | What it waits for |
 | --- | --- | --- |
 
-None on `main` (2026-11-09). The open pull requests #50 (`feature/hand-in-speech`) and #51 (`feature/german`) carry their own state on their branches.
+None on `main` (2026-11-09). The open pull request #51 (`feature/german`) carries its own state on its branch.
 
 **Done**
 

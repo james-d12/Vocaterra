@@ -18,6 +18,7 @@ internal static class ClassExtensions
     public static NpcOpening OpenTalkForClass(this VoxelSession session, string npc)
     {
         var opening = session.OpenTalk(npc);
+        _ = session.HandOverGoods(); // the goods of an order the NPC asks for are handed over first, as a learner who answers right does (issue #42)
         if (!session.Lessons.Engaged && session.Lessons.OfferFor(npc) is not null)
         {
             // The class of the day the test sets (the newest whose session has come, as the day used to pick it), else the one on offer.
@@ -34,5 +35,21 @@ internal static class ClassExtensions
         }
 
         return opening;
+    }
+
+    /// <summary>
+    /// When the NPC the panel is open on asks for the goods of an order (issue #42, <see cref="GuideSession.HandOverOpen"/>), says the line of the card its receiving prompt
+    /// practises (<c>Aquí tienes cinco bloques de madera.</c>), as a learner who answers right does, and returns that turn; otherwise <see langword="null"/>.
+    /// </summary>
+    public static GuideTurn? HandOverGoods(this VoxelSession session)
+    {
+        if (!session.HandOverOpen)
+        {
+            return null;
+        }
+
+        var prompt = session.Conversation.PromptOf(session.CurrentNpc);
+        var row = session.Data.Npcs.FocusAt(prompt).Select(session.Data.Phrases.Find).First(static row => row is { IsLearnerPhrase: true })!;
+        return session.Say(row.Spanish);
     }
 }

@@ -10,6 +10,10 @@ this file. What is still open is collected in [open-items](../open-items.md).
   `Vocaterra.Nlp.*`. Bundle hash `1c2240c7...` and all goldens unchanged. Next, R02 moves the core's tests onto `content/game-v1` and
   retires `content/v1` (supersedes D7 when done).
 - **R02 (2026-10-23, done):** the core's tests, fuzz suite, demo and embedded seed lexicon run on `content/game-v1`; `content/v1` deleted; D7 superseded. Fuzz found and fixed a duplicate `conj.tense` in `AgreementChecker` (ir a + past marker). Details in `docs/game/implementation-plan.md` section 4.6.
+- **`la agua` (2026-11-08, issue #42, the owner):** the agreement check took a feminine article before a stressed-a noun as agreeing (`la agua`, `una arma` were
+  clean by a test), so the game's hand-over row for León's water could not name the commonest slip. `SpanishAgreementChecker.CheckDeterminer` now gives
+  `gender.agree` `el`/`un` for a feminine singular article or the numeral one directly before such a noun; `la fría agua`, `esta agua` and `las aguas` stay clean
+  (`docs/nlp/api.md`, "A feminine noun that takes `el` takes it right before it").
 
 - **Vosk dither (M9):** stock Vosk models apply time-seeded dither, so identical clips decoded
   differently run to run. `VoskWordRecognizer` loads a temp copy of the model with

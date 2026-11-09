@@ -524,6 +524,18 @@
     "line.shop_none_offered.1": "How many loaves are you selling me?",
     "line.shop_no_room.1": "Your bag is full.",
     "line.prompt.lesson-bake-plan": "What are you going to do today?",
-    "line.prompt.lesson-made-bread": "What did you do?"
+    "line.prompt.lesson-made-bread": "What did you do?",
+    "line.baker_receive.1": "Hello! What do you have for me?",
+    "line.prompt.baker-receive": "Hello! What do you have for me?",
+    "line.fisher_receive.1": "Hello! What do you have for me?",
+    "line.prompt.fisher-receive": "Hello! What do you have for me?",
+    "line.smith_receive.1": "Hello! What do you have for me?",
+    "line.prompt.smith-receive": "Hello! What do you have for me?",
+    "line.farmer_receive.1": "Hello! What do you have for me?",
+    "line.prompt.farmer-receive": "Hello! What do you have for me?",
+    "line.baker_receive_help.1": "You can say: “Aquí tienes cinco bloques de madera” (Here are five blocks of wood).",
+    "line.fisher_receive_help.1": "You can say: “Aquí tienes tres frutas” (Here are three fruits).",
+    "line.smith_receive_help.1": "You can say: “Aquí tienes la madera y las monedas” (Here are the wood and the coins).",
+    "line.farmer_receive_help.1": "You can say: “Aquí tienes el agua” (Here is the water)."
   }
 }

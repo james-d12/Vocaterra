@@ -127,6 +127,18 @@
       "matches": []
     },
     {
+      "key": "034e9ee31e7934d5943b13cb52f5485ef3f6f634017c2f3dc6ac4c4072ac2af1",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí están las frutas",
+      "matches": []
+    },
+    {
+      "key": "035fde2b6c88dfc799d9b5e8ee98ebc43a3a9186f4133db102228e66868c0822",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí tienes cinco bloques de madera",
+      "matches": []
+    },
+    {
       "key": "03a65eb8ca797fb0db191c0296ab94e2f53f2b0398e5bac1ec0a7b1c05afbae9",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Qué quieres?",
@@ -260,6 +272,12 @@
       "key": "079db4741b8085f96cb32bab84fd98b68ecadbe5b1b0d75c48f245e7e6ba33ae",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Busco el letrero",
+      "matches": []
+    },
+    {
+      "key": "07d595333c75d90181ddfd281032f1c62b5725f1716172744c27cb118e118f3b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí está el agua",
       "matches": []
     },
     {
@@ -651,6 +669,12 @@
       "matches": []
     },
     {
+      "key": "13441d59a752010a71e2a687a0211a9921b5433773531a95de0a28bbbdd10a4d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí tienes la madera y las monedas.",
+      "matches": []
+    },
+    {
       "key": "138b13537875c7cd722843cc33c975604a3633ab314d7d8e5565dbcc40358597",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo quieres madera",
@@ -666,6 +690,18 @@
           ]
         }
       ]
+    },
+    {
+      "key": "13a11fa259c60af56a08b47494ec9661f3bc94e76bd3dcdbee700b3555b36115",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Toma las frutas",
+      "matches": []
+    },
+    {
+      "key": "143cbb6485bc76f58c0b5f810b31e6e4f960414ac6ddf302d070aca95835a147",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí tienes la madera y las monedas",
+      "matches": []
     },
     {
       "key": "1447d70f83de2a8ca0d341c386e455ac982152916f9c7104d9788cc2c365126f",
@@ -706,6 +742,12 @@
       "key": "14dd454cfe4bb98dd2fa9d22e79ba438e9cd9127b1439c1eb3235d3cd13ac54c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Me gustan las frutas",
+      "matches": []
+    },
+    {
+      "key": "14e89b665414bd0de04bfcbe5b08eea7d612e2e60d9c8361f4a7fb46580287ac",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí tienes tres frutas.",
       "matches": []
     },
     {
@@ -872,6 +914,23 @@
       "matches": []
     },
     {
+      "key": "18333ead7d47a1725c42e6ca60479098adc2b7a0c4c14d498d5ba3adc899ce3d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí tienes el madera",
+      "matches": [
+        {
+          "rule": "EL_TILDE",
+          "issueType": "misspelling",
+          "message": "El pronombre personal «él» lleva tilde.",
+          "offset": 12,
+          "length": 2,
+          "replacements": [
+            "él"
+          ]
+        }
+      ]
+    },
+    {
       "key": "183ea37e9830f00dbcd932a899886306747ebb6bf5cc411c9223903f59be1331",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí me gusta",
@@ -946,6 +1005,12 @@
       "key": "1962c713a49766840c556280131a3cd1b32941c45cf0b5f212dbaae44cc44218",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ellos quieren agua",
+      "matches": []
+    },
+    {
+      "key": "19df2c1f85df323d72399dd7a446441dd2b81dfd86ae18fc9a99908a25369927",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí está la madera",
       "matches": []
     },
     {
@@ -1190,6 +1255,12 @@
       "key": "1f30284196ecc8dd09c060f13bcb7353c9c17f51491ee195649dc43a72c91975",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Tengo sueño.",
+      "matches": []
+    },
+    {
+      "key": "1fb4c7d42d5515ba044cdad2edcc787e7ff475a623ffd4cdd5cfcccbabefd573",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí tienes agua",
       "matches": []
     },
     {
@@ -1762,6 +1833,12 @@
       "matches": []
     },
     {
+      "key": "2ecf02f84bd1183b2b3b50590ff906bc2cd2bfd0e85aeace5c02c09af9fb9d9a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí tienes el agua.",
+      "matches": []
+    },
+    {
       "key": "2f2069124ae9b6a2a01167824c5df112ff6cf4b19375cdd4f2329f2ee56e7045",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Es agua?",
@@ -2116,6 +2193,12 @@
       "matches": []
     },
     {
+      "key": "37ffaf7068524fced0eba748ddcc28f04c7d747c318b733f584421a3f1b8bfe0",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí aquí tienes la madera",
+      "matches": []
+    },
+    {
       "key": "3815fabb30cec7fbb9f68cb1a189e556987c743dad1fa1322b5ea404585747fe",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Claro",
@@ -2367,6 +2450,12 @@
       "key": "3c830390bffaee7275f4c38dd6c0d6c87454fe7a5210ed00e655d85845ce16c3",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mañana vendí fruta",
+      "matches": []
+    },
+    {
+      "key": "3c9208a7be6cd79075fa6d8b3da2a8af254ea3f263391e31a9777e92b5ffe9ee",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí tienes la fruta",
       "matches": []
     },
     {
@@ -3341,6 +3430,24 @@
       "matches": []
     },
     {
+      "key": "54a7b7825d36a9faf87000dc89d85c92ec5d6a6b51282adddb4079e6cca00ff9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí tienes el botella",
+      "matches": [
+        {
+          "rule": "AGREEMENT_DET_NOUN",
+          "issueType": "inconsistency",
+          "message": "Error de concordancia.",
+          "offset": 12,
+          "length": 10,
+          "replacements": [
+            "la botella",
+            "las botellas"
+          ]
+        }
+      ]
+    },
+    {
       "key": "54b4dbdccb7d86ac155f51728cd93b6f824e3025e6648ab0d19ae08fa71d652e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayuda, por favor",
@@ -3392,6 +3499,12 @@
       "key": "56a28f0ecd86057f8521257e3091040113d79afc61735716c243360349570a10",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Hola! Este es mi campo.",
+      "matches": []
+    },
+    {
+      "key": "56ca56e8a99b25b68deacb0ec6ae4ddc19f2a00c20a5436021ababa0f10a5cbe",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Puedes decir: «Aquí tienes tres frutas».",
       "matches": []
     },
     {
@@ -3834,6 +3947,12 @@
       "matches": []
     },
     {
+      "key": "60966005f3ff5a9d85319257c06984516d82510a189688e336cb4b26b4da89c4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te doy las frutas",
+      "matches": []
+    },
+    {
       "key": "61382053d942404128efcd538e9e21f95cbe80f32ba17a3cb026f1cca961c89a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Quiero el harina",
@@ -3953,6 +4072,12 @@
       ]
     },
     {
+      "key": "62ee8962f137c077f35fc5430d599d1b531f8b0bb9827bf203af5ad9420c87d8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, aquí tienes la madera",
+      "matches": []
+    },
+    {
       "key": "63038d50ebd7cb1f90b745912b485ee96d5a6ecec281b3e8ff66baae4a1ff795",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, es madera",
@@ -3996,6 +4121,12 @@
       "matches": []
     },
     {
+      "key": "638df1dc0fb3d45ec73ea3f99799889a22730cfe6a70ed5136c1f40cc6a757f4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí tienes las monedas y la madera",
+      "matches": []
+    },
+    {
       "key": "639870b930001d3f73da622521e4a16e2e76a6001a9bee0747a91a6362f21244",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Tengo cuatro monedas.",
@@ -4029,6 +4160,12 @@
       "key": "6441bbc10fc268d683ca6b765f26345b0b146ebbdd7b5142f2828d20762b4f87",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde trabajas",
+      "matches": []
+    },
+    {
+      "key": "64548d9afbfc73727e73e6fc4d8580e0aa5e299f6873c39cee5cc88bb4ba4265",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí tienes la botella",
       "matches": []
     },
     {
@@ -4150,6 +4287,12 @@
       "key": "66f344546c48bf6806050dab36eabf4bf733ea4ac6cfc2bc43353bce92517998",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde encuentro la arena",
+      "matches": []
+    },
+    {
+      "key": "67554dd4cdd29bd5e56d8b77898aae50ef2f432e8edcbdbc76da404e5fee5d3e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí tienes madera",
       "matches": []
     },
     {
@@ -4417,6 +4560,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Domingo trabaja en la herrería.",
       "matches": []
+    },
+    {
+      "key": "6d1ca672da031f3bc8b4890c578fccfdc602a63fb2a7774531408c699c347462",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí tienes tres fruta",
+      "matches": [
+        {
+          "rule": "AGREEMENT_NUMERAL_PLURAL",
+          "issueType": "inconsistency",
+          "message": "Posible error de concordancia. Revise la puntuación.",
+          "offset": 17,
+          "length": 5,
+          "replacements": [
+            "frutas"
+          ]
+        }
+      ]
     },
     {
       "key": "6d23af4fc68e3411ab6b8e946436b78a63bebd7ae021c978a75040fa8acc0a38",
@@ -4963,6 +5123,12 @@
       "matches": []
     },
     {
+      "key": "7861b21af10663ffc00fac168bcb8fe0cab8ad8b7e5f2fe5300c3be8f92f4a9a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Toma la madera y las monedas",
+      "matches": []
+    },
+    {
       "key": "78d337b688759850a7f49a55c4d1f7ac0ee184f1f5851ca402255a85361ed51b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "la madera",
@@ -5253,6 +5419,12 @@
       "matches": []
     },
     {
+      "key": "7ff88f823efe2e908dfc403367683e3d44599319c5a30cc36781f3def0930e30",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí tienes el agua",
+      "matches": []
+    },
+    {
       "key": "8001e80382df43e669077390534a987ec1aa6fa9948ed2207cc86eb342fb44b7",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No entiendo",
@@ -5389,6 +5561,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Bebí agua",
       "matches": []
+    },
+    {
+      "key": "83b743227231f863db845b1c1bf2d4135295f256e403776047a6b31925b34e2d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí tienes la agua",
+      "matches": [
+        {
+          "rule": "DET_FEM_NOM_FEM",
+          "issueType": "inconsistency",
+          "message": "En este caso se usa el artículo determinado masculino.",
+          "offset": 12,
+          "length": 7,
+          "replacements": [
+            "el agua"
+          ]
+        }
+      ]
     },
     {
       "key": "83ebea45557cfc4d770d9c2ceaa5b06ec5ec239fb450ea54c6442f03960027a4",
@@ -5589,6 +5778,12 @@
       "key": "89ac1eb0757bfc969cfb1574ba3ccd635456fb810d74bc587166eaa8a4360c60",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Busco la casa",
+      "matches": []
+    },
+    {
+      "key": "89e7bd80ee64fa972375454c488efad9870449751059a83ba0e40a2a61a0e94e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí tienes cinco bloques de madera.",
       "matches": []
     },
     {
@@ -5946,6 +6141,12 @@
       "matches": []
     },
     {
+      "key": "93dd8e90f037d85a9a3e0bbd23fcab4bfafccde7c7efefbc0000330e70941bdc",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Toma la madera",
+      "matches": []
+    },
+    {
       "key": "93eda0acbfee03911ca37da4d15fccdd661f142e5f96a79ed75b9eb273076d17",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde está el campo",
@@ -5985,6 +6186,12 @@
       "key": "94cb005ca097afac0a31a19954dac42b438079fdccfe62736bfd6ec19789c6b0",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Quiero agua, por favor.",
+      "matches": []
+    },
+    {
+      "key": "9525fc45c301e4bc5508c4f0da8e225fd36b3b8bda09a3d0fc957213143919d6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí tienes las monedas",
       "matches": []
     },
     {
@@ -6566,9 +6773,21 @@
       "matches": []
     },
     {
+      "key": "a0adb8a71111e458ccd239785346b94fe33febdc23403cfadfa3596c115c9dcb",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Puedes decir: «Aquí tienes cinco bloques de madera».",
+      "matches": []
+    },
+    {
       "key": "a0bd71227ec46441caf5381b27cad6f7280364918248c805f2b9aea34ab5f1fa",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer mar pesca en el río",
+      "matches": []
+    },
+    {
+      "key": "a0cdc3de8ea344fab00271d68ad5d7875c72f6c7d760e92defda11d63e5026fc",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Puedes decir: «Aquí tienes el agua».",
       "matches": []
     },
     {
@@ -6790,6 +7009,12 @@
       "matches": []
     },
     {
+      "key": "a67e102cd65f7012462d9307f440578e57869d19b64d31e38a5ab9196bfb8dcc",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Puedes decir: «Aquí tienes la madera y las monedas».",
+      "matches": []
+    },
+    {
       "key": "a681d1fe4eb7481da0c0a0daf3c4d8ba16935467afc8d9b93863e7678a1484d2",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Es lejos",
@@ -6958,6 +7183,12 @@
       "matches": []
     },
     {
+      "key": "a9be65bbe214693052cf0609fdfba9e3cc91066cccb320234613a2600799e0cf",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Toma el agua",
+      "matches": []
+    },
+    {
       "key": "aa00bd1de9cfae21035c270c669074116b79ec9eea0597ba24b480ff113985f5",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mira bien.",
@@ -7082,6 +7313,12 @@
       ]
     },
     {
+      "key": "ad82d5f8e8c3f5336875a972b991d406fd2870ae0b8f9de65340af0dc81ad07d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí tienes dos bloques de madera y dos monedas",
+      "matches": []
+    },
+    {
       "key": "ad8e4e6e8ca92125d85ee2fcf967fc70f80c150d9a1366218c970b04cb1e3ed8",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo tengo una fruta",
@@ -7190,6 +7427,12 @@
       "matches": []
     },
     {
+      "key": "b07b7d0c4c94e12ec59952c44916268f64958c4e1be1d16cafcd739c8dfcc307",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te doy la madera",
+      "matches": []
+    },
+    {
       "key": "b09a2805c141c5009558cbdae3dc3efb2fe4bb66e7299695cc41bceb4b157804",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "La manzana es más barata",
@@ -7211,6 +7454,12 @@
       "key": "b0d2f9c17e5697a622380f49aa6def18df21247ac0e1039aee139dff0abefeba",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mira, ¿eres una espada? Se dice «soy una espada».",
+      "matches": []
+    },
+    {
+      "key": "b0df8a9ec0ba213196e00c1498ac2d85448bdafa1d7c22fc99fb6821abf5ba11",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí tienes tres frutas",
       "matches": []
     },
     {
@@ -7402,6 +7651,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "A ver, te digo.",
       "matches": []
+    },
+    {
+      "key": "b6a4eaebc41d52e2b5f3c9d3924c4dde862323d298940cc22045f8c8b54d87d5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí tienes el madera y las monedas",
+      "matches": [
+        {
+          "rule": "EL_TILDE",
+          "issueType": "misspelling",
+          "message": "El pronombre personal «él» lleva tilde.",
+          "offset": 12,
+          "length": 2,
+          "replacements": [
+            "él"
+          ]
+        }
+      ]
     },
     {
       "key": "b6e5604d04c711759caa0e2b5c6eb61025ac862e6ff757d56399fc154f887e78",
@@ -7902,6 +8168,12 @@
       "key": "c4e5486c3b3dda9e3cb721497f2de2f6d7cce583d9f730d9e59025954d11b184",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Y Mar y tú? ¿Adónde fueron ayer?",
+      "matches": []
+    },
+    {
+      "key": "c4ea51282421f585b7b52d123fb4a5130e55de3d01e9ca2bbe933eb2a456f2b3",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te doy el agua",
       "matches": []
     },
     {
@@ -8990,6 +9262,12 @@
       "matches": []
     },
     {
+      "key": "dff10562c8e6044f55adf0d1776c011d2458f3b08d66c6625eb3fbbc429a7aae",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Hola! ¿Qué tienes para mí?",
+      "matches": []
+    },
+    {
       "key": "dff8734c73d3c2f1af220624b24f9e3cdc98f3954dafd78a09facd4989cf04f4",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer luz compra pescado",
@@ -9572,6 +9850,12 @@
       "matches": []
     },
     {
+      "key": "ee2f1eec79a6b468e0b6a8375f39f98340164ed3a12c91786767a89922528e25",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí tienes las frutas",
+      "matches": []
+    },
+    {
       "key": "ee3f52c17fc70a0438caf8ec807119be069b018364eb73eb75f63cfa72e84b42",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hola otra vez. ¿Qué buscas?",
@@ -9628,6 +9912,12 @@
       "key": "ef1839b715e4ef3f6848644614818ef02ba62d83a2f7500ae43aa0322d37d29d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Seguro? Dilo otra vez.",
+      "matches": []
+    },
+    {
+      "key": "ef4021d5c682880dadc26d31acb276969303d1085d2733e75b287654838843ec",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí tienes fruta",
       "matches": []
     },
     {
@@ -10023,6 +10313,12 @@
           ]
         }
       ]
+    },
+    {
+      "key": "f7cafbcd23cd27c8263c89190292db5f5936c5d304a15a487a8a232512d5e5fd",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí tienes la madera",
+      "matches": []
     },
     {
       "key": "f7d1a12983af765c0be540a18b029082021c589027e88fb4acf093aa18461d2d",

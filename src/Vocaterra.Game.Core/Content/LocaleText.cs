@@ -54,7 +54,7 @@ public sealed class LocaleText
         "btnRepeat", "btnSlower", "btnHelp", "btnDontKnow", "btnType",
         "summaryTitle", "summaryLessons", "summaryLessonDone", "summaryLessonAdvanced", "summaryWords", "summaryUnaided", "summaryReviewed", "summaryForms", "summaryPractise",
         "summaryPractiseNoSe", "summaryPractiseSlip", "summaryPractiseSupport", "summaryPractiseNone", "summaryReplay", "summaryNone", "summaryMore",
-        "tensePres", "tensePret", "tenseImpf", "tenseFut", "person1", "person2", "person3", "singular", "plural", "retryAgain",
+        "tensePres", "tensePret", "tenseImpf", "tenseFut", "person1", "person2", "person3", "singular", "plural", "retryAgain", "handOverAsk", "handOverRetry", "handOverWrongGoods", "handOverTaken",
         "warmupTitle", "warmupOffer.one", "warmupOffer.other", "warmupStart", "warmupAsk", "warmupDone.one", "warmupDone.other", "reviewNowHud",
         "dialogueKeyHints", "coachOffPrompt", "dialogueOlder.one", "dialogueOlder.other", "dialogueAbove.one", "dialogueAbove.other", "dialogueBelow.one", "dialogueBelow.other", "dialogueButtonHints", "dialogueKeyHintsShort", "dialogueButtonHintsShort", "dialogueSpeechOffButtonHints", "dialogueSpeechOffKeyHints", "dialogueListening", "dialogueThinking",
         "dialogueYou", "dialogueYouSpoken", "supportPrefix", "supportOnHelp", "talkHint", "tipHeading", "newWord", "newWordToast", "audioSlot", "beaconDistance.one",

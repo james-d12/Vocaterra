@@ -235,6 +235,10 @@ public class LinguisticAnalyzerTests
     [InlineData("los espadas", "las")]
     [InlineData("unas escudos", "unos")]
     [InlineData("el espada roja", "la")]
+    [InlineData("la agua", "el")] // a feminine noun with a stressed a takes el and un right before it
+    [InlineData("una arma", "un")]
+    [InlineData("la hacha", "el")]
+    [InlineData("una hacha", "un")]
     public void ArticleGenderMismatchGetsTheAgreeingArticle(string text, string expected)
     {
         Assert.Equal(expected, Single(text, ErrorTags.GenderAgree).Expected);
@@ -246,9 +250,10 @@ public class LinguisticAnalyzerTests
     [InlineData("las espadas")]
     [InlineData("unos escudos")]
     [InlineData("el agua")]
-    [InlineData("la agua")]
     [InlineData("un arma")]
-    [InlineData("una arma")]
+    [InlineData("el hacha")]
+    [InlineData("las aguas")] // the plural is feminine
+    [InlineData("la fría agua")] // with a word between, the article is feminine
     [InlineData("el comerciante")]
     [InlineData("la comerciante")]
     [InlineData("dos espadas")]
@@ -285,6 +290,7 @@ public class LinguisticAnalyzerTests
     [InlineData("buenos días")]
     [InlineData("una gran espada")]
     [InlineData("mucha agua")]
+    [InlineData("esta agua")] // a demonstrative stays feminine before a stressed a
     [InlineData("mi espada")]
     [InlineData("este escudo")]
     [InlineData("esta espada")]

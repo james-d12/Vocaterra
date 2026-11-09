@@ -23,6 +23,10 @@ public sealed class OrdersAndSalesTests
 
     private const string Thanks = "¡Gracias! Toma cuatro monedas.";
 
+    private const string Asks = "¡Hola! ¿Qué tienes para mí?";
+
+    private const string HelpLine = "Puedes decir: «Aquí tienes cinco bloques de madera».";
+
     private static GameData Baker => TestGame.Data;
 
     // A session on the bundle's route, in a play session; without lessons unless asked (a lesson would take the HUD's line and the baker's talk).
@@ -106,8 +110,9 @@ public sealed class OrdersAndSalesTests
         Assert.Equal(0, early.ObjectiveStep("gated.wood")!.Count); // a gated objective counts nothing before its session
         Assert.Equal(1, early.ObjectiveStep("camp.wood")!.Count);
 
-        var opening = early.OpenTalk("baker"); // met: the order shows, and the goods the player carries are taken at once, on a day before its old session
-        Assert.True(opening.Delivered);
+        _ = early.OpenTalk("baker"); // met: the order shows, and Luz asks for the goods the player carries, on a day before its old session
+        Assert.True(early.HandOverOpen);
+        _ = early.HandOverGoods(); // handed over in Spanish (D-game-27)
         Assert.Equal(0, early.Simulation.Inventory.Count(ItemId.Wood));
 
         var due = NewSession(playSession: 5, data);
@@ -120,19 +125,33 @@ public sealed class OrdersAndSalesTests
     }
 
     [Fact]
-    public void BringingTheGoodsDeliversTheOrderTheBakerThanksAndPaysAndTheObjectiveIsDone()
+    public void BringingTheGoodsAndSayingWhatTheyAreDeliversTheOrderTheBakerThanksAndPaysAndTheObjectiveIsDone()
     {
         var session = NewSession(playSession: 5);
         _ = session.Simulation.GrantItems(ItemId.Wood, 6);
+
+        var opening = session.OpenTalk("baker"); // D-game-27 (issue #42): Luz asks for the wood; walking up takes nothing yet
+
+        Assert.False(opening.Delivered);
+        Assert.Equal([Asks], opening.Lines);
+        Assert.True(session.HandOverOpen);
+        Assert.Equal("baker-receive", session.Conversation.PromptOf("baker"));
+        Assert.Equal(6, session.Simulation.Inventory.Count(ItemId.Wood));
+        Assert.Contains(WorldEventsOf(session, WorldEvents.OrderAsked), static e => e.Npc == "baker" && e.Detail == "oven-wood");
+        Assert.Contains("aqui-tienes-cinco-bloques", session.Support.Snapshot().InPlay); // the card of the line she waits for
+
         var records = session.Conversation.RecordCount;
+        var turn = session.Say("Aquí tienes cinco bloques de madera.");
 
-        var opening = session.OpenTalkForClass("baker"); // walking up with the goods is enough: no line is asked for
-
-        Assert.True(opening.Delivered);
-        Assert.Equal([Thanks], opening.Lines);
+        Assert.Equal(("hand_over", true), (turn.Intent, turn.Communicated));
+        Assert.Equal([Thanks], turn.FollowUp);
+        Assert.False(turn.FailForward);
+        Assert.False(session.HandOverOpen);
         Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Wood));
         Assert.Equal(4, session.Simulation.Inventory.Count(ItemId.Coin));
-        Assert.Equal("baker.delivered", Assert.IsType<HostTurnEnvelope>(Assert.Single(session.Conversation.Records.Skip(records)).HostTurn).HostEvent);
+        Assert.Equal("baker.delivered", Assert.IsType<HostTurnEnvelope>(session.Conversation.Records[^1].HostTurn).HostEvent);
+        Assert.Equal(records + 2, session.Conversation.RecordCount); // the learner's line, then her thanks
+        Assert.Equal("baker-open", session.Conversation.PromptOf("baker")); // she is back in her usual state
         var world = session.Events.OfType<WorldEvent>().Where(static e => e.Name is WorldEvents.ItemTaken or WorldEvents.ItemGiven or WorldEvents.OrderDelivered).ToList();
         Assert.Equal(
             [(WorldEvents.ItemTaken, "baker", "madera, order"), (WorldEvents.ItemGiven, "baker", "moneda, order"), (WorldEvents.OrderDelivered, "baker", "oven-wood")],
@@ -143,7 +162,109 @@ public sealed class OrdersAndSalesTests
         // Delivered once: the next talk opens as usual and takes nothing.
         session.EndTalk();
         Assert.Equal([Hello], session.OpenTalkForClass("baker").Lines);
+        Assert.False(session.HandOverOpen);
         Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Wood));
+    }
+
+    [Theory]
+    [InlineData("Aquí tienes la madera.")] // A1: the count is optional
+    [InlineData("Toma la madera.")]
+    [InlineData("Te doy cinco bloques de madera.")]
+    [InlineData("Sí, aquí está la madera.")]
+    public void NamingTheGoodsWithOrWithoutTheCountHandsThemOver(string line)
+    {
+        var session = NewSession(playSession: 5);
+        _ = session.Simulation.GrantItems(ItemId.Wood, 5);
+        _ = session.OpenTalk("baker");
+
+        var turn = session.Say(line);
+
+        Assert.Equal([Thanks], turn.FollowUp);
+        Assert.True(session.Objectives.Single(o => o.Id == "oven-wood").Complete);
+    }
+
+    [Fact]
+    public void OtherGoodsAreAMissWithANoteAndTwoMissesHandTheGoodsOverAnyway()
+    {
+        var session = NewSession(playSession: 5);
+        _ = session.Simulation.GrantItems(ItemId.Wood, 5);
+        _ = session.OpenTalk("baker");
+
+        var wrong = session.Say("Aquí tienes las frutas."); // understood, but not what she asked for
+
+        Assert.Equal("hand_over", wrong.Intent);
+        Assert.Empty(wrong.Replies); // no «¡Muy bien!» for the wrong goods
+        Assert.Contains(wrong.EnglishNotes, static n => n.Contains("not what Luz asked for", StringComparison.Ordinal) && n.Contains("Aquí tienes cinco bloques de madera.", StringComparison.Ordinal));
+        Assert.True(session.HandOverOpen);
+        Assert.Equal(5, session.Simulation.Inventory.Count(ItemId.Wood));
+
+        var second = session.Say("Hola."); // not a hand-over: the second miss
+
+        Assert.True(second.FailForward); // rule 8 (D-game-8): the goods go anyway
+        Assert.Equal([Thanks], second.FollowUp);
+        Assert.Contains(second.EnglishNotes, static n => n.Contains("takes the goods anyway", StringComparison.Ordinal));
+        Assert.False(session.HandOverOpen);
+        Assert.Equal((0, 4), (session.Simulation.Inventory.Count(ItemId.Wood), session.Simulation.Inventory.Count(ItemId.Coin)));
+        Assert.Contains(session.Events.OfType<PhraseUse>(), static u => u.Kind == PhraseUseKind.FailForward && u.PhraseId == "aqui-tienes-cinco-bloques" && u.Npc == "baker");
+        Assert.True(session.Objectives.Single(o => o.Id == "oven-wood").Complete);
+    }
+
+    [Fact]
+    public void AyudaIsNoMissAndNoSeSaysTheModelAndHandsTheGoodsOver()
+    {
+        var session = NewSession(playSession: 5);
+        _ = session.Simulation.GrantItems(ItemId.Wood, 5);
+        _ = session.OpenTalk("baker");
+
+        var help = session.Say("Ayuda.");
+        var miss = session.Say("Hola."); // one miss after the help: still under the two
+
+        Assert.Equal([HelpLine], help.Replies);
+        Assert.False(miss.FailForward);
+        Assert.True(session.HandOverOpen);
+
+        var dontKnow = session.Say("No sé.");
+
+        Assert.Equal([HelpLine], dontKnow.Replies); // the model first, never shamed (D-game-9)
+        Assert.Equal([Thanks], dontKnow.FollowUp);
+        Assert.True(dontKnow.FailForward);
+        Assert.True(session.Objectives.Single(o => o.Id == "oven-wood").Complete);
+    }
+
+    [Fact]
+    public void ClosingThePanelAsksAgainAndGoodsThatAreGoneEndTheQuestion()
+    {
+        var session = NewSession(playSession: 5);
+        _ = session.Simulation.GrantItems(ItemId.Wood, 5);
+        _ = session.OpenTalk("baker");
+        _ = session.Say("Hola."); // one miss
+        session.EndTalk();
+
+        Assert.False(session.HandOverOpen);
+        Assert.Equal([Asks], session.OpenTalk("baker").Lines); // asked again, the misses counted from nothing
+        Assert.False(session.Say("Hola.").FailForward);
+        session.EndTalk();
+
+        Assert.True(session.Simulation.TakeItems(ItemId.Wood, 5)); // the wood went elsewhere while she waited
+        Assert.Equal([Hello], session.OpenTalk("baker").Lines);
+        Assert.False(session.HandOverOpen);
+        Assert.Equal("baker-open", session.Conversation.PromptOf("baker"));
+        Assert.False(session.Objectives.Single(o => o.Id == "oven-wood").Complete);
+    }
+
+    [Fact]
+    public void DomingoTakesTheWoodAndTheCoinsWhenEitherIsNamed()
+    {
+        var session = NewSession(playSession: 6);
+        _ = session.Simulation.GrantItems(ItemId.Wood, 2);
+        _ = session.Simulation.GrantItems(ItemId.Coin, 2);
+
+        Assert.Equal([Asks], session.OpenTalk("smith").Lines);
+        var turn = session.Say("Aquí tienes las monedas.");
+
+        Assert.Equal(["¡Gracias! Toma el hacha."], turn.FollowUp);
+        Assert.Equal((0, 0, 1), (session.Simulation.Inventory.Count(ItemId.Wood), session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(ItemId.Axe)));
+        Assert.True(session.Objectives.Single(o => o.Id == "axe-handle").Complete);
     }
 
     [Fact]

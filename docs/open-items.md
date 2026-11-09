@@ -5,7 +5,7 @@ not built, and the known gaps. It is an index, not a source: each row points to 
 wins if the two disagree. The orchestrator updates this page in the same change that opens or closes an item (a decision answered, a
 milestone gated, a pull request merged).
 
-Last checked against `main`: 2026-11-09 (after pull requests #46 and #47). Work on open pull requests is named but not described.
+Last checked against `main`: 2026-11-09 (after pull requests #46, #47 and #50). Work on open pull requests is named but not described.
 
 ## 1. Decisions for the owner
 
@@ -40,8 +40,8 @@ Deferred by the owner and not to be raised: core D1's remainder and D4, and D-ga
 
 | Item | What | Detail |
 | --- | --- | --- |
-| Pull requests | #50 (`feature/hand-in-speech`) and #51 (`feature/german`) are open. #48 (`feature/bug-fixes`, nine bug issues) was closed unmerged on 2026-11-09 | GitHub |
-| Listening | Every speech file (1 382 on 2026-11-09), none marked | [speech checklist](game/speech-checklist.md) |
+| Pull requests | #51 (`feature/german`) is open. #48 (`feature/bug-fixes`, nine bug issues) was closed unmerged on 2026-11-09 | GitHub |
+| Listening | Every speech file (1 414 on 2026-11-09), none marked | [speech checklist](game/speech-checklist.md) |
 | Pre-flight | The owner's pre-flight, steps 1 to 7; the next-day recall has never been run | [playtest](game/playtest.md) section 12 |
 | W11 | The bread pilot: three tester sittings, delayed recall, the go or no-go | [activities plan](game/activities-plan.md) |
 | X07 | The mic lab and the real-GPU bench: only the owner can run them (the tools are still planned) | [game plan](game/implementation-plan.md) section 4.5 |
@@ -72,7 +72,7 @@ Deferred by the owner and not to be raised: core D1's remainder and D4, and D-ga
 
 | Source | Items | Detail |
 | --- | --- | --- |
-| GitHub issues | Bugs #22, #24, #32, #33, #35, #36, #37, #43, #44 (fixed only on the closed #48's branch), #52, #53, #54; features #14, #23, #42 (pull request #50), #49 | GitHub |
+| GitHub issues | Bugs #22, #24, #32, #33, #35, #36, #37, #43, #44 (fixed only on the closed #48's branch), #52, #53, #54; features #14, #23, #49 | GitHub |
 | QA triage | QA-language-5 and 10 parked (M67b); QA-2026-11-06-ui-3 partly fixed | [QA reports](qa-reports/README.md) |
 | Core intents | «¿Tienes manzanas?» reads as `state_have`; «quiero algo de beber», «¿me enseñas a hacer pan?», «soy Pedro» and «Gracias, adiós.» are unknown | [game findings](game/findings.md) (W04b, W08), [core findings](nlp/findings.md) (M78) |
 | Core analysis | `fue` (ir or ser) not told apart; `nos veo`; `[WORD]` takes a mis-conjugated verb; recasts drop ¿ ? | [known gaps](nlp/known-gaps.md), [core findings](nlp/findings.md) |

@@ -33,8 +33,9 @@ public sealed class LoadKeepsDayTests
         Assert.Equal(5, loaded.Day);
         Assert.Equal(6, loaded.Sitting);
         Assert.Equal(session.CurrentObjective!.Id, loaded.CurrentObjective!.Id);
-        var opening = loaded.OpenTalk("baker");
-        Assert.True(opening.Delivered); // «Necesitas más monedas.» before the fix: the order had moved on to day 6
+        _ = loaded.OpenTalk("baker");
+        Assert.True(loaded.HandOverOpen); // «Necesitas más monedas.» before the fix: the order had moved on to day 6; now Luz asks for the wood (D-game-27)
+        _ = loaded.HandOverGoods();
         Assert.True(loaded.Objectives.Single(o => o.Id == "oven-wood").Complete);
     }
 

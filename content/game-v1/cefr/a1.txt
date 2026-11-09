@@ -198,6 +198,7 @@ mercado
 mes
 mesa
 mi
+mí
 minuto
 mirar
 mismo
@@ -298,6 +299,7 @@ te
 teléfono
 tener
 terminar
+ti
 tiempo
 tienda
 todavía

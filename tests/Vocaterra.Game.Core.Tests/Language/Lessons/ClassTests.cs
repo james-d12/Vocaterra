@@ -170,7 +170,9 @@ public sealed class ClassTests
         var opening = session.OpenTalk("fisher");
 
         Assert.True(session.Shown(order.Spec));
-        Assert.True(opening.Delivered); // no lesson and no day holds it
+        Assert.True(session.HandOverOpen); // no lesson and no day holds it: Mar asks for the fruit at once (D-game-27)
+        Assert.Equal(["¡Hola! ¿Qué tienes para mí?"], opening.Lines);
+        _ = session.HandOverGoods();
         Assert.True(order.Complete);
     }
 

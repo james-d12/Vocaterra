@@ -61,6 +61,15 @@ public interface INumberWords
     /// <param name="words">The number spelled by <see cref="ToWords"/>.</param>
     /// <param name="gender">The gender of the noun, <c>m</c> or <c>f</c>.</param>
     string Agree(string words, string gender);
+
+    /// <summary>
+    /// Like <see cref="Agree(string, string)"/>, for a number directly before its noun, whose lemma may change the form (Spanish: <c>un hada</c>, <c>un hacha</c>: a feminine
+    /// noun that starts with a stressed a takes <c>un</c>, issue #42). A language with no such rule keeps the default, which ignores the noun.
+    /// </summary>
+    /// <param name="words">The number spelled by <see cref="ToWords"/>.</param>
+    /// <param name="gender">The gender of the noun, <c>m</c> or <c>f</c>.</param>
+    /// <param name="nounLemma">The lemma of the singular noun right after the number.</param>
+    string Agree(string words, string gender, string nounLemma) => Agree(words, gender);
 }
 
 /// <summary>A sound-alike key: words that sound alike share a key.</summary>
