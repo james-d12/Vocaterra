@@ -30,8 +30,8 @@ public static class BookSpeakers
     }
 
     /// <summary>
-    /// The rows the selection moves over (S28): the rows with a speaker button, and on the verbs page the verbs themselves (choosing one shows its table).
-    /// Their indexes are lines' indexes; on every other page this is <see cref="Speakable"/>.
+    /// The rows the selection moves over (S28, U07): the entries of the list (<see cref="BookLineKind.Entry"/>), each of which the right page details. The Phrases page's "Review now"
+    /// line is an entry with a button of its own and is not selected. Their indexes are lines' indexes.
     /// </summary>
     /// <param name="lines">The page's list.</param>
     public static IReadOnlyList<int> Selectable(IReadOnlyList<BookLine> lines)
@@ -40,7 +40,7 @@ public static class BookSpeakers
         var result = new List<int>();
         for (var i = 0; i < lines.Count; i++)
         {
-            if (lines[i].Speak is not null || lines[i].Verb is not null)
+            if (lines[i].Kind == BookLineKind.Entry && !string.Equals(lines[i].Practise, BookPractise.ReviewNow, StringComparison.Ordinal))
             {
                 result.Add(i);
             }

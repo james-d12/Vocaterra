@@ -170,7 +170,7 @@ public sealed class BookModelTests
         var panel = geometry.Panel;
 
         Assert.Equal(BookGeometry.MaxPanelWidth, panel.Width);
-        Assert.True(geometry.LinesVisible >= 25, $"{geometry.LinesVisible} lines");
+        Assert.Equal(28, geometry.LinesVisible); // U07: the 32 px title takes a row (29 before)
         Assert.True(geometry.TabRect(BookPage.Said).Right <= panel.Right - BookGeometry.Padding, "the last tab fits the panel");
         Assert.True(geometry.ContentBottom <= panel.Bottom - 40, "the key hints sit under the content");
         Assert.InRange(panel.Y, 0, 720);
@@ -245,7 +245,7 @@ public sealed class BookModelTests
         var geometry = new BookGeometry(800, 600);
         Assert.True(geometry.Panel.X >= 0);
         Assert.True(geometry.Panel.Right <= 800);
-        Assert.True(geometry.LinesVisible >= 20);
+        Assert.Equal(22, geometry.LinesVisible);
     }
 
     private static BookModel OpenBook()

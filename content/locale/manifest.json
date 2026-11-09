@@ -8,7 +8,7 @@
 {"path":"en/nouns.json","sha256":"bc0721796976291c88ef6d71c5ae616a1c63b17e82c0715ec44bb1e2e6a10b0c","bytes":740},
 {"path":"en/phrases.json","sha256":"766e679502a25f11034651788264123233e091a89dd11e827719f87f6ff31675","bytes":54159},
 {"path":"en/tips.json","sha256":"3ceb4995e72a47b5dc30faf69321fa9016194adf28bea7ed7d300d916a7a21d0","bytes":1636},
-{"path":"en/ui.json","sha256":"9056cfeb95049a0df5e7dbb51fe6ae921dde591969d0a530041e1464aa0ccfaf","bytes":19346},
+{"path":"en/ui.json","sha256":"c82354b393ff43ebfae45c648ff0a7d06ffd3df5a4eabd53214421eeed3be17e","bytes":21403},
 {"path":"en/verbs.json","sha256":"f6f7f20c7f21cceb323c8c9bc92e9def0c88980ae3f8382c7a2e1f20233b4158","bytes":5034},
 {"path":"locales.json","sha256":"009b08490bd45e1514538fd17ffc2b3e222b4fdc569182220ad6278fed2fd8ff","bytes":304}
-],"bundleHash":"321768a5dc7d941c868da0a67948f59b67e9faf1e855347b2f8e81a7066533c1"}
+],"bundleHash":"46eb0567bfb3db2555d51ac843996f0b49faf857165990f181323a271cbe5a7b"}

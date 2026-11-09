@@ -294,6 +294,21 @@ public sealed class ScenarioScript
                 _dialogue.ToggleExpanded();
                 _index++;
                 break;
+            case ScriptStepKind.Scroll:
+                for (var n = int.Parse(step.Value, System.Globalization.CultureInfo.InvariantCulture); n != 0; n += n > 0 ? -1 : 1)
+                {
+                    if (n > 0)
+                    {
+                        _dialogue.ScrollOlder();
+                    }
+                    else
+                    {
+                        _dialogue.ScrollNewer();
+                    }
+                }
+
+                _index++;
+                break;
             case ScriptStepKind.LessonStart:
                 if (!_dialogue.IsOpen)
                 {

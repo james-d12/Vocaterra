@@ -59,7 +59,7 @@ public sealed class PanelFitLayoutTests
     [Fact]
     public void TheHiddenLinesRowReadsSingularForOneLine()
     {
-        Assert.Equal("1 earlier line hidden (PageUp or O)", TestGame.Data.Locale.Plural("ui.dialogueOlder", 1));
-        Assert.Equal("3 earlier lines hidden (PageUp or O)", TestGame.Data.Locale.Plural("ui.dialogueOlder", 3));
+        Assert.Equal("1 earlier line hidden (scroll up or PageUp)", TestGame.Data.Locale.Plural("ui.dialogueOlder", 1));
+        Assert.Equal("3 earlier lines hidden (scroll up or PageUp)", TestGame.Data.Locale.Plural("ui.dialogueOlder", 3));
     }
 }
