@@ -156,7 +156,6 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
     [Fact]
     public void OpenFallback_LeavesATrustedFirstReadingAlone_AndOtherwiseKeepsTheBetterOfTwoReadings()
     {
-        var diagnostics = new FuzzDiagnostics();
         var iterations = FuzzOptions.Iterations(FuzzOptions.PipelineVar, FuzzOptions.PipelineDefault);
         var confidences = Gen.Double[0.0, 1.0].Array[0, 8];
         var floors = Gen.OneOfConst(PipelineOptions.DefaultOpenPassWordFloor, PipelineOptions.DefaultOpenPassWordFloor, 0.0, 0.8, 1.0);
@@ -164,124 +163,20 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
         var coverages = Gen.OneOfConst(PipelineOptions.DefaultOpenPassMinCoverage, PipelineOptions.DefaultOpenPassMinCoverage, 0.0, 0.8, 1.0);
         var gen = Gen.Select(PipelineGen.Case(Harness), PipelineGen.Case(Harness), confidences, floors, spans, coverages, Gen.Bool, Gen.Int[0, 3], static (a, b, w, f, span, coverage, loose, same) => (a, b, w, f, span, coverage, loose, same == 0));
 
-        gen.Sample(
-            ((PipelineCase First, PipelineCase Second, double[] Confidences, double Floor, double Span, double MinCoverage, bool Loose, bool SameText) input) =>
-            {
-                var c = input.First with { HostTurn = false, TwoPhase = false };
-                var freeTranscript = input.SameText ? c.Transcript : input.Second.Transcript; // the same words heard twice give the same intent
-                var floor = input.Floor;
-                var prompt = Harness.Prompt(c.PromptId);
-                var clip = PipelineHarness.Clip();
-                var context = BaseContext(c);
+        // The oracle on random seeds, as it always ran. Its counts are only printed: a reach count on a random seed is chance, so it is not asserted.
+        var randomDiagnostics = new FuzzDiagnostics();
+        gen.Sample(input => CheckOpenFallback(input, randomDiagnostics), writeLine: output.WriteLine, iter: iterations, threads: 1);
+        output.WriteLine("Open fallback diagnostics (random seeds):\n" + randomDiagnostics.Report());
 
-                var constrainedAsr = Timed(c.Transcript, RecognitionMode.Constrained, input.Span);
-                var freeAsr = Asr(freeTranscript, RecognitionMode.Open, input.Confidences);
-                var bothOff = Fallback(c, prompt, new ScriptedWordRecognizer(constrainedAsr, freeAsr), false, floor);
-                var bothOn = Fallback(c, prompt, new ScriptedWordRecognizer(constrainedAsr, freeAsr), true, floor, input.Loose, input.MinCoverage);
-                PipelineTrace off;
-                UtteranceAnalysis offAnalysis;
-                UtteranceAnalysis analysis;
-                PipelineTrace on;
-                try
-                {
-                    offAnalysis = bothOff.Pipeline.Analyze(clip, prompt);
-                    off = bothOff.Pipeline.Trace(clip, prompt, context);
-                    analysis = bothOn.Pipeline.Analyze(clip, prompt);
-                    on = bothOn.Pipeline.CompleteTrace(analysis, context);
-                }
-                catch (Exception ex)
-                {
-                    throw Determinism.Fail(Oracle, $"The pipeline threw {ex.GetType().Name}: {ex.Message}", c);
-                }
+        // The reach (M89): the same oracle on one case per fixed seed, so the counts are the same on every run and a miss means the generator changed.
+        var diagnostics = new FuzzDiagnostics();
+        for (var i = 0; i < ReachCases; i++)
+        {
+            gen.Sample(input => CheckOpenFallback(input, diagnostics), iter: 1, threads: 1, seed: ReachSeed(i));
+        }
 
-                var calls = bothOn.Recognizer.CallCount;
-                if (bothOff.Recognizer.CallCount != 2)
-                {
-                    throw Determinism.Fail(Oracle, $"With the option off the recognizer was called {bothOff.Recognizer.CallCount} times for two analyses.", c);
-                }
-
-                var firstTaken = off.Result.Verdict.Communicated || off.Result.Verdict.OffPromptIntent is not null;
-                var constrainedPrompt = prompt.Mode == RecognitionMode.Constrained;
-                // M84, worked out here from the option-off analysis and the generated timings (the one-second tone is voiced throughout): a loose answer match, or words that
-                // cover less of the second than the option says.
-                var loose = input.Loose && offAnalysis.Answer.Type is MatchType.None or MatchType.Fuzzy;
-                var covered = CoverageOfTone(constrainedAsr);
-                var sparse = input.MinCoverage > 0.0 && covered is { } share && share < input.MinCoverage;
-                var forced = constrainedPrompt && firstTaken && (loose || sparse);
-                if (constrainedPrompt && firstTaken && !forced || !constrainedPrompt)
-                {
-                    diagnostics.Count(constrainedPrompt ? "fallback:first-trusted" : "fallback:open-prompt");
-                    if (calls != 1 || analysis.OtherPass is not null)
-                    {
-                        throw Determinism.Fail(Oracle, $"A first reading that is taken and not forced-looking (or an open prompt) must decode once; the recognizer was called {calls} times.", c);
-                    }
-
-                    Determinism.AssertSame(Oracle, "A trusted first reading with the option on against off", c, () => (off.Result, off.Asr, off.Posteriors), () => (on.Result, on.Asr, on.Posteriors));
-                    return;
-                }
-
-                if (calls != 2 || bothOn.Recognizer.Requests[1].Mode != RecognitionMode.Open || analysis.OtherPass is null)
-                {
-                    throw Determinism.Fail(Oracle, $"A first reading that is not taken or looks forced must be followed by one open decode; {calls} calls.", c);
-                }
-
-                // What the free recognition gives when it is read first (the option off, one decode of it).
-                var asFirst = Fallback(c, prompt, new ScriptedWordRecognizer(freeAsr), false, floor).Pipeline.Trace(clip, prompt, context);
-                var readTaken = asFirst.Result.Verdict.Communicated || asFirst.Result.Verdict.OffPromptIntent is not null;
-                var floorCleared = floor <= 0.0 || (freeAsr.Words.Count > 0 && freeAsr.Words.Min(static w => w.Confidence) >= floor);
-                var otherIntent = !firstTaken || TakenIntent(asFirst.Result.Verdict) != TakenIntent(off.Result.Verdict);
-                if (readTaken && !floorCleared)
-                {
-                    diagnostics.Count("fallback:second-under-floor");
-                }
-
-                if (on.Asr.Mode == RecognitionMode.Open && floor > 0.0 && (on.Asr.Words.Count == 0 || on.Asr.Words.Any(w => w.Confidence < floor)))
-                {
-                    throw Determinism.Fail(Oracle, $"A free reading was taken with a word under the floor {floor} (or none at all).", c);
-                }
-
-                if (firstTaken && on.Asr.Mode == RecognitionMode.Open && TakenIntent(on.Result.Verdict) == TakenIntent(off.Result.Verdict))
-                {
-                    throw Determinism.Fail(Oracle, "A free reading replaced a taken reading of the same intent.", c);
-                }
-
-                if (readTaken && floorCleared && otherIntent)
-                {
-                    diagnostics.Count(firstTaken ? "fallback:forced-replaced" : "fallback:second-chosen");
-                    if (on.Asr.Mode != RecognitionMode.Open || analysis.OtherPass.Mode != RecognitionMode.Constrained)
-                    {
-                        throw Determinism.Fail(Oracle, "A free reading that is taken must be the recognition of the analysis, with the constrained one as the other pass.", c);
-                    }
-
-                    Determinism.AssertSame(Oracle, "A taken free reading against the same recognition read first", c, () => (asFirst.Result, asFirst.Asr), () => (on.Result, on.Asr));
-                }
-                else
-                {
-                    diagnostics.Count(firstTaken ? (readTaken && floorCleared ? "fallback:forced-same-intent" : "fallback:forced-rejected") : "fallback:second-rejected");
-                    if (analysis.OtherPass.Mode != RecognitionMode.Open)
-                    {
-                        throw Determinism.Fail(Oracle, "A free reading that is not taken must be reported as the other pass.", c);
-                    }
-
-                    Determinism.AssertSame(Oracle, "A free reading that does not win against the option off", c, () => (off.Result, off.Asr, off.Posteriors), () => (on.Result, on.Asr, on.Posteriors));
-                }
-
-                if (sparse && !loose)
-                {
-                    diagnostics.Count("fallback:sparse-coverage");
-                }
-
-                if (loose)
-                {
-                    diagnostics.Count("fallback:loose-match");
-                }
-            },
-            writeLine: output.WriteLine,
-            iter: iterations,
-            threads: 1);
-
-        output.WriteLine("Open fallback diagnostics:\n" + diagnostics.Report());
-        var minimum = Math.Max(1, Math.Min(5, iterations / 60));
+        output.WriteLine("Open fallback diagnostics (fixed seeds):\n" + diagnostics.Report());
+        var minimum = Math.Max(1, Math.Min(5, ReachCases / 60));
         foreach (var key in new[]
         {
             "fallback:first-trusted", "fallback:open-prompt", "fallback:second-chosen", "fallback:second-rejected", "fallback:second-under-floor",
@@ -289,6 +184,125 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
         })
         {
             Assert.True(diagnostics.Get(key) >= minimum, $"The generator no longer reaches {key}.\n{diagnostics.Report()}");
+        }
+    }
+
+    // The reach check of the open fallback (M89): one case at each of ReachCases fixed seeds. CsCheck seeds only the first iteration of a Sample (the later ones draw
+    // from its own state, which is not reproducible even within one process), so a case per seed is what makes the counts the same on every run.
+    private const int ReachCases = FuzzOptions.PipelineDefault;
+
+    private static string ReachSeed(int i) => "M89R" + i.ToString("D8", System.Globalization.CultureInfo.InvariantCulture);
+
+    // The oracle of the open fallback for one generated case: the same checks on random or fixed seeds, counting the branches it reaches.
+    private void CheckOpenFallback((PipelineCase First, PipelineCase Second, double[] Confidences, double Floor, double Span, double MinCoverage, bool Loose, bool SameText) input, FuzzDiagnostics diagnostics)
+    {
+        var c = input.First with { HostTurn = false, TwoPhase = false };
+        var freeTranscript = input.SameText ? c.Transcript : input.Second.Transcript; // the same words heard twice give the same intent
+        var floor = input.Floor;
+        var prompt = Harness.Prompt(c.PromptId);
+        var clip = PipelineHarness.Clip();
+        var context = BaseContext(c);
+
+        var constrainedAsr = Timed(c.Transcript, RecognitionMode.Constrained, input.Span);
+        var freeAsr = Asr(freeTranscript, RecognitionMode.Open, input.Confidences);
+        var bothOff = Fallback(c, prompt, new ScriptedWordRecognizer(constrainedAsr, freeAsr), false, floor);
+        var bothOn = Fallback(c, prompt, new ScriptedWordRecognizer(constrainedAsr, freeAsr), true, floor, input.Loose, input.MinCoverage);
+        PipelineTrace off;
+        UtteranceAnalysis offAnalysis;
+        UtteranceAnalysis analysis;
+        PipelineTrace on;
+        try
+        {
+            offAnalysis = bothOff.Pipeline.Analyze(clip, prompt);
+            off = bothOff.Pipeline.Trace(clip, prompt, context);
+            analysis = bothOn.Pipeline.Analyze(clip, prompt);
+            on = bothOn.Pipeline.CompleteTrace(analysis, context);
+        }
+        catch (Exception ex)
+        {
+            throw Determinism.Fail(Oracle, $"The pipeline threw {ex.GetType().Name}: {ex.Message}", c);
+        }
+
+        var calls = bothOn.Recognizer.CallCount;
+        if (bothOff.Recognizer.CallCount != 2)
+        {
+            throw Determinism.Fail(Oracle, $"With the option off the recognizer was called {bothOff.Recognizer.CallCount} times for two analyses.", c);
+        }
+
+        var firstTaken = off.Result.Verdict.Communicated || off.Result.Verdict.OffPromptIntent is not null;
+        var constrainedPrompt = prompt.Mode == RecognitionMode.Constrained;
+        // M84, worked out here from the option-off analysis and the generated timings (the one-second tone is voiced throughout): a loose answer match, or words that
+        // cover less of the second than the option says.
+        var loose = input.Loose && offAnalysis.Answer.Type is MatchType.None or MatchType.Fuzzy;
+        var covered = CoverageOfTone(constrainedAsr);
+        var sparse = input.MinCoverage > 0.0 && covered is { } share && share < input.MinCoverage;
+        var forced = constrainedPrompt && firstTaken && (loose || sparse);
+        if (constrainedPrompt && firstTaken && !forced || !constrainedPrompt)
+        {
+            diagnostics.Count(constrainedPrompt ? "fallback:first-trusted" : "fallback:open-prompt");
+            if (calls != 1 || analysis.OtherPass is not null)
+            {
+                throw Determinism.Fail(Oracle, $"A first reading that is taken and not forced-looking (or an open prompt) must decode once; the recognizer was called {calls} times.", c);
+            }
+
+            Determinism.AssertSame(Oracle, "A trusted first reading with the option on against off", c, () => (off.Result, off.Asr, off.Posteriors), () => (on.Result, on.Asr, on.Posteriors));
+            return;
+        }
+
+        if (calls != 2 || bothOn.Recognizer.Requests[1].Mode != RecognitionMode.Open || analysis.OtherPass is null)
+        {
+            throw Determinism.Fail(Oracle, $"A first reading that is not taken or looks forced must be followed by one open decode; {calls} calls.", c);
+        }
+
+        // What the free recognition gives when it is read first (the option off, one decode of it).
+        var asFirst = Fallback(c, prompt, new ScriptedWordRecognizer(freeAsr), false, floor).Pipeline.Trace(clip, prompt, context);
+        var readTaken = asFirst.Result.Verdict.Communicated || asFirst.Result.Verdict.OffPromptIntent is not null;
+        var floorCleared = floor <= 0.0 || (freeAsr.Words.Count > 0 && freeAsr.Words.Min(static w => w.Confidence) >= floor);
+        var otherIntent = !firstTaken || TakenIntent(asFirst.Result.Verdict) != TakenIntent(off.Result.Verdict);
+        if (readTaken && !floorCleared)
+        {
+            diagnostics.Count("fallback:second-under-floor");
+        }
+
+        if (on.Asr.Mode == RecognitionMode.Open && floor > 0.0 && (on.Asr.Words.Count == 0 || on.Asr.Words.Any(w => w.Confidence < floor)))
+        {
+            throw Determinism.Fail(Oracle, $"A free reading was taken with a word under the floor {floor} (or none at all).", c);
+        }
+
+        if (firstTaken && on.Asr.Mode == RecognitionMode.Open && TakenIntent(on.Result.Verdict) == TakenIntent(off.Result.Verdict))
+        {
+            throw Determinism.Fail(Oracle, "A free reading replaced a taken reading of the same intent.", c);
+        }
+
+        if (readTaken && floorCleared && otherIntent)
+        {
+            diagnostics.Count(firstTaken ? "fallback:forced-replaced" : "fallback:second-chosen");
+            if (on.Asr.Mode != RecognitionMode.Open || analysis.OtherPass.Mode != RecognitionMode.Constrained)
+            {
+                throw Determinism.Fail(Oracle, "A free reading that is taken must be the recognition of the analysis, with the constrained one as the other pass.", c);
+            }
+
+            Determinism.AssertSame(Oracle, "A taken free reading against the same recognition read first", c, () => (asFirst.Result, asFirst.Asr), () => (on.Result, on.Asr));
+        }
+        else
+        {
+            diagnostics.Count(firstTaken ? (readTaken && floorCleared ? "fallback:forced-same-intent" : "fallback:forced-rejected") : "fallback:second-rejected");
+            if (analysis.OtherPass.Mode != RecognitionMode.Open)
+            {
+                throw Determinism.Fail(Oracle, "A free reading that is not taken must be reported as the other pass.", c);
+            }
+
+            Determinism.AssertSame(Oracle, "A free reading that does not win against the option off", c, () => (off.Result, off.Asr, off.Posteriors), () => (on.Result, on.Asr, on.Posteriors));
+        }
+
+        if (sparse && !loose)
+        {
+            diagnostics.Count("fallback:sparse-coverage");
+        }
+
+        if (loose)
+        {
+            diagnostics.Count("fallback:loose-match");
         }
     }
 
