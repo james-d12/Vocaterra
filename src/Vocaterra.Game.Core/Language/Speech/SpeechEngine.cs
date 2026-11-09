@@ -8,9 +8,10 @@ using Vocaterra.Nlp.Response.Speech;
 namespace Vocaterra.Game.Core.Language.Speech;
 
 /// <summary>
-/// The speech models the game runs, loaded from the models folder (<c>VOCATERRA_MODELS_DIR</c>, the core's <see cref="ModelStore"/>): Vosk
-/// small Spanish for the player's voice, and Kokoro (speaker 28, <c>ef_dora</c>) behind the core's <see cref="CachedSynthesizer"/> for the
-/// scripted <c>--speak</c> lines (and, in P8, the guide's voice).
+/// The speech models the game runs, loaded from the models folder (<c>VOCATERRA_MODELS_DIR</c>, the core's <see cref="ModelStore"/>): the
+/// recognizer for the player's voice, and the synthesizer behind the core's <see cref="CachedSynthesizer"/> for the scripted <c>--speak</c> lines
+/// (and, in P8, the guide's voice). Which models, and the guide's voice, are the bundle's <see cref="SpeechTable"/> (T04, <c>game/speech.json</c>):
+/// for Spanish Vosk small Spanish and Kokoro speaker 28, <c>ef_dora</c>.
 /// </summary>
 /// <remarks>
 /// <b>Threads.</b> The recognizer loads in its constructor, is not safe for concurrent calls and must not be disposed while a call may run
@@ -20,28 +21,18 @@ namespace Vocaterra.Game.Core.Language.Speech;
 /// </remarks>
 public sealed class SpeechEngine : IDisposable
 {
-    /// <summary>The Vosk model's id in the models folder.</summary>
-    public const string VoskModelId = "vosk-model-small-es-0.42";
-
-    /// <summary>The Kokoro model's id in the models folder.</summary>
-    public const string KokoroModelId = "kokoro-multi-lang-v1_0";
-
-    /// <summary>Kokoro's Spanish female voice, <c>ef_dora</c> (core API section 6).</summary>
-    public const int KokoroSpeaker = 28;
-
-    /// <summary>The voice label that goes into the cache key.</summary>
-    public const string VoiceId = "ef_dora";
-
     private readonly ModelStore _store;
+    private readonly SpeechTable _table;
     private readonly TimedRecognizer _recognizer;
     private readonly string _cacheDirectory;
     private CachedSynthesizer? _synthesizer;
     private KokoroSynthesizer? _kokoro;
     private bool _disposed;
 
-    private SpeechEngine(ModelStore store, VoskWordRecognizer vosk, Func<double>? clock, string cacheDirectory)
+    private SpeechEngine(ModelStore store, SpeechTable table, VoskWordRecognizer vosk, Func<double>? clock, string cacheDirectory)
     {
         _store = store;
+        _table = table;
         _recognizer = new TimedRecognizer(vosk, clock);
         _cacheDirectory = cacheDirectory;
     }
@@ -59,7 +50,7 @@ public sealed class SpeechEngine : IDisposable
     public void BeginTurn() => _recognizer.Reset();
 
     /// <summary>Whether the Kokoro model is in the models folder (a missing model only disables <see cref="Synthesize"/>).</summary>
-    public bool CanSpeak => Directory.Exists(_store.ModelDirectory(KokoroModelId));
+    public bool CanSpeak => Directory.Exists(_store.ModelDirectory(_table.TtsModel));
 
     /// <summary>The folder of the synthesis cache.</summary>
     public string CacheDirectory => _cacheDirectory;
@@ -80,17 +71,20 @@ public sealed class SpeechEngine : IDisposable
     /// The models store named by <c>VOCATERRA_MODELS_DIR</c> and the Vosk model inside it, or the reason there is none. A cheap check: nothing is
     /// loaded.
     /// </summary>
+    /// <param name="table">The speech table of the bundle: its recognizer is the model that must be there.</param>
     /// <param name="problem">When the result is <see langword="null"/>, why (a message for the player, in Spanish).</param>
-    public static ModelStore? FindModels(out string? problem) => FindModels(Environment.GetEnvironmentVariable, out problem);
+    public static ModelStore? FindModels(SpeechTable table, out string? problem) => FindModels(table, Environment.GetEnvironmentVariable, out problem);
 
     /// <summary>
     /// The same check with the variables read through <paramref name="getVariable"/> (S17b): a test passes its own values and never changes the process
     /// environment, which other tests read in parallel.
     /// </summary>
+    /// <param name="table">The speech table of the bundle.</param>
     /// <param name="getVariable">The environment's variable reader (<see cref="Environment.GetEnvironmentVariable(string)"/> in the game).</param>
     /// <param name="problem">When the result is <see langword="null"/>, why (a message for the player, in English).</param>
-    public static ModelStore? FindModels(Func<string, string?> getVariable, out string? problem)
+    public static ModelStore? FindModels(SpeechTable table, Func<string, string?> getVariable, out string? problem)
     {
+        ArgumentNullException.ThrowIfNull(table);
         ArgumentNullException.ThrowIfNull(getVariable);
         ModelStore? store;
         try
@@ -117,15 +111,16 @@ public sealed class SpeechEngine : IDisposable
             return null;
         }
 
-        if (!Directory.Exists(store.ModelDirectory(VoskModelId)))
+        var asrModel = table.AsrModel;
+        if (!Directory.Exists(store.ModelDirectory(asrModel)))
         {
-            problem = $"Speech model {VoskModelId} is missing from {store.RootDirectory}. You can still type.";
+            problem = $"Speech model {asrModel} is missing from {store.RootDirectory}. You can still type.";
             return null;
         }
 
-        if (store.Manifest.Find(VoskModelId) is null)
+        if (store.Manifest.Find(asrModel) is null)
         {
-            problem = $"The models manifest does not list {VoskModelId} (put manifest.json in {store.RootDirectory}, or set {ManifestVariable}). You can still type.";
+            problem = $"The models manifest does not list {asrModel} (put manifest.json in {store.RootDirectory}, or set {ManifestVariable}). You can still type.";
             return null;
         }
 
@@ -147,7 +142,7 @@ public sealed class SpeechEngine : IDisposable
     /// </summary>
     public static string? ManifestPath(string modelsRoot) => ManifestPath(modelsRoot, Environment.GetEnvironmentVariable);
 
-    /// <summary>The manifest lookup with the variable read through <paramref name="getVariable"/> (S17b; see <see cref="FindModels(Func{string, string?}, out string?)"/>).</summary>
+    /// <summary>The manifest lookup with the variable read through <paramref name="getVariable"/> (S17b; see <see cref="FindModels(SpeechTable, Func{string, string?}, out string?)"/>).</summary>
     /// <param name="modelsRoot">The models folder.</param>
     /// <param name="getVariable">The variable reader.</param>
     public static string? ManifestPath(string modelsRoot, Func<string, string?> getVariable)
@@ -163,6 +158,11 @@ public sealed class SpeechEngine : IDisposable
             return File.Exists(named) ? named : null;
         }
 
+        return WalkUpForManifest();
+    }
+
+    private static string? WalkUpForManifest()
+    {
         foreach (var start in new[] { AppContext.BaseDirectory, Directory.GetCurrentDirectory() })
         {
             for (var directory = new DirectoryInfo(start); directory is not null; directory = directory.Parent)
@@ -179,15 +179,42 @@ public sealed class SpeechEngine : IDisposable
     }
 
     /// <summary>
+    /// The models manifest the content validation checks the speech table against (T04): the models folder's own <c>manifest.json</c>, else the file
+    /// <see cref="ManifestVariable"/> names, else the core's <c>models/manifest.json</c> found by walking up. <see langword="null"/> when none is there or it
+    /// cannot be read (the table's model ids then go unchecked).
+    /// </summary>
+    /// <param name="getVariable">The variable reader (<see cref="Environment.GetEnvironmentVariable(string)"/> in the game).</param>
+    public static ModelManifest? FindManifest(Func<string, string?> getVariable)
+    {
+        ArgumentNullException.ThrowIfNull(getVariable);
+        try
+        {
+            var root = ModelStore.RootFromEnvironment(getVariable);
+            var own = root is null ? null : Path.Combine(root, ModelStore.ManifestFileName);
+            var named = getVariable(ManifestVariable);
+            var path = own is not null && File.Exists(own) ? own
+                : !string.IsNullOrWhiteSpace(named) && File.Exists(named) ? named
+                : WalkUpForManifest();
+            return path is null ? null : ModelManifest.Load(path);
+        }
+        catch (Exception ex) when (ex is IOException or InvalidDataException or System.Text.Json.JsonException or UnauthorizedAccessException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
     /// Loads the Vosk model from the models folder (a second or two) and returns the engine, or <see langword="null"/> with the reason when
     /// there is no models folder or no Vosk model. Call it on the thread that will use the engine.
     /// </summary>
+    /// <param name="table">The speech table of the bundle: the recognizer to load and the synthesizer's voice.</param>
     /// <param name="problem">When the result is <see langword="null"/>, why (a message for the player, in Spanish).</param>
     /// <param name="clockMilliseconds">A clock for the timings only (the front-end's); nothing in an evaluation reads it.</param>
     /// <param name="cacheDirectory">The synthesis cache folder, or <see langword="null"/> for <see cref="DefaultCacheDirectory"/>.</param>
-    public static SpeechEngine? TryCreate(out string? problem, Func<double>? clockMilliseconds = null, string? cacheDirectory = null)
+    public static SpeechEngine? TryCreate(SpeechTable table, out string? problem, Func<double>? clockMilliseconds = null, string? cacheDirectory = null)
     {
-        var store = FindModels(out problem);
+        ArgumentNullException.ThrowIfNull(table);
+        var store = FindModels(table, out problem);
         if (store is null)
         {
             return null;
@@ -195,9 +222,9 @@ public sealed class SpeechEngine : IDisposable
 
         try
         {
-            var vosk = VoskWordRecognizer.FromStore(store, VoskModelId);
+            var vosk = VoskWordRecognizer.FromStore(store, table.AsrModel);
             problem = null;
-            return new SpeechEngine(store, vosk, clockMilliseconds, cacheDirectory ?? DefaultCacheDirectory());
+            return new SpeechEngine(store, table, vosk, clockMilliseconds, cacheDirectory ?? DefaultCacheDirectory());
         }
         catch (Exception ex) when (ex is IOException or DllNotFoundException or BadImageFormatException or InvalidOperationException or KeyNotFoundException or TypeInitializationException)
         {
@@ -221,15 +248,15 @@ public sealed class SpeechEngine : IDisposable
         {
             if (!CanSpeak)
             {
-                throw new InvalidOperationException($"Speech model {KokoroModelId} is missing from {_store.RootDirectory}.");
+                throw new InvalidOperationException($"Speech model {_table.TtsModel} is missing from {_store.RootDirectory}.");
             }
 
-            _kokoro = KokoroSynthesizer.FromStore(_store, KokoroModelId, KokoroSpeaker);
+            _kokoro = KokoroSynthesizer.FromStore(_store, _table.TtsModel, _table.GuideVoice.Speaker);
             _synthesizer = new CachedSynthesizer(_kokoro, new DirectorySynthesisCache(_cacheDirectory));
         }
 
         var before = _synthesizer.Hits;
-        var audio = _synthesizer.Synthesize(new SynthesisRequest(text, VoiceId, null));
+        var audio = _synthesizer.Synthesize(new SynthesisRequest(text, _table.GuideVoice.VoiceId, null));
         cached = _synthesizer.Hits > before;
         return AudioClips.Prepare(audio.Samples, audio.SampleRate)
             ?? throw new InvalidOperationException("The synthesized line is silent.");

@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/speech.json",
+  "description": "The speech models of the target language (T04, research G6): the recognizer, the synthesizer with the guide's voice, and the recognition thresholds keyed by the recognizer they were tuned on. Every model id is an id of models/manifest.json (the content validation checks it). The NPCs' voices stay in game/npcs/<id>.json. Loaded by SpeechTable (Vocaterra.Game.Core).",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "asr",
+    "tts",
+    "thresholds"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "enum": [
+        1
+      ]
+    },
+    "about": {
+      "type": "string"
+    },
+    "asr": {
+      "type": "object",
+      "required": [
+        "model"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "model": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The id of the constrained-recognition model (role asr-constrained) in models/manifest.json."
+        }
+      }
+    },
+    "tts": {
+      "type": "object",
+      "required": [
+        "engine",
+        "model",
+        "guideVoice"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "engine": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The synthesizer engine's id. The game runs 'kokoro' so far; any other id fails the content validation."
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The id of the TTS model (role tts) in models/manifest.json."
+        },
+        "guideVoice": {
+          "type": "object",
+          "required": [
+            "speaker",
+            "voiceId"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "speaker": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "The speaker id inside the TTS model (Kokoro: 28 is ef_dora)."
+            },
+            "voiceId": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The voice's label, which goes into the synthesis cache's key."
+            }
+          }
+        }
+      }
+    },
+    "thresholds": {
+      "type": "object",
+      "minProperties": 1,
+      "description": "For each ASR model id, the numbers tuned on it. The table's ASR model must have an entry.",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "wordConfidence"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "wordConfidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "The mean per-word confidence under which a recognition is uncertain (D-game-9)."
+          }
+        }
+      }
+    }
+  }
+}

@@ -75,22 +75,22 @@ public sealed class SpeechUxTests
         Assert.Equal(0.8, UncertaintyRule.MeanWordConfidence(Heard("[unk] quiero agua [unk]", 1.0, 0.6, 1.0, 0.2)), 6); // [unk] is not a word
         Assert.Equal(0.0, UncertaintyRule.MeanWordConfidence(Heard("[unk]", 1.0)));
         Assert.Equal(0.9, UncertaintyRule.MeanWordConfidence(new AsrResult(string.Empty, [], [], 0.9, "m", RecognitionMode.Open)), 6); // no words: the result's own
-        Assert.Equal(0.55, UncertaintyRule.ConfidenceThreshold);
+        Assert.Equal(0.55, TestGame.Data.SpeechTable.WordConfidenceThreshold); // T04: the speech table's, Spanish values as the constant was
     }
 
     [Fact]
     public void ALineIsUncertainWhenNotUnderstoodOrWhenUnderstoodOnWordsUnderTheThreshold()
     {
-        Assert.True(UncertaintyRule.IsUncertain(communicated: false, confidence: 0.99));
-        Assert.True(UncertaintyRule.IsUncertain(communicated: true, confidence: 0.54));
-        Assert.False(UncertaintyRule.IsUncertain(communicated: true, confidence: 0.55));
-        Assert.False(UncertaintyRule.IsUncertain(communicated: true, confidence: 1.0));
-        Assert.False(UncertaintyRule.IsUncertain(communicated: true, confidence: null)); // a typed line has no confidence
-        Assert.True(UncertaintyRule.IsUncertain(communicated: false, confidence: null)); // but a typed line the NPC did not understand is still "not understood"
+        Assert.True(UncertaintyRule.IsUncertain(communicated: false, confidence: 0.99, threshold: TestGame.Data.SpeechTable.WordConfidenceThreshold));
+        Assert.True(UncertaintyRule.IsUncertain(communicated: true, confidence: 0.54, threshold: TestGame.Data.SpeechTable.WordConfidenceThreshold));
+        Assert.False(UncertaintyRule.IsUncertain(communicated: true, confidence: 0.55, threshold: TestGame.Data.SpeechTable.WordConfidenceThreshold));
+        Assert.False(UncertaintyRule.IsUncertain(communicated: true, confidence: 1.0, threshold: TestGame.Data.SpeechTable.WordConfidenceThreshold));
+        Assert.False(UncertaintyRule.IsUncertain(communicated: true, confidence: null, threshold: TestGame.Data.SpeechTable.WordConfidenceThreshold)); // a typed line has no confidence
+        Assert.True(UncertaintyRule.IsUncertain(communicated: false, confidence: null, threshold: TestGame.Data.SpeechTable.WordConfidenceThreshold)); // but a typed line the NPC did not understand is still "not understood"
 
-        Assert.True(UncertaintyRule.IsTooUnsure(communicated: true, confidence: 0.3));
-        Assert.False(UncertaintyRule.IsTooUnsure(communicated: false, confidence: 0.3)); // the core's own repair handles a line it did not understand
-        Assert.False(UncertaintyRule.IsTooUnsure(communicated: true, confidence: 0.8));
+        Assert.True(UncertaintyRule.IsTooUnsure(communicated: true, confidence: 0.3, threshold: TestGame.Data.SpeechTable.WordConfidenceThreshold));
+        Assert.False(UncertaintyRule.IsTooUnsure(communicated: false, confidence: 0.3, threshold: TestGame.Data.SpeechTable.WordConfidenceThreshold)); // the core's own repair handles a line it did not understand
+        Assert.False(UncertaintyRule.IsTooUnsure(communicated: true, confidence: 0.8, threshold: TestGame.Data.SpeechTable.WordConfidenceThreshold));
     }
 
     [Fact]
@@ -324,7 +324,7 @@ public sealed class SpeechUxTests
         Stage.TeleportToNpc(session, "shopkeeper");
         _ = session.OpenTalk("shopkeeper");
         var before = session.Conversation.ContextOf("shopkeeper");
-        using var worker = new TurnWorker(session.Conversation, TestGame.Bundle, null, loadSpeech: false);
+        using var worker = new TurnWorker(session.Conversation, TestGame.Bundle, TestGame.Data.SpeechTable, null, loadSpeech: false);
         var request = new TurnRequest(
             1, TurnSource.Typed, "quiero agua, por favor", null, null, new GuideScene(TestGame.ViewpointOf(session)), session.StoredTime, session.Simulation.ComputeStateDigest(), null, 0, "shopkeeper");
         worker.Submit(request); // queued: the thread has not started
@@ -358,7 +358,7 @@ public sealed class SpeechUxTests
         var npcs = session.Conversation;
         var before = npcs.ContextOf("shopkeeper");
         var records = npcs.Records.Count;
-        using var worker = new TurnWorker(npcs, TestGame.Bundle, null, loadSpeech: false);
+        using var worker = new TurnWorker(npcs, TestGame.Bundle, TestGame.Data.SpeechTable, null, loadSpeech: false);
         var request = new TurnRequest(
             1, TurnSource.Typed, "quiero agua, por favor", null, null, new GuideScene(TestGame.ViewpointOf(session)), session.StoredTime, session.Simulation.ComputeStateDigest(), null, 0, "shopkeeper");
 

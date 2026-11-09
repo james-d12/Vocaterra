@@ -946,7 +946,7 @@ public abstract partial class GuideSession : IDisposable
             throw new InvalidOperationException("The turn worker is already started.");
         }
 
-        _worker = new TurnWorker(_npcs, Bundle, clockMilliseconds, loadSpeech, WorldSeed);
+        _worker = new TurnWorker(_npcs, Bundle, Data.SpeechTable, clockMilliseconds, loadSpeech, WorldSeed);
         _worker.Start();
         return _worker;
     }

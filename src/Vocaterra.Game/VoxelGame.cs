@@ -82,9 +82,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private const int StartWidth = 1280;
     private const int StartHeight = 720;
 
-    /// <summary>The save file F6 writes when the run has no <c>--save</c> file.</summary>
-    private const string DefaultSavePath = "vocaterra.save.json";
-
     private readonly LaunchOptions _options;
     private readonly VoxelSession _session;
     private readonly Scene _scene;
@@ -1064,11 +1061,13 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // The battery's hook for the playtest's end (S12): the playtest is made after the battery, so the hook reaches it through this method.
     private void EndPlaytest(CheckScreen check) => _playtestFlow.Ended(check);
 
-    // The save file of F6 (S10): the --save file, in a playtest the session folder's playtest.save (S18), or vocaterra.save.json in the working folder.
+    // The save file of F6 (S10): the --save file, in a playtest the session folder's playtest.save (S18), or manual.save in the language's profile folder (saves/<language>/, T04).
     // A turn still thinking means "not now".
     private void SaveNow()
     {
-        var path = PlaytestEnd.ManualSavePath(_options.SavePath, _playtestFlow.ManualSaveFile, DefaultSavePath);
+        var profile = _options.ProfileDirectory(_session.Bundle.LanguageId);
+        SaveProfile.Ensure(profile);
+        var path = PlaytestEnd.ManualSavePath(_options.SavePath, _playtestFlow.ManualSaveFile, SaveProfile.ManualPath(profile));
         if (_saves.Write(path, "on F6"))
         {
             _toasts.Show(_session.Locale.Ui("gameSaved", ("session", _session.Day.ToString(CultureInfo.InvariantCulture))));

@@ -83,14 +83,20 @@ internal static class Program
     /// <summary>The voice trial's file (<c>docs/game/voice-trial/trial.json</c>): what it is for, the lines by key, and the recordings.</summary>
     private sealed record Trial(string About, Dictionary<string, string> Lines, List<TrialVoice> Voices);
 
+    // The bundle's speech table, set by Main before anything renders: the TTS model's id is its (T04), no longer a constant of the game.
+    private static SpeechTable? s_table;
+
+    private static SpeechTable Table => s_table ?? throw new InvalidOperationException("The speech table is not loaded.");
+
     private static int Main(string[] args)
     {
+        var bundleDir = Path.GetFullPath(Option(args, "--bundle") ?? DefaultBundle);
         if (Option(args, "--trial") is { } trialFolder)
         {
+            s_table = SpeechTable.Load(GameBundle.Load(bundleDir)); // the TTS model is the bundle's speech table's (T04)
             return RenderTrial(Path.GetFullPath(trialFolder));
         }
 
-        var bundleDir = Path.GetFullPath(Option(args, "--bundle") ?? DefaultBundle);
         var indexPath = Path.GetFullPath(Option(args, "--index") ?? DefaultIndex);
         var checklistPath = Path.GetFullPath(Option(args, "--checklist") ?? DefaultChecklist);
         var rate = int.TryParse(Option(args, "--rate") ?? NativeRate.ToString(CultureInfo.InvariantCulture), NumberStyles.None, CultureInfo.InvariantCulture, out var parsedRate)
@@ -106,6 +112,7 @@ internal static class Program
 
         var bundle = GameBundle.Load(bundleDir);
         var data = GameData.Load(bundle, LocaleBundle.Load(LocaleBundle.DirectoryBeside(bundleDir)).Text(LocaleBundle.DefaultCode));
+        s_table = data.SpeechTable;
         var lines = data.Speech;
         if (UnvoicedSpeaker(lines, data.Npcs) is { } unvoiced)
         {
@@ -117,7 +124,7 @@ internal static class Program
         Directory.CreateDirectory(speechDir);
 
         var index = LoadIndex(indexPath);
-        var store = SpeechEngine.FindModels(out var problem)
+        var store = SpeechEngine.FindModels(Table, out var problem)
             ?? throw new InvalidOperationException(problem ?? "No models folder.");
         var synthesizers = new Dictionary<(string, float), KokoroSynthesizer>();
         var expected = new HashSet<string>(StringComparer.Ordinal);
@@ -189,7 +196,7 @@ internal static class Program
         var deleted = DeleteStale(speechDir, expected);
         Console.WriteLine($"renderer: {lines.Count} lines, {expected.Count} files; rendered {rendered}, unchanged {skipped}, deleted {deleted}");
 
-        WriteIndex(indexPath, new IndexFile(1, SpeechEngine.KokoroModelId, kept));
+        WriteIndex(indexPath, new IndexFile(1, Table.TtsModel, kept));
         WriteChecklist(checklistPath, checklist, newRecordings, data.Npcs, LoadTrial(Path.GetFullPath(Option(args, "--trial-folder") ?? DefaultTrial)));
         WriteProvenance(Path.Combine(bundleDir, "provenance.json"), kept);
         Console.WriteLine($"speech folder: {speechDir} ({ReadableSize(FolderBytes(speechDir))})");
@@ -232,12 +239,12 @@ internal static class Program
             return 2;
         }
 
-        var store = SpeechEngine.FindModels(out var problem)
+        var store = SpeechEngine.FindModels(Table, out var problem)
             ?? throw new InvalidOperationException(problem ?? "No models folder.");
         foreach (var voice in trial.Voices)
         {
             var text = trial.Lines[voice.Line];
-            using var synth = KokoroSynthesizer.FromStore(store, SpeechEngine.KokoroModelId, voice.Speaker, voice.Speed);
+            using var synth = KokoroSynthesizer.FromStore(store, Table.TtsModel, voice.Speaker, voice.Speed);
             var audio = synth.Synthesize(new SynthesisRequest(text, voice.Voice, null));
             var samples = audio.SampleRate == NativeRate ? audio.Samples : AudioClips.Resample(audio.Samples, audio.SampleRate, NativeRate);
             WriteAtomically(Path.Combine(folder, voice.File), WavBytes(samples, NativeRate));
@@ -262,7 +269,7 @@ internal static class Program
         var key = (speakerId.ToString(CultureInfo.InvariantCulture), speed);
         if (!cache.TryGetValue(key, out var synth))
         {
-            synth = KokoroSynthesizer.FromStore(store, SpeechEngine.KokoroModelId, speakerId, speed);
+            synth = KokoroSynthesizer.FromStore(store, Table.TtsModel, speakerId, speed);
             cache[key] = synth;
         }
 
@@ -336,7 +343,7 @@ internal static class Program
     {
         if (!File.Exists(path))
         {
-            return new IndexFile(1, SpeechEngine.KokoroModelId, new SortedDictionary<string, IndexEntry>(StringComparer.Ordinal));
+            return new IndexFile(1, Table.TtsModel, new SortedDictionary<string, IndexEntry>(StringComparer.Ordinal));
         }
 
         var loaded = JsonSerializer.Deserialize<IndexFile>(File.ReadAllText(path, Encoding.UTF8))
@@ -386,7 +393,7 @@ internal static class Program
         var lineId = name.EndsWith(SpeechFiles.SlowSuffix, StringComparison.Ordinal) ? name[..^SpeechFiles.SlowSuffix.Length] : name;
         var speed = entry.Speed.ToString("0.0#", CultureInfo.InvariantCulture);
         var speaker = entry.SpeakerId.ToString(CultureInfo.InvariantCulture);
-        return $"{{ \"path\": \"{relative}\", \"generatedBy\": \"{GeneratedByModelOutput}\", \"approvedBy\": null, \"approvedOn\": null, \"model\": \"{SpeechEngine.KokoroModelId}\", \"voice\": \"{entry.Voice}\", \"speaker\": \"{speaker}\", \"source\": \"{lineId} (speed {speed})\" }}";
+        return $"{{ \"path\": \"{relative}\", \"generatedBy\": \"{GeneratedByModelOutput}\", \"approvedBy\": null, \"approvedOn\": null, \"model\": \"{Table.TtsModel}\", \"voice\": \"{entry.Voice}\", \"speaker\": \"{speaker}\", \"source\": \"{lineId} (speed {speed})\" }}";
     }
 
     private static string ProvenanceLine(string path, string generatedBy, string? source)

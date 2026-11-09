@@ -45,6 +45,7 @@ Everything the game says, shows and builds its world from, outside the code. The
   | `game/procedures/<id>.json` | `procedure.schema.json` (one procedure each: its station, teacher, level, what it makes and uses, its steps, chunks and goal; W05) | `ProcedureBook` |
   | `game/stations.json` | `stations.schema.json` (each station: its scene prop, its NPC and its fixtures; W05) | `StationBook` |
   | `game/actions.json` | `actions.schema.json` (for each use and fixture, the verbs a step may use; W05) | `ActionTable` |
+  | `game/speech.json` | `speech.schema.json` (the target language's speech models, T04: the ASR model id, the TTS engine and model ids, the guide's voice, and the recognition thresholds keyed by ASR model; the ids are ids of `models/manifest.json`, checked by the validation; the NPCs' voices stay in their files) | `SpeechTable` |
 
 ## The support language: `locale/`
 

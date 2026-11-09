@@ -114,6 +114,7 @@ public sealed record LaunchOptions
         + "                          after it). Its items are answered by the player, or by the script's --pick and --say/--speak steps\n"
         + "  --pick <n>              answer the check's comprehension item with the option n (1 to 3, as shown); a step, with --check\n"
         + "  --no-autosave           do not autosave (X05): the autosave in the session folder is not written; a playtest's playtest.save is still written at its end\n"
+        + "  --saves-dir <dir>       the folder of the save profiles: the autosave and F6 write to <dir>/<language>/ (default: ~/.local/share/vocaterra/saves/, or <session dir>/saves/ with --session-dir)\n"
         + "  --session-dir <dir>     write this run's session.jsonl and replay.jsonl here (default: a new folder under ~/.local/share/vocaterra/sessions/)\n"
         + "  --report <text>         open the report panel (F8), type the text and save the report (a Markdown file and a screenshot); a step (S21)\n"
         + "  --report-open <text>   open the report panel, type the text and leave the panel open (the screenshot of the panel); a step (S21)\n"
@@ -186,6 +187,13 @@ public sealed record LaunchOptions
 
     /// <summary>The folder the session log is written to (<c>--session-dir</c>), or <see langword="null"/> for a new folder under the sessions folder.</summary>
     public string? SessionDir { get; init; }
+
+    /// <summary>The folder of the save profiles (<c>--saves-dir</c>, T04), or <see langword="null"/> for <see cref="SaveProfile.DefaultRoot"/> (inside the session folder when <c>--session-dir</c> names one).</summary>
+    public string? SavesDir { get; init; }
+
+    /// <summary>The folder of the profile of a target language: the autosave and F6 write there (<c>saves/&lt;language&gt;/</c>, D-game-27).</summary>
+    /// <param name="language">The target language's tag (the bundle's language, <c>es</c>).</param>
+    public string ProfileDirectory(string language) => SaveProfile.ProfileFolder(SavesDir ?? (SessionDir is { } session ? Path.Combine(session, SaveProfile.FolderName) : SaveProfile.DefaultRoot), language);
 
     /// <summary>The folder the reports are written to (<c>--report-dir</c>), or <see langword="null"/> for <c>reports/</c> in the session folder (S21).</summary>
     public string? ReportDir { get; init; }
@@ -565,7 +573,7 @@ public sealed record LaunchOptions
 
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--locale" or "--scene" or "--look" or "--walk-to" or "--interact"
                 or "--place" or "--pour" or "--select" or "--craft" or "--eat" or "--give" or "--plant" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
-                or "--check" or "--pick" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale"
+                or "--check" or "--pick" or "--session-dir" or "--saves-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--sound-log"
                 or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--needs-rate" or "--station" or "--station-say" or "--act"))
             {
@@ -722,6 +730,15 @@ public sealed record LaunchOptions
                     }
 
                     result = result with { DebugCrashAfter = crashTick };
+                    break;
+                case "--saves-dir":
+                    if (value.Length == 0)
+                    {
+                        error = "--saves-dir needs a folder.";
+                        return false;
+                    }
+
+                    result = result with { SavesDir = value };
                     break;
                 case "--session-dir":
                     if (value.Length == 0)

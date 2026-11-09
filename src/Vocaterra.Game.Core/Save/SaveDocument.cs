@@ -21,9 +21,10 @@ namespace Vocaterra.Game.Core.Save;
 /// </summary>
 /// <param name="Format">The format name (<see cref="SaveGame.FormatName"/>).</param>
 /// <param name="Version">The format version (<see cref="SaveGame.CurrentVersion"/>).</param>
+/// <param name="Language">The target language of the profile the save belongs to (version 9, T04: the bundle's language tag, <c>es</c> for a bundle with none). A load refuses a save of another language than the loaded bundle's.</param>
 /// <param name="WorldSeed">The world seed: the scene's trees and the conversation's random draws come from it.</param>
 /// <param name="SceneName">The scene layout's name (for the reader; the bundle hash fixes the layout).</param>
-/// <param name="BundleHash">The content bundle's hash. A load refuses a save made from another bundle.</param>
+/// <param name="BundleHash">The content bundle's hash. A load refuses a save made from another bundle. (T05 splits the world from the language and adds the language bundle's hash beside it; this stays the first.)</param>
 /// <param name="StartedAt">The stored time at tick 0, in Unix seconds.</param>
 /// <param name="SkippedSeconds">The seconds added by skips (the stored time is <c>StartedAt + Tick / 60 + SkippedSeconds</c>).</param>
 /// <param name="StoredTime">The stored time at the save (checked on load).</param>
@@ -65,6 +66,7 @@ namespace Vocaterra.Game.Core.Save;
 public sealed record SaveDocument(
     string Format,
     int Version,
+    string Language,
     ulong WorldSeed,
     string SceneName,
     string BundleHash,

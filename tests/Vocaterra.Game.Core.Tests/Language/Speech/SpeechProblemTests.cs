@@ -1,11 +1,12 @@
 using Vocaterra.Game.Core.Language.Speech;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Nlp.Asr.Models;
 
 namespace Vocaterra.Game.Core.Tests.Language.Speech;
 
 /// <summary>
 /// S17b: the speech-model problems the game shows are English and say what to do. The cheap check runs with no models. Its variables come from a
-/// reader the test passes in (<see cref="SpeechEngine.FindModels(Func{string, string?}, out string?)"/>), so no test changes the process environment,
+/// reader the test passes in (<see cref="SpeechEngine.FindModels(SpeechTable, Func{string, string?}, out string?)"/>), so no test changes the process environment,
 /// which other test classes read in parallel.
 /// </summary>
 public sealed class SpeechProblemTests : IDisposable
@@ -25,7 +26,7 @@ public sealed class SpeechProblemTests : IDisposable
     [Fact]
     public void WithNoModelsFolderTheMessageSaysWhatToSetAndThatTheTypedAnswerStillWorks()
     {
-        var store = SpeechEngine.FindModels(_ => null, out var problem);
+        var store = SpeechEngine.FindModels(TestGame.Data.SpeechTable, _ => null, out var problem);
 
         Assert.Null(store);
         Assert.Equal(
@@ -37,11 +38,11 @@ public sealed class SpeechProblemTests : IDisposable
     [Fact]
     public void WithAnEmptyModelsFolderTheMessageNamesTheMissingModelInEnglish()
     {
-        var store = SpeechEngine.FindModels(name => name == ModelStore.EnvironmentVariable ? _empty : null, out var problem);
+        var store = SpeechEngine.FindModels(TestGame.Data.SpeechTable, name => name == ModelStore.EnvironmentVariable ? _empty : null, out var problem);
 
         Assert.Null(store);
         Assert.NotNull(problem);
-        Assert.StartsWith($"Speech model {SpeechEngine.VoskModelId} is missing from ", problem, StringComparison.Ordinal);
+        Assert.StartsWith($"Speech model {TestGame.Data.SpeechTable.AsrModel} is missing from ", problem, StringComparison.Ordinal);
         Assert.Contains(_empty, problem, StringComparison.Ordinal);
         Assert.EndsWith("You can still type.", problem, StringComparison.Ordinal);
     }

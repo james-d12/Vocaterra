@@ -2,6 +2,15 @@
 
 How saves survive content updates, and autosave with the crash report. Saving and loading in a run are in [running.md](running.md).
 
+## Saves per language (T04)
+
+A save is format version 9 and carries a required `language` (the bundle manifest's language, `es` for a bundle with none). The saves of a target language
+live in their own profile folder, `saves/<language>/` (`SaveProfile`: the autosave and F6's `manual.save`; `--saves-dir` moves the root, and the
+default root is `~/.local/share/vocaterra/saves`, or `saves/` inside the session folder when `--session-dir` is given). A load refuses a save of another
+language than the loaded bundle's, as it refuses another version; a save older than version 9 is refused with a clear message and no migration (the game
+is unreleased). The learner's skill ids stay unqualified inside a profile. There is no language choice in the UI yet (T09). The save holds the bundle's
+hash; T05 adds the language bundle's hash beside it when it splits the world from the language.
+
 ## Saves survive content updates (X01)
 
 Every content change used to make every save unloadable (the S10 rule: a save refuses another bundle hash), so a player lost all progress when the game
@@ -95,7 +104,7 @@ The game saves itself at its safe points, and a crash leaves a report instead of
   dialogue to close (a lesson runs inside its guide's panel, so its saves come when the panel shuts).
 - **Only at rest.** Never while a turn is on the worker, key words are on show, a dialogue is open, the microphone is recording, a check battery or the mic check
   is on, or the report panel is open. The save is the same document F6 writes, so `--load` reads it like any save, in the next play session.
-- **Where.** In the session folder: `autosave.save` (a playtest writes `playtest.save`, the file F6 writes, so its end-of-run save and its autosave are one file).
+- **Where.** In the language's profile folder (T04, D-game-27: `saves/<language>/autosave.save`, under `~/.local/share/vocaterra/saves/`, or `<session dir>/saves/` with `--session-dir`, or `--saves-dir <dir>`; F6 writes `manual.save` beside it): `autosave.save` (a playtest writes `playtest.save`, the file F6 writes, so its end-of-run save and its autosave are one file).
   Its path is printed at the start (`autosave: <path> (...)`), and each write is printed (`autosave: <path> written at <reason> (session, tick, stored time, digest, bytes)`).
 - **How.** The document goes to `<file>.tmp`, is flushed to the disk, and is renamed over the save (`SaveFile.Write`). A crash or a failed write before the rename
   leaves the last autosave intact; a stale `.tmp` is overwritten by the next write. The save is taken on the game loop (the state must not move during it):
@@ -126,7 +135,7 @@ can be seen working. Nothing in a playtest uses it.
 # a lesson with autosave on (the saves are printed); the session folder is the scratch folder, so the user's own sessions are not touched
 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --session-dir /tmp/x05/lesson --lesson-run first-words --leave --wait 2 --screenshot /tmp/x05/lesson.png --frames 30
 # the autosave loads: the objective and the lesson are where the save left them
-dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --session-dir /tmp/x05/load --load /tmp/x05/lesson/autosave.save --screenshot /tmp/x05/load.png --frames 30
+dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --session-dir /tmp/x05/load --load /tmp/x05/lesson/saves/es/autosave.save --screenshot /tmp/x05/load.png --frames 30
 # a forced crash: the report and crash.save are written and the exit code is 1
 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --session-dir /tmp/x05/crash --debug-crash-after 600 --screenshot /tmp/x05/crash.png --frames 900; echo "exit $?"
 ```

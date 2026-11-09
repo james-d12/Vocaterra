@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Language.Speech;
+using Vocaterra.Game.Core.Session;
 
 namespace Vocaterra.Game.Tests.TestSupport;
 
@@ -9,18 +10,19 @@ public sealed class ModelFactAttribute : FactAttribute
     /// <summary>Creates the fact; <paramref name="needsKokoro"/> is <see langword="false"/> for a test that only recognises a recorded WAV (Vosk alone).</summary>
     public ModelFactAttribute(bool needsKokoro = true)
     {
-        var store = SpeechEngine.FindModels(out var problem);
+        var table = SpeechTable.Load(GameBundle.Load());
+        var store = SpeechEngine.FindModels(table, out var problem);
         if (store is null)
         {
             Skip = $"Speech models unavailable: {problem}";
         }
-        else if (!Directory.Exists(store.ModelDirectory(SpeechEngine.VoskModelId)) || store.Manifest.Find(SpeechEngine.VoskModelId) is null)
+        else if (!Directory.Exists(store.ModelDirectory(table.AsrModel)) || store.Manifest.Find(table.AsrModel) is null)
         {
-            Skip = $"Speech models unavailable: {SpeechEngine.VoskModelId} is not in {store.RootDirectory}.";
+            Skip = $"Speech models unavailable: {table.AsrModel} is not in {store.RootDirectory}.";
         }
-        else if (needsKokoro && (!Directory.Exists(store.ModelDirectory(SpeechEngine.KokoroModelId)) || store.Manifest.Find(SpeechEngine.KokoroModelId) is null))
+        else if (needsKokoro && (!Directory.Exists(store.ModelDirectory(table.TtsModel)) || store.Manifest.Find(table.TtsModel) is null))
         {
-            Skip = $"Speech models unavailable: {SpeechEngine.KokoroModelId} is not in {store.RootDirectory}.";
+            Skip = $"Speech models unavailable: {table.TtsModel} is not in {store.RootDirectory}.";
         }
     }
 }

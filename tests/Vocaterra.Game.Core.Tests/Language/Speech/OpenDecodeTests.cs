@@ -256,7 +256,7 @@ public sealed class OpenDecodeTests(ITestOutputHelper output)
     [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void KokoroOffPromptLinesAtTheNpcsGetTeEntiendoAndAllowedLinesOutsideTheRowsAreUnderstood()
     {
-        using var engine = SpeechEngine.TryCreate(out _)!;
+        using var engine = SpeechEngine.TryCreate(TestGame.Data.SpeechTable, out _)!;
         var counting = new Counting(engine.Recognizer);
         var misses = new List<string>();
         foreach (var (npc, line, teEntiendo) in new[]
@@ -287,7 +287,7 @@ public sealed class OpenDecodeTests(ITestOutputHelper output)
     [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void AKokoroLineAtALessonStepDecodesOnce()
     {
-        using var engine = SpeechEngine.TryCreate(out _)!;
+        using var engine = SpeechEngine.TryCreate(TestGame.Data.SpeechTable, out _)!;
         var counting = new Counting(engine.Recognizer);
         using var session = AtNpc("guide", counting);
         var scene = new GuideScene(TestGame.ViewpointOf(session), PromptOverride: "lesson-like-apples");

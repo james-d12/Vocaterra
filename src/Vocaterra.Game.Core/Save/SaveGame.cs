@@ -45,12 +45,13 @@ public static class SaveGame
     /// The format version this code writes (version 2 adds the learner's record, S19; version 3 keeps the check answers out of its word rows, S19b; version 5 keys
     /// the objective's steps <c>&lt;objective&gt;.&lt;step&gt;</c>, C07; version 7 adds the optional <c>systems</c> map with the player's needs (N01), the NPCs met (L01), and the water that is not
     /// source in the scene diff, the cells waiting to flow and the player's air (water-plan H06). The two branches each wrote a different version 6 before they met; a save of either of those is not read;
-    /// version 8, T03, names the bread's procedure and its station by neutral ids (<c>bread</c>, <c>oven</c>), where a save up to 7 holds the Spanish <c>pan</c> and <c>horno</c>: older saves are refused, with no migration, the game being unreleased).
+    /// version 8, T03, names the bread's procedure and its station by neutral ids (<c>bread</c>, <c>oven</c>), where a save up to 7 holds the Spanish <c>pan</c> and <c>horno</c>;
+    /// version 9, T04, adds the required <c>language</c> of the profile the save belongs to: older saves are refused, with no migration, the game being unreleased).
     /// </summary>
-    public const int CurrentVersion = 8;
+    public const int CurrentVersion = 9;
 
-    /// <summary>The oldest format version this code reads (T03: version 8, the first to name the world's things by neutral ids; an older save is refused with <see cref="SaveException"/>).</summary>
-    public const int OldestReadableVersion = 8;
+    /// <summary>The oldest format version this code reads (T04: version 9, the first to carry its language; an older save is refused with <see cref="SaveException"/>).</summary>
+    public const int OldestReadableVersion = 9;
 
     /// <summary>The canonical JSON of a save (the same document always gives the same string).</summary>
     /// <param name="document">The document.</param>
@@ -82,7 +83,7 @@ public static class SaveGame
 
         if (document.Version < OldestReadableVersion)
         {
-            throw new SaveException($"The save is format version {document.Version}, from before the game named its world by neutral ids; this game reads version {OldestReadableVersion} only, so this save cannot be loaded. Start a new game.");
+            throw new SaveException($"The save is format version {document.Version}, from before saves carried their target language (one profile per language); this game reads version {OldestReadableVersion} only, so this save cannot be loaded. Start a new game.");
         }
 
         if (document.Version > CurrentVersion)
@@ -90,21 +91,33 @@ public static class SaveGame
             throw new SaveException($"The save is format version {document.Version}; this game reads versions {OldestReadableVersion} to {CurrentVersion}.");
         }
 
+        if (string.IsNullOrWhiteSpace(document.Language))
+        {
+            throw new SaveException($"The save has no language, which every format version {CurrentVersion} save names; it cannot be loaded.");
+        }
+
         return document;
     }
 
     /// <summary>
-    /// Checks that a save can be loaded here: the bundle is the one it was made from, and (when given) the world seed is the one asked for.
+    /// Checks that a save can be loaded here: it is of the bundle's language (a profile never carries into another language), the bundle is the one it was made from, and (when given) the world seed is the one asked for.
     /// </summary>
     /// <param name="document">The save.</param>
     /// <param name="bundle">The content bundle of this run.</param>
     /// <param name="requestedSeed">The seed the run asked for, or <see langword="null"/> to take the save's.</param>
     /// <param name="migrate">Whether a save of another bundle is let through to be migrated (X01, the game's default). <see langword="false"/> is strict mode: the refusal of S10, which the playtest's recall sessions keep.</param>
-    /// <exception cref="SaveException">The seed differs, or the bundle differs and <paramref name="migrate"/> is off.</exception>
+    /// <exception cref="SaveException">The language differs, the seed differs, or the bundle differs and <paramref name="migrate"/> is off.</exception>
     public static void Check(SaveDocument document, ContentBundle bundle, ulong? requestedSeed = null, bool migrate = false)
     {
         ArgumentNullException.ThrowIfNull(document);
         ArgumentNullException.ThrowIfNull(bundle);
+        if (!string.Equals(document.Language, bundle.LanguageId, StringComparison.Ordinal))
+        {
+            throw new SaveException(
+                $"The save is for the language '{document.Language}'; this run teaches '{bundle.LanguageId}'. "
+                + $"Each language keeps its own saves (saves/{document.Language}/ and saves/{bundle.LanguageId}/), so it cannot be loaded here. Run with the {document.Language} content bundle to continue it.");
+        }
+
         if (requestedSeed is { } seed && seed != document.WorldSeed)
         {
             throw new SaveException($"The save is for world seed {document.WorldSeed}, not {seed}. Load it without --seed, or with --seed {document.WorldSeed}.");
@@ -147,6 +160,7 @@ public static class SaveGame
         return new SaveDocument(
             FormatName,
             CurrentVersion,
+            session.Bundle.LanguageId,
             session.WorldSeed,
             session.Scene.Name,
             session.Bundle.ContentHash,
