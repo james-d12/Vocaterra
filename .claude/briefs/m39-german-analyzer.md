@@ -5,7 +5,7 @@ is `src/Vocaterra.Nlp` (the engine), `src/Vocaterra.Nlp.Es`, `src/Vocaterra.Nlp.
 
 ## Where to work, and committing
 Work only in the git worktree `/home/james/Dev/Vocaterra/.claude/worktrees/m39`, already on the branch `M39-german-analyzer` (from
-`feature/german` after M38 merged; no build yet). cd there first; never edit another worktree (M40, the German grammar options, may run
+`feature/german` after M38 and M95 merged; no build yet). cd there first; never edit another worktree (M40, the German grammar options, may run
 beside you in `m40` and also touches `src/Vocaterra.Nlp.De`: keep your edits to `GermanLanguagePack.cs` small and say which lines).
 Commit after each step that builds and passes its tests; never end your turn with uncommitted work (the owner sometimes has to stop
 agents; committed work survives). Do not push; never push or merge `feature/*` or `main`. Run everything in the foreground and finish in
@@ -14,7 +14,7 @@ command goes through `scripts/limited.sh`; if it waits for a slot, let it wait.
 
 ## The rules, environment, resources and gate
 Read `/home/james/Dev/Vocaterra/.claude/worktrees/m39/.claude/briefs/w07-station-view.md`, the sections **Output and context**,
-**Resources**, **Environment** and **Gate**: they apply to you, with `/tmp/claude-1000/m39/` for your logs, **11196 passed, 3 skipped** as the count before
+**Resources**, **Environment** and **Gate**: they apply to you, with `/tmp/claude-1000/m39/` for your logs, **11219 passed, 3 skipped** as the count before
 you, and these changes: skip the scripted runs; add `bash scripts/license-scan.sh --offline` (PASSED) and the core demo
 (`docs/process/milestone-briefs.md`, "Repository facts", through a wrapper script outside the repository). Rules: edit
 `src/Vocaterra.Nlp.De`, its tests, `src/Vocaterra.Nlp` only for an additive hook spike R5 shows the pack needs (with a default, Spanish
