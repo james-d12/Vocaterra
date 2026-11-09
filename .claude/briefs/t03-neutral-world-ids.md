@@ -12,10 +12,11 @@ wait.
 
 ## The rules, environment, resources and gate
 Read `/home/james/Dev/Vocaterra/.claude/worktrees/t03/.claude/briefs/w07-station-view.md`, the sections **Output and context**,
-**Resources**, **Environment**, **Rules** and **Gate**: they apply to you, with `/tmp/claude-1000/t03/` for your logs, @@COUNT@@ as the
+**Resources**, **Environment**, **Rules** and **Gate**: they apply to you, with `/tmp/claude-1000/t03/` for your logs, **10522 passed, 3 skipped** as the
 count before you (the open-fallback fuzz reach check is flaky unless M89 has merged: if it alone fails, rerun it alone and say so), and
 these changes. **What this milestone edits:** the game projects, their tests, `content/game-v1/game/` and `content/schema/` for the files
-you re-key, and `docs/game/` (not the plans or the decisions). Never the core, the lexicon, `content/locale/`, `.claude/` or
+you re-key, `content/README.md` (its `words.json` row should also name T02b's matching lists, and `nouns.json`'s row the new shape) and
+`docs/game/` (not the plans or the decisions). Never the core, the lexicon, `content/locale/`, `.claude/` or
 `.github/workflows/`. Content edits mean the content loop (the w07 brief's last Rules bullet and `content/README.md`, "The edit loop"):
 `scripts/content-loop.sh --grammar` after each content edit (run directly, never under limited.sh), `--tier full` once before the report
 instead of `scripts/test.sh full`; read every grammar finding; the save fixtures take the new bundle hash. **Saves:** if the save format
