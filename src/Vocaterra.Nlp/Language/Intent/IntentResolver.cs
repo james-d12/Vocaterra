@@ -237,11 +237,19 @@ public sealed class IntentResolver
             }
         }
 
+        // M95: the analyzer's own reading is replaced by the rule the prompt's off-prompt pass uses, a grammar that beats it in the rung's order and names more of the
+        // words (OutsideGrammar), so that a line the prompt does not take is read the same way with every intent allowed; with no reading of the analyzer's, the best in
+        // the rung's order wins.
+        var baseline = best;
         foreach (var (intent, grammar) in PlausibleGrammars(facts))
         {
             if (candidates.Contains(intent))
             {
-                best = Better(best, intent, grammar, facts) ?? best;
+                var reading = Better(best, intent, grammar, facts);
+                if (reading is not null && (baseline is null || reading.Score.Named > baseline.Score.Named))
+                {
+                    best = reading;
+                }
             }
         }
 
@@ -281,16 +289,23 @@ public sealed class IntentResolver
             }
         }
 
-        var best = allowed;
+        // The best of the outside grammars that take the line: each beats the allowed reading in the rung's order and names more of the words than it does (M95: a
+        // grammar that beats the allowed one but names no more of the words must not stand in the way of one that does, or the line stays with the allowed grammar
+        // that the second outranks). With no allowed reading (the off-prompt pass) every outside grammar takes it, and the best of them wins.
+        GrammarReading? taker = null;
         foreach (var (intent, grammar) in PlausibleGrammars(facts))
         {
             if (!candidates.Contains(intent))
             {
-                best = Better(best, intent, grammar, facts) ?? best;
+                var reading = Better(taker ?? allowed, intent, grammar, facts);
+                if (reading is not null && (allowed is null || reading.Score.Named > allowed.Score.Named))
+                {
+                    taker = reading;
+                }
             }
         }
 
-        return ReferenceEquals(best, allowed) || (allowed is not null && best!.Score.Named <= allowed.Score.Named) ? null : best;
+        return taker;
     }
 
     // The grammar's reading when it beats the best so far (or there is none), otherwise null; the grammar is not matched when it cannot beat it.
