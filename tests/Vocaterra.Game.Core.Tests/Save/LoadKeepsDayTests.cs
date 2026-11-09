@@ -27,6 +27,7 @@ public sealed class LoadKeepsDayTests
         session.Day = 5;
         session.Sitting = 5;
         _ = session.Simulation.GrantItems(ItemId.Wood, 5);
+        session.MeetOrderNpcs("baker"); // Luz met before the save, which told her order (issue #55); the met list survives the load
 
         var loaded = LoadOf(SaveGame.Save(session, Pristine()));
 

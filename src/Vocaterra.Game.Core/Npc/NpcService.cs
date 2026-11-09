@@ -30,7 +30,8 @@ namespace Vocaterra.Game.Core.Npc;
 /// <param name="HostEvents">The host events the host turn raised (<c>stall.give_water</c> for the fail-forward opening).</param>
 /// <param name="FailForward">Whether the opening handed over the bottle without a request (the shopkeeper's second visit).</param>
 /// <param name="Delivered">Whether the opening was the NPC's thanks for an order the player brought (village-plan V03, <c>&lt;npc&gt;.delivered</c>).</param>
-public sealed record NpcOpening(string Npc, string Prompt, IReadOnlyList<string> Lines, bool HostTurn, IReadOnlyList<string> HostEvents, bool FailForward, bool Delivered = false);
+/// <param name="Offered">Whether the opening was the offer the session asked for (<c>offer</c> of <see cref="NpcService.Open"/>) instead of the NPC's greeting.</param>
+public sealed record NpcOpening(string Npc, string Prompt, IReadOnlyList<string> Lines, bool HostTurn, IReadOnlyList<string> HostEvents, bool FailForward, bool Delivered = false, bool Offered = false);
 
 /// <summary>Where a line sent to an NPC came from, when it was not recognized from speech.</summary>
 public enum LineOrigin
@@ -385,7 +386,7 @@ public sealed partial class NpcService
     /// <param name="objectiveComplete">Whether the camp objective is complete (the guide then makes her transfer offer, once).</param>
     /// <param name="now">The stored time.</param>
     /// <param name="hostStateHash">The simulation's state digest.</param>
-    /// <param name="offer">The host event of a teacher's offer to bake (W08, <c>&lt;npc&gt;.offer_bake</c>), or <see langword="null"/>: when the NPC is in its initial state and its agent takes the event, the talk opens with the offer instead of the NPC's greeting.</param>
+    /// <param name="offer">The host event of a teacher's offer to bake (W08, <c>&lt;npc&gt;.offer_bake</c>) or of an order told at the first meeting (issue #55, <c>&lt;npc&gt;.order_offer</c>), or <see langword="null"/>: when the NPC is in its initial state and its agent takes the event, the talk opens with the offer instead of the NPC's greeting (<see cref="NpcOpening.Offered"/>).</param>
     /// <param name="delivered">
     /// The host event of an order the player has brought the goods of (village-plan V03, <c>&lt;npc&gt;.delivered</c>), or <see langword="null"/>: when the NPC's state
     /// takes it, it is the opening instead of the NPC's own (<see cref="NpcOpening.Delivered"/>); when it does not, the talk opens as usual.
@@ -408,7 +409,8 @@ public sealed partial class NpcService
             }
         }
 
-        var hostEvent = offer is not null && string.Equals(agent.Context.AgentState.StateId, agent.InitialState, StringComparison.Ordinal) ? offer : OpeningEvent(agent, objectiveComplete);
+        var offering = offer is not null && string.Equals(agent.Context.AgentState.StateId, agent.InitialState, StringComparison.Ordinal);
+        var hostEvent = offering ? offer : OpeningEvent(agent, objectiveComplete);
         if (hostEvent is not null)
         {
             var before = agent.Context with { Now = now, HostStateHash = hostStateHash };
@@ -425,7 +427,8 @@ public sealed partial class NpcService
                     turn.Response.Lines.Select(static l => l.Text).ToList(),
                     true,
                     events,
-                    string.Equals(hostEvent, NpcHostEvents.ShopkeeperGive, StringComparison.Ordinal));
+                    string.Equals(hostEvent, NpcHostEvents.ShopkeeperGive, StringComparison.Ordinal),
+                    Offered: offering);
             }
         }
 

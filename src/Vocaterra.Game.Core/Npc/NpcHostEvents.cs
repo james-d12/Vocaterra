@@ -439,6 +439,13 @@ public static class NpcHostEvents
     /// </summary>
     public const string OrderReady = "order_ready";
 
+    /// <summary>
+    /// What an NPC with an order is asked to say the first time the player talks to it (issue #55): <c>&lt;npc&gt;.order_offer</c>, raised as the opening of that
+    /// talk in place of its greeting; its agent says what it needs ("Tengo hambre. ¿Tienes fruta?") and stays in its usual state. The goods are taken from the
+    /// next talk on, never in the talk that tells the order.
+    /// </summary>
+    public const string OrderOffer = "order_offer";
+
     /// <summary>The host turn that takes an NPC out of <see cref="ReceivingState"/> when the talk opens and the goods are gone (issue #42): <c>&lt;npc&gt;.order_gone</c>.</summary>
     public const string OrderGone = "order_gone";
 

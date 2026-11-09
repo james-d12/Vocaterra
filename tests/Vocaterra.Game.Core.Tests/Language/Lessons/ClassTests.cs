@@ -159,7 +159,7 @@ public sealed class ClassTests
     }
 
     [Fact]
-    public void AnOrderShowsOnceItsNpcIsMetOnTheFirstDayAndAClassIsOpenWithIt()
+    public void AnOrderShowsOnceItsNpcIsMetOnTheFirstDayAndItsNpcSaysWhatItNeedsBeforeTakingTheGoods()
     {
         var session = TestGame.NewSessionWithShippedLessons();
         var order = session.Objectives.Single(static o => o.Id == "fruit-for-mar");
@@ -170,8 +170,14 @@ public sealed class ClassTests
         var opening = session.OpenTalk("fisher");
 
         Assert.True(session.Shown(order.Spec));
-        Assert.True(session.HandOverOpen); // no lesson and no day holds it: Mar asks for the fruit at once (D-game-27)
-        Assert.Equal(["¡Hola! ¿Qué tienes para mí?"], opening.Lines);
+        Assert.Equal(["Tengo hambre. ¿Tienes fruta?"], opening.Lines); // issue #55: the first talk says what Mar needs; it takes no fruit and pays nothing
+        Assert.False(session.HandOverOpen);
+        Assert.False(order.Complete);
+        Assert.Equal(3, session.Simulation.Inventory.Count(Vocaterra.Game.Core.Items.ItemId.Berry));
+        session.EndTalk();
+
+        Assert.Equal(["¡Hola! ¿Qué tienes para mí?"], session.OpenTalk("fisher").Lines); // no lesson and no day holds it: back with the fruit, Mar asks for it (D-game-27)
+        Assert.True(session.HandOverOpen);
         _ = session.HandOverGoods();
         Assert.True(order.Complete);
     }

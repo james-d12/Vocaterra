@@ -56,6 +56,7 @@ internal sealed class StationRig
         Session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), CreditRules.FullTyped, TestGame.NoLessons);
         _ = Session.Simulation.Inventory.Add(ItemId.Wood, 1);
         _ = Session.Simulation.Inventory.Add(ItemId.WaterBottle, 1);
+        Session.MeetOrderNpcs(); // the NPCs with orders met on an earlier visit (issue #55): a talk with Luz opens with her offer to bake, not her order
         Panel = new StationPanel(Screen, Session, Audio, (_, _) => null, otherPanelOpen ?? (() => false));
     }
 

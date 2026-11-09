@@ -104,6 +104,9 @@ public abstract partial class GuideSession : IDisposable
     private bool _keyWordsPending;
     private readonly SortedSet<string> _keyWordsTaught = new(StringComparer.Ordinal);
     private readonly SortedSet<string> _met = new(StringComparer.Ordinal);
+
+    // Whether the talk now open is the first with its NPC (issue #55): an NPC with an order tells it then, and takes the goods only from the next talk on.
+    private bool _firstMeeting;
     private long _keyWordsStart;
     private NpcOpening? _delayedOpening;
     private bool _talkOpen;
@@ -572,7 +575,7 @@ public abstract partial class GuideSession : IDisposable
         CurrentNpc = npc;
         _talkOpen = true;
         _delayedOpening = null;
-        _met.Add(npc); // L01: a class opens on having met its teacher, an order on having met its NPC
+        _firstMeeting = _met.Add(npc); // L01: a class opens on having met its teacher, an order on having met its NPC
         _deckClaim = Deck.Claims(npc);
         if (string.Equals(npc, NpcService.GuideAgent, StringComparison.Ordinal))
         {
@@ -818,6 +821,7 @@ public abstract partial class GuideSession : IDisposable
     {
         NpcOpening opening;
         string? order = null;
+        string? told = null;
         if (PendingTurns > 0)
         {
             // A turn is still on the worker (the player closed the panel while it thought): the NPC's state is about to change, so no host turn now.
@@ -826,7 +830,9 @@ public abstract partial class GuideSession : IDisposable
         else
         {
             CompleteTeachEnd(npc); // a teacher a load left in its teaching state comes out of it before the talk (W08)
-            order = OrderReadyAt(npc); // the player walked up with an order's goods (village-plan V03): the NPC thanks them at once, or asks for them (issue #42)
+            // The player walked up with an order's goods (village-plan V03): the NPC thanks them at once, or asks for them (issue #42). Not at the first meeting
+            // (issue #55): the NPC has not said what it needs yet, so it tells the order instead, and the goods go at the next talk.
+            order = _firstMeeting ? null : OrderReadyAt(npc);
             var asked = order is null ? null : BeginHandOver(npc, order); // issue #42: the learner says what they hand over; «no sé» or two misses hand it over anyway
             if (asked is not null)
             {
@@ -836,11 +842,18 @@ public abstract partial class GuideSession : IDisposable
             else
             {
                 EndStaleHandOver(npc);
-                var offer = order is null ? BakeOfferOf(npc, asked: false) : null; // W08: the teacher's offer to bake opens the talk, once a day until the learner has baked
+                told = order is null && _firstMeeting ? OrderOpenAt(npc) : null; // issue #55: the first talk with an NPC that has an order says what it needs
+                var bake = order is null && told is null ? BakeOfferOf(npc, asked: false) : null; // W08: the teacher's offer to bake opens the talk, once a day until the learner has baked
+                var offer = told is not null ? NpcHostEvents.Of(npc, NpcHostEvents.OrderOffer) : bake;
                 opening = _npcs.Open(npc, ObjectiveComplete, StoredTime, StateDigest(), order is null ? null : NpcHostEvents.Of(npc, NpcHostEvents.Delivered), offer);
-                if (offer is not null)
+                if (bake is not null)
                 {
                     NoteOffer(npc);
+                }
+
+                if (!opening.Offered)
+                {
+                    told = null; // the agent was not in its usual state or has no order_offer turn (the validator asks for one): the talk opened as usual
                 }
             }
 
@@ -860,6 +873,7 @@ public abstract partial class GuideSession : IDisposable
             else if (asked is null && !string.Equals(npc, NpcService.GuideAgent, StringComparison.Ordinal) && Lessons.OwnsConversation(npc) && !opening.Delivered)
             {
                 opening = opening with { Lines = [] }; // the villager's or the shopkeeper's lesson speaks first (S26): the host turn's state change stays, its line is not said
+                told = null; // a lesson at the NPC tells its order in its own steps (the smith's offer, the baker's oven): the request is not said twice
             }
         }
 
@@ -892,6 +906,11 @@ public abstract partial class GuideSession : IDisposable
         if (delivered is not null)
         {
             Log(new WorldEvent(Tick, StoredTime.UnixSeconds, WorldEvents.OrderDelivered, npc, delivered)); // the order's one step waits for it
+        }
+
+        if (told is not null)
+        {
+            Log(new WorldEvent(Tick, StoredTime.UnixSeconds, WorldEvents.OrderOffered, npc, told)); // issue #55: the NPC said what it needs; the goods go at the next talk
         }
 
         if (opening.HostTurn && opening.HostEvents.Contains(NpcHostEvents.GuideOffered, StringComparer.Ordinal))
@@ -1285,6 +1304,13 @@ public abstract partial class GuideSession : IDisposable
     /// </summary>
     /// <param name="npc">The NPC the panel opens on.</param>
     protected virtual string? OrderReadyAt(string npc) => null;
+
+    /// <summary>
+    /// The order an NPC waits for now (an objective with <c>deliverTo</c> that is shown and not done), whether or not the player carries its goods, or
+    /// <see langword="null"/>. The first talk with the NPC tells it (issue #55, <c>&lt;npc&gt;.order_offer</c>). The 3D scene has the objectives; the base game has none.
+    /// </summary>
+    /// <param name="npc">The NPC.</param>
+    protected virtual string? OrderOpenAt(string npc) => null;
 
     /// <summary>
     /// Whether an NPC has an order whose goods the player carries and that a lesson keeps back until its step (village-plan V13): the NPC then says why a purchase the coins

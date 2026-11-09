@@ -339,6 +339,7 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
         session.Sitting = 7;
         _ = session.Simulation.GrantItems(ItemId.WaterBottle, 1);
         Stage.TeleportToNpc(session, "farmer");
+        session.MeetOrderNpcs("farmer"); // met on an earlier visit, which told the order (issue #55)
         Assert.Equal(["¡Hola! ¿Qué tienes para mí?"], session.OpenTalk("farmer").Lines);
         Assert.Equal(["¡Gracias! Toma tres manzanas."], session.HandOverGoods()!.FollowUp);
         Assert.Equal((0, 3), (session.Simulation.Inventory.Count(ItemId.WaterBottle), session.Simulation.Inventory.Count(ItemId.Apple)));
@@ -348,6 +349,7 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
         early.Sitting = 6;
         _ = early.Simulation.GrantItems(ItemId.WaterBottle, 1);
         Stage.TeleportToNpc(early, "farmer");
+        early.MeetOrderNpcs("farmer");
         _ = early.OpenTalkForClass("farmer"); // L01: the order opens once León is met, whatever the day, and the water is handed over in Spanish
         Assert.Equal(0, early.Simulation.Inventory.Count(ItemId.WaterBottle));
     }
@@ -506,6 +508,7 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
     {
         var session = TestGame.NewSessionWithShippedLessons(); // session 1: ¿Cómo es? is not unlocked, so he talks as himself
         Stage.TeleportToNpc(session, "farmer");
+        session.MeetOrderNpcs("farmer"); // a later visit: the first tells his order (issue #55)
         Assert.Equal(["¡Hola!"], session.OpenTalkForClass("farmer").Lines);
         Assert.Equal(["Una manzana cuesta una moneda."], session.Say("¿Cuánto cuesta?").GuideLines);
 
@@ -539,6 +542,7 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
         session.Sitting = 7;
         _ = session.Simulation.GrantItems(ItemId.WaterBottle, 2);
         Stage.TeleportToNpc(session, "farmer");
+        session.MeetOrderNpcs("farmer"); // met on an earlier visit, which told the order (issue #55)
 
         var opening = session.OpenTalk("farmer"); // León asks what the learner has, and the water is handed over in Spanish (D-game-27)
         Assert.Equal(["¡Hola! ¿Qué tienes para mí?"], opening.Lines);

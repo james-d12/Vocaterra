@@ -2706,6 +2706,16 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   - *Tests (Menu-2).* Core: `TestingRowsTests`, `PlayerSettingsTests` (draw distance, the new flags over the save), `AutosaveControllerTests`, `TypedCreditSettingTests`, `GroundFinderTests`; Game:
     `GreyscaleTests` (runtime switch, all-known view), `VoxelLaunchOptionsTests`, `SoundLaunchOptionsTests`, `UiScaleLayoutTests`.
 
+- **An order is told before its goods are taken (issue #55, 2026-11-09).** Since L01 an order opened once its NPC was met, and the panel's first opening marked the NPC
+  met, so the talk that met Mar found the order open and the camp's three fruits in the bag: he thanked the player and paid two coins before he had asked for anything
+  (the same held for Luz and the camp's five wood, León and the camp's bottle, Domingo and wood and coins). Now the first talk with an NPC that has an order says what it needs, through
+  `<npc>.order_offer` (its initial state takes it and stays there; the validator asks for the transition), with the request lines the lessons already had: «Tengo hambre. ¿Tienes fruta?»
+  (Mar), the oven line (Luz), «¿Quieres un hacha? Necesito…» (Domingo), «Mis plantas necesitan agua…» (León). It is logged `order_offered`. The goods are asked for and taken
+  from the next talk on (D-game-27's hand-over), as `village-plan.md` 3.4 meant ("completes whenever the player comes back"). A lesson that holds the talk at that NPC speaks
+  first and tells the order in its own steps, so the request is not said twice. The order still shows in the HUD from the meeting (D-game-25 unchanged). Tests:
+  `OrdersAndSalesTests.TheFirstTalkWithAnNpcSaysWhatItNeeds...` (all four orders); the tests that opened a later talk now mark the NPC met first (`MeetOrderNpcs`). The scripted runs
+  that talk to an order NPC first (r18, r19, r22, r23, r24, r30) open with the request now and need new baselines.
+
 ## 6. Definition of done (every milestone)
 
 1. `dotnet build Vocaterra.sln -warnaserror` with 0 warnings and `dotnet test Vocaterra.sln` green, with the test count in the report.

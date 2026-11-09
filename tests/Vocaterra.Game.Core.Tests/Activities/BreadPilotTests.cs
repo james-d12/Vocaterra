@@ -236,6 +236,7 @@ public sealed class BreadPilotTests
         var noLessons = LessonBook.Parse("{ \"schemaVersion\": 1, \"lessons\": [] }", data.Phrases, data.Speech, data.Bundle.Prompts, data.Locale, data.Npcs.Ids);
         var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons);
         Stage.TeleportToNpc(session, "baker");
+        session.MeetOrderNpcs("baker"); // a later visit: the first tells her order for the oven's wood (issue #55)
 
         var opening = session.OpenTalk("baker");
 

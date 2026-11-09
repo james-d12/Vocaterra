@@ -63,6 +63,12 @@ public static class WorldEvents
     /// </summary>
     public const string OrderAsked = "order_asked";
 
+    /// <summary>
+    /// The player met an NPC with an order for the first time (issue #55): the NPC said what it needs (<c>&lt;npc&gt;.order_offer</c>). The goods are taken from the
+    /// next talk on. The detail is the objective's id.
+    /// </summary>
+    public const string OrderOffered = "order_offered";
+
     /// <summary>The player filled the bottle at the river.</summary>
     public const string BottleFilled = "bottle_filled";
 
@@ -197,7 +203,7 @@ public static class WorldEvents
         KeyWordsShown, PhraseReviewAsked, SupportCardShown, ItemPickedUp, ItemCrafted, TipShown, GuideMet, FireLit, SessionComplete, SpareTorch, SecondTryAsked, SecondTryAnswered,
         TorchAtRing,
         WarmupOffered, WarmupStarted, WarmupEnded, WarmupSkipped, ReviewSkipped, ReviewAnswered,
-        BeaconReached, PlaceAsked, ItemTaken, OrderDelivered, OrderAsked,
+        BeaconReached, PlaceAsked, ItemTaken, OrderDelivered, OrderAsked, OrderOffered,
         Slept, SessionSkipped,
         MealEaten, WaterDrunk, NeedStage, PlayerCollapsed, PlayerDied, PlayerWoke, BelongingsRecovered, BushPlanted,
         ProcedureStarted, ProcedureStep, ProcedureDone, ProcedureMastered,

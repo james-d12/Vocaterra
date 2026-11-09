@@ -332,8 +332,9 @@ public sealed class VillageLessonTests(ITestOutputHelper output)
     {
         var session = TestGame.NewSessionWithShippedLessons(); // session 1: El pueblo is not unlocked, so he talks as himself
         Stage.TeleportToNpc(session, "fisher");
+        session.MeetOrderNpcs("fisher"); // a later visit: the first tells his order (issue #55)
 
-        Assert.Equal(["¡Hola!"], session.OpenTalkForClass("fisher").Lines); // he greets at every talk
+        Assert.Equal(["¡Hola!"], session.OpenTalkForClass("fisher").Lines); // he greets at every later talk
         var far = session.Say("¿Está lejos?");
         Assert.Equal(["¿Lejos? ¿Qué buscas?"], far.GuideLines); // nothing was asked for yet
 
@@ -358,7 +359,10 @@ public sealed class VillageLessonTests(ITestOutputHelper output)
         var early = TestGame.NewSessionWithShippedLessons();
         _ = early.Simulation.GrantItems(ItemId.Berry, 3);
         Stage.TeleportToNpc(early, "fisher");
-        _ = early.OpenTalkForClass("fisher"); // L01: an order opens once its NPC is met, whatever the day: the first talk takes the fruit, handed over in Spanish (D-game-27)
+        Assert.Equal(["Tengo hambre. ¿Tienes fruta?"], early.OpenTalk("fisher").Lines); // L01: an order opens once its NPC is met, whatever the day; the first talk tells it (issue #55)
+        Assert.Equal(3, early.Simulation.Inventory.Count(ItemId.Berry)); // and takes nothing, though the camp's fruit is in the bag
+        early.EndTalk();
+        _ = early.OpenTalkForClass("fisher"); // the next talk takes the fruit, handed over in Spanish (D-game-27)
         Assert.Equal(0, early.Simulation.Inventory.Count(ItemId.Berry));
 
         var session = TestGame.NewSessionWithShippedLessons();
@@ -366,6 +370,7 @@ public sealed class VillageLessonTests(ITestOutputHelper output)
         session.Sitting = 4;
         _ = session.Simulation.GrantItems(ItemId.Berry, 4);
         Stage.TeleportToNpc(session, "fisher");
+        session.MeetOrderNpcs("fisher"); // met on an earlier visit, which told the order (issue #55)
 
         var opening = session.OpenTalk("fisher"); // Mar asks what the learner has, and the fruit is handed over in Spanish (D-game-27)
         Assert.Equal(["¡Hola! ¿Qué tienes para mí?"], opening.Lines);

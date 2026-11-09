@@ -27,14 +27,23 @@ public sealed class OrdersAndSalesTests
 
     private const string HelpLine = "Puedes decir: «Aquí tienes cinco bloques de madera».";
 
+    private const string OvenRequest = "Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer?";
+
     private static GameData Baker => TestGame.Data;
 
-    // A session on the bundle's route, in a play session; without lessons unless asked (a lesson would take the HUD's line and the baker's talk).
-    private static VoxelSession NewSession(int playSession = 1, GameData? data = null, bool shippedLessons = false)
+    // A session on the bundle's route, in a play session; without lessons unless asked (a lesson would take the HUD's line and the baker's talk). The NPCs with
+    // orders are met already unless asked (issue #55: the first talk with one tells its order and takes no goods), so a talk here is a later one.
+    private static VoxelSession NewSession(int playSession = 1, GameData? data = null, bool shippedLessons = false, bool met = true)
     {
         data ??= Baker;
         var noLessons = LessonBook.Parse("{ \"schemaVersion\": 1, \"lessons\": [] }", data.Phrases, data.Speech, data.Bundle.Prompts, data.Locale, data.Npcs.Ids);
-        return new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: shippedLessons ? null : noLessons) { Day = playSession };
+        var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: shippedLessons ? null : noLessons) { Day = playSession };
+        if (met)
+        {
+            session.MeetOrderNpcs();
+        }
+
+        return session;
     }
 
     private static IEnumerable<WorldEvent> WorldEventsOf(VoxelSession session, string name) => session.Events.OfType<WorldEvent>().Where(e => e.Name == name);
@@ -101,7 +110,7 @@ public sealed class OrdersAndSalesTests
     public void AnOrderIsHiddenAndCountsNothingUntilItsNpcIsMetWhateverTheDay()
     {
         var data = WithOrderFirst(Baker);
-        var early = NewSession(playSession: 4, data);
+        var early = NewSession(playSession: 4, data, met: false);
         _ = early.Simulation.GrantItems(ItemId.Wood, 5);
 
         Assert.Equal("meet-guide", early.CurrentObjective!.Id); // the order and the gated objective come first in this HUD's order, and are hidden until Luz is met (L01)
@@ -110,12 +119,14 @@ public sealed class OrdersAndSalesTests
         Assert.Equal(0, early.ObjectiveStep("gated.wood")!.Count); // a gated objective counts nothing before its session
         Assert.Equal(5, early.ObjectiveStep("camp.wood")!.Count); // the camp counts the wood in the bag (#32)
 
-        _ = early.OpenTalk("baker"); // met: the order shows, and Luz asks for the goods the player carries, on a day before its old session
-        Assert.True(early.HandOverOpen);
+        Assert.Equal([OvenRequest], early.OpenTalk("baker").Lines); // met: the order shows, and Luz says what she needs, on a day before its old session
+        Assert.False(early.HandOverOpen); // issue #55: not in the talk that tells the order, though the player carries the wood
+        early.EndTalk();
+        Assert.True(early.OpenTalk("baker").Lines is [Asks] && early.HandOverOpen); // the next talk asks for the goods
         _ = early.HandOverGoods(); // handed over in Spanish (D-game-27)
         Assert.Equal(0, early.Simulation.Inventory.Count(ItemId.Wood));
 
-        var due = NewSession(playSession: 5, data);
+        var due = NewSession(playSession: 5, data, met: false);
         Assert.Equal("gated", due.CurrentObjective!.Id); // nor does the day show it: this gated objective is not an order
         _ = due.OpenTalk("baker");
         Assert.Equal("oven-wood", due.CurrentObjective!.Id);
@@ -123,6 +134,49 @@ public sealed class OrdersAndSalesTests
         _ = due.Simulation.GrantItems(ItemId.Wood, 1);
         due.HostEvent(WorldEvents.ItemPickedUp, "madera");
         Assert.Equal(1, due.ObjectiveStep("gated.wood")!.Count);
+    }
+
+    [Theory]
+    [InlineData("fisher", ItemId.Berry, 3, "fruit-for-mar", "Tengo hambre. ¿Tienes fruta?")]
+    [InlineData("baker", ItemId.Wood, 5, "oven-wood", OvenRequest)]
+    [InlineData("smith", ItemId.Wood, 2, "axe-handle", "¿Quieres un hacha? Necesito dos bloques de madera y dos monedas.")]
+    [InlineData("farmer", ItemId.WaterBottle, 1, "water-for-plants", "Mis plantas necesitan agua. Si me traes agua del río, te doy tres manzanas. ¿Qué vas a hacer?")]
+    public void TheFirstTalkWithAnNpcSaysWhatItNeedsAndTakesTheGoodsOnlyAtTheNextTalk(string npc, ItemId item, int count, string order, string request)
+    {
+        // Issue #55: the camp's fruit (or wood, or water) was in the bag the first time the player spoke to Mar, and he thanked them and paid at once.
+        var session = NewSession(playSession: 1, met: false);
+        _ = session.Simulation.GrantItems(item, count);
+        _ = session.Simulation.GrantItems(ItemId.Coin, 2); // the smith's order takes two coins too
+
+        var first = session.OpenTalk(npc);
+
+        Assert.Equal([request], first.Lines);
+        Assert.False(first.Delivered);
+        Assert.False(session.HandOverOpen);
+        Assert.Equal(count, session.Simulation.Inventory.Count(item));
+        Assert.False(session.Objectives.Single(o => o.Id == order).Complete);
+        Assert.Equal((npc, order), WorldEventsOf(session, WorldEvents.OrderOffered).Select(static e => (e.Npc, e.Detail)).Single());
+        Assert.Empty(WorldEventsOf(session, WorldEvents.OrderAsked));
+        Assert.Empty(WorldEventsOf(session, WorldEvents.OrderDelivered));
+        Assert.Equal(npc + "-open", session.Conversation.PromptOf(npc)); // the request leaves the NPC in its usual state
+
+        session.EndTalk();
+        _ = session.OpenTalk(npc); // the player comes back: the NPC asks for the goods
+        Assert.True(session.HandOverOpen);
+        _ = session.HandOverGoods();
+
+        Assert.True(session.Objectives.Single(o => o.Id == order).Complete);
+        Assert.Single(WorldEventsOf(session, WorldEvents.OrderOffered)); // told once
+    }
+
+    [Fact]
+    public void AnNpcWithNoOrderOpensWithItsGreetingTheFirstTime()
+    {
+        var session = NewSession(playSession: 1, met: false);
+        _ = session.Simulation.GrantItems(ItemId.Berry, 3);
+
+        Assert.DoesNotContain("Tengo hambre", string.Join(' ', session.OpenTalk("villager").Lines), StringComparison.Ordinal);
+        Assert.Empty(WorldEventsOf(session, WorldEvents.OrderOffered));
     }
 
     [Fact]

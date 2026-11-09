@@ -38,6 +38,19 @@ internal static class ClassExtensions
     }
 
     /// <summary>
+    /// Marks NPCs as met without a talk, as an earlier visit would have (issue #55: the first talk with an NPC that has an order tells the order and takes no goods,
+    /// so a test of the hand-over, a sale or a class there starts from a later talk). With no ids, every NPC an order is brought to.
+    /// </summary>
+    public static void MeetOrderNpcs(this VoxelSession session, params string[] npcs)
+    {
+        var ids = npcs.Length > 0 ? npcs : session.Objectives.Where(static o => o.Spec.IsOrder).Select(static o => o.Spec.DeliverTo!).Distinct().ToArray();
+        foreach (var npc in ids)
+        {
+            session.MarkMet(npc);
+        }
+    }
+
+    /// <summary>
     /// When the NPC the panel is open on asks for the goods of an order (issue #42, <see cref="GuideSession.HandOverOpen"/>), says the line of the card its receiving prompt
     /// practises (<c>Aquí tienes cinco bloques de madera.</c>), as a learner who answers right does, and returns that turn; otherwise <see langword="null"/>.
     /// </summary>

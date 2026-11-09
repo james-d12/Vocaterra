@@ -42,6 +42,7 @@
         { "onHostEvent": "smith.greet", "to": "idle", "actions": [{ "dialogueIntent": "smith_hello", "variantPoolId": "smith_hello" }] },
         { "onHostEvent": "smith.delivered", "to": "idle", "actions": [{ "dialogueIntent": "smith_delivered", "hostEvent": "smith.give_axe", "variantPoolId": "smith_delivered" }] },
         { "onHostEvent": "smith.order_ready", "to": "receiving", "actions": [{ "dialogueIntent": "smith_receive", "variantPoolId": "smith_receive" }] },
+        { "onHostEvent": "smith.order_offer", "to": "idle", "actions": [{ "dialogueIntent": "smith_offer", "variantPoolId": "smith_offer" }] },
         { "onHostEvent": "smith.cant_sell", "to": "idle", "actions": [{ "dialogueIntent": "smith_cant_sell", "variantPoolId": "smith_cant_sell" }] },
         { "onHostEvent": "smith.wont_buy", "to": "idle", "actions": [{ "dialogueIntent": "smith_wont_buy", "variantPoolId": "smith_wont_buy" }] },
         { "onHostEvent": "smith.none_offered", "to": "idle", "actions": [{ "dialogueIntent": "smith_none_offered", "variantPoolId": "smith_none_offered" }] },

@@ -349,6 +349,7 @@ public sealed class TeacherLoopTests
         var session = new VoxelSession(ProcedureRig.Data(), TestGame.Seed, GuideSession.DefaultStartedAt, Pristine(), CreditRules.FullTyped, TestGame.NoLessons);
         _ = session.Simulation.Inventory.Add(ItemId.Wood, 1);
         _ = session.Simulation.Inventory.Add(ItemId.WaterBottle, 1);
+        session.MeetOrderNpcs(); // Luz met on an earlier visit, which told her order (issue #55): this talk opens with the offer to bake
         return session;
     }
 
@@ -474,6 +475,7 @@ public sealed class TeacherLoopTests
     public void WithNoProcedureInTheBundleLuzOffersNothingAndTheGameIsAsItWas()
     {
         var session = new VoxelSession(TestGame.Data, TestGame.Seed, GuideSession.DefaultStartedAt, Pristine(), CreditRules.FullTyped, TestGame.NoLessons);
+        session.MeetOrderNpcs("baker"); // a later visit: the first tells her order (issue #55)
         Assert.Empty(TestGame.Data.Procedures.Procedures);
         Assert.Null(session.BakeOfferOf("baker", asked: false));
         Assert.Null(session.BakeOfferOf("baker", asked: true));

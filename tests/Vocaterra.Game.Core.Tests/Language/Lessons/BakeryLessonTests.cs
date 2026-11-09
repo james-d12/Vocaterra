@@ -20,7 +20,7 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
     private static LessonBook Book => TestGame.NewSessionWithShippedLessons().Lessons.Book;
 
     // El pueblo done in session 4 (Números y pan comes after it), then session 5 at the baker: her lesson starts by itself.
-    private static VoxelSession SessionFiveAtBaker(int wood = 0)
+    private static VoxelSession SessionFiveAtBaker(int wood = 0, bool metBefore = false)
     {
         var session = VillageLessonTests.AtStep("(after the last step)"); // no step has this id: El pueblo runs to its end
         Assert.Equal(LessonStatus.Completed, session.Lessons.StatusOf("el-pueblo"));
@@ -33,6 +33,11 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
         }
 
         Stage.TeleportToNpc(session, "baker");
+        if (metBefore)
+        {
+            session.MeetOrderNpcs("baker"); // Luz met on an earlier visit, which told her order (issue #55): this talk takes the wood
+        }
+
         _ = session.OpenTalkForClass("baker");
         return session;
     }
@@ -350,7 +355,8 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
     {
         var session = TestGame.NewSessionWithShippedLessons(); // session 1: Números y pan is not unlocked, so she talks as herself
         Stage.TeleportToNpc(session, "baker");
-        Assert.Equal(["¡Hola!"], session.OpenTalkForClass("baker").Lines); // she greets at every talk
+        session.MeetOrderNpcs("baker"); // a later visit: the first tells her order (issue #55)
+        Assert.Equal(["¡Hola!"], session.OpenTalkForClass("baker").Lines); // she greets at every later talk
         Assert.Equal(["El pan cuesta dos monedas."], session.Say("¿Cuánto cuesta?").GuideLines);
         Assert.Equal(["Aquí hay pan. ¿Cuántos panes quieres?"], session.Say("¿Hay pan?").GuideLines);
 
@@ -377,7 +383,10 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
         early.Sitting = 4;
         _ = early.Simulation.GrantItems(ItemId.Wood, 5);
         Stage.TeleportToNpc(early, "baker");
-        _ = early.OpenTalkForClass("baker"); // L01: the order opens once Luz is met, whatever the day: the first talk takes the wood, handed over in Spanish (D-game-27)
+        Assert.StartsWith("Necesito cinco bloques de madera para el horno.", early.OpenTalk("baker").Lines.Single(), StringComparison.Ordinal); // L01: the order opens once Luz is met, whatever the day; the first talk tells it (issue #55)
+        Assert.Equal(5, early.Simulation.Inventory.Count(ItemId.Wood)); // and takes nothing
+        early.EndTalk();
+        _ = early.OpenTalkForClass("baker"); // the next talk takes the wood, handed over in Spanish (D-game-27)
         Assert.Equal(0, early.Simulation.Inventory.Count(ItemId.Wood));
 
         var session = TestGame.NewSessionWithShippedLessons();
@@ -385,6 +394,7 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
         session.Sitting = 5;
         _ = session.Simulation.GrantItems(ItemId.Wood, 6);
         Stage.TeleportToNpc(session, "baker");
+        session.MeetOrderNpcs("baker"); // met on an earlier visit, which told the order (issue #55)
 
         var opening = session.OpenTalk("baker"); // Luz asks what the learner has, and the wood is handed over in Spanish (D-game-27)
         Assert.Equal(["¡Hola! ¿Qué tienes para mí?"], opening.Lines);
@@ -411,6 +421,7 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
         session.Sitting = 5;
         Assert.Equal(0, session.Simulation.GrantItems(ItemId.Wood, 5));
         Stage.TeleportToNpc(session, "baker");
+        session.MeetOrderNpcs("baker"); // met on an earlier visit, which told the order (issue #55)
 
         _ = session.OpenTalk("baker");
 
@@ -426,13 +437,13 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void ALearnerWhoArrivesWithTheWoodIsPaidAtTheFirstTalkAndTheClassTakenLateGoesOn()
+    public void ALearnerWhoComesBackWithTheWoodIsPaidAtOnceAndTheClassTakenLateGoesOn()
     {
         // The objective line shows the order from the session's start, so the wood may come first. The order names its lesson (V14, as V13's water-for-plants does):
         // walking up to Luz with five wood delivers nothing while the lesson has not reached its step that waits for the delivery, so "Voy a buscar madera" comes before
         // her thanks. Before V14 the talk that started the lesson took the wood, and the plan was said of wood already delivered.
-        var session = SessionFiveAtBaker(wood: 5);
-        Assert.True(session.Objectives.Single(static o => o.Id == "oven-wood").Complete); // no lesson holds a delivery (L01): Luz takes the wood at the first talk
+        var session = SessionFiveAtBaker(wood: 5, metBefore: true);
+        Assert.True(session.Objectives.Single(static o => o.Id == "oven-wood").Complete); // no lesson holds a delivery (L01): Luz takes the wood at the first talk after the one that told the order (issue #55)
         Assert.Equal(LessonId, session.Lessons.Active!.Id);
         Assert.Equal(LessonId, TestGame.Data.Objectives.Find("oven-wood")!.Lesson);
         while (session.Lessons.Current is { Id: not "n5-coins" } step)

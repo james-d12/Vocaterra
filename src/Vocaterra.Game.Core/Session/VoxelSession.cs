@@ -743,6 +743,10 @@ public sealed partial class VoxelSession : GuideSession
         GoodsHeldOrders(npc).FirstOrDefault()?.Id; // no lesson holds a delivery (L01)
 
     /// <inheritdoc />
+    protected override string? OrderOpenAt(string npc) =>
+        Objectives.FirstOrDefault(o => o.Spec.IsOrder && !o.Complete && Shown(o.Spec) && string.Equals(o.Spec.DeliverTo, npc, StringComparison.Ordinal))?.Id;
+
+    /// <inheritdoc />
     protected override IReadOnlyList<string>? HandOverNounsOf(string order) =>
         Objectives.FirstOrDefault(o => string.Equals(o.Id, order, StringComparison.Ordinal))?.Spec.HandOverNouns;
 

@@ -47,7 +47,7 @@ namespace Vocaterra.Game.Core.Content;
 /// say the learner has none to sell (<c>&lt;npc&gt;.cant_sell</c>) and one that can say it buys another item (<c>&lt;npc&gt;.wont_buy</c>); and (V19) an NPC that sells or
 /// buys one that can say the bag is full (<c>&lt;npc&gt;.no_room</c>), and one that can answer a request for none (<c>&lt;npc&gt;.none_asked</c>) or an offer of none
 /// (<c>&lt;npc&gt;.none_offered</c>);</item>
-/// <item>the orders (V03): the NPC an order is brought to is one of the NPCs, and every state of its agent takes its thanks (<c>&lt;npc&gt;.delivered</c>), so the
+/// <item>the orders (V03): the NPC an order is brought to is one of the NPCs, its agent's initial state tells the order (<c>&lt;npc&gt;.order_offer</c>, issue #55), and every state of its agent takes its thanks (<c>&lt;npc&gt;.delivered</c>), so the
 /// goods are never brought in vain; the lesson an order names as the one that tells it (V13) is a lesson with a <c>do</c> step that waits for that delivery; an order
 /// handed over in Spanish (issue #42, <c>handOver</c>) names catalogue nouns, its NPC's agent asks for it from every state but the teaching one (<c>&lt;npc&gt;.order_ready</c>
 /// into <c>receiving</c>) and its file maps <c>receiving</c> to a prompt that takes <c>hand_over</c> and practises a learner phrase of that intent;</item>
@@ -708,6 +708,15 @@ public static class GameDataValidator
         foreach (var state in machine.Definition.States.Where(state => !state.Transitions.Any(t => string.Equals(t.OnHostEvent, delivered, StringComparison.Ordinal))))
         {
             problems.Add($"{file}: the order is brought to '{npc}', and the state '{state.Id}' of agents/{npc}.json does not take '{delivered}' to thank the player.");
+        }
+
+        // Issue #55: the first talk with the NPC tells the order (<npc>.order_offer from its initial state, which it does not leave); without it the goods would be
+        // asked for by an NPC that never said it needed them.
+        var offer = NpcHostEvents.Of(npc, NpcHostEvents.OrderOffer);
+        if (machine.Definition.States.FirstOrDefault(state => string.Equals(state.Id, machine.Definition.InitialState, StringComparison.Ordinal)) is { } initial
+            && !initial.Transitions.Any(t => string.Equals(t.OnHostEvent, offer, StringComparison.Ordinal) && string.Equals(t.To, initial.Id, StringComparison.Ordinal)))
+        {
+            problems.Add($"{file}: the order is brought to '{npc}', and the initial state '{initial.Id}' of agents/{npc}.json does not take '{offer}' (staying in it) to say what it needs.");
         }
 
         CheckHandOver(data, objective, npc, machine, file, problems);

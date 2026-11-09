@@ -1,11 +1,11 @@
 {"schemaVersion":1,"bundleId":"game-v1","contentVersion":"1.0.0","supportLanguage":"en","files":[
 {"path":"ATTRIBUTION.md","sha256":"2850ffe4b92c6228299d243d49d4f0c8af660a454ed1911f7abe8567eb4104b3","bytes":7924},
-{"path":"agents/baker.json","sha256":"d12ae91c159df4a933b582cbf66526ba18536731477a238780926cc3978777ce","bytes":16663},
-{"path":"agents/farmer.json","sha256":"63dc091542bcae7774085cdf1b94fe991d589c08cf4d7f20882f4e7ea5de16dc","bytes":9274},
-{"path":"agents/fisher.json","sha256":"173155c88efd24b4698d08f718ed4e2e3fcab542e28734aad7f3224cc5c45a75","bytes":10184},
+{"path":"agents/baker.json","sha256":"d2f0186e93196078c0ccae20e962802c407a9e7d3637c3d8f6b20018f668fcc2","bytes":16884},
+{"path":"agents/farmer.json","sha256":"a09c4db874174c546014682a2e68812fc08ffc87b21dfd2a90da2fea3c698215","bytes":9502},
+{"path":"agents/fisher.json","sha256":"68665868107f1a0d867d98aa69564af9a533269c6b0bb6b27528b6e10a57b8ea","bytes":10415},
 {"path":"agents/guide.json","sha256":"3d3a59c3fc502b19c5c45745172552cf5933aa95a6cad8f082b137d3a76d6d2c","bytes":18125},
 {"path":"agents/shopkeeper.json","sha256":"2c219da53c71b7f5bad4bed17e580a07e2cb1d4b35efb9dbf82996f0c0ed96c4","bytes":19284},
-{"path":"agents/smith.json","sha256":"58f449b5618ad0229a350f678a95312f8b0e0e042626ed2484b77cb7b61087ad","bytes":7817},
+{"path":"agents/smith.json","sha256":"3406b175d15e50b673c2c37ebb66858674e4fed263867ced7a6c548d8daefc98","bytes":7961},
 {"path":"agents/villager.json","sha256":"e1da6f5a38cfd9e9e98f5437af5eccd8dedc72741f00df325a6ffdf80a90603d","bytes":8716},
 {"path":"answer-sets/baker-proc.json","sha256":"3e9fc0e226d9c401ddd999aaa1393d7d7d76f2bba727f853491197ccef96d530","bytes":1979},
 {"path":"answer-sets/lesson-apple.json","sha256":"bec86661bcb2650ed615a97c9bd887ce03ac88874012ec2cd62ee59cd16f8cc7","bytes":665},
@@ -1581,4 +1581,4 @@
 {"path":"speech/villager/villager_wont_sell.1.wav","sha256":"3265f9782c9ad6140cb0111fff9faa2deaf07a0c6ebb5b798f8df03c9d25b1b9","bytes":67244},
 {"path":"speech/villager/villager_yes.1.slow.wav","sha256":"c89db269d94d9525b8b6e1294b6edfef8682dfd5fb5522ac7d2de7539b546c42","bytes":38444},
 {"path":"speech/villager/villager_yes.1.wav","sha256":"b7de709cd242f8181619ba356c6a8223d9a489231b934e1ee81f522f1d0442a3","bytes":30044}
-],"bundleHash":"ef69e9499099b847865647628287cc3868e68f622a87eae675b37e8e9edc276d"}
+],"bundleHash":"a9339278ff1f3e3cc9e9cbc14c92f207b2a9a1e26d4922e0d27d75360da3b456"}
