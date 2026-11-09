@@ -909,6 +909,10 @@ gives both, with `rojas`). Since M62 the same holds across a copula:
   the predicate is clean.
 - **A feminine noun that takes `el` is feminine (M64):** `el ala es muy sincera` is clean and `el ala es muy sincero` gives `sincera`, though the lexicon lists `ala`
   with both genders and its article is `el` (`el agua está frío` gives `fría`, as before).
+- **A feminine noun that takes `el` takes it right before it (issue #42):** a feminine singular article or the numeral one directly before a feminine singular noun
+  that starts with a stressed a (`WordClasses.TakesElBeforeFeminine`: `agua`, `hacha`, `arma`, `alma`, `aula`...) gives `gender.agree` with `expected` `el` or `un`:
+  `la agua` gives `el`, `una arma` `un` (before, both were clean). With a word between, the feminine stays (`la fría agua`), and a determiner adjective is
+  feminine there too (`esta agua`, `mucha agua`); the plural is feminine (`las aguas`).
 - **A name gives no gender:** a lone name (one bare noun, `Luz es alta`) may be the person spoken to, and the core does not know a name's gender (a woman may be called
   `Sol`), so only the copula's number is checked after it: `Luz es alta`, `Luz es alto`, `Domingo es alto` and `León es alto` are clean, `Luz es altos` gives `alto`. A
   host that knows the person (a lesson about Luz) checks the gender itself. **The predicate shows the number (M69, M62's left point):** after a lone name, a copula of

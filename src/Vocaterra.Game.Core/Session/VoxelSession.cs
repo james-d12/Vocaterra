@@ -743,6 +743,10 @@ public sealed partial class VoxelSession : GuideSession
         GoodsHeldOrders(npc).FirstOrDefault()?.Id; // no lesson holds a delivery (L01)
 
     /// <inheritdoc />
+    protected override IReadOnlyList<string>? HandOverNounsOf(string order) =>
+        Objectives.FirstOrDefault(o => string.Equals(o.Id, order, StringComparison.Ordinal))?.Spec.HandOverNouns;
+
+    /// <inheritdoc />
     protected override bool OrderHeldAt(string npc) => false; // no lesson holds an order back (L01)
 
     // The shown, undone orders of an NPC whose goods the player carries.

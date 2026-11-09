@@ -884,6 +884,14 @@ internal sealed partial class SpanishAgreementChecker : IAgreementChecker
     private void CheckDeterminer(int determinerIndex, int headIndex, List<LexicalFeatures> nounReadings, LexicalFeatures noun)
     {
         var readings = Readings(determinerIndex, IsDeterminerReading);
+        if (FeminineArticleBeforeStressedA(determinerIndex, headIndex, readings, noun) is { } elForm)
+        {
+            // la agua, una arma: right before a feminine singular noun that starts with a stressed a, the article is el or un (el agua, un arma); with a
+            // word between, the feminine stays (la fría agua), and a determiner adjective is feminine there too (esta agua, mucha agua).
+            Add(ErrorTags.GenderAgree, determinerIndex, determinerIndex, elForm, TextOf(determinerIndex));
+            return;
+        }
+
         var genderOk = readings.Any(d => nounReadings.Any(n => GenderCompatible(d, n)));
         var numberOk = readings.Any(d => nounReadings.Any(n => Compatible(d.Number, n.Number)));
         if (genderOk && numberOk)
@@ -909,6 +917,27 @@ internal sealed partial class SpanishAgreementChecker : IAgreementChecker
                 Add(ErrorTags.NounNumber, headIndex, headIndex, form, TextOf(headIndex));
             }
         }
+    }
+
+    // The el or un a feminine singular article (la, una) right before its stressed-a noun should be, or null when it is not that case: the noun's reading is feminine
+    // singular and takes el (WordClasses.TakesElBeforeFeminine), nothing stands between the two, and every determiner reading of the word is a feminine singular
+    // article or the numeral one (a word that may also be read otherwise is left alone).
+    private string? FeminineArticleBeforeStressedA(int determinerIndex, int headIndex, List<LexicalFeatures> readings, LexicalFeatures noun)
+    {
+        if (headIndex != determinerIndex + 1
+            || noun is not { Gender: LexiconSchema.Feminine, Number: LexiconSchema.Singular }
+            || !WordClasses.TakesElBeforeFeminine(noun.Lemma)
+            || readings.Count == 0
+            || !readings.All(static d => d.Pos is LexiconSchema.Article or LexiconSchema.Numeral && d.Gender == LexiconSchema.Feminine && d.Number is null or LexiconSchema.Singular))
+        {
+            return null;
+        }
+
+        var determiner = readings[0];
+        var form = determiner.Pos == LexiconSchema.Numeral
+            ? (determiner.Lemma == "1" ? "un" : null)
+            : _morphology.Article(determiner.Lemma == "el" ? Definiteness.Definite : Definiteness.Indefinite, LexiconSchema.Feminine, LexiconSchema.Singular, noun.Lemma);
+        return form is not null && !string.Equals(form, TextOf(determinerIndex), StringComparison.Ordinal) ? form : null;
     }
 
     private void CheckAdjective(int adjectiveIndex, List<LexicalFeatures> nounReadings, LexicalFeatures noun, string? effectiveNumber, bool numberFromDeterminer)

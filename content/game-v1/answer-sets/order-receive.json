@@ -1,0 +1,150 @@
+{
+  "answerSetId": "order-receive",
+  "answers": [
+    {
+      "answerId": "wood",
+      "canonical": "aquí tienes la madera",
+      "aliases": [
+        "aquí tienes cinco bloques de madera",
+        "aquí está la madera",
+        "toma la madera",
+        "te doy la madera",
+        "sí aquí tienes la madera",
+        "aquí tienes madera"
+      ],
+      "dialects": [
+        "es-MX",
+        "es-CO",
+        "es-AR"
+      ]
+    },
+    {
+      "answerId": "fruit",
+      "canonical": "aquí tienes las frutas",
+      "aliases": [
+        "aquí tienes tres frutas",
+        "aquí están las frutas",
+        "toma las frutas",
+        "te doy las frutas",
+        "aquí tienes la fruta",
+        "aquí tienes fruta"
+      ],
+      "dialects": [
+        "es-MX",
+        "es-CO",
+        "es-AR"
+      ]
+    },
+    {
+      "answerId": "wood-coins",
+      "canonical": "aquí tienes la madera y las monedas",
+      "aliases": [
+        "aquí tienes dos bloques de madera y dos monedas",
+        "aquí tienes las monedas",
+        "aquí tienes las monedas y la madera",
+        "toma la madera y las monedas"
+      ],
+      "dialects": [
+        "es-MX",
+        "es-CO",
+        "es-AR"
+      ]
+    },
+    {
+      "answerId": "water",
+      "canonical": "aquí tienes el agua",
+      "aliases": [
+        "aquí tienes la botella",
+        "aquí está el agua",
+        "toma el agua",
+        "te doy el agua",
+        "aquí tienes agua"
+      ],
+      "dialects": [
+        "es-MX",
+        "es-CO",
+        "es-AR"
+      ]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": [
+        "ayuda por favor",
+        "necesito ayuda",
+        "me ayudas",
+        "me puedes ayudar"
+      ],
+      "dialects": [
+        "es-MX",
+        "es-CO",
+        "es-AR"
+      ]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": [
+        "no lo sé",
+        "yo no sé",
+        "no entiendo"
+      ],
+      "dialects": [
+        "es-MX",
+        "es-CO",
+        "es-AR"
+      ]
+    },
+    {
+      "answerId": "thanks",
+      "canonical": "gracias",
+      "aliases": [
+        "muchas gracias"
+      ],
+      "dialects": [
+        "es-MX",
+        "es-CO",
+        "es-AR"
+      ]
+    },
+    {
+      "answerId": "hello",
+      "canonical": "hola",
+      "aliases": [],
+      "dialects": [
+        "es-MX",
+        "es-CO",
+        "es-AR"
+      ]
+    },
+    {
+      "answerId": "bye",
+      "canonical": "adiós",
+      "aliases": [
+        "hasta luego",
+        "nos vemos",
+        "hasta mañana"
+      ],
+      "dialects": [
+        "es-MX",
+        "es-CO",
+        "es-AR"
+      ]
+    },
+    {
+      "answerId": "wellbeing",
+      "canonical": "qué tal",
+      "aliases": [
+        "cómo estás",
+        "cómo está usted",
+        "hola, ¿qué tal?",
+        "hola, ¿cómo estás?"
+      ],
+      "dialects": [
+        "es-MX",
+        "es-CO",
+        "es-AR"
+      ]
+    }
+  ]
+}

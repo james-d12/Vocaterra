@@ -248,7 +248,8 @@ the three sessions and the code give today, read from the lesson files, `LessonB
 5. **Words the player handles come from the world** (the catalogue, the scene's labels, the items), so the beacon, the book and the
    greyscale rule work on them unchanged.
 6. **Nothing is gated behind speech** (D-game-8, D-game-9): an order the learner cannot ask for in Spanish is still delivered by walking
-   up with the goods (section 3.4), as the stall's bottle is.
+   up with the goods (section 3.4), as the stall's bottle is. Since D-game-27 (issue #42) the learner hands it over in Spanish
+   (`Aquí tienes la madera.`), with the same guarantee: «no sé» or two missed lines hand the goods over anyway.
 7. **Every order is a plan, a doing and a report.** Before the player goes, the NPC asks what they are going to do (the future, `ir a`:
    "Voy a buscar madera"); the `do` step is the real walk, gather or purchase; back at the NPC the question is what they did (the preterite:
    "Compré dos panes"), and the present is the exchange itself ("Tengo madera"). The same verb three times, around a thing the player

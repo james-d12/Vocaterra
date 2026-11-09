@@ -160,7 +160,7 @@ public sealed class NpcRosterTests
         Assert.Equal(["como-te-llamas", "que-haces", "quiero-tres-manzanas-rojas", "cuanto-es-todo", "puedo-pagar-con-fruta"], Npcs.FocusAt("farmer-open"));
 
         Assert.Equal(
-            ["como-te-llamas", "cuanto-cuesta", "cuanto-es-todo", "donde-esta-el-rio", "donde-esta-la-herreria", "donde-esta-la-panaderia", "hay-pan", "muy-bien", "no-gracias", "pedir-agua", "puedo-pagar-con-fruta", "que-haces", "que-tal", "quiero-dos-panes", "quiero-tres-manzanas-rojas", "si-por-favor", "vendo-madera"],
+            ["aqui-tienes-cinco-bloques", "aqui-tienes-el-agua", "aqui-tienes-la-madera-y-las-monedas", "aqui-tienes-tres-frutas", "como-te-llamas", "cuanto-cuesta", "cuanto-es-todo", "donde-esta-el-rio", "donde-esta-la-herreria", "donde-esta-la-panaderia", "hay-pan", "muy-bien", "no-gracias", "pedir-agua", "puedo-pagar-con-fruta", "que-haces", "que-tal", "quiero-dos-panes", "quiero-tres-manzanas-rojas", "si-por-favor", "vendo-madera"],
             Npcs.ScaffoldPhrases.Order(StringComparer.Ordinal));
         Assert.Equal("shopkeeper", Npcs.HomeOf("pedir-agua"));
         Assert.Equal("villager", Npcs.HomeOf("donde-esta-el-rio"));
@@ -175,10 +175,10 @@ public sealed class NpcRosterTests
     public void APromptThatIsTheHomeOfPhrasesNeedsAFocusNamingOneOfThem()
     {
         // V12b: the four village NPCs shipped with no focus, so free talk at their prompts showed no card and the baker's request was credited as the stall's.
-        var noFocus = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);
-        var baker = Npcs.Find("baker")! with { Focus = noFocus };
-        var smith = Npcs.Find("smith")! with { Focus = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal) { ["smith-open"] = ["donde-esta-el-rio"] } };
-        var farmer = Npcs.Find("farmer")! with { Focus = noFocus }; // his prompt is the home of his apples (V13), and the market's total and payment (V15)
+        // Each keeps the card of its hand-over (D-game-27), which the validator also asks for.
+        var baker = Npcs.Find("baker")! with { Focus = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal) { ["baker-receive"] = ["aqui-tienes-cinco-bloques"] } };
+        var smith = Npcs.Find("smith")! with { Focus = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal) { ["smith-open"] = ["donde-esta-el-rio"], ["smith-receive"] = ["aqui-tienes-la-madera-y-las-monedas"] } };
+        var farmer = Npcs.Find("farmer")! with { Focus = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal) { ["farmer-receive"] = ["aqui-tienes-el-agua"] } }; // his prompt is the home of his apples (V13), and the market's total and payment (V15)
         var npcs = Npcs.All.Select(npc => npc.Id switch { "baker" => baker, "smith" => smith, "farmer" => farmer, _ => npc }).ToList();
 
         var problems = GameDataValidator.Validate(TestGame.Data.WithNpcs(NpcRoster.Of(npcs)));

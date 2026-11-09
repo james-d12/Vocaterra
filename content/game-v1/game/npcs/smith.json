@@ -9,16 +9,21 @@
     "smith-open": [
       "como-te-llamas",
       "que-haces"
+    ],
+    "smith-receive": [
+      "aqui-tienes-la-madera-y-las-monedas"
     ]
   },
   "prompts": {
-    "idle": "smith-open"
+    "idle": "smith-open",
+    "receiving": "smith-receive"
   },
   "opening": {
     "event": "smith.greet",
     "when": "always"
   },
   "acknowledgementPools": [
+    "answer_accepted",
     "smith_nice"
   ],
   "slotReplies": {

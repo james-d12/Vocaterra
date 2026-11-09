@@ -221,6 +221,12 @@ public sealed record GuideTurn(
     /// <summary>Whether the NPC took the line: the core communicated it, or it is one the NPC understood off its prompt (V27). The book credits what it takes.</summary>
     public bool Taken => Communicated || OffPromptIntent is not null;
 
+    /// <summary>
+    /// The session's plain-English notes after this turn (issue #42: what to say to hand an order over, or that the NPC took it anyway), shown under the turn's feedback.
+    /// Set by the session when it applies the turn; empty when there is none.
+    /// </summary>
+    public IReadOnlyList<string> EnglishNotes { get; init; } = [];
+
     /// <summary>Whether the follow-up lines are the guide's last line said again slowly (the learner asked <c>Más despacio, por favor</c>, S17): the front-end plays the slow recording.</summary>
     public bool SlowFollowUp { get; init; }
 

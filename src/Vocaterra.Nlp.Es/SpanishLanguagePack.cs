@@ -110,6 +110,8 @@ public sealed class SpanishLanguagePack : ILanguagePack
         public string DigitsToWords(string text) => SpanishNumbers.DigitsToWords(text);
 
         public string Agree(string words, string gender) => NumberAgreement.Agree(words, gender);
+
+        public string Agree(string words, string gender, string nounLemma) => NumberAgreement.Agree(words, gender, nounLemma);
     }
 
     private sealed class SpanishPhoneticKeyAdapter : IPhoneticKey

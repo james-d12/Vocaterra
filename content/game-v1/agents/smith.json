@@ -19,6 +19,8 @@
     { "id": "smith_buy", "count": 1 },
     { "id": "smith_bye", "count": 2 },
     { "id": "smith_delivered", "count": 1 },
+    { "id": "smith_receive", "count": 1 },
+    { "id": "smith_receive_help", "count": 1 },
     { "id": "smith_greet", "count": 1 },
     { "id": "smith_hello", "count": 1 },
     { "id": "smith_help", "count": 1 },
@@ -39,6 +41,7 @@
         { "onHostEvent": "smith.true", "to": "idle", "actions": [{ "dialogueIntent": "smith_true", "variantPoolId": "smith_true" }] },
         { "onHostEvent": "smith.greet", "to": "idle", "actions": [{ "dialogueIntent": "smith_hello", "variantPoolId": "smith_hello" }] },
         { "onHostEvent": "smith.delivered", "to": "idle", "actions": [{ "dialogueIntent": "smith_delivered", "hostEvent": "smith.give_axe", "variantPoolId": "smith_delivered" }] },
+        { "onHostEvent": "smith.order_ready", "to": "receiving", "actions": [{ "dialogueIntent": "smith_receive", "variantPoolId": "smith_receive" }] },
         { "onHostEvent": "smith.cant_sell", "to": "idle", "actions": [{ "dialogueIntent": "smith_cant_sell", "variantPoolId": "smith_cant_sell" }] },
         { "onHostEvent": "smith.wont_buy", "to": "idle", "actions": [{ "dialogueIntent": "smith_wont_buy", "variantPoolId": "smith_wont_buy" }] },
         { "onHostEvent": "smith.none_offered", "to": "idle", "actions": [{ "dialogueIntent": "smith_none_offered", "variantPoolId": "smith_none_offered" }] },
@@ -57,6 +60,26 @@
         { "on": {"intent": "farewell", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_bye", "variantPoolId": "smith_bye" }] },
         { "on": {"intent": "state_wellbeing", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_nice", "variantPoolId": "smith_nice" }] },
         { "on": {"communicated": false}, "to": "idle", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
+      ],
+      "fallback": {
+        "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }]
+      }
+    },
+    {
+      "id": "receiving",
+      "transitions": [
+        { "on": {"intent": "hand_over", "communicated": true}, "to": "receiving", "actions": [{ "dialogueIntent": "answer_accepted", "hostEvent": "smith.hand_over", "variantPoolId": "answer_accepted" }] },
+        { "on": {"intent": "ask_help", "communicated": true}, "to": "receiving", "actions": [{ "dialogueIntent": "smith_receive_help", "variantPoolId": "smith_receive_help" }] },
+        { "on": {"intent": "dont_know", "communicated": true}, "to": "receiving", "actions": [{ "dialogueIntent": "smith_receive_help", "variantPoolId": "smith_receive_help" }] },
+        { "onHostEvent": "smith.order_ready", "to": "receiving", "actions": [{ "dialogueIntent": "smith_receive", "variantPoolId": "smith_receive" }] },
+        { "onHostEvent": "smith.order_gone", "to": "idle", "actions": [{ "dialogueIntent": "smith_hello", "variantPoolId": "smith_hello" }] },
+        { "onHostEvent": "smith.delivered", "to": "idle", "actions": [{ "dialogueIntent": "smith_delivered", "hostEvent": "smith.give_axe", "variantPoolId": "smith_delivered" }] },
+        { "on": {"intent": "greet", "communicated": true}, "to": "receiving", "actions": [{ "dialogueIntent": "smith_hello", "variantPoolId": "smith_hello" }] },
+        { "on": {"intent": "ask_wellbeing", "communicated": true}, "to": "receiving", "actions": [{ "dialogueIntent": "smith_well", "variantPoolId": "smith_well" }] },
+        { "on": {"intent": "state_wellbeing", "communicated": true}, "to": "receiving", "actions": [{ "dialogueIntent": "smith_nice", "variantPoolId": "smith_nice" }] },
+        { "on": {"intent": "thank", "communicated": true}, "to": "receiving", "actions": [{ "dialogueIntent": "smith_thank", "variantPoolId": "smith_thank" }] },
+        { "on": {"intent": "farewell", "communicated": true}, "to": "receiving", "actions": [{ "dialogueIntent": "smith_bye", "variantPoolId": "smith_bye" }] },
+        { "on": {"communicated": false}, "to": "receiving", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
       ],
       "fallback": {
         "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }]

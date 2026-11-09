@@ -469,7 +469,7 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
         _ = early.Simulation.GrantItems(ItemId.Wood, 2);
         _ = early.Simulation.GrantItems(ItemId.Coin, 2);
         Stage.TeleportToNpc(early, "smith");
-        Assert.True(early.OpenTalkForClass("smith").Delivered); // L01: the order opens once Domingo is met, whatever the day
+        _ = early.OpenTalkForClass("smith"); // L01: the order opens once Domingo is met, whatever the day, and the goods are handed over in Spanish (D-game-27)
         Assert.Equal((0, 0, 1), (early.Simulation.Inventory.Count(ItemId.Wood), early.Simulation.Inventory.Count(ItemId.Coin), early.Simulation.Inventory.Count(ItemId.Axe)));
 
         var poor = TestGame.NewSessionWithShippedLessons();
@@ -491,10 +491,12 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
         _ = session.Simulation.GrantItems(ItemId.Coin, 2);
         Stage.TeleportToNpc(session, "smith");
 
-        var opening = session.OpenTalkForClass("smith"); // walking up with the goods is enough (D-game-8, D-game-9)
+        var opening = session.OpenTalk("smith"); // Domingo asks what the learner has, and the goods are handed over in Spanish (D-game-27)
+        Assert.Equal(["¡Hola! ¿Qué tienes para mí?"], opening.Lines);
 
-        Assert.True(opening.Delivered);
-        Assert.Equal(["¡Gracias! Toma el hacha."], opening.Lines);
+        var turn = session.HandOverGoods()!; // «Aquí tienes la madera y las monedas.»
+
+        Assert.Equal(["¡Gracias! Toma el hacha."], turn.FollowUp);
         Assert.Equal((1, 0, 1), (session.Simulation.Inventory.Count(ItemId.Wood), session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(ItemId.Axe)));
         Assert.Contains(session.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.OrderDelivered && e.Npc == "smith" && e.Detail == "axe-handle");
         Assert.True(session.Objectives.Single(static o => o.Id == "axe-handle").Complete);

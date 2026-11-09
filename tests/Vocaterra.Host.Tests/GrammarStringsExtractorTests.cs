@@ -101,6 +101,10 @@ public sealed class GrammarStringsExtractorTests
         ["hice-pan"] = ["conj.tense"],
         ["quiero-harina"] = ["gender.agree"],
         ["vendo-pan"] = ["gender.agree"],
+        ["aqui-tienes-tres-frutas"] = ["noun.number"], // D-game-27: the hand-over
+        ["aqui-tienes-cinco-bloques"] = ["gender.agree"],
+        ["aqui-tienes-la-madera-y-las-monedas"] = ["gender.agree"],
+        ["aqui-tienes-el-agua"] = ["gender.agree"],
     };
 
     [Fact]

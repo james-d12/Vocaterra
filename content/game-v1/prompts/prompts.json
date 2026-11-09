@@ -738,5 +738,45 @@
     "agentId": "baker",
     "slotGrammarIds": [],
     "text": "¿Qué hiciste?"
+  },
+  {
+    "promptId": "baker-receive",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "order-receive",
+    "allowedIntentIds": ["hand_over", "ask_help", "dont_know", "greet", "ask_wellbeing", "state_wellbeing", "thank", "farewell"],
+    "agentId": "baker",
+    "slotGrammarIds": [],
+    "text": "¡Hola! ¿Qué tienes para mí?"
+  },
+  {
+    "promptId": "fisher-receive",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "order-receive",
+    "allowedIntentIds": ["hand_over", "ask_help", "dont_know", "greet", "ask_wellbeing", "state_wellbeing", "thank", "farewell"],
+    "agentId": "fisher",
+    "slotGrammarIds": [],
+    "text": "¡Hola! ¿Qué tienes para mí?"
+  },
+  {
+    "promptId": "smith-receive",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "order-receive",
+    "allowedIntentIds": ["hand_over", "ask_help", "dont_know", "greet", "ask_wellbeing", "state_wellbeing", "thank", "farewell"],
+    "agentId": "smith",
+    "slotGrammarIds": [],
+    "text": "¡Hola! ¿Qué tienes para mí?"
+  },
+  {
+    "promptId": "farmer-receive",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "order-receive",
+    "allowedIntentIds": ["hand_over", "ask_help", "dont_know", "greet", "ask_wellbeing", "state_wellbeing", "thank", "farewell"],
+    "agentId": "farmer",
+    "slotGrammarIds": [],
+    "text": "¡Hola! ¿Qué tienes para mí?"
   }
 ]

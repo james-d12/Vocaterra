@@ -722,6 +722,11 @@ public sealed class DialogueModel
             }
         }
 
+        foreach (var note in turn.EnglishNotes)
+        {
+            Add(DialogueSpeaker.English, note); // the session's own note: how to hand an order over (issue #42)
+        }
+
         if (UncertainStreak >= TypingOfferStreak)
         {
             OfferTyping();

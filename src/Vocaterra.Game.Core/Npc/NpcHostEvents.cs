@@ -433,6 +433,24 @@ public static class NpcHostEvents
     /// </summary>
     public const string Delivered = "delivered";
 
+    /// <summary>
+    /// What an NPC is asked to say when the learner walks up with the goods of an order handed over in Spanish (issue #42, an objective with <c>handOver</c>):
+    /// <c>&lt;npc&gt;.order_ready</c>, raised as the opening of the talk; its agent asks for them and waits in <see cref="ReceivingState"/>.
+    /// </summary>
+    public const string OrderReady = "order_ready";
+
+    /// <summary>The host turn that takes an NPC out of <see cref="ReceivingState"/> when the talk opens and the goods are gone (issue #42): <c>&lt;npc&gt;.order_gone</c>.</summary>
+    public const string OrderGone = "order_gone";
+
+    /// <summary>
+    /// The host event an NPC's agent raises in <see cref="ReceivingState"/> on a <c>hand_over</c> line (issue #42): <c>&lt;npc&gt;.hand_over</c>. The session checks the line
+    /// names the goods and then raises <see cref="Delivered"/>; the event itself changes nothing in the world.
+    /// </summary>
+    public const string HandOver = "hand_over";
+
+    /// <summary>The state of an NPC's agent file in which it waits for the learner to hand over the goods of its order (issue #42).</summary>
+    public const string ReceivingState = "receiving";
+
     /// <summary>What an NPC is asked to answer when the learner asks it for the ingredients and the run lacks none (W08, <see cref="NpcEffectKind.GiveMissing"/>): <c>&lt;npc&gt;.nothing_missing</c>.</summary>
     public const string NothingMissing = "nothing_missing";
 

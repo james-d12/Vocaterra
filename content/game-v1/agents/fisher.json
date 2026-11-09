@@ -13,6 +13,8 @@
     { "id": "fisher_nice", "count": 1 },
     { "id": "fisher_bye", "count": 2 },
     { "id": "fisher_delivered", "count": 1 },
+    { "id": "fisher_receive", "count": 1 },
+    { "id": "fisher_receive_help", "count": 1 },
     { "id": "fisher_far", "count": 1 },
     { "id": "fisher_greet", "count": 1 },
     { "id": "fisher_hello", "count": 1 },
@@ -34,6 +36,7 @@
         { "onHostEvent": "fisher.true", "to": "idle", "actions": [{ "dialogueIntent": "fisher_true", "variantPoolId": "fisher_true" }] },
         { "onHostEvent": "fisher.greet", "to": "idle", "actions": [{ "dialogueIntent": "fisher_hello", "variantPoolId": "fisher_hello" }] },
         { "onHostEvent": "fisher.delivered", "to": "idle", "actions": [{ "dialogueIntent": "fisher_delivered", "hostEvent": "fisher.pay", "variantPoolId": "fisher_delivered" }] },
+        { "onHostEvent": "fisher.order_ready", "to": "receiving", "actions": [{ "dialogueIntent": "fisher_receive", "variantPoolId": "fisher_receive" }] },
         { "on": {"intent": "greet", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "fisher_greet", "variantPoolId": "fisher_greet" }] },
         { "on": {"intent": "ask_directions", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "fisher_point", "hostEvent": "fisher.point", "variantPoolId": "fisher_point" }] },
         { "on": {"intent": "ask_availability", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "fisher_point", "hostEvent": "fisher.show", "variantPoolId": "fisher_point" }] },
@@ -60,6 +63,7 @@
         { "onHostEvent": "fisher.understood", "to": "pointing", "actions": [{ "dialogueIntent": "fisher_understood", "variantPoolId": "fisher_understood" }] },
         { "onHostEvent": "fisher.greet", "to": "pointing", "actions": [{ "dialogueIntent": "fisher_hello", "variantPoolId": "fisher_hello" }] },
         { "onHostEvent": "fisher.delivered", "to": "pointing", "actions": [{ "dialogueIntent": "fisher_delivered", "hostEvent": "fisher.pay", "variantPoolId": "fisher_delivered" }] },
+        { "onHostEvent": "fisher.order_ready", "to": "receiving", "actions": [{ "dialogueIntent": "fisher_receive", "variantPoolId": "fisher_receive" }] },
         { "on": {"intent": "greet", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "fisher_greet", "variantPoolId": "fisher_greet" }] },
         { "on": {"intent": "ask_directions", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "fisher_point", "hostEvent": "fisher.point", "variantPoolId": "fisher_point" }] },
         { "on": {"intent": "ask_availability", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "fisher_point", "hostEvent": "fisher.show", "variantPoolId": "fisher_point" }] },
@@ -72,6 +76,26 @@
         { "on": {"intent": "farewell", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "fisher_bye", "variantPoolId": "fisher_bye" }] },
         { "on": {"intent": "state_wellbeing", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "fisher_nice", "variantPoolId": "fisher_nice" }] },
         { "on": {"communicated": false}, "to": "pointing", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
+      ],
+      "fallback": {
+        "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }]
+      }
+    },
+    {
+      "id": "receiving",
+      "transitions": [
+        { "on": {"intent": "hand_over", "communicated": true}, "to": "receiving", "actions": [{ "dialogueIntent": "answer_accepted", "hostEvent": "fisher.hand_over", "variantPoolId": "answer_accepted" }] },
+        { "on": {"intent": "ask_help", "communicated": true}, "to": "receiving", "actions": [{ "dialogueIntent": "fisher_receive_help", "variantPoolId": "fisher_receive_help" }] },
+        { "on": {"intent": "dont_know", "communicated": true}, "to": "receiving", "actions": [{ "dialogueIntent": "fisher_receive_help", "variantPoolId": "fisher_receive_help" }] },
+        { "onHostEvent": "fisher.order_ready", "to": "receiving", "actions": [{ "dialogueIntent": "fisher_receive", "variantPoolId": "fisher_receive" }] },
+        { "onHostEvent": "fisher.order_gone", "to": "idle", "actions": [{ "dialogueIntent": "fisher_hello", "variantPoolId": "fisher_hello" }] },
+        { "onHostEvent": "fisher.delivered", "to": "idle", "actions": [{ "dialogueIntent": "fisher_delivered", "hostEvent": "fisher.pay", "variantPoolId": "fisher_delivered" }] },
+        { "on": {"intent": "greet", "communicated": true}, "to": "receiving", "actions": [{ "dialogueIntent": "fisher_hello", "variantPoolId": "fisher_hello" }] },
+        { "on": {"intent": "ask_wellbeing", "communicated": true}, "to": "receiving", "actions": [{ "dialogueIntent": "fisher_well", "variantPoolId": "fisher_well" }] },
+        { "on": {"intent": "state_wellbeing", "communicated": true}, "to": "receiving", "actions": [{ "dialogueIntent": "fisher_nice", "variantPoolId": "fisher_nice" }] },
+        { "on": {"intent": "thank", "communicated": true}, "to": "receiving", "actions": [{ "dialogueIntent": "fisher_thank", "variantPoolId": "fisher_thank" }] },
+        { "on": {"intent": "farewell", "communicated": true}, "to": "receiving", "actions": [{ "dialogueIntent": "fisher_bye", "variantPoolId": "fisher_bye" }] },
+        { "on": {"communicated": false}, "to": "receiving", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
       ],
       "fallback": {
         "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }]

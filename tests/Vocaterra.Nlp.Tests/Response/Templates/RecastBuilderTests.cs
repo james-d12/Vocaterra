@@ -67,6 +67,10 @@ public class RecastBuilderTests
     [InlineData("tengo 1 tu 1 espada", "tengo una tu una espada")]
     [InlineData("tengo 1 tu 1 libro", "tengo un tu un libro")]
     [InlineData("tengo 21 espadas", "tengo veintiuna espadas")]
+    [InlineData("tengo 1 hacha", "tengo un hacha")] // a feminine noun with a stressed a takes un right after the number (issue #42)
+    [InlineData("tengo 1 hada", "tengo un hada")]
+    [InlineData("tengo 1 áreas", "tengo un áreas")] // the noun's own number is the noun.number edit's (fuzz seed 80dFY11tOf62: 1 áreas recast to una área)
+    [InlineData("tengo 1 gran hacha", "tengo una gran hacha")] // with a word between, the feminine stays
     [InlineData("tengo 3 libros", "tengo tres libros")]
     [InlineData("tengo 1", "tengo uno")]
     [InlineData("quiero 0 monedas", "quiero cero monedas")]
