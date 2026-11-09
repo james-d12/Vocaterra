@@ -1406,7 +1406,7 @@ public abstract partial class GuideSession : IDisposable
 
         if (turn.HostEvents.Count > 0)
         {
-            ApplyHostEvents(npc, turn.HostEvents, turn.FailForward ? "fail_forward" : "request", NpcEffect.CountedSlots(turn.Slots, turn.Line));
+            ApplyHostEvents(npc, turn.HostEvents, turn.FailForward ? "fail_forward" : "request", NpcEffect.CountedSlots(turn.Slots, turn.Line, Data.Words));
         }
 
         if (!turn.Unsure && string.Equals(turn.AgentState, NpcHostEvents.OfferingState, StringComparison.Ordinal))
@@ -1481,7 +1481,7 @@ public abstract partial class GuideSession : IDisposable
         if (turn.OffPromptIntent is not null)
         {
             // V27: a line the NPC understood off its prompt credits only a phrase of a lesson begun or done that it is; the intent it has elsewhere says no phrase of this prompt.
-            return freeTalk ? LineReading.PhraseSaid(Phrases, turn.Line, Data.Npcs.Find(turn.Npc)?.Name, Lessons.Credits)?.Id : null;
+            return freeTalk ? LineReading.PhraseSaid(Data.Words, Phrases, turn.Line, Data.Npcs.Find(turn.Npc)?.Name, Lessons.Credits)?.Id : null;
         }
 
         if (freeTalk && Phrases.ByPlace(inPlay, turn.Intent, turn.Slots, Data.Npcs.Homes.Keys, out var placed))
@@ -1489,7 +1489,7 @@ public abstract partial class GuideSession : IDisposable
             return placed;
         }
 
-        var said = freeTalk ? LineReading.PhraseSaid(Phrases, turn.Line, Data.Npcs.Find(turn.Npc)?.Name, Lessons.Credits)?.Id : null;
+        var said = freeTalk ? LineReading.PhraseSaid(Data.Words, Phrases, turn.Line, Data.Npcs.Find(turn.Npc)?.Name, Lessons.Credits)?.Id : null;
         return PhraseSheet.OfIntent(inPlay, turn.Intent, turn.Slots, Data.Nouns)
             ?? Phrases.PhraseFor(turn.Prompt, turn.Intent, turn.Slots, Data.Words.Noun("river"), freeTalk ? Data.Npcs.Homes.Keys : null, said);
     }

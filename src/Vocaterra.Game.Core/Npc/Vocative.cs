@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Language.Phrases;
+using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Nlp.Asr;
 using Vocaterra.Nlp.Core.Stages;
 
@@ -22,29 +23,19 @@ namespace Vocaterra.Game.Core.Npc;
 /// </remarks>
 public static class Vocative
 {
-    // Words after a leading name that join it to another noun: then the name is a subject (Luz y Domingo comieron pan), not the person spoken to.
-    private static readonly string[] Joiners = ["y", "e", "o", "u", "ni"];
-
-    // Words before a trailing name that make it a noun of the sentence (el pan de Luz, veo el mar, la luna): articles, possessives, prepositions, conjunctions.
-    private static readonly string[] Binders =
-    [
-        "a", "al", "con", "de", "del", "en", "para", "por", "sin",
-        "el", "la", "los", "las", "un", "una", "unos", "unas", "lo",
-        "mi", "mis", "tu", "tus", "su", "sus",
-        "y", "e", "o", "u", "ni", "que",
-    ];
-
     private const string OpeningMarks = "¿¡";
     private const string ClosingMarks = "?!.…";
 
     /// <summary>The line without the listener's name where it stands as a vocative (see the type's remarks), or the line as it is.</summary>
     /// <param name="line">What the learner typed or the recognizer heard.</param>
     /// <param name="name">The listener's name, or <see langword="null"/> for an NPC that has none (the villager, the shopkeeper): then the line is unchanged.</param>
-    public static string Without(string line, string? name)
+    /// <param name="words">The game's words (the binders and joiners around a name, the greetings before one).</param>
+    public static string Without(string line, string? name, GameWords words)
     {
         ArgumentNullException.ThrowIfNull(line);
+        ArgumentNullException.ThrowIfNull(words);
         var tokens = line.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
-        var (leading, trailing) = Positions(tokens, name);
+        var (leading, trailing) = Positions(tokens, name, words);
         if (leading is null && trailing is null)
         {
             return line;
@@ -79,38 +70,40 @@ public static class Vocative
     /// </summary>
     /// <param name="heard">What the recognizer heard.</param>
     /// <param name="name">The listener's name, or <see langword="null"/>.</param>
-    public static AsrResult? Without(AsrResult heard, string? name)
+    /// <param name="words">The game's words (see <see cref="Without(string, string?, GameWords)"/>).</param>
+    public static AsrResult? Without(AsrResult heard, string? name, GameWords words)
     {
         ArgumentNullException.ThrowIfNull(heard);
+        ArgumentNullException.ThrowIfNull(words);
         var tokens = heard.Transcript.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
-        var (leading, trailing) = Positions(tokens, name);
+        var (leading, trailing) = Positions(tokens, name, words);
         if (leading is null && trailing is null)
         {
             return null;
         }
 
-        var transcript = Without(heard.Transcript, name);
-        var words = heard.Words.ToList();
-        if (words.Count == tokens.Count)
+        var transcript = Without(heard.Transcript, name, words);
+        var kept = heard.Words.ToList();
+        if (kept.Count == tokens.Count)
         {
             // The recognizer's words are the transcript's tokens, one for one: the name's word goes with it.
             if (trailing is { } last)
             {
-                words.RemoveAt(last);
+                kept.RemoveAt(last);
             }
 
             if (leading is { } first)
             {
-                words.RemoveAt(first);
+                kept.RemoveAt(first);
             }
         }
 
-        return heard with { Transcript = transcript, NBest = [new AsrHypothesis(transcript, heard.NBest.Count > 0 ? heard.NBest[0].Score : heard.Confidence)], Words = words };
+        return heard with { Transcript = transcript, NBest = [new AsrHypothesis(transcript, heard.NBest.Count > 0 ? heard.NBest[0].Score : heard.Confidence)], Words = kept };
     }
 
     // Where the listener's name stands as a vocative: its index at the start (or after an opening greeting: hola Luz, buenos días Luz) and at the end, each null when it
     // does not.
-    private static (int? Leading, int? Trailing) Positions(List<string> tokens, string? name)
+    private static (int? Leading, int? Trailing) Positions(List<string> tokens, string? name, GameWords words)
     {
         if (string.IsNullOrWhiteSpace(name) || tokens.Count < 2)
         {
@@ -118,25 +111,25 @@ public static class Vocative
         }
 
         var plainName = PhraseSheet.Plain(name);
-        var words = tokens.Select(PhraseSheet.Plain).ToList();
+        var plain = tokens.Select(PhraseSheet.Plain).ToList();
         int? trailing = null;
-        var end = words.Count - 1;
-        if (words[end] == plainName && !Binders.Contains(words[end - 1], StringComparer.Ordinal))
+        var end = plain.Count - 1;
+        if (plain[end] == plainName && !words.Matching.VocativeBinders.Contains(plain[end - 1], StringComparer.Ordinal))
         {
             trailing = end;
         }
 
         int? leading = null;
         var lead = tokens.TakeWhile(static t => string.Equals(t, GrammarBuilder.UnknownToken, StringComparison.Ordinal)).Count(); // the recognizer's [unk] before the line (V15)
-        if (lead >= words.Count - 1)
+        if (lead >= plain.Count - 1)
         {
             return (null, trailing);
         }
 
-        var opening = Greeting.OpeningLength(tokens); // the greeting a vocative may follow: any of Greeting's (V19, the review's R4: only hola before)
+        var opening = Greeting.OpeningLength(tokens, words); // the greeting a vocative may follow: any of Greeting's (V19, the review's R4: only hola before)
         var start = opening > 0 ? opening : lead;
-        var rest = (trailing ?? words.Count) - start - 1; // the words after the name that stay
-        if (words[start] == plainName && rest > 0 && !Joiners.Contains(words[start + 1], StringComparer.Ordinal))
+        var rest = (trailing ?? plain.Count) - start - 1; // the words after the name that stay
+        if (plain[start] == plainName && rest > 0 && !words.Matching.VocativeJoiners.Contains(plain[start + 1], StringComparer.Ordinal))
         {
             leading = start;
         }

@@ -1,5 +1,6 @@
 using System.Text;
 using Vocaterra.Game.Core.Language.Phrases;
+using Vocaterra.Game.Core.Language.Words;
 
 namespace Vocaterra.Game.Core.Npc;
 
@@ -11,21 +12,15 @@ namespace Vocaterra.Game.Core.Npc;
 /// </summary>
 public static class RecastNames
 {
-    // The words before a name that make it the common noun: the articles (with al and del), the demonstratives and the possessives.
-    private static readonly string[] Determiners =
-    [
-        "el", "la", "los", "las", "lo", "un", "una", "unos", "unas", "al", "del",
-        "este", "esta", "estos", "estas", "ese", "esa", "esos", "esas", "aquel", "aquella", "aquellos", "aquellas",
-        "mi", "mis", "tu", "tus", "su", "sus", "nuestro", "nuestra", "nuestros", "nuestras",
-    ];
-
     /// <summary>The line with each NPC name that no determiner precedes spelt as the roster spells it (see the type's summary), or the line as it is.</summary>
     /// <param name="line">The correction line (a recast, a hint or an explicit correction).</param>
     /// <param name="names">The NPCs' names (<see cref="NpcEntry.Name"/>).</param>
-    public static string Capitalise(string line, IEnumerable<string> names)
+    /// <param name="words">The game's words (the determiners before a name, <c>game/words.json</c>, nameDeterminers).</param>
+    public static string Capitalise(string line, IEnumerable<string> names, GameWords words)
     {
         ArgumentNullException.ThrowIfNull(line);
         ArgumentNullException.ThrowIfNull(names);
+        ArgumentNullException.ThrowIfNull(words);
         var byPlain = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var name in names)
         {
@@ -59,7 +54,7 @@ public static class RecastNames
 
             var word = line[start..at];
             var plain = PhraseSheet.Plain(word);
-            var determined = previous is not null && Determiners.Contains(previous, StringComparer.Ordinal);
+            var determined = previous is not null && words.Matching.NameDeterminers.Contains(previous, StringComparer.Ordinal);
             text.Append(!determined && byPlain.TryGetValue(plain, out var name) ? name : word);
             previous = plain;
         }

@@ -1,5 +1,6 @@
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Speech;
+using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Verdicts;
@@ -206,6 +207,7 @@ public static class NpcTurnRules
     /// <param name="understood">Whether the NPC took the line for an intent.</param>
     /// <param name="unsaid">The pools of the lines not said (<see cref="MissAnswers.Unsaid"/>).</param>
     /// <param name="names">The NPCs' names, spelled as they are in a correction.</param>
+    /// <param name="words">The game's words (the determiners before a name, the address pronouns).</param>
     /// <param name="skip">The ids of other lines the game does not say (the bottle the player holds already), or <see langword="null"/>.</param>
     /// <param name="freeTalkPools">The NPC's lesson pools by the pool said in free talk instead (<see cref="NpcEntry.FreeTalkPools"/>), or <see langword="null"/>.</param>
     /// <param name="freeTalk">Whether the line was said in free talk, not as the answer of a lesson step or a review.</param>
@@ -214,10 +216,10 @@ public static class NpcTurnRules
     /// <param name="worldSeed">The world seed, for the draw among the variants of the NPC's replies (V29).</param>
     /// <param name="counter">The agent's interaction counter before the turn, for the same draw.</param>
     /// <param name="weatherKey">The dialogue key of the weather now (E07, <see cref="GuideScene.WeatherKey"/>): the answer of an intent in <see cref="NpcEntry.WeatherAnswers"/> is the NPC's pool for it (<see cref="WeatherReplyOf"/>).</param>
-    public static ComposedReply Compose(PipelineResult result, bool understood, IReadOnlyList<string> unsaid, IEnumerable<string> names, Func<string, bool>? skip = null, IReadOnlyDictionary<string, string>? freeTalkPools = null, bool freeTalk = true, ContentBundle? bundle = null, NpcEntry? npc = null, ulong worldSeed = 0, long counter = 0, string? weatherKey = null)
+    public static ComposedReply Compose(PipelineResult result, bool understood, IReadOnlyList<string> unsaid, IEnumerable<string> names, GameWords words, Func<string, bool>? skip = null, IReadOnlyDictionary<string, string>? freeTalkPools = null, bool freeTalk = true, ContentBundle? bundle = null, NpcEntry? npc = null, ulong worldSeed = 0, long counter = 0, string? weatherKey = null)
     {
         ArgumentNullException.ThrowIfNull(result);
-        var listenerPool = freeTalk && bundle is not null && npc is not null && AboutListener(result) ? PoolSaidOn(bundle, npc.Id, TrueEvent(npc.Id)) : null;
+        var listenerPool = freeTalk && bundle is not null && npc is not null && AboutListener(result, words) ? PoolSaidOn(bundle, npc.Id, TrueEvent(npc.Id)) : null;
         var acknowledgementPools = npc?.AcknowledgementPools ?? [];
         ArgumentNullException.ThrowIfNull(unsaid);
         string? feedback = null;
@@ -233,7 +235,7 @@ public static class NpcTurnRules
             else if (line.IsRecast || line.LineId.StartsWith(FeedbackLinePrefix, StringComparison.Ordinal))
             {
                 recasted |= line.IsRecast;
-                feedback ??= RecastNames.Capitalise(line.Text, names); // the core writes the learner's words in lower case: «buscaré madera para Luz» (V20)
+                feedback ??= RecastNames.Capitalise(line.Text, names, words); // the core writes the learner's words in lower case: «buscaré madera para Luz» (V20)
             }
             else if (skip is not null && skip(line.LineId))
             {
@@ -348,17 +350,19 @@ public static class NpcTurnRules
     /// It is the person of the words the resolver chose, not a search of the text.
     /// </summary>
     /// <param name="result">The turn's result.</param>
-    public static bool AboutListener(PipelineResult result)
+    /// <param name="words">The game's words (the address pronouns, <c>game/words.json</c>, addressPronouns).</param>
+    public static bool AboutListener(PipelineResult result, GameWords words)
     {
         ArgumentNullException.ThrowIfNull(result);
-        if (result.Words is not { } words)
+        ArgumentNullException.ThrowIfNull(words);
+        if (result.Words is not { } heard)
         {
             return false;
         }
 
-        for (var i = 0; i < words.Count; i++)
+        for (var i = 0; i < heard.Count; i++)
         {
-            if (words[i].Reading is not { } reading)
+            if (heard[i].Reading is not { } reading)
             {
                 continue;
             }
@@ -368,8 +372,8 @@ public static class NpcTurnRules
                 return true;
             }
 
-            if (string.Equals(reading.Pos, "pron", StringComparison.Ordinal) && reading.Lemma is "tú" or "usted" or "ustedes"
-                && (i == 0 || words[i - 1].Reading is not { Pos: "prep" }))
+            if (string.Equals(reading.Pos, "pron", StringComparison.Ordinal) && reading.Lemma is { } lemma && words.Matching.AddressPronouns.All.Contains(lemma, StringComparer.Ordinal)
+                && (i == 0 || heard[i - 1].Reading is not { Pos: "prep" }))
             {
                 return true;
             }

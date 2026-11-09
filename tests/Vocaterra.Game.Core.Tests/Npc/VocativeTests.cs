@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.Language.Lessons;
@@ -15,6 +16,8 @@ namespace Vocaterra.Game.Core.Tests.Npc;
 /// </summary>
 public sealed class VocativeTests
 {
+    private static GameWords Words => TestGame.Data.Words;
+
     [Theory]
     [InlineData("Luz, quiero pan", "Luz", "quiero pan")]
     [InlineData("Luz quiero pan", "Luz", "quiero pan")]
@@ -34,7 +37,7 @@ public sealed class VocativeTests
     [InlineData("Luz, quiero pan, Luz", "Luz", "quiero pan")]
     public void TheListenersNameAtTheStartOrTheEndIsTakenOut(string line, string name, string without)
     {
-        Assert.Equal(without, Vocative.Without(line, name));
+        Assert.Equal(without, Vocative.Without(line, name, Words));
     }
 
     [Theory]
@@ -50,7 +53,7 @@ public sealed class VocativeTests
     [InlineData("quiero pan", "Luz")]
     public void ANameThatIsAWordOfTheSentenceStays(string line, string? name)
     {
-        Assert.Equal(line, Vocative.Without(line, name));
+        Assert.Equal(line, Vocative.Without(line, name, Words));
     }
 
     [Fact]
@@ -64,13 +67,13 @@ public sealed class VocativeTests
             "vosk-model",
             RecognitionMode.Constrained);
 
-        var bare = Vocative.Without(heard, "Luz")!;
+        var bare = Vocative.Without(heard, "Luz", Words)!;
 
         Assert.Equal("quiero pan", bare.Transcript);
         Assert.Equal(["quiero", "pan"], bare.Words.Select(static w => w.Text));
         Assert.Equal(("quiero pan", 0.9), (bare.NBest.Single().Text, bare.NBest.Single().Score));
         Assert.Equal((1.0, "vosk-model", RecognitionMode.Constrained), (bare.Confidence, bare.ModelHash, bare.Mode));
-        Assert.Null(Vocative.Without(heard, "Mar")); // no vocative of this listener: the recognition is used as it is
+        Assert.Null(Vocative.Without(heard, "Mar", Words)); // no vocative of this listener: the recognition is used as it is
     }
 
     // ---- In the game: free talk and a lesson's step
@@ -185,5 +188,15 @@ public sealed class VocativeTests
         var told = mar.Say("Mar pescó en el río"); // said to the villager: Mar is the subject
         Assert.Contains(told.Words!, static w => w.Text == "mar");
         Assert.Equal("a2-ate", mar.Lessons.Current!.Id);
+    }
+
+    // T02b: the binders before a trailing name are the file's (vocativeBinders): von is a binder of the German list and not of the Spanish one.
+    [Fact]
+    public void TheBindersBeforeATrailingNameAreTheFilesOwn()
+    {
+        var german = WordsFile.WithList("vocativeBinders", "von", "mit");
+        Assert.Equal("brot von Luz", Vocative.Without("brot von Luz", "Luz", german)); // the name is a noun of the sentence
+        Assert.Equal("brot von", Vocative.Without("brot von Luz", "Luz", Words));       // von is no Spanish binder: the name is the listener's
+        Assert.Equal("kaufe Brot", Vocative.Without("kaufe Brot, Luz", "Luz", german));
     }
 }
