@@ -93,7 +93,7 @@ public static class PredictedErrorVariants
 
         AddStressVariants(result, candidates);
 
-        return candidates
+        return OneVariantPerHeardSequence(candidates)
             .Select(static (variant, order) => (Variant: variant, Order: order))
             .OrderBy(static item => item.Variant.GraphemeSpan.Start)
             .ThenBy(static item => Array.IndexOf(TagOrder, item.Variant.ErrorTag))
@@ -102,6 +102,28 @@ public static class PredictedErrorVariants
             .Distinct()
             .ToList()
             .AsReadOnly();
+    }
+
+    /// <summary>
+    /// Keeps the first of the silent-h variants that have the same phones. Two silent h letters that meet across a word boundary
+    /// ("ah humana") give the same phone sequence when either is pronounced, so one heard <c>h</c> cannot be told apart between them and
+    /// is blamed on the earlier letter only (candidates are added in text order). Variants of other tags are never merged.
+    /// </summary>
+    private static List<PredictedErrorVariant> OneVariantPerHeardSequence(List<PredictedErrorVariant> candidates)
+    {
+        var kept = new List<PredictedErrorVariant>(candidates.Count);
+        foreach (var candidate in candidates)
+        {
+            var duplicate = string.Equals(candidate.ErrorTag, ErrorTags.PronSilentH, StringComparison.Ordinal)
+                && kept.Exists(other => string.Equals(other.ErrorTag, ErrorTags.PronSilentH, StringComparison.Ordinal)
+                    && other.Phones.SequenceEqual(candidate.Phones));
+            if (!duplicate)
+            {
+                kept.Add(candidate);
+            }
+        }
+
+        return kept;
     }
 
     private static void AddStressVariants(G2pResult result, List<PredictedErrorVariant> candidates)
