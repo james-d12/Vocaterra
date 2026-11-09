@@ -16,6 +16,7 @@
   },
   "prompts": {
     "idle": "smith-open",
+    "offering_order": "smith-order-offer",
     "receiving": "smith-receive"
   },
   "opening": {

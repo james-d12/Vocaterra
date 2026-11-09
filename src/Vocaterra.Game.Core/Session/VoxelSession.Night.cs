@@ -50,5 +50,6 @@ public sealed partial class VoxelSession
         RemoveChestAtNight();
         RenewAtNight();
         ClearGrants(); // W08: a teacher gives the ingredients again
+        ClearDeclinedOrders(); // issue #54: an order the player said no to is offered again
     }
 }

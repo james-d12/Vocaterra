@@ -245,6 +245,13 @@ specified for later in `docs/game/content-plan.md` section 3.8 (C10); it is not 
 
   An order may ask for several items: the smith's `axe-handle` (V12) takes two wood and two coins, and is delivered only when the inventory holds both.
 
+  An order is given before it counts (issue #54, D-game-30): its NPC offers it when the talk opens and a «sí» gives it, so the NPC's agent needs an
+  `offering_order` state: the initial state takes `<npc>.offer_order` into it (the offer line), it raises `<npc>.accept_order` on `confirm` (the thanks) and
+  `<npc>.decline_order` on `deny`, takes `<npc>.offer_gone` back to the initial state, and repeats the offer on `ask_help` and `dont_know`; its other
+  transitions are the initial state's. `game/npcs/<npc>.json` maps the state to a prompt (`<npc>-order-offer`, the offer's text, taking `confirm` and `deny`
+  beside the open prompt's intents). The validator checks all of it (`CheckOrderOffer`). An order whose lesson tells it can name the step where the NPC asks
+  for the goods (`"lessonStep": "n3-oven"`): reaching that step gives the order, and while the teacher would offer that class the NPC does not offer the order beside it.
+
   An order may name the lesson that tells it (`"lesson": "como-es"`, village-plan V13): while that lesson is under way before its `do` step that waits for the
   delivery (`order_delivered` at the order's NPC with the order's id), or is about to start at the talk (an `autoStart` lesson available at that NPC), walking up
   with the goods does not deliver them, so the plan comes first even for a learner who carries the goods already (the farmer's `water-for-plants`: the bottle

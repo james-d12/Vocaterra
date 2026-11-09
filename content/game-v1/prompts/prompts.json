@@ -778,5 +778,45 @@
     "agentId": "farmer",
     "slotGrammarIds": [],
     "text": "¡Hola! ¿Qué tienes para mí?"
+  },
+  {
+    "promptId": "fisher-order-offer",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "yes-no",
+    "allowedIntentIds": ["confirm", "deny", "ask_help", "dont_know", "ask_directions", "ask_far", "ask_availability", "state_action", "greet", "ask_wellbeing", "thank", "farewell", "ask_how", "state_weather", "ask_weather"],
+    "agentId": "fisher",
+    "slotGrammarIds": [],
+    "text": "Tengo hambre. ¿Me traes tres frutas? Te doy dos monedas."
+  },
+  {
+    "promptId": "baker-order-offer",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "yes-no",
+    "allowedIntentIds": ["confirm", "deny", "ask_help", "dont_know", "request_item", "offer_item", "ask_price", "ask_total", "ask_availability", "state_action", "state_have", "greet", "ask_wellbeing", "thank", "farewell", "ask_how", "state_weather", "ask_weather"],
+    "agentId": "baker",
+    "slotGrammarIds": [],
+    "text": "¿Me traes cinco bloques de madera para el horno? Te pago cuatro monedas."
+  },
+  {
+    "promptId": "smith-order-offer",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "yes-no",
+    "allowedIntentIds": ["confirm", "deny", "ask_help", "dont_know", "ask_name", "ask_activity", "state_have", "state_want", "offer_item", "state_action", "state_obligation", "greet", "ask_wellbeing", "thank", "farewell", "ask_how", "state_weather", "ask_weather"],
+    "agentId": "smith",
+    "slotGrammarIds": [],
+    "text": "¿Quieres un hacha? Necesito dos bloques de madera y dos monedas."
+  },
+  {
+    "promptId": "farmer-order-offer",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "yes-no",
+    "allowedIntentIds": ["confirm", "deny", "ask_help", "dont_know", "ask_name", "ask_activity", "request_item", "offer_item", "ask_price", "ask_total", "ask_pay", "describe", "state_like", "state_action", "greet", "ask_wellbeing", "thank", "farewell", "ask_how", "state_weather", "ask_weather"],
+    "agentId": "farmer",
+    "slotGrammarIds": [],
+    "text": "Mis plantas necesitan agua. ¿Me traes agua del río? Te doy tres manzanas."
   }
 ]

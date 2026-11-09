@@ -159,7 +159,7 @@ public sealed class ClassTests
     }
 
     [Fact]
-    public void AnOrderShowsOnceItsNpcIsMetOnTheFirstDayAndAClassIsOpenWithIt()
+    public void AnOrderShowsOnceTakenOnFromItsNpcsOfferOnTheFirstDayAndNoLessonHoldsIt()
     {
         var session = TestGame.NewSessionWithShippedLessons();
         var order = session.Objectives.Single(static o => o.Id == "fruit-for-mar");
@@ -169,9 +169,14 @@ public sealed class ClassTests
         Stage.TeleportToNpc(session, "fisher");
         var opening = session.OpenTalk("fisher");
 
+        Assert.False(session.Shown(order.Spec)); // issue #54: meeting Mar is not enough; he offers the order
+        Assert.Equal(["Tengo hambre. ¿Me traes tres frutas? Te doy dos monedas."], opening.Lines);
+        _ = session.AcceptOrder();
         Assert.True(session.Shown(order.Spec));
-        Assert.True(session.HandOverOpen); // no lesson and no day holds it: Mar asks for the fruit at once (D-game-27)
-        Assert.Equal(["¡Hola! ¿Qué tienes para mí?"], opening.Lines);
+        session.EndTalk();
+
+        Assert.Equal(["¡Hola! ¿Qué tienes para mí?"], session.OpenTalk("fisher").Lines); // no lesson and no day holds it: Mar asks for the fruit (D-game-27)
+        Assert.True(session.HandOverOpen);
         _ = session.HandOverGoods();
         Assert.True(order.Complete);
     }

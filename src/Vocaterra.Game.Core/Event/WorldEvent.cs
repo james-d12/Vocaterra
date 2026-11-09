@@ -63,6 +63,18 @@ public static class WorldEvents
     /// </summary>
     public const string OrderAsked = "order_asked";
 
+    /// <summary>An NPC offered the player its order when the talk opened (issue #54, <c>&lt;npc&gt;.offer_order</c>). The detail is the objective's id.</summary>
+    public const string OrderOffered = "order_offered";
+
+    /// <summary>
+    /// The player took an order (issue #54): a «sí» to its NPC's offer, or its lesson reached the step that tells it (<c>lessonStep</c>). From now on it is shown, counted and
+    /// can be delivered. The NPC is the one who ordered; the detail is the objective's id.
+    /// </summary>
+    public const string OrderAccepted = "order_accepted";
+
+    /// <summary>The player said «no» to an NPC's offer of its order (issue #54): it is offered again from the next day. The detail is the objective's id.</summary>
+    public const string OrderDeclined = "order_declined";
+
     /// <summary>The player filled the bottle at the river.</summary>
     public const string BottleFilled = "bottle_filled";
 
@@ -197,7 +209,7 @@ public static class WorldEvents
         KeyWordsShown, PhraseReviewAsked, SupportCardShown, ItemPickedUp, ItemCrafted, TipShown, GuideMet, FireLit, SessionComplete, SpareTorch, SecondTryAsked, SecondTryAnswered,
         TorchAtRing,
         WarmupOffered, WarmupStarted, WarmupEnded, WarmupSkipped, ReviewSkipped, ReviewAnswered,
-        BeaconReached, PlaceAsked, ItemTaken, OrderDelivered, OrderAsked,
+        BeaconReached, PlaceAsked, ItemTaken, OrderDelivered, OrderAsked, OrderOffered, OrderAccepted, OrderDeclined,
         Slept, SessionSkipped,
         MealEaten, WaterDrunk, NeedStage, PlayerCollapsed, PlayerDied, PlayerWoke, BelongingsRecovered, BushPlanted,
         ProcedureStarted, ProcedureStep, ProcedureDone, ProcedureMastered,

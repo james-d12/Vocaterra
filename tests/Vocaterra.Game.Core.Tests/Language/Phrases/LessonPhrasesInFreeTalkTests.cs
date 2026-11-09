@@ -16,6 +16,7 @@ public sealed class LessonPhrasesInFreeTalkTests
     private static VoxelSession TalkingTo(string npc, int day)
     {
         var session = TestGame.NewSessionWithShippedLessons();
+        _ = session.TakeOrders(); // the orders are taken: this test is not about their offer (issue #54)
         SessionSkip.Apply(session, day);
         Stage.TeleportToNpc(session, npc);
         _ = session.OpenTalkForClass(npc);
@@ -27,6 +28,7 @@ public sealed class LessonPhrasesInFreeTalkTests
     private static VoxelSession AtTheBakery()
     {
         var session = TestGame.NewSessionWithShippedLessons();
+        _ = session.TakeOrders(); // the orders are taken: this test is not about their offer (issue #54)
         SessionSkip.Apply(session, 10);
         Stage.TeleportToNpc(session, "baker");
         _ = session.OpenTalkForClass("baker");

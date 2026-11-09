@@ -18,7 +18,7 @@ whose text changed or whose file was recorded again differently is listed again 
 | smith (Domingo) | `im_nicola`, gain 0.6 | 36 | 1.0 (0.8) | the pools `smith_*` and `guide.lesson.smith.*`, and its prompts |
 | farmer (León) | `pm_santa` | 44 | 1.0 (0.8) | the pools `farmer_*` and `guide.lesson.farmer.*`, and its prompts |
 
-**To hear:** 1414 of the 1414 files have no mark (guide 470, baker 200, villager 172, shopkeeper 160, farmer 158, fisher 138, smith 116). Two files a line: the normal speed and the slow one.
+**To hear:** 1442 of the 1442 files have no mark (guide 470, baker 208, villager 172, farmer 166, shopkeeper 160, fisher 146, smith 120). Two files a line: the normal speed and the slow one.
 
 ## Lines
 
@@ -104,6 +104,12 @@ whose text changed or whose file was recorded again differently is listed again 
 | baker_none_offered.1 | speech/baker/baker_none_offered.1.wav | baker | 1.0 | ¿Cuántos bloques de madera me vendes? |  |
 | baker_offer_bake.1 | speech/baker/baker_offer_bake.1.slow.wav | baker | 0.8 | ¿Quieres hacer pan? |  |
 | baker_offer_bake.1 | speech/baker/baker_offer_bake.1.wav | baker | 1.0 | ¿Quieres hacer pan? |  |
+| baker_offer_order.1 | speech/baker/baker_offer_order.1.slow.wav | baker | 0.8 | ¿Me traes cinco bloques de madera para el horno? Te pago cuatro monedas. |  |
+| baker_offer_order.1 | speech/baker/baker_offer_order.1.wav | baker | 1.0 | ¿Me traes cinco bloques de madera para el horno? Te pago cuatro monedas. |  |
+| baker_ok.1 | speech/baker/baker_ok.1.slow.wav | baker | 0.8 | Está bien. |  |
+| baker_ok.1 | speech/baker/baker_ok.1.wav | baker | 1.0 | Está bien. |  |
+| baker_order_yes.1 | speech/baker/baker_order_yes.1.slow.wav | baker | 0.8 | ¡Gracias! Hay árboles cerca del pueblo. |  |
+| baker_order_yes.1 | speech/baker/baker_order_yes.1.wav | baker | 1.0 | ¡Gracias! Hay árboles cerca del pueblo. |  |
 | baker_price.1 | speech/baker/baker_price.1.slow.wav | baker | 0.8 | El pan cuesta dos monedas. |  |
 | baker_price.1 | speech/baker/baker_price.1.wav | baker | 1.0 | El pan cuesta dos monedas. |  |
 | baker_receive.1 | speech/baker/baker_receive.1.slow.wav | baker | 0.8 | ¡Hola! ¿Qué tienes para mí? |  |
@@ -250,6 +256,12 @@ whose text changed or whose file was recorded again differently is listed again 
 | farmer_no_room.1 | speech/farmer/farmer_no_room.1.wav | farmer | 1.0 | Tu bolsa está llena. |  |
 | farmer_none_offered.1 | speech/farmer/farmer_none_offered.1.slow.wav | farmer | 0.8 | ¿Cuántas frutas me vendes? |  |
 | farmer_none_offered.1 | speech/farmer/farmer_none_offered.1.wav | farmer | 1.0 | ¿Cuántas frutas me vendes? |  |
+| farmer_offer_order.1 | speech/farmer/farmer_offer_order.1.slow.wav | farmer | 0.8 | Mis plantas necesitan agua. ¿Me traes agua del río? Te doy tres manzanas. |  |
+| farmer_offer_order.1 | speech/farmer/farmer_offer_order.1.wav | farmer | 1.0 | Mis plantas necesitan agua. ¿Me traes agua del río? Te doy tres manzanas. |  |
+| farmer_ok.1 | speech/farmer/farmer_ok.1.slow.wav | farmer | 0.8 | Está bien. |  |
+| farmer_ok.1 | speech/farmer/farmer_ok.1.wav | farmer | 1.0 | Está bien. |  |
+| farmer_order_yes.1 | speech/farmer/farmer_order_yes.1.slow.wav | farmer | 0.8 | ¡Gracias! El río está cerca. |  |
+| farmer_order_yes.1 | speech/farmer/farmer_order_yes.1.wav | farmer | 1.0 | ¡Gracias! El río está cerca. |  |
 | farmer_pay.1 | speech/farmer/farmer_pay.1.slow.wav | farmer | 0.8 | Aquí se paga con monedas. Pero yo te compro fruta. |  |
 | farmer_pay.1 | speech/farmer/farmer_pay.1.wav | farmer | 1.0 | Aquí se paga con monedas. Pero yo te compro fruta. |  |
 | farmer_price.1 | speech/farmer/farmer_price.1.slow.wav | farmer | 0.8 | Una manzana cuesta una moneda. |  |
@@ -394,6 +406,12 @@ whose text changed or whose file was recorded again differently is listed again 
 | fisher_near.1 | speech/fisher/fisher_near.1.wav | fisher | 0.9 | No, está cerca. |  |
 | fisher_nice.1 | speech/fisher/fisher_nice.1.slow.wav | fisher | 0.72 | ¡Qué bien! |  |
 | fisher_nice.1 | speech/fisher/fisher_nice.1.wav | fisher | 0.9 | ¡Qué bien! |  |
+| fisher_offer_order.1 | speech/fisher/fisher_offer_order.1.slow.wav | fisher | 0.72 | Tengo hambre. ¿Me traes tres frutas? Te doy dos monedas. |  |
+| fisher_offer_order.1 | speech/fisher/fisher_offer_order.1.wav | fisher | 0.9 | Tengo hambre. ¿Me traes tres frutas? Te doy dos monedas. |  |
+| fisher_ok.1 | speech/fisher/fisher_ok.1.slow.wav | fisher | 0.72 | Está bien. |  |
+| fisher_ok.1 | speech/fisher/fisher_ok.1.wav | fisher | 0.9 | Está bien. |  |
+| fisher_order_yes.1 | speech/fisher/fisher_order_yes.1.slow.wav | fisher | 0.72 | ¡Gracias! Hay fruta en el campamento de Luna. |  |
+| fisher_order_yes.1 | speech/fisher/fisher_order_yes.1.wav | fisher | 0.9 | ¡Gracias! Hay fruta en el campamento de Luna. |  |
 | fisher_point.1 | speech/fisher/fisher_point.1.slow.wav | fisher | 0.72 | Mira, está allí. |  |
 | fisher_point.1 | speech/fisher/fisher_point.1.wav | fisher | 0.9 | Mira, está allí. |  |
 | fisher_point.2 | speech/fisher/fisher_point.2.slow.wav | fisher | 0.72 | Está por allí, mira. |  |
@@ -1062,16 +1080,22 @@ whose text changed or whose file was recorded again differently is listed again 
 | prompt.baker-offer | speech/baker/prompt.baker-offer.wav | baker | 1.0 | ¿Quieres hacer pan? |  |
 | prompt.baker-open | speech/baker/prompt.baker-open.slow.wav | baker | 0.8 | ¿Qué quieres? |  |
 | prompt.baker-open | speech/baker/prompt.baker-open.wav | baker | 1.0 | ¿Qué quieres? |  |
+| prompt.baker-order-offer | speech/baker/prompt.baker-order-offer.slow.wav | baker | 0.8 | ¿Me traes cinco bloques de madera para el horno? Te pago cuatro monedas. |  |
+| prompt.baker-order-offer | speech/baker/prompt.baker-order-offer.wav | baker | 1.0 | ¿Me traes cinco bloques de madera para el horno? Te pago cuatro monedas. |  |
 | prompt.baker-proc | speech/baker/prompt.baker-proc.slow.wav | baker | 0.8 | ¿Qué quieres? |  |
 | prompt.baker-proc | speech/baker/prompt.baker-proc.wav | baker | 1.0 | ¿Qué quieres? |  |
 | prompt.baker-receive | speech/baker/prompt.baker-receive.slow.wav | baker | 0.8 | ¡Hola! ¿Qué tienes para mí? |  |
 | prompt.baker-receive | speech/baker/prompt.baker-receive.wav | baker | 1.0 | ¡Hola! ¿Qué tienes para mí? |  |
 | prompt.farmer-open | speech/farmer/prompt.farmer-open.slow.wav | farmer | 0.8 | ¡Hola! Este es mi campo. |  |
 | prompt.farmer-open | speech/farmer/prompt.farmer-open.wav | farmer | 1.0 | ¡Hola! Este es mi campo. |  |
+| prompt.farmer-order-offer | speech/farmer/prompt.farmer-order-offer.slow.wav | farmer | 0.8 | Mis plantas necesitan agua. ¿Me traes agua del río? Te doy tres manzanas. |  |
+| prompt.farmer-order-offer | speech/farmer/prompt.farmer-order-offer.wav | farmer | 1.0 | Mis plantas necesitan agua. ¿Me traes agua del río? Te doy tres manzanas. |  |
 | prompt.farmer-receive | speech/farmer/prompt.farmer-receive.slow.wav | farmer | 0.8 | ¡Hola! ¿Qué tienes para mí? |  |
 | prompt.farmer-receive | speech/farmer/prompt.farmer-receive.wav | farmer | 1.0 | ¡Hola! ¿Qué tienes para mí? |  |
 | prompt.fisher-open | speech/fisher/prompt.fisher-open.slow.wav | fisher | 0.72 | ¿Qué buscas? |  |
 | prompt.fisher-open | speech/fisher/prompt.fisher-open.wav | fisher | 0.9 | ¿Qué buscas? |  |
+| prompt.fisher-order-offer | speech/fisher/prompt.fisher-order-offer.slow.wav | fisher | 0.72 | Tengo hambre. ¿Me traes tres frutas? Te doy dos monedas. |  |
+| prompt.fisher-order-offer | speech/fisher/prompt.fisher-order-offer.wav | fisher | 0.9 | Tengo hambre. ¿Me traes tres frutas? Te doy dos monedas. |  |
 | prompt.fisher-receive | speech/fisher/prompt.fisher-receive.slow.wav | fisher | 0.72 | ¡Hola! ¿Qué tienes para mí? |  |
 | prompt.fisher-receive | speech/fisher/prompt.fisher-receive.wav | fisher | 0.9 | ¡Hola! ¿Qué tienes para mí? |  |
 | prompt.guide-offer | speech/guide/prompt.guide-offer.slow.wav | guide | 0.8 | ¿Quieres agua? |  |
@@ -1206,6 +1230,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | prompt.lesson-yesno | speech/guide/prompt.lesson-yesno.wav | guide | 1.0 | ¿Es madera? |  |
 | prompt.smith-open | speech/smith/prompt.smith-open.slow.wav | smith | 0.8 | ¡Hola! Esta es mi herrería. |  |
 | prompt.smith-open | speech/smith/prompt.smith-open.wav | smith | 1.0 | ¡Hola! Esta es mi herrería. |  |
+| prompt.smith-order-offer | speech/smith/prompt.smith-order-offer.slow.wav | smith | 0.8 | ¿Quieres un hacha? Necesito dos bloques de madera y dos monedas. |  |
+| prompt.smith-order-offer | speech/smith/prompt.smith-order-offer.wav | smith | 1.0 | ¿Quieres un hacha? Necesito dos bloques de madera y dos monedas. |  |
 | prompt.smith-receive | speech/smith/prompt.smith-receive.slow.wav | smith | 0.8 | ¡Hola! ¿Qué tienes para mí? |  |
 | prompt.smith-receive | speech/smith/prompt.smith-receive.wav | smith | 1.0 | ¡Hola! ¿Qué tienes para mí? |  |
 | prompt.stall-need | speech/shopkeeper/prompt.stall-need.slow.wav | shopkeeper | 0.8 | ¿Qué necesitas? |  |
@@ -1334,6 +1360,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | smith_offer.1 | speech/smith/smith_offer.1.wav | smith | 1.0 | ¿Quieres un hacha? Necesito dos bloques de madera y dos monedas. |  |
 | smith_ok.1 | speech/smith/smith_ok.1.slow.wav | smith | 0.8 | Está bien. |  |
 | smith_ok.1 | speech/smith/smith_ok.1.wav | smith | 1.0 | Está bien. |  |
+| smith_order_yes.1 | speech/smith/smith_order_yes.1.slow.wav | smith | 0.8 | ¡Muy bien! Te hago un hacha. |  |
+| smith_order_yes.1 | speech/smith/smith_order_yes.1.wav | smith | 1.0 | ¡Muy bien! Te hago un hacha. |  |
 | smith_receive.1 | speech/smith/smith_receive.1.slow.wav | smith | 0.8 | ¡Hola! ¿Qué tienes para mí? |  |
 | smith_receive.1 | speech/smith/smith_receive.1.wav | smith | 1.0 | ¡Hola! ¿Qué tienes para mí? |  |
 | smith_receive_help.1 | speech/smith/smith_receive_help.1.slow.wav | smith | 0.8 | Puedes decir: «Aquí tienes la madera y las monedas». |  |

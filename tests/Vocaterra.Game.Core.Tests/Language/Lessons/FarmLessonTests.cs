@@ -313,32 +313,38 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
     [Fact]
     public void ALearnerWhoArrivesWithTheWaterIsPaidAtTheFirstTalkAndTheClassTakenLateGoesOn()
     {
-        // The bottle filled at the river in session 1 is still full (nothing in the game empties one), so most learners walk up to León with the water. No lesson holds a delivery
-        // (L01): the first talk takes it and gives the apples; the class, taken late, finds the order done and goes on.
+        // The bottle filled at the river in session 1 is still full (nothing in the game empties one), so most learners walk up to León with the water. His class is offered
+        // first (it tells the order), so the first talk takes nothing: the class gives the order at c3-plan (issue #54, lessonStep), and the water is handed over at the
+        // step that waits for it.
         var session = SessionSevenAtFarmer(water: 1);
         Assert.Equal(LessonId, session.Lessons.Active!.Id);
-        Assert.True(session.Objectives.Single(static o => o.Id == "water-for-plants").Complete);
-        Assert.Equal((0, 3), (session.Simulation.Inventory.Count(ItemId.WaterBottle), session.Simulation.Inventory.Count(ItemId.Apple)));
-        Assert.Contains(session.Events.OfType<WorldEvent>(), static e => e.Name is WorldEvents.OrderDelivered && e.Npc == "farmer");
+        Assert.False(session.HasOrder("water-for-plants"));
+        Assert.Equal((1, 0), (session.Simulation.Inventory.Count(ItemId.WaterBottle), session.Simulation.Inventory.Count(ItemId.Apple)));
 
         while (session.Lessons.Current is { Id: not "c5-thanks" } step)
         {
             Walk(session, step);
         }
 
+        Assert.True(session.HasOrder("water-for-plants"));
+        Assert.True(session.Objectives.Single(static o => o.Id == "water-for-plants").Complete);
+        Assert.Equal((0, 3), (session.Simulation.Inventory.Count(ItemId.WaterBottle), session.Simulation.Inventory.Count(ItemId.Apple)));
         Assert.Equal("c5-thanks", session.Lessons.Current!.Id);
     }
 
     [Fact]
     public void ALessonThatDoesNotStartAtTheFarmerHoldsNothingBack()
     {
-        // The hold is the lesson's: in session 7 before Gente del pueblo is done (so ¿Cómo es? cannot start), the water is handed over at the first talk (D-game-27), as for
-        // every other order; and once the lesson is completed, too.
+        // In session 7 before Gente del pueblo is done (so ¿Cómo es? cannot start), León offers his order himself (issue #54), and once it is taken the water is handed
+        // over at the next talk (D-game-27), as for every other order.
         var session = TestGame.NewSessionWithShippedLessons();
         session.Day = 7;
         session.Sitting = 7;
         _ = session.Simulation.GrantItems(ItemId.WaterBottle, 1);
         Stage.TeleportToNpc(session, "farmer");
+        Assert.Equal(["Mis plantas necesitan agua. ¿Me traes agua del río? Te doy tres manzanas."], session.OpenTalk("farmer").Lines);
+        Assert.Equal(["¡Gracias! El río está cerca."], session.AcceptOrder()!.GuideLines);
+        session.EndTalk();
         Assert.Equal(["¡Hola! ¿Qué tienes para mí?"], session.OpenTalk("farmer").Lines);
         Assert.Equal(["¡Gracias! Toma tres manzanas."], session.HandOverGoods()!.FollowUp);
         Assert.Equal((0, 3), (session.Simulation.Inventory.Count(ItemId.WaterBottle), session.Simulation.Inventory.Count(ItemId.Apple)));
@@ -348,7 +354,9 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
         early.Sitting = 6;
         _ = early.Simulation.GrantItems(ItemId.WaterBottle, 1);
         Stage.TeleportToNpc(early, "farmer");
-        _ = early.OpenTalkForClass("farmer"); // L01: the order opens once León is met, whatever the day, and the water is handed over in Spanish
+        _ = early.OpenTalkForClass("farmer"); // issue #54: León offers the order whatever the day, and «sí» takes it
+        early.EndTalk();
+        _ = early.OpenTalkForClass("farmer"); // the next talk takes the water, handed over in Spanish
         Assert.Equal(0, early.Simulation.Inventory.Count(ItemId.WaterBottle));
     }
 
@@ -504,7 +512,7 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
     [Fact]
     public void TheFarmerSellsAnAppleForACoinAndWithTooFewCoinsSellsNothingAndSaysSo()
     {
-        var session = TestGame.NewSessionWithShippedLessons(); // session 1: ¿Cómo es? is not unlocked, so he talks as himself
+        var session = TestGame.NewSessionWithShippedLessons().TakeOrders(); // session 1: ¿Cómo es? is not unlocked, so he talks as himself (his order taken, issue #54)
         Stage.TeleportToNpc(session, "farmer");
         Assert.Equal(["¡Hola!"], session.OpenTalkForClass("farmer").Lines);
         Assert.Equal(["Una manzana cuesta una moneda."], session.Say("¿Cuánto cuesta?").GuideLines);
@@ -534,7 +542,7 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
     [Fact]
     public void TheOrderTakesTheWaterFromSessionSevenAndGivesThreeApplesOnce()
     {
-        var session = TestGame.NewSessionWithShippedLessons();
+        var session = TestGame.NewSessionWithShippedLessons().TakeOrders("water-for-plants");
         session.Day = 7;
         session.Sitting = 7;
         _ = session.Simulation.GrantItems(ItemId.WaterBottle, 2);

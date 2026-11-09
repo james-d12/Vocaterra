@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "game/objectives/<id>.json",
-  "description": "One objective of the session (CONTENT_PLAN 3.5, C07). Loaded by ObjectiveBook (Vocaterra.Game.Core). A checklist has a title and its steps name nouns; another objective is shown by its objective.<id>.hud line. An order (VILLAGE_PLAN V03) names the NPC the goods are brought to (deliverTo) and the goods (deliver), and has no title and no steps: its one step, delivered, waits for order_delivered at that NPC with the objective's id.",
+  "description": "One objective of the session (CONTENT_PLAN 3.5, C07). Loaded by ObjectiveBook (Vocaterra.Game.Core). A checklist has a title and its steps name nouns; another objective is shown by its objective.<id>.hud line. An order (VILLAGE_PLAN V03) names the NPC the goods are brought to (deliverTo) and the goods (deliver), and has no title and no steps: its one step, delivered, waits for order_delivered at that NPC with the objective's id. An order is given before it counts (issue #54): its NPC offers it when the talk opens and a «sí» takes it, or its lesson reaches lessonStep.",
   "type": "object",
   "required": [
     "schemaVersion",
@@ -175,6 +175,11 @@
       "minLength": 1,
       "description": "An order (V13): the lesson that tells it in the three times, with a do step that waits for its delivery. While that lesson is under way before the step, or is about to start at the order's NPC, walking up with the goods does not deliver them, so the plan comes first even for a learner who carries them already."
     },
+    "lessonStep": {
+      "type": "string",
+      "minLength": 1,
+      "description": "An order with a lesson (issue #54): the step of that lesson at which the NPC asks for the goods. Reaching it gives the order, as a «sí» to the NPC's own offer does. An order is shown, counted and delivered only once given."
+    },
     "handOver": {
       "type": "object",
       "required": [
@@ -216,6 +221,11 @@
           {
             "required": [
               "lesson"
+            ]
+          },
+          {
+            "required": [
+              "lessonStep"
             ]
           },
           {

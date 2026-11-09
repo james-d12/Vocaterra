@@ -867,6 +867,24 @@
         { "lineId": "fisher_delivered.1", "text": "¡Gracias! Toma dos monedas." }
       ]
     },
+    "fisher_offer_order": {
+      "poolId": "fisher_offer_order",
+      "variants": [
+        { "lineId": "fisher_offer_order.1", "text": "Tengo hambre. ¿Me traes tres frutas? Te doy dos monedas." }
+      ]
+    },
+    "fisher_order_yes": {
+      "poolId": "fisher_order_yes",
+      "variants": [
+        { "lineId": "fisher_order_yes.1", "text": "¡Gracias! Hay fruta en el campamento de Luna." }
+      ]
+    },
+    "fisher_ok": {
+      "poolId": "fisher_ok",
+      "variants": [
+        { "lineId": "fisher_ok.1", "text": "Está bien." }
+      ]
+    },
     "guide.lesson.fisher.left": {
       "poolId": "guide.lesson.fisher.left",
       "variants": [
@@ -1080,6 +1098,24 @@
         { "lineId": "baker_delivered.1", "text": "¡Gracias! Toma cuatro monedas." }
       ]
     },
+    "baker_offer_order": {
+      "poolId": "baker_offer_order",
+      "variants": [
+        { "lineId": "baker_offer_order.1", "text": "¿Me traes cinco bloques de madera para el horno? Te pago cuatro monedas." }
+      ]
+    },
+    "baker_order_yes": {
+      "poolId": "baker_order_yes",
+      "variants": [
+        { "lineId": "baker_order_yes.1", "text": "¡Gracias! Hay árboles cerca del pueblo." }
+      ]
+    },
+    "baker_ok": {
+      "poolId": "baker_ok",
+      "variants": [
+        { "lineId": "baker_ok.1", "text": "Está bien." }
+      ]
+    },
     "guide.lesson.baker.plan": {
       "poolId": "guide.lesson.baker.plan",
       "variants": [
@@ -1238,6 +1274,12 @@
         { "lineId": "smith_delivered.1", "text": "¡Gracias! Toma el hacha." }
       ]
     },
+    "smith_order_yes": {
+      "poolId": "smith_order_yes",
+      "variants": [
+        { "lineId": "smith_order_yes.1", "text": "¡Muy bien! Te hago un hacha." }
+      ]
+    },
     "farmer_hello": {
       "poolId": "farmer_hello",
       "variants": [
@@ -1389,6 +1431,24 @@
       "poolId": "farmer_delivered",
       "variants": [
         { "lineId": "farmer_delivered.1", "text": "¡Gracias! Toma tres manzanas." }
+      ]
+    },
+    "farmer_offer_order": {
+      "poolId": "farmer_offer_order",
+      "variants": [
+        { "lineId": "farmer_offer_order.1", "text": "Mis plantas necesitan agua. ¿Me traes agua del río? Te doy tres manzanas." }
+      ]
+    },
+    "farmer_order_yes": {
+      "poolId": "farmer_order_yes",
+      "variants": [
+        { "lineId": "farmer_order_yes.1", "text": "¡Gracias! El río está cerca." }
+      ]
+    },
+    "farmer_ok": {
+      "poolId": "farmer_ok",
+      "variants": [
+        { "lineId": "farmer_ok.1", "text": "Está bien." }
       ]
     },
     "guide.lesson.farmer.bought": {

@@ -97,6 +97,7 @@ public sealed class BreadPilotTests
         var data = Data;
         var noLessons = LessonBook.Parse("{ \"schemaVersion\": 1, \"lessons\": [] }", data.Phrases, data.Speech, data.Bundle.Prompts, data.Locale, data.Npcs.Ids);
         var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons) { Day = 10 };
+        _ = session.TakeOrders(); // the orders are taken: this test is not about their offer (issue #54)
         foreach (var (item, count) in held)
         {
             Assert.Equal(0, session.Simulation.GrantItems(item, count));
@@ -235,6 +236,7 @@ public sealed class BreadPilotTests
         var data = Data;
         var noLessons = LessonBook.Parse("{ \"schemaVersion\": 1, \"lessons\": [] }", data.Phrases, data.Speech, data.Bundle.Prompts, data.Locale, data.Npcs.Ids);
         var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons);
+        _ = session.TakeOrders(); // the orders are taken: this test is not about their offer (issue #54)
         Stage.TeleportToNpc(session, "baker");
 
         var opening = session.OpenTalk("baker");
@@ -248,6 +250,7 @@ public sealed class BreadPilotTests
     private static VoxelSession ClassSession()
     {
         var session = new VoxelSession(Data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), CreditRules.FullTyped);
+        _ = session.TakeOrders(); // the orders are taken: this test is not about their offer (issue #54)
         SessionSkip.Apply(session, 10); // sessions 1 to 9 counted as done: ayer-y-manana is done and Luz is met, so the class is open
         session.Day = 11;
         Stage.TeleportToNpc(session, "baker");

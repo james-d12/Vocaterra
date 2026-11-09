@@ -184,7 +184,8 @@ public static class SaveGame
             MetNpcs: session.MetNpcs,
             Air: state.Air == Vocaterra.Game.Core.Water.Breath.MaxAir ? null : state.Air,
             Flow: state.Flow is { Count: > 0 } ? state.Flow : null,
-            DialoguePages: dialoguePages is { Count: > 0 } ? dialoguePages : null);
+            DialoguePages: dialoguePages is { Count: > 0 } ? dialoguePages : null,
+            GivenOrders: session.GivenOrders is { Count: > 0 } given ? given : null);
     }
 
     /// <summary>Captures a session and serializes it: the text of the save file.</summary>
@@ -394,6 +395,7 @@ public static class SaveGame
         session.RestoreObjectiveCounts(document.Objective.Select(static step => (step.Key, step.Count)));
         session.RestoreCarded(document.Carded);
         session.RestoreMet(document.MetNpcs ?? (document.Session >= 2 ? session.Data.Npcs.Ids : [NpcService.GuideAgent])); // L01: a save from before has none
+        session.RestoreGivenOrders(document.GivenOrders ?? []); // issue #54: a save without the list has taken on no order
         session.RestoreKeyWordsTaught(document.KeyWordsTaughtBy ?? (document.KeyWordsTaught ? [NpcService.ShopkeeperAgent] : [])); // an older save's flag was the shopkeeper's (V23a)
         session.RiverPointedState = document.RiverPointed;
         session.RestorePointer(document.Pointer is { } pointer ? new PointerMarker(pointer.Place, pointer.Target, Point: session.PointNameAt(pointer.Target, pointer.Place)) : null); // V02: the place's name is worked out again

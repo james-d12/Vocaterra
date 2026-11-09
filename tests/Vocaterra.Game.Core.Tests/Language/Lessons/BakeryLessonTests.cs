@@ -348,7 +348,7 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
     [Fact]
     public void TheBakerSellsTwoLoavesForFourCoinsAndWithThreeCoinsSellsNothingAndSaysSo()
     {
-        var session = TestGame.NewSessionWithShippedLessons(); // session 1: Números y pan is not unlocked, so she talks as herself
+        var session = TestGame.NewSessionWithShippedLessons().TakeOrders(); // session 1: Números y pan is not unlocked, so she talks as herself (her order taken, issue #54)
         Stage.TeleportToNpc(session, "baker");
         Assert.Equal(["¡Hola!"], session.OpenTalkForClass("baker").Lines); // she greets at every talk
         Assert.Equal(["El pan cuesta dos monedas."], session.Say("¿Cuánto cuesta?").GuideLines);
@@ -370,17 +370,21 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void TheOrderOfWoodOpensOnMeetingLuzAndBringingFiveWoodPaysFourCoins()
+    public void TheOrderOfWoodIsOfferedByLuzAndBringingFiveWoodPaysFourCoins()
     {
         var early = TestGame.NewSessionWithShippedLessons();
         early.Day = 4;
         early.Sitting = 4;
         _ = early.Simulation.GrantItems(ItemId.Wood, 5);
         Stage.TeleportToNpc(early, "baker");
-        _ = early.OpenTalkForClass("baker"); // L01: the order opens once Luz is met, whatever the day: the first talk takes the wood, handed over in Spanish (D-game-27)
+        Assert.Equal(["¿Me traes cinco bloques de madera para el horno? Te pago cuatro monedas."], early.OpenTalk("baker").Lines); // issue #54: with no class of hers open, Luz offers the order, whatever the day
+        Assert.Equal(["¡Gracias! Hay árboles cerca del pueblo."], early.AcceptOrder()!.GuideLines);
+        Assert.Equal(5, early.Simulation.Inventory.Count(ItemId.Wood));
+        early.EndTalk();
+        _ = early.OpenTalkForClass("baker"); // the next talk takes the wood, handed over in Spanish (D-game-27)
         Assert.Equal(0, early.Simulation.Inventory.Count(ItemId.Wood));
 
-        var session = TestGame.NewSessionWithShippedLessons();
+        var session = TestGame.NewSessionWithShippedLessons().TakeOrders("oven-wood");
         session.Day = 5;
         session.Sitting = 5;
         _ = session.Simulation.GrantItems(ItemId.Wood, 6);
@@ -410,6 +414,7 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
         session.Day = 5;
         session.Sitting = 5;
         Assert.Equal(0, session.Simulation.GrantItems(ItemId.Wood, 5));
+        _ = session.TakeOrders("oven-wood"); // taken on an earlier day, before her class was open (issue #54)
         Stage.TeleportToNpc(session, "baker");
 
         _ = session.OpenTalk("baker");
@@ -428,19 +433,28 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
     [Fact]
     public void ALearnerWhoArrivesWithTheWoodIsPaidAtTheFirstTalkAndTheClassTakenLateGoesOn()
     {
-        // The objective line shows the order from the session's start, so the wood may come first. The order names its lesson (V14, as V13's water-for-plants does):
-        // walking up to Luz with five wood delivers nothing while the lesson has not reached its step that waits for the delivery, so "Voy a buscar madera" comes before
-        // her thanks. Before V14 the talk that started the lesson took the wood, and the plan was said of wood already delivered.
+        // The wood may come first. Luz's class tells the order, so she offers the class and not the order (issue #54): the first talk takes nothing, the class gives the
+        // order at n3-oven («Necesito cinco bloques de madera para el horno.», lessonStep), and the wood is handed over at the step that waits for it, so «Voy a buscar
+        // madera» comes before her thanks, as V14 meant.
         var session = SessionFiveAtBaker(wood: 5);
-        Assert.True(session.Objectives.Single(static o => o.Id == "oven-wood").Complete); // no lesson holds a delivery (L01): Luz takes the wood at the first talk
         Assert.Equal(LessonId, session.Lessons.Active!.Id);
-        Assert.Equal(LessonId, TestGame.Data.Objectives.Find("oven-wood")!.Lesson);
+        Assert.Equal((LessonId, "n3-oven"), (TestGame.Data.Objectives.Find("oven-wood")!.Lesson, TestGame.Data.Objectives.Find("oven-wood")!.LessonStep));
+        Assert.False(session.HasOrder("oven-wood"));
+        Assert.Equal(5, session.Simulation.Inventory.Count(ItemId.Wood));
+        while (session.Lessons.Current is { Id: not "n4-wood" } step)
+        {
+            Walk(session, step);
+        }
+
+        Assert.True(session.HasOrder("oven-wood")); // given at n3-oven
+        Assert.Contains(session.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.OrderAccepted && e.Detail == "oven-wood, lesson");
         while (session.Lessons.Current is { Id: not "n5-coins" } step)
         {
             Walk(session, step);
         }
 
-        Assert.Contains(session.Events.OfType<LessonEvent>(), static e => e.StepId == "n4-back" && e.Detail == "delivered before"); // the class finds the order done, and goes on
+        Assert.True(session.Objectives.Single(static o => o.Id == "oven-wood").Complete);
+        Assert.DoesNotContain(session.Events.OfType<LessonEvent>(), static e => e.StepId == "n4-back" && e.Detail == "delivered before"); // delivered at its own step
     }
 
     [Fact]

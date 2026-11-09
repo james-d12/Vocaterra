@@ -100,11 +100,11 @@ public sealed partial class VoxelSession : GuideSession
     public Objective? CurrentObjective => Objectives.FirstOrDefault(o => !o.Complete && Shown(o.Spec));
 
     /// <summary>
-    /// Whether an objective is shown and counted now: an order once the player has met its NPC (L01, D-game-25; before, on a day), any other objective from its own
-    /// <see cref="ObjectiveSpec.Session"/> on.
+    /// Whether an objective is shown and counted now: an order once the player has taken it on (issue #54: a «sí» to its NPC's offer, or its lesson's step; before, on
+    /// meeting its NPC, L01), any other objective from its own <see cref="ObjectiveSpec.Session"/> on.
     /// </summary>
     /// <param name="spec">The objective.</param>
-    public bool Shown(ObjectiveSpec spec) => spec.IsOrder ? HasMet(spec.DeliverTo!) : spec.ShownIn(Day);
+    public bool Shown(ObjectiveSpec spec) => spec.IsOrder ? HasOrder(spec.Id) : spec.ShownIn(Day);
 
     /// <summary>The step a save names (<c>camp.wood</c>), or <see langword="null"/> for a key the session's objectives do not have.</summary>
     /// <param name="key">The step's save key, <c>&lt;objective&gt;.&lt;step&gt;</c>.</param>
@@ -749,6 +749,24 @@ public sealed partial class VoxelSession : GuideSession
 
     /// <inheritdoc />
     protected override bool OrderHeldAt(string npc) => false; // no lesson holds an order back (L01)
+
+    /// <inheritdoc />
+    protected override string? OrderToOfferAt(string npc) =>
+        Objectives.FirstOrDefault(o => o.Spec.IsOrder && !o.Complete && !HasOrder(o.Id) && string.Equals(o.Spec.DeliverTo, npc, StringComparison.Ordinal))?.Id;
+
+    /// <inheritdoc />
+    protected override string? LessonGivingOrder(string order) =>
+        Objectives.FirstOrDefault(o => string.Equals(o.Id, order, StringComparison.Ordinal))?.Spec is { LessonStep: not null } spec ? spec.Lesson : null;
+
+    /// <inheritdoc />
+    protected override void OnLessonStepStarted(LessonEvent step)
+    {
+        foreach (var order in Objectives?.Where(o => o.Spec.IsOrder && !o.Complete && string.Equals(o.Spec.Lesson, step.Lesson, StringComparison.Ordinal)
+            && string.Equals(o.Spec.LessonStep, step.StepId, StringComparison.Ordinal)) ?? [])
+        {
+            GiveOrder(order.Spec.DeliverTo!, order.Id, "lesson");
+        }
+    }
 
     // The shown, undone orders of an NPC whose goods the player carries.
     private IEnumerable<Objective> GoodsHeldOrders(string npc) =>

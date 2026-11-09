@@ -64,6 +64,7 @@ public sealed class OpenDecodeTests(ITestOutputHelper output)
     private static VoxelSession AtNpc(string npc, IWordRecognizer recognizer, CreditRules? credit = null)
     {
         var session = TestGame.NewSession(credit: credit ?? CreditRules.Default);
+        _ = session.TakeOrders(); // the orders are taken: this test is not about their offer (issue #54)
         Stage.TeleportToNpc(session, npc);
         _ = session.OpenTalk(npc);
         session.Conversation.AttachSpeech(new SpokenUtteranceEvaluator(TestGame.Bundle, recognizer));
@@ -105,6 +106,7 @@ public sealed class OpenDecodeTests(ITestOutputHelper output)
         const string line = "mañana voy a comprar pan";
         using var session = AtNpc("smith", new ByMode(line, 0.9));
         using var typed = TestGame.NewSession();
+        _ = typed.TakeOrders(); // the orders are taken: this test is not about their offer (issue #54)
         Stage.TeleportToNpc(typed, "smith");
         _ = typed.OpenTalk("smith");
 
@@ -222,6 +224,7 @@ public sealed class OpenDecodeTests(ITestOutputHelper output)
         _ = Apply(open, turn, "fisher", openScene);
 
         using var typed = TestGame.NewSession(credit: CreditRules.Default);
+        _ = typed.TakeOrders(); // the orders are taken: this test is not about their offer (issue #54)
         Stage.TeleportToNpc(typed, "fisher");
         _ = typed.OpenTalk("fisher");
         _ = typed.Say("tengo dos manzanas");
@@ -303,6 +306,7 @@ public sealed class OpenDecodeTests(ITestOutputHelper output)
     public void ThroughTheWorkerASpokenOffPromptLineShowsTwoDecodesAndAnAnswerRowOne()
     {
         using var session = TestGame.NewSession(credit: CreditRules.Default);
+        _ = session.TakeOrders(); // the orders are taken: this test is not about their offer (issue #54)
         Assert.True(session.StartWorker().WaitUntilReady(60000));
         Stage.TeleportToNpc(session, "smith");
         _ = session.OpenTalk("smith");

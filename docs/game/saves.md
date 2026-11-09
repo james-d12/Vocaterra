@@ -60,9 +60,12 @@ chest state as optional fields of the entry. Stages and their effects are never 
   no chest stands. The Chest block itself is in the world's block edits (`chunks`), as any placed block; a load restores both and never removes a chest, a night does
   (`RunDayResets`), with its contents. No version change: an older save has no chest.
 - **The NPCs met and the split first lesson (L01)** need no format change (the version stays 6): `metNpcs` is an optional list of the NPC ids the player has talked to (a class opens on
-  having met its teacher, an order on having met its NPC); a save without it takes every NPC as met from day 2 on and only the guide before. A lesson is never saved engaged: a load
+  having met its teacher); a save without it takes every NPC as met from day 2 on and only the guide before. A lesson is never saved engaged: a load
   restores the active class paused. A save of the old `first-words` (37 steps) holds the introduction and Luna's first class in one entry; the load splits it (`LessonRunner.SplitIntroduction`):
   the introduction keeps its id and its first 16 steps, then the steps that follow u4 and u4v, and `first-class` is completed when the old lesson was past them, not begun otherwise.
+- **The orders taken on (issue #54, D-game-30)** need no format change: `givenOrders` is an optional list of the order ids the player said «sí» to (or whose class reached
+  its `lessonStep`), left out while empty; a save without it has taken on none, and the NPCs offer their orders again. An NPC saved while it waited on its offer
+  (`offering_order`) is put back in its usual state at the next talk, which offers again. The orders the player said no to today are not saved: a load offers them again.
 - **Picked bushes and the day's gifts (N06)** are the `bushes` and `gifts` entries of `systems`, both absent when empty. `bushes` is `[{"x","y","z"}]`, the cells of the berry bushes
   picked by hand since the last night (the rule is `regrowth` in `game/needs.json`); each is a plain bush in the world's block edits until a night (`RunDayResets`, `RenewAtNight`) sets it
   back to a berry bush. A regrown bush is the generated block again, so the world's digest is the unpicked world's: the digest follows the blocks, as for any placed or removed block, and

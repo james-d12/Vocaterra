@@ -288,28 +288,32 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
     [Fact]
     public void ALearnerWhoArrivesWithTheWoodAndTheCoinsHasTheAxeAtTheFirstTalkAndTheClassTakenLateGoesOn()
     {
-        // The objective line shows the order from the session's start, so the goods may come first. The lesson starts at the villager, who asks the plan before the
-        // learner meets the smith, and the order names its lesson (V14): the first talk with Domingo delivers nothing, so his offer ("¿Quieres un hacha? Necesito dos
-        // bloques de madera y dos monedas.") comes before his thanks, and the axe is made at the step that waits for it. Before V14 the first talk took the goods, and
-        // the offer followed the axe it offered.
+        // The goods may come first. The lesson starts at the villager, who asks the plan before the learner meets the smith, and the class walks the learner to Domingo, so
+        // the first talk with him is the class's and he offers no order of his own. The order is given at the class's step where he asks for the goods (issue #54,
+        // lessonStep g4-offer: «¿Quieres un hacha? Necesito dos bloques de madera y dos monedas.»), and the axe is made at the step that waits for it: his offer comes
+        // before his thanks, as V14 meant.
         var session = SessionSixAtVillager(coins: 2, wood: 2);
-        Assert.Equal(LessonId, TestGame.Data.Objectives.Find("axe-handle")!.Lesson);
-        Assert.False(session.Objectives.Single(static o => o.Id == "axe-handle").Complete); // talking to the villager delivers nothing: Domingo is not met yet
-        // The two wood are in the bag already, so the wood step ends by itself (V23a) and the lesson waits at the step for the delivery.
-        while (session.Lessons.Current is { Id: not "g4-back" } step)
+        Assert.Equal((LessonId, "g4-offer"), (TestGame.Data.Objectives.Find("axe-handle")!.Lesson, TestGame.Data.Objectives.Find("axe-handle")!.LessonStep));
+        Assert.False(session.HasOrder("axe-handle"));
+        while (session.Lessons.Current is { Id: not "g4-offer" } step)
         {
             Walk(session, step);
         }
 
-        Assert.True(session.Objectives.Single(static o => o.Id == "axe-handle").Complete); // no lesson holds a delivery (L01): the first talk with Domingo made the axe
-        Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Axe));
+        Assert.True(session.HasOrder("axe-handle")); // the step that tells the order gives it, with no offer of his own
+        Assert.Contains(session.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.OrderAccepted && e.Npc == "smith" && e.Detail == "axe-handle, lesson");
+        Assert.DoesNotContain(session.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.OrderOffered && e.Npc == "smith");
+        Assert.False(session.Objectives.Single(static o => o.Id == "axe-handle").Complete);
+
+        // The two wood are in the bag already, so the wood step ends by itself (V23a); the step that waits for the delivery opens the talk where he asks for the goods.
         while (session.Lessons.Current is { Id: not "g4-axe" } step)
         {
             Walk(session, step);
         }
 
+        Assert.True(session.Objectives.Single(static o => o.Id == "axe-handle").Complete);
         Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Axe));
-        Assert.Contains(session.Events.OfType<LessonEvent>(), static e => e.StepId == "g4-back" && e.Detail == "delivered before"); // the class finds the axe made, and goes on
+        Assert.DoesNotContain(session.Events.OfType<LessonEvent>(), static e => e.StepId == "g4-back" && e.Detail == "delivered before"); // made at its own step
     }
 
     // ---- The tense and person checks
@@ -442,7 +446,7 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
         Assert.Equal(new NpcVoiceSpec(44, "pm_santa", 1.0f), data.Npcs.Find("farmer")!.Voice);
         Assert.Equal(("smith", "smith", "farmer", "villager"), (SpeechSpeakers.OfPool("smith_name", data.Npcs), SpeechSpeakers.OfPool("guide.lesson.smith.lives", data.Npcs), SpeechSpeakers.OfPool("farmer_name", data.Npcs), SpeechSpeakers.OfPool("guide.lesson.villager.who", data.Npcs)));
 
-        var session = TestGame.NewSessionWithShippedLessons(); // session 1: no lesson of theirs, so they talk as themselves
+        var session = TestGame.NewSessionWithShippedLessons().TakeOrders(); // session 1: no lesson of theirs, so they talk as themselves (their orders taken, issue #54)
         Stage.TeleportToNpc(session, "smith");
         Assert.Equal(["¡Hola!"], session.OpenTalkForClass("smith").Lines); // he greets at every talk
         Assert.Equal(["¡Hola! Esta es mi herrería."], session.Say("Hola").GuideLines);
@@ -469,10 +473,13 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
         _ = early.Simulation.GrantItems(ItemId.Wood, 2);
         _ = early.Simulation.GrantItems(ItemId.Coin, 2);
         Stage.TeleportToNpc(early, "smith");
-        _ = early.OpenTalkForClass("smith"); // L01: the order opens once Domingo is met, whatever the day, and the goods are handed over in Spanish (D-game-27)
+        Assert.Equal(["¿Quieres un hacha? Necesito dos bloques de madera y dos monedas."], early.OpenTalkForClass("smith").Lines); // issue #54: Domingo offers the order, whatever the day, and «sí» takes it
+        Assert.True(early.HasOrder("axe-handle"));
+        early.EndTalk();
+        _ = early.OpenTalkForClass("smith"); // the next talk takes the goods, handed over in Spanish (D-game-27)
         Assert.Equal((0, 0, 1), (early.Simulation.Inventory.Count(ItemId.Wood), early.Simulation.Inventory.Count(ItemId.Coin), early.Simulation.Inventory.Count(ItemId.Axe)));
 
-        var poor = TestGame.NewSessionWithShippedLessons();
+        var poor = TestGame.NewSessionWithShippedLessons().TakeOrders("axe-handle");
         poor.Day = 6;
         poor.Sitting = 6;
         _ = poor.Simulation.GrantItems(ItemId.Wood, 3);
@@ -484,7 +491,7 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
         Assert.Equal((3, 1, 0), (poor.Simulation.Inventory.Count(ItemId.Wood), poor.Simulation.Inventory.Count(ItemId.Coin), poor.Simulation.Inventory.Count(ItemId.Axe)));
         Assert.DoesNotContain(poor.Events.OfType<WorldEvent>(), static e => e.Name is WorldEvents.ItemTaken or WorldEvents.OrderDelivered && e.Npc == "smith");
 
-        var session = TestGame.NewSessionWithShippedLessons();
+        var session = TestGame.NewSessionWithShippedLessons().TakeOrders("axe-handle");
         session.Day = 6;
         session.Sitting = 6;
         _ = session.Simulation.GrantItems(ItemId.Wood, 3);

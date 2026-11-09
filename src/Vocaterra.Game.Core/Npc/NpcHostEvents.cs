@@ -451,6 +451,24 @@ public static class NpcHostEvents
     /// <summary>The state of an NPC's agent file in which it waits for the learner to hand over the goods of its order (issue #42).</summary>
     public const string ReceivingState = "receiving";
 
+    /// <summary>
+    /// The host event of an NPC's offer of its order when the talk opens (issue #54): <c>&lt;npc&gt;.offer_order</c>. Its agent asks for the goods (a yes-or-no question) and waits in
+    /// <see cref="OrderOfferState"/>; the order is shown, counted and delivered only once given.
+    /// </summary>
+    public const string OfferOrder = "offer_order";
+
+    /// <summary>The host event an NPC's agent raises in <see cref="OrderOfferState"/> on a «sí» (issue #54): <c>&lt;npc&gt;.accept_order</c>. The session gives the order offered.</summary>
+    public const string AcceptOrder = "accept_order";
+
+    /// <summary>The host event an NPC's agent raises in <see cref="OrderOfferState"/> on a «no» (issue #54): <c>&lt;npc&gt;.decline_order</c>. The NPC does not offer it again that day.</summary>
+    public const string DeclineOrder = "decline_order";
+
+    /// <summary>The host turn that takes an NPC out of <see cref="OrderOfferState"/> when the talk opens and the offer was left unanswered (issue #54): <c>&lt;npc&gt;.offer_gone</c>.</summary>
+    public const string OfferGone = "offer_gone";
+
+    /// <summary>The state of an NPC's agent file in which it waits for a yes or a no to its offer of an order (issue #54).</summary>
+    public const string OrderOfferState = "offering_order";
+
     /// <summary>What an NPC is asked to answer when the learner asks it for the ingredients and the run lacks none (W08, <see cref="NpcEffectKind.GiveMissing"/>): <c>&lt;npc&gt;.nothing_missing</c>.</summary>
     public const string NothingMissing = "nothing_missing";
 

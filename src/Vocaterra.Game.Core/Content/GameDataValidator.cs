@@ -711,11 +711,13 @@ public static class GameDataValidator
         }
 
         CheckHandOver(data, objective, npc, machine, file, problems);
+        CheckOrderOffer(data, npc, machine, file, problems);
 
         // V13: the lesson an order names as the one that tells it keeps the order back until its step that waits for the delivery, so it must have that step.
         if (objective.Lesson is { } lesson)
         {
-            if (data.Lessons.Find(lesson) is not { } told)
+            var told = data.Lessons.Find(lesson);
+            if (told is null)
             {
                 problems.Add($"{file}: the order names the lesson '{lesson}', which is not one of the lessons.");
             }
@@ -724,6 +726,67 @@ public static class GameDataValidator
             {
                 problems.Add($"{file}: the order names the lesson '{lesson}', which has no do step that waits for its delivery (order_delivered at '{npc}' with the detail '{objective.Id}').");
             }
+
+            // Issue #54: the step that gives the order is a step of that lesson, before the one that waits for the delivery.
+            if (told is not null && objective.LessonStep is { } stepId)
+            {
+                var at = told.Steps.ToList().FindIndex(step => string.Equals(step.Id, stepId, StringComparison.Ordinal));
+                var waits = told.Steps.ToList().FindIndex(step => step is { Type: LessonStepType.Do, Trigger: { Event: WorldEvents.OrderDelivered } trigger } && string.Equals(trigger.Detail, objective.Id, StringComparison.Ordinal));
+                if (at < 0)
+                {
+                    problems.Add($"{file}: lessonStep names '{stepId}', which is not a step of the lesson '{lesson}'.");
+                }
+                else if (waits >= 0 && at >= waits)
+                {
+                    problems.Add($"{file}: lessonStep '{stepId}' comes at or after the step of '{lesson}' that waits for the delivery, so the order could not be delivered before it is given.");
+                }
+            }
+        }
+    }
+
+    // Issue #54: an order is offered when the talk opens and given by a «sí». The NPC's initial state takes <npc>.offer_order into its offering_order state, which raises
+    // <npc>.accept_order on one answer and <npc>.decline_order on another, goes back on <npc>.offer_gone, and waits at a prompt that takes confirm and deny.
+    private static void CheckOrderOffer(GameData data, string npc, AgentStateMachine machine, string file, List<string> problems)
+    {
+        var definition = machine.Definition;
+        var offer = NpcHostEvents.Of(npc, NpcHostEvents.OfferOrder);
+        var initial = definition.States.FirstOrDefault(state => string.Equals(state.Id, definition.InitialState, StringComparison.Ordinal));
+        if (initial is null || !initial.Transitions.Any(t => string.Equals(t.OnHostEvent, offer, StringComparison.Ordinal) && string.Equals(t.To, NpcHostEvents.OrderOfferState, StringComparison.Ordinal)))
+        {
+            problems.Add($"{file}: the order is offered when the talk opens, and the initial state of agents/{npc}.json does not take '{offer}' into '{NpcHostEvents.OrderOfferState}'.");
+        }
+
+        if (definition.States.FirstOrDefault(state => string.Equals(state.Id, NpcHostEvents.OrderOfferState, StringComparison.Ordinal)) is not { } offering)
+        {
+            problems.Add($"{file}: agents/{npc}.json has no state '{NpcHostEvents.OrderOfferState}' to wait in for the answer to its offer.");
+            return;
+        }
+
+        foreach (var what in new[] { NpcHostEvents.AcceptOrder, NpcHostEvents.DeclineOrder })
+        {
+            var raised = NpcHostEvents.Of(npc, what);
+            if (!offering.Transitions.Any(t => t.Actions.Any(a => string.Equals(a.HostEvent, raised, StringComparison.Ordinal))))
+            {
+                problems.Add($"{file}: the state '{NpcHostEvents.OrderOfferState}' of agents/{npc}.json raises '{raised}' on no answer.");
+            }
+        }
+
+        var gone = NpcHostEvents.Of(npc, NpcHostEvents.OfferGone);
+        if (!offering.Transitions.Any(t => string.Equals(t.OnHostEvent, gone, StringComparison.Ordinal) && string.Equals(t.To, definition.InitialState, StringComparison.Ordinal)))
+        {
+            problems.Add($"{file}: the state '{NpcHostEvents.OrderOfferState}' of agents/{npc}.json does not take '{gone}' back to '{definition.InitialState}'.");
+        }
+
+        var entry = data.Npcs.Find(npc)!;
+        if (!entry.Prompts.TryGetValue(NpcHostEvents.OrderOfferState, out var prompt) || !data.Bundle.Prompts.TryGetValue(prompt, out var spec))
+        {
+            problems.Add($"{file}: game/npcs/{npc}.json maps no bundle prompt to the state '{NpcHostEvents.OrderOfferState}'.");
+            return;
+        }
+
+        foreach (var intent in new[] { "confirm", "deny" }.Where(intent => !spec.AllowedIntentIds.Contains(intent, StringComparer.Ordinal)))
+        {
+            problems.Add($"{file}: the prompt '{prompt}' the order is offered at does not take the intent '{intent}'.");
         }
     }
 

@@ -56,6 +56,7 @@ public sealed class YesterdaySpokenTests(ITestOutputHelper output)
         // The learner hears fueron (¿Adónde fueron?) and says fuimos, so no step listens for it: at the step the recognizer is held to the step's answers and hears
         // "Ellos fueron al río." as "fuimos al río" (V14's run). Where it listens to anything (the villager's open prompt), fueron is heard as said.
         using var session = TestGame.NewSessionWithShippedLessons();
+        _ = session.TakeOrders(); // the orders are taken: this test is not about their offer (issue #54)
         Stage.TeleportToNpc(session, "villager");
         _ = session.OpenTalkForClass("villager");
         Assert.True(session.StartWorker().WaitUntilReady(60000));
@@ -73,6 +74,7 @@ public sealed class YesterdaySpokenTests(ITestOutputHelper output)
     {
         using var session = TestGame.NewSessionWithShippedLessons(); // session 1: the smith talks as himself
         Stage.TeleportToNpc(session, "smith");
+        _ = session.TakeOrders(); // the orders are taken: this test is not about their offer (issue #54)
         _ = session.OpenTalkForClass("smith");
         Assert.True(session.StartWorker().WaitUntilReady(60000));
 

@@ -35,6 +35,10 @@ public sealed record OrderGoods(ItemId Item, int Count);
 /// under way before the step, or is about to start at the talk, walking up with the goods does not deliver them (<see cref="Language.Lessons.LessonRunner"/>), so the plan
 /// is said first even by a learner who carries them already.
 /// </param>
+/// <param name="LessonStep">
+/// For an order with a <paramref name="Lesson"/> (issue #54, <c>lessonStep</c>): the step of that lesson at which the NPC asks for the goods. Reaching it gives the order, as a
+/// «sí» to the NPC's own offer does; <see langword="null"/> when only the offer gives it.
+/// </param>
 /// <param name="HandOverNouns">
 /// For an order the learner hands over in Spanish (issue #42, <c>handOver</c>): the catalogue nouns that name its goods. The talk then opens with the NPC asking for them
 /// (<c>&lt;npc&gt;.order_ready</c>) and a <c>hand_over</c> line naming one of them delivers them; <see langword="null"/> when walking up with the goods is enough.
@@ -49,7 +53,8 @@ public sealed record ObjectiveSpec(
     string? DeliverTo = null,
     IReadOnlyList<OrderGoods>? Deliver = null,
     string? Lesson = null,
-    IReadOnlyList<string>? HandOverNouns = null)
+    IReadOnlyList<string>? HandOverNouns = null,
+    string? LessonStep = null)
 {
     /// <summary>Whether the HUD shows the objective as a checklist of its steps (it has a title).</summary>
     public bool IsChecklist => Title is not null;
@@ -167,7 +172,8 @@ public sealed class ObjectiveBook
     /// <summary>
     /// Builds one objective from its file's text: <c>{ "schemaVersion": 1, "id", "title"?, "steps": [ { "id", "noun"?, "label"?, "target", "trigger", "restore"? } ],
     /// "alsoDoneBy"?, "onComplete"?, "session"? }</c>, or an order: <c>{ "schemaVersion": 1, "id", "session"?, "deliverTo", "deliver": [ { "item", "count" } ], "lesson"?,
-    /// "onComplete"? }</c> (no title, no steps: its one step is the delivery; <c>lesson</c>, V13, the lesson that tells it).
+    /// "lessonStep"?, "handOver"?, "onComplete"? }</c> (no title, no steps: its one step is the delivery; <c>lesson</c>, V13, the lesson that tells it; <c>lessonStep</c>, issue #54,
+    /// the step of that lesson that gives the order).
     /// </summary>
     /// <param name="path">The file's path, for the messages.</param>
     /// <param name="json">The file's text.</param>
@@ -208,6 +214,12 @@ public sealed class ObjectiveBook
             }
 
             var lesson = root.TryGetProperty("lesson", out _) ? Text(root, "lesson", path) : null;
+            var lessonStep = root.TryGetProperty("lessonStep", out _) ? Text(root, "lessonStep", path) : null;
+            if (lessonStep is not null && lesson is null)
+            {
+                throw new InvalidDataException($"{path}: lessonStep names a step of the order's lesson, so the order names its lesson too.");
+            }
+
             IReadOnlyList<string>? handOver = root.TryGetProperty("handOver", out var handOverElement) ? Strings(handOverElement, "nouns") : null;
             if (handOver is { Count: 0 } || (handOver is not null && deliverTo is null))
             {
@@ -222,7 +234,7 @@ public sealed class ObjectiveBook
                 }
 
                 var delivery = new ObjectiveStepSpec(DeliveredStep, string.Empty, DeliveredStep, 1, new Trigger(WorldEvents.OrderDelivered, deliverTo, id), null);
-                return new ObjectiveSpec(id, null, [delivery], Strings(root, "alsoDoneBy"), Strings(root, "onComplete"), session, deliverTo, goods, lesson, handOver);
+                return new ObjectiveSpec(id, null, [delivery], Strings(root, "alsoDoneBy"), Strings(root, "onComplete"), session, deliverTo, goods, lesson, handOver, lessonStep);
             }
 
             if (lesson is not null)

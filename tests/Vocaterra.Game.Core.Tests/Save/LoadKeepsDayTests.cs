@@ -23,12 +23,13 @@ public sealed class LoadKeepsDayTests
     [Fact]
     public void ASaveInDayFiveLoadsOnDayFiveWithItsObjectiveAndTheOpenOrderIsDelivered()
     {
-        var session = TestGame.NewSession();
+        var session = TestGame.NewSession().TakeOrders("oven-wood"); // the order taken on (issue #54): the save keeps it
         session.Day = 5;
         session.Sitting = 5;
         _ = session.Simulation.GrantItems(ItemId.Wood, 5);
 
         var loaded = LoadOf(SaveGame.Save(session, Pristine()));
+        Assert.Equal(["oven-wood"], loaded.GivenOrders);
 
         Assert.Equal(5, loaded.Day);
         Assert.Equal(6, loaded.Sitting);
