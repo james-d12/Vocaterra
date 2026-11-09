@@ -5,14 +5,14 @@ pack**, a new project `src/Vocaterra.Nlp.De`. Do the work yourself; do not spawn
 
 ## Where to work, and committing
 Work only in the git worktree `/home/james/Dev/Vocaterra/.claude/worktrees/m37`, already on the branch `M37-german-text` (from
-`feature/german` after M88 merged; no build yet). cd there first; never edit another worktree. Commit after each step that builds and
+`feature/german` after M88 and T03 merged; no build yet). cd there first; never edit another worktree. Commit after each step that builds and
 passes its tests; never end your turn with uncommitted work. Do not push; never push or merge `feature/*` or `main`. Run everything in the
 foreground and finish in one turn (no background commands, monitors or wait loops). Never use `git stash`. **Other sessions build on this
 machine:** every heavy command goes through `scripts/limited.sh`; if it waits for a slot, let it wait. Check `df -h /home` before a build.
 
 ## The rules, environment, resources and gate
 Read `/home/james/Dev/Vocaterra/.claude/worktrees/m37/.claude/briefs/w07-station-view.md`, the sections **Output and context**,
-**Resources**, **Environment** and **Gate**: they apply to you, with `/tmp/claude-1000/m37/` for your logs, **10575 passed, 3 skipped** as the count before
+**Resources**, **Environment** and **Gate**: they apply to you, with `/tmp/claude-1000/m37/` for your logs, **10580 passed, 3 skipped** as the count before
 you, and these changes: skip the scripted runs (no game file changes); add `bash scripts/license-scan.sh --offline` (PASSED) and the core
 demo (`docs/process/milestone-briefs.md`, "Repository facts": exactly `conj.person` and `noun.number`, through a wrapper script outside
 the repository because the sandbox refuses the word `eval`). Build the core first (`Vocaterra.Nlp.slnf`; add the new projects to it and

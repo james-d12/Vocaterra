@@ -416,7 +416,7 @@ refuses older saves with a clear message and re-records `tests/Vocaterra.Game.Co
 | T01 | The pack through the bundle (G1, G2, G3, G7): a game-owned `GameLanguages` registry passed as `ContentLoadOptions.LanguagePacks`, the manifest picks the pack; `bundle.LanguageMorphology` and M87's pack members instead of `SpanishMorphology()` (including `BookLayer.cs:468`), `SpanishNumbers`, `SpanishTextNormalizer`, `SpanishAccentNotes`; the tag list from `bundle.Language.ErrorTags`. Gate: no `Spanish*` identifier and no `Vocaterra.Nlp.Es` reference in the game projects outside `GameLanguages` (a C# architecture test) | core M87 | M | Sonnet 5.5 | done (2026-11-08, gated at `f1ffa49a`, 10412 passed, 1 failed: a broken link in the orchestrator's moved handover, repaired after; section 5) |
 | T02 | Words out of code (G4, G5): the last Spanish literals (`Vocative`, `RecastNames`, `NpcTurnRules`, `GuideSession`, `VoxelSession`, `BookVerbLabels`, `CheckLayer`, `PhraseIds`) into `game/words.json` or the pack; the typing map (`AccentShortcuts`) and its hint as per-language data | T01 | S | Haiku 5.5 | partly done (2026-11-08, gated at `d9cdc0a8`, 10417 passed, 1 failed: the orchestrator's handover index link, repaired after); the rest is T02b (section 5) |
 | T02b | The rest of T02's step 2: thread `GameWords` through `Vocative`, `Greeting`, `RecastNames`, `LineReading`, `NpcService`, `GuideSession` and the host's `ConversationSession` (about 35 call sites); greetings, `tú`/`usted`/`ustedes`, determiners, vocative binders and `un`/`una` into `words.json`; empty the OPEN entries of `SpanishLiteralGuardTests`' allow-list | T02 | S/M | Haiku 5.5 | done (2026-11-09, gated at `f8f076d7`, 10522 passed; section 5) |
-| T03 | Neutral world ids (G11): recipes, objectives and host event details keyed by neutral ids (`torch`, `wood`, `table`), `game/nouns.json` mapping each id to the target-language lemma | T02 | S/M | Sonnet 5.5 | proposed |
+| T03 | Neutral world ids (G11): recipes, objectives and host event details keyed by neutral ids (`torch`, `wood`, `table`), `game/nouns.json` mapping each id to the target-language lemma | T02 | S/M | Sonnet 5.5 | done (2026-11-09, gated at `b76a9247`, 10580 passed; section 5) |
 | T04 | Saves and the speech table (G6, G8): a required `language` in the save, `saves/<language>/` profiles, the save version raised; ASR model id, TTS engine and voices per language from data, `SpeechRules` thresholds per model; gender `n` allowed in `LearnerWords` | T03 | M | Sonnet 5.5 | proposed |
 | T05 | Split the world and language bundles (report 5.1 B, G12, G16, G17): `content/world-v1` and a slimmer `content/game-v1`; the save records both hashes; the locale split (UI strings in `content/locale/<l1>/`, target-dependent glosses and lesson text per target language); the content gates and `merge-gate.sh` per bundle; R02's core suite green on the Spanish bundle; hashes re-recorded once, in their own commit | T04 | L | Sonnet 5.5 (high) | proposed |
 | T06 | The German bundle skeleton: `content/game-de-v1` on `world-v1` from M41's seed, nouns map, words (greetings, pronouns, typing map), NPC labels and names, `content/PHRASES-de.md`, `--language de`; lint strict, `cefr-check --level a1`, LanguageTool `de-DE` | T05, core M41; the variety decision | M | Sonnet 5.5 | proposed |
@@ -2579,6 +2579,24 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   edit, so those two are not a before/after proof; r01 to r27 are). Finding: `scripts/compare-runs.py` over the whole capture does not
   finish in minutes (a long `.save` line in a regex); per run it is at most 65 s. `content/README.md`'s `words.json` row does not yet
   name the matching lists (T03 adds it).
+- **T03, neutral world ids (2026-11-09, Sonnet 5.5 medium; gated at `b76a9247` on `feature/german`, 10580 passed, 0 failed).**
+  `game/nouns.json` is keyed by a neutral `id` (`wood`, `torch`, `table`, `oven`, `bowl`, `hand`, …) with the `lemma` as the language side
+  (`sources` name ids; `NounCatalog.ForId`, `LemmaOfId`). Re-keyed to ids: `recipes.json`, `objectives/camp.json`, `stations.json`
+  (`horno` → `oven`), `actions.json` (`use`, `on`; the verbs stay), `procedures/pan.json` → `bread.json`, `host-events.json`, the 26
+  scene labels (noun ids or place ids; a new `words.json` `places` map of 14 words), lesson `procedure_done` detail `pan` → `bread`. The
+  books translate at load (`InLanguage(nouns)` on `HostEventTable`, `StationBook`, `ActionTable`, `ProcedureBook`; scene labels through
+  `GameData.LabelWord`), so matching, event details sent to the core and transcripts are unchanged. Sign blocks renamed
+  (`SignShop*`, `SignRiver`, `SignMountain*`, numeric ids unchanged); `StationScreen`'s hand is `HandId = "hand"`. **Save version 7 → 8**
+  (procedure and station ids in `systems.procedures`), older refused; `save-v1.json` and `save-v4.json` re-recorded; the dead pre-v5
+  key mapping removed. Guard: `WorldDataNeutralityTests` (no world string equals a `nouns.json` lemma; allow-list with reasons: the
+  procedure step ids `harina`, `agua`, `madera`, `masa`, which the locale keys as `proc_<id>`); `SpanishLiteralGuardTests` also reads the
+  nouns' lemmas. Scripted runs: only save versions and r27's station and procedure ids in log lines changed. Bundle hash `d1c65106…`,
+  grammar clean. **Left over:** the locale is lemma-keyed (`noun.<lemma>`, `proc_<step id>`: T05's locale split); the sign art paints
+  Spanish words (tienda, río, montaña: T09); `LearnerRecord.Restore(checksCounted)` and `LearnerWords.FromVersion2` are dead code;
+  `words.json`'s `nouns.river` duplicates the noun `river`. T05's list of world and language files is in the agent's report:
+  world = recipes, stations, actions (ids), host-events, objectives (but the checklist `title` is display text), procedures, scene,
+  needs, tips, session, controls; language = nouns (lemmas), words (with `places`), lessons, phrases, dialogue, checks, NPC key words,
+  the verbs of actions and procedures.
 
 ## 6. Definition of done (every milestone)
 
