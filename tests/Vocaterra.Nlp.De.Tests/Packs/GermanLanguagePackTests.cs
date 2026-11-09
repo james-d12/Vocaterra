@@ -49,11 +49,9 @@ public class GermanLanguagePackTests
     [Fact]
     public void ThePlaceholdersSayWhichMilestoneWritesThem()
     {
-        var morphology = Assert.Throws<NotSupportedException>(() => Pack.CreateMorphology(GermanLexicon.Empty));
         var rules = Assert.Throws<NotSupportedException>(() => Pack.CreateAnalysisRules(GermanLexicon.Empty, null!));
         var functions = Assert.Throws<NotSupportedException>(() => Pack.CreateTemplateFunctions(GermanLexicon.Empty, null!));
 
-        Assert.Contains("M38", morphology.Message, StringComparison.Ordinal);
         Assert.Contains("M39", rules.Message, StringComparison.Ordinal);
         Assert.Contains("M40", functions.Message, StringComparison.Ordinal);
     }
