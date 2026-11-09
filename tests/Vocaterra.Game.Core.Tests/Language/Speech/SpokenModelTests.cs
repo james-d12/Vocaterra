@@ -55,21 +55,21 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
     [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void TheRecognizerLoadsFromTheStoreAndDecodesSilence()
     {
-        var store = SpeechEngine.FindModels(out var problem);
+        var store = SpeechEngine.FindModels(TestGame.Data.SpeechTable, out var problem);
         Assert.True(store is not null, problem);
 
-        using var vosk = VoskWordRecognizer.FromStore(store, SpeechEngine.VoskModelId);
+        using var vosk = VoskWordRecognizer.FromStore(store, TestGame.Data.SpeechTable.AsrModel);
         var result = vosk.Recognize(PcmClip.FromSamples(new short[8000]), RecognitionRequest.Open(1));
 
         Assert.Equal(string.Empty, result.Transcript);
-        Assert.Equal(store.ModelHash(SpeechEngine.VoskModelId), vosk.ModelHash);
+        Assert.Equal(store.ModelHash(TestGame.Data.SpeechTable.AsrModel), vosk.ModelHash);
     }
 
     [ModelFact(needsKokoro: true)]
     [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void AKokoroLineIsRecognizedByVoskAndTheGuideAnswersItLikeTheTypedLine()
     {
-        using var engine = SpeechEngine.TryCreate(out var problem)!;
+        using var engine = SpeechEngine.TryCreate(TestGame.Data.SpeechTable, out var problem)!;
         Assert.NotNull(engine);
         var session = TestGame.NewSession();
         var counting = new CountingRecognizer(engine.Recognizer);
@@ -98,7 +98,7 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
     [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void TheSecondEvaluationSeesTheTranscriptAndConfidenceOfTheFirstWithoutDecodingAgain()
     {
-        using var engine = SpeechEngine.TryCreate(out _)!;
+        using var engine = SpeechEngine.TryCreate(TestGame.Data.SpeechTable, out _)!;
         var counting = new CountingRecognizer(engine.Recognizer);
         var evaluator = new SpokenUtteranceEvaluator(TestGame.Bundle, counting);
         var prompt = TestGame.Bundle.Prompts[NpcService.GuidePrompt];
@@ -159,7 +159,7 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
     [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void AWavFileIsFedThroughTheWorkerAsSpokenInput()
     {
-        using var engine = SpeechEngine.TryCreate(out _)!;
+        using var engine = SpeechEngine.TryCreate(TestGame.Data.SpeechTable, out _)!;
         var clip = engine.Synthesize(TreeQuestion, out _);
         var path = Path.Combine(Path.GetTempPath(), $"vocaterra-test-{Environment.ProcessId}-{Guid.NewGuid():N}.wav");
         try

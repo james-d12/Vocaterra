@@ -169,6 +169,7 @@ public sealed class TurnWorker : IDisposable
 {
     private readonly NpcService _guide;
     private readonly ContentBundle _bundle;
+    private readonly SpeechTable _speechTable;
     private readonly Func<double>? _clock;
     private readonly bool _loadSpeech;
     private readonly BlockingCollection<TurnRequest> _queue = [];
@@ -188,15 +189,18 @@ public sealed class TurnWorker : IDisposable
     /// <summary>Creates the worker; it does nothing until <see cref="Start"/>.</summary>
     /// <param name="guide">The conversations with the NPCs. After <see cref="Start"/> only the worker thread may call their <c>Say</c> methods.</param>
     /// <param name="bundle">The content bundle (for the spoken-line evaluator).</param>
+    /// <param name="speechTable">The bundle's speech table (T04): the recognizer to load and the synthesizer's voice.</param>
     /// <param name="clockMilliseconds">A clock for the timings only; <see langword="null"/> gives zeros.</param>
     /// <param name="loadSpeech">Whether to load the speech models (false for a typed-only worker: no models, no Vosk).</param>
     /// <param name="worldSeed">The world seed of the session, for the throwaway contexts of the check answers (S11).</param>
-    public TurnWorker(NpcService guide, ContentBundle bundle, Func<double>? clockMilliseconds = null, bool loadSpeech = true, ulong worldSeed = 0)
+    public TurnWorker(NpcService guide, ContentBundle bundle, SpeechTable speechTable, Func<double>? clockMilliseconds = null, bool loadSpeech = true, ulong worldSeed = 0)
     {
         ArgumentNullException.ThrowIfNull(guide);
         ArgumentNullException.ThrowIfNull(bundle);
+        ArgumentNullException.ThrowIfNull(speechTable);
         _guide = guide;
         _bundle = bundle;
+        _speechTable = speechTable;
         _clock = clockMilliseconds;
         _loadSpeech = loadSpeech;
         _checks = new CheckGrader(bundle, worldSeed);
@@ -353,7 +357,7 @@ public sealed class TurnWorker : IDisposable
         if (_loadSpeech)
         {
             var speechStart = Now();
-            engine = SpeechEngine.TryCreate(out problem, _clock);
+            engine = SpeechEngine.TryCreate(_speechTable, out problem, _clock);
             speechMs = Now() - speechStart;
             if (engine is not null)
             {
@@ -455,7 +459,7 @@ public sealed class TurnWorker : IDisposable
                 default: // Speak, HearSpeak
                     if (!engine.CanSpeak)
                     {
-                        return Failed(request, begin, $"Speech model {SpeechEngine.KokoroModelId} is missing, so the line cannot be spoken. Type your answer.");
+                        return Failed(request, begin, $"Speech model {_speechTable.TtsModel} is missing, so the line cannot be spoken. Type your answer.");
                     }
 
                     var synthStart = Now();
@@ -522,7 +526,7 @@ public sealed class TurnWorker : IDisposable
                 case TurnSource.Speak:
                     if (!engine.CanSpeak)
                     {
-                        return Failed(request, begin, $"Speech model {SpeechEngine.KokoroModelId} is missing, so the line cannot be spoken. Type your answer.");
+                        return Failed(request, begin, $"Speech model {_speechTable.TtsModel} is missing, so the line cannot be spoken. Type your answer.");
                     }
 
                     var synthStart = Now();

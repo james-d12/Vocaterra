@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Language.Learner;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Nlp.Content;
@@ -15,7 +16,7 @@ namespace Vocaterra.Game.Core.Language.Words;
 /// </summary>
 /// <param name="Id">The neutral id (<c>tree</c>): what the world's data (recipes, objectives, stations, actions, procedures, host events, the scene) names the noun by; the lemma is the target language's word for it (T03).</param>
 /// <param name="Lemma">The dictionary form (<c>árbol</c>).</param>
-/// <param name="Gender">The lexicon's gender of the noun (<c>m</c> or <c>f</c>).</param>
+/// <param name="Gender">The lexicon's gender of the noun (<c>m</c>, <c>f</c> or <c>n</c>, <see cref="Genders"/>).</param>
 /// <param name="Items">The item kinds it names.</param>
 /// <param name="Definite">The definite article in the singular (<c>el</c>, <c>la</c>).</param>
 /// <param name="Indefinite">The indefinite article in the singular (<c>un</c>, <c>una</c>).</param>
@@ -277,6 +278,11 @@ public sealed class NounCatalog
             .Select(static e => e.ToFeatures())
             .FirstOrDefault(static f => f.Pos == "noun" && f.Gender is not null)?.Gender
             ?? throw new InvalidDataException($"{RelativePath}: '{lemma}' has no noun reading with a gender in the lexicon.");
+        if (!Genders.IsKnown(gender))
+        {
+            throw new InvalidDataException($"{RelativePath}: '{lemma}' has the gender '{gender}' in the lexicon; the game knows {string.Join(", ", Genders.All)}.");
+        }
+
         var morphology = bundle.LanguageMorphology;
         return new NounEntry(
             id,

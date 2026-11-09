@@ -13,6 +13,7 @@ using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Nlp.Asr.Models;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Language.Lexicon;
@@ -64,10 +65,16 @@ public static class GameDataValidator
 {
     /// <summary>Every problem between the files, in a fixed order; empty when the content holds together.</summary>
     /// <param name="data">The content, read without the checks (<see cref="GameData.Read"/>) or loaded.</param>
-    public static IReadOnlyList<string> Validate(GameData data)
+    public static IReadOnlyList<string> Validate(GameData data) => Validate(data, SpeechEngine.FindManifest(Environment.GetEnvironmentVariable));
+
+    /// <summary>The same, with the models manifest the speech table is checked against (T04): a test passes its own, or none.</summary>
+    /// <param name="data">The content.</param>
+    /// <param name="models">The models manifest (<c>models/manifest.json</c>), or <see langword="null"/> to check only the table's engine.</param>
+    public static IReadOnlyList<string> Validate(GameData data, ModelManifest? models)
     {
         ArgumentNullException.ThrowIfNull(data);
         var problems = new List<string>();
+        problems.AddRange(data.SpeechTable.Problems(models)); // T04: the speech models are models of the manifest
         CheckLocale(data, problems);
         CheckPhrases(data, problems);
         CheckChecks(data, problems);

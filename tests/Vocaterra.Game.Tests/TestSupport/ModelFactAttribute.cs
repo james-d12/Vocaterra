@@ -9,18 +9,18 @@ public sealed class ModelFactAttribute : FactAttribute
     /// <summary>Creates the fact; <paramref name="needsKokoro"/> is <see langword="false"/> for a test that only recognises a recorded WAV (Vosk alone).</summary>
     public ModelFactAttribute(bool needsKokoro = true)
     {
-        var store = SpeechEngine.FindModels(out var problem);
+        var store = SpeechEngine.FindModels(TestGame.Data.SpeechTable, out var problem);
         if (store is null)
         {
             Skip = $"Speech models unavailable: {problem}";
         }
-        else if (!Directory.Exists(store.ModelDirectory(SpeechEngine.VoskModelId)) || store.Manifest.Find(SpeechEngine.VoskModelId) is null)
+        else if (!Directory.Exists(store.ModelDirectory(TestGame.Data.SpeechTable.AsrModel)) || store.Manifest.Find(TestGame.Data.SpeechTable.AsrModel) is null)
         {
-            Skip = $"Speech models unavailable: {SpeechEngine.VoskModelId} is not in {store.RootDirectory}.";
+            Skip = $"Speech models unavailable: {TestGame.Data.SpeechTable.AsrModel} is not in {store.RootDirectory}.";
         }
-        else if (needsKokoro && (!Directory.Exists(store.ModelDirectory(SpeechEngine.KokoroModelId)) || store.Manifest.Find(SpeechEngine.KokoroModelId) is null))
+        else if (needsKokoro && (!Directory.Exists(store.ModelDirectory(TestGame.Data.SpeechTable.TtsModel)) || store.Manifest.Find(TestGame.Data.SpeechTable.TtsModel) is null))
         {
-            Skip = $"Speech models unavailable: {SpeechEngine.KokoroModelId} is not in {store.RootDirectory}.";
+            Skip = $"Speech models unavailable: {TestGame.Data.SpeechTable.TtsModel} is not in {store.RootDirectory}.";
         }
     }
 }

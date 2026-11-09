@@ -179,6 +179,7 @@ public sealed partial class NpcService
     private readonly IReadOnlyList<string> _practised;
     private readonly IReadOnlyList<string> _names;
     private readonly GameWords _words;
+    private readonly GameData _data;
     private readonly HostEventTable _hostEvents;
     private readonly ScenePlaces _places;
     private readonly Dictionary<string, Agent> _agents = new(StringComparer.Ordinal);
@@ -243,6 +244,7 @@ public sealed partial class NpcService
         _practised = [.. data.Npcs.Homes.Keys];
         _names = [.. data.Npcs.All.Select(static npc => npc.Name).OfType<string>()];
         _words = data.Words;
+        _data = data;
         _hostEvents = data.HostEvents;
         _patience = data.Npcs.All.Where(static npc => npc.Patience is not null).ToDictionary(static npc => npc.Id, static npc => npc.Patience!, StringComparer.Ordinal);
         _places = places ?? ScenePlaces.None;
@@ -638,7 +640,7 @@ public sealed partial class NpcService
         var line = CleanTranscript(said);
         var verdict = analysis.Verdict;
         double? confidence = clip is null ? null : UncertaintyRule.MeanWordConfidence(analysis.Asr);
-        if (confidence is { } sure && UncertaintyRule.IsTooUnsure(verdict.Communicated, sure))
+        if (confidence is { } sure && UncertaintyRule.IsTooUnsure(verdict.Communicated, sure, _data.SpeechTable.WordConfidenceThreshold))
         {
             // The core would understand the line but the recognizer was not sure of its words (D-game-9): ask again and let nothing happen. The
             // turn is not completed, so the conversation, the learner, the repeat counts and the world stay as they were.
@@ -647,7 +649,7 @@ public sealed partial class NpcService
 
         // V27: in free talk a line the prompt does not take but the core understands (M72) gets the NPC's one off-prompt line and nothing else: it is no failed attempt. A
         // spoken line the recognizer was unsure of keeps the uncertain reply (D-game-9): what was heard is not known well enough to say it was understood.
-        var offPromptPool = scene.PromptOverride is null && !verdict.Communicated && verdict.OffPromptIntent is not null && (confidence is null || confidence >= UncertaintyRule.ConfidenceThreshold)
+        var offPromptPool = scene.PromptOverride is null && !verdict.Communicated && verdict.OffPromptIntent is not null && (confidence is null || confidence >= _data.SpeechTable.WordConfidenceThreshold)
             ? NpcTurnRules.OffPromptPoolOf(_bundle, npc)
             : null;
         var offPrompt = offPromptPool is not null;
@@ -712,7 +714,7 @@ public sealed partial class NpcService
         var trace = Complete(clip is null, analysis, carried);
         var result = trace.Result;
         Record(new ReplayEntry(ReplayEnvelope.From(trace, carried), null));
-        var uncertain = !offPrompt && confidence is not null && UncertaintyRule.IsUncertain(verdict.Communicated, confidence);
+        var uncertain = !offPrompt && confidence is not null && UncertaintyRule.IsUncertain(verdict.Communicated, confidence, _data.SpeechTable.WordConfidenceThreshold);
         agent.Context = carried.Next(result, now) with { HostStateHash = hostStateHash }; // the digest of the world again, not the core's hash of the values
         if (offPrompt)
         {

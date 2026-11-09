@@ -20,15 +20,15 @@ public sealed class ModelFactAttribute : FactAttribute
     /// <summary>Why the models are not available, or <see langword="null"/> when they are.</summary>
     public static string? MissingReason(bool needsKokoro)
     {
-        var store = SpeechEngine.FindModels(out var problem);
+        var store = SpeechEngine.FindModels(TestGame.Data.SpeechTable, out var problem);
         if (store is null)
         {
-            return $"Speech models unavailable: {problem} Set {ModelStore.EnvironmentVariable} to a folder with {SpeechEngine.VoskModelId}.";
+            return $"Speech models unavailable: {problem} Set {ModelStore.EnvironmentVariable} to a folder with {TestGame.Data.SpeechTable.AsrModel}.";
         }
 
-        if (needsKokoro && (!Directory.Exists(store.ModelDirectory(SpeechEngine.KokoroModelId)) || store.Manifest.Find(SpeechEngine.KokoroModelId) is null))
+        if (needsKokoro && (!Directory.Exists(store.ModelDirectory(TestGame.Data.SpeechTable.TtsModel)) || store.Manifest.Find(TestGame.Data.SpeechTable.TtsModel) is null))
         {
-            return $"Speech models unavailable: {SpeechEngine.KokoroModelId} is not in {store.RootDirectory}.";
+            return $"Speech models unavailable: {TestGame.Data.SpeechTable.TtsModel} is not in {store.RootDirectory}.";
         }
 
         return null;

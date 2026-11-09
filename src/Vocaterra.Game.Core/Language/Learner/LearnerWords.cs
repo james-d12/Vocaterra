@@ -32,7 +32,7 @@ public sealed record FormRow(string Form, string? Person, string? Number, string
 /// </summary>
 /// <param name="Lemma">The lemma: the noun (<c>agua</c>), the infinitive of a verb (<c>querer</c>).</param>
 /// <param name="Pos">The part of speech the core read (<c>noun</c>, <c>verb</c>, ...).</param>
-/// <param name="Gender">The lexicon's gender (<c>fem</c>), or <see langword="null"/>.</param>
+/// <param name="Gender">The lexicon's gender (<c>m</c>, <c>f</c> or <c>n</c>, <see cref="Genders"/>), or <see langword="null"/>.</param>
 /// <param name="Times">The uses of the lemma: each token of it in a line that was not held back, not sent by a button and not a check answer (S19b).</param>
 /// <param name="TimesCorrect">Of those, the uses in a line the core understood with no error span over the token.</param>
 /// <param name="Forms">The forms used, ordered by text, then person, number, tense and mood.</param>
@@ -312,6 +312,11 @@ public sealed class LearnerWords
 
         public static RowState From(WordRow row)
         {
+            if (row.Gender is not null && !Genders.IsKnown(row.Gender))
+            {
+                throw new InvalidDataException($"The word '{row.Lemma}' has the gender '{row.Gender}'; the game knows {string.Join(", ", Genders.All)}.");
+            }
+
             var state = new RowState(row.Lemma, row.Pos)
             {
                 Gender = row.Gender,

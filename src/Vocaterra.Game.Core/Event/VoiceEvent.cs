@@ -11,7 +11,7 @@ public enum VoiceEventKind
 {
     /// <summary>
     /// A spoken line was an uncertain recognition: the core did not understand it, or the recognizer's confidence was under
-    /// <see cref="UncertaintyRule.ConfidenceThreshold"/>. The NPC asked for another try. Never counted as a language failure.
+    /// <see cref="SpeechTable.WordConfidenceThreshold"/>. The NPC asked for another try. Never counted as a language failure.
     /// </summary>
     Uncertain,
 

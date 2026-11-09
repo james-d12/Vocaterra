@@ -32,7 +32,7 @@ public sealed class ConstrainedRecognitionTests(ITestOutputHelper output)
     [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void TheDemoLinesInBothModes()
     {
-        using var engine = SpeechEngine.TryCreate(out _)!;
+        using var engine = SpeechEngine.TryCreate(TestGame.Data.SpeechTable, out _)!;
         var evaluator = new SpokenUtteranceEvaluator(TestGame.Bundle, engine.Recognizer);
         output.WriteLine("prompt | line | mode | heard | mean word conf | asr conf | intent | communicated");
         foreach (var (promptId, line) in new[]
@@ -67,7 +67,7 @@ public sealed class ConstrainedRecognitionTests(ITestOutputHelper output)
     [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void ConstrainedRecognitionOfTheStallsAnswersGivesTheIntentsAndSureWords()
     {
-        using var engine = SpeechEngine.TryCreate(out _)!;
+        using var engine = SpeechEngine.TryCreate(TestGame.Data.SpeechTable, out _)!;
         var evaluator = new SpokenUtteranceEvaluator(TestGame.Bundle, engine.Recognizer);
         foreach (var (promptId, line, intent) in new[]
         {
@@ -83,7 +83,7 @@ public sealed class ConstrainedRecognitionTests(ITestOutputHelper output)
             Assert.Equal(RecognitionMode.Constrained, analysis.Asr.Mode);
             Assert.Equal(intent, analysis.Verdict.Intent.Value);
             Assert.True(analysis.Verdict.Communicated, $"{promptId}: '{line}' heard as '{analysis.Asr.Transcript}'");
-            Assert.False(UncertaintyRule.IsUncertain(true, UncertaintyRule.MeanWordConfidence(analysis.Asr)), $"{promptId}: '{line}' confidence {UncertaintyRule.MeanWordConfidence(analysis.Asr):0.00}");
+            Assert.False(UncertaintyRule.IsUncertain(true, UncertaintyRule.MeanWordConfidence(analysis.Asr), TestGame.Data.SpeechTable.WordConfidenceThreshold), $"{promptId}: '{line}' confidence {UncertaintyRule.MeanWordConfidence(analysis.Asr):0.00}");
         }
     }
 

@@ -9,7 +9,7 @@ namespace Vocaterra.Game.Core.Language.Speech;
 /// <summary>
 /// The uncertainty rule of D-game-9: an uncertain recognition asks for a retry with help, is logged as a voice event, and is never a language
 /// failure. A spoken line is <b>uncertain</b> when the NPC did not understand it, or when it did but the recognizer was not sure of the words:
-/// the mean of Vosk's per-word confidences, <c>[unk]</c> tokens left out, is under <see cref="ConfidenceThreshold"/>.
+/// the mean of Vosk's per-word confidences, <c>[unk]</c> tokens left out, is under the threshold of the speech table (<see cref="SpeechTable.WordConfidenceThreshold"/>: 0.55 for Vosk small Spanish, measured with Kokoro speech, where correct phrases give 0.77 to 1.00, the lowest word, «sí», 0.50, and a mis-heard «hola» 0.36; a person's microphone will differ, so it is the one number to tune in the playtest; T04: it is data, keyed by ASR model, not a constant).
 /// </summary>
 /// <remarks>
 /// <para>
@@ -24,13 +24,6 @@ namespace Vocaterra.Game.Core.Language.Speech;
 /// </remarks>
 public static class UncertaintyRule
 {
-    /// <summary>
-    /// The mean word confidence under which a recognition is uncertain. Measured with Kokoro speech and Vosk small Spanish: correct phrases
-    /// give 0.77 to 1.00 (the lowest word, «sí», 0.50), a mis-heard «hola» 0.36; a person's microphone will differ, so this is the one number to
-    /// tune in the playtest.
-    /// </summary>
-    public const double ConfidenceThreshold = 0.55;
-
     /// <summary>
     /// How sure the recognizer was of the words of a recognition: the mean of the per-word confidences, leaving out <c>[unk]</c> (what Vosk emits
     /// for speech outside the grammar, always with a high confidence of its own). When the recognition has words and all of them are
@@ -52,12 +45,14 @@ public static class UncertaintyRule
     /// <summary>Whether a spoken line is uncertain: not understood, or understood on words the recognizer was not sure of.</summary>
     /// <param name="communicated">Whether the NPC understood the line.</param>
     /// <param name="confidence">The mean word confidence (<see cref="MeanWordConfidence"/>), or <see langword="null"/> for a typed line.</param>
-    public static bool IsUncertain(bool communicated, double? confidence) => !communicated || confidence < ConfidenceThreshold;
+    /// <param name="threshold">The recognizer's threshold (<see cref="SpeechTable.WordConfidenceThreshold"/>).</param>
+    public static bool IsUncertain(bool communicated, double? confidence, double threshold) => !communicated || confidence < threshold;
 
     /// <summary>Whether a recognition the core understood is still too unsure to act on (the turn is then not completed: nothing happens in the conversation or the world).</summary>
     /// <param name="communicated">Whether the NPC would understand the line.</param>
     /// <param name="confidence">The mean word confidence.</param>
-    public static bool IsTooUnsure(bool communicated, double confidence) => communicated && confidence < ConfidenceThreshold;
+    /// <param name="threshold">The recognizer's threshold (<see cref="SpeechTable.WordConfidenceThreshold"/>).</param>
+    public static bool IsTooUnsure(bool communicated, double confidence, double threshold) => communicated && confidence < threshold;
 }
 
 /// <summary>
