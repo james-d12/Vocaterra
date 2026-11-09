@@ -29,7 +29,7 @@ public sealed class SessionEndingFlow(SessionEnding ending, VoxelSession session
 
         if (session.NeedsRate != 1)
         {
-            console($"  drive rate {Vocaterra.Game.Core.Screens.SettingsPanel.RateText(session.NeedsRate)}"); // N09: the playtest's numbers say the rate they ran at
+            console($"  drive rate {Vocaterra.Game.Core.Menu.PlayerSettings.RateText(session.NeedsRate)}"); // N09: the playtest's numbers say the rate they ran at
         }
     }
 }

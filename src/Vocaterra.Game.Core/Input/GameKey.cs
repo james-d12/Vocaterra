@@ -147,9 +147,6 @@ public enum GameKey
     /// <summary>The keypad's 9.</summary>
     NumPad9,
 
-    /// <summary>F1.</summary>
-    F1,
-
     /// <summary>F2.</summary>
     F2,
 

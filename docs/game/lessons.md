@@ -38,7 +38,7 @@ L01 supersedes every rule below that says a lesson "starts by itself", "unlocks 
 ## English guidance and the lesson runner (S16)
 
 English is drawn, never spoken (D-game-13): an English line under the guide's Spanish in its own colour (`English: ...`), the bilingual camp checklist, plain-English
-feedback after each turn, first-time tips and the controls on F1; the support ladder starts with English and fades per phrase (see
+feedback after each turn, first-time tips and the controls in the menu (Esc); the support ladder starts with English and fades per phrase (see
 [src/Vocaterra.Game/README.md](../../src/Vocaterra.Game/README.md)). A data-driven lesson runner (`content/game-v1/game/lessons.json`) walks the learner through the
 guide's lesson (L starts it, Enter continues, K skips a step, H helps; S16 shipped a two-step sample, which S17 replaced with the real lesson). A scripted run
 through it prints each step and its outcome:

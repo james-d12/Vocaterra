@@ -1,8 +1,6 @@
-using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Save;
-using Vocaterra.Game.Core.Screens;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 
@@ -107,47 +105,5 @@ public sealed class NeedsRateTests
         Assert.Equal(1.25, SaveGame.Parse(Text(1.3)).Settings!.EffectiveNeedsRate);
         Assert.Equal(1.0, SaveGame.Parse(Text(double.NaN)).Settings!.EffectiveNeedsRate);
         Assert.Equal(1.0, new SaveSettings(new SoundVolumes()).EffectiveNeedsRate);
-    }
-
-    [Fact]
-    public void ThePanelStepsTheSliderAtBothEndsAndFlipsTheToggles()
-    {
-        var rate = 3.75;
-        bool effects = true, relaxed = false;
-        var panel = new SettingsPanel(() => rate, r => rate = r, () => effects, e => effects = e, () => relaxed, r => relaxed = r, () => Vocaterra.Game.Core.Water.UnderwaterBlur.Low, _ => { });
-        panel.Open();
-        panel.HandleInput(TestInputFrame.Pressing(GameKey.Right));
-        Assert.Equal(4.0, rate);
-        panel.HandleInput(TestInputFrame.Pressing(GameKey.OemPlus));
-        Assert.Equal(4.0, rate);
-        for (var i = 0; i < 20; i++)
-        {
-            panel.HandleInput(TestInputFrame.Pressing(GameKey.OemMinus));
-        }
-
-        Assert.Equal(0.5, rate);
-        panel.HandleInput(TestInputFrame.Pressing(GameKey.Left));
-        Assert.Equal(0.5, rate);
-        Assert.Equal("×0.5", SettingsPanel.RateText(rate));
-        Assert.Equal("×1.25", SettingsPanel.RateText(1.25));
-
-        panel.HandleInput(TestInputFrame.Pressing(GameKey.Down));
-        panel.HandleInput(TestInputFrame.Pressing(GameKey.Enter));
-        Assert.False(effects);
-        panel.HandleInput(TestInputFrame.Pressing(GameKey.Down));
-        panel.HandleInput(TestInputFrame.Pressing(GameKey.Space));
-        Assert.True(relaxed);
-        panel.HandleInput(TestInputFrame.Pressing(GameKey.Down));
-        Assert.Equal(3, panel.Selected);
-        panel.HandleInput(TestInputFrame.Pressing(GameKey.Down));
-        Assert.Equal(0, panel.Selected);
-        panel.HandleInput(TestInputFrame.Pressing(GameKey.F8));
-        Assert.False(panel.IsOpen);
-    }
-
-    [Fact]
-    public void TheSettingsKeyIsF8AndIsBoundWhenACommandIsGiven()
-    {
-        Assert.Equal(GameKey.F8, InputKeys.Of("settings"));
     }
 }

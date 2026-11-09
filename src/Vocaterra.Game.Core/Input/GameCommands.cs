@@ -9,16 +9,14 @@ namespace Vocaterra.Game.Core.Input;
 /// <param name="Listen">V on an NPC: opens the panel and starts listening.</param>
 /// <param name="TypeTo">T on an NPC: opens the panel with the text box.</param>
 /// <param name="TalkTo">E on an NPC: opens the panel.</param>
-/// <param name="OpenControls">F1: the controls help (S16).</param>
 /// <param name="NextTip">Enter: the next tip (S16).</param>
 /// <param name="OpenBook">J, or the book item: the book (S20).</param>
 /// <param name="OpenCrafting">C, or E at the workbench: the crafting panel.</param>
 /// <param name="OpenInventory">I, or E: the inventory.</param>
-/// <param name="ReleaseMouse">Esc in the world: the mouse is let go, and the closing card goes (S17).</param>
+/// <param name="OpenMenu">Esc in the world: the menu opens (it frees the mouse); while the session's closing card is up, Esc takes the card down first (S17).</param>
 /// <param name="Sleep">Enter on the closing card, or E at the player's own lit fire: sleep until the next play session (V12c), or <see langword="null"/> for none.</param>
 /// <param name="DrinkByHand">E while aiming at water within reach: a drink by hand, with nothing held and without Spanish (N02), or <see langword="null"/> for none.</param>
 /// <param name="ToggleViewEffects">F7: the needs' effects on the view (dimmed edges, a blink, red edges) on or off (N05); the icons and the lines stay. <see langword="null"/> for none.</param>
-/// <param name="OpenSettings">F8: the settings panel (N09), or <see langword="null"/> for none.</param>
 /// <param name="TakeBelongings">E while aiming at the chest a death left, within reach: takes back what the bag can hold (N04), or <see langword="null"/> for none.</param>
 public sealed record GameCommands(
     IGameCommand ToggleView,
@@ -29,15 +27,13 @@ public sealed record GameCommands(
     IGameCommand Listen,
     IGameCommand TypeTo,
     IGameCommand TalkTo,
-    IGameCommand OpenControls,
     IGameCommand NextTip,
     IGameCommand OpenBook,
     IGameCommand OpenCrafting,
     IGameCommand OpenInventory,
-    IGameCommand ReleaseMouse,
+    IGameCommand OpenMenu,
     IGameCommand? Sleep = null,
     IGameCommand? DrinkByHand = null,
     IGameCommand? TakeBelongings = null,
     IGameCommand? ToggleViewEffects = null,
-    IGameCommand? OpenSettings = null,
     IGameCommand? OpenStation = null);

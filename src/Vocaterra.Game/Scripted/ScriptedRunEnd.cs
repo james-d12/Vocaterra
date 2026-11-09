@@ -4,6 +4,7 @@ using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Speech;
+using Vocaterra.Game.Core.Menu;
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Session;
@@ -42,7 +43,7 @@ public sealed class ScriptedRunEnd
     private readonly MicCheckModel? _micCheck;
     private readonly ShotRequest _shots;
     private readonly (Action Book, Action Inventory, Action Crafting) _openAtEnd;
-    private readonly Action? _openSettings;
+    private readonly Action<MenuPage, int>? _openMenu;
     private readonly Action _exit;
     private readonly Action<string> _console;
     private readonly Action<long, string>? _logRunaway;
@@ -77,7 +78,7 @@ public sealed class ScriptedRunEnd
         Action exit,
         Action<string> console,
         Action<long, string>? logRunaway = null,
-        Action? openSettings = null)
+        Action<MenuPage, int>? openMenu = null)
     {
         _options = options;
         _session = session;
@@ -90,7 +91,7 @@ public sealed class ScriptedRunEnd
         _exit = exit;
         _console = console;
         _logRunaway = logRunaway;
-        _openSettings = openSettings;
+        _openMenu = openMenu;
     }
 
     /// <summary>The exit code of a run cut short at <see cref="RunawayTicks"/> whose picture was saved: the script did not finish, so the capture is not the one asked for (V26).</summary>
@@ -134,9 +135,9 @@ public sealed class ScriptedRunEnd
                 _openAtEnd.Crafting();
             }
 
-            if (_options.ShowSettings)
+            if (_options.ShowMenu is { } page)
             {
-                _openSettings?.Invoke();
+                _openMenu?.Invoke(page, _options.MenuScroll);
             }
         }
     }

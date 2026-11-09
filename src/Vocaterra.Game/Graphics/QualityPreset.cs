@@ -1,17 +1,6 @@
+using Vocaterra.Game.Core.Menu;
+
 namespace Vocaterra.Game.Graphics;
-
-/// <summary>The graphics quality of a run (<c>--quality</c>, S13 and S14): how far the world is drawn, how much undergrowth is drawn, whether the corners are shaded by ambient occlusion and whether clouds are drawn.</summary>
-public enum QualityLevel
-{
-    /// <summary>The preset for a machine with software rendering or an old graphics card: the shortest view.</summary>
-    Low,
-
-    /// <summary>A middle preset.</summary>
-    Medium,
-
-    /// <summary>The preset for a real graphics card; the default.</summary>
-    High,
-}
 
 /// <summary>
 /// What a quality level sets. Only the chunks within <see cref="ViewDistance"/> of the eye are meshed and drawn, the fog closes in at the same

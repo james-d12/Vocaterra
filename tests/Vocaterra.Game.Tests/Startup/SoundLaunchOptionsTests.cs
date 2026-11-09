@@ -34,6 +34,23 @@ public sealed class SoundLaunchOptionsTests
     }
 
     [Fact]
+    public void TheVoiceAndInterfaceVolumeFlagsAreParsedLikeTheOthersAndWinOverTheSavedVolumes()
+    {
+        Assert.True(LaunchOptions.TryParse(["--voice-volume", "0.5", "--ui-volume", "0"], out var options, out var error), error);
+        Assert.Equal(0.5, options.VoiceVolume);
+        Assert.Equal(0.0, options.UiVolume);
+        var saved = new SoundVolumes(1, 0.4, 0.8, 0.2);
+        Assert.Equal(new SoundVolumes(0.5, 0.4, 0.0, 0.2), SoundSetup.VolumesFor(options.Sound, saved));
+
+        Assert.False(LaunchOptions.TryParse(["--voice-volume", "2"], out _, out var tooLoud));
+        Assert.Contains("--voice-volume needs a number from 0 to 1", tooLoud, StringComparison.Ordinal);
+        Assert.False(LaunchOptions.TryParse(["--ui-volume", "quiet"], out _, out _));
+        Assert.False(LaunchOptions.TryParse(["--ui-volume"], out _, out _));
+        Assert.Contains("--voice-volume", LaunchOptions.Usage, StringComparison.Ordinal);
+        Assert.Contains("--ui-volume", LaunchOptions.Usage, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void AScriptedRunAndNoSoundsUseTheNullOutputAndTheCommandLineOverridesTheSavedVolumes()
     {
         Assert.True(LaunchOptions.TryParse(["--screenshot", "x.png"], out var scripted, out _));

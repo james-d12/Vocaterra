@@ -48,9 +48,7 @@ VoxelSession session;
 Scene scene;
 NpcVoice voice;
 Func<Scene> pristine;
-SoundVolumes? savedVolumes = null; // the volumes a loaded save holds (S24)
-int? savedTextScale = null; // the text size a loaded save holds (X08)
-SaveSettings? savedSettings = null; // the settings a loaded save holds: the needs' view effects and the relaxed needs ride in them too (N05)
+SaveSettings? savedSettings = null; // the settings a loaded save holds: the menu's (the volumes, the text size, the graphics, the mouse and the needs' settings)
 IReadOnlyList<DialoguePageSave>? savedDialogue = null; // the NPCs' conversation pages a loaded save holds (U08)
 SceneLayout? sceneLayout = null; // the scene's layout: the ambient beds read its places (S25)
 try
@@ -90,8 +88,6 @@ try
         scene = buildFor(document.WorldSeed);
         session = SaveGame.Restore(document, data, scene, options.Credit, migrate: !options.StrictSave);
         options = options with { Seed = document.WorldSeed };
-        savedVolumes = document.Settings?.Sound.Clamped();
-        savedTextScale = document.Settings?.Clamped().TextScale;
         savedSettings = document.Settings?.Clamped();
         savedDialogue = document.DialoguePages;
         Console.WriteLine($"load: {loadPath}: saved in session {document.Session}, now session {session.Day}, sitting {session.Sitting}; tick {document.Tick}, stored time {document.StoredTime}");
@@ -160,7 +156,7 @@ catch (Exception ex) when (ex is DirectoryNotFoundException or FileNotFoundExcep
 }
 
 // The turn worker is started by the game itself (it warms the guide up and loads Vosk behind the loading screen).
-using var game = new VoxelGame(options, session, scene, voice, pristine, savedVolumes, savedTextScale: savedTextScale, savedSettings: savedSettings, savedDialogue: savedDialogue);
+using var game = new VoxelGame(options, session, scene, voice, pristine, savedSettings: savedSettings, savedDialogue: savedDialogue);
 crash.Attach(game.CrashSource); // the crash report, the last-chance save and the state come from the game (X05)
 try
 {

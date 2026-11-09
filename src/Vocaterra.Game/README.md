@@ -21,7 +21,9 @@ PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" dotnet run --project src/
 | `--content <dir>` | the content bundle folder (default: `content/game-v1` found by walking up from the executable, then from the current directory; `VOCATERRA_CONTENT_DIR` also works) |
 | `--scene <file>` | the layout file (default: the bundle's `game/scene.json`) |
 | `--quality <low\|medium\|high>` | S13 and S14: the view distance in blocks (low 224, medium 304, high 400, the default; a real GPU), and what is drawn: **plant distance and share** (the undergrowth is drawn within 64, 112 or 192 blocks of the eye, 80, 100 or 100 percent of it built), **ambient occlusion** (on at all three; the preset says, so a slower machine can turn it off) and **clouds**. Only the chunks within the view distance are meshed and drawn, the fog is complete just inside it and the camera's far plane stops past it. Medians on this VM (software GL), 1280 x 720: low 42 ms from the camp and 32 ms in the forest, medium 52 ms, high 49 ms (see the S14 line of the plan's findings) |
-| `--view-distance <blocks>` | draw this far instead of the quality's distance (at least 48) |
+| `--view-distance <blocks>` | draw this far instead of the quality's distance (48 to 576 in steps of 16; the menu's Draw distance, whose Auto is the quality's own) |
+| `--fov <degrees>`, `--mouse-sensitivity <percent>`, `--invert-y on\|off` | the menu's Field of view (60 to 110 in steps of 5), Mouse sensitivity (25 to 300 in steps of 5) and Invert mouse Y, for a run; the save's value otherwise |
+| `--voice-volume <0..1>`, `--ui-volume <0..1>` | the menu's Voice volume and Interface sounds volume, for a run (with `--sfx-volume` and `--ambient-volume`) |
 | `--screenshot <path.png>` | scripted run: fixed 60 Hz clock, the steps below in order, save the back buffer as a PNG, exit 0 (1 if the PNG cannot be written) |
 | `--frames <n>` | with `--screenshot`: run at least `n` ticks before the screenshot (default 120) |
 | `--look <yaw>,<pitch>` | a step: face this direction in degrees (yaw 0 north, 90 east, clockwise from above; pitch positive up, within 89) |

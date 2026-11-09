@@ -159,7 +159,7 @@ public sealed class DialoguePanel : IFrameLayer
     /// <param name="ui">The support language.</param>
     /// <param name="typing">Whether the text box has the keys.</param>
     /// <param name="speechUnavailable">Whether the speech models are not loaded (the talk key does nothing).</param>
-    /// <param name="speakHintShown">Whether the speak tip has been shown (U01): the footer then stops repeating how to speak (the keys stay in the controls help, F1).</param>
+    /// <param name="speakHintShown">Whether the speak tip has been shown (U01): the footer then stops repeating how to speak (the keys stay in the controls help, on the menu's Controls page).</param>
     public static string HintsFor(LocaleText ui, bool typing, bool speechUnavailable, bool speakHintShown = false) => (typing, speechUnavailable) switch
     {
         (true, false) when speakHintShown => Ui(ui).Ui("dialogueKeyHintsShort"),

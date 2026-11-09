@@ -6,6 +6,7 @@ using Vocaterra.Game.UI.Dialogue;
 using Vocaterra.Game.UI.Hud;
 using Vocaterra.Game.UI.Inventory;
 using Vocaterra.Game.UI.Lesson;
+using Vocaterra.Game.UI.Menu;
 using Vocaterra.Game.UI.Overlays;
 using Vocaterra.Game.UI.Report;
 using Vocaterra.Game.UI.Station;
@@ -48,8 +49,7 @@ public static class LayerStack
             new InventoryLayer(),
             new CraftingLayer(),
             new StationLayer(),
-            new ControlsLayer(),
-            new SettingsLayer(),
+            new MenuLayer(),
             new CheckLayer(),
             new MicCheckLayer(),
             new ReportLayer(),

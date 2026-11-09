@@ -487,6 +487,17 @@ the panel or the book will change; re-record them and say which in the report.
 - The save fixtures re-recorded; `docs/game/saves.md` updated.
 - Tests: round trip, the cap, an NPC's page after a reload.
 
+### 4.11 The menu and the settings (issue #34; owner, 2026-11-08)
+
+Branch `feature/menu`, commit prefix `Menu:`. The owner's issue asked for Esc to open a menu with Resume, Settings (ambient and voice volume, graphics quality, font size),
+Controls (a display of the configured keys) and Exit (saves, then closes), and added: configure as much as makes sense so testing is easier. The decisions are listed in
+the findings (the Menu entry of section 5).
+
+| ID | What | Depends on | Size | Model | Status |
+| --- | --- | --- | --- | --- | --- |
+| Menu | The menu: `Game.Core/Menu/` (`MenuScreen`, `PlayerSettings`, `MenuRows`, `ControlsListing`), `Game.Core/Input/ControlTable` (every control and its keys in one table that the bindings, the panels and the controls page read), `UI/Menu/` (`MenuLayer`, `MenuLayout`, `MenuMetrics`); the settings in `SaveSettings` (quality, mouse sensitivity, invert Y, field of view added), applied at run time (the mixer, the canvas, the renderer's preset, the camera, the look); the testing section; Esc opens the menu; its Controls page lists the keys (F1 was removed at the owner's request on 2026-11-09); `--menu`, `--settings`, `--controls`, `--menu-scroll`; the old F8 settings panel and F1 help retired | N09, X08, H11 | L | Sonnet 5.5 | built on `feature/menu`; waits for the orchestrator's gate and the owner's review |
+| Menu-2 | Every launch-flag setting that can change while the game runs moved into the menu: the draw distance (a saved slider with an Auto position) and `--voice-volume`, `--ui-volume`, `--fov`, `--mouse-sensitivity`, `--invert-y` so each menu setting also has a flag; the Testing section grown and grouped (the five needs as sliders, teleport and beacon over the scene's named points, dusk, greyscale, all-nouns-known view, tips, autosave, typed credit) | Menu | M | Sonnet 5.5 | built on `feature/menu`; same gate |
+
 ## 5. Findings log
 
 Facts that shape the plan. Each one names its source; the core's own findings stay in the core's plan.
@@ -2642,6 +2653,58 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   title (as before). Seen: a phrase's "with help" count can be fractional ("0.5", `PhraseProgress.Uses`, half credit; the old counts row
   showed the same). Scripted runs: stdout and digests identical; pictures differ only where the book shows (r04, r05, r16, r20, r21, r23,
   r30). The decision was first written as D-game-27 and renumbered: `feature/german` and `feature/hand-in-speech` took D-game-27 the same day.
+
+- **Menu (issue #34, 2026-11-08, Sonnet 5.5, `feature/menu`).** What was decided, and why.
+  - *Esc.* Esc used to let the mouse go. It now opens the menu (which frees the mouse the way every panel does); in a panel it still closes the panel (each panel handles
+    Esc itself), with the session's closing card up the first Esc takes the card down and the next opens the menu, and the playtest's thank-you screen still closes the game.
+    The menu is the first screen in the `ScreenStack`, so it wins over anything open at the same time; the needs pause (`PlayPause.Menu`, D-game-24) as before. The click on
+    Resume does not gather (`WorldInput.HoldClickUntilRelease`). F1 opened the Controls page directly until it was removed at the owner's request on 2026-11-09; the Controls page is reached from the menu only.
+  - *One table of controls.* `ControlTable` holds every control (the 55 of the menu's list) with its keys and mouse control; `InputKeys.Defaults`, `KeyBindings`, the dialogue
+    panel, the lesson strip, the book, the station, the inventory and crafting panels read their keys from it, and `ControlsListing` makes the controls page from it
+    (the descriptions are `ui.control.<id>`, the key names `key.<GameKey>`, both checked by the locale check). The old F8 settings panel (N09; F8 was the report key, so it
+    was reachable by `--settings` only) and the old F1 help (`game/controls.json`) are retired. **`game/controls.json`, `TipBook.LoadControls`, `GameData.Controls`, `ControlHelp` and the locale's `control.<id>.keys/.text`
+    strings are now read by no screen**; they were left in place because removing the file changes game-v1's hash (a re-hash, a re-record of the goldens and the save fixture). Retire them in a content milestone.
+  - *Settings and where they live.* All settings are `PlayerSettings` (one table of ranges, steps and defaults, clamped on every set) and ride in the save's settings, so the
+    existing path (`SaveService`, autosave, F6, Exit) keeps them: the four volumes (`SoundVolumes`), `textScale`, `quality` (new), `underwaterBlur`, `viewEffectsOff`,
+    `mouseSensitivity` (new), `invertY` (new), `fieldOfView` (new), `needsRate`, `relaxedNeeds`. A default is not written, so no save version changed and an older save
+    reads the new fields as defaults (the game is unreleased: no migration code was written either way). A launch flag wins over the saved value for the run
+    (`PlayerSettings.Resolve`); `--quality` is now optional (null = the save's, else high). The text size defaults to 150, the largest, as the issue asked; a scripted
+    `--screenshot` run keeps 100 so the recorded pictures hold. **Consequence for the owner to know:** a settings change is saved only when the game is saved
+    (F6, the autosave, Exit) and a new game without `--load` starts from the defaults again; there is no settings file outside the save (the issue said to use the save path).
+  - *Not offered, and why.* Window size, speech and microphone (`--size`, `--no-speech`, `--mic-check`) are read when the game starts; the Settings page says so in its last
+    section instead of leaving them out silently. The view distance flag (`--view-distance`) is now the menu's Draw distance (see the second pass below).
+  - *The Testing section.* Always shown in an ordinary run, hidden in a `--playtest` (its tools would change what the playtest measures: the needs, the sounds, the overlay).
+    I chose always-shown over a `--dev` gate because the owner's point is that testing is easier from the menu, and every row is a thin wrapper over a flag or key that
+    exists and is off by default; it is under its own heading with a note, and none of it is saved, so it cannot leak into a player's next session. Rows: debug overlay and
+    developer notes (F3, `--dev`), needs running (`--needs on|off`), refill all needs (`--set-need`), all sounds but voices off (`--no-sounds`; switching them back on needs a
+    run that started with a sound device, since `--no-sounds` and scripted runs open the null output), voices off (`--mute`), camera over the shoulder (F5, `--third-person`),
+    save now (F6). The time of day and pausing the meters (beyond "needs running") are not exposed: no runtime switch for them exists, and the issue forbade new systems.
+  - *Run-time quality.* `VoxelRenderer.SetPreset` changes the view distance, fog, undergrowth, shading and clouds in a running game by letting every mesh go and rebuilding
+    the view nearest first; `FirstPersonCamera.FieldOfView` is now a property (the sky follows it); mouse sensitivity and Invert Y are applied in `WorldInput`.
+  - *Tests.* Core: `MenuScreenTests`, `PlayerSettingsTests`, `ControlsListingTests`, `ControlTableTests`; Game: `MenuMetricsTests`, the menu in `UiScaleLayoutTests` at every window size and scale, the launch flags in `VoxelLaunchOptionsTests`.
+  - *Second pass: the rest of the flags (Menu-2, 2026-11-08).* Each `LaunchOptions` flag was checked in the code. **Moved into the menu** (all applied at once): the draw distance
+    (`--view-distance`; Settings, Graphics; saved as `viewDistance`, 0 = Auto) and, in Testing, the five needs, teleport, beacon, dusk, greyscale, all-nouns-known, tips, typed credit
+    and autosave. **Flags added** so every menu setting can be set at launch (and win over the save for the run): `--voice-volume`, `--ui-volume`, `--fov`,
+    `--mouse-sensitivity`, `--invert-y`. **Left out, and why:** `--sound-log` (the log file is opened with the mixer at start-up and needs a path), `--session-dir`, `--report-dir` (paths, and
+    the session log is open from the start), `--report-kind` (the report panel has its own Bug and Feature buttons), seed, content, scene, locale, load and save paths, strict-save, session and
+    skip-to-session, check, playtest, window size, speech models, mic check and every scripted step (start-up only; named in the page's "Needs a restart" notes).
+  - *Draw distance and quality.* They are two settings. Quality sets the preset (distance 224/304/400, undergrowth, shading, clouds); the Draw distance slider (Auto, then 48 to 576
+    blocks in steps of 16; the world is 384 blocks wide, so 576 reaches its far corner) overrides only the distance, Auto gives it back to the quality. The slider is a plain `SettingSpec` whose lowest value
+    shows the word Auto (`MinKey`); saved as `viewDistance`, absent or 0 meaning Auto. `--view-distance` now feeds this setting (so it is snapped to the steps of 16 and capped at 576; it wins over the save's value for the run,
+    and a change in the menu replaces it, as for every flag). `VoxelRenderer.SetPreset` keeps the built meshes when only the distance changes (the chunks
+    past it go in the next `Remesh`, new ones come in nearest first), and lets them all go only when the undergrowth or the shading changes, which keeps dragging the slider cheap.
+  - *Run-time switches that needed a thin hook.* **Dusk**: `VoxelRenderer.SetDusk` (clear colour, fog, mesh options, every mesh released), `SkyRenderer.SetDusk` (the dome rebuilt), `ArmPresenter.Dusk`,
+    `AmbientSound.Dusk`; the lantern glow is in the mesh, hence the re-mesh. **Greyscale** and **all nouns known**: `GreyscaleWorld.Enabled` and `.AssumeAllKnown` are now settable; turning greyscale on takes the
+    words known then as not new (no burst of toasts), turning it off hands the renderer an empty grey set. **All nouns known is view-only:** `--assume-known` writes full credit into `WordProgress`
+    (and so into a save), so the menu does not use it; the toggle only empties the grey set and the book's greyscale icons, and the learner model is untouched (`GreyscaleTests`). **Typed credit**:
+    `GuideSession.SetCredit` (and `ProcedureRunner.SetCredit`); the rule is not saved. **Autosave**: `AutosaveController.Enabled` (the controller now always exists; `--no-autosave` starts it
+    off; the crash report says "off" while it is). **Teleport** shares `GroundFinder.StandingAt` with `--teleport`. **Beacon**: the same `Beacon.SetPoint`/`Clear`; "off" clears it, and the session's
+    guide arrow, which hangs on the beacon, is dismissed as when the player arrives.
+  - *Rows and layout.* Rows gained a `Subheading` kind (not selectable) and three factories (`Slider`, `Picker` over names, `Switch` with its own on/off words); `TestingHooks` is now an
+    initializer record whose optional hooks leave their rows out. The Testing section is grouped (Needs, World and view, Teleport, Sound, Scoring, Files), and the page, about 55 rows, scrolls
+    (`UiScaleLayoutTests.TheWholeSettingsPage...` measures every label, note and value of the full page at each window size and text scale).
+  - *Tests (Menu-2).* Core: `TestingRowsTests`, `PlayerSettingsTests` (draw distance, the new flags over the save), `AutosaveControllerTests`, `TypedCreditSettingTests`, `GroundFinderTests`; Game:
+    `GreyscaleTests` (runtime switch, all-known view), `VoxelLaunchOptionsTests`, `SoundLaunchOptionsTests`, `UiScaleLayoutTests`.
 
 ## 6. Definition of done (every milestone)
 

@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Language.Words;
+using Vocaterra.Game.Core.Menu;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Graphics;
@@ -657,7 +658,7 @@ public sealed class LookTests
         Assert.True(low.PlantKeepPercent <= medium.PlantKeepPercent && medium.PlantKeepPercent <= high.PlantKeepPercent);
         Assert.Equal(100, high.PlantKeepPercent);
         Assert.True(high.AmbientOcclusion && high.Clouds, "high is the default for a real graphics card and draws everything");
-        Assert.Equal(QualityLevel.High, new LaunchOptions().Quality);
+        Assert.Null(new LaunchOptions().Quality); // not given: the saved setting, else high
         foreach (var preset in new[] { low, medium, high })
         {
             Assert.InRange(preset.PlantKeepPercent, 1, 100);

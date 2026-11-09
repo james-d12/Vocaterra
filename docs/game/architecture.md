@@ -110,7 +110,7 @@ Event/            the game's events (WorldEvents, GameEvent), EventPrinter (the 
 Needs/            PlayerNeeds (the five meters and the exhaustion timer, stages and effects worked out from them), NeedsData (game/needs.json), NeedsValidator,
                   the Drive, NeedMeter, NeedActivity and PlayPause kinds (N01), FireRings (the world's fire rings found by shape and which burn) and NeedActionResult (N02)
 Input/            the keys without the engine (GameKey, IInputFrame, D-p2-1a), the command pattern (IGameCommand, DelegateCommand,
-                  GameCommands, KeyBinding, KeyBindings, InputKeys: the commands' keys by name, which the locale's {key:…} spells),
+                  GameCommands, KeyBinding, KeyBindings, ControlTable: every control of the game with its keys, in one table, which InputKeys, the bindings, the panels and the menu's controls page read; InputKeys: the controls' keys by name, which the locale's {key:…} spells),
                   InputFocus, KeyRepeater, OpenKeySwallow, TextEntry, AccentShortcuts, TextEdits, TextEditKeys, the push-to-talk
                   (PushToTalkSpeechCapture, ListenSession, ListenTarget), BookItemUse
 Items/            Inventory, ItemDefinition, ScriptItemNames, InventoryScreen and its panel (InventoryPanel)
@@ -138,7 +138,10 @@ Physics/          the player's body and its collision with the grid
 Reporting/        the F8 report (ReportPanel, ReportEntry, ReportWrap, ReportStateBuilder, BuildCommit), FrameStats, BusyFrameStats, the crash
                   report and its source (ICrashSource, CrashGameState, CrashSource)
 Save/             the save document, its migrations, SaveService and AutosaveController (its clock injected)
-Screens/          IScreen, ScreenStack (the top open screen takes the keys), ControlsHelp
+Screens/          IScreen, ScreenStack (the top open screen takes the keys)
+Menu/             the menu (the menu issue): MenuScreen (pages, keys and mouse), MenuRow and MenuRows (the settings page, with its testing section), PlayerSettings (the one table of the
+                  settings, their ranges and defaults, Resolve over a save and the command line, ToSave), SettingSpec, LaunchSettings, TestingHooks, ControlsListing (the controls
+                  page, made from Input/ControlTable), MenuText and the IMenuMetrics the front-end answers
 Scripted/         the scripts' steps (ScriptStep, VoxelStep and their kinds), VoxelScript, ScenarioScript, CheckScript, ScreenshotGate, ShotRequest
 Session/          VoxelSession, GuideSession, TurnWorker, the objectives (ObjectiveBook reads game/session.json and game/objectives/), PlaytestEnd,
                   GuideApproach, SessionEnding, ObjectiveAnnouncer,
@@ -172,7 +175,8 @@ Graphics/         SceneDrawer, DrawHelpers, QualityPreset, ScreenshotWriter
 UI/
   Common/         UiCanvas, UiTransform, UiPalette, UiScale, FontProvider, FrameView, LayerStack, CountBadge, NounIcons, PixelBox
   Hud/            HudLayers (ObjectiveLayer: the tracker, U01), HudLayout (TrackerRows, TipBlock, ObjectiveBox: the top of the HUD kept apart), HotbarLayer, ToastLayer, TipLayer, BeaconLabel, NeedsHudLayout, NeedsHudLayer, NeedIcons, ViewEffectsLayer, DeathScreenLayer (N05), VoxelLayers, VoxelDebugText
-  Overlays/       OverlayLayouts, LoadingLayer, ControlsLayer, EndingLayer
+  Overlays/       OverlayLayouts, LoadingLayer, EndingLayer
+  Menu/           MenuLayer (the menu's three pages), MenuLayout (their numbers), MenuMetrics (the pointer's answers, Core's IMenuMetrics), ControlsPageLines and ControlsPageCache (the controls table wrapped)
   Dialogue/       DialoguePanel, DialogueLayout, DialogueBubble, DialogueBubbleLayer, ConversationFrame, ConversationLayout, ConversationCards,
                   VoxelTalkLayers, SupportLayer, SupportLayout
   Book/           BookLayer (the page by line kind, the right page by detail role, U07), ConjugationLayout
