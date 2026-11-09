@@ -62,6 +62,9 @@ public sealed class SpanishLanguagePack : ILanguagePack
     public IRecastPolicy Recast { get; } = new SpanishRecastPolicy();
 
     /// <inheritdoc />
+    public IOrthographyNotes Orthography { get; } = new SpanishOrthographyNotes();
+
+    /// <inheritdoc />
     public SampleWords Samples { get; } = new("espada", "tener", "fuego", "tengo", "tiene", "yo tengo dos espadas", "gender.agree");
 
     /// <inheritdoc />

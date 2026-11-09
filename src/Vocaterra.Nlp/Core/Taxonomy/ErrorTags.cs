@@ -42,6 +42,13 @@ public static class ErrorTags
     /// <summary>Stress on the wrong syllable.</summary>
     public const string PronStress = "pron.stress";
 
+    /// <summary>
+    /// A capital letter missing or wrong (M88): a word that the language writes with a capital (German nouns, the formal <c>Sie</c>, a sentence start) typed without
+    /// one. Only typed input can raise it. It is not one of the v1 tags (<see cref="All"/> and <see cref="IsKnown"/> do not list it): a pack opts in by listing it in
+    /// its <see cref="ErrorTagSet"/>, and Spanish does not.
+    /// </summary>
+    public const string OrthCapital = "orth.capital";
+
     private static readonly string[] AllTags =
     [
         VocabWrong,

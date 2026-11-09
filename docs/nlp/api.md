@@ -88,6 +88,47 @@ ContentBundle german = ContentLoader.Load("content/my-german-bundle", options);
   parameters of `Compute` and of the record constructor; `ContentLoadOptions.LanguagePacks`; `ContentBundle.Language`, `.LanguageId`; the types of
   `Vocaterra.Nlp.Language.Packs`.
 
+### The surface a host reads from a pack (M87)
+
+Additive, except the first line. A host that implements `ILanguagePack` (a test double, a pack) adds one member.
+
+- **`ILanguagePack.Orthography`** (breaking for an implementer): an `IOrthographyNotes` (`Vocaterra.Nlp.Language.Packs`) with `Describe(AccentNote)`, the pack's
+  line for an accent the learner left out. Spanish: `SpanishOrthographyNotes` (`Vocaterra.Nlp.Es.Text`), the same text as `SpanishAccentNotes.Describe`; the CLI reads it from the bundle.
+- **`IMorphology.Paradigm`** (default `ParadigmLayout.Default`): a `ParadigmLayout(Persons, Tenses)` (`Vocaterra.Nlp.Language.Morphology`): the person and number of each row
+  (`ParadigmPerson(Person, Number)`) and the tense ids of the columns the morphology generates. Spanish: five rows (no `vosotros`) and `pres`, `pret`, `fut`. The default is six persons and `pres`.
+- **`IMorphology.ParadigmOf(lemma)`** (default member): the `ParadigmCell(Person, Tense, Form)` list, tense by tense, built from `Conjugate` (`Form` is null where none is generated).
+  `MorphologyGenerator.Paradigm` is public.
+- **`PronunciationScorer`, `GopScorer`, `GreedyPhoneScorer`** take an optional `ErrorTagSet errorTags` (default `ErrorTagSet.V1`); the pipeline passes the pack's `ErrorTags`, so
+  tags at the same place are ordered by the pack's rank, not `ErrorTags.All`.
+- Numbers (`ILanguagePack.Numbers`: `ToWords`, `TryParsePrefix`) and the normalizer (`ILanguagePack.Normalizer`) already cover the game's calls. `ContentLoader` already reads
+  lexicon files with the pack's `LexiconProfile` (M34).
+
+### The pack interfaces a language with cases needs (M88)
+
+All additive: every new interface member has a default that keeps Spanish unchanged, so no existing implementer changes. Each is exercised by the toy `xx` pack and
+by tests on the Spanish pack (`PackGapTests`).
+
+- **Case on articles.** `IMorphology.Article(definiteness, gender, number, nounLemma, string? grammaticalCase)` and `ITemplateFunctions.Article(definiteness, gender, number,
+  singular, string? grammaticalCase)`. A null case is the pack's default and gives the article of the overload without a case. The default implementations accept only null and
+  throw `NotSupportedException` for any other case (Spanish). `ILanguagePack.GrammaticalCases` (`IReadOnlyList<string>`, default empty) lists the case ids (`nom`, `acc`, `dat`,
+  `gen`). The template filter `article(def|indef[,case])` takes the case; `TemplateEngine` throws `TemplateException` ("no grammatical case") for a case when the pack has none,
+  and for a case that is not in the list.
+- **Case on number agreement.** `INumberWords.Agree(words, gender, string? grammaticalCase)` (null as above; the gender may be `n` for a pack with a neuter). The filter is
+  `words(m|f|n|slot[,case])`.
+- **Polite positions.** `GrammarDefaults` gains `PolitePositions` (a `[Flags]` enum `PolitePositions`: `None`, `Trailing`, `Leading`, `AfterFiniteVerb`; default `Trailing`, which
+  is Spanish) and `MaxPoliteTokens`. `TrailingPoliteWords` keeps its name and holds the phrase for every position. `Leading` is before the grammar's first element (after an
+  implicit subject pronoun); `AfterFiniteVerb` is right after the grammar's first `[VERB]` element (a grammar with none has no such place). `SlotGrammarMatcher` reads it.
+- **V2.** `ILanguagePack.SupportsV2Order` (default false). An intent of the intent catalog may carry `"order": "v2"`; `IntentCatalog.Load(json, folding, supportsV2Order)` records
+  it as `IntentDefinition.Order` and throws `FormatException` when the pack does not support it (`ContentLoader` passes the pack's value) or when `order` has another value.
+  The expansion is an internal stub that throws `NotSupportedException` until M40; nothing reaches it.
+- **Capitals in recasts.** `IRecastPolicy.RestoredCapitals(text, analysis, lexicon)` (default: none): the whole restored spelling of a token, keyed by span start, decided from the
+  resolved reading and `Token.Original`; `RecastBuilder` applies it after `RestoredSpellings`, over no error edit and no spelling already restored. `ErrorTags.OrthCapital`
+  (`orth.capital`) exists for a pack that lists it in its `ErrorTagSet`; it is not in `ErrorTags.All`, so Spanish's `ErrorTagSet.V1` does not have it.
+- **`decl()` and `particle()`.** `ITemplateFunctions.SupportsAdjectiveDeclension` and `DeclineAdjective(adjective, gender, number, grammaticalCase, Definiteness? articleKind)`
+  (filter `decl(gender,number,case[,def|indef])`, the slot holds the adjective); `SupportsSeparableParticle` and `SeparableParticle(verbLemma)` (filter `particle`, the slot
+  holds a verb lemma; the result is the particle or empty). Both flags default to false: the engine then throws `TemplateException` "not supported by this language" when the
+  template is rendered or validated, before it calls the member (whose default throws `NotSupportedException`).
+
 ### The analysis side of the pack (M34)
 
 All of this is additive unless it says breaking. The game compiles and passes unchanged.

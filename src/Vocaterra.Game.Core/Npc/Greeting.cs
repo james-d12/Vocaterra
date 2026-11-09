@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Language.Phrases;
+using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Nlp.Asr;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
@@ -25,27 +26,20 @@ public static class Greeting
     /// <summary>The intent of a greeting in the bundle (<c>intents/intents.json</c>).</summary>
     public const string Intent = "greet";
 
-    // The greetings a line may open with, as plain words (the greet intent's grammars: hola; buenos días, buenas tardes, buenas noches; buen día).
-    private static readonly string[][] Openings =
-    [
-        ["hola"],
-        ["buenos", "dias"],
-        ["buenas", "tardes"],
-        ["buenas", "noches"],
-        ["buenas", "dias"],
-        ["buen", "dia"],
-    ];
-
-    // Every word of the openings (hola, buenos, buenas, dias, tardes, noches, buen, dia), as plain words.
-    private static readonly HashSet<string> GreetingWords = Openings.SelectMany(static o => o).ToHashSet(StringComparer.Ordinal);
+    // The greetings a line may open with (game/words.json, greetingOpenings: hola; buenos días, buenas tardes, buenas noches; buen día), as plain words, in the
+    // file's order: each phrase split at its spaces and folded (PhraseSheet.Plain), so buenos días is buenos dias.
+    private static string[][] OpeningsOf(GameWords words) =>
+        words.Matching.GreetingOpenings.Select(static phrase => phrase.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(PhraseSheet.Plain).ToArray()).ToArray();
 
     /// <summary>The words of the line after its opening greeting, with their own punctuation, or <see langword="null"/> when the line does not open with a greeting or has nothing after it.</summary>
-    /// <param name="line">What the learner typed or the recognizer heard (the listener's name already taken out, <see cref="Vocative.Without(string, string?)"/>).</param>
-    public static string? Rest(string line)
+    /// <param name="line">What the learner typed or the recognizer heard (the listener's name already taken out, <see cref="Vocative.Without(string, string?, GameWords)"/>).</param>
+    /// <param name="words">The game's words (the greetings it recognises).</param>
+    public static string? Rest(string line, GameWords words)
     {
         ArgumentNullException.ThrowIfNull(line);
+        ArgumentNullException.ThrowIfNull(words);
         var tokens = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        var length = OpeningLength(tokens);
+        var length = OpeningLength(tokens, words);
         return length == 0 ? null : string.Join(' ', tokens.Skip(length));
     }
 
@@ -54,19 +48,21 @@ public static class Greeting
     /// <see langword="null"/> when the recognizer heard no greeting with something after it.
     /// </summary>
     /// <param name="heard">What the recognizer heard (the listener's name already taken out).</param>
-    public static AsrResult? Rest(AsrResult heard)
+    /// <param name="words">The game's words (the greetings it recognises).</param>
+    public static AsrResult? Rest(AsrResult heard, GameWords words)
     {
         ArgumentNullException.ThrowIfNull(heard);
+        ArgumentNullException.ThrowIfNull(words);
         var tokens = heard.Transcript.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        var length = OpeningLength(tokens);
+        var length = OpeningLength(tokens, words);
         if (length == 0)
         {
             return null;
         }
 
         var transcript = string.Join(' ', tokens.Skip(length));
-        var words = heard.Words.Count == tokens.Length ? heard.Words.Skip(length).ToList() : heard.Words.ToList(); // the recognizer's words are the tokens, one for one
-        return heard with { Transcript = transcript, NBest = [new AsrHypothesis(transcript, heard.NBest.Count > 0 ? heard.NBest[0].Score : heard.Confidence)], Words = words };
+        var kept = heard.Words.Count == tokens.Length ? heard.Words.Skip(length).ToList() : heard.Words.ToList(); // the recognizer's words are the tokens, one for one
+        return heard with { Transcript = transcript, NBest = [new AsrHypothesis(transcript, heard.NBest.Count > 0 ? heard.NBest[0].Score : heard.Confidence)], Words = kept };
     }
 
     /// <summary>
@@ -79,14 +75,17 @@ public static class Greeting
     /// <param name="line">The verdict of the whole line.</param>
     /// <param name="rest">The verdict of the words after the greeting.</param>
     /// <param name="prompt">The prompt the line was said at.</param>
-    public static bool AnswersRest(Verdict line, Verdict rest, PromptSpec prompt)
+    /// <param name="words">The game's words (the greetings whose words an error may sit on).</param>
+    public static bool AnswersRest(Verdict line, Verdict rest, PromptSpec prompt, GameWords words)
     {
         ArgumentNullException.ThrowIfNull(line);
         ArgumentNullException.ThrowIfNull(rest);
         ArgumentNullException.ThrowIfNull(prompt);
+        ArgumentNullException.ThrowIfNull(words);
+        var greetingWords = OpeningsOf(words).SelectMany(static o => o).ToHashSet(StringComparer.Ordinal);
         var lineGreets = !line.Communicated || string.Equals(line.Intent.Value, Intent, StringComparison.Ordinal);
         var sameButTheGreeting = line.Communicated && string.Equals(line.Intent.Value, rest.Intent.Value, StringComparison.Ordinal)
-            && Errors(line, exceptOnTheGreeting: true).SequenceEqual(Errors(rest, exceptOnTheGreeting: false), StringComparer.Ordinal);
+            && Errors(line, exceptOnTheGreeting: true, greetingWords).SequenceEqual(Errors(rest, exceptOnTheGreeting: false, greetingWords), StringComparer.Ordinal);
         return (lineGreets || sameButTheGreeting)
             && rest.Communicated
             && !string.Equals(rest.Intent.Value, Intent, StringComparison.Ordinal)
@@ -94,9 +93,9 @@ public static class Greeting
     }
 
     // A verdict's errors as tag, expected and heard word, in order; without those on a greeting's words when asked (the word heard is one of the openings').
-    private static IEnumerable<string> Errors(Verdict verdict, bool exceptOnTheGreeting) =>
+    private static IEnumerable<string> Errors(Verdict verdict, bool exceptOnTheGreeting, HashSet<string> greetingWords) =>
         verdict.Errors
-            .Where(e => !exceptOnTheGreeting || !GreetingWords.Contains(PhraseSheet.Plain(e.Actual)))
+            .Where(e => !exceptOnTheGreeting || !greetingWords.Contains(PhraseSheet.Plain(e.Actual)))
             .Select(static e => $"{e.Tag}|{e.Expected}|{PhraseSheet.Plain(e.Actual)}")
             .Order(StringComparer.Ordinal);
 
@@ -105,13 +104,14 @@ public static class Greeting
     /// <see cref="Vocative"/> reads the listener's name after it (V19, the review's R4: the vocative knew only <c>hola</c>, so <c>buenos días Luz, quiero pan</c> kept the name).
     /// </summary>
     /// <param name="tokens">The line's tokens, split at spaces.</param>
-    internal static int OpeningLength(IReadOnlyList<string> tokens)
+    /// <param name="words">The game's words (the greetings it recognises).</param>
+    internal static int OpeningLength(IReadOnlyList<string> tokens, GameWords words)
     {
         var lead = tokens.TakeWhile(static t => string.Equals(t, GrammarBuilder.UnknownToken, StringComparison.Ordinal)).Count();
-        var words = tokens.Skip(lead).Select(PhraseSheet.Plain).ToArray();
-        foreach (var opening in Openings)
+        var plain = tokens.Skip(lead).Select(PhraseSheet.Plain).ToArray();
+        foreach (var opening in OpeningsOf(words))
         {
-            if (words.Length > opening.Length && opening.Select((word, i) => string.Equals(words[i], word, StringComparison.Ordinal)).All(static same => same))
+            if (plain.Length > opening.Length && opening.Select((word, i) => string.Equals(plain[i], word, StringComparison.Ordinal)).All(static same => same))
             {
                 return lead + opening.Length;
             }

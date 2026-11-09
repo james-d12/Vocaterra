@@ -142,6 +142,12 @@ language agnostic kind of, so we have the current spanish implementation on top 
   language arrives";
 - **Phase A unblocked:** M31 to M35 run, in the order M31, M52, M32 to M35, M53. M36 onward (German) stays recorded only.
 
+**Amended, owner, 2026-11-08** (game decision D-game-27, research `docs/research/2026-11-04-german-in-the-game.md`): German is a target
+language of the game as well as the core. M36 to M43 are authorised, with M87 (the language-neutral surface the game reads from a pack)
+and M88 (the pack-interface gaps German needs, report section 3.2) before them. M41's sample bundle becomes the seed of the game's
+`content/game-de-v1` rather than a separate `content/de-v1`. M44 to M48 (Phase C, A2) stay recorded only. The variety and the German
+voice route are asked before the milestones that need them.
+
 ## Already decided (for the record)
 - 2026-10-20: core repository renamed `Vocaterra.NLP`; game repository `Vocaterra` created; M19a
   renames `Vocaterra.Nlp.*` to `Vocaterra.Nlp.*`; Haiku 5.5 is the default model for delegated work; the

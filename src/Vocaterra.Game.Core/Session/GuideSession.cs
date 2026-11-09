@@ -17,7 +17,6 @@ using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Verdicts;
-using Vocaterra.Nlp.Es;
 using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Morphology;
 
@@ -205,7 +204,7 @@ public abstract partial class GuideSession : IDisposable
     /// <summary>The definite article of a noun from its gender and lemma (<c>el</c> for the feminine <c>agua</c>), as the bundle's morphology gives it (S20).</summary>
     /// <param name="gender">The lexicon's gender (<c>m</c> or <c>f</c>).</param>
     /// <param name="lemma">The noun.</param>
-    public string DefiniteArticle(string gender, string lemma) => Bundle.SpanishMorphology().Article(Definiteness.Definite, gender, "sg", lemma);
+    public string DefiniteArticle(string gender, string lemma) => Bundle.LanguageMorphology.Article(Definiteness.Definite, gender, "sg", lemma);
 
     /// <summary>
     /// The learner's record (S19): every line the game took (a dialogue turn, a lesson line, a check answer), in order, and the word record folded from them.
@@ -1351,7 +1350,7 @@ public abstract partial class GuideSession : IDisposable
 
         if (turn.HostEvents.Count > 0)
         {
-            ApplyHostEvents(npc, turn.HostEvents, turn.FailForward ? "fail_forward" : "request", NpcEffect.CountedSlots(turn.Slots, turn.Line));
+            ApplyHostEvents(npc, turn.HostEvents, turn.FailForward ? "fail_forward" : "request", NpcEffect.CountedSlots(turn.Slots, turn.Line, Data.Words));
         }
 
         if (!turn.Unsure && string.Equals(turn.AgentState, NpcHostEvents.OfferingState, StringComparison.Ordinal))
@@ -1422,7 +1421,7 @@ public abstract partial class GuideSession : IDisposable
         if (turn.OffPromptIntent is not null)
         {
             // V27: a line the NPC understood off its prompt credits only a phrase of a lesson begun or done that it is; the intent it has elsewhere says no phrase of this prompt.
-            return freeTalk ? LineReading.PhraseSaid(Phrases, turn.Line, Data.Npcs.Find(turn.Npc)?.Name, Lessons.Credits)?.Id : null;
+            return freeTalk ? LineReading.PhraseSaid(Data.Words, Phrases, turn.Line, Data.Npcs.Find(turn.Npc)?.Name, Lessons.Credits)?.Id : null;
         }
 
         if (freeTalk && Phrases.ByPlace(inPlay, turn.Intent, turn.Slots, Data.Npcs.Homes.Keys, out var placed))
@@ -1430,7 +1429,7 @@ public abstract partial class GuideSession : IDisposable
             return placed;
         }
 
-        var said = freeTalk ? LineReading.PhraseSaid(Phrases, turn.Line, Data.Npcs.Find(turn.Npc)?.Name, Lessons.Credits)?.Id : null;
+        var said = freeTalk ? LineReading.PhraseSaid(Data.Words, Phrases, turn.Line, Data.Npcs.Find(turn.Npc)?.Name, Lessons.Credits)?.Id : null;
         return PhraseSheet.OfIntent(inPlay, turn.Intent, turn.Slots, Data.Nouns)
             ?? Phrases.PhraseFor(turn.Prompt, turn.Intent, turn.Slots, Data.Words.Noun("river"), freeTalk ? Data.Npcs.Homes.Keys : null, said);
     }

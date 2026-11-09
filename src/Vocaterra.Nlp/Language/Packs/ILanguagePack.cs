@@ -41,6 +41,18 @@ public interface ILanguagePack
     /// <summary>The implicit optional parts every slot grammar of this language allows.</summary>
     GrammarDefaults GrammarDefaults { get; }
 
+    /// <summary>
+    /// The ids of the grammatical cases of the language, such as <c>nom</c>, <c>acc</c>, <c>dat</c>, <c>gen</c> (M88, additive; the default is none, which is Spanish). The
+    /// template filters <c>article</c> and <c>words</c> take a case only from this list, and a pack with none rejects a case argument with a clear error.
+    /// </summary>
+    IReadOnlyList<string> GrammaticalCases => [];
+
+    /// <summary>
+    /// True when the pack can expand grammars that declare <c>order: "v2"</c> (M88, additive; the default is false, which is Spanish). The intent catalog loader fails
+    /// for a grammar that declares it when this is false.
+    /// </summary>
+    bool SupportsV2Order => false;
+
     /// <summary>The closed word lists the content linter checks against.</summary>
     LintVocabulary Lint { get; }
 
@@ -49,6 +61,9 @@ public interface ILanguagePack
 
     /// <summary>The spelling policy of recasts (accent restoration). A narrow text-side member added in M33; the rest of the recast is neutral.</summary>
     IRecastPolicy Recast { get; }
+
+    /// <summary>The wording of the pipeline's orthography notes (M87). Spanish: <c>SpanishAccentNotes</c>.</summary>
+    IOrthographyNotes Orthography { get; }
 
     /// <summary>
     /// The words the content validator renders every dialogue template with (a noun, a verb, a spelling and the reserved feedback samples), so a template

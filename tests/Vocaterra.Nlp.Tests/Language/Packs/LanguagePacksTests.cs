@@ -32,6 +32,8 @@ public class LanguagePacksTests
 
         public Vocaterra.Nlp.Language.Lexicon.LexiconProfile LexiconProfile => SpanishLanguagePack.Instance.LexiconProfile;
 
+        public IOrthographyNotes Orthography => SpanishLanguagePack.Instance.Orthography;
+
         public Vocaterra.Nlp.Core.Taxonomy.ErrorTagSet ErrorTags => SpanishLanguagePack.Instance.ErrorTags;
 
         public Vocaterra.Nlp.Language.Morphology.IMorphology CreateMorphology(Vocaterra.Nlp.Language.Lexicon.Lexicon lexicon) => SpanishLanguagePack.Instance.CreateMorphology(lexicon);

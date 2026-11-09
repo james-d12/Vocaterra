@@ -49,6 +49,21 @@ public interface IMorphology
     /// <param name="nounLemma">The noun lemma.</param>
     string Article(Definiteness definiteness, string gender, string number, string nounLemma);
 
+    /// <summary>
+    /// Returns the article for the gender, number and grammatical case of the noun with the given lemma (M88, additive: German <c>der</c>, <c>den</c>, <c>dem</c>,
+    /// <c>des</c>). A null case is the pack's default and gives the same article as the overload without a case. The default implementation accepts only a null
+    /// case and throws <see cref="NotSupportedException"/> for any other, which is what a language without cases (Spanish) does.
+    /// </summary>
+    /// <param name="definiteness">Definite or indefinite.</param>
+    /// <param name="gender">The gender.</param>
+    /// <param name="number">The number.</param>
+    /// <param name="nounLemma">The noun lemma.</param>
+    /// <param name="grammaticalCase">The case id (a value of <see cref="Packs.ILanguagePack.GrammaticalCases"/>, such as <c>nom</c>, <c>acc</c>, <c>dat</c>, <c>gen</c>), or null for the default.</param>
+    string Article(Definiteness definiteness, string gender, string number, string nounLemma, string? grammaticalCase) =>
+        grammaticalCase is null
+            ? Article(definiteness, gender, number, nounLemma)
+            : throw new NotSupportedException($"This language has no grammatical case; article() cannot take '{grammaticalCase}'.");
+
     /// <summary>Returns the adjective form agreeing in gender and number; the lemma is the base form.</summary>
     /// <param name="lemma">The adjective lemma.</param>
     /// <param name="gender">The gender.</param>
@@ -61,6 +76,33 @@ public interface IMorphology
     /// <param name="number">The number.</param>
     /// <param name="tense">The tense.</param>
     string? Conjugate(string lemma, string person, string number, string tense);
+
+    /// <summary>
+    /// The persons and tenses of the conjugation table of the language (M87): what a host shows as the rows and the columns of a verb's table. The default is
+    /// <see cref="ParadigmLayout.Default"/>; a pack overrides it with its own persons and tenses.
+    /// </summary>
+    ParadigmLayout Paradigm => ParadigmLayout.Default;
+
+    /// <summary>
+    /// The cells of a verb's table (M87): for each tense of <see cref="Paradigm"/> in order, one cell for each person in order, each with the form
+    /// <see cref="Conjugate"/> generates (null where it generates none).
+    /// </summary>
+    /// <param name="lemma">The verb lemma.</param>
+    IReadOnlyList<ParadigmCell> ParadigmOf(string lemma)
+    {
+        ArgumentNullException.ThrowIfNull(lemma);
+        var layout = Paradigm;
+        var cells = new List<ParadigmCell>(layout.Tenses.Count * layout.Persons.Count);
+        foreach (var tense in layout.Tenses)
+        {
+            foreach (var person in layout.Persons)
+            {
+                cells.Add(new ParadigmCell(person, tense, Conjugate(lemma, person.Person, person.Number, tense)));
+            }
+        }
+
+        return cells;
+    }
 
     /// <summary>Detects a form that is the regular paradigm cell of an irregular lexicon verb (Spanish: <c>sabo</c>, <c>tení</c>).</summary>
     /// <param name="form">The word as typed.</param>

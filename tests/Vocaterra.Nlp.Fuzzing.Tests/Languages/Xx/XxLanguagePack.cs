@@ -64,6 +64,12 @@ public sealed class XxLanguagePack : ILanguagePack
     /// <inheritdoc />
     public GrammarDefaults GrammarDefaults { get; } = new(false, [], []);
 
+    /// <summary>The toy language has two cases, so the case paths of the template filters are exercised with no Spanish registered.</summary>
+    public IReadOnlyList<string> GrammaticalCases { get; } = ["nom", "acc"];
+
+    /// <summary>The toy language declares V2 support (the expansion is not implemented), so a grammar file may carry <c>order: "v2"</c>.</summary>
+    public bool SupportsV2Order => true;
+
     /// <inheritdoc />
     public LintVocabulary Lint { get; } = new([], [], []);
 
@@ -87,6 +93,9 @@ public sealed class XxLanguagePack : ILanguagePack
         persons: [],
         tenses: [],
         moods: []);
+
+    /// <inheritdoc />
+    public IOrthographyNotes Orthography { get; } = new XxOrthographyNotes();
 
     /// <summary>The toy language's own tags, in rank order. None of them is a Spanish tag.</summary>
     public ErrorTagSet ErrorTags { get; } = new(["vocab.unknown", "vocab.wrong", "xx.word_order"]);
@@ -219,6 +228,12 @@ public sealed class XxLanguagePack : ILanguagePack
             return words;
         }
 
+        public string Agree(string words, string gender, string? grammaticalCase)
+        {
+            ArgumentNullException.ThrowIfNull(words);
+            return grammaticalCase is null ? words : words + "." + grammaticalCase;
+        }
+
         private static bool TryWord(string word, out int value)
         {
             value = Array.IndexOf(NumberWords, word);
@@ -253,6 +268,12 @@ public sealed class XxLanguagePack : ILanguagePack
             ArgumentNullException.ThrowIfNull(text);
             return string.Join(' ', text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
         }
+    }
+
+    /// <summary>The toy language has no accent, so its note is the accented form alone.</summary>
+    private sealed class XxOrthographyNotes : IOrthographyNotes
+    {
+        public string Describe(AccentNote note) => note.Accented;
     }
 
     /// <summary>The toy language restores no accents, so a recast keeps the words as they are.</summary>

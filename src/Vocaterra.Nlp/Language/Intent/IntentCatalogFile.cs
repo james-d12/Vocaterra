@@ -12,7 +12,8 @@ internal sealed record IntentEntry(
     IReadOnlyList<string>? SlotGrammars,
     IReadOnlyList<KeywordRuleEntry>? KeywordRules,
     IReadOnlyList<IntentExample>? Examples,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IntentLintWaivers? Lint = null);
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IntentLintWaivers? Lint = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Order = null);
 
 /// <summary>Wire format of one keyword rule.</summary>
 internal sealed record KeywordRuleEntry(

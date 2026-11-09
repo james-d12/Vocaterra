@@ -207,7 +207,7 @@ public static class ContentLoader
         var parts = new LoadedParts
         {
             Provenance = ParseRequired(files, ContentPaths.Provenance, ContentProvenance.FromJson, problems),
-            Intents = ParseRequired(files, ContentPaths.Intents, json => IntentCatalog.Load(json, language.Folding), problems),
+            Intents = ParseRequired(files, ContentPaths.Intents, json => IntentCatalog.Load(json, language.Folding, language.SupportsV2Order), problems),
             Dialogue = ParseRequired(files, ContentPaths.Dialogue, DialogueCatalog.FromJson, problems),
             FeedbackPolicy = ParseRequired(files, ContentPaths.FeedbackPolicy, FeedbackPolicy.FromJson, problems),
             EvaluationConfig = ParseRequired(files, ContentPaths.EvaluationConfig, ParseEvaluationConfig, problems),

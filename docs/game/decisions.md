@@ -31,6 +31,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-23 | Activities and the adaptation (the W series, `docs/game/activities-plan.md`; the owner's Adaptation Design Document, `docs/game/design/sources/Vocaterra_Adaptation_Design_Document.docx`) | open, decided in part (owner, 2026-11-03; 2026-11-04: the design built on `feature/adaptive_design`, section 18.2's recommendations adopted provisionally, for the owner's confirmation): the queued follow-ups first, then player needs (D-game-24), then the W series; an overlay station; the stall buys bread for one coin; the pilot's instructions heard only, no imperative taught; the rest proposed (activities-plan section 12, the design document's section 18) | the W series |
 | D-game-24 | Player needs: hunger, thirst, sleep, health and stamina (the adaptation design's section 9; the N series, proposed ids) | decided (owner, 2026-11-03): five needs, hunger, thirst and sleep in stages whose effects grow worse, pushing health and stamina; built after the queued follow-ups and before every other system, from session 1; real death with a cost; the meters pause in conversations, lessons, the book and every panel; stamina spent by gathering and a new sprint; amends D-game-8's guardrail and replaces D-game-23 (b) | the N and W series |
 | D-game-25 | Lessons optional: classes the player takes on, not the game's goal (the adaptation design's sections 5.3 and 5.4; L01) | decided (owner, 2026-11-04): a short required introduction with Luna, every other lesson an offered class; sleep whenever tired (the sleep drive below 75), every sleep a night, no nap; orders open once their NPC is met; Luz shows the player how to bake on request, session 11 an optional class; amends V12c and D-game-15, answers the design's decision 16 | L01, N03, W08, W10, W11 |
+| D-game-27 | German as a second target language in the game (research `docs/research/2026-11-04-german-in-the-game.md`; the T series, `docs/game/implementation-plan.md` section 4.10) | decided (owner, 2026-11-08): all three phases on `feature/german` (game neutral T01 to T05, the core's German pack M36 to M43 with M87 and M88, a German A1 slice T06 to T10); world and language bundles split; one save profile per target language; LLM and LanguageTool review only until a human reviewer; amends D14 | T01 to T10, core M36 to M43, M87, M88 |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
@@ -595,6 +596,35 @@ bread pilot met on `feature/bread-pilot`):
 swimming; `.claude/briefs/h11-report.md`, item 5). The bank is fixed in the world, not in the swim rules: every water edge a player can
 reach is left by walking, a step or the hop-out. Built by H12 (2026-11-08, `docs/game/water-plan.md`): 582 such edges, every shore's rim, now a step
 over the shallow bed; the swim rules unchanged.
+
+## D-game-27: German as a second target language (decided, 2026-11-08)
+
+**Owner, 2026-11-08:** "Implement the `docs/research/2026-11-04-german-in-the-game.md` feature", with these answers to the report's
+section 8:
+1. **German in the game, not only in the core** (report decision 1): yes. This amends D14's "German in the core only, record only"
+   (`docs/nlp/decisions.md`, D14, amendment of 2026-11-08). **Scope: all three phases** of the report's section 6: make the game
+   language-neutral (T01 to T05, Spanish behaviour unchanged), the core's German pack (M36 to M43, with the pack-surface milestones M87
+   and M88 that replace the report's "M80" and its "M35b"), then a German A1 slice of the village (T06 to T10).
+2. **Bundle shape** (decision 2): split. `content/world-v1` holds the language-neutral world data; `content/game-v1` (Spanish) and
+   `content/game-de-v1` (German) hold only target-language content (report section 5.1, option B). The save records both hashes.
+3. **Saves** (decision 3): one save profile per target language, under `saves/<language>/`, with a required `language` field; skill ids
+   stay unqualified inside a profile. Older saves are refused, never migrated (owner, 2026-11-04).
+4. **Content trust** (decision 5, from the scope answer): an LLM review pass plus LanguageTool `de-DE` while developing, as D-game-12 did
+   for Spanish; a human German reviewer before anything is published. The first German release is A1 only (decision 7); A2 follows the
+   core's Phase C.
+5. **Branch:** `feature/german`, cut from `origin/main` after PR #40 (the bread pilot) merged; `main` is merged in as other PRs land.
+
+**Owner, 2026-11-08, later:** "For the calls, just go with whatever you recommend." So:
+6. **Variety and register** (report decision 4): de-DE content and voice; Austrian and Swiss spellings accepted when grading (Swiss `ss`
+   for `ß`, `Jänner`, `grüezi` and the like are not errors). Register per NPC as D14 set it: `du` for Luna and the children, `Sie` for the
+   shopkeeper and strangers, `Sie` introduced at the shop.
+7. **Voice route** (decision 6): prerendered lines either way. Piper `thorsten` or `kerstin` (MIT model, CC0 data) if spike R1 shows it
+   runs on sherpa-onnx without espeak-ng-data; otherwise a German Kokoro export if R2 finds its licence and provenance clean; otherwise
+   Piper under D2's private-build terms until the GPL-free path exists. The spikes' outcome is recorded here before T08.
+8. **The Spanish lexicon source pin** (found by M36, 2026-11-08: kaikki's Spanish file changed upstream, so a fresh fetch fails its
+   pin): re-pin to the current file (core M90); the committed Spanish lexicon is not regenerated, and its sidecar keeps the dump it was
+   built from.
+9. **The flaky open-fallback reach check:** fix it (core M89).
 
 ## Already decided
 

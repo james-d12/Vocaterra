@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Nlp.Core.Determinism;
 
 namespace Vocaterra.Host.Tests;
@@ -14,7 +15,7 @@ public sealed class BagTests
         var result = session.Evaluate(line, prompt, Now);
         exchange = session.LastExchange;
         using var writer = new StringWriter();
-        VerdictReport.Write(writer, prompt, line, result, exchange);
+        VerdictReport.Write(writer, prompt, line, result, GameContent.Bundle.Language.Orthography, GameWords.Load(GameContent.Bundle), exchange);
         return writer.ToString();
     }
 

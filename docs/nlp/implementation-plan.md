@@ -269,6 +269,11 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M84 | Free talk's forced rows (found by V31; the owner, 2026-11-07, D-game-23 item 5): with `OpenRecognitionFallback` on, a constrained reading that was taken but looks forced (most of the clip's speech unused, or a clip much longer than its row, or weak words) also gets the open decode, and a confident, different free reading wins; measured on M80's Kokoro corpus plus V31's forced lines («el río es grande» heard «es gracias»), zero false takes the bar, the cost per turn reported | M80 | M | Sonnet 5.5 high | done (2026-11-08, gated with T10 at `386815a6` on `feature/bread-pilot`, 10363 passed, 3 skipped; §5b) |
 | M85 | The lint's speed again (CI on PR #40, 2026-11-08; the owner: "fix the failing tests"): `LintTests.TheBundleLintTakesUnderFiveSeconds` took 5.54 s on the GitHub runner (about four times slower than the desktop). M60 brought the lint to 398 ms (Debug); find what made it slower since (the bundle's growth, M74/M75's grammar rung, M80 to M84) and fix it at the source as M60 did, output byte-identical; the 5 s budget stays | M60 | S/M | Sonnet 5.5 medium | done (2026-11-08, gated at `a1066151` on `feature/bread-pilot`, 10394 passed, 3 skipped; §5b) |
 | M86 | O9's double silent h (CI on PR #40, 2026-11-08, CsCheck seed `8HYgz_I9Ysn1`; the owner: "CI is still broken: fuzz"): `PronunciationFuzzTests.SpokenPhrases_ScorePerfectly_OrYieldExactlyTheInjectedPredictedError` injected `pron.silent_h` at «hieran» in «ligaba eh hieran» (heard [... e h j e ...]) and the scorer reported it twice, at «eh»'s h and at «hieran»'s: one inserted [h] between two silent h letters is claimed by both. Fix the scorer so one heard phone yields one error; the oracle stays as it is | M16b | S/M | Sonnet 5.5 medium | in progress (2026-11-08) |
+| M87 | The language-neutral surface the game reads from a pack (D-game-27, 2026-11-08; game T01 waits on it; the research `docs/research/2026-11-04-german-in-the-game.md` sections 3.2 and 4.1, its "M80"): (a) `IOrthographyNotes` as an `ILanguagePack` member, Spanish's from today's `SpanishAccentNotes`, so the game and the CLI stop calling the Spanish class; (b) whatever the game's Book needs from `MorphologyGenerator` beyond `IMorphology` (persons, tenses, paradigm rows for `ConjugationTable`, `VerbReading`, `LessonBook`, `BookPages`, `NounCatalog`), as pack-neutral members, so `bundle.SpanishMorphology()` has no game caller left; (c) `PredictedErrorMatcher` ranks tags by the bundle's `ErrorTagSet`, not `ErrorTags.All`; (d) `Lexicon.ReadFile` takes the pack's `LexiconProfile`. Spanish byte-identical (`SpanishIdentityTests`, the goldens, the fuzz suite) | M53 | S | done (2026-11-08, gated at `921d4c8d` on `feature/german`; §5b) |
+| M88 | The pack-interface gaps German needs (D-game-27; the research's section 3.2, gaps 1 to 5, its "M35b"; M38 to M40 wait on it): `IMorphology.Article` and `ITemplateFunctions.Article` with an optional case (`article(def,acc)`), `INumberWords.Agree` with an optional case, `GrammarDefaults.PolitePositions` (trailing, leading, after the finite verb) and a load-time `order: "v2"` grammar option (expansion itself in M40), `IRecastPolicy` restoring capitals from the resolved reading, optional `decl()` and `particle()` template functions that fail at parse time when a pack lacks them. All additive with defaults; Spanish byte-identical; the toy `xx` pack exercises each new member. Gap 6 (`IAnalysisRules` vs a German chunker) is spike R5 inside M39 | M87 | S | done (2026-11-09, gated at `b8897ef2`, 10575 passed; section 5b) |
+| M89 | The open-fallback fuzz test's reach check made deterministic (found by M87's gate, 2026-11-08): `PipelineFuzzTests.OpenFallback_LeavesATrustedFirstReadingAlone_AndOtherwiseKeepsTheBetterOfTwoReadings` asserts each of ten fallback branches is reached at least 5 times in 300 randomly seeded iterations; `fallback:second-chosen` came up 3 times once (8 to 12 in four reruns). Keep the oracle as it is; move the reach assertion onto a fixed seed set (as the stream digests do, M57) or a generator that targets each branch, so a miss means the generator changed, never chance | — | H | done (2026-11-09, gated at `818d9011`, 10522 passed; section 5b) |
+| M90 | Re-pin the Spanish lexicon source (found by M36, 2026-11-08; owner, D-game-27 item 8): kaikki's `kaikki.org-dictionary-Spanish.jsonl` changed upstream (now 1,119,672,965 bytes, SHA-256 `336903d1…`), so `scripts/fetch-lexicon-sources.sh` refuses it. Pin the current file with its retrieval date and dump; do not regenerate `content/game-v1/lexicon/` (its sidecar keeps the dump it was built from); `docs/nlp/lexicon.md` says that the committed lexicon and the pinned source may differ until a deliberate regeneration | — | H | done (2026-11-09, folded into M36, gated at `cc5a06a3`; section 5b) |
+| M92 | The silent-h scorer double report (found by M36's gate, 2026-11-09): `PronunciationFuzzTests.SpokenPhrases_ScorePerfectly_OrYieldExactlyTheInjectedPredictedError`, seed `8DQuns3HnRh8` (`CsCheck_Seed`), text "ah humana" (Advanced, Greedy, 3 frames per phone): one `pron.silent_h` injected at offset 1 ("ah"), the scorer reports it there and again at offset 3 (the silent h of "humana", spoken correctly). Fix at the source with the seed as a regression test in the owning module; never narrow oracle O9 | — | S | done (2026-11-09, gated at `27290ff1`, 10535 passed; section 5b) |
 
 ### Delegation waves
 
@@ -1874,6 +1879,69 @@ merge into a feature branch that is pushed, and the owner merges it into `main` 
   matches with `AnalysisRules.For(language)`, not the bundle's rules, left to keep the output identical. Report
   `.claude/briefs/m85-report.md`.
 
+- **M87, the pack surface the game reads (2026-11-08, Sonnet 5.5 medium; gated at `921d4c8d` on `feature/german`, 10410 passed, 1
+  failed (below), 3 skipped; the agent's own full run 10411 passed).** `ILanguagePack.Orthography` (`IOrthographyNotes.Describe`, Spanish's
+  `SpanishOrthographyNotes` equal to `SpanishAccentNotes`; a breaking addition for implementers: the three test doubles and the `xx` pack
+  updated); `IMorphology.Paradigm` (`ParadigmLayout` of `ParadigmPerson` rows and tense ids, default six persons and `pres`; Spanish five
+  rows, `pres` `pret` `fut`) and `ParadigmOf(lemma)`; `PredictedErrorMatcher` ranks by the bundle's `ErrorTagSet.Rank` (the scorers take
+  the tag set). (d) was already M34's: `ContentLoader` reads lexicons with the pack's profile; the ContentBuilder's `HandAuthoredLemmas`
+  and `LexiconReport` stay on V1 (a German content run needs a profile argument). Goldens unchanged, fuzz green in the agent's run, core
+  demo unchanged. **Watch points:** `Conjugate` returns a string, so German separable verbs and stem changes need the game's own prefix
+  placement or a richer member (M88/M38); formal `Sie` shares the 3 pl row; `fut` forms come from the lexicon (the seed lexicon gives
+  null). **The gate's one failure is a flaky reach check, not M87:** `PipelineFuzzTests.OpenFallback_LeavesATrustedFirstReadingAlone_…`
+  needs each fallback branch reached at least 5 times in 300 random iterations; `fallback:second-chosen` was reached 3 times. Rerun alone
+  four times on the merged tree it passed (8, 8, 8, 12). The check's random seeds make a miss likely every few dozen runs; M89 makes it
+  deterministic. Report: `.claude/briefs/m87-report.md`.
+- **M36 with M90, the German lexicon (2026-11-09, Sonnet 5.5 medium; gated at `cc5a06a3` on `feature/german`, 10514 passed, 1 failed
+  (below), 3 skipped; the agent's own full run 10515 passed).** Spike R4: kaikki's per-language German extract is marked deprecated but
+  still published and pinned (1,095,258,648 bytes, SHA-256 `4fb15662…`, dump 2026-10-01); the raw wiktextract file (3.1 GB gz, every
+  language) and the de.wiktionary extract (German glosses) were not used; `de_50k` pinned at FrequencyWords `525f9b56`. The importer takes
+  a `KaikkiLanguageProfile` (`import-lexicon --language es|de`, sidecar version per profile, Spanish `1.1.0`, German `de-1.0.0`); the
+  Spanish output is byte-identical (old and new importer on the same file, plus a fixture test with a pinned SHA-256).
+  `content/game-de-v1/lexicon/wiktionary-de.json`: the top 8000 lemmas (7,707 distinct), 108,539 entries, 13.4 MB, `Lexicon.Load` 240 to
+  250 ms under load (top 9000 is 15.08 MB and about 270 ms: the 15 MB and 300 ms limits are tight); `content/game-de-v1/ATTRIBUTION.md`
+  (the bundle root, as Spanish's). Importer fixes: German `form_of` senses count as inflections only when tagged with a case, number,
+  person or tense (agent nouns such as Lehrer, Lehrerin came back, about 100 lemmas); a pronoun is its head word and mich, dir, dich are
+  pronouns with their case (Wiktionary hangs the whole pronoun table on every pronoun). Spot check, a C# test over the committed file: 53
+  nouns and 30 verbs pass; source variants kept (Mutter/Muttern, Tag/Tags, Tee both genders, aufstehen and fahren with both auxiliaries);
+  not cross-checked against `german-nouns`. Known gaps: forms are lower-cased (M37's noun capitals), no forms for `ein`, no comparatives,
+  reflexive verbs skipped, no Konjunktiv I or compound tenses, personal pronouns without person or number; T06 needs the bundle's
+  manifest. **M90:** the Spanish kaikki pin moved to the current file (1,119,672,965 bytes, SHA-256 `336903d1…`, retrieved 2026-11-08);
+  `content/game-v1/lexicon/` was not regenerated (`docs/nlp/lexicon.md` says so). **The gate's one failure is a real core bug, not M36:**
+  `PronunciationFuzzTests.SpokenPhrases_…`, seed `8DQuns3HnRh8`, reproduces on its own; M36 changed nothing under `src/`, the fuzz tests
+  or `content/game-v1`. It is M92.
+- **M89, the open-fallback reach check made deterministic (2026-11-09, Haiku 5.5; gated at `818d9011` on `feature/german`, 10522
+  passed, 0 failed).** Cause: CsCheck's `Gen.Sample` seeds only its first iteration, so 300 iterations drew different cases every run
+  (shown: two fixed-seed calls in one process diverged from the second case). The oracle moved unchanged into `CheckOpenFallback` and
+  still runs on random seeds (counts printed, not asserted); the reach floor (at least 5 per branch) is asserted over 300 fixed seeds
+  `M89R00000000` to `M89R00000299`, one case each, as `FuzzLanguageStreamTests` does. Fixed-seed minimum 12 (`second-chosen`), margin 7,
+  identical in 8 runs; on a random run `forced-same-intent` came up 3 times, the old flake. Lesson for other reach checks: a reach count
+  over `Gen.Sample` iterations is never reproducible.
+- **M92, the silent-h scorer double report (2026-11-09, Sonnet 5.5 medium; gated at `27290ff1` on `feature/german`, 10535 passed, 0
+  failed).** Cause: two silent-h letters meeting across a word boundary ("ah humana") give the same heard phones when either is pronounced,
+  so `PredictedErrorVariants.Generate` made two variants with identical phones and different spans, and the matcher tagged both. Fix: one
+  silent-h variant per phone sequence, the earliest letter in the text (`OneVariantPerHeardSequence`); the audio cannot tell the two
+  letters apart. O9 draws its injected error from the same generator, so the oracle is unchanged. Regression tests
+  `tests/Vocaterra.Nlp.Es.Tests/Phonology/SilentHAcrossWordsTests.cs` (13 cases, Greedy and Gop); goldens and `SpanishIdentityTests`
+  unchanged; seed `8DQuns3HnRh8` passes; the fuzzing README lists it.
+- **M88, the pack-interface gaps German needs (2026-11-09, Sonnet 5.5 medium; gated at `b8897ef2` on `feature/german`, 10575 passed, 0
+  failed).** All additive, Spanish unchanged (goldens, `SpanishIdentityTests`, fuzz, demo; four NPC-prompt lines compared before and
+  after, identical). (1) `IMorphology.Article` and `ITemplateFunctions.Article` take `string? grammaticalCase` (default: null accepted,
+  any case refused), `ILanguagePack.GrammaticalCases` (default empty), template `article(def,acc)` refused for a pack without that case.
+  (2) `INumberWords.Agree(words, gender, grammaticalCase)`, filter `words(m|f|n|slot,case)`. (3) `[Flags] PolitePositions` (Trailing,
+  Leading, AfterFiniteVerb) on `GrammarDefaults` (Spanish trailing), honoured by `SlotGrammarMatcher`, `CanMatch` and `IntentResolver`;
+  `TrailingPoliteWords` keeps its name and holds the phrase for every position; `AfterFiniteVerb` means after the grammar's first
+  `[VERB]`; `ILanguagePack.SupportsV2Order` (default false), an intent's `"order": "v2"` loaded as `IntentDefinition.Order` and refused
+  without support; `V2GrammarExpansion.Expand` is an internal stub nothing calls (M40 adds the call, probably in `IntentCatalog.Build`).
+  (4) `IRecastPolicy.RestoredCapitals` (default empty), applied after accents with the same overlap rule; `ErrorTags.OrthCapital` exists
+  outside `ErrorTags.All` (a pack opts in by its own `ErrorTagSet`). (5) `decl(gender,number,case[,def|indef])` and `particle` filters
+  behind `SupportsAdjectiveDeclension`/`SupportsSeparableParticle`, refused at render and validate time when false. The `xx` pack
+  implements cases, V2, case articles and `Agree`, `decl`, `particle`; a test-local pack covers polite positions and capitals (the `xx`
+  pack's polite, recast and tag members unchanged so the fuzz oracles stay). **Watch points:** `AnalysisSlotFinder.IsPolitePhraseEnd`
+  knows only the trailing phrase (M39); `Conjugate` still returns a string (M87's point; separable verbs through `particle()` or a
+  richer member, M38). Observation, not M88's: at `lesson-name` "me llamo Ana" and at `lesson-usted` "¿cómo está usted?" come back
+  unresolved on the CLI, before and after M88 alike (the CLI has no host name context; not investigated).
+
 ## 6. Definition of done (every milestone)
 
 1. `dotnet build` with warnings as errors and `dotnet test` green for the whole solution.
@@ -2179,14 +2247,14 @@ The research lists seven places that would break silently when a second language
 | M33 | Text-side seams: normalizer, numbers, phonetic key, punctuation, repair lines, grammar defaults, lint, G2P call sites, Kokoro `lang` | M32 | H | done (merged to `feature/language-packs` `d677412`, 2026-10-27) |
 | M34 | Analysis-side seams and schema: `IMorphology`, `IAnalysisRules`, template functions, optional `LexicalFeatures` fields (Case, VerbForm, Declension, Particle, Register), per-pack tag sets (`ErrorTags.All` frozen as Spanish) | M33 | S | done (merged to `feature/language-packs` `2161c6e`, 2026-10-27) |
 | M35 | Per-language test harness, and a toy pack that proves no hidden Spanish dependency remains | M34 | H | done (merged to `feature/language-packs` `dd8eaa7`, 2026-10-27) |
-| M36 | German lexicon import (kaikki German, `de_50k`; D4 applies as for `es_50k`) | M35 | S | proposed |
-| M37 | German text layer: umlaut and ß folding (ae, oe, ue), contractions, numbers, phonetic key, noun capitals | M36 | S | proposed |
-| M38 | German morphology | M36 | S | proposed |
-| M39 | German A1 analyzer: chunk-based case, gender and number; V2 and verb-bracket order; separable and modal verbs. A false-positive gate runs on a corpus of correct sentences | M37, M38 | S | proposed |
-| M40 | German grammar DSL options and template filters | M38 | S | proposed |
-| M41 | German sample bundle `content/de-v1` (with the LanguageTool step of M30) | M39, M40, M30 | H | proposed |
-| M42 | German fuzz | M41 | S | proposed |
-| M43 | German speech: Vosk `vosk-model-small-de-0.15` (Apache-2.0), a Parakeet v3 test, Piper `thorsten` through sherpa-onnx (private builds, D2, D14) | M35 | H | proposed |
+| M36 | German lexicon import (kaikki German, `de_50k`; D4 applies as for `es_50k`) | M35 | S | done (2026-11-09, gated at `cc5a06a3` on `feature/german`; section 5b): kaikki's deprecated German extract pinned, `de_50k`, top 8000, 13.4 MB, load 240 to 250 ms |
+| M37 | German text layer: umlaut and ß folding (ae, oe, ue), contractions, numbers, phonetic key, noun capitals | M36 | S | authorised (2026-11-08); the folding runs before M79's typo slip and the slip never fires when the folded form is a known word |
+| M38 | German morphology | M36 | S | authorised (2026-11-08); after M88 |
+| M39 | German A1 analyzer: chunk-based case, gender and number; V2 and verb-bracket order; separable and modal verbs. A false-positive gate runs on a corpus of correct sentences | M37, M38 | S | authorised (2026-11-08); after M88; spike R5 (does the shared resolver fit, or a pre-resolution chunker hook) first; the corpus of correct sentences is the German phrase sheet's model answers (R6) |
+| M40 | German grammar DSL options and template filters | M38 | S | authorised (2026-11-08); after M88 |
+| M41 | German sample bundle `content/de-v1` (with the LanguageTool step of M30) | M39, M40, M30 | H | authorised (2026-11-08): seeds the game's `content/game-de-v1` (T06), not a separate `content/de-v1` |
+| M42 | German fuzz | M41 | S | authorised (2026-11-08) |
+| M43 | German speech: Vosk `vosk-model-small-de-0.15` (Apache-2.0), a Parakeet v3 test, Piper `thorsten` through sherpa-onnx (private builds, D2, D14) | M35 | H | authorised (2026-11-08): spikes R1 (Piper on sherpa-onnx v2.0.1 without espeak-ng-data) and R2 (a German Kokoro export) first; record D2's outcome |
 | M44 | Perfekt and its auxiliary, past tense, subordinate clauses, two-way prepositions | M42 | S | proposed |
 | M45 | Compounds and an A2 lexicon | M44 | S | proposed |
 | M46 | German G2P and pronunciation (only if D13 and the GPL-free pin allow) | M45 | S | proposed, conditional |

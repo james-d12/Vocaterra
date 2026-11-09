@@ -399,6 +399,35 @@ After U02 come W05 to W08 and W10 (activities-plan section 5; design section 10)
 listening (decision 2). Since 2026-11-06 W05 to W07 are built on `feature/bread-pilot` while the owner runs the needs check
 (D-game-23, owner's answers of 2026-11-06).
 
+### 4.10 A second target language: German (the T series; D-game-27)
+
+The owner, 2026-11-08: "Implement the `docs/research/2026-11-04-german-in-the-game.md` feature" (D-game-27: all three phases, world and
+language bundles split, one save profile per language). The report is the specification: section 4 lists every Spanish assumption (G1 to
+G17), section 5 the design choices, section 6 the plan, section 7 the spikes R1 to R10. This lifts the parking of the German milestones in
+section 4.4's standing direction and in section 4.5. Work lands on `feature/german` (from `origin/main` after PR #40); one milestone
+branch each, gated into it; commit prefix `T<nn>:`. The core's rows (M87, M88, M36 to M43) are in `docs/nlp/implementation-plan.md`.
+
+**Spanish byte-identical until T06:** the game's tests plus the scripted runs (`--say`, `--walk-to`, `--interact`), whose transcripts
+must not change; "byte-identical" means behaviour, not the save format. A milestone that changes the save format raises the save version,
+refuses older saves with a clear message and re-records `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v1.json` and `save-v4.json`.
+
+| ID | What | Depends on | Size | Model | Status |
+| --- | --- | --- | --- | --- | --- |
+| T01 | The pack through the bundle (G1, G2, G3, G7): a game-owned `GameLanguages` registry passed as `ContentLoadOptions.LanguagePacks`, the manifest picks the pack; `bundle.LanguageMorphology` and M87's pack members instead of `SpanishMorphology()` (including `BookLayer.cs:468`), `SpanishNumbers`, `SpanishTextNormalizer`, `SpanishAccentNotes`; the tag list from `bundle.Language.ErrorTags`. Gate: no `Spanish*` identifier and no `Vocaterra.Nlp.Es` reference in the game projects outside `GameLanguages` (a C# architecture test) | core M87 | M | Sonnet 5.5 | done (2026-11-08, gated at `f1ffa49a`, 10412 passed, 1 failed: a broken link in the orchestrator's moved handover, repaired after; section 5) |
+| T02 | Words out of code (G4, G5): the last Spanish literals (`Vocative`, `RecastNames`, `NpcTurnRules`, `GuideSession`, `VoxelSession`, `BookVerbLabels`, `CheckLayer`, `PhraseIds`) into `game/words.json` or the pack; the typing map (`AccentShortcuts`) and its hint as per-language data | T01 | S | Haiku 5.5 | partly done (2026-11-08, gated at `d9cdc0a8`, 10417 passed, 1 failed: the orchestrator's handover index link, repaired after); the rest is T02b (section 5) |
+| T02b | The rest of T02's step 2: thread `GameWords` through `Vocative`, `Greeting`, `RecastNames`, `LineReading`, `NpcService`, `GuideSession` and the host's `ConversationSession` (about 35 call sites); greetings, `tú`/`usted`/`ustedes`, determiners, vocative binders and `un`/`una` into `words.json`; empty the OPEN entries of `SpanishLiteralGuardTests`' allow-list | T02 | S/M | Haiku 5.5 | done (2026-11-09, gated at `f8f076d7`, 10522 passed; section 5) |
+| T03 | Neutral world ids (G11): recipes, objectives and host event details keyed by neutral ids (`torch`, `wood`, `table`), `game/nouns.json` mapping each id to the target-language lemma | T02 | S/M | Sonnet 5.5 | proposed |
+| T04 | Saves and the speech table (G6, G8): a required `language` in the save, `saves/<language>/` profiles, the save version raised; ASR model id, TTS engine and voices per language from data, `SpeechRules` thresholds per model; gender `n` allowed in `LearnerWords` | T03 | M | Sonnet 5.5 | proposed |
+| T05 | Split the world and language bundles (report 5.1 B, G12, G16, G17): `content/world-v1` and a slimmer `content/game-v1`; the save records both hashes; the locale split (UI strings in `content/locale/<l1>/`, target-dependent glosses and lesson text per target language); the content gates and `merge-gate.sh` per bundle; R02's core suite green on the Spanish bundle; hashes re-recorded once, in their own commit | T04 | L | Sonnet 5.5 (high) | proposed |
+| T06 | The German bundle skeleton: `content/game-de-v1` on `world-v1` from M41's seed, nouns map, words (greetings, pronouns, typing map), NPC labels and names, `content/PHRASES-de.md`, `--language de`; lint strict, `cefr-check --level a1`, LanguageTool `de-DE` | T05, core M41; the variety decision | M | Sonnet 5.5 | proposed |
+| T07 | Sessions 1 to 3 in German (report 5.2): intents and V2 grammars, answer sets, dialogue, phrases, checks, the `first-words` path; a scripted run through session 3 in typed German; M39's corpus gate holds on the bundle's own lines; R9 (capitals and `ae`/`ss` in grading) | T06, core M39, M40 | L | Sonnet 5.5 (high) | proposed |
+| T08 | German speech: Vosk de in the speech table, German voices per NPC, prerendered lines, thresholds re-measured (R3), the download size (R10) | T07, core M43; the voice decision | M | Sonnet 5.5 | proposed |
+| T09 | The Book and UI for German: article table by case, German conjugation pages, ä/ö/ü/ß hints, the title-screen language choice; frontend glyph and layout tests for `de` (R8) | T07 | M | Sonnet 5.5 | proposed |
+| T10 | Sessions 4 to 6, review and QA: the rest of A1, an LLM review pass, a QA pass (`qa`, focus `language`) on the German slice, its findings fixed | T08, T09 | L | Sonnet 5.5 (high) | proposed |
+
+Order: M87, then T01 to T05 one after another (each touches many game files). M36 (the German lexicon) and M43's spikes R1 and R2 touch no
+game file and may run beside a T milestone, at most two building agents at once. M88 follows M87, then M37 to M42 in the core's order.
+
 ## 5. Findings log
 
 Facts that shape the plan. Each one names its source; the core's own findings stay in the core's plan.
@@ -2516,6 +2545,40 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   the scene digest is `b699324f…`, save fixtures' state digests re-recorded. `WaterEdgesAreExitableTests` holds the world at 0 edges
   (exempt: bridge floors, the river staircase's two steps). Scripted runs: 13 differ, all from the world (digests, a teleport landing 1
   lower, r27's walk 38 turns instead of 36 at the same tick); new run `r31-lake`. Report `.claude/briefs/h12-report.md`.
+
+- **T01, the pack through the bundle (2026-11-08, Sonnet 5.5 medium; gated at `f1ffa49a` on `feature/german`).** `GameLanguages`
+  (`Game.Core/Session/GameLanguages.cs`) is the one registry of the packs the game supports and the only game file that names
+  `Vocaterra.Nlp.Es`; `GameBundle` and the host load through it, and the host no longer references the Spanish pack. Every M87 mapping is
+  through the bundle: `LanguageMorphology` (the Book's `ConjugationTable` rows from `Paradigm.Persons`, columns from `Paradigm.Tenses` plus
+  the two periphrases `ir-a` and `tener-que`, still game logic), `Language.Numbers`, `NounCatalog.Normalizer` (the bundle's),
+  `Language.Orthography` (`VerdictReport.Write` gained an `IOrthographyNotes` parameter), `Language.ErrorTags`
+  (`LocaleText.MissingErrorTags` takes an `ErrorTagSet`); the unused `GuideNearest.BlocksInWords` removed. **Rule from now:**
+  `LanguageNeutralityTests` fails on any `Vocaterra.Nlp.Es` namespace or core `Spanish*` type in game code outside `GameLanguages`, and on
+  a Spanish-pack reference from `Vocaterra.Game` or `Vocaterra.Host`. The 28 scripted runs are unchanged. Agent: 10413 passed. The gate's
+  one failure was `MarkdownLinkTests` on the orchestrator's handover moved into `done/` (two `../` links), repaired in the next commit.
+
+- **T02, the Spanish words out of code, partly (2026-11-08, Haiku 5.5; gated at `d9cdc0a8` on `feature/german`).** The typing map is
+  data: `game/words.json` `typing` (Alt + a e i o u n, `/` → `¿`, `1` → `¡`), read as `Core/Input/TypingMap`; `AccentShortcuts` and the
+  unused `letters` key removed; the hint in `ui.json` is built from the map (`{typing}`), and a unit test proves a German map
+  (`Alt+a o u s: ä ö ü ß`). `SpanishLiteralGuardTests` fails on a C# string literal equal to a `words.json` word, with an allow-list
+  whose every entry carries a reason; five entries are marked OPEN (greetings in `Greeting.cs`, `tú`/`usted` in `NpcTurnRules`,
+  `RecastNames`' determiners, `Vocative`'s binders, `un`/`una` in `NpcHostEvents`): T02b. Phrase ids (`hola`, `gracias`, `ayuda`, `no`)
+  stay ids. Ids for T03: `SceneBuilder.cs` (tienda, rio, montana), `BlockDefinition.cs` (sign ids), `BlockArtVillage.cs`. Core gap: the
+  pack offers subject pronouns but no article, preposition or determiner lists, so those go to `words.json`. Bundle hash `93a6a143…`, the
+  save fixtures updated; the 31 scripted runs unchanged; content loop clean. Agent: 10418 passed. The gate's one failure was a link in
+  the orchestrator's handover index, repaired in the next commit.
+- **T02b, the last Spanish words out of code, threaded (2026-11-09, Haiku 5.5; gated at `f8f076d7` on `feature/german`, 10522 passed,
+  0 failed).** Every OPEN entry of `SpanishLiteralGuardTests` is gone: `game/words.json` gains six required matching lists
+  (`greetingOpenings`, `addressPronouns` {informal, formal, plural}, `nameDeterminers`, `vocativeBinders`, `vocativeJoiners`,
+  `quantityArticles`; schema version unchanged), read by `GameWords` and passed as a parameter to `Greeting`, `Vocative`, `RecastNames`,
+  `NpcTurnRules.Compose`/`AboutListener`, `NpcEffect.CountedSlots` and `LineReading` from `NpcService`, `GuideSession` and the host's
+  `ConversationSession` (which now loads `GameWords`; `VerdictReport.Write` takes them). No statics, no Spanish fallback; order and folding
+  unchanged; tests prove a German list is read. The grammar check does not read the matching lists (words recognised, not said). The
+  guard's allow-list keeps 13 entries, each with a reason (developer text, ISO `en`, yes/no, phrase ids). Bundle hash `f6f18d80…`, save
+  fixtures updated, goldens unchanged, grammar clean; scripted runs unchanged (the agent's baseline of r30 and r31 was taken after its
+  edit, so those two are not a before/after proof; r01 to r27 are). Finding: `scripts/compare-runs.py` over the whole capture does not
+  finish in minutes (a long `.save` line in a regex); per run it is at most 65 s. `content/README.md`'s `words.json` row does not yet
+  name the matching lists (T03 adds it).
 
 ## 6. Definition of done (every milestone)
 

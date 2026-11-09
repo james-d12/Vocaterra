@@ -1,5 +1,6 @@
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
+using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Phonology;
 
 namespace Vocaterra.Nlp.Pronunciation;
@@ -22,13 +23,18 @@ public sealed class GopScorer
     private readonly PronunciationThresholds thresholds;
     private readonly GopCalibration calibration;
     private readonly GreedyPhoneScorer fallback;
+    private readonly ErrorTagSet errorTags;
 
     /// <summary>Creates a scorer; thresholds and calibration default to their shipped values.</summary>
-    public GopScorer(PronunciationThresholds? thresholds = null, GopCalibration? calibration = null)
+    /// <param name="thresholds">The thresholds, or null for the default.</param>
+    /// <param name="calibration">The calibration, or null for the default.</param>
+    /// <param name="errorTags">The error tag set whose rank orders tags at the same place (a pack's <c>ErrorTags</c>, M87); null means <see cref="ErrorTagSet.V1"/>.</param>
+    public GopScorer(PronunciationThresholds? thresholds = null, GopCalibration? calibration = null, ErrorTagSet? errorTags = null)
     {
+        this.errorTags = errorTags ?? ErrorTagSet.V1;
         this.thresholds = thresholds ?? PronunciationThresholds.Default;
         this.calibration = calibration ?? GopCalibration.Default;
-        fallback = new GreedyPhoneScorer(this.thresholds);
+        fallback = new GreedyPhoneScorer(this.thresholds, this.errorTags);
     }
 
     /// <summary>Scores the posteriors against the accepted variants with forced alignment and GOP.</summary>
@@ -61,7 +67,7 @@ public sealed class GopScorer
         }
 
         var evidence = BuildEvidence(posteriors, chosen, chosenAlignment);
-        return ResultAssembler.Assemble(evidence, predictedErrors, difficulty, thresholds, ScoreMath.FrameConfidence(posteriors), modelHash);
+        return ResultAssembler.Assemble(evidence, predictedErrors, difficulty, thresholds, ScoreMath.FrameConfidence(posteriors), modelHash, errorTags);
     }
 
     private VariantEvidence BuildEvidence(PhonePosteriors posteriors, G2pResult variant, CtcAlignment alignment)

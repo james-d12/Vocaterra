@@ -12,7 +12,6 @@ using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Learning;
-using Vocaterra.Nlp.Es.Text;
 using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Pipeline;
 
@@ -625,13 +624,13 @@ public sealed partial class NpcService
         if (clip is null)
         {
             said = typed!;
-            analysis = LineReading.Read(typed!, agent.Npc.Name, prompt, line => _typed.Analyze(line, prompt), static a => a.Verdict);
+            analysis = LineReading.Read(_words, typed!, agent.Npc.Name, prompt, line => _typed.Analyze(line, prompt), static a => a.Verdict);
         }
         else
         {
             var spoken = _spoken ?? throw new InvalidOperationException("No speech is attached to the NPCs.");
             var heard = spoken.Analyze(clip, prompt, scene.PromptOverride is null && !scene.Review); // V31: the open decode only in free talk, at the seven prompts
-            analysis = LineReading.Read(heard, heard.OtherPass, static a => a.Asr, agent.Npc.Name, prompt, recognition => spoken.AnalyzeRecognized(recognition, clip, prompt), static a => a.Verdict);
+            analysis = LineReading.Read(_words, heard, heard.OtherPass, static a => a.Asr, agent.Npc.Name, prompt, recognition => spoken.AnalyzeRecognized(recognition, clip, prompt), static a => a.Verdict);
             heardOpen = prompt.Mode == RecognitionMode.Constrained && analysis.Asr.Mode == RecognitionMode.Open;
             said = heardOpen && heard.Asr.Mode != RecognitionMode.Open ? heard.OtherPass!.Transcript : heard.Asr.Transcript;
         }
@@ -695,7 +694,7 @@ public sealed partial class NpcService
         // Phase 2: the decision, the response and the replay record, with the host's facts and the word skills in the context. The learner is
         // updated once, here. The digest covers the slots and skills (HostDigest, the core's contract); without them the context keeps the bare
         // digest, as the core does when no slots are given.
-        var lessonPhrase = scene.PromptOverride is null && scene.Credited is { } credited ? LineReading.PhraseSaid(_phrases, line, agent.Npc.Name, credited.Contains)?.Id : null; // V20
+        var lessonPhrase = scene.PromptOverride is null && scene.Credited is { } credited ? LineReading.PhraseSaid(_words, _phrases, line, agent.Npc.Name, credited.Contains)?.Id : null; // V20
         var skills = offPrompt
             ? WordSkillsOf(GuideWord.From(analysis.Words), lessonPhrase is null ? null : [PhraseSkillPrefix + lessonPhrase]) // V27: the nouns used and a phrase of a lesson begun or done
             : verdict.Communicated ? WordSkillsOf(GuideWord.From(analysis.Words), PhraseSkillsOf(verdict, promptId, origin, scene.PromptOverride is null, lessonPhrase)) : [];
@@ -731,7 +730,7 @@ public sealed partial class NpcService
 
         var hostEvents = HostEventsOf(result);
         var followUp = new List<string>();
-        var unsaid = AnswerMisses(agent, result, NpcEffect.CountedSlots(verdict.Slots, line), scene, scene.Facts ?? _worldFacts, now, hostStateHash, hostEvents, followUp);
+        var unsaid = AnswerMisses(agent, result, NpcEffect.CountedSlots(verdict.Slots, line, _words), scene, scene.Facts ?? _worldFacts, now, hostStateHash, hostEvents, followUp);
         Note(agent, string.Empty, hostEvents); // after the misses: a gift the NPC refused (V21) is not an event of the turn
         var understood = verdict.Communicated && !string.Equals(verdict.Intent.Value, "unknown", StringComparison.Ordinal);
         var composed = NpcTurnRules.Compose(
@@ -739,6 +738,7 @@ public sealed partial class NpcService
             understood,
             unsaid,
             _names,
+            _words,
             NpcTurnRules.SkipLineOfBottleGift(scene.Inventory, hostEvents), // the player has the bottle already: nothing is given and the line is not said
             agent.Npc.FreeTalkPools,
             scene.PromptOverride is null,
@@ -817,8 +817,8 @@ public sealed partial class NpcService
         };
     }
 
-    // The core's notes on verbs typed without the accent of their tense (M70), worded by the Spanish pack: «compré», con tilde: es pasado.
-    internal static IReadOnlyList<string> AccentNotesOf(PipelineResult result) => [.. (result.Notes ?? []).Select(SpanishAccentNotes.Describe)];
+    // The core's notes on verbs typed without the accent of their tense (M70), worded by the language pack: «compré», con tilde: es pasado.
+    internal IReadOnlyList<string> AccentNotesOf(PipelineResult result) => [.. (result.Notes ?? []).Select(_bundle.Language.Orthography.Describe)];
 
     // The host events of a turn that the world of the turn cannot carry out, judged on the turn's own copy of the world, as the guide's answers are (village-plan
     // V02: directions to a place the scene does not have; V03: a purchase the coins the player carried do not cover; V15, V19: another item, none, no room). Each is

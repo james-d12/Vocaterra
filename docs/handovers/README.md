@@ -31,6 +31,7 @@ several of them were moved out of the orchestrator, the game plan and a research
 
 | Handover | Workstream | What it waits for |
 | --- | --- | --- |
+| [2026-11-09-1820-german](2026-11-09-1820-german.md) | German as a second target language (D-game-27) on `feature/german`, PR #51 | T02b and M36 (with M90) running; then M89, T03 |
 | [2026-11-05-2031-adaptive-design](2026-11-05-2031-adaptive-design.md) | The adaptation on `feature/adaptive_design`: the needs, lessons as classes, the presentation track, then the bread pilot | The owner's needs check, and fixes from it |
 | [2026-11-07-1345-bread-pilot](2026-11-07-1345-bread-pilot.md) | The bread pilot on `feature/bread-pilot`: W05 to W10, T8, W02 to W04, M80, V31, main (water) and the fixes M83, T9, M84, T10, W04b, H11 merged | The owner's review of PR #40 |
 
@@ -38,6 +39,10 @@ several of them were moved out of the orchestrator, the game plan and a research
 
 | Handover | Workstream | Closed |
 | --- | --- | --- |
+| [2026-11-08-2247-german](done/2026-11-08-2247-german.md) | German, end of 2026-11-08, PR #51 open | Replaced by [2026-11-09-1820-german](2026-11-09-1820-german.md) |
+| [2026-11-08-2233-german](done/2026-11-08-2233-german.md) | German overnight, T02 being gated | Replaced by [2026-11-08-2247-german](done/2026-11-08-2247-german.md) |
+| [2026-11-08-2019-german](done/2026-11-08-2019-german.md) | German, T01 launched | Replaced by [2026-11-08-2233-german](done/2026-11-08-2233-german.md) |
+| [2026-11-08-1930-german](done/2026-11-08-1930-german.md) | German, M87 and M36 launched | Replaced by [2026-11-08-2019-german](done/2026-11-08-2019-german.md) |
 | [2026-11-07-1846-water](done/2026-11-07-1846-water.md) | The H series (water) on `feature/water`, then H11 on `feature/bread-pilot` | `feature/water` merged into `main` (PR #45); H11 gated on `feature/bread-pilot` 2026-11-08 |
 | [2026-11-06-2322-bread-pilot](done/2026-11-06-2322-bread-pilot.md) | The bread pilot, W08 and W10 merged, then W02, W03, M80 and the queue | Queue complete 2026-11-07; replaced by [2026-11-07-1345-bread-pilot](2026-11-07-1345-bread-pilot.md) |
 | [2026-11-06-2035-bread-pilot](done/2026-11-06-2035-bread-pilot.md) | The bread pilot, W05 to W07b and T8 merged, W08 stopped partway | Session ended 2026-11-06; replaced by [2026-11-06-2322-bread-pilot](done/2026-11-06-2322-bread-pilot.md) |

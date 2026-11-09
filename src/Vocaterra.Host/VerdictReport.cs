@@ -1,7 +1,8 @@
 using System.Globalization;
+using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Nlp.Core.Prompts;
-using Vocaterra.Nlp.Es.Text;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Pipeline;
 
 namespace Vocaterra.Host;
@@ -32,7 +33,7 @@ public static class VerdictReport
     /// Writes the outcome of evaluating <paramref name="transcript"/> on <paramref name="promptId"/>. With the NPCs' names, a correction line spells them as the game
     /// shows it (<see cref="RecastNames"/>, V20: <c>«buscaré madera para Luz»</c>).
     /// </summary>
-    public static void Write(TextWriter output, string promptId, string transcript, PipelineResult result, ExchangeAnswer? exchange = null, IEnumerable<string>? names = null)
+    public static void Write(TextWriter output, string promptId, string transcript, PipelineResult result, IOrthographyNotes orthography, GameWords words, ExchangeAnswer? exchange = null, IEnumerable<string>? names = null)
     {
         ArgumentNullException.ThrowIfNull(output);
         ArgumentNullException.ThrowIfNull(result);
@@ -58,7 +59,7 @@ public static class VerdictReport
             foreach (var line in result.Response.Lines)
             {
                 var correction = line.IsRecast || line.LineId.StartsWith(NpcTurnRules.FeedbackLinePrefix, StringComparison.Ordinal);
-                output.WriteLine($"  agent: {(correction && names is not null ? RecastNames.Capitalise(line.Text, names) : line.Text)}");
+                output.WriteLine($"  agent: {(correction && names is not null ? RecastNames.Capitalise(line.Text, names, words) : line.Text)}");
             }
         }
         else
@@ -82,7 +83,7 @@ public static class VerdictReport
 
         foreach (var note in result.Notes ?? [])
         {
-            output.WriteLine($"  note: {SpanishAccentNotes.Describe(note)}"); // M70: the accent the learner left out, accepted with no deduction
+            output.WriteLine($"  note: {orthography.Describe(note)}"); // M70: the accent the learner left out, accepted with no deduction
         }
 
         if (exchange?.OffPromptIntent is { } offPrompt)
