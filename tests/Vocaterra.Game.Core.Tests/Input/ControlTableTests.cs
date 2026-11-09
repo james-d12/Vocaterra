@@ -24,7 +24,6 @@ public sealed class ControlTableTests
         }
 
         Assert.Equal(GameKey.Escape, InputKeys.Of("menu"));
-        Assert.Equal(GameKey.F1, InputKeys.Of("controls"));
     }
 
     [Fact]
@@ -33,7 +32,7 @@ public sealed class ControlTableTests
         var ran = new List<string>();
         IGameCommand Named(string name) => new DelegateCommand(() => ran.Add(name));
         var commands = new GameCommands(Named("ToggleView"), Named("Save"), Named("CycleTextSize"), Named("EndPlaytest"), Named("ToggleDebug"), Named("Listen"), Named("TypeTo"), Named("TalkTo"),
-            Named("OpenControls"), Named("NextTip"), Named("OpenBook"), Named("OpenCrafting"), Named("OpenInventory"), Named("OpenMenu"));
+            Named("NextTip"), Named("OpenBook"), Named("OpenCrafting"), Named("OpenInventory"), Named("OpenMenu"));
         Assert.True(KeyBindings.World(commands, static () => false, static () => false, static () => false).RunFirst(TestInputFrame.Pressing(GameKey.Escape)));
         Assert.Equal(["OpenMenu"], ran);
     }

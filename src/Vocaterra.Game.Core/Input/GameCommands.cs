@@ -9,7 +9,6 @@ namespace Vocaterra.Game.Core.Input;
 /// <param name="Listen">V on an NPC: opens the panel and starts listening.</param>
 /// <param name="TypeTo">T on an NPC: opens the panel with the text box.</param>
 /// <param name="TalkTo">E on an NPC: opens the panel.</param>
-/// <param name="OpenControls">F1: the controls list of the menu (S16, the menu issue).</param>
 /// <param name="NextTip">Enter: the next tip (S16).</param>
 /// <param name="OpenBook">J, or the book item: the book (S20).</param>
 /// <param name="OpenCrafting">C, or E at the workbench: the crafting panel.</param>
@@ -28,7 +27,6 @@ public sealed record GameCommands(
     IGameCommand Listen,
     IGameCommand TypeTo,
     IGameCommand TalkTo,
-    IGameCommand OpenControls,
     IGameCommand NextTip,
     IGameCommand OpenBook,
     IGameCommand OpenCrafting,

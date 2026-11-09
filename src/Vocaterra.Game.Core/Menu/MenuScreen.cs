@@ -6,7 +6,7 @@ namespace Vocaterra.Game.Core.Menu;
 /// <summary>
 /// The menu (the menu issue): Esc in the world opens it over the game, which it pauses the way the other panels do. Its main page has Resume, Settings, Controls and Exit; the
 /// settings page lists the <see cref="MenuRow"/>s (Left and Right change a row, Enter or Space flips or runs it); the controls page scrolls the control table. Esc goes back a page, and
-/// closes the menu from the main page (or from a page that F1 or <c>--settings</c> opened directly). Up and Down choose, the mouse clicks, drags a slider and scrolls with the wheel. Exit
+/// closes the menu from the main page (or from a page that <c>--controls</c> or <c>--settings</c> opened directly). Up and Down choose, the mouse clicks, drags a slider and scrolls with the wheel. Exit
 /// asks the front-end to save and quit. All state is here; the front-end only draws it.
 /// </summary>
 public sealed class MenuScreen : IScreen
@@ -66,7 +66,7 @@ public sealed class MenuScreen : IScreen
     /// <summary>Opens the menu on its main page, on Resume.</summary>
     public void Open() => Show(MenuPage.Main, direct: false);
 
-    /// <summary>Opens the menu on the controls page (F1); Esc then closes it.</summary>
+    /// <summary>Opens the menu on the controls page (<c>--controls</c>); Esc then closes it.</summary>
     public void OpenControls() => Show(MenuPage.Controls, direct: true);
 
     /// <summary>Opens the menu on the settings page (<c>--settings</c>); Esc then closes it.</summary>
@@ -101,20 +101,6 @@ public sealed class MenuScreen : IScreen
         if (input.Pressed(GameKey.Escape))
         {
             GoBack();
-            return;
-        }
-
-        if (input.Pressed(InputKeys.Of("controls")))
-        {
-            if (Page == MenuPage.Controls)
-            {
-                Close();
-            }
-            else
-            {
-                Show(MenuPage.Controls, direct: false);
-            }
-
             return;
         }
 

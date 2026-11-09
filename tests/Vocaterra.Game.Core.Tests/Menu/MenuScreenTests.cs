@@ -136,18 +136,12 @@ public sealed class MenuScreenTests
     }
 
     [Fact]
-    public void Given_F1_When_PressedInTheMenu_Then_ControlsOpenAndF1AgainClosesTheMenu()
+    public void Given_TheControlsPageOpenedDirectly_When_EscIsPressed_Then_TheMenuCloses()
     {
         var rig = Build();
         rig.Menu.OpenControls();
         Assert.Equal(MenuPage.Controls, rig.Menu.Page);
         rig.Menu.HandleInput(Press(GameKey.Escape)); // opened directly: Esc closes the menu, not back to the main page
-        Assert.False(rig.Menu.IsOpen);
-
-        rig.Menu.Open();
-        rig.Menu.HandleInput(Press(GameKey.F1));
-        Assert.Equal(MenuPage.Controls, rig.Menu.Page);
-        rig.Menu.HandleInput(Press(GameKey.F1));
         Assert.False(rig.Menu.IsOpen);
     }
 

@@ -105,7 +105,7 @@ public sealed record LaunchOptions
         + "  --crafting              open the crafting panel once the steps are done\n"
         + "  --menu                  open the menu (Esc) once the steps are done\n"
         + "  --settings              open the menu on its settings page once the steps are done\n"
-        + "  --controls              open the menu on its controls page once the steps are done (F1)\n"
+        + "  --controls              open the menu on its controls page once the steps are done\n"
         + "  --menu-scroll <n>       scroll the settings or controls page down by this many rows when it opens (a scripted run)\n"
         + "  --needs-rate <x>        the drive rate, 0.5 to 4 in steps of 0.25 (default 1, or the save's)\n"
         + "  --mic-check             show the mic check at the start (an interactive run shows it by default; a scripted run with --screenshot never does unless asked,\n"
@@ -155,7 +155,7 @@ public sealed record LaunchOptions
         + "Push-to-talk: hold V or Space while the dialogue is open, or hold V with the crosshair on an NPC to open it and listen. In the dialogue: R repeat,\n"
         + "  S slower, H help, N \"no sé\", W or Tab type (Tab or Esc back to the buttons), 1 to 3 pick an offered choice, Esc cancels a turn that is thinking, then closes.\n"
         + "F8 reports a bug or asks for a feature: a Markdown file and a screenshot in the session folder (Ctrl+Enter saves, Esc cancels).\n"
-        + "F1 shows the controls in English. In a lesson at the guide: L starts it, Enter continues, K skips the step, H helps, 1 to 4 pick an answer.\n";
+        + "Esc opens the menu; its Controls page lists every key. In a lesson at the guide: L starts it, Enter continues, K skips the step, H helps, 1 to 4 pick an answer.\n";
 
     /// <summary>The world seed.</summary>
     public ulong Seed { get; init; } = DefaultSeed;

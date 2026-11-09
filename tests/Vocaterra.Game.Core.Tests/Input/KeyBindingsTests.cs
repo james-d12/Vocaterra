@@ -139,7 +139,7 @@ public sealed class KeyBindingsTests
         IGameCommand Named(string name) => new DelegateCommand(() => ran.Add(name));
         return (new GameCommands(
             Named("ToggleView"), Named("Save"), Named("CycleTextSize"), Named("EndPlaytest"), Named("ToggleDebug"), Named("Listen"), Named("TypeTo"), Named("TalkTo"),
-            Named("OpenControls"), Named("NextTip"), Named("OpenBook"), Named("OpenCrafting"), Named("OpenInventory"), Named("OpenMenu"), Named("Sleep"), Named("DrinkByHand")), ran);
+            Named("NextTip"), Named("OpenBook"), Named("OpenCrafting"), Named("OpenInventory"), Named("OpenMenu"), Named("Sleep"), Named("DrinkByHand")), ran);
     }
 
     private static TestInputFrame Pressed(params GameKey[] keys) => TestInputFrame.Pressing(keys);

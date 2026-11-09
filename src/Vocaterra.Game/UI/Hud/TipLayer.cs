@@ -10,7 +10,7 @@ namespace Vocaterra.Game.UI.Hud;
 
 /// <summary>
 /// The first-time tip of S16 (D-game-13), top left: a short English line the first time something happens (looking, walking, collecting, aiming at someone, talking),
-/// with <c>Enter: next tip</c>, and a small <c>F1: controls</c> reminder. Tips come from <see cref="TipFeed"/> (game content); a scripted run draws none unless it asks
+/// with <c>Enter: next tip</c>, and a small <c>Esc: menu</c> reminder. Tips come from <see cref="TipFeed"/> (game content); a scripted run draws none unless it asks
 /// (<c>--tips</c>), so the demo screenshots stay uncluttered.
 /// </summary>
 public sealed class TipLayer : IFrameLayer

@@ -161,7 +161,7 @@ public static class HudLayout
 
     /// <summary>The tip box, its controls hint and both as one block (U01): plain numbers, so a test places them at every canvas.</summary>
     /// <param name="Box">The tip's own box, or <see langword="null"/> when no tip is up.</param>
-    /// <param name="HintY">The y of the "F1: controls" line under it.</param>
+    /// <param name="HintY">The y of the "Esc: menu" line under it.</param>
     /// <param name="Block">The tip box and the hint line together.</param>
     public readonly record struct TipPlacement(PixelBox? Box, int HintY, PixelBox Block);
 

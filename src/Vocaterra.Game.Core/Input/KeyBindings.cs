@@ -52,7 +52,6 @@ public sealed class KeyBindings
 
         bindings.AddRange(
         [
-            new(InputKeys.Of("controls"), commands.OpenControls),
             new(InputKeys.Of("nextTip"), commands.NextTip, tipShown),
             new(InputKeys.Of("book"), commands.OpenBook),
             new(InputKeys.Of("crafting"), commands.OpenCrafting),

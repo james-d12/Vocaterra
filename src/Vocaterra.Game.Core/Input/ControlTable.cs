@@ -70,7 +70,6 @@ public static class ControlTable
     public static IReadOnlyList<ControlEntry> All { get; } =
     [
         new("menu", ControlGroup.General, [GameKey.Escape]),
-        new("controls", ControlGroup.General, [GameKey.F1]),
         new("save", ControlGroup.General, [GameKey.F6]),
         new("view", ControlGroup.General, [GameKey.F5]),
         new("viewEffects", ControlGroup.General, [GameKey.F7]),

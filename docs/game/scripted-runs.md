@@ -182,5 +182,5 @@ What no script reaches: walk and look with the mouse, **E**, **T** and **V** on 
 fire (sleep, V12c; not while a lesson step waits), the panel's buttons with keys and
 the mouse, **Esc** at each level (a recording, a turn thinking, the text box, the panel), **F8** then type then **Esc** (nothing kept) and
 **F8** then **Ctrl+Enter** (saved), **F6**, **J** (Tab, the arrows, the wheel, a click on a tab, Enter and Shift+Enter on a row, P), **I**, **C**
-(a click on a row), **E** at the workbench, **F1** (scroll it at 150 %), **F5**, **F9**, **F3**, a right click with the book selected, the
+(a click on a row), **E** at the workbench, **Esc** then the Controls page (scroll it at 150 %), **F5**, **F9**, **F3**, a right click with the book selected, the
 wheel and 1 to 0 on the hotbar, and in `--playtest`: **F10** (the post-check at once) and **Esc** on the thank-you screen.

@@ -638,7 +638,7 @@ public sealed class LessonFrontendTests
         Assert.Contains("--lesson", error, StringComparison.Ordinal);
         Assert.False(LaunchOptions.TryParse(["--screenshot", "a.png", "--lesson", " "], out _, out _));
         Assert.Contains("--lesson <id>", LaunchOptions.Usage, StringComparison.Ordinal);
-        Assert.Contains("F1 shows the controls in English", LaunchOptions.Usage, StringComparison.Ordinal);
+        Assert.Contains("Esc opens the menu; its Controls page lists every key", LaunchOptions.Usage, StringComparison.Ordinal);
     }
 
     [Fact]

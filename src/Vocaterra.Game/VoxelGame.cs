@@ -455,7 +455,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             }),
             TypeTo: new DelegateCommand(() => _dialogueScreen.Open(_aimed!.Name, 't')),
             TalkTo: new DelegateCommand(() => _dialogueScreen.Open(_aimed!.Name, 'e')),
-            OpenControls: new DelegateCommand(_menu.OpenControls),
             NextTip: new DelegateCommand(() => _session.Tips.Dismiss()),
             OpenBook: openBook,
             OpenCrafting: new DelegateCommand(_craftingPanel.Open),
