@@ -31,6 +31,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-23 | Activities and the adaptation (the W series, `docs/game/activities-plan.md`; the owner's Adaptation Design Document, `docs/game/design/sources/Vocaterra_Adaptation_Design_Document.docx`) | open, decided in part (owner, 2026-11-03; 2026-11-04: the design built on `feature/adaptive_design`, section 18.2's recommendations adopted provisionally, for the owner's confirmation): the queued follow-ups first, then player needs (D-game-24), then the W series; an overlay station; the stall buys bread for one coin; the pilot's instructions heard only, no imperative taught; the rest proposed (activities-plan section 12, the design document's section 18) | the W series |
 | D-game-24 | Player needs: hunger, thirst, sleep, health and stamina (the adaptation design's section 9; the N series, proposed ids) | decided (owner, 2026-11-03): five needs, hunger, thirst and sleep in stages whose effects grow worse, pushing health and stamina; built after the queued follow-ups and before every other system, from session 1; real death with a cost; the meters pause in conversations, lessons, the book and every panel; stamina spent by gathering and a new sprint; amends D-game-8's guardrail and replaces D-game-23 (b) | the N and W series |
 | D-game-25 | Lessons optional: classes the player takes on, not the game's goal (the adaptation design's sections 5.3 and 5.4; L01) | decided (owner, 2026-11-04): a short required introduction with Luna, every other lesson an offered class; sleep whenever tired (the sleep drive below 75), every sleep a night, no nap; orders open once their NPC is met; Luz shows the player how to bake on request, session 11 an optional class; amends V12c and D-game-15, answers the design's decision 16 | L01, N03, W08, W10, W11 |
+| D-game-27 | Handing an order over in Spanish (issue #42) | decided (owner, 2026-11-08): the learner says what they give; the item must be named, the count is optional; «no sé» or two misses hand the goods over anyway | nothing |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
@@ -595,6 +596,32 @@ bread pilot met on `feature/bread-pilot`):
 swimming; `.claude/briefs/h11-report.md`, item 5). The bank is fixed in the world, not in the swim rules: every water edge a player can
 reach is left by walking, a step or the hop-out. Built by H12 (2026-11-08, `docs/game/water-plan.md`): 582 such edges, every shore's rim, now a step
 over the shallow bed; the swim rules unchanged.
+
+## D-game-27: handing an order over in Spanish (decided, 2026-11-08)
+
+Issue #42: "when handing in quest items (e.g. handing over 5 wood to the baker), we should have to say what we are giving", across every
+current order. Until now an order was delivered the moment the talk opened with its goods in the bag (village-plan V03, rule 6: walking
+up is enough). The owner's answers (2026-11-08):
+
+1. **Say it, with fail-forward.** The NPC asks for the goods when the talk opens (`¡Hola! ¿Qué tienes para mí?`, `<npc>.order_ready` into the
+   agent's `receiving` state) and the learner says what they hand over (`Aquí tienes cinco bloques de madera.`). Rule 8 (D-game-8,
+   D-game-9) is kept: help models the line, «no sé» says the model and the goods go, two missed lines hand them over anyway (a
+   `fail_forward` phrase use), and an unsure recognition is never a miss. Not a strict gate, and not the stall's second-visit fallback.
+2. **The item must be named, the count is optional.** `Aquí tienes la madera.` passes at A1; the card shows the full line with the
+   number. A wrong count gets the core's feedback and still passes. For an order of two goods (Domingo's wood and coins) either one counts.
+3. **All four orders** (`fruit-for-mar`, `oven-wood`, `axe-handle`, `water-for-plants`) take it, through `handOver` in their files
+   (`content/schema/objective.schema.json`); an order without it is still delivered by walking up.
+4. **No class while the NPC waits for the goods** (the owner's follow-up, 2026-11-08): a class at the NPC is not offered, started or
+   resumed at the opening of a talk that asks for the goods; it follows the hand-over in the same talk, so the NPC's question and a lesson
+   step never share the panel.
+5. **«mí» and «ti» are A1** (the owner, 2026-11-08): the hand-written `cefr/a1.txt` lacked the pronouns after a preposition, so the lint
+   had refused `¿Qué tienes para mí?`; they joined the list and the NPC asks it. The same day the core began to grade `la agua` (`el`),
+   which the owner asked for (`docs/nlp/implementation-plan.md` 5b).
+
+How it is built: the intent `hand_over` (`aquí tienes`, `aquí está(n)`, `te doy`, `toma`, then the goods), the prompts `<npc>-receive`
+and the answer set `order-receive`, a `receiving` state in each order NPC's agent, five phrase rows (`content/PHRASES.md`, "Handing over
+an order"), and `GuideSession.HandOver.cs`, which checks the line names one of the order's nouns before it raises `<npc>.delivered`
+(the thanks and the reward, as the walk-up did). The validator checks each `handOver` order (`GameDataValidator.CheckHandOver`).
 
 ## D-game-28: the book's hierarchy (decided, 2026-11-08)
 

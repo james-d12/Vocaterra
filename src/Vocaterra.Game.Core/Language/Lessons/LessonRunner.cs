@@ -512,7 +512,7 @@ public sealed partial class LessonRunner
     public LessonFocus? Focus => TurnStep() is { Phrase: { } phrase } step ? new LessonFocus(phrase, step.Type == LessonStepType.Repeat, step.Type == LessonStepType.Review) : null;
 
     /// <summary>Whether the help and "no sé" buttons belong to the lesson now (a lesson is engaged and the panel is open on its NPC).</summary>
-    public bool HandlesHelp => Engaged && CurrentNpc is { } npc && _session.TalkOpenOn(npc);
+    public bool HandlesHelp => Engaged && CurrentNpc is { } npc && _session.TalkOpenOn(npc) && !_session.HandOverOpen; // a hand-over waiting (issue #42) takes them
 
     /// <summary>What a Spanish line of a lesson means in English (the translation of the <c>model</c>, <c>listen</c> or <c>answer</c> step that plays it), or <see langword="null"/>.</summary>
     /// <param name="spanish">The line's text.</param>

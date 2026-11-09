@@ -57,6 +57,12 @@ public static class WorldEvents
     /// </summary>
     public const string OrderDelivered = "order_delivered";
 
+    /// <summary>
+    /// The player walked up to an NPC with the goods of an order handed over in Spanish (issue #42, an objective with <c>handOver</c>): the NPC asked for them
+    /// (<c>&lt;npc&gt;.order_ready</c>) and waits for a line that names them. The detail is the objective's id.
+    /// </summary>
+    public const string OrderAsked = "order_asked";
+
     /// <summary>The player filled the bottle at the river.</summary>
     public const string BottleFilled = "bottle_filled";
 
@@ -191,7 +197,7 @@ public static class WorldEvents
         KeyWordsShown, PhraseReviewAsked, SupportCardShown, ItemPickedUp, ItemCrafted, TipShown, GuideMet, FireLit, SessionComplete, SpareTorch, SecondTryAsked, SecondTryAnswered,
         TorchAtRing,
         WarmupOffered, WarmupStarted, WarmupEnded, WarmupSkipped, ReviewSkipped, ReviewAnswered,
-        BeaconReached, PlaceAsked, ItemTaken, OrderDelivered,
+        BeaconReached, PlaceAsked, ItemTaken, OrderDelivered, OrderAsked,
         Slept, SessionSkipped,
         MealEaten, WaterDrunk, NeedStage, PlayerCollapsed, PlayerDied, PlayerWoke, BelongingsRecovered, BushPlanted,
         ProcedureStarted, ProcedureStep, ProcedureDone, ProcedureMastered,

@@ -377,7 +377,7 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
         early.Sitting = 4;
         _ = early.Simulation.GrantItems(ItemId.Wood, 5);
         Stage.TeleportToNpc(early, "baker");
-        Assert.True(early.OpenTalkForClass("baker").Delivered); // L01: the order opens once Luz is met, whatever the day: the first talk takes the wood
+        _ = early.OpenTalkForClass("baker"); // L01: the order opens once Luz is met, whatever the day: the first talk takes the wood, handed over in Spanish (D-game-27)
         Assert.Equal(0, early.Simulation.Inventory.Count(ItemId.Wood));
 
         var session = TestGame.NewSessionWithShippedLessons();
@@ -386,15 +386,43 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
         _ = session.Simulation.GrantItems(ItemId.Wood, 6);
         Stage.TeleportToNpc(session, "baker");
 
-        var opening = session.OpenTalkForClass("baker"); // walking up with the wood is enough (D-game-8, D-game-9)
+        var opening = session.OpenTalk("baker"); // Luz asks what the learner has, and the wood is handed over in Spanish (D-game-27)
+        Assert.Equal(["¡Hola! ¿Qué tienes para mí?"], opening.Lines);
+        Assert.Equal(6, session.Simulation.Inventory.Count(ItemId.Wood)); // nothing is taken before the line
 
-        Assert.True(opening.Delivered);
-        Assert.Equal(["¡Gracias! Toma cuatro monedas."], opening.Lines);
+        var turn = session.HandOverGoods()!; // «Aquí tienes cinco bloques de madera.»
+
+        Assert.Equal(["¡Gracias! Toma cuatro monedas."], turn.FollowUp);
         Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Wood));
         Assert.Equal(4, session.Simulation.Inventory.Count(ItemId.Coin));
         Assert.Contains(session.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.OrderDelivered && e.Npc == "baker" && e.Detail == "oven-wood");
         Assert.True(session.Objectives.Single(static o => o.Id == "oven-wood").Complete);
         Assert.Equal(1, session.ObjectiveStep("oven-wood.delivered")!.Count);
+    }
+
+    [Fact]
+    public void TheClassWaitsWhileLuzAsksForTheWoodAndIsOfferedRightAfterTheHandOver()
+    {
+        // D-game-27 (issue #42): no class is offered, started or resumed while the NPC waits for the goods, so her question and a lesson step never share the panel;
+        // the class follows the hand-over in the same talk.
+        var session = VillageLessonTests.AtStep("(after the last step)");
+        session.EndTalk();
+        session.Day = 5;
+        session.Sitting = 5;
+        Assert.Equal(0, session.Simulation.GrantItems(ItemId.Wood, 5));
+        Stage.TeleportToNpc(session, "baker");
+
+        _ = session.OpenTalk("baker");
+
+        Assert.True(session.HandOverOpen);
+        Assert.Null(session.Lessons.OfferStandingAt("baker"));
+        Assert.False(session.Lessons.Engaged);
+
+        _ = session.HandOverGoods();
+
+        Assert.False(session.HandOverOpen);
+        Assert.True(session.Objectives.Single(static o => o.Id == "oven-wood").Complete);
+        Assert.Equal(LessonId, session.Lessons.OfferStandingAt("baker"));
     }
 
     [Fact]

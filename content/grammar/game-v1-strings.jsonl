@@ -21,6 +21,8 @@
 {"id":"dialogue:baker_none_offered.1","text":"¿Cuántos bloques de madera me vendes?","kind":"npc"}
 {"id":"dialogue:baker_offer_bake.1","text":"¿Quieres hacer pan?","kind":"npc"}
 {"id":"dialogue:baker_price.1","text":"El pan cuesta dos monedas.","kind":"npc"}
+{"id":"dialogue:baker_receive.1","text":"¡Hola! ¿Qué tienes para mí?","kind":"npc"}
+{"id":"dialogue:baker_receive_help.1","text":"Puedes decir: «Aquí tienes cinco bloques de madera».","kind":"npc"}
 {"id":"dialogue:baker_sell.1","text":"Aquí tienes el pan. ¡Gracias!","kind":"npc"}
 {"id":"dialogue:baker_sell.2","text":"Toma tu pan. ¡Gracias!","kind":"npc"}
 {"id":"dialogue:baker_sun.1","text":"Hoy hace sol.","kind":"npc"}
@@ -54,6 +56,8 @@
 {"id":"dialogue:farmer_none_offered.1","text":"¿Cuántas frutas me vendes?","kind":"npc"}
 {"id":"dialogue:farmer_pay.1","text":"Aquí se paga con monedas. Pero yo te compro fruta.","kind":"npc"}
 {"id":"dialogue:farmer_price.1","text":"Una manzana cuesta una moneda.","kind":"npc"}
+{"id":"dialogue:farmer_receive.1","text":"¡Hola! ¿Qué tienes para mí?","kind":"npc"}
+{"id":"dialogue:farmer_receive_help.1","text":"Puedes decir: «Aquí tienes el agua».","kind":"npc"}
 {"id":"dialogue:farmer_sell.1","text":"Aquí tienes. ¡Gracias!","kind":"npc"}
 {"id":"dialogue:farmer_sell.2","text":"Toma. ¡Gracias!","kind":"npc"}
 {"id":"dialogue:farmer_sun.1","text":"Hoy hace sol.","kind":"npc"}
@@ -94,6 +98,8 @@
 {"id":"dialogue:fisher_nice.1","text":"¡Qué bien!","kind":"npc"}
 {"id":"dialogue:fisher_point.1","text":"Mira, está allí.","kind":"npc"}
 {"id":"dialogue:fisher_point.2","text":"Está por allí, mira.","kind":"npc"}
+{"id":"dialogue:fisher_receive.1","text":"¡Hola! ¿Qué tienes para mí?","kind":"npc"}
+{"id":"dialogue:fisher_receive_help.1","text":"Puedes decir: «Aquí tienes tres frutas».","kind":"npc"}
 {"id":"dialogue:fisher_sun.1","text":"Hoy hace sol.","kind":"npc"}
 {"id":"dialogue:fisher_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:fisher_thank.2","text":"¡Con gusto!","kind":"npc"}
@@ -382,6 +388,8 @@
 {"id":"dialogue:smith_none_offered.1","text":"¿Cuántos bloques de madera me vendes?","kind":"npc"}
 {"id":"dialogue:smith_offer.1","text":"¿Quieres un hacha? Necesito dos bloques de madera y dos monedas.","kind":"npc"}
 {"id":"dialogue:smith_ok.1","text":"Está bien.","kind":"npc"}
+{"id":"dialogue:smith_receive.1","text":"¡Hola! ¿Qué tienes para mí?","kind":"npc"}
+{"id":"dialogue:smith_receive_help.1","text":"Puedes decir: «Aquí tienes la madera y las monedas».","kind":"npc"}
 {"id":"dialogue:smith_sun.1","text":"Hoy hace sol.","kind":"npc"}
 {"id":"dialogue:smith_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:smith_thank.2","text":"¡Con gusto!","kind":"npc"}
@@ -415,8 +423,11 @@
 {"id":"prompts:baker-offer","text":"¿Quieres hacer pan?","kind":"npc"}
 {"id":"prompts:baker-open","text":"¿Qué quieres?","kind":"npc"}
 {"id":"prompts:baker-proc","text":"¿Qué quieres?","kind":"npc"}
+{"id":"prompts:baker-receive","text":"¡Hola! ¿Qué tienes para mí?","kind":"npc"}
 {"id":"prompts:farmer-open","text":"¡Hola! Este es mi campo.","kind":"npc"}
+{"id":"prompts:farmer-receive","text":"¡Hola! ¿Qué tienes para mí?","kind":"npc"}
 {"id":"prompts:fisher-open","text":"¿Qué buscas?","kind":"npc"}
+{"id":"prompts:fisher-receive","text":"¡Hola! ¿Qué tienes para mí?","kind":"npc"}
 {"id":"prompts:guide-offer","text":"¿Quieres agua?","kind":"npc"}
 {"id":"prompts:guide-open","text":"¡Hola! Soy la guía. ¿En qué te ayudo?","kind":"npc"}
 {"id":"prompts:guide-review","text":"¿Qué es esto?","kind":"npc"}
@@ -483,6 +494,7 @@
 {"id":"prompts:lesson-works","text":"¿Dónde trabaja Domingo?","kind":"npc"}
 {"id":"prompts:lesson-yesno","text":"¿Es madera?","kind":"npc"}
 {"id":"prompts:smith-open","text":"¡Hola! Esta es mi herrería.","kind":"npc"}
+{"id":"prompts:smith-receive","text":"¡Hola! ¿Qué tienes para mí?","kind":"npc"}
 {"id":"prompts:stall-need","text":"¿Qué necesitas?","kind":"npc"}
 {"id":"prompts:stall-offer","text":"¿Quieres pan?","kind":"npc"}
 {"id":"prompts:villager-open","text":"Hola.","kind":"npc"}
@@ -1574,6 +1586,40 @@
 {"id":"answer-sets/lesson-yesno-plain:slower.alias5","text":"despacio","kind":"learner"}
 {"id":"answer-sets/lesson-yesno-plain:slower.alias6","text":"más lento","kind":"learner"}
 {"id":"answer-sets/lesson-yesno-plain:slower.alias7","text":"más lento por favor","kind":"learner"}
+{"id":"answer-sets/order-receive:wood","text":"aquí tienes la madera","kind":"learner"}
+{"id":"answer-sets/order-receive:wood.alias1","text":"aquí tienes cinco bloques de madera","kind":"learner"}
+{"id":"answer-sets/order-receive:wood.alias2","text":"aquí está la madera","kind":"learner"}
+{"id":"answer-sets/order-receive:wood.alias3","text":"toma la madera","kind":"learner"}
+{"id":"answer-sets/order-receive:wood.alias4","text":"te doy la madera","kind":"learner"}
+{"id":"answer-sets/order-receive:wood.alias5","text":"sí aquí tienes la madera","kind":"learner"}
+{"id":"answer-sets/order-receive:wood.alias6","text":"aquí tienes madera","kind":"learner"}
+{"id":"answer-sets/order-receive:fruit","text":"aquí tienes las frutas","kind":"learner"}
+{"id":"answer-sets/order-receive:fruit.alias1","text":"aquí tienes tres frutas","kind":"learner"}
+{"id":"answer-sets/order-receive:fruit.alias2","text":"aquí están las frutas","kind":"learner"}
+{"id":"answer-sets/order-receive:fruit.alias3","text":"toma las frutas","kind":"learner"}
+{"id":"answer-sets/order-receive:fruit.alias4","text":"te doy las frutas","kind":"learner"}
+{"id":"answer-sets/order-receive:fruit.alias5","text":"aquí tienes la fruta","kind":"learner"}
+{"id":"answer-sets/order-receive:fruit.alias6","text":"aquí tienes fruta","kind":"learner"}
+{"id":"answer-sets/order-receive:wood-coins","text":"aquí tienes la madera y las monedas","kind":"learner"}
+{"id":"answer-sets/order-receive:wood-coins.alias1","text":"aquí tienes dos bloques de madera y dos monedas","kind":"learner"}
+{"id":"answer-sets/order-receive:wood-coins.alias2","text":"aquí tienes las monedas","kind":"learner"}
+{"id":"answer-sets/order-receive:wood-coins.alias3","text":"aquí tienes las monedas y la madera","kind":"learner"}
+{"id":"answer-sets/order-receive:wood-coins.alias4","text":"toma la madera y las monedas","kind":"learner"}
+{"id":"answer-sets/order-receive:water","text":"aquí tienes el agua","kind":"learner"}
+{"id":"answer-sets/order-receive:water.alias1","text":"aquí tienes la botella","kind":"learner"}
+{"id":"answer-sets/order-receive:water.alias2","text":"aquí está el agua","kind":"learner"}
+{"id":"answer-sets/order-receive:water.alias3","text":"toma el agua","kind":"learner"}
+{"id":"answer-sets/order-receive:water.alias4","text":"te doy el agua","kind":"learner"}
+{"id":"answer-sets/order-receive:water.alias5","text":"aquí tienes agua","kind":"learner"}
+{"id":"answer-sets/order-receive:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/order-receive:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/order-receive:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/order-receive:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/order-receive:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/order-receive:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/order-receive:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/order-receive:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/order-receive:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/people-farmer:name","text":"cómo te llamas","kind":"learner"}
 {"id":"answer-sets/people-farmer:name.alias1","text":"cómo te llamas tú","kind":"learner"}
 {"id":"answer-sets/people-farmer:name.alias2","text":"cómo se llama usted","kind":"learner"}
@@ -2301,6 +2347,31 @@
 {"id":"intents:greet.ex5","text":"hola, Luna","kind":"learner","errors":[]}
 {"id":"intents:greet.ex6","text":"buenos día","kind":"learner","errors":["noun.number"]}
 {"id":"intents:greet.ex7","text":"hola amigo","kind":"learner","errors":[]}
+{"id":"intents:hand_over.ex0","text":"aquí tienes la madera","kind":"learner","errors":[]}
+{"id":"intents:hand_over.ex1","text":"aquí tienes cinco bloques de madera","kind":"learner","errors":[]}
+{"id":"intents:hand_over.ex2","text":"sí, aquí tienes la madera","kind":"learner","errors":[]}
+{"id":"intents:hand_over.ex3","text":"aquí está la madera","kind":"learner","errors":[]}
+{"id":"intents:hand_over.ex4","text":"te doy la madera","kind":"learner","errors":[]}
+{"id":"intents:hand_over.ex5","text":"toma la madera","kind":"learner","errors":[]}
+{"id":"intents:hand_over.ex6","text":"aquí tienes el madera","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:hand_over.ex7","text":"aquí tienes tres frutas","kind":"learner","errors":[]}
+{"id":"intents:hand_over.ex8","text":"aquí tienes las frutas","kind":"learner","errors":[]}
+{"id":"intents:hand_over.ex9","text":"aquí están las frutas","kind":"learner","errors":[]}
+{"id":"intents:hand_over.ex10","text":"aquí tienes tres fruta","kind":"learner","errors":["noun.number"]}
+{"id":"intents:hand_over.ex11","text":"aquí tienes la madera y las monedas","kind":"learner","errors":[]}
+{"id":"intents:hand_over.ex12","text":"aquí tienes dos bloques de madera y dos monedas","kind":"learner","errors":[]}
+{"id":"intents:hand_over.ex13","text":"aquí tienes las monedas","kind":"learner","errors":[]}
+{"id":"intents:hand_over.ex14","text":"aquí tienes el agua","kind":"learner","errors":[]}
+{"id":"intents:hand_over.ex15","text":"aquí tienes la botella","kind":"learner","errors":[]}
+{"id":"intents:hand_over.ex16","text":"toma el agua","kind":"learner","errors":[]}
+{"id":"intents:hand_over.ex17","text":"aquí tienes el botella","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:hand_over.ex18","text":"aquí tienes la agua","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:hand_over.ex19","text":"toma las frutas","kind":"learner","errors":[]}
+{"id":"intents:hand_over.ex20","text":"te doy las frutas","kind":"learner","errors":[]}
+{"id":"intents:hand_over.ex21","text":"toma la madera y las monedas","kind":"learner","errors":[]}
+{"id":"intents:hand_over.ex22","text":"aquí tienes el madera y las monedas","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:hand_over.ex23","text":"aquí está el agua","kind":"learner","errors":[]}
+{"id":"intents:hand_over.ex24","text":"te doy el agua","kind":"learner","errors":[]}
 {"id":"intents:name_object.ex0","text":"es un árbol","kind":"learner","errors":[]}
 {"id":"intents:name_object.ex1","text":"es una piedra","kind":"learner","errors":[]}
 {"id":"intents:name_object.ex2","text":"eso es un árbol","kind":"learner","errors":[]}
@@ -3279,6 +3350,31 @@
 {"id":"PHRASES.md:todavia-no.text","text":"Todavía no.","kind":"npc"}
 {"id":"PHRASES.md:toma-aqui-tienes.text","text":"Toma. Aquí tienes.","kind":"npc"}
 {"id":"PHRASES.md:quieres-hacer-pan.text","text":"¿Quieres hacer pan?","kind":"npc"}
+{"id":"PHRASES.md:que-tienes-para-mi.text","text":"¡Hola! ¿Qué tienes para mí?","kind":"npc"}
+{"id":"PHRASES.md:aqui-tienes-tres-frutas.text","text":"Aquí tienes tres frutas.","kind":"learner"}
+{"id":"PHRASES.md:aqui-tienes-tres-frutas.variant1","text":"aquí tienes las frutas","kind":"learner"}
+{"id":"PHRASES.md:aqui-tienes-tres-frutas.variant2","text":"aquí están las frutas","kind":"learner"}
+{"id":"PHRASES.md:aqui-tienes-tres-frutas.variant3","text":"toma las frutas","kind":"learner"}
+{"id":"PHRASES.md:aqui-tienes-tres-frutas.variant4","text":"te doy las frutas","kind":"learner"}
+{"id":"PHRASES.md:aqui-tienes-tres-frutas.error","text":"aquí tienes tres fruta","kind":"learner","errors":["noun.number"]}
+{"id":"PHRASES.md:aqui-tienes-cinco-bloques.text","text":"Aquí tienes cinco bloques de madera.","kind":"learner"}
+{"id":"PHRASES.md:aqui-tienes-cinco-bloques.variant1","text":"aquí tienes la madera","kind":"learner"}
+{"id":"PHRASES.md:aqui-tienes-cinco-bloques.variant2","text":"aquí está la madera","kind":"learner"}
+{"id":"PHRASES.md:aqui-tienes-cinco-bloques.variant3","text":"toma la madera","kind":"learner"}
+{"id":"PHRASES.md:aqui-tienes-cinco-bloques.variant4","text":"te doy la madera","kind":"learner"}
+{"id":"PHRASES.md:aqui-tienes-cinco-bloques.error","text":"aquí tienes el madera","kind":"learner","errors":["gender.agree"]}
+{"id":"PHRASES.md:aqui-tienes-la-madera-y-las-monedas.text","text":"Aquí tienes la madera y las monedas.","kind":"learner"}
+{"id":"PHRASES.md:aqui-tienes-la-madera-y-las-monedas.variant1","text":"aquí tienes dos bloques de madera y dos monedas","kind":"learner"}
+{"id":"PHRASES.md:aqui-tienes-la-madera-y-las-monedas.variant2","text":"aquí tienes la madera","kind":"learner"}
+{"id":"PHRASES.md:aqui-tienes-la-madera-y-las-monedas.variant3","text":"aquí tienes las monedas","kind":"learner"}
+{"id":"PHRASES.md:aqui-tienes-la-madera-y-las-monedas.variant4","text":"toma la madera y las monedas","kind":"learner"}
+{"id":"PHRASES.md:aqui-tienes-la-madera-y-las-monedas.error","text":"aquí tienes el madera y las monedas","kind":"learner","errors":["gender.agree"]}
+{"id":"PHRASES.md:aqui-tienes-el-agua.text","text":"Aquí tienes el agua.","kind":"learner"}
+{"id":"PHRASES.md:aqui-tienes-el-agua.variant1","text":"aquí tienes la botella","kind":"learner"}
+{"id":"PHRASES.md:aqui-tienes-el-agua.variant2","text":"aquí está el agua","kind":"learner"}
+{"id":"PHRASES.md:aqui-tienes-el-agua.variant3","text":"toma el agua","kind":"learner"}
+{"id":"PHRASES.md:aqui-tienes-el-agua.variant4","text":"te doy el agua","kind":"learner"}
+{"id":"PHRASES.md:aqui-tienes-el-agua.error","text":"aquí tienes la agua","kind":"learner","errors":["gender.agree"]}
 {"id":"checks.json:hear.que-necesitas","text":"¿Qué necesitas?","kind":"npc"}
 {"id":"checks.json:hear.quieres-pan","text":"¿Quieres pan?","kind":"npc"}
 {"id":"checks.json:hear.pedir-agua","text":"Quiero agua, por favor.","kind":"npc"}

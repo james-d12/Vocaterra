@@ -16,6 +16,7 @@ using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Taxonomy;
+using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Response.Templates;
 
@@ -47,7 +48,9 @@ namespace Vocaterra.Game.Core.Content;
 /// buys one that can say the bag is full (<c>&lt;npc&gt;.no_room</c>), and one that can answer a request for none (<c>&lt;npc&gt;.none_asked</c>) or an offer of none
 /// (<c>&lt;npc&gt;.none_offered</c>);</item>
 /// <item>the orders (V03): the NPC an order is brought to is one of the NPCs, and every state of its agent takes its thanks (<c>&lt;npc&gt;.delivered</c>), so the
-/// goods are never brought in vain; the lesson an order names as the one that tells it (V13) is a lesson with a <c>do</c> step that waits for that delivery;</item>
+/// goods are never brought in vain; the lesson an order names as the one that tells it (V13) is a lesson with a <c>do</c> step that waits for that delivery; an order
+/// handed over in Spanish (issue #42, <c>handOver</c>) names catalogue nouns, its NPC's agent asks for it from every state but the teaching one (<c>&lt;npc&gt;.order_ready</c>
+/// into <c>receiving</c>) and its file maps <c>receiving</c> to a prompt that takes <c>hand_over</c> and practises a learner phrase of that intent;</item>
 /// <item>the lessons' levels (village-plan 3.9, V08, D-game-22 (b)): the Spanish a lesson teaches and says (its phrases, the lines its steps name, the text of
 /// the prompts its turns are evaluated at) has no lemma above its level, <c>a1</c> or <c>a2</c>, in the bundle's cumulative CEFR lists (<c>cefr/a1.txt</c>,
 /// <c>cefr/a2.txt</c>), and its phrases' variants none above the bundle's ceiling (<see cref="LessonLevels.Ceiling"/>), lemmatized by the core's
@@ -707,6 +710,8 @@ public static class GameDataValidator
             problems.Add($"{file}: the order is brought to '{npc}', and the state '{state.Id}' of agents/{npc}.json does not take '{delivered}' to thank the player.");
         }
 
+        CheckHandOver(data, objective, npc, machine, file, problems);
+
         // V13: the lesson an order names as the one that tells it keeps the order back until its step that waits for the delivery, so it must have that step.
         if (objective.Lesson is { } lesson)
         {
@@ -719,6 +724,44 @@ public static class GameDataValidator
             {
                 problems.Add($"{file}: the order names the lesson '{lesson}', which has no do step that waits for its delivery (order_delivered at '{npc}' with the detail '{objective.Id}').");
             }
+        }
+    }
+
+    // Issue #42: an order handed over in Spanish is asked for when the talk opens, answered at the NPC's receiving prompt, and modelled by the card of that prompt.
+    private static void CheckHandOver(GameData data, ObjectiveSpec objective, string npc, AgentStateMachine machine, string file, List<string> problems)
+    {
+        if (objective.HandOverNouns is not { } nouns)
+        {
+            return;
+        }
+
+        foreach (var noun in nouns.Where(noun => data.Nouns.ForLemma(noun) is null))
+        {
+            problems.Add($"{file}: handOver names '{noun}', which is not a catalogue noun (game/nouns.json).");
+        }
+
+        var ready = NpcHostEvents.Of(npc, NpcHostEvents.OrderReady);
+        foreach (var state in machine.Definition.States.Where(state => !string.Equals(state.Id, NpcHostEvents.TeachingState, StringComparison.Ordinal)
+            && !state.Transitions.Any(t => string.Equals(t.OnHostEvent, ready, StringComparison.Ordinal) && string.Equals(t.To, NpcHostEvents.ReceivingState, StringComparison.Ordinal))))
+        {
+            problems.Add($"{file}: the order is handed over in Spanish, and the state '{state.Id}' of agents/{npc}.json does not take '{ready}' into '{NpcHostEvents.ReceivingState}'.");
+        }
+
+        var entry = data.Npcs.Find(npc)!;
+        if (!entry.Prompts.TryGetValue(NpcHostEvents.ReceivingState, out var prompt) || !data.Bundle.Prompts.TryGetValue(prompt, out var spec))
+        {
+            problems.Add($"{file}: the order is handed over in Spanish, and game/npcs/{npc}.json maps no bundle prompt to the state '{NpcHostEvents.ReceivingState}'.");
+            return;
+        }
+
+        if (!spec.AllowedIntentIds.Contains("hand_over", StringComparer.Ordinal))
+        {
+            problems.Add($"{file}: the prompt '{prompt}' the order is handed over at does not take the intent 'hand_over'.");
+        }
+
+        if (!data.Npcs.FocusAt(prompt).Select(data.Phrases.Find).Any(row => row is { IsLearnerPhrase: true, Intent: "hand_over" }))
+        {
+            problems.Add($"{file}: the prompt '{prompt}' practises no learner phrase of 'hand_over' (game/npcs/{npc}.json focus), so the hand-over has no card to model it.");
         }
     }
 

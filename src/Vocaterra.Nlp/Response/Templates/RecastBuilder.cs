@@ -168,7 +168,10 @@ public static class RecastBuilder
             var words = numbers.ToWords(value);
             if (i + 1 < playerText.Tokens.Count)
             {
-                words = numbers.Agree(words, GenderAfter(analysis, playerText, i));
+                // A noun right after the number may change its form (un hada, issue #42); one further away leaves the gender alone to decide (una gran hada).
+                words = NounRightAfter(analysis, playerText, i) is { } lemma
+                    ? numbers.Agree(words, GenderAfter(analysis, playerText, i), lemma)
+                    : numbers.Agree(words, GenderAfter(analysis, playerText, i));
             }
 
             edits.Add(new Edit(span.Start, span.Length, words));
@@ -220,6 +223,15 @@ public static class RecastBuilder
 
         return GenderOf(analysis, playerText.Tokens[numberIndex + 1]);
     }
+
+    // The lemma of the noun reading of the token right after the number, or null. Its number is not asked: the recast makes a noun after one singular (1 áreas gives
+    // un área), and the language changes only the form of one (uno) for it.
+    private static string? NounRightAfter(AnalysisResult analysis, NormalizedText playerText, int numberIndex) =>
+        analysis.Tokens
+            .Where(t => t.Token.Span.Start == playerText.Tokens[numberIndex + 1].Span.Start)
+            .SelectMany(static t => t.Readings)
+            .FirstOrDefault(static r => string.Equals(r.Pos, "noun", StringComparison.Ordinal) && r.Gender is not null)
+            ?.Lemma;
 
     private static string GenderOf(AnalysisResult analysis, Token next)
     {
