@@ -274,6 +274,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M89 | The open-fallback fuzz test's reach check made deterministic (found by M87's gate, 2026-11-08): `PipelineFuzzTests.OpenFallback_LeavesATrustedFirstReadingAlone_AndOtherwiseKeepsTheBetterOfTwoReadings` asserts each of ten fallback branches is reached at least 5 times in 300 randomly seeded iterations; `fallback:second-chosen` came up 3 times once (8 to 12 in four reruns). Keep the oracle as it is; move the reach assertion onto a fixed seed set (as the stream digests do, M57) or a generator that targets each branch, so a miss means the generator changed, never chance | — | H | done (2026-11-09, gated at `818d9011`, 10522 passed; section 5b) |
 | M90 | Re-pin the Spanish lexicon source (found by M36, 2026-11-08; owner, D-game-27 item 8): kaikki's `kaikki.org-dictionary-Spanish.jsonl` changed upstream (now 1,119,672,965 bytes, SHA-256 `336903d1…`), so `scripts/fetch-lexicon-sources.sh` refuses it. Pin the current file with its retrieval date and dump; do not regenerate `content/game-v1/lexicon/` (its sidecar keeps the dump it was built from); `docs/nlp/lexicon.md` says that the committed lexicon and the pinned source may differ until a deliberate regeneration | — | H | done (2026-11-09, folded into M36, gated at `cc5a06a3`; section 5b) |
 | M92 | The silent-h scorer double report (found by M36's gate, 2026-11-09): `PronunciationFuzzTests.SpokenPhrases_ScorePerfectly_OrYieldExactlyTheInjectedPredictedError`, seed `8DQuns3HnRh8` (`CsCheck_Seed`), text "ah humana" (Advanced, Greedy, 3 frames per phone): one `pron.silent_h` injected at offset 1 ("ah"), the scorer reports it there and again at offset 3 (the silent h of "humana", spoken correctly). Fix at the source with the seed as a regression test in the owning module; never narrow oracle O9 | — | S | done (2026-11-09, gated at `27290ff1`, 10535 passed; section 5b) |
+| M93 | A GPL-free text-to-IPA step for the Piper and Kokoro voices (found by M43's spikes R1 and R2, 2026-11-09; research `docs/research/2026-11-09-german-voices.md`): sherpa-onnx 2.x removed espeak-ng and has no phonemizer, so a model speaks only from supplied phonemes. A pack-owned phonemizer (a lexicon from the pack's pronunciation data plus rules, targeting the model's espeak phone set) for German first, then Spanish, would lift D2's blocker on distribution and allow the sherpa-onnx pin to move past 1.13.8 (which today silences Spanish Kokoro). Size it with a spike before committing | M43 | S | proposed (spike first) |
 
 ### Delegation waves
 
@@ -1941,6 +1942,14 @@ merge into a feature branch that is pushed, and the owner merges it into `main` 
   knows only the trailing phrase (M39); `Conjugate` still returns a string (M87's point; separable verbs through `particle()` or a
   richer member, M38). Observation, not M88's: at `lesson-name` "me llamo Ana" and at `lesson-usted` "¿cómo está usted?" come back
   unresolved on the CLI, before and after M88 alike (the CLI has no host name context; not investigated).
+- **M43's spikes R1 and R2, German voices (2026-11-09, Sonnet 5.5 medium; merged at `7dad44a6`, a research note only).** R1:
+  sherpa-onnx 2.0.1 has no phonemizer; Piper `de_DE-thorsten-medium` and `kerstin-low` load without `espeak-ng-data` but text input
+  fails ("no frontend available") unless phonemes or a lexicon are supplied; no espeak code is left in the v2 native library. R2:
+  `DocXAssist/voices` `de/model.onnx` (Kokoro-82M Apache-2.0, kikiri-tts recipe Apache-2.0, Thorsten data CC0) loads in sherpa only
+  after seven metadata entries are added to a copy, and is espeak-based too. Vosk small German WER on 20 A1 lines (95 words): Piper
+  thorsten 4.2% (1.13.8), kerstin 24.2%, Kokoro patched 5.3%; RTF 0.08 Piper, 0.7 Kokoro. **Moving the pin to 2.x silences Spanish
+  Kokoro** (`Generate` returns empty audio, logs "No lexicon available"). Outcome recorded in D-game-27 item 7: Piper thorsten on 1.13.8
+  under D2; M93 is the GPL-free path. Not checked: the data licence of the English checkpoints Piper's German voices were fine-tuned from.
 
 ## 6. Definition of done (every milestone)
 
@@ -2254,7 +2263,7 @@ The research lists seven places that would break silently when a second language
 | M40 | German grammar DSL options and template filters | M38 | S | authorised (2026-11-08); after M88 |
 | M41 | German sample bundle `content/de-v1` (with the LanguageTool step of M30) | M39, M40, M30 | H | authorised (2026-11-08): seeds the game's `content/game-de-v1` (T06), not a separate `content/de-v1` |
 | M42 | German fuzz | M41 | S | authorised (2026-11-08) |
-| M43 | German speech: Vosk `vosk-model-small-de-0.15` (Apache-2.0), a Parakeet v3 test, Piper `thorsten` through sherpa-onnx (private builds, D2, D14) | M35 | H | authorised (2026-11-08): spikes R1 (Piper on sherpa-onnx v2.0.1 without espeak-ng-data) and R2 (a German Kokoro export) first; record D2's outcome |
+| M43 | German speech: Vosk `vosk-model-small-de-0.15` (Apache-2.0), a Parakeet v3 test, Piper `thorsten` through sherpa-onnx (private builds, D2, D14) | M35 | H | authorised (2026-11-08); spikes R1 and R2 done (2026-11-09, section 5b): Piper `thorsten-medium` on the 1.13.8 pin under D2; the GPL-free path is M93 |
 | M44 | Perfekt and its auxiliary, past tense, subordinate clauses, two-way prepositions | M42 | S | proposed |
 | M45 | Compounds and an A2 lexicon | M44 | S | proposed |
 | M46 | German G2P and pronunciation (only if D13 and the GPL-free pin allow) | M45 | S | proposed, conditional |

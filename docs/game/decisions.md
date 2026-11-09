@@ -621,6 +621,13 @@ section 8:
 7. **Voice route** (decision 6): prerendered lines either way. Piper `thorsten` or `kerstin` (MIT model, CC0 data) if spike R1 shows it
    runs on sherpa-onnx without espeak-ng-data; otherwise a German Kokoro export if R2 finds its licence and provenance clean; otherwise
    Piper under D2's private-build terms until the GPL-free path exists. The spikes' outcome is recorded here before T08.
+   **Outcome (2026-11-09, spikes R1 and R2, `docs/research/2026-11-09-german-voices.md`):** the third branch. sherpa-onnx 2.0.1 dropped
+   espeak-ng but has no phonemizer at all: Piper loads and speaks only from phonemes the caller supplies, and the only German text-to-IPA
+   tools are espeak-ng and piper-phonemize (both GPL). The German Kokoro export (`DocXAssist/voices`) has a clean licence chain but needs
+   patched metadata to load and is espeak-based too. So T08 uses Piper `de_DE-thorsten-medium` (Vosk WER 4.2% on 20 lines; `kerstin-low`
+   24%) on the current 1.13.8 pin under D2's private-build terms; the GPL-free path is core M93 (a German text-to-IPA step). The owner
+   listens to the renders in `~/.cache/vocaterra/voice-spikes/renders/` before T08. Also found: moving the pin to 2.x silences the
+   Spanish Kokoro voices (empty audio, no error), so the pin stays until M93 or a Spanish equivalent exists.
 8. **The Spanish lexicon source pin** (found by M36, 2026-11-08: kaikki's Spanish file changed upstream, so a fresh fetch fails its
    pin): re-pin to the current file (core M90); the committed Spanish lexicon is not regenerated, and its sidecar keeps the dump it was
    built from.
