@@ -58,4 +58,20 @@ public class IntentResolverPoliteLadderTests
         // Nothing outside the prompt outranks an allowed ask_help line with the polite phrase.
         Assert.Equal(new IntentId("ask_help"), Resolve("ayuda por favor", LuzWill).Intent);
     }
+
+    [Fact]
+    public void WithEveryIntentAllowedTheAnalysisOfThePromptIsReadByTheSameRule()
+    {
+        // O7's second check: the off-prompt intent is the intent the resolver gives the same analysis with every intent allowed.
+        var bundle = Vocaterra.Nlp.Pipeline.Tests.TestSupport.Bundle;
+        var normalized = bundle.Language.Normalizer.Normalize("yo vendo partos por favor", IntentFixtures.KeepArticles);
+        var grammars = bundle.Intents.Intents.Where(i => LuzWill.Contains(i.Id.Value)).SelectMany(static i => i.Grammars).ToArray();
+        var analysis = new LinguisticAnalyzer(bundle.Lexicon, bundle.LanguageMorphology, bundle.Language, bundle.AnalysisRules).Analyze(normalized, grammars);
+        var prompt = new PromptSpec("p1", RecognitionMode.Constrained, Difficulty.Beginner, "answers", [], null, []);
+
+        var resolution = new IntentResolver(bundle.Intents, bundle.Language, null, null, bundle.AnalysisRules).Resolve(normalized, analysis, prompt);
+
+        Assert.Equal(new IntentId("offer_item"), resolution.Intent);
+        Assert.Equal(IntentRung.Grammar, resolution.Rung);
+    }
 }

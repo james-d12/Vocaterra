@@ -237,11 +237,19 @@ public sealed class IntentResolver
             }
         }
 
+        // M95: the analyzer's own reading is replaced by the rule the prompt's off-prompt pass uses, a grammar that beats it in the rung's order and names more of the
+        // words (OutsideGrammar), so that a line the prompt does not take is read the same way with every intent allowed; with no reading of the analyzer's, the best in
+        // the rung's order wins.
+        var baseline = best;
         foreach (var (intent, grammar) in PlausibleGrammars(facts))
         {
             if (candidates.Contains(intent))
             {
-                best = Better(best, intent, grammar, facts) ?? best;
+                var reading = Better(best, intent, grammar, facts);
+                if (reading is not null && (baseline is null || reading.Score.Named > baseline.Score.Named))
+                {
+                    best = reading;
+                }
             }
         }
 
