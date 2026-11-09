@@ -129,7 +129,7 @@ if (options.Transcript is { } transcript && options.PromptId is { } oneShotPromp
         return ExitUsage;
     }
 
-    VerdictReport.Write(Console.Out, oneShotPrompt, transcript, session.Evaluate(transcript, oneShotPrompt, oneShotTime), bundle.Language.Orthography, session.LastExchange, names.Values);
+    VerdictReport.Write(Console.Out, oneShotPrompt, transcript, session.Evaluate(transcript, oneShotPrompt, oneShotTime), bundle.Language.Orthography, session.Words, session.LastExchange, names.Values);
     return ExitOk;
 }
 
@@ -192,7 +192,7 @@ static int RunLoop(ConversationSession session, string promptId, IEnumerable<str
             continue;
         }
 
-        VerdictReport.Write(Console.Out, promptId, text, session.Evaluate(text, promptId, Now()), bundle.Language.Orthography, session.LastExchange, names);
+        VerdictReport.Write(Console.Out, promptId, text, session.Evaluate(text, promptId, Now()), bundle.Language.Orthography, session.Words, session.LastExchange, names);
         Console.WriteLine();
     }
 }

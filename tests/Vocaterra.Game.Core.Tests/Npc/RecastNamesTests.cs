@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Tests.TestSupport;
 
@@ -9,6 +10,8 @@ namespace Vocaterra.Game.Core.Tests.Npc;
 /// </summary>
 public sealed class RecastNamesTests
 {
+    private static GameWords Words => TestGame.Data.Words;
+
     private static IEnumerable<string> Names => TestGame.Data.Npcs.All.Select(static npc => npc.Name).OfType<string>();
 
     [Theory]
@@ -24,13 +27,23 @@ public sealed class RecastNamesTests
     [InlineData("Claro, «quiero dos panes».", "Claro, «quiero dos panes».")]
     public void ANameIsSpeltAsTheRosterSpellsItUnlessADeterminerComesBefore(string line, string shown)
     {
-        Assert.Equal(shown, RecastNames.Capitalise(line, Names));
+        Assert.Equal(shown, RecastNames.Capitalise(line, Names, Words));
     }
 
     [Fact]
     public void TheNamesComeFromTheRosterNotAList()
     {
-        Assert.Equal("«buscaré madera para luz»", RecastNames.Capitalise("«buscaré madera para luz»", [])); // no roster, no name
-        Assert.Equal("«buscaré madera para Sol»", RecastNames.Capitalise("«buscaré madera para sol»", ["Sol"])); // another village's
+        Assert.Equal("«buscaré madera para luz»", RecastNames.Capitalise("«buscaré madera para luz»", [], Words)); // no roster, no name
+        Assert.Equal("«buscaré madera para Sol»", RecastNames.Capitalise("«buscaré madera para sol»", ["Sol"], Words)); // another village's
+    }
+
+    // T02b: the determiners before a name are the file's (nameDeterminers): der, die and das are German, and a name after them is a noun.
+    [Fact]
+    public void TheDeterminersBeforeANameAreTheFilesOwn()
+    {
+        var german = WordsFile.WithList("nameDeterminers", "der", "die", "das");
+        Assert.Equal("kaufe die luz", RecastNames.Capitalise("kaufe die luz", ["Luz"], german));
+        Assert.Equal("kaufe Luz", RecastNames.Capitalise("kaufe luz", ["Luz"], german));
+        Assert.Equal("kaufe die Luz", RecastNames.Capitalise("kaufe die luz", ["Luz"], Words)); // die is no Spanish determiner
     }
 }

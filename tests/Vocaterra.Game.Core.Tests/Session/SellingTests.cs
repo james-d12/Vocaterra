@@ -2,6 +2,7 @@ using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Lessons;
+using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
@@ -17,6 +18,8 @@ namespace Vocaterra.Game.Core.Tests.Session;
 /// </summary>
 public sealed class SellingTests
 {
+    private static GameWords Words => TestGame.Data.Words;
+
     private const string Paid = "¡Gracias! Aquí tienes tus monedas.";
 
     // A session on the bundle's route, without lessons (a lesson would take the NPC's talk).
@@ -106,11 +109,22 @@ public sealed class SellingTests
     {
         var slots = new Dictionary<string, string>(StringComparer.Ordinal) { ["item"] = "madera" };
 
-        Assert.Equal("1", NpcEffect.CountedSlots(slots, "vendo un bloque de madera")[NpcEffect.QuantitySlot]);
-        Assert.Equal("1", NpcEffect.CountedSlots(slots, "Vendo una fruta.")[NpcEffect.QuantitySlot]);
-        Assert.Same(slots, NpcEffect.CountedSlots(slots, "vendo madera")); // no article, no number: every one the bag holds
+        Assert.Equal("1", NpcEffect.CountedSlots(slots, "vendo un bloque de madera", Words)[NpcEffect.QuantitySlot]);
+        Assert.Equal("1", NpcEffect.CountedSlots(slots, "Vendo una fruta.", Words)[NpcEffect.QuantitySlot]);
+        Assert.Same(slots, NpcEffect.CountedSlots(slots, "vendo madera", Words)); // no article, no number: every one the bag holds
         var three = new Dictionary<string, string>(StringComparer.Ordinal) { ["item"] = "madera", ["qty"] = "3" };
-        Assert.Same(three, NpcEffect.CountedSlots(three, "vendo tres bloques de madera"));
+        Assert.Same(three, NpcEffect.CountedSlots(three, "vendo tres bloques de madera", Words));
+    }
+
+    // T02b: the articles that count one are the file's (quantityArticles): ein is German, and an un before a noun is no count in that list.
+    [Fact]
+    public void TheArticlesThatCountOneAreTheFilesOwn()
+    {
+        var slots = new Dictionary<string, string>(StringComparer.Ordinal) { ["item"] = "brot" };
+        var german = WordsFile.WithList("quantityArticles", "ein", "eine");
+
+        Assert.Equal("1", NpcEffect.CountedSlots(slots, "verkaufe ein Brot", german)[NpcEffect.QuantitySlot]);
+        Assert.Same(slots, NpcEffect.CountedSlots(slots, "vendo un bloque de madera", german));
     }
 
     [Fact]

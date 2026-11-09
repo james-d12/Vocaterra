@@ -14,8 +14,8 @@ public sealed class SpanishLiteralGuardTests
     private static readonly string[] Projects = ["Vocaterra.Game.Core", "Vocaterra.Game", "Vocaterra.Host"];
 
     // The literals the code keeps, by file (relative to src/) and the literal as written (without its quotes, "*" for every literal of the file), each with
-    // the reason. Kept: a phrase id (a key of phrases.json), a log or validator line, the English word yes/no, a JSON key, a locale code. OPEN: a Spanish word
-    // the code still tests, to move into game/words.json (T02, step 2, not done in this milestone); the guard keeps the list from growing.
+    // the reason. Kept: a phrase id (a key of phrases.json), a log or validator line, the English word yes/no, a JSON key, a locale code. T02b moved every
+    // other Spanish word the code tested into game/words.json; an entry added here needs a reason that is not a Spanish word the game tests.
     private static readonly Dictionary<(string File, string Literal), string> Allowed = new()
     {
         [("Vocaterra.Game/Startup/LaunchOptions.cs", "*")] = "the launch options' usage text and examples: a developer's test aids, never a learner's words",
@@ -31,26 +31,6 @@ public sealed class SpanishLiteralGuardTests
         [("Vocaterra.Game.Core/Npc/NpcHostEvents.cs", "gracias")] = "PhraseIds.Thanks: a phrase id (a key of phrases.json)",
         [("Vocaterra.Game.Core/Npc/NpcHostEvents.cs", "ayuda")] = "PhraseIds.Help: a phrase id (a key of phrases.json)",
         [("Vocaterra.Game.Core/Npc/NpcHostEvents.cs", "no")] = "PhraseIds.No: a phrase id (a key of phrases.json)",
-        [("Vocaterra.Game.Core/Npc/NpcHostEvents.cs", "un")] = "OPEN (T02 step 2): the quantity slot's article test, to move into game/words.json",
-        [("Vocaterra.Game.Core/Npc/NpcHostEvents.cs", "una")] = "OPEN (T02 step 2): the quantity slot's article test, to move into game/words.json",
-        [("Vocaterra.Game.Core/Npc/Greeting.cs", "hola")] = "OPEN (T02 step 2): the greeting openings, to move into game/words.json (greeting)",
-        [("Vocaterra.Game.Core/Npc/NpcTurnRules.cs", "tú")] = "OPEN (T02 step 2): the address pronouns, to move into game/words.json",
-        [("Vocaterra.Game.Core/Npc/NpcTurnRules.cs", "usted")] = "OPEN (T02 step 2): the address pronouns, to move into game/words.json",
-        [("Vocaterra.Game.Core/Npc/NpcTurnRules.cs", "ustedes")] = "OPEN (T02 step 2): the address pronouns, to move into game/words.json",
-        [("Vocaterra.Game.Core/Npc/RecastNames.cs", "la")] = "OPEN (T02 step 2): the determiners before a name, to move into game/words.json",
-        [("Vocaterra.Game.Core/Npc/RecastNames.cs", "un")] = "OPEN (T02 step 2): the determiners before a name, to move into game/words.json",
-        [("Vocaterra.Game.Core/Npc/RecastNames.cs", "una")] = "OPEN (T02 step 2): the determiners before a name, to move into game/words.json",
-        [("Vocaterra.Game.Core/Npc/RecastNames.cs", "tu")] = "OPEN (T02 step 2): the determiners before a name, to move into game/words.json",
-        [("Vocaterra.Game.Core/Npc/RecastNames.cs", "tus")] = "OPEN (T02 step 2): the determiners before a name, to move into game/words.json",
-        [("Vocaterra.Game.Core/Npc/Vocative.cs", "de")] = "OPEN (T02 step 2): the binders before a trailing name, to move into game/words.json",
-        [("Vocaterra.Game.Core/Npc/Vocative.cs", "en")] = "OPEN (T02 step 2): the binders before a trailing name, to move into game/words.json",
-        [("Vocaterra.Game.Core/Npc/Vocative.cs", "por")] = "OPEN (T02 step 2): the binders before a trailing name, to move into game/words.json",
-        [("Vocaterra.Game.Core/Npc/Vocative.cs", "la")] = "OPEN (T02 step 2): the binders before a trailing name, to move into game/words.json",
-        [("Vocaterra.Game.Core/Npc/Vocative.cs", "un")] = "OPEN (T02 step 2): the binders before a trailing name, to move into game/words.json",
-        [("Vocaterra.Game.Core/Npc/Vocative.cs", "una")] = "OPEN (T02 step 2): the binders before a trailing name, to move into game/words.json",
-        [("Vocaterra.Game.Core/Npc/Vocative.cs", "tu")] = "OPEN (T02 step 2): the binders before a trailing name, to move into game/words.json",
-        [("Vocaterra.Game.Core/Npc/Vocative.cs", "tus")] = "OPEN (T02 step 2): the binders before a trailing name, to move into game/words.json",
-        [("Vocaterra.Game.Core/Npc/Vocative.cs", "que")] = "OPEN (T02 step 2): the binders before a trailing name, to move into game/words.json",
     };
 
     [Fact]
@@ -103,12 +83,12 @@ public sealed class SpanishLiteralGuardTests
         }
     }
 
-    // The words of the data: each value of game/words.json (the grammar check's list) whole, and each of its letter-runs.
+    // The words of the data: each value of game/words.json (the grammar check's list and the matching lists) whole, and each of its letter-runs.
     private static HashSet<string> DataWords()
     {
         var words = new HashSet<string>(StringComparer.Ordinal);
         var parsed = GameWords.Parse(File.ReadAllText(Path.Combine(Root(), "content", "game-v1", "game", "words.json")));
-        foreach (var (_, text) in parsed.All())
+        foreach (var (_, text) in parsed.All().Concat(parsed.MatchingEntries())) // the matching lists too (T02b): the words a line is read by
         {
             var whole = Normal(text);
             if (whole.Length >= 2)
