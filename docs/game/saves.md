@@ -73,6 +73,16 @@ chest state as optional fields of the entry. Stages and their effects are never 
   No version change; a save before N06 has neither entry (a bush picked in it stays picked).
 - **A load raises no `need_stage` event** for what was saved: the stages are taken as they are.
 
+## The conversation pages (U08)
+
+Each NPC's page of conversation lines (U06) rides in the save, so the panel scrolls back over earlier sessions. `dialoguePages` is an **optional** top-level field (no format
+version: the version stays 7, and every older save and fixture loads with empty pages): a list of `{"npc", "lines": [{"speaker", "text"}]}`, one entry per NPC that has lines, in NPC id
+order, each page at most 200 lines (`DialogueModel.MaxLines`, the newest kept). The field is left out of the file while no NPC has a line. `speaker` is a stable name: `player`,
+`player-spoken`, `note`, `correction`, `accent`, `guide` (the NPC's own reply), `world`, `hint`, `english`; the coaching line is made by the panel and never stored, and a name a build
+does not know is skipped on load. Every write of a save (F6, the end of a run, the autosave, the crash's last-chance save, a night) captures the pages through `SaveService`;
+the game puts them back with `DialogueModel.RestorePages` after a load. What was opened is not saved, so the first talk with an NPC after a load appends its opening to the restored
+page as the new session's greeting. The learner's own lines are also in `learner.history` (the book's "What I said" reads that, not these pages). A page costs about 100 bytes a line.
+
 ## Autosave and the crash report (X05, R04)
 
 The game saves itself at its safe points, and a crash leaves a report instead of losing the session.

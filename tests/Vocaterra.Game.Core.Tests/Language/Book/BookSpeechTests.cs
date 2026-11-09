@@ -1,5 +1,7 @@
+using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Learner;
+using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
@@ -102,7 +104,8 @@ public sealed class BookSpeechTests
         var words = new WordProgress(TestGame.Nouns);
         var none = BookPages.Nouns(TestGame.Data.Locale, words, [], Now, Definite, Sheet.Value, TestGame.Data.Words.Unseen, Committed());
         Assert.All(none.Where(static l => l.Lemma is not null), static l => Assert.Null(l.Speak)); // ¿? rows: nothing is given away
-        Assert.Contains(none, static l => l.Text == TestGame.Data.Words.Unseen);
+        Assert.DoesNotContain(none, static l => l.Text == TestGame.Data.Words.Unseen); // an unmet noun is a grey tile now: no text, no pips, nothing to give away
+        Assert.DoesNotContain(none, static l => l.Lemma is not null); // and no entry at all in a new game
 
         words.MarkHeard("madera");
         var seen = BookPages.Nouns(TestGame.Data.Locale, words, [], Now, Definite, Sheet.Value, TestGame.Data.Words.Unseen, Committed());
@@ -235,6 +238,103 @@ public sealed class BookSpeechTests
         Assert.Equal(["card.madera", "phrase.pedir-agua.slow"], bench.Played());
     }
 
+    // ---- U07: the right page's speaker buttons, the entries' selection and the rows' clicks
+
+    [Fact]
+    public void AClickOnASpeakerButtonOfTheRightPagePlaysItsRecordingNormalOrSlowAndLeavesTheSelectionWhereItWas()
+    {
+        var bench = new Bench(Lines.Value, muted: false, shippedLessons: true);
+        bench.Book.Show(BookPage.Lessons, animate: false);
+        var geometry = new BookGeometry(1280, 720);
+        var before = bench.Book.SelectedIndex(bench.Controls.Lines.Count);
+
+        // The layer says where it drew the buttons (a lesson's phrases are wrapped and scrolled on the right page, so the controls cannot compute them).
+        bench.Book.SetRightButtons(
+        [
+            new BookRightButton(new BookRect(geometry.DetailRight - BookSpeakers.ButtonSize, geometry.ContentTop + 200, BookSpeakers.ButtonSize, BookSpeakers.ButtonSize), "phrase.pedir-agua"),
+            new BookRightButton(new BookRect(geometry.DetailRight - BookSpeakers.ButtonSize, geometry.ContentTop + 219, BookSpeakers.ButtonSize, BookSpeakers.ButtonSize), "card.agua"),
+        ]);
+        var first = bench.Book.RightButtons[0].Rect;
+        var second = bench.Book.RightButtons[1].Rect;
+
+        Assert.True(bench.Controls.Click(geometry, first.X + 3, first.Y + 3, slow: false));
+        Assert.True(bench.Controls.Click(geometry, second.X + 3, second.Y + 3, slow: true));
+        Assert.False(bench.Controls.Click(geometry, first.X - 40, first.Y + 3, slow: false)); // beside the button
+        Assert.False(bench.Controls.Click(geometry, first.X + 3, first.Y + 40, slow: false)); // under it
+        Assert.Equal(["phrase.pedir-agua", "card.agua.slow"], bench.Played());
+        Assert.Equal(before, bench.Book.SelectedIndex(bench.Controls.Lines.Count));
+        Assert.Equal(["speak phrase.pedir-agua", "speak card.agua slow"], bench.Log.Where(static l => l.Contains(" speak ", StringComparison.Ordinal)).Select(static l => l[(l.IndexOf("speak", StringComparison.Ordinal))..]));
+
+        bench.Book.SetRightButtons([]); // the page has none now (another page, or a leaf turning)
+        Assert.False(bench.Controls.Click(geometry, first.X + 3, first.Y + 3, slow: false));
+    }
+
+    [Fact]
+    public void ALessonsPhrasesAreDetailsWithTheirSpeakersAndTheLeftListHasNoSpeakerButton()
+    {
+        var ids = Sheet.Value.Rows.Where(row => Committed().ForPhrase(row.Id) is not null).Take(2).Select(static row => row.Id).ToList();
+        Assert.Equal(2, ids.Count);
+        var done = new LessonRecordRow(
+            "first-words", "First words with Luna", "english", LessonStatus.Completed, 5,
+            [new LessonUnitRow("u1-a", StepOutcome.Done)], 2, 3, 2, 1, 0, ids, "You can greet.", ["u1-a"]);
+        var lines = BookPages.Lessons(TestGame.Data.Locale, [done], Sheet.Value, Committed());
+        var phrases = lines.Where(static l => l.Kind == BookLineKind.Detail && l.Speak is not null).ToList();
+
+        Assert.Equal(ids.Select(id => Committed().ForPhrase(id)), phrases.Select(static l => l.Speak));
+        Assert.All(phrases, static l => Assert.NotNull(l.Aside)); // each with its English
+        var list = BookPages.InListOnly(lines);
+        Assert.Empty(BookSpeakers.Speakable(list)); // none in the left page: the buttons are on the right, with hit tests of their own
+        Assert.Equal([2], BookSpeakers.Selectable(list)); // the all-done note and its gap come first; the one lesson is the entry
+    }
+
+    [Fact]
+    public void EnterPlaysTheSelectedEntrysRecordingAndNothingForAnEntryWithNone()
+    {
+        var bench = new Bench(Lines.Value, muted: false, shippedLessons: true);
+        bench.Book.Show(BookPage.Lessons, animate: false);
+        Assert.False(bench.Controls.Enter(slow: false)); // the lessons' rows have no recording: the selected entry is a lesson
+        Assert.Empty(bench.Played());
+
+        bench.Book.Show(BookPage.Nouns, animate: false);
+        bench.Session.Words.MarkHeard("madera");
+        Assert.True(bench.Controls.Enter(slow: false)); // the only entry is madera
+        Assert.Equal(["card.madera"], bench.Played());
+    }
+
+    [Fact]
+    public void AClickOnAnEntrysRowSelectsItAndAClickOnASectionOrAGapDoesNot()
+    {
+        var bench = new Bench(Lines.Value, muted: true, shippedLessons: true);
+        bench.Book.Show(BookPage.Nouns, animate: false);
+        bench.Session.Words.MarkHeard("agua");
+        bench.Session.Words.MarkHeard("madera");
+        var geometry = new BookGeometry(1280, 720);
+        var lines = bench.Controls.Lines;
+        Assert.Equal(BookLineKind.Section, lines[0].Kind);
+
+        Assert.False(bench.Controls.ClickRow(geometry, geometry.ContentLeft + 4, geometry.ContentTop + 2)); // the band
+        Assert.True(bench.Controls.ClickRow(geometry, geometry.ContentLeft + 4, geometry.ContentTop + BookGeometry.LineHeight + 2)); // the first entry
+        Assert.Equal(0, bench.Book.SelectedIndex(2));
+        Assert.True(bench.Controls.ClickRow(geometry, geometry.ContentLeft + 4, geometry.ContentTop + (2 * BookGeometry.LineHeight) + 2));
+        Assert.Equal(1, bench.Book.SelectedIndex(2));
+        Assert.False(bench.Controls.ClickRow(geometry, geometry.ContentLeft + 4, geometry.ContentTop + (3 * BookGeometry.LineHeight) + 2)); // the gap
+    }
+
+    [Fact]
+    public void TheButtonsOfTheListsRowsAfterASectionAreWhereTheirRowsAre()
+    {
+        var bench = new Bench(Lines.Value, muted: true);
+        bench.Session.Words.MarkHeard("agua");
+        bench.Book.Show(BookPage.Nouns, animate: false);
+        var geometry = new BookGeometry(1280, 720);
+        var lines = bench.Controls.Lines;
+        var agua = lines.ToList().FindIndex(static l => l.Lemma == "agua");
+        Assert.Equal(1, agua); // under the Learning band: a section is one row
+        var button = BookSpeakers.ButtonRect(geometry, geometry.ContentTop + (agua * BookGeometry.LineHeight));
+        Assert.True(bench.Controls.Click(geometry, button.X + 2, button.Y + 2, slow: false));
+        Assert.Equal(0, bench.Book.SelectedIndex(1));
+    }
+
     // ---- "Practise again" (S26)
 
     [Fact]
@@ -254,7 +354,7 @@ public sealed class BookSpeechTests
         var lines = bench.Controls.Lines;
         var heading = lines.Select((line, index) => (line, index)).Single(static x => x.line.Practise is not null);
         Assert.Equal("first-words", heading.line.Practise);
-        Assert.Equal("Welcome: first words with Luna", heading.line.Text);
+        Assert.Equal("Welcome", heading.line.Text); // the short title: the lessons page lists one row per lesson
         Assert.Single(lines, static l => l.Practise is not null); // Personas is not completed
 
         var geometry = new BookGeometry(1280, 720);

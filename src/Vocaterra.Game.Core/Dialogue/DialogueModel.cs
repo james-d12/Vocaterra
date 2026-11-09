@@ -16,10 +16,12 @@ namespace Vocaterra.Game.Core.Dialogue;
 /// </summary>
 public sealed class DialogueModel
 {
-    /// <summary>How many lines are kept; older ones are dropped.</summary>
-    public const int MaxLines = 60;
+    /// <summary>How many lines each NPC's page keeps (U06); older ones are dropped.</summary>
+    public const int MaxLines = 200;
 
-    private readonly List<DialogueLine> _lines = [];
+    // One page of lines per NPC id (U06), plain lists a later save (U08) can write; _lines is the open NPC's page.
+    private readonly Dictionary<string, List<DialogueLine>> _pages = new(StringComparer.Ordinal);
+    private List<DialogueLine> _lines = [];
     private readonly InputFocus _focus;
     private readonly string _openingLine;
     private readonly HashSet<string> _opened = new(StringComparer.Ordinal);
@@ -81,6 +83,9 @@ public sealed class DialogueModel
 
     /// <summary>The lines so far, oldest first.</summary>
     public IReadOnlyList<DialogueLine> Lines => _lines;
+
+    /// <summary>The kept pages, one list of lines per NPC id (U06), for a later save (U08).</summary>
+    public IReadOnlyDictionary<string, List<DialogueLine>> Pages => _pages;
 
     /// <summary>The last turn the guide took, or <see langword="null"/>.</summary>
     public GuideTurn? LastTurn { get; private set; }
@@ -277,7 +282,7 @@ public sealed class DialogueModel
 
     /// <summary>
     /// Opens the panel on an NPC (S6) and gives it the keyboard. The NPC's lines are added when they came from a core host turn (every time) or
-    /// when it is the first talk with this NPC or the page is empty (the prompt's text); a talk with another NPC than the last starts a clean page. The guide's review
+    /// when it is the first talk with this NPC or the page is empty (the prompt's text); each NPC keeps its own page (U06), so a talk with another NPC than the last shows that NPC's earlier lines. The guide's review
     /// question, when she asks one, follows her opening.
     /// </summary>
     /// <param name="opening">What the NPC says first (<c>GuideSession.OpenTalk</c>).</param>
@@ -336,12 +341,41 @@ public sealed class DialogueModel
         }
     }
 
-    // A talk with another NPC than the last one starts on a clean page.
+    /// <summary>
+    /// Puts the NPCs' pages of a save back (U08), replacing every page: a name of a speaker this build does not know is skipped, and a page keeps its newest
+    /// <see cref="MaxLines"/> lines. A <see langword="null"/> save leaves the pages empty. The first talk with an NPC after this still opens as a new session's
+    /// greeting (what was opened is not saved).
+    /// </summary>
+    /// <param name="pages">The saved pages, or <see langword="null"/> for a save without them.</param>
+    public void RestorePages(IReadOnlyList<Save.DialoguePageSave>? pages)
+    {
+        _pages.Clear();
+        _lines = [];
+        foreach (var saved in pages ?? [])
+        {
+            var page = new List<DialogueLine>();
+            foreach (var line in saved.Lines)
+            {
+                if (Save.DialoguePageSave.SpeakerOf(line.Speaker) is { } speaker)
+                {
+                    page.Add(new DialogueLine(speaker, line.Text));
+                }
+            }
+
+            if (page.Count > MaxLines)
+            {
+                page.RemoveRange(0, page.Count - MaxLines);
+            }
+
+            _pages[saved.Npc] = page;
+        }
+    }
+
+    // A talk with another NPC than the last one switches to that NPC's page; what belongs to the last exchange resets.
     private void SwitchTo(string npc, string displayName)
     {
         if (!string.Equals(Npc, npc, StringComparison.Ordinal))
         {
-            _lines.Clear();
             Heard = null;
             Choices = [];
             HighlightedLine = -1;
@@ -349,6 +383,13 @@ public sealed class DialogueModel
             CoachingLine = null;
         }
 
+        if (!_pages.TryGetValue(npc, out var page))
+        {
+            page = [];
+            _pages[npc] = page;
+        }
+
+        _lines = page;
         Expanded = false; // each opening starts on the current exchange only (U02)
         Npc = npc;
         NpcName = displayName;

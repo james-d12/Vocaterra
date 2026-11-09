@@ -399,6 +399,94 @@ After U02 come W05 to W08 and W10 (activities-plan section 5; design section 10)
 listening (decision 2). Since 2026-11-06 W05 to W07 are built on `feature/bread-pilot` while the owner runs the needs check
 (D-game-23, owner's answers of 2026-11-06).
 
+### 4.10 The conversation panel and the book (GitHub issues #5, #6 and #7; U05 to U08; owner, 2026-11-08)
+
+The owner filed three UI issues and asked for them to be investigated and planned on a worktree from `main` (2026-11-08): #6 the NPC's
+name in the conversation panel is too small, #5 the conversation panel should scroll through the whole history, #7 the book has no visual
+hierarchy. The handover of 2026-11-05 left "a visual redesign of the look (… the book …)" unplanned; the issues make it planned work. U03
+and U04 stay reserved for the design document's presentation track (section 18), so these are U05 to U08. Branch `feature/ui-issues`
+(from `main` at `ca4b69c8`), one milestone branch each, gated into it; commit prefixes `U05:` to `U08:`. The scripted-run pictures that show
+the panel or the book will change; re-record them and say which in the report.
+
+| ID | What | Depends on | Size | Model | Status |
+| --- | --- | --- | --- | --- | --- |
+| U05 | The NPC's name as the panel's title (#6): the name at 32 px, the lesson heading moved off its line, the "Guía: " prefix dropped from the NPC's lines; 16 px in the compact panel | | S | Sonnet 5.5 medium | done (2026-11-08, gated at `1f56f6b9`, 10402 passed) |
+| U06 | The panel scrolls (#5, step 1): the mouse wheel opens and scrolls the older lines, a scrollbar while lines are out of view, one page per NPC | U05 | S/M | Sonnet 5.5 medium | done (2026-11-08, gated at `dfbb778f`, 10419 passed) |
+| U07 | The book's hierarchy (#7): line kinds, a type and ink scale, one row per entry with the details on the right page, each page's layout; a mockup for the owner first | | M/L | Sonnet 5.5 high | done (2026-11-08, gated at `da52f055`, 10453 passed; the owner's answers D-game-28) |
+| U08 | The conversation history kept in the save (#5, step 2): each NPC's lines saved, capped per NPC, shown again after a restart | U06 | M | Sonnet 5.5 medium | done (2026-11-08, merged at `f87776bb`; its gate failed on a core fuzz seed found before U08, fixed by core M91; gated with M91 at `6275653f`, 10431 passed) |
+
+**One branch and one pull request** (owner, 2026-11-08): U05 to U08 all land on `feature/ui-issues` and in PR #47, which closes #5, #6 and #7.
+
+**Order:** U05, U06, then U07 (its mockup can start at once, it touches other files), then U08.
+
+**What the investigation found (2026-11-08, at `ca4b69c8`).**
+
+- **#6, the name.** `DialoguePanel.Draw` (`src/Vocaterra.Game/UI/Dialogue/DialoguePanel.cs`) draws `DialogueModel.NpcName` in the body's font
+  (`FontProvider.NativeSize`, 16 px), and `DrawLessonHeading` puts the lesson's heading beside it in the brighter `HintColor` at the same
+  size, so the heading takes the eye. Every NPC line repeats the name as a prefix ("Guía: ") at the same weight, so the title is not set
+  apart from the lines under it. `DialogueLayout` places the lines at a fixed `Panel.Y + 8 + LineHeight + 6`, with no header height of its own.
+- **#5, the history.** The history exists but is short and hidden. `DialogueModel` keeps the last 60 lines (`MaxLines`), in memory only;
+  `SwitchTo` clears them when the learner talks to another NPC; nothing is saved. The panel opens on the current exchange (U02); PageUp or O
+  shows the older lines and Up and Down scroll them (U02b). `DialogueScreen` does not read `input.Wheel` (the book's `BookScreen` does), and
+  there is no scrollbar. The only sign of the older lines is the row "N earlier lines hidden (PageUp or O)", and `PanelFitter` drops it first
+  when room is short, so in the issue's picture (with the developer note on) nothing shows that more lines exist.
+- **#5, the storage the issue asks about.** No database is needed. The save is one JSON document (`SaveDocument`); it already keeps every
+  line the learner said, uncapped (`LearnerRecordSave.History`, `InputEntry`: session, stored time, text, NPC, prompt, intent, errors), which
+  the book's "What I said" reads. Only the NPC's side is missing, a few kilobytes per NPC. SQLite would be a native package (the
+  `Game.Core` references none; `ArchitectureRulesTests` gate it) and a second persistence path beside the one save file. If an uncapped log is
+  ever wanted, an append-only `.jsonl` file beside the save is the next step, still not SQLite.
+- **#7, the book.** Every list row is 16 px text on one fixed 19 px grid (`BookGeometry.LineHeight`; the scroll, the selection and the
+  speaker and practise buttons' hit tests count in rows). The page's title, the entries and their count rows look alike. The five
+  `BookTone` inks are all browns on cream: `InkHint` (104,90,74) and `InkUnseen` (108,92,72) are almost the same, and `InkKnown` (116,70,6)
+  is lighter than `Ink` (44,32,26), so a known word reads weaker than one being learnt. Each entry carries a count row ("heard 1 read 3
+  said 0 correct 0") as heavy as the word, also for words not met (four zeros). `BookPages.Phrases` adds no `BookLine.Gap`, so the
+  phrases page is 92 rows without a break. The lessons list writes out every unit and phrase of every lesson; "What I said" repeats
+  "session 1" on each entry and cuts the feedback with "…". The font is PixelOperator (`assets/fonts/pixel-operator`), sharp only at whole
+  multiples of 16 px, so the scale is 16 and 32, and the rest of the hierarchy comes from ink, spacing and less text.
+
+**U05, the NPC's name as the panel's title (#6).**
+
+- The name at 32 px (`FontProvider.NativeSize * 2`, as the book's titles), in `NameColor`, with a rule under it.
+- `DialogueLayout.HeaderHeight`, used by the lines' top, the status and the lesson heading; the layout tests at every UI scale and at
+  800 x 600 still hold (the current exchange fits, U02b).
+- The lesson heading on a second header line, or right-aligned in the muted colour; it no longer competes with the name.
+- The NPC's lines lose the "Name: " prefix; colour and the English under them already say whose they are. The learner's "You: " stays.
+- In the compact panel (`CompactBelow`) the name stays at 16 px so the few rows are kept.
+- Tests: the layout's header for both sizes; the lines' prefixes; the hit tests of the buttons unchanged.
+
+**U06, the panel scrolls (#5, step 1).**
+
+- The wheel in `DialogueScreen`, as in `BookScreen`: up expands the page (as PageUp) and scrolls towards older lines; down scrolls back, and
+  at the newest line collapses to the current exchange. PageUp, O, Up and Down keep working (D-game-9: every route by key).
+- A thin scrollbar at the right of the lines while lines are out of view, in place of the hidden-lines row that `PanelFitter` drops for room.
+- One page per NPC (a dictionary of line lists in `DialogueModel`), so talking to the baker keeps Luna's page; `MaxLines` per NPC, raised to
+  200.
+- Tests in `Game.Core`: wheel to expand and back, one page per NPC, the scrollbar's thumb from the fit.
+
+**U07, the book's hierarchy (#7).**
+
+- **First a mockup** of the five pages for the owner (a picture or an artifact), before the build; the owner's answers are D-game-28
+  (2026-11-08).
+- **Line kinds:** `BookLineKind` (Section, Entry, Meta, Gap) on `BookLine` in `Game.Core`, set by `BookPages`; the layer picks font, ink and
+  spacing from the kind, not from tone and indent. A Section takes two grid rows, so the row-based scroll and hit tests stay.
+- **Scale and ink:** the page title at 32 px with the page's ribbon colour as accent; entries in the darkest ink; meta clearly lighter and
+  not the unseen colour; known items strongest, unseen faded. The `UiPalette` contrast checks stay and cover the new inks.
+- **One row per entry:** icon, word, pips or lamps, speaker button. The counts move to the right page, which already shows the selected
+  item; no zero counts for items not met.
+- **Per page:** Nouns in sections Known, Learning, Not met yet, the unmet ones as a row of icons. Phrases with Spanish dark and English
+  light, the "help: …" text dropped (the lamps say it, with a key), a gap or a group per lesson. Lessons one row each (title, progress,
+  state), the current one marked; units and phrases on the right page. What I said grouped under a heading per session, the outcome as a
+  coloured mark (understood, small mistake, not understood) with the full feedback on the right page. Verbs: the legend as swatches.
+- Tests: `BookPages` emits the kinds; the spread and scale layout tests (`BookSpreadTests`, `UiScaleLayoutTests`); the speech and practise
+  buttons' hit tests.
+
+**U08, the conversation history kept in the save (#5, step 2).**
+
+- Each NPC's page in the save (an optional map in `SaveDocument`, NPC to its last 200 lines with their speaker kind); restored on load,
+  so the panel scrolls back over earlier sessions. Old saves need not load (the game is unreleased; no migration).
+- The save fixtures re-recorded; `docs/game/saves.md` updated.
+- Tests: round trip, the cap, an NPC's page after a reload.
+
 ## 5. Findings log
 
 Facts that shape the plan. Each one names its source; the core's own findings stay in the core's plan.
@@ -2516,6 +2604,44 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   the scene digest is `b699324f…`, save fixtures' state digests re-recorded. `WaterEdgesAreExitableTests` holds the world at 0 edges
   (exempt: bridge floors, the river staircase's two steps). Scripted runs: 13 differ, all from the world (digests, a teleport landing 1
   lower, r27's walk 38 turns instead of 36 at the same tick); new run `r31-lake`. Report `.claude/briefs/h12-report.md`.
+- **U05, the NPC's name as the panel's title (2026-11-08, Sonnet 5.5 medium; gated at `1f56f6b9` on `feature/ui-issues`, 10402 passed, 3
+  skipped; GitHub issue #6).** `DialogueLayout.Header` (46 px, 34 compact; `HeaderHeightFor`) places the lines; `DialoguePanel` draws the name
+  at 32 px (16 px compact) with the rule under it, the lesson heading beside it in the muted colour, and `LinePrefix` gives the NPC's lines no
+  `Name:` prefix (the learner's and the English keep theirs). Nothing depended on the prefix. 800 x 600 keeps 6 rows of conversation. Scripted
+  runs: stdout and digests identical in all 28; pictures differ only in `r27-bread` (`offer.png`) and `r30-no-classes` (`offer.png`,
+  `declined.png`, `paid.png`), the header. The orchestrator fixed one spliced sentence in `running.md`. 7 tests in `PanelTitleTests`.
+
+- **U06, the conversation panel scrolls (2026-11-08, Sonnet 5.5 medium; gated at `dfbb778f` on `feature/ui-issues`, 10419 passed, 3
+  skipped; GitHub issue #5, step 1).** `DialogueScreen` reads the wheel (120 units a notch, in every state, typing included): up expands
+  and scrolls older, down scrolls newer and at the newest collapses. `PanelScrollbar.For` (Core) gives the thumb from the fit;
+  `DialoguePanel` draws a 4 px bar that shows even when `PanelFitter` drops the hidden-lines rows. `DialogueModel` keeps a page per NPC
+  (`Pages`, `MaxLines` 200 a page): a talk with another NPC no longer clears the last one's lines, and coming back shows them (the
+  opening is not re-added to a page that has lines). Hint strings name the wheel (`content/locale`, manifest refreshed). The hotbar needed
+  no change: `WorldInput.Read` gets `uiOpen` from `ScreenStack.FreesMouse`. New scripted step `--scroll N`. Scripted runs: stdout and
+  digests identical; only `r30-no-classes` `declined.png` differs, the picture W05 found unstable between captures of one build.
+- **U08, the conversation history kept in the save (2026-11-08, Sonnet 5.5 medium; merged at `f87776bb` on `feature/ui-issues`, gated with
+  core M91 at `6275653f`, 10431 passed, 3 skipped; GitHub issue #5, step 2).** No SQLite: `SaveDocument.DialoguePages` (optional, save
+  version stays 7, no fixture re-recorded) holds each NPC's page (`DialoguePageSave`: the NPC id and its lines, the speaker kind as a pinned
+  stable name; the coaching line not stored; `MaxLines` 200 a page). `SaveService` captures the pages on every save (F6, autosave, the end
+  of a run, the crash save, the night); `Program.cs` hands a loaded save's pages to `VoxelGame`, which calls `DialogueModel.RestorePages`
+  (unknown speaker names skipped). The first talk with an NPC after a load appends its opening to the restored page as the new session's
+  greeting (what was opened is not saved). A check run: the earlier session's lines show above the new greeting after a load; the save
+  grew by 619 bytes. 7 tests in `DialoguePagesSaveTests`. Scripted runs: only `r20-sleep`, `r27-bread`, `r30-no-classes` differ, by the
+  new field in `game.save` and the save's byte counts in the log lines. **Its gate failed** on core fuzz O4, seed `3m67O5Rpuya2`; the
+  same seed failed on the code before U08, so the finding went to core M91 and U08 was pushed after M91's gate.
+- **U07, the book's hierarchy (2026-11-08, Sonnet 5.5 high; gated at `da52f055` on `feature/ui-issues`, 10453 passed, 3 skipped;
+  GitHub issue #7; the mockup "Book Hierarchy Mockup" and D-game-28).** `BookLineKind` (Section, Entry, Meta, Gap, Tiles, Detail) with
+  `BookDetailRole`, `BookMark`, `BookStat` and `BookRightButton` in Core; `BookPages` builds every page in sections with one entry row each
+  and the counts, forms, units, phrases and feedback as `Detail` lines for the right page (`ListFor` drops them, `BlockOf` reads them).
+  `UiPalette`: `InkMeta` replaces `InkHint`; `BandMuted` and the three outcome marks, all in `TextPairs`. `BookGeometry`: title 36, rule 72,
+  content 80 (28 rows at 1200 x 720, 22 at 800 x 600, one fewer each). `BookLayer` draws by kind: the 32 px title in the ribbon's colour,
+  bands, tiles, the accent edge of the selection, the double strike only where D-game-28 allows. The right page's speaker buttons are
+  reported by the layer each frame (`BookModel.RightButtons`) and hit-tested in Core; selection and Enter count entries, so Lessons and What
+  I said rows are selectable (`ClickVerb` became `ClickRow`). 44 strings in `content/locale/en/ui.json`. Departures from the spec: the
+  table header stays 34 px; a lesson's wait text is its row's aside; at 150 % text in a small window a row with a button keeps 40 px for its
+  title (as before). Seen: a phrase's "with help" count can be fractional ("0.5", `PhraseProgress.Uses`, half credit; the old counts row
+  showed the same). Scripted runs: stdout and digests identical; pictures differ only where the book shows (r04, r05, r16, r20, r21, r23,
+  r30). The decision was first written as D-game-27 and renumbered: `feature/german` and `feature/hand-in-speech` took D-game-27 the same day.
 
 ## 6. Definition of done (every milestone)
 

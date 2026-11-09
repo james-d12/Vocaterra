@@ -149,6 +149,13 @@ public sealed class BookModel
         }
     }
 
+    /// <summary>The speaker buttons the right page drew in its last frame (U07), for the mouse: empty when the page has none.</summary>
+    public IReadOnlyList<BookRightButton> RightButtons { get; private set; } = [];
+
+    /// <summary>Records where the right page's speaker buttons are this frame (the layer calls it every frame; a page with none passes an empty list).</summary>
+    /// <param name="buttons">The buttons, as drawn.</param>
+    public void SetRightButtons(IReadOnlyList<BookRightButton> buttons) => RightButtons = buttons ?? throw new ArgumentNullException(nameof(buttons));
+
     /// <summary>Keeps the right page's scroll inside its detail, once the layer knows how tall the detail is and how much of the page it shows.</summary>
     /// <param name="content">The detail's height, in pixels.</param>
     /// <param name="view">The height of the page's writing, in pixels.</param>

@@ -623,6 +623,19 @@ and the answer set `order-receive`, a `receiving` state in each order NPC's agen
 an order"), and `GuideSession.HandOver.cs`, which checks the line names one of the order's nouns before it raises `<npc>.delivered`
 (the thanks and the reward, as the walk-up did). The validator checks each `handOver` order (`GameDataValidator.CheckHandOver`).
 
+## D-game-28: the book's hierarchy (decided, 2026-11-08)
+
+*Numbered D-game-28 because `feature/german` and `feature/hand-in-speech` each took D-game-27 the same day; first recorded here as D-game-27, renumbered before the pull request.*
+
+**Owner, 2026-11-08,** on the U07 mockup (GitHub issue #7; the artifact "Book Hierarchy Mockup", spec `.claude/briefs/u07-book-spec-draft.md`;
+plan section 4.10): "Go with the recommendations." The three questions and the answers:
+1. **Double strike** (the pixel font's only bolder weight: the text drawn twice, 1 px apart): **on, in a few places only**: known entries,
+   the right page's section labels ("What you did", "Units", "Phrases", "Feedback") and the next lesson's line. Never running text.
+2. **A lesson's phrases move to the right page** with their speaker buttons; the left list keeps one row per lesson. The right page gets
+   the speaker buttons' hit tests; the keys still reach every recording from the Phrases page.
+3. **The Phrases page is grouped by help** (Without help, With help, Not met yet), not by lesson: a phrase row carries no lesson, and the
+   Lessons page's right page already lists each lesson's phrases.
+
 ## Already decided
 
 - **The core by project reference** (D-game-7; until 2026-10-21 "packages only" from a submodule's local feed). The game never copies core
