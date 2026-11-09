@@ -27,8 +27,10 @@ public sealed class IntentDefinition
         IReadOnlyList<KeywordRule> keywordRules,
         IReadOnlyList<IntentExample> exampleSpecs,
         IReadOnlyList<DeclaredSlot> declaredSlots,
-        IntentLintWaivers? lint = null)
+        IntentLintWaivers? lint = null,
+        string? order = null)
     {
+        Order = order;
         Id = id;
         RequiredSlots = requiredSlots;
         Grammars = grammars;
@@ -59,6 +61,12 @@ public sealed class IntentDefinition
 
     /// <summary>The lint waivers the intent declares; <see cref="IntentLintWaivers.None"/> when it has none. The resolver ignores them.</summary>
     public IntentLintWaivers Lint { get; }
+
+    /// <summary>
+    /// The word order the intent's grammar declares (<c>order: "v2"</c>, M88), or null for the order the patterns are written in. The loader only records it; the
+    /// expansion of a V2 grammar into the orders it allows is M40's.
+    /// </summary>
+    public string? Order { get; }
 
     /// <summary>Every slot the intent declares (rules, grammars, required slots), ordinal-sorted, with the kind that fills it.</summary>
     internal IReadOnlyList<DeclaredSlot> DeclaredSlots { get; }

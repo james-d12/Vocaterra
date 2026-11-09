@@ -39,4 +39,44 @@ public interface ITemplateFunctions
     /// <param name="number">The number.</param>
     /// <param name="singular">The singular form of the noun.</param>
     string Article(Definiteness definiteness, string gender, string number, string singular);
+
+    /// <summary>
+    /// The article that goes with a noun, agreeing in gender, number and grammatical case (M88, additive). A null case is the pack's default and gives the article
+    /// of the overload without a case; the default implementation throws <see cref="NotSupportedException"/> for any other case.
+    /// </summary>
+    /// <param name="definiteness">Definite or indefinite.</param>
+    /// <param name="gender">The gender from <see cref="GenderOf"/>.</param>
+    /// <param name="number">The number.</param>
+    /// <param name="singular">The singular form of the noun.</param>
+    /// <param name="grammaticalCase">The case id, a value of <see cref="ILanguagePack.GrammaticalCases"/>, or null for the default.</param>
+    string Article(Definiteness definiteness, string gender, string number, string singular, string? grammaticalCase) =>
+        grammaticalCase is null
+            ? Article(definiteness, gender, number, singular)
+            : throw new NotSupportedException($"This language has no grammatical case; article() cannot take '{grammaticalCase}'.");
+
+    /// <summary>True when <see cref="DeclineAdjective"/> works: the template filter <c>decl(gender,number,case[,def|indef])</c> is available (M88, gap 5). The default is false.</summary>
+    bool SupportsAdjectiveDeclension => false;
+
+    /// <summary>
+    /// The adjective with the ending that agrees in gender, number and case, and with the kind of article before it (German <c>gut</c> to <c>guten</c>; M88, gap 5). The
+    /// default implementation throws <see cref="NotSupportedException"/>; the template engine reports "not supported by this language" before it calls this when
+    /// <see cref="SupportsAdjectiveDeclension"/> is false.
+    /// </summary>
+    /// <param name="adjective">The adjective lemma, as the slot holds it.</param>
+    /// <param name="gender">The gender.</param>
+    /// <param name="number">The number.</param>
+    /// <param name="grammaticalCase">The case id.</param>
+    /// <param name="articleKind">The article before the adjective (definite, indefinite), or null when there is none.</param>
+    string DeclineAdjective(string adjective, string gender, string number, string grammaticalCase, Definiteness? articleKind) =>
+        throw new NotSupportedException("decl() is not supported by this language.");
+
+    /// <summary>True when <see cref="SeparableParticle"/> works: the template filter <c>particle</c> is available (M88, gap 5). The default is false.</summary>
+    bool SupportsSeparableParticle => false;
+
+    /// <summary>
+    /// The separable particle of a verb lemma (German <c>anrufen</c> gives <c>an</c>), or null when the verb has none (M88, gap 5). The default implementation throws
+    /// <see cref="NotSupportedException"/>; the template engine reports "not supported by this language" first when <see cref="SupportsSeparableParticle"/> is false.
+    /// </summary>
+    /// <param name="verbLemma">The verb lemma.</param>
+    string? SeparableParticle(string verbLemma) => throw new NotSupportedException("particle() is not supported by this language.");
 }

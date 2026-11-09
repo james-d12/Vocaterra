@@ -117,8 +117,24 @@ public static class SlotGrammarMatcher
             nodes.Add(new OptionalNode(new DefaultSubjectNode()));
         }
 
-        nodes.AddRange(grammar.Nodes);
-        if (defaults.TrailingPoliteWords.Count > 0)
+        var polite = defaults.TrailingPoliteWords.Count > 0 ? defaults.PolitePositions : PolitePositions.None;
+        if (polite.HasFlag(PolitePositions.Leading))
+        {
+            nodes.Add(new OptionalNode(new DefaultPoliteNode()));
+        }
+
+        var afterVerb = polite.HasFlag(PolitePositions.AfterFiniteVerb);
+        foreach (var node in grammar.Nodes)
+        {
+            nodes.Add(node);
+            if (afterVerb && node is TypedNode { Pos: LexiconSchema.Verb })
+            {
+                nodes.Add(new OptionalNode(new DefaultPoliteNode()));
+                afterVerb = false;
+            }
+        }
+
+        if (polite.HasFlag(PolitePositions.Trailing))
         {
             nodes.Add(new OptionalNode(new DefaultPoliteNode()));
         }
@@ -451,7 +467,7 @@ internal sealed class TokenFacts
     public bool CanMatch(SlotGrammar grammar)
     {
         var defaults = Language.GrammarDefaults;
-        var extra = (defaults.OptionalSubjectPronoun ? 1 : 0) + defaults.TrailingPoliteWords.Count;
+        var extra = (defaults.OptionalSubjectPronoun ? 1 : 0) + defaults.MaxPoliteTokens;
         if (_snapshot.Length < grammar.MinTokens || _snapshot.Length > grammar.MaxTokens + extra)
         {
             return false;

@@ -61,6 +61,19 @@ public interface INumberWords
     /// <param name="words">The number spelled by <see cref="ToWords"/>.</param>
     /// <param name="gender">The gender of the noun, <c>m</c> or <c>f</c>.</param>
     string Agree(string words, string gender);
+
+    /// <summary>
+    /// Makes a spelled number agree with the gender and the grammatical case of the noun it quantifies (M88, additive: German <c>ein</c>, <c>eine</c>, <c>einen</c>,
+    /// <c>einem</c>; the gender may then also be <c>n</c>). A null case is the pack's default and gives the result of the overload without a case. The default
+    /// implementation throws <see cref="NotSupportedException"/> for any other case.
+    /// </summary>
+    /// <param name="words">The number spelled by <see cref="ToWords"/>.</param>
+    /// <param name="gender">The gender of the noun.</param>
+    /// <param name="grammaticalCase">The case id, a value of <see cref="ILanguagePack.GrammaticalCases"/>, or null for the default.</param>
+    string Agree(string words, string gender, string? grammaticalCase) =>
+        grammaticalCase is null
+            ? Agree(words, gender)
+            : throw new NotSupportedException($"This language has no grammatical case; words() cannot take '{grammaticalCase}'.");
 }
 
 /// <summary>A sound-alike key: words that sound alike share a key.</summary>
@@ -84,6 +97,18 @@ public interface IRecastPolicy
     /// <param name="analysis">The analysis of that text.</param>
     /// <param name="lexicon">The lexicon the words are looked up in.</param>
     IReadOnlyDictionary<int, string> RestoredSpellings(NormalizedText text, AnalysisResult analysis, Lexicon.Lexicon lexicon);
+
+    /// <summary>
+    /// The restored capitals of the player's words, keyed by the span start of the token (M88, additive; German: nouns, the formal <c>Sie</c> and the first word of a
+    /// sentence). The normalized text is lower case, so the policy decides from the resolved reading of each word and may read <see cref="Token.Original"/>. The value
+    /// is the whole spelling of the token (capital and any mark restored with it). The builder applies it the way it applies <see cref="RestoredSpellings"/>: over no error
+    /// edit and over no spelling already restored. The default is no capital, which is the Spanish recast.
+    /// </summary>
+    /// <param name="text">The normalized text of the player.</param>
+    /// <param name="analysis">The analysis of that text.</param>
+    /// <param name="lexicon">The lexicon the words are looked up in.</param>
+    IReadOnlyDictionary<int, string> RestoredCapitals(NormalizedText text, AnalysisResult analysis, Lexicon.Lexicon lexicon) =>
+        new Dictionary<int, string>();
 }
 
 /// <summary>
@@ -120,8 +145,37 @@ public interface IG2p
 /// <summary>The implicit optional parts every slot grammar of a language allows.</summary>
 /// <param name="OptionalSubjectPronoun">True when a grammar may be preceded by an explicit subject pronoun it does not list.</param>
 /// <param name="SubjectPronouns">The subject pronoun lemmas, in the order the language lists them.</param>
-/// <param name="TrailingPoliteWords">The words of the optional trailing polite phrase (Spanish: <c>por</c>, <c>favor</c>); empty when there is none.</param>
-public sealed record GrammarDefaults(bool OptionalSubjectPronoun, IReadOnlyList<string> SubjectPronouns, IReadOnlyList<string> TrailingPoliteWords);
+/// <param name="TrailingPoliteWords">The words of the optional polite phrase (Spanish: <c>por</c>, <c>favor</c>), which <paramref name="PolitePositions"/> places; empty when there is none. The name is from when the phrase could only trail.</param>
+/// <param name="PolitePositions">Where a grammar allows the polite phrase (M88, additive); the default is trailing only, which is Spanish.</param>
+public sealed record GrammarDefaults(
+    bool OptionalSubjectPronoun,
+    IReadOnlyList<string> SubjectPronouns,
+    IReadOnlyList<string> TrailingPoliteWords,
+    PolitePositions PolitePositions = PolitePositions.Trailing)
+{
+    /// <summary>
+    /// The most tokens the optional polite phrase can add to a match: its words once for every position <see cref="PolitePositions"/> names (a bound for the
+    /// matcher's quick checks; the matcher takes the phrase at most once in each position).
+    /// </summary>
+    public int MaxPoliteTokens => TrailingPoliteWords.Count * System.Numerics.BitOperations.PopCount((uint)PolitePositions);
+}
+
+/// <summary>Where a slot grammar allows the polite phrase of <see cref="GrammarDefaults"/> (M88). Combine the values for a language that allows several.</summary>
+[Flags]
+public enum PolitePositions
+{
+    /// <summary>The phrase may not appear.</summary>
+    None = 0,
+
+    /// <summary>After the last element of the grammar (Spanish: <c>quiero una espada por favor</c>).</summary>
+    Trailing = 1,
+
+    /// <summary>Before the first element of the grammar, after an implicit subject pronoun (German: <c>Bitte, ein Brot</c>).</summary>
+    Leading = 2,
+
+    /// <summary>Right after the first <c>[VERB]</c> element of the grammar (German: <c>Ich hätte bitte ein Brot</c>); a grammar with no verb element has no such place.</summary>
+    AfterFiniteVerb = 4,
+}
 
 /// <summary>The closed word lists the content linter checks against.</summary>
 /// <param name="SubjectPronouns">The subject pronouns a grammar example may begin with.</param>

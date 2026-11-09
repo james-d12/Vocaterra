@@ -264,7 +264,7 @@ public sealed class IntentResolver
         if (allowed is not null)
         {
             // The trailing polite phrase every grammar allows binds to literal words too (M83), which the grammar's own bounds do not count.
-            var polite = _language.GrammarDefaults.TrailingPoliteWords.Count;
+            var polite = _language.GrammarDefaults.MaxPoliteTokens;
             var any = false;
             // A grammar that cannot match the tokens can never replace the allowed reading, so only those that can are looked at.
             foreach (var (intent, grammar) in PlausibleGrammars(facts))
