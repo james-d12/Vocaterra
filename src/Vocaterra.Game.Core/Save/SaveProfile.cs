@@ -38,4 +38,12 @@ public static class SaveProfile
     /// <summary>The file F6 writes in a profile folder when the run has no <c>--save</c> file (<see cref="ManualFileName"/>).</summary>
     /// <param name="profileDirectory">The profile's folder.</param>
     public static string ManualPath(string profileDirectory) => Path.Combine(profileDirectory, ManualFileName);
+
+    /// <summary>Makes a profile's folder (the first save of a language finds none); a write into a folder that vanished later still fails, as <see cref="SaveFile.Write"/> always did.</summary>
+    /// <param name="profileDirectory">The profile's folder.</param>
+    public static void Ensure(string profileDirectory)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(profileDirectory);
+        Directory.CreateDirectory(profileDirectory);
+    }
 }

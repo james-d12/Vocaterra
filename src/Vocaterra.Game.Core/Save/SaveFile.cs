@@ -21,11 +21,6 @@ public static class SaveFile
     {
         ArgumentException.ThrowIfNullOrEmpty(path);
         ArgumentNullException.ThrowIfNull(text);
-        if (Path.GetDirectoryName(Path.GetFullPath(path)) is { Length: > 0 } folder)
-        {
-            Directory.CreateDirectory(folder); // a profile's folder (saves/<language>/) is made by its first save
-        }
-
         var temporary = path + ".tmp";
         using (var stream = new FileStream(temporary, FileMode.Create, FileAccess.Write, FileShare.None))
         {

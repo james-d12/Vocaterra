@@ -1065,7 +1065,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // A turn still thinking means "not now".
     private void SaveNow()
     {
-        var path = PlaytestEnd.ManualSavePath(_options.SavePath, _playtestFlow.ManualSaveFile, SaveProfile.ManualPath(_options.ProfileDirectory(_session.Bundle.LanguageId)));
+        var profile = _options.ProfileDirectory(_session.Bundle.LanguageId);
+        SaveProfile.Ensure(profile);
+        var path = PlaytestEnd.ManualSavePath(_options.SavePath, _playtestFlow.ManualSaveFile, SaveProfile.ManualPath(profile));
         if (_saves.Write(path, "on F6"))
         {
             _toasts.Show(_session.Locale.Ui("gameSaved", ("session", _session.Day.ToString(CultureInfo.InvariantCulture))));

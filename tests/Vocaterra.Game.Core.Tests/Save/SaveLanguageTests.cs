@@ -80,6 +80,8 @@ public sealed class SaveLanguageTests
         {
             var path = SaveProfile.AutosavePath(SaveProfile.ProfileFolder(root, "es"));
 
+            Assert.ThrowsAny<IOException>(() => SaveFile.Write(path, SaveOf()));
+            SaveProfile.Ensure(Path.GetDirectoryName(path)!);
             SaveFile.Write(path, SaveOf());
 
             Assert.True(File.Exists(path));

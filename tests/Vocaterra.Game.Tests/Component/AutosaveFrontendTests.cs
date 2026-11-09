@@ -25,6 +25,20 @@ public sealed class AutosaveFrontendTests : IDisposable
     }
 
     [Fact]
+    public void TheProfileFolderIsPerLanguageUnderTheSavesDirOrTheSessionFolder()
+    {
+        Assert.True(LaunchOptions.TryParse(["--saves-dir", "root", "--session-dir", "sess", "--screenshot", "x.png"], out var named, out var error), error);
+        Assert.Equal(Path.Combine("root", "es"), named.ProfileDirectory("es"));
+        Assert.Equal(Path.Combine("root", "de"), named.ProfileDirectory("de"));
+
+        Assert.True(LaunchOptions.TryParse(["--session-dir", "sess", "--screenshot", "x.png"], out var session, out _));
+        Assert.Equal(Path.Combine("sess", "saves", "es"), session.ProfileDirectory("es"));
+
+        Assert.True(LaunchOptions.TryParse(["--screenshot", "x.png"], out var plain, out _));
+        Assert.Equal(Path.Combine(SaveProfile.DefaultRoot, "es"), plain.ProfileDirectory("es"));
+    }
+
+    [Fact]
     public void AFailedWriteLeavesTheOldSaveIntact()
     {
         Directory.CreateDirectory(_folder);

@@ -227,7 +227,7 @@ right shows the recipe as icons: what it makes at the top and, under the arrow, 
 rounded panel with the speaker's name in a warm colour, and the speaker's latest line also hangs in a bubble over the figure's head when it is on the screen.
 
 **Save, sessions and resume (S10).** `--save <file>` writes the game when the run ends (on quit, or at the end of a script), and **F6** writes it in an
-interactive run (S15: F5 became the view key) (to the `--save` file, or `vocaterra.save.json` in the working folder); a turn still thinking means "not now", and a quit waits up to five
+interactive run (S15: F5 became the view key) (to the `--save` file, or `manual.save` in the language's profile folder, `saves/es/` (T04)); a turn still thinking means "not now", and a quit waits up to five
 seconds for it. `--load <file>` starts from a save: the same world (the trees and the scene come from the seed, and the save holds only the blocks the
 game changed), the player where they stood, the hotbar, the inventory, the objective, every word and phrase count, each NPC's conversation state, and the
 stored time. A load keeps the **day** as saved (V25: the objective, the orders, the lessons and the journal's header `Sesión n` stand where the save left them; only a sleep moves it) and begins the next **sitting**, which lifts the spacing gaps
@@ -262,7 +262,7 @@ always those of the first three sessions (`coreSessions: 3`): 31 items up to ses
 village lesson, 39 in session 4 to 79 in session 9, and all 87 of the bank in session 10. The order and the options' order come from the world seed and the kind, so a pre-check and a post-check
 hold the same items in other orders. **Esc** ends the battery (the rest is skipped). `pre` is followed by the world; `post` and `recall` end the
 run after the battery. A check never changes the learner model, the phrase progress, the conversations or the world. The answers go to the
-session log: **`--session-dir <dir>`** names the folder (default: a new folder named by the local date and time and the session number, under
+save profiles (T04): the autosave and F6 write to `saves/<language>/` (`saves/es/`) under `~/.local/share/vocaterra/saves/`, under `<session dir>/saves/` with `--session-dir`, or under **`--saves-dir <dir>`**; session log: **`--session-dir <dir>`** names the folder (default: a new folder named by the local date and time and the session number, under
 `~/.local/share/vocaterra/sessions/`), which holds `session.jsonl` (one JSON object per line: `session_start`, `turn`, `phrase`, `voice`, `world`, `session_summary` (X04: the closing card's lines),
 `check_start`, `check_result`, `check_end`, `session_end`) and the core's `replay.jsonl`. A folder that already has a log is appended to. Scripted:
 `--pick <n>` answers a comprehension item, `--say` and `--speak` answer a production item, `--shot` saves the screen where it stands; a scripted run

@@ -48,7 +48,9 @@ public static class SessionStart
         AutosaveController? autosave = null;
         if (!options.NoAutosave)
         {
-            var autosavePath = playtest.SavePath ?? SaveProfile.AutosavePath(options.ProfileDirectory(session.Bundle.LanguageId));
+            var profile = options.ProfileDirectory(session.Bundle.LanguageId);
+            SaveProfile.Ensure(profile); // the language's profile folder (saves/<language>/), made by the first run
+            var autosavePath = playtest.SavePath ?? SaveProfile.AutosavePath(profile);
             autosave = new AutosaveController(new AutosavePolicy(session.Simulation.Tick, session.Events.Count), autosavePath, saves, console, id => toasts.Show(session.Locale.Ui(id)), MonotonicClock.Milliseconds);
             console($"autosave: {autosavePath} (written on a lesson step, an objective step, a lesson's end, the session's end, a closed dialogue, and every {AutosavePolicy.IntervalSeconds / 60} minutes of play)");
         }
