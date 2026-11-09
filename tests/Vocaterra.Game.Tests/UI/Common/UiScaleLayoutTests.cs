@@ -912,16 +912,15 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
 
     [Theory]
     [MemberData(nameof(Cases))]
-    public void TheLessonsPagesLinesOfWhenAndWhereFitTheNarrowLeftPage(int windowWidth, int windowHeight, int scale)
+    public void TheLessonsPagesRowsKeepTheirTitleWholeAndTheWaitFitsAsMuchAsTheRowAllowsAtEveryScale(int windowWidth, int windowHeight, int scale)
     {
-        // V12c: the line under a lesson not begun is its own indented row, whole on the left page at every scale (r16-text-scale: 800 x 600 at 150 %), for every lesson
-        // in each of its four waits: the next, another unlocked, its session to come, the lesson before it not done. A row of the list is cut with "...", never wrapped, so it is measured
-        // with the book's own font (PixelOperator at its native size; the stand-in of the other checks is wider than it) against the row's room: the page less the
-        // indent and the gutter.
+        // U07: a lesson's state is the aside of its own row (V12c's line under the title became one row). A row of the list is cut with "...", never wrapped, so it is measured with the
+        // book's own font (PixelOperator at its native size) against the row's room: the page less the mark and the gutter. The short title must always fit the row; a row with a button
+        // keeps what the button leaves of it for its text and is cut with an ellipsis there, as a heading was before.
         var font = new FontProvider(Repo.Path("assets", "fonts", "pixel-operator", "PixelOperator.ttf")).Get(FontProvider.NativeSize);
         var canvas = Canvas(windowWidth, windowHeight, scale);
         var g = new BookGeometry(canvas.Width, canvas.Height);
-        var room = g.ContentRight - g.ContentLeft - BookLayer.IndentWidth - BookLayer.Gutter;
+        var room = g.ContentRight - g.ContentLeft - 11 - BookLayer.Gutter;
         var session = RouteScene.NewSessionWithShippedLessons(TestGame.Bundle, TestGame.Nouns);
         var record = session.Lessons.Record;
         var widest = (Text: string.Empty, Width: 0f);
@@ -936,14 +935,38 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
             foreach (var wait in waits)
             {
                 var lines = BookPages.Lessons(English.Value, record, session.Phrases, null, new Dictionary<string, LessonWait> { [lesson.Id] = wait });
-                var why = lines[lines.ToList().FindIndex(l => l.Text == lesson.Title) + 1];
-                var width = Vocaterra.Game.Graphics.DrawHelpers.Width(font, why.Text);
-                Assert.True(width <= room, $"“{why.Text}” ({width} px) is wider than the left page's {room} px at {canvas.Width}x{canvas.Height}");
-                widest = width > widest.Width ? (why.Text, width) : widest;
+                var row = lines.First(l => l.Kind == BookLineKind.Entry && l.Text == LessonDefinition.ShortOf(lesson.Title));
+                var title = Vocaterra.Game.Graphics.DrawHelpers.Width(font, row.Text);
+                var button = row.Practise is null ? 0 : BookPractise.ButtonWidth + BookSpeakers.Gap;
+                Assert.True(title <= room, $"the title “{row.Text}” ({title} px) is wider than the row's {room} px at {canvas.Width}x{canvas.Height}");
+                Assert.True(room - button >= 40, $"a row with a button keeps {room - button} px for its text at {canvas.Width}x{canvas.Height}: the layer keeps at least 40 px, cut with an ellipsis (as the heading was before U07)");
+                var whole = title + BookLayer.Gutter + Vocaterra.Game.Graphics.DrawHelpers.Width(font, row.Aside!) + button;
+                widest = whole > widest.Width ? ($"{row.Text}  {row.Aside}", whole) : widest;
             }
         }
 
-        output.WriteLine($"{canvas.Width}x{canvas.Height}: the widest line, “{widest.Text}”, is {widest.Width} px of the row's {room} px");
+        output.WriteLine($"{canvas.Width}x{canvas.Height}: the widest row, “{widest.Text}”, is {widest.Width} px of the row's {room} px");
+    }
+
+    [Theory]
+    [MemberData(nameof(Cases))]
+    public void TheThirtyTwoPixelTitlesFitTheirPagesAtEveryScaleAndTheLeftOneIsOneLine(int windowWidth, int windowHeight, int scale)
+    {
+        // U07: the page's name at 32 px on the left page and the numbers of the right page. The longest name ("What I said") is one line of the left page, and a big number
+        // ("12", "100") sits in its column; the font at twice its native size is measured with the book's own font.
+        var big = new FontProvider(Repo.Path("assets", "fonts", "pixel-operator", "PixelOperator.ttf")).Get(FontProvider.NativeSize * 2);
+        var canvas = Canvas(windowWidth, windowHeight, scale);
+        var g = new BookGeometry(canvas.Width, canvas.Height);
+        var room = g.ContentRight - g.ContentLeft;
+        foreach (var page in Enum.GetValues<BookPage>())
+        {
+            var label = BookTabs.LabelOf(RouteScene.Shipped.Locale, page);
+            var width = Vocaterra.Game.Graphics.DrawHelpers.Width(big, label);
+            Assert.True(width <= room, $"“{label}” at 32 px is {width} px, the page's room {room} px, at {canvas.Width}x{canvas.Height}");
+        }
+
+        Assert.True(g.RuleTop - g.TitleTop >= 36);
+        Assert.True(g.LinesVisible >= 8, $"{g.LinesVisible} lines visible");
     }
 
     [Fact]
@@ -957,6 +980,37 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
         }
 
         Assert.Equal(BookTabs.Labels(RouteScene.Shipped.Locale).Count, UiPalette.Ribbons.Count);
+    }
+
+    [Fact]
+    public void TheBooksNewInksBandsAndMarksAreMeasuredOnThePaperAndTheSelectionAtTheirSpecifiedRatios()
+    {
+        // U07: InkMeta (it replaces InkHint) 5.25 to 1 on the paper and 4.87 on the selection; the muted band 5.41 with white text; the outcome marks 3 to 1 on both; the bands and
+        // the page titles in each ribbon's colour read with white and on the paper.
+        var names = UiPalette.TextPairs.Select(static p => p.Name).ToList();
+        foreach (var name in new[] { "book ink meta", "book ink meta on selection", "book ink on selection", "book ink seen on selection", "book band muted", "book mark good", "book mark slip", "book mark miss", "book mark good on selection", "book mark slip on selection", "book mark miss on selection" })
+        {
+            Assert.Contains(name, names);
+        }
+
+        for (var i = 0; i < UiPalette.Ribbons.Count; i++)
+        {
+            Assert.Contains($"book band {i}", names);
+            Assert.Contains($"book title {i}", names);
+            Assert.True(UiPalette.RibbonLabel.ContrastWith(UiPalette.Ribbons[i]) >= 6.0, $"white on band {i}");
+            Assert.True(UiPalette.Ribbons[i].ContrastWith(UiPalette.Paper.Colour) >= 4.5, $"title {i} on the paper");
+        }
+
+        Assert.True(UiPalette.InkMeta.ContrastWith(UiPalette.Paper.Colour) >= 5.2);
+        Assert.True(UiPalette.InkMeta.ContrastWith(UiPalette.PaperSelect.Colour) >= 4.8);
+        Assert.True(UiPalette.RibbonLabel.ContrastWith(UiPalette.BandMuted) >= 5.4);
+        foreach (var mark in new[] { UiPalette.MarkGood, UiPalette.MarkSlip, UiPalette.MarkMiss })
+        {
+            Assert.True(mark.ContrastWith(UiPalette.Paper.Colour) >= 3.0, $"{mark} on the paper");
+            Assert.True(mark.ContrastWith(UiPalette.PaperSelect.Colour) >= 3.0, $"{mark} on the selection");
+        }
+
+        Assert.NotEqual(UiPalette.InkMeta, UiPalette.InkUnseen); // the hue tells the meta ink from the not-met ink
     }
 
     [Fact]

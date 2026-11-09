@@ -269,6 +269,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M84 | Free talk's forced rows (found by V31; the owner, 2026-11-07, D-game-23 item 5): with `OpenRecognitionFallback` on, a constrained reading that was taken but looks forced (most of the clip's speech unused, or a clip much longer than its row, or weak words) also gets the open decode, and a confident, different free reading wins; measured on M80's Kokoro corpus plus V31's forced lines («el río es grande» heard «es gracias»), zero false takes the bar, the cost per turn reported | M80 | M | Sonnet 5.5 high | done (2026-11-08, gated with T10 at `386815a6` on `feature/bread-pilot`, 10363 passed, 3 skipped; §5b) |
 | M85 | The lint's speed again (CI on PR #40, 2026-11-08; the owner: "fix the failing tests"): `LintTests.TheBundleLintTakesUnderFiveSeconds` took 5.54 s on the GitHub runner (about four times slower than the desktop). M60 brought the lint to 398 ms (Debug); find what made it slower since (the bundle's growth, M74/M75's grammar rung, M80 to M84) and fix it at the source as M60 did, output byte-identical; the 5 s budget stays | M60 | S/M | Sonnet 5.5 medium | done (2026-11-08, gated at `a1066151` on `feature/bread-pilot`, 10394 passed, 3 skipped; §5b) |
 | M86 | O9's double silent h (CI on PR #40, 2026-11-08, CsCheck seed `8HYgz_I9Ysn1`; the owner: "CI is still broken: fuzz"): `PronunciationFuzzTests.SpokenPhrases_ScorePerfectly_OrYieldExactlyTheInjectedPredictedError` injected `pron.silent_h` at «hieran» in «ligaba eh hieran» (heard [... e h j e ...]) and the scorer reported it twice, at «eh»'s h and at «hieran»'s: one inserted [h] between two silent h letters is claimed by both. Fix the scorer so one heard phone yields one error; the oracle stays as it is | M16b | S/M | Sonnet 5.5 medium | in progress (2026-11-08) |
+| M91 | O4's `podar` before an infinitive (the merge gate of U08 on `feature/ui-issues`, 2026-11-08, CsCheck seed `3m67O5Rpuya2`; reproduced on the code before U08, so not U08's): `MutationTagFuzzTests.OneMutation_YieldsExactlyTheNamedTag_WithTheOriginalFormAsCorrection` built «vosotras podáis rastrear opero» (`podar`, then an infinitive), mutated `conj.person` to «podo», and the analyzer read «podo rastrear» as `poder` (M58's `CallsForSlip`: `podar` takes no infinitive), reporting `conj.person` → `podéis` and `conj.irregular` → `puedo` instead of `conj.person` → `podáis`. Find whether the generator or the analyzer is wrong; fix that one; the oracle's assertion stays as it is. Numbered M91 because `feature/german` holds M87 to M90 | M58, M73 | S | Sonnet 5.5 medium | done (2026-11-08, gated at `6275653f` on `feature/ui-issues`, 10431 passed) |
 
 ### Delegation waves
 
@@ -1873,6 +1874,14 @@ merge into a feature branch that is pushed, and the owner merges it into `main` 
   **Rule:** a catalog-wide rung must reuse the per-analysis `TokenFacts`, never rebuild them per prompt. **Watch point:** `CheckPair`
   matches with `AnalysisRules.For(language)`, not the bundle's rules, left to keep the output identical. Report
   `.claude/briefs/m85-report.md`.
+- **M91, O4's `podar` before an infinitive (2026-11-08, Sonnet 5.5 medium; gated at `6275653f` on `feature/ui-issues`, 10431 passed, 3
+  skipped).** Found by U08's merge gate, CsCheck seed `3m67O5Rpuya2`, and reproduced on the code before U08 (`main` has it too). **The
+  generator was wrong:** the realiser drew a finite `podar` before an infinitive («vosotras podáis rastrear opero»); M69's re-roll covered
+  only `podo`, `pode`, `podes`, so the `conj.person` mutation to «podo» made a sentence the analyzer reads, by M58/M69's `CallsForSlip`
+  ("`podar` takes no infinitive"), as `poder`'s slip. `SentenceRealizer` now re-rolls every finite `podar` right before an infinitive
+  (`slip-in-context`, the seed in the comment). **The analyzer is unchanged and right:** «vosotras podo rastrear» gives `conj.person` →
+  `podéis` and `conj.irregular` → `puedo`, two faults on one word, as `ellos quero pan` gives `quieren` and `quiero`; accepted behaviour.
+  O4's assertion unchanged; the stream digest, goldens and replays did not move. 5 test cases in `HomographRerollTests`.
 
 ## 6. Definition of done (every milestone)
 

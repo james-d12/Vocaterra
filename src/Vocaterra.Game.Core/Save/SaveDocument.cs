@@ -62,6 +62,7 @@ namespace Vocaterra.Game.Core.Save;
 /// <param name="MetNpcs">The ids of the NPCs the player has talked to (L01): a class opens on having met its teacher, an order on having met its NPC. <see langword="null"/> in a save from before L01: from the second day on, every NPC then counts as met, as the days used to open them.</param>
 /// <param name="Air">The player's air in ticks (version 7, water-plan H03 and H06); <see langword="null"/>, and left out of the file, while the breath is full.</param>
 /// <param name="Flow">The cells waiting for a flow update, in queue order (version 7, water-plan H06); <see langword="null"/>, and left out of the file, while none wait.</param>
+/// <param name="DialoguePages">Each NPC's conversation lines (U08), so the panel scrolls back over earlier sessions: one page per NPC with lines, at most <see cref="Dialogue.DialogueModel.MaxLines"/> lines each. <see langword="null"/>, and left out of the file, while no NPC has a line; a save without it loads with empty pages. Optional, so it needs no save version.</param>
 public sealed record SaveDocument(
     string Format,
     int Version,
@@ -103,7 +104,8 @@ public sealed record SaveDocument(
     SystemsSave? Systems = null,
     IReadOnlyList<string>? MetNpcs = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? Air = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<FlowEntry>? Flow = null);
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<FlowEntry>? Flow = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<DialoguePageSave>? DialoguePages = null);
 
 /// <summary>The size of the world's grid in chunks (X01): a save across bundles decodes the scene diff's chunk indices with it, so a world that changed size still maps by position.</summary>
 /// <param name="ChunksX">Chunks along x.</param>

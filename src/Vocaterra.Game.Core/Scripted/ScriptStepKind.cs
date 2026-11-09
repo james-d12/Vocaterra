@@ -24,6 +24,9 @@ public enum ScriptStepKind
     /// <summary>Show or hide the dialogue's older lines, as the expand key does (U02).</summary>
     Expand,
 
+    /// <summary>Scroll the expanded dialogue by the signed number of blocks in <see cref="ScriptStep.Value"/>: positive towards older lines, negative towards newer (U06).</summary>
+    Scroll,
+
     /// <summary>Save the screen to the file in <see cref="ScriptStep.Value"/> and go on.</summary>
     Shot,
 

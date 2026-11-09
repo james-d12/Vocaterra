@@ -190,7 +190,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     /// <param name="pristine">Builds a fresh scene of the session seed.</param>
     /// <param name="layout">The scene's layout, whose places the ambient beds listen to (S25), or <see langword="null"/> (a run without one has no places).</param>
     /// <param name="savedSettings">The settings a loaded save holds (the volumes, the text size, the graphics and the mouse: the menu's settings), or <see langword="null"/> for a new game; the command line's options override them for the run.</param>
-    public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene, NpcVoice voice, Func<Scene> pristine, SceneLayout? layout = null, SaveSettings? savedSettings = null)
+    /// <param name="savedDialogue">The NPCs' conversation pages a loaded save holds (U08), or <see langword="null"/> for a new game.</param>
+    public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene, NpcVoice voice, Func<Scene> pristine, SceneLayout? layout = null, SaveSettings? savedSettings = null, IReadOnlyList<DialoguePageSave>? savedDialogue = null)
     {
         _options = options;
         _showTips = options.ShowsTips;
@@ -219,6 +220,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _recordings = new BookRecordings(SpeechLines.Enumerate(session.Bundle, session.Nouns, session.Phrases, session.Data.Npcs).Select(static l => l.LineId).Where(voice.HasRecording), session.Phrases);
         _bookControls = new BookSpeechControls(_book, new BookSpeaker(voice, _sound.Mixer), session, _recordings);
         _dialogue = new DialogueModel(_focus, session.OpeningLine, session.Data, session.Phrases, session.Locale, showVerdictNotes: options.Dev);
+        _dialogue.RestorePages(savedDialogue); // U08: the panel scrolls back over the earlier sessions
         _soundFrame = new SoundFrame(_sound, voice, session, () => new PanelState(_inventory.IsOpen, _crafting.IsOpen, _book.IsOpen, (int)_book.Page, _dialogue.IsOpen));
         var microphone = options.UsesMicrophone ? MicrophoneCapture.TryOpen() : null;
         _listen = new ListenSession(new PushToTalkSpeechCapture(microphone) { Sounds = _sound.Mixer });
@@ -410,7 +412,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         Window.AllowUserResizing = true;
         Window.Title = _playtest ? $"Vocaterra playtest (seed {options.Seed})" : $"Vocaterra 3D (seed {options.Seed})";
         Window.TextInput += OnTextInput;
-        _saves = new SaveService(session, pristine, _settings.ToSave, Console.WriteLine); // the menu's settings (the volumes, the graphics, the text size, the mouse, the needs) ride in the save's settings
+        _saves = new SaveService(session, pristine, _settings.ToSave, Console.WriteLine, _dialogue); // the menu's settings (the volumes, the graphics, the text size, the mouse, the needs) ride in the save's settings
         _checks = new CheckBattery(
             session,
             () => _log,

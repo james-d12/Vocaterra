@@ -186,7 +186,7 @@ public sealed class BookScreen : IScreen
 
     /// <summary>
     /// The book's mouse: the wheel scrolls the right page when the pointer is over it (X03) and the list otherwise (three lines a notch, up for a
-    /// turn up); a click on a tab turns to that page, and a click on a row's speaker, a verb or a practise button presses it.
+    /// turn up); a click on a tab turns to that page, and a click on a row's speaker or a practise button presses it, and a click on a row selects it.
     /// </summary>
     public void HandleMouse(IInputFrame input)
     {
@@ -215,7 +215,7 @@ public sealed class BookScreen : IScreen
             _book.Show(tab);
             _sound.QueueClick(SoundCue.UiTab);
         }
-        else if (_controls.Click(geometry, x, y, input.Shift) || _controls.ClickVerb(geometry, x, y))
+        else if (_controls.Click(geometry, x, y, input.Shift))
         {
             _sound.QueueClick(SoundCue.UiClick);
         }
@@ -223,6 +223,10 @@ public sealed class BookScreen : IScreen
         {
             _sound.QueueClick(SoundCue.UiClick);
             PractiseAgain(practise);
+        }
+        else if (_controls.ClickRow(geometry, x, y))
+        {
+            _sound.QueueClick(SoundCue.UiClick);
         }
     }
 

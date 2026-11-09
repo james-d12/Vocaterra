@@ -30,8 +30,9 @@ public sealed class BookSpeechControls
     public IReadOnlyList<BookLine> Lines => BookPages.ListFor(_session, _book.Page, _recordings);
 
     /// <summary>
-    /// A click at a point. A click on a row's speaker button selects that row and plays it (Shift: the slow recording). Returns whether the click was on a
-    /// button (played or not); a click elsewhere returns false and changes nothing here.
+    /// A click at a point. A click on a row's speaker button selects that row and plays it (Shift: the slow recording); so does a click on a speaker button of the right
+    /// page (U07: a lesson's phrases), which plays without moving the selection. Returns whether the click was on a button (played or not); a click elsewhere returns false
+    /// and changes nothing here.
     /// </summary>
     /// <param name="geometry">The book's geometry at the window's size.</param>
     /// <param name="x">The x of the click.</param>
@@ -42,14 +43,33 @@ public sealed class BookSpeechControls
         ArgumentNullException.ThrowIfNull(geometry);
         var lines = Lines;
         var offset = BookScroll.Clamp(_book.Offset, lines.Count, geometry.LinesVisible);
-        if (BookSpeakers.At(geometry, lines, offset, x, y) is not { } index)
+        if (BookSpeakers.At(geometry, lines, offset, x, y) is { } index)
         {
-            return false;
+            SelectLine(lines, BookSpeakers.Speakable(lines)[index]);
+            _ = _speaker.Speak(lines, index, slow);
+            return true;
         }
 
-        _book.SelectRow(index);
-        _ = _speaker.Speak(lines, index, slow);
-        return true;
+        foreach (var button in _book.RightButtons)
+        {
+            if (button.Rect.Contains(x, y))
+            {
+                _ = _speaker.PlayLine(button.Speak, slow);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // Selects the entry of a line (the selection counts the entries, not the lines).
+    private void SelectLine(IReadOnlyList<BookLine> lines, int line)
+    {
+        var at = BookSpeakers.Selectable(lines).ToList().IndexOf(line);
+        if (at >= 0)
+        {
+            _book.SelectRow(at);
+        }
     }
 
     /// <summary>The scripted run's step (<c>--book-verb</c>, S28): selects a verb of the verbs page, so the right page shows its table. Returns whether the verb is in the book.</summary>
@@ -73,15 +93,16 @@ public sealed class BookSpeechControls
     }
 
     /// <summary>
-    /// A click on a verb's row of the verbs page (S28) selects it, so the right page shows its table. Returns whether the click chose a verb.
+    /// A click on an entry's row (S28, U07) selects it, so the right page shows its detail (on the verbs page, its table). Returns whether the click chose a row. A section, a gap
+    /// or a note is no row.
     /// </summary>
     /// <param name="geometry">The book's geometry at the window's size.</param>
     /// <param name="x">The x of the click.</param>
     /// <param name="y">The y of the click.</param>
-    public bool ClickVerb(BookGeometry geometry, int x, int y)
+    public bool ClickRow(BookGeometry geometry, int x, int y)
     {
         ArgumentNullException.ThrowIfNull(geometry);
-        if (_book.Page != BookPage.Verbs || x < geometry.ContentLeft || x >= geometry.ContentRight || y < geometry.ContentTop)
+        if (x < geometry.ContentLeft || x >= geometry.ContentRight || y < geometry.ContentTop)
         {
             return false;
         }
@@ -94,22 +115,13 @@ public sealed class BookSpeechControls
             return false;
         }
 
-        var rows = BookSpeakers.Selectable(lines);
-        var index = -1;
-        for (var i = 0; i < rows.Count; i++)
-        {
-            if (rows[i] == line)
-            {
-                index = i;
-            }
-        }
-
-        if (index < 0)
+        var at = BookSpeakers.Selectable(lines).ToList().IndexOf(line);
+        if (at < 0)
         {
             return false;
         }
 
-        _book.SelectRow(index);
+        _book.SelectRow(at);
         return true;
     }
 
@@ -155,13 +167,14 @@ public sealed class BookSpeechControls
         return _session.Lessons.RequestReplay(lessonId) ? lessonId : null;
     }
 
-    /// <summary>Enter (Shift+Enter: the slow recording) plays the selected row; the first row when none has been chosen. Returns whether a clip was accepted.</summary>
+    /// <summary>Enter (Shift+Enter: the slow recording) plays the selected row's recording; the first row when none has been chosen. A row with none plays nothing. Returns whether a clip was accepted.</summary>
     /// <param name="slow">Whether Shift is held.</param>
     public bool Enter(bool slow)
     {
         var lines = Lines;
-        var index = _book.SelectedIndex(BookSpeakers.Speakable(lines).Count);
-        return index >= 0 && _speaker.Speak(lines, index, slow);
+        var rows = BookSpeakers.Selectable(lines);
+        var index = _book.SelectedIndex(rows.Count);
+        return index >= 0 && lines[rows[index]].Speak is { } speak && _speaker.PlayLine(speak, slow);
     }
 
     /// <summary>
@@ -215,7 +228,7 @@ public sealed class BookSpeechControls
             return $"book: '{target}' has no button on its page (not met yet)";
         }
 
-        _book.SelectRow(index);
+        SelectLine(lines, rows[index]);
         return _speaker.Speak(lines, index, slow)
             ? $"book: play {recording}{(slow ? " (slow)" : string.Empty)}"
             : $"book: {recording} is not played (muted, or no voice)";
