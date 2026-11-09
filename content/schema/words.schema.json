@@ -325,6 +325,14 @@
       },
       "description": "The plain answers to a teacher's offer of a class and the ways to ask for one (L01, D-game-25); the game reads them from the text of a turn."
     },
+    "places": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[a-z][a-z0-9-]*$" },
+      "additionalProperties": {
+        "$ref": "#/definitions/word"
+      },
+      "description": "The places of the scene that are no catalogue noun, by neutral id (T03): the word the beacon shows for a label of game/scene.json whose id game/nouns.json does not have (village: pueblo, waterfall: cascada). A label id that is a noun id shows the noun's lemma."
+    },
     "hudLines": {
       "type": "object",
       "additionalProperties": {

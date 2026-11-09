@@ -188,6 +188,7 @@ public sealed class GameData
         var npcs = NpcRoster.Load(bundle);
         locale = locale.WithNames(npcs.All.ToDictionary(static n => n.Id, static n => n.Called, StringComparer.Ordinal), InputKeys.Defaults); // {npc:…} and {key:…} (C04)
         var nouns = NounCatalog.Load(bundle);
+        var words = GameWords.Load(bundle);
         var phrases = PhraseSheet.Load(bundle, locale, npcs);
         var speech = SpeechLines.Enumerate(bundle, nouns, phrases, npcs);
         return new GameData(
@@ -201,15 +202,39 @@ public sealed class GameData
             speech,
             LessonBook.Load(bundle, phrases, speech, locale, npcs.Ids),
             CheckBank.Load(bundle, locale),
-            SceneLayout.Parse(HostText(bundle, ScenePath)),
-            GameWords.Load(bundle),
+            SceneLayout.Parse(HostText(bundle, ScenePath)).WithWords(id => LabelWord(nouns, words, id)),
+            words,
             npcs,
-            HostEventTable.Load(bundle),
+            HostEventTable.Load(bundle).InLanguage(nouns),
             ObjectiveBook.Load(bundle, nouns),
             NeedsData.Load(bundle),
-            ProcedureBook.Load(bundle),
-            StationBook.Load(bundle),
-            ActionTable.Load(bundle));
+            ProcedureBook.Load(bundle).InLanguage(nouns),
+            StationBook.Load(bundle).InLanguage(nouns),
+            ActionTable.Load(bundle).InLanguage(nouns));
+    }
+
+    /// <summary>
+    /// The word the beacon shows for a scene label (T03): the file names it by neutral id; a catalogue noun id shows the noun's lemma, a place id shows the word of
+    /// <c>words.json</c>'s <c>places</c>.
+    /// </summary>
+    /// <param name="nouns">The noun catalogue.</param>
+    /// <param name="words">The game's words.</param>
+    /// <param name="id">The label's id.</param>
+    /// <exception cref="InvalidDataException">The id is neither a noun id nor a place.</exception>
+    public static string LabelWord(NounCatalog nouns, GameWords words, string id)
+    {
+        ArgumentNullException.ThrowIfNull(nouns);
+        ArgumentNullException.ThrowIfNull(words);
+        return nouns.ForId(id)?.Lemma ?? (words.Places.TryGetValue(id, out var place) ? place : null)
+            ?? throw new InvalidDataException($"{ScenePath}: the label '{id}' is neither a catalogue noun id (game/nouns.json) nor a place of game/words.json.");
+    }
+
+    /// <summary>A layout read from another file (the <c>--scene</c> option, a test's), with its label ids turned into this bundle's words.</summary>
+    /// <param name="layout">The layout as parsed.</param>
+    public SceneLayout InLanguage(SceneLayout layout)
+    {
+        ArgumentNullException.ThrowIfNull(layout);
+        return layout.WithWords(id => LabelWord(Nouns, Words, id));
     }
 
     /// <summary>
@@ -261,7 +286,7 @@ public sealed class GameData
 
     /// <summary>The same parts with another scene layout (the validator's tests).</summary>
     /// <param name="scene">The layout.</param>
-    internal GameData WithScene(SceneLayout scene) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, scene, Words, Npcs, HostEvents, Objectives, Needs, Procedures, Stations, Actions);
+    internal GameData WithScene(SceneLayout scene) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, InLanguage(scene), Words, Npcs, HostEvents, Objectives, Needs, Procedures, Stations, Actions);
 
     /// <summary>The same parts with other target-language words (the validator's tests).</summary>
     /// <param name="words">The words.</param>
@@ -273,7 +298,7 @@ public sealed class GameData
 
     /// <summary>The same parts with another host-event table (the validator's tests).</summary>
     /// <param name="hostEvents">The table.</param>
-    internal GameData WithHostEvents(HostEventTable hostEvents) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, hostEvents, Objectives, Needs, Procedures, Stations, Actions);
+    internal GameData WithHostEvents(HostEventTable hostEvents) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, hostEvents.InLanguage(Nouns), Objectives, Needs, Procedures, Stations, Actions);
 
     /// <summary>The same parts with other objectives (the validator's tests).</summary>
     /// <param name="objectives">The objectives.</param>
@@ -285,15 +310,15 @@ public sealed class GameData
 
     /// <summary>The same parts with other procedures (the validator's tests).</summary>
     /// <param name="procedures">The procedures.</param>
-    internal GameData WithProcedures(ProcedureBook procedures) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives, Needs, procedures, Stations, Actions);
+    internal GameData WithProcedures(ProcedureBook procedures) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives, Needs, procedures.InLanguage(Nouns), Stations, Actions);
 
     /// <summary>The same parts with other stations (the validator's tests).</summary>
     /// <param name="stations">The stations.</param>
-    internal GameData WithStations(StationBook stations) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives, Needs, Procedures, stations, Actions);
+    internal GameData WithStations(StationBook stations) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives, Needs, Procedures, stations.InLanguage(Nouns), Actions);
 
     /// <summary>The same parts with another action table (the validator's tests).</summary>
     /// <param name="actions">The table.</param>
-    internal GameData WithActions(ActionTable actions) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives, Needs, Procedures, Stations, actions);
+    internal GameData WithActions(ActionTable actions) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives, Needs, Procedures, Stations, actions.InLanguage(Nouns));
 
     /// <summary>The same parts with other needs (the validator's tests).</summary>
     /// <param name="needs">The needs.</param>

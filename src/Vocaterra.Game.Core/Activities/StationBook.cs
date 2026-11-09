@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using Vocaterra.Game.Core.Content;
+using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Core.Activities;
@@ -9,14 +10,14 @@ namespace Vocaterra.Game.Core.Activities;
 /// One fixture of a station: a catalogue noun the station's steps name (the bowl, the spoon, the oven) and the icon that draws it. A fixture is not an
 /// inventory item (design 10.7).
 /// </summary>
-/// <param name="Noun">The catalogue noun (<c>bol</c>).</param>
+/// <param name="Noun">The catalogue noun: its id in the file (<c>bowl</c>), the target language's lemma once the book is read through the catalogue (<c>bol</c>, <see cref="StationBook.InLanguage"/>).</param>
 /// <param name="Icon">The icon's key (<c>bowl</c>).</param>
 public sealed record StationFixture(string Noun, string Icon);
 
 /// <summary>
 /// A station (W05; design 10.7): the scene prop it stands on (<c>oven</c>, its name in the scene), the NPC who teaches the procedures done there and its fixtures.
 /// </summary>
-/// <param name="Id">The station's id (<c>horno</c>), which a procedure names.</param>
+/// <param name="Id">The station's id (<c>oven</c>, a neutral noun id), which a procedure names.</param>
 /// <param name="Prop">The scene prop's name.</param>
 /// <param name="Npc">The NPC who teaches there.</param>
 /// <param name="Fixtures">The fixtures, in the file's order.</param>
@@ -50,6 +51,20 @@ public sealed class StationBook
     /// <summary>The station with this id, or <see langword="null"/>.</summary>
     /// <param name="id">The station's id.</param>
     public StationDefinition? Find(string id) => Stations.FirstOrDefault(s => string.Equals(s.Id, id, StringComparison.Ordinal));
+
+    /// <summary>
+    /// The same book with every fixture's noun read through the noun catalogue (T03): the file names a fixture by neutral id (<c>bowl</c>) and the learner is matched by
+    /// the target language's word (<see cref="NounCatalog.LemmaOfId"/>). The station's own id stays an id. An id the catalogue does not have stays, for the validator.
+    /// </summary>
+    /// <param name="nouns">The noun catalogue.</param>
+    public StationBook InLanguage(NounCatalog nouns)
+    {
+        ArgumentNullException.ThrowIfNull(nouns);
+        return new StationBook(Stations.Select(station => station with
+        {
+            Fixtures = station.Fixtures.Select(fixture => fixture with { Noun = nouns.LemmaOfId(fixture.Noun) }).ToList(),
+        }).ToList());
+    }
 
     /// <summary>Reads the stations from the bundle's verified host file.</summary>
     /// <param name="bundle">The bundle, loaded with hash verification.</param>

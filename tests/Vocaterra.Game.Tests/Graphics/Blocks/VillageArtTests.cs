@@ -29,7 +29,7 @@ public sealed class VillageArtTests
             }
         }
 
-        foreach (var cell in new[] { BlockCell.TimberSide, BlockCell.Lantern, BlockCell.Canvas, BlockCell.ChestSide, BlockCell.Loaves, BlockCell.Apples, BlockCell.Bottles, BlockCell.SignTiendaA, BlockCell.FaceGuide, BlockCell.Cloth, BlockCell.Backpack, BlockCell.IconTorch, BlockCell.FaceFisher, BlockCell.FaceBaker, BlockCell.FaceSmith, BlockCell.FaceFarmer, BlockCell.IconCoin, BlockCell.IconApple, BlockCell.IconAxe })
+        foreach (var cell in new[] { BlockCell.TimberSide, BlockCell.Lantern, BlockCell.Canvas, BlockCell.ChestSide, BlockCell.Loaves, BlockCell.Apples, BlockCell.Bottles, BlockCell.SignShopA, BlockCell.FaceGuide, BlockCell.Cloth, BlockCell.Backpack, BlockCell.IconTorch, BlockCell.FaceFisher, BlockCell.FaceBaker, BlockCell.FaceSmith, BlockCell.FaceFarmer, BlockCell.IconCoin, BlockCell.IconApple, BlockCell.IconAxe })
         {
             var pixels = BlockArt.Pixels(cell);
             Assert.Equal(16 * 16 * 4, pixels.Length);
@@ -80,11 +80,11 @@ public sealed class VillageArtTests
     }
 
     [Theory]
-    [InlineData(BlockCell.SignTiendaA)]
-    [InlineData(BlockCell.SignTiendaB)]
-    [InlineData(BlockCell.SignRio)]
-    [InlineData(BlockCell.SignMontanaA)]
-    [InlineData(BlockCell.SignMontanaB)]
+    [InlineData(BlockCell.SignShopA)]
+    [InlineData(BlockCell.SignShopB)]
+    [InlineData(BlockCell.SignRiver)]
+    [InlineData(BlockCell.SignMountainA)]
+    [InlineData(BlockCell.SignMountainB)]
     public void ASignBoardIsAPlankWithDarkLettersAndClearRowsAboveAndBelowSoStackedBoardsShowTheirGap(BlockCell cell)
     {
         for (var x = 0; x < 16; x++)
@@ -101,7 +101,7 @@ public sealed class VillageArtTests
     [Fact]
     public void TheWordsAreOnTheFacesThatReadLeftToRightAndTheOtherFacesAreBlankPlank()
     {
-        foreach (var id in new[] { BlockId.SignTiendaA, BlockId.SignTiendaB, BlockId.SignRio, BlockId.SignMontanaA, BlockId.SignMontanaB })
+        foreach (var id in new[] { BlockId.SignShopA, BlockId.SignShopB, BlockId.SignRiver, BlockId.SignMountainA, BlockId.SignMountainB })
         {
             var word = BlockAtlasLayout.CellFor(id, BlockFace.West);
             Assert.NotEqual(BlockCell.SignBlank, word);
@@ -132,12 +132,12 @@ public sealed class VillageArtTests
 
         Assert.Null(BlockArtVillage.Glyph('?'));
         // RÍO: the acute accent is above the I (glyph 2 of "<RIO", x 8 to 10, the rows over the letters), TAÑA: the tilde is above the N (glyph 2, x 8 to 10).
-        Assert.True(Ink(BlockCell.SignRio, 9, 5) || Ink(BlockCell.SignRio, 10, 4), "an accent over the I of Río");
-        Assert.False(Ink(BlockCell.SignTiendaB, 9, 5) || Ink(BlockCell.SignTiendaB, 10, 4), "NDA has no accent");
-        Assert.True(Ink(BlockCell.SignMontanaB, 8, 5) || Ink(BlockCell.SignMontanaB, 9, 4), "a tilde over the N of Montaña");
+        Assert.True(Ink(BlockCell.SignRiver, 9, 5) || Ink(BlockCell.SignRiver, 10, 4), "an accent over the I of Río");
+        Assert.False(Ink(BlockCell.SignShopB, 9, 5) || Ink(BlockCell.SignShopB, 10, 4), "NDA has no accent");
+        Assert.True(Ink(BlockCell.SignMountainB, 8, 5) || Ink(BlockCell.SignMountainB, 9, 4), "a tilde over the N of Montaña");
         // The arrow of the shop's board points left, the mountain's up: their first glyphs differ.
-        var left = Enumerable.Range(0, 3).SelectMany(x => Enumerable.Range(6, 5).Select(y => Ink(BlockCell.SignTiendaA, x, y))).ToArray();
-        var up = Enumerable.Range(0, 3).SelectMany(x => Enumerable.Range(6, 5).Select(y => Ink(BlockCell.SignMontanaA, x, y))).ToArray();
+        var left = Enumerable.Range(0, 3).SelectMany(x => Enumerable.Range(6, 5).Select(y => Ink(BlockCell.SignShopA, x, y))).ToArray();
+        var up = Enumerable.Range(0, 3).SelectMany(x => Enumerable.Range(6, 5).Select(y => Ink(BlockCell.SignMountainA, x, y))).ToArray();
         Assert.NotEqual(left, up);
     }
 

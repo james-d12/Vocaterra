@@ -57,8 +57,8 @@ public sealed class ObjectiveBookTests
     {
         var json = ObjectiveFile("camp");
 
-        var two = ObjectiveBook.Parse("camp.json", json.Replace("\"noun\": \"antorcha\", \"target\": 1", "\"noun\": \"antorcha\", \"target\": 2", StringComparison.Ordinal), "camp", TestGame.Nouns);
-        var named = ObjectiveBook.Parse("camp.json", json.Replace("\"noun\": \"agua\",", "\"noun\": \"agua\", \"label\": \"el agua\",", StringComparison.Ordinal), "camp", TestGame.Nouns);
+        var two = ObjectiveBook.Parse("camp.json", json.Replace("\"noun\": \"torch\", \"target\": 1", "\"noun\": \"torch\", \"target\": 2", StringComparison.Ordinal), "camp", TestGame.Nouns);
+        var named = ObjectiveBook.Parse("camp.json", json.Replace("\"noun\": \"water\",", "\"noun\": \"water\", \"label\": \"el agua\",", StringComparison.Ordinal), "camp", TestGame.Nouns);
 
         Assert.Equal("antorchas", two.Steps[2].Label);
         Assert.Equal("madera", two.Steps[0].Label); // a mass noun keeps its lemma at five
@@ -67,9 +67,9 @@ public sealed class ObjectiveBookTests
 
     [Theory]
     [InlineData("\"id\": \"camp\"", "\"id\": \"campamento\"", "its file's name")]
-    [InlineData("\"noun\": \"fruta\"", "\"noun\": \"queso\"", "not a catalogue noun")]
+    [InlineData("\"noun\": \"fruit\"", "\"noun\": \"cheese\"", "not a catalogue noun")]
     [InlineData("\"id\": \"berry\"", "\"id\": \"camp.berry\"", "has a dot")]
-    [InlineData("\"noun\": \"agua\", \"target\": 1", "\"noun\": \"agua\", \"target\": 0", "at least 1")]
+    [InlineData("\"noun\": \"water\", \"target\": 1", "\"noun\": \"water\", \"target\": 0", "at least 1")]
     [InlineData("\"event\": \"bottle_filled\"", "\"event\": \"rain\"", "not an event the game raises")]
     public void AnObjectiveFileThatDoesNotHoldTogetherIsRefused(string from, string to, string problem)
     {
@@ -181,14 +181,14 @@ public sealed class ObjectiveBookTests
     }
 
     [Fact]
-    public void AVersionFourSaveLoadsWithItsKeysMappedAndTheOutOfOrderEndingStillEnds()
+    public void TheOldFixtureSaveLoadsAndTheOutOfOrderEndingStillEnds()
     {
-        // tests/Vocaterra.Game.Core.Tests/Fixtures/save-v4.json was written by the C08 code (format 4): the player lit their own fire first, then gathered five wood
-        // and two fruit. Its keys are the checklist's alone (wood, berry, ...); loading maps them to camp.wood and the rest before anything else reads them.
+        // tests/Vocaterra.Game.Core.Tests/Fixtures/save-v4.json was written by the C08 code (format 4) and re-recorded as a version 8 save (T03; its checklist keys qualified as
+        // camp.wood and so on): the player lit their own fire first, then gathered five wood and two fruit.
         var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v4.json"));
         var document = SaveGame.Parse(text);
-        Assert.Equal(4, document.Version);
-        Assert.Equal(["wood", "berry", "torch", "water"], document.Objective.Select(static o => o.Key));
+        Assert.Equal(SaveGame.CurrentVersion, document.Version);
+        Assert.Equal(["camp.wood", "camp.berry", "camp.torch", "camp.water"], document.Objective.Select(static o => o.Key));
 
         var loaded = SaveGame.Load(text, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: false);
 
@@ -212,7 +212,7 @@ public sealed class ObjectiveBookTests
     }
 
     [Fact]
-    public void AVersionFourSaveOfAnotherBundleKeepsItsStepsThroughTheMigration()
+    public void TheOldFixtureSaveOfAnotherBundleKeepsItsStepsThroughTheMigration()
     {
         var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v4.json"));
         var node = JsonNode.Parse(text)!;
@@ -222,7 +222,7 @@ public sealed class ObjectiveBookTests
         var loaded = SaveGame.Load(SaveGame.Serialize(SaveGame.Parse(node.ToJsonString())), TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, migrate: true);
 
         Assert.NotNull(loaded.Migration);
-        Assert.Equal(5, loaded.Objective.Step("wood")!.Count); // mapped before the migration, so it is kept
+        Assert.Equal(5, loaded.Objective.Step("wood")!.Count); // kept through the migration
         Assert.Equal(2, loaded.Objective.Step("berry")!.Count);
     }
 }

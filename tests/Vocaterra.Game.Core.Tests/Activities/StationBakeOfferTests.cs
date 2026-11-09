@@ -17,7 +17,7 @@ public sealed class StationBakeOfferTests
     private const long Later = 10 * 24 * 60 * 60; // ten days: every gap has passed
 
     private static ProceduresSave Mastered() =>
-        new(1, ["pan"], [new ProcedureProgressSave("pan", 8, 8, [1, 2, 3], 24, true)], [], null);
+        new(1, ["bread"], [new ProcedureProgressSave("bread", 8, 8, [1, 2, 3], 24, true)], [], null);
 
     private static int Crafted(StationRig rig) => rig.Session.Events.OfType<WorldEvent>().Count(static e => e.Name == WorldEvents.ItemCrafted);
 
@@ -25,7 +25,7 @@ public sealed class StationBakeOfferTests
     public void ThereIsNoOfferBeforeMastery()
     {
         var rig = new StationRig();
-        Assert.True(rig.Panel.Open("horno"));
+        Assert.True(rig.Panel.Open("oven"));
         Assert.Null(rig.View.Offer);
         rig.Press(GameKey.B); // nothing to bake at once
         Assert.Equal(0, rig.Session.Simulation.Inventory.Count(ItemId.Bread));
@@ -37,10 +37,10 @@ public sealed class StationBakeOfferTests
     {
         var rig = new StationRig();
         rig.Session.RestoreProcedures(Mastered());
-        Assert.True(rig.Panel.Open("horno"));
+        Assert.True(rig.Panel.Open("oven"));
         var offer = rig.View.Offer;
         Assert.NotNull(offer);
-        Assert.Equal("pan", offer.ProcedureId);
+        Assert.Equal("bread", offer.ProcedureId);
         Assert.False(offer.GuidedFirst);
         Assert.True(offer.OneClickSelected);
     }
@@ -52,7 +52,7 @@ public sealed class StationBakeOfferTests
         rig.Session.RestoreProcedures(Mastered());
         // The goal row was credited in an earlier play session: its review is due (the instruction rows are not in DuePhrases, so the station asks by the same rule).
         rig.Session.PhraseProgress.Restore([new PhraseRecord("haz-pan", SupportLevel.CardAndAudio, CreditedUses: 1, LastCreditedAt: 1, LastCreditedSession: 0)]);
-        Assert.True(rig.Panel.Open("horno"));
+        Assert.True(rig.Panel.Open("oven"));
         var offer = rig.View.Offer;
         Assert.NotNull(offer);
         Assert.True(offer.GuidedFirst);
@@ -68,7 +68,7 @@ public sealed class StationBakeOfferTests
     {
         var rig = new StationRig();
         rig.Session.RestoreProcedures(Mastered());
-        Assert.True(rig.Panel.Open("horno"));
+        Assert.True(rig.Panel.Open("oven"));
         var inventory = rig.Session.Simulation.Inventory;
 
         rig.Press(GameKey.B);
@@ -89,7 +89,7 @@ public sealed class StationBakeOfferTests
     {
         var rig = new StationRig();
         rig.Session.RestoreProcedures(Mastered());
-        Assert.True(rig.Panel.Open("horno"));
+        Assert.True(rig.Panel.Open("oven"));
         rig.Press(GameKey.D1); // a held thing is picked: the guided bake is the choice
         Assert.False(rig.View.Offer!.OneClickSelected);
         rig.Press(GameKey.Enter); // Enter makes the guided act (right or wrong), never the one-click bake
@@ -102,7 +102,7 @@ public sealed class StationBakeOfferTests
     {
         var rig = new StationRig();
         rig.Session.RestoreProcedures(Mastered());
-        Assert.True(rig.Panel.Open("horno"));
+        Assert.True(rig.Panel.Open("oven"));
         rig.Press(GameKey.Enter);
         Assert.Equal(2, rig.Session.Simulation.Inventory.Count(ItemId.Bread));
         Assert.Equal(1, Crafted(rig));
@@ -113,7 +113,7 @@ public sealed class StationBakeOfferTests
     {
         var rig = new StationRig();
         rig.Session.RestoreProcedures(Mastered());
-        Assert.True(rig.Panel.Open("horno"));
+        Assert.True(rig.Panel.Open("oven"));
         var clicked = new StationPanel(rig.Screen, rig.Session, rig.Audio, (_, _) => new StationHit(StationRegion.BakeOneClick, 0), static () => false);
         clicked.Click(new TestInputFrame { LeftDown = true });
         Assert.Equal(2, rig.Session.Simulation.Inventory.Count(ItemId.Bread));
@@ -125,7 +125,7 @@ public sealed class StationBakeOfferTests
     {
         var rig = new StationRig();
         rig.Session.RestoreProcedures(Mastered());
-        Assert.True(rig.Panel.Open("horno"));
+        Assert.True(rig.Panel.Open("oven"));
         _ = rig.Session.Simulation.Inventory.Remove(ItemId.Wood, 1);
         rig.Press(GameKey.B);
         Assert.Equal(StationNotice.NotEnough, rig.View.Notice);

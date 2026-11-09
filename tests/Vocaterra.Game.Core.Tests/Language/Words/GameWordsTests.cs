@@ -88,7 +88,7 @@ public sealed class GameWordsTests
     {
         var json = File.ReadAllText(Repo.Path("content", "game-v1", "game", "scene.json"));
 
-        Assert.Throws<SceneLayoutException>(() => SceneLayout.Parse(json.Replace("\"label\": \"lago\"", "\"label\": \" \"", StringComparison.Ordinal)));
+        Assert.Throws<SceneLayoutException>(() => SceneLayout.Parse(json.Replace("\"label\": \"lake\"", "\"label\": \" \"", StringComparison.Ordinal)));
         Assert.Throws<SceneLayoutException>(() => SceneLayout.Parse(json.Replace("\"name\": \"bridge\", \"label\"", "\"label\"", StringComparison.Ordinal)));
     }
 

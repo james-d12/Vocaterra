@@ -8,7 +8,7 @@
   "properties": {
     "$schema": { "type": "string" },
     "schemaVersion": { "enum": [1] },
-    "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "The procedure's id: its file's name (pan)." },
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "The procedure's id: its file's name (bread)." },
     "station": { "type": "string", "minLength": 1, "description": "The station it is done at (game/stations.json)." },
     "teacher": { "type": "string", "minLength": 1, "description": "The NPC who teaches it (game/npcs.json); the lines of its does rows are that NPC's." },
     "level": { "enum": ["a1", "a2"], "description": "The level the procedure's Spanish keeps to (the CEFR lists up to it)." },
@@ -80,11 +80,11 @@
         "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
         "row": { "type": "string", "minLength": 1, "description": "The does row the step's instruction is (pon-la-harina)." },
         "do": { "type": "string", "pattern": "^[a-zñáéíóúü]+$", "description": "The verb lemma the learner says (poner)." },
-        "what": { "type": "string", "minLength": 1, "description": "The noun acted on: a held item (harina) or a fixture (bol)." },
-        "use": { "type": "string", "minLength": 1, "description": "The noun the learner acts with, when it is not what (mano for sacar). Default: what, for where and from; with, for with." },
-        "where": { "type": "string", "minLength": 1, "description": "The fixture the thing goes to (bol, horno)." },
-        "from": { "type": "string", "minLength": 1, "description": "The fixture the thing comes from (horno)." },
-        "with": { "type": "string", "minLength": 1, "description": "The fixture or tool the act is done with (cuchara)." },
+        "what": { "type": "string", "minLength": 1, "description": "The noun acted on: a held item (flour) or a fixture (bowl); the id of a catalogue noun of game/nouns.json." },
+        "use": { "type": "string", "minLength": 1, "description": "The noun the learner acts with, when it is not what (hand for sacar); the id of a catalogue noun. Default: what, for where and from; with, for with." },
+        "where": { "type": "string", "minLength": 1, "description": "The fixture the thing goes to (bowl, oven): the id of a catalogue noun." },
+        "from": { "type": "string", "minLength": 1, "description": "The fixture the thing comes from (oven)." },
+        "with": { "type": "string", "minLength": 1, "description": "The fixture or tool the act is done with (spoon)." },
         "anyOrder": { "type": "string", "minLength": 1, "description": "The group the step belongs to: steps with the same group may come in either order (the runner draws it per bake). Design 10.7 gives it the group's fixture." }
       },
       "oneOf": [

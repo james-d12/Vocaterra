@@ -31,7 +31,7 @@
             "required": ["noun", "icon"],
             "additionalProperties": false,
             "properties": {
-              "noun": { "type": "string", "minLength": 1, "description": "A catalogue noun of game/nouns.json (bol, cuchara, horno)." },
+              "noun": { "type": "string", "minLength": 1, "description": "The id of a catalogue noun of game/nouns.json (bowl, spoon, oven)." },
               "icon": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "The icon's key (bowl, spoon, oven)." }
             }
           }

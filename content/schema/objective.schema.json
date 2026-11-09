@@ -29,7 +29,7 @@
         "detail": {
           "type": "string",
           "minLength": 1,
-          "description": "The detail the event must have, exactly (item_picked_up and item_crafted: the noun; torch_at_ring: the ring's name)."
+          "description": "The detail the event must have, exactly (item_picked_up and item_crafted: the id of the noun (wood, fruit); torch_at_ring: the ring's name)."
         }
       },
       "description": "What the step or tip waits for (CONTENT_PLAN C06)."
@@ -95,7 +95,7 @@
           "noun": {
             "type": "string",
             "minLength": 1,
-            "description": "For a checklist step: the catalogue noun it is about."
+            "description": "For a checklist step: the id of the catalogue noun it is about (wood, fruit)."
           },
           "label": {
             "type": "string",

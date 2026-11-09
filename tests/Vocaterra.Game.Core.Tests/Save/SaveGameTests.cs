@@ -156,7 +156,7 @@ public sealed class SaveGameTests
 
         var version = Assert.Throws<SaveException>(() => SaveGame.Parse(SaveGame.Serialize(document with { Version = SaveGame.CurrentVersion + 1 })));
         Assert.Contains($"version {SaveGame.CurrentVersion + 1}", version.Message, StringComparison.Ordinal);
-        Assert.Contains($"versions 1 to {SaveGame.CurrentVersion}", version.Message, StringComparison.Ordinal);
+        Assert.Contains($"versions {SaveGame.OldestReadableVersion} to {SaveGame.CurrentVersion}", version.Message, StringComparison.Ordinal);
 
         var format = Assert.Throws<SaveException>(() => SaveGame.Parse("{\"format\":\"something-else\",\"version\":1}"));
         Assert.Contains("not a vocaterra-save", format.Message, StringComparison.Ordinal);
@@ -315,6 +315,24 @@ public sealed class SaveGameTests
         var words = new WordProgress(TestGame.Nouns);
         Assert.Throws<ArgumentException>(() => words.Restore([new WordRecord("gato-no")]));
         Assert.Throws<ArgumentException>(() => words.Restore([new WordRecord("agua"), new WordRecord("agua")]));
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(4)]
+    [InlineData(7)]
+    public void ASaveOfAnOlderVersionIsRefusedWithAClearMessageAndNoMigration(int version)
+    {
+        // T03: version 8 names the bread's procedure and its station by neutral ids; a save up to 7 holds the Spanish pan and horno, and the unreleased game keeps no migration for it.
+        var document = SaveGame.Parse(SaveOf(TestGame.NewSession())) with { Version = version };
+
+        var refused = Assert.Throws<SaveException>(() => SaveGame.Parse(SaveGame.Serialize(document)));
+
+        Assert.Contains($"version {version}", refused.Message, StringComparison.Ordinal);
+        Assert.Contains($"version {SaveGame.OldestReadableVersion} only", refused.Message, StringComparison.Ordinal);
+        Assert.Contains("Start a new game", refused.Message, StringComparison.Ordinal);
+        Assert.Equal(SaveGame.CurrentVersion, SaveGame.OldestReadableVersion);
+        Assert.Throws<SaveException>(() => SaveGame.Load(SaveGame.Serialize(document), TestGame.Data, Pristine));
     }
 
     // Walks, turns and talks for a while: the same moves for both games of the continuation test.

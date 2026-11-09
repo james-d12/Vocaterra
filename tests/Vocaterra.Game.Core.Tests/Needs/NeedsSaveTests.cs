@@ -26,14 +26,14 @@ public sealed class NeedsSaveTests
     }
 
     [Fact]
-    public void TheSaveIsVersion7AndCarriesTheNeedsUnderSystems()
+    public void TheSaveIsVersion8AndCarriesTheNeedsUnderSystems()
     {
         var session = Played();
 
         var document = SaveGame.Capture(session, Pristine());
 
-        Assert.Equal(7, SaveGame.CurrentVersion);
-        Assert.Equal(7, document.Version);
+        Assert.Equal(8, SaveGame.CurrentVersion);
+        Assert.Equal(8, document.Version);
         Assert.Equal(session.Needs.Capture(), document.Systems?.Needs);
         Assert.Contains("\"systems\":{\"needs\":{", SaveGame.Serialize(document), StringComparison.Ordinal);
     }
@@ -65,10 +65,10 @@ public sealed class NeedsSaveTests
     }
 
     [Fact]
-    public void AVersion5SaveLoadsWithFullNeeds()
+    public void ASaveWithoutSystemsLoadsWithFullNeeds()
     {
         var session = Played();
-        var document = SaveGame.Capture(session, Pristine()) with { Version = 5, Systems = null };
+        var document = SaveGame.Capture(session, Pristine()) with { Systems = null };
 
         var loaded = SaveGame.Load(SaveGame.Serialize(document), TestGame.Data, Pristine);
 

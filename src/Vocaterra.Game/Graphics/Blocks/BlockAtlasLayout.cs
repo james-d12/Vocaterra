@@ -206,19 +206,19 @@ public enum BlockCell
     Bottles,
 
     /// <summary>The shop's board, first half: an arrow and TIE.</summary>
-    SignTiendaA,
+    SignShopA,
 
     /// <summary>The shop's board, second half: NDA.</summary>
-    SignTiendaB,
+    SignShopB,
 
     /// <summary>The river's board: an arrow and RÍO.</summary>
-    SignRio,
+    SignRiver,
 
     /// <summary>The mountain's board, first half: an arrow and MON.</summary>
-    SignMontanaA,
+    SignMountainA,
 
     /// <summary>The mountain's board, second half: TAÑA.</summary>
-    SignMontanaB,
+    SignMountainB,
 
     /// <summary>The front of the guide's head (S15).</summary>
     FaceGuide,
@@ -379,11 +379,11 @@ public static class BlockAtlasLayout
             BlockId.Loaves => BlockCell.Loaves,
             BlockId.Apples => BlockCell.Apples,
             BlockId.Bottles => BlockCell.Bottles,
-            BlockId.SignTiendaA => Reads(face, BlockCell.SignTiendaA),
-            BlockId.SignTiendaB => Reads(face, BlockCell.SignTiendaB),
-            BlockId.SignRio => Reads(face, BlockCell.SignRio),
-            BlockId.SignMontanaA => Reads(face, BlockCell.SignMontanaA),
-            BlockId.SignMontanaB => Reads(face, BlockCell.SignMontanaB),
+            BlockId.SignShopA => Reads(face, BlockCell.SignShopA),
+            BlockId.SignShopB => Reads(face, BlockCell.SignShopB),
+            BlockId.SignRiver => Reads(face, BlockCell.SignRiver),
+            BlockId.SignMountainA => Reads(face, BlockCell.SignMountainA),
+            BlockId.SignMountainB => Reads(face, BlockCell.SignMountainB),
             _ => BlockCell.White,
         };
     }

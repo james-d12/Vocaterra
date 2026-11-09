@@ -231,13 +231,15 @@ public sealed class ObjectiveBook
                     throw new InvalidDataException($"{path}: the step '{stepId}' needs a target of at least 1.");
                 }
 
-                var trigger = Trigger.Parse(element.GetProperty("trigger"), WorldEvents.All, $"{path}: the step '{stepId}'");
+                var trigger = InLanguage(Trigger.Parse(element.GetProperty("trigger"), WorldEvents.All, $"{path}: the step '{stepId}'"), nouns);
                 var restore = element.TryGetProperty("restore", out _) ? Text(element, "restore", path) : null;
-                var noun = element.TryGetProperty("noun", out _) ? Text(element, "noun", path) : string.Empty;
+                var nounId = element.TryGetProperty("noun", out _) ? Text(element, "noun", path) : string.Empty;
+                var noun = nounId;
                 var label = element.TryGetProperty("label", out _) ? Text(element, "label", path) : null;
                 if (title is not null)
                 {
-                    var entry = nouns.ForLemma(noun) ?? throw new InvalidDataException($"{path}: the checklist step '{stepId}' names '{noun}', which is not a catalogue noun.");
+                    var entry = nouns.ForId(nounId) ?? throw new InvalidDataException($"{path}: the checklist step '{stepId}' names '{nounId}', which is not a catalogue noun id.");
+                    noun = entry.Lemma; // the step is matched and glossed by the target language's word for the noun (T03: the file names the id)
                     label ??= entry.Mass || target == 1 ? entry.Lemma : entry.Plural; // content-plan 3.5: the label rule reproduces the old checklist's words
                 }
 
@@ -299,6 +301,13 @@ public sealed class ObjectiveBook
 
     private static List<string> Strings(JsonElement element, string name) =>
         element.TryGetProperty(name, out var array) ? array.EnumerateArray().Select(static e => e.GetString() ?? string.Empty).ToList() : [];
+
+    // The events whose detail is a noun are logged by the noun's lemma (the session log and the lessons' triggers, which are the target language's, read it so): an
+    // objective's trigger names the noun by id and is matched by the lemma of that id (T03).
+    private static Trigger InLanguage(Trigger trigger, NounCatalog nouns) =>
+        trigger.Detail is { } detail && trigger.Event is WorldEvents.ItemPickedUp or WorldEvents.ItemCrafted && nouns.ForId(detail) is { } noun
+            ? trigger with { Detail = noun.Lemma }
+            : trigger;
 
     private static string Text(JsonElement element, string name, string path) =>
         element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(value.GetString())

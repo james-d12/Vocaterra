@@ -21,7 +21,7 @@ internal static class RouteScene
 {
     private const string EmptyBook = "{ \"schemaVersion\": 1, \"lessons\": [] }";
 
-    private static readonly Lazy<SceneLayout> RouteLayout = new(() => SceneLayout.Load(System.IO.Path.Combine(GameBundle.ResolveDirectory(), "game", "scene.json")));
+    private static readonly Lazy<SceneLayout> RouteLayout = new(() => TestGame.Data.InLanguage(SceneLayout.Load(System.IO.Path.Combine(GameBundle.ResolveDirectory(), "game", "scene.json"))));
 
     private static readonly Lazy<SceneLayout> ClearingLayout = new(() => SceneLayout.Load(Repo.Path("tests", "Vocaterra.Game.Tests", "Fixtures", "clearing-route.json")));
 

@@ -176,7 +176,7 @@ public sealed class VoxelGridTests
         Assert.Equal(34, (int)BlockId.Timber); // S15 appended its kinds after the cobble, in this order
         Assert.Equal(35, (int)BlockId.Lantern);
         Assert.Equal(45, (int)BlockId.Bottles);
-        Assert.Equal(50, (int)BlockId.SignMontanaB);
+        Assert.Equal(50, (int)BlockId.SignMountainB);
         Assert.Equal(51, (int)BlockId.PostTorch);
         Assert.Equal(BlockDefinition.Get(BlockId.FireRing), BlockDefinition.FromName("fire-ring"));
         Assert.Null(BlockDefinition.FromName("lava"));

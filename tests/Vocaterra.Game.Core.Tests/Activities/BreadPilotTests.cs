@@ -28,11 +28,11 @@ public sealed class BreadPilotTests
     [Fact]
     public void TheBreadProcedureLoadsAndValidatesWithNineDoesRowsRecordedForLuz()
     {
-        var pan = Data.Procedures.Find("pan")!;
+        var pan = Data.Procedures.Find("bread")!;
 
         Assert.Empty(GameDataValidator.ActivityProblems(Data));
         Assert.Empty(GameDataValidator.Validate(Data));
-        Assert.Equal(("horno", "baker", "a2"), (pan.Station, pan.Teacher, pan.Level));
+        Assert.Equal(("oven", "baker", "a2"), (pan.Station, pan.Teacher, pan.Level));
         Assert.Equal(["harina", "agua", "mezclar", "madera", "masa", "sacar"], pan.Steps.Select(static s => s.Id));
         Assert.Equal(["la-masa", "el-horno"], pan.Chunks.Select(static c => c.Id));
         Assert.Equal(Rows.OrderBy(static r => r, StringComparer.Ordinal), pan.Rows.Distinct().OrderBy(static r => r, StringComparer.Ordinal));
@@ -49,7 +49,7 @@ public sealed class BreadPilotTests
     [Fact]
     public void ABakeGoesFromRungOneToDoneMakesThreeLoavesAndRaisesProcedureDone()
     {
-        var pan = Data.Procedures.Find("pan")!;
+        var pan = Data.Procedures.Find("bread")!;
         var phrases = new PhraseProgress(Data.Phrases, 1, Rows);
         var runner = new ProcedureRunner(Data.Procedures, Data.Stations, TestGame.Nouns, phrases, CreditRules.Default, 7);
         var bag = new Inventory();
@@ -57,7 +57,7 @@ public sealed class BreadPilotTests
         _ = bag.Add(ItemId.WaterBottle, 1);
         _ = bag.Add(ItemId.Wood, 1);
 
-        Assert.Equal(StartOutcome.Started, runner.Start("pan", "horno", true));
+        Assert.Equal(StartOutcome.Started, runner.Start("bread", "oven", true));
         Assert.Equal(1, runner.View().Rung); // the first bake shows the English and the card
         ActResult? last = null;
         foreach (var id in runner.Order.ToList())
@@ -69,7 +69,7 @@ public sealed class BreadPilotTests
 
         Assert.Equal((ProcedureState.Done, 3), (last!.State, last.Made)); // two loaves and the bonus: six steps right the first time
         Assert.Equal((3, 0, 0, 1, 0), (bag.Count(ItemId.Bread), bag.Count(ItemId.Flour), bag.Count(ItemId.Wood), bag.Count(ItemId.Bottle), bag.Count(ItemId.WaterBottle)));
-        Assert.Contains(runner.DrainEvents(), static e => e.Name == WorldEvents.ProcedureDone && e.Detail == "pan");
+        Assert.Contains(runner.DrainEvents(), static e => e.Name == WorldEvents.ProcedureDone && e.Detail == "bread");
         Assert.All(pan.Rows.Take(6), row => Assert.Equal(2, (int)phrases.LevelOf(row) + 1)); // every row moves up a rung, with no comprehension credit yet
     }
 
@@ -82,7 +82,7 @@ public sealed class BreadPilotTests
         _ = bag.Add(ItemId.Flour, 1);
         _ = bag.Add(ItemId.WaterBottle, 1);
         _ = bag.Add(ItemId.Wood, 1);
-        _ = runner.Start("pan", "horno", true);
+        _ = runner.Start("bread", "oven", true);
 
         Assert.Equal(ActOutcome.WrongThing, runner.Act("harina", "horno", "poner", bag, 1_000_000).Outcome); // the flour on the oven
         Assert.Equal(ActOutcome.OutOfOrder, runner.Act("cuchara", "bol", "mezclar", bag, 1_000_000).Outcome); // a later step's act: Luz says «Todavía no.»
@@ -289,14 +289,14 @@ public sealed class BreadPilotTests
         // The class's do step waits for the bake: the grant is open though today's was given, and it does not count for the day.
         Assert.Equal(WorldEvents.ProcedureDone, session.Lessons.Current!.Event);
         session.EndTalk();
-        var closed = new ProceduresSave(1, ["pan"], [new ProcedureProgressSave("pan", 1, 1, [1], 3, false)], [], null, ["pan"]);
+        var closed = new ProceduresSave(1, ["bread"], [new ProcedureProgressSave("bread", 1, 1, [1], 3, false)], [], null, ["bread"]);
         session.RestoreProcedures(closed);
-        Assert.Equal(StartOutcome.Started, session.StartProcedure("pan", "horno", true));
+        Assert.Equal(StartOutcome.Started, session.StartProcedure("bread", "oven", true));
         Assert.True(session.PlanGrant()!.Open);
-        Assert.Equal(["pan"], session.GrantsGivenToday);
+        Assert.Equal(["bread"], session.GrantsGivenToday);
 
         // The bake is done: she asks what the learner did.
-        session.LogEvent(new WorldEvent(session.CurrentTick, session.StoredTime.UnixSeconds, WorldEvents.ProcedureDone, "baker", "pan"));
+        session.LogEvent(new WorldEvent(session.CurrentTick, session.StoredTime.UnixSeconds, WorldEvents.ProcedureDone, "baker", "bread"));
         Assert.Equal("k3-back", session.Lessons.Current!.Id);
         _ = session.Simulation.GrantItems(ItemId.Bread, 3);
         Stage.TeleportToNpc(session, "baker");
@@ -333,8 +333,8 @@ public sealed class BreadPilotTests
     {
         var session = ClassSession();
         session.EndTalk();
-        session.RestoreProcedures(new ProceduresSave(1, ["pan"], [new ProcedureProgressSave("pan", 1, 1, [1], 3, false)], [], null, ["pan"]));
-        Assert.Equal(StartOutcome.Started, session.StartProcedure("pan", "horno", true));
+        session.RestoreProcedures(new ProceduresSave(1, ["bread"], [new ProcedureProgressSave("bread", 1, 1, [1], 3, false)], [], null, ["bread"]));
+        Assert.Equal(StartOutcome.Started, session.StartProcedure("bread", "oven", true));
 
         Assert.False(session.PlanGrant()!.Open); // the class is not engaged: the day's grant stays given
     }

@@ -108,6 +108,7 @@ public sealed class GameWords
     private readonly IReadOnlyDictionary<string, string> _pronouns;
     private readonly IReadOnlyDictionary<string, string> _nouns;
     private readonly IReadOnlyDictionary<string, string> _hudLines;
+    private readonly IReadOnlyDictionary<string, string> _places;
 
     private GameWords(
         DirectionWords directions,
@@ -127,8 +128,10 @@ public sealed class GameWords
         IReadOnlyDictionary<string, string> nouns,
         ClassAnswers classes,
         IReadOnlyDictionary<string, string> hudLines,
-        MatchingWords matching)
+        MatchingWords matching,
+        IReadOnlyDictionary<string, string> places)
     {
+        _places = places;
         Directions = directions;
         BlockUnit = blockUnit;
         ListJoiner = listJoiner;
@@ -210,6 +213,12 @@ public sealed class GameWords
     /// <exception cref="KeyNotFoundException">The file has no noun for the role.</exception>
     public string Noun(string role) => _nouns[role];
 
+    /// <summary>
+    /// The places of the scene that are no catalogue noun, by neutral id (<c>words.json</c>, <c>places</c>: <c>village</c> is <c>pueblo</c>, <c>waterfall</c> <c>cascada</c>): the
+    /// word the beacon shows for a scene label whose id <c>nouns.json</c> does not have (T03).
+    /// </summary>
+    public IReadOnlyDictionary<string, string> Places => _places;
+
     /// <summary>The roles the game's logic gives a noun.</summary>
     public static IReadOnlyList<string> NounRoles { get; } = ["river"];
 
@@ -283,7 +292,8 @@ public sealed class GameWords
                     Texts(root, "nameDeterminers"),
                     Texts(root, "vocativeBinders"),
                     Texts(root, "vocativeJoiners"),
-                    Texts(root, "quantityArticles")));
+                    Texts(root, "quantityArticles")),
+                OptionalMap(root, "places"));
         }
         catch (Exception ex) when (ex is JsonException or KeyNotFoundException or InvalidOperationException)
         {
@@ -306,6 +316,7 @@ public sealed class GameWords
         all.AddRange(PronounKeys.Select(key => ("pronouns." + key, _pronouns[key])));
         all.AddRange(NearFuture.TimeWords.Select((word, i) => ("nearFuture.timeWords[" + i.ToString(System.Globalization.CultureInfo.InvariantCulture) + "]", word)));
         all.AddRange(NounRoles.Select(role => ("nouns." + role, _nouns[role])));
+        all.AddRange(_places.OrderBy(static pair => pair.Key, StringComparer.Ordinal).Select(static pair => ("places." + pair.Key, pair.Value)));
         all.AddRange(_hudLines.OrderBy(static pair => pair.Key, StringComparer.Ordinal).Select(static pair => ("hudLines." + pair.Key, pair.Value)));
         return all;
     }

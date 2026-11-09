@@ -9,8 +9,8 @@
       "action": {
         "kind": "give_item",
         "item": "bottle",
-        "asked": ["agua", "botella"],
-        "instead": { "pan": "give_bread", "harina": "sell_flour" }
+        "asked": ["water", "bottle"],
+        "instead": { "bread": "give_bread", "flour": "sell_flour" }
       }
     },
     {
@@ -27,7 +27,7 @@
       "action": {
         "kind": "sell",
         "slot": "item",
-        "prices": { "harina": 1 }
+        "prices": { "flour": 1 }
       }
     },
     {
@@ -53,7 +53,7 @@
       "action": {
         "kind": "give_item",
         "item": "bread",
-        "asked": ["pan"]
+        "asked": ["bread"]
       }
     },
     {

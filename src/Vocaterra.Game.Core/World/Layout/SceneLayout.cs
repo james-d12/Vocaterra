@@ -104,10 +104,22 @@ public sealed class SceneLayout
     public UndergrowthSpec Undergrowth { get; }
 
     /// <summary>
-    /// The beacon's words for the named places (content-plan C05): a site's, a point's or a named prop's <c>label</c> (<c>river</c> shows <c>río</c>). A place
-    /// with none shows its own name.
+    /// The beacon's labels for the named places (content-plan C05): a site's, a point's or a named prop's <c>label</c>. The file names the word by a neutral id
+    /// (<c>river</c>; T03) and <see cref="WithWords"/> turns each into the target language's word (<c>río</c>). A place with none shows its own name.
     /// </summary>
-    public IReadOnlyDictionary<string, string> Labels { get; init; } = new Dictionary<string, string>(StringComparer.Ordinal);
+    public IReadOnlyDictionary<string, string> Labels { get; internal set; } = new Dictionary<string, string>(StringComparer.Ordinal);
+
+    /// <summary>
+    /// The same layout with each label's id turned into its word (T03): the catalogue noun's lemma, or the word of <c>words.json</c>'s <c>places</c>.
+    /// </summary>
+    /// <param name="wordOf">The word of a label id (it throws for an id with none).</param>
+    public SceneLayout WithWords(Func<string, string> wordOf)
+    {
+        ArgumentNullException.ThrowIfNull(wordOf);
+        var copy = (SceneLayout)MemberwiseClone();
+        copy.Labels = Labels.ToDictionary(static pair => pair.Key, pair => wordOf(pair.Value), StringComparer.Ordinal);
+        return copy;
+    }
 
     /// <summary>The names of the points a scene built from the layout has (village-plan V02: the places the data may send the beacon to): every site, every point and every named prop.</summary>
     public IEnumerable<string> PointNames =>

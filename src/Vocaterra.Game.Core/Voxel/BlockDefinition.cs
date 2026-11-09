@@ -108,11 +108,11 @@ public sealed record BlockDefinition(
         new(BlockId.Loaves, "loaves", false, true, false, 0, null, 0, BlockId.Air, Decor: true),
         new(BlockId.Apples, "apples", false, true, false, 0, null, 0, BlockId.Air, Decor: true),
         new(BlockId.Bottles, "bottles", false, true, false, 0, null, 0, BlockId.Air, Decor: true),
-        new(BlockId.SignTiendaA, "sign-tienda-a", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
-        new(BlockId.SignTiendaB, "sign-tienda-b", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
-        new(BlockId.SignRio, "sign-rio", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
-        new(BlockId.SignMontanaA, "sign-montana-a", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
-        new(BlockId.SignMontanaB, "sign-montana-b", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
+        new(BlockId.SignShopA, "sign-shop-a", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
+        new(BlockId.SignShopB, "sign-shop-b", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
+        new(BlockId.SignRiver, "sign-river", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
+        new(BlockId.SignMountainA, "sign-mountain-a", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
+        new(BlockId.SignMountainB, "sign-mountain-b", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
         new(BlockId.PostTorch, "post-torch", false, true, false, 0, null, 0, BlockId.Air),
     ];
 

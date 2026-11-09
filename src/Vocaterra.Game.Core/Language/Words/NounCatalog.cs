@@ -13,6 +13,7 @@ namespace Vocaterra.Game.Core.Language.Words;
 /// One catalogue noun: its lemma, and from the core's lexicon and morphology its gender, its articles and its plural. The items and blocks it
 /// names are the objects that turn from grey to colour as the word is learned (D-game-6).
 /// </summary>
+/// <param name="Id">The neutral id (<c>tree</c>): what the world's data (recipes, objectives, stations, actions, procedures, host events, the scene) names the noun by; the lemma is the target language's word for it (T03).</param>
 /// <param name="Lemma">The dictionary form (<c>árbol</c>).</param>
 /// <param name="Gender">The lexicon's gender of the noun (<c>m</c> or <c>f</c>).</param>
 /// <param name="Items">The item kinds it names.</param>
@@ -20,9 +21,10 @@ namespace Vocaterra.Game.Core.Language.Words;
 /// <param name="Indefinite">The indefinite article in the singular (<c>un</c>, <c>una</c>).</param>
 /// <param name="Plural">The plural form (<c>árboles</c>).</param>
 /// <param name="Mass">Whether the noun is a mass noun, counted as <c>bloques de</c> (<c>madera</c>, <c>arena</c>).</param>
-/// <param name="Sources">The catalogue nouns this one comes from (<c>madera</c> from <c>árbol</c>), for the guide's "where is it" answers.</param>
+/// <param name="Sources">The lemmas of the catalogue nouns this one comes from (<c>madera</c> from <c>árbol</c>; the file names them by id), for the guide's "where is it" answers.</param>
 /// <param name="Blocks">The 3D block kinds it names (<c>agua</c> and <c>río</c> both name the water). Several nouns may name one block; the first one by lemma is its noun.</param>
 public sealed record NounEntry(
+    string Id,
     string Lemma,
     string Gender,
     IReadOnlyList<ItemId> Items,
@@ -55,6 +57,7 @@ public sealed class NounCatalog
     public const string RelativePath = "game/nouns.json";
 
     private readonly Dictionary<string, NounEntry> _byLemma;
+    private readonly Dictionary<string, NounEntry> _byId;
     private readonly Dictionary<ItemId, NounEntry> _byItem;
     private readonly Dictionary<BlockId, List<NounEntry>> _byBlock;
 
@@ -66,11 +69,13 @@ public sealed class NounCatalog
         Normalizer = normalizer;
         Articles = articles;
         _byLemma = new Dictionary<string, NounEntry>(StringComparer.Ordinal);
+        _byId = new Dictionary<string, NounEntry>(StringComparer.Ordinal);
         _byItem = [];
         _byBlock = [];
         foreach (var noun in nouns)
         {
             _byLemma.Add(noun.Lemma, noun);
+            _byId.Add(noun.Id, noun);
             foreach (var item in noun.Items)
             {
                 _byItem.Add(item, noun);
@@ -135,10 +140,12 @@ public sealed class NounCatalog
         }
 
         var nouns = new List<NounEntry>();
+        var rawSources = new List<IReadOnlyList<string>>();
         var claimedItems = new HashSet<ItemId>();
         var labels = new Dictionary<ItemId, string>();
         foreach (var item in root.GetProperty("nouns").EnumerateArray())
         {
+            var id = item.GetProperty("id").GetString() ?? throw new InvalidDataException("A catalogue noun has no id.");
             var lemma = item.GetProperty("lemma").GetString() ?? throw new InvalidDataException("A catalogue noun has no lemma.");
             var items = item.GetProperty("items").EnumerateArray().Select(i => ItemNamed(i.GetString())).ToList();
             foreach (var kind in items)
@@ -167,25 +174,45 @@ public sealed class NounCatalog
                 }
             }
 
-            nouns.Add(Describe(bundle, lemma, items, blocks, mass, sources));
+            nouns.Add(Describe(bundle, id, lemma, items, blocks, mass, []));
+            rawSources.Add(sources);
         }
 
-        var lemmas = nouns.Select(static n => n.Lemma).ToHashSet(StringComparer.Ordinal);
-        foreach (var noun in nouns)
+        var duplicate = nouns.GroupBy(static n => n.Id, StringComparer.Ordinal).FirstOrDefault(static g => g.Count() > 1);
+        if (duplicate is not null)
         {
-            foreach (var source in noun.Sources)
+            throw new InvalidDataException($"{RelativePath}: the id '{duplicate.Key}' names more than one noun.");
+        }
+
+        // A noun's sources are named by id in the file (T03) and kept as the lemmas the guide says.
+        var lemmaOfId = nouns.ToDictionary(static n => n.Id, static n => n.Lemma, StringComparer.Ordinal);
+        for (var i = 0; i < nouns.Count; i++)
+        {
+            nouns[i] = nouns[i] with
             {
-                if (!lemmas.Contains(source))
-                {
-                    throw new InvalidDataException($"{RelativePath}: '{noun.Lemma}' comes from '{source}', which is not a catalogue noun.");
-                }
-            }
+                Sources = rawSources[i].Select(source => lemmaOfId.TryGetValue(source, out var sourceLemma)
+                    ? sourceLemma
+                    : throw new InvalidDataException($"{RelativePath}: '{nouns[i].Id}' comes from '{source}', which is not a catalogue noun id.")).ToList(),
+            };
         }
 
         // The articles are the lexicon's (its art readings: el, la, los, las, un, una, unos, unas), not a list in the code (content-plan C05).
         var articles = bundle.Lexicon.Entries.Where(static e => string.Equals(e.Pos, "art", StringComparison.Ordinal)).Select(static e => e.Form).ToHashSet(StringComparer.Ordinal);
         return new NounCatalog(nouns, articles, labels, bundle.Language.Normalizer);
     }
+
+    /// <summary>The catalogue entry with a neutral id (<c>tree</c>), or <see langword="null"/> when the id is not a catalogue noun.</summary>
+    public NounEntry? ForId(string id)
+    {
+        ArgumentNullException.ThrowIfNull(id);
+        return _byId.TryGetValue(id, out var noun) ? noun : null;
+    }
+
+    /// <summary>
+    /// The lemma of a neutral id, or the text itself when no noun has the id (the validator then reports it): how the loaders of the world's data (stations,
+    /// actions, procedures, host events) turn the ids their files hold into the words the learner's line is matched with (T03).
+    /// </summary>
+    public string LemmaOfId(string id) => ForId(id)?.Lemma ?? id;
 
     /// <summary>The catalogue entry for a lemma, or <see langword="null"/> when the lemma is not a catalogue noun.</summary>
     public NounEntry? ForLemma(string lemma)
@@ -239,6 +266,7 @@ public sealed class NounCatalog
 
     private static NounEntry Describe(
         ContentBundle bundle,
+        string id,
         string lemma,
         IReadOnlyList<ItemId> items,
         IReadOnlyList<BlockId> blocks,
@@ -251,6 +279,7 @@ public sealed class NounCatalog
             ?? throw new InvalidDataException($"{RelativePath}: '{lemma}' has no noun reading with a gender in the lexicon.");
         var morphology = bundle.LanguageMorphology;
         return new NounEntry(
+            id,
             lemma,
             gender,
             items,

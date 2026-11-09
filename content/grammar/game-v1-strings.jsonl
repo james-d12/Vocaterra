@@ -3365,6 +3365,20 @@
 {"id":"words.json:nearFuture.timeWords[9]","text":"año que viene","kind":"npc"}
 {"id":"words.json:nearFuture.timeWords[10]","text":"próximo año","kind":"npc"}
 {"id":"words.json:nouns.river","text":"río","kind":"npc"}
+{"id":"words.json:places.bakery","text":"panadería","kind":"npc"}
+{"id":"words.json:places.camp","text":"campamento","kind":"npc"}
+{"id":"words.json:places.farmer","text":"granjero","kind":"npc"}
+{"id":"words.json:places.field","text":"campo","kind":"npc"}
+{"id":"words.json:places.fisher","text":"pescador","kind":"npc"}
+{"id":"words.json:places.lake","text":"lago","kind":"npc"}
+{"id":"words.json:places.my-camp","text":"mi campamento","kind":"npc"}
+{"id":"words.json:places.signpost","text":"letrero","kind":"npc"}
+{"id":"words.json:places.smith","text":"herrero","kind":"npc"}
+{"id":"words.json:places.smithy","text":"herrería","kind":"npc"}
+{"id":"words.json:places.tower","text":"torre","kind":"npc"}
+{"id":"words.json:places.village","text":"pueblo","kind":"npc"}
+{"id":"words.json:places.waterfall","text":"cascada","kind":"npc"}
+{"id":"words.json:places.well","text":"pozo","kind":"npc"}
 {"id":"words.json:hudLines.hud.belongings","text":"tus cosas","kind":"npc"}
 {"id":"words.json:hudLines.hud.camp","text":"Estás en tu campamento.","kind":"npc"}
 {"id":"words.json:hudLines.hud.fine","text":"bien","kind":"npc"}

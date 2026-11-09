@@ -556,7 +556,7 @@ public static class SceneBuilder
         }
 
         // A signpost (S15): a post and up to three boards stacked on it, each carrying a place name and an arrow, readable from the side the prop faces.
-        // The boards extend from the post to the reader's right; the names are in prop.Stamp, separated by commas (default: tienda, rio, montana).
+        // The boards extend from the post to the reader's right; the names are in prop.Stamp, separated by commas (default: shop, river, mountain).
         private void BuildSignpost(PropSpec prop, string where)
         {
             var reader = prop.Facing ?? Direction.South;
@@ -566,7 +566,7 @@ public static class SceneBuilder
             }
 
             var (ax, az) = reader == Direction.South ? (1, 0) : (0, 1);
-            var boards = (prop.Stamp ?? "tienda,rio,montana").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var boards = (prop.Stamp ?? "shop,river,mountain").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             var x0 = Math.Min(prop.X, prop.X + (2 * ax));
             var z0 = Math.Min(prop.Z, prop.Z + (2 * az));
             var h = FlatHeight(x0, z0, Math.Abs(2 * ax) + 1, Math.Abs(2 * az) + 1, where);
@@ -578,9 +578,9 @@ public static class SceneBuilder
                 Put(prop.X, y, prop.Z, BlockId.Sign, where);
                 var cells = boards[row] switch
                 {
-                    "tienda" => new[] { BlockId.SignTiendaA, BlockId.SignTiendaB },
-                    "rio" => new[] { BlockId.SignRio },
-                    "montana" => new[] { BlockId.SignMontanaA, BlockId.SignMontanaB },
+                    "shop" => new[] { BlockId.SignShopA, BlockId.SignShopB },
+                    "river" => new[] { BlockId.SignRiver },
+                    "mountain" => new[] { BlockId.SignMountainA, BlockId.SignMountainB },
                     _ => throw new SceneLayoutException($"{where}: unknown sign board '{boards[row]}'."),
                 };
                 for (var i = 0; i < cells.Length; i++)

@@ -84,7 +84,7 @@ public sealed record LaunchOptions
         + "  --need <need> <n>       a script step: set a need where the script stands (a test aid, N04; --set-need sets at launch)\n"
         + "  --take-belongings       take back what a death left in the chest the crosshair is on, within reach, as E does (N04)\n"
         + "  --plant x,y,z           plant the held berry on the grass or dirt block at that cell as a right click on it does (N08; a berry bush at the camp, within 8 blocks of its fire)\n"
-        + "  --station <id>          open the station (horno) and start its first procedure, as E at its prop does (W07); the overlay stays open for the steps after it and the screenshot\n"
+        + "  --station <id>          open the station (oven, or horno: its id or its noun) and start its first procedure, as E at its prop does (W07); the overlay stays open for the steps after it and the screenshot\n"
         + "  --act <use>,<on>[,<verb>] an act at the open station: the noun held, the target and, for a pair of several verbs, the verb (harina,bol  mano,horno,sacar; W07)\n"
         + "  --station-say <line>    a typed line to the teacher from the open station, at her teaching prompt: \"Otra vez, por favor.\", \"Más despacio, por favor.\", \"Ayuda.\", \"Quiero madera.\" (W08)\n"
         + "  --proc-help             help at the open station, as H does: the English, the highlight, the row up a rung (W07)\n"

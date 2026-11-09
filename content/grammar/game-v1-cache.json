@@ -836,6 +836,12 @@
       "matches": []
     },
     {
+      "key": "175beb3900461c4f4543bf0e6903baa239ddab26cdd5e955bb87ad9fe4c07467",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "panadería",
+      "matches": []
+    },
+    {
       "key": "17a0ab05990429aea89af8b65c620ce3610395acfdf62b6196f81d88c097b5e0",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Aquí tienes la botella. El agua está en el río.",
@@ -1426,6 +1432,12 @@
       "matches": []
     },
     {
+      "key": "2777d39734bd6828490578bcd0b89337b238911d74d75a8a13a57eb48ea52582",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "campamento",
+      "matches": []
+    },
+    {
       "key": "27d9b33890ad540d4447a230d01798cd4d19638e10e86cd1aaa96b14a69f2bec",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde está el río por favor",
@@ -1919,6 +1931,12 @@
           ]
         }
       ]
+    },
+    {
+      "key": "33197e66dc4a7e284714b37c883dc41b2840f6febf8d69ace8cf23cc4d0b6091",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "torre",
+      "matches": []
     },
     {
       "key": "332aed4c4b1c5915a53f00c50583ba8893a1b9c3a53a7c94a1985a99a5053d31",
@@ -3353,6 +3371,12 @@
       "matches": []
     },
     {
+      "key": "553c91eec267784c172cc657777f88285345b5329179119346cbac55e4963802",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "lago",
+      "matches": []
+    },
+    {
       "key": "554bd13bd897ddb48e11a770e942ff8d0623b596e3c69c1c3c722e0f11022a9a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Tengo que comprar pan",
@@ -4068,6 +4092,12 @@
       "matches": []
     },
     {
+      "key": "65a58a39692ce177c6e160c4d843f4f9f1ea500a3a20698c5c4b026acbe90749",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "herrero",
+      "matches": []
+    },
+    {
       "key": "65ccdc9fe3f023ed1616f0d28071bb203f73153871a5df7c14476acbd2a68559",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No sabo",
@@ -4457,6 +4487,12 @@
       "key": "6e8e45f61018d252f8805d5e9dcf5f5df94e20dc7e9d405db72e2be74f9f0d3d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Cómo es grande",
+      "matches": []
+    },
+    {
+      "key": "6f17fb31afc2d4c2be3dbe61b7c67059b873a3d803737fed4c567307bfda8639",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "pozo",
       "matches": []
     },
     {
@@ -5217,6 +5253,12 @@
       "matches": []
     },
     {
+      "key": "7ea28767bc488eecd31363057c3cf7e2de8147018ca11cea55ec61bdbe15595a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "pueblo",
+      "matches": []
+    },
+    {
       "key": "7f80e86b662382f2a407acbb0197be2826d2a2db68080bdb2494d5d1233e8830",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, gracias",
@@ -5688,6 +5730,12 @@
       "matches": []
     },
     {
+      "key": "8d279bd7dfa4fcabdde9e5e54c6fbba219fe33c064f6458e7cd6c346e897f190",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "campo",
+      "matches": []
+    },
+    {
       "key": "8d774cbd9bae0fad8ffe6032b7014226190ec940e50b64cece58184a00811801",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo teno una fruta",
@@ -6086,6 +6134,12 @@
       "key": "97558be1e32cb91424169428860467e854064b29c587512588a574d45a8c184c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Quieres una clase? ¿Sí o no?",
+      "matches": []
+    },
+    {
+      "key": "97915e1ba8f7d8ca2c610916ff61ea0f0323e28e878679c6fab2ca1a6771cfe5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "pescador",
       "matches": []
     },
     {
@@ -6652,6 +6706,12 @@
       "key": "a2ba9fd5fd084c40035bd58936e6666226de598135000e33c08ccd45e63aa17c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Una piedra",
+      "matches": []
+    },
+    {
+      "key": "a2e0cd16c31259b88712c532fd62d493e0683718e3f5f8db4d7cca55b0af6757",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "letrero",
       "matches": []
     },
     {
@@ -7469,6 +7529,12 @@
       "matches": []
     },
     {
+      "key": "b87c4fd8b78632cea5306da28c78f177d8ac023029317e1c9740549b7da1745a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "granjero",
+      "matches": []
+    },
+    {
       "key": "b892e594c171df2de3b988c2eb65306e71233a8d36514cbb284c02821c8a072b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "La manzana es muy caro",
@@ -7994,6 +8060,23 @@
       "matches": []
     },
     {
+      "key": "c7f8387f26073abc5e9c31bb259c9b4ae6a4ba36cbef823e167e1e91af821535",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "mi campamento",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "Mi"
+          ]
+        }
+      ]
+    },
+    {
       "key": "c8163b5359acb00f6496353986d5942be17b86be59af9c541ccda0e34197001d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo quero madera",
@@ -8079,6 +8162,12 @@
       "key": "c9591b6beb53042131318fd79a85cc74a299de30bdc8cf7c7b08a71c9017543a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, hace mucho sol.",
+      "matches": []
+    },
+    {
+      "key": "c96da4759f1316d5a242d3b718f3aeced07a9ea44b3ad3024b8a5120830a634d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "cascada",
       "matches": []
     },
     {
@@ -9052,6 +9141,12 @@
       "key": "e147ef3af5d09aa1ece94c7787d17246138dfb008b8330b30864c95b5dd00483",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Seis, siete, ocho, nueve, diez.",
+      "matches": []
+    },
+    {
+      "key": "e14e48ec077faaa099b6105727679883c368b32d1e0875250a9f17892649d9f1",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "herrería",
       "matches": []
     },
     {

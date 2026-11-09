@@ -250,7 +250,7 @@ public sealed class SceneTests(ITestOutputHelper output)
         Assert.Equal(5 * 2, counts[BlockId.Door]); // a two-block doorway each
         Assert.Equal(3, counts[BlockId.Stall]); // the counter
         Assert.Equal(3, counts[BlockId.Sign]); // the post column of the signpost's three boards
-        Assert.Equal(5, counts[BlockId.SignTiendaA] + counts[BlockId.SignTiendaB] + counts[BlockId.SignRio] + counts[BlockId.SignMontanaA] + counts[BlockId.SignMontanaB]); // the names: two, one and two cells
+        Assert.Equal(5, counts[BlockId.SignShopA] + counts[BlockId.SignShopB] + counts[BlockId.SignRiver] + counts[BlockId.SignMountainA] + counts[BlockId.SignMountainB]); // the names: two, one and two cells
         Assert.Equal(3 * 8, counts[BlockId.FireRing]); // three rings of eight stones: the two camps' and the smith's forge (V04)
         Assert.True(TrunkBlocks(grid) > 10_000, "a dense forest has many trunk blocks");
     }
@@ -495,7 +495,7 @@ public sealed class SceneTests(ITestOutputHelper output)
         {
             BlockId.Path, BlockId.Planks, BlockId.Door, BlockId.Table, BlockId.Torch, BlockId.Stall, BlockId.Roof, BlockId.Fence, BlockId.Wall, BlockId.FireRing,
             BlockId.Sign, BlockId.Bridge, BlockId.Bush, BlockId.BerryBush, BlockId.Timber, BlockId.Lantern, BlockId.Crate, BlockId.AwningRed, BlockId.AwningWhite,
-            BlockId.Canvas, BlockId.Chest, BlockId.Farmland, BlockId.SignTiendaA, BlockId.SignRio, BlockId.SignMontanaA,
+            BlockId.Canvas, BlockId.Chest, BlockId.Farmland, BlockId.SignShopA, BlockId.SignRiver, BlockId.SignMountainA,
         })
         {
             foreach (var p in grid.BlocksOfKind(kind))

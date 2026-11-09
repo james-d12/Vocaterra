@@ -65,9 +65,9 @@ public sealed class ContentSchemaTests
     public async Task ASchemaRejectsAMisspelledFieldAndAMissingOne()
     {
         var schema = await JsonSchema.FromFileAsync(Path.Combine(SchemaFolder, "nouns.schema.json"));
-        Assert.Empty(schema.Validate("""{ "schemaVersion": 1, "nouns": [{ "lemma": "pan", "items": ["bread"] }] }"""));
-        Assert.NotEmpty(schema.Validate("""{ "schemaVersion": 1, "nouns": [{ "lemma": "pan", "itmes": ["bread"] }] }"""));
-        Assert.NotEmpty(schema.Validate("""{ "schemaVersion": 1, "nouns": [{ "lemma": "pan", "items": ["loaf"] }] }"""));
+        Assert.Empty(schema.Validate("""{ "schemaVersion": 1, "nouns": [{ "id": "bread", "lemma": "pan", "items": ["bread"] }] }"""));
+        Assert.NotEmpty(schema.Validate("""{ "schemaVersion": 1, "nouns": [{ "id": "bread", "lemma": "pan", "itmes": ["bread"] }] }"""));
+        Assert.NotEmpty(schema.Validate("""{ "schemaVersion": 1, "nouns": [{ "id": "bread", "lemma": "pan", "items": ["loaf"] }] }"""));
     }
 
     [Fact]

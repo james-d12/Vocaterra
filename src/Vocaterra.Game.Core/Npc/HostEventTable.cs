@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Core.Npc;
@@ -119,6 +120,30 @@ public sealed class HostEventTable
         return count.ValueKind == JsonValueKind.Number && count.TryGetInt32(out var number) && number >= 1 && number <= ItemDefinition.Get(effect.Item).MaxStack
             ? effect with { Count = number }
             : throw new InvalidDataException($"{RelativePath}: the count of {npc}'s '{name}' must be \"{NpcEffect.QuantitySlot}\" or a number from 1 to the item's stack.");
+    }
+
+    /// <summary>
+    /// The same table with every noun an event names (<c>noun</c> of a pointing, <c>asked</c>, <c>instead</c> and <c>prices</c>) read through the noun catalogue (T03): the file names
+    /// them by neutral id (<c>bread</c>, <c>flour</c>), and the learner's line is matched by the target language's word for each (<see cref="NounCatalog.LemmaOfId"/>). An id the
+    /// catalogue does not have stays as it is, for the validator.
+    /// </summary>
+    /// <param name="nouns">The noun catalogue.</param>
+    public HostEventTable InLanguage(NounCatalog nouns)
+    {
+        ArgumentNullException.ThrowIfNull(nouns);
+        var table = new Dictionary<(string Npc, string HostEvent), NpcEffect>();
+        foreach (var (key, effect) in _table)
+        {
+            table[key] = effect with
+            {
+                Noun = effect.Noun.Length == 0 ? effect.Noun : nouns.LemmaOfId(effect.Noun),
+                Asked = effect.Asked?.Select(nouns.LemmaOfId).ToList(),
+                Instead = effect.Instead?.ToDictionary(pair => nouns.LemmaOfId(pair.Key), static pair => pair.Value, StringComparer.Ordinal),
+                Prices = effect.Prices?.ToDictionary(pair => nouns.LemmaOfId(pair.Key), static pair => pair.Value, StringComparer.Ordinal),
+            };
+        }
+
+        return new HostEventTable(table);
     }
 
     // The nouns whose request a gift answers (V21, "asked"): a list of catalogue lemmas, or none when the gift does not depend on the request.

@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "game/nouns.json",
-  "description": "The noun catalogue: each target-language noun the game names, the item kinds and block kinds it stands for. Loaded by NounCatalog (Vocaterra.Game.Core).",
+  "description": "The noun catalogue: each noun of the world by its neutral id, with the target-language noun the game names, the item kinds and block kinds it stands for. Loaded by NounCatalog (Vocaterra.Game.Core).",
   "type": "object",
   "required": ["schemaVersion", "nouns"],
   "additionalProperties": false,
@@ -14,15 +14,16 @@
   "definitions": {
     "noun": {
       "type": "object",
-      "required": ["lemma", "items"],
+      "required": ["id", "lemma", "items"],
       "additionalProperties": false,
       "properties": {
-        "lemma": { "type": "string", "minLength": 1, "description": "The noun's lemma; the lexicon must have a noun reading of it with a gender." },
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$", "description": "The noun's neutral id (tree, wood, oven): what the world's data (recipes, objectives, stations, actions, procedures, host events, the scene's labels) names it by, in no language. Unique." },
+        "lemma": { "type": "string", "minLength": 1, "description": "The target language's word for the noun: its lemma; the lexicon must have a noun reading of it with a gender." },
         "items": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/definitions/item" }, "description": "The item kinds the noun names; each item kind belongs to one noun." },
         "blocks": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/definitions/block" }, "description": "The block kinds the noun names." },
         "labels": { "type": "object", "additionalProperties": { "type": "string", "minLength": 1 }, "description": "The text that labels one of the noun's items when it is not the lemma (roast-apple: manzana asada)." },
         "mass": { "type": "boolean", "description": "A mass noun: the checklist shows the lemma, never the plural." },
-        "sources": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "The catalogue nouns this one is gathered from (madera from árbol)." }
+        "sources": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "The ids of the catalogue nouns this one is gathered from (wood from tree)." }
       }
     },
     "item": {
@@ -35,8 +36,8 @@
         "air", "grass", "dirt", "stone", "sand", "trunk", "leaves", "bush", "berry-bush", "water", "path", "planks", "door", "table", "torch", "stall",
         "roof", "fence", "wall", "fire-ring", "sign", "bridge", "snow", "spruce-trunk", "birch-trunk", "spruce-leaves", "birch-leaves", "tall-grass",
         "fern", "reeds", "yellow-flower", "white-flower", "mossy-stone", "cobble", "timber", "lantern", "crate", "awning-red", "awning-white",
-        "canvas", "chest", "farmland", "wheat", "loaves", "apples", "bottles", "sign-tienda-a", "sign-tienda-b", "sign-rio", "sign-montana-a",
-        "sign-montana-b", "post-torch"
+        "canvas", "chest", "farmland", "wheat", "loaves", "apples", "bottles", "sign-shop-a", "sign-shop-b", "sign-river", "sign-mountain-a",
+        "sign-mountain-b", "post-torch"
       ]
     }
   }
