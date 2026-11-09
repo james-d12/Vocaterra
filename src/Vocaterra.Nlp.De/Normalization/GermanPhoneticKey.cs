@@ -13,9 +13,9 @@ namespace Vocaterra.Nlp.De.Normalization;
 /// umlaut letters themselves. Rules, in order of reading: <c>ä</c> and <c>ae</c> are <c>e</c> (they sound alike), <c>ö</c> and <c>oe</c> stay <c>oe</c>, <c>ü</c> and
 /// <c>ue</c> stay <c>ue</c> (a vowel of their own: <c>schön</c> and <c>schon</c> differ); <c>eu</c> and <c>äu</c> are <c>oy</c>, <c>ei ai ey ay</c> are <c>ai</c>,
 /// <c>ie</c> is <c>i</c>, a doubled vowel is one (<c>Haar</c>, <c>See</c>), an <c>h</c> after a vowel is not sounded (<c>sehen</c>, <c>Bahn</c>); <c>sch</c> and <c>tsch</c>
-/// are <c>c</c>, <c>ch</c> is <c>x</c>, <c>chs</c> is <c>ks</c>, <c>ck</c> is <c>k</c>, <c>qu</c> is <c>kw</c>, <c>ph</c> and <c>v</c> are <c>f</c>, <c>w</c> is <c>v</c>, <c>z</c>, <c>tz</c> and <c>c</c> before
+/// are <c>c</c>, <c>ch</c> is <c>x</c>, <c>chs</c> is <c>ks</c>, <c>ck</c> is <c>k</c>, <c>qu</c> is <c>kv</c>, <c>ph</c> and <c>v</c> are <c>f</c>, <c>w</c> is <c>v</c>, <c>z</c>, <c>tz</c>, <c>ts</c> and <c>c</c> before
 /// a front vowel are <c>z</c>, <c>c</c> elsewhere <c>k</c>, <c>j</c> and <c>y</c> are <c>y</c>, <c>x</c> is <c>ks</c>, <c>dt</c> and <c>th</c> are <c>t</c>, <c>s</c>, <c>ss</c> and <c>ß</c> are <c>s</c>, an initial
-/// <c>st</c> and <c>sp</c> are <c>ct</c> and <c>cp</c>; a final <c>b d g</c> is <c>p t k</c> (the final devoicing); doubled consonants collapse; accents of other letters
+/// <c>st</c> and <c>sp</c> are <c>ct</c> and <c>cp</c>; a final <c>b d g</c> is <c>p t k</c> (the final devoicing); doubled consonants and vowels collapse (doubled digits do not); accents of other letters
 /// are stripped. Digits are kept; any other character separates words, which are joined by a single space. A lone surrogate counts as U+FFFD.
 /// </remarks>
 public sealed class GermanPhoneticKey : IPhoneticKey
@@ -142,6 +142,11 @@ public sealed class GermanPhoneticKey : IPhoneticKey
                 Emit(key, start, "z");
                 i += 2;
             }
+            else if (rest.StartsWith("ts", StringComparison.Ordinal))
+            {
+                Emit(key, start, "z");
+                i += 2;
+            }
             else if (rest.StartsWith("ph", StringComparison.Ordinal))
             {
                 Emit(key, start, "f");
@@ -149,7 +154,7 @@ public sealed class GermanPhoneticKey : IPhoneticKey
             }
             else if (rest.StartsWith("qu", StringComparison.Ordinal))
             {
-                Emit(key, start, "kw");
+                Emit(key, start, "kv");
                 i += 2;
             }
             else if (rest.StartsWith("dt", StringComparison.Ordinal) || rest.StartsWith("th", StringComparison.Ordinal))
@@ -205,7 +210,7 @@ public sealed class GermanPhoneticKey : IPhoneticKey
     // Appends the symbols unless they repeat the symbol just written (doubled letters and doubled vowels are one sound).
     private static void Emit(StringBuilder key, int wordStart, string symbols)
     {
-        if (key.Length > wordStart && symbols.Length == 1 && key[^1] == symbols[0])
+        if (key.Length > wordStart && symbols.Length == 1 && key[^1] == symbols[0] && !char.IsAsciiDigit(symbols[0]))
         {
             return;
         }

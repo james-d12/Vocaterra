@@ -31,7 +31,7 @@ public sealed class GermanLanguagePack : ILanguagePack
 
     /// <summary>
     /// The lexicon profile of the German lexicon files (<c>wiktionary-de.json</c>): three genders, two numbers, three persons, the present and the preterite,
-    /// the indicative, the subjunctive and the imperative, four cases, the verb forms of the participles, four declension classes and the separable particles.
+    /// the indicative, the subjunctive and the imperative, four cases, the verb forms of the participles, four declension classes, the separable particles and the formal register of the pronoun <c>Sie</c>.
     /// </summary>
     public static LexiconProfile Profile { get; } = new(
         ["m", "f", "n"],
@@ -42,6 +42,7 @@ public sealed class GermanLanguagePack : ILanguagePack
         cases: ["nom", "acc", "dat", "gen"],
         verbForms: ["inf", "part1", "part2", "part2-haben", "part2-sein"],
         declensions: ["strong", "weak", "mixed", "irregular"],
+        registers: ["formal"],
         particles:
         [
             "ab", "an", "auf", "aus", "auseinander", "bei", "bereit", "da", "dabei", "dar", "davon", "dazu", "drauf", "durch", "ein", "entgegen", "fest", "fort", "frei",

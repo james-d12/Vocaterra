@@ -43,6 +43,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vocaterra.Nlp.Es.Tests", "t
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vocaterra.Nlp.De", "src\Vocaterra.Nlp.De\Vocaterra.Nlp.De.csproj", "{08DDB7FA-D26B-4EB9-8489-B548E4568F01}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vocaterra.Nlp.De.Tests", "tests\Vocaterra.Nlp.De.Tests\Vocaterra.Nlp.De.Tests.csproj", "{0B8AE2F4-6B4C-49BE-91C7-C7D5051C53BF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -257,6 +259,18 @@ Global
 		{08DDB7FA-D26B-4EB9-8489-B548E4568F01}.Release|x64.Build.0 = Release|Any CPU
 		{08DDB7FA-D26B-4EB9-8489-B548E4568F01}.Release|x86.ActiveCfg = Release|Any CPU
 		{08DDB7FA-D26B-4EB9-8489-B548E4568F01}.Release|x86.Build.0 = Release|Any CPU
+		{0B8AE2F4-6B4C-49BE-91C7-C7D5051C53BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B8AE2F4-6B4C-49BE-91C7-C7D5051C53BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B8AE2F4-6B4C-49BE-91C7-C7D5051C53BF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0B8AE2F4-6B4C-49BE-91C7-C7D5051C53BF}.Debug|x64.Build.0 = Debug|Any CPU
+		{0B8AE2F4-6B4C-49BE-91C7-C7D5051C53BF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0B8AE2F4-6B4C-49BE-91C7-C7D5051C53BF}.Debug|x86.Build.0 = Debug|Any CPU
+		{0B8AE2F4-6B4C-49BE-91C7-C7D5051C53BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B8AE2F4-6B4C-49BE-91C7-C7D5051C53BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B8AE2F4-6B4C-49BE-91C7-C7D5051C53BF}.Release|x64.ActiveCfg = Release|Any CPU
+		{0B8AE2F4-6B4C-49BE-91C7-C7D5051C53BF}.Release|x64.Build.0 = Release|Any CPU
+		{0B8AE2F4-6B4C-49BE-91C7-C7D5051C53BF}.Release|x86.ActiveCfg = Release|Any CPU
+		{0B8AE2F4-6B4C-49BE-91C7-C7D5051C53BF}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -279,5 +293,6 @@ Global
 		{C0D4013E-7195-4AE9-92CF-4B0D74B35AF6} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{DCF27389-DD0E-462B-BD9C-6882ADED1027} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{08DDB7FA-D26B-4EB9-8489-B548E4568F01} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{0B8AE2F4-6B4C-49BE-91C7-C7D5051C53BF} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 	EndGlobalSection
 EndGlobal

@@ -7,6 +7,7 @@
       "src\\Vocaterra.Nlp.De\\Vocaterra.Nlp.De.csproj",
       "tests\\Vocaterra.Nlp.Tests\\Vocaterra.Nlp.Tests.csproj",
       "tests\\Vocaterra.Nlp.Es.Tests\\Vocaterra.Nlp.Es.Tests.csproj",
+      "tests\\Vocaterra.Nlp.De.Tests\\Vocaterra.Nlp.De.Tests.csproj",
       "tests\\Vocaterra.Nlp.Fuzzing.Tests\\Vocaterra.Nlp.Fuzzing.Tests.csproj",
       "tests\\Vocaterra.Nlp.Golden.Tests\\Vocaterra.Nlp.Golden.Tests.csproj",
       "tools\\Vocaterra.Nlp.Cli\\Vocaterra.Nlp.Cli.csproj",
