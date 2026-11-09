@@ -230,8 +230,8 @@ and its JSON (see ADR 0012), `ErrorTags` and `ErrorTagSet.V1` (the frozen v1 tax
 
 ### The German pack project (M37)
 
-`src/Vocaterra.Nlp.De` (namespace `Vocaterra.Nlp.De`, folders `Normalization` and `Text`) is the second pack, de-DE with Austrian and Swiss spellings accepted (a Swiss `ss` for `ß` is not an
-error). M37 is its text layer; the morphology (M38), the analysis rules (M39) and the template functions (M40) are placeholders, so a full German bundle does not load yet. The engine does not
+`src/Vocaterra.Nlp.De` (namespace `Vocaterra.Nlp.De`, folders `Normalization`, `Text` and `Morphology`) is the second pack, de-DE with Austrian and Swiss spellings accepted (a Swiss `ss` for `ß` is not an
+error). M37 is its text layer and M38 its morphology; the analysis rules (M39) and the template functions (M40) are placeholders, so a full German bundle does not load yet. The engine does not
 reference it (`LayeringTests`).
 
 ```csharp
@@ -244,7 +244,21 @@ Lexicon lexicon = GermanLexicon.Load(json);                        // the German
   `GrammarDefaults` (no dropped subject, `bitte` leading, trailing and after the finite verb), `Lint`, `Samples`, `GrammaticalCases` (`nom acc dat gen`), `LexiconProfile`
   (`GermanLanguagePack.Profile`: genders `m f n`, four cases, the verb forms, declensions, the separable particles and the register `formal`), `ErrorTags` (`GermanLanguagePack.Tags`:
   the v1 tags then `orth.capital`). Defaulted: `SupportsV2Order` false until M40. Placeholders: `G2p` is null (no pronunciation scoring or phone-fed speech until the German G2P
-  of M43/M93) and `CreateMorphology`, `CreateAnalysisRules` and `CreateTemplateFunctions` throw `NotSupportedException` naming M38, M39 and M40.
+  of M43/M93) and `CreateAnalysisRules` and `CreateTemplateFunctions` throw `NotSupportedException` naming M39 and M40; `CreateMorphology` returns a `GermanMorphology` (M38, below).
+- **`GermanMorphology`** (M38, `Vocaterra.Nlp.De.Morphology`, `new GermanMorphology(lexicon)` or `pack.CreateMorphology(lexicon)`; an `IMorphology`, no engine change): lexicon first, rules second.
+  `Article(definiteness, gender, number[, nounLemma[, case]])` (`der den dem des`, `ein einen einem eines`; empty indefinite plural; a null case is `nom`), `Kein(gender, number, case)`,
+  `Possessive(possessor, gender, number, case)` (`ich du er sie es wir ihr` and the formal `Sie`, capital S; `mein euer eure Ihr`). Nouns come back capitalised (the lexicon is lower
+  case): `Pluralize`, `Singularize`, `InflectNoun(lemma, number)`, `DeclineNoun(lemma, number, case)` (`Junge` to `Jungen`, dative plural `-n`; Wiktionary's variants are broken by
+  preferring the weak entry, the plural that differs from the singular, the umlaut, `-n` in the dative plural), `GenderOf(lemma)` (the first uncased singular entry), and a
+  rule guess for a noun the lexicon lacks. `DeclineAdjective(adjective, gender, number, case, Definiteness?)` (strong with no article, weak after the definite, mixed after the
+  indefinite; `AgreeAdjective` is the strong nominative) is what M40's `decl()` calls. `Conjugate(lemma, person, number, tense)` has `pres`, `pret`, `perf` (`ist gefahren`: the
+  auxiliary's present and the participle) and `imp` (second person singular and plural; first and third plural give the present form for `gehen wir`, `gehen Sie`); a separable verb's
+  finite form is the stem alone (`stehe`) and `SeparableParticle(lemma)` (M40's `particle()`) or `Split(lemma, person, number, tense)` gives the particle for the end of the
+  clause. `Auxiliary(lemma)` and `Participle(lemma)` expose the Perfekt (where the lexicon lists both `part2-haben` and `part2-sein`, `sein` for verbs of motion and change of state).
+  `Paradigm` is the six persons (the formal `Sie` shares the third plural) by `pres`, `pret`, `perf`; `ParadigmOf` shows a separable verb as `stehe … auf` and the Perfekt as
+  `bin aufgestanden`. Regularised forms: `TryGetGermanRegularization(form, out GermanRegularizedForm)` (a `RegularizedForm` and a `Kind`: `stem-change` `fahrst`, `weak-preterite` `gehte`
+  `habte`, `weak-participle` `gegeht`; the participle's person and number are empty and its tense `perf`), `TryGetGermanRegularizationOfWord` (the stem-change kind for a form that is
+  also a word, `fahrt` for `fährt`), and the `IMorphology` members over them; a form of a separable verb is shared with its simple verb, which is reported. Generation never produces them.
 - **`GermanContent`**: `Options`, `WithGerman(this LanguagePacks)`, `Load(dir, options = null)`. **`GermanLexicon`**: `Folding`, `Empty`, `Load`, `FromEntries`.
 - **`GermanNormalizer`** (`Normalization`): NFC and invariant lower case with `Token.Original` as typed (the capitals live there); the German quotes `„…“` `»…«` and every other mark
   are dropped, hyphens between word characters kept; with `ExpandContractions`, `am im zum zur beim vom ins ans aufs ums durchs fürs übers` become two tokens that both carry the
